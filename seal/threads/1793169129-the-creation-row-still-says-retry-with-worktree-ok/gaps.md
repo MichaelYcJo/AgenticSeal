@@ -14,7 +14,7 @@ Under the automation press, the single-stream creation deny in another clone tol
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck, including whether `.test_durations` still prices the suite with this work's three new node ids unpriced | the orchestrator, through `seal gate` |
+| closed The full suite, the repository-wide lint and the typecheck, including whether `.test_durations` still prices the suite with this work's three new node ids unpriced | executed by the orchestrator's broad gate at `4a568c76` against `977b6613`, passed (`trail/gate.md`), `test_the_durations_file_prices_the_suite` among the suite it ran, and this repository declares no typecheck (`seal/config.md` *Broad gate*; #951 would add one) |
 
 ## Not done
 

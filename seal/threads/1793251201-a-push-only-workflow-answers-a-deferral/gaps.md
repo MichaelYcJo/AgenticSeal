@@ -17,7 +17,7 @@
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide `ruff check` and `ruff format --check`, and the typecheck on this branch | the orchestrator, through `seal gate` |
+| closed The full suite, the repository-wide `ruff check` and `ruff format --check`, and the typecheck on this branch | executed by the orchestrator's broad gate at `6ef65ee06` against `10942072d`, passed (`trail/gate.md`), and this repository declares no typecheck (`seal/config.md` *Broad gate*; #951 would add one) |
 
 ## Not done
 

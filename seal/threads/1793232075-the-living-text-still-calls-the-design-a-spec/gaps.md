@@ -23,7 +23,7 @@ outrank the code first*, and `code-review`'s first stage is "compliance".
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide `ruff check` and `ruff format --check`, and the typecheck on this branch, including `.test_durations` against the renamed parametrize id of `test_each_sibling_is_refused_with_its_own_purpose` | the orchestrator, through `seal gate` |
+| closed The full suite, the repository-wide `ruff check` and `ruff format --check`, and the typecheck on this branch, including `.test_durations` against the renamed parametrize id of `test_each_sibling_is_refused_with_its_own_purpose` | executed by the orchestrator's broad gate at `d5b58477` against `475653e7`, passed (`trail/gate.md`), `test_the_durations_file_prices_the_suite` among the suite it ran, and this repository declares no typecheck (`seal/config.md` *Broad gate*; #951 would add one) |
 | closed Phase 3, and C1, C2 and C3 printing only kept lines across the whole tree (S1), after #1020 merges into `release/v0.24.0` | #1020 moved to 0.25.0 (`frame/questions.md` Q1 at `6d33f30b`); phase 3 built at `3816dfca`, and C1 to C3 there read against the kept table in `trail/phases/phase-3.md` |
 
 ## Not done

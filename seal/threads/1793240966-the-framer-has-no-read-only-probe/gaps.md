@@ -18,8 +18,8 @@ A question a read-only command answers was queued for the build as an `a measure
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck over the branch | the orchestrator, at `seal gate --base release/v0.24.1 --record 1793240966-the-framer-has-no-read-only-probe` |
-| The new rule's no-row half: that a framer leaves no `a measurement` row for a question a probe could answer in its environment | nobody after round 1. No case reads it since `shape-no-measurement-row` was removed at `7ac24a06`, and no agent definition or orchestration step opens `frame/questions.md` to judge a row's reason against the rule: the proofer's reading list in `agents/proofer.md` does not name the file, and `skills/implement/orchestration.md` names it only where the framer writes it. Round 1 read this work item's own `frame/questions.md` and found no `a measurement` row. For later work items it is a limit of the rule, read only where a person opens a frame |
+| closed The full suite, the repository-wide lint and the typecheck over the branch | executed by the orchestrator's broad gate at `7cfe9334` against `99853d04`, passed (`trail/gate.md`), and this repository declares no typecheck (`seal/config.md` *Broad gate*; #951 would add one) |
+| closed The new rule's no-row half: that a framer leaves no `a measurement` row for a question a probe could answer in its environment | answered by #1158 (work item `1793251204-the-framer-is-handed-the-body-without-its-comments`, #1166): the grader `shape-no-measurement-row` of `evals/behaviour/framer/rule-framer-generated-page/` reads the no-row half; it was not seen red, and the owner kept `Closes #1158`, which closed completed at 0.24.2's merge into `main`, 2026-10-29 |
 
 ## Not done
 

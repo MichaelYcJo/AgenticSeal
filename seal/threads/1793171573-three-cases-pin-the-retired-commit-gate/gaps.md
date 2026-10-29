@@ -19,7 +19,7 @@ None. The issue's coordinates held at `27a6bb6d`, and the build followed it.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide `ruff check` and `ruff format --check` on this branch, including `test_the_durations_file_prices_the_suite` against the three removed entries | the orchestrator, through `seal gate` |
+| closed The full suite, the repository-wide `ruff check` and `ruff format --check` on this branch, including `test_the_durations_file_prices_the_suite` against the three removed entries | executed by the orchestrator's broad gate at `7a39f2e8` against `c825fd2c`, passed (`trail/gate.md`), `test_the_durations_file_prices_the_suite` among the suite it ran |
 
 ## Not done
 

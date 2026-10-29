@@ -19,11 +19,11 @@ Issue #956 asks which checks that read written text pass what they cannot read; 
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck over this branch; no tree file outside this directory changed, and none was run | the orchestrator, through `seal gate` |
-| R40: how `claude plugin eval` reads a `not_contains` grader whose target file is absent; the harness's reader is not in this tree and no eval was run | the framer of #1038's R40 item, by one eval run over a case whose agent writes no such file |
-| R28: whether GitHub itself creates a closing reference from `Closes #18` inside an HTML comment, which all four of this repository's readers read as a claim | the orchestrator, from a pull request on GitHub or GitHub's documentation |
-| R37: 131 of the 305 negative asserts matched neither of the probe's word lists, so the count reading a tracked file is between 123 and 264 | #1038, whose sorting of the asserts reads each one |
-| R13's base-side relaxations (a legacy header, the old `none` line, U+2705) were read and not probed; they apply only to the base revision's side of `--baseline` | the proofer of this work item, by a probe of `--baseline` over a base holding each shape |
+| closed The full suite, the repository-wide lint and the typecheck over this branch; no tree file outside this directory changed, and none was run | executed by the orchestrator's broad gate at `441bb9fd` against `5287dd42`, passed (`trail/gate.md`), and this repository declares no typecheck (`seal/config.md` *Broad gate*; #951 would add one) |
+| closed R40: how `claude plugin eval` reads a `not_contains` grader whose target file is absent; the harness's reader is not in this tree and no eval was run | re-homed to #1038, whose candidate 3 reads #956's audit row by row; the audit's *Fix* cell for R40 names #1038, and the row is listed in its comment of 2026-10-29 |
+| closed R28: whether GitHub itself creates a closing reference from `Closes #18` inside an HTML comment, which all four of this repository's readers read as a claim | re-homed to #1181 |
+| closed R37: 131 of the 305 negative asserts matched neither of the probe's word lists, so the count reading a tracked file is between 123 and 264 | re-homed to #1038, whose candidate 3 reads #956's audit row by row; the audit's *Fix* cell for R37 names #1038, and the row is listed in its comment of 2026-10-29 |
+| closed R13's base-side relaxations (a legacy header, the old `none` line, U+2705) were read and not probed; they apply only to the base revision's side of `--baseline` | executed by the settle session, 2026-10-29: `check_text` with `strict_header=False` read the row of a table whose legacy header names its second column `Who` as open, the old `none — <why>` line as no rows and a U+2705 row as closed, and with `strict_header=True` refused each, as its docstring says (`skills/verify/scripts/unverified_check.py:860`) |
 
 ## Not done
 

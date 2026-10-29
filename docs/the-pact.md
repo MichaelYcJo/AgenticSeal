@@ -65,8 +65,8 @@ check: tests/behaviour/test_a_signer_declares_its_pact.py tests/behaviour/test_e
 **Every signer but the pact's repository names the pact in a `Pact` row
 of its `seal/config.md`, and one reader answers that row for every
 caller.** `Pact` is the origin remote URL of the pact's repository, several
-separated by `;`, compared normalised; its last path segment is the name an
-anchor carries, so two pacts ending in one segment are refused.
+separated by `;`, compared normalised, and a pact anchor names the pact by
+that same URL.
 `hooks/lib/config.py#pact_declaration` refuses what will not parse in a sentence
 and stops nothing, so every reader of the row reads the same row. A `Pact`
 row written twice has no value at all: its first row is not the answer. A
@@ -76,29 +76,54 @@ check: tests/behaviour/test_a_signer_declares_its_pact.py tests/skills/test_pact
 
 ## The pact anchor
 
-**A signer cites a clause as `pact:<name>/"<heading path>"@<hash>`.** Every
-`##` heading of `seal/pact.md` below its `| Signer |` table is a clause, and
-a `###` narrows inside one. The hash is the content hash
-`coordinates.py#content_hash` gives the clause's region, the value a
-local coordinate to that heading carries. A signer writes the anchor in a
-spec's Grounding, recording what the work was built against.
-check: tests/skills/test_pact_check.py tests/skills/test_coordinates.py
+**A signer cites a clause as one row of a `| Pact | Clause | Hash |` table in
+a work item's `frame/design.md`, and `seal pact` reads the table with
+`hooks/lib/config.py#gfm_table`.** The row is the pact anchor, and it records
+what the work was built against. `Pact` is the origin remote URL of the
+pact's repository, as the signer's `Pact` row writes it, compared
+normalised. `Clause` is the clause's heading path, such as
+`## Order response shape / ### Fields`: every `##` heading of `seal/pact.md`
+below its `| Signer |` table is a clause, and a `###` narrows inside one.
+`Hash` is the eight lowercase hex digits `coordinates.py#content_hash` gives
+the clause's region, `00000000` until the first report names the real one.
+The walker reads the table as GitHub renders it, as it reads every other
+table here, so nothing in a row is quoted or escaped except a pipe, written
+`\|`. A row naming another pact the signer's `Pact` row declares is passed
+over, for that pact's `seal pact` to grade.
+check: tests/skills/test_pact_check.py tests/skills/test_coordinates.py tests/hooks/test_config.py
 
-**A token begins a pact anchor where `pact:<name>` is followed at once by
-`/` or `#`, or by the rest of an anchor with its `/` missing, and
-`seal pact` refuses a token that begins one and does not go on to parse.**
-The rest of an anchor is a quoted heading path closed by `@`, or `@` and a
-hash, at once or after one mark or one space. The marks are `.`, `-` and `_`,
-which the name itself could otherwise hold, and one of them standing just
-before the `/` counts too, so the commonest typos are named rather than read
-by nobody. Anything else naming the pact is a mention and is left alone:
-`pact:<name>` followed by punctuation, a space or the end of a code span. The
-one form that begins an anchor and is not an attempt is the one this plugin
-prints to show the shape, its heading path a placeholder, `/"<heading path>"`.
-So `pact:<name>/` written in prose is refused, and the refusal names both
-ways out: quote the heading path and give it a hash, or, where the text shows
-the shape rather than citing a clause, put it in a fenced code block, which
-nothing reads.
+**The anchor table is the table whose header means `| Pact | Clause | Hash |`,
+and one closed normalisation decides that.** Each header cell is compared
+case folded, after one emphasis run is removed where it wraps the whole cell:
+`*` or `_`, one to three long, the same run on both sides and no space just
+inside it. So `| pact | clause | hash |` and `| **Pact** | Clause | Hash |`
+head the anchor table, and its rows are graded and refused as the exact
+header's are. GitHub renders a header cell bold, and the same letters in
+another case are the same word, so a script that answered that these differ
+would report a signer citing nothing where it cites a clause. Nothing else is
+in the normalisation. A code span is a mention of the word rather than a use,
+strikethrough marks it deleted, and a plural, another word, another order or
+another width is another table. A second header the normalisation reads is
+refused as a second anchor table.
+check: tests/skills/test_pact_check.py
+
+**`seal pact` refuses, at exit 2, a row of the anchor table it cannot grade
+and every `pact:` token in a signer's frame.** A row whose `Pact` cell is not
+one remote URL names no pact anybody can tell, and a row naming this pact
+whose `Clause` cell does not open with a heading, or whose `Hash` cell is not
+eight lowercase hex digits, grades nothing; each is refused at its line. A
+row whose `Pact` cell names a pact the signer's `Pact` row does not declare,
+such as a remote one letter off the pact's, is refused at its line, because
+no `seal pact` grades it: another pact's reports the signer `ONE-SIDED` and
+reads none of its frames. A `pact:` token outside a fenced code block, in any
+case, is the inline anchor `seal pact` read through 0.23.x, and it is refused
+at its line with the row to write in its place. A token with a space beside
+its colon is not read: prose writes the word before a colon and a space, and
+no release read that spelling as an anchor. A frame leaves the tree at the
+settle after its release, so the rewrite is one row in a file that is leaving
+anyway, and a token passed over would read as a signer citing nothing. A text
+that shows the retired shape rather than citing a clause puts it in a fenced
+code block, which nothing reads.
 check: tests/skills/test_pact_check.py
 
 ## A signer's CI reads nothing of the pact
@@ -114,15 +139,20 @@ check: none reader: review
 
 **`seal pact`, run at the pact's repository, reads every signer the pact
 lists and says which way each mismatch points.** It finds each checkout
-through `~/.claude/agentic/pact-paths.md` or the one sibling directory with
-that origin, guessing nothing; refuses a signer whose config does not
-name the pact; and grades every anchor naming the pact. `SUPERSEDED` means
-HEAD's own history gave the clause that hash, so the signer was built
-against a replaced clause; `NOT TAKEN` means only another ref did, and names
-it, so the pact has not taken the signer's recorded change; `UNMATCHED`
-means no commit did; `BROKEN` means the heading path names no single clause.
-Git decides the direction and never decides `OK`. Exit 1 is a mismatch or a
-checkout not found, and exit 2 is unusable input.
+through the `| Remote | Path |` table of `~/.claude/agentic/pact-paths.md`
+or the one sibling directory with that origin, guessing nothing; refuses a
+signer whose config does not name the pact; and grades every anchor naming
+the pact. The map is read by `gfm_table`, as every other table is, and a map
+that is there and will not read, holds no such table, holds it twice, or has
+a row the walk does not read is refused at exit 2, because a row nobody reads
+reports its signer as not found. A remote written on two rows of the map is
+refused, and neither row is read. `SUPERSEDED` means HEAD's own history gave
+the clause that hash, so the signer was built against a replaced clause;
+`NOT TAKEN` means only another ref did, and names it, so the pact has not
+taken the signer's recorded change; `UNMATCHED` means no commit did; `BROKEN`
+means the heading path names no single clause. Git decides the direction and
+never decides `OK`. Exit 1 is a mismatch or a checkout not found, and exit 2
+is unusable input.
 check: tests/skills/test_pact_check.py tests/hooks/test_config.py
 
 ## What this does not see
@@ -139,3 +169,16 @@ signer re-reads, and renaming the heading is one each of them has to
 re-coordinate. And `seal pact` runs where a person runs it: nothing on a
 pull request reconciles anything.
 check: tests/skills/test_pact_check.py
+
+**`seal pact` reads the anchor table and nothing else in a frame.** A table
+under a header outside the normalisation, such as `| Pact | Clause | Hashes |`,
+and a row no anchor table holds are neither graded nor refused, and the
+signer's `READ` line does not count them. Whether such a line was meant as an
+anchor is a judgment of meaning, and a grammar written to make it finds a new
+shape at every reading. So the proofer makes it, at stage 1 of the signer's
+own review. It reads the work item's `frame/design.md` against the shape
+`seal pact` reads and the signer's `Pact` row, and a line meant as an anchor
+that `seal pact` does not read is a finding. A signer whose work item goes
+straight to the pull request has no proofer, and there the `READ` line's
+count is the only sign.
+check: tests/skills/test_pact_check.py skills/code-review/SKILL.md

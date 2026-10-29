@@ -15,7 +15,7 @@ Every orchestrating session read the bootstrap and the parity setup before its f
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck over this branch | the orchestrator, at `seal gate --record` after the review rounds settle |
+| closed The full suite, the repository-wide lint and the typecheck over this branch | executed by the orchestrator's broad gate at `79d1369c` against `1e82fd0a`, passed (`trail/gate.md`), and this repository declares no typecheck (`seal/config.md` *Broad gate*; #951 would add one) |
 
 ## Not done
 

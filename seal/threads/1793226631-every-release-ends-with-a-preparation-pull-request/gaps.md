@@ -20,8 +20,8 @@ A release ended with a preparation pull request and a tag the owner pushed by ha
 
 | Item | Who must answer |
 |---|---|
-| Whether `gh api -X POST repos/<REPO>/git/refs` with the workflow's token creates the tag on this repository (`frame/questions.md` Q4) | the orchestrator, reading `gh run list --workflow publish-release.yml --limit 1` and that run's log after 0.24.0's merge into `main` |
-| `console.to_utf8()` in `tag_release.py` has no case: its mutant survived, since no census reads `.github/scripts/` | the repository owner, through the existing `seal/follow-up.md` row on `console.to_utf8()` |
+| closed Whether `gh api -X POST repos/<REPO>/git/refs` with the workflow's token creates the tag on this repository (`frame/questions.md` Q4) | executed by `publish-release.yml` run 40804940585 at 0.24.0's merge into `main`, 2026-10-29: `tag_release.py` printed "created v0.24.0 on 1e82fd0a" with the workflow's token |
+| closed `console.to_utf8()` in `tag_release.py` has no case: its mutant survived, since no census reads `.github/scripts/` | re-homed to the row already holding it, `seal/follow-up.md:49`, on `console.to_utf8()` owed by each entry point under `.github/scripts/` |
 
 ## Not done
 

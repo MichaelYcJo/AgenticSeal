@@ -16,9 +16,9 @@ In #955 and #1016 the orchestrator rewrote every `verdict:` line in a commit of 
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck at this work item's last commit | the orchestrator, through `seal gate` (contract rule 2) |
-| S5: the `add` item in `frame/design.md` `## Rule changes` parses whole through `skills/settle/scripts/rule_changes.py` | the round's proofer, through its `chain_check.py` run over the branch |
-| S6: the changelog fragment names the cause as `frame/design.md` *Scope* item 5 states it | the round's proofer and the sealer, by reading |
+| closed The full suite, the repository-wide lint and the typecheck at this work item's last commit | executed by the orchestrator's broad gate at `cda81b01` against `8a1173c8`, passed (`trail/gate.md`), and this repository declares no typecheck (`seal/config.md` *Broad gate*; #951 would add one) |
+| closed S5: the `add` item in `frame/design.md` `## Rule changes` parses whole through `skills/settle/scripts/rule_changes.py` | executed by the settle's dry run, `seal settle` on 2026-10-29: the `add` item at `frame/design.md:252` parsed whole and joined the group for `docs/the-review-record.md` *The round record* |
+| closed S6: the changelog fragment names the cause as `frame/design.md` *Scope* item 5 states it | read by the sealer: `guarantee.md:20` holds S6 and the changelog's cause against `changelog.md:5` |
 
 ## Not done
 

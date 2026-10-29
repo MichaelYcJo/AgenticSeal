@@ -16,8 +16,8 @@ A rename or a move paid for a case written new and a `seal mutate` run its exist
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide `ruff check` and `ruff format --check`, and the typecheck on this branch | the orchestrator, through `seal gate` |
-| Whether `rule-crafter-count-words`, `rule-crafter-truncate` and `rule-crafter-is-palindrome` still pass against the branch's crafter. The plan ran `rule-crafter-slugify` alone as the arm that adds behaviour | the orchestrator, at the next comparison of the crafter that runs the behaviour suite |
+| closed The full suite, the repository-wide `ruff check` and `ruff format --check`, and the typecheck on this branch | executed by the orchestrator's broad gate at `36a89ab2` against `1e82fd0a`, passed (`trail/gate.md`), and this repository declares no typecheck (`seal/config.md` *Broad gate*; #951 would add one) |
+| closed Whether `rule-crafter-count-words`, `rule-crafter-truncate` and `rule-crafter-is-palindrome` still pass against the branch's crafter. The plan ran `rule-crafter-slugify` alone as the arm that adds behaviour | re-homed to #1178 |
 
 ## Not done
 

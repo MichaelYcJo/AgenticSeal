@@ -20,8 +20,8 @@ the section-citation case, through the same `flowing`.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide `ruff check` and `ruff format --check`, and the typecheck on this branch | the orchestrator, through `seal gate` |
-| Whether the five new case ids, which have no `.test_durations` key, stay under `STALE_SHARE` | the orchestrator, through `seal gate` |
+| closed The full suite, the repository-wide `ruff check` and `ruff format --check`, and the typecheck on this branch | executed by the orchestrator's broad gate at `1aa8115b` against `8d8d6390`, passed (`trail/gate.md`), and this repository declares no typecheck (`seal/config.md` *Broad gate*; #951 would add one) |
+| closed Whether the five new case ids, which have no `.test_durations` key, stay under `STALE_SHARE` | executed by the same broad gate at `1aa8115b`: `test_the_durations_file_prices_the_suite`, which holds the unpriced share under `STALE_SHARE` (`tests/behaviour/test_the_windows_leg_runs_in_shards_that_make_the_whole.py:90`), passed in it |
 
 ## Not done
 

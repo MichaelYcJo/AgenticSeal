@@ -19,8 +19,8 @@ rule's `check:` line names what reads the rule.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide `ruff check` and `ruff format --check`, and the typecheck on this branch, including `test_the_durations_file_prices_the_suite` against six unpriced case ids and the removed ones | the orchestrator, through `seal gate` |
-| Whether the four crafter eval cases and the three sealer eval cases that rules 2, 5 and 7 now name pass on a run | the orchestrator, at the next preload rewrite that runs the behaviour evals |
+| closed The full suite, the repository-wide `ruff check` and `ruff format --check`, and the typecheck on this branch, including `test_the_durations_file_prices_the_suite` against six unpriced case ids and the removed ones | executed by the orchestrator's broad gate at `16d88200` against `4134055a`, passed (`trail/gate.md`), `test_the_durations_file_prices_the_suite` among the suite it ran, and this repository declares no typecheck (`seal/config.md` *Broad gate*; #951 would add one) |
+| closed Whether the four crafter eval cases and the three sealer eval cases that rules 2, 5 and 7 now name pass on a run | re-homed to #1178 |
 
 ## Not done
 

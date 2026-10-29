@@ -14,8 +14,8 @@ Five agent definitions restated contract rules 2, 6, 7 and 9 in their own words,
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck at this work item's last commit | the orchestrator, through `seal gate` (contract rule 2) |
-| Three units this phase wrote survive `seal mutate`, so no case reads them: the proofer's `a check rule 2 excludes`, the sealer's lead `A missing or stale gate record earns what step 1 says.`, and the crafter's `the label is step 10's` (`trail/phases/phase-1.md`) | the repository owner, through #1111, which decides which phrase pins stand |
+| closed The full suite, the repository-wide lint and the typecheck at this work item's last commit | executed by the orchestrator's broad gate at `2bad2cef` against `c825fd2c`, passed (`trail/gate.md`), and this repository declares no typecheck (`seal/config.md` *Broad gate*; #951 would add one) |
+| closed Three units this phase wrote survive `seal mutate`, so no case reads them: the proofer's `a check rule 2 excludes`, the sealer's lead `A missing or stale gate record earns what step 1 says.`, and the crafter's `the label is step 10's` (`trail/phases/phase-1.md`) | answered by #1111 (work item `1793226630-most-contract-rules-are-proved-by-their-own-wording`, merged in #1146, closed completed): a phrase pin on a rule sentence stops nothing the check exists to stop, so it removed them, and the three units are rule phrases (`agents/proofer.md:139`, `agents/sealer.md:123`, `agents/crafter.md:146`) that are owed no pin |
 
 ## Not done
 

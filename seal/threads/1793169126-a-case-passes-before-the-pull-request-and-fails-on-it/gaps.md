@@ -17,8 +17,8 @@ Three cases passed on every run before pull request #1057 and failed on its `pul
 
 | Item | Who must answer |
 |---|---|
-| The broad gate over this branch: the full suite, the repository-wide lint and the typecheck | the orchestrator |
-| `frame/questions.md` M1: the three `declared_for_this_branch` cases and `a_recorded_run` on this pull request's own `pull_request` run of `tests`, on every platform leg; built on its default, phase 1's exported run | the orchestrator, reading the `pull_request` run once the pull request opens |
+| closed The broad gate over this branch: the full suite, the repository-wide lint and the typecheck | executed by the orchestrator's broad gate at `6d49f1df` against `6e322bb7`, passed (`trail/gate.md`), and this repository declares no typecheck (`seal/config.md` *Broad gate*; #951 would add one) |
+| closed `frame/questions.md` M1: the three `declared_for_this_branch` cases and `a_recorded_run` on this pull request's own `pull_request` run of `tests`, on every platform leg; built on its default, phase 1's exported run | executed by the `pull_request` run 40648967296 of `tests` on #1116's head `af4d4edc`: every leg passed, ubuntu, the three macOS shards and the four Windows shards, over the suite that holds the three `declared_for_this_branch` cases and `a_recorded_run` (`gh pr checks 1116`, read 2026-10-29) |
 
 ## Not done
 

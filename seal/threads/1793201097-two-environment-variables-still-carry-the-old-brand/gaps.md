@@ -16,9 +16,9 @@ The plugin read two environment variables named for the old brand; it stops read
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck over the branch | the orchestrator, at its one `seal gate` run (contract rule 2) |
-| That Claude Code hands the option to the guard's process as `CLAUDE_PLUGIN_OPTION_WORKTREE_GUARD_LANGUAGE`, and whether it exports an option nobody set as empty or not at all. The name is read from the manifest reference that `frame/design.md` *Grounding* cites, and the cases set the variable themselves | the owner, in the first session after updating with the option set to `ko`, where the guard's prompts read Korean with `SPECSEAL_LANG` removed from their settings |
-| Whether Claude Code opens a dialog for the option when the updated plugin is enabled (`frame/plan.md` *Operational impact*); the changelog fragment claims neither way | the owner, at the first update to 0.24.0 |
+| closed The full suite, the repository-wide lint and the typecheck over the branch | executed by the orchestrator's broad gate at `a415262d` against `faf093f1`, passed (`trail/gate.md`), and this repository declares no typecheck (`seal/config.md` *Broad gate*; #951 would add one) |
+| closed That Claude Code hands the option to the guard's process as `CLAUDE_PLUGIN_OPTION_WORKTREE_GUARD_LANGUAGE`, and whether it exports an option nobody set as empty or not at all. The name is read from the manifest reference that `frame/design.md` *Grounding* cites, and the cases set the variable themselves | moot: #1160 (`ed31ee55`) removed the worktree guard and its plugin option; `.claude-plugin/plugin.json` declares no option, and no file outside `seal/` names `CLAUDE_PLUGIN_OPTION_WORKTREE_GUARD_LANGUAGE` |
+| closed Whether Claude Code opens a dialog for the option when the updated plugin is enabled (`frame/plan.md` *Operational impact*); the changelog fragment claims neither way | moot: #1160 (`ed31ee55`) removed the option, and `.claude-plugin/plugin.json` declares none |
 
 ## Not done
 

@@ -176,6 +176,23 @@ verifying round read. A squash orphans the commit after the merge, and the
 check reads it only while the branch that holds it is open.
 check: tests/skills/test_chain_check.py
 
+**Each finding's `verdict:` and `answer:` lines have one writer, and the
+lines closed at one step reach the branch in a single commit.** A finding a
+fix pass answers is the pass's to write: it writes both lines last, after
+its fix commits and the corrections its sweep made, because a `fixed`
+verdict names a commit that is already there, and it commits neither. The
+orchestrator takes the round record from the hand-back as it stands and
+commits it, once for the whole pass, before it spawns the verifying round,
+which can read only what a commit holds. It edits no line in that commit,
+and a close it doubts goes into that round's spawn prompt. A finding closed
+with no fix pass, such as `deferred the frame` on the framer's route or a
+`deferred <home>` the orchestrator files at the cap, has the orchestrator
+as its writer, and the orchestrator writes and commits the lines of every
+finding it closes at that step together. A second hand on either line gives
+a reader nothing: made before the orchestrator's commit it leaves no trace
+in the history, and made after it the round pays one more record commit.
+check: tests/text/test_the_rules_have_one_owner.py tests/text/test_a_moved_rule_leaves_its_definition.py
+
 ## What the check reads at the pull request
 
 **`chain_check.py` reads the declaration, the frame, the `## Rule changes`
@@ -279,17 +296,17 @@ every work item whose `routing.md` it judges, and of every work item
 `skills/settle/scripts/rule_changes.py`, the one reader of that
 section, and a section the reader refuses is a refusal at the line the
 reader names, carrying the reader's reason.** `settle` groups the
-released specs by the sections their rule changes name, and a spec
+released designs by the sections their rule changes name, and a design
 whose section does not parse joins no group, so a section first read
 there is a rule change the settle can place only by reading the whole
-spec, with no pull request left to fix it in. A
+design, with no pull request left to fix it in. A
 declared work item can edit another work item's section without
 touching that work item's `routing.md`, which is why the diff is read
 as well as the declarations. A pull request that declares nothing
 reads no `frame/design.md`. A `frame/design.md` a squash of another pull request
 carried, and one the pull request only moved, are read at the pull
 request that made them. A `frame/design.md` with no `## Rule changes` section
-is left alone here, and the settle reads such a spec whole. The refusal
+is left alone here, and the settle reads such a design whole. The refusal
 reads a fact from the file and puts no question to a person.
 check: rule-changes-read-at-the-pull-request
 
@@ -630,7 +647,7 @@ for another branch cannot put question 1 again; that is outside the
 one-issue flow. The declaration is read through `hooks/lib/routing.py` for the
 branch checked out where the session sits, and every way of not
 reading it is the attended answer. The file is written by the model,
-which is why the worktree guard never reads it as consent. It is read
+which is why no gate reads the `automation` press from it. It is read
 here only to refuse, so a row the model forged binds only the model,
 and a row edited to `no` is in the diff the review reads. A session
 sitting in a checkout whose branch is not the declared one is not

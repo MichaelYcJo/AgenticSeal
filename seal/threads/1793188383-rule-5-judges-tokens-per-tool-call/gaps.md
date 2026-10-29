@@ -14,9 +14,9 @@ Rule 5 failed rewrites that made fewer calls and read fewer tokens in all, and r
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck over the branch | the orchestrator, at its one `seal gate` run (contract rule 2) |
-| `TOKEN_MARGIN`'s size, built on `frame/questions.md` Q1's default of 0.07 | the owner, who answers Q1; a different value changes the one constant, and S5 and S7 read it |
-| The spread of the total tokens between two takes of one tree, which the margin is applied to with no measurement of its own | a measurement of two paid sides of one tree for one agent (`frame/questions.md` Q3), taken in the release the owner chooses to pay for it |
+| closed The full suite, the repository-wide lint and the typecheck over the branch | executed by the orchestrator's broad gate at `7450dc6a` against `8a1173c8`, passed (`trail/gate.md`), and this repository declares no typecheck (`seal/config.md` *Broad gate*; #951 would add one) |
+| closed `TOKEN_MARGIN`'s size, built on `frame/questions.md` Q1's default of 0.07 | answered by the release: Q1's default, 0.07, shipped in #1138 and in 0.24.0 (#1145), which the owner merged (`evals/scripts/noninferiority.py:108`); the measurement that would resize it is #1179 |
+| closed The spread of the total tokens between two takes of one tree, which the margin is applied to with no measurement of its own | re-homed to #1179 |
 
 ## Not done
 

@@ -14,9 +14,9 @@ The behaviour suite told the agent under test that it was being evaluated, throu
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck at this branch's head | the orchestrator, through `seal gate` |
-| `questions.md` Q2: whether `claude plugin eval` loads the plugin in place, so the skill preamble's base directory is the run's temporary directory | the orchestrator, by reading one saved trace's `Base directory for this skill:` line |
-| Whether an agent behaves differently without the words: no side was run on the new suite | the repository owner, at the next paid comparison of any of the four agents |
+| closed The full suite, the repository-wide lint and the typecheck at this branch's head | executed by the orchestrator's broad gate at `a89557bc` against `5287dd42`, passed (`trail/gate.md`), and this repository declares no typecheck (`seal/config.md` *Broad gate*; #951 would add one) |
+| closed `questions.md` Q2: whether `claude plugin eval` loads the plugin in place, so the skill preamble's base directory is the run's temporary directory | re-homed to #1178: no trace saved under `SpecSeal-worktrees/` holds the line (executed 2026-10-29), and the next paid run of the rule cases saves one |
+| closed Whether an agent behaves differently without the words: no side was run on the new suite | re-homed to #1180 |
 
 ## Not done
 

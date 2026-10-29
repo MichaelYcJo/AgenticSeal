@@ -18,9 +18,9 @@ A heading renamed in any file but `skills/implement/SKILL.md` left its citations
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck | the orchestrator, at `seal gate` |
-| Whether S1 still meets only what the frame measured once #1053's and #1040's branches land in `release/v0.24.0` (`frame/questions.md` Q2) | the orchestrator, at the rebase |
-| Whether S9's warning stands in the full output `seal gate` keeps under `--keep-output`; `bin/test -q` printed it (phase 2 record), and `trail/gate.md` holds no test output at all | the orchestrator, at `seal gate` |
+| closed The full suite, the repository-wide lint and the typecheck | executed by the orchestrator's broad gate at `731df38a` against `5287dd42`, passed (`trail/gate.md`), and this repository declares no typecheck (`seal/config.md` *Broad gate*; #951 would add one) |
+| closed Whether S1 still meets only what the frame measured once #1053's and #1040's branches land in `release/v0.24.0` (`frame/questions.md` Q2) | executed by later broad gates over trees holding #1040 (`5287dd42`), this work (`946c9317`) and #1053 (`f15b3f99`), which merged after it: `tests/behaviour/test_a_cited_section_stands_in_its_file.py` passed in each, the last at `fc84a04dc` against `51eca3ac7` (`1793251203-seal-pact-passes-near-misses-of-an-anchor/trail/gate.md`) |
+| closed Whether S9's warning stands in the full output `seal gate` keeps under `--keep-output`; `bin/test -q` printed it (phase 2 record), and `trail/gate.md` holds no test output at all | answered by reading: `seal gate` runs the `Broad gate` row's `bin/test -q` (`seal/config.md`), the command the phase 2 record saw print the warning, and keeps every check's output whole in a file under `--keep-output` (`skills/verify/scripts/broad_gate.py:54`) |
 
 ## Not done
 

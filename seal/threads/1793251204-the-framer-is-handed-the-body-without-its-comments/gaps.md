@@ -15,8 +15,8 @@ The framer was handed an issue's body without its comments and asked whether the
 
 | Item | Who must answer |
 |---|---|
-| S6: the new case was not seen red on `shape-no-measurement-row`. Both side A runs, on the definition at `c48cd5e3`, answered the generator question by running the generator or its logic and left no `a measurement` row (`evals/baseline-framer-generated-page.json`, `trail/phases/phase-3.md`). The no-row half of #1047's rule is held by a grader that has not been seen to fail on any definition, so the issue's last Done-when line for the new case is not met | the owner, at the pull request: whether `Closes #1158` stands (`frame/questions.md` Q2, default (a)) |
-| S1: no check reads the orchestrator's production spawn for the line on the issue's comments; the acts table row *Orchestrator: the order inside a ticket* names the limit | the orchestrator, at each framer spawn |
+| closed S6: the new case was not seen red on `shape-no-measurement-row`. Both side A runs, on the definition at `c48cd5e3`, answered the generator question by running the generator or its logic and left no `a measurement` row (`evals/baseline-framer-generated-page.json`, `trail/phases/phase-3.md`). The no-row half of #1047's rule is held by a grader that has not been seen to fail on any definition, so the issue's last Done-when line for the new case is not met | answered by the owner: `Closes #1158` stayed in #1166's body, and #1158 closed completed at 0.24.2's merge into `main`, 2026-10-29 |
+| closed S1: no check reads the orchestrator's production spawn for the line on the issue's comments; the acts table row *Orchestrator: the order inside a ticket* names the limit | answered by the record of the limit: `skills/implement/orchestration.md:455` states that a framer spawned with no line on the issue's comments leaves a tree no check refuses, so no measurement is owed |
 
 ## Not done
 

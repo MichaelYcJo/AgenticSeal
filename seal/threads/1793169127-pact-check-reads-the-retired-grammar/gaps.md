@@ -19,7 +19,7 @@ refused.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck over this branch | the orchestrator, through `seal gate` after the review rounds settle |
+| closed The full suite, the repository-wide lint and the typecheck over this branch | executed by the orchestrator's broad gate at `0cd4d4ac` against `c825fd2c`, passed (`trail/gate.md`), and this repository declares no typecheck (`seal/config.md` *Broad gate*; #951 would add one) |
 
 ## Not done
 

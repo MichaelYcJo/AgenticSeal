@@ -16,7 +16,7 @@ None. The frame held at this tree, and the build followed it.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide `ruff check` and `ruff format --check` on this branch | the orchestrator, through `seal gate` |
+| closed The full suite, the repository-wide `ruff check` and `ruff format --check` on this branch | executed by the orchestrator's broad gate at `9e3ca54d` against `977b6613`, passed (`trail/gate.md`) |
 
 ## Not done
 

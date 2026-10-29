@@ -21,7 +21,7 @@ The issues of 0.24.0 and 0.24.1 were filed against the tree before the rename an
 
 | Item | Who must answer |
 |---|---|
-| The broad gate over this branch; no phase ran a test, because no tree file outside this directory changes | the orchestrator |
+| closed The broad gate over this branch; no phase ran a test, because no tree file outside this directory changes | executed by the orchestrator's broad gate at `f76272d1` against `822d75bb`, passed (`trail/gate.md`) |
 | closed `frame/questions.md` Q1, built on its default (a), moving #920 to `release: 0.24.1` | answered (b) by the owner, relayed by the orchestrator during phase 2; #920 put back in `release: 0.24.0` |
 | closed Milestone 65's sentence "#1109 was fixed directly, before the small fixes, without a work item" holds only once #1109 is closed; it is open at phase 4's write | #1112 merged into `release/v0.24.0` at `822d75bb` with the fix and `Closes #1109`, so the sentence holds; #1109 itself closes when the release reaches `main` |
 

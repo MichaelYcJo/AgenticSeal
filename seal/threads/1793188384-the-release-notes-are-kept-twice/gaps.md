@@ -22,10 +22,10 @@ A change's release note was kept three times, in its fragment, in the gathered `
 
 | Item | Who must answer |
 |---|---|
-| Whether the tag's job can list the milestones under `contents: write` alone (`frame/questions.md` Q3, default (a)) | the orchestrator, reading the log of the tag run of the release carrying this work |
+| closed Whether the tag's job can list the milestones under `contents: write` alone (`frame/questions.md` Q3, default (a)) | executed by `publish-release.yml` run 40804940585 at 0.24.0's merge into `main`, 2026-10-29: under `contents: write` alone it printed the theme "from the milestone `release: 0.24.0`" and published the release |
 | closed The full suite, the repository-wide lint and the typecheck over this branch | executed by the orchestrator's broad gate at `782f24a3` against `faf093f1`, passed (`trail/gate.md`) |
 | closed S11: every released version keeps its notes, in its GitHub Release or in `changelog/X.Y.Z.md` at `v0.23.1` | executed in phase 5, 2026-10-28: `git cat-file -e v0.23.1:changelog/X.Y.Z.md` exits 0 for all 58 versions, each recorded in `trail/phases/phase-5.md` |
-| Step 3 of the `update` skill run by a session updating across a real release | the first person to update to the release carrying this work |
+| closed Step 3 of the `update` skill run by a session updating across a real release | executed by the settle session, 2026-10-29: step 3's command with `old=0.23.1` and `new=0.24.2` against the marketplace clone's origin exited `curl` 0 and printed the notes of v0.24.0, v0.24.1 and v0.24.2, oldest first |
 
 ## Not done
 

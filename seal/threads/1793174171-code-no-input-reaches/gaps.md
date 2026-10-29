@@ -21,7 +21,7 @@ something. This work removes that code, or writes beside it why it stays.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide `ruff check` and `ruff format --check` on this branch, including `test_the_durations_file_prices_the_suite` against the edited `.test_durations` | the orchestrator, through `seal gate` |
+| closed The full suite, the repository-wide `ruff check` and `ruff format --check` on this branch, including `test_the_durations_file_prices_the_suite` against the edited `.test_durations` | executed by the orchestrator's broad gate at `a5e85b30` against `5287dd42`, passed (`trail/gate.md`), `test_the_durations_file_prices_the_suite` among the suite it ran |
 
 ## Not done
 

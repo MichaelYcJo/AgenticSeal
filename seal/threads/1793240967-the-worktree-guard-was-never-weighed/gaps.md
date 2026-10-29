@@ -24,11 +24,11 @@ The worktree guard showed no catch in its record against about 7,000 lines of ho
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the format check over phase 1's commit `ec43e94b` | the orchestrator, at the broad gate |
-| The full suite, the repository-wide lint and the format check over phase 2's commit `f528f7a1` | the orchestrator, at the broad gate |
-| The full suite, the repository-wide lint and the format check over phase 3's commits `48ed5ae3`, `514ab5f3` and `4c9abc11` | the orchestrator, at the broad gate |
-| The full suite, the repository-wide lint and the format check over phase 4's commit `aeed95df` | the orchestrator, at the broad gate |
-| The full suite, the repository-wide lint and the format check over round 1's fix commits `2bfa6459`, `fddec67a` and `a82da960` | the orchestrator, at the broad gate |
+| closed The full suite, the repository-wide lint and the format check over phase 1's commit `ec43e94b` | executed by the orchestrator's broad gate at `54d8ca50` against `19372f7d`, passed (`trail/gate.md`); `ec43e94b` is an ancestor of `54d8ca50` (executed `git merge-base --is-ancestor` on #1160's head, 2026-10-29) |
+| closed The full suite, the repository-wide lint and the format check over phase 2's commit `f528f7a1` | executed by the orchestrator's broad gate at `54d8ca50` against `19372f7d`, passed (`trail/gate.md`); `f528f7a1` is an ancestor of `54d8ca50` (executed `git merge-base --is-ancestor` on #1160's head, 2026-10-29) |
+| closed The full suite, the repository-wide lint and the format check over phase 3's commits `48ed5ae3`, `514ab5f3` and `4c9abc11` | executed by the orchestrator's broad gate at `54d8ca50` against `19372f7d`, passed (`trail/gate.md`); `48ed5ae3`, `514ab5f3` and `4c9abc11` are ancestors of `54d8ca50` (executed `git merge-base --is-ancestor` on #1160's head, 2026-10-29) |
+| closed The full suite, the repository-wide lint and the format check over phase 4's commit `aeed95df` | executed by the orchestrator's broad gate at `54d8ca50` against `19372f7d`, passed (`trail/gate.md`); `aeed95df` is an ancestor of `54d8ca50` (executed `git merge-base --is-ancestor` on #1160's head, 2026-10-29) |
+| closed The full suite, the repository-wide lint and the format check over round 1's fix commits `2bfa6459`, `fddec67a` and `a82da960` | executed by the orchestrator's broad gate at `54d8ca50` against `19372f7d`, passed (`trail/gate.md`); `2bfa6459`, `fddec67a` and `a82da960` are ancestors of `54d8ca50` (executed `git merge-base --is-ancestor` on #1160's head, 2026-10-29) |
 
 ## Not done
 
