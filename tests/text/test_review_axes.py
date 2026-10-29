@@ -116,6 +116,12 @@ def test_the_core_names_where_the_routing_question_is():
         "batch `skills/implement/SKILL.md` *1.* asks before the first edit"
     )
     assert (
+        "refuses the first edit until the routing question is answered" in paragraph
+    ), (
+        "the core does not say which question the hook waits on, so its "
+        "last clause can be read as the whole batch"
+    )
+    assert (
         "`skills/implement/orchestration.md` *Orchestrator: how the work is routed*"
         in paragraph
     ), "the core does not name the routing section"

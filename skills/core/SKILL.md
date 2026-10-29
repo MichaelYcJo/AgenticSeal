@@ -80,10 +80,10 @@ and the difference has to be argued rather than assumed. Whatever needs a
 person is asked once, together, before the first edit, and nothing comes
 back mid-run; `skills/implement/SKILL.md` *1. Read the documents that
 outrank the code first* holds that rule with its reasoning. The routing
-question is one of that batch, which the orchestrating session puts as
-`skills/implement/orchestration.md` *Orchestrator: how the work is routed*
-states, and `hooks/routing-edit-gate.py` refuses the first edit until it is
-answered.
+question is one of that batch, and the orchestrating session puts the
+routing question as `skills/implement/orchestration.md` *Orchestrator: how
+the work is routed* states; `hooks/routing-edit-gate.py` refuses the first
+edit until the routing question is answered.
 
 **Judgment is not licence to skip a party.** A few invariants hold the chain
 and are not open to judgment: no review without a build, no fix that no
