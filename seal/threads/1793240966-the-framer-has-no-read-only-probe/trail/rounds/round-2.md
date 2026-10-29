@@ -9,7 +9,7 @@ target: fc6e507c, fixes ad4234f4..fc6e507c
 severity: should
 location: `seal/threads/1793240966-the-framer-has-no-read-only-probe/gaps.md:22`, `seal/threads/1793240966-the-framer-has-no-read-only-probe/frame/design.md:45`, `seal/threads/1793240966-the-framer-has-no-read-only-probe/frame/design.md:48`, `seal/threads/1793240966-the-framer-has-no-read-only-probe/trail/phases/phase-3.md:69-70`
 evidence: executed `git grep -n questions.md -- skills/implement/orchestration.md`, `git grep -n questions.md -- agents/proofer.md skills/code-review/`, `git grep -n -e "proofer at review" -e "read by the proofer" -- seal/threads/1793240966-the-framer-has-no-read-only-probe`
-verdict: open
+verdict: fixed 939947d5
 reopens: round-1#2
 
 The close of round-1#2 does not hold. Its defect was a `## Not verified`
@@ -68,7 +68,7 @@ read: the rule's sentence in `agents/framer.md`. No reader holds it after this w
 The no-row half of the rule has no reader after round 1, and `gaps.md` *Not verified* states it as a limit. `gaps.md` records the divergence.
 ```
 
-answer:
+answer: The finding holds on all four grounds. The round-1 fix pass rested the orchestrator's reading on the act of answering a row. Answering a row does not judge whether the row should exist, and no step makes it judge that. Commit `939947d5` applies the paste-ready text to both lines that are the crafter's. `gaps.md:22` now names nobody after round 1 and states the limit. `trail/phases/phase-3.md:69-71` now says the half has no reader after round 1 and that `gaps.md` *Not verified* states it as a limit. The text was rewrapped, so the sentence ends at `:71`. The orchestrator's `a05f9311` applied the same text to S2 and S5 at `frame/design.md:45` and `:48`. All four paths are on this `location:`, so the line gains nothing. After the fix, `git grep -n -e "proofer at review" -e "read by the proofer" -e "Reader: the orchestrator" -e "the orchestrator, which writes"` over the work item finds those phrases only in `trail/rounds/round-1.md` and this record. `bin/seal unverified` exited 0 over the new row.
 
 ## Confirmations
 
