@@ -12,7 +12,7 @@ import os
 import sys
 
 import pytest
-from conftest import HOOKS, census_case, load_hook_module, sh
+from conftest import HOOKS, census_case, load_hook_module
 
 TARGET = "hooks/lib/cmdline.py"
 
@@ -22,67 +22,58 @@ import cmdline  # noqa: E402  -- the plain name the hooks import
 reader = load_hook_module("lib/cmdline.py", "cmdline_cd")
 
 
-def joined(command):
-    """The operator that joined each segment to the one before it."""
-    items, clean = reader.split_segments_with_separators(command)
-    assert clean, command
-    return [sep for sep, _ in items]
-
-
 # --- a commit behind a wrapper (#670) ----------------------------------------
 
 C = "git commit -m x"
-UNRESOLVED, HERE = "unresolved", "here"
 
 # #670's four wrappers and the rest of the enumeration, each in the shape it
-# is used in: directly in front of `git` it keeps the directory, behind its
-# own operand or option it does not.
+# is used in: directly in front of `git`, or behind its own operand or option.
 WRAPPED = {
-    "exec": (f"exec {C}", HERE),
-    "nice": (f"nice {C}", HERE),
-    "nice -n": (f"nice -n 5 {C}", UNRESOLVED),
-    "timeout": (f"timeout 5 {C}", UNRESOLVED),
-    "xargs": (f"echo a | xargs {C}", HERE),
-    "xargs -I": (f"echo a | xargs -I{{}} {C}", UNRESOLVED),
-    "stdbuf": (f"stdbuf -oL {C}", UNRESOLVED),
-    "setsid": (f"setsid {C}", HERE),
-    "ionice": (f"ionice -c 3 {C}", UNRESOLVED),
-    "taskset": (f"taskset 1 {C}", UNRESOLVED),
-    "chrt": (f"chrt -i 0 {C}", UNRESOLVED),
-    "flock": (f"flock /tmp/l {C}", UNRESOLVED),
-    "chroot": (f"chroot / {C}", UNRESOLVED),
-    "unshare": (f"unshare -r {C}", UNRESOLVED),
-    "nsenter": (f"nsenter -t 1 {C}", UNRESOLVED),
-    "prlimit": (f"prlimit --nofile=10 {C}", UNRESOLVED),
-    "setpriv": (f"setpriv --reuid=1 {C}", UNRESOLVED),
-    "runuser": (f"runuser -u u -- {C}", UNRESOLVED),
-    "doas": (f"doas {C}", HERE),
-    "pkexec": (f"pkexec {C}", HERE),
-    "caffeinate": (f"caffeinate -i {C}", UNRESOLVED),
-    "arch": (f"arch -arm64 {C}", UNRESOLVED),
-    "strace": (f"strace -f {C}", UNRESOLVED),
-    "ltrace": (f"ltrace {C}", HERE),
-    "valgrind": (f"valgrind {C}", HERE),
-    "gtimeout": (f"gtimeout 5 {C}", UNRESOLVED),
-    "gnice": (f"gnice {C}", HERE),
-    "gnohup": (f"gnohup {C}", HERE),
-    "gstdbuf": (f"gstdbuf -oL {C}", UNRESOLVED),
-    "genv": (f"genv -i {C}", UNRESOLVED),
-    "gchroot": (f"gchroot / {C}", UNRESOLVED),
-    "runcon": (f"runcon -t t {C}", UNRESOLVED),
-    "find -exec": (f"find . -name f -exec {C} {{}} +", UNRESOLVED),
-    "parallel": (f"parallel {C} ::: a", HERE),
-    "watch -n": (f"watch -n 5 {C}", UNRESOLVED),
-    "script, argv form": (f"script /dev/null {C}", UNRESOLVED),
+    "exec": f"exec {C}",
+    "nice": f"nice {C}",
+    "nice -n": f"nice -n 5 {C}",
+    "timeout": f"timeout 5 {C}",
+    "xargs": f"echo a | xargs {C}",
+    "xargs -I": f"echo a | xargs -I{{}} {C}",
+    "stdbuf": f"stdbuf -oL {C}",
+    "setsid": f"setsid {C}",
+    "ionice": f"ionice -c 3 {C}",
+    "taskset": f"taskset 1 {C}",
+    "chrt": f"chrt -i 0 {C}",
+    "flock": f"flock /tmp/l {C}",
+    "chroot": f"chroot / {C}",
+    "unshare": f"unshare -r {C}",
+    "nsenter": f"nsenter -t 1 {C}",
+    "prlimit": f"prlimit --nofile=10 {C}",
+    "setpriv": f"setpriv --reuid=1 {C}",
+    "runuser": f"runuser -u u -- {C}",
+    "doas": f"doas {C}",
+    "pkexec": f"pkexec {C}",
+    "caffeinate": f"caffeinate -i {C}",
+    "arch": f"arch -arm64 {C}",
+    "strace": f"strace -f {C}",
+    "ltrace": f"ltrace {C}",
+    "valgrind": f"valgrind {C}",
+    "gtimeout": f"gtimeout 5 {C}",
+    "gnice": f"gnice {C}",
+    "gnohup": f"gnohup {C}",
+    "gstdbuf": f"gstdbuf -oL {C}",
+    "genv": f"genv -i {C}",
+    "gchroot": f"gchroot / {C}",
+    "runcon": f"runcon -t t {C}",
+    "find -exec": f"find . -name f -exec {C} {{}} +",
+    "parallel": f"parallel {C} ::: a",
+    "watch -n": f"watch -n 5 {C}",
+    "script, argv form": f"script /dev/null {C}",
     # The five the base already named, behind an option it stopped at.
-    "env -i": (f"env -i {C}", UNRESOLVED),
-    "sudo -u": (f"sudo -u a {C}", UNRESOLVED),
-    "command -p": (f"command -p {C}", UNRESOLVED),
+    "env -i": f"env -i {C}",
+    "sudo -u": f"sudo -u a {C}",
+    "command -p": f"command -p {C}",
     # zsh's precommand modifiers and `repeat N` (round 1 of 1790660768,
     # yellow 5). zsh 5.9 committed for each.
-    "noglob": (f"noglob {C}", HERE),
-    "nocorrect": (f"nocorrect {C}", HERE),
-    "repeat": (f"repeat 1 {C}", UNRESOLVED),
+    "noglob": f"noglob {C}",
+    "nocorrect": f"nocorrect {C}",
+    "repeat": f"repeat 1 {C}",
 }
 
 
@@ -107,8 +98,8 @@ DROPPED = {
 
 class Test_module:
     def test_the_old_splitter_answers_exactly_what_it_always_did(self):
-        """`split_segments`' callers read the two-element tuple; the separator
-        arrives beside it rather than inside it."""
+        """`split_segments`' callers read the two-element tuple: the segments,
+        and whether the split was clean."""
         assert reader.split_segments("cd /tmp/x && git commit") == (
             [["cd", "/tmp/x"], ["git", "commit"]],
             True,
@@ -137,59 +128,6 @@ class Test_split_segments:
         the words before it are kept, and the split is not clean."""
         assert reader.split_segments('git commit -m "a b') == (
             [["git", "commit", "-m"]],
-            False,
-        )
-
-
-class Test_split_segments_with_separators:
-    def test_accepts_the_operator_that_joined_two_segments(self):
-        """`&&` and `||` are opposites in a shell and were indistinguishable here.
-
-        Measured on the unfixed module: all three forms returned
-        `[['cd','/tmp/x'], ['git','commit']]`, so a design judging only the `cd`
-        destination would judge the wrong repository with confidence on `||`, and
-        one judging every reachable directory would keep asking about the
-        session's own on `&&`.
-        """
-        for sep in ("&&", ";", "||", "|"):
-            assert joined(f"cd /tmp/x {sep} git commit") == ["", sep], sep
-
-    def test_refuses_the_newline_after_an_operator_as_the_one_that_binds(
-        self, tmp_path
-    ):
-        """`&&` at the end of a line is `&&`, not the newline that follows it."""
-        b = tmp_path / "b"
-        items, _ = reader.split_segments_with_separators(
-            f"cd {sh(b)} &&\ngit commit -m x"
-        )
-        assert [s for s, _ in items] == ["", "&&"]
-
-    def test_an_operator_at_the_end_of_a_line_is_still_that_operator(self, tmp_path):
-        """A newline behind an operator glued itself onto it.
-
-        The newline is converted to `;` character by character, and shlex groups a
-        RUN of punctuation into ONE token — so `cd <B> ||` followed by a newline
-        arrived as the single token `||;`, which is neither a branching operator
-        nor a plain `;`. Measured tokens: `||;`, `|;`, `&;`.
-
-        Writing the operator at the end of the line is the ordinary way to write a
-        long command, so this is the common form rather than a constructed one.
-        """
-        b = tmp_path / "b"
-        for sep in ("||", "|", "|&", "&"):
-            items, clean = reader.split_segments_with_separators(
-                f"cd {sh(b)} {sep}\ngit commit -m x"
-            )
-            assert clean
-            assert [s for s, _ in items] == ["", sep], (
-                f"{sep} followed by a newline arrived as one glued token"
-            )
-
-    def test_refuses_an_unclosed_quote_as_a_clean_split(self):
-        """The segments read before the quote that never closes are kept, with
-        their operator, and the split says it failed."""
-        assert reader.split_segments_with_separators('cd /x && echo "a b') == (
-            [("", ["cd", "/x"]), ("&&", ["echo"])],
             False,
         )
 
@@ -242,7 +180,7 @@ class Test_drop_comments:
             "case x in\nx)#don't\n  echo hit ;;\nesac\ncd /elsewhere && git commit -m x"
         )
         text = reader.drop_heredoc_bodies(reader.drop_comments(command))
-        _, clean = reader.split_segments_with_separators(text)
+        _, clean = reader.split_segments(text)
         assert clean, "the apostrophe in a comment bash DOES open took the segment list"
 
 
@@ -260,9 +198,8 @@ class Test_drop_heredoc_bodies:
         """
         command = "echo ${x:-a #b}\n((1<<2))\ngit worktree add -b nb ../wt"
         text = reader.drop_heredoc_bodies(reader.drop_comments(command))
-        items, clean = reader.split_segments_with_separators(text)
+        words, clean = reader.split_segments(text)
         assert clean, command
-        words = [tokens for _, tokens in items]
         assert any(t[:2] == ["git", "worktree"] for t in words), (
             f"the `git worktree add` left the segment list: {words}. A `#` inside "
             "an expansion must not close the brace count in either model"
@@ -278,11 +215,10 @@ class Test_drop_heredoc_bodies:
         was this family.
         """
         command = "echo ${x:-<<E}\ngit worktree add -b nb ../wt"
-        items, clean = reader.split_segments_with_separators(
+        words, clean = reader.split_segments(
             reader.drop_heredoc_bodies(reader.drop_comments(command))
         )
         assert clean, command
-        words = [tokens for _, tokens in items]
         assert any(t[:2] == ["git", "worktree"] for t in words), (
             f"the `git worktree add` left the segment list: {words}"
         )
@@ -295,11 +231,10 @@ class Test_drop_heredoc_bodies:
         body as commands -- the fail-OPEN direction, and the opposite of what the
         count exists for. So an expansion counts only when a `}` closes it."""
         command = "echo ${x <<EOF\ncd /elsewhere\nEOF\ngit commit -m x"
-        items, clean = reader.split_segments_with_separators(
+        words, clean = reader.split_segments(
             reader.drop_heredoc_bodies(reader.drop_comments(command))
         )
         assert clean, command
-        words = [tokens for _, tokens in items]
         assert not any("cd" in t for t in words), (
             f"the heredoc body was read as commands: {words}. An unbalanced "
             "`${` must not hold the brace count open"
@@ -331,7 +266,7 @@ class Test_parse_git:
         `WRAPPED` is a commit `hooks/implementer-notice.py` has to find, and
         without the stand-in the ones behind an option read as no git at all."""
         missed = []
-        for name, (command, _where) in sorted(WRAPPED.items()):
+        for name, command in sorted(WRAPPED.items()):
             segments, _clean = reader.split_segments(command)
             found = [reader.parse_git(tokens) for tokens in segments]
             if not any(p and p[0] == "commit" for p in found):
@@ -348,19 +283,14 @@ class Test_parse_git:
 
     def test_a_redirection_with_nothing_after_it_keeps_the_base_subcommand(self):
         """The same rule one scan over: `git 2>/dev/null` names no subcommand past
-        the redirection, so the answer `86256492` gave is the one returned."""
-        assert cmdline.parse_git(["git", "2>/dev/null"]) == ("2>/dev/null", [], [])
-        assert cmdline.parse_git(["git", "2>/dev/null", "commit"]) == (
-            "commit",
-            [],
-            [],
-        )
+        the redirection, so the first scan's answer is the one returned."""
+        assert cmdline.parse_git(["git", "2>/dev/null"]) == ("2>/dev/null", [])
+        assert cmdline.parse_git(["git", "2>/dev/null", "commit"]) == ("commit", [])
 
     def test_a_glued_config_env_reads_as_it_did(self):
         assert cmdline.parse_git(["git", "--config-env=k=v", "commit", "-m", "x"]) == (
             "commit",
             ["-m", "x"],
-            [],
         )
 
 

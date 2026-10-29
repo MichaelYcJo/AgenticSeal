@@ -557,39 +557,11 @@ def split_segments(command):
     that docstring says what clearing this costs a caller that does not.
 
     Returns (segments, parsed_cleanly)."""
-    items, clean = split_segments_with_separators(command)
-    return [tokens for _, tokens in items], clean
-
-
-def split_segments_with_separators(command):
-    """The same split, keeping the operator that joined each segment.
-
-    Returns ([(separator, tokens), ...], parsed_cleanly). `separator` is the
-    operator that joined this segment to the one before it, "" for the first.
-
-    The separator used to be emitted as a token and dropped, so `&&`, `;` and
-    `||` were indistinguishable downstream — measured on all three forms of
-    `cd /tmp/x <sep> git commit`, which returned the same two segments. In a
-    shell the last of those is the opposite of the first: `&&` runs the commit
-    where the `cd` arrived, `||` runs it only if the `cd` failed, which is
-    where the shell already was. Without the operator, a reader following the
-    `cd` judges the wrong repository with confidence on `||`. No caller reads
-    the operator now: `split_segments` drops it, and
-    `hooks/implementer-notice.py` follows no `cd`.
-
-    It arrives beside the tuple rather than inside it because the callers of
-    `split_segments` read its two elements, and a third element in the middle
-    of a fix for silent misjudgment would have been a change to every one of
-    them.
-    """
     out, quote, esc = [], None, False
     for ch in command:
         if esc:
             # A backslash-newline is a line continuation: the shell removes
-            # BOTH characters and the command is one line. Keeping them turned
-            # `cd /B \<newline> && git commit` into a two-argument `cd`, which
-            # reads as a destination that cannot be computed — so a command
-            # that passes on one line was stopped for being wrapped.
+            # BOTH characters and the command is one line, so this does too.
             if ch == "\n":
                 out.pop()
             else:
@@ -605,42 +577,30 @@ def split_segments_with_separators(command):
                 quote = None
         elif ch in "'\"":
             quote = ch
-        # Spaced, because shlex groups a RUN of punctuation into ONE token:
-        # `cd /B ||` followed by a newline became the single token `||;`,
-        # which is neither a branching operator nor a plain `;`. Writing the
-        # operator at the end of the line is how a long command is normally
-        # written, so this was the common form and not a constructed one, and
-        # it went silent where the release before this work stopped it.
-        # Measured tokens before the spaces: `||;`, `|;`, `&;`.
         out.append(" ; " if ch == "\n" and quote is None else ch)
     command = "".join(out)
 
     lex = shlex.shlex(command, posix=True, punctuation_chars=";|&")
     lex.whitespace_split = True
     lex.commenters = ""
-    items, current, sep = [], [], ""
+    # Any run of `;`, `|` and `&` ends a segment, so an operator at the end of
+    # a line and the newline after it end one segment between them.
+    segments, current = [], []
     try:
         for tok in lex:
             if tok and set(tok) <= set(";|&"):
                 if current:
-                    items.append((sep, current))
-                    current, sep = [], tok
-                # Two operators with nothing between them — `cd x ||` and then
-                # a newline, which arrives here as its own `;`. The FIRST one
-                # is the one that binds the segments; the second is the line
-                # ending, and letting it win turned a multi-line `||` into a
-                # `;` and dropped the session's own directory from the answer.
-                elif not sep:
-                    sep = tok
+                    segments.append(current)
+                    current = []
             else:
                 current.append(tok)
     except ValueError:
         if current:
-            items.append((sep, current))
-        return items, False
+            segments.append(current)
+        return segments, False
     if current:
-        items.append((sep, current))
-    return items, True
+        segments.append(current)
+    return segments, True
 
 
 # Reserved words that BEGIN A COMMAND LIST, so the word after one is a command
@@ -654,7 +614,7 @@ LIST_OPENERS = frozenset({"do", "then", "else", "elif", "if", "while", "until", 
 # Constructs whose command word is not found by position: a `case` arm's
 # pattern, a function definition's name, a coprocess's optional name. Rather
 # than read their grammar, the first `git` word in the segment is read as the
-# command word -- a false one is a stop, never a silence.
+# command word -- a false one costs a reminder, never a missed commit.
 UNPLACED = frozenset({"case", "coproc", "function"})
 
 # Programs that RUN THEIR OPERANDS AS A COMMAND (#670). The reader used to know
@@ -665,10 +625,9 @@ UNPLACED = frozenset({"case", "coproc", "function"})
 # coreutils' "Modified command invocation" chapter and its `g`-prefixed names
 # on macOS, util-linux's scheduling and namespace tools, the privilege tools,
 # the tracers, and `find`, `parallel`, `watch` and `script`. Directly followed
-# by `git`, the commit runs where the shell is; behind the program's own
-# options or operands, which this reader does not parse, the first `git` word
-# stands in for the command word and the directory is unplaced -- `env -C`,
-# `sudo -D` and `chroot` move it, and knowing which flags do is a parser.
+# by `git`, `git` is the command word; behind the program's own options or
+# operands, which this reader does not parse, the first `git` word stands in
+# for the command word.
 RUNNERS = frozenset(
     WRAPPERS
     | {
@@ -716,14 +675,11 @@ RUNNERS = frozenset(
 
 
 def command_word(tokens, redirections=False):
-    """(the segment from its command word on, whether its directory is unplaced).
+    """The segment from its command word on.
 
     Assignments, wrappers and the `!`/`time` prefixes are read past as they
-    always were, and so are the words in `LIST_OPENERS`. What sits behind one of
-    those, or inside an `UNPLACED` construct, runs somewhere a reader of the
-    command cannot place: a loop or conditional body, a loop condition that runs
-    again after its body, a function body that runs where it is called. The
-    second value says so.
+    always were, and so are the words in `LIST_OPENERS`: a loop or
+    conditional body, or a loop condition, holds a command a shell runs.
 
     Every segment the base read a command word in keeps it: the tokens read
     past before are read past now, and the new ones are words at which the old
@@ -735,8 +691,7 @@ def command_word(tokens, redirections=False):
     with it. So `parse_git` asks this reading only where the first found
     nothing, and adds what it finds.
     """
-    toks, _opened = strip_subshell(tokens)
-    unplaced = False
+    toks = strip_subshell(tokens)
     after_runner = False
     i = 0
     while i < len(toks):
@@ -756,9 +711,7 @@ def command_word(tokens, redirections=False):
             i += 1
             continue
         if tok in LIST_OPENERS:
-            unplaced = True
-            rest, _opened = strip_subshell(toks[i + 1 :])
-            toks, i = rest, 0
+            toks, i = strip_subshell(toks[i + 1 :]), 0
             continue
         break
     if i < len(toks) and (
@@ -784,55 +737,38 @@ def command_word(tokens, redirections=False):
             j for j in range(i + 1, len(toks)) if os.path.basename(toks[j]) == "git"
         ]
         if later:
-            i, unplaced = later[0], True
-    return toks[i:], unplaced
+            i = later[0]
+    return toks[i:]
 
 
 def strip_subshell(tokens):
-    """(tokens, opened) with a leading subshell opener taken off the word.
+    """The tokens with a leading subshell opener taken off the word.
 
     A shell ends a word at `(` and `)`; shlex here is told only about `;`, `|`
-    and `&`, so `(cd /tmp/x && git commit)` arrives as `(cd` … `commit)` and
-    BOTH readers missed it — the `cd` was not a `cd` and the `git` was not a
-    `git`. One parenthesis reproduced the whole fail-open this work item
-    exists to close.
+    and `&`, so `(git commit)` arrives as `(git` … `commit)`, and the `git` was
+    not a `git`.
 
-    Whether the parenthesis is worth reading is a separate question from
-    whether the shell moves. It is not added to the splitter's punctuation
-    because that changes how every quoted argument in every command tokenizes,
-    which is a wider change than the two words it would fix.
+    It is not added to the splitter's punctuation because that changes how
+    every quoted argument in every command tokenizes, which is a wider change
+    than the two words it would fix.
     """
-    out, opened = list(tokens), False
+    out = list(tokens)
     while out and out[0] in ("(", "((", "{"):
         out.pop(0)
-        opened = True
     if out and out[0].startswith("("):
         out[0] = out[0].lstrip("(")
-        opened = True
-    return out, opened
+    return out
 
 
 def _git_options(rest, redirections=False):
-    """(index of the subcommand, indices of the `-C` VALUES) within `rest`.
-
-    `rest` is what follows the `git` word, and `parse_git` takes the values.
+    """The index of the subcommand within `rest`, what follows the `git` word.
 
     REDIRECTIONS reads past a redirection before the subcommand as well
     (#674): `git 2>/dev/null commit` read `2>/dev/null` as the subcommand.
     `parse_git` asks it only where the first scan landed on a redirection.
     """
-    # RIDER: `--git-dir` and `--work-tree` are in this set so the SUBCOMMAND
-    # is still found, and their values are then thrown away -- so
-    # `git --git-dir=/elsewhere/.git --work-tree=/elsewhere commit` names no
-    # directory in `chdirs`, where `-C /elsewhere` would. It is narrower than
-    # `-C`, which is what a session driving another repository actually
-    # types, and that is why it was left: closing it means `chdirs` stops
-    # being one list of composing paths and becomes a resolved (git-dir,
-    # work-tree) pair. No reader follows `chdirs` now:
-    # `hooks/implementer-notice.py` judges the session's own repository
-    # whatever directory a commit names.
-    #
-    # The options git 2.54.0 ran `status` after with the value as a separate
+    # Every option that takes its value as the next word is read past with
+    # it, so the value is never read as the subcommand. The options git 2.54.0 ran `status` after with the value as a separate
     # word (#716, M1). `--config-env`, `--attr-source` and `--shallow-file`
     # were missing, so their value read as the subcommand. `--exec-path` takes
     # no separate value -- git prints its path and exits -- and stays: the
@@ -848,7 +784,7 @@ def _git_options(rest, redirections=False):
         "--attr-source",
         "--shallow-file",
     }
-    i, chdirs = 0, []
+    i = 0
     while i < len(rest):
         t = rest[i]
         width = redirection_width(rest, i) if redirections else 0
@@ -856,50 +792,43 @@ def _git_options(rest, redirections=False):
             i += width
             continue
         if t in takes_value:
-            if t == "-C" and i + 1 < len(rest):
-                chdirs.append(i + 1)
             i += 2
             continue
         if t.startswith("-") and t != "-":
             i += 1
             continue
         break
-    return i, chdirs
+    return i
 
 
 def parse_git(tokens):
-    """Return (subcommand, args, chdirs) if this segment IS a git invocation.
+    """Return (subcommand, args) if this segment IS a git invocation.
 
     `git` must be the segment's command word -- leading VAR=val assignments and
     common wrappers are skipped, anything else (echo, cat, prose) disqualifies
     the segment. Then git's own global options (-C <path>, -c k=v, ...) are
-    skipped to find the subcommand.
-
-    `chdirs` are the `-C <path>` values in order. Skipping them was enough to
-    FIND the subcommand and not enough to know which repository it acts on.
-    `hooks/implementer-notice.py` reads the subcommand alone.
+    skipped to find the subcommand. Which repository the command acts on is
+    not read: `hooks/implementer-notice.py` judges the session's own.
     """
     # A reserved word in front of `git` used to stop this reading, so a commit
     # that was the first command of a loop or conditional body was invisible
-    # (#669). `command_word` reads past it, and says such a segment's
-    # directory is unplaced.
+    # (#669). `command_word` reads past it.
     #
     # A redirection in front of `git` or before its subcommand stopped both
     # scans (#674). Each is asked again past redirections only where it found
     # no `git`, or landed on a redirection for the subcommand, so every answer
     # the first reading gave is kept -- `2>/x/git commit` among them.
-    word, _unplaced = command_word(tokens)
+    word = command_word(tokens)
     if not word or os.path.basename(word[0]) != "git":
-        word, _unplaced = command_word(tokens, redirections=True)
+        word = command_word(tokens, redirections=True)
         if not word or os.path.basename(word[0]) != "git":
             return None
     rest = word[1:]
-    at, chdir_at = _git_options(rest)
+    at = _git_options(rest)
     if redirection_width(rest, at):
         again = _git_options(rest, redirections=True)
-        if again[0] < len(rest):
-            at, chdir_at = again
-    chdirs = [rest[k] for k in chdir_at]
+        if again < len(rest):
+            at = again
     if at >= len(rest):
         return None
     # A closing parenthesis rides on the last word of the segment, which for
@@ -912,4 +841,4 @@ def parse_git(tokens):
     # `( git )` leaves nothing behind, and the empty string is not a
     # subcommand — this function documents None for that, and a caller
     # testing the result for identity would read `''` as one.
-    return (subcommand, rest[at + 1 :], chdirs) if subcommand else None
+    return (subcommand, rest[at + 1 :]) if subcommand else None
