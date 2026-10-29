@@ -56,10 +56,14 @@ in `questions.md` is not a crafter's write, so it is still `open`.
 **Decisions made while writing the code.**
 
 - The row scan is `stray_rows`, and the line reader it uses is `row_cells`.
-  `row_cells` adds an outer pipe only where the line leaves one out, and it
-  keeps the indentation. A row in an indented code block therefore reads as
-  no row. The passes case pins this in the frame that holds no anchor
-  table.
+  `row_cells` adds an outer pipe only where the line leaves one out. A line
+  whose leading spaces and tabs reach four columns, a tab counting to the
+  next multiple of four (`blocks.columns`), is an indented code block and
+  reads as no row. The passes case pins a four-space line, a tab line and a
+  two-spaces-and-a-tab line in the frame that holds no anchor table. At
+  `ce323fe9` the code kept the leading spaces alone, so a tab-indented line
+  read as a row; round 1, finding 1, found it, and `1783b55a` counts
+  columns instead.
 - A row is refused only where the remote cell and the heading cell are two
   different cells, as `frame/design.md` *Scope* item 2 says. No cell can be
   both a bare remote and a heading, so the distinction changes nothing a
@@ -93,7 +97,9 @@ mutants, run against `Test_check`, came back with every mutant red. The
 mutants were the undeclared arm, the walk-refused guard, the exclusion of
 the walked rows, the scan's condition replaced by `remotes`, by `headings`
 and by `False`, each outer pipe given, the kept indentation, and the
-declared-remote test.
+declared-remote test made to accept any remote. None of the ten narrowed
+the scan to this pact alone; that mutant survived until round 1, finding 2,
+and the id `a row naming another pact the signer declares` turns it red.
 
 **Phase boundary, executed.** One `bin/test` command ran eleven modules and
 counted 1011 passed, 8 skipped and 1 failed: the three modules the plan
