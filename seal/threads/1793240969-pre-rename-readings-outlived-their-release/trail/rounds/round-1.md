@@ -15,7 +15,7 @@ below says what was claimed and what was found.
 severity: should
 location: `tests/censuses.py:1007-1012`
 evidence: executed `git grep -n SpecSeal-Routing -- :!seal/threads`
-verdict: open
+verdict: fixed 645c9c80
 
 The comment on this `KEPT_OLD_NAMES` item tells the next reader when the
 item can leave. It says "Two living lines still spell it". The search prints
@@ -41,14 +41,14 @@ the case changes.
     "Spec" + "Seal-Routing",
 ```
 
-answer:
+answer: The finding holds. The comment counted lines where the plan asked for the two places to be named, and the count was wrong at the commit that wrote it. 645c9c80 rewrites the comment in place as the finding proposes: it names the S1 case's class in `tests/skills/test_chain_check.py` and the sentence in `docs/the-routing-check.md` *At the pull request*, and it states no count. `tests/test_censuses.py` passes whole (executed, exit 0, 175 passed), and `ruff check` and `ruff format --check` on `tests/censuses.py` exit 0. `git grep` for the count's wording finds no other living line that states it.
 
 ### 2. The version moved in a commit of its own, not in the commit that adds the work item's changelog entry
 
 severity: should
 location: `.claude-plugin/plugin.json`, `seal/threads/1793240969-pre-rename-readings-outlived-their-release/changelog.md`
 evidence: executed `git log --format=%h --name-status 1e82fd0a..HEAD -- .claude-plugin/plugin.json seal/threads/1793240969-pre-rename-readings-outlived-their-release/changelog.md`
-verdict: open
+verdict: rejected
 
 The orchestrator's account cites `skills/implement/orchestration.md`
 *Orchestrator: how the work is routed* for 5b8fcd02. Half of that claim
@@ -76,7 +76,7 @@ git -C <worktree> commit --amend --no-edit
 git -C <worktree> push --force-with-lease
 ```
 
-answer:
+answer: The observation holds and the fix does not. `skills/implement/orchestration.md:531-533` does say the version moves "in the commit that adds that work item's changelog entry", and 5b8fcd02 is the commit after 6306f1f1. But the only fix is to rewrite the branch's pushed history, and two rules forbid that. `docs/release-checklist.md` *0. Before starting* says "Never rebase a work item's branch, for any reason", because every round record names its branch's commits on its `target:` line and a rebase orphans them. `skills/code-review/orchestration.md:186-188` says a conflict is integrated by merging, never by a rebase, for the same reason. The proposed `reset --soft` and amend is a rewrite of the same kind, and this round's own `target:` line names 5b8fcd02, which the rewrite would orphan. What it would buy is a revert of the changelog commit before the squash that also takes the version back. The pull request into `release/v0.24.1` is squashed (`CLAUDE.md`, the merge-method rule), so the release branch receives the same tree either way.
 
 ## Confirmations
 
