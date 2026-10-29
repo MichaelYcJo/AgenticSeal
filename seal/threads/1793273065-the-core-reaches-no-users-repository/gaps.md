@@ -23,7 +23,7 @@ The plugin's core stood only in this repository's `CLAUDE.md`, so no agent or se
 
 ## Not done
 
-On a machine with the new block installed, every agent reads the core twice: once through its `skills:` list and once through `~/.claude/CLAUDE.md`'s import, which the harness adds to every spawn (#292). That is +6,796 B per spawn, about 2,100 tokens at 3.2 B/token (`trail/phases/phase-3.md`). Both paths stay. The issue's Done-when names `skills:` as the agents' path, and that path is the only one that reaches a user who never ran the installer. A user-scope import cannot be made conditional on who reads it. The orchestrator decided this on 2026-10-29 against the issue's constraint *No session reads the core twice*, which names sessions. #1183's review weighs it, because a `SessionStart` hook may not reach a subagent at all (unverified).
+On a machine with the new block installed, every agent reads the core twice: once through its `skills:` list and once through `~/.claude/CLAUDE.md`'s import, which the harness adds to every spawn (#292). That is the core's 6,711 B a second time, about 2,100 tokens at 3.2 B/token, inside a per-agent growth of 6,796 B (`trail/phases/phase-3.md`). Both paths stay. The issue's Done-when names `skills:` as the agents' path, and that path is the only one that reaches a user who never ran the installer. A user-scope import cannot be made conditional on who reads it. The orchestrator decided this on 2026-10-29 against the issue's constraint *No session reads the core twice*, which names sessions. #1183's review weighs it, because a `SessionStart` hook may not reach a subagent at all (unverified).
 
 ## Fed back into the design
 
