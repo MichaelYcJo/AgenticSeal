@@ -9,6 +9,7 @@ Every orchestrating session read the bootstrap and the parity setup before its f
 | Divergence | Spec says / code did | Chosen | Grounds |
 |---|---|---|---|
 | What the re-pointed parity assertion reads | `frame/plan.md` *Phases* row 1: "`tests/behaviour/test_chain_hooks_hardening.py:237-247` asserts that `orchestration.md` names `skills/parity-setup/SKILL.md`". The code reads the *Orchestrator: Bootstrap* section of `orchestration.md` alone | the code | The same row moves the parity grounds into the acts table's Bootstrap row, which names `skills/parity-setup/SKILL.md` too, so a whole-file needle stays green with the step 3 sentence deleted, and the row's own red-first run could not be made |
+| Two docstrings the frame lists for a change | `frame/design.md` *Data & interfaces* lists `tests/behaviour/test_first_setup_asks_once.py:175` among the comments "that state where the bootstrap or the parity rule is now", and `tests/behaviour/test_every_orchestrator_act_names_its_delivery.py:284` among the docstrings where "both" becomes what the tuple holds. The code leaves both | the code | `:175` says the slice of a round finding ran to "the end of the whole Bootstrap section" and names no file. `:284` is `_tree`'s docstring, "A root with both orchestration files", and the planted root still holds exactly those two: it carries no bootstrap file, and `acts` skips a path that does not resolve |
 
 ## Not verified
 
