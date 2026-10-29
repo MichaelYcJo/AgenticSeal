@@ -197,7 +197,7 @@ class Test_main:
             "on: pull_request\n  push\n",
             "on: [pull_request]\n  push\n",
             "on:\n  pull_request:foo\n",
-            "on:\n  pull_request:foo\n    push\n",
+            "on:\n  pull_request:x: y\n",
             "on:pull_request\n",
         ],
         ids=[
@@ -215,7 +215,7 @@ class Test_main:
             "an-inline-name-continued-on-a-deeper-line",
             "an-inline-list-continued-on-a-deeper-line",
             "a-name-glued-to-a-colon",
-            "a-glued-name-continued-on-a-deeper-line",
+            "a-key-holding-a-glued-colon",
             "an-on-key-glued-to-its-value",
         ],
     )
