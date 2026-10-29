@@ -36,4 +36,4 @@
 
 Verdict: undecided question: Issue #1047's third Done-when asks a case to pin that a question a read-only command answers is answered in Grounding and not left as a row; the tree pins only the Grounding half (shape-answers-by-probe), and gaps.md:22 states the no-row half as a limit with no reader since shape-no-measurement-row was removed at 7ac24a06 for failing a correct row. Does the owner accept that limit as meeting the Done-when, so the body's Closes #1047 stands, or is the no-row half owed a pin or a follow-up issue before #1047 closes?
 
-Answered 2026-10-29 by the owner: #1047 stays open until the no-row half is pinned; the pull request body says Part of #1047, not Closes #1047.
+Answered 2026-10-29 by the owner: the limit is accepted and Closes #1047 stands; the pin of the no-row half is #1158, in the milestone release: 0.24.2.
