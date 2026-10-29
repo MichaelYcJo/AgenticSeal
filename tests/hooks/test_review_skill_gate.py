@@ -2,7 +2,7 @@
 
 Claude Code ships a `code-review` skill of its own. When the model picks it
 in a repo that also carries AgenticSeal's, the user gets a bug-and-cleanup sweep
-where they expected a spec-compliance review — and only finds out after the
+where they expected a compliance-first review — and only finds out after the
 review has already run. The gate turns that into one prompt beforehand.
 """
 
@@ -67,6 +67,9 @@ class Test_main:
         assert "AskUserQuestion" in reason
         assert "/agentic:code-review" in reason
         assert "/code-review" in reason
+        # #1110: the option names the first stage the way `code-review` does.
+        flat = " ".join(reason.split())
+        assert "/agentic:code-review: compliance first, then quality" in flat
 
     def test_refuses_without_a_session_id_by_asking_instead_of_denying(self, repo):
         """No id means no way to record the question, and a deny would repeat.

@@ -593,7 +593,8 @@ ASKING_WINDOW = 140
 #
 #   *go in **one batch** before the first edit*  -- verbatim from the
 #       sentence `CLAUDE.md`'s goal section carried until #730 left the rule
-#       to `skills/implement/SKILL.md` *1. Read the spec before the code*;
+#       to `skills/implement/SKILL.md` *1. Read the documents that outrank
+#       the code first*;
 #       the emphasis markers break the
 #       literal;
 #   *in a single batch* and *as a single batch* -- ordinary synonyms.

@@ -2104,7 +2104,7 @@ class Test_main:
         dropping one from the presence check reports it deleted."""
         assert run([str(linked), "--baseline", "HEAD"]) == 0
         out = capsys.readouterr().out
-        tally = [ln for ln in out.split("\n") if ln.startswith("1 overviews")]
+        tally = [ln for ln in out.split("\n") if ln.startswith("1 closing memos")]
         assert len(tally) == 1 and " 2 open " in tally[0], out
 
     @pytest.mark.parametrize("change", ["a row", "a file"])

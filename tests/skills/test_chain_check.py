@@ -1688,7 +1688,7 @@ RULES = reader.rule_changes()
 # The refusal's text before the parser's reason, pinned here so an edit to
 # `chain.RULE_CHANGES_SAYS` meets a case.
 SAYS = (
-    "`## Rule changes` does not parse, so `settle` cannot group this spec by the "
+    "`## Rule changes` does not parse, so `settle` cannot group this design by the "
     "sections it names and the settle has to read it whole: "
 )
 CONTINUED = "- nothing\n  why: a reason\n  that continues two spaces in\n"

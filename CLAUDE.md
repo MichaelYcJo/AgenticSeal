@@ -7,9 +7,10 @@ assumed. Time and stability are what the argument is being made for.
 
 This is a goal, not a rule, which is why it sits above them: it decides
 between options where no rule is broken either way.
-`skills/implement/SKILL.md` *1. Read the spec before the code* holds the rule
-this goal produces for a session, with its reasoning: whatever needs a person
-is asked once, together, before the first edit, and nothing comes back mid-run.
+`skills/implement/SKILL.md` *1. Read the documents that outrank the code
+first* holds the rule this goal produces for a session, with its reasoning:
+whatever needs a person is asked once, together, before the first edit, and
+nothing comes back mid-run.
 
 ## The rule a mechanism is kept against
 

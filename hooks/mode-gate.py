@@ -35,11 +35,11 @@ not move the session's workspace.
 
 **When, and why not at the commit.** On any Bash call, which means the first
 one of the session. Scoping it to a commit was the first design here and the
-budget is what argued it down: `skills/implement/SKILL.md` *1. Read the spec
-before the code* says the cost of
-a question is not its difficulty but WHEN it arrives, and at the commit this
-question lands beside the review arm's, at minute thirty, on a session that may
-have nobody at the keyboard. On the first Bash call it lands in the batch a
+budget is what argued it down: `skills/implement/SKILL.md` *1. Read the
+documents that outrank the code first* says the cost of a question is not
+its difficulty but WHEN it arrives, and at the commit this question lands
+beside the review arm's, at minute thirty, on a session that may have nobody
+at the keyboard. On the first Bash call it lands in the batch a
 session collects before it starts, which is where this project wants questions.
 The number of interruptions is the same either way -- one -- because the budget
 below is per session, not per command.

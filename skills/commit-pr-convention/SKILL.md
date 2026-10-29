@@ -207,7 +207,7 @@ file and links it from the body.**
 - **Where**: the work item's own folder under the root, as `pr.<lang>.md`,
   and `<lang>` is the mirror's **own** language rather than the body's. An
   English repository keeps a Korean mirror at
-  `<root>/specs/<work-item-id>/pr.ko.md`; a Korean one keeps an English
+  `<root>/threads/<work-item-id>/pr.ko.md`; a Korean one keeps an English
   mirror at `pr.en.md`. `<root>` resolves the way the language section above
   resolves it, and the next bullet says where it must not land.
 - **Why there**: its permissions are the repository's, so anyone who can

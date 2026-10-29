@@ -1,7 +1,7 @@
 ---
 name: proofer
 description: |
-  Review agent. Spawn to review a PR, diff, or branch — spec compliance first,
+  Review agent. Spawn to review a PR, diff, or branch — compliance first,
   then quality. Reads earlier review rounds for their coordinates and writes
   one round record for the orchestrator to verify and commit.
 skills:

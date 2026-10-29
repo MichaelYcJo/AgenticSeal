@@ -552,7 +552,7 @@ TRACERS_RULES = {
     "A guessed original proves nothing.": (
         "return `original not found` naming what was tried, and no findings",
     ),
-    "Start from the spec's coordinates, and report the axis nobody looked at.": (
+    "Start from the design's coordinates, and report the axis nobody looked at.": (
         "reads like one that came back empty",
     ),
 }

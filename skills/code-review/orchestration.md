@@ -390,7 +390,8 @@ coordinates yourself:
    the heaviest to act on and the hardest to retract.
 2. Every claim that a state can occur, because a constraint, an enum or a
    default may forbid the state.
-3. Spec citations, because clause numbers move while a review runs.
+3. Citations of a policy's or a design's clauses, because clause numbers move
+   while a review runs.
 4. Test-pass claims: run them, and count the skips, which read as passes.
 
 Also check whether HEAD moved during the review; if source changed, those

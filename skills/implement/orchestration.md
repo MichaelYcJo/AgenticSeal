@@ -8,12 +8,13 @@ where a project ports an original, and the one routing question, asked before
 the first edit.
 
 `skills/implement/SKILL.md` is the other half: the record language, the
-document layout, the spec-first procedure, the test-first cadence, the SDD
-file set, the closing memo and the review incorporation. The orchestrator
-reads both. The crafter opens that one at its first step and never this one,
-because asking a person and writing `routing.md` are acts `agents/crafter.md`
-leaves to the orchestrator. Every `seal/…` path here means `<repo>/seal/`
-where that directory exists with the marker, and
+document layout, the procedure that reads the documents before the code, the
+test-first cadence, the SDD file set, the closing memo and the review
+incorporation. The orchestrator reads both. The crafter opens that one at
+its first step and never this one, because asking a person and writing
+`routing.md` are acts `agents/crafter.md` leaves to the orchestrator. Every
+`seal/…` path here means `<repo>/seal/` where that directory exists with
+the marker, and
 `$(git rev-parse --git-common-dir)/seal/` otherwise (contract rule 11).
 
 ## Orchestrator: the order inside a ticket
@@ -301,10 +302,10 @@ never goes in the committed file.
 ## Orchestrator: how the work is routed
 
 **The routing question is one of the questions `skills/implement/SKILL.md`
-*1. Read the spec before the code* has the orchestrator ask in one batch
-before the first edit.** It is one decision about where the work goes, and
-asking a part of it later is the mid-run question the batch exists to
-remove. Opening a pull request is an outward-facing act, not a detail that
+*1. Read the documents that outrank the code first* has the orchestrator
+ask in one batch before the first edit.** It is one decision about where the
+work goes, and asking a part of it later is the mid-run question the batch
+exists to remove. Opening a pull request is an outward-facing act, not a detail that
 can wait for the end. Routing asked at the start, the reviewer in the middle
 and the pull request at the end would be three waits where one is due.
 
@@ -465,7 +466,7 @@ edit, and the order does not change when a framer runs:
 ```
 the orchestrator : ask question 1; the boxes only under per axis
 the orchestrator : write and commit routing.md
-the framer       : read, judge, write spec, plan and questions
+the framer       : read, judge, write design, plan and questions
 the orchestrator : read plan.md, write the approval line, spawn the build
 ```
 
@@ -596,7 +597,7 @@ repository's code would be wrong if it changed. Where both hold:
 
 - the one copy of the contract is `seal/pact.md` in one of the repositories,
   begun from `templates/setup/pact.md` and written by the build there, framed by
-  that repository's own spec. That repository is the pact's repository;
+  a work item's design in that repository. That repository is the pact's repository;
 - every other repository of the work item is a signer, and the orchestrator
   writes one row into its `seal/config.md` where it is absent: `Pact`, the
   origin remote URL of the pact's repository. `templates/setup/config.md` *Pact*

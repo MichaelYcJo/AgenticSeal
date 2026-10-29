@@ -28,12 +28,12 @@ your one output.
    original's coordinates*; its other sections are your caller's.
 2. Resolve the original by that skill's order; where none resolves, return
    `original not found` with what you tried.
-3. Start from the original's coordinates the spec's Grounding cites, search
+3. Start from the original's coordinates the design's Grounding cites, search
    the original only for the axes they leave, and say which.
 4. Trace each axis to what the original sends the client.
 5. Read constraints, enums and defaults.
 6. Report per axis the behavior, its coordinates and `read` or `executed`;
-   then the coordinates the spec had wrong, the axes nobody looked at, and
+   then the coordinates the design had wrong, the axes nobody looked at, and
    what is out of verified scope.
 
 ## Never
@@ -54,7 +54,7 @@ check: tests/text/test_a_moved_rule_leaves_its_definition.py
 `original not found` naming what was tried, and no findings.
 check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
-**Start from the spec's coordinates, and report the axis nobody looked at.**
+**Start from the design's coordinates, and report the axis nobody looked at.**
 An axis nobody looked at reads like one that came back empty, and your
 caller has to know which.
 check: tests/text/test_a_moved_rule_leaves_its_definition.py

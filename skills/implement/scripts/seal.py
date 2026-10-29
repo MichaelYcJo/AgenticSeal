@@ -91,7 +91,7 @@ work away.
 
 **What the reminder counts, and what it does not.** `--check` prints
 `N work items changed since the last export`, where a work item is
-its directory `specs/<id>/`. Root-level files — `follow-up.md`, `config.md`,
+its directory `threads/<id>/`. Root-level files — `follow-up.md`, `config.md`,
 `parity.md` — are NOT counted, because the line
 the design specifies says *work items* and this command does not get to widen
 it. So a release whose only change was to `follow-up.md` reports 0. That gap
@@ -131,7 +131,7 @@ TOOLS = {
     ),
     "settle": (
         "skills/settle/scripts/settle.py",
-        "show the released specs by section, and remove what a settle leaves",
+        "show the released designs by section, and remove what a settle leaves",
     ),
     "cost": (
         "skills/verify/scripts/session_cost.py",
@@ -1050,10 +1050,11 @@ def destination_root(repo, home, shared, local, into):
 
     Both roots present refuses whatever `--into` says, including nothing.
     The refusal used to sit inside the `--into` branch, which left the case
-    the spec and both READMEs describe — `seal import` with no flag — writing
-    into whichever root the gates happen to read first. A clone holding two
-    roots is a clone whose owner has not said which is the real one, and a
-    copy landing in one of them is not the moment to decide it.
+    a work item's design and both READMEs describe — `seal import` with no
+    flag — writing into whichever root the gates happen to read first. A
+    clone holding two roots is a clone whose owner has not said which is the
+    real one, and a copy landing in one of them is not the moment to decide
+    it.
     """
     if optin.marked(shared) and local and optin.marked(local):
         return "", (

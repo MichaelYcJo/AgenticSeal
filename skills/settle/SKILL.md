@@ -14,10 +14,11 @@ description: |
 
 # settle — write each section's latest decision
 
-A spec states the rules its work changes in its `## Rule changes` section,
-and the section is reviewed with the spec. Released specs pile up into a
-timeline: a later spec may restate what an earlier one decided, and the code
-may have moved past both. **The specs say what was decided and in what order,
+A work item's design states the rules its work changes in its `## Rule
+changes` section, and the section is reviewed with the design. Released
+designs pile up into a timeline: a later design may restate what an earlier
+one decided, and the code may have moved past both. **The designs say what
+was decided and in what order,
 the code says what holds now, and the settling session writes each section as
 the latest decision the code bears out. The script reads and removes; it
 neither writes `docs/` nor judges.**
@@ -28,8 +29,8 @@ tree does not decide and writes it down, and the owner reviews its pull
 request.
 
 ```
-seal settle                  the dry run: each group of released specs that
-                             name one section, the specs to read whole, every
+seal settle                  the dry run: each group of released designs that
+                             name one section, the designs to read whole, every
                              open row, and what --apply removes
 seal settle --apply          remove each released directory whose record
                              holds no open row
@@ -44,9 +45,9 @@ below says what changes.
 
 ## Rule changes
 
-A spec states the rules it changes in its `## Rule changes` section, one
-item per operation. The operation's line comes first, then one field per
-line, indented two spaces:
+A work item's design states the rules it changes in its `## Rule changes`
+section, one item per operation. The operation's line comes first, then one
+field per line, indented two spaces:
 
 ```
 - change
@@ -66,7 +67,7 @@ line, indented two spaces:
 - `file` is a top-level `.md` file of the policy root, `seal/config.md`'s
   `Policy root` row (`docs` when absent), joined with `/` and holding no `\`
   or `:`. `section` is a heading's text at any level.
-- **`from` is the text as the spec's framer read it.** It locates the change
+- **`from` is the text as the design's framer read it.** It locates the change
   for the settling session and for a reviewer, and it is not a
   precondition: a `from` the section no longer holds is history, and the dry
   run says so. The dry run compares it, and `to`, with runs of whitespace
@@ -75,10 +76,10 @@ line, indented two spaces:
   with that indent removed. A code span closes on the line that opens it: a
   line that begins inside a span an earlier line opened is refused at its
   line.
-- A spec that changes no rule writes the no-change block in place of the
+- A design that changes no rule writes the no-change block in place of the
   items, `- nothing` with its one field `why:`. Any other spelling of it is
   refused at its line, naming the block.
-- A block that does not match whole is refused at its line, and its spec
+- A block that does not match whole is refused at its line, and its design
   joins no group: the settling session reads it whole.
 - The section's heading is `## Rule changes`, spelt exactly so. A heading at
   any level whose letters, case folded, are those of `Rule changes`, and
@@ -149,19 +150,19 @@ over an unsettled work item.
 as that ref holds it, or in local mode as its directory holds it, and writes
 nothing:
 
-- **Each group**: the specs whose operations name one place, a file and a
+- **Each group**: the designs whose operations name one place, a file and a
   section, in merge order. Two places are one group where one section holds
-  the other, because a section's range holds its sub-sections. A spec's
+  the other, because a section's range holds its sub-sections. A design's
   place in the order is the first commit on `--released-at` that adds its
   `frame/design.md`, or its design at the path it held before the session-start
   move brought it into `seal/threads/` (`rule_changes.py#EARLIER`), or in local
   mode its pull request's merge commit's place on `--released-at`. The group
   opens with each place's lines in the working tree, or the words saying its
-  heading is not there, and lists each operation with its spec's coordinate
-  and whether its `from` and its `to` are found in the section now. Two specs
+  heading is not there, and lists each operation with its design's coordinate
+  and whether its `from` and its `to` are found in the section now. Two designs
   whose commits no ancestry orders are marked `unordered`, for the settling
   session to order by content.
-- **The specs to read whole**: one whose `## Rule changes` does not parse,
+- **The designs to read whole**: one whose `## Rule changes` does not parse,
   with the reader's reason, and one with no such section.
 - **Every open `## Not verified` row** of every released record, each with
   the backticked paths it names and whether each is in the working tree.
@@ -181,7 +182,7 @@ does not parse, an unordered pair and an open row are all shown.
    earlier operation the latest one restates is superseded: it is settled
    with its group and not applied. The rest of the document stays as it
    was, and no marker is written.
-3. Read each spec listed to read whole, and write any rule it states the
+3. Read each design listed to read whole, and write any rule it states the
    same way.
 4. Decide each open row against the tree, and close it in its record with
    `closed` and what closed it:
@@ -220,7 +221,7 @@ does not parse, an unordered pair and an open row are all shown.
    corpus* says. Run the failing modules until they pass, then run the
    row again. The step is done when the row passes with no edit after it.
 9. Open the pull request. Its body lists, per group, the decision and its
-   grounds (the spec ids in merge order, the superseded operations, the code
+   grounds (the work item ids in merge order, the superseded operations, the code
    coordinate), the rows by kind with what closed each, the defaults it
    took, the answers for the checks that read the corpus, and how it was
    checked.
@@ -276,8 +277,8 @@ request's merge commit, whatever the merge method was.
   and what it said, and reads and removes nothing. Every work item would
   otherwise read as unreleased, and the run would say there is nothing to
   settle.
-- **The spec and the order.** Each `frame/design.md` is read from its directory,
-  since no ref holds it. The released specs are listed by their merge
+- **The design and the order.** Each `frame/design.md` is read from its directory,
+  since no ref holds it. The released designs are listed by their merge
   commits' place in `git rev-list --topo-order --reverse` of
   `--released-at`, and two whose merge commits no ancestry orders are marked
   `unordered`.
@@ -352,7 +353,7 @@ Where the root is shared, its commits carry
 `Seal-Routing: no work item` as their trailer
 (`skills/commit-pr-convention/SKILL.md`). What it wrote is reviewed at
 its pull request. It keeps no log: what
-changed is the diff. Where the root is shared the removed specs are in git
+changed is the diff. Where the root is shared the removed designs are in git
 history; in local mode no commit holds them, and the dry run names
 `seal export` for whoever wants a copy. A settle that
 opened a work item would leave a directory for the next settle to remove, and
