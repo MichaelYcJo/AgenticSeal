@@ -129,23 +129,14 @@ WORD_BREAK = " \t\r\n;|&<>"
 def drop_comments(command: str) -> str:
     """`command` with its shell comments removed, quotes respected.
 
-    A JUDGMENT read has to do this and a CONSENT read must not; the two
-    callers are `split_segments` for the first and the gates' own bare-word
-    scans for the second.
-
-    Why judgment needs it: `#` opens a comment and `\\n` closes it, so bash
-    runs the next line. `shlex` with `commenters=""` — which is what keeps a
-    `[worktree-ok]` written inside a comment readable — sees no comment at
-    all, and an apostrophe in one is an opening quote to it. Everything after
-    that point is swallowed into a string that never closes, the lexer raises,
-    and every LATER line is gone from the segment list. Measured: `git status
-    # don't forget` followed by `git worktree add ../wt f` runs both lines in
-    bash and produced no verdict at all in the guard, while the same two lines
-    without the apostrophe denied.
-
-    Why consent must not: a retry token is written in a comment on purpose
-    (`git worktree add ../wt f  # [worktree-ok]`). Dropping comments before
-    looking for it would throw away the only place users put it.
+    A read of what a command DOES has to do this before `split_segments`.
+    `#` opens a comment and `\\n` closes it, so bash runs the next line.
+    `shlex` with `commenters=""` sees no comment at all, and an apostrophe in
+    one is an opening quote to it. Everything after that point is swallowed
+    into a string that never closes, the lexer raises, and every LATER line is
+    gone from the segment list. Measured: bash runs both lines of `git status
+    # don't forget` followed by `git worktree add ../wt f`, and with the
+    comment left in, the second line left the segment list.
 
     A comment ends at the newline and the newline stays, because
     `split_segments` needs it to end the segment. Escaping and quoting follow
@@ -562,10 +553,9 @@ def split_segments(command):
     every newline as plain whitespace, so a small quote-aware scan converts
     only the unquoted ones first.
 
-    `commenters` is cleared: a `#` has to survive as an ordinary character so
-    that a retry token written in a comment can still be matched as a bare
-    word. Callers judging what a command DOES run it through `drop_comments`
-    first — see that docstring for what clearing this costs otherwise.
+    `commenters` is cleared, so a `#` stays an ordinary character here.
+    Callers judging what a command DOES run it through `drop_comments` first;
+    that docstring says what clearing this costs a caller that does not.
 
     Returns (segments, parsed_cleanly)."""
     items, clean = split_segments_with_separators(command)
