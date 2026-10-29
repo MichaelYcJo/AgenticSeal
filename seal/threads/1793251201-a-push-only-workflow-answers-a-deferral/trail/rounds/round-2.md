@@ -18,7 +18,7 @@ no test file. Every verdict below was reached on the code at `bef03a87`.
 severity: should
 location: `skills/verify/scripts/deferral_check.py:138-139`, `skills/verify/scripts/deferral_check.py:144-147`, `skills/verify/scripts/deferral_check.py:113-114`, `tests/skills/test_deferral_check.py:179-203`
 evidence: executed `python3 -I test_tmp_r2.py`, `uv run --no-project --with pyyaml python3 -c 'import yaml; yaml.safe_load(...)'`
-verdict: open
+verdict: fixed d8edc4a6
 regression: round-1#1
 
 The unit is the bare-name arm of `block_entries` (`:144-147`), which 816646c6
@@ -75,14 +75,14 @@ The parameter is to be seen red at `bef03a87`, where the probe printed
 `answers` at exit 0 for this shape, and red again under a mutant that drops
 the `if bare` arm (contract rule 15).
 
-answer:
+answer: Fixed for the whole class rather than the bare name alone. Under contract rule 12, a `- name` item continues the same way, and `on:` / `  - pull_request` / `    closed` answered too. `block_entries` now remembers whether the last entry held a colon. A deeper line under an entry with no colon, a bare name or a `- name` item, makes the block unread. A deeper line under a key still belongs to that key. The docstring at `:113-114` now names the shape. S5 gains `a-name-continued-on-a-deeper-line` and `an-item-continued-on-a-deeper-line`. Both were red at b0fd17c3, whose script is bef03a87's, where each printed `answers` at exit 0 (executed). S4 gains `name-with-a-comment-below` (`on:` / `  pull_request` / `    # the run`), which answers. `seal mutate` over the new arm gave 7 mutants, 6 red and one equivalent (executed). The equivalent mutant exposed a dead `not is_item and` condition, removed in f23464df, because a `- ` item holding a colon is never an event name. After it, 6 of 6 went red (executed). No sentence of `changelog.md`, `KNOWN_LIMITS`, `skills/verify/SKILL.md` or the two READMEs names this shape; each names unread shapes as examples or the outcome in general (read).
 
 ### 2. An inline event name followed by a deeper line answers, though YAML reads the two lines as one name
 
 severity: should
 location: `skills/verify/scripts/deferral_check.py:179-180`, `tests/skills/test_deferral_check.py:179-203`
 evidence: executed `python3 -I test_tmp_r2.py`, `uv run --no-project --with pyyaml python3 -c 'import yaml; yaml.safe_load(...)'`
-verdict: open
+verdict: fixed d8edc4a6
 
 This finding is outside the fix diff. This round opened it while
 enumerating the class of finding 1, under contract rule 12. The inline arm of
@@ -133,7 +133,7 @@ The parameter is to be seen red at `bef03a87`, where the probe printed
 `answers` at exit 0 for this shape. Neither fix changes a sentence of `changelog.md`. Its list of shapes that
 read as unread opens with "such as", and it names neither shape.
 
-answer:
+answer: Fixed with the proposed `continued` helper. The check sits before both inline arms, not inside the scalar arm alone: under contract rule 12, a closed flow list continues the same way, and `on: [pull_request]` / `  push` answered too. S5 gains `an-inline-name-continued-on-a-deeper-line` and `an-inline-list-continued-on-a-deeper-line`. Both were red at b0fd17c3, whose script is bef03a87's, where each printed `answers` at exit 0 (executed). S4 gains `inline-name-with-a-comment-below` (`on: pull_request` / `  # the run`), which answers. It went red under the mutant that measures the comment line's indent without dropping the comment (executed). The mutants that skip the check, and that make `continued` always false or always true, went red as well (executed). `changelog.md` needs no change: its list of unread shapes opens with "such as".
 
 ## Confirmations
 
