@@ -29,7 +29,10 @@ to the frame, the proofer whether the diff holds, and the sealer whether
 every party's account agrees with the issue and the tree. They are separate
 agents because their targets differ, and each reaches its result without
 leaning on another's verdict, so one agent's mistake does not pass through
-the next unread. The rules each one judges by live in its own definition
+the next unread. The records they hand each other, the phase records and
+the round records among them, are how one agent understands another's work,
+not a theory the next one is asked to adopt: each reads them as claims and
+reaches its own result. The rules each one judges by live in its own definition
 or in the document it reads at that step; this file holds what all of them
 share. What they share is text, so every sentence an agent or a check reads
 has one reading, by the rules `skills/writing-style/SKILL.md` *에이전트와
