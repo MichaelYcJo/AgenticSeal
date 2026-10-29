@@ -35,8 +35,10 @@ check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
 
 ## 2 Narrow and often; the broad gate is the orchestrator's
 
-Run the tests for the slice you touched while you work, and your module and
-the ones it touches at a phase boundary. The broad gate — the full suite, the
+Run the tests for the slice you touched while you work, and at a phase
+boundary, in one command, the cases the phase's plan row names and the test
+modules that read a path the phase changed, whether they name it, import it
+or glob the directory that holds it. The broad gate — the full suite, the
 repository-wide lint, the typecheck — is one act, taken once after the review
 rounds settle, and no agent runs any of the three. The orchestrator runs
 `seal gate --base <base> --record <item>` with nothing else running, then

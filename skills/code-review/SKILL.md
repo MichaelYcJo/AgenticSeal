@@ -72,7 +72,7 @@ check: tests/text/test_review_axes.py
 | | What | Handling |
 |---|---|---|
 | Probe | a temporary test that settles what reading cannot | you write it, run it once and delete it, named `test_tmp_*` — and everything else it made goes with it; what it settled goes into the record's `## Probes` |
-| Regression test | a test that should exist and does not | you do not write it: it is a `should` finding whose `location:` names the file it belongs in |
+| Regression test | a test that should exist and does not, judged by `skills/verify/SKILL.md` *The narrow command still has to be able to fail*: a rename or a move owes no case written new and no mutation run, so neither is missing from one | you do not write it: it is a `should` finding whose `location:` names the file it belongs in |
 
 Contract rule 7 is about leavings, not files: a worktree, a branch, a clone or a
 virtual environment a probe made for itself goes too. Batch the probe cases

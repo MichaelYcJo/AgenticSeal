@@ -230,4 +230,56 @@ class Test_main:
             assert (UNTRUE in own) == name.endswith("untrue-body"), (name, own)
 
 
+# A frame that answers the sharp-s issue by running `shout`, and two that
+# leave the answer elsewhere: in another section, or with no label.
+PROBED = """# Design: 1790000025-sharp-s
+
+## Grounding
+
+| Policy clause | What it fixes for this work |
+|---|---|
+| `src/textutil.py#shout` | executed: `python3 -c 'print(repr(shout("straße")))'` prints `'STRASSE!'` |
+
+## Scope
+
+`shout` lengthens a word whose upper case is longer.
+"""
+ELSEWHERE = PROBED.replace("prints `'STRASSE!'`", "prints the answer").replace(
+    "is longer.", "is longer: `STRASSE!`, executed."
+)
+UNLABELLED = PROBED.replace("executed: ", "")
+
+
+class Test_framer_case:
+    def graders(self):
+        """`{grader name: (compiled pattern, match)}` of the sharp-s case's
+        regex graders, read back as a side records them."""
+        rc = load_script("rule_cases")
+        case = dict(rc.cases())["rule-framer-sharp-s"]
+        out = {}
+        for name, text in case["graders"]:
+            config = ni.grader_from(f"graders/{name}", text)["config"]
+            if "pattern" in config:
+                out[name[: -len(".md")]] = (
+                    re.compile(config["pattern"], re.M),
+                    config["match"],
+                )
+        return out
+
+    def test_accepts_a_probes_answer_on_a_grounding_line(self):
+        """Guards #1047 S1: `shape-answers-by-probe` is a `contains` regex
+        that finds a line of `## Grounding` holding both `executed` and
+        `STRASSE`."""
+        found, match = self.graders()["shape-answers-by-probe"]
+        assert match == "contains"
+        assert found.search(PROBED)
+
+    def test_refuses_an_answer_in_another_section_or_with_no_label(self):
+        """Guards #1047 S1: `shape-answers-by-probe` finds nothing where the
+        answer stands in another section or carries no `executed` label."""
+        found, _ = self.graders()["shape-answers-by-probe"]
+        assert not found.search(ELSEWHERE)
+        assert not found.search(UNLABELLED)
+
+
 test_census = census_case(TARGET)

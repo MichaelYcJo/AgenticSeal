@@ -51,18 +51,22 @@ def flat(text):
 
 
 SKILL = ("skills", "implement", "SKILL.md")
-# The bootstrap is the orchestrator's half since #292: it asks a person, which
-# a crafter spawn may not, so it lives in the file no `skills:` list injects.
 ORCH = ("skills", "implement", "orchestration.md")
+# The bootstrap is the orchestrator's since #292: it asks a person, which a
+# crafter spawn may not, so it lives in a file no `skills:` list injects. It
+# has its own file since #1046, because only a repository with no root yet
+# needs it.
+BOOT = ("skills", "implement", "bootstrap.md")
 
 
 def bootstrap():
-    return section(read(*ORCH), "## Orchestrator: Bootstrap", 2)
+    return section(read(*BOOT), "## Orchestrator: Bootstrap", 2)
 
 
 def both_halves():
-    """An absence has to hold in both files, or the move re-admits it."""
-    return read(*SKILL) + read(*ORCH)
+    """An absence has to hold in every file the text has lived in, or the
+    move re-admits it."""
+    return read(*SKILL) + read(*ORCH) + read(*BOOT)
 
 
 # --- S4: one question, three options, records only first ------------------
@@ -240,8 +244,8 @@ def test_a_candidate_carrying_a_pipe_is_escaped_where_candidates_are_derived():
 
 
 def test_the_question_never_guesses_and_says_so():
-    """`Orchestrator: Parity setup` states the rule for the original — *never
-    guess* — and the same holds here for the same reason: a row nobody chose
+    """`skills/parity-setup/SKILL.md` *Procedure* states the rule for the
+    original — *never guess* — and the same holds here for the same reason: a row nobody chose
     is what `templates/setup/config.md` argues against by name."""
     row = flat(bootstrap())
     row = row[row.index("The second question") :]
@@ -419,7 +423,8 @@ def test_no_definition_carries_its_own_copy_of_the_root_rule(agent):
 
 def test_the_session_rule_sits_in_the_layout_section_of_the_skill():
     """The layout section runs from its heading to `## Procedure`; the
-    bootstrap that used to close it is in `orchestration.md` now (#292)."""
+    bootstrap that used to close it left with #292 and is in
+    `skills/implement/bootstrap.md` now (#1046)."""
     skill = read(*SKILL)
     assert (
         skill.index("## Document layout")
@@ -827,7 +832,7 @@ def test_the_preset_sends_a_fresh_repository_to_the_bootstrap():
     )
     # The file the Bootstrap moved to, not the skill a `Skill implement` load
     # carries, which no longer holds it.
-    assert "skills/implement/orchestration.md" in lead
+    assert "skills/implement/bootstrap.md" in lead
     assert "neither" in lead, "the rule does not say WHICH repositories it means"
     # A project's own `seal/` is no root, so a repository holding only that
     # one is sent to the bootstrap too.
@@ -857,6 +862,20 @@ def test_the_preset_names_both_places_the_root_can_be():
     lead = routing_rule()
     assert "`<repo>/seal/`" in lead
     assert "git rev-parse --git-common-dir" in lead
+
+
+def test_the_orchestrators_half_sends_a_fresh_repository_to_the_bootstrap():
+    """S3 of #1046. A session that opens `orchestration.md` first, under a
+    preset block copied before the bootstrap left that file, meets the
+    condition and the bootstrap's file in the opening paragraph, before any
+    section, with both places the root can be."""
+    opening = paragraph(read(*ORCH), "This file is the orchestrator's")
+    assert "`skills/implement/bootstrap.md`" in opening, (
+        "the orchestrator's half does not send a fresh repository to the bootstrap"
+    )
+    assert "opens with the marker" in opening, opening
+    assert "`<repo>/seal/`" in opening, opening
+    assert COMMON_DIR in opening, opening
 
 
 def test_the_preset_says_whose_decision_the_place_is():

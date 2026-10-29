@@ -293,7 +293,7 @@ them measures a tree that is going to change.
 | When | What runs | Label |
 |---|---|---|
 | Each slice | the tests for what the slice just wrote | `executed`, narrow |
-| Phase boundary | the module the phase changed and the ones it touches, in parallel | `executed`, scoped |
+| Phase boundary | the set contract rule 2 names for a phase boundary, as one command | `executed`, scoped |
 | Handoff to review | nothing broad | the suite is `unverified`, and says so |
 | Review rounds 1..n | what the fix touches | `executed`, narrow |
 | **After the rounds settle** | full suite, lint, typecheck, **once**, by the orchestrator | `executed`, broad, once |
@@ -331,7 +331,10 @@ command from:
 | Prose only: docs, comments, docstrings | Whatever actually parses those files. Often nothing does, and then there is no seal to earn here. |
 | A comment or docstring inside source | That the module still imports. |
 | Logic | The tests covering that file. |
+| Names or places only: a unit, file or directory renamed or moved, with its body, signature and output unchanged | Every file that named the old name or path. The existing cases, run at the new name or path, prove it, with a census showing the old spelling is gone from the files no case imports: an entry in the census of old spellings where the repository keeps one, and otherwise the search for the old spelling and its empty result in the phase record. It owes no case written new and no `seal mutate` run, because it adds no behaviour. A unit whose body, signature or output changes beside its name is the *Logic* row. |
 | A merge, or a dependency bump | The broad gate. What breaks is outside what was edited, so a scope drawn around the edit cannot see it. |
+
+check: evals/behaviour/crafter/rule-crafter-rename/
 
 The last row is the one that gets narrowed by mistake. A merge is the moment
 the tree stops being the one that was tested.

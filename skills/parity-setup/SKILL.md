@@ -13,8 +13,10 @@ policy, the original and the new code, with the original preserved where the
 policy is silent, and lets the `tracer` agent fetch what the original does.
 
 The `implement` skill's bootstrap asks this question once, when it first sets
-a repository up. This command is for when the answer was no at the time, when
-the layout predates the question, or when the original repository changes.
+a repository up, and a yes there runs the procedure below: the orchestrator
+reads this file and follows it, because the frontmatter keeps the skill from
+being invoked by the model. This command is for an answer given later, a
+layout that predates the question, or an original that changes.
 
 ## Procedure
 
@@ -45,22 +47,33 @@ the layout predates the question, or when the original repository changes.
    none. Never propose creating one.
 
 6. **Write two files.**
-   - `seal/parity.md` from `templates/setup/parity.md`, committed. Coordinate-trust
-     exceptions start empty.
+   - `seal/parity.md` from `templates/setup/parity.md`. Where the root is
+     `<repo>/seal/`, commit it. In local mode the root sits under the common
+     git directory, where nothing is committed, so write it there and commit
+     nothing. Coordinate-trust exceptions start empty.
    - `~/.claude/agentic/parity-paths.md`: the machine-local checkout path,
      keyed by this repository's origin remote URL so worktrees and second
-     checkouts resolve to one entry. **This never goes in the committed
-     file**: it is wrong for every other machine.
+     checkouts resolve to one entry. **This never goes in `seal/parity.md`**:
+     it is wrong for every other machine.
 
 7. **Show the result and say what changes now.** Name the `legacy-parity`
    skill, the `tracer` agent, and that divergence from the original now needs
    grounds rather than preference. Say the consequence the user meets first,
-   too: from this file onward, a ready pull request that changes anything
-   outside the document roots fails its check until the comparison with the
-   original is recorded as an `original:` line, in each round record under
-   `through the review chain` and in the sealer's `guarantee.md` under
-   `straight to the PR` (`skills/legacy-parity/SKILL.md` *Recording the
-   comparison*).
+   too, which depends on where the root is and on whether the pull-request
+   checks are installed. Where the root is `<repo>/seal/` and
+   `seal pr-checks` reports the checks installed: from this file onward, a
+   ready pull request that changes anything outside the document roots fails
+   its check until the comparison with the original is recorded as an
+   `original:` line, in each round record under `through the review chain`
+   and in the sealer's `guarantee.md` under `straight to the PR`
+   (`skills/legacy-parity/SKILL.md` *Recording the comparison*). Under
+   shared, records only, no workflow reads a round record, but `seal gate`
+   runs the same check: say that the `original:` line is still written, that
+   the gate refuses a round record without it once a ready pull request is
+   open for the branch, and that before then it names the record and passes.
+   In local mode git carries neither `seal/parity.md` nor a round record, so
+   no check reads either: say that the line is still written, and that
+   nothing refuses a record without it.
 
 ## What this does not decide
 
