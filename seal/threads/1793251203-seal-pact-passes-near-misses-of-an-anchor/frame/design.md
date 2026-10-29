@@ -46,7 +46,7 @@ the directory was removed before hand-back.
     (d13), the table with no outer pipes (d14), header cells in code spans
     (d15), `| Pact | Clauses | Hash |` (d26), and an anchor row with no
     header above it (d24); rows naming `git@example.com:o/pakt.git` (d10)
-    and `git@example.org:o/pact.git` (d16); inline `PACT:abc` (d18),
+    and `git@other.example.com:o/pact.git`, another host (d16); inline `PACT:abc` (d18),
     `Pact:abc` (d19), `pact: abc` (d20), `pact :abc` (d21) and
     `PACT:pact/"## A"@deadbeef` (d22); a table inside a fence (d11), a
     `| Repository | Role |` table naming the pact's remote (d23) and the

@@ -37,4 +37,4 @@
 
 | # | Question | Who can answer | Options & what each implies | Default until answered | Status |
 |---|---|---|---|---|---|
-| W1 | The names and exact words of the two new refusal sentences. `frame/design.md` *Data & interfaces* fixes what each says. The words are written where they are built and pinned there | the work | Any wording that names the cell as written, says why nothing grades the row, gives the remedy, and passes `tests/behaviour/test_one_word_one_meaning.py`. The choice goes into the phase record | Phase 1's wording, pinned by S1's and S3's cases | open |
+| W1 | The names and exact words of the two new refusal sentences. `frame/design.md` *Data & interfaces* fixes what each says. The words are written where they are built and pinned there | the work | Any wording that names the cell as written, says why nothing grades the row, gives the remedy, and passes `tests/behaviour/test_one_word_one_meaning.py`. The choice goes into the phase record | Phase 1's wording, pinned by S1's and S3's cases | answered 2026-10-29 by the crafter: `UNDECLARED` and `OUTSIDE_TABLE`, worded as `trail/phases/phase-1.md` records |
