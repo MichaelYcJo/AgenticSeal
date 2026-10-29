@@ -1,6 +1,6 @@
 # Implementation Plan: 1793240967-the-worktree-guard-was-never-weighed
 
-Approved <date> by <who>, when `crafter` was spawned.
+Approved 2026-10-29 by the orchestrator under the owner's automation answer, when `crafter` was spawned for phases 1 to 4.
 
 ## Summary
 
