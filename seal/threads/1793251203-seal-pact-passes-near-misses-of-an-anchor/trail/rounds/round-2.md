@@ -9,7 +9,7 @@ target: 239819c7, fixes 09718b2f..239819c7
 severity: should
 location: `skills/verify/scripts/pact_check.py:42-50`, `skills/verify/scripts/pact_check.py:501-512`, `tests/skills/test_pact_check.py:579-586`, `seal/threads/1793251203-seal-pact-passes-near-misses-of-an-anchor/frame/design.md:200-207`, `seal/threads/1793251203-seal-pact-passes-near-misses-of-an-anchor/trail/phases/phase-1.md:59-63`
 evidence: executed `bin/test tests/skills/test_tmp_r2_probe.py -p no:xdist -q -s`
-verdict: open
+verdict: fixed 5c046e90
 regression: round-1#1
 
 The unit is `row_cells` (`skills/verify/scripts/pact_check.py:501`), which
@@ -89,7 +89,7 @@ block, and right under a paragraph line round 2, finding 1, states it as a
 limit".
 ```
 
-answer:
+answer: The finding holds, and I fixed it the way the round recommends: a stated limit and one pin, with no paragraph reader (`frame/plan.md` A4). The module docstring now ends its row-scan paragraph with this limit sentence: "A line four columns in, a tab counting to the next multiple of four, is read as no row: below a blank line it is an indented code block, and right under a paragraph line, where GitHub renders it as text, it is a row with no header that is also indented, a row that misses twice." The `row_cells` docstring now says such a line is an indented code block only below a blank line, and that under a paragraph line it is paragraph text. `trail/phases/phase-1.md` was rewritten in place to match. The passes case's frame z gained `x` followed by a tab row, at line 12. With the test module of `5c046e90` run over the `pact_check.py` of `09718b2f` in a scratch clone, the passes case failed, and frame z's line 12 was among the lines refused with `OUTSIDE_TABLE`, so the pin can fail. In the same commit, the changelog's sentence on indented code blocks was rewritten to cover the paragraph shape. The `## Rule changes` entry at `frame/design.md:200-207` is the orchestrator's to fold, and it is left unedited here.
 
 ## Confirmations
 

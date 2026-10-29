@@ -204,7 +204,11 @@ and S3's cases. What each must say:
     table whose `Pact` cell is also a near miss, written in backticks or one
     letter off a declared remote, or whose `Clause` cell holds no heading,
     has no anchor's shape a fact can tell, and `seal pact` passes it over.
-    Each miss alone is refused.
+    Each miss alone is refused. A line four columns in, a tab counting to
+    the next multiple of four, is read as no row: below a blank line it is
+    an indented code block, and right under a paragraph line, where GitHub
+    renders it as text, it is a row with no header that is also indented, a
+    row that misses twice.
 
 ## Removes
 
