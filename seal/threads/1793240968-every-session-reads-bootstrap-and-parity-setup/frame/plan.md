@@ -1,5 +1,7 @@
 # Implementation Plan: 1793240968-every-session-reads-bootstrap-and-parity-setup
 
+Approved 2026-10-29 by the orchestrator under the owner's automation answer, when `crafter` was spawned for phases 1 and 2.
+
 ## Summary
 
 Every orchestrating session reads all of `skills/implement/orchestration.md`
