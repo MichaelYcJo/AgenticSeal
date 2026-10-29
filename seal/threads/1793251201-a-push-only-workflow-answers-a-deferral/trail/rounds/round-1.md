@@ -68,8 +68,8 @@ KNOWN_LIMITS = (
             "flow-list-trailing-comma",
 ```
 
-verdict: open
-answer:
+verdict: fixed 816646c6
+answer: Both spellings read again. `read_events` drops one empty last element of a flow list. `block_entries` reads a block whose only line is neither a key nor an item as that one name, YAML's `on: push` on the next line. Such a line beside any other entry still makes the block unread. S4 gains `flow-list-trailing-comma` (`on: [pull_request, ]`) and `name-on-the-line-below` (`on:` / `  pull_request`). Both were red at 6dbc8963, where they printed `unread` at exit 1 (executed). S5 gains `two-trailing-commas` and `two-names-on-the-lines-below`, which hold the fix to one comma and one name. They pass at 6dbc8963, and they went red under the mutants that drop every empty element and that read more than one bare name (executed). 8ecc92bf removes the `len(names) > 1` bound, which `seal mutate` showed equivalent because the `names and` test already reads `[]` as unread. After it, 6 of 6 mutants over the two new arms went red (executed). The base's `if e.strip()` filter was not restored: it read `[pull_request,,]` as `{pull_request}`, a partial read that *Scope* item 2 refuses.
 
 ### 2. A pull_request trigger narrowed to after the merge now counts as answering in the inline spelling the base refused
 
@@ -120,8 +120,8 @@ KNOWN_LIMITS = (
         assert "filters" in limit, limit
 ```
 
-verdict: open
-answer:
+verdict: fixed 816646c6
+answer: `KNOWN_LIMITS` now carries the proposed clause word for word: an event's filters (types, branches, paths) are not read, so a pull_request trigger limited to closed pull requests counts as answering. S8 asserts it, and it was red at 6dbc8963 (executed). The first assertion checked the word `filters` alone, and a mutant that dropped `not` survived it. 8ecc92bf makes it assert `filters (types, branches, paths) are not read`, and that mutant then went red (executed). Under contract rule 12, the one other place that states the command's limits, the limits paragraph of `skills/verify/SKILL.md` *The answerer has to exist*, gained the same sentence in 816646c6. `git grep` for `YAML graph` and `filters` outside `seal/threads` finds no third place (executed).
 
 ## Confirmations
 
