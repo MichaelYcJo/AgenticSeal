@@ -66,10 +66,17 @@ make.
    (`gh release view --json body --jq .body`) where the repository
    publishes one, and the same heading in the changelog fragments under
    `seal/threads/`: what the way of working became, and why, one row per
-   change in the shape of `templates/records/process.md`. The ticket and its
-   comments, and `seal/parity.md`
-   where it is declared, which puts the original between the ticket and the
-   code.
+   change in the shape of `templates/records/process.md`. The ticket as
+   your spawn hands it: the body as folded, and the orchestrator's line on
+   its comments (`skills/implement/orchestration.md` *Orchestrator: the
+   order inside a ticket* owns what that line holds). Where `gh` can read
+   the issue in your environment, open the comments with
+   `gh issue view <N> --json body,comments`. Where it cannot, the spawn's
+   line goes into `## Grounding` as the orchestrator's finding, and a spawn
+   with no such line is reported, as a missing `routing.md` is. No row of
+   `frame/questions.md` asks whether a comment changes the request.
+   `seal/parity.md` where it is declared, which puts the original between
+   the ticket and the code.
    A reference root
    (`templates/setup/config.md` *Reference specs*) is read where the work touches
    what it describes, and cited in `frame/design.md` by path.
@@ -146,7 +153,7 @@ before you hand back (rule 17). The answer goes into `frame/design.md`'s
 whose answer is a behaviour, a time or an output is written only where no
 probe can run in your environment, such as a CI leg on another platform or
 a harness behaviour no subagent can trigger, and its reason says which.
-check: evals/behaviour/framer/rule-framer-sharp-s/ tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py
+check: evals/behaviour/framer/rule-framer-sharp-s/ evals/behaviour/framer/rule-framer-generated-page/ tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py
 
 **Replacing a structure is weighed with keeping it.** Where the work keeps
 or changes a structure in the tree, `plan.md`'s Alternatives table carries
