@@ -12,6 +12,7 @@ case in `Test_module`. #942's phase 6 placed them in classes.
 """
 
 import os
+import re
 import subprocess
 import sys
 
@@ -43,6 +44,16 @@ def repo(tmp_path):
 
 def workflow(repo, name, text):
     (repo / ".github" / "workflows" / name).write_text(text, encoding="utf-8")
+
+
+# A job that runs the test suite, for the cases that vary only the trigger.
+PYTEST_JOB = "jobs:\n  t:\n    steps:\n      - run: pytest\n"
+
+
+def labelled(out, label):
+    """The lines of the command's output that open with LABEL, such as
+    `answers`, `too late` or `unread`."""
+    return [line for line in out.split("\n") if line.startswith(f"  {label} ")]
 
 
 class Test_main:
@@ -109,6 +120,97 @@ class Test_main:
         assert r.returncode == 1
         assert "post.yml" in r.stdout
         assert "pull_request" in r.stdout
+
+    # --- the trigger is read, or reported unread and not counted --------------
+
+    @pytest.mark.parametrize(
+        "trigger",
+        [
+            '"on":\n  push:\n    branches: [main]\n',
+            "on:\n    push:\n        branches: [main]\n",
+            "'on':\n  push:\n    branches: [main]\n",
+            "on:\n- push\n",
+            "on:\n  push: {branches: [main]}\n",
+            "on:\n  push: # on main\n    branches: [main]\n",
+        ],
+        ids=[
+            "double-quoted-key",
+            "block-at-four-spaces",
+            "single-quoted-key",
+            "sequence-at-indent-zero",
+            "key-with-a-value",
+            "key-with-a-comment",
+        ],
+    )
+    def test_a_push_only_trigger_in_each_spelling_is_too_late(self, repo, trigger):
+        """#1123: each spelling read as unread and counted as answering."""
+        workflow(repo, "post.yml", trigger + PYTEST_JOB)
+        r = run(["--kind", "tests", str(repo)])
+        assert r.returncode == 1, r.stdout + r.stderr
+        [line] = labelled(r.stdout, "too late")
+        assert "post.yml (on push, not pull_request)" in line
+
+    @pytest.mark.parametrize(
+        "trigger",
+        [
+            '"on":\n  pull_request:\n',
+            "on:\n    pull_request:\n        types: [opened]\n",
+        ],
+        ids=["double-quoted-key", "block-at-four-spaces"],
+    )
+    def test_a_pull_request_trigger_in_the_wider_spellings_answers(self, repo, trigger):
+        workflow(repo, "test.yml", trigger + PYTEST_JOB)
+        r = run(["--kind", "tests", str(repo)])
+        assert r.returncode == 0, r.stdout + r.stderr
+        [line] = labelled(r.stdout, "answers")
+        assert "test.yml (on pull_request)" in line
+
+    @pytest.mark.parametrize(
+        "trigger",
+        ["name: CI\n", "on: {pull_request: {}}\n", "on: [\n  push\n]\n"],
+        ids=["no-on-key", "flow-mapping", "flow-list-across-lines"],
+    )
+    def test_an_unread_trigger_is_reported_and_not_counted(self, repo, trigger):
+        workflow(repo, "ci.yml", trigger + PYTEST_JOB)
+        r = run(["--kind", "tests", str(repo)])
+        assert r.returncode == 1, r.stdout + r.stderr
+        assert labelled(r.stdout, "answers") == [], r.stdout
+        [line] = labelled(r.stdout, "unread")
+        assert "ci.yml (trigger unread, not counted) — pytest" in line
+
+    def test_an_unread_workflow_beside_one_that_answers_still_resolves(self, repo):
+        workflow(repo, "nightly.yml", "name: Nightly\n" + PYTEST_JOB)
+        workflow(repo, "test.yml", "on: pull_request\n" + PYTEST_JOB)
+        r = run(["--kind", "tests", str(repo)])
+        assert r.returncode == 0, r.stdout + r.stderr
+        [answers] = labelled(r.stdout, "answers")
+        assert "test.yml (on pull_request)" in answers
+        [unread] = labelled(r.stdout, "unread")
+        assert "nightly.yml (trigger unread, not counted)" in unread
+
+    @pytest.mark.parametrize(
+        "trigger, code, label, events",
+        [
+            ("on: pull_request # trigger\n", 0, "answers", "pull_request"),
+            ("on: [push] # trigger\n", 1, "too late", "push"),
+        ],
+        ids=["inline-name", "inline-list"],
+    )
+    def test_a_trailing_comment_is_not_read_as_an_event(
+        self, repo, trigger, code, label, events
+    ):
+        workflow(repo, "ci.yml", trigger + PYTEST_JOB)
+        r = run(["--kind", "tests", str(repo)])
+        assert r.returncode == code, r.stdout + r.stderr
+        [line] = labelled(r.stdout, label)
+        read = re.search(r"\(on (.*?)(?:, not pull_request)?\) —", line)
+        assert read and read.group(1) == events, line
+
+    def test_the_printed_limit_names_a_trigger_it_cannot_read(self, tmp_path):
+        r = run(["--kind", "tests", str(tmp_path)])
+        [limit] = [line for line in r.stdout.split("\n") if line.startswith("limit: ")]
+        assert "flow mapping" in limit, limit
+        assert "unread and is not counted" in limit, limit
 
     # --- a local hook is not CI ----------------------------------------------
 

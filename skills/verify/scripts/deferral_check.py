@@ -11,11 +11,12 @@ only. The deferral named something that was not there, which reads exactly
 like a deferral that was honoured.
 
 So this resolves the common answerer. Given a repo and a kind of check, it
-reports what would actually run it without being asked, and separates three
+reports what would actually run it without being asked, and separates five
 outcomes that a reader otherwise collapses into one:
 
   resolves        something runs it on pull requests
   wrong trigger   something runs it, but only after the point being deferred
+  unread trigger  something runs it on a trigger this cannot read; not counted
   local only      a pre-commit hook runs it on the committer's machine
   nothing         no one runs it
 
@@ -82,43 +83,94 @@ PRE_MERGE_EVENTS = {"pull_request", "pull_request_target", "merge_group"}
 KNOWN_LIMITS = (
     "reads command text, not a YAML graph: a runner reached through a "
     "composite action, a reusable workflow, or a script this cannot see "
-    "reads as absent"
+    "reads as absent; a trigger written as a flow mapping, or as a flow "
+    "list across lines, reads as unread and is not counted"
 )
+
+# A workflow's trigger key at the start of a line, bare or in either quote,
+# and the text after its colon.
+ON_KEY = re.compile(r"""^(?:on|"on"|'on')\s*:(.*)$""")
+# A YAML comment: a `#` that opens the text or follows whitespace, to the end
+# of the line.
+COMMENT = re.compile(r"(?:^|\s)#.*$")
+# The shape of a trigger's event name.
+EVENT_NAME = re.compile(r"[A-Za-z_][\w-]*")
+
+
+def unquoted(value):
+    """VALUE stripped, with one pair of matching quotes around it dropped."""
+    value = value.strip()
+    if len(value) > 1 and value[0] == value[-1] and value[0] in "\"'":
+        value = value[1:-1]
+    return value
+
+
+def block_entries(lines):
+    """The entries of the block below a bare `on:` key, in file order: the
+    name of each key, or the text of each `- ` item, at the block's indent.
+
+    The block's indent is its first entry's: one space or more, or zero
+    where that entry is a `- ` item. A deeper line belongs to an entry and
+    is skipped. A shallower line, or a line at indent zero that is not a
+    `- ` item, ends the block. A line at the block's indent that is neither
+    a key nor an item makes the whole block unread, an empty list.
+    """
+    entries, width = [], None
+    for line in lines:
+        code = COMMENT.sub("", line)
+        item = code.strip()
+        if not item:
+            continue
+        indent = len(code) - len(code.lstrip())
+        is_item = item == "-" or item.startswith("- ")
+        if indent == 0 and not is_item:
+            break
+        if width is None:
+            width = indent
+        if indent < width:
+            break
+        if indent > width:
+            continue
+        if is_item:
+            entries.append(item[1:])
+        elif ":" in item:
+            entries.append(item.partition(":")[0])
+        else:
+            return []
+    return entries
 
 
 def read_events(text):
-    """Event names from a GitHub workflow's `on:` block.
+    """Event names from a GitHub workflow's top-level `on` key, or an empty
+    set where the trigger is unread.
 
-    Three forms in the wild: `on: push`, `on: [push, pull_request]`, and a
-    block of indented `event:` keys. Anything else lands as an empty set,
-    which is reported as unknown rather than as absent.
+    The key is `on`, `"on"` or `'on'` at the start of a line. Its value is
+    an inline name, `on: push`; a flow list closed on its line,
+    `on: [push, pull_request]`; or a block below the key, which
+    `block_entries` reads. A trailing comment and one pair of quotes around
+    a name are dropped. The trigger is unread where there is no `on` key,
+    where the value is anything else, where a block holds no entry, and
+    where one entry is not an event name: a set this returns is never part
+    of a trigger. `inspect` reports an unread trigger and does not count it.
     """
-    events = set()
     # exempt from splitlines: YAML keys
     lines = text.splitlines()
     for i, line in enumerate(lines):
-        m = re.match(r"^on\s*:\s*(.*)$", line)
-        if not m:
+        key = ON_KEY.match(line)
+        if not key:
             continue
-        rest = m.group(1).strip()
-        if rest.startswith("["):
-            events |= {e.strip() for e in rest.strip("[]").split(",") if e.strip()}
-        # exempt from heading_rule: a YAML comment in a workflow's on key
-        elif rest and not rest.startswith("#"):
-            events.add(rest)
+        value = COMMENT.sub("", key.group(1)).strip()
+        if not value:
+            names = block_entries(lines[i + 1 :])
+        elif value.startswith("[") and value.endswith("]"):
+            names = value[1:-1].split(",")
         else:
-            for follow in lines[i + 1 :]:
-                # exempt from heading_rule: a YAML comment in a workflow's on block
-                if not follow.strip() or follow.lstrip().startswith("#"):
-                    continue
-                indent = len(follow) - len(follow.lstrip())
-                if indent == 0:
-                    break
-                key = re.match(r"^\s*-?\s*([A-Za-z_][\w-]*)\s*:?\s*$", follow)
-                if key and indent <= 2:
-                    events.add(key.group(1))
-        break
-    return events
+            names = [value]
+        names = [unquoted(name) for name in names]
+        if names and all(EVENT_NAME.fullmatch(name) for name in names):
+            return set(names)
+        return set()
+    return set()
 
 
 def runners_in(text, kind):
@@ -184,7 +236,7 @@ def read(path):
 
 def inspect(root, kind):
     """(verdict, lines) for one kind. Verdict is the exit-code decision."""
-    resolving, wrong_trigger, local_only = [], [], []
+    resolving, wrong_trigger, unread, local_only = [], [], [], []
 
     for path in workflow_files(root):
         text = read(path)
@@ -193,9 +245,11 @@ def inspect(root, kind):
             continue
         name = os.path.relpath(path, root)
         events = read_events(text)
-        if not events or events & PRE_MERGE_EVENTS:
-            when = "on " + ", ".join(sorted(events)) if events else "trigger unread"
-            resolving.append((name, cmds, when))
+        if not events:
+            # A trigger nobody read is no fact this read, so it answers nothing.
+            unread.append((name, cmds))
+        elif events & PRE_MERGE_EVENTS:
+            resolving.append((name, cmds, "on " + ", ".join(sorted(events))))
         else:
             wrong_trigger.append((name, cmds, "on " + ", ".join(sorted(events))))
 
@@ -218,6 +272,10 @@ def inspect(root, kind):
     for name, cmds, when in wrong_trigger:
         lines.append(
             f"  too late  {name} ({when}, not pull_request) — {'; '.join(cmds)}"
+        )
+    for name, cmds in unread:
+        lines.append(
+            f"  unread    {name} (trigger unread, not counted) — {'; '.join(cmds)}"
         )
     for name, cmds, when in local_only:
         lines.append(

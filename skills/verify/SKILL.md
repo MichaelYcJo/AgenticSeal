@@ -354,10 +354,11 @@ seal deferrals .              # is the test suite answered here?
 seal deferrals . --kind all   # tests, lint, typecheck
 ```
 
-It separates four outcomes that a reader otherwise collapses into one:
+It separates five outcomes that a reader otherwise collapses into one:
 
 - something answers on pull requests;
 - something answers, but only after the point being deferred;
+- something runs it, but its trigger could not be read, so it is not counted;
 - a local hook answers on the committer's machine only;
 - nothing answers.
 
