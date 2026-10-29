@@ -89,10 +89,9 @@ sys.path.insert(0, os.path.join(HERE, "..", "..", "hooks", "lib"))
 import console  # noqa: E402
 from close_issues_on_release import CLOSING, FENCE, KEYWORDS, SPAN  # noqa: E402
 
-# Where a line ends is the shared reader's rule, loaded by path the way
-# `gather_changelog.py#load_reader` loads it (#664). A reader that is moved or
-# renamed stops this check at load with a traceback, which is the loud
-# direction.
+# Where a line ends is the shared reader's rule, loaded by path (#664). A
+# reader that is moved or renamed stops this check at load with a traceback,
+# which is the loud direction.
 READER = os.path.join(
     HERE, "..", "..", "skills", "verify", "scripts", "unverified_check.py"
 )
@@ -168,9 +167,10 @@ def prose_only(body):
 def segments(text):
     """`(start, end)` for each sentence-ish run of `text`, in order.
 
-    Empty runs are dropped. The boundaries are the three rules in the module
-    docstring; everything between two of them is one segment, newlines
-    included, because a hard-wrapped sentence is still one sentence.
+    The boundaries are the three rules in the module docstring; everything
+    between two of them is one segment, newlines included, because a
+    hard-wrapped sentence is still one sentence. A run of whitespace between
+    two boundaries is a segment too, and holds no `#N` for `read` to find.
 
     A line is a line where GitHub renders one, the shared reader's
     `gfm_lines` with ends kept (#664). Split with `str.splitlines`, a
@@ -186,7 +186,7 @@ def segments(text):
         if not stripped or BLOCK_START.match(line):
             cuts.add(at)
         at += len(line)
-    return [(a, b) for a, b in itertools.pairwise(sorted(cuts)) if text[a:b].strip()]
+    return list(itertools.pairwise(sorted(cuts)))
 
 
 def claimed_spans(text):
@@ -235,9 +235,6 @@ def read(body):
         mentioned.append(number)
 
     for start, end in segments(text):
-        here = [c for c in claims if start <= c[1] < end]
-        if not here:
-            continue
         # Quoted from the ORIGINAL body, not the masked copy: the author has
         # to recognise the sentence they wrote, and a code span blanked out of
         # it reads as a different sentence. The masking is length-preserving,
@@ -259,7 +256,7 @@ def read(body):
         for m in ISSUE_REF.finditer(text, start, end):
             if m.group(1) in claimed or m.group(1) in seen:
                 continue
-            before = [c for c in here if c[1] < m.start(1)]
+            before = [c for c in claims if start <= c[1] < m.start(1)]
             if before:
                 seen.add(m.group(1))
                 warnings.append((before[-1][0], m.group(1), sentence))

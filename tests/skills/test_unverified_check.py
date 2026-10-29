@@ -663,8 +663,8 @@ MARKER = r"^<!-- specs/(\S+) -->$"
 
 
 def live_markers(body):
-    """The marker ids on the live lines of BODY, read line-anchored as the
-    changelog gather writes one."""
+    """The marker ids on the live lines of BODY, each read line-anchored, on
+    a line of its own."""
 
     return {
         found
@@ -1818,7 +1818,6 @@ class Test_annotate:
 
     @pytest.mark.parametrize("in_ci, line", [(True, "::notice::m"), (False, "m")])
     def test_refuses_to_name_a_path_it_was_not_given(self, monkeypatch, in_ci, line):
-        monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
         if in_ci:
             monkeypatch.setenv("GITHUB_ACTIONS", "true")
         assert UC.annotate("notice", None, 1, "m") == line
@@ -2042,7 +2041,6 @@ class Test_main:
         `ls-tree`'s path; they agreed only at the repository root. Run in
         both output shapes, because pinning one is what let this pass
         everywhere except CI."""
-        monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
         if in_ci:
             monkeypatch.setenv("GITHUB_ACTIONS", "true")
         d = copy_of(plain, tmp_path)
@@ -2106,7 +2104,7 @@ class Test_main:
         dropping one from the presence check reports it deleted."""
         assert run([str(linked), "--baseline", "HEAD"]) == 0
         out = capsys.readouterr().out
-        tally = [ln for ln in out.split("\n") if ln.startswith("1 overviews")]
+        tally = [ln for ln in out.split("\n") if ln.startswith("1 closing memos")]
         assert len(tally) == 1 and " 2 open " in tally[0], out
 
     @pytest.mark.parametrize("change", ["a row", "a file"])

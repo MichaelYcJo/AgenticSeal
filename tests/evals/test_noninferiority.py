@@ -25,10 +25,12 @@ import re
 import stat
 import subprocess
 import sys
+import tempfile
 import types
 
 import pytest
 from conftest import ROOT, census_case, git, load_module, write
+from test_no_case_tells_the_agent_it_is_evaluated import REFUSED
 
 TARGET = "evals/scripts/noninferiority.py"
 
@@ -1302,6 +1304,26 @@ class Test_run_side:
             NI.main(argv)
         assert not out.exists() and not (tmp_path / "side.raw").exists()
 
+    def test_refuses_a_temporary_directory_whose_name_tells_the_agent_it_is_evaluated(
+        self, tmp_path, monkeypatch
+    ):
+        """Guards #1042 S6: the tree the eval loads is the base directory of
+        every skill the agent reads, so no component of its path below the
+        system temporary directory holds a word
+        `tests/text/test_no_case_tells_the_agent_it_is_evaluated.py` refuses."""
+        plugin = plugin_tree(tmp_path / "plugin")
+        loaded = []
+        monkeypatch.setattr(
+            NI, "call_eval", lambda command, env: loaded.append(command[3])
+        )
+        argv = ["run", "--agent", "proofer", "--tree", str(plugin)]
+        with pytest.raises(SystemExit, match="claude plugin eval wrote no JSON"):
+            NI.main([*argv, "--out", str(tmp_path / "side.json")])
+        below = os.path.relpath(loaded[0], tempfile.gettempdir())
+        assert not below.startswith(os.pardir), below
+        named = [part for part in below.split(os.sep) if REFUSED.search(part)]
+        assert named == [], below
+
 
 class Test_kind:
     @pytest.mark.parametrize(
@@ -1452,6 +1474,10 @@ VERDICTS = {
         "fail",
     ),
     "rule 2: false rate up by exactly the margin": (numbers(new_false=3), "pass"),
+    "rule 2: exactly the margin, where 0.35 + 0.05 falls short of 0.40": (
+        numbers(old_false=7, new_false=8),
+        "pass",
+    ),
     "rule 2: false rate up past the margin": (numbers(new_false=4), "fail"),
     "rule 3: the total falling by one shape run": (
         numbers(graders={("c1", "shape-report-exists"): ("shape", 2, 2, 1, 2)}),
@@ -1512,20 +1538,28 @@ VERDICTS = {
         numbers(new_bytes=100000),
         "fail",
     ),
-    "rule 5: tokens per tool call 1.05 times the baseline's": (
+    "rule 5: the total and tokens per tool call both within the margin": (
         numbers(new_tokens=1050000),
-        "fail",
+        "pass",
     ),
     "rule 5: tokens per tool call falling while the total rises": (
         numbers(new_tokens=1200000, new_calls=150),
         "pass",
     ),
-    "rule 5: tokens per tool call rising while the total falls": (
+    "rule 5: fewer calls and a smaller total, though each call read more": (
         numbers(new_tokens=900000, new_calls=80),
-        "fail",
+        "pass",
     ),
     "rule 5: tokens per tool call equal to the baseline's": (
         numbers(new_tokens=1200000, new_calls=120),
+        "pass",
+    ),
+    "rule 5: both figures exactly at the margin": (
+        numbers(new_tokens=round(1000000 * (1 + NI.TOKEN_MARGIN))),
+        "pass",
+    ),
+    "rule 5: both figures past the margin": (
+        numbers(new_tokens=round(1000000 * (1 + NI.TOKEN_MARGIN)) + 1000),
         "fail",
     ),
     "spend and seconds up are written and not judged": (
@@ -1560,6 +1594,15 @@ class Test_verdict:
     def test_accepts_a_new_side_no_worse_than_the_baseline(self, name):
         given, _ = VERDICTS[name]
         assert NI.verdict(given) == ("pass", [])
+
+    def test_passes_a_figure_exactly_at_a_margin_whose_float_falls_short(
+        self, monkeypatch
+    ):
+        """1 + 0.13 comes out just below 1.13 in binary floating point, so a
+        baseline of 100 tokens times it falls under 113; the 1e-9 in rule 5's
+        bar is what passes a side exactly at that margin."""
+        monkeypatch.setattr(NI, "TOKEN_MARGIN", 0.13)
+        assert NI.verdict(numbers(old_tokens=100, new_tokens=113)) == ("pass", [])
 
     @pytest.mark.parametrize("name", FAILING)
     def test_refuses_a_side_a_rule_fails_or_numbers_that_give_no_result(self, name):
@@ -1607,15 +1650,17 @@ class Test_verdict:
                 graders={("c1", "truth-1"): ("truth", 2, 2, 0, 2)},
                 new_false=5,
                 new_bytes=100000,
-                new_tokens=1000000,
+                new_tokens=1100000,
             )
         )
         assert reasons == [
             "recall fell from 4 to 2 finds: c1/truth-1",
             "false-finding rate rose from 0.100 to 0.250",
             "the new preload is 100000 bytes, not below the baseline's 100000 (rule 4)",
-            "the new side read 10000.0 tokens across every model per tool call "
-            "(1000000 over 100), not below the baseline's 10000.0 (1000000 over 100) (rule 5)",
+            "the new side read 1100000 tokens across every model over 100 tool "
+            "calls, 11000.0 a call, against the baseline's 1000000 over 100, "
+            "10000.0 a call: the total and the figure per call both rose by more "
+            "than 7% (rule 5)",
         ]
 
 
@@ -1823,7 +1868,10 @@ class Test_check_record:
 
     def test_refuses_an_edited_cell_the_verdict_does_not_follow(self):
         text = written()
-        hungrier = text.replace("| New tool calls | 100 |", "| New tool calls | 90 |")
+        hungrier = text.replace(
+            "| New tokens read, every model | 900000 |",
+            "| New tokens read, every model | 1100000 |",
+        )
         assert hungrier != text
         problems = NI.check_record(hungrier)
         assert any("says `pass` and its numbers give `fail`" in p for p in problems)

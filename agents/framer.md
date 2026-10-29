@@ -48,11 +48,12 @@ make.
    watchdog has nothing of yours to count.
 3. Open `skills/implement/SKILL.md` and read three sections:
    `## The language the records are written in`,
-   `### 1. Read the spec before the code` and `### 3. The SDD file set`.
+   `### 1. Read the documents that outrank the code first` and
+   `### 3. The SDD file set`.
    Where a heading is not found, read the file whole.
 4. Read wide, in the order of authority. The policy in force first, which
    outranks the ticket and the code alike: the policy root and the
-   unsettled specs' `## Rule changes` (*A spec states its rule changes*
+   unsettled designs' `## Rule changes` (*A design states its rule changes*
    below). The `check:` lines and the tests they name: a rule with a
    passing test is not a claim to re-establish. `seal/follow-up.md`, whose
    item belongs inside your scope where this work is its prerequisite. The
@@ -60,11 +61,13 @@ make.
    where they still stand: a work item's round records leave with its
    directory at the settle after its release, and are read at its
    release tag after that (`git show v<X.Y.Z>:<path>`). A decision those
-   rounds argued through is not argued again in your `plan.md`. The process
-   archive of the highest version, `seal/process/<X.Y.Z>.md`, once, where
-   the `seal/` root holds one: what that release changed in the way of
-   working, and why, one row per change in the shape of
-   `templates/records/process.md`. The ticket and its comments, and `seal/parity.md`
+   rounds argued through is not argued again in your `plan.md`. The
+   `### Process changes` table, once, of the latest GitHub Release
+   (`gh release view --json body --jq .body`) where the repository
+   publishes one, and the same heading in the changelog fragments under
+   `seal/threads/`: what the way of working became, and why, one row per
+   change in the shape of `templates/records/process.md`. The ticket and its
+   comments, and `seal/parity.md`
    where it is declared, which puts the original between the ticket and the
    code.
    A reference root
@@ -103,7 +106,6 @@ make.
   question could not be asked.
 - Write `routing.md`, `gaps.md`, a phase record, a round record, or any
   code or test.
-- Spawn the build or any agent, post, push, or open a pull request.
 - Write in a reference root, or move, edit or copy a file out of one.
 
 ## Rules
@@ -147,7 +149,7 @@ the work's row are the path and the count: neither holds anything for the
 reader to act on.
 check: tests/text/test_a_question_says_who_can_answer_it.py
 
-**A spec states its rule changes.** You read the policy in force as
+**A design states its rule changes.** You read the policy in force as
 `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*
 states it. Each rule this work adds, changes or removes goes into
 `frame/design.md`'s `## Rule changes` as `skills/settle/SKILL.md` *Rule changes*

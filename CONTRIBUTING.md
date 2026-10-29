@@ -54,7 +54,7 @@ run follows.
 
 This repository runs a spec-driven workflow on itself: work items under
 `seal/threads/`, review rounds, a version that moves once per release. **A
-contribution is asked for none of it.** The version and changelog steps
+contribution is asked for none of it.** The version and milestone steps
 belong to a release and exit early on any base but `main`. The others run on
 every pull request, and they pass for a different reason: they ask nothing
 of a branch that declared nothing. Those are the review-chain check and the
@@ -68,7 +68,7 @@ and a maintainer adding a CI step reads the row rather than this sentence.
 |---|---|
 | a `routing.md`, `frame/design.md` or `frame/plan.md` under `seal/threads/` | Nothing in CI reads them. They route a maintainer's own session |
 | a review round record | *a declared review chain has the round record it claimed* passes with a notice when no declaration names the branch |
-| a `changelog.md` fragment | *every changelog fragment reached the released file* exits 0 unless the base is `main` |
+| a `changelog.md` fragment | No CI step reads it. The release note is built from a maintainer's fragments when the release is tagged |
 | a `gaps.md`, or a row inside one | No CI step reads it. It is a maintainer's closing memo for their own work item |
 | a new version in `.claude-plugin/plugin.json` | *a change to what ships must move the version* exits 0 unless the base is `main` |
 | an issue number in the description | the issue-claim step reports what it finds and never fails; an empty description is a description |
@@ -202,13 +202,15 @@ directory, removes `GITHUB_TOKEN` and `GITHUB_ENTERPRISE_TOKEN`, and sets
 without a token variable, `gh` reads the login it keeps in the OS keyring. A
 case that falls through its stubs onto a live `gh` then fails where it runs,
 instead of passing on a machine that happens to be logged in and failing
-only on CI after the branch was sealed. A case that needs `gh` stubs it. One
-question is stubbed for every case: `chain_check.py` asks
-`gh pr view --json isDraft` where no event payload exists, so the conftest
-puts a `gh` first on PATH that finds no pull request, which the check reads
-as *unknown*, not as ready, and passes every other call to the `gh` behind
-it. A case that means a draft or a ready pull request says so with
-`gh_answers`.
+only on CI after the branch was sealed. A case that needs `gh` stubs it. The
+conftest also removes every variable whose name starts with `GITHUB_`, so a
+case sees under a pull request's CI run what it sees everywhere else, and a
+case that needs one sets it with `monkeypatch.setenv`. One question is
+stubbed for every case: `chain_check.py` asks `gh pr view --json isDraft`
+where no event payload exists, so the conftest puts a `gh` first on PATH
+that finds no pull request, which the check reads as *unknown*, not as
+ready, and passes every other call to the `gh` behind it. A case that means
+a draft or a ready pull request says so with `gh_answers`.
 
 Two steps of the hygiene workflow ship to user repositories as well, as
 `templates/setup/hygiene.yml`: the chain check and the mode check, run from a
@@ -383,26 +385,18 @@ adds any mechanism by what it takes away:
 The prompt budget and what a change removes are the two a passing suite
 cannot report on: nothing counts interruptions, and nothing weighs a
 mechanism's catches against its cost. Both are answered in the pull request
-body or they are not answered. `skills/implement/SKILL.md` *1. Read the spec
-before the code* holds the reasoning the budget is drawn against: the cost of
-a question is not its difficulty, it is when it arrives.
+body or they are not answered. `skills/implement/SKILL.md` *1. Read the
+documents that outrank the code first* holds the reasoning the budget is
+drawn against: the cost of a question is not its difficulty, it is when it
+arrives.
 
 ## House rules
 
 - **A change writes a fragment, never a shared registry.** Which file a
   change writes its changelog entry into is `docs/the-record-layout.md`
-  *A change writes fragments, never a shared file*.
-
-  **One branch does write the changelog, and it is the one based on `main`.**
-  A pull request into `main` is a release, so the entries are due there and
-  the hygiene workflow fails it while a fragment is still ungathered. The
-  gather writes the release's own file, `changelog/X.Y.Z.md`, and its heading
-  in the index `CHANGELOG.md`, and no other branch writes either. The gather
-  is the command in `docs/release-checklist.md` *2. Gather, bump*. This is
-  the rule above being satisfied rather than broken: the branch is not adding
-  an entry to a shared region, it is collecting the fragments that already
-  exist. A hotfix taken straight to `main` is the case that meets this without
-  expecting to.
+  *A change writes fragments, never a shared file*. No branch writes the
+  release notes: the tag's workflow builds them from the fragments, as
+  `docs/branch-and-release.md` *Work accumulates on a release branch* says.
 
 - **No real identifiers.** Examples, fixtures, and docs use `example.com`
   and `/Users/x/` only. The `real_identifiers` census in `tests/censuses.py`
@@ -428,23 +422,23 @@ a question is not its difficulty, it is when it arrives.
   norms, not mirrors.
 - **Both READMEs move together, and so does every document with a `.ko.md`
   edition.** They need not be literal translations, but they must tell the
-  same story about what exists. Under `docs/` the outline is checked:
-  `tests/behaviour/test_both_editions_carry_the_same_folds.py` reads every top-level
-  `docs/X.ko.md` beside a `docs/X.md` and requires the same sequence of
-  heading levels.
+  same story about what exists. The outline is checked:
+  `tests/behaviour/test_both_editions_carry_the_same_folds.py` reads every
+  tracked `X.ko.md` beside an `X.md`, wherever it stands, the READMEs among
+  them, and requires the same sequence of heading levels.
 - **Hooks stay local and quiet.** No writing outside the repo being worked
   on, and failure must never block a tool call. A gate that crashes should
   let the work through, not wedge the session.
 
-  Two hooks reach the network, and both are named in the README's privacy
-  section because a rule with undisclosed exceptions is not a rule.
+  Every hook that reaches the network is named in the README's privacy
+  section, because a rule with undisclosed exceptions is not a rule.
   `lint-python` fetches ruff through `uvx` when no local copy exists.
   `version-check` asks the plugin's own repository for its newest release tag.
-  A third needs the same three limits the second carries (an opt-in condition
-  so unrelated repos are untouched, a throttle so it is not per-session, and
-  silence on every failure), plus a line in the README saying what leaves the
-  machine. Anything that would send repository contents, paths, or prompts is
-  not on the table.
+  A new one needs the same limits `version-check` carries (an opt-in
+  condition so unrelated repos are untouched, a throttle so it is not
+  per-session, and silence on every failure), plus a line in the README
+  saying what leaves the machine. Anything that would send repository
+  contents, paths, or prompts is not on the table.
 - **Hooks are Python invoked as `python3 <script>`, with `py -3 <script>`
   behind it.** Shebangs and exec bits do not exist on Windows, and `python3`
   is the one name its official installer does not create, so the registered
@@ -457,7 +451,8 @@ a question is not its difficulty, it is when it arrives.
 
 `docs/branch-and-release.md` holds it: where a branch is cut from, **which
 merge method each direction takes** (they are not interchangeable), the two
-things that carry the version, how the changelog fragments are gathered, and
+things that carry the version, how the release note is built from the
+changelog fragments, and
 which issues a release closes. A maintainer reads it before merging anything,
 not after.
 

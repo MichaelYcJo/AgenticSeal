@@ -33,6 +33,10 @@ def test_contributing_says_the_suite_runs_logged_out():
         "without a token variable, `gh` reads the login it keeps in the OS keyring",
         *(f"`{name}`" for name in TOKENS),
         "A case that needs `gh` stubs it.",
+        "The conftest also removes every variable whose name starts with "
+        "`GITHUB_`, so a case sees under a pull request's CI run what it sees "
+        "everywhere else, and a case that needs one sets it with "
+        "`monkeypatch.setenv`.",
     ):
         assert needle in prose, (
             f"`CONTRIBUTING.md` *Running the checks* lacks: {needle}"

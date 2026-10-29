@@ -9,7 +9,7 @@ description: |
   NOT for: greenfield work, which implement and code-review cover alone.
 ---
 
-# legacy-parity, the original is the fallback spec
+# legacy-parity, the original is the fallback authority
 
 Extends `implement` and `code-review` when the work is a migration, the same
 behavior rebuilt on different technology, in a repository that declares
@@ -64,10 +64,10 @@ check: none reader: the parity review
 
 ## The original's coordinates
 
-A spec's Grounding cites the original's coordinates for the clauses in scope.
-Start every comparison there instead of searching the original; the caller
-pins what it settles with a test. A suspect coordinate is opened at the
-baseline: `git show <baseline>:<path>`.
+A work item's design cites, in its Grounding, the original's coordinates for
+the clauses in scope. Start every comparison there instead of searching the
+original; the caller pins what it settles with a test. A suspect coordinate
+is opened at the baseline: `git show <baseline>:<path>`.
 check: none reader: the parity review
 
 ## Replacement annotation
@@ -84,9 +84,9 @@ check: none reader: the parity review
 ## Parity review
 
 `code-review` runs as usual with one change of frame: stage 1 compares against
-the original, through the spec's coordinates, and not only the written spec,
-across the same comparison axes. A verdict is one of four words, lowercase, at
-the start of its line, and no other label is written:
+the original, through the coordinates the design cites, and not only the
+written design, across the same comparison axes. A verdict is one of four
+words, lowercase, at the start of its line, and no other label is written:
 
 ```
 differs     no grounds: align with the original

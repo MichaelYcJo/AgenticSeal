@@ -702,38 +702,17 @@ def splitlines(rel, root=None):
     ]
 
 
-# --- coordinate_grammar and heading_rule (#867) --------------------------------
+# --- heading_rule (#867) --------------------------------------------------------
 #
-# A format this repository owns is read by one reader. The ledger coordinate
-# was spelled by four regexes and a markdown heading by four rules, and the
-# copies answered one file differently. Each copy had been written beside a
-# docstring pointing at the original, so what holds the one reader is a
-# census over every shipped script.
+# A format this repository owns is read by one reader. A markdown heading was
+# read by four rules, and the copies answered one file differently. Each copy
+# had been written beside a docstring pointing at the original, so what holds
+# the one reader is a census over every shipped script.
 
-# A regex fragment that reads a coordinate's hash: `@` and then six or more
-# hex digits, optionally inside a named group.
-HASH_AFTER_AT = re.compile(r"@(?:\(\?P<\w+>)?\[0-9a-f\]\{6")
 # A code line that reads a markdown heading by a rule of its own: a counted
 # `#` run in a pattern, `#{1,6}`, `#{2,3}` or any `#{<digit>`, or a
 # `startswith` of `#` asked of a line.
 HEADING_SPELLING = re.compile(r'#\{\d|startswith\(\(?"#')
-
-
-def coordinate_grammar(rel, root=None):
-    """No shipped script spells the coordinate's hash again: the one grammar
-    is `skills/verify/scripts/coordinates.py`'s."""
-    text = _python(rel, root, SHIPPED)
-    if text is None:
-        return []
-    flagged = {
-        number: (
-            "a second grammar of the coordinate; "
-            "`skills/verify/scripts/coordinates.py` holds the one"
-        )
-        for number, line in enumerate(text.split("\n"), 1)
-        if HASH_AFTER_AT.search(line)
-    }
-    return _held("coordinate_grammar", rel, text, flagged)
 
 
 def code_lines(text):
@@ -868,7 +847,7 @@ def floor_syntax(rel, root=None):
 SIGN = "\N{SECTION SIGN}"
 # The records of a moment keep what they said when they were written, and
 # `evals/behaviour/`'s cases are generated from records.
-RECORDS = ("seal/threads/", "changelog/", "CHANGELOG.md", "evals/behaviour/")
+RECORDS = ("seal/threads/", "evals/behaviour/")
 
 
 def section_sign(rel, root=None):
@@ -1048,11 +1027,12 @@ KEPT_OLD_NAMES = (
     f'"{_OLD}": "agentic"',
     # The 0.3.x directory that README.md *Coming up from 0.3.x* moves by hand.
     f".{_OLD}",
-    # The two variables a person sets in their own environment, which no
-    # migration reaches: a new name would turn the format hook back on, or
-    # the guard's prompts back to the locale, for whoever set the old one,
-    # and this release changes no behaviour.
-    f"{_OLD.upper()}_LINT",
+    # The variable a person sets in their own environment for the language of
+    # the worktree guard's prompts, which no migration reaches.
+    # `hooks/worktree-guard.py#_lang` reads it as a fallback through 0.24.x,
+    # where the plugin option `worktree_guard_language` is empty, so whoever
+    # set it keeps their language until they set the option; the next minor
+    # release removes that read and this entry.
     f"{_OLD.upper()}_LANG",
 )
 # A released work item's record cited at the commit that holds it, as
@@ -1066,16 +1046,11 @@ HISTORY_PATH = re.compile(
     + r"specs/[0-9]{10}-[a-z0-9-]+(?:/[\w.-]+)*/?"
 )
 # The records of a moment, which keep the names they were written under. A
-# released changelog entry and the archive of a release's way of working
-# keep the name the release shipped under (#1051). A thread is read against
-# the commits it names until the settle after its release removes it, and
-# the thread that renames a name quotes the name it renames. The truths
-# measured on recorded eval runs name the trees those runs read.
-# `.test_durations` is the cache the test runner rewrites.
+# thread is read against the commits it names until the settle after its
+# release removes it, and the thread that renames a name quotes the name it
+# renames. The truths measured on recorded eval runs name the trees those
+# runs read. `.test_durations` is the cache the test runner rewrites.
 OLD_NAME_RECORDS = (
-    "changelog/",
-    "CHANGELOG.md",
-    "seal/process/",
     "seal/threads/",
     "evals/scripts/recurred_truths.json",
     ".test_durations",
@@ -1218,7 +1193,6 @@ CENSUSES = (
     encoding,
     entry_point,
     splitlines,
-    coordinate_grammar,
     heading_rule,
     floor_syntax,
     section_sign,

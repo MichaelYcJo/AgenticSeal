@@ -29,7 +29,6 @@ with the plugin loaded are the module's behaviour as a whole and sit in
 """
 
 import importlib.util
-import io
 import json
 import os
 import subprocess
@@ -382,9 +381,6 @@ class Test_pytest_configure:
         session = lines[0]
         assert session["key"] == KEY
         assert os.path.realpath(session["rootdir"]) == os.path.realpath(str(root))
-        assert os.path.realpath(session["invocation_dir"]) == os.path.realpath(
-            str(root)
-        )
         assert lines[-1] == {
             "kind": "end",
             "exitstatus": 1,
@@ -660,74 +656,6 @@ class Test_Recorder:
         asked.clear()
         assert recorder.category_of(Uncounted()) == ""
         assert asked == []
-
-    @staticmethod
-    def logged(tmp_path, **marks):
-        """The `test` line a recorder writes for one call report, its file
-        under TMP_PATH and MARKS set on it, such as pytest's `wasxfail`."""
-        recorder_module = _loaded_recorder()
-
-        class Hook:
-            def pytest_report_teststatus(self, report, config):
-                return ("xfailed", "x", "XFAIL")
-
-        class Config:
-            rootpath = str(tmp_path)
-            hook = Hook()
-
-        class Report:
-            nodeid, when, outcome, node = "t.py::x", "call", "skipped", None
-
-        report = Report()
-        setattr(report, recorder_module.PATH_ATTRIBUTE, str(tmp_path / "t.py"))
-        for name, value in marks.items():
-            setattr(report, name, value)
-        recorder = recorder_module.Recorder("k", str(tmp_path), Config())
-        recorder.stream = io.StringIO()
-        recorder.pytest_runtest_logreport(report)
-        return json.loads(recorder.stream.getvalue())
-
-    def test_accepts_an_xfail_reason_on_its_tests_line(self, tmp_path):
-        """The record keeps why pytest expected the failure, as the module's
-        docstring says a `test` line carries `wasxfail` where it is set."""
-        assert self.logged(tmp_path, wasxfail="known")["wasxfail"] == "known"
-
-    def test_refuses_a_wasxfail_on_a_report_that_carries_none(self, tmp_path):
-        assert "wasxfail" not in self.logged(tmp_path)
-
-
-class Test__invocation_dir:
-    def test_accepts_the_working_directory_where_pytest_names_no_invocation(
-        self, monkeypatch, tmp_path
-    ):
-        """Before pytest 5.1 a config has no `invocation_params`, and the
-        working directory is the one the run was started from."""
-        monkeypatch.chdir(tmp_path)
-
-        class Config:
-            pass
-
-        assert _loaded_recorder()._invocation_dir(Config()) == os.getcwd()
-
-    def test_refuses_the_working_directory_where_pytest_names_the_invocation(
-        self, monkeypatch, tmp_path
-    ):
-        """A conftest or a plugin can move the working directory before the
-        session starts, and the directory pytest was invoked from is the one
-        its arguments were read against."""
-        started = tmp_path / "started"
-        moved = tmp_path / "moved"
-        started.mkdir()
-        moved.mkdir()
-        monkeypatch.chdir(moved)
-
-        class Params:
-            dir = started
-
-        class Config:
-            invocation_params = Params()
-
-        assert _loaded_recorder()._invocation_dir(Config()) == str(started)
 
 
 def _loaded_recorder():

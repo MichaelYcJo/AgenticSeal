@@ -31,6 +31,13 @@ the run `release-report` reads for a release tag's minutes, and GitHub keeps
 one pending run per concurrency group and cancels any older pending one,
 whatever `cancel-in-progress` says.
 
+**The workflow the plugin ships.** `seal pr-checks install` writes
+`templates/setup/hygiene.yml` into a user's repository, where it runs on
+`pull_request` as this repository's own workflows do, so the draft events and
+the cancelling are asked of it too. It also states its token's scope, and it
+is the one source of the two steps it shares with this repository's
+`hygiene.yml`, which runs them from the tree instead of from a clone.
+
 These are assertions about YAML, which is not this repository's usual shape
 for a test. They are here because the alternative is a comment in the workflow
 asking the next editor to remember.
@@ -79,6 +86,68 @@ def read(name):
 
 def workflows():
     return sorted(n for n in os.listdir(WORKFLOWS) if n.endswith((".yml", ".yaml")))
+
+
+# The workflow the plugin ships, by its repository path, and the prefix its
+# steps put before a script of the plugin's clone.
+TEMPLATE = "templates/setup/hygiene.yml"
+CLONE = '"$RUNNER_TEMP/agentic/'
+
+
+def raw(path):
+    """The text of the file at PATH, repository-relative, comments kept."""
+    with open(os.path.join(ROOT, *path.split("/")), encoding="utf-8") as f:
+        return f.read()
+
+
+def workflow_texts():
+    """{name: text with comments off} for every workflow under
+    `.github/workflows/`, and for the shipped template under TEMPLATE."""
+    texts = {name: read(name) for name in workflows()}
+    texts[TEMPLATE] = strip_comments(raw(TEMPLATE))
+    return texts
+
+
+def steps(text):
+    """{step name: (its `run:` lines, the comment lines above it)} for the
+    named steps of a workflow's raw TEXT, comments kept.
+
+    A step opens at a line `      - name: ` and runs to the next line that
+    opens one or that is indented less than its keys. Its `run:` lines are
+    the lines of its `run: |` block, each stripped. Both files write every
+    shared step that way, and a step written another way reads as running
+    nothing. The comment lines are the ones directly above its opening line,
+    each with its `#` off."""
+    lines = text.splitlines()
+    out = {}
+    for i, line in enumerate(lines):
+        m = re.match(r"^      - name: (.+?)\s*$", line)
+        if not m:
+            continue
+        above, j = [], i - 1
+        while j >= 0 and lines[j].lstrip().startswith("#"):
+            above.insert(0, lines[j].lstrip()[1:].strip())
+            j -= 1
+        run, block = [], False
+        for follow in lines[i + 1 :]:
+            if block:
+                if follow.strip() and not follow.startswith(" " * 10):
+                    break
+                run.append(follow.strip())
+                continue
+            if follow.strip() and not follow.startswith(" " * 8):
+                break
+            block = follow.rstrip() == "        run: |"
+        out[_unquote(m.group(1))] = (run, above)
+    return out
+
+
+def command(run):
+    """`run:` lines as one command: continuations joined, each whitespace
+    run one space, and the clone's prefix taken off with its closing quote."""
+    text = " ".join(line.rstrip("\\") for line in run)
+    text = re.sub(re.escape(CLONE) + r'([^"]*)"', r"\1", text)
+    return " ".join(text.split())
 
 
 def top_level(text, key):
@@ -472,8 +541,7 @@ def test_the_draft_events_run_where_draft_state_is_read_and_nowhere_else():
     does not run the check reads nothing a ready press changes, so the two
     events there buy one more run of the same commit and nothing else.
     """
-    for name in workflows():
-        text = read(name)
+    for name, text in workflow_texts().items():
         trigger = "\n".join(events(text).get("pull_request", []))
         for event in DRAFT_EVENTS:
             if DRAFT_READER in text:
@@ -505,8 +573,9 @@ def test_a_newer_pull_request_run_cancels_the_older_and_no_other_run_waits():
     `release-report` reads for a release tag, so a run that is not a pull
     request's takes a group of its own, `github.run_id`.
     """
-    for name in workflows():
-        text = read(name)
+    names = workflow_texts()
+    assert TEMPLATE in names, "the shipped workflow is not among those read"
+    for name, text in names.items():
         on = events(text)
         if "pull_request" not in on:
             continue
@@ -558,3 +627,48 @@ def test_every_pytest_leg_has_a_timeout_and_the_job_reads_it():
     assert "\n    timeout-minutes: ${{ matrix.timeout }}\n" in job, (
         "the job does not read the matrix's timeout"
     )
+
+
+def test_the_shipped_workflow_states_its_token_scope_and_reads_the_whole_history():
+    """#1055 S8. The template's token was whatever the user's account
+    defaulted to, which nobody installing it reads, and its steps write
+    nothing and call no `gh`, so `contents: read` is the whole of what it
+    needs. The chain check diffs against the base branch, so the checkout
+    carries the whole history. Seen red against the template at `5287dd42`,
+    which declared neither `permissions` nor `concurrency`."""
+    text = workflow_texts()[TEMPLATE]
+    block = top_level(text, "permissions")
+    assert block is not None, f"{TEMPLATE} declares no `permissions:`"
+    assert [ln.strip() for ln in block if ln.strip()] == ["contents: read"], block
+    assert "fetch-depth: 0" in text, f"{TEMPLATE} checks out one commit"
+
+
+# The comment `.github/workflows/hygiene.yml` carries above each step it
+# shares with the template: the template is the step's one source.
+POINTER = f"One source: `{TEMPLATE}`, the workflow the plugin ships."
+
+# Where the chain checker's refusals are listed, which the template's comment
+# on the chain step names instead of listing them.
+REFUSALS = "`docs/the-review-record.md` *What the check reads at the pull request*"
+CHAIN_STEP = "a declared review chain has the round record it claimed"
+
+
+def test_the_steps_the_template_shares_have_one_source():
+    """#1055 S9 and S10. Each step the template names stands in this
+    repository's `hygiene.yml` under the same name and runs the same command,
+    once the template's prefix for the plugin's clone is off: the repository
+    runs the checker from its own tree, so a change to it is checked by
+    itself. The repository's copy carries the one-line pointer and no other
+    comment, and the template's comment on the chain step names the review
+    record's section rather than listing the refusals. Seen red at
+    `5287dd42`, whose repository comments told each step's history again."""
+    template = steps(raw(TEMPLATE))
+    ours = steps(raw(".github/workflows/hygiene.yml"))
+    shared = [name for name, (run, _) in template.items() if CLONE in " ".join(run)]
+    assert CHAIN_STEP in shared, sorted(template)
+    for name in shared:
+        assert name in ours, f"the template's step {name!r} is not in hygiene.yml"
+        assert command(ours[name][0]) == command(template[name][0]), name
+        assert ours[name][1] == [POINTER], (name, ours[name][1])
+    comment = " ".join(template[CHAIN_STEP][1])
+    assert REFUSALS in comment, comment

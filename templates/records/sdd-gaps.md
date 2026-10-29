@@ -1,4 +1,4 @@
-# Overview: <work item>
+# Closing memo: <work item>
 
 ## Scope confirmation
 
@@ -24,6 +24,6 @@
 
 <what was within reach and deliberately not taken, with its grounds, or "nothing">
 
-## Fed back into the spec
+## Fed back into the design
 
 <clauses this work added, marked as inferred during implementation, or "none">

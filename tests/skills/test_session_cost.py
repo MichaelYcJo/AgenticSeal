@@ -3280,6 +3280,40 @@ class Test_main:
         assert delegated_cells(out) == ["0.9m"], out
         assert "`delegated` never reaches a minute here — 57s at most" in out, out
 
+    def test_a_long_agent_name_is_cut_so_its_cells_stay_under_their_headers(
+        self, tmp_path
+    ):
+        """#712: a label longer than the column pushed every cell of its row to
+        the right of its header. Read by the header's right edge, the row's
+        `delegated` cell was the `model` cell, `0.0m`, where the spawn's own
+        interval printed `1.0m`.
+
+        `cycle_label` cuts to `LABEL_WIDTH` from the right with no mark, the way
+        `segment_label` cuts a named agent, so the row is exactly as long as its
+        header and each cell ends where its header does. A label cut to the full
+        column has no space after it, so the line under *what each cycle
+        spawned* puts one before the description. `--json` keeps the whole
+        name, and that is where a reader of a cut row finds it."""
+        name = "vercel:performance-optimizer"
+        label = "cycle 1  vercel:performance-op"
+        lines = spawn("A", 0, 59.6, name, "Build phase 1")
+        lines += call("a", 80, 85, "git status")
+        path = tmp_path / "long.jsonl"
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        out = run(["--spawns", str(path)]).stdout
+        assert delegated_cells(out) == ["1.0m"], out
+        printed = out.splitlines()
+        header = next(line for line in printed if line.startswith("  row "))
+        row = next(line for line in printed if line.startswith("  cycle 1 "))
+        assert row.startswith(f"  {label} "), out
+        assert len(row) == len(header), out
+        # The run's first act is the spawn, so `head` has no call, and its
+        # label column is as wide as the cut label's.
+        assert f"  {'head':<{len(label)}}     no call in this window" in printed, out
+        assert f"  {label} Build phase 1" in printed, out
+        cycle = [r for r in spawns_of(path)["rows"] if r["kind"] == "cycle"]
+        assert [r["subagent_type"] for r in cycle] == [name], cycle
+
     def test_the_delegated_wait_is_in_no_column_of_any_row(self, tmp_path):
         """Where the agent's wall clock actually goes, on the ACCEPTED harness.
 
@@ -3723,8 +3757,8 @@ class Test_main:
             "Family rows, in the run's own reading and in `--spawns`, are comparable "
             "only with readings taken on a release that carries #377" in out
         ), out
-        # #728: the release's own file, not the index, lists the issue.
-        assert "#377, which its file under `changelog/` names" in out, out
+        # #1053: the release note lists the issue; no file in the tree does.
+        assert "#377, which its release note names" in out, out
         assert (
             "on a line of its own or after a heredoc was charged to `other`, and so "
             "was a test run after a heredoc. The repeats lines filter by family and "

@@ -140,11 +140,11 @@ every repository, whatever either row says:
   `## Rule changes` heading, the items `add`, `change`, `remove` and
   `nothing`, and the fields `file:`, `section:`, `from:`, `to:` and `why:`.
   A translated field name is not a translation, it is a broken gate.
-- **The markers and anchors.** `<!-- specs/<work-item-id> -->`, a release
-  section's `## X.Y.Z — <date>`, the word `closed` that opens a closed
-  `## Not verified` row, the line `## Not from the records` that ends the
-  part of a pull request body `seal pr-body` copies from the records, and
-  a pact anchor's `pact:<name>/"<heading path>"@<hash>`.
+- **The markers and anchors.** `<!-- specs/<work-item-id> -->`, the word
+  `closed` that opens a closed `## Not verified` row, the line
+  `## Not from the records` that ends the part of a pull request body
+  `seal pr-body` copies from the records, and the anchor table's header
+  cells `Pact`, `Clause` and `Hash`.
 - **Code.** Identifiers, comments, docstrings, file names, and test function
   names.
 - **The item column of this table**, which is a key rather than prose: the
@@ -412,15 +412,14 @@ here. The pact's repository needs no row: it is identified by holding
   elsewhere.
 
 **The URL is compared normalised**, so `git@example.com:org/orders-api.git`
-and `https://example.com/org/orders-api` name one repository. Its last path
-segment is the name a pact anchor carries, `pact:orders-api/"## A"@1a2b3c4d`,
-so two pacts whose URLs end in the same segment are refused as ambiguous.
+and `https://example.com/org/orders-api` name one repository. A pact anchor
+names the pact by the same URL, in the `Pact` cell of a
+`| Pact | Clause | Hash |` row of a work item's `frame/design.md`.
 
 **A row that will not parse is refused in a sentence**, never read as absent.
-At this repository's pull request `chain-check` prints the sentence and its
-exit status does not move: a signer's CI prints and does not verify.
-`seal pact`, run at the pact's repository, reads the same row through the
-same reader, `hooks/lib/config.py#pact_declaration`, and exits 2 on it. A `Pact`
+`seal pact`, run at the pact's repository, reads the row through
+`hooks/lib/config.py#pact_declaration` and exits 2 on it; a signer's CI
+reads nothing of the pact. A `Pact`
 row the table does not hold is no row: `seal pact` then reads the signer as
 naming no pact and exits 2 on a relationship recorded on one side only.
 

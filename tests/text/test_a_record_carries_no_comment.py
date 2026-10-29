@@ -15,8 +15,9 @@ from conftest import ROOT
 
 OPENER = "<" + "!--"
 
-# The record templates, `templates/records/`: a work item's records, and the
-# process archive's, whose files live under `seal/process/` (S13 of #945).
+# The record templates, `templates/records/`: a work item's records, and
+# `process.md`, the process section a work item's changelog fragment ends
+# with where it changed the way of working (#1117).
 
 
 def templates(root=ROOT):

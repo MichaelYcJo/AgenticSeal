@@ -12,7 +12,7 @@ its home had not.
 **What is read.** Every tracked `*.md` under `docs/`, `skills/`, `agents/` and
 `templates/`, with `CLAUDE.md`, `CONTRIBUTING.md` and `README.md`. Left out:
 every `*.ko.md`, because a Korean edition is a sanctioned mirror in other
-words; everything under `seal/`, which is records; and `CHANGELOG.md`.
+words; and everything under `seal/`, which is records.
 
 **How a file is normalised.** Each file is read whole: `CLAUDE.md` carries
 no copy of `templates/setup/claude-md-block.md` since #940, so no region is
@@ -210,13 +210,11 @@ BASELINE = {
     ("agents/sealer.md", "agents/tracer.md"): 5,
     # Debt, every entry below. Lowered to the counts measured at #940's
     # last phase; each pair that measured zero left the table.
-    ("README.md", "skills/config/SKILL.md"): 22,
     ("README.md", "skills/implement/SKILL.md"): 2,
     ("README.md", "skills/implement/orchestration.md"): 1,
     ("README.md", "skills/parity-setup/SKILL.md"): 1,
     ("agents/crafter.md", "skills/implement/SKILL.md"): 3,
     ("docs/one-root-by-lifetime.md", "skills/implement/SKILL.md"): 4,
-    ("docs/the-agent-set.md", "skills/implement/SKILL.md"): 20,
     ("skills/agent-contract/SKILL.md", "skills/implement/SKILL.md"): 1,
 }
 

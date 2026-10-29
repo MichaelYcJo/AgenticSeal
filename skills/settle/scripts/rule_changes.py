@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""rule_changes — the one reader of a spec's `## Rule changes` section.
+"""rule_changes — the one reader of a design's `## Rule changes` section.
 
 The grammar is `skills/settle/SKILL.md` *Rule changes*. `GRAMMAR` below is
 the one spelling of its operations in code; the item lines, their fields and
@@ -7,7 +7,7 @@ the no-change block are spelt once in `unverified_check.py`, which reads
 `## Not verified` with the same block. `parse` reads a section into operations,
 refusing at its line any block that does not match whole. `order` reads merge
 order from git, `merge_order` reads it in local mode from the merge commits
-`settle` hands it, `group` joins the released specs whose operations name one
+`settle` hands it, `group` joins the released designs whose operations name one
 place into one group, `unordered` names the pairs inside a group that no
 ancestry orders, and `section_lines` finds a section's lines in a document.
 `settle` prints what they read; nothing here writes a file.
@@ -15,7 +15,7 @@ ancestry orders, and `section_lines` finds a section's lines in a document.
 Headings and fences are read through
 `skills/verify/scripts/unverified_check.py` (`live_lines`, `heading_level`,
 `liveness`, `gfm_lines`, `blank_fences`, `comment_lines`), loaded by path,
-so this module spells no fence or heading rule of its own. A spec is a
+so this module spells no fence or heading rule of its own. A design is a
 record and carries no HTML comment, so `parse` reads it with no comment
 state and refuses a section line that begins with `<!--` (#1012); `headings`
 keeps the comment state for `section_lines` and `overlapping`, which read the
@@ -42,7 +42,7 @@ GRAMMAR = {
 }
 
 Op = collections.namedtuple("Op", "kind file section old new line")
-# `ops` is None where the spec has no section; `nothing` is the `why` of a
+# `ops` is None where the design has no section; `nothing` is the `why` of a
 # section holding the no-change block; `errors` is `[(line, reason)]`.
 Parsed = collections.namedtuple("Parsed", "ops nothing errors")
 
@@ -66,7 +66,7 @@ def heading_text(line):
 
 def headings(lines, comments=True):
     """`[(index, level, text)]` for every live heading in LINES. `comments`
-    is `live_lines`'s: `parse` reads a spec with none."""
+    is `live_lines`'s: `parse` reads a design with none."""
     r = reader()
     out = []
     for n, (line, live) in enumerate(r.live_lines(lines, comments=comments)):
@@ -83,7 +83,7 @@ def letters(text):
 
 
 def parse(text, policy_root):
-    """The `## Rule changes` section of a spec's TEXT, as a `Parsed`; each
+    """The `## Rule changes` section of a design's TEXT, as a `Parsed`; each
     `file` is a top-level `.md` of the directory POLICY_ROOT. A near miss of
     the heading, at any level, is refused at its line."""
     r = reader()
@@ -107,7 +107,7 @@ def parse(text, policy_root):
     end = next((n for n, lv, _ in marks if n > start and lv <= 2), len(lines))
     live = [flag for _, flag in r.live_lines(lines, comments=False)]
     # `live_lines` ANDs two readings, here with no comment state, since a
-    # spec carries no comment (#1012). In this one a code span never leaves
+    # design carries no comment (#1012). In this one a code span never leaves
     # its line, so a line dead here is in a fence and is skipped. A fence's
     # opener is live, so a fence inside the section is refused at that line
     # as no field. A line live here and dead in `live` begins inside a code
@@ -222,7 +222,7 @@ def section_lines(text, section):
     return (h + 1, end), None
 
 
-# --- the released specs, by place and in merge order --------------------------
+# --- the released designs, by place and in merge order ------------------------
 
 
 def place(op):
@@ -306,7 +306,7 @@ def order(root, ref, ids, specs="seal/threads"):
 
 def merge_order(root, ref, pairs):
     """PAIRS, `[(id, commit)]`, sorted by each commit's place in `git rev-list
-    --topo-order --reverse REF`: the merge order of local-mode specs, which
+    --topo-order --reverse REF`: the merge order of local-mode designs, which
     no commit adds, read from their pull requests' merge commits. A pair
     whose commit REF does not reach comes last, in the order handed."""
     r = subprocess.run(
@@ -337,7 +337,7 @@ def group(specs, same):
     one text, and a place joins every group it overlaps, so a group is the
     history of one rule. Each group lists its places and its operations in
     the order SPECS hands them, and the groups come in the order of their
-    first operation. A spec with operations at two places that cannot name
+    first operation. A design with operations at two places that cannot name
     one text is in two groups."""
     places = []
     for _, ops in specs:
@@ -371,7 +371,7 @@ def unordered(root, commits):
     """`[(a, b)]` for the ids of COMMITS, `[(id, commit)]` in merge order,
     whose commits no ancestry orders: commits on two branches, or a commit
     None, which `order` hands an id no commit adds. The commits are the ones
-    that add each spec, or in local mode its pull request's merge commit."""
+    that add each design, or in local mode its pull request's merge commit."""
     out = []
     for n, (a, ca) in enumerate(commits):
         for b, cb in commits[n + 1 :]:

@@ -78,7 +78,7 @@ def test_the_skill_says_the_session_writes_the_latest_decision_and_asks_nobody()
     command the applier is gone."""
     text = flat(skill())
     assert (
-        "The specs say what was decided and in what order, the code says what "
+        "The designs say what was decided and in what order, the code says what "
         "holds now, and the settling session writes each section as the latest "
         "decision the code bears out. The script reads and removes; it neither "
         "writes `docs/` nor judges."
@@ -109,7 +109,7 @@ def test_the_skill_states_the_settling_sessions_procedure():
         "Write the section as the latest decision states it",
         "Where the code has moved past that decision, write what the code does",
         "is superseded: it is settled with its group and not applied",
-        "Read each spec listed to read whole",
+        "Read each design listed to read whole",
         "close it in its record with `closed` and what closed it",
         "A row that fits more than one kind takes the first that fits, in the "
         "table's order",
@@ -147,7 +147,7 @@ def test_the_skill_says_a_from_locates_and_is_no_precondition():
     text = flat(skill())
     raw = skill().split("\n## Rule changes\n")[1].split("\n## A rule has one shape")
     section = flat(raw[0])
-    assert "**`from` is the text as the spec's framer read it.**" in section
+    assert "**`from` is the text as the design's framer read it.**" in section
     assert "it is not a precondition" in section
     assert "applies nothing" not in section, "the grammar still says what a replay did"
     apply = text.split("## What `--apply` does")[1].split("## ")[0]
@@ -174,7 +174,7 @@ def test_the_skill_says_a_settle_is_not_a_work_item_and_owes_no_range_row():
     # Round 1 finding 4 of #955: no commit holds a local work item, so git
     # history keeps the removed specs only where the root is shared.
     assert (
-        "Where the root is shared the removed specs are in git history; in "
+        "Where the root is shared the removed designs are in git history; in "
         "local mode no commit holds them"
     ) in text, text
 
@@ -220,7 +220,7 @@ def test_the_implement_skill_states_the_model():
     assert "one writer that does is `settle`" not in text
     assert "is the baseline, and a pull request does not edit it" in text
     assert (
-        "the latest decision the unsettled specs' rule changes state at each "
+        "the latest decision the unsettled designs' rule changes state at each "
         "section, in merge order"
     ) in text
     assert "plus the rule changes of every unsettled spec, in merge order" not in text

@@ -49,8 +49,8 @@ class Test_main:
         assert "seal mode local" in said and "seal mode shared" in said
 
     def test_refuses_with_a_prompt_that_says_what_each_answer_costs(self, repo):
-        """Every answer has to continue (`implement` *1. Read the spec before the
-        code*). Both do something and
+        """Every answer has to continue (`implement` *1. Read the documents that
+        outrank the code first*). Both do something and
         the prompt says which — one records where the folder already is, the other
         moves it."""
         opt_in_shared(repo)
@@ -91,9 +91,10 @@ class Test_main:
     def test_refuses_on_the_first_command_not_at_the_commit(self, repo):
         """The budget decided this, not the act #151 names. Scoping the gate to a
         commit puts the question beside the review arm's, at minute thirty, on a
-        session that may have nobody at the keyboard — and `implement` *1. Read the spec before the code* says the
-        cost of a question is when it arrives. The count is the same either way,
-        because the budget below is per session rather than per command."""
+        session that may have nobody at the keyboard — and `implement` *1. Read
+        the documents that outrank the code first* says the cost of a question
+        is when it arrives. The count is the same either way, because the
+        budget below is per session rather than per command."""
         opt_in_shared(repo)
         assert decision_of(run_hook(GATE, payload("ls -la", repo))) == "deny"
 

@@ -11,7 +11,7 @@ ignored, and ones that had chosen no formatter at all.
 So the repository decides, by the file it already keeps: `ruff.toml`,
 `.ruff.toml`, or a `[tool.ruff]` table in `pyproject.toml`, searched from the
 edited file up to the repository root. Configuring ruff is a project saying it
-wants ruff; nothing else is. `SPECSEAL_LINT=off` turns the hook off even there.
+wants ruff; nothing else is.
 
 Failure direction: this stays out. A wrong skip means the formatter runs later
 by hand or in CI. A wrong run rewrites someone's source against conventions
@@ -89,8 +89,6 @@ def main():
         except Exception:
             file = ""
     if not file.endswith(".py"):
-        return
-    if os.environ.get("SPECSEAL_LINT", "").lower() == "off":
         return
     if not uses_ruff(file):
         return

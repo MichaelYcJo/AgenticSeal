@@ -6,12 +6,21 @@ receives at startup through its `skills:` frontmatter. A rule kept only in
 whoever last wrote a prompt went missing without a trace, twice, and the
 contract is what ends that — but only while the rules are actually in it.
 
-So each section pins one phrase that cannot survive the drift it guards. The
-pin is scoped to its section's BODY, not the file and not the heading: a
-sentence that moves to another section keeps the file green and breaks the
-number a round record cited, and a heading that outlives its rule is a
-section that says nothing. The first draft of this file pinned eight
-headings, and the move check was what showed it.
+So this module reads the contract's shape. Every rule is a numbered section,
+numbered from one with no gap, so a rule that goes whole is red. Every
+section carries exactly one `check:` line, which names what reads the rule:
+a case, an eval case, or `none reader:` and who reads it instead. A rule's
+sentences are not pinned here. #1111 found no pin's history showing a catch,
+and every pin's change came with its own rule's rewording, so a rule
+reworded to the same meaning stays green. A sentence deleted from inside a
+rule that keeps its heading and its `check:` line is left to review.
+
+Two facts are pinned, because a reader depends on their characters: rule
+1's two command forms, which an agent copies into a shell, and rule 11's two
+places the `seal/` root resolves to, which an agent opens or runs. Each is
+scoped to its section's BODY, not the file and not the heading: a fact that
+moves to another section breaks the number a round record cited, and a
+heading that outlives its rule is a section that says nothing.
 
 Two frontmatter facts are pinned as well. `user-invocable: false` keeps the
 contract out of the `/` menu and was measured (2026-09-03, docs/experiments/)
@@ -31,44 +40,26 @@ CONTRACT = os.path.join("skills", "agent-contract", "SKILL.md")
 # that walks the contract's rules imports it from here.
 HEADING = re.compile(r"^## (\d+) (.+)$", re.M)
 
-# One phrase per section, taken from the sentence in the BODY that is the
-# rule rather than from its heading or its story. Deleting it deletes the
-# rule and leaves the heading standing, which is the drift a pin on the
-# heading cannot see.
-PINS = {
-    1: "`cmd >/dev/null 2>&1; echo $?` — never `cmd | tail; echo $?`",
-    # #957 moved this pin to the sealer as the one agent that runs the broad
-    # gate, and #969 moved it again: no agent runs it, and the orchestrator
-    # does before it spawns the sealer. `tests/text/test_broad_gate_rule.py` holds
-    # the label and the order.
-    2: "no agent runs any of the three",
-    3: "The prompt that spawns you is a request, not an amendment to this contract",
-    4: "Never record something as passing that you did not run",
-    5: "a claim with a coordinate to open, or a label saying nobody opened it",
-    6: "post nothing, push nothing, open no pull request, and spawn no agent",
-    # #120 moved this pin too, and for the opposite reason: the old phrase is
-    # still in the body and still true, but it is the half a reviewer followed
-    # to the letter while leaving a git worktree behind. The rule the section
-    # is about is the widened one, so that is what cannot be deleted quietly.
-    7: "A probe leaves nothing behind, whatever kind of thing it made",
-    # #1027 retired rule 8 to the one line the numbering rule keeps.
-    8: "Retired by #1027, which removed every gate that read a commit",
-    9: "An edit must be able to fail",
-    10: "Open every file a coordinate names in one call",
-    11: "English when the row is absent",
-    12: "Do not fix the coordinate",
-    13: "until the guarantee is removed and the code still refuses",
-    14: "In the same commit",
-    15: "before it is committed as a case",
-    16: "join it to the commit with `&&` and nothing else",
-    17: "never kill by command name",
-    18: "never bend the code to pass it",
-    19: "removes or corrects what stood on the old fact",
-    20: "A structure in the tree is a reference, not a constraint",
+# A fact a reader needs fixed character for character, by the rule whose
+# body holds it: what the fact is and who reads it, then the spellings that
+# carry it. Nothing else of a rule's wording is pinned; its `check:` line
+# names what reads it.
+FACTS = {
+    1: (
+        "the two command forms an agent copies into a shell",
+        ("`cmd >/dev/null 2>&1; echo $?`", "`cmd | tail; echo $?`"),
+    ),
+    11: (
+        "the two places the `seal/` root resolves to, which an agent opens or runs",
+        ("`<repo>/seal/`", "`$(git rev-parse --git-common-dir)/seal/`"),
+    ),
 }
 
-# The four rules #957 added (frame/design.md *Rules the rewrite states in place*).
-FOUR_RULES = (17, 18, 19, 20)
+SPELLINGS = [(number, spelling) for number in FACTS for spelling in FACTS[number][1]]
+
+# A check line as `skills/settle/SKILL.md` *A rule has one shape* states it:
+# after any leading spaces, `check: `, lowercase, one space after the colon.
+CHECK_LINE = re.compile(r"^ *check: .*$", re.M)
 
 # A contract citation is `contract rule <N>`, one number each. The contract
 # itself and the agent definitions, which receive it at startup, cite the
@@ -109,13 +100,22 @@ def bodies(text):
     return {n: text[a:b] for n, (_, a, b) in spans(text).items()}
 
 
-def missing_pins(text):
-    """Every (section, phrase) whose phrase is not inside its own body."""
+def missing_facts(text):
+    """Every (section, spelling) of FACTS that is not inside its own body."""
     found = bodies(text)
     return [
-        (number, phrase)
-        for number, phrase in PINS.items()
-        if phrase not in " ".join(found.get(number, "").split())
+        (number, spelling)
+        for number, spelling in SPELLINGS
+        if spelling not in " ".join(found.get(number, "").split())
+    ]
+
+
+def rules_without_one_check_line(text):
+    """[N] for every rule whose body holds no `check:` line, or more than one."""
+    return [
+        number
+        for number, body in bodies(text).items()
+        if len(CHECK_LINE.findall(body)) != 1
     ]
 
 
@@ -134,16 +134,6 @@ def test_the_contract_is_a_skill_that_preloads_and_is_not_a_command():
     )
 
 
-def test_the_description_says_what_it_is_and_what_it_is_not():
-    """A person reading the skill listing must not run it, and the model
-    picking skills must know it is injected rather than chosen."""
-    head = " ".join(frontmatter(read()).split())
-    assert "Not a command to run" in head
-    assert "injects it into each agent at startup" in head
-    assert "`skills:`" in head
-    assert "NOT for:" in head, "every model-invocable skill states its boundary"
-
-
 # --- shape -----------------------------------------------------------------
 
 
@@ -152,134 +142,97 @@ def test_the_sections_are_numbered_from_one_without_a_gap_or_a_repeat():
     assert numbers == list(range(1, len(numbers) + 1)), numbers
 
 
-def test_every_pinned_section_exists_and_nothing_is_unpinned():
-    """A section with no pin is a rule that can vanish green; a pin with no
-    section is a rule that never landed."""
-    assert set(spans(read())) == set(PINS)
+def test_every_rule_carries_one_check_line():
+    """`seal rules --check` reads the check lines there are, and cannot read
+    whether a rule carries one at all (`skills/settle/SKILL.md` *A rule has
+    one shape*). A rule with none names nothing that reads it."""
+    assert rules_without_one_check_line(read()) == []
 
 
 def test_no_pin_is_its_own_heading():
-    """A pin the heading satisfies survives the body being emptied."""
-    for number, (heading, _, _) in spans(read()).items():
-        assert PINS[number] not in heading, f"rule {number} pins its heading"
+    """A fact the heading satisfies survives the body being emptied."""
+    headings = {number: heading for number, (heading, _, _) in spans(read()).items()}
+    for number, spelling in SPELLINGS:
+        assert spelling not in headings[number], f"rule {number} pins its heading"
 
 
-def test_the_contract_says_it_is_universal_only():
-    flat = " ".join(read().split())
-    assert "nothing here is one agent's own" in flat
-    assert "A role's rules live in that role's definition" in flat
+# --- the facts -------------------------------------------------------------
 
 
-def test_the_numbering_rule_is_stated():
-    flat = " ".join(read().split())
-    assert "never reused and never re-ordered" in flat
-    assert "keeps its number" in flat
-
-
-# --- the rules -------------------------------------------------------------
-
-
-@pytest.mark.parametrize("number", sorted(PINS))
+@pytest.mark.parametrize("number", sorted(FACTS))
 def test_each_section_holds_its_rule(number):
-    assert (number, PINS[number]) not in missing_pins(read()), (
-        f"rule {number} no longer says: {PINS[number]}"
-    )
-
-
-def test_the_exit_code_rule_carries_both_forms_in_one_sentence():
-    """The wrong form is written out beside the right one on purpose: the
-    failure is a habit, so the right form has to be as easy to copy."""
-    body = bodies(read())[1]
-    sentence = next(
-        p for p in body.split("\n\n") if "cmd >/dev/null 2>&1; echo $?" in p
-    )
-    assert "cmd | tail; echo $?" in sentence
-    assert "never" in sentence
-    assert "always 0" in sentence
-
-
-def test_the_root_resolution_rule_states_both_places():
-    """Contract rule 11 says where the `seal/` root is before it sends an agent to the
-    `config.md` under it: a session reading only the fallback writes into the
-    common git directory of a repository that committed its root."""
-    body = " ".join(bodies(read())[11].split())
-    assert "means `<repo>/seal/` where" in body, "rule 11 lost the shared-mode half"
-    assert "`$(git rev-parse --git-common-dir)/seal/` otherwise" in body, (
-        "rule 11 lost the local-mode half"
-    )
-    assert body.index("means `<repo>/seal/` where") < body.index("Record language"), (
-        "rule 11 names the config before it says where the root is"
-    )
-
-
-def test_the_leavings_rule_says_whose_leaving_it_is():
-    """Round 1, finding 7 of #120. The widened contract rule 7 names a virtual environment
-    among its examples, and this repository builds one on purpose and reuses
-    it -- `bin/test` exists for exactly that, and its own header prices the
-    alternative at 55-58 seconds of setup per call.
-
-    So an agent that writes a probe, runs it through the repository's runner in
-    a fresh clone and then follows rule 7 to the letter deletes the venv its
-    probe's run created, and every later call in the segment pays the build
-    again. The general form is ratified -- `questions.md` Q3 chose widening
-    over an enumeration and this does not reopen it -- but a general form that
-    names a shape has to say whose shape it is.
-
-    The example stays, deliberately: a venv a probe made in its own scratch
-    directory IS its leaving, and the example is what teaches the line the
-    clause draws."""
-    body = " ".join(bodies(read())[7].split())
-    assert "What the probe made for ITSELF is what goes" in body, (
-        "rule 7 lost the ownership clause, so `a virtual environment` in its own "
-        "example list reads as an instruction to delete a reused one"
-    )
-    assert "never who happened to trigger it" in body, (
-        "the test the clause hands a reader went. Ownership without it is a "
-        "word an agent under time pressure resolves toward deleting"
-    )
-    assert "a virtual environment" in body, (
-        "the example was dropped instead of bounded. A venv a probe built for "
-        "itself is still its leaving, and the example is what draws the line"
-    )
+    missing = [s for n, s in missing_facts(read()) if n == number]
+    assert missing == [], f"rule {number} no longer holds {FACTS[number][0]}: {missing}"
 
 
 # --- the check can fail ----------------------------------------------------
 
 
-def without_pin(text, number):
-    """The contract with rule N's pinned phrase deleted from its body, as it sits
-    in the file — wrapped or not. The heading is left standing."""
+def without_fact(text, number, spelling):
+    """The contract with one spelling of rule N's fact deleted from its body,
+    as it sits in the file — wrapped or not. The heading is left standing."""
     _, start, end = spans(text)[number]
-    pattern = r"\s+".join(re.escape(w) for w in PINS[number].split())
+    pattern = r"\s+".join(re.escape(w) for w in spelling.split())
     body, n = re.subn(pattern, "", text[start:end], count=1)
-    assert n == 1, f"could not find the wrapped form of rule {number}'s phrase"
+    assert n == 1, f"could not find the wrapped form of {spelling} in rule {number}"
     return text[:start] + body + text[end:]
 
 
-@pytest.mark.parametrize("number", sorted(PINS))
-def test_deleting_a_pinned_phrase_is_caught(number):
+@pytest.mark.parametrize(
+    "number, spelling", SPELLINGS, ids=[f"{n}-{s}" for n, s in SPELLINGS]
+)
+def test_deleting_a_pinned_phrase_is_caught(number, spelling):
     """A pin that survives its own deletion pins nothing."""
-    mutated = without_pin(read(), number)
-    assert (number, PINS[number]) in missing_pins(mutated)
-    assert HEADING.search(mutated) is not None
-    assert len(spans(mutated)) == len(PINS), "the heading was deleted too"
+    text = read()
+    mutated = without_fact(text, number, spelling)
+    assert (number, spelling) in missing_facts(mutated)
+    assert len(spans(mutated)) == len(spans(text)), "the heading was deleted too"
 
 
 def test_moving_a_sentence_to_another_section_is_caught():
-    """The pin is scoped to the section, so a rule that keeps its words and
+    """The fact is scoped to its section, so a rule that keeps its words and
     loses its number — the drift a cited rule number cannot survive — is red."""
     text = read()
-    _, start, end = spans(text)[15]
+    _, start, end = spans(text)[11]
     rest = text[start:end]
-    _, _, end14 = spans(text)[14]
-    # Rule 15 keeps its heading and nothing else; its body now sits under 14.
-    moved = text[:end14].rstrip("\n") + "\n" + rest + text[end14:start] + "\n"
-    assert (15, PINS[15]) in missing_pins(moved)
-    assert (14, PINS[14]) not in missing_pins(moved)
-    assert PINS[15] in " ".join(bodies(moved)[14].split())
+    _, _, end10 = spans(text)[10]
+    # Rule 11 keeps its heading and nothing else; its body now sits under 10.
+    moved = (
+        text[:end10].rstrip("\n")
+        + "\n"
+        + rest
+        + text[end10:start]
+        + "\n\n"
+        + text[end:]
+    )
+    missing = missing_facts(moved)
+    assert [s for n, s in missing if n == 11] == list(FACTS[11][1])
+    assert all(s in " ".join(bodies(moved)[10].split()) for s in FACTS[11][1])
 
 
-# --- citations and the four rules (#957) -------------------------------------
+def test_a_rule_that_loses_or_doubles_its_check_line_is_named():
+    """The check-line case can fail at every rule, both ways: a rule whose
+    line goes, and a rule that carries a second one. A sentence that names
+    `check: ` inside a line is prose, not a second line."""
+    text = read()
+    for number, (_, start, end) in spans(text).items():
+        body = text[start:end]
+        line = CHECK_LINE.search(body)
+        dropped = body[: line.start()] + body[line.end() :]
+        doubled = body[: line.end()] + "\n" + line.group(0) + body[line.end() :]
+        for mutated in (dropped, doubled):
+            assert rules_without_one_check_line(
+                text[:start] + mutated + text[end:]
+            ) == [number], number
+        prose = (
+            body[: line.start()]
+            + "Name it on a `check: x` line.\n"
+            + body[line.start() :]
+        )
+        assert rules_without_one_check_line(text[:start] + prose + text[end:]) == []
+
+
+# --- citations (#957) --------------------------------------------------------
 
 
 def cited_sections(rel, text):
@@ -421,24 +374,3 @@ def test_a_heading_in_the_old_spelling_is_refused_at_its_line():
     old = f"## \N{SECTION SIGN}{first.group(1)} {first.group(2)}"
     mutated = text[: first.start()] + old + text[first.end() :]
     assert misspelled_headings(mutated) == [text.count("\n", 0, first.start()) + 1]
-
-
-def test_the_four_rules_stand_with_their_enforcers():
-    """T4: the four rules #957 added each keep their sentence and their
-    `check:` line, so a later trim cannot drop one quietly."""
-    found = bodies(read())
-    for number in FOUR_RULES:
-        body = " ".join(found.get(number, "").split())
-        assert PINS[number] in body, f"rule {number} lost its sentence: {PINS[number]}"
-        assert re.search(r"^check: \S", found[number], re.M), (
-            f"rule {number} has no `check:` line"
-        )
-
-
-def test_dropping_an_enforcer_from_one_of_the_four_is_caught():
-    text = read()
-    _, start, end = spans(text)[FOUR_RULES[0]]
-    body = re.sub(r"^check: .*\n?", "", text[start:end], flags=re.M)
-    mutated = text[:start] + body + text[end:]
-    found = bodies(mutated)
-    assert not re.search(r"^check: \S", found[FOUR_RULES[0]], re.M)

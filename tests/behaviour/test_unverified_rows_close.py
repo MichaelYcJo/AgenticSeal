@@ -204,7 +204,7 @@ def test_the_skill_states_the_closing_convention():
     # #945 took the step out of CI: a deleted row is the proofer's to read in
     # the overview's diff, and no check at the pull request refuses it.
     assert "No check at the pull request refuses a deleted row" in skill
-    assert "the proofer reads the overview's diff" in skill
+    assert "the proofer reads the closing memo's diff" in skill
     assert "fails the next pull request" not in skill
 
 

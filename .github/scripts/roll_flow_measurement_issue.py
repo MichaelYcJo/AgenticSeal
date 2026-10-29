@@ -10,17 +10,17 @@ skill's own lookup treats "no open issue" as a no-op rather than a failure.
 
 This runs from the same workflow, the same trigger, and the same checkout as
 `close_issues_on_release.py` (a push to `main` -- a release reaching the
-default branch). At that point the release-preparation commit that moved
-`.claude-plugin/plugin.json`'s version has already merged as part of the same
-push, so the checked-out tree already carries the just-shipped version --
-the fact everything below depends on (`docs/branch-and-release.md` "Cutting
-a release").
+default branch). The release's first pull request moved
+`.claude-plugin/plugin.json`'s version, and it reaches `main` in the same
+push as the rest of the release, so the checked-out tree carries the
+just-shipped version -- the fact everything below depends on
+(`docs/branch-and-release.md` "Cutting a release").
 
 **The log is named after the version it rolls FROM, and it rolls only when a
-new version has shipped since.** That same document says whether the next
-number is a minor or a patch is known at the end rather than at the cut, so
-at the moment this runs the next version is the one thing nobody knows and
-the just-shipped one is the one thing that is certain.
+new version has shipped since.** At the moment this runs, the tree names the
+version that push shipped, which is the one version that is certain; the
+next one is named only when the next release branch is cut, after this
+push.
 
   chore: flow measurement — after 0.8.1     opened by the 0.8.1 release,
                                             closed by whatever ships next

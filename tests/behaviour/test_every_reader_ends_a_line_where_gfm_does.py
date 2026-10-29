@@ -24,8 +24,7 @@ The splitter's own cases are `tests/hooks/test_blocks.py`'s `Test_gfm_lines`
 (#942's phase 6). What stays here holds every copy of it to it, three
 modules on one corpus. Each other reader's case judges that reader alone,
 so #942's round 9 fix pass placed it in that reader's file:
-`tests/skills/test_fold_check.py`, `tests/github/test_gather_changelog.py`,
-`tests/skills/test_chain_check.py`, `tests/skills/test_payload_meter.py`,
+`tests/skills/test_fold_check.py`, `tests/skills/test_chain_check.py`, `tests/skills/test_payload_meter.py`,
 `tests/github/test_issue_claims_check.py` and `tests/hooks/test_worktree_guard.py`, whose
 `Test_last_active_event_epoch` already held the second transcript reader's
 case. The two separators those cases name are `tests/conftest.py`'s `LS` and

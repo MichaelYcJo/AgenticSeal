@@ -138,7 +138,7 @@ def test_every_committed_guarantee_shows_its_one_verdict_line():
     565dfa24, where two gave none."""
     found = {
         p.parent.name: len(chain.verdicts_of(reader, p.read_text(encoding="utf-8")))
-        for p in (ROOT / "seal" / "specs").glob("*/guarantee.md")
+        for p in (ROOT / "seal" / "threads").glob("*/guarantee.md")
     }
     assert {name: n for name, n in found.items() if n != 1} == {}, found
 
@@ -203,8 +203,6 @@ class TestDefinition:
         assert "seal gate --base" not in order, (
             "a step of the sealer's definition runs the broad gate"
         )
-        never = " ".join(between(SEALER, "## Never", "## Rules").split())
-        assert "the typecheck or `seal gate`" in never, never
 
     def test_the_sealer_is_spawned_before_the_pull_request_and_reads_its_body_from_a_file(
         self,

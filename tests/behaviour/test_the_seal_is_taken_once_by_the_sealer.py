@@ -189,7 +189,7 @@ def test_the_documents_say_where_the_panel_now_carries_each_name():
     assert "names the ref on the row under the commit" not in verify
     # Round 1's 🟡 4 and ⬜ 5: the third arm, which fires on every seal an
     # installed copy older than #666 redirects, because it hands over no
-    # invoked path to compare against. The sealer detracers no panel row
+    # invoked path to compare against. The sealer describes no panel row
     # since it became the guarantor (#923), so the documents that do are read.
     assert (
         "or where the tree's copy ran with no invoked copy named to compare against"
@@ -200,9 +200,9 @@ def test_the_documents_say_where_the_panel_now_carries_each_name():
     assert "or where no invoked copy was handed over to compare" in comment
 
 
-def test_the_docstrings_detracer_the_letter_and_the_rows_it_carries():
+def test_the_docstrings_describe_the_letter_and_the_rows_it_carries():
     """#717, S7 for the code's own prose (contract rule 14). The stamp
-    module's docstring detracers the letter and the twin's characters rather
+    module's docstring describes the letter and the twin's characters rather
     than a rope and golds; the gate's module docstring and `panel`'s row
     diagram list the rows the panel carries now; the comment above
     `SAMPLE_ROWS` says which rows left. #832, the owner's frame and layout
@@ -679,9 +679,11 @@ def test_the_measurement_its_cost_and_its_limits_are_told_where_the_row_is_writt
 def test_what_a_line_names_a_file_by_is_told_where_each_reader_meets_it():
     """S28 (#825's reframe after round 3, contract rule 14). A line's path is
     the node's own, carried on the report, and never a name made from a
-    node id and a rootdir. The comparison's docstring, the recorder's own
-    and the released changelog entry each say so by their deciding sentence, and
-    each sentence of the refusal the reframe retired is asserted gone."""
+    node id and a rootdir. The comparison's docstring and the recorder's own
+    each say so by their deciding sentence, and each sentence of the refusal
+    the reframe retired is asserted gone. The released changelog entry is
+    read no more: #1053 removed `changelog/`, and the entry is the v0.20.0
+    release note's."""
     gate = gate_module()
     docstring = " ".join(gate.compare_at_base.__doc__.split())
     assert (
@@ -717,35 +719,6 @@ def test_what_a_line_names_a_file_by_is_told_where_each_reader_meets_it():
         "it looks no module up and imports nothing but pytest",
     ):
         assert sentence in recorder, f"the recorder does not carry: {sentence}"
-    # The work item's fragment is read where the release gathered it: in
-    # `changelog/0.20.0.md`, from its `specs/<id>` comment up to the next
-    # fragment's comment.
-    marker = "<!-- specs/1791270161-the-broad-gate-reads-a-record-its-pytest-plugin-wrote -->"
-    released = read_document(os.path.join("changelog", "0.20.0.md"))
-    assert released.count(marker) == 1, (
-        f"changelog/0.20.0.md does not hold {marker} once"
-    )
-    span = released.split(marker)[1].split("<!-- specs/")[0]
-    changelog = " ".join(span.split())
-    for sentence in (
-        "**Each failing file is named by the path pytest holds for it.**",
-        "counted on the record's `end` line, and the gate says how many under "
-        "the failing files.",
-        "names every cause the gate cannot tell apart: the row started no "
-        "pytest, none it started loaded the recorder, or the one that did could "
-        "not write its record.",
-        "whose xdist worker crashed in its body keeps the path its `setup` report "
-        "carried from that same worker, so its failure counts; a crash is never "
-        "placed by a node id two tests can share.",
-        "`new?` naming a count, too, where the file would read `new` but a "
-        "session of the base that ended non-zero left tests or collections out "
-        "of every list",
-        "A red session whose left-out reports all passed still gives `new?`: a "
-        "known over-strictness.",
-        "a row that writes `--report-log` finds it in that log while the gate "
-        "measures it.",
-    ):
-        assert sentence in changelog, f"the changelog does not carry: {sentence}"
     for gone, text in (
         ("so it writes no record at all", docstring),
         ("the recorder's refusals close it", docstring),
@@ -753,15 +726,8 @@ def test_what_a_line_names_a_file_by_is_told_where_each_reader_meets_it():
         ("therefore writes no record at all", recorder),
         ("an_argument_lies_outside_the_rootdir", recorder),
         ("find_spec", recorder),
-        ("A pytest that names a file outside its rootdir writes no record", changelog),
-        ("Such a row's files are not measured", changelog),
-        ("where no pytest at the base loaded the recorder", changelog),
-        ("Where no pytest of the row loaded the recorder at all", changelog),
-        ("names both causes", changelog),
-        # #825 round 5: the lookup by node id, and every session's count.
+        # #825 round 5: the lookup by node id.
         ("an earlier report of the same node in the session carried", recorder),
-        ("keeps the path its earlier reports carried", changelog),
-        ("base's record left tests or collections out of every list", changelog),
     ):
         assert gone not in text, f"still carried: {gone}"
 
@@ -871,8 +837,10 @@ HANDS_THE_RUN = re.compile(
 
 
 def test_the_crafter_names_no_runner_of_the_broad_gate():
-    """T4 of #967 (S5): the crafter says it does not run the broad gate and
-    names nobody who does; contract rule 2 holds who does.
+    """T4 of #967 (S5): the crafter's broad gate paragraph names nobody who
+    runs the broad gate. It cites contract rule 2, which holds who does, and
+    keeps what is the crafter's own: what `failing on base too` and `new?`
+    mean beside a broad gate failure handed to it.
 
     This replaced a case that asserted *Then the sealer takes the broad gate
     once*. #969 moves the run to the orchestrator in a worktree beside this
@@ -880,12 +848,11 @@ def test_the_crafter_names_no_runner_of_the_broad_gate():
     crafter = agent("crafter.md")
     start = crafter.index("**The broad gate is not yours, and its label is.**")
     rule = crafter[start : crafter.index(" check: ", start)]
-    assert "You do not run the full suite, the lint or the typecheck" in rule, (
-        "the crafter's gate rule stopped saying the run is not the crafter's"
+    assert "`failing on base too`" in rule and "`new?`" in rule, (
+        "the crafter's gate rule stopped saying what the word beside a "
+        "failing file means, which is the half that is the crafter's own"
     )
-    assert "rule 2 holds who does" in rule, (
-        "the rule stopped pointing at where the runner is named"
-    )
+    assert "rule 2" in rule, "the rule stopped pointing at where the runner is named"
     named = [party for party in RUNNERS if re.search(rf"\b{party}", rule, re.I)]
     assert not named, f"the crafter's gate rule names {named}: {rule}"
     handed = HANDS_THE_RUN.findall(crafter)
@@ -1004,7 +971,7 @@ def test_the_window_the_sealer_shipped_under_is_closed():
         "the sealer's assignment of the run is back beside a rule 2 that gives "
         "the run to no agent"
     )
-    assert "the orchestrator runs it" in text, (
+    assert "is the orchestrator's run's" in text, (
         "the definition says the run is not the sealer's without saying whose "
         "it is, which is #30's opening: an act nobody holds"
     )

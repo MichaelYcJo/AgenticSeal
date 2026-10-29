@@ -1,21 +1,41 @@
-"""What git's own hooks can and cannot decide, measured against real git.
+"""What git's own hooks can and cannot decide about a branch switch or a
+worktree creation, measured against real git.
 
-#692 proposes moving the commit gate, the worktree guard and the consent
-record out of a reader of the command's text and into git's hooks. Whether
-that works depends on facts the manual does not state, and phase 1 of the
-work item measured them on git 2.34.1, 2.39.5, 2.43.0 and 2.50.1
+Two rules of `docs/worktree-guard-spec.md` rest on these facts, and both
+name this file on their `check:` lines. *Which tree* says no git hook can
+judge a switch or a creation before it happens, so the worktree guard reads
+the command. *Decided before git runs* says a hook can only take a creation
+back after git made it, and a take-back cannot undo all of it, so the guard
+decides a creation before git runs. The manual does not state these facts.
+Phase 1 of #692 measured the switch and a creation's take-back on git
+2.34.1, 2.39.5, 2.43.0 and 2.50.1
 (`c7f4ed67:seal/specs/1790815613-a-gate-decides-at-the-moment-of-the-action-not-from-the-text/phases/phase-1.md`).
-This file pins those facts against whatever git runs the suite, so a git
-release that changes one of them turns a case red instead of silently
-changing what the design rests on.
+What a take-back cannot undo was found in round 1 of #692, on 2.50.1 only.
+This file pins them against whatever git runs the suite, so a git release
+that changes one of them turns a case red instead of silently changing what
+the two rules rest on.
 
-The one that decides the design is the first case. A switch rewrites the
-working tree and the index BEFORE it updates `HEAD`, so `reference-transaction`
-never sees a switch it can refuse cleanly: on 2.34-2.43 no `HEAD` line arrives
-at all, and on 2.50.1 it arrives with the tree already moved. Refusing there
-leaves `HEAD` on the old branch and the new branch's files checked out. If a
-future git refuses a switch before the tree moves, that case goes red, and
-that is the moment the design's switch arm becomes buildable as framed.
+The three `test_no_git_refuses_a_switch_before_the_tree_moves` cases pin
+*Which tree*. A switch rewrites the working tree and the index BEFORE it
+updates `HEAD`, so `reference-transaction` never sees a switch it can refuse
+cleanly: on 2.34-2.43 no `HEAD` line arrives at all, and on 2.50.1 it
+arrives with the tree already moved. Refusing there leaves `HEAD` on the old
+branch and the new branch's files checked out. A checkout and a
+branch-naming rebase reach the hook the same way. If a future git refuses a
+switch before the tree moves, a case goes red, and the guard's reading of
+the command can be weighed against a hook again.
+
+The four creation cases pin *Decided before git runs*, and with it the
+creation half of *Which tree*:
+`test_a_refused_creation_leaves_no_worktree_and_keeps_its_branch`,
+`test_post_checkout_tells_a_creation_from_a_switch_and_runs_in_the_tree`,
+`test_post_checkout_can_take_back_a_fresh_worktree` and
+`test_what_a_take_back_cannot_undo`. A creation reaches a hook only once git
+has made it. `post-checkout` can take it back, but a branch that `-b` made
+stays, `-B` has already reset an existing branch, and `--no-checkout` runs
+no `post-checkout` at all. The first two cases are the creation facts
+*Which tree* rests on, so a change that retires *Decided before git runs*
+keeps them.
 
 Every repository here sets `core.hooksPath` to its own absolute hooks
 directory, so a person's global hooks never run in these cases.
@@ -155,8 +175,10 @@ def test_no_git_refuses_a_switch_before_the_tree_moves(tmp_path, words, ref):
     assert (d / "marker.txt").read_text(encoding="utf-8") == "other\n", (
         f"git {verb} left the tree on `main` after reference-transaction "
         "refused it: this git refuses a switch before the tree moves, which "
-        "phase 1 of #692 found no git doing. The design's switch arm may now "
-        f"be buildable as framed.\nhook log:\n{text}"
+        "phase 1 of #692 found no git doing. The guard's reading of the "
+        "command can be weighed against a hook again "
+        "(docs/worktree-guard-spec.md *Which tree*).\n"
+        f"hook log:\n{text}"
     )
     if head_lines:
         # 2.50.1: the HEAD symref line arrives, after the tree moved.
@@ -171,36 +193,6 @@ def test_no_git_refuses_a_switch_before_the_tree_moves(tmp_path, words, ref):
         # all, so a hook cannot even see it.
         assert r.returncode == 0, r.stderr
         assert head(d) == "refs/heads/other"
-
-
-def test_a_commit_past_no_verify_is_refused_at_the_ref_and_leaves_the_tree(tmp_path):
-    d, hooks = repo(tmp_path)
-    hook(hooks, "pre-commit", "exit 1\n")
-    hook(hooks, "reference-transaction", REFUSING_RT)
-    with open(d / "f.py", "a", encoding="utf-8") as f:
-        f.write("b = 2\n")
-    g(d, "add", "f.py")
-    before = (
-        g(d, "rev-parse", "HEAD").stdout,
-        g(d, "status", "--porcelain").stdout,
-        g(d, "write-tree").stdout,
-    )
-    r = g(
-        d,
-        "commit",
-        "--no-verify",
-        "-m",
-        "x",
-        check=False,
-        env={"RT_LOG": str(tmp_path / "rt.log"), "REFUSE_SUFFIX": " refs/heads/main"},
-    )
-    assert r.returncode != 0
-    after = (
-        g(d, "rev-parse", "HEAD").stdout,
-        g(d, "status", "--porcelain").stdout,
-        g(d, "write-tree").stdout,
-    )
-    assert after == before
 
 
 def test_a_refused_creation_leaves_no_worktree_and_keeps_its_branch(tmp_path):
@@ -255,98 +247,6 @@ def test_post_checkout_tells_a_creation_from_a_switch_and_runs_in_the_tree(tmp_p
     assert switched[0] != ZERO
     assert switched[1] == "1"
     assert Path(switched[2]) == d.resolve()
-
-
-# M12: which command hands reference-transaction GIT_AUTHOR_DATE. It is the
-# criterion the `--no-verify` backstop keys on (owner's answer of 2026-10-01 in
-# `questions.md` P4): a commit pre-commit did not judge is refused, and nothing
-# else that moves a branch is.
-AUTHOR_DATE_LOG = r"""if [ "$1" = prepared ]; then
-  grep ' refs/heads/' >/dev/null && printf '%s %s\n' "$LABEL" "${GIT_AUTHOR_DATE:+dated}" >>"$A_LOG"
-else
-  cat >/dev/null
-fi
-exit 0
-"""
-
-
-@pytest.mark.rule("no-verify-met-where-the-branch-moves")
-def test_only_git_commit_hands_reference_transaction_an_author_date(tmp_path):
-    d, hooks = repo(tmp_path)
-    hook(hooks, "reference-transaction", AUTHOR_DATE_LOG)
-    log = tmp_path / "a.log"
-
-    def step(label, *args):
-        g(d, *args, env={"A_LOG": str(log), "LABEL": label})
-
-    with open(d / "f.py", "a", encoding="utf-8") as f:
-        f.write("b = 2\n")
-    step("commit", "commit", "-q", "-am", "b")
-    with open(d / "f.py", "a", encoding="utf-8") as f:
-        f.write("c = 3\n")
-    step("no-verify", "commit", "-q", "--no-verify", "-am", "c")
-    step("amend", "commit", "-q", "--amend", "-m", "c2")
-    step("cherry-pick", "cherry-pick", "other")
-    step("revert", "revert", "--no-edit", "HEAD")
-    step("reset", "reset", "-q", "--hard", "HEAD~1")
-    g(d, "branch", "ff", "main~1")
-    g(d, "switch", "-q", "ff")
-    step("merge-ff", "merge", "-q", "--ff-only", "main")
-    step("merge-no-ff", "merge", "-q", "--no-ff", "--no-edit", "other")
-    step("branch-f", "branch", "-f", "other", "main")
-    step("update-ref", "update-ref", "refs/heads/other", "main~1")
-    got = dict(
-        line.split(" ", 1) for line in log.read_text(encoding="utf-8").splitlines()
-    )
-    dated = {label for label, value in got.items() if value.strip() == "dated"}
-    assert dated == {"commit", "no-verify", "amend"}, got
-    assert set(got) == {
-        "commit",
-        "no-verify",
-        "amend",
-        "cherry-pick",
-        "revert",
-        "reset",
-        "merge-ff",
-        "merge-no-ff",
-        "branch-f",
-        "update-ref",
-    }
-
-
-@pytest.mark.rule("gits-own-commits-not-judged")
-def test_a_sequencer_that_stopped_on_a_conflict_commits_with_the_date(tmp_path):
-    """Round 1 of #692 (🟡 7): what M12 left out. A cherry-pick or a rebase
-    that stopped on a conflict finishes through a child `git commit`, which
-    hands the hook the date -- so a hook that judged commits had to tell
-    git's own commit from a person's another way. No hook of this plugin
-    judges commits since #1027; the fact stays pinned for whoever weighs one
-    again."""
-    d, hooks = repo(tmp_path)
-    # A rebase commits on a detached HEAD, so its line names `HEAD`.
-    hook(
-        hooks,
-        "reference-transaction",
-        AUTHOR_DATE_LOG.replace("' refs/heads/'", "-E ' (refs/heads/|HEAD$)'"),
-    )
-    log = tmp_path / "a.log"
-    env = {"A_LOG": str(log), "GIT_EDITOR": "true"}
-    (d / "marker.txt").write_text("conflict\n", encoding="utf-8")
-    g(d, "commit", "-q", "-am", "conflict")
-    g(d, "cherry-pick", "other", check=False)
-    (d / "marker.txt").write_text("both\n", encoding="utf-8")
-    g(d, "add", "marker.txt")
-    g(d, "cherry-pick", "--continue", env={**env, "LABEL": "cherry-pick-continue"})
-    g(d, "switch", "-q", "other")
-    g(d, "rebase", "-q", "main", check=False)
-    (d / "marker.txt").write_text("both again\n", encoding="utf-8")
-    g(d, "add", "marker.txt")
-    g(d, "rebase", "--continue", env={**env, "LABEL": "rebase-continue"})
-    # A rebase also moves its branch at the end, undated; one dated line per
-    # command is the fact.
-    lines = log.read_text(encoding="utf-8").splitlines()
-    dated = {line.split(" ", 1)[0] for line in lines if line.endswith(" dated")}
-    assert dated == {"cherry-pick-continue", "rebase-continue"}, lines
 
 
 # M14: post-checkout runs after a creation, cannot stop it, and can take it

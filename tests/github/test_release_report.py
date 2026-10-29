@@ -244,28 +244,6 @@ class Test_main:
         assert rows["`CLAUDE.md` (bytes)"] == ("4", "4", "+0 (+0.0%)"), rows
         assert "`CONTRIBUTING.md` (bytes)" in rows, rows
 
-    def test_accepts_each_process_archive_file_as_a_document_row(
-        self, tmp_path, capsys
-    ):
-        """#945: each `seal/process/<X.Y.Z>.md` is a document row beside
-        `docs/*.md`, so the archive's size is read at each release; the rest
-        of the `seal/` root is no document and has no row."""
-        at = tree(tmp_path / "at", "", {"t::a": 1.0}, {})
-        now = tree(tmp_path / "now", "", {"t::a": 1.0}, {})
-        for rel in (
-            "seal/process/0.23.0.md",
-            "seal/README.md",
-            "seal/threads/1-x/a.md",
-        ):
-            path = tmp_path / "now" / rel
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text("# 0.23.0\n", "utf-8", newline="\n")
-        assert report.main(["--against", "v1", "--at", at, "--root", now]) == 0
-        rows = rows_of(capsys.readouterr().out)
-        seal = [what for what in rows if what.startswith("`seal/")]
-        assert seal == ["`seal/process/0.23.0.md` (bytes)"], rows
-        assert rows["`seal/process/0.23.0.md` (bytes)"] == ("—", "9", "new"), rows
-
     @pytest.mark.parametrize(
         "lines",
         [

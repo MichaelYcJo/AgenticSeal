@@ -241,19 +241,19 @@ def test_the_existing_mirrors_are_consistent_with_the_rule():
 
     mirrors = sorted(
         os.path.basename(p)
-        for p in glob.glob(os.path.join(ROOT, "seal", "specs", "*", "pr.*.md"))
+        for p in glob.glob(os.path.join(ROOT, "seal", "threads", "*", "pr.*.md"))
     )
     # `assert mirrors, "... this case is blind"` stood here, and every mirror
     # lives in a directory the next fold retires (#517). Blindness is asked
     # of the tree instead, by a second listing that has to agree at any size,
     # and the rule's teeth move to
     # `test_a_mirror_named_for_a_country_is_refused_by_the_same_rule`.
-    specs = os.path.join(ROOT, "seal", "specs")
+    threads = os.path.join(ROOT, "seal", "threads")
     listed = sorted(
         name
-        for d in (os.listdir(specs) if os.path.isdir(specs) else [])
-        if os.path.isdir(os.path.join(specs, d))
-        for name in os.listdir(os.path.join(specs, d))
+        for d in (os.listdir(threads) if os.path.isdir(threads) else [])
+        if os.path.isdir(os.path.join(threads, d))
+        for name in os.listdir(os.path.join(threads, d))
         if name.startswith("pr.") and name.endswith(".md")
     )
     assert mirrors == listed, "the glob and the listing disagree about the mirrors"

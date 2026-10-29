@@ -70,11 +70,12 @@ jobs:
       - name: a change to what ships must move the version
         shell: bash
         run: |
-          # Work accumulates on a release branch; the version moves once,
-          # when that branch merges to `main`. Asking every feature PR to bump
-          # it is what made one commit one release.
+          # Work accumulates on a release branch; the version moves once, in
+          # the release's first pull request into that branch, and reaches
+          # `main` when the branch merges. Asking every feature PR to bump it
+          # is what made one commit one release.
           if [ "${{ github.base_ref }}" != "main" ]; then
-            echo "base is ${{ github.base_ref }}, not a release PR — the version moves when next merges to main"; exit 0
+            echo "base is ${{ github.base_ref }}, not a release PR — the version is checked when the release branch merges to main"; exit 0
           fi
           base="origin/${{ github.base_ref }}"
           changed=$(git diff --name-only "$base"...HEAD)
@@ -107,55 +108,7 @@ jobs:
             exit 1
           fi
 
-      # A change writes `seal/threads/<work-item-id>/changelog.md` instead of
-      # appending to the changelog — three parallel branches shared that one
-      # file and nothing else, and the conflict arrived after the broad gate
-      # had run, where nothing may be edited.
-      #
-      # Gathering them is a step somebody has to remember, and the release
-      # pull request is the last moment anyone is looking. A fragment that
-      # reached no release file under `changelog/` ships with no entry: the
-      # user `hooks/version-check.py` tells about a new release has nothing
-      # to read.
-      #
-      # It runs only for a release, because that is the only moment the
-      # fragments are meant to be in a release file. On a feature pull
-      # request every fragment on the branch is legitimately ungathered.
-      - name: every changelog fragment reached the released file
-        shell: bash
-        run: |
-          if [ "${{ github.base_ref }}" != "main" ]; then
-            echo "base is ${{ github.base_ref }} — fragments are gathered when the release reaches main"; exit 0
-          fi
-          python3 .github/scripts/gather_changelog.py --check
-
-      # The review chain used to be enforced only at the commit, where the
-      # gate could not tell "routed to the chain, not reviewed yet" from
-      # "nobody decided anything" — so it asked at every commit of every
-      # round. Recording the answer lets it stay quiet, and that is only
-      # allowed because the check moved here rather than disappearing.
-      #
-      # A pull request that declared NOTHING fails only where one of its own
-      # commits carries a `Seal-Routing` trailer naming a work item. A
-      # commit with no such trailer, a teammate's among them, is not judged,
-      # because a build that goes red for what nobody claimed teaches people
-      # to claim nothing. On a pull request that is not a draft it fails for
-      # what the author can fix: a trailer naming a work item no judged
-      # declaration names, a declaration
-      # that says "through the review chain" with no committed round record, a
-      # declaration that cannot be read, a work item `frame/design.md` whose
-      # `## Rule changes` does not parse, where the work item is judged or
-      # the pull request's own commits add or change that `frame/design.md`, a
-      # finding still `open` or one the check cannot read, a last record
-      # behind HEAD or with a finding no round after it read, no
-      # `trail/gate.md` at HEAD, or no `guarantee.md` reading `sealed` at
-      # HEAD (`docs/the-review-record.md`
-      # *What the check reads at the pull request*).
-      #
-      # The draft state comes from GITHUB_EVENT_PATH, which this runner
-      # already sets. On a draft every refusal prints and none fails. A
-      # round's `target:` commit is read only as HEAD or an ancestor of it, so
-      # the check needs no ref the checkout does not already carry.
+      # One source: `templates/setup/hygiene.yml`, the workflow the plugin ships.
       - name: a declared review chain has the round record it claimed
         shell: bash
         run: |
@@ -176,7 +129,7 @@ jobs:
       # repaired by a person adding a label by hand, which is the act #359
       # exists to remove.
       #
-      # Release only, like the version and changelog steps. The head must ALSO be a
+      # Release only, like the version step. The head must ALSO be a
       # `release/v*` branch, and that half is the script's rather than this
       # guard's: `docs/branch-and-release.md` lists a hotfix branch as the
       # other thing that reaches `main`, a hotfix carries no release
@@ -205,23 +158,7 @@ jobs:
           fi
           python3 .github/scripts/release_completeness_check.py
 
-      # `seal/config.md`'s `Mode` row says which of the two places the root
-      # should live at; the folder's location says where it is. Nothing at
-      # runtime reads the row — every gate resolves the root through
-      # `hooks/lib/optin.py#home_at` — so the row is the one thing here that can
-      # quietly stop being true, and this is what stops it.
-      #
-      # It fails only for a disagreement, which is always the author's and
-      # always one command from fixed (`seal mode --apply` moves the folder,
-      # `seal mode <the folder's mode>` corrects the row). An absent row is
-      # not a disagreement and passes: it is the state every repository with
-      # a config.md is in today, since the pull-request language shipped as
-      # its only row.
-      #
-      # Only one direction can ever reach CI, and that is the whole of what
-      # is observable here: local mode commits nothing, so a repository in it
-      # has no workflow and no committed row. What this catches is a row
-      # saying `local` beside a root that is committed in the tree.
+      # One source: `templates/setup/hygiene.yml`, the workflow the plugin ships.
       - name: the mode the row declares is the mode the folder is in
         shell: bash
         run: |

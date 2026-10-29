@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""settle — show the released specs by section, and remove what a settle leaves.
+"""settle — show the released designs by section, and remove what a settle leaves.
 
-  settle                        the dry run: each group of released specs that
-                                name one section, the specs to read whole, every
+  settle                        the dry run: each group of released designs that
+                                name one section, the designs to read whole, every
                                 open row, and what `--apply` removes
   settle --apply                remove each released work item directory whose
                                 record holds no open row
@@ -19,23 +19,23 @@ is reachable from the ref. `gh pr list --head <branch> --state merged` names
 the merge commit whatever the merge method was; it is asked once per branch,
 and only in local mode.
 
-**The specs say what was decided and in what order, the code says what holds
+**The designs say what was decided and in what order, the code says what holds
 now, and the settling session writes each section as the latest decision the
 code bears out. The script reads and removes; it neither writes `docs/` nor
 judges.** `skills/settle/SKILL.md` is the settling session's procedure.
 
-**The dry run is the timeline.** Each released spec's `## Rule changes` is
+**The dry run is the timeline.** Each released design's `## Rule changes` is
 read through `rule_changes.py`, as `--released-at` holds it where the root is
-shared and from its directory in local mode. The specs whose
+shared and from its directory in local mode. The designs whose
 operations name one place, a file and a section, are one group, two places
 one group where `rule_changes.py#overlapping` says they can name one text, and
-each group is listed in merge order: the commits that add each spec
+each group is listed in merge order: the commits that add each design
 (`rule_changes.py#order`), or in local mode the pull requests' merge commits
 (`rule_changes.py#merge_order`). Each operation
-carries its spec's coordinate and two facts read from the working tree:
-whether its `from` is found in the section, and whether its `to` is. Two specs
+carries its design's coordinate and two facts read from the working tree:
+whether its `from` is found in the section, and whether its `to` is. Two designs
 in one group whose commits no ancestry orders are marked unordered for
-the settling session to order by content. A spec whose section does not parse,
+the settling session to order by content. A design whose section does not parse,
 or that has none, is listed to read whole. Every open `## Not verified` row of
 every released record is listed with the backticked paths it names and
 whether each is in the working tree. Nothing is refused or held in the dry
@@ -97,7 +97,7 @@ PURPOSES = {
     READER: "it is where a record's open rows are read from",
     OPTIN: "it is what finds the repository's seal/ root",
     ROUTING: "it is what reads the branch a local work item's `routing.md` names",
-    RULES: "it is what reads a spec's `## Rule changes`",
+    RULES: "it is what reads a design's `## Rule changes`",
     FOLD_CHECK: "it is what reads the index and the one read after an apply",
 }
 
@@ -360,7 +360,7 @@ UNMERGED_HEADING = "unreleased in local mode and untouched, each with why:"
 
 # The dry run's headings, each pinned by `tests/skills/test_settle.py`.
 GROUPS_HEADING = (
-    "groups: the released specs whose rule changes name one section, in merge "
+    "groups: the released designs whose rule changes name one section, in merge "
     "order.\nThe settling session writes each section as its group's latest "
     "decision, checked\nagainst the code (`skills/settle/SKILL.md`); `from` and "
     "`to` say whether that text\nis in the section now:"
@@ -374,7 +374,7 @@ UNORDERED_LOCAL = (
     "commits,\n        so order them by content"
 )
 WHOLE_HEADING = (
-    "to read whole: released specs no group holds, for the settling session "
+    "to read whole: released designs no group holds, for the settling session "
     "to read\nand write any rule they state the same way:"
 )
 NO_SECTION = "no `## Rule changes` section"
@@ -491,14 +491,14 @@ def facts(root, op, rules):
 
 
 def timeline(root, ref, ids, reader, records, merged=None):
-    """The released specs IDS as the dry run shows them.
+    """The released designs IDS as the dry run shows them.
 
     Where the root is shared, each `frame/design.md` is read as REF holds it, the
     text that was reviewed and released, and the merge order is the commits
-    that add the specs (`rule_changes.py#order`). In local mode no ref holds
-    a spec, so it is read from its directory under RECORDS, and the merge
+    that add the designs (`rule_changes.py#order`). In local mode no ref holds
+    a design, so it is read from its directory under RECORDS, and the merge
     order is the merge commits MERGED names, `{id: (number, merge commit)}`
-    (`rule_changes.py#merge_order`). A spec with operations joins the groups
+    (`rule_changes.py#merge_order`). A design with operations joins the groups
     `rule_changes.py#group` forms in merge order; one whose section does not
     parse, or that has none, is to be read whole; one holding the no-change
     block has nothing to write; a directory with no `frame/design.md` states no
@@ -563,7 +563,7 @@ def place_line(p, span, why):
 
 
 def op_line(work_item_id, op, found):
-    """One operation of a group: its kind, its spec's coordinate and what the
+    """One operation of a group: its kind, its design's coordinate and what the
     working tree holds of its texts."""
     where = f"{SPECS}/{work_item_id}/{DESIGN}:{op.line}"
     said = (
@@ -696,7 +696,7 @@ def citations(root, work_item_ids):
 
 
 def report(found, ref, out):
-    """The dry run: the groups, the specs to read whole, the open rows and
+    """The dry run: the groups, the designs to read whole, the open rows and
     what `--apply` removes. It refuses nothing, so it exits 0. In local mode
     it names the root first, lists each released work item with the pull
     request that merged it and each unreleased one with why, and says no
@@ -865,7 +865,7 @@ def main(argv=None):
     """The dry run or the apply; the exit code is the verdict."""
     ap = argparse.ArgumentParser(
         prog="seal settle",
-        description="Show the released specs' rule changes by section, and "
+        description="Show the released designs' rule changes by section, and "
         "remove released work item directories.",
     )
     ap.add_argument(

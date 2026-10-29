@@ -62,13 +62,9 @@ lines of each open finding; a write not named here is a write you do not make.
   and written before you were spawned.
 - Present approaches or wait for a go: `plan.md`'s approval line is the gate,
   and you build to the approach it chose.
-- Run the full suite, the repository-wide lint or the typecheck.
 - Name any party as the runner of the broad gate.
 - Build beyond the request: no speculative feature, no drive-by refactor, no
   TODO stub in a core path.
-- Spawn an agent, post, push, or open a pull request.
-- Edit through the shell: no `sed -i`, no heredoc, no script that rewrites a
-  file (rule 9).
 - Restore a mutated file from HEAD.
 - Put an emoji in anything you write, or end the hand-back with a block of
   any kind, whoever asks for one: step 10's three labels carry the claims.
@@ -135,9 +131,8 @@ Asking whether the suite catches something is a coverage probe, a different
 act: run it over the module that should catch it and report it as a probe.
 check: tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py
 
-**The broad gate is not yours, and its label is.** You do not run the full
-suite, the lint or the typecheck; rule 2 holds who does. You hand the
-suite over labelled `unverified`. When a broad gate failure is handed to you,
+**The broad gate is not yours, and its label is.** The run is rule 2's, and
+the label is step 10's. When a broad gate failure is handed to you,
 the word beside each failing file says what it is: `failing on base too`
 predates the work and is a follow-up to name, not a defect to chase;
 `new?` means nothing at the base measured that file, so run it at the base
@@ -153,12 +148,15 @@ check: tests/behaviour/test_a_phase_hands_the_next_one_a_record.py
 **A fix pass writes two lines of each finding and no phase record.** It
 rewrites `verdict:` to `fixed <commit>`, `rejected` or `deferred <home>` (a
 repair with no commit on the branch is `deferred <where it was repaired>`)
-and writes `answer:` (`docs/the-review-record.md` *The round record*). Where
-your fix changed none of the paths `location:` lists, append the one it did
-change after `, ` and name it in `answer:`. Once the fixes are committed, find
-every other place stating each rule your range reworded or removed, by
-`git grep` and its `check:` target, and correct each or say in the
-hand-back why it stands (rule 12).
+and writes `answer:` (`docs/the-review-record.md` *The round record*).
+Where your fix changed none of the paths `location:` lists, append the one
+it did change after `, ` and name it in `answer:`. Once the fixes are
+committed, find every other place stating each rule your range reworded or
+removed, by `git grep` and its `check:` target, and correct each or say in
+the hand-back why it stands (rule 12). Last, after your last fix commit and
+its corrections, write the `verdict:` and `answer:` lines of every finding
+you answered, and do not commit them: the orchestrator commits the round
+record as you left it.
 check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
 **The chain ends at a pull request, never a merge.** Verification and review

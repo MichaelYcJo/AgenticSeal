@@ -1,0 +1,36 @@
+# Overview: 1793188384-the-release-notes-are-kept-twice
+
+## Why this work exists
+
+A change's release note was kept three times, in its fragment, in the gathered `changelog/X.Y.Z.md` and in the GitHub Release, and two copies had already drifted; the note is now built at the tag from the fragments, and the gathered files and the gather are gone.
+
+## Where spec and implementation diverged
+
+| Divergence | Spec says / code did | Chosen | Grounds |
+|---|---|---|---|
+| Readers of the gather that `## Removes` does not list | `## Removes` lists the gather's mentions it found. The build found four more that state the removed step or count it: `CONTRIBUTING.md` *What a contribution is asked for*, its paragraph ("The version and changelog steps") and its `changelog.md` fragment row; `skills/verify/orchestration.md:91-94` ("Two steps ... one runs a script under `.github/scripts/`"); four cases of `tests/behaviour/test_the_gate_names_every_step_ci_runs.py`, which count 7 steps and 3 that run only into `main`; and `hygiene.yml`'s milestone-step comment ("like the version and changelog steps") | Each is rewritten in phase 3, the phase that removes the step | `frame/design.md` *Grounding*: "Every case, comment, census entry and sentence outside the policy root that names `changelog/`, `CHANGELOG.md` or the gather is removed or re-pointed in the phase that removes what it names." |
+| Phase 4's readers beyond `## Removes`' coordinates | `## Removes` gives `tests/behaviour/test_release_hygiene.py:218-226`, `:586` and `:1081-1170`. Three more docstrings there named `CHANGELOG.md` as the file whose heading lands in the bump's commit: `shipped_tags`, `timers_in` and `test_the_shipped_set_is_the_tags_of_the_root_being_swept`. `tests/behaviour/test_one_word_one_meaning.py` asserted that each record prefix but `seal/threads/` holds a tracked file, and with `"changelog/"` gone no such prefix was left | The three docstrings are rewritten. The assertion loop and `SETTLED_RECORDS` go, and `RENAMED_RECORDS` is the one prefix | `frame/design.md` *Grounding*, the same sentence as the row above. The loop would have iterated over nothing |
+| Where a released file is read after the removal | `frame/design.md` *Scope* 5: "The files stay readable at their own tags after the removal, `git show vX.Y.Z:changelog/X.Y.Z.md`"; S11 and `plan.md`'s phase 5 row read each file at its own tag. `git cat-file -e` finds a tag's own file at `v0.18.1` to `v0.23.1` only, 14 of 58, and at none of the 26 whose note lacks its file's text | This work item's `changelog.md` and S11 read each file at `v0.23.1`, which holds all 58, identical to `49ca77ee` | Measured: #770 split the per-release files out of `CHANGELOG.md` on 2026-10-04, after `v0.18.0` |
+| The 26 published notes that lack their file's text | Issue #1053 *The change* asks that they be "republished from the file", and its *Done when* asks that "every released version's GitHub Release holds its notes" | Not built. No published note is republished, so the first *Done when* item holds for the 32 releases whose note holds its file, and the other 26 keep their text in `changelog/X.Y.Z.md` at `v0.23.1` | The owner's answer to `frame/questions.md` Q2, 2026-10-28. The notes of v0.2.0 to v0.10.0, edited on 2026-10-28, were restored from their backups on 2026-10-28 (`trail/phases/phase-5.md`) |
+| The two `seal/follow-up.md` rows on `changelog/0.12.2.md` | *Scope* item 8 as first framed: "Those two rows keep their question and their answerer" | Both rows are removed. Each asked whether a correction is carried into a released copy of 0.12.2: the v0.12.2 GitHub Release holds neither sentence and is not republished, and the only copy holding them is `changelog/0.12.2.md` in the tree of `v0.23.1`, which no commit changes | The owner's answer to `frame/questions.md` Q2 answers both; round 5, finding 4, and *Scope* item 8 as reframed at `4b42844b` |
+| The per-path log that finds where a fragment was last held | *Data & interfaces*: "each read at the newest commit of `git log --format=%H <range> -- <path>` whose tree holds the path". Round 1, finding 1, measured that form miss all 9 fragments of 0.22.4: at a tag that is a merge into `main`, the default history simplification follows the first parent, which never held a fragment the settle removed on the release branch | `fragments` adds `--full-history` to that log, and skips a path the range's lower tag already holds, which `--full-history` alone would read again where a commit restored it (0.15.3). The fix pass re-ran the comparison over 0.14.0 to 0.23.1, both fragment roots read: 26 of 26 releases equal their released file's markers (executed) | Measured, round 1 and the fix pass. The frame's line is the orchestrator's to amend |
+| The update skill's span filter | Round 1, finding 2, gives the filter's last line as `"$f" <old version> <new version>` | The skill sets `old` and `new` in prose and the line reads `"$f" "$old" "$new"` | A bare `<old version>` is a shell redirection; text an agent runs has one reading (`CLAUDE.md` *text an agent or a check reads has one reading*) |
+| `release_body`'s signature | *Data & interfaces*: "`release_body` takes the theme and the rendered fragments where it takes the gathered section today, and drops the trailing link." | `release_body(theme, rendered, pulls, owner)`. `repo` and `tag` fed only the link, so they went with it, and `tests/github/test_release_seal.py#note`'s one call changed | Spec silent on the two parameters the link alone read |
+| S1's history | S1 names two fragments added after `v1.2.2`, one removed before `v1.2.3` | S1 also adds, in the settle's commit, a fragment with the removed one's text and an empty fragment | `seal mutate` showed nothing pinned `--no-renames` or the empty skip, both stated in *Data & interfaces* |
+
+## Not verified
+
+| Item | Who must answer |
+|---|---|
+| Whether the tag's job can list the milestones under `contents: write` alone (`frame/questions.md` Q3, default (a)) | the orchestrator, reading the log of the tag run of the release carrying this work |
+| closed The full suite, the repository-wide lint and the typecheck over this branch | executed by the orchestrator's broad gate at `782f24a3` against `faf093f1`, passed (`trail/gate.md`) |
+| closed S11: every released version keeps its notes, in its GitHub Release or in `changelog/X.Y.Z.md` at `v0.23.1` | executed in phase 5, 2026-10-28: `git cat-file -e v0.23.1:changelog/X.Y.Z.md` exits 0 for all 58 versions, each recorded in `trail/phases/phase-5.md` |
+| Step 3 of the `update` skill run by a session updating across a real release | the first person to update to the release carrying this work |
+
+## Not done
+
+`tests/behaviour/test_first_setup_asks_once.py` still passes `fold_ledger` to `test_the_rows_that_read_this_repository_do_not_travel`. That script left the tree in #950, so the parameter reads nothing, the same way `gather_changelog` would have. It is #950's leftover, not this work's.
+
+## Fed back into the spec
+
+none

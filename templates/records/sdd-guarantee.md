@@ -17,6 +17,6 @@ original: <only where `agents/sealer.md` step 5 owes it, the migration config's 
 
 | Party | Says | Agrees with | Disagrees with |
 |---|---|---|---|
-| <one of: the spec, the build, the last round, the changelog, the orchestrator's part of the pull request body> | <what it says the work is> | <the parties and facts it agrees with> | <none, or what contradicts it> |
+| <one of: the design, the build, the last round, the changelog, the orchestrator's part of the pull request body> | <what it says the work is> | <the parties and facts it agrees with> | <none, or what contradicts it> |
 
 Verdict: <one of the three shapes `agents/sealer.md` step 5 names>

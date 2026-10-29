@@ -617,27 +617,6 @@ class Test_splitlines:
         assert censuses.splitlines("skills/new.py", root) == [line]
 
 
-class Test_coordinate_grammar:
-    def test_accepts_another_pattern_and_a_file_outside_the_shipped_directories(
-        self, tmp_path
-    ):
-        plant(tmp_path, "tests/x.py", 'R = r"@[0-9a-f]{6,40}"\n')
-        root = plant(tmp_path, "hooks/x.py", 'R = r"@(?P<name>[a-z]+)"\n')
-        assert censuses.coordinate_grammar("tests/x.py", root) == []
-        assert censuses.coordinate_grammar("hooks/x.py", root) == []
-
-    def test_refuses_a_second_grammar_of_the_hash(self, tmp_path):
-        root = plant(
-            tmp_path,
-            ".github/scripts/x.py",
-            'R = (\n    r"@(?P<hash>[0-9a-f]{6,12})"\n)\n',
-        )
-        assert censuses.coordinate_grammar(".github/scripts/x.py", root) == [
-            ".github/scripts/x.py:2: coordinate_grammar: a second grammar of the "
-            "coordinate; `skills/verify/scripts/coordinates.py` holds the one"
-        ]
-
-
 class Test_heading_rule:
     def test_accepts_the_spelling_in_a_docstring_and_a_whole_line_comment(
         self, tmp_path
@@ -806,9 +785,6 @@ class Test_old_names:
         old = "\n".join(line for line, _ in OLD_SPELLINGS) + "\n"
         plant(tmp_path, "docs/living.md", living)
         for rel in (
-            "changelog/0.1.0.md",
-            "CHANGELOG.md",
-            "seal/process/0.1.0.md",
             "seal/threads/1-x/frame/design.md",
             "evals/behaviour/proofer/replay-1-r1/prompt.md",
             "evals/behaviour/proofer/seeded-1/prompt.md",
@@ -826,9 +802,6 @@ class Test_old_names:
         )
         for rel in (
             "docs/living.md",
-            "changelog/0.1.0.md",
-            "CHANGELOG.md",
-            "seal/process/0.1.0.md",
             "seal/threads/1-x/frame/design.md",
             "evals/behaviour/proofer/replay-1-r1/prompt.md",
             "evals/behaviour/proofer/seeded-1/prompt.md",
@@ -948,9 +921,6 @@ class Test_vacated_paths:
     def test_accepts_the_records_and_a_recorded_case(self, tmp_path):
         root = plant_moved(tmp_path)
         records = (
-            "changelog/0.1.0.md",
-            "CHANGELOG.md",
-            "seal/process/0.1.0.md",
             "seal/threads/1-x/frame/design.md",
             "evals/behaviour/proofer/replay-1-r1/prompt.md",
             ".test_durations",

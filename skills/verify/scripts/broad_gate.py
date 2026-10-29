@@ -2216,13 +2216,6 @@ PARTITION = (
         "question, which is the drift this partition exists to stop",
     ),
     (
-        "every changelog fragment reached the released file",
-        None,
-        "runs `.github/scripts/gather_changelog.py`, which belongs to this "
-        "repository and not to the plugin this gate ships in. A repository's "
-        "own checks belong in the `Broad gate` row of `seal/config.md`",
-    ),
-    (
         "a declared review chain has the round record it claimed",
         CHAIN_NAME,
         None,
@@ -2251,21 +2244,20 @@ PARTITION = (
 MAIN = "main"
 
 # The steps that run ONLY on a pull request into `main`, by step name (#666).
-# In `hygiene.yml` each of the three opens its `run:` with `if [ "${{
+# In `hygiene.yml` each of the two opens its `run:` with `if [ "${{
 # github.base_ref }}" != "main" ]; then … exit 0`: a release pull request is
-# where the version moves, the fragments are gathered, and the milestone is
-# judged. On any other base CI never asks them, so a run that counted them
-# as *not answered* would count questions nobody asks. None of the three is
-# mirrored, so no arm changes; what changes is the denominator of the
-# `workflow` count and the names beside it.
+# where the version moves and the milestone is judged. On any other base CI
+# never asks them, so a run that counted them as *not answered* would count
+# questions nobody asks. Neither is mirrored, so no arm changes; what
+# changes is the denominator of the `workflow` count and the names beside
+# it.
 #
 # Held against the workflow by `tests/behaviour/test_the_gate_names_every_step_ci_runs.py`
-# from both sides: a `!= "main"` guard added to a fourth step, or dropped
+# from both sides: a `!= "main"` guard added to a third step, or dropped
 # from one of these, fails the suite. No step skips a pull request into
 # `main`, so every mirrored arm runs at every base.
 ONLY_AT_MAIN = (
     "a change to what ships must move the version",
-    "every changelog fragment reached the released file",
     "the milestone this release claims is the work it carries",
 )
 

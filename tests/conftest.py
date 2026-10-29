@@ -308,49 +308,16 @@ def decline_if_shrunken(missing, what):
         pytest.skip(shrunken_corpus(missing, what))
 
 
-def gathered_entry(root, work_item_id):
-    """The text a release file under `changelog/` carries for a work item
-    whose fragment was gathered, or None when no marker for it is there.
-
-    A changelog fragment moves once, the way a ledger fragment does:
-    `gather_changelog.py` writes `<!-- specs/<id> -->` above the fragment's
-    body in the release's own file, `changelog/X.Y.Z.md` since #728, and
-    `seal settle --apply` later removes the directory the fragment lived in. So a
-    case pinning what a fragment says reads the fragment while it exists and
-    this block after. The block runs from the marker to the next marker line
-    or heading, which is where the gatherer puts the next entry.
-    """
-    start = f"<!-- specs/{work_item_id} -->"
-    directory = os.path.join(root, "changelog")
-    names = sorted(os.listdir(directory)) if os.path.isdir(directory) else []
-    for name in names:
-        if not re.fullmatch(r"\d+\.\d+\.\d+\.md", name):
-            continue
-        with open(os.path.join(directory, name), encoding="utf-8") as handle:
-            lines = handle.read().splitlines()
-        if start in lines:
-            break
-    else:
-        return None
-    body = []
-    for line in lines[lines.index(start) + 1 :]:
-        # A heading is `#` to `######` and then a space: a body line opening
-        # with an issue number such as `#120` is the entry's own text.
-        if re.match(r"#{1,6}(?:\s|$)", line) or (
-            line.startswith("<!-- specs/") and line.endswith("-->")
-        ):
-            break
-        body.append(line)
-    return "\n".join(body)
-
-
 HOOKS = os.path.join(os.path.dirname(__file__), "..", "hooks")
 
 # Default-locale determinism: the suite owns its locale. A plain setdefault
 # is not enough — the author's machine exports SPECSEAL_LANG=ko session-wide
-# (measured), which would flip every default-language assertion. Tests that
-# need Korean monkeypatch the env and fresh-load the module.
+# (measured), which would flip every default-language assertion. The plugin
+# option `worktree_guard_language` is read before it, so a value the shell
+# running the suite carries for the option is removed. Tests that need Korean
+# monkeypatch the env and fresh-load the module.
 os.environ["SPECSEAL_LANG"] = "en"
+os.environ.pop("CLAUDE_PLUGIN_OPTION_WORKTREE_GUARD_LANGUAGE", None)
 
 # One run of this suite calls `git init` 403 times, and each call copies the
 # default template into the new repository: 18 files where 2 are enough, 14 of
@@ -414,6 +381,24 @@ for _name in GH_CREDENTIALS:
     os.environ.pop(_name, None)
 os.environ["GH_TOKEN"] = NOT_A_GH_TOKEN
 os.environ["GH_ENTERPRISE_TOKEN"] = NOT_A_GH_TOKEN
+
+# The suite runs with no workflow variable, under every event (#1058). Every
+# workflow run sets `GITHUB_ACTIONS`, `GITHUB_EVENT_PATH` and the rest, and
+# only a `pull_request` run sets `GITHUB_HEAD_REF`; a local run and the broad
+# gate set none. Three cases that judged the checked-out branch passed on a
+# local run, the broad gate and a `workflow_dispatch` run, and failed on pull
+# request #1057's run (`gh run view 40446828473 --log-failed`), because the
+# script they drove reads `GITHUB_HEAD_REF` first. So every name that starts
+# with `GITHUB_` is removed here, at import, for the reason the block above
+# is: every entry point, every fixture of every scope and every child that
+# inherits `os.environ` sees the same environment.
+# The names are read from the environment itself, so a variable a script
+# starts reading later is covered without an edit here. A case that needs one
+# sets it with `monkeypatch.setenv`. The limit: code that runs in this process
+# and needs the runner's real value, such as a pytest hook writing the step
+# summary, has to read it before this file is imported.
+for _name in [n for n in os.environ if n.startswith("GITHUB_")]:
+    del os.environ[_name]
 
 # `chain_check.py` asks `gh pr view --json isDraft` where no event payload
 # exists (#866), and every run of it the generator and the broad gate make in
@@ -1420,14 +1405,16 @@ def pact_check_modules():
 PACT_URL = "git@example.com:org/orders-api.git"
 SIGNER_URL = "https://example.com/org/orders-web"
 MOBILE_URL = "https://example.com/org/orders-mobile"
-LOCATOR = '"## Order response shape / ### Fields"'
+CLAUSE_PATH = "## Order response shape / ### Fields"
 PACT = "seal/pact.md"
 SPEC = "seal/threads/1790000000-x/frame/design.md"
 V1, V2, V3 = "id, total", "id, total, currency", "id, total, currency, tax"
 # The pact a signer's `Pact` row names in the reader's cases, and what
 # `hooks/lib/config.py#pact_declaration` answers for it.
 URL = PACT_URL
-ORDERS = [(URL, "example.com/org/orders-api", "orders-api")]
+ORDERS = [(URL, "example.com/org/orders-api")]
+# The line of a frame `World.cite` writes its one anchor row on.
+ANCHOR_LINE = 3
 
 
 def pact(fields, signers=(SIGNER_URL,)):
@@ -1445,7 +1432,7 @@ def old_header(text):
 
 def clause(fields):
     pc, checker = pact_check_modules()
-    digest, why = pc.clause_hash(checker, pact(fields), LOCATOR)
+    digest, why = pc.clause_hash(checker, pact(fields), CLAUSE_PATH)
     assert why is None
     return digest
 
@@ -1456,8 +1443,13 @@ def signer_config(*rows):
     )
 
 
-def grounding_row(anchor):
-    return f"| `{anchor}` | the field list, built against it |\n"
+def anchor_table(*rows):
+    """A signer frame's anchor table, one `| Pact | Clause | Hash |` row per
+    ROW, each a tuple of the three cells as written."""
+    return "| Pact | Clause | Hash |\n|---|---|---|\n" + "".join(
+        f"| {pact_cell} | {clause_cell} | {hash_cell} |\n"
+        for pact_cell, clause_cell, hash_cell in rows
+    )
 
 
 def init(d, url):
@@ -1506,10 +1498,10 @@ class World:
         self.api = base / "work" / "orders-api"
         self.web = base / "work" / "orders-web"
 
-    def cite(self, digest, locator=LOCATOR, where=SPEC):
-        anchor = f"pact:orders-api/{locator}@{digest}"
-        write(self.web, where, grounding_row(anchor))
-        return anchor
+    def cite(self, digest, clause_path=CLAUSE_PATH, where=SPEC):
+        """Write the signer's frame at WHERE holding one anchor row, naming
+        the pact by its URL, on line `ANCHOR_LINE`."""
+        write(self.web, where, anchor_table((PACT_URL, clause_path, digest)))
 
     def run(self, root=None):
         """(exit, the printed lines run together) for `check` at ROOT, the

@@ -91,7 +91,7 @@ work away.
 
 **What the reminder counts, and what it does not.** `--check` prints
 `N work items changed since the last export`, where a work item is
-its directory `specs/<id>/`. Root-level files — `follow-up.md`, `config.md`,
+its directory `threads/<id>/`. Root-level files — `follow-up.md`, `config.md`,
 `parity.md` — are NOT counted, because the line
 the design specifies says *work items* and this command does not get to widen
 it. So a release whose only change was to `follow-up.md` reports 0. That gap
@@ -131,7 +131,7 @@ TOOLS = {
     ),
     "settle": (
         "skills/settle/scripts/settle.py",
-        "show the released specs by section, and remove what a settle leaves",
+        "show the released designs by section, and remove what a settle leaves",
     ),
     "cost": (
         "skills/verify/scripts/session_cost.py",
@@ -974,8 +974,10 @@ def read_manifest(archive, path):
 
     Never raises for a manifest this command cannot make sense of. It can
     still raise for a manifest whose DATA does not read — a bad CRC leaves
-    `archive.read` as `BadZipFile`, which is not one of the three this
+    `archive.read` as `BadZipFile`, which is not one of the two this
     catches. `import_` runs `testzip` before reaching here for that reason.
+    `ValueError` covers bytes that are not UTF-8 as well as text that is not
+    JSON: `UnicodeDecodeError` is a subclass of it.
     """
     try:
         raw = archive.read(MANIFEST)
@@ -985,7 +987,7 @@ def read_manifest(archive, path):
         )
     try:
         manifest = json.loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, ValueError) as exc:
+    except ValueError as exc:
         return None, f"{path}'s {MANIFEST} could not be read: {exc}"
     if not isinstance(manifest, dict):
         return None, f"{path}'s {MANIFEST} is not an object"
@@ -1048,10 +1050,11 @@ def destination_root(repo, home, shared, local, into):
 
     Both roots present refuses whatever `--into` says, including nothing.
     The refusal used to sit inside the `--into` branch, which left the case
-    the spec and both READMEs describe — `seal import` with no flag — writing
-    into whichever root the gates happen to read first. A clone holding two
-    roots is a clone whose owner has not said which is the real one, and a
-    copy landing in one of them is not the moment to decide it.
+    a work item's design and both READMEs describe — `seal import` with no
+    flag — writing into whichever root the gates happen to read first. A
+    clone holding two roots is a clone whose owner has not said which is the
+    real one, and a copy landing in one of them is not the moment to decide
+    it.
     """
     if optin.marked(shared) and local and optin.marked(local):
         return "", (
@@ -1154,12 +1157,14 @@ def import_(args, cwd):
         # does leave `testzip` is an encrypted member (`RuntimeError`) and a
         # compression method this build has no decompressor for
         # (`NotImplementedError`), both measured 2026-09-03 as tracebacks.
+        # `NotImplementedError` is a subclass of `RuntimeError`, so the one
+        # name catches both.
         #
         # It reads every member, which the two bounds above are what make
         # affordable.
         try:
             corrupt = archive.testzip()
-        except (zipfile.BadZipFile, RuntimeError, NotImplementedError) as bad:
+        except (zipfile.BadZipFile, RuntimeError) as bad:
             corrupt = str(bad)
         if corrupt:
             print(f"{path} holds a member this command cannot read: {corrupt}")

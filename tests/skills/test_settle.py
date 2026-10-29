@@ -1529,7 +1529,7 @@ class Test_module:
                 "ROUTING",
                 "it is what reads the branch a local work item's `routing.md` names",
             ),
-            ("RULES", "it is what reads a spec's `## Rule changes`"),
+            ("RULES", "it is what reads a design's `## Rule changes`"),
             (
                 "FOLD_CHECK",
                 "it is what reads the index and the one read after an apply",

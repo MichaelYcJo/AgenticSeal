@@ -70,7 +70,7 @@ cat > 'seal/threads/1790000001-shout-ends-with-one-exclamation-mark/routing.md' 
 | Branch | feat/shout-exclaims |
 AGENTIC_EOF
 git add -A
-git -c user.name=eval -c user.email=eval@example.com commit -q -m 'base: textutil'
+git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'base: textutil'
 git checkout -q -b feat/shout-exclaims
 mkdir -p "$(dirname 'seal/threads/1790000001-shout-ends-with-one-exclamation-mark/frame/design.md')"
 cat > 'seal/threads/1790000001-shout-ends-with-one-exclamation-mark/frame/design.md' <<'AGENTIC_EOF'
@@ -103,7 +103,7 @@ Approved 2026-10-14 by the repository owner, when `crafter` was spawned.
 | 1 | `shout_twice(text)` in `src/textutil.py` | `python3 -m unittest tests.test_textutil -q` | |
 AGENTIC_EOF
 git add -A
-git -c user.name=eval -c user.email=eval@example.com commit -q -m 'frame: shout_twice'
+git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'frame: shout_twice'
 mkdir -p "$(dirname 'src/textutil.py')"
 cat > 'src/textutil.py' <<'AGENTIC_EOF'
 def shout(text):
@@ -116,4 +116,4 @@ def shout_twice(text):
     return shout(text) + shout(text)
 AGENTIC_EOF
 git add -A
-git -c user.name=eval -c user.email=eval@example.com commit -q -m 'feat: shout_twice'
+git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'feat: shout_twice'

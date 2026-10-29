@@ -4,7 +4,7 @@ This directory exists for AI sessions to hand work to each other. It is one
 root laid out by lifetime: the rows that outlive a work item at the top, and
 each work item whole under `seal/threads/<work-item-id>/`, where it stays until
 its release is settled. The settle writes into `docs/` each section the
-released specs' `## Rule changes` name, as their latest decision, and
+released designs' `## Rule changes` name, as their latest decision, and
 `seal settle --apply` removes each released directory whole whose record holds no
 open row, whether or not it wrote a `frame/design.md`. A settle is not a work item and
 opens no directory here.

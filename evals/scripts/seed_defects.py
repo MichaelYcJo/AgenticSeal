@@ -310,7 +310,7 @@ def scaffold(t, url):
             'GIT_COMMITTER_NAME="$(git log -1 --format=%cn)" '
             'GIT_COMMITTER_EMAIL="$(git log -1 --format=%ce)" '
             'GIT_COMMITTER_DATE="$(git log -1 --format=%cI)" '
-            "git -c user.name=eval -c user.email=eval@example.com commit -q -a --amend --no-edit --no-verify",
+            "git commit -q -a --amend --no-edit --no-verify",
             "git remote remove origin",
             *refs,
             "git reflog expire --expire=now --all",
