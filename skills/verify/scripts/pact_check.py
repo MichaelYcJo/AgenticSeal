@@ -204,10 +204,11 @@ NOT_FOUND, ONE_SIDED, REFUSED, UNREADABLE = (
 # The anchor table's header, as the cells `gfm_table` matches a header by.
 ANCHOR_TABLE = ("Pact", "Clause", "Hash")
 # One emphasis run wrapping a whole header cell, as `header_key` removes it:
-# `*` or `_`, one to three long, the same run opening and closing the cell,
-# with no space just inside either run, and no `*`, `_` or escaping `\`
-# there either, so each run is the whole delimiter run on its side.
-EMPHASIS_RUN = re.compile(r"(\*{1,3}|_{1,3})(?![\s*_])(.+?)(?<![\s*_\\])\1")
+# `*` or `_`, one to three long, the same run opening and closing the cell.
+# What it wraps is kept as written, so a space just inside a run, a second
+# run inside it or an escaping `\` stays in the key, and such a cell keys to
+# no cell of the anchor header.
+EMPHASIS_RUN = re.compile(r"(\*{1,3}|_{1,3})(.+)\1")
 # The inline anchor read through 0.23.x, refused wherever it stands outside
 # a closed fence: `pact:` in any case, so `PACT:` and `Pact:` too, with no
 # letter, digit, `_`, `.`, `@`, `/` or `-` before it, so `compact:` is no

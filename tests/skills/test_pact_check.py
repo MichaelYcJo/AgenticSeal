@@ -566,10 +566,10 @@ class Test_check:
         )
         # A frame holding no anchor table says nothing. Each table here is
         # headed by a shape `header_key` leaves out, a plural, a code span, a
-        # run with a space inside it, strikethrough or a nested run, and the
-        # last row stands under no header; each names the pact's remote, the
-        # clause and its current hash, so a row read here would be counted
-        # (#1132, S6).
+        # run with a space inside it, strikethrough, a nested run or two
+        # different runs, and the last row stands under no header; each names
+        # the pact's remote, the clause and its current hash, so a row read
+        # here would be counted (#1132, S6).
         row = f"| {PACT_URL} | {CLAUSE_PATH} | {clause(V2)} |\n"
         unread = (
             "| Pact | Clause | Hashes |",
@@ -578,6 +578,7 @@ class Test_check:
             "| ** Pact ** | Clause | Hash |",
             "| ~~Pact~~ | Clause | Hash |",
             "| **_Pact_** | Clause | Hash |",
+            "| *Pact_ | Clause | Hash |",
         )
         write(
             world.web,
