@@ -27,14 +27,27 @@ reads nothing of the pact.
 The anchor table is read by `hooks/lib/config.py#gfm_table`, and the cells
 are written bare. A row is graded where its `Pact` cell, compared
 normalised, is the origin URL of this repository; a row naming another pact
-is passed over. Refused at the row's line: a `Pact` cell that is not one
-remote URL, and, in a row naming this pact, a `Clause` cell that opens with
-no heading or a `Hash` cell that is not eight lowercase hex digits. Refused
-at the frame: every refusal of the walk, and a second anchor table. Another
-table below the anchor table, such as a section's policy table, ends it
-and is no refusal, whatever stands above its header; the walk steps over
-it and still refuses a row written after it, before the next heading
-(`gfm_table`'s BESIDE). Every
+the signer's `Pact` row declares is passed over, for that pact's
+`seal pact` to grade. Refused at the row's line: a `Pact` cell that is not
+one remote URL, or that names a pact the signer's `Pact` row does not
+declare, which no `seal pact` grades, because another pact's reports the
+signer `ONE-SIDED` and reads none of its frames; and, in a row naming this
+pact, a `Clause` cell that opens with no heading or a `Hash` cell that is
+not eight lowercase hex digits. Refused at the frame: every refusal of the
+walk, and a second anchor table. Another table below the anchor table,
+such as a section's policy table, ends it and is no refusal, whatever
+stands above its header; the walk steps over it and still refuses a row
+written after it, before the next heading (`gfm_table`'s BESIDE).
+
+Where the walk refused nothing, every other line that `config.unfenced`
+shows and that reads as a row, its outer pipes given where it leaves them
+out, is read once more (`stray_rows`). It is refused at its line where one
+cell names a pact the signer declares and another opens with a heading:
+the walk reads the `| Pact | Clause | Hash |` header alone, so such a row
+is graded by nothing, whatever header it stands under, or with none. A row
+that misses twice is passed over: one whose `Pact` cell is also a near
+miss, in backticks or one letter off a declared remote, or that holds no
+cell opening with a heading, has no anchor's shape a fact can tell. Every
 `pact:` token outside a closed fence is refused at its line, with the row
 to write in its place: it is the inline anchor this command read through
 0.23.x.
@@ -85,10 +98,10 @@ A pact under local mode has no history, so every mismatch there reads
      found on this machine
   2  unusable input: no pact here, a pact or file that cannot be read, a
      line of the machine-local map it does not read, a `BROKEN` anchor,
-     an anchor row it cannot grade or does not read, a `pact:` token, a
-     `Pact` row that will not parse, a relationship
-     recorded on one side only, or a pact's repository with no origin
-     remote
+     an anchor row it cannot grade or does not read, a row naming a pact
+     the signer does not declare, a row no anchor table holds, a `pact:`
+     token, a `Pact` row that will not parse, a relationship recorded on
+     one side only, or a pact's repository with no origin remote
 
 `BROKEN` is exit 2 and a mismatch is exit 1. Nothing is ever written.
 
@@ -205,6 +218,19 @@ NO_HEADING = (
 NOT_A_HASH = (
     "the `Hash` cell is not eight lowercase hex digits — write `00000000` "
     "until the first report names the real one"
+)
+# `{cell}` is the `Pact` cell as written, bare: `one_remote` refuses one
+# holding a backtick before this sentence is reached.
+UNDECLARED = (
+    "the `Pact` cell names `{cell}`, a pact this signer's `seal/config.md` "
+    "does not declare in its `Pact` row, so no `seal pact` grades the row — "
+    "write the origin URL of a pact that row declares, or add `{cell}` to "
+    "that row"
+)
+OUTSIDE_TABLE = (
+    "the row names a pact this signer declares and a clause, and no anchor "
+    "table holds it, so nothing grades it — write it as a row of a table "
+    "headed exactly `| Pact | Clause | Hash |`"
 )
 INLINE = (
     "a `pact:` token is the inline pact anchor `seal pact` read through "
@@ -466,6 +492,55 @@ def one_remote(config, cell):
     return parsed[0][1] if parsed else None
 
 
+def row_cells(config, line):
+    """The cells of LINE read as a table row by `config.table_cells`, with
+    an outer pipe given where LINE leaves one out, so a row of a table
+    written without them reads too; None where LINE holds no pipe or does
+    not read as a row even so. The indentation is kept, so a line four
+    columns in, an indented code block, reads as no row."""
+    if "|" not in line:
+        return None
+    cells = config.table_cells(line)
+    if cells is not None:
+        return cells
+    written = line.rstrip()
+    content = written.lstrip(" ")
+    indent = written[: len(written) - len(content)]
+    if not content.startswith("|"):
+        content = "| " + content
+    if not content.endswith("|") or content.endswith("\\|"):
+        content += " |"
+    return config.table_cells(indent + content)
+
+
+def stray_rows(config, checker, text, declared, walked):
+    """The line numbers of the rows of TEXT no anchor table holds: each
+    line `config.unfenced` shows, other than the anchor table's rows at the
+    line numbers WALKED, that reads as a row (`row_cells`) holding one cell
+    that is one remote URL among DECLARED, compared normalised, and another
+    cell that opens with a heading (`heading_parts`). It reads the row and
+    not the header above it, so every near miss of the header is one shape,
+    and a row with no header is another of it."""
+    # exempt from splitlines: lines `config.unfenced` numbers, as first_table's
+    lines = text.splitlines()
+    found = []
+    for index, line in config.unfenced(lines, text):
+        if index + 1 in walked:
+            continue
+        cells = row_cells(config, line) or ()
+        remotes = [
+            i for i, cell in enumerate(cells) if one_remote(config, cell) in declared
+        ]
+        headings = [
+            i
+            for i, cell in enumerate(cells)
+            if heading_parts(checker, cell) is not None
+        ]
+        if any(r != h for r in remotes for h in headings):
+            found.append(index + 1)
+    return found
+
+
 def clause_hash(checker, text, clause):
     """(hash, None) for the clause the heading path CLAUSE names in a
     pact's TEXT, or (None, why it names none)."""
@@ -647,6 +722,11 @@ def check(root, out=sys.stdout, home_dir=None):
                 f"out of the pact's {table}",
             )
             continue
+        # Every pact the signer declares, this one among them: a row naming
+        # one of the others is that pact's to grade, and a row naming none
+        # of them is graded by no `seal pact`, since another pact's reports
+        # this signer `ONE-SIDED` above and reads none of its frames.
+        declared_remotes = frozenset(n for _w, n in pacts)
         read_count += 1
         anchors = 0
         for file_path in anchor_files(their_home):
@@ -668,6 +748,8 @@ def check(root, out=sys.stdout, home_dir=None):
                     found(REFUSED, written, at, NOT_ONE_URL)
                     continue
                 if named != ours:
+                    if named not in declared_remotes:
+                        found(REFUSED, written, at, UNDECLARED.format(cell=pact_cell))
                     continue
                 if heading_parts(checker, clause) is None:
                     found(REFUSED, written, at, NO_HEADING)
@@ -680,6 +762,13 @@ def check(root, out=sys.stdout, home_dir=None):
                 counts[status] += 1
                 if status != OK:
                     found(status, written, f"{at} `{clause}`", detail)
+            if not table_refusals:
+                # Where the walk refused, its sentence already says the rows
+                # below go unread, so a row it names is not refused twice;
+                # once that refusal is answered, the next run reads the rest.
+                walked = {line for line, _cells in rows}
+                for line in stray_rows(config, checker, body, declared_remotes, walked):
+                    found(REFUSED, written, f"{where}:{line}", OUTSIDE_TABLE)
             view = checker.unquoted(body)
             for token in INLINE_TOKEN.finditer(view):
                 line = view.count("\n", 0, token.start()) + 1
