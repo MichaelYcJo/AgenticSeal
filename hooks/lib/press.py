@@ -193,13 +193,11 @@ def last_routing_answer(top: str, session: str, transcript_path: str = ""):
 
     The harness writes this answer from the person's click; the model writes
     the question and its options and never which one was pressed. That is the
-    whole difference from `[worktree-ok]` and from a `routing.md` the model
-    wrote itself, and it is why the answer stands beside the record as
-    consent. `docs/worktree-guard-spec.md` *Creation consent* holds the table.
+    whole difference from a `routing.md` the model wrote itself, which is
+    never read for the press.
 
     Four conditions. Failing the first, or a clone that cannot be resolved, is
-    `UNREAD`; an entry failing another is skipped. The guard reads either as
-    its behaviour before this reader existed:
+    `UNREAD`; an entry failing another is skipped:
 
       1. the transcript is this session's own main one (`transcript_for`);
       2. the answer is a harness-written `AskUserQuestion` result: a `user`
@@ -223,9 +221,7 @@ def last_routing_answer(top: str, session: str, transcript_path: str = ""):
     largest local transcript (17.3 MB) when round 1 measured it. A read error
     is `UNREAD`, and every malformed line and every missing field is skipped.
     The two shapes round 1 found raising -- a `tool_use_id` that is not
-    a string, a NUL in the path -- are handled here, and `consent` catches
-    whatever else might, because `hooks/dispatch.py` skips a gate that raises
-    and the guard's deny would become no decision at all.
+    a string, a NUL in the path -- are handled here.
     """
     path = transcript_for(session, transcript_path)
     if not path:

@@ -3,9 +3,8 @@ and nothing else (#692, #868).
 
 Its failure direction is why a text read may stay: a token it cannot read
 costs one refusal, and a token it reads has exactly the standing tokens
-always had -- `docs/worktree-guard-spec.md` *Choice sites* calls it an audit
-trail, not an authorization. Nothing here names a directory or decides
-where an action lands.
+always had: an audit trail, not an authorization. Nothing here names a
+directory or decides where an action lands.
 
 The rules are the two consent reads 0.16.0 had, joined:
 

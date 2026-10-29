@@ -163,7 +163,6 @@ that fails to load or crashes is skipped and the call goes ahead; at the end of
 the turn you are told which gate it was, once per session. Full decision
 tables:
 [docs/the-routing-check.md](./docs/the-routing-check.md) ·
-[docs/worktree-guard-spec.md](./docs/worktree-guard-spec.md) ·
 [docs/the-review-and-parity-arms.md](./docs/the-review-and-parity-arms.md) ·
 [docs/the-review-record.md](./docs/the-review-record.md).
 
@@ -172,18 +171,19 @@ tables:
 | routing-edit-gate | before a `Write`, `Edit` or `NotebookEdit` call | refuses an edit when no `routing.md` declares the edited file's branch, unless this session ran `seal no-work-item` on that branch. It judges the file's repository and branch, wherever the shell sits. Files under `seal/`, files git ignores and files in no opted-in repository pass, so the declaration itself is always writable. The model gets the refusal with its two ways on — write the declaration, or run `seal no-work-item` — and under the `automation` press it names no question to put to you. Nothing of this plugin runs inside git, so a person's own commit from a terminal runs none of its code; at the pull request, `chain-check` fails a commit whose `Seal-Routing` trailer names a work item no declaration names | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
 | stub-remove | at session start | removes the `pre-commit`, `reference-transaction` and `post-commit` stubs an earlier release wrote into the clone's common `hooks/` directory: only a file whose second line is the marker `# specseal-git-hook`. A hook somebody else wrote is left byte for byte. Says once what it removed, and nothing where there was nothing | any git repo |
 | root-migrate | at session start | moves a layout an earlier release wrote into the current one: it rewrites `seal/README.md` to open with the marker line and moves each 0.22.x work item to `seal/threads/<id>/`, as staged `git mv` steps for you to review and commit, or as plain renames under the common git dir in local mode. It refuses the whole move over uncommitted changes under what it would move, and says in one line what moved. It also gives the plugin's name to the state files an earlier release wrote under its old name, beside the root and under `~/.claude/` | any git repo whose tree or common git dir still holds an earlier layout; the state rename runs at every session start, silently |
-| implementer-mark | before an Agent/Task call whose `subagent_type` is `framer` or `crafter` (`agentic:crafter`, or a project-local `crafter`) | writes the checked-out branch name to `.git/agentic-planner` or `.git/agentic-implementer`, one file per axis. It prints nothing, so it can neither deny nor ask; it is the trace the notice below reads. Written before the group decides, so a spawn the worktree guard then stops still leaves one | `seal/` at the root, or under the common git dir in local mode — silent elsewhere, and writes nothing |
+| implementer-mark | before an Agent/Task call whose `subagent_type` is `framer` or `crafter` (`agentic:crafter`, or a project-local `crafter`) | writes the checked-out branch name to `.git/agentic-planner` or `.git/agentic-implementer`, one file per axis. It prints nothing, so it can neither deny nor ask; it is the trace the notice below reads | `seal/` at the root, or under the common git dir in local mode — silent elsewhere, and writes nothing |
 | implementer-notice | after a command that actually runs `git commit` | where this branch's `routing.md` answers `Planning` with `framer` or `Implementation` with `crafter` and no mark of that axis stands for this branch, prints one line naming the file — **one line for both axes**, never one each. Nothing is said for an axis whose mark stands, whose row is absent or unreadable, or which answers `the session`. **Once per session per repository**, and it never blocks — a declared agent nobody spawned is a session forgetting its own answer, and a reminder is what that costs | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
 | review-skill-gate | before the model opens a skill named `code-review` | puts the choice to you rather than making it: that name is Claude Code's built-in, not this plugin's. The built-in sweeps the diff for bugs and cleanup; `agentic:code-review` judges compliance first and inherits earlier rounds' verdicts. Fires **once per session per working tree**, so picking the built-in and retrying goes straight through. A skill you invoke yourself never routes through here | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
 | question-gate | before an `AskUserQuestion` call | on a branch whose `routing.md` answers `Automation` with `yes`, refuses the question to the model on every call, so a run you routed `automation` does not stop to ask you. The model builds on the default the question states, writes it as a row of the work item's `questions.md`, and names it in the pull request body for you to overturn. The routing question put alone goes through until the session has answered it, so a resumed run can put it again once. A question another gate tells the model to put states no default, so the model takes none of its ways on and hands that stop back at the end of the run. A session sitting in a checkout of another branch is not held, and neither is a question asked as plain text | `seal/` at the root, or under the common git dir in local mode — silent elsewhere, and on every branch whose declaration does not answer `yes` |
-| worktree-guard | before `git checkout`/`switch`, `git worktree add`, and Agent calls with `isolation: "worktree"` | one rule in two directions: denies a switch while another session is actively working this tree, and denies a Bash `git worktree add` when yours is the only live stream. Where the tree holds only idle sessions, or the environment cannot be read at all, a Bash creation is offered the two ways on as options instead — switch here, or split into a worktree — **once per session per repository per direction**, then the plain confirmation. An Agent call with `isolation: "worktree"` counts no sessions: the agent runs beside this session, so the call is concurrent work and asks once. A creation is not asked again once one has run in the session, and not at all where you pressed `automation` on the routing question, in the clone that answer was given in. Under that answer a switch among idle sessions, or where the environment cannot be read, is not offered as options either: it is refused to the model on every attempt, naming the split into a worktree as the way on in the clone that answer was given in, or in one this session already created a worktree in. A creation in another clone, among idle sessions or where the environment cannot be read, is refused to the model on every attempt too, naming no way on. The two directions are counted apart, so one session can legitimately meet the question twice. `[worktree-ok]` and `[shared-tree-ok]` carry your answer back through on the retry. The reason names the other session's host app, how long each signal has been quiet, and its last message | any git repo |
-| worktree_consent | after a Bash `git worktree add` that ran, and after an Agent call with `isolation: "worktree"` | writes an empty file at `<git-common-dir>/agentic-worktree-consent/<session-id>`: a creation that ran was allowed, so worktree-guard does not ask this session again before a creation in this clone. It prints nothing, never blocks, and nothing expires or removes the file | any git repo |
-| session-lease | after repo-touching tool calls (Bash · file edits) | writes a timestamp, host, and owning session pid to `.git/agentic-leases/<session-id>`. The guard's process heuristics miss sessions not named `claude`; a lease says outright which session is working here. Nothing removes the file at session end, so the owner is recorded: a lease whose session has exited is retired rather than counted, and one that cannot be attributed becomes a question instead of a block | any git repo |
 | mode-gate | before a Bash call, so in practice the session's first one | names a root nobody chose a mode for: `seal/` exists and `seal/config.md` carries no `Mode` row, so nothing records whether this repository's review records travel with it or stay on this machine — and a root somebody chose is byte-identical to one that appeared because a session followed the routing rule. Denies once with the three ways on as options — `seal mode` records where the folder already is and moves nothing, `seal mode shared` / `seal mode local` move it — then the plain confirmation, where approving proceeds and records nothing. **Once per session per repository**, and nothing at all once the row exists. The repository judged is the one the SESSION sits in, not one a `-C` names: this is a fact about the workspace, not a verdict about a change | `seal/` at the root, or under the common git dir in local mode — silent elsewhere, and silent wherever the row is written. There is no waiver token: the way on is one command |
 | version-check | at session start | asks this repository for its newest release tag and, when the running plugin is behind, shows a short notice naming `/agentic:update` and the two moves that load a release. Once a day, and a lookup that fails retries about twenty minutes later. It never installs anything — telling you a release exists and installing it are different acts | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
 | sealer-stamp | when the main session's turn ends (`Stop`) | draws, once and after the turn's text, each stamp waiting for this session under `<git-common-dir>/agentic-stamp/<session>/` — queued at the write of a work item's `guarantee.md` reading `sealed` (the next row), once per work item — and renames the file `.drawn.json`. Nothing at a subagent's end, for another session's file, or under a `python3` older than 3.12; `seal stamp --from <file>` draws one by hand | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
 | sealer-stamp-queue | after a Write or Edit of a work item's `guarantee.md` | in either mode, queues the work item's stamp for the main session's `Stop` when the write leaves `guarantee.md` reading `sealed` over a commit on the branch its `routing.md` names, once per work item, and prints the line naming the queued file and `seal stamp --from`; where that branch does not hold the commit, it queues nothing, records the refusal and says so in one line. Any other edit is passed over on its path alone, before anything is loaded or any `git` runs | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
 | lint-python | after Write/Edit/NotebookEdit on a `.py` file | runs `ruff check --fix` then `ruff format` on that file — autofixes included, so code changes, not just layout (uv → uvx → global ruff; skips silently if none) | **a project that configures ruff** — `ruff.toml`, `.ruff.toml`, or `[tool.ruff]` in `pyproject.toml`, searched up to the repo root. Silent everywhere else |
+
+No hook of this plugin stops a session from switching the branch of a
+working tree another session is using; give each concurrent session its own
+worktree.
 
 A work item writes `seal/threads/<id>/routing.md` before its first edit — which
 way it goes, and whether it opens a pull request — and the routing edit gate
@@ -210,9 +210,8 @@ the fixes that closed its findings went unread. On a draft it prints and
 names the verifying round.
 
 No gate transmits your code, your paths, or your prompts anywhere. These side
-effects are worth stating outright: session-lease writes a timestamp file under
-`.git/agentic-leases/`, version-check writes one under
-`~/.claude/agentic/`, the write of a `guarantee.md` reading `sealed`
+effects are worth stating outright: version-check writes a timestamp file
+under `~/.claude/agentic/`, the write of a `guarantee.md` reading `sealed`
 writes the stamp's values under
 `<git-common-dir>/agentic-stamp/`, which the stamp hook renames once drawn
 and nothing prunes, and a `sealed` refused because its audited commit is not
@@ -228,12 +227,6 @@ one `git ls-remote --tags` against this repository, once a day where `seal/`
 exists. A lookup that fails retries about twenty minutes later rather than
 waiting out the day. What that tells GitHub is that a machine somewhere runs
 AgenticSeal. Each stays silent when the network is unavailable.
-
-One deliberate read to know about:
-when the worktree-guard blocks a switch, it quotes the last user message
-(80 chars) of the OTHER local session's transcript in its block reason, so
-the human can recognize which conversation is being protected. That snippet
-stays on your machine.
 
 ## Honoring the original (migrations)
 
@@ -281,10 +274,6 @@ wrong for every other machine.
 | Switch | Effect |
 |---|---|
 | `seal no-work-item` | marks this session, on the branch checked out where it runs, as doing work outside any work item, so the edit hook lets it edit on that branch and on no other; on a detached HEAD it marks nothing. Where the root is shared, each commit it then makes ends with the trailer `Seal-Routing: no work item`, and the pull request's check prints those commits (`skills/commit-pr-convention/SKILL.md`) |
-| `[worktree-ok]` in a worktree command | softens the single-stream worktree deny to ask. Read as a bare word, so it does not count inside a quoted message, and not inside a here-document body either. An Agent call with `isolation: "worktree"` has no command line and takes no token — it asks outright instead |
-| `[shared-tree-ok]` in a switch command | you already chose the shared tree — the switch goes through where the guard could not tell (idle sessions, unreadable environment). Read as a bare word, and not inside a here-document body. Ignored while another session is active, and while the tree is dirty |
-| `WORKTREE_GUARD_IDLE_MIN=n` | idle threshold in minutes (default 5) |
-| the plugin option `worktree_guard_language`, `ko` or `en`, set once in `/config` | the language of worktree-guard's prompts (the other gates are English-only). Left empty, the variable `SPECSEAL_LANG=ko\|en` decides, until the next minor release stops reading it; with neither, the system locale decides |
 
 ## Install
 
@@ -559,10 +548,10 @@ seal export                 # writes seal-<repo>-<date>.zip beside the clone
 seal import <the zip>       # takes one in, overwriting nothing
 ```
 
-The zip holds the root and nothing else. The implementer marks, the worktree
-choices, the `seal no-work-item` records and every lease sit *beside* the root
-under the git directory, so none of them travels — the export walks the root,
-which is why the root has to be its own directory. A symbolic link inside it
+The zip holds the root and nothing else. The implementer marks and the
+`seal no-work-item` records sit *beside* the root under the git directory,
+so none of them travels — the export walks the root, which is why the root
+has to be its own directory. A symbolic link inside it
 is skipped and named rather than followed. Alongside the files goes a
 manifest naming the remote URL and the HEAD SHA at export. A field git could
 not answer is **left out** rather than written empty, so the machine taking
@@ -651,12 +640,6 @@ What this does not do is as load-bearing as what it does.
   round record or in the sealer's guarantee. The quality of that comparison
   is whoever wrote the line's, and a line written where nobody compared turns
   "nobody checked" into "someone checked and it was fine".
-- **Session detection is heuristic.** Extension-hosted sessions aren't named
-  `claude`, and a session editing this tree from another cwd leaves no trace
-  here. Leases close most of that gap, but only for sessions that have run a
-  tool recently. Where detection is unusable the guard hands you the two ways
-  on instead of deciding, and the attempt after that is an ordinary
-  confirmation — no environment is locked out by it.
 - **Windows was run on real hardware once, and one defect is still open
   there.** Until 2026-08-26 this section claimed the `windows-latest` suite
   passed; it did not — 72 cases failed, were filed as an issue, and were fixed since on

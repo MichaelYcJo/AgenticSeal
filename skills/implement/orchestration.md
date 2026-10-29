@@ -350,11 +350,11 @@ resume asks. The boxes are not put again, because `routing.md` already holds
 their answer. The orchestrator puts it from a directory inside the clone the
 run works in: the readers keep the answer only where the result's own
 directory and the gate's root are the same clone
-(`docs/worktree-guard-spec.md` *Creation consent*, rule 4). A new session is
+(`docs/the-routing-check.md` *The edit check*). A new session is
 a `/clear`, a new `claude` start, or another machine. A typed answer is not
 the press: the gates read a harness-written result in the session's own
 transcript and nothing else, and `routing.md` is not read
-(`docs/worktree-guard-spec.md` *Known limits*). `claude --resume` and
+(`docs/the-routing-check.md` *The edit check*). `claude --resume` and
 compaction keep the session's id and append to its transcript, so the press
 survives both and nothing is put again.
 

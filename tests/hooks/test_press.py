@@ -145,7 +145,7 @@ class Test_automation_answered:
         question 1 alone, and the boxes come in a second call only under
         `per axis`; an installed block older than #911 still puts both in one
         call. The reader has to read the two shapes the same, or an un-updated
-        machine's `automation` run meets the guard's prompt again (#894).
+        machine's `automation` run reads as no press (#894).
 
         Seen red by a throwaway edit to `_routing_preset` that returned False
         for a result carrying more than one question."""
@@ -197,8 +197,8 @@ class Test_automation_answered:
         """Round 1, finding 1. An `Other` answer is the person's own text, which
         the harness writes into `answers` verbatim, so cutting it at a decoration
         read *automation - but ask me before each worktree* as the preset -- the
-        opposite of what the person wrote. Only a pressed option's label is an
-        answer the guard reads."""
+        opposite of what the person wrote. Only a pressed option's label is read
+        as an answer."""
         for typed in (
             "automation - but ask me before each worktree",
             "automation (stop before creating worktrees)",
@@ -354,8 +354,8 @@ class Test_automation_answered:
         assert not press.automation_answered(str(repo), "me")
 
     def test_refuses_both_shapes_that_raised_without_raising(self, projects, repo):
-        """The two narrow repairs, pinned below `consent`'s catch-all, which would
-        otherwise hide either one coming undone."""
+        """The two shapes round 1 found raising are each read as no press, and
+        neither raises."""
         use, result = ask_entries(repo)
         result["message"]["content"][0]["tool_use_id"] = ["toolu_01routing"]
         write_transcript(projects, "me", [use, result])
@@ -433,8 +433,7 @@ class Test_module:
     def test_the_labels_match_the_routing_question_the_orchestrator_asks(self):
         """The reader's constants against `skills/implement/orchestration.md`
         *Question 1*. Relabelling the question there turns this red instead of
-        quietly bringing the guard's prompt back. Seen red by editing a
-        constant."""
+        quietly reading every press as none. Seen red by editing a constant."""
         root = pathlib.Path(ROOT)
         text = (root / "skills" / "implement" / "orchestration.md").read_text(
             encoding="utf-8"

@@ -147,27 +147,15 @@ def test_the_marketplace_describes_the_plugin_in_the_manifests_words():
 
 
 def test_every_option_the_manifest_declares_is_one_a_hook_reads():
-    """#1096 S5. Where `.claude-plugin/plugin.json` declares the option
-    `worktree_guard_language`, it carries `type`, `title` and `description`
-    and no other field: a `default` would leave `SPECSEAL_LANG` and the locale
-    unread for every person, and `options` stops Claude Code before v2.1.271
-    from loading the plugin. Its description names `SPECSEAL_LANG`, because
-    that is the help text a person reads where they set the option, and the
-    variable decides there through 0.24.x. Claude Code hands each option to a
-    hook as `CLAUDE_PLUGIN_OPTION_` and the key uppercased, so every option the
-    manifest declares is read by that name in a script under `hooks/`, and no
-    script there reads one it does not declare. If the guard leaves, this
-    case is red until its option leaves with it."""
+    """#1096 S5. Claude Code hands each option `.claude-plugin/plugin.json`
+    declares under `userConfig` to a hook as `CLAUDE_PLUGIN_OPTION_` and the
+    key uppercased, so every option the manifest declares is read by that
+    name in a script under `hooks/`, and no script there reads one it does
+    not declare."""
     with open(
         os.path.join(ROOT, ".claude-plugin", "plugin.json"), encoding="utf-8"
     ) as f:
         declared = json.load(f).get("userConfig", {})
-    option = declared.get("worktree_guard_language")
-    if option is not None:
-        assert sorted(option) == ["description", "title", "type"], option
-        assert option["type"] == "string", option
-        # The next minor release removes this line with the read it names.
-        assert "SPECSEAL_LANG" in option["description"], option
     read = {}
     for directory, _dirs, names in os.walk(os.path.join(ROOT, "hooks")):
         for name in sorted(names):

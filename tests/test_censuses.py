@@ -772,7 +772,7 @@ class Test_old_names:
             "AgenticSeal, `agentic:crafter`, the proofer and the tracer\n"
             "`seal/threads/1-x/frame/design.md`, `gaps.md`, `trail/gate.md`\n"
             "`<thread>/trail/phases/phase-1.md` and `trail/rounds/round-1.md`\n"
-            "`docs/the-broad" + "-gate.md` and `docs/worktree-guard-spec.md`\n"
+            "`docs/the-broad" + "-gate.md` and `graders/shape-writes-spec.md`\n"
             f"a commit made before the rename carries `{OLD}-Routing:`\n"
             f"<!-- {OLD.lower()}:start --> and <!-- {OLD.lower()}:end -->\n"
             f"# {OLD.lower()}-git-hook\n"

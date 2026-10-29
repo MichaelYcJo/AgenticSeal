@@ -985,8 +985,8 @@ OLD_NAME = re.compile(
             # A work item's directory, now `seal/threads/<id>/`.
             "seal/" + r"specs\b",
             # The frame's design and the closing memo, now `frame/design.md`
-            # and `gaps.md`; a document named for its subject, such as
-            # `docs/worktree-guard-spec.md`, is not the record.
+            # and `gaps.md`; a file named for its subject, such as
+            # `graders/shape-writes-spec.md`, is not the record.
             r"(?<![\w-])(?:" + "sp" + "ec|over" + r"view)\.md\b",
             # The broad run's record, now `trail/gate.md`, and the command
             # now `seal gate`; `docs/the-broad-gate.md` names the act.
@@ -1027,13 +1027,6 @@ KEPT_OLD_NAMES = (
     f'"{_OLD}": "agentic"',
     # The 0.3.x directory that README.md *Coming up from 0.3.x* moves by hand.
     f".{_OLD}",
-    # The variable a person sets in their own environment for the language of
-    # the worktree guard's prompts, which no migration reaches.
-    # `hooks/worktree-guard.py#_lang` reads it as a fallback through 0.24.x,
-    # where the plugin option `worktree_guard_language` is empty, so whoever
-    # set it keeps their language until they set the option; the next minor
-    # release removes that read and this entry.
-    f"{_OLD.upper()}_LANG",
 )
 # A released work item's record cited at the commit that holds it, as
 # `<commit>:<path>`, the form `git show` opens as written: the settle removed
