@@ -9,7 +9,7 @@ target: f3bb1308 against origin/release/v0.24.2
 severity: should
 location: `seal/threads/1793251204-the-framer-is-handed-the-body-without-its-comments/trail/phases/phase-3.md:67-72`
 evidence: executed `grep -o 'gh issue view 106[^"]\{0,80\}' <scratchpad>/1158/sides/baseline-framer-generated-page.raw/traces/000.jsonl`, `python3 -I <scratchpad>/1158-r1/test_tmp_traces.py <the four traces under <scratchpad>/1158/sides/>`
-verdict: open
+verdict: fixed 122b609b
 
 The sealer reads this record against the traces. The paragraph's point is
 that the framer took the comment line from the spawn rather than from
@@ -50,14 +50,14 @@ comments. Every run called `gh release view`, as step 4 of both definitions
 asks.
 ```
 
-answer:
+answer: The finding holds. A `grep -o` over the four saved traces shows a Bash call running `gh issue view 106 --json body,comments 2>&1 | head -20` in side A's run 0 alone, which `gh auth login` refused. Both side B traces carry the orchestrator's finding on their `## Grounding` lines. `phase-3.md`'s paragraph is replaced in place with the record's text. No other file states that no run called `gh issue view`.
 
 ### 2. The closing memo opens by saying the sixth case pins the no-row half, which its own *Not verified* row and phase 3 contradict
 
 severity: should
 location: `seal/threads/1793251204-the-framer-is-handed-the-body-without-its-comments/gaps.md:5`
 evidence: read `seal/threads/1793251204-the-framer-is-handed-the-body-without-its-comments/gaps.md:5`, `seal/threads/1793251204-the-framer-is-handed-the-body-without-its-comments/gaps.md:18`, `seal/threads/1793251204-the-framer-is-handed-the-body-without-its-comments/trail/phases/phase-3.md:35-60`
-verdict: open
+verdict: fixed 122b609b
 
 The owner decides at the pull request whether `Closes #1158` stands. In
 the closing memo, the first paragraph that reader meets says the opposite
@@ -86,7 +86,7 @@ result plainly already, and this sentence is the only record that does not.
 The framer was handed an issue's body without its comments and asked whether they changed the request; it is now handed the request whole. A sixth framer case, on a question only running the fixture's generator answers, tells the definitions apart by where the answer is written, in `## Grounding` labelled `executed`; its grader for a row left to a measurement passed on both definitions, so the no-row half of #1047's rule is still not seen pinned (*Not verified*).
 ```
 
-answer:
+answer: The finding holds. `gaps.md:5` contradicted its own row at `:18` and phase 3's side table, and the line is replaced in place with the record's sentence. Every other sentence on the same fact stands. `changelog.md`'s second bullet already says the row grader passed both runs before #1047 and is kept with nothing yet showing it red. `evals/scripts/rule_cases.py:27` describes what the sixth case's graders read, not what they were seen to separate. `frame/plan.md:21` and `routing.md:17` state the framer's and the orchestrator's intent before the build, and neither file is the crafter's to write.
 
 ## Confirmations
 
