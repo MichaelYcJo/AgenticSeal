@@ -1,0 +1,3 @@
+### Removed
+
+- **Two readings of names from before the rename to AgenticSeal (#1142).** `chain-check` no longer reads a `SpecSeal-Routing:` trailer as `Seal-Routing:`, so a commit whose only routing trailer uses the old key is not judged at the pull request. The routing parser no longer reads the implementer's old name in a `routing.md`'s `Implementation` row as `crafter`; that answer reads as unanswered, and the crafter reminder does not fire for it. Both were kept for the minor release of the rename, and no open branch or work item still carries either. The block markers `install.sh` and `uninstall.sh` read, and the old clone line `seal pr-checks install` reads, stay.
