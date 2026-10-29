@@ -19,7 +19,7 @@ so the record is in English.
 severity: must
 location: `docs/worktree-guard-spec.md`, `docs/README.md`, `.github/scripts/rules.py:291-303`, `tests/github/test_rules.py:522-529`, `tests/behaviour/test_release_hygiene.py:124-131`, `seal/threads/1793240967-the-worktree-guard-was-never-weighed/frame/design.md:17`, `seal/threads/1793240967-the-worktree-guard-was-never-weighed/frame/plan.md:50-60`, `skills/implement/SKILL.md:75`
 evidence: executed `python3 .github/scripts/rules.py --check --root clone`, `python3 skills/settle/scripts/fold_check.py --root clone`
-verdict: open
+verdict: fixed 2bfa6459
 
 `skills/implement/SKILL.md:75` states the layout rule with no exception:
 the policy root "is the baseline, and a pull request does not edit it". The
@@ -109,14 +109,14 @@ exception to the layout rule. In that case the exception is written into
 names the one check that forces it. The frame's grounding then names one
 check, not two. Either way, the layout rule and the tree stop disagreeing.
 
-answer:
+answer: Holds; the round's fix was taken, not the exception, with one reader rather than a second. The fact that a pending `remove` takes a section out of the policy in force was already read by `tests/behaviour/test_a_cited_section_stands_in_its_file.py#corrections` and the `remove` arm of `#excuser`, inside a test module. 2bfa6459 moves that reading into `skills/settle/scripts/rule_changes.py#pending` and `#removed_by`. The citation case's `corrections` and `excuser` now call them, and so does `.github/scripts/rules.py#unresolved`. So the S9 excuser and the rules check read one fact through one reader. An exception written into `skills/implement/SKILL.md:75` would have added a rule to keep a second reading alive; this change removes the disagreement at its cause. A refused `check:` line inside a section a pending `remove` with no `from` takes out is printed as `seal rules: excused: <path>:<line>: <heading>: <why>; <work item> removes this section at the settle`, and is no refusal. `docs/worktree-guard-spec.md` (`cmp` with 1e82fd0a's bytes, exit 0), its `docs/README.md` row and the `2.50.1` exemption of `tests/behaviour/test_release_hygiene.py#VERSIONS_OF_ANOTHER_PRODUCT` are restored. `bin/seal rules --check` exits 0 with 17 excused in 266 check lines (executed). `tests/github/test_rules.py#Test_main::test_a_refusal_in_a_section_a_pending_remove_takes_out_is_excused_and_named` was red against the check as it stood (executed, exit 1, `assert 1 == 0`). fddec67a adds its `remove` with a `from` arm after `seal mutate` dropping that guard survived; it is red under that mutant now (executed, exit 0, verdict red). `#test_every_check_line_in_the_tree_holds` copies the pending designs into its scratch tree and plants no defect in a file a pending `remove` names. `skills/settle/SKILL.md`, both READMEs' command tables and the `rules.py` docstring state the excuse. The frame lines that still say the pull request deletes the document are the orchestrator's to fold.
 
 ### 2. `hooks/lib/cmdline.py` keeps four outputs no reader reads, and the rider on one of them stands only because a check requires a rider in the file
 
 severity: should
 location: `hooks/lib/cmdline.py:541-600`, `hooks/lib/cmdline.py:718-813`, `hooks/lib/cmdline.py:815-915`, `tests/hooks/test_cmdline.py:24-60`, `tests/hooks/test_cmdline.py:144-300`, `tests/hooks/test_cmdline.py:349-363`, `tests/text/test_a_rider_reaches_its_file.py:112-117`
 evidence: executed `git grep -n -E "command_word\(|strip_subshell\(|_git_options\(|chdirs|split_segments_with_separators" -- hooks skills tests`
-verdict: open
+verdict: fixed a82da960
 
 `frame/design.md` *Scope* In 3 prunes `hooks/lib/cmdline.py` to what
 `hooks/implementer-notice.py` reaches. The prune was name-based, so the
@@ -192,7 +192,7 @@ runs.
         assert "# RIDER:" in read(os.path.join(ROOT, rel)), rel
 ```
 
-answer:
+answer: Holds. a82da960 makes the four functions return only what `hooks/implementer-notice.py` reads: `parse_git` returns `(subcommand, args)`, `_git_options` the index, `command_word` the segment and `strip_subshell` the tokens. `split_segments` now holds the scan, keeps no operator, and `split_segments_with_separators` is gone. The rider on `chdirs` goes with `chdirs`. `WRAPPED` maps a name to its command, and `Test_split_segments_with_separators` goes with its four `.test_durations` entries. The two `parse_git` cases assert two-element tuples and no longer cite 86256492. The three heredoc cases and the case-pattern case read `split_segments`. Under contract rule 18 the rider check holds: it pins that a file a row named still carries its rider. A file whose rider's gap is gone leaves its list, as `hooks/dispatch.py` did. So `hooks/lib/cmdline.py` leaves the tuple, and the docstring says why. `UNPLACED`'s and `RUNNERS`' comments stop speaking of an unplaced directory. `hooks/lib/cmdline.py` is 844 lines (`wc -l`). `tests/hooks/test_cmdline.py` 19 passed, `tests/hooks/test_implementer_notice.py` 26, `tests/hooks/test_dispatch.py` 49 and `tests/text/test_a_rider_reaches_its_file.py` 8 (executed, each exit 0). A `seal mutate` that drops a segment in the rewritten split is red (executed, exit 0, verdict red). The changelog fragment's line count is corrected.
 
 ## Confirmations
 
