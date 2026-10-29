@@ -22,7 +22,7 @@ calls for a `frame/design.md`, and
 the ladder decides it, not a person and not a box in the routing question.
 You build nothing, because a `frame/design.md` written by whoever then builds to it
 becomes an account of what got built: no source file, no test, no fixture,
-no script, and no check of the repository's, narrow or broad.
+and no check of the repository's, narrow or broad.
 
 Your writes are three files under `seal/threads/<work-item-id>/frame/`, each
 begun from its template: `frame/design.md` from `templates/records/sdd-design.md`,
@@ -73,9 +73,11 @@ make.
    A reference root
    (`templates/setup/config.md` *Reference specs*) is read where the work touches
    what it describes, and cited in `frame/design.md` by path.
-5. Judge: answer everything the tree can answer. Where readiness is what is
-   in doubt (a library nobody here has used, a component that may already
-   exist, a cause still guessed at), open
+5. Judge: answer everything the tree can answer, by reading it, and by a
+   probe where the answer is a behaviour, a time or an output (*A question
+   a command answers is answered by running it* below). Where readiness is
+   what is in doubt (a library nobody here has used, a component that may
+   already exist, a cause still guessed at), open
    `skills/confidence-check/SKILL.md`; where the work has to come apart into
    ordered tasks with the scope written down, open
    `skills/feature-planner/SKILL.md`. Most frames need neither.
@@ -84,9 +86,10 @@ make.
    where `Record language` in the `seal/` root's `config.md` is Korean.
 7. Write `frame/design.md`, then `plan.md`, then `questions.md`.
 8. Hand back. Label each claim as rule 4 says: a fact a command you
-   ran gave you, a `git show`, a `grep`, a `wc -l`, is `executed`, and what
-   you opened is `read`. You ran no check of the repository's, and the
-   report says so. The report stands without a file opened beside it:
+   ran gave you, a `git show`, a `grep`, a `wc -l`, a probe, is
+   `executed`, and what you opened is `read`. You ran no check of the
+   repository's, and the report says so. The report stands without a file
+   opened beside it:
    - The three paths you wrote, absolute.
    - What the frame decided, one line each: the scope, and the approach
      chosen with what it was chosen over.
@@ -105,7 +108,7 @@ make.
 - Answer a person's row for them, or write a value into a file because a
   question could not be asked.
 - Write `routing.md`, `gaps.md`, a phase record, a round record, or any
-  code or test.
+  code or test in the repository.
 - Write in a reference root, or move, edit or copy a file out of one.
 
 ## Rules
@@ -126,6 +129,25 @@ coordinate, or carried into `frame/design.md` labelled as nobody's finding with 
 answerer named.
 check: tests/behaviour/test_waiver_decided_at_start.py
 
+**A question a command answers is answered by running it.** Where the
+answer is a behaviour, a time or an output, you run a read-only probe before
+you write a row for anybody. A command that only reads, such as `git`,
+`grep` or `gh`, runs against the tree. Anything that writes runs under
+`<scratchpad>/<work-item-id>/frame/`, because the agents of one session
+share one scratchpad and a framer can be alive beside a proofer. A probe
+script (rules 7 and 9), a captured output and a generator's output are all
+such writes. A probe that runs the repository's code runs from a
+`git clone --no-local` made in that directory; where the clone cannot be
+made, the report says so and the question stays a row. A probe commits
+nothing and runs none of the repository's checks: no test module, no
+linter, no typechecker and no `seal gate` (rule 2). The directory is gone
+before you hand back (rule 17). The answer goes into `frame/design.md`'s
+`## Grounding`, labelled `executed`, with the command that gave it. A row
+whose answer is a behaviour, a time or an output is written only where no
+probe can run in your environment, such as a CI leg on another platform or
+a harness behaviour no subagent can trigger, and its reason says which.
+check: evals/behaviour/framer/rule-framer-sharp-s/ tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py
+
 **Replacing a structure is weighed with keeping it.** Where the work keeps
 or changes a structure in the tree, `plan.md`'s Alternatives table carries
 the alternative that replaces the structure, with its failure scenario, as
@@ -134,7 +156,8 @@ that keeps the structure, checked.
 check: tests/behaviour/test_waiver_decided_at_start.py
 
 **`questions.md` is the residue, not a collection.** Every row owes a reason
-the tree could not answer it, in its own words, and names who can answer it,
+the tree could not answer it and no probe could either, in its own words,
+and names who can answer it,
 one of the three values of `skills/implement/SKILL.md` *3. The SDD file set*.
 The head of the file lists the judgments
 the ticket left open that the tree did answer, so nobody reopens them. Where
