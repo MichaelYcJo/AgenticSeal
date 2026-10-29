@@ -19,8 +19,9 @@
   keeps nothing and goes.
 - **`docs/worktree-guard-spec.md` and its `docs/README.md` row leave at the
   settle, like every other rule change, and not in this pull request.**
-  `seal rules --check` reads the policy in force and excuses the document's
-  `check:` lines that name deleted tests, and the fold check holds with the
+  `seal rules --check` excuses the document's `check:` lines that name
+  deleted tests, because this design's pending `remove` takes their sections
+  out, and the fold check holds with the
   document in place (`frame/design.md` *Grounding*, the layout row;
   `trail/rounds/round-1.md` finding 1).
 - **No hook removes the files the guard left under a clone's git

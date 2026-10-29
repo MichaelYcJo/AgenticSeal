@@ -101,11 +101,12 @@ commits to `hooks/worktree-guard.py` since the repository's first commit on
    (*Grounding*, the layout row). `tests/behaviour/test_release_hygiene.py`'s
    exemption `("docs/worktree-guard-spec.md", "2.50.1")` stays while the
    document stands.
-7. `seal rules --check` reads the policy in force: a refused `check:` line
-   inside a section a pending `remove` with no `from` takes out at the settle
-   is printed as `seal rules: excused: <path>:<line>: <heading>: <why>;
+7. `seal rules --check` excuses one shape of pending rule change: a refused
+   `check:` line inside a section a pending `remove` with no `from` takes out
+   at the settle is printed as `seal rules: excused: <path>:<line>: <heading>: <why>;
    <work item> removes this section at the settle`, and is no refusal. A
-   `remove` of another section, or one with a `from`, excuses nothing. It
+   `remove` of another section, one with a `from`, or a pending `change`
+   excuses nothing, and where the `seal/` root is local no line is excused. It
    reads the pending designs through `skills/settle/scripts/rule_changes.py`'s
    `pending` and `removed_by`, which the S9 excuser of
    `tests/behaviour/test_a_cited_section_stands_in_its_file.py` now also
@@ -143,7 +144,7 @@ commits to `hooks/worktree-guard.py` since the repository's first commit on
 | S5 The manifest declares no option nothing reads | Given `.claude-plugin/plugin.json` without `userConfig`, then no script under `hooks/` reads a `CLAUDE_PLUGIN_OPTION_` variable | `tests/behaviour/test_chain_hooks_hardening.py#test_every_option_the_manifest_declares_is_one_a_hook_reads`, its branch for `worktree_guard_language` removed |
 | S6 Every check line and index row still resolves | Given the guard's document and its index row in place and the five test files its `check:` lines name deleted, then `seal rules --check` excuses each of those lines, every other `check:` line in the tree names a file that exists, and `seal fold` accepts the index | `tests/github/test_rules.py#test_every_check_line_in_the_tree_holds`, `tests/skills/test_fold_check.py#test_accepts_this_repository_with_no_flags`, `tests/behaviour/test_a_cited_section_stands_in_its_file.py#test_every_cited_section_stands_in_its_file` |
 | S7 Nothing outside the records names what was removed | When the sweep command under *Data & interfaces* runs, then it prints only lines under `seal/threads/` and `evals/behaviour/proofer/replay-1791779434-r5/`, the lines of `docs/worktree-guard-spec.md`, its `docs/README.md` row and the two lines of `docs/the-routing-check.md` and `docs/the-review-record.md`, all of which `## Rule changes` removes or corrects at the settle, `tests/behaviour/test_release_hygiene.py`'s exemption for that document, and `tests/hooks/test_root_migrate.py`'s kept rename (`gaps.md`) | the command, run by the crafter at the last phase and quoted in its phase record |
-| S8 The rules check reads the policy in force | Given a rule file whose `check:` line names a missing test, when an unsettled design's `remove` with no `from` names that line's section, then `seal rules --check` exits 0 and prints the line as excused with that work item; when the `remove` names another section, or carries a `from`, it exits 1 and excuses nothing | `tests/github/test_rules.py#Test_main::test_a_refusal_in_a_section_a_pending_remove_takes_out_is_excused_and_named`, seen red against the check as it stood (the fix pass's account in `trail/rounds/round-1.md`, read); `tests/behaviour/test_a_cited_section_stands_in_its_file.py`, whose excuser reads through the same `removed_by` |
+| S8 The rules check excuses a line a pending remove takes out, at a shared root | Given a rule file whose `check:` line names a missing test, when an unsettled design's `remove` with no `from` names that line's section, then `seal rules --check` exits 0 and prints the line as excused with that work item; when the `remove` names another section, or carries a `from`, it exits 1 and excuses nothing | `tests/github/test_rules.py#Test_main::test_a_refusal_in_a_section_a_pending_remove_takes_out_is_excused_and_named`, seen red against the check as it stood (the fix pass's account in `trail/rounds/round-1.md`, read); `tests/behaviour/test_a_cited_section_stands_in_its_file.py`, whose excuser reads through the same `removed_by` |
 
 ## Data & interfaces
 

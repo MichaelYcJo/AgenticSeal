@@ -56,8 +56,9 @@ narrow runs green.
   them. `skills/implement/SKILL.md` *Document layout — two roots, three
   lifetimes* has a pull request leave the policy root to the settle, so the
   document and its `docs/README.md` row leave through `## Rule changes`, not
-  in this pull request. `seal rules --check` therefore reads the policy in
-  force, as the S9 excuser of
+  in this pull request. `seal rules --check` therefore excuses a line in a
+  section a pending `remove` with no `from` takes out, at a shared root, as
+  the S9 excuser of
   `tests/behaviour/test_a_cited_section_stands_in_its_file.py` already did:
   a refused `check:` line inside a section a pending `remove` takes out is
   excused and named. Both read that fact through
