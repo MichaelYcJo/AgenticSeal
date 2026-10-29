@@ -386,6 +386,7 @@ class Test_framer_case:
         found, match = self.graders(PAGE_CASE)["shape-answers-by-run"]
         assert match == "contains"
         assert found.search(RAN.replace("TOKEN", token))
+        assert not found.search(RAN.replace("TOKEN", "0" * len(token)))
         assert not found.search(RAN_ELSEWHERE.replace("TOKEN", token))
         assert not found.search(RAN_UNLABELLED.replace("TOKEN", token))
 
