@@ -315,8 +315,8 @@ class Test_measure:
     ):
         """#1177, S5. The preset block is one `@` line, and the core it
         imports is in every session's context; a meter that read the pair as
-        two flat files put the block's 80-odd bytes where the core's 6,700
-        are. Each imported file is a harness row, named by the importing
+        two flat files counted the block's one line and missed the core it
+        imports. Each imported file is a harness row, named by the importing
         file's name, an arrow and the path as written, with `via` naming the
         importer, and the pair's line sums and names it. A backticked `@`, an
         address and a quoted path are not imports."""
