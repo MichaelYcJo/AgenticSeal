@@ -32,6 +32,8 @@ from conftest import (
     op,
     spec,
 )
+from test_the_agent_contract_holds_the_universal_rules import CONTRACT, spans
+from test_the_agent_contract_holds_the_universal_rules import read as read_at_root
 
 rules = load_module(
     os.path.join(ROOT, "skills", "settle", "scripts", "rule_changes.py"),
@@ -572,3 +574,137 @@ def test_a_citation_no_pending_correction_excuses_fails(tmp_path, citing, change
         with pytest.raises(AssertionError, match=r"cites `manual/b\.md` \*Old name\*"):
             assert_resolved(root)
     assert caught == []
+
+
+# --- contract rule citations (#957) ------------------------------------------
+
+# A contract citation is `contract rule <N>`, one number each. The contract
+# itself and the agent definitions, which receive it at startup, cite the
+# bare `rule <N>`. Both are read across a line break.
+CITATION = re.compile(r"\b[Cc]ontract\s+rule\s+(\d+)\b")
+BARE_CITATION = re.compile(r"\b[Rr]ule\s+(\d+)\b")
+# A spelling that means a contract citation and is not the one CITATION
+# reads: a plural or a list, a possessive, or a capital `Rule`.
+NEAR_CITATION = re.compile(r"\b[Cc]ontract(?:'s)?\s+[Rr]ules?\s+\d")
+BARE_HOMES = ("agents",)
+CITED_TREES = ("agents", "skills", "docs", "templates", "hooks", "tests")
+CITED_FILES = ("CONTRIBUTING.md",)
+
+
+def cited_sections(rel, text):
+    """[(line, number)] for every contract rule `rel` cites, at the line the
+    citation starts on."""
+    bare = rel == CONTRACT.replace(os.sep, "/") or rel.split("/")[0] in BARE_HOMES
+    pattern = BARE_CITATION if bare else CITATION
+    return [
+        (text.count("\n", 0, m.start()) + 1, int(m.group(1)))
+        for m in pattern.finditer(text)
+    ]
+
+
+def tree_files():
+    yield from CITED_FILES
+    for tree in CITED_TREES:
+        for base, _, names in os.walk(os.path.join(ROOT, tree)):
+            for name in names:
+                if name.endswith((".md", ".py", ".yaml", ".json", ".txt")):
+                    full = os.path.join(base, name)
+                    yield os.path.relpath(full, ROOT).replace(os.sep, "/")
+
+
+def contract_dangling(files, numbers):
+    """[(path:line, rule N)] for every cited rule the contract does not have."""
+    out = []
+    for rel, text in files:
+        for lineno, n in cited_sections(rel, text):
+            if n not in numbers:
+                out.append((f"{rel}:{lineno}", f"rule {n}"))
+    return out
+
+
+def test_every_cited_section_exists():
+    """T3: every contract section the tree cites is a section the contract
+    has. #957 moved two numbers (the old rule 16 into rule 11, the old rule 17 to rule 16),
+    and a citation left at an old number points a reader at a different rule
+    or at none."""
+    numbers = set(spans(read_at_root()))
+    files = [(rel, read_at_root(rel)) for rel in tree_files()]
+    assert len(files) > 100, "the walk found almost nothing to read"
+    assert sum(len(cited_sections(r, t)) for r, t in files) > 50, (
+        "almost no citation was recognised, so a pass would mean nothing"
+    )
+    assert not contract_dangling(files, numbers), contract_dangling(files, numbers)
+
+
+@pytest.mark.parametrize(
+    "rel, line",
+    [
+        ("docs/x.md", "as contract rule {n} says"),
+        ("skills/x/SKILL.md", "(contract rule {n})"),
+        ("hooks/x.py", "Contract rule {n} each"),
+        ("skills/x/SKILL.md", "as the contract\nrule {n} says"),
+        ("agents/x.md", "which rule {n} names"),
+        ("agents/x.md", "which contract rule {n} names"),
+        ("skills/agent-contract/SKILL.md", "rule {n} says"),
+    ],
+)
+def test_a_citation_above_the_last_section_is_caught(rel, line):
+    """T3 can fail: in every tree and every spelling, a number one above the
+    last heading is named, at the line the citation starts on."""
+    numbers = set(spans(read_at_root()))
+    text = line.format(n=max(numbers) + 1)
+    assert contract_dangling([(rel, text)], numbers) == [
+        (f"{rel}:1", f"rule {max(numbers) + 1}")
+    ]
+
+
+def test_a_wrapped_citation_is_named_at_the_line_it_starts_on():
+    numbers = set(spans(read_at_root()))
+    text = f"intro\nas the contract\nrule {max(numbers) + 1} says"
+    assert contract_dangling([("skills/x/SKILL.md", text)], numbers) == [
+        ("skills/x/SKILL.md:2", f"rule {max(numbers) + 1}")
+    ]
+
+
+def test_a_bare_rule_outside_the_contracts_homes_is_not_a_citation():
+    """Outside the contract and `agents/`, `rule <N>` can be any list's rule,
+    such as the behaviour suite's pass rules, so only `contract rule <N>`
+    is read there."""
+    numbers = set(spans(read_at_root()))
+    text = f"pass rule {max(numbers) + 1} holds"
+    assert contract_dangling([("hooks/x.py", text)], numbers) == []
+
+
+def near_citations(text):
+    """[line] where a near miss of `contract rule <N>` starts, in any file:
+    such a spelling is neither read as a citation nor let pass."""
+    return [
+        text.count("\n", 0, m.start()) + 1
+        for m in NEAR_CITATION.finditer(text)
+        if not CITATION.match(text, m.start())
+    ]
+
+
+def test_no_file_cites_the_contract_in_a_near_miss():
+    found = [
+        f"{rel}:{n}" for rel in tree_files() for n in near_citations(read_at_root(rel))
+    ]
+    assert not found, (
+        "cite one contract rule as `contract rule <N>`, one number each: "
+        + ", ".join(found)
+    )
+
+
+@pytest.mark.parametrize(
+    "shape",
+    ["Contract Rule {n}", "contract rules {m} and {n}", "the contract's rule {n}"],
+)
+def test_a_near_miss_citation_is_refused_at_its_line(shape):
+    """A capital `Rule`, a plural with a list, and a possessive each mean a
+    contract citation the reader does not read, so each is refused at the
+    line it starts on; the shapes are built here so this file holds none."""
+    assert near_citations("intro\n" + shape.format(m=7, n=21)) == [2]
+
+
+def test_the_one_spelling_is_no_near_miss():
+    assert near_citations("intro\ncontract rule 21 and Contract rule 3") == []
