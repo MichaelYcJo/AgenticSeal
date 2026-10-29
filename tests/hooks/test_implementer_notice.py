@@ -4,8 +4,8 @@ for says so, once, after a commit.
 One line for both axes where both are unfulfilled. Nothing is said about an
 axis whose mark stands, whose row was not answered, or in a repository that
 never opted in: missing that silence, this is a fourth prompt in a plugin
-whose first goal is verification that runs unattended. The notice never
-blocks. The cases come from `tests/test_the_implementer_is_recorded.py` and,
+whose first value is efficient development through an unattended
+workflow. The notice never blocks. The cases come from `tests/test_the_implementer_is_recorded.py` and,
 for the path a local-mode root prints, from
 `tests/test_local_mode_resolves_under_the_git_dir.py` (#942's phase 6).
 """

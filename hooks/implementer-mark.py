@@ -16,8 +16,8 @@ so this file never names an agent at all.
 cannot deny, ask, or delay a spawn. `dispatch.py` merges an empty output as
 silence, which is what every allow already looks like. Blocking here was
 considered and rejected in the plan for this work item: a fourth thing that can
-stop a session, in a plugin whose first goal is verification that runs
-unattended, buys less than it costs.
+stop a session, in a plugin whose first value is efficient development
+through an unattended workflow, buys less than it costs.
 
 **Written before the spawn runs.** The mark is written at `PreToolUse`, so a
 spawn that something stops after this hook still leaves it. That is the
