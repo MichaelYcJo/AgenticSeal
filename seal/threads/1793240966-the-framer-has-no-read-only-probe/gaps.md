@@ -19,7 +19,7 @@ A question a read-only command answers was queued for the build as an `a measure
 | Item | Who must answer |
 |---|---|
 | The full suite, the repository-wide lint and the typecheck over the branch | the orchestrator, at `seal gate --base release/v0.24.1 --record 1793240966-the-framer-has-no-read-only-probe` |
-| The new rule's no-row half: that a framer leaves no `a measurement` row for a question a probe could answer in its environment | the orchestrator, which writes each row's Status in a framed work item's `frame/questions.md` (`skills/implement/SKILL.md` *3. The SDD file set*: the Status column "is written by whoever answered"), as `frame/design.md` S2 and S5 name it since `542404ee`. The proofer's reading list in `agents/proofer.md` does not name that file, and no case holds this half since `shape-no-measurement-row` was removed. Round 1 read this work item's own `frame/questions.md` and found no `a measurement` row |
+| The new rule's no-row half: that a framer leaves no `a measurement` row for a question a probe could answer in its environment | nobody after round 1. No case reads it since `shape-no-measurement-row` was removed at `7ac24a06`, and no agent definition or orchestration step opens `frame/questions.md` to judge a row's reason against the rule: the proofer's reading list in `agents/proofer.md` does not name the file, and `skills/implement/orchestration.md` names it only where the framer writes it. Round 1 read this work item's own `frame/questions.md` and found no `a measurement` row. For later work items it is a limit of the rule, read only where a person opens a frame |
 
 ## Not done
 

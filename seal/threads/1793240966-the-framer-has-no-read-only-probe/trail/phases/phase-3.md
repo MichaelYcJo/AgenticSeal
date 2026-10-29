@@ -66,8 +66,9 @@ runs the grader caught no row about `shout`, and it failed one new-side run
 for a correct row. Contract rule 18 says to fix a check that refuses correct
 behaviour. The grader, its pattern and its case in
 `tests/evals/test_rule_cases.py` are gone, and `shape-answers-by-probe`
-alone holds S8. The no-row half of the rule is read by the proofer at
-review, as S5 already is. `gaps.md` records the divergence.
+alone holds S8. The no-row half of the rule has no reader after round 1,
+and `gaps.md` *Not verified* states it as a limit. `gaps.md` records the
+divergence.
 
 **S8 holds on the grader that remains.** `shape-answers-by-probe` fails
 every old-side run and passes every new-side run. Q2's default was not
