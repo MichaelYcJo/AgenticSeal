@@ -196,6 +196,9 @@ class Test_main:
             "on:\n  - pull_request\n    closed\n",
             "on: pull_request\n  push\n",
             "on: [pull_request]\n  push\n",
+            "on:\n  pull_request:foo\n",
+            "on:\n  pull_request:foo\n    push\n",
+            "on:pull_request\n",
         ],
         ids=[
             "no-on-key",
@@ -211,6 +214,9 @@ class Test_main:
             "an-item-continued-on-a-deeper-line",
             "an-inline-name-continued-on-a-deeper-line",
             "an-inline-list-continued-on-a-deeper-line",
+            "a-name-glued-to-a-colon",
+            "a-glued-name-continued-on-a-deeper-line",
+            "an-on-key-glued-to-its-value",
         ],
     )
     def test_an_unread_trigger_is_reported_and_not_counted(self, repo, trigger):

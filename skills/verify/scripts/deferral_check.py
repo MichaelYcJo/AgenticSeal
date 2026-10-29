@@ -90,8 +90,12 @@ KNOWN_LIMITS = (
 )
 
 # A workflow's trigger key at the start of a line, bare or in either quote,
-# and the text after its colon.
-ON_KEY = re.compile(r"""^(?:on|"on"|'on')\s*:(.*)$""")
+# and the text after its colon. The colon ends the line or whitespace follows
+# it: `on:pull_request` is one plain scalar in YAML, not the key.
+ON_KEY = re.compile(r"""^(?:on|"on"|'on')\s*:(\s.*|)$""")
+# A mapping key in a block line: the text before the first colon that ends
+# the line or that whitespace follows. `pull_request:foo` is one scalar.
+KEY = re.compile(r"(.*?):(?:\s|$)")
 # A YAML comment: a `#` that opens the text or follows whitespace, to the end
 # of the line.
 COMMENT = re.compile(r"(?:^|\s)#.*$")
@@ -119,10 +123,11 @@ def block_entries(lines):
     ends the block. Three shapes make the whole block unread, an empty
     list: a line shallower than the block but not at zero, which no valid
     workflow holds; a line at the block's indent that is neither a key nor
-    an item beside any other entry; and a deeper line under an entry with
-    no colon, a bare name or a `- name` item, which continues that name, so
-    that `  pull_request` above `    push` is the one name
-    "pull_request push".
+    an item beside any other entry; and a deeper line under an entry that
+    holds no key, a bare name or a `- name` item, which continues that
+    name, so that `  pull_request` above `    push` is the one name
+    "pull_request push". A key is what `KEY` reads: text before a colon
+    that ends the line or that whitespace follows.
     """
     entries, bare, width, under_key = [], [], None, False
     for line in lines:
@@ -142,11 +147,12 @@ def block_entries(lines):
             if not under_key:
                 return []
             continue
-        under_key = ":" in item
+        key = KEY.match(item)
+        under_key = key is not None
         if is_item:
             entries.append(item[1:])
-        elif ":" in item:
-            entries.append(item.partition(":")[0])
+        elif key:
+            entries.append(key.group(1))
         else:
             bare.append(item)
     if bare:
