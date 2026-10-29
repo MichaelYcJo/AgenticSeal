@@ -28,7 +28,7 @@ confirmations say.
 severity: should
 location: `evals/scripts/rule_cases.py:25-31`
 evidence: executed `ls evals/behaviour/sealer`, `git log --oneline -S'"stale-gate"' -- evals/scripts/rule_cases.py`, `git show 1e82fd0a:evals/scripts/rule_cases.py`
-verdict: open
+verdict: fixed 51859196
 
 The module docstring is the one place that says what each agent's cases
 check. Its sealer paragraph at `evals/scripts/rule_cases.py:25-31` says
@@ -60,7 +60,7 @@ five directories each.
            but that file
 ```
 
-answer:
+answer: The finding holds. `ls evals/behaviour/sealer` lists five directories, `rule-sealer-stale-gate` among them. I fixed it here rather than deferring it. It is one sentence in the docstring whose framer line this branch already edits, and a deferral would leave the one wrong count beside two corrected ones. Commit `51859196` applies the paste-ready text to `evals/scripts/rule_cases.py:25-32`. The paragraph is one line longer, so it ends at `:32`. The commit changes the path this `location:` names, so the line gains nothing. `git grep -n -i -e "four reviewed" -e "four sealer" -e "sealer cases"` outside `seal/threads/` found this paragraph as the only statement of the count. After the fix, these were executed: `rule_cases.py --out <scratch>` exited 0, and `diff -r` of its `framer/`, `crafter/` and `sealer/` against `evals/behaviour/` exited 0 for each. Its `proofer/` differs only where the tree holds cases from the other generators. `bin/test tests/evals/test_rule_cases.py -q` exited 0 with 16 passed. `uvx ruff check` and `uvx ruff format --check` over the file each exited 0.
 
 ## Confirmations
 
