@@ -514,7 +514,8 @@ class Test_main:
         """The policy in force is the rule files plus the pending `## Rule
         changes`, so a `check:` line inside a section an unsettled design's
         `remove` takes out at the settle is excused: printed with the work item
-        that removes it, and exit 0. A `remove` of another section excuses
+        that removes it, and exit 0. A `remove` of another section, and one
+        with a `from` that takes out a text and leaves the section, excuse
         nothing."""
         gone = doc(rule("check: tests/test_gone.py"))
         design = "seal/threads/1-a/frame/design.md"
@@ -530,10 +531,14 @@ class Test_main:
             "seal rules: 1 excused in 1 check lines of 1 rule files, and every other "
             "line holds.\n"
         ) in out, out
-        written[design] = removal + "  section: Another heading\n"
-        code, out = checked(tmp_path, written, capsys)
-        assert code == 1, out
-        assert "excused" not in out, out
+        for kept in (
+            "  section: Another heading\n",
+            "  section: The heading\n  from: **A rule.**\n",
+        ):
+            written[design] = removal + kept
+            code, out = checked(tmp_path, written, capsys)
+            assert code == 1, (kept, out)
+            assert "excused" not in out, (kept, out)
 
     def test_a_check_and_a_document_together_or_neither_is_exit_2(
         self, tmp_path, capsys
