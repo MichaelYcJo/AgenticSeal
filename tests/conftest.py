@@ -485,12 +485,12 @@ def gh_answers(env, state):
 os.environ["PATH"] = gh_answers(dict(os.environ), "unknown")["PATH"]
 
 
-# The worktree guard reads the routing answer out of the session's transcript
-# under `worktree_consent.PROJECTS_ROOT`, which is `~/.claude/projects` -- the
-# real transcripts of whoever runs this suite. Every in-process case points it
-# at an empty directory instead, so none reads a real transcript: the guard
+# The press reader reads the routing answer out of the session's transcript
+# under `press.PROJECTS_ROOT`, which is `~/.claude/projects` -- the real
+# transcripts of whoever runs this suite. Every in-process case points it at
+# an empty directory instead, so none reads a real transcript: every gate
 # imports the module by its plain name, so one attribute on `sys.modules`
-# covers every copy of the guard a test module loaded. A case that needs a
+# covers every copy of every gate a test module loaded. A case that needs a
 # transcript points it somewhere else itself.
 _NO_TRANSCRIPTS = tempfile.mkdtemp(prefix="agentic-no-transcripts-")
 atexit.register(shutil.rmtree, _NO_TRANSCRIPTS, True)
@@ -498,9 +498,9 @@ atexit.register(shutil.rmtree, _NO_TRANSCRIPTS, True)
 
 @pytest.fixture(autouse=True)
 def _no_real_transcripts(monkeypatch):
-    consent = sys.modules.get("worktree_consent")
-    if consent is not None and hasattr(consent, "PROJECTS_ROOT"):
-        monkeypatch.setattr(consent, "PROJECTS_ROOT", _NO_TRANSCRIPTS)
+    press = sys.modules.get("press")
+    if press is not None and hasattr(press, "PROJECTS_ROOT"):
+        monkeypatch.setattr(press, "PROJECTS_ROOT", _NO_TRANSCRIPTS)
 
 
 # What a Claude Code session exports to every Bash child, and so to every git
@@ -1559,12 +1559,11 @@ def guard_decision(wg, monkeypatch, capsys, repo, command, sessions=([], [], Tru
 
 @pytest.fixture
 def projects(monkeypatch, tmp_path):
-    """A projects root this case owns. Every loaded copy of the worktree
-    guard imports the one `worktree_consent` by its plain name, so one patch
-    reaches every copy."""
+    """A projects root this case owns. Every loaded copy of a gate imports
+    the one `press` by its plain name, so one patch reaches every copy."""
     root = tmp_path / "projects"
     root.mkdir()
-    monkeypatch.setattr(sys.modules["worktree_consent"], "PROJECTS_ROOT", str(root))
+    monkeypatch.setattr(sys.modules["press"], "PROJECTS_ROOT", str(root))
     return root
 
 

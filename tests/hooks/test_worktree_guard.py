@@ -174,7 +174,7 @@ class Guard:
         """The person's routing answer for REPO in this session's transcript."""
         root = self.tmp / "projects"
         write_transcript(root, sid or self.sid, ask_entries(repo, answer=answer))
-        self.mp.setattr(wg.worktree_consent, "PROJECTS_ROOT", str(root))
+        self.mp.setattr(sys.modules["press"], "PROJECTS_ROOT", str(root))
         return root
 
     def grant(self, repo, sid=None):
