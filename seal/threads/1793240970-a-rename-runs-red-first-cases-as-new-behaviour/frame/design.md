@@ -42,10 +42,10 @@ below is read at that base unless it names another commit.
    record. Neither is a case written new (`frame/questions.md`, the head).
 3. **The crafter reads the row first.** `agents/crafter.md` *Order of work*:
    - Step 5 opens by reading that table for what the phase changes. Where
-     the phase adds behaviour, step 5 stands as it is today: each case
-     first, seen red, then the code, then the case green. Where the phase
-     only renames or moves, it names the existing cases that prove it and
-     the census, and writes no case new.
+     a unit adds behaviour, step 5 stands as it is today: each case
+     first, seen red, then the code, then the case green. Where a unit is
+     only renamed or moved, the phase names the existing cases that prove it
+     and the census, and writes no case new for it.
    - Step 6 runs `seal mutate` over each unit that adds behaviour. A unit
      that was only renamed or moved owes no run.
    - Step 7 runs, in one command through the repository's runner, the cases
@@ -81,8 +81,8 @@ below is read at that base unless it names another commit.
      not, cites the verify row. A rename or a move owes no new case and no
      mutation run, so a review round does not raise one as missing.
    - `agents/sealer.md` *Rules*, **A `seen red` is re-run against the code
-     before the change**: a phase whose record says it only renamed or moved
-     claims no `seen red`. Its claim is that the existing cases it names
+     before the change**: a unit the phase record says was only renamed or
+     moved claims no `seen red`. Its claim is that the existing cases it names
      pass at HEAD, which the sample re-runs as an `executed` claim. Step 3
      keeps its two acts.
 7. **The case that holds the rule.** `evals/scripts/rule_cases.py` gains a
@@ -147,7 +147,7 @@ and added to `cases()`:
 |---|---|
 | `reach-crafter` | `behaviour.reach("crafter")`, as every crafter case has |
 | `shape-renamed` | regex `^def exclaim\(` over `src/textutil.py` |
-| `shape-old-name-gone` | `not_contains` regex `\bshout\b`, one grader each over `src/textutil.py`, `tests/test_textutil.py` and `README.md` |
+| `shape-old-name-gone` | `not_contains` regex `shout` with flag `i`, so the name in any case or inside another name fails it, one grader each over `src/textutil.py`, `tests/test_textutil.py` and `README.md` |
 | `shape-no-new-case` | `not_contains` regex matching a second `def test_` in `tests/test_textutil.py` |
 | `shape-no-mutation` | `shape_tool("no-mutation", "Bash", ..., input_match=<seal mutate or mutation_check.py>, max=0)`, the existing helper that carries `min: 0` |
 | `shape-phase-record` | `file_exists` for the phase record |
