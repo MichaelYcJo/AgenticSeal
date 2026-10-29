@@ -545,11 +545,12 @@ class Test_check:
         closed fence, nor `compact:`, nor the word and its colon with a space
         on either side of the colon (#1132, S7), nor a table
         naming the pact's remote beside no heading, nor a row that misses
-        twice, nor a row in an indented code block of a frame holding no
-        anchor table, four columns in by spaces or by a tab, below a blank
-        line or right under a paragraph line, is read: exit 0, and the
-        `READ` and summary lines name the pact by its URL (contract rule
-        14)."""
+        twice, nor a row four columns in, by spaces or by a tab, in a frame
+        holding no anchor table, is read: below a blank line it is an
+        indented code block, and right under a paragraph line it is the
+        paragraph text the module docstring states as a limit. Exit 0, and
+        the `READ` and summary lines name the pact by its URL (contract
+        rule 14)."""
         legacy = "https://example.com/org/orders-api-legacy"
         write(
             world.web,
