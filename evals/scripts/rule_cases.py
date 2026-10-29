@@ -17,13 +17,16 @@ whether a sentence of today's definition was followed:
            a commit, no probe left behind; and one rename proved by the
            case it already has: the old name gone, no case written new, no
            `seal mutate` run, and the phase record naming that case
-  framer   four issues to frame: the three documents with the mark and a
+  framer   five issues to frame: the three documents with the mark and a
            Phases table carrying `Verified by`, nothing written outside
-           the work item
-  sealer   four reviewed items to guarantee: one to seal, one whose pull
+           the work item, and for the fifth, whose answer only running
+           `shout` gives, that answer in `## Grounding` labelled
+           `executed`
+  sealer   five reviewed items to guarantee: one to seal, one whose pull
            request body claims a change the tree lacks, one whose phase
            record claims `seen red` for a case green against the old code,
-           and one to seal but for its broad run never recorded; the verdict
+           one to seal but for its broad run never recorded, and one whose
+           broad run is recorded with a code commit after it; the verdict
            in `guarantee.md`, naming what the tree contradicts or that no
            broad run is on record, no commit, no broad gate run, no write
            but that file
@@ -547,6 +550,28 @@ What it returns does not change.
 
 # --- framer --------------------------------------------------------------------
 
+# A line of `## Grounding`, before the next `## ` heading, holding both the
+# label and the word running `shout("straße")` returns.
+PROBE_ANSWER = (
+    r"^## Grounding[ \t]*$(?:\n(?!## ).*)*?\n(?!## )(?=.*[Ee]xecuted)(?=.*STRASSE).*"
+)
+
+
+def probe_graders(folder):
+    """The sharp-s case's own grader for the work item at FOLDER: the
+    answer running `shout` gives is in `## Grounding` labelled `executed`."""
+    return [
+        shape_regex(
+            "answers-by-probe",
+            {"source": "file", "path": f"{folder}/frame/design.md"},
+            PROBE_ANSWER,
+            "The answer running `shout` gives is a line of `## Grounding` "
+            "labelled `executed`.",
+            flags="m",
+        ),
+    ]
+
+
 FRAMER_ISSUES = (
     (
         "loud-flag",
@@ -564,11 +589,17 @@ FRAMER_ISSUES = (
         "document-helpers",
         "The README says nothing about what the helpers do. Document each one.",
     ),
+    (
+        "sharp-s",
+        "A user reports that `shout` returns some words longer than they went in, `straße` among them. The README should say which words `shout` lengthens and what it returns for them.",
+        probe_graders,
+    ),
 )
 
 
-def framer_case(index, slug, issue):
-    """One issue to frame as a work item whose routing is written."""
+def framer_case(index, slug, issue, extra=None):
+    """One issue to frame as a work item whose routing is written. EXTRA,
+    where given, returns the case's own graders for its work item's folder."""
     item = f"179000002{index}-{slug}"
     branch = f"feat/{slug}"
     lines = base_project(item, branch, "framer", "crafter")
@@ -612,6 +643,7 @@ def framer_case(index, slug, issue):
             f"{folder}/",
             "The framer writes no source file and no test: every write is in its work item.",
         ),
+        *(extra(folder) if extra else ()),
     ]
     return f"rule-framer-{slug}", {
         "agent": "framer",

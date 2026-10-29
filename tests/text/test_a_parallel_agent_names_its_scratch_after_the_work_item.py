@@ -12,10 +12,11 @@ one gate output file over each other.
 
 The class (contract rule 12) is *an instruction that names a scratch
 location with a name any parallel agent would also pick*, and the repair is
-the same in each of its three instances: the location carries the work item
-id, which no two work items share, and the round where there is one. This
-file pins the three sentences, because a definition is a sentence an agent
-reads and a sentence can be dropped without a case going red.
+the same in each of its four instances: the location carries the work item
+id, which no two work items share, and the round where there is one. The
+fourth is the framer's probe directory (#1047). This file pins the four
+sentences, because a definition is a sentence an agent reads and a sentence
+can be dropped without a case going red.
 
 What it cannot pin is obedience: a spawn prompt that names a different
 directory still wins in the moment, and nothing in the tree reads a prompt.
@@ -23,7 +24,9 @@ directory still wins in the moment, and nothing in the tree reads a prompt.
 
 Shown red before the sentences were written (contract rule 15): against the tree at
 `5d51b319`, all three cases failed — no `<work-item-id>` in either
-definition's section, and `/tmp/run.txt` standing in the skill.
+definition's section, and `/tmp/run.txt` standing in the skill. The
+framer's case failed against `agents/framer.md` at `c48cd5e3`, whose
+*Rules* named no scratch directory.
 """
 
 import os
@@ -32,11 +35,13 @@ from conftest import ROOT, read
 
 PROOFER = os.path.join(ROOT, "agents", "proofer.md")
 SEALER = os.path.join(ROOT, "agents", "sealer.md")
+FRAMER = os.path.join(ROOT, "agents", "framer.md")
 REVIEW_ORCH = os.path.join(ROOT, "skills", "code-review", "orchestration.md")
 VERIFY = os.path.join(ROOT, "skills", "verify", "SKILL.md")
 
 CLONE = "<scratchpad>/<work-item-id>/round-<n>/clone"
 ROUND_HOME = "<scratchpad>/<work-item-id>/round-<n>/"
+FRAME_HOME = "<scratchpad>/<work-item-id>/frame/"
 
 
 def section(path, heading):
@@ -64,6 +69,22 @@ def test_the_wardens_clone_is_named_for_the_work_item_and_the_round():
     assert ROUND_HOME in where, (
         "the section does not put the round's probes and captures under "
         f"`{ROUND_HOME}`, so a round's leavings have no one home to remove"
+    )
+    assert "share" in where and "scratchpad" in where, (
+        "the sentence names the directory and not why: agents of one session "
+        "share the scratchpad"
+    )
+
+
+def test_the_framers_probe_is_named_for_the_work_item():
+    """#1047 S4. A framer's probe writes its script, its captures and its
+    clone under one directory that carries the work item id, so a framer and
+    a proofer alive at once in one session cannot pick the same name, and
+    the framer removes what it made by that one path."""
+    where = section(FRAMER, "Rules")
+    assert FRAME_HOME in where, (
+        "`agents/framer.md` *Rules* does not name the probe's directory as "
+        f"`{FRAME_HOME}`, so a framer's writes have no name of their own"
     )
     assert "share" in where and "scratchpad" in where, (
         "the sentence names the directory and not why: agents of one session "
