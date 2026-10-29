@@ -364,9 +364,10 @@ adds any mechanism by what it takes away:
   environment is an outage, not a cost.
 - **A prompt budget.** The pull request says how many times the change puts
   a question in front of a person, per session, and what each one costs when
-  nobody is at the keyboard. **Verification through an automated workflow is
-  this project's first goal**, so an interruption is a price paid against it
-  rather than a neutral design choice. A change that adds one says why
+  nobody is at the keyboard. Asking a person is the most expensive judgment
+  `CLAUDE.md` *The first value: efficient development through the workflow*
+  names, so an interruption is a price paid against that value rather than a
+  neutral design choice. A change that adds one says why
   nothing cheaper reaches the same guarantee: a value read from a file, a
   default assumed in writing, a refusal the agent makes on its own. Where a
   question really is the only answer, it belongs in the batch asked before
@@ -381,6 +382,12 @@ adds any mechanism by what it takes away:
   What goes is listed under its `frame/design.md`'s `## Removes`, which the review
   reads against the diff; `docs/the-reader-registry.md` *A frame names what
   its work removes* is the rule.
+- **A gap only work with no work item passes through is not a weakness.** A
+  gate that stops a session guards the work a work item owns. A change that
+  would be routed `no work item`, such as a formatter run, a dependency bump
+  or an identifier renamed across files by `sed`, is outside that work, so
+  where only such a change passes through a gap in that kind of gate, the
+  pull request does not close the gap.
 
 The prompt budget and what a change removes are the two a passing suite
 cannot report on: nothing counts interruptions, and nothing weighs a
