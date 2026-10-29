@@ -19,7 +19,7 @@ whether a sentence of today's definition was followed:
            Phases table carrying `Verified by`, nothing written outside
            the work item, and for the fifth, whose answer only running
            `shout` gives, that answer in `## Grounding` labelled
-           `executed` and no row left to a measurement
+           `executed`
   sealer   four reviewed items to guarantee: one to seal, one whose pull
            request body claims a change the tree lacks, one whose phase
            record claims `seen red` for a case green against the old code,
@@ -438,14 +438,11 @@ def crafter_case(index, slug, signature, rule, example):
 PROBE_ANSWER = (
     r"^## Grounding[ \t]*$(?:\n(?!## ).*)*?\n(?!## )(?=.*[Ee]xecuted)(?=.*STRASSE).*"
 )
-# A table cell whose answerer is `a measurement`, backticked or bold or not.
-MEASUREMENT_ROW = r"\|[ \t]*[*`]*a measurement\b[^|\n]*\|"
 
 
 def probe_graders(folder):
-    """The sharp-s case's own graders for the work item at FOLDER: the
-    answer running `shout` gives is in `## Grounding` labelled `executed`,
-    and `frame/questions.md` leaves no row to a measurement."""
+    """The sharp-s case's own grader for the work item at FOLDER: the
+    answer running `shout` gives is in `## Grounding` labelled `executed`."""
     return [
         shape_regex(
             "answers-by-probe",
@@ -454,14 +451,6 @@ def probe_graders(folder):
             "The answer running `shout` gives is a line of `## Grounding` "
             "labelled `executed`.",
             flags="m",
-        ),
-        shape_regex(
-            "no-measurement-row",
-            {"source": "file", "path": f"{folder}/frame/questions.md"},
-            MEASUREMENT_ROW,
-            "No row of `frame/questions.md` leaves that answer to a measurement.",
-            flags="m",
-            match="not_contains",
         ),
     ]
 

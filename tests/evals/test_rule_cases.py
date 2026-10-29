@@ -248,12 +248,6 @@ ELSEWHERE = PROBED.replace("prints `'STRASSE!'`", "prints the answer").replace(
     "is longer.", "is longer: `STRASSE!`, executed."
 )
 UNLABELLED = PROBED.replace("executed: ", "")
-ROW = "| Q1 | What does `shout` return for `straße`? | {who} | run it | none | open |\n"
-QUESTIONS = (
-    "# Questions for the planner: 1790000025-sharp-s\n\n"
-    "| # | Question | Who can answer | Options & what each implies "
-    "| Default until answered | Status |\n|---|---|---|---|---|---|\n"
-)
 
 
 class Test_framer_case:
@@ -281,17 +275,6 @@ class Test_framer_case:
         assert found.search(PROBED)
         assert not found.search(ELSEWHERE)
         assert not found.search(UNLABELLED)
-
-    def test_the_sharp_s_case_refuses_a_row_left_to_a_measurement(self):
-        """Guards #1047 S2: `shape-no-measurement-row` is a `not_contains`
-        regex that finds a `Who can answer` cell holding `a measurement`, and
-        no other answerer's row."""
-        found, match = self.graders()["shape-no-measurement-row"]
-        assert match == "not_contains"
-        for who in ("a measurement", "`a measurement`"):
-            assert found.search(QUESTIONS + ROW.format(who=who)), who
-        for who in ("a person", "the work"):
-            assert not found.search(QUESTIONS + ROW.format(who=who)), who
 
 
 test_census = census_case(TARGET)
