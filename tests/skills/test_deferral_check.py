@@ -244,7 +244,7 @@ class Test_main:
         [limit] = [line for line in r.stdout.split("\n") if line.startswith("limit: ")]
         assert "flow mapping" in limit, limit
         assert "unread and is not counted" in limit, limit
-        assert "filters" in limit, limit
+        assert "filters (types, branches, paths) are not read" in limit, limit
 
     # --- a local hook is not CI ----------------------------------------------
 

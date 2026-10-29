@@ -174,7 +174,7 @@ def read_events(text):
         elif value.startswith("[") and value.endswith("]"):
             names = value[1:-1].split(",")
             # YAML allows one trailing comma in a flow list: `[push, pull_request, ]`.
-            if len(names) > 1 and not names[-1].strip():
+            if not names[-1].strip():
                 names.pop()
         else:
             names = [value]
