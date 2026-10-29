@@ -72,8 +72,8 @@ seen red against `9c8252d3` before the guard lands:
         )
 ```
 
-verdict: open
-answer:
+verdict: fixed 1783b55a
+answer: The finding holds. `row_cells` now returns None where `config.blocks.columns(line) >= 4`. Past that guard the leading run is at most three spaces, which `table_cells` reads past, so the kept-indentation step is gone and the line is read without it. Frame z of the passes case gained a tab line and a two-spaces-and-a-tab line beside the four-space one. Against the code before the fix, the case failed with `OUTSIDE_TABLE` at line 7 of frame z and exit 2 where 0 was expected. `seal mutate` replaced the guard with `if False:` and then with `>= 5`, and both were red. `trail/phases/phase-1.md`'s sentence on the four-column line was corrected in place at `bbfbe93e`.
 
 ### 2. No case pins that the row scan reads every declared pact, not this pact alone
 
@@ -129,8 +129,8 @@ BILLING = "git@example.com:org/billing.git"  # NAME NOT IN TREE: the passes case
 
 The new id is seen red with the scan narrowed to `frozenset({ours})`.
 
-verdict: open
-answer:
+verdict: fixed 1783b55a
+answer: The finding holds. `test_refuses_an_anchor_row_no_anchor_table_holds` declares `BILLING` beside the pact for every id. It gained the id `a row naming another pact the signer declares`, a near-miss header over a row naming billing and a heading. `BILLING` is now a module constant, and the passes case reads it instead of its own inline spelling. Before the fix commit, `seal mutate` passed `frozenset({ours})` in place of `declared_remotes` at the `stray_rows` call, and the run was red on that id alone. `trail/phases/phase-1.md`'s mutation paragraph now says that none of its ten mutants narrowed the scan (`bbfbe93e`).
 
 ## Confirmations
 
