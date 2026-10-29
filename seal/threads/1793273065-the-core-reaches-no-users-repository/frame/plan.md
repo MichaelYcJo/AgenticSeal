@@ -59,7 +59,7 @@ fragment. Four phases, each a slice the tests can read.
 | A6 Keep the block's rules and add the link beside them | Every rule has a second source, which the core forbids and the issue's Done-when refuses | Rejected |
 | A7 Fold the core into `skills/agent-contract/SKILL.md` and import that | The contract holds rules an orchestrating session must not follow (rule 6: open no pull request), and the issue refuses a core with two sides | Rejected |
 | A8 Import from the versioned cache path `plugins/cache/agenticseal/agentic/<version>/…` | The template then carries the version, a second copy of `plugin.json`'s that every release bumps by hand | Rejected |
-| A9 Keep `install.sh --project` | From a project-level file the import is external: the approval dialog gates it, declining disables it for good, and a headless session never loads it (probe d, docs). A committed block gives a teammate without the plugin nothing, since the path does not exist on their machine | Rejected; the scope goes |
+| A9 Keep `install.sh --project` | From a project-level file the link loads nothing: the block's line is relative to the file that holds it, so in a project's CLAUDE.md it names a `plugins/` directory inside the project, which is not there; a line written to reach the clone from there would resolve outside the working directory, which an interactive approval gates and a headless session never loads (probe d, docs). A committed block gives a teammate without the plugin nothing, since the path does not exist on their machine | Rejected; the scope goes |
 
 ## Phases
 

@@ -18,8 +18,7 @@ answered, so nobody reopens them:
 - **Which copy governs in this repository?** The tree's, where the branch
   changes `skills/core/SKILL.md`; `CLAUDE.md` says so and imports nothing.
 - **Does the project-scope install stay?** No: from a project-level file the
-  import is external, gated by an interactive approval and never loaded
-  headless (probe d, docs).
+  link loads nothing, because the block's line is relative to the file that holds it, so in a project's CLAUDE.md it names a `plugins/` directory inside the project, which is not there; a line written to reach the clone from there would resolve outside the working directory, which an interactive approval gates and a headless session never loads (probe d, docs).
 - **The skill's name?** `core`, the word the issue, milestone 69 and
   `routing.md` use.
 - **Where each block rule lands?** `frame/design.md` *Removes* row 1 names
