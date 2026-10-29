@@ -125,15 +125,20 @@ class Test_parse:
             )
             assert routing.parse(text)["implementation"] == answer, answer
 
-    def test_accepts_the_answer_written_before_the_rename_as_the_crafter(self):
-        """A declaration written before the plugin was renamed AgenticSeal
-        names the implementer by its old name, and the move copies it byte
-        for byte, so it reads as `crafter` until the next minor release."""
+    def test_reads_the_answer_written_before_the_rename_as_unanswered(self):
+        """S2 of #1142: a declaration written before the plugin was renamed
+        AgenticSeal names the implementer by its old name, and that answer is
+        read as any other answer outside the vocabulary is: the declaration
+        parses, and the axis is unanswered."""
         text = two_axis_text().replace(
             "| Branch |",
-            f"| Implementation | {routing.OLD_BY_CRAFTER} |\n| Branch |",
+            # exempt from old_names: the answer a declaration written before the rename carries
+            "| Implementation | smith |\n| Branch |",
         )
-        assert routing.parse(text)["implementation"] == routing.BY_CRAFTER
+        parsed = routing.parse(text)
+        assert parsed is not None, "the old answer rejected the declaration"
+        assert parsed["implementation"] is None
+        assert parsed["review"] == CHAIN
 
     def test_accepts_the_fourth_axis_where_it_is_there(self):
         """The vocabulary is `framer` and `the session`, and the second is the same
