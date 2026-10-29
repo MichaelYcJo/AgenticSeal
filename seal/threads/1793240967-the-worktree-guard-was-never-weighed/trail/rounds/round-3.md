@@ -28,7 +28,7 @@ because the merge brought 114 changed files from the release branch.
 severity: should
 location: `seal/threads/1793240967-the-worktree-guard-was-never-weighed/frame/design.md:17`
 evidence: executed `git grep -n -i "policy in force"`
-verdict: open
+verdict: fixed 6eb32d52
 reopens: round-2#1
 
 The close does not hold in one place. Round 2's finding 1 was that the texts
@@ -64,7 +64,7 @@ becomes:
 `seal rules --check` excuses each such line, naming this work item, because this design's pending `remove` with no `from` takes their section out at the settle (Scope In 7).
 ```
 
-answer:
+answer: Holds, and 6eb32d52 closes it. That commit is the orchestrator's frame fold, not a crafter commit, and it changes only `frame/design.md` (one line, read with `git show --stat`). The *Grounding* layout row at `frame/design.md:17` now reads "`seal rules --check` excuses each such line, because this design's pending `remove` with no `from` takes its section out, and names this work item (Scope In 7)". That is the shape Scope In 7 and `.github/scripts/rules.py` state, so the frame says one thing about the check. `git grep -n -i "policy in force"` over the work item's frame prints only that row's first sentence (executed). As this finding says, that sentence restates the layout rule's definition at `skills/implement/SKILL.md:75` and is not a claim about the check. The design's `remove` of `docs/worktree-guard-spec.md` carries no `from`, so the clause matches what the check does in this tree: `bin/seal rules --check` exited 0 with 17 excused at f720935f (executed in round 2's fix pass). No code change was owed or made.
 
 ## Confirmations
 
