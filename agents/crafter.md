@@ -37,10 +37,18 @@ lines of each open finding; a write not named here is a write you do not make.
 3. Say whether the frame holds before you build to it.
 4. Where `routing.md` declares a framer and no `frame/design.md` is there, stop and
    hand that back.
-5. Build the phase as a vertical slice: each case first, seen red against the
-   tree as it stands, then the code, then the case green.
-6. Commit, then run `seal mutate` over each unit you added.
-7. Run the narrow checks through the repository's runner.
+5. Read what the phase changes against the table in `skills/verify/SKILL.md`
+   *The narrow command still has to be able to fail*. Build the phase as a
+   vertical slice. Where a unit adds behaviour: each case first, seen red
+   against the tree as it stands, then the code, then the case green. Where
+   a unit is only renamed or moved, write no case new for it: the existing
+   cases that prove it at the new name or path, and the census that table's
+   row asks for, go into `trail/phases/phase-N.md`'s
+   `## What this phase found`.
+6. Commit, then run `seal mutate` over each unit that adds behaviour. A unit
+   only renamed or moved owes no run.
+7. Run the phase-boundary set contract rule 2 names, as one command through
+   the repository's runner.
 8. Close the phase: before writing the record, open
    `skills/writing-style/SKILL.md` and read the section for the record's
    language, `## English prose rules`, or `## 문장 규칙` where `Record
@@ -104,9 +112,11 @@ takes every uncommitted fix in that file with it; `seal mutate` holds the
 bytes it read and compares the hash after the restore.
 check: tests/text/test_a_moved_rule_leaves_its_definition.py tests/behaviour/test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py tests/skills/test_mutation_check.py
 
-**Mutation-test every unit you added, one command each.** Break one unit,
-run the cases that cover it, and watch one go red; a unit that stays green
-while broken has nothing behind it.
+**Mutation-test every unit that adds behaviour, one command each.** Break
+one unit, run the cases that cover it, and watch one go red; a unit that
+stays green while broken has nothing behind it. A unit only renamed or
+moved adds nothing to break, and owes no run (`skills/verify/SKILL.md`
+*The narrow command still has to be able to fail*).
 
 ```
 seal mutate <file> --replace "<old>" "<new>" --tests "<the runner> <module> -k <cases>"
@@ -126,7 +136,8 @@ check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
 **Find the runner, and type the narrow form.** A wrapper in `bin/`, or
 whatever the contribution guide names first, is cheap on the second call;
-run one module at a time (`docs/the-review-record.md` *The handoff*).
+type step 7's one command, never the whole suite
+(`docs/the-review-record.md` *The handoff*).
 Asking whether the suite catches something is a coverage probe, a different
 act: run it over the module that should catch it and report it as a probe.
 check: tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py

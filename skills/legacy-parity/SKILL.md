@@ -26,8 +26,10 @@ check: none reader: the parity review
 
 ## The migration config
 
-A migrating repository commits `seal/parity.md`, written from
-`templates/setup/parity.md`, which holds its fields. A machine-local checkout path
+A migrating repository declares itself in `seal/parity.md`, written from
+`templates/setup/parity.md`, which holds its fields, and commits it where the
+root is `<repo>/seal/`; in local mode nothing under the root is committed.
+A machine-local checkout path
 never goes in it: it lives in `~/.claude/agentic/parity-paths.md`, keyed by
 the origin remote URL, so worktrees and second checkouts resolve to one entry.
 

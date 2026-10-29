@@ -226,8 +226,11 @@ waits for the reply spends more.
 
 ### 2. Implement test-first, and let each rule name its test
 
-**Each scenario is built the same way: its case first, seen red against the
-tree as it stands, then the code, then the case green.** A rule the work
+**Each scenario that adds behaviour is built the same way: its case first,
+seen red against the tree as it stands, then the code, then the case
+green.** A rename or a move adds no behaviour, and is proved as
+`skills/verify/SKILL.md` *The narrow command still has to be able to fail*
+says: by the cases it already has, with no case written new. A rule the work
 states or changes ends with a `check:` line naming that case — in its home
 under `docs/`, or in the *Verifiable how* cell of the design's scenario table —
 so the case is the record that the rule holds, and CI running the suite is
