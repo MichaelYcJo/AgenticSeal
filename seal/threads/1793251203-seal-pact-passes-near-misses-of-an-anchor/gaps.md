@@ -16,6 +16,7 @@ normalisation leaves out are the proofer's judgment.
 | S5 of the first frame | `frame/plan.md` phase 1: seen red against `28edee12` / shown red by `seal mutate` on the scan's guard, and later removed with the scan | the mutation, then removal | `trail/phases/phase-1.md` *What this phase found*; the reframe after round 4 |
 | The emphasis run's guards | `frame/design.md`: no space inside the run, no nesting, no escape / the guards removed | removed | `trail/phases/phase-3.md`: a key equals an anchor word only when the wrapped text is the word, so no guard changed a decision and each mutant stayed green; `CLAUDE.md` *The rule a mechanism is kept against* |
 | The proofer's text | `frame/plan.md` phase 4: one sentence / three sentences | three | `trail/phases/phase-4.md`: one sentence broke `skills/writing-style/SKILL.md` *English prose rules* |
+| S10's search | `frame/design.md` S10: the search over `skills/verify/scripts/` and `tests/skills/` prints nothing / it prints `skills/verify/scripts/unverified_check.py:413` | the line stands | `trail/phases/phase-3.md` *The frame holds, with one correction found against the tree*: the line predates this work and states a fact about `unverified_check.py`, not the removed scan |
 
 ## Not verified
 
@@ -30,10 +31,10 @@ and no case pins it.** `****Pact****` is not read as the anchor header, and
 widening the run to four would pass every case (`trail/phases/phase-3.md`,
 read). The orchestrator judged it a limit and sent nothing back to the
 framer: the normalisation is closed at what renders as emphasis a person
-writes, and a run of four is written by nobody. Source: `CLAUDE.md` *The
-first value: efficient development through the workflow*, judgment spent
-where meaning is the question; the proofer's sentence covers such a header
-as a shape the normalisation leaves out.
+writes, and a run of four is written by nobody. Source: `CLAUDE.md`, its
+section on where judgment is spent, which spends it where meaning is the
+question; the proofer's sentence covers such a header as a shape the
+normalisation leaves out.
 
 **The walker's own over-refusal stays.** An anchor table, a blank line, then
 an indented code block whose line is written `| ... |` is refused by
