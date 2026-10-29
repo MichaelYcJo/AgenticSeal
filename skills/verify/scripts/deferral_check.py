@@ -119,9 +119,10 @@ def block_entries(lines):
     ends the block. Three shapes make the whole block unread, an empty
     list: a line shallower than the block but not at zero, which no valid
     workflow holds; a line at the block's indent that is neither a key nor
-    an item beside any other entry; and a deeper line under a bare name or
-    a `- ` item, which continues that name, so that `  pull_request` above
-    `    push` is the one name "pull_request push".
+    an item beside any other entry; and a deeper line under an entry with
+    no colon, a bare name or a `- name` item, which continues that name, so
+    that `  pull_request` above `    push` is the one name
+    "pull_request push".
     """
     entries, bare, width, under_key = [], [], None, False
     for line in lines:
@@ -141,7 +142,7 @@ def block_entries(lines):
             if not under_key:
                 return []
             continue
-        under_key = not is_item and ":" in item
+        under_key = ":" in item
         if is_item:
             entries.append(item[1:])
         elif ":" in item:
