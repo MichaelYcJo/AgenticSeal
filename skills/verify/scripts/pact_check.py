@@ -47,7 +47,11 @@ the walk reads the `| Pact | Clause | Hash |` header alone, so such a row
 is graded by nothing, whatever header it stands under, or with none. A row
 that misses twice is passed over: one whose `Pact` cell is also a near
 miss, in backticks or one letter off a declared remote, or that holds no
-cell opening with a heading, has no anchor's shape a fact can tell.
+cell opening with a heading, has no anchor's shape a fact can tell. A
+line four columns in, a tab counting to the next multiple of four, is read
+as no row: below a blank line it is an indented code block, and right
+under a paragraph line, where GitHub renders it as text, it is a row with
+no header that is also indented, a row that misses twice.
 
 Every `pact:` token outside a closed fence, in any case, is refused at its
 line, with the row to write in its place: it is the inline anchor this
@@ -504,7 +508,9 @@ def row_cells(config, line):
     written without them reads too; None where LINE holds no pipe, does
     not read as a row even so, or stands four columns in, a tab counting to
     the next multiple of four (`blocks.columns`, as `gfm_table` counts a
-    heading's), which is an indented code block."""
+    heading's). Below a blank line such a line is an indented code block;
+    right under a paragraph line it is paragraph text, which the module
+    docstring states as a limit."""
     if "|" not in line:
         return None
     # Any tab in the leading run reaches four columns, so past this guard

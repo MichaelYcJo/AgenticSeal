@@ -546,8 +546,8 @@ class Test_check:
         on either side of the colon (#1132, S7), nor a table
         naming the pact's remote beside no heading, nor a row that misses
         twice, nor a row in an indented code block of a frame holding no
-        anchor table, four columns in by spaces or by a tab, is read: exit
-        0, and the
+        anchor table, four columns in by spaces or by a tab, below a blank
+        line or right under a paragraph line, is read: exit 0, and the
         `READ` and summary lines name the pact by its URL (contract rule
         14)."""
         legacy = "https://example.com/org/orders-api-legacy"
@@ -577,13 +577,16 @@ class Test_check:
             + f"| git@example.com:org/ordres-api.git | {CLAUSE_PATH} | deadbeef |\n",
         )
         # A frame that cites no pact holds no anchor table, and says nothing;
-        # a row in an indented code block, four spaces or a tab in, is no row.
+        # a row in an indented code block, four spaces or a tab in, is no row,
+        # and the same tab row right under a paragraph line is the stated
+        # limit (round 2, finding 1).
         write(
             world.web,
             "seal/threads/1790000002-z/frame/design.md",
             f"# Z\n\nx\n\n    | {PACT_URL} | {CLAUSE_PATH} | deadbeef |\n"
             f"\n\t| {PACT_URL} | {CLAUSE_PATH} | deadbeef |\n"
-            f"\n  \t| {PACT_URL} | {CLAUSE_PATH} | deadbeef |\n",
+            f"\n  \t| {PACT_URL} | {CLAUSE_PATH} | deadbeef |\n"
+            f"\nx\n\t| {PACT_URL} | {CLAUSE_PATH} | deadbeef |\n",
         )
         code, out = world.run()
         assert code == 0, out

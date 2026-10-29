@@ -51,16 +51,21 @@ the test module's copies:
   a table headed exactly `| Pact | Clause | Hash |`".
 
 Both pass `tests/behaviour/test_one_word_one_meaning.py`. W1's Status cell
-in `questions.md` is not a crafter's write, so it is still `open`.
+in `questions.md` is not a crafter's write; the orchestrator wrote it at
+`9c8252d3`.
 
 **Decisions made while writing the code.**
 
 - The row scan is `stray_rows`, and the line reader it uses is `row_cells`.
   `row_cells` adds an outer pipe only where the line leaves one out. A line
   whose leading spaces and tabs reach four columns, a tab counting to the
-  next multiple of four (`blocks.columns`), is an indented code block and
-  reads as no row. The passes case pins a four-space line, a tab line and a
-  two-spaces-and-a-tab line in the frame that holds no anchor table. At
+  next multiple of four (`blocks.columns`), reads as no row. Below a blank
+  line it is an indented code block. Right under a paragraph line GitHub
+  renders it as text, and round 2, finding 1, states that shape as a limit:
+  a row with no header that is also indented misses twice. The passes case
+  pins a four-space line, a tab line and a two-spaces-and-a-tab line below
+  blank lines, and a tab line under a paragraph line, in the frame that
+  holds no anchor table. At
   `ce323fe9` the code kept the leading spaces alone, so a tab-indented line
   read as a row; round 1, finding 1, found it, and `1783b55a` counts
   columns instead.
