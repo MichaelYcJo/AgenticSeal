@@ -9,7 +9,7 @@ target: 70472134, fixes d932b091..70472134
 severity: should
 location: `tests/skills/test_pact_check.py:546-552`
 evidence: read `tests/skills/test_pact_check.py:546-552`, `skills/verify/scripts/pact_check.py:50-54`
-verdict: open
+verdict: fixed e68d8b41
 regression: round-2#1
 
 The unit is the docstring of `test_accepts_a_signer_citing_the_current_clause`
@@ -48,7 +48,7 @@ pass's own.
         rule 14)."""
 ```
 
-answer:
+answer: The finding holds. The docstring of `test_accepts_a_signer_citing_the_current_clause` now carries the round's replacement word for word. It names a row four columns in, and then the two shapes apart: below a blank line an indented code block, right under a paragraph line the paragraph text the module docstring states as a limit. A text change pins nothing, so no case was run red; the case passes after the edit. I checked every sentence `5c046e90` added that names a code block or a paragraph line: the module docstring, the `row_cells` docstring, the comment over frame z, `trail/phases/phase-1.md` and `changelog.md`. Each names the paragraph shape apart from the code block, so this docstring was the only one that merged them. `gaps.md:26` and `trail/phases/phase-1.md:87` name the walker's shape, which stands below a blank line, where a code block is the right word.
 
 ## Confirmations
 
