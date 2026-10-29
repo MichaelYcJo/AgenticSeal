@@ -240,8 +240,8 @@ def test_a_candidate_carrying_a_pipe_is_escaped_where_candidates_are_derived():
 
 
 def test_the_question_never_guesses_and_says_so():
-    """`Orchestrator: Parity setup` states the rule for the original — *never
-    guess* — and the same holds here for the same reason: a row nobody chose
+    """`skills/parity-setup/SKILL.md` *Procedure* states the rule for the
+    original — *never guess* — and the same holds here for the same reason: a row nobody chose
     is what `templates/setup/config.md` argues against by name."""
     row = flat(bootstrap())
     row = row[row.index("The second question") :]

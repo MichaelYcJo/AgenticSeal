@@ -234,20 +234,27 @@ def test_parity_declaration_is_bootstrappable_not_hand_written():
         assert field in body, f"template lost the {field!r} field"
     assert "parity-paths.md" in body, "template must say where the local path goes"
 
-    # The bootstrap and the parity setup are the orchestrator's half of the
-    # skill since #292, so the file that has to point at the template is
-    # `orchestration.md`, not the `SKILL.md` every crafter spawn opens.
+    # The bootstrap is the orchestrator's half of the skill since #292. Its
+    # yes to the parity question follows the parity-setup procedure, which
+    # is the one statement of the four fields, so the bootstrap points at the
+    # procedure and the procedure points at the template. Read from the
+    # Bootstrap section alone: the acts table names the procedure too.
     implement = open(
         os.path.join(ROOT, "skills", "implement", "orchestration.md"),
         encoding="utf-8",
     ).read()
-    assert "templates/setup/parity.md" in implement, (
-        "bootstrap never points at the template"
+    bootstrap = implement.split("## Orchestrator: Bootstrap", 1)[1]
+    bootstrap = bootstrap.split("\n## ", 1)[0]
+    assert "skills/parity-setup/SKILL.md" in bootstrap, (
+        "the bootstrap's yes never reaches the parity-setup procedure"
     )
-    assert "seal/README.md" in implement
+    assert "seal/README.md" in bootstrap
 
     setup = os.path.join(ROOT, "skills", "parity-setup", "SKILL.md")
     assert os.path.isfile(setup), "no command for declaring parity later"
+    assert "templates/setup/parity.md" in open(setup, encoding="utf-8").read(), (
+        "the parity-setup procedure never points at the template"
+    )
     head = open(setup, encoding="utf-8").read().split("\n---\n", 1)[0]
     assert "disable-model-invocation: true" in head, (
         "parity-setup writes a declaration; it must not fire on its own"

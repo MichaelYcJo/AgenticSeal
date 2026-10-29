@@ -263,8 +263,8 @@ mode"*. The one call of step 1 then carries the `Broad gate` question alone.
 3. The orchestrator asks once:
    *"Does this project port behavior from an existing codebase? If so, tell
    me which one and I will set up parity mode."*
-   - **Yes**: the orchestrator runs the parity setup below, then continues
-     the work.
+   - **Yes**: the orchestrator reads `skills/parity-setup/SKILL.md`
+     *Procedure* and follows it, then continues the work.
    - **No**: the orchestrator continues and never raises it again. Bootstrap
      does not re-run, so the question does not either.
 
@@ -277,27 +277,6 @@ Ask only here. A repository that has a `seal/` carrying the marker at either
 place, `<repo>/seal/` or `$(git rev-parse --git-common-dir)/seal/`, has been
 through this: the mode is read from where the folder is, and asking again is the
 nagging this plugin exists to avoid.
-
-## Orchestrator: Parity setup
-
-Three of the four fields come from the machine; only one needs the user.
-The orchestrator never guesses the original: a comparison against a guessed
-repository proves nothing.
-
-1. **Candidates for the original.** Sibling directories that are git
-   repositories (a port usually sits beside its original), an upstream or
-   fork relation in `git remote -v`, and repositories whose paths overlap
-   this one's. The orchestrator presents what it found and lets the user pick
-   or give a path.
-2. **Baseline commit**: `HEAD` of the confirmed original checkout.
-3. **Policy root**: the ratified-policy directory the tree already has, or
-   `none`; never a proposed one.
-4. **Coordinate-trust exceptions**: empty. Rows arrive from real work.
-
-The orchestrator writes `seal/parity.md` from `templates/setup/parity.md` with
-those values, and records the machine-local checkout path in
-`~/.claude/agentic/parity-paths.md`, keyed by the origin remote URL. The path
-never goes in the committed file.
 
 ## Orchestrator: how the work is routed
 
@@ -663,8 +642,7 @@ one.
 |---|---|---|---|
 | Orchestrator: the order inside a ticket | `skills/implement/orchestration.md` | still a sentence | Nothing reads the order. Each step it sequences has a row of its own, and what the sequence itself asserts, which party runs when, is in no file a check opens. A run that opened the pull request after the rounds leaves the same tree as one that opened it before them. Nothing reads the three rules under the steps either: a decision left in an issue comment, a `handoff.md` kept after its move and a recurring problem given no home leave a tree no check refuses |
 | The plan is approved at the spawn | `skills/implement/orchestration.md` | part of its parent's act | The approval line of the step where its parent's order spawns the crafter, and the rules the spawn prompt is written to. It names no act of its own |
-| Orchestrator: Bootstrap | `skills/implement/orchestration.md` | check: `hooks/mode-gate.py` | A root with no `Mode` row in `config.md` is exactly nobody was asked, and this gate stops the next command until `seal mode` writes it. It reaches the mode question alone. Nothing reads the `Broad gate` proposal, so a repository that was never offered candidates meets `seal gate`'s own refusal after the rounds have settled. The workflow file is written by `seal pr-checks install`, whose substitution of the version `tests/skills/test_seal.py` holds, and nothing checks that the orchestrator ran it under the second answer |
-| Orchestrator: Parity setup | `skills/implement/orchestration.md` | still a sentence | The four fields are derived by hand and nothing reads the result. The pull request's parity arm wakes on `seal/parity.md` existing, so a setup that never happened is silence rather than a refusal, and a guessed original produces a file that parses |
+| Orchestrator: Bootstrap | `skills/implement/orchestration.md` | check: `hooks/mode-gate.py` | A root with no `Mode` row in `config.md` is exactly nobody was asked, and this gate stops the next command until `seal mode` writes it. It reaches the mode question alone. Nothing reads the `Broad gate` proposal, so a repository that was never offered candidates meets `seal gate`'s own refusal after the rounds have settled. The workflow file is written by `seal pr-checks install`, whose substitution of the version `tests/skills/test_seal.py` holds, and nothing checks that the orchestrator ran it under the second answer. A yes at step 3 follows `skills/parity-setup/SKILL.md` *Procedure*, and nothing reads that it ran: the pull request's parity arm wakes on `seal/parity.md` existing, so a setup that never happened is silence rather than a refusal, and a guessed original produces a file that parses |
 | Orchestrator: how the work is routed | `skills/implement/orchestration.md` | check: `hooks/routing-edit-gate.py` | The first `Write`, `Edit` or `NotebookEdit` is refused until a declaration naming the branch stands under the `seal/` root or the session ran `seal no-work-item` on that branch, and `templates/setup/claude-md-block.md` carries the question's shape into every session on the machine. What neither reaches is the shape of the asking: a declaration built from four separate questions parses exactly like one built from the asking this section mandates |
 | Question 1 | `skills/implement/orchestration.md` | part of its parent's act | The three options of the first `AskUserQuestion` call its parent describes, put alone. It names no act of its own |
 | Question 2 | `skills/implement/orchestration.md` | part of its parent's act | The four boxes of the second call, put only after a `per axis` answer, and the ceiling on how many there may be. It names no act of its own |

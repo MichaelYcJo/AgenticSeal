@@ -13,8 +13,10 @@ policy, the original and the new code, with the original preserved where the
 policy is silent, and lets the `tracer` agent fetch what the original does.
 
 The `implement` skill's bootstrap asks this question once, when it first sets
-a repository up. This command is for when the answer was no at the time, when
-the layout predates the question, or when the original repository changes.
+a repository up, and a yes there runs the procedure below: the orchestrator
+reads this file and follows it, because the frontmatter keeps the skill from
+being invoked by the model. This command is for an answer given later, a
+layout that predates the question, or an original that changes.
 
 ## Procedure
 
