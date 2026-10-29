@@ -1,6 +1,6 @@
 # Implementation Plan: 1793240970-a-rename-runs-red-first-cases-as-new-behaviour
 
-Approved <date> by <who>, when `crafter` was spawned.
+Approved 2026-10-29 by the orchestrator under the owner's automation answer, when `crafter` was spawned for phases 1 and 2.
 
 ## Summary
 
