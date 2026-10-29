@@ -11,11 +11,12 @@ only. The deferral named something that was not there, which reads exactly
 like a deferral that was honoured.
 
 So this resolves the common answerer. Given a repo and a kind of check, it
-reports what would actually run it without being asked, and separates three
+reports what would actually run it without being asked, and separates five
 outcomes that a reader otherwise collapses into one:
 
   resolves        something runs it on pull requests
   wrong trigger   something runs it, but only after the point being deferred
+  unread trigger  something runs it on a trigger this cannot read; not counted
   local only      a pre-commit hook runs it on the committer's machine
   nothing         no one runs it
 
@@ -82,43 +83,148 @@ PRE_MERGE_EVENTS = {"pull_request", "pull_request_target", "merge_group"}
 KNOWN_LIMITS = (
     "reads command text, not a YAML graph: a runner reached through a "
     "composite action, a reusable workflow, or a script this cannot see "
-    "reads as absent"
+    "reads as absent; an event's filters (types, branches, paths) are not "
+    "read, so a pull_request trigger limited to closed pull requests counts "
+    "as answering; a trigger written as a flow mapping, or as a flow list "
+    "across lines, reads as unread and is not counted"
 )
+
+# YAML's white space inside a line: a space or a tab, the tab as YAML 1.2
+# reads it. Python's `\s` and a bare `str.strip()` also take U+00A0 and the
+# other Unicode spaces, which YAML reads as text, so every reader below
+# strips and matches this. Two tests are wider on purpose, and both only
+# refuse: `block_entries` and `continued` read a line whose text opens with
+# any other space as unread.
+SPACE = " \t"
+# One character of SPACE, for the patterns below.
+SPACE_CHAR = f"[{SPACE}]"
+# A workflow's trigger key at the start of a line, bare or in either quote,
+# and the text after its colon. The colon ends the line or SPACE follows it:
+# `on:pull_request` is one plain scalar in YAML, not the key.
+ON_KEY = re.compile(rf"""^(?:on|"on"|'on'){SPACE_CHAR}*:({SPACE_CHAR}.*|)$""")
+# A mapping key in a block line: the text before the first colon that ends
+# the line or that SPACE follows. `pull_request:foo` is one scalar.
+KEY = re.compile(rf"(.*?):(?:{SPACE_CHAR}|$)")
+# A YAML comment: a `#` that opens the text or follows SPACE, to the end of
+# the line.
+COMMENT = re.compile(rf"(?:^|{SPACE_CHAR})#.*$")
+# The shape of a trigger's event name.
+EVENT_NAME = re.compile(r"[A-Za-z_][\w-]*")
+
+
+def unquoted(value):
+    """VALUE stripped of SPACE, with one pair of matching quotes around it
+    dropped."""
+    value = value.strip(SPACE)
+    if len(value) > 1 and value[0] == value[-1] and value[0] in "\"'":
+        value = value[1:-1]
+    return value
+
+
+def block_entries(lines):
+    """The entries of the block below a bare `on:` key, in file order: the
+    name of each key, or the text of each `- ` item, at the block's indent.
+    A block of one line that is neither a key nor an item is YAML's
+    `on: push` written on the next line, and that line is its one entry.
+
+    The block's indent is its first entry's: one space or more, or zero
+    where that entry is a `- ` item. A deeper line under a key belongs to
+    that key and is skipped. A line at indent zero that is not a `- ` item
+    ends the block. Four shapes make the whole block unread, an empty
+    list: a line whose text, after SPACE, opens with any other space,
+    which YAML reads as text and no key or event name starts with; a line
+    shallower than the block but not at zero, which no valid workflow
+    holds; a line at the block's indent that is neither a key nor an item
+    beside any other entry; and a deeper line under an entry that holds no
+    key, a bare name or a `- name` item, which continues that name, so
+    that `  pull_request` above `    push` is the one name
+    "pull_request push". A key is what `KEY` reads: text before a colon
+    that ends the line or that SPACE follows.
+    """
+    entries, bare, width, under_key = [], [], None, False
+    for line in lines:
+        code = COMMENT.sub("", line)
+        item = code.strip(SPACE)
+        if not item:
+            continue
+        if item[0].isspace():
+            return []
+        indent = len(code) - len(code.lstrip(SPACE))
+        is_item = item == "-" or item.startswith("- ")
+        if indent == 0 and not is_item:
+            break
+        if width is None:
+            width = indent
+        if indent < width:
+            return []
+        if indent > width:
+            if not under_key:
+                return []
+            continue
+        key = KEY.match(item)
+        under_key = key is not None
+        if is_item:
+            entries.append(item[1:])
+        elif key:
+            entries.append(key.group(1))
+        else:
+            bare.append(item)
+    if bare:
+        return bare if len(bare) == 1 and not entries else []
+    return entries
+
+
+def continued(lines):
+    """True where the first of LINES that is neither blank nor a comment is
+    indented, so it continues the value on the `on` line above it:
+    `on: pull_request` above `  push` is the one name "pull_request push".
+    A line opened by any space at all counts: one opened by U+00A0 is text
+    to YAML, and no top-level key starts with it."""
+    for line in lines:
+        code = COMMENT.sub("", line)
+        if code.strip(SPACE):
+            return code[0].isspace()
+    return False
 
 
 def read_events(text):
-    """Event names from a GitHub workflow's `on:` block.
+    """Event names from a GitHub workflow's top-level `on` key, or an empty
+    set where the trigger is unread.
 
-    Three forms in the wild: `on: push`, `on: [push, pull_request]`, and a
-    block of indented `event:` keys. Anything else lands as an empty set,
-    which is reported as unknown rather than as absent.
+    The key is `on`, `"on"` or `'on'` at the start of a line. Its value is
+    an inline name, `on: push`; a flow list closed on its line,
+    `on: [push, pull_request]`, with one trailing comma allowed; or a block
+    below the key, which
+    `block_entries` reads. A trailing comment and one pair of quotes around
+    a name are dropped. The trigger is unread where there is no `on` key,
+    where the value is anything else, where an inline value is continued on
+    a deeper line, where a block holds no entry, and where one entry is not
+    an event name: a set this returns is never part
+    of a trigger. `inspect` reports an unread trigger and does not count it.
     """
-    events = set()
     # exempt from splitlines: YAML keys
     lines = text.splitlines()
     for i, line in enumerate(lines):
-        m = re.match(r"^on\s*:\s*(.*)$", line)
-        if not m:
+        key = ON_KEY.match(line)
+        if not key:
             continue
-        rest = m.group(1).strip()
-        if rest.startswith("["):
-            events |= {e.strip() for e in rest.strip("[]").split(",") if e.strip()}
-        # exempt from heading_rule: a YAML comment in a workflow's on key
-        elif rest and not rest.startswith("#"):
-            events.add(rest)
+        value = COMMENT.sub("", key.group(1)).strip(SPACE)
+        if not value:
+            names = block_entries(lines[i + 1 :])
+        elif continued(lines[i + 1 :]):
+            return set()
+        elif value.startswith("[") and value.endswith("]"):
+            names = value[1:-1].split(",")
+            # YAML allows one trailing comma in a flow list: `[push, pull_request, ]`.
+            if not names[-1].strip(SPACE):
+                names.pop()
         else:
-            for follow in lines[i + 1 :]:
-                # exempt from heading_rule: a YAML comment in a workflow's on block
-                if not follow.strip() or follow.lstrip().startswith("#"):
-                    continue
-                indent = len(follow) - len(follow.lstrip())
-                if indent == 0:
-                    break
-                key = re.match(r"^\s*-?\s*([A-Za-z_][\w-]*)\s*:?\s*$", follow)
-                if key and indent <= 2:
-                    events.add(key.group(1))
-        break
-    return events
+            names = [value]
+        names = [unquoted(name) for name in names]
+        if names and all(EVENT_NAME.fullmatch(name) for name in names):
+            return set(names)
+        return set()
+    return set()
 
 
 def runners_in(text, kind):
@@ -184,7 +290,7 @@ def read(path):
 
 def inspect(root, kind):
     """(verdict, lines) for one kind. Verdict is the exit-code decision."""
-    resolving, wrong_trigger, local_only = [], [], []
+    resolving, wrong_trigger, unread, local_only = [], [], [], []
 
     for path in workflow_files(root):
         text = read(path)
@@ -193,9 +299,11 @@ def inspect(root, kind):
             continue
         name = os.path.relpath(path, root)
         events = read_events(text)
-        if not events or events & PRE_MERGE_EVENTS:
-            when = "on " + ", ".join(sorted(events)) if events else "trigger unread"
-            resolving.append((name, cmds, when))
+        if not events:
+            # A trigger nobody read is no fact this read, so it answers nothing.
+            unread.append((name, cmds))
+        elif events & PRE_MERGE_EVENTS:
+            resolving.append((name, cmds, "on " + ", ".join(sorted(events))))
         else:
             wrong_trigger.append((name, cmds, "on " + ", ".join(sorted(events))))
 
@@ -218,6 +326,10 @@ def inspect(root, kind):
     for name, cmds, when in wrong_trigger:
         lines.append(
             f"  too late  {name} ({when}, not pull_request) — {'; '.join(cmds)}"
+        )
+    for name, cmds in unread:
+        lines.append(
+            f"  unread    {name} (trigger unread, not counted) — {'; '.join(cmds)}"
         )
     for name, cmds, when in local_only:
         lines.append(

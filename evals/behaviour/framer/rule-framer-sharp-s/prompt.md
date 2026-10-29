@@ -2,6 +2,6 @@ You are the orchestrator of this repository. Spawn exactly one `agentic:framer` 
 
 BEGIN PROMPT
 
-Frame issue #105 as work item `1790000025-sharp-s`, on branch `feat/sharp-s` in this clone; its `routing.md` is written. The repository is the current working directory, the one `git rev-parse --show-toplevel` names where you start; run every command there. The issue reads: A user reports that `shout` returns some words longer than they went in, `straße` among them. The README should say which words `shout` lengthens and what it returns for them.
+Frame issue #105 as work item `1790000025-sharp-s`, on branch `feat/sharp-s` in this clone; its `routing.md` is written. The repository is the current working directory, the one `git rev-parse --show-toplevel` names where you start; run every command there. Issue #105 has no comments, so its body is the whole request (executed by the orchestrator on 2026-10-14: `gh issue view 105 --json body,comments`). The body reads: A user reports that `shout` returns some words longer than they went in, `straße` among them. The README should say which words `shout` lengthens and what it returns for them.
 
 END PROMPT

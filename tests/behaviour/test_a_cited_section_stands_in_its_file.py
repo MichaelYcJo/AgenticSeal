@@ -1,16 +1,33 @@
-"""A section another file cites is a heading or a bold rule lead that file has.
+"""A cited section stands in its file, and a cited contract rule in the contract.
 
-A file cites another file's section as the backticked path followed by the
-section's text in italics, the shape `skills/writing-style/SKILL.md` states.
-Before #1043 one case read such citations, and only those of
-`skills/implement/SKILL.md`, so a heading renamed in any other file left its
-citations pointing at nothing with the suite green. This module reads every
-citation in the tracked text files outside the records and resolves each
-against the cited file.
+This module reads two shapes of citation, the two that
+`skills/writing-style/SKILL.md` states. A file cites another file's section
+as the backticked path followed by the section's text in italics, and the
+section has to be a heading or a bold rule lead that file has. Before #1043
+one case read such citations, and only those of `skills/implement/SKILL.md`,
+so a heading renamed in any other file left its citations pointing at
+nothing with the suite green. A file cites a rule of
+`skills/agent-contract/SKILL.md` as `contract rule <N>`, and the contract and
+`agents/` cite it as `rule <N>`. The rule has to be a section the contract
+has. Before #1127 the case that reads these read six trees and five file
+extensions, and missed a citation wrapped across a `#` comment marker.
+
+Both readers read one corpus, `corpus(root)`: every path `git ls-files`
+lists, outside the prefixes of `tests/censuses.py#RECORDS`, that is on disk
+and decodes as UTF-8. Three kinds of tracked file are left out, each for its
+reason. A record keeps what it said when it was written, so its citations
+are not judged against today's files. A file that does not decode as UTF-8,
+such as an image, holds no text to cite from. A file the working tree
+deleted cites nothing. Every other tracked file is read, whatever its tree or
+extension. Each file is read through `flowing`, so a citation wrapped across
+`#` comment lines or across adjacent `.py` string literals reads as one. A
+`#` that opens a line of a `.md` file is a heading and is kept.
 
 The fixtures below cite files under `manual/`, a top-level entry this
 repository does not have, so the case that reads this repository does not
-read the fixtures' own citations.
+read the fixtures' own citations. A fixture's contract rule number is one
+above the contract's last section, computed when the case runs, so this
+file holds no dangling contract citation of its own.
 """
 
 import collections
@@ -32,6 +49,8 @@ from conftest import (
     op,
     spec,
 )
+from test_the_agent_contract_holds_the_universal_rules import CONTRACT, spans
+from test_the_agent_contract_holds_the_universal_rules import read as read_at_root
 
 rules = load_module(
     os.path.join(ROOT, "skills", "settle", "scripts", "rule_changes.py"),
@@ -163,26 +182,33 @@ def excuser(rel, line, said, text, pending):
     return rules.removed_by(pending, rel, text, line)
 
 
-def citations(root):
-    """Every citation of another file's section in the tracked text files
-    under ROOT outside the records, as a `Found`. A citation whose path's
-    first segment is no tracked top-level entry is not a repository file's,
-    and is not read."""
+def corpus(root):
+    """`(tracked, files)` for the repository at ROOT: `tracked` is every
+    path `git ls-files` lists, and `files` is `[(rel, text)]` for each of
+    them outside the records that is on disk and decodes as UTF-8."""
     listed = subprocess.run(
         ["git", "-C", root, "ls-files", "-z"], capture_output=True, check=True
     ).stdout.decode("utf-8")
     tracked = [rel for rel in listed.split("\0") if rel]
-    top = {rel.split("/")[0] for rel in tracked}
-    skills = {m.group(1) for m in map(SKILL_FILE.fullmatch, tracked) if m}
     # A positive sweep: a file the working tree deleted cites nothing.
     present, _missing = on_disk(
         root, [rel for rel in tracked if not rel.startswith(RECORDS)]
     )
+    texts = [(rel, text_of(os.path.join(root, rel))) for rel in present]
+    return tracked, [(rel, text) for rel, text in texts if text is not None]
+
+
+def citations(root):
+    """Every citation of another file's section in `corpus(root)`, as a
+    `Found`. A citation whose path's first segment is no tracked top-level
+    entry is not a repository file's, and is not read."""
+    tracked, files = corpus(root)
+    top = {rel.split("/")[0] for rel in tracked}
+    skills = {m.group(1) for m in map(SKILL_FILE.fullmatch, tracked) if m}
     pending = corrections(root)
     held, read, dangling, excused = {}, 0, [], []
-    for rel in present:
-        text = text_of(os.path.join(root, rel))
-        for line, target, said in cited_in(rel, text or "", skills):
+    for rel, text in files:
+        for line, target, said in cited_in(rel, text, skills):
             if target.split("/")[0] not in top:
                 continue
             read += 1
@@ -445,17 +471,23 @@ def test_a_path_outside_the_repository_is_not_read_and_a_missing_file_is(
 @pytest.mark.parametrize("record", RECORDS)
 def test_a_record_is_not_read(tmp_path, record):
     """S8: a file under a prefix of `tests/censuses.py#RECORDS` keeps what it
-    said when it was written, so its citations are not read."""
+    said when it was written, so its citations are not read, a contract
+    rule's among them (#1127 S4)."""
+    numbers = set(spans(read_at_root()))
+    cited = f"contract rule {max(numbers) + 1}\n"
     rel = record if record.endswith(".md") else record + "x.md"
     root = repo(
         tmp_path,
         {
-            rel: "`manual/b.md` *Gone*\n",
-            "a.md": "`manual/b.md` *Here*\n",
+            rel: "`manual/b.md` *Gone*\n" + cited,
+            "a.md": "`manual/b.md` *Here*\n" + cited,
             "manual/b.md": "## Here\n",
         },
     )
     assert citations(root) == Found(1, [], [])
+    assert contract_dangling(corpus(root)[1], numbers) == [
+        ("a.md:2", f"rule {max(numbers) + 1}")
+    ]
 
 
 # --- a pending correction in the policy root (S9) ----------------------------
@@ -572,3 +604,180 @@ def test_a_citation_no_pending_correction_excuses_fails(tmp_path, citing, change
         with pytest.raises(AssertionError, match=r"cites `manual/b\.md` \*Old name\*"):
             assert_resolved(root)
     assert caught == []
+
+
+# --- contract rule citations (#957) ------------------------------------------
+
+# A contract citation is `contract rule <N>`, one number each. The contract
+# itself and the agent definitions, which receive it at startup, cite the
+# bare `rule <N>`. Both are read across a line break.
+CITATION = re.compile(r"\b[Cc]ontract\s+rule\s+(\d+)\b")
+BARE_CITATION = re.compile(r"\b[Rr]ule\s+(\d+)\b")
+# A spelling that means a contract citation and is not the one CITATION
+# reads: a plural or a list, a possessive, or a capital `Rule`.
+NEAR_CITATION = re.compile(r"\b[Cc]ontract(?:'s)?\s+[Rr]ules?\s+\d")
+BARE_HOMES = ("agents",)
+
+
+def cited_sections(rel, text):
+    """[(line, number)] for every contract rule `rel` cites, at the line the
+    citation starts on, read through `flowing`."""
+    bare = rel == CONTRACT.replace(os.sep, "/") or rel.split("/")[0] in BARE_HOMES
+    pattern = BARE_CITATION if bare else CITATION
+    flow = flowing(rel, text)
+    return [
+        (flow.count("\n", 0, m.start()) + 1, int(m.group(1)))
+        for m in pattern.finditer(flow)
+    ]
+
+
+def contract_dangling(files, numbers):
+    """[(path:line, rule N)] for every rule FILES, a list of `(rel, text)`,
+    cites that is not in NUMBERS, the contract's section numbers."""
+    out = []
+    for rel, text in files:
+        for lineno, n in cited_sections(rel, text):
+            if n not in numbers:
+                out.append((f"{rel}:{lineno}", f"rule {n}"))
+    return out
+
+
+def test_every_cited_section_exists():
+    """T3: every contract section the tree cites is a section the contract
+    has. #957 moved two numbers (the old rule 16 into rule 11, the old rule 17 to rule 16),
+    and a citation left at an old number points a reader at a different rule
+    or at none."""
+    numbers = set(spans(read_at_root()))
+    _, files = corpus(ROOT)
+    assert len(files) > 100, "the corpus held almost nothing to read"
+    assert sum(len(cited_sections(r, t)) for r, t in files) > 50, (
+        "almost no citation was recognised, so a pass would mean nothing"
+    )
+    assert not contract_dangling(files, numbers), contract_dangling(files, numbers)
+
+
+@pytest.mark.parametrize(
+    "rel, line",
+    [
+        ("docs/x.md", "as contract rule {n} says"),
+        ("skills/x/SKILL.md", "(contract rule {n})"),
+        ("hooks/x.py", "Contract rule {n} each"),
+        ("skills/x/SKILL.md", "as the contract\nrule {n} says"),
+        ("agents/x.md", "which rule {n} names"),
+        ("agents/x.md", "which contract rule {n} names"),
+        ("skills/agent-contract/SKILL.md", "rule {n} says"),
+    ],
+)
+def test_a_citation_above_the_last_section_is_caught(rel, line):
+    """T3 can fail: in every tree and every spelling, a number one above the
+    last heading is named, at the line the citation starts on."""
+    numbers = set(spans(read_at_root()))
+    text = line.format(n=max(numbers) + 1)
+    assert contract_dangling([(rel, text)], numbers) == [
+        (f"{rel}:1", f"rule {max(numbers) + 1}")
+    ]
+
+
+def test_a_wrapped_citation_is_named_at_the_line_it_starts_on():
+    numbers = set(spans(read_at_root()))
+    text = f"intro\nas the contract\nrule {max(numbers) + 1} says"
+    assert contract_dangling([("skills/x/SKILL.md", text)], numbers) == [
+        ("skills/x/SKILL.md:2", f"rule {max(numbers) + 1}")
+    ]
+
+
+def test_a_bare_rule_outside_the_contracts_homes_is_not_a_citation():
+    """Outside the contract and `agents/`, `rule <N>` can be any list's rule,
+    such as the behaviour suite's pass rules, so only `contract rule <N>`
+    is read there."""
+    numbers = set(spans(read_at_root()))
+    text = f"pass rule {max(numbers) + 1} holds"
+    assert contract_dangling([("hooks/x.py", text)], numbers) == []
+
+
+# Files the six-tree walk #1127 replaced did not read: a file at the top
+# level, a tree it skipped, and a `.yml` file inside a tree it walked.
+OUTSIDE_THE_SIX_TREES = (
+    "CLAUDE.md",
+    ".github/workflows/x.yml",
+    "evals/scripts/x.py",
+    "templates/x.yml",
+)
+
+
+def test_a_file_outside_the_six_trees_is_read(tmp_path):
+    """#1127 S3: every tracked text file outside the records is read,
+    whatever its tree or extension."""
+    numbers = set(spans(read_at_root()))
+    n = max(numbers) + 1
+    root = repo(
+        tmp_path, {rel: f"as contract rule {n} says\n" for rel in OUTSIDE_THE_SIX_TREES}
+    )
+    assert sorted(contract_dangling(corpus(root)[1], numbers)) == sorted(
+        (f"{rel}:1", f"rule {n}") for rel in OUTSIDE_THE_SIX_TREES
+    )
+
+
+# A citation wrapped across `#` comment lines, flush and indented, and one
+# split across two adjacent `.py` string literals. Each starts on line 1.
+WRAPPED_IN_CODE = {
+    "hooks/x.py": "# as the contract\n# rule {n} says\n",
+    "hooks/x.yml": "  # as the contract\n  # rule {n} says\n",
+    "hooks/y.py": 'WHY = ("as the contract "\n       "rule {n} says")\n',
+}
+
+
+@pytest.mark.parametrize("rel", WRAPPED_IN_CODE)
+def test_a_citation_wrapped_in_code_is_named_at_the_line_it_starts_on(tmp_path, rel):
+    """#1127 S5 and S6: comment markers are dropped and adjacent literals
+    joined before the citation is read, and the line it starts on is
+    named."""
+    numbers = set(spans(read_at_root()))
+    n = max(numbers) + 1
+    root = repo(tmp_path, {rel: WRAPPED_IN_CODE[rel].format(n=n)})
+    assert contract_dangling(corpus(root)[1], numbers) == [(f"{rel}:1", f"rule {n}")]
+
+
+def near_citations(rel, text):
+    """[line] where a near miss of `contract rule <N>` starts in file REL,
+    read through `flowing`: such a spelling is neither read as a citation
+    nor let pass."""
+    flow = flowing(rel, text)
+    return [
+        flow.count("\n", 0, m.start()) + 1
+        for m in NEAR_CITATION.finditer(flow)
+        if not CITATION.match(flow, m.start())
+    ]
+
+
+def test_no_file_cites_the_contract_in_a_near_miss():
+    found = [
+        f"{rel}:{n}" for rel, text in corpus(ROOT)[1] for n in near_citations(rel, text)
+    ]
+    assert not found, (
+        "cite one contract rule as `contract rule <N>`, one number each: "
+        + ", ".join(found)
+    )
+
+
+@pytest.mark.parametrize(
+    "shape",
+    ["Contract Rule {n}", "contract rules {m} and {n}", "the contract's rule {n}"],
+)
+def test_a_near_miss_citation_is_refused_at_its_line(shape):
+    """A capital `Rule`, a plural with a list, and a possessive each mean a
+    contract citation the reader does not read, so each is refused at the
+    line it starts on; the shapes are built here so this file holds none."""
+    assert near_citations("docs/x.md", "intro\n" + shape.format(m=7, n=21)) == [2]
+
+
+def test_a_near_miss_wrapped_across_comment_markers_is_refused_at_its_line():
+    """#1127 S7: a near miss wrapped across `#` comment lines is read as
+    one, and refused at the line it starts on."""
+    assert near_citations("hooks/x.py", "# per the contract's\n# rule 7\n") == [1]
+
+
+def test_the_one_spelling_is_no_near_miss():
+    assert (
+        near_citations("docs/x.md", "intro\ncontract rule 21 and Contract rule 3") == []
+    )

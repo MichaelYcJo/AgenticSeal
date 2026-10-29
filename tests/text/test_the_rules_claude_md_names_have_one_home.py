@@ -93,9 +93,11 @@ RULES = {
 # `CLAUDE.md` is loaded into every session; the four code comments cited it
 # for the identifiers rule until this work pointed them at the home.
 LINKED = {
-    # The cadence row left `CLAUDE.md` with #940: its home is opened at the
-    # build (`agents/crafter.md` step 1), so `CLAUDE.md` no longer carries it.
-    "CLAUDE.md": ("merge", "identifiers", "batch"),
+    # `CLAUDE.md` holds the core values and links only the rule its first
+    # value names. The cadence row left it with #940, and the merge and
+    # identifiers rows with #1169: no agent merges, and `agents/proofer.md`
+    # links the identifiers rule where review reads it.
+    "CLAUDE.md": ("batch",),
     ".github/scripts/plugin_directory_check.py": ("identifiers",),
     "tests/github/test_plugin_directory_check.py": ("identifiers",),
     "tests/test_conftest.py": ("identifiers",),
@@ -212,12 +214,13 @@ def test_a_restored_copy_is_named():
 def test_a_removed_link_is_named():
     """The other half can fail too: a row that drops its home's path is named,
     and so is one that keeps the path and drops the section."""
+    proofer = "agents/proofer.md"
     texts = tree()
-    texts["CLAUDE.md"] = texts["CLAUDE.md"].replace(CONTRIBUTING, "the guide")
-    assert ("CLAUDE.md", "identifiers") in unlinked(texts)
+    texts[proofer] = texts[proofer].replace(CONTRIBUTING, "the guide")
+    assert (proofer, "identifiers") in unlinked(texts)
     texts = tree()
-    texts["CLAUDE.md"] = texts["CLAUDE.md"].replace("*House rules*", "")
-    assert ("CLAUDE.md", "identifiers") in unlinked(texts)
+    texts[proofer] = texts[proofer].replace("*House rules*", "")
+    assert (proofer, "identifiers") in unlinked(texts)
 
 
 def test_a_section_stops_at_its_sibling():

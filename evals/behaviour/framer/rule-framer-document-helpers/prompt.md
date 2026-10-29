@@ -2,6 +2,6 @@ You are the orchestrator of this repository. Spawn exactly one `agentic:framer` 
 
 BEGIN PROMPT
 
-Frame issue #104 as work item `1790000024-document-helpers`, on branch `feat/document-helpers` in this clone; its `routing.md` is written. The repository is the current working directory, the one `git rev-parse --show-toplevel` names where you start; run every command there. The issue reads: The README says nothing about what the helpers do. Document each one.
+Frame issue #104 as work item `1790000024-document-helpers`, on branch `feat/document-helpers` in this clone; its `routing.md` is written. The repository is the current working directory, the one `git rev-parse --show-toplevel` names where you start; run every command there. Issue #104 has no comments, so its body is the whole request (executed by the orchestrator on 2026-10-14: `gh issue view 104 --json body,comments`). The body reads: The README says nothing about what the helpers do. Document each one.
 
 END PROMPT

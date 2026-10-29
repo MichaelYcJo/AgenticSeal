@@ -44,7 +44,10 @@ one and below the title where it does not, and deletes that line in the
 commit that folds them. Before the frame is committed, the orchestrator
 folds the decision into the issue body instead
 (`docs/issues-and-milestones.md` *An issue is its body and its comments
-together*).
+together*). The orchestrator's prompt that spawns the framer hands it the
+issue whole: the body as folded, and one line naming the comments the issue
+has, none or each comment's link, with the command that read them,
+`gh issue view <N> --json body,comments`, and the date it ran.
 
 **Where a work item stands is read from `plan.md`'s Status column,
 `gaps.md` and the phase records.** The orchestrator that hands the work
@@ -449,7 +452,7 @@ one.
 
 | Act | File | Delivered by | Grounds |
 |---|---|---|---|
-| Orchestrator: the order inside a ticket | `skills/implement/orchestration.md` | still a sentence | Nothing reads the order. Each step it sequences has a row of its own, and what the sequence itself asserts, which party runs when, is in no file a check opens. A run that opened the pull request after the rounds leaves the same tree as one that opened it before them. Nothing reads the three rules under the steps either: a decision left in an issue comment, a `handoff.md` kept after its move and a recurring problem given no home leave a tree no check refuses |
+| Orchestrator: the order inside a ticket | `skills/implement/orchestration.md` | still a sentence | Nothing reads the order. Each step it sequences has a row of its own, and what the sequence itself asserts, which party runs when, is in no file a check opens. A run that opened the pull request after the rounds leaves the same tree as one that opened it before them. Nothing reads the three rules under the steps either: a decision left in an issue comment, a framer spawned with no line on the issue's comments, a `handoff.md` kept after its move and a recurring problem given no home leave a tree no check refuses |
 | The plan is approved at the spawn | `skills/implement/orchestration.md` | part of its parent's act | The approval line of the step where its parent's order spawns the crafter, and the rules the spawn prompt is written to. It names no act of its own |
 | Orchestrator: Bootstrap | `skills/implement/bootstrap.md` | check: `hooks/mode-gate.py` | A root with no `Mode` row in `config.md` is exactly nobody was asked, and this gate stops the next command until `seal mode` writes it. It reaches the mode question alone. Nothing reads the `Broad gate` proposal, so a repository that was never offered candidates meets `seal gate`'s own refusal after the rounds have settled. The workflow file is written by `seal pr-checks install`, whose substitution of the version `tests/skills/test_seal.py` holds, and nothing checks that the orchestrator ran it under the second answer. A yes at step 3 follows `skills/parity-setup/SKILL.md` *Procedure*, and nothing reads that it ran: the pull request's parity arm wakes on `seal/parity.md` existing, so a setup that never happened is silence rather than a refusal, and a guessed original produces a file that parses |
 | Orchestrator: how the work is routed | `skills/implement/orchestration.md` | check: `hooks/routing-edit-gate.py` | The first `Write`, `Edit` or `NotebookEdit` is refused until a declaration naming the branch stands under the `seal/` root or the session ran `seal no-work-item` on that branch, and `templates/setup/claude-md-block.md` carries the question's shape into every session on the machine. What neither reaches is the shape of the asking: a declaration built from four separate questions parses exactly like one built from the asking this section mandates |

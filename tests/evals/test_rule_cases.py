@@ -14,6 +14,8 @@ the case that reads the committed proofer cases.
 import json
 import os
 import re
+import subprocess
+import sys
 
 import pytest
 from conftest import ROOT, census_case, load_module
@@ -249,13 +251,50 @@ ELSEWHERE = PROBED.replace("prints `'STRASSE!'`", "prints the answer").replace(
 )
 UNLABELLED = PROBED.replace("executed: ", "")
 
+# The line a framer case's spawn opens the issue with: its comments, the
+# command that read them and the day, then the body.
+HANDED = re.compile(
+    r"Issue #(\d+) has no comments, so its body is the whole request "
+    r"\(executed by the orchestrator on \d{4}-\d{2}-\d{2}: "
+    r"`gh issue view \1 --json body,comments`\)\. The body reads: "
+)
+PAGE_CASE = "rule-framer-generated-page"
+# The page case's generator, and the files it reads and writes.
+PAGE_FILES = ("src/textutil.py", "scripts/helpers_page.py", "docs/helpers.md")
+ROW = "| Q1 | {question} | {who} | run it | none | open |\n"
+QUESTIONS = (
+    "# Questions for the planner: 1790000026-generated-page\n\n"
+    "| # | Question | Who can answer | Options & what each implies "
+    "| Default until answered | Status |\n|---|---|---|---|---|---|\n"
+)
+PAGE_QUESTION = "Does running `scripts/helpers_page.py` change `docs/helpers.md`?"
+# A frame that answers the page issue by running the generator, with TOKEN
+# standing for the revision its run writes, and two that leave the revision
+# elsewhere: in another section, or with no label.
+RAN = """# Design: 1790000026-generated-page
+
+## Grounding
+
+| Policy clause | What it fixes for this work |
+|---|---|
+| `scripts/helpers_page.py` | executed: `python3 scripts/helpers_page.py` in a clone rewrites `docs/helpers.md`, whose last line reads `Revision TOKEN` |
+
+## Scope
+
+The page changes when the script runs.
+"""
+RAN_ELSEWHERE = RAN.replace(", whose last line reads `Revision TOKEN`", "").replace(
+    "script runs.", "script runs: `Revision TOKEN`, executed."
+)
+RAN_UNLABELLED = RAN.replace("executed: ", "")
+
 
 class Test_framer_case:
-    def graders(self):
-        """`{grader name: (compiled pattern, match)}` of the sharp-s case's
-        regex graders, read back as a side records them."""
+    def graders(self, name="rule-framer-sharp-s"):
+        """`{grader name: (compiled pattern, match)}` of the regex graders of
+        the framer case NAME, read back as a side records them."""
         rc = load_script("rule_cases")
-        case = dict(rc.cases())["rule-framer-sharp-s"]
+        case = dict(rc.cases())[name]
         out = {}
         for name, text in case["graders"]:
             config = ni.grader_from(f"graders/{name}", text)["config"]
@@ -280,6 +319,76 @@ class Test_framer_case:
         found, _ = self.graders()["shape-answers-by-probe"]
         assert not found.search(ELSEWHERE)
         assert not found.search(UNLABELLED)
+
+    def test_every_spawn_hands_the_issue_whole(self):
+        """Guards #1158 S3: every framer case's spawn names the issue's
+        comments, with the command that read them and the day, before the
+        issue's body."""
+        rc = load_script("rule_cases")
+        cases = dict(rc.cases())
+        for index, (slug, issue, *_) in enumerate(rc.FRAMER_ISSUES, 1):
+            prompt = cases[f"rule-framer-{slug}"]["prompt"]
+            spawn = prompt.split("\nBEGIN PROMPT\n")[1]
+            handed = HANDED.search(spawn)
+            assert handed, slug
+            assert handed[1] == str(100 + index), slug
+            assert spawn[handed.end() :].startswith(issue), slug
+
+    def page(self, tmp_path):
+        """`(committed page, page after a run, the generator's text)` of the
+        page case: the files its scaffold writes, then its generator run once
+        over them, which prints nothing."""
+        rc = load_script("rule_cases")
+        files = scaffold_files(dict(rc.cases())[PAGE_CASE]["scaffold"])
+        for path in PAGE_FILES:
+            (tmp_path / path).parent.mkdir(parents=True, exist_ok=True)
+            (tmp_path / path).write_text(files[path], encoding="utf-8")
+        ran = subprocess.run(
+            [sys.executable, str(tmp_path / "scripts" / "helpers_page.py")],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=True,
+        )
+        assert ran.stdout == ""
+        after = (tmp_path / "docs" / "helpers.md").read_text(encoding="utf-8")
+        return files["docs/helpers.md"], after, files["scripts/helpers_page.py"]
+
+    def test_the_page_case_refuses_a_row_left_to_a_measurement(self):
+        """Guards #1158 S4: `shape-no-measurement-row` is a `not_contains`
+        regex that finds a `Who can answer` cell holding `a measurement`,
+        plain, backticked or bold, and no other answerer's row, nor the words
+        inside another cell or outside a table."""
+        found, match = self.graders(PAGE_CASE)["shape-no-measurement-row"]
+        assert match == "not_contains"
+        for who in ("a measurement", "`a measurement`", "**a measurement**"):
+            row = ROW.format(question=PAGE_QUESTION, who=who)
+            assert found.search(QUESTIONS + row), who
+        for who in ("a person", "the work"):
+            row = ROW.format(question=PAGE_QUESTION, who=who)
+            assert not found.search(QUESTIONS + row), who
+        asked = ROW.format(question="Is this left to a measurement?", who="a person")
+        assert not found.search(QUESTIONS + asked)
+        noted = "- **Answered.** Running the script left nothing to a measurement.\n"
+        assert not found.search(QUESTIONS + noted)
+
+    def test_the_page_case_reads_the_revision_only_a_run_writes(self, tmp_path):
+        """Guards #1158 S4: `shape-answers-by-run` is a `contains` regex that
+        finds the revision the generator's run writes on a line of
+        `## Grounding` labelled `executed`, and nowhere else; the committed
+        page and the generator's text hold no such revision, and a run
+        changes the page."""
+        before, after, script = self.page(tmp_path)
+        token = after.split()[-1]
+        assert before != after
+        assert token not in before
+        assert token not in script
+        found, match = self.graders(PAGE_CASE)["shape-answers-by-run"]
+        assert match == "contains"
+        assert found.search(RAN.replace("TOKEN", token))
+        assert not found.search(RAN.replace("TOKEN", "0" * len(token)))
+        assert not found.search(RAN_ELSEWHERE.replace("TOKEN", token))
+        assert not found.search(RAN_UNLABELLED.replace("TOKEN", token))
 
 
 test_census = census_case(TARGET)

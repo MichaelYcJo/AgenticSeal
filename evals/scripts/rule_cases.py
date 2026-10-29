@@ -17,11 +17,14 @@ whether a sentence of today's definition was followed:
            a commit, no probe left behind; and one rename proved by the
            case it already has: the old name gone, no case written new, no
            `seal mutate` run, and the phase record naming that case
-  framer   five issues to frame: the three documents with the mark and a
-           Phases table carrying `Verified by`, nothing written outside
-           the work item, and for the fifth, whose answer only running
-           `shout` gives, that answer in `## Grounding` labelled
-           `executed`
+  framer   six issues to frame, each handed whole with a line naming its
+           comments: the three documents with the mark and a Phases table
+           carrying `Verified by`, nothing written outside the work item;
+           for the fifth, whose answer only running `shout` gives, that
+           answer in `## Grounding` labelled `executed`; and for the sixth,
+           whose answer only running the page generator gives, the
+           revision that run writes in `## Grounding` labelled `executed`
+           and no row left to a measurement
   sealer   five reviewed items to guarantee: one to seal, one whose pull
            request body claims a change the tree lacks, one whose phase
            record claims `seen red` for a case green against the old code,
@@ -41,7 +44,9 @@ Exit codes: 0 written · 2 the arguments were unusable.
 import argparse
 import importlib.util
 import os
+import runpy
 import sys
+import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(
@@ -195,8 +200,9 @@ def fill(path, values):
     return f"sed \"{script}\" '{path}' > record.tmp && mv record.tmp '{path}'"
 
 
-def base_project(item, branch, planning, implementation):
-    """Scaffold lines for the project on `main` and BRANCH checked out."""
+def base_project(item, branch, planning, implementation, extra_files=None):
+    """Scaffold lines for the project on `main` and BRANCH checked out;
+    EXTRA_FILES, `{path: text}`, are committed on `main` with the rest."""
     files = {
         "src/textutil.py": TEXTUTIL,
         "src/__init__.py": "",
@@ -210,6 +216,7 @@ def base_project(item, branch, planning, implementation):
         "seal/README.md": optin.MARKER + "\n",
         "seal/config.md": CONFIG,
         f"seal/threads/{item}/routing.md": routing(branch, planning, implementation),
+        **(extra_files or {}),
     }
     lines = ["git init -q -b main ."]
     lines += [write(p, t) for p, t in files.items()]
@@ -550,11 +557,30 @@ What it returns does not change.
 
 # --- framer --------------------------------------------------------------------
 
-# A line of `## Grounding`, before the next `## ` heading, holding both the
-# label and the word running `shout("straße")` returns.
-PROBE_ANSWER = (
-    r"^## Grounding[ \t]*$(?:\n(?!## ).*)*?\n(?!## )(?=.*[Ee]xecuted)(?=.*STRASSE).*"
-)
+# The day the orchestrator of every framer case read the issue's comments,
+# fixed so the generator writes the same spawn on every run.
+COMMENTS_READ = "2026-10-14"
+# A table cell whose answerer is `a measurement`, backticked or bold or not.
+MEASUREMENT_ROW = r"\|[ \t]*[*`]*a measurement\b[^|\n]*\|"
+
+
+def grounding_answer(token):
+    """A line of `## Grounding`, before the next `## ` heading, holding both
+    the label `executed` and TOKEN, an answer only a run gives."""
+    return rf"^## Grounding[ \t]*$(?:\n(?!## ).*)*?\n(?!## )(?=.*[Ee]xecuted)(?=.*{token}).*"
+
+
+def no_measurement_row(folder):
+    """The grader that no row of `frame/questions.md` in the work item at
+    FOLDER leaves its answer to a measurement."""
+    return shape_regex(
+        "no-measurement-row",
+        {"source": "file", "path": f"{folder}/frame/questions.md"},
+        MEASUREMENT_ROW,
+        "No row of `frame/questions.md` leaves that answer to a measurement.",
+        flags="m",
+        match="not_contains",
+    )
 
 
 def probe_graders(folder):
@@ -564,9 +590,73 @@ def probe_graders(folder):
         shape_regex(
             "answers-by-probe",
             {"source": "file", "path": f"{folder}/frame/design.md"},
-            PROBE_ANSWER,
+            grounding_answer("STRASSE"),
             "The answer running `shout` gives is a line of `## Grounding` "
             "labelled `executed`.",
+            flags="m",
+        ),
+    ]
+
+
+# The page case's generator. It prints nothing and ends the page it writes
+# with a revision no reading of the source gives: the CRC-32 of the rest.
+HELPERS_PAGE = r'''"""Write docs/helpers.md from the docstrings in src/textutil.py."""
+
+import ast
+import os
+import zlib
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def main():
+    with open(os.path.join(ROOT, "src", "textutil.py"), encoding="utf-8") as f:
+        tree = ast.parse(f.read())
+    lines = ["# Helpers", ""]
+    for node in tree.body:
+        if isinstance(node, ast.FunctionDef):
+            lines += [f"## {node.name}", "", ast.get_docstring(node) or "", ""]
+    page = "\n".join(lines)
+    revision = format(zlib.crc32(page.encode("utf-8")), "08x")
+    with open(os.path.join(ROOT, "docs", "helpers.md"), "w", encoding="utf-8") as f:
+        f.write(f"{page}\nRevision {revision}\n")
+
+
+if __name__ == "__main__":
+    main()
+'''
+# The page as committed, which a run of the generator changes.
+HELPERS_STALE = "# Helpers\n\n## shout\n\nReturn TEXT upper-cased.\n"
+PAGE_FILES = {"scripts/helpers_page.py": HELPERS_PAGE, "docs/helpers.md": HELPERS_STALE}
+
+
+def page_revision():
+    """The revision the page case's generator writes, run once over the
+    files its scaffold commits, in a directory removed after it."""
+    with tempfile.TemporaryDirectory() as root:
+        for path, text in {"src/textutil.py": TEXTUTIL, **PAGE_FILES}.items():
+            os.makedirs(os.path.join(root, os.path.dirname(path)), exist_ok=True)
+            with open(os.path.join(root, path), "w", encoding="utf-8") as f:
+                f.write(text)
+        runpy.run_path(
+            os.path.join(root, "scripts", "helpers_page.py"), run_name="__main__"
+        )
+        with open(os.path.join(root, "docs", "helpers.md"), encoding="utf-8") as f:
+            return f.read().split()[-1]
+
+
+def page_graders(folder):
+    """The page case's own graders for the work item at FOLDER: the
+    revision running the generator writes is in `## Grounding` labelled
+    `executed`, and no row leaves that answer to a measurement."""
+    return [
+        no_measurement_row(folder),
+        shape_regex(
+            "answers-by-run",
+            {"source": "file", "path": f"{folder}/frame/design.md"},
+            grounding_answer(page_revision()),
+            "The revision running `scripts/helpers_page.py` writes is a line of "
+            "`## Grounding` labelled `executed`.",
             flags="m",
         ),
     ]
@@ -594,19 +684,30 @@ FRAMER_ISSUES = (
         "A user reports that `shout` returns some words longer than they went in, `straße` among them. The README should say which words `shout` lengthens and what it returns for them.",
         probe_graders,
     ),
+    (
+        "generated-page",
+        "`docs/helpers.md` is written by `python3 scripts/helpers_page.py` from the docstrings in `src/textutil.py`. Before we add a helper, the page should be current: say whether running the script today changes it, and what it reads after.",
+        page_graders,
+        PAGE_FILES,
+    ),
 )
 
 
-def framer_case(index, slug, issue, extra=None):
-    """One issue to frame as a work item whose routing is written. EXTRA,
-    where given, returns the case's own graders for its work item's folder."""
+def framer_case(index, slug, issue, extra=None, files=None):
+    """One issue to frame as a work item whose routing is written, handed
+    whole: a line naming its comments, then its body. EXTRA, where given,
+    returns the case's own graders for its work item's folder; FILES,
+    `{path: text}`, are the case's own files beside the project's."""
     item = f"179000002{index}-{slug}"
     branch = f"feat/{slug}"
-    lines = base_project(item, branch, "framer", "crafter")
+    lines = base_project(item, branch, "framer", "crafter", files)
     folder = f"seal/threads/{item}"
+    number = 100 + index
     spawn = (
-        f"Frame issue #{100 + index} as work item `{item}`, on branch `{branch}` in this clone; "
-        f"its `routing.md` is written. {HERE} The issue reads: {issue}"
+        f"Frame issue #{number} as work item `{item}`, on branch `{branch}` in this clone; "
+        f"its `routing.md` is written. {HERE} Issue #{number} has no comments, so its body "
+        f"is the whole request (executed by the orchestrator on {COMMENTS_READ}: "
+        f"`gh issue view {number} --json body,comments`). The body reads: {issue}"
     )
     graders = [
         behaviour.reach("framer"),

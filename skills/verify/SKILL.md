@@ -354,10 +354,11 @@ seal deferrals .              # is the test suite answered here?
 seal deferrals . --kind all   # tests, lint, typecheck
 ```
 
-It separates four outcomes that a reader otherwise collapses into one:
+It separates five outcomes that a reader otherwise collapses into one:
 
 - something answers on pull requests;
 - something answers, but only after the point being deferred;
+- something runs it, but its trigger could not be read, so it is not counted;
 - a local hook answers on the committer's machine only;
 - nothing answers.
 
@@ -365,8 +366,10 @@ Exit 1 means the row about to be written is not true.
 
 It reads command text rather than a YAML graph, so a runner reached through a
 composite action, a reusable workflow, or a script it cannot see reads as
-absent. Disagreement with what CI really does is a finding about this tool,
-not permission to keep the row.
+absent. It reads an event's name and not its filters, so a `pull_request`
+trigger limited to closed pull requests counts as answering. Disagreement
+with what CI really does is a finding about this tool, not permission to
+keep the row.
 
 ### And something has to read the row afterwards
 
