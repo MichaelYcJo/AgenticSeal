@@ -159,6 +159,8 @@ class Test_main:
             "on:\n  - pull_request # the run\n",
             "on: [pull_request, ]\n",
             "on:\n  pull_request\n",
+            "on:\n  pull_request\n    # the run\n",
+            "on: pull_request\n  # the run\n",
         ],
         ids=[
             "double-quoted-key",
@@ -167,6 +169,8 @@ class Test_main:
             "item-with-a-comment",
             "flow-list-trailing-comma",
             "name-on-the-line-below",
+            "name-with-a-comment-below",
+            "inline-name-with-a-comment-below",
         ],
     )
     def test_a_pull_request_trigger_in_the_wider_spellings_answers(self, repo, trigger):
@@ -188,6 +192,10 @@ class Test_main:
             "on:\n    pull_request:\n  push:\n",
             "on: [pull_request,,]\n",
             "on:\n  pull_request\n  push\n",
+            "on:\n  pull_request\n    push\n",
+            "on:\n  - pull_request\n    closed\n",
+            "on: pull_request\n  push\n",
+            "on: [pull_request]\n  push\n",
         ],
         ids=[
             "no-on-key",
@@ -199,6 +207,10 @@ class Test_main:
             "a-line-shallower-than-the-block",
             "two-trailing-commas",
             "two-names-on-the-lines-below",
+            "a-name-continued-on-a-deeper-line",
+            "an-item-continued-on-a-deeper-line",
+            "an-inline-name-continued-on-a-deeper-line",
+            "an-inline-list-continued-on-a-deeper-line",
         ],
     )
     def test_an_unread_trigger_is_reported_and_not_counted(self, repo, trigger):

@@ -114,14 +114,16 @@ def block_entries(lines):
     `on: push` written on the next line, and that line is its one entry.
 
     The block's indent is its first entry's: one space or more, or zero
-    where that entry is a `- ` item. A deeper line belongs to an entry and
-    is skipped. A line at indent zero that is not a `- ` item ends the
-    block. Two shapes make the whole block unread, an empty list: a line
-    shallower than the block but not at zero, which no valid workflow
-    holds, and a line at the block's indent that is neither a key nor an
-    item beside any other entry.
+    where that entry is a `- ` item. A deeper line under a key belongs to
+    that key and is skipped. A line at indent zero that is not a `- ` item
+    ends the block. Three shapes make the whole block unread, an empty
+    list: a line shallower than the block but not at zero, which no valid
+    workflow holds; a line at the block's indent that is neither a key nor
+    an item beside any other entry; and a deeper line under a bare name or
+    a `- ` item, which continues that name, so that `  pull_request` above
+    `    push` is the one name "pull_request push".
     """
-    entries, bare, width = [], [], None
+    entries, bare, width, under_key = [], [], None, False
     for line in lines:
         code = COMMENT.sub("", line)
         item = code.strip()
@@ -136,7 +138,10 @@ def block_entries(lines):
         if indent < width:
             return []
         if indent > width:
+            if not under_key:
+                return []
             continue
+        under_key = not is_item and ":" in item
         if is_item:
             entries.append(item[1:])
         elif ":" in item:
@@ -146,6 +151,17 @@ def block_entries(lines):
     if bare:
         return bare if len(bare) == 1 and not entries else []
     return entries
+
+
+def continued(lines):
+    """True where the first of LINES that is neither blank nor a comment is
+    indented, so it continues the value on the `on` line above it:
+    `on: pull_request` above `  push` is the one name "pull_request push"."""
+    for line in lines:
+        code = COMMENT.sub("", line)
+        if code.strip():
+            return code[0].isspace()
+    return False
 
 
 def read_events(text):
@@ -158,8 +174,9 @@ def read_events(text):
     below the key, which
     `block_entries` reads. A trailing comment and one pair of quotes around
     a name are dropped. The trigger is unread where there is no `on` key,
-    where the value is anything else, where a block holds no entry, and
-    where one entry is not an event name: a set this returns is never part
+    where the value is anything else, where an inline value is continued on
+    a deeper line, where a block holds no entry, and where one entry is not
+    an event name: a set this returns is never part
     of a trigger. `inspect` reports an unread trigger and does not count it.
     """
     # exempt from splitlines: YAML keys
@@ -171,6 +188,8 @@ def read_events(text):
         value = COMMENT.sub("", key.group(1)).strip()
         if not value:
             names = block_entries(lines[i + 1 :])
+        elif continued(lines[i + 1 :]):
+            return set()
         elif value.startswith("[") and value.endswith("]"):
             names = value[1:-1].split(",")
             # YAML allows one trailing comma in a flow list: `[push, pull_request, ]`.
