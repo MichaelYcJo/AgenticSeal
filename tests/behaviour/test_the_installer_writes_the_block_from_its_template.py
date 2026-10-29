@@ -276,6 +276,9 @@ def test_install_sh_has_no_project_scope(tmp_path):
     env = {**os.environ, "HOME": str(tmp_path), "CLAUDE_CONFIG_DIR": str(tmp_path)}
     out = bash(INSTALL, "--project", env=env, cwd=tmp_path)
     assert out.returncode != 0, out.stdout + out.stderr
+    assert "Unknown option --project" in out.stdout, (
+        f"the installer did not refuse the option by name:\n{out.stdout}{out.stderr}"
+    )
     assert not list(tmp_path.iterdir()), "the installer wrote a file for an option"
 
 
