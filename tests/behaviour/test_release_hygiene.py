@@ -1026,6 +1026,12 @@ def test_update_tells_the_user_when_the_preset_block_changed():
     assert "/agentic:preset-setup" in update, (
         "the update command names no way to take a changed block"
     )
+    # #1177: the block is one `@` line importing the core, so a block that
+    # differs is the core arriving, and the step says so rather than naming
+    # rules the block no longer holds.
+    assert "the core arrived" in " ".join(update.split()), (
+        "the update command does not say the core arrived with a changed block"
+    )
     assert "does not delete anything the user wrote" in update.lower(), (
         "taking a release started resolving overlaps with the user's own text"
     )

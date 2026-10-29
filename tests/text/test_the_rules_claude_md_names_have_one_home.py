@@ -21,6 +21,15 @@ The commit cadence's row left `CLAUDE.md` with #940, whose rule keeps a row
 only where the owning file cannot reach a session in time; its home stays
 pinned here so no carrier restates it.
 
+#1177 turned the preset block into one `@` line that imports the core, and
+three of its bullets moved to the file that applies each, pinned here the
+same way, with the block's template among the carriers:
+
+  lint, format and typecheck       skills/implement/SKILL.md, step 2
+  the project's package manager    skills/implement/SKILL.md, step 2
+  a worktree only when concurrent  skills/implement/orchestration.md,
+                                   *Orchestrator: the order inside a ticket*
+
 A needle is a sentence only the home writes and the link row does not need.
 No carrier may contain one, the home aside. The carriers are the files
 `67694cba:seal/specs/1791076836-every-rule-claude-md-restates-has-one-home/spec.md`
@@ -45,6 +54,7 @@ from conftest import ROOT
 BRANCHES = "docs/branch-and-release.md"
 CONTRIBUTING = "CONTRIBUTING.md"
 IMPLEMENT = "skills/implement/SKILL.md"
+ORCH = "skills/implement/orchestration.md"
 
 # rule: (home, section heading, needles only the home writes)
 RULES = {
@@ -85,6 +95,34 @@ RULES = {
             "Asking one at a time is the same failure spread out: three "
             "interruptions cost three waits.",
             "**A question you can answer is not a question.**",
+        ),
+    ),
+    # The preset block's tooling, lint and worktree bullets, each moved to
+    # the step that applies it when the block became one `@` line (#1177).
+    "lint": (
+        IMPLEMENT,
+        "2. Implement test-first, and let each rule name its test",
+        (
+            "**Before each commit, lint, format and typecheck the files it changes**",
+            "`hooks/lint-python.py` already runs `ruff` on each Python file an "
+            "edit tool saves",
+        ),
+    ),
+    "tooling": (
+        IMPLEMENT,
+        "2. Implement test-first, and let each rule name its test",
+        (
+            "The project's own package manager wins; where it names none, "
+            "Python runs through `uv` and Node.js through `pnpm`.",
+        ),
+    ),
+    "worktree": (
+        ORCH,
+        "Orchestrator: the order inside a ticket",
+        (
+            "The orchestrator makes the branch with `git switch`, and a "
+            "worktree only where another session works in the same clone at "
+            "the same time.",
         ),
     ),
 }

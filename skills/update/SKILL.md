@@ -123,12 +123,13 @@ surprised later:
 Everything between `<!-- agentic:start -->` and `<!-- agentic:end -->` is
 preset-owned and everything outside it is the user's, so replacing the region
 cannot touch a line the user wrote. `install.sh` relies on that boundary and so
-does `preset-setup`, which replaces an older block without asking and diffs
-only the remainder.
+does `preset-setup`, which replaces an older block without asking.
 
 `claude plugin update` installs agents, skills, and hooks and never opens
-`CLAUDE.md`, so without this step a release changes a rule while the
-always-loaded file keeps stating the old one.
+`CLAUDE.md`. The block is one `@` line that imports the core,
+`skills/core/SKILL.md`, from the marketplace clone, so a block that moved is
+one that no longer reaches the core where this release keeps it, and without
+this step the always-loaded file keeps the old line.
 
 ```bash
 diff <(sed -n '/agentic:start/,/agentic:end/p' ~/.claude/plugins/marketplaces/agenticseal/templates/setup/claude-md-block.md) \
@@ -139,24 +140,16 @@ diff <(sed -n '/agentic:start/,/agentic:end/p' ~/.claude/plugins/marketplaces/ag
 carries a copy. A session in a clone of the plugin's own repository reads the
 installed block too, which is the last release's, not the clone's:
 `bash install.sh "$HOME/.claude/CLAUDE.md"`, run from that clone, writes the
-clone's block there. `--project`, or option 2 at the script's prompt, writes
-a copy into the clone's own `CLAUDE.md`, which
+clone's block there. A copy in the clone's own `CLAUDE.md` would be read
+beside the installed one, which
 `tests/behaviour/test_the_installer_writes_the_block_from_its_template.py` refuses.
-
-Compare the scope that holds the block: `./CLAUDE.md` instead where the
-project owns it.
 
 | Result | What happens |
 |---|---|
 | No difference | nothing is said; the block is current |
-| The block differs | back up to `CLAUDE.md.bak`, replace the marker region, and name the rules that arrived. No question is asked, because the markers already say those bytes were never the user's |
-| A block between `<!-- specseal:start -->` and `<!-- specseal:end -->`, the markers every release before the rename to AgenticSeal wrote, and none under the new markers | the same as a block that differs: back up, replace that region with the block under the new markers, and name the rules that arrived. `bash install.sh` does the same |
-| No block on the machine | the user never installed the preset. Say so and stop: writing one in is an install, and an update is what was asked for |
-
-One case still needs a person. If a rule that just arrived also appears in the
-user's own text outside the markers, the file now states it twice, and the copy
-to remove is the user's. Name the overlap and point at `/agentic:preset-setup`,
-which classifies it and proposes the deletion through an approved diff.
+| The block differs | back up to `CLAUDE.md.bak`, replace the marker region, and say that the core arrived: the block is now the one line that imports it, and the rules an older block stated stand in the skills and definitions the plugin installs. No question is asked, because the markers already say those bytes were never the user's |
+| A block between `<!-- specseal:start -->` and `<!-- specseal:end -->`, the markers every release before the rename to AgenticSeal wrote, and none under the new markers | the same as a block that differs: back up, replace that region with the block under the new markers, and say that the core arrived. `bash install.sh` does the same |
+| No block on the machine | the user never installed the preset. Say so and stop: writing one in is an install, `bash install.sh` or `/agentic:preset-setup`, and an update is what was asked for |
 
 **5. Name both moves, cheapest first, and say what each one is known to do.**
 The user can finish the work in hand either way: the running session keeps
@@ -195,9 +188,8 @@ cheaper move and running it are different acts, and only the first is this
 command's job.
 
 **It does not delete anything the user wrote.** The preset block is replaced
-inside its markers, which is the whole of what the plugin owns. An overlap with
-the user's own text outside the markers is reported, never resolved: that
-deletion goes through `preset-setup`'s approved diff.
+inside its markers, which is the whole of what the plugin owns, and no line
+outside them is touched.
 
 **It does not decide the update is wanted.** If a release changes behavior the
 user relies on, the summary in step 3 is where the user finds that out, which

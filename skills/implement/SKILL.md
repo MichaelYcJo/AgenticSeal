@@ -257,6 +257,13 @@ review round records the commit it read, so work still sitting in the working
 tree is not visible to the reviewer at all — there is no spelling for *and
 also the four files that were not committed yet*.
 
+**Before each commit, lint, format and typecheck the files it changes**,
+with the tools the repository configures; the repository-wide run of each
+is the broad gate's (contract rule 2). `hooks/lint-python.py` already runs
+`ruff` on each Python file an edit tool saves, where the project configures
+ruff. The project's own package manager wins; where it names none, Python
+runs through `uv` and Node.js through `pnpm`.
+
 **An edit must be able to fail.** Prefer the `Edit` tool: a pattern that does
 not match is an error you see immediately. When the environment routes edits
 through the shell instead — `sed -i`, a heredoc, a short script — a

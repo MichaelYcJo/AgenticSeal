@@ -1,46 +1,29 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# AgenticSeal installer — CLAUDE.md marker-block merge only.
+# AgenticSeal installer — the CLAUDE.md marker block, and nothing else.
 #
 # Skills / agents / hooks / commands are distributed as a Claude Code plugin
-# (see README: /plugin install). The one thing a plugin cannot carry is a
-# CLAUDE.md block, so this script manages exactly that:
+# (see README: /plugin install), and every agent receives the core,
+# skills/core/SKILL.md, through its definition. A plugin hook could print the
+# core into a session too; the block is the harness's own memory mechanism
+# instead, which the user sees in /memory and can delete. It is one `@` line
+# importing the core from the plugin's marketplace clone, by a path relative
+# to the CLAUDE.md that holds it, so this script manages exactly that block:
 #
-#   1. Back up the existing ~/.claude/CLAUDE.md to CLAUDE.md.bak
+#   1. Back up the existing CLAUDE.md to CLAUDE.md.bak
 #   2. Insert or update the <!-- agentic:start/end --> block
-#   3. NEVER touch content outside the markers — if something outside looks
-#      like it overlaps with the block, print a warning and leave it alone.
-#      (Semantic dedup is /agentic:preset-setup's job, with your approval, not ours.)
+#   3. NEVER touch content outside the markers
+#   4. Warn when the file the block imports is not there: a dangling import
+#      loads nothing and says nothing
 #
-# Usage: bash install.sh                      → global (~/.claude/CLAUDE.md)
-#        bash install.sh --project            → this project (./CLAUDE.md, committed with the repo)
+# Usage: bash install.sh                      → ${CLAUDE_CONFIG_DIR:-~/.claude}/CLAUDE.md
 #        bash install.sh <target-CLAUDE.md>   → explicit path
-# Pick ONE scope — global and project CLAUDE.md both load, so installing the
-# block in both duplicates it.
+# There is no project scope: from a project's CLAUDE.md the import resolves
+# outside the working directory, which an approval dialog gates and a
+# headless session never loads.
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [ "${1:-}" = "--project" ]; then
-    TARGET="$(pwd)/CLAUDE.md"
-elif [ -n "${1:-}" ]; then
-    TARGET="$1"
-else
-    # No argument: ask when a terminal is available, otherwise default to global.
-    # Read from /dev/tty, not stdin — `curl | bash` occupies stdin with the script.
-    TARGET="$HOME/.claude/CLAUDE.md"
-    if { exec 3< /dev/tty; } 2>/dev/null; then
-        echo "Install scope:"
-        echo "  1) Global  — $HOME/.claude/CLAUDE.md  (every project on this machine)"
-        echo "  2) Project — $(pwd)/CLAUDE.md  (committed, teammates get it via git)"
-        printf "Choose [1/2] (default 1): "
-        read -r choice <&3 || choice=""
-        exec 3<&-
-        [ "$choice" = "2" ] && TARGET="$(pwd)/CLAUDE.md"
-    else
-        echo "(non-interactive: installing globally — use --project for project scope)"
-    fi
-fi
-# The block's one source. No other file in the repository carries a copy.
 SOURCE="$REPO_DIR/templates/setup/claude-md-block.md"
 START='<!-- agentic:start -->'
 END='<!-- agentic:end -->'
@@ -54,6 +37,11 @@ GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; NC='\033[0m'
 info()  { echo -e "${GREEN}[info]${NC} $1"; }
 warn()  { echo -e "${YELLOW}[warn]${NC} $1"; }
 error() { echo -e "${RED}[error]${NC} $1"; exit 1; }
+
+case "${1:-}" in
+    -*) error "Unknown option $1. Usage: bash install.sh [<target-CLAUDE.md>]" ;;
+esac
+TARGET="${1:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}/CLAUDE.md}"
 
 [ -f "$SOURCE" ] || error "Run this script from the AgenticSeal directory (templates/setup/claude-md-block.md not found)."
 grep -qF "$START" "$SOURCE" || error "templates/setup/claude-md-block.md has no preset markers."
@@ -102,24 +90,18 @@ else
         { cat "$TARGET.bak"; echo ""; printf '%s\n' "$BLOCK"; } > "$TARGET"
         info "Appended the preset block to $TARGET"
     fi
+fi
 
-    # Warn (never edit) when user-owned content outside the block may overlap.
-    OUTSIDE="$(awk -v s="$START" -v e="$END" '
-      index($0, s) { in_block = 1 }
-      !in_block    { print }
-      index($0, e) { in_block = 0 }
-    ' "$TARGET")"
-    for kw in 'uv' 'pnpm' 'worktree' 'Verification' 'Fix Rule'; do
-        if printf '%s\n' "$OUTSIDE" | grep -qiw -- "$kw"; then
-            warn "Outside the preset block, '$kw' appears — check for overlap with the block."
-        fi
-    done
+# The block's `@` line resolves against the directory of the file holding it.
+# A file that is not there loads nothing and nobody is told, so say it here,
+# the one moment anybody is looking.
+IMPORT="$(printf '%s\n' "$BLOCK" | sed -n 's/^@//p')"
+CORE="$(dirname "$TARGET")/$IMPORT"
+if [ -n "$IMPORT" ] && [ ! -f "$CORE" ]; then
+    warn "The block imports $CORE, which is not a file, so no session reads the core yet. Install the plugin (below); where its plugins directory is not beside $TARGET, the import cannot load."
 fi
 
 echo ""
 info "CLAUDE.md done. Remaining components install as a plugin:"
 echo "       claude → /plugin marketplace add MichaelYcJo/AgenticSeal"
 echo "                /plugin install agentic@agenticseal"
-echo ""
-info "For a reviewed, deduplicated merge instead of this mechanical one:"
-echo "       restore $TARGET.bak, then run /agentic:preset-setup inside Claude Code."

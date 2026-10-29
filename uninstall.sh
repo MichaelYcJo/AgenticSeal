@@ -9,9 +9,10 @@ set -euo pipefail
 # (removed by /plugin uninstall) or the user's own files, which no
 # uninstaller has any business deleting.
 #
-# Usage: bash uninstall.sh [target-CLAUDE.md]   (default: ~/.claude/CLAUDE.md)
+# Usage: bash uninstall.sh [target-CLAUDE.md]
+#        (default: ${CLAUDE_CONFIG_DIR:-~/.claude}/CLAUDE.md, install.sh's)
 
-TARGET="${1:-$HOME/.claude/CLAUDE.md}"
+TARGET="${1:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}/CLAUDE.md}"
 START='<!-- agentic:start -->'
 END='<!-- agentic:end -->'
 # The markers every release before the rename to AgenticSeal wrote; a block

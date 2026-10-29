@@ -41,8 +41,9 @@ def block_of(text):
     return "".join(lines[first : last + 1])
 
 
-def bash(script, target):
-    """Run SCRIPT on TARGET with bash, or skip where no working bash answers.
+def bash(script, *args, env=None, cwd=ROOT):
+    """Run SCRIPT with ARGS (a target, or nothing) under bash, or skip where
+    no working bash answers.
 
     `install.sh` is a POSIX installer a person runs from a clone, and a
     `windows-latest` runner has no shell to run it: `bash` on its PATH is the
@@ -53,12 +54,19 @@ def bash(script, target):
     if why:
         pytest.skip(f"bash: {why} -- the installer is a shell script")
     return subprocess.run(
-        ["bash", script, str(target)],
-        cwd=ROOT,
+        ["bash", script, *map(str, args)],
+        cwd=cwd,
         capture_output=True,
         encoding="utf-8",
         errors="replace",
+        env=env,
     )
+
+
+# The one line between the markers, and the tree path it names inside the
+# marketplace clone (#1177).
+IMPORT_LINE = "@plugins/marketplaces/agenticseal/skills/core/SKILL.md"
+CLONE = os.path.join("plugins", "marketplaces", "agenticseal")
 
 
 def test_the_template_is_the_block_and_nothing_else():
@@ -71,6 +79,22 @@ def test_the_template_is_the_block_and_nothing_else():
     )
     assert text.endswith(END + "\n"), "the template does not close with the end marker"
     assert text.count(START) == 1 and text.count(END) == 1
+
+
+def test_the_block_is_one_import_of_the_core_and_no_rule():
+    """S2 and S4 of #1177. Between the markers stands the one `@` line and
+    nothing else: each rule the block held stands in the file that applies
+    it, and the line, read relative to the `CLAUDE.md` that holds it, names
+    the core inside the marketplace clone, so the path past the clone is a
+    file of this tree."""
+    assert read(TEMPLATE) == f"{START}\n{IMPORT_LINE}\n{END}\n", (
+        "the block holds more than the markers and the core's `@` line"
+    )
+    tail = IMPORT_LINE[1:].split(CLONE.replace(os.sep, "/") + "/", 1)
+    assert len(tail) == 2 and tail[0] == "", IMPORT_LINE
+    assert os.path.isfile(os.path.join(ROOT, tail[1])), (
+        f"the block imports `{tail[1]}`, which this tree does not hold"
+    )
 
 
 def test_this_repository_carries_no_copy_of_the_block():
@@ -148,7 +172,7 @@ def test_install_sh_replaces_an_older_block_from_the_template(tmp_path):
     """The update path: a target already holding a block gets the template's
     block in its place, and its own text on either side stays."""
     target = tmp_path / "CLAUDE.md"
-    stale = read(TEMPLATE).replace("## Tooling", "## Tooling (old)")
+    stale = read(TEMPLATE).replace(IMPORT_LINE, "## Tooling\n- an old rule")
     assert stale != read(TEMPLATE)
     target.write_text(
         "# mine, above\n\n" + stale + "\n# mine, below\n", encoding="utf-8"
@@ -178,6 +202,81 @@ def test_install_sh_replaces_the_block_under_the_old_markers_once(tmp_path):
     again = bash(INSTALL, target)
     assert again.returncode == 0, again.stdout + again.stderr
     assert target.read_text(encoding="utf-8") == after
+
+
+def warnings_of(out):
+    """The lines `install.sh`'s `warn` printed."""
+    return [line for line in out.stdout.splitlines() if "[warn]" in line]
+
+
+def test_install_sh_warns_when_the_core_it_imports_is_not_there(tmp_path):
+    """S7 of #1177. A dangling `@` import loads nothing and says nothing, so
+    the installer says it once, at install time: it writes the block, exits
+    0, and names the file the block imports beside the target it wrote."""
+    target = tmp_path / "CLAUDE.md"
+    out = bash(INSTALL, target)
+    assert out.returncode == 0, out.stdout + out.stderr
+    assert block_of(target.read_text(encoding="utf-8")) == read(TEMPLATE)
+    missing = str(tmp_path / CLONE / "skills" / "core" / "SKILL.md")
+    assert [line for line in warnings_of(out) if missing in line], (
+        f"the installer did not name `{missing}`, which the block imports "
+        f"and which is not there:\n{out.stdout}"
+    )
+
+
+def test_install_sh_says_nothing_when_the_core_is_there(tmp_path):
+    """S7's sibling: with the core where the block imports it, the installer
+    warns about nothing, and the user's own text naming the old block's
+    words draws no overlap warning, since the block holds no rule to
+    overlap with."""
+    core = tmp_path / CLONE / "skills" / "core" / "SKILL.md"
+    core.parent.mkdir(parents=True)
+    core.write_text("# The core\n", encoding="utf-8")
+    target = tmp_path / "CLAUDE.md"
+    target.write_text(
+        "# mine\n- prefer uv and pnpm; a worktree per session\n"
+        "- Verification first; the 3+ Fix Rule\n",
+        encoding="utf-8",
+    )
+    out = bash(INSTALL, target)
+    assert out.returncode == 0, out.stdout + out.stderr
+    assert not warnings_of(out), out.stdout
+
+
+def test_both_scripts_default_to_the_config_directorys_file(tmp_path):
+    """With no argument both scripts work on the `CLAUDE.md` the harness
+    reads as the user's, `$CLAUDE_CONFIG_DIR/CLAUDE.md` where that is set,
+    which is the directory the block's relative import resolves against.
+    HOME is a scratch directory too, so a script that ignored the variable
+    writes there and not into the machine's own file."""
+    config = tmp_path / "config"
+    env = {
+        **os.environ,
+        "HOME": str(tmp_path / "home"),
+        "CLAUDE_CONFIG_DIR": str(config),
+    }
+    out = bash(INSTALL, env=env)
+    assert out.returncode == 0, out.stdout + out.stderr
+    assert block_of((config / "CLAUDE.md").read_text(encoding="utf-8")) == read(
+        TEMPLATE
+    )
+    out = bash(UNINSTALL, env=env)
+    assert out.returncode == 0, out.stdout + out.stderr
+    assert START not in (config / "CLAUDE.md").read_text(encoding="utf-8")
+    assert not (tmp_path / "home" / ".claude").exists(), (
+        "a script with no argument wrote under HOME while CLAUDE_CONFIG_DIR was set"
+    )
+
+
+def test_install_sh_has_no_project_scope(tmp_path):
+    """From a project's `CLAUDE.md` the import is external: an approval
+    dialog gates it and a headless session never loads it (#1177, probe d),
+    so the scope is gone. An option, `--project` among them, is refused
+    rather than taken for a file named after it."""
+    env = {**os.environ, "HOME": str(tmp_path), "CLAUDE_CONFIG_DIR": str(tmp_path)}
+    out = bash(INSTALL, "--project", env=env, cwd=tmp_path)
+    assert out.returncode != 0, out.stdout + out.stderr
+    assert not list(tmp_path.iterdir()), "the installer wrote a file for an option"
 
 
 def test_uninstall_sh_removes_the_block_under_the_old_markers(tmp_path):
