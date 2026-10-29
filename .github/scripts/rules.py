@@ -25,9 +25,16 @@ the suite runs.
 **How it errs:** it cannot tell a test that exists from one that asserts the
 rule, and a rule written with no `check:` line is read by nobody.
 
+`seal rules --check` reads the policy in force, the rule files plus the
+rule changes of the designs not yet settled, through
+`skills/settle/scripts/rule_changes.py#pending`. A refused line inside a
+section a pending `remove` takes out at the settle is excused, and named as
+`seal rules: excused: path:line: heading: why; <work item> removes this
+section at the settle`.
+
 Exit codes: `seal rules <doc>` 0 the document was read, whatever its lines say.
-`seal rules --check` 0 every line holds, 1 a line is refused, each named as
-`seal rules: path:line: heading: why`. 2 for either: a file it had to read cannot
+`seal rules --check` 0 every line holds or is excused, 1 a line is refused,
+each named as `seal rules: path:line: heading: why`. 2 for either: a file it had to read cannot
 be read, a module it reads through is not in the tree, or neither or both of
 DOC and `--check` were given.
 """
@@ -86,6 +93,10 @@ SIBLINGS = {
     "optin": (
         os.path.join("hooks", "lib", "optin.py"),
         "it is what finds the repository the command is typed in",
+    ),
+    "rule_changes": (
+        os.path.join("skills", "settle", "scripts", "rule_changes.py"),
+        "it is what reads the rule changes the settle has not yet written",
     ),
 }
 
@@ -289,28 +300,53 @@ def line_problems(root, line):
 
 
 def unresolved(root):
-    """`(failures, files, lines)`: each refusal in the rule files at `root`,
-    as `path:line: heading: why`, and how many rule files and check lines
-    were read."""
-    found, read, files = [], 0, rule_files(root)
+    """`(failures, excused, files, lines)`: each refusal in the rule files at
+    `root`, as `path:line: heading: why`; each refusal of a line inside a
+    section a pending `remove` takes out at the settle, the same with
+    `; <work item> removes this section at the settle` after it; and how
+    many rule files and check lines were read. The policy in force is the
+    rule files plus the pending rule changes (`skills/implement/SKILL.md`
+    *Document layout — two roots, three lifetimes*), so a line it no longer
+    holds is not refused."""
+    found, excused, read, files = [], [], 0, rule_files(root)
+    changes = sibling("rule_changes")
+    policy = sibling("config").policy_root(os.path.join(root, "seal"))
+    items = changes.pending(root, policy)
     for path, text in files.items():
         for number, heading, line in check_lines(text):
             read += 1
-            for problem in line_problems(root, line):
-                found.append(f"{path}:{number}: {heading}: {problem}")
-    return found, len(files), read
+            problems = line_problems(root, line)
+            item = changes.removed_by(items, path, text, number) if problems else None
+            for problem in problems:
+                failure = f"{path}:{number}: {heading}: {problem}"
+                if item:
+                    excused.append(
+                        f"{failure}; {item} removes this section at the settle"
+                    )
+                else:
+                    found.append(failure)
+    return found, excused, len(files), read
 
 
 def check(root):
-    """Print each refusal and the count read; the exit code is the verdict."""
-    found, files, lines = unresolved(root)
+    """Print each refusal, each excused line and the count read; the exit
+    code is the verdict, and an excused line is no refusal."""
+    found, excused, files, lines = unresolved(root)
     for failure in found:
         print(f"seal rules: {failure}")
+    for line in excused:
+        print(f"seal rules: excused: {line}")
     if found:
         print(
             f"seal rules: {len(found)} refused in {lines} check lines of {files} rule files."
         )
         return 1
+    if excused:
+        print(
+            f"seal rules: {len(excused)} excused in {lines} check lines of {files} "
+            "rule files, and every other line holds."
+        )
+        return 0
     print(f"seal rules: all {lines} check lines in {files} rule files hold.")
     return 0
 

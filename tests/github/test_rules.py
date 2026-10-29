@@ -16,6 +16,7 @@ and the settle skill.
 """
 
 import fnmatch
+import glob
 import importlib.util
 import os
 import re
@@ -507,6 +508,33 @@ class Test_main:
         assert code == 1, out
         assert "is no eval case: write `evals/behaviour/<agent>/<case>/`" in out, out
 
+    def test_a_refusal_in_a_section_a_pending_remove_takes_out_is_excused_and_named(
+        self, tmp_path, capsys
+    ):
+        """The policy in force is the rule files plus the pending `## Rule
+        changes`, so a `check:` line inside a section an unsettled design's
+        `remove` takes out at the settle is excused: printed with the work item
+        that removes it, and exit 0. A `remove` of another section excuses
+        nothing."""
+        gone = doc(rule("check: tests/test_gone.py"))
+        design = "seal/threads/1-a/frame/design.md"
+        removal = "# Design\n\n## Rule changes\n\n- remove\n  file: docs/a.md\n"
+        written = {"docs/a.md": gone, design: removal + "  section: The heading\n"}
+        code, out = checked(tmp_path, written, capsys)
+        assert code == 0, out
+        assert (
+            "seal rules: excused: docs/a.md:6: The heading: tests/test_gone.py does "
+            "not exist; seal/threads/1-a/ removes this section at the settle\n"
+        ) in out, out
+        assert (
+            "seal rules: 1 excused in 1 check lines of 1 rule files, and every other "
+            "line holds.\n"
+        ) in out, out
+        written[design] = removal + "  section: Another heading\n"
+        code, out = checked(tmp_path, written, capsys)
+        assert code == 1, out
+        assert "excused" not in out, out
+
     def test_a_check_and_a_document_together_or_neither_is_exit_2(
         self, tmp_path, capsys
     ):
@@ -525,30 +553,46 @@ class Test_main:
         files their targets name and the tests carrying their markers) one target
         renamed is exit 1 naming its line, and so is the old label planted in a
         file of every other rule-file glob, so a walk that read `docs/*.md` alone,
-        or read a renamed target as resolving, goes red here."""
+        or read a renamed target as resolving, goes red here. The pending designs
+        are copied too, so a line a pending `remove` excuses stays excused, and
+        no defect is planted in a file such a `remove` names."""
         assert rules.main(["--check", "--root", ROOT]) == 0, capsys.readouterr().out
         capsys.readouterr()
         files = rules.rule_files(ROOT)
         carriers = rules.markers(ROOT)
+        designs = glob.glob(os.path.join(ROOT, "seal", "threads", "*", "frame", "*.md"))
+        for path in designs:
+            destination = tmp_path / os.path.relpath(path, ROOT)
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(path, destination)
+        policy = rules.sibling("config").policy_root(os.path.join(ROOT, "seal"))
+        pending = rules.sibling("rule_changes").pending(ROOT, policy)
+        removing = {o.file for o, _ in pending if o.kind == "remove"}
         named, renamed = {}, None
         for rel, text in files.items():
             held = [(n, rules.parse(line)[0]) for n, _, line in rules.check_lines(text)]
             for target in (t for _, targets in held for t in targets):
                 if rules.MARKER.fullmatch(target):
-                    sources = [path for path, _, _ in carriers[target]]
+                    sources = [path for path, _, _ in carriers.get(target, ())]
                 elif target.endswith("/"):
                     sources = [target + rules.EVAL_CASE]
                 else:
                     sources = [target]
                 for source in sources:
+                    origin = os.path.join(ROOT, *source.split("/"))
+                    if not os.path.isfile(origin):
+                        continue  # an excused line's target, gone from the tree
                     destination = tmp_path / source
                     destination.parent.mkdir(parents=True, exist_ok=True)
-                    shutil.copyfile(os.path.join(ROOT, *source.split("/")), destination)
+                    shutil.copyfile(origin, destination)
             pattern = next(p for p in rules.RULE_FILES if fnmatch.fnmatchcase(rel, p))
             line = next((n for n, targets in held if targets), None)
             # One file per glob carries the planted defect, so a glob whose first
             # file names no target is planted there, not renamed in a later one.
-            if renamed is None and line is not None and pattern not in named:
+            # A file a pending `remove` names carries none.
+            if rel in removing:
+                pass
+            elif renamed is None and line is not None and pattern not in named:
                 lines = text.split("\n")
                 first = rules.parse(lines[line - 1].strip())[0][0]
                 lines[line - 1] = lines[line - 1].replace(

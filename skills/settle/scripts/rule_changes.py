@@ -10,6 +10,10 @@ order from git, `merge_order` reads it in local mode from the merge commits
 `settle` hands it, `group` joins the released designs whose operations name one
 place into one group, `unordered` names the pairs inside a group that no
 ancestry orders, and `section_lines` finds a section's lines in a document.
+`pending` reads the designs not yet settled, and `removed_by` says which of
+their `remove` items takes a line's section out, for the readers of the
+policy in force: `.github/scripts/rules.py` and
+`tests/behaviour/test_a_cited_section_stands_in_its_file.py`.
 `settle` prints what they read; nothing here writes a file.
 
 Headings and fences are read through
@@ -23,6 +27,7 @@ policy documents.
 """
 
 import collections
+import glob
 import importlib.util
 import os
 import re
@@ -220,6 +225,43 @@ def section_lines(text, section):
     while end > h + 1 and not lines[end - 1].strip():
         end -= 1
     return (h + 1, end), None
+
+
+# --- the pending designs, which the policy in force reads ---------------------
+
+
+def pending(root, policy_root):
+    """`[(Op, work item directory)]` for every item of a pending `## Rule
+    changes`: each `frame/design.md` under `<root>/seal/threads/`, read
+    through `parse` against POLICY_ROOT. A design that cannot be read as
+    UTF-8, or a section `parse` refuses, gives no item."""
+    found = []
+    pattern = os.path.join(glob.escape(root), "seal", "threads", "*", DESIGN)
+    for path in sorted(glob.glob(pattern)):
+        try:
+            with open(path, encoding="utf-8") as handle:
+                text = handle.read()
+        except (OSError, UnicodeDecodeError):
+            continue
+        item = (
+            f"seal/threads/{os.path.basename(os.path.dirname(os.path.dirname(path)))}/"
+        )
+        found += [(o, item) for o in parse(text, policy_root).ops or []]
+    return found
+
+
+def removed_by(items, rel, text, line):
+    """The work item directory of the first of ITEMS, as `pending` gives
+    them, that is a `remove` with no `from` whose section of REL holds LINE,
+    REL's text being TEXT; or None. That section leaves at the settle, so the
+    policy in force no longer holds the line."""
+    for o, item in items:
+        if o.file != rel or o.kind != "remove" or o.old is not None:
+            continue
+        span, _ = section_lines(text, o.section)
+        if span and span[0] <= line <= span[1]:
+            return item
+    return None
 
 
 # --- the released designs, by place and in merge order ------------------------
