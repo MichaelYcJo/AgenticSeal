@@ -208,6 +208,8 @@ class Test_main:
             "on: pull_request\xa0#x\n",
             "on:\n  pull_request:\n\xa0 push:\n",
             "on: pull_request\n\xa0push\n",
+            "on: pull_request\n\xa0\n",
+            "on: [pull_request,\xa0]\n",
         ],
         ids=[
             "no-on-key",
@@ -233,6 +235,8 @@ class Test_main:
             "a-comment-sign-after-a-unicode-space",
             "a-block-line-opened-by-a-unicode-space",
             "an-inline-name-above-a-line-opened-by-a-unicode-space",
+            "an-inline-name-above-a-line-of-a-unicode-space",
+            "a-flow-list-ending-in-a-unicode-space",
         ],
     )
     def test_an_unread_trigger_is_reported_and_not_counted(self, repo, trigger):
