@@ -32,6 +32,16 @@ and the clauses it fed back into the design are claims to check, and an
 account citing a clause it added is citing itself. Settle what you can; what
 only a person can answer stays a question. Do not edit it.
 
+Where `seal/config.md` has a `Pact` row, the proofer reads the work item's
+`frame/design.md` at stage 1 against the shape
+`skills/verify/scripts/pact_check.py` states under *What each frame is read
+for*, which is all `seal pact` reads. A line written as a pact anchor and
+outside that shape is a finding, whatever remote its `Pact` cell names:
+`seal pact` reads it as no anchor and reports the signer as citing nothing.
+Examples are a table under a plural or other wording of the anchor header,
+a row with no header, a row outside the anchor table, and any of these
+naming a remote one letter off a pact that row declares.
+
 Review beyond the changed files: new code that calls into untouched files
 puts their conditions and boundaries into effect for the first time, so
 follow every call the change introduces.

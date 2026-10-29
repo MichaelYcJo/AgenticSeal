@@ -24,20 +24,36 @@ reads nothing of the pact.
 
 ## What each frame is read for
 
-The anchor table is read by `hooks/lib/config.py#gfm_table`, and the cells
-are written bare. A row is graded where its `Pact` cell, compared
-normalised, is the origin URL of this repository; a row naming another pact
-is passed over. Refused at the row's line: a `Pact` cell that is not one
-remote URL, and, in a row naming this pact, a `Clause` cell that opens with
-no heading or a `Hash` cell that is not eight lowercase hex digits. Refused
-at the frame: every refusal of the walk, and a second anchor table. Another
-table below the anchor table, such as a section's policy table, ends it
-and is no refusal, whatever stands above its header; the walk steps over
-it and still refuses a row written after it, before the next heading
-(`gfm_table`'s BESIDE). Every
-`pact:` token outside a closed fence is refused at its line, with the row
-to write in its place: it is the inline anchor this command read through
-0.23.x.
+The anchor table is the first table whose header means
+`| Pact | Clause | Hash |`: each header cell is compared by `header_key`,
+case folded after one emphasis run wrapping the whole cell is removed, so
+`| pact | clause | hash |` and `| **Pact** | Clause | Hash |` head it too.
+It is read by `hooks/lib/config.py#gfm_table`, and the cells are written
+bare. A row is graded where its `Pact` cell, compared normalised, is the
+origin URL of this repository; a row naming another pact the signer's
+`Pact` row declares is passed over, for that pact's `seal pact` to grade.
+Refused at the row's line: a `Pact` cell that is not one remote URL, or
+that names a pact the signer's `Pact` row does not declare, which no
+`seal pact` grades, because another pact's reports the signer `ONE-SIDED`
+and reads none of its frames; and, in a row naming this pact, a `Clause`
+cell that opens with no heading or a `Hash` cell that is not eight
+lowercase hex digits. Refused at the frame: every refusal of the walk, and
+a second header `header_key` reads as the anchor table's. Another table
+below the anchor table, such as a section's policy table, ends it and is no
+refusal, whatever stands above its header; the walk steps over it and
+still refuses a row written after it, before the next heading
+(`gfm_table`'s BESIDE).
+
+Nothing else in a frame is read as an anchor. A table under a header
+`header_key` leaves out, such as `| Pact | Clause | Hashes |`, and a row no
+anchor table holds are neither graded nor refused, and the `READ` line does
+not count them.
+
+Every `pact:` token outside a closed fence, in any case, is refused at its
+line, with the row to write in its place: it is the inline anchor this
+command read through 0.23.x. A token with a space beside its colon is not
+read: prose writes the word before a colon and a space, and no release read
+that spelling as an anchor.
 
 ## Where the signers are
 
@@ -85,10 +101,10 @@ A pact under local mode has no history, so every mismatch there reads
      found on this machine
   2  unusable input: no pact here, a pact or file that cannot be read, a
      line of the machine-local map it does not read, a `BROKEN` anchor,
-     an anchor row it cannot grade or does not read, a `pact:` token, a
-     `Pact` row that will not parse, a relationship
-     recorded on one side only, or a pact's repository with no origin
-     remote
+     an anchor row it cannot grade or does not read, a row naming a pact
+     the signer does not declare, a `pact:` token, a `Pact` row that will
+     not parse, a relationship recorded on one side only, or a pact's
+     repository with no origin remote
 
 `BROKEN` is exit 2 and a mismatch is exit 1. Nothing is ever written.
 
@@ -187,11 +203,20 @@ NOT_FOUND, ONE_SIDED, REFUSED, UNREADABLE = (
 )
 # The anchor table's header, as the cells `gfm_table` matches a header by.
 ANCHOR_TABLE = ("Pact", "Clause", "Hash")
+# One emphasis run wrapping a whole header cell, as `header_key` removes it:
+# `*` or `_`, one to three long, the same run opening and closing the cell.
+# What it wraps is kept as written, so a space just inside a run, a second
+# run inside it or an escaping `\` stays in the key, and such a cell keys to
+# no cell of the anchor header.
+EMPHASIS_RUN = re.compile(r"(\*{1,3}|_{1,3})(.+)\1")
 # The inline anchor read through 0.23.x, refused wherever it stands outside
-# a closed fence: `pact:` with no letter, digit, `_`, `.`, `@`, `/` or `-`
-# before it, so `compact:` is no token, and a character that is not a space
-# after it. One pattern, and it names no typo.
-INLINE_TOKEN = re.compile(r"(?<![A-Za-z0-9_.@/-])pact:(?=\S)")
+# a closed fence: `pact:` in any case, so `PACT:` and `Pact:` too, with no
+# letter, digit, `_`, `.`, `@`, `/` or `-` before it, so `compact:` is no
+# token, and a character that is not a space after it. A space beside the
+# colon, `pact: x` or `pact :x`, is not read: prose writes the word before a
+# colon and a space, and no release read that spelling as an anchor. One
+# pattern, and it names no typo.
+INLINE_TOKEN = re.compile(r"(?<![A-Za-z0-9_.@/-])pact:(?=\S)", re.IGNORECASE)
 # The sentences a row or a token is refused in, each reading after its line.
 NOT_ONE_URL = (
     "the `Pact` cell is not one remote URL: it holds a space, a backtick or no "
@@ -205,6 +230,14 @@ NO_HEADING = (
 NOT_A_HASH = (
     "the `Hash` cell is not eight lowercase hex digits — write `00000000` "
     "until the first report names the real one"
+)
+# `{cell}` is the `Pact` cell as written, bare: `one_remote` refuses one
+# holding a backtick before this sentence is reached.
+UNDECLARED = (
+    "the `Pact` cell names `{cell}`, a pact this signer's `seal/config.md` "
+    "does not declare in its `Pact` row, so no `seal pact` grades the row — "
+    "write the origin URL of a pact that row declares, or add `{cell}` to "
+    "that row"
 )
 INLINE = (
     "a `pact:` token is the inline pact anchor `seal pact` read through "
@@ -264,24 +297,59 @@ def origin(root):
     return (git(root, "remote", "get-url", "origin") or "").strip()
 
 
-def first_table(config, text, header, beside=False):
+def header_key(cell):
+    """CELL, one header cell as `config.table_cells` gives it, as the anchor
+    table's header is compared: with one emphasis run removed where such a
+    run wraps the whole cell (`EMPHASIS_RUN`), then case folded. GitHub
+    renders a header cell bold, so `**Pact**` there reads as `Pact` does,
+    and the same letters in another case are the same word
+    (`skills/settle/scripts/rule_changes.py#letters`).
+
+    **These two are the whole normalisation, and it is closed.** The run is
+    removed once, so `**_Pact_**` keeps its inner run. Whitespace around the
+    cell is already stripped by `table_cells`. Left out, each keeping its
+    own key: a code span, which mentions the word rather than using it;
+    strikethrough, which marks it deleted; an HTML tag; a run with a space
+    just inside it, which GFM renders as no emphasis; an escaped delimiter;
+    and a plural or any other word. A header written so is another table."""
+    match = EMPHASIS_RUN.fullmatch(cell)
+    return (match.group(2) if match else cell).casefold()
+
+
+def first_table(config, text, header, beside=False, key=None):
     """(rows, refusals) for the first table of TEXT headed HEADER, read by
     `hooks/lib/config.py#gfm_table`: its rows and its refusals, and, where
     the walk refused nothing, one refusal per further HEADER outside a
     fence, at its line, because the walk reads the first table only. A
     refusal of the walk already says every row below it goes unread, a
     second header among them. BESIDE is `gfm_table`'s: true where TEXT may
-    hold other tables after this one, as a frame's section does."""
-    rows, walked = config.gfm_table(text, header, beside=beside)
-    if walked:
-        return rows, list(walked)
+    hold other tables after this one, as a frame's section does.
+
+    KEY, where given, is a function a header cell is compared through, as
+    the anchor table's reader passes `header_key`. A header is then any
+    line whose cells' keys are HEADER's cells' keys, in order: the first
+    such line's cells are handed to the walk as written, so the walk reads
+    that line and its refusals quote the header as the frame writes it, and
+    every further such line is a second header. Without KEY a header is
+    HEADER's cells exactly, as the machine-local map is read."""
+
+    def heads(cells):
+        if cells is None or key is None:
+            return cells == header
+        return tuple(map(key, cells)) == tuple(map(key, header))
+
     # exempt from splitlines: lines the GFM walk numbers
     lines = text.splitlines()
-    headers = [
-        index + 1
+    keyed = [
+        (index, cells)
         for index, line in config.unfenced(lines, text)
-        if config.table_cells(line) == header
+        if heads(cells := config.table_cells(line))
     ]
+    written = keyed[0][1] if keyed else header
+    rows, walked = config.gfm_table(text, written, beside=beside)
+    if walked:
+        return rows, list(walked)
+    headers = [index + 1 for index, _cells in keyed]
     named = f"`| {' | '.join(header)} |`"
     return rows, [
         f"holds a second {named} header at line {at}, and the walk reads the "
@@ -647,6 +715,11 @@ def check(root, out=sys.stdout, home_dir=None):
                 f"out of the pact's {table}",
             )
             continue
+        # Every pact the signer declares, this one among them: a row naming
+        # one of the others is that pact's to grade, and a row naming none
+        # of them is graded by no `seal pact`, since another pact's reports
+        # this signer `ONE-SIDED` above and reads none of its frames.
+        declared_remotes = frozenset(n for _w, n in pacts)
         read_count += 1
         anchors = 0
         for file_path in anchor_files(their_home):
@@ -655,7 +728,9 @@ def check(root, out=sys.stdout, home_dir=None):
             if body is None:
                 found(UNREADABLE, written, where, "could not be read")
                 continue
-            rows, table_refusals = first_table(config, body, ANCHOR_TABLE, beside=True)
+            rows, table_refusals = first_table(
+                config, body, ANCHOR_TABLE, beside=True, key=header_key
+            )
             if table_refusals and table_refusals[0].startswith("holds no "):
                 # A frame that cites no pact holds no anchor table.
                 table_refusals = []
@@ -668,6 +743,8 @@ def check(root, out=sys.stdout, home_dir=None):
                     found(REFUSED, written, at, NOT_ONE_URL)
                     continue
                 if named != ours:
+                    if named not in declared_remotes:
+                        found(REFUSED, written, at, UNDECLARED.format(cell=pact_cell))
                     continue
                 if heading_parts(checker, clause) is None:
                     found(REFUSED, written, at, NO_HEADING)
