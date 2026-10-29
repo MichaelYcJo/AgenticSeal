@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""seal unverified — read what an overview recorded as unverified, and fail
+"""seal unverified — read what a closing memo recorded as unverified, and fail
 on a record that cannot be read.
 
 `verify` condition 4 lets a claim go out unproven as long as the row names who
@@ -56,8 +56,8 @@ on purpose — see `check_file`.
 
 Exit codes: 0 the record is readable (open items are reported, not punished) ·
 1 a section could not be read, or rows were deleted · 2 the path or arguments
-were unusable, which includes a scan that found no overview at all. Three
-states of a `seal/` root's own `specs` path are exit 0 instead, each saying
+were unusable, which includes a scan that found no closing memo at all. Three
+states of a `seal/` root's own `threads` path are exit 0 instead, each saying
 which it is, because a pull request in any of them declares nothing and owes
 nothing: the path holding no work item, empty or absent, which is the state a
 complete settle ends in (`settled_root`); no `seal/` directory at the working
@@ -137,7 +137,7 @@ CLOSED = "closed"
 # naming the edit; a base revision's reads it as the word, because nobody can
 # edit a commit that already happened.
 OLD_MARK = chr(0x2705)
-# A spec section's items, `skills/settle/SKILL.md` *Rule changes*: the
+# A design section's items, `skills/settle/SKILL.md` *Rule changes*: the
 # item's line, then one field per line indented two spaces, a value continuing
 # on the lines below it indented four.
 ITEM_RE = re.compile(r"^- (\S+)\s*$")
@@ -169,7 +169,7 @@ CLOSER = "-->"
 # What each reader of a record says of a line `comment_lines` finds, spelt
 # once: `check_text` here, `chain_check.py` for a round record, a
 # `guarantee.md` and a `trail/gate.md`, and `rule_changes.py#parse` for a
-# spec's `## Rule changes`.
+# design's `## Rule changes`.
 COMMENT_LINE = (
     "the line begins with `<!--`, and a record carries no HTML comment: the "
     "check reads one as text, so delete the comment"
@@ -288,7 +288,7 @@ def closed_fence_lines(lines):
 def blank_fences(lines):
     """The same lines with fenced blocks blanked out, indices intact.
 
-    A skill or an overview quoting this very format must not read as rows or
+    A skill or a closing memo quoting this very format must not read as rows or
     as a second section. Blanking rather than truncating matters: the working
     tree and the base revision have to agree about where the table is, or
     adding an example reads as a deletion and rows after an example read as
@@ -629,7 +629,7 @@ def headings(lines):
 
 
 def items(body):
-    """`(items, error)` for BODY, `[(line number, line)]`, read as a spec
+    """`(items, error)` for BODY, `[(line number, line)]`, read as a design
     section's items. Each item is `{"kind", "line", "fields"}`, `fields`
     mapping a name to `[line number, [value lines]]`; ERROR is the first line
     that is no part of an item, as `(line number, why)`, or None."""
@@ -831,7 +831,7 @@ def closing_word(cell):
 
 
 def check_file(path):
-    """(open, closed, errors) for one overview.
+    """(open, closed, errors) for one closing memo.
 
     Exactly one `## Not verified` section, spelled that way. Tolerating other
     spellings is what makes an unknown one report zero, and this corpus had
@@ -927,7 +927,7 @@ def overviews(paths):
     plugin's record, so a malformed `## Not verified` there is not a finding.
     A path NAMED, a file or a directory inside a reference root, is read as
     named — the person asked for it — and `overviews_at` reads a base by the
-    same rule, so an overview the walk leaves out is never reported deleted."""
+    same rule, so a closing memo the walk leaves out is never reported deleted."""
     found = []
     for p in paths:
         # The argument is resolved once, and nothing below it is. `ls-tree`
@@ -1035,7 +1035,7 @@ def git_path(path):
     Windows the two sides were built by two rules: `threads\x\gaps.md`
     against `threads/x/gaps.md`. `show` returned None and the row check
     quietly compared nothing; the presence check matched no path and reported
-    every tracked overview as deleted.
+    every tracked closing memo as deleted.
 
     A no-op where `os.sep` already is `/`, rather than branching on `os.name`:
     the substitution has to be on the path Linux CI runs, or the Windows half
@@ -1234,7 +1234,7 @@ def overviews_at(root, ref, prefixes):
         # build the author can only clear by renaming the directory.
         if set(os.path.dirname(rel).split("/")) & SKIP_DIRS:
             continue
-        # The reference roots by the scan's rule too (#688), or an overview
+        # The reference roots by the scan's rule too (#688), or a closing memo
         # the walk leaves out would be reported deleted on every run: out,
         # unless a prefix the person named sits inside one.
         if (
@@ -1252,7 +1252,7 @@ _rules = None
 
 
 def rule_changes():
-    """`skills/settle/scripts/rule_changes.py`, the one reader of a spec's
+    """`skills/settle/scripts/rule_changes.py`, the one reader of a design's
     `## Rule changes`, loaded by path once."""
     global _rules
     if _rules is None:
@@ -1273,7 +1273,7 @@ def settled(root, ref, directories):
     head side. Its rule is `docs/the-record-layout.md` *The fold, and what
     tells it from a deletion*. A directory is settled when it held a file at
     REF. What its record held there and what the policy root holds of its
-    spec are not read: the settling session writes each section in its own
+    design are not read: the settling session writes each section in its own
     words, and the settle's pull request states each decision for review.
     A directory a pull request empties only in part never reaches here,
     since its callers pass only the directories that are gone."""
@@ -1319,10 +1319,10 @@ def open_record_rows(root, ref, directory):
     The rows `seal settle --apply` refuses to take with a directory, and its dry
     run lists: every open item in `gaps.md`'s `## Not verified`. Each is a claim with an answerer rather
     than a rule, and #514's frame measured the loss this prevents — the only
-    record that a production workflow was red sat in a retiring overview (its
+    record that a production workflow was red sat in a retiring closing memo (its
     L2).
 
-    An overview whose section cannot be read is one entry saying so, never
+    A closing memo whose section cannot be read is one entry saying so, never
     zero rows: a count this cannot read is not a count of nothing, which is
     the rule `check_text` above is written to. A base revision is read with
     the same relaxations the `--baseline` comparison gives it."""
@@ -1343,7 +1343,7 @@ def open_record_rows(root, ref, directory):
 
 
 def settled_root(path):
-    """Whether `path` is a `seal/` root's own `specs` directory with no work
+    """Whether `path` is a `seal/` root's own `threads` directory with no work
     item under it — empty on disk, or absent while the root is there.
 
     That is the state a complete settle reaches (#517, `frame/design.md` G7), and it
@@ -1403,7 +1403,7 @@ ABSENT = (
 
 
 def unwritten_root(path):
-    """Whether `path` is a `seal/` root's own `specs` directory holding work
+    """Whether `path` is a `seal/` root's own `threads` directory holding work
     items, none of which carries an `gaps.md`.
 
     Every work item that never opened a closing memo is in this state, and a
@@ -1477,7 +1477,7 @@ def main(argv=None):
     args = ap.parse_args(argv)
 
     # Before the base is resolved: the pull request that moves a root to
-    # local mode takes every overview out of the tree, and with no root in it
+    # local mode takes every closing memo out of the tree, and with no root in it
     # nothing is declared, so that move is not this branch's deletion.
     if all(absent_root(p) for p in args.path):
         for p in args.path:
@@ -1490,9 +1490,9 @@ def main(argv=None):
         return 2
     # With a baseline, a path that is gone may be the thing being asked about:
     # a person runs `--baseline origin/<base> seal/threads/`, and a change that
-    # deletes specs/ used to be told it had mistyped an argument. A path that
+    # deletes threads/ used to be told it had mistyped an argument. A path that
     # held nothing at the base either is still a typo, and saying so is what
-    # keeps `specs/ spces/` from passing in silence. That check needs the
+    # keeps `threads/ thraeds/` from passing in silence. That check needs the
     # repository, so it waits until the baseline block below has resolved one.
 
     # Resolved before the scan, because deleting every gaps.md is the one
@@ -1689,7 +1689,7 @@ def main(argv=None):
         return 2
 
     print(
-        f"\n{len(unique_by_target(files))} overviews · {total_open} open"
+        f"\n{len(unique_by_target(files))} closing memos · {total_open} open"
         f" · {total_closed} closed"
         f" · {len(bad)} unreadable"
         + (f" · {len(uncompared)} not compared" if uncompared else "")
