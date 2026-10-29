@@ -157,12 +157,16 @@ class Test_main:
             "on:\n    pull_request:\n        types: [opened]\n",
             'on: ["pull_request"]\n',
             "on:\n  - pull_request # the run\n",
+            "on: [pull_request, ]\n",
+            "on:\n  pull_request\n",
         ],
         ids=[
             "double-quoted-key",
             "block-at-four-spaces",
             "quoted-name",
             "item-with-a-comment",
+            "flow-list-trailing-comma",
+            "name-on-the-line-below",
         ],
     )
     def test_a_pull_request_trigger_in_the_wider_spellings_answers(self, repo, trigger):
@@ -182,6 +186,8 @@ class Test_main:
             "on: [pull_request, {types: [opened]}]\n",
             "on:\n  pull_request:\n  ? push\n",
             "on:\n    pull_request:\n  push:\n",
+            "on: [pull_request,,]\n",
+            "on:\n  pull_request\n  push\n",
         ],
         ids=[
             "no-on-key",
@@ -191,6 +197,8 @@ class Test_main:
             "one-list-element-unread",
             "one-block-entry-unread",
             "a-line-shallower-than-the-block",
+            "two-trailing-commas",
+            "two-names-on-the-lines-below",
         ],
     )
     def test_an_unread_trigger_is_reported_and_not_counted(self, repo, trigger):
@@ -236,6 +244,7 @@ class Test_main:
         [limit] = [line for line in r.stdout.split("\n") if line.startswith("limit: ")]
         assert "flow mapping" in limit, limit
         assert "unread and is not counted" in limit, limit
+        assert "filters" in limit, limit
 
     # --- a local hook is not CI ----------------------------------------------
 

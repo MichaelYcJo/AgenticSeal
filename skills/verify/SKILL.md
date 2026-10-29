@@ -366,8 +366,10 @@ Exit 1 means the row about to be written is not true.
 
 It reads command text rather than a YAML graph, so a runner reached through a
 composite action, a reusable workflow, or a script it cannot see reads as
-absent. Disagreement with what CI really does is a finding about this tool,
-not permission to keep the row.
+absent. It reads an event's name and not its filters, so a `pull_request`
+trigger limited to closed pull requests counts as answering. Disagreement
+with what CI really does is a finding about this tool, not permission to
+keep the row.
 
 ### And something has to read the row afterwards
 

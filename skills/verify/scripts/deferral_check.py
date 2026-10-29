@@ -83,8 +83,10 @@ PRE_MERGE_EVENTS = {"pull_request", "pull_request_target", "merge_group"}
 KNOWN_LIMITS = (
     "reads command text, not a YAML graph: a runner reached through a "
     "composite action, a reusable workflow, or a script this cannot see "
-    "reads as absent; a trigger written as a flow mapping, or as a flow "
-    "list across lines, reads as unread and is not counted"
+    "reads as absent; an event's filters (types, branches, paths) are not "
+    "read, so a pull_request trigger limited to closed pull requests counts "
+    "as answering; a trigger written as a flow mapping, or as a flow list "
+    "across lines, reads as unread and is not counted"
 )
 
 # A workflow's trigger key at the start of a line, bare or in either quote,
@@ -108,15 +110,18 @@ def unquoted(value):
 def block_entries(lines):
     """The entries of the block below a bare `on:` key, in file order: the
     name of each key, or the text of each `- ` item, at the block's indent.
+    A block of one line that is neither a key nor an item is YAML's
+    `on: push` written on the next line, and that line is its one entry.
 
     The block's indent is its first entry's: one space or more, or zero
     where that entry is a `- ` item. A deeper line belongs to an entry and
     is skipped. A line at indent zero that is not a `- ` item ends the
-    block. Two lines make the whole block unread, an empty list: one
+    block. Two shapes make the whole block unread, an empty list: a line
     shallower than the block but not at zero, which no valid workflow
-    holds, and one at the block's indent that is neither a key nor an item.
+    holds, and a line at the block's indent that is neither a key nor an
+    item beside any other entry.
     """
-    entries, width = [], None
+    entries, bare, width = [], [], None
     for line in lines:
         code = COMMENT.sub("", line)
         item = code.strip()
@@ -137,7 +142,9 @@ def block_entries(lines):
         elif ":" in item:
             entries.append(item.partition(":")[0])
         else:
-            return []
+            bare.append(item)
+    if bare:
+        return bare if len(bare) == 1 and not entries else []
     return entries
 
 
@@ -147,7 +154,8 @@ def read_events(text):
 
     The key is `on`, `"on"` or `'on'` at the start of a line. Its value is
     an inline name, `on: push`; a flow list closed on its line,
-    `on: [push, pull_request]`; or a block below the key, which
+    `on: [push, pull_request]`, with one trailing comma allowed; or a block
+    below the key, which
     `block_entries` reads. A trailing comment and one pair of quotes around
     a name are dropped. The trigger is unread where there is no `on` key,
     where the value is anything else, where a block holds no entry, and
@@ -165,6 +173,9 @@ def read_events(text):
             names = block_entries(lines[i + 1 :])
         elif value.startswith("[") and value.endswith("]"):
             names = value[1:-1].split(",")
+            # YAML allows one trailing comma in a flow list: `[push, pull_request, ]`.
+            if len(names) > 1 and not names[-1].strip():
+                names.pop()
         else:
             names = [value]
         names = [unquoted(name) for name in names]
