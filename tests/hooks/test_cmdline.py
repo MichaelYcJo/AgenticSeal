@@ -326,6 +326,19 @@ class Test_parse_git:
             parsed = cmdline.parse_git(tokens)
             assert parsed and parsed[0] == sub, tokens
 
+    def test_accepts_a_commit_behind_every_enumerated_wrapper(self):
+        """Behind a runner's own option or operand no position names the
+        command word, so the first `git` word stands in for it. Every shape of
+        `WRAPPED` is a commit `hooks/implementer-notice.py` has to find, and
+        without the stand-in the ones behind an option read as no git at all."""
+        missed = []
+        for name, (command, _where) in sorted(WRAPPED.items()):
+            segments, _clean = reader.split_segments(command)
+            found = [reader.parse_git(tokens) for tokens in segments]
+            if not any(p and p[0] == "commit" for p in found):
+                missed.append(name)
+        assert not missed, missed
+
     def test_refuses_a_subshell_with_no_subcommand_as_a_git_invocation(self):
         """`parse_git` documents "None when no subcommand", and stripping the
         closing parenthesis could leave the empty string instead — a value that
