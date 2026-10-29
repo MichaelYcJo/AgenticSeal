@@ -67,14 +67,16 @@ what it protects and is held by a mechanism; a rule that only orders acts,
 without one of those protections, is guidance. #1167 lists the invariants
 with their mechanisms and rewrites the rules that only sequence acts.
 
-**A judgment is written down with its reasons, so it can be measured.**
-Whoever judges, the orchestrator or an agent, writes the decision and the
-grounds it weighed into the work item's records under `seal/threads/`, where
-the next session reads it and nothing else has to remember it. The guidance
-is then improved from that log rather than from memory: the settle, or a
-command the owner runs, reads the judgments a release made against what they
-cost and what they caught, and rewrites the guidance where a kind of judgment
-keeps costing more than it returns.
+**A judgment stands on a source document, and is written down with both.**
+Whoever judges, the orchestrator or an agent, judges against a document it
+can name: this file, a section of the policy root, or the issue. It writes
+the decision, the grounds it weighed and that source into the work item's
+records under `seal/threads/`, where the next session reads it and nothing
+else has to remember it. The guidance is then improved from that log rather
+than from memory: the settle, or a command the owner runs, reads the
+judgments a release made against what they cost and what they caught,
+rewrites the guidance where a kind of judgment keeps costing more than it
+returns, and writes the source where a judgment had none to stand on.
 
 ## Repo rule: the merge method is fixed per direction, and it is not a preference
 
