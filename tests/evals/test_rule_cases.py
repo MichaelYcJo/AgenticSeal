@@ -266,13 +266,18 @@ class Test_framer_case:
                 )
         return out
 
-    def test_the_sharp_s_case_reads_the_probes_answer_in_grounding_alone(self):
-        """Guards #1047 S1: `shape-answers-by-probe` finds a line of
-        `## Grounding` holding both `executed` and `STRASSE`, and nothing
-        where the answer stands in another section or carries no label."""
+    def test_accepts_a_probes_answer_on_a_grounding_line(self):
+        """Guards #1047 S1: `shape-answers-by-probe` is a `contains` regex
+        that finds a line of `## Grounding` holding both `executed` and
+        `STRASSE`."""
         found, match = self.graders()["shape-answers-by-probe"]
         assert match == "contains"
         assert found.search(PROBED)
+
+    def test_refuses_an_answer_in_another_section_or_with_no_label(self):
+        """Guards #1047 S1: `shape-answers-by-probe` finds nothing where the
+        answer stands in another section or carries no `executed` label."""
+        found, _ = self.graders()["shape-answers-by-probe"]
         assert not found.search(ELSEWHERE)
         assert not found.search(UNLABELLED)
 
