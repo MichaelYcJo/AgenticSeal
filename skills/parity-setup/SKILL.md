@@ -47,22 +47,29 @@ layout that predates the question, or an original that changes.
    none. Never propose creating one.
 
 6. **Write two files.**
-   - `seal/parity.md` from `templates/setup/parity.md`, committed. Coordinate-trust
-     exceptions start empty.
+   - `seal/parity.md` from `templates/setup/parity.md`. Where the root is
+     `<repo>/seal/`, commit it. In local mode the root sits under the common
+     git directory, where nothing is committed, so write it there and commit
+     nothing. Coordinate-trust exceptions start empty.
    - `~/.claude/agentic/parity-paths.md`: the machine-local checkout path,
      keyed by this repository's origin remote URL so worktrees and second
-     checkouts resolve to one entry. **This never goes in the committed
-     file**: it is wrong for every other machine.
+     checkouts resolve to one entry. **This never goes in `seal/parity.md`**:
+     it is wrong for every other machine.
 
 7. **Show the result and say what changes now.** Name the `legacy-parity`
    skill, the `tracer` agent, and that divergence from the original now needs
    grounds rather than preference. Say the consequence the user meets first,
-   too: from this file onward, a ready pull request that changes anything
-   outside the document roots fails its check until the comparison with the
-   original is recorded as an `original:` line, in each round record under
-   `through the review chain` and in the sealer's `guarantee.md` under
-   `straight to the PR` (`skills/legacy-parity/SKILL.md` *Recording the
-   comparison*).
+   too, which depends on where the root is and on whether the pull-request
+   checks are installed. Where the root is `<repo>/seal/` and
+   `seal pr-checks` reports the checks installed: from this file onward, a
+   ready pull request that changes anything outside the document roots fails
+   its check until the comparison with the original is recorded as an
+   `original:` line, in each round record under `through the review chain`
+   and in the sealer's `guarantee.md` under `straight to the PR`
+   (`skills/legacy-parity/SKILL.md` *Recording the comparison*). In local
+   mode, and under shared, records only, no pull-request check reads a round
+   record or a guarantee: say that the `original:` line is still written,
+   and that nothing refuses a record without it.
 
 ## What this does not decide
 
