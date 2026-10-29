@@ -23,7 +23,7 @@ verdict below was reached on the code at `13b15928`.
 severity: should
 location: `skills/verify/scripts/deferral_check.py:95`, `skills/verify/scripts/deferral_check.py:98`, `skills/verify/scripts/deferral_check.py:101`, `skills/verify/scripts/deferral_check.py:108`, `skills/verify/scripts/deferral_check.py:195`, `tests/skills/test_deferral_check.py:183-221`
 evidence: executed `python3 -I test_tmp_r4.py <clone> <work>`, `uv run --no-project --with pyyaml python3 -I -c 'import yaml; yaml.safe_load(...)'`
-verdict: open
+verdict: fixed 276585926
 reopens: round-3#1
 
 The close of round-3#1 holds for an ASCII letter glued to the colon and not
@@ -117,7 +117,7 @@ Each parameter is to be seen red at `13b15928` before the fix lands (contract
 rule 15). The probe printed `answers` at exit 0 there for all five
 (executed).
 
-answer:
+answer: Fixed with `SPACE = " \t"` as the module's one whitespace rule, and `SPACE_CHAR` built from it, so the two characters are written once. Every whitespace test that decides a trigger now uses it, which covers the record's five sites and the three it named unprobed: `ON_KEY` before and after its colon, `KEY`, `COMMENT`, `unquoted`, the value strip in `read_events`, the trailing-comma test, the item strip and the indent in `block_entries`, and the blank-line test in `continued`. A tab stays inside `SPACE`, as YAML 1.2 reads it, although PyYAML refuses a tab after a colon. `a-tab-after-the-on-colon` (`on:` then a tab then `pull_request`) pins that it answers. Two sites deliberately keep a wider test, because narrowing them would have opened a new fail-open. `block_entries` makes the whole block unread where a line's text, after SPACE, opens with any other space: `a-block-line-opened-by-a-unicode-space` (`on:` / `  pull_request:` / U+00A0 then ` push:`) answered at 1943fe760, and with the indent measured by SPACE alone, a column-zero U+00A0 line would have ended the block and kept `{pull_request}`. `continued` keeps `isspace()` for the line's first character, so a line opened by U+00A0 below an inline name still reads as a continuation and the trigger as unread (`an-inline-name-above-a-line-opened-by-a-unicode-space`). The five proposed parameters and `a-block-line-opened-by-a-unicode-space` were red at 1943fe760, whose script is 13b15928's (executed). `seal mutate` over the ten sites gave 7 red and 3 survivors (executed). Two survivors put back the old `strip()` in `continued` and in the trailing-comma test. 6f665039 pins them with `an-inline-name-above-a-line-of-a-unicode-space` and `a-flow-list-ending-in-a-unicode-space`, and both mutants then went red (executed). The third survivor, the indent measured with `lstrip()`, is equivalent: the `isspace()` guard has already returned for every line where the two measures differ. Under contract rule 12, the whitespace left in the script is `runners_in` (`:233`, `:239`), which finds runner commands and decides no trigger, so it stands. A `-` followed by a tab is not read as an item, and such a line reads as unread. No sentence of `changelog.md`, `KNOWN_LIMITS`, `skills/verify/SKILL.md` or the two READMEs speaks of white space (read).
 
 ## Confirmations
 
