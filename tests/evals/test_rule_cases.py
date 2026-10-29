@@ -230,4 +230,68 @@ class Test_main:
             assert (UNTRUE in own) == name.endswith("untrue-body"), (name, own)
 
 
+# A frame that answers the sharp-s issue by running `shout`, and two that
+# leave the answer elsewhere: in another section, or with no label.
+PROBED = """# Design: 1790000025-sharp-s
+
+## Grounding
+
+| Policy clause | What it fixes for this work |
+|---|---|
+| `src/textutil.py#shout` | executed: `python3 -c 'print(repr(shout("straße")))'` prints `'STRASSE!'` |
+
+## Scope
+
+`shout` lengthens a word whose upper case is longer.
+"""
+ELSEWHERE = PROBED.replace("prints `'STRASSE!'`", "prints the answer").replace(
+    "is longer.", "is longer: `STRASSE!`, executed."
+)
+UNLABELLED = PROBED.replace("executed: ", "")
+ROW = "| Q1 | What does `shout` return for `straße`? | {who} | run it | none | open |\n"
+QUESTIONS = (
+    "# Questions for the planner: 1790000025-sharp-s\n\n"
+    "| # | Question | Who can answer | Options & what each implies "
+    "| Default until answered | Status |\n|---|---|---|---|---|---|\n"
+)
+
+
+class Test_framer_case:
+    def graders(self):
+        """`{grader name: (compiled pattern, match)}` of the sharp-s case's
+        regex graders, read back as a side records them."""
+        rc = load_script("rule_cases")
+        case = dict(rc.cases())["rule-framer-sharp-s"]
+        out = {}
+        for name, text in case["graders"]:
+            config = ni.grader_from(f"graders/{name}", text)["config"]
+            if "pattern" in config:
+                out[name[: -len(".md")]] = (
+                    re.compile(config["pattern"], re.M),
+                    config["match"],
+                )
+        return out
+
+    def test_the_sharp_s_case_reads_the_probes_answer_in_grounding_alone(self):
+        """Guards #1047 S1: `shape-answers-by-probe` finds a line of
+        `## Grounding` holding both `executed` and `STRASSE`, and nothing
+        where the answer stands in another section or carries no label."""
+        found, match = self.graders()["shape-answers-by-probe"]
+        assert match == "contains"
+        assert found.search(PROBED)
+        assert not found.search(ELSEWHERE)
+        assert not found.search(UNLABELLED)
+
+    def test_the_sharp_s_case_refuses_a_row_left_to_a_measurement(self):
+        """Guards #1047 S2: `shape-no-measurement-row` is a `not_contains`
+        regex that finds a `Who can answer` cell holding `a measurement`, and
+        no other answerer's row."""
+        found, match = self.graders()["shape-no-measurement-row"]
+        assert match == "not_contains"
+        for who in ("a measurement", "`a measurement`"):
+            assert found.search(QUESTIONS + ROW.format(who=who)), who
+        for who in ("a person", "the work"):
+            assert not found.search(QUESTIONS + ROW.format(who=who)), who
+
+
 test_census = census_case(TARGET)

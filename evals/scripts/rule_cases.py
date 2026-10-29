@@ -15,9 +15,11 @@ whether a sentence of today's definition was followed:
            (`replay_targets.py#truths_with`)
   crafter  four one-phase builds: the unit and its case, the phase record,
            a commit, no probe left behind
-  framer   four issues to frame: the three documents with the mark and a
+  framer   five issues to frame: the three documents with the mark and a
            Phases table carrying `Verified by`, nothing written outside
-           the work item
+           the work item, and for the fifth, whose answer only running
+           `shout` gives, that answer in `## Grounding` labelled
+           `executed` and no row left to a measurement
   sealer   four reviewed items to guarantee: one to seal, one whose pull
            request body claims a change the tree lacks, one whose phase
            record claims `seen red` for a case green against the old code,
@@ -431,6 +433,39 @@ def crafter_case(index, slug, signature, rule, example):
 
 # --- framer --------------------------------------------------------------------
 
+# A line of `## Grounding`, before the next `## ` heading, holding both the
+# label and the word running `shout("straße")` returns.
+PROBE_ANSWER = (
+    r"^## Grounding[ \t]*$(?:\n(?!## ).*)*?\n(?!## )(?=.*[Ee]xecuted)(?=.*STRASSE).*"
+)
+# A table cell whose answerer is `a measurement`, backticked or bold or not.
+MEASUREMENT_ROW = r"\|[ \t]*[*`]*a measurement\b[^|\n]*\|"
+
+
+def probe_graders(folder):
+    """The sharp-s case's own graders for the work item at FOLDER: the
+    answer running `shout` gives is in `## Grounding` labelled `executed`,
+    and `frame/questions.md` leaves no row to a measurement."""
+    return [
+        shape_regex(
+            "answers-by-probe",
+            {"source": "file", "path": f"{folder}/frame/design.md"},
+            PROBE_ANSWER,
+            "The answer running `shout` gives is a line of `## Grounding` "
+            "labelled `executed`.",
+            flags="m",
+        ),
+        shape_regex(
+            "no-measurement-row",
+            {"source": "file", "path": f"{folder}/frame/questions.md"},
+            MEASUREMENT_ROW,
+            "No row of `frame/questions.md` leaves that answer to a measurement.",
+            flags="m",
+            match="not_contains",
+        ),
+    ]
+
+
 FRAMER_ISSUES = (
     (
         "loud-flag",
@@ -448,11 +483,17 @@ FRAMER_ISSUES = (
         "document-helpers",
         "The README says nothing about what the helpers do. Document each one.",
     ),
+    (
+        "sharp-s",
+        "A user reports that `shout` returns some words longer than they went in, `straße` among them. The README should say which words `shout` lengthens and what it returns for them.",
+        probe_graders,
+    ),
 )
 
 
-def framer_case(index, slug, issue):
-    """One issue to frame as a work item whose routing is written."""
+def framer_case(index, slug, issue, extra=None):
+    """One issue to frame as a work item whose routing is written. EXTRA,
+    where given, returns the case's own graders for its work item's folder."""
     item = f"179000002{index}-{slug}"
     branch = f"feat/{slug}"
     lines = base_project(item, branch, "framer", "crafter")
@@ -496,6 +537,7 @@ def framer_case(index, slug, issue):
             f"{folder}/",
             "The framer writes no source file and no test: every write is in its work item.",
         ),
+        *(extra(folder) if extra else ()),
     ]
     return f"rule-framer-{slug}", {
         "agent": "framer",
