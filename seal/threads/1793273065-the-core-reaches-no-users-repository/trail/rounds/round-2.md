@@ -9,7 +9,7 @@ target: 3418f1a3, fixes 007d9cb9..3418f1a3
 severity: should
 location: `skills/core/SKILL.md:82-86`, `tests/text/test_review_axes.py:100-125`, `seal/threads/1793273065-the-core-reaches-no-users-repository/frame/design.md:49-54`
 evidence: read `skills/core/SKILL.md:77-86`, `hooks/routing-edit-gate.py:2-35`, `skills/implement/orchestration.md:95-103`, `skills/implement/SKILL.md:171-175`
-verdict: open
+verdict: fixed 3c43b42e
 regression: round-1#1
 
 The unit is the sentence `1562e058` wrote into *Asking a person is the most
@@ -94,14 +94,14 @@ The new assertion is red against `3418f1a3`'s core and green after the core
 edit above, which is how the fix pass shows it (contract rule 15). The
 design's fold is the orchestrator's.
 
-answer:
+answer: The finding holds. `hooks/routing-edit-gate.py:2-8` refuses an edit only while no routing declaration names the branch, so the hook waits on the routing question and not on the whole batch. The core's sentence is now the one the finding proposes: "The routing question is one of that batch, and the orchestrating session puts the routing question as `skills/implement/orchestration.md` *Orchestrator: how the work is routed* states; `hooks/routing-edit-gate.py` refuses the first edit until the routing question is answered." It is still one sentence. `test_the_core_names_where_the_routing_question_is` now also asserts "refuses the first edit until the routing question is answered". That assertion was seen red against the core at `3418f1a3` and green after the edit (`bin/test -q -p no:xdist tests/text/test_review_axes.py -k test_the_core_names_where_the_routing_question_is`, exit 1 then exit 0). Both changes are inside `location:`. `git grep` on "first edit until", "one of that batch" and "one of the batch" finds the same attachment only in `frame/design.md:50-54`, *Scope* item 1 ("one of that batch, asked by the session that spawns the work, ... until it is answered"). That is the frame's, and the orchestrator folds it.
 
 ### 2. The memo and the release note give the core as 6,711 B and the session's share as 6,810 B, but round 1's first fix made the core 6,716 B
 
 severity: should
-location: `seal/threads/1793273065-the-core-reaches-no-users-repository/gaps.md:26`, `seal/threads/1793273065-the-core-reaches-no-users-repository/changelog.md:3`
+location: `seal/threads/1793273065-the-core-reaches-no-users-repository/gaps.md:26`, `seal/threads/1793273065-the-core-reaches-no-users-repository/changelog.md:3`, `tests/skills/test_payload_meter.py:316-323`
 evidence: executed `git show 007d9cb9:skills/core/SKILL.md | wc -c`, `git show 1562e058:skills/core/SKILL.md | wc -c`, `git show HEAD:templates/setup/claude-md-block.md | wc -c`, `env -u CLAUDE_CONFIG_DIR HOME=<scratch>/home-007d9cb9 python3 <scratch>/home-007d9cb9/.claude/plugins/marketplaces/agenticseal/skills/verify/scripts/payload_meter.py --root <scratch>/home-007d9cb9/.claude/plugins/marketplaces/agenticseal`, `env -u CLAUDE_CONFIG_DIR HOME=<scratch>/home-3418f1a3 python3 <scratch>/home-3418f1a3/.claude/plugins/marketplaces/agenticseal/skills/verify/scripts/payload_meter.py --root <scratch>/home-3418f1a3/.claude/plugins/marketplaces/agenticseal`
-verdict: open
+verdict: fixed c8dfc556
 regression: round-1#3
 
 The unit is the memo's second sentence, which `85edcd81` rewrote
@@ -153,7 +153,7 @@ weighs that against the house rule that no count is kept beside the tree,
 giving the tokens alone and citing phase 3 for the bytes is the other form
 of the same fix, and its answer says which it took.
 
-answer:
+answer: The finding holds. I took the other form, the one the orchestrator set as the prevention home on #1177: give the tokens alone, and cite phase 3 for the bytes. A new number would go stale again at the next edit to the core. `gaps.md:26` now says the second read costs about 2,100 tokens per agent spawn at 3.2 B/token. It names `trail/phases/phase-3.md` as where the exact bytes live, measured at its commit, and the pull request body as where they are given at the broad gate's HEAD. The fragment's `seal payload` sentence now says only that the share grows by about 1,570 tokens. Both are in `c8dfc556`. Both token figures hold at 6,716 B (6,716 / 3.2 is about 2,099, and +5,029 / 3.2 is about 1,571). The class was enumerated by a search over every file this branch changes outside `trail/`, for byte figures and for the token figures. One more instance was found, outside `location:`: `tests/skills/test_payload_meter.py:316-323`, a docstring I wrote in phase 3, said "the core's 6,700". It now copies no figure (`88cef629`), and that coordinate is appended to `location:`. The figures that stay are records of their time. `trail/phases/phase-3.md` holds the measurements at its commit. `trail/phases/phase-4.md:37-38` gives 1,786 B and 6,810 B as phase 3's figures, names phase 3 as their source, and is a phase record this pass does not rewrite. The round-1 record's lines are history. `skills/verify/scripts/payload_meter.py:55-56` and `:787` give earlier measurements of other files. The orchestrator's comment on #1183 still gives 6,711 B and +6,796 B, and its edit is the orchestrator's.
 
 ## Confirmations
 
