@@ -1,7 +1,7 @@
 {
   "name": "agentic",
   "displayName": "AgenticSeal",
-  "version": "0.24.0",
+  "version": "0.24.1",
   "description": "A workflow of agents that frames, builds, inspects and seals a change without asking anyone, and ends in a seal bound to a commit.",
   "author": {
     "name": "MichaelYcJo"
@@ -17,12 +17,5 @@
     "hooks",
     "legacy-migration",
     "verification"
-  ],
-  "userConfig": {
-    "worktree_guard_language": {
-      "type": "string",
-      "title": "Worktree guard language",
-      "description": "The language of the worktree guard's prompts: ko or en. Left empty, the variable SPECSEAL_LANG decides through 0.24.x, then the system locale. The other gates speak English."
-    }
-  }
+  ]
 }

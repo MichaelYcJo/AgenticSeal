@@ -226,8 +226,11 @@ waits for the reply spends more.
 
 ### 2. Implement test-first, and let each rule name its test
 
-**Each scenario is built the same way: its case first, seen red against the
-tree as it stands, then the code, then the case green.** A rule the work
+**Each scenario that adds behaviour is built the same way: its case first,
+seen red against the tree as it stands, then the code, then the case
+green.** A rename or a move adds no behaviour, and is proved as
+`skills/verify/SKILL.md` *The narrow command still has to be able to fail*
+says: by the cases it already has, with no case written new. A rule the work
 states or changes ends with a `check:` line naming that case — in its home
 under `docs/`, or in the *Verifiable how* cell of the design's scenario table —
 so the case is the record that the rule holds, and CI running the suite is
@@ -253,14 +256,6 @@ What committing *buys* is a separate matter, and that one holds everywhere. A
 review round records the commit it read, so work still sitting in the working
 tree is not visible to the reviewer at all — there is no spelling for *and
 also the four files that were not committed yet*.
-
-*Commit as you go* alone does not settle the cadence. One session was told
-exactly that and did it, eight commits across two rounds, and still had five
-modified files in the working tree when an unrelated command reached the
-worktree guard. That window has a price wherever this plugin is installed: the
-guard asks whether the changes should ride along to the other branch, and
-*commit them here first* — the answer that is usually right — is not one of
-the two buttons. Nothing had said how early early is.
 
 **An edit must be able to fail.** Prefer the `Edit` tool: a pattern that does
 not match is an error you see immediately. When the environment routes edits

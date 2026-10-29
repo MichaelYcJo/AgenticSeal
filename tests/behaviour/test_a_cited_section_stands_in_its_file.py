@@ -14,7 +14,6 @@ read the fixtures' own citations.
 """
 
 import collections
-import glob
 import os
 import pathlib
 import re
@@ -142,41 +141,26 @@ def resolves(said, targets):
 
 def corrections(root):
     """`[(rule_changes.Op, work item directory)]` for every item of a pending
-    `## Rule changes`: each `frame/design.md` under `<root>/seal/threads/`,
-    read through `rule_changes.parse` against the policy root
-    `hooks/lib/config.py#policy_root` names. A section `parse` refuses
-    gives no item."""
-    home = os.path.join(root, "seal")
-    policy = config.policy_root(home)
-    found = []
-    for path in sorted(
-        glob.glob(os.path.join(home, "threads", "*", "frame", "design.md"))
-    ):
-        item = f"seal/threads/{pathlib.Path(path).parents[1].name}/"
-        found += [(o, item) for o in rules.parse(text_of(path) or "", policy).ops or []]
-    return found
+    `## Rule changes`, as `rule_changes.pending` reads them against the
+    policy root `hooks/lib/config.py#policy_root` names."""
+    return rules.pending(root, config.policy_root(os.path.join(root, "seal")))
 
 
 def excuser(rel, line, said, text, pending):
     """The work item directory of the PENDING item that corrects the citation
     of *SAID* at LINE of REL, whose text is TEXT, or None. An item whose
     `from` holds the citation and whose `to` does not corrects it, and so
-    does a `remove` with no `from` whose section holds the line. `parse`
-    reads an item's `file` only as a top-level file of the policy root."""
+    does a `remove` with no `from` whose section holds the line
+    (`rule_changes.removed_by`). `parse` reads an item's `file` only as a
+    top-level file of the policy root."""
     cited = f"*{said}*"
     for o, item in pending:
-        if o.file != rel:
-            continue
-        if o.old is not None:
+        if o.file == rel and o.old is not None:
             if cited in " ".join(o.old.split()) and cited not in " ".join(
                 (o.new or "").split()
             ):
                 return item
-        elif o.kind == "remove":
-            span, _ = rules.section_lines(text, o.section)
-            if span and span[0] <= line <= span[1]:
-                return item
-    return None
+    return rules.removed_by(pending, rel, text, line)
 
 
 def citations(root):

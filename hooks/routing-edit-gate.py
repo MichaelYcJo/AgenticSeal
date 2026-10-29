@@ -31,7 +31,7 @@ The declaration is read through `routing.for_branch`, so every way it cannot
 be read is no declaration, and the edit is refused. The no-work-item record
 is `routing.no_work_item`'s, and it lets an edit through only on a branch it
 names. The refusal reads the person's `automation` press
-through `worktree_consent.automation_answered`: pressed, it names no question
+through `press.automation_answered`: pressed, it names no question
 tool; otherwise it tells the model to put the routing question. Where HEAD is
 detached, its ways on start by checking out a branch, because
 `seal no-work-item` records nothing there.
@@ -51,6 +51,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 import console
 import optin
+import press
 import routing
 
 # The edit tools, in the order `hooks/hooks.json`'s matchers name them: the
@@ -262,9 +263,7 @@ def decide(event):
     session = event.get("session_id")
     if routing.no_work_item(common, session, branch):
         return None
-    import worktree_consent
-
-    pressed = worktree_consent.automation_answered(
+    pressed = press.automation_answered(
         top, session, event.get("transcript_path") or ""
     )
     return reason(path, top, branch, pressed)

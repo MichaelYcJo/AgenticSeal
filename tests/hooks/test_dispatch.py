@@ -33,7 +33,6 @@ from conftest import (
     ROOT,
     census_case,
     decision_of,
-    declare_routing,
     git,
     load_hook_module,
     mark_root,
@@ -343,8 +342,8 @@ class Test_run_gate:
         )
 
     def test_accepts_a_system_exit_from_main_as_a_gate_finishing(self, repo, tmp_path):
-        """`worktree-guard.py` ends with `sys.exit(0)` from `main()` at nine
-        sites, so a `SystemExit` there is a gate finishing, not failing."""
+        """A gate's `main()` may end the way a script does, with `sys.exit(0)`,
+        so a `SystemExit` there is a gate finishing, not failing."""
         opted_in(repo)
         hooks = hooks_copy(
             tmp_path, {"mode-gate.py": "import sys\ndef main():\n    sys.exit(0)\n"}
@@ -445,7 +444,7 @@ class Test_classify:
         assert d.classify(json.dumps(reason))[0] == "unreadable"
 
     def test_refuses_json_a_gate_prints_that_is_not_a_hooks_output_and_ends_nothing(
-        self, repo, tmp_path
+        self, repo, tmp_path, monkeypatch
     ):
         """#661. A gate printing JSON the merge cannot read — not an object, or
         an object whose decision or reason is not text, or with no decision a
@@ -453,22 +452,31 @@ class Test_classify:
         taking a neighbour's `deny` or `systemMessage` with it. `null` and `0`
         survive beside a deny and end a group beside a message, so each shape
         is planted beside both. The output is dropped, the group decides as it
-        would without it, and the gate is said at turn end."""
+        would without it, and the gate is said at turn end. No group registers
+        two `PreToolUse` gates, so the neighbour that denies joins `pre-bash`
+        in the dispatcher this case loads from the copy."""
         opted_in(repo)
         for n, shape in enumerate(UNREADABLE):
             hooks = hooks_copy(
                 tmp_path / f"h{n}",
                 {
                     # The neighbour's deny, which the planted shape must not take.
-                    "worktree-guard.py": printing(decision("deny", "r")),
+                    "neighbour.py": printing(decision("deny", "r")),
                     "mode-gate.py": printing(shape),
                     "version-check.py": printing('{"systemMessage": "m"}'),
                     "root-migrate.py": printing(shape),
                 },
             )
             session = f"s-{n}"
-            out = dispatch(hooks, "pre-bash", bash(repo, session))
-            assert decision_of(out) == "deny", (shape, out)
+            d = load(hooks / "dispatch.py", f"dispatch_for_the_shape_{n}")
+            monkeypatch.setitem(d.GROUPS, "pre-bash", ("neighbour.py", "mode-gate.py"))
+            monkeypatch.setattr(sys, "argv", ["dispatch.py", "pre-bash"])
+            body = json.dumps(bash(repo, session))
+            monkeypatch.setattr(sys, "stdin", io.StringIO(body))
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                d.main()
+            assert decision_of(out.getvalue()) == "deny", (shape, out.getvalue())
             start = {"hook_event_name": "SessionStart", "session_id": session}
             start["cwd"] = str(repo)
             assert json.loads(dispatch(hooks, "session-start", start)) == {
@@ -526,16 +534,8 @@ class Test_opted_in:
         opted_in(repo)
         hooks = hooks_copy(tmp_path, {"lib/optin.py": BROKEN})
         dispatch(hooks, "pre-bash", bash(repo, "s-x"))
-        # One file time for all of them, as a coarse file system gives: the order
-        # said is `pre-bash`'s own order, which is not name order here.
-        for path in (repo / ".git" / RECORDS / "s-x").iterdir():
-            os.utime(path, ns=(10**18, 10**18))
         lines = said(stop(hooks, repo, "s-x"))
-        assert gates_said(lines) == [
-            "worktree-guard.py",
-            "mode-gate.py",
-            "sealer-stamp.py",
-        ], lines
+        assert gates_said(lines) == ["mode-gate.py", "sealer-stamp.py"], lines
         assert "sealer-stamp.py failed to load in stop (SyntaxError: " in "\n".join(
             lines
         ), lines
@@ -601,18 +601,18 @@ class Test_record:
             "pre-bash",
             [
                 ("mode-gate.py", "run", wide("x")),
-                ("worktree-guard.py", "load", astral("z")),
+                ("implementer-mark.py", "load", astral("z")),
             ],
             bash(repo, "s-x"),
         )
         directory = repo / ".git" / RECORDS / "s-x"
         written = {
             name: json.loads((directory / name).read_text(encoding="utf-8"))["error"]
-            for name in ("mode-gate.py.pending", "worktree-guard.py.pending")
+            for name in ("mode-gate.py.pending", "implementer-mark.py.pending")
         }
         assert written == {
             "mode-gate.py.pending": "N" * 40,
-            "worktree-guard.py.pending": "y" + ASTRAL * 19,
+            "implementer-mark.py.pending": "y" + ASTRAL * 19,
         }, written
         assert all(units(name) <= d.NAME_CAP for name in written.values())
         body = json.loads(
@@ -651,8 +651,8 @@ class Test_record:
         self, repo, tmp_path
     ):
         """The id becomes a path part, so a separator in a malformed one must not
-        escape — `hooks/worktree-guard.py#already_asked` measured `../../escaped`
-        putting a file at the repository root."""
+        escape: `../../escaped`, taken whole, was measured putting a file at the
+        repository root."""
         opted_in(repo)
         hooks = hooks_copy(tmp_path, {"mode-gate.py": BROKEN})
         dispatch(hooks, "pre-bash", bash(repo, "../../escaped"))
@@ -680,65 +680,48 @@ class Test_describe:
         lines = said(stop(hooks, repo, "s-x"))
         assert lines[1] == (
             "mode-gate.py failed while running in pre-bash (RuntimeError: boom); "
-            "calls went ahead without it, and the other gates in pre-bash still "
-            "decided."
+            "calls went ahead without it."
         ), lines
 
     def test_accepts_every_group_that_loads_a_gate_that_fails_to_load(
-        self, repo, tmp_path
+        self, monkeypatch
     ):
         """Round 1's 🟡 1. A load failure belongs to the file, so it fails in
-        every group that loads it, and the record is written once, by the first.
-        `worktree-guard.py` sits in `pre-bash` and `pre-agent`, and the
-        `pre-agent` half is the `isolation: "worktree"` spawn going unguarded:
-        one `pre-bash` failure must not read as a Bash-only gap. A group where
-        the gate stands alone, `post-agent` for `worktree_consent.py`, is named
-        among the failures and not among the groups whose other gates decided.
-
-        Changed by #689: the guard and the consent writer load `cmdline_base.py`,
-        so that module is broken beside `cmdline.py`, which
-        `implementer-notice.py` loads."""
-        opted_in(repo)
-        hooks = hooks_copy(
-            tmp_path, {"lib/cmdline.py": BROKEN, "lib/cmdline_base.py": BROKEN}
+        every group that loads it, and the record is written once, by the first:
+        the line names every group the gate sits in, so one `pre-bash` failure
+        of a gate `pre-agent` loads too does not read as a Bash-only gap. A
+        group where the gate stands alone is named among the failures and not
+        among the groups whose other gates decided. No gate sits in two groups
+        of today's `GROUPS`, so the case plants the groups it reads."""
+        d = load(os.path.join(HOOKS, "dispatch.py"), "dispatch_for_two_groups")
+        monkeypatch.setattr(
+            d,
+            "GROUPS",
+            {
+                "pre-bash": ("two.py", "mode-gate.py"),
+                "pre-agent": ("two.py", "implementer-mark.py"),
+                "post-bash": ("alone.py", "implementer-notice.py"),
+                "post-edit": ("alone.py",),
+            },
         )
-        dispatch(hooks, "pre-bash", bash(repo, "s-x"))
-        dispatch(
-            hooks,
-            "post-bash",
-            bash(repo, "s-x", command="ls", hook_event_name="PostToolUse"),
+        two = {"group": "pre-bash", "phase": "load", "error": "SyntaxError"}
+        assert d.describe("two.py", two) == (
+            "two.py failed to load in pre-bash and pre-agent (SyntaxError); calls "
+            "went ahead without it, and the other gates in pre-bash and pre-agent "
+            "still decided."
         )
-        lines = said(stop(hooks, repo, "s-x"))
-        by_gate = {line.split(" ", 1)[0]: line for line in lines[1:-1]}
-        guard, consent = by_gate["worktree-guard.py"], by_gate["worktree_consent.py"]
-        assert guard.startswith(
-            "worktree-guard.py failed to load in pre-bash and pre-agent ("
-        ), guard
-        assert guard.endswith(
-            "; calls went ahead without it, and the other gates in pre-bash and "
-            "pre-agent still decided."
-        ), guard
-        assert consent.startswith(
-            "worktree_consent.py failed to load in post-bash and post-agent ("
-        ), consent
-        assert consent.endswith(
-            "; calls went ahead without it, and the other gates in post-bash still decided."
-        ), consent
-        assert by_gate["implementer-notice.py"].startswith(
-            "implementer-notice.py failed to load in post-bash ("
-        ), by_gate
-
+        alone = {"group": "post-bash", "phase": "load", "error": "SyntaxError"}
+        assert d.describe("alone.py", alone) == (
+            "alone.py failed to load in post-bash and post-edit (SyntaxError); "
+            "calls went ahead without it, and the other gates in post-bash still "
+            "decided."
+        )
         # A failure while running depends on the payload, so the same two-group
         # gate failing in `main()` names only the group it was seen in.
-        directory = repo / ".git" / RECORDS / "s-y"
-        directory.mkdir(parents=True)
-        (directory / "worktree-guard.py.pending").write_text(
-            json.dumps({"group": "pre-agent", "phase": "run", "error": "E"}),
-            encoding="utf-8",
-        )
-        assert said(stop(hooks, repo, "s-y"))[1] == (
-            "worktree-guard.py failed while running in pre-agent (E); calls went "
-            "ahead without it, and the other gates in pre-agent still decided."
+        ran = {"group": "pre-agent", "phase": "run", "error": "E"}
+        assert d.describe("two.py", ran) == (
+            "two.py failed while running in pre-agent (E); calls went ahead "
+            "without it, and the other gates in pre-agent still decided."
         )
 
     def test_accepts_a_record_another_version_wrote_with_its_own_group_and_a_capped_gate(
@@ -750,14 +733,8 @@ class Test_describe:
         now. And the gate's name, the record's file name, is cut at `NAME_CAP`
         like the type name. Seen red at `64196684`."""
         d = load(os.path.join(HOOKS, "dispatch.py"), "dispatch_for_the_foreign_record")
-        moved = d.describe(
-            "session-lease.py", {"group": "session-start", "phase": "load"}
-        )
-        assert moved.startswith("session-lease.py failed to load in session-start;"), (
-            moved
-        )
-        known = d.describe("worktree-guard.py", {"group": "pre-bash", "phase": "load"})
-        assert "in pre-bash and pre-agent" in known, known
+        moved = d.describe("mode-gate.py", {"group": "session-start", "phase": "load"})
+        assert moved.startswith("mode-gate.py failed to load in session-start;"), moved
         long = d.describe("g" * 120, {"group": "pre-bash", "phase": "run"})
         assert long.startswith("g" * d.NAME_CAP + " failed while running"), long
         astral = d.describe("y" + ASTRAL * 60, {"phase": "run"})
@@ -804,9 +781,7 @@ class Test_draw:
         assert lines[1].startswith(
             "mode-gate.py failed to load in pre-bash (SyntaxError: "
         ), lines
-        assert lines[1].endswith(
-            "); calls went ahead without it, and the other gates in pre-bash still decided."
-        ), lines
+        assert lines[1].endswith("); calls went ahead without it."), lines
         assert lines[2:] == [CLOSING], lines
         assert records(repo, "s-x") == ["mode-gate.py.reported"]
 
@@ -824,30 +799,25 @@ class Test_draw:
         [
             ({"lib/cmdline.py": BROKEN}, ["implementer-notice.py"]),
             (
-                {"lib/cmdline_base.py": BROKEN},
-                ["worktree-guard.py", "worktree_consent.py"],
+                {"lib/press.py": BROKEN},
+                ["question-gate.py", "routing-edit-gate.py"],
             ),
             (
-                {"lib/cmdline.py": BROKEN, "lib/cmdline_base.py": BROKEN},
-                ["worktree-guard.py", "implementer-notice.py", "worktree_consent.py"],
+                {"lib/cmdline.py": BROKEN, "lib/press.py": BROKEN},
+                ["implementer-notice.py", "question-gate.py", "routing-edit-gate.py"],
             ),
         ],
-        ids=["cmdline", "cmdline_base", "both"],
+        ids=["cmdline", "press", "both"],
     )
     def test_accepts_every_gate_a_broken_shared_module_breaks_and_no_other(
         self, repo, tmp_path, broken, named
     ):
         """S6. A broken shared reader names every gate that imports it, once, and
         no gate that does not. `cmdline.py` is imported by
-        `implementer-notice.py`, and the worktree guard reaches it through
-        `tokens.given` only inside a guarded read; since #689
-        `cmdline_base.py`, the reader frozen at `86256492`, is imported by the
-        worktree guard and `worktree_consent.py`. The worktree guard's import
-        of `cmdline.py` is guarded, so a broken `cmdline.py` does not name it.
-
-        Changed by #689 twice. Round 1's fix pass broke both readers at once to
-        keep four gates named, which lost the per-module "no gate that does not"
-        (round 2 of 1790745049, white 4); each reader is now broken alone as well."""
+        `implementer-notice.py`, and `press.py` by `question-gate.py` and
+        `routing-edit-gate.py`. Each reader is broken alone as well as both at
+        once: breaking them only together would lose the per-module "no gate
+        that does not" (round 2 of 1790745049, white 4)."""
         opted_in(repo)
         hooks = hooks_copy(tmp_path, broken)
         dispatch(hooks, "pre-bash", bash(repo, "s-x"))
@@ -856,6 +826,10 @@ class Test_draw:
             "post-bash",
             bash(repo, "s-x", command="ls", hook_event_name="PostToolUse"),
         )
+        question = {"questions": []}
+        asked = bash(repo, "s-x", tool_name="AskUserQuestion", tool_input=question)
+        dispatch(hooks, "pre-question", asked)
+        dispatch(hooks, "pre-edit", edit(repo, "s-x"))
         # Every record gets one file time, as a file system with coarse times
         # gives records written in one call (Windows CI did): the order said is
         # the order the gates failed, which each record carries itself.
@@ -883,7 +857,7 @@ class Test_draw:
         directory = repo / ".git" / RECORDS / "s-x"
         directory.mkdir(parents=True)
         carried = (
-            ("worktree-guard.py", [10**18, 0]),
+            ("stub-remove.py", [10**18, 0]),
             ("routing-edit-gate.py", [10**18, 1]),
             ("mode-gate.py", [10**18 + 5, 0]),
         )
@@ -896,18 +870,18 @@ class Test_draw:
         # An `at` that is not two integers is read as absent, not compared.
         for gate, body, seconds in (
             ("version-check.py", {"group": "session-start", "at": ["late", 1]}, 1),
-            ("session-lease.py", {"group": "post-bash"}, 2),
+            ("implementer-mark.py", {"group": "post-bash"}, 2),
         ):
             old = directory / (gate + ".pending")
             old.write_text(json.dumps(body), encoding="utf-8")
             os.utime(old, ns=(10**18 + seconds * 10**9, 10**18 + seconds * 10**9))
         lines = said(stop(hooks_copy(tmp_path, {}), repo, "s-x"))
         assert gates_said(lines) == [
-            "worktree-guard.py",
+            "stub-remove.py",
             "routing-edit-gate.py",
             "mode-gate.py",
             "version-check.py",
-            "session-lease.py",
+            "implementer-mark.py",
         ], lines
 
     def test_accepts_a_record_that_cannot_be_read_and_names_its_gate(
@@ -922,8 +896,8 @@ class Test_draw:
             "lint-python.py": "not json",
             "mode-gate.py": "[1]",
             "version-check.py": json.dumps({"group": 5, "phase": "load"}),
-            "session-lease.py": json.dumps({"error": "OSError"}),
-            "worktree-guard.py": json.dumps(
+            "implementer-mark.py": json.dumps({"error": "OSError"}),
+            "stub-remove.py": json.dumps(
                 {"group": "pre-bash\nstop", "error": "E", "message": "a\n  b"}
             ),
         }
@@ -939,8 +913,8 @@ class Test_draw:
             "lint-python.py failed; calls went ahead without it.",
             "mode-gate.py failed; calls went ahead without it.",
             "version-check.py failed to load; calls went ahead without it.",
-            "session-lease.py failed (OSError); calls went ahead without it.",
-            "worktree-guard.py failed in pre-bash stop (E: a b); calls went ahead "
+            "implementer-mark.py failed (OSError); calls went ahead without it.",
+            "stub-remove.py failed in pre-bash stop (E: a b); calls went ahead "
             "without it.",
         ], lines
 
@@ -970,7 +944,7 @@ class Test_draw:
         its failure is recorded under the main session. A `Stop`-shaped payload
         naming an agent is a subagent's end, and draws nothing."""
         opted_in(repo)
-        hooks = hooks_copy(tmp_path, {"session-lease.py": BROKEN})
+        hooks = hooks_copy(tmp_path, {"implementer-notice.py": BROKEN})
         dispatch(
             hooks,
             "post-bash",
@@ -978,10 +952,10 @@ class Test_draw:
                 repo, "s-x", command="ls", hook_event_name="PostToolUse", agent_id="a-1"
             ),
         )
-        assert records(repo, "s-x") == ["session-lease.py.pending"]
+        assert records(repo, "s-x") == ["implementer-notice.py.pending"]
         assert stop(hooks, repo, "s-x", agent_id="a-1") == ""
         assert stop(hooks, repo, "s-x", hook_event_name="SubagentStop") == ""
-        assert records(repo, "s-x") == ["session-lease.py.pending"]
+        assert records(repo, "s-x") == ["implementer-notice.py.pending"]
         assert said(stop(hooks, repo, "s-x"))[0] == LABEL_ONE
 
 
@@ -1017,7 +991,7 @@ class Test_report:
         assert both[: len(both) - len(alone) - 1] == [
             LABEL_ONE,
             "mode-gate.py failed while running in pre-bash (KeyError: 'x'); calls "
-            "went ahead without it, and the other gates in pre-bash still decided.",
+            "went ahead without it.",
             CLOSING,
         ], both
         assert both[len(both) - len(alone) - 1] == "", both
@@ -1104,20 +1078,6 @@ class Test_main:
         )
         assert run_dispatch("pre-bash", payload("ls", repo)).strip() == ""
 
-    def test_accepts_post_bash_and_writes_the_lease(self, repo):
-        """The review reminder this group carried left with its hook (#923); the
-        session lease is what the group still writes."""
-        mark_root(repo / "seal")
-        declare_routing(repo)
-        run_dispatch("post-bash", payload("gh pr comment 42 --body hi", repo))
-        gd = subprocess.run(
-            ["git", "-C", str(repo), "rev-parse", "--absolute-git-dir"],
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-        ).stdout.strip()
-        assert os.path.isfile(os.path.join(gd, "agentic-leases", "s1"))
-
     @pytest.mark.parametrize("encoding", HOSTILE)
     def test_accepts_a_payload_the_console_cannot_decode_and_reaches_a_verdict(
         self, korean_repo, encoding
@@ -1185,12 +1145,16 @@ class Test_main:
 
 class Test_module:
     def test_no_group_installs_into_git_or_reads_a_commit_before_it_runs(self):
-        """#1027 S16: `pre-bash` holds the worktree guard and the mode gate
-        and nothing that reads a commit or carries a waiver to git, and
-        `session-start` runs the stub remover after the root migration, in
-        place of the installer."""
+        """#1027 S16: `pre-bash` holds the mode gate and nothing that reads a
+        commit or carries a waiver to git, and `session-start` runs the stub
+        remover after the root migration, in place of the installer. S1 of
+        work item 1793240967: no group reads a command or a spawn for a branch
+        switch or a worktree creation, so `pre-agent` holds the mark alone and
+        no group answers `PostToolUse` for an Agent call."""
         d = dispatch_module()
-        assert d.GROUPS["pre-bash"] == ("worktree-guard.py", "mode-gate.py")
+        assert d.GROUPS["pre-bash"] == ("mode-gate.py",)
+        assert d.GROUPS["pre-agent"] == ("implementer-mark.py",)
+        assert "post-agent" not in d.GROUPS
         group = d.GROUPS["session-start"]
         assert group.index("root-migrate.py") < group.index("stub-remove.py")
         assert not any("install" in g for gates in d.GROUPS.values() for g in gates)

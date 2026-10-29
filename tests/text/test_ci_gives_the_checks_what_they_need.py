@@ -3,11 +3,12 @@ and how often they are paid for.
 
 None is visible from the checks themselves, and the first two failed silently.
 
-**Checkout depth.** `actions/checkout@v4` fetches one commit unless told
-otherwise. A case in this suite resolves a commit this repository's own
-records name — `tests/behaviour/test_the_frozen_reading_never_grows.py` shows
-`86256492:hooks/cmdline.py` — and at depth 1 that commit is not in the clone
-at all, so the case skips where it should have answered.
+**Checkout depth.** `actions/checkout@v4` fetches one commit and no tag
+unless told otherwise. `tests/behaviour/test_release_hygiene.py` reads this
+repository's `v*` tags to tell a shipped version from one being cut, and at
+depth 1 it reads none, so
+`test_this_checkout_has_tags_to_read_the_shipped_set_from` fails on a tree
+with nothing wrong in it.
 
 **Which pull-request events run.** `on: pull_request:` with no `types:` runs
 on `opened`, `synchronize` and `reopened` — and on nothing else. On a DRAFT
@@ -512,7 +513,7 @@ def test_a_job_that_calls_pytest_any_way_is_held_to_the_whole_history(job):
 
 
 def test_every_job_that_runs_pytest_has_the_whole_history():
-    """A check that cannot resolve a SHA is not excused from resolving it."""
+    """A case that reads the release tags is not excused from reading them."""
     offenders = [
         f"{name}:{job}"
         for name in workflows()
@@ -520,13 +521,10 @@ def test_every_job_that_runs_pytest_has_the_whole_history():
     ]
     assert not offenders, (
         f"jobs that run pytest on a shallow checkout: {offenders}. "
-        "At depth 1 a ref this repository's own records name is MISSING "
-        "rather than wrong, so a case that resolves one skips instead of "
-        "failing — which turns the one checkout setting that voids these "
-        "checks into the setting that silences them. "
-        "`tests/behaviour/test_the_frozen_reading_never_grows.py#"
-        "test_the_bytes_below_the_rider_are_86256492s` is the live case: it "
-        "shows `86256492:hooks/cmdline.py` and skips when it cannot"
+        "At depth 1 no `v*` tag is fetched, so "
+        "`tests/behaviour/test_release_hygiene.py#"
+        "test_this_checkout_has_tags_to_read_the_shipped_set_from` fails and "
+        "the timer sweep cannot tell a shipped version from one being cut"
     )
 
 

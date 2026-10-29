@@ -12,7 +12,7 @@ and the way back is a documented sequence rather than a setting.
 under AgenticSeal: the session created `seal/` and started working, and no
 question was asked. Three files each said something correct and the three
 together left no route to the question -- `hooks/lib/optin.py` says the root's
-existence IS the declaration, `skills/implement/orchestration.md`
+existence IS the declaration, `skills/implement/bootstrap.md`
 *Orchestrator: Bootstrap* says the mode question is asked there and nowhere else, and the preset block
 (`templates/setup/claude-md-block.md`, which `install.sh` copies into
 `~/.claude/CLAUDE.md`, so it loads in every project on the machine) tells a
@@ -47,7 +47,7 @@ below is per session, not per command.
 **The budget, stated because `CONTRIBUTING.md` asks for it.** Two prompts per
 session per repository and no more: one deny, then one `ask` that approving
 gets past, then silence for every command after them. Zero once the row
-exists, which `seal mode` writes and which `skills/implement/orchestration.md`
+exists, which `seal mode` writes and which `skills/implement/bootstrap.md`
 *Orchestrator: Bootstrap* now writes when it creates the root -- so a repository that went
 through the bootstrap is never asked here, and this gate sees only the roots
 that did not.
@@ -94,8 +94,8 @@ def already_asked(git_dir, session, choice_dir=CHOICE_DIR):
     Records it when it was not. A marker that cannot be written counts as
     already asked: one missed question beats a deny the session cannot get
     past, and in a run with nobody at the keyboard that deny is an outage
-    rather than a cost. The same rule the worktree guard keeps, and not the
-    same marker.
+    rather than a cost. The same rule `hooks/review-skill-gate.py#already_asked`
+    keeps, and not the same marker.
 
     `git_dir` is absolute, which `git_dir_of` guarantees by resolving git's
     answer against the root. The sibling this was copied from takes a `cwd`
@@ -109,8 +109,8 @@ def already_asked(git_dir, session, choice_dir=CHOICE_DIR):
     the marker relative to whatever directory this process happened to be in.
 
     The id names a file, so a separator in a malformed one must not become a
-    path escape -- measured on a sibling guard, where `../../escaped` put an
-    empty file at the repository root.
+    path escape -- measured: `../../escaped` put an empty file at the
+    repository root.
     """
     session = os.path.basename(str(session or ""))
     if not git_dir or not session or session in (".", ".."):

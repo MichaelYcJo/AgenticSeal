@@ -77,9 +77,9 @@ class Test_declared_target:
 
 class Test_file_name_for:
     def test_accepts_a_hyphen_written_as_an_underscore(self):
-        shipped = ["hooks/worktree-guard.py", "hooks/x.py"]
-        name = layout.file_name_for("hooks/worktree-guard.py", shipped)
-        assert name == "test_worktree_guard.py"
+        shipped = ["hooks/mode-gate.py", "hooks/x.py"]
+        name = layout.file_name_for("hooks/mode-gate.py", shipped)
+        assert name == "test_mode_gate.py"
 
     def test_accepts_the_parent_before_a_shared_stem(self):
         shipped = ["hooks/lib/config.py", "hooks/git/config.py"]

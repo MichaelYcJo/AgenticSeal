@@ -25,6 +25,9 @@ IMPLEMENT = ("skills", "implement", "SKILL.md")
 # The orchestrator's half of the implement skill (#292). The order a ticket
 # runs in landed here in #351.
 ORCH_IMPL = ("skills", "implement", "orchestration.md")
+# The bootstrap, which proposes the `Broad gate` row, in its own file since
+# #1046.
+BOOTSTRAP = ("skills", "implement", "bootstrap.md")
 VERIFY = ("skills", "verify", "SKILL.md")
 SEALER = ("agents", "sealer.md")
 FRAMER = ("agents", "framer.md")
@@ -90,7 +93,7 @@ RULES = {
         CONFIG_TEMPLATE,
         "A check that is red repository-wide for reasons unrelated to any "
         "branch does not belong in the row",
-        {CONFIG_SKILL: CRITERION_OWNER, ORCH_IMPL: CRITERION_OWNER},
+        {CONFIG_SKILL: CRITERION_OWNER, BOOTSTRAP: CRITERION_OWNER},
     ),
     # From #493: filing a finding ran at 100% and acting on one at 47%, so a
     # new issue is a rung rather than the default.

@@ -351,7 +351,7 @@ def test_crafter_finds_the_runner_before_inventing_a_command():
         "a segment whose prompt omits the runner has nothing telling it one "
         "exists, which is what the repeats measured"
     )
-    assert "run one module at a time" in crafter, (
+    assert "type step 7's one command, never the whole suite" in crafter, (
         "crafter is pointed at a command that runs the full suite and not at "
         "the form contract rule 2 leaves it"
     )

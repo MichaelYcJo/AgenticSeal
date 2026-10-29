@@ -70,12 +70,6 @@ STOP_BEFORE_PR = "stop before the pull request"
 DESTINATION_ANSWERS = (OPEN_PR, STOP_BEFORE_PR)
 
 BY_CRAFTER = "crafter"
-# The answer a declaration written before the plugin was renamed AgenticSeal
-# carries for `BY_CRAFTER`, which the session-start move copies byte for byte;
-# `parse` reads it as `BY_CRAFTER`, and the next minor release removes that
-# reading, as it removes `chain_check.py#OLD_TRAILER`.
-# exempt from old_names: the answer a declaration written before the rename carries
-OLD_BY_CRAFTER = "smith"
 BY_SESSION = "the session"
 IMPLEMENTATION_ANSWERS = (BY_CRAFTER, BY_SESSION)
 
@@ -255,8 +249,6 @@ def parse(text):
     destination = found.get(DESTINATION)
     branch = found.get(BRANCH)
     implementation = found.get(IMPLEMENTATION)
-    if implementation == OLD_BY_CRAFTER:
-        implementation = BY_CRAFTER
     planning = found.get(PLANNING)
     automation = found.get(AUTOMATION)
     pressed = found.get(ANSWER_PRESSED)
@@ -444,7 +436,7 @@ def declared(cwd, root):
 # a branch a line names and on no other. The rule is
 # `docs/the-routing-check.md` *The edit check*.
 NO_WORK_ITEM = "agentic-no-work-item"
-# A record older than this is pruned when one is written, as a lease is.
+# A record older than this is pruned when one is written.
 NO_WORK_ITEM_AGE = 86400
 
 

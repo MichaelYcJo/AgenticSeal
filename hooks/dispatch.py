@@ -78,30 +78,25 @@ CLOSING = (
 )
 
 GROUPS = {
-    "pre-bash": ("worktree-guard.py", "mode-gate.py"),
-    "pre-agent": ("worktree-guard.py", "implementer-mark.py"),
+    "pre-bash": ("mode-gate.py",),
+    "pre-agent": ("implementer-mark.py",),
     "pre-skill": ("review-skill-gate.py",),
     "pre-question": ("question-gate.py",),
     # The routing check at the edit tools: the first edit on a branch no
     # `routing.md` names is refused (#1027).
     "pre-edit": ("routing-edit-gate.py",),
-    "post-bash": ("implementer-notice.py", "session-lease.py", "worktree_consent.py"),
-    # The AFTER half of the worktree guard, and the only group that exists for
-    # one gate. It cannot join `pre-agent`: what it records is that the call
-    # RAN, which is the whole of why the record is evidence a command text
-    # cannot forge.
-    "post-agent": ("worktree_consent.py",),
+    "post-bash": ("implementer-notice.py",),
     # `sealer-stamp-queue.py` queues a work item's stamp at the write of its
     # `sealed` guarantee, under either root (work item 1792363231, #1027);
     # `sealer-stamp.py` in `stop` draws it.
-    "post-edit": ("lint-python.py", "session-lease.py", "sealer-stamp-queue.py"),
+    "post-edit": ("lint-python.py", "sealer-stamp-queue.py"),
     # The git hook stubs an earlier release wrote are taken out of the clone
     # the session starts in (#1027).
     "session-start": ("version-check.py", "root-migrate.py", "stub-remove.py"),
     # The end of a main-session turn, where the stamp a `sealed` guarantee's
     # write queued is drawn after the text it belongs under (#400, #975).
-    # One gate, like `post-agent`,
-    # because nothing else here has anything to say when a turn ends.
+    # One gate, because nothing else here has anything to say when a turn
+    # ends.
     "stop": ("sealer-stamp.py",),
 }
 
@@ -142,7 +137,7 @@ def run_gate(filename, payload):
                 pass
     except (Exception, SystemExit) as exc:
         # A `SystemExit` reaching here was raised at LOAD: `main()`'s own is
-        # caught above, because `worktree-guard.py` ends with `sys.exit(0)`.
+        # caught above, because a gate's `main()` may end with `sys.exit(0)`.
         # Left uncaught, one module body calling `sys.exit` ended the whole
         # group, and the gates after it never decided.
         FAILED.append((filename, phase, exc))
@@ -271,8 +266,8 @@ def merge(outputs, event_name):
 
 def path_part(value):
     """`value` as one path component, or "" where it cannot be one. An id
-    that names a directory must not escape it -- the measured `../../escaped`
-    of `hooks/worktree-guard.py#already_asked`."""
+    that names a directory must not escape it -- `../../escaped`, taken whole,
+    was measured putting a file at the repository root."""
     part = os.path.basename(str(value or ""))
     return "" if part in (".", "..") else part
 
@@ -430,10 +425,10 @@ def describe(gate, body):
 
     A gate that failed to LOAD fails in every group that loads its file, and
     its record is written once, by the first -- so each of those groups is
-    named: a broken `worktree-guard.py` is an unguarded `pre-agent` too, not
-    only an unguarded `pre-bash`. A failure while running depends on the
-    payload, so it names the group it was seen in. The closing clause names
-    only the groups where other gates were there to decide.
+    named: a broken gate that `pre-bash` and `pre-agent` both load leaves
+    `pre-agent` unguarded too, not only `pre-bash`. A failure while running
+    depends on the payload, so it names the group it was seen in. The closing
+    clause names only the groups where other gates were there to decide.
 
     Every field read from the record that has no fixed vocabulary is cut to
     its cap again here, because `read_record`'s writer may be an older or a

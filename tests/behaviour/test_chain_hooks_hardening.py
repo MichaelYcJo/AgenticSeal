@@ -88,8 +88,8 @@ def test_the_gate_table_has_one_row_for_each_script_groups_registers():
     plugin registers, and the gate table is what a person reads to learn what
     runs on their machine. Each script `GROUPS` names has exactly one row in
     each edition, its first cell the file name without `.py`, and no row
-    names anything else. Seen red at `5287dd42`, whose tables lacked
-    `worktree_consent` and `root-migrate`."""
+    names anything else. Seen red at `5287dd42`, whose tables lacked a row
+    for two registered scripts, `root-migrate` one of them."""
     from conftest import load_module
 
     dispatch = load_module(
@@ -147,27 +147,15 @@ def test_the_marketplace_describes_the_plugin_in_the_manifests_words():
 
 
 def test_every_option_the_manifest_declares_is_one_a_hook_reads():
-    """#1096 S5. Where `.claude-plugin/plugin.json` declares the option
-    `worktree_guard_language`, it carries `type`, `title` and `description`
-    and no other field: a `default` would leave `SPECSEAL_LANG` and the locale
-    unread for every person, and `options` stops Claude Code before v2.1.271
-    from loading the plugin. Its description names `SPECSEAL_LANG`, because
-    that is the help text a person reads where they set the option, and the
-    variable decides there through 0.24.x. Claude Code hands each option to a
-    hook as `CLAUDE_PLUGIN_OPTION_` and the key uppercased, so every option the
-    manifest declares is read by that name in a script under `hooks/`, and no
-    script there reads one it does not declare. If the guard leaves, this
-    case is red until its option leaves with it."""
+    """#1096 S5. Claude Code hands each option `.claude-plugin/plugin.json`
+    declares under `userConfig` to a hook as `CLAUDE_PLUGIN_OPTION_` and the
+    key uppercased, so every option the manifest declares is read by that
+    name in a script under `hooks/`, and no script there reads one it does
+    not declare."""
     with open(
         os.path.join(ROOT, ".claude-plugin", "plugin.json"), encoding="utf-8"
     ) as f:
         declared = json.load(f).get("userConfig", {})
-    option = declared.get("worktree_guard_language")
-    if option is not None:
-        assert sorted(option) == ["description", "title", "type"], option
-        assert option["type"] == "string", option
-        # The next minor release removes this line with the read it names.
-        assert "SPECSEAL_LANG" in option["description"], option
     read = {}
     for directory, _dirs, names in os.walk(os.path.join(ROOT, "hooks")):
         for name in sorted(names):
@@ -234,24 +222,55 @@ def test_parity_declaration_is_bootstrappable_not_hand_written():
         assert field in body, f"template lost the {field!r} field"
     assert "parity-paths.md" in body, "template must say where the local path goes"
 
-    # The bootstrap and the parity setup are the orchestrator's half of the
-    # skill since #292, so the file that has to point at the template is
-    # `orchestration.md`, not the `SKILL.md` every crafter spawn opens.
+    # The bootstrap is the orchestrator's since #292, in a file of its own
+    # since #1046. Its yes to the parity question follows the parity-setup
+    # procedure, which is the one statement of the four fields, so the
+    # bootstrap points at the procedure and the procedure points at the
+    # template. Read from the Bootstrap section alone, so a sentence the
+    # file's opening paragraph gains cannot stand in for step 3.
     implement = open(
-        os.path.join(ROOT, "skills", "implement", "orchestration.md"),
+        os.path.join(ROOT, "skills", "implement", "bootstrap.md"),
         encoding="utf-8",
     ).read()
-    assert "templates/setup/parity.md" in implement, (
-        "bootstrap never points at the template"
+    bootstrap = implement.split("## Orchestrator: Bootstrap", 1)[1]
+    bootstrap = bootstrap.split("\n## ", 1)[0]
+    assert "skills/parity-setup/SKILL.md" in bootstrap, (
+        "the bootstrap's yes never reaches the parity-setup procedure"
     )
-    assert "seal/README.md" in implement
+    assert "seal/README.md" in bootstrap
 
     setup = os.path.join(ROOT, "skills", "parity-setup", "SKILL.md")
     assert os.path.isfile(setup), "no command for declaring parity later"
+    assert "templates/setup/parity.md" in open(setup, encoding="utf-8").read(), (
+        "the parity-setup procedure never points at the template"
+    )
     head = open(setup, encoding="utf-8").read().split("\n---\n", 1)[0]
     assert "disable-model-invocation: true" in head, (
         "parity-setup writes a declaration; it must not fire on its own"
     )
+
+    # The bootstrap's yes reaches the procedure right after the mode answer,
+    # local included (#1046, rounds 1 and 2). Local mode commits nothing and
+    # no check reads it; under shared, records only, `seal gate` still refuses
+    # a round record with no `original:` line once a ready pull request is
+    # open, so the procedure says which mode commits the file and what refuses
+    # in each.
+    procedure = " ".join(open(setup, encoding="utf-8").read().split())
+    assert "Where the root is `<repo>/seal/`, commit it." in procedure, (
+        "the parity-setup procedure commits the declaration in every mode"
+    )
+    assert "In local mode the root sits under the common git directory" in procedure
+    assert "`seal pr-checks` reports the checks installed" in procedure, (
+        "the parity-setup procedure promises a pull-request refusal that "
+        "only installed checks give"
+    )
+    assert (
+        "the gate refuses a round record without it once a ready pull" in procedure
+    ), (
+        "the parity-setup procedure says nothing refuses under shared, records "
+        "only, where `seal gate` refuses once a ready pull request is open"
+    )
+    assert "In local mode git carries neither" in procedure
 
 
 def _folded(name):

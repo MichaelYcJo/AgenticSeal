@@ -2962,24 +2962,22 @@ class Test_routing_trailers:
         assert code == 0, out
         assert chain.UNDECLARED_TRAILER.format(sha=named[:8], item=ROUTED) in out
 
-    def test_reads_the_trailer_a_commit_before_0_23_0_carries(self, undeclared, capsys):
-        """#1051: a commit made before the rename carries `SpecSeal-Routing:`,
-        and through 0.23.x it is read as the same trailer: a work item no
-        declaration names fails a ready pull request, and `no work item` is a
-        notice, under either key."""
+    def test_does_not_read_the_trailer_key_a_commit_before_0_23_0_carries(
+        self, undeclared, capsys
+    ):
+        """S1 of #1142: the key a commit made before the rename carries,
+        `SpecSeal-Routing:`, is read as any other trailer key is: not judged.
+        A work item no declaration names passes a ready pull request, and
+        `no work item` prints no notice."""
         root = undeclared
         write(root, "a.txt", "a\n")
         named = commit_saying(root, "feat: a", f"SpecSeal-Routing: {ROUTED}")
         write(root, "b.txt", "b\n")
         none = commit_saying(root, "chore: b", "SpecSeal-Routing: no work item")
-        write(root, "c.txt", "c\n")
-        new = commit_saying(root, "chore: c", "Seal-Routing: no work item")
         code, out = check(root, capsys)
-        assert code == 1, out
-        lines = out.splitlines()
-        assert chain.UNDECLARED_TRAILER.format(sha=named[:8], item=ROUTED) in lines
-        assert chain.NO_WORK_ITEM_TRAILER.format(sha=none[:8]) in lines
-        assert chain.NO_WORK_ITEM_TRAILER.format(sha=new[:8]) in lines
+        assert code == 0, out
+        assert named[:8] not in out, out
+        assert none[:8] not in out, out
 
     def test_accepts_a_commit_naming_the_work_item_its_declaration_names(
         self, branch, ready, capsys
