@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """Reading a shell command line: where one invocation ends, and what git it is.
 
-Three readers ask questions of the string the harness hands a hook.
-`hooks/worktree-guard.py`'s wider reading asks for the strings a shell is
-handed and the git a redirection or a runner hides; `hooks/implementer-notice.py`
-asks whether a command commits; `hooks/lib/tokens.py#without_bodies` asks where a
-here-document body is. None of them owns the answer, so it lives here.
+`hooks/implementer-notice.py` asks one question of the string the harness
+hands a hook: whether a command commits. It drops the comments and the
+here-document bodies, splits what is left into segments, and reads each
+segment for a git subcommand, all through this module.
 
 `hooks/lib/optin.py` states the rule this module follows: "the answer moved once
 already, and four divergent copies is how half of them keep the old answer."
@@ -43,8 +42,8 @@ WRAPPERS = {"command", "env", "nohup", "time", "sudo"}
 # at it read `2>/dev/null git commit` as no commit at all. An optional file
 # descriptor comes first, a number or bash 4.1's `{name}`; longer operators are
 # listed before the ones they begin with. `&>`, `&>>`, `>&`, `<&` and `>|` hold
-# a character the splitter cuts at, so as single words they arrive only in
-# `merged_view`; zsh's `>!` and `>>!` are read without having been run here.
+# a character the splitter cuts at, so the splitter never hands one over as a
+# single word; zsh's `>!` and `>>!` are read without having been run here.
 _REDIRECTION = re.compile(
     r"(?:[0-9]+|\{[A-Za-z_][A-Za-z0-9_]*\})?"
     r"(?:<<<|<<-|<<|<>|<&|>&|&>>|&>|>>!|>>|>\||>!|>|<)"
@@ -60,8 +59,8 @@ def redirection_width(tokens, i):
     splitter as several words, `>(tee` and `log)`, and runs to the one that
     closes it.
 
-    Asked only where a program word may stand, or where a host's string is
-    picked, and every reader that asks it keeps the answer it gave without it
+    Asked only where a program word may stand, and every reader that asks it
+    keeps the answer it gave without it
     (`frame/design.md` decision 1 of work item 1790660768): a word that merely looks
     like a redirection there can only add a reading.
     """
@@ -81,34 +80,6 @@ def redirection_width(tokens, i):
             depth += tokens[j].count("(") - tokens[j].count(")")
             j += 1
     return j - i
-
-
-def unglued(tokens):
-    """TOKENS with a redirection glued to the END of a word cut into its own
-    word, or None where no word carries one (round 1 of 1790660768, yellow 4).
-
-    `_REDIRECTION` matches at the start of a word, and a shell ends a word at
-    `<` and `>` wherever they stand: `git>/dev/null commit` runs `git commit`,
-    and `commit>/dev/null` is the subcommand `commit`. A descriptor in front
-    (`2>f`) and bash 4.1's `{fd}>f` are the operator's own and stay whole. A
-    word holding whitespace was quoted, and is an argument's, so it is not
-    cut. It is read as a view BESIDE the segment, the way `merged_view` is,
-    so every answer the segment gave stands and the view only adds.
-    """
-    out, cut = [], False
-    for t in tokens:
-        k = min((t.find(c) for c in "<>" if c in t), default=-1)
-        if (
-            k > 0
-            and not t[:k].isdigit()
-            and not (t[0] == "{" and t[k - 1] == "}")
-            and not any(c.isspace() for c in t)
-        ):
-            out += [t[:k], t[k:]]
-            cut = True
-        else:
-            out.append(t)
-    return out if cut else None
 
 
 # Characters after which a `#` starts a comment. A shell ends a word at these,
@@ -683,46 +654,6 @@ def split_segments_with_separators(command):
     return items, True
 
 
-def merged_view(items):
-    """The segments the splitter cut inside a redirection, glued back (#674).
-
-    `split_segments_with_separators` cuts at every `&` and `|`, so `2>&1`,
-    `>&2`, `<&0`, `>&-`, `>|f`, and `&>f` after a word each arrive as a
-    separator between two segments, and a program or a string behind one lands
-    in a segment of its own. The splitter is not changed: teaching it these
-    operators moves every segment in both gates and in the walk, and `cd W
-    2>&1 && git commit` would then be judged in W alone where `86256492` also
-    judged the session's directory (`plan.md` Alternatives B).
-
-    A segment is glued to the next where it ends in a bare redirection
-    operator (`2>`, `>`, `<`, `{fd}>`) and the separator is `&` or `|`, or where
-    the separator is `&` and the next segment begins with `>` (`&>`, `&>>`). A
-    chain folds into one. Returns `(parts, tokens)` for each group of two or
-    more parts: the item indices and the glued tokens. Callers read a group
-    BESIDE its parts and add only what no part found on its own.
-    """
-    groups = []
-    for index, (sep, tokens) in enumerate(items):
-        if groups and sep in ("&", "|") and tokens:
-            parts, toks = groups[-1]
-            # The operator may be glued to the end of a word (`git>&2`, round
-            # 1 of 1790660768, yellow 4), so the last piece `unglued` cuts is
-            # the one asked.
-            last = (unglued(toks[-1:]) or toks[-1:])[-1]
-            m = _REDIRECTION.match(last)
-            if m and m.end() == len(last):
-                toks[-1] += sep + tokens[0]
-                toks += tokens[1:]
-                parts.append(index)
-                continue
-            if sep == "&" and tokens[0].startswith(">"):
-                toks += ["&" + tokens[0], *tokens[1:]]
-                parts.append(index)
-                continue
-        groups.append(([index], list(tokens)))
-    return [g for g in groups if len(g[0]) > 1]
-
-
 # Reserved words that BEGIN A COMMAND LIST, so the word after one is a command
 # word (#669). The shell splits `for d in a; do git commit; done` at `;`, and
 # the commit arrives as a segment whose first word is `do`; reading only that
@@ -794,43 +725,9 @@ RUNNERS = frozenset(
     }
 )
 
-# Programs that hand a STRING to a shell to parse, once given the flag that
-# says so: `sh -c 'git commit'`. The string is read as a command the way
-# `eval`'s argument already was (`reparsed_texts`).
-SHELLS = frozenset({"sh", "bash", "zsh", "dash", "ksh", "mksh", "yash", "ash"})
-# `flock` joined with #674: util-linux's flock(1) says `-c`/`--command` passes
-# "a single command, without arguments, to the shell with -c". `sudo -s` and
-# `sudo -i` did not, although they reach a shell's `-c` too: `man sudo`
-# (1.9.17p2) escapes every character of the command but alphanumerics,
-# underscores, hyphens and dollar signs, so a quoted string arrives as one
-# word and not as a command line. Its argv form is `sudo` the runner's.
-STRING_HOSTS = frozenset(SHELLS | {"su", "runuser", "script", "flock"})
 
-
-def _string_at(words, j):
-    """The words a host's string is picked from, starting at J (#674).
-
-    WORDS[J] as it always was, and, where that word is a redirection, the words
-    past it up to the first that is not one. The shell takes a redirection off
-    before the host runs, so `bash -c 2>/dev/null "$CMD"` runs `$CMD`; the base
-    asked `2>/dev/null` and nothing after it. A spaced target goes with its
-    operator and is not asked.
-    """
-    out = []
-    while j < len(words):
-        out.append(words[j])
-        width = redirection_width(words, j)
-        if not width:
-            break
-        j += width
-    return out
-
-
-def command_word(tokens, stand_in="git", redirections=False):
+def command_word(tokens, redirections=False):
     """(the segment from its command word on, whether its directory is unplaced).
-
-    STAND_IN is the word looked for where no position names the command word;
-    the worktree guard passes `eval` to find an `eval`'s argument.
 
     Assignments, wrappers and the `!`/`time` prefixes are read past as they
     always were, and so are the words in `LIST_OPENERS`. What sits behind one of
@@ -846,9 +743,8 @@ def command_word(tokens, stand_in="git", redirections=False):
     REDIRECTIONS reads past a redirection as well (#674), and it is a second
     reading rather than a change to this one: `2>/x/git commit` reads as `git`
     without it, because the word's last component is `git`, and as `commit`
-    with it. So every consumer asks this reading only where the first found
-    nothing, and adds what it finds (`parse_git` and the worktree guard's
-    reading of an `eval`).
+    with it. So `parse_git` asks this reading only where the first found
+    nothing, and adds what it finds.
     """
     toks, _opened = strip_subshell(tokens)
     unplaced = False
@@ -893,367 +789,14 @@ def command_word(tokens, stand_in="git", redirections=False):
     ):
         # A pattern (`a)`), a definition (`f()`, `f ()`), a word in
         # `UNPLACED`, or a runner's own option or operand: no position names
-        # the command word, so the first STAND_IN word stands in for it, and
-        # none means no such command is in the segment.
+        # the command word, so the first `git` word stands in for it, and
+        # none means no git command is in the segment.
         later = [
-            j for j in range(i + 1, len(toks)) if os.path.basename(toks[j]) == stand_in
+            j for j in range(i + 1, len(toks)) if os.path.basename(toks[j]) == "git"
         ]
         if later:
             i, unplaced = later[0], True
     return toks[i:], unplaced
-
-
-def host_word(tok):
-    """The program TOK names, read with a glued subshell opener taken off.
-
-    `(sh -c 'git commit')` arrives from the splitter as `(sh`, and the last
-    component of that is `(sh`, which is no host (#674, P10). Taking the `(`
-    off first only ever adds a host: a word whose last component was already
-    a host keeps it, because a `(` in front of a `/` is not in that component.
-    """
-    return os.path.basename(tok.lstrip("("))
-
-
-def _hands_a_string(word, tok):
-    """True when `tok`, an argument of `word`, tells it to run a string."""
-    if tok == "--command" or tok.startswith("--command="):
-        return word in ("su", "runuser", "script", "flock")
-    # A short-option cluster holding `c`: `-c`, `-ec`, `-lc`.
-    return tok.startswith("-") and not tok.startswith("--") and "c" in tok[1:]
-
-
-def reparsed_texts(tokens, env_words=True):
-    """Every string in this segment that a program hands to a shell to parse.
-
-    `sh -c`, `bash -c` and the other `SHELLS`, `su -c`, `runuser -c` and
-    `script -c` run their string; `env -S` splits one into a command; `watch`
-    runs its arguments through `sh -c`. Where the flag is present every
-    non-option word after the program is returned, because which of them is
-    the string depends on options this reader does not parse (`bash -o errexit
-    -c '…'`) -- reading an extra word as a command costs a stop, and missing
-    the string costs a silence. A program found anywhere in the segment
-    counts, not only as its command word: `sudo sh -c` and `xargs -I{} sh -c`
-    put it behind a runner.
-
-    ENV_WORDS adds `env -S`'s string read as `env`'s own words (#716). A
-    caller asking which command word expands passes False: env's other words
-    are its arguments, never a command word.
-    """
-    texts = []
-    for k, tok in enumerate(tokens):
-        word = host_word(tok)
-        rest = tokens[k + 1 :]
-        if word in STRING_HOSTS and any(_hands_a_string(word, t) for t in rest):
-            texts += [t for t in rest if not t.startswith("-")]
-            texts += [t.split("=", 1)[1] for t in rest if t.startswith("--command=")]
-        elif word in ("watch", "parallel"):
-            # `parallel` runs each of its arguments through a shell (#674). It
-            # is read for a commit written out, which costs nothing where none
-            # is; placing its command word is a parser (`frame/design.md` *Scope*).
-            texts += [t for t in rest if not t.startswith("-")]
-        elif word in ("env", "genv"):
-            # env's words are walked once under GNU's grammar and, for `env`
-            # alone, once under BSD's, and every string either walk finds is
-            # kept (#737): where the two read a word differently, one of them
-            # is the env that runs. `genv` is GNU's by name.
-            found = _env_walk(word, rest, "gnu", env_words)
-            if word == "env":
-                found += [
-                    t for t in _env_walk(word, rest, "bsd", env_words) if t not in found
-                ]
-            texts += found
-    return texts
-
-
-def _env_walk(word, rest, grammar, env_words):
-    """The strings `env`'s words REST hand a shell, read under GRAMMAR.
-
-    OWN: still among env's own options, read through `ENV_OPTIONS`, where a
-    cluster or an abbreviation can spell the split string. A redirection
-    anywhere among them is the shell's and is read past; `--` ends them
-    (rounds 1 and 2 of 1790993140). The split string's unabbreviated
-    spellings are read anywhere, as the base read them.
-    """
-    texts = []
-    own, value, skip = True, False, 0
-    for j, t in enumerate(rest):
-        if skip:
-            skip -= 1
-            continue
-        width = redirection_width(rest, j) if own else 0
-        if width:
-            skip = width - 1
-            continue
-        at, takes_next = _env_option(t, own and not value, grammar=grammar)
-        if value:
-            value = False
-        elif own and (t == "--" or not t.startswith("-")):
-            own = False
-        elif own:
-            value = takes_next or (at is not None and at[0] == "next")
-        if at is None:
-            continue
-        kind, string = at
-        if kind == "next" and j + 1 < len(rest):
-            texts += _string_at(rest, j + 1)
-            after = rest[j + 1 :]
-        elif kind == "here":
-            texts.append(string)
-            after = [string, *rest[j + 1 :]]
-        else:
-            continue
-        if env_words:
-            texts += _env_words(word, rest[:j], after)
-    return texts
-
-
-# Every option of `env`, and the one table the env arm of `reparsed_texts`
-# reads them from (round 2 of 1790993140). Sources, read from the code and not
-# from a synopsis, which is what missed two rows (#737): GNU coreutils
-# `src/env.c` at `f799b2f48a61` (`shortopts` and `longopts`; `--quoting-style`
-# is there before any release has it) and FreeBSD `usr.bin/env/env.c` at
-# `c2d93a803ace` (its `getopt` letters; Apple's `shell_cmds` `env/env.c` has
-# the same less `L` and `U`). Re-derive from those files, never from `--help`.
-# (short, long, value): VALUE is `ENV_STRING` for the split string,
-# "required" for a value attached or in the next word, "optional" for one
-# attached with `=` only, None for no value. A short option with no long name
-# has None there.
-#
-# What the table does not need a row for: a lone `-`, which GNU takes as `-i`
-# and the end of the options and BSD as `-i` among them; the walk reads it as
-# one of env's own options, which costs a stop only where GNU's program is
-# named like an option. And `--`, which ends them. BSD's `-` inside a word is
-# `_ENV_SHORT`'s, below the table, and BSD's getopt reads a word starting `--`
-# with more after it as a cluster led by that letter, which `_env_option`
-# reads under the "bsd" grammar. GNU's getopt takes an unambiguous prefix of a
-# long name (`--un`, `--spl`); an ambiguous one (`--i`, `--d`) is an error,
-# after which env runs nothing, so it is read as a flag.
-ENV_STRING = "string"
-ENV_OPTIONS = (
-    ("i", "--ignore-environment", None),
-    ("0", "--null", None),
-    ("v", "--debug", None),
-    ("u", "--unset", "required"),
-    ("C", "--chdir", "required"),
-    ("S", "--split-string", ENV_STRING),
-    ("a", "--argv0", "required"),
-    ("P", None, "required"),
-    ("L", None, "required"),
-    ("U", None, "required"),
-    (None, "--block-signal", "optional"),
-    (None, "--default-signal", "optional"),
-    (None, "--ignore-signal", "optional"),
-    (None, "--list-signal-handling", None),
-    (None, "--env0-from", "required"),
-    (None, "--quoting-style", "required"),
-    (None, "--help", None),
-    (None, "--version", None),
-)
-_ENV_SHORT = {short: value for short, _long, value in ENV_OPTIONS if short}
-# BSD's getopt has `-` among its letters, as `-i`: `env -i-S '…'` runs the
-# string on macOS (executed, #737). A row would be spelt `--`, the end of the
-# options, so the letter lives here.
-_ENV_SHORT["-"] = None
-_ENV_LONG = {long: value for _short, long, value in ENV_OPTIONS if long}
-
-
-def _env_long(name, abbreviated):
-    """The long option NAME spells in `ENV_OPTIONS`, or None.
-
-    Exactly, or, where ABBREVIATED, as the one long name it is a prefix of,
-    which is GNU getopt's rule; `--` alone is no prefix.
-    """
-    if name in _ENV_LONG:
-        return name
-    if not abbreviated or len(name) < 3:
-        return None
-    found = [long for long in _ENV_LONG if long.startswith(name)]
-    return found[0] if len(found) == 1 else None
-
-
-def _env_option(t, own, grammar="gnu"):
-    """What T is to `env`: (where it spells the split string, takes_next).
-
-    The first is ("next", None) where the split string is the next word,
-    ("here", s) where T carries it, and None otherwise. TAKES_NEXT is True
-    where T is an option whose value is the next word. Among env's own
-    options (OWN) a short cluster is read letter by letter, up to the letter
-    whose value is the rest of the word or the next one (`-iS`, `-vu FOO`),
-    and a long name in any prefix getopt takes. Elsewhere only the split
-    string's unabbreviated spellings at a word's head count, as the base read
-    them (#716).
-
-    GRAMMAR is "gnu" or "bsd" (#737). Under "bsd" there is no long name: a
-    word that starts `--` is a cluster whose first letter is `-`, as FreeBSD's
-    getopt reads it, so `--S` is `-i -S` and `--unset` is `-i -u nset`. `--`
-    alone spells nothing either way, and the walk ends env's options there.
-    The split string's spellings read anywhere are GNU's, and the walk under
-    "gnu" keeps them.
-    """
-    if t.startswith("--") and grammar != "bsd":
-        name, eq, attached = t.partition("=")
-        value = _ENV_LONG.get(_env_long(name, own))
-        if value == ENV_STRING:
-            return (("here", attached) if eq else ("next", None)), False
-        return None, own and value == "required" and not eq
-    if not t.startswith("-") or len(t) < 2:
-        return None, False
-    letters = t[1:] if own else t[1]
-    for i, ch in enumerate(letters, 1):
-        value = _ENV_SHORT.get(ch, "unknown")
-        if value == ENV_STRING:
-            string = t[i + 1 :]
-            return (("here", string) if string else ("next", None)), False
-        if value == "required":
-            return None, i == len(t) - 1
-        if value is not None:
-            # A letter no synopsis has: getopt fails, and env runs nothing.
-            return None, False
-    return None, False
-
-
-def _env_words(word, before, after):
-    """`env -S`'s string read as the command `env` runs, as a one-item list (#716).
-
-    `env` splits the string into its OWN arguments, so `env -S '-i git
-    commit'` runs `env -i git commit`, and the string alone reads as a command
-    whose word is `-i`. BEFORE is what stood between `env` and the option,
-    AFTER the string and what follows it. The shell takes the redirections off
-    before `env` runs, so they are left out, and the string is the first word
-    past them. Returned beside the string, never instead of it; empty where a
-    redirection is the last word and no string follows.
-    """
-    after = _without_redirections(after)
-    if not after:
-        return []
-    # Only the string is split again; every other word reached `env` as ONE
-    # argument, so it is quoted back into one: `env -S echo 'a && b'` runs
-    # `echo` with one operand, not a list (round 1 of 1790993140, yellow 1).
-    head = [shlex.quote(w) for w in _without_redirections(before)]
-    tail = [shlex.quote(w) for w in after[1:]]
-    return [" ".join([word, *head, after[0], *tail])]
-
-
-def _without_redirections(toks):
-    """TOKS with every redirection taken out, a spaced target with its operator."""
-    out, i = [], 0
-    while i < len(toks):
-        width = redirection_width(toks, i)
-        if width:
-            i += width
-            continue
-        out.append(toks[i])
-        i += 1
-    return out
-
-
-def _heredoc_end(command, k, n):
-    """Where the heredoc opened by the `<<` at `k` ends, or None if none opens."""
-    dashed = command.startswith("<<-", k)
-    j = k + (3 if dashed else 2)
-    while j < n and command[j] in " \t":
-        j += 1
-    delim, after = _heredoc_word(command, j)
-    if not delim:
-        return None
-    line_end = command.find("\n", after)
-    while line_end != -1:
-        start = line_end + 1
-        line_end = command.find("\n", start)
-        line = command[start:] if line_end == -1 else command[start:line_end]
-        if (line.lstrip("\t") if dashed else line).rstrip("\r") == delim:
-            return n if line_end == -1 else line_end
-    return n
-
-
-def _paren_end(command, j):
-    """The index of the `)` that closes a substitution whose body starts at `j`.
-
-    Quotes, escapes and heredocs are stepped over, because a `)` in any of them
-    closes nothing. A `case` inside is where counting parentheses stops being
-    right -- its patterns end in an unmatched `)` -- so from there the rest of
-    the input is the body: a longer body can only hold more commits.
-    """
-    depth, k, n, quote = 1, j, len(command), None
-    while k < n:
-        ch = command[k]
-        if quote == "'":
-            quote = None if ch == "'" else quote
-        elif ch == "\\":
-            k += 2
-            continue
-        elif ch == '"':
-            quote = None if quote == '"' else '"'
-        elif quote is None:
-            if command.startswith("<<<", k):
-                # A herestring opens no body. Stepped over whole, because the
-                # last two of its three `<` would otherwise read as a `<<`.
-                k += 3
-                continue
-            if command.startswith("<<", k):
-                end = _heredoc_end(command, k, n)
-                if end is not None:
-                    k = end
-                    continue
-            if ch == "'":
-                quote = "'"
-            elif ch == "(":
-                depth += 1
-            elif ch == ")":
-                depth -= 1
-                if not depth:
-                    return k
-            elif (
-                command.startswith("case", k)
-                and (k == 0 or command[k - 1] in " \t\n;|&(")
-                and command[k + 4 : k + 5] in (" ", "\t", "\n")
-            ):
-                return n
-        k += 1
-    return n
-
-
-def substitution_bodies(command):
-    """The body of every `$( … )`, `` ` … ` ``, `<( … )` and `>( … )` (#670).
-
-    The shell runs each body as a command, in a subshell, and substitutes its
-    output -- so a commit in one is a commit, and the reader never looked. The
-    outermost bodies come back; a caller reading a body as a command calls
-    this again on it for the ones nested inside. A single-quoted `$(` is text
-    and opens nothing; a double-quoted one runs. An unterminated body runs to
-    the end of the input. `$((…))` comes back too, as a body holding its
-    expression, which reads as no command.
-    """
-    bodies, i, n, quote = [], 0, len(command), None
-    while i < n:
-        ch = command[i]
-        if quote == "'":
-            quote = None if ch == "'" else quote
-            i += 1
-            continue
-        if ch == "\\":
-            i += 2
-            continue
-        if ch == "'" and quote is None:
-            quote = "'"
-        elif ch == '"':
-            quote = None if quote == '"' else '"'
-        elif ch == "`":
-            end = i + 1
-            while end < n and command[end] != "`":
-                end += 2 if command[end] == "\\" else 1
-            bodies.append(command[i + 1 : min(end, n)])
-            i = end + 1
-            continue
-        elif command.startswith("$(", i) or (
-            quote is None and ch in "<>" and command.startswith("(", i + 1)
-        ):
-            end = _paren_end(command, i + 2)
-            bodies.append(command[i + 2 : end])
-            i = end + 1
-            continue
-        i += 1
-    return bodies
 
 
 def strip_subshell(tokens):

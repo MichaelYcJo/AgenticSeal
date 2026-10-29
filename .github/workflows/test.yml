@@ -109,10 +109,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: ${{ matrix.timeout }}
     steps:
-      # Not shallow. A case resolves a commit this repository's own records
-      # name -- `tests/behaviour/test_the_frozen_reading_never_grows.py` shows
-      # `86256492:hooks/cmdline.py` -- and at depth 1 the commit is missing
-      # rather than wrong, so the case skips where it should have answered.
+      # Not shallow, so the tags come too. `tests/behaviour/test_release_hygiene.py`
+      # reads this repository's `v*` tags to tell a shipped version from one
+      # being cut, and a depth-1 checkout fetches no tag, so its cases fail on
+      # a tree with nothing wrong in it.
       # `tests/text/test_ci_gives_the_checks_what_they_need.py` holds every job
       # that runs pytest to the whole history.
       - uses: actions/checkout@v4

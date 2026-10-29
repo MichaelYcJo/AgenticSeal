@@ -1053,17 +1053,13 @@ OLD_NAME_RECORDS = (
 RECORDED_CASE = re.compile(r"^evals/behaviour/[^/]+/(?:replay|seeded)-")
 # The migration and its cases spell the 0.22.x layout and the state names a
 # session start moves from, which is the one place those names are read.
-# `hooks/lib/cmdline_base.py` is, below its rider, `86256492:hooks/cmdline.py`
-# byte for byte, which `tests/behaviour/test_the_frozen_reading_never_grows.py` holds,
-# so no line of it can change or carry an exemption. The replay and seeded
-# cases' generators read round records at the 0.22.x layout every committed
-# case was cut from, each such line exempted at the generator, and their
-# cases build those records.
+# The replay and seeded cases' generators read round records at the 0.22.x
+# layout every committed case was cut from, each such line exempted at the
+# generator, and their cases build those records.
 KEPT_FILES = (
     "hooks/root-migrate.py",
     "tests/hooks/test_root_migrate.py",
     "tests/behaviour/test_the_root_migrates_itself.py",
-    "hooks/lib/cmdline_base.py",
     "tests/evals/test_replay_targets.py",
     "tests/evals/test_seed_defects.py",
 )
@@ -1122,10 +1118,6 @@ VACATING = (
 # written; the old path is the one that commit holds. Taken out of a line
 # before the census reads it.
 COMMIT_PATH = re.compile(r"(?<![\w/:])[0-9a-f]{7,40}:[\w./-]+")
-# The files passed over whole. `hooks/lib/cmdline_base.py`'s docstring below
-# its rider is `86256492`'s and names that commit's paths, and no line of it
-# can change or carry an exemption, for the reason `KEPT_FILES` gives.
-VACATED_KEPT_FILES = ("hooks/lib/cmdline_base.py",)
 
 
 def vacated(root=None):
@@ -1150,12 +1142,10 @@ def vacated_paths(rel, root=None):
     for `templates/` and `tests/`. A spelling counts as a word, at the start
     of a path or after a shell variable such as `$CLAUDE_PLUGIN_ROOT/`, and
     not inside a longer path. The records and the recorded cases `old_names`
-    passes and the files of `VACATED_KEPT_FILES` are passed over whole, a
-    path cited at a commit passes, and any other line that keeps an old path
-    carries its exemption. A file that is not UTF-8 text is not read."""
-    if rel.startswith(OLD_NAME_RECORDS + VACATED_KEPT_FILES) or RECORDED_CASE.match(
-        rel
-    ):
+    passes are passed over whole, a path cited at a commit passes, and any
+    other line that keeps an old path carries its exemption. A file that is
+    not UTF-8 text is not read."""
+    if rel.startswith(OLD_NAME_RECORDS) or RECORDED_CASE.match(rel):
         return []
     moved = vacated(root)
     if not moved:

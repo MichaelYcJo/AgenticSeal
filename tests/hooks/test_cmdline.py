@@ -1,13 +1,11 @@
-"""`hooks/lib/cmdline.py`, the wider reading of a command's text, one class per
+"""`hooks/lib/cmdline.py`, the reading of a command's text, one class per
 function the cases call by name.
 
 Every case reads a command with no git and no shell, through the reader
-itself. Its readers are the worktree guard's wider reading
-(`hooks/worktree-guard.py`, `wide`), `hooks/implementer-notice.py` and
-`hooks/lib/tokens.py#without_bodies`. The commit gate's text reading, which this
-module was written for, went with #1027's phase 5, and the cases that read a
-command through it, or through the directory walk only it reached, went with
-it.
+itself. Its one reader is `hooks/implementer-notice.py`. The commit gate's
+text reading, which this module was written for, went with #1027's phase 5,
+and the cases that read a command through it, or through the directory walk
+only it reached, went with it.
 """
 
 import os
@@ -88,38 +86,6 @@ WRAPPED = {
 }
 
 
-MERGED = {
-    "2>&1": ("a 2>&1 b", ["a", "2>&1", "b"]),
-    ">&2": (">&2 a", [">&2", "a"]),
-    "<&0": ("<&0 a", ["<&0", "a"]),
-    ">&-": ("a >&- b", ["a", ">&-", "b"]),
-    ">|f": ("a >|f b", ["a", ">|f", "b"]),
-    "&>f after a word": ("a &>f b", ["a", "&>f", "b"]),
-    "&>>f after a word": ("a &>>f b", ["a", "&>>f", "b"]),
-    "a chain": ("a >&2 2>&1 b", ["a", ">&2", "2>&1", "b"]),
-    "{fd}>&1": ("a {fd}>&1 b", ["a", "{fd}>&1", "b"]),
-}
-
-SEPARATE = {
-    "a background job": ("a & b", []),
-    "a pipe": ("a | b", []),
-    "a list": ("a && b", []),
-    "a redirection with its target, then a job": ("a > f & b", []),
-    "&& before a redirection": ("a && >f b", []),
-    "|| before a redirection": ("a || >f b", []),
-    "; before a redirection": ("a; >f b", []),
-    # bash refuses a bare operator before a list operator, and the view does
-    # not make one up either.
-    "a bare operator before &&": ("a > && b", []),
-    "a bare operator before ;": ("a 2> ; b", []),
-    "2>&1, then a list": ("a 2>&1 && b", [["a", "2>&1"]]),
-    # A redirection that already carries its target is whole, so the `|`
-    # after it is a pipe; and `|` before a `>` is a pipe, where only `&`
-    # before one spells `&>`.
-    "a redirection carrying its target, then a pipe": ("a 2>f | b", []),
-    "a pipe before a redirection": ("a | >f b", []),
-}
-
 # Each body `drop_heredoc_bodies` drops, beside the text it leaves.
 DROPPED = {
     # A `#` inside `${…}` opens no comment, so the `}` closes the expansion
@@ -136,111 +102,6 @@ DROPPED = {
         "cat <<-EOF\n\tcd /elsewhere\n\tEOF\ngit commit -m x",
         "cat <<-EOF\ngit commit -m x",
     ),
-}
-
-# --- the readers, one rule each ---------------------------------------------
-#
-# A body the shell would close later than the reader does loses the commands
-# after the early close, and a body it closes earlier reads text as commands,
-# so each rule is pinned here on the body itself.
-
-BODIES = {
-    "a plain one": ("echo $(a b)", ["a b"]),
-    "a `)` in double quotes": ('echo $(printf ")") x', ['printf ")"']),
-    "a `)` in single quotes": ("echo $(printf ')') x", ["printf ')'"]),
-    "an escaped `)`": ("echo $(printf \\)) x", ["printf \\)"]),
-    "a `)` in a heredoc": (
-        "echo \"$(cat <<'EOF'\n)\nEOF\nb)\" x",
-        ["cat <<'EOF'\n)\nEOF\nb"],
-    ),
-    "a `)` in a dashed heredoc": (
-        "echo \"$(cat <<-'EOF'\n)\n\tEOF\nb)\" x",
-        ["cat <<-'EOF'\n)\n\tEOF\nb"],
-    ),
-    "a case runs to the end": (
-        "echo $(case x in a) b;; esac) c",
-        ["case x in a) b;; esac) c"],
-    ),
-    "nested, outermost only": ("echo $(a $(b)) c", ["a $(b)"]),
-    "backticks": ("echo `a` `b`", ["a", "b"]),
-    "an escaped backtick inside": ("echo `a \\` b` c", ["a \\` b"]),
-    "unterminated": ("echo $(a b", ["a b"]),
-    "process substitutions": ("cat <(a) >(b)", ["a", "b"]),
-    "single quotes are text": ("echo '$(a)' '`b`'", []),
-    "a quoted `<(` is text": ('echo "<(a)"', []),
-    "a herestring opens no heredoc": ('echo $(cat <<< "a" ; b) c', ['cat <<< "a" ; b']),
-    "an apostrophe in double quotes is not a quote": ('echo "it\'s $(a)"', ["a"]),
-    "a double-quoted `$(` runs": ('echo "$(a)"', ["a"]),
-    "an escaped `$(` is text": ("echo \\$(a) b", []),
-}
-
-TEXTS = {
-    "bash -c": (["bash", "-c", "a b"], ["a b"]),
-    "a cluster holding c": (["bash", "-ec", "a b"], ["a b"]),
-    "every non-option word once -c is given": (
-        ["bash", "-o", "errexit", "-c", "a b"],
-        ["errexit", "a b"],
-    ),
-    "no -c: a script, not a string": (["bash", "run.sh", "a b"], []),
-    "su --command=": (["su", "--command=a b", "u"], ["u", "a b"]),
-    "su --command, separate": (["su", "--command", "a b"], ["a b"]),
-    "--command is su's, not a shell's": (["bash", "--command", "a b"], []),
-    "watch": (["watch", "-n", "5", "a b"], ["5", "a b"]),
-    # #716: the string is also read as `env`'s own words, beside the string
-    # alone. The base text stays first, so every answer it gave is kept.
-    "env -S": (["env", "-S", "a b"], ["a b", "env a b"]),
-    "env -S glued": (["env", "-Sa b"], ["a b", "env a b"]),
-    "env --split-string=": (["env", "--split-string=a b"], ["a b", "env a b"]),
-    "env -S, the words around it": (
-        ["env", "-v", "-S", "-i a", "b"],
-        ["-i a", "env -v -i a b"],
-    ),
-    "env -S past a redirection": (
-        ["env", "-S", "2>/dev/null", "a b", "c"],
-        ["2>/dev/null", "a b", "env a b c"],
-    ),
-    "env -S behind a redirection": (
-        ["env", "2>", "/dev/null", "-S", "a b"],
-        ["a b", "env a b"],
-    ),
-    "env -S with no string after its redirection": (
-        ["env", "-S", "2>/dev/null"],
-        ["2>/dev/null"],
-    ),
-    "behind a runner": (["sudo", "sh", "-c", "a b"], ["a b"]),
-}
-
-
-# Round 2 of 1790993140: `env`'s option grammar, one case per row of
-# `cmdline.ENV_OPTIONS`. Written from GNU coreutils' `src/env.c` and FreeBSD's
-# `usr.bin/env/env.c` (#737), not from the table.
-# GNU env is not installed here, so its half is read, not run.
-ENV_SPELLINGS = {
-    "-i": "-i",
-    "-0": "-0",
-    "-v": "-v",
-    "-u": "-u FOO",
-    "-C": "-C /tmp",
-    "-S": "-S '-i true'",
-    "-a": "-a x",
-    "-P": "-P /bin",
-    "-L": "-L user",
-    "-U": "-U user",
-    "--ignore-environment": "--ignore-environment",
-    "--null": "--null",
-    "--debug": "--debug",
-    "--unset": "--unset FOO",
-    "--chdir": "--chdir /tmp",
-    "--split-string": "--split-string '-i true'",
-    "--argv0": "--argv0 x",
-    "--block-signal": "--block-signal",
-    "--default-signal": "--default-signal",
-    "--ignore-signal": "--ignore-signal",
-    "--list-signal-handling": "--list-signal-handling",
-    "--env0-from": "--env0-from f",
-    "--quoting-style": "--quoting-style shell",
-    "--help": "--help",
-    "--version": "--version",
 }
 
 
@@ -261,48 +122,6 @@ class Test_module:
             set(cmdline.RUNNERS) - named - set(cmdline.WRAPPERS) - {"time"}
         )
         assert not missing, missing
-
-    @pytest.mark.parametrize("name", sorted(BODIES))
-    def test_substitution_bodies(self, name):
-        command, bodies = BODIES[name]
-        assert cmdline.substitution_bodies(command) == bodies, name
-
-    @pytest.mark.parametrize("name", sorted(TEXTS))
-    def test_reparsed_texts(self, name):
-        tokens, texts = TEXTS[name]
-        assert cmdline.reparsed_texts(tokens) == texts, name
-
-    def test_every_row_of_the_env_grammar_has_a_case(self):
-        rows = set()
-        for short, long, _value in cmdline.ENV_OPTIONS:
-            rows |= {f"-{short}"} if short else set()
-            rows |= {long} if long else set()
-        assert rows == set(ENV_SPELLINGS), rows ^ set(ENV_SPELLINGS)
-
-    def test_an_ambiguous_prefix_names_no_long_option(self):
-        """GNU's getopt refuses a prefix of two long names (`--i`, `--d`), and env
-        then runs nothing; one long name's prefix is that name."""
-        assert cmdline._env_long("--i", True) is None
-        assert cmdline._env_long("--d", True) is None
-        assert cmdline._env_long("--un", True) == "--unset"
-        assert cmdline._env_long("--un", False) is None
-
-
-class Test__env_walk:
-    @pytest.mark.parametrize("grammar", ["gnu", "bsd"])
-    def test_accepts_the_word_after_a_cluster_ending_in_s_as_its_value(self, grammar):
-        """The word after `-iS` is the split string, never one of env's words.
-        An empty string splits into no word, so env's options run on to the
-        `-vS` after it, and the string that one names is read. Read as a word
-        of its own, the empty string would end env's options and leave
-        `git commit` unread: the silence, where an extra reading costs a stop."""
-        rest = ["-iS", "", "-vS", "git commit"]
-        assert "git commit" in cmdline._env_walk("env", rest, grammar, False)
-
-    def test_refuses_a_cluster_with_no_split_letter_as_a_string(self):
-        """No letter of `-iv` takes the split string, so the word after it is
-        the command env runs, and no string is read."""
-        assert cmdline._env_walk("env", ["-iv", "git commit"], "gnu", False) == []
 
 
 class Test_split_segments:
@@ -531,24 +350,6 @@ class Test_parse_git:
             ["-m", "x"],
             [],
         )
-
-
-class Test_merged_view:
-    @pytest.mark.parametrize("name", sorted(MERGED))
-    def test_accepts_the_cut_operators_glued_back(self, name):
-        """#674, `frame/design.md` decision 3: the cut operators glued back, as a view."""
-        command, tokens = MERGED[name]
-        items, _clean = cmdline.split_segments_with_separators(command)
-        groups = cmdline.merged_view(items)
-        assert [g[1] for g in groups] == [tokens], name
-
-    @pytest.mark.parametrize("name", sorted(SEPARATE))
-    def test_refuses_to_glue_across_a_real_separator(self, name):
-        """A background job, a pipe and a list are not redirections, and the
-        view never glues across one."""
-        command, groups = SEPARATE[name]
-        items, _clean = cmdline.split_segments_with_separators(command)
-        assert [g[1] for g in cmdline.merged_view(items)] == groups, name
 
 
 test_census = census_case(TARGET)
