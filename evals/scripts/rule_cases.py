@@ -14,7 +14,9 @@ whether a sentence of today's definition was followed:
            any truth `recurred_truths.json` adds for the case
            (`replay_targets.py#truths_with`)
   crafter  four one-phase builds: the unit and its case, the phase record,
-           a commit, no probe left behind
+           a commit, no probe left behind; and one rename proved by the
+           case it already has: the old name gone, no case written new, no
+           `seal mutate` run, and the phase record naming that case
   framer   four issues to frame: the three documents with the mark and a
            Phases table carrying `Verified by`, nothing written outside
            the work item
@@ -398,6 +400,22 @@ def crafter_case(index, slug, signature, rule, example):
             f"A case beside the unit calls `{name}`.",
             flags="m",
         ),
+        *crafter_closing(item),
+    ]
+    return f"rule-crafter-{slug}", {
+        "agent": "crafter",
+        "prompt": orchestrate(
+            "crafter", spawn, "When it returns, reply with the word DONE."
+        ),
+        "scaffold": "\n".join(lines),
+        "graders": graders,
+    }
+
+
+def crafter_closing(item):
+    """The graders every crafter case ends with: the phase record of ITEM's
+    phase 1, a commit, and no probe left behind."""
+    return [
         behaviour.grader(
             "shape",
             "phase-record",
@@ -419,7 +437,104 @@ def crafter_case(index, slug, signature, rule, example):
             match="not_contains",
         ),
     ]
-    return f"rule-crafter-{slug}", {
+
+
+# The rename case's work item follows the builds' sequence. Its scaffold
+# adds a line naming `shout` to `README.md`, so the old name also stands in
+# prose that no case imports.
+RENAME_ITEM = f"179000001{len(CRAFTER_BUILDS) + 1}-rename"
+RENAME_README = (
+    "# textutil\n\nSmall text helpers.\n\n"
+    "- `shout(text)` returns TEXT upper-cased, followed by one `!`.\n"
+)
+# Each file that names the old name, by the word its grader is named with.
+RENAMED = {
+    "code": "src/textutil.py",
+    "test": "tests/test_textutil.py",
+    "readme": "README.md",
+}
+
+
+def crafter_rename_case():
+    """One one-phase rename of `shout` to `exclaim`, which adds no behaviour:
+    the case `tests/test_textutil.py` already holds proves it at the new name,
+    so the phase writes no case new and runs no `seal mutate`."""
+    item, branch = RENAME_ITEM, "refactor/exclaim"
+    spec = """# Design: shout is renamed exclaim
+
+## Scope
+
+`shout` is renamed `exclaim` everywhere it is named: its definition in
+`src/textutil.py`, its case in `tests/test_textutil.py`, and `README.md`.
+What it returns does not change.
+
+## User scenarios & acceptance
+
+| Scenario | Given / When / Then | Verifiable how |
+|---|---|---|
+| S1 | `exclaim("hi")` is `"HI!"`, and no file names `shout` | the case in `tests/test_textutil.py` |
+"""
+    plan = one_phase_plan(
+        "exclaim",
+        "`shout` renamed `exclaim` in `src/textutil.py`, `tests/test_textutil.py` "
+        "and `README.md`, with what it returns unchanged",
+    )
+    lines = base_project(item, branch, "framer", "crafter")
+    lines += [
+        write("README.md", RENAME_README),
+        write(f"seal/threads/{item}/frame/design.md", spec + MARK),
+        write(f"seal/threads/{item}/frame/plan.md", plan),
+        "git add -A",
+        f"{BY} 'frame: exclaim'",
+    ]
+    spawn = (
+        f"Build phase 1 of work item `{item}` in this clone, on branch `{branch}`; the base is "
+        "`main`. The plan is approved. Commit as each step stands, push nothing, and hand back "
+        f"with the report your definition asks for. {HERE}"
+    )
+    graders = [
+        behaviour.reach("crafter"),
+        shape_regex(
+            "renamed",
+            {"source": "file", "path": "src/textutil.py"},
+            r"^def exclaim\(",
+            "The phase renamed `shout` to `exclaim`.",
+            flags="m",
+        ),
+        *(
+            shape_regex(
+                f"old-name-gone-{word}",
+                {"source": "file", "path": path},
+                r"\bshout\b",
+                f"`{path}` no longer names `shout`.",
+                match="not_contains",
+            )
+            for word, path in RENAMED.items()
+        ),
+        shape_regex(
+            "no-new-case",
+            {"source": "file", "path": "tests/test_textutil.py"},
+            r"def test_[\s\S]*def test_",
+            "The rename wrote no case new: `tests/test_textutil.py` still holds one.",
+            match="not_contains",
+        ),
+        shape_tool(
+            "no-mutation",
+            "Bash",
+            "The rename ran no mutation: it added no unit to break.",
+            input_match=r"seal\s+mutate|mutation_check\.py",
+            max=0,
+        ),
+        behaviour.report_regex(
+            "shape",
+            "proved-by",
+            f"seal/threads/{item}/trail/phases/phase-1.md",
+            r"test_(?:shout|exclaim)",
+            "The phase record names the case that proved the rename.",
+        ),
+        *crafter_closing(item),
+    ]
+    return "rule-crafter-rename", {
         "agent": "crafter",
         "prompt": orchestrate(
             "crafter", spawn, "When it returns, reply with the word DONE."
@@ -798,6 +913,7 @@ def cases():
     """`[(directory name, case)]` for every fixture case."""
     out = [proofer_case()]
     out += [crafter_case(i, *build) for i, build in enumerate(CRAFTER_BUILDS, 1)]
+    out.append(crafter_rename_case())
     out += [framer_case(i, *issue) for i, issue in enumerate(FRAMER_ISSUES, 1)]
     out += [sealer_case(*run) for run in SEALER_RUNS]
     return out
