@@ -27,7 +27,7 @@ Findings 1 to 3 stand in units the fix pass's commits added. Findings 4 and
 severity: should
 location: `skills/verify/scripts/deferral_check.py:102`, `tests/skills/test_deferral_check.py:185-241`
 evidence: executed `bin/seal mutate skills/verify/scripts/deferral_check.py --replace OLD NEW (13 pairs) --tests "bin/test tests/skills/test_deferral_check.py -q -p no:xdist -x"`, `python3 -I test_tmp_r5.py <clone> <work>`, `uv run --no-project --with pyyaml --with ruamel.yaml python3 -I yaml_r5.py`
-verdict: open
+verdict: fixed 6e3b849d9
 regression: round-4#1
 
 The unit is `ON_KEY` at `:102`, which 276585926 rewrote on both sides of the
@@ -72,14 +72,14 @@ The fix is one parameter, seen red at `1943fe760`, where the probe printed
             "an-on-key-ending-in-a-unicode-space",
 ```
 
-answer:
+answer: Added `an-on-key-ending-in-a-unicode-space` (`on` then U+00A0 then `: pull_request`) to the S5 case, as proposed. The module passes with it (executed). Under the mutant that puts back `\s*` before the colon in `ON_KEY`, the case went red, and `bin/seal mutate` restored the file (executed). No reading of a trigger changed: the scan already reads this shape as unread at 53f28d009, and the parameter keeps it that way.
 
 ### 2. A new case covers nothing its group does not, and it was never seen red
 
 severity: should
 location: `tests/skills/test_deferral_check.py:210`, `tests/skills/test_deferral_check.py:237`
 evidence: executed `bin/seal mutate skills/verify/scripts/deferral_check.py --replace OLD NEW (13 pairs) --tests "bin/test tests/skills/test_deferral_check.py -q -p no:xdist -x --deselect <the case>"`, `bin/seal mutate skills/verify/scripts/deferral_check.py --replace OLD NEW (13 pairs) --tests "bin/test <the case> -q -p no:xdist -x"`, `python3 -I test_tmp_r5.py <clone> <work>`
-verdict: open
+verdict: fixed 6e3b849d9
 regression: round-4#1
 
 The unit is the parameter `an-inline-name-above-a-line-opened-by-a-unicode-space`
@@ -109,14 +109,14 @@ case only where it covers something its group does not.
 # "an-inline-name-above-a-line-opened-by-a-unicode-space"
 ```
 
-answer:
+answer: The finding holds, and the parameter and its id are deleted. I added it to pin the `isspace()` in `continued`, and it was never red, which my round 4 answer did not claim. After the deletion, the mutant that writes `code[0] in SPACE` in `continued` still goes red over the module, through `an-inline-name-above-a-line-of-a-unicode-space` (executed).
 
 ### 3. Two comments the fix wrote state a rule and a count the code does not keep
 
 severity: should
 location: `skills/verify/scripts/deferral_check.py:92-95`, `skills/verify/scripts/deferral_check.py:131-140`
 evidence: read `skills/verify/scripts/deferral_check.py:92-98`, `skills/verify/scripts/deferral_check.py:122-185`
-verdict: open
+verdict: fixed 6e3b849d9
 regression: round-4#1
 
 The units are the comment above `SPACE` at `:92-95`, which 276585926 added,
@@ -161,14 +161,14 @@ SPACE = " \t"
     that ends the line or that SPACE follows.
 ```
 
-answer:
+answer: Both comments are rewritten in place, as proposed. The `SPACE` comment drops "and nothing wider" and names the two tests that are wider on purpose and only refuse. The `block_entries` docstring now says "Four shapes", and the opened-by-another-space shape is the first item of the list, not a sentence appended after it. These are comment edits only: the module passes and `uvx ruff check` and `ruff format --check` are clean (executed).
 
 ### 4. A tab in a block line's indentation is read as indentation, so a trigger no YAML parser loads answers a deferral
 
 severity: should
 location: `skills/verify/scripts/deferral_check.py:150`, `tests/skills/test_deferral_check.py:185-241`
 evidence: executed `uv run --no-project --with pyyaml --with ruamel.yaml python3 -I test_tmp_r5_tabs.py <clone> <work>`
-verdict: open
+verdict: deferred #1167
 
 The fix pass's answer keeps the tab in `SPACE` "as YAML 1.2 reads it", and
 276585926 measures the indent with `code.lstrip(SPACE)` at `:150`. YAML
@@ -218,14 +218,14 @@ break, and no OS boundary is crossed.
 The parameter is to be seen red at `53f28d009` before the fix lands
 (contract rule 15). The probe printed `answers` at exit 0 there (executed).
 
-answer:
+answer: No code changed: the hand-written reader does not converge, because round 3 found one finding, round 4 one and round 5 five, each the next spelling YAML reads one way and the scan another (a glued colon, U+00A0, a tab, U+2028), while #1123's *Done when* was met at round 1. Whether this reader becomes a real parser or leaves a workflow's meaning to an agent's judgment is #1167's question for 0.25.0, and the owner has said that a script answering "these differ" where the meaning is the same is the worst outcome this workflow can give, so the tab-indented block line goes there with this record.
 
 ### 5. `splitlines()` breaks a line where YAML does not, so a comment's text is read as the trigger and a push-only run answers a deferral
 
 severity: should
 location: `skills/verify/scripts/deferral_check.py:203-204`, `tests/skills/test_deferral_check.py:126-151`
 evidence: executed `python3 -I test_tmp_r5.py <clone> <work>`, `uv run --no-project --with pyyaml --with ruamel.yaml python3 -I yaml_r5.py`, `git -C <worktree> log -S'exempt from splitlines: YAML keys' -- skills/verify/scripts/deferral_check.py`
-verdict: open
+verdict: deferred #1167
 
 This round opened it outside the fix diff, while enumerating the class of
 round-4#1's cause: a Python character class standing in for YAML's. Round
@@ -277,7 +277,7 @@ for it to excuse.
 The parameter is to be seen red at `53f28d009` before the fix lands
 (contract rule 15). The probe printed `answers` at exit 0 there (executed).
 
-answer:
+answer: No code changed: the hand-written reader does not converge, because round 3 found one finding, round 4 one and round 5 five, each the next spelling YAML reads one way and the scan another (a glued colon, U+00A0, a tab, U+2028), while #1123's *Done when* was met at round 1. Whether this reader becomes a real parser or leaves a workflow's meaning to an agent's judgment is #1167's question for 0.25.0, and the owner has said that a script answering "these differ" where the meaning is the same is the worst outcome this workflow can give, so the U+2028 split goes there with this record.
 
 ## Confirmations
 
