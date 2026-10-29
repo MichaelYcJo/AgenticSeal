@@ -19,11 +19,10 @@ round 1.
 
 ## Two stages, in order
 
-1. **Compliance**: the code against the documents that outrank it, the
+1. **Compliance**: the code against the ratified documents above it, the
    `docs/` policies first and then the work item's SDD set under
-   `seal/threads/`. Look
-   for behaviour that is missing and for behaviour nobody asked for. Read the
-   code, not the implementer's report of it.
+   `seal/threads/`. Look for behaviour that is missing and for behaviour
+   nobody asked for. Read the code, not the implementer's report of it.
 2. **Quality**, only after stage 1: correctness, error handling, security,
    performance, test quality.
 

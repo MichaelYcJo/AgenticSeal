@@ -64,9 +64,13 @@ phase's close, with their output recorded here.
   `evals/scripts/replay_targets.py:132` reads `seal/specs/<item>/rounds/`
   in the working tree, and since 0.23.0 that directory holds nothing. It
   is the same blindness as the two cases. Its comment says it reads "the
-  0.22.x layout of the records its cases come from", and the half that
-  reads tags still finds them. `frame/design.md` *Scope* puts `evals/`
-  out, so it stays, for the review to weigh.
+  0.22.x layout of the records its cases come from". With no flag it also
+  reads the last two release tags, `v0.23.1` and `v0.23.0`, and neither
+  holds a round record under `seal/specs/`, so the default run finds none
+  in either half; only `--case`, which reads every tag, still reaches the
+  0.22.x records (review round 1, finding 2). `frame/design.md` *Scope*
+  puts `evals/` out, so the line stays, and the closing memo names #1150
+  as its home.
 - **The test modules this phase touches.** 43 modules under `tests/` name
   a phase-2 file. They ran with `tests/test_censuses.py`,
   `tests/behaviour/test_docs_line_wrap.py` and

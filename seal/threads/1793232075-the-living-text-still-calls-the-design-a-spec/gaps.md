@@ -31,10 +31,14 @@ outrank the code first*, and `code-review`'s first stage is "compliance".
 `.test_durations` is not refreshed. `CONTRIBUTING.md` refreshes it from a
 `tests` run's artifact, and this branch has had no such run.
 
-`evals/scripts/replay_targets.py:132` still reads `seal/specs/` in the
-working tree, where nothing stands since 0.23.0. `frame/design.md`
-*Scope* puts `evals/` out, and Q2 (c) leaves the line for the review
-(`trail/phases/phase-2.md`).
+`evals/scripts/replay_targets.py` finds no round record written since
+0.23.0. With no flag it reads the working tree and the last two release
+tags, `v0.23.1` and `v0.23.0`, under `seal/specs/<item>/rounds/`, and
+since 0.23.0 the records stand at `seal/threads/<id>/trail/rounds/`:
+`--list` prints nothing. Only `--case`, which reads every tag, still
+reaches the 0.22.x records. Teaching it the second layout changes what the
+generator picks, outside this work's wording, so it is #1150, filed by the
+orchestrator.
 
 ## Fed back into the design
 
