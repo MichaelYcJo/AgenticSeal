@@ -22,10 +22,11 @@ whether a sentence of today's definition was followed:
            the work item, and for the fifth, whose answer only running
            `shout` gives, that answer in `## Grounding` labelled
            `executed`
-  sealer   four reviewed items to guarantee: one to seal, one whose pull
+  sealer   five reviewed items to guarantee: one to seal, one whose pull
            request body claims a change the tree lacks, one whose phase
            record claims `seen red` for a case green against the old code,
-           and one to seal but for its broad run never recorded; the verdict
+           one to seal but for its broad run never recorded, and one whose
+           broad run is recorded with a code commit after it; the verdict
            in `guarantee.md`, naming what the tree contradicts or that no
            broad run is on record, no commit, no broad gate run, no write
            but that file
