@@ -61,6 +61,8 @@ config = pc.load(os.path.join(pc.HOOKS, "config.py"), "config_for_pact_tests")
 
 SIGNER = (SIGNER_URL, config.normalise_remote(SIGNER_URL))
 SPEC_Y = "seal/threads/1790000001-y/frame/design.md"
+# A second pact a signer's `Pact` row declares beside this one.
+BILLING = "git@example.com:org/billing.git"
 # The machine-local map's header and delimiter row, as `seal pact`'s remedy
 # line teaches a person to begin it.
 MAP_TOP = "| Remote | Path |\n|---|---|\n"
@@ -544,17 +546,15 @@ class Test_check:
         on either side of the colon (#1132, S7), nor a table
         naming the pact's remote beside no heading, nor a row that misses
         twice, nor a row in an indented code block of a frame holding no
-        anchor table, is read: exit 0, and the
+        anchor table, four columns in by spaces or by a tab, is read: exit
+        0, and the
         `READ` and summary lines name the pact by its URL (contract rule
         14)."""
-        billing, legacy = (
-            "git@example.com:org/billing.git",
-            "https://example.com/org/orders-api-legacy",
-        )
+        legacy = "https://example.com/org/orders-api-legacy"
         write(
             world.web,
             "seal/config.md",
-            signer_config(("Pact", f"{PACT_URL}; {billing}; {legacy}")),
+            signer_config(("Pact", f"{PACT_URL}; {BILLING}; {legacy}")),
         )
         world.cite(clause(V2))
         write(
@@ -563,7 +563,7 @@ class Test_check:
             "## Grounding\n\n"
             + anchor_table(
                 ("https://example.com/org/Orders-API/", CLAUSE_PATH, clause(V2)),
-                (billing, CLAUSE_PATH, "deadbeef"),
+                (BILLING, CLAUSE_PATH, "deadbeef"),
                 (legacy, "no heading", "x"),
             )
             + "\nThe compact:x note. Read the pact: it is short. A token with a"
@@ -577,11 +577,13 @@ class Test_check:
             + f"| git@example.com:org/ordres-api.git | {CLAUSE_PATH} | deadbeef |\n",
         )
         # A frame that cites no pact holds no anchor table, and says nothing;
-        # a row in an indented code block is no row.
+        # a row in an indented code block, four spaces or a tab in, is no row.
         write(
             world.web,
             "seal/threads/1790000002-z/frame/design.md",
-            f"# Z\n\nx\n\n    | {PACT_URL} | {CLAUSE_PATH} | deadbeef |\n",
+            f"# Z\n\nx\n\n    | {PACT_URL} | {CLAUSE_PATH} | deadbeef |\n"
+            f"\n\t| {PACT_URL} | {CLAUSE_PATH} | deadbeef |\n"
+            f"\n  \t| {PACT_URL} | {CLAUSE_PATH} | deadbeef |\n",
         )
         code, out = world.run()
         assert code == 0, out
@@ -936,6 +938,11 @@ class Test_check:
                 + f"| {PACT_URL} | {CLAUSE_PATH} | 1a2b3c4d |\n",
                 9,
             ),
+            (
+                "| pact | clause | hash |\n|---|---|---|\n"
+                f"| {BILLING} | {CLAUSE_PATH} | 1a2b3c4d |\n",
+                3,
+            ),
         ],
         ids=[
             "a header in lower case",
@@ -948,6 +955,7 @@ class Test_check:
             "a plural Clause header",
             "a row with no header",
             "a near miss below the anchor table",
+            "a row naming another pact the signer declares",
         ],
     )
     def test_refuses_an_anchor_row_no_anchor_table_holds(self, world, text, line):
@@ -955,7 +963,15 @@ class Test_check:
         a heading path in another is refused at its own line, whatever
         header it stands under, or with none, because the walk reads the
         `| Pact | Clause | Hash |` header alone. Seen red against
-        `28edee12`, where each frame printed nothing and the run exited 0."""
+        `28edee12`, where each frame printed nothing and the run exited 0.
+        The signer declares a second pact, and a row naming it is refused
+        too: no `seal pact` grades it (round 1, finding 2; seen red with the
+        scan narrowed to this pact)."""
+        write(
+            world.web,
+            "seal/config.md",
+            signer_config(("Pact", f"{PACT_URL}; {BILLING}")),
+        )
         write(world.web, SPEC, text)
         code, out = world.run()
         assert code == 2, out

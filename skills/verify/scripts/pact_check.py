@@ -501,22 +501,25 @@ def one_remote(config, cell):
 def row_cells(config, line):
     """The cells of LINE read as a table row by `config.table_cells`, with
     an outer pipe given where LINE leaves one out, so a row of a table
-    written without them reads too; None where LINE holds no pipe or does
-    not read as a row even so. The indentation is kept, so a line four
-    columns in, an indented code block, reads as no row."""
+    written without them reads too; None where LINE holds no pipe, does
+    not read as a row even so, or stands four columns in, a tab counting to
+    the next multiple of four (`blocks.columns`, as `gfm_table` counts a
+    heading's), which is an indented code block."""
     if "|" not in line:
+        return None
+    # Any tab in the leading run reaches four columns, so past this guard
+    # the run is at most three spaces, which `table_cells` reads past.
+    if config.blocks.columns(line) >= 4:
         return None
     cells = config.table_cells(line)
     if cells is not None:
         return cells
-    written = line.rstrip()
-    content = written.lstrip(" ")
-    indent = written[: len(written) - len(content)]
+    content = line.lstrip(" ").rstrip()
     if not content.startswith("|"):
         content = "| " + content
     if not content.endswith("|") or content.endswith("\\|"):
         content += " |"
-    return config.table_cells(indent + content)
+    return config.table_cells(content)
 
 
 def stray_rows(config, checker, text, declared, walked):
