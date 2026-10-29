@@ -22,9 +22,11 @@ bump or an identifier renamed across files by `sed`, is outside that work, so
 where only such a change passes through a gap in that kind of gate, the gap
 is not a weakness to close. A rule's proof
 is the test or behaviour eval its `check:` line names. A fact has one source,
-and every other place links to it. A check gates only a fact it reads; a
-noisy reading, or one guessed from words, is a report. Nothing is kept beside
-the tree to stay in step with it, such as a stored count or coordinate. Do
+and every other place links to it. A script gates only a fact it reads; a
+noisy reading, or one guessed from words, is a script's report, and whether
+two things mean the same is an agent's judgment (the section below).
+Nothing is kept beside the tree to stay in step with it, such as a stored
+count or coordinate. Do
 not avoid the change a problem calls for: before a fix adapts to an existing
 structure, ask whether the structure should change, and when fixes chase one
 mechanism's edge cases, ask what it decides; what exists is a reference, not
@@ -34,6 +36,37 @@ commit removes what stood on the old fact: a check, an exception, a comment,
 a copy. History goes to git, the release notes and the work record.
 `CONTRIBUTING.md` *What a change to a gate must carry* is where a pull
 request answers this rule and the goal above.
+
+## The rules steer judgment, and a few invariants hold the chain
+
+**A rule here is guidance for a judgment, not a sequence to execute.** The
+orchestrator and the agents it spawns read the rules to judge in the
+direction this project wants: what to weigh, what each option costs, and
+which signals say a path is not converging. A rule written as "when X ends,
+do Y" can only be executed, and an orchestrator that executes it relays one
+finding after another without asking whether the work converges. Whether two
+things mean the same, or give the same result, is the judgment an agent
+workflow exists to delegate. The proofer's findings and the sealer's verdict
+already gate a pull request on it, so a script does not re-encode that
+judgment as one more grammar rule; it reads what a command wrote or what a
+real parser returns.
+
+**Judgment is not licence to skip a party.** A few invariants hold the chain
+and are not open to judgment: no review without a build, no fix that no
+round reads, no seal without the broad run at HEAD, no pull request without
+a seal, and no question to a person after the routing answer. Each names
+what it protects and is held by a mechanism; a rule that only orders acts,
+without one of those protections, is guidance. #1167 lists the invariants
+with their mechanisms and rewrites the rules that only sequence acts.
+
+**A judgment is written down with its reasons, so it can be measured.**
+Whoever judges, the orchestrator or an agent, writes the decision and the
+grounds it weighed into the work item's records under `seal/threads/`, where
+the next session reads it and nothing else has to remember it. The guidance
+is then improved from that log rather than from memory: the settle, or a
+command the owner runs, reads the judgments a release made against what they
+cost and what they caught, and rewrites the guidance where a kind of judgment
+keeps costing more than it returns.
 
 ## Repo rule: the merge method is fixed per direction, and it is not a preference
 
