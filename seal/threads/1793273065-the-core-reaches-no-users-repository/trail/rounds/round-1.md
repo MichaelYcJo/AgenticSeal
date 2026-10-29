@@ -7,9 +7,9 @@ target: 007d9cb9 against origin/release/v0.25.0
 ### 1. The core's added sentence says the one ask before the first edit is the routing question, which the two skills it cites say is one question of a larger batch
 
 severity: should
-location: `skills/core/SKILL.md:82-86`
+location: `skills/core/SKILL.md:82-86`, `tests/text/test_review_axes.py:102-127`
 evidence: read `skills/core/SKILL.md:77-86`, `skills/implement/orchestration.md:97-99`, `skills/implement/SKILL.md:171-175`
-verdict: open
+verdict: fixed 1562e058
 
 The core is now the one text every session and every agent holds before
 anything else. It also ranks above the skills. The sentence added to
@@ -53,14 +53,14 @@ states, and `hooks/routing-edit-gate.py` refuses the first edit until it is
 answered.
 ```
 
-answer:
+answer: The finding holds: `skills/implement/orchestration.md:97` makes the routing question one of the batch, and `skills/implement/SKILL.md:171-175` puts a decision, an approval, a credential and a permission in that batch too. The core's sentence is now the one the finding proposes, "The routing question is one of that batch", with the section and the hook named as before. The fix also landed outside `location:`, in `tests/text/test_review_axes.py#test_the_core_names_where_the_routing_question_is`: its docstring said "the one question is the routing question", the same reading, and it now holds an assertion that the paragraph says "The routing question is one of that batch". That assertion was seen red against the old core and green after the fix (`bin/test -q -p no:xdist tests/text/test_review_axes.py -k test_the_core_names_where_the_routing_question_is`, exit 1 then exit 0). `git grep` on "one ask is", "one question is the routing", "the one question" and "only question" finds no other text stating this reading, outside the frame. `frame/design.md` *Scope* item 1 still says "the one question is the routing question", and the frame is the orchestrator's to fold.
 
 ### 2. Four shipped texts say the block's line points outside a project when written into a project's CLAUDE.md, but the line is relative and points inside it
 
 severity: should
 location: `install.sh:22-24`, `README.md:302-305`, `README.ko.md:297-299`, `seal/threads/1793273065-the-core-reaches-no-users-repository/changelog.md:3`, `tests/behaviour/test_the_installer_writes_the_block_from_its_template.py:272-274`
 evidence: read `templates/setup/claude-md-block.md:2`, `install.sh:22-24`, `install.sh:98-99`, `README.md:302-305`, `README.ko.md:297-299`, `seal/threads/1793273065-the-core-reaches-no-users-repository/changelog.md:3`, `tests/behaviour/test_the_installer_writes_the_block_from_its_template.py:272-274`
-verdict: open
+verdict: fixed 6016faf7
 
 The release removes `bash install.sh --project`, and every place that says
 why gives the same reason. The installer header says "from a project's
@@ -128,14 +128,14 @@ def test_install_sh_has_no_project_scope(tmp_path):
     taken for a file named after it."""
 ```
 
-answer:
+answer: The finding holds: `install.sh:99` computes `CORE="$(dirname "$TARGET")/$IMPORT"`, so the shipped relative line in `<project>/CLAUDE.md` names a missing `plugins/` directory inside the project, not an external file. All five texts now give the finding's reason in the finding's proposed words: the installer header, `README.md`, `README.ko.md`, the `--project` sentence of `changelog.md`'s `### Fixed` entry, and the docstring of `test_install_sh_has_no_project_scope`. Every change is inside `location:`. `bash -n install.sh` exits 0, ruff passes on the test module, and 95 modules that read `skills/core`, a README, `install.sh`, `gaps.md` or `skills/` pass together with this fix and finding 1's. No case pins the reason's wording, because no code renders it. `git grep` on "outside the working directory", "import is external", "resolves outside", "reach outside" and "points outside" finds the same old reading only in the frame: `frame/design.md:28` (probe d's row), `frame/design.md:244` (*Removes*, the `--project` row), `frame/plan.md:62` (A9) and `frame/questions.md:21`. They are left for the orchestrator to fold.
 
 ### 3. The closing memo hands the agents' double read of the core to #1183, whose body does not mention it, and it gives the payload's net growth as the cost of the second read
 
 severity: should
 location: `seal/threads/1793273065-the-core-reaches-no-users-repository/gaps.md:26`
 evidence: executed `gh issue view 1183 --json body --jq .body | grep -n -i "subagent\|spawn\|twice\|skills:"`
-verdict: open
+verdict: fixed 85edcd81
 
 `gaps.md` *Not done* ends: "#1183's review weighs it, because a
 `SessionStart` hook may not reach a subagent at all (unverified)". The
@@ -171,7 +171,7 @@ token cost per project and per agent spawn
 That is the core's 6,711 B a second time, about 2,100 tokens at 3.2 B/token, inside a per-agent growth of 6,796 B (`trail/phases/phase-3.md`).
 ```
 
-answer:
+answer: The number half holds and is fixed: the memo's second sentence is now the finding's proposed sentence, with the core's 6,711 B as the second read inside the 6,796 B growth. The home half does not hold as written. #1183's body does not mention the agents' double read, but the orchestrator's comment of 2026-10-29 on #1183 (https://github.com/MichaelYcJo/AgenticSeal/issues/1183#issuecomment-6498975932, read with `gh api`) names it. The comment covers both carriers, the cost per spawn, and the unverified question of whether a `SessionStart` hook reaches a subagent. `docs/issues-and-milestones.md` *An issue is its body and its comments together* makes that comment part of the issue, so the memo's deferral has a home and its sentence stands. The comment itself still says "+6,796 B per spawn", the same wrong figure; the comment and the body's *Done when* list are outside the tree, and their edit is the orchestrator's. `git grep "6,796"` finds no other text that gives 6,796 B as the cost of the second read: `trail/phases/phase-3.md` uses it only as the per-agent growth, and breaks it down. The fragment gives tokens only, and it says nothing about this.
 
 ## Confirmations
 
