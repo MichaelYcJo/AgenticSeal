@@ -22,7 +22,7 @@ code at `274317f3`.
 severity: should
 location: `skills/verify/scripts/deferral_check.py:145-149`, `skills/verify/scripts/deferral_check.py:94`, `tests/skills/test_deferral_check.py:183-215`
 evidence: executed `python3 -I test_tmp_r3.py`, `uv run --no-project --with pyyaml python3 -I -c 'import yaml; yaml.safe_load(...)'`
-verdict: open
+verdict: fixed e8dc9313
 
 This round opened it while enumerating the class of the fix pass's new
 `under_key = ":" in item` at `:145`, which takes its colon test from the
@@ -105,7 +105,7 @@ Each parameter is to be seen red at `274317f3` before the fix lands
 (contract rule 15). The probe printed `answers` at exit 0 there for the
 first two. The third rests on the reading above and has not been run.
 
-answer:
+answer: Fixed with the proposed `KEY` and `ON_KEY`. In `block_entries`, `KEY` now decides both the key arm and `under_key`. `a-name-glued-to-a-colon` and `an-on-key-glued-to-its-value` were red at cd259e77, whose script is 274317f3's: each printed `answers` at exit 0 (executed, so the third shape is now run as well). `seal mutate` over the fix showed two things (executed). First, `under_key = ":" in item` is an equivalent mutant: a line holding a colon that `KEY` does not read is a bare name or an item, and both fail `EVENT_NAME`, so the block is unread either way. For that reason `a-glued-name-continued-on-a-deeper-line` covered nothing `a-name-glued-to-a-colon` does not, and d27c214e drops it. Second, the old `partition(":")` arm survived the module. On `pull_request:x: y`, YAML reads the key `pull_request:x`, which the old arm cut to `pull_request` and counted as answering. d27c214e adds `a-key-holding-a-glued-colon`, which printed `answers` at exit 0 under f23464df's script in a probe (executed). After d27c214e, the three mutants (the old `ON_KEY`, a `KEY` with no lookahead, the old `partition` arm) went red (executed). Under contract rule 12, the one other colon test in the script, `runners_in` at `:225`, trims a `run:` label off the printed command and decides nothing about a trigger, so it stands. `changelog.md` names "an event key that carries a value or a comment", which still holds, so it is unchanged.
 
 ## Confirmations
 
