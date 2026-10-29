@@ -1,4 +1,4 @@
-# Feature Specification: <work item>
+# Design: <work item>
 
 ## Grounding
 

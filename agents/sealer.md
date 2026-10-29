@@ -81,7 +81,7 @@ return.
    `frame/design.md` and every removal the changelog names, confirm nothing of it
    stands in the tree. Those are the two acts; a finding's verdict and its
    commit are the check's to read, not yours.
-4. **The parties against each other.** The spec (scope, `Removes`), the build
+4. **The parties against each other.** The design (scope, `Removes`), the build
    (the diff, the phase records), the proofer's last record, the changelog
    fragment and the orchestrator's part of the pull request body, the part
    step 2 reads, tell one story. Where two disagree,

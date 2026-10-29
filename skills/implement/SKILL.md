@@ -14,7 +14,7 @@ description: |
 
 # implement — spec-driven implementation
 
-Methodology for implementing against written specs, leaving a case behind
+Methodology for implementing against a written design, leaving a case behind
 each rule, and closing the loop with review. Opened by the `crafter` agent at
 its first step; usable directly.
 
@@ -72,7 +72,7 @@ laid out by **lifetime**, not by who wrote it:
 
 | Root | Lifetime | Test | Authority |
 |---|---|---|---|
-| `docs/` | Permanent, cumulative | Must still be true in 6 months | **Norms, ratified by humans.** Read when the repository has them; the documentation convention is the project's. The policy root (`docs/` unless `seal/config.md`'s `Policy root` names another) is the baseline, and a pull request does not edit it. A spec states its changes in `## Rule changes`, the settle after the release writes each section as the latest decision the released specs state, checked against the code (`skills/settle/SKILL.md`), and the policy in force is the baseline plus the latest decision the unsettled specs' rule changes state at each section, in merge order |
+| `docs/` | Permanent, cumulative | Must still be true in 6 months | **Norms, ratified by humans.** Read when the repository has them; the documentation convention is the project's. The policy root (`docs/` unless `seal/config.md`'s `Policy root` names another) is the baseline, and a pull request does not edit it. A work item's design states its changes in `## Rule changes`, the settle after the release writes each section as the latest decision the released designs state, checked against the code (`skills/settle/SKILL.md`), and the policy in force is the baseline plus the latest decision the unsettled designs' rule changes state at each section, in merge order |
 | `seal/threads/<work-item-id>/` | One work item | Its role ends when this work ships (the frame, the trail, the closing memo) | The contract this work executes against. A human approves `frame/plan.md`, which is why this is a repository document and not tool state |
 | `seal/`, everything above `threads/` | Permanent | Everything this plugin maintains | Written and read by machines: the repository's config, the migration config, the follow-up list |
 
@@ -143,7 +143,7 @@ existing code** — and, where the repository declares a migration config, the
 original sits between the ticket and the existing code, because policy being
 silent is what makes the original decide (see `legacy-parity`).
 
-A spec that contradicts policy gets fixed, not followed. **A ticket is a
+A work item's design that contradicts policy gets fixed, not followed. **A ticket is a
 request, not an authority**: it says what someone wants, which is why it ranks
 above the code as it happens to be, and why it ranks below the documents that
 were ratified. A ticket asking for something policy forbids is a question for a
@@ -157,7 +157,7 @@ it or dropping it.
   be that prerequisite.** If so, include the item in this change and delete its
   row; what remains in that file is the definition of remaining scope.
 - Verify clause numbers a ticket cites. Tickets are written before (or drift
-  from) the documents they cite; a missing clause is an `add` in the spec's
+  from) the documents they cite; a missing clause is an `add` in the design's
   `## Rule changes`, with a freshly allocated number.
 - A spawn prompt's facts arrive under `docs/the-review-record.md`'s
   handoff: coordinates rather than prose, each fact labelled
@@ -169,9 +169,10 @@ it or dropping it.
   found it false.
 
 **Collect what needs a person before the first edit, and ask it in one batch.**
-Read the spec chain looking for the questions as well as the answers, and put
-every one of them in front of the user at the start: a decision only they can
-make, an approval, a credential, a permission the session does not have.
+Read the policy, the SDD set and the ticket looking for the questions as well
+as the answers, and put every one of them in front of the user at the start:
+a decision only they can make, an approval, a credential, a permission the
+session does not have.
 
 The cost of a question is not its difficulty, it is when it arrives. Asked
 before the work starts, it costs a reply. Asked at minute thirty, it stops
@@ -212,11 +213,11 @@ surfaces after it is written down rather than raised: a decision only a person
 can make goes to `questions.md`, a finding you neither fixed nor answered to
 `seal/follow-up.md` with an answerer named — a deferral to nobody is how
 "someone will look at it" becomes nobody did (`skills/verify/SKILL.md` *The
-answerer has to exist*) — and what was deliberately left goes to the overview's Not done
-section. Each is named in the PR body, because a leftover nobody can find was
-not handed over. On a branch whose `routing.md` answers `Automation` with
-`yes`, `hooks/question-gate.py` holds this, and `docs/the-review-record.md`
-*The run* is the rule.
+answerer has to exist*) — and what was deliberately left goes to the closing
+memo's Not done section. Each is named in the PR body, because a leftover
+nobody can find was not handed over. On a branch whose `routing.md` answers
+`Automation` with `yes`, `hooks/question-gate.py` holds this, and
+`docs/the-review-record.md` *The run* is the rule.
 
 The test for whether something is a question or a row: would a different
 answer change what you build *now*? If it would not, raising it spends a
@@ -228,7 +229,7 @@ waits for the reply spends more.
 **Each scenario is built the same way: its case first, seen red against the
 tree as it stands, then the code, then the case green.** A rule the work
 states or changes ends with a `check:` line naming that case — in its home
-under `docs/`, or in the *Verifiable how* cell of the spec's scenario table —
+under `docs/`, or in the *Verifiable how* cell of the design's scenario table —
 so the case is the record that the rule holds, and CI running the suite is
 the check. A rule no case can hold says `check: none reader: <who reads it>`,
 and the reader is who holds it instead. The grammar is
@@ -423,7 +424,7 @@ is written, so this is
    so" is not grounds; quote it.
 3. What was not verified — with **who has to answer it**, at the moment you
    decide not to run something.
-4. What was fed back into the spec — clauses this work added, marked as
+4. What was fed back into the design — clauses this work added, marked as
    *inferred during implementation* so planners know they may overturn them.
 
 A memo whose last three sections are empty is correct and four lines long.
@@ -451,7 +452,7 @@ for an open item whose own text begins with the word `closed`, which reads as
 closed and which only a reader catches: word such an item to open with
 another word. A bare `closed` with nothing after it is refused the same way a
 ticked checkbox is. No check at the pull request refuses a deleted row, or a
-deleted file: the proofer reads the overview's diff, where a row that left
+deleted file: the proofer reads the closing memo's diff, where a row that left
 without the word `closed` shows, and `seal unverified --baseline
 origin/<base>`, run by a person, names each one. That reading is what keeps
 "I verified it" and "I tidied it away" from being the same edit.

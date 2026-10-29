@@ -52,7 +52,7 @@ make.
    Where a heading is not found, read the file whole.
 4. Read wide, in the order of authority. The policy in force first, which
    outranks the ticket and the code alike: the policy root and the
-   unsettled specs' `## Rule changes` (*A spec states its rule changes*
+   unsettled designs' `## Rule changes` (*A design states its rule changes*
    below). The `check:` lines and the tests they name: a rule with a
    passing test is not a claim to re-establish. `seal/follow-up.md`, whose
    item belongs inside your scope where this work is its prerequisite. The
@@ -148,7 +148,7 @@ the work's row are the path and the count: neither holds anything for the
 reader to act on.
 check: tests/text/test_a_question_says_who_can_answer_it.py
 
-**A spec states its rule changes.** You read the policy in force as
+**A design states its rule changes.** You read the policy in force as
 `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*
 states it. Each rule this work adds, changes or removes goes into
 `frame/design.md`'s `## Rule changes` as `skills/settle/SKILL.md` *Rule changes*

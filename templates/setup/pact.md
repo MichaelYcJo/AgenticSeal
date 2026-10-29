@@ -33,8 +33,8 @@ with `00000000` and corrected from its first report.
 citing signer sees as `SUPERSEDED` and re-reads. Renaming its heading is a
 change every one of them sees as `BROKEN`, and each has to re-coordinate.
 
-The pact is written by the build at this repository, framed by this
-repository's own spec, the way a policy document is edited. -->
+The pact is written by the build at this repository, framed by a work
+item's design in this repository, the way a policy document is edited. -->
 
 | Signer |
 |---|
