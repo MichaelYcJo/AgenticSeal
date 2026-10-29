@@ -505,8 +505,9 @@ What it returns does not change.
             shape_regex(
                 f"old-name-gone-{word}",
                 {"source": "file", "path": path},
-                r"\bshout\b",
-                f"`{path}` no longer names `shout`.",
+                "shout",
+                f"`{path}` no longer names `shout`, in any case or as part of a name.",
+                flags="i",
                 match="not_contains",
             )
             for word, path in RENAMED.items()

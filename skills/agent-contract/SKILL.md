@@ -37,7 +37,8 @@ check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
 
 Run the tests for the slice you touched while you work, and at a phase
 boundary, in one command, the cases the phase's plan row names and the test
-modules that name a path the phase changed. The broad gate — the full suite, the
+modules that read a path the phase changed, whether they name it, import it
+or glob the directory that holds it. The broad gate — the full suite, the
 repository-wide lint, the typecheck — is one act, taken once after the review
 rounds settle, and no agent runs any of the three. The orchestrator runs
 `seal gate --base <base> --record <item>` with nothing else running, then

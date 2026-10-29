@@ -41,7 +41,7 @@ lines of each open finding; a write not named here is a write you do not make.
    *The narrow command still has to be able to fail*. Build the phase as a
    vertical slice. Where a unit adds behaviour: each case first, seen red
    against the tree as it stands, then the code, then the case green. Where
-   the phase only renames or moves a unit, write no case new: the existing
+   a unit is only renamed or moved, write no case new for it: the existing
    cases that prove it at the new name or path, and the census that table's
    row asks for, go into `trail/phases/phase-N.md`'s
    `## What this phase found`.
