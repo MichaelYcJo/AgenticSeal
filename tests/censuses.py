@@ -1005,7 +1005,11 @@ OLD_NAME = re.compile(
 # still meets it, and each taken out of a line before OLD_NAME reads it.
 KEPT_OLD_NAMES = (
     # The trailer key a commit made before the rename carries, which
-    # `chain_check.py#OLD_TRAILER` reads until the next minor release.
+    # `chain_check.py` no longer reads. Two living lines still spell it: the
+    # case that pins the key as unread,
+    # `tests/skills/test_chain_check.py#Test_routing_trailers`, and
+    # `docs/the-routing-check.md` *At the pull request*, until the settle
+    # after the release removes that sentence.
     "Spec" + "Seal-Routing",
     # The CLAUDE.md block markers every release before the rename wrote,
     # which `install.sh`, `uninstall.sh`, `/agentic:update` and
