@@ -24,7 +24,7 @@ again where this round weighs their findings.
 severity: should
 location: `seal/threads/1793232075-the-living-text-still-calls-the-design-a-spec/gaps.md:19`
 evidence: executed `git grep -n -i -E '\btwelve\b' e2b93c49 -- seal/threads/1793232075-the-living-text-still-calls-the-design-a-spec/frame`, `git diff 2d8d8301..e2b93c49`
-verdict: open
+verdict: fixed 3b5c4bb6
 
 `gaps.md:19` is the divergence row *The count of the step-1 heading's
 citations*. It reads: "`frame/design.md` *Scope* item 5 and `plan.md`'s
@@ -51,7 +51,7 @@ to edit in the fix pass.
 | The count of the step-1 heading's citations | `frame/design.md` *Scope* item 5 and `plan.md`'s phase-3 row said "twelve" when phase 3 was built. The frame's own list and `git grep -n -i 'Read the spec'` give ten, plus the heading. The orchestrator dropped the count from the frame at `036b87ab` and `e2b93c49` | the tree | All ten moved with the heading, and the grep prints nothing after `3816dfca` (`trail/phases/phase-3.md`) |
 ```
 
-answer:
+answer: The orchestrator, whose folds at `036b87ab` and `e2b93c49` left the row standing, applied the block above to `gaps.md:19` at `3b5c4bb6`; `bin/seal unverified` on the work item exits 0 after. No fix pass ran for this finding, so the orchestrator writes both its lines.
 
 ## Confirmations
 
