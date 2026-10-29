@@ -111,9 +111,10 @@ def block_entries(lines):
 
     The block's indent is its first entry's: one space or more, or zero
     where that entry is a `- ` item. A deeper line belongs to an entry and
-    is skipped. A shallower line, or a line at indent zero that is not a
-    `- ` item, ends the block. A line at the block's indent that is neither
-    a key nor an item makes the whole block unread, an empty list.
+    is skipped. A line at indent zero that is not a `- ` item ends the
+    block. Two lines make the whole block unread, an empty list: one
+    shallower than the block but not at zero, which no valid workflow
+    holds, and one at the block's indent that is neither a key nor an item.
     """
     entries, width = [], None
     for line in lines:
@@ -128,7 +129,7 @@ def block_entries(lines):
         if width is None:
             width = indent
         if indent < width:
-            break
+            return []
         if indent > width:
             continue
         if is_item:
