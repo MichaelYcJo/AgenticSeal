@@ -4,4 +4,4 @@
 
 ### Changed
 
-- **The proofer judges a line meant as a pact anchor that `seal pact` does not read (#1132).** `skills/code-review/SKILL.md` stage 1 asks the proofer, reviewing a signer's work item, to raise a line written as an anchor under a header outside the normalisation, a row with no header, or a row outside the anchor table, as a finding. Whether such a line was meant as an anchor is a judgment of meaning, so no script refuses it.
+- **The proofer judges a line meant as a pact anchor that `seal pact` does not read (#1132).** `skills/code-review/SKILL.md` stage 1 asks the proofer, reviewing a signer's work item, to raise a line written as an anchor that `seal pact` does not read as a finding, whatever remote it names: one under a header outside the normalisation, such as a remote one letter off under `| Pact | Clause | Hashes |`, a row with no header, or a row outside the anchor table. Whether such a line was meant as an anchor is a judgment of meaning, so no script refuses it.

@@ -9,7 +9,7 @@ target: 9160cff4a against fa7109701
 severity: should
 location: `skills/code-review/SKILL.md:35-42`
 evidence: read `skills/code-review/SKILL.md:35-42`, `seal/threads/1793251203-seal-pact-passes-near-misses-of-an-anchor/frame/design.md:150-159`, `seal/threads/1793251203-seal-pact-passes-near-misses-of-an-anchor/frame/design.md:175-179`
-verdict: open
+verdict: fixed 12fb615c
 
 The frame gives the proofer every line that reads as meant for a pact
 anchor and that `seal pact` does not read (`frame/design.md` *Scope* item
@@ -47,14 +47,14 @@ a row with no header, a row outside the anchor table, and any of these
 naming a remote one letter off a pact that row declares.
 ```
 
-answer:
+answer: The finding holds: *Scope* item 7 has no "of a pact that row declares" qualifier, and phase 4 gave no grounds for it. `12fb615c` puts the record's text in word for word at `skills/code-review/SKILL.md:35-43`, so a line written as a pact anchor outside the read shape is a finding whatever remote it names, P5's near-miss remote among the examples. Contract rule 12: `git grep` for "anchor of a pact", "pact that row declares" and "written as an anchor" finds the qualifier in no other live text. `changelog.md:7` names the shapes without it and stands. `trail/phases/phase-4.md:28-35` quotes what phase 4 built at `6303f97f`, a past-state record, and is not rewritten. The skill's readers (`test_review_axes`, every module `git grep -l "code-review/SKILL.md" tests/` lists, `test_chain_hooks_hardening`, `test_a_cited_section_stands_in_its_file`, `test_censuses`) passed in one command, exit 0 (executed).
 
 ### 2. The closing memo cites a `CLAUDE.md` section that no revision holds
 
 severity: should
 location: `seal/threads/1793251203-seal-pact-passes-near-misses-of-an-anchor/gaps.md:33-36`
 evidence: executed `git grep -n "first value" origin/release/v0.24.2 9160cff4a -- CLAUDE.md`
-verdict: open
+verdict: fixed b10fa44b
 
 `gaps.md` *Not done* grounds the run-of-four limit on "`CLAUDE.md` *The
 first value: efficient development through the workflow*". Neither the
@@ -77,14 +77,14 @@ the question"; the proofer's sentence covers such a header as a shape the
 normalisation leaves out.
 ```
 
-answer:
+answer: The finding holds; the record's paste-ready text is not taken. It cites *The rules steer judgment, and a few invariants hold the chain*, a section on `origin/release/v0.24.2` alone, which #1169 may reword before this merges. On the orchestrator's direction, `b10fa44b` names the section by its subject with no italic heading: "`CLAUDE.md`, its section on where judgment is spent, which spends it where meaning is the question". Contract rule 12: the work item's other `CLAUDE.md` citations, *The rule a mechanism is kept against* at `gaps.md:17`, `frame/design.md:28` and `trail/phases/phase-3.md:41`, resolve on the branch and on `origin/release/v0.24.2` (executed, `git show <rev>:CLAUDE.md | grep "^## "`), and stand.
 
 ### 3. S10's search prints a line, and the frame still says it prints nothing
 
 severity: should
 location: `seal/threads/1793251203-seal-pact-passes-near-misses-of-an-anchor/frame/design.md:216`, `seal/threads/1793251203-seal-pact-passes-near-misses-of-an-anchor/gaps.md:14-18`
 evidence: executed `git grep -n -i "no anchor table holds\|misses twice\|four columns" 9160cff4a -- skills/verify/scripts/ tests/skills/`, `git grep -n -i "no anchor table holds\|misses twice\|four columns" 9160cff4a -- skills/verify/scripts/pact_check.py tests/skills/test_pact_check.py`
-verdict: open
+verdict: fixed b10fa44b
 
 S10's *Verifiable how* cell names a search over `skills/verify/scripts/`
 and `tests/skills/` that prints nothing. Run at `9160cff4a`, it prints
@@ -108,7 +108,7 @@ Or, where the frame stays as written, one row in `gaps.md`:
 | S10's search | `frame/design.md` S10: the search over `skills/verify/scripts/` and `tests/skills/` prints nothing / it prints `skills/verify/scripts/unverified_check.py:413` | the line stands | `trail/phases/phase-3.md` *The frame holds, with one correction found against the tree*: the line states a fact about `unverified_check.py`, not the removed scan |
 ```
 
-answer:
+answer: The finding holds. On the orchestrator's direction the frame stays as written, and `b10fa44b` adds the record's second form as a row of `gaps.md` *Where spec and implementation diverged*, now `gaps.md:19`. Its grounds also say the line predates this work. `seal unverified` over the memo exited 0, and `test_censuses` and `test_unverified_rows_close` passed in the boundary command (executed).
 
 ## Confirmations
 
