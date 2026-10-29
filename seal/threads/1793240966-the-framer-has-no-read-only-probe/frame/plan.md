@@ -1,6 +1,6 @@
 # Implementation Plan: 1793240966-the-framer-has-no-read-only-probe
 
-Approved <date> by <who>, when `crafter` was spawned.
+Approved 2026-10-29 by the orchestrator under the owner's automation answer, when `crafter` was spawned for phases 1 to 3.
 
 ## Summary
 
