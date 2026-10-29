@@ -148,7 +148,7 @@ beside the installed one, which
 |---|---|
 | No difference | nothing is said; the block is current |
 | The block differs | back up to `CLAUDE.md.bak`, replace the marker region, and say that the core arrived: the block is now the one line that imports it, and the rules an older block stated stand in the skills and definitions the plugin installs. No question is asked, because the markers already say those bytes were never the user's |
-| A block between `<!-- specseal:start -->` and `<!-- specseal:end -->`, the markers every release before the rename to AgenticSeal wrote, and none under the new markers | the same as a block that differs: back up, replace that region with the block under the new markers, and say that the core arrived. `bash install.sh` does the same |
+| A block between `<!-- specseal:start -->` and `<!-- specseal:end -->`, the markers every release before the rename to AgenticSeal wrote, and none under the new markers | what the row above does, with that region replaced by the block under the new markers. `bash install.sh` does the same |
 | No block on the machine | the user never installed the preset. Say so and stop: writing one in is an install, `bash install.sh` or `/agentic:preset-setup`, and an update is what was asked for |
 
 **5. Name both moves, cheapest first, and say what each one is known to do.**
