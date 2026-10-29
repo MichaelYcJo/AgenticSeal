@@ -35,3 +35,5 @@
 | the orchestrator's part of the pull request body | the preload grows 10,334 to 11,889 bytes; 10.01 USD spent; the first broad run failed the layout check and the next passed; #1156 also edits `rule_cases.py`; `Closes #1047` | the build, the tree, the logs, `gh pr view 1156` | the issue body: `Closes #1047` closes an issue whose third *Done when* the tree meets only in its Grounding half, while `gaps.md:22` states the no-row half as a limit answered by nobody |
 
 Verdict: undecided question: Issue #1047's third Done-when asks a case to pin that a question a read-only command answers is answered in Grounding and not left as a row; the tree pins only the Grounding half (shape-answers-by-probe), and gaps.md:22 states the no-row half as a limit with no reader since shape-no-measurement-row was removed at 7ac24a06 for failing a correct row. Does the owner accept that limit as meeting the Done-when, so the body's Closes #1047 stands, or is the no-row half owed a pin or a follow-up issue before #1047 closes?
+
+Answered 2026-10-29 by the owner: #1047 stays open until the no-row half is pinned; the pull request body says Part of #1047, not Closes #1047.

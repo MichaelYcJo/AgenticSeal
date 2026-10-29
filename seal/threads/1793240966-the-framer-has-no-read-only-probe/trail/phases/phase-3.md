@@ -42,8 +42,9 @@ rule-framer-sharp-s`. Both sides ran with `--case '*rule-framer-sharp-s'`,
 and each side file's `suite.caseFilter` records that filter and one case.
 
 **The old framers probed, and put the answer elsewhere (executed, read from
-the saved traces).** Both old-side runs ran `shout("straße")` through
-`python3 -c` and wrote `STRASSE!` into the frame: run 0 in `## Scope`, the
+the saved traces).** Both old-side runs probed through `python3 -c`, run 0
+evaluating `shout`'s body `"straße".upper() + "!"` and run 1 calling
+`shout`, and wrote `STRASSE!` into the frame: run 0 in `## Scope`, the
 scenario table and `plan.md`, run 1 in the scenario table, a list in
 `frame/design.md` and `plan.md`. Neither
 wrote it on a `## Grounding` line labelled `executed`. So the case does not
