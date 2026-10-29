@@ -9,7 +9,7 @@ target: d1a06992 against origin/release/v0.24.1
 severity: should
 location: `skills/agent-contract/SKILL.md:38-40`, `seal/threads/1793240970-a-rename-runs-red-first-cases-as-new-behaviour/changelog.md:4`, `seal/threads/1793240970-a-rename-runs-red-first-cases-as-new-behaviour/changelog.md:10`
 evidence: read `skills/agent-contract/SKILL.md:38-40`, `seal/threads/1793240970-a-rename-runs-red-first-cases-as-new-behaviour/frame/design.md:51-53`, `seal/threads/1793240970-a-rename-runs-red-first-cases-as-new-behaviour/frame/plan.md:15-16`, `seal/threads/1793240970-a-rename-runs-red-first-cases-as-new-behaviour/frame/design.md:171`, `seal/threads/1793240970-a-rename-runs-red-first-cases-as-new-behaviour/gaps.md:12`, `seal/threads/1793240970-a-rename-runs-red-first-cases-as-new-behaviour/trail/phases/phase-2.md:58-64`, `evals/behaviour/crafter/rule-crafter-rename/scaffold.sh:17-21`
-verdict: open
+verdict: fixed c545690b
 
 Rule 2 is the one statement of the phase-boundary set. The crafter's step 7
 and the verify skill's *Scope* row both cite it. Every crafter runs the set
@@ -47,14 +47,14 @@ In `changelog.md`, change "the test modules that name a path the phase
 changed" on line 4 and "the test modules that name a changed path" on line
 10 to "read" in the same way.
 
-answer:
+answer: Holds. Rule 2 now names "the test modules that read a path the phase changed, whether they name it, import it or glob the directory that holds it", the frame's word with the three ways a module reads a path. The changelog's line 4 says the same, and its process row says "read a changed path". The verify *Scope* row and crafter step 7 cite rule 2, so they carry no copy to correct. With the word now the frame's, `gaps.md` needs no row for it. The narrow run, one `bin/test` command over the 72 modules that name a changed path or glob `agents/`, `skills/`, `evals/behaviour/` or `seal/threads`, passed 3984 with exit 0.
 
 ### 2. Crafter step 5 makes the rename branch depend on the whole phase, so a phase that renames one unit and adds another gives no instruction for the renamed one
 
 severity: should
 location: `agents/crafter.md:40-47`
 evidence: read `agents/crafter.md:40-49`, `seal/threads/1793240970-a-rename-runs-red-first-cases-as-new-behaviour/frame/design.md:57-62`, `seal/threads/1793240970-a-rename-runs-red-first-cases-as-new-behaviour/frame/questions.md:23-26`, `seal/threads/1793240970-a-rename-runs-red-first-cases-as-new-behaviour/changelog.md:3`
-verdict: open
+verdict: fixed c545690b
 
 The frame applies the rule to each unit. "A phase that both renames and adds
 behaviour owes the full cadence for the units that add behaviour and none
@@ -88,14 +88,14 @@ an agent or a check reads has one reading*) asks for a single reading.
    `## What this phase found`.
 ```
 
-answer:
+answer: Holds. Step 5 now reads "Where a unit is only renamed or moved, write no case new for it", so steps 5 and 6 both apply per unit. The same phase-wide condition stood in the sealer's `seen red` rule ("A phase whose record says it only renamed or moved"), so a renamed unit in a mixed phase had no rule there either. It now reads "A unit the phase record says was only renamed or moved claims no `seen red`", with the cases the record names for it re-run at HEAD. The changelog's sealer sentence and its process row now speak of a unit too. No case pins either sentence.
 
 ### 3. The rename case's old-name graders say the file no longer names shout, and pass a test file that still holds ShoutTest and test_shout
 
 severity: should
 location: `evals/scripts/rule_cases.py:504-512`, `evals/behaviour/crafter/rule-crafter-rename/graders/shape-old-name-gone-code.md:4`, `evals/behaviour/crafter/rule-crafter-rename/graders/shape-old-name-gone-test.md:4`, `evals/behaviour/crafter/rule-crafter-rename/graders/shape-old-name-gone-readme.md:4`
 evidence: executed `python3 -c "import re; print(re.search(r'\bshout\b', 'class ShoutTest(unittest.TestCase):\n    def test_shout(self):\n        self.assertEqual(exclaim(\"hi\"), \"HI!\")'))"`
-verdict: open
+verdict: fixed c545690b
 
 Each grader's body says "`<path>` no longer names `shout`"
 (`rule_cases.py:509`). The case's own frame asks for the same thing. Its
@@ -135,7 +135,7 @@ Then rerun `python3 evals/scripts/rule_cases.py` to regenerate the three
 grader files. Also change the `shape-old-name-gone` row of
 `frame/design.md` *Data & interfaces*, line 150, which names `\bshout\b`.
 
-answer:
+answer: Holds. The three graders now match `shout` with flag `i` and `not_contains`, and say "no longer names `shout`, in any case or as part of a name". `python3 evals/scripts/rule_cases.py` exited 0 and rewrote only those three grader files. Seen red with `node -e` running both patterns as the runner's JavaScript regexes. Over a test body keeping `class ShoutTest` and `def test_shout`, `/\bshout\b/` found nothing, so the old grader passed it, and `/shout/i` found a match, so the new grader fails it. Over the measured runs' shape, `class ExclaimTest` and `def test_exclaim`, neither pattern matched. No paid run was made. The changelog now says the case refuses `shout` in any case or inside a name. The row at `frame/design.md:150` is the orchestrator's to fold.
 
 ## Confirmations
 
