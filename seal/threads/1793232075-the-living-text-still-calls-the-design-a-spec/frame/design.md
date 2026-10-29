@@ -71,9 +71,9 @@ comments and printed strings of shipped code under `hooks/`, `skills/` and
    spec` of `sdd-gaps.md`.
 5. The heading `### 1. Read the spec before the code` of
    `skills/implement/SKILL.md`, which becomes `### 1. Read the documents
-   that outrank the code first`, with each of its twelve citations.
+   that outrank the code first`, with each of its citations.
 6. The name of `code-review`'s first stage, "spec compliance", which
-   becomes "compliance": the code against the documents that outrank it,
+   becomes "compliance": the code against the ratified documents above it,
    the `docs/` policies first and then the work item's SDD set.
 7. Each test string that pins a sentence this work rewrites, in the commit
    that rewrites the sentence.
