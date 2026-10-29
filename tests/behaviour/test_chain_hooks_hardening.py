@@ -234,13 +234,14 @@ def test_parity_declaration_is_bootstrappable_not_hand_written():
         assert field in body, f"template lost the {field!r} field"
     assert "parity-paths.md" in body, "template must say where the local path goes"
 
-    # The bootstrap is the orchestrator's half of the skill since #292. Its
-    # yes to the parity question follows the parity-setup procedure, which
-    # is the one statement of the four fields, so the bootstrap points at the
-    # procedure and the procedure points at the template. Read from the
-    # Bootstrap section alone: the acts table names the procedure too.
+    # The bootstrap is the orchestrator's since #292, in a file of its own
+    # since #1046. Its yes to the parity question follows the parity-setup
+    # procedure, which is the one statement of the four fields, so the
+    # bootstrap points at the procedure and the procedure points at the
+    # template. Read from the Bootstrap section alone, so a sentence the
+    # file's opening paragraph gains cannot stand in for step 3.
     implement = open(
-        os.path.join(ROOT, "skills", "implement", "orchestration.md"),
+        os.path.join(ROOT, "skills", "implement", "bootstrap.md"),
         encoding="utf-8",
     ).read()
     bootstrap = implement.split("## Orchestrator: Bootstrap", 1)[1]

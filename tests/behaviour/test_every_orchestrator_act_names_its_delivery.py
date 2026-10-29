@@ -10,14 +10,14 @@ reads it*. This module is what reads it.
 
 The table lives in `skills/implement/orchestration.md` under
 `## Orchestrator: which of these acts runs itself`, and this holds it against
-both orchestration files **from both sides**: an act with no row fails, and a
+the files `FILES` names **from both sides**: an act with no row fails, and a
 row naming an act no file carries fails. One-sided is the state
 `broad_gate.PARTITION` was written to end one subject over -- that list went
 three releases at five entries while the workflow it mirrored went to
 thirteen steps, and no case went red for it.
 
 **The row set is mechanical**: every `##` heading whose text begins
-`Orchestrator:` in either file, plus every `###` heading directly beneath
+`Orchestrator:` in any of them, plus every `###` heading directly beneath
 one. The section holding the table is itself such a heading, so it has a row
 of its own, which is the shape the frame anticipated.
 
@@ -94,10 +94,13 @@ NEIGHBOUR = os.path.join(
 
 FILES = (
     "skills/implement/orchestration.md",
+    # The bootstrap, in its own file since #1046 because only a repository
+    # with no root yet needs it. Its act keeps its row.
+    "skills/implement/bootstrap.md",
     "skills/code-review/orchestration.md",
 )
-# Where the table is. It is one of the two files above, which is what makes
-# its own section a row.
+# Where the table is. It is one of the files above, which is what makes its
+# own section a row.
 TABLE_FILE = "skills/implement/orchestration.md"
 HEADER = "| Act | File | Delivered by | Grounds |"
 
@@ -127,7 +130,7 @@ def _bare(cell):
 
 def acts(root):
     """`(file, heading text, level)` for every act addressed to the
-    orchestrator, in document order, over both orchestration files.
+    orchestrator, in document order, over the files `FILES` names.
 
     A `##` whose text begins with the marker is an act. A `###` is an act
     when the `##` above it was one -- *directly beneath* means the nearest
@@ -481,7 +484,7 @@ def test_every_orchestrator_act_names_its_delivery():
     """Both sides against the tree as it stands.
 
     The acts are asserted first, for the reason the neighbour's real-tree
-    case records: `acts` derives them from two files, so a tree without them
+    case records: `acts` derives them from `FILES`, so a tree without them
     has nothing to check and a check over nothing is green over nothing.
     """
     found_acts = acts(ROOT)
@@ -496,7 +499,7 @@ def test_every_orchestrator_act_names_its_delivery():
 
 
 def test_the_table_reads_the_section_that_holds_it():
-    """The table's own section is a marked `##` in one of the two files, so
+    """The table's own section is a marked `##` in one of the files, so
     the rule that builds the row set reaches it. A table exempting the
     section that holds it would be the one act in the class nothing counts.
     """

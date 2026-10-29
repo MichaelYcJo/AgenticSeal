@@ -15,8 +15,8 @@ import pytest
 from conftest import flat, read
 
 SKILL = ("skills", "config", "SKILL.md")
-# The bootstrap is `implement`'s orchestrator half since #292.
-BOOTSTRAP = ("skills", "implement", "orchestration.md")
+# The bootstrap is the orchestrator's since #292, in its own file since #1046.
+BOOTSTRAP = ("skills", "implement", "bootstrap.md")
 TEMPLATE = ("templates", "setup", "config.md")
 
 
