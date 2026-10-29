@@ -63,10 +63,10 @@ hand fires the publish workflow too.
   *5. The release pull request*), read whole and exactly so. It never
   republishes a release that exists, and falls back to the tag name when no
   line reads so, logging the shape it expected and the `release:` line it
-  found. The fragments are the ones the commits after the previous `vX.Y.Z`
-  tag added and that tag does not already hold, each read at the newest
-  commit of that range that holds it, so a work item a settle removed before
-  the tag still has its entry. It goes red on a tag whose range added no
+  found. Which fragments it reads is `docs/the-record-layout.md` *A change
+  writes fragments, never a shared file*, each read at the newest commit of
+  the range that holds it, so a work item a settle removed before the tag
+  still has its entry. It goes red on a tag whose range added no
   fragment the previous tag does not already hold, which is the release
   shipping unexplained. The note opens with the release's theme, the first
   sentence of its milestone's description with a leading `Purpose:` left
