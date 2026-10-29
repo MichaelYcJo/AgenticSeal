@@ -89,23 +89,31 @@ KNOWN_LIMITS = (
     "across lines, reads as unread and is not counted"
 )
 
+# YAML's white space inside a line: a space or a tab, the tab as YAML 1.2
+# reads it. Python's `\s` and a bare `str.strip()` also take U+00A0 and the
+# other Unicode spaces, which YAML reads as text, so every reader below
+# strips and matches this and nothing wider.
+SPACE = " \t"
+# One character of SPACE, for the patterns below.
+SPACE_CHAR = f"[{SPACE}]"
 # A workflow's trigger key at the start of a line, bare or in either quote,
-# and the text after its colon. The colon ends the line or whitespace follows
-# it: `on:pull_request` is one plain scalar in YAML, not the key.
-ON_KEY = re.compile(r"""^(?:on|"on"|'on')\s*:(\s.*|)$""")
+# and the text after its colon. The colon ends the line or SPACE follows it:
+# `on:pull_request` is one plain scalar in YAML, not the key.
+ON_KEY = re.compile(rf"""^(?:on|"on"|'on'){SPACE_CHAR}*:({SPACE_CHAR}.*|)$""")
 # A mapping key in a block line: the text before the first colon that ends
-# the line or that whitespace follows. `pull_request:foo` is one scalar.
-KEY = re.compile(r"(.*?):(?:\s|$)")
-# A YAML comment: a `#` that opens the text or follows whitespace, to the end
-# of the line.
-COMMENT = re.compile(r"(?:^|\s)#.*$")
+# the line or that SPACE follows. `pull_request:foo` is one scalar.
+KEY = re.compile(rf"(.*?):(?:{SPACE_CHAR}|$)")
+# A YAML comment: a `#` that opens the text or follows SPACE, to the end of
+# the line.
+COMMENT = re.compile(rf"(?:^|{SPACE_CHAR})#.*$")
 # The shape of a trigger's event name.
 EVENT_NAME = re.compile(r"[A-Za-z_][\w-]*")
 
 
 def unquoted(value):
-    """VALUE stripped, with one pair of matching quotes around it dropped."""
-    value = value.strip()
+    """VALUE stripped of SPACE, with one pair of matching quotes around it
+    dropped."""
+    value = value.strip(SPACE)
     if len(value) > 1 and value[0] == value[-1] and value[0] in "\"'":
         value = value[1:-1]
     return value
@@ -127,15 +135,19 @@ def block_entries(lines):
     holds no key, a bare name or a `- name` item, which continues that
     name, so that `  pull_request` above `    push` is the one name
     "pull_request push". A key is what `KEY` reads: text before a colon
-    that ends the line or that whitespace follows.
+    that ends the line or that SPACE follows. A line whose text opens with
+    any other space, which YAML reads as text and no key or event name
+    starts with, makes the whole block unread too.
     """
     entries, bare, width, under_key = [], [], None, False
     for line in lines:
         code = COMMENT.sub("", line)
-        item = code.strip()
+        item = code.strip(SPACE)
         if not item:
             continue
-        indent = len(code) - len(code.lstrip())
+        if item[0].isspace():
+            return []
+        indent = len(code) - len(code.lstrip(SPACE))
         is_item = item == "-" or item.startswith("- ")
         if indent == 0 and not is_item:
             break
@@ -163,10 +175,12 @@ def block_entries(lines):
 def continued(lines):
     """True where the first of LINES that is neither blank nor a comment is
     indented, so it continues the value on the `on` line above it:
-    `on: pull_request` above `  push` is the one name "pull_request push"."""
+    `on: pull_request` above `  push` is the one name "pull_request push".
+    A line opened by any space at all counts: one opened by U+00A0 is text
+    to YAML, and no top-level key starts with it."""
     for line in lines:
         code = COMMENT.sub("", line)
-        if code.strip():
+        if code.strip(SPACE):
             return code[0].isspace()
     return False
 
@@ -192,7 +206,7 @@ def read_events(text):
         key = ON_KEY.match(line)
         if not key:
             continue
-        value = COMMENT.sub("", key.group(1)).strip()
+        value = COMMENT.sub("", key.group(1)).strip(SPACE)
         if not value:
             names = block_entries(lines[i + 1 :])
         elif continued(lines[i + 1 :]):
@@ -200,7 +214,7 @@ def read_events(text):
         elif value.startswith("[") and value.endswith("]"):
             names = value[1:-1].split(",")
             # YAML allows one trailing comma in a flow list: `[push, pull_request, ]`.
-            if not names[-1].strip():
+            if not names[-1].strip(SPACE):
                 names.pop()
         else:
             names = [value]

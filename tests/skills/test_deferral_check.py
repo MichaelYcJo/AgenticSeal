@@ -161,6 +161,7 @@ class Test_main:
             "on:\n  pull_request\n",
             "on:\n  pull_request\n    # the run\n",
             "on: pull_request\n  # the run\n",
+            "on:\tpull_request\n",
         ],
         ids=[
             "double-quoted-key",
@@ -171,6 +172,7 @@ class Test_main:
             "name-on-the-line-below",
             "name-with-a-comment-below",
             "inline-name-with-a-comment-below",
+            "a-tab-after-the-on-colon",
         ],
     )
     def test_a_pull_request_trigger_in_the_wider_spellings_answers(self, repo, trigger):
@@ -199,6 +201,13 @@ class Test_main:
             "on:\n  pull_request:foo\n",
             "on:\n  pull_request:x: y\n",
             "on:pull_request\n",
+            "on:\n  pull_request:\xa0foo\n",
+            "on:\xa0pull_request\n",
+            "on: pull_request\xa0\n",
+            "on:\n  pull_request\xa0:\n",
+            "on: pull_request\xa0#x\n",
+            "on:\n  pull_request:\n\xa0 push:\n",
+            "on: pull_request\n\xa0push\n",
         ],
         ids=[
             "no-on-key",
@@ -217,6 +226,13 @@ class Test_main:
             "a-name-glued-to-a-colon",
             "a-key-holding-a-glued-colon",
             "an-on-key-glued-to-its-value",
+            "a-name-glued-to-a-colon-by-a-unicode-space",
+            "an-on-key-glued-to-its-value-by-a-unicode-space",
+            "an-inline-name-ending-in-a-unicode-space",
+            "a-key-ending-in-a-unicode-space",
+            "a-comment-sign-after-a-unicode-space",
+            "a-block-line-opened-by-a-unicode-space",
+            "an-inline-name-above-a-line-opened-by-a-unicode-space",
         ],
     )
     def test_an_unread_trigger_is_reported_and_not_counted(self, repo, trigger):
