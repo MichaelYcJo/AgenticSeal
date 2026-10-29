@@ -66,10 +66,14 @@ layout that predates the question, or an original that changes.
    its check until the comparison with the original is recorded as an
    `original:` line, in each round record under `through the review chain`
    and in the sealer's `guarantee.md` under `straight to the PR`
-   (`skills/legacy-parity/SKILL.md` *Recording the comparison*). In local
-   mode, and under shared, records only, no pull-request check reads a round
-   record or a guarantee: say that the `original:` line is still written,
-   and that nothing refuses a record without it.
+   (`skills/legacy-parity/SKILL.md` *Recording the comparison*). Under
+   shared, records only, no workflow reads a round record, but `seal gate`
+   runs the same check: say that the `original:` line is still written, that
+   the gate refuses a round record without it once a ready pull request is
+   open for the branch, and that before then it names the record and passes.
+   In local mode git carries neither `seal/parity.md` nor a round record, so
+   no check reads either: say that the line is still written, and that
+   nothing refuses a record without it.
 
 ## What this does not decide
 

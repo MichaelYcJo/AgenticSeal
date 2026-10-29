@@ -262,9 +262,11 @@ def test_parity_declaration_is_bootstrappable_not_hand_written():
     )
 
     # The bootstrap's yes reaches the procedure right after the mode answer,
-    # local included (#1046, round 1). Local mode commits nothing, and only
-    # installed pull-request checks refuse a record, so the procedure says
-    # which mode commits the file and which setup refuses.
+    # local included (#1046, rounds 1 and 2). Local mode commits nothing and
+    # no check reads it; under shared, records only, `seal gate` still refuses
+    # a round record with no `original:` line once a ready pull request is
+    # open, so the procedure says which mode commits the file and what refuses
+    # in each.
     procedure = " ".join(open(setup, encoding="utf-8").read().split())
     assert "Where the root is `<repo>/seal/`, commit it." in procedure, (
         "the parity-setup procedure commits the declaration in every mode"
@@ -274,7 +276,13 @@ def test_parity_declaration_is_bootstrappable_not_hand_written():
         "the parity-setup procedure promises a pull-request refusal that "
         "only installed checks give"
     )
-    assert "no pull-request check reads a round record" in procedure
+    assert (
+        "the gate refuses a round record without it once a ready pull" in procedure
+    ), (
+        "the parity-setup procedure says nothing refuses under shared, records "
+        "only, where `seal gate` refuses once a ready pull request is open"
+    )
+    assert "In local mode git carries neither" in procedure
 
 
 def _folded(name):
