@@ -541,7 +541,9 @@ class Test_check:
         pact the signer's `Pact` row declares is passed over whatever its
         other cells hold, and neither a table nor a `pact:` token inside a
         closed fence, nor `compact:`, nor `pact:` before a space, nor a table
-        naming the pact's remote beside no heading, is read: exit 0, and the
+        naming the pact's remote beside no heading, nor a row that misses
+        twice, nor a row in an indented code block of a frame holding no
+        anchor table, is read: exit 0, and the
         `READ` and summary lines name the pact by its URL (contract rule
         14)."""
         billing, legacy = (
@@ -566,10 +568,19 @@ class Test_check:
             + "\nThe compact:x note. Read the pact: it is short.\n\n```\n"
             + anchor_table((PACT_URL, CLAUSE_PATH, "x"))
             + 'pact:orders-api/"## A"@1a2b3c4d\n```\n\n'
-            + f"| Repository | Role |\n|---|---|\n| {PACT_URL} | the pact |\n",
+            + f"| Repository | Role |\n|---|---|\n| {PACT_URL} | the pact |\n\n"
+            # A row that misses twice, a near-miss header over a remote one
+            # letter off, is no anchor's shape.
+            + "| pact | clause | hash |\n|---|---|---|\n"
+            + f"| git@example.com:org/ordres-api.git | {CLAUSE_PATH} | deadbeef |\n",
         )
-        # A frame that cites no pact holds no anchor table, and says nothing.
-        write(world.web, "seal/threads/1790000002-z/frame/design.md", "# Z\n\nx\n")
+        # A frame that cites no pact holds no anchor table, and says nothing;
+        # a row in an indented code block is no row.
+        write(
+            world.web,
+            "seal/threads/1790000002-z/frame/design.md",
+            f"# Z\n\nx\n\n    | {PACT_URL} | {CLAUSE_PATH} | deadbeef |\n",
+        )
         code, out = world.run()
         assert code == 0, out
         assert (
