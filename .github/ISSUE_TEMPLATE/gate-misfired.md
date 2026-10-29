@@ -1,11 +1,11 @@
 ---
 name: A gate blocked or allowed the wrong thing
-about: The routing edit gate, worktree guard, or another gate made a wrong call
+about: The routing edit gate, the question gate, or another gate made a wrong call
 labels: gate
 ---
 
 **Which gate, and which direction was it wrong?**
-<!-- e.g. worktree-guard denied a switch with no other session running -->
+<!-- e.g. routing-edit-gate refused an edit on a branch a routing.md names -->
 
 **The command you ran**
 ```

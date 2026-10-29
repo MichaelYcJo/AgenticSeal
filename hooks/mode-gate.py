@@ -94,8 +94,8 @@ def already_asked(git_dir, session, choice_dir=CHOICE_DIR):
     Records it when it was not. A marker that cannot be written counts as
     already asked: one missed question beats a deny the session cannot get
     past, and in a run with nobody at the keyboard that deny is an outage
-    rather than a cost. The same rule the worktree guard keeps, and not the
-    same marker.
+    rather than a cost. The same rule `hooks/review-skill-gate.py#already_asked`
+    keeps, and not the same marker.
 
     `git_dir` is absolute, which `git_dir_of` guarantees by resolving git's
     answer against the root. The sibling this was copied from takes a `cwd`
@@ -109,8 +109,8 @@ def already_asked(git_dir, session, choice_dir=CHOICE_DIR):
     the marker relative to whatever directory this process happened to be in.
 
     The id names a file, so a separator in a malformed one must not become a
-    path escape -- measured on a sibling guard, where `../../escaped` put an
-    empty file at the repository root.
+    path escape -- measured: `../../escaped` put an empty file at the
+    repository root.
     """
     session = os.path.basename(str(session or ""))
     if not git_dir or not session or session in (".", ".."):

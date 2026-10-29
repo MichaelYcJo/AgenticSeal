@@ -4,22 +4,16 @@ mark in the repository's git dir.
 The routing declaration answers `Implementation` and `Planning`, and a session
 can declare an agent and then do the work itself. The mark is what spawning
 the agent leaves, so the notice can tell. Missing, the notice fires for work
-that was done correctly. The mark decides nothing, and a broken mark gate must
-leave the worktree guard's verdict alone, which is the objection #26 raised
-against putting a second gate in `pre-agent`. What `hooks/lib/implementer.py`
-writes and reads is asked through this hook. The cases come from
+that was done correctly. The mark decides nothing. What
+`hooks/lib/implementer.py` writes and reads is asked through this hook. The cases come from
 `tests/test_the_implementer_is_recorded.py` (#942's phase 6).
 """
 
 import os
-import shutil
-from pathlib import Path
 
 from conftest import (
-    HOOKS,
     branch_of,
     census_case,
-    fired,
     git_dir,
     git_out,
     load_hook_module,
@@ -140,47 +134,6 @@ class Test_main:
             assert implementer.stands(str(repo), branch_of(repo), mark), mark
             assert not implementer.stands(str(repo), "feature/somewhere-else", mark), (
                 mark
-            )
-
-
-class Test_module:
-    def test_a_broken_mark_gate_leaves_the_worktree_guards_verdict_alone(
-        self, repo, tmp_path
-    ):
-        """S13. Issue #26's second objection to building this: a second gate in
-        `pre-agent` whose import fails could take the worktree guard's answer
-        with it. `dispatch.py#run_gate` catches per gate, so it does not — and
-        this is the measurement, with the mark gate unparseable and then absent.
-
-        The intact run also pins `questions.md` Q2: the mark is written even when
-        the guard stops the same spawn, because the gates do not see each other.
-        """
-        opt_in(repo)
-        hooks = tmp_path / "hooks"
-        shutil.copytree(Path(HOOKS).resolve(), hooks)
-        # A fresh session id per call. The guard remembers which sessions it has
-        # already put the two-option question to (`already_asked`) and answers a
-        # repeat from the same session with the shorter fallback, so three calls
-        # under one id would differ on the guard's own state and say nothing
-        # about the mark gate. Measured on CI, where ps/lsof are absent and the
-        # guard reaches that site; macOS reached another and never showed it.
-        isolated = spawn(repo, isolation="worktree", session="s-intact")
-
-        intact = run_dispatch("pre-agent", isolated, hooks=str(hooks))
-        assert fired(intact), "the guard did not fire, so there is nothing to protect"
-        assert os.path.isfile(mark_path(repo, implementer.IMPLEMENTATION_MARK)), (
-            "Q2: written before the group decides"
-        )
-
-        for n, broken in enumerate(("def broken(:\n", None)):
-            if broken is None:
-                (hooks / "implementer-mark.py").unlink()
-            else:
-                (hooks / "implementer-mark.py").write_text(broken, encoding="utf-8")
-            again = spawn(repo, isolation="worktree", session=f"s-broken-{n}")
-            after = run_dispatch("pre-agent", again, hooks=str(hooks))
-            assert after == intact, (
-                f"a broken mark gate changed the worktree guard's verdict:\n{after}"
             )
 
 

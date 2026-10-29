@@ -82,18 +82,17 @@ def test_the_start_is_the_moment_before_the_first_edit():
 GRAINS = {
     "mode-gate": "once per session per repo",
     "review-skill-gate": "once per session per working tree",
-    "worktree-guard": "once per session per repository per direction",
 }
 
 
 def test_every_once_in_the_readme_states_its_grain():
-    """Four different grains were all spelled `once`. One session legitimately
-    meets the worktree question twice, and the README read as a bug report."""
+    """Different grains were all spelled `once`, so a gate that fires once per
+    session per repository read like one that fires once per session."""
     en = flat("README.md")
     for grain in GRAINS.values():
         assert grain.lower() in en.lower(), grain
     assert "Fires once per session," not in en, (
-        "a bare `once per session` cannot say which of four grains it means"
+        "a bare `once per session` cannot say which grain it means"
     )
 
 
@@ -102,16 +101,8 @@ def test_the_korean_readme_states_the_same_grains():
     for grain in (
         "세션·레포당 한 번",
         "세션·작업트리당 한 번",
-        "세션·레포·방향당 한 번",
     ):
         assert grain in ko, grain
-
-
-def test_the_worktree_spec_is_still_the_model():
-    """It already stated its grain correctly, and the others were brought to
-    it rather than the other way round."""
-    spec = flat("docs", "worktree-guard-spec.md").lower()
-    assert "once per session per direction" in spec
 
 
 # --- "asks" — the model is instructed, the user gets buttons ----------------

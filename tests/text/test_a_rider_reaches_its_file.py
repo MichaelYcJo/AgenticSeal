@@ -106,20 +106,14 @@ def test_the_file_records_what_the_move_costs_and_that_it_can_be_overturned():
 def test_the_riders_exist_where_the_rows_said_they_would():
     """Every file a row said its rider went to.
 
-    `hooks/worktree-guard.py` is held by `fix/the-guard-that-could-not-read`,
-    and its four riders waited a round for that reason. They are planted now
-    because the conflict they were avoiding does not exist: the file is the
-    same blob at HEAD and at that branch's tip, so nothing there is being
-    rewritten yet.
-
     `hooks/dispatch.py` left the list when its rider was resolved: the
     silence it recorded is said now (#28, work item 1790635415), and a rider
-    kept after its fix is the cost this file names."""
+    kept after its fix is the cost this file names. `hooks/lib/cmdline.py`
+    left it when the `chdirs` its rider described left with the worktree
+    guard, their one reader (#1049)."""
     for rel in (
         "hooks/lib/optin.py",
         "hooks/review-skill-gate.py",
-        "hooks/lib/cmdline.py",
-        "hooks/worktree-guard.py",
     ):
         assert "# RIDER:" in read(os.path.join(ROOT, rel)), rel
 

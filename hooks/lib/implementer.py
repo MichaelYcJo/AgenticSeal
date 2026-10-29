@@ -60,7 +60,7 @@ AGENT_MARKS = (("framer", PLANNING_MARK), ("crafter", IMPLEMENTATION_MARK))
 def git_dir(cwd):
     """The git dir holding this tree's marks, or "" when there is none.
 
-    Asked of git as an ABSOLUTE path, the way `session-lease.py` asks. In a
+    Asked of git as an ABSOLUTE path. In a
     linked worktree `<root>/.git` is a FILE, so a built path is unwritable
     there -- and an unwritable mark is a notice that fires forever in every
     worktree.

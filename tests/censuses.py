@@ -985,8 +985,8 @@ OLD_NAME = re.compile(
             # A work item's directory, now `seal/threads/<id>/`.
             "seal/" + r"specs\b",
             # The frame's design and the closing memo, now `frame/design.md`
-            # and `gaps.md`; a document named for its subject, such as
-            # `docs/worktree-guard-spec.md`, is not the record.
+            # and `gaps.md`; a file named for its subject, such as
+            # `graders/shape-writes-spec.md`, is not the record.
             r"(?<![\w-])(?:" + "sp" + "ec|over" + r"view)\.md\b",
             # The broad run's record, now `trail/gate.md`, and the command
             # now `seal gate`; `docs/the-broad-gate.md` names the act.
@@ -1030,13 +1030,6 @@ KEPT_OLD_NAMES = (
     f'"{_OLD}": "agentic"',
     # The 0.3.x directory that README.md *Coming up from 0.3.x* moves by hand.
     f".{_OLD}",
-    # The variable a person sets in their own environment for the language of
-    # the worktree guard's prompts, which no migration reaches.
-    # `hooks/worktree-guard.py#_lang` reads it as a fallback through 0.24.x,
-    # where the plugin option `worktree_guard_language` is empty, so whoever
-    # set it keeps their language until they set the option; the next minor
-    # release removes that read and this entry.
-    f"{_OLD.upper()}_LANG",
 )
 # A released work item's record cited at the commit that holds it, as
 # `<commit>:<path>`, the form `git show` opens as written: the settle removed
@@ -1063,17 +1056,13 @@ OLD_NAME_RECORDS = (
 RECORDED_CASE = re.compile(r"^evals/behaviour/[^/]+/(?:replay|seeded)-")
 # The migration and its cases spell the 0.22.x layout and the state names a
 # session start moves from, which is the one place those names are read.
-# `hooks/lib/cmdline_base.py` is, below its rider, `86256492:hooks/cmdline.py`
-# byte for byte, which `tests/behaviour/test_the_frozen_reading_never_grows.py` holds,
-# so no line of it can change or carry an exemption. The replay and seeded
-# cases' generators read round records at the 0.22.x layout every committed
-# case was cut from, each such line exempted at the generator, and their
-# cases build those records.
+# The replay and seeded cases' generators read round records at the 0.22.x
+# layout every committed case was cut from, each such line exempted at the
+# generator, and their cases build those records.
 KEPT_FILES = (
     "hooks/root-migrate.py",
     "tests/hooks/test_root_migrate.py",
     "tests/behaviour/test_the_root_migrates_itself.py",
-    "hooks/lib/cmdline_base.py",
     "tests/evals/test_replay_targets.py",
     "tests/evals/test_seed_defects.py",
 )
@@ -1132,10 +1121,6 @@ VACATING = (
 # written; the old path is the one that commit holds. Taken out of a line
 # before the census reads it.
 COMMIT_PATH = re.compile(r"(?<![\w/:])[0-9a-f]{7,40}:[\w./-]+")
-# The files passed over whole. `hooks/lib/cmdline_base.py`'s docstring below
-# its rider is `86256492`'s and names that commit's paths, and no line of it
-# can change or carry an exemption, for the reason `KEPT_FILES` gives.
-VACATED_KEPT_FILES = ("hooks/lib/cmdline_base.py",)
 
 
 def vacated(root=None):
@@ -1160,12 +1145,10 @@ def vacated_paths(rel, root=None):
     for `templates/` and `tests/`. A spelling counts as a word, at the start
     of a path or after a shell variable such as `$CLAUDE_PLUGIN_ROOT/`, and
     not inside a longer path. The records and the recorded cases `old_names`
-    passes and the files of `VACATED_KEPT_FILES` are passed over whole, a
-    path cited at a commit passes, and any other line that keeps an old path
-    carries its exemption. A file that is not UTF-8 text is not read."""
-    if rel.startswith(OLD_NAME_RECORDS + VACATED_KEPT_FILES) or RECORDED_CASE.match(
-        rel
-    ):
+    passes are passed over whole, a path cited at a commit passes, and any
+    other line that keeps an old path carries its exemption. A file that is
+    not UTF-8 text is not read."""
+    if rel.startswith(OLD_NAME_RECORDS) or RECORDED_CASE.match(rel):
         return []
     moved = vacated(root)
     if not moved:

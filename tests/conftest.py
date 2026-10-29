@@ -1,12 +1,11 @@
 """The suite's shared helpers and fixtures, and the environment every case runs in.
 
-The module body sets that environment for every case and every child: the
-locale, git's template and maintenance, `gh`'s login and `PATH`.
+The module body sets that environment for every case and every child: git's
+template and maintenance, `gh`'s login and `PATH`.
 """
 
 import ast
 import atexit
-import datetime
 import functools
 import importlib.util
 import io
@@ -310,15 +309,6 @@ def decline_if_shrunken(missing, what):
 
 HOOKS = os.path.join(os.path.dirname(__file__), "..", "hooks")
 
-# Default-locale determinism: the suite owns its locale. A plain setdefault
-# is not enough — the author's machine exports SPECSEAL_LANG=ko session-wide
-# (measured), which would flip every default-language assertion. The plugin
-# option `worktree_guard_language` is read before it, so a value the shell
-# running the suite carries for the option is removed. Tests that need Korean
-# monkeypatch the env and fresh-load the module.
-os.environ["SPECSEAL_LANG"] = "en"
-os.environ.pop("CLAUDE_PLUGIN_OPTION_WORKTREE_GUARD_LANGUAGE", None)
-
 # One run of this suite calls `git init` 403 times, and each call copies the
 # default template into the new repository: 18 files where 2 are enough, 14 of
 # them sample hooks that nothing in this suite runs or reads. That is roughly
@@ -485,12 +475,12 @@ def gh_answers(env, state):
 os.environ["PATH"] = gh_answers(dict(os.environ), "unknown")["PATH"]
 
 
-# The worktree guard reads the routing answer out of the session's transcript
-# under `worktree_consent.PROJECTS_ROOT`, which is `~/.claude/projects` -- the
-# real transcripts of whoever runs this suite. Every in-process case points it
-# at an empty directory instead, so none reads a real transcript: the guard
+# The press reader reads the routing answer out of the session's transcript
+# under `press.PROJECTS_ROOT`, which is `~/.claude/projects` -- the real
+# transcripts of whoever runs this suite. Every in-process case points it at
+# an empty directory instead, so none reads a real transcript: every gate
 # imports the module by its plain name, so one attribute on `sys.modules`
-# covers every copy of the guard a test module loaded. A case that needs a
+# covers every copy of every gate a test module loaded. A case that needs a
 # transcript points it somewhere else itself.
 _NO_TRANSCRIPTS = tempfile.mkdtemp(prefix="agentic-no-transcripts-")
 atexit.register(shutil.rmtree, _NO_TRANSCRIPTS, True)
@@ -498,9 +488,9 @@ atexit.register(shutil.rmtree, _NO_TRANSCRIPTS, True)
 
 @pytest.fixture(autouse=True)
 def _no_real_transcripts(monkeypatch):
-    consent = sys.modules.get("worktree_consent")
-    if consent is not None and hasattr(consent, "PROJECTS_ROOT"):
-        monkeypatch.setattr(consent, "PROJECTS_ROOT", _NO_TRANSCRIPTS)
+    press = sys.modules.get("press")
+    if press is not None and hasattr(press, "PROJECTS_ROOT"):
+        monkeypatch.setattr(press, "PROJECTS_ROOT", _NO_TRANSCRIPTS)
 
 
 # What a Claude Code session exports to every Bash child, and so to every git
@@ -655,38 +645,6 @@ def symlink_or_skip(target, link):
         os.symlink(target, link)
     except OSError as exc:
         pytest.skip(f"symbolic links are not available here ({exc})")
-
-
-def ps_names_the_parent_or_skip(limit):
-    """Skip unless `ps -o ppid=,comm= -p <pid>` names this process's parent.
-
-    That call is how the hooks walk up to the `claude` process: the commit
-    gate's lease route and old spelling (`hooks/lib/hooksession.py`) and the
-    worktree guard's count of other sessions. Git for Windows' `ps` takes no
-    `-o`, so on a `windows-latest` runner every one of them finds nothing,
-    and a case resting on the walk has no behaviour to pin there. LIMIT names
-    the documented known limit the skip rests on (#692).
-
-    Asked by attempting the call, for the reason `symlink_or_skip` gives:
-    a Windows machine with another `ps` keeps the coverage, and nothing is
-    inferred from the platform.
-    """
-    try:
-        r = subprocess.run(
-            ["ps", "-o", "ppid=,comm=", "-p", str(os.getpid())],
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=15,
-        )
-    except (OSError, subprocess.SubprocessError) as exc:
-        pytest.skip(f"{limit} -- `ps` could not be run here ({exc})")
-    parent = r.stdout.strip().partition(" ")[0]
-    if r.returncode != 0 or parent != str(os.getppid()):
-        pytest.skip(
-            f"{limit} -- `ps -o ppid=,comm= -p` does not name a parent here "
-            f"(exit {r.returncode})"
-        )
 
 
 def fifo_or_skip(path):
@@ -987,7 +945,7 @@ def names_path(path, text):
 #
 # Each was defined byte-identically in two or more test modules. A module
 # imports the one it needs. A helper that reads a module the case loaded
-# itself, such as the worktree guard or the chain check, takes that module as
+# itself, such as the chain check, takes that module as
 # its first argument, and the case's module binds it with `functools.partial`.
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -1059,38 +1017,6 @@ def git_repo(where):
         capture_output=True,
     )
     return where
-
-
-def lease_dir(repo):
-    d = os.path.join(str(repo), ".git", "agentic-leases")
-    os.makedirs(d, exist_ok=True)
-    return d
-
-
-def stub_process_tree(monkeypatch, start, tree):
-    """`ps -o ppid=,comm= -p <pid>` against a fixture tree of {pid: (ppid, comm)},
-    the walk starting at START as this process's parent.
-
-    Only `ps` is faked; everything else (git, notably) reaches the real
-    subprocess, so a hook's `main` can still resolve the repo. The hooks
-    read `os.getppid` and `subprocess.run` off the modules every caller
-    shares, so those are what is replaced.
-    """
-    import types
-
-    real_run = subprocess.run
-    monkeypatch.setattr(os, "getppid", lambda: start)
-
-    def fake_run(cmd, **kwargs):
-        if not (isinstance(cmd, (list, tuple)) and cmd and cmd[0] == "ps"):
-            return real_run(cmd, **kwargs)
-        pid = int(cmd[-1])
-        if pid not in tree:
-            return types.SimpleNamespace(stdout="")
-        ppid, comm = tree[pid]
-        return types.SimpleNamespace(stdout=f"{ppid} {comm}\n")
-
-    monkeypatch.setattr(subprocess, "run", fake_run)
 
 
 def run(module, monkeypatch, payload):
@@ -1299,11 +1225,6 @@ def staged_repo(path, declared=False, review="straight to the PR"):
     return path
 
 
-def dirty(repo):
-    """REPO with an uncommitted change to its tracked `f.txt`."""
-    (repo / "f.txt").write_text("changed\n", encoding="utf-8")
-
-
 def imported_roots(path):
     """The top-level names the module at PATH imports, `.` for a relative
     import."""
@@ -1316,12 +1237,6 @@ def imported_roots(path):
         elif isinstance(node, ast.ImportFrom):
             roots.add((node.module or "").split(".")[0] if not node.level else ".")
     return roots
-
-
-def iso(minutes_ago):
-    """The UTC time MINUTES_AGO, as a transcript writes it."""
-    t = datetime.datetime.now(datetime.UTC) - datetime.timedelta(minutes=minutes_ago)
-    return t.isoformat().replace("+00:00", "Z")
 
 
 def q(text):
@@ -1532,42 +1447,6 @@ def chain_check_run(chain, root, capsys, *extra):
     return code, capsys.readouterr().out
 
 
-def guard_decision(wg, monkeypatch, capsys, repo, command, sessions=([], [], True)):
-    """WG, a loaded worktree guard, run on COMMAND in REPO with SESSIONS in
-    its tree; its decision and reason, or `("silent", "")`."""
-    monkeypatch.setattr(wg, "sessions_in_tree", lambda top, own="": sessions)
-    monkeypatch.setattr(
-        wg,
-        "load_input",
-        lambda: {
-            "tool_name": "Bash",
-            "session_id": "me",
-            "tool_input": {"command": command},
-            "cwd": str(repo),
-        },
-    )
-    try:
-        wg.main()
-    except SystemExit:
-        pass
-    out = capsys.readouterr().out.strip()
-    if not out:
-        return "silent", ""
-    d = json.loads(out)["hookSpecificOutput"]
-    return d["permissionDecision"], d["permissionDecisionReason"]
-
-
-@pytest.fixture
-def projects(monkeypatch, tmp_path):
-    """A projects root this case owns. Every loaded copy of the worktree
-    guard imports the one `worktree_consent` by its plain name, so one patch
-    reaches every copy."""
-    root = tmp_path / "projects"
-    root.mkdir()
-    monkeypatch.setattr(sys.modules["worktree_consent"], "PROJECTS_ROOT", str(root))
-    return root
-
-
 # --- a routing declaration as text ----------------------------------------------
 
 
@@ -1586,40 +1465,7 @@ def with_row(label, answer):
     return two_axis_text().replace("| Branch |", f"| {label} | {answer} |\n| Branch |")
 
 
-# --- the worktree consent: its record, the routing press, the guard's rows ------
-
-ACTIVE = [(111, "/tree", 1.0, 0.5, "VS Code")]
-IDLE = [(222, "/tree", 400.0, 90.0, "Terminal")]
-
-
-def common_dir(repo):
-    """The clone's git directory — where the record lives.
-
-    `--git-common-dir` rather than `--absolute-git-dir`: the record stands for
-    "this session may split this clone into worktrees", and a linked worktree
-    is the same clone. git answers relatively from a main worktree, so the
-    join is not optional.
-    """
-    out = subprocess.run(
-        ["git", "-C", str(repo), "rev-parse", "--git-common-dir"],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    ).stdout.strip()
-    return pathlib.Path(os.path.normpath(os.path.join(str(repo), out)))
-
-
-def consent_dir(repo):
-    return common_dir(repo) / "agentic-worktree-consent"
-
-
-def grant(repo, session="me"):
-    """Write the record by hand — the reader's tests do not need the writer."""
-    d = consent_dir(repo)
-    d.mkdir(parents=True, exist_ok=True)
-    (d / session).write_text("", encoding="utf-8")
-    return d / session
-
+# --- the routing press: the question put and answered in a transcript --------
 
 ROUTING_QUESTION = "How should this work be routed?"
 ROUTING_OPTIONS = ("automation (Recommended)", "per axis", "no work item")
@@ -1688,117 +1534,6 @@ def write_transcript(root, session, entries, slug="-Users-x-repo"):
         for e in entries:
             f.write((e if isinstance(e, str) else json.dumps(e)) + "\n")
     return path
-
-
-# The texts other test files compare the guard's deny with, for the
-# tracked-changes row under the press (#894, work item 1791779434); the guard's
-# own cases are `tests/hooks/test_worktree_guard.py`'s.
-TOKEN = {
-    "en": "[shared-tree-ok] carries the user's answer to switch in this shared tree",
-    "ko": "[shared-tree-ok] 가 공용 트리에서 전환한다는 사용자의 답을 담고 있어",
-}
-
-
-# The press sentence, byte for byte the first frame's: #896 copies it.
-PRESS = {
-    "en": "This session's person pressed `automation` on the routing question, "
-    "so this guard puts no question to them, and none is to be put to them in "
-    "its place.",
-    "ko": "이 세션의 사용자가 라우팅 질문에서 `automation` 을 눌렀습니다. 그래서 "
-    "이 guard 는 사용자에게 아무것도 묻지 않으며, 다른 방법으로 대신 물어서도 "
-    "안 됩니다.",
-}
-
-
-def dirty_deny(lang, lead):
-    """W3: the deny's one text for `dirty(repo)`, issued from inside the tree.
-    Every sentence is a fact the guard read or a fact about the guard; none
-    says what git does for any switch form (the reframe after round 3)."""
-    if lang == "en":
-        return (
-            f"{lead}, so no other row of this guard stops the switch, but 1 "
-            "uncommitted tracked changes are present:\n"
-            "     M  f.txt\n"
-            "\n" + PRESS["en"] + "\n\n"
-            "This row of the guard stops a branch switch while uncommitted "
-            "tracked changes are present, and says nothing of a switch once "
-            "none are.\n"
-            "\n"
-            "The ways on, none of which needs a person. Issue each command on "
-            "its own: this guard reads the tree before a command runs, so `git "
-            "stash && git switch <branch>` on one line meets this same refusal. "
-            "`git commit` and `git stash` are on this guard's list of commands "
-            "that leave the branch where it is, so each passes it when issued "
-            "alone. Which of them fits this switch, and what to run after it, is "
-            "yours to decide.\n"
-            "\n"
-            "Re-issuing this command unchanged meets this same refusal."
-        )
-    return (
-        f"{lead} 이 guard 의 다른 규칙은 이 전환을 막지 않지만, 커밋되지 않은 "
-        "추적 파일 변경이 1건 있습니다:\n"
-        "     M  f.txt\n"
-        "\n" + PRESS["ko"] + "\n\n"
-        "이 guard 의 이 규칙은 커밋되지 않은 추적 파일 변경이 있는 동안 브랜치 "
-        "전환을 막고, 변경이 없으면 전환에 대해 아무 말도 하지 않습니다.\n"
-        "\n"
-        "사람이 없어도 되는 길은 아래와 같습니다. 명령은 하나씩 따로 실행하세요. "
-        "이 guard 는 명령이 실행되기 전에 트리를 읽으므로, `git stash && git "
-        "switch <branch>` 처럼 한 줄에 쓰면 같은 거부를 받습니다. `git commit` 과 "
-        "`git stash` 는 이 guard 가 브랜치를 그대로 두는 명령으로 꼽는 목록에 "
-        "있어, 따로 실행하면 이 guard 를 통과합니다. 이 전환에 어느 쪽이 맞는지, "
-        "그 뒤에 무엇을 실행할지는 직접 정하세요.\n"
-        "\n"
-        "이 명령을 그대로 다시 실행하면 같은 거부를 받습니다."
-    )
-
-
-# #689: the chains where the order of the walk's two threads decided the
-# tree. The guard and the consent writer read through
-# `hooks/lib/cmdline_base.py`, `86256492`'s reader frozen, so each judges the
-# tree `86256492` judged, which is the dirty `w` bash runs the command in. `{missing}` is never created and
-# `{other}` is a clean repository of its own.
-BASE_TREE_CHAINS = {
-    # Round 3 of #689's report: past `STATE_CAP` the walk collapses, and the
-    # `cd {missing} ||` gives it a readable directory on the branch the `||`
-    # skips, which led the base's thread.
-    "the round-3 chain past the cap": "cd w; "
-    + "2>/dev/null cd nosuch; " * 9
-    + "cd {missing} || ",
-    # PR #690's residuals. A `cd` landed past its redirection into a directory
-    # that does not exist led, so the guard found no repository there and
-    # fell back to the clean session tree.
-    "a landing into a missing directory, then a semicolon": "cd w; "
-    "2>/dev/null cd {missing}; ",
-    "a glued landing into nothing, then one into a repository": "cd w; "
-    "cd>/dev/null {missing} && 2>/dev/null cd {other}\n",
-}
-
-
-# #868 In 1: the two chains where the guard's `wheres[0]` and the writer's
-# first resolved entry disagreed (`frame/design.md` In 1 of work item 1791384157).
-# bash runs the `||` segment only where the `cd` failed, in the directory the
-# shell was already in, and `;` runs its segment there when the `cd` fails, so
-# the guard's answer is where bash creates in both.
-PLACEMENT_CHAINS = {
-    **BASE_TREE_CHAINS,
-    "an unreadable segment, then a cd whose failure branch creates": (
-        "eval x ; cd {other} || "
-    ),
-    "a cd into nothing, then a semicolon": "cd {missing} ; ",
-}
-
-
-def _a_dirty_w_under_a_clean_session(repo, tmp_path):
-    session = tmp_path / "session"
-    session.mkdir()
-    subprocess.run(["git", "-C", str(session), "init", "-q"], check=True)
-    shutil.copytree(repo, session / "w")
-    (session / "w" / "f.txt").write_text("changed on purpose\n", encoding="utf-8")
-    shutil.copytree(repo, session / "clean")
-    other = tmp_path / "O"
-    shutil.copytree(repo, other)
-    return session, other
 
 
 # --- a work item's closing records, as the stamp's queue gates read them -------

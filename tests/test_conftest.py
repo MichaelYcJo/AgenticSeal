@@ -415,39 +415,6 @@ class Test_q:
         assert conftest.q("a b") == "'a b'"
 
 
-class _Guard:
-    """A stand-in for a loaded worktree guard: `main` prints OUT, then exits
-    as the hook does. `sessions_in_tree` and `load_input` are what
-    `guard_decision` replaces."""
-
-    def __init__(self, out=""):
-        self.out = out
-        self.sessions_in_tree = self.load_input = None
-
-    def main(self):
-        if self.out:
-            print(self.out)
-        sys.exit(0)
-
-
-class Test_guard_decision:
-    def test_accepts_the_guards_decision_and_reason(
-        self, tmp_path, monkeypatch, capsys
-    ):
-        decided = {"permissionDecision": "ask", "permissionDecisionReason": "why"}
-        guard = _Guard(json.dumps({"hookSpecificOutput": decided}))
-        found = conftest.guard_decision(guard, monkeypatch, capsys, tmp_path, "ls")
-        assert found == ("ask", "why")
-
-    def test_refuses_a_guard_that_prints_nothing_as_anything_but_silent(
-        self, tmp_path, monkeypatch, capsys
-    ):
-        """A guard that says nothing allows the command, and the cases tell
-        that apart from a decision by the word `silent`."""
-        found = conftest.guard_decision(_Guard(), monkeypatch, capsys, tmp_path, "ls")
-        assert found == ("silent", "")
-
-
 class Test_module:
     def test_the_value_is_the_one_work_item_1791270165_set(self):
         assert conftest.SLOW_CASE_S == 90

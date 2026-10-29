@@ -11,20 +11,20 @@ edit gate resolves them. Every way of not
 reading it (no `seal/`, no branch, a file that does not parse, two files for
 one branch) is the attended answer, and the gate prints nothing.
 
-`routing.md` is written by the model, which is why the worktree guard never
-reads it as consent. Read here only to refuse, a row the model forged binds
-only the model.
+`routing.md` is written by the model, which is why no gate reads the
+`automation` press from it. Read here only to refuse, a row the model forged
+binds only the model.
 
 The routing question put alone goes through while this session's transcript
 can be read and holds no answer to it from this clone, read by the press
-reader the worktree guard uses (`worktree_consent.last_routing_answer`).
+reader (`press.last_routing_answer`).
 That is the resumed session, which puts question 1 again so the gates that
 read the press find it. Where no transcript can be read, those gates find no
 press either, so the question is refused. Once an answer is recorded, the
 routing question is refused like any other, and so is a question dressed in
 its labels, a shape no list of spellings closes. "Put alone" is the shape
 the press reader counts: one question, its labels
-(`worktree_consent.is_routing_question`), single-select, with its text. A
+(`press.is_routing_question`), single-select, with its text. A
 call whose questions cannot be read is not that question, and is refused.
 
 Any routing answer from this clone in the session spends the exemption,
@@ -49,8 +49,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 import console
 import optin
+import press
 import routing
-import worktree_consent
 
 TOOL = "AskUserQuestion"
 QUESTIONS = optin.QUESTIONS
@@ -85,7 +85,7 @@ def routing_question_alone(tool_input):
         return False
     question = questions[0]
     return (
-        worktree_consent.is_routing_question(question)
+        press.is_routing_question(question)
         and question.get("multiSelect") is False
         and isinstance(question.get("question"), str)
     )
@@ -105,7 +105,7 @@ def main():
         return
     if (
         routing_question_alone(event.get("tool_input"))
-        and worktree_consent.last_routing_answer(
+        and press.last_routing_answer(
             top, event.get("session_id"), event.get("transcript_path") or ""
         )
         is None

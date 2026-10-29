@@ -12,9 +12,8 @@ queues the work item's one stamp, and records a refusal where the verdict
 names a commit its branch does not hold. `hooks/sealer-stamp.py` draws what
 was queued at the main session's `Stop`, unchanged.
 
-The repository is the edited file's, never the payload's `cwd`, for the
-reason `hooks/session-lease.py` gives: a session can edit a tree its working
-directory is not in. A subagent's `Write` (the sealer's own) carries the
+The repository is the edited file's, never the payload's `cwd`, because a
+session can edit a tree its working directory is not in. A subagent's `Write` (the sealer's own) carries the
 main session's `session_id` (`questions.md` Q1 of work item 1792363231,
 measured 2026-10-19), so the file is queued for the session whose `Stop`
 draws it. Queueing is not drawing, so the payload's `agent_id` changes
