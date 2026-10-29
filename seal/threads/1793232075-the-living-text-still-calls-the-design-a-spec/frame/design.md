@@ -104,12 +104,11 @@ comments and printed strings of shipped code under `hooks/`, `skills/` and
   `:2014` stay.
 - **A census for the word, and one for a new name inside a longer word.**
   `plan.md` *Alternatives considered* gives the grounds.
-- **#1020's files before #1020 merges.** `CLAUDE.md`,
+- **#1020's files in phases 1 and 2.** `CLAUDE.md`,
   `skills/agent-contract/SKILL.md`, `skills/code-review/` and
-  `agents/proofer.md` belong to the parallel work item #1020, on branch
-  `fix/1020-one-kind-of-finding-recurs-across-review-rounds`. Their
-  occurrences are listed below and rewritten in the last phase, after the
-  orchestrator merges `release/v0.24.0` into this branch with #1020 in it.
+  `agents/proofer.md` belonged to the parallel work item #1020 while it was
+  in `release: 0.24.0`. Their occurrences are listed below and rewritten in
+  the last phase, which ran once #1020 moved to 0.25.x (`questions.md` Q1).
 
 ## The class, enumerated
 
@@ -135,8 +134,8 @@ reads each hit against the two tables below.
 
 ### Living occurrences this work rewrites
 
-Line numbers are at `884b6ba8`. Phase 3's lines are re-read at the merge,
-because #1020 may move them.
+Line numbers are at `884b6ba8`. Phase 3 re-read its lines with C1 before
+it edited them (`trail/phases/phase-3.md`).
 
 | File | Lines | Reads now | Phase |
 |---|---|---|---|
