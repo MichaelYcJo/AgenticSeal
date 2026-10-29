@@ -9,7 +9,7 @@ target: 53c50c81, fixes 25fe2900..53c50c81
 severity: should
 location: `skills/parity-setup/SKILL.md:59-72`, `tests/behaviour/test_chain_hooks_hardening.py:264-276`, `seal/threads/1793240968-every-session-reads-bootstrap-and-parity-setup/changelog.md:5`
 evidence: executed `bin/test tests/skills/test_tmp_records_only_refuses_on_a_ready_pr.py -p no:xdist -q`
-verdict: open
+verdict: fixed eca53e15
 regression: round-1#1
 
 The unit is step 7 of `skills/parity-setup/SKILL.md`, at `:69-72`: "In local
@@ -83,7 +83,7 @@ that the line is still written and that nothing refuses a record without it.
 Under shared, records only, it says that `seal gate` refuses a round record
 without the line once a ready pull request is open."
 
-answer:
+answer: The finding holds (read). `skills/code-review/scripts/chain_check.py:2233-2235` judges strictly any pull-request state it saw other than a draft. At `--sealing`, `:2327-2335` spares only the guarantee's `original:` line, and nothing on that path reads `.github/`. Round 1's answer rested on the gate running before any pull request exists, which is true only of a run with no pull request open. Step 7 of `skills/parity-setup/SKILL.md` now says what is true under shared, records only: the line is still written, `seal gate` refuses a round record without it once a ready pull request is open for the branch, and before then the gate names the record and passes. Local mode has its own sentence: git carries neither `seal/parity.md` nor a round record, so nothing refuses. The same commit rewrites the comment and the assertion in `tests/behaviour/test_chain_hooks_hardening.py#test_parity_declaration_is_bootstrappable_not_hand_written`, and the step 7 sentence of `changelog.md`. The reworded assertion failed before the fix (exit 1, "the parity-setup procedure says nothing refuses under shared, records only, where `seal gate` refuses once a ready pull request is open"). `bin/seal mutate`, putting back the old "nothing refuses a record without it", turned it red.
 
 ## Confirmations
 
