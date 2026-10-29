@@ -11,10 +11,11 @@ about 116 s of recorded serial test time (executed: `wc -l` and
 reader out of `hooks/worktree_consent.py` into `hooks/lib/press.py`, so the
 two gates that read it stop depending on the guard's files. Phase 2 removes
 the guard, its consent record, the session lease and the plugin option,
-with every case, fixture and person-facing row that stood on them, and
-deletes the guard's policy document and index row. Phase 3 removes the
-command readers only the guard used and prunes `hooks/lib/cmdline.py` to
-what the commit notice reaches. Phase 4 rewrites the remaining text that
+with every case, fixture and person-facing row that stood on them; the
+guard's policy document and index row stay for the settle's `remove`, and
+`seal rules --check` excuses the document's `check:` lines until then.
+Phase 3 removes the command readers only the guard used and prunes
+`hooks/lib/cmdline.py` to what the commit notice reaches and reads. Phase 4 rewrites the remaining text that
 names the guard and writes the changelog fragment. Each phase leaves its
 narrow runs green.
 
@@ -47,17 +48,24 @@ narrow runs green.
   `test_the_press_reader_reads_nothing_for_a_root_that_is_no_clone`, 25
   cases in all (read; counted in `.test_durations`, executed). `tests/conftest.py:488-501` and
   `:1563-1567` patch `worktree_consent.PROJECTS_ROOT`.
-- **Why phase 2 deletes a policy document.** The guard's document names five
-  test files on its `check:` lines (executed: `test_worktree_guard.py` 7
-  times, `test_worktree_consent.py` 4, `test_creation_flow.py` 2,
-  `test_the_hook_surface_git_offers.py` 2, `test_the_frozen_reading_never_grows.py` 1).
-  `tests/github/test_rules.py#test_every_check_line_in_the_tree_holds` goes
-  red the moment those files are gone, and
-  `tests/skills/test_fold_check.py#test_accepts_this_repository_with_no_flags`
-  goes red on an index row naming a deleted file. So the document and its
-  row leave in the phase that deletes the tests. The other rule changes wait
-  for the settle; nothing in the suite reads `path#unit` citations in
-  `docs/` (executed, `git grep`).
+- **Why the guard's policy document stays until the settle.** The guard's
+  document names five test files on its `check:` lines (executed:
+  `test_worktree_guard.py` 7 times, `test_worktree_consent.py` 4,
+  `test_creation_flow.py` 2, `test_the_hook_surface_git_offers.py` 2,
+  `test_the_frozen_reading_never_grows.py` 1), and phases 2 and 3 delete
+  them. `skills/implement/SKILL.md` *Document layout — two roots, three
+  lifetimes* has a pull request leave the policy root to the settle, so the
+  document and its `docs/README.md` row leave through `## Rule changes`, not
+  in this pull request. `seal rules --check` therefore reads the policy in
+  force, as the S9 excuser of
+  `tests/behaviour/test_a_cited_section_stands_in_its_file.py` already did:
+  a refused `check:` line inside a section a pending `remove` takes out is
+  excused and named. Both read that fact through
+  `skills/settle/scripts/rule_changes.py#pending` and `#removed_by`, one
+  reader. The exception to the layout rule that `trail/rounds/round-1.md`
+  finding 1 offered in its place would have kept a second reading of the
+  policy alive; the fold check needs neither, since it refuses an index row
+  only once its document is gone.
 - **Full history in CI.** `.github/workflows/test.yml:112-116` and
   `tests/text/test_ci_gives_the_checks_what_they_need.py` cite
   `tests/behaviour/test_the_frozen_reading_never_grows.py` as the case that
@@ -95,8 +103,8 @@ narrow runs green.
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
 | 1 | `hooks/lib/press.py` holding the press reader, moved byte for byte below a docstring that names no guard; `hooks/question-gate.py` and `hooks/routing-edit-gate.py` import `press`; `hooks/worktree_consent.py` imports the moved names from `press` so the guard keeps working until phase 2; the press cases moved to `tests/hooks/test_press.py` with the labels case of `tests/behaviour/test_the_guard_asks_once_per_session.py`; `tests/conftest.py`'s `PROJECTS_ROOT` patches point at `press` | The moved cases at the new path, no new red-first case: `tests/hooks/test_press.py`, `tests/hooks/test_question_gate.py`, `tests/hooks/test_routing_edit_gate.py`, `tests/hooks/test_worktree_consent.py`, `tests/hooks/test_worktree_guard.py`, `tests/skills/test_test_layout.py` | ec43e94b |
-| 2 | `hooks/worktree-guard.py`, `hooks/worktree_consent.py`, `hooks/session-lease.py` and the process walk of `hooks/lib/hooksession.py` removed; `hooks/dispatch.py#GROUPS`, `hooks/hooks.json` and `.claude-plugin/plugin.json` as `frame/design.md` *Data & interfaces* states; every case, fixture, census entry and timing entry of `frame/design.md` *Removes* that stood on these files removed or rewritten; `docs/worktree-guard-spec.md` and its `docs/README.md` row deleted; the gate rows, switch rows and lease sentence of `README.md` and `README.ko.md` removed and the limit sentence written under each gate table | `tests/hooks/test_dispatch.py`, `tests/hooks/test_implementer_mark.py`, `tests/hooks/test_hooksession.py`, `tests/behaviour/test_chain_hooks_hardening.py`, `tests/behaviour/test_one_word_one_meaning.py`, `tests/behaviour/test_release_hygiene.py`, `tests/text/test_a_rider_reaches_its_file.py`, `tests/test_conftest.py`, `tests/test_censuses.py`, `tests/skills/test_test_layout.py`, `tests/skills/test_seal.py`, `tests/github/test_rules.py`, `tests/skills/test_fold_check.py`, `tests/behaviour/test_a_cited_section_stands_in_its_file.py` | f528f7a1 |
-| 3 | `hooks/lib/cmdline_base.py`, `hooks/lib/tokens.py` and `hooks/lib/one_heredoc.py` removed with `tests/hooks/test_tokens.py`, `tests/hooks/test_one_heredoc.py` and `tests/behaviour/test_the_frozen_reading_never_grows.py`; `hooks/lib/cmdline.py` pruned to the closure of `hooks/implementer-notice.py`'s four imports, and `tests/hooks/test_cmdline.py` to the cases of what remains; the `cmdline_base` entries of `tests/censuses.py`; the full-history citation moved to `tests/evals/test_replay_targets.py#test_a_named_case_is_read_at_every_release_tag` | `tests/hooks/test_cmdline.py`, `tests/hooks/test_implementer_notice.py`, `tests/hooks/test_dispatch.py`, `tests/test_censuses.py`, `tests/text/test_ci_gives_the_checks_what_they_need.py`, `tests/github/test_rules.py` | 4c9abc11 |
+| 2 | `hooks/worktree-guard.py`, `hooks/worktree_consent.py`, `hooks/session-lease.py` and the process walk of `hooks/lib/hooksession.py` removed; `hooks/dispatch.py#GROUPS`, `hooks/hooks.json` and `.claude-plugin/plugin.json` as `frame/design.md` *Data & interfaces* states; every case, fixture, census entry and timing entry of `frame/design.md` *Removes* that stood on these files removed or rewritten; `docs/worktree-guard-spec.md`, its `docs/README.md` row and `tests/behaviour/test_release_hygiene.py`'s `2.50.1` exemption left in place for the settle, and `seal rules --check` excusing a refused `check:` line in a section a pending `remove` takes out, through `skills/settle/scripts/rule_changes.py#pending` and `#removed_by`, with `tests/github/test_rules.py#Test_main::test_a_refusal_in_a_section_a_pending_remove_takes_out_is_excused_and_named`; the gate rows, switch rows and lease sentence of `README.md` and `README.ko.md` removed and the limit sentence written under each gate table | `tests/hooks/test_dispatch.py`, `tests/hooks/test_implementer_mark.py`, `tests/hooks/test_hooksession.py`, `tests/behaviour/test_chain_hooks_hardening.py`, `tests/behaviour/test_one_word_one_meaning.py`, `tests/behaviour/test_release_hygiene.py`, `tests/text/test_a_rider_reaches_its_file.py`, `tests/test_conftest.py`, `tests/test_censuses.py`, `tests/skills/test_test_layout.py`, `tests/skills/test_seal.py`, `tests/github/test_rules.py`, `tests/skills/test_fold_check.py`, `tests/behaviour/test_a_cited_section_stands_in_its_file.py` | f528f7a1 |
+| 3 | `hooks/lib/cmdline_base.py`, `hooks/lib/tokens.py` and `hooks/lib/one_heredoc.py` removed with `tests/hooks/test_tokens.py`, `tests/hooks/test_one_heredoc.py` and `tests/behaviour/test_the_frozen_reading_never_grows.py`; `hooks/lib/cmdline.py` pruned to the closure of `hooks/implementer-notice.py`'s four imports and to the outputs it reads, so `parse_git`'s `chdirs`, `command_word`'s `unplaced`, `strip_subshell`'s `opened`, `split_segments_with_separators`, `WRAPPED`'s placement column and the rider on `chdirs` go, and `hooks/lib/cmdline.py` leaves `tests/text/test_a_rider_reaches_its_file.py`'s tuple; `tests/hooks/test_cmdline.py` pruned to the cases of what remains; the `cmdline_base` entries of `tests/censuses.py`; the full-history citation moved to `tests/evals/test_replay_targets.py#test_a_named_case_is_read_at_every_release_tag` | `tests/hooks/test_cmdline.py`, `tests/hooks/test_implementer_notice.py`, `tests/hooks/test_dispatch.py`, `tests/test_censuses.py`, `tests/text/test_ci_gives_the_checks_what_they_need.py`, `tests/github/test_rules.py` | 4c9abc11 |
 | 4 | The text rows of `frame/design.md` *Removes* rewritten without the guard: `CONTRIBUTING.md`, `.github/ISSUE_TEMPLATE/gate-misfired.md`, `skills/implement/SKILL.md:257-263` removed as a paragraph whose one example is gone, `skills/implement/orchestration.md:353,357` cited to `docs/the-routing-check.md` *The edit check*, and the hook, script and test comments; `changelog.md` written, naming the removal, the limit, the option a person may have set in `/config`, and the three directories under `.git` a person may delete | The sweep command of `frame/design.md` *Data & interfaces*, quoted in the phase record; `tests/behaviour/test_a_cited_section_stands_in_its_file.py`, `tests/github/test_rules.py` | aeed95df |
 
 ## Operational impact

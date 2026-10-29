@@ -17,19 +17,23 @@
   and what they reach; `hooks/lib/tokens.py` leaves.** The issue asked what
   each keeps. `tokens.py` is imported by the guard alone (executed), so it
   keeps nothing and goes.
-- **This pull request deletes `docs/worktree-guard-spec.md` and its
-  `docs/README.md` row instead of leaving them to the settle.** Two suite
-  cases read the policy root as it stands and go red otherwise
-  (`frame/design.md` *Grounding*, the layout row). Every other rule change
-  waits for the settle.
+- **`docs/worktree-guard-spec.md` and its `docs/README.md` row leave at the
+  settle, like every other rule change, and not in this pull request.**
+  `seal rules --check` reads the policy in force and excuses the document's
+  `check:` lines that name deleted tests, and the fold check holds with the
+  document in place (`frame/design.md` *Grounding*, the layout row;
+  `trail/rounds/round-1.md` finding 1).
 - **No hook removes the files the guard left under a clone's git
   directory.** Nothing reads them after this work, and a cleanup hook would
   be a new mechanism with no catch behind it. The stubs `hooks/stub-remove.py`
   takes out are different: each ran an old plugin copy on every commit
   (`docs/the-routing-check.md` *Where the routing is checked*, read).
-- **No red-first case is planted.** The work removes behaviour and moves a
-  reader; the spawn prompt makes a rename or a move proved by the existing
-  cases at the new path.
+- **A red-first case is planted only for new behaviour.** The work removes
+  behaviour and moves a reader, and the spawn prompt makes a rename or a
+  move proved by the existing cases at the new path. Two cases are new
+  behaviour's: the rules check's excuse of a pending `remove`
+  (`frame/design.md` S8) and phase 3's case reading a commit behind every
+  enumerated wrapper (`trail/phases/phase-3.md`).
 - **The option `worktree_guard_language` leaves in a patch release, one
   release after it was declared.** Its own work item built it to leave with
   the guard (`seal/threads/1793201097-two-environment-variables-still-carry-the-old-brand/frame/questions.md`,
