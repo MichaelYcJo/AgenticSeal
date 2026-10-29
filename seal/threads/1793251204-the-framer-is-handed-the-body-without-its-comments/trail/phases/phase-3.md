@@ -64,12 +64,18 @@ failed `shape-no-measurement-row`, so S7 has no row to read. Neither side B
 table holds a row: each `frame/questions.md` lists the answered judgments
 above an empty table and says no row is open.
 
-**The comment line reached the frame.** Side A's run 1 wrote the spawn's
-line into `## Grounding`: "the orchestrator executed `gh issue view 106
---json body,comments` on 2026-10-14 and found no comments". No run on
-either side called `gh issue view`, and no run wrote a row about the
-issue's comments. Every run called `gh release view`, as step 4 of both
-definitions asks.
+**The comment line reached the frame.** Both side B runs wrote the spawn's
+line into `## Grounding` as the orchestrator's finding, after
+`gh release view` asked for `gh auth login`, and neither called
+`gh issue view`. That is step 4 of this work's definition where `gh` cannot
+read the issue. On side A, run 0 called `gh issue view 106 --json
+body,comments`, which failed asking for `gh auth login`, and its
+`frame/design.md` *Scope* names the orchestrator as the answerer for the
+relayed body. Run 1 wrote the spawn's line into `## Grounding`: "the
+orchestrator executed `gh issue view 106 --json body,comments` on
+2026-10-14 and found no comments". No run wrote a row about the issue's
+comments. Every run called `gh release view`, as step 4 of both definitions
+asks.
 
 **The side files come from the saved paid output, and nothing was paid
 twice.** Each side ran with `--out` under

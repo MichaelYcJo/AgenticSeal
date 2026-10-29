@@ -2,7 +2,7 @@
 
 ## Why this work exists
 
-The framer was handed an issue's body without its comments and asked whether they changed the request; it is now handed the request whole, and a sixth framer case pins that a question a run answers is answered in `## Grounding` with no row left to a measurement.
+The framer was handed an issue's body without its comments and asked whether they changed the request; it is now handed the request whole. A sixth framer case, on a question only running the fixture's generator answers, tells the definitions apart by where the answer is written, in `## Grounding` labelled `executed`; its grader for a row left to a measurement passed on both definitions, so the no-row half of #1047's rule is still not seen pinned (*Not verified*).
 
 ## Where spec and implementation diverged
 
