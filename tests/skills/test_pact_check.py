@@ -88,11 +88,6 @@ UNDECLARED = (
     "write the origin URL of a pact that row declares, or add `{cell}` to "
     "that row"
 )
-OUTSIDE_TABLE = (
-    "the row names a pact this signer declares and a clause, and no anchor "
-    "table holds it, so nothing grades it — write it as a row of a table "
-    "headed exactly `| Pact | Clause | Hash |`"
-)
 INLINE = (
     "a `pact:` token is the inline pact anchor `seal pact` read through "
     "0.23.x, and nothing reads it now — write it as a row of a "
@@ -538,19 +533,16 @@ class Test_grade:
 
 class Test_check:
     def test_accepts_a_signer_citing_the_current_clause(self, world):
-        """S6, S7 and S9's passes: two frames cite the current hash, one
-        naming the pact by another spelling of its URL. A row naming another
-        pact the signer's `Pact` row declares is passed over whatever its
-        other cells hold, and neither a table nor a `pact:` token inside a
-        closed fence, nor `compact:`, nor the word and its colon with a space
-        on either side of the colon (#1132, S7), nor a table
-        naming the pact's remote beside no heading, nor a row that misses
-        twice, nor a row four columns in, by spaces or by a tab, in a frame
-        holding no anchor table, is read: below a blank line it is an
-        indented code block, and right under a paragraph line it is the
-        paragraph text the module docstring states as a limit. Exit 0, and
-        the `READ` and summary lines name the pact by its URL (contract
-        rule 14)."""
+        """The passes, #1132's S2, S6 and S9 among them: two frames cite the
+        current hash, one naming the pact by another spelling of its URL. A
+        row naming another pact the signer's `Pact` row declares is passed
+        over whatever its other cells hold. Nothing else is read as an
+        anchor: not a table or a `pact:` token inside a closed fence, not
+        `compact:`, not the word and its colon with a space on either side
+        of the colon, not a table under a header `header_key` does not read
+        as the anchor table's, and not a row no table holds (S6). Exit 0, the
+        `READ` line counts the two anchors alone, and it and the summary line
+        name the pact by its URL (contract rule 14)."""
         legacy = "https://example.com/org/orders-api-legacy"
         write(
             world.web,
@@ -570,24 +562,32 @@ class Test_check:
             + "\nThe compact:x note. Read the pact: it is short. A token with a"
             + " space beside its colon, pact: abc or pact :abc, is prose.\n\n```\n"
             + anchor_table((PACT_URL, CLAUSE_PATH, "x"))
-            + 'pact:orders-api/"## A"@1a2b3c4d\n```\n\n'
-            + f"| Repository | Role |\n|---|---|\n| {PACT_URL} | the pact |\n\n"
-            # A row that misses twice, a near-miss header over a remote one
-            # letter off, is no anchor's shape.
-            + "| pact | clause | hash |\n|---|---|---|\n"
-            + f"| git@example.com:org/ordres-api.git | {CLAUSE_PATH} | deadbeef |\n",
+            + 'pact:orders-api/"## A"@1a2b3c4d\n```\n',
         )
-        # A frame that cites no pact holds no anchor table, and says nothing;
-        # a row in an indented code block, four spaces or a tab in, is no row,
-        # and the same tab row right under a paragraph line is the stated
-        # limit (round 2, finding 1).
+        # A frame holding no anchor table says nothing. Each table here is
+        # headed by a shape `header_key` leaves out, a plural, a code span, a
+        # run with a space inside it, strikethrough or a nested run, and the
+        # last row stands under no header; each names the pact's remote, the
+        # clause and its current hash, so a row read here would be counted
+        # (#1132, S6).
+        row = f"| {PACT_URL} | {CLAUSE_PATH} | {clause(V2)} |\n"
+        unread = (
+            "| Pact | Clause | Hashes |",
+            "| Pact | Clauses | Hash |",
+            "| `Pact` | `Clause` | `Hash` |",
+            "| ** Pact ** | Clause | Hash |",
+            "| ~~Pact~~ | Clause | Hash |",
+            "| **_Pact_** | Clause | Hash |",
+        )
         write(
             world.web,
             "seal/threads/1790000002-z/frame/design.md",
-            f"# Z\n\nx\n\n    | {PACT_URL} | {CLAUSE_PATH} | deadbeef |\n"
-            f"\n\t| {PACT_URL} | {CLAUSE_PATH} | deadbeef |\n"
-            f"\n  \t| {PACT_URL} | {CLAUSE_PATH} | deadbeef |\n"
-            f"\nx\n\t| {PACT_URL} | {CLAUSE_PATH} | deadbeef |\n",
+            "# Z\n\n"
+            + "".join(
+                f"## Table {n}\n\n{header}\n|---|---|---|\n{row}\n"
+                for n, header in enumerate(unread, 1)
+            )
+            + f"## No header\n\n{row}",
         )
         code, out = world.run()
         assert code == 0, out
@@ -599,6 +599,51 @@ class Test_check:
             "superseded · 0 not taken · 0 unmatched · 0 broken"
         ), out
         assert "heads its table" not in out and "REFUSED" not in out, out
+
+    @pytest.mark.parametrize(
+        "header",
+        [
+            "| pact | clause | hash |",
+            "| PACT | CLAUSE | HASH |",
+            "| *Pact* | Clause | Hash |",
+            "| **Pact** | Clause | Hash |",
+            "| ***Pact*** | Clause | Hash |",
+            "| _Pact_ | Clause | Hash |",
+            "| __Pact__ | Clause | Hash |",
+            "| ___Pact___ | Clause | Hash |",
+            "| **pact** | _CLAUSE_ | Hash |",
+        ],
+        ids=[
+            "lower case",
+            "upper case",
+            "one asterisk",
+            "two asterisks",
+            "three asterisks",
+            "one underscore",
+            "two underscores",
+            "three underscores",
+            "case and emphasis together",
+        ],
+    )
+    def test_accepts_an_anchor_table_whose_header_differs_only_by_case_or_emphasis(
+        self, world, header
+    ):
+        """#1132, S3: a header whose cells differ from `Pact`, `Clause` and
+        `Hash` only by case, or by one emphasis run wrapping a whole cell,
+        is the anchor table, so its row is graded and counted. Seen red
+        against `a5533a3d`, where the row scan refused each row at exit 2
+        and no anchor table was read."""
+        write(
+            world.web,
+            SPEC,
+            f"{header}\n|---|---|---|\n| {PACT_URL} | {CLAUSE_PATH} | {clause(V2)} |\n",
+        )
+        code, out = world.run()
+        assert code == 0, out
+        assert (
+            f"READ {SIGNER_URL} {posix(world.web)} — 1 pact anchor naming this pact"
+        ) in out, out
+        assert "REFUSED" not in out and " 1 ok " in out, out
 
     @pytest.mark.parametrize(
         "fields, clause_path, code, line",
@@ -768,6 +813,24 @@ class Test_check:
         assert code == 2, out
         assert f"REFUSED {SIGNER_URL} {SPEC}:{ANCHOR_LINE} — {said}" in out, out
 
+    def test_refuses_an_undeclared_remote_under_a_lower_case_anchor_header(self, world):
+        """#1132, S4, the shape the seal could not decide: a header in lower
+        case is the anchor table, so its row naming a remote one letter off
+        the pact's is refused `UNDECLARED` as under the exact header. The
+        group above writes the exact header alone. Seen red against
+        `a5533a3d`, which read no table under this header and exited 0."""
+        cell = "git@example.com:org/ordres-api.git"
+        write(
+            world.web,
+            SPEC,
+            f"| pact | clause | hash |\n|---|---|---|\n| {cell} | {CLAUSE_PATH} | 1a2b3c4d |\n",
+        )
+        code, out = world.run()
+        assert code == 2, out
+        assert (
+            f"REFUSED {SIGNER_URL} {SPEC}:{ANCHOR_LINE} — {UNDECLARED.format(cell=cell)}"
+        ) in out, out
+
     @pytest.mark.parametrize(
         "text, line",
         [
@@ -864,6 +927,14 @@ class Test_check:
                 f"`| {PACT_URL} | {CLAUSE_PATH} | 1a2b3c4d |`, a row the walk "
                 "never reaches — it and every row below it would go unread",
             ),
+            (
+                anchor_table((PACT_URL, CLAUSE_PATH, "1a2b3c4d"))
+                + "\n## More\n\n| pact | clause | hash |\n|---|---|---|\n"
+                + f"| {PACT_URL} | {CLAUSE_PATH} | 1a2b3c4d |\n",
+                "the frame holds a second `| Pact | Clause | Hash |` header at "
+                "line 7, and the walk reads the first table only — move its rows "
+                "into the first table and delete the second header",
+            ),
         ],
         ids=[
             "a second table",
@@ -874,112 +945,23 @@ class Test_check:
             "a row below another table",
             "a row a comment parts from another table",
             "a row under a blank line",
+            "a second table in lower case",
         ],
     )
     def test_refuses_an_anchor_row_nobody_reads(self, world, text, said):
         """A row the walk does not reach would read as a signer citing
         nothing, so the frame is refused at exit 2. A second anchor table is
-        named as one wherever it stands. A line under the table that opens no
-        table of its own, a header with a delimiter row of its width directly
-        under it, is a row nobody reads, and so is a row below such a table
-        and above the next heading (round 2 of #913, finding 2). The frame
-        is refused once: the scan for a row no anchor table holds runs only
-        where the walk refused nothing, so a row the walk's refusal names is
-        not refused a second time (#1132, S5)."""
+        named as one wherever it stands, and under a header that differs
+        from the anchor header only by case or emphasis too (#1132, S5; seen
+        red against `a5533a3d`, which refused its row as one no anchor table
+        holds). A line under the table that opens no table of its own, a
+        header with a delimiter row of its width directly under it, is a row
+        nobody reads, and so is a row below such a table and above the next
+        heading (round 2 of #913, finding 2)."""
         write(world.web, SPEC, text)
         code, out = world.run()
         assert code == 2, out
         assert f"REFUSED {SIGNER_URL} {SPEC} — {said}" in out, out
-        assert out.count(f"REFUSED {SIGNER_URL} {SPEC}") == 1, out
-
-    @pytest.mark.parametrize(
-        "text, line",
-        [
-            (
-                "| pact | clause | hash |\n|---|---|---|\n"
-                f"| {PACT_URL} | {CLAUSE_PATH} | 1a2b3c4d |\n",
-                3,
-            ),
-            (
-                "| Pact | Clause | Hashes |\n|---|---|---|\n"
-                f"| {PACT_URL} | {CLAUSE_PATH} | 1a2b3c4d |\n",
-                3,
-            ),
-            (
-                "| **Pact** | Clause | Hash |\n|---|---|---|\n"
-                f"| {PACT_URL} | {CLAUSE_PATH} | 1a2b3c4d |\n",
-                3,
-            ),
-            (
-                "| Clause | Pact | Hash |\n|---|---|---|\n"
-                f"| {CLAUSE_PATH} | {PACT_URL} | 1a2b3c4d |\n",
-                3,
-            ),
-            (
-                "| Pact | Clause | Hash | Note |\n|---|---|---|---|\n"
-                f"| {PACT_URL} | {CLAUSE_PATH} | 1a2b3c4d | x |\n",
-                3,
-            ),
-            (
-                "Pact | Clause | Hash\n---|---|---\n"
-                f"{PACT_URL} | {CLAUSE_PATH} | 1a2b3c4d\n",
-                3,
-            ),
-            (
-                "| `Pact` | `Clause` | `Hash` |\n|---|---|---|\n"
-                f"| {PACT_URL} | {CLAUSE_PATH} | 1a2b3c4d |\n",
-                3,
-            ),
-            (
-                "| Pact | Clauses | Hash |\n|---|---|---|\n"
-                f"| {PACT_URL} | {CLAUSE_PATH} | 1a2b3c4d |\n",
-                3,
-            ),
-            (f"# Grounding\n\n| {PACT_URL} | {CLAUSE_PATH} | 1a2b3c4d |\n", 3),
-            (
-                anchor_table((PACT_URL, CLAUSE_PATH, "1a2b3c4d"))
-                + "\n## More\n\n| pact | clause | hash |\n|---|---|---|\n"
-                + f"| {PACT_URL} | {CLAUSE_PATH} | 1a2b3c4d |\n",
-                9,
-            ),
-            (
-                "| pact | clause | hash |\n|---|---|---|\n"
-                f"| {BILLING} | {CLAUSE_PATH} | 1a2b3c4d |\n",
-                3,
-            ),
-        ],
-        ids=[
-            "a header in lower case",
-            "a plural Hash header",
-            "a header in emphasis",
-            "a reordered header",
-            "a header with a fourth column",
-            "a table with no outer pipes",
-            "a header in code spans",
-            "a plural Clause header",
-            "a row with no header",
-            "a near miss below the anchor table",
-            "a row naming another pact the signer declares",
-        ],
-    )
-    def test_refuses_an_anchor_row_no_anchor_table_holds(self, world, text, line):
-        """#1132, S3: a row naming a pact the signer declares in one cell and
-        a heading path in another is refused at its own line, whatever
-        header it stands under, or with none, because the walk reads the
-        `| Pact | Clause | Hash |` header alone. Seen red against
-        `28edee12`, where each frame printed nothing and the run exited 0.
-        The signer declares a second pact, and a row naming it is refused
-        too: no `seal pact` grades it (round 1, finding 2; seen red with the
-        scan narrowed to this pact)."""
-        write(
-            world.web,
-            "seal/config.md",
-            signer_config(("Pact", f"{PACT_URL}; {BILLING}")),
-        )
-        write(world.web, SPEC, text)
-        code, out = world.run()
-        assert code == 2, out
-        assert f"REFUSED {SIGNER_URL} {SPEC}:{line} — {OUTSIDE_TABLE}" in out, out
 
     @pytest.mark.parametrize(
         "between",
