@@ -299,9 +299,11 @@ bash install.sh
 The block's import is a path relative to `~/.claude/CLAUDE.md`, so it loads
 where the plugin's marketplace clone sits beside it, which is where step 1
 puts it on a default setup. `install.sh` warns when that file is not there.
-There is no project scope: from a project's `CLAUDE.md` the import would
-reach outside the working directory, which Claude Code asks about
-interactively and a headless session never loads.
+There is no project scope. In a project's `CLAUDE.md` the block's line
+names a `plugins/` directory inside the project, which is not there, and a
+line written to reach the clone from there would point outside the working
+directory, which Claude Code asks about interactively and a headless
+session never loads.
 
 ### Coming from `specseal@specseal`
 

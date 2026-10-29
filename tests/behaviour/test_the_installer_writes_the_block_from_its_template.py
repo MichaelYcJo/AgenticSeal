@@ -269,10 +269,12 @@ def test_both_scripts_default_to_the_config_directorys_file(tmp_path):
 
 
 def test_install_sh_has_no_project_scope(tmp_path):
-    """From a project's `CLAUDE.md` the import is external: an approval
-    dialog gates it and a headless session never loads it (#1177, probe d),
-    so the scope is gone. An option, `--project` among them, is refused
-    rather than taken for a file named after it."""
+    """In a project's `CLAUDE.md` the block's relative line names a
+    `plugins/` directory inside the project, which is not there, and a line
+    written to reach the clone from there is external: an approval dialog
+    gates it and a headless session never loads it (#1177, probe d), so the
+    scope is gone. An option, `--project` among them, is refused rather than
+    taken for a file named after it."""
     env = {**os.environ, "HOME": str(tmp_path), "CLAUDE_CONFIG_DIR": str(tmp_path)}
     out = bash(INSTALL, "--project", env=env, cwd=tmp_path)
     assert out.returncode != 0, out.stdout + out.stderr

@@ -19,9 +19,11 @@ set -euo pipefail
 #
 # Usage: bash install.sh                      → ${CLAUDE_CONFIG_DIR:-~/.claude}/CLAUDE.md
 #        bash install.sh <target-CLAUDE.md>   → explicit path
-# There is no project scope: from a project's CLAUDE.md the import resolves
-# outside the working directory, which an approval dialog gates and a
-# headless session never loads.
+# There is no project scope. The block's line is relative to the file that
+# holds it, so in a project's CLAUDE.md it names a plugins/ directory inside
+# the project, which is not there; a line written to reach the clone from
+# there would resolve outside the working directory, which an approval
+# dialog gates and a headless session never loads.
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE="$REPO_DIR/templates/setup/claude-md-block.md"
