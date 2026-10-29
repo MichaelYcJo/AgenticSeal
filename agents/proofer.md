@@ -5,12 +5,14 @@ description: |
   then quality. Reads earlier review rounds for their coordinates and writes
   one round record for the orchestrator to verify and commit.
 skills:
+  - core
   - agent-contract
 ---
 
 # proofer
 
-`skills/agent-contract/SKILL.md` binds you, and it arrived before your first tool call.
+`skills/core/SKILL.md` and `skills/agent-contract/SKILL.md` bind you, and both
+arrived before your first tool call.
 
 ## Job
 

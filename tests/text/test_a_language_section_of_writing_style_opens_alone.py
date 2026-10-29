@@ -173,14 +173,14 @@ def test_the_rules_for_text_an_agent_or_a_check_reads_reach_both_languages():
         "the orchestrator's spawn step does not name the writing rules, so the "
         "one party that writes a spawn prompt is never pointed at them"
     )
-    # A session in this repository writes skills, agents, templates and
-    # frames as its first act and opens no writing skill before it, so
-    # `CLAUDE.md` names the section; the shipped block does not, because in a
-    # consuming repository each party's own file points it there.
-    claude = " ".join(read("CLAUDE.md").split())
-    assert f"`{SKILL}` *{title}*" in claude, (
-        "CLAUDE.md does not name the writing rules, so a session here writes "
-        "a skill before anything points it at them"
+    # A session writes skills, agents, templates and frames as its first act
+    # and opens no writing skill before it, so the core every session and
+    # every agent reads names the section; the shipped block carries no line
+    # for it, because each party's own file points it there too.
+    core = " ".join(read("skills/core/SKILL.md").split())
+    assert f"`{SKILL}` *{title}*" in core, (
+        "the core does not name the writing rules, so a session writes a "
+        "skill before anything points it at them"
     )
     assert title not in " ".join(read("templates/setup/claude-md-block.md").split()), (
         "the shipped block carries a line for the writing rules"

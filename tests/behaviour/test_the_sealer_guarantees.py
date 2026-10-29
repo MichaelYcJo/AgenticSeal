@@ -147,11 +147,11 @@ def test_every_committed_guarantee_shows_its_one_verdict_line():
 
 
 class TestDefinition:
-    def test_the_sealer_runs_on_opus_with_the_contract_alone(self):
+    def test_the_sealer_runs_on_opus_with_the_core_and_the_contract(self):
         head = SEALER.read_text(encoding="utf-8").split("---")[1]
         assert "\nmodel: opus\n" in head
-        assert "skills:\n  - agent-contract\n" in head
-        assert head.count("\n  - ") == 1
+        assert "skills:\n  - core\n  - agent-contract\n" in head
+        assert head.count("\n  - ") == 2
 
     def test_the_sealer_writes_the_guarantee_from_the_template(self):
         text = " ".join(SEALER.read_text(encoding="utf-8").split())

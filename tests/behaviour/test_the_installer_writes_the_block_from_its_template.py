@@ -18,6 +18,7 @@ to its template, which left with the copy (#940).
 """
 
 import os
+import re
 import subprocess
 
 import pytest
@@ -80,6 +81,33 @@ def test_this_repository_carries_no_copy_of_the_block():
         "CLAUDE.md carries the block's markers again, which is a second copy "
         "of `templates/setup/claude-md-block.md` loaded beside the installed one"
     )
+
+
+# An `@` import as Claude Code reads one: `@` at the start of a line or after
+# whitespace, then a path. A backticked `@` is a code span, not an import.
+IMPORT = re.compile(r"(?:^|\s)@[^\s`]")
+
+
+def test_this_repository_imports_no_core_and_names_the_tree_copy():
+    """S3 of #1177. A session here reads the installed core through the
+    block, so an `@` line in `CLAUDE.md` would load it a second time; and
+    `CLAUDE.md` names the tree's copy, which governs where the branch
+    changes it."""
+    text = read(os.path.join(ROOT, "CLAUDE.md"))
+    assert not IMPORT.search(text), (
+        "CLAUDE.md imports a file, so a session here reads the core twice"
+    )
+    assert "`skills/core/SKILL.md`" in text, (
+        "CLAUDE.md does not name the core, so a session here cannot tell "
+        "which copy governs"
+    )
+
+
+def test_an_import_line_is_told_from_a_code_span():
+    """The check can fail: a planted import is found, a code span is not."""
+    assert IMPORT.search("intro\n@skills/core/SKILL.md\n")
+    assert IMPORT.search("see @docs/x.md here")
+    assert not IMPORT.search("the block's `@` line imports it")
 
 
 def test_install_sh_reads_the_template():

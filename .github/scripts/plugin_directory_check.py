@@ -39,9 +39,9 @@ decision. The marketplace files sync on somebody else's schedule -- measured,
 one of the two went twenty-two days without a commit in #417 and twenty-eight
 by the time this was first written -- so a gate keyed to their state would go
 red for something no branch caused, and a red nobody can act on is the
-interruption `CLAUDE.md`'s first goal is against. The only non-zero exit here
-is a malformed argument, which is the author's mistake rather than the
-files'.
+interruption the core's first value is against (`skills/core/SKILL.md`). The
+only non-zero exit here is a malformed argument, which is the author's
+mistake rather than the files'.
 
 Three facts per marketplace file, which are the three the checklist box asks
 for:

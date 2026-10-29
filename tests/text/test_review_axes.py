@@ -113,6 +113,27 @@ def test_the_preset_block_carries_the_routing_decision():
     assert "[no-review]" not in preset and "[no-parity]" not in preset
 
 
+def test_the_core_names_where_the_routing_question_is():
+    """#1177: the core reaches every session and every agent, so it is where
+    a session that has opened no skill learns that the one question is the
+    routing question, which section states it, and which hook holds it. The
+    vocabulary, the boxes and the write stay that section's alone."""
+    core = " ".join(read("skills", "core", "SKILL.md").split())
+    asking = core.split("**Asking a person is the most expensive judgment.**", 1)
+    assert len(asking) == 2, "the core lost its paragraph on asking a person"
+    paragraph = asking[1].split("**", 1)[0]
+    assert (
+        "`skills/implement/orchestration.md` *Orchestrator: how the work is routed*"
+        in paragraph
+    ), "the core does not name the routing section"
+    assert "`hooks/routing-edit-gate.py`" in paragraph, (
+        "the core does not name the hook that refuses the first edit"
+    )
+    assert "per axis" not in core and "no work item" not in core, (
+        "the core restates the routing answers, which are the section's alone"
+    )
+
+
 def test_a_later_round_inherits_no_verdict_anywhere():
     """A sentence saying axes carry "without re-walking" outranks a corrected
     sentence twenty lines below it; the old handoff protocol had both at once.

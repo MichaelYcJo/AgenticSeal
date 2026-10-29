@@ -93,11 +93,12 @@ RULES = {
 # `CLAUDE.md` is loaded into every session; the four code comments cited it
 # for the identifiers rule until this work pointed them at the home.
 LINKED = {
-    # `CLAUDE.md` holds the core values and links only the rule its first
-    # value names. The cadence row left it with #940, and the merge and
-    # identifiers rows with #1169: no agent merges, and `agents/proofer.md`
-    # links the identifiers rule where review reads it.
-    "CLAUDE.md": ("batch",),
+    # The core holds the values and links only the rule its first value
+    # names; it left `CLAUDE.md` for `skills/core/SKILL.md` with #1177. The
+    # cadence row left `CLAUDE.md` with #940, and the merge and identifiers
+    # rows with #1169: no agent merges, and `agents/proofer.md` links the
+    # identifiers rule where review reads it.
+    "skills/core/SKILL.md": ("batch",),
     ".github/scripts/plugin_directory_check.py": ("identifiers",),
     "tests/github/test_plugin_directory_check.py": ("identifiers",),
     "tests/test_conftest.py": ("identifiers",),
@@ -113,6 +114,7 @@ LINKED = {
 # own home is skipped when that rule's needles are looked for.
 CARRIERS = (
     "CLAUDE.md",
+    "skills/core/SKILL.md",
     CONTRIBUTING,
     BRANCHES,
     IMPLEMENT,

@@ -197,17 +197,19 @@ BASELINE = {
     # reference-root sentence and its `## Never` line, each the same words in
     # every definition of #957's shape. framer-tracer was measured again at
     # the merge of `release/v0.22.2`, once #970 gave the tracer the same
-    # step sentence.
-    ("agents/crafter.md", "agents/framer.md"): 24,
-    ("agents/crafter.md", "agents/proofer.md"): 18,
-    ("agents/crafter.md", "agents/sealer.md"): 14,
-    ("agents/crafter.md", "agents/tracer.md"): 4,
-    ("agents/framer.md", "agents/proofer.md"): 31,
-    ("agents/framer.md", "agents/sealer.md"): 14,
-    ("agents/framer.md", "agents/tracer.md"): 4,
-    ("agents/proofer.md", "agents/sealer.md"): 14,
-    ("agents/proofer.md", "agents/tracer.md"): 4,
-    ("agents/sealer.md", "agents/tracer.md"): 5,
+    # step sentence. Every pair was measured again at #1177's phase 1, whose
+    # opening sentence names the core beside the contract: four runs more in
+    # each pair, the sentence's own, and nothing else moved.
+    ("agents/crafter.md", "agents/framer.md"): 28,
+    ("agents/crafter.md", "agents/proofer.md"): 22,
+    ("agents/crafter.md", "agents/sealer.md"): 18,
+    ("agents/crafter.md", "agents/tracer.md"): 8,
+    ("agents/framer.md", "agents/proofer.md"): 35,
+    ("agents/framer.md", "agents/sealer.md"): 18,
+    ("agents/framer.md", "agents/tracer.md"): 8,
+    ("agents/proofer.md", "agents/sealer.md"): 18,
+    ("agents/proofer.md", "agents/tracer.md"): 8,
+    ("agents/sealer.md", "agents/tracer.md"): 9,
     # Debt, every entry below. Lowered to the counts measured at #940's
     # last phase; each pair that measured zero left the table.
     ("README.md", "skills/implement/SKILL.md"): 2,

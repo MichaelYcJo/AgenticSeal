@@ -71,7 +71,7 @@ def test_the_start_is_the_moment_before_the_first_edit():
     that moment and names no start of its own."""
     for parts in (
         ("skills", "implement", "SKILL.md"),
-        ("CLAUDE.md",),
+        ("skills", "core", "SKILL.md"),
     ):
         assert "before the first edit" in flat(*parts), "/".join(parts)
 

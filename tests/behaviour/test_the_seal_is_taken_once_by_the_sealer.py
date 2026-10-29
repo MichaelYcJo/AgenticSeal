@@ -872,14 +872,15 @@ def test_the_fourth_definition_exists():
     assert os.path.exists(SEALER), "agents/sealer.md is not in the tree"
 
 
-def test_the_sealer_preloads_the_contract_and_nothing_else():
+def test_the_sealer_preloads_the_core_and_the_contract_and_nothing_else():
     """Q5: its whole procedure is one command, and #292 measured every
     preloaded body as a cost paid again on every spawn. `verify` is 35 KB for
-    four conditions the definition states in four lines."""
+    four conditions the definition states in four lines. The core every
+    agent preloads since #1177 is the one addition."""
     head = sealer_text().split("\n---\n", 1)[0]
-    assert re.findall(r"^  - (\S+)", head, re.M) == ["agent-contract"], (
-        "the sealer's `skills:` list is not `agent-contract` alone, so a body "
-        "rides every spawn for a procedure that is one command"
+    assert re.findall(r"^  - (\S+)", head, re.M) == ["core", "agent-contract"], (
+        "the sealer's `skills:` list is not `core` then `agent-contract`, so a "
+        "body rides every spawn for a procedure that is one command"
     )
 
 
