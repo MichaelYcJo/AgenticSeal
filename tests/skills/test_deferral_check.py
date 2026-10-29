@@ -155,8 +155,15 @@ class Test_main:
         [
             '"on":\n  pull_request:\n',
             "on:\n    pull_request:\n        types: [opened]\n",
+            'on: ["pull_request"]\n',
+            "on:\n  - pull_request # the run\n",
         ],
-        ids=["double-quoted-key", "block-at-four-spaces"],
+        ids=[
+            "double-quoted-key",
+            "block-at-four-spaces",
+            "quoted-name",
+            "item-with-a-comment",
+        ],
     )
     def test_a_pull_request_trigger_in_the_wider_spellings_answers(self, repo, trigger):
         workflow(repo, "test.yml", trigger + PYTEST_JOB)
@@ -167,10 +174,26 @@ class Test_main:
 
     @pytest.mark.parametrize(
         "trigger",
-        ["name: CI\n", "on: {pull_request: {}}\n", "on: [\n  push\n]\n"],
-        ids=["no-on-key", "flow-mapping", "flow-list-across-lines"],
+        [
+            "name: CI\n",
+            "on: {pull_request: {}}\n",
+            "on: [\n  push\n]\n",
+            "on: [pull_request,\n    push]\n",
+            "on: [pull_request, {types: [opened]}]\n",
+            "on:\n  pull_request:\n  ? push\n",
+        ],
+        ids=[
+            "no-on-key",
+            "flow-mapping",
+            "flow-list-across-lines",
+            "flow-list-closed-on-a-later-line",
+            "one-list-element-unread",
+            "one-block-entry-unread",
+        ],
     )
     def test_an_unread_trigger_is_reported_and_not_counted(self, repo, trigger):
+        """One element the scan cannot read makes the whole trigger unread:
+        a partial set would read as the whole trigger."""
         workflow(repo, "ci.yml", trigger + PYTEST_JOB)
         r = run(["--kind", "tests", str(repo)])
         assert r.returncode == 1, r.stdout + r.stderr
