@@ -14,7 +14,7 @@ read with `gh issue view 1110`.
 severity: should
 location: `skills/code-review/SKILL.md:22-24`
 evidence: read `skills/code-review/SKILL.md:22-24`, `skills/implement/SKILL.md:139-149`, `skills/implement/SKILL.md:171-173`
-verdict: open
+verdict: fixed 227ea366
 
 This branch coins one phrase for two places. `implement`'s step 1 is now
 *1. Read the documents that outrank the code first*. Its precedence at
@@ -48,14 +48,14 @@ branch left the word "Look" alone on a short line there.
    nobody asked for. Read the code, not the implementer's report of it.
 ```
 
-answer:
+answer: The finding holds. In `implement`, the phrase covers the ticket (`skills/implement/SKILL.md:141-149`), and stage 1 lists only the policy and the SDD set. `227ea366` applies the paste-ready stage-1 sentence as written, which also reflows the short line "Look". `7d7288bf`, the orchestrator's, folds `frame/plan.md` A6a. No test reads the stage-1 sentence (executed, `git grep` over `tests/` for its phrases, exit 1), so no pin moved and none had to be seen red. Neither README nor `agents/proofer.md` carries the borrowed phrase: `git grep -n -i outrank` finds it only in `skills/code-review/SKILL.md:22` and in citations of `implement`'s heading (executed). The same phrase still stands in `frame/design.md:76`, *Scope* item 6. The frame is the orchestrator's to fold, because a crafter writes only Status cells there. `trail/phases/phase-3.md:57` keeps it as the record of what `3816dfca` wrote.
 
 ### 2. The closing memo misdescribes `evals/scripts/replay_targets.py` and leaves the defect it found with nobody to answer it
 
 severity: should
 location: `seal/threads/1793232075-the-living-text-still-calls-the-design-a-spec/gaps.md:34-37`, `seal/threads/1793232075-the-living-text-still-calls-the-design-a-spec/trail/phases/phase-2.md:63-69`
 evidence: executed `python3 evals/scripts/replay_targets.py --list`, `git ls-tree -r --name-only v0.23.1 seal/specs`, `git ls-tree -r --name-only v0.23.0 seal/specs`, `git ls-tree -r --name-only v0.23.1 seal/threads`, `gh issue list --state open --search replay_targets`
-verdict: open
+verdict: fixed 227ea366
 
 The phase record claims that the script's working-tree half is blind, "and
 the half that reads tags still finds them" (`trail/phases/phase-2.md:66-68`).
@@ -107,7 +107,7 @@ A title for the issue, in this repository's form:
 fix: replay_targets.py reads round records only in the 0.22.x layout, so its default run has found none since 0.23.0
 ```
 
-answer:
+answer: The finding holds. The phase record's clause "the half that reads tags still finds them" was wrong: with no flag, the script reads `v0.23.1` and `v0.23.0`, and neither holds a round record under `seal/specs/`. `227ea366` replaces the closing memo's *Not done* paragraph with the round's text as written, `<N>` being #1150, which the orchestrator filed in `release: 0.24.2`. The same commit corrects that clause of `trail/phases/phase-2.md` in place, on the orchestrator's instruction, and names #1150 there. That is where this pass departs from the round's line that the phase record stays. `bin/seal unverified` over the work item's directory still reads the memo (executed, exit 0).
 
 ## Confirmations
 
