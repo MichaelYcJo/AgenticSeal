@@ -11,8 +11,8 @@ order from git, `merge_order` reads it in local mode from the merge commits
 place into one group, `unordered` names the pairs inside a group that no
 ancestry orders, and `section_lines` finds a section's lines in a document.
 `pending` reads the designs not yet settled, and `removed_by` says which of
-their `remove` items takes a line's section out, for the readers of the
-policy in force: `.github/scripts/rules.py` and
+their `remove` items with no `from` takes a line's section out, for the two
+readers that excuse such a line: `.github/scripts/rules.py` and
 `tests/behaviour/test_a_cited_section_stands_in_its_file.py`.
 `settle` prints what they read; nothing here writes a file.
 
@@ -227,7 +227,7 @@ def section_lines(text, section):
     return (h + 1, end), None
 
 
-# --- the pending designs, which the policy in force reads ---------------------
+# --- the pending designs, not yet settled -------------------------------------
 
 
 def pending(root, policy_root):
@@ -253,8 +253,8 @@ def pending(root, policy_root):
 def removed_by(items, rel, text, line):
     """The work item directory of the first of ITEMS, as `pending` gives
     them, that is a `remove` with no `from` whose section of REL holds LINE,
-    REL's text being TEXT; or None. That section leaves at the settle, so the
-    policy in force no longer holds the line."""
+    REL's text being TEXT; or None. That section leaves at the settle. An
+    item whose `from` holds the line is not read here."""
     for o, item in items:
         if o.file != rel or o.kind != "remove" or o.old is not None:
             continue

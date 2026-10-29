@@ -25,12 +25,17 @@ the suite runs.
 **How it errs:** it cannot tell a test that exists from one that asserts the
 rule, and a rule written with no `check:` line is read by nobody.
 
-`seal rules --check` reads the policy in force, the rule files plus the
-rule changes of the designs not yet settled, through
-`skills/settle/scripts/rule_changes.py#pending`. A refused line inside a
-section a pending `remove` takes out at the settle is excused, and named as
-`seal rules: excused: path:line: heading: why; <work item> removes this
-section at the settle`.
+`seal rules --check` excuses one shape of a pending rule change: a refused
+line inside a section that an unsettled design's `remove` with no `from`
+takes out at the settle is printed as `seal rules: excused: path:line:
+heading: why; <work item> removes this section at the settle`, and is no
+refusal. The designs are read through
+`skills/settle/scripts/rule_changes.py#pending`, under `<root>/seal/threads/`.
+A pending `change`, or a `remove` with a `from`, whose `from` holds the line
+excuses nothing, so the test the line names stays until the settle
+(`tests/github/test_gather_changelog.py`). In local mode the designs sit under
+the common git directory, which a CI checkout does not hold, so no line is
+excused there.
 
 Exit codes: `seal rules <doc>` 0 the document was read, whatever its lines say.
 `seal rules --check` 0 every line holds or is excused, 1 a line is refused,
@@ -304,10 +309,9 @@ def unresolved(root):
     `root`, as `path:line: heading: why`; each refusal of a line inside a
     section a pending `remove` takes out at the settle, the same with
     `; <work item> removes this section at the settle` after it; and how
-    many rule files and check lines were read. The policy in force is the
-    rule files plus the pending rule changes (`skills/implement/SKILL.md`
-    *Document layout — two roots, three lifetimes*), so a line it no longer
-    holds is not refused."""
+    many rule files and check lines were read. Only that one shape of a
+    pending rule change is excused; the module docstring names what is
+    not."""
     found, excused, read, files = [], [], 0, rule_files(root)
     changes = sibling("rule_changes")
     policy = sibling("config").policy_root(os.path.join(root, "seal"))

@@ -511,9 +511,8 @@ class Test_main:
     def test_a_refusal_in_a_section_a_pending_remove_takes_out_is_excused_and_named(
         self, tmp_path, capsys
     ):
-        """The policy in force is the rule files plus the pending `## Rule
-        changes`, so a `check:` line inside a section an unsettled design's
-        `remove` takes out at the settle is excused: printed with the work item
+        """A `check:` line inside a section an unsettled design's `remove` with
+        no `from` takes out at the settle is excused: printed with the work item
         that removes it, and exit 0. A `remove` of another section, and one
         with a `from` that takes out a text and leaves the section, excuse
         nothing."""

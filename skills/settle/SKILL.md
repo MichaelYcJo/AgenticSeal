@@ -122,9 +122,11 @@ stays English in every edition.
 
 **What this plugin checks, and what it does not.** It ships `seal rules --check`
 (`.github/scripts/rules.py`), which reads every check line in a rule file and
-refuses one the grammar refuses. It reads the policy in force, so a refused
-line inside a section a pending `remove` takes out at the settle is printed
-as excused, with the work item that removes it, and is no refusal. Whether
+refuses one the grammar refuses. A refused line inside a section that a
+pending `remove` with no `from` takes out at the settle is printed as
+excused, with the work item that removes it, and is no refusal. A pending
+`change`, or a `remove` with a `from`, excuses nothing, and where the `seal/`
+root is local no line is excused. Whether
 a target really enforces its rule, whether a rule paragraph carries the
 line at all, and whether two rules contradict each other, it cannot read:
 that is review's, and it is review's to find.
