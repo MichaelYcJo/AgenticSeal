@@ -540,7 +540,8 @@ class Test_check:
         naming the pact by another spelling of its URL. A row naming another
         pact the signer's `Pact` row declares is passed over whatever its
         other cells hold, and neither a table nor a `pact:` token inside a
-        closed fence, nor `compact:`, nor `pact:` before a space, nor a table
+        closed fence, nor `compact:`, nor the word and its colon with a space
+        on either side of the colon (#1132, S7), nor a table
         naming the pact's remote beside no heading, nor a row that misses
         twice, nor a row in an indented code block of a frame holding no
         anchor table, is read: exit 0, and the
@@ -565,7 +566,8 @@ class Test_check:
                 (billing, CLAUSE_PATH, "deadbeef"),
                 (legacy, "no heading", "x"),
             )
-            + "\nThe compact:x note. Read the pact: it is short.\n\n```\n"
+            + "\nThe compact:x note. Read the pact: it is short. A token with a"
+            + " space beside its colon, pact: abc or pact :abc, is prose.\n\n```\n"
             + anchor_table((PACT_URL, CLAUSE_PATH, "x"))
             + 'pact:orders-api/"## A"@1a2b3c4d\n```\n\n'
             + f"| Repository | Role |\n|---|---|\n| {PACT_URL} | the pact |\n\n"
@@ -765,13 +767,30 @@ class Test_check:
         [
             ('| `pact:orders-api/"## A"@1a2b3c4d` | the field list |\n', 1),
             ('# Grounding\n\nBuilt against pact:orders-api/"## A"@1a2b3c4d.\n', 3),
+            ("| `PACT:abc` | the field list |\n", 1),
+            ("# Grounding\n\nBuilt against PACT:abc.\n", 3),
+            ("| Pact:abc | the field list |\n", 1),
+            ("# Grounding\n\nBuilt against Pact:abc.\n", 3),
+            ('| PACT:orders-api/"## A"@1a2b3c4d | the field list |\n', 1),
+            ('# Grounding\n\nBuilt against PACT:orders-api/"## A"@1a2b3c4d.\n', 3),
         ],
-        ids=["in a table cell", "in prose"],
+        ids=[
+            "in a table cell",
+            "in prose",
+            "upper case in a table cell",
+            "upper case in prose",
+            "capitalised in a table cell",
+            "capitalised in prose",
+            "an upper-case anchor in a table cell",
+            "an upper-case anchor in prose",
+        ],
     )
     def test_refuses_the_inline_anchor_naming_the_row_to_write(self, world, text, line):
         """S9 and `questions.md` Q1's default: the inline anchor is refused
         at its line, at exit 2, and the line names the row to write. Seen
-        red against `977b6613`, which graded the token."""
+        red against `977b6613`, which graded the token. The token is read in
+        any case (#1132, S6); the six ids that spell it otherwise were seen
+        red against `28edee12`, which read `pact:` alone and exited 0."""
         write(world.web, SPEC, text)
         code, out = world.run()
         assert code == 2, out

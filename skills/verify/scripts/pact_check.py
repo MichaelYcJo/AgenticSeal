@@ -47,10 +47,13 @@ the walk reads the `| Pact | Clause | Hash |` header alone, so such a row
 is graded by nothing, whatever header it stands under, or with none. A row
 that misses twice is passed over: one whose `Pact` cell is also a near
 miss, in backticks or one letter off a declared remote, or that holds no
-cell opening with a heading, has no anchor's shape a fact can tell. Every
-`pact:` token outside a closed fence is refused at its line, with the row
-to write in its place: it is the inline anchor this command read through
-0.23.x.
+cell opening with a heading, has no anchor's shape a fact can tell.
+
+Every `pact:` token outside a closed fence, in any case, is refused at its
+line, with the row to write in its place: it is the inline anchor this
+command read through 0.23.x. A token with a space beside its colon is not
+read: prose writes the word before a colon and a space, and no release read
+that spelling as an anchor.
 
 ## Where the signers are
 
@@ -201,10 +204,13 @@ NOT_FOUND, ONE_SIDED, REFUSED, UNREADABLE = (
 # The anchor table's header, as the cells `gfm_table` matches a header by.
 ANCHOR_TABLE = ("Pact", "Clause", "Hash")
 # The inline anchor read through 0.23.x, refused wherever it stands outside
-# a closed fence: `pact:` with no letter, digit, `_`, `.`, `@`, `/` or `-`
-# before it, so `compact:` is no token, and a character that is not a space
-# after it. One pattern, and it names no typo.
-INLINE_TOKEN = re.compile(r"(?<![A-Za-z0-9_.@/-])pact:(?=\S)")
+# a closed fence: `pact:` in any case, so `PACT:` and `Pact:` too, with no
+# letter, digit, `_`, `.`, `@`, `/` or `-` before it, so `compact:` is no
+# token, and a character that is not a space after it. A space beside the
+# colon, `pact: x` or `pact :x`, is not read: prose writes the word before a
+# colon and a space, and no release read that spelling as an anchor. One
+# pattern, and it names no typo.
+INLINE_TOKEN = re.compile(r"(?<![A-Za-z0-9_.@/-])pact:(?=\S)", re.IGNORECASE)
 # The sentences a row or a token is refused in, each reading after its line.
 NOT_ONE_URL = (
     "the `Pact` cell is not one remote URL: it holds a space, a backtick or no "
