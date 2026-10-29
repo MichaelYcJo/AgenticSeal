@@ -2883,8 +2883,6 @@ def newest(directory):
     # colon: `C:\GitHub\AgenticSeal` became `C:-GitHub-AgenticSeal` and the real
     # directory is `C--GitHub-AgenticSeal`, so `seal cost --latest .` reported
     # "no transcript found" for a directory that is right there. Measured.
-    # `hooks/worktree-guard.py` `project_slug` states the same rule; the two
-    # trees do not import each other, so this names it rather than sharing it.
     slug = re.sub(r"[^A-Za-z0-9-]", "-", os.path.abspath(directory))
     root = os.path.join(PROJECTS, slug)
     if not os.path.isdir(root):

@@ -52,8 +52,8 @@ any arguments, so each script keeps its own parser and its own help, and a
 subcommand is a dispatch and not a copy (#1051).
 
 **The root is its own directory, and that is what makes the export safe.**
-Beside it under the git directory sit the crafter mark, the worktree choices,
-the review and parity marks, the throwaway opt-out, any lease file and this
+Beside it under the git directory sit the crafter mark, the review and parity
+marks, the throwaway opt-out, the gates' per-session markers and this
 command's own state. None of that belongs to another machine, and none of it
 is in the zip — not because a list is maintained here, but because the export
 walks the root and nothing else. A symbolic link inside the root is the one

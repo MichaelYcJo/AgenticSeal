@@ -73,9 +73,9 @@ and a maintainer adding a CI step reads the row rather than this sentence.
 | a new version in `.claude-plugin/plugin.json` | *a change to what ships must move the version* exits 0 unless the base is `main` |
 | an issue number in the description | the issue-claim step reports what it finds and never fails; an empty description is a description |
 
-A contributor's machine also has no routing edit gate and no worktree guard. Those
-are this plugin's own hooks, installed on a maintainer's machine, and nothing
-in CI stands in for them.
+A contributor's machine also has no routing edit gate. It is this plugin's
+own hook, installed on a maintainer's machine, and nothing in CI stands in
+for it.
 
 ## Running the checks
 

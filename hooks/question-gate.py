@@ -11,9 +11,9 @@ edit gate resolves them. Every way of not
 reading it (no `seal/`, no branch, a file that does not parse, two files for
 one branch) is the attended answer, and the gate prints nothing.
 
-`routing.md` is written by the model, which is why the worktree guard never
-reads it as consent. Read here only to refuse, a row the model forged binds
-only the model.
+`routing.md` is written by the model, which is why no gate reads the
+`automation` press from it. Read here only to refuse, a row the model forged
+binds only the model.
 
 The routing question put alone goes through while this session's transcript
 can be read and holds no answer to it from this clone, read by the press

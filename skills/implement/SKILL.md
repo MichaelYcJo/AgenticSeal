@@ -254,14 +254,6 @@ review round records the commit it read, so work still sitting in the working
 tree is not visible to the reviewer at all — there is no spelling for *and
 also the four files that were not committed yet*.
 
-*Commit as you go* alone does not settle the cadence. One session was told
-exactly that and did it, eight commits across two rounds, and still had five
-modified files in the working tree when an unrelated command reached the
-worktree guard. That window has a price wherever this plugin is installed: the
-guard asks whether the changes should ride along to the other branch, and
-*commit them here first* — the answer that is usually right — is not one of
-the two buttons. Nothing had said how early early is.
-
 **An edit must be able to fail.** Prefer the `Edit` tool: a pattern that does
 not match is an error you see immediately. When the environment routes edits
 through the shell instead — `sed -i`, a heredoc, a short script — a

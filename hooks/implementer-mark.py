@@ -19,13 +19,12 @@ considered and rejected in the plan for this work item: a fourth thing that can
 stop a session, in a plugin whose first goal is verification that runs
 unattended, buys less than it costs.
 
-**Written before the group decides.** The gates in a group do not see each
-other's output, so when `worktree-guard.py` stops the same spawn the mark is
-already there. That is the cheaper mistake: a session that answers the guard by
-retrying without `isolation` spawns crafter and writes the mark again, and one
-that answers by not spawning crafter at all is missed once per session. The
-other direction — a mark written only on allow — would need the dispatcher to
-know one gate's semantics.
+**Written before the spawn runs.** The mark is written at `PreToolUse`, so a
+spawn that something stops after this hook still leaves it. That is the
+cheaper mistake: a session that retries the spawn writes the mark again, and
+one that never spawns crafter after all is missed once per session. The other
+direction, a mark written only once the spawn ran, would need a second hook
+on the spawn's result.
 
 Active only in repositories with `seal/` at the root, for the same reason
 every gate here is: a globally installed plugin must not write files into

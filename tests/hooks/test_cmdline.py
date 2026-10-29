@@ -255,8 +255,8 @@ class Test_drop_heredoc_bodies:
         `}`, `braces` stayed 1 to the end of the input, every `((` after it
         stopped being an arithmetic region, and a `<<` inside one opened a
         heredoc that ate the rest of the command. Measured: the `git worktree
-        add` below such a line left the segment list entirely and the worktree
-        guard went silent on a command bash really runs, `rc=0`.
+        add` below such a line left the segment list entirely, so a reader of
+        the segments never saw a command bash really runs, `rc=0`.
         """
         command = "echo ${x:-a #b}\n((1<<2))\ngit worktree add -b nb ../wt"
         text = reader.drop_heredoc_bodies(reader.drop_comments(command))
@@ -315,9 +315,8 @@ class Test_drop_heredoc_bodies:
 
 class Test_parse_git:
     def test_accepts_the_command_word_behind_a_list_opener(self, tmp_path):
-        """`parse_git` is the reading the worktree guard and the implementer
-        notice use, so a switch or a creation in a loop body is read as one
-        too."""
+        """`parse_git` is the reading the implementer notice uses, so a git
+        subcommand in a loop or conditional body is read as one too."""
         for tokens, sub in (
             (["do", "git", "switch", "main"], "switch"),
             (["then", "!", "git", "worktree", "add", "../wt"], "worktree"),

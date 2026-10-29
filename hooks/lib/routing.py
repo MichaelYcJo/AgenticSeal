@@ -444,7 +444,7 @@ def declared(cwd, root):
 # a branch a line names and on no other. The rule is
 # `docs/the-routing-check.md` *The edit check*.
 NO_WORK_ITEM = "agentic-no-work-item"
-# A record older than this is pruned when one is written, as a lease is.
+# A record older than this is pruned when one is written.
 NO_WORK_ITEM_AGE = 86400
 
 

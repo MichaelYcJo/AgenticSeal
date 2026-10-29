@@ -307,8 +307,7 @@ def drop_heredoc_bodies(command: str) -> str:
     the reader's shell and the commit two lines later was judged against a
     repository the shell never entered. The session's own directory was not
     among the candidates at all: not over-collecting and missing, but
-    confidently wrong. `hooks/worktree-guard.py` recorded the same residual for
-    its own splitter.
+    confidently wrong.
 
     What it does NOT do, deliberately: it does not track which command owns
     which redirect, so two heredocs opened on one line have their bodies read
@@ -374,7 +373,7 @@ def _heredoc_split(command: str):
             # after it stopped being an arithmetic region, and a `<<` inside
             # one opened a heredoc that ate the rest of the command. The
             # `git worktree add` below such a line left the segment list
-            # entirely and the worktree guard went silent on a command bash
+            # entirely, so a reader of the segments never saw a command bash
             # really runs. Two models of one question have to answer it the
             # same way, which is the whole subject of that finding.
             comment = True
@@ -574,9 +573,9 @@ def split_segments_with_separators(command):
     shell the last of those is the opposite of the first: `&&` runs the commit
     where the `cd` arrived, `||` runs it only if the `cd` failed, which is
     where the shell already was. Without the operator, a reader following the
-    `cd` judges the wrong repository with confidence on `||`, and a reader
-    judging every reachable directory keeps asking about the session's own on
-    `&&` — the prompt volume this exists to reduce.
+    `cd` judges the wrong repository with confidence on `||`. No caller reads
+    the operator now: `split_segments` drops it, and
+    `hooks/implementer-notice.py` follows no `cd`.
 
     It arrives beside the tuple rather than inside it because the callers of
     `split_segments` read its two elements, and a third element in the middle
@@ -824,13 +823,14 @@ def _git_options(rest, redirections=False):
     """
     # RIDER: `--git-dir` and `--work-tree` are in this set so the SUBCOMMAND
     # is still found, and their values are then thrown away -- so
-    # `git --git-dir=/elsewhere/.git --work-tree=/elsewhere commit` is judged
-    # against the shell's cwd. It is narrower than `-C`, which is what a
-    # session driving another repository actually types, and that is why it
-    # was left: closing it means `chdirs` stops being one list of composing
-    # paths and becomes a resolved (git-dir, work-tree) pair, which the
-    # worktree guard's `apply_chdir` cannot express. The rider is here rather
-    # than on the guard because this is the file the fix is in.
+    # `git --git-dir=/elsewhere/.git --work-tree=/elsewhere commit` names no
+    # directory in `chdirs`, where `-C /elsewhere` would. It is narrower than
+    # `-C`, which is what a session driving another repository actually
+    # types, and that is why it was left: closing it means `chdirs` stops
+    # being one list of composing paths and becomes a resolved (git-dir,
+    # work-tree) pair. No reader follows `chdirs` now:
+    # `hooks/implementer-notice.py` judges the session's own repository
+    # whatever directory a commit names.
     #
     # The options git 2.54.0 ran `status` after with the value as a separate
     # word (#716, M1). `--config-env`, `--attr-source` and `--shallow-file`
@@ -876,8 +876,8 @@ def parse_git(tokens):
     skipped to find the subcommand.
 
     `chdirs` are the `-C <path>` values in order. Skipping them was enough to
-    FIND the subcommand and not enough to know which repository it acts on,
-    which is the whole question the worktree guard answers.
+    FIND the subcommand and not enough to know which repository it acts on.
+    `hooks/implementer-notice.py` reads the subcommand alone.
     """
     # A reserved word in front of `git` used to stop this reading, so a commit
     # that was the first command of a loop or conditional body was invisible

@@ -124,8 +124,8 @@ def already_asked(cwd, session):
     # directories in the working tree. It comes from the harness rather than
     # from prose, and an existing marker is never overwritten because of the
     # `os.path.exists` return below -- so this is a stray write, not a
-    # bypass. `hooks/worktree-guard.py#already_asked` guards its own id and
-    # is the shape to copy.
+    # bypass. `hooks/mode-gate.py#already_asked` guards its own id and is
+    # the shape to copy.
     path = os.path.join(gd, MARKER_DIR, str(session))
     if os.path.exists(path):
         return True

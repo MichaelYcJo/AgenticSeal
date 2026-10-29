@@ -97,7 +97,6 @@ BESIDE_THE_ROOT = (
     "agentic-no-work-item",
     "agentic-stamp-refused",
     "agentic-last-export.json",
-    "agentic-session-lease",
 )
 WORKFLOW_PATH = os.path.join(".github", "workflows", "hygiene.yml")
 HEAD = "| Item | Value |\n|---|---|\n"
@@ -847,7 +846,7 @@ class Test_export:
         repo = take("local")
         for name in BESIDE_THE_ROOT:
             write(repo / ".git", name, "session state\n")
-        write(repo / ".git", "agentic-worktree-choice/a-branch", "x")
+        write(repo / ".git", "agentic-mode-choice/a-session", "x")
         assert said(capsys, repo, "export")[0] == 0
         with zipfile.ZipFile(only_zip(tmp_path)) as archive:
             assert archive.namelist() == MEMBERS

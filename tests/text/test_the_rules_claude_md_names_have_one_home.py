@@ -75,7 +75,7 @@ RULES = {
         (
             "What an intermediate commit costs is a property of the repository "
             "rather than a fact about committing",
-            "*Commit as you go* alone does not settle the cadence.",
+            "**Commit at the smallest step that stands on its own.**",
         ),
     ),
     "batch": (
