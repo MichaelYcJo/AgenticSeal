@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: "framer rule-framer-generated-page"
+tags: ["behaviour", "framer", "fixture"]
+runs: 2
+context:
+  scaffold_script: scaffold.sh
+execution:
+  max_turns: 12
+  timeout_seconds: 1200
+  model: "claude-fable-5-1"
+  allowed_tools: ["Agent", "Task", "Bash", "Read", "Write", "Edit", "Glob", "Grep"]
