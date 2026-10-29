@@ -81,7 +81,7 @@ def test_the_protocol_no_longer_states_the_rules_it_points_at():
         ("enumerate the class, do not fix the coordinate", "contract rule 12"),
         ("Do not push, do not open a pull request", "contract rule 6"),
         ("make a `uv` venv", "`agents/proofer.md`"),
-        ("Mutation-test every unit added", "`agents/crafter.md`"),
+        ("Mutation-test every unit that adds behaviour", "`agents/crafter.md`"),
     ):
         assert phrase not in protocol, (
             f"the protocol states {whose} again: {phrase!r}. This document is "
@@ -124,9 +124,14 @@ def test_the_crafters_definition_mandates_mutating_every_unit_it_added():
     # up. Measured while showing this case red, 2026-09-03.
     # Since #967 the act is the rule's lead and the moment is its step in
     # `## Order of work`: after the commit, before the narrow checks and the
-    # hand-back.
-    assert "Commit, then run `seal mutate` over each unit you added." in crafter
-    assert "Mutation-test every unit you added, one command each." in crafter, (
+    # hand-back. Since #1091 the act binds each unit that adds behaviour,
+    # and a unit only renamed or moved owes no run.
+    assert (
+        "Commit, then run `seal mutate` over each unit that adds behaviour." in crafter
+    )
+    assert "Mutation-test every unit that adds behaviour, one command each." in (
+        crafter
+    ), (
         "`agents/crafter.md` does not mandate mutating what it added, on that "
         "cadence, at that moment. `frame/design.md` of work item 1788433011 puts the "
         "rule in the crafter's own layer -- *only the agent that adds units "

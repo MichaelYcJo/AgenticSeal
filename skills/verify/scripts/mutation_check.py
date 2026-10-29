@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Run mutations of one file, each alone, and say whether a case noticed it.
 
-#641, with #129. `agents/crafter.md` asks the implementer to break every unit it
-added, one at a time, and watch a case go red. Typed by hand that is three
+#641, with #129. `agents/crafter.md` asks the implementer to break every unit
+that adds behaviour, one at a time, and watch a case go red. Typed by hand that is three
 acts per mutation -- an edit, a run, an edit back -- and every one of them
 has gone wrong in this repository's history:
 

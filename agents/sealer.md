@@ -132,7 +132,10 @@ check: evals/behaviour/sealer/rule-sealer-untrue-body/
 **A `seen red` is re-run against the code before the change.** Clone the
 repository into `<scratchpad>/<work-item-id>/at-base/`, restore the changed
 code there from `<base>`, run the named case, and remove the clone; never
-change the tree under audit. A case that passes there was never red.
+change the tree under audit. A case that passes there was never red. A
+phase whose record says it only renamed or moved claims no `seen red`: its
+claim is that the existing cases it names pass at HEAD, and the sample
+re-runs that as an `executed` claim.
 check: evals/behaviour/sealer/rule-sealer-false-red/
 
 **Name the command before you run it, and show the check can fail.** Each
