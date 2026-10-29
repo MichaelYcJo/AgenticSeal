@@ -9,7 +9,7 @@ target: 904078cf against origin/release/v0.24.1
 severity: should
 location: `skills/parity-setup/SKILL.md:49-65`, `skills/implement/bootstrap.md:186-187`
 evidence: read `skills/parity-setup/SKILL.md:49-65`, `skills/implement/bootstrap.md:80-87`, `skills/implement/bootstrap.md:183-187`, `docs/the-review-and-parity-arms.md:84-85`, `docs/the-review-and-parity-arms.md:143-144`, `seal/threads/1793240968-every-session-reads-bootstrap-and-parity-setup/changelog.md:4`
-verdict: open
+verdict: fixed 51e97648
 
 The branch sends the bootstrap's yes into `skills/parity-setup/SKILL.md`
 *Procedure*. That procedure was written for a command run in a set-up
@@ -73,7 +73,7 @@ assert "In local mode no pull-request check reads" in procedure, (
 )
 ```
 
-answer:
+answer: The finding holds, and so does the round's question about the default mode. Under shared, records only, nothing is installed under `.github/`. `seal gate` runs `chain_check.py` before any pull request exists, and `chain_check.py:2235` judges strictly only a ready pull request it observed, so nothing refuses there either. `skills/parity-setup/SKILL.md` step 6 now commits `seal/parity.md` only where the root is `<repo>/seal/`, and says that local mode commits nothing. Its last bullet says the path never goes in `seal/parity.md` rather than in "the committed file". Step 7 promises the refusal only where the root is `<repo>/seal/` and `seal pr-checks` reports the checks installed. In local mode and under shared, records only, it says that the `original:` line is still written and that nothing refuses a record without it. The same commit rewrites `skills/legacy-parity/SKILL.md` *The migration config*, which said a migrating repository commits the file, and corrects `changelog.md`, which no longer names step 7 as a gain and records the change. `tests/behaviour/test_chain_hooks_hardening.py#test_parity_declaration_is_bootstrappable_not_hand_written` pins the new sentences. It failed before the fix (exit 1, "the parity-setup procedure commits the declaration in every mode"), and `bin/seal mutate` removing step 7's condition turned it red. `skills/implement/bootstrap.md:186-187` needs no change: it sends a yes to the procedure, and the procedure now says what holds in each mode.
 
 ## Confirmations
 
