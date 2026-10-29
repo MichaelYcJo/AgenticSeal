@@ -73,7 +73,9 @@ def test_the_crafters_definition_names_the_command_and_no_directory_to_clear():
     assert "tests/__pycache__" not in crafter, (
         "`agents/crafter.md` still names a directory to clear between mutations"
     )
-    assert "Mutation-test every unit you added, one command each." in crafter
+    assert "Mutation-test every unit that adds behaviour, one command each." in (
+        crafter
+    )
     assert "watch one go red" in crafter
 
 
