@@ -122,11 +122,9 @@ RECORDS_OF_A_MOMENT = (
 # exemption stays a fact about one comment rather than a hole the token can
 # walk through anywhere.
 VERSIONS_OF_ANOTHER_PRODUCT = {
-    # git's, a build #692's phase 1 measured the hook surface on. The policy
-    # states which gits a git-side decision was measured to hold on, and that
-    # is the class the `seal.py` and `broad_gate.py` rows below name: a
-    # property read off an unnamed git is not a measurement.
-    ("docs/worktree-guard-spec.md", "2.50.1"): "git's, a build #692 measured",
+    # The policy states which gits a git-side decision was measured to hold
+    # on, and that is the class the `seal.py` and `broad_gate.py` rows below
+    # name: a property read off an unnamed git is not a measurement.
     ("skills/implement/scripts/seal.py", "4.4.17"): (
         "bash's, named in a comment about the glob behaviour of that release"
     ),
@@ -1301,7 +1299,7 @@ def test_the_document_says_where_an_issue_actually_closes():
     # green: a substring search reads a document as a bag of sentences.
     shapes = doc.index("The two merge shapes are not interchangeable")
     rule = doc.index("closing keyword does nothing when the base is")
-    version = doc.index("The version is provisional until the content settles")
+    version = doc.index("The version is named at the cut")
     assert shapes < rule < version, (
         "the rule left the release sequence -- a reader walking the sequence "
         "to write the release pull request no longer arrives at it"

@@ -78,8 +78,8 @@ under the repository's root, and `seal no-work-item`. Where HEAD is
 detached, its ways on start by checking out a branch, and they name
 `seal no-work-item` only as a run on that branch, because on a detached
 HEAD it records nothing. Where the person pressed `automation` on the
-routing question, read through `hooks/worktree_consent.py#automation_answered`,
-it names no question tool; otherwise it tells the model to put the routing
+routing question, read through `hooks/lib/press.py#automation_answered`, it
+names no question tool; otherwise it tells the model to put the routing
 question to the person with `AskUserQuestion`. Re-issuing the edit
 unchanged meets the same refusal.
 check: tests/hooks/test_routing_edit_gate.py
@@ -93,14 +93,36 @@ request's trailer arm, as *At the pull request* below states, is what
 remains for such a change.
 check: none reader: the orchestrator on the first live run after a change here
 
+**The `automation` press is the person's own click on the routing question,
+read from the session's main transcript, and nothing the model writes
+stands in for it.** `hooks/lib/press.py` is its one reader, and the edit
+check and `hooks/question-gate.py` both ask it. The transcript is the
+payload's `transcript_path` where its file name is the session id followed
+by `.jsonl`, and otherwise the one file of that name under
+`~/.claude/projects/`, so a subagent reaches its parent's answer; no other
+session's file and no `subagents/` file is read. The answer is read only
+from a harness-written `AskUserQuestion` result: a `user` entry that names
+an earlier `AskUserQuestion` call by `tool_use_id`, carries `isSidechain`
+set to `false`, and holds a structured `toolUseResult`. The routing
+question is the one single-select question whose three options lead with
+`automation`, `per axis` and `no work item`, a label's lead being its text
+folded to lower case and cut where a space is followed by an opening
+parenthesis, an em dash or a hyphen. The answer counts only where it equals
+one of the option labels exactly, so a typed answer is not read. The result
+entry's own `cwd` must lie in the same clone as the repository the gate
+judges. Of every answer to the routing question from that clone, the latest
+stands, so a later `per axis` or `no work item` takes the press back. A
+`routing.md` is never read for it, and every way a read fails is no press.
+A run resumed in a new session, by `/clear`, a new `claude` start or another
+machine, has no press until question 1 is put again; `claude --resume` and
+compaction keep the transcript, so the press survives them.
+check: tests/hooks/test_press.py tests/hooks/test_question_gate.py
+
 ## At the pull request
 
 **A session's commit in a repository whose root is shared ends with one
 trailer, `Seal-Routing:`, naming its work item or reading
-`no work item`; at a local root a commit carries none.** A commit made
-before the plugin was renamed AgenticSeal carries `SpecSeal-Routing:`, which
-`chain-check` reads as the same trailer for the minor release of the rename;
-the next minor release removes that reading. It tells a
+`no work item`; at a local root a commit carries none.** It tells a
 session's commit from a person's: the harness's co-author trailer is
 carried by any Claude Code session, a teammate's who does not use this
 plugin included, and a person's own commit carries neither. At a local root

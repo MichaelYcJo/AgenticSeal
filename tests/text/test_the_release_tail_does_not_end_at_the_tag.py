@@ -74,13 +74,14 @@ def section(rel, heading):
 
 
 def after_the_tag():
-    """`docs/release-checklist.md` *6. After the merge* from the tag push onward.
+    """`docs/release-checklist.md` *6. After the merge* from the acts after the tag on.
 
-    A5's *Then* is about what FOLLOWS the tag. A box above `git tag` is one a
-    reader working down the file ticks against the release before this one.
+    A5's *Then* is about what FOLLOWS the tag, which the merge's workflow
+    creates. A box above that paragraph is one a reader working down the file
+    ticks against the release before this one.
     """
     body = section(CHECKLIST, "## 6. After the merge")
-    return body[body.index("git tag vX.Y.Z") :]
+    return body[body.index("Two acts come after the tag") :]
 
 
 def boxes(text):

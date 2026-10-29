@@ -15,6 +15,14 @@ standalone script, and adding one means adding it to `GROUPS` in
 A gate that raises is skipped, and the rest of the group decides without
 it.
 
+**Each script `GROUPS` registers has one row in the gate table of
+`README.md` and of `README.ko.md`, and the table holds no other row.** A
+row's first cell is the script's file name without `.py`. The table is what
+a person reads to learn what runs on their machine, and `GROUPS` is the one
+list of what does, so a case derives the table's rows from `GROUPS`, and no
+count of the gates stands in prose beside it.
+check: tests/behaviour/test_chain_hooks_hardening.py
+
 **A gate that fails is said once per session, at the end of the main
 session's turn, and the call it failed on still goes ahead.** A failure is
 an exception while loading the gate's file, a `SystemExit` included, or an

@@ -43,7 +43,12 @@ is drawn by one agent, and the building is another's. The builder's first act
 on a drawing is to say whether it holds, because a drawing can be wrong about
 the tree it describes and the cheapest moment to find out is before anything
 is spent. The readiness and decomposition questions belong to the frame,
-because they are about work nobody has started.
+because they are about work nobody has started. So does a question whose
+answer is a behaviour, a time or an output a read-only command gives: the
+framer runs that probe outside the tree before it writes anything down, and
+only a question no probe can run in its environment reaches the build as a
+row.
+check: agents/framer.md evals/behaviour/framer/rule-framer-sharp-s/
 
 **A subagent cannot ask anybody anything.** No question-asking tool reaches
 an agent this plugin spawns, so a framer meeting a missing routing
@@ -123,10 +128,11 @@ check: tests/skills/test_payload_meter.py tests/behaviour/test_a_section_marked_
 agent's rules arrive by mechanism, while the orchestrator has no spawn for a
 preload to attach to, so each of its acts is a sentence until something
 refuses when the act did not happen. `skills/implement/orchestration.md`
-tables every `##` heading carrying the `Orchestrator:` marker in both
-orchestration files, and every `###` directly beneath one, against its
-delivery: a command, a check, part of its parent's act, or a sentence with
-its grounds. A test holds the table against both files from both sides. It
-reads the marker and not the meaning, so an act written outside a marked
-section is counted by nobody.
+tables every `##` heading carrying the `Orchestrator:` marker in
+`skills/implement/orchestration.md`, `skills/implement/bootstrap.md` and
+`skills/code-review/orchestration.md`, and every `###` directly beneath one,
+against its delivery: a command, a check, part of its parent's act, or a
+sentence with its grounds. A test holds the table against the three files
+from both sides. It reads the marker and not the meaning, so an act written
+outside a marked section is counted by nobody.
 check: tests/behaviour/test_every_orchestrator_act_names_its_delivery.py

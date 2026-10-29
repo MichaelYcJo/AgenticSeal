@@ -104,14 +104,13 @@ into a loaded file is what
 at or above the running one and not yet tagged, whether that is the version
 being cut or one still ahead of it. **A version below the running one, or one
 this repository has tagged, is history and is kept**, which is what lets this
-document say which release an issue shipped in. The tag decides, never the
-changelog: the preparation commit bumps the running version and writes its
-heading in the same commit, so until the next bump the running version is one
-that has already shipped, and only its tag says so.
-The version in the title is a fact rather than a prediction:
-`docs/branch-and-release.md` says whether the next number is a minor or a
-patch is known at the end and not at the cut, so at the moment the roll runs
-the next version is the one thing nobody can name.
+document say which release an issue shipped in. The tag decides, never
+`plugin.json`: a release's first pull request moves the running version to
+one that has not shipped, and from the release's merge until the next
+release's first pull request the running version is one that has already
+shipped, and only its tag says so. The version in the title is a fact rather
+than a prediction: the roll runs at the push to `main` that ships a release,
+when `plugin.json` names the version that push shipped.
 
 **A title that does not begin with `chore: flow measurement — after ` is not
 one the roll wrote, and the roll reads it as due.** The whole of that prefix
@@ -294,8 +293,11 @@ what answers *what does this ticket now ask for*.
 carried it records why.** A body that contradicts a comment leaves the
 reader to work out which is current, and a block of updates written
 above the old text leaves two versions to choose between. GitHub keeps
-the body's edit history, so rewriting it loses nothing. Once an item is
-framed, its frame is what the builder reads, and a later decision is
+the body's edit history, so rewriting it loses nothing. The framer is
+handed the request whole: the body as folded, and the orchestrator's line
+naming the comments the issue has, read with `gh issue view` on the day of
+the spawn. So no framer asks whether a comment changes the request. Once an
+item is framed, its frame is what the builder reads, and a later decision is
 folded into the frame instead (`skills/implement/orchestration.md`
 *Orchestrator: the order inside a ticket*).
 check: none reader: the framer at every frame
@@ -330,5 +332,6 @@ the release it shipped in.
 
 A branch name is not that signal: the branch `release/v0.3.0` shipped as
 0.2.0, and its own release pull request says so in its title. Where no pull
-request names the issue at all, the close date against `CHANGELOG.md`'s
-release dates is what is left, and it is a guess rather than a reading.
+request names the issue at all, the close date against the publication
+dates of the GitHub Releases is what is left, and it is a guess rather than a
+reading.

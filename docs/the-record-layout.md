@@ -14,12 +14,12 @@ is found, the copy is the defect.
 
 | Kind | Home | Size target | Index |
 |---|---|---|---|
-| The changelog | `seal/threads/<work-item-id>/changelog.md` while a work item is open; `changelog/<X.Y.Z>.md`, the release's own file, once its release gathers it | each release file is under target, and is the unit | the file name, by version, and `CHANGELOG.md`, which heads each release newest first with a link to its file |
+| The changelog | `seal/threads/<work-item-id>/changelog.md` while a work item is open; the GitHub Release at the `vX.Y.Z` tag once its release is published | each fragment is under target | the repository's releases on GitHub, by tag |
 | A work item's files | `seal/threads/<work-item-id>/` | each file under target | the table under *seal/threads/<work-item-id>/* below |
 | The repository's rules | `CLAUDE.md` for the rules a session must hold, `CONTRIBUTING.md` for a contributor's procedure, and the `docs/` document each one links to | each file under target | this document, and `docs/README.md` |
 | The configuration | `seal/config.md`, one row per item; `templates/setup/config.md` documents every row | under target | the `Item` column |
 | The follow-up list | `seal/follow-up.md`, one row per item that waits on a named party | under target | its rows, each naming who answers it |
-| The process archive | `seal/process/<X.Y.Z>.md`, one file per release, written at its preparation | each file under target | the file name, by version |
+| The process rows | a `### Process changes` table at the end of a work item's `changelog.md` while its work item is open; the release note's table of the same name once its release is published | each fragment is under target | the repository's releases on GitHub, by tag |
 
 ## The size a reader takes whole
 
@@ -34,26 +34,45 @@ check: tests/skills/test_fold_check.py
 A file every branch appends to costs a conflict at the worst moment — after
 the broad gate has run, which forces it to run again. So a change writes its
 changelog entry into a file of its own, `seal/threads/<work-item-id>/changelog.md`,
-never under a heading of `CHANGELOG.md`. No two work items share an id, so no
-two branches share a file. A changelog fragment has no line starting `## `,
-because that line ends the released section, and the gather refuses a
-fragment that has one.
+never under a heading of a file every branch shares. No two work items
+share an id, so no two branches share a file.
 
-**The fragments are gathered at the release, by one command in one commit**,
-and `docs/release-checklist.md` *2. Gather, bump* holds it. The fragments are
-concatenated into the release's own file, `changelog/X.Y.Z.md`, and the
-release's heading goes into the index, `CHANGELOG.md`. A fragment lives from
-the work item's first entry to the release that ships it.
-check: tests/text/test_the_changelog_is_gathered_at_release.py tests/github/test_gather_changelog.py
+**The release note is built from the fragments at the tag, and no copy of
+the notes is kept in the tree.** On the `vX.Y.Z` tag push,
+`.github/scripts/publish_release_note.py` reads every fragment the commits
+after the previous `vX.Y.Z` tag added and that tag does not already hold,
+from the history, so a fragment a settle removed before the tag is still
+read. The GitHub Release at the tag is the release's notes. A copy in the
+tree is the one nobody works from, and so the one that drifts from its
+fragment. A fragment lives from the work item's first entry to the settle
+after the release that ships it, and the history keeps it after that.
+check: tests/github/test_publish_release_note.py
+
+**A change to the way of working writes its process row in its own
+fragment.** A work item whose diff changes `CLAUDE.md`, an `agents/*.md`
+file, a `skills/*/orchestration.md` file or `skills/implement/bootstrap.md`
+ends its `changelog.md` with the line `### Process changes` and a table in
+the shape `templates/records/process.md` gives: one row per change, holding
+the date, the change, one line of why, and a link to the issue comment or
+commit it came from. The orchestrator writes it with the fragment. A row
+written with its change leaves no write for the end of the release, and the
+next framer reads what the way of working became and why.
+check: none reader: the framer of the next work item
+
+**The release note lifts every process row into one table.** Under the
+heading `### Process changes`, above the fragments, the note carries every
+row of every fragment's process section, in work item id order, and each
+fragment follows without its section, so a row is shown once.
+check: tests/github/test_publish_release_note.py
 
 ## A commit after the build brings its changelog fragment along
 
 **A commit after the build that changes what the work item ships updates the
 work item's `changelog.md` in the same range.** The build's last phase writes
-the fragment and the release gathers it verbatim, so a later commit that
-changes behaviour can leave it describing something that no longer ships. The
-rule binds whoever writes the commit: the crafter's fix pass, a fix written after
-the last round, and an integration commit after a sibling's squash, which the
+the fragment and the release note is built from it as it stands at the tag,
+so a later commit that changes behaviour can leave it describing something
+that no longer ships. The rule binds whoever writes the commit: the crafter's
+fix pass, a fix written after the last round, and an integration commit after a sibling's squash, which the
 orchestrator writes. A commit that changes nothing a release note states owes
 the fragment nothing.
 check: none reader: the next round's proofer and the sealer
@@ -94,17 +113,18 @@ an issue carries every re-homed row, and git keeps the record. A released
 work item that wrote no `frame/design.md` states no rule and goes the same way.
 check: tests/skills/test_settle.py
 
-**The settle writes each section as the latest decision among the released
-specs states it, checked against the code.** The specs whose rule changes
-name one section, or a section holding it, are one group, and merge order
-sorts it, so a group is that rule's history. Within a group the latest spec
-that states a rule decides it, and an earlier operation it restates is
+**The settle writes each section as the latest decision the released
+designs state for it, checked against the code.** The designs whose rule
+changes name one section, or a section holding it, are one group, and merge
+order sorts it, so a group is that rule's history. Within a group the latest
+design that states a rule decides it, and an earlier operation it restates is
 superseded: it is settled with the group and not applied. Where the code
 has moved past the latest decision, the code is the later fact and the
 section states what the code does. The settling session writes the section;
-an operation's `from` locates the text its spec's framer read, and a `from`
-that no longer matches is history, not a refusal. The rest of the document
-stays as it was, and no marker is written. `settle` groups the specs, shows
+an operation's `from` locates the text its design's framer read, and a
+`from` that no longer matches is history, not a refusal. The rest of the
+document stays as it was, and no marker is written. `settle` groups the
+designs, shows
 each group's history and removes the directories; it writes no policy
 document.
 check: tests/skills/test_rule_changes.py tests/skills/test_settle.py
@@ -150,8 +170,8 @@ check: tests/behaviour/test_whether_a_line_is_live_is_asked_by_what_the_line_doe
   The wrong answer is loud instead: `BROKEN`, a refused name or exit 2, and a
   person answers it with an edit or a marker.
   check: tests/behaviour/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py
-- **A line that EXCUSES or DECLARES something — a changelog marker, a
-  `seal/config.md` row, a `routing.md` row — is not taken on doubt, except
+- **A line that EXCUSES or DECLARES something — a `seal/config.md` row, a
+  `routing.md` row — is not taken on doubt, except
   where a declaring reader keeps an older reading that took it.**
   `unverified_check.py#live_lines` parks a line inside any fence or comment,
   closed or not, and a line its two span readings disagree about.
@@ -180,9 +200,9 @@ check: tests/behaviour/test_whether_a_line_is_live_is_asked_by_what_the_line_doe
   rather than read it as empty.
   check: tests/behaviour/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py
 
-No one rule serves all three kinds. The holding bias would let a changelog
-marker quoted in an example stand for an entry nobody gathered, and the excusing bias
-would drop a parked row without a word. A reader of a new kind of line is a
+No one rule serves all three kinds. The holding bias would let a
+`seal/config.md` row quoted in an example declare a value nobody set, and the
+excusing bias would drop a parked row without a word. A reader of a new kind of line is a
 fourth answer, and it is argued against these three.
 
 **A `seal/` root with no work item under it is the state a complete fold ends
@@ -245,7 +265,6 @@ common directory otherwise.
 | `seal/README.md` | what the root holds, where it lives in each mode, and which file states the export rules |
 | `seal/config.md` | what this repository says about itself, one row per item |
 | `seal/follow-up.md` | which items wait on a named party, and who |
-| `seal/process/<X.Y.Z>.md` | what one release changed in the way of working, and why |
 | `seal/threads/<work-item-id>/` | one work item's records, the table below |
 
 ## seal/threads/<work-item-id>/
@@ -323,17 +342,7 @@ check: record-comment-line-refused
 |---|---|
 | `CLAUDE.md` | the rules a session in this repository must hold, each linking to its home |
 | `CONTRIBUTING.md` | how a contribution is made and checked, and what a change to a gate must carry |
-| `CHANGELOG.md` | which releases there are: the index, one `## X.Y.Z — <date>` heading each, newest first, with a link to the release's file |
-| `changelog/<X.Y.Z>.md` | what one release changed, that release's section alone |
 | `README.md` and `README.ko.md` | what the plugin is and how to install it |
-
-**`CHANGELOG.md` and each release's own file carry that release's one
-`## X.Y.Z — <date>` line.** `changelog/<X.Y.Z>.md` opens with it, and the
-index keeps the same line above the link to the file, because the update
-skill an installed copy already carries checks that an update landed by the
-first `## ` line of `CHANGELOG.md`. The GitHub Release reads the release's
-own file.
-check: tests/text/test_the_changelog_is_gathered_at_release.py tests/github/test_gather_changelog.py
 
 **A `CLAUDE.md` row that points at a home carries three things: the home's
 path and section, the moment a session needs the rule, and the act in one

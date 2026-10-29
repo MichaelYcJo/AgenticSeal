@@ -14,8 +14,8 @@
 만들고 옮기고 지우며, 그 형식을 플러그인의 검사기가 정한다는 뜻입니다.
 `.github/` 가 GitHub 의 것인 것과 같습니다. 수명은 셋이고 각각 집이 하나입니다.
 세션의 상태는 루트 옆, 공통 git 디렉터리 아래에 있고 커밋되지 않습니다. 작업
-항목의 디렉터리 `seal/threads/<id>/` 는 settle 이 그 spec 의 절을 쓰고
-디렉터리를 지울 때까지 삽니다. 그 밖의 `seal/` 아래 파일은 `docs/`, `CHANGELOG.md` 와 함께
+항목의 디렉터리 `seal/threads/<id>/` 는 settle 이 그 설계의 절을 쓰고
+디렉터리를 지울 때까지 삽니다. 그 밖의 `seal/` 아래 파일은 `docs/` 와 함께
 영구적입니다. 파일 하나하나의 배치는 `skills/implement/SKILL.md` *Document
 layout — two roots, three lifetimes* 와 `docs/the-record-layout.md` 에
 있습니다.
@@ -100,7 +100,7 @@ check: tests/hooks/test_optin.py
 두 자리 중 어디든 `seal/` 이 있는 저장소는 이미 이 과정을 거쳤으므로 다시
 묻지 않습니다. 모드는 폴더가 있는 자리로 읽습니다. 0.3.x 배치에 머물러 있는
 저장소에는 묻지 않고, README.md *Coming up from 0.3.x* 의 명령으로 직접
-옮긴다고 알리기만 합니다(`skills/implement/orchestration.md` 의 부트스트랩).
+옮긴다고 알리기만 합니다(`skills/implement/bootstrap.md`).
 플러그인 이름이 AgenticSeal 로 바뀌기 전에 설치한 저장소는 트리에 앞선
 배치가 남아 있는 브랜치마다 세션 시작 훅이 작업 항목을 스레드 배치로
 옮깁니다. 이미 옮겼다는 기록이 브랜치의 이동을 막지 않습니다. 그래서 shared

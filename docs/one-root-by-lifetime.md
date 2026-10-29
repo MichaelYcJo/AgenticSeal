@@ -14,10 +14,8 @@ long each file lives.** "Owns" means the plugin creates, moves and removes it
 and its checkers define the formats, the way `.github/` is GitHub's. Three
 lifetimes, each with one home: a session's state sits beside the root under
 the common git directory and is never committed; a work item's directory,
-`seal/threads/<id>/`, lives until the settle writes its spec's sections and
-removes it;
-everything else under `seal/`, with `docs/` and `CHANGELOG.md`, is
-permanent. The layout, file by file, is `skills/implement/SKILL.md`
+`seal/threads/<id>/`, lives until the settle writes its design's sections
+and removes it; everything else under `seal/`, with `docs/`, is permanent. The layout, file by file, is `skills/implement/SKILL.md`
 *Document layout — two roots, three lifetimes* and `docs/the-record-layout.md`.
 
 **The plugin writes only to its own root.** A `specs/` directory anywhere
@@ -105,8 +103,7 @@ order, the first the default, each saying what it does:
 A repository with `seal/` at either place has been through this and is never
 asked again; the mode is read from where the folder is. A repository still on
 the 0.3.x layout is told, not asked, that it moves by hand with the commands
-README.md *Coming up from 0.3.x* gives (`skills/implement/orchestration.md`,
-its bootstrap). A repository installed before the plugin was renamed
+README.md *Coming up from 0.3.x* gives (`skills/implement/bootstrap.md`). A repository installed before the plugin was renamed
 AgenticSeal has its work items moved into the thread layout by the
 session-start hook, on each branch whose tree still holds them. No stamp
 stands between a branch and its move. So in a repository that left shared
