@@ -48,10 +48,10 @@ block, and a session here through that same block plus a rule in
    load it. The title line is `# The core`. The name `core` is the word the
    issue, milestone 69 and `routing.md` use for it. One sentence is added to
    the paragraph *Asking a person is the most expensive judgment*: the routing
-   question is one of that batch, asked by the session that spawns the
-   work, as `skills/implement/orchestration.md` *Orchestrator: how the work
-   is routed* states, and `hooks/routing-edit-gate.py` refuses the first edit
-   until it is answered. That sentence is what the block's routing bullet
+   question is one of that batch; the session that spawns the work puts the
+   routing question as `skills/implement/orchestration.md` *Orchestrator: how
+   the work is routed* states; and `hooks/routing-edit-gate.py` refuses the
+   first edit until the routing question is answered. That sentence is what the block's routing bullet
    carried that no mechanism reaches: a session that has never opened a
    skill learns where the question is. The vocabulary, the boxes and the
    write stay the section's alone. Nothing else in the core is reworded:
