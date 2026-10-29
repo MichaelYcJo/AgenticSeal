@@ -79,8 +79,8 @@ that catch the same defect, the one that stops to ask a person costs more,
 and the difference has to be argued rather than assumed. Whatever needs a
 person is asked once, together, before the first edit, and nothing comes
 back mid-run; `skills/implement/SKILL.md` *1. Read the documents that
-outrank the code first* holds that rule with its reasoning. That one ask is
-the routing question, which the orchestrating session puts as
+outrank the code first* holds that rule with its reasoning. The routing
+question is one of that batch, which the orchestrating session puts as
 `skills/implement/orchestration.md` *Orchestrator: how the work is routed*
 states, and `hooks/routing-edit-gate.py` refuses the first edit until it is
 answered.

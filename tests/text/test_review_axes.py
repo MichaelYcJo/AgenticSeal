@@ -101,13 +101,20 @@ def test_the_resolution_order_ends_with_the_caller_asking():
 
 def test_the_core_names_where_the_routing_question_is():
     """#1177: the core reaches every session and every agent, so it is where
-    a session that has opened no skill learns that the one question is the
-    routing question, which section states it, and which hook holds it. The
-    vocabulary, the boxes and the write stay that section's alone."""
+    a session that has opened no skill learns that the routing question is
+    one of the batch asked before the first edit, which section states it,
+    and which hook holds it. The vocabulary, the boxes and the write stay
+    that section's alone. Round 1 finding 1: the core said the one ask WAS
+    the routing question, which left a credential or a permission to wait
+    for the first refusal."""
     core = " ".join(read("skills", "core", "SKILL.md").split())
     asking = core.split("**Asking a person is the most expensive judgment.**", 1)
     assert len(asking) == 2, "the core lost its paragraph on asking a person"
     paragraph = asking[1].split("**", 1)[0]
+    assert "The routing question is one of that batch" in paragraph, (
+        "the core does not say the routing question is one question of the "
+        "batch `skills/implement/SKILL.md` *1.* asks before the first edit"
+    )
     assert (
         "`skills/implement/orchestration.md` *Orchestrator: how the work is routed*"
         in paragraph
