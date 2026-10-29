@@ -9,7 +9,7 @@ target: ecaf7c32 against origin/release/v0.24.1
 severity: should
 location: `seal/threads/1793240966-the-framer-has-no-read-only-probe/frame/design.md:16`, `seal/threads/1793240966-the-framer-has-no-read-only-probe/frame/design.md:28`, `seal/threads/1793240966-the-framer-has-no-read-only-probe/gaps.md:13`
 evidence: read `seal/threads/1793240966-the-framer-has-no-read-only-probe/frame/design.md:16`, `seal/threads/1793240966-the-framer-has-no-read-only-probe/frame/design.md:28`, `seal/threads/1793240966-the-framer-has-no-read-only-probe/gaps.md:13`
-verdict: open
+verdict: fixed 2a546344
 
 The sealer and every later reader grade the tree against the frame. Two
 sentences of `frame/design.md` still describe a grader that no longer
@@ -44,14 +44,14 @@ is in the frame, so the quote no longer matches any text a reader can open.
 `frame/design.md` S2 at d2acd3b9: "then no row names `a measurement` as who answers", ...; S8 at d2acd3b9: "both pass every run of the new side". ...
 ```
 
-answer:
+answer: The finding holds on all three lines. The orchestrator's frame commit `542404ee` removed the `## Grounding` row at `frame/design.md:16` and rewrote the Scope item at `:28` to "One grader beyond the four shared ones". Commit `2a546344` fixes `gaps.md:13`. Its "Spec says" cell now quotes S2 and S8 "at `d2acd3b9`", the commit that held them. It then says what each reads since `ecaf7c32` and `542404ee`: S2 "then no row asks what `shout` returns" with no grader, and S8 naming `shape-answers-by-probe` alone. The same commit drops the row's closing citation of `frame/questions.md` Q2. Since `ecaf7c32`, Q2's Status reads "not reached", so Q2 no longer grounds the removal. Both commits change paths this `location:` already names, so the line gains nothing. `542404ee` is a commit, not a path, and `docs/the-review-record.md` *The round record* reads a `location:` item as a path, `path:line` or `path:first-last`. `git grep -n -e "no-row grader" -e "Two graders"` over the work item now finds the two phrases only in this round record.
 
 ### 2. The rule's no-row half is left to a proofer whose definition never opens questions.md
 
 severity: should
 location: `seal/threads/1793240966-the-framer-has-no-read-only-probe/gaps.md:22`, `seal/threads/1793240966-the-framer-has-no-read-only-probe/frame/design.md:46`, `seal/threads/1793240966-the-framer-has-no-read-only-probe/frame/design.md:49`
 evidence: executed `git grep -n questions.md -- agents/proofer.md skills/code-review/`
-verdict: open
+verdict: fixed 2a546344
 
 Once `shape-no-measurement-row` was removed, nothing checks the second half
 of the new rule. That half says that a framer writes a row whose answer is a
@@ -90,7 +90,7 @@ already states one. The snippet takes the second.
 read: the rule's sentence in `agents/framer.md`. No reader holds it after this work item's round 1 (`gaps.md` *Not verified*). No grader: one refusing every `a measurement` cell failed a correct row in the paid runs, a row about issue comments `gh` cannot read in the runner, so phase 3 removed it at 7ac24a06 (`gaps.md`)
 ```
 
-answer:
+answer: The finding holds: `agents/proofer.md` does not name `frame/questions.md` among what a proofer reads. The fix takes neither of the two the finding offers. The frame names a third reader, and this pass follows it. The orchestrator's commit `542404ee` makes S2 at `frame/design.md:46` and S5 at `:49` read "Reader: the orchestrator, who writes each row's Status in `frame/questions.md`". `skills/implement/SKILL.md` *3. The SDD file set* gives the orchestrator that act: the Status column "is written by whoever answered". The orchestrator did it for this work item at `ecaf7c32`, answering Q1 to Q3. Commit `2a546344` rewrites `gaps.md:22` to name the orchestrator on those grounds. The row also says that the proofer's reading list does not name the file, that no case holds this half, and that round 1 read this work item's own `frame/questions.md`. No orchestration step tells the orchestrator to judge a row's reason against the new rule: `git grep -n questions.md -- skills/implement/orchestration.md` finds the file only at `:24`, where the framer writes it. So the reading rests on the act of answering each row, not on a stated step. A verifying round can still read this as the limit the finding's second fix describes. Both commits change paths this `location:` already names, so the line gains nothing.
 
 ## Confirmations
 
