@@ -302,10 +302,10 @@ never goes in the committed file.
 ## Orchestrator: how the work is routed
 
 **The routing question is one of the questions `skills/implement/SKILL.md`
-*1. Read the spec before the code* has the orchestrator ask in one batch
-before the first edit.** It is one decision about where the work goes, and
-asking a part of it later is the mid-run question the batch exists to
-remove. Opening a pull request is an outward-facing act, not a detail that
+*1. Read the documents that outrank the code first* has the orchestrator
+ask in one batch before the first edit.** It is one decision about where the
+work goes, and asking a part of it later is the mid-run question the batch
+exists to remove. Opening a pull request is an outward-facing act, not a detail that
 can wait for the end. Routing asked at the start, the reviewer in the middle
 and the pull request at the end would be three waits where one is due.
 

@@ -80,7 +80,7 @@ RULES = {
     ),
     "batch": (
         IMPLEMENT,
-        "1. Read the spec before the code",
+        "1. Read the documents that outrank the code first",
         (
             "Asking one at a time is the same failure spread out: three "
             "interruptions cost three waits.",

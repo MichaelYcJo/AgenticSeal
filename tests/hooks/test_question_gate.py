@@ -434,7 +434,7 @@ def test_the_prose_points_to_the_gate_and_no_longer_says_nothing_holds_it():
     """S14: the orchestrator's two documents name the gate, and none of the
     sentences `frame/design.md` `## Removes` lists still stands."""
     skill = flat("skills", "implement", "SKILL.md")
-    first = skill.split("### 1. Read the spec before the code", 1)[1]
+    first = skill.split("### 1. Read the documents that outrank the code first", 1)[1]
     assert f"`hooks/{GATE}`" in first.split("### 2.", 1)[0]
     assert f"`hooks/{GATE}`" in flat("skills", "implement", "orchestration.md")
     for parts, sentence in (

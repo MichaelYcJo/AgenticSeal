@@ -66,7 +66,7 @@ Ask with the AskUserQuestion tool, offering exactly these two options:
 
   1. "Built-in review" — /{BUILTIN}: bugs, duplication, and cleanup
      across the diff.
-  2. "AgenticSeal review" — /{OURS}: spec compliance first, then
+  2. "AgenticSeal review" — /{OURS}: compliance first, then
      quality, inheriting the verdicts of earlier review rounds.
 
 Then run the one they pick; retrying the built-in will go through. \

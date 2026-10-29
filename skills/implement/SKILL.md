@@ -136,7 +136,7 @@ keep.
 
 ## Procedure
 
-### 1. Read the spec before the code
+### 1. Read the documents that outrank the code first
 
 Judgment precedence: **policy (`docs/`) > SDD (`seal/threads/`) > the ticket >
 existing code** — and, where the repository declares a migration config, the

@@ -1601,7 +1601,7 @@ def frame(reader, routing, root, item, declared):
 
 
 RULE_CHANGES_SAYS = (
-    "`## Rule changes` does not parse, so `settle` cannot group this spec by the "
+    "`## Rule changes` does not parse, so `settle` cannot group this design by the "
     "sections it names and the settle has to read it whole: {reason}"
 )
 
@@ -1609,7 +1609,7 @@ RULE_CHANGES_SAYS = (
 def rule_changes_read(reader, root, item):
     """[(path, line, problem)] for the work item's `frame/design.md` whose
     `## Rule changes` section `rule_changes.parse`, the one reader `settle`
-    groups by, refuses; [] where git carries no spec. The reader is reached
+    groups by, refuses; [] where git carries no design. The reader is reached
     through `unverified_check.py#rule_changes`, which raises where it will
     not load."""
     rel = f"{item}/{SPEC_FILE}"
@@ -2265,7 +2265,7 @@ def main(argv=None):
 
     fork = reader.merge_base(root, args.baseline)
     # A declared work item's commit can write another work item's section
-    # without touching its `routing.md`, so the diff's specs are read too.
+    # without touching its `routing.md`, so the diff's designs are read too.
     judged = {os.path.dirname(rel) for rel in declarations}
     edited = [
         item

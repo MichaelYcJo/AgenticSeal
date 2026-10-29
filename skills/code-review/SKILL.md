@@ -1,16 +1,16 @@
 ---
 name: code-review
 description: |
-  Two-stage review methodology (spec compliance, then quality) with comparison axes,
+  Two-stage review methodology (compliance, then quality) with comparison axes,
   cross-session review records, and re-review inheritance.
   Use when: reviewing a PR or diff, re-reviewing after fixes, orchestrating reviewer agents.
   NOT for: implementing fixes (use `implement`), style-only linting a formatter
   can do, or a plain bug-and-cleanup sweep of a diff — Claude Code's built-in
-  `/code-review` covers that. This one judges spec compliance before quality and
+  `/code-review` covers that. This one judges compliance before quality and
   carries earlier rounds' coordinates across sessions.
 ---
 
-# code-review — spec first, then quality
+# code-review — compliance first, then quality
 
 Assume the code has defects, and look for them. A pass with no grounds is
 forbidden: where you are unsure, write a question, not a pass. A session
@@ -19,8 +19,9 @@ round 1.
 
 ## Two stages, in order
 
-1. **Spec compliance**: the code against the written spec, the `docs/`
-   policies first and then the work item's SDD set under `seal/threads/`. Look
+1. **Compliance**: the code against the documents that outrank it, the
+   `docs/` policies first and then the work item's SDD set under
+   `seal/threads/`. Look
    for behaviour that is missing and for behaviour nobody asked for. Read the
    code, not the implementer's report of it.
 2. **Quality**, only after stage 1: correctness, error handling, security,
@@ -28,7 +29,7 @@ round 1.
 
 The work item's `gaps.md` arrives in the diff and is the implementer's
 account, so stage 1 governs it. Its divergences, its `## Not verified` rows
-and the clauses it fed back into the spec are claims to check, and an
+and the clauses it fed back into the design are claims to check, and an
 account citing a clause it added is citing itself. Settle what you can; what
 only a person can answer stays a question. Do not edit it.
 
@@ -47,10 +48,10 @@ Fix the axes before starting and cover all of them.
 | Authorization | who acts/queries as whom; self/admin/other branches |
 | Query scope | which set is targeted: period, ownership, status filters |
 | Exclusions & boundaries | excluded states, overlap conditions, **boundary values** (rarely written down — most frequent divergence point) |
-| Deliberate non-exclusions | what the spec intentionally does *not* filter; new code tends to "clean it up" |
+| Deliberate non-exclusions | what the policy or the design intentionally does *not* filter; new code tends to "clean it up" |
 | Ordering, dedup, response shape | sort keys, tie-breaking, dedup basis, included/excluded fields |
 | Error paths | failure conditions, codes, messages; failure vs. empty result. Count **new failure paths the change introduces** separately — someone must classify each as fix or regression |
-| State transitions | against the spec's state machine, if one exists |
+| State transitions | against the state machine the policy or the design states, if one exists |
 | Concurrency & atomicity | what can change between the read that decides and the write that acts: state held across an external call or `await`, transaction boundary against lock scope, whether a retry executes twice |
 | Security | who can reach this path and as whom; the trust of every input that crosses an OS or process boundary; whether each failure fails open or closed; what a crafted name, path, or payload reaches |
 
@@ -112,7 +113,7 @@ the check reads; that section is the grammar's one statement. The prose follows
 is absent; field names, headings and vocabulary words stay English
 (`templates/setup/config.md` *What no row governs*).
 
-- A finding is a defect. `must` is a spec violation or a defect to fix
+- A finding is a defect. `must` is a compliance violation or a defect to fix
   before merge; `should` is a defect the release would ship, a tool doing
   something wrong or telling a person something wrong, to fix or say why
   not. A wrong sentence an agent reads and acts on is `should`; a sentence

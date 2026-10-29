@@ -48,7 +48,8 @@ make.
    watchdog has nothing of yours to count.
 3. Open `skills/implement/SKILL.md` and read three sections:
    `## The language the records are written in`,
-   `### 1. Read the spec before the code` and `### 3. The SDD file set`.
+   `### 1. Read the documents that outrank the code first` and
+   `### 3. The SDD file set`.
    Where a heading is not found, read the file whole.
 4. Read wide, in the order of authority. The policy in force first, which
    outranks the ticket and the code alike: the policy root and the
