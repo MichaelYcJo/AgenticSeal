@@ -92,7 +92,9 @@ KNOWN_LIMITS = (
 # YAML's white space inside a line: a space or a tab, the tab as YAML 1.2
 # reads it. Python's `\s` and a bare `str.strip()` also take U+00A0 and the
 # other Unicode spaces, which YAML reads as text, so every reader below
-# strips and matches this and nothing wider.
+# strips and matches this. Two tests are wider on purpose, and both only
+# refuse: `block_entries` and `continued` read a line whose text opens with
+# any other space as unread.
 SPACE = " \t"
 # One character of SPACE, for the patterns below.
 SPACE_CHAR = f"[{SPACE}]"
@@ -128,16 +130,16 @@ def block_entries(lines):
     The block's indent is its first entry's: one space or more, or zero
     where that entry is a `- ` item. A deeper line under a key belongs to
     that key and is skipped. A line at indent zero that is not a `- ` item
-    ends the block. Three shapes make the whole block unread, an empty
-    list: a line shallower than the block but not at zero, which no valid
-    workflow holds; a line at the block's indent that is neither a key nor
-    an item beside any other entry; and a deeper line under an entry that
-    holds no key, a bare name or a `- name` item, which continues that
-    name, so that `  pull_request` above `    push` is the one name
+    ends the block. Four shapes make the whole block unread, an empty
+    list: a line whose text, after SPACE, opens with any other space,
+    which YAML reads as text and no key or event name starts with; a line
+    shallower than the block but not at zero, which no valid workflow
+    holds; a line at the block's indent that is neither a key nor an item
+    beside any other entry; and a deeper line under an entry that holds no
+    key, a bare name or a `- name` item, which continues that name, so
+    that `  pull_request` above `    push` is the one name
     "pull_request push". A key is what `KEY` reads: text before a colon
-    that ends the line or that SPACE follows. A line whose text opens with
-    any other space, which YAML reads as text and no key or event name
-    starts with, makes the whole block unread too.
+    that ends the line or that SPACE follows.
     """
     entries, bare, width, under_key = [], [], None, False
     for line in lines:
