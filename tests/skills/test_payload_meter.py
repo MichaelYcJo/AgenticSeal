@@ -4,7 +4,8 @@ What each agent's startup payload is made of, and what it costs in tokens --
 with every token figure carrying its basis.
 
 #292. The meter reads the tree (an agent's definition, each `SKILL.md` its
-`skills:` list injects, the two `CLAUDE.md` files the harness adds) and
+`skills:` list injects, the two `CLAUDE.md` files the harness adds and, since
+#1177, each file their `@` lines import) and
 reports bytes, characters and tokens. Bytes and characters are counted;
 tokens are never — they are either MEASURED from a transcript, by
 `--calibrate`, or ESTIMATED from a bytes-per-token ratio, and the label on
@@ -34,7 +35,7 @@ import subprocess
 import sys
 
 import pytest
-from conftest import LS, ROOT, census_case, names_path
+from conftest import LS, ROOT, census_case, names_path, symlink_or_skip
 
 TARGET = "skills/verify/scripts/payload_meter.py"
 
@@ -308,6 +309,106 @@ class Test_measure:
         ]
         text = meter.render(data)
         assert "CLAUDE.md pair" in text
+
+    def test_an_import_in_either_file_of_the_pair_is_a_harness_row_under_it(
+        self, meter, tmp_path
+    ):
+        """#1177, S5. The preset block is one `@` line, and the core it
+        imports is in every session's context; a meter that read the pair as
+        two flat files put the block's 80-odd bytes where the core's 6,700
+        are. Each imported file is a harness row, named by the importing
+        file's name, an arrow and the path as written, with `via` naming the
+        importer, and the pair's line sums and names it. A backticked `@`, an
+        address and a quoted path are not imports."""
+        root, home = a_tree(tmp_path)
+        write(
+            str(root / "CLAUDE.md"),
+            f"## Repo rules {ACCENT}\n@docs/repo.md\n"
+            'The block\'s `@` line, mail me@example.com, @"quoted.md".\n',
+        )
+        write(str(root / "docs" / "repo.md"), f"repo import {ACCENT}\n")
+        write(
+            str(home / ".claude" / "CLAUDE.md"),
+            "<!-- agentic:start -->\n@plugins/core.md\n<!-- agentic:end -->\n",
+        )
+        core = home / ".claude" / "plugins" / "core.md"
+        write(str(core), f"# core {ACCENT}\n\nthe values\n")
+        data = meter.measure(str(root), str(home))
+        files = data["agents"]["probe"]["files"]
+        harness = [f for f in files if f["share"] == "harness"]
+        assert [f["path"] for f in harness] == [
+            "CLAUDE.md",
+            "CLAUDE.md → docs/repo.md",
+            "~/.claude/CLAUDE.md",
+            "~/.claude/CLAUDE.md → plugins/core.md",
+        ], [f["path"] for f in harness]
+        assert [f.get("via") for f in harness] == [
+            None,
+            "CLAUDE.md",
+            None,
+            "~/.claude/CLAUDE.md",
+        ]
+        assert (harness[1]["bytes"], harness[1]["chars"]) == size_of(
+            root / "docs" / "repo.md"
+        )
+        assert (harness[3]["bytes"], harness[3]["chars"]) == size_of(core)
+        total = data["agents"]["probe"]["total"]
+        assert total["bytes"] == sum(f["bytes"] for f in files)
+        text = meter.render(data)
+        pair_line = next(c for c in rows_of(text) if c[0].startswith("CLAUDE.md pair"))
+        assert "`~/.claude/CLAUDE.md → plugins/core.md`" in pair_line[0], pair_line
+        assert "`CLAUDE.md → docs/repo.md`" in pair_line[0], pair_line
+        assert pair_line[1] == f"{sum(f['bytes'] for f in harness):,}", pair_line
+        by_first = {c[0]: c for c in rows_of(text)}
+        imported = by_first["&nbsp;&nbsp;`~/.claude/CLAUDE.md → plugins/core.md`"]
+        assert imported[1] == f"{harness[3]['bytes']:,}", imported
+        assert "imported by `~/.claude/CLAUDE.md`" in imported[4], imported
+
+    def test_an_import_that_is_not_a_file_is_a_missing_row(self, meter, tmp_path):
+        """#1177, S5. A dangling import loads nothing and says nothing in a
+        session (`frame/design.md` probe e), so the meter says it: a path that
+        is no file, or a directory, is a row of 0 bytes marked `missing`."""
+        root, home = a_tree(tmp_path)
+        write(
+            str(home / ".claude" / "CLAUDE.md"),
+            "@plugins/marketplaces/agenticseal/skills/core/SKILL.md\n@plugins\n",
+        )
+        os.makedirs(home / ".claude" / "plugins")
+        data = meter.measure(str(root), str(home))
+        imported = [f for f in data["agents"]["probe"]["files"] if "via" in f]
+        assert [f["path"] for f in imported] == [
+            "~/.claude/CLAUDE.md → plugins/marketplaces/agenticseal/skills/core/SKILL.md",
+            "~/.claude/CLAUDE.md → plugins",
+        ]
+        for row in imported:
+            assert (row["bytes"], row.get("missing")) == (0, True), row
+        text = meter.render(data)
+        assert (
+            "| &nbsp;&nbsp;`~/.claude/CLAUDE.md → plugins` | 0 | 0 | 0 | missing |"
+            in text
+        ), text
+
+    def test_one_real_path_imported_twice_is_one_row(self, meter, tmp_path):
+        """#1177, S5. Claude Code reads a file once when two memory files
+        import it by one path (`frame/design.md` probe c), so one real path is
+        one row across the pair, under the first importer, however each file
+        spells it; an import back to a file of the pair is no row either."""
+        root, home = a_tree(tmp_path)
+        shared = home / "shared.md"
+        write(str(shared), f"shared {ACCENT}\n@.claude/CLAUDE.md\n@shared.md\n")
+        write(str(root / "CLAUDE.md"), "## Repo rules\n@~/shared.md\n")
+        write(str(home / ".claude" / "CLAUDE.md"), "@../shared.md\n@../shared.md\n")
+        data = meter.measure(str(root), str(home))
+        harness = [
+            f["path"]
+            for f in data["agents"]["probe"]["files"]
+            if f["share"] == "harness"
+        ]
+        assert harness == [
+            "CLAUDE.md",
+            "CLAUDE.md → ~/shared.md",
+            "~/.claude/CLAUDE.md",
+        ], harness
 
     def test_sections_split_each_file_at_its_headings_and_sum_to_the_file(
         self, meter, tmp_path
@@ -890,6 +991,83 @@ class Test_sections_of:
         text = f"# alpha\n\n## First\n\n{NOT_A_FENCE[shape]}\n## H\n\nlast\n"
         headings = [p["heading"] for p in meter.sections_of(text)]
         assert headings == ["(before the first heading)", "## First", "## H"], headings
+
+
+class Test_imports_of:
+    """#1177, `frame/design.md` *Scope* item 5: how an `@` line resolves, as
+    code.claude.com/docs/en/memory.md states it -- relative to the file that
+    holds it, `~` as the home, at most four hops."""
+
+    def test_a_tilde_path_expands_to_the_home_it_was_given(
+        self, meter, monkeypatch, tmp_path
+    ):
+        """The home the meter was given, not the process's: the cases run the
+        meter against a scratch home, and `expanduser` would read the
+        machine's."""
+        home = tmp_path / "home"
+        monkeypatch.setenv("HOME", str(tmp_path / "elsewhere"))
+        monkeypatch.setenv("USERPROFILE", str(tmp_path / "elsewhere"))
+        importer = tmp_path / "repo" / "CLAUDE.md"
+        write(str(importer), "@~/notes/a.md\n")
+        write(str(home / "notes" / "a.md"), "a\n")
+        found = meter.imports_of(str(importer), str(home))
+        assert found == [
+            (("~/notes/a.md",), os.path.realpath(home / "notes" / "a.md"))
+        ], found
+
+    def test_a_relative_path_resolves_against_the_importing_file(
+        self, meter, monkeypatch, tmp_path
+    ):
+        """Against the file that holds the line, at every hop: `inner/x.md`
+        imports `y.md`, which is `inner/y.md`, not the top file's `y.md` and
+        not the working directory's."""
+        top = tmp_path / "a" / "CLAUDE.md"
+        write(str(top), "@inner/x.md\n")
+        write(str(tmp_path / "a" / "inner" / "x.md"), "@y.md\n")
+        write(str(tmp_path / "a" / "inner" / "y.md"), "the right one\n")
+        write(str(tmp_path / "a" / "y.md"), "a decoy beside the top file\n")
+        write(str(tmp_path / "y.md"), "a decoy in the working directory\n")
+        monkeypatch.chdir(tmp_path)
+        found = meter.imports_of(str(top), str(tmp_path / "home"))
+        assert found == [
+            (("inner/x.md",), os.path.realpath(tmp_path / "a" / "inner" / "x.md")),
+            (
+                ("inner/x.md", "y.md"),
+                os.path.realpath(tmp_path / "a" / "inner" / "y.md"),
+            ),
+        ], found
+
+    def test_a_symlink_resolves_to_its_target(self, meter, tmp_path):
+        """`frame/design.md` probe b: an import through a symlink loads the
+        target, so the row is the target's, by its real path and its bytes."""
+        target = tmp_path / "clone" / "core.md"
+        write(str(target), f"# core {ACCENT}\n" + "x" * 300 + "\n")
+        home = tmp_path / "home"
+        os.makedirs(home / ".claude")
+        symlink_or_skip(str(target), str(home / ".claude" / "core.md"))
+        write(str(home / ".claude" / "CLAUDE.md"), "@core.md\n")
+        found = meter.imports_of(str(home / ".claude" / "CLAUDE.md"), str(home))
+        assert found == [(("core.md",), os.path.realpath(target))], found
+        root, _home = a_tree(tmp_path / "tree")
+        data = meter.measure(str(root), str(home))
+        row = next(f for f in data["agents"]["probe"]["files"] if "via" in f)
+        assert (row["bytes"], row["chars"]) == size_of(target), row
+
+    def test_imports_stop_at_the_fourth_hop(self, meter, tmp_path):
+        """The docs' "maximum depth of four hops": a chain of five imports
+        loads four files, and the fifth is no row at all."""
+        top = tmp_path / "CLAUDE.md"
+        write(str(top), "@h1.md\n")
+        for hop in range(1, 6):
+            write(str(tmp_path / f"h{hop}.md"), f"@h{hop + 1}.md\n")
+        found = meter.imports_of(str(top), str(tmp_path / "home"))
+        assert [chain[-1] for chain, _real in found] == [
+            "h1.md",
+            "h2.md",
+            "h3.md",
+            "h4.md",
+        ], found
+        assert found[-1][0] == ("h1.md", "h2.md", "h3.md", "h4.md")
 
 
 class Test_module:

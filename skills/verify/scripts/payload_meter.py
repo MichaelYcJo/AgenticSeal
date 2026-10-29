@@ -5,7 +5,8 @@ costs in tokens.
 Every spawn of an agent this plugin defines pays for the same prefix again:
 the definition under `agents/`, every `SKILL.md` its `skills:` list injects,
 and the two `CLAUDE.md` files the harness adds (the repository's and
-`~/.claude/CLAUDE.md`). The prefix is cached for five minutes, and no two
+`~/.claude/CLAUDE.md`) with every file their `@` lines import, up to four
+hops (`imports_of`, #1177). The prefix is cached for five minutes, and no two
 spawns of one agent in a review chain fall inside five minutes of each other
 (#292, `frame/design.md` *Measured before the first edit*) — so in a chain it is
 written on every spawn. This reads the tree and says what that prefix is.
@@ -95,6 +96,13 @@ BASELINE_AGENT = "general-purpose"
 # one rule's, `unverified_check.py#heading_level` (#867).
 SECTION_LEVELS = (2, 3)
 AGENT_ID = re.compile(r"\bagentId:\s*([0-9a-f]+)")
+
+# A `CLAUDE.md` import, `imports_of`'s reading of it; the hops the harness
+# follows (code.claude.com/docs/en/memory.md, read for #1177); and what joins
+# an imported row's name to its importer's.
+IMPORT = re.compile(r"(?:^|(?<=\s))@([^\s\"'`]\S*)", re.MULTILINE)
+HOPS = 4
+ARROW = " → "
 
 
 def _session_cost():
@@ -294,9 +302,48 @@ def file_row(root, rel, display, share, sections):
     return row
 
 
+def imports_of(path, home, depth=HOPS, seen=None):
+    """`[(chain, real_path)]`: every file the `@` lines of the file at `path`
+    import, depth first, as code.claude.com/docs/en/memory.md resolves them
+    (#1177, `frame/design.md` *Scope* item 5).
+
+    An import is `@` at the start of a line or after whitespace, then a
+    path that runs to the next whitespace; a path that opens with a quote or
+    a backtick is not one. A leading `~` is `home`, the home the meter was
+    given, never the process's. Any other relative path resolves against the
+    directory of the file that holds the line, at every hop. `chain` is the
+    path of each hop as written, so the last entry is this import's own.
+
+    At most `depth` hops, four by the docs. A real path in `seen` is skipped,
+    and each one found is added to it, so one file imported twice, or a cycle,
+    is read once. A target that is not a file is returned, for its row to say
+    `missing`, and is not followed."""
+    seen = set() if seen is None else seen
+    if depth <= 0 or not os.path.isfile(path):
+        return []
+    out = []
+    for match in IMPORT.finditer(read(path)[1]):
+        written = match.group(1)
+        target = written
+        if target == "~" or target.startswith("~/"):
+            target = os.path.join(home, target[2:])
+        real = os.path.realpath(os.path.join(os.path.dirname(path), target))
+        if real in seen:
+            continue
+        seen.add(real)
+        out.append(((written,), real))
+        for chain, deeper in imports_of(real, home, depth - 1, seen):
+            out.append(((written, *chain), deeper))
+    return out
+
+
 def composition(root, home, name, definition, sections):
     """The rows of one agent's payload, in the order the harness lays them
-    out: the definition, each skill, then the harness's `CLAUDE.md` pair."""
+    out: the definition, each skill, then the harness's `CLAUDE.md` pair,
+    each file of it followed by the files its `@` lines import (`imports_of`).
+    An imported row is the importer's name, an arrow and each hop as written,
+    with `via` naming the file that holds its line; one real path is one row
+    across the pair, and a file of the pair is never a row of the other's."""
     _name, skills = frontmatter(read(os.path.join(root, definition))[1])
     rows = [file_row(root, definition, definition, "agent", sections)]
     for skill in skills:
@@ -309,17 +356,31 @@ def composition(root, home, name, definition, sections):
                 "bytes": len(read(shadow)[0]),
             }
         rows.append(row)
-    rows.append(file_row(root, "CLAUDE.md", "CLAUDE.md", "harness", sections))
-    user = os.path.join(home, ".claude", "CLAUDE.md")
-    rows.append(
-        file_row(
-            os.path.dirname(user),
-            os.path.basename(user),
-            "~/.claude/CLAUDE.md",
-            "harness",
-            sections,
-        )
+    pair = (
+        (os.path.join(root, "CLAUDE.md"), "CLAUDE.md"),
+        (os.path.join(home, ".claude", "CLAUDE.md"), "~/.claude/CLAUDE.md"),
     )
+    seen = {os.path.realpath(path) for path, _display in pair}
+    for path, display in pair:
+        rows.append(
+            file_row(
+                os.path.dirname(path),
+                os.path.basename(path),
+                display,
+                "harness",
+                sections,
+            )
+        )
+        for chain, real in imports_of(path, home, seen=seen):
+            row = file_row(
+                os.path.dirname(real),
+                os.path.basename(real),
+                ARROW.join((display, *chain)),
+                "harness",
+                sections,
+            )
+            row["via"] = ARROW.join((display, *chain[:-1]))
+            rows.append(row)
     return rows
 
 
@@ -826,6 +887,12 @@ def render(data):
                 if row.get("missing"):
                     lines.append(
                         f"| &nbsp;&nbsp;`{row['path']}` | 0 | 0 | 0 | missing |"
+                    )
+                elif "via" in row:
+                    lines.append(
+                        f"| &nbsp;&nbsp;`{row['path']}` | {_n(row['bytes'])} | "
+                        f"{_n(row['chars'])} | {_n(row['tokens'])} | "
+                        f"{row['basis']} — imported by `{row['via']}` |"
                     )
         total = agent["total"]
         lines.append(
