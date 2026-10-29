@@ -51,6 +51,14 @@ already gate a pull request on it, so a script does not re-encode that
 judgment as one more grammar rule; it reads what a command wrote or what a
 real parser returns.
 
+**Judgment is spent where meaning is the question, and a script answers the
+rest.** What a script answers exactly, the suite, the lint, the broad gate,
+the merge check, stays a script, and the session waits on its exit code
+rather than reasoning about what it would print. A session that judges
+everything spends more tokens than the work is worth, and one that judges
+nothing is a relay; the balance between the two is itself the orchestrator's
+judgment, weighed against `## The goal a design is chosen against`.
+
 **Judgment is not licence to skip a party.** A few invariants hold the chain
 and are not open to judgment: no review without a build, no fix that no
 round reads, no seal without the broad run at HEAD, no pull request without
