@@ -998,7 +998,7 @@ class Test_imports_of:
     code.claude.com/docs/en/memory.md states it -- relative to the file that
     holds it, `~` as the home, at most four hops."""
 
-    def test_a_tilde_path_expands_to_the_home_it_was_given(
+    def test_accepts_a_tilde_path_as_the_home_it_was_given(
         self, meter, monkeypatch, tmp_path
     ):
         """The home the meter was given, not the process's: the cases run the
@@ -1015,7 +1015,7 @@ class Test_imports_of:
             (("~/notes/a.md",), os.path.realpath(home / "notes" / "a.md"))
         ], found
 
-    def test_a_relative_path_resolves_against_the_importing_file(
+    def test_accepts_a_relative_path_against_the_importing_file(
         self, meter, monkeypatch, tmp_path
     ):
         """Against the file that holds the line, at every hop: `inner/x.md`
@@ -1037,7 +1037,7 @@ class Test_imports_of:
             ),
         ], found
 
-    def test_a_symlink_resolves_to_its_target(self, meter, tmp_path):
+    def test_accepts_a_symlink_as_its_target(self, meter, tmp_path):
         """`frame/design.md` probe b: an import through a symlink loads the
         target, so the row is the target's, by its real path and its bytes."""
         target = tmp_path / "clone" / "core.md"
@@ -1053,7 +1053,7 @@ class Test_imports_of:
         row = next(f for f in data["agents"]["probe"]["files"] if "via" in f)
         assert (row["bytes"], row["chars"]) == size_of(target), row
 
-    def test_imports_stop_at_the_fourth_hop(self, meter, tmp_path):
+    def test_refuses_an_import_past_the_fourth_hop(self, meter, tmp_path):
         """The docs' "maximum depth of four hops": a chain of five imports
         loads four files, and the fifth is no row at all."""
         top = tmp_path / "CLAUDE.md"
