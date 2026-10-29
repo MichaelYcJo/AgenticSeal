@@ -23,6 +23,21 @@ What a script answers exactly, the suite, the lint, the broad gate, the
 merge check, stays a script, and the session waits on its exit code rather
 than reasoning about what it would print.
 
+**Each agent judges its own target, independently of the others.** The
+framer judges what the work should be, the crafter whether the build holds
+to the frame, the proofer whether the diff holds, and the sealer whether
+every party's account agrees with the issue and the tree. They are separate
+agents because their targets differ, and each reaches its result without
+leaning on another's verdict, so one agent's mistake does not pass through
+the next unread. The records they hand each other, the phase records and
+the round records among them, are how one agent understands another's work,
+not a theory the next one is asked to adopt: each reads them as claims and
+reaches its own result. The rules each one judges by live in its own definition
+or in the document it reads at that step; this file holds what all of them
+share. What they share is text, so every sentence an agent or a check reads
+has one reading, by the rules `skills/writing-style/SKILL.md` *에이전트와
+검사가 읽는 글은 한 가지로만 읽히게 쓴다* states.
+
 **A rule is guidance for a judgment, not a sequence to execute.** The
 orchestrator and the agents it spawns read the rules to judge in the
 direction this project wants: what to weigh, what each option costs, and
@@ -62,16 +77,11 @@ with their mechanisms and rewrites the rules that only sequence acts.
 ## The rule a mechanism is kept against
 
 **A mechanism stays only while its history shows what it caught against what
-it costs**; existing is no reason to keep it. A gate that stops a session,
-the routing check among them, guards the work a work item owns. A change
-that would be routed `no work item`, such as a formatter run, a dependency
-bump or an identifier renamed across files by `sed`, is outside that work, so
-where only such a change passes through a gap in that kind of gate, the gap
-is not a weakness to close. A rule's proof is the test or behaviour eval its
-`check:` line names. A fact has one source, and every other place links to
-it. A script gates only a fact it reads in that closed form; a noisy
-reading, or one guessed from words, is its report. Nothing is kept beside
-the tree to stay in step with it, such as a stored count or coordinate. Do
+it costs**; existing is no reason to keep it. A fact has one source, and
+every other place links to it. A script gates only a fact it reads in a
+closed form; a noisy reading, or one guessed from words, is its report.
+Nothing is kept beside the tree to stay in step with it, such as a stored
+count or coordinate. Do
 not avoid the change a problem calls for: before a fix adapts to an existing
 structure, ask whether the structure should change, and when fixes chase one
 mechanism's edge cases, ask what it decides; what exists is a reference, not
@@ -81,28 +91,3 @@ commit removes what stood on the old fact: a check, an exception, a comment,
 a copy. History goes to git, the release notes and the work record.
 `CONTRIBUTING.md` *What a change to a gate must carry* is where a pull
 request answers this rule and the value above.
-
-## Repo rule: the merge method is fixed per direction, and it is not a preference
-
-A pull request into `release/vX.Y.Z` is squashed and one into `main` takes a
-merge commit, whichever button a page offers first. The rule and its reasons
-are `docs/branch-and-release.md` *Work accumulates on a release branch*.
-
-## Repo rule: no real identifiers in examples or fixtures
-
-A domain in an example or fixture is `example.com` and a user path is
-`/Users/x/`, never a real domain, path or organisation name
-(`CONTRIBUTING.md` *House rules*).
-
-## Repo rule: text an agent or a check reads has one reading
-
-A session here writes skills, agent definitions, templates and frames, and
-the owner's two directions bind every sentence of them. Nothing an agent
-writes or a check reads uses a symbol a reader can trip on as syntax or
-states a value twice, and a line a script reads is in the one form the
-script reads; whether a line written otherwise meant the same is an agent's
-judgment. Shorter is never bought with a second reading: an instruction
-names who acts, when, on which file and what counts as done; a defined term
-keeps its one meaning; and a thing more than one party can have is named
-with whose. `skills/writing-style/SKILL.md` *에이전트와 검사가 읽는 글은 한
-가지로만 읽히게 쓴다* states the rules with their checks.
