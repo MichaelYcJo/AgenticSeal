@@ -364,7 +364,7 @@ adds any mechanism by what it takes away:
   environment is an outage, not a cost.
 - **A prompt budget.** The pull request says how many times the change puts
   a question in front of a person, per session, and what each one costs when
-  nobody is at the keyboard. Asking a person is the most expensive judgment
+  nobody is at the keyboard. Asking a person is the most expensive step
   `skills/core/SKILL.md` *The first value: efficient development through the
   workflow* names, so an interruption is a price paid against that value rather than a
   neutral design choice. A change that adds one says why

@@ -108,7 +108,7 @@ def test_the_core_names_where_the_routing_question_is():
     the routing question, which left a credential or a permission to wait
     for the first refusal."""
     core = " ".join(read("skills", "core", "SKILL.md").split())
-    asking = core.split("**Asking a person is the most expensive judgment.**", 1)
+    asking = core.split("**Asking a person is the most expensive step.**", 1)
     assert len(asking) == 2, "the core lost its paragraph on asking a person"
     paragraph = asking[1].split("**", 1)[0]
     assert "The routing question is one of that batch" in paragraph, (
