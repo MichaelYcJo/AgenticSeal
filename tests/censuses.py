@@ -900,11 +900,15 @@ ALLOWED_USER_PATH = "/Users/x/"  # the designated fixture user
 DOMAIN_RE = re.compile(r"\b[a-z0-9][a-z0-9.-]*\.(?:com|io|net|org|ai|dev)\b")
 # Built from two halves, so the pattern does not hold a user path itself.
 USER_PATH_RE = re.compile("/" + r"Users/[^\s\"'`)/]+/?")
-# A projects directory spells the path its session started in with dashes,
-# `-Users-<name>-<repo>`, so a user path reaches a record that way too.
-# Built from two halves, like USER_PATH_RE. The name is word characters, so
-# a placeholder such as `<name>` or a pattern such as `[A-Za-z]` is not one.
-SLUG_USER_RE = re.compile("-" + r"Users-([\w.]+)-")
+# A projects directory spells the path its session started in with dashes:
+# `-Users-<name>-<repo>`, or `-Users-<name>` alone for a session started in
+# the home directory. So a user path reaches a record that way too. Built
+# from two halves, like USER_PATH_RE. The name is read as word characters
+# and dots up to the first character that is neither. A name holding a dash,
+# or a dot the slug spells as one, is read by its first part, and refused
+# unless that part is the fixture user's. A placeholder such as `<name>` or
+# a pattern such as `[A-Za-z]` is no name.
+SLUG_USER_RE = re.compile("-" + r"Users-([\w.]+)")
 NOT_TEXT = (".gif", ".png", ".jpg")
 
 
