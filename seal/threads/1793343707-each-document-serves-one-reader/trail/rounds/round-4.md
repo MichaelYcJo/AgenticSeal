@@ -9,7 +9,7 @@ target: f279997c against 01c0873c
 severity: should
 location: `seal/threads/1793343707-each-document-serves-one-reader/frame/design.md:267`, `seal/threads/1793343707-each-document-serves-one-reader/frame/design.md:57`, `seal/threads/1793343707-each-document-serves-one-reader/changelog.md:20`
 evidence: executed `grep -h '^regression: \|^reopens: ' seal/threads/1793343707-each-document-serves-one-reader/trail/rounds/round-*.md | wc -l`, `grep -h '^regression: \|^reopens: ' seal/threads/1793343707-each-document-serves-one-reader/trail/rounds/round-*.md | sort -u | wc -l`, `git grep -n 'line names' -- docs skills agents`
-verdict: open
+verdict: fixed 8123af5b
 
 The `add` to `docs/release-checklist.md` *2b. Settle what earlier releases
 left behind* is new in the reframe, and the settle writes it into the
@@ -65,14 +65,14 @@ findings, findings that carry a `regression:` or `reopens:` line, findings whose
 The two frame lines are the framer's, and the orchestrator folds them. The
 fragment's row belongs to whoever writes the fix.
 
-answer:
+answer: The process row's parenthesis at `changelog.md:20` now reads "findings that carry a `regression:` or `reopens:` line", the round's text as given; the orchestrator folded the two frame lines at `2c7ba65a`. `git grep -n 'named again\|line names'` over the tree finds no other statement of the measure's second count: the hits in `agents/proofer.md`, `docs/` and the code name what a line points at, not the count, and the hits in this round record are the finding's own quotes (executed).
 
 ### 2. The fix-pass sentence names two of the three readings its grounds list, and misses the one round 1's paste-ready fix failed
 
 severity: should
 location: `agents/crafter.md:168-172`, `tests/text/test_a_moved_rule_leaves_its_definition.py:542-550`, `seal/threads/1793343707-each-document-serves-one-reader/frame/design.md:63`, `seal/threads/1793343707-each-document-serves-one-reader/frame/plan.md:64`
 evidence: read `agents/crafter.md:168-172`, `seal/threads/1793343707-each-document-serves-one-reader/frame/design.md:63`, `seal/threads/1793343707-each-document-serves-one-reader/trail/rounds/round-2.md:7-71`
-verdict: open
+verdict: fixed f6c65dac
 
 The unit is the sentence that phase 7 added to `agents/crafter.md` *A fix
 pass writes two lines of each finding and no phase record*. A build phase
@@ -130,14 +130,14 @@ root and under every condition its file names") and plan row A21b at
 framer's, and the orchestrator folds them. If this finding is taken, the
 process row that finding 3 asks for states the sentence as it ends up.
 
-answer:
+answer: Taken, in the pass's own words. Read as the definition's reader would, the round's text fails one way: "and in the release that ships it, where a section it cites holds that release's text" lets "where" read as a condition on the release axis, so a reader may apply the axis only where a cited section holds that text; and "it" there may mean the fix or the step. The commit splits it: the step "is read in either `seal/` root (contract rule 11), under every condition its file names, and in the release that ships it. In that release, a section the step cites holds the text the release ships, not the text a design's `## Rule changes` writes at a later settle." Read in either root and in a user's repository, it holds: `## Rule changes` and the settle are named in the shipped template and skill, and it names nothing of this repository. The pin takes the two sentences as two entries, and the first was seen red against `agents/crafter.md` at `2c7ba65a` (exit 1, "the fix-pass rule lost 'in either `seal/` root (contract rule 11), under every condition its file names, and in the release that ships it.'"). After the commit, `seal mutate` deleted the second sentence, and the case went red, exit 1 (executed). The frame lines are the orchestrator's fold at `2c7ba65a`. Other places stating the sentence: the fragment's entry and process row (finding 3, `8123af5b`); `frame/questions.md:49` only points at Scope item 13; `trail/phases/phase-7.md` is the phase's history and stands (executed, `git grep -n 'paste-ready fix is\|under every condition'`).
 
 ### 3. The fragment states no change for the crafter's new fix-pass rule, though the diff changes `agents/crafter.md`
 
 severity: must
 location: `seal/threads/1793343707-each-document-serves-one-reader/changelog.md:3`, `seal/threads/1793343707-each-document-serves-one-reader/changelog.md:20`, `seal/threads/1793343707-each-document-serves-one-reader/frame/plan.md:77`
 evidence: executed `grep -n -i 'paste' seal/threads/1793343707-each-document-serves-one-reader/changelog.md`
-verdict: open
+verdict: fixed 8123af5b
 
 `docs/the-record-layout.md` *A change to the way of working writes its
 process row in its own fragment* says a work item whose diff changes an
@@ -178,7 +178,7 @@ Plan row 7's cell at `frame/plan.md:77` is the framer's. It is history
 once the row's Status cell is filled, so it needs no fold unless the
 framer wants the row to name the fragment's row.
 
-answer:
+answer: A new last row of `### Process changes` and one sentence in the `### Changed` entry, after the framer's rule. Each states the sentence as it ends up after finding 2, with the release as the third axis, which the round's row text lacked. *A change to the way of working writes its process row in its own fragment* asks for the row and not for an entry sentence. The sentence is there because `docs/the-record-layout.md` *A commit after the build brings its changelog fragment along* has the fragment state what ships, and the entry already states the run's other agent rules. The row's Source, `#issuecomment-6520356879`, is the orchestrator's comment of 2026-10-30 on this recurrence (executed, `gh api`). `tests/github/test_publish_release_note.py` passed in the boundary run, exit 0 (executed).
 
 ## Confirmations
 
