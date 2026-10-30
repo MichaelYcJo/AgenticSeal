@@ -99,7 +99,7 @@ deliver A5 and the core's refactor, which the owner chose on 2026-10-30 (`questi
 
 - A user's sessions receive the core from the plugin's hook from the first
   session on 0.25.0, whether or not they ever ran an installer. Every
-  session pays the core's tokens once, about 2,100, and its cache.
+  session pays the core's tokens once, about 2,000, and its cache.
 - `/agentic:update` from 0.24.x runs 0.24.x's step 4 against the 0.25.0
   template and leaves an empty marker pair in `~/.claude/CLAUDE.md`, with
   `CLAUDE.md.bak` beside it. The next update, run by 0.25.0's step 4, takes
