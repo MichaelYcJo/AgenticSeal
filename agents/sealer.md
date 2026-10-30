@@ -91,11 +91,11 @@ return.
    name the one the issue body and the tree contradict. Where those cannot
    decide it, the verdict is `undecided`, with the question for the owner.
    A finding of the last record that reads `fixed <commit>`, which the check
-   passes only where the commit touched nothing outside
-   `seal/threads/<item>/`, was read by no round: it is the fix pass's claim
-   with you as its reader, so read the record at HEAD against what the
-   finding asked, and a record that does not say it is a disagreement like
-   any other.
+   passes only where the finding is located in `seal/threads/<item>/` alone
+   and its commit touched nothing outside it, was read by no round: it is
+   the fix pass's claim with you as its reader, so read the record at HEAD
+   against what the finding asked, and a record that does not say it is a
+   disagreement like any other.
 5. **Write `guarantee.md`** from `templates/records/sdd-guarantee.md`, every row of
    its two tables filled, and one verdict line, exactly one of
    `Verdict: sealed`, `Verdict: withheld reason: <reason>` or

@@ -39,8 +39,9 @@ judged (`carried_by`). The arms are eight:
                 `location:` line names; every `fixed` or `rejected` finding
                 is named by the next record's `confirms:`, `reopens:` or
                 `regression:` lines, and none stands in the last record but
-                a `fixed` whose commit touched only the work item's own
-                records (`records_only`), which the sealer reads; the
+                a `fixed` finding located in the work item's own records
+                alone (`located_in_records`) whose commit touched them alone
+                (`records_only`), which the sealer reads; the
                 last record's `target:` commit is HEAD, or every commit after
                 it touches only the work item's own directory
   original      where git carries `seal/parity.md` at HEAD and the pull
@@ -1367,8 +1368,9 @@ def channel(rounds, read_at_head=lambda finding: False):
     refused at its own heading. A `rejected` finding of the last record, and
     a `fixed` one `read_at_head` does not pass, is refused as owing a
     verifying round, since nothing after it read the fix or the rejection.
-    `records` passes it a `fixed` whose commit touched only the work item's
-    own records, which the sealer reads at HEAD. A `deferred` finding owes
+    `records` passes it a `fixed` finding located in the work item's own
+    records alone whose commit touched them alone, which the sealer reads at
+    HEAD. A `deferred` finding owes
     nothing."""
     problems = []
     by_number = {r.number: r for r in rounds}
@@ -1445,6 +1447,13 @@ def under(path, located):
     """True where `path` is `located` or lies under it."""
     stem = located.rstrip("/")
     return path == stem or path.startswith(f"{stem}/")
+
+
+def located_in_records(item, f):
+    """True where finding `f` names at least one path and every path its
+    `location:` names lies under `item/`, the work item's own records. A
+    finding located in code is read by a round whatever its fix touched."""
+    return bool(f.paths) and all(under(q, item) for q in f.paths)
 
 
 def records_only(root, item, commit):
@@ -1720,9 +1729,9 @@ def records(reader, routing, root, item, rel, base):
     chain: no record; a record `round_of` cannot read; a finding at `open`;
     a `fixed` naming a commit HEAD does not descend from, or one that
     changed no path the finding's `location:` names or lies under; what
-    `channel` names between the rounds, a `fixed` of the last record whose
-    commit touched only the work item's own records passing as read at HEAD
-    by the sealer; a last record behind HEAD. A finding is named by its line
+    `channel` names between the rounds, a `fixed` of the last record located
+    in the work item's own records alone, whose commit touched them alone,
+    passing as read at HEAD by the sealer; a last record behind HEAD. A finding is named by its line
     and its heading."""
     found = round_records(routing, root, item)
     if not found:
@@ -1743,7 +1752,14 @@ def records(reader, routing, root, item, rel, base):
         problems.extend(errors)
         for f in read.findings:
             problems.extend(verdict_problems(root, path, f))
-    problems.extend(channel(rounds, lambda f: records_only(root, item, f.verdict[1])))
+    problems.extend(
+        channel(
+            rounds,
+            lambda f: (
+                located_in_records(item, f) and records_only(root, item, f.verdict[1])
+            ),
+        )
+    )
     last = rounds[-1]
     # A record naming no commit it reviewed was refused by `read_whole`.
     if last.target is not None:

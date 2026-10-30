@@ -508,7 +508,7 @@ below:
 
 | Remaining item | Destination |
 |---|---|
-| Doable within this pull request | done now, by the party that builds the work item, and reviewed by a verifying round before the broad run where it touched a file outside the work item's records |
+| Doable within this pull request | done now, by the party that builds the work item, and reviewed by a verifying round before the broad run, unless every finding it closes is located in the work item's records and it touched nothing else |
 | Waiting on prerequisite work | `seal/follow-up.md` |
 | Needs a decision | An `add` in `frame/design.md`'s `## Rule changes` to the policy document's open-questions section |
 

@@ -99,16 +99,18 @@ permits the load and does not oblige it.
 A round's findings are closed after it ends, by whoever writes the fixes. Every
 round but the last has a reader for those fixes: the round that follows, which
 answers each of its verdicts. The last round's fixes have none unless a round
-is spawned for them, except a fix pass whose commits touched only the work
-item's own records under `seal/threads/<id>/`: the sealer reads every record
-at HEAD and is that fix's reader, so the pass owes no verifying round, and
-the check passes its `fixed <commit>` in the last record.
+is spawned for them, except a fix pass whose findings are all located in the
+work item's own records and whose commits touched only those records under
+`seal/threads/<id>/`: the sealer reads every record at HEAD and is that fix's
+reader, so the pass owes no verifying round, and the check passes its
+`fixed <commit>` in the last record. A finding located in code is read by a
+round whatever its fix touched.
 
 So a run ends with a **verifying round**, and three things define it.
 
 | Property | What |
 |---|---|
-| When | **after the fixes** for the previous round to a file outside the work item's records are committed, never before, or it reviews what has already been reviewed |
+| When | **after the fixes** for the previous round are committed, never before, or it reviews what has already been reviewed; a fix pass whose findings are all located in the work item's records, with commits that touched nothing else, owes none |
 | Target | the **diff of those fixes**, not the branch. That is what keeps it bounded, and bounded is not cheap: its cost is set by the frame, the inherited records and the probes, so it runs close to a finding round. `docs/the-review-record.md` *The run* states the rule |
 | Job | the answers, not new findings. For each finding the previous round closed `fixed <commit>` or `rejected`, is it actually closed: a `confirms:` line naming it where it is; where it is not, a finding whose `reopens:` line names it, or whose `regression:` line does where a fix pass's own commit made the defect |
 
@@ -133,21 +135,22 @@ The condition is not *this round found nothing*, which would be unbounded. A
 verifying round that raises a `should` finding the crafter closes `rejected`,
 with its grounds, has opened nothing needing a fix, and it does not consume
 the cap. Its record is still not the last one: the check refuses a `rejected`
-finding in the last record, and a `fixed` one whose commit touched a path
-outside the work item's records, so one more verifying round reads that
-answer alone. Where the rejection holds, that round names it on a
+finding in the last record, and a `fixed` one that names a path outside the
+work item's records or whose commit touched one, so one more verifying round
+reads that answer alone. Where the rejection holds, that round names it on a
 `confirms:` line; where it does not, that round raises a finding with a
 `reopens:` line naming it, which gets its fix pass and one more verifying
 round; a round carrying a `regression:` line is routed as the section below
 says, and where the work item returns to its framer the run goes on with the
 redesign. The run ends only on a round whose record holds no `open` or
-`rejected` finding and no `fixed` one whose commit touched a path outside the
-work item's records, and whose `target:` commit is HEAD, or is followed only
-by the work item's own records (a verifying round, or the round at the cap
-whose open findings took the filing ladder), since the check refuses a ready
-pull request whose last record fails either. A fix to a file outside the
-work item's records committed after that round, one the ladder's first rung
-sends to the diff among them, is followed by one more verifying round.
+`rejected` finding and no `fixed` one that names a path outside the work
+item's records or whose commit touched one, and whose `target:` commit is
+HEAD, or is followed only by the work item's own records (a verifying round,
+or the round at the cap whose open findings took the filing ladder), since
+the check refuses a ready pull request whose last record fails either. A fix
+to a file outside the work item's records committed after that round, one
+the ladder's first rung sends to the diff among them, is followed by one more
+verifying round.
 
 ### A regression is routed by comparing the fix with the frame
 

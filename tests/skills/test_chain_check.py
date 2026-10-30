@@ -3258,9 +3258,10 @@ class Test_main:
     def test_passes_a_last_records_fixed_finding_that_touched_only_its_records(
         self, branch, ready, capsys
     ):
-        """S4 of #1148: a `fixed <commit>` of the last record whose commit
-        touched only the work item's own records owes no verifying round;
-        the sealer, which reads every record at HEAD, is its reader."""
+        """S4 of #1148: a `fixed <commit>` of the last record located in the
+        work item's own records alone, whose commit touched them alone, owes
+        no verifying round; the sealer, which reads every record at HEAD, is
+        its reader."""
         root, code_sha = branch
         git(root, "rm", "-q", f"{ITEM}/trail/rounds/round-2.md")
         commit(root, "no verifying round")
@@ -3297,6 +3298,35 @@ class Test_main:
         located = f"`f.txt:1`, `{ITEM}/gaps.md`"
         write(
             root, rel, record(fix, [finding(1, f"fixed {fix[:8]}", location=located)])
+        )
+        commit(root, "the fix pass's verdict")
+        seal(root)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        line = next(
+            ln for ln in out.splitlines() if ln.startswith(f"{rel}:") and "### 1." in ln
+        )
+        assert chain.VERIFYING_ROUND in line, line
+
+    @pytest.mark.rule("run-ends-with-verifying-round")
+    @pytest.mark.rule("last-record-at-head")
+    def test_refuses_a_last_records_code_finding_fixed_in_its_records_alone(
+        self, branch, ready, capsys
+    ):
+        """S4 of #1148: a finding that names a path outside the records owes
+        the round, even where its `fixed` commit touched only the records,
+        since no round would read its code half."""
+        root, code_sha = branch
+        git(root, "rm", "-q", f"{ITEM}/trail/rounds/round-2.md")
+        commit(root, "no verifying round")
+        write(root, f"{ITEM}/gaps.md", "# overview\n\nthe row, corrected\n")
+        fix = commit(root, "the record half alone")
+        rel = f"{ITEM}/trail/rounds/round-1.md"
+        located = f"`f.txt:1`, `{ITEM}/gaps.md`"
+        write(
+            root,
+            rel,
+            record(code_sha, [finding(1, f"fixed {fix[:8]}", location=located)]),
         )
         commit(root, "the fix pass's verdict")
         seal(root)

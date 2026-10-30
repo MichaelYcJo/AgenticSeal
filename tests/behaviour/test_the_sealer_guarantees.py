@@ -302,11 +302,15 @@ class TestDefinition:
 
     def test_step_4_reads_a_records_only_fix_as_the_fix_passs_claim(self):
         """S4 of #1148. `chain_check.py#records` passes a `fixed` of the last
-        record whose commit touched only the work item's records, with no
-        verifying round after it, because the sealer is that fix's reader:
-        step 4 says so, and reads it as a party's claim at HEAD."""
+        record located in the work item's records alone whose commit touched
+        them alone, with no verifying round after it, because the sealer is
+        that fix's reader: step 4 says so, and reads it as a party's claim at
+        HEAD."""
         step = between(SEALER, "4. **The parties against each other.**", "5. **")
-        assert "touched nothing outside `seal/threads/<item>/`" in step, step
+        assert (
+            "where the finding is located in `seal/threads/<item>/` alone and its "
+            "commit touched nothing outside it" in step
+        ), step
         assert "the fix pass's claim with you as its reader" in step, step
         assert "read the record at HEAD against what the finding asked" in step
 
