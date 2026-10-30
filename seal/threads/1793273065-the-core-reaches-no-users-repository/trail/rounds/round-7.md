@@ -26,7 +26,7 @@ their fix reverted (executed, *Probes*).
 severity: should
 location: `tests/censuses.py:903-907`, `tests/test_censuses.py:745-762`
 evidence: executed `python3 -c "import sys; sys.path.insert(0, 'tests'); import censuses as c; print([m.group(0) for m in c.refused_user_paths('/private/tmp/claude-501/' + '-' + 'Users-somebody/abc/scratchpad')])"`, `ls ~/.claude/projects`
-verdict: open
+verdict: fixed f1217ac9
 reopens: round-6#4
 
 Round 6 finding 4 asked the census to read a user path spelled as a
@@ -111,7 +111,7 @@ dropped, the probe reads both lines' slug as `{name}`, and the tree's
 census stays clean (executed, *Probes*). The fix pass shows the case red
 before it commits it.
 
-answer:
+answer: `tests/censuses.py#SLUG_USER_RE` drops its trailing dash, and the comment above it is the finding's text: it names the home-directory spelling, and says that a name holding a dash, or a dot the slug spells as one, is read by its first part and refused unless that part is the fixture user's. `tests/test_censuses.py#Test_real_identifiers::test_refuses_a_user_path_spelled_as_a_projects_directorys_slug` is the finding's case, with the user name built from halves. It adds a home session line naming a user other than `x`, which is refused, and a home fixture line for `x`, which passes. Against the dashed pattern, `bin/test -q -p no:xdist tests/test_censuses.py -k projects_directorys_slug` failed 1 (exit 1): the census refused line 1 and not line 4. After the fix, the same command passed 1 (exit 0). `bin/test -q tests/test_censuses.py` passed 176 (exit 0). `git grep -n -E -- "-Users-[A-Za-z0-9_.]+"` outside `.test_durations` finds 14 lines, and every match is the fixture user `x`.
 
 ## Confirmations
 
