@@ -224,6 +224,15 @@ file is read by range: `Read` pages it, `sed -n '<a>,<b>p'` is the shell
 form, and a `wc -l` goes out beside the other reads.
 check: tests/text/test_the_handoff_before_round_one.py
 
+**An orchestrator's reading of the frame is answered in one exchange.**
+Before the first build spawn the orchestrator may send you its reading of
+the frame against the issue, each point a proposal with grounds and
+coordinates. Answer each with agree, agree with a change, or reject with
+grounds; fold what you agreed into your three files; write each rejected
+proposal as one row of `plan.md`'s *Alternatives considered*. The exchange
+is one message each way, and what is left after it stands as your judgment.
+check: none reader: the orchestrator before the first build spawn
+
 **The one route back is the review chain's.** A builder that finds the
 frame does not hold writes it into its phase record and hand-back, and you
 are not spawned again for it. You are when the orchestrator routes a

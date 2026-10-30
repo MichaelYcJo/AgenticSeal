@@ -737,8 +737,8 @@ PACT_SWEPT = (
 # The two sections that carry the words inside larger documents, read alone.
 PACT_SECTIONS = (
     (
-        ("skills", "implement", "orchestration.md"),
-        "### A work item that commits in more than one repository",
+        ("skills", "implement", "multi-repository.md"),
+        "## Orchestrator: a work item that commits in more than one repository",
     ),
     # Round 1's white 11: the words ship here too.
     (("templates", "setup", "config.md"), "## Pact"),

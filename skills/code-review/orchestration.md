@@ -12,8 +12,8 @@ records and the findings format. The orchestrator reads both. The proofer
 preloads that one and never opens this one.
 
 Every `##` heading here opens with `Orchestrator:`, and
-`skills/implement/orchestration.md` *Orchestrator: which of these acts runs
-itself* lists each act with what notices when it is skipped.
+`skills/implement/acts.md` *Orchestrator: which of these acts runs itself*
+lists each act with what notices when it is skipped.
 
 ## Orchestrator: a phase is a fresh crafter, and a fix pass resumes the implementer
 
@@ -169,7 +169,7 @@ The framer's route:
 |---|---|
 | The record | every open finding closes `deferred the frame`, and its `answer:` line names the regression that sent the work item back; you write both lines of every open finding in one commit |
 | The framer | spawned again with the run's round records as its input; they are in the tree, so the prompt names them and carries nothing else. It rewrites `plan.md` (new phase rows; a closed phase keeps its commit) and `frame/design.md` where the scope moves, and adds `Reframed <date> by <who>, after round <N>.` under the `Framed` line. Where `routing.md` answers `Automation` with `yes`, the spawn asks nobody |
-| The redesign | you approve it when you spawn `crafter` for it, with a second `Approved` line in `plan.md` on a line of its own, in the shape `skills/implement/orchestration.md` *The plan is approved at the spawn* states; it is then built and reviewed, and its first finding round starts the cap's count again |
+| The redesign | you approve it when you spawn `crafter` for it; the spawn is the approval. It is then built and reviewed, and its first finding round starts the cap's count again |
 
 ## Orchestrator: the pull request opens once the sealer seals
 

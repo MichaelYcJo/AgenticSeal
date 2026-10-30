@@ -8,8 +8,10 @@ The ticket asked, among other things, whether the orchestrator's acts should
 be enumerated anywhere at all, and set its own condition: *unless something
 reads it*. This module is what reads it.
 
-The table lives in `skills/implement/orchestration.md` under
-`## Orchestrator: which of these acts runs itself`, and this holds it against
+The table lives in `skills/implement/acts.md` under
+`## Orchestrator: which of these acts runs itself`, a file of its own since
+#1148 because a maintainer reads it and an orchestrating session does not,
+and this holds it against
 the files `FILES` names **from both sides**: an act with no row fails, and a
 row naming an act no file carries fails. One-sided is the state
 `broad_gate.PARTITION` was written to end one subject over -- that list went
@@ -98,10 +100,14 @@ FILES = (
     # with no root yet needs it. Its act keeps its row.
     "skills/implement/bootstrap.md",
     "skills/code-review/orchestration.md",
+    # The multi-repository procedure and the table itself, each in its own
+    # file since #1148; each keeps its act's row.
+    "skills/implement/multi-repository.md",
+    "skills/implement/acts.md",
 )
 # Where the table is. It is one of the files above, which is what makes its
 # own section a row.
-TABLE_FILE = "skills/implement/orchestration.md"
+TABLE_FILE = "skills/implement/acts.md"
 HEADER = "| Act | File | Delivered by | Grounds |"
 
 MARKER = "Orchestrator:"
@@ -284,7 +290,7 @@ PLANTED = [
 
 
 def _tree(base, extra_acts=(), table=None):
-    """A root with both orchestration files and the table in the first.
+    """A root with both orchestration files and the table in `TABLE_FILE`.
 
     `extra_acts` are marked `##` headings added to the code-review file;
     `table` replaces `PLANTED` as the row set.
@@ -293,9 +299,9 @@ def _tree(base, extra_acts=(), table=None):
         f"| {a} | `{f}` | {d} | {g} |"
         for a, f, d, g in (PLANTED if table is None else table)
     )
-    body = (
-        f"# implement\n\n## {ACT}\n\nProse.\n\n"
-        f"## Orchestrator: which of these acts runs itself\n\n"
+    body = f"# implement\n\n## {ACT}\n\nProse.\n"
+    table_text = (
+        f"# acts\n\n## Orchestrator: which of these acts runs itself\n\n"
         f"{HEADER}\n|---|---|---|---|\n{rows_text}\n\nProse after.\n"
     )
     other = "# code-review\n\n" + "".join(f"## {a}\n\nProse.\n\n" for a in extra_acts)
@@ -305,6 +311,7 @@ def _tree(base, extra_acts=(), table=None):
     # a tree that was itself dirty in a way nothing said (round 1, finding 3).
     files = {
         "skills/implement/orchestration.md": body,
+        TABLE_FILE: table_text,
         "skills/code-review/orchestration.md": other,
         "tests/behaviour/test_every_orchestrator_act_names_its_delivery.py": (
             "# the check `SELF`'s row names, so the tree carries it\n"
@@ -320,7 +327,7 @@ def _tree(base, extra_acts=(), table=None):
 
 SELF = (
     "Orchestrator: which of these acts runs itself",
-    "skills/implement/orchestration.md",
+    TABLE_FILE,
     "check: `tests/behaviour/test_every_orchestrator_act_names_its_delivery.py`",
     "This module.",
 )
@@ -458,8 +465,8 @@ def test_a_missing_table_is_named_rather_than_read_as_empty(tmp_path):
     acts is green over nothing -- the shape the neighbour's real-tree case
     guards against."""
     path = os.path.join(_tree(tmp_path, table=[SELF]), "skills", "implement")
-    with open(os.path.join(path, "orchestration.md"), "w", encoding="utf-8") as handle:
-        handle.write(f"# implement\n\n## {ACT}\n\nProse.\n")
+    with open(os.path.join(path, "acts.md"), "w", encoding="utf-8") as handle:
+        handle.write("# acts\n\n## Orchestrator: which of these acts runs itself\n")
     found = findings(str(tmp_path))
     assert len(found) == 1, found
     assert "enumerated nowhere" in found[0]

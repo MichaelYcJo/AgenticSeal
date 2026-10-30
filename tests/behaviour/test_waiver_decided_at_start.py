@@ -78,6 +78,50 @@ def flat(text):
     return " ".join(text.split())
 
 
+def in_force(rel, section):
+    """The policy in force at SECTION of REL, flattened: the section as the
+    policy root holds it, with each pending `## Rule changes` item for that
+    section applied, a `change` replacing its `from` and an `add` appended
+    (`skills/implement/SKILL.md` *Document layout — two roots, three
+    lifetimes*). #1148 moved the routing rows' grounds from the orchestration
+    skill to the policy root through its rule changes, so these cases read
+    the grounds where they stand before the settle and after it alike."""
+    from conftest import load_hook_module, load_module
+
+    rules = load_module(
+        os.path.join(ROOT, "skills", "settle", "scripts", "rule_changes.py"),
+        "agentic_rule_changes_for_waiver",
+    )
+    config = load_hook_module("lib/config.py", "agentic_config_for_waiver")
+    text = read(*rel.split("/"))
+    span, why = rules.section_lines(text, section)
+    assert span, f"{rel}: {why}"
+    lines = rules.reader().gfm_lines(text)
+    body = flat("\n".join(lines[span[0] - 1 : span[1]]))
+    policy = config.policy_root(os.path.join(ROOT, "seal"))
+    for op, _item in rules.pending(ROOT, policy):
+        if op.file != rel or op.section != section:
+            continue
+        if op.kind == "change" and flat(op.old) in body:
+            body = body.replace(flat(op.old), flat(op.new))
+        elif op.kind == "add":
+            body += " " + flat(op.new)
+    return body
+
+
+# The two policy sections the routing rows cite for their grounds (#1148).
+DECLARATION = (
+    "docs/the-review-and-parity-arms.md",
+    "The declaration, and where the check went",
+)
+SPAWN_COSTS = ("docs/the-agent-set.md", "What a spawn costs")
+
+
+def cites(rel, section):
+    """A citation of SECTION of REL in the shape the skills write one."""
+    return f"`{rel}` *{section}*"
+
+
 def checkbox_tables(text):
     """Every table of boxes in `text`, as a list of its body rows.
 
@@ -185,15 +229,24 @@ def test_the_optional_row_ships_the_criterion_that_decides_it():
     hold: a sentence naming one answer as what to do absent a reason makes the
     other the exception, and the row is optional precisely so that neither
     reads as the silent one. `test_the_template_PARSES_into_the_three_answers
-    _it_ships` below holds the placeholder itself unanswered."""
+    _it_ships` below holds the placeholder itself unanswered.
+
+    Since #1148 the skill states the criterion in one sentence and the
+    grounds stand in the policy root, `docs/the-agent-set.md` *What a spawn
+    costs*, so the half the orchestrator acts on is read in the skill and
+    the half a reader who questions it opens is read in the policy."""
     tpl = " ".join(read(*ORCH).split())
-    assert "FINDING OUT or WRITING DOWN" in tpl, (
+    policy = in_force(*SPAWN_COSTS)
+    assert "whether the work is finding out or writing down" in tpl, (
         "the criterion went. The row is back to being answered by habit, "
         "which is the state #263 measured"
     )
-    assert "is a STEP to send to `tracer`" in tpl, (
+    assert "a step to send to `tracer`" in tpl, (
         "the criterion names no destination for discovery, so the axis it "
         "draws collapses back into `crafter` or nothing"
+    )
+    assert cites(*SPAWN_COSTS) in tpl, (
+        "the criterion no longer cites where its grounds stand"
     )
     # Round 1, finding 8. The criterion named three destinations for a row
     # that accepts two values -- `hooks/lib/routing.py`'s IMPLEMENTATION_ANSWERS
@@ -203,24 +256,20 @@ def test_the_optional_row_ships_the_criterion_that_decides_it():
     # than invent a third answer. Deleting it there loses an answer that
     # exists. This row is the one axis nothing contradicts, so a session that
     # guesses gets no correction from anywhere.
-    assert "That is a step and not an answer to this row" in tpl, (
-        "the criterion routes discovery to `tracer` and stops, so a session "
-        "reading it has a destination and no value to write in the row"
-    )
     assert "still answers `the session`" in tpl, (
         "the criterion stopped saying what to type for a discovery work item, "
         "which is the half `questions.md` Q4 did not have to answer"
     )
-    assert "never deleted because the work is discovery" in tpl, (
+    assert "deleted only for a work item that has no answer to give" in policy, (
         "the wrong recovery is permitted again: `Delete the row rather than "
         "inventing a third answer` reads as licence to delete a row whose "
         "answer exists, and the result is a record that says `not answered`"
     )
-    assert "REPLACEABILITY, not cost" in tpl, (
+    assert "replaceability and not cost" in policy, (
         "the axis the last clause sits on went. Without it the threshold "
         "reads as a cost question, which is the one thing #263 says it is not"
     )
-    assert "a number nobody has" in tpl, (
+    assert "a number nobody has" in policy, (
         "the threshold stopped saying it is unmeasured. An invented number "
         "here is a default wearing a criterion's clothes"
     )
@@ -584,9 +633,12 @@ def test_the_preset_and_the_boxes_are_told_apart_in_the_file():
             f"the section does not say the preset writes {flat(derivation)}, "
             "so a session has the row and no rule for filling it"
         )
-    assert "same bytes" in skill, (
-        "the section states the row without the reason, so the next edit "
+    assert "same bytes" in in_force(*DECLARATION), (
+        "the policy states the row without the reason, so the next edit "
         "reads it as bookkeeping and drops it"
+    )
+    assert cites(*DECLARATION) in skill, (
+        "the section states the row and no longer cites where its reason is"
     )
     rows = [ln for ln in read(*ORCH).splitlines() if ln.startswith("| Automation |")]
     assert len(rows) == 1, (
@@ -834,6 +886,39 @@ def test_a_mark_is_not_the_answer_to_a_blocked_step():
     ), "the rule does not end in its check line"
 
 
+def test_an_orchestrators_reading_of_the_frame_is_answered_in_one_exchange():
+    """#1148, `frame/design.md` *Scope* item 12. The orchestrator reads the
+    frame against the issue before the first build spawn and the framer
+    answers in one exchange. Both halves name the same three answers and the
+    same bound, so the orchestrator's section and the framer's rule cannot
+    say two things; the framer's rule ends in its check line."""
+    raw = read(*FRAMER)
+    framer = flat(raw)
+    lead = "**An orchestrator's reading of the frame is answered in one exchange.**"
+    assert lead in framer, "the framer's definition lost the rule"
+    paragraph = raw[raw.index(lead) :].split("\n\n", 1)[0]
+    assert paragraph.splitlines()[-1] == (
+        "check: none reader: the orchestrator before the first build spawn"
+    ), "the rule does not end in its check line"
+    orchestration = flat(read(*ORCH))
+    heading = "### The frame is read against the issue at the spawn"
+    assert heading in orchestration, "the orchestrator's section is gone"
+    section = orchestration[orchestration.index(heading) :].split(" ## ", 1)[0]
+    answers = "agree, agree with a change, or reject with grounds"
+    for half, text in (("framer", flat(paragraph)), ("orchestration", section)):
+        assert answers in text, f"the {half} half lost the three answers"
+        assert "*Alternatives considered*" in text, (
+            f"the {half} half no longer sends a rejection to the plan's "
+            "Alternatives table"
+        )
+    assert "One exchange is the bound" in section
+    assert "the orchestrator edits no frame file" in section
+    assert "one message each way" in framer
+    assert "Approved <date>" not in orchestration, (
+        "the orchestration still states the approval line #1148 removed"
+    )
+
+
 def test_the_framer_leaves_a_mark_in_the_tree():
     """S12. Measured at the frame: 0 of 84 work items carry any mark in
     `frame/design.md`, and the definition asked for none.
@@ -941,17 +1026,20 @@ def test_no_committed_declaration_still_carries_a_template_placeholder():
 
 
 def test_the_skill_states_all_four_combinations():
-    """Four rows, because two of them are the ones that surprise people: a
-    chain declaration that never opens a pull request is checked by nothing."""
-    skill = read(*ORCH)
-    rows = [
-        ln
-        for ln in skill.splitlines()
-        if ln.startswith("| chain") or ln.startswith("| direct")
-    ]
-    assert len(rows) == 4, f"expected four combinations, found {len(rows)}"
-    assert any("nothing runs" in r for r in rows), (
+    """Four combinations, because two of them are the ones that surprise
+    people: a chain declaration that never opens a pull request is checked by
+    nothing. Since #1148 the policy section the skill cites holds them: its
+    table gives what each `Review` answer owes at the pull request, and its
+    paragraph on `stop before the pull request` the two that open none."""
+    skill = flat(read(*ORCH))
+    policy = in_force(*DECLARATION)
+    for answer in ("| through the review chain |", "| straight to the PR |"):
+        assert answer in policy, f"the policy's table lost the row `{answer}`"
+    assert "Under `stop before the pull request` nothing runs" in policy, (
         "the combination nothing checks has to be the one stated outright"
+    )
+    assert cites(*DECLARATION) in skill and "nothing runs at the end" in skill, (
+        "the skill neither cites the combinations nor says the one nothing checks"
     )
 
 
@@ -974,11 +1062,14 @@ def test_the_skill_refuses_a_standing_waiver_and_says_why_this_is_not_one():
     """The cheap way to stop the interruptions is to switch the gate off for a
     session, and it is the one way that costs the gate its reason to exist."""
     skill = flat(read(*ORCH))
-    assert "What must not happen instead is a standing waiver" in skill
-    assert "moves the check rather than removing it" in skill, (
-        "without this the declaration reads as exactly the switch the sentence "
-        "above it forbids"
+    # The reasoning is the policy's since #1148; the skill says the rule and
+    # cites it.
+    assert "The declaration moves the check and waives nothing" in skill, (
+        "without this the declaration reads as exactly the switch the policy forbids"
     )
+    assert cites(
+        "docs/the-review-and-parity-arms.md", "There is no standing waiver"
+    ) in (skill)
     spec = flat(read("docs", "the-review-and-parity-arms.md"))
     assert "no standing waiver" in spec
     assert "stands for no other session" in spec

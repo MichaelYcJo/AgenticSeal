@@ -90,16 +90,20 @@ def test_the_template_and_the_config_skill_carry_the_pact_row_alone():
 
 # --- S4: the routing step across repositories -------------------------------
 
-ORCHESTRATION = ("skills", "implement", "orchestration.md")
+# In a file of its own since #1148, opened only where a work item commits in
+# more than one repository.
+MULTI = ("skills", "implement", "multi-repository.md")
 
 
 def test_the_routing_step_mints_one_id_and_declares_only_in_gated_repositories():
     """S4. The question is asked once, the id is minted once, and a
     repository with no root is named and left alone, because writing into it
     would opt it in."""
-    text = flat(*ORCHESTRATION)
-    start = text.index("### A work item that commits in more than one repository")
-    section = text[start : text.index(" ## ", start)]
+    text = flat(*MULTI)
+    start = text.index(
+        "## Orchestrator: a work item that commits in more than one repository"
+    )
+    section = text[start:]
     for sentence in (
         "**One id, minted once, names the directory in every repository.** "
         "Take `date +%s` once, pick one slug, and use the resulting directory "

@@ -141,6 +141,13 @@ class Test_main:
             "Nothing was read and nothing was written.\n"
         ), err
         assert "macOS ships python 3.9 under that name" in err, err
+        # #1148: the sentence ends at the command to type. A user meets it in
+        # their own repository, where no `CONTRIBUTING.md` of this plugin's
+        # stands, so it names no document of this repository.
+        assert err.endswith(f"so name one explicitly: `python99.0 {script} ...`.\n"), (
+            err
+        )
+        assert "CONTRIBUTING" not in err, err
 
 
 class Test_module:

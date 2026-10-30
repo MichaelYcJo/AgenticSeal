@@ -378,7 +378,8 @@ def test_the_order_opens_the_pull_request_after_the_sealer():
     # first part between the run and the spawn, since it copies the run's
     # record and the sealer checks it.
     assert (
-        "spawns the crafter (*The plan is approved at the spawn* below). The "
+        "spawns the crafter (*The frame is read against the issue at the "
+        "spawn* below). The "
         "proofer's rounds follow, then `seal gate --preflight` and `seal gate "
         "--record`, both run by the orchestrator, then `seal pr-body`, which "
         "the orchestrator runs to write the pull request body's first part, "
@@ -405,8 +406,9 @@ def test_the_order_no_longer_defers_the_framer_to_a_ticket():
 def test_the_acts_table_says_no_commit_holds_who_wrote_the_two_lines():
     """#1041, the owner's answer of 2026-10-28: the fix pass commits neither
     line, so the row's `Grounds` cell cannot send a reader to the history
-    for who wrote them."""
-    text = flat(*ORCH_IMPL)
+    for who wrote them. The table is `skills/implement/acts.md`'s since
+    #1148."""
+    text = flat("skills", "implement", "acts.md")
     start = text.index(
         "| Orchestrator: a phase is a fresh crafter, and a fix pass resumes the implementer |"
     )
@@ -427,7 +429,7 @@ def the_order():
     text = flat(*ORCH_IMPL)
     return text[
         text.index("## Orchestrator: the order inside a ticket") : text.index(
-            "### The plan is approved at the spawn"
+            "### The frame is read against the issue at the spawn"
         )
     ]
 
@@ -442,7 +444,7 @@ def test_a_decision_after_the_frame_is_folded_into_it():
         "`frame/design.md` or `plan.md` before the next crafter spawns.",
         "naming the comments to fold",
         "the orchestrator keeps one line of its own in `plan.md`",
-        "below the title where it does not",
+        "naming the comments to fold, below the title,",
         "folds the decision into the issue body",
     ):
         assert said in order, f"the order no longer says {said!r}"

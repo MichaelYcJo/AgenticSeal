@@ -294,6 +294,18 @@ def test_the_cost_of_a_judgment_over_a_count_is_stated():
 # its record. The cases that pinned the line's shape left with it.
 
 
+def test_a_redesign_is_approved_by_the_spawn_that_builds_it():
+    """#1148 phase 4. The framer's route after a regression ended in a second
+    `Approved` line in `plan.md`; with the line gone, the redesign's row says
+    the spawn is the approval, as the first build's does."""
+    text = " ".join(read("skills", "code-review", "orchestration.md").split())
+    rows = [part for part in text.split("| The redesign |")[1:]]
+    assert len(rows) == 1, f"{len(rows)} redesign rows in the framer's route"
+    row = rows[0].split(" | ", 1)[0]
+    assert "the spawn is the approval" in row, row
+    assert "`Approved` line" not in row, row
+
+
 def test_the_file_set_names_who_writes_each_file():
     """The table listed what each member holds and never whose it is.
 
