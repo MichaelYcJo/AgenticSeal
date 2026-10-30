@@ -122,7 +122,7 @@ seal/
 └── threads/<작업항목-id>/
     ├── routing.md    이 작업을 어느 길로 보낼지, 첫 수정 전에 적는다
     ├── frame/design.md · frame/plan.md · frame/questions.md
-    ├── trail/phases/phase-N.md   빌드 단계 하나가 받은 일과 찾아낸 것
+    ├── trail/phases/phase-N.md   빌드 단계 하나가 찾아낸 것
     ├── trail/rounds/round-N.md   리뷰 회차 — 커밋해 두었다가 다 옮기고 나면 닫고 남긴다
     ├── trail/gate.md             한 번의 전체 실행 — 어느 커밋에서, 어느 기준과 견주어
     ├── changelog.md              다음 릴리스 노트에 들어갈 이 작업 항목의 항목

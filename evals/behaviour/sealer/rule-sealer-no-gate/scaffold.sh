@@ -97,8 +97,6 @@ mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-no-gate/frame/plan.md')"
 cat > 'seal/threads/1790000030-guarantee-no-gate/frame/plan.md' <<'AGENTIC_EOF'
 # Implementation Plan: shout keeps empty text empty
 
-Approved 2026-10-14 by the repository owner, when `crafter` was spawned.
-
 ## Phases
 
 | Phase | Delivers | Verified by | Status |
@@ -139,16 +137,7 @@ git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'fix: 
 build=$(git rev-parse HEAD)
 mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-no-gate/trail/phases/phase-1.md')"
 cat > 'seal/threads/1790000030-guarantee-no-gate/trail/phases/phase-1.md' <<'AGENTIC_EOF'
-# 1790000030-guarantee-no-gate — phase 1
-
-| Field | Value |
-|---|---|
-| Phase | 1 |
-| Commit | b0b0b0b |
-
-## What this phase was asked
-
-`plan.md`'s row 1: `shout("")` returns `""`, with its case.
+# Phase 1: 1790000030-guarantee-no-gate
 
 ## What this phase found
 
@@ -188,15 +177,7 @@ cat > 'seal/threads/1790000030-guarantee-no-gate/changelog.md' <<'AGENTIC_EOF'
 AGENTIC_EOF
 mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-no-gate/gaps.md')"
 cat > 'seal/threads/1790000030-guarantee-no-gate/gaps.md' <<'AGENTIC_EOF'
-# 1790000030-guarantee-no-gate — overview
-
-## Why this work exists
-
-The shout case states what `shout` returns.
-
-## Where spec and implementation diverged
-
-none
+# Closing memo: 1790000030-guarantee-no-gate
 
 ## Not verified
 
@@ -205,13 +186,8 @@ none
 
 ## Not done
 
-none
-
-## Fed back into the spec
-
-none
+nothing
 AGENTIC_EOF
-sed "s/b0b0b0b/$build/" 'seal/threads/1790000030-guarantee-no-gate/trail/phases/phase-1.md' > record.tmp && mv record.tmp 'seal/threads/1790000030-guarantee-no-gate/trail/phases/phase-1.md'
 sed "s/b0b0b0b/$build/" 'seal/threads/1790000030-guarantee-no-gate/trail/rounds/round-1.md' > record.tmp && mv record.tmp 'seal/threads/1790000030-guarantee-no-gate/trail/rounds/round-1.md'
 git add -A
 git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'docs: the phase record, round 1 and the changelog'
@@ -264,7 +240,7 @@ From `gaps.md`.
 
 From `gaps.md`.
 
-none
+nothing
 
 ## Questions
 

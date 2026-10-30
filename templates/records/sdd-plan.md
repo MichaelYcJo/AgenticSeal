@@ -1,7 +1,5 @@
 # Implementation Plan: <work item>
 
-Approved <date> by <who>, when `crafter` was spawned.
-
 ## Technical context
 
 <the existing code this builds on, by file:line, its constraints, and the failure scenario of the chosen approach: what breaks in six months>

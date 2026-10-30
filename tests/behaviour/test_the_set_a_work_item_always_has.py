@@ -286,99 +286,12 @@ def test_the_cost_of_a_judgment_over_a_count_is_stated():
     )
 
 
-# --- the approval, and who writes each member of the set --------------------
-
-# The shared core of the two lines. `routing.md` has recorded who answered the
-# routing batch since it shipped; `plan.md` recorded nothing, and approval of
-# `plan.md` IS the design gate. Two records of the same kind of fact spelled
-# two ways is how one of them stops being written, so the spelling is pinned
-# ACROSS the pair rather than in either file.
-STAMP_CORE = " <date> by <who>, "
-
-
-def stamp_line(verb, *parts):
-    lines = [line for line in read(*parts).splitlines() if line.startswith(verb + " ")]
-    assert len(lines) == 1, (
-        f"{'/'.join(parts)} has {len(lines)} lines starting `{verb} `, and "
-        "this pair is only comparable while each file has exactly one"
-    )
-    return lines[0]
-
-
-def test_the_plan_template_records_who_approved_it_and_when():
-    """S6 of #84. Approval of `plan.md` is the gate, and nothing recorded it.
-
-    A later session, a reviewer and CI all read the tree and not the
-    transcript, so a plan with nobody's name on it is indistinguishable from
-    one nobody approved. The line names the moment as well as the person,
-    because the moment is what makes the approval checkable: the spawn of the
-    builder IS the approval, so a line dated after the first commit is a
-    record of something that did not happen at the gate.
-    """
-    line = stamp_line("Approved", "templates", "records", "sdd-plan.md")
-    assert line.startswith("Approved" + STAMP_CORE), (
-        f"the approval line reads `{line}`, which is not the shape the "
-        "routing declaration already uses for the same kind of fact"
-    )
-    moment = line[len("Approved" + STAMP_CORE) :]
-    assert moment.endswith("."), "the line lost its full stop"
-    assert "crafter" in moment, (
-        "the approval line no longer names WHEN it is written. Without the "
-        "moment it is a signature with no gate behind it -- anybody can add "
-        "it after the work is done"
-    )
-
-
-def test_the_approval_line_is_spelled_like_the_routing_answer():
-    """The two cannot drift apart, because they are one convention.
-
-    `templates/records/sdd-routing.md` closes with `Answered <date> by <who>, before
-    the first edit.` — verb, date, who, the moment it was given. The plan's
-    approval line is the same record for the other batch. Pinned as a shared
-    core rather than as two literals, so a change to either spelling has to
-    be made in both or it is red here.
-    """
-    approved = stamp_line("Approved", "templates", "records", "sdd-plan.md")
-    answered = stamp_line("Answered", "templates", "records", "sdd-routing.md")
-    for verb, line in (("Approved", approved), ("Answered", answered)):
-        assert line.startswith(verb + STAMP_CORE), (
-            f"`{line}` no longer carries `{STAMP_CORE.strip()}` in the shape "
-            f"its sibling does. The two record the same kind of fact and a "
-            "reader who learns one spelling reads the other by it"
-        )
-        assert len(line) > len(verb + STAMP_CORE) + 1, (
-            f"`{line}` names no moment, so it says a person acted and not "
-            "when -- which is the half that makes it a gate"
-        )
-
-
-def test_the_orchestrator_states_the_approval_line_where_it_spawns_the_build():
-    """S7 of #940. The approval line's shape is stated once, at the step
-    where the orchestrator spawns the crafter, and it is the template's line.
-
-    Nothing reads the line in a work item, so the statement is what a writer
-    and the proofer read it by: the line ends at its full stop, and anything
-    more goes on a line of its own."""
-    text = read("skills", "implement", "orchestration.md")
-    heading = "### The plan is approved at the spawn"
-    assert heading in text, "the spawn step no longer states the approval line"
-    step = text.split(heading, 1)[1].split("\n## ", 1)[0]
-    fenced = step.split("```\n", 2)[1].strip() if step.count("```") >= 2 else ""
-    assert fenced == stamp_line("Approved", "templates", "records", "sdd-plan.md"), (
-        f"the spawn step states the line as `{fenced}`, and the template "
-        "every plan is copied from spells it otherwise"
-    )
-    folded = " ".join(step.split())
-    assert "the line ends at its full stop" in folded, folded[:300]
-    assert "goes on a line of its own below it, never after the full stop" in folded
-    # The redesign's second approval names that statement rather than
-    # restating the shape (#940 Scope 6).
-    review = " ".join(read("skills", "code-review", "orchestration.md").split())
-    assert (
-        "a second `Approved` line in `plan.md` on a line of its own, in the shape "
-        "`skills/implement/orchestration.md` *The plan is approved at the spawn* "
-        "states"
-    ) in review, "the redesign row approves without naming where the shape is"
+# --- who writes each member of the set --------------------------------------
+#
+# #1148 removed `plan.md`'s approval line, which no code read and whose whole
+# record in the round records was findings about its own shape: reading the
+# plan and spawning the build is the approval, and the phase's Status cell is
+# its record. The cases that pinned the line's shape left with it.
 
 
 def test_the_file_set_names_who_writes_each_file():
@@ -427,7 +340,12 @@ def test_the_file_set_names_who_writes_each_file():
             "built it. A table that hands it to the framer asks for a memo "
             "written before the work it is about"
         )
-    assert "Approved <date> by <who>" in rows["`frame/plan.md`"]["Holds"], (
-        "the file table stops naming the approval line, so the only document "
-        "that describes the whole set never mentions the record of the gate"
+    assert "approved by the spawn that builds it" in rows["`frame/plan.md`"]["Holds"], (
+        "the file table stops saying how the plan is approved, so the only "
+        "document that describes the whole set never says where the gate is"
     )
+    assert "Approved <date> by <who>" not in rows["`frame/plan.md`"]["Holds"]
+    assert (
+        "written from its template when the first phase closes"
+        in (rows["`gaps.md`"]["When"])
+    ), "the file table gives `gaps.md` a trigger the crafter and the case do not"

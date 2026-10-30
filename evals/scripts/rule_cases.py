@@ -129,15 +129,7 @@ and the whole suite with `python3 -m unittest discover -s tests -t . -q`.
 
 
 MARK = "\nFramed 2026-10-14 by framer, before the build.\n"
-OVERVIEW = """# {item} — overview
-
-## Why this work exists
-
-The shout case states what `shout` returns.
-
-## Where spec and implementation diverged
-
-none
+OVERVIEW = """# Closing memo: {item}
 
 ## Not verified
 
@@ -146,19 +138,13 @@ none
 
 ## Not done
 
-none
-
-## Fed back into the spec
-
-none
+nothing
 """
 
 
 def one_phase_plan(name, delivers):
-    """An approved one-phase `plan.md` for NAME that delivers DELIVERS."""
+    """A one-phase `plan.md` for NAME that delivers DELIVERS."""
     return f"""# Implementation Plan: {name}
-
-Approved 2026-10-14 by the repository owner, when `crafter` was spawned.
 
 ## Phases
 
@@ -798,16 +784,7 @@ none
 # `chain_check.py`'s grammar reads a `target:` line only where it names a
 # commit, and `pr_body.compose` reads the round record through that grammar.
 BUILD_SHA = "b0b0b0b"
-SEALER_PHASE = """# {item} — phase 1
-
-| Field | Value |
-|---|---|
-| Phase | 1 |
-| Commit | {build} |
-
-## What this phase was asked
-
-`plan.md`'s row 1: `shout("")` returns `""`, with its case.
+SEALER_PHASE = """# Phase 1: {item}
 
 ## What this phase found
 
@@ -927,9 +904,7 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
         "frame/plan.md": one_phase_plan(
             "shout keeps empty text empty", '`shout("")` and its case'
         ),
-        "trail/phases/phase-1.md": SEALER_PHASE.format(
-            item=item, test=EMPTY_TEST, build=BUILD_SHA
-        ),
+        "trail/phases/phase-1.md": SEALER_PHASE.format(item=item, test=EMPTY_TEST),
         "trail/rounds/round-1.md": SEALER_ROUND.format(item=item, build=BUILD_SHA),
         "changelog.md": SEALER_CHANGELOG,
         "gaps.md": OVERVIEW.format(item=item),
@@ -954,8 +929,7 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
         "gaps.md",
     ):
         lines.append(write(f"{folder}/{rel}", records[rel]))
-    for rel in ("trail/phases/phase-1.md", "trail/rounds/round-1.md"):
-        lines.append(fill(f"{folder}/{rel}", built))
+    lines.append(fill(f"{folder}/trail/rounds/round-1.md", built))
     lines += [
         "git add -A",
         f"{BY} 'docs: the phase record, round 1 and the changelog'",

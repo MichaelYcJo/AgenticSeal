@@ -127,7 +127,7 @@ seal/
 └── threads/<work-item-id>/
     ├── routing.md    which way this work item goes, written before the first edit
     ├── frame/design.md · frame/plan.md · frame/questions.md
-    ├── trail/phases/phase-N.md   what one build phase was asked and found
+    ├── trail/phases/phase-N.md   what one build phase found
     ├── trail/rounds/round-N.md   review rounds — committed, drained, then closed and kept
     ├── trail/gate.md             the one broad run, at a SHA, against the base
     ├── changelog.md              this work item's entry in the next release's notes

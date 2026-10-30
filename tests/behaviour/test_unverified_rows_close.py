@@ -171,29 +171,37 @@ def test_the_memo_no_longer_asks_for_what_the_diff_holds():
     assert "`git diff --stat` already holds the file list" in skill
 
 
-def test_the_memo_keeps_one_line_of_purpose():
-    """Below the six-file line no `frame/design.md` is written, so this line is the
-    only place the purpose stays in the repository."""
+def test_the_memo_holds_what_went_out_unproved_and_what_was_not_taken():
+    """#1148. The purpose restated the changelog fragment, the divergence
+    table copied the phase records, and nothing wrote the fed-back clauses,
+    so the memo is the two sections it is the home of, and the scope line on
+    the ladder's second rung."""
     skill = collapsed("skills", "implement", "SKILL.md")
-    assert "Why this work exists and what the result changes — **one line**" in skill
-    assert "the only place the purpose stays in the repository" in skill
+    assert "Two things go in it" in skill
+    assert "the only place the purpose stays in the repository" not in skill
     with open(
         os.path.join(ROOT, "templates", "records", "sdd-gaps.md"), encoding="utf-8"
     ) as f:
-        assert "## Why this work exists" in f.read()
+        headings = [line for line in f.read().splitlines() if line.startswith("## ")]
+    assert headings == ["## Scope confirmation", "## Not verified", "## Not done"], (
+        headings
+    )
 
 
 def test_the_ladder_does_not_still_say_at_the_end():
-    """Three of the four parts are written when they happen. A ladder that
-    still says `gaps.md at the end` contradicts the step above it, and the
-    contradiction is what sessions resolve by reconstructing at the end. The
-    crafter's copy of the ladder left with #967; it opens the skill instead."""
+    """The memo's rows are written when they happen. A ladder that still says
+    `gaps.md at the end` contradicts the step above it, and the contradiction
+    is what sessions resolve by reconstructing at the end. The crafter's copy
+    of the ladder left with #967; it opens the skill instead."""
     skill = collapsed("skills", "implement", "SKILL.md")
     assert "`gaps.md` at the end" not in skill
-    assert (
-        "opened at the first divergence, unverified item, or fed-back clause" in skill
-    )
-    assert "`gaps.md` at the end" not in collapsed("agents", "crafter.md")
+    # #1148: one trigger, which the hardening case's docstring gives the
+    # grounds of, said the same way by the skill and the crafter.
+    assert "written from its template when the first phase closes" in skill
+    crafter = collapsed("agents", "crafter.md")
+    assert "`gaps.md` at the end" not in crafter
+    assert "`gaps.md` from its template when the first phase closes" in crafter
+    assert "where the plan's row asks for them" not in crafter
 
 
 def test_the_skill_states_the_closing_convention():

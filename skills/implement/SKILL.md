@@ -108,7 +108,7 @@ seal/
     ├── routing.md    the routing answer, written by the session before the
     │                 first edit; a framer reads it and never writes it
     ├── frame/        design.md, plan.md, questions.md: the design before the build
-    ├── trail/phases/phase-N.md   one build phase's record
+    ├── trail/phases/phase-N.md   what one build phase found
     ├── trail/rounds/round-N.md   one review round — closed at merge, removed
     │                             with its work item at the settle after its release
     ├── trail/gate.md             the one broad run, written by `seal gate --record`
@@ -283,6 +283,13 @@ counterfeit seal* — applied one step earlier. An edit that cannot fail is an
 unverified edit, and reporting it as made is the same claim as reporting a
 `read` as passing.
 
+**Three failed fixes stop the work.** The same bug through three failed
+fixes is the architecture talking: stop, and the next step is the
+architecture question, not a fourth fix. Three returns through the broad
+gate read the same way: a fourth says the narrow scope misses a class of
+breakage.
+check: tests/text/test_a_moved_rule_leaves_its_definition.py
+
 ### 3. The SDD file set
 
 **When a work item is required** — the same threshold the Design Gate uses,
@@ -331,8 +338,8 @@ what the product should be, or a value somebody has to be accountable for,
 and the only kind of row that blocks the build. **a measurement**: a probe,
 a command or a count settles it, so a person is the wrong instrument and a
 row queued behind one wastes a round trip. **the work**: unknowable at
-framing time; the phase that meets it decides it there and records a
-divergence row, and it does not travel back to the framer. **The framer
+framing time; the phase that meets it decides it there and records the
+decision in its phase record, and it does not travel back to the framer. **The framer
 opens rows and does not own their answers**: the `Status` column is written
 by whoever answered, as `answered <date> by <who>`, never by whoever asked.
 
@@ -345,10 +352,10 @@ without a registry — take it from `date +%s` when creating the directory.
 |---|---|---|---|---|
 | `routing.md` | `templates/records/sdd-routing.md` | the session that spawns the work, from the batch it asked — never a subagent, which has no way to put the question to anybody | the routing answer | before the first edit, and so before a framer is spawned |
 | `frame/design.md` | `templates/records/sdd-design.md` | the framer | WHAT — scope, mandatory user scenarios & acceptance, grounding clauses, the rule changes the settle writes into the policy root (`## Rule changes`), and the framer's mark at its foot, with a `Reframed … after round <N>.` line under it for each time the review chain sent the work item back (`docs/the-review-record.md` *The run* owns that rule) | before implementing |
-| `frame/plan.md` | `templates/records/sdd-plan.md` | the framer | HOW — phases as vertical slices, alternatives with failure scenarios; this is the Design Gate's artifact, and its `Approved <date> by <who>` line is the record that the gate happened | before implementing (gated work) |
+| `frame/plan.md` | `templates/records/sdd-plan.md` | the framer | HOW — phases as vertical slices, alternatives with failure scenarios; this is the Design Gate's artifact, approved by the spawn that builds it | before implementing (gated work) |
 | `frame/questions.md` | `templates/records/sdd-questions.md` | the framer opens the rows; each row's `Who can answer` cell names who closes it | decisions only a human can make — extracted so nothing ships on a silent assumption | one batch before the first edit, then as they arise |
-| `gaps.md` | `templates/records/sdd-gaps.md` | the builder | the closing memo — one line of purpose, then what the diff cannot show (below) | opened at the first divergence, unverified item, or fed-back clause; closed when implementation ends |
-| `trail/phases/phase-N.md` | `templates/records/sdd-phase.md` | the builder | what this phase was asked and what building it found — never what the work removes, which the frame's `## Removes` names once, and never the commit or the one-line delivery description `plan.md`'s Status/Delivers cells already own | written when the phase closes |
+| `gaps.md` | `templates/records/sdd-gaps.md` | the builder | the closing memo — what went out unproved and who answers it, and what was within reach and not taken (below) | written from its template when the first phase closes; every later phase and fix pass adds to it |
+| `trail/phases/phase-N.md` | `templates/records/sdd-phase.md` | the builder | what building this phase found, each departure from the frame among it — never what the work removes, which the frame's `## Removes` names once, and never the commit or what the phase was asked, which `plan.md`'s Status and Delivers cells own | written when the phase closes |
 
 The `Starts from` column is not decoration. A template that no shipped
 document names is a template a session cannot find: it reads *bootstrapped
@@ -366,23 +373,18 @@ was wrong. Below the ladder's top rung there is no framer and no `frame/design.m
 the session that builds writes whatever that rung asks for, and the column is
 about who holds the pen when both parties exist.
 
-Where a work item records the approval is the `plan.md` line above, and it is
-the only durable trace of the gate. `routing.md` records who answered the
-routing batch, the review chain records what it read, and neither of them says
-a person saw the plan.
+Reading `plan.md` and spawning the build is the approval, and no line
+records it: the phase's Status cell is the trace that the build happened.
 
-**What goes into `trail/phases/phase-N.md`'s `## What this phase was asked`
-section is the phase-specific content of the spawn or task that started
-it** — never the boilerplate the contract, this skill, and `agents/crafter.md`
-already carry, which every phase gets told by definition and none of them
-need repeated in their own record. Copy it in when the phase closes: what
-the spawn prompt or task description said this phase, specifically, had to
-build. The section is how a reader opening the record later, with the spawn
-prompt gone, tells a scope the orchestrator gave the phase from one the phase
-invented. `## What this phase found` holds what building the phase taught
-that `plan.md`'s cells do not: a decision settled while writing the code, a
-constraint found only by trying, anything the next phase needs. A discovery
-reaches the next phase only through that section or through the orchestrator
+**`trail/phases/phase-N.md` holds one section, `## What this phase found`:
+what building the phase taught that `plan.md`'s cells do not.** That is a
+decision settled while writing the code, a constraint found only by trying,
+each `seen red` and mutation claim, every departure from the frame, a
+removal the frame's `## Removes` did not name among them, and anything the
+next phase needs. What the phase was asked is the plan's Delivers cell, and
+a scope a spawn gives beyond it is a decision the orchestrator folds into
+the plan before the spawn, so the record copies neither. A discovery reaches
+the next phase only through that section or through the orchestrator
 retyping it into the next spawn prompt, and the second goes missing without
 a trace when the orchestrator does not.
 
@@ -401,9 +403,9 @@ rebase**. Nothing measures from the column, which is why that is tolerable.
 **`frame/design.md` ends with its frame's mark**, `Framed <date> by <who>, before the
 build.`, where `<who>` is the `Planning` row's answer in `routing.md`,
 `framer` or `the session`; `chain_check.py` refuses a `Planning | framer`
-work item whose mark names anyone else. The mark, `plan.md`'s approval line
-and `routing.md`'s `Answered` line share one shape, the verb, the date, who
-and the moment, so the three stay one convention.
+work item whose mark names anyone else. The mark and `routing.md`'s
+`Answered` line share one shape, the verb, the date, who and the moment, so
+the two stay one convention.
 
 ### 4. The closing memo — only what the diff cannot show
 
@@ -412,27 +414,23 @@ already holds the file list and the diff holds the detail; re-deriving them at
 the end costs a re-read of your own change and lands further from the truth
 than the command would.
 
-Four things go in it, and after the session closes three of them are nowhere
-else. Write each **when it happens** — a call made at minute ten is invisible
-by minute ninety, and reconstruction is the expensive way to get a worse
-answer.
+Two things go in it, and after the session closes neither is anywhere else.
+The first phase writes it from its template when it closes, and every later
+phase and fix pass adds to it. Write each row **when it happens** — a call
+made at minute ten is invisible by minute ninety, and reconstruction is the
+expensive way to get a worse answer.
 
-1. Why this work exists and what the result changes — **one line**, not a walk
-   through the diff. Where the change alters nothing observable no `frame/design.md`
-is written, so this is
-   the only place the purpose stays in the repository.
-2. Where spec and implementation diverged — both sides quoted, which side won,
-   and the grounds, at the moment you decide it. "The document probably said
-   so" is not grounds; quote it.
-3. What was not verified — with **who has to answer it**, at the moment you
-   decide not to run something.
-4. What was fed back into the design — clauses this work added, marked as
-   *inferred during implementation* so planners know they may overturn them.
+1. What was not verified — with **who has to answer it**, at the moment you
+   decide not to run something (`## Not verified`).
+2. What was within reach and deliberately not taken, with its grounds, in
+   prose, because those are decisions rather than pending claims
+   (`## Not done`).
 
-A memo whose last three sections are empty is correct and four lines long.
-`## Not done` holds what was within reach and deliberately not taken, with
-its grounds, in prose, because those are decisions rather than pending
-claims.
+On the ladder's second rung, `## Scope confirmation` holds the one line
+that replaces `plan.md`. Why the work exists is the changelog fragment's,
+and a departure from the frame is the phase record's that made it. A memo
+with nothing unverified and nothing left is correct and short: the
+no-change block and `nothing`.
 
 **`## Not verified` is read by a machine, so it has one shape** — a
 `| Item | Who must answer |` table, or alone the no-change block

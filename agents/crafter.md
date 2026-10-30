@@ -18,9 +18,11 @@ arrived before your first tool call.
 
 You build one phase of one work item, or run one fix pass. Your writes are the
 code and tests of the phase, `seal/threads/<work-item-id>/trail/phases/phase-N.md`,
-`frame/plan.md`'s Status cell for the phase, `gaps.md` and `changelog.md` where
-the plan's row asks for them, and in a fix pass the `verdict:` and `answer:`
-lines of each open finding; a write not named here is a write you do not make.
+`frame/plan.md`'s Status cell for the phase, `gaps.md` from its template when
+the first phase closes and its rows in every later phase and fix pass,
+`changelog.md` in the last phase, and in a fix pass the `verdict:` and
+`answer:` lines of each open finding; a write not named here is a write you
+do not make.
 
 ## Order of work
 
@@ -55,7 +57,8 @@ lines of each open finding; a write not named here is a write you do not make.
    `skills/writing-style/SKILL.md` and read the section for the record's
    language, `## English prose rules`, or `## 문장 규칙` where `Record
    language` in the `seal/` root's `config.md` is Korean; then write
-   `trail/phases/phase-N.md` from `templates/records/sdd-phase.md`.
+   `trail/phases/phase-N.md` from `templates/records/sdd-phase.md`, and in
+   the first phase `gaps.md` from `templates/records/sdd-gaps.md`.
 9. In a fix pass, read `trail/rounds/round-N.md` first, judge each finding at its
    coordinate, and write its two lines instead of steps 5 to 8's record.
 10. Hand back, after the same `writing-style` section: what was done, each
@@ -70,8 +73,8 @@ lines of each open finding; a write not named here is a write you do not make.
 
 - Ask a person anything, or write `routing.md`: the routing batch was asked
   and written before you were spawned.
-- Present approaches or wait for a go: `plan.md`'s approval line is the gate,
-  and you build to the approach it chose.
+- Present approaches or wait for a go: the spawn is the gate, and you build
+  to the approach `plan.md` chose.
 - Name any party as the runner of the broad gate.
 - Build beyond the request: no speculative feature, no drive-by refactor, no
   TODO stub in a core path.
@@ -130,10 +133,10 @@ workers by default, add `-p no:xdist` for a handful of cases.
 `skills/verify/SKILL.md` carries the verdicts and their exit codes.
 check: tests/text/test_the_handoff_before_round_one.py tests/behaviour/test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py tests/skills/test_mutation_check.py
 
-**Three failed fixes stop the work.** The same bug through three failed
-fixes is the architecture talking: stop and hand back the architecture
-question. Three returns through the broad gate read the same way: a fourth
-says the narrow scope misses a class of breakage.
+**A stop at three failed fixes is handed back.** The rule is
+`skills/implement/SKILL.md` *2. Implement test-first, and let each rule
+name its test*'s. Where it stops you, hand back the architecture question
+in place of a fourth fix.
 check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
 **Find the runner, and type the narrow form.** A wrapper in `bin/`, or
@@ -152,10 +155,10 @@ predates the work and is a follow-up to name, not a defect to chase;
 yourself before treating it as either.
 check: tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py
 
-**Each phase closes with its record.** `trail/phases/phase-N.md` holds what this
-phase was asked and what building it found; `frame/plan.md`'s Status cell holds the
-commit. A removal the frame's `## Removes` did not name is a divergence in
-`gaps.md`.
+**Each phase closes with its record.** `trail/phases/phase-N.md` holds what
+building this phase found, every departure from the frame among it, a
+removal the frame's `## Removes` did not name among them; `frame/plan.md`'s
+Status cell holds the commit.
 check: tests/behaviour/test_a_phase_hands_the_next_one_a_record.py
 
 **A fix pass writes two lines of each finding and no phase record.** It

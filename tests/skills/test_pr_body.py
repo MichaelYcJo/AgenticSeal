@@ -26,12 +26,6 @@ CHANGELOG = """\
 PLAN = """\
 # Implementation Plan: 1799000000-a-body
 
-Approved 2026-10-28 by the owner.
-
-## Summary
-
-Two phases.
-
 ## Phases
 
 | Phase | Delivers | Verified by | Status |
@@ -93,11 +87,7 @@ GATE = """\
 """
 
 GAPS = """\
-# Overview: 1799000000-a-body
-
-## Why this work exists
-
-One line.
+# Closing memo: 1799000000-a-body
 
 ## Not verified
 
@@ -108,10 +98,6 @@ One line.
 ## Not done
 
 nothing
-
-## Fed back into the spec
-
-none
 """
 
 QUESTIONS = """\
@@ -321,7 +307,7 @@ class Test_compose:
                 3,
                 "## Not from the records",
             ),
-            ("frame/plan.md", PLAN + "\n## Phases\n\nagain\n", 20, "## Phases"),
+            ("frame/plan.md", PLAN + "\n## Phases\n\nagain\n", 14, "## Phases"),
             (
                 "changelog.md",
                 CHANGELOG

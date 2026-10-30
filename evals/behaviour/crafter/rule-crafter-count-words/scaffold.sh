@@ -92,8 +92,6 @@ mkdir -p "$(dirname 'seal/threads/1790000012-count-words/frame/plan.md')"
 cat > 'seal/threads/1790000012-count-words/frame/plan.md' <<'AGENTIC_EOF'
 # Implementation Plan: count_words
 
-Approved 2026-10-14 by the repository owner, when `crafter` was spawned.
-
 ## Phases
 
 | Phase | Delivers | Verified by | Status |
