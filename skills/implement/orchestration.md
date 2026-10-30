@@ -24,6 +24,11 @@ the marker, and
    before the first edit (*Orchestrator: how the work is routed* below).
    The orchestrator makes the branch with `git switch`, and a worktree only
    where another session works in the same clone at the same time.
+   Before the first edit the orchestrator runs `seal core` once. Where it
+   reports no core entry, the orchestrator opens the file the output names
+   once, which is then the session's one read of the core, and continues.
+   Any other failure the orchestrator says in its next reply, and the work
+   goes on.
 2. The framer writes `frame/design.md`, `plan.md` and `questions.md`. The orchestrator
    reads `plan.md`, writes its approval line and spawns the crafter (*The plan
    is approved at the spawn* below). The proofer's rounds follow, then
@@ -454,7 +459,7 @@ one.
 
 | Act | File | Delivered by | Grounds |
 |---|---|---|---|
-| Orchestrator: the order inside a ticket | `skills/implement/orchestration.md` | still a sentence | Nothing reads the order. Each step it sequences has a row of its own, and what the sequence itself asserts, which party runs when, is in no file a check opens. A run that opened the pull request after the rounds leaves the same tree as one that opened it before them. Nothing reads the three rules under the steps either: a decision left in an issue comment, a framer spawned with no line on the issue's comments, a `handoff.md` kept after its move and a recurring problem given no home leave a tree no check refuses |
+| Orchestrator: the order inside a ticket | `skills/implement/orchestration.md` | still a sentence | Nothing reads the order. Each step it sequences has a row of its own, and what the sequence itself asserts, which party runs when, is in no file a check opens. A run that opened the pull request after the rounds leaves the same tree as one that opened it before them, and so does a session that never ran `seal core` before its first edit. Nothing reads the three rules under the steps either: a decision left in an issue comment, a framer spawned with no line on the issue's comments, a `handoff.md` kept after its move and a recurring problem given no home leave a tree no check refuses |
 | The plan is approved at the spawn | `skills/implement/orchestration.md` | part of its parent's act | The approval line of the step where its parent's order spawns the crafter, and the rules the spawn prompt is written to. It names no act of its own |
 | Orchestrator: Bootstrap | `skills/implement/bootstrap.md` | check: `hooks/mode-gate.py` | A root with no `Mode` row in `config.md` is exactly nobody was asked, and this gate stops the next command until `seal mode` writes it. It reaches the mode question alone. Nothing reads the `Broad gate` proposal, so a repository that was never offered candidates meets `seal gate`'s own refusal after the rounds have settled. The workflow file is written by `seal pr-checks install`, whose substitution of the version `tests/skills/test_seal.py` holds, and nothing checks that the orchestrator ran it under the second answer. A yes at step 3 follows `skills/parity-setup/SKILL.md` *Procedure*, and nothing reads that it ran: the pull request's parity arm wakes on `seal/parity.md` existing, so a setup that never happened is silence rather than a refusal, and a guessed original produces a file that parses |
 | Orchestrator: how the work is routed | `skills/implement/orchestration.md` | check: `hooks/routing-edit-gate.py` | The first `Write`, `Edit` or `NotebookEdit` is refused until a declaration naming the branch stands under the `seal/` root or the session ran `seal no-work-item` on that branch, and the core, `skills/core/SKILL.md`, which the plugin's `SessionStart` hook prints into every session, names this section and `hooks/routing-edit-gate.py`. What neither reaches is the shape of the asking: a declaration built from four separate questions parses exactly like one built from the asking this section mandates |
