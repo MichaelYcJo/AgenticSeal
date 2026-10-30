@@ -81,7 +81,7 @@ files found 0 pairs.
 payload went to `python3 hooks/dispatch.py session-core` with
 `CLAUDE_PLUGIN_ROOT` set to a scratch copy of `.claude-plugin/` and the
 core. With `cwd` in this clone, the first line named
-`/Users/michael/Documents/GitHub/SpecSeal/skills/core/SKILL.md` and 6,909
+`<clone>/skills/core/SKILL.md` and 6,909
 characters were printed. With `cwd` outside any repository, it named the
 scratch copy's core and 6,993 characters were printed. Both exited 0, both
 said `plugin 0.25.0`, and both digests equalled `shasum -a 256` of the
