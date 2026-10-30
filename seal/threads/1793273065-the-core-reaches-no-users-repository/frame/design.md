@@ -107,7 +107,8 @@ agent read the core twice (`questions.md` Q1, the issue's *Update (owner,
    - **It passes, exit 0,** where exactly one core entry is in context, its
      `attachment.content` equals its `attachment.stdout`, the body equals the
      file the header names, and that file's SHA-256 equals the header's.
-     Bodies are compared with line endings as `\n` and trailing newlines
+     Bodies are compared with every `\r` before a `\n` read as part of the
+     line ending, and with trailing line endings, a last `\r` included,
      removed. It prints one line: the header's path, version and digest, the
      `hookName`, and "in context once".
    - **It fails, exit 1,** with one line naming the reason, where: no
