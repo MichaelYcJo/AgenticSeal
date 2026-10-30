@@ -24,10 +24,14 @@ reopens them.
   `## Rule changes`: `frame/plan.md` A12a to A12d.
 - **`## Open questions` and `## Summary`.** Nothing in code reads either
   (executed, `frame/design.md` *Removes*); both go.
-- **`severity:`, `Approved` and `Seal-Routing:`.** Kept, each with its
-  reader: `frame/design.md` Table C and `frame/plan.md` A14a to A14c. The
+- **`severity:` and `Seal-Routing:`.** Kept, each with its reader:
+  `frame/design.md` Table C and `frame/plan.md` A14a and A14c. The
   trailer's record is 24 failed hygiene runs with no refusal (executed), so
   the tree answers "not weighable yet"; the settle after 0.25.x weighs it.
+- **`Approved`.** Removed after phase 1: nothing in code reads it and its
+  whole history in the round records is findings about its own shape
+  (executed); `frame/design.md` Table C and `frame/plan.md` A14b. This work
+  item's own `plan.md` keeps its line as history under the old rule.
 - **A check for the direction of references.** Not built: `frame/plan.md`
   A13; the proofer runs the `git grep` the new rule names.
 - **The guarantee's `## The parties` table.** Unchanged: `frame/plan.md`
