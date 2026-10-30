@@ -128,7 +128,7 @@ The three keeps. Git keeps every commit and, after the settle, each removed reco
 | `skills/commit-pr-convention/SKILL.md` | whoever writes a commit or a pull request | kept; *Pull request bodies* states the new order |
 | `skills/verify/SKILL.md` | every party | kept, unchanged; the home of the three labels |
 | `skills/verify/orchestration.md` | the orchestrator | kept; line 146 cites the three-fix rule's new home |
-| `skills/settle/SKILL.md` | the settling session | kept; step 7 of *The settling session's procedure* gains the measure: for each released work item routed through the review chain, count from its `trail/rounds/round-*.md` the four numbers `docs/the-review-record.md` *The run* names and post them as that section says, then run `seal settle --apply` (*Scope* item 7) |
+| `skills/settle/SKILL.md` | the settling session | kept; step 7 of *The settling session's procedure* is the home of the measure: where the repository keeps a `flow-baseline` log, it states and counts the four numbers for each released work item routed through the review chain and posts them there, then runs `seal settle --apply`; `docs/the-review-record.md` *The run* cites it (*Scope* item 7) |
 | `skills/writing-style/SKILL.md`, `skills/legacy-parity/SKILL.md`, the rest of `skills/` | their callers | kept, unchanged |
 | `templates/records/sdd-design.md`, `sdd-plan.md`, `sdd-phase.md`, `sdd-gaps.md` | the framer and the crafter at the write | reshaped (*Scope* item 2) |
 | `templates/records/sdd-round.md`, `sdd-guarantee.md`, `sdd-routing.md`, `sdd-questions.md`, `process.md` | their writers | kept, unchanged |
