@@ -164,7 +164,10 @@ agent read the core twice (`questions.md` Q1, the issue's *Update (owner,
    `CLAUDE.md` pair with their imports (`harness` share, as today) and one
    row, `SessionStart hook: skills/core/SKILL.md`, share `hook`, whose bytes
    are `len(hooks.lib.core.output(root, root))` encoded, the output a
-   session in the measured tree would receive. Tokens are estimated at
+   session in the measured tree would receive; a tree with no
+   `skills/core/SKILL.md` gets the row at 0 bytes, marked `missing`,
+   because only a tree that has the hook prints `output`'s refusal, and a
+   session in a tree without the core receives nothing. Tokens are estimated at
    `ASSUMED_RATIO` and labelled so; no transcript calibrates a session's
    prefix. `BASELINE_AGENT` stays `general-purpose`, and the module
    docstring says why: the hook's output reaches no subagent, so it is in
