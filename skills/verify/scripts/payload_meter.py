@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""payload_meter — what each agent's startup payload is made of, and what it
-costs in tokens.
+"""payload_meter — what a session's and each agent's startup payload is made
+of, and what it costs in tokens.
 
 Every spawn of an agent this plugin defines pays for the same prefix again:
 the definition under `agents/`, every `SKILL.md` its `skills:` list injects,
@@ -10,6 +10,15 @@ hops (`imports_of`, #1177). The prefix is cached for five minutes, and no two
 spawns of one agent in a review chain fall inside five minutes of each other
 (#292, `frame/design.md` *Measured before the first edit*) — so in a chain it is
 written on every spawn. This reads the tree and says what that prefix is.
+
+A session pays for a prefix of its own, which `session_composition` lists in
+a table before the agents': the same `CLAUDE.md` pair with its imports, and
+the core the plugin's `SessionStart` hook prints, counted as
+`hooks/lib/core.py#output` for a session in the measured tree (#1177). The
+hook's output reaches the session and no subagent (#1177's probe of a plugin
+`SessionStart` hook), so no agent's table carries it. No transcript
+calibrates a session's prefix, so the session's tokens are estimated at
+`ASSUMED_RATIO` and labelled so.
 
   bytes, chars    counted from the files.
   tokens          NEVER counted. A token figure is `measured (<transcript>)`
@@ -40,13 +49,18 @@ default, no plugin skill) is subtracted, because the harness's own system
 prompt, tool schemas and the `CLAUDE.md` pair are in every prefix; what is
 left is the agent's own files, and dividing their bytes by it is the ratio.
 A transcript that never spawned the baseline agent is refused rather than
-subtracted from by zero.
+subtracted from by zero. The baseline stays `general-purpose` with the core
+hook in place: the hook's output reaches no subagent, so it is in neither
+the baseline's prefix nor an agent's, and the subtraction still leaves each
+agent's own files.
 
 Exit codes: 0 measured · 1 the input could not be measured -- a transcript
 the calibration refuses, or no `agents/*.md` under the root · 2 nothing ran:
 `--calibrate` was given and `session_cost.py`, the sibling it loads, is not
 beside this script, `--sections` was given and `unverified_check.py`, the
-fence rule it splits by, is not beside it, or the arguments were unusable
+fence rule it splits by, is not beside it, `hooks/lib/core.py`, which says
+what the core hook prints, is not in the plugin around it, or the arguments
+were unusable
 (argparse's usage error). An interpreter below the floor never reaches this
 file through `seal payload`: `hooks/lib/launch.py` refuses `seal` with 2 first.
 
@@ -104,6 +118,14 @@ IMPORT = re.compile(r"(?:^|(?<=\s))@([^\s\"'`]\S*)", re.MULTILINE)
 HOPS = 4
 ARROW = " → "
 
+# The session table's row for what the plugin's `SessionStart` hook prints,
+# and the basis of every session figure: no transcript calibrates a session.
+HOOK_ROW = "SessionStart hook: skills/core/SKILL.md"
+SESSION_BASIS = (
+    f"estimated ({ASSUMED_RATIO} B/token, from assumed — no transcript "
+    "calibrates a session)"
+)
+
 
 def _session_cost():
     """The transcript helpers, imported from the sibling script rather than
@@ -157,6 +179,33 @@ def _fence_rule():
         spec.loader.exec_module(module)
         _reader = module
     return _reader
+
+
+_core_module = None
+
+
+def _core():
+    """`hooks/lib/core.py` of the plugin around this script, the one
+    definition of what the core hook prints, loaded once. A copy of this
+    script taken without the plugin has none, which is `_session_cost`'s
+    shape: a sentence to stderr, then exit 2."""
+    global _core_module
+    if _core_module is None:
+        path = os.path.join(plugin_root(), "hooks", "lib", "core.py")
+        if not os.path.isfile(path):
+            sys.stderr.write(
+                f"seal payload: cannot read {path}, and it is what says what "
+                "the core hook prints into a session, whose bytes the session "
+                "table counts. This command ships beside it in the plugin; a "
+                "copy of one script taken on its own is not a plugin. Nothing "
+                "was measured.\n"
+            )
+            raise SystemExit(2)
+        spec = importlib.util.spec_from_file_location("agentic_payload_core", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        _core_module = module
+    return _core_module
 
 
 class CalibrationError(Exception):
@@ -339,11 +388,9 @@ def imports_of(path, home, depth=HOPS, seen=None):
 
 def composition(root, home, name, definition, sections):
     """The rows of one agent's payload, in the order the harness lays them
-    out: the definition, each skill, then the harness's `CLAUDE.md` pair,
-    each file of it followed by the files its `@` lines import (`imports_of`).
-    An imported row is the importer's name, an arrow and each hop as written,
-    with `via` naming the file that holds its line; one real path is one row
-    across the pair, and a file of the pair is never a row of the other's."""
+    out: the definition, each skill, then the harness's `CLAUDE.md` pair with
+    its imports (`pair_rows`). No row is the core hook's: its output reaches
+    no subagent."""
     _name, skills = frontmatter(read(os.path.join(root, definition))[1])
     rows = [file_row(root, definition, definition, "agent", sections)]
     for skill in skills:
@@ -356,6 +403,16 @@ def composition(root, home, name, definition, sections):
                 "bytes": len(read(shadow)[0]),
             }
         rows.append(row)
+    return rows + pair_rows(root, home, sections)
+
+
+def pair_rows(root, home, sections):
+    """The harness's `CLAUDE.md` pair, each file followed by the files its
+    `@` lines import (`imports_of`). An imported row is the importer's name,
+    an arrow and each hop as written, with `via` naming the file that holds
+    its line; one real path is one row across the pair, and a file of the
+    pair is never a row of the other's."""
+    rows = []
     pair = (
         (os.path.join(root, "CLAUDE.md"), "CLAUDE.md"),
         (os.path.join(home, ".claude", "CLAUDE.md"), "~/.claude/CLAUDE.md"),
@@ -382,6 +439,31 @@ def composition(root, home, name, definition, sections):
             row["via"] = ARROW.join((display, *chain[:-1]))
             rows.append(row)
     return rows
+
+
+def session_composition(root, home, sections=False):
+    """The rows of a session's prefix in the tree at ROOT: the `CLAUDE.md`
+    pair with its imports (`pair_rows`), then `HOOK_ROW`, share `hook`, whose
+    bytes and characters are `hooks/lib/core.py#output` for a session in
+    ROOT, header included. Where ROOT holds no core to print, as a release
+    before the hook does, the row is 0 bytes marked `missing`: the hook's
+    one-line refusal is printed only by a tree that has the hook. Every token
+    figure is estimated at `ASSUMED_RATIO` and labelled `SESSION_BASIS`."""
+    core = _core()
+    rows = pair_rows(root, home, sections)
+    hook = {"path": HOOK_ROW, "share": "hook"}
+    if os.path.isfile(core.origin(root, root)):
+        printed = core.output(root, root)
+        hook.update({"bytes": len(printed.encode("utf-8")), "chars": len(printed)})
+    else:
+        hook.update({"bytes": 0, "chars": 0, "missing": True})
+    rows.append(hook)
+    for row in rows:
+        row["tokens"] = round(row["bytes"] / ASSUMED_RATIO)
+        row["basis"] = SESSION_BASIS
+    total = {key: sum(row[key] for row in rows) for key in ("bytes", "chars", "tokens")}
+    total["basis"] = SESSION_BASIS
+    return {"files": rows, "total": total}
 
 
 def agents_in(root, only=()):
@@ -640,6 +722,9 @@ def measure(
         "measured_at": dt.date.today().isoformat(),
         "root": _shown(root),
         "ratios": {},
+        # After the calibration, so a copy missing `session_cost.py` names
+        # that sibling first.
+        "session": session_composition(root, home, sections),
         "agents": {},
     }
     if baseline:
@@ -836,6 +921,9 @@ def render(data):
         for item in calibration.get("unread", ()):
             lines.append(f"- not read: `{item['subagent_type']}` — {item['why']}")
         lines.append("")
+    session = data.get("session")
+    if session:
+        lines += _session_lines(session)
     for name, agent in data["agents"].items():
         prefix = agent.get("prefix")
         head = f"## {name}"
@@ -932,6 +1020,50 @@ def render(data):
             )
             lines.append("")
     return "\n".join(lines)
+
+
+def _session_lines(session):
+    """The session's table: one line per file of the pair, each import under
+    its importer, then the core hook's row and the total."""
+    lines = [
+        "## session",
+        "",
+        "What a session started in this tree reads before its first prompt: "
+        "the `CLAUDE.md` pair with the files its `@` lines import, and the core "
+        "the plugin's `SessionStart` hook prints. No subagent receives the "
+        "hook's output, so no agent's table below carries it.",
+        "",
+        "| File | Bytes | Chars | Tokens | Basis |",
+        "|---|---|---|---|---|",
+    ]
+    for row in session["files"]:
+        name = f"`{row['path']}`"
+        if "via" in row:
+            name = f"&nbsp;&nbsp;{name}"
+        if row.get("missing"):
+            why = (
+                " — no `skills/core/SKILL.md` in this tree, so no hook prints one"
+                if row["share"] == "hook"
+                else ""
+            )
+            lines.append(f"| {name} | 0 | 0 | 0 | missing{why} |")
+            continue
+        note = ""
+        if "via" in row:
+            note = f" — imported by `{row['via']}`"
+        elif row["share"] == "hook":
+            note = " — its first line and the core below its frontmatter"
+        lines.append(
+            f"| {name} | {_n(row['bytes'])} | {_n(row['chars'])} | "
+            f"{_n(row['tokens'])} | {row['basis']}{note} |"
+        )
+    total = session["total"]
+    lines += [
+        f"| **total** | {_n(total['bytes'])} | {_n(total['chars'])} | "
+        f"{_n(total['tokens'])} | {total['basis']} |",
+        "",
+    ]
+    return lines
 
 
 def _baseline_name(data):

@@ -163,7 +163,8 @@ TOOLS = {
     ),
     "payload": (
         "skills/verify/scripts/payload_meter.py",
-        "what each agent's startup payload is made of, and its cost in tokens",
+        "what a session's and each agent's startup payload is made of, and its "
+        "cost in tokens",
     ),
     "stamp": (
         "skills/verify/scripts/seal_stamp.py",

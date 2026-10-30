@@ -1,11 +1,12 @@
 """`skills/verify/scripts/payload_meter.py`, one class per function.
 
-What each agent's startup payload is made of, and what it costs in tokens --
-with every token figure carrying its basis.
+What a session's and each agent's startup payload is made of, and what it
+costs in tokens -- with every token figure carrying its basis.
 
 #292. The meter reads the tree (an agent's definition, each `SKILL.md` its
 `skills:` list injects, the two `CLAUDE.md` files the harness adds and, since
-#1177, each file their `@` lines import) and
+#1177, each file their `@` lines import, and for a session the core the
+plugin's `SessionStart` hook prints) and
 reports bytes, characters and tokens. Bytes and characters are counted;
 tokens are never — they are either MEASURED from a transcript, by
 `--calibrate`, or ESTIMATED from a bytes-per-token ratio, and the label on
@@ -94,6 +95,35 @@ def a_tree(tmp_path, skills=("alpha", "beta"), extra_agent=False):
     write(str(root / "CLAUDE.md"), f"## Repo rules {ACCENT}\n")
     write(str(home / ".claude" / "CLAUDE.md"), f"## User rules {ACCENT}\n")
     return root, home
+
+
+def a_core(root):
+    """The plugin's core and manifest under ROOT, so a session in that tree
+    receives the core from the plugin's `SessionStart` hook. The core carries
+    a frontmatter the hook leaves out and one accent so bytes ≠ chars."""
+    write(
+        str(root / ".claude-plugin" / "plugin.json"),
+        '{"name": "agentic", "version": "9.9.9"}\n',
+    )
+    write(
+        str(root / "skills" / "core" / "SKILL.md"),
+        f"---\nname: core\ndescription: the core\n---\n\n# The core {ACCENT}\n\n"
+        "One value.\n",
+    )
+
+
+def hook_output(root):
+    """What `hooks/lib/core.py#output` prints for a session in ROOT: the one
+    definition the hook, `seal core` and the meter share."""
+    spec = importlib.util.spec_from_file_location(
+        "payload_meter_test_core", os.path.join(ROOT, "hooks", "lib", "core.py")
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.output(str(root), str(root))
+
+
+HOOK_ROW = "SessionStart hook: skills/core/SKILL.md"
 
 
 def size_of(path):
@@ -324,7 +354,7 @@ class Test_measure:
         write(
             str(root / "CLAUDE.md"),
             f"## Repo rules {ACCENT}\n@docs/repo.md\n"
-            'The block\'s `@` line, mail me@example.com, @"quoted.md".\n',
+            'A backticked `@` line, mail me@example.com, @"quoted.md".\n',
         )
         write(str(root / "docs" / "repo.md"), f"repo import {ACCENT}\n")
         write(
@@ -366,31 +396,33 @@ class Test_measure:
 
     def test_an_import_that_is_not_a_file_is_a_missing_row(self, meter, tmp_path):
         """#1177, S5. A dangling import loads nothing and says nothing in a
-        session (`frame/design.md` probe e), so the meter says it: a path that
-        is no file, or a directory, is a row of 0 bytes marked `missing`."""
+        session (#1177's first frame, `frame/design.md` at `346cd01d`, probe
+        e), so the meter says it: a path that is no file, or a directory, is a
+        row of 0 bytes marked `missing`."""
         root, home = a_tree(tmp_path)
         write(
             str(home / ".claude" / "CLAUDE.md"),
-            "@plugins/marketplaces/agenticseal/skills/core/SKILL.md\n@plugins\n",
+            "@rules/gone.md\n@rules\n",
         )
-        os.makedirs(home / ".claude" / "plugins")
+        os.makedirs(home / ".claude" / "rules")
         data = meter.measure(str(root), str(home))
         imported = [f for f in data["agents"]["probe"]["files"] if "via" in f]
         assert [f["path"] for f in imported] == [
-            "~/.claude/CLAUDE.md → plugins/marketplaces/agenticseal/skills/core/SKILL.md",
-            "~/.claude/CLAUDE.md → plugins",
+            "~/.claude/CLAUDE.md → rules/gone.md",
+            "~/.claude/CLAUDE.md → rules",
         ]
         for row in imported:
             assert (row["bytes"], row.get("missing")) == (0, True), row
         text = meter.render(data)
         assert (
-            "| &nbsp;&nbsp;`~/.claude/CLAUDE.md → plugins` | 0 | 0 | 0 | missing |"
+            "| &nbsp;&nbsp;`~/.claude/CLAUDE.md → rules` | 0 | 0 | 0 | missing |"
             in text
         ), text
 
     def test_one_real_path_imported_twice_is_one_row(self, meter, tmp_path):
         """#1177, S5. Claude Code reads a file once when two memory files
-        import it by one path (`frame/design.md` probe c), so one real path is
+        import it by one path (#1177's first frame, `frame/design.md` at
+        `346cd01d`, probe c), so one real path is
         one row across the pair, under the first importer, however each file
         spells it; an import back to a file of the pair is no row either."""
         root, home = a_tree(tmp_path)
@@ -409,6 +441,113 @@ class Test_measure:
             "CLAUDE.md → ~/shared.md",
             "~/.claude/CLAUDE.md",
         ], harness
+
+    # --- S8: a session's share, the core the hook prints included -------------
+
+    def test_the_session_table_carries_the_hook_row_at_the_bytes_the_hook_prints(
+        self, meter, tmp_path
+    ):
+        """#1177, S8. A session receives the core from the plugin's
+        `SessionStart` hook, not from a memory file, so a meter that reads only
+        the `CLAUDE.md` pair counts none of it. The session's table holds one
+        row for the hook, whose bytes and characters are those of
+        `hooks/lib/core.py#output` for a session in the measured tree: the
+        header naming the file and the core below its frontmatter. The table
+        is printed before the agents'."""
+        root, home = a_tree(tmp_path)
+        a_core(root)
+        printed = hook_output(root)
+        assert printed.startswith("AgenticSeal core from "), printed
+        data = meter.measure(str(root), str(home))
+        hooks = [f for f in data["session"]["files"] if f["share"] == "hook"]
+        assert [f["path"] for f in hooks] == [HOOK_ROW], hooks
+        assert (hooks[0]["bytes"], hooks[0]["chars"]) == (
+            len(printed.encode("utf-8")),
+            len(printed),
+        ), hooks[0]
+        assert hooks[0]["bytes"] > hooks[0]["chars"], "the accent reached no count"
+        text = meter.render(data)
+        by_first = {cells[0]: cells for cells in rows_of(text)}
+        line = by_first[f"`{HOOK_ROW}`"]
+        assert line[1:3] == [f"{len(printed.encode('utf-8')):,}", f"{len(printed):,}"]
+        assert text.index(f"`{HOOK_ROW}`") < text.index("## probe"), text
+
+    def test_the_json_carries_the_session_as_an_object_of_its_own(
+        self, meter, tmp_path
+    ):
+        """#1177, S8. `session` holds the pair with each file their `@` lines
+        import, as the agents' tables do, then the hook's row, and a total that
+        sums them. Every token figure is estimated at the assumed ratio and
+        says so, calibrated run or not: a transcript calibrates a subagent's
+        prefix, and no transcript calibrates a session's."""
+        root, home = a_tree(tmp_path)
+        a_core(root)
+        write(str(home / ".claude" / "CLAUDE.md"), "# my rules\n@rules/mine.md\n")
+        write(str(home / ".claude" / "rules" / "mine.md"), f"mine {ACCENT}\n")
+        done = run(["--root", str(root), "--json"], home, cwd=str(tmp_path))
+        assert done.returncode == 0, done.stderr
+        session = json.loads(done.stdout)["session"]
+        assert [(f["path"], f["share"]) for f in session["files"]] == [
+            ("CLAUDE.md", "harness"),
+            ("~/.claude/CLAUDE.md", "harness"),
+            ("~/.claude/CLAUDE.md → rules/mine.md", "harness"),
+            (HOOK_ROW, "hook"),
+        ], session["files"]
+        assert session["total"]["bytes"] == sum(f["bytes"] for f in session["files"])
+        assert session["total"]["chars"] == sum(f["chars"] for f in session["files"])
+        assert session["total"]["tokens"] == sum(f["tokens"] for f in session["files"])
+        assert str(tmp_path) not in done.stdout, "an absolute path reached the JSON"
+        transcript = a_transcript(
+            tmp_path,
+            [("general-purpose", "aaaa1"), ("plugin:probe", "bbbb2")],
+            {"aaaa1": (20000, 10000), "bbbb2": (30002, 10000)},
+        )
+        calibrated = meter.measure(str(root), str(home), calibrate=transcript)
+        assert calibrated["ratios"]["probe"]["bytes_per_token"] != meter.ASSUMED_RATIO
+        for row in [*calibrated["session"]["files"], calibrated["session"]["total"]]:
+            assert row["basis"].startswith(f"estimated ({meter.ASSUMED_RATIO} "), row
+            assert "assumed" in row["basis"], row
+        for row in calibrated["session"]["files"]:
+            assert row["tokens"] == round(row["bytes"] / meter.ASSUMED_RATIO), row
+
+    def test_no_agent_table_carries_the_hook_row(self, meter, tmp_path):
+        """#1177, S8 and plan D2. The hook's output reaches the session and no
+        subagent, so the core an agent reads is the one its `skills:` list
+        names, once, and the hook's row stands in the session's table alone."""
+        root, home = a_tree(tmp_path, skills=("alpha", "core"), extra_agent=True)
+        a_core(root)
+        data = meter.measure(str(root), str(home))
+        assert [f["path"] for f in data["session"]["files"]][-1] == HOOK_ROW
+        for name, agent in data["agents"].items():
+            assert not [
+                f for f in agent["files"] if f["share"] == "hook" or "hook" in f["path"]
+            ], name
+            assert agent["total"]["bytes"] == sum(f["bytes"] for f in agent["files"])
+        cores = [
+            f["path"]
+            for f in data["agents"]["probe"]["files"]
+            if f["path"].startswith("skills/core/")
+        ]
+        assert cores == ["skills/core/SKILL.md"], cores
+        assert meter.render(data).count(f"`{HOOK_ROW}`") == 1
+
+    def test_a_tree_without_the_core_has_a_missing_hook_row(self, meter, tmp_path):
+        """#1177, S8's before side. A tree that holds no `skills/core/SKILL.md`,
+        such as a release before 0.25.0, prints no core into a session, so the
+        hook's row is 0 bytes marked `missing` rather than the hook's one-line
+        refusal, which no hook of that tree prints."""
+        root, home = a_tree(tmp_path)
+        data = meter.measure(str(root), str(home))
+        hook = data["session"]["files"][-1]
+        assert (hook["path"], hook["bytes"], hook.get("missing")) == (
+            HOOK_ROW,
+            0,
+            True,
+        ), hook
+        text = meter.render(data)
+        line = next(c for c in rows_of(text) if c[0] == f"`{HOOK_ROW}`")
+        assert line[1:4] == ["0", "0", "0"], line
+        assert line[4].startswith("missing"), line
 
     def test_sections_split_each_file_at_its_headings_and_sum_to_the_file(
         self, meter, tmp_path
@@ -527,6 +666,11 @@ class Test_measure:
         text = meter.render(data)
         for cells in rows_of(text):
             if cells and cells[0] in ("File", "Section"):
+                continue
+            # A `missing` row's zeros count a file that is not there, not
+            # tokens anything estimated: the fixture's tree holds no core, so
+            # the session's hook row is one.
+            if len(cells) >= 5 and cells[4].startswith("missing"):
                 continue
             if len(cells) >= 5 and re.fullmatch(r"[\d,]+", cells[3]):
                 assert cells[4].startswith(("estimated", "measured")), cells
@@ -1038,8 +1182,9 @@ class Test_imports_of:
         ], found
 
     def test_accepts_a_symlink_as_its_target(self, meter, tmp_path):
-        """`frame/design.md` probe b: an import through a symlink loads the
-        target, so the row is the target's, by its real path and its bytes."""
+        """#1177's first frame, `frame/design.md` at `346cd01d`, probe b: an
+        import through a symlink loads the target, so the row is the target's,
+        by its real path and its bytes."""
         target = tmp_path / "clone" / "core.md"
         write(str(target), f"# core {ACCENT}\n" + "x" * 300 + "\n")
         home = tmp_path / "home"
@@ -1104,8 +1249,16 @@ class Test_module:
                 "it is what says which lines of a skill stand inside a fenced example",
                 "transcript",
             ),
+            # #1177: every run counts the core hook's output, which
+            # `hooks/lib/core.py#output` defines, so a copy alone reaches it
+            # with no flag at all.
+            (
+                ["--root", "{root}"],
+                "it is what says what the core hook prints into a session",
+                "transcript",
+            ),
         ],
-        ids=["session_cost.py", "unverified_check.py"],
+        ids=["session_cost.py", "unverified_check.py", "core.py"],
     )
     def test_a_script_copied_alone_exits_2_and_names_what_it_misses(
         self, tmp_path, args, purpose, absent
@@ -1116,12 +1269,14 @@ class Test_module:
         It loads `session_cost.py` only under `--calibrate`, and `measure` calls
         the loader before it opens the transcript, so the transcript named need
         not exist; under `--sections` it calls that loader before it reads the
-        root, so the row reaches it in a directory with no `agents/` at all."""
+        root, so the row reaches it in a directory with no `agents/` at all.
+        The copy stands at its path in a plugin that holds nothing else, so
+        `hooks/lib/core.py`, which every run loads after the calibration
+        (#1177), is named under the copy's plugin root too."""
         script = TARGET
-        name = script.rsplit("/", 1)[1]
         alone = tmp_path / "alone"
-        alone.mkdir()
-        copy = alone / name
+        copy = alone.joinpath(*script.split("/"))
+        copy.parent.mkdir(parents=True)
         with open(os.path.join(ROOT, *script.split("/")), encoding="utf-8") as f:
             copy.write_text(f.read(), encoding="utf-8")
         repo = tmp_path / "repo"
@@ -1200,7 +1355,7 @@ class Test_module:
             timeout=120,
         )
         assert done.returncode == 0, done.stderr
-        assert "what each agent's startup payload is made of" in done.stdout, (
+        assert "what a session's and each agent's startup payload" in done.stdout, (
             done.stdout
         )
 
