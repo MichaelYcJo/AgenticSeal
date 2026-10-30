@@ -163,7 +163,8 @@ TOOLS = {
     ),
     "payload": (
         "skills/verify/scripts/payload_meter.py",
-        "what each agent's startup payload is made of, and its cost in tokens",
+        "what a session's and each agent's startup payload is made of, and its "
+        "cost in tokens",
     ),
     "stamp": (
         "skills/verify/scripts/seal_stamp.py",
@@ -180,6 +181,10 @@ TOOLS = {
     "pr-body": (
         "skills/code-review/scripts/pr_body.py",
         "copy a work item's records into a pull request body, or check the copy",
+    ),
+    "core": (
+        "skills/verify/scripts/core_check.py",
+        "whether this session's context holds the core, read from its transcript",
     ),
 }
 
@@ -198,6 +203,8 @@ HOOK_PURPOSES = {
     "routing.py": "it is what writes the record `seal no-work-item` leaves, "
     "which the edit check reads",
     "hooksession.py": "it names the variable a session's id is read from",
+    # `seal core` reads it; the command refuses here, before any subcommand.
+    "core.py": "it is what reads the core hook's first line",
 }
 
 

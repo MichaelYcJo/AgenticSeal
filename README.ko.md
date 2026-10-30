@@ -35,14 +35,14 @@ Claude Code **플러그인**으로 배포됩니다. 인계 규약과 `seal rules
 
 | 누구/무엇 | 따르는 스킬 | 실제로 무엇인가 |
 |---|---|---|
-| **framer** (서브에이전트) | `agent-contract` | 아무도 만들기 시작하기 전에 그 작업 항목의 `frame/design.md` · `frame/plan.md` · `frame/questions.md` 를 쓴다. SDD 사다리가 이미 설계를 요구하는 자리에서 띄운다. 저장소를 넓게 읽고, 사다리와 파일 묶음을 정하는 단계에서 `implement` 를 열고, 쓰기 전에 `writing-style` 을 연다. 트리가 답할 수 있는 것은 직접 답하고, 나머지만 `questions.md` 에 남긴다. 라우팅 질문은 framer 를 띄우기 전에 세션이 이미 물었으므로, 그 뒤로는 `plan.md` 승인이 그 작업에서 사람을 부르는 유일한 지점이다. 코드는 쓰지 않는다. 계약서를 쓴 쪽과 그것을 실행하는 쪽이 달라야 proofer 의 "준수 먼저" 가 대조할 문서를 갖는다 |
-| **crafter** (Claude Code 서브에이전트) | `agent-contract` | 작업 항목의 한 단계를 프레임에 맞춰 만들거나, 회차 기록 하나를 놓고 수정을 한 번 돈다. 첫 단계에서 `implement` 를 열고, 기록을 쓰기 전에 `writing-style` 을 연다. 돌려주는 보고에는 주장마다 `executed`·`read`·`unverified` 를 붙이고, 전체 스위트는 `unverified` 로 두고 누가 답할지 적는다 |
-| **proofer** (서브에이전트) | `agent-contract` | 준수를 먼저 보고 그다음 품질을 본다. 첫 단계에서 `code-review` 를 열고, 회차 기록을 쓰기 전에 `writing-style` 을 연다. 오케스트레이터가 회차 기록을 검증한 뒤에 그에 따라 움직이고, pull request 검사가 그 기록을 읽는다. 리뷰어가 자기 보고를 직접 검증하지는 않는다 |
-| **tracer** (서브에이전트) | `agent-contract` | 원본 코드가 실제로 하는 일을 `경로#앵커` 좌표로 기록하고, 판정이 아니라 사실만 돌려준다. 첫 단계에서 `legacy-parity` 를 연다. `seal/parity.md` 를 선언한 레포에서만 등장한다 |
-| **sealer** (서브에이전트, Opus) | `agent-contract` | 마지막에 독립적으로 보증하는 쪽이다. 회차가 끝나고 changelog 가 쓰이고, 오케스트레이터가 광역 관문을 한 번 돌리고(`seal gate` 가 `trail/gate.md` 를 쓴다), `seal pr-body` 가 기록을 PR 본문의 앞부분에 옮겨 쓴 뒤, 그 기록을 읽는다. 광역 검사는 직접 돌리지 않는다. `seal pr-body --check` 로 본문의 앞부분이 기록의 글 그대로인지 확인하고, 구현자가 실행했다고 적은 주장 가운데 일부를 다시 돌려 보고, 설계·구현·마지막 리뷰·changelog·PR 본문 가운데 오케스트레이터가 쓴 부분을 이슈와 실제 트리에 견주어 읽는다. 판정은 작업 항목의 `guarantee.md` 에 남는다. `sealed`, 트리와 어긋난 곳을 짚은 `withheld`, 또는 소유자에게 넘기는 질문을 단 `undecided` 셋 중 하나다. 설계나 코드 품질을 다시 판정하지는 않는다 |
+| **framer** (서브에이전트) | `core`, `agent-contract` | 아무도 만들기 시작하기 전에 그 작업 항목의 `frame/design.md` · `frame/plan.md` · `frame/questions.md` 를 쓴다. SDD 사다리가 이미 설계를 요구하는 자리에서 띄운다. 저장소를 넓게 읽고, 사다리와 파일 묶음을 정하는 단계에서 `implement` 를 열고, 쓰기 전에 `writing-style` 을 연다. 트리가 답할 수 있는 것은 직접 답하고, 나머지만 `questions.md` 에 남긴다. 라우팅 질문은 framer 를 띄우기 전에 세션이 이미 물었으므로, 그 뒤로는 `plan.md` 승인이 그 작업에서 사람을 부르는 유일한 지점이다. 코드는 쓰지 않는다. 계약서를 쓴 쪽과 그것을 실행하는 쪽이 달라야 proofer 의 "준수 먼저" 가 대조할 문서를 갖는다 |
+| **crafter** (Claude Code 서브에이전트) | `core`, `agent-contract` | 작업 항목의 한 단계를 프레임에 맞춰 만들거나, 회차 기록 하나를 놓고 수정을 한 번 돈다. 첫 단계에서 `implement` 를 열고, 기록을 쓰기 전에 `writing-style` 을 연다. 돌려주는 보고에는 주장마다 `executed`·`read`·`unverified` 를 붙이고, 전체 스위트는 `unverified` 로 두고 누가 답할지 적는다 |
+| **proofer** (서브에이전트) | `core`, `agent-contract` | 준수를 먼저 보고 그다음 품질을 본다. 첫 단계에서 `code-review` 를 열고, 회차 기록을 쓰기 전에 `writing-style` 을 연다. 오케스트레이터가 회차 기록을 검증한 뒤에 그에 따라 움직이고, pull request 검사가 그 기록을 읽는다. 리뷰어가 자기 보고를 직접 검증하지는 않는다 |
+| **tracer** (서브에이전트) | `core`, `agent-contract` | 원본 코드가 실제로 하는 일을 `경로#앵커` 좌표로 기록하고, 판정이 아니라 사실만 돌려준다. 첫 단계에서 `legacy-parity` 를 연다. `seal/parity.md` 를 선언한 레포에서만 등장한다 |
+| **sealer** (서브에이전트, Opus) | `core`, `agent-contract` | 마지막에 독립적으로 보증하는 쪽이다. 회차가 끝나고 changelog 가 쓰이고, 오케스트레이터가 광역 관문을 한 번 돌리고(`seal gate` 가 `trail/gate.md` 를 쓴다), `seal pr-body` 가 기록을 PR 본문의 앞부분에 옮겨 쓴 뒤, 그 기록을 읽는다. 광역 검사는 직접 돌리지 않는다. `seal pr-body --check` 로 본문의 앞부분이 기록의 글 그대로인지 확인하고, 구현자가 실행했다고 적은 주장 가운데 일부를 다시 돌려 보고, 설계·구현·마지막 리뷰·changelog·PR 본문 가운데 오케스트레이터가 쓴 부분을 이슈와 실제 트리에 견주어 읽는다. 판정은 작업 항목의 `guarantee.md` 에 남는다. `sealed`, 트리와 어긋난 곳을 짚은 `withheld`, 또는 소유자에게 넘기는 질문을 단 `undecided` 셋 중 하나다. 설계나 코드 품질을 다시 판정하지는 않는다 |
 | 스킬 | — | 에이전트가 첫 도구 호출 전부터 따르는 스킬은 왼쪽 열에 있다. 다음 스킬은 작업이 그것을 요구할 때 세션이 알아서 로드하고, 에이전트는 그중 자기 단계가 가리키는 것을 그 단계에서 연다 — `code-review`, `commit-pr-convention`, `confidence-check`, `feature-planner`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style`. 나머지는 사용자가 이름을 불러야 움직이며 아래 치트시트에 있다 |
 | 훅 | — | 게이트 그 자체. 플러그인이 자동으로 등록하므로 설정을 따로 만질 필요가 없다 |
-| CLAUDE.md 블록 | — | 세션이 첫 메시지부터 지키는 규칙이고, 매 턴 로드된다. 응답 언어 규칙은 없다. 그것은 사용자 몫이다. 정본은 `templates/setup/claude-md-block.md` 하나이고, `install.sh` 와 `/agentic:update` 가 이것을 `CLAUDE.md` 에 써 넣는다. 사본을 따로 두는 파일은 없다 |
+| 코어 | — | 모든 쪽이 함께 갖는 가치를 담은 `skills/core/SKILL.md` 다. 에이전트는 정의의 `skills:` 목록으로 미리 받고, 세션에는 플러그인의 `core-start` 훅이 출력해 넣는다. 그래서 세션도 에이전트가 갖는 것을 첫 메시지부터 갖고, 사용자의 `CLAUDE.md` 에는 아무것도 쓰지 않는다. 응답 언어 규칙은 담지 않는다. 그것은 사용자 몫이다. 세션에 어느 코어가 들어 있는지는 `! seal core` 로 보고, 끄려면 플러그인의 훅을 끈다. 그러면 플러그인의 다른 훅도 함께 꺼진다 |
 
 ## 체인
 
@@ -163,6 +163,7 @@ PR 검사가 그중 무엇을 읽는지, 세션이 에이전트에게 일을 어
 | 게이트 | 언제 | 무엇을 | 어디서 |
 |---|---|---|---|
 | routing-edit-gate | `Write`·`Edit`·`NotebookEdit` 호출 직전 | 파일이 있는 곳에 체크아웃된 브랜치를 가리키는 `routing.md` 가 없고 세션이 그 브랜치에서 `seal no-work-item` 을 돌리지 않았으면 그 파일의 편집을 거부한다. 판정하는 레포와 브랜치는 셸이 있는 곳이 아니라 편집하는 파일의 것이다. `seal/` 루트 아래 파일, git 이 무시하는 파일, opt-in 한 어느 레포에도 속하지 않는 파일은 판정하지 않으므로 선언은 언제나 먼저 쓸 수 있다. 거부는 모델에게 가고, 쓸 선언과 `seal no-work-item` 을 알려 준다. 라우팅 질문에서 `automation` 을 눌렀다면 사람에게 물을 질문은 알려 주지 않는다. 이 플러그인은 git 안에서 아무것도 돌리지 않으므로, 사람이 터미널에서 한 커밋은 이 플러그인의 코드를 하나도 돌리지 않는다. pull request 에서는 `chain-check` 가, `Seal-Routing` 트레일러가 어느 선언도 가리키지 않는 작업 항목을 적은 커밋을 실패로 처리한다 | 루트에 `seal/` 이 있는 레포, 또는 local 모드로 공통 git 디렉터리 아래에 있는 레포. 그 밖에서는 아무것도 하지 않는다 |
+| core-start | 세션 시작, `/clear` 뒤, 압축 뒤. 재개 때는 돌지 않는다 | 코어 `skills/core/SKILL.md` 를 세션에 평문으로 출력한다. 첫 줄에는 출력한 파일, 돌고 있는 플러그인의 버전, 그 파일의 SHA-256 을 적는다. 이 플러그인 레포의 클론에서는 클론의 사본을 출력한다. 재개한 세션은 시작 때 출력한 것을 그대로 지니므로 재개는 뺀다. 아무것도 쓰지 않는다 | 모든 세션, 어느 디렉터리에서든 |
 | stub-remove | 세션 시작 | 예전 릴리스가 클론의 공용 `hooks/` 디렉터리에 써 둔 `pre-commit`·`reference-transaction`·`post-commit` 스텁을 지운다. 둘째 줄이 표시 `# specseal-git-hook` 인 파일만 지우고, 다른 쪽이 쓴 훅은 바이트 하나 바꾸지 않는다. 지운 것은 한 번 알리고, 지울 것이 없으면 아무 말도 하지 않는다 | 모든 git 레포 |
 | root-migrate | 세션 시작 | 예전 릴리스가 쓴 배치를 지금 배치로 옮긴다. `seal/README.md` 를 표시 줄로 시작하게 다시 쓰고, 0.22.x 의 작업 항목을 하나씩 `seal/threads/<id>/` 로 옮긴다. 사용자가 검토하고 커밋하도록 `git mv` 로 스테이징하며, local 모드면 공통 git 디렉터리 아래에서 이름만 바꾼다. 옮길 것이 있는 디렉터리 아래에 커밋하지 않은 변경이 있으면 하나도 옮기지 않는다. 옮긴 것은 한 줄로 알린다. 예전 릴리스가 옛 이름으로 루트 옆과 `~/.claude/` 아래에 쓴 상태 파일의 이름도 플러그인 이름으로 바꾼다 | 트리나 공통 git 디렉터리에 예전 배치가 남은 git 레포. 상태 파일 이름 바꾸기는 세션이 시작할 때마다 말없이 돈다 |
 | implementer-mark | `subagent_type` 이 `framer` 나 `crafter`(`agentic:crafter`, 또는 프로젝트 로컬의 `crafter`)인 Agent·Task 호출 직전 | 체크아웃된 브랜치 이름을 `.git/agentic-planner` 나 `.git/agentic-implementer` 에, 축마다 파일 하나씩 적는다. 아무것도 출력하지 않으므로 막지도 묻지도 못한다. 아래 알림이 읽는 흔적일 뿐이다 | 루트에 `seal/` 이 있는 레포, 또는 local 모드로 공통 git 디렉터리 아래에 있는 레포. 그 밖에서는 침묵하고 아무것도 쓰지 않는다 |
@@ -257,12 +258,11 @@ origin remote 를 키로 저장됩니다. 다른 기계에서는 틀린 값이�
 | `seal fold [--ceiling <n>]` | 정책 루트 최상위에서 한 번에 읽히는 크기와 색인을 확인합니다. 무엇을 어떻게 보는지는 `skills/settle/scripts/fold_check.py` 와 그 행을 적은 `templates/setup/config.md` *The fold's values* 에 있습니다. 플래그는 그 실행에서만 행을 대신합니다 |
 | `seal rules <doc> [--root <dir>]` · `seal rules --check [--root <dir>]` | `seal rules <doc>` 는 문서의 제목마다 그 아래 `check:` 줄이 가리키는 테스트를 찍고, 테스트마다 docstring 의 첫 문장을 함께 보여 줍니다. 대상을 찾지 못하면 그 이유를 찍습니다. 규칙의 글은 그 docstring 한 곳에만 있으므로, 문서와 테스트를 나란히 읽을 때 이 명령을 씁니다. 무엇을 찾든 0 으로 끝납니다. `seal rules --check` 는 모든 규칙 파일의 check 줄을 전부 읽고, 문법을 벗어난 줄이나 사라진 대상이 하나라도 있으면 파일·줄·제목을 찍고 1 로 끝납니다. 그런 줄이 아직 settle 되지 않은 설계의 `from` 없는 `remove` 가 settle 때 들어낼 절 안에 있으면 그 work item 을 밝혀 excused 로 찍고, 실패로 치지 않습니다. 대기 중인 `change` 는 아무 줄도 봐주지 않고, `seal/` 루트가 local 이면 봐주는 줄이 없습니다. 테스트 하나가 저장소 전체에 대해 이 명령을 돌립니다. 대상은 명령을 친 저장소에서 찾고, 어느 쪽도 아무것도 쓰지 않습니다 |
 | `seal pact [ROOT]` | pact(여러 저장소가 함께 지키는 계약의 원본, `seal/pact.md`)를 가진 저장소에서 돌립니다. pact 가 적어 둔 signer(그 계약에 서명한 저장소)마다 `~/.claude/agentic/pact-paths.md` 나 옆 디렉터리에서 체크아웃을 찾고, 그 저장소의 `Pact` 행이 이 pact 를 가리키는지 확인한 뒤, 거기 적힌 pact 앵커를 하나씩 판정합니다. `SUPERSEDED` 는 signer 가 예전 조항을 보고 만들어졌다는 뜻이고, `NOT TAKEN` 은 pact 가 아직 받아들이지 않은 변경이 어느 브랜치에 있는지 알려 줍니다. `UNMATCHED` 와 `BROKEN` 은 양쪽을 읽거나 좌표를 다시 잡으라는 뜻입니다. 로컬에서만 돕니다. signer 의 CI 는 저장소 하나만 읽을 수 있으므로 pact 를 아무것도 읽지 않습니다 |
-| `seal payload [--calibrate <메인 트랜스크립트>] [--baseline <run.json>]` | 에이전트마다 시작 페이로드가 무엇으로 이루어졌는지를 보여 줍니다 — 정의 파일, `skills:` 목록이 주입하는 스킬 파일 전부, `CLAUDE.md` 두 파일을 바이트·문자·토큰으로 셉니다. 토큰 수치에는 근거가 붙습니다. 트랜스크립트의 스폰에서 읽은 값은 `measured`, 에이전트별 비율로 추정한 값은 `estimated` 입니다. `--baseline` 을 주면 이전 `--json` 실행과의 차이를 찍어 주므로, 줄인 페이로드가 실제로 줄었는지는 이것으로 봅니다 |
-| `/agentic:preset-setup` | CLAUDE.md 블록을 승인받아 뜻 단위로 병합한다 |
+| `seal core [--transcript <경로>]` | 이 세션의 컨텍스트에 코어(`skills/core/SKILL.md`)가 한 번, 온전히 들어 있는지를 세션의 트랜스크립트에서 읽습니다. 컨텍스트 안의 `SessionStart` 훅 항목 하나가 그 첫 줄이 가리키는 파일을 그대로 담고 있으면 0, 아니면 이유를 찍고 1 로 끝납니다. 코어는 `CLAUDE.md` 파일이 아니라 플러그인의 `SessionStart` 훅으로 들어오므로 `/memory` 에는 나오지 않습니다. 세션에 어느 코어가 들어 있는지는 `! seal core` 를 쳐서 봅니다. 에이전트의 Bash 에서 돌리면 그 에이전트를 스폰한 세션을 읽습니다 |
+| `seal payload [--calibrate <메인 트랜스크립트>] [--baseline <run.json>]` | 세션과 에이전트마다 시작 페이로드가 무엇으로 이루어졌는지를 바이트·문자·토큰으로 보여 줍니다. 세션 표가 먼저 나옵니다. 여기에는 `CLAUDE.md` 두 파일과 그 `@` 줄이 가져오는 파일 전부, 그리고 플러그인의 `SessionStart` 훅이 찍어 주는 코어가 들어갑니다. 이 훅의 출력은 에이전트에게 가지 않습니다. 그다음 에이전트마다 정의 파일, `skills:` 목록이 주입하는 스킬 파일 전부, 같은 `CLAUDE.md` 두 파일을 셉니다. 토큰 수치에는 근거가 붙습니다. 트랜스크립트의 스폰에서 읽은 값은 `measured`, 에이전트별 비율로 추정한 값은 `estimated` 입니다. 세션의 수치는 늘 `estimated` 입니다. 세션이 시작할 때 읽는 양을 재 주는 트랜스크립트가 없기 때문입니다. `--baseline` 을 주면 이전 `--json` 실행과의 차이를 찍어 주므로, 줄인 페이로드가 실제로 줄었는지는 이것으로 봅니다 |
 | `/agentic:parity-setup` | 이 레포가 다른 코드베이스를 옮겨 온 것임을 선언한다. 원본을 찾아 기준 커밋을 기록한다 |
 | `/agentic:config` | 이 저장소가 자기에 대해 정한 것을 보여 주고 바꾼다. 글을 쓰는 언어 두 행과 기록이 사는 자리. 바꾸는 것은 그 행을 가진 명령에 넘기고, 뒤에서 직접 고치지 않는다 |
 | `/agentic:update` | 최신 릴리스를 받고 무엇이 들어 있는지 본다. 갱신 명령 두 줄을 순서대로 돌린 뒤, 쓰던 버전과 새 버전 사이의 변경 항목을 알려 준다. 적용하는 방법 두 가지와, 각각 어디까지 측정된 것인지도 함께 알려 준다 |
-| `bash install.sh [--project]` / `bash uninstall.sh` | CLAUDE.md 마커 블록을 넣거나 뺀다 |
 
 **명령에 섞는 스위치:**
 
@@ -282,15 +282,19 @@ Windows 는 공식 설치본이 `python3` 이라는 이름을 만들지 않으�
 `ruff` 는 파이썬 자동 포맷 훅에만 쓰이고, 없으면 그 훅만 건너뜁니다.
 
 ```bash
-# 1. 플러그인 (에이전트 + 스킬 + 게이트)
+# 플러그인: 에이전트, 스킬, 게이트, 코어
 claude
 > /plugin marketplace add MichaelYcJo/AgenticSeal
 > /plugin install agentic@agenticseal
-
-# 2. CLAUDE.md 블록 — 범위는 하나만 선택
-bash install.sh            # 대화형: 전역(~/.claude) 또는 프로젝트(./)
-bash install.sh --project  # 비대화형 프로젝트 범위
 ```
+
+설치는 이것으로 끝입니다. 코어는 플러그인의 `SessionStart` 훅이 모든 세션에
+넣고, 에이전트는 `skills:` 목록으로 받으므로 어느 `CLAUDE.md` 에도 아무것도
+쓰지 않습니다. 이전 릴리스는 `<!-- agentic:start -->` 와
+`<!-- agentic:end -->` 사이에 CLAUDE.md 블록을 써 넣었고, 그 블록은
+`/agentic:update` 가 들어냅니다(*업데이트*). 제거하려면
+`/plugin uninstall agentic` 을 실행하고, 업데이트가 아직 들어내지 않은 블록이
+있으면 그 표시와 사이의 줄을 직접 지웁니다.
 
 ### `specseal@specseal` 에서 오는 경우
 
@@ -307,8 +311,10 @@ claude plugin install agentic@agenticseal
 
 첫 줄은 `specseal@specseal` 도 함께 지우고 그 캐시도 지웁니다
 (`code.claude.com/docs/en/plugins/cli-reference.md` *plugin marketplace
-remove*). 그다음 `bash install.sh` 를 다시 돌리거나 `/agentic:preset-setup` 을
-실행해, CLAUDE.md 블록이 새 표시와 새 접두사를 갖게 합니다. 옛 설치본의 업데이트
+remove*). 옛 설치본이 `<!-- specseal:start -->` 와 `<!-- specseal:end -->`
+사이에 써 넣은 CLAUDE.md 블록은 새 설치본에 필요한 것을 담고 있지 않습니다.
+다음 릴리스에서 `/agentic:update` 가 들어내거나, 그 표시와 사이의 줄을 직접
+지웁니다. 옛 설치본의 업데이트
 명령은 옛 이름으로 돌기 때문에 새 이름으로 넘어가게 해 주지 못합니다. 이 세 줄은
 Claude Code 레퍼런스에서 읽은 것이고, 옛 설치본이 있는 기기에서 돌려 본 적은
 없습니다.
@@ -352,13 +358,13 @@ claude plugin update agentic@agenticseal   # 그다음 적용 — 위 문단 참
 최신*이라고 답합니다. 업데이트는 커밋이 아니라 `plugin.json` 의 버전을
 기준으로 하므로, 버전을 올리지 않고 내보낸 변경은 아무에게도 도달하지 않습니다.
 
-`install.sh` 는 기존 파일을 `CLAUDE.md.bak` 으로 백업한 뒤 마커 블록만
-병합합니다. 블록은 `templates/setup/claude-md-block.md` 에서 읽습니다. 여러 번
-실행해도 결과가 같고, 다시 실행하면 블록만 갱신됩니다.
-사용자가 직접 쓴 내용은 고치지 않으며, 겹치는 부분이 있으면 경고만 남긴 채
-그대로 둡니다. 중복까지 정리하려면 Claude Code 안에서
-`/agentic:preset-setup` 을 실행하세요. 무엇을 지우든 diff 를 보여 주고
-승인을 받습니다.
+`/agentic:update` 는 이전 릴리스가 써 넣은 CLAUDE.md 블록도 들어냅니다.
+`CLAUDE.md` 를 `CLAUDE.md.bak` 으로 백업한 뒤 블록의 표시와 그 사이의 줄만
+지우고, 사용자가 직접 쓴 내용은 고치지 않습니다. 이 단계를 처음 가져오는
+업데이트는 이전 릴리스의 절차로 돌고, 그 절차는 블록을
+`templates/setup/claude-md-block.md` 에서 복사합니다. 이 템플릿에는 두 표시만
+있고 그 사이에는 아무것도 없으므로, 그 업데이트는 빈 표시 한 쌍을 남기고
+그다음 업데이트가 그것을 지웁니다.
 
 ### 0.3.x 에서 올라오는 경우
 

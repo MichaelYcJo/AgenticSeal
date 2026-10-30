@@ -48,12 +48,13 @@ AGENT = "---\nname: proofer\nskills:\n  - review\n---\n"
 
 def tree(root, agent_body, durations, docs):
     """A tree holding one agent and its one skill, `.test_durations` as
-    `durations`, `CLAUDE.md`, `CONTRIBUTING.md` and `docs/<name>.md` for each
-    of `docs`; returns its path as text."""
+    `durations`, the core, `CLAUDE.md`, `CONTRIBUTING.md` and `docs/<name>.md`
+    for each of `docs`; returns its path as text."""
     files = {
         "agents/proofer.md": AGENT + agent_body,
         "skills/review/SKILL.md": "# review\n",
         ".test_durations": json.dumps(durations),
+        "skills/core/SKILL.md": "# The core\n",
         "CLAUDE.md": "# c\n",
         "CONTRIBUTING.md": "# contributing\n",
         **{f"docs/{name}.md": text for name, text in docs.items()},
@@ -242,6 +243,9 @@ class Test_main:
         assert rows["`docs/gone.md` (bytes)"] == ("3", "—", "gone"), rows
         assert rows["`docs/new.md` (bytes)"] == ("—", "4", "new"), rows
         assert rows["`CLAUDE.md` (bytes)"] == ("4", "4", "+0 (+0.0%)"), rows
+        # The core left `CLAUDE.md` in #1177, so the report measures it where
+        # it measured `CLAUDE.md`.
+        assert rows["`skills/core/SKILL.md` (bytes)"] == ("11", "11", "+0 (+0.0%)")
         assert "`CONTRIBUTING.md` (bytes)" in rows, rows
 
     @pytest.mark.parametrize(

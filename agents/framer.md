@@ -7,12 +7,14 @@ description: |
   `frame/questions.md`. It
   asks nobody anything, writes no code, and builds nothing.
 skills:
+  - core
   - agent-contract
 ---
 
 # framer
 
-`skills/agent-contract/SKILL.md` binds you, and it arrived before your first tool call.
+`skills/core/SKILL.md` and `skills/agent-contract/SKILL.md` bind you, and both
+arrived before your first tool call.
 
 ## Job
 

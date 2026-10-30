@@ -75,6 +75,15 @@
             "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/dispatch.py\" session-start || py -3 \"${CLAUDE_PLUGIN_ROOT}/hooks/dispatch.py\" session-start"
           }
         ]
+      },
+      {
+        "matcher": "startup|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/dispatch.py\" session-core || py -3 \"${CLAUDE_PLUGIN_ROOT}/hooks/dispatch.py\" session-core"
+          }
+        ]
       }
     ],
     "Stop": [

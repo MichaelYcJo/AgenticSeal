@@ -1,17 +1,18 @@
-"""Every agent definition has one shape and preloads the contract alone.
+"""Every agent definition has one shape and preloads the core, then the contract.
 
 `frame/design.md` *The shape of a definition* of #957: frontmatter whose `skills:`
-list is `agent-contract` and nothing else, one opening sentence naming the
-contract, identical in every definition, then `## Job`, `## Order of work`,
-`## Never` and `## Rules`, in that order. Every other skill is opened at the
-step that needs it, by its path, so a path a definition names has to be a
-file in the tree.
+list is fixed, one opening sentence naming what it preloads, identical in
+every definition, then `## Job`, `## Order of work`, `## Never` and
+`## Rules`, in that order. #1177 made the list `core` then `agent-contract`,
+values before rules, so every agent receives `skills/core/SKILL.md` as well.
+Every other skill is opened at the step that needs it, by its path, so a
+path a definition names has to be a file in the tree.
 
 The checks glob `agents/*.md` rather than naming the five, so a sixth
 definition arriving in another shape is red on the day it lands. Every
 definition is written in that shape, so the shape case skips none, and its
-`skills:` check is what holds each definition to preloading the contract
-alone.
+`skills:` check is what holds each definition to preloading the core and the
+contract and nothing else.
 """
 
 import glob
@@ -24,8 +25,16 @@ from conftest import repo_relative as name
 
 AGENTS = sorted(glob.glob(os.path.join(ROOT, "agents", "*.md")))
 
+CORE = "skills/core/SKILL.md"
 CONTRACT = "skills/agent-contract/SKILL.md"
-SENTENCE = f"`{CONTRACT}` binds you, and it arrived before your first tool call."
+PRELOADS = ["core", "agent-contract"]
+# One sentence with one fixed line break: on one line it is 115 columns, and
+# `tests/behaviour/test_docs_line_wrap.py` holds every definition to 88. The
+# break is part of the shape, so a definition wrapped anywhere else is red.
+SENTENCE = (
+    f"`{CORE}` and `{CONTRACT}` bind you, and both\n"
+    "arrived before your first tool call."
+)
 SECTIONS = ("## Job", "## Order of work", "## Never", "## Rules")
 
 # A backticked path into the plugin's own tree. A placeholder (`<…>`), a glob,
@@ -65,8 +74,8 @@ def shape_problems(text):
         return ["no frontmatter"]
     problems = []
     skills = listed_skills(head)
-    if skills != ["agent-contract"]:
-        problems.append(f"`skills:` lists {skills}, not `agent-contract` alone")
+    if skills != PRELOADS:
+        problems.append(f"`skills:` lists {skills}, not {PRELOADS}")
     opening = opening_paragraph(body)
     if opening != SENTENCE:
         problems.append(f"the opening paragraph is {opening!r}, not the sentence")
@@ -100,19 +109,32 @@ def test_the_sentence_names_the_contract():
         assert "## 1 " in handle.read(), f"{CONTRACT} carries no numbered rules"
 
 
+def test_the_sentence_names_the_core():
+    """The sentence's first path is the core, by the two sections every
+    citation of it names, so a sentence pointing at a file that is not the
+    core is red here."""
+    with open(os.path.join(ROOT, CORE), encoding="utf-8") as handle:
+        text = handle.read()
+    for heading in (
+        "## The first value: efficient development through the workflow",
+        "## The rule a mechanism is kept against",
+    ):
+        assert heading in text.splitlines(), f"{CORE} has no `{heading}`"
+
+
 # --- the shape ---------------------------------------------------------------
 
 
 @pytest.mark.parametrize("path", AGENTS, ids=name)
-def test_every_definition_has_the_shape_and_preloads_the_contract_alone(path):
-    """A definition preloads `agent-contract` alone, opens with the one
-    sentence and carries the four sections in order (S1).
+def test_every_definition_has_the_shape_and_preloads_the_core_and_the_contract(path):
+    """A definition preloads `core` then `agent-contract` and nothing else,
+    opens with the one sentence and carries the four sections in order (S1).
 
-    It catches a second skill creeping back into a `skills:` list, which no
-    eval sees while the output is right, and a section lost or added in a
-    later edit; no other case reads a definition's frontmatter or headings.
-    With no definition skipped, it is also what keeps a definition that
-    drops `agent-contract` red (#957 round 1, finding 3)."""
+    It catches a third skill creeping into a `skills:` list, which no eval
+    sees while the output is right, and a section lost or added in a later
+    edit; no other case reads a definition's frontmatter or headings. With no
+    definition skipped, it is also what keeps a definition that drops
+    `agent-contract` (#957 round 1, finding 3) or `core` (#1177 S1) red."""
     assert shape_problems(read(path)) == [], name(path)
 
 
@@ -159,6 +181,7 @@ name: sixth
 description: |
   A sixth agent.
 skills:
+  - core
   - agent-contract
 ---
 
@@ -199,9 +222,24 @@ def test_a_second_preload_is_caught():
     assert broken != GOOD
     assert any("`skills:`" in p for p in shape_problems(broken))
     inline = GOOD.replace(
-        "skills:\n  - agent-contract\n", "skills: [agent-contract, implement]\n"
+        "skills:\n  - core\n  - agent-contract\n",
+        "skills: [core, agent-contract, implement]\n",
     )
+    assert inline != GOOD
     assert any("`skills:`" in p for p in shape_problems(inline))
+
+
+def test_a_dropped_or_reordered_core_is_caught():
+    """The core is the value every rule after it is weighed by, so a list
+    without it, or with it after the contract, is caught."""
+    dropped = GOOD.replace("  - core\n", "")
+    assert dropped != GOOD
+    assert any("`skills:`" in p for p in shape_problems(dropped))
+    swapped = GOOD.replace(
+        "  - core\n  - agent-contract\n", "  - agent-contract\n  - core\n"
+    )
+    assert swapped != GOOD
+    assert any("`skills:`" in p for p in shape_problems(swapped))
 
 
 def test_a_missing_or_extra_section_is_caught():
@@ -217,8 +255,13 @@ def test_a_sentence_anywhere_but_the_opening_is_caught():
     moved = GOOD.replace(f"{SENTENCE}\n\n", "", 1) + f"\n{SENTENCE}\n"
     assert SENTENCE in moved
     assert any("opening paragraph" in p for p in shape_problems(moved))
-    wrapped = GOOD.replace(SENTENCE, SENTENCE.replace(" binds", "\nbinds"))
-    assert any("opening paragraph" in p for p in shape_problems(wrapped))
+    for rewrapped in (
+        SENTENCE.replace(" bind", "\nbind"),
+        SENTENCE.replace(" both\n", " both "),
+    ):
+        assert rewrapped != SENTENCE
+        wrapped = GOOD.replace(SENTENCE, rewrapped)
+        assert any("opening paragraph" in p for p in shape_problems(wrapped))
 
 
 def test_a_path_that_does_not_resolve_is_caught():

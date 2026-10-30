@@ -14,9 +14,8 @@ its home had not.
 every `*.ko.md`, because a Korean edition is a sanctioned mirror in other
 words; and everything under `seal/`, which is records.
 
-**How a file is normalised.** Each file is read whole: `CLAUDE.md` carries
-no copy of `templates/setup/claude-md-block.md` since #940, so no region is
-sanctioned. Fenced code blocks and heading lines are dropped. A quoted
+**How a file is normalised.** Each file is read whole, and no region of
+one is sanctioned. Fenced code blocks and heading lines are dropped. A quoted
 section name -- a `.md` path followed by `*...*` -- becomes one token, because a link shares its heading's words by
 design; the name may wrap across a line, which is the case the first draft
 of this method missed. Then the text is lowercased, stripped of `` ` ``, `*`,
@@ -197,17 +196,19 @@ BASELINE = {
     # reference-root sentence and its `## Never` line, each the same words in
     # every definition of #957's shape. framer-tracer was measured again at
     # the merge of `release/v0.22.2`, once #970 gave the tracer the same
-    # step sentence.
-    ("agents/crafter.md", "agents/framer.md"): 24,
-    ("agents/crafter.md", "agents/proofer.md"): 18,
-    ("agents/crafter.md", "agents/sealer.md"): 14,
-    ("agents/crafter.md", "agents/tracer.md"): 4,
-    ("agents/framer.md", "agents/proofer.md"): 31,
-    ("agents/framer.md", "agents/sealer.md"): 14,
-    ("agents/framer.md", "agents/tracer.md"): 4,
-    ("agents/proofer.md", "agents/sealer.md"): 14,
-    ("agents/proofer.md", "agents/tracer.md"): 4,
-    ("agents/sealer.md", "agents/tracer.md"): 5,
+    # step sentence. Every pair was measured again at #1177's phase 1, whose
+    # opening sentence names the core beside the contract: four runs more in
+    # each pair, the sentence's own, and nothing else moved.
+    ("agents/crafter.md", "agents/framer.md"): 28,
+    ("agents/crafter.md", "agents/proofer.md"): 22,
+    ("agents/crafter.md", "agents/sealer.md"): 18,
+    ("agents/crafter.md", "agents/tracer.md"): 8,
+    ("agents/framer.md", "agents/proofer.md"): 35,
+    ("agents/framer.md", "agents/sealer.md"): 18,
+    ("agents/framer.md", "agents/tracer.md"): 8,
+    ("agents/proofer.md", "agents/sealer.md"): 18,
+    ("agents/proofer.md", "agents/tracer.md"): 8,
+    ("agents/sealer.md", "agents/tracer.md"): 9,
     # Debt, every entry below. Lowered to the counts measured at #940's
     # last phase; each pair that measured zero left the table.
     ("README.md", "skills/implement/SKILL.md"): 2,
@@ -258,18 +259,6 @@ def test_a_paste_is_named_with_the_pair_the_run_and_the_act():
     assert "longest is 20 words" in named[0], named[0]
     assert paste in named[0]
     assert "link to the home instead of copying it" in named[0].lower()
-
-
-def test_a_paste_into_the_block_template_is_named():
-    """The block `install.sh` distributes is a rule document: a paste inside
-    its marker region is named like a paste anywhere else (round 1)."""
-    texts = tree()
-    paste = a_sentence_of(texts["CONTRIBUTING.md"])
-    rel = "templates/setup/claude-md-block.md"
-    planted = texts[rel].replace("agentic:start -->", "agentic:start -->\n" + paste, 1)
-    assert planted != texts[rel]
-    texts[rel] = planted
-    assert [f for f in over_baseline(texts, BASELINE) if rel in f]
 
 
 def test_a_count_over_its_baseline_is_named_and_one_at_it_is_not():
@@ -327,14 +316,9 @@ def test_a_wrapped_section_name_is_one_token():
     )
 
 
-def test_the_block_template_is_read_whole_and_fences_and_headings_are_not():
-    """The block's template is a rule document like any other and is read
-    whole (round 1); `CLAUDE.md` carries no copy of it since #940, so no
-    region of either file is dropped."""
-    texts = tree()
-    rel = "templates/setup/claude-md-block.md"
-    with open(os.path.join(ROOT, rel), encoding="utf-8") as f:
-        assert words(texts[rel]) == words(f.read())
+def test_fences_and_headings_are_not_read_and_case_and_backticks_are_not_words():
+    """A fenced block and a heading line are dropped, and a copy whose first
+    word its new sentence capitalised, or which it backticked, is a copy."""
     run = " ".join(f"w{i}" for i in range(WINDOW))
     fenced = f"```\n{run}\n```\n"
     heading = f"## {run}\n"

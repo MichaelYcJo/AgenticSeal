@@ -483,8 +483,20 @@ class Test_refuse_without_hooks:
                 "it names the variable a session's id is read from",
                 None,
             ),
+            (
+                ["mode", "--check"],
+                "it is what reads the core hook's first line",
+                None,
+            ),
         ],
-        ids=["optin.py", "config.py", "blocks.py", "routing.py", "hooksession.py"],
+        ids=[
+            "optin.py",
+            "config.py",
+            "blocks.py",
+            "routing.py",
+            "hooksession.py",
+            "core.py",
+        ],
     )
     def test_a_script_copied_alone_exits_2_and_names_what_it_misses(
         self, tmp_path, args, purpose, absent
@@ -3813,6 +3825,7 @@ class Test_main:
             ("layout", "skills/verify/scripts/test_layout.py"),
             ("rules", ".github/scripts/rules.py"),
             ("pr-body", "skills/code-review/scripts/pr_body.py"),
+            ("core", "skills/verify/scripts/core_check.py"),
         ],
     )
     def test_accepts_each_tool_and_hands_its_script_every_argument(

@@ -10,12 +10,14 @@ description: |
   against the issue and the tree, and writes the work item's `guarantee.md`.
 model: opus
 skills:
+  - core
   - agent-contract
 ---
 
 # sealer
 
-`skills/agent-contract/SKILL.md` binds you, and it arrived before your first tool call.
+`skills/core/SKILL.md` and `skills/agent-contract/SKILL.md` bind you, and both
+arrived before your first tool call.
 
 ## Job
 

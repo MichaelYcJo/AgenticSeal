@@ -13,12 +13,14 @@ under AgenticSeal: the session created `seal/` and started working, and no
 question was asked. Three files each said something correct and the three
 together left no route to the question -- `hooks/lib/optin.py` says the root's
 existence IS the declaration, `skills/implement/bootstrap.md`
-*Orchestrator: Bootstrap* says the mode question is asked there and nowhere else, and the preset block
-(`templates/setup/claude-md-block.md`, which `install.sh` copies into
-`~/.claude/CLAUDE.md`, so it loads in every project on the machine) tells a
-session to write
+*Orchestrator: Bootstrap* says the mode question is asked there and nowhere else, and the routing
+rule, which reached every project on the machine, told a session to write
 `seal/threads/<id>/routing.md` before the first edit. That write creates the
-root. The question lived in a skill the session had no reason to load.
+root. The question lived in a skill the session had no reason to load. The
+rule now stands in `skills/implement/orchestration.md` *Orchestrator: how
+the work is routed*, in the file whose opening sends a repository with no
+root to the Bootstrap first, and the core, `skills/core/SKILL.md`, names
+that section.
 
 So this names the state rather than hoping a document is read. A root with no
 `Mode` row in `config.md` is exactly *nobody was asked*, and `seal mode`

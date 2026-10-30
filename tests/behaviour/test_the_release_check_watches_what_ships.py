@@ -62,8 +62,6 @@ STAYS_HOME = {
     "README.ko.md",
     "README.md",
     "SECURITY.md",
-    "install.sh",  # a person runs it from a clone; the loader never does
-    "uninstall.sh",
     "ruff.toml",
     ".test_durations",  # what CI's Windows and macOS shards are divided by (#841, #864)
 }

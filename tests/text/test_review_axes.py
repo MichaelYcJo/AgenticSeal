@@ -99,18 +99,42 @@ def test_the_resolution_order_ends_with_the_caller_asking():
         assert clause in body, f"the resolution order lost {clause!r}"
 
 
-def test_the_preset_block_carries_the_routing_decision():
-    """The rule lived only in `implement`, which loads when the skill is invoked.
-
-    A session that never invokes it would meet the gate at its first edit
-    instead. Under `no work item` the block names the record and the trailer
-    that replaced the per-command waiver (#1027)."""
-    preset = read("templates", "setup", "claude-md-block.md")
-    assert "Routing, decided at the start" in preset
-    assert "seal/threads/<work-item-id>/routing.md" in preset
-    assert "`seal no-work-item`" in preset
-    assert "`Seal-Routing: no work item`" in preset
-    assert "[no-review]" not in preset and "[no-parity]" not in preset
+def test_the_core_names_where_the_routing_question_is():
+    """#1177: the core reaches every session and every agent, so it is where
+    a session that has opened no skill learns that the routing question is
+    one of the batch asked before the first edit, which section states it,
+    and which hook holds it. The vocabulary, the boxes and the write stay
+    that section's alone. Round 1 finding 1: the core said the one ask WAS
+    the routing question, which left a credential or a permission to wait
+    for the first refusal."""
+    core = " ".join(read("skills", "core", "SKILL.md").split())
+    asking = core.split("**Asking a person is the most expensive step.**", 1)
+    assert len(asking) == 2, "the core lost its paragraph on asking a person"
+    paragraph = asking[1].split("**", 1)[0]
+    assert "The routing question is one of that batch" in paragraph, (
+        "the core does not say the routing question is one question of the "
+        "batch `skills/implement/SKILL.md` *1.* asks before the first edit"
+    )
+    assert "the orchestrating session puts the routing question as" in paragraph, (
+        "the core's middle clause names its question by a pronoun, which can "
+        "read as the whole batch (round 2 finding 1)"
+    )
+    assert (
+        "refuses the first edit until the routing question is answered" in paragraph
+    ), (
+        "the core does not say which question the hook waits on, so its "
+        "last clause can be read as the whole batch"
+    )
+    assert (
+        "`skills/implement/orchestration.md` *Orchestrator: how the work is routed*"
+        in paragraph
+    ), "the core does not name the routing section"
+    assert "`hooks/routing-edit-gate.py`" in paragraph, (
+        "the core does not name the hook that refuses the first edit"
+    )
+    assert "per axis" not in core and "no work item" not in core, (
+        "the core restates the routing answers, which are the section's alone"
+    )
 
 
 def test_a_later_round_inherits_no_verdict_anywhere():
@@ -181,17 +205,17 @@ def test_a_record_written_before_a_line_was_added_is_no_finding():
         assert said in record, f"the-review-record.md lost `{said}`"
 
 
-def test_implement_and_the_preset_block_do_not_drift():
-    """Both state the same decision; only one of them is always loaded.
+def test_the_routing_section_holds_the_answers_and_the_shape():
+    """The routing decision has one home, `implement`'s orchestrator half.
 
-    The routing section is `implement`'s orchestrator half since #292, so
-    the skill side of the pair is `orchestration.md` — the file the session
-    that asks the question reads, and no crafter spawn preloads."""
+    It is `orchestration.md` since #292, the file the session that asks the
+    question reads and no crafter spawn preloads. Until #1177 the preset
+    block stated the rules beside it and this case held the two together;
+    the block is retired, and the core the plugin's `SessionStart` hook
+    prints names this section
+    (`test_the_core_names_where_the_routing_question_is`), so what the block
+    carried is held here, in the home alone."""
     implement = " ".join(read("skills", "implement", "orchestration.md").split())
-    preset = " ".join(read("templates", "setup", "claude-md-block.md").split())
-    # The answers each box writes are the orchestration file's alone since
-    # #940: the block states the rules and leaves the vocabulary to the file
-    # a session asking the question reads.
     for only in (
         "through the review chain",
         "straight to the PR",
@@ -204,18 +228,13 @@ def test_implement_and_the_preset_block_do_not_drift():
         "`the session`",
     ):
         assert only in implement, f"the skill lost `{only}`"
-    for both in (
+    for said in (
         "seal/threads/<work-item-id>/routing.md",
-        # The write is its own command. Both documents mandate it and the
-        # commit gate's first prompt now names it as a way out, so all three
-        # drift together or not at all -- and this is the one the gate cannot
-        # check for itself, because a batched write leaves nothing on disk to
-        # look at.
+        # The write is its own command, and this is the one part the gate
+        # cannot check for itself, because a batched write leaves nothing on
+        # disk to look at.
         "in a command of its own",
-        # The SHAPE of the asking, not just its vocabulary. The rule against
-        # asking the axes separately is worth nothing if only one document
-        # carries it, and the preset block is the one a session that never
-        # loads the skill reads.
+        # The SHAPE of the asking, not just its vocabulary.
         #
         # The shape moved (#88): three checkboxes in one question became two
         # questions in one call, because two presets beside the axes is five
@@ -223,17 +242,21 @@ def test_implement_and_the_preset_block_do_not_drift():
         # `one \`multiSelect\` question with three checkboxes` and went stale at
         # the build's phase 2 — red here from that commit on, and neither the
         # build nor round 1 ran this module.** Both chose their narrow set by
-        # which files they had edited; this one reads two of those files and
-        # was in neither set.
+        # which files they had edited; this case then read two of those files
+        # and was in neither set.
         #
         # It moved again (#911): the boxes meant nothing under two of
         # question 1's three answers and were on screen under all three, so
         # question 1 now goes alone and the boxes follow only under
         # `per axis`.
         "Ask question 1 alone; the boxes in a second call only under `per axis`.",
+        # Under `no work item`, the record and the trailer that replaced the
+        # per-command waiver (#1027), which the block named until #1177.
+        "`seal no-work-item`",
+        "`Seal-Routing: no work item`",
     ):
-        assert both in implement, f"the skill lost `{both}`"
-        assert both in preset, f"the preset block lost `{both}`"
+        assert said in implement, f"the skill lost `{said}`"
+    assert "[no-review]" not in implement and "[no-parity]" not in implement
 
 
 def test_the_fix_pass_resumes_the_implementer():

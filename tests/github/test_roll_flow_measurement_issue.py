@@ -141,7 +141,8 @@ def _created_title(creates):
 # count is read off the one list call the roll already makes
 # (`--json number,title,comments`), so the check adds no call and no write.
 # Never a refusal: the ticket's *Done when* says the release must still ship,
-# and `CLAUDE.md`'s first goal is a design that does not stop for a person.
+# and the first value of `skills/core/SKILL.md` is a design that does not stop
+# for a person.
 def _empty_log_harness(m, monkeypatch, issue):
     """Drive `main` with `issue` as the one open log and the real
     `close_issue`/`open_issue`, recording every `gh` call so the close
