@@ -42,7 +42,7 @@ works outside the context entirely (hooks).
 | **sealer** (subagent, Opus) | `core`, `agent-contract` | The final, independent guarantor. After the rounds settle, the changelog is written, the orchestrator has run the one broad gate (`seal gate`, which writes `trail/gate.md`), and `seal pr-body` has copied the records into the first part of the pull request body, it reads that record and runs nothing broad itself, confirms through `seal pr-body --check` that the copied part still matches the records, re-runs a sample of the implementer's claims, and reads the design, the build, the last review, the changelog and the part of the pull request body the orchestrator wrote against the issue and the tree. Its verdict is the work item's `guarantee.md`: `sealed`, `withheld` naming what the tree contradicts, or `undecided` with a question for the owner. It does not re-judge the design or the code's quality |
 | Skills | — | The skill the agents follow from their first tool call is in the column to the left. These a session loads on its own when the work calls for them, and an agent opens each at the step that names it — `code-review`, `commit-pr-convention`, `confidence-check`, `feature-planner`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style`. The rest you invoke by name; they are in the cheat sheet below |
 | Hooks | — | The gates themselves — auto-registered by the plugin, no settings wiring |
-| CLAUDE.md block | — | One `@` line that imports the core, `skills/core/SKILL.md`, from the plugin's marketplace clone, so a session holds the values every agent holds from its first message. It carries no rule, and no response-language rule — that stays yours. Its one source is `templates/setup/claude-md-block.md`, which `install.sh` and `/agentic:update` write into your `~/.claude/CLAUDE.md`; no other file carries a copy |
+| Core | — | `skills/core/SKILL.md`, the values every party shares. Every agent preloads it through its definition's `skills:` list, and the plugin's `core-start` hook prints it into every session, so a session holds what every agent holds from its first message and nothing is written into your `CLAUDE.md`. It carries no response-language rule — that stays yours. `! seal core` shows which core a session holds; disabling the plugin's hooks turns it off |
 
 ## The chain
 
@@ -265,11 +265,9 @@ wrong for every other machine.
 | `seal pact [ROOT]` | run at the repository holding a pact (`seal/pact.md`), the one copy of a contract several repositories keep together: reads every signer the pact lists, found through `~/.claude/agentic/pact-paths.md` or a sibling checkout, checks that each names the pact in its `Pact` row, and grades every pact anchor it cites. `SUPERSEDED` says the signer was built against an older clause, `NOT TAKEN` names the branch holding a change the pact has not taken, `UNMATCHED` and `BROKEN` say read both sides or re-coordinate. Local only: a signer's CI can read one repository, so it reads nothing of the pact |
 | `seal core [--transcript <path>]` | whether this session's context holds the core, `skills/core/SKILL.md`, once and whole, read from the session's transcript: exit 0 where one `SessionStart` hook entry in context holds the file its first line names, 1 with the reason otherwise. The core arrives from the plugin's `SessionStart` hook and not from a `CLAUDE.md` file, so `/memory` does not list it; type `! seal core` in a session to see which core it holds. Run from an agent's Bash, it reads the session that spawned the agent |
 | `seal payload [--calibrate <main transcript>] [--baseline <run.json>]` | what each agent's startup payload is made of — its definition, every skill its `skills:` list injects, and the two `CLAUDE.md` files with each file their `@` lines import — in bytes, chars and tokens, with a basis on every token figure: `measured` where it came from a transcript's spawns, `estimated` from a per-agent ratio otherwise. `--baseline` prints the delta against an earlier `--json` run, which is how a trimmed payload is shown to have shrunk |
-| `/agentic:preset-setup` | write or replace the CLAUDE.md block from inside Claude Code, with no clone to run `install.sh` from |
 | `/agentic:parity-setup` | declare that this repo ports from another codebase — finds the original, records the baseline |
 | `/agentic:config` | show what this repository decided for itself — the two languages it writes in and where its records live — and change any of it. Routes a change to whatever owns that row rather than editing behind it |
 | `/agentic:update` | take the newest release and see what is in it — runs both update commands in the right order, then names the changelog entries between your version and the new one. It also names both ways to load it and how far each one was actually measured |
-| `bash install.sh [<target>]` / `bash uninstall.sh [<target>]` | add / remove the CLAUDE.md marker block in `~/.claude/CLAUDE.md`, or `$CLAUDE_CONFIG_DIR/CLAUDE.md` where that is set |
 
 **Inline switches:**
 
@@ -289,23 +287,19 @@ hook falls back to `py -3` when `python3` cannot start. Optional: `uv`/`uvx` or 
 for the Python auto-format hook — without them it silently skips.
 
 ```bash
-# 1. Plugin (agents + skills + gates)
+# The plugin: agents, skills, gates and the core
 claude
 > /plugin marketplace add MichaelYcJo/AgenticSeal
 > /plugin install agentic@agenticseal
-
-# 2. CLAUDE.md block — one line that imports the core
-bash install.sh
 ```
 
-The block's import is a path relative to `~/.claude/CLAUDE.md`, so it loads
-where the plugin's marketplace clone sits beside it, which is where step 1
-puts it on a default setup. `install.sh` warns when that file is not there.
-There is no project scope. In a project's `CLAUDE.md` the block's line
-names a `plugins/` directory inside the project, which is not there, and a
-line written to reach the clone from there would point outside the working
-directory, which Claude Code asks about interactively and a headless
-session never loads.
+That is the whole install. The core reaches every session from the
+plugin's `SessionStart` hook and every agent through its `skills:` list, so
+nothing is written into a `CLAUDE.md`. An earlier release wrote a
+CLAUDE.md block between `<!-- agentic:start -->` and `<!-- agentic:end -->`;
+`/agentic:update` takes it out (*Updating*). To uninstall, run
+`/plugin uninstall agentic`, and delete such a block yourself, its markers
+and the lines between them, where no update has taken it out.
 
 ### Coming from `specseal@specseal`
 
@@ -322,8 +316,10 @@ claude plugin install agentic@agenticseal
 
 The first line also uninstalls `specseal@specseal` and deletes its cache
 (`code.claude.com/docs/en/plugins/cli-reference.md` *plugin marketplace
-remove*). Then run `bash install.sh` again, or `/agentic:preset-setup`, so
-your CLAUDE.md block takes the new markers and the new prefix. The update
+remove*). The CLAUDE.md block the old install wrote, between
+`<!-- specseal:start -->` and `<!-- specseal:end -->`, carries nothing the
+new install needs: `/agentic:update` takes it out at the next release, or
+you delete its markers and the lines between them. The update
 command of the old install runs the old names, so it cannot carry you
 across. These three lines are read from the Claude Code reference and have
 not been run on a machine that holds the old install.
@@ -368,10 +364,13 @@ latest version* against whatever the clone last knew. Updates are keyed to the
 version in `plugin.json`, not to commits — a change that ships without a
 version bump reaches nobody.
 
-`install.sh` backs up to `CLAUDE.md.bak`, merges only its marker block — read
-from `templates/setup/claude-md-block.md`, the block's one source — (idempotent —
-rerun to update), and never edits your own content. `/agentic:preset-setup`
-does the same from inside Claude Code.
+`/agentic:update` also takes out the CLAUDE.md block an earlier release
+wrote: it backs your `CLAUDE.md` up to `CLAUDE.md.bak`, removes the block's
+markers and the lines between them, and never edits your own content. The
+update that brings this step in runs the earlier release's procedure, which
+copies the block from `templates/setup/claude-md-block.md`; that template
+holds its two markers and nothing between them, so the update leaves an
+empty marker pair, and the next update removes it.
 
 ### Coming up from 0.3.x
 

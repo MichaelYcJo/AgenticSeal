@@ -1011,8 +1011,8 @@ KEPT_OLD_NAMES = (
     # request* until the settle after the release removes that sentence.
     "Spec" + "Seal-Routing",
     # The CLAUDE.md block markers every release before the rename wrote,
-    # which `install.sh`, `uninstall.sh`, `/agentic:update` and
-    # `/agentic:preset-setup` replace with the block under the new ones.
+    # which `/agentic:update` step 4 takes out with the block under the new
+    # ones, and which README.md *Install* names.
     f"<!-- {_OLD}:start -->",
     f"<!-- {_OLD}:end -->",
     # The second line of every git hook stub an earlier release wrote, which

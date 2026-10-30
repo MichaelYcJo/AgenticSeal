@@ -207,9 +207,10 @@ def test_the_routing_section_holds_the_answers_and_the_shape():
     It is `orchestration.md` since #292, the file the session that asks the
     question reads and no crafter spawn preloads. Until #1177 the preset
     block stated the rules beside it and this case held the two together;
-    the block is now one `@` line importing the core, which names this
-    section (`test_the_core_names_where_the_routing_question_is`), so what
-    the block carried is held here, in the home alone."""
+    the block is retired, and the core the plugin's `SessionStart` hook
+    prints names this section
+    (`test_the_core_names_where_the_routing_question_is`), so what the block
+    carried is held here, in the home alone."""
     implement = " ".join(read("skills", "implement", "orchestration.md").split())
     for only in (
         "through the review chain",

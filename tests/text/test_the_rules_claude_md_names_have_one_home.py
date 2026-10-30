@@ -21,9 +21,9 @@ The commit cadence's row left `CLAUDE.md` with #940, whose rule keeps a row
 only where the owning file cannot reach a session in time; its home stays
 pinned here so no carrier restates it.
 
-#1177 turned the preset block into one `@` line that imports the core, and
-three of its bullets moved to the file that applies each, pinned here the
-same way, with the block's template among the carriers:
+#1177 retired the preset block, and the core now reaches a session from the
+plugin's `SessionStart` hook. Three of the block's bullets moved to the file
+that applies each, pinned here the same way:
 
   lint, format and typecheck       skills/implement/SKILL.md, step 2
   the project's package manager    skills/implement/SKILL.md, step 2
@@ -98,7 +98,7 @@ RULES = {
         ),
     ),
     # The preset block's tooling, lint and worktree bullets, each moved to
-    # the step that applies it when the block became one `@` line (#1177).
+    # the step that applies it when the block retired (#1177).
     "lint": (
         IMPLEMENT,
         "2. Implement test-first, and let each rule name its test",
@@ -157,7 +157,6 @@ CARRIERS = (
     BRANCHES,
     IMPLEMENT,
     "docs/release-checklist.md",
-    "templates/setup/claude-md-block.md",
     ".github/scripts/plugin_directory_check.py",
     "tests/github/test_plugin_directory_check.py",
     "tests/test_conftest.py",

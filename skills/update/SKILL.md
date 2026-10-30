@@ -119,37 +119,85 @@ surprised later:
 - **anything the user has to do**: a path that moved, a setting that was
   renamed, a compatibility fallback with an expiry.
 
-**4. Take the preset block if it moved.** The markers decide what is safe here.
-Everything between `<!-- agentic:start -->` and `<!-- agentic:end -->` is
-preset-owned and everything outside it is the user's, so replacing the region
-cannot touch a line the user wrote. `install.sh` relies on that boundary and so
-does `preset-setup`, which replaces an older block without asking.
+**4. Take out the preset block.** Earlier releases wrote a preset block
+into the user's `CLAUDE.md`, between `<!-- agentic:start -->` and
+`<!-- agentic:end -->`, or between the older `<!-- specseal:start -->` and
+`<!-- specseal:end -->`. The core now reaches every session from the
+plugin's own `SessionStart` hook, and the rules an older block stated stand
+in the skills and definitions the plugin installs, so the block carries
+nothing a session needs. `claude plugin update` never opens `CLAUDE.md`, so
+without this step the block stays. Everything between the markers was
+written by the plugin and everything outside them is the user's, so taking
+the region out cannot touch a line the user wrote. No question is asked.
 
-`claude plugin update` installs agents, skills, and hooks and never opens
-`CLAUDE.md`. The block is one `@` line that imports the core,
-`skills/core/SKILL.md`, from the marketplace clone, so a block that moved is
-one that no longer reaches the core where this release keeps it, and without
-this step the always-loaded file keeps the old line.
+The command below backs the file up to `CLAUDE.md.bak` and takes each marker
+region out with its markers, in the `CLAUDE.md` the harness reads as the
+user's. It then looks for a marker in the current repository's `CLAUDE.md`,
+which it never edits:
 
 ```bash
-diff <(sed -n '/agentic:start/,/agentic:end/p' ~/.claude/plugins/marketplaces/agenticseal/templates/setup/claude-md-block.md) \
-     <(sed -n '/agentic:start/,/agentic:end/p' ~/.claude/CLAUDE.md)
+python3 -c '
+import os, shutil, subprocess, sys
+
+PAIRS = (
+    ("<!-- agentic:start -->", "<!-- agentic:end -->"),
+    ("<!-- specseal:start -->", "<!-- specseal:end -->"),
+)
+
+
+def text_of(path):
+    if not os.path.isfile(path):
+        return ""
+    with open(path, encoding="utf-8", newline="") as handle:
+        return handle.read()
+
+
+def holds_a_block(text):
+    return any(start in text for start, _ in PAIRS)
+
+
+def without_blocks(text):
+    kept, inside = [], None
+    for line in text.splitlines(keepends=True):
+        if inside is None:
+            inside = next((end for start, end in PAIRS if start in line), None)
+            if inside is None:
+                kept.append(line)
+        elif inside in line:
+            inside = None
+    return None if inside else "".join(kept)
+
+
+user = sys.argv[1]
+text = text_of(user)
+if holds_a_block(text):
+    after = without_blocks(text)
+    if after is None:
+        print(user + " holds a start marker with no end marker after it, so nothing was changed")
+        sys.exit(1)
+    shutil.copyfile(user, user + ".bak")
+    with open(user, "w", encoding="utf-8", newline="") as handle:
+        handle.write(after)
+    print("took the preset block out of " + user + ", backed up to " + user + ".bak")
+try:
+    top = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"],
+        capture_output=True, encoding="utf-8",
+    ).stdout.strip()
+except OSError:
+    top = ""
+project = os.path.join(top, "CLAUDE.md") if top else ""
+if project and holds_a_block(text_of(project)):
+    print("needs action: " + project + " holds a preset block, the committed text of this repository, so it was not edited")
+' "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/CLAUDE.md"
 ```
 
-`templates/setup/claude-md-block.md` is the block's one source, and no other file
-carries a copy. A session in a clone of the plugin's own repository reads the
-installed block too, which is the last release's, not the clone's:
-`bash install.sh "$HOME/.claude/CLAUDE.md"`, run from that clone, writes the
-clone's block there. A copy in the clone's own `CLAUDE.md` would be read
-beside the installed one, which
-`tests/behaviour/test_the_installer_writes_the_block_from_its_template.py` refuses.
-
-| Result | What happens |
+| Output | What happens |
 |---|---|
-| No difference | nothing is said; the block is current |
-| The block differs | back up to `CLAUDE.md.bak`, replace the marker region, and say that the core arrived: the block is now the one line that imports it, and the rules an older block stated stand in the skills and definitions the plugin installs. No question is asked, because the markers already say those bytes were never the user's |
-| A block between `<!-- specseal:start -->` and `<!-- specseal:end -->`, the markers every release before the rename to AgenticSeal wrote, and none under the new markers | what the row above does, with that region replaced by the block under the new markers. `bash install.sh` does the same |
-| No block on the machine | the user never installed the preset. Say so and stop: writing one in is an install, `bash install.sh` or `/agentic:preset-setup`, and an update is what was asked for |
+| nothing | no block stood; nothing is said |
+| `took the preset block out of <file>, backed up to <file>.bak` | say so, and say that the core now arrives from the plugin's `SessionStart` hook and that the rules an older block stated stand in the skills and definitions the plugin installs |
+| `<file> holds a start marker with no end marker after it, so nothing was changed`, exit 1 | the block is damaged, and nothing says where it ends. Say so, leave the file to the user, and go on to step 5 |
+| `needs action: <file> holds a preset block, …` | an earlier release's installer could write the block into a project's `CLAUDE.md`, which is that project's committed text. Name the file under *Needs action* in the output; the user deletes the lines between its markers |
 
 **5. Name both moves, cheapest first, and say what each one is known to do.**
 The user can finish the work in hand either way: the running session keeps
@@ -187,9 +235,10 @@ something this procedure can invoke on the user's behalf either. Naming the
 cheaper move and running it are different acts, and only the first is this
 command's job.
 
-**It does not delete anything the user wrote.** The preset block is replaced
-inside its markers, which is the whole of what the plugin owns, and no line
-outside them is touched.
+**It does not delete anything the user wrote.** The preset block is taken
+out with its markers, which is the whole of what the plugin wrote, and no
+line outside them is touched; a project's `CLAUDE.md` is named, never
+edited.
 
 **It does not decide the update is wanted.** If a release changes behavior the
 user relies on, the summary in step 3 is where the user finds that out, which

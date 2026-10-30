@@ -47,8 +47,6 @@ LOADED = (
     "README.md",
     "README.ko.md",
     "CONTRIBUTING.md",
-    "install.sh",
-    "uninstall.sh",
 )
 
 # A version-shaped token, with the optional `v` prefix the substring test this
@@ -1009,28 +1007,18 @@ def test_the_python_floor_is_the_same_number_everywhere():
     )
 
 
-def test_update_tells_the_user_when_the_preset_block_changed():
-    """`claude plugin update` installs the plugin, never the CLAUDE.md block.
-
-    The block arrives only through `install.sh` or `/agentic:preset-setup`,
-    both run by hand -- so a release can change a rule while every installed
-    machine keeps stating the old one. The update command has to look and say
-    so, or the change reaches no session that was already running."""
+def test_update_takes_out_only_what_the_markers_hold():
+    """`claude plugin update` installs the plugin and never opens `CLAUDE.md`,
+    so a block a release before 0.25.0 wrote stays unless the update command
+    takes it out (#1177). It takes the marker region and nothing outside it;
+    `tests/behaviour/test_the_old_block_leaves_through_update.py` runs the
+    step's command."""
     with open(
         os.path.join(ROOT, "skills", "update", "SKILL.md"), encoding="utf-8"
     ) as f:
         update = f.read()
     assert "agentic:start" in update, (
-        "the update command stopped comparing the preset block"
-    )
-    assert "/agentic:preset-setup" in update, (
-        "the update command names no way to take a changed block"
-    )
-    # #1177: the block is one `@` line importing the core, so a block that
-    # differs is the core arriving, and the step says so rather than naming
-    # rules the block no longer holds.
-    assert "the core arrived" in " ".join(update.split()), (
-        "the update command does not say the core arrived with a changed block"
+        "the update command stopped taking the preset block out"
     )
     assert "does not delete anything the user wrote" in update.lower(), (
         "taking a release started resolving overlaps with the user's own text"

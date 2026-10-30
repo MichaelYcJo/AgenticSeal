@@ -175,15 +175,11 @@ def test_the_rules_for_text_an_agent_or_a_check_reads_reach_both_languages():
     )
     # A session writes skills, agents, templates and frames as its first act
     # and opens no writing skill before it, so the core every session and
-    # every agent reads names the section; the shipped block carries no line
-    # for it, because each party's own file points it there too.
+    # every agent reads names the section.
     core = " ".join(read("skills/core/SKILL.md").split())
     assert f"`{SKILL}` *{title}*" in core, (
         "the core does not name the writing rules, so a session writes a "
         "skill before anything points it at them"
-    )
-    assert title not in " ".join(read("templates/setup/claude-md-block.md").split()), (
-        "the shipped block carries a line for the writing rules"
     )
     head = " ".join(text.split("\n---\n", 1)[0].split())
     assert "text an agent or a check reads" in head, (

@@ -785,19 +785,20 @@ def test_the_design_record_states_the_setup_rules_where_they_rule(
 # file all reach it by reading the skill. That is not how a session gets
 # there. A session is told to write `seal/threads/<id>/routing.md` before the
 # first edit, and that write creates `seal/`, which opts the repository in.
-# Until #1177 the preset block `install.sh` copies into `~/.claude/CLAUDE.md`
-# said so in every project on the machine, and the cases that read it were
-# written against the block as it stood at 589cf25, each failing first. The
-# block is now one `@` line importing the core, which names the routing
-# section (`tests/text/test_review_axes.py`); the cases below read the
-# orchestrator's half and the Bootstrap, the files that hold the rule.
+# Until #1177 the preset block in `~/.claude/CLAUDE.md` said so in every
+# project on the machine, and the cases that read it were written against the
+# block as it stood at 589cf25, each failing first. The block is retired; the
+# core, which the plugin's `SessionStart` hook prints into every session,
+# names the routing section (`tests/text/test_review_axes.py`), and the cases
+# below read the orchestrator's half and the Bootstrap, the files that hold
+# the rule.
 
 
 def test_the_orchestrators_half_sends_a_fresh_repository_to_the_bootstrap():
-    """S3 of #1046. A session that opens `orchestration.md` first, under a
-    preset block copied before the bootstrap left that file, meets the
-    condition and the bootstrap's file in the opening paragraph, before any
-    section, with both places the root can be."""
+    """S3 of #1046. A session that opens `orchestration.md` first, under an
+    older release's preset block written before the bootstrap left that
+    file, meets the condition and the bootstrap's file in the opening
+    paragraph, before any section, with both places the root can be."""
     opening = paragraph(read(*ORCH), "This file is the orchestrator's")
     assert "`skills/implement/bootstrap.md`" in opening, (
         "the orchestrator's half does not send a fresh repository to the bootstrap"

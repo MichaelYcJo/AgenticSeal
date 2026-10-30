@@ -313,10 +313,10 @@ class Test_measure:
     def test_an_import_in_either_file_of_the_pair_is_a_harness_row_under_it(
         self, meter, tmp_path
     ):
-        """#1177, S5. The preset block is one `@` line, and the core it
-        imports is in every session's context; a meter that read the pair as
-        two flat files counted the block's one line and missed the core it
-        imports. Each imported file is a harness row, named by the importing
+        """#1177, S5. Either file of the pair may import a file, and the
+        harness puts what it imports into every spawn beside it; a meter that
+        read the pair as two flat files counted the `@` line and missed the
+        file it imports. Each imported file is a harness row, named by the importing
         file's name, an arrow and the path as written, with `via` naming the
         importer, and the pair's line sums and names it. A backticked `@`, an
         address and a quoted path are not imports."""
@@ -329,10 +329,10 @@ class Test_measure:
         write(str(root / "docs" / "repo.md"), f"repo import {ACCENT}\n")
         write(
             str(home / ".claude" / "CLAUDE.md"),
-            "<!-- agentic:start -->\n@plugins/core.md\n<!-- agentic:end -->\n",
+            "# my rules\n@rules/mine.md\n",
         )
-        core = home / ".claude" / "plugins" / "core.md"
-        write(str(core), f"# core {ACCENT}\n\nthe values\n")
+        mine = home / ".claude" / "rules" / "mine.md"
+        write(str(mine), f"# mine {ACCENT}\n\nmy rules\n")
         data = meter.measure(str(root), str(home))
         files = data["agents"]["probe"]["files"]
         harness = [f for f in files if f["share"] == "harness"]
@@ -340,7 +340,7 @@ class Test_measure:
             "CLAUDE.md",
             "CLAUDE.md → docs/repo.md",
             "~/.claude/CLAUDE.md",
-            "~/.claude/CLAUDE.md → plugins/core.md",
+            "~/.claude/CLAUDE.md → rules/mine.md",
         ], [f["path"] for f in harness]
         assert [f.get("via") for f in harness] == [
             None,
@@ -351,16 +351,16 @@ class Test_measure:
         assert (harness[1]["bytes"], harness[1]["chars"]) == size_of(
             root / "docs" / "repo.md"
         )
-        assert (harness[3]["bytes"], harness[3]["chars"]) == size_of(core)
+        assert (harness[3]["bytes"], harness[3]["chars"]) == size_of(mine)
         total = data["agents"]["probe"]["total"]
         assert total["bytes"] == sum(f["bytes"] for f in files)
         text = meter.render(data)
         pair_line = next(c for c in rows_of(text) if c[0].startswith("CLAUDE.md pair"))
-        assert "`~/.claude/CLAUDE.md → plugins/core.md`" in pair_line[0], pair_line
+        assert "`~/.claude/CLAUDE.md → rules/mine.md`" in pair_line[0], pair_line
         assert "`CLAUDE.md → docs/repo.md`" in pair_line[0], pair_line
         assert pair_line[1] == f"{sum(f['bytes'] for f in harness):,}", pair_line
         by_first = {c[0]: c for c in rows_of(text)}
-        imported = by_first["&nbsp;&nbsp;`~/.claude/CLAUDE.md → plugins/core.md`"]
+        imported = by_first["&nbsp;&nbsp;`~/.claude/CLAUDE.md → rules/mine.md`"]
         assert imported[1] == f"{harness[3]['bytes']:,}", imported
         assert "imported by `~/.claude/CLAUDE.md`" in imported[4], imported
 

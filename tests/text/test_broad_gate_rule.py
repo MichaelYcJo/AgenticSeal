@@ -3,7 +3,8 @@
 The skill states it, the agent contract binds every agent to it, the crafter
 follows it, the proofer audits it, and two records carry it to the next
 session. The preset block stated it too, for a session that loaded none of
-them, until #1177 made the block one `@` line importing the core. A rule
+them, until #1177 retired the block and the plugin's `SessionStart` hook
+began printing the core into every session. A rule
 spread this wide fails by one of them quietly dropping its part, which is
 invisible in any single diff.
 
