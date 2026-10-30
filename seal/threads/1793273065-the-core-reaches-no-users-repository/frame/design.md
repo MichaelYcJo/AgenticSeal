@@ -217,6 +217,13 @@ agent read the core twice (`questions.md` Q1, the issue's *Update (owner,
       own.
     - **Whose owner.** "a command the owner runs" names whose owner: the
       owner of the repository whose release the judgments were made in.
+    - **Whose mechanisms.** One sentence in *The rule a mechanism is kept
+      against* says the rule governs this plugin's own mechanisms, its
+      gates, checks and hooks. A user's repository's mechanisms are kept or
+      removed by that repository's own policy. Read without it, "existing
+      is no reason to keep it" lets a crafter remove a user's guard that
+      has no record of catches (the owner chose this over extending the
+      rule to every mechanism the workflow adds, 2026-10-30).
     These change how the core is read, not what its values decide. The
     proof is S11, run once over phase 8's commit.
 11. **Where two sentences ask for one thing, one stays; where a sentence
