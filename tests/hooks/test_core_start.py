@@ -41,10 +41,11 @@ def plugin(where, core="# scratch core\n\nA value — kept.\n"):
     return str(where)
 
 
-def start(body, root=None):
+def start(body, root=None, where=None):
     """`dispatch.py session-core` run as the harness runs it, with BODY on
-    stdin and `CLAUDE_PLUGIN_ROOT` set to ROOT, or unset where ROOT is None;
-    its stdout. The hook writes nothing to stderr and exits 0."""
+    stdin, `CLAUDE_PLUGIN_ROOT` set to ROOT, or unset where ROOT is None,
+    and the process started in WHERE; its stdout. The hook writes nothing to
+    stderr and exits 0."""
     env = {k: v for k, v in os.environ.items() if k != "CLAUDE_PLUGIN_ROOT"}
     if root is not None:
         env["CLAUDE_PLUGIN_ROOT"] = root
@@ -56,6 +57,7 @@ def start(body, root=None):
         errors="replace",
         timeout=30,
         env=env,
+        cwd=where,
     )
     assert (r.returncode, r.stderr) == (0, ""), r.stderr
     return r.stdout
@@ -106,18 +108,23 @@ class Test_main:
         prints the plugin's core rather than nothing."""
         core = load_hook_module("lib/core.py", "core_for_the_payload")
         root = plugin(tmp_path / "plugin")
-        for body in ("not json", "[1]", json.dumps({"cwd": 7})):
+        for body in (
+            "not json",
+            "[1]",
+            json.dumps({"cwd": 7}),
+            json.dumps({"cwd": ["/"]}),
+        ):
             assert start(body, root) == printed(core, "", root), body
 
     def test_accepts_a_run_with_no_plugin_root_variable_as_its_own_plugins(
         self, tmp_path
     ):
         """Without `CLAUDE_PLUGIN_ROOT` the plugin root is the one the hook's
-        own file sits in."""
+        own file sits in, not the directory the process started in."""
         core = load_hook_module("lib/core.py", "core_for_no_variable")
         cwd = tmp_path / "outside"
         cwd.mkdir()
-        out = start(json.dumps({"cwd": str(cwd)}))
+        out = start(json.dumps({"cwd": str(cwd)}), where=str(cwd))
         assert out == printed(core, str(cwd), ROOT), out.split("\n", 1)[0]
 
 
