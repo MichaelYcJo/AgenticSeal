@@ -539,6 +539,15 @@ def test_the_crafters_fix_pass_writes_two_lines_and_sweeps_what_its_range_reword
         "`fixed <commit>`, `rejected` or `deferred <home>`",
         "`deferred <where it was repaired>`",
         "append the one it did change after `, `",
+        # #1148, Scope item 13: two fix passes of its run applied a round
+        # record's paste-ready text to a procedure step as given, and each
+        # carried a new defect into shipped text.
+        "A paste-ready fix is the proofer's claim and not the fix.",
+        "Apply it only after reading it as its text's own reader would",
+        "in either `seal/` root (contract rule 11) and under every condition "
+        "its file names",
+        "Where that reading fails, write the fix in your own words and say so "
+        "in `answer:`.",
         "find every other place stating each rule your range reworded or removed",
         # #1041, S3: the owner's answer of 2026-10-28 gives the commit of the
         # two lines to the orchestrator, so the crafter writes them last and
