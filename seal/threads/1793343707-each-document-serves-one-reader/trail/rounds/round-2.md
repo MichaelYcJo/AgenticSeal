@@ -9,7 +9,7 @@ target: 30fc1db0, fixes b3b36143..30fc1db0
 severity: should
 location: `skills/settle/SKILL.md:219-222`, `tests/text/test_settle_reads_before_it_removes.py:126-129`, `seal/threads/1793343707-each-document-serves-one-reader/frame/design.md:56`, `seal/threads/1793343707-each-document-serves-one-reader/frame/design.md:131`, `seal/threads/1793343707-each-document-serves-one-reader/frame/design.md:262-266`
 evidence: executed `sed -n '/^## The run/,/^## The handoff/p' docs/the-review-record.md | grep -c -i 'round records\|review cost\|location:'`, `git grep -n -c 'review cost\|four numbers\|four counts' -- docs skills/settle`
-verdict: open
+verdict: fixed 634e8b26
 regression: round-1#4
 
 The unit is step 7 of `skills/settle/SKILL.md` *The settling session's
@@ -67,14 +67,14 @@ replaces its how-to with "The settling session counts them at step 7 of
 `skills/settle/SKILL.md` *The settling session's procedure*, which says
 how, and posts them to the `flow-baseline` log."
 
-answer:
+answer: Step 7 of `skills/settle/SKILL.md` *The settling session's procedure* is now the home of the counts: where the repository keeps a `flow-baseline` log, it counts for each released work item routed through the review chain, with `git grep -h` over its `trail/rounds/round-*.md`, the numbered `###` finding headings, the `regression:` and `reopens:` lines, the `location:` lines left with no backticked path once every path under `seal/threads/` is deleted from them, and the record files, posts the four numbers to that log, then runs `seal settle --apply`. The round's text says `### <n>.`; the step says "the numbered `###` finding headings", because the procedure case splits the skill at `## ` and a `### <n>.` inside the step cut the procedure short. The case's guard that no `git grep` stands in the procedure was refused by step 7's own `git grep` over round records, which searches no test, so the guard now reads step 6 alone, as its message always said (contract rule 18). The pins were seen red before the step changed, and mutants that plant `git grep` in step 6 and drop "Post the four numbers to that log." both went red (executed). The fragment's process row now says the counts are taken at step 7 where a `flow-baseline` log is kept. No shipped sentence sends a reader to *The run* for the counts (executed, `git grep`); `frame/design.md`'s Table B row for `skills/settle/SKILL.md` (line 131) still says step 7 counts "the four numbers `docs/the-review-record.md` *The run* names" and posts them "as that section says", which the fold at dd3a7232 left, and it is the framer's line.
 
 ### 2. The frame names the step 7 clause's pin in a module that does not hold it
 
 severity: should
 location: `seal/threads/1793343707-each-document-serves-one-reader/frame/design.md:56`
 evidence: executed `git grep -n 'For each released work item' -- tests`
-verdict: open
+verdict: fixed dd3a7232
 regression: round-1#4
 
 The unit is Scope item 7 of `frame/design.md`, which the fold at
@@ -103,14 +103,14 @@ finding 4). ...
 
 The line is the framer's, and the orchestrator folds it.
 
-answer:
+answer: The fold at dd3a7232 rewrites Scope item 7 to say the step "states the four counts and where they go, pinned in `tests/text/test_settle_reads_before_it_removes.py#test_the_skill_states_the_settling_sessions_procedure`" (read, `frame/design.md:56`). `git grep` finds the step's clause pinned only in that case, at `tests/text/test_settle_reads_before_it_removes.py:130` after 634e8b26 (executed), and `tests/skills/test_settle.py` holds none of it.
 
 ### 3. The frame's rule change to *The run* still spawns the verifying round only after fixes outside the records
 
 severity: should
 location: `seal/threads/1793343707-each-document-serves-one-reader/frame/design.md:250`
 evidence: executed `git grep -n -i 'fixes to a file outside' -- skills docs seal/threads/1793343707-each-document-serves-one-reader/frame`
-verdict: open
+verdict: fixed dd3a7232
 regression: round-1#1
 
 The unit is the `to:` line of the `change` to `docs/the-review-record.md`
@@ -140,7 +140,7 @@ only here.
 The line is the framer's, and the orchestrator folds it. The `from:` is
 unchanged, so `rule_changes.py#parse` still finds it in its section.
 
-answer:
+answer: The fold at dd3a7232 rewrites the `to:` line at `frame/design.md:250` to the round's text: "It is spawned after the last fixes are committed, and a fix pass owes none only where each finding it closed is located in `seal/threads/<id>/` alone and its commits touched nothing else" (read). `git grep -i 'fixes to a file outside'` over `skills`, `docs` and the design prints nothing (executed). The `from:` line is unchanged and stands in `docs/the-review-record.md` with whitespace collapsed (executed, a one-line Python read of the file).
 
 ## Confirmations
 
