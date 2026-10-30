@@ -199,11 +199,32 @@ agent read the core twice (`questions.md` Q1, the issue's *Update (owner,
    cites, the five invariants, and every sentence that gives a directive's
    reason. The headings stay as they are, so no citation of a section
    moves. The `description:` phase 5 wrote stands. The proof is S11.
+10. **The core says where it applies and how a user's repository reads it**
+    (the owner, 2026-10-30, in the orchestrating session). The hook puts
+    the core in every session on a machine with the plugin, in every
+    repository, so three readings it allowed when only this repository's
+    sessions read it are closed in phase 8's commit:
+    - **Where it applies.** One sentence says the values govern work run
+      through the workflow, and a session doing work outside the workflow
+      is not bound by this file to start one. The routing sentence stays,
+      and the gate that holds it judges only an opted-in repository.
+    - **Whose paths.** One sentence says every path the core cites is
+      relative to the plugin's root, the directory that holds the file the
+      hook's first line names, and never to the session's repository.
+      The sentence citing `CONTRIBUTING.md` *What a change to a gate must
+      carry* names this plugin's repository, not a user's, so it moves to
+      this repository's `CLAUDE.md`, which holds what is this repository's
+      own.
+    - **Whose owner.** "a command the owner runs" names whose owner: the
+      owner of the repository whose release the judgments were made in.
+    These change how the core is read, not what its values decide. The
+    proof is S11, run once over phase 8's commit.
 
 **Out.**
 
 - What the values decide. #1170 and #1148 own any change to it; this work
-  refactors their prose only (Scope item 9).
+  refactors their prose (Scope item 9) and closes the readings global
+  delivery opened (Scope item 10).
 - A `SubagentStart` hook, or a memory line telling a session to load the
   core skill: the owner decided against both (the issue's *Decided in this
   update*).
@@ -231,6 +252,7 @@ agent read the core twice (`questions.md` Q1, the issue's *Update (owner,
 | S8 The cost is measured | Given the tree before and after, when `seal payload` runs against a scratch home, then a session table shows the pair and the hook's row, and every agent's table shows the core once | `tests/skills/test_payload_meter.py`: the session table carries the hook row with `output`'s bytes; the JSON's `session` object; the agent tables carry no hook row; phase 9's record carries the two numbers |
 | S9 The machinery is gone | Given the tree, when it is searched, then `install.sh`, `uninstall.sh` and `skills/preset-setup/` are absent and no shipped document tells a reader to run them | The README cases; `tests/behaviour/test_chain_hooks_hardening.py` without its `preset-setup` and `install.sh` cases; `git grep` in the phase record |
 | S10 The release names the change | Given the fragment, when it is read, then it says how the core arrives, how to see it and how to turn it off, and ends with its process table | `tests/github/test_publish_release_note.py` for the shape; the sealer reads the text |
+| S12 The core reads the same in any repository | Given a session or agent in a repository that is not this plugin's, when it reads the core, then it reads which work the core governs, resolves each cited path against the plugin's root, and finds no sentence that names this plugin's own repository | The proofer reads `skills/core/SKILL.md` at phase 8's commit against Scope item 10; `CLAUDE.md` holds the `CONTRIBUTING.md` sentence; every case that read that sentence in the core reads it in `CLAUDE.md` (found by `git grep -l "What a change to a gate must carry" -- tests`); S11 runs over the same commit |
 | S11 The refactored core decides what the core decided | Given the four agents that preload the core, when each agent's behaviour suite runs on the tree at `dc030a86` and on the refactor's commit, then the new side passes the five rules of `noninferiority.py#verdict` against the old side | `evals/scripts/noninferiority.py run` for `framer`, `crafter`, `proofer` and `sealer` on both sides and `compare --phase 8`, each record written to `seal/threads/1793273065-the-core-reaches-no-users-repository/evals/<agent>-phase-8.md`; the cases that already read the core (phase 5's set) stay green with no case added, since a refactor adds no behaviour; S7's case holds the smaller output under `CAP` |
 
 ## Data & interfaces
@@ -346,6 +368,7 @@ agent read the core twice (`questions.md` Q1, the issue's *Update (owner,
 | The `@`-line wording in test docstrings | `tests/behaviour/test_first_setup_asks_once.py:788-798`, `tests/text/test_review_axes.py:210`, `tests/text/test_broad_gate_rule.py:5-6`, `tests/text/test_the_rules_claude_md_names_have_one_home.py:24` and `:100-101`, `tests/skills/test_payload_meter.py#Test_measure.test_an_import_in_either_file_of_the_pair_is_a_harness_row_under_it` (its docstring and its planted A1 line) | Each says the core reaches a session from the hook |
 | The A1 sentences of shipped text | `skills/core/SKILL.md:7-8` (description), `CLAUDE.md:5-17`, `skills/implement/orchestration.md:460` ("through the preset block's one `@` line"), `README.md:45`, `:266`, `:270`, `:295-307`, `:323`, `:369-372` and `README.ko.md` the same rows, `.gitignore:14` ("generated by install.sh") | Each says the hook, `seal core`, or `/agentic:update`'s removal in its place |
 | The closing memo's double-read paragraph | `gaps.md` *Not done* | The redesign fixes it: no session and no agent reads the core twice |
+| The core's sentence citing `CONTRIBUTING.md` *What a change to a gate must carry* | `skills/core/SKILL.md` at `dc030a86`, the last sentence of *The rule a mechanism is kept against* | It names this plugin's repository; read in a user's repository it names that repository's file. It moves to this repository's `CLAUDE.md` (Scope item 10) |
 | The core's repeated sentences and its pointer to #1167 | `skills/core/SKILL.md` at `dc030a86` | Each repeated sentence states a fact another sentence of the core already states; the pointer names an issue that closes while the core is read in every session. Scope item 9, proved by S11 |
 
 ## Open questions
