@@ -167,9 +167,11 @@ repair with no commit on the branch is `deferred <where it was repaired>`)
 and writes `answer:` (`docs/the-review-record.md` *The round record*).
 A paste-ready fix is the proofer's claim and not the fix. Apply it only
 after reading it as its text's own reader would: a procedure step is read
-in either `seal/` root (contract rule 11) and under every condition its
-file names. Where that reading fails, write the fix in your own words and
-say so in `answer:`.
+in either `seal/` root (contract rule 11), under every condition its file
+names, and in the release that ships it. In that release, a section the
+step cites holds the text the release ships, not the text a design's
+`## Rule changes` writes at a later settle. Where that reading fails,
+write the fix in your own words and say so in `answer:`.
 Where your fix changed none of the paths `location:` lists, append the one
 it did change after `, ` and name it in `answer:`. Once the fixes are
 committed, find every other place stating each rule your range reworded or

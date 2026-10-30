@@ -544,8 +544,14 @@ def test_the_crafters_fix_pass_writes_two_lines_and_sweeps_what_its_range_reword
         # carried a new defect into shipped text.
         "A paste-ready fix is the proofer's claim and not the fix.",
         "Apply it only after reading it as its text's own reader would",
-        "in either `seal/` root (contract rule 11) and under every condition "
-        "its file names",
+        # Round 4 of #1148, finding 2: the release is the third axis, which
+        # round 1's paste-ready fix failed by citing a section a later settle
+        # writes.
+        "in either `seal/` root (contract rule 11), under every condition "
+        "its file names, and in the release that ships it.",
+        "In that release, a section the step cites holds the text the release "
+        "ships, not the text a design's `## Rule changes` writes at a later "
+        "settle.",
         "Where that reading fails, write the fix in your own words and say so "
         "in `answer:`.",
         "find every other place stating each rule your range reworded or removed",
