@@ -110,7 +110,7 @@ def find(environ, given):
     config = environ.get("CLAUDE_CONFIG_DIR") or os.path.expanduser("~/.claude")
     projects = os.path.join(config, "projects")
     pattern = os.path.join(glob.escape(projects), "*", glob.escape(session) + ".jsonl")
-    found = [p for p in glob.glob(pattern) if os.path.isfile(p)]
+    found = glob.glob(pattern)
     if not found:
         return None, f"no transcript for session {session} under {projects}."
     return max(found, key=os.path.getmtime), None
@@ -148,9 +148,7 @@ def in_context(entries):
     kept = entries[last].get("compactMetadata")
     for field in ("preservedMessages", "uuids"):
         kept = kept.get(field) if isinstance(kept, dict) else None
-    preserved = (
-        {u for u in kept if isinstance(u, str)} if isinstance(kept, list) else set()
-    )
+    preserved = set(kept) if isinstance(kept, list) else set()
     return [e for e in entries[:last] if e.get("uuid") in preserved] + entries[last:]
 
 

@@ -19,7 +19,14 @@ import subprocess
 import sys
 
 import pytest
-from conftest import ROOT, census_case, load_hook_module, load_module, write_transcript
+from conftest import (
+    ROOT,
+    census_case,
+    git_repo,
+    load_hook_module,
+    load_module,
+    write_transcript,
+)
 
 TARGET = "skills/verify/scripts/core_check.py"
 
@@ -173,6 +180,9 @@ class Test_in_context:
         first, second = said("first", "u1"), said("second", "u2")
         entries = [first, boundary(["u1"], "b1"), second, boundary([], "b2")]
         assert check_.in_context(entries) == [boundary([], "b2")]
+        # A boundary with no list of what it keeps keeps nothing.
+        bare = {"type": "system", "subtype": "compact_boundary", "uuid": "b3"}
+        assert check_.in_context([first, bare]) == [bare]
 
 
 class Test_core_entries:
@@ -225,6 +235,11 @@ class Test_judge:
             f"seal core: {path}, plugin 0.25.0, sha256 {digest}, from "
             "SessionStart:startup, in context once."
         )
+        # An entry that names no hook is named by its event.
+        unnamed = hook(printed(root))
+        del unnamed["attachment"]["hookName"]
+        code, line = check_.judge([unnamed], False, "/f")
+        assert (code, line.endswith("from SessionStart, in context once.")) == (0, True)
 
     def test_accepts_the_compact_entry_after_a_boundary_that_dropped_the_start(
         self, tmp_path
@@ -297,6 +312,11 @@ class Test_judge:
         assert code == 1, line
         assert "is not what the hook printed" in line, line
         assert f"{len(preview)} characters" in line, line
+        # An entry with no `content` at all says the model received nothing.
+        silent = hook(out)
+        del silent["attachment"]["content"]
+        code, line = check_.judge([silent], False, "/f")
+        assert code == 1 and "(0 characters of content)" in line, line
 
     def test_refuses_a_file_changed_or_gone_since_the_session_read_it(self, tmp_path):
         """S5: a file changed after the start fails on the digest, a named
@@ -343,19 +363,30 @@ class Test_main:
     def test_refuses_with_exit_1_and_names_the_plugins_core_to_open(
         self, tmp_path, capsys
     ):
-        """S5: no session id and no transcript each exit 1 with the reason,
-        and a transcript with no core entry names the core this plugin's hook
-        would print for the working directory."""
+        """S5: no session id and no transcript each exit 1 with the reason. A
+        transcript with no core entry names the core this plugin's hook would
+        print for the working directory: in a clone of the plugin, the
+        clone's; elsewhere, the plugin's own. `CLAUDE_CODE_SIMPLE=1` names
+        `--bare`."""
         check_ = check()
         assert check_.main([], {}, str(tmp_path)) == 1
         assert "CLAUDE_CODE_SESSION_ID is not set" in capsys.readouterr().out
         environ = {"CLAUDE_CODE_SESSION_ID": "abc", "CLAUDE_CONFIG_DIR": str(tmp_path)}
         assert check_.main([], environ, str(tmp_path)) == 1
         assert "no transcript for session abc" in capsys.readouterr().out
-        planted = write_transcript(tmp_path, "s", [said("a", "u1")])
-        assert check_.main(["--transcript", str(planted)], {}, str(tmp_path)) == 1
+        planted = str(write_transcript(tmp_path, "s", [said("a", "u1")]))
+        clone = plugin(git_repo(tmp_path / "clone"))
+        assert check_.main(["--transcript", planted], {}, clone) == 1
+        out = capsys.readouterr().out
+        assert f"open {os.path.join(clone, *CORE)} once" in out, out
+        assert "--bare" not in out, out
+        outside = tmp_path / "outside"
+        outside.mkdir()
+        bare = {"CLAUDE_CODE_SIMPLE": "1"}
+        assert check_.main(["--transcript", planted], bare, str(outside)) == 1
+        out = capsys.readouterr().out
         own = os.path.normpath(os.path.join(ROOT, *CORE))
-        assert f"open {own} once" in capsys.readouterr().out
+        assert f"open {own} once" in out and "--bare" in out, out
 
     def test_refuses_an_unknown_argument_with_exit_2(self, tmp_path):
         with pytest.raises(SystemExit) as stopped:
