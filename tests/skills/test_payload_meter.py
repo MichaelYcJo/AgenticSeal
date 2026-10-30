@@ -453,9 +453,12 @@ class Test_measure:
         row for the hook, whose bytes and characters are those of
         `hooks/lib/core.py#output` for a session in the measured tree: the
         header naming the file and the core below its frontmatter. The table
-        is printed before the agents'."""
+        is printed before the agents', and lists each file of the pair on a
+        line of its own, each import under its importer."""
         root, home = a_tree(tmp_path)
         a_core(root)
+        write(str(home / ".claude" / "CLAUDE.md"), "# my rules\n@rules/mine.md\n")
+        write(str(home / ".claude" / "rules" / "mine.md"), f"mine {ACCENT}\n")
         printed = hook_output(root)
         assert printed.startswith("AgenticSeal core from "), printed
         data = meter.measure(str(root), str(home))
@@ -467,10 +470,21 @@ class Test_measure:
         ), hooks[0]
         assert hooks[0]["bytes"] > hooks[0]["chars"], "the accent reached no count"
         text = meter.render(data)
-        by_first = {cells[0]: cells for cells in rows_of(text)}
+        assert text.index(f"`{HOOK_ROW}`") < text.index("## probe"), text
+        session_part = text[: text.index("## probe")]
+        by_first = {cells[0]: cells for cells in rows_of(session_part)}
         line = by_first[f"`{HOOK_ROW}`"]
         assert line[1:3] == [f"{len(printed.encode('utf-8')):,}", f"{len(printed):,}"]
-        assert text.index(f"`{HOOK_ROW}`") < text.index("## probe"), text
+        assert "its first line and the core below its frontmatter" in line[4], line
+        for row in data["session"]["files"][:-1]:
+            name = f"`{row['path']}`"
+            if "via" in row:
+                name = f"&nbsp;&nbsp;{name}"
+            assert by_first[name][1] == f"{row['bytes']:,}", (name, session_part)
+        imported = by_first["&nbsp;&nbsp;`~/.claude/CLAUDE.md → rules/mine.md`"]
+        assert "imported by `~/.claude/CLAUDE.md`" in imported[4], imported
+        total = by_first["**total**"]
+        assert total[1] == f"{data['session']['total']['bytes']:,}", total
 
     def test_the_json_carries_the_session_as_an_object_of_its_own(
         self, meter, tmp_path
