@@ -369,6 +369,42 @@ class Test_judge:
         code, line = check_.judge([hook(crlf, content=out + "\n\n")], False, "/f")
         assert code == 0, line
 
+    def test_refuses_nothing_for_a_carriage_return_left_before_dropped_newlines(
+        self, tmp_path
+    ):
+        """A core written with `\\r\\n` prints a body ending `\\r\\n`, and the
+        dispatcher's newline follows it. Where the harness drops only the
+        trailing newlines, a `\\r` is left at the end of `content`; it is part
+        of the line ending the harness dropped, not a difference."""
+        check_ = check()
+        root = plugin(tmp_path / "plugin")
+        (tmp_path / "plugin" / "skills" / "core" / "SKILL.md").write_bytes(
+            b"# The core\r\n\r\nOne value.\r\n"
+        )
+        out = printed(root)
+        assert hook(out)["attachment"]["content"].endswith("value.\r")
+        code, line = check_.judge([hook(out)], False, "/f")
+        assert code == 0, line
+
+    def test_refuses_nothing_for_a_crlf_core_through_a_translating_stream(
+        self, tmp_path
+    ):
+        """A stream that writes each `\\n` as `\\r\\n`, as a Windows console's
+        does, turns a `\\r\\n` core's line endings into `\\r\\r\\n`. The core's
+        lines are unchanged, so neither `content` against `stdout` nor the
+        body against the file is a difference."""
+        check_ = check()
+        root = plugin(tmp_path / "plugin")
+        (tmp_path / "plugin" / "skills" / "core" / "SKILL.md").write_bytes(
+            b"# The core\r\n\r\nOne value.\r\n"
+        )
+        streamed = printed(root).replace("\n", "\r\n")
+        assert "\r\r\n" in streamed
+        code, line = check_.judge([hook(streamed)], False, "/f")
+        assert code == 0, line
+        code, line = check_.judge([hook(streamed, content=printed(root))], False, "/f")
+        assert code == 0, line
+
 
 class Test_main:
     def test_accepts_a_passing_transcript_and_prints_one_line(self, tmp_path, capsys):

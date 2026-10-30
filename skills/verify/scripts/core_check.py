@@ -35,10 +35,12 @@ passing it.
 `attachment.content`, what the model received, is its `stdout`, the file its
 first line names is there, that file's SHA-256 is the line's, and the body is
 the file's text below its frontmatter, which is what the hook prints
-(`hooks/lib/core.py#without_frontmatter`). Text is compared with line
-endings as `\\n` and trailing newlines removed, because the harness drops
-the trailing newlines of what it hands the model. It prints one line naming
-the file, the version, the digest and the hook.
+(`hooks/lib/core.py#without_frontmatter`). Text is compared with each line
+ending, a `\\n` and any `\\r` before it, as `\\n`, and the trailing line
+endings removed, a `\\r` left at the end among them: the harness drops the
+trailing newlines of what it hands the model, and a Windows stream writes
+each `\\n` as `\\r\\n`, over a core whose own lines may end `\\r\\n`. It prints
+one line naming the file, the version, the digest and the hook.
 
 **It fails, exit 1,** with one line naming the reason: no session id and no
 `--transcript`; no transcript; no core entry in context, which names
@@ -59,6 +61,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -69,6 +72,9 @@ HOOKS = os.path.join(PLUGIN, "hooks", "lib")
 BARE_VARIABLE = "CLAUDE_CODE_SIMPLE"
 
 PREFIX = "seal core: "
+
+# A line ending as the comparison reads it: a `\n` and every `\r` before it.
+LINE_END = re.compile(r"\r*\n")
 
 
 def _load(name, purpose):
@@ -173,8 +179,11 @@ def core_entries(entries):
 
 
 def _normal(text):
-    """TEXT with line endings as `\\n` and its trailing newlines removed."""
-    return text.replace("\r\n", "\n").rstrip("\n")
+    """TEXT with each line ending as `\\n` and its trailing line endings
+    removed. A line ending is a `\\n` and any `\\r` before it, so a stream
+    that writes `\\n` as `\\r\\n` over a `\\r\\n` file changes no line; a `\\r`
+    left at the end is the rest of a line ending whose `\\n` was dropped."""
+    return LINE_END.sub("\n", text).rstrip("\r\n")
 
 
 def judge(entries, bare, fallback):
