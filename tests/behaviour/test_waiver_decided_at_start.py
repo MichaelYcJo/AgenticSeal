@@ -793,6 +793,45 @@ def test_questions_md_is_the_residue_and_every_row_says_why():
         "a row may again arrive with no account of why judging did not settle "
         "it, which is the collection this act replaced"
     )
+    assert (
+        "one line each, pointing at the `frame/design.md` `## Grounding` row or "
+        "the `plan.md` Alternatives row that holds its grounds"
+    ) in framer, (
+        "the head of `questions.md` may again restate a settled judgment's "
+        "grounds, a second copy of the row that holds them (#1148)"
+    )
+
+
+def test_a_delivers_cell_cites_the_scope_items_by_number():
+    """#1148, `frame/design.md` *Scope* item 2. A Delivers cell that restates
+    the design's scope sentence is a second copy of it, and the copy is the
+    one a later edit leaves behind; citing the item by number keeps one."""
+    framer = flat(read(*FRAMER))
+    assert "cites by number the design's *Scope* items it builds" in framer, (
+        "the framer is not told that a phase's Delivers cell cites the "
+        "design's scope items, so a plan restates the design's sentences"
+    )
+
+
+def test_a_mark_is_not_the_answer_to_a_blocked_step():
+    """#1148, `frame/design.md` *Scope* item 6. The framer decides whether a
+    work item adds a mark, so the owner's rule stands in its definition: a
+    design adding a mechanism names what it takes out in `## Removes`, and a
+    blocked step is answered at its cause. The rule ends in its check line."""
+    raw = read(*FRAMER)
+    framer = flat(raw)
+    lead = "**A mark is not the answer to a blocked step.**"
+    assert lead in framer, "the framer's definition lost the rule"
+    for phrase in (
+        "names in `## Removes` what it takes out",
+        "never by a new mark",
+        "`skills/core/SKILL.md` *The rule a mechanism is kept against*",
+    ):
+        assert phrase in framer, f"the rule lost `{phrase}`"
+    paragraph = raw[raw.index(lead) :].split("\n\n", 1)[0]
+    assert paragraph.splitlines()[-1] == (
+        "check: tests/behaviour/test_waiver_decided_at_start.py"
+    ), "the rule does not end in its check line"
 
 
 def test_the_framer_leaves_a_mark_in_the_tree():
