@@ -492,7 +492,8 @@ def compose(name, texts):
 def split(body):
     """`(own, generated)`: the text of BODY before its first line equal to
     `HEADING`, the orchestrator's part, and the text after that line, each
-    as its bytes stood. Refused where no line equals it."""
+    as its bytes stood. Refused where no line equals it, a body 0.25.0 wrote
+    among them, and the refusal names the repair."""
     lines = READER.gfm_lines(body, keepends=True)
     for i, line in enumerate(lines):
         if line.rstrip("\r\n") == HEADING:
@@ -502,7 +503,9 @@ def split(body):
             (
                 None,
                 0,
-                f"no line reads `{HEADING}`, so the body has no part of its own to keep",
+                f"no line reads `{HEADING}`, so the body has no part of its own "
+                f"to keep: write your part above a line reading `{HEADING}`, or "
+                "remove the file, and run the command again",
             )
         ]
     )

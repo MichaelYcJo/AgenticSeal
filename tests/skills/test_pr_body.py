@@ -352,13 +352,19 @@ class Test_split:
     def test_refuses_a_body_with_no_heading_line(self):
         """S7. A body with no line equal to `HEADING` has no part of its own
         to keep; a heading line with a word after it is no such line, and
-        nor is the line of the body 0.25.0 wrote."""
+        nor is the line of the body 0.25.0 wrote. The refusal names the
+        repair, so the reader of a body written before 0.25.1 has a way on
+        (round 1 of #1148, finding 2)."""
         for body in (
             "## What changed\n\n## From the records, really\n",
             "## What changed\n\n## Not from the records\n",
         ):
-            with pytest.raises(PR.Refused):
+            with pytest.raises(PR.Refused) as refused:
                 PR.split(body)
+            assert (
+                f"write your part above a line reading `{PR.HEADING}`, or remove "
+                "the file, and run the command again" in refused.value.causes[0][2]
+            ), refused.value.causes
 
 
 class Test_read_item:
