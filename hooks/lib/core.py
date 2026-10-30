@@ -72,12 +72,7 @@ def origin(cwd, plugin_root):
         return own
     name = manifest(plugin_root).get("name")
     tree = os.path.join(top, *CORE)
-    if (
-        isinstance(name, str)
-        and name
-        and manifest(top).get("name") == name
-        and os.path.isfile(tree)
-    ):
+    if name and manifest(top).get("name") == name and os.path.isfile(tree):
         return tree
     return own
 

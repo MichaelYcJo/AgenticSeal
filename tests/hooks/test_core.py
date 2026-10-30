@@ -89,6 +89,7 @@ class Test_parse:
             "",
             "# The core\n",
             "prefix " + good,
+            good + " and more",
             good[:-1],
             good.replace("0" * 64, "0" * 63),
             good.replace("0" * 64, "A" * 64),
