@@ -5,8 +5,7 @@ is [`LICENSE`](LICENSE). That licence covers the code. It does not cover
 the AgenticSeal name, the owl emblem or its seal drawings.
 
 The AgenticSeal name, the owl emblem and its seal drawings are not licensed
-under the MIT License, and all rights to them are reserved. The drawings
-are:
+under the MIT License. All rights reserved. The drawings are:
 
 - every file under [`assets/seals/`](assets/seals/), the emblem as each
   release drew it;
