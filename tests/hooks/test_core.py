@@ -156,6 +156,10 @@ class Test_without_frontmatter:
         assert core.without_frontmatter("---\n---\n# Bare\n") == "# Bare\n"
         crlf = "---\r\nname: core\r\n---\r\n\r\n# The core\r\n"
         assert core.without_frontmatter(crlf) == "# The core\r\n"
+        # The first closing line ends it, and a line that only opens with
+        # `---` does not: a rule in the body stays in the body.
+        ruled = "---\nname: core\n----\n---\n# The core\n\n---\n\nTwo.\n"
+        assert core.without_frontmatter(ruled) == "# The core\n\n---\n\nTwo.\n"
 
     def test_refuses_to_cut_a_text_with_no_frontmatter(self):
         """A text that does not open with `---`, or whose frontmatter never
