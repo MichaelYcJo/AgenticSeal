@@ -742,6 +742,25 @@ class Test_real_identifiers:
             f"{REFUSED_USER_PATH} is a real user path, and fixtures use /Users/x/"
         )
 
+    def test_refuses_a_user_path_spelled_as_a_projects_directorys_slug(self, tmp_path):
+        """#1177 round 6 finding 4. A projects directory spells the path its
+        session started in with dashes, so a scratchpad path reaches a record
+        as `-Users-<name>-<repo>`, and the slashed pattern read none of it.
+        The fixture user `x` passes in that spelling too, and a placeholder
+        or a character class is no user name."""
+        slug = "-" + "Users-somebody-"
+        root = plant(
+            tmp_path,
+            "leak.md",
+            f"a draft at /private/tmp/claude-501/{slug}Documents-GitHub-repo/s\n"
+            "a fixture at ~/.claude/projects/-Users-x-repo/1.jsonl\n"
+            "a pattern `-Users-[A-Za-z]` and a placeholder -Users-<name>-repo\n",
+        )
+        assert censuses.real_identifiers("leak.md", root) == [
+            f"leak.md:1: real_identifiers: {slug} is a real user path, and "
+            "fixtures use /Users/x/"
+        ]
+
 
 OLD = "Spec" + "Seal"
 # One line for each family of old names OLD_NAME refuses, built from halves

@@ -900,6 +900,11 @@ ALLOWED_USER_PATH = "/Users/x/"  # the designated fixture user
 DOMAIN_RE = re.compile(r"\b[a-z0-9][a-z0-9.-]*\.(?:com|io|net|org|ai|dev)\b")
 # Built from two halves, so the pattern does not hold a user path itself.
 USER_PATH_RE = re.compile("/" + r"Users/[^\s\"'`)/]+/?")
+# A projects directory spells the path its session started in with dashes,
+# `-Users-<name>-<repo>`, so a user path reaches a record that way too.
+# Built from two halves, like USER_PATH_RE. The name is word characters, so
+# a placeholder such as `<name>` or a pattern such as `[A-Za-z]` is not one.
+SLUG_USER_RE = re.compile("-" + r"Users-([\w.]+)-")
 NOT_TEXT = (".gif", ".png", ".jpg")
 
 
@@ -927,12 +932,13 @@ def refused_domains(line):
 
 def refused_user_paths(line):
     """The match of every user path in `line` outside the fixture one, in
-    order; `refused_domains` says who else reads it."""
+    order, written with slashes or as a projects directory's dashed slug;
+    `refused_domains` says who else reads it."""
     return [
         m
         for m in USER_PATH_RE.finditer(line)
         if not m.group(0).startswith(ALLOWED_USER_PATH)
-    ]
+    ] + [m for m in SLUG_USER_RE.finditer(line) if m.group(1) != "x"]
 
 
 def real_identifiers(rel, root=None):
