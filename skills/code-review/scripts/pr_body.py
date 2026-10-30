@@ -7,20 +7,26 @@ copied from them.
 
 #1044. A body written by hand restated the records, and most of the sealer's
 withheld verdicts were a sentence of it that restated one wrongly. This
-writes the part of the body above the line `HEADING` holds from the records
+writes the part of the body below the line `HEADING` holds from the records
 themselves: the changelog fragment, the plan's `## Phases` section and the
 phase records' paths, each round record's `target:` line and its findings'
 labelled lines, the broad run's record, `gaps.md`'s `## Not verified` and
 `## Not done` sections, and every table line of `frame/questions.md`. It
 copies lines and composes none: no count, no summary, no rewording. Each
 section opens with a line of `FIXED` naming its source, and a record that is
-not there is named by its own line of `FIXED`. The orchestrator writes its
-own part under `HEADING`, and a rewrite keeps that part byte for byte.
-`frame/design.md` *Data & interfaces* of the work item that added this lays
-out the part line for line. A copied line equal to `HEADING` is refused at
-the record's line, and so is a copied line where
-`close_issues_on_release.py#keywords_in` reads a closing keyword: the
-`Closes` line is the orchestrator's, written under `HEADING`.
+not there is named by its own line of `FIXED`.
+
+The body opens with the orchestrator's part, the summary a reader needs
+first, and `HEADING` follows it. The copy stands below that line in one
+`<details>` fold, whose `<summary>` names the copy and is followed by a
+blank line so the Markdown inside renders, and nothing inside it is folded
+again. A rewrite keeps the orchestrator's part byte for byte, and the
+squash commit keeps the fold's tags as text. `frame/design.md` *Data &
+interfaces* of the work item that last reshaped this lays out the part line
+for line. A copied line equal to `HEADING`,
+`FOLD` or `FOLD_END` is refused at the record's line, and so is a copied
+line where `close_issues_on_release.py#keywords_in` reads a closing
+keyword: the `Closes` line is the orchestrator's, written above `HEADING`.
 
 Round records are read through `chain_check.py`'s grammar, the one reader of
 a round record, and a record it refuses is refused here with its sentence.
@@ -40,7 +46,7 @@ Limits, stated here and not guarded:
   load by its installed path. The normal flow gives neither: the sealer is
   handed a work item's directory that exists, from an installed plugin.
 
-Exit: 0 written, or under `--check` the part above the heading is what the
+Exit: 0 written, or under `--check` the part below the heading is what the
 records give; 1 refused and nothing written, each cause on a line that opens
 with `refused:` naming the body file by its name, or a record by its path
 under the `seal/` root, and the line; 2 the arguments are unusable,
@@ -104,8 +110,12 @@ except (OSError, SyntaxError, ImportError, SystemExit, ValueError) as _exc:
 READER = CHAIN.SHARED_READER
 OPTIN = ROUTING.optin
 
-# The line that ends the generated part and opens the orchestrator's.
-HEADING = "## Not from the records"
+# The line that ends the orchestrator's part and opens the generated one.
+HEADING = "## From the records"
+# The fold the generated part's sections stand in, opened under `HEADING`
+# and ended on the part's last line.
+FOLD = "<details>"
+FOLD_END = "</details>"
 # The record headings the generator reads, beside `gaps.md`'s
 # `## Not verified`, which is `unverified_check.py#HEADING`.
 PHASES = "## Phases"
@@ -133,9 +143,9 @@ TABLE = "|"
 
 # Every fixed line the generated part can hold. `{name}` is the work item's
 # directory name and `{path}` a record's path under it.
-OPENING = (
-    f"Copied from the records in `{OPTIN.HOME}/{OPTIN.WORK_ITEMS}/{{name}}/` "
-    "by `seal pr-body`."
+SUMMARY = (
+    f"<summary>Copied from the records in {OPTIN.HOME}/{OPTIN.WORK_ITEMS}/{{name}}/ "
+    "by seal pr-body.</summary>"
 )
 CHANGED = "## What changed"
 BUILT = "## How it was built"
@@ -156,7 +166,10 @@ NO_NOT_VERIFIED = f"`{GAPS}` has no `{NOT_VERIFIED}` section."
 NO_NOT_DONE = f"`{GAPS}` has no `{NOT_DONE}` section."
 NO_QUESTION_TABLE = f"`{QUESTIONS}` holds no table line."
 FIXED = (
-    OPENING,
+    HEADING,
+    FOLD,
+    SUMMARY,
+    FOLD_END,
     CHANGED,
     BUILT,
     REVIEWED,
@@ -164,7 +177,6 @@ FIXED = (
     NOT_VERIFIED,
     NOT_DONE,
     ASKED,
-    HEADING,
     FROM,
     FROM_PHASES,
     PHASE_LIST,
@@ -411,34 +423,38 @@ def _claims(rel, line, seen):
             line,
             f"a closing keyword before #{number} would close that issue when "
             f"this pull request ships; the `Closes` line is the orchestrator's "
-            f"alone, under `{HEADING}`, so write #{number} here in a code span",
+            f"alone, above `{HEADING}`, so write #{number} here in a code span",
         )
         for number in CLOSER.keywords_in(seen[line - 1])
     ]
 
 
 def _composed(name, texts):
-    """`[(line, source)]` for the generated part above `HEADING`, ending with
-    the blank line before it: `source` is `(path, line)` for a copied line
-    and None for a fixed one. Refused at the record's line where a copied
-    line is equal to `HEADING`, since the body would split there, or holds a
-    closing keyword outside a fence and a code span, since GitHub and the
-    release's closer would close the issue it names."""
-    blocks = [_fixed(OPENING.format(name=name))]
-    blocks += _changed(texts)
+    """`[(line, source)]` for the generated part below `HEADING`, that line
+    left out: a blank line, `FOLD`, the summary naming the copy, a blank
+    line, each section followed by a blank line, and `FOLD_END`. `source`
+    is `(path, line)` for a copied line and None for a fixed one. Refused at
+    the record's line where a copied line is equal to `HEADING`, which would
+    stand inside the fold as a second boundary line, or, outside a fence, to
+    `FOLD` or `FOLD_END`, which would fold a part again or end the fold
+    early, or where it holds a closing keyword outside a fence and a code
+    span, since GitHub and the release's closer would close the issue it
+    names."""
+    blocks = _changed(texts)
     blocks += _built(texts)
     blocks += _rounds(texts)
     blocks += _gate(texts)
     blocks += _gaps(texts, NOT_VERIFIED, NO_NOT_VERIFIED)
     blocks += _gaps(texts, NOT_DONE, NO_NOT_DONE)
     blocks += _questions(texts)
-    above = []
+    below = [("", None), (FOLD, None), (SUMMARY.format(name=name), None), ("", None)]
     for block in blocks:
         if block:
-            above += [*block, ("", None)]
+            below += [*block, ("", None)]
+    below.append((FOLD_END, None))
     seen = {rel: READER.readable(text) for rel, text in texts.items()}
     causes = []
-    for said, (rel, line) in (pair for pair in above if pair[1]):
+    for said, (rel, line) in (pair for pair in below if pair[1]):
         if said == HEADING:
             causes.append(
                 (
@@ -447,26 +463,37 @@ def _composed(name, texts):
                     f"reads `{HEADING}`, the line the body's two parts split at",
                 )
             )
+        elif seen[rel][line - 1] in (FOLD, FOLD_END):
+            causes.append(
+                (
+                    rel,
+                    line,
+                    f"reads `{said}`, which would fold the copy again or end "
+                    f"its one `{FOLD}` early",
+                )
+            )
         causes += _claims(rel, line, seen[rel])
     if causes:
         raise Refused(causes)
-    return above
+    return below
 
 
-def _joined(above):
-    return "\n".join(line for line, _source in above) + "\n"
+def _joined(below):
+    return "\n".join(line for line, _source in below) + "\n"
 
 
 def compose(name, texts):
     """The generated part of the body for the work item called NAME, from
-    `read_item`'s mapping TEXTS, ending with `HEADING` and one blank line."""
-    return _joined(_composed(name, texts)) + HEADING + "\n\n"
+    `read_item`'s mapping TEXTS: `HEADING`, then `_composed`'s lines, the
+    fold's end the last."""
+    return HEADING + "\n" + _joined(_composed(name, texts))
 
 
 def split(body):
-    """`(generated, own)`: the text of BODY before its first line equal to
-    `HEADING`, and the text after that line, each as its bytes stood.
-    Refused where no line equals it."""
+    """`(own, generated)`: the text of BODY before its first line equal to
+    `HEADING`, the orchestrator's part, and the text after that line, each
+    as its bytes stood. Refused where no line equals it, a body 0.25.0 wrote
+    among them, and the refusal names the repair."""
     lines = READER.gfm_lines(body, keepends=True)
     for i, line in enumerate(lines):
         if line.rstrip("\r\n") == HEADING:
@@ -476,7 +503,9 @@ def split(body):
             (
                 None,
                 0,
-                f"no line reads `{HEADING}`, so the body has no part of its own to keep",
+                f"no line reads `{HEADING}`, so the body has no part of its own "
+                f"to keep: write your part above a line reading `{HEADING}`, or "
+                "remove the file, and run the command again",
             )
         ]
     )
@@ -500,27 +529,31 @@ def _source(pair):
     return f"`{line}` at `{source[0]}:{source[1]}`"
 
 
-def _check(above, body):
-    """Refused, at each line where it differs, where the part of BODY above
-    `HEADING` is not ABOVE's lines."""
+def _check(below, body):
+    """Refused, at each line where it differs, counted from BODY's first
+    line, where the part of BODY below `HEADING` is not BELOW's lines. The
+    part above it is the orchestrator's and is not read."""
     if body is None:
         raise Refused(
             [(None, 0, "is not there; `seal pr-body <item> --body <file>` writes it")]
         )
-    said = READER.gfm_lines(split(body)[0])
-    given = [line for line, _source in above]
+    own, generated = split(body)
+    said = READER.gfm_lines(generated)
+    given = [line for line, _source in below]
+    # The lines above the part: the orchestrator's, and `HEADING`'s own.
+    offset = len(READER.gfm_lines(own, keepends=True)) + 1
     causes = []
     matcher = difflib.SequenceMatcher(None, said, given, autojunk=False)
     for tag, i1, _i2, j1, _j2 in matcher.get_opcodes():
         if tag == "replace":
-            why = f"reads `{said[i1]}`; the records give {_source(above[j1])}"
+            why = f"reads `{said[i1]}`; the records give {_source(below[j1])}"
         elif tag == "delete":
             why = f"reads `{said[i1]}`, which the records do not give"
         elif tag == "insert":
-            why = f"lacks {_source(above[j1])}"
+            why = f"lacks {_source(below[j1])}"
         else:
             continue
-        causes.append((None, i1 + 1, why))
+        causes.append((None, offset + i1 + 1, why))
     if causes:
         raise Refused(causes)
 
@@ -542,14 +575,14 @@ def main(argv=None):
     parser = argparse.ArgumentParser(
         prog="seal pr-body",
         description="Write the part of a pull request body a work item's "
-        f"records hold, above the line `{HEADING}`, or check it.",
+        f"records hold, below the line `{HEADING}`, or check it.",
     )
     parser.add_argument("item", help="the work item's directory")
     parser.add_argument("--body", required=True, metavar="FILE", help="the body file")
     parser.add_argument(
         "--check",
         action="store_true",
-        help="write nothing; exit 1 where the part above the heading is not the records'",
+        help="write nothing; exit 1 where the part below the heading is not the records'",
     )
     args = parser.parse_args(argv)
     if not os.path.isdir(args.item):
@@ -557,23 +590,23 @@ def main(argv=None):
         return 2
     name = os.path.basename(os.path.normpath(os.path.abspath(args.item)))
     try:
-        above = _composed(name, read_item(args.item))
+        below = _composed(name, read_item(args.item))
         body = _body(args.body)
         if args.check:
-            _check(above, body)
-            print(f"matches: {args.body} above `{HEADING}` is the records' text")
+            _check(below, body)
+            print(f"matches: {args.body} below `{HEADING}` is the records' text")
             return 0
-        own = "\n" if body is None else split(body)[1]
+        own = "" if body is None else split(body)[0]
         try:
             with open(args.body, "w", encoding="utf-8", newline="") as handle:
-                handle.write(_joined(above) + HEADING + "\n" + own)
+                handle.write(own + HEADING + "\n" + _joined(below))
         except OSError as exc:
             raise Refused([(None, 0, f"cannot be written ({exc})")]) from None
     except Refused as refused:
         for where, line, why in refused.causes:
             print(f"refused: {_place(where, line, args.item, args.body)}: {why}")
         return 1
-    print(f"wrote: {args.body} above `{HEADING}` from {args.item}'s records")
+    print(f"wrote: {args.body} below `{HEADING}` from {args.item}'s records")
     return 0
 
 

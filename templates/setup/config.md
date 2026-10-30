@@ -83,9 +83,9 @@ value is a language's English name, such as `English`, `Korean` or
 `Japanese`, because the reader is a model choosing prose, not a lookup table.
 
 In the body of a pull request routed through the review chain, the row
-governs the part the orchestrator writes, under the line
-`skills/code-review/scripts/pr_body.py#HEADING` holds. The part above that
-line is the records' own text, copied by `seal pr-body`, so it is in
+governs the part the orchestrator writes, the body's first part, above the
+line `skills/code-review/scripts/pr_body.py#HEADING` holds. The part below
+that line is the records' own text, copied by `seal pr-body`, so it is in
 `Record language`.
 
 ## Record language
@@ -142,7 +142,7 @@ every repository, whatever either row says:
   A translated field name is not a translation, it is a broken gate.
 - **The markers and anchors.** `<!-- specs/<work-item-id> -->`, the word
   `closed` that opens a closed `## Not verified` row, the line
-  `## Not from the records` that ends the part of a pull request body
+  `## From the records` that opens the part of a pull request body
   `seal pr-body` copies from the records, and the anchor table's header
   cells `Pact`, `Clause` and `Hash`.
 - **Code.** Identifiers, comments, docstrings, file names, and test function

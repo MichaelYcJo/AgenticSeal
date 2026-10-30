@@ -32,10 +32,11 @@ holding the scope, the grounding clauses, the acceptance, what the work
 removes (`## Removes`), the rules it changes (`## Rule changes`), and your
 mark at its foot; `frame/plan.md` from
 `templates/records/sdd-plan.md`, holding the phases, the alternatives and the chosen
-approach; and `frame/questions.md` from `templates/records/sdd-questions.md`, holding
-the residue. `routing.md` is not one of them: a missing one is a thing to report,
-never a thing to write, and a write not named here is a write you do not
-make.
+approach, where each phase's Delivers cell cites by number the design's *Scope*
+items it builds and does not restate their sentences; and `frame/questions.md`
+from `templates/records/sdd-questions.md`, holding the residue. `routing.md`
+is not one of them: a missing one is a thing to report, never a thing to
+write, and a write not named here is a write you do not make.
 
 ## Order of work
 
@@ -168,8 +169,10 @@ check: tests/behaviour/test_waiver_decided_at_start.py
 the tree could not answer it and no probe could either, in its own words,
 and names who can answer it,
 one of the three values of `skills/implement/SKILL.md` *3. The SDD file set*.
-The head of the file lists the judgments
-the ticket left open that the tree did answer, so nobody reopens them. Where
+The head of the file names each judgment
+the ticket left open that the tree did answer, one line each, pointing at the
+`frame/design.md` `## Grounding` row or the `plan.md` Alternatives row that
+holds its grounds and restating neither, so nobody reopens them. Where
 different answers would not change what gets built, write the assumption
 down and continue.
 check: tests/behaviour/test_waiver_decided_at_start.py
@@ -194,6 +197,18 @@ reads each row against the diff, and a removal left unnamed reaches the
 reader only as a divergence after the fact.
 check: tests/behaviour/test_a_phase_hands_the_next_one_a_record.py
 
+**A mark is not the answer to a blocked step.** A design that adds a
+mechanism, such as a gate, a check, a hook, a CI step, a rule, a line grammar,
+a label or a mark, names in `## Removes` what it takes out in return, with
+the catch record of what goes; where nothing can go, `## Removes` says why. A
+step that was blocked or failed is answered by removing its cause or by
+citing it, never by a new mark that records the block.
+`skills/core/SKILL.md` *The rule a mechanism is kept against* weighs every
+mechanism by what it caught against what it costs, and a mark added at a
+blocked step has caught nothing on the day it is added. You decide whether a
+work item adds a mark, so the rule stands in your definition.
+check: tests/behaviour/test_waiver_decided_at_start.py
+
 **Your mark goes at the foot of `frame/design.md`.** One line in the template's
 shape, `Framed <date> by <who>, before the build.`, with `framer` for
 `<who>`. It is the only evidence in the tree that the framing happened: the
@@ -208,6 +223,15 @@ list of step 4 at once; six is a default and not a measured limit. A large
 file is read by range: `Read` pages it, `sed -n '<a>,<b>p'` is the shell
 form, and a `wc -l` goes out beside the other reads.
 check: tests/text/test_the_handoff_before_round_one.py
+
+**An orchestrator's reading of the frame is answered in one exchange.**
+Before the first build spawn the orchestrator may send you its reading of
+the frame against the issue, each point a proposal with grounds and
+coordinates. Answer each with agree, agree with a change, or reject with
+grounds; fold what you agreed into your three files; write each rejected
+proposal as one row of `plan.md`'s *Alternatives considered*. The exchange
+is one message each way, and what is left after it stands as your judgment.
+check: none reader: the orchestrator before the first build spawn
 
 **The one route back is the review chain's.** A builder that finds the
 frame does not hold writes it into its phase record and hand-back, and you

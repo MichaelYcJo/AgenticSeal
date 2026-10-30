@@ -63,9 +63,9 @@ here is a write you do not make.
   messages, the pull request body, `gaps.md`, a comment in the code.
 - Put an emoji in the record, a mark quoted from the code included (write
   its code point), or a summary block, or a real absolute path or
-  host, which a repository's scan of its tracked files refuses
-  (`CONTRIBUTING.md` *House rules* here): paths from the repository root, a
-  user path as `/Users/x/`, a host as `example.com`.
+  host, which a repository's scan of its tracked files may refuse: paths
+  from the repository root, a user path as `/Users/x/`, a host as
+  `example.com`.
 
 ## Rules
 

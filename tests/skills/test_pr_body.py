@@ -26,12 +26,6 @@ CHANGELOG = """\
 PLAN = """\
 # Implementation Plan: 1799000000-a-body
 
-Approved 2026-10-28 by the owner.
-
-## Summary
-
-Two phases.
-
 ## Phases
 
 | Phase | Delivers | Verified by | Status |
@@ -93,11 +87,7 @@ GATE = """\
 """
 
 GAPS = """\
-# Overview: 1799000000-a-body
-
-## Why this work exists
-
-One line.
+# Closing memo: 1799000000-a-body
 
 ## Not verified
 
@@ -108,10 +98,6 @@ One line.
 ## Not done
 
 nothing
-
-## Fed back into the spec
-
-none
 """
 
 QUESTIONS = """\
@@ -138,9 +124,14 @@ RECORDS = {
 }
 
 # S1: the fixture's generated part, written out section for section as
-# `frame/design.md` *Data & interfaces* lays it out.
+# `frame/design.md` *Data & interfaces* lays it out: the line it opens
+# with, then one fold whose summary names the copy, a blank line after the
+# summary, the sections, and the fold's end.
 EXPECTED = """\
-Copied from the records in `seal/threads/1799000000-a-body/` by `seal pr-body`.
+## From the records
+
+<details>
+<summary>Copied from the records in seal/threads/1799000000-a-body/ by seal pr-body.</summary>
 
 ## What changed
 
@@ -215,8 +206,7 @@ From `frame/questions.md`.
 | Q1 | Which part first? | a person | (a) or (b) | (a) | open |
 | Q2 | Which heading? | a person | (a) or (b) | (a) | answered 2026-10-28 by the owner |
 
-## Not from the records
-
+</details>
 """
 
 OWN = "Closes #1.\n\nThe motivation, in the orchestrator's words.\r\n"
@@ -251,7 +241,8 @@ class Test_compose:
         """S1. Every section the design lays out, in its order, holding the
         records' lines: a finding's heading one level down, its answer
         paragraph over two lines, a round with no finding, a line in Korean,
-        and the heading that ends the part."""
+        the line `HEADING` holds first, and one `<details>` around the
+        sections, its `<summary>` followed by a blank line."""
         texts = PR.read_item(str(item_of(tmp_path, RECORDS)))
         assert PR.compose(NAME, texts) == EXPECTED
 
@@ -317,15 +308,18 @@ class Test_compose:
             ),
             (
                 "changelog.md",
-                CHANGELOG + "## Not from the records\n",
+                CHANGELOG + "## From the records\n",
                 3,
-                "## Not from the records",
+                "## From the records",
             ),
-            ("frame/plan.md", PLAN + "\n## Phases\n\nagain\n", 20, "## Phases"),
+            ("changelog.md", CHANGELOG + "<details>\n", 3, "<details>"),
+            ("gaps.md", GAPS + "</details>\n", 12, "</details>"),
+            ("frame/plan.md", PLAN + "\n## Phases\n\nagain\n", 14, "## Phases"),
             (
                 "changelog.md",
                 CHANGELOG
-                + "This closes #7.\n\n`Closes #8` in a span.\n\n```\nFixes #9\n```\n",
+                + "This closes #7.\n\n`Closes #8` in a span.\n\n"
+                + "```\nFixes #9\n</details>\n```\n",
                 3,
                 "#7",
             ),
@@ -333,12 +327,14 @@ class Test_compose:
     )
     def test_refuses_a_record_it_cannot_copy_faithfully(self, rel, text, line, said):
         """S6. A round record `chain_check.py` refuses, a copied line equal
-        to `HEADING`, where the body would split, a second section of one
-        the body copies, and a copied line holding a closing keyword, which
-        would close an issue no party claimed, are each refused at the
-        record's path and line, with a sentence naming what was read there.
-        A closing keyword in a code span or a fence claims nothing, as
-        `close_issues_on_release.py#keywords_in` reads it."""
+        to `HEADING`, `<details>` or `</details>`, which would put a second
+        boundary line, a second fold or the fold's end inside the fold, a
+        second section of one the body copies, and a copied line holding a
+        closing keyword, which would close an issue no party claimed, are
+        each refused at the record's path and line, with a sentence naming
+        what was read there. A closing keyword in a code span or a fence
+        claims nothing, as `close_issues_on_release.py#keywords_in` reads
+        it, and a `</details>` in a fence ends no fold."""
         with pytest.raises(PR.Refused) as refused:
             PR.compose(NAME, {**RECORDS, rel: text})
         assert [(where, at) for where, at, _ in refused.value.causes] == [(rel, line)]
@@ -347,19 +343,28 @@ class Test_compose:
 
 class Test_split:
     def test_accepts_a_body_at_its_first_heading_line(self):
-        """S7. Everything before the first line equal to `HEADING`, and
-        everything after it, a second such line among the orchestrator's."""
-        own = OWN + "## Not from the records\n"
-        assert PR.split(EXPECTED + own) == (
-            EXPECTED[: EXPECTED.index("## Not from the records")],
-            "\n" + own,
-        )
+        """S7. Everything before the first line equal to `HEADING`, the
+        orchestrator's part, and everything after it, a second such line
+        among the records' copy."""
+        copy = EXPECTED[EXPECTED.index("\n") + 1 :] + "## From the records\n"
+        assert PR.split(OWN + "## From the records\n" + copy) == (OWN, copy)
 
     def test_refuses_a_body_with_no_heading_line(self):
         """S7. A body with no line equal to `HEADING` has no part of its own
-        to keep; a heading line with a word after it is no such line."""
-        with pytest.raises(PR.Refused):
-            PR.split("## What changed\n\n## Not from the records, really\n")
+        to keep; a heading line with a word after it is no such line, and
+        nor is the line of the body 0.25.0 wrote. The refusal names the
+        repair, so the reader of a body written before 0.25.1 has a way on
+        (round 1 of #1148, finding 2)."""
+        for body in (
+            "## What changed\n\n## From the records, really\n",
+            "## What changed\n\n## Not from the records\n",
+        ):
+            with pytest.raises(PR.Refused) as refused:
+                PR.split(body)
+            assert (
+                f"write your part above a line reading `{PR.HEADING}`, or remove "
+                "the file, and run the command again" in refused.value.causes[0][2]
+            ), refused.value.causes
 
 
 class Test_read_item:
@@ -383,15 +388,16 @@ class Test_read_item:
 
 class Test_main:
     def test_accepts_a_stale_body_and_keeps_its_own_part_byte_for_byte(self, tmp_path):
-        """S8. The part above the heading is rewritten from the records and
-        the part under it is kept as its bytes stood, a CRLF line among them;
-        with no file, the generated part alone is written."""
+        """S8. The part above the heading, the orchestrator's, is kept as
+        its bytes stood, a CRLF line among them, and the part below it is
+        rewritten from the records; with no file, the generated part alone
+        is written."""
         item = item_of(tmp_path, RECORDS)
         body = tmp_path / "pr-body.md"
         stale = EXPECTED.replace("the reader | its cases", "the reader | nothing")
-        body.write_bytes((stale + OWN).encode("utf-8"))
+        body.write_bytes((OWN + stale).encode("utf-8"))
         assert PR.main([str(item), "--body", str(body)]) == 0
-        assert body.read_bytes() == (EXPECTED + OWN).encode("utf-8")
+        assert body.read_bytes() == (OWN + EXPECTED).encode("utf-8")
         fresh = tmp_path / "fresh.md"
         assert PR.main([str(item), "--body", str(fresh)]) == 0
         assert fresh.read_bytes() == EXPECTED.encode("utf-8")
@@ -399,31 +405,38 @@ class Test_main:
     def test_accepts_the_written_body_under_check_and_writes_nothing(
         self, tmp_path, capsys
     ):
-        """S9. The file S8 writes is what the records give."""
+        """S9. The file S8 writes is what the records give, and it still is
+        once the orchestrator has written its part above the heading: the
+        check reads the part below it alone."""
         item = item_of(tmp_path, RECORDS)
         body = tmp_path / "pr-body.md"
         assert PR.main([str(item), "--body", str(body)]) == 0
         written = body.read_bytes()
         assert PR.main([str(item), "--body", str(body), "--check"]) == 0
         assert body.read_bytes() == written
+        body.write_bytes(OWN.encode("utf-8") + written)
+        assert PR.main([str(item), "--body", str(body), "--check"]) == 0
+        assert body.read_bytes() == OWN.encode("utf-8") + written
         assert "refused:" not in capsys.readouterr().out
 
     def test_refuses_an_edited_copy_naming_both_lines(self, tmp_path, capsys):
         """S9, the class of #857's withheld item 5, a changelog fact restated
         wrongly: one sentence of the copied changelog changed is refused at
-        the body's line, with the record's line it should read."""
+        the body's line, counted from the body's first line, the
+        orchestrator's part above the heading among them, with the record's
+        line it should read."""
         item = item_of(tmp_path, RECORDS)
         body = tmp_path / "pr-body.md"
         edited = EXPECTED.replace(
             "`seal pr-body` writes it", "`seal pr-body` drafts it"
         )
-        body.write_bytes((edited + OWN).encode("utf-8"))
+        body.write_bytes((OWN + edited).encode("utf-8"))
         capsys.readouterr()
         assert PR.main([str(item), "--body", str(body), "--check"]) == 1
         out = capsys.readouterr().out
-        assert out.startswith("refused: pr-body.md:7: ")
+        assert out.startswith("refused: pr-body.md:13: ")
         assert "`changelog.md:1`" in out
-        assert body.read_bytes() == (edited + OWN).encode("utf-8")
+        assert body.read_bytes() == (OWN + edited).encode("utf-8")
 
     def test_refuses_naming_no_machine_path(self, tmp_path, capsys):
         """The sealer copies the first `refused:` line into a committed
@@ -440,7 +453,7 @@ class Test_main:
             },
         )
         body = tmp_path / "pr-body.md"
-        body.write_bytes((EXPECTED + OWN).encode("utf-8"))
+        body.write_bytes((OWN + EXPECTED).encode("utf-8"))
         capsys.readouterr()
         assert PR.main([str(item), "--body", str(body), "--check"]) == 1
         out = capsys.readouterr().out
@@ -455,7 +468,7 @@ class Test_main:
             (RECORDS, "## What changed\n\nno heading here\n"),
             (
                 {**RECORDS, "trail/rounds/round-1.md": ROUND_1.replace("must", "high")},
-                EXPECTED + OWN,
+                OWN + EXPECTED,
             ),
         ],
         ids=["no heading", "a refused round record"],

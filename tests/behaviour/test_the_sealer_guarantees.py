@@ -228,12 +228,13 @@ class TestDefinition:
     def test_the_sealer_checks_the_copy_and_reads_only_the_orchestrators_part(
         self,
     ):
-        """S13 of #1044. The part of the body above `pr_body.py#HEADING` is
+        """S13 of #1044. The part of the body below `pr_body.py#HEADING` is
         the records' own text, so step 2 checks it with `seal pr-body
         --check` and withholds on any exit but 0, naming what the command
-        printed; steps 2 and 4 and *Never* then read only the part under the
-        heading as a party, the part the orchestrator wrote. Before this,
-        most withheld verdicts were a body sentence restating a record."""
+        printed; steps 2 and 4 and *Never* then read only the part above the
+        heading as a party, the body's first part, which the orchestrator
+        wrote (#1148 S6). Before this, most withheld verdicts were a body
+        sentence restating a record."""
         step_2 = between(SEALER, "2. **", "3. **")
         step_4 = between(SEALER, "4. **", "5. **")
         never = between(SEALER, "## Never", "## Rules")
@@ -245,7 +246,8 @@ class TestDefinition:
                 "`Verdict: withheld reason: <the first line the command printed>`",
             ),
             (step_2, "`skills/code-review/scripts/pr_body.py#HEADING`"),
-            (step_2, "the part of the pull request body under that line"),
+            (step_2, "the part of the body below the line"),
+            (step_2, "request body above that line, its first part"),
             (step_4, "the orchestrator's part of the pull request body"),
             (never, "the orchestrator's part of the pull request body"),
         ]
@@ -297,6 +299,20 @@ class TestDefinition:
         assert step.count("For every") == 1, step
         for word in ("touches", "Location", "location", "fixed <commit>"):
             assert word not in step, word
+
+    def test_step_4_reads_a_records_only_fix_as_the_fix_passs_claim(self):
+        """S4 of #1148. `chain_check.py#records` passes a `fixed` of the last
+        record located in the work item's records alone whose commit touched
+        them alone, with no verifying round after it, because the sealer is
+        that fix's reader: step 4 says so, and reads it as a party's claim at
+        HEAD."""
+        step = between(SEALER, "4. **The parties against each other.**", "5. **")
+        assert (
+            "where the finding is located in `seal/threads/<item>/` alone and its "
+            "commit touched nothing outside it" in step
+        ), step
+        assert "the fix pass's claim with you as its reader" in step, step
+        assert "read the record at HEAD against what the finding asked" in step
 
 
 # --- the document that states the guarantee ------------------------------------

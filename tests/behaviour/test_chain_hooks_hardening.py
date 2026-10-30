@@ -1141,6 +1141,12 @@ def test_every_spec_directory_that_reached_the_ladder_has_an_overview():
     The exemption is narrow on purpose: the moment a directory holds a
     `frame/design.md` or a `frame/plan.md`, someone decided the work was worth describing,
     and the memo is the other half of that.
+
+    The first phase writes it, from its template, when that phase closes
+    (#1148). This case runs at every phase boundary, so a memo the last phase
+    wrote would leave every earlier boundary red, as #1177's phase 1 met, and
+    one a plan row asked for was written by no phase of five 0.24.0 work
+    items whose rows did not ask.
     """
     specs = os.path.join(ROOT, "seal", "threads")
     missing = []

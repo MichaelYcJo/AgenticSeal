@@ -39,7 +39,7 @@ works outside the context entirely (hooks).
 | **crafter** (Claude Code subagent) | `core`, `agent-contract` | Builds one phase of a work item against the frame, or runs one fix pass over a round record. It opens `implement` at its first step and `writing-style` before it writes a record, and hands back each claim labelled `executed`, `read` or `unverified`, with the full suite labelled `unverified` and its answerer named |
 | **proofer** (subagent) | `core`, `agent-contract` | Reviews compliance first, then quality. It opens `code-review` at its first step and `writing-style` before it writes its round record. The orchestrator verifies the record before acting on it, and the pull request's check reads it — the reviewer never verifies its own report |
 | **tracer** (subagent) | `core`, `agent-contract` | Records what the original code does as `path#anchor` coordinates and returns facts, not verdicts. It opens `legacy-parity` at its first step. Appears only in repos that declare `seal/parity.md` |
-| **sealer** (subagent, Opus) | `core`, `agent-contract` | The final, independent guarantor. After the rounds settle, the changelog is written, the orchestrator has run the one broad gate (`seal gate`, which writes `trail/gate.md`), and `seal pr-body` has copied the records into the first part of the pull request body, it reads that record and runs nothing broad itself, confirms through `seal pr-body --check` that the copied part still matches the records, re-runs a sample of the implementer's claims, and reads the design, the build, the last review, the changelog and the part of the pull request body the orchestrator wrote against the issue and the tree. Its verdict is the work item's `guarantee.md`: `sealed`, `withheld` naming what the tree contradicts, or `undecided` with a question for the owner. It does not re-judge the design or the code's quality |
+| **sealer** (subagent, Opus) | `core`, `agent-contract` | The final, independent guarantor. After the rounds settle, the changelog is written, the orchestrator has run the one broad gate (`seal gate`, which writes `trail/gate.md`), and `seal pr-body` has copied the records into the pull request body under the orchestrator's part, it reads that record and runs nothing broad itself, confirms through `seal pr-body --check` that the copied part still matches the records, re-runs a sample of the implementer's claims, and reads the design, the build, the last review, the changelog and the part of the pull request body the orchestrator wrote against the issue and the tree. Its verdict is the work item's `guarantee.md`: `sealed`, `withheld` naming what the tree contradicts, or `undecided` with a question for the owner. It does not re-judge the design or the code's quality |
 | Skills | — | The skill the agents follow from their first tool call is in the column to the left. These a session loads on its own when the work calls for them, and an agent opens each at the step that names it — `code-review`, `commit-pr-convention`, `confidence-check`, `feature-planner`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style`. The rest you invoke by name; they are in the cheat sheet below |
 | Hooks | — | The gates themselves — auto-registered by the plugin, no settings wiring |
 | Core | — | `skills/core/SKILL.md`, the values every party shares. Every agent preloads it through its definition's `skills:` list, and the plugin's `core-start` hook prints it into every session, so a session holds what every agent holds from its first message and nothing is written into your `CLAUDE.md`. It carries no response-language rule — that stays yours. `! seal core` shows which core a session holds; disabling the plugin's hooks turns it off, and the plugin's other hooks with it |
@@ -127,7 +127,7 @@ seal/
 └── threads/<work-item-id>/
     ├── routing.md    which way this work item goes, written before the first edit
     ├── frame/design.md · frame/plan.md · frame/questions.md
-    ├── trail/phases/phase-N.md   what one build phase was asked and found
+    ├── trail/phases/phase-N.md   what one build phase found
     ├── trail/rounds/round-N.md   review rounds — committed, drained, then closed and kept
     ├── trail/gate.md             the one broad run, at a SHA, against the base
     ├── changelog.md              this work item's entry in the next release's notes
@@ -206,9 +206,11 @@ that opens nothing needing a fix does not spend one of the three.
 
 A ready pull request fails while a commit outside the work item's records
 follows the commit on the last record's `target:` line, or while a finding of
-that record reads `fixed` or `rejected` — a review cannot have passed while
-the fixes that closed its findings went unread. On a draft it prints and
-names the verifying round.
+that record reads `rejected`, or `fixed` where the finding names a path
+outside the work item's records or its commit touched one — a review cannot
+have passed while the fixes that closed its findings went unread. A finding
+located in the records alone and fixed in them alone is read by the sealer at
+HEAD and owes no round. On a draft it prints and names the verifying round.
 
 No gate transmits your code, your paths, or your prompts anywhere. These side
 effects are worth stating outright: version-check writes a timestamp file

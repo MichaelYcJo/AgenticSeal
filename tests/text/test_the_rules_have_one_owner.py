@@ -266,9 +266,9 @@ def test_the_orchestrator_writes_the_body_file_the_sealer_reads():
     a pull request already open on the stated limit's path. Round 1 of #943
     reverted each of the first three and this module stayed green.
 
-    S12 of #1044: `seal pr-body` writes the body's first part from the
-    records, so the orchestrator runs it after `trail/gate.md` is committed,
-    which that part copies, writes its own part under the heading and
+    S12 of #1044: `seal pr-body` writes the body's copy of the records, so
+    the orchestrator runs it after `trail/gate.md` is committed, which that
+    copy includes, writes its own part above the heading (#1148) and
     restates no record there, and runs it again before every later sealer
     spawn and every `PATCH` of the body, which is every repair's last step."""
     text = flat(*ORCH)
@@ -279,7 +279,7 @@ def test_the_orchestrator_writes_the_body_file_the_sealer_reads():
         "write the pull request body after `trail/gate.md` is committed",
         "`seal pr-body <item> --body <scratchpad>/<work-item-id>/pr-body.md`",
         "`skills/code-review/scripts/pr_body.py#HEADING`",
-        "Then write your own part under that line",
+        "Then write your own part above that line, from the top of the file",
         "Your part restates no record",
         "before every later spawn of the sealer and before every "
         "`gh api -X PATCH` of the body",
@@ -375,14 +375,15 @@ def test_the_order_opens_the_pull_request_after_the_sealer():
     # before the sealer's spawn, and #969 the broad run after it: the sealer
     # reads the run's record, so the run comes before the spawn. Since #940
     # the step says it in words rather than arrows. #1044 put the body's
-    # first part between the run and the spawn, since it copies the run's
-    # record and the sealer checks it.
+    # copy of the records between the run and the spawn, since it copies
+    # the run's record and the sealer checks it.
     assert (
-        "spawns the crafter (*The plan is approved at the spawn* below). The "
+        "spawns the crafter (*The frame is read against the issue at the "
+        "spawn* below). The "
         "proofer's rounds follow, then `seal gate --preflight` and `seal gate "
         "--record`, both run by the orchestrator, then `seal pr-body`, which "
-        "the orchestrator runs to write the pull request body's first part, "
-        "then the sealer, and then the pull request opens (" in step
+        "the orchestrator runs to write the pull request body's copy of the "
+        "records, then the sealer, and then the pull request opens (" in step
     ), step
     assert "draft" not in step, step
 
@@ -405,8 +406,9 @@ def test_the_order_no_longer_defers_the_framer_to_a_ticket():
 def test_the_acts_table_says_no_commit_holds_who_wrote_the_two_lines():
     """#1041, the owner's answer of 2026-10-28: the fix pass commits neither
     line, so the row's `Grounds` cell cannot send a reader to the history
-    for who wrote them."""
-    text = flat(*ORCH_IMPL)
+    for who wrote them. The table is `skills/implement/acts.md`'s since
+    #1148."""
+    text = flat("skills", "implement", "acts.md")
     start = text.index(
         "| Orchestrator: a phase is a fresh crafter, and a fix pass resumes the implementer |"
     )
@@ -427,7 +429,7 @@ def the_order():
     text = flat(*ORCH_IMPL)
     return text[
         text.index("## Orchestrator: the order inside a ticket") : text.index(
-            "### The plan is approved at the spawn"
+            "### The frame is read against the issue at the spawn"
         )
     ]
 
@@ -442,7 +444,7 @@ def test_a_decision_after_the_frame_is_folded_into_it():
         "`frame/design.md` or `plan.md` before the next crafter spawns.",
         "naming the comments to fold",
         "the orchestrator keeps one line of its own in `plan.md`",
-        "below the title where it does not",
+        "naming the comments to fold, below the title,",
         "folds the decision into the issue body",
     ):
         assert said in order, f"the order no longer says {said!r}"
@@ -561,9 +563,13 @@ def test_a_close_that_does_not_hold_reopens_it():
         )
     ]
     assert "the run ends at that round" not in verifying
+    # #1148: a `fixed` finding located in the work item's records alone,
+    # whose commit touched them alone, is read by the sealer at HEAD, and the
+    # check passes it in the last record.
     assert (
-        "run ends only on a round whose record holds no `open`, `fixed` or "
-        "`rejected` finding" in verifying
+        "run ends only on a round whose record holds no `open` or `rejected` "
+        "finding and no `fixed` one that names a path outside the work item's "
+        "records or whose commit touched one" in verifying
     ), "the verifying-round section no longer says where the run ends"
     # Round 9 of 1791933022, finding 3: the check holds a second condition on
     # the same record, so a run ended on the first alone is refused.
@@ -571,6 +577,39 @@ def test_a_close_that_does_not_hold_reopens_it():
         "and whose `target:` commit is HEAD, or is followed only by the work "
         "item's own records" in verifying
     ), "the verifying-round section ends the run on one of the check's two conditions"
+
+
+@pytest.mark.rule("run-ends-with-verifying-round")
+def test_a_fix_pass_to_the_records_alone_owes_no_verifying_round():
+    """S4 of #1148. `chain_check.py#records` passes a `fixed` of the last
+    record located in the work item's records alone whose commit touched
+    them alone, so the orchestration that spawns the verifying round says
+    the same: such a fix pass owes none, its reader is the sealer, a
+    finding located in code owes the round whatever its fix touched, and
+    the round's *When* says the same exception (round 1 of #1148, finding
+    1)."""
+    orch = flat(*ORCH)
+    opening = orch[
+        orch.index("## Orchestrator: the run ends with a verifying round") : orch.index(
+            "So a run ends with a **verifying round**"
+        )
+    ]
+    assert (
+        "except a fix pass whose findings are all located in the work item's "
+        "own records and whose commits touched only those records" in opening
+    ), opening
+    assert "the sealer reads every record at HEAD and is that fix's reader" in opening
+    assert "the pass owes no verifying round" in opening, opening
+    assert (
+        "A finding located in code is read by a round whatever its fix touched"
+        in opening
+    ), opening
+    assert (
+        "**after the fixes** for the previous round are committed, never "
+        "before, or it reviews what has already been reviewed; a fix pass "
+        "whose findings are all located in the work item's records, with "
+        "commits that touched nothing else, owes none" in orch
+    ), "the verifying round's When row does not state the records-only exception"
 
 
 COMPARISON = ("what the frame says", "what the fix did", "where the defect came from")

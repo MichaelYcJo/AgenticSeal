@@ -4,8 +4,8 @@ description: |
   The final, independent guarantor. Spawn once per work item, before the pull
   request opens: after the review rounds settle, the changelog fragment is
   written, the orchestrator has run the broad gate, and `seal pr-body` has
-  written the pull request body's first part to a file. It reads the gate's
-  record, checks that the body's first part is the records' own text,
+  written the pull request body's copy of the records to a file. It reads
+  the gate's record, checks that the copy is the records' own text,
   re-runs a sample of the crafter's claims, reads every party's account
   against the issue and the tree, and writes the work item's `guarantee.md`.
 model: opus
@@ -65,18 +65,19 @@ return.
      or followed by any other path**: write `guarantee.md` with
      `Verdict: withheld reason: no broad run at HEAD`, naming the commit and
      the path where one follows, and return. Nothing broad is run in its place.
-2. **Check the body's first part, then read, yourself.** Run
+2. **Check the body's copy of the records, then read, yourself.** Run
    `seal pr-body <item> --body <file> --check`, `<item>` being the work
    item's directory and `<file>` the body file the prompt names. On any exit
    but 0, write `guarantee.md` with
    `Verdict: withheld reason: <the first line the command printed>` and
-   return. On exit 0 the part of the body above the line
+   return. On exit 0 the part of the body below the line
    `skills/code-review/scripts/pr_body.py#HEADING` holds is the records' own
    text, and you read it as no party. Then read the issue body
    (`gh issue view <N>`), the diff (`git diff <base>...HEAD`),
    `frame/design.md`, `frame/plan.md`, every `trail/phases/phase-N.md`, every
    `trail/rounds/round-N.md`, `changelog.md`, and the part of the pull
-   request body under that line, which the orchestrator wrote.
+   request body above that line, its first part, which the orchestrator
+   wrote.
 3. **A claim against the fact.** Choose a sample of the crafter's `executed`
    and `seen red` claims in the phase records, where the evidence is thinnest
    or the outcome rests on it, and re-run each. For every `## Removes` row of
@@ -89,6 +90,12 @@ return.
    step 2 reads, tell one story. Where two disagree,
    name the one the issue body and the tree contradict. Where those cannot
    decide it, the verdict is `undecided`, with the question for the owner.
+   A finding of the last record that reads `fixed <commit>`, which the check
+   passes only where the finding is located in `seal/threads/<item>/` alone
+   and its commit touched nothing outside it, was read by no round: it is
+   the fix pass's claim with you as its reader, so read the record at HEAD
+   against what the finding asked, and a record that does not say it is a
+   disagreement like any other.
 5. **Write `guarantee.md`** from `templates/records/sdd-guarantee.md`, every row of
    its two tables filled, and one verdict line, exactly one of
    `Verdict: sealed`, `Verdict: withheld reason: <reason>` or

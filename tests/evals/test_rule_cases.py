@@ -198,14 +198,14 @@ class Test_main:
         for line in ("src/x.py:7", "src/x.py:13", "src/y.py:17", "src/y.py:25"):
             assert not found.search(f"location: `{line}`"), line
 
-    def test_a_sealer_case_body_is_its_records_then_its_own_part(
+    def test_a_sealer_case_body_is_its_own_part_then_its_records(
         self, tmp_path, capsys
     ):
-        """Guards #1044 S14: each sealer case's pull request body, its
-        placeholders filled as its scaffold fills its records, is what
-        `seal pr-body --check` accepts over the records that scaffold writes;
-        the part under `HEADING` ends with `Closes #101.` and holds the README
-        sentence the tree lacks in the untrue-body case alone."""
+        """Guards #1044 S14 and #1148 S6: each sealer case's pull request
+        body, its placeholders filled as its scaffold fills its records, is
+        what `seal pr-body --check` accepts over the records that scaffold
+        writes; the part above `HEADING` ends with `Closes #101.` and holds
+        the README sentence the tree lacks in the untrue-body case alone."""
         rc = load_script("rule_cases")
         sealer = [(n, c) for n, c in rc.cases() if c["agent"] == "sealer"]
         assert sealer
@@ -227,7 +227,7 @@ class Test_main:
                 name,
                 capsys.readouterr().out,
             )
-            own = PR.split(body)[1]
+            own = PR.split(body)[0]
             assert own.rstrip().endswith("Closes #101."), (name, own)
             assert (UNTRUE in own) == name.endswith("untrue-body"), (name, own)
 

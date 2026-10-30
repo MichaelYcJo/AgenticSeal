@@ -92,7 +92,7 @@ seal/
 └── threads/<work-item-id>/  one work item, whole
     ├── routing.md         which way it was routed, written before the first edit
     ├── frame/design.md, frame/plan.md, frame/questions.md
-    ├── trail/phases/phase-N.md   what one build phase was asked and found
+    ├── trail/phases/phase-N.md   what one build phase found
     ├── trail/rounds/round-N.md   target SHA, verdicts, paste-ready fixes, executed probes
     ├── trail/gate.md      the one broad run, at a SHA, against the base
     ├── changelog.md       this work item's entry in the next release's notes

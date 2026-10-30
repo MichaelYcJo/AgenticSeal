@@ -51,8 +51,8 @@ REFUSAL = (
     "at {executable}.\n"
     "Nothing was read and nothing was written.\n"
     "`python3` is not always the newest interpreter installed -- macOS ships "
-    "python 3.9 under that name -- so name one explicitly, `python{floor} "
-    "{script} ...`, or see CONTRIBUTING.md section 'Running the checks'.\n"
+    "python 3.9 under that name -- so name one explicitly: `python{floor} "
+    "{script} ...`.\n"
 )
 USAGE = "usage: launch.py <script> [arguments...]\n"
 

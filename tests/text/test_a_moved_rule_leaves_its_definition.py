@@ -319,7 +319,7 @@ def test_what_replaced_them_says_whose_the_act_is():
         "nothing says whose the routing batch is, so a crafter meeting an "
         "unanswered question asks it"
     )
-    assert "`plan.md`'s approval line is the gate" in crafter, (
+    assert "the spawn is the gate" in crafter, (
         "nothing says the design gate already happened, so a crafter presents "
         "approaches and waits for a go"
     )
@@ -464,11 +464,44 @@ CRAFTERS_FOUR_RULES = {
         "A revert through `git checkout -- <file>` restores the committed state",
         "`seal mutate` holds the bytes it read",
     ),
-    "Three failed fixes stop the work.": (
-        "The same bug through three failed fixes is the architecture talking",
-        "Three returns through the broad gate read the same way",
+    # #1148 moved the rule to `skills/implement/SKILL.md` *2.*, where a
+    # session that builds reads it too; the definition keeps its application.
+    "A stop at three failed fixes is handed back.": (
+        "`skills/implement/SKILL.md` *2. Implement test-first, and let each rule "
+        "name its test*",
+        "hand back the architecture question",
     ),
 }
+
+
+def test_the_three_fix_rule_stands_in_the_skill_a_builder_opens():
+    """#1148. The crafter's definition alone held the rule, so a session that
+    builds under `Implementation | the session` read it nowhere (#1177's
+    round 1). It stands in *2.* of the skill both open, with its `check:`
+    line, and the definition keeps the application and not the rule's words."""
+    skill = read(os.path.join(ROOT, "skills", "implement", "SKILL.md"))
+    section = skill.split("### 2. Implement test-first", 1)[1].split("\n### ", 1)[0]
+    paragraph = next(
+        (
+            p
+            for p in section.split("\n\n")
+            if p.startswith("**Three failed fixes stop the work.**")
+        ),
+        "",
+    )
+    assert paragraph, "skills/implement/SKILL.md *2.* lost the three-fix rule"
+    said = flat(paragraph)
+    for clause in (
+        "The same bug through three failed fixes is the architecture talking",
+        "Three returns through the broad gate read the same way",
+    ):
+        assert clause in said, clause
+    assert re.search(r"^check: \S", paragraph, re.M), paragraph
+    crafter = flat(read(CRAFTER))
+    assert (
+        "The same bug through three failed fixes is the architecture talking"
+        not in (crafter)
+    ), "agents/crafter.md still states the rule the skill now holds"
 
 
 def test_the_crafters_four_rules_stand_with_their_enforcers():
@@ -506,6 +539,21 @@ def test_the_crafters_fix_pass_writes_two_lines_and_sweeps_what_its_range_reword
         "`fixed <commit>`, `rejected` or `deferred <home>`",
         "`deferred <where it was repaired>`",
         "append the one it did change after `, `",
+        # #1148, Scope item 13: two fix passes of its run applied a round
+        # record's paste-ready text to a procedure step as given, and each
+        # carried a new defect into shipped text.
+        "A paste-ready fix is the proofer's claim and not the fix.",
+        "Apply it only after reading it as its text's own reader would",
+        # Round 4 of #1148, finding 2: the release is the third axis, which
+        # round 1's paste-ready fix failed by citing a section a later settle
+        # writes.
+        "in either `seal/` root (contract rule 11), under every condition "
+        "its file names, and in the release that ships it.",
+        "In that release, a section the step cites holds the text the release "
+        "ships, not the text a design's `## Rule changes` writes at a later "
+        "settle.",
+        "Where that reading fails, write the fix in your own words and say so "
+        "in `answer:`.",
         "find every other place stating each rule your range reworded or removed",
         # #1041, S3: the owner's answer of 2026-10-28 gives the commit of the
         # two lines to the orchestrator, so the crafter writes them last and

@@ -12,12 +12,11 @@ so they live only in a transcript the next phase's session never opens.
 per-segment record the review chain already has in `templates/records/sdd-round.md`
 (`docs/the-review-record.md` *The round record*). This module pins:
 
-  the field table    `Phase`, `Commit` — nothing more, because a phase has
-                     no `target:` commit to squash away
-  the two sections    ship as headings the record reader reads, with
-                     placeholders rather than filled claims — a template
-                     whose section a reader does not find ships a record
-                     that is missing it the moment someone copies the file
+  one section        the title and `## What this phase found`, with a
+                     placeholder rather than a filled claim. The field
+                     table copied the file name and `plan.md`'s Status
+                     cell, and `## What this phase was asked` copied the
+                     plan's Delivers cell, so both left with #1148
   no removal table    what a work item takes out of the tree is named once,
                      in `frame/design.md`'s `## Removes`, which the review reads
                      (#835); a per-phase table was a second record of the
@@ -44,10 +43,6 @@ PHASE_TEMPLATE = os.path.join(ROOT, "templates", "records", "sdd-phase.md")
 CRAFTER_AGENT = os.path.join(ROOT, "agents", "crafter.md")
 IMPLEMENT_SKILL = os.path.join(ROOT, "skills", "implement", "SKILL.md")
 
-SECTIONS = (
-    "## What this phase was asked",
-    "## What this phase found",
-)
 SPEC_TEMPLATE = os.path.join(ROOT, "templates", "records", "sdd-design.md")
 FRAMER_AGENT = os.path.join(ROOT, "agents", "framer.md")
 REMOVES_RULE = os.path.join(ROOT, "docs", "the-reader-registry.md")
@@ -88,66 +83,31 @@ def section_body(lines, heading):
     return body
 
 
-# --- the field table ---------------------------------------------------------
+# --- the template is its title and one section -------------------------------
 
 
-def test_the_field_table_is_phase_and_commit():
-    lines = template_lines()
-    header_idx = next(
-        (i for i, line in enumerate(lines) if line.strip().startswith("| Field")), None
+def test_the_template_is_its_title_and_the_found_section():
+    """#1148. Every other line the template carried copied another record:
+    the field table the file name and `plan.md`'s Status cell, the asked
+    section the plan's Delivers cell."""
+    lines = [line.strip() for line in template_lines() if line.strip()]
+    assert lines[0] == "# Phase <N>: <work-item-id>", lines[0]
+    headings = [line for line in lines if line.startswith("## ")]
+    assert headings == ["## What this phase found"], headings
+    assert not [line for line in lines if line.startswith("|")], (
+        "the template still carries a table, and every cell it could hold "
+        "copies the file name or the plan's Status cell"
     )
-    assert header_idx is not None, "no `| Field | Value |` header"
-    # The field table ends at the first `## ` heading — rows past it belong
-    # to the removal table further down, not to this one.
-    end = next(
-        (
-            i
-            for i in range(header_idx + 1, len(lines))
-            if lines[i].strip().startswith("## ")
-        ),
-        len(lines),
+
+
+def test_the_found_section_ships_a_placeholder():
+    body = section_body(template_lines(), "## What this phase found")
+    assert body, "`## What this phase found` has no content"
+    text = " ".join(line.strip() for line in body)
+    assert text.startswith("<") and text.endswith(">"), (
+        f"`## What this phase found` ships `{text}` — a template must offer a "
+        "placeholder, not a filled-in claim"
     )
-    table_lines = lines[header_idx + 1 : end]
-    rows = [line.strip() for line in table_lines if line.strip().startswith("|")]
-    field_rows = [
-        line for line in rows if not set(line.replace("|", "").strip()) <= {"-"}
-    ]
-    names = [line.split("|")[1].strip() for line in field_rows]
-    assert names == ["Phase", "Commit"], (
-        f"the field table carries {names}, not Phase/Commit — a phase has no "
-        "`target:` commit to squash away, and `Ran by` left with the round record's "
-        "in 0.22.0 (#923)"
-    )
-    for name, row in zip(names, field_rows, strict=True):
-        value = row.split("|")[2].strip()
-        assert value.startswith("<") and value.endswith(">"), (
-            f"a template must not ship a claim, and `{value}` is one ({name})"
-        )
-
-
-# --- the two sections exist and ship placeholders, not claims ---------------
-
-
-def test_both_sections_exist():
-    lines = template_lines()
-    present = {line.strip() for line in lines}
-    for heading in SECTIONS:
-        assert heading in present, (
-            f"`{heading}` is missing — a heading the template does not carry "
-            "is a heading a copied file does not have"
-        )
-
-
-def test_asked_and_found_sections_ship_a_placeholder():
-    lines = template_lines()
-    for heading in ("## What this phase was asked", "## What this phase found"):
-        body = section_body(lines, heading)
-        assert body, f"`{heading}` has no content"
-        text = " ".join(line.strip() for line in body)
-        assert text.startswith("<") and text.endswith(">"), (
-            f"`{heading}` ships `{text}` — a template must offer a "
-            "placeholder, not a filled-in claim"
-        )
 
 
 def test_a_phase_record_carries_no_removal_table():
@@ -216,10 +176,6 @@ def test_each_record_section_states_the_failure_it_prevents():
     measured it (#940); since #1005 the template carries no comment, so the
     skill and the framer's definition say it."""
     skill = " ".join(read(IMPLEMENT_SKILL).split())
-    assert "with the spawn prompt gone" in skill, (
-        "the asked section no longer says it is how a later reader tells the "
-        "scope the phase was given from one it invented"
-    )
     assert "goes missing without a trace" in skill, (
         "the found section no longer says a discovery the orchestrator does "
         "not retype is lost"
@@ -251,6 +207,17 @@ def test_crafter_is_told_to_write_the_phase_record():
         "session that finds the file but not the timing writes it late or "
         "never"
     )
+    rule = " ".join(
+        crafter.split("**Each phase closes with its record.**", 1)[1]
+        .split("\n\n", 1)[0]
+        .split()
+    )
+    assert "every departure from the frame" in rule, rule
+    assert "a removal the frame's `## Removes` did not name among them" in rule, rule
+    assert "`gaps.md`" not in rule, (
+        "the crafter's rule still sends a departure to `gaps.md`, whose "
+        "divergence table left with #1148"
+    )
 
 
 # --- phase 2: the skill carries the file-set row and the copy instruction ---
@@ -267,19 +234,20 @@ def test_skill_file_set_table_carries_the_phase_row():
     )
 
 
-def test_skill_says_what_is_copied_into_what_this_phase_was_asked():
-    skill = read(IMPLEMENT_SKILL)
-    assert "What this phase was asked" in skill, (
-        "skills/implement/SKILL.md never names the section the copied content lands in"
+def test_the_skill_says_the_record_copies_neither_the_ask_nor_the_commit():
+    """#1148. What the phase was asked is the plan's Delivers cell, and a
+    scope a spawn adds is a fold into the plan before the spawn, so the skill
+    names the one section and says where the ask and the commit stand."""
+    skill = " ".join(read(IMPLEMENT_SKILL).split())
+    assert "What this phase was asked" not in skill, (
+        "skills/implement/SKILL.md still names the asked section"
     )
-    assert "boilerplate" in skill, (
-        "skills/implement/SKILL.md does not say that the copied content "
-        "excludes the boilerplate the contract, the skill, and "
-        "agents/crafter.md already carry — without that line, a session "
-        "copies the whole spawn prompt in, including what every phase "
-        "already gets told"
+    assert (
+        "`trail/phases/phase-N.md` holds one section, `## What this phase found`"
+        in (skill)
     )
-    assert "agents/crafter.md" in skill
+    assert "every departure from the frame" in skill
+    assert "folds into the plan before the spawn" in skill
 
 
 # --- phase 2: carrier consistency ---------------------------------------------
