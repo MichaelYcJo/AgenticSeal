@@ -6,7 +6,7 @@
 |---|---|
 | The full suite, the repository-wide `ruff check` and `ruff format --check` on this branch | the orchestrator, through `seal gate` |
 | Phase 3: the records-only exemption as `README.md:207-213`, `README.ko.md:201-206`, the acts row *Orchestrator: the run ends with a verifying round* (in `skills/implement/acts.md` since phase 4) and the drain row at `skills/implement/SKILL.md:511` state it, with no case behind any of the four | the proofer at review |
-| Phase 4: `docs/the-pact.md:59-60` cites `skills/implement/orchestration.md` *A work item that commits in more than one repository*, and no rule change of `frame/design.md` moves it to `skills/implement/multi-repository.md`; the citation resolves to the one pointer sentence left in `orchestration.md` (`trail/phases/phase-4.md`) | the orchestrator, which decides whether the framer adds the rule change |
+| closed Phase 4: `docs/the-pact.md:59-60` cites `skills/implement/orchestration.md` *A work item that commits in more than one repository*, and no rule change of `frame/design.md` moves it to `skills/implement/multi-repository.md`; the citation resolves to the one pointer sentence left in `orchestration.md` (`trail/phases/phase-4.md`) | closed by the orchestrator at the fold after phase 4: `frame/design.md` `## Rule changes` gains the `docs/the-pact.md` change to `skills/implement/multi-repository.md`, which the settle writes; the pointer sentence carries the citation until then |
 
 ## Not done
 
