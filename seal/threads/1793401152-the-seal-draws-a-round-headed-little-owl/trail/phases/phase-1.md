@@ -26,11 +26,11 @@ tree's `templates/records/sdd-phase.md` and `sdd-gaps.md`, for the same
 reason.
 
 **The reference was transcribed from the approved stream.** The file read
-is `<scratchpad>/owl/f1/stamp.ans`
-(sha256 `62b56aeb…7130d`). `cmp` of it with the durable copy
-`the owner's private brand repository's copy of the approved stream`
-exits 0 (executed). The command, run from the repository's top directory,
-was:
+is `<scratchpad>/owl/f1/stamp.ans` (sha256 `62b56aeb…7130d`), where
+`<scratchpad>` is the orchestrating session's scratchpad directory. `cmp`
+of it with the durable copy in the owner's private brand repository,
+`candidates/little-owl-16-on-wax.ans` under its brand skill, exits 0
+(executed). The command, run from the repository's top directory, was:
 
 ```
 python3 -I <scratchpad>/1793401152/phase-1/transcribe.py <scratchpad>/owl/f1/stamp.ans tests/skills/test_seal_stamp.py
@@ -115,13 +115,16 @@ bin/test tests/skills/test_seal_stamp.py tests/behaviour/test_the_seal_is_taken_
 ```
 
 The last four modules are not on row 1's list. Each one loads or names
-`skills/verify/scripts/seal_stamp.py`, which this phase changed.
+`skills/verify/scripts/seal_stamp.py`, which this phase changed. The set
+left out `tests/test_censuses.py`, which reads every tracked file. This
+record was one, and round 1's finding 1 found the paths in it that the
+census refuses.
 
-**S10, held to this phase's files** (executed): `git grep -n -i
-'scratchpad\|wax3\|owl_final\|<private-brand-repo>' -- skills/verify/scripts/
-tests/skills/test_seal_stamp.py
-tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py` and `git grep
--n 'little-owl-16' -- ':!seal/threads'` each exit 1 with no match.
+**S10, held to this phase's files** (executed): `git grep -n -i` for
+`scratchpad`, `wax3`, `owl_final` and the private brand repository's name
+over `skills/verify/scripts/`, `tests/skills/test_seal_stamp.py` and
+`tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py`, and `git
+grep -n 'little-owl-16' -- ':!seal/threads'`, each exit 1 with no match.
 
 **For phase 2.** `assets/seals/README.md` still describes the relief disc
 and its nine colours, and its *The owl* entry still names `owl.ans` and the

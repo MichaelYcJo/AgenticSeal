@@ -12,9 +12,8 @@ still names `assets/seals/owl.svg` as the icon's source and "the command
 **`TRADEMARKS.md` is in a user's install and stays home. The two statements
 measure different things.** `frame/plan.md` *Operational impact* says the
 file reaches users in the installed plugin, and *Scope* item 7 puts it in
-`STAYS_HOME`. The installed 0.25.0 directory,
-`~/.claude/plugins/cache/agenticseal/agentic/0.25.0/`, holds `LICENSE`,
-both READMEs, `docs/`, `tests/` and every other root entry (`ls`,
+`STAYS_HOME`. The installed 0.25.0 plugin's directory in Claude Code's
+plugin cache holds `LICENSE`, both READMEs, `docs/`, `tests/` and every other root entry (`ls`,
 executed), so the install copies the repository's root. `STAYS_HOME` does
 not mean absent from the install. The refusal in
 `tests/behaviour/test_the_release_check_watches_what_ships.py#test_every_top_level_entry_is_classified`
@@ -99,7 +98,8 @@ and the opening of `assets/seals/README.md` each link to `TRADEMARKS.md`.
 
 **S10** (executed). `assets/seals/candidates/little-owl-*` matches no file.
 `git grep -n 'little-owl-16\|little-owl-wax-seal' -- ':!seal/threads'`
-exits 1. `git grep -n <private-brand-repo> -- ':!seal/threads'` exits 1. The
+exits 1. `git grep -n` for the private brand repository's name, with
+`-- ':!seal/threads'`, exits 1. The
 fifth grep, `scratchpad\|wax3\|owl_final` over `assets/ TRADEMARKS.md
 README.md README.ko.md .claude-plugin/ skills/verify/scripts/
 tests/skills/test_seal_stamp.py`, exits 1. The `owl.svg` file has no
@@ -109,10 +109,12 @@ nothing outside `seal/threads/`. 올빼미 appears once, in `README.ko.md`'s
 licence line.
 
 **The phase-boundary set** (executed, one command, exit 0, 860 passed).
-Row 2's five modules, plus every module that reads `README.md`,
-`README.ko.md`, `assets/seals/`, `.claude-plugin/icon.png` or the tracked
-file list, plus `tests/github/test_publish_release_note.py` for the
-fragment and `tests/skills/test_seal_stamp.py`:
+Row 2's five modules, plus the modules that read `README.md`,
+`README.ko.md`, `assets/seals/` or `.claude-plugin/icon.png`, plus
+`tests/github/test_publish_release_note.py` for the fragment and
+`tests/skills/test_seal_stamp.py`. It left out `tests/test_censuses.py`,
+which reads every tracked file, the work item's records among them. Round
+1's finding 1 found the census lines that module refuses:
 
 ```
 bin/test tests/github/test_release_seal.py tests/behaviour/test_the_release_check_watches_what_ships.py tests/behaviour/test_docs_line_wrap.py tests/behaviour/test_chain_hooks_hardening.py tests/behaviour/test_no_document_names_the_old_roots.py tests/behaviour/test_a_release_is_sized_by_a_criterion.py tests/behaviour/test_both_editions_carry_the_same_folds.py tests/behaviour/test_first_setup_asks_once.py tests/behaviour/test_one_word_one_meaning.py tests/behaviour/test_release_hygiene.py tests/behaviour/test_the_contributor_has_a_procedure.py tests/behaviour/test_the_old_block_leaves_through_update.py tests/behaviour/test_the_pull_request_language_is_the_repositorys.py tests/behaviour/test_the_root_migrates_itself.py tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py tests/behaviour/test_the_set_a_work_item_always_has.py tests/behaviour/test_the_stamp_reaches_the_person_it_is_drawn_for.py tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py tests/behaviour/test_unverified_rows_close.py tests/text/test_a_document_has_room_for_the_next_fold.py tests/text/test_a_segment_feeds_the_flow_log.py tests/text/test_settle_reads_before_it_removes.py tests/text/test_the_mode_is_a_row_and_a_command.py tests/text/test_the_records_can_be_carried_out_and_in.py tests/text/test_the_rules_have_one_owner.py tests/text/test_the_settings_have_a_front_door.py tests/text/test_the_verifying_round_is_bounded_not_cheapest.py tests/text/test_no_passage_is_pasted_into_a_second_file.py tests/github/test_publish_release_note.py tests/skills/test_seal_stamp.py -q
