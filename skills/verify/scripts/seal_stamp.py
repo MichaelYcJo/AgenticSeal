@@ -9,27 +9,30 @@ columns right of it the panel's text — a bold red `SEALED` and a dim rule,
 then what the records at the guarantee's commit say: the audited commit and
 its branch, the base, the work item, the newest broad run and the round
 count (`guarantee_rows` owns the list). The disc is COMPUTED — `hypot`
-for its edge, its rim and its groove — and only the disc's mark is
-authored: a 16 x 16 sprite in `seal-mark.txt` beside this file, read as data
-(`read_sprite`). Four hand-typed discs came before #30's and every one was
-lopsided; a circle that is calculated cannot be off centre. #832's owner
-settled the frame on 2026-10-07 — 28 cells across and 14 lines, a wax edge,
-a rim lit from the upper left in three steps and a groove lit the other way,
-every cell exactly one of nine colours. The same day the owner retired the
-parchment sheet #717 wrote the text on, so nothing outside the disc is
-painted and the stamp reads in the terminal's own theme. On 2026-10-28 the
-owner chose the owl as the disc's mark (#857), drawn one cell at a time in
-the nine colours: changing it is changing that file alone.
+and `atan2` for its edge, its lip and its step ring — and only the disc's
+mark is authored: a 16 x 16 sprite in `seal-mark.txt` beside this file, read
+as data (`read_sprite`). Four hand-typed discs came before #30's and every
+one was lopsided; a circle that is calculated cannot be off centre. #832's
+owner settled the grid on 2026-10-07 — 28 cells across and 14 lines — and
+the same day retired the parchment sheet #717 wrote the text on, so nothing
+outside the disc is painted and the stamp reads in the terminal's own
+theme. On 2026-10-28 the owner chose an owl as the disc's mark (#857),
+drawn one cell at a time: changing it is changing that file alone. On
+2026-10-31 the owner chose the little owl and a red wax seal to press it
+into (#1174): an edge that wobbles, a lip lit from the upper left with a
+gloss streak, a step ring lit the other way, the pressed field, the owl and
+its drop shadow, every cell exactly one of fifteen colours.
 
 Two forms, one drawing (`compose`). The block form is half-block characters,
 the disc in truecolour and the text in the terminal's own colours and
 styles, and it writes a code only where the colour or the style changes:
 one SGR per change and no reset inside a line (a code per cell was 282 KB
 for one seal). The letter twin is the same footprint as letters — `KEY`
-for the disc, `m` its wax edge, `M n N` its rim lit, mid and dark, `.` its
-field, and the owl by its colours' letters, `x` its outline, `n` its body,
-`X` its breast, `Y` its eyes, `M` its beak and feet, `.` its pupils and `y`
-its drop shadow; the text as itself, with the owner's `·`, `✓`, `─` and
+for the disc, `e` its outer edge's dark and `w` its wax, `h d g` its lip
+lit, dark and its gloss, `s t` its step ring dark and lit, `.` its field and
+`y` the drop shadow, and the owl by the sprite's own letters, `K` its
+outline, `R` its body, `L` its breast, `W` its eyes, `P` its pupils and `Y`
+its beak and branch; the text as itself, with the owner's `·`, `✓`, `─` and
 `→` written `.`, `+`, `-` and `>` — for a console that cannot render
 half-blocks, and for `seal stamp` on a pipe. The twin is chosen when
 stdout is not a UTF-8 terminal, or on `--shape`. An agent's report carries
@@ -91,51 +94,80 @@ import time
 
 # --- the disc's colours --------------------------------------------------
 #
-# The owner's frame of 2026-10-07 (#832, `frame/design.md` decision 5 of work item
-# 1791270164), named as the owner's `seal28.py` names them: `WAX_EDGE`; the
-# rim, lit from the upper left in three steps, `RIM_LIT`, `RIM_MID` and
-# `RIM_DARK`, whose lit and dark the groove inside it takes the other way
-# round; `FIELD`; the red lily's three tones, `FACE`, `LIGHT` and `INNER`;
-# and `DROP`, the shadow the disc's mark casts on the field down-right of
-# it. The owl's sprite is drawn in these colours by letter
-# (`SPRITE_COLOURS`). No mid tones and no blend: every cell of the disc is
-# exactly one of these nine (`build`), and with `TITLE_RED` they are the
-# only colours the stamp sets.
-WAX_EDGE = (150, 24, 28)
-RIM_LIT = (208, 68, 64)
-RIM_MID = (160, 30, 34)
-RIM_DARK = (96, 10, 14)
-FIELD = (112, 16, 20)
-FACE = (186, 38, 42)
-LIGHT = (222, 86, 78)
-INNER = (90, 8, 12)
+# The red wax seal the owner approved on 2026-10-31 (#1174). The owner chose
+# the colours and did not name them; the names are the framer's
+# (`frame/design.md` *Data & interfaces* of work item 1793401152). The
+# outer edge, `EDGE_DARK` on its shadowed side and `WAX` elsewhere; the lip
+# inside it, lit from the upper left, `WAX_LIT`, `WAX` and `WAX_DARK`, with a
+# `GLOSS` streak; the step ring inside that, lit the other way round,
+# `STEP_DARK` and `STEP_LIT`; the pressed `FIELD`; and `DROP`, the shadow the
+# disc's mark casts on the field down-right of it. Then the six the owl is
+# drawn in (`SPRITE_COLOURS`), the values #857 drew it in. No mid tones and
+# no blend: every cell of the disc is exactly one of these fifteen
+# (`build`), and with `TITLE_RED` they are the only colours the stamp sets.
+EDGE_DARK = (128, 12, 18)
+WAX = (204, 30, 34)
+WAX_LIT = (240, 92, 84)
+WAX_DARK = (172, 18, 24)
+GLOSS = (255, 172, 162)
+STEP_DARK = (98, 8, 14)
+STEP_LIT = (226, 66, 60)
+FIELD = (150, 16, 22)
 DROP = (84, 8, 12)
-DISC_COLOURS = (WAX_EDGE, RIM_LIT, RIM_MID, RIM_DARK, FIELD, FACE, LIGHT, INNER, DROP)
+OUTLINE = (90, 8, 12)
+PUPIL = (112, 16, 20)
+BODY = (160, 30, 34)
+BREAST = (186, 38, 42)
+EYE = (222, 86, 78)
+BEAK = (208, 68, 64)
+DISC_COLOURS = (
+    EDGE_DARK,
+    WAX,
+    WAX_LIT,
+    WAX_DARK,
+    GLOSS,
+    STEP_DARK,
+    STEP_LIT,
+    FIELD,
+    DROP,
+    OUTLINE,
+    PUPIL,
+    BODY,
+    BREAST,
+    EYE,
+    BEAK,
+)
 
 # `SEALED` is bold and in this red, the owner's `frames.py`'s `RED`. The rest
 # of the text is in the terminal's own colours (`STYLE_CODES`), since #832
 # retired the parchment sheet and its four 256-colour codes.
 TITLE_RED = (196, 40, 44)
 
-# The letter for each disc colour in the twin (#832): capitals lit and lower
-# case shadow — `m` the wax edge and `.` the field, as #30 had them; `M n N`
-# the rim lit, mid and dark; `X` the lily's face, and `Y` and `y` its
-# highlight and its drop shadow, as #717 had them; `x` its inner shadow. The
-# owl is drawn in the same colours, so it reads in the same letters. The
-# framer chose them (`frame/design.md` *Data & interfaces*): the twin is for a
-# console that cannot draw half-blocks, and no decision of the owner's names
-# its letters. Every disc cell is exactly one of these colours, so a cell's
-# letter is a lookup (`letter_row`).
+# The letter for each disc colour in the twin (#1174): the wax in lower case
+# — `e` the edge's dark and `w` the wax, `h` and `d` the lip lit and dark and
+# `g` its gloss, `s` and `t` the step ring dark and lit — the field `.` and
+# the drop shadow `y` as #30 and #717 had them, and the owl in the sprite's
+# own letters, so the twin's owl reads as `seal-mark.txt` does. The framer
+# chose them (`frame/design.md` *Data & interfaces* of work item 1793401152):
+# the twin is for a console that cannot draw half-blocks, and no decision of
+# the owner's names its letters. Every disc cell is exactly one of these
+# colours, so a cell's letter is a lookup (`letter_row`).
 KEY = {
-    WAX_EDGE: "m",
-    RIM_LIT: "M",
-    RIM_MID: "n",
-    RIM_DARK: "N",
+    EDGE_DARK: "e",
+    WAX: "w",
+    WAX_LIT: "h",
+    WAX_DARK: "d",
+    GLOSS: "g",
+    STEP_DARK: "s",
+    STEP_LIT: "t",
     FIELD: ".",
-    FACE: "X",
-    LIGHT: "Y",
-    INNER: "x",
     DROP: "y",
+    OUTLINE: "K",
+    PUPIL: "P",
+    BODY: "R",
+    BREAST: "L",
+    EYE: "W",
+    BEAK: "Y",
 }
 
 
@@ -184,43 +216,55 @@ MESSAGE_RESERVE = 1000
 MESSAGE_BUDGET = MESSAGE_LIMIT - MESSAGE_RESERVE
 
 
-# The disc's numbers (#832), in cells of the terminal's grid, where a cell is
-# one column by one half-row and so square. The owner's frame of 2026-10-07:
-# the disc is 28 cells across and so `DISC_LINES` lines tall, and the disc's
-# mark is drawn for that grid. Measured inward from the radius, a cell more
-# than `EDGE_INSET` inside it is on the disc; one no more than `WAX_INSET` inside it is the wax edge,
-# no more than `RIM_INSET` the rim, no more than `GROOVE_INSET` the groove,
-# and the rest the field. `LIT_AT` is where the rim turns from mid to lit on
-# one side and to dark on the other.
+# The disc's numbers, in cells of the terminal's grid, where a cell is one
+# column by one half-row and so square. The owner's grid of 2026-10-07
+# (#832): the disc is 28 cells across and so `DISC_LINES` lines tall, and the
+# disc's mark is drawn for that grid. The owner's wax seal of 2026-10-31
+# (#1174), measured from the centre at `RADIUS`: the edge sits at `RADIUS`
+# plus one sine term per `EDGE_WOBBLE` row (amplitude, frequency, phase),
+# so it wobbles, and the outer edge is the `EDGE_WIDTH` inside it; the lip
+# runs in to `LIP_INSET` short of `RADIUS`, the step ring to `STEP_INSET`,
+# and the rest is the field. `lit` turns the outer edge dark over
+# `EDGE_DARK_FROM`, and the lip lit under `LIP_LIT_UNDER` and dark from
+# `LIP_DARK_FROM`; the gloss streak lies strictly between the two
+# `GLOSS_DEGREES` and the two `GLOSS_INSETS` short of `RADIUS`. The wobble
+# keeps the wax off column 0 and the last half-row, which is the approved
+# picture.
 DISC_CELLS = 28
 DISC_LINES = DISC_CELLS // 2
-EDGE_INSET = 0.2
-WAX_INSET = 1.2
-RIM_INSET = 3.2
-GROOVE_INSET = 4.2
-LIT_AT = 0.35
+RADIUS = DISC_CELLS / 2 - 0.5
+EDGE_WOBBLE = ((0.45, 3, 0.7), (0.25, 5, 2.1))
+EDGE_WIDTH = 1
+LIP_INSET = 2.9
+STEP_INSET = 3.7
+EDGE_DARK_FROM = -0.2
+LIP_LIT_UNDER = -0.35
+LIP_DARK_FROM = 0.4
+GLOSS_DEGREES = (200, 250)
+GLOSS_INSETS = (1.9, 0.7)
 
 # The disc's mark (#857): one sprite in a file beside this one,
 # `SPRITE_CELLS` lines of `SPRITE_CELLS` characters, each a letter of
 # `SPRITE_COLOURS` drawn in its colour or `.` the field, standing
 # `SPRITE_OFFSET` cells in from the disc's left and top edges so it is
-# centred. It is the owl the owner chose on 2026-10-28, drawn one cell at a
-# time for this grid, and changing the disc's mark is replacing that file and
-# nothing else, which is why it is data read here rather than a tuple typed
-# into this module.
+# centred. It is the round-headed little owl the owner chose on 2026-10-31
+# (#1174), drawn one cell at a time for this grid, and changing the disc's
+# mark is replacing that file and nothing else, which is why it is data read
+# here rather than a tuple typed into this module.
 SPRITE_CELLS = 16
 SPRITE_OFFSET = (DISC_CELLS - SPRITE_CELLS) // 2
-# Each letter's colour, every one of them among the nine, so the letter twin
-# needs no letter of its own. The pupil is the field's colour, so no eye is
-# near black. The sprite carries its own light and dark: `build` shades no
-# cell by its neighbours, because shading breaks a small mark (#857).
+# Each letter's colour, every one of them among the fifteen, and the twin
+# writes each as the letter itself. The pupil is darker than the field, so
+# no eye is near black and none reads as a hole. The sprite carries its own
+# light and dark: `build` shades no cell by its neighbours, because shading
+# breaks a small mark (#857).
 SPRITE_COLOURS = {
-    "K": INNER,  # the outline
-    "P": FIELD,  # a pupil
-    "R": RIM_MID,  # the body
-    "L": FACE,  # the breast
-    "W": LIGHT,  # an eye or a wing
-    "Y": RIM_LIT,  # a beak, a foot or a stripe
+    "K": OUTLINE,
+    "P": PUPIL,
+    "R": BODY,
+    "L": BREAST,
+    "W": EYE,  # an eye's ring or a leaf
+    "Y": BEAK,  # the beak or the branch
 }
 SPRITE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seal-mark.txt")
 SPRITE_MALFORMED = (
@@ -236,9 +280,10 @@ def read_sprite(path):
     that is not `SPRITE_CELLS`, a line of another length, a character
     outside `.` and the letters of `SPRITE_COLOURS`, or, with the sprite at
     `SPRITE_OFFSET`, a drawn cell or the undrawn cell down-right of it that
-    takes its shadow more than `GROOVE_INSET` short of the radius, where
-    `build` would draw the rim over it and the disc's mark would lose a cell
-    nobody sees go. The shape is read over every line before the field is.
+    takes its shadow past the step ring's inner edge, `STEP_INSET` short of
+    `RADIUS`, where `build` would draw the step ring over it and the disc's
+    mark would lose a cell nobody sees go. The shape is read over every line
+    before the field is.
     `utf-8-sig` reads a sprite an editor saved with a byte-order mark as the
     same sprite, rather than refusing its first line as one character too
     long."""
@@ -246,7 +291,7 @@ def read_sprite(path):
         # exempt from splitlines: the disc's mark sprite, a grid of letters
         lines = handle.read().splitlines()
     n, at, letters = SPRITE_CELLS, SPRITE_OFFSET, "." + "".join(SPRITE_COLOURS)
-    c, field = (DISC_CELLS - 1) / 2, DISC_CELLS / 2 - GROOVE_INSET
+    c, field = (DISC_CELLS - 1) / 2, RADIUS - STEP_INSET
 
     def drawn(x, y):
         return 0 <= x < n and 0 <= y < n and lines[y][x] != "."
@@ -287,24 +332,29 @@ def build():
     """`(w, h, px)` — the disc's width and height in cells, `DISC_CELLS`
     each, and `px(x, y)`, a cell's colour or None.
 
-    The centre is `c = (DISC_CELLS - 1) / 2` on both axes and the radius
-    `r = DISC_CELLS / 2`. A cell `dx, dy` from the centre at distance `d` is,
-    from the outside in: None past `r - EDGE_INSET`; `WAX_EDGE` past
-    `r - WAX_INSET`; the rim past `r - RIM_INSET` — `RIM_LIT` where `lit =
-    (dx + dy) / (|dx| + |dy|)` is under `-LIT_AT`, `RIM_DARK` where it is
-    over `LIT_AT`, `RIM_MID` between, `lit` being -1 at the upper left and
-    +1 at the lower right; the groove past `r - GROOVE_INSET`, lit the
-    other way — `RIM_DARK` where `lit` is under 0, else `RIM_LIT`; then the
-    field. In the field, with `SPRITE` standing `SPRITE_OFFSET` cells in
-    from the left and top, a cell under a letter is that letter's colour in
+    The centre is `c = (DISC_CELLS - 1) / 2` on both axes and `R` is
+    `RADIUS`, 13.5. A cell `dx, dy` from the centre at distance `d` and
+    angle `a = atan2(dy, dx)`, y downward so 225 degrees is the upper left,
+    with `lit = (dx + dy) / (|dx| + |dy|)` -1 at the upper left and +1 at
+    the lower right, is, from the outside in (#1174, the owner's wax seal of
+    2026-10-31): None past `edge = R + 0.45 sin(3a + 0.7) + 0.25 sin(5a +
+    2.1)` (`EDGE_WOBBLE`); the outer edge past `edge - EDGE_WIDTH`,
+    `EDGE_DARK` where `lit` is over `EDGE_DARK_FROM` and `WAX` elsewhere;
+    the lip past `R - LIP_INSET`, `GLOSS` strictly between the
+    `GLOSS_DEGREES` and between the `GLOSS_INSETS` short of `R`, else
+    `WAX_LIT` under `LIP_LIT_UNDER`, `WAX_DARK` from `LIP_DARK_FROM` and
+    `WAX` between; the step ring past `R - STEP_INSET`, lit the other way —
+    `STEP_DARK` where `lit` is under 0, else `STEP_LIT`; then the field. In
+    the field, with `SPRITE` standing `SPRITE_OFFSET` cells in from the left
+    and top, a cell under a letter is that letter's colour in
     `SPRITE_COLOURS`; a cell under `.`, or past the sprite's edge, whose
     up-left neighbour is under a letter is `DROP`, a pupil counting as a
     letter; the rest are `FIELD` (#857). Every cell is exactly one of the
-    nine colours (#832, the owner's frame of 2026-10-07). `lit` is read only
-    past the groove's inner edge, where `d` is never 0, so it needs no
-    guard."""
+    fifteen colours. The edge's wobble leaves column 0 and the last half-row
+    off the disc, as the approved picture is. `lit` is read only past the
+    step ring's inner edge, where `d` is never 0, so it needs no guard."""
     n, at = DISC_CELLS, SPRITE_OFFSET
-    c, r = (n - 1) / 2, n / 2
+    c = (n - 1) / 2
 
     def letter(x, y):
         sx, sy = x - at, y - at
@@ -317,17 +367,28 @@ def build():
             return None
         dx, dy = x - c, y - c
         d = math.hypot(dx, dy)
-        if d > r - EDGE_INSET:
+        a = math.atan2(dy, dx)
+        edge = RADIUS
+        for amplitude, frequency, phase in EDGE_WOBBLE:
+            edge += amplitude * math.sin(frequency * a + phase)
+        if d > edge:
             return None
-        if d > r - WAX_INSET:
-            return WAX_EDGE
-        if d > r - GROOVE_INSET:
+        if d > RADIUS - STEP_INSET:
             lit = (dx + dy) / (abs(dx) + abs(dy))
-            if d <= r - RIM_INSET:
-                return RIM_DARK if lit < 0 else RIM_LIT
-            if lit < -LIT_AT:
-                return RIM_LIT
-            return RIM_DARK if lit > LIT_AT else RIM_MID
+            if d > edge - EDGE_WIDTH:
+                return EDGE_DARK if lit > EDGE_DARK_FROM else WAX
+            if d <= RADIUS - LIP_INSET:
+                return STEP_DARK if lit < 0 else STEP_LIT
+            low, high = GLOSS_DEGREES
+            inner, outer = GLOSS_INSETS
+            if (
+                low < math.degrees(a) % 360 < high
+                and RADIUS - inner < d < RADIUS - outer
+            ):
+                return GLOSS
+            if lit < LIP_LIT_UNDER:
+                return WAX_LIT
+            return WAX_DARK if lit >= LIP_DARK_FROM else WAX
         if letter(x, y) != ".":
             return SPRITE_COLOURS[letter(x, y)]
         return DROP if letter(x - 1, y - 1) != "." else FIELD
