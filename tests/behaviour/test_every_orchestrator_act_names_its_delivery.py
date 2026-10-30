@@ -514,6 +514,18 @@ def test_the_table_reads_the_section_that_holds_it():
     assert "Orchestrator: which of these acts runs itself" in titles
 
 
+def test_the_tables_opening_names_every_file_it_reads():
+    """#1148. The table names the files it is held against in its opening,
+    so a maintainer who adds an act in a new file reads there that `FILES`
+    has to name it too. A file `FILES` reads and the opening leaves out is a
+    table that says it covers less than it does, or the reverse."""
+    text = _read(os.path.join(ROOT, *TABLE_FILE.split("/")))
+    opening = " ".join(text.split("\n## ", 1)[0].split())
+    for rel in FILES:
+        named = "this file" if rel == TABLE_FILE else f"`{rel}`"
+        assert named in opening, f"the opening of {TABLE_FILE} does not name {named}"
+
+
 @pytest.mark.parametrize("rel", FILES)
 def test_both_orchestration_files_are_read(rel):
     """A path that stops resolving makes `acts` quietly skip a file, and the

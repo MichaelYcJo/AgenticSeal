@@ -640,6 +640,9 @@ def test_the_preset_and_the_boxes_are_told_apart_in_the_file():
     assert cites(*DECLARATION) in skill, (
         "the section states the row and no longer cites where its reason is"
     )
+    assert (
+        "The `Answer pressed` row tells a pressed preset from four boxes ticked by hand"
+    ) in skill, "the section no longer says what the row is for"
     rows = [ln for ln in read(*ORCH).splitlines() if ln.startswith("| Automation |")]
     assert len(rows) == 1, (
         f"the section has {len(rows)} `Automation` rows; the declaration has one"

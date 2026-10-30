@@ -12,14 +12,14 @@ and this file.
 ## Orchestrator: which of these acts runs itself
 
 Every act addressed to the orchestrator sits under a heading carrying the
-`Orchestrator:` prefix, in one of the five files this file's opening names,
-and this is the list of them.
+`Orchestrator:` prefix, in one of the files this file's opening names, and
+this is the list of them.
 `tests/behaviour/test_every_orchestrator_act_names_its_delivery.py` holds it against
-the five files from both sides: an act with no row fails, and a row naming an act
+those files from both sides: an act with no row fails, and a row naming an act
 no file carries fails.
 
 **The row set is mechanical.** Every `##` heading whose text begins
-`Orchestrator:` in any of the five, plus every `###` heading directly beneath
+`Orchestrator:` in any of them, plus every `###` heading directly beneath
 one. This section is one of those headings, so it has a row of its own.
 
 **`Delivered by` answers one question: when the orchestrator forgets this
@@ -67,7 +67,7 @@ one.
 | Question 2 | `skills/implement/orchestration.md` | part of its parent's act | The four boxes of the second call, put only after a `per axis` answer, and the ceiling on how many there may be. It names no act of its own |
 | What the answer writes | `skills/implement/orchestration.md` | check: `skills/code-review/scripts/chain_check.py` | It refuses a `Review` or `Destination` value outside the vocabulary at the pull request, and `hooks/lib/routing.py` parses the same rows at every edit. The three optional rows are read by nothing that refuses: `hooks/implementer-notice.py` says one line after a commit where a declared agent left no mark, and blocks nothing |
 | Orchestrator: a work item that commits in more than one repository | `skills/implement/multi-repository.md` | check: `hooks/routing-edit-gate.py` | In each opted-in repository the first edit is refused until a declaration naming that repository's branch stands there, so a repository the step skipped is noticed at its first edit. What it does not reach: an id minted twice is legitimate in a signer's own work item and nothing tells the two apart, and a missing `Pact` row is noticed only when somebody runs `seal pact` at the pact's repository, which refuses a relationship recorded on one side |
-| Orchestrator: which of these acts runs itself | `skills/implement/acts.md` | check: `tests/behaviour/test_every_orchestrator_act_names_its_delivery.py` | The test reads this table against the headings of the five files, in both directions. What it reads is the marker rather than the meaning, so a heading with no prefix puts its act in neither the table nor the test |
+| Orchestrator: which of these acts runs itself | `skills/implement/acts.md` | check: `tests/behaviour/test_every_orchestrator_act_names_its_delivery.py` | The test reads this table against the headings of the files this file's opening names, in both directions. What it reads is the marker rather than the meaning, so a heading with no prefix puts its act in neither the table nor the test |
 | Orchestrator: a phase is a fresh crafter, and a fix pass resumes the implementer | `skills/code-review/orchestration.md` | still a sentence | A phase built by a resumed crafter and one built by a fresh crafter leave identical trees, and so do a resumed fix pass and a fresh one, so nothing at the pull request can tell them apart, and the choice of session is in no file. `seal cost --segments` prints the context the threshold is read against and gates nothing, so the reading can go untaken while the spawn succeeds. Whether the orchestrator's one commit after the fix pass carried a finding's `verdict:` and `answer:` lines is in the round record's history and no check reads it, and a refusal at the pull request could be cured only by rewriting the branch's history; who wrote the two lines, and whether that commit changed what the fix pass left, is in no commit, because the fix pass commits neither line |
 | Orchestrator: the run ends with a verifying round | `skills/code-review/orchestration.md` | check: `skills/code-review/scripts/chain_check.py` | It fails a ready pull request when a commit touching a file outside the work item's records follows the commit on the last record's `target:` line, or a finding of that record reads `rejected`, or `fixed <commit>` by a commit that touched a path outside the work item's records, which is the run whose own last fixes nobody opened; on a draft it prints and names the verifying round. What it cannot read is the cap: the extension lines are the proofer's, and the sealer reads the count |
 | A regression is routed by comparing the fix with the frame | `skills/code-review/orchestration.md` | still a sentence | The proofer's `regression:` line routes nothing mechanical, and neither does the sentence of its grounds the route reads: `skills/code-review/scripts/chain_check.py` reads the line only as a reference to an earlier finding, and the `Reframed` line only for its author against the declaration, and the sealer reads the records |
