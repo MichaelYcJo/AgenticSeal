@@ -338,6 +338,28 @@ class Test_judge:
         assert code == 1, line
         assert "is not the text of" in line, line
 
+    def test_accepts_the_body_below_the_frontmatter_and_refuses_the_whole_file(
+        self, tmp_path
+    ):
+        """The hook prints the core's text below its frontmatter under the
+        whole file's digest, so that body is what an entry is compared with,
+        and an entry that also carries the frontmatter is not it."""
+        check_ = check()
+        root = plugin(tmp_path / "plugin", "---\nname: core\n---\n\n# The core\n")
+        path = os.path.join(root, *CORE)
+        with open(path, "rb") as f:
+            digest = hashlib.sha256(f.read()).hexdigest()
+        head = core_module().header(path, "0.25.0", digest)
+        code, line = check_.judge([hook(head + "\n# The core\n\n")], False, "/f")
+        assert code == 0, line
+        whole = head + "\n---\nname: core\n---\n\n# The core\n\n"
+        code, line = check_.judge([hook(whole)], False, "/f")
+        assert code == 1, line
+        assert line == (
+            f"seal core: the core entry's body is not the text of {path} below "
+            "its frontmatter, though the two digests agree."
+        ), line
+
     def test_refuses_nothing_for_line_endings_or_trailing_newlines(self, tmp_path):
         """A Windows console's carriage returns and the newlines the harness
         drops change no line of the core, so they are no difference."""

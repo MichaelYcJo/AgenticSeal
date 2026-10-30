@@ -2,11 +2,14 @@
 
 **This module is the one definition of the core hook's output.** The core is
 `skills/core/SKILL.md`. A session receives it from the plugin's
-`SessionStart` hook, `hooks/core-start.py`, which prints `output`: the file
-under one first line naming the file printed, the running plugin's version
-and the file's SHA-256. `seal core` reads that line back from a session's
-transcript with `parse`, and `seal payload` counts `output`'s bytes, so the
-hook, the check and the meter cannot disagree about what a session received.
+`SessionStart` hook, `hooks/core-start.py`, which prints `output`: the
+file's text below its frontmatter, under one first line naming the file
+printed, the running plugin's version and the whole file's SHA-256. The
+frontmatter stays out because its `description:` already reaches every
+session in the harness's skill listing. `seal core` reads that line back
+from a session's transcript with `parse`, and `seal payload` counts
+`output`'s bytes, so the hook, the check and the meter cannot disagree about
+what a session received.
 
 **Where the session's repository is a clone of the running plugin, the file
 printed is the clone's** (`origin`), so the tree's core governs a session
@@ -45,6 +48,9 @@ PATTERN = re.compile(
     r"sha256 (?P<digest>[0-9a-f]{64})\."
 )
 MISSING = "AgenticSeal core: {path} is not a file, so no core was printed."
+# A frontmatter: an opening `---` line, then everything up to the first
+# closing `---` line, and the blank lines after it.
+FRONTMATTER = re.compile(r"---\r?\n(?:.*?\n)??---\r?(?:\n|\Z)[\r\n]*", re.S)
 # The version said where the running plugin's manifest names none.
 UNKNOWN = "unknown"
 
@@ -82,10 +88,18 @@ def header(path, version, digest):
     return HEADER.format(path=path, version=version, digest=digest)
 
 
+def without_frontmatter(text):
+    """TEXT below its frontmatter's closing line, from its first line that is
+    not blank; TEXT whole where it does not open with a closed frontmatter."""
+    found = FRONTMATTER.match(text)
+    return text[found.end() :] if found else text
+
+
 def output(cwd, plugin_root):
     """What the hook prints for a session in CWD: the header, a newline, then
-    the core's text, its digest over the bytes as read. Where the core is not
-    a file, the one line `MISSING` says so."""
+    the core's text below its frontmatter, the digest over the whole file's
+    bytes as read. Where the core is not a file, the one line `MISSING` says
+    so."""
     path = origin(cwd, plugin_root)
     try:
         with open(path, "rb") as f:
@@ -94,7 +108,8 @@ def output(cwd, plugin_root):
         return MISSING.format(path=path)
     version = manifest(os.path.abspath(plugin_root)).get("version") or UNKNOWN
     digest = hashlib.sha256(data).hexdigest()
-    return header(path, version, digest) + "\n" + data.decode("utf-8", "replace")
+    text = without_frontmatter(data.decode("utf-8", "replace"))
+    return header(path, version, digest) + "\n" + text
 
 
 def parse(text):

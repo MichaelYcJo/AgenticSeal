@@ -34,10 +34,11 @@ passing it.
 **It passes, exit 0,** where exactly one core entry is in context, its
 `attachment.content`, what the model received, is its `stdout`, the file its
 first line names is there, that file's SHA-256 is the line's, and the body is
-the file's text. Text is compared with line endings as `\\n` and trailing
-newlines removed, because the harness drops the trailing newlines of what it
-hands the model. It prints one line naming the file, the version, the digest
-and the hook.
+the file's text below its frontmatter, which is what the hook prints
+(`hooks/lib/core.py#without_frontmatter`). Text is compared with line
+endings as `\\n` and trailing newlines removed, because the harness drops
+the trailing newlines of what it hands the model. It prints one line naming
+the file, the version, the digest and the hook.
 
 **It fails, exit 1,** with one line naming the reason: no session id and no
 `--transcript`; no transcript; no core entry in context, which names
@@ -223,10 +224,11 @@ def judge(entries, bare, fallback):
             f"{PREFIX}{read.path} has changed since the session read it: its "
             f"sha256 is {digest}, and the core entry's first line says {read.digest}."
         )
-    if _normal(read.body) != _normal(data.decode("utf-8", "replace")):
+    text = CORE.without_frontmatter(data.decode("utf-8", "replace"))
+    if _normal(read.body) != _normal(text):
         return 1, (
-            f"{PREFIX}the core entry's body is not the text of {read.path}, "
-            "though the two digests agree."
+            f"{PREFIX}the core entry's body is not the text of {read.path} "
+            "below its frontmatter, though the two digests agree."
         )
     return 0, (
         f"{PREFIX}{read.path}, plugin {read.version}, sha256 {read.digest}, "

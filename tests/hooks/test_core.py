@@ -145,12 +145,39 @@ class Test_origin:
         assert core.origin(str(tree), root) == os.path.join(root, *CORE)
 
 
-class Test_output:
-    def test_accepts_the_header_then_the_files_text_under_its_digest(self, tmp_path):
-        """S3: the output is the header, a newline, then the file's text. The
-        digest is over the file's bytes, read here on their own."""
+class Test_without_frontmatter:
+    def test_accepts_the_text_below_the_closing_line(self):
+        """The harness's skill listing already carries the `description:`, so
+        the hook prints what stands below the frontmatter's closing `---`,
+        from its first line that is not blank."""
         core = core_module()
-        root = plugin(tmp_path / "plugin", core="# The core\n\nOne — value.\n")
+        text = "---\nname: core\ndescription: |\n  Two.\n---\n\n# The core\n\nOne.\n"
+        assert core.without_frontmatter(text) == "# The core\n\nOne.\n"
+        assert core.without_frontmatter("---\n---\n# Bare\n") == "# Bare\n"
+        crlf = "---\r\nname: core\r\n---\r\n\r\n# The core\r\n"
+        assert core.without_frontmatter(crlf) == "# The core\r\n"
+
+    def test_refuses_to_cut_a_text_with_no_frontmatter(self):
+        """A text that does not open with `---`, or whose frontmatter never
+        closes, is printed whole, leading blank lines and all."""
+        core = core_module()
+        for text in (
+            "# The core\n\n---\n\nOne.\n",
+            "\n---\nname: core\n---\n# The core\n",
+            "---\nname: core\n# The core\n",
+            "",
+        ):
+            assert core.without_frontmatter(text) == text, text
+
+
+class Test_output:
+    def test_accepts_the_header_then_the_files_body_under_its_digest(self, tmp_path):
+        """S3: the output is the header, a newline, then the file's text below
+        its frontmatter. The digest is over the whole file's bytes, read here
+        on their own."""
+        core = core_module()
+        text = "---\nname: core\n---\n\n# The core\n\nOne — value.\n"
+        root = plugin(tmp_path / "plugin", core=text)
         out = core.output(str(tmp_path / "nowhere"), root)
         path = os.path.join(root, *CORE)
         with open(path, "rb") as f:
@@ -189,6 +216,8 @@ class Test_module:
         read = core.parse(out)
         assert os.path.samefile(read.path, os.path.join(ROOT, *CORE)), read.path
         assert len(out) < core.CAP, len(out)
+        # The tree's frontmatter stays out of what a session receives.
+        assert read.body.startswith("# The core\n"), read.body[:80]
 
 
 test_census = census_case(TARGET)
