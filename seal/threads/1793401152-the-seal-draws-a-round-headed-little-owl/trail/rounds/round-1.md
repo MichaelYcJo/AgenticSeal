@@ -7,9 +7,9 @@ target: 2af276c8 against release/v0.25.1
 ### 1. Three of the work item's records name a real user path, so the tree-wide census fails and the private copy's location is published
 
 severity: must
-location: `seal/threads/1793401152-the-seal-draws-a-round-headed-little-owl/frame/design.md:49`, `seal/threads/1793401152-the-seal-draws-a-round-headed-little-owl/frame/plan.md:11`, `seal/threads/1793401152-the-seal-draws-a-round-headed-little-owl/trail/phases/phase-1.md:29`, `seal/threads/1793401152-the-seal-draws-a-round-headed-little-owl/trail/phases/phase-1.md:31`
+location: `seal/threads/1793401152-the-seal-draws-a-round-headed-little-owl/frame/design.md:49`, `seal/threads/1793401152-the-seal-draws-a-round-headed-little-owl/frame/plan.md:11`, `seal/threads/1793401152-the-seal-draws-a-round-headed-little-owl/trail/phases/phase-1.md:29`, `seal/threads/1793401152-the-seal-draws-a-round-headed-little-owl/trail/phases/phase-1.md:31`, `seal/threads/1793401152-the-seal-draws-a-round-headed-little-owl/trail/phases/phase-2.md`
 evidence: executed `bin/test "tests/test_censuses.py::Test_module::test_every_file_no_module_file_declares_meets_every_census" -q -p no:xdist`
-verdict: open
+verdict: fixed b5f01c6f
 
 `CONTRIBUTING.md` *House rules* says examples, fixtures and docs use
 `example.com` and `/Users/x/` only. The `real_identifiers` census in
@@ -69,14 +69,14 @@ The precondition: `<scratchpad>` is already the placeholder the plan and
 the phase record use for the same directory, so no reader loses a
 coordinate. After the edit, the case in `evidence:` passes.
 
-answer:
+answer: Held. `tests/test_censuses.py` failed at `72083ad6` on `phase-1.md:29` and `:31` alone, the frame's two lines being folded already (executed). `b5f01c6f` rewrites `phase-1.md`'s reference paragraph with `<scratchpad>` defined as the orchestrating session's scratchpad directory and the durable copy as `candidates/little-owl-16-on-wax.ans` under the brand skill of the owner's private brand repository. The paste-ready text kept the repository's name out but read the clause "with the durable copy in ..., `candidates/...` under its brand skill," as one sentence, and it was used in that form. The class is wider than the four lines: `phase-1.md`'s S10 paragraph and `phase-2.md`'s S10 paragraph quoted the private repository's name as a grep pattern, and `phase-2.md` gave the plugin cache as a home-relative path. Each now names the repository and the cache in words, so `phase-2.md` is appended to `location:`. Both records also said their boundary sets covered the modules that read changed paths; each now says the set left out `tests/test_censuses.py`. After the commit `tests/test_censuses.py` passes, 176 passed, and `git grep` for the user's paths and the repository's name over the work item finds only `frame/design.md:57`, S10's own command, which the frame owns.
 
 ### 2. TRADEMARKS.md reserves every file under assets/seals/, which includes the README's commands and drawings no release shipped
 
 severity: should
 location: `TRADEMARKS.md:10-11`, `seal/threads/1793401152-the-seal-draws-a-round-headed-little-owl/frame/design.md:32`
 evidence: read `TRADEMARKS.md:1-15`, `assets/seals/README.md:171`, `assets/seals/README.md:187`, `assets/seals/README.md:207-217`
-verdict: open
+verdict: fixed a1d60719
 
 The owner's decision 6, as `frame/design.md` *Grounding* quotes it, puts
 the AgenticSeal name, the owl emblem and its seal drawings outside the MIT
@@ -114,7 +114,7 @@ The same words go into Scope item 7's parenthesis at
 and the notice state one list. `tests/behaviour/test_docs_line_wrap.py`
 covers `TRADEMARKS.md`, and the lines above are under its limit.
 
-answer:
+answer: Held, in the direction the orchestrator gave. `a1d60719` names the reserved drawings by kind: every `.svg`, `.png` and `.ans` file under `assets/seals/`, `candidates/` included, and each `.txt` file there, the sprite or chart of a mark. It describes them as the emblem each release carried and the candidates kept beside it, which no release carried, so nothing it says is false of the section signs or the bee. A closing sentence says `assets/seals/README.md`, with its commands, is not one of the drawings, and that nothing in the notice reserves it or any other code. "All rights reserved" stays, and `git grep -n -i 'all rights reserved' -- ':!seal/threads'` still matches `TRADEMARKS.md:8` alone (executed). The paste-ready list item read "the drawings under ..." after "The drawings are:", which a reader meets as the word twice, so the fix leads with the file kinds instead. `tests/behaviour/test_docs_line_wrap.py`, `tests/behaviour/test_the_release_check_watches_what_ships.py` and `tests/test_censuses.py` pass after it, 255 passed (executed). The same list in Scope item 7's parenthesis, `frame/design.md:32`, is the frame's and this pass did not write it. The changelog fragment and the opening of `assets/seals/README.md` name the drawings without the list and stay true.
 
 ## Confirmations
 
