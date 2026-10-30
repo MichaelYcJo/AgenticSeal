@@ -115,6 +115,10 @@ def test_the_core_names_where_the_routing_question_is():
         "the core does not say the routing question is one question of the "
         "batch `skills/implement/SKILL.md` *1.* asks before the first edit"
     )
+    assert "the orchestrating session puts the routing question as" in paragraph, (
+        "the core's middle clause names its question by a pronoun, which can "
+        "read as the whole batch (round 2 finding 1)"
+    )
     assert (
         "refuses the first edit until the routing question is answered" in paragraph
     ), (

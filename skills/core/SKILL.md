@@ -39,9 +39,10 @@ judgment the workflow delegates, and the proofer's findings and the sealer's
 verdict gate a pull request on it. A script that answers "these differ"
 where the meaning is the same is the worst result the workflow can give, so
 a script does not re-encode that judgment as a grammar rule: it reads what a
-command wrote or what a real parser returns. The suite, the lint, the broad
-gate and the merge check answer exactly and stay scripts, and the session
-waits on their exit code rather than reasoning about what they would print.
+command wrote or what a real parser returns. What a script answers
+exactly, such as the suite, the lint, the broad gate and the merge check,
+stays a script, and the session waits on its exit code rather than
+reasoning about what it would print.
 
 **Each agent judges its own target, independently of the others.** The
 framer judges what the work should be, the crafter whether the build holds
@@ -82,10 +83,11 @@ the design that asks argues why its question is worth that cost. Whatever
 needs a person is asked once, together, before the first edit, as
 `skills/implement/SKILL.md` *1. Read the documents that outrank the code
 first* states with its reasoning. The routing question is one of that batch,
-and the orchestrating session puts it as `skills/implement/orchestration.md`
-*Orchestrator: how the work is routed* states; in a repository opted in by
-its `seal/` root, `hooks/routing-edit-gate.py` refuses the first edit until
-the routing question is answered.
+and the orchestrating session puts the routing question as
+`skills/implement/orchestration.md` *Orchestrator: how the work is routed*
+states; in a repository opted in by its `seal/` root,
+`hooks/routing-edit-gate.py` refuses the first edit until the routing
+question is answered.
 
 **Judgment is not licence to skip a party.** A few invariants hold the chain
 and are not open to judgment: no review without a build, no fix that no
@@ -97,10 +99,11 @@ without one of those protections, is guidance.
 ## The rule a mechanism is kept against
 
 **A mechanism stays only while its record of what it caught outweighs what
-it costs**; existing is no reason to keep it. This rule governs this
-plugin's own gates, checks and hooks; a user's repository keeps or drops
-its own by its own policy. A fact has one source, and every other place
-links to it. A script blocks work only on a fact it reads exactly, such as
+it costs**; existing is no reason to keep it. This test of whether a
+mechanism stays governs this plugin's own mechanisms, a gate, a check, a
+hook, a CI step or a rule among them; a user's repository keeps or drops
+its own mechanisms by its own policy. A fact has one source, and every
+other place links to it. A script blocks work only on a fact it reads exactly, such as
 an exit code or a parser's result; a reading that is noisy or guessed from
 words is reported, never used to block. Nothing is kept beside the tree to
 stay in step with it, such as a stored count or coordinate. Do not avoid
