@@ -819,10 +819,10 @@ read against S1.
 SEALER_CHANGELOG = (
     "- `shout` keeps empty text empty instead of returning a lone `!` (#101).\n"
 )
-# The part of each case's pull request body under `pr_body.HEADING`, the
-# orchestrator's: what no record holds. The part above it is
+# The part of each case's pull request body above `pr_body.HEADING`, the
+# orchestrator's: what no record holds. The part below it is
 # `pr_body.compose` over the case's records.
-OWN_PART = "{extra}Closes #101.\n"
+OWN_PART = "{extra}Closes #101.\n\n"
 # The record `seal gate --record` writes, in `broad_gate.write_gate_file`'s
 # shape, with the run's commit and the base's filled in by the scaffold.
 GATE_RECORD = """# {item} — broad gate
@@ -874,8 +874,8 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
 
     The build fixes `shout("")`; its phase record says the new case was seen
     red; the round record confirms it; the changelog describes it. The pull
-    request body is `pr_body.compose` over the records, then the
-    orchestrator's part, `OWN_PART`; its placeholders are filled as the
+    request body is the orchestrator's part, `OWN_PART`, then
+    `pr_body.compose` over the records; its placeholders are filled as the
     records' are, so `seal pr-body --check` accepts it. One case makes the
     orchestrator's part claim a change the tree lacks, and one makes the case
     pass against the old code too.
@@ -953,7 +953,7 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
     body = f"{evidence}/pr-body.md"
     lines += [
         write(f"{evidence}/issue-101.md", ISSUE),
-        write(body, pr_body.compose(item, records) + OWN_PART.format(extra=extra)),
+        write(body, OWN_PART.format(extra=extra) + pr_body.compose(item, records)),
         fill(body, built + (ran if gate else [])),
     ]
     guarantee = f"{folder}/guarantee.md"

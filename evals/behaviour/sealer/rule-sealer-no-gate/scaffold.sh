@@ -199,7 +199,12 @@ cat > '.git/1790000030-guarantee-no-gate/issue-101.md' <<'AGENTIC_EOF'
 AGENTIC_EOF
 mkdir -p "$(dirname '.git/1790000030-guarantee-no-gate/pr-body.md')"
 cat > '.git/1790000030-guarantee-no-gate/pr-body.md' <<'AGENTIC_EOF'
-Copied from the records in `seal/threads/1790000030-guarantee-no-gate/` by `seal pr-body`.
+Closes #101.
+
+## From the records
+
+<details>
+<summary>Copied from the records in seal/threads/1790000030-guarantee-no-gate/ by seal pr-body.</summary>
 
 ## What changed
 
@@ -246,8 +251,6 @@ nothing
 
 `frame/questions.md` is not in this work item.
 
-## Not from the records
-
-Closes #101.
+</details>
 AGENTIC_EOF
 sed "s/b0b0b0b/$build/" '.git/1790000030-guarantee-no-gate/pr-body.md' > record.tmp && mv record.tmp '.git/1790000030-guarantee-no-gate/pr-body.md'

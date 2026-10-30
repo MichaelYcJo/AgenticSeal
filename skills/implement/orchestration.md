@@ -39,8 +39,8 @@ to.
    spawn* below). The proofer's rounds follow, then
    `seal gate --preflight` and `seal gate --record`, both run by the
    orchestrator, then `seal pr-body`, which the orchestrator runs to write
-   the pull request body's first part, then the sealer, and then the pull
-   request opens
+   the pull request body's copy of the records, then the sealer, and then
+   the pull request opens
    (`skills/code-review/orchestration.md` *Orchestrator: the pull request
    opens once the sealer seals* owns when).
 3. The pull request body carries `Closes #N`; the release workflow closes the

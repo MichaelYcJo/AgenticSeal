@@ -266,9 +266,9 @@ def test_the_orchestrator_writes_the_body_file_the_sealer_reads():
     a pull request already open on the stated limit's path. Round 1 of #943
     reverted each of the first three and this module stayed green.
 
-    S12 of #1044: `seal pr-body` writes the body's first part from the
-    records, so the orchestrator runs it after `trail/gate.md` is committed,
-    which that part copies, writes its own part under the heading and
+    S12 of #1044: `seal pr-body` writes the body's copy of the records, so
+    the orchestrator runs it after `trail/gate.md` is committed, which that
+    copy includes, writes its own part above the heading (#1148) and
     restates no record there, and runs it again before every later sealer
     spawn and every `PATCH` of the body, which is every repair's last step."""
     text = flat(*ORCH)
@@ -279,7 +279,7 @@ def test_the_orchestrator_writes_the_body_file_the_sealer_reads():
         "write the pull request body after `trail/gate.md` is committed",
         "`seal pr-body <item> --body <scratchpad>/<work-item-id>/pr-body.md`",
         "`skills/code-review/scripts/pr_body.py#HEADING`",
-        "Then write your own part under that line",
+        "Then write your own part above that line, from the top of the file",
         "Your part restates no record",
         "before every later spawn of the sealer and before every "
         "`gh api -X PATCH` of the body",
@@ -375,15 +375,15 @@ def test_the_order_opens_the_pull_request_after_the_sealer():
     # before the sealer's spawn, and #969 the broad run after it: the sealer
     # reads the run's record, so the run comes before the spawn. Since #940
     # the step says it in words rather than arrows. #1044 put the body's
-    # first part between the run and the spawn, since it copies the run's
-    # record and the sealer checks it.
+    # copy of the records between the run and the spawn, since it copies
+    # the run's record and the sealer checks it.
     assert (
         "spawns the crafter (*The frame is read against the issue at the "
         "spawn* below). The "
         "proofer's rounds follow, then `seal gate --preflight` and `seal gate "
         "--record`, both run by the orchestrator, then `seal pr-body`, which "
-        "the orchestrator runs to write the pull request body's first part, "
-        "then the sealer, and then the pull request opens (" in step
+        "the orchestrator runs to write the pull request body's copy of the "
+        "records, then the sealer, and then the pull request opens (" in step
     ), step
     assert "draft" not in step, step
 

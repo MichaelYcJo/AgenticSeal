@@ -228,12 +228,13 @@ class TestDefinition:
     def test_the_sealer_checks_the_copy_and_reads_only_the_orchestrators_part(
         self,
     ):
-        """S13 of #1044. The part of the body above `pr_body.py#HEADING` is
+        """S13 of #1044. The part of the body below `pr_body.py#HEADING` is
         the records' own text, so step 2 checks it with `seal pr-body
         --check` and withholds on any exit but 0, naming what the command
-        printed; steps 2 and 4 and *Never* then read only the part under the
-        heading as a party, the part the orchestrator wrote. Before this,
-        most withheld verdicts were a body sentence restating a record."""
+        printed; steps 2 and 4 and *Never* then read only the part above the
+        heading as a party, the body's first part, which the orchestrator
+        wrote (#1148 S6). Before this, most withheld verdicts were a body
+        sentence restating a record."""
         step_2 = between(SEALER, "2. **", "3. **")
         step_4 = between(SEALER, "4. **", "5. **")
         never = between(SEALER, "## Never", "## Rules")
@@ -245,7 +246,8 @@ class TestDefinition:
                 "`Verdict: withheld reason: <the first line the command printed>`",
             ),
             (step_2, "`skills/code-review/scripts/pr_body.py#HEADING`"),
-            (step_2, "the part of the pull request body under that line"),
+            (step_2, "the part of the body below the line"),
+            (step_2, "request body above that line, its first part"),
             (step_4, "the orchestrator's part of the pull request body"),
             (never, "the orchestrator's part of the pull request body"),
         ]

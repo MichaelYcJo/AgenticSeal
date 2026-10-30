@@ -1,6 +1,7 @@
 """A chain-routed pull request body carries one chain section, in one shape:
-what the rounds found is the first part's *Review rounds* section, and
-the comparison table opens the orchestrator's part (#1044).
+what the rounds found is the copy's *Review rounds* section, and the
+comparison table opens the orchestrator's part (#1044), the body's first
+part since #1148.
 
 Two bodies of the same chain came out unreadable side by side. PR #162 wrote
 that section as prose and PR #168 as a table, so the numbers a reader wants to
@@ -66,8 +67,8 @@ def test_the_section_states_the_chain_sections_shape():
 
     The placement is the claim: a reader who reaches the orchestrator's part
     meets the numbers first, and what the rounds found is the round
-    records' own text above it. A body that puts the prose first makes the
-    table something to scroll for."""
+    records' own text in the copy below it. A body that puts the prose
+    first makes the table something to scroll for."""
     section = body_section()
     assert "through the review chain" in section, (
         "the section states a shape without saying which work items it "
@@ -76,8 +77,8 @@ def test_the_section_states_the_chain_sections_shape():
         "too"
     )
     assert (
-        "what the rounds found is the first part's *Review rounds* section, "
-        "and the comparison table opens the orchestrator's part"
+        "what the rounds found is the copy's *Review rounds* section, and "
+        "the comparison table opens the orchestrator's part"
     ) in section, (
         "the chain section has no stated shape, so two runs of the same "
         "chain come out in two shapes -- PR #162 in prose, PR #168 as a "

@@ -258,23 +258,24 @@ runs nothing broad, and a missing or stale record comes back
 `Verdict: withheld reason: no broad run at HEAD`.
 
 **You write the pull request body after `trail/gate.md` is committed,
-because the body's first part copies that record.** Run
+because the body's copy of the records includes that record.** Run
 `seal pr-body <item> --body <scratchpad>/<work-item-id>/pr-body.md`, where
-`<item>` is the work item's directory. It writes the part of that file above
+`<item>` is the work item's directory. It writes the part of that file below
 the line `skills/code-review/scripts/pr_body.py#HEADING` holds, copied from
-the work item's records, and keeps byte for byte whatever stands under that
-line. On exit 1 its `refused:` lines name a record's file and line: repair
-that record, commit it, and run the command again. Then write your own part
-under that line, to the end of the file: what no record holds, such as the
-motivation, a note to reviewers, the `Closes` or `Part of` line, the broad
-run's printed figures, a CI run taken after the rounds, the chain section's
-comparison table, and the attribution line. Your part restates no record:
-where it needs a record's fact, it names the record's path. Edit nothing
-above the line; the sealer's `seal pr-body --check` withholds on a part
-above it that is not the records' text at HEAD. **Run the command again
-before every later spawn of the sealer and before every `gh api -X PATCH`
-of the body**, so the first part copies the records as the repair left
-them; your part stays as you wrote it.
+the work item's records inside one `<details>` fold, and keeps byte for byte
+whatever stands above that line. On exit 1 its `refused:` lines name a
+record's file and line: repair that record, commit it, and run the command
+again. Then write your own part above that line, from the top of the file,
+so the body opens with it: what no record holds, such as the motivation, a
+note to reviewers, the `Closes` or `Part of` line, the broad run's printed
+figures, a CI run taken after the rounds, the chain section's comparison
+table, and the attribution line. Your part restates no record: where it
+needs a record's fact, it names the record's path. Edit nothing below the
+line; the sealer's `seal pr-body --check` withholds on a part below it that
+is not the records' text at HEAD. **Run the command again before every
+later spawn of the sealer and before every `gh api -X PATCH` of the body**,
+so the copy holds the records as the repair left them; your part stays as
+you wrote it.
 `skills/commit-pr-convention/SKILL.md` *Pull request bodies* says which
 language each part is in.
 
