@@ -180,9 +180,13 @@ class Test_in_context:
         first, second = said("first", "u1"), said("second", "u2")
         entries = [first, boundary(["u1"], "b1"), second, boundary([], "b2")]
         assert check_.in_context(entries) == [boundary([], "b2")]
-        # A boundary with no list of what it keeps keeps nothing.
+        # A boundary with no list of what it keeps, or a field of another
+        # type in its place, keeps nothing.
         bare = {"type": "system", "subtype": "compact_boundary", "uuid": "b3"}
         assert check_.in_context([first, bare]) == [bare]
+        mapped = boundary(uuid="b4")
+        mapped["compactMetadata"]["preservedMessages"]["uuids"] = {"u1": True}
+        assert check_.in_context([first, mapped]) == [mapped]
 
 
 class Test_core_entries:
