@@ -195,7 +195,7 @@ if project and holds_a_block(text_of(project)):
 | Output | What happens |
 |---|---|
 | nothing | no block stood; nothing is said |
-| `took the preset block out of <file>, backed up to <file>.bak` | say so, and say that the core now arrives from the plugin's `SessionStart` hook and that the rules an older block stated stand in the skills and definitions the plugin installs |
+| `took the preset block out of <file>, backed up to <file>.bak` | say so, with the two facts this step opens with: where the core now comes from, and where the rules an older block stated stand |
 | `<file> holds a start marker with no end marker after it, so nothing was changed`, exit 1 | the block is damaged, and nothing says where it ends. Say so, leave the file to the user, and go on to step 5 |
 | `needs action: <file> holds a preset block, …` | an earlier release's installer could write the block into a project's `CLAUDE.md`, which is that project's committed text. Name the file under *Needs action* in the output; the user deletes the lines between its markers |
 
