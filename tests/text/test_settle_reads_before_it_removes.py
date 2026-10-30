@@ -102,7 +102,9 @@ def test_the_skill_states_the_settling_sessions_procedure():
     after a fix. Round 4 of #1033, finding 1: each clause of steps 6 and 8
     that S13 names is pinned, step 6's fix and second dry run and step 8's
     failure path among them. Round 1 of #1148, finding 4: step 7 counts the
-    review cost from the round records before `--apply` removes them."""
+    review cost from the round records before `--apply` removes them, and
+    round 2, finding 1: it states the four counts itself and posts them only
+    where a `flow-baseline` log is kept."""
     text = flat(skill())
     procedure = text.split("## The settling session's procedure")[1].split("## ")[0]
     steps = [
@@ -122,10 +124,17 @@ def test_the_skill_states_the_settling_sessions_procedure():
         "finds a module only by how it spells a path",
         "step 8 runs every one",
         # Round 1 of #1148, finding 4: the measure is taken where the session
-        # that removes the records reads, before the removal.
-        "For each released work item routed through the review chain, count "
-        "from its `trail/rounds/round-*.md` the four numbers "
-        "`docs/the-review-record.md` *The run* names",
+        # that removes the records reads, before the removal. Round 2,
+        # finding 1: the step is the counts' home, since the policy sentence
+        # it once cited ships only at the settle after 0.25.1.
+        "Where the repository keeps a `flow-baseline` log",
+        "count for each released work item routed through the review chain",
+        "the numbered `###` finding headings",
+        "the `regression:` and `reopens:` lines",
+        "the `location:` lines left with no backticked path once every path "
+        "under `seal/threads/` is deleted from them",
+        "and the record files",
+        "Post the four numbers to that log.",
         "Then run `seal settle --apply`, which removes the records.",
         "Run the repository's `Broad gate` row.",
         "It is the one run that reads every check",
@@ -138,7 +147,10 @@ def test_the_skill_states_the_settling_sessions_procedure():
     at = [procedure.find(step) for step in steps]
     assert -1 not in at, [s for s, n in zip(steps, at, strict=True) if n < 0]
     assert at == sorted(at), "the procedure's steps are out of order"
-    assert "git grep" not in procedure, "step 6 still searches the tests' text"
+    # Step 6 alone: step 7 counts the round records with `git grep`, which
+    # searches no test (round 2 of #1148, finding 1).
+    step_6 = procedure.split("6. Run each rule's")[1].split(" 7. ")[0]
+    assert "git grep" not in step_6, "step 6 still searches the tests' text"
     for kind in ("moot", "answered", "a measurement nobody has taken"):
         assert f"| {kind} |" in procedure, kind
     # questions.md Q1's default: one issue per distinct measurement.
