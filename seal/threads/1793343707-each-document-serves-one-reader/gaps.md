@@ -31,8 +31,8 @@ direction rule in `frame/design.md` `## Rule changes` lets cite
 The change does not remove more lines than it adds outside
 `seal/threads/`, which `frame/design.md` *Scope* item 11 and scenario S10
 ask. `git diff --shortstat fba13ab2...HEAD -- . ':(exclude)seal/threads'`
-gives `59 files changed, 1128 insertions(+), 988 deletions(-)` at the
-fragment's commit: 140 more lines added than removed
+gives `60 files changed, 1128 insertions(+), 988 deletions(-)` at the
+fragment's commit, `b6d84d71`: 140 more lines added than removed
 (`trail/phases/phase-6.md`). The shipped files outside `tests/` remove 80
 more lines than they add, and `tests/` adds 220 more than it removes. The
 change was neither padded nor trimmed to meet the count, as the spawn for
