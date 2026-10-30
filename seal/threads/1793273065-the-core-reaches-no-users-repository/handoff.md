@@ -53,6 +53,18 @@ those do not.
   adds two `gaps.md` *Not verified* rows: S11 for the proofer and the
   crafter, not run by the owner's decision; and the framer side's rule 5
   result, diagnosed from the raw sides with no re-run.
+- **The same crafter fixes a Windows failure phase 8 opened.** CI run
+  40989182473 at `df5ba5f1` fails `pytest (windows-latest, … --group 3)` in
+  `tests/skills/test_core_check.py`: "what the model received from
+  SessionStart:startup (277 characters of content) is not what the hook
+  printed (279 characters of stdout)". The cases pass on Linux and macOS,
+  and the file's last change is `02a34267`. The reading, not reproduced:
+  the scratch core is written with `\r\n` on Windows, the hook's stdout ends
+  `\r\n\n`, the fixture's `content` strips only `\n` and keeps a `\r`, and
+  `_normal` (`skills/verify/scripts/core_check.py:177`) removes no lone
+  trailing `\r`. Whether the check or the fixture moves depends on whether
+  the harness drops that `\r`. The broad run and the seal cannot clear this
+  check.
 - **The orchestrator adds one comment to #1038**, which decides whether the
   plugin needs verification beyond its commands and tests: whether
   `evals/README.md`'s rule that a preload rewrite is proved by the
