@@ -25,6 +25,7 @@ from conftest import (
     git_repo,
     load_hook_module,
     load_module,
+    write,
     write_transcript,
 )
 
@@ -42,20 +43,12 @@ def core_module():
     return load_hook_module("lib/core.py", "core_for_the_checks_cases")
 
 
-def write(path, text):
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w", encoding="utf-8", newline="\n") as f:
-        f.write(text)
-    return path
-
-
 def plugin(where, text="# The core\n\nOne value.\n"):
     """A scratch plugin root at WHERE, with a manifest and a core."""
     write(
-        os.path.join(where, ".claude-plugin", "plugin.json"),
-        '{"name": "agentic", "version": "0.25.0"}',
+        where, ".claude-plugin/plugin.json", '{"name": "agentic", "version": "0.25.0"}'
     )
-    write(os.path.join(where, *CORE), text)
+    write(where, "skills/core/SKILL.md", text)
     return str(where)
 
 
@@ -113,7 +106,8 @@ class Test_find:
         which a worktree changes, so every project directory is searched for
         the session's file."""
         check_ = check()
-        given = write(str(tmp_path / "t.jsonl"), "")
+        write(tmp_path, "t.jsonl", "")
+        given = str(tmp_path / "t.jsonl")
         assert check_.find({}, given) == (given, None)
         config = tmp_path / "config"
         planted = write_transcript(config / "projects", "abc", [], slug="-Users-x-a")
@@ -330,7 +324,7 @@ class Test_judge:
         root = plugin(tmp_path / "plugin")
         path = os.path.join(root, *CORE)
         out = printed(root)
-        write(path, "# The core\n\nAnother value.\n")
+        write(root, "skills/core/SKILL.md", "# The core\n\nAnother value.\n")
         code, line = check_.judge([hook(out)], False, "/f")
         assert code == 1, line
         assert line.startswith(f"seal core: {path} has changed since"), line
@@ -338,7 +332,7 @@ class Test_judge:
         code, line = check_.judge([hook(out)], False, "/f")
         assert code == 1, line
         assert line.startswith(f"seal core: {path}, which the core entry's"), line
-        write(path, "# The core\n\nOne value.\n")
+        write(root, "skills/core/SKILL.md", "# The core\n\nOne value.\n")
         torn = out.replace("One value.", "One valve.")
         code, line = check_.judge([hook(torn)], False, "/f")
         assert code == 1, line
