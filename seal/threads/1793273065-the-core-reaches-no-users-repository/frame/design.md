@@ -39,6 +39,8 @@ agent read the core twice (`questions.md` Q1, the issue's *Update (owner,
 | A survey of this machine's interactive transcripts (executed, `grep -rl compact_boundary ~/.claude/projects`, then the scratch reader over 23 main transcripts, Claude Code 2.1.283 to 2.1.312) | Every `compact_boundary`, `auto` and `manual`, is followed by an `isCompactSummary` entry and a `SessionStart:compact` `hook_success`. A resume appends a `SessionStart:resume` entry to the same file; a `/clear` opens a new file whose first `SessionStart` entry is `SessionStart:clear` |
 | Probe S, size (executed, the scratch hook printing 9,990, 10,010 and 11,049 characters, one session each) | At 9,990 characters the entry's `content` equalled its `stdout`. At 10,010 and 11,049, `stdout` held the whole output and `content`, what the model received, was a `<persisted-output>` preview of about 2,400 characters naming a file. The 11,049 run's session said it saw only the preview. The harness's cap on one hook's output lies between 9,990 and 10,010 characters |
 | `wc -c skills/core/SKILL.md` and a character count (executed at HEAD): 6,749 B, 6,705 characters | The core and its first line sit near 6,900 characters, about 3,100 under the cap. A case holds the hook's whole output under 10,000 characters, so a core that #1148 grows past it fails in CI and not silently in a session |
+| The owner, 2026-10-30, in the orchestrating session (the orchestrator's finding): the core's prose is refactored in this work, not in #1148 or #1170, keeping every directive and every sentence that gives a directive's reason, and removing only repetition and pointers to issues. A draft at `/private/tmp/claude-501/-Users-michael-Documents-GitHub-SpecSeal/aa6bb73b-1ad1-4e11-8e2a-ddc39af2340a/scratchpad/core-draft/SKILL.md` is 5,313 B against the core's 6,780 B at `dc030a86` (`wc -c`, executed by the orchestrator) | Scope item 9 and phase 8. The draft is a starting point the crafter checks sentence by sentence against the core at `dc030a86`; it is not a source |
+| `evals/README.md` *The behaviour suite* (read): "A rewrite of an agent's preload is proved not worse by running this suite on the old tree and on the new one", compared by `evals/scripts/noninferiority.py`. Past sides cost 16.12 USD for the framer and 3.34 USD for the sealer (`git show a19090962:…/framer-phase-2.md`, `b196fe9bc:…/sealer-phase-3.md`, executed) | The core is a preload of all four agents with cases under `evals/behaviour/`, so the refactor is proved by the four agents' suites, old side at `dc030a86` and new side at the refactor's commit (S11) |
 | `env` in this agent's Bash (executed): `CLAUDE_CODE_SESSION_ID` is set and names the orchestrating session, whose transcript is `~/.claude/projects/<slug of its starting directory>/<that id>.jsonl` (`ls`, executed); `CLAUDE_PLUGIN_ROOT` is not set in a Bash call. `hooks/lib/hooksession.py#SESSION_VARIABLE` names that variable (read) | `seal core` finds the transcript from the session id, and compares against the file the hook's first line names, since it cannot read the hook's plugin root |
 | The `SessionStart` payload (executed, logged by the scratch hook): `cwd`, `hook_event_name`, `session_id`, `source`, `transcript_path`, and on `resume` a few cost fields | The hook knows the session's working directory, so it can tell the plugin's own repository from any other |
 | `.claude-plugin/plugin.json` at HEAD (read): `name` `agentic`, `version` `0.25.0` | The hook prints the tree's copy where the session's repository is a clone of this plugin: its top level holds `.claude-plugin/plugin.json` naming the running plugin, and `skills/core/SKILL.md` |
@@ -46,7 +48,7 @@ agent read the core twice (`questions.md` Q1, the issue's *Update (owner,
 | `skills/verify/scripts/payload_meter.py` (read): `calibration_of` reads each subagent transcript's first assistant `usage` and subtracts the `general-purpose` spawn's prefix (`BASELINE_AGENT`, line 93); `composition` lists one agent's definition, skills and the `CLAUDE.md` pair with what their `@` lines import | Neither the baseline subagent nor a plugin agent receives the hook's output (the orchestrator's probe), so the subtraction still leaves each agent's own files and `BASELINE_AGENT` stays. What the meter lacks is the session: a table of the pair plus the hook's output |
 | code.claude.com/docs/en/memory.md (read 2026-10-29): an `@` import resolves against the file that holds it, at most four hops, and user-scope imports load without a dialog | The meter keeps following `@` lines (`imports_of`, phase 3): any user's `CLAUDE.md` can import a file, and the harness adds the pair to every spawn whatever the core does |
 | `~/.claude/CLAUDE.md` on this machine holds the 0.24.x block, eight rules and no `@` line (the orchestrator's finding; read in this agent's own context) | During the switch no machine holds the core twice: the old block carries no core, and the 0.25.0 template carries no line that imports one |
-| `docs/branch-and-release.md` *Cutting a release* (read): the version moves in the first pull request into `release/vX.Y.Z`, in the commit that adds the fragment | Phase 4 moved `plugin.json` to `0.25.0` (`0c1144ef`); phase 9 rewrites the fragment and leaves the version |
+| `docs/branch-and-release.md` *Cutting a release* (read): the version moves in the first pull request into `release/vX.Y.Z`, in the commit that adds the fragment | Phase 4 moved `plugin.json` to `0.25.0` (`0c1144ef`); phase 10 rewrites the fragment and leaves the version |
 
 ## Scope
 
@@ -167,7 +169,7 @@ agent read the core twice (`questions.md` Q1, the issue's *Update (owner,
    docstring says why: the hook's output reaches no subagent, so it is in
    neither the baseline's prefix nor an agent's. The before and after
    numbers come from two runs against a scratch home: base `53f21b54` with
-   the 0.24.2 block, and HEAD with no block. Both go into phase 8's record
+   the 0.24.2 block, and HEAD with no block. Both go into phase 9's record
    and the pull request body.
 7. **The release shape.** `changelog.md` is rewritten: its `### Fixed` entry
    says the core arrives in every session from the plugin's hook and in
@@ -189,10 +191,19 @@ agent read the core twice (`questions.md` Q1, the issue's *Update (owner,
    `skills/implement/orchestration.md:460`; `.gitignore:14`;
    `tests/censuses.py:1014-1015`; and every test docstring and case
    *Removes* names.
+9. **The core's prose is refactored, and decides what it decided.** Every
+   session and every agent reads `skills/core/SKILL.md` whole, so its size
+   is paid in every session. The crafter removes the sentences that repeat
+   another sentence of the core and the pointers to issues (`#1167`), and
+   tightens the wording, keeping every directive, every path and section it
+   cites, the five invariants, and every sentence that gives a directive's
+   reason. The headings stay as they are, so no citation of a section
+   moves. The `description:` phase 5 wrote stands. The proof is S11.
 
 **Out.**
 
-- The wording of the values. #1170 and #1148 own it.
+- What the values decide. #1170 and #1148 own any change to it; this work
+  refactors their prose only (Scope item 9).
 - A `SubagentStart` hook, or a memory line telling a session to load the
   core skill: the owner decided against both (the issue's *Decided in this
   update*).
@@ -217,9 +228,10 @@ agent read the core twice (`questions.md` Q1, the issue's *Update (owner,
 | S5 A session can verify the core loaded | Given a session's transcript, when `seal core` runs, then it exits 0 for one whole core entry in context matching its file, and 1 with the reason for every other state | `tests/skills/test_core_check.py` over planted transcripts: one startup entry passes; no entry fails; an entry only before the last boundary fails; an entry the boundary preserves counts; startup plus compact after one boundary passes; two entries in context fail; `content` a preview fails; a file changed after the start fails on the digest; a missing named file fails; no session id fails; `CLAUDE_CODE_SIMPLE=1` names `--bare`. Each case seen red first |
 | S6 The block leaves without a second read | Given a machine on 0.24.x, when `/agentic:update` runs to 0.25.0 and later past it, then the first run leaves an empty marker pair and the second removes it, and no step writes an `@` line | `tests/behaviour/test_the_old_block_leaves_through_update.py`: the template's marker region is the two markers alone; `skills/update/SKILL.md` step 4 removes both marker pairs after a backup, names the hook, and names a project file it does not edit; this repository's `CLAUDE.md` holds no marker and no `@` line |
 | S7 The output stays under the harness's cap | Given the tree's core, when `output` is built, then it is under `CAP` characters | A case in `tests/hooks/test_core.py` reads the tree's `skills/core/SKILL.md` through `output` |
-| S8 The cost is measured | Given the tree before and after, when `seal payload` runs against a scratch home, then a session table shows the pair and the hook's row, and every agent's table shows the core once | `tests/skills/test_payload_meter.py`: the session table carries the hook row with `output`'s bytes; the JSON's `session` object; the agent tables carry no hook row; phase 8's record carries the two numbers |
+| S8 The cost is measured | Given the tree before and after, when `seal payload` runs against a scratch home, then a session table shows the pair and the hook's row, and every agent's table shows the core once | `tests/skills/test_payload_meter.py`: the session table carries the hook row with `output`'s bytes; the JSON's `session` object; the agent tables carry no hook row; phase 9's record carries the two numbers |
 | S9 The machinery is gone | Given the tree, when it is searched, then `install.sh`, `uninstall.sh` and `skills/preset-setup/` are absent and no shipped document tells a reader to run them | The README cases; `tests/behaviour/test_chain_hooks_hardening.py` without its `preset-setup` and `install.sh` cases; `git grep` in the phase record |
 | S10 The release names the change | Given the fragment, when it is read, then it says how the core arrives, how to see it and how to turn it off, and ends with its process table | `tests/github/test_publish_release_note.py` for the shape; the sealer reads the text |
+| S11 The refactored core decides what the core decided | Given the four agents that preload the core, when each agent's behaviour suite runs on the tree at `dc030a86` and on the refactor's commit, then the new side passes the five rules of `noninferiority.py#verdict` against the old side | `evals/scripts/noninferiority.py run` for `framer`, `crafter`, `proofer` and `sealer` on both sides and `compare --phase 8`, each record written to `seal/threads/1793273065-the-core-reaches-no-users-repository/evals/<agent>-phase-8.md`; the cases that already read the core (phase 5's set) stay green with no case added, since a refactor adds no behaviour; S7's case holds the smaller output under `CAP` |
 
 ## Data & interfaces
 
@@ -334,6 +346,7 @@ agent read the core twice (`questions.md` Q1, the issue's *Update (owner,
 | The `@`-line wording in test docstrings | `tests/behaviour/test_first_setup_asks_once.py:788-798`, `tests/text/test_review_axes.py:210`, `tests/text/test_broad_gate_rule.py:5-6`, `tests/text/test_the_rules_claude_md_names_have_one_home.py:24` and `:100-101`, `tests/skills/test_payload_meter.py#Test_measure.test_an_import_in_either_file_of_the_pair_is_a_harness_row_under_it` (its docstring and its planted A1 line) | Each says the core reaches a session from the hook |
 | The A1 sentences of shipped text | `skills/core/SKILL.md:7-8` (description), `CLAUDE.md:5-17`, `skills/implement/orchestration.md:460` ("through the preset block's one `@` line"), `README.md:45`, `:266`, `:270`, `:295-307`, `:323`, `:369-372` and `README.ko.md` the same rows, `.gitignore:14` ("generated by install.sh") | Each says the hook, `seal core`, or `/agentic:update`'s removal in its place |
 | The closing memo's double-read paragraph | `gaps.md` *Not done* | The redesign fixes it: no session and no agent reads the core twice |
+| The core's repeated sentences and its pointer to #1167 | `skills/core/SKILL.md` at `dc030a86` | Each repeated sentence states a fact another sentence of the core already states; the pointer names an issue that closes while the core is read in every session. Scope item 9, proved by S11 |
 
 ## Open questions
 
