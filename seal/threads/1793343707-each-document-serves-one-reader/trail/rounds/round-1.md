@@ -9,7 +9,7 @@ target: 16056d31 against origin/release/v0.25.1
 severity: must
 location: `skills/code-review/scripts/chain_check.py:1746`, `skills/code-review/scripts/chain_check.py:34-45`, `skills/code-review/scripts/chain_check.py:1358-1372`, `tests/skills/test_chain_check.py`, `README.md:207-213`, `README.ko.md:201-206`, `agents/sealer.md:93-98`, `skills/code-review/orchestration.md:99-105`, `skills/implement/acts.md:72`, `seal/threads/1793343707-each-document-serves-one-reader/changelog.md:14`
 evidence: executed `bin/test tests/skills/test_tmp_round1_mixed_location.py -q -p no:xdist -s`
-verdict: open
+verdict: fixed 0e0601ab
 
 The records-only exemption reads only the fix commit. It never reads where
 the finding is located. `records` hands `channel` the predicate
@@ -99,14 +99,14 @@ The new case is seen red against `chain_check.py` at 16056d31 before the
 predicate changes, as the probe shows. The other carriers take the same
 narrowing in their own words.
 
-answer:
+answer: `chain_check.py#records` hands `channel` `located_in_records(item, f) and records_only(root, item, f.verdict[1])`, so a `fixed` finding passes in the last record only where every `location:` path lies under the work item's directory and its commit touched nothing else. `test_refuses_a_last_records_code_finding_fixed_in_its_records_alone` failed against the check at 6c3f6482 and passes after (executed), and a mutant of `located_in_records` returning `True` went red (executed). The module docstring's `records` row and the docstrings of `channel` and `records` say the same. The shipped carriers are narrowed in the same commit: `README.md`, `README.ko.md`, `agents/sealer.md` step 4, `skills/code-review/orchestration.md` (the opening of *Orchestrator: the run ends with a verifying round*, its *When* row, the cap paragraph's refusal sentence and the run-ends sentence), `skills/implement/acts.md`'s row and `skills/implement/SKILL.md`'s drain row, with the fragment's sentence and process row. Their pins in `tests/behaviour/test_the_sealer_guarantees.py` and `tests/text/test_the_rules_have_one_owner.py` were rewritten and seen red before the prose changed. `505e76e6` rewords the acts row, which the paste check found sharing a fifteen-word run with the README. `docs/` states the old condition until the settle writes the frame's folded rule change.
 
 ### 2. Running `seal pr-body` again on a body 0.25.0 wrote is refused, and the release note says it recovers
 
 severity: should
 location: `skills/code-review/scripts/pr_body.py:500-508`, `tests/skills/test_pr_body.py:352-363`, `seal/threads/1793343707-each-document-serves-one-reader/changelog.md:3`, `seal/threads/1793343707-each-document-serves-one-reader/frame/plan.md:75`
 evidence: executed `bin/seal pr-body seal/threads/1793343707-each-document-serves-one-reader --body <round scratch>/old-body.md --check`, `bin/seal pr-body seal/threads/1793343707-each-document-serves-one-reader --body <round scratch>/old-body.md`
-verdict: open
+verdict: fixed 42c85a93
 
 The fragment says a 0.25.0 body "is refused until `seal pr-body` runs
 again". The plan's *Operational impact* says the orchestrator runs
@@ -160,14 +160,14 @@ its own part stands above a `## From the records` line or the file is
 removed.
 ```
 
-answer:
+answer: `pr_body.py#split`'s refusal now ends `write your part above a line reading `## From the records`, or remove the file, and run the command again`, and `Test_split.test_refuses_a_body_with_no_heading_line` pins that sentence for both bodies it refuses, 0.25.0's among them; the pin was seen red before the message changed, and a mutant dropping "remove the file" went red (executed). `seal pr-body` over a 0.25.0-shaped body exits 1 printing the repair (executed). The fragment's sentence says both runs refuse such a body until its own part stands above the line or the file is removed. `frame/plan.md`'s *Operational impact* line is the framer's fold at 6c3f6482.
 
 ### 3. The fragment and the plan state counts that no longer match the tree
 
 severity: should
 location: `seal/threads/1793343707-each-document-serves-one-reader/changelog.md:3`, `seal/threads/1793343707-each-document-serves-one-reader/changelog.md:16`, `seal/threads/1793343707-each-document-serves-one-reader/frame/plan.md:78`
 evidence: executed `git show fba13ab2:skills/implement/orchestration.md | wc -w`, `git show 183a31b6:skills/implement/orchestration.md | wc -w`, `wc -w skills/implement/orchestration.md`, `.venv/bin/python -I -c '<load skills/settle/scripts/rule_changes.py and hooks/lib/config.py; print each operation pending returns for 1793343707>'`
-verdict: open
+verdict: fixed 2641c43f
 
 The fragment says `skills/implement/orchestration.md` "drops from 5,971
 words to 3,422". Its process row says sessions read "2,549 words" that they
@@ -201,14 +201,14 @@ work item that commits in more than one repository moves to
 The plan's line 78 is the framer's. It reads "through this design's
 `## Rule changes`", with no count.
 
-answer:
+answer: The fragment's sentence and its orchestration row no longer state a word count: the sentence says the file keeps what every run acts on, and the Why cell names the three bodies that moved. The measurement's home is `trail/phases/phase-4.md`. The fragment's other numbers stand: each is a baseline read from released records (0.24.0's 12 of 17, #1177's eleven rows, 0.22.1 to 0.22.4's five rounds), not a count beside the tree. `frame/plan.md:78` is the framer's fold at 6c3f6482.
 
 ### 4. The settle's measure has no step in the procedure a settling session follows
 
 severity: should
 location: `skills/settle/SKILL.md:219`, `seal/threads/1793343707-each-document-serves-one-reader/frame/design.md:56`, `seal/threads/1793343707-each-document-serves-one-reader/frame/design.md:264`
 evidence: executed `grep -n -i 'flow\|measure\|the-review-record\|before the records leave\|count' skills/settle/SKILL.md`
-verdict: open
+verdict: fixed 0a15911b
 
 Scope item 7 makes the measure the test of the whole redesign: "A release
 whose records-alone count does not fall says the structure did not remove
@@ -240,14 +240,14 @@ The design's Table B row for `skills/settle/SKILL.md` is the framer's, and
 the orchestrator folds it. A pin for the new clause belongs in
 `tests/skills/test_settle.py`.
 
-answer:
+answer: Step 7 of *The settling session's procedure* now counts the four numbers `docs/the-review-record.md` *The run* names for each released work item routed through the review chain, posts them, then runs `seal settle --apply`; step numbers 6 and 8 are unchanged. The pin went into `tests/text/test_settle_reads_before_it_removes.py#test_the_skill_states_the_settling_sessions_procedure`, the case that already holds every step of that procedure in order, not into `tests/skills/test_settle.py`, which tests the script; it was seen red before the step changed, and a mutant of the clause went red (executed). The Table B row is the framer's fold at 6c3f6482.
 
 ### 5. The measure's third command counts any path starting with `se` as located in the records
 
 severity: should
 location: `seal/threads/1793343707-each-document-serves-one-reader/frame/design.md:179`, `seal/threads/1793343707-each-document-serves-one-reader/frame/design.md:183`
 evidence: executed `B=$(printf '\140'); printf '%s\n' "location: ${B}seal/README.md:3${B}" "location: ${B}setup.cfg:1${B}" "location: ${B}seal/threads/x/gaps.md:2${B}" | grep -vc "${B}[^s${B}][^${B}]*${B}\|${B}s[^e][^${B}]*${B}"`
-verdict: open
+verdict: fixed 6c3f6482
 
 The design defines the third count as findings "whose every `location:`
 path is under `seal/threads/`". Line 183 says the command counts lines
@@ -268,14 +268,14 @@ Line 183 then reads: "The third line deletes every backticked path under
 `seal/threads/` and counts the `location:` lines with no backtick left."
 Both lines are the framer's, and the orchestrator folds them.
 
-answer:
+answer: The framer's fold at 6c3f6482 rewrites both lines: the third command deletes every backticked path under `seal/threads/` and counts the `location:` lines with no backtick left. No shipped file states the command; `trail/phases/phase-6.md` quotes the old one as the run it records.
 
 ### 6. The change adds more lines than it removes, against scenario S10 and the issue's last *Done when*
 
 severity: must
 location: `seal/threads/1793343707-each-document-serves-one-reader/frame/design.md:88`, `seal/threads/1793343707-each-document-serves-one-reader/gaps.md:31-39`
 evidence: executed `git diff --shortstat fba13ab2...HEAD -- . ':(exclude)seal/threads'`, `git diff --shortstat fba13ab2...HEAD -- . ':(exclude)seal/threads' ':(exclude)tests'`, `git diff --numstat fba13ab2...HEAD -- tests`
-verdict: open
+verdict: deferred frame/questions.md Q2
 
 S10 says that, outside `seal/threads/`, "deletions exceed insertions". The
 issue's bullet reads "the change removes more lines than it adds". The
@@ -306,7 +306,7 @@ and it cannot choose which pins to cut. One of these two closes it:
 | S10 The release moves the version and removes more than it adds | Given the branch at its last commit, when `git diff --shortstat <base>...HEAD -- . ':(exclude)seal/threads' ':(exclude)tests'` runs, then deletions exceed insertions; `tests/` is reported beside it; `.claude-plugin/plugin.json` reads `0.25.1` in the fragment's commit | `tests/behaviour/test_release_hygiene.py`; `tests/github/test_publish_release_note.py`; both shortstats in the phase record |
 ```
 
-answer:
+answer: The owner answers it at the pull request as `frame/questions.md` Q2. Its default is to accept the shortfall: S10 stays as written and fails, and the orchestrator's part of the pull request body states the three counts (1,128 added and 988 removed outside `seal/threads/`; 567 and 647 outside `tests/`; 561 and 341 in `tests/`), so the owner reads a miss and not a pass.
 
 ## Confirmations
 
