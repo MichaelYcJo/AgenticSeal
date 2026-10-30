@@ -1,6 +1,6 @@
 # Implementation Plan: 1793343707-each-document-serves-one-reader
 
-Approved <date> by <who>, when `crafter` was spawned.
+Approved 2026-10-30 by the orchestrator under the owner's routing answer, when `crafter` was spawned for phase 1.
 
 ## Summary
 
