@@ -298,6 +298,16 @@ class TestDefinition:
         for word in ("touches", "Location", "location", "fixed <commit>"):
             assert word not in step, word
 
+    def test_step_4_reads_a_records_only_fix_as_the_fix_passs_claim(self):
+        """S4 of #1148. `chain_check.py#records` passes a `fixed` of the last
+        record whose commit touched only the work item's records, with no
+        verifying round after it, because the sealer is that fix's reader:
+        step 4 says so, and reads it as a party's claim at HEAD."""
+        step = between(SEALER, "4. **The parties against each other.**", "5. **")
+        assert "touched nothing outside `seal/threads/<item>/`" in step, step
+        assert "the fix pass's claim with you as its reader" in step, step
+        assert "read the record at HEAD against what the finding asked" in step
+
 
 # --- the document that states the guarantee ------------------------------------
 

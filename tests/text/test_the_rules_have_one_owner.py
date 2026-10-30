@@ -561,9 +561,12 @@ def test_a_close_that_does_not_hold_reopens_it():
         )
     ]
     assert "the run ends at that round" not in verifying
+    # #1148: a `fixed` whose commit touched only the work item's records is
+    # read by the sealer at HEAD, and the check passes it in the last record.
     assert (
-        "run ends only on a round whose record holds no `open`, `fixed` or "
-        "`rejected` finding" in verifying
+        "run ends only on a round whose record holds no `open` or `rejected` "
+        "finding and no `fixed` one whose commit touched a path outside the "
+        "work item's records" in verifying
     ), "the verifying-round section no longer says where the run ends"
     # Round 9 of 1791933022, finding 3: the check holds a second condition on
     # the same record, so a run ended on the first alone is refused.
@@ -571,6 +574,31 @@ def test_a_close_that_does_not_hold_reopens_it():
         "and whose `target:` commit is HEAD, or is followed only by the work "
         "item's own records" in verifying
     ), "the verifying-round section ends the run on one of the check's two conditions"
+
+
+@pytest.mark.rule("run-ends-with-verifying-round")
+def test_a_fix_pass_to_the_records_alone_owes_no_verifying_round():
+    """S4 of #1148. `chain_check.py#records` passes a `fixed` of the last
+    record whose commit touched only the work item's records, so the
+    orchestration that spawns the verifying round says the same: such a
+    fix pass owes none, its reader is the sealer, and the round's *When* is
+    after the fixes to a file outside those records."""
+    orch = flat(*ORCH)
+    opening = orch[
+        orch.index("## Orchestrator: the run ends with a verifying round") : orch.index(
+            "So a run ends with a **verifying round**"
+        )
+    ]
+    assert (
+        "except a fix pass whose commits touched only the work item's own "
+        "records" in opening
+    ), opening
+    assert "the sealer reads every record at HEAD and is that fix's reader" in opening
+    assert "the pass owes no verifying round" in opening, opening
+    assert (
+        "**after the fixes** for the previous round to a file outside the work "
+        "item's records are committed" in orch
+    ), "the verifying round's When row still owes it after a records-only fix"
 
 
 COMPARISON = ("what the frame says", "what the fix did", "where the defect came from")

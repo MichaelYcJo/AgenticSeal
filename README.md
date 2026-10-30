@@ -206,9 +206,11 @@ that opens nothing needing a fix does not spend one of the three.
 
 A ready pull request fails while a commit outside the work item's records
 follows the commit on the last record's `target:` line, or while a finding of
-that record reads `fixed` or `rejected` — a review cannot have passed while
-the fixes that closed its findings went unread. On a draft it prints and
-names the verifying round.
+that record reads `rejected`, or `fixed` by a commit that touched a path
+outside the work item's records — a review cannot have passed while the fixes
+that closed its findings went unread. A fix to the records alone is read by
+the sealer at HEAD and owes no round. On a draft it prints and names the
+verifying round.
 
 No gate transmits your code, your paths, or your prompts anywhere. These side
 effects are worth stating outright: version-check writes a timestamp file
