@@ -216,7 +216,10 @@ does not parse, an unordered pair and an open row are all shown.
    corpus: a search of the tests' text finds a module only by how it
    spells a path, so no such search lists them all, and step 8 runs every
    one.
-7. Run `seal settle --apply`.
+7. For each released work item routed through the review chain, count
+   from its `trail/rounds/round-*.md` the four numbers
+   `docs/the-review-record.md` *The run* names, and post them as that
+   section says. Then run `seal settle --apply`, which removes the records.
 8. Run the repository's `Broad gate` row. It is the one run that reads
    every check. Where a case fails because a pin under `tests/` or a copy
    such as a README row still states the old fact, change that pin or

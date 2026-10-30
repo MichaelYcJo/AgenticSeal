@@ -101,7 +101,8 @@ def test_the_skill_states_the_settling_sessions_procedure():
     and step 8's broad gate is the one run that reads every check, run again
     after a fix. Round 4 of #1033, finding 1: each clause of steps 6 and 8
     that S13 names is pinned, step 6's fix and second dry run and step 8's
-    failure path among them."""
+    failure path among them. Round 1 of #1148, finding 4: step 7 counts the
+    review cost from the round records before `--apply` removes them."""
     text = flat(skill())
     procedure = text.split("## The settling session's procedure")[1].split("## ")[0]
     steps = [
@@ -120,7 +121,12 @@ def test_the_skill_states_the_settling_sessions_procedure():
         "The step is done when every `check:` target passes",
         "finds a module only by how it spells a path",
         "step 8 runs every one",
-        "Run `seal settle --apply`.",
+        # Round 1 of #1148, finding 4: the measure is taken where the session
+        # that removes the records reads, before the removal.
+        "For each released work item routed through the review chain, count "
+        "from its `trail/rounds/round-*.md` the four numbers "
+        "`docs/the-review-record.md` *The run* names",
+        "Then run `seal settle --apply`, which removes the records.",
         "Run the repository's `Broad gate` row.",
         "It is the one run that reads every check",
         "change that pin or copy, and name each in the pull request body",
