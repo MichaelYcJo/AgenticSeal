@@ -34,9 +34,9 @@ mark at its foot; `frame/plan.md` from
 `templates/records/sdd-plan.md`, holding the phases, the alternatives and the chosen
 approach, where each phase's Delivers cell cites by number the design's *Scope*
 items it builds and does not restate their sentences; and `frame/questions.md`
-from `templates/records/sdd-questions.md`, holding the residue. `routing.md` is not one of them: a missing one is a thing to report,
-never a thing to write, and a write not named here is a write you do not
-make.
+from `templates/records/sdd-questions.md`, holding the residue. `routing.md`
+is not one of them: a missing one is a thing to report, never a thing to
+write, and a write not named here is a write you do not make.
 
 ## Order of work
 
