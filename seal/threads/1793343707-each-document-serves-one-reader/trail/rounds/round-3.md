@@ -9,7 +9,7 @@ target: e7ad0fe1, fixes d0ad1d03..e7ad0fe1
 severity: should
 location: `skills/settle/SKILL.md:219-227`, `tests/text/test_settle_reads_before_it_removes.py:138`, `seal/threads/1793343707-each-document-serves-one-reader/frame/design.md:131`, `seal/threads/1793343707-each-document-serves-one-reader/frame/design.md:265`
 evidence: read `skills/settle/SKILL.md:219-227`, `seal/threads/1793343707-each-document-serves-one-reader/frame/design.md:56`, `seal/threads/1793343707-each-document-serves-one-reader/frame/design.md:131`, `seal/threads/1793343707-each-document-serves-one-reader/frame/design.md:265`, `skills/verify/orchestration.md:204-207`
-verdict: open
+verdict: deferred the frame
 regression: round-2#1
 
 The unit is step 7 of `skills/settle/SKILL.md` *The settling session's
@@ -71,14 +71,14 @@ repository keeps a `flow-baseline` log, the settling session counts them
 at step 7 of `skills/settle/SKILL.md` *The settling session's procedure*,
 which says how, and posts them there."
 
-answer:
+answer: Routed to the framer: this is the second regression on the settle's step 7 after round-2#1 took a fix-pass route, which `docs/the-review-record.md` *The run* sends to the framer whatever the comparison says. Both this finding and round-2#1 came from a review record's paste-ready text, so the framer redraws the measure's home rather than another pass patching it.
 
 ### 2. The settle's step 7 counts with `git grep`, which reads no round record in local mode
 
 severity: should
 location: `skills/settle/SKILL.md:222`, `tests/text/test_settle_reads_before_it_removes.py:150-151`
 evidence: executed `git grep -h '^\[core\]' -- .git/config`, `grep -n 'procedure is the same' skills/settle/SKILL.md`
-verdict: open
+verdict: deferred the frame
 regression: round-2#1
 
 The unit is step 7 of `skills/settle/SKILL.md` *The settling session's
@@ -127,7 +127,7 @@ it names the tool step 7 uses, so it changes with the step:
     # searches no test (round 2 of #1148, finding 1).
 ```
 
-answer:
+answer: Routed to the framer: this is the second regression on the settle's step 7 after round-2#1 took a fix-pass route, which `docs/the-review-record.md` *The run* sends to the framer whatever the comparison says. Both this finding and round-2#1 came from a review record's paste-ready text, so the framer redraws the measure's home rather than another pass patching it.
 
 ## Confirmations
 
