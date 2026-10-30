@@ -693,3 +693,6 @@ writing-style 스킬은 한국어 항목과 영어 항목을 따로 담는데, �
 ## 라이선스
 
 MIT
+
+AgenticSeal이라는 이름과 올빼미 문장, 그 인장 그림은 MIT 라이선스에 들지
+않습니다. 어떤 조건인지는 [TRADEMARKS.md](TRADEMARKS.md)에 있습니다.
