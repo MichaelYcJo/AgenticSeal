@@ -93,7 +93,7 @@ now plants a user's own `@rules/mine.md` import. The next case,
 line's path as a dangling import. *Removes* does not name it, and it sits
 with the meter, so it is left to phase 9.
 
-**Each new case was seen red first.** Against the tree at `22838410`, with
+**Each new case was seen red first.** Against the tree at `445b4dd4`, with
 only the new module written, 8 of its 11 cases failed: every case of step 4,
 the template case, and the S9 case. The 3 moved cases passed.
 
