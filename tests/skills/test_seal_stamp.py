@@ -466,8 +466,8 @@ class Test_read_sprite:
             (lambda lines: [lines[0] + ".", *lines[1:]], "line 1 is 17 characters"),
             (lambda lines: [lines[0][:-1] + "M", *lines[1:]], "line 1 carries 'M'"),
             (
-                lambda lines: ["K" + lines[0][1:], *lines[1:]],
-                "line 1 draws column 1, outside the field",
+                lambda lines: [lines[0], "K" + lines[1][1:], *lines[2:]],
+                "line 2 draws column 1, outside the field",
             ),
             (
                 lambda lines: [
@@ -478,14 +478,21 @@ class Test_read_sprite:
                 "line 15 column 15 casts its shadow outside the field",
             ),
         ],
-        ids=["short", "wide", "stray", "on-the-wax", "its-shadow-on-the-step-ring"],
+        ids=[
+            "short",
+            "wide",
+            "stray",
+            "on-the-step-ring",
+            "its-shadow-on-the-step-ring",
+        ],
     )
     def test_refuses_a_sprite_of_another_shape_naming_the_fault(
         self, tmp_path, change, fault
     ):
-        """#857 S3 and #1174 S3: the first fault, where a drawn cell inside
-        the field whose shadow would fall on the step ring is refused as one
-        on the wax is."""
+        """#857 S3 and #1174 S3: the first fault, where a drawn cell at 9.92
+        cells from the centre, the nearest a sprite cell comes to the step
+        ring's inner edge at 9.8 from outside it, is refused, and so is one
+        inside the field whose shadow would fall on the step ring."""
         broken = tmp_path / "broken.txt"
         broken.write_text(
             "\n".join(change(list(stamp.SPRITE))) + "\n", encoding="utf-8"
