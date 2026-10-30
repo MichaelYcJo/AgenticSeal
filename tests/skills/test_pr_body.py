@@ -318,7 +318,8 @@ class Test_compose:
             (
                 "changelog.md",
                 CHANGELOG
-                + "This closes #7.\n\n`Closes #8` in a span.\n\n```\nFixes #9\n```\n",
+                + "This closes #7.\n\n`Closes #8` in a span.\n\n"
+                + "```\nFixes #9\n</details>\n```\n",
                 3,
                 "#7",
             ),
@@ -330,10 +331,10 @@ class Test_compose:
         boundary line, a second fold or the fold's end inside the fold, a
         second section of one the body copies, and a copied line holding a
         closing keyword, which would close an issue no party claimed, are
-        each refused at the
-        record's path and line, with a sentence naming what was read there.
-        A closing keyword in a code span or a fence claims nothing, as
-        `close_issues_on_release.py#keywords_in` reads it."""
+        each refused at the record's path and line, with a sentence naming
+        what was read there. A closing keyword in a code span or a fence
+        claims nothing, as `close_issues_on_release.py#keywords_in` reads
+        it, and a `</details>` in a fence ends no fold."""
         with pytest.raises(PR.Refused) as refused:
             PR.compose(NAME, {**RECORDS, rel: text})
         assert [(where, at) for where, at, _ in refused.value.causes] == [(rel, line)]
