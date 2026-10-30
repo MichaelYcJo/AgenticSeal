@@ -14,50 +14,69 @@ needs both, or the people already running the plugin are never told of it.
 
 1. `.claude-plugin/plugin.json`: the version a session reports as loaded, and
    what `claude plugin update` installs from the marketplace clone.
-2. **A `vX.Y.Z` git tag on the release commit, pushed.** `hooks/version-check.py`
-   asks `git ls-remote --tags` and nothing else. An untagged release is one no
-   installed session is ever told about, and a user on the previous version
-   is told of a different release or of none.
-
-```
-git tag vX.Y.Z <release commit> && git push origin vX.Y.Z
-```
+2. **A `vX.Y.Z` git tag on the release commit**, which
+   `.github/workflows/publish-release.yml` creates when the release reaches
+   `main`. `hooks/version-check.py` asks `git ls-remote --tags` and nothing
+   else. An untagged release is one no installed session is ever told about,
+   and a user on the previous version is told of a different release or of
+   none.
 
 Check both agree before announcing anything:
 
 ```
-git describe --tags   # must name the release, not "<tag>-N-g<sha>"
+git fetch origin --tags
+git describe --tags origin/main   # must name the release, not "<tag>-N-g<sha>"
 ```
 
-**A release pull request that changes what the plugin ships moves the
-version.** `tests/behaviour/test_chain_hooks_hardening.py` binds the changelog to
-whatever `plugin.json` says, and the `hygiene` workflow fails a release pull
-request, one whose base is `main`, that changes `skills/`, `agents/`,
-`hooks/`, `templates/`, `bin/` or `.claude-plugin/` without moving the
-version. The tag is still the maintainer's to push; nothing in CI can do it.
+**The version moves at the start of a release, in the first pull request
+into `release/vX.Y.Z`.** The branch is cut with its version already named,
+the version of its milestone `release: X.Y.Z`, and nobody installs from a
+release branch, because the marketplace clone tracks `main`. Moved at the
+end, the version needed a pull request of its own, because the `release`
+ruleset takes no direct push and has no bypass actor, and that pull request
+was one more wait at the end of every release. The orchestrator moves it in
+the commit that adds the changelog fragment of the release's first work
+item, and every later pull request into the branch leaves it. What holds a
+release whose first pull request did not move it is the `hygiene` workflow,
+which fails a release pull request, one whose base is `main`, that changes
+`skills/`, `agents/`, `hooks/`, `templates/`, `bin/` or `.claude-plugin/`
+without moving the version.
 check: tests/behaviour/test_the_release_check_watches_what_ships.py .github/workflows/hygiene.yml
 
 **Every act the release performs once it reaches `main` belongs to a machine or
 to a command that answers it, and none of them waits on somebody remembering.**
-A step a person can skip is a step that gets skipped. Two different pushes
-fire two of the acts. The merge to `main` fires the close-issues workflow, so
-the label is created and spent before any tag exists. The tag push, the
-maintainer's last act, fires the note, because a note has to name a tag.
+A step a person can skip is a step that gets skipped. One push fires them.
+The merge to `main` fires the close-issues workflow, so the label is created
+and spent, and the publish workflow, which creates the tag and then publishes
+the note in the same run: a note has to name a tag, and a tag a workflow
+creates with its own token starts no workflow of its own. A tag pushed by
+hand fires the publish workflow too.
 
 - **The release note publishes itself.** `.github/workflows/publish-release.yml`
-  fires on the `v*` tag push and publishes the release's own file,
-  `changelog/X.Y.Z.md`, which the preparation commit gathered, titled from the
-  tagged commit's `release: X.Y.Z symptoms: <symptoms>` line
-  (`docs/release-checklist.md` *5. The release pull request*), read whole and
-  exactly so. It never republishes a release that exists, and falls back to
-  the tag name when no line reads so, logging the shape it expected and the
-  `release:` line it found. It goes red on a tag with no release file, or one with no section
-  for the tag, which is the release shipping unexplained. The note opens with
-  a summary read from the pull requests merged into `release/vX.Y.Z`: counts,
-  one line per pull request under its conventional-commit type with the issues
-  it closed, a `### 🙌 Thanks to` line for every author other than the
-  repository owner and bots, and how to update. The gathered section follows,
-  folded. A pull request title is therefore a line of the release note: write
+  fires on the push to `main`, and on a `v*` tag pushed by hand. On the push
+  to `main` it publishes only where that push moved `plugin.json`'s version:
+  it creates the `vX.Y.Z` tag on the pushed commit through the GitHub API
+  where no such tag exists, and takes the tag where it already names that
+  commit, which is a re-run. It publishes a note built from the release's
+  changelog fragments, titled from the tagged commit's
+  `release: X.Y.Z symptoms: <symptoms>` line (`docs/release-checklist.md`
+  *5. The release pull request*), read whole and exactly so. It never
+  republishes a release that exists, and falls back to the tag name when no
+  line reads so, logging the shape it expected and the `release:` line it
+  found. Which fragments it reads is `docs/the-record-layout.md` *A change
+  writes fragments, never a shared file*, each read at the newest commit of
+  the range that holds it, so a work item a settle removed before the tag
+  still has its entry. It goes red on a tag whose range added no
+  fragment the previous tag does not already hold, which is the release
+  shipping unexplained. The note opens with the release's theme, the first
+  sentence of its milestone's description with a leading `Purpose:` left
+  out; a milestone that cannot be read leaves the note without one and never
+  fails the job. A summary read from the pull requests merged into
+  `release/vX.Y.Z` follows: counts, one line per pull request under its
+  conventional-commit type with the issues it closed, a `### 🙌 Thanks to`
+  line for every author other than the repository owner and bots, and how to
+  update. The fragments follow, folded, each under an HTML comment naming its
+  work item. A pull request title is therefore a line of the release note: write
   it as one. **Then the release's seal is attached.** A second job in the same
   workflow runs only when this run created the release. It runs the suite at
   the tag, attaches the page form of the stamp's mark, the PNG that
@@ -93,7 +112,7 @@ maintainer's last act, fires the note, because a note has to name a tag.
 `docs/release-checklist.md` *6. After the merge* carries a box for each of the
 first two. The first confirms the workflow fired and is not where the note
 gets written; the second is where the command is run.
-check: tests/behaviour/test_a_release_publishes_its_note.py tests/github/test_publish_release_note.py tests/text/test_the_release_tail_does_not_end_at_the_tag.py tests/behaviour/test_the_release_seal_is_drawn.py tests/github/test_release_seal.py
+check: tests/behaviour/test_a_release_publishes_its_note.py tests/github/test_publish_release_note.py tests/github/test_tag_release.py tests/text/test_the_release_tail_does_not_end_at_the_tag.py tests/behaviour/test_the_release_seal_is_drawn.py tests/github/test_release_seal.py
 
 Which workflows GitHub starts on which event, and which run a newer push
 cancels, is GitHub's behaviour. No case here can start a run, so
@@ -129,7 +148,6 @@ rule and the paragraphs below are why.
 | `main` | `release/vX.Y.Z` | cut a branch | — |
 | `release/vX.Y.Z` | a feature branch | cut a branch | — |
 | a feature branch | `release/vX.Y.Z` | **squash** | *Squash and merge* |
-| the release-prep branch | `release/vX.Y.Z` | **squash** | *Squash and merge* |
 | `release/vX.Y.Z` | `main` | **3-way merge** | *Create a merge commit* |
 | a hotfix branch | `main` | **3-way merge** | *Create a merge commit* |
 
@@ -183,8 +201,8 @@ branch pattern, so two of them can disagree on purpose.
 GitHub hides the merge methods a ruleset excludes, so the wrong button is not
 offered. Both rulesets require a pull request, so neither branch takes a
 direct push, and there are no bypass actors: the rule applies to the owner
-too. The release-preparation commit therefore needs a branch of its own and a
-squash merge, like any other work.
+too. No workflow can therefore commit the version to a release branch, which
+is why the version moves in the release's first pull request.
 
 - **`release/vX.Y.Z` is cut from `main`.** Not from the previous release
   branch, and not from a long-lived branch that outlives its release. An
@@ -206,48 +224,27 @@ squash merge, like any other work.
   Keeping the branch is still worth something: it leaves the rounds and the
   verdict readable on a branch nobody merged, which is the only place the
   reason it was not merged is written down.
-- **The release branch merges into `main` as a merge commit**, carrying one
-  commit of its own: the one that gathers the changelog fragments into
-  `changelog/X.Y.Z.md` under `## X.Y.Z — <date>`, heads the index
-  `CHANGELOG.md` with that line, and moves `plugin.json`. Then the tag. It is
-  also the moment every issue this release closes gets closed, by a workflow
+- **The release branch merges into `main` as a merge commit**, carrying no
+  commit of its own, because the version moved in the release's first pull
+  request. The publish workflow then tags the merge commit. It is also the moment every issue this release closes gets closed, by a workflow
   rather than by anybody's hand; the paragraphs below say how, and what a
   feature pull request writes so it has something to read.
 - Feature pull requests write their entry to
-  `seal/threads/<work-item-id>/changelog.md` and leave `CHANGELOG.md`,
-  `changelog/` and `plugin.json` alone. The hygiene workflow asks for the bump
-  only when the base is `main`, which is what makes that enforceable.
+  `seal/threads/<work-item-id>/changelog.md` and leave `plugin.json` alone,
+  except the release's first, which moves it. The hygiene workflow asks for
+  the moved version only when the base is `main`, where it holds a release
+  whose first pull request did not move it.
 
-**The changelog entries arrive as fragments, and the release gathers them.**
-Which file a change writes, and why, is `docs/the-record-layout.md` *A change
-writes fragments, never a shared file*. Release preparation runs:
-
-```
-python3 .github/scripts/gather_changelog.py --version X.Y.Z
-```
-
-It concatenates every fragment that no release file carries yet into
-`changelog/X.Y.Z.md`, a file of the release's own that opens with its dated
-`## X.Y.Z — <date>` line, and heads the index `CHANGELOG.md` with that same
-line and a link to the file. A second gather for the same version appends
-into the file and keeps its date. Each entry is written under an HTML comment
-naming its work item, invisible to a reader and the only link from a released
-entry back to the work that produced it. `--check` reports fragments that
-never arrived, and the hygiene workflow runs it on every pull request into
-`main`, so a release cannot go out with a change that ships unexplained.
-`--dry-run` prints the section and writes nothing, in either file.
-
-A fragment carries no line starting `## `, and it closes every fenced block
-and HTML comment it opens. The released section ends at the next `## ` line,
-for the gather and for the release note alike, so every entry after it would
-ship under no version; and a block left open would hide the next work item's
-marker, so `--check` would call a gathered entry missing. The gather refuses
-either fragment, with or without `--dry-run`, before it writes or prints a
-section, and names the fragment, the line number and the line. Demote the line
-to `###` or lower, or close the block, in a pull request into the release
-branch, then gather again. A fragment already in a release file is not read
-again. `CHANGELOG.md` holds no section that entries accumulate under, such
-as `## Unreleased`; the fragments are that region.
+**The changelog entries arrive as fragments, and the release note is built
+from them at the tag.** Which file a change writes, and why, is
+`docs/the-record-layout.md` *A change writes fragments, never a shared file*.
+No branch gathers them. `.github/scripts/publish_release_note.py` reads, from
+the history at the tag, the fragments the release's commits added and the
+previous version tag does not already hold, and writes each under an HTML
+comment naming its work item, invisible to a reader and the only link from a
+released entry back to the work that produced it. `DRY_RUN=1` prints the note
+and writes nothing.
+check: tests/github/test_publish_release_note.py
 
 **The two merge shapes are not interchangeable.** Squash into the release
 branch keeps one entry per change; a merge commit into `main` keeps
@@ -331,11 +328,12 @@ read it as two either.
 `Part of #N` remains the form for a pull request that advances an issue without
 finishing it. It links for a reader and asks nothing to close.
 
-**The version is provisional until the content settles.** Release when the
-accumulated changes read as one changelog entry, not on a commit count, so
-whether the number is a minor or a patch is known at the end, not at the cut.
-Rename the branch if the answer changes; while it is unpushed that costs
-nothing.
+**The version is named at the cut.** A release's milestone, `release: X.Y.Z`,
+names the version before its first work item starts, and the branch is cut
+as `release/vX.Y.Z` for it. A release whose content changes the answer, a
+minor become a patch or a patch become a minor, is cut again under the new
+name from the old branch, and the new branch's first pull request moves
+`plugin.json` to the new version.
 
 **`main` stays the default branch.** A fresh marketplace clone lands on the
 default branch, so making a release branch the default would hand every user

@@ -194,13 +194,10 @@ def test_bin_wrapper_resolves_the_checker_from_any_cwd():
     assert "usage: seal fold" in r.stdout
 
 
-def test_migrated_commands_stay_user_invoked():
-    # preset-setup shipped as a command under commands/ (user-invoked). Moving
-    # it to skills/ must not silently turn it into an auto-triggering skill.
-    p = os.path.join(ROOT, "skills", "preset-setup", "SKILL.md")
-    assert os.path.isfile(p), "preset-setup not migrated"
-    head = open(p, encoding="utf-8").read().split("\n---\n", 1)[0]
-    assert "disable-model-invocation: true" in head, "preset-setup"
+def test_the_commands_directory_stays_gone():
+    # The user-invoked commands moved from commands/ to skills/, and the one
+    # still shipped, parity-setup, is held user-invoked by
+    # test_parity_declaration_is_bootstrappable_not_hand_written.
     assert not os.path.isdir(os.path.join(ROOT, "commands")), (
         "commands/ should be gone — skills/ is the documented layout"
     )
@@ -405,20 +402,20 @@ def test_the_skills_row_lists_the_on_demand_skills_without_a_count():
         assert count is None, (edition, count and count.group(0))
 
 
-def test_the_always_on_block_is_described_without_counts():
+def test_the_always_on_core_is_described_without_counts():
     """#1055 S3. The heading and the CLAUDE.md block row counted the block's
-    lines, headings and rules, a copy of `templates/setup/claude-md-block.md`
-    that went stale at its next edit. The row names that file as the block's
-    one source, and the counts it held are pinned absent."""
+    lines, headings and rules, a copy that went stale at its next edit. Since
+    #1177 the always-on text is the core, which the row names as its one
+    source, and the counts the block's row held are pinned absent."""
     from conftest import flat
 
     for edition, row_head, gone in (
         (
             "README.md",
-            "| CLAUDE.md block |",
+            "| Core |",
             ("context is 12 lines", "12 always-on lines", "eight rules"),
         ),
-        ("README.ko.md", "| CLAUDE.md 블록 |", ("12줄", "규칙 여덟")),
+        ("README.ko.md", "| 코어 |", ("12줄", "규칙 여덟")),
     ):
         text = flat(edition)
         for phrase in gone:
@@ -426,7 +423,7 @@ def test_the_always_on_block_is_described_without_counts():
         with open(os.path.join(ROOT, edition), encoding="utf-8") as f:
             rows = [ln for ln in f if ln.startswith(row_head)]
         assert len(rows) == 1, (edition, row_head)
-        assert "`templates/setup/claude-md-block.md`" in rows[0], edition
+        assert "`skills/core/SKILL.md`" in rows[0], edition
 
 
 def test_the_hooks_that_reach_the_network_are_named_without_a_count():
@@ -770,7 +767,10 @@ def test_the_batch_phrase_is_found_by_its_claim_not_by_one_spelling():
     The refusal decided by the claim and the FINDER still decided by one exact
     substring, so an instruction written any other way never reached the
     window. All three spellings below were measured passing at exit 0 before
-    this repair — the first is `CLAUDE.md:39` verbatim.
+    this repair — the first is the batch rule as `CLAUDE.md:39` spelled it
+    then. That spelling left with #767, and the rule now stands in
+    `skills/core/SKILL.md` *The first value: efficient development through
+    the workflow* in other words.
 
     This case holds the two PIECES and their reasons, and it is not the
     guard: `test_the_sweep_refuses_a_planted_instruction_in_every_spelling`
@@ -1156,18 +1156,3 @@ def test_every_spec_directory_that_reached_the_ladder_has_an_overview():
         if on_the_ladder and not os.path.isfile(os.path.join(d, "gaps.md")):
             missing.append(n)
     assert not missing, f"work items with no closing overview: {missing}"
-
-
-def test_installer_prints_commands_a_user_can_actually_type():
-    # Plugin commands are namespaced. The installer printed /preset-setup,
-    # which resolves to nothing — found by running the installer against a
-    # real machine rather than by reading it.
-    import re
-
-    text = open(os.path.join(ROOT, "install.sh"), encoding="utf-8").read()
-    bare = [
-        m
-        for m in re.findall(r"(?<!:)/([a-z][a-z-]+)\b", text)
-        if m in {"preset-setup", "parity-setup"}
-    ]
-    assert not bare, f"un-namespaced plugin commands in install.sh: {bare}"

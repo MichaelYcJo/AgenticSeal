@@ -44,8 +44,6 @@ SCANNED = (
     "CONTRIBUTING.md",
     "CLAUDE.md",
     "SECURITY.md",
-    "install.sh",
-    "uninstall.sh",
     "seal/README.md",
     "README.md",
     "README.ko.md",

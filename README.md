@@ -35,14 +35,14 @@ works outside the context entirely (hooks).
 
 | Who / what | Follows | What it concretely is |
 |---|---|---|
-| **framer** (subagent) | `agent-contract` | Writes the work item's `frame/design.md`, `frame/plan.md` and `frame/questions.md` before anybody builds, and is spawned where the SDD ladder already calls for a design. It reads the repository widely, opens `implement` at the step that decides the ladder and the file set and `writing-style` before it writes, answers from the tree what the tree can answer, and leaves only the rest to `questions.md`. The session asks the routing batch before the framer is spawned, so after that, approving `plan.md` is the run's one interruption. It writes no code — the party that draws the contract is not the party that executes it, which is what gives the proofer's *compliance first* a document somebody else wrote to check against |
-| **crafter** (Claude Code subagent) | `agent-contract` | Builds one phase of a work item against the frame, or runs one fix pass over a round record. It opens `implement` at its first step and `writing-style` before it writes a record, and hands back each claim labelled `executed`, `read` or `unverified`, with the full suite labelled `unverified` and its answerer named |
-| **proofer** (subagent) | `agent-contract` | Reviews compliance first, then quality. It opens `code-review` at its first step and `writing-style` before it writes its round record. The orchestrator verifies the record before acting on it, and the pull request's check reads it — the reviewer never verifies its own report |
-| **tracer** (subagent) | `agent-contract` | Records what the original code does as `path#anchor` coordinates and returns facts, not verdicts. It opens `legacy-parity` at its first step. Appears only in repos that declare `seal/parity.md` |
-| **sealer** (subagent, Opus) | `agent-contract` | The final, independent guarantor. After the rounds settle, the changelog is written, the orchestrator has run the one broad gate (`seal gate`, which writes `trail/gate.md`), and `seal pr-body` has copied the records into the first part of the pull request body, it reads that record and runs nothing broad itself, confirms through `seal pr-body --check` that the copied part still matches the records, re-runs a sample of the implementer's claims, and reads the design, the build, the last review, the changelog and the part of the pull request body the orchestrator wrote against the issue and the tree. Its verdict is the work item's `guarantee.md`: `sealed`, `withheld` naming what the tree contradicts, or `undecided` with a question for the owner. It does not re-judge the design or the code's quality |
+| **framer** (subagent) | `core`, `agent-contract` | Writes the work item's `frame/design.md`, `frame/plan.md` and `frame/questions.md` before anybody builds, and is spawned where the SDD ladder already calls for a design. It reads the repository widely, opens `implement` at the step that decides the ladder and the file set and `writing-style` before it writes, answers from the tree what the tree can answer, and leaves only the rest to `questions.md`. The session asks the routing batch before the framer is spawned, so after that, approving `plan.md` is the run's one interruption. It writes no code — the party that draws the contract is not the party that executes it, which is what gives the proofer's *compliance first* a document somebody else wrote to check against |
+| **crafter** (Claude Code subagent) | `core`, `agent-contract` | Builds one phase of a work item against the frame, or runs one fix pass over a round record. It opens `implement` at its first step and `writing-style` before it writes a record, and hands back each claim labelled `executed`, `read` or `unverified`, with the full suite labelled `unverified` and its answerer named |
+| **proofer** (subagent) | `core`, `agent-contract` | Reviews compliance first, then quality. It opens `code-review` at its first step and `writing-style` before it writes its round record. The orchestrator verifies the record before acting on it, and the pull request's check reads it — the reviewer never verifies its own report |
+| **tracer** (subagent) | `core`, `agent-contract` | Records what the original code does as `path#anchor` coordinates and returns facts, not verdicts. It opens `legacy-parity` at its first step. Appears only in repos that declare `seal/parity.md` |
+| **sealer** (subagent, Opus) | `core`, `agent-contract` | The final, independent guarantor. After the rounds settle, the changelog is written, the orchestrator has run the one broad gate (`seal gate`, which writes `trail/gate.md`), and `seal pr-body` has copied the records into the first part of the pull request body, it reads that record and runs nothing broad itself, confirms through `seal pr-body --check` that the copied part still matches the records, re-runs a sample of the implementer's claims, and reads the design, the build, the last review, the changelog and the part of the pull request body the orchestrator wrote against the issue and the tree. Its verdict is the work item's `guarantee.md`: `sealed`, `withheld` naming what the tree contradicts, or `undecided` with a question for the owner. It does not re-judge the design or the code's quality |
 | Skills | — | The skill the agents follow from their first tool call is in the column to the left. These a session loads on its own when the work calls for them, and an agent opens each at the step that names it — `code-review`, `commit-pr-convention`, `confidence-check`, `feature-planner`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style`. The rest you invoke by name; they are in the cheat sheet below |
 | Hooks | — | The gates themselves — auto-registered by the plugin, no settings wiring |
-| CLAUDE.md block | — | The rules a session holds from its first message, loaded every turn. No response-language rule — that stays yours. Its one source is `templates/setup/claude-md-block.md`, which `install.sh` and `/agentic:update` write into a `CLAUDE.md`; no other file carries a copy |
+| Core | — | `skills/core/SKILL.md`, the values every party shares. Every agent preloads it through its definition's `skills:` list, and the plugin's `core-start` hook prints it into every session, so a session holds what every agent holds from its first message and nothing is written into your `CLAUDE.md`. It carries no response-language rule — that stays yours. `! seal core` shows which core a session holds; disabling the plugin's hooks turns it off, and the plugin's other hooks with it |
 
 ## The chain
 
@@ -169,6 +169,7 @@ tables:
 | Gate | Fires | Does | Where |
 |---|---|---|---|
 | routing-edit-gate | before a `Write`, `Edit` or `NotebookEdit` call | refuses an edit when no `routing.md` declares the edited file's branch, unless this session ran `seal no-work-item` on that branch. It judges the file's repository and branch, wherever the shell sits. Files under `seal/`, files git ignores and files in no opted-in repository pass, so the declaration itself is always writable. The model gets the refusal with its two ways on — write the declaration, or run `seal no-work-item` — and under the `automation` press it names no question to put to you. Nothing of this plugin runs inside git, so a person's own commit from a terminal runs none of its code; at the pull request, `chain-check` fails a commit whose `Seal-Routing` trailer names a work item no declaration names | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
+| core-start | at session start, after `/clear` and after a compaction, never on resume | prints the core, `skills/core/SKILL.md`, into the session as plain text, under a first line that names the printed file, the running plugin's version and that file's SHA-256. In a clone of this plugin's own repository it prints the clone's copy. A resumed session keeps what its start printed, which is why resume is left out. It writes nothing | every session, in any directory |
 | stub-remove | at session start | removes the `pre-commit`, `reference-transaction` and `post-commit` stubs an earlier release wrote into the clone's common `hooks/` directory: only a file whose second line is the marker `# specseal-git-hook`. A hook somebody else wrote is left byte for byte. Says once what it removed, and nothing where there was nothing | any git repo |
 | root-migrate | at session start | moves a layout an earlier release wrote into the current one: it rewrites `seal/README.md` to open with the marker line and moves each 0.22.x work item to `seal/threads/<id>/`, as staged `git mv` steps for you to review and commit, or as plain renames under the common git dir in local mode. It refuses the whole move over uncommitted changes under what it would move, and says in one line what moved. It also gives the plugin's name to the state files an earlier release wrote under its old name, beside the root and under `~/.claude/` | any git repo whose tree or common git dir still holds an earlier layout; the state rename runs at every session start, silently |
 | implementer-mark | before an Agent/Task call whose `subagent_type` is `framer` or `crafter` (`agentic:crafter`, or a project-local `crafter`) | writes the checked-out branch name to `.git/agentic-planner` or `.git/agentic-implementer`, one file per axis. It prints nothing, so it can neither deny nor ask; it is the trace the notice below reads | `seal/` at the root, or under the common git dir in local mode — silent elsewhere, and writes nothing |
@@ -262,12 +263,11 @@ wrong for every other machine.
 | `seal fold [--ceiling <n>]` | checks the top level of the policy root for one read and the index, as `skills/settle/scripts/fold_check.py` and its rows in `templates/setup/config.md` *The fold's values* state them. The flag replaces its row for one run |
 | `seal rules <doc> [--root <dir>]` · `seal rules --check [--root <dir>]` | `seal rules <doc>` prints each heading of a document and, under it, the targets of its `check:` lines, each with the first sentence of its test's docstring, or why the target does not resolve. A rule's text lives once, in that docstring, so this is how a document and its tests read side by side, and it exits 0 whatever it finds. `seal rules --check` reads every check line in every rule file and exits 1 naming each one out of grammar or naming a target that is gone, by file, line and heading. Such a line inside a section an unsettled design's `remove` with no `from` takes out at the settle is printed as excused, naming that work item, and does not fail the check; a pending `change` excuses nothing, and where the `seal/` root is local no line is excused. One case of the suite runs it over the tree. The targets resolve in the repository the command is typed in, and neither form writes anything |
 | `seal pact [ROOT]` | run at the repository holding a pact (`seal/pact.md`), the one copy of a contract several repositories keep together: reads every signer the pact lists, found through `~/.claude/agentic/pact-paths.md` or a sibling checkout, checks that each names the pact in its `Pact` row, and grades every pact anchor it cites. `SUPERSEDED` says the signer was built against an older clause, `NOT TAKEN` names the branch holding a change the pact has not taken, `UNMATCHED` and `BROKEN` say read both sides or re-coordinate. Local only: a signer's CI can read one repository, so it reads nothing of the pact |
-| `seal payload [--calibrate <main transcript>] [--baseline <run.json>]` | what each agent's startup payload is made of — its definition, every skill its `skills:` list injects, and the two `CLAUDE.md` files — in bytes, chars and tokens, with a basis on every token figure: `measured` where it came from a transcript's spawns, `estimated` from a per-agent ratio otherwise. `--baseline` prints the delta against an earlier `--json` run, which is how a trimmed payload is shown to have shrunk |
-| `/agentic:preset-setup` | approval-gated semantic merge of the CLAUDE.md block |
+| `seal core [--transcript <path>]` | whether this session's context holds the core, `skills/core/SKILL.md`, once and whole, read from the session's transcript: exit 0 where one `SessionStart` hook entry in context holds the file its first line names, 1 with the reason otherwise. The core arrives from the plugin's `SessionStart` hook and not from a `CLAUDE.md` file, so `/memory` does not list it; type `! seal core` in a session to see which core it holds. Run from an agent's Bash, it reads the session that spawned the agent |
+| `seal payload [--calibrate <main transcript>] [--baseline <run.json>]` | what a session's and each agent's startup payload is made of, in bytes, chars and tokens. A session's table comes first: the two `CLAUDE.md` files with each file their `@` lines import, and the core the plugin's `SessionStart` hook prints, which reaches no agent. Then each agent's: its definition, every skill its `skills:` list injects, and the same `CLAUDE.md` pair. Every token figure carries a basis: `measured` where it came from a transcript's spawns, `estimated` from a per-agent ratio otherwise, and always `estimated` for the session, whose prefix no transcript calibrates. `--baseline` prints the delta against an earlier `--json` run, which is how a trimmed payload is shown to have shrunk |
 | `/agentic:parity-setup` | declare that this repo ports from another codebase — finds the original, records the baseline |
 | `/agentic:config` | show what this repository decided for itself — the two languages it writes in and where its records live — and change any of it. Routes a change to whatever owns that row rather than editing behind it |
 | `/agentic:update` | take the newest release and see what is in it — runs both update commands in the right order, then names the changelog entries between your version and the new one. It also names both ways to load it and how far each one was actually measured |
-| `bash install.sh [--project]` / `bash uninstall.sh` | add / remove the CLAUDE.md marker block |
 
 **Inline switches:**
 
@@ -287,15 +287,19 @@ hook falls back to `py -3` when `python3` cannot start. Optional: `uv`/`uvx` or 
 for the Python auto-format hook — without them it silently skips.
 
 ```bash
-# 1. Plugin (agents + skills + gates)
+# The plugin: agents, skills, gates and the core
 claude
 > /plugin marketplace add MichaelYcJo/AgenticSeal
 > /plugin install agentic@agenticseal
-
-# 2. CLAUDE.md block — pick ONE scope
-bash install.sh            # interactive: global (~/.claude) or project (./)
-bash install.sh --project  # non-interactive project scope
 ```
+
+That is the whole install. The core reaches every session from the
+plugin's `SessionStart` hook and every agent through its `skills:` list, so
+nothing is written into a `CLAUDE.md`. An earlier release wrote a
+CLAUDE.md block between `<!-- agentic:start -->` and `<!-- agentic:end -->`;
+`/agentic:update` takes it out (*Updating*). To uninstall, run
+`/plugin uninstall agentic`, and delete such a block yourself, its markers
+and the lines between them, where no update has taken it out.
 
 ### Coming from `specseal@specseal`
 
@@ -312,8 +316,10 @@ claude plugin install agentic@agenticseal
 
 The first line also uninstalls `specseal@specseal` and deletes its cache
 (`code.claude.com/docs/en/plugins/cli-reference.md` *plugin marketplace
-remove*). Then run `bash install.sh` again, or `/agentic:preset-setup`, so
-your CLAUDE.md block takes the new markers and the new prefix. The update
+remove*). The CLAUDE.md block the old install wrote, between
+`<!-- specseal:start -->` and `<!-- specseal:end -->`, carries nothing the
+new install needs: `/agentic:update` takes it out at the next release, or
+you delete its markers and the lines between them. The update
 command of the old install runs the old names, so it cannot carry you
 across. These three lines are read from the Claude Code reference and have
 not been run on a machine that holds the old install.
@@ -358,12 +364,13 @@ latest version* against whatever the clone last knew. Updates are keyed to the
 version in `plugin.json`, not to commits — a change that ships without a
 version bump reaches nobody.
 
-`install.sh` backs up to `CLAUDE.md.bak`, merges only its marker block — read
-from `templates/setup/claude-md-block.md`, the block's one source — (idempotent —
-rerun to update), and never edits your own content: overlaps are warned
-about, not resolved. For a reviewed, deduplicating merge run
-`/agentic:preset-setup` inside Claude Code instead — every deletion goes through an
-approval diff.
+`/agentic:update` also takes out the CLAUDE.md block an earlier release
+wrote: it backs your `CLAUDE.md` up to `CLAUDE.md.bak`, removes the block's
+markers and the lines between them, and never edits your own content. The
+update that brings this step in runs the earlier release's procedure, which
+copies the block from `templates/setup/claude-md-block.md`; that template
+holds its two markers and nothing between them, so the update leaves an
+empty marker pair, and the next update removes it.
 
 ### Coming up from 0.3.x
 

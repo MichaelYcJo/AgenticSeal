@@ -52,12 +52,13 @@ AXES = (
 ORCH = ("skills", "implement", "orchestration.md")
 SKILL = ("skills", "implement", "SKILL.md")
 
-# The shape of the asking, in the ONE spelling the orchestrator's section and
-# the block's template share (#911): question 1 alone, and
+# The shape of the asking, in the ONE spelling the orchestrator's section
+# states (#911): question 1 alone, and
 # the boxes in a second call only where its answer was `per axis`, because
 # under the other two answers they mean nothing and were on screen anyway.
-# Fourteen words on purpose: at fifteen a sentence two documents share is a
-# pasted passage to `tests/text/test_no_passage_is_pasted_into_a_second_file.py`.
+# Fourteen words, from when the block's template shared it: at fifteen a
+# sentence two documents share is a pasted passage to
+# `tests/text/test_no_passage_is_pasted_into_a_second_file.py`.
 SHAPE = "Ask question 1 alone; the boxes in a second call only under `per axis`."
 # Every count or shape the question has outgrown. The last is the sentence
 # #911 retired; a copy of it left anywhere reads as the shape.
@@ -456,10 +457,8 @@ def test_question_1_is_asked_alone_and_the_boxes_only_under_per_axis():
     assert len(labelled_table(skill, "Order", "Box")) == 4, (
         "question 2 does not offer exactly four boxes"
     )
-    # ONE spelling, shared with `templates/setup/claude-md-block.md`, because
-    # `tests/text/test_review_axes.py` pairs the two
-    # documents on this exact phrase — two spellings of one decision is
-    # the drift that pair exists to catch.
+    # ONE spelling, which `tests/text/test_review_axes.py` also reads in
+    # this section: two spellings of one decision is the drift both catch.
     assert SHAPE in flat(skill)
 
 
@@ -993,35 +992,6 @@ def test_the_crafter_carries_its_own_half_and_not_the_questions():
             f"`{count}` is back in `agents/crafter.md`, which is the routing "
             "question in the definition of the party that does not ask it"
         )
-
-
-def test_the_preset_block_carries_it_too():
-    """The block is the one file every session on a machine always has.
-
-    Round 1 measured it as the copy nothing held: the block kept its old
-    three-checkbox paragraph and 176 cases stayed green. Most of what this
-    work item distributes IS this paragraph. The absence half is the half
-    that would have caught it.
-
-    Read from `templates/setup/claude-md-block.md`, the one copy since #940. The
-    box answers left the block with it: the block states the shape, and
-    `skills/implement/orchestration.md` holds what each box writes.
-    """
-    for parts in (("templates", "setup", "claude-md-block.md"),):
-        text = flat(read(*parts))
-        where = "/".join(parts)
-        assert "seal/threads/<work-item-id>/routing.md" in text, where
-        for answer in ("automation", "per axis", "no work item"):
-            assert f"`{answer}`" in text, f"{where} lost the answer `{answer}`"
-        assert SHAPE in text, (
-            f"{where} still asks the old question, and the block is what a "
-            "session in an opted-in repository always has in front of it"
-        )
-        for stale in STALE:
-            assert stale not in text, (
-                f"`{stale}` survived in {where}, so every session reads the "
-                "shape the rest of the repository stopped describing"
-            )
 
 
 def test_the_orchestration_offers_the_vocabulary_the_parser_accepts():

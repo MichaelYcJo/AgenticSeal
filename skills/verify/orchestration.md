@@ -143,7 +143,8 @@ author cannot act on and is not allowed to fix.
 **Three returns and stop.** This counts trips through the gate, not the
 review chain's rounds. A fourth trip is not another bug; it means the narrow
 scope is missing a class of breakage, which is an architecture question for
-the user, the same reading as the 3+ Fix Rule.
+the user, the same reading as `agents/crafter.md` *Three failed fixes stop
+the work*.
 
 **Nothing edits between the broad run and the PR.** The tree that passed is
 the tree that ships. One more small fix after the run means the run is stale,

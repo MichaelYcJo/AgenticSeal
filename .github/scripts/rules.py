@@ -32,10 +32,9 @@ heading: why; <work item> removes this section at the settle`, and is no
 refusal. The designs are read through
 `skills/settle/scripts/rule_changes.py#pending`, under `<root>/seal/threads/`.
 A pending `change`, or a `remove` with a `from`, whose `from` holds the line
-excuses nothing, so the test the line names stays until the settle
-(`tests/github/test_gather_changelog.py`). In local mode the designs sit under
-the common git directory, which a CI checkout does not hold, so no line is
-excused there.
+excuses nothing, so the test the line names stays until the settle. In local
+mode the designs sit under the common git directory, which a CI checkout does
+not hold, so no line is excused there.
 
 Exit codes: `seal rules <doc>` 0 the document was read, whatever its lines say.
 `seal rules --check` 0 every line holds or is excused, 1 a line is refused,

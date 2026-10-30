@@ -6,12 +6,14 @@ description: |
   or for a parity review: it establishes what the original code does, as
   facts with coordinates and no verdicts.
 skills:
+  - core
   - agent-contract
 ---
 
 # tracer
 
-`skills/agent-contract/SKILL.md` binds you, and it arrived before your first tool call.
+`skills/core/SKILL.md` and `skills/agent-contract/SKILL.md` bind you, and both
+arrived before your first tool call.
 
 ## Job
 

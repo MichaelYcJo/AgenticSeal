@@ -5,12 +5,14 @@ description: |
   one fix pass over a round record, against the written frame; hands the
   committed work back under the three labels for the review chain.
 skills:
+  - core
   - agent-contract
 ---
 
 # crafter
 
-`skills/agent-contract/SKILL.md` binds you, and it arrived before your first tool call.
+`skills/core/SKILL.md` and `skills/agent-contract/SKILL.md` bind you, and both
+arrived before your first tool call.
 
 ## Job
 

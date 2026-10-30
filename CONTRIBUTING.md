@@ -364,9 +364,9 @@ adds any mechanism by what it takes away:
   environment is an outage, not a cost.
 - **A prompt budget.** The pull request says how many times the change puts
   a question in front of a person, per session, and what each one costs when
-  nobody is at the keyboard. Asking a person is the most expensive judgment
-  `CLAUDE.md` *The first value: efficient development through the workflow*
-  names, so an interruption is a price paid against that value rather than a
+  nobody is at the keyboard. Asking a person is the most expensive step
+  `skills/core/SKILL.md` *The first value: efficient development through the
+  workflow* names, so an interruption is a price paid against that value rather than a
   neutral design choice. A change that adds one says why
   nothing cheaper reaches the same guarantee: a value read from a file, a
   default assumed in writing, a refusal the agent makes on its own. Where a
@@ -378,7 +378,8 @@ adds any mechanism by what it takes away:
 - **What it removes.** A pull request that adds a mechanism (a gate, a
   checker, a hook, a CI step, a rule) names the existing one it removes, or
   says why none can go, and with either answer what that one caught against
-  what it costs. `CLAUDE.md` *The rule a mechanism is kept against* is why.
+  what it costs. `skills/core/SKILL.md` *The rule a mechanism is kept
+  against* is why.
   What goes is listed under its `frame/design.md`'s `## Removes`, which the review
   reads against the diff; `docs/the-reader-registry.md` *A frame names what
   its work removes* is the rule.
@@ -470,4 +471,4 @@ a false positive would cost. The plugin's value is that its always-on surface
 stays small: a new always-loaded rule has to earn its place against
 [the context-file study](https://arxiv.org/abs/2602.11988) the README cites.
 Skills that load on demand are a much easier case to make than anything
-added to the CLAUDE.md block.
+added to the core, which every session loads.

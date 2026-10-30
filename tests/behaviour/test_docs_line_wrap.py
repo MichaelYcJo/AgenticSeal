@@ -160,6 +160,9 @@ COVERED = [
     # Wrapped from its first line, so it goes in at birth rather than waiting
     # for the sweep that would otherwise be needed to bring it under.
     "skills/agent-contract/SKILL.md",
+    # The core (#1177), moved whole out of `CLAUDE.md` and wrapped there, so
+    # it goes in at birth with no sweep to owe.
+    "skills/core/SKILL.md",
     # The twenty-fourth skill (#458), on the same terms: written wrapped, so
     # it has no sweep to owe and goes in with its first commit.
     "skills/settle/SKILL.md",

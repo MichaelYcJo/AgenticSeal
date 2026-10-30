@@ -27,63 +27,6 @@ running.
       `release_completeness_check.py` refuses while the milestone claims an
       open issue the release branch does not carry, and names each one, at
       the worst moment to do the planning.
-- [ ] No other Claude session is working in this checkout, and the editor is
-      not about to pull. An editor's pull can switch the checkout to another
-      branch between two commands, and the preparation commit lands there.
-      `git status -sb` after every `switch` is the cheap check.
-
-## 1. The preparation branch
-
-```bash
-git fetch origin
-git switch -c chore/the-fragments-become-X.Y.Z origin/release/vX.Y.Z
-git status -sb          # the branch you asked for, tracking the release
-seal no-work-item       # this branch's changes belong to no work item
-```
-
-The `release/*` ruleset takes no direct push, so the preparation commit needs
-this branch and a squash merge like any other work.
-
-## 2. Gather, bump
-
-**The preparation commit gathers the changelog fragments.**
-
-```bash
-python3 .github/scripts/gather_changelog.py --dry-run --version X.Y.Z
-```
-
-Read it. Then:
-
-```bash
-python3 .github/scripts/gather_changelog.py --version X.Y.Z
-sed -i '' 's/"version": "A.B.C"/"version": "X.Y.Z"/' .claude-plugin/plugin.json
-git add -A changelog/ CHANGELOG.md seal/ .claude-plugin/plugin.json
-```
-
-The gather writes a new file, the release's own `changelog/X.Y.Z.md`, and
-heads the index `CHANGELOG.md` with its line. It is staged before step 3 runs
-anything, because the suite lists files with `git ls-files`, which reads the
-index: an untracked release file is a tree the listing does not describe.
-check: tests/text/test_the_changelog_is_gathered_at_release.py tests/github/test_gather_changelog.py
-
-**A second gather for the same version appends into its section.** A fragment
-landing after this step, while the release pull request is red, is the
-ordinary shape. Run the same command again: the new entries join the
-existing section, the section keeps the first gather's date, and
-`tests/behaviour/test_release_hygiene.py` refuses a file that heads a version twice.
-check: second-gather-appends tests/behaviour/test_release_hygiene.py
-
-**The preparation commit writes the process archive,
-`seal/process/X.Y.Z.md`, from `templates/records/process.md`.** The archive records
-what this release changed in the way of working and why, one row per change.
-`CLAUDE.md`, `agents/*.md` and `skills/*/orchestration.md` are the way of
-working, and `git log vA.B.C..HEAD` over those paths, with the milestone's
-issue comments, gives the rows. Each row is a date, the change, one line of
-why, and a link to the issue comment or commit it came from, and nothing
-else. It is written once, here, because one file that every branch edits is
-the conflict the changelog fragments ended. A release that changed none of
-those files writes no archive file.
-check: none reader: the framer of the next release
 
 ## 2b. Settle what earlier releases left behind
 
@@ -97,7 +40,7 @@ seal settle --apply
 seal fold
 ```
 
-The first prints each group of released specs whose rule changes name one
+The first prints each group of released designs whose rule changes name one
 section, in merge order, and every open row of every released record.
 Between the first and the second, the session running the settle writes each
 section as its group's latest decision, checked against the code, and closes
@@ -112,64 +55,10 @@ its grounds and lists the defaults it took, and the owner reviews it.
 `skills/settle/SKILL.md` is the procedure. **A settle is not a work item**:
 it opens no directory under `seal/threads/`, its session runs
 `seal no-work-item` on the settle's branch before the first edit, and each
-of its commits carries the trailer `Seal-Routing: no work item`, as
-step 4 shows. It owes an answer for every check in this repository carrying
-a population floor over `seal/threads/`.
-
-## 3. Verify before committing
-
-The preparation commit is the first time a fragment's prose is read by the
-tests that scan the release files under `changelog/`. So the whole gate runs
-on this tree, and every exit code is read directly rather than through a
-`| tail`.
-
-**A sweep that walks a git listing judges what remains instead of stopping at
-the first tracked file the disk lacks, and a case whose verdict needs the
-whole corpus says so.** A tree can hold tracked files the disk does not have,
-a removal nothing has staged yet. So a count line reading `… passed, N
-skipped` with reasons naming paths is that state rather than something to
-debug; one appears when the tree is mid-edit somewhere a check like that
-reads, under `docs/`, `skills/`, `templates/`, `tests/` or a shipped `.py`.
-
-```bash
-python3 .github/scripts/gather_changelog.py --check
-uvx ruff check . && uvx ruff format --check .
-bin/test -q
-python3 skills/code-review/scripts/chain_check.py --baseline origin/main
-```
-
-What each one has caught, so a failure is recognised rather than debugged:
-
-| Check | What it found at a release |
-|---|---|
-| the full suite | a gathered entry prescribed a `git mv` whose destination nothing creates |
-| `test_no_loaded_file_names_a_version_at_or_above_the_running_one` | living prose that named the release by number, or a version ahead of it. A record of a moment is listed in the test; anything else is reworded to name the change, or to the illustrative version the test's own message points at. A version this repository has *tagged* is history and may be named: the shipped set is read from the root's `v*` tags, never from this file, because this commit writes the heading and the bump together |
-
-check: tests/behaviour/test_a_shrunken_corpus_declines_to_judge.py tests/test_conftest.py
-
-## 4. Commit, push, open the first pull request
-
-The commit belongs to no work item: it is the routing question's
-`no work item` answer (`skills/implement/orchestration.md` *Question 1*), and
-that answer's recorded form is `seal no-work-item`, run in step 1 before the
-first edit, and the trailer `Seal-Routing: no work item` on each commit:
-
-```bash
-git commit -m "chore: release X.Y.Z — <what the fragments say>" -m "Seal-Routing: no work item"
-git push -u origin chore/the-fragments-become-X.Y.Z
-gh pr create --base release/vX.Y.Z --head chore/the-fragments-become-X.Y.Z \
-  --title "chore: release X.Y.Z — <the same line>" --body-file <file>
-```
-
-The title's count of fragments is the count `--version` gathered, not the count
-`--check` reports: the latter includes every fragment of every earlier release.
-
-- [ ] **Wait for CI on the pull request head before pressing *Squash and
-      merge*.** Read `gh pr checks <n>` and compare the head SHA to the one
-      just pushed.
-- [ ] A body edit goes through `gh api -X PATCH repos/<owner>/<repo>/pulls/<n>
-      -F body=@<file>`; `gh pr edit` fails on a deprecated Projects query in
-      some `gh` versions and leaves the body unchanged without saying so.
+of its commits carries the trailer `Seal-Routing: no work item`, the
+recorded form of the routing question's `no work item` answer
+(`skills/commit-pr-convention/SKILL.md`). It owes an answer for every check
+in this repository carrying a population floor over `seal/threads/`.
 
 ## 5. The release pull request
 
@@ -178,10 +67,19 @@ gh pr create --base main --head release/vX.Y.Z \
   --title "release: X.Y.Z symptoms: <the symptoms the release answers>" --body-file <file>
 ```
 
-Its hygiene checks fail until step 4 is squashed in, by design. Then they go
-green without a push. Press ***Create a merge commit***, never squash: the
-review records name the release branch's commits on their `target:` lines, and a
-squash discards them.
+**The orchestrator opens the release pull request, and the owner's one
+required act at a release is its merge.** The reads below and the boxes of
+step 6 are reports that fail nothing. The version moved in the release's
+first pull request, so no pull request comes between the last work item and
+this one. The orchestrator opens it with the first work item pull request
+into `release/vX.Y.Z` that finds none open, and leaves it open. Its milestone
+check fails while the milestone claims an issue the branch does not carry,
+by design, and goes green on the push that merges the last one.
+check: tests/github/test_release_completeness_check.py
+
+Press ***Create a merge commit***, never squash: the review records name the
+release branch's commits on their `target:` lines, and a squash discards
+them.
 
 **Read the release table before the merge.** The pull request's `tests` run
 carries it in the `release-report` job's summary, under *Against vA.B.C*:
@@ -199,7 +97,7 @@ such module with one `bin/seal mutate` call carrying a mutant per class,
 for cases that kill nothing another case does not. The sweep's cuts land in
 a work item of the next release with one line per cut case, the shape
 `CONTRIBUTING.md` *The test layout* gives.
-check: none reader: the owner at release preparation
+check: none reader: the owner before the release pull request's merge
 
 ### What a release pull request is held to
 
@@ -207,12 +105,12 @@ check: none reader: the owner at release preparation
 document that names a version which does not exist yet goes red on the commit
 that writes it rather than on the release that ships it, so the refusal
 covers every version at or above the running one rather than the running one
-alone, less the versions this repository has tagged: from the preparation
-commit until the next bump the running version is one that has already
-shipped, and a tag is what says so. Three exemptions, each argued where the
-rule is: the illustrative version this repository already writes, records of
-a moment under `docs/experiments/`, and a version belonging to another
-product.
+alone, less the versions this repository has tagged: from the release's
+merge until the next release's first pull request moves the version, the
+running version is one that has already shipped, and a tag is what says so.
+Three exemptions, each argued where the rule is: the illustrative version
+this repository already writes, records of a moment under
+`docs/experiments/`, and a version belonging to another product.
 check: tests/behaviour/test_release_hygiene.py
 
 **A contributor whose base is wrong is told the base is wrong.** The
@@ -227,8 +125,8 @@ check: tests/behaviour/test_the_release_check_watches_what_ships.py tests/behavi
 ## 6. After the merge
 
 ```bash
-git tag vX.Y.Z <merge commit> && git push origin vX.Y.Z
-git describe --tags     # names the release, not "<tag>-N-g<sha>"
+git fetch origin --tags
+git describe --tags origin/main   # names the release, not "<tag>-N-g<sha>"
 ```
 
 The version hook reads tags and nothing else; an untagged release is one no
@@ -246,30 +144,36 @@ python3 .github/scripts/plugin_directory_check.py   # what the marketplace files
 ```
 
 - [ ] **A GitHub Release exists at `vX.Y.Z`**, by `gh release view vX.Y.Z`.
-      The tag push fires `.github/workflows/publish-release.yml`, which
-      publishes it from the release's file step 2 already gathered, with
-      the title taken from the `release: X.Y.Z symptoms: <symptoms>` line
-      step 5 prescribes. **This box confirms the workflow fired; it is not where the
-      note gets written.** Nothing there means the job went red or never ran,
-      and `gh run list --workflow publish-release.yml` says which. The job
-      fails for a tag whose release file, `changelog/X.Y.Z.md`, is not there
-      or carries no section for it, which is step 2 not having happened; for
-      a `v*` tag that is not `vX.Y.Z`; and when a `gh` call it makes fails.
-      A missing title line is not one of them: it falls back to the tag
-      name. The note opens with a summary of the release's pull requests
-      and a `### 🙌 Thanks to` line for each outside contributor, over the
-      section folded; where the job log says the pull requests could not be
-      listed, the note went out as the section alone, which one
-      `gh release edit` repairs. After the note, the same workflow's `seal`
-      job attaches `seal.png` and puts it where the glance table stood.
-      Where the note still shows the table, the `seal` job's log says why on
-      a `::warning::` line: the suite at the tag did not pass, the seal could
-      not be drawn or written, a `gh` call failed, or
-      the glance table was not in the note as generated: edited before the
-      job reached it, published without one, or the pull requests moved
-      between the two lists. That job never fails the release.
-      To draw one by hand, from a checkout at the tag, run the suite with
-      the broad gate's recorder loaded
+      The merge's push to `main` fires
+      `.github/workflows/publish-release.yml`, which tags the merge commit
+      `vX.Y.Z` and then, in the same run, builds the note from the changelog
+      fragments the release's commits added and the previous version tag
+      does not already hold, with the title taken from the
+      `release: X.Y.Z symptoms: <symptoms>` line step 5 prescribes. **This
+      box confirms the workflow fired; it is not where the note gets
+      written.** Nothing there means the job went red or never ran, and
+      `gh run list --workflow publish-release.yml` says which. A run that
+      created no tag says why on its tag step's `no tag:` line: the push did
+      not move `plugin.json`'s version, which the release's first pull
+      request owed, or `vX.Y.Z` already names another commit. The job fails
+      where GitHub refuses the tag; for a tag whose range added no changelog
+      fragment the previous version tag does not already hold; for a `v*`
+      tag that is not `vX.Y.Z`; and when a `gh` call it makes fails. A
+      missing title line is not one of them: it falls back to the tag name.
+      The note opens with the release's theme line, then a summary of the
+      release's pull requests and a `### 🙌 Thanks to` line for each outside
+      contributor, over the fragments folded; where the job log says the
+      pull requests could not be listed, the note went out as the theme line
+      and the fragments alone, which one `gh release edit` repairs. After
+      the note, the same workflow's `seal` job attaches `seal.png` and puts
+      it where the glance table stood. Where the note still shows the
+      table, the `seal` job's log says why on a `::warning::` line: the
+      suite at the tag did not pass, the seal could not be drawn or
+      written, a `gh` call failed, or the glance table was not in the note
+      as generated: edited before the job reached it, published without
+      one, or the pull requests moved between the two lists. That job never
+      fails the release. To draw one by hand, from a checkout at the tag,
+      run the suite with the broad gate's recorder loaded
       (`PYTHONPATH="$PWD/skills/verify/scripts/pytest_record"`,
       `PYTEST_ADDOPTS='-p agentic_pytest_record'`, and
       `AGENTIC_RECORD_DIR` and `AGENTIC_RECORD_KEY` naming a directory
@@ -322,7 +226,7 @@ which is the merge above rather than anything you do here, and it reads the
 **pull request bodies** the release carries: every `Closes #N` a feature
 pull request wrote, acted on at last, because GitHub reads a closing keyword
 only for a pull request whose base is the default branch. It does not read
-the changelog section.
+the changelog fragments.
 
 - [ ] **Every issue the run named is closed**, by `gh run list --workflow
       close-issues-on-release.yml --limit 1`, then the job log. The run
@@ -344,8 +248,9 @@ release, and that is deliberate: deleting a label deletes it from every issue
 that ever carried it, which falsifies the record the label was created to
 leave.
 
-- [ ] Local `release/vX.Y.Z` and `main` fast-forwarded; the preparation
-      branch deleted or left, either is fine.
-- [ ] The next release branch is cut from `main`, not from this one.
+- [ ] Local `release/vX.Y.Z` and `main` fast-forwarded.
+- [ ] The next release branch is cut from `main`, not from this one, named
+      for the version its milestone `release: X.Y.Z` carries, and its first
+      pull request moves `plugin.json` to that version.
 
 check: tests/hooks/test_version_check.py

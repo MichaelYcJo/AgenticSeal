@@ -47,8 +47,6 @@ LOADED = (
     "README.md",
     "README.ko.md",
     "CONTRIBUTING.md",
-    "install.sh",
-    "uninstall.sh",
 )
 
 # A version-shaped token, with the optional `v` prefix the substring test this
@@ -122,11 +120,9 @@ RECORDS_OF_A_MOMENT = (
 # exemption stays a fact about one comment rather than a hole the token can
 # walk through anywhere.
 VERSIONS_OF_ANOTHER_PRODUCT = {
-    # git's, a build #692's phase 1 measured the hook surface on. The policy
-    # states which gits a git-side decision was measured to hold on, and that
-    # is the class the `seal.py` and `broad_gate.py` rows below name: a
-    # property read off an unnamed git is not a measurement.
-    ("docs/worktree-guard-spec.md", "2.50.1"): "git's, a build #692 measured",
+    # The policy states which gits a git-side decision was measured to hold
+    # on, and that is the class the `seal.py` and `broad_gate.py` rows below
+    # name: a property read off an unnamed git is not a measurement.
     ("skills/implement/scripts/seal.py", "4.4.17"): (
         "bash's, named in a comment about the glob behaviour of that release"
     ),
@@ -1011,22 +1007,18 @@ def test_the_python_floor_is_the_same_number_everywhere():
     )
 
 
-def test_update_tells_the_user_when_the_preset_block_changed():
-    """`claude plugin update` installs the plugin, never the CLAUDE.md block.
-
-    The block arrives only through `install.sh` or `/agentic:preset-setup`,
-    both run by hand -- so a release can change a rule while every installed
-    machine keeps stating the old one. The update command has to look and say
-    so, or the change reaches no session that was already running."""
+def test_update_takes_out_only_what_the_markers_hold():
+    """`claude plugin update` installs the plugin and never opens `CLAUDE.md`,
+    so a block a release before 0.25.0 wrote stays unless the update command
+    takes it out (#1177). It takes the marker region and nothing outside it;
+    `tests/behaviour/test_the_old_block_leaves_through_update.py` runs the
+    step's command."""
     with open(
         os.path.join(ROOT, "skills", "update", "SKILL.md"), encoding="utf-8"
     ) as f:
         update = f.read()
     assert "agentic:start" in update, (
-        "the update command stopped comparing the preset block"
-    )
-    assert "/agentic:preset-setup" in update, (
-        "the update command names no way to take a changed block"
+        "the update command stopped taking the preset block out"
     )
     assert "does not delete anything the user wrote" in update.lower(), (
         "taking a release started resolving overlaps with the user's own text"
@@ -1301,7 +1293,7 @@ def test_the_document_says_where_an_issue_actually_closes():
     # green: a substring search reads a document as a bag of sentences.
     shapes = doc.index("The two merge shapes are not interchangeable")
     rule = doc.index("closing keyword does nothing when the base is")
-    version = doc.index("The version is provisional until the content settles")
+    version = doc.index("The version is named at the cut")
     assert shapes < rule < version, (
         "the rule left the release sequence -- a reader walking the sequence "
         "to write the release pull request no longer arrives at it"

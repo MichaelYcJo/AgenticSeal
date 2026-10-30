@@ -39,7 +39,7 @@ one definition each*.
 **A suite that is not mentioned reads as a suite that passed.** An agent's
 handover carries the suite labelled `unverified` with the orchestrator named
 as its answerer: labelled, never omitted.
-check: tests/text/test_the_agent_contract_holds_the_universal_rules.py tests/text/test_every_agent_reads_the_contract.py
+check: tests/text/test_broad_gate_rule.py tests/text/test_every_agent_reads_the_contract.py
 
 ## What the gate runs, and how the list is kept true
 
@@ -138,6 +138,16 @@ remedy, then a serial run with pytest's exit code. `-n auto` is withheld
 where the caller already decided: any spelling of `-n` or `--numprocesses`,
 `-p no:xdist`, or `--pdb`.
 check: tests/github/test_run_tests.py
+
+**A sweep that walks a git listing judges what remains instead of stopping
+at the first tracked file the disk lacks, and a case whose verdict needs the
+whole corpus says so.** A tree can hold tracked files the disk does not
+have, a removal nothing has staged yet. So a count line reading
+`N passed, M skipped` with reasons naming paths is that state rather than
+something to debug; one appears when the tree is mid-edit somewhere a check
+like that reads, under `docs/`, `skills/`, `templates/`, `tests/` or a
+shipped `.py`.
+check: tests/behaviour/test_a_shrunken_corpus_declines_to_judge.py tests/test_conftest.py
 
 ## A check that cannot fail is not a check
 

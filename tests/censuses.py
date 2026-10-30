@@ -900,6 +900,15 @@ ALLOWED_USER_PATH = "/Users/x/"  # the designated fixture user
 DOMAIN_RE = re.compile(r"\b[a-z0-9][a-z0-9.-]*\.(?:com|io|net|org|ai|dev)\b")
 # Built from two halves, so the pattern does not hold a user path itself.
 USER_PATH_RE = re.compile("/" + r"Users/[^\s\"'`)/]+/?")
+# A projects directory spells the path its session started in with dashes:
+# `-Users-<name>-<repo>`, or `-Users-<name>` alone for a session started in
+# the home directory. So a user path reaches a record that way too. Built
+# from two halves, like USER_PATH_RE. The name is read as word characters
+# and dots up to the first character that is neither. A name holding a dash,
+# or a dot the slug spells as one, is read by its first part, and refused
+# unless that part is the fixture user's. A placeholder such as `<name>` or
+# a pattern such as `[A-Za-z]` is no name.
+SLUG_USER_RE = re.compile("-" + r"Users-([\w.]+)")
 NOT_TEXT = (".gif", ".png", ".jpg")
 
 
@@ -927,12 +936,13 @@ def refused_domains(line):
 
 def refused_user_paths(line):
     """The match of every user path in `line` outside the fixture one, in
-    order; `refused_domains` says who else reads it."""
+    order, written with slashes or as a projects directory's dashed slug;
+    `refused_domains` says who else reads it."""
     return [
         m
         for m in USER_PATH_RE.finditer(line)
         if not m.group(0).startswith(ALLOWED_USER_PATH)
-    ]
+    ] + [m for m in SLUG_USER_RE.finditer(line) if m.group(1) != "x"]
 
 
 def real_identifiers(rel, root=None):
@@ -1011,8 +1021,8 @@ KEPT_OLD_NAMES = (
     # request* until the settle after the release removes that sentence.
     "Spec" + "Seal-Routing",
     # The CLAUDE.md block markers every release before the rename wrote,
-    # which `install.sh`, `uninstall.sh`, `/agentic:update` and
-    # `/agentic:preset-setup` replace with the block under the new ones.
+    # which `/agentic:update` step 4 takes out with the block under the new
+    # ones, and which README.md *Install* names.
     f"<!-- {_OLD}:start -->",
     f"<!-- {_OLD}:end -->",
     # The second line of every git hook stub an earlier release wrote, which

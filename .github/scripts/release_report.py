@@ -20,8 +20,9 @@ into `main` and appends what it prints to the job's summary.
                       read from a job list as `gh api …/jobs --paginate
                       --jq '.jobs[]'` prints it; `no run found` where the
                       file is absent, empty or holds no such job
-  `<document>`        the bytes of `CLAUDE.md`, `CONTRIBUTING.md` and each
-                      `docs/*.md`, each CRLF counted as the LF git stores
+  `<document>`        the bytes of the core (`skills/core/SKILL.md`),
+                      `CLAUDE.md`, `CONTRIBUTING.md` and each `docs/*.md`,
+                      each CRLF counted as the LF git stores
 
 Under it, a second table under `### Test files against <TAG>` gives one row
 per test file `.test_durations` prices in either tree: its cases and seconds
@@ -49,7 +50,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 METER = os.path.join(ROOT, "skills", "verify", "scripts", "payload_meter.py")
 DURATIONS = ".test_durations"
-DOCUMENTS = ("CLAUDE.md", "CONTRIBUTING.md", "docs/*.md")
+DOCUMENTS = ("skills/core/SKILL.md", "CLAUDE.md", "CONTRIBUTING.md", "docs/*.md")
 # The legs of the tests workflow, in the order a reader compares them, and
 # the name of a pytest job, whose leg is the operating system it opens with.
 LEGS = ("ubuntu", "windows", "macos")
@@ -174,7 +175,7 @@ def files_table(tag, rows):
 
 
 def documents(root):
-    """`{path: bytes}` of `CLAUDE.md`, `CONTRIBUTING.md` and each
+    """`{path: bytes}` of the core, `CLAUDE.md`, `CONTRIBUTING.md` and each
     `docs/*.md` in the tree at `root`, each path written with `/`."""
     out = {}
     for pattern in DOCUMENTS:

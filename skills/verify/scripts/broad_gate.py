@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """seal gate — the one broad run, taken once after the rounds settle.
 
-Issue #30. The CLAUDE.md block's **Verification Scope** rule
-(`templates/setup/claude-md-block.md`) says the full suite, the
-repository-wide lint and the typecheck run once, after the review rounds
+Issue #30. Contract rule 2 and `docs/the-broad-gate.md` say the full suite,
+the repository-wide lint and the typecheck run once, after the review rounds
 settle, and for three releases nobody was assigned that run: contract rule 2
 forbade it to the crafter and the proofer, and the orchestrator that took it by
 default kept hundreds of output lines in the one context a release cannot

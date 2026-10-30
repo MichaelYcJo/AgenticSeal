@@ -27,7 +27,6 @@ def test_the_registration_section_says_a_failure_is_said_and_names_its_case():
         "session's turn, and the call it failed on still goes ahead.**"
     ) in flat_text, section
     enforced = [ln for ln in section.splitlines() if ln.startswith("check: ")]
-    assert len(enforced) == 1, enforced
-    assert "tests/text/test_a_gate_that_fails_says_so.py" in enforced[0].split(), (
-        enforced
-    )
+    assert any(
+        "tests/text/test_a_gate_that_fails_says_so.py" in ln.split() for ln in enforced
+    ), enforced

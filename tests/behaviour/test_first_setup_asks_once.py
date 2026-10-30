@@ -783,92 +783,22 @@ def test_the_design_record_states_the_setup_rules_where_they_rule(
 #
 # The bootstrap above is where the mode question lives, and the cases in this
 # file all reach it by reading the skill. That is not how a session gets
-# there. `install.sh` copies the block between `<!-- agentic:start -->` and
-# `<!-- agentic:end -->` — `templates/setup/claude-md-block.md`, the block's one
-# source — into `~/.claude/CLAUDE.md`, so the block loads in EVERY project on
-# the machine —
-# including one that has never seen AgenticSeal —
-# and it tells a session to write `seal/threads/<id>/routing.md` before the
-# first edit. That write creates `seal/`. Creating `seal/` opts the repository
-# in. Every case above passed while that route existed, because none of them
-# read the preset block.
-#
-# Each case here was written against the block as it stood at 589cf25, before
-# it was edited, and each failed; the output is in the body of the commit that
-# added them.
-
-START, END = "<!-- agentic:start -->", "<!-- agentic:end -->"
-
-
-def preset():
-    """Exactly the text `install.sh` copies, markers included.
-
-    Read from `templates/setup/claude-md-block.md`, the installer's source, and
-    extracted the way the installer extracts it rather than by reading the
-    whole file: a line outside the markers reaches no user, and a case that
-    read the whole file could not tell the two apart.
-    """
-    text = read("templates", "setup", "claude-md-block.md")
-    assert START in text and END in text, "the preset markers moved"
-    return text[text.index(START) : text.index(END) + len(END)]
-
-
-def routing_rule():
-    """The preset's routing bullet, its line breaks folded."""
-    return paragraph(preset(), "- **Routing, decided at the start.**")
-
-
-def test_the_preset_sends_a_fresh_repository_to_the_bootstrap():
-    """S11. The instruction that creates the root has to name the question
-    first. #151's own reading of the cheap fix is that a conditional put into
-    a block meant to be read straight through only helps a session that
-    notices the condition applies — so the condition leads the rule rather
-    than trailing it."""
-    rule = routing_rule()
-    lead = rule[: rule.index("write `seal/threads/")]
-    assert "Bootstrap" in lead, (
-        "the routing rule instructs the write before it names the bootstrap, "
-        "which is the order that made #151 happen"
-    )
-    # The file the Bootstrap moved to, not the skill a `Skill implement` load
-    # carries, which no longer holds it.
-    assert "skills/implement/bootstrap.md" in lead
-    assert "neither" in lead, "the rule does not say WHICH repositories it means"
-    # A project's own `seal/` is no root, so a repository holding only that
-    # one is sent to the bootstrap too.
-    assert "its `README.md` opening with the marker" in lead, lead
-
-
-def test_the_preset_writes_no_declaration_under_no_work_item():
-    """Round 1 of #940, finding 1. The write is conditioned on the answer,
-    and the block names the file that states question 1 and the boxes, so a
-    session in a rooted repository that reads only the block neither writes
-    a declaration nobody gave nor asks a question it has no text for."""
-    rule = routing_rule()
-    lead = rule[: rule.index("write `seal/threads/")]
-    assert "Except under `no work item`" in lead, (
-        "the routing rule writes routing.md under every answer, `no work item` included"
-    )
-    assert "*Orchestrator: how the work is routed*" in lead, (
-        "the routing rule names question 1 and the boxes without naming the "
-        "section that states them"
-    )
-
-
-def test_the_preset_names_both_places_the_root_can_be():
-    """A session cannot tell a fresh repository from an opted-in one without
-    both. `<repo>/seal/` alone reads every local-mode repository as fresh, and
-    sends it back through a question it already answered."""
-    lead = routing_rule()
-    assert "`<repo>/seal/`" in lead
-    assert "git rev-parse --git-common-dir" in lead
+# there. A session is told to write `seal/threads/<id>/routing.md` before the
+# first edit, and that write creates `seal/`, which opts the repository in.
+# Until #1177 the preset block in `~/.claude/CLAUDE.md` said so in every
+# project on the machine, and the cases that read it were written against the
+# block as it stood at 589cf25, each failing first. The block is retired; the
+# core, which the plugin's `SessionStart` hook prints into every session,
+# names the routing section (`tests/text/test_review_axes.py`), and the cases
+# below read the orchestrator's half and the Bootstrap, the files that hold
+# the rule.
 
 
 def test_the_orchestrators_half_sends_a_fresh_repository_to_the_bootstrap():
-    """S3 of #1046. A session that opens `orchestration.md` first, under a
-    preset block copied before the bootstrap left that file, meets the
-    condition and the bootstrap's file in the opening paragraph, before any
-    section, with both places the root can be."""
+    """S3 of #1046. A session that opens `orchestration.md` first, under an
+    older release's preset block written before the bootstrap left that
+    file, meets the condition and the bootstrap's file in the opening
+    paragraph, before any section, with both places the root can be."""
     opening = paragraph(read(*ORCH), "This file is the orchestrator's")
     assert "`skills/implement/bootstrap.md`" in opening, (
         "the orchestrator's half does not send a fresh repository to the bootstrap"
@@ -878,26 +808,18 @@ def test_the_orchestrators_half_sends_a_fresh_repository_to_the_bootstrap():
     assert COMMON_DIR in opening, opening
 
 
-def test_the_preset_says_whose_decision_the_place_is():
-    """The block keeps the rule and leaves the reason (#940): where the root
-    lands is the user's decision. That the write creates the root and opts
-    the repository in is the Bootstrap's, which the same sentence sends a
-    session to first."""
-    rule = routing_rule()
-    assert "Creating the root is what opts the repository in" in flat(bootstrap()), (
+def test_the_bootstrap_says_whose_decision_the_place_is():
+    """Where the root lands is the person's decision (#151), and the write
+    that creates the root is what opts the repository in. Both are the
+    Bootstrap's, which the orchestrator's half sends a session to first."""
+    boot = flat(bootstrap())
+    assert "Creating the root is what opts the repository in" in boot, (
         "the Bootstrap no longer says creating the root opts the repository in"
     )
-    assert "user's decision" in rule, (
-        "the rule does not say whose decision the place is, which is the "
+    assert "is the person's decision and not the orchestrator's" in boot, (
+        "the Bootstrap does not say whose decision the place is, which is the "
         "whole of what #151 lost"
     )
-
-
-def test_what_the_installer_copies_carries_it():
-    """S12. The block is copied by `install.sh` with `awk` between the two
-    markers, so a sentence outside them ships to nobody. This reads the same
-    span the installer reads."""
-    assert "Bootstrap" in preset()
 
 
 def test_the_bootstrap_records_the_answer_it_was_given():

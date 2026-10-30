@@ -1,8 +1,10 @@
-"""The one-broad-run rule spans six documents; drift between them is the bug.
+"""The one-broad-run rule spans several documents; drift between them is the bug.
 
 The skill states it, the agent contract binds every agent to it, the crafter
-follows it, the proofer audits it, two records carry it to the next session,
-and the preset block states it for a session that loads none of them. A rule
+follows it, the proofer audits it, and two records carry it to the next
+session. The preset block stated it too, for a session that loaded none of
+them, until #1177 retired the block and the plugin's `SessionStart` hook
+began printing the core into every session. A rule
 spread this wide fails by one of them quietly dropping its part, which is
 invisible in any single diff.
 
@@ -344,27 +346,6 @@ def test_the_broad_gate_state_survives_a_handoff():
     assert "`trail/gate.md`" in read("docs", "the-review-record.md"), (
         "the record lost the file that tells the next session whether the one "
         "broad run already happened"
-    )
-
-
-def test_the_preset_block_states_the_rule_the_loaded_files_assume():
-    """Every other home for this rule loads on demand.
-
-    An agent file needs the agent spawned and a skill needs the skill invoked.
-    A session working this repo directly does neither, so the preset block --
-    always in front of it -- is the only copy it will ever read."""
-    preset = read("templates", "setup", "claude-md-block.md").split(
-        "<!-- agentic:end -->"
-    )[0]
-    assert "<!-- agentic:start -->" in preset, "the preset markers moved"
-    assert "Verification Scope" in preset, (
-        "the always-loaded block lost the rule that bounds a broad run"
-    )
-    assert "Batch independent reads and runs" in preset, (
-        "the always-loaded block lost the batching rule"
-    )
-    assert "Never cut the investigation." in preset, (
-        "the batching rule lost its bound: fewer trips, never fewer checks"
     )
 
 

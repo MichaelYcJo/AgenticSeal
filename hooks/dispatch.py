@@ -93,6 +93,11 @@ GROUPS = {
     # The git hook stubs an earlier release wrote are taken out of the clone
     # the session starts in (#1027).
     "session-start": ("version-check.py", "root-migrate.py", "stub-remove.py"),
+    # The core printed into a session (#1177). A group of its own: `merge`
+    # drops plain text beside a neighbour's JSON, and `version-check.py`
+    # prints JSON; `hooks.json` matches it to every `SessionStart` source but
+    # `resume`, which keeps what its start printed.
+    "session-core": ("core-start.py",),
     # The end of a main-session turn, where the stamp a `sealed` guarantee's
     # write queued is drawn after the text it belongs under (#400, #975).
     # One gate, because nothing else here has anything to say when a turn
