@@ -174,8 +174,8 @@ The three keeps. Git keeps every commit and, after the settle, each removed reco
 Run at the settle over each released work item, before `seal settle --apply`:
 
 ```
-git grep -c '^### [1-9]' -- 'seal/threads/<id>/trail/rounds/round-*.md'
-git grep -c '^regression: \|^reopens: ' -- 'seal/threads/<id>/trail/rounds/round-*.md'
+git grep -h '^### [1-9]' -- 'seal/threads/<id>/trail/rounds/round-*.md' | wc -l
+git grep -h '^regression: \|^reopens: ' -- 'seal/threads/<id>/trail/rounds/round-*.md' | wc -l
 git grep -h '^location: ' -- 'seal/threads/<id>/trail/rounds/round-*.md' | grep -vc '`[^s`][^`]*`\|`s[^e][^`]*`'
 ls seal/threads/<id>/trail/rounds/ | wc -l
 ```
@@ -261,7 +261,7 @@ The framer's half, one rule of `agents/framer.md`:
 - add
   file: docs/the-review-record.md
   section: The run
-  to: **A release's review cost is read from its round records, per work item: the findings, the findings a `regression:` or `reopens:` line names, the findings whose every `location:` path is under `seal/threads/`, and the rounds.** The settling session counts the four before the records leave, with `git grep -c` over `trail/rounds/round-*.md` for `### ` headings, `regression:` and `reopens:` lines and `location:` lines, and posts them to the `flow-baseline` log where the repository keeps one (`skills/verify/orchestration.md` *Measure the segment, and feed the flow log*). 0.24.0's four work items read 17 recurring of 36 findings, 12 in records alone; 0.25.0's one read 3 of 10, 1 in a record alone. A release whose records-alone count does not fall says the records still restate one another, and the next step is a check that reads recurrence (#1020).
+  to: **A release's review cost is read from its round records, per work item: the findings, the findings a `regression:` or `reopens:` line names, the findings whose every `location:` path is under `seal/threads/`, and the rounds.** The settling session counts the four before the records leave, with `git grep -h` over `trail/rounds/round-*.md`, each match counted across the files for `### ` headings, `regression:` and `reopens:` lines and `location:` lines, and posts them to the `flow-baseline` log where the repository keeps one (`skills/verify/orchestration.md` *Measure the segment, and feed the flow log*). 0.24.0's four work items read 17 recurring of 36 findings, 12 in records alone; 0.25.0's one read 3 of 10, 1 in a record alone. A release whose records-alone count does not fall says the records still restate one another, and the next step is a check that reads recurrence (#1020).
     check: none reader: the settling session
 - add
   file: docs/the-record-layout.md
