@@ -113,10 +113,9 @@ IMPORT = re.compile(r"(?:^|\s)@[^\s`]")
 
 
 def test_this_repository_imports_no_core_and_names_the_tree_copy():
-    """S3 of #1177. A session here reads the installed core through the
-    block, so an `@` line in `CLAUDE.md` would load it a second time; and
-    `CLAUDE.md` names the tree's copy, which governs where the branch
-    changes it."""
+    """S3 of #1177. A session here reads the tree's core from the plugin's
+    `SessionStart` hook, so an `@` line in `CLAUDE.md` would load it a second
+    time; and `CLAUDE.md` names the tree's copy, which governs here."""
     text = read(os.path.join(ROOT, "CLAUDE.md"))
     assert not IMPORT.search(text), (
         "CLAUDE.md imports a file, so a session here reads the core twice"
