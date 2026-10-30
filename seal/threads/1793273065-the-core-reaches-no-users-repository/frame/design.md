@@ -39,7 +39,7 @@ agent read the core twice (`questions.md` Q1, the issue's *Update (owner,
 | A survey of this machine's interactive transcripts (executed, `grep -rl compact_boundary ~/.claude/projects`, then the scratch reader over 23 main transcripts, Claude Code 2.1.283 to 2.1.312) | Every `compact_boundary`, `auto` and `manual`, is followed by an `isCompactSummary` entry and a `SessionStart:compact` `hook_success`. A resume appends a `SessionStart:resume` entry to the same file; a `/clear` opens a new file whose first `SessionStart` entry is `SessionStart:clear` |
 | Probe S, size (executed, the scratch hook printing 9,990, 10,010 and 11,049 characters, one session each) | At 9,990 characters the entry's `content` equalled its `stdout`. At 10,010 and 11,049, `stdout` held the whole output and `content`, what the model received, was a `<persisted-output>` preview of about 2,400 characters naming a file. The 11,049 run's session said it saw only the preview. The harness's cap on one hook's output lies between 9,990 and 10,010 characters |
 | `wc -c skills/core/SKILL.md` and a character count (executed at HEAD): 6,749 B, 6,705 characters | The core and its first line sit near 6,900 characters, about 3,100 under the cap. A case holds the hook's whole output under 10,000 characters, so a core that #1148 grows past it fails in CI and not silently in a session |
-| The owner, 2026-10-30, in the orchestrating session (the orchestrator's finding): the core's prose is refactored in this work, not in #1148 or #1170, keeping every directive and every sentence that gives a directive's reason, and removing only repetition and pointers to issues. A draft at `/private/tmp/claude-501/-Users-michael-Documents-GitHub-SpecSeal/aa6bb73b-1ad1-4e11-8e2a-ddc39af2340a/scratchpad/core-draft/SKILL.md` is 5,313 B against the core's 6,780 B at `dc030a86` (`wc -c`, executed by the orchestrator) | Scope item 9 and phase 8. The draft is a starting point the crafter checks sentence by sentence against the core at `dc030a86`; it is not a source |
+| The owner, 2026-10-30, in the orchestrating session (the orchestrator's finding): the core's prose is refactored in this work, not in #1148 or #1170, keeping every directive and every sentence that gives a directive's reason, and removing only repetition and pointers to issues. A draft at `/private/tmp/claude-501/-Users-michael-Documents-GitHub-SpecSeal/aa6bb73b-1ad1-4e11-8e2a-ddc39af2340a/scratchpad/core-draft/SKILL.md` is 5,518 B against the core's 6,780 B at `dc030a86` (`wc -c`, executed by the orchestrator), of which the frontmatter is 673 B at `dc030a86` | Scope items 9 to 12 and phase 8. The draft is a starting point the crafter checks sentence by sentence against the core at `dc030a86`; it is not a source |
 | `evals/README.md` *The behaviour suite* (read): "A rewrite of an agent's preload is proved not worse by running this suite on the old tree and on the new one", compared by `evals/scripts/noninferiority.py`. Past sides cost 16.12 USD for the framer and 3.34 USD for the sealer (`git show a19090962:…/framer-phase-2.md`, `b196fe9bc:…/sealer-phase-3.md`, executed) | The core is a preload of all four agents with cases under `evals/behaviour/`, so the refactor is proved by the four agents' suites, old side at `dc030a86` and new side at the refactor's commit (S11) |
 | `env` in this agent's Bash (executed): `CLAUDE_CODE_SESSION_ID` is set and names the orchestrating session, whose transcript is `~/.claude/projects/<slug of its starting directory>/<that id>.jsonl` (`ls`, executed); `CLAUDE_PLUGIN_ROOT` is not set in a Bash call. `hooks/lib/hooksession.py#SESSION_VARIABLE` names that variable (read) | `seal core` finds the transcript from the session id, and compares against the file the hook's first line names, since it cannot read the hook's plugin root |
 | The `SessionStart` payload (executed, logged by the scratch hook): `cwd`, `hook_event_name`, `session_id`, `source`, `transcript_path`, and on `resume` a few cost fields | The hook knows the session's working directory, so it can tell the plugin's own repository from any other |
@@ -219,6 +219,39 @@ agent read the core twice (`questions.md` Q1, the issue's *Update (owner,
       owner of the repository whose release the judgments were made in.
     These change how the core is read, not what its values decide. The
     proof is S11, run once over phase 8's commit.
+11. **Where two sentences ask for one thing, one stays; where a sentence
+    reads two ways, it is rewritten** (the owner, 2026-10-30, in the
+    orchestrating session). The orchestrator's refined draft, 5,518 B at
+    the path *Grounding* names, carries these as found by reading the core
+    sentence by sentence; the crafter checks each against the core at
+    `dc030a86` and may find more:
+    - "nothing comes back mid-run" in *Asking a person* repeats the fifth
+      invariant; it stays in the invariants alone.
+    - "argued for time and stability" names no subject; it becomes what
+      verification buys.
+    - "the most expensive judgment" calls asking a judgment, and "the
+      difference is argued" names nobody; asking becomes a step, and the
+      design that asks argues its cost.
+    - "in closed form" is this repository's word; it becomes "exactly, such
+      as an exit code or a parser's result", and a guessed reading is
+      reported, never used to block.
+    - "its history shows what it caught against what it costs" leaves the
+      comparison open; it becomes a record of catches that outweighs the
+      cost.
+    - "A few invariants hold the chain and are not open to judgment", which
+      a first draft dropped, stays: without it the five items lose their
+      standing.
+    Two pairs that look alike stay apart, because each says a different
+    thing: judgment by meaning against a script's exact answer (the first
+    value), and what a script may block on (the rule).
+12. **The hook prints the core without its frontmatter.** The
+    `description:` reaches every session already, in the harness's skill
+    listing, so printing it again puts it in context twice. `output` prints
+    the file's body below the closing `---`, the header's digest stays the
+    whole file's, and `seal core` compares the entry against that body. The
+    `vercel` plugin's `SessionStart` injector strips frontmatter the same
+    way (`hooks/inject-claude-md.mjs`, `stripFrontmatter`, read in the
+    marketplace cache 2026-10-30 by the orchestrator).
 
 **Out.**
 
