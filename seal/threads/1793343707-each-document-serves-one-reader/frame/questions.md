@@ -40,9 +40,15 @@ reopens them.
 - **"Removes more lines than it adds".** Read outside `seal/threads/`,
   since this frame alone adds several hundred lines there: `frame/design.md`
   *Scope* item 11, verified in phase 6.
-- **The measure.** Four counts per work item at the settle, posted to the
-  `flow-baseline` log; the command and #1177's reading, 10, 3, 1 and 8, are
-  `frame/design.md` *Data & interfaces*.
+- **The measure.** Four counts per work item at this repository's settle,
+  posted to the `flow-baseline` issue; its home after round 3 is
+  `docs/release-checklist.md` *2b*, not the plugin's settle procedure:
+  `frame/design.md` *Scope* item 7 and `frame/plan.md` A20a to A20c. The
+  commands and #1177's reading, 10, 3, 1 and 8, are `frame/design.md`
+  *Data & interfaces*.
+- **Where a paste-ready fix is read before it is applied.** The fix pass,
+  in `agents/crafter.md`: `frame/design.md` *Scope* item 13 and
+  `frame/plan.md` A21a to A21c.
 - **#1045's other half.** The settle's fourth kind of row is a settle rule
   and stays on its issue: `frame/design.md` *Scope*, out.
 - **The version.** This pull request is the first into `release/v0.25.1`,
