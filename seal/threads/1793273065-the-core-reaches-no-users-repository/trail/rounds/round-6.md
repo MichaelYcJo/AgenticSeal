@@ -31,7 +31,7 @@ for the routing question's place in the batch, and
 severity: should
 location: `skills/core/SKILL.md:99-102`, `seal/threads/1793273065-the-core-reaches-no-users-repository/frame/design.md:224-231`
 evidence: read `skills/core/SKILL.md:97-114`, `CONTRIBUTING.md:378-382`, `CLAUDE.md:18-23`, `seal/threads/1793273065-the-core-reaches-no-users-repository/frame/design.md:224-232`
-verdict: open
+verdict: fixed ccad9673
 
 Every session and every agent reads the core, and it ranks above every
 skill. Phase 8 added this sentence to *The rule a mechanism is kept
@@ -81,14 +81,14 @@ its own mechanisms by its own policy. A fact has one source, and every
 other place links to it.
 ```
 
-answer:
+answer: The scope sentence in `skills/core/SKILL.md` *The rule a mechanism is kept against* is now the record's text word for word: "This test of whether a mechanism stays governs this plugin's own mechanisms, a gate, a check, a hook, a CI step or a rule among them; a user's repository keeps or drops its own mechanisms by its own policy." It names the keep test, so it no longer scopes the section's other sentences, and it lists the kinds as examples. The frame's half, *Scope* item 10 *Whose mechanisms*, is the orchestrator's fold at `6a925644`. Every other place that states the rule's scope was read and stands: `CONTRIBUTING.md:378-382` lists the same five kinds and cites the section; `CLAUDE.md:18-23` cites the section by name and states no scope; contract rules 19 and 20 restate two of the section's sentences without scoping them; `gaps.md` and `changelog.md` state none of it; phase 8's record is history. `git grep` on "gates, checks and hooks", "This rule governs" and "keeps or drops" outside this record finds the new sentence alone. The core is 6,853 B, and the hook's output is 6,347 B, still under `CAP` (`tests/hooks/test_core.py`, executed).
 
 ### 2. The core's sentence on what stays a script now names four scripts instead of the class "what a script answers exactly"
 
 severity: should
 location: `skills/core/SKILL.md:42-44`
 evidence: executed `git diff 6ebfada5 f0c4aff2 -- skills/core/SKILL.md`
-verdict: open
+verdict: fixed ccad9673
 
 At `6ebfada5` the sentence was a rule over a class, with four examples:
 "What a script answers exactly, the suite, the lint, the broad gate, the
@@ -120,14 +120,14 @@ stays a script, and the session waits on its exit code rather than
 reasoning about what it would print.
 ```
 
-answer:
+answer: The sentence is the record's text: "What a script answers exactly, such as the suite, the lint, the broad gate and the merge check, stays a script, and the session waits on its exit code rather than reasoning about what it would print." Both directives reach the class again, and the four scripts stand as examples. `git grep` on "answer exactly and stay", "stays a script" and "waits on its exit code" outside this record finds the core's sentence alone, so no other place stated the closed list. No case pins the sentence; it is prose. The 18 modules that name the core or a file this pass changed passed 558 (exit 0), and `tests/text/test_no_passage_is_pasted_into_a_second_file.py` with `tests/behaviour/test_a_cited_section_stands_in_its_file.py` passed 50 (exit 0), all at `ccad9673`'s tree (executed).
 
 ### 3. Phase 8 put a pronoun back into the routing sentence's middle clause, the two-way reading round 2 finding 1 fixed
 
 severity: should
 location: `skills/core/SKILL.md:84-88`, `tests/text/test_review_axes.py:102-133`
 evidence: executed `git show 3c43b42e -- skills/core/SKILL.md`, `git diff 6ebfada5 f0c4aff2 -- skills/core/SKILL.md tests/text/test_review_axes.py`
-verdict: open
+verdict: fixed ccad9673
 
 Round 2 finding 1 found the routing sentence two-way. After "The routing
 question is one of that batch", the nearest noun to a following pronoun is
@@ -171,14 +171,14 @@ question is answered.
 The assertion is red against HEAD, which reads "puts it as" at
 `skills/core/SKILL.md:85`.
 
-answer:
+answer: The record's assertion joined `tests/text/test_review_axes.py#test_the_core_names_where_the_routing_question_is`. Against `6a925644`'s core, `bin/test -q -p no:xdist tests/text/test_review_axes.py -k test_the_core_names_where_the_routing_question_is` failed 1 (exit 1). With the middle clause rewritten to "and the orchestrating session puts the routing question as `skills/implement/orchestration.md` *Orchestrator: how the work is routed* states", the same command passed 1 (exit 0). The paragraph holds no other pronoun whose nearest noun is the batch, as the record says.
 
 ### 4. The frame's grounding cites a scratchpad path that spells a real user's home directory, and the census that guards the house rule does not read that spelling
 
 severity: should
 location: `seal/threads/1793273065-the-core-reaches-no-users-repository/frame/design.md:42`, `tests/censuses.py:898-935`
 evidence: executed `python3 -c "import sys; sys.path.insert(0, 'tests'); import censuses as c; print(c.real_identifiers('seal/threads/1793273065-the-core-reaches-no-users-repository/frame/design.md'))"`, `git grep -n -E -- "-Users-[A-Za-z]"`, `git log -S"core-draft/SKILL.md" --oneline`
-verdict: open
+verdict: fixed e9008079
 
 `frame/design.md:42`, the grounding row for the owner's refactor decision,
 names the draft at a session scratchpad path. That path spells a real
@@ -229,7 +229,7 @@ Precondition: the slug pattern assumes the user name holds no dash. A name
 that holds one is still matched at its first part. This record's own
 `-Users-<name>-` and `-Users-[A-Za-z]` do not match it.
 
-answer:
+answer: `frame/design.md:42` cites the draft as `<scratchpad>/core-draft/SKILL.md` from the orchestrator's fold at `6a925644`. `tests/censuses.py` gains `SLUG_USER_RE` as the record gives it, folded into `refused_user_paths`, with the fixture user `x` allowed. `tests/test_censuses.py#Test_real_identifiers::test_refuses_a_user_path_spelled_as_a_projects_directorys_slug` plants a line with a slug naming a user other than `x`, built from halves, a `-Users-x-repo` line, and a line with `-Users-[A-Za-z]` and `-Users-<name>-repo`, and expects the first line alone refused. Against the old census, `bin/test -q -p no:xdist tests/test_censuses.py -k projects_directorys_slug` failed 1 on `[] == [...]` (exit 1); with the pattern, it passed 1 (exit 0). `bin/test -q tests/test_censuses.py` passed 176 (exit 0), and `git grep -n -E -- "-Users-[A-Za-z0-9_.]+-"` outside `.test_durations` finds no slug but the fixture user's, so no other real slug stands in the tree. The tree-wide census runs in the broad gate.
 
 ## Confirmations
 
