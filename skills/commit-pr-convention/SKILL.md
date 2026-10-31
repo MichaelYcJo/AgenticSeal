@@ -116,8 +116,7 @@ says nothing writes English.
 The prefix is not part of that: it stays as the table below spells it.
 
 **A prefix is the writer's judgment of what the change does for whoever
-meets it after the merge, a user or a party working on a later change, and
-the writer states its grounds.**
+meets it after the merge, a user or a party working on a later change.**
 
 | Kind | What whoever meets the change meets | Examples |
 |---|---|---|
@@ -126,7 +125,7 @@ the writer states its grounds.**
 | `perf:` | the same behaviour, sooner or at less cost | a file parsed once instead of once per row |
 | `refactor:` | the same kinds of outcome, reached another way | a judgment moved from a script to an agent; a gate retired because what it caught did not outweigh its cost; a skill nobody used, removed; a section moved to another file |
 | `test:` | nothing outside the repository's own tests | a case added or corrected, even one that refuses where the suite gates the merge |
-| `docs:` | text nobody acts on | a README's explanation; a comment |
+| `docs:` | text people read and no party acts on | a README, its install steps among them; a comment |
 | `chore:` | upkeep that changes nothing anyone meets | the version move; the changelog fold; a dependency pin that changes nothing met; a work item's records committed alone; a settle that writes the rule changes released work items stated |
 
 **Where a change does more than one of these, its prefix is the one highest
@@ -136,29 +135,33 @@ in the table**, because whoever meets it meets the largest change.
 prefix**, so a speed-up with the case that pins it is `perf:`, and a README
 edit with the case that pins its words is `docs:`.
 
-**Text a party reads and acts on is behaviour**, so a change to a skill, an
-agent definition, a template a party fills or a hook's message is never
-`docs:` and never `chore:`, while a work item's own records, which describe
-their change and leave with it, fall under the paragraph before this one.
+**Text a party reads and acts on is behaviour**, such as a skill, an agent
+definition, a template a party fills or a hook's message, so a change to it
+is never `docs:`, and is `chore:` in two cases only: a work item's own
+records, which describe their change and leave with it and fall under the
+paragraph before this one, and an effect a released change already decided,
+such as a settle writing released rule changes, which the paragraph opening
+*An effect is counted once* gives `chore:`.
 
 **"Before the change" is the branch the change merges into**, and a rule
 stated only in the change's own work item, such as its frame, belongs to the
-change, so a commit that builds it takes the kind its pull request takes.
+change, so a commit that builds it takes the kind its pull request takes, on
+the grounds the orchestrator states for that pull request.
 
 **An effect is counted once, by the change that decided it**, so a settle
 that writes a rule change a released work item stated is `chore:`, and a
 section it rewrites that no released work item decided is that rewrite's
 kind.
 
-**The writer states the grounds** in the orchestrator's part of the pull
-request body, as *Pull request bodies* says, and `agents/sealer.md` step 4
-reads that part against the design and the diff, so a prefix the change does
-not bear out is a disagreement the sealer names.
+**The orchestrator states the grounds for a pull request's title** in its
+part of the body, as *Pull request bodies* says, and `agents/sealer.md` step
+4 reads that part against the design and the diff, so a prefix the change
+does not bear out is a disagreement the sealer names.
 
 **An issue's title takes the prefix the pull request that closes it will
 take**, chosen by this table, so no issue is filed `chore:` by default, and
-the issue is retitled where the pull request takes a prefix other than the
-issue's.
+where the pull request takes a prefix other than the issue's, the
+orchestrator retitles the issue when it titles the pull request.
 
 **The prefix states what the change is, and is never chosen to fit a release
 number.**
