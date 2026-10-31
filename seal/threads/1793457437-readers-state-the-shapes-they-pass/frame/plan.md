@@ -31,7 +31,7 @@ No reader changes. The work writes three sentences in place and pins each one, p
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1, 2, 3 and 4 | The narrow run, in one command, of the test modules that read a changed path (*Technical context*). Each new id or case is seen red before it is committed, by a mutation of its reader in a scratch clone: `marked` comparing a stripped line (item 1), `value_of` folding case (item 2), `header_field` accepting any spacing (item 3). The phase record names each mutation and its red. `.github/scripts/rules.py#markers` lists `a-release-is-judged-under-its-two-names` on exactly the two cases (item 4). | |
+| 1 | `frame/design.md` *Scope* items 1, 2, 3 and 4 | The narrow run, in one command, of the test modules that read a changed path (*Technical context*). Each new id or case is seen red before it is committed, by a mutation of its reader in a scratch clone: `marked` comparing a stripped line (item 1), `value_of` folding case (item 2), `header_field` accepting any spacing (item 3). The phase record names each mutation and its red. `.github/scripts/rules.py#markers` lists `a-release-is-judged-under-its-two-names` on exactly the two cases (item 4). | 805a97c8 |
 
 ## Operational impact
 
