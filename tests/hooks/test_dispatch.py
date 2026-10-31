@@ -11,10 +11,8 @@ every pending record once, at the end of the main session's turn, as a
 Most cases drive `dispatch.py` from a COPY of `hooks/` as a subprocess, which
 is what production spawns. A broken gate is one whose file is replaced by
 `def broken(:\\n`. The live `hooks/` is never touched. The cases come from
-`tests/hooks/test_dispatch.py`, `tests/text/test_a_gate_that_fails_says_so.py`,
-`tests/test_console_is_not_utf8.py` (#942's phase 6) and
-`tests/behaviour/test_the_root_migrates_itself.py`, whose case of the session-start
-group's order is in `Test_module` (#942's phase 7).
+`tests/hooks/test_dispatch.py`, `tests/text/test_a_gate_that_fails_says_so.py`
+and `tests/test_console_is_not_utf8.py` (#942's phase 6).
 """
 
 import contextlib
@@ -454,7 +452,8 @@ class Test_classify:
         is planted beside both. The output is dropped, the group decides as it
         would without it, and the gate is said at turn end. No group registers
         two `PreToolUse` gates, so the neighbour that denies joins `pre-bash`
-        in the dispatcher this case loads from the copy."""
+        in the dispatcher this case loads from the copy. The message stands
+        beside the shape in `post-edit`, whose two gates are both registered."""
         opted_in(repo)
         for n, shape in enumerate(UNREADABLE):
             hooks = hooks_copy(
@@ -463,8 +462,8 @@ class Test_classify:
                     # The neighbour's deny, which the planted shape must not take.
                     "neighbour.py": printing(decision("deny", "r")),
                     "mode-gate.py": printing(shape),
-                    "version-check.py": printing('{"systemMessage": "m"}'),
-                    "root-migrate.py": printing(shape),
+                    "lint-python.py": printing('{"systemMessage": "m"}'),
+                    "sealer-stamp-queue.py": printing(shape),
                 },
             )
             session = f"s-{n}"
@@ -477,9 +476,9 @@ class Test_classify:
             with contextlib.redirect_stdout(out):
                 d.main()
             assert decision_of(out.getvalue()) == "deny", (shape, out.getvalue())
-            start = {"hook_event_name": "SessionStart", "session_id": session}
-            start["cwd"] = str(repo)
-            assert json.loads(dispatch(hooks, "session-start", start)) == {
+            edit = {"hook_event_name": "PostToolUse", "session_id": session}
+            edit["cwd"] = str(repo)
+            assert json.loads(dispatch(hooks, "post-edit", edit)) == {
                 "systemMessage": "m"
             }, shape
             lines = said(stop(hooks, repo, session))
@@ -487,7 +486,7 @@ class Test_classify:
                 "mode-gate.py failed while running in pre-bash (ValueError: printed "
                 "JSON the dispatcher cannot read: "
             ), (shape, lines)
-            assert gates_said(lines) == ["mode-gate.py", "root-migrate.py"], lines
+            assert gates_said(lines) == ["mode-gate.py", "sealer-stamp-queue.py"], lines
 
 
 class Test_merge:
@@ -508,8 +507,8 @@ class Test_merge:
         assert d.merge(["first\n", "", "second\n"], "PostToolUse") == "first\nsecond"
 
     def test_refuses_to_drop_a_line_said_once_beside_a_neighbours_decision(self):
-        """#692: a gate that says its line once per session, as `stub-remove.py`
-        does, must not lose it to a `deny` beside it in the same group."""
+        """#692: a gate that says its line once must not lose it to a `deny`
+        beside it in the same group."""
         d = dispatch_module()
         out = json.loads(
             d.merge(
@@ -857,7 +856,7 @@ class Test_draw:
         directory = repo / ".git" / RECORDS / "s-x"
         directory.mkdir(parents=True)
         carried = (
-            ("stub-remove.py", [10**18, 0]),
+            ("sealer-stamp-queue.py", [10**18, 0]),
             ("routing-edit-gate.py", [10**18, 1]),
             ("mode-gate.py", [10**18 + 5, 0]),
         )
@@ -877,7 +876,7 @@ class Test_draw:
             os.utime(old, ns=(10**18 + seconds * 10**9, 10**18 + seconds * 10**9))
         lines = said(stop(hooks_copy(tmp_path, {}), repo, "s-x"))
         assert gates_said(lines) == [
-            "stub-remove.py",
+            "sealer-stamp-queue.py",
             "routing-edit-gate.py",
             "mode-gate.py",
             "version-check.py",
@@ -897,7 +896,7 @@ class Test_draw:
             "mode-gate.py": "[1]",
             "version-check.py": json.dumps({"group": 5, "phase": "load"}),
             "implementer-mark.py": json.dumps({"error": "OSError"}),
-            "stub-remove.py": json.dumps(
+            "sealer-stamp-queue.py": json.dumps(
                 {"group": "pre-bash\nstop", "error": "E", "message": "a\n  b"}
             ),
         }
@@ -914,8 +913,8 @@ class Test_draw:
             "mode-gate.py failed; calls went ahead without it.",
             "version-check.py failed to load; calls went ahead without it.",
             "implementer-mark.py failed (OSError); calls went ahead without it.",
-            "stub-remove.py failed in pre-bash stop (E: a b); calls went ahead "
-            "without it.",
+            "sealer-stamp-queue.py failed in pre-bash stop (E: a b); calls went "
+            "ahead without it.",
         ], lines
 
     def test_refuses_a_record_that_cannot_be_claimed(self, repo, tmp_path):
@@ -1146,18 +1145,28 @@ class Test_main:
 class Test_module:
     def test_no_group_installs_into_git_or_reads_a_commit_before_it_runs(self):
         """#1027 S16: `pre-bash` holds the mode gate and nothing that reads a
-        commit or carries a waiver to git, and `session-start` runs the stub
-        remover after the root migration, in place of the installer. S1 of
+        commit or carries a waiver to git, and `session-start` runs the
+        version check alone, in place of the installer, the stub remover and
+        the move of an earlier layout (work item 1793438028). S1 of
         work item 1793240967: no group reads a command or a spawn for a branch
         switch or a worktree creation, so `pre-agent` holds the mark alone and
-        no group answers `PostToolUse` for an Agent call."""
+        no group answers `PostToolUse` for an Agent call.
+
+        The gates that wrote a clone's git hooks or carried a waiver to git
+        stay out of every group and off disk, and `hooks/git/` stays gone:
+        this plugin writes nothing into a clone's git hooks
+        (`docs/the-routing-check.md`)."""
         d = dispatch_module()
         assert d.GROUPS["pre-bash"] == ("mode-gate.py",)
         assert d.GROUPS["pre-agent"] == ("implementer-mark.py",)
         assert "post-agent" not in d.GROUPS
-        group = d.GROUPS["session-start"]
-        assert group.index("root-migrate.py") < group.index("stub-remove.py")
+        assert d.GROUPS["session-start"] == ("version-check.py",)
         assert not any("install" in g for gates in d.GROUPS.values() for g in gates)
+        everywhere = {g for gates in d.GROUPS.values() for g in gates}
+        for gone in ("hook-install.py", "answer-write.py", "answer-clear.py"):
+            assert gone not in everywhere, gone
+            assert not os.path.exists(os.path.join(HOOKS, gone)), gone
+        assert not os.path.exists(os.path.join(HOOKS, "git")), "hooks/git/ is back"
 
     def test_a_message_is_its_first_line_and_capped(self):
         d = load(os.path.join(HOOKS, "dispatch.py"), "dispatch_for_the_cap")

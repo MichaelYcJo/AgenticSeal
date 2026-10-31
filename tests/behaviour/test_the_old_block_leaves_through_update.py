@@ -1,8 +1,7 @@
 """An installed preset block leaves through `/agentic:update`, and nothing writes one (#1177, S6 and S9).
 
-Releases before 0.25.0 wrote a block into the user's `CLAUDE.md` between
-`<!-- agentic:start -->` and `<!-- agentic:end -->`, or, before the rename,
-between `<!-- specseal:start -->` and `<!-- specseal:end -->`. The core now
+Releases from 0.23.0 to 0.24.x wrote a block into the user's `CLAUDE.md`
+between `<!-- agentic:start -->` and `<!-- agentic:end -->`. The core now
 reaches a session from the plugin's `SessionStart` hook, so the block, its
 installer, its uninstaller and `/agentic:preset-setup` retire.
 
@@ -28,8 +27,6 @@ from conftest import ROOT, flattened, git, read
 TEMPLATE = os.path.join(ROOT, "templates", "setup", "claude-md-block.md")
 UPDATE = os.path.join(ROOT, "skills", "update", "SKILL.md")
 START, END = "<!-- agentic:start -->", "<!-- agentic:end -->"
-# The markers every release before 0.23.0 wrote into a user's CLAUDE.md.
-OLD_START, OLD_END = "<!-- specseal:start -->", "<!-- specseal:end -->"
 # The file the step works on, as the shell expands it.
 USER_FILE = '"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/CLAUDE.md"'
 # Step 4's one command: a `python3 -c` program in step 3's shape, then the
@@ -89,14 +86,13 @@ def test_step_4_takes_the_empty_pair_out_after_a_backup(tmp_path):
     assert str(target) in out.stdout and "CLAUDE.md.bak" in out.stdout, out.stdout
 
 
-def test_step_4_takes_out_a_block_under_either_markers_whatever_it_holds(tmp_path):
-    """S6. A 0.24.x block that was never updated holds eight rules, and one
-    from before the rename stands under the old markers; each region goes
-    whole, so no rule line is left behind."""
+def test_step_4_takes_out_a_block_whatever_it_holds(tmp_path):
+    """S6. A 0.24.x block that was never updated holds eight rules and an
+    `@` line; the region goes whole, so no rule line is left behind."""
     target = tmp_path / "CLAUDE.md"
     target.write_text(
-        f"# mine\n{START}\n## Tooling\n- an old rule\n{END}\n"
-        f"{OLD_START}\n@plugins/old.md\n{OLD_END}\n# mine, last\n",
+        f"# mine\n{START}\n## Tooling\n- an old rule\n@plugins/old.md\n{END}\n"
+        "# mine, last\n",
         encoding="utf-8",
     )
     out = take_out(target, tmp_path)

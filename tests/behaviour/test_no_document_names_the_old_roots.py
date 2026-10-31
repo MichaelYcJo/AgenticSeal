@@ -6,23 +6,18 @@ A session follows the first path it reads. Every shipped text now says
 sends that session to write a file nothing reads — the silence every gate
 gives the old layout is what makes the miss invisible.
 
-Three kinds of mention keep the old name on purpose, and each is listed
+Two kinds of mention keep the old name on purpose, and each is listed
 below with its reason, so the allowlist cannot grow without one:
 
   - the design record and its Korean twin, which name both trees because
     the move is what they are about;
   - a marker or a retired key, which is read by a script or kept as
-    history — the `<!-- specs/<id> -->` text in the changelog and the ledger;
-  - a sentence about the migration itself, worded as past.
+    history — the `<!-- specs/<id> -->` text in the changelog and the ledger.
 
-No code reads the old names, and `tests/behaviour/test_the_root_migrates_itself.py`
+No code reads the old names, and `test_no_hook_names_the_0_3_x_roots` below
 holds that for `hooks/`; the round records, overviews and plans of released
 work items under `seal/threads/` are outside the scanned files, because they
-record what was true at their SHA. `README.md` and `README.ko.md` move
-together, because the hygiene workflow warns when they do not, and their
-"coming up from 0.3.x" section is the one place a person is told how to make
-the move by hand, which is the only path there is — its lines are the third
-kind.
+record what was true at their SHA.
 """
 
 import os
@@ -31,9 +26,8 @@ import re
 import pytest
 from conftest import ROOT, build_tracked_tree, decline_if_shrunken, git_listing, on_disk
 
-# `.specseal/` anywhere; `specs/<` unless it follows a `/` (the 0.22.x
-# `seal/` layout the migration names) or is part of a longer path segment.
-OLD_ROOT = re.compile(r"\.specseal/|(?<![\w/.])specs/<")
+# `.specseal/` anywhere; `specs/<` unless it is part of a longer path segment.
+OLD_ROOT = re.compile(r"\.specseal/|(?<![\w.])specs/<")
 
 SCANNED = (
     ".github/workflows",
@@ -54,10 +48,6 @@ SUFFIXES = (".md", ".yml", ".sh")
 # checked to still occur somewhere, so a reason cannot outlive its line.
 KEEP = {
     "<!-- specs/<work-item-id> -->": "the marker text in the changelog and the ledger is unchanged (Q2)",
-    "`.specseal/scratch`": "the predecessor of `.git/agentic-scratch`, named as past",
-    "(`.specseal/`, `specs/<id>/`)": "the READMEs naming the 0.3.x layout the by-hand move leaves",
-    "git mv .specseal/": "the by-hand move in the READMEs' coming-up section",
-    "git mv specs/<id>": "the by-hand move's last step, one work item at a time",
     "`specs/` or `.specseal/`": "the policy naming the 0.3.x roots no code opens",
     "`specs/` 나 `.specseal/`": "the same policy in the Korean edition",
 }
@@ -103,6 +93,19 @@ def test_no_shipped_document_names_the_old_roots():
         ]
         + [f"  {rel}:{number}  {line}" for rel, number, line in found]
     )
+
+
+def test_no_hook_names_the_0_3_x_roots():
+    """No code of the plugin opens `.specseal/` or a top-level `specs/`, so
+    no file under `hooks/`, its modules in `hooks/lib/` among them, names the
+    first or keeps a constant for the second."""
+    for here in (("hooks",), ("hooks", "lib")):
+        for name in sorted(os.listdir(os.path.join(ROOT, *here))):
+            if name.endswith(".py"):
+                path = os.path.join(ROOT, *here, name)
+                text = open(path, encoding="utf-8").read()
+                assert ".specseal" not in text, f"{name} names the 0.3.x root"
+                assert "OLD_ITEMS" not in text, f"{name} keeps the 0.3.x specs/"
 
 
 # The two paths the scan names to prove it reaches both ends of its own
@@ -174,6 +177,8 @@ def test_the_scan_covers_something():
         "the gate reads `specs/<work-item-id>/routing.md`",
         "<!-- specs/<unix-epoch-seconds>-<slug>/design.md — WHAT",
         "opt-in: `.specseal/` at the repo root",
+        # exempt from old_names: the 0.22.x layout the scan must refuse
+        "write it under `seal/specs/<work-item-id>/`",
     ],
 )
 def test_the_check_can_fail(line):

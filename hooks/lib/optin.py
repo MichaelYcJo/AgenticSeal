@@ -9,9 +9,7 @@ opening with `MARKER`: `<repo>/seal/`, which shared mode commits, then
 `<git-common-dir>/seal/`, where local mode keeps it (#80). One root, read one
 way, and no config key (`docs/one-root-by-lifetime.md`, "The opt-in signal
 is the root itself"). A `seal/` without the marker is a directory the project
-keeps for itself, as a package named `seal` does, and declares nothing,
-except one whose README opens with one of `EARLIER_HEADINGS`: an earlier
-release's root, waiting for its move, which declares nothing either.
+keeps for itself, as a package named `seal` does, and declares nothing.
 
 `<git-common-dir>/agentic-scratch` takes that declaration back. A repository
 that exists for thirty seconds — a fixture built by hand to reproduce a gate
@@ -45,8 +43,7 @@ WORK_ITEMS = "threads"
 # directory: `frame/` holds the design before the build, `trail/` what passed
 # between the parties, and the four files at the top speak for the whole
 # thread (`docs/the-record-layout.md`). Every reader of a thread's file joins
-# one of these under the thread, and the migration moves a 0.22.x work item's
-# files to them.
+# one of these under the thread.
 FRAME = "frame"
 TRAIL = "trail"
 DESIGN = f"{FRAME}/design.md"
@@ -66,21 +63,11 @@ PARITY_CONFIG = "parity.md"
 # file because every gate would then parse one to answer what is a directory
 # test. A directory of this name is not the opt-out — see `home_at()` below.
 SCRATCH = "agentic-scratch"
-# The first line of `templates/setup/seal-README.md`, which first setup and the
-# migration write into every root: a `seal/` is the plugin's root only where
-# its `README.md` opens with this line. `tests/hooks/test_optin.py` pins the
-# template's first line to this value.
+# The first line of `templates/setup/seal-README.md`, which first setup writes
+# into every root: a `seal/` is the plugin's root only where its `README.md`
+# opens with this line. `tests/hooks/test_optin.py` pins the template's first
+# line to this value.
 MARKER = "# What AgenticSeal maintains in seal/"
-# The first line `templates/setup/seal-README.md` opened with in the releases before
-# the rename. A `seal/` whose README opens with one is an earlier release's
-# root, waiting for the move `hooks/root-migrate.py` makes at session start:
-# not opted in until then, and not a project's own directory either, so no
-# reader puts a second root beside it (`earlier`). It leaves with the
-# migration, once no repository is left to move.
-EARLIER_HEADINGS = (
-    "# What this plugin maintains in seal/",
-    "# seal/ — what this plugin maintains",
-)
 README = "README.md"
 
 
@@ -223,21 +210,6 @@ def marked(path):
     except OSError:
         return False
     return first.rstrip("\r\n") == MARKER
-
-
-def earlier(path):
-    """True where `<path>/README.md` opens with one of `EARLIER_HEADINGS`,
-    read as `marked` reads the marker: the first line with its end stripped,
-    and an empty path or a README that cannot be opened is no root."""
-    if not path:
-        return False
-    longest = max(len(h) for h in EARLIER_HEADINGS)
-    try:
-        with open(os.path.join(path, README), encoding="utf-8", errors="replace") as f:
-            first = f.readline(longest + 2)
-    except OSError:
-        return False
-    return first.rstrip("\r\n") in EARLIER_HEADINGS
 
 
 def home_at(root, common=None):

@@ -173,8 +173,6 @@ tables:
 |---|---|---|---|
 | routing-edit-gate | before a `Write`, `Edit` or `NotebookEdit` call | refuses an edit when no `routing.md` declares the edited file's branch, unless this session ran `seal no-work-item` on that branch. It judges the file's repository and branch, wherever the shell sits. Files under `seal/`, files git ignores and files in no opted-in repository pass, so the declaration itself is always writable. The model gets the refusal with its two ways on — write the declaration, or run `seal no-work-item` — and under the `automation` press it names no question to put to you. Nothing of this plugin runs inside git, so a person's own commit from a terminal runs none of its code; at the pull request, `chain-check` fails a commit whose `Seal-Routing` trailer names a work item no declaration names | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
 | core-start | at session start, after `/clear` and after a compaction, never on resume | prints the core, `skills/core/SKILL.md`, into the session as plain text, under a first line that names the printed file, the running plugin's version and that file's SHA-256. In a clone of this plugin's own repository it prints the clone's copy. A resumed session keeps what its start printed, which is why resume is left out. It writes nothing | every session, in any directory |
-| stub-remove | at session start | removes the `pre-commit`, `reference-transaction` and `post-commit` stubs an earlier release wrote into the clone's common `hooks/` directory: only a file whose second line is the marker `# specseal-git-hook`. A hook somebody else wrote is left byte for byte. Says once what it removed, and nothing where there was nothing | any git repo |
-| root-migrate | at session start | moves a layout an earlier release wrote into the current one: it rewrites `seal/README.md` to open with the marker line and moves each 0.22.x work item to `seal/threads/<id>/`, as staged `git mv` steps for you to review and commit, or as plain renames under the common git dir in local mode. It refuses the whole move over uncommitted changes under what it would move, and says in one line what moved. It also gives the plugin's name to the state files an earlier release wrote under its old name, beside the root and under `~/.claude/` | any git repo whose tree or common git dir still holds an earlier layout; the state rename runs at every session start, silently |
 | implementer-mark | before an Agent/Task call whose `subagent_type` is `framer` or `crafter` (`agentic:crafter`, or a project-local `crafter`) | writes the checked-out branch name to `.git/agentic-planner` or `.git/agentic-implementer`, one file per axis. It prints nothing, so it can neither deny nor ask; it is the trace the notice below reads | `seal/` at the root, or under the common git dir in local mode — silent elsewhere, and writes nothing |
 | implementer-notice | after a command that actually runs `git commit` | where this branch's `routing.md` answers `Planning` with `framer` or `Implementation` with `crafter` and no mark of that axis stands for this branch, prints one line naming the file — **one line for both axes**, never one each. Nothing is said for an axis whose mark stands, whose row is absent or unreadable, or which answers `the session`. **Once per session per repository**, and it never blocks — a declared agent nobody spawned is a session forgetting its own answer, and a reminder is what that costs | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
 | review-skill-gate | before the model opens a skill named `code-review` | puts the choice to you rather than making it: that name is Claude Code's built-in, not this plugin's. The built-in sweeps the diff for bugs and cleanup; `agentic:code-review` judges compliance first and inherits earlier rounds' verdicts. Fires **once per session per working tree**, so picking the built-in and retrying goes straight through. A skill you invoke yourself never routes through here | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
@@ -306,38 +304,6 @@ CLAUDE.md block between `<!-- agentic:start -->` and `<!-- agentic:end -->`;
 `/plugin uninstall agentic`, and delete such a block yourself, its markers
 and the lines between them, where no update has taken it out.
 
-### Coming from `specseal@specseal`
-
-The plugin was installed as `specseal@specseal` before it was renamed.
-Claude Code knows a marketplace by its name, and its reference does not say
-what a registration does when the catalog it points at changes its own name,
-so register the marketplace again under the new one:
-
-```bash
-claude plugin marketplace remove specseal
-claude plugin marketplace add MichaelYcJo/AgenticSeal
-claude plugin install agentic@agenticseal
-```
-
-The first line also uninstalls `specseal@specseal` and deletes its cache
-(`code.claude.com/docs/en/plugins/cli-reference.md` *plugin marketplace
-remove*). The CLAUDE.md block the old install wrote, between
-`<!-- specseal:start -->` and `<!-- specseal:end -->`, carries nothing the
-new install needs: `/agentic:update` takes it out at the next release, or
-you delete its markers and the lines between them. The update
-command of the old install runs the old names, so it cannot carry you
-across. These three lines are read from the Claude Code reference and have
-not been run on a machine that holds the old install.
-
-In a repository where `seal pr-checks install` wrote
-`.github/workflows/hygiene.yml` before the rename, run `seal pr-checks
-install` again once the session start has moved the records, and commit the
-rewritten workflow together with the move. The old workflow clones the
-release it was pinned to, which looks for work items where that release
-kept them and for the old trailer, so after the move it finds no declaration and
-passes every pull request without examining any. The session start's line
-says so where it finds that workflow.
-
 ### Updating
 
 ```
@@ -376,43 +342,6 @@ update that brings this step in runs the earlier release's procedure, which
 copies the block from `templates/setup/claude-md-block.md`; that template
 holds its two markers and nothing between them, so the update leaves an
 empty marker pair, and the next update removes it.
-
-### Coming up from 0.3.x
-
-0.3.x kept the plugin's files in two directories (`.specseal/`, `specs/<id>/`);
-every release since keeps them in one, `seal/`. The old pair opts nothing in,
-so every gate is silent in a repository that still holds it. No code of the
-plugin opens either directory, so you move them by hand with the commands
-below, and this is the only path.
-
-Move only the plugin's own work items out of `specs/`: a directory named
-`<unix-seconds>-<slug>` where git tracks a `routing.md`, or a file in a
-`rounds` directory directly under it. Every 0.3.x work item carried `routing.md`.
-Anything else under `specs/` is the project's own, whatever its name, and
-stays where it is.
-
-The README the second command moves is then overwritten from
-`templates/setup/seal-README.md`, because that file's first line is the marker every
-gate reads before it treats `seal/` as the plugin's root. Where
-`.specseal/scratch` marked the repository as throwaway, delete it instead of
-moving it: its successor is the file `.git/agentic-scratch`, which cannot be
-committed.
-
-```bash
-# exempt from old_names: the 0.22.x layout, which the plugin then moves into seal/threads/
-mkdir -p seal/specs
-git mv .specseal/README.md seal/README.md    # then overwrite it from templates/setup/seal-README.md
-git mv .specseal/* seal/                     # follow-up.md, parity.md and anything else in there
-# exempt from old_names: the 0.22.x layout, which the plugin then moves into seal/threads/
-git mv specs/<id> seal/specs/<id>            # each work item
-rmdir .specseal specs                        # git mv leaves them empty on disk; one holding something else stays
-```
-
-Then review `git diff --cached` and commit. That commit belongs to no work
-item, so a session making it in shared mode ends it with the trailer
-`Seal-Routing: no work item`. The plugin then moves each work item into
-`seal/threads/<id>/` the way it moves a repository installed before the
-rename, as staged `git mv` for you to review and commit the same way.
 
 ## First run
 

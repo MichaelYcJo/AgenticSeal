@@ -1083,9 +1083,8 @@ def test_the_template_says_the_file_is_optional():
 def test_the_layout_lists_the_config(parts):
     """S9. Four documents draw the root's contents and a file in none of them
     is a file nobody finds. `seal/README.md` is the template verbatim —
-    `tests/behaviour/test_first_setup_asks_once.py` pins that equality and
-    `hooks/root-migrate.py#rewrite_readme` depends on it — so the two move as
-    one edit."""
+    `tests/behaviour/test_first_setup_asks_once.py` pins that equality — so
+    the two move as one edit."""
     assert "config.md" in read(*parts), (
         "/".join(parts) + " draws the root without the config file in it"
     )
