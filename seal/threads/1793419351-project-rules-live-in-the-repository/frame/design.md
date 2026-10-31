@@ -48,7 +48,7 @@ Facts this frame rests on, each with how it was obtained:
 | C3 | the base comparison by hand runs in a worktree of the base, never through `git stash`, whose one stack every worktree and session of the clone shares | `skills/verify/orchestration.md` *The broad gate*, the paragraph opening **That comparison is reactive.**, rewritten in place | this pull request |
 | C4 | before a push and after it the orchestrator reads the pull request's `state` as well as `mergeable`, waits on every workflow's checks, and the reason not to use `gh pr edit` is stated where the act is | `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals*, two sentences rewritten in place, and the pin in `tests/text/test_the_rules_have_one_owner.py` that quotes the first | this pull request |
 | R1 | the stall check on a running agent | `docs/the-review-record.md` *The handoff* | the settle |
-| R2 | a location on the orchestrator's machine is named in words in a spawn prompt, never by its path | `docs/the-review-record.md` *The handoff* | the settle |
+| R2 | a spawn prompt that hands an agent a path outside the repository says not to copy it into a record; that no record carries a real local path stays where it stands, `CONTRIBUTING.md` *House rules*, **No real identifiers**, held by the `real_identifiers` census | `docs/the-review-record.md` *The handoff* | the settle |
 | R3 | what `seal settle --apply` removed is committed before anything switches that checkout | `docs/release-checklist.md` *2b. Settle what earlier releases left behind* | the settle |
 | R4 | the release milestone is closed after the tag | `docs/release-checklist.md` *6. After the merge* | the settle |
 
@@ -57,7 +57,7 @@ Facts this frame rests on, each with how it was obtained:
 - Deleting the memory entries. It is the orchestrator's act after the merge (#1200 *Done when*), on a directory outside the repository; `frame/plan.md` *Operational impact* lists what goes and what stays.
 - Automating the milestone's close in `.github/scripts/close_issues_on_release.py`. Weighed in `frame/plan.md` *Alternatives considered*.
 - Making `seal settle --apply` stage its removal. Weighed in `frame/plan.md` *Alternatives considered*.
-- The lessons judged below the bar in *The lessons*. Their home is this record, as #1200's body allows ("a work item's records"); none earns a rule on one instance, and each row says why.
+- The lessons *The lessons* marks **Not kept**. Each was weighed for a home and found not worth one, and its row says why; nothing keeps them.
 - `skills/commit-pr-convention/SKILL.md` and `docs/branch-and-release.md` *The version is named at the cut*: #1199 holds them, and the one lesson that would touch them (renumbering milestones by renaming) is #1199's owner decision.
 - `agents/crafter.md`, `templates/records/sdd-plan.md`, `skills/settle/SKILL.md`, and the three `skills/code-review/orchestration.md` sections and the `skills/implement/orchestration.md` section #1167 edits.
 
@@ -100,7 +100,7 @@ Every lesson the 39 run logs and the rule entries state, enumerated by reading e
 | check that the pull request is still open before pushing to its branch | 0.14.0, `fold-0-15-3-run.md` | C4 |
 | wait on every workflow's checks after a push, not one workflow's runs | 0.15.1, 0.15.3, 0.20.0 | C4 |
 | `gh pr edit` stopped on a GraphQL error about Projects (classic); use `gh api -X PATCH` | 0.4.0 (`handoff-two-roots-phase3.md`), 0.8.0 (read: the orchestrator's account; nobody has re-run `gh pr edit` since, and a probe of it writes, so the sentence is dated) | C4, the reason stated where the tree's citation of it dangles |
-| a real path in a spawn prompt is copied into records and refused by the census | 0.18.1, 0.25.1 (`run-0-25-1-1174.md`), this work item's own spawn | R2 |
+| a real path a spawn prompt hands an agent is copied into records and refused by the census; the records half is already `CONTRIBUTING.md` *House rules*, **No real identifiers**, and the prompt half is missing | 0.18.1, 0.25.1 (`run-0-25-1-1174.md`); this run's prompts carried each worktree's path with the instruction not to copy it (the orchestrator's account) | R2 |
 | commit what `seal settle --apply` removed before any switch of the checkout | `no-branch-switch-with-unstaged-deletions.md` | R3 |
 | close the release milestone by hand after the release | 0.15.0, 0.15.3, 0.15.4, 0.15.5, 0.18.0, 0.18.1, 0.18.2, `next-0-18-3-plan.md`, 0.25.0 | R4 |
 
@@ -144,34 +144,32 @@ Every lesson the 39 run logs and the rule entries state, enumerated by reading e
 | `bin/test` builds its own environment in a fresh worktree; `ruff` runs through `uvx`; `gh issue view` is read with `--json` | 0.8.0, 0.8.2, 0.16.0, 0.18.2, 0.21.0 | `CONTRIBUTING.md`, the `bin/test` paragraphs; `seal/config.md` row `Broad gate`; `agents/framer.md` step 4 |
 | the routing check governs the session, at its tools and at the pull request | 0.22.4 | `docs/the-routing-check.md` |
 
-**Gone.** The mechanism each is about was removed, so nothing is left to follow: the evidence ledger, `round_record.py`, `survivor-check` and `correction-check` (removed in 0.22.0, per `next-0-21-0-plan.md`'s last line and the absence of each from `git ls-files`), with every lesson about their cells, fences, verdict words, reach-backs, re-stamps and union merges (0.8.0, 0.8.1, 0.8.2, 0.9.1, 0.9.5, 0.10.0, 0.11.2, 0.11.3, 0.12.1, 0.12.3, 0.14.0, 0.15.0, 0.15.1, `fold-0-15-3-run.md`, 0.15.3, 0.15.4, 0.15.5, 0.16.0, 0.18.0 to 0.18.3, 0.21.0); the fold and its staging (0.7.0, 0.8.1, 0.8.2, 0.11.1); the `Enforced by` line and the retire step (`fold-0-15-3-run.md`, 0.15.3); the `Approved` line (0.15.3, 0.18.1); the worktree guard and its `[worktree-ok]` comment (0.9.1, 0.9.3, 0.15.0, 0.15.4, 0.15.5, 0.17.0, 0.20.0, 0.22.1), absent from `hooks/`; the git-level commit gate and its heredoc, loop and `-C` traps (0.8.2, 0.15.1, 0.15.5, 0.18.0, 0.18.1, 0.22.4), removed by #1027; the draft pull request before round 1 (0.8.1, 0.22.1), replaced by the pull request opening ready after the seal; the release preparation pull request and its duplicate in a parallel session (0.12.3, 0.21.0), replaced by the version moving in the release's first pull request (`docs/release-checklist.md` *5. The release pull request*); the depth rule and "a fix pass may not add mechanism" (0.8.0, 0.8.1, 0.18.0), replaced by the regression route; stacked branches retargeted after a squash (0.12.1, 0.15.0, 0.15.1), which the flow no longer opens; a new gate's first release testing its range (0.9.3), whose gate is gone; `Ran by` in spawn prompts (0.15.4, 0.18.1), absent from the round template.
+**Gone.** The mechanism each is about was removed, so nothing is left to follow: the evidence ledger, `round_record.py`, `survivor-check` and `correction-check` (removed in 0.22.0, per `next-0-21-0-plan.md`'s last line and the absence of each from `git ls-files`), with every lesson about their cells, fences, verdict words, reach-backs, re-stamps and union merges (0.8.0, 0.8.1, 0.8.2, 0.9.1, 0.9.5, 0.10.0, 0.11.2, 0.11.3, 0.12.1, 0.12.3, 0.14.0, 0.15.0, 0.15.1, `fold-0-15-3-run.md`, 0.15.3, 0.15.4, 0.15.5, 0.16.0, 0.18.0 to 0.18.3, 0.21.0); the fold and its staging (0.7.0, 0.8.1, 0.8.2, 0.11.1); the `Enforced by` line and the retire step (`fold-0-15-3-run.md`, 0.15.3); the `Approved` line (0.15.3, 0.18.1); the worktree guard and its `[worktree-ok]` comment (0.9.1, 0.9.3, 0.15.0, 0.15.4, 0.15.5, 0.17.0, 0.20.0, 0.22.1), absent from `hooks/`; the git-level commit gate and its heredoc, loop and `-C` traps (0.8.2, 0.15.1, 0.15.5, 0.18.0, 0.18.1, 0.22.4), removed by #1027; the draft pull request before round 1 (0.8.1, 0.22.1), replaced by the pull request opening ready after the seal; the release preparation pull request and its duplicate in a parallel session (0.12.3, 0.21.0), replaced by the version moving in the release's first pull request (`docs/release-checklist.md` *5. The release pull request*); the depth rule and "a fix pass may not add mechanism" (0.8.0, 0.8.1, 0.18.0), replaced by the regression route; stacked branches retargeted after a squash (0.12.1, 0.15.0, 0.15.1), which the flow no longer opens; a new gate's first release testing its range (0.9.3), whose gate is gone; a record's closure and its retirement in one release range going red on `main` (0.15.3), whose retire step is gone; `Ran by` in spawn prompts (0.15.4, 0.18.1), absent from the round template.
 
-**In an issue.** The local mode root under `.git` (0.8.0): #158. The review segment's progress readout (0.9.1): #236, which R1 does not close, because R1 reads from outside the agent. Required checks (0.12.1): #457. The orchestrator's suite runs (0.9.3): #145. The ruleset (0.9.3): #253. The framer's model (0.21.0, 0.25.0): the owner's *Framing* sections of #1148 and #1167. The emblem (0.20.0, `run-0-25-1-1174.md`): #1174, shipped. The core's delivery (0.25.0): #1177 and #1183. The evaluation baselines (0.22.1): #957 and #966 to #971. Renumbering milestones by renaming them, never moving issues (0.11.1): #1199's owner decision.
+**In an issue.** The local mode root under `.git` (0.8.0): #158. The review segment's progress readout (0.9.1): #236, which R1 does not close, because R1 reads from outside the agent. Required checks (0.12.1): #457. The orchestrator's suite runs (0.9.3): #145. The ruleset (0.9.3): #253. The framer's model (0.21.0, 0.25.0): the owner's *Framing* sections of #1148 and #1167. The emblem (0.20.0, `run-0-25-1-1174.md`): #1174, shipped. The core's delivery (0.25.0): #1177 and #1183. The evaluation baselines (0.22.1): #957 and #966 to #971. Renumbering milestones by renaming them, never moving issues (0.11.1): #1199's owner decision. A reframe leaving the pull request title stale, while the title is a line of the release note (0.25.0): a comment on #1199, which rewrites the title rules, posted by the orchestrator after the merge (`frame/plan.md` *Operational impact*).
 
-**Below the bar; this record is their home.** One instance each, or a fact about a tool that no act of the workflow reads, so none earns a rule under `skills/core/SKILL.md` *The rule a mechanism is kept against*; a second instance is what would move one.
+**Not kept.** Each was weighed for a home and found not worth one: one instance, or a fact about a tool that no act of the workflow reads, so none earns a rule under `skills/core/SKILL.md` *The rule a mechanism is kept against*. Nothing keeps them: they leave with the memory entries after the merge, and this table, which leaves with this directory at the settle after the release, records only the decision and its grounds. A second instance is a new lesson, and *Orchestrator: where a decision or a lesson is written* (C1) gives it a home then.
 
-| Lesson | Source | Why it stays here |
+| Lesson | Source | Why nothing keeps it |
 |---|---|---|
-| `gh issue edit --milestone` reported success and moved nothing | 0.8.0 | one instance; the tree moves milestones with no command it prescribes |
-| `git for-each-ref` matches path components, not substrings | 0.11.3 | a git fact; no rule reads it |
-| `gh pr merge --match-head-commit` takes the full SHA | 0.16.0, 0.18.0 | refuses loudly; nothing is lost |
+| `gh issue edit --milestone` reported success and moved nothing | 0.8.0 | one instance; no step of the tree prescribes that command |
+| `git for-each-ref` matches path components, not substrings | 0.11.3 | a git fact; no act of the workflow runs it |
+| `gh pr merge --match-head-commit` takes the full SHA | 0.16.0, 0.18.0 | the command refuses loudly, and nothing is lost |
 | a crafter stopped mid-phase leaves files staged, so the orchestrator commits its own file by path | 0.25.0 | one instance |
-| capture a probe's message, not only its exit code | 0.8.2 | one instance; contract rule 4's labels cover what was shown |
+| capture a probe's message, not only its exit code | 0.8.2 | one instance; contract rule 4's labels already ask what was shown |
 | a fix's case reproduces the finding's own example | 0.15.4 | one instance; contract rule 15 asks for the case seen red |
 | a probe is run where its code runs, not where it was written | 0.22.1 | one instance |
-| a 429 limit on subagents can pass; retry one resume | 0.18.3 | an account fact, one instance |
+| a 429 limit on subagents can pass; retry one resume | 0.18.3 | an account fact, seen once |
 | a safety classifier stopped reviewers writing bypass strings | 0.18.1 | one run |
-| a worktree vanished mid-preparation, cause unknown | 0.8.2 | no cause to write |
+| a worktree vanished mid-preparation, cause unknown | 0.8.2 | there is no cause to act on |
 | history scrubbed before a first push by replaying commits | `run-0-25-1-1174.md` | a technique used once |
-| a reframe leaves the pull request title stale | 0.25.0 | one instance; the title is a note line (`docs/branch-and-release.md` *Cutting a release*), and #1199 rewrites the title rules |
 | `seal gate --record` takes the work item's path, not its id | 0.25.0 | the command refuses with exit 2 before it runs |
-| commit with the `Seal-Routing` trailer from the first commit | 0.25.1 (`run-0-25-1-1148.md`) | one instance; nothing refuses its absence on a declared branch |
-| a handoff or a gaps row after the guarantee goes to a pull request comment | 0.22.4, 0.25.1 (`run-0-25-1-1148.md`) | the tree says what a record commit after the guarantee costs (a sealer again), and choosing the comment is the orchestrator's judgment |
-| delete worktrees and branches only after fetching `refs/pull/*`, with heads backed up | 0.11.3, 0.15.1, 0.15.3, 0.15.4, 0.15.5, 0.18.1, 0.18.2, 0.22.1 | each deletion was the owner's request, and GitHub keeps every squashed head under its pull ref |
+| commit with the `Seal-Routing` trailer from the first commit | 0.25.1 (`run-0-25-1-1148.md`) | one instance |
+| a handoff or a gaps row after the guarantee goes to a pull request comment | 0.22.4, 0.25.1 (`run-0-25-1-1148.md`) | the tree already says what a record commit after the guarantee costs (the sealer again), so choosing a comment is the orchestrator's judgment against that cost, not a rule |
+| delete worktrees and branches only after fetching `refs/pull/*`, with heads backed up | 0.11.3, 0.15.1, 0.15.3, 0.15.4, 0.15.5, 0.18.1, 0.18.2, 0.22.1 | each deletion was the owner's request, and GitHub keeps every squashed head under its pull ref, so a local deletion loses nothing |
 | no colour such as "first contribution in months" in a document | 0.15.1 | one remark |
 | split a build from a paid evaluation into separate spawns | 0.22.1 | one run |
-| the release report reproduces locally with `release_report.py --against <tag>` | 0.25.0 | one use |
-| the closure and the retirement of a record in one release range go red on `main` | 0.15.3 | the retire step is gone |
+| the release report reproduces locally with `release_report.py --against <tag>` | 0.25.0 | one use; the release pull request's job summary carries the table (`docs/release-checklist.md` *5. The release pull request*) |
 
 **Local.** This machine's worktree directory added to the harness's allowed directories (0.9.1); the zsh word-splitting and `$r:seal` modifier traps (0.4.0, `fold-0-15-3-run.md`, 0.18.1, 0.18.2); this clone's `origin` repointed after the rename (0.25.0); the private brand repository (`run-0-25-1-1174.md`); showing the owner a visual choice as a terminal render he types `! cat` to see (0.20.0); this machine's settings allowlist (0.8.2).
 
@@ -201,7 +199,7 @@ No script, schema or command changes. The interfaces are text: four skill files 
   file: docs/the-review-record.md
   section: The handoff
   from: a runner the repository ships is named, not typed into every prompt, and the form handed over is the narrow one.
-  to: a runner the repository ships is named, not typed into every prompt, and the form handed over is the narrow one. A place on the orchestrator's machine outside the repository, such as a scratch directory or another clone, is named in words and never by its path: an agent copies a prompt's paths into the records it writes, and the `real_identifiers` census in `tests/censuses.py` refuses them there, which in 0.18.1 and in #1174 cost a repair and once a rewrite of the branch's history.
+  to: a runner the repository ships is named, not typed into every prompt, and the form handed over is the narrow one. A prompt that hands an agent a path outside the repository, such as the worktree it works in, says in the same prompt not to write that path into any record: an agent copies a prompt's paths into the records it writes, where `CONTRIBUTING.md` *House rules* forbids a real path and the `real_identifiers` census in `tests/censuses.py` refuses it, which in 0.18.1 and in #1174 cost a repair and once a rewrite of the branch's history.
 - add
   file: docs/release-checklist.md
   section: 2b. Settle what earlier releases left behind
