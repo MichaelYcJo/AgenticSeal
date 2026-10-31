@@ -419,6 +419,9 @@ def test_a_planted_invocation_turns_the_classification_red():
     assert not command_forms(located, script)
     assert command_forms(located.replace("skills/x/", "other/"), script)
     assert command_forms(located + "Then `chain_check.py -q`.\n", script)
+    assert command_forms(
+        located.replace(".\n", ", then `chain_check.py -q`.\n"), script
+    )
 
 
 def test_every_mention_lands_in_exactly_one_enumeration():
