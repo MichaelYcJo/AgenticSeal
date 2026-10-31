@@ -10,6 +10,11 @@ waits on a person.
   *Alternatives considered* A1 and A2.
 - **Where does `feat:` end and `refactor:` begin?** `frame/design.md`
   *Data & interfaces*, *The classification*.
+- **Does a change keep its kind when it carries its tests and its work
+  item's records, and what is a settle?** Yes, and a settle is `chore:`
+  unless it rewrites what no released work item decided. `frame/design.md`
+  *The classification* and *The cases the rule was run against*, and
+  `frame/plan.md` A14 to A18 (reframed after round 2).
 - **#1167 and #1198.** Both `feat:`. `frame/design.md` *The first cases*,
   and `frame/plan.md` A10.
 - **This issue's own prefix.** `feat:`. `frame/design.md` *The first cases*.
