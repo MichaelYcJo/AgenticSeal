@@ -28,7 +28,7 @@ outrank the code first*.
 severity: should
 location: `seal/threads/1793411151-judgment-where-meaning-is-the-question/frame/design.md:8`, `seal/threads/1793411151-judgment-where-meaning-is-the-question/frame/design.md:44`, `seal/threads/1793411151-judgment-where-meaning-is-the-question/frame/design.md:259-260`
 evidence: read `seal/threads/1793411151-judgment-where-meaning-is-the-question/frame/design.md:8`, `seal/threads/1793411151-judgment-where-meaning-is-the-question/frame/design.md:44`, `seal/threads/1793411151-judgment-where-meaning-is-the-question/frame/design.md:48`, `seal/threads/1793411151-judgment-where-meaning-is-the-question/frame/design.md:252-268`, `skills/core/SKILL.md:121-126`
-verdict: open
+verdict: fixed 5db4f69f
 
 Round 1's finding 4 found that "what it did not read it names" reads two
 ways. Read whole, a script names every line of prose it did not read; read
@@ -91,7 +91,7 @@ from "A closed form is" on `:261`, is unchanged:
     a named step.**
 ```
 
-answer:
+answer: The orchestrator folded all three instances in place, as the finding asks and as the frame's new fold rule (`frame/design.md` *Scope* item 11, folded at 7b796a4a) puts it. The paste-ready text was read as the policy reader and the sealer read it. Each instance now states what the core says at `skills/core/SKILL.md:121-126`: a line or file that looks like one of the form's and is not one, and the agent that reads the text. The texts were used as written. `:48` was left as the round judged. No file outside the frame changed, so the sealer reads this fix at HEAD.
 
 ## Confirmations
 
