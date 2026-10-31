@@ -78,7 +78,7 @@ Reframed after round 3. The first frame decided by the first row that fits, and 
 
 The clarifications, each one sentence in the skill:
 
-- **Precedence.** Where a change does more than one of these, its prefix is the one highest in the table, because whoever meets it meets the largest change, and a release reads any `feat:` as at least a minor.
+- **Precedence.** Where a change does more than one of these, its prefix is the one highest in the table, because whoever meets it meets the largest change. (The release's reading of `feat:` is the repository's own rule, stated in `docs/branch-and-release.md` through `## Rule changes`, and the skill names no version: phase 3 left this clause out of the skill, and the orchestrator folded that here on 2026-10-31.)
 - **A change's own tests and its work item's records never decide its prefix.** A speed-up with the case that pins it is `perf:`, and a README edit with the case that pins its words is `docs:`.
 - **Text a party reads and acts on is behaviour.** A change to a skill, an agent definition, a template a party fills or a hook's message is never `docs:` and never `chore:`. A work item's own records describe their change and leave with it, so the previous clarification, not this one, governs them.
 - **"Before the change" is the branch the change merges into.** A rule stated only in the change's own work item, such as its frame, belongs to the change, so a commit that builds it takes the kind its pull request takes.
