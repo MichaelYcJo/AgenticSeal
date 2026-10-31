@@ -348,3 +348,30 @@ turns off the reviewer, and the broad run is owed just the same
 **A work item that commits in more than one repository** asks the routing
 question once and writes every answer into each gated repository it commits
 in, by the procedure `skills/implement/multi-repository.md` holds.
+
+## Orchestrator: where a decision or a lesson is written
+
+**The orchestrator writes each decision and each lesson of a run into the
+repository, and never into a session's local memory alone.** The harness
+keeps that memory on one machine, outside the repository, so a rule kept
+only there is unknown to a run on any other machine and to anyone who reads
+the repository.
+
+| What the orchestrator has | Where the orchestrator writes it |
+|---|---|
+| a decision, with its grounds | the work item's records, as `skills/core/SKILL.md` *A judgment stands on a source document, and is written down with both* states |
+| a lesson about how an act is done | the file the act is read from, through the work item in progress where that work item changes the file: a skill or an agent definition edited in place, or a policy document through the work item's `## Rule changes` (`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*) |
+| a lesson or a decision whose home no work item in progress changes | an issue that names the home |
+| a reading of what a segment cost | the flow log (`skills/verify/orchestration.md` *Measure the segment, and feed the flow log*) |
+
+**A lesson seen once is given a home or judged not worth one.** The
+orchestrator weighs it under `skills/core/SKILL.md` *The rule a mechanism is
+kept against*. A lesson judged not worth a home leaves its grounds in the
+work item's records, and nothing else keeps it. A lesson seen a second time
+in one run takes the home the paragraph opening **A problem that recurs
+within a run gets a prevention home at once** gives it.
+
+Local memory holds what belongs to one machine, such as how that machine
+stays awake or where its harness keeps the installed plugin, and how the
+person wants to be worked with. A rule in it that another session has to
+follow is a lesson with no home yet.
