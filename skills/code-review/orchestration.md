@@ -190,8 +190,11 @@ pull request opens, before each push to its branch and after each push, and
 waits on CI only under `OPEN` and `MERGEABLE`.** A `state` of `MERGED` or
 `CLOSED` stops the push. The owner may merge or close the pull request at
 any time after it opens, and a commit pushed to its branch after that is in
-no pull request: nothing checks, reviews or merges it. The repair then goes
-on a new branch cut from the base. `CONFLICTING` means GitHub made no merge
+no pull request: nothing checks, reviews or merges it. Under `MERGED` the
+repair goes on a new branch cut from the base, which holds the work. Under
+`CLOSED` the base does not hold the work and the owner closed it, so the
+orchestrator pushes nothing and says in its report that the pull request was
+closed with a repair pending. `CONFLICTING` means GitHub made no merge
 ref for the pull request and runs no `pull_request` CI on it, and nothing
 else says so. `UNKNOWN` means GitHub has not computed the answer yet, and
 the orchestrator reads it again. The wait is `gh pr checks <N> --watch`,
