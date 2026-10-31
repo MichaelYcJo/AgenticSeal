@@ -49,8 +49,11 @@ to.
 **A decision made after the frame is committed is folded, in place, into
 `frame/design.md` or `plan.md` before the next crafter spawns.** The orchestrator
 rewrites the sentence of the frame the decision changes, where it stands,
-because a crafter reads the frame and not the issue's comments. Until the
-decision is folded, the orchestrator keeps one line of its own in `plan.md`
+because a crafter reads the frame and not the issue's comments. In the
+commit that folds it, the orchestrator writes the decision, its grounds and
+the document it judged against as one row of `frame/plan.md` *Judgments of
+the run*, because the rewritten sentence keeps no reason for itself and the
+settle reads the row. Until the decision is folded, the orchestrator keeps one line of its own in `plan.md`
 naming the comments to fold, below the title, and deletes that line in the
 commit that folds them. Before the frame is committed, the orchestrator
 folds the decision into the issue body instead

@@ -90,11 +90,14 @@ it aside. For a review with no path in at all, open a fresh session and call
 `@agent-agentic:proofer` there: the round history is files, so it is inherited
 either way.
 The review run is bounded: three finding rounds by default, counted from the
-last design change (a reframe, or a new phase you approved), and one more at
-a time only while each round finds fewer findings than the one before and
-none of them is a regression, a defect a fix pass's own commit introduced.
-A regression sent to a fix pass gets one verifying round for that fix, and
-it is not an extension. At the cap every
+last design change (a reframe, or a new phase you approved), are where the
+orchestrator weighs whether another round still pays. It goes on or stops by
+the signals of a run that is not converging, a round finding as many as the
+one before or a regression, a defect a fix pass's own commit introduced, among
+them, and writes that decision with its grounds in the work item's
+`frame/plan.md`, where `seal settle` reads it after the release. A regression
+sent to a fix pass gets one verifying round for that fix whatever the count.
+When the rounds stop, every
 finding still open is handed on and reads `deferred <home>`, whether or not
 everything was resolved. What is left is handed over rather than
 carried — an unanswered finding to `seal/follow-up.md`, a decision only
