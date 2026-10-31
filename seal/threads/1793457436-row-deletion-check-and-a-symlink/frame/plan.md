@@ -36,7 +36,7 @@ The chosen approach keeps the real path (design Scope items 1 and 2). Its failur
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Scope items 1, 2, 3 and 4 | `tests/skills/test_unverified_check.py`, the classes `Test_unique_by_target`, `Test_show` and `Test_main`, in one command. Each new case is seen red first: the two link-order and link-alone cases against a92c358b's `unique_by_target`; the outside-repository case with Scope item 2 left out, where it exits 0 with no notice (design *Grounding*, the second probe); the `show()` case with `show()` reverted to `text=True`, which raises `UnicodeDecodeError` under a UTF-8 locale. | |
+| 1 | Scope items 1, 2, 3 and 4 | `tests/skills/test_unverified_check.py`, the classes `Test_unique_by_target`, `Test_show` and `Test_main`, in one command. Each new case is seen red first: the two link-order and link-alone cases against a92c358b's `unique_by_target`; the outside-repository case with Scope item 2 left out, where it exits 0 with no notice (design *Grounding*, the second probe); the `show()` case with `show()` reverted to `text=True`, which raises `UnicodeDecodeError` under a UTF-8 locale. | 7f9339c1 |
 
 ## Operational impact
 
