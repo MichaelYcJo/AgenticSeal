@@ -6,9 +6,11 @@ write, and what it costs to spawn one.
 
 ## One contract every agent receives, and one definition each
 
-**The core every party shares and the rules true of every agent each live in one file every agent receives before its first tool call, without a prompt asking for it: `skills/core/SKILL.md`, then `skills/agent-contract/SKILL.md`, in that order in every definition's `skills:` list.** A rule kept only in
-whoever last wrote a spawn prompt goes missing without a trace, and a round
-that runs without it leaves nothing saying so.
+**The core every party shares and the rules true of every agent each live in one file
+every agent receives before its first tool call, without a prompt asking for it:
+`skills/core/SKILL.md`, then `skills/agent-contract/SKILL.md`, in that order in every
+definition's `skills:` list.** A rule kept only in whoever last wrote a spawn prompt
+goes missing without a trace, and a round that runs without it leaves nothing saying so.
 
 **A rule that would need a per-role exception is not universal.** That is the
 test the shared file applies to itself: what is true of every agent is
@@ -55,7 +57,22 @@ declaration reports it rather than writing one, and the question is put by
 the session that spawns the work, before the first edit.
 check: tests/skills/test_chain_check.py
 
-**The orchestrator reads the frame against the issue before the first build spawn, and what it finds is settled with the framer in one exchange, the framer's judgment standing after it.** The framer judges what the work should be and the orchestrator holds the issue, so a frame weaker than the issue asks is found by the party that holds the issue and decided by the party that drew the frame: the orchestrator proposes, with grounds and coordinates and never as an instruction; the framer agrees, agrees with a change or rejects with grounds and folds what it agreed into its three files; a rejection is one row of the plan's *Alternatives considered*, and the orchestrator edits no frame file. One exchange bounds it, so neither a loop nor the orchestrator overriding the framer can start, and a disagreement left stands as the framer's, named in the orchestrator's part of the pull request body. It is guidance and no check reads it; the counts of each run's proposals and answers go to the flow log with the framer segment's reading, where the settle weighs the exchange against its cost. Its first instance, #1148's frame, read four proposals: one agreed, two agreed with a change, one rejected. The procedure is `skills/implement/orchestration.md` *The frame is read against the issue at the spawn*, and the framer's half is `agents/framer.md`.
+**The orchestrator reads the frame against the issue before the first build spawn, and
+what it finds is settled with the framer in one exchange, the framer's judgment standing
+after it.** The framer judges what the work should be and the orchestrator holds the
+issue, so a frame weaker than the issue asks is found by the party that holds the issue
+and decided by the party that drew the frame: the orchestrator proposes, with grounds
+and coordinates and never as an instruction; the framer agrees, agrees with a change or
+rejects with grounds and folds what it agreed into its three files; a rejection is one
+row of the plan's *Alternatives considered*, and the orchestrator edits no frame file.
+One exchange bounds it, so neither a loop nor the orchestrator overriding the framer can
+start, and a disagreement left stands as the framer's, named in the orchestrator's part
+of the pull request body. It is guidance and no check reads it; the counts of each run's
+proposals and answers go to the flow log with the framer segment's reading, where the
+settle weighs the exchange against its cost. Its first instance, #1148's frame, read
+four proposals: one agreed, two agreed with a change, one rejected. The procedure is
+`skills/implement/orchestration.md` *The frame is read against the issue at the spawn*,
+and the framer's half is `agents/framer.md`.
 check: none reader: the orchestrator before the first build spawn
 
 ## What each party writes, and when
@@ -80,9 +97,16 @@ and the proofer's, and it runs on Opus, the level of the agents it audits.
 `docs/the-review-record.md` *The guarantee* holds the rule.
 check: tests/behaviour/test_the_sealer_guarantees.py
 
-**A build phase leaves a record, the way a review round does.** What a phase
-discovers reaches the next phase only if somebody retypes it into the next
-spawn prompt. So a phase writes what building it found that the next phase needs, beside the plan whose Delivers cell holds what the phase was asked and whose Status cell carries the commit. A scope a spawn gives beyond the plan's row is a decision the orchestrator folds into the plan before the spawn (`skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*), never a section of the record. What a work item removes is named once, in the frame's `## Removes` (`templates/records/sdd-design.md`), which the review reads against the diff, and a removal the frame did not name, like every departure from the frame, is written in the phase record that made it.
+**A build phase leaves a record, the way a review round does.** What a phase discovers
+reaches the next phase only if somebody retypes it into the next spawn prompt. So a
+phase writes what building it found that the next phase needs, beside the plan whose
+Delivers cell holds what the phase was asked and whose Status cell carries the commit. A
+scope a spawn gives beyond the plan's row is a decision the orchestrator folds into the
+plan before the spawn (`skills/implement/orchestration.md` *Orchestrator: the order
+inside a ticket*), never a section of the record. What a work item removes is named
+once, in the frame's `## Removes` (`templates/records/sdd-design.md`), which the review
+reads against the diff, and a removal the frame did not name, like every departure from
+the frame, is written in the phase record that made it.
 check: tests/behaviour/test_a_phase_hands_the_next_one_a_record.py
 
 **A document that describes a transition is deleted when the transition is
@@ -105,7 +129,16 @@ directory per work item and round is what lets the agent that made a leaving
 say every one of them is gone.
 check: tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py
 
-**A judgment is written where its party writes, with its grounds and the document it stands on, and the orchestrator's go to `frame/plan.md` *Judgments of the run*.** The framer's stand in `frame/design.md` *Grounding* and `frame/plan.md` *Alternatives considered*; the crafter's in the phase record's *What this phase found*, each decision with its grounds and the document; the proofer's as a finding's grounds and `evidence:` line; the sealer's in `guarantee.md` *The parties*. The orchestrator has no record of its own, and a judgment it made in the run, to go on or stop, to route a regression, to file a leftover, to fold a decision into the frame, reached the next session only through a spawn prompt or memory, so it writes each as one row of the plan's table, which the settle reads (`docs/the-review-record.md` *The run*).
+**A judgment is written where its party writes, with its grounds and the document it
+stands on, and the orchestrator's go to `frame/plan.md` *Judgments of the run*.** The
+framer's stand in `frame/design.md` *Grounding* and `frame/plan.md` *Alternatives
+considered*; the crafter's in the phase record's *What this phase found*, each decision
+with its grounds and the document; the proofer's as a finding's grounds and `evidence:`
+line; the sealer's in `guarantee.md` *The parties*. The orchestrator has no record of
+its own, and a judgment it made in the run, to go on or stop, to route a regression, to
+file a leftover, to fold a decision into the frame, reached the next session only
+through a spawn prompt or memory, so it writes each as one row of the plan's table,
+which the settle reads (`docs/the-review-record.md` *The run*).
 check: none reader: the settling session at the dry run's judgments
 
 ## What a spawn costs
@@ -123,12 +156,29 @@ for asking a person a question, delivered to a party that cannot ask anybody
 anything, and paid once per spawn.
 check: tests/skills/test_payload_meter.py tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py
 
-**The orchestrator's acts are counted, each against what delivers it.** An
-agent's rules arrive by mechanism, while the orchestrator has no spawn for a
-preload to attach to, so each of its acts is a sentence until something
-refuses when the act did not happen. `skills/implement/acts.md` tables every `##` heading carrying the `Orchestrator:` marker in the files its opening names, `skills/implement/orchestration.md`, `skills/implement/bootstrap.md`, `skills/implement/multi-repository.md`, `skills/code-review/orchestration.md` and itself, and every `###` directly beneath one, against its delivery: a command, a check, part of its parent's act, or a sentence with its grounds. A test holds the table against those files from both sides. The table stands in a file of its own because a maintainer reads it when an act is added and an orchestrator never does, and every orchestrating session read its 1,783 words before #1148. It reads the marker and not the meaning, so an act written
-outside a marked section is counted by nobody.
+**The orchestrator's acts are counted, each against what delivers it.** An agent's rules
+arrive by mechanism, while the orchestrator has no spawn for a preload to attach to, so
+each of its acts is a sentence until something refuses when the act did not happen.
+`skills/implement/acts.md` tables every `##` heading carrying the `Orchestrator:` marker
+in the files its opening names, `skills/implement/orchestration.md`,
+`skills/implement/bootstrap.md`, `skills/implement/multi-repository.md`,
+`skills/code-review/orchestration.md` and itself, and every `###` directly beneath one,
+against its delivery: a command, a check, part of its parent's act, or a sentence with
+its grounds. A test holds the table against those files from both sides. The table
+stands in a file of its own because a maintainer reads it when an act is added and an
+orchestrator never does, and every orchestrating session read its 1,783 words before
+#1148. It reads the marker and not the meaning, so an act written outside a marked
+section is counted by nobody.
 check: tests/behaviour/test_every_orchestrator_act_names_its_delivery.py
 
-**`Implementation` is answered by whether the work is finding out or writing down, on the axis of replaceability.** Finding out, what an unfamiliar codebase does or what an original did, goes to `tracer`: a large input and a small output is what a subagent boundary is for, and since the orchestrator then takes those facts and writes the code itself, the row reads `the session`. Writing down stays with the orchestrator, because a delegate re-buys the context the orchestrator holds; the row reads `crafter` where the diff is large enough to crowd out what the orchestrator must keep in hand. That threshold is a number nobody has; the axis is replaceability and not cost, because the orchestrator is the one participant a release cannot replace mid-run. The row is deleted only for a work item that has no answer to give.
+**`Implementation` is answered by whether the work is finding out or writing down, on
+the axis of replaceability.** Finding out, what an unfamiliar codebase does or what an
+original did, goes to `tracer`: a large input and a small output is what a subagent
+boundary is for, and since the orchestrator then takes those facts and writes the code
+itself, the row reads `the session`. Writing down stays with the orchestrator, because a
+delegate re-buys the context the orchestrator holds; the row reads `crafter` where the
+diff is large enough to crowd out what the orchestrator must keep in hand. That
+threshold is a number nobody has; the axis is replaceability and not cost, because the
+orchestrator is the one participant a release cannot replace mid-run. The row is deleted
+only for a work item that has no answer to give.
 check: none reader: the orchestrator at the routing question

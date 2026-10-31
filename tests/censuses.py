@@ -1019,10 +1019,6 @@ KEPT_OLD_NAMES = (
     # `tests/skills/test_chain_check.py#Test_routing_trailers` that pins the
     # key as unread.
     "Spec" + "Seal-Routing",
-    # The second line of every git hook stub an earlier release wrote, which
-    # `docs/the-routing-check.md` *Where the routing is checked* spells until
-    # the settle after the release removes that section.
-    f"# {_OLD}-git-hook",
     # The `renames` entry of `.claude-plugin/marketplace.json`, which carries
     # the plugin's old name to its new one and is append-only.
     f'"{_OLD}": "agentic"',

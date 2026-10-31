@@ -38,7 +38,18 @@ platform, and two hook processes racing for one record are forced in
 process, never run.
 check: tests/hooks/test_dispatch.py tests/text/test_a_gate_that_fails_says_so.py
 
-**The core reaches a session from the plugin's own `SessionStart` hook, once.** `hooks/hooks.json` registers `hooks/dispatch.py session-core` for `SessionStart` with the matcher `startup|clear|compact`, and its one gate, `core-start`, prints `skills/core/SKILL.md` under a first line naming the file it printed, the plugin's version and the file's SHA-256. A resumed session keeps the output its start printed, so `resume` is not matched; a compaction drops it, so `compact` prints it again. In a clone of the plugin's own repository the file printed is the clone's. The core has a group of its own because a group merges a gate's plain text away beside a neighbour's JSON. The whole output stays under the harness's cap on one hook's output, measured between 9,990 and 10,010 characters, past which the context holds a preview and not the file. `seal core` reads the entry back from the session's transcript and exits 1 unless the context holds it once and whole.
+**The core reaches a session from the plugin's own `SessionStart` hook, once.**
+`hooks/hooks.json` registers `hooks/dispatch.py session-core` for `SessionStart` with
+the matcher `startup|clear|compact`, and its one gate, `core-start`, prints
+`skills/core/SKILL.md` under a first line naming the file it printed, the plugin's
+version and the file's SHA-256. A resumed session keeps the output its start printed, so
+`resume` is not matched; a compaction drops it, so `compact` prints it again. In a clone
+of the plugin's own repository the file printed is the clone's. The core has a group of
+its own because a group merges a gate's plain text away beside a neighbour's JSON. The
+whole output stays under the harness's cap on one hook's output, measured between 9,990
+and 10,010 characters, past which the context holds a preview and not the file.
+`seal core` reads the entry back from the session's transcript and exits 1 unless the
+context holds it once and whole.
 check: tests/hooks/test_core.py tests/hooks/test_core_start.py tests/skills/test_core_check.py
 
 ## The implementer mark and notice
