@@ -32,7 +32,9 @@ gh pr list --state all --limit 10
 
 **The history is the rule even where no document states it.** Everything below
 was read off a repository's log, and repositories differ. A title that does
-not look like the ones in that list is the one that is wrong.
+not look like the ones in that list is the one that is wrong. The comparison
+is of a title's shape and language, and its prefix is the one the table in
+*Commit messages* gives the change.
 
 This step is first because the failure happens here: a list on screen is not
 a comparison made. Having run the command is not the same act as comparing
@@ -113,24 +115,47 @@ says nothing writes English.
 `<prefix>: <one line, starting lower-case>`, in the repository's language.
 The prefix is not part of that: it stays as the table below spells it.
 
+**A change takes the first row that fits, read from the top.** A change two
+rows fit takes the higher one, so a writer who finds one part of the change
+that adds something stops at `feat:`.
+
 | prefix | when |
 |---|---|
-| `feat:` | behaviour that did not exist now does |
-| `fix:` | behaviour existed, was wrong, and is corrected |
-| `docs:` | documentation or comments only |
+| `feat:` | after the change, a user or a party has something to use or to meet that nothing gave before: a command, a record format or a field in one, a step, a reading, or a refusal on a rule the change itself states |
+| `fix:` | behaviour existed and was wrong against a rule already stated in the tree, and the change makes it match; a check that starts refusing what its stated rule always refused is here |
+| `refactor:` | the same kinds of outcome, reached another way: which party holds a judgment, a script that stops refusing what an agent now reads, a sequence rewritten as guidance, a structure moved; nobody gains anything to use or to meet |
+| `perf:` | the same behaviour, faster |
 | `test:` | tests only |
-| `refactor:` | same behaviour, different structure |
-| `perf:` | same behaviour, faster |
-| `chore:` | release preparation, configuration, dependencies |
+| `docs:` | text no party acts on: an explanation, a README, a comment |
+| `chore:` | release preparation, such as the version move, the changelog fold and the settle; configuration and dependencies that tell no party to do anything new; a commit that writes only a work item's own records |
 
-This table is the working default and it is what a repository with no history
-gets, because a first commit has nothing to compare against.
+The test between `feat:` and `fix:` is whether the rule stood in the tree
+before the change, which a reader answers by opening the base. The test
+between `feat:` and `refactor:` is whether anything is new to use or to meet.
 
-**A repository's own log outranks the table.** Where it uses a prefix of its
-own for its workflow, the writer uses that one too; where it spells a shared
-one differently, the writer follows it. The writer invents none: a prefix
-nobody has used before teaches a reader nothing, and the log is how they learn
-what it means.
+**Text a party reads and acts on is behaviour.** A skill, an agent
+definition, a template a party fills and a hook's message are such text, so
+a change to one takes `feat:`, `fix:` or `refactor:`, and never `docs:` or
+`chore:`.
+
+**`chore:` is never a change a party acts on**: not a check, a gate, a
+record's shape or a process step.
+
+**An issue's title takes the prefix the pull request that closes it will
+take**, chosen by this table, so no issue is filed `chore:` by default.
+
+**The prefix states what the change is, and is never chosen to fit a release
+number.**
+
+**A repository's own log decides how a prefix is spelt, and never which row
+a change takes.** Where the log spells a prefix of the table differently, the
+writer follows it. Where the log uses a prefix of its own for its workflow,
+one the table lacks, the writer uses that one too. The writer invents none: a
+prefix nobody has used before teaches a reader nothing, and the log is how
+they learn what it means. Which row a change takes is the table's, because a
+log written by default teaches the default. A repository with no history
+uses the table as it stands, because a first commit has nothing to compare
+against.
 
 **One language, in the subject and in the body: the one the row names.**
 Where feature branches squash, the commit body becomes the pull request body,
@@ -257,7 +282,8 @@ place branch names are ever read.
 The writer answers these rather than assuming them.
 
 1. Was `gh pr list` run, **and the title compared to what it returned**?
-2. Does the title carry a prefix, from the vocabulary the commits used?
+2. Does the title carry the prefix the table in *Commit messages* gives the
+   change?
 3. Was **`config.md` in the root opened**, and are the title and body in
    the language its `Commit and pull request language` row names? No file and
    no such row both mean English.
