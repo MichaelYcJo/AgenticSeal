@@ -352,16 +352,16 @@ in, by the procedure `skills/implement/multi-repository.md` holds.
 ## Orchestrator: where a decision or a lesson is written
 
 **The orchestrator writes each decision and each lesson of a run into the
-repository, and never into a session's local memory alone.** The harness
-keeps that memory on one machine, outside the repository, so a rule kept
-only there is unknown to a run on any other machine and to anyone who reads
-the repository.
+repository, never into a session's local memory.** The harness keeps that
+memory on one machine, outside the repository, so a rule kept there is
+unknown to a run on any other machine and to anyone who reads the
+repository.
 
 | What the orchestrator has | Where the orchestrator writes it |
 |---|---|
-| a decision, with its grounds | the work item's records, as `skills/core/SKILL.md` *A judgment stands on a source document, and is written down with both* states |
+| a decision about the work item in progress or a file it changes, with its grounds | the work item's records, as `skills/core/SKILL.md` *A judgment stands on a source document, and is written down with both* states |
 | a lesson about how an act is done | the file the act is read from, through the work item in progress where that work item changes the file: a skill or an agent definition edited in place, or a policy document through the work item's `## Rule changes` (`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*) |
-| a lesson or a decision whose home no work item in progress changes | an issue that names the home |
+| a lesson or a decision whose home no work item in progress changes | an issue that names the home, in the tracker of the repository that holds the home. Where the home is a file the plugin ships and the run is in another repository, the orchestrator names the lesson and the file in its report to the person, who can take it to the tracker the plugin's `.claude-plugin/plugin.json` names under `repository`; it edits no installed copy, which stays on one machine and is replaced at the next update |
 | a reading of what a segment cost | the log `skills/verify/orchestration.md` *Measure the segment, and feed the flow log* names for that reading |
 
 **A lesson seen once is given a home or judged not worth one.** The
