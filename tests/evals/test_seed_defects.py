@@ -449,12 +449,15 @@ class Test_module:
             f"seed_defects: {gone} not written: adds 0 work items' routing.md\n"
             + unshipped
         )
-        assert case(nothing) == 1
-        assert capsys.readouterr().err == unshipped + (
+        empty = (
             "seed_defects: no shipped commit read at v1.1.0, v1.0.0 holds a round 1 "
             "record in `seal/specs/<item>/rounds/` or "
             "`seal/threads/<item>/trail/rounds/`\n"
         )
+        assert case(nothing) == 1
+        assert capsys.readouterr().err == unshipped + empty
+        assert case(nothing, run=("--out", str(tmp_path / "out"))) == 1
+        assert capsys.readouterr().err == unshipped + empty
 
     def test_the_replay_and_seeded_generators_read_the_entries_too(
         self, tmp_path, monkeypatch
