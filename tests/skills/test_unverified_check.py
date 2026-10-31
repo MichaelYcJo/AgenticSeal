@@ -9,7 +9,8 @@ The readers of markdown, of a section and of a row run in the process on
 lines and texts, with no git. The units that ask git, and `main` under
 `--baseline`, read repositories built once for the module: a clone of two
 work items and a tracked overview under `build/`, a clone whose second
-overview is a tracked link to the first, a clone whose base
+overview is a tracked link to the first, built once with the link sorting
+after its target and once before it, a clone whose base
 revisions are written the way the corpus was before it was normalised, a
 clone with a moved base branch beside its work branch, a clone of work items
 a settle can remove, a clone with a `seal/` root beside a team's own `specs/`, a
@@ -154,21 +155,33 @@ def plain(tmp_path_factory):
     )
 
 
-@pytest.fixture(scope="module")
-def linked(tmp_path_factory):
+@pytest.fixture(
+    scope="module",
+    params=[OTHER, "1779999999-link"],
+    ids=["the link sorts after its target", "the link sorts before its target"],
+)
+def linked(tmp_path_factory, request):
     """One work item and a second whose overview is a tracked link to the
-    first's."""
+    first's, the second's directory sorting after the first's or before it.
+    #19 stood only where the link sorted first."""
     d = _committed(
         tmp_path_factory.mktemp("linked"),
         {f"specs/{WORK}/gaps.md": memo(CANONICAL)},
     )
-    (d / "specs" / OTHER).mkdir()
+    (d / "specs" / request.param).mkdir()
     symlink_or_skip(
         os.path.join("..", WORK, "gaps.md"),
-        str(d / "specs" / OTHER / "gaps.md"),
+        str(d / "specs" / request.param / "gaps.md"),
     )
     commit_everything_as_e(d, "a link")
     return d
+
+
+def link_of(world):
+    """The work item of WORLD, a `linked` repository, whose overview is the
+    link."""
+    (name,) = [n for n in os.listdir(world / "specs") if n != WORK]
+    return name
 
 
 # Base revisions written before the corpus was normalised, one work item
@@ -1594,6 +1607,22 @@ class Test_unique_by_target:
         p = str(tmp_path / "a")
         assert UC.unique_by_target([p, os.path.join(str(tmp_path), ".", "a")]) == [p]
 
+    @pytest.mark.parametrize(
+        "paths",
+        [["a", "b"], ["a"]],
+        ids=["the link sorting first", "the link alone"],
+    )
+    def test_accepts_the_real_files_own_path_wherever_the_link_sorts(
+        self, tmp_path, paths
+    ):
+        """#19: the first path in sort order was kept, so a link sorting
+        before its target had its own blob read at the base, and two deleted
+        rows passed."""
+        (tmp_path / "b").write_text("x", encoding="utf-8")
+        symlink_or_skip("b", str(tmp_path / "a"))
+        given = [str(tmp_path / p) for p in paths]
+        assert UC.unique_by_target(given) == [os.path.realpath(tmp_path / "b")]
+
 
 # --- what git answers ---------------------------------------------------------
 
@@ -1721,6 +1750,54 @@ class Test_show:
 
     def test_refuses_a_path_the_ref_does_not_hold(self, plain):
         assert UC.show(str(plain), "HEAD", "specs/none/gaps.md") is None
+
+    def test_refuses_to_raise_on_a_byte_that_is_not_utf8(self, tmp_path):
+        """#19: the base side decodes as `check_file` decodes the tree side,
+        U+FFFD for a byte UTF-8 cannot read, or one such byte aborted the
+        whole comparison."""
+        d = _committed(tmp_path, {"gaps.md": memo(CANONICAL)})
+        path = d / "gaps.md"
+        path.write_bytes(memo(CANONICAL).encode("utf-8") + b"| a \xff b | c |\n")
+        commit_everything_as_e(d, "a byte that is not UTF-8")
+        with open(path, encoding="utf-8", errors="replace") as handle:
+            on_disk = handle.read()
+        assert "�" in on_disk
+        assert UC.show(str(d), "HEAD", "gaps.md") == on_disk
+
+
+class Test_mode_at:
+    def test_accepts_a_tracked_link_as_a_link(self, linked):
+        at = f"specs/{link_of(linked)}/gaps.md"
+        assert UC.mode_at(str(linked), "HEAD", at) == UC.LINK_MODE
+
+    @pytest.mark.parametrize(
+        "at, mode",
+        [(f"specs/{WORK}/gaps.md", "100644"), ("specs/none/gaps.md", None)],
+        ids=["a file", "a path the ref does not hold"],
+    )
+    def test_refuses_a_file_or_an_absent_path_as_a_link(self, linked, at, mode):
+        assert UC.mode_at(str(linked), "HEAD", at) == mode
+
+
+class Test_compare_at:
+    @pytest.mark.parametrize(
+        "now, kind", [(1, "error"), (2, None)], ids=["fewer here", "as many"]
+    )
+    def test_refuses_fewer_rows_than_the_base_held_and_no_fewer(self, plain, now, kind):
+        at = f"specs/{WORK}/gaps.md"
+        found = UC.compare_at(str(plain), "HEAD", at, at, now, "HEAD")
+        assert (found and found[0]) == kind, found
+        if kind:
+            assert "2 rows at HEAD, 1 here" in found[1], found
+
+    def test_accepts_a_path_the_base_does_not_hold_as_nothing_to_compare(self, plain):
+        at = "specs/none/gaps.md"
+        assert UC.compare_at(str(plain), "HEAD", at, at, 0, "HEAD") is None
+
+    def test_refuses_to_count_a_base_section_it_cannot_read(self, tmp_path):
+        d = _committed(tmp_path, {"gaps.md": "# nothing here\n"})
+        found = UC.compare_at(str(d), "HEAD", "gaps.md", "gaps.md", 0, "HEAD")
+        assert found[0] == "notice" and "could not be read" in found[1], found
 
 
 # --- what a settle removed ----------------------------------------------------
@@ -2149,12 +2226,100 @@ class Test_main:
         assert "is not in" in err and "another volume" in err, err
 
     def test_accepts_a_tracked_link_counted_once_and_not_deleted(self, linked, capsys):
-        """One record, two paths: counting both doubles its open items, and
-        dropping one from the presence check reports it deleted."""
+        """One record, two paths: counting both doubles its open items,
+        dropping one from the presence check reports it deleted, and reading
+        the link's own blob at the base leaves the record uncompared (#19)."""
         assert run([str(linked), "--baseline", "HEAD"]) == 0
         out = capsys.readouterr().out
         tally = [ln for ln in out.split("\n") if ln.startswith("1 closing memos")]
         assert len(tally) == 1 and " 2 open " in tally[0], out
+        assert "not compared" not in out and "left the record" not in out, out
+
+    @pytest.mark.parametrize("scanned", ["the tree", "the link's directory alone"])
+    def test_refuses_a_row_deleted_through_a_tracked_link_naming_the_real_file(
+        self, linked, tmp_path, monkeypatch, capsys, scanned
+    ):
+        """#19: the path kept was the first in sort order, so a link sorting
+        before its target, or standing alone under the scanned path, had its
+        own blob read at the base, and a deleted row passed with exit 0. Both
+        sides read the real file now, and the line names it."""
+        d = copy_of(linked, tmp_path)
+        drop_line(d / "specs" / WORK / "gaps.md", WINDOWS)
+        where = d if scanned == "the tree" else d / "specs" / link_of(d)
+        monkeypatch.chdir(d)
+        assert run([str(where), "--baseline", "HEAD"]) == 1
+        out = capsys.readouterr().out
+        assert "2 rows at HEAD, 1 here" in out, out
+        named = [os.path.basename(os.path.dirname(p)) for p in reported_paths(out)]
+        assert named == [WORK], out
+
+    @pytest.mark.parametrize(
+        "name",
+        [OTHER, "1779999999-link"],
+        ids=["the link sorts after its target", "the link sorts before its target"],
+    )
+    def test_refuses_a_memo_replaced_by_a_link_to_one_holding_fewer_rows(
+        self, tmp_path, monkeypatch, capsys, name
+    ):
+        """A memo that was a file at the base and is a link here held its own
+        rows there. With only the real path kept, nothing read the base at the
+        link's path, and its rows left with exit 0 in either order; before
+        #19's change they were compared only where the link sorted first.
+        They are compared with what the link reads now, under its own path."""
+        one_row = CANONICAL.replace(WINDOWS + "\n", "")
+        d = _committed(
+            tmp_path,
+            {
+                f"specs/{WORK}/gaps.md": memo(one_row),
+                f"specs/{name}/gaps.md": memo(CANONICAL, name),
+            },
+        )
+        os.remove(d / "specs" / name / "gaps.md")
+        symlink_or_skip(
+            os.path.join("..", WORK, "gaps.md"), str(d / "specs" / name / "gaps.md")
+        )
+        monkeypatch.chdir(d)
+        assert run([str(d), "--baseline", "HEAD"]) == 1
+        out = capsys.readouterr().out
+        assert "2 rows at HEAD, 1 here" in out, out
+        named = [os.path.basename(os.path.dirname(p)) for p in reported_paths(out)]
+        assert named == [name], out
+
+    @pytest.mark.parametrize("volume", ["this volume", "another volume"])
+    def test_accepts_a_link_to_a_file_beyond_the_repository_as_not_compared(
+        self, tmp_path, monkeypatch, capsys, volume
+    ):
+        """#19: with the real path kept, a link's target outside the
+        repository is a path no commit holds; `show` answered None and the
+        file left the report in silence. Its open rows are read, and it is
+        named with the reason that is true. On another volume it has no
+        relative form at all, induced so every leg runs it."""
+        d = _committed(tmp_path, {f"specs/{WORK}/gaps.md": memo(CANONICAL)})
+        write(tmp_path, "beyond/gaps.md", memo(CANONICAL, OTHER))
+        (d / "specs" / OTHER).mkdir()
+        symlink_or_skip(
+            str(tmp_path / "beyond" / "gaps.md"), str(d / "specs" / OTHER / "gaps.md")
+        )
+        commit_everything_as_e(d, "a link out of the repository")
+        if volume == "another volume":
+            real_relpath = os.path.relpath
+
+            def refuses_beyond(path, start=None):
+                if os.path.basename(os.path.dirname(str(path))) == "beyond":
+                    raise ValueError("path is on mount 'D:', start on mount 'C:'")
+                return real_relpath(path, start)
+
+            monkeypatch.setattr(os.path, "relpath", refuses_beyond)
+        monkeypatch.chdir(d)
+        assert run([str(d), "--baseline", "HEAD"]) == 0
+        out = capsys.readouterr().out
+        assert "2 closing memos · 4 open" in out, out
+        named = out.split("not compared against HEAD:")[1]
+        said = (
+            "not compared: the file lies outside the repository, so no commit "
+            "of the repository holds it"
+        )
+        assert "beyond" in named and said in named, out
 
     @pytest.mark.parametrize("change", ["a row", "a file"])
     def test_refuses_a_deletion_reached_through_a_linked_path(
