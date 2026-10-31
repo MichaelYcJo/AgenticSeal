@@ -142,11 +142,13 @@ RULES = {
     ),
     # #1041: in #955 and #1016 the orchestrator's fix-pass prompts left every
     # `verdict:` line to the orchestrator, which rewrote them in a commit of
-    # its own, so a round with fixes cost three record commits.
-    "19 the orchestrator writes neither line of a finding a fix pass answers": (
+    # its own, so a round with fixes cost three record commits. #1198 made
+    # the two lines one close block.
+    "19 the orchestrator writes no close block of a finding a fix pass answers": (
         ORCH,
-        "The orchestrator writes neither line of a finding the fix pass "
-        "answers, and its fix-pass prompt leaves both lines to the crafter.",
+        "The orchestrator writes no close block of a finding the fix pass "
+        "answers, and its fix-pass prompt leaves every such block to the "
+        "crafter.",
         {},
     ),
     # #1041, the owner's answer of 2026-10-28: issue #1041 *Done when*
@@ -199,16 +201,17 @@ def test_the_fix_pass_reads_the_implementers_context_before_it_resumes():
         "the largest value of its `context` column",
         "hands it the round record and the phase records",
         "the largest context a fresh, never-resumed crafter reached in the 0.22.0 run",
-        # #1041, S1: the fix pass writes both lines last, after the sweep's
-        # corrections, and commits neither, since the orchestrator commits
-        # them (rule 20); a doubt goes to the next round rather than into a
-        # rewrite of the line.
-        "Last, the fix pass writes the `verdict:` and `answer:` lines of every "
-        "finding it answered, after its fix commits and those corrections",
+        # #1041, S1: the fix pass writes its closes last, after the sweep's
+        # corrections, and commits none, since the orchestrator commits them
+        # (rule 20); a doubt goes to the next round rather than into a
+        # rewrite of the block. #1198 made the two lines one close block.
+        "Last, the fix pass appends the close block of every finding it "
+        "answered, after its fix commits and those corrections",
         "and leaves the round record uncommitted",
         "That commit holds `trail/rounds/round-N.md` alone.",
         "A close the orchestrator doubts goes into the verifying round's spawn prompt",
-        "the orchestrator does not rewrite the line",
+        "the orchestrator does not rewrite the block",
+        "it edits nothing else in the record",
     ):
         assert said in section, f"the fix-pass section no longer says {said!r}"
     assert "the fix pass commits the two lines" not in section, (
@@ -222,19 +225,21 @@ def test_the_fix_pass_reads_the_implementers_context_before_it_resumes():
 REGRESSION = "### A regression is routed by comparing the fix with the frame"
 
 
-def test_the_framers_route_closes_each_finding_with_both_lines_in_one_commit():
-    """S2 of #1041. On the framer's route no fix pass runs, so the
-    orchestrator closes every open finding itself; row *The record* names the
-    `answer:` line beside `deferred the frame`, and one commit for both."""
+def test_the_framers_route_closes_each_finding_with_a_close_block_in_one_commit():
+    """S2 of #1041, under #1198. On the framer's route no fix pass runs, so
+    the orchestrator closes every open finding itself; row *The record*
+    names the close block's `answer:` beside `deferred the frame`, and one
+    commit for every block."""
     text = flat(*ORCH)
     section = text[
         text.index(REGRESSION) : text.index("## Orchestrator: the pull request opens")
     ]
     row = section[section.index("| The record |") : section.index("| The framer |")]
     for said in (
-        "every open finding closes `deferred the frame`",
-        "its `answer:` line names the regression that sent the work item back",
-        "you write both lines of every open finding in one commit",
+        "you append a close block to every open finding",
+        "its `verdict:` reading `deferred the frame`",
+        "its `answer:` naming the regression that sent the work item back",
+        "commit every such block in one commit",
     ):
         assert said in row, (
             f"row *The record* of the framer's route no longer says {said!r}"
@@ -410,11 +415,11 @@ def test_the_order_no_longer_defers_the_framer_to_a_ticket():
         )
 
 
-def test_the_acts_table_says_no_commit_holds_who_wrote_the_two_lines():
+def test_the_acts_table_says_no_commit_holds_who_wrote_the_close_block():
     """#1041, the owner's answer of 2026-10-28: the fix pass commits neither
     line, so the row's `Grounds` cell cannot send a reader to the history
     for who wrote them. The table is `skills/implement/acts.md`'s since
-    #1148."""
+    #1148, and the two lines are one close block since #1198."""
     text = flat("skills", "implement", "acts.md")
     start = text.index(
         "| Orchestrator: a phase is a fresh crafter, and a fix pass resumes the implementer |"
@@ -424,7 +429,8 @@ def test_the_acts_table_says_no_commit_holds_who_wrote_the_two_lines():
             "| Orchestrator: the run ends with a verifying round |", start
         )
     ]
-    assert "is in no commit, because the fix pass commits neither line" in row
+    assert "is in no commit, because the fix pass commits no close block" in row
+    assert "`verdict:` and `answer:` lines" not in row
     assert (
         "whether that commit changed them are in the round record's history" not in row
     )
@@ -573,10 +579,11 @@ def test_a_close_that_does_not_hold_reopens_it():
     # #1148: a `fixed` finding located in the work item's records alone,
     # whose commit touched them alone, is read by the sealer at HEAD, and the
     # check passes it in the last record.
+    # #1198: a finding with no close block is open, and `open` is no verdict.
     assert (
-        "run ends only on a round whose record holds no `open` or `rejected` "
-        "finding and no `fixed` one that names a path outside the work item's "
-        "records or whose commit touched one" in verifying
+        "run ends only on a round whose record holds no finding without a "
+        "close block, no `rejected` one, and no `fixed` one that names a path "
+        "outside the work item's records or whose commit touched one" in verifying
     ), "the verifying-round section no longer says where the run ends"
     # Round 9 of 1791933022, finding 3: the check holds a second condition on
     # the same record, so a run ended on the first alone is refused.

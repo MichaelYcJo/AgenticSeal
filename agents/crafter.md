@@ -20,9 +20,8 @@ You build one phase of one work item, or run one fix pass. Your writes are the
 code and tests of the phase, `seal/threads/<work-item-id>/trail/phases/phase-N.md`,
 `frame/plan.md`'s Status cell for the phase, `gaps.md` from its template when
 the first phase closes and its rows in every later phase and fix pass,
-`changelog.md` in the last phase, and in a fix pass the `verdict:` and
-`answer:` lines of each open finding; a write not named here is a write you
-do not make.
+`changelog.md` in the last phase, and in a fix pass one close block under
+each open finding; a write not named here is a write you do not make.
 
 ## Order of work
 
@@ -61,7 +60,7 @@ do not make.
    decision in it with its grounds and the document it was judged against,
    and in the first phase `gaps.md` from `templates/records/sdd-gaps.md`.
 9. In a fix pass, read `trail/rounds/round-N.md` first, judge each finding at its
-   coordinate, and write its two lines instead of steps 5 to 8's record.
+   coordinate, and append its close block instead of steps 5 to 8's record.
 10. Hand back, after the same `writing-style` section: what was done, each
     claim labelled `executed`, `read` or `unverified`, the suite labelled
     `unverified` with the orchestrator named as its answerer, each declined
@@ -162,10 +161,15 @@ removal the frame's `## Removes` did not name among them; `frame/plan.md`'s
 Status cell holds the commit.
 check: tests/behaviour/test_a_phase_hands_the_next_one_a_record.py
 
-**A fix pass writes two lines of each finding and no phase record.** It
-rewrites `verdict:` to `fixed <commit>`, `rejected` or `deferred <home>` (a
-repair with no commit on the branch is `deferred <where it was repaired>`)
-and writes `answer:` (`docs/the-review-record.md` *The round record*).
+**A fix pass appends close blocks and writes no phase record.** It appends
+one close block per finding it answers, the `seal` block
+`templates/records/sdd-round.md` places in the finding's section after its
+paste-ready fix, each line spelt as `hooks/lib/fields.py` reads it. Its
+`verdict:` reads `fixed <commit>`, `rejected` or `deferred <home>` (a repair
+with no commit on the branch is `deferred <where it was repaired>`), and its
+`answer:` says what was done.
+The pass edits nothing else in the record: the finding's own block is the
+proofer's (`docs/the-review-record.md` *The round record*).
 A paste-ready fix is the proofer's claim and not the fix. Apply it only
 after reading it as its text's own reader would: a procedure step is read
 in either `seal/` root (contract rule 11), under every condition its file
@@ -173,14 +177,14 @@ names, and in the release that ships it. In that release, a section the
 step cites holds the text the release ships, not the text a design's
 `## Rule changes` writes at a later settle. Where that reading fails,
 write the fix in your own words and say so in `answer:`.
-Where your fix changed none of the paths `location:` lists, append the one
-it did change after `, ` and name it in `answer:`. Once the fixes are
-committed, find every other place stating each rule your range reworded or
-removed, by `git grep` and its `check:` target, and correct each or say in
-the hand-back why it stands (rule 12). Last, after your last fix commit and
-its corrections, write the `verdict:` and `answer:` lines of every finding
-you answered, and do not commit them: the orchestrator commits the round
-record as you left it.
+Where your fix changed none of the paths the finding's `location:` lists,
+the close block carries a `location:` line naming the one it did change, and
+`answer:` names it. Once the fixes are committed, find every other place
+stating each rule your range reworded or removed, by `git grep` and its
+`check:` target, and correct each or say in the hand-back why it stands
+(rule 12). Last, after your last fix commit and its corrections, append the
+close block of every finding you answered, and do not commit them: the
+orchestrator commits the round record as you left it.
 check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
 **The chain ends at a pull request, never a merge.** Verification and review

@@ -1,13 +1,14 @@
 """Shared reader: which lines of a markdown file does a renderer put inside a
 fenced code block or an HTML comment block, and where can this module not say?
 
-Two readers decide from a markdown file what a person declared:
+Three readers decide from a markdown file what a person or a party declared:
 `hooks/lib/config.py` (the `| Item | Value |` table, on every Bash call through
-`mode-gate` and `seal gate`) and `hooks/lib/routing.py` (the routing
-declaration, on every commit and at the pull request). A row quoted in a
+`mode-gate` and `seal gate`), `hooks/lib/routing.py` (the routing
+declaration, on every commit and at the pull request) and `hooks/lib/fields.py`
+(the `seal` blocks of a work item's records, #1198). A row quoted in a
 fenced example, or parked in an HTML comment, is not a row anybody gave, and
 each reader used to decide that by a rule of its own or by none (#667, #658).
-This is the one walk both read.
+This is the one walk they read.
 
 **What it models: two block constructs, by CommonMark's own block rules.**
 
@@ -243,12 +244,19 @@ class Walk:
                the line as it did before
     unclosed   the index of every fence opener that never closes, which
                the walk read as an ordinary line
+    opens      {index: info} for every fence the walk paired, keyed by its
+               opener's line, the info string being the text after the
+               opener's run as written; `hooks/lib/fields.py` reads a
+               `seal` block by it (#1198). A fence's lines run from its
+               opener to the line before the next FENCED run's start or
+               the first line that is not FENCED
     """
 
-    def __init__(self, kinds, uncertain, unclosed):
+    def __init__(self, kinds, uncertain, unclosed, opens):
         self.kinds = kinds
         self.uncertain = uncertain
         self.unclosed = unclosed
+        self.opens = opens
 
     def hidden(self, base=()):
         """{index: kind} of the lines a reader hides: the walk's answer where
@@ -273,6 +281,7 @@ def walk(lines):
     kinds = [LIVE] * count
     uncertain = [False] * count
     unclosed = []
+    opens = {}
 
     # The first line at or below each index that holds a closer: a comment
     # block starting at a line ends there, and an opener with none below it
@@ -319,6 +328,7 @@ def walk(lines):
                     break
                 if end is not None:
                     kinds[index : end + 1] = [FENCED] * (end + 1 - index)
+                    opens[index] = FENCE.match(line).group("info")
                     pending, indented = False, False
                     index = end + 1
                     continue
@@ -366,7 +376,7 @@ def walk(lines):
         for below in range(live_from, count):
             if kinds[below] == LIVE:
                 uncertain[below] = True
-    return Walk(kinds, uncertain, unclosed)
+    return Walk(kinds, uncertain, unclosed, opens)
 
 
 def gfm_lines(text, keepends=False):
@@ -401,8 +411,8 @@ def walk_text(text):
     (#673); then a renderer hides the piece, and the walk calls it
     uncertain -- and a piece of a line the walk is not sure of keeps its
     reader's base reading.
-    An unclosed fence opener is reported at the reader line that starts where
-    it does.
+    An unclosed fence opener, and a paired one in `opens`, is reported at the
+    reader line that starts where it does.
 
     Called with LINES alone, `walk` reads them as given; every reader that
     has the text hands it here instead.
@@ -435,4 +445,9 @@ def walk_text(text):
         for index, (line, at_start) in enumerate(of)
         if at_start and line in opened
     ]
-    return Walk(kinds, uncertain, unclosed)
+    opens = {
+        index: walked.opens[line]
+        for index, (line, at_start) in enumerate(of)
+        if at_start and line in walked.opens
+    }
+    return Walk(kinds, uncertain, unclosed, opens)

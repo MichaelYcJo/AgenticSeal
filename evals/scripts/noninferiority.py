@@ -293,37 +293,42 @@ def apart(text, scan):
 
 
 def finding_rows(text):
-    """One row for each finding of the round record TEXT: the finding's
-    `location:` lines joined by a newline, or the empty string where it has
-    none. A finding is a `### ` section of the one `## Findings` section,
-    split by `chain_check.py#finding_spans` over the lines its shared reader
-    leaves, so a line in a fence is no line and a comment is text (#1012). A
-    section the check would refuse is still one row.
+    """One row for each finding of the round record TEXT: the `location:`
+    line of the finding block standing in it, or the empty string where it
+    has none. A finding is a `### ` section of the one `## Findings`
+    section, split by `chain_check.py#finding_spans` over the lines its
+    shared reader leaves, and its block is one `chain_check.py#round_read`
+    places there through `hooks/lib/fields.py` (#1198), so a line in a fix's
+    fence is no field and a comment is text (#1012). A section the check
+    would refuse is still one row, and one whose block the reader refused is
+    an empty row.
 
-    A record the check cannot read or cannot split is one production reads
-    as no finding: one holding a fence that never closes
-    (`chain_check.py#unclosed`), after whose opener no reading is certain to
-    find every finding, and one with no `## Findings` section or with two,
-    which `finding_spans` refuses. It gives one empty row for each raw line
-    at the finding heading level, a fenced one included, so every one is
-    false, the count errs toward more false rows, and an empty row finds no
-    truth."""
+    A record the check cannot split, or after a line of which no block is
+    read, is one production reads as no finding: one with no `## Findings`
+    section or with two, which `finding_spans` refuses, and one holding a
+    fence that never closes or one the walk cannot place. It gives one
+    empty row for each raw line at the finding heading level, a fenced one
+    included, so every one is false, the count errs toward more false rows,
+    and an empty row finds no truth."""
     check, reader = rt.record_reader()
     lines = reader.readable(text)
     _section, spans, error = check.finding_spans(reader, lines)
-    if error or check.unclosed(reader, text, ""):
+    refused = check.FIELDS.read(text, check.FIELDS.ROUND_RECORD).refusals
+    if error or any(why in check.HIDING for _line, why in refused):
         return [
             ""
             for line in reader.gfm_lines(text)
             if reader.heading_level(line) == check.FINDING_LEVEL
         ]
+    raw = reader.gfm_lines(text)
+    inside = check.round_read(reader, text, "").inside
     return [
         "\n".join(
-            line
-            for line in lines[first:stop]
-            if check.label_of(line) == check.LOCATION_ROW
+            raw[block.fields[check.FIELDS.LOCATION].line - 1]
+            for block in inside[k]
+            if block.kind is check.FIELDS.FINDING_BLOCK
         )
-        for first, stop in spans
+        for k in range(len(spans))
     ]
 
 

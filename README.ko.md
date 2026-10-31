@@ -166,8 +166,6 @@ PR 검사가 그중 무엇을 읽는지, 세션이 에이전트에게 일을 어
 |---|---|---|---|
 | routing-edit-gate | `Write`·`Edit`·`NotebookEdit` 호출 직전 | 파일이 있는 곳에 체크아웃된 브랜치를 가리키는 `routing.md` 가 없고 세션이 그 브랜치에서 `seal no-work-item` 을 돌리지 않았으면 그 파일의 편집을 거부한다. 판정하는 레포와 브랜치는 셸이 있는 곳이 아니라 편집하는 파일의 것이다. `seal/` 루트 아래 파일, git 이 무시하는 파일, opt-in 한 어느 레포에도 속하지 않는 파일은 판정하지 않으므로 선언은 언제나 먼저 쓸 수 있다. 거부는 모델에게 가고, 쓸 선언과 `seal no-work-item` 을 알려 준다. 라우팅 질문에서 `automation` 을 눌렀다면 사람에게 물을 질문은 알려 주지 않는다. 이 플러그인은 git 안에서 아무것도 돌리지 않으므로, 사람이 터미널에서 한 커밋은 이 플러그인의 코드를 하나도 돌리지 않는다. pull request 에서는 `chain-check` 가, `Seal-Routing` 트레일러가 어느 선언도 가리키지 않는 작업 항목을 적은 커밋을 실패로 처리한다 | 루트에 `seal/` 이 있는 레포, 또는 local 모드로 공통 git 디렉터리 아래에 있는 레포. 그 밖에서는 아무것도 하지 않는다 |
 | core-start | 세션 시작, `/clear` 뒤, 압축 뒤. 재개 때는 돌지 않는다 | 코어 `skills/core/SKILL.md` 를 세션에 평문으로 출력한다. 첫 줄에는 출력한 파일, 돌고 있는 플러그인의 버전, 그 파일의 SHA-256 을 적는다. 이 플러그인 레포의 클론에서는 클론의 사본을 출력한다. 재개한 세션은 시작 때 출력한 것을 그대로 지니므로 재개는 뺀다. 아무것도 쓰지 않는다 | 모든 세션, 어느 디렉터리에서든 |
-| stub-remove | 세션 시작 | 예전 릴리스가 클론의 공용 `hooks/` 디렉터리에 써 둔 `pre-commit`·`reference-transaction`·`post-commit` 스텁을 지운다. 둘째 줄이 표시 `# specseal-git-hook` 인 파일만 지우고, 다른 쪽이 쓴 훅은 바이트 하나 바꾸지 않는다. 지운 것은 한 번 알리고, 지울 것이 없으면 아무 말도 하지 않는다 | 모든 git 레포 |
-| root-migrate | 세션 시작 | 예전 릴리스가 쓴 배치를 지금 배치로 옮긴다. `seal/README.md` 를 표시 줄로 시작하게 다시 쓰고, 0.22.x 의 작업 항목을 하나씩 `seal/threads/<id>/` 로 옮긴다. 사용자가 검토하고 커밋하도록 `git mv` 로 스테이징하며, local 모드면 공통 git 디렉터리 아래에서 이름만 바꾼다. 옮길 것이 있는 디렉터리 아래에 커밋하지 않은 변경이 있으면 하나도 옮기지 않는다. 옮긴 것은 한 줄로 알린다. 예전 릴리스가 옛 이름으로 루트 옆과 `~/.claude/` 아래에 쓴 상태 파일의 이름도 플러그인 이름으로 바꾼다 | 트리나 공통 git 디렉터리에 예전 배치가 남은 git 레포. 상태 파일 이름 바꾸기는 세션이 시작할 때마다 말없이 돈다 |
 | implementer-mark | `subagent_type` 이 `framer` 나 `crafter`(`agentic:crafter`, 또는 프로젝트 로컬의 `crafter`)인 Agent·Task 호출 직전 | 체크아웃된 브랜치 이름을 `.git/agentic-planner` 나 `.git/agentic-implementer` 에, 축마다 파일 하나씩 적는다. 아무것도 출력하지 않으므로 막지도 묻지도 못한다. 아래 알림이 읽는 흔적일 뿐이다 | 루트에 `seal/` 이 있는 레포, 또는 local 모드로 공통 git 디렉터리 아래에 있는 레포. 그 밖에서는 침묵하고 아무것도 쓰지 않는다 |
 | implementer-notice | 실제로 `git commit` 을 실행한 명령 직후 | 이 브랜치의 `routing.md` 가 `Planning` 에 `framer` 를, 또는 `Implementation` 에 `crafter` 를 적었는데 그 축의 흔적이 이 브랜치에 없으면, 그 파일을 적은 한 줄을 출력한다 — **두 축이어도 한 줄**이지 축마다 한 줄이 아니다. 흔적이 있는 축, 행이 없거나 읽을 수 없는 축, `the session` 으로 답한 축에는 아무 말도 하지 않는다. **세션·레포당 한 번**이고 막지 않는다 — 선언해 놓고 아무도 띄우지 않은 에이전트는 세션이 자기 답을 잊은 것이고, 그 값은 알림 한 줄이다 | 루트에 `seal/` 이 있는 레포, 또는 local 모드로 공통 git 디렉터리 아래에 있는 레포. 그 밖에서는 아무것도 하지 않는다 |
 | review-skill-gate | 모델이 `code-review` 라는 이름의 스킬을 열기 직전 | 고르지 않고 사용자에게 고르게 한다. 그 이름은 Claude Code 내장이지 이 플러그인 것이 아니다. 내장은 diff 에서 버그와 중복을 훑고, `agentic:code-review` 는 준수를 먼저 본 뒤 이전 회차 판정을 이어받는다. **세션·작업트리당 한 번**만 물으므로, 내장을 골라 다시 부르면 그대로 통과한다. 사용자가 직접 부른 스킬은 여기를 거치지 않는다 | 루트에 `seal/` 이 있는 레포, 또는 local 모드로 공통 git 디렉터리 아래에 있는 레포. 그 밖에서는 아무것도 하지 않는다 |
@@ -258,7 +256,7 @@ origin remote 를 키로 저장됩니다. 다른 기계에서는 틀린 값이�
 | `seal unverified . [--baseline <ref>]` | 그렇게 `unverified` 로 적어 둔 행을 다시 읽어 준다. 무엇이 어느 작업 항목에서 몇 건 열려 있고 누구에게 물어야 하는지를 찍는다. 절을 읽지 못하면 실패한다 — 너그럽게 읽으면 0건이 나오고, 0건은 "다 닫혔다"로 읽히기 때문이다. `--baseline` 을 주면 `git merge-base <ref> HEAD` 가 가리키는 커밋과 행 수를 견준다. 브랜치를 체크아웃해서 돌리면 그 커밋은 이 브랜치가 그 참조에서 갈라진 지점이고, PR 을 base 에 이미 병합한 상태로 체크아웃하는 CI 에서는 base 브랜치의 끝이다. 어느 쪽이든 이 브랜치를 딴 뒤에 base 쪽에 들어온 작업 항목은 이 브랜치가 지운 것으로 치지 않는다. 그 커밋보다 행이 줄었거나 `gaps.md` 파일 자체가 없어졌으면 실패한다. 행 하나를 지우고 하나를 넣으면 수가 같아 통과한다 |
 | `seal cost --latest` | 세션의 시간이 어디로 갔는지 — 명령 실행, 호출 사이 모델 대기, 이미 나온 결과를 다시 보려고 재실행한 검사, 한 턴에 나간 도구 수. 세션 안에서는 잴 수 없는 값입니다 |
 | `seal cost --segments <트랜스크립트>` | 그 실행이 스폰한 에이전트마다 한 행씩, 각자의 트랜스크립트에서 읽어 찍습니다 — 걸린 시간, 호출 수, 한 턴에 나간 도구 수, 평균 대기, 토큰, 그리고 가장 큰 턴 하나가 읽은 컨텍스트. 이 "걸린 시간"은 다른 어느 칸에도 없습니다. 스폰을 받아들인 시점에 결과를 적는 하네스에서는 `--spawns` 표의 값이 몇 초로 나오는데, 정작 그 에이전트는 이십 분을 돌았기 때문입니다. 중간에 코디네이터가 다시 말을 건 에이전트는 일한 구간마다 한 행으로 갈라서, 두 구간 사이의 대기가 어느 행에도 들어가지 않게 합니다. 실행 전체의 트랜스크립트를 주든 그 에이전트 자신의 트랜스크립트를 주든 똑같이 가릅니다. 에이전트가 또 다른 에이전트를 스폰했으면 그 사실도 한 줄로 찍습니다. 표 아래에는 한 턴에 나간 도구 수가 그 종류의 기준선에 못 미치는 행을 이름으로 찍습니다. 기준선은 proofer 와 framer 에만 있고, 편집과 테스트를 번갈아 하는 crafter 는 대상이 아닙니다. 기준선이 없어 판정하지 못한 행은 그 수를 함께 찍습니다 |
-| `seal settle [--apply]` | 플래그 없이 돌리면 미리 보기만 합니다. 릴리스된 설계들의 `## Rule changes` 를 가리키는 절별로 묶어 병합 순서대로 보여 주고, 각 `from` 과 `to` 가 지금 그 절에 있는지 함께 찍습니다. 통째로 읽어야 할 설계, 릴리스된 기록마다 열린 행 전부, `--apply` 가 지울 것도 찍습니다. 아무것도 거부하지 않습니다. 그다음 settle 을 돌리는 세션이 절을 쓰고 열린 행을 판정하며, 누구에게도 묻지 않습니다(`skills/settle/SKILL.md` *The settling session's procedure*). `--apply` 는 문서를 쓰지 않습니다. 기록에 열린 행이 없는 릴리스된 디렉터리를 `frame/design.md` 가 있든 없든 지우고, 남긴 디렉터리는 이름을 찍습니다 |
+| `seal settle [--apply]` | 플래그 없이 돌리면 미리 보기만 합니다. 릴리스된 설계들의 `## Rule changes` 를 가리키는 절별로 묶어 병합 순서대로 보여 주고, 각 `from` 과 `to` 가 지금 그 절에 있는지 함께 찍습니다. 통째로 읽어야 할 설계, 릴리스된 기록마다 열린 행 전부, 그 기록과 이름이 같지만 제자리가 아닌 곳에 있어 읽지 않은 파일, `--apply` 가 지울 것도 찍습니다. 아무것도 거부하지 않습니다. 그다음 settle 을 돌리는 세션이 절을 쓰고 열린 행을 판정하며, 누구에게도 묻지 않습니다(`skills/settle/SKILL.md` *The settling session's procedure*). `--apply` 는 문서를 쓰지 않습니다. 기록에 열린 행이 없는 릴리스된 디렉터리를 `frame/design.md` 가 있든 없든 지우고, 남긴 디렉터리는 이름을 찍습니다 |
 | `seal fold [--ceiling <n>]` | 정책 루트 최상위에서 한 번에 읽히는 크기와 색인을 확인합니다. 무엇을 어떻게 보는지는 `skills/settle/scripts/fold_check.py` 와 그 행을 적은 `templates/setup/config.md` *The fold's values* 에 있습니다. 플래그는 그 실행에서만 행을 대신합니다 |
 | `seal rules <doc> [--root <dir>]` · `seal rules --check [--root <dir>]` | `seal rules <doc>` 는 문서의 제목마다 그 아래 `check:` 줄이 가리키는 테스트를 찍고, 테스트마다 docstring 의 첫 문장을 함께 보여 줍니다. 대상을 찾지 못하면 그 이유를 찍습니다. 규칙의 글은 그 docstring 한 곳에만 있으므로, 문서와 테스트를 나란히 읽을 때 이 명령을 씁니다. 무엇을 찾든 0 으로 끝납니다. `seal rules --check` 는 모든 규칙 파일의 check 줄을 전부 읽고, 문법을 벗어난 줄이나 사라진 대상이 하나라도 있으면 파일·줄·제목을 찍고 1 로 끝납니다. 그런 줄이 아직 settle 되지 않은 설계의 `from` 없는 `remove` 가 settle 때 들어낼 절 안에 있으면 그 work item 을 밝혀 excused 로 찍고, 실패로 치지 않습니다. 대기 중인 `change` 는 아무 줄도 봐주지 않고, `seal/` 루트가 local 이면 봐주는 줄이 없습니다. 테스트 하나가 저장소 전체에 대해 이 명령을 돌립니다. 대상은 명령을 친 저장소에서 찾고, 어느 쪽도 아무것도 쓰지 않습니다 |
 | `seal pact [ROOT]` | pact(여러 저장소가 함께 지키는 계약의 원본, `seal/pact.md`)를 가진 저장소에서 돌립니다. pact 가 적어 둔 signer(그 계약에 서명한 저장소)마다 `~/.claude/agentic/pact-paths.md` 나 옆 디렉터리에서 체크아웃을 찾고, 그 저장소의 `Pact` 행이 이 pact 를 가리키는지 확인한 뒤, 거기 적힌 pact 앵커를 하나씩 판정합니다. `SUPERSEDED` 는 signer 가 예전 조항을 보고 만들어졌다는 뜻이고, `NOT TAKEN` 은 pact 가 아직 받아들이지 않은 변경이 어느 브랜치에 있는지 알려 줍니다. `UNMATCHED` 와 `BROKEN` 은 양쪽을 읽거나 좌표를 다시 잡으라는 뜻입니다. 로컬에서만 돕니다. signer 의 CI 는 저장소 하나만 읽을 수 있으므로 pact 를 아무것도 읽지 않습니다 |
@@ -300,37 +298,6 @@ claude
 `/plugin uninstall agentic` 을 실행하고, 업데이트가 아직 들어내지 않은 블록이
 있으면 그 표시와 사이의 줄을 직접 지웁니다.
 
-### `specseal@specseal` 에서 오는 경우
-
-이름을 바꾸기 전에는 플러그인을 `specseal@specseal` 로 설치했습니다. Claude
-Code 는 마켓플레이스를 이름으로 알아보는데, 등록이 가리키는 카탈로그가 자기
-이름을 바꾸면 그 등록이 어떻게 되는지는 레퍼런스에 적혀 있지 않습니다. 그래서
-마켓플레이스를 새 이름으로 다시 등록합니다.
-
-```bash
-claude plugin marketplace remove specseal
-claude plugin marketplace add MichaelYcJo/AgenticSeal
-claude plugin install agentic@agenticseal
-```
-
-첫 줄은 `specseal@specseal` 도 함께 지우고 그 캐시도 지웁니다
-(`code.claude.com/docs/en/plugins/cli-reference.md` *plugin marketplace
-remove*). 옛 설치본이 `<!-- specseal:start -->` 와 `<!-- specseal:end -->`
-사이에 써 넣은 CLAUDE.md 블록은 새 설치본에 필요한 것을 담고 있지 않습니다.
-다음 릴리스에서 `/agentic:update` 가 들어내거나, 그 표시와 사이의 줄을 직접
-지웁니다. 옛 설치본의 업데이트
-명령은 옛 이름으로 돌기 때문에 새 이름으로 넘어가게 해 주지 못합니다. 이 세 줄은
-Claude Code 레퍼런스에서 읽은 것이고, 옛 설치본이 있는 기기에서 돌려 본 적은
-없습니다.
-
-이름을 바꾸기 전에 `seal pr-checks install` 이 `.github/workflows/hygiene.yml`
-을 써 둔 저장소라면, 세션 시작이 기록을 옮긴 뒤 `seal pr-checks install` 을
-다시 돌리고, 다시 쓰인 workflow 를 그 이동과 함께 커밋합니다. 옛 workflow 는
-고정된 릴리스를 clone 하는데, 그 릴리스는 작업 항목을 자기가 두던 자리에서,
-trailer 는 옛 이름으로 찾습니다. 그래서 이동 뒤에는 선언을 찾지 못하고, 아무것도
-검사하지 않은 채 모든 pull request 를 통과시킵니다. 세션 시작은 그 workflow 를
-찾으면 한 줄로 이 일을 알려 줍니다.
-
 ### 업데이트
 
 ```
@@ -369,42 +336,6 @@ claude plugin update agentic@agenticseal   # 그다음 적용 — 위 문단 참
 `templates/setup/claude-md-block.md` 에서 복사합니다. 이 템플릿에는 두 표시만
 있고 그 사이에는 아무것도 없으므로, 그 업데이트는 빈 표시 한 쌍을 남기고
 그다음 업데이트가 그것을 지웁니다.
-
-### 0.3.x 에서 올라오는 경우
-
-0.3.x 는 플러그인 파일을 두 디렉터리(`.specseal/`, `specs/<id>/`)에 두었고,
-그 뒤의 릴리스는 모두 `seal/` 하나에 둡니다. 옛 두 디렉터리는 아무것도 켜지
-않으므로, 그것이 남아 있는 레포에서는 모든 게이트가 침묵합니다. 플러그인의
-어떤 코드도 두 디렉터리를 열지 않습니다. 그래서 아래 명령으로 직접 옮겨야
-하며, 옮기는 길은 이 방법 하나뿐입니다.
-
-`specs/` 에서 옮기는 것은 플러그인이 만든 작업 항목뿐입니다.
-`<unix-seconds>-<slug>` 이름의 디렉터리 가운데 바로 아래에 git 이 추적하는
-`routing.md` 나 `rounds` 디렉터리 아래 파일이 있는 것만 옮깁니다. 0.3.x 의 작업
-항목은 모두 `routing.md` 를 가지고 있었습니다. 그 밖에 `specs/` 아래 있는
-것은 이름이 무엇이든 프로젝트 자신의 것이므로 그 자리에 둡니다.
-
-두 번째 명령이 옮긴 README 는 `templates/setup/seal-README.md` 로 덮어씁니다. 그
-파일의 첫 줄이 표시 줄이고, 모든 게이트는 이 줄을 읽고 나서야 `seal/` 을
-플러그인의 루트로 봅니다. 일회용 표시 `.specseal/scratch` 가 있던 레포라면
-그 파일은 옮기지 말고 지웁니다. 그 표시의 후임은 커밋될 수 없는 파일
-`.git/agentic-scratch` 입니다.
-
-```bash
-# exempt from old_names: 0.22.x 의 배치이고, 그 뒤 플러그인이 seal/threads/ 로 옮긴다
-mkdir -p seal/specs
-git mv .specseal/README.md seal/README.md    # 그다음 templates/setup/seal-README.md 로 덮어쓴다
-git mv .specseal/* seal/                     # follow-up.md, parity.md 와 그 안의 나머지 모두
-# exempt from old_names: 0.22.x 의 배치이고, 그 뒤 플러그인이 seal/threads/ 로 옮긴다
-git mv specs/<id> seal/specs/<id>            # 작업 항목마다
-rmdir .specseal specs                        # git mv 는 빈 디렉터리를 디스크에 남긴다. 다른 것이 든 쪽은 남는다
-```
-
-그다음 `git diff --cached` 를 보고 커밋합니다. 이 커밋은 어느 작업 항목에도
-속하지 않으므로, shared 모드에서 세션이 커밋할 때는 트레일러
-`Seal-Routing: no work item` 으로 끝냅니다. 그 뒤 플러그인이 이름을 바꾸기
-전에 설치한 레포를 옮길 때와 같이 작업 항목마다 `seal/threads/<id>/` 로
-옮기고, 그것도 스테이징된 `git mv` 이므로 같은 방법으로 보고 커밋합니다.
 
 ## 처음 실행
 

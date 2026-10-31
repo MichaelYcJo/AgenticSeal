@@ -530,13 +530,18 @@ def test_the_broad_gate_row_asks_for_what_the_file_actually_carries():
     broad gate's record holds one entry per full-suite run, newest first, so
     the count is read off it rather than remembered: the row may ask for it,
     on the one condition that its source says where the count comes from.
-    Since the rename to AgenticSeal that record is `trail/gate.md` (#923, #1051)."""
+    Since the rename to AgenticSeal that record is `trail/gate.md` (#923, #1051),
+    and since #1198 each run is a `seal` block, the newest last."""
     label, source = labelled("Broad gate")
     if "how many times" in label:
-        assert "one entry per full-suite run" in source, (
+        assert "one `seal` block per full-suite run" in source, (
             "the `Broad gate` row asks for a count without saying the file "
-            "holds one entry per run, so the count comes from somewhere the "
+            "holds one block per run, so the count comes from somewhere the "
             "next run cannot check"
+        )
+        assert "newest first" not in source, (
+            "the row says the newest run comes first, and `seal gate --record` "
+            "appends it last"
         )
     assert "`trail/gate.md`" in source, (
         "the row names no file the count is read from, which is the reason "

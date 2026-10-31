@@ -86,11 +86,12 @@ checks with their first lines (`failed_form`). No run writes a values file
 or a drawing.
 
 `--record <item>` writes `<item>/trail/gate.md` on success, on either routing
-answer: one `Broad gate` row holding `<tree> against <base commit>`, newest
-first, every earlier run kept behind it as `; earlier run: …`, and a run the
-file already records at the same commit against the same base replaced
-rather than repeated (`kept_runs`). It is the run's one record;
-`chain_check.py` reads it at the pull request.
+answer: it appends one `seal` block holding `run: <tree> against <base
+commit>` below the blocks of earlier runs, assembled and read by
+`hooks/lib/fields.py`, and appends nothing where the last block names the
+same commit against the same base (`write_gate_file`, #1198). It is the
+run's one record; `chain_check.py` reads its last block at the pull
+request.
 
 **`--preflight` runs arms 2 and 3 alone, and writes nothing** (#638). It is the
 orchestrator's step before it spawns the sealer: the same base resolved the
@@ -148,21 +149,21 @@ CHAIN = os.path.join(PLUGIN, "skills", "code-review", "scripts", "chain_check.py
 # because the arm runs the check as a process; a case holds the two equal.
 CHAIN_SEALING = "--sealing"
 CONFIG_READER = os.path.join(PLUGIN, "hooks", "lib", "config.py")
+# `hooks/lib/fields.py`, which assembles the run block `--record` appends and
+# reads the blocks already there (#1198).
+FIELDS_READER = os.path.join(PLUGIN, "hooks", "lib", "fields.py")
 OPTIN = os.path.join(PLUGIN, "hooks", "lib", "optin.py")
 
 CONFIG = "config.md"
 ROW = "Broad gate"
 ROUND_RE = re.compile(r"^round-(\d+)\.md$")
-# The run's one record, in the work item's directory, and what separates its
-# newest run from the ones behind it. `chain_check.py` reads both by the same
-# spelling, and a case holds the two equal.
+# The run's one record, in the work item's directory: `chain_check.py` reads
+# it by the same spelling, and a case holds the two equal.
 # `hooks/lib/optin.py#GATE` and `#ROUNDS`, under the thread. `GATE_FILE` takes the
 # check's `/` on every platform, and `write_gate_file` splits it on `/` so the
 # disk path it returns takes the platform's separator throughout.
 GATE_FILE = "trail/gate.md"
 ROUNDS_DIR = os.path.join("trail", "rounds")
-EARLIER_RUN = "; earlier run: "
-GATE_ROW = re.compile(r"^\|\s*" + ROW + r"\s*\|(.*)\|\s*$")
 
 # The checks, by the name the report prints for each. The first is the
 # repository's own command; the panel reads its `suite` and `lint` from that
@@ -2157,9 +2158,13 @@ def job_steps(text, job):
     empty answer from reading as a pass is the caller: the case that grades
     this repository refuses an empty list rather than counting zero
     unclassified steps.
+
+    A line ends at LF, CR or CRLF, YAML 1.2's line breaks: the text is
+    taken through universal newlines and split at LF alone, as
+    `deferral_check.py#runners_in` splits, so a name holding U+2028, which
+    `str.splitlines` also ends a line at, reads whole (#1198).
     """
-    # exempt from splitlines: YAML keys
-    lines = text.splitlines()
+    lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
     try:
         # Found by walking rather than by splitting on `"\njobs:\n"`: that
         # spelling cannot see a `jobs:` on the FIRST line of the file, and
@@ -2459,39 +2464,49 @@ def round_records(item):
     return [os.path.join(item, ROUNDS_DIR, n) for _, n in found]
 
 
-def kept_runs(held, value):
-    """`value` in front of the runs the `Broad gate` cell `held` records,
-    newest first. A held entry equal to `value` — the same commit against
-    the same base — is dropped, so a re-run over an unchanged checkout does
-    not record one comparison twice."""
-    entries = [e.strip() for e in (held or "").split(EARLIER_RUN) if e.strip()]
-    return EARLIER_RUN.join([value, *(e for e in entries if e != value)])
-
-
 def write_gate_file(item, tree, base):
-    """Write `<item>/trail/gate.md` with `<tree> against <base>` as its newest
-    run, and return its path. Raises `Refused` where it cannot be written."""
+    """Append to `<item>/trail/gate.md` one run block, `run: <tree> against
+    <base>`, below the text already there, a work item's heading opening a
+    file that was not, and return its path. Nothing is appended where the
+    last block the file holds names the same run. Raises `Refused`, and
+    writes nothing, where the file cannot be read or written, the reader will
+    not load, the run is not one the reader reads (#1198), or the file as it
+    will stand, the held file where nothing is appended, is one the reader
+    refuses at a line or reads with another run last."""
     path = os.path.join(item, *GATE_FILE.split("/"))
-    held = ""
     try:
         with open(path, encoding="utf-8") as handle:
-            for line in handle.read().split("\n"):
-                found = GATE_ROW.match(line.strip())
-                if found:
-                    held = found.group(1).strip()
-                    break
+            held = handle.read()
     except FileNotFoundError:
-        pass
+        name = os.path.basename(os.path.normpath(item))
+        held = f"# {name} {chr(0x2014)} broad gate\n"
     except (OSError, UnicodeDecodeError) as exc:
         raise Refused(f"seal gate: {path} could not be read ({exc})") from exc
-    value = kept_runs(held, f"{tree} against {base}")
-    name = os.path.basename(os.path.normpath(item))
-    text = (
-        f"# {name} {chr(0x2014)} broad gate\n\n"
-        "| Field | Value |\n"
-        "|---|---|\n"
-        f"| {ROW} | {value} |\n"
-    )
+    fields = load(FIELDS_READER, "agentic_fields_for_broad_gate")
+    value = f"{tree} against {base}"
+    try:
+        block = fields.assemble([(fields.RUN, value)], fields.GATE)
+    except ValueError as exc:
+        raise Refused(f"seal gate: {path} was not written: {exc}") from exc
+    runs = fields.read(held, fields.GATE).blocks
+    same = bool(runs) and runs[-1].fields[fields.RUN].value == value
+    text = held if same else held.rstrip("\n") + "\n\n" + block
+    # The file as it will stand is read back, the held file itself where its
+    # last block already names this run: below a fence nobody closed the
+    # block's closer closes that fence and no run reads, and a line the reader
+    # refuses is refused at the pull request. Either is refused here, where a
+    # person can fix the file.
+    after = fields.read(text, fields.GATE)
+    if after.refusals:
+        line, why = after.refusals[0]
+        raise Refused(f"seal gate: {path} was not written: line {line}: {why}")
+    if not after.blocks or after.blocks[-1].fields[fields.RUN].value != value:
+        raise Refused(
+            f"seal gate: {path} was not written: the reader reads no run block "
+            "at its end, since a fence above the block hides it"
+        )
+    if same:
+        return path
     try:
         # `trail/` is made in a thread that has none yet, and never a
         # thread: an `--record` naming no directory is refused at the open.

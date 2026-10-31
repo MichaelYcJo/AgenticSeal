@@ -92,9 +92,9 @@ that line is the records' own text, copied by `seal pr-body`, so it is in
 
 The language the **prose** in the work-item records is written in:
 `frame/design.md`, `frame/plan.md`, `gaps.md`, `frame/questions.md`,
-`changelog.md`, and in `trail/rounds/round-N.md` each finding's heading,
-account and `answer:`, the prose after each `confirms:` line, and the cells of
-its tables.
+`changelog.md`, and in `trail/rounds/round-N.md` each finding's heading and
+account, the value of its close block's `answer:` line, the prose after each
+confirmation block, and the cells of its tables.
 
 **Independent of the row above.** Setting one does not carry the other, for
 the reason stated at the top of this file: an absent row's default is what
@@ -109,9 +109,8 @@ people rather than about the file, which is why it is a row and not a rule.
 
 **The review splits across the two rows on purpose.** The report posted to a
 pull request is prose for whoever opens it, and follows the row above.
-`trail/rounds/round-N.md` is half structure (`chain_check.py` reads its headings,
-its labelled lines and the four verdict values literally), and its prose
-follows this one.
+`trail/rounds/round-N.md` is half structure (`chain_check.py` reads its
+headings and its `seal` blocks literally), and its prose follows this one.
 
 ## What no row governs
 
@@ -125,13 +124,13 @@ every repository, whatever either row says:
   *Branch names* states: a branch name is typed into a shell and pasted into
   a URL.
 - **The field names, section headings and vocabulary a checker or a pinned
-  case reads literally**: every cell of a round record's grammar, the
-  two tables in `docs/the-review-record.md` *The round record*, which
-  `chain_check.py` reads; a round record's `## Not judged` and `## Probes`
+  case reads literally**: the info string `seal` that opens each block of a
+  round record, a `guarantee.md` and a `trail/gate.md`, and every key of
+  those blocks and every fixed word of their values, whose one spelling is
+  `hooks/lib/fields.py`, which `chain_check.py` and the stamp read them
+  through; a round record's `## Findings` heading, which `chain_check.py`
+  reads, and its `## Confirmations`, `## Not judged` and `## Probes`
   headings, which the parties and the eval graders read; a
-  `guarantee.md`'s `Target SHA`, and its `Verdict:` line with the words
-  `sealed`, `withheld`, `undecided`, `reason:` and `question:`; a
-  `trail/gate.md`'s `Broad gate`; a
   `gaps.md`'s `## Not verified` heading with its `Item` and
   `Who must answer` columns, or its no-change block `- nothing` with
   `why:`, and its `## Not done` heading; a `frame/plan.md`'s `## Phases`

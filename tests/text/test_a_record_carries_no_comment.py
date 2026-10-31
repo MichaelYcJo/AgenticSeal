@@ -4,7 +4,7 @@ A comment in a template is copied into every record started from it, so its
 guidance becomes a second copy of the skill or definition the record's writer
 reads, and every reader of the record has to model it. The guidance lives
 once, where its writer reads it; a template holds headings, table headers,
-placeholders, the labelled lines the record's grammar asks for and the foot
+placeholders, the `seal` blocks the record's grammar asks for and the foot
 line.
 """
 

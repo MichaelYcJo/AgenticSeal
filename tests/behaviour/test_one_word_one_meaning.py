@@ -398,7 +398,8 @@ def test_the_gate_never_says_sealed():
 # the `seal/` root, a script or a command (`seal stamp`, `seal_stamp`,
 # `seal mode`, `seal gate`, `seal.py`, `seal-mark.txt`), the sealer, the chain arm's
 # `--sealing` flag and `chain_check.SEALING`, the verdict word in backticks,
-# the Seal Test, a work item the sealer sealed, and an HTML comment. `questions.md` Q6 (a) keeps the code names and the concept
+# the Seal Test, a work item the sealer sealed, a `seal` block, named by its
+# info string (#1198), and an HTML comment. `questions.md` Q6 (a) keeps the code names and the concept
 # name. A name goes on past its `-`, `_` or `.`, so a `seal.` that closes a
 # sentence is the word and stays refused. `sealed_names` and `CHAIN_SEALING` need no entry: `_` is a word
 # character, so the word below never starts or ends inside them.
@@ -415,7 +416,8 @@ GATE_SEAL_NAMES = re.compile(
     r"|--sealing\b|(?-i:\b\w*SEALING\w*\b)"
     r"|(?-i:`sealed`)"
     r"|\bSeal Test\b"
-    r"|\bsealed work item\b",
+    r"|\bsealed work item\b"
+    r"|`seal` blocks?\b",
     re.I,
 )
 GATE_SEAL_WORD = re.compile(r"\bseal(?:s|ed|ing)?\b", re.I)

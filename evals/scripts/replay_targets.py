@@ -16,7 +16,8 @@ writes today. A record comes in one of two shapes:
              `docs/the-review-record.md` holds, so each record is judged by
              the grammar in force when it was written (the owner's decision
              on #985) and a line the grammar gained later is not owed; a
-             record no commit wrote is read by this tree's check. The
+             record no commit wrote is read by this tree's check, which
+             reads `seal` blocks since #1198 and so refuses it. The
              commit and the base are its `target:` line, a finding is a
              `### <n>. ` section at `verdict: fixed <commit>`, and the next
              round confirms it on a `confirms: round-<N>#<n>` line. It
@@ -82,6 +83,14 @@ AGAINST = re.compile(r"against\s+`?(?P<ref>origin/[\w./-]*[\w])`?")
 LOCATION = re.compile(
     r"`(?P<path>[\w./-]+\.\w+)(?::(?P<line>\d+)(?:[-\N{EN DASH}]\d+)?|#(?P<unit>[\w.]+))?`"
 )
+# The two labels of 0.22.0's record a replay reads a value from, the level of
+# its finding heading, and the verdict word a truth needs. Every record a
+# replay reads stands in labelled lines, and this tree's check reads a round
+# record's `seal` blocks since #1198, so these are this file's own.
+TARGET_LABEL = "target:"
+LOCATION_LABEL = "location:"
+FINDING_LEVEL = 3
+FIXED = "fixed"
 WINDOW = 15
 MODEL = "claude-opus-5-5"
 # What every truth's pattern opens with: a finding's `location:` line.
@@ -177,18 +186,20 @@ def record_reader():
 
 # What a commit's check needs beside it to load: the script, the reader it
 # loads when imported, the hook module that reader takes its fence rule and
-# line split from (#1005), and the document whose grammar table it reads. A
-# file a commit does not hold is not copied: a check from before the table
-# carries its grammar in its code, and a reader from before #1005 keeps its
-# own fence rule. The hook module is named at both paths it has stood at, and
-# a commit holds one of them: `hooks/lib/blocks.py` from #1060 on, and the
-# path above it before.
+# line split from (#1005), the reader of a record's `seal` blocks both load
+# (#1198), and the document whose grammar table it reads. A file a commit
+# does not hold is not copied: a check from before the table carries its
+# grammar in its code, a reader from before #1005 keeps its own fence rule,
+# and a check from before #1198 loads no `fields.py`. The fence module is
+# named at both paths it has stood at, and a commit holds one of them:
+# `hooks/lib/blocks.py` from #1060 on, and the path above it before.
 CHECK_FILES = (
     "skills/code-review/scripts/chain_check.py",
     "skills/verify/scripts/unverified_check.py",
     "hooks/lib/blocks.py",
     # exempt from vacated_paths: the path a commit before #1060 holds it at
     "hooks/blocks.py",
+    "hooks/lib/fields.py",
     "docs/the-review-record.md",
 )
 CHECKS = {}
@@ -248,10 +259,19 @@ def labelled(text):
     `target:` line inside a comment is one a comment's inner line opens
     with, and the round template carried none in any comment at any
     release tag before 0.22.0."""
-    check, reader = record_reader()
+    _check, reader = record_reader()
     return any(
-        check.label_of(line) == check.TARGET_ROW for line in reader.readable(text)
+        label_value(line, TARGET_LABEL) is not None for line in reader.readable(text)
     )
+
+
+def label_value(line, label):
+    """What LINE holds after LABEL and the one space after it, in the one
+    spelling 0.22.0's grammar gave a labelled line; None where LINE does not
+    open with LABEL so."""
+    if line == label:
+        return ""
+    return line[len(label) + 1 :] if line.startswith(f"{label} ") else None
 
 
 def labelled_round(text, rel, n, at=None):
@@ -261,7 +281,8 @@ def labelled_round(text, rel, n, at=None):
     `{"sha", "value", "findings", "confirms"}` — the `target:` commit and
     the line's whole value, each finding as `(n, symptom, its location
     value, fixed or not)`, and the `(round, finding)` pairs its `confirms:`
-    lines name.
+    lines name. This tree's check reads `seal` blocks since #1198, so it
+    refuses a record in labelled lines.
 
     A record that check refuses is `(None, the first refusal)`, so a replay
     reads only what the pull request accepted, by the grammar it was
@@ -275,28 +296,35 @@ def labelled_round(text, rel, n, at=None):
     record's own."""
     judge, reader = checks_at(at)
     found, errors = judge.round_of(reader, text, rel, n)
-    # The labels and the finding split are this tree's check's, which names
-    # them the same way for every record it reads; a commit's check spells
-    # its helpers as that commit did, and only its `round_of` is asked.
-    check, _ = record_reader()
     if errors:
         _rel, line, why = errors[0]
         return None, f"the check refuses the record at line {line}: {why}"
+    # The `target:` and `location:` values and where a finding ends are read
+    # here, by `label_value` and the finding heading's level, since a
+    # commit's check spells its helpers as that commit did and only its
+    # `round_of` is asked.
     lines = reader.readable(text)
     value = next(
-        check.value_of(x) for x in lines if check.label_of(x) == check.TARGET_ROW
+        said for x in lines if (said := label_value(x, TARGET_LABEL)) is not None
     )
-    _section, spans, _error = check.finding_spans(reader, lines)
-    stops = {first + 1: stop for first, stop in spans}
     rows = []
     for f in found.findings:
+        stop = next(
+            (
+                i
+                for i in range(f.heading_line, len(lines))
+                if (level := reader.heading_level(lines[i])) is not None
+                and level <= FINDING_LEVEL
+            ),
+            len(lines),
+        )
         location = next(
-            check.value_of(lines[i])
-            for i in range(f.heading_line, stops[f.heading_line])
-            if check.label_of(lines[i]) == check.LOCATION_ROW
+            said
+            for i in range(f.heading_line, stop)
+            if (said := label_value(lines[i], LOCATION_LABEL)) is not None
         )
         symptom = f.heading.split(". ", 1)[1]
-        rows.append((f.number, symptom, location, f.verdict[0] == check.FIXED))
+        rows.append((f.number, symptom, location, f.verdict[0] == FIXED))
     confirms = {reference for _line, reference in found.confirms}
     return {
         "sha": found.target,

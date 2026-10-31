@@ -109,15 +109,18 @@ where the close holds, and where it does not by a finding naming it on a
 introduced the defect. Where you weigh an earlier finding, re-run its
 `evidence: executed` line rather than re-deriving the claim; a probe it names
 is written again from its `## Probes` row. A record written before the
-`evidence:` row lacks the line, and that is no finding.
+`evidence:` field lacks the line, and that is no finding.
 check: tests/text/test_review_axes.py tests/text/test_the_rules_have_one_owner.py
 
 ## The record
 
 A round writes `seal/threads/<work-item-id>/trail/rounds/round-N.md` from
-`templates/records/sdd-round.md`. Every labelled line and heading follows its row of
-the grammar table in `docs/the-review-record.md` *The round record*, which
-the check reads; that section is the grammar's one statement. The prose follows
+`templates/records/sdd-round.md`. Every field the check reads stands inside a
+`seal` block, a fenced block opened by a line of three backticks and `seal`
+alone, and `hooks/lib/fields.py` is the one statement of each block's lines
+and the shape of each value. A line outside a block is prose and no field.
+The check also reads the `## Findings` heading and each finding's
+`### <n>. <symptom>` heading, as the template shows them. The prose follows
 `Record language` in the `seal/` root's `config.md`, English where the row
 is absent; field names, headings and vocabulary words stay English
 (`templates/setup/config.md` *What no row governs*).
@@ -129,20 +132,24 @@ is absent; field names, headings and vocabulary words stay English
   that only reads badly is no finding.
 - `location:` names every place the defect shows, and the path the fix
   changes where that is elsewhere, because a `fixed` commit must touch one.
-- Each finding carries one line of each row the table places in a finding
-  as `one`: `severity:`, `location:`, `evidence:`, `verdict: open` and
-  `answer:`, the last left empty for the fix pass. The check refuses a
-  finding missing any.
-- `evidence:` names what the claim rests on, in the forms its row gives. A
-  claim that something is absent rests on a search, so its line is
-  `executed`. The check cannot tell such a claim from another; the round
-  reading the record does.
+- Each finding's section holds one finding block, opened by its
+  `severity:` line and holding its `location:` and `evidence:` lines, and a
+  `regression:` or `reopens:` line where one is owed. The round writes no
+  close block: a finding with none is open, and the fix pass appends it with
+  its `verdict:` and `answer:` lines. The check refuses a finding whose block
+  is missing or lacks a line it holds one of.
+- `evidence:` names what the claim rests on, in the forms
+  `hooks/lib/fields.py` gives its value. A claim that something is absent
+  rests on a search, so its line is `executed`. The check cannot tell such
+  a claim from another; the round reading the record does.
 - Each finding gives why it matters and its grounds, then the paste-ready
-  fix in a fenced block, then its `answer:` line. The grounds open with why
-  the earlier close does not hold where `reopens:` stands.
-- What this round confirmed holds is a `confirms:` entry, and what it could
-  not judge a row of `## Not judged` naming who answers it; neither is a
-  finding.
+  fix in a fenced block, where the fix pass's close block will follow it.
+  The grounds open with why the earlier close does not hold where
+  `reopens:` stands.
+- What this round confirmed holds is a confirmation block under
+  `## Confirmations`, its `confirms:` line followed by the prose that says
+  what holds, and what it could not judge a row of `## Not judged` naming
+  who answers it; neither is a finding.
 - The record is written in words: no emoji anywhere in it, and no summary
   block under it. A mark quoted from the code under review is written as its
   code point (`U+1F7E1`) or in words, never as the character.

@@ -482,12 +482,13 @@ handoff of judgment.
 Probes already run by a previous round (listed in `round-N.md`) are not
 rebuilt — only re-checked for whether the finding is now fixed.
 
-**A fix pass rewrites the `verdict:` line and writes the `answer:` line of
-each open finding in `trail/rounds/round-N.md`, and writes no phase record** —
-`docs/the-review-record.md` *The round record* names the three closing
-verdicts. A `fixed` commit must touch a path the finding's `location:`
-names; where the fix went somewhere else, the pass appends that coordinate
-to the line and says so in `answer:`. The build's phases keep theirs.
+**A fix pass appends one close block to each open finding in
+`trail/rounds/round-N.md`, edits nothing else in it, and writes no phase
+record** — `docs/the-review-record.md` *The round record* names the three
+closing verdicts, and `hooks/lib/fields.py` spells the block's lines. A
+`fixed` commit must touch a path the finding's `location:` names; where the
+fix went somewhere else, the close block carries a `location:` line naming
+that coordinate, and its `answer:` says so. The build's phases keep theirs.
 
 A fix that changes what the work item ships brings the work item's
 `changelog.md` along, because the release note is built from that fragment as

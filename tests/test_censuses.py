@@ -791,7 +791,7 @@ OLD_SPELLINGS = [
 
 
 class Test_old_names:
-    def test_accepts_the_new_names_kept_spellings_records_and_the_migration(
+    def test_accepts_the_new_names_kept_spellings_records_and_kept_files(
         self, tmp_path
     ):
         living = (
@@ -800,13 +800,9 @@ class Test_old_names:
             "`<thread>/trail/phases/phase-1.md` and `trail/rounds/round-1.md`\n"
             "`docs/the-broad" + "-gate.md` and `graders/shape-writes-spec.md`\n"
             f"a commit made before the rename carries `{OLD}-Routing:`\n"
-            f"<!-- {OLD.lower()}:start --> and <!-- {OLD.lower()}:end -->\n"
             f"# {OLD.lower()}-git-hook\n"
-            f"git clone https://github.com/MichaelYcJo/{OLD}.git\n"
-            f"claude plugin marketplace remove {OLD.lower()}, then "
-            f"`{OLD.lower()}@{OLD.lower()}` is gone\n"
             f'"renames": {{"{OLD.lower()}": "agentic"}}\n'
-            f"git mv .{OLD.lower()}/README.md seal/README.md\n"
+            f"no code of the plugin opens a top-level `.{OLD.lower()}/`\n"
         )
         old = "\n".join(line for line, _ in OLD_SPELLINGS) + "\n"
         plant(tmp_path, "docs/living.md", living)
@@ -815,8 +811,8 @@ class Test_old_names:
             "evals/behaviour/proofer/replay-1-r1/prompt.md",
             "evals/behaviour/proofer/seeded-1/prompt.md",
             "evals/scripts/recurred_truths.json",
-            "hooks/root-migrate.py",
-            "tests/hooks/test_root_migrate.py",
+            "tests/evals/test_replay_targets.py",
+            "tests/evals/test_seed_defects.py",
         ):
             plant(tmp_path, rel, old)
         (tmp_path / "x.png").write_bytes(b"\xff\xd8\xff" + OLD.encode())
@@ -832,8 +828,8 @@ class Test_old_names:
             "evals/behaviour/proofer/replay-1-r1/prompt.md",
             "evals/behaviour/proofer/seeded-1/prompt.md",
             "evals/scripts/recurred_truths.json",
-            "hooks/root-migrate.py",
-            "tests/hooks/test_root_migrate.py",
+            "tests/evals/test_replay_targets.py",
+            "tests/evals/test_seed_defects.py",
             "x.png",
             "hooks/kept.py",
         ):

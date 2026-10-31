@@ -295,13 +295,15 @@ def chain_counts(root, pulls):
     is a work item where exactly one `routing.md` under `root` names its head
     branch (`hooks/lib/routing.py#item_dir`), and its rounds are
     `hooks/lib/routing.py#rounds`. `deferred` is the number of distinct issues
-    that are the home of a finding whose `verdict:` line reads
+    that are the home of a finding whose close block's `verdict:` reads
     `deferred <home>`, read with `chain_check.record_findings` and `#issue_of`
     (#866): a home names an issue only where it is exactly `#N`, so a file,
-    the frame, or a home with words after the issue counts none. A round
-    record the check's reader refuses anything of -- the old table's shape,
-    no `target:` line, a finding with no `verdict:` line or a value outside
-    the four -- leaves
+    the frame, or a home with words after the issue counts none. A finding
+    with no close block is open and counts none. A round record the check's
+    reader refuses anything of -- one from before #1198, in the old table's
+    shape or in labelled lines, which holds no round block; a line of a
+    `seal` block that does not parse; a block out of its place; a finding
+    with no finding block -- leaves
     `deferred` None -- an incomplete count is a wrong number -- a `rounds`
     that cannot be listed
     leaves `rounds` None as well, and a reader

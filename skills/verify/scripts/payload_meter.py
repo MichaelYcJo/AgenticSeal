@@ -239,15 +239,21 @@ def frontmatter(text):
     sequence, indented or not, and the flow form on one line — `[a, b]` or
     `a, b`. The one-line form used to read as no skills at all, silently, so
     the meter measured such a definition as its whole payload and the check
-    that shares this parser had nothing to check (#292 round 1)."""
+    that shares this parser had nothing to check (#292 round 1).
+
+    A line ends at LF, CR or CRLF, YAML 1.2's line breaks. `read` decodes
+    the bytes as they are, so the text is taken through universal newlines
+    here and split at LF alone, as `deferral_check.py#runners_in` splits,
+    and an entry holding U+2028, which `str.splitlines` also ends a line
+    at, reads whole (#1198)."""
     name, skills = None, []
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
     if not text.startswith("---"):
         return name, skills
     end = text.find("\n---", 3)
     block = text[3:end] if end != -1 else text[3:]
     in_skills = False
-    # exempt from splitlines: YAML keys
-    for line in block.splitlines():
+    for line in block.split("\n"):
         if re.match(r"^name:\s*\S", line):
             name = line.split(":", 1)[1].strip()
             in_skills = False

@@ -623,8 +623,10 @@ def shell_probe(name):
     return None
 
 
-def symlink_or_skip(target, link):
+def symlink_or_skip(target, link, directory=False):
     """`os.symlink(target, link)`, or skip the test where it is not permitted.
+    DIRECTORY makes it a directory link, which Windows needs for a target
+    that is a directory and POSIX ignores.
 
     Windows needs SeCreateSymbolicLinkPrivilege -- Developer Mode, or an
     elevated shell. A GitHub `windows-latest` runner has it and an ordinary
@@ -642,7 +644,7 @@ def symlink_or_skip(target, link):
     parent = os.path.dirname(os.path.abspath(str(link)))
     assert os.path.isdir(parent), f"the link's parent does not exist: {parent}"
     try:
-        os.symlink(target, link)
+        os.symlink(target, link, target_is_directory=directory)
     except OSError as exc:
         pytest.skip(f"symbolic links are not available here ({exc})")
 
@@ -1536,6 +1538,16 @@ def write_transcript(root, session, entries, slug="-Users-x-repo"):
     return path
 
 
+# --- a `seal` block, as `hooks/lib/fields.py` reads one ---------------------------
+
+
+def seal_block(*lines, opener="`" * 3 + "seal"):
+    """A `seal` block holding LINES, closed, with a newline after it.
+    `tests/hooks/test_fields.py` and `tests/skills/test_chain_check.py`
+    write records with it."""
+    return "\n".join([opener, *lines, "`" * 3]) + "\n"
+
+
 # --- a work item's closing records, as the stamp's queue gates read them -------
 #
 # `tests/hooks/test_sealer_stamp_queue.py` writes them.
@@ -1543,13 +1555,13 @@ def write_transcript(root, session, entries, slug="-Users-x-repo"):
 STAMP_ITEM = "1799000000-an-item"
 
 
-def guarantee_record(target, base, verdict, earlier=""):
-    """A `guarantee.md` in `templates/records/sdd-guarantee.md`'s shape: its `Target
-    SHA` row, with EARLIER after it, and one `Verdict:` line."""
+def guarantee_record(target, base, verdict):
+    """A `guarantee.md` in `templates/records/sdd-guarantee.md`'s shape: its
+    table for people and one verdict block."""
     return (
         "# an item — guarantee\n\n| Field | Value |\n|---|---|\n"
-        f"| Target SHA | {target} against {base}{earlier} |\n"
-        f"| Broad gate | {target} against {base} |\n\nVerdict: {verdict}\n"
+        f"| Broad gate | {target} against {base} |\n\n"
+        f"```seal\ntarget: {target} against {base}\nVerdict: {verdict}\n```\n"
     )
 
 

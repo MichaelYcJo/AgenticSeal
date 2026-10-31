@@ -51,15 +51,15 @@ the same records. An orchestrator in a new session holds no `automation`
 press until it puts question 1 through `AskUserQuestion` again, so it does
 that before the spawn (`skills/implement/orchestration.md` *Question 1*).
 
-**The crafter's fix pass changes two lines per open finding of
-`trail/rounds/round-N.md`, its verdict and its answer, and nothing else but a
-coordinate it appends to `location:` where its fix went elsewhere**
-(`docs/the-review-record.md` *The round record*); it writes no
-`trail/phases/phase-N.md` and no `plan.md` row. **The orchestrator writes
-neither line of a finding the fix pass answers, and its fix-pass prompt leaves
-both lines to the crafter.** A close the orchestrator doubts goes into the
-verifying round's spawn prompt, since that round weighs every close, and the
-orchestrator does not rewrite the line.
+**The crafter's fix pass appends one close block to each open finding of
+`trail/rounds/round-N.md`, holding its verdict, its answer and, where its fix
+went to a path the finding does not name, a `location:` line naming it, and
+it edits nothing else in the record** (`docs/the-review-record.md` *The round
+record*); it writes no `trail/phases/phase-N.md` and no `plan.md` row.
+**The orchestrator writes no close block of a finding the fix pass answers,
+and its fix-pass prompt leaves every such block to the crafter.** A close the
+orchestrator doubts goes into the verifying round's spawn prompt, since that
+round weighs every close, and the orchestrator does not rewrite the block.
 
 **Two commits after the build are yours, not the crafter's**: a fix written after
 the last round, and the commit that integrates a sibling's squash. Each one that
@@ -80,10 +80,10 @@ stands in the work item's frame, which the fix pass does not edit, the
 orchestrator folds that statement in place, in a commit of its own, before it
 spawns the verifying round, so the round and the next crafter read one rule
 (`skills/implement/orchestration.md` *Orchestrator: the order inside a
-ticket*). Last, the fix pass writes the `verdict:` and `answer:` lines of
-every finding it answered, after its fix commits and those corrections,
-because a `fixed` verdict names a commit that already exists, and leaves the
-round record uncommitted. **On the hand-back the orchestrator commits the
+ticket*). Last, the fix pass appends the close block of every finding it
+answered, after its fix commits and those corrections, because a `fixed`
+verdict names a commit that already exists, and leaves the round record
+uncommitted. **On the hand-back the orchestrator commits the
 round record as the fix pass left it, in one commit for the whole pass, before
 it spawns the verifying round, and changes none of its lines.** That commit
 holds `trail/rounds/round-N.md` alone.
@@ -148,7 +148,9 @@ each decision to go on past the third round, or to stop, as one row of
 `frame/plan.md` *Judgments of the run*,** with the counts and signals you
 weighed as its grounds and the document you judged against; the proofer
 writes no line for it, and no person is asked mid-run. When you stop, every
-finding still open takes a home and reads `deferred <home>`.
+finding still open takes a home: you append its close block, its `verdict:`
+reading `deferred <home>` and its `answer:` saying why the run stopped there,
+and commit the close blocks of that step together.
 
 The condition is not *this round found nothing*, which would be unbounded. A
 verifying round that raises a `should` finding the crafter closes `rejected`,
@@ -161,8 +163,9 @@ reads that answer alone. Where the rejection holds, that round names it on a
 `reopens:` line naming it, which gets its fix pass and one more verifying
 round; a round carrying a `regression:` line is routed as the section below
 says, and where the work item returns to its framer the run goes on with the
-redesign. The run ends only on a round whose record holds no `open` or
-`rejected` finding and no `fixed` one that names a path outside the work
+redesign. The run ends only on a round whose record holds no finding without
+a close block, no `rejected` one, and no `fixed` one that names a path
+outside the work
 item's records or whose commit touched one, and whose `target:` commit is
 HEAD, or is followed only by the work item's own records (a verifying round,
 or the round you stopped at, whose open findings took their homes), since
@@ -193,7 +196,7 @@ The framer's route:
 
 | Step | What |
 |---|---|
-| The record | every open finding closes `deferred the frame`, and its `answer:` line names the regression that sent the work item back; you write both lines of every open finding in one commit |
+| The record | you append a close block to every open finding, its `verdict:` reading `deferred the frame` and its `answer:` naming the regression that sent the work item back, and commit every such block in one commit |
 | The framer | spawned again with the run's round records as its input; they are in the tree, so the prompt names them and carries nothing else. It rewrites `plan.md` (new phase rows; a closed phase keeps its commit) and `frame/design.md` where the scope moves, and adds `Reframed <date> by <who>, after round <N>.` under the `Framed` line. Where `routing.md` answers `Automation` with `yes`, the spawn asks nobody |
 | The redesign | you approve it when you spawn `crafter` for it; the spawn is the approval. It is then built and reviewed, and its first finding round starts the count again |
 
@@ -347,19 +350,20 @@ again, and spawn the sealer. Your broad run
 asks the records arm first, and that arm refuses a commit outside the work
 item after the last round's `target:` commit, so a run taken straight after
 the fix returns the same refusal. `undecided` is a question for the owner,
-put after the run rather than during it; write the answer under the verdict
-as `Answered <date> by <who>: <answer>`, commit, and spawn the sealer again.
+put after the run rather than during it; write the answer below the newest
+verdict block as `Answered <date> by <who>: <answer>`, commit, and spawn the
+sealer again.
 `withheld reason: the base <name> resolves to no commit here` needs no
 commit: a `git clone` of the branch worktree copies its branches and none
 of its `origin/` refs, so spawn the sealer again with the branch worktree
 itself as its clone, where `origin/<base>` or, with no remote, `<base>`
 resolves.
-Where the guarantee's row names a commit the branch does not hold, which
-the pull request's check refuses as stale, spawn the sealer again at HEAD
-and commit what it writes; never edit the row by hand. The stamp's writer
-recorded the refusal at the write, so the new audit, which keeps the refused
-verdict on its row, draws the work item's stamp (`docs/the-review-record.md`
-*The stamp*).
+Where the guarantee's newest verdict block names a commit the branch does
+not hold, which the pull request's check refuses as stale, spawn the sealer
+again at HEAD and commit what it writes; never edit a block by hand. The
+stamp's writer recorded the refusal at the write, so the new audit, whose
+block stands below the refused verdict's block, draws the work item's stamp
+(`docs/the-review-record.md` *The stamp*).
 
 **The preflight is yours, and it is not the broad gate.** It runs every
 arm of the gate except the `Broad gate` row, in the gate's order and over the
@@ -372,6 +376,11 @@ the file holding the rest: correct the record, commit, and run it again. On 2
 it refused before anything ran, and a refusal about the row goes to a person,
 as *A refusal about the `Broad gate` row* below says. It writes no file and
 prints no `BROAD GATE` line, so nothing it prints reads as the broad run's.
+A line the check names as not read, a fence near the opener of a `seal`
+block, changes no exit code, and its lines are fields of nothing. Where the
+preflight's output or the proofer's hand-back names one, read it against the
+record's template: where it meant a block, correct its opener to three
+backticks and `seal` alone, commit, and run the preflight again.
 An orchestrator that skips the preflight loses only time: the broad run asks
 the same arms, and refuses the same way after its suite.
 
@@ -380,8 +389,9 @@ report arrives, and you never draw one.** The broad run
 draws nothing: its stdout opens `BROAD GATE PASSED` or `BROAD GATE FAILED`,
 which say whether the broad command passed and judge nothing. The stamp means
 every party verified the work item, the sealer last, so it is drawn once per
-work item from the sealer's verdict: where the one `Verdict:` of
-`guarantee.md` reads `sealed`, the sealer's own `Write` of it queues the
+work item from the sealer's verdict: where the newest verdict block of
+`guarantee.md` reads `Verdict: sealed` and the block reader refuses none of
+its lines, the sealer's own `Write` of it queues the
 stamp's values, under either root, and the `Stop` hook draws them after your
 text. The line naming them is the edit hook's message, shown to the person
 at that write. It is not in the sealer's report and does not reach you.

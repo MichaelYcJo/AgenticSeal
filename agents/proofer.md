@@ -37,22 +37,27 @@ here is a write you do not make.
    verifying round the diff of the last fixes.
 5. Where `seal/parity.md` is declared, open `skills/legacy-parity/SKILL.md`
    and compare the behaviour with the original. Where the pull request
-   changes a path outside `docs/` and `seal/`, write the record's
-   `original:` line, naming the migration config's `Baseline commit`; where
+   changes a path outside `docs/` and `seal/`, write the `original:` line in
+   the record's round block, naming the migration config's `Baseline commit`; where
    the original could not be resolved, write no line and raise an `unread`
    finding.
 6. Before writing the record, open `skills/writing-style/SKILL.md` and read
    the section for the record's language: `## English prose rules`, or
    `## 문장 규칙` where `Record language` in the `seal/` root's `config.md`
    is Korean.
-7. Write the record from `templates/records/sdd-round.md`, each labelled line as the
-   grammar table in `docs/the-review-record.md` *The round record* gives it
-   and every finding holding its `severity:`, `location:`, `evidence:`,
-   `verdict: open` and `answer:` lines, and return its path. Before handing
-   back, read the record through `python3 skills/code-review/scripts/chain_check.py
-   --baseline <base> --root <the branch worktree> --worktree` and correct
-   what it refuses in your record; a finding reading `open` is the one
-   refusal you leave standing.
+7. Write the record from `templates/records/sdd-round.md`: its round block
+   with the `target:` line, and under each finding's heading one finding
+   block holding its `severity:`, `location:` and `evidence:` lines, each
+   line spelt as `hooks/lib/fields.py` reads it. Write no close block: the
+   fix pass appends it. A field stands inside a `seal` block and nowhere
+   else. A prose line that opens with `<` and a letter, such as a
+   placeholder left in place, starts an HTML block for the reader, which
+   then refuses every fence below it, so replace each placeholder whole.
+   Return the record's path. Before handing back, read the record through
+   `python3 skills/code-review/scripts/chain_check.py --baseline <base>
+   --root <the branch worktree> --worktree` and correct what it refuses in
+   your record; a finding refused as open, for having no close block, is
+   the one refusal you leave standing.
 
 ## Never
 
@@ -92,7 +97,7 @@ citing a reference root (`templates/setup/config.md` *Reference specs*) cites a
 coordinate: open it in stage 1 where the work touches what it describes. The
 plugin never writes there, so a diff that edits, moves or copies a file out
 of one is a finding.
-check: tests/behaviour/test_a_reference_root_is_read_and_never_taken.py tests/skills/test_settle.py tests/hooks/test_root_migrate.py
+check: tests/behaviour/test_a_reference_root_is_read_and_never_taken.py tests/skills/test_settle.py
 
 **Earlier rounds carry coordinates, never verdicts.** Open what an earlier
 round names instead of searching again, and say in the record which facts

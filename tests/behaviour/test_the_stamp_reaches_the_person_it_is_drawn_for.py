@@ -112,16 +112,17 @@ def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
     person. 1792363231 S11: a commit of the guarantee refused for a row
     naming a commit the branch does not hold is answered by the sealer again
     at HEAD, never by an edit of the row; red against 2759a60d's sealer
-    step."""
+    step. #1198 made the row the newest verdict block."""
     text = flat("skills", "code-review", "orchestration.md")
     section = text.split(
         "## Orchestrator: the pull request opens once the sealer seals", 1
     )[1]
     section = section.split("## Orchestrator: verify before posting", 1)[0]
     for said in (
-        "Where the guarantee's row names a commit the branch does not hold, "
-        "which the pull request's check refuses as stale, spawn the sealer "
-        "again at HEAD and commit what it writes; never edit the row by hand.",
+        "Where the guarantee's newest verdict block names a commit the branch "
+        "does not hold, which the pull request's check refuses as stale, spawn "
+        "the sealer again at HEAD and commit what it writes; never edit a block "
+        "by hand.",
         "**The stamp is drawn for you at the end of the turn in which the "
         "sealer's report arrives, and you never draw one.**",
         "the sealer's own `Write` of it queues the stamp's values, under either "
@@ -379,7 +380,6 @@ def test_both_readmes_list_the_stamp_hook():
                 "of the thirteen",
                 "the two implementer hooks, the two stamp hooks",
                 "The other four carry their own conditions",
-                "stub-remove act in every git repo",
                 "Four side effects",
             ),
         ),
@@ -391,8 +391,6 @@ def test_both_readmes_list_the_stamp_hook():
                 "게이트 열셋 중 아홉",
                 "구현자 훅 둘, 도장 훅 둘",
                 "나머지 넷은 각자의 조건이 있습니다",
-                "stub-remove 는 git 레포면 어디서든",
-                "stub-remove 는 모든 git 레포에서",
                 "네 가지 부수 효과",
             ),
         ),

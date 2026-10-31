@@ -131,14 +131,8 @@ OPENS_NOTHING = {
 #    itself.
 LISTS_A_FIXTURE = {
     "tests/hooks/test_optin.py#test_the_local_root_is_never_a_commit_candidate_and_needs_no_gitignore": 1,
-    "tests/behaviour/test_the_root_migrates_itself.py#test_the_readmes_by_hand_sequence_yields_the_layout_the_plugin_reads": 1,
-    # The hook's cases read what is unstaged and tracked in the copy of the
-    # old layout the case took, to assert what the move staged.
-    "tests/hooks/test_root_migrate.py#unstaged": 1,
-    "tests/hooks/test_root_migrate.py#tracked": 1,
-    # What a case staged in its own copy of a world: the hook's move in
-    # `tests/hooks/test_root_migrate.py`, and `seal mode`'s switch and the
-    # workflow it stages in `tests/skills/test_seal.py`.
+    # What a case staged in its own copy of a world: `seal mode`'s switch and
+    # the workflow it stages in `tests/skills/test_seal.py`.
     "tests/conftest.py#staged": 1,
     # #952's round 6 case writes stages 1 to 3 of one path into the index of
     # the repository it took, and counts that path's unmerged entries before

@@ -5,8 +5,7 @@
 # Setup: `seal pr-checks install` writes this file to
 # .github/workflows/hygiene.yml, at first setup under the answer "shared,
 # with pull-request checks" or at any time later, and only when nothing is
-# there yet; an existing file is never overwritten, but for this plugin's own
-# file cloning the repository's name before the rename. It pins `v<version>`
+# there yet; an existing file is never overwritten. It pins `v<version>`
 # below to the plugin version installed at that moment, so the checks come
 # from the release that wrote the file. The line moves when a person edits
 # it, or runs `seal pr-checks remove` and then `seal pr-checks install`.

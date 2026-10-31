@@ -58,10 +58,21 @@ REFUSED_HOST = "fixture.example" + ".net"
 # The user root alone, which the scan refuses once the side's JSON writes
 # the character after it as an escape.
 USER_ROOT = "/Users" + "/"
+FENCE = "`" * 3
+
+
+def finding_block(location, severity="should"):
+    """A finding's `seal` block whose `location:` line is LOCATION."""
+    return (
+        f"{FENCE}seal\nseverity: {severity}\n{location}\n"
+        f"evidence: read `src/a.py:1`\n{FENCE}\n"
+    )
+
+
 FENCED_FIX = (
-    "### 1. a defect with a fenced fix\n\nseverity: must\n"
-    "location: `src/a.py:11`\nverdict: open\n\n"
-    "```\nlocation: `src/a.py:40`\n```\n"
+    "### 1. a defect with a fenced fix\n\n"
+    + finding_block("location: `src/a.py:11`", "must")
+    + "\n```\nlocation: `src/a.py:40`\n```\n"
 )
 UNCLOSED = "Why it matters.\n\n~~~\nand nothing closes this.\n\n"
 RESULT = {
@@ -166,30 +177,30 @@ def printed(findings, before="", after=""):
     """A round record a case session printed: BEFORE above its `## Findings`
     section, FINDINGS in it, and AFTER below it."""
     return (
-        "# i — review round 1\n\ntarget: 1a2b3c4 against main\n"
-        f"{before}\n## Findings\n\n{findings}{after}"
+        f"# i — review round 1\n\n{FENCE}seal\ntarget: 1a2b3c4 against main\n"
+        f"{FENCE}\n{before}\n## Findings\n\n{findings}{after}"
     )
 
 
 def record_of(rows):
     """A printed round record holding one finding for each of ROWS, each
-    finding's `location:` line the row."""
+    finding block's `location:` line the row."""
     return printed(
         "".join(
-            f"### {n}. a finding\n\nseverity: should\n{row}\nverdict: open\n\n"
+            f"### {n}. a finding\n\n{finding_block(row)}\n"
             for n, row in enumerate(rows, 1)
         ),
-        after="## Confirmations\n\nconfirms: none\nheld.\n",
+        after=f"## Confirmations\n\n{FENCE}seal\nconfirms: none\n{FENCE}\nheld.\n",
     )
 
 
 def three_findings(tail):
-    """A printed record of three findings, each with its `location:` line,
-    and TAIL[n] after finding n's."""
+    """A printed record of three findings, each with its finding block, and
+    TAIL[n] after finding n's."""
     return printed(
         "".join(
-            f"### {n}. a finding\n\nseverity: should\n"
-            f"location: `src/b.py:{n}`\nverdict: open\n\n{tail.get(n, '')}"
+            f"### {n}. a finding\n\n{finding_block(f'location: `src/b.py:{n}`')}\n"
+            f"{tail.get(n, '')}"
             for n in (1, 2, 3)
         )
     )
@@ -490,8 +501,9 @@ def fenced_first_run(result):
     """Run 0 printed truth-1's line only inside a finding's fenced fix."""
     run = result["cases"][0]["arms"]["with"][0]
     run["agentic"]["report_text"] = printed(
-        "### 1. a defect\n\nseverity: must\nlocation: `src/a.py:40`\n"
-        "verdict: open\n\n```\nlocation: `src/a.py:11`\n```\n"
+        "### 1. a defect\n\n"
+        + finding_block("location: `src/a.py:40`", "must")
+        + "\n```\nlocation: `src/a.py:11`\n```\n"
     )
 
 
@@ -762,18 +774,27 @@ class Test_finding_rows:
             (printed(FENCED_FIX), ["location: `src/a.py:11`"]),
             (
                 printed(
-                    "### 1. a finding with no location line\n\nseverity: should\n"
-                    "verdict: open\n\n### 2. a finding in a broken shape\n\n"
-                    "severity: should\nlocation: `src/a.py#unit`\nverdict: open\n"
+                    "### 1. a finding with no block\n\nseverity: should\n"
+                    "location: `src/a.py:10`\n\n### 2. a finding in a broken shape\n\n"
+                    + finding_block("location: `src/a.py#unit`")
                 ),
-                ["", "location: `src/a.py#unit`"],
+                ["", ""],
             ),
             (
                 printed(
-                    "### 1. a defect\n\nseverity: must\nlocation: `src/b.py:1`\n"
-                    "verdict: open\n",
+                    "### 1. a defect\n\n"
+                    + finding_block("location: `src/b.py:1`", "must"),
                     before="location: `src/a.py:10`\n",
                     after="\n## Not judged\n\nlocation: `src/a.py:12`\n",
+                ),
+                ["location: `src/b.py:1`"],
+            ),
+            (
+                printed(
+                    "### 1. a closed defect\n\n"
+                    + finding_block("location: `src/b.py:1`", "must")
+                    + f"\n{FENCE}seal\nverdict: fixed abc1234\nanswer: moved\n"
+                    f"location: `src/c.py:9`\n{FENCE}\n"
                 ),
                 ["location: `src/b.py:1`"],
             ),
@@ -782,6 +803,7 @@ class Test_finding_rows:
             "a fenced fix",
             "a shape the check refuses",
             "lines outside every finding",
+            "a close naming where the fix went",
         ],
     )
     def test_accepts_each_finding_as_its_location_lines(self, text, want):
@@ -873,8 +895,10 @@ class Test_report_text:
         last = [
             {
                 "type": "text",
-                "text": "### 1. new\n\nseverity: should\nlocation: `x:1`\n"
-                "verdict: open\n\n## Confirmations\n\nconfirms: none\nholds, at `x:2`.\n",
+                "text": "### 1. new\n\n"
+                + finding_block("location: `x:1`")
+                + f"\n## Confirmations\n\n{FENCE}seal\nconfirms: none\n{FENCE}\n"
+                "holds, at `x:2`.\n",
             }
         ]
         denied = {
@@ -910,8 +934,9 @@ class Test_report_text:
     def test_refuses_to_keep_what_the_identifier_scan_refuses(self, tmp_path):
         scan = NI.identifier_scan()
         shown = printed(
-            "### 1. a defect\n\nseverity: must\nlocation: `src/a.py:11`\n"
-            f"evidence: read {REFUSED_PATH}w/log at {REFUSED_HOST}\nverdict: open\n",
+            "### 1. a defect\n\n"
+            + finding_block("location: `src/a.py:11`", "must")
+            + f"\nRead {REFUSED_PATH}w/log at {REFUSED_HOST}.\n",
             after=f"\n{REFUSED_HOST} answered it.\n",
         )
         text = NI.report_text(

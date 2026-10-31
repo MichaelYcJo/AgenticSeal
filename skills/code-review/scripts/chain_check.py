@@ -34,11 +34,12 @@ judged (`carried_by`). The arms are eight:
                 heading near `## Rule changes` outside the section is another
                 section
   records       `Review | through the review chain`: `trail/rounds/` holds at least
-                one `round-N.md`; each reads whole against the grammar table
-                of `docs/the-review-record.md` *The round record*, which
-                `grammar` loads at import, and no finding reads `open`; a
-                `fixed` commit is on the branch and touches a path its
-                `location:` line names; every `fixed` or `rejected` finding
+                one `round-N.md`; each reads whole through
+                `hooks/lib/fields.py`, its blocks placed by its `## Findings`
+                section and finding headings (`round_read`), and every
+                finding has a close block; a `fixed` commit is on the branch
+                and touches a path its finding's or its close's `location:`
+                line names; every `fixed` or `rejected` finding
                 is named by the next record's `confirms:`, `reopens:` or
                 `regression:` lines, and none stands in the last record but
                 a `fixed` finding located in the work item's own records
@@ -50,29 +51,34 @@ judged (`carried_by`). The arms are eight:
                 request changes a path outside the document roots
                 `hooks/lib/gate.py#touches_code` reads: the config's `Baseline
                 commit` row names a SHA (`hooks/lib/config.py#baseline_commit`),
-                and one `original:` line naming it stands in every round
-                record under `Review | through the review chain`, and in
-                `guarantee.md` under `Review | straight to the PR`
-                (`originals_of`)
-  broad gate    `trail/gate.md`'s newest run is HEAD, or every commit after it
-                touches only the work item's own directory
-  guarantee     `guarantee.md` names HEAD, or every commit after it touches
-                only the closing records, and its one `Verdict:` line
-                reads `sealed`
+                and one `original:` line naming it stands in the round block
+                of every round record under `Review | through the review
+                chain`, and in
+                the newest verdict block of `guarantee.md` under `Review |
+                straight to the PR` (`originals_of`, `guarantee_original`)
+  broad gate    the last run block of `trail/gate.md`, the newest run, read
+                through `hooks/lib/fields.py`, is HEAD, or every commit after
+                it touches only the work item's own directory; a record with
+                no run block, or with a line the reader refuses, fails
+  guarantee     the last verdict block of `guarantee.md`, the newest run of
+                the sealer, read through `hooks/lib/fields.py`, names HEAD,
+                or every commit after it touches only the closing records,
+                and its `Verdict:` reads `sealed`; a guarantee with no
+                verdict block, or with a line the reader refuses, fails
 
 A ready pull request fails on any of them. A draft, or a run that observed no
 pull request, prints the same lines and exits 0. `docs/the-review-record.md`
 states the record and the rules these arms hold.
 
-Each label is read in its one spelling. A line that opens like a label and
-is not it, `Verdict: open` for `verdict:` or `**Verdict:**` for the
-guarantee's `Verdict:`, is prose to every arm, and a file under
-`trail/rounds/` that is no `round-N.md` is not read; the check names each
-(`unread`, and `unread_originals` for a guarantee whose `original:` line
-the original arm reads) and decides nothing on it. Whether the line meant the label is
-the judgment of the agent that reads the record. The same holds for each
-line `rule_changes.parse` names in a design the rule-changes arm reads, a
-heading near `## Rule changes` among them (`rule_changes_read`).
+In a round record, `guarantee.md` and `trail/gate.md` a field stands in a
+`seal` block, every line of which parses or is refused at its line, and a
+line outside every block is prose to every arm. A fence like the block's and
+not it, and a file under `trail/rounds/` that is no `round-N.md`, are not
+read; the check names each (`blocks_of`, `unread`) and decides nothing on
+it. What such a fence meant is the judgment of the agent that reads the
+record. The same holds for each line `rule_changes.parse` names in a design
+the rule-changes arm reads, a heading near `## Rule changes` among them
+(`rule_changes_read`).
 
 Usage:
   chain_check.py --baseline <ref> [--root DIR] [--worktree] [--sealing]
@@ -83,9 +89,8 @@ own run, before it writes `trail/gate.md` and the sealer `guarantee.md`: those
 two arms, and the guarantee's `original:` line, print and do not fail.
 
 Exit: 0 nothing to refuse · 1 a refusal, each named `path:line  why` (a
-GitHub annotation in CI) · 2 the check could not run, a grammar table it
-cannot read, named by its file, and a reader that will not load among the
-causes. A line or a file the check did not read is printed
+GitHub annotation in CI) · 2 the check could not run, a reader that will not
+load among the causes. A line or a file the check did not read is printed
 `path:line  not read: <why>`, a notice annotation in CI and never an error,
 and changes no exit code.
 """
@@ -101,7 +106,7 @@ import subprocess
 import sys
 
 if __name__ == "__main__":
-    # Before the grammar loads below: a refusal it prints at import must not
+    # Before the readers load below: a refusal printed at import must not
     # meet a console's code page.
     for _name, _errors in (
         ("stdin", "replace"),
@@ -116,9 +121,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
 HOOKS = os.path.join(HERE, "..", "..", "..", "hooks", "lib")
 ROUTING = os.path.join(HOOKS, "routing.py")
+FIELDS_READER = os.path.join(HOOKS, "fields.py")
 
-TARGET = "Target SHA"
-BROAD_GATE = "Broad gate"
 # A thread's files, relative to its directory: `hooks/lib/optin.py`'s `GATE`,
 # `GUARANTEE`, `DESIGN` and `PLAN`, spelt here because this module loads
 # `routing` only inside the functions that are handed it.
@@ -130,161 +134,47 @@ PLAN_FILE = "frame/plan.md"
 # other, and they are the only files that may follow the commit the
 # guarantee names, since the sealer audited everything else on the branch.
 CLOSING_RECORDS = (BROAD_GATE_FILE, GUARANTEE_FILE)
-# The sealer's verdict is one line of `guarantee.md` in one of the three
-# shapes `VERDICT_SHAPES` names, read whole, with no emphasis and a value
-# after each label.
-VERDICT = "Verdict:"
-SEALED = "sealed"
-WITHHELD = "withheld"
-UNDECIDED = "undecided"
-REASON = "reason:"
-QUESTION = "question:"
-VERDICT_SHAPE = re.compile(
-    rf"{VERDICT} (?:({SEALED})|({WITHHELD}) {REASON} \S.*"
-    rf"|({UNDECIDED}) {QUESTION} \S.*)"
-)
-# The three shapes, as a refusal names them.
-VERDICT_SHAPES = (
-    f"`{VERDICT} {SEALED}`, `{VERDICT} {WITHHELD} {REASON} <reason>` or "
-    f"`{VERDICT} {UNDECIDED} {QUESTION} <question>`"
-)
-# A line that opens like the verdict: the label's word in any case, after any
-# emphasis or block markup, then a colon. One that is not `Verdict:` at the
-# start of the line is prose, named as not read (`unread_verdicts`).
-OPENS_LIKE_VERDICT = re.compile(r"[\s*_`>#+-]*verdict[\s*_`]*:", re.IGNORECASE)
-UNREAD_VERDICT = (
-    "not read: `{said}` opens like `Verdict:` and is not it, so the check "
-    "read it as prose; the verdict line opens with `Verdict:` at the start of "
-    "the line, written exactly so"
-)
-# The words the verdict used before #969. A guarantee still carrying one was
-# written by a sealer that ran before the words changed, so it is refused on
-# its line with what to do, never read as the new word it meant.
-RETIRED_VERDICTS = ("sound", "not sound", "undecidable")
-RETIRED_SAYS = (
-    f"is a word the verdict no longer uses: the line reads {VERDICT_SHAPES} "
-    "now. Where `trail/gate.md` names a run at HEAD, or one followed only by "
-    "the work item's records, spawn the sealer again at HEAD, which writes "
-    "the new word; otherwise run `seal gate --base <base> --record <item>` "
-    "and commit `trail/gate.md` first"
-)
-# What a gate record's entry is separated from the run behind it by. The newest
-# run stands first; `broad_gate.py#kept_runs` writes the rest behind it.
-EARLIER_RUN = "; earlier run: "
-# The `Target SHA` row has one shape: the commit audited `against` the base,
-# one word each, then each earlier run of the sealer as `EARLIER_RUN` and
-# its commit, the base where the run names one, and its verdict's word
-# alone. Any other text after the target is refused at the row.
-COMMIT_WORD = r"[0-9a-f]{7,40}"
-BASE_WORD = r"[^\s;,]+"
-TARGET_HEAD = re.compile(rf"{COMMIT_WORD} against {BASE_WORD}")
-EARLIER_ENTRY = re.compile(
-    rf"({COMMIT_WORD})(?: against {BASE_WORD})? ({SEALED}|{WITHHELD}|{UNDECIDED})"
-)
-TARGET_WRITTEN = (
-    "`<sha> against <base>`, then each earlier run as `; earlier run: "
-    "<sha> <word>`, with `against <base>` after its SHA where it names one"
-)
-
-# A round record's grammar is the table in `docs/the-review-record.md`
-# *The round record*, and nothing in this file restates it: `grammar` loads
-# it once, when this file is imported, and every reader below reads a line
-# through its row. What this file names is which row is which, by the row's
-# `Line` cell, the named parts of a row's shape it reads, and the four
-# verdict words it decides on.
-GRAMMAR_DOC = os.path.join(HERE, "..", "..", "..", "docs", "the-review-record.md")
-# Where `grammar` finds the table: the section's heading and its header row.
-# A rewrite of the document that moves either moves these with it (#941).
-GRAMMAR_SECTION = "## The round record"
-GRAMMAR_COLUMNS = ("Line", "Shape", "Where", "How many", "Refused as")
-# The words the table's `Where` and `How many` cells are written in. `How
-# many` counts per finding for a line in a finding, per record otherwise.
-IN_RECORD = "the record"
-OUTSIDE_FINDINGS = "outside every finding"
-IN_FINDING = "a finding"
-ONE = "one"
-AT_MOST_ONE = "at most one"
-ANY = "any"
-EACH_ONCE = "each number once"
-# How a refusal says the count a row allows.
-HOW_MANY = {ONE: "one", AT_MOST_ONE: "one at most"}
+# A round record's fields stand in `seal` blocks, and `hooks/lib/fields.py`
+# is the one spelling of their grammar (#1198). What this file holds is where
+# a block stands, which turns on headings that module does not read: the one
+# `## Findings` section, and a finding's `### <n>. <symptom>` heading in it,
+# whose number names the finding across rounds.
 FINDINGS_HEADING = "## Findings"
-CONFIRMATIONS_HEADING = "## Confirmations"
-IN_FINDINGS = f"`{FINDINGS_HEADING}`"
-IN_CONFIRMATIONS = f"`{CONFIRMATIONS_HEADING}`"
-TARGET_ROW = "target:"
-ORIGINAL_ROW = "original:"
-HEADING_ROW = "### <n>. <symptom>"
-LOCATION_ROW = "location:"
-VERDICT_ROW = "verdict:"
-REGRESSION_ROW = "regression:"
-REOPENS_ROW = "reopens:"
-CONFIRMS_ROW = "confirms:"
-# The rows the check reads a meaning from, by their `Line` cell: the place its
-# reader looks for each, the counts that reader can keep, and the named parts
-# of the shape it reads. `grammar` refuses a table that moves one, gives it
-# another count or lacks a part. A row read for one value keeps one line, and
-# a row decided on needs that line. Every other row may take any `Where` and
-# `How many` `grammar_row` admits for its kind, because the reader of each
-# place counts each word, a section left out included.
-Read = collections.namedtuple("Read", "where many parts")
-READ_ROWS = {
-    TARGET_ROW: Read(OUTSIDE_FINDINGS, (ONE,), ("commit",)),
-    # At most one: a record is owed the line only in a migration repository,
-    # and `originals_of` refuses one that has none there.
-    ORIGINAL_ROW: Read(OUTSIDE_FINDINGS, (AT_MOST_ONE,), ("commit",)),
-    FINDINGS_HEADING: Read(IN_RECORD, (ONE, AT_MOST_ONE), ()),
-    HEADING_ROW: Read(IN_FINDINGS, (EACH_ONCE,), ("number",)),
-    LOCATION_ROW: Read(IN_FINDING, (ONE,), ()),
-    VERDICT_ROW: Read(IN_FINDING, (ONE,), ("commit", "home")),
-    REGRESSION_ROW: Read(IN_FINDING, (ONE, AT_MOST_ONE), ("round", "finding")),
-    REOPENS_ROW: Read(IN_FINDING, (ONE, AT_MOST_ONE), ("round", "finding")),
-    CONFIRMATIONS_HEADING: Read(IN_RECORD, (ONE, AT_MOST_ONE), ()),
-    CONFIRMS_ROW: Read(IN_CONFIRMATIONS, (ONE, AT_MOST_ONE, ANY), ("round", "finding")),
-}
-# Where a row may stand: the two sections in the record, the finding heading
-# in `## Findings`, and a label in one of three places.
-SECTION_ROWS = (FINDINGS_HEADING, CONFIRMATIONS_HEADING)
-# What a refusal says of the place a label's row puts it.
-PLACED = {
-    OUTSIDE_FINDINGS: "outside every finding",
-    IN_FINDING: "and with no emphasis",
-    IN_CONFIRMATIONS: f"in `{CONFIRMATIONS_HEADING}`",
-}
-# One row of the table as `grammar` reads it: its `Line` cell, its shape
-# compiled, its `Where` and `How many` words, and its `Refused as` sentence.
-Row = collections.namedtuple("Row", "line shape where many refused")
-# One finding as `findings` read it: the line of its `verdict:`, its heading
-# and the heading's number, the verdict, the paths of its `location:`, its
-# `regression:` reference and its `reopens:` reference, each with that
-# line's number, where it has one, and the line of its heading.
+FINDING_LEVEL = 3
+FINDING_HEADING = re.compile(r"### (?P<number>[1-9][0-9]*)\. .+")
+ROUND_TEMPLATE = "templates/records/sdd-round.md"
+# One finding as `round_read` reads it: the line of its close's `verdict:`,
+# or of its heading where it has no close, its heading and the heading's
+# number, the verdict, the paths of its finding's and its close's
+# `location:`, its `regression:` reference and its `reopens:` reference,
+# each with that line's number, where it has one, and the line of its
+# heading.
 Finding = collections.namedtuple(
     "Finding",
     "line heading number verdict paths regression regression_line reopens "
     "reopens_line heading_line",
 )
-# The one rule across two rows the table cannot hold in a cell, for the
-# refusal of a finding holding both.
-ONE_RELATION = (
-    f"a finding carries one of `{REGRESSION_ROW}` and `{REOPENS_ROW}`: "
-    f"`{REGRESSION_ROW}` where a fix pass's own commit made the defect, "
-    f"`{REOPENS_ROW}` where an earlier close does not hold otherwise"
-)
 # One record as `channel` reads it: its path and number, its findings, the
 # numbers of every `### <n>. ` heading it holds, its `confirms:` references,
-# and the commit its `target:` line names.
+# and the commit its round block's `target:` names.
 Round = collections.namedtuple("Round", "path number findings held confirms target")
-# The verdict words the check decides on: `open` fails a ready pull request,
-# `fixed` and `rejected` owe the next round a reference, `deferred` owes
-# nothing. What follows each is the `verdict:` row's.
+# One record as `round_read` reads it: its findings, its errors, its round
+# block, the numbers of its finding headings, its `confirms:` references,
+# its `## Findings` section and each finding's span in it, the blocks
+# outside every finding, and the blocks of each finding's span by index.
+Parsed = collections.namedtuple(
+    "Parsed", "findings errors round held confirms section spans outside inside"
+)
+# The verdict words the check decides on: a finding with no close block is
+# `open`, which fails a ready pull request; `fixed` and `rejected` owe the
+# next round a reference, `deferred` owes nothing. What follows each is the
+# close block's `verdict:` shape's.
 OPEN = "open"
 FIXED = "fixed"
 REJECTED = "rejected"
 DEFERRED = "deferred"
 DASH = chr(0x2014)
-EMPHASIS = re.compile(r"[*_`]+")
 ISSUE_RE = re.compile(r"#(\d+)")
-SHA_RE = re.compile(r"\b[0-9a-f]{7,40}\b")
 
 MARK_RE = re.compile(r"^Framed\s+(.+?)\s+by\s+(.+?),\s+before the build\.$")
 REFRAME_RE = re.compile(r"^Reframed\s+(.+?)\s+by\s+(.+?),\s+after round\s+(\d+)\.$")
@@ -334,258 +224,65 @@ def section_end(reader, lines, start):
     return len(lines)
 
 
-class GrammarError(ValueError):
-    """The table `grammar` reads would not read: the sentence names the
-    document, the line where there is one, and what it could not read."""
-
-
-def code_span(cell):
-    """The text of `cell` where the cell is one code span and nothing else,
-    read as GFM reads one, or None: a run of backticks, text holding no run
-    of the same length, the same run, and one space stripped from each end
-    where both ends have one."""
-    found = re.fullmatch(r"(`+)(.+?)\1", cell, re.S)
-    if not found:
-        return None
-    run, text = found.groups()
-    if any(len(inner) == len(run) for inner in re.findall("`+", text)):
-        return None
-    if len(text) > 2 and text[0] == text[-1] == " " and text.strip():
-        text = text[1:-1]
-    return text
-
-
-def table_at(reader, lines, start, end, columns, refuse):
-    """The rows of the table headed COLUMNS between START and END in
-    already-`readable` LINES, as `[(line number, cells)]`, running to the
-    first line that is no row; GrammarError where there is no such header
-    or no separator under it."""
-    header = next(
-        (
-            i
-            for i in range(start + 1, end)
-            if tuple(reader.split_row(lines[i]) or ()) == columns
-        ),
-        None,
-    )
-    if header is None:
-        said = "| " + " | ".join(columns) + " |"
-        raise refuse(f"its `{GRAMMAR_SECTION}` section holds no table headed {said}")
-    if header + 1 >= end or not reader.is_separator(
-        reader.split_row(lines[header + 1]) or []
-    ):
-        raise refuse("the header row is not followed by a separator row", header + 1)
-    rows, i = [], header + 2
-    while i < end and (cells := reader.split_row(lines[i])) is not None:
-        rows.append((i + 1, cells))
-        i += 1
-    return rows
-
-
-def grammar(path, reader):
-    """`{Line: Row}` for the table under `path`'s `GRAMMAR_SECTION`, in its
-    order, read with the shared `reader`; GrammarError where it cannot be.
-
-    The section is found by its heading and the table by its header row,
-    `GRAMMAR_COLUMNS`, followed by a separator; its rows run to the first
-    line that is no row, and nothing else in the section is read, a second
-    table among it. A `Line` cell and a `Shape` cell
-    are each one code span, a `Shape` compiles, and its pattern opens with
-    its label where the row is a label's. A `Where` and a `How many` are the
-    words this file names, in the pairs it reads: a section in the record,
-    once or at most once; the finding heading in `## Findings`, each number
-    once; a label outside every finding, in a finding or in
-    `## Confirmations`, once, at most once or any number of times. Every row
-    `READ_ROWS` names stands where its reader looks, with a `How many` that
-    reader can keep and the named parts it reads, and no heading row stands
-    that this file reads nothing from. Anything else is GrammarError naming
-    `path`, and the line where there is one."""
-
-    def refuse(why, line=None):
-        at = f"{path}:{line}" if line else path
-        return GrammarError(f"{at}: {why}")
-
-    try:
-        with open(path, encoding="utf-8") as f:
-            text = f.read()
-    except (OSError, UnicodeDecodeError) as exc:
-        raise refuse(f"cannot be read ({exc})") from None
-    lines = reader.readable(text)
-    starts = [
-        i for i, said in reader.headings(lines) if said.strip() == GRAMMAR_SECTION
-    ]
-    if len(starts) != 1:
-        raise refuse(f"holds {len(starts)} `{GRAMMAR_SECTION}` sections, not one")
-    start = starts[0]
-    end = section_end(reader, lines, start)
-    rows = {}
-    for number, cells in table_at(reader, lines, start, end, GRAMMAR_COLUMNS, refuse):
-        rows.update([grammar_row(cells, refuse, number, rows, reader)])
-    for key, read in READ_ROWS.items():
-        row = rows.get(key)
-        if row is None:
-            raise refuse(f"the table has no `{key}` row, which the check reads")
-        lacking = [p for p in read.parts if p not in row.shape.groupindex]
-        if lacking:
-            raise refuse(
-                f"the `{key}` row's shape names no "
-                + ", ".join(f"`(?P<{p}>…)`" for p in lacking)
-                + ", which the check reads"
-            )
-        if row.where != read.where:
-            raise refuse(
-                f'the `{key}` row stands "{row.where}", and the check reads it '
-                f'only where the table says "{read.where}"'
-            )
-        if row.many not in read.many:
-            raise refuse(
-                f"the `{key}` row's `How many` is `{row.many}`, and the check can "
-                "honour only "
-                + " or ".join(f"`{many}`" for many in read.many)
-                + " for it"
-            )
-    return rows
-
-
-def grammar_row(cells, refuse, number, rows, reader):
-    """`(Line, Row)` for one table row's `cells` at line `number`, or the
-    GrammarError `refuse` makes, by `grammar`'s rules."""
-    if len(cells) != len(GRAMMAR_COLUMNS):
-        raise refuse(
-            f"{len(cells)} cells, and the table has {len(GRAMMAR_COLUMNS)}", number
-        )
-    line_cell, shape_cell, where, many, refused = cells
-    key = code_span(line_cell)
-    if key is None:
-        raise refuse(f"its `Line` cell `{line_cell}` is not one code span", number)
-    if key in rows:
-        raise refuse(f"a second `{key}` row", number)
-    if not refused:
-        raise refuse(f"the `{key}` row's `Refused as` is empty", number)
-    pattern = code_span(shape_cell)
-    if pattern is None:
-        raise refuse(f"the `{key}` row's shape is not one code span", number)
-    try:
-        shape = re.compile(pattern)
-    except re.error as exc:
-        raise refuse(
-            f"the `{key}` row's shape does not compile ({exc})", number
-        ) from None
-    if key in SECTION_ROWS:
-        allowed = where == IN_RECORD and many in (ONE, AT_MOST_ONE)
-    elif key == HEADING_ROW:
-        allowed = where == IN_FINDINGS and many == EACH_ONCE
-    elif reader.heading_level(key) is not None:
-        raise refuse(
-            f"a `{key}` heading row, which the check reads nothing from", number
-        )
-    else:
-        allowed = (
-            key.endswith(":")
-            and pattern.startswith(key)
-            and where in (OUTSIDE_FINDINGS, IN_FINDING, IN_CONFIRMATIONS)
-            and many in (ONE, AT_MOST_ONE, ANY)
-        )
-    if not allowed:
-        raise refuse(
-            f"the `{key}` row reads `{where}` and `{many}` with the shape "
-            f"`{pattern}`, which the check cannot read",
-            number,
-        )
-    return key, Row(key, shape, where, many, refused)
-
-
 # Loaded once, here, and read by `main` and by every importer through this
-# name. As a command, a reader or a table that will not load ends the run at
-# exit 2 naming the file; imported, the error is raised and the importer
-# decides what a check that cannot read a record means to it.
+# name. As a command, a reader that will not load ends the run at exit 2
+# naming the file; imported, the error is raised and the importer decides
+# what a check that cannot read a record means to it.
 try:
     SHARED_READER = load(READER, "agentic_unverified_reader_for_grammar")
+    # `hooks/lib/fields.py`, the one reader of a record's `seal` blocks.
+    FIELDS = load(FIELDS_READER, "agentic_fields_for_the_chain")
 except (OSError, SyntaxError, ImportError, SystemExit) as _exc:
     if __name__ != "__main__":
         raise
     print(f"chain-check: the shared reader would not load ({_exc})", file=sys.stderr)
     raise SystemExit(2) from None
-try:
-    GRAMMAR = grammar(GRAMMAR_DOC, SHARED_READER)
-except GrammarError as _exc:
-    if __name__ != "__main__":
-        raise
-    print(
-        f"chain-check: the round record's grammar would not load: {_exc}",
-        file=sys.stderr,
-    )
-    raise SystemExit(2) from None
 
-# What the readers below derive from the table: the labels a line may open
-# with, the words of a line that opens like one, and the level of a
-# finding's heading.
-LABELS = tuple(k for k in GRAMMAR if k.endswith(":"))
-SPELT = {" ".join(k[:-1].lower().split()): k for k in LABELS}
-# A line that opens like a label: its first words, case folded and stripped
-# of `*`, `_` and backticks, are a label's, followed by a colon. One that is
-# not the label is prose to the check, named as not read (`opens_like`).
-OPENS_LIKE = re.compile(
-    r"^\s*[*_`]*\s*("
-    + "|".join(
-        r"\s+".join(re.escape(w) for w in words.split())
-        for words in sorted(SPELT, key=len, reverse=True)
-    )
-    + r")\s*[*_`]*\s*:",
-    re.IGNORECASE,
-)
-FINDING_LEVEL = len(HEADING_ROW) - len(HEADING_ROW.lstrip("#"))
-# What the check prints of a line or a file it did not read. `main` prints
-# each as a notice, `path:line  not read: <why>` and a notice annotation in
-# CI, and none changes the exit code.
-UNREAD_LINE = (
-    "not read: `{said}` opens like the {label} label and is not it, so the "
-    "check read it as prose; it reads {label} at the start of a line, "
-    "lowercase, with no emphasis and one space after the colon"
-)
+# What the check prints of a file it did not read. `main` prints it as a
+# notice, `path:line  not read: <why>` and a notice annotation in CI, and it
+# changes no exit code; a fence like a `seal` block and not one is named in
+# `hooks/lib/fields.py`'s words (`blocks_of`).
 UNREAD_FILE = (
     "not read: `{name}` is no `round-N.md`, so the check read nothing of it "
     "and judged the work item on the records it did read"
 )
-
-
-def section_count(key, many):
-    """The refusal of a second `key` section, which holds `many`."""
-    return f"a second `{key}` section; a round record holds {HOW_MANY[many]}"
-
-
-def no_section(key):
-    """The refusal of a record holding no `key` section, which it needs."""
-    return f"no `{key}` section: {GRAMMAR[key].refused}"
-
-
-NO_FINDINGS = no_section(FINDINGS_HEADING)
-TWO_FINDINGS = section_count(FINDINGS_HEADING, GRAMMAR[FINDINGS_HEADING].many)
-TWO_CONFIRMATIONS = section_count(
-    CONFIRMATIONS_HEADING, GRAMMAR[CONFIRMATIONS_HEADING].many
+# What the records arm refuses of where a round record's blocks stand. A
+# refusal in a finding is led by its heading.
+NO_ROUND_BLOCK = (
+    "no round block: since #1198 a round record's fields stand in `seal` "
+    "blocks, its `target:` line in the round block outside every finding, as "
+    f"`{ROUND_TEMPLATE}` shows; a record written before then is rewritten "
+    "into blocks with its verdicts unchanged"
 )
-CONFIRMATIONS_TABLE = (
-    f"a table row in `{CONFIRMATIONS_HEADING}`: "
-    f"{GRAMMAR[CONFIRMATIONS_HEADING].refused}"
+SECOND_ROUND = "a second round block: a round record holds one, outside every finding"
+NO_FINDINGS = (
+    f"no `{FINDINGS_HEADING}` section: a round record holds one, with a "
+    "`### <n>. <symptom>` section in it for each finding"
 )
+TWO_FINDINGS = f"a second `{FINDINGS_HEADING}` section; a round record holds one"
+NO_NUMBER = (
+    "no number: a finding's heading reads `### <n>. <symptom>`, and a later "
+    "round names it by that `n`"
+)
+SECOND_NUMBER = (
+    "a second finding numbered {number}: a later round's `round-<N>#{number}` "
+    "would name both"
+)
+NO_FINDING_BLOCK = (
+    "no finding block: under its heading a finding holds one `seal` block "
+    f"opening with `severity:`, as `{ROUND_TEMPLATE}` shows"
+)
+SECOND_BLOCK = "a second {kind} block: a finding holds one"
+INSIDE = "a {kind} block inside a finding: it stands outside every finding"
 OUTSIDE = (
-    "a `{label}` line outside a finding: the check reads one inside each "
-    f"`### ` section of `{FINDINGS_HEADING}`, and none elsewhere"
+    "a {kind} block outside every finding: it stands in its finding's "
+    f"`### <n>. <symptom>` section of `{FINDINGS_HEADING}`"
 )
-UNPLACED = (
-    "a `{label}` line outside `{place}`: the check reads one there, and none elsewhere"
+OPEN_SAYS = (
+    "no close block, so the finding is open: the fix pass appends one after "
+    "its paste-ready fix, opening with `verdict:` and reading "
+    "`fixed <commit>`, `rejected` or `deferred <home>`"
 )
-
-
-def no_record_line(key, scope="a round record"):
-    """The refusal of a `scope` holding no `key` line, which it needs one of."""
-    return (
-        f"no `{key}` line: {scope} carries one, at the start of a line "
-        f"{PLACED[GRAMMAR[key].where]}; {GRAMMAR[key].refused}"
-    )
-
-
-NO_TARGET = no_record_line(TARGET_ROW)
 
 
 def git(root, *args):
@@ -779,10 +476,10 @@ def round_records(routing, root, item):
 def unread(reader, routing, root, item, chained):
     """[(path, line, why)] for what the check did not read of a work item:
     under `chained`, each file under `trail/rounds/` that is no
-    `round-N.md` (`UNREAD_FILE`) and each line of a round record that opens
-    like a label and is not it (`unread_lines`); and each line of its
-    `guarantee.md` that opens like `Verdict:` and is not it
-    (`unread_verdicts`). `main` prints them as notices."""
+    `round-N.md` (`UNREAD_FILE`) and each fence of a round record like a
+    `seal` block and not one (`blocks_of`). `main` prints them as notices;
+    such a fence of `guarantee.md` or `trail/gate.md` is named by
+    `guarantee` and `broad_gate`."""
     found = []
     if chained:
         records, others = rounds_listed(routing, root, item)
@@ -790,11 +487,7 @@ def unread(reader, routing, root, item, chained):
             (rel, 0, UNREAD_FILE.format(name=rel.rsplit("/", 1)[-1])) for rel in others
         ]
         for rel in records:
-            found += unread_lines(reader.readable(read_record(root, rel) or ""), rel)
-    rel = f"{item}/{GUARANTEE_FILE}"
-    text = read_record(root, rel)
-    if text is not None:
-        found += unread_verdicts(reader, text, rel)
+            blocks_of(rel, read_record(root, rel) or "", FIELDS.ROUND_RECORD, found)
     return found
 
 
@@ -867,22 +560,6 @@ def pull_request_from_gh(root, which=shutil.which, run=subprocess.run):
     return ("draft" if draft else "ready"), "`gh pr view --json isDraft`"
 
 
-def fields(rows, label):
-    """The value of every `| label | value |` row, in order."""
-    return [
-        cells[1].strip()
-        for cells in rows
-        if len(cells) >= 2 and cells[0].strip() == label
-    ]
-
-
-def field(rows, label):
-    """The value of the one `| label | value |` row, or None where it is
-    absent or stands more than once."""
-    found = fields(rows, label)
-    return found[0] if len(found) == 1 else None
-
-
 def table_rows(reader, lines):
     """Every table row in already-`readable` lines, as lists of cells."""
     out = []
@@ -893,55 +570,10 @@ def table_rows(reader, lines):
     return out
 
 
-def label_of(line):
-    """The label `line` opens with in its one spelling, the label then a
-    space or the end of the line, or None."""
-    for label in LABELS:
-        if line == label or line.startswith(f"{label} "):
-            return label
-    return None
-
-
-def value_of(line):
-    """What follows a labelled line's label and its space."""
-    return line[len(label_of(line) or "") + 1 :]
-
-
-def as_row(key, value):
-    """The match of `key`'s line reading `value` against its row whole, or
-    None."""
-    return GRAMMAR[key].shape.fullmatch(f"{key} {value}")
-
-
 def reference(found):
-    """`(round, finding or None)` from a reference row's match."""
+    """`(round, finding or None)` from a reference's match."""
     number = found["finding"]
     return int(found["round"]), int(number) if number else None
-
-
-def verdict_of(value):
-    """`(kind, its commit or home)` for one `verdict:` value, or None.
-
-    Read against the `verdict:` row whole: its word, and the commit of a
-    `fixed` or the home of a `deferred`. Anything the row does not match —
-    another case, emphasis, a trailing word or mark, a bare `fixed` or
-    `deferred` — is None.
-
-    `finding_of` hands it only a line the row already matched whole, and
-    `deferred_home` is called only by cases, so no record reaches the None.
-    It stays because `Test_verdict_of` and `Test_deferred_home` call it with
-    values the row refuses, and those cases are where the `verdict:` grammar
-    is pinned."""
-    found = as_row(VERDICT_ROW, value)
-    if not found:
-        return None
-    return value.split(" ", 1)[0], found["commit"] or found["home"]
-
-
-def deferred_home(value):
-    """The home a `deferred <home>` value names, or None."""
-    verdict = verdict_of(value)
-    return verdict[1] if verdict and verdict[0] == DEFERRED else None
 
 
 def issue_of(home):
@@ -950,67 +582,28 @@ def issue_of(home):
     return int(found.group(1)) if found else None
 
 
-def location_of(value):
-    """The paths one `location:` value names, in order, or None.
-
-    Read against the `location:` row whole, then each backticked item to
-    its first `:`, which the row keeps out of a path. Anything the row does
-    not match — a bare `:617`, a path with no backticks, a URL, an absolute
-    path, a `path#unit`, emphasis around an item, a trailing word or mark,
-    an empty value — is None.
-
-    `finding_of`, the one caller in the tree, hands it only a line the row
-    already matched whole, so no record reaches the None. It stays because
-    `Test_location_of` calls it with values the row refuses, and those cases
-    are where the `location:` grammar is pinned."""
-    if not as_row(LOCATION_ROW, value):
-        return None
+def location_paths(value):
+    """The paths one `location:` value names, in order: each backticked
+    item to its first `:`, which the value's shape keeps out of a path. The
+    value is one `hooks/lib/fields.py` already matched whole."""
     return [item.strip("`").split(":")[0] for item in value.split(", ")]
 
 
-def reference_of(value):
-    """`(round, finding)` for a reference to a finding, `(round, None)` for
-    one to a round's fix pass, or None.
-
-    Read against the `regression:` row whole, the one reference row that
-    takes both: a different case, a space, a leading zero, emphasis, a
-    trailing mark or a second reference is None.
-
-    `finding_of`, the one caller in the tree, hands it only a line the row
-    already matched whole, so no record reaches the None. It stays because
-    `Test_reference_of` calls this function with every spelling the row
-    refuses, and those cases are where the `regression:` grammar is pinned."""
-    found = as_row(REGRESSION_ROW, value)
-    return reference(found) if found else None
-
-
-def reopened_of(value):
-    """`(round, finding)` for the value of a `reopens:` line, which takes a
-    finding alone, since a close is a finding's verdict and a fix pass no
-    finding named closed nothing to reopen.
-
-    `finding_of`, the one caller, hands it only a line the `reopens:` row's
-    shape already matched whole, so the match here is never None."""
-    return reference(as_row(REOPENS_ROW, value))
-
-
-def sections_of(reader, lines, key):
-    """The index of every heading of already-`readable` lines the `key`
-    row's shape matches whole."""
-    shape = GRAMMAR[key].shape
-    return [i for i, said in reader.headings(lines) if shape.fullmatch(said.strip())]
+def sections_of(reader, lines, heading):
+    """The index of every heading of already-`readable` lines that reads
+    HEADING."""
+    return [i for i, said in reader.headings(lines) if said.strip() == heading]
 
 
 def finding_spans(reader, lines):
     """`((start, end), [(first, stop)], error)` for the one `## Findings`
     section of already-`readable` lines: where it stands, and each `### `
     section in it, from its heading to the next. `error` is the refusal for
-    a record with no such section where it needs one, or with more than its
-    row allows, and the spans are then empty."""
+    a record with no such section or with two, and the spans are then
+    empty."""
     starts = sections_of(reader, lines, FINDINGS_HEADING)
-    many = GRAMMAR[FINDINGS_HEADING].many
     if not starts:
-        return None, [], ((0, NO_FINDINGS) if many == ONE else None)
+        return None, [], (0, NO_FINDINGS)
     if len(starts) > 1:
         return None, [], (starts[1] + 1, TWO_FINDINGS)
     start = starts[0]
@@ -1024,366 +617,189 @@ def finding_spans(reader, lines):
 
 
 def finding_number(heading):
-    """The `n` of a finding heading the heading row matches whole, or None."""
-    found = GRAMMAR[HEADING_ROW].shape.fullmatch(heading)
+    """The `n` of a finding heading that reads `### <n>. <symptom>`, or
+    None."""
+    found = FINDING_HEADING.fullmatch(heading)
     return int(found["number"]) if found else None
 
 
-def opens_like(line):
-    """The label `line` opens like and is not, or None."""
-    found = OPENS_LIKE.match(line)
-    if not found or label_of(line):
-        return None
-    return SPELT[" ".join(found.group(1).lower().split())]
+# The refusals `hooks/lib/fields.py` makes of a line outside every block. A
+# refusal of a block's line leaves the finding holding it unread, and these
+# do not; the last two hide every block below their line.
+HIDING = (FIELDS.UNCLOSED, FIELDS.UNSURE)
+NOT_A_BLOCK_LINE = (FIELDS.COMMENT_LINE, *HIDING)
 
 
-def unread_lines(lines, rel):
-    """[(rel, line, why)] for each line of `lines`, `readable`'s, that opens
-    like a label and is not it (`opens_like`), at its line.
+def round_read(reader, text, rel):
+    """`Parsed` for one round record: its `seal` blocks read through
+    `hooks/lib/fields.py`, placed by its headings, read once.
 
-    Such a line is prose to every reader here: it decides nothing, and a
-    finding that then lacks a line its row says is `one` is refused as
-    lacking it. Whether the line meant the label is the reading agent's
-    judgment, so the check names it and refuses nothing for it, and keeps
-    no list of the other spellings a label is written in."""
-    return [
-        (rel, i + 1, UNREAD_LINE.format(said=line.strip(), label=f"`{label}`"))
-        for i, line in enumerate(lines)
-        if (label := opens_like(line))
-    ]
+    Every line that module refuses is an error at its line, led by the
+    finding's heading where it stands in one. The one `## Findings` section
+    is split at its `### ` headings: a heading that is not `### <n>.
+    <symptom>`, or whose number an earlier heading carries, is refused at the
+    heading, and `finding_of` reads the rest. A round or confirmation block
+    inside a finding, and a finding or close block outside every finding,
+    are refused at their opener, and so is a second round block. A record
+    with no round block, where nothing else was refused, is refused with
+    `NO_ROUND_BLOCK` alone and read no further: it is a record of an older
+    shape, or one written past the template. A finding with an error is not
+    in the list, nor one holding a block line the reader refused or a block
+    out of its place. Below a fence that never closes, or one the walk could
+    not place, no block is read: a finding reaching it is read for the
+    blocks above it, and what it lacks is not refused again."""
+    lines = reader.readable(text or "")
+    read = FIELDS.read(text or "", FIELDS.ROUND_RECORD)
+    section, spans, error = finding_spans(reader, lines)
+    held = {finding_number(lines[first].strip()) for first, _stop in spans}
+    held.discard(None)
 
+    def span_of(line):
+        """The index of the span holding 1-based LINE, or None."""
+        return next(
+            (k for k, (first, stop) in enumerate(spans) if first < line - 1 < stop),
+            None,
+        )
 
-def confirmations_span(reader, lines):
-    """The indexes of every line under a `## Confirmations` heading."""
-    return {
-        i
-        for start in sections_of(reader, lines, CONFIRMATIONS_HEADING)
-        for i in range(start, section_end(reader, lines, start))
-    }
+    def led(k, why):
+        return f"{lines[spans[k][0]].strip()} {DASH} {why}"
 
-
-def findings(reader, lines, rel):
-    """`([Finding], errors)` for a record's findings.
-
-    `lines` are `reader.readable`'s, so a labelled line inside a fence is no
-    line. The one `## Findings` section is split at its `### `
-    headings, and each finding is read by `finding_of` against the rows the
-    table places in a finding. A line that opens like a label and is not it
-    is prose here and refuses nothing; `unread_lines` names it.
-    Everything the reader cannot read is an error `(rel, line, why)` naming
-    the finding's heading, in line order: what `finding_spans` refuses, a
-    heading the heading row does not match or with a number an earlier
-    heading carries, what `finding_of` refuses, a label a finding's row
-    names standing outside every finding, a label another row places
-    standing inside one, and a `## Confirmations` row's label outside that
-    section. A finding with an error is not in the list."""
-    _section, spans, error = finding_spans(reader, lines)
-    if error:
-        return [], [(rel, *error)]
-    inside = {i for first, stop in spans for i in range(first, stop)}
-    confirming = confirmations_span(reader, lines)
-    found, errors = [], []
-    for i, line in enumerate(lines):
-        if i in inside:
+    errors, spoilt = [], set()
+    for line, why in read.refusals:
+        k = span_of(line)
+        if k is not None and why not in NOT_A_BLOCK_LINE:
+            spoilt.add(k)
+            why = led(k, why)
+        errors.append((rel, line, why))
+    # Below a fence that never closes, which a renderer runs to the end of
+    # the file, or one the walk could not place, no block is read.
+    blind = min((line for line, why in read.refusals if why in HIDING), default=None)
+    outside, inside, rounds, confirms = [], {k: [] for k in range(len(spans))}, [], []
+    for block in read.blocks:
+        if blind is not None and block.line > blind:
             continue
-        key = label_of(line)
-        where = GRAMMAR[key].where if key else None
-        if where == IN_FINDING:
-            errors.append((rel, i + 1, OUTSIDE.format(label=key)))
-        elif where == IN_CONFIRMATIONS and i not in confirming:
-            errors.append(
-                (rel, i + 1, UNPLACED.format(label=key, place=CONFIRMATIONS_HEADING))
-            )
-    numbers = set()
-    for first, stop in spans:
+        k = span_of(block.line)
+        in_finding = block.kind in (FIELDS.FINDING_BLOCK, FIELDS.CLOSE_BLOCK)
+        if k is None and in_finding:
+            errors.append((rel, block.line, OUTSIDE.format(kind=block.kind.name)))
+        elif k is not None and not in_finding:
+            spoilt.add(k)
+            said = INSIDE.format(kind=block.kind.name)
+            errors.append((rel, block.line, led(k, said)))
+        elif k is not None:
+            inside[k].append(block)
+        else:
+            outside.append(block)
+            if block.kind is FIELDS.ROUND_BLOCK:
+                rounds.append(block)
+            elif (said := block.fields[FIELDS.CONFIRMS]).match["round"]:
+                confirms.append((said.line, reference(said.match)))
+    if not rounds and not errors:
+        return Parsed(
+            [],
+            [(rel, 0, NO_ROUND_BLOCK)],
+            None,
+            held,
+            [],
+            section,
+            spans,
+            outside,
+            inside,
+        )
+    errors += [(rel, extra.line, SECOND_ROUND) for extra in rounds[1:]]
+    if error:
+        errors.append((rel, *error))
+    found, numbers = [], set()
+    for k, (first, stop) in enumerate(spans):
         heading = lines[first].strip()
         number = finding_number(heading)
         if number is None or number in numbers:
-            errors.append(
-                (
-                    rel,
-                    first + 1,
-                    f"{heading} {DASH} "
-                    + (
-                        GRAMMAR[HEADING_ROW].refused
-                        if number is None
-                        else f"a second finding numbered {number}: a later "
-                        f"round's `round-<N>#{number}` would name both"
-                    ),
-                )
-            )
+            said = NO_NUMBER if number is None else SECOND_NUMBER.format(number=number)
+            errors.append((rel, first + 1, led(k, said)))
             continue
         numbers.add(number)
-        elsewhere = [
-            (i, key)
-            for i in range(first + 1, stop)
-            if (key := label_of(lines[i])) and GRAMMAR[key].where != IN_FINDING
-        ]
-        if elsewhere:
-            errors.extend(
-                (
-                    rel,
-                    i + 1,
-                    f"{heading} {DASH} a `{key}` line inside a finding: the "
-                    f"check reads it {PLACED[GRAMMAR[key].where]}, and none in one",
-                )
-                for i, key in elsewhere
-            )
+        if k in spoilt:
             continue
-        found_here, errors_here = finding_of(lines, first, stop, heading, rel)
-        errors.extend(errors_here)
-        if not errors_here:
-            found.append(found_here)
+        finding, said = finding_of(rel, heading, number, first, inside[k])
+        if blind is None or blind > stop:
+            errors.extend(said)
+        if finding is not None:
+            found.append(finding)
     errors.sort(key=lambda error: error[1])
-    return found, errors
+    round_block = rounds[0] if rounds else None
+    return Parsed(
+        found, errors, round_block, held, confirms, section, spans, outside, inside
+    )
 
 
-def finding_of(lines, first, stop, heading, rel):
-    """`(Finding or None, errors)` for the `### ` section at `first`..`stop`.
-
-    Every row the table places in a finding is read here: a row that needs
-    one line and has none, or that allows one and has more, is refused at
-    the heading or the second line, and each line a count leaves standing
-    is refused where its row's shape does not match it whole. The verdict,
-    the paths and the references are then read out of the lines that
-    matched, and a finding holding both a `regression:` and a `reopens:`
-    line is refused at the later one. A finding the check cannot decide —
-    no verdict or location read — is never returned."""
-    rows = [row for row in GRAMMAR.values() if row.where == IN_FINDING]
-    at = {
-        row.line: [i for i in range(first + 1, stop) if label_of(lines[i]) == row.line]
-        for row in rows
-    }
-    errors, read = [], {}
-    for row in rows:
-        refused = counted(rel, row.line, at[row.line], "a finding", first, heading)
-        if refused:
-            errors.append(refused)
-    for row in rows:
-        said = at[row.line]
-        if len(said) > 1 and row.many in HOW_MANY:
-            continue
-        for i in said:
-            if row.shape.fullmatch(lines[i]):
-                read[row.line] = i
-                continue
-            errors.append(
-                (
-                    rel,
-                    i + 1,
-                    f"{heading} {DASH} reads `{lines[i]}`, which the check cannot "
-                    f"read: {row.refused}",
-                )
-            )
-    both = [at.get(REGRESSION_ROW, []), at.get(REOPENS_ROW, [])]
-    if all(len(said) == 1 for said in both):
-        errors.append(
-            (
-                rel,
-                max(said[0] for said in both) + 1,
-                f"{heading} {DASH} a `{REGRESSION_ROW}` and a `{REOPENS_ROW}` line: "
-                + ONE_RELATION,
-            )
-        )
+def finding_of(rel, heading, number, first, blocks):
+    """`(Finding or None, errors)` for the finding numbered NUMBER whose
+    HEADING stands at index FIRST, from BLOCKS, its section's finding and
+    close blocks in order: a section with no finding block is refused at
+    the heading, and a second finding or close block at its opener. The
+    verdict is its close block's, `(OPEN, None)` where it has none, and its
+    paths are its finding block's `location:` and its close block's."""
+    finds = [b for b in blocks if b.kind is FIELDS.FINDING_BLOCK]
+    closes = [b for b in blocks if b.kind is FIELDS.CLOSE_BLOCK]
+    lead = f"{heading} {DASH} "
+    errors = [
+        (rel, b.line, lead + SECOND_BLOCK.format(kind=b.kind.name))
+        for b in (*finds[1:], *closes[1:])
+    ]
+    if not finds:
+        errors.append((rel, first + 1, lead + NO_FINDING_BLOCK))
     if errors:
-        return None, errors
-
-    def line_of(key):
-        return read[key] + 1 if key in read else None
-
-    def value(key):
-        return value_of(lines[read[key]]) if key in read else None
-
+        return None, sorted(errors, key=lambda error: error[1])
+    said = finds[0].fields
+    paths = location_paths(said[FIELDS.LOCATION].value)
+    if closes:
+        closed = closes[0].fields
+        verdict = closed[FIELDS.VERDICT]
+        word = verdict.value.split(" ", 1)[0]
+        kind = (word, verdict.match["commit"] or verdict.match["home"])
+        line = verdict.line
+        if FIELDS.LOCATION in closed:
+            paths += location_paths(closed[FIELDS.LOCATION].value)
+    else:
+        kind, line = (OPEN, None), first + 1
+    regression, reopens = said.get(FIELDS.REGRESSION), said.get(FIELDS.REOPENS)
     return (
         Finding(
-            line_of(VERDICT_ROW),
+            line,
             heading,
-            finding_number(heading),
-            verdict_of(value(VERDICT_ROW)),
-            location_of(value(LOCATION_ROW)),
-            reference_of(value(REGRESSION_ROW)) if REGRESSION_ROW in read else None,
-            line_of(REGRESSION_ROW),
-            reopened_of(value(REOPENS_ROW)) if REOPENS_ROW in read else None,
-            line_of(REOPENS_ROW),
+            number,
+            kind,
+            paths,
+            reference(regression.match) if regression else None,
+            regression.line if regression else None,
+            reference(reopens.match) if reopens else None,
+            reopens.line if reopens else None,
             first + 1,
         ),
         [],
     )
 
 
-def unclosed(reader, text, rel):
-    """[(rel, line, why)] for a fence in `text` that never closes, at the
-    line that opened it.
-
-    `reader.readable` blanks such a fence to the end of the file, so every
-    `### ` heading and `verdict:` line after it would vanish and the record
-    would read as having nothing open. The walk is `readable`'s own,
-    `fence_spans` on the raw lines; a comment is text to it (#1012), and a
-    line that begins one is `comment_lines`' to refuse."""
-    return [
-        (
-            rel,
-            first + 1,
-            "a fence opened here never closes, so every line after it is "
-            "hidden from the check",
-        )
-        for first, last in reader.fence_spans(reader.gfm_lines(text or ""))
-        if last is None
-    ]
-
-
-def comment_lines(reader, text, rel):
-    """[(rel, line, why)] for each line of `text` outside every fence that
-    begins with `<!--`, at its line, with the shared reader's one message
-    (`unverified_check.py#comment_lines`, #1012).
-
-    A record carries no HTML comment, and the check keeps no comment state,
-    so it reads a comment as text; a line that begins one is refused rather
-    than read as part of the record. The read of a round record, a
-    `guarantee.md` and a `trail/gate.md` each ask this."""
-    lines = reader.readable(text or "")
-    return [(rel, n + 1, reader.COMMENT_LINE) for n in reader.comment_lines(lines)]
-
-
-def counted(rel, key, said, scope, first=-1, heading=None):
-    """The refusal of `said`, the indexes of `key`'s lines in one `scope`,
-    where its row's `How many` does not allow that many, or None: at the
-    heading at index `first`, and led by it, where one is given."""
-    row = GRAMMAR[key]
-    lead = f"{heading} {DASH} " if heading else ""
-    if not said and row.many == ONE:
-        return (rel, first + 1, lead + no_record_line(key, scope))
-    if len(said) > 1 and row.many in HOW_MANY:
-        return (
-            rel,
-            said[1] + 1,
-            f"{lead}{len(said)} `{key}` lines; {scope} carries {HOW_MANY[row.many]}",
-        )
-    return None
-
-
-def unreadable(rel, line, number, row):
-    """The refusal of a labelled `line` at index `number` its row's shape
-    does not match whole."""
-    return (
-        rel,
-        number + 1,
-        f"reads `{line}`, which the check cannot read: {row.refused}",
-    )
-
-
-def record_lines(reader, lines, rel, key):
-    """`(the match or None, errors)` for `key`'s line in a record, a row the
-    table places outside every finding.
-
-    `lines` are `reader.readable`'s. Its lines outside every finding are
-    counted against the row's `How many` and each read against its shape
-    whole (`findings` refuses one inside a finding). Where they are none —
-    the old `| Target SHA |` table row is none — more than the row allows,
-    or one the shape does not match, that is an error by line, and no
-    match is returned."""
-    _section, spans, _error = finding_spans(reader, lines)
-    inside = {i for first, stop in spans for i in range(first, stop)}
-    said = [
-        i for i, line in enumerate(lines) if i not in inside and label_of(line) == key
-    ]
-    refused = counted(rel, key, said, "a round record")
-    if refused:
-        return None, [refused]
-    row, found, errors = GRAMMAR[key], None, []
-    for i in said:
-        found = row.shape.fullmatch(lines[i])
-        if not found:
-            errors.append(unreadable(rel, lines[i], i, row))
-    return (None if errors else found), errors
-
-
-def read_whole(reader, text, rel):
-    """`(lines, findings, errors, outside)` for one record, read once:
-    `readable`'s lines, `findings` over them with `comment_lines`' and
-    `unclosed`'s refusals first and `record_lines`' after, and
-    `{key: match or None}` for every row the table places outside every
-    finding."""
-    lines = reader.readable(text or "")
-    found, errors = findings(reader, lines, rel)
-    outside, said = {}, []
-    for key, row in GRAMMAR.items():
-        if row.where == OUTSIDE_FINDINGS:
-            outside[key], refused = record_lines(reader, lines, rel, key)
-            said += refused
-    first = comment_lines(reader, text, rel) + unclosed(reader, text, rel)
-    return lines, found, first + errors + said, outside
-
-
 def record_findings(reader, text, rel):
-    """`findings` over a record's text, with `comment_lines`' and
-    `unclosed`'s refusals first and `record_lines`' after, for every row the
-    table places outside every finding: the one reader the arm, the panel
-    and the release seal read a record through, so a comment line, a fence
-    that hides findings, or a record naming no commit it reviewed, fails
-    closed for each of them."""
-    _lines, found, errors, _outside = read_whole(reader, text, rel)
-    return found, errors
-
-
-def confirmations(reader, lines, rel):
-    """`([(line, (round, finding))], errors)` for a record's `confirms:`
-    lines.
-
-    A record with nothing to confirm may leave `## Confirmations` out, as
-    far as its row allows: a section the row says is `one` is refused where
-    it is absent, and each row the table places there is counted against
-    no lines, so one at `one` is refused too. In the section, each line of
-    such a row is counted against the row and read against its shape
-    whole, and a `confirms:` line naming a finding is read with its line;
-    one reading `none`, and the prose after any entry, are read for
-    nothing. Everything else is an error by line: more sections than the row
-    allows, a line its shape does not match, a table row, the old shape.
-    What the reference names is `channel`'s."""
-    starts = sections_of(reader, lines, CONFIRMATIONS_HEADING)
-    if len(starts) > 1:
-        return [], [(rel, starts[1] + 1, TWO_CONFIRMATIONS)]
-    rows = [row for row in GRAMMAR.values() if row.where == IN_CONFIRMATIONS]
-    at = {row.line: [] for row in rows}
-    found, errors = [], []
-    if not starts and GRAMMAR[CONFIRMATIONS_HEADING].many == ONE:
-        errors.append((rel, 0, no_section(CONFIRMATIONS_HEADING)))
-    span = range(starts[0] + 1, section_end(reader, lines, starts[0])) if starts else ()
-    for i in span:
-        if reader.split_row(lines[i]) is not None:
-            errors.append((rel, i + 1, CONFIRMATIONS_TABLE))
-            continue
-        key = label_of(lines[i])
-        if key not in at:
-            continue
-        at[key].append(i)
-        said = GRAMMAR[key].shape.fullmatch(lines[i])
-        if not said:
-            errors.append(unreadable(rel, lines[i], i, GRAMMAR[key]))
-        elif key == CONFIRMS_ROW and said["round"]:
-            found.append((i + 1, reference(said)))
-    for key, said in at.items():
-        refused = counted(rel, key, said, f"`{CONFIRMATIONS_HEADING}`")
-        if refused:
-            errors.append(refused)
-    return found, errors
+    """`(findings, errors)` of one round record through `round_read`: the
+    one reader the arm, the panel and the release seal read a record
+    through, so a comment line, a fence that hides blocks, or a record
+    naming no commit it reviewed, fails closed for each of them."""
+    parsed = round_read(reader, text, rel)
+    return parsed.findings, parsed.errors
 
 
 def round_of(reader, text, rel, number):
-    """`(Round, errors)` for one record: its findings, its errors and its
-    `target:` line's `commit` part through `read_whole`, its `confirms:`
-    references through `confirmations`, and the number of every `### <n>. `
-    heading of its `## Findings`, read or refused, so a reference to a
-    refused finding still names one it holds. A record whose `target:` line
-    `read_whole` refused has no target."""
-    lines, found, errors, outside = read_whole(reader, text, rel)
-    target = outside[TARGET_ROW]["commit"] if outside[TARGET_ROW] else None
-    confirmed, said = confirmations(reader, lines, rel)
-    _section, spans, _error = finding_spans(reader, lines)
-    held = {finding_number(lines[first].strip()) for first, _stop in spans}
-    held.discard(None)
-    errors = sorted(errors + said, key=lambda error: error[1])
-    return Round(rel, number, found, held, confirmed, target), errors
+    """`(Round, errors)` for one record through `round_read`: its findings,
+    the number of every `### <n>. ` heading of its `## Findings`, read or
+    refused, so a reference to a refused finding still names one it holds,
+    its `confirms:` references, and its round block's commit. A record
+    whose round block was refused, or holds none, has no target."""
+    parsed = round_read(reader, text, rel)
+    block = parsed.round
+    target = block.fields[FIELDS.TARGET].match["commit"] if block else None
+    read = Round(rel, number, parsed.findings, parsed.held, parsed.confirms, target)
+    return read, parsed.errors
 
 
 def channel(rounds, read_at_head=lambda finding: False):
@@ -1415,7 +831,7 @@ def channel(rounds, read_at_head=lambda finding: False):
             if k == 0:
                 why = (
                     f"names `{said}` in the first record: there is no earlier "
-                    f"round to name, so its `{CONFIRMS_ROW}` lines read `none`"
+                    f"round to name, so its `{FIELDS.CONFIRMS}` lines read `none`"
                 )
             elif n >= here.number or n not in by_number:
                 why = (
@@ -1437,11 +853,11 @@ def channel(rounds, read_at_head=lambda finding: False):
                     (
                         before.path,
                         f.heading_line,
-                        f"{f.heading} {DASH} reads `{VERDICT_ROW} "
+                        f"{f.heading} {DASH} reads `{FIELDS.VERDICT} "
                         f"{' '.join(x for x in f.verdict if x)}`, and the next "
-                        f"record, {here.path}, names it on no `{CONFIRMS_ROW}`, "
-                        f"`{REOPENS_ROW}` or `{REGRESSION_ROW}` line: one of them reads "
-                        f"`round-{before.number}#{f.number}`",
+                        f"record, {here.path}, names it on no `{FIELDS.CONFIRMS}`, "
+                        f"`{FIELDS.REOPENS}` or `{FIELDS.REGRESSION}` line: one of "
+                        f"them reads `round-{before.number}#{f.number}`",
                     )
                 )
     if rounds:
@@ -1454,7 +870,7 @@ def channel(rounds, read_at_head=lambda finding: False):
                     (
                         last.path,
                         f.line,
-                        f"{f.heading} {DASH} reads `{VERDICT_ROW} "
+                        f"{f.heading} {DASH} reads `{FIELDS.VERDICT} "
                         f"{' '.join(x for x in f.verdict if x)}` in the last "
                         f"record, and no round after it read it: {VERIFYING_ROUND}",
                     )
@@ -1492,51 +908,6 @@ def records_only(root, item, commit):
     changed a path outside them, nothing, or git cannot say."""
     changed = touched(root, commit)
     return bool(changed) and all(under(p, item) for p in changed)
-
-
-def target_of(reader, text):
-    """The first SHA-shaped word of `guarantee.md`'s `Target SHA` row, or
-    None. A round record names its commit on a `target:` line instead
-    (`round_of`)."""
-    rows = table_rows(reader, reader.readable(text or ""))
-    found = SHA_RE.search(reader.visible(field(rows, TARGET) or ""))
-    return found.group(0) if found else None
-
-
-def earlier_verdicts(cell):
-    """`[(sha, word)]` for each earlier run of a `guarantee.md` `Target SHA`
-    cell, in the order written (#975), the cell read as one shape
-    (`TARGET_WRITTEN`): after `TARGET_HEAD`, nothing, or `EARLIER_RUN` and an
-    `EARLIER_ENTRY` whole, again and again. An entry that is not one comes
-    back as `(EARLIER_RUN + entry, None)`; text after the target that does
-    not open with `EARLIER_RUN` comes back whole as `(text, None)`. The
-    guarantee arm refuses each, so no spelling of the separator passes
-    unread. The stamp is drawn once per work item, and an earlier entry
-    reading `sealed` is how the row says it was drawn already."""
-    cell = cell or ""
-    head = TARGET_HEAD.match(cell)
-    rest = cell[head.end() :] if head else cell
-    if not rest:
-        return []
-    if not rest.startswith(EARLIER_RUN):
-        return [(rest.strip(), None)]
-    out = []
-    for entry in rest.split(EARLIER_RUN)[1:]:
-        m = EARLIER_ENTRY.fullmatch(entry)
-        out.append(
-            (m.group(1), m.group(2)) if m else ((EARLIER_RUN + entry).strip(), None)
-        )
-    return out
-
-
-def newest_run(reader, text):
-    """The commit the newest run of `trail/gate.md`'s `Broad gate` row was
-    taken at — the first word of its first entry, where that word is
-    SHA-shaped — or None."""
-    rows = table_rows(reader, reader.readable(text or ""))
-    cell = reader.visible(field(rows, BROAD_GATE) or "")
-    words = EMPHASIS.sub("", cell.split(EARLIER_RUN)[0]).split()
-    return words[0] if words and SHA_RE.fullmatch(words[0]) else None
 
 
 def is_ancestor(root, sha, ref):
@@ -1718,30 +1089,22 @@ def edited_work_items(root, base, paths, moved, routing):
 
 
 def verdict_problems(root, path, f):
-    """[(path, line, problem)] for one finding's verdict: `open`; a `fixed`
-    whose commit HEAD does not descend from; a `fixed` whose commit changed
-    no path the `location:` names or lies under, named with what it did
-    change."""
+    """[(path, line, problem)] for one finding's verdict: no close block, at
+    its heading; a `fixed` whose commit HEAD does not descend from; a
+    `fixed` whose commit changed no path the finding's or its close's
+    `location:` names or lies under, named with what it did change."""
     kind, commit = f.verdict
     if kind == OPEN:
-        return [
-            (
-                path,
-                f.line,
-                f"{f.heading} {DASH} reads `{VERDICT_ROW} {OPEN}`: the fix pass "
-                f"answers it with another verdict, and "
-                f"{GRAMMAR[VERDICT_ROW].refused}",
-            )
-        ]
+        return [(path, f.line, f"{f.heading} {DASH} {OPEN_SAYS}")]
     if kind != FIXED:
         return []
+    said = f"{f.heading} {DASH} reads `{FIELDS.VERDICT} {FIXED} {commit}`, and "
     if not is_ancestor(root, commit, "HEAD"):
         return [
             (
                 path,
                 f.line,
-                f"{f.heading} {DASH} reads `{VERDICT_ROW} {FIXED} {commit}`, and "
-                f"HEAD does not descend from `{commit}`: a `{FIXED}` names "
+                f"{said}HEAD does not descend from `{commit}`: a `{FIXED}` names "
                 "a commit on this branch",
             )
         ]
@@ -1754,23 +1117,22 @@ def verdict_problems(root, path, f):
         (
             path,
             f.line,
-            f"{f.heading} {DASH} reads `{VERDICT_ROW} {FIXED} {commit}`, and "
-            f"`{commit}` touches no path its `{LOCATION_ROW}` names ({named}): it "
-            f"changed {did}. A fix that went elsewhere appends that coordinate "
-            f"to the `{LOCATION_ROW}` line",
+            f"{said}`{commit}` touches no path its `{FIELDS.LOCATION}` names "
+            f"({named}): it changed {did}. A fix that went elsewhere names that "
+            f"path on a `{FIELDS.LOCATION}` line of its close block",
         )
     ]
 
 
 def records(reader, routing, root, item, rel, base):
     """[(path, line, problem)] for a work item declared through the review
-    chain: no record; a record `round_of` cannot read; a finding at `open`;
-    a `fixed` naming a commit HEAD does not descend from, or one that
-    changed no path the finding's `location:` names or lies under; what
-    `channel` names between the rounds, a `fixed` of the last record located
-    in the work item's own records alone, whose commit touched them alone,
-    passing as read at HEAD by the sealer; a last record behind HEAD. A finding is named by its line
-    and its heading."""
+    chain: no record; a record `round_of` cannot read; a finding with no
+    close block; a `fixed` naming a commit HEAD does not descend from, or
+    one that changed no path the finding's or its close's `location:` names
+    or lies under; what `channel` names between the rounds, a `fixed` of the
+    last record located in the work item's own records alone, whose commit
+    touched them alone, passing as read at HEAD by the sealer; a last record
+    behind HEAD. A finding is named by its line and its heading."""
     found = round_records(routing, root, item)
     if not found:
         return [
@@ -1799,7 +1161,7 @@ def records(reader, routing, root, item, rel, base):
         )
     )
     last = rounds[-1]
-    # A record naming no commit it reviewed was refused by `read_whole`.
+    # A record naming no commit it reviewed was refused by `round_read`.
     if last.target is not None:
         behind = follows(root, last.target, base, item)
         if behind is not None:
@@ -1807,7 +1169,7 @@ def records(reader, routing, root, item, rel, base):
                 (
                     last.path,
                     0,
-                    follows_reason(behind, f"the last round's `{TARGET_ROW}`")
+                    follows_reason(behind, f"the last round's `{FIELDS.TARGET}`")
                     + (f"; {VERIFYING_ROUND}" if behind[0] == "after" else ""),
                 )
             )
@@ -1815,24 +1177,24 @@ def records(reader, routing, root, item, rel, base):
 
 
 # The parity arm at the pull request (#988). Under a routing declaration
-# answering the review chain, each round record carries the comparison on its
-# `original:` line, which these read.
+# answering the review chain, each round record carries the comparison on the
+# `original:` line of its round block, which these read.
 NO_ORIGINAL = (
-    f"no `{ORIGINAL_ROW}` line: `{{config}}` declares a migration and this "
-    "pull request changes a path outside the document roots, so each round "
-    f"record carries `{ORIGINAL_ROW} {{sha}}`, the migration config's "
-    "baseline, written by the proofer once it compared the round's target "
-    "with the original through `legacy-parity`"
+    f"no `{FIELDS.ORIGINAL}` line in the round block: `{{config}}` declares a "
+    "migration and this pull request changes a path outside the document "
+    f"roots, so each round record's round block carries `{FIELDS.ORIGINAL} "
+    "{sha}`, the migration config's baseline, written by the proofer once it "
+    "compared the round's target with the original through `legacy-parity`"
 )
 OTHER_ORIGINAL = (
-    f"`{ORIGINAL_ROW} {{said}}` names a commit other than the migration "
+    f"`{FIELDS.ORIGINAL} {{said}}` names a commit other than the migration "
     "config's `Baseline commit`, {sha}: the line names the commit this round "
     "compared against, and a comparison against another original proves "
     "nothing"
 )
 NO_BASELINE = (
     "{why}: the migration config names the baseline every round record's "
-    f"`{ORIGINAL_ROW}` line is compared with"
+    f"`{FIELDS.ORIGINAL}` line is compared with"
 )
 
 
@@ -1846,64 +1208,73 @@ def parity_readers():
 
 
 NO_GUARANTEE_ORIGINAL = (
-    f"no `{ORIGINAL_ROW}` line: `{{config}}` declares a migration, this work "
+    f"no `{FIELDS.ORIGINAL}` line in the newest verdict block: `{{config}}` "
+    "declares a migration, this work "
     "item answers `straight to the PR`, and this pull request changes a path "
     "outside the document roots, so no round record compares it and the "
-    f"sealer's guarantee carries `{ORIGINAL_ROW} {{sha}}`, the migration "
+    f"sealer's guarantee carries `{FIELDS.ORIGINAL} {{sha}}`, the migration "
     "config's baseline, written once it compared the audited commit with the "
     "original through `legacy-parity`"
 )
 
 
 def original_of(reader, text, rel, sha, config, missing=NO_ORIGINAL):
-    """[(rel, line, problem)] for one record's `original:` line, held
-    against SHA, the `Baseline commit` of the migration config at CONFIG:
-    a record with no such line, said as MISSING, and one naming a commit
-    that is not a prefix of SHA and of which SHA is not a prefix. The record
-    is a round record, or the guarantee of a work item declaring `straight
-    to the PR`, read by the same rule. A line the grammar table refuses,
-    standing in a finding or a second one, is `read_whole`'s refusal at that
-    line, and none is added here. A line that opens like the label and is
-    not it is no `original:` line, so a record holding only such a line
-    holds none (#1121's R9)."""
-    lines, _found, _errors, outside = read_whole(reader, text, rel)
-    at = [i for i, line in enumerate(lines) if label_of(line) == ORIGINAL_ROW]
-    if not at:
-        return [(rel, 0, missing.format(config=config, sha=sha))]
-    found = outside[ORIGINAL_ROW]
-    if found is None:
+    """[(rel, line, problem)] for the `original:` line of a round record's
+    round block, held against SHA, the `Baseline commit` of the migration
+    config at CONFIG: a round block with no such line, said as MISSING at
+    its opener, and one naming a commit that is not a prefix of SHA and of
+    which SHA is not a prefix, at its line. A guarantee's line is
+    `guarantee_original`'s. A record holding a line `hooks/lib/fields.py`
+    refuses, an `original:` line in a finding block, a second one or one
+    spelt otherwise among them, or holding no round block, is the records
+    arm's refusal, and none is added here."""
+    block = round_read(reader, text, rel).round
+    if block is None or FIELDS.read(text or "", FIELDS.ROUND_RECORD).refusals:
         return []
-    said = found["commit"]
-    if said.startswith(sha) or sha.startswith(said):
+    said = block.fields.get(FIELDS.ORIGINAL)
+    if said is None:
+        return [(rel, block.line, missing.format(config=config, sha=sha))]
+    commit = said.match["commit"]
+    if commit.startswith(sha) or sha.startswith(commit):
         return []
-    return [(rel, at[0] + 1, OTHER_ORIGINAL.format(said=said, sha=sha))]
+    return [(rel, said.line, OTHER_ORIGINAL.format(said=commit, sha=sha))]
 
 
-def unread_originals(reader, text, rel):
-    """[(rel, line, why)] for each line outside fences of a guarantee
-    `originals_of` reads that opens like `original:` and is not it, at its
-    line (`UNREAD_LINE`). Such a line is prose: it decides nothing, and the
-    guarantee holding only it holds no `original:` line."""
-    label = f"`{ORIGINAL_ROW}`"
-    return [
-        (rel, i + 1, UNREAD_LINE.format(said=line.strip(), label=label))
-        for i, line in enumerate(reader.readable(text))
-        if opens_like(line) == ORIGINAL_ROW
-    ]
+def guarantee_original(text, rel, sha, config):
+    """[(rel, line, problem)] for the `original:` line of the newest verdict
+    block of the guarantee TEXT at REL, held against SHA, the `Baseline
+    commit` of the migration config at CONFIG: a newest block with no such
+    line, at its opener, and one naming a commit that is not a prefix of SHA
+    and of which SHA is not a prefix, at its line. An earlier block's line
+    stands for no later run (#1198). A guarantee `hooks/lib/fields.py`
+    refuses, or one holding no verdict block, is the guarantee arm's
+    refusal, and none is added here."""
+    found = FIELDS.read(text, FIELDS.GUARANTEE)
+    if found.refusals or not found.blocks:
+        return []
+    newest = found.blocks[-1]
+    said = newest.fields.get(FIELDS.ORIGINAL)
+    if said is None:
+        return [
+            (rel, newest.line, NO_GUARANTEE_ORIGINAL.format(config=config, sha=sha))
+        ]
+    commit = said.match["commit"]
+    if commit.startswith(sha) or sha.startswith(commit):
+        return []
+    return [(rel, said.line, OTHER_ORIGINAL.format(said=commit, sha=sha))]
 
 
-def originals_of(reader, routing, root, paths, items, direct=(), notices=None):
+def originals_of(reader, routing, root, paths, items, direct=()):
     """[(path, line, problem)] for the round records of ITEMS, each declared
     through the review chain, and the `guarantee.md` of DIRECT, each
     declared `straight to the PR`, where git carries the migration config at
     HEAD and PATHS, this pull request's, reach outside the document roots;
     `hooks/lib/gate.py#touches_code` decides that, and paths git could not list
     reach outside them. A guarantee git does not carry is `guarantee`'s
-    refusal, and none is added here. A config whose `Baseline commit` names
-    no SHA is one refusal naming it. None where `hooks/` would not load,
-    said on stderr. Each line of a guarantee it reads that opens like
-    `original:` and is not it goes to NOTICES (`unread_originals`), so the
-    line is named only where the guarantee owes an `original:` line."""
+    refusal, and none is added here; a guarantee's line is its newest
+    verdict block's (`guarantee_original`). A config whose `Baseline commit`
+    names no SHA is one refusal naming it. None where `hooks/` would not
+    load, said on stderr."""
     config = f"{routing.optin.HOME}/{routing.optin.PARITY_CONFIG}"
     text = read_record(root, config)
     if text is None or not (items or direct):
@@ -1928,18 +1299,33 @@ def originals_of(reader, routing, root, paths, items, direct=(), notices=None):
         rel = f"{item}/{GUARANTEE_FILE}"
         said = read_record(root, rel)
         if said is not None:
-            found.extend(
-                original_of(reader, said, rel, sha, config, NO_GUARANTEE_ORIGINAL)
-            )
-            if notices is not None:
-                notices.extend(unread_originals(reader, said, rel))
+            found.extend(guarantee_original(said, rel, sha, config))
     return found
 
 
-def broad_gate(reader, root, item, base):
+# A gate record with no run block: one written before the run stood in a
+# block, or one nobody wrote a run into (#1198, *Scope* item 9).
+NO_RUN_BLOCK = (
+    "no run block: since #1198 the run stands in a `seal` block holding "
+    "`run: <tree> against <base commit>`, which `seal gate --base <base> "
+    "--record <item>` appends below the text already there on a green run"
+)
+
+
+def blocks_of(rel, text, kinds, notices=None):
+    """`(blocks, problems)` of the record REL holding KINDS, read through
+    `hooks/lib/fields.py`: every block, and each line it refuses as
+    `(rel, line, why)`. Each fence it names as not read goes to NOTICES."""
+    found = FIELDS.read(text, kinds)
+    if notices is not None:
+        notices.extend((rel, line, why) for line, why in found.notices)
+    return found.blocks, [(rel, line, why) for line, why in found.refusals]
+
+
+def broad_gate(reader, root, item, base, notices=None):
     """[(path, line, problem)] for the work item's `trail/gate.md`: absent,
-    a line that begins with `<!--` (`comment_lines`), unreadable, or naming
-    a run behind HEAD."""
+    a line `hooks/lib/fields.py` refuses, no run block, or a newest run, the
+    last block, behind HEAD. A fence named as not read goes to NOTICES."""
     rel = f"{item}/{BROAD_GATE_FILE}"
     text = read_record(root, rel)
     if text is None:
@@ -1952,77 +1338,36 @@ def broad_gate(reader, root, item, base):
                 "the sealer, and the run writes it on a green run",
             )
         ]
-    problems = comment_lines(reader, text, rel)
-    sha = newest_run(reader, text)
-    if sha is None:
-        return [*problems, (rel, 0, f"no SHA in its `{BROAD_GATE}` row")]
+    runs, problems = blocks_of(rel, text, FIELDS.GATE, notices)
+    if problems:
+        return problems
+    if not runs:
+        return [(rel, 0, NO_RUN_BLOCK)]
+    sha = runs[-1].fields[FIELDS.RUN].match["commit"]
     behind = follows(root, sha, base, item)
     if behind is None:
-        return problems
-    return [*problems, (rel, 0, follows_reason(behind, "the newest gate run"))]
+        return []
+    return [(rel, 0, follows_reason(behind, "the newest gate run"))]
 
 
-def verdicts_of(reader, text):
-    """[(line number, line)] for every line outside fences that opens with
-    `Verdict:` at the start of the line, exactly, trailing whitespace
-    removed. An indent is markup, a code block at four spaces, so an
-    indented line is no verdict line; `unread_verdicts` names it with every
-    other line that opens like the label."""
-    found = []
-    for i, raw in enumerate(reader.readable(text or "")):
-        line = reader.visible(raw)
-        if line.startswith(VERDICT) and not raw[:1].isspace():
-            found.append((i + 1, line))
-    return found
+# A guarantee with no verdict block: one written before the verdict stood in
+# a block, or one the sealer never filled (#1198, *Scope* item 9).
+NO_VERDICT_BLOCK = (
+    "no verdict block: since #1198 the sealer's verdict stands in a `seal` "
+    "block holding `target: <sha> against <base>`, the `original:` line where "
+    "one is owed and `Verdict:`, as `templates/records/sdd-guarantee.md` "
+    "shows; the sealer runs again at HEAD and appends one below the text "
+    "already there"
+)
 
 
-def unread_verdicts(reader, text, rel):
-    """[(rel, line, why)] for each line outside fences that opens like the
-    verdict (`OPENS_LIKE_VERDICT`) and that `verdicts_of` does not read, at
-    its line. Such a line is prose: whether it meant the verdict is the
-    reader's judgment, and the check refuses nothing for it."""
-    read = {n for n, _line in verdicts_of(reader, text)}
-    return [
-        (rel, i + 1, UNREAD_VERDICT.format(said=line))
-        for i, raw in enumerate(reader.readable(text or ""))
-        if (line := reader.visible(raw))
-        and OPENS_LIKE_VERDICT.match(line)
-        and i + 1 not in read
-    ]
-
-
-def verdict_word(line):
-    """`sealed`, `withheld` or `undecided` where LINE is one of the three
-    shapes whole; a word of `RETIRED_VERDICTS` where the value after the
-    label, emphasis removed, is that word or opens with it and a space;
-    else None."""
-    m = VERDICT_SHAPE.fullmatch(line)
-    if m:
-        return next(word for word in m.groups() if word)
-    value = EMPHASIS.sub("", line).split(":", 1)[-1].strip().lower()
-    for word in RETIRED_VERDICTS:
-        if value == word or value.startswith(word + " "):
-            return word
-    return None
-
-
-def target_row(reader, text):
-    """`(line number, cell)` of `guarantee.md`'s first `Target SHA` row, or
-    `(0, None)`."""
-    for i, line in enumerate(reader.readable(text or "")):
-        cells = reader.split_row(line)
-        if cells and len(cells) > 1 and reader.visible(cells[0]) == TARGET:
-            return i + 1, reader.visible(cells[1])
-    return 0, None
-
-
-def guarantee(reader, root, item, base):
-    """[(path, line, problem)] for the work item's `guarantee.md`: absent, no
-    commit, a commit with anything but the closing records after it, an
-    earlier run that is not `EARLIER_ENTRY` whole, a line that begins with
-    `<!--` (`comment_lines`), a fence that never closes (`unclosed`), a word
-    of `RETIRED_VERDICTS` on its `Verdict:` line, a verdict line in none of
-    the three shapes, or one that does not read `sealed`."""
+def guarantee(reader, root, item, base, notices=None):
+    """[(path, line, problem)] for the work item's `guarantee.md`: absent, a
+    line `hooks/lib/fields.py` refuses, a fence nobody closed and a line that
+    begins with `<!--` among them, no verdict block, or a newest block, the
+    last, naming a commit with anything but the closing records after it or
+    a verdict other than `sealed`. A fence named as not read goes to
+    NOTICES."""
     rel = f"{item}/{GUARANTEE_FILE}"
     text = read_record(root, rel)
     if text is None:
@@ -2034,61 +1379,36 @@ def guarantee(reader, root, item, base):
                 "`templates/records/sdd-guarantee.md` after the orchestrator's broad run",
             )
         ]
-    problems = []
-    sha = target_of(reader, text)
-    if sha is None:
-        problems.append((rel, 0, f"no SHA in its `{TARGET}` row"))
-    else:
-        behind = follows(root, sha, base, item, only=CLOSING_RECORDS)
-        if behind is not None:
-            problems.append(
-                (
-                    rel,
-                    0,
-                    follows_reason(behind, "the guarantee", "the closing records")
-                    + ("; the sealer runs again" if behind[0] == "after" else ""),
-                )
-            )
-    # A row with no SHA is refused above; one with a SHA is read whole.
-    row, cell = target_row(reader, text)
-    for entry, word in earlier_verdicts(cell) if sha else []:
-        if word is None:
-            problems.append(
-                (
-                    rel,
-                    row,
-                    f"`{entry}` on its `{TARGET}` row is not read: the row is "
-                    f"{TARGET_WRITTEN}, and nothing else",
-                )
-            )
-    # A comment line is text to the check, and a fence nobody closed hides
-    # the verdict line; name each at its line.
-    problems.extend(comment_lines(reader, text, rel))
-    problems.extend(unclosed(reader, text, rel))
-    verdicts = verdicts_of(reader, text)
-    if len(verdicts) != 1:
+    verdicts, problems = blocks_of(rel, text, FIELDS.GUARANTEE, notices)
+    if problems:
+        return problems
+    if not verdicts:
+        return [(rel, 0, NO_VERDICT_BLOCK)]
+    newest = verdicts[-1]
+    sha = newest.fields[FIELDS.TARGET].match["commit"]
+    behind = follows(root, sha, base, item, only=CLOSING_RECORDS)
+    if behind is not None:
         problems.append(
             (
                 rel,
-                verdicts[1][0] if verdicts else 0,
-                f"{len(verdicts)} `{VERDICT}` lines; the guarantee carries one",
+                0,
+                follows_reason(behind, "the guarantee", "the closing records")
+                + ("; the sealer runs again" if behind[0] == "after" else ""),
             )
         )
-        return problems
-    line, value = verdicts[0]
-    word = verdict_word(value)
-    if word in RETIRED_VERDICTS:
-        said = f"`{word}` {RETIRED_SAYS}"
-    elif word is None:
-        said = f"the line reads only as {VERDICT_SHAPES}, written exactly so"
-    elif word != SEALED:
-        said = (
-            f"a ready pull request needs `{SEALED}`: fix what it names, or answer "
-            "its question under it, and the sealer runs again at the new HEAD"
+    said = newest.fields[FIELDS.SEALER_VERDICT]
+    if FIELDS.verdict_word(newest) != FIELDS.SEALED:
+        line = f"{FIELDS.SEALER_VERDICT} {said.value}"
+        problems.append(
+            (
+                rel,
+                said.line,
+                f"the sealer's verdict reads `{line}`: a ready pull request needs "
+                f"`{FIELDS.SEALED}`: fix what it names, or answer its question "
+                "below the newest block, and the sealer runs again at the new "
+                "HEAD and appends its block",
+            )
         )
-    else:
-        return problems
-    problems.append((rel, line, f"the sealer's verdict reads `{value}`: {said}"))
     return problems
 
 
@@ -2409,8 +1729,8 @@ def main(argv=None):
         else:
             direct.append(item)
         notices.extend(unread(reader, routing, root, item, item in chained))
-        gate = broad_gate(reader, root, item, args.baseline)
-        gate += guarantee(reader, root, item, args.baseline)
+        gate = broad_gate(reader, root, item, args.baseline, notices)
+        gate += guarantee(reader, root, item, args.baseline, notices)
         if args.sealing:
             notices.extend((p, n, f"{SEALING_SAYS}: {m}") for p, n, m in gate)
         else:
@@ -2419,7 +1739,7 @@ def main(argv=None):
     if found is None:
         return 2
     problems.extend(found)
-    found = originals_of(reader, routing, root, paths, chained, direct, notices)
+    found = originals_of(reader, routing, root, paths, chained, direct)
     if found is None:
         return 2
     for rel, line, message in found:

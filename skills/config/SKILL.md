@@ -20,12 +20,6 @@ is how a person answers them again later.
 where the root sits under the common git directory. Resolve it that way rather
 than spelling the first place and stopping.
 
-**A root from a release before the rename** (`docs/one-root-by-lifetime.md`
-*The opt-in signal is the root itself*) is not a repository to set up. Say
-that it waits for its move, that committing the work in progress under it
-and starting a new session runs the move, and stop, sending nobody to the
-bootstrap.
-
 **No root at either place** means this repository has not been set up. Say so,
 name the `implement` skill's bootstrap as what does it, and stop. Do not
 create the file: the root at one of those two places, with the README first

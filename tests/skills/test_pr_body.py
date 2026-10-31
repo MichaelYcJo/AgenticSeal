@@ -3,8 +3,8 @@
 Written by #1044's phase 1. The generator's units run in the process over a
 work item written under a case's own directory, and the command with its own
 `main`, so no shell runs under them. The fixture's records are the shapes
-the templates under `templates/records/` give, and its round records are
-ones `chain_check.py`'s grammar reads.
+the templates under `templates/records/` give, and its round records hold
+the `seal` blocks `chain_check.py` reads.
 """
 
 import os
@@ -41,32 +41,41 @@ None.
 ROUND_1 = """\
 # Review round 1: 1799000000-a-body
 
+```seal
 target: 1111111 against main
+```
 
 ## Findings
 
 ### 1. The writer drops the last line
 
+```seal
 severity: must
 location: `skills/x.py:3`
 evidence: read `skills/x.py:1-3`
-verdict: fixed 2222222
+```
 
 Why it matters, with its grounds.
 
-answer: fixed in 2222222: the writer keeps
-the last line now.
+```seal
+verdict: fixed 2222222
+answer: fixed in 2222222: the writer keeps the last line now.
+```
 
 ## Confirmations
 
+```seal
 confirms: none
+```
 The reader holds.
 """
 
 ROUND_2 = """\
 # Review round 2: 1799000000-a-body
 
+```seal
 target: 3333333, fixes 1111111..3333333
+```
 
 ## Findings
 
@@ -74,16 +83,22 @@ None. The fix closes round 1's finding.
 
 ## Confirmations
 
+```seal
 confirms: round-1#1
+```
 The close holds.
 """
 
 GATE = """\
 # 1799000000-a-body: broad gate
 
-| Field | Value |
-|---|---|
-| Broad gate | 3333333 against main |
+```seal
+run: 2222222 against 4444444
+```
+
+```seal
+run: 3333333 against 4444444
+```
 """
 
 GAPS = """\
@@ -158,30 +173,50 @@ The phase records:
 
 ### `trail/rounds/round-1.md`
 
+```seal
 target: 1111111 against main
+```
 
 #### 1. The writer drops the last line
 
+```seal
 severity: must
+location: `skills/x.py:3`
+evidence: read `skills/x.py:1-3`
+```
 
+```seal
 verdict: fixed 2222222
+answer: fixed in 2222222: the writer keeps the last line now.
+```
 
-answer: fixed in 2222222: the writer keeps
-the last line now.
+```seal
+confirms: none
+```
 
 ### `trail/rounds/round-2.md`
 
+```seal
 target: 3333333, fixes 1111111..3333333
+```
 
 None. The fix closes round 1's finding.
+
+```seal
+confirms: round-1#1
+```
 
 ## Broad gate
 
 From `trail/gate.md`.
 
-| Field | Value |
-|---|---|
-| Broad gate | 3333333 against main |
+```seal
+run: 2222222 against 4444444
+```
+
+```seal
+run: 3333333 against 4444444
+```
 
 ## Not verified
 
@@ -238,11 +273,14 @@ def unsourced(text, texts):
 
 class Test_compose:
     def test_accepts_a_work_item_as_the_records_text(self, tmp_path):
-        """S1. Every section the design lays out, in its order, holding the
-        records' lines: a finding's heading one level down, its answer
-        paragraph over two lines, a round with no finding, a line in Korean,
-        the line `HEADING` holds first, and one `<details>` around the
-        sections, its `<summary>` followed by a blank line."""
+        """S1, and #1198's scenario *The body copies blocks*. Every section
+        the design lays out, in its order, holding the records' lines: each
+        round's `seal` blocks verbatim, a finding's heading one level down
+        followed by its finding block and its close block, a round with no
+        finding, a line in Korean, the line `HEADING` holds first, and one
+        `<details>` around the sections, its `<summary>` followed by a blank
+        line. Seen red against the copy of a round's labelled lines, which
+        held no block."""
         texts = PR.read_item(str(item_of(tmp_path, RECORDS)))
         assert PR.compose(NAME, texts) == EXPECTED
 
@@ -286,6 +324,8 @@ class Test_compose:
         """S5. A record that is not there is named in its section, never
         skipped."""
         text = PR.compose(NAME, {"changelog.md": CHANGELOG, "gaps.md": "# Overview\n"})
+        gate = PR.compose(NAME, {"trail/gate.md": "# a gate record\n"})
+        assert "`trail/gate.md` holds no run block." in gate.split("\n")
         for line in (
             "`frame/plan.md` is not in this work item.",
             "`trail/phases/` holds no phase record.",
@@ -303,7 +343,7 @@ class Test_compose:
             (
                 "trail/rounds/round-1.md",
                 ROUND_1.replace("verdict: fixed 2222222", "verdict: done"),
-                12,
+                20,
                 "verdict: done",
             ),
             (
@@ -313,6 +353,12 @@ class Test_compose:
                 "## From the records",
             ),
             ("changelog.md", CHANGELOG + "<details>\n", 3, "<details>"),
+            (
+                "trail/gate.md",
+                GATE.replace("run: 3333333", "run: HEAD"),
+                8,
+                "run: HEAD against 4444444",
+            ),
             ("gaps.md", GAPS + "</details>\n", 12, "</details>"),
             ("frame/plan.md", PLAN + "\n## Phases\n\nagain\n", 14, "## Phases"),
             (
@@ -326,7 +372,8 @@ class Test_compose:
         ],
     )
     def test_refuses_a_record_it_cannot_copy_faithfully(self, rel, text, line, said):
-        """S6. A round record `chain_check.py` refuses, a copied line equal
+        """S6. A round record `chain_check.py` refuses, a gate record whose
+        run block `hooks/lib/fields.py` refuses (#1198), a copied line equal
         to `HEADING`, `<details>` or `</details>`, which would put a second
         boundary line, a second fold or the fold's end inside the fold, a
         second section of one the body copies, and a copied line holding a
@@ -458,7 +505,7 @@ class Test_main:
         assert PR.main([str(item), "--body", str(body), "--check"]) == 1
         out = capsys.readouterr().out
         assert out.startswith(
-            f"refused: seal/threads/{NAME}/trail/rounds/round-1.md:12: "
+            f"refused: seal/threads/{NAME}/trail/rounds/round-1.md:20: "
         )
         assert str(tmp_path) not in out
 

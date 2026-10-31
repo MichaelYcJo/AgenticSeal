@@ -261,9 +261,10 @@ seal* 은 감사하는 쪽만 밝히고 감사받는 것은 밝히지 않는다.
 쓴다. 계약의 규칙은 `contract rule <N>` 으로, 계약 안과 `agents/` 에서는
 `rule <N>` 으로 하나씩 인용하고, 다른 파일의 절은 백틱으로 감싼 경로 뒤에
 그 파일의 제목이나 규칙을 여는 굵은 문장을 기울인 글자로 옮겨 인용한다. 같은 값이 두 곳에 있으면 한쪽만 고쳐지고, 읽는 쪽은 어느 것이 맞는지
-골라야 한다. 검사는 다르게 쓴 줄을 읽지 않은 줄이라고 그 자리에서 알리고,
-철자를 이유로 거절하지 않는다. 그 줄이 라벨을 뜻했는지는 그 글을 읽는
-에이전트가 판단한다. 사례는 `plan.md` 의 승인 줄이다. 그 줄 뒤에 문장 하나를
+골라야 한다. 회차 기록, `guarantee.md`, `trail/gate.md` 에서 검사가 읽는
+필드는 `seal` 블록 안에만 쓴다. 블록 안의 줄이 필드로 해석되지 않으면 검사는
+그 줄을 짚어 거절한다. 블록 밖의 줄은 필드처럼 보여도 산문이고, 검사는 그
+줄을 필드로 읽지 않는다. 사례는 `plan.md` 의 승인 줄이다. 그 줄 뒤에 문장 하나를
 덧붙이자, 그 줄을 읽던 검사는 승인이 없다고 읽었다.
 check: tests/github/test_rules.py tests/skills/test_chain_check.py tests/skills/test_rule_changes.py tests/test_censuses.py tests/text/test_the_agent_contract_holds_the_universal_rules.py tests/behaviour/test_a_cited_section_stands_in_its_file.py
 

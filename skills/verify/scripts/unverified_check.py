@@ -80,19 +80,19 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 HOOKS = os.path.join(HERE, "..", "..", "..", "hooks", "lib")
 
 
-def _load_blocks():
-    """`hooks/lib/blocks.py`, the one place the fence delimiter rule and the GFM
-    line split are written. A hook imports nothing from `skills/`, so this
-    module asks the hook's copy rather than the other way round."""
-    spec = importlib.util.spec_from_file_location(
-        "agentic_blocks_for_unverified", os.path.join(HOOKS, "blocks.py")
-    )
+def _load_hook(name, as_name):
+    """`hooks/lib/<name>`, run as module AS_NAME. A hook imports nothing from
+    `skills/`, so this module asks the hook's copy rather than the other way
+    round: `blocks.py`, the one place the fence delimiter rule and the GFM
+    line split are written, and `fields.py`, the one place a record's
+    comment line is said."""
+    spec = importlib.util.spec_from_file_location(as_name, os.path.join(HOOKS, name))
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
 
 
-_BLOCKS = _load_blocks()
+_BLOCKS = _load_hook("blocks.py", "agentic_blocks_for_unverified")
 # The fence delimiter rule, CommonMark 4.5 (#491, #444, #584): `fence_opener`
 # says which fence a line opens and `fence_closes` whether a line closes it.
 # The readers of this module ask them, `fence_spans` and through it
@@ -101,9 +101,10 @@ _BLOCKS = _load_blocks()
 # `payload_meter.py#heading_starts`
 # and `tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py`;
 # and `hooks/lib/blocks.py#walk` adds a line-start HTML comment block to it for
-# `hooks/lib/config.py` and `hooks/lib/routing.py`, apart from `live_lines` on
-# purpose, since a hook row is safe at its old reading where the walk is
-# unsure. Readers that keep a rule of their own, each on purpose: the pull request
+# `hooks/lib/config.py`, `hooks/lib/routing.py` and `hooks/lib/fields.py`, apart
+# from `live_lines` on purpose, since a hook row is safe at its old reading
+# where the walk is unsure, and `fields.py` refuses a fence line the walk cannot
+# place. Readers that keep a rule of their own, each on purpose: the pull request
 # body readers through `close_issues_on_release.py#FENCE`, which open a fence
 # at any indentation as GitHub does, so a fence under a list item masks a
 # closing keyword (`docs/issues-and-milestones.md` *A keyword inside a fence
@@ -174,13 +175,10 @@ SEPARATOR = re.compile(r"^:?-+:?$")
 OPENER = "<!--"
 CLOSER = "-->"
 # What each reader of a record says of a line `comment_lines` finds, spelt
-# once: `check_text` here, `chain_check.py` for a round record, a
-# `guarantee.md` and a `trail/gate.md`, and `rule_changes.py#parse` for a
-# design's `## Rule changes`.
-COMMENT_LINE = (
-    "the line begins with `<!--`, and a record carries no HTML comment: the "
-    "check reads one as text, so delete the comment"
-)
+# once, in `hooks/lib/fields.py`, whose `read` says it of a `guarantee.md` and a
+# `trail/gate.md`: `check_text` here, `chain_check.py` for a round record, and
+# `rule_changes.py#parse` for a design's `## Rule changes` say it from here.
+COMMENT_LINE = _load_hook("fields.py", "agentic_fields_for_unverified").COMMENT_LINE
 # A run of backticks. `live_lines` needs it as it scans for code spans.
 BACKTICKS = re.compile(r"`+")
 SKIP_DIRS = {

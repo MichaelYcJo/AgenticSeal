@@ -27,31 +27,11 @@ Creating the root is what opts the repository in: from the next command on,
 every gate here is awake. Where the root lands, committed with the repository
 or under the git directory on this machine only, is the person's decision and
 not the orchestrator's. Nobody reads a README to discover a question they did
-not know to ask, so this is the only place the mode and the migration
-question are asked at all.
+not know to ask, so this is the only place the mode, and whether the project
+ports an original codebase, are asked at all.
 
-A repository still on the 0.3.x layout is moved by hand, with the commands
-README.md *Coming up from 0.3.x* gives, because no code of the plugin opens
-that layout. The orchestrator names that section in one line and continues
-with the question below. A top-level `specs/` is the project's own, a team's
-specifications or another tool's records, whatever its entries are named, and
-stays where it is: the plugin writes only to its own root.
-
-**A `<repo>/seal/` whose `README.md` opens with a heading an earlier release
-of the plugin wrote is that release's root, waiting for its move.** The
-headings are `hooks/lib/optin.py#EARLIER_HEADINGS`. The session-start move
-rewrites the README to the marker and moves the work items into
-`seal/threads/`; where it was refused, its one line said why, which is work
-in progress under the old layout or a directory of work items that is a
-symbolic link. The orchestrator
-creates no root beside it, under the git directory or anywhere, and asks
-nothing. It tells the person in one line, *"`<repo>/seal/` is this plugin's
-root from a release before the rename: commit the work in progress under it
-and start a new session, and the move runs"*, and stops. The `seal`
-subcommands read it the same way and write nothing beside it.
-
-**A `<repo>/seal/` whose `README.md` opens with neither the marker nor one of
-those headings is the project's own.** The marker is the first line of
+**A `<repo>/seal/` whose `README.md` does not open with the marker is the
+project's own.** The marker is the first line of
 `templates/setup/seal-README.md`, and a package or a tool can keep a directory
 named `seal` for itself. The
 orchestrator writes nothing into it and offers neither shared option, because
