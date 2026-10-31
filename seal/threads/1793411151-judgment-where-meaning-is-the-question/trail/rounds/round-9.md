@@ -38,7 +38,7 @@ contract rule 19.
 severity: should
 location: `skills/settle/scripts/settle.py:537-540`, `skills/settle/scripts/settle.py:860-864`, `tests/skills/test_settle.py`
 evidence: executed `bin/test tests/skills/test_tmp_round9_probe.py -q -s -p no:xdist --basetemp=../basetemp`
-verdict: open
+verdict: fixed 604ec0e8
 
 Claimed, in `trail/phases/phase-5.md:92-94`, that `routing.rounds` raises
 on a `trail/rounds` that is a file, and that this branch has no case.
@@ -114,14 +114,14 @@ was seen red here at `85874df5`, where the dry run printed `0 rounds`:
         assert "0 rounds" not in text, text
 ```
 
-answer:
+answer: Fixed as the round grounds it, in my own case. `judgments` asks `routing.rounds_unreadable` and counts only where it is false, the report prints "its trail/rounds is not a directory this can list, so no round was counted", and the docstring names the file, the link and the unlistable directory. The case is parametrised over a file and a link to a directory holding `round-1.md`, and asserts no count line at all rather than only "0 rounds", so a link that would read as "1 round" is caught too; both rows were seen red at `5b1dc057`, printing `0 rounds`. The unlistable directory has no case, since `chmod 000` does not bar a root runner. `seal mutate` with the call reverted to `len(routing.rounds(where))` went red. `skills/settle/SKILL.md` *What the dry run shows* and the fragment now say the count is replaced by a name in that case. My `trail/phases/phase-5.md` claim that `routing.rounds` raises on a file, and that the branch only lacked a case, was wrong: it catches `NotADirectoryError` and returns `[]` (`hooks/lib/routing.py:599-609`), so the branch was dead; this line corrects that record, which a fix pass does not edit.
 
 ### 2. `seal settle`'s dry run says nothing of a plan whose judgments stand under `## Judgments of the Run` or any other near heading, and `--apply` then removes the rows unread
 
 severity: should
 location: `skills/settle/scripts/settle.py:524-526`, `skills/settle/SKILL.md:190-191`, `seal/threads/1793411151-judgment-where-meaning-is-the-question/changelog.md:3`, `tests/skills/test_settle.py`
 evidence: executed `bin/test tests/skills/test_tmp_round9_probe.py -q -s -p no:xdist --basetemp=../basetemp`
-verdict: open
+verdict: fixed 604ec0e8
 
 Claimed, in `3904967e`'s message and `skills/settle/SKILL.md:190-191`:
 "a plan with no such section prints nothing, and a section whose table is
@@ -230,14 +230,14 @@ cell only what the reader does with `## Rule changes`. Once the fix lands,
 the orchestrator folds the near judgments heading into that cell. This is
 a row of `## Not judged`.
 
-answer:
+answer: Fixed within the scope the reader scans, every live heading of the plan. `judgments` names each heading whose `rules.letters` equal the section's and that is not it, as `line N: <heading> opens like ## Judgments of the run and is not it, so none of its rows were read` (`NEAR_JUDGMENTS`), before it looks for the exact section, so a plan holding both gets the line and its rows. The round's paste-ready code was read against its grounds and taken as written; its cases were rewritten so the parametrised one asserts the whole line, and its fenced edge kept. The three headings were seen red at `5b1dc057` with no line printed; the fenced case passes on both trees, as an edge does, and `seal mutate` with `rules.headings` replaced by a scan of raw lines that sees the fence went red on it. Five more mutants went red: the exact heading named too, every heading named, the letters test dropped, the naming dropped, the line number off by one. The module docstring, `skills/settle/SKILL.md` *What the dry run shows* and the fragment say it. Stale in the frame, for the orchestrator to fold: Table A's `seal settle` Unread cell (`frame/design.md:298`) and *Scope* item 12 (`frame/design.md:55`), whose "A plan with no such section prints nothing for it" now has the near heading and the unlistable `trail/rounds` beside it.
 
 ### 3. `gaps.md` says this work item's plan holds no *Judgments of the run* section, and since `e71bbaea` it holds one with ten rows
 
 severity: should
 location: `seal/threads/1793411151-judgment-where-meaning-is-the-question/gaps.md:12`
 evidence: executed `git log --oneline -S "this work item's own plan holds no such section" -- seal/`, `git log --oneline -S "## Judgments of the run" -- seal/threads/1793411151-judgment-where-meaning-is-the-question/frame/plan.md`
-verdict: open
+verdict: fixed 3b484a3c
 
 Round 7 handed this line to this round as outside its fix diff (the
 orchestrator's message, read). This round did not rest on that hand-off
@@ -262,7 +262,7 @@ The fix deletes the clause and leaves the rest of the row as it stands:
 | Whether the orchestrator writes a row of `frame/plan.md` *Judgments of the run* for each judgment of a run; nothing reads at the pull request whether a row was written | the settling session, at the dry run's judgments after 0.26.0 ships |
 ```
 
-answer:
+answer: Fixed as the round's paste-ready row gives it: the clause and the `, and` before it are gone, and the rest of the row stands (`3b484a3c`). The row's question stays open for the settling session, since nothing reads at the pull request whether a fold wrote its row.
 
 ## Confirmations
 
