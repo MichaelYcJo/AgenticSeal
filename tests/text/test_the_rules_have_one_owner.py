@@ -337,9 +337,13 @@ def test_the_owner_states_the_dispatch_step_and_the_limit():
 def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge():
     """S7 of #945. A pull request GitHub cannot merge gets no merge ref and
     no `pull_request` CI, and nothing else says so, so the owner section
-    reads `mergeable` before it waits on CI. A conflict is integrated by a
-    merge, never a rebase, and the chain check reads no merge commit, so a
-    resolution outside the records gets a verifying round."""
+    reads `mergeable` before it waits on CI. #1200 adds `state` to the same
+    read, before a push as well as after it, because a commit pushed to the
+    branch of a merged pull request reaches no pull request, and the wait
+    reads every workflow's checks rather than one workflow's run. A conflict
+    is integrated by a merge, never a rebase, and the chain check reads no
+    merge commit, so a resolution outside the records gets a verifying
+    round."""
     text = flat(*ORCH)
     section = text[
         text.index("## Orchestrator: the pull request opens once the sealer seals") : (
@@ -347,7 +351,10 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
         )
     ]
     for said in (
-        "reads `gh pr view <N> --json mergeable` before it waits on CI",
+        "reads `gh pr view <N> --json state,mergeable` when the pull request "
+        "opens, before each push to its branch and after each push",
+        "`MERGED` or `CLOSED` stops the push",
+        "`gh pr checks <N> --watch`",
         "`CONFLICTING` means GitHub made no merge ref for the pull request and "
         "runs no `pull_request` CI on it, and nothing else says so",
         "`UNKNOWN` means GitHub has not computed the answer yet",
