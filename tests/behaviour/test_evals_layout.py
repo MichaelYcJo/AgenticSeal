@@ -161,7 +161,7 @@ def sealer_grade_gaps(root=EVALS):
 
 
 def test_every_sealer_case_grades_the_guarantee():
-    """T18. A sealer case grades the verdict line of `guarantee.md`, and none
+    """T18. A sealer case grades the verdict block of `guarantee.md`, and none
     grades the `Broad gate` cell the sealer no longer writes.
 
     #969 T6: every sealer case also bounds a Bash `seal gate --base` at zero

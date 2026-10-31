@@ -415,11 +415,11 @@ def test_the_order_no_longer_defers_the_framer_to_a_ticket():
         )
 
 
-def test_the_acts_table_says_no_commit_holds_who_wrote_the_two_lines():
+def test_the_acts_table_says_no_commit_holds_who_wrote_the_close_block():
     """#1041, the owner's answer of 2026-10-28: the fix pass commits neither
     line, so the row's `Grounds` cell cannot send a reader to the history
     for who wrote them. The table is `skills/implement/acts.md`'s since
-    #1148."""
+    #1148, and the two lines are one close block since #1198."""
     text = flat("skills", "implement", "acts.md")
     start = text.index(
         "| Orchestrator: a phase is a fresh crafter, and a fix pass resumes the implementer |"
@@ -429,7 +429,8 @@ def test_the_acts_table_says_no_commit_holds_who_wrote_the_two_lines():
             "| Orchestrator: the run ends with a verifying round |", start
         )
     ]
-    assert "is in no commit, because the fix pass commits neither line" in row
+    assert "is in no commit, because the fix pass commits no close block" in row
+    assert "`verdict:` and `answer:` lines" not in row
     assert (
         "whether that commit changed them are in the round record's history" not in row
     )

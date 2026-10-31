@@ -73,6 +73,10 @@ One line of purpose.
 |---|---|
 | how the gate renders in a TUI | the repository owner |
 """
+# A round record in the labelled lines of the releases before #1198, as a
+# work item released before it leaves one on a base. The teammate's pull
+# request declares and changes no work item, so the check reads no record of
+# the base, in either shape.
 ROUND = f"""# Review round 1: {WORK}
 
 target: 1a2b3c4 against main

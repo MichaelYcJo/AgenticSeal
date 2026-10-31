@@ -1,6 +1,6 @@
 """`skills/code-review/scripts/chain_check.py`, one class per function.
 
-Rebuilt by #942's phase 5. The readers of a round record, the grammar table
+Rebuilt by #942's phase 5. The readers of a round record's `seal` blocks
 and the reference channel run in the process on text. `main` runs in the
 process over a repository built once for the module and copied for each
 case that judges it: a branch with a routing declaration, a code commit, two
