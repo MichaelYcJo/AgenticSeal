@@ -6,6 +6,7 @@
 |---|---|
 | The full suite, the repository-wide lint and `seal gate` over the branch | the orchestrator, by `seal gate --base release/v0.26.0 --record` after the review rounds settle |
 | How GitHub renders `chain_check.py`'s `::notice` `not read:` lines in the hygiene workflow's run and annotations; the case pins the text printed, not the rendering | the orchestrator, at the first CI run of the pull request that carries a line the check did not read |
+| Whether a `seal rules: not read:` line reaches anyone at a pull request: CI runs `seal rules --check` only inside `tests/github/test_rules.py#test_every_check_line_in_the_tree_holds`, which asserts exit 0 and captures the output, so a near check line in a rule file prints where nobody looks, and only a reader of the rule file's diff catches it | the proofer, at review of each diff that touches a rule file |
 
 ## Not done
 
