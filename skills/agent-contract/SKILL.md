@@ -161,12 +161,13 @@ every instance the same cause produces. List them by a method that makes the
 list whole: build it from what produces the defect, take the artefact apart
 into every one of its parts, or run a command that lists each thing holding
 the property. The instances in view, or a search for one wording, find only
-the spellings already seen, and a list made that way is a sample. Where the
-class has no end, as spellings, keywords and constructs have none, no method
-makes the list whole: the hand-back says so, and names where the open part
-is recorded. The hand-back names the method and what it listed, and the
-proofer judges the method as well as the instances: a sample handed back as
-a whole list is a finding even where every instance on it was fixed.
+the spellings already seen, and a list made that way alone is a sample.
+Where the class ranges over an unbounded domain of keywords, spellings or
+constructs, no method makes the list whole. The hand-back names the method
+and what it listed, calls a sample a sample, and says where its open part
+stands. The proofer judges the method as well as the instances: a sample
+handed back as a whole list is a finding even where every instance on it
+was fixed.
 check: none reader: the proofer at review
 
 ## 13 A defence resting on a platform guarantee is not verified
@@ -227,9 +228,10 @@ check: none reader: the proofer at review
 
 A change rewrites the text it amends where that text stands, and in the
 same commit removes or corrects what stood on the old fact — every other
-sentence, case and citation stating it, found with `git grep` on its words.
-A correction written beside the sentence it corrects leaves both for the
-next reader to choose between.
+sentence, case and citation stating it, found at least with `git grep` on
+its words. Where nothing but that search listed them, the list is a sample,
+and the hand-back says so as rule 12 asks. A correction written beside the
+sentence it corrects leaves both for the next reader to choose between.
 check: none reader: the proofer at review
 
 ## 20 Do not avoid the change a problem calls for
