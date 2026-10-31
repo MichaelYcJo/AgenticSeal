@@ -105,9 +105,11 @@ def parse(text, policy_root):
     level whose letters, case folded, are that heading's and that is not it
     is another section: none of its lines is read, nothing is refused for
     it, and it goes to `unread` at its line (`NEAR_HEADING`), so a design
-    holding only it has no section and the settle reads it whole. Whether
-    it meant the section is the judgment of the agent that reads the
-    design."""
+    holding only it has no section and the settle reads it whole. A first
+    line of the section that opens like the no-change block and is not it
+    goes there too (`unverified_check.py#unread_block`), beside the refusal
+    the items give it. Whether either meant the form is the judgment of the
+    agent that reads the design."""
     r = reader()
     lines = r.gfm_lines(text)
     marks = headings(lines, comments=False)
@@ -164,6 +166,11 @@ def parse(text, policy_root):
     if block is not None:
         why, error = block
         return done([], None, [error]) if error else done([], why, [])
+    # A first line that opens like the block and is not it is read as the
+    # items read it, and named.
+    near = r.unread_block(body)
+    if near is not None:
+        unread.append(near)
 
     ops, error = r.items(body)
     # An item's kind is judged before a later line's error, in line order.

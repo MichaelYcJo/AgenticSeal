@@ -31,13 +31,6 @@ def parse(text):
     return rules.parse(text, "docs")
 
 
-# What the reader says of a no-change line in any other spelling: the block
-# it expects, by name (S10).
-NO_CHANGE = (
-    "a section that holds nothing writes the block `- nothing` with `  why: <reason>`"
-)
-
-
 ALL_SHAPES = """\
 - change
   file: docs/a.md
@@ -307,9 +300,9 @@ class Test_parse:
             ("- add\n  file: docs/\\evil.md\n  to: x", "- add", "docs/"),
             ("- add\n  file: docs/sub\\b.md\n  to: x", "- add", "docs/"),
             ("- add\n  file: docs/a.md\n  section: S\n  to:", "  to:", "empty"),
-            ("nothing — a reason.", "nothing — a reason.", NO_CHANGE),
-            ("nothing - a reason.", "nothing - a reason.", NO_CHANGE),
-            ("Nothing — a reason.", "Nothing — a reason.", NO_CHANGE),
+            ("nothing — a reason.", "nothing — a reason.", "a line outside an item"),
+            ("nothing - a reason.", "nothing - a reason.", "a line outside an item"),
+            ("Nothing — a reason.", "Nothing — a reason.", "a line outside an item"),
             ("- nothing", "- nothing", "`nothing` needs `why`"),
             ("- nothing\n  why:", "  why:", "`why` is empty"),
             (
@@ -362,6 +355,21 @@ class Test_parse:
         line, why = parsed.errors[0]
         assert line == line_of(text, bad), (line, why)
         assert reason in why, why
+
+    @pytest.mark.parametrize(
+        "first", ["nothing — a reason.", "Nothing — a reason.", "- none"]
+    )
+    def test_a_line_that_opens_like_the_block_is_named_beside_its_refusal(self, first):
+        """#1167, *Scope* item 9: a first line that opens like the no-change
+        block and is not it is read as no block, so the section is refused as
+        any line outside the grammar is, and the line is named in `unread`
+        through `unverified_check.py#unread_block`, the reason built there.
+        Seen red against the refusal naming the block, with nothing named."""
+        text = spec(f"{first}\n")
+        parsed = parse(text)
+        line = line_of(text, first)
+        assert parsed.errors and parsed.errors[0][0] == line, parsed
+        assert parsed.unread == [rules.reader().unread_block([(line, first)])], parsed
 
     def test_a_second_block_is_refused_at_its_own_line(self):
         """The block stands alone, so a second `- nothing` is refused at its own

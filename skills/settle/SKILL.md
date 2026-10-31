@@ -77,8 +77,12 @@ field per line, indented two spaces:
   line that begins inside a span an earlier line opened is refused at its
   line.
 - A design that changes no rule writes the no-change block in place of the
-  items, `- nothing` with its one field `why:`. Any other spelling of it is
-  refused at its line, naming the block.
+  items, `- nothing` with its one field `why:`, and the block is read in
+  that one spelling. A first line that opens like it and is not it, such as
+  `nothing — <why>` or `- none`, is no block: the section is refused at that
+  line as the items refuse any line outside them, and the reader names the
+  line as one it did not read. `## Not verified` reads the block the same
+  way.
 - A block that does not match whole is refused at its line, and its design
   joins no group: the settling session reads it whole.
 - The section's heading is `## Rule changes`, spelt exactly so, and no

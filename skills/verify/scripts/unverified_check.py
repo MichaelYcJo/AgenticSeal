@@ -148,12 +148,19 @@ CONTINUED = " " * 4
 NOTHING = "nothing"
 WHY = "why"
 NOTHING_WRITTEN = f"the block `- {NOTHING}` with `  {WHY}: <reason>`"
-# A first line that means the block and is not it: `none` or `nothing` in any
-# case, behind any list marker. The old `none — <why>` line is one.
+# A first line that opens like the block and is not it: `none` or `nothing`
+# in any case, behind any list marker. The old `none — <why>` line is one.
+# Such a line is no block, and its reader names it (`unread_block`).
 NEAR_NOTHING = re.compile(r"[-*+\s]*(?:none|nothing)\b", re.IGNORECASE)
-# The closing word's other spellings, refused rather than read as open: a
-# capital or a trailing colon would otherwise turn a closing into an open row.
-NEAR_CLOSED = ":;,."
+UNREAD_BLOCK = (
+    f"`{{said}}` opens like {NOTHING_WRITTEN} and is not it, so it was read as prose"
+)
+# What `parse_section` says of a section whose first line is neither the
+# table's header nor the block.
+FOUND_PROSE = (
+    "expected `| Item | Who must answer |`, found prose. Prose belongs under "
+    "`## Not done`; this section is read by a machine"
+)
 PLACEHOLDER = re.compile(r"^<[^>]*>$")
 # Characters that occupy no width: the two variation selectors, the zero-width
 # family, and the byte-order mark. None of them make a marker into a claim.
@@ -678,17 +685,25 @@ def opens_the_block(line):
     return bool(m) and m.group(1) == NOTHING
 
 
-def nothing_block(body):
-    """None where BODY, a section's non-blank `[(line number, line)]`, opens
-    with neither the no-change block nor a near miss of it; else `(why,
-    error)`, WHY the block's reason or ERROR `(line number, reason)`."""
+def unread_block(body):
+    """`(line number, why)` where BODY, a section's non-blank `[(line number,
+    line)]`, opens with a line that opens like the no-change block and is
+    not it (`NEAR_NOTHING`, `UNREAD_BLOCK`); else None. The line decides
+    nothing: `nothing_block` passes it on as any other line, and its reader
+    refuses the section for what it lacks and names the line. Whether it
+    meant the block is the judgment of the agent that reads the record."""
     first_no, first = body[0]
-    if not opens_the_block(first):
-        if NEAR_NOTHING.match(first):
-            return None, (
-                first_no,
-                f"a section that holds nothing writes {NOTHING_WRITTEN}",
-            )
+    if opens_the_block(first) or not NEAR_NOTHING.match(first):
+        return None
+    return first_no, UNREAD_BLOCK.format(said=first.strip())
+
+
+def nothing_block(body):
+    """None where BODY, a section's non-blank `[(line number, line)]`, does
+    not open with the no-change block; else `(why, error)`, WHY the block's
+    reason or ERROR `(line number, reason)`. The block is read in its one
+    spelling, and a line that opens like it is passed on (`unread_block`)."""
+    if not opens_the_block(body[0][1]):
         return None
     found, error = items(body)
     if error:
@@ -724,11 +739,11 @@ def parse_section(body, offset, strict_header=True):
 
     cells = split_row(first)
     if cells is None:
+        unread = unread_block(content)
         errors.append(
             (
                 first_no,
-                "expected `| Item | Who must answer |`, found prose. Prose "
-                "belongs under `## Not done`; this section is read by a machine",
+                f"{FOUND_PROSE}. Not read: {unread[1]}" if unread else FOUND_PROSE,
             )
         )
         return open_rows, closed_rows, errors
@@ -804,14 +819,6 @@ def parse_section(body, offset, strict_header=True):
                 )
                 continue
             closed_rows.append((line_no, rest, who))
-        elif word.lower().rstrip(NEAR_CLOSED) == CLOSED:
-            errors.append(
-                (
-                    line_no,
-                    f"`{word}` is not the closing word: a closed row opens with "
-                    f"`{CLOSED}`, lower case, then a space and the item",
-                )
-            )
         else:
             open_rows.append((line_no, item, who))
     return open_rows, closed_rows, errors
@@ -879,7 +886,9 @@ def check_text(text, heading=HEADING, strict_header=True):
     refusal there, every base written before the word would go uncompared,
     and a row deleted against it would pass. The old `none — <why>` line
     relaxes the same way: a base reads it as no rows, where the working tree
-    refuses it naming the no-change block. Nothing else relaxes. A legacy
+    reads it as prose, refuses the section as holding neither the table nor
+    the no-change block, and names the line (`unread_block`). Nothing else
+    relaxes. A legacy
     header still has to be a two-cell row whose first column is `Item`, and
     every other row below it is read exactly as the working tree's rows are.
     The relaxation ends when every base carries the canonical wording.

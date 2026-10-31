@@ -942,25 +942,46 @@ class Test_nothing_block:
         [
             ([(3, "- nothing"), (4, "  why: all run.")], ("all run.", None)),
             ([(3, "| Item | Who must answer |")], None),
+            ([(3, "none - x")], None),
         ],
-        ids=["the block", "a table"],
+        ids=["the block", "a table", "the old line"],
     )
-    def test_accepts_the_block_and_passes_a_table_on(self, body, answer):
+    def test_accepts_the_block_and_passes_anything_else_on(self, body, answer):
+        """#1167, *Scope* item 9: a line that opens like the block and is not
+        it is passed on as any other line is, and its reader names it
+        (`unread_block`). Seen red against its refusal here."""
         assert UC.nothing_block(body) == answer
 
+    def test_refuses_a_second_item(self):
+        body = [(3, "- nothing"), (4, "  why: x"), (5, "- nothing"), (6, "  why: y")]
+        assert UC.nothing_block(body) == (
+            None,
+            (5, "`- nothing` is the section's one item"),
+        )
+
+
+class Test_unread_block:
     @pytest.mark.parametrize(
-        "body, error",
-        [
-            ([(3, "none - x")], (3, f"a section that holds nothing writes {BLOCK}")),
-            (
-                [(3, "- nothing"), (4, "  why: x"), (5, "- nothing"), (6, "  why: y")],
-                (5, "`- nothing` is the section's one item"),
-            ),
-        ],
-        ids=["the old line", "two items"],
+        "first", ["none - x", "None.", "- nothing - x", "-nothing", "* none"]
     )
-    def test_refuses_a_near_miss_and_a_second_item(self, body, error):
-        assert UC.nothing_block(body) == (None, error)
+    def test_names_a_first_line_that_opens_like_the_block(self, first):
+        assert UC.unread_block([(3, first), (4, "more")]) == (
+            3,
+            f"`{first}` opens like {BLOCK} and is not it, so it was read as prose",
+        )
+
+    @pytest.mark.parametrize(
+        "body",
+        [
+            [(3, "- nothing"), (4, "  why: x")],
+            [(3, "| Item | Who must answer |")],
+            [(3, "nonesuch")],
+            [(3, "| a | b |"), (4, "none - x")],
+        ],
+        ids=["the block", "a table", "another word", "not the first line"],
+    )
+    def test_names_nothing_else(self, body):
+        assert UC.unread_block(body) is None
 
 
 def line_of(section, needle):
@@ -986,6 +1007,13 @@ class Test_parse_section:
             ("| closed-loop control on Windows | a maintainer |", None),
             ("| enclosed paths on Windows | a maintainer |", None),
             ("| whether `a \\| b` parses | the next session |", None),
+            # #1167, *Scope* item 9: the word is read exactly, so a row opening
+            # with it in another case or with punctuation after it is open,
+            # the safe direction. Seen red against the refusal of each.
+            ("| closed. how the gate renders in a TUI | seen on screen |", None),
+            ("| closed: how the gate renders in a TUI | seen on screen |", None),
+            ("| Closed how the gate renders in a TUI | seen on screen |", None),
+            ("| CLOSED how the gate renders in a TUI | seen on screen |", None),
         ],
         ids=[
             "the word",
@@ -994,6 +1022,10 @@ class Test_parse_section:
             "a word that begins with it",
             "a word that holds it",
             "an escaped pipe",
+            "the word and a full stop",
+            "the word and a colon",
+            "capitalised",
+            "upper case",
         ],
     )
     def test_accepts_open_rows_and_the_word_that_closes_one(self, row, closed):
@@ -1114,9 +1146,6 @@ class Test_parse_section:
                 "U+2705",
             ),
             (f"| {OLD_MARK} | done |", "U+2705"),
-            ("| Closed how the gate renders in a TUI | seen on screen |", "`Closed`"),
-            ("| CLOSED how the gate renders in a TUI | seen on screen |", "`CLOSED`"),
-            ("| closed: how the gate renders in a TUI | seen on screen |", "`closed:`"),
         ],
         ids=[
             "bare",
@@ -1125,15 +1154,12 @@ class Test_parse_section:
             "a word joiner",
             "the old mark as a keyboard emits it",
             "the bare old mark",
-            "capitalised",
-            "upper case",
-            "a colon",
         ],
     )
-    def test_refuses_a_bare_word_the_old_mark_and_another_spelling(self, row, says):
+    def test_refuses_a_bare_word_and_the_old_mark(self, row, says):
         """T4 of `1792129100-the-mechanics-leave-before-the-agents-are-rewritten`:
-        a closing that a capital or a colon would turn back into an open
-        row, a bare word, and the emoji mark."""
+        a bare word, and the emoji mark. Another spelling of the word is an
+        open row (#1167), `test_accepts_open_rows_and_the_word_that_closes_one`."""
         _, _, errors = parse(CANONICAL.replace(TUI, row))
         assert errors and says in errors[0][1], errors
 
@@ -1150,15 +1176,34 @@ class Test_parse_section:
         )
 
     @pytest.mark.parametrize("first", ["none - x", "none", "None.", "nothing - x"])
-    def test_refuses_the_old_line_naming_the_block(self, first):
-        """S2 of #1000: the working tree refuses the old line and its near
-        misses at the line, naming the block."""
+    def test_refuses_a_section_holding_the_old_line_and_names_the_line(self, first):
+        """S2 of #1000 and #1167's *Scope* item 9: the old line and its near
+        misses are not the block, so the section holds neither the table nor
+        the block and is refused as unreadable at that line, and the refusal
+        names the line as one it did not read, pinned whole (contract rule
+        14). Seen red against the refusal naming the near miss as the
+        block's."""
         section = f"## Not verified\n\n{first}\n"
         assert parse(section) == (
             [],
             [],
-            [(3, f"a section that holds nothing writes {BLOCK}")],
+            [
+                (
+                    3,
+                    "expected `| Item | Who must answer |`, found prose. Prose "
+                    "belongs under `## Not done`; this section is read by a "
+                    f"machine. Not read: `{first}` opens like {BLOCK} and is "
+                    "not it, so it was read as prose",
+                )
+            ],
         )
+
+    def test_names_no_line_that_does_not_open_like_the_block(self):
+        """The naming is the prose refusal's only where the line opens like
+        the block: other prose is refused without it."""
+        section = "## Not verified\n\n- the TUI rendering, nobody has seen it\n"
+        ((_line, says),) = parse(section)[2]
+        assert says.endswith("this section is read by a machine"), says
 
     @pytest.mark.parametrize(
         "body, bad, says",
