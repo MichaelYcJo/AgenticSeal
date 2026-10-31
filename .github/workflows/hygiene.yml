@@ -138,7 +138,7 @@ jobs:
       #
       # This is the first step in this file to use `gh`, which is why the job
       # gained the `permissions:` block above.
-      - name: the milestone this release claims is the work it carries
+      - name: the milestone this release claims is the work it carries, and a patch carries no feat
         env:
           GH_TOKEN: ${{ github.token }}
           HEAD_BRANCH: ${{ github.head_ref }}

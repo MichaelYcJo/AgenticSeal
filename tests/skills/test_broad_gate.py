@@ -2496,7 +2496,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: a declared review chain has the round record it claimed
         run: true
-      - name: the milestone this release claims is the work it carries
+      - name: the milestone this release claims is the work it carries, and a patch carries no feat
         run: |
           if [ "${{ github.base_ref }}" != "main" ]; then
             echo "not a release"; exit 0
@@ -2709,8 +2709,9 @@ class Test_main:
         assert "both READMEs move together" in result.stderr
         # A11 at the fixture: the step CI will not run here is not named among
         # the unanswered, and one clause says how many were left out and why.
-        assert "the milestone this release claims is the work it carries" not in (
-            result.stderr
+        assert (
+            "the milestone this release claims is the work it carries, and a patch carries no feat"
+            not in result.stderr
         ), result.stderr
         assert (
             "runs 2 steps for this base and this run answers 1. 1 more runs only on "

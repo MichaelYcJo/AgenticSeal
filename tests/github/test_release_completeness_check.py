@@ -13,6 +13,12 @@ between them stops a release and which only gets reported:
 needs the fake tracker is the wiring above it, `Test_main`'s: which command
 each set is read with, and the range D is read over.
 
+Issue #1199 adds the second question the step asks: a release named as a
+patch whose own commit subjects carry a `feat:` is refused, because a
+`feat:` makes a minor. `judge_feat()` is pure too, and `Test_judge_feat`
+holds its lines; `Test_main` holds that both readings run on one read of
+the subjects and that either one fails the step.
+
 #942's phase 6 placed these cases from
 `tests/text/test_a_release_cannot_ship_an_untrue_milestone.py`, which keeps the
 cases that read the hygiene workflow's step and the two docstrings that
@@ -32,6 +38,7 @@ TARGET = ".github/scripts/release_completeness_check.py"
 SCRIPT = os.path.join(ROOT, ".github", "scripts", "release_completeness_check.py")
 
 VERSION = "1.2.3"
+MINOR = "1.3.0"
 BRANCH = "release/v1.2.3"
 MILESTONE = "release: 1.2.3"
 LABEL = "merged: 1.2.3"
@@ -52,6 +59,11 @@ def verdict(milestone_open, carried, labels):
         set(milestone_open), set(carried), set(labels), VERSION
     )
     return "\n".join(lines), failed
+
+
+def feat_verdict(version, subjects):
+    lines, failed = gate().judge_feat(version, list(subjects))
+    return lines, failed
 
 
 class Tracker:
@@ -200,6 +212,89 @@ class Test_judge:
         assert "L \\ D" in out and "#77" in out
 
 
+class Test_judge_feat:
+    @pytest.mark.rule("a-patch-carries-no-feat")
+    def test_refuses_a_feat_in_a_patch_and_names_each_subject_and_the_push(self):
+        """S1. A `feat:` makes a minor, and a release named as a patch that
+        carries one ships a minor's content under a patch's number, which 14
+        of the 37 patch releases from v0.8.1 to v0.25.1 did. The refusal is
+        read by whoever is stopped by it, so it names what to do: the push."""
+        lines, failed = feat_verdict(
+            VERSION,
+            ["fix: a repair (#9)", "feat: a thing (#10)", "feat: another (#11)"],
+        )
+        assert failed, "a patch carrying a feat: let the release through"
+        errors = [line for line in lines if line.startswith("::error::")]
+        assert len(errors) == 1, lines
+        error = errors[0]
+        assert "`feat: a thing (#10)`" in error and "`feat: another (#11)`" in error
+        assert "fix: a repair" not in error, "a fix: subject is named as a feat:"
+        assert f"{VERSION} is a patch" in error, error
+        assert f"rename {MILESTONE!r} and every later planned" in error, error
+        assert "cut this branch again under the new name" in error, error
+        assert "plugin.json" in error, error
+        assert "docs/branch-and-release.md" in error, error
+        assert "never lowered to fit the number" in error, error
+        assert lines[0] == error, "the refusal is not the first line a reader meets"
+
+    @pytest.mark.rule("a-patch-carries-no-feat")
+    def test_accepts_a_feat_in_a_minor_and_counts_it(self):
+        """S2. A minor is where a `feat:` belongs."""
+        lines, failed = feat_verdict(MINOR, ["feat: a thing (#10)", "fix: x (#9)"])
+        assert not failed
+        assert lines == [
+            f"1 feat: subject(s) on this release branch, and {MINOR} is a minor"
+        ], lines
+
+    @pytest.mark.rule("a-patch-carries-no-feat")
+    def test_a_patch_with_no_feat_passes_and_counts(self):
+        """S3. Every prefix but `feat:` fits a patch."""
+        lines, failed = feat_verdict(
+            VERSION, ["fix: a (#1)", "refactor: b (#2)", "chore: c (#3)"]
+        )
+        assert not failed
+        assert lines == [
+            f"0 feat: subject(s) on this release branch, and {VERSION} is a patch"
+        ], lines
+
+    @pytest.mark.rule("a-patch-carries-no-feat")
+    @pytest.mark.parametrize(
+        "near",
+        [
+            "Feat: a thing (#12)",
+            "feat(agents): a thing (#12)",
+            "feat!: a thing (#12)",
+            "FEAT a thing (#12)",
+        ],
+    )
+    def test_a_spelling_the_reading_does_not_count_is_named_as_not_read(self, near):
+        """S4. The reading counts the one spelling `feat:` and keeps no list of
+        the others. A subject whose first word is `feat` in another spelling is
+        named, so the person reading the log judges what it meant, and it
+        changes no exit code."""
+        lines, failed = feat_verdict(VERSION, [near, "featured: a word (#13)"])
+        assert not failed, f"{near!r} was counted as a feat:"
+        assert f"not read: {near}" in lines, lines
+        assert lines[0] == (
+            f"0 feat: subject(s) on this release branch, and {VERSION} is a patch"
+        ), lines
+        assert not any("featured" in line for line in lines), (
+            f"a word that only begins with feat is named: {lines}"
+        )
+
+    @pytest.mark.rule("a-patch-carries-no-feat")
+    def test_a_minor_with_no_feat_ships_as_the_minor_it_was_named(self):
+        """S7. A milestone is never pulled back, so a minor that ends up with no
+        `feat:` passes and says it ships under the number it was named."""
+        lines, failed = feat_verdict(MINOR, ["fix: x (#9)"])
+        assert not failed
+        assert lines == [
+            f"0 feat: subject(s) on this release branch, and {MINOR} is a minor",
+            f"{MINOR} carries no feat: and ships as the minor it was named; "
+            "a milestone is never pulled back",
+        ], lines
+
+
 class Test_main:
     @pytest.mark.parametrize(
         "head",
@@ -234,16 +329,63 @@ class Test_main:
         same reason. What it must not be is silent.
         """
         m = gate()
-        monkeypatch.setattr(m, "milestone_titles", lambda repo: {"release: 9.9.9"})
+        tracker = Tracker(milestones=["release: 9.9.9"], subjects=["fix: x (#100)"])
+        wire(monkeypatch, m, tracker, {})
         monkeypatch.setattr(
             m, "open_in_milestone", lambda *a: pytest.fail("the empty set was measured")
         )
-        monkeypatch.setenv("HEAD_BRANCH", BRANCH)
-        monkeypatch.setenv("REPO", REPO)
         assert m.main() == 0
         out = capsys.readouterr().out
-        assert "verified NOTHING" in out, out
+        assert "the milestone reading verified NOTHING" in out, out
+        assert "That reading passes anyway" in out, out
         assert MILESTONE in out
+
+    @pytest.mark.rule("a-patch-carries-no-feat")
+    def test_a_feat_in_a_patch_refuses_where_the_milestone_does_not_exist(
+        self, monkeypatch, capsys
+    ):
+        """S5. The milestone reading passes a release nobody scheduled, and
+        the version reading does not need a milestone: the number is in the
+        head branch's name and the subjects are in its range."""
+        m = gate()
+        tracker = Tracker(
+            milestones=["release: 9.9.9"], subjects=["feat: a thing (#100)"]
+        )
+        wire(monkeypatch, m, tracker, {})
+        monkeypatch.setattr(
+            m, "open_in_milestone", lambda *a: pytest.fail("the empty set was measured")
+        )
+        assert m.main() == 1
+        out = capsys.readouterr().out
+        assert "the milestone reading verified NOTHING" in out, out
+        assert "Passing anyway" not in out, (
+            "the warning tells a reader a run that exits 1 passed"
+        )
+        assert "::error::" in out and "`feat: a thing (#100)`" in out, out
+
+    @pytest.mark.rule("a-patch-carries-no-feat")
+    def test_both_readings_run_on_one_read_of_the_subjects(self, monkeypatch, capsys):
+        """The milestone the release satisfies does not let a feat: in a patch
+        through, and the range is read once for both readings."""
+        m = gate()
+        tracker = Tracker(m=[88], label=[88], subjects=["feat: a thing (#100)"])
+        wire(monkeypatch, m, tracker, {100: "Closes #88"})
+        assert m.main() == 1
+        out = capsys.readouterr().out
+        assert "::error::" in out and "`feat: a thing (#100)`" in out, out
+        assert "D (carried by this release branch): #88" in out, (
+            "the milestone reading did not run beside the version reading"
+        )
+        logs = [args for args in tracker.calls if args[:2] == ("git", "log")]
+        assert len(logs) == 1, f"the subjects were read {len(logs)} times"
+
+    def test_a_milestone_refusal_fails_the_step_with_no_feat(self, monkeypatch):
+        """The exit code is either reading's failure, so the milestone's own
+        refusal still stops a patch that carries no feat:."""
+        m = gate()
+        tracker = Tracker(m=[88, 92], label=[88], subjects=["fix: a thing (#100)"])
+        wire(monkeypatch, m, tracker, {100: "Closes #88"})
+        assert m.main() == 1
 
     def test_accepts_a_release_branch_and_measures_from_where_it_left_main(
         self, monkeypatch
@@ -252,7 +394,7 @@ class Test_main:
         is wrong the moment a hotfix moves `main` during a release's life; what
         the release carries is what it accumulated since it was cut."""
         m = gate()
-        tracker = Tracker(m=[88], label=[88], subjects=["feat: a thing (#100)"])
+        tracker = Tracker(m=[88], label=[88], subjects=["fix: a thing (#100)"])
         wire(monkeypatch, m, tracker, {100: "Closes #88"})
         assert m.main() == 0
         assert tracker.call_with("merge-base") == (
@@ -282,7 +424,7 @@ class Test_main:
         So the head is an input now, and this is the case that has it.
         """
         m = gate()
-        tracker = Tracker(m=[88], label=[88], subjects=["feat: a thing (#100)"])
+        tracker = Tracker(m=[88], label=[88], subjects=["fix: a thing (#100)"])
         wire(monkeypatch, m, tracker, {100: "Closes #88"})
         monkeypatch.setenv("HEAD_SHA", "c" * 40)
         assert m.main() == 0
@@ -307,7 +449,7 @@ class Test_main:
         assertion above.
         """
         m = gate()
-        tracker = Tracker(m=[88], label=[88], subjects=["feat: a thing (#100)"])
+        tracker = Tracker(m=[88], label=[88], subjects=["fix: a thing (#100)"])
         wire(monkeypatch, m, tracker, {100: "Closes #88"})
         assert m.main() == 0
         assert tracker.call_with("merge-base")[3] == "HEAD"
@@ -327,7 +469,7 @@ class Test_main:
         by growth rather than now.
         """
         m = gate()
-        tracker = Tracker(m=[88], label=[88], subjects=["feat: a thing (#100)"])
+        tracker = Tracker(m=[88], label=[88], subjects=["fix: a thing (#100)"])
         wire(monkeypatch, m, tracker, {100: "Closes #88"})
         assert m.main() == 0
         call = tracker.call_with("gh", "api")
@@ -352,7 +494,7 @@ class Test_main:
         never carry `merged: X.Y.Z`, so it would sit in `M \\ D` and block the
         release forever with nothing anybody could do about it."""
         m = gate()
-        tracker = Tracker(m=[88], label=[88], subjects=["feat: a thing (#100)"])
+        tracker = Tracker(m=[88], label=[88], subjects=["fix: a thing (#100)"])
         wire(monkeypatch, m, tracker, {100: "Closes #88"})
         assert m.main() == 0
         call = tracker.call_with("--milestone")
@@ -364,7 +506,7 @@ class Test_main:
         put on it. Reading only the open ones would report it as `D \\ L` — the
         signal blamed for a person's edit."""
         m = gate()
-        tracker = Tracker(m=[], label=[88], subjects=["feat: a thing (#100)"])
+        tracker = Tracker(m=[], label=[88], subjects=["fix: a thing (#100)"])
         wire(monkeypatch, m, tracker, {100: "Closes #88"})
         assert m.main() == 0
         call = tracker.call_with("--label")
@@ -379,7 +521,7 @@ class Test_main:
         tracker = Tracker(
             m=[88],
             label=[88],
-            subjects=["feat: a thing (#100)", "docs: quoted (#101)"],
+            subjects=["fix: a thing (#100)", "docs: quoted (#101)"],
         )
         wire(monkeypatch, m, tracker, {100: "Closes #88", 101: "```\nCloses #92\n```"})
         assert m.main() == 0

@@ -2220,7 +2220,7 @@ PARTITION = (
         None,
     ),
     (
-        "the milestone this release claims is the work it carries",
+        "the milestone this release claims is the work it carries, and a patch carries no feat",
         None,
         "asks the tracker through `gh` which issues the milestone holds. The "
         "gate reads no network and carries no token",
@@ -2264,7 +2264,7 @@ MAIN = "main"
 # `main`, so every mirrored arm runs at every base.
 ONLY_AT_MAIN = (
     "a change to what ships must move the version",
-    "the milestone this release claims is the work it carries",
+    "the milestone this release claims is the work it carries, and a patch carries no feat",
 )
 
 
