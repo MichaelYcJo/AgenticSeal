@@ -44,13 +44,15 @@ Usage:
                                          release's shipped commits;
                                          repeatable
 
-A run in which no commit read holds a round 1 record in either layout
-prints each commit's `left out:` line where it lists, then says so on
-stderr.
+`--case` names on stderr each name it did not write and why, as
+`replay_targets.py` does; with `--list`, each name no line it lists
+answers. A run in which no commit read holds a round 1 record in either
+layout prints each commit's `left out:` line where it lists, then says so
+on stderr, after those names.
 
 Exit codes: 0 written or listed · 1 fewer cases than --count, a named case
-no release shipped, or no commit read holding a round 1 record · 2 the
-arguments were unusable.
+not written, or with --list not listed, or no commit read holding a round
+1 record · 2 the arguments were unusable.
 """
 
 import argparse
@@ -373,6 +375,22 @@ def case_name(t):
     return f"seeded-{t['commit'][:8]}"
 
 
+def say_unanswered(names, answered, left):
+    """Say on stderr each of `--case` NAMES that ANSWERED does not hold,
+    with why it was not written: the reason its commit was left out with
+    among LEFT, else that no release shipped a commit its digits begin; how
+    many there were. The line is `replay_targets.py#say_unanswered`'s."""
+    unanswered = [name for name in names if name not in answered]
+    for name in unanswered:
+        why = next(
+            (w for commit, w in left if case_name({"commit": commit}) == name),
+            "no release shipped a commit that begins with "
+            + name.removeprefix("seeded-"),
+        )
+        print(f"seed_defects: {name} not written: {why}", file=sys.stderr)
+    return len(unanswered)
+
+
 def graders(t):
     """Reach, shape and truth graders for one seeded case: the seeded line,
     each finding round 1 closed fixed that round 2 confirmed, and whatever
@@ -404,9 +422,11 @@ def main(argv=None):
     """Parse the arguments, then list or write. `--case` reads every release
     tag's shipped commits; the rest reads the last three tags'.
 
-    A run in which no commit read holds a round 1 record says so on stderr
-    after its `left out:` lines, and exits 1. An unusable argument is
-    argparse's exit 2."""
+    `--case` names on stderr each name it did not write and why, or with
+    `--list` each name no listed line answers, and exits 1. A run in which
+    no commit read holds a round 1 record says so on stderr after its
+    `left out:` lines and those names, and exits 1. An unusable argument
+    is argparse's exit 2."""
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     p.add_argument("--list", action="store_true")
     p.add_argument("--count", type=int, default=4)
@@ -418,6 +438,7 @@ def main(argv=None):
     tags = rt.last_tags(None) if a.case else rt.last_tags(3)
     prefixes = {name.removeprefix("seeded-") for name in a.case} if a.case else None
     kept, left, held = targets(tags, prefixes)
+    chosen = []
     if a.list:
         for t in sorted(kept, key=lambda t: t["size"]):
             print(
@@ -425,6 +446,32 @@ def main(argv=None):
             )
         for commit, why in left:
             print(f"{commit[:8]} left out: {why}")
+        answered = {case_name(t) for t in kept} | {
+            case_name({"commit": commit}) for commit, _why in left
+        }
+    elif held:
+        chosen = sorted(kept, key=lambda t: (t["size"], t["commit"]))[: a.count]
+        if a.case:
+            chosen = [t for t in kept if case_name(t) in a.case]
+            a.count = len(a.case)
+        url = rt.origin_url()
+        for t in chosen:
+            behaviour.write_case(
+                os.path.join(a.out, case_name(t)),
+                name=f"proofer {case_name(t)}",
+                tags=["behaviour", "proofer", "seeded"],
+                prompt=prompt(t),
+                scaffold=scaffold(t, url),
+                graders=graders(t),
+                max_turns=12,
+                timeout_seconds=a.timeout,
+                model=a.model,
+            )
+            print(f"{case_name(t)}: {t['path']}#{t['unit']}, {t['size']} lines")
+        answered = {case_name(t) for t in chosen}
+    else:
+        answered = set()
+    unanswered = say_unanswered(a.case, answered, left)
     if not held:
         where = ", ".join(tags) or "no release tag"
         print(
@@ -434,25 +481,7 @@ def main(argv=None):
         )
         return 1
     if a.list:
-        return 0
-    chosen = sorted(kept, key=lambda t: (t["size"], t["commit"]))[: a.count]
-    if a.case:
-        chosen = [t for t in kept if case_name(t) in a.case]
-        a.count = len(a.case)
-    url = rt.origin_url()
-    for t in chosen:
-        behaviour.write_case(
-            os.path.join(a.out, case_name(t)),
-            name=f"proofer {case_name(t)}",
-            tags=["behaviour", "proofer", "seeded"],
-            prompt=prompt(t),
-            scaffold=scaffold(t, url),
-            graders=graders(t),
-            max_turns=12,
-            timeout_seconds=a.timeout,
-            model=a.model,
-        )
-        print(f"{case_name(t)}: {t['path']}#{t['unit']}, {t['size']} lines")
+        return 1 if unanswered else 0
     return 0 if len(chosen) == a.count else 1
 
 

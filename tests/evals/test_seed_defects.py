@@ -406,6 +406,56 @@ class Test_module:
         assert sd.main(["--list"]) == 0
         assert capsys.readouterr().err == ""
 
+    def test_names_each_named_case_no_shipped_commit_answers_with_its_reason(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """Guards `--case` answering a name as `replay_targets.py` answers it
+        (#1150): a name no listed line answers, or without `--list` no
+        written case, is said on stderr with why, and the run exits 1, where
+        it said nothing and `--list` exited 0 while another named commit held
+        a round 1 record. A name a kept or a `left out:` line answers is said
+        there alone, and a run that read no round 1 record still says that
+        after the names. Seen red against that silence."""
+        sd = load_script("seed_defects")
+        commits, repo = shipped_item(tmp_path, monkeypatch)
+        write(repo, "b.py", "x = 2\n")
+        bump = commit_everything_as_e(repo, "chore: a bump (#2)")
+        monkeypatch.setattr(sd.rt, "last_tags", lambda count=2: ["v1.1.0", "v1.0.0"])
+        monkeypatch.setattr(sd, "shipped", lambda _tags: [commits["squash"], bump])
+        monkeypatch.setattr(sd.rt, "origin_url", lambda: "https://example.com/x/y.git")
+        kept = f"seeded-{commits['squash'][:8]}"
+        gone = f"seeded-{bump[:8]}"
+        nothing = "seeded-12345678"
+        unshipped = (
+            "seed_defects: seeded-12345678 not written: no release shipped a "
+            "commit that begins with 12345678\n"
+        )
+
+        def case(*names, run=("--list",)):
+            return sd.main([*run, *[x for n in names for x in ("--case", n)]])
+
+        assert case(kept, gone, nothing) == 1
+        said = capsys.readouterr()
+        assert said.out.splitlines()[1:] == [
+            f"{bump[:8]} left out: adds 0 work items' routing.md"
+        ]
+        assert said.err == unshipped
+        assert case(kept, gone) == 0
+        assert capsys.readouterr().err == ""
+        assert case(kept, gone, nothing, run=("--out", str(tmp_path / "out"))) == 1
+        said = capsys.readouterr()
+        assert said.out.startswith(f"{kept}: a.py#g, "), said.out
+        assert said.err == (
+            f"seed_defects: {gone} not written: adds 0 work items' routing.md\n"
+            + unshipped
+        )
+        assert case(nothing) == 1
+        assert capsys.readouterr().err == unshipped + (
+            "seed_defects: no shipped commit read at v1.1.0, v1.0.0 holds a round 1 "
+            "record in `seal/specs/<item>/rounds/` or "
+            "`seal/threads/<item>/trail/rounds/`\n"
+        )
+
     def test_the_replay_and_seeded_generators_read_the_entries_too(
         self, tmp_path, monkeypatch
     ):
