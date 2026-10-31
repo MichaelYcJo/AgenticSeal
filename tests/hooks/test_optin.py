@@ -417,9 +417,8 @@ class Test_opted_in:
 
     def test_accepts_the_old_scratch_file_as_an_ordinary_file(self, optin, repo):
         """Q4. `.specseal/scratch` used to be the opt-out and sat in a committed
-        directory. A file of that name under the root is an ordinary file now;
-        `hooks/root-migrate.py` is the one reader that still looks for the old
-        one, and it looks in order to refuse the move."""
+        directory. A file of that name under the root is an ordinary file now,
+        and nothing reads the old one."""
         home(repo)
         (repo / "seal" / "scratch").write_text("", encoding="utf-8")
         (repo / ".specseal").mkdir()

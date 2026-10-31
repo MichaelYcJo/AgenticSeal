@@ -1045,8 +1045,8 @@ KEPT_OLD_NAMES = (
 )
 # A released work item's record cited at the commit that holds it, as
 # `<commit>:<path>`, the form `git show` opens as written: the settle removed
-# the directory, the session-start move does not rewrite history, so the old
-# path is the only one any commit holds. Taken out of a line before OLD_NAME
+# the directory and nothing rewrites history, so the old path is the only one
+# any commit holds. Taken out of a line before OLD_NAME
 # reads it, whole, so the record names inside the path pass with it.
 HISTORY_PATH = re.compile(
     r"(?<![\w/:])[0-9a-f]{7,40}:"
@@ -1066,14 +1066,10 @@ OLD_NAME_RECORDS = (
 # A replayed or seeded eval case holds a run at a recorded commit, so its
 # bytes are the record (`evals/README.md`).
 RECORDED_CASE = re.compile(r"^evals/behaviour/[^/]+/(?:replay|seeded)-")
-# The migration and its cases spell the 0.22.x layout and the state names a
-# session start moves from, which is the one place those names are read.
 # The replay and seeded cases' generators read round records at the 0.22.x
 # layout every committed case was cut from, each such line exempted at the
 # generator, and their cases build those records.
 KEPT_FILES = (
-    "hooks/root-migrate.py",
-    "tests/hooks/test_root_migrate.py",
     "tests/evals/test_replay_targets.py",
     "tests/evals/test_seed_defects.py",
 )

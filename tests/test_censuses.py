@@ -791,7 +791,7 @@ OLD_SPELLINGS = [
 
 
 class Test_old_names:
-    def test_accepts_the_new_names_kept_spellings_records_and_the_migration(
+    def test_accepts_the_new_names_kept_spellings_records_and_kept_files(
         self, tmp_path
     ):
         living = (
@@ -815,8 +815,8 @@ class Test_old_names:
             "evals/behaviour/proofer/replay-1-r1/prompt.md",
             "evals/behaviour/proofer/seeded-1/prompt.md",
             "evals/scripts/recurred_truths.json",
-            "hooks/root-migrate.py",
-            "tests/hooks/test_root_migrate.py",
+            "tests/evals/test_replay_targets.py",
+            "tests/evals/test_seed_defects.py",
         ):
             plant(tmp_path, rel, old)
         (tmp_path / "x.png").write_bytes(b"\xff\xd8\xff" + OLD.encode())
@@ -832,8 +832,8 @@ class Test_old_names:
             "evals/behaviour/proofer/replay-1-r1/prompt.md",
             "evals/behaviour/proofer/seeded-1/prompt.md",
             "evals/scripts/recurred_truths.json",
-            "hooks/root-migrate.py",
-            "tests/hooks/test_root_migrate.py",
+            "tests/evals/test_replay_targets.py",
+            "tests/evals/test_seed_defects.py",
             "x.png",
             "hooks/kept.py",
         ):

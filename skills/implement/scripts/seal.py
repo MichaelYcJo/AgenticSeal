@@ -756,19 +756,6 @@ def inside(repo, path):
         return False
 
 
-def earlier_root():
-    """The line every subcommand says where `<repo>/seal/` is an earlier
-    release's root (`optin.earlier`), waiting for the session-start move: it
-    is neither opted in nor a project's own, so nothing is written beside it
-    and first setup is not what it needs."""
-    return (
-        f"{optin.HOME}/ is this plugin's root from a release before the rename, "
-        "waiting for the move a session start makes. Commit the work in "
-        "progress under it and start a new session, and the move runs. "
-        "Nothing was written."
-    )
-
-
 def no_root(repo, shared, local):
     if not repo:
         print("not inside a git repository — seal works on a clone")
@@ -782,9 +769,6 @@ def no_root(repo, shared, local):
             "reads it as one that never opted in. Remove the marker to work "
             "with its records."
         )
-        return 1
-    if optin.earlier(shared):
-        print(earlier_root())
         return 1
     # Not "nothing to carry": `seal mode` reaches this too, and it carries
     # nothing anywhere. What all three subcommands share is that the root is
@@ -1089,11 +1073,6 @@ def import_(args, cwd):
     repo, home, shared, local, _ = resolve(cwd)
     if not repo:
         print("not inside a git repository — seal works on a clone")
-        return 1
-    if not home and optin.earlier(shared):
-        # With no root in force the import would make one under the git
-        # directory, a second root beside the one the move is about to mark.
-        print(earlier_root())
         return 1
 
     path = os.path.abspath(args.zip)
@@ -1524,9 +1503,8 @@ every row and what an absent one means. -->
 def under(root, rel):
     """The disk path of a `/`-joined repository-relative path.
 
-    Spelled the way `hooks/root-migrate.py#under` spells it, and the split
-    happens HERE rather than inside `os.path.join`, for the reason WORKFLOW
-    gives above.
+    The split happens HERE rather than inside `os.path.join`, for the reason
+    WORKFLOW gives above.
     """
     return os.path.join(root, *rel.split("/"))
 
@@ -1745,8 +1723,7 @@ def porcelain(repo, *paths):
     `git rm`. Enumerating the class is the point; `frame/design.md` *What the switch
     touches* lists all five.
 
-    An unanswerable question reads as dirty, the direction
-    `hooks/root-migrate.py#dirty` takes: moving on a guess is the one
+    An unanswerable question reads as dirty: moving on a guess is the one
     direction with no undo. `git rm -r --cached` drops a staged edit out of
     the index and prints nothing about it (measured 2026-09-03).
     """
@@ -1783,9 +1760,8 @@ def indexed(line, moved=False):
     the shape a stopped run — or a person who ran the README's `mv` by hand —
     leaves behind: the files are gone from the worktree because they are at
     the other root now, and the `git rm -r --cached` that stages it is the
-    step still owed. `hooks/root-migrate.py#dirty` makes exactly this
-    exception, in the same words: "a resume has to see past its own earlier
-    steps or a stopped move can never finish". It is a deletion and NOTHING
+    step still owed: a resume has to see past its own earlier steps, or a
+    stopped move can never finish. It is a deletion and NOTHING
     else — `MD` and `AD` still refuse, because a staged edit is precisely
     what `git rm -r --cached` drops without a word.
 
@@ -1793,18 +1769,16 @@ def indexed(line, moved=False):
     an absent row in from the folder, so the switch a person runs next meets
     a worktree-only modification of the one file the switch rewrites anyway.
     The `??` exception above was written for this and reached half of it: an
-    untracked `config.md` passed and a TRACKED one still refused — and the
-    tracked spelling is every repository `hooks/root-migrate.py` carried over
-    from the 0.3.x layout, whose `.specseal/config.md` arrives committed.
-    That is the population this whole work item exists for. Measured
-    2026-09-03: `seal mode` then `seal mode local` exits 1.
+    untracked `config.md` passed and a TRACKED one still refused, which is
+    every shared root that commits its `config.md`. Measured 2026-09-03:
+    `seal mode` then `seal mode local` exits 1.
 
     A STAGED edit to it still refuses, for the reason every staged edit does:
     `git rm -r --cached` drops it without a word.
 
     A line git could not produce at all does not start with a status pair,
     and reads as indexed — the unanswerable question refuses, which is
-    `hooks/root-migrate.py#dirty`'s direction.
+    `porcelain`'s direction.
     """
     pair = line[:2]
     if pair == "??":
@@ -2024,8 +1998,6 @@ def install_workflow(repo):
     name.
     """
     shared, _local = optin.home_paths(repo)
-    if optin.earlier(shared):
-        return "no-root", earlier_root()
     if not shared or not optin.marked(shared):
         return "no-root", (
             f"{WORKFLOW} was NOT written: {optin.HOME}/ is not in this tree, "

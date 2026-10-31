@@ -350,10 +350,7 @@ def test_the_sentence_that_said_nowhere_else_is_gone():
     assert "`<repo>/seal/` and nowhere else" not in flat(both_halves())
 
 
-OWN_SEAL = "**A `<repo>/seal/` whose `README.md` opens with neither the marker"
-# The paragraph before it: a root an earlier release wrote waits for its move,
-# and the orchestrator creates nothing beside it.
-EARLIER_SEAL = "**A `<repo>/seal/` whose `README.md` opens with a heading an earlier"
+OWN_SEAL = "**A `<repo>/seal/` whose `README.md` does not open with the marker"
 
 
 def test_a_projects_own_seal_gets_nothing_and_the_root_goes_under_the_git_dir():
@@ -367,10 +364,6 @@ def test_a_projects_own_seal_gets_nothing_and_the_root_goes_under_the_git_dir():
     assert f"`{COMMON_DIR}`" in own, own
     assert "local mode" in own, own
     assert boot.index(OWN_SEAL) < boot.index(RECORDS_ONLY)
-    earlier = paragraph(boot, EARLIER_SEAL)
-    assert "`hooks/lib/optin.py#EARLIER_HEADINGS`" in earlier, earlier
-    assert "creates no root beside it" in earlier, earlier
-    assert boot.index(EARLIER_SEAL) < boot.index(OWN_SEAL)
 
 
 # --- Q1: the sentence a session reads, once in each place -----------------
@@ -732,32 +725,28 @@ def test_the_record_no_longer_says_the_checks_would_refuse(parts, wrong):
 
 
 @pytest.mark.parametrize(
-    "parts, opt_in, setup, move",
+    "parts, opt_in, setup",
     [
         (
             ("docs", "one-root-by-lifetime.md"),
             "## The opt-in signal is the root itself",
             "## What first setup asks",
-            "on each branch whose tree still holds them",
         ),
         (
             ("docs", "one-root-by-lifetime.ko.md"),
             "## 옵트인 신호는 루트 자체다",
             "## 처음 설정에서 무엇을 묻는가",
-            "앞선 배치가 남아 있는 브랜치마다",
         ),
     ],
 )
-def test_the_design_record_states_the_setup_rules_where_they_rule(
-    parts, opt_in, setup, move
-):
+def test_the_design_record_states_the_setup_rules_where_they_rule(parts, opt_in, setup):
     """The opt-out sits with the opt-in it takes back, and the question's
-    shape, the workflow it installs and the migration hook's move sit with
-    first setup, in both editions."""
+    shape and the workflow it installs sit with first setup, in both
+    editions."""
     text = read(*parts)
     assert "agentic-scratch" in section(text, opt_in, 2), "/".join(parts)
     body = " ".join(section(text, setup, 2).split())
-    for needle in ("templates/setup/hygiene.yml", COMMON_DIR, "AskUserQuestion", move):
+    for needle in ("templates/setup/hygiene.yml", COMMON_DIR, "AskUserQuestion"):
         assert needle in body, f"{'/'.join(parts)}: {setup} does not name {needle}"
 
 

@@ -462,7 +462,7 @@ class Test_classify:
                     "neighbour.py": printing(decision("deny", "r")),
                     "mode-gate.py": printing(shape),
                     "version-check.py": printing('{"systemMessage": "m"}'),
-                    "root-migrate.py": printing(shape),
+                    "stub-remove.py": printing(shape),
                 },
             )
             session = f"s-{n}"
@@ -485,7 +485,7 @@ class Test_classify:
                 "mode-gate.py failed while running in pre-bash (ValueError: printed "
                 "JSON the dispatcher cannot read: "
             ), (shape, lines)
-            assert gates_said(lines) == ["mode-gate.py", "root-migrate.py"], lines
+            assert gates_said(lines) == ["mode-gate.py", "stub-remove.py"], lines
 
 
 class Test_merge:
@@ -1144,8 +1144,9 @@ class Test_main:
 class Test_module:
     def test_no_group_installs_into_git_or_reads_a_commit_before_it_runs(self):
         """#1027 S16: `pre-bash` holds the mode gate and nothing that reads a
-        commit or carries a waiver to git, and `session-start` runs the stub
-        remover after the root migration, in place of the installer. S1 of
+        commit or carries a waiver to git, and `session-start` runs the
+        version check and the stub remover, in place of the installer and of
+        the move of an earlier layout (work item 1793438028). S1 of
         work item 1793240967: no group reads a command or a spawn for a branch
         switch or a worktree creation, so `pre-agent` holds the mark alone and
         no group answers `PostToolUse` for an Agent call."""
@@ -1153,8 +1154,7 @@ class Test_module:
         assert d.GROUPS["pre-bash"] == ("mode-gate.py",)
         assert d.GROUPS["pre-agent"] == ("implementer-mark.py",)
         assert "post-agent" not in d.GROUPS
-        group = d.GROUPS["session-start"]
-        assert group.index("root-migrate.py") < group.index("stub-remove.py")
+        assert d.GROUPS["session-start"] == ("version-check.py", "stub-remove.py")
         assert not any("install" in g for gates in d.GROUPS.values() for g in gates)
 
     def test_a_message_is_its_first_line_and_capped(self):
