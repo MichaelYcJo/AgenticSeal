@@ -10,7 +10,7 @@
 | `tests/skills/test_deferral_check.py` on Windows: the cases build a workflow's printed path with `os.path.join` to match the tool's `os.path.relpath`, and ran on macOS only | the orchestrator, at the Windows legs of the pull request's CI run |
 | Whether an agent that writes an `unverified` row opens each CI file `seal deferrals` names and reads its trigger; the tool's exit 0 no longer says the file runs before the merge | the proofer, at review of each round record or closing memo whose row defers to CI |
 | Whether the orchestrator writes a row of `frame/plan.md` *Judgments of the run* for each judgment of a run; nothing reads at the pull request whether a row was written | the settling session, at the dry run's judgments after 0.26.0 ships |
-| `tests/skills/test_settle.py`'s two judgments cases on Windows; they ran on macOS only | the orchestrator, at the Windows legs of the pull request's CI run |
+| `tests/skills/test_settle.py`'s cases added in this work on Windows (the judgments, the near-heading and the unreadable-rounds cases, the last patching `os.listdir` through `realpath` and `normcase`); they ran on macOS only | the orchestrator, at the Windows legs of the pull request's CI run |
 | Until the settle applies `frame/design.md` `## Rule changes`, `docs/the-review-record.md` *The run* states the extension line and the route to the framer taken whatever the comparison says, while `skills/code-review/orchestration.md` and both READMEs state the guidance | the settling session, at the settle after 0.26.0 ships |
 
 ## Not done
