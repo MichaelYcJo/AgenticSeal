@@ -46,13 +46,15 @@ fields = chain.FIELDS
 
 def sealer_verdict_patterns():
     """Every `pattern:` a sealer eval grader matches a verdict line with, as
-    `evals/scripts/rule_cases.py` generated it."""
+    `evals/scripts/rule_cases.py` generated it: a `truth-` grader's, which
+    opens at the line, and a `shape-verdict` grader's, which opens at the
+    verdict block holding it."""
     found = []
     for path in sorted(
         (ROOT / "evals" / "behaviour" / "sealer").glob("*/graders/*.md")
     ):
         for line in path.read_text(encoding="utf-8").splitlines():
-            if line.startswith("pattern: '^Verdict:"):
+            if line.startswith("pattern: '") and "Verdict:" in line:
                 found.append(line[len("pattern: '") : -1])
     return found
 

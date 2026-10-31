@@ -120,10 +120,17 @@ def scaffold_gaps(root=EVALS):
     return gaps
 
 
+# A grader pattern that reads a line of a `seal` block starts at the block's
+# opener, as the YAML of a grader file spells it.
+BLOCK_PATTERN = "^" + "`" * 3 + "seal\\n"
+
+
 def sealer_grade_gaps(root=EVALS):
-    """Each sealer case that does not grade the guarantor's file, or that
-    still grades the old sealer's `Broad gate` cell. The sealer's outcome is
-    its verdict in `guarantee.md`; `trail/gate.md` is the script's (#923)."""
+    """Each sealer case that does not grade the verdict in a verdict block of
+    the guarantor's file, or that still grades the old sealer's `Broad gate`
+    cell. The sealer's outcome is its verdict in `guarantee.md`, which
+    stands in a `seal` block since #1198; `trail/gate.md` is the script's
+    (#923)."""
     gaps = []
     top = os.path.normpath(os.path.join(root, "behaviour", "sealer"))
     cases = [d for d in case_dirs(root) if os.path.normpath(d).startswith(top + os.sep)]
@@ -135,7 +142,9 @@ def sealer_grade_gaps(root=EVALS):
             with open(path, encoding="utf-8") as f:
                 graders.append(f.read().split("---")[1])
         if not any(
-            re.search(r"path: '[^']*/guarantee\.md'", g) and "^Verdict:" in g
+            re.search(r"path: '[^']*/guarantee\.md'", g)
+            and BLOCK_PATTERN in g
+            and "Verdict: " in g
             for g in graders
         ):
             gaps.append(f"{rel(d, root)}: no grader reads the verdict in guarantee.md")
@@ -173,7 +182,8 @@ def test_a_bound_on_the_sealers_run_that_is_not_zero_is_a_gap(tmp_path):
     (case / "graders").mkdir(parents=True)
     (case / "prompt.md").write_text("x\n", encoding="utf-8")
     (case / "graders" / "shape-verdict.md").write_text(
-        "---\npath: 'seal/threads/i/guarantee.md'\npattern: '^Verdict:'\n---\nv\n",
+        "---\npath: 'seal/threads/i/guarantee.md'\n"
+        f"pattern: '{BLOCK_PATTERN}Verdict: sealed$'\n---\nv\n",
         encoding="utf-8",
     )
     bound = (

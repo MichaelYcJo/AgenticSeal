@@ -974,14 +974,19 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
     )
     graders = [
         behaviour.reach("sealer"),
+        # The verdict on the `Verdict:` line of a verdict block, written as
+        # `hooks/lib/fields.py` reads it: the block's opener, then lines that
+        # open no fence, then the line. A `Verdict:` line outside a block is
+        # no verdict to the check, so it is none to this grader.
         behaviour.report_regex(
             "shape",
             "verdict",
             guarantee,
-            r"^Verdict:\s*\**"
-            + verdict
-            + (r"\**\s*$" if verdict == "sealed" else r"\b"),
-            f"`guarantee.md` carries the verdict `{verdict}` on its one line.",
+            "^"
+            + "`" * 3
+            + r"seal\n(?:[^`\n][^\n]*\n)*?Verdict: "
+            + (r"sealed$" if verdict == "sealed" else verdict + r" reason: \S"),
+            f"`guarantee.md` carries the verdict `{verdict}` in a verdict block.",
         ),
         shape_tool(
             "commits-nothing",

@@ -289,21 +289,84 @@ RAN_ELSEWHERE = RAN.replace(", whose last line reads `Revision TOKEN`", "").repl
 RAN_UNLABELLED = RAN.replace("executed: ", "")
 
 
+def case_graders(name):
+    """`{grader name: (compiled pattern, match)}` of the regex graders of the
+    case NAME, read back as a side records them."""
+    rc = load_script("rule_cases")
+    case = dict(rc.cases())[name]
+    out = {}
+    for grader, text in case["graders"]:
+        config = ni.grader_from(f"graders/{grader}", text)["config"]
+        if "pattern" in config:
+            out[grader[: -len(".md")]] = (
+                re.compile(config["pattern"], re.M),
+                config["match"],
+            )
+    return out
+
+
+FENCE = "`" * 3
+# A finding as `templates/records/sdd-round.md` has the proofer write it: its
+# heading and its finding block, and no close block, which the fix pass
+# appends.
+OPEN_FINDING = (
+    "## Findings\n\n### 1. `shout_twice` joins with no space\n\n"
+    f"{FENCE}seal\nseverity: should\nlocation: `src/textutil.py:9`\n"
+    f"evidence: read `src/textutil.py:9`\n{FENCE}\n\nWhy it matters: S2.\n\n"
+    "## Confirmations\n"
+)
+# The same finding in labelled lines, the shape before #1198, with the
+# `verdict: open` line the proofer wrote then.
+LABELLED_FINDING = (
+    "## Findings\n\n### 1. `shout_twice` joins with no space\n\n"
+    "severity: should\nlocation: `src/textutil.py:9`\n"
+    "evidence: read `src/textutil.py:9`\nverdict: open\nanswer:\n\n"
+    "## Confirmations\n"
+)
+
+
+class Test_proofer_case:
+    def test_the_findings_shape_reads_an_open_finding_in_its_block(self):
+        """#1198 phase 3: `shape-findings` finds a finding as the round
+        template has the proofer write it, a finding block under its heading
+        with no close block, and finds none written in labelled lines. Seen
+        red against the grader that asked for a `verdict:` line: it missed
+        the first and found the second."""
+        found, match = case_graders(RULE)["shape-findings"]
+        assert match == "contains"
+        assert found.search(OPEN_FINDING)
+        assert not found.search(LABELLED_FINDING)
+        heading = OPEN_FINDING.replace("### 1. ", "")
+        assert not found.search(heading), "a finding with no numbered heading"
+
+
+class Test_sealer_case:
+    def test_the_verdict_shape_reads_the_verdict_in_its_block(self):
+        """#1198 phase 3: each sealer case's `shape-verdict` finds the
+        verdict the case expects on the `Verdict:` line of a verdict block,
+        and finds none on the same line outside a block, which the check
+        reads as no verdict. Seen red against the grader that read a
+        `Verdict:` line anywhere."""
+        rc = load_script("rule_cases")
+        sealer = [n for n, c in rc.cases() if c["agent"] == "sealer"]
+        assert len(sealer) == len(rc.SEALER_RUNS)
+        for name in sealer:
+            found, match = case_graders(name)["shape-verdict"]
+            sealed = name.endswith("-sealed")
+            line = "Verdict: sealed" if sealed else "Verdict: withheld reason: x"
+            block = f"{FENCE}seal\ntarget: abc1234 against main\n{line}\n{FENCE}\n"
+            assert match == "contains"
+            assert found.search("# Guarantee: i\n\n" + block), name
+            assert not found.search(f"# Guarantee: i\n\n{line}\n"), name
+            other = "Verdict: withheld reason: x" if sealed else "Verdict: sealed"
+            assert not found.search(block.replace(line, other)), name
+
+
 class Test_framer_case:
     def graders(self, name="rule-framer-sharp-s"):
         """`{grader name: (compiled pattern, match)}` of the regex graders of
         the framer case NAME, read back as a side records them."""
-        rc = load_script("rule_cases")
-        case = dict(rc.cases())[name]
-        out = {}
-        for name, text in case["graders"]:
-            config = ni.grader_from(f"graders/{name}", text)["config"]
-            if "pattern" in config:
-                out[name[: -len(".md")]] = (
-                    re.compile(config["pattern"], re.M),
-                    config["match"],
-                )
-        return out
+        return case_graders(name)
 
     def test_accepts_a_probes_answer_on_a_grounding_line(self):
         """Guards #1047 S1: `shape-answers-by-probe` is a `contains` regex
