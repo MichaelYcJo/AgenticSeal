@@ -2464,9 +2464,11 @@ def write_gate_file(item, tree, base):
     """Append to `<item>/trail/gate.md` one run block, `run: <tree> against
     <base>`, below the text already there, a work item's heading opening a
     file that was not, and return its path. Nothing is appended where the
-    last block the file holds names the same run. Raises `Refused` where the
-    file cannot be read or written, the reader will not load, or the run is
-    not one the reader reads (#1198)."""
+    last block the file holds names the same run. Raises `Refused`, and
+    writes nothing, where the file cannot be read or written, the reader will
+    not load, the run is not one the reader reads (#1198), or the file as it
+    would be written is one the reader refuses at a line or reads with
+    another run last."""
     path = os.path.join(item, *GATE_FILE.split("/"))
     try:
         with open(path, encoding="utf-8") as handle:
@@ -2486,6 +2488,19 @@ def write_gate_file(item, tree, base):
     if runs and runs[-1].fields[fields.RUN].value == value:
         return path
     text = held.rstrip("\n") + "\n\n" + block
+    # The file as it would be written is read back: below a fence nobody
+    # closed the block's closer closes that fence and no run reads, and a line
+    # the reader refuses is refused at the pull request. Either is refused
+    # here, where a person can fix the file.
+    after = fields.read(text, fields.GATE)
+    if after.refusals:
+        line, why = after.refusals[0]
+        raise Refused(f"seal gate: {path} was not written: line {line}: {why}")
+    if not after.blocks or after.blocks[-1].fields[fields.RUN].value != value:
+        raise Refused(
+            f"seal gate: {path} was not written: the reader reads no run block "
+            "at its end, since a fence above the block hides it"
+        )
     try:
         # `trail/` is made in a thread that has none yet, and never a
         # thread: an `--record` naming no directory is refused at the open.

@@ -2004,6 +2004,27 @@ class Test_write_gate_file:
         assert text.count("run: aaa1111 against ccc3333") == 1, text
         assert text.count("run: aaa1111 against bbb2222") == 2, text
 
+    @pytest.mark.parametrize(
+        "held",
+        ["# x\n\na note\n\n" + "`" * 3 + "\n", "<!-- a note -->\n\n# x\n"],
+        ids=["a fence nobody closed", "a comment line"],
+    )
+    def test_refuses_a_file_whose_new_run_the_reader_would_not_read(
+        self, tmp_path, held
+    ):
+        """Round 1 of #1198, finding 2: the run is appended to whatever the
+        file holds, so the file as it would be written is read back. Below a
+        fence nobody closed the new block's closer closes that fence and no
+        run block reads; a comment line is refused at the pull request. Each
+        is refused here, where a person can fix the file, and the file is
+        left as it was."""
+        record = tmp_path / "trail" / "gate.md"
+        record.parent.mkdir()
+        record.write_text(held, encoding="utf-8")
+        with pytest.raises(gate.Refused, match="was not written"):
+            gate.write_gate_file(str(tmp_path), "aaa1111", "bbb2222")
+        assert record.read_text(encoding="utf-8") == held
+
     def test_refuses_a_run_the_reader_would_refuse(self, tmp_path):
         with pytest.raises(gate.Refused, match="does not read whole as `run: <value>`"):
             gate.write_gate_file(str(tmp_path), "HEAD", "main")
