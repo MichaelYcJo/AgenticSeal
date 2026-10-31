@@ -1902,18 +1902,45 @@ class Test_check_record:
         assert any("says `pass` and its numbers give `fail`" in p for p in problems)
         assert any("rule 5" in p for p in problems)
 
-    def test_a_count_spaced_otherwise_is_read_as_naught(self):
-        """`check` reads a row count only in the spacing `compare` writes, so a
-        hand-edited record whose `New false rows` cell is spaced otherwise and
-        whose verdict line says `pass` passes on a count it never read, as
-        `evals/README.md` says."""
+    @pytest.mark.parametrize(
+        "row",
+        [
+            "|  New false rows | 15 |",
+            "| New false rows |15 |",
+            "| New false rows | 15|",
+            "| New false rows | 15 | ",
+        ],
+        ids=[
+            "the name spaced otherwise",
+            "no space before the value",
+            "no space after the value",
+            "a space after the last pipe",
+        ],
+    )
+    def test_a_count_row_spelt_otherwise_is_read_as_naught(self, row):
+        """`check` finds a row count only on a line spelt `| <name> | <value> |`
+        with nothing outside the pipes, one space on each side of the name and
+        at least one on each side of the value, so a hand-edited record whose
+        `New false rows` row is spelt otherwise and whose verdict line says
+        `pass` passes on a count it never read, as `evals/README.md` says."""
         text = written(false=15)
         assert any("false-finding rate rose" in p for p in NI.check_record(text))
-        edited = text.replace("| New false rows | 15 |", "|  New false rows | 15 |")
+        edited = text.replace("| New false rows | 15 |", row)
         edited = edited.replace("Verdict: fail", "Verdict: pass")
-        assert edited.count("|  New false rows | 15 |") == 1
+        assert edited.count(row) == 1
         assert "Verdict: pass" in edited
         assert NI.check_record(edited) == []
+
+    def test_a_count_padded_with_more_spaces_is_read(self):
+        """The other half of the same `evals/README.md` sentence: a value cell
+        with more than one space on either side is found, so the record's
+        edited verdict is refused on the count it carries."""
+        text = written(false=15)
+        edited = text.replace("| New false rows | 15 |", "| New false rows |  15   |")
+        edited = edited.replace("Verdict: fail", "Verdict: pass")
+        assert edited.count("| New false rows |  15   |") == 1
+        problems = NI.check_record(edited)
+        assert any("says `pass` and its numbers give `fail`" in p for p in problems)
 
 
 MODEL_GRADERS = {
