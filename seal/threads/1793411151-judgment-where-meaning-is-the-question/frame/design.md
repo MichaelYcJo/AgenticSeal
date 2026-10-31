@@ -97,15 +97,7 @@ Table A is the table under *The checks* in the `add` item for `docs/what-a-scrip
 
 ### Table B. The invariants, in the core
 
-| Invariant | What it protects | Held by |
-|---|---|---|
-| The routing answer comes before the first edit, and no question to a person follows it | a person is asked once, before the first edit, and nothing stops to ask afterwards | `hooks/routing-edit-gate.py` refuses the first edit on an undeclared branch; `hooks/question-gate.py` refuses the question tool under `Automation` `yes` |
-| No review without a build | a round reads a committed tree and its record names the commit | `chain_check.py`'s records arm: `target:` and every `fixed` commit are commits the branch holds |
-| No fix that no round reads | every change after the last round is read by a round, or by the sealer where it touched the work item's records alone | `chain_check.py`: the last record is at HEAD or only the work item's records follow it, and every `fixed` or `rejected` finding is named by the next record |
-| No seal without the broad run at HEAD | the sealer guarantees a tree the repository's `Broad gate` row in `seal/config.md` passed at HEAD | `agents/sealer.md` step 1 withholds without `trail/gate.md` at HEAD; `chain_check.py`'s broad gate arm |
-| No pull request without a seal | nothing reaches the base that the last independent party did not guarantee | `chain_check.py`'s guarantee arm: a ready pull request fails without `Verdict: sealed` at HEAD |
-
-The rows go into the core as written, with `chain_check.py` spelt by its path in the first row that names it and "the same check" after; the core is shipped to every repository, so the fourth row names the `Broad gate` row by its coordinate and no tool, since what the row runs is each repository's own (this one's runs ruff and `bin/test`, and no typecheck).
+Table B is the table under *Judgment is not licence to skip a party* in `skills/core/SKILL.md`, as phase 1 built it and round 1's fix pass corrected it (`trail/rounds/round-1.md` findings 1 to 3), and it stands there once. Its five invariants are the core's list before this work; each row adds what the invariant protects and the mechanism that holds it, `chain_check.py` is spelt by its path in the first row that names it and "the same check" after, and the fourth row names the `Broad gate` row by its coordinate and no tool, since what the row runs is each repository's own. The orchestrator replaced this frame's copy of the rows with this pointer on 2026-10-31, after round 1 left the two copies saying different things.
 
 ### Table C. Where each party's judgment stands
 
