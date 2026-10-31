@@ -42,7 +42,7 @@ here.
 severity: should
 location: `skills/commit-pr-convention/SKILL.md:139-142`, `skills/commit-pr-convention/SKILL.md:148-151`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/changelog.md:7`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/frame/design.md:83`
 evidence: read `skills/commit-pr-convention/SKILL.md:129-151`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/changelog.md:7`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/frame/design.md:83-85`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/frame/design.md:107`, `skills/code-review/SKILL.md:21-24`
-verdict: open
+verdict: fixed 8793f1f7
 reopens: round-3#1
 
 The close holds for the records in the skill and does not hold in the
@@ -101,14 +101,14 @@ change decided its effect, while a work item's own records never decide a
 change's prefix.
 ```
 
-answer:
+answer: Holds, and round 3's answer to finding 1 was wrong about the fragment: `changelog.md:7` still said "never `docs:` and never `chore:`" with no case for the records. The behaviour clarification now names text a party reads and acts on, with the four kinds as examples, and says a change to it is never `docs:` and is `chore:` in two cases only: a work item's own records, which fall under the clarification before it, and an effect a released change already decided, such as a settle writing released rule changes, which *An effect is counted once* gives `chore:`. The fragment states the same two cases in the same commit. The paste-ready text was not applied as written: it made `chore:` a property of the four named kinds and left the policy text the settle writes outside the sentence's scope, which is the reading this finding refuses. Worked example "a settle that writes released rule changes only" now follows from one reading. `frame/design.md:83` still says "never `docs:` and never `chore:`", and the orchestrator folds it.
 
 ### 2. The `docs:` row says "text nobody acts on", where a user acts on a README's install steps, and the skill's own examples call a README edit `docs:`
 
 severity: should
 location: `skills/commit-pr-convention/SKILL.md:129`, `skills/commit-pr-convention/SKILL.md:135-137`, `skills/commit-pr-convention/SKILL.md:292`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/frame/design.md:76`
 evidence: read `skills/commit-pr-convention/SKILL.md:118-129`, `skills/commit-pr-convention/SKILL.md:135-142`, `skills/commit-pr-convention/SKILL.md:290-293`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/frame/design.md:76`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/frame/design.md:109-111`
-verdict: open
+verdict: fixed 8793f1f7
 
 The unit is the `docs:` row `b63534ef` rewrote. The opening sentence
 (`:118-120`) says whoever meets a change is "a user or a party working on a
@@ -138,14 +138,14 @@ In skills/commit-pr-convention/SKILL.md:129 and frame/design.md:76:
 | `docs:` | text people read and no party acts on | a README, its install steps among them; a comment |
 ```
 
-answer:
+answer: Holds. The `docs:` row now reads "text people read and no party acts on", with the examples "a README, its install steps among them; a comment", the paste-ready row applied as written. The line is drawn at a party, the word the behaviour clarification uses, so a user acting on install steps does not lift a README edit out of `docs:`, and text a party acts on as part of its work, such as a skill or the policy documents, stays behaviour. Checked against every worked example: the two README edits (`frame/design.md:109`, `:111`) and the branch example `docs/the-readme-says-how-to-install` are `docs:` by the row; the settle examples are not `docs:`, because the policy documents are text a party acts on, and stay `chore:` or the rewrite's kind; no other example names a `docs:` change. The fragment's `docs:` sentence was rewritten in the same commit. `frame/design.md:76` still holds the old row, and the orchestrator folds it.
 
 ### 3. The opening and the grounds clarification give "the writer" a duty only the orchestrator can do, and the retitling sentence names nobody
 
 severity: should
 location: `skills/commit-pr-convention/SKILL.md:118-120`, `skills/commit-pr-convention/SKILL.md:153-156`, `skills/commit-pr-convention/SKILL.md:158-161`
 evidence: read `skills/commit-pr-convention/SKILL.md:17-20`, `skills/commit-pr-convention/SKILL.md:118-161`, `skills/commit-pr-convention/SKILL.md:222-248`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/trail/phases/phase-3.md:16`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/frame/plan.md:29`
-verdict: open
+verdict: fixed 8793f1f7
 
 The units are the opening sentence and the sixth clarification `b63534ef`
 wrote, and the half-sentence it added to the issue paragraph. The skill
@@ -194,7 +194,7 @@ where the pull request takes another prefix, the orchestrator retitles the
 issue when it titles the pull request.
 ```
 
-answer:
+answer: Holds. The opening sentence drops "and the writer states its grounds", as the paste-ready text has it. The sixth clarification opens "The orchestrator states the grounds for a pull request's title", in its part of the body, as the paste-ready text has it. What a crafter's commit does instead is in the fourth clarification, which now ends "on the grounds the orchestrator states for that pull request", so a commit that builds its work item's rule takes its pull request's kind and states no grounds of its own. The issue paragraph now says that where the pull request takes a prefix other than the issue's, the orchestrator retitles the issue when it titles the pull request. The fragment says the same three things in the same commit. `trail/phases/phase-3.md:16` stays as a phase record of a decision made while building, which the skill no longer asks for and does not forbid; a fix pass writes no phase record. Stale in the frame, for the orchestrator to fold: `frame/design.md:65` "the writer states its grounds where a party reads them", `:67` the opening's "and the writer states its grounds", `:86` the sixth clarification's "The writer states the grounds" and "is retitled with it", and the `## Rule changes` text for `docs/issues-and-milestones.md`, "the issue is retitled when the pull request is", which names no actor.
 
 ## Confirmations
 
