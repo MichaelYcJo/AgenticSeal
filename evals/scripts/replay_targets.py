@@ -7,8 +7,19 @@ every finding the round closed `fixed` that the next round confirmed
 closed, and every truth `recurred_truths.json` adds for the case or widens
 (`truths_with`, which the other two generators read too); each is a
 `truth-` grader over the `location:` lines of the round record the proofer
-writes today. A record comes in one of two shapes:
+writes today. A record comes in one of three shapes, decided in this order
+by this tree's readers:
 
+  blocks     the record since #1198, which holds a `seal` block
+             `hooks/lib/fields.py` reads, judged and read by
+             `chain_check.py#round_of` and `#round_read` of the commit that
+             last wrote it, so no line of a block is read by a pattern of
+             this file. The commit and the base are its round block's
+             `target:` value, a finding is a `### <n>. ` section whose
+             finding block gives its `location:` value and whose close block
+             reads `verdict: fixed <commit>`, and the next round confirms it
+             in a block reading `confirms: round-<N>#<n>`. It carries no
+             asked paragraph, so the prompt carries none
   labelled   0.22.0's record (`docs/the-review-record.md` *The round
              record*), judged by the `chain_check.py` of the commit that
              last wrote it and its lines read by that commit's reader
@@ -135,9 +146,11 @@ LOCATION = re.compile(
     r"`(?P<path>[\w./-]+\.\w+)(?::(?P<line>\d+)(?:[-\N{EN DASH}]\d+)?|#(?P<unit>[\w.]+))?`"
 )
 # The two labels of 0.22.0's record a replay reads a value from, the level of
-# its finding heading, and the verdict word a truth needs. Every record a
-# replay reads stands in labelled lines, and this tree's check reads a round
-# record's `seal` blocks since #1198, so these are this file's own.
+# its finding heading, and the verdict word a truth needs. This tree's check
+# reads a round record's `seal` blocks since #1198 and carries no reader of a
+# labelled line, so these are this file's own; a record in blocks gives its
+# values through its commit's `round_read`, and `FIXED` is the word a
+# finding's verdict opens with in either.
 TARGET_LABEL = "target:"
 LOCATION_LABEL = "location:"
 FINDING_LEVEL = 3
@@ -230,8 +243,8 @@ def load_check(path, name):
 def record_reader():
     """`(chain_check, its shared reader)`, `chain_check.py` beside this tree,
     loaded once: the check and reader of a record no commit wrote
-    (`checks_at`), and the reader `labelled` decides a record's shape
-    with."""
+    (`checks_at`), and the readers `blocked` and `labelled` decide a
+    record's shape with."""
     check = load_check(CHECK, "agentic_chain_check")
     return check, check.SHARED_READER
 
@@ -301,6 +314,19 @@ def checks_at(at):
     return CHECKS[blobs]
 
 
+def blocked(text):
+    """True for a record in `seal` blocks: one holding a block this tree's
+    `hooks/lib/fields.py` reads, which no labelled or table record carries.
+
+    This tree's parser decides it, as `labelled` is decided, because the
+    shape is decided before any check judges the record. Any block of a
+    round record's kinds counts, not the round block alone, so a record
+    whose round block the parser refuses is still judged by its commit's
+    check, which names the refusal, and is never read as a table."""
+    check, _reader = record_reader()
+    return bool(check.FIELDS.read(text, check.FIELDS.ROUND_RECORD).blocks)
+
+
 def labelled(text):
     """True for a record in 0.22.0's labelled lines: one whose readable
     lines hold a `target:` line, which no table record carries.
@@ -349,8 +375,7 @@ def labelled_round(text, rel, n, at=None):
     judge, reader = checks_at(at)
     found, errors = judge.round_of(reader, text, rel, n)
     if errors:
-        _rel, line, why = errors[0]
-        return None, f"the check refuses the record at line {line}: {why}"
+        return None, refusal(errors)
     # The `target:` and `location:` values and where a finding ends are read
     # here, by `label_value` and the finding heading's level, since a
     # commit's check spells its helpers as that commit did and only its
@@ -384,6 +409,60 @@ def labelled_round(text, rel, n, at=None):
         "findings": rows,
         "confirms": confirms,
     }, ""
+
+
+def block_round(text, rel, n, at=None):
+    """`(round, why)` for record N in `seal` blocks, judged by
+    `chain_check.py#round_of` as commit AT holds it, the commit that wrote
+    the record (`written_at`), or this tree's where AT is None: `round` is
+    `labelled_round`'s, its values read from the blocks that commit's
+    `round_read` parsed, the `target:` value from its round block and each
+    finding's `location:` value from its finding block.
+
+    A record that check refuses is `(None, the first refusal)`."""
+    judge, reader = checks_at(at)
+    found, errors = judge.round_of(reader, text, rel, n)
+    if errors:
+        return None, refusal(errors)
+    parsed = judge.round_read(reader, text, rel)
+    fields = judge.FIELDS
+    located = {
+        first + 1: block.fields[fields.LOCATION].value
+        for k, (first, _stop) in enumerate(parsed.spans)
+        for block in parsed.inside[k]
+        if block.kind is fields.FINDING_BLOCK
+    }
+    rows = [
+        (
+            f.number,
+            f.heading.split(". ", 1)[1],
+            located[f.heading_line],
+            f.verdict[0] == FIXED,
+        )
+        for f in found.findings
+    ]
+    return {
+        "sha": found.target,
+        "value": parsed.round.fields[fields.TARGET].value,
+        "findings": rows,
+        "confirms": {reference for _line, reference in found.confirms},
+    }, ""
+
+
+def refusal(errors):
+    """Why a record a check refuses is left out: the first of ERRORS, the
+    check's `(path, line, why)` refusals in line order."""
+    _rel, line, why = errors[0]
+    return f"the check refuses the record at line {line}: {why}"
+
+
+def judged_by(text):
+    """The reader of record TEXT's shape whose check judges it,
+    `block_round` or `labelled_round`, in that order; None for a table,
+    which no check judges."""
+    if blocked(text):
+        return block_round
+    return labelled_round if labelled(text) else None
 
 
 def cells(line):
@@ -454,8 +533,8 @@ def base_of(paragraph, target, landed=None):
 
 
 def target_base(value, target, landed=None):
-    """`(base SHA, base ref or None)` a labelled record's `target:` VALUE
-    names for TARGET: a fix range `<a>..<b>`'s start, an `against <sha>`
+    """`(base SHA, base ref or None)` the `target:` VALUE of a labelled
+    record, or of a round block, names for TARGET: a fix range `<a>..<b>`'s start, an `against <sha>`
     commit, or `against <base>` read as the merge-base of TARGET and
     `origin/<base>` (`ref_base`, LANDED standing for a ref that no longer
     resolves); `("", None)` if none resolves."""
@@ -489,13 +568,14 @@ def findings(text):
 
 def confirmed(text, n, rel="the next round's record", at=None):
     """The finding numbers of round N a record confirms closed: its
-    `confirms: round-<N>#<n>` lines where it is labelled, its 🟢 rows where
-    it is a table.
+    `confirms: round-<N>#<n>` references where it is in blocks or labelled,
+    its 🟢 rows where it is a table.
 
-    A line or row that names no round N finding confirms nothing, and a
-    labelled record the check of AT refuses confirms nothing at all."""
-    if labelled(text):
-        read, _why = labelled_round(text, rel, n + 1, at)
+    A reference or row that names no round N finding confirms nothing, and
+    a record the check of AT refuses confirms nothing at all."""
+    judged = judged_by(text)
+    if judged:
+        read, _why = judged(text, rel, n + 1, at)
         return {k for r, k in read["confirms"] if r == n} if read else set()
     done = set()
     for line in text.split("\n"):
@@ -691,13 +771,15 @@ def round_target(item, n, text, nxt, wrote, replay=True, landed=None, *, layout)
     and its truths each finding the round closed `fixed` that the next
     round confirms, as `{"k", "finding", "location", "pattern"}`.
 
-    A round whose SHAs or branch do not resolve, or a labelled record the
-    check of the commit that wrote it refuses, is left out with the reason.
-    Where REPLAY is set, so is a round with no next round or with no
-    truth; `seed_defects.py` builds on a round with neither."""
+    A round whose SHAs or branch do not resolve, or a record in blocks or
+    labelled lines the check of the commit that wrote it refuses, is left
+    out with the reason. Where REPLAY is set, so is a round with no next
+    round or with no truth; `seed_defects.py` builds on a round with
+    neither."""
     rel = layout.record(item, n)
-    if labelled(text):
-        read, why = labelled_round(text, rel, n, wrote(rel))
+    judged = judged_by(text)
+    if judged:
+        read, why = judged(text, rel, n, wrote(rel))
         if read is None:
             return None, why
         sha, para, label = read["sha"], "", "target"
@@ -710,7 +792,7 @@ def round_target(item, n, text, nxt, wrote, replay=True, landed=None, *, layout)
         return None, f"{label} {sha or '(none)'} does not resolve"
     if nxt is None and replay:
         return None, "no next round to confirm a fix"
-    if labelled(text):
+    if judged:
         base, base_ref = target_base(read["value"], sha, landed)
         names = "the target line"
     else:

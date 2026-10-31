@@ -6,10 +6,10 @@ mutation in it. For a squash commit the release branch shipped, the
 generator finds the work item by the `routing.md` the commit adds, in
 either layout `replay_targets.py#LAYOUTS` names, reads the item's round 1
 record at that commit in the same layout, through
-`replay_targets.py#round_target` for either record shape, and builds the
-case at round 1's target against round 1's base. The case's report is
-written at the path of round 1's record. No round record exists in
-that tree, and every branch commit its files name is an ancestor of the
+`replay_targets.py#round_target` for any of its three record shapes, and
+builds the case at round 1's target against round 1's base. The case's
+report is written at the path of round 1's record. No round record exists
+in that tree, and every branch commit its files name is an ancestor of the
 target. The mutation lands on a line `base..target` added inside a Python
 unit, and it is amended into the target commit with the target's own
 committer and date. The scaffold then removes the remote, writing the base
@@ -222,8 +222,8 @@ def target_at(commit, item, layout, first, second):
     holds in LAYOUT as FIRST with round 2 as SECOND, or `(None, why)`:
     round 1 read by `replay_targets.py#round_target` with round 2
     confirming its fixes, and the seed `seed` finds in round 1's
-    `base..target`. A labelled record is judged by the check of the commit
-    that last wrote it in COMMIT's history, and COMMIT's first parent, the
+    `base..target`. A record in `seal` blocks or in labelled lines is
+    judged by the check of the commit that last wrote it in COMMIT's history, and COMMIT's first parent, the
     release branch the item landed on, stands for a base ref round 1 names
     that no longer resolves. The target's `report` is round 1's record
     path.

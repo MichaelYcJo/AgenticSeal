@@ -3,8 +3,9 @@
 The replay generator writes a behaviour case from a review round this
 repository already ran: the target the round reviewed, and a `truth-`
 grader for each finding the next round confirmed fixed. These cases pin
-which findings count as truths, how a labelled record is read by the
-grammar of the commit that wrote it, and the line window a truth accepts.
+which findings count as truths, how a labelled record and a record in
+`seal` blocks are each read by the check of the commit that wrote it, and
+the line window a truth accepts.
 `test_a_named_case_is_read_at_every_release_tag` holds the seeded
 generator too, because both read the release tags through this module.
 
@@ -31,10 +32,9 @@ def load_script(name):
     return module
 
 
-# The last release whose check reads a round record in labelled lines. Every
-# record a replay reads stands in them, and this tree's check reads `seal`
-# blocks from #1198 on, so a case that needs a commit's check to accept one
-# takes that release's check.
+# The last release whose check reads a round record in labelled lines. This
+# tree's check reads `seal` blocks from #1198 on, so a case that needs a
+# commit's check to accept a labelled record takes that release's check.
 LABELLED_AT = "v0.26.0"
 
 
@@ -51,6 +51,18 @@ def labelled_check_files():
         if shown.returncode == 0:
             found[rel] = shown.stdout
     assert found, f"this clone holds no `{LABELLED_AT}` tag to take its check from"
+    return found
+
+
+def tree_check_files():
+    """`{path: text}` for each of `replay_targets.CHECK_FILES` this tree
+    holds: a check that reads a round record's `seal` blocks."""
+    found = {}
+    for rel in load_script("replay_targets").CHECK_FILES:
+        path = os.path.join(ROOT, *rel.split("/"))
+        if os.path.isfile(path):
+            with open(path, encoding="utf-8") as f:
+                found[rel] = f.read()
     return found
 
 
@@ -104,6 +116,78 @@ confirms: round-3#1
 another round's.
 """
 
+# The two records above in `seal` blocks, as `templates/records/sdd-round.md`
+# lays a record out since #1198.
+BLOCK_ROUND_1 = """# i — review round 1
+
+```seal
+target: 1a2b3c4 against main
+```
+
+## Findings
+
+### 1. a fixed defect
+
+```seal
+severity: must
+location: `src/a.py:12`, `docs/a.md`
+evidence: read `src/a.py:12`
+```
+
+why it matters.
+
+```seal
+verdict: fixed abc1234
+answer: fixed
+```
+
+### 2. a finding that does not hold
+
+```seal
+severity: should
+location: `src/b.py:3`
+evidence: executed `git grep -n b -- src`
+```
+
+```seal
+verdict: rejected
+answer: it holds
+```
+
+## Confirmations
+
+```seal
+confirms: none
+```
+a claim of the frame that matched.
+"""
+
+BLOCK_ROUND_2 = """# i — review round 2
+
+```seal
+target: 2b3c4d5, fixes 1a2b3c4..2b3c4d5
+```
+
+## Findings
+
+## Confirmations
+
+```seal
+confirms: round-1#1
+```
+holds.
+
+```seal
+confirms: round-1#2
+```
+holds.
+
+```seal
+confirms: round-3#1
+```
+another round's.
+"""
+
 # One work item in each layout a release has kept its round records in, as
 # `(item, its directory, the directory of its round records, its branch)`.
 SPECS_ITEM = (
@@ -120,11 +204,18 @@ THREADS_ITEM = (
 )
 
 
-def two_layouts(tmp_path, monkeypatch, rt):
+def two_layouts(
+    tmp_path,
+    monkeypatch,
+    rt,
+    check=labelled_check_files,
+    rounds=(LABELLED_ROUND_1, LABELLED_ROUND_2),
+):
     """A repository whose tag `v1.0.0` holds `SPECS_ITEM`'s rounds 1 and 2
     and whose tag `v1.1.0` holds `THREADS_ITEM`'s, each pair in its own
-    layout and in labelled lines, with the check of `LABELLED_AT` committed
-    before either. Round 1 of each reviewed the commit that added its
+    layout, as ROUNDS gives their text, with the check files CHECK gives
+    committed before either: labelled lines and the check of `LABELLED_AT`
+    by default. Round 1 of each reviewed the commit that added its
     `routing.md`, against the base, and closed finding 1 fixed; round 2
     confirms it. Neither pair stands in the working tree. RT reads the
     repository. `{name: commit}`."""
@@ -146,13 +237,14 @@ def two_layouts(tmp_path, monkeypatch, rt):
         path.write_text(text, encoding="utf-8")
 
     git("init", "-q")
-    for rel, said in labelled_check_files().items():
+    for rel, said in check().items():
         put(rel, said)
     put("src/a.py", "x = 1\n")
     git("add", "-A")
     git("commit", "-qm", "base")
     commits = {"base": git("rev-parse", "HEAD")}
-    for (item, home, rounds, branch), tag in (
+    first_round, second_round = rounds
+    for (item, home, held, branch), tag in (
         (SPECS_ITEM, "v1.0.0"),
         (THREADS_ITEM, "v1.1.0"),
     ):
@@ -163,13 +255,13 @@ def two_layouts(tmp_path, monkeypatch, rt):
         git("add", "-A")
         git("commit", "-qm", f"routing of {item}")
         commits[item] = git("rev-parse", "HEAD")
-        first = LABELLED_ROUND_1.replace("# i ", f"# {item} ").replace(
+        first = first_round.replace("# i ", f"# {item} ").replace(
             "1a2b3c4 against main", f"{commits[item]} against {commits['base']}"
         )
-        put(f"{home}/{rounds}/round-1.md", first)
+        put(f"{home}/{held}/round-1.md", first)
         put(
-            f"{home}/{rounds}/round-2.md",
-            LABELLED_ROUND_2.replace("# i ", f"# {item} "),
+            f"{home}/{held}/round-2.md",
+            second_round.replace("# i ", f"# {item} "),
         )
         git("add", "-A")
         git("commit", "-qm", f"rounds of {item}")
@@ -582,6 +674,74 @@ class Test_module:
             report = f"{home}/{rounds}/round-1.md"
             assert f"Write the report to `{report}`" in rt.prompt(t)
             assert f"run `cat {report}` once" in rt.prompt(t)
+
+    def test_reads_a_round_record_in_seal_blocks_by_the_check_that_wrote_it(
+        self, tmp_path, monkeypatch
+    ):
+        """Guards #1150's second half: from #1198 on a round record holds its
+        fields in `seal` blocks, and the generator read such a record as a
+        table, leaving each out as `Target SHA (none) does not resolve`. A
+        record whose blocks hold a round block is read through the check of
+        the commit that wrote it: its base is the round block's `target:`
+        value, a truth is a finding block's `location:` value whose close
+        block reads `fixed`, and the next round confirms it in a
+        confirmation block. Seen red against phase 1's reader, which left
+        both round 1 records out with that reason."""
+        rt = load_script("replay_targets")
+        commits = two_layouts(
+            tmp_path,
+            monkeypatch,
+            rt,
+            check=tree_check_files,
+            rounds=(BLOCK_ROUND_1, BLOCK_ROUND_2),
+        )
+        kept, left = rt.targets(["v1.1.0", "v1.0.0"])
+        assert [
+            (
+                t["item"],
+                t["target"],
+                t["base"],
+                t["base_ref"],
+                t["asked"],
+                [(x["k"], x["finding"], x["location"]) for x in t["truths"]],
+            )
+            for t in kept
+        ] == [
+            (
+                item,
+                commits[item],
+                commits["base"],
+                None,
+                "",
+                [(1, "a fixed defect", "`src/a.py:12`, `docs/a.md`")],
+            )
+            for item, _home, _rounds, _branch in (SPECS_ITEM, THREADS_ITEM)
+        ]
+        assert left == [
+            (SPECS_ITEM[0], 2, "target 2b3c4d5 does not resolve"),
+            (THREADS_ITEM[0], 2, "target 2b3c4d5 does not resolve"),
+        ]
+
+    def test_refuses_a_record_in_seal_blocks_the_check_refuses(self):
+        """Guards that a replay reads only what a pull request accepted, for
+        a record in `seal` blocks as for a labelled one: a record the check
+        refuses is left out naming the refusal, and a next record it refuses
+        confirms nothing. A record whose round block the parser refuses
+        still holds its other blocks, so it is judged as a record in blocks
+        and never read as a table. Seen red against phase 1's reader, which
+        gave `Target SHA (none) does not resolve`."""
+        rt = load_script("replay_targets")
+        _specs, threads = rt.LAYOUTS
+        bad = BLOCK_ROUND_1.replace("against main", "against main and more")
+        t, why = rt.round_target(
+            "i", 1, bad, BLOCK_ROUND_2, lambda _rel: None, layout=threads
+        )
+        assert t is None
+        assert why.startswith("the check refuses the record at line 4: "), why
+        assert "`target: 1a2b3c4 against main and more`" in why
+        worse = BLOCK_ROUND_2.replace("round-1#1\n", "round-1#1 and more\n")
+        assert rt.confirmed(BLOCK_ROUND_2, 1) == {1, 2}
+        assert rt.confirmed(worse, 1) == set()
 
     def test_says_so_and_exits_1_where_it_reads_no_round_record(
         self, tmp_path, monkeypatch, capsys
