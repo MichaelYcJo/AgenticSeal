@@ -57,4 +57,4 @@ For the orchestrator, after the seal: the comment is the preamble and the rows o
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-01 | A5 accepted: K10 is measured, and the spawn prompt's exclusion of one work item's own records is withdrawn. K12 is accepted as a kind the issue's list did not name | The spawn prompt read the issue's *Out of scope* line as the whole kind, and that line names #1020's recurrence check only. The policy in force gives the standing copies to this audit in words (read: `docs/the-review-record.md:23`, "#1147 audits what stands"), and the owner's comment item 2 on #1147 says the same. K12 is the kind `seal/follow-up.md`'s `console.to_utf8()` row already shows drifting | `docs/the-review-record.md` *A finding's `verdict:` decides it, and severity is for people* |
