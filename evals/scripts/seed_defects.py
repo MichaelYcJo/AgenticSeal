@@ -378,14 +378,16 @@ def case_name(t):
 def say_unanswered(names, answered, left):
     """Say on stderr each of `--case` NAMES that ANSWERED does not hold,
     with why it was not written: the reason its commit was left out with
-    among LEFT, else that no release shipped a commit its digits begin; how
-    many there were. The line is `replay_targets.py#say_unanswered`'s."""
+    among LEFT, else that no shipped commit read has the name's digits as
+    its first eight, which is all `targets` compares; how many there were.
+    The line is `replay_targets.py#say_unanswered`'s."""
     unanswered = [name for name in names if name not in answered]
     for name in unanswered:
         why = next(
             (w for commit, w in left if case_name({"commit": commit}) == name),
-            "no release shipped a commit that begins with "
-            + name.removeprefix("seeded-"),
+            "no shipped commit read has "
+            + name.removeprefix("seeded-")
+            + " as its first eight digits",
         )
         print(f"seed_defects: {name} not written: {why}", file=sys.stderr)
     return len(unanswered)

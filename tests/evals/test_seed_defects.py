@@ -415,7 +415,10 @@ class Test_module:
         it said nothing and `--list` exited 0 while another named commit held
         a round 1 record. A name a kept or a `left out:` line answers is said
         there alone, and a run that read no round 1 record still says that
-        after the names. Seen red against that silence."""
+        after the names. Seen red against that silence. The reason for a
+        name no commit read answers says what the run read, and not that no
+        release shipped the commit, which a shipped commit named by its full
+        SHA was told (round 2's finding 1); seen red against that reason."""
         sd = load_script("seed_defects")
         commits, repo = shipped_item(tmp_path, monkeypatch)
         write(repo, "b.py", "x = 2\n")
@@ -427,8 +430,8 @@ class Test_module:
         gone = f"seeded-{bump[:8]}"
         nothing = "seeded-12345678"
         unshipped = (
-            "seed_defects: seeded-12345678 not written: no release shipped a "
-            "commit that begins with 12345678\n"
+            "seed_defects: seeded-12345678 not written: no shipped commit read "
+            "has 12345678 as its first eight digits\n"
         )
 
         def case(*names, run=("--list",)):
@@ -442,6 +445,12 @@ class Test_module:
         assert said.err == unshipped
         assert case(kept, gone) == 0
         assert capsys.readouterr().err == ""
+        sha = commits["squash"]
+        assert case(kept, f"seeded-{sha}") == 1
+        assert capsys.readouterr().err == (
+            f"seed_defects: seeded-{sha} not written: no shipped commit read "
+            f"has {sha} as its first eight digits\n"
+        )
         assert case(kept, gone, nothing, run=("--out", str(tmp_path / "out"))) == 1
         said = capsys.readouterr()
         assert said.out.startswith(f"{kept}: a.py#g, "), said.out
