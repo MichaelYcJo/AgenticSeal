@@ -41,4 +41,4 @@ None for a deployer: no input, no step, no workflow and no dependency changes. T
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-10-31 | Before the first build, the frame-reading exchange sent one proposal: the rename made because later work needs a `feat:` sooner states its grounds in the renamed milestone's description. Agreed as written (e380a2cb). A3's narrowing of the issue's first *Done when* item was read and accepted without a proposal. | Unrecorded, the exception could bring back one minor per `feat:`, which the owner's decision on 2026-10-31 was made against. A3: at the release pull request the `feat:` is already squashed and the ruleset refuses a force-push, so a move named there is a repair nobody can make. | `skills/implement/orchestration.md` *The frame is read against the issue at the spawn* |
