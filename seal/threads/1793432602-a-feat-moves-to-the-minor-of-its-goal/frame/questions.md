@@ -20,7 +20,8 @@ waits on a person.
   act owed before the squash. `frame/design.md` *Grounding*, the rows on
   the `release` ruleset and on `judge_feat`; `frame/plan.md` A3 and A4.
 - **Does a `feat:` move where the work that follows needs it sooner?** No;
-  the rename applies. `frame/plan.md` A8.
+  the rename applies, with its grounds in the renamed milestone's
+  description. `frame/plan.md` A8.
 - **Is #1199's frame rewritten, or only its fragment?** Only its fragment.
   `frame/design.md` *Grounding*, the row on *A commit after the build
   brings its changelog fragment along*; `frame/plan.md` A2 and A9.
