@@ -1015,13 +1015,13 @@ def label(values):
 # session's directory, pending or drawn, whatever commit it named; the
 # audited commit standing on the branch the work item's `routing.md` names;
 # in shared mode, the guarantee reading `sealed` at a commit of HEAD's
-# history (`sealed_before`); and the `Target SHA` row's
-# `; earlier run: <sha> <word>` chain — a `sealed` after a `sealed` was
+# history (`sealed_before`); and the guarantee's earlier verdict blocks,
+# one per earlier run of the sealer — a `sealed` after a `sealed` was
 # stamped at the first. The last two hold across clones. Both skip one kind
-# of entry, a `sealed` this clone recorded refusing (`refused_here`): the
+# of block, a `sealed` this clone recorded refusing (`refused_here`): the
 # writer records it where the branch does not hold the audited commit, and
-# that row can still be committed, so the sealer's new audit, which keeps it
-# on its chain, draws the work item's one stamp. Any other `sealed` in the
+# that block can still be committed, so the sealer's new audit, appended
+# below it, draws the work item's one stamp. Any other `sealed` in the
 # history drew where it was made, or was committed where no edit hook saw
 # it written, and the history cannot tell the two apart, so it counts (#975
 # `questions.md` Q8). A `sealed` written over a history that carries no
@@ -1084,8 +1084,9 @@ def _git(cwd, *args):
 
 
 def _chain_check():
-    """`chain_check.py`, whose readers of `guarantee.md` and `trail/gate.md`
-    are the ones the pull request's check uses, so the row has one grammar."""
+    """`chain_check.py`, which loads `hooks/lib/fields.py`, the reader of
+    `guarantee.md` and `trail/gate.md` the pull request's check reads them
+    through, so a verdict block has one grammar."""
     spec = importlib.util.spec_from_file_location(
         "agentic_chain_check_for_the_stamp", CHAIN_CHECK
     )
@@ -1141,12 +1142,36 @@ def guarantee_rows(target, branch, base, ident, run, rounds):
     return rows
 
 
+def guarantee_read(chain, text):
+    """`(newest, earlier)`: the newest verdict block of the `guarantee.md`
+    TEXT and the blocks of its earlier runs, read through
+    `hooks/lib/fields.py`, the reader the pull request's check reads it
+    through; `(None, [])` where that reader refuses a line of TEXT, a fence
+    nobody closed and a line that begins `<!--` among them (#1122), or TEXT
+    holds no verdict block, as one written before #1198 does."""
+    found = chain.FIELDS.read(text, chain.FIELDS.GUARANTEE)
+    if found.refusals or not found.blocks:
+        return None, []
+    return found.blocks[-1], found.blocks[:-1]
+
+
+def sealed_by(chain, block):
+    """True where the verdict BLOCK reads `sealed`."""
+    return chain.FIELDS.verdict_word(block) == chain.FIELDS.SEALED
+
+
+def target_of(chain, block):
+    """The commit the verdict BLOCK audited."""
+    return block.fields[chain.FIELDS.TARGET].match["commit"]
+
+
 def sealed_before(chain, top, path, common=None, ident=None):
-    """True where `path` read one `Verdict:` of `sealed` at a commit of
-    HEAD's history, whatever that verdict's `Target SHA` named, unless this
-    clone recorded refusing that `sealed` (`refused_here` of COMMON and work
-    item IDENT, where both are given). It is asked at a write no commit
-    carries yet, so HEAD itself counts.
+    """True where `path`'s newest verdict block read `sealed` at a commit of
+    HEAD's history, whatever commit it audited, unless this clone recorded
+    refusing that `sealed` (`refused_here` of COMMON and work item IDENT,
+    where both are given). A version the reader refuses, or one holding no
+    verdict block, counts nothing. It is asked at a write no commit carries
+    yet, so HEAD itself counts.
     A `sealed` in the history was stamped where it was made, in this clone or
     another, so what the history carries holds across clones, a rebase among
     them, and asks nothing of the row an agent writes. The history cannot
@@ -1154,18 +1179,15 @@ def sealed_before(chain, top, path, common=None, ident=None):
     commit the branch does not hold, so that one counts too, and its work
     item draws no stamp (#975 round 5, `questions.md` Q8). A row this clone
     refused at its write can still be committed, since no gate stops it, so
-    its record is asked, as the earlier-run chain asks it. A root commit
+    its record is asked, as the earlier blocks are asked. A root commit
     has no parent: `git log` exits 128 and the history is empty."""
-    reader = chain.SHARED_READER
     for sha in (_git(top, "log", "--format=%H", "HEAD", "--", path) or "").split():
         text = _git(top, "show", f"{sha}:{path}")
-        if text is None:
+        newest, _earlier = guarantee_read(chain, text or "")
+        if newest is None or not sealed_by(chain, newest):
             continue
-        verdicts = chain.verdicts_of(reader, text)
-        if len(verdicts) != 1 or chain.verdict_word(verdicts[0][1]) != chain.SEALED:
-            continue
-        target = chain.target_of(reader, text)
-        if common and ident and target and refused_here(common, ident, target):
+        target = target_of(chain, newest)
+        if common and ident and refused_here(common, ident, target):
             continue
         return True
     return False
@@ -1175,12 +1197,12 @@ def sealed_before(chain, top, path, common=None, ident=None):
 #
 # `questions.md` Q2 of work item 1792363231, answered (b). A `sealed` over a
 # commit the work item's branch does not hold drew nothing. The sealer's new
-# audit keeps it on its row as `; earlier run: <sha> sealed`, and without a
-# record of the refusal the chain readers count that entry as the stamp, so
-# the repair draws nothing either. One writer leaves the record, for a row
+# audit appends its block below that one, and without a record of the
+# refusal the earlier block reading `sealed` counts as the stamp, so the
+# repair draws nothing either. One writer leaves the record, for a block
 # that stands in its own clone and nowhere else: the write-time writer, under
-# either root, for a row its branch does not hold. Its chain reader, and its
-# read of the history, skip a `sealed` the record names. Nothing infers a record
+# either root, for a block its branch does not hold. Its read of the earlier
+# blocks, and its read of the history, skip a `sealed` the record names. Nothing infers a record
 # after the fact, so nothing asks ancestry at read time, which is what
 # #975's rounds 3 to 6 kept regressing on.
 
@@ -1220,7 +1242,7 @@ def record_refusal(common, ident, target):
 def refused_here(common, ident, sha):
     """True where this clone recorded refusing work item `ident`'s `sealed`
     over a target `_same_commit` matches with `sha`. Asked by the write-time
-    writer of each earlier run reading `sealed`, and by its `sealed_before`
+    writer of each earlier verdict block reading `sealed`, and by its `sealed_before`
     of each `sealed` in the history."""
     try:
         names = os.listdir(os.path.join(common, REFUSED_DIR))
@@ -1244,17 +1266,16 @@ def newest_run(chain, text):
 
 
 def _queue_values(
-    chain, common, session, now, *, ident, target, cell, gate_text, rounds, branch, item
+    chain, common, session, now, *, ident, target, base, gate_text, rounds, branch, item
 ):
     """Write one work item's stamp for `session` under `common` and return
     the line that names it, once `queue_for_written_guarantee` has read the
-    records from disk and the guarantee passed its refusals. `cell` is the
-    `Target SHA` row, `gate_text` the `trail/gate.md` beside the guarantee or
-    None, `rounds` the paths of what its `trail/rounds/` holds and `branch` the
-    branch the audited commit stands on, or "" where none is named."""
+    records from disk and the guarantee passed its refusals. `base` is the
+    base the newest verdict block names, `gate_text` the `trail/gate.md`
+    beside the guarantee or None, `rounds` the paths of what its
+    `trail/rounds/` holds and `branch` the branch the audited commit stands
+    on, or "" where none is named."""
     key = f"{ident}-{target}"
-    newest = chain.EMPHASIS.sub("", cell.split(chain.EARLIER_RUN)[0]).split()
-    base = newest[2] if len(newest) >= 3 and newest[1] == "against" else None
     run = newest_run(chain, gate_text)
     count = sum(1 for path in rounds if ROUND_FILE.match(os.path.basename(path)))
     values = {
@@ -1319,10 +1340,12 @@ def queue_for_written_guarantee(path, session, now=None):
     *The stamp*). `path` must be `<root>/threads/<id>/guarantee.md`, where
     `<root>` is the repository's root in force (`optin.home_at`, through
     `written_root`): `<repo>/seal/` in shared mode, `<common>/seal/` in local
-    mode. It then queues where the file reads one `Verdict:` of `sealed` and
-    holds no line that begins with `<!--`, its `Target SHA` row names a
-    commit and carries no earlier run reading `sealed` that this clone did
-    not refuse, the clone holds no values file for the work item, in shared
+    mode. It then queues where `hooks/lib/fields.py`, the reader the pull
+    request's check reads the file through, refuses none of its lines, a
+    fence nobody closed and a line that begins with `<!--` among them
+    (#1122), its newest verdict block reads `sealed`, no earlier block reads
+    `sealed` but one this clone recorded refusing, the clone holds no values
+    file for the work item, in shared
     mode HEAD's history carries no `sealed` of the file (`sealed_before`
     from HEAD, since the write is not yet committed), and the audited commit
     is an ancestor of the branch the work item's `routing.md` names in its
@@ -1352,22 +1375,15 @@ def queue_for_written_guarantee(path, session, now=None):
     common, top = found
     with open(real, encoding="utf-8") as handle:
         text = handle.read()
-    reader = chain.SHARED_READER
-    verdicts = chain.verdicts_of(reader, text)
-    if len(verdicts) != 1 or chain.verdict_word(verdicts[0][1]) != chain.SEALED:
+    newest, earlier = guarantee_read(chain, text)
+    if newest is None or not sealed_by(chain, newest):
         return []
-    # A line that begins with `<!--` is one the pull request refuses (#1012).
-    if chain.comment_lines(reader, text, real):
-        return []
-    target = chain.target_of(reader, text)
-    if target is None:
-        return []
-    rows = chain.table_rows(reader, reader.readable(text))
-    cell = reader.visible(chain.field(rows, chain.TARGET) or "")
+    target = target_of(chain, newest)
     ident = item_value(item)
     if any(
-        word == chain.SEALED and not refused_here(common, ident, sha)
-        for sha, word in chain.earlier_verdicts(cell)
+        sealed_by(chain, block)
+        and not refused_here(common, ident, target_of(chain, block))
+        for block in earlier
     ):
         return []
     if already_queued(common, ident):
@@ -1403,7 +1419,7 @@ def queue_for_written_guarantee(path, session, now=None):
         now,
         ident=ident,
         target=target,
-        cell=cell,
+        base=newest.fields[chain.FIELDS.TARGET].match["base"],
         gate_text=_read(os.path.join(item, chain.BROAD_GATE_FILE)),
         rounds=rounds,
         branch=branch,

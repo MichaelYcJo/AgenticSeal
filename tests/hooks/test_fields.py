@@ -5,10 +5,11 @@ interfaces* Table F of work item 1793437163 is the grammar these cases hold
 it to. Each refusal path has a case that names its line and its sentence.
 """
 
+import os
 import time
 
 import pytest
-from conftest import census_case, load_hook_module
+from conftest import ROOT, census_case, load_hook_module
 
 TARGET = "hooks/lib/fields.py"
 
@@ -356,6 +357,31 @@ class Test_verdict_word:
     def test_refuses_a_block_of_another_kind(self):
         (found,) = read(block(f"run: {SHA} against {BASE}"), fields.GATE).blocks
         assert fields.verdict_word(found) is None
+
+
+class Test_module:
+    def test_the_guarantee_template_refuses_only_its_placeholders(self):
+        """#1198's scenario *The templates parse*, for the guarantee: every
+        block of the template opens with its kind's key, and every line the
+        reader refuses is a field whose value is a placeholder."""
+        path = os.path.join(ROOT, "templates", "records", "sdd-guarantee.md")
+        with open(path, encoding="utf-8") as handle:
+            text = handle.read()
+        found = fields.read(text, fields.GUARANTEE)
+        lines = text.split("\n")
+        assert found.notices == []
+        assert found.refusals, "the unfilled template reads as a guarantee"
+        for number, why in found.refusals:
+            line = lines[number - 1]
+            _key, _, value = line.partition(" ")
+            assert why.startswith(f"`{line}` does not read whole"), (number, why)
+            assert value.startswith("<") and value.endswith(">"), line
+        firsts = [
+            lines[index + 1]
+            for index, line in enumerate(lines)
+            if line == fields.OPENER
+        ]
+        assert firsts and all(f.startswith(fields.TARGET + " ") for f in firsts), firsts
 
 
 test_census = census_case(TARGET)

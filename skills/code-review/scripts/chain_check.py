@@ -52,26 +52,29 @@ judged (`carried_by`). The arms are eight:
                 commit` row names a SHA (`hooks/lib/config.py#baseline_commit`),
                 and one `original:` line naming it stands in every round
                 record under `Review | through the review chain`, and in
-                `guarantee.md` under `Review | straight to the PR`
-                (`originals_of`)
+                the newest verdict block of `guarantee.md` under `Review |
+                straight to the PR` (`originals_of`, `guarantee_original`)
   broad gate    the last run block of `trail/gate.md`, the newest run, read
                 through `hooks/lib/fields.py`, is HEAD, or every commit after
                 it touches only the work item's own directory; a record with
                 no run block, or with a line the reader refuses, fails
-  guarantee     `guarantee.md` names HEAD, or every commit after it touches
-                only the closing records, and its one `Verdict:` line
-                reads `sealed`
+  guarantee     the last verdict block of `guarantee.md`, the newest run of
+                the sealer, read through `hooks/lib/fields.py`, names HEAD,
+                or every commit after it touches only the closing records,
+                and its `Verdict:` reads `sealed`; a guarantee with no
+                verdict block, or with a line the reader refuses, fails
 
 A ready pull request fails on any of them. A draft, or a run that observed no
 pull request, prints the same lines and exits 0. `docs/the-review-record.md`
 states the record and the rules these arms hold.
 
-Each label is read in its one spelling. A line that opens like a label and
-is not it, `Verdict: open` for `verdict:` or `**Verdict:**` for the
-guarantee's `Verdict:`, is prose to every arm, and a file under
-`trail/rounds/` that is no `round-N.md` is not read; the check names each
-(`unread`, and `unread_originals` for a guarantee whose `original:` line
-the original arm reads) and decides nothing on it. Whether the line meant the label is
+Each label of a round record is read in its one spelling. A line that opens
+like a label and is not it, `Verdict: open` for `verdict:`, is prose to
+every arm, and a file under `trail/rounds/` that is no `round-N.md` is not
+read; the check names each (`unread`) and decides nothing on it. In
+`guarantee.md` and `trail/gate.md` a field stands in a `seal` block, every
+line of which parses or is refused at its line, and a fence like the
+block's and not it is named as not read (`blocks_of`). Whether the line meant the label is
 the judgment of the agent that reads the record. The same holds for each
 line `rule_changes.parse` names in a design the rule-changes arm reads, a
 heading near `## Rule changes` among them (`rule_changes_read`).
@@ -120,7 +123,6 @@ HOOKS = os.path.join(HERE, "..", "..", "..", "hooks", "lib")
 ROUTING = os.path.join(HOOKS, "routing.py")
 FIELDS_READER = os.path.join(HOOKS, "fields.py")
 
-TARGET = "Target SHA"
 # A thread's files, relative to its directory: `hooks/lib/optin.py`'s `GATE`,
 # `GUARANTEE`, `DESIGN` and `PLAN`, spelt here because this module loads
 # `routing` only inside the functions that are handed it.
@@ -132,62 +134,6 @@ PLAN_FILE = "frame/plan.md"
 # other, and they are the only files that may follow the commit the
 # guarantee names, since the sealer audited everything else on the branch.
 CLOSING_RECORDS = (BROAD_GATE_FILE, GUARANTEE_FILE)
-# The sealer's verdict is one line of `guarantee.md` in one of the three
-# shapes `VERDICT_SHAPES` names, read whole, with no emphasis and a value
-# after each label.
-VERDICT = "Verdict:"
-SEALED = "sealed"
-WITHHELD = "withheld"
-UNDECIDED = "undecided"
-REASON = "reason:"
-QUESTION = "question:"
-VERDICT_SHAPE = re.compile(
-    rf"{VERDICT} (?:({SEALED})|({WITHHELD}) {REASON} \S.*"
-    rf"|({UNDECIDED}) {QUESTION} \S.*)"
-)
-# The three shapes, as a refusal names them.
-VERDICT_SHAPES = (
-    f"`{VERDICT} {SEALED}`, `{VERDICT} {WITHHELD} {REASON} <reason>` or "
-    f"`{VERDICT} {UNDECIDED} {QUESTION} <question>`"
-)
-# A line that opens like the verdict: the label's word in any case, after any
-# emphasis or block markup, then a colon. One that is not `Verdict:` at the
-# start of the line is prose, named as not read (`unread_verdicts`).
-OPENS_LIKE_VERDICT = re.compile(r"[\s*_`>#+-]*verdict[\s*_`]*:", re.IGNORECASE)
-UNREAD_VERDICT = (
-    "not read: `{said}` opens like `Verdict:` and is not it, so the check "
-    "read it as prose; the verdict line opens with `Verdict:` at the start of "
-    "the line, written exactly so"
-)
-# The words the verdict used before #969. A guarantee still carrying one was
-# written by a sealer that ran before the words changed, so it is refused on
-# its line with what to do, never read as the new word it meant.
-RETIRED_VERDICTS = ("sound", "not sound", "undecidable")
-RETIRED_SAYS = (
-    f"is a word the verdict no longer uses: the line reads {VERDICT_SHAPES} "
-    "now. Where `trail/gate.md` names a run at HEAD, or one followed only by "
-    "the work item's records, spawn the sealer again at HEAD, which writes "
-    "the new word; otherwise run `seal gate --base <base> --record <item>` "
-    "and commit `trail/gate.md` first"
-)
-# What the `Target SHA` row's entry is separated from the earlier run behind
-# it by.
-EARLIER_RUN = "; earlier run: "
-# The `Target SHA` row has one shape: the commit audited `against` the base,
-# one word each, then each earlier run of the sealer as `EARLIER_RUN` and
-# its commit, the base where the run names one, and its verdict's word
-# alone. Any other text after the target is refused at the row.
-COMMIT_WORD = r"[0-9a-f]{7,40}"
-BASE_WORD = r"[^\s;,]+"
-TARGET_HEAD = re.compile(rf"{COMMIT_WORD} against {BASE_WORD}")
-EARLIER_ENTRY = re.compile(
-    rf"({COMMIT_WORD})(?: against {BASE_WORD})? ({SEALED}|{WITHHELD}|{UNDECIDED})"
-)
-TARGET_WRITTEN = (
-    "`<sha> against <base>`, then each earlier run as `; earlier run: "
-    "<sha> <word>`, with `against <base>` after its SHA where it names one"
-)
-
 # A round record's grammar is the table in `docs/the-review-record.md`
 # *The round record*, and nothing in this file restates it: `grammar` loads
 # it once, when this file is imported, and every reader below reads a line
@@ -284,9 +230,7 @@ FIXED = "fixed"
 REJECTED = "rejected"
 DEFERRED = "deferred"
 DASH = chr(0x2014)
-EMPHASIS = re.compile(r"[*_`]+")
 ISSUE_RE = re.compile(r"#(\d+)")
-SHA_RE = re.compile(r"\b[0-9a-f]{7,40}\b")
 
 MARK_RE = re.compile(r"^Framed\s+(.+?)\s+by\s+(.+?),\s+before the build\.$")
 REFRAME_RE = re.compile(r"^Reframed\s+(.+?)\s+by\s+(.+?),\s+after round\s+(\d+)\.$")
@@ -784,9 +728,9 @@ def unread(reader, routing, root, item, chained):
     """[(path, line, why)] for what the check did not read of a work item:
     under `chained`, each file under `trail/rounds/` that is no
     `round-N.md` (`UNREAD_FILE`) and each line of a round record that opens
-    like a label and is not it (`unread_lines`); and each line of its
-    `guarantee.md` that opens like `Verdict:` and is not it
-    (`unread_verdicts`). `main` prints them as notices."""
+    like a label and is not it (`unread_lines`). `main` prints them as
+    notices; a fence of `guarantee.md` or `trail/gate.md` like a `seal`
+    block and not one is named by `guarantee` and `broad_gate`."""
     found = []
     if chained:
         records, others = rounds_listed(routing, root, item)
@@ -795,10 +739,6 @@ def unread(reader, routing, root, item, chained):
         ]
         for rel in records:
             found += unread_lines(reader.readable(read_record(root, rel) or ""), rel)
-    rel = f"{item}/{GUARANTEE_FILE}"
-    text = read_record(root, rel)
-    if text is not None:
-        found += unread_verdicts(reader, text, rel)
     return found
 
 
@@ -869,22 +809,6 @@ def pull_request_from_gh(root, which=shutil.which, run=subprocess.run):
             "request is a draft"
         )
     return ("draft" if draft else "ready"), "`gh pr view --json isDraft`"
-
-
-def fields(rows, label):
-    """The value of every `| label | value |` row, in order."""
-    return [
-        cells[1].strip()
-        for cells in rows
-        if len(cells) >= 2 and cells[0].strip() == label
-    ]
-
-
-def field(rows, label):
-    """The value of the one `| label | value |` row, or None where it is
-    absent or stands more than once."""
-    found = fields(rows, label)
-    return found[0] if len(found) == 1 else None
 
 
 def table_rows(reader, lines):
@@ -1498,41 +1422,6 @@ def records_only(root, item, commit):
     return bool(changed) and all(under(p, item) for p in changed)
 
 
-def target_of(reader, text):
-    """The first SHA-shaped word of `guarantee.md`'s `Target SHA` row, or
-    None. A round record names its commit on a `target:` line instead
-    (`round_of`)."""
-    rows = table_rows(reader, reader.readable(text or ""))
-    found = SHA_RE.search(reader.visible(field(rows, TARGET) or ""))
-    return found.group(0) if found else None
-
-
-def earlier_verdicts(cell):
-    """`[(sha, word)]` for each earlier run of a `guarantee.md` `Target SHA`
-    cell, in the order written (#975), the cell read as one shape
-    (`TARGET_WRITTEN`): after `TARGET_HEAD`, nothing, or `EARLIER_RUN` and an
-    `EARLIER_ENTRY` whole, again and again. An entry that is not one comes
-    back as `(EARLIER_RUN + entry, None)`; text after the target that does
-    not open with `EARLIER_RUN` comes back whole as `(text, None)`. The
-    guarantee arm refuses each, so no spelling of the separator passes
-    unread. The stamp is drawn once per work item, and an earlier entry
-    reading `sealed` is how the row says it was drawn already."""
-    cell = cell or ""
-    head = TARGET_HEAD.match(cell)
-    rest = cell[head.end() :] if head else cell
-    if not rest:
-        return []
-    if not rest.startswith(EARLIER_RUN):
-        return [(rest.strip(), None)]
-    out = []
-    for entry in rest.split(EARLIER_RUN)[1:]:
-        m = EARLIER_ENTRY.fullmatch(entry)
-        out.append(
-            (m.group(1), m.group(2)) if m else ((EARLIER_RUN + entry).strip(), None)
-        )
-    return out
-
-
 def is_ancestor(root, sha, ref):
     """True where `sha` is `ref` or an ancestor of it."""
     r = subprocess.run(
@@ -1840,7 +1729,8 @@ def parity_readers():
 
 
 NO_GUARANTEE_ORIGINAL = (
-    f"no `{ORIGINAL_ROW}` line: `{{config}}` declares a migration, this work "
+    f"no `{ORIGINAL_ROW}` line in the newest verdict block: `{{config}}` "
+    "declares a migration, this work "
     "item answers `straight to the PR`, and this pull request changes a path "
     "outside the document roots, so no round record compares it and the "
     f"sealer's guarantee carries `{ORIGINAL_ROW} {{sha}}`, the migration "
@@ -1850,12 +1740,11 @@ NO_GUARANTEE_ORIGINAL = (
 
 
 def original_of(reader, text, rel, sha, config, missing=NO_ORIGINAL):
-    """[(rel, line, problem)] for one record's `original:` line, held
+    """[(rel, line, problem)] for a round record's `original:` line, held
     against SHA, the `Baseline commit` of the migration config at CONFIG:
     a record with no such line, said as MISSING, and one naming a commit
-    that is not a prefix of SHA and of which SHA is not a prefix. The record
-    is a round record, or the guarantee of a work item declaring `straight
-    to the PR`, read by the same rule. A line the grammar table refuses,
+    that is not a prefix of SHA and of which SHA is not a prefix. A
+    guarantee's line is `guarantee_original`'s. A line the grammar table refuses,
     standing in a finding or a second one, is `read_whole`'s refusal at that
     line, and none is added here. A line that opens like the label and is
     not it is no `original:` line, so a record holding only such a line
@@ -1873,31 +1762,41 @@ def original_of(reader, text, rel, sha, config, missing=NO_ORIGINAL):
     return [(rel, at[0] + 1, OTHER_ORIGINAL.format(said=said, sha=sha))]
 
 
-def unread_originals(reader, text, rel):
-    """[(rel, line, why)] for each line outside fences of a guarantee
-    `originals_of` reads that opens like `original:` and is not it, at its
-    line (`UNREAD_LINE`). Such a line is prose: it decides nothing, and the
-    guarantee holding only it holds no `original:` line."""
-    label = f"`{ORIGINAL_ROW}`"
-    return [
-        (rel, i + 1, UNREAD_LINE.format(said=line.strip(), label=label))
-        for i, line in enumerate(reader.readable(text))
-        if opens_like(line) == ORIGINAL_ROW
-    ]
+def guarantee_original(text, rel, sha, config):
+    """[(rel, line, problem)] for the `original:` line of the newest verdict
+    block of the guarantee TEXT at REL, held against SHA, the `Baseline
+    commit` of the migration config at CONFIG: a newest block with no such
+    line, at its opener, and one naming a commit that is not a prefix of SHA
+    and of which SHA is not a prefix, at its line. An earlier block's line
+    stands for no later run (#1198). A guarantee `hooks/lib/fields.py`
+    refuses, or one holding no verdict block, is the guarantee arm's
+    refusal, and none is added here."""
+    found = FIELDS.read(text, FIELDS.GUARANTEE)
+    if found.refusals or not found.blocks:
+        return []
+    newest = found.blocks[-1]
+    said = newest.fields.get(FIELDS.ORIGINAL)
+    if said is None:
+        return [
+            (rel, newest.line, NO_GUARANTEE_ORIGINAL.format(config=config, sha=sha))
+        ]
+    commit = said.match["commit"]
+    if commit.startswith(sha) or sha.startswith(commit):
+        return []
+    return [(rel, said.line, OTHER_ORIGINAL.format(said=commit, sha=sha))]
 
 
-def originals_of(reader, routing, root, paths, items, direct=(), notices=None):
+def originals_of(reader, routing, root, paths, items, direct=()):
     """[(path, line, problem)] for the round records of ITEMS, each declared
     through the review chain, and the `guarantee.md` of DIRECT, each
     declared `straight to the PR`, where git carries the migration config at
     HEAD and PATHS, this pull request's, reach outside the document roots;
     `hooks/lib/gate.py#touches_code` decides that, and paths git could not list
     reach outside them. A guarantee git does not carry is `guarantee`'s
-    refusal, and none is added here. A config whose `Baseline commit` names
-    no SHA is one refusal naming it. None where `hooks/` would not load,
-    said on stderr. Each line of a guarantee it reads that opens like
-    `original:` and is not it goes to NOTICES (`unread_originals`), so the
-    line is named only where the guarantee owes an `original:` line."""
+    refusal, and none is added here; a guarantee's line is its newest
+    verdict block's (`guarantee_original`). A config whose `Baseline commit`
+    names no SHA is one refusal naming it. None where `hooks/` would not
+    load, said on stderr."""
     config = f"{routing.optin.HOME}/{routing.optin.PARITY_CONFIG}"
     text = read_record(root, config)
     if text is None or not (items or direct):
@@ -1922,11 +1821,7 @@ def originals_of(reader, routing, root, paths, items, direct=(), notices=None):
         rel = f"{item}/{GUARANTEE_FILE}"
         said = read_record(root, rel)
         if said is not None:
-            found.extend(
-                original_of(reader, said, rel, sha, config, NO_GUARANTEE_ORIGINAL)
-            )
-            if notices is not None:
-                notices.extend(unread_originals(reader, said, rel))
+            found.extend(guarantee_original(said, rel, sha, config))
     return found
 
 
@@ -1977,67 +1872,24 @@ def broad_gate(reader, root, item, base, notices=None):
     return [(rel, 0, follows_reason(behind, "the newest gate run"))]
 
 
-def verdicts_of(reader, text):
-    """[(line number, line)] for every line outside fences that opens with
-    `Verdict:` at the start of the line, exactly, trailing whitespace
-    removed. An indent is markup, a code block at four spaces, so an
-    indented line is no verdict line; `unread_verdicts` names it with every
-    other line that opens like the label."""
-    found = []
-    for i, raw in enumerate(reader.readable(text or "")):
-        line = reader.visible(raw)
-        if line.startswith(VERDICT) and not raw[:1].isspace():
-            found.append((i + 1, line))
-    return found
+# A guarantee with no verdict block: one written before the verdict stood in
+# a block, or one the sealer never filled (#1198, *Scope* item 9).
+NO_VERDICT_BLOCK = (
+    "no verdict block: since #1198 the sealer's verdict stands in a `seal` "
+    "block holding `target: <sha> against <base>`, the `original:` line where "
+    "one is owed and `Verdict:`, as `templates/records/sdd-guarantee.md` "
+    "shows; the sealer runs again at HEAD and appends one below the text "
+    "already there"
+)
 
 
-def unread_verdicts(reader, text, rel):
-    """[(rel, line, why)] for each line outside fences that opens like the
-    verdict (`OPENS_LIKE_VERDICT`) and that `verdicts_of` does not read, at
-    its line. Such a line is prose: whether it meant the verdict is the
-    reader's judgment, and the check refuses nothing for it."""
-    read = {n for n, _line in verdicts_of(reader, text)}
-    return [
-        (rel, i + 1, UNREAD_VERDICT.format(said=line))
-        for i, raw in enumerate(reader.readable(text or ""))
-        if (line := reader.visible(raw))
-        and OPENS_LIKE_VERDICT.match(line)
-        and i + 1 not in read
-    ]
-
-
-def verdict_word(line):
-    """`sealed`, `withheld` or `undecided` where LINE is one of the three
-    shapes whole; a word of `RETIRED_VERDICTS` where the value after the
-    label, emphasis removed, is that word or opens with it and a space;
-    else None."""
-    m = VERDICT_SHAPE.fullmatch(line)
-    if m:
-        return next(word for word in m.groups() if word)
-    value = EMPHASIS.sub("", line).split(":", 1)[-1].strip().lower()
-    for word in RETIRED_VERDICTS:
-        if value == word or value.startswith(word + " "):
-            return word
-    return None
-
-
-def target_row(reader, text):
-    """`(line number, cell)` of `guarantee.md`'s first `Target SHA` row, or
-    `(0, None)`."""
-    for i, line in enumerate(reader.readable(text or "")):
-        cells = reader.split_row(line)
-        if cells and len(cells) > 1 and reader.visible(cells[0]) == TARGET:
-            return i + 1, reader.visible(cells[1])
-    return 0, None
-
-
-def guarantee(reader, root, item, base):
-    """[(path, line, problem)] for the work item's `guarantee.md`: absent, no
-    commit, a commit with anything but the closing records after it, an
-    earlier run that is not `EARLIER_ENTRY` whole, a line that begins with
-    `<!--` (`comment_lines`), a fence that never closes (`unclosed`), a word
-    of `RETIRED_VERDICTS` on its `Verdict:` line, a verdict line in none of
-    the three shapes, or one that does not read `sealed`."""
+def guarantee(reader, root, item, base, notices=None):
+    """[(path, line, problem)] for the work item's `guarantee.md`: absent, a
+    line `hooks/lib/fields.py` refuses, a fence nobody closed and a line that
+    begins with `<!--` among them, no verdict block, or a newest block, the
+    last, naming a commit with anything but the closing records after it or
+    a verdict other than `sealed`. A fence named as not read goes to
+    NOTICES."""
     rel = f"{item}/{GUARANTEE_FILE}"
     text = read_record(root, rel)
     if text is None:
@@ -2049,61 +1901,36 @@ def guarantee(reader, root, item, base):
                 "`templates/records/sdd-guarantee.md` after the orchestrator's broad run",
             )
         ]
-    problems = []
-    sha = target_of(reader, text)
-    if sha is None:
-        problems.append((rel, 0, f"no SHA in its `{TARGET}` row"))
-    else:
-        behind = follows(root, sha, base, item, only=CLOSING_RECORDS)
-        if behind is not None:
-            problems.append(
-                (
-                    rel,
-                    0,
-                    follows_reason(behind, "the guarantee", "the closing records")
-                    + ("; the sealer runs again" if behind[0] == "after" else ""),
-                )
-            )
-    # A row with no SHA is refused above; one with a SHA is read whole.
-    row, cell = target_row(reader, text)
-    for entry, word in earlier_verdicts(cell) if sha else []:
-        if word is None:
-            problems.append(
-                (
-                    rel,
-                    row,
-                    f"`{entry}` on its `{TARGET}` row is not read: the row is "
-                    f"{TARGET_WRITTEN}, and nothing else",
-                )
-            )
-    # A comment line is text to the check, and a fence nobody closed hides
-    # the verdict line; name each at its line.
-    problems.extend(comment_lines(reader, text, rel))
-    problems.extend(unclosed(reader, text, rel))
-    verdicts = verdicts_of(reader, text)
-    if len(verdicts) != 1:
+    verdicts, problems = blocks_of(rel, text, FIELDS.GUARANTEE, notices)
+    if problems:
+        return problems
+    if not verdicts:
+        return [(rel, 0, NO_VERDICT_BLOCK)]
+    newest = verdicts[-1]
+    sha = newest.fields[FIELDS.TARGET].match["commit"]
+    behind = follows(root, sha, base, item, only=CLOSING_RECORDS)
+    if behind is not None:
         problems.append(
             (
                 rel,
-                verdicts[1][0] if verdicts else 0,
-                f"{len(verdicts)} `{VERDICT}` lines; the guarantee carries one",
+                0,
+                follows_reason(behind, "the guarantee", "the closing records")
+                + ("; the sealer runs again" if behind[0] == "after" else ""),
             )
         )
-        return problems
-    line, value = verdicts[0]
-    word = verdict_word(value)
-    if word in RETIRED_VERDICTS:
-        said = f"`{word}` {RETIRED_SAYS}"
-    elif word is None:
-        said = f"the line reads only as {VERDICT_SHAPES}, written exactly so"
-    elif word != SEALED:
-        said = (
-            f"a ready pull request needs `{SEALED}`: fix what it names, or answer "
-            "its question under it, and the sealer runs again at the new HEAD"
+    said = newest.fields[FIELDS.SEALER_VERDICT]
+    if FIELDS.verdict_word(newest) != FIELDS.SEALED:
+        line = f"{FIELDS.SEALER_VERDICT} {said.value}"
+        problems.append(
+            (
+                rel,
+                said.line,
+                f"the sealer's verdict reads `{line}`: a ready pull request needs "
+                f"`{FIELDS.SEALED}`: fix what it names, or answer its question "
+                "below the newest block, and the sealer runs again at the new "
+                "HEAD and appends its block",
+            )
         )
-    else:
-        return problems
-    problems.append((rel, line, f"the sealer's verdict reads `{value}`: {said}"))
     return problems
 
 
@@ -2425,7 +2252,7 @@ def main(argv=None):
             direct.append(item)
         notices.extend(unread(reader, routing, root, item, item in chained))
         gate = broad_gate(reader, root, item, args.baseline, notices)
-        gate += guarantee(reader, root, item, args.baseline)
+        gate += guarantee(reader, root, item, args.baseline, notices)
         if args.sealing:
             notices.extend((p, n, f"{SEALING_SAYS}: {m}") for p, n, m in gate)
         else:
@@ -2434,7 +2261,7 @@ def main(argv=None):
     if found is None:
         return 2
     problems.extend(found)
-    found = originals_of(reader, routing, root, paths, chained, direct, notices)
+    found = originals_of(reader, routing, root, paths, chained, direct)
     if found is None:
         return 2
     for rel, line, message in found:

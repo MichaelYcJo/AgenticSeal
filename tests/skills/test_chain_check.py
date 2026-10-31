@@ -153,13 +153,17 @@ def gate_file(*runs):
     return f"# 1791999999-a-work-item — broad gate\n\n{blocks}"
 
 
+def verdict_block(sha, verdict="sealed", original=None):
+    """One verdict block of a `guarantee.md`, as the sealer appends it."""
+    lines = [f"target: {sha} against main"]
+    if original is not None:
+        lines.append(f"original: {original}")
+    lines.append(f"Verdict: {verdict}")
+    return "```seal\n" + "\n".join(lines) + "\n```\n"
+
+
 def guarantee_file(sha, verdict="sealed"):
-    return (
-        "# 1791999999-a-work-item — guarantee\n\n"
-        "| Field | Value |\n|---|---|\n"
-        f"| Target SHA | {sha} against main |\n\n"
-        f"Verdict: {verdict}\n"
-    )
+    return "# 1791999999-a-work-item — guarantee\n\n" + verdict_block(sha, verdict)
 
 
 SPEC = "# spec\n\nbody\n\nFramed 2026-10-15 by framer, before the build.\n"
@@ -2251,14 +2255,15 @@ class Test_originals_of:
         assert code == 1, out
         says = chain.NO_GUARANTEE_ORIGINAL.format(config=PARITY, sha=BASELINE)
         for words in (
-            f"no `original:` line: `{PARITY}` declares a migration, this work "
-            "item answers `straight to the PR`",
+            f"no `original:` line in the newest verdict block: `{PARITY}` "
+            "declares a migration, this work item answers `straight to the PR`",
             f"the sealer's guarantee carries `original: {BASELINE}`",
             "once it compared the audited commit with the original through "
             "`legacy-parity`",
         ):
             assert words in says, says
-        assert f"{rel}:0  {says}" in out.splitlines(), out
+        opener = (root / rel).read_text(encoding="utf-8").split("\n").index("```seal")
+        assert f"{rel}:{opener + 1}  {says}" in out.splitlines(), out
         code, out = check(root, capsys, "--sealing")
         assert code == 0, out
         direct_migrating(root, "fedcba9876543210")
@@ -2275,13 +2280,12 @@ class Test_originals_of:
     def test_refuses_a_direct_guarantee_whose_only_original_is_misspelt(
         self, item, capsys
     ):
-        """The third scenario of #1167, #1121's R9: in a migration repository
-        a guarantee holding `Original: <sha>` and no `original:` line holds
-        none, and a ready pull request fails naming the file, and the line
-        is printed at its line as not read. Seen red against the reading
-        that counted the misspelt line as present and passed; the naming,
-        round 3's finding 1, seen red against the `unread` that named a
-        guarantee's `Verdict:` lines alone."""
+        """The third scenario of #1167, #1121's R9, under #1198's blocks: in a
+        migration repository a verdict block holding `Original: <sha>` is
+        refused at that line with the keys the block takes, and the original
+        arm adds no second refusal for a guarantee the guarantee arm refuses.
+        Seen red against the reader of #1167, which read the line as prose,
+        named it as not read and refused the file for lacking the line."""
         root, _audited = item
         rel = f"{ITEM}/guarantee.md"
         direct_migrating(root, BASELINE)
@@ -2289,16 +2293,16 @@ class Test_originals_of:
         path = root / rel
         text = path.read_text(encoding="utf-8").replace("original:", "Original:")
         path.write_text(text, encoding="utf-8")
-        commit(root, "the sealer spelt the label otherwise")
+        commit(root, "the sealer spelt the key otherwise")
         code, out = check(root, capsys)
         assert code == 1, out
-        says = chain.NO_GUARANTEE_ORIGINAL.format(config=PARITY, sha=BASELINE)
-        assert f"{rel}:0  {says}" in out.splitlines(), out
         number = text.splitlines().index(f"Original: {BASELINE}") + 1
-        said = chain.UNREAD_LINE.format(
-            said=f"Original: {BASELINE}", label=f"`{chain.ORIGINAL_ROW}`"
+        said = chain.FIELDS.NOT_A_FIELD.format(
+            line=f"Original: {BASELINE}",
+            kind="verdict",
+            keys="`target:`, `original:` and `Verdict:`",
         )
-        assert [ln for ln in out.splitlines() if "not read" in ln] == [
+        assert [ln for ln in out.splitlines() if ln.startswith(f"{rel}:")] == [
             f"{rel}:{number}  {said}"
         ], out
 
@@ -2339,13 +2343,12 @@ class Test_originals_of:
         assert code == 0, out
 
     @pytest.mark.rule("parity-in-the-guarantee")
-    def test_names_no_original_line_where_none_is_owed(self, item, capsys):
-        """Round 4 of #1167: a guarantee's `original:` line is read only where
-        `originals_of` reads the guarantee, so `Original: <sha>` is no line
-        of its form and is not named in either guarantee whose line no check
-        reads: with no migration config, and with one where the diff stays
-        inside the document roots. Seen red against the `unread` that named
-        it in every guarantee of a work item not chained."""
+    def test_owes_no_original_line_where_none_is_owed(self, item, capsys):
+        """Round 4 of #1167: a guarantee's `original:` line is owed only where
+        `originals_of` reads the guarantee: with no migration config, and
+        with one where the diff stays inside the document roots, a verdict
+        block without one passes, and a block holding `Original: <sha>` is
+        refused for its line alone, never for a missing `original:` line."""
         root, _audited = item
         rel = f"{ITEM}/guarantee.md"
 
@@ -2356,9 +2359,13 @@ class Test_originals_of:
             path.write_text(text.replace("original:", "Original:"), encoding="utf-8")
             commit(root, "a guarantee holding Original: where none is owed")
             code, out = check(root, capsys)
-            assert code == 0, out
-            assert [ln for ln in out.splitlines() if "not read" in ln] == [], out
+            assert code == 1, out
+            refused = [ln for ln in out.splitlines() if ln.startswith(f"{rel}:")]
+            assert len(refused) == 1 and "is no field of a verdict block" in refused[0]
+            assert "no `original:` line" not in out, out
 
+        reseal(root, None)
+        assert check(root, capsys)[0] == 0
         reseal(root, BASELINE)
         respelt()
         git(root, "switch", "-q", "main")
@@ -2372,6 +2379,8 @@ class Test_originals_of:
         )
         write(root, "docs/a.md", "# a policy\n")
         commit(root, "a documentation pass")
+        reseal(root, None)
+        assert check(root, capsys)[0] == 0
         reseal(root, BASELINE)
         respelt()
 
@@ -2464,17 +2473,21 @@ class Test_parity_readers:
 GUARANTEE_TEMPLATE = ROOT / "templates" / "records" / "sdd-guarantee.md"
 
 
-def guarantee(sha, verdict):
+def guarantee(sha, verdict, original=None, earlier=()):
+    """A `guarantee.md` from the template: its tables for people, then a
+    verdict block per run of EARLIER, each `(sha, verdict)`, then the newest
+    run's block for SHA, holding ORIGINAL where it is given."""
+    runs = [verdict_block(s, v) for s, v in earlier]
+    runs.append(verdict_block(sha, verdict, original))
     return (
         "# 1791999990-a-guaranteed-item — guarantee\n\n"
         "| Field | Value |\n|---|---|\n"
-        f"| Target SHA | {sha} against main |\n"
         f"| Broad gate | {sha} against main, as `trail/gate.md` names it |\n\n"
         "## Claims re-run\n\n"
         "| Claim | Source | Command | Result |\n|---|---|---|---|\n\n"
         "## The parties\n\n"
         "| Party | Says | Agrees with | Disagrees with |\n|---|---|---|---|\n\n"
-        f"Verdict: {verdict}\n"
+        + "\n".join(runs)
     )
 
 
@@ -2515,16 +2528,11 @@ def item(tmp_path, monkeypatch):
 
 
 def reseal(root, original):
-    """The closing records naming HEAD, committed; the guarantee carries
-    `original: ORIGINAL` under its table where ORIGINAL is given."""
+    """The closing records naming HEAD, committed; the guarantee's verdict
+    block carries `original: ORIGINAL` where ORIGINAL is given."""
     head = git(root, "rev-parse", "HEAD")
     write(root, f"{ITEM}/trail/gate.md", gate_file(head))
-    text = guarantee(head, "sealed")
-    if original is not None:
-        text = text.replace(
-            "\n## Claims re-run", f"\noriginal: {original}\n\n## Claims re-run"
-        )
-    write(root, f"{ITEM}/guarantee.md", text)
+    write(root, f"{ITEM}/guarantee.md", guarantee(head, "sealed", original))
     commit(root, "the closing records, again")
 
 
@@ -2540,99 +2548,9 @@ def direct_migrating(root, original):
     reseal(root, original)
 
 
-class Test_verdicts_of:
-    def test_accepts_each_verdict_in_its_shape(self):
-        """S5 of #1000: the line is `Verdict: sealed`, `Verdict: withheld
-        reason: <…>` or `Verdict: undecided question: <…>`, read whole.
-        Protects: `withheld` with its reason left off read as `sealed`, and a
-        `sealed` with a rider passing."""
-        for said, word in (
-            ("sealed", "sealed"),
-            ("withheld reason: the body claims a README change", "withheld"),
-            ("undecided question: does #12 ask for the flag?", "undecided"),
-        ):
-            found = chain.verdicts_of(reader, guarantee("abc1234", said))
-            assert [chain.verdict_word(v) for _n, v in found] == [word], said
-        assert chain.verdict_word("Verdict: sealed, but the README is stale") is None
-        assert chain.verdict_word("Verdict: withheld") is None
-
-    def test_reads_the_label_exactly_and_names_a_line_that_opens_like_it(self):
-        """#1167, *Scope* item 5: `Verdict:` is read at the start of a line,
-        exactly. `**Verdict:** withheld` beside `Verdict: sealed` is no verdict
-        line, so the one verdict is `sealed`, and `unread_verdicts` names the
-        other at its line. Seen red against the loose reading, which handed
-        back both lines and so refused two verdicts."""
-        text = guarantee("abc1234", "sealed").replace(
-            "Verdict: sealed", "Verdict: sealed\n**Verdict:** withheld"
-        )
-        lines = text.splitlines()
-        assert chain.verdicts_of(reader, text) == [
-            (lines.index("Verdict: sealed") + 1, "Verdict: sealed")
-        ]
-        assert chain.unread_verdicts(reader, text, "g.md") == [
-            (
-                "g.md",
-                lines.index("**Verdict:** withheld") + 1,
-                chain.UNREAD_VERDICT.format(said="**Verdict:** withheld"),
-            )
-        ]
-        assert chain.unread_verdicts(reader, guarantee("abc1234", "sealed"), "g") == []
-
-    def test_names_no_verdict_line_inside_a_fence(self):
-        """The guarantee's net reads a line outside every fence too, so a
-        fenced `**Verdict:** withheld` is neither read nor named. Round 3's
-        finding 2: seen red against `unread_verdicts` reading the lines
-        through `reader.gfm_lines`, which blanks no fence."""
-        fence = "`" * 3
-        text = guarantee("abc1234", "sealed") + (
-            f"\n{fence}markdown\n**Verdict:** withheld\n{fence}\n"
-        )
-        lines = text.splitlines()
-        assert chain.verdicts_of(reader, text) == [
-            (lines.index("Verdict: sealed") + 1, "Verdict: sealed")
-        ]
-        assert chain.unread_verdicts(reader, text, "g.md") == []
-
-    def test_refuses_a_verdict_line_inside_a_fence(self):
-        """A verdict line in its one shape, quoted in a fenced block beside
-        the guarantee's own, is no verdict line, so the one verdict read is
-        `sealed`. Seen red with `verdicts_of` reading `reader.gfm_lines`,
-        which blanks no fence, and so handing back both lines."""
-        fence = "`" * 3
-        text = guarantee("abc1234", "sealed") + (
-            f"\n{fence}markdown\nVerdict: withheld reason: an example\n{fence}\n"
-        )
-        lines = text.splitlines()
-        assert chain.verdicts_of(reader, text) == [
-            (lines.index("Verdict: sealed") + 1, "Verdict: sealed")
-        ]
-
-    def test_the_verdict_patterns_are_linear_in_the_line(self):
-        """#941's round 3 met a pattern that backtracked exponentially; the
-        verdict line's patterns and the earlier run's repeat, so a long line
-        of their repeated characters is read inside the bound, which is far
-        above the linear time (under 0.1 s) and far below a backtracking
-        one (no end), so a loaded runner does not fail it."""
-        import time
-
-        start = time.monotonic()
-        for line in (
-            "Verdict: withheld reason: " + "x " * 50000,
-            "*_ " * 30000 + "verdict",
-            "Verdict: undecided question:" + " " * 100000,
-        ):
-            chain.verdict_word(line)
-            chain.verdicts_of(reader, line)
-        chain.earlier_verdicts("; earlier run: aaa1111 against " + "x" * 100000)
-        chain.earlier_verdicts("; earlier run: aaa1111" + " against x" * 30000)
-        chain.earlier_verdicts("aaa1111 against " + "x" * 100000 + ";")
-        chain.earlier_verdicts("earlier" + " " * 100000)
-        chain.earlier_verdicts(" " * 100000 + "earlier runs" + " " * 100000)
-        assert time.monotonic() - start < 5.0
-
-
-# S6 of #1000: lines that open with the label and are not one of its three
-# shapes. Each is refused at its line, and none reads as `sealed`.
+# S6 of #1000: lines that open with the key and are not one of its three
+# shapes, and a word the verdict used before #969. Each is refused at its
+# line naming the three, and none reads as `sealed`.
 NEAR_MISSES = (
     "Verdict: withheld — x",
     "Verdict: withheld - x",
@@ -2644,11 +2562,11 @@ NEAR_MISSES = (
     "Verdict: **sealed**",
     "Verdict: sealed reason: x",
     "Verdict: undecided reason: x",
+    "Verdict: sound",
 )
-# #1167, *Scope* item 5: lines that open like the label and are not it. Each
-# is prose to the check, named as not read, and leaves the guarantee with no
-# verdict line. Round 1 of #1000, finding 3: an indent is a code block at
-# four spaces.
+# #1198: lines that open like the key and are not it. Inside a verdict block
+# each is no field of its kind, refused at its line with the keys the block
+# takes.
 OPENS_LIKE = (
     "**Verdict:** sealed",
     "verdict: sealed",
@@ -2657,99 +2575,19 @@ OPENS_LIKE = (
 )
 
 
-class Test_earlier_verdicts:
-    """#975: the stamp is drawn once per work item, held by the `Target SHA`
-    row's own `; earlier run: <sha> <word>` chain rather than a count kept
-    beside the tree. One reader of that chain, beside the check's other
-    readers of the same row."""
+class Test_blocks_of:
+    def test_accepts_a_records_blocks_and_hands_its_notices_over(self):
+        text = verdict_block("abc1234") + "\n```Seal\nx\n```\n"
+        notices = []
+        found, problems = chain.blocks_of("g.md", text, chain.FIELDS.GUARANTEE, notices)
+        assert problems == [] and len(found) == 1
+        assert notices == [("g.md", 6, chain.FIELDS.NEAR.format(line="```Seal"))]
 
-    def test_accepts_each_earlier_run_with_its_verdict_word(self):
-        """S9 of #1000: an entry is `<sha> <word>`, with `against <base>`
-        after the SHA where it names one."""
-        cell = (
-            "ccc3333 against main; earlier run: bbb2222 against main sealed; "
-            "earlier run: aaa1111 withheld"
-        )
-        assert chain.earlier_verdicts(cell) == [
-            ("bbb2222", chain.SEALED),
-            ("aaa1111", chain.WITHHELD),
-        ]
-
-    def test_a_first_run_has_none(self):
-        assert chain.earlier_verdicts("aaa1111 against main") == []
-        assert chain.earlier_verdicts("") == []
-        assert chain.earlier_verdicts(None) == []
-
-    @pytest.mark.parametrize(
-        "entry",
-        [
-            "; earlier run: aaa1111 withheld — x",
-            "; earlier run: aaa1111 Sealed",
-            "; earlier run: `bbb2222` against main **sealed**",
-            "; earlier run: an earlier one, sealed",
-            # Round 1 of #1000, finding 4: a misspelt separator.
-            ";  earlier run: bbb2222 sealed",
-            "; Earlier run: bbb2222 sealed",
-            "; earlier run bbb2222 sealed",
-            "; earlier runs: bbb2222 sealed",
-            ", earlier run: bbb2222 sealed",
-            # Round 2 of #1000, finding 3: the row has one shape, so no
-            # spelling of the separator passes unread.
-            "; earlier-run: bbb2222 sealed",
-            "; earlier_run: bbb2222 sealed",
-            "; earlierrun: bbb2222 sealed",
-            # Any other text after the target, such as a second word of base.
-            " @ 4a6e24f6",
-            " (resolved as origin/main)",
-        ],
-    )
-    def test_refuses_text_after_the_target_that_is_no_earlier_run(self, entry):
-        """S9 of #1000, and round 1's finding 4 and round 2's finding 3: the
-        `Target SHA` value is `<sha> against <base>`, then each earlier run
-        as exactly `; earlier run: <sha> <word>`, and any other text after
-        the target comes back quoted with no word, for the arm to refuse.
-        Seen red against the reader that read the word by its prefix and
-        through emphasis, and against the one that looked for the separator
-        in some spellings: a hyphen, an underscore and the joined word gave
-        no entry at all."""
-        cell = f"ccc3333 against main{entry}"
-        assert chain.earlier_verdicts(cell) == [(entry.strip(), None)]
-
-    def test_an_entry_is_read_exactly_up_to_the_next_separator(self):
-        """Round 2 of #1000, finding 3: a space before the next separator is
-        text the shape does not hold, so that entry reads no word and the
-        one after it still reads."""
-        cell = "ccc3333 against main; earlier run: aaa1111 withheld ; earlier run: bbb2222 sealed"
-        assert chain.earlier_verdicts(cell) == [
-            ("; earlier run: aaa1111 withheld", None),
-            ("bbb2222", chain.SEALED),
-        ]
-
-    @pytest.mark.parametrize(
-        "entry",
-        [
-            "; earlier run: aaa1111 withheld — x",
-            "; earlier run: aaa1111 Sealed",
-            "; Earlier run: aaa1111 sealed",
-            "; earlier-run: aaa1111 sealed",
-        ],
-    )
-    def test_the_arm_refuses_an_entry_at_the_target_row(self, item, entry):
-        """S9 of #1000: the guarantee arm refuses it at the `Target SHA`
-        row's line, naming the entry and the shape it reads."""
-        root, sha = item
-        rel = f"{ITEM}/guarantee.md"
-        text = guarantee(sha, "sealed").replace(
-            f"| Target SHA | {sha} against main |",
-            f"| Target SHA | {sha} against main{entry} |",
-        )
-        write(root, rel, text)
-        commit(root, "an earlier run with a rider")
-        [(path, number, why)] = chain.guarantee(reader, str(root), ITEM, "main")
-        row = next(n for n, ln in enumerate(text.splitlines(), 1) if "Target SHA" in ln)
-        assert (path, number) == (rel, row), why
-        assert f"`{entry.strip()}`" in why, why
-        assert "`<sha> against <base>`" in why and "<sha> <word>`" in why, why
+    def test_refuses_each_line_the_reader_refuses_at_its_line(self):
+        text = verdict_block("abc1234").replace("Verdict:", "verdict:")
+        found, problems = chain.blocks_of("g.md", text, chain.FIELDS.GUARANTEE)
+        assert found == []
+        assert [(path, line) for path, line, _why in problems] == [("g.md", 3)]
 
 
 @pytest.mark.rule("ready-needs-sealed")
@@ -2758,6 +2596,26 @@ class Test_guarantee:
         root, _sha = item
         assert chain.guarantee(reader, str(root), ITEM, "main") == []
 
+    def test_accepts_the_newest_of_two_runs(self, item, capsys):
+        """#1198's scenario *Two sealer runs*: the sealer appends a verdict
+        block per run, so a `withheld` at an older commit above a `sealed`
+        at HEAD passes, and the same blocks the other way round read the
+        newest as `withheld`. Seen red against the reader that read the
+        first block."""
+        root, sha = item
+        rel = f"{ITEM}/guarantee.md"
+        older = git(root, "rev-parse", "HEAD~1")
+        text = guarantee(sha, "sealed", earlier=[(older, "withheld reason: x")])
+        write(root, rel, text)
+        commit(root, "a second run")
+        assert chain.guarantee(reader, str(root), ITEM, "main") == []
+        assert check(root, capsys)[0] == 0
+        swapped = verdict_block(sha) + "\n" + verdict_block(older, "withheld reason: x")
+        write(root, rel, swapped)
+        commit(root, "the runs the other way round")
+        problems = chain.guarantee(reader, str(root), ITEM, "main")
+        assert any("`Verdict: withheld reason: x`" in why for _p, _n, why in problems)
+
     def test_refuses_absent_unfilled_and_behind_head_by_name(self, item):
         root, _sha = item
         rel = f"{ITEM}/guarantee.md"
@@ -2765,39 +2623,67 @@ class Test_guarantee:
         later = commit(root, "a record after the guarantee")
         [(path, _line, why)] = chain.guarantee(reader, str(root), ITEM, "main")
         assert path == rel and later[:8] in why
-        write(root, rel, GUARANTEE_TEMPLATE.read_text(encoding="utf-8"))
+        template = GUARANTEE_TEMPLATE.read_text(encoding="utf-8")
+        write(root, rel, template)
         commit(root, "the template, unfilled")
-        problems = chain.guarantee(reader, str(root), ITEM, "main")
-        assert any("no SHA" in why for _p, _n, why in problems)
+        [(path, line, why)] = chain.guarantee(reader, str(root), ITEM, "main")
+        placeholder = template.split("\n")[line - 1]
+        assert path == rel and placeholder.startswith("target: <"), placeholder
+        assert why.startswith(f"`{placeholder}` does not read whole"), why
         head = git(root, "rev-parse", "HEAD")
-        write(root, rel, guarantee(head, "sealed") + "Verdict: sealed\n")
-        commit(root, "two verdicts")
-        [(_p, _n, why)] = chain.guarantee(reader, str(root), ITEM, "main")
-        assert "2 `Verdict:` lines" in why
-        write(root, rel, guarantee(head, "sealed").replace("Verdict: sealed\n", ""))
-        commit(root, "no verdict")
-        assert chain.guarantee(reader, str(root), ITEM, "main") == [
-            (rel, 0, "0 `Verdict:` lines; the guarantee carries one")
-        ]
-        hidden = guarantee(head, "sealed").replace(
-            "## The parties", "~~~\n\n## The parties"
+        two = guarantee(head, "sealed").replace(
+            "```seal\n", "```seal\nVerdict: sealed\n"
         )
-        write(root, rel, hidden)
-        commit(root, "a fence nobody closed")
-        opener = hidden.splitlines().index("~~~") + 1
-        problems = chain.guarantee(reader, str(root), ITEM, "main")
-        assert [(p, n) for p, n, _why in problems] == [(rel, opener), (rel, 0)]
-        assert "never closes" in problems[0][2], problems
+        write(root, rel, two)
+        commit(root, "a verdict above the target")
+        [(_p, _n, why)] = chain.guarantee(reader, str(root), ITEM, "main")
+        assert why == chain.FIELDS.NO_KIND.format(
+            line="Verdict: sealed", openers="`target:`"
+        )
         git(root, "rm", "-q", rel)
         commit(root, "no guarantee")
         [(_p, _n, why)] = chain.guarantee(reader, str(root), ITEM, "main")
         assert "git carries no guarantee file" in why
 
+    def test_refuses_a_guarantee_of_the_old_shape_naming_the_template(self, item):
+        """#1198's scenario *A record from before the change*, for the
+        guarantee, and *Scope* item 9: a `Target SHA` row and a `Verdict:`
+        line hold no verdict block, and the one refusal names the template
+        and says the sealer appends a block. Seen red against the reader
+        before #1198, which passed the record."""
+        root, sha = item
+        rel = f"{ITEM}/guarantee.md"
+        old = (
+            "| Field | Value |\n|---|---|\n"
+            f"| Target SHA | {sha} against main |\n\nVerdict: sealed\n"
+        )
+        write(root, rel, old)
+        commit(root, "a guarantee of the shape before the blocks")
+        assert chain.guarantee(reader, str(root), ITEM, "main") == [
+            (rel, 0, chain.NO_VERDICT_BLOCK)
+        ]
+        assert "`templates/records/sdd-guarantee.md`" in chain.NO_VERDICT_BLOCK
+        assert "appends one" in chain.NO_VERDICT_BLOCK
+
+    def test_refuses_a_fence_nobody_closed_between_two_runs(self, item):
+        """#1122, at the check: a `sealed` block, then a fence nobody closed,
+        then a `withheld` block. A renderer hides everything below the
+        fence, so the check refuses it at its opener."""
+        root, sha = item
+        rel = f"{ITEM}/guarantee.md"
+        newest = verdict_block(sha, "withheld reason: the gate failed")
+        text = guarantee(sha, "sealed") + "\n````\n\n" + newest
+        write(root, rel, text)
+        commit(root, "a fence nobody closed")
+        opener = text.split("\n").index("````") + 1
+        assert chain.guarantee(reader, str(root), ITEM, "main") == [
+            (rel, opener, chain.FIELDS.UNCLOSED)
+        ]
+
     def test_an_opener_quoted_in_a_code_span_hides_no_verdict(self, item):
         """Round 1 of #1000, finding 2: a claims cell quoting the comment
         opener in a code span, as two merged guarantees do, leaves the
-        verdict line below it read. Seen red against the scan that read the
-        opener: 0 `Verdict:` lines."""
+        verdict block below it read."""
         root, sha = item
         rel = f"{ITEM}/guarantee.md"
         text = guarantee(sha, "sealed").replace(
@@ -2811,13 +2697,12 @@ class Test_guarantee:
 
     @pytest.mark.rule("record-comment-line-refused")
     def test_refuses_a_comment_line_at_its_line(self, item):
-        """S5 of #1012: a verdict quoted in a comment above the verdict line
-        is refused at its line, and the line below it is still the one
-        verdict. The reader that kept a comment state passed it."""
+        """S5 of #1012: a verdict quoted in a comment above the verdict block
+        is refused at its line."""
         root, sha = item
         rel = f"{ITEM}/guarantee.md"
         text = guarantee(sha, "sealed").replace(
-            "Verdict: sealed", "<!-- Verdict: sealed -->\nVerdict: sealed"
+            "```seal\n", "<!-- Verdict: sealed -->\n```seal\n"
         )
         write(root, rel, text)
         commit(root, "a verdict in a comment")
@@ -2826,20 +2711,17 @@ class Test_guarantee:
             (rel, line, reader.COMMENT_LINE)
         ]
 
-    @pytest.mark.rule("ready-needs-sealed")
     @pytest.mark.parametrize("line", NEAR_MISSES)
     def test_refuses_a_near_miss_of_the_verdict_at_its_line(self, item, line):
-        """S6 of #1000. Seen red against the reader that stripped emphasis and
-        read a value by its prefix: `Sealed`, `**sealed**` and `**Verdict:**
-        sealed` passed as `sealed`, and the rest were refused naming no shape,
-        or not read at all."""
+        """S6 of #1000, inside a verdict block: the value is read whole
+        against the three shapes and refused at its line naming them. A word
+        the verdict used before #969 needs no list of its own (#1198,
+        `## Removes`)."""
         root, sha = item
         rel = f"{ITEM}/guarantee.md"
         text = guarantee(sha, "sealed").replace("Verdict: sealed", line)
         write(root, rel, text)
         commit(root, f"the sealer wrote {line}")
-        found = chain.verdicts_of(reader, text)
-        assert len(found) == 1 and chain.verdict_word(found[0][1]) != chain.SEALED
         [(path, number, why)] = chain.guarantee(reader, str(root), ITEM, "main")
         assert (path, number) == (rel, text.splitlines().index(line) + 1), why
         for shape in (
@@ -2849,33 +2731,42 @@ class Test_guarantee:
         ):
             assert shape in why, why
 
-    @pytest.mark.rule("ready-needs-sealed")
     @pytest.mark.parametrize("line", OPENS_LIKE)
-    def test_names_a_line_that_opens_like_the_verdict_and_reads_none(
-        self, item, capsys, line
-    ):
-        """#1167, *Scope* item 5: a line that opens like `Verdict:` and is not
-        it is prose. The guarantee holding it alone has no verdict line and
-        is refused naming the file, and the line is printed at its line as
-        not read, which adds nothing to the exit code. Seen red against the
-        reader that took the line as the verdict and refused it at its line
-        naming the three shapes."""
+    def test_refuses_a_line_that_opens_like_the_verdict_at_its_line(self, item, line):
+        """#1198: inside a block a line is a field or refused, so a verdict
+        spelt otherwise is refused at its line with the keys a verdict block
+        takes, where #1167 read it as prose. Seen red against that reader,
+        which named it and refused the file for having no verdict line."""
         root, sha = item
         rel = f"{ITEM}/guarantee.md"
         text = guarantee(sha, "sealed").replace("Verdict: sealed", line)
         write(root, rel, text)
         commit(root, f"the sealer wrote {line}")
         number = text.splitlines().index(line) + 1
-        assert chain.verdicts_of(reader, text) == []
-        assert chain.guarantee(reader, str(root), ITEM, "main") == [
-            (rel, 0, "0 `Verdict:` lines; the guarantee carries one")
-        ]
-        code, out = check(root, capsys)
-        assert code == 1, out
-        said = chain.UNREAD_VERDICT.format(said=line.strip())
-        assert f"{rel}:{number}  {said}" in out.splitlines(), out
+        said = chain.FIELDS.NOT_A_FIELD.format(
+            line=line, kind="verdict", keys="`target:`, `original:` and `Verdict:`"
+        )
+        assert chain.guarantee(reader, str(root), ITEM, "main") == [(rel, number, said)]
 
-    @pytest.mark.rule("ready-needs-sealed")
+    def test_names_a_near_opener_and_reads_no_verdict(self, item, capsys):
+        """A fence like the block's and not it is no block: the guarantee
+        holding it alone has no verdict block, and the opener is printed at
+        its line as not read, which adds nothing to the exit code."""
+        root, sha = item
+        rel = f"{ITEM}/guarantee.md"
+        text = guarantee(sha, "sealed").replace("```seal", "```Seal")
+        write(root, rel, text)
+        commit(root, "a near opener")
+        notices = []
+        assert chain.guarantee(reader, str(root), ITEM, "main", notices) == [
+            (rel, 0, chain.NO_VERDICT_BLOCK)
+        ]
+        number = text.splitlines().index("```Seal") + 1
+        said = chain.FIELDS.NEAR.format(line="```Seal")
+        assert notices == [(rel, number, said)]
+        code, out = check(root, capsys)
+        assert code == 1 and f"{rel}:{number}  {said}" in out.splitlines(), out
+
     def test_a_verdict_other_than_sealed_fails_a_ready_pull_request(self, item, capsys):
         """T8, S8 of #969: `withheld` and `undecided` fail a ready pull request
         naming the file and the verdict; a draft prints the same line and
@@ -2894,6 +2785,7 @@ class Test_guarantee:
             assert code == 1, out
             line = next(ln for ln in out.splitlines() if ln.startswith(f"{rel}:"))
             assert f"`Verdict: {verdict}`" in line and "needs `sealed`" in line, line
+            assert "appends its block" in line, line
             code, out = check(root, capsys, "--sealing")
             assert code == 0 and rel in out
         event = root.parent / "event.json"
@@ -2903,51 +2795,36 @@ class Test_guarantee:
         code, out = check(root, capsys)
         assert code == 0 and rel in out
 
-    @pytest.mark.rule("ready-needs-sealed")
-    def test_the_old_words_are_refused_by_line(self, item, capsys):
-        """T8, S8 of #969: a `guarantee.md` written before the words changed,
-        reading `sound`, `not sound` or `undecidable`, fails a ready pull request
-        on its `Verdict:` line, and the line says the word changed and what to
-        do: spawn the sealer again at HEAD where `trail/gate.md` names a run at
-        HEAD or one followed only by the work item's records, and otherwise run
-        the broad gate first (round 1 of #969, finding 4). The line asserts
-        nothing about the record it did not read (round 2, finding 2): the same
-        pass's `broad_gate` line may say the record is behind HEAD. Protects: two
-        spellings in one tree, where the check takes `sound` for the new
-        `sealed`, or refuses it with a line nobody can place."""
-        root, sha = item
-        rel = f"{ITEM}/guarantee.md"
-        for old in (
-            "sound",
-            "not sound — the body claims a README change",
-            "undecidable",
+
+class Test_guarantee_original:
+    def test_accepts_the_newest_blocks_baseline_or_a_prefix_of_it(self):
+        for said in (BASELINE, BASELINE[:10]):
+            text = guarantee("abc1234", "sealed", said, earlier=[("abc1234", "sealed")])
+            assert chain.guarantee_original(text, "g.md", BASELINE, PARITY) == []
+
+    def test_refuses_a_newest_block_with_none_or_another(self):
+        """#1198, *Scope* item 3: the newest block's `original:` is read, and
+        one in an earlier block does not stand for it."""
+        earlier = verdict_block("abc1234", "withheld reason: x", BASELINE)
+        text = earlier + "\n" + verdict_block("abc1234")
+        newest = text.split("\n").index("```seal", 2) + 1
+        says = chain.NO_GUARANTEE_ORIGINAL.format(config=PARITY, sha=BASELINE)
+        assert chain.guarantee_original(text, "g.md", BASELINE, PARITY) == [
+            ("g.md", newest, says)
+        ]
+        other = guarantee("abc1234", "sealed", "fedcba9876543210")
+        line = other.split("\n").index("original: fedcba9876543210") + 1
+        said = chain.OTHER_ORIGINAL.format(said="fedcba9876543210", sha=BASELINE)
+        assert chain.guarantee_original(other, "g.md", BASELINE, PARITY) == [
+            ("g.md", line, said)
+        ]
+
+    def test_refuses_nothing_of_a_guarantee_the_guarantee_arm_refuses(self):
+        for text in (
+            "Verdict: sealed\n",
+            verdict_block("abc1234").replace("Verdict:", "verdict:"),
         ):
-            text = guarantee(sha, old)
-            number = text.splitlines().index(f"Verdict: {old}") + 1
-            write(root, rel, text)
-            commit(root, f"the sealer said {old} before the words changed")
-            code, out = check(root, capsys)
-            assert code == 1, out
-            line = next(ln for ln in out.splitlines() if ln.startswith(f"{rel}:"))
-            assert line.split()[0] == f"{rel}:{number}", line
-            word = old.split(" — ")[0]
-            assert f"`{word}` is a word the verdict no longer uses" in line, line
-            # S8 of #1000: the three shapes, and no dash form.
-            assert (
-                "`Verdict: sealed`, `Verdict: withheld reason: <reason>` or "
-                "`Verdict: undecided question: <question>`"
-            ) in line, line
-            assert chain.DASH not in line.split("no longer uses", 1)[1], line
-            assert (
-                "Where `trail/gate.md` names a run at HEAD, or one followed only "
-                "by the work item's records, spawn the sealer again at HEAD, which "
-                "writes the new word"
-            ) in line, line
-            assert (
-                "otherwise run `seal gate --base <base> --record <item>` and "
-                "commit `trail/gate.md` first"
-            ) in line, line
-            assert "still stands" not in line, line
+            assert chain.guarantee_original(text, "g.md", BASELINE, PARITY) == []
 
 
 class Test_broad_gate:

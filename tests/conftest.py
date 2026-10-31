@@ -1543,13 +1543,13 @@ def write_transcript(root, session, entries, slug="-Users-x-repo"):
 STAMP_ITEM = "1799000000-an-item"
 
 
-def guarantee_record(target, base, verdict, earlier=""):
-    """A `guarantee.md` in `templates/records/sdd-guarantee.md`'s shape: its `Target
-    SHA` row, with EARLIER after it, and one `Verdict:` line."""
+def guarantee_record(target, base, verdict):
+    """A `guarantee.md` in `templates/records/sdd-guarantee.md`'s shape: its
+    table for people and one verdict block."""
     return (
         "# an item — guarantee\n\n| Field | Value |\n|---|---|\n"
-        f"| Target SHA | {target} against {base}{earlier} |\n"
-        f"| Broad gate | {target} against {base} |\n\nVerdict: {verdict}\n"
+        f"| Broad gate | {target} against {base} |\n\n"
+        f"```seal\ntarget: {target} against {base}\nVerdict: {verdict}\n```\n"
     )
 
 

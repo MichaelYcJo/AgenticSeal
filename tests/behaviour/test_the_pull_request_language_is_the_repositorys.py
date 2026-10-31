@@ -1106,7 +1106,6 @@ def _literal_strings():
     grammar_table_and_restates_none_of_it`), so a checker's constant here is
     one outside that table.
     """
-    chain = _chain()
     unverified = _checker(
         "unverified_check", "skills", "verify", "scripts", "unverified_check.py"
     )
@@ -1117,7 +1116,6 @@ def _literal_strings():
         body.HEADING,
         body.PHASES,
         body.NOT_DONE,
-        chain.TARGET,
         unverified.HEADING,
         unverified.CLOSED,
         *unverified.HEADER,

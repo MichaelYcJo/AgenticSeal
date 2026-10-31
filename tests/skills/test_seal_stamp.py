@@ -1260,12 +1260,19 @@ class Test_refused_here:
 Item = collections.namedtuple("Item", "repo common target base")
 
 
-def guarantee_text(target, base, verdict="sealed", earlier=""):
-    """A `guarantee.md` in `templates/records/sdd-guarantee.md`'s shape."""
+def verdict_block(target, base, verdict="sealed"):
+    """One verdict block, as the sealer appends it."""
+    return f"```seal\ntarget: {target} against {base}\nVerdict: {verdict}\n```\n"
+
+
+def guarantee_text(target, base, verdict="sealed", earlier=()):
+    """A `guarantee.md` in `templates/records/sdd-guarantee.md`'s shape: a
+    block per earlier run, each `(sha, verdict)`, then the newest run's."""
+    runs = [verdict_block(sha, base, said) for sha, said in earlier]
+    runs.append(verdict_block(target, base, verdict))
     return (
         "# an item — guarantee\n\n| Field | Value |\n|---|---|\n"
-        f"| Target SHA | {target} against {base}{earlier} |\n"
-        f"| Broad gate | {target} against {base} |\n\nVerdict: {verdict}\n"
+        f"| Broad gate | {target} against {base} |\n\n" + "\n".join(runs)
     )
 
 
@@ -1354,10 +1361,10 @@ class Test_sealed_before:
 
     def test_counts_the_head_commits_own_verdict_and_refuses_two_verdicts(self, shared):
         """It is asked at a write no commit carries yet, so HEAD's own
-        `sealed` counts; a commit holding two verdicts, or none that reads
-        `sealed`, does not."""
+        `sealed` counts; a commit whose block holds two verdicts, or whose
+        newest block does not read `sealed`, does not."""
         assert stamp.sealed_before(chain, str(shared.repo), GUARANTEE) is True
-        two = "sealed\n\nVerdict: withheld"
+        two = "sealed\nVerdict: withheld reason: x"
         amended(shared, guarantee_text(shared.target, shared.base, two))
         sealed_again(
             shared, guarantee_text(shared.target, shared.base, "withheld reason: x")
@@ -1370,7 +1377,7 @@ class Test_sealed_before:
     def test_skips_a_sealed_this_clone_recorded_refusing(self, shared):
         """#1027 S14: no gate stops a refused row from becoming history, so
         the history skips a `sealed` this clone recorded refusing, as the
-        earlier-run chain does; another clone's history still counts it."""
+        earlier blocks do; another clone's history still counts it."""
         write(shared.repo, "x.txt", "later\n")
         commit(shared.repo, "later")
         before = (chain, str(shared.repo), GUARANTEE)
@@ -1520,8 +1527,8 @@ class Test_queue_for_written_guarantee:
     ):
         """#1027 S14: a `sealed` over a commit `feat/x` does not hold queues
         nothing, records the refusal and says so; the stale row is committed,
-        since no gate stops it any more, and the new audit that keeps it as
-        an earlier run draws the stamp once."""
+        since no gate stops it any more, and the new audit appended below
+        it draws the stamp once."""
         uncommitted(shared)
         off = off_branch_commit(shared.repo)
         write(shared.repo, GUARANTEE, guarantee_text(off, shared.base))
@@ -1534,11 +1541,10 @@ class Test_queue_for_written_guarantee:
         assert os.listdir(refused) == [f"{ITEM_ID}-{off}"]
         assert queued(shared.common) == []
         commit(shared.repo, "the stale row")
-        earlier = f"; earlier run: {off} sealed"
         write(
             shared.repo,
             GUARANTEE,
-            guarantee_text(shared.target, shared.base, earlier=earlier),
+            guarantee_text(shared.target, shared.base, earlier=[(off, "sealed")]),
         )
         assert queue_written(shared)
         assert len(queued(shared.common)) == 1
@@ -1587,7 +1593,7 @@ class Test_queue_for_written_guarantee:
         """1792363231 S3: an earlier `withheld` does not count; a work item
         with no `trail/rounds/` reads `0`, and a `trail/gate.md` that is not UTF-8
         is no row."""
-        earlier = "; earlier run: abc1234 withheld"
+        earlier = [("abc1234", "withheld reason: x")]
         write(
             item_dir(local),
             "guarantee.md",
@@ -1603,7 +1609,7 @@ class Test_queue_for_written_guarantee:
     @pytest.mark.rule("stamp-drawn-once")
     @pytest.mark.parametrize(
         "verdict",
-        ["withheld reason: the README is stale", "sealed\n\nVerdict: withheld"],
+        ["withheld reason: the README is stale", "sealed\nVerdict: withheld reason: x"],
         ids=["withheld", "two verdicts"],
     )
     def test_refuses_a_guarantee_that_does_not_read_one_sealed(self, local, verdict):
@@ -1622,16 +1628,46 @@ class Test_queue_for_written_guarantee:
         write(
             item_dir(local),
             "guarantee.md",
-            text.replace("Verdict:", "<!-- a note -->\n\nVerdict:"),
+            text.replace("```seal", "<!-- a note -->\n\n```seal"),
         )
         assert queue_local(local) == [] and queued(local.common) == []
 
     @pytest.mark.rule("stamp-drawn-once")
+    @pytest.mark.parametrize("shape", ["as filed", "in blocks"])
+    def test_a_guarantee_holding_a_fence_nobody_closed_queues_nothing(
+        self, local, shape
+    ):
+        """#1122, and #1198's scenario of that name: a `sealed` verdict, then
+        a fence nobody closed, then a `withheld` one. A renderer hides all
+        below the fence and the pull request's check refuses it, so the
+        stamp queues nothing. As filed, in the shape before #1198, the case
+        is red at 15a5ce66, whose stamp read the one `Verdict:` line outside
+        a fence and never asked for a fence nobody closed; in blocks, red
+        against a reader without the unclosed-fence refusal."""
+        withheld = "withheld reason: the gate failed"
+        if shape == "as filed":
+            text = (
+                "# an item — guarantee\n\n| Field | Value |\n|---|---|\n"
+                f"| Target SHA | {local.target} against {local.base} |\n\n"
+                "Verdict: sealed\n\n```\n\n"
+                f"Verdict: {withheld}\n"
+            )
+        else:
+            text = (
+                guarantee_text(local.target, local.base)
+                + "\n````\n\n"
+                + verdict_block(local.target, local.base, withheld)
+            )
+        write(item_dir(local), "guarantee.md", text)
+        assert queue_local(local) == [] and queued(local.common) == []
+
+    @pytest.mark.rule("stamp-drawn-once")
     def test_a_local_mode_second_sealed_queues_nothing(self, local):
-        """1792363231 S3, once per work item: an earlier run reading `sealed`
-        was stamped at it, and a values file for the id, pending or drawn,
-        under any session, is a complete record in local mode."""
-        earlier = "; earlier run: bbb2222 sealed"
+        """1792363231 S3, once per work item, and #1198's scenario *Drawn
+        once*: an earlier block reading `sealed` was stamped at it, and a
+        values file for the id, pending or drawn, under any session, is a
+        complete record in local mode."""
+        earlier = [("bbb2222", "sealed")]
         write(
             item_dir(local),
             "guarantee.md",
@@ -1659,7 +1695,7 @@ class Test_queue_for_written_guarantee:
             _a_branch_gone,
         ],
         ids=[
-            "no Target SHA row",
+            "no verdict block",
             "the target does not resolve",
             "the target is off the branch",
             "no routing.md",
@@ -1690,15 +1726,15 @@ class Test_queue_for_written_guarantee:
     def test_a_local_mode_seal_refused_off_its_branch_then_resealed_draws_once(
         self, local
     ):
-        """1792363231 S14: the re-seal whose row keeps the refused run as
-        `sealed` queues one file, because this clone recorded refusing it."""
+        """1792363231 S14: the re-seal appended below the refused run's
+        `sealed` block queues one file, because this clone recorded refusing
+        it."""
         off = _off_the_branch(local)
         assert queue_local(local)
-        earlier = f"; earlier run: {off} sealed"
         write(
             item_dir(local),
             "guarantee.md",
-            guarantee_text(local.target, local.base, earlier=earlier),
+            guarantee_text(local.target, local.base, earlier=[(off, "sealed")]),
         )
         assert queue_local(local)
         assert len(queued(local.common)) == 1
@@ -1720,9 +1756,7 @@ class Test_queue_for_written_guarantee:
         write(
             item_dir(local),
             "guarantee.md",
-            guarantee_text(
-                local.target, local.base, earlier=f"; earlier run: {earlier} sealed"
-            ),
+            guarantee_text(local.target, local.base, earlier=[(earlier, "sealed")]),
         )
         stamp.record_refusal(local.common, *recorded)
         assert queue_local(local) == [] and queued(local.common) == []

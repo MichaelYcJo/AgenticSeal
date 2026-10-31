@@ -2,14 +2,15 @@
 it, and the definition that writes it.
 
 `templates/records/sdd-guarantee.md` is the file the sealer fills, and
-`chain_check.py#guarantee` is the arm that reads it at the pull request: a
-ready pull request passes only where the file names HEAD and its verdict
-reads `sealed`. Each group holds a case on good input and one on bad.
+`chain_check.py#guarantee` is the arm that reads it at the pull request,
+through `hooks/lib/fields.py`: a ready pull request passes only where the
+newest verdict block names HEAD and reads `sealed`. Each group holds a case
+on good input and one on bad.
 
-#942 moved the cases of the arm and its readers, which read no file of this
-repository, into `tests/skills/test_chain_check.py`: `Test_verdicts_of`,
-`Test_earlier_verdicts` and `Test_guarantee`. What stays reads the template,
-the definition, the document, or every committed `guarantee.md`.
+#942 moved the cases of the arm, which read no file of this repository, into
+`tests/skills/test_chain_check.py`, and #1198 put the reader's in
+`tests/hooks/test_fields.py`. What stays reads the template, the definition,
+the document, or every committed `guarantee.md`.
 """
 
 import pathlib
@@ -37,6 +38,7 @@ def between(path, start, end):
 
 chain = load(CHAIN, "chain_check_for_the_guarantee")
 reader = load(READER, "unverified_reader_for_the_guarantee")
+fields = chain.FIELDS
 
 
 # --- the template ---------------------------------------------------------------
@@ -67,16 +69,20 @@ class TestTemplate:
         hits = [p for p in patterns if re.search(p, text, re.M)]
         assert hits == [], hits
 
-    def test_the_template_carries_the_fields_sections_and_verdict_line(self):
+    def test_the_template_carries_the_tables_sections_and_verdict_block(self):
+        """#1198, *Scope* item 3: the run, the claims and the parties are
+        tables for people, and the template's one verdict block holds
+        `target:`, the `original:` line and `Verdict:`, in that order."""
         text = TEMPLATE.read_text(encoding="utf-8")
         lines = reader.readable(text)
         rows = chain.table_rows(reader, lines)
-        assert [c[0].strip() for c in rows[:4]] == [
-            "Field",
-            "---",
-            "Target SHA",
-            "Broad gate",
-        ]
+        assert [c[0].strip() for c in rows[:3]] == ["Field", "---", "Broad gate"]
+        raw = text.split("\n")
+        opener = raw.index(fields.OPENER)
+        assert raw.count(fields.OPENER) == 1
+        keys = [line.split(" ", 1)[0] for line in raw[opener + 1 : opener + 4]]
+        assert keys == [fields.TARGET, fields.ORIGINAL, fields.SEALER_VERDICT]
+        assert raw[opener + 4] == fields.FENCE
         assert reader.sections(lines, "## Claims re-run")
         assert reader.sections(lines, "## The parties")
         assert ["Claim", "Source", "Command", "Result"] in [
@@ -92,25 +98,21 @@ class TestTemplate:
         assert "sealed" not in cell, cell
         assert "`trail/gate.md` names" in cell, cell
 
-    def test_the_target_row_keeps_an_earlier_run(self):
-        """T3, S5 of #969. A re-run at a new HEAD keeps the earlier verdict on
-        the `Target SHA` row as `; earlier run: <sha> <word>`, the form
-        `trail/gate.md` already uses, and the definition re-runs only what a
-        commit since touched. Protects: a full re-audit for a records-only
-        commit, and an earlier verdict lost when the file is rewritten."""
+    def test_an_earlier_run_is_a_block_and_no_row(self):
+        """T3, S5 of #969, under #1198: a re-run at a new HEAD appends its
+        block below the earlier run's, so the template holds no `Target SHA`
+        row and no `; earlier run:` cell, and the definition re-runs only
+        what a commit since touched. Protects: a full re-audit for a
+        records-only commit, and an earlier verdict lost when the file is
+        rewritten."""
         text = TEMPLATE.read_text(encoding="utf-8")
-        rows = chain.table_rows(reader, reader.readable(text))
-        cell = next(c[1] for c in rows if c[0].strip() == "Target SHA")
-        assert "; earlier run: <sha> <word>" in cell, cell
+        assert "Target SHA" not in text and "earlier run" not in text, text
         rule = between(SEALER, "**The guarantee covers HEAD", " check: ")
-        assert "; earlier run: <sha> <word>" in rule, rule
         assert "re-runs only the claims whose coordinates a commit since" in rule
 
     def test_the_unfilled_template_is_no_guarantee(self):
-        text = TEMPLATE.read_text(encoding="utf-8")
-        assert chain.target_of(reader, text) is None
-        verdicts = chain.verdicts_of(reader, text)
-        assert len(verdicts) == 1 and verdicts[0][1] != chain.SEALED
+        found = fields.read(TEMPLATE.read_text(encoding="utf-8"), fields.GUARANTEE)
+        assert found.blocks == [] and found.refusals, found
 
     def test_the_claims_table_takes_a_row_per_act_of_step_3_and_lists_none(self):
         """T22: the sealer's acts are listed once, in `agents/sealer.md`.
@@ -132,15 +134,19 @@ class TestTemplate:
 # --- every committed guarantee ---------------------------------------------------
 
 
-def test_every_committed_guarantee_shows_its_one_verdict_line():
-    """Round 1 of #1000, finding 2: each `guarantee.md` under `seal/threads/`
-    gives the reader exactly the one `Verdict:` line it holds. Seen red at
-    565dfa24, where two gave none."""
-    found = {
-        p.parent.name: len(chain.verdicts_of(reader, p.read_text(encoding="utf-8")))
-        for p in (ROOT / "seal" / "threads").glob("*/guarantee.md")
-    }
-    assert {name: n for name, n in found.items() if n != 1} == {}, found
+def test_every_committed_guarantee_in_blocks_reads_whole():
+    """Round 1 of #1000, finding 2, under #1198: each `guarantee.md` under
+    `seal/threads/` that holds a verdict block's opener reads through the
+    reader with no refusal and at least one block. A guarantee of a work
+    item released before #1198 holds none, and no check judges it again."""
+    found = {}
+    for path in (ROOT / "seal" / "threads").glob("*/guarantee.md"):
+        text = path.read_text(encoding="utf-8")
+        if fields.OPENER not in text.split("\n"):
+            continue
+        read = fields.read(text, fields.GUARANTEE)
+        found[path.parent.name] = (len(read.blocks), read.refusals)
+    assert {k: v for k, v in found.items() if v[1] or not v[0]} == {}, found
 
 
 # --- the definition that writes it ---------------------------------------------
