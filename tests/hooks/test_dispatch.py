@@ -1150,13 +1150,23 @@ class Test_module:
         the move of an earlier layout (work item 1793438028). S1 of
         work item 1793240967: no group reads a command or a spawn for a branch
         switch or a worktree creation, so `pre-agent` holds the mark alone and
-        no group answers `PostToolUse` for an Agent call."""
+        no group answers `PostToolUse` for an Agent call.
+
+        The gates that wrote a clone's git hooks or carried a waiver to git
+        stay out of every group and off disk, and `hooks/git/` stays gone:
+        this plugin writes nothing into a clone's git hooks
+        (`docs/the-routing-check.md`)."""
         d = dispatch_module()
         assert d.GROUPS["pre-bash"] == ("mode-gate.py",)
         assert d.GROUPS["pre-agent"] == ("implementer-mark.py",)
         assert "post-agent" not in d.GROUPS
         assert d.GROUPS["session-start"] == ("version-check.py", "stub-remove.py")
         assert not any("install" in g for gates in d.GROUPS.values() for g in gates)
+        everywhere = {g for gates in d.GROUPS.values() for g in gates}
+        for gone in ("hook-install.py", "answer-write.py", "answer-clear.py"):
+            assert gone not in everywhere, gone
+            assert not os.path.exists(os.path.join(HOOKS, gone)), gone
+        assert not os.path.exists(os.path.join(HOOKS, "git")), "hooks/git/ is back"
 
     def test_a_message_is_its_first_line_and_capped(self):
         d = load(os.path.join(HOOKS, "dispatch.py"), "dispatch_for_the_cap")
