@@ -1996,6 +1996,13 @@ class Test_write_gate_file:
         gate.write_gate_file(str(tmp_path), "aaa1111", "ccc3333")
         text = pathlib.Path(path).read_text(encoding="utf-8")
         assert text.count("run: aaa1111") == 2, text
+        # The last block is the one asked: a re-run of the newest run appends
+        # nothing, and a run an earlier block names is appended again.
+        gate.write_gate_file(str(tmp_path), "aaa1111", "ccc3333")
+        gate.write_gate_file(str(tmp_path), "aaa1111", "bbb2222")
+        text = pathlib.Path(path).read_text(encoding="utf-8")
+        assert text.count("run: aaa1111 against ccc3333") == 1, text
+        assert text.count("run: aaa1111 against bbb2222") == 2, text
 
     def test_refuses_a_run_the_reader_would_refuse(self, tmp_path):
         with pytest.raises(gate.Refused, match="does not read whole as `run: <value>`"):

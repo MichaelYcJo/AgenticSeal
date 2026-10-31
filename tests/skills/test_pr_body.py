@@ -294,6 +294,8 @@ class Test_compose:
         """S5. A record that is not there is named in its section, never
         skipped."""
         text = PR.compose(NAME, {"changelog.md": CHANGELOG, "gaps.md": "# Overview\n"})
+        gate = PR.compose(NAME, {"trail/gate.md": "# a gate record\n"})
+        assert "`trail/gate.md` holds no run block." in gate.split("\n")
         for line in (
             "`frame/plan.md` is not in this work item.",
             "`trail/phases/` holds no phase record.",
