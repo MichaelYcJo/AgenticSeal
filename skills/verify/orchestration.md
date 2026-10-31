@@ -429,12 +429,12 @@ gathers up.
 | Rounds, finding and verifying | the round records |
 | Wall clock, routing commit to last record, build and chain apart | `git log` of the branch |
 | Commits, by kind | `git log --format=%s` |
-| Findings by severity | the records' verdict tables |
-| Findings by `Location`: record, code or tests, and docs | the records' `Location` column. A record is anything under `seal/threads/`, the work item's own documents, because a finding in one is about the run's own paperwork rather than about the tool. That path, not the whole of `seal/`: the root also holds `config.md`, `follow-up.md` and `README.md`, which are the repository's own and belong under `docs` |
+| Findings by severity | the `severity:` line of each finding block in the round records |
+| Findings by `Location`: record, code or tests, and docs | the `location:` line of each finding block. A record is anything under `seal/threads/`, the work item's own documents, because a finding in one is about the run's own paperwork rather than about the tool. That path, not the whole of `seal/`: the root also holds `config.md`, `follow-up.md` and `README.md`, which are the repository's own and belong under `docs` |
 | Records' share of the diff | `git diff --numstat` against the base, the record paths above counted apart |
 | Model turns, output tokens, cache write and cache read | `session_cost.py`'s token line over the run's main transcript |
 | Segments: count, minutes and tokens per kind | the agent completion notices, or the subagent transcripts |
-| Broad gate: whether it has run, how many times, and at what SHA | the work item's `trail/gate.md`, which holds one entry per full-suite run, newest first, each a SHA with the base it was compared against; the count is the number of entries, read off the file rather than remembered |
+| Broad gate: whether it has run, how many times, and at what SHA | the work item's `trail/gate.md`, which holds one `seal` block per full-suite run it recorded, the newest last, each a `run:` line naming the tree and the base it was compared against; the count is the number of blocks, read off the file rather than remembered |
 
 **The tokens are counted, not estimated, and counted the same way every
 time.** `session_cost.py <the run's main transcript>` prints the token line,

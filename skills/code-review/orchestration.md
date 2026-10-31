@@ -350,19 +350,20 @@ again, and spawn the sealer. Your broad run
 asks the records arm first, and that arm refuses a commit outside the work
 item after the last round's `target:` commit, so a run taken straight after
 the fix returns the same refusal. `undecided` is a question for the owner,
-put after the run rather than during it; write the answer under the verdict
-as `Answered <date> by <who>: <answer>`, commit, and spawn the sealer again.
+put after the run rather than during it; write the answer below the newest
+verdict block as `Answered <date> by <who>: <answer>`, commit, and spawn the
+sealer again.
 `withheld reason: the base <name> resolves to no commit here` needs no
 commit: a `git clone` of the branch worktree copies its branches and none
 of its `origin/` refs, so spawn the sealer again with the branch worktree
 itself as its clone, where `origin/<base>` or, with no remote, `<base>`
 resolves.
-Where the guarantee's row names a commit the branch does not hold, which
-the pull request's check refuses as stale, spawn the sealer again at HEAD
-and commit what it writes; never edit the row by hand. The stamp's writer
-recorded the refusal at the write, so the new audit, which keeps the refused
-verdict on its row, draws the work item's stamp (`docs/the-review-record.md`
-*The stamp*).
+Where the guarantee's newest verdict block names a commit the branch does
+not hold, which the pull request's check refuses as stale, spawn the sealer
+again at HEAD and commit what it writes; never edit a block by hand. The
+stamp's writer recorded the refusal at the write, so the new audit, whose
+block stands below the refused verdict's block, draws the work item's stamp
+(`docs/the-review-record.md` *The stamp*).
 
 **The preflight is yours, and it is not the broad gate.** It runs every
 arm of the gate except the `Broad gate` row, in the gate's order and over the
@@ -375,6 +376,11 @@ the file holding the rest: correct the record, commit, and run it again. On 2
 it refused before anything ran, and a refusal about the row goes to a person,
 as *A refusal about the `Broad gate` row* below says. It writes no file and
 prints no `BROAD GATE` line, so nothing it prints reads as the broad run's.
+A line the check names as not read, a fence near the opener of a `seal`
+block, changes no exit code, and its lines are fields of nothing. Where the
+preflight's output or the proofer's hand-back names one, read it against the
+record's template: where it meant a block, correct its opener to three
+backticks and `seal` alone, commit, and run the preflight again.
 An orchestrator that skips the preflight loses only time: the broad run asks
 the same arms, and refuses the same way after its suite.
 
@@ -383,8 +389,9 @@ report arrives, and you never draw one.** The broad run
 draws nothing: its stdout opens `BROAD GATE PASSED` or `BROAD GATE FAILED`,
 which say whether the broad command passed and judge nothing. The stamp means
 every party verified the work item, the sealer last, so it is drawn once per
-work item from the sealer's verdict: where the one `Verdict:` of
-`guarantee.md` reads `sealed`, the sealer's own `Write` of it queues the
+work item from the sealer's verdict: where the newest verdict block of
+`guarantee.md` reads `Verdict: sealed` and the block reader refuses none of
+its lines, the sealer's own `Write` of it queues the
 stamp's values, under either root, and the `Stop` hook draws them after your
 text. The line naming them is the edit hook's message, shown to the person
 at that write. It is not in the sealer's report and does not reach you.

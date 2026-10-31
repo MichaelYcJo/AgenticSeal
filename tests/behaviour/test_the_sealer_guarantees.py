@@ -111,6 +111,20 @@ class TestTemplate:
         assert "Target SHA" not in text and "earlier run" not in text, text
         rule = between(SEALER, "**The guarantee covers HEAD", " check: ")
         assert "re-runs only the claims whose coordinates a commit since" in rule
+        # #1198, Scope item 7: the definition says the same as the template.
+        # A re-run appends its block and edits none above it, and step 5
+        # writes every verdict, steps 1 and 2's among them, in a block.
+        assert "appends its own verdict block below the earlier ones" in rule, rule
+        step_5 = between(SEALER, "5. **", "6. **")
+        for said in (
+            "append one verdict block below every block an earlier run left",
+            "Edit no earlier block",
+            "Every `Verdict:` this file names, steps 1 and 2's among them, "
+            "stands in that block.",
+        ):
+            assert said in step_5, said
+        sealer = SEALER.read_text(encoding="utf-8")
+        assert "Target SHA" not in sealer and "earlier run:" not in sealer
 
     def test_the_unfilled_template_is_no_guarantee(self):
         found = fields.read(TEMPLATE.read_text(encoding="utf-8"), fields.GUARANTEE)
