@@ -12,6 +12,7 @@
 | `tests/behaviour/test_no_document_names_the_old_roots.py#KEEP` (read) | Each entry is checked to still occur somewhere. The four entries that name the README's 0.3.x section leave with it. The two entries for the policy sentence `specs/` or `.specseal/` stay, because that sentence stays in both editions. |
 | `docs/the-record-layout.md` *A change writes fragments, never a shared file* | The diff changes `skills/implement/bootstrap.md` and `agents/proofer.md`, so `changelog.md` ends with `### Process changes` in the shape of `templates/records/process.md`. |
 | Claude Code, *Host and maintain a marketplace*, *Migrate users with a renames map* (read, fetched 2026-10-31 from `code.claude.com/docs/en/plugins/host-marketplace.md`) | "Treat `renames` as append-only history. Keep old entries after everyone has migrated." The `renames` entry of `.claude-plugin/marketplace.json` is the platform's, and it stays. |
+| Claude Code, *Host and maintain a marketplace*, *Host your marketplace* (read, fetched 2026-10-31 from `code.claude.com/docs/en/plugins/host-marketplace.md`), and *Create a marketplace*, *Remove the marketplace to start over* (read, fetched 2026-10-31 from `code.claude.com/docs/en/plugin-marketplaces.md`) | "To pin a branch or tag of a GitHub or git-URL marketplace, tell users to append `#<ref>`, as in `your-org/your-marketplace#stable`." And: "`claude plugin marketplace remove my-marketplace` … removes the marketplace and uninstalls its plugins." These two sentences are all the release note's upgrade path stands on. Neither page says how a pinned install moves off its ref, and nobody has run the path end to end (*Scope*, *The release note*). |
 | Precedent: work item 1793240969, `frame/questions.md` at `53f21b54^` (read) | A `KEPT_OLD_NAMES` item stays while a line of the policy root spells it, because the pull request cannot edit that line. Its comment is rewritten to name the readers left. Q1 there is the question the owner's comment answers now. |
 | `hook-install.py` left in v0.22.4 (executed: `git tag --contains 61a8455a` lists v0.22.4 first) | The git hook stubs were written only by releases up to 0.22.3. `hooks/stub-remove.py` has taken them out at every session start since 0.22.4. A clone a release from 0.23.0 on has started a session in holds none. Its own docstring sets its sunset at "once no clone a supported release reaches still carries a stub", and the owner's decision meets it. |
 | `install.sh` and `uninstall.sh` left in v0.25.0 (executed: `git tag --contains 334189fd`) | The issue's coordinates for the old CLAUDE.md markers predate #1186. The markers now stand in `skills/update/SKILL.md` step 4's `PAIRS`, in `tests/behaviour/test_the_old_block_leaves_through_update.py`, and in `tests/censuses.py#KEPT_OLD_NAMES`. The file the issue names, `test_the_installer_writes_the_block_from_its_template.py`, no longer exists. |
@@ -124,15 +125,33 @@ whole for 0.20.0 onward and a sample before that.
   names, and nothing reads a second name.
 
 **The release note.** `changelog.md` says that a straight upgrade from a
-release before 0.23.0 is no longer supported. It names what such a person
-does instead: upgrade to 0.26.0 first, the last release that carries every
-reading this work removes, by adding the marketplace at that tag
-(`/plugin marketplace add MichaelYcJo/AgenticSeal#v0.26.0`, the platform's
-`#<ref>` form, read and not run), start a session in each clone, commit
-the move, run `/agentic:update`, and then update to 0.27.0. The other way
-is moving the files by hand. It also names the one leftover a person sees
-without either: git hook stubs, deleted by removing the hook files whose
-second line starts with the old marker.
+release before 0.23.0 is no longer supported. It names the two ways
+through, and states of the first only what the platform's reference
+supports (*Grounding*, the row on the `#<ref>` form):
+
+- Go through 0.26.0, the last release that carries every reading this
+  work removes. The reference supports these steps: remove the old
+  marketplace, which uninstalls its plugins; add
+  `MichaelYcJo/AgenticSeal#v0.26.0`, the `#<ref>` form pinning a tag; and
+  install `agentic@agenticseal` from it. Then start a session in each
+  clone, commit the move, and run `/agentic:update`. Reaching 0.27.0
+  afterwards is said only as removing the pinned marketplace and adding it
+  again without the ref, the two acts the reference names. The note does
+  not promise that the path works end to end. It says nobody has run it on
+  a machine holding such an install, as 0.23.0's note said of its own
+  three commands.
+- Move the files by hand.
+
+It also names the one leftover a person sees either way: git hook stubs,
+deleted by removing the hook files whose second line starts with the old
+marker.
+
+This path is the one thing the frame leaves unverified on purpose. Running
+it would change this machine's plugin configuration, so no party runs it.
+Phase 3 re-opens the two pages and quotes the sentences, with each URL and
+the date read, in its phase record. `gaps.md` *Not verified* carries one
+row for the path as a whole, unrun end to end, answered by the repository
+owner at the 0.27.0 release.
 
 ## User scenarios & acceptance *(mandatory)*
 
@@ -145,7 +164,7 @@ second line starts with the old marker.
 | S5. The READMEs give no straight-upgrade path | Given either README edition, when a person reads *Install*, then no section moves an install, a layout or a workflow from before 0.23.0, and the gate table has no row for a script `GROUPS` does not register | `tests/behaviour/test_chain_hooks_hardening.py#test_the_gate_table_has_one_row_for_each_script_groups_registers`; `tests/behaviour/test_no_document_names_the_old_roots.py`, whose `KEEP` entries are each checked to occur |
 | S6. No living file spells a removed name, and each kept spelling names a reader | Given the tree after the build, when `old_names` reads it, then no line spells an old name outside `KEPT_OLD_NAMES` and the records, and each item left names a file that still spells it | the suite case that runs `tests/censuses.py#old_names` over the tree, and `tests/test_censuses.py` with its fixture rewritten |
 | S7. The policy's rule changes stand pending, and nothing dangles until the settle | Given this design pending, when `seal rules --check` and the citation case read the tree, then the check lines of *Where the routing is checked* print as excused by this work item, and each docs citation of a removed README section is excused by an item below | `tests/github/test_rules.py`; `tests/behaviour/test_a_cited_section_stands_in_its_file.py` |
-| S8. A person on a release before 0.23.0 learns the path | Given the 0.27.0 release note, when that person reads it, then it says the straight upgrade is unsupported and names the two ways and the stub leftover (*Scope*, *The release note*) | `changelog.md`, read by the sealer against this design |
+| S8. A person on a release before 0.23.0 learns the path | Given the 0.27.0 release note, when that person reads it, then it says the straight upgrade is unsupported, names the two ways and the stub leftover, says no more of the first way than the quoted reference supports, and says it was not run end to end (*Scope*, *The release note*) | `changelog.md`, read by the sealer against the quotes in phase 3's record; `gaps.md` *Not verified*'s row for the path, answered by the repository owner at the release |
 
 ## Data & interfaces
 

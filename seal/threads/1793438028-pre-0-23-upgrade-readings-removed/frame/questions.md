@@ -21,9 +21,9 @@
   *Removes*, the census row, and *Grounding*, the 1793240969 precedent.
 - Which release the release note sends a person through: `frame/design.md`
   *Scope*, *The release note*. Any release from 0.23.0 to 0.26.x carries the
-  moves, and 0.26.0 is the last that carries every one. The marketplace's
-  `#<ref>` form is read from the platform's reference and has not been run,
-  and the fragment says so.
+  moves, and 0.26.0 is the last that carries every one. What the fragment
+  may say of that path, and where it is recorded as unrun:
+  `frame/design.md` *Grounding*, the row on the `#<ref>` form.
 
 ## Rows
 
