@@ -436,8 +436,9 @@ def test_a_test_file_named_for_a_script_does_not_name_it():
 
 def test_a_planted_invocation_turns_the_classification_red():
     """The classification-defence case, driven from a fixture: a document that
-    starts showing a script with no subcommand being run has to fail rather
-    than pass quietly. Neutral text, no real path."""
+    starts showing a script with no subcommand being run without its
+    repo-relative path has to fail rather than pass quietly. Neutral text,
+    no real path."""
     script = "skills/x/scripts/chain_check.py"
     assert command_forms("Run `chain_check.py --worktree` first.\n", script)
     assert command_forms("    chain_check.py -q\n", script)
