@@ -62,6 +62,11 @@ def mode_at(root, ref, rel):  # NAME NOT IN TREE
 
 The case belongs in `Test_main` of `tests/skills/test_unverified_check.py`, beside `test_refuses_a_row_deleted_through_a_tracked_link_naming_the_real_file` (line 2204). The base holds two real memos, the larger one is replaced by a link to the smaller one, and the case runs in both link orders. It expects exit 1, with the deletion line naming the link's path. It is seen red against b2e4ca18 in both orders, and against a92c358b in the order where the link sorts after its target.
 
+```seal
+verdict: fixed d64de886
+answer: The finding holds, and the fix follows the proposal's shape in its own words. The comparison body moved from `main` into `compare_at`, which returns a notice, an error or None, and both reads use it. `mode_at` asks `git ls-tree` for the base's mode. After the per-file loop, each scanned path that is a link here, where the base did not record a link, is compared at its own path with what the link reads now, and a loss is reported under the link's path. One departure from the paste-ready text: only a base link is skipped. A path the base does not hold goes on to `compare_at`, where `show` answers None, so that branch cannot be broken without a case seeing it. `test_refuses_a_memo_replaced_by_a_link_to_one_holding_fewer_rows` in `Test_main` runs both link orders, and it exited 0 in both against 10b696cd before the code changed (executed). `Test_mode_at` and `Test_compare_at` cover the two new functions. `seal mutate` ran four mutants, each red, exit 0 (executed): the arm skipped, the base-link skip removed, `mode_at` answering None, and `<` made `<=`. A probe after the fix exited 1 for the class's other member, a file replaced by a link to a file outside the repository, beside the outside notice for the target. It exited 1 for the link committed on a branch and read at `HEAD~1`, and 0 for a target that grew past the base's count, because the check compares counts (executed). One sibling stays open: a link named as the argument itself is resolved by `overviews` before the scan, so its base rows are never read. It predates this work, and `gaps.md` *Not done* holds it with its grounds.
+```
+
 ## Confirmations
 
 ```seal
