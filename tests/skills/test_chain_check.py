@@ -1778,6 +1778,18 @@ def refusal(root, text, item=ITEM):
     return f"{item}/frame/design.md:{line}  {chain.RULE_CHANGES_SAYS.format(reason=reason)}"
 
 
+def unread_heading(root, text, item=ITEM):
+    """The notice the check prints outside CI for ITEM's spec reading TEXT,
+    whose one near heading `rule_changes.parse` names, built from the
+    parser's own reason."""
+    ((line, why),) = RULES.parse(text, reader.policy_root(str(root))).unread
+    return f"{item}/frame/design.md:{line}  {chain.RULE_CHANGES_UNREAD.format(why=why)}"
+
+
+# A spec whose section is under a heading near `## Rule changes`, and no other.
+NEAR_HEADING = "## Rule Changes"
+
+
 def spec_lines(out, item=ITEM):
     return [ln for ln in out.splitlines() if f"{item}/frame/design.md" in ln]
 
@@ -1835,6 +1847,61 @@ class Test_rule_changes_read:
         code, out = check(root, capsys)
         assert code == 0, out
         assert spec_lines(out) == [], out
+
+    def test_names_a_near_heading_as_not_read_and_passes(
+        self, branch, ready, capsys, monkeypatch
+    ):
+        """#1167, *Scope* item 7: a spec whose section stands under
+        `## Rule Changes` has no `## Rule changes` section, so it passes as a
+        spec with none does, and the heading is printed `not read:` at its
+        line, a notice annotation in CI. Seen red against the refusal at the
+        heading, exit 1."""
+        root, _code = branch
+        text = spec_with(NOTHING).replace("## Rule changes", NEAR_HEADING)
+        put_spec(root, text)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert spec_lines(out) == [unread_heading(root, text)], out
+        monkeypatch.setenv("GITHUB_ACTIONS", "true")
+        code, out = check(root, capsys)
+        assert code == 0, out
+        where, said = unread_heading(root, text).split("  ", 1)
+        path, line = where.rsplit(":", 1)
+        assert spec_lines(out) == [f"::notice file={path},line={line}::{said}"], out
+
+    def test_names_a_near_heading_beside_a_refusal_and_keeps_the_refusal(
+        self, branch, ready, capsys
+    ):
+        """The naming decides nothing: beside a `## Rule changes` section the
+        parser refuses, the refusal stands at exit 1 and the near heading is
+        printed as not read after it."""
+        root, _code = branch
+        text = spec_with(CONTINUED).replace(
+            "## Removes", f"{NEAR_HEADING}\n\n{NOTHING}\n## Removes"
+        )
+        put_spec(root, text)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        assert spec_lines(out) == [
+            unread_heading(root, text),
+            refusal(root, text),
+        ], out
+
+    def test_names_a_near_heading_in_another_work_items_spec_the_branch_edits(
+        self, branch, ready, capsys
+    ):
+        """The heading is named in every spec the arm reads, an edited spec of
+        another work item among them, and the check passes."""
+        root, _code = branch
+        text = spec_with(NOTHING).replace("## Rule changes", NEAR_HEADING)
+        write(root, f"{MERGED_ITEM}/frame/design.md", text)
+        commit(root, "another work item's spec under a near heading")
+        reviewed_to_head(root)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert spec_lines(out, MERGED_ITEM) == [
+            unread_heading(root, text, MERGED_ITEM)
+        ], out
 
     def test_accepts_a_draft_or_an_unseen_pull_request_with_a_notice(
         self, branch, draft, capsys, monkeypatch

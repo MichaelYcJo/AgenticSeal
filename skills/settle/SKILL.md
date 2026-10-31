@@ -81,11 +81,14 @@ field per line, indented two spaces:
   refused at its line, naming the block.
 - A block that does not match whole is refused at its line, and its design
   joins no group: the settling session reads it whole.
-- The section's heading is `## Rule changes`, spelt exactly so. A heading at
-  any level whose letters, case folded, are those of `Rule changes`, and
-  that is not that heading, is a near miss: it is refused at its line. A
-  heading with other letters, such as `## Rules changes`, is another
-  section.
+- The section's heading is `## Rule changes`, spelt exactly so, and no
+  other heading is read as it. A heading at any level whose letters, case
+  folded, are those of `Rule changes`, and that is not that heading, is
+  another section: the reader names it, and `chain-check` prints it at its
+  line as one it did not read and refuses nothing for it, so a design
+  holding only it has no section and the settle reads it whole. Whether it
+  meant the section is the judgment of whoever reads the design, the
+  proofer at review among them.
 
 `skills/settle/scripts/rule_changes.py` is the one reader.
 `chain-check` asks the same reader at the pull request, for each work item

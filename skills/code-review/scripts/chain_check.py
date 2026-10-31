@@ -30,7 +30,8 @@ judged (`carried_by`). The arms are eight:
                 `Planning` answer, and, on a pull request that declares at
                 least one work item, in every work item `frame/design.md` its
                 own commits add or change (`edited_work_items`); a design with
-                no such section, and a work item with no design, pass
+                no such section, and a work item with no design, pass, and a
+                heading near `## Rule changes` is another section
   records       `Review | through the review chain`: `trail/rounds/` holds at least
                 one `round-N.md`; each reads whole against the grammar table
                 of `docs/the-review-record.md` *The round record*, which
@@ -68,7 +69,9 @@ guarantee's `Verdict:`, is prose to every arm, and a file under
 `trail/rounds/` that is no `round-N.md` is not read; the check names each
 (`unread`, and `unread_originals` for a guarantee whose `original:` line
 the original arm reads) and decides nothing on it. Whether the line meant the label is
-the judgment of the agent that reads the record.
+the judgment of the agent that reads the record. The same holds for each
+line `rule_changes.parse` names in a design the rule-changes arm reads, a
+heading near `## Rule changes` among them (`rule_changes_read`).
 
 Usage:
   chain_check.py --baseline <ref> [--root DIR] [--worktree] [--sealing]
@@ -1652,33 +1655,41 @@ RULE_CHANGES_SAYS = (
     "`## Rule changes` does not parse, so `settle` cannot group this design by the "
     "sections it names and the settle has to read it whole: {reason}"
 )
+# A line `rule_changes.parse` names as one it did not read, with its reason.
+RULE_CHANGES_UNREAD = "not read: {why}"
 
 
-def rule_changes_read(reader, root, item):
+def rule_changes_read(reader, root, item, notices=None):
     """[(path, line, problem)] for the work item's `frame/design.md` whose
     `## Rule changes` section `rule_changes.parse`, the one reader `settle`
-    groups by, refuses; [] where git carries no design. The reader is reached
-    through `unverified_check.py#rule_changes`, which raises where it will
-    not load."""
+    groups by, refuses; [] where git carries no design. Each line the parser
+    names as one it did not read goes to NOTICES (`RULE_CHANGES_UNREAD`).
+    The reader is reached through `unverified_check.py#rule_changes`, which
+    raises where it will not load."""
     rel = f"{item}/{SPEC_FILE}"
     text = read_record(root, rel)
     if text is None:
         return []
     parsed = reader.rule_changes().parse(text, reader.policy_root(root))
+    if notices is not None:
+        notices.extend(
+            (rel, line, RULE_CHANGES_UNREAD.format(why=why))
+            for line, why in parsed.unread
+        )
     return [
         (rel, line, RULE_CHANGES_SAYS.format(reason=reason))
         for line, reason in parsed.errors
     ]
 
 
-def rule_changes_of(reader, root, items):
+def rule_changes_of(reader, root, items, notices=None):
     """[(path, line, problem)] from `rule_changes_read` over every work item
-    directory of ITEMS, or None where the reader would not load, which is
-    said on stderr."""
+    directory of ITEMS, its notices going to NOTICES, or None where the
+    reader would not load, which is said on stderr."""
     found = []
     try:
         for item in items:
-            found.extend(rule_changes_read(reader, root, item))
+            found.extend(rule_changes_read(reader, root, item, notices))
     except (OSError, SyntaxError, ImportError, SystemExit) as exc:
         print(
             f"chain-check: the rule-changes reader would not load ({exc})",
@@ -2387,7 +2398,7 @@ def main(argv=None):
         problems.extend(
             (rel, 0, p) for p in frame(reader, routing, root, item, declared)
         )
-        found = rule_changes_of(reader, root, [item])
+        found = rule_changes_of(reader, root, [item], notices)
         if found is None:
             return 2
         problems.extend(found)
@@ -2403,7 +2414,7 @@ def main(argv=None):
             notices.extend((p, n, f"{SEALING_SAYS}: {m}") for p, n, m in gate)
         else:
             problems.extend(gate)
-    found = rule_changes_of(reader, root, edited)
+    found = rule_changes_of(reader, root, edited, notices)
     if found is None:
         return 2
     problems.extend(found)

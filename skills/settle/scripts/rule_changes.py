@@ -5,7 +5,9 @@ The grammar is `skills/settle/SKILL.md` *Rule changes*. `GRAMMAR` below is
 the one spelling of its operations in code; the item lines, their fields and
 the no-change block are spelt once in `unverified_check.py`, which reads
 `## Not verified` with the same block. `parse` reads a section into operations,
-refusing at its line any block that does not match whole. `order` reads merge
+refusing at its line any block that does not match whole, and names, without
+refusing it, a line that opens like one of the section's forms and is not it.
+`order` reads merge
 order from git, `merge_order` reads it in local mode from the merge commits
 `settle` hands it, `group` joins the released designs whose operations name one
 place into one group, `unordered` names the pairs inside a group that no
@@ -48,8 +50,16 @@ GRAMMAR = {
 
 Op = collections.namedtuple("Op", "kind file section old new line")
 # `ops` is None where the design has no section; `nothing` is the `why` of a
-# section holding the no-change block; `errors` is `[(line, reason)]`.
-Parsed = collections.namedtuple("Parsed", "ops nothing errors")
+# section holding the no-change block; `errors` is `[(line, reason)]`;
+# `unread` is `[(line, why)]` for each line that opens like one of the
+# section's forms and is not it, which decides nothing (`parse`).
+Parsed = collections.namedtuple("Parsed", "ops nothing errors unread")
+# What `parse` says of a heading near `## Rule changes`, at its line.
+NEAR_HEADING = (
+    "`{written}` opens like `## {heading}` and is not it, so it is another "
+    "section and none of its lines were read; the one heading read is "
+    "`## {heading}`, spelt exactly so"
+)
 
 _reader = None
 
@@ -89,25 +99,32 @@ def letters(text):
 
 def parse(text, policy_root):
     """The `## Rule changes` section of a design's TEXT, as a `Parsed`; each
-    `file` is a top-level `.md` of the directory POLICY_ROOT. A near miss of
-    the heading, at any level, is refused at its line."""
+    `file` is a top-level `.md` of the directory POLICY_ROOT.
+
+    The section is read under `## Rule changes` alone. A heading at any
+    level whose letters, case folded, are that heading's and that is not it
+    is another section: none of its lines is read, nothing is refused for
+    it, and it goes to `unread` at its line (`NEAR_HEADING`), so a design
+    holding only it has no section and the settle reads it whole. Whether
+    it meant the section is the judgment of the agent that reads the
+    design."""
     r = reader()
     lines = r.gfm_lines(text)
     marks = headings(lines, comments=False)
     found = [(n, lv) for n, lv, t in marks if lv == 2 and t == HEADING]
-    near = [
-        n
+    unread = [
+        (n + 1, NEAR_HEADING.format(written=lines[n].strip(), heading=HEADING))
         for n, lv, t in marks
         if letters(t) == letters(HEADING) and (n, lv) not in found
     ]
-    if near:
-        written = lines[near[0]].strip()
-        why = f"`{written}` is a near miss of `## {HEADING}`, the one heading read"
-        return Parsed([], None, [(near[0] + 1, why)])
+
+    def done(ops, nothing, errors):
+        return Parsed(ops, nothing, errors, unread)
+
     if not found:
-        return Parsed(None, None, [])
+        return done(None, None, [])
     if len(found) > 1:
-        return Parsed([], None, [(found[1][0] + 1, "a second `## Rule changes`")])
+        return done([], None, [(found[1][0] + 1, "a second `## Rule changes`")])
     start = found[0][0]
     end = next((n for n, lv, _ in marks if n > start and lv <= 2), len(lines))
     live = [flag for _, flag in r.live_lines(lines, comments=False)]
@@ -130,9 +147,9 @@ def parse(text, policy_root):
                 "and settle would drop it: close each span on the line that "
                 "opens it"
             )
-            return Parsed([], None, [(n + 1, why)])
+            return done([], None, [(n + 1, why)])
         if n in commented:
-            return Parsed([], None, [(n + 1, r.COMMENT_LINE)])
+            return done([], None, [(n + 1, r.COMMENT_LINE)])
         if not literal[n]:
             continue
         body.append((n + 1, line))
@@ -141,12 +158,12 @@ def parse(text, policy_root):
     while body and not body[0][1].strip():
         body.pop(0)
     if not body:
-        return Parsed([], None, [(start + 1, "the section is empty")])
+        return done([], None, [(start + 1, "the section is empty")])
 
     block = r.nothing_block(body)
     if block is not None:
         why, error = block
-        return Parsed([], None, [error]) if error else Parsed([], why, [])
+        return done([], None, [error]) if error else done([], why, [])
 
     ops, error = r.items(body)
     # An item's kind is judged before a later line's error, in line order.
@@ -160,7 +177,7 @@ def parse(text, policy_root):
             continue
         break
     if error:
-        return Parsed([], None, [error])
+        return done([], None, [error])
 
     out = []
     for item in ops:
@@ -173,7 +190,7 @@ def parse(text, policy_root):
         ):
             error = (item["line"], f"`{file}` is not a top-level {policy_root}/ file")
         if error:
-            return Parsed([], None, [error])
+            return done([], None, [error])
         out.append(
             Op(
                 item["kind"],
@@ -184,7 +201,7 @@ def parse(text, policy_root):
                 item["line"],
             )
         )
-    return Parsed(out, None, [])
+    return done(out, None, [])
 
 
 # --- where an operation's text stands in a document ---------------------------

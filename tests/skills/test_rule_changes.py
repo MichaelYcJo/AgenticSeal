@@ -66,7 +66,7 @@ class Test_parse:
     def test_accepts_each_shape_as_one_operation_with_its_line(self):
         text = spec(ALL_SHAPES)
         parsed = parse(text)
-        assert parsed.errors == [], parsed.errors
+        assert parsed.errors == [] and parsed.unread == [], parsed
         got = [(o.kind, o.file, o.section, o.old, o.new) for o in parsed.ops]
         assert got == [
             ("change", "docs/a.md", "S", "old sentence.", "New rule."),
@@ -128,11 +128,16 @@ class Test_parse:
     @pytest.mark.parametrize(
         "beside", [False, True], ids=["alone", "beside-the-heading"]
     )
-    def test_a_near_miss_of_the_heading_is_refused_at_its_line(self, heading, beside):
-        """A heading whose letters, case folded, are those of `Rule changes` and
-        that is not `## Rule changes` is a section its author wrote, not a spec
-        written before the section existed. It is refused at its line, naming
-        the one heading, whether or not the right heading stands too."""
+    def test_a_near_miss_of_the_heading_is_another_section_named_at_its_line(
+        self, heading, beside
+    ):
+        """#1167, *Scope* item 7: a heading at any level whose letters, case
+        folded, are those of `Rule changes` and that is not `## Rule changes`
+        is another section. Nothing of it is read and nothing is refused for
+        it: it is named in `unread` at its line, naming the one heading read.
+        Alone, the design has no section and the settle reads it whole;
+        beside the heading, the section under the heading is read. Seen red
+        against the refusal at its line."""
         body = "- nothing\n  why: a reason.\n\n"
         text = (
             "# a work item\n\n"
@@ -140,21 +145,29 @@ class Test_parse:
             + f"{heading}\n\n{body}## Open questions\n\nNone.\n"
         )
         parsed = parse(text)
-        assert parsed.errors, parsed
-        line, why = parsed.errors[0]
+        ((line, why),) = parsed.unread
         assert line == line_of(text, heading), (line, why)
         assert f"`{heading}`" in why and "`## Rule changes`" in why, why
-        assert parsed.ops == [] and parsed.nothing is None
+        if beside:
+            assert parsed.ops is not None, parsed
+        else:
+            assert parsed == rules.Parsed(None, None, [], [(line, why)]), parsed
 
     def test_a_heading_with_other_letters_is_no_near_miss(self):
         """The class is the letters of `Rule changes`; a heading with other
-        letters is another section, and a spec holding only it has none."""
+        letters is another section, and a spec holding only it has none and
+        names nothing."""
         for heading in ("## Rules changes", "## Rule changes made", "## Changes"):
-            assert parse(f"# x\n\n{heading}\n\nText.\n") == rules.Parsed(None, None, [])
+            assert parse(f"# x\n\n{heading}\n\nText.\n") == rules.Parsed(
+                None, None, [], []
+            )
 
     def test_a_section_quoted_in_a_fence_is_not_read(self):
-        fenced = "# x\n\n```\n## Rule changes\n\n- remove\n  file: docs/a.md\n```\n"
-        assert parse(fenced).ops is None
+        """A heading inside a fence is no heading, so neither the section nor
+        a near miss of its heading is read, and nothing is named."""
+        for heading in ("## Rule changes", "## Rule Changes"):
+            fenced = f"# x\n\n```\n{heading}\n\n- remove\n  file: docs/a.md\n```\n"
+            assert parse(fenced) == rules.Parsed(None, None, [], []), heading
 
     @pytest.mark.rule("record-comment-line-refused")
     def test_a_comment_line_in_the_section_is_refused_at_its_line(self):
@@ -374,7 +387,7 @@ class Test_parse:
         lines = text.split("\n")
         second = lines.index("## Rule changes", lines.index("## Rule changes") + 1)
         assert parse(text) == rules.Parsed(
-            [], None, [(second + 1, "a second `## Rule changes`")]
+            [], None, [(second + 1, "a second `## Rule changes`")], []
         )
 
 
