@@ -696,3 +696,6 @@ distributed block does not impose one.
 ## License
 
 MIT
+
+The AgenticSeal name, the owl emblem and its seal drawings are not under
+the MIT License; [TRADEMARKS.md](TRADEMARKS.md) says what they are under.

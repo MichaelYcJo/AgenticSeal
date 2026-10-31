@@ -208,10 +208,11 @@ def test_the_docstrings_describe_the_letter_and_the_rows_it_carries():
     `SAMPLE_ROWS` says which rows left. #832, the owner's frame and layout
     of 2026-10-07: the disc at the left and the text beside it with nothing
     painted outside the disc, the disc's mark a sprite in a file of its own,
-    the twin's letters the nine colours', and nothing names the parchment
-    sheet, the 14-cell disc's four colours, the vector source, the area
-    sampler, the corner overhang, a fleur-de-lis, a chart of stitches or the
-    interim ring."""
+    and nothing names the parchment sheet, the 14-cell disc's four colours,
+    the vector source, the area sampler, the corner overhang, a fleur-de-lis,
+    a chart of stitches or the interim ring. #1174, the owner's wax seal of
+    2026-10-31: the twin's letters are the fifteen colours', and nothing
+    names the relief disc's nine colours, its rim or its groove."""
     stamp = " ".join(
         read_document(
             os.path.join("skills", "verify", "scripts", "seal_stamp.py")
@@ -222,12 +223,19 @@ def test_the_docstrings_describe_the_letter_and_the_rows_it_carries():
         "else: at the left a wax disc with the disc's mark pressed into it"
     ) in stamp
     assert "a 16 x 16 sprite in `seal-mark.txt` beside this file, read as data" in stamp
-    assert "every cell exactly one of nine colours" in stamp
-    assert "`m` its wax edge, `M n N` its rim lit, mid and dark, `.` its field" in (
-        stamp
-    )
+    assert "every cell exactly one of fifteen colours" in stamp
+    assert (
+        "`e` its outer edge's dark and `w` its wax, `h d g` its lip lit, dark "
+        "and its gloss, `s t` its step ring dark and lit, `.` its field"
+    ) in stamp
     assert "nothing outside the disc is painted" in stamp
     for gone in (
+        "nine colours",
+        "`M n N` its rim",
+        "a groove lit the other way",
+        "GROOVE_INSET",
+        "RIM_INSET",
+        "LIT_AT",
         "lower right corner",
         "`M n` the rim's",
         "EMBLEM_D",

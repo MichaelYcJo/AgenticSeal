@@ -62,6 +62,10 @@ STAYS_HOME = {
     "README.ko.md",
     "README.md",
     "SECURITY.md",
+    # The brand notice (#1174). A user's installed plugin holds it, as it
+    # holds `LICENSE`, because the install copies the repository's root;
+    # the loader reads neither, so a change to it alone moves no version.
+    "TRADEMARKS.md",
     "ruff.toml",
     ".test_durations",  # what CI's Windows and macOS shards are divided by (#841, #864)
 }

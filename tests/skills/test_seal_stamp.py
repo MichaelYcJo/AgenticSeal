@@ -43,45 +43,73 @@ SGR = re.compile(r"\x1b\[[0-9;]*m")
 HALF_BLOCKS = ("▀", "▄")
 EMPTY = (None, None, None, None)
 
-# The disc's nine colours and the title's red as the owner's `seal28.py` and
-# `frames.py` give them (#832), written out so no case reads them from the
-# module it checks.
-WAX_EDGE, RIM_LIT, RIM_MID, RIM_DARK = (
-    (150, 24, 28),
-    (208, 68, 64),
-    (160, 30, 34),
-    (96, 10, 14),
+# The wax seal's fifteen colours the owner approved on 2026-10-31 (#1174) and
+# the title's red of `frames.py` (#832), written out so no case reads them
+# from the module it checks: the outer edge's dark and its wax, the lip lit,
+# dark and its gloss streak, the step ring's dark and lit, the pressed field
+# and the drop shadow, then the six the little owl is drawn in.
+EDGE_DARK, WAX, WAX_LIT, WAX_DARK, GLOSS = (
+    (128, 12, 18),
+    (204, 30, 34),
+    (240, 92, 84),
+    (172, 18, 24),
+    (255, 172, 162),
 )
-FIELD, FACE, LIGHT, INNER, DROP = (
-    (112, 16, 20),
-    (186, 38, 42),
-    (222, 86, 78),
-    (90, 8, 12),
+STEP_DARK, STEP_LIT, FIELD, DROP = (
+    (98, 8, 14),
+    (226, 66, 60),
+    (150, 16, 22),
     (84, 8, 12),
 )
-NINE = (WAX_EDGE, RIM_LIT, RIM_MID, RIM_DARK, FIELD, FACE, LIGHT, INNER, DROP)
+OUTLINE, PUPIL, BODY, BREAST, EYE, BEAK = (
+    (90, 8, 12),
+    (112, 16, 20),
+    (160, 30, 34),
+    (186, 38, 42),
+    (222, 86, 78),
+    (208, 68, 64),
+)
+FIFTEEN = (
+    EDGE_DARK,
+    WAX,
+    WAX_LIT,
+    WAX_DARK,
+    GLOSS,
+    STEP_DARK,
+    STEP_LIT,
+    FIELD,
+    DROP,
+    OUTLINE,
+    PUPIL,
+    BODY,
+    BREAST,
+    EYE,
+    BEAK,
+)
 TITLE_RED = (196, 40, 44)
-LETTERS = {
-    WAX_EDGE: "m",
-    RIM_LIT: "M",
-    RIM_MID: "n",
-    RIM_DARK: "N",
-    FIELD: ".",
-    FACE: "X",
-    LIGHT: "Y",
-    INNER: "x",
-    DROP: "y",
-}
-# The owl's letters and the colour each is drawn in (#857, the owner's
-# candidate of 2026-10-28), written out so no case reads them from the module
-# it checks.
+# The owl's letters and the colour each is drawn in, as #857 drew them and
+# #1174 keeps them.
 OWL_LETTERS = {
-    "K": INNER,
-    "P": FIELD,
-    "R": RIM_MID,
-    "L": FACE,
-    "W": LIGHT,
-    "Y": RIM_LIT,
+    "K": OUTLINE,
+    "P": PUPIL,
+    "R": BODY,
+    "L": BREAST,
+    "W": EYE,
+    "Y": BEAK,
+}
+# The twin's letter for each colour: the frame's in lower case, the field
+# `.`, and the owl's by the sprite's own letters.
+LETTERS = {
+    EDGE_DARK: "e",
+    WAX: "w",
+    WAX_LIT: "h",
+    WAX_DARK: "d",
+    GLOSS: "g",
+    STEP_DARK: "s",
+    STEP_LIT: "t",
+    FIELD: ".",
+    DROP: "y",
+    **{colour: letter for letter, colour in OWL_LETTERS.items()},
 }
 
 # A panel in the gate's shape, with the result rows a real run carries.
@@ -121,17 +149,13 @@ TALL_ROWS = [
 ]
 
 # The rows the owner's chosen reference was drawn over (`frames.py`'s `ROWS`
-# behind the title row), and the reference itself. Its frame, the cells past
-# 9.8 from the centre, is design 3 of `frames.py`, chosen on 2026-10-07
-# (`frame/design.md` decision 6 and S3 of work item 1791270164). Its field is
-# the owl the owner chose on 2026-10-28 (#857), the candidate
-# `assets/seals/candidates/owl-28-pixel.ans` at c8bb9693. Both were
-# transcribed from their SGR streams by a script that read no line of
-# `seal_stamp.py`. The candidate paints the owl's shadow (78, 8, 12), which is
-# none of the stamp's reds, so its shadow is read as `DROP`; its own frame
-# differs from the settled one in the outer half-rows and is not read. The
-# twin's lines, and the disc's twenty-eight half-rows, each half its colour's
-# letter and a space off the disc.
+# behind the title row), and the reference itself: the little owl on the red
+# wax seal the owner approved on 2026-10-31 (#1174), transcribed from its SGR
+# stream by a script that read no line of `seal_stamp.py`. That stream drew
+# the disc alone, so the twin's text half is the one #832's reference gave.
+# The twin's lines, and the disc's twenty-eight half-rows, each half its
+# colour's letter and a space off the disc. The edge wobbles, so column 0 and
+# the last half-row stay empty.
 REFERENCE_ROWS = [
     ("SEALED", ""),
     ("tree", "aaa1111a"),
@@ -147,80 +171,89 @@ REFERENCE_ROWS = [
     ("rounds", "2"),
 ]
 REFERENCE_TWIN = (
-    "        mmmmmmmmmmmm           SEALED ------------------------------",
-    "     mmmMMMMMMMMMMMMmmm",
-    "   mmMMMMNNN....NNNnnnnmm      tree    aaa1111a",
-    "  mmMMNNx..........xNMnnmm             feat/12-the-branch-names-the-work-item",
-    " mMMMN..xnx......xnxy.MnnNm    base    bbb2222b  origin/release/v1.2.3",
-    "mmMMN..xnnnnnnnnnnnnx..MNNmm   item    #12 . 1799000000",
-    "mMMN...xnY..YnnY..Ynxy..MNNm   gate    tree 1.2.3",
-    "mMMN...xnYYYYMMYYYYnxy..MNNm",
-    "mMMNN..xnnXXXXXXXXnnxy.MMNNm   suite   + 6621 passed . 11 skipped",
-    " mMMN..xnXXXXXXXXXXnxy.MNNm    ledger  + 3451 ok . 0 drifted . 0 broken",
-    "  mnnNN..xxMxxxxMxxyyMMNNm     chain   + exit 0",
-    "   mnnnMM..y.y..y.yMMNNNm      flow    . 4 of 9 not answered",
-    "     mmnnNNMMMMMMNNNNmm        rounds  2",
-    "        mmmNNNNNNmmm",
+    "         wwwwwwwwww            SEALED ------------------------------",
+    "     wwwwghhhhhhhhhwwe",
+    "    wwghhsss....ssswweee       tree    aaa1111a",
+    "  wwghhs...KKKKKK...swwee              feat/12-the-branch-names-the-work-item",
+    "  wghs..KRRWRRRRWRRK..twwee    base    bbb2222b  origin/release/v1.2.3",
+    " whhs..KRWPPWRRWPPWRKy.tddee   item    #12 . 1799000000",
+    " whh...KRRWWRYYRWWRRKy..ddde   gate    tree 1.2.3",
+    " whs....KRLRLLLLRLRKy...tdde",
+    " whhs...KRRLLRLLLRRKy..tddde   suite   + 6621 passed . 11 skipped",
+    " whhs...WWyKYKKYKyWW...tdde    ledger  + 3451 ok . 0 drifted . 0 broken",
+    "  wwwws..yyyyyyyyyyyytddde     chain   + exit 0",
+    "   ewwwwt..........tddde       flow    . 4 of 9 not answered",
+    "     ewwwddddttdddddde         rounds  2",
+    "         eeeeeeeeee",
 )
 REFERENCE_DISC = (
-    "           mmmmmm           ",
-    "        mmmMMMMMMmmm        ",
-    "      mmMMMMMMMMMMMMmm      ",
-    "     mmMMMMNNNNNNMMnnmm     ",
-    "    mMMMMNNN....NNNnnnnm    ",
-    "   mMMMNN..........NNnnnm   ",
-    "  mmMMNNx..........xNMnnmm  ",
-    "  mMMNN.xx........xxyMMnnm  ",
-    " mMMMN..xnx......xnxy.MnnNm ",
-    " mMMN...xnnxxxxxxnnxy..MNNm ",
-    " mMMN..xnnnnnnnnnnnnx..MNNm ",
-    "mMMNN..xnYYYYnnYYYYnxy.MMNNm",
-    "mMMN...xnY..YnnY..Ynxy..MNNm",
-    "mMMN...xnY..YnnY..Ynxy..MNNm",
-    "mMMN...xnYYYYMMYYYYnxy..MNNm",
-    "mMMN...xnnnnnMMnnnnnxy..MNNm",
-    "mMMNN..xnnXXXXXXXXnnxy.MMNNm",
-    " mMMN..xnXnXXnXXnXXnxy.MNNm ",
-    " mMMN..xnXXXXXXXXXXnxy.MNNm ",
-    " mMnnN..xnXXnXXnXXnxyyMNNNm ",
-    "  mnnNN..xxMxxxxMxxyyMMNNm  ",
-    "  mmnnMM..MyMyyMyMyyMMNNmm  ",
-    "   mnnnMM..y.y..y.yMMNNNm   ",
-    "    mnnnnMMM....MMMNNNNm    ",
-    "     mmnnNNMMMMMMNNNNmm     ",
-    "      mmNNNNNNNNNNNNmm      ",
-    "        mmmNNNNNNmmm        ",
-    "           mmmmmm           ",
+    "           wwwwww           ",
+    "         wwhhhhhhww         ",
+    "       wwghhhhhhhhhww       ",
+    "     wwgghhhhsshhhhwwe      ",
+    "    wwghhsss....ssswwee     ",
+    "    wghhs..........swwee    ",
+    "   wghhs...KKKKKK...swwe    ",
+    "  wghhs..KKRWRRWRKK..twwe   ",
+    "  wghs..KRRWRRRRWRRK..twwe  ",
+    "  whs..KRRWWRRRRWWRRK..tdde ",
+    " whhs..KRWPPWRRWPPWRKy.tdde ",
+    " whhs..KRWPPWRRWPPWRKy.tddde",
+    " whh...KRRWWRYYRWWRRKy..ddde",
+    " whs....KRRRRYYRRRRKyy..tdde",
+    " whs....KRLRLLLLRLRKy...tdde",
+    " whh....KRLLRLLRLLRKy...ddde",
+    " whhs...KRRLLRLLLRRKy..tddde",
+    " whhs....KRLLRLLLRKyy..tdde ",
+    " whhs...WWyKYKKYKyWW...tdde ",
+    " whwws..YYYYYYYYYYYYy.tddee ",
+    "  wwwws..yyyyyyyyyyyytddde  ",
+    "  wwwwwt............tddde   ",
+    "   ewwwwt..........tddde    ",
+    "   eewwwwttt....tttdddee    ",
+    "     ewwwddddttdddddde      ",
+    "      eeedddddddddeee       ",
+    "         eeeeeeeeee         ",
+    "                            ",
 )
 
 
 def owners_disc(sprite, x, y):
-    """The colour of the disc's cell `(x, y)` by the owner's rule
-    (`seal28.py#seal` for the frame, #857 for the mark), rebuilt from the
-    sprite alone: off the disc past 13.8 cells from the centre (13.5, 13.5),
-    the wax edge past 12.8, the rim past 10.8 lit, mid or dark by `lit`, the
-    groove past 9.8 the other way, then the field. The sprite's sixteen
-    lines stand six cells in from the disc's left and top edges; a field
-    cell under one of its letters is that letter's colour in `OWL_LETTERS`,
-    one whose up-left neighbour is under a letter is the drop shadow, and
-    the rest are the field. `lit` is -1 at the upper left and +1 at the
-    lower right."""
+    """The colour of the disc's cell `(x, y)` by the owner's rule of
+    2026-10-31 (#1174), rebuilt from the sprite alone. From the centre
+    (13.5, 13.5), with `R` 13.5, `a` the angle (y downward, so 225 degrees is
+    the upper left) and `lit` -1 at the upper left and +1 at the lower right:
+    off the disc past the wobbling edge `R + 0.45 sin(3a + 0.7) + 0.25
+    sin(5a + 2.1)`; the outer edge within one cell of it, dark where `lit`
+    is over -0.2 and wax elsewhere; the lip past `R - 2.9`, its gloss streak
+    between 200 and 250 degrees and `R - 1.9` and `R - 0.7`, else lit under
+    -0.35, dark from 0.4, wax between; the step ring past `R - 3.7`, dark
+    where `lit` is under 0; then the field. The sprite's sixteen lines stand
+    six cells in from the disc's left and top edges; a field cell under one
+    of its letters is that letter's colour in `OWL_LETTERS`, one whose
+    up-left neighbour is under a letter is the drop shadow, and the rest are
+    the field."""
 
     def letter(cx, cy):
         sx, sy = cx - 6, cy - 6
         return sprite[sy][sx] if 0 <= sx < 16 and 0 <= sy < 16 else "."
 
+    r = 13.5
     dx, dy = x - 13.5, y - 13.5
     d = math.hypot(dx, dy)
-    lit = (dx + dy) / (abs(dx) + abs(dy))
-    if d > 13.8:
+    a = math.atan2(dy, dx)
+    edge = r + 0.45 * math.sin(3 * a + 0.7) + 0.25 * math.sin(5 * a + 2.1)
+    if d > edge:
         return None
-    if d > 12.8:
-        return WAX_EDGE
-    if d > 10.8:
-        return RIM_LIT if lit < -0.35 else RIM_DARK if lit > 0.35 else RIM_MID
-    if d > 9.8:
-        return RIM_DARK if lit < 0 else RIM_LIT
+    lit = (dx + dy) / (abs(dx) + abs(dy))
+    if d > edge - 1:
+        return EDGE_DARK if lit > -0.2 else WAX
+    if d > r - 2.9:
+        if 200 < math.degrees(a) % 360 < 250 and r - 1.9 < d < r - 0.7:
+            return GLOSS
+        return WAX_LIT if lit < -0.35 else WAX if lit < 0.4 else WAX_DARK
+    if d > r - 3.7:
+        return STEP_DARK if lit < 0 else STEP_LIT
     if letter(x, y) != ".":
         return OWL_LETTERS[letter(x, y)]
     return DROP if letter(x - 1, y - 1) != "." else FIELD
@@ -414,7 +447,8 @@ class Test_read_sprite:
     def test_accepts_the_shipped_sprite_and_a_copy_saved_with_a_byte_order_mark(
         self, tmp_path
     ):
-        """#857 S3: the owl's sixteen lines of sixteen, centred on the disc."""
+        """#857 S3 and #1174 S3: the little owl's sixteen lines of sixteen,
+        centred on the disc."""
         path = ROOT / "skills" / "verify" / "scripts" / "seal-mark.txt"
         lines = tuple(path.read_text(encoding="utf-8").split("\n")[:16])
         assert stamp.SPRITE == lines == stamp.read_sprite(str(path))
@@ -432,8 +466,8 @@ class Test_read_sprite:
             (lambda lines: [lines[0] + ".", *lines[1:]], "line 1 is 17 characters"),
             (lambda lines: [lines[0][:-1] + "M", *lines[1:]], "line 1 carries 'M'"),
             (
-                lambda lines: ["K" + lines[0][1:], *lines[1:]],
-                "line 1 draws column 1, outside the field",
+                lambda lines: [lines[0], "K" + lines[1][1:], *lines[2:]],
+                "line 2 draws column 1, outside the field",
             ),
             (
                 lambda lines: [
@@ -444,13 +478,21 @@ class Test_read_sprite:
                 "line 15 column 15 casts its shadow outside the field",
             ),
         ],
-        ids=["short", "wide", "stray", "on-the-rim", "its-shadow-on-the-rim"],
+        ids=[
+            "short",
+            "wide",
+            "stray",
+            "on-the-step-ring",
+            "its-shadow-on-the-step-ring",
+        ],
     )
     def test_refuses_a_sprite_of_another_shape_naming_the_fault(
         self, tmp_path, change, fault
     ):
-        """#857 S3: the first fault, where a drawn cell inside the field whose
-        shadow would fall on the groove is refused as one on the rim is."""
+        """#857 S3 and #1174 S3: the first fault, where a drawn cell at 9.92
+        cells from the centre, the nearest a sprite cell comes to the step
+        ring's inner edge at 9.8 from outside it, is refused, and so is one
+        inside the field whose shadow would fall on the step ring."""
         broken = tmp_path / "broken.txt"
         broken.write_text(
             "\n".join(change(list(stamp.SPRITE))) + "\n", encoding="utf-8"
@@ -466,9 +508,11 @@ class Test_read_sprite:
 
 class Test_build:
     def test_accepts_every_cell_by_the_owners_rule_in_the_frames_counts(self):
-        """#832 S2 and #857 S1: 28 x 28 cells, each one of nine colours or
-        nothing; past 9.8 cells from the centre, the frame in its counts,
-        which no mark moves; and each cell the owner's rule's colour."""
+        """#1174 S1: 28 x 28 cells, each one of fifteen colours or nothing;
+        past 9.8 cells from the centre, the frame in the counts the approved
+        picture shows, which no mark moves; and each cell the owner's rule's
+        colour. The edge wobbles, so the wax leaves column 0 and the last
+        half-row empty."""
         w, h, px = stamp.build()
         assert (w, h) == (28, 28)
         cells = [px(x, y) for y in range(h) for x in range(w)]
@@ -478,9 +522,22 @@ class Test_build:
             for x in range(w)
             if math.hypot(x - 13.5, y - 13.5) > 9.8
         ]
-        frame = [ring.count(c) for c in (None, WAX_EDGE, RIM_LIT, RIM_MID, RIM_DARK)]
-        assert frame == [176, 84, 98, 30, 96] and sum(frame) == len(ring), frame
-        assert set(cells) == {None, *NINE}
+        frame = [
+            ring.count(c)
+            for c in (
+                None,
+                EDGE_DARK,
+                WAX,
+                WAX_LIT,
+                WAX_DARK,
+                GLOSS,
+                STEP_DARK,
+                STEP_LIT,
+            )
+        ]
+        assert frame == [208, 46, 67, 50, 57, 8, 24, 24], frame
+        assert sum(frame) == len(ring), frame
+        assert set(cells) == {None, *FIFTEEN}
         for y in range(h):
             for x in range(w):
                 assert px(x, y) == owners_disc(stamp.SPRITE, x, y), (x, y)
@@ -493,9 +550,9 @@ class Test_build:
 
 class Test_disc_cell:
     def test_accepts_each_half_in_its_colour(self):
-        assert stamp.disc_cell(FIELD, FACE) == ("▀", FIELD, FACE, None)
+        assert stamp.disc_cell(FIELD, BREAST) == ("▀", FIELD, BREAST, None)
         assert stamp.disc_cell(FIELD, None) == ("▀", FIELD, None, None)
-        assert stamp.disc_cell(None, FACE) == ("▄", FACE, None, None)
+        assert stamp.disc_cell(None, BREAST) == ("▄", BREAST, None, None)
 
     def test_refuses_a_character_where_neither_half_is_on_the_disc(self):
         assert stamp.disc_cell(None, None) == EMPTY
@@ -583,12 +640,14 @@ class Test_letter_row:
         assert stamp.KEY == LETTERS
         assert stamp.TWIN_ASCII == {"·": ".", "✓": "+", "─": "-", "→": ">"}
         cells = [
-            ("▀", RIM_LIT, FIELD, None),
+            ("▀", STEP_LIT, FIELD, None),
             ("▄", DROP, None, None),
+            ("▀", BEAK, GLOSS, None),
             EMPTY,
             *stamp.text_cells("✓ 1 · 2 ─ →"),
         ]
-        assert stamp.letter_row(cells) == "My + 1 . 2 - >"
+        assert stamp.letter_row(cells) == "tyY + 1 . 2 - >"
+        assert len(set(LETTERS.values())) == len(FIFTEEN) == len(LETTERS)
 
     @pytest.mark.parametrize("value", ["a▀b▄c", "▀", "▄ x"])
     def test_refuses_to_read_a_half_block_in_a_value_as_the_disc(self, value):
@@ -740,7 +799,7 @@ class Test_compose:
         assert letter.width == max(len(line) for line in letter.cells)
 
     def test_accepts_the_owners_reference_cell_for_cell(self):
-        """#832 S1 to S4 and #857 S2 against the pictures the owner chose: 14
+        """#832 S1 to S4 and #1174 S2 against the pictures the owner chose: 14
         lines, the disc at column 0 and half-row 0, each half-cell the
         reference's colour, the owl's included, the twin its letters line for
         line, and the block form's text the twin's with the owner's
@@ -778,10 +837,10 @@ class Test_compose:
 
 class Test_stamp:
     def test_accepts_the_widest_reference_panel_with_its_label_in_one_message(self):
-        """#857 S5: #30 found a code per cell 282 KB for one seal; the owl's
-        block over the widest reference panel, with its label, is 5,959
-        UTF-16 units, measured 2026-10-28 where the placeholder S's was
-        5,258, and it fits the hook's budget."""
+        """#1174 S4: #30 found a code per cell 282 KB for one seal; the wax
+        seal's block over the widest reference panel, with its label, is
+        5,725 UTF-16 units, measured 2026-10-31 where the relief disc's was
+        5,959, and it fits the hook's budget."""
         name = "the-branch-names-the-work-item-it-carries"
         label = (
             f"SEALED feat/12-{name} @ aaa1111a against origin/release/v1.2.3 @ "
