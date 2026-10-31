@@ -28,6 +28,11 @@ its `README.md` opens with the marker, and are silent where none does.
 Leave the line as it is.
 ```
 
+```seal
+verdict: fixed fd549f8e
+answer: The finding holds at `hooks/lib/optin.py#home_at`, which passes over an unmarked `<root>/seal/` and returns `<git-common-dir>/seal/` where that one is marked. The sentence in both READMEs now says the gates then read the root under the git directory where its `README.md` opens with the marker, and read the repository as one that never opted in where none does; the changelog clause says the same. The paste-ready text was not applied as written: its `are silent where none does` would drop the words `never opted in`, which `tests/behaviour/test_first_setup_asks_once.py#test_the_seal_readme_says_its_first_line_is_the_marker` pins in that paragraph, and the next paragraph states the opt-out in those words. By contract rule 12 the paragraph's opening sentence, which said every gate reads an unmarked `seal/` as a repository that never opted in, made the same claim and now says every gate passes over such a `seal/`. The two files stay byte-identical (`cmp`, exit 0).
+```
+
 ### 2. The `evals/README.md` sentence says a count cell spaced otherwise reads as 0, but a value cell with extra spaces is read
 
 ```seal
@@ -46,6 +51,11 @@ The fix replaces the sentence after `Nothing in the tree makes a later edit owe 
 one on each side of the value, and nothing after the last pipe. A row
 spelt otherwise is not found and its count reads as 0, so a record edited
 by hand can pass `check` on a count it never read.
+```
+
+```seal
+verdict: fixed b5a4d754
+answer: The finding holds at `evals/scripts/noninferiority.py#header_field`. The `evals/README.md` sentence, the changelog clause and the case's docstring now state the row spelling the reader finds. The paste-ready text was applied with one clause added, `nothing before the first pipe`, because the pattern opens with `^`. The case is renamed `test_a_count_row_spelt_otherwise_is_read_as_naught` and parametrized over four spellings that read as 0: the name spaced otherwise, no space before the value, no space after it, and a space after the last pipe. A new case, `test_a_count_padded_with_more_spaces_is_read`, holds the other half of the sentence. Each was seen red with `seal mutate` on `header_field` before the commit: a pattern that allows any spacing turned the four ids red, and a value read as `\S*` turned the padded case red.
 ```
 
 ## Confirmations
