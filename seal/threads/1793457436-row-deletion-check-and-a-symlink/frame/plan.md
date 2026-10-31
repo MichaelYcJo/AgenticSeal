@@ -40,7 +40,7 @@ The chosen approach keeps the real path (design Scope items 1 and 2). Its failur
 
 ## Operational impact
 
-None to deploy. Two report lines change for a person who reads them: a deletion found through a link names the target's path, and a link to a file outside the repository is listed under `not compared` with a new reason. The changelog fragment states both under *Fixed*. The new cases are absent from `.test_durations`, so `pytest-split` gives them the average duration, and each still runs in exactly one shard (`.github/workflows/test.yml`, read).
+None to deploy. Three report lines change for a person who reads them: a deletion found through a link names the target's path; a link to a file outside the repository is listed under `not compared` with a new reason; and a closing memo that was a file at the base and is a link now is reported under the link's own path where it holds fewer rows. The changelog fragment states all three under *Fixed*. The new cases are absent from `.test_durations`, so `pytest-split` gives them the average duration, and each still runs in exactly one shard (`.github/workflows/test.yml`, read).
 
 ## Judgments of the run
 

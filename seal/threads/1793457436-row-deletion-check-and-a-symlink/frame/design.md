@@ -33,7 +33,7 @@ In:
 
 Out:
 
-- **A link at the base replaced by a real file** (probe 5). The run names the file as not compared and exits 0. No row left the record, because the link's target still holds every row. The notice's reason (`no ## Not verified section`) is imprecise. Making it precise means asking git for the path's mode at the base, a read this check does not make today, for a case that passes no deletion. It is left as it stands.
+- **A link at the base replaced by a real file** (probe 5). The run names the file as not compared and exits 0. No row left the record, because the link's target still holds every row. The notice's reason (`no ## Not verified section`) is imprecise. Making it precise means asking `#mode_at` for every scanned real file as well as for each link, one more `git ls-tree` per closing memo, for a case that passes no deletion. It is left as it stands.
 - **The other readers that take a file from `git show` or `git cat-file blob`** (`skills/verify/scripts/test_layout.py#_moved_main`, `skills/code-review/scripts/chain_check.py#read_record`, `skills/implement/scripts/seal.py#staged_text`, and the history readers in `seal_stamp.py`, `pact_check.py`, `publish_release_note.py` and `tag_release.py`). The list comes from `git grep -n -E '"show",|cat-file' -- '*.py' ':!tests' ':!evals'` (executed). Each one would read a link's blob for a link. None of them reads a path that this repository or the plugin's own layout makes a link. The two that compare against a working-tree read (`_moved_main` and `staged_text`) fail loudly on a mismatch: an unparsable module, or a file that differs. Neither passes in silence. The issue names only the row-deletion check.
 - **Naming the skipped link cases on Windows.** That is #1221's.
 
