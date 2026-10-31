@@ -32,11 +32,13 @@ Two rules, and the second is narrower than the first on purpose:
 
 A script with no subcommand is exempt from the second rule because it has no
 command to name, and requiring its path in every document that mentions it
-would touch six files for a script nobody is told to run.
-`test_a_script_with_no_subcommand_is_shown_in_no_command_form` is what keeps
-that exemption from being a loophole: the moment a document shows such a
-script being invoked, the classification stops being true and goes red rather
-than standing as a note.
+would touch six files for a script nobody is told to run without being told
+where it is. `test_a_script_with_no_subcommand_is_shown_in_no_command_form`
+is what keeps that exemption from being a loophole: the moment a document
+shows such a script being invoked without its repo-relative path, the
+classification stops being true and goes red rather than standing as a note.
+An invocation with the path carries the locator the second rule asks for,
+as `agents/proofer.md` step 7 runs `chain_check.py` (#1198).
 
 Scope is what an agent's startup payload can contain: `agents/`, `skills/` and
 `templates/`. `docs/` stays out under
@@ -303,22 +305,30 @@ def test_a_document_naming_a_script_with_a_command_says_how_to_reach_it(pair):
     )
 
 
+def no_command_form_message(document, script, shown):
+    """What the case below says where DOCUMENT shows SCRIPT invoked on the
+    lines SHOWN, `(number, line)` each."""
+    base = os.path.basename(script)
+    return (
+        f"{document} shows {base} being invoked without its path, so the "
+        f"classification in {os.path.basename(__file__)} -- kept with no "
+        "subcommand because no document tells anybody to run it without "
+        "saying where it is -- is no longer true:\n"
+        + "\n".join(f"  {document}:{n}: {line.strip()}" for n, line in shown)
+        + "\n\nEither add it to `TOOLS` in `skills/implement/scripts/seal.py`, "
+        f"write the invocation with its path `{script}`, or take it out."
+    )
+
+
 @pytest.mark.parametrize("pair", unwrapped_pairs(), ids=label)
 def test_a_script_with_no_subcommand_is_shown_in_no_command_form(pair):
     """What keeps the exemption above from being a loophole. A script with no
-    subcommand is excused the locator rule because nobody is told to type it,
-    and this is that premise asked of the tree rather than assumed."""
+    subcommand is excused the locator rule because nobody is told to type it
+    without its repo-relative path, and this is that premise asked of the
+    tree rather than assumed."""
     document, script = pair
-    base = os.path.basename(script)
     shown = command_forms(read(os.path.join(ROOT, document)), script)
-    assert not shown, (
-        f"{document} shows {base} being invoked, so the classification in "
-        f"{os.path.basename(__file__)} -- kept with no subcommand because no "
-        "document tells anybody to run it -- is no longer true:\n"
-        + "\n".join(f"  {document}:{n}: {line.strip()}" for n, line in shown)
-        + "\n\nEither add it to `TOOLS` in `skills/implement/scripts/seal.py`, "
-        "or take the invocation out."
-    )
+    assert not shown, no_command_form_message(document, script, shown)
 
 
 # --- the checks can fail ---------------------------------------------------
@@ -368,6 +378,26 @@ def test_the_failure_message_offers_a_repair_that_actually_works():
     assert "the command `seal arms`" in str(raised.value), (
         "a subcommand still has both accepted forms offered"
     )
+
+
+def test_the_no_command_form_message_offers_every_repair_the_reader_accepts():
+    """Contract rule 14, round 3 of #1198, finding 2. Since #1198 phase 3
+    `command_forms` accepts an invocation that carries the script's
+    repo-relative path, so the message a red no-subcommand case prints names
+    that repair beside a subcommand and taking the invocation out, and says
+    the exemption holds for a script nobody is told to run without its path.
+    Seen red against the message that offered two repairs."""
+    script = "skills/x/scripts/chain_check.py"
+    message = no_command_form_message("d.md", script, [(3, "chain_check.py -q")])
+    for said in (
+        "d.md shows chain_check.py being invoked without its path",
+        "no document tells anybody to run it without saying where it is",
+        "  d.md:3: chain_check.py -q",
+        "add it to `TOOLS` in `skills/implement/scripts/seal.py`",
+        f"write the invocation with its path `{script}`",
+        "or take it out",
+    ):
+        assert said in message, (said, message)
 
 
 def test_the_bare_command_is_not_a_locator():
