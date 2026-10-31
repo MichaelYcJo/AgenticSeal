@@ -3674,9 +3674,13 @@ class Test_module:
 
 
 def test_the_proofer_and_the_review_skill_name_every_line_a_finding_needs():
-    """S8 (#985): `agents/proofer.md` step 7 and `skills/code-review/SKILL.md`
-    *The record* each list the lines a finding carries, and each names
-    every key a finding block holds one of, read from `hooks/lib/fields.py`."""
+    """S8 (#985), under #1198: `agents/proofer.md` step 7 and
+    `skills/code-review/SKILL.md` *The record* each list the lines a
+    finding's block carries, and each names every key a finding block holds
+    one of, read from `hooks/lib/fields.py`. Neither has the proofer write a
+    `verdict:` line, which a finding with no close block no longer carries,
+    and step 7 says a prose line opening with `<` and a letter hides the
+    blocks below it from the reader (`trail/phases/phase-2.md` of #1198)."""
     kind = chain.FIELDS.FINDING_BLOCK
     needed = [key for key, spec in kind.keys.items() if spec.many == chain.FIELDS.ONE]
     assert "evidence:" in needed, needed
@@ -3686,14 +3690,16 @@ def test_the_proofer_and_the_review_skill_name_every_line_a_finding_needs():
         (ROOT / "skills" / "code-review" / "SKILL.md").read_text("utf-8").split()
     )
     said = skill.split("## The record ", 1)[1]
-    said = said.split("Each finding carries one line of each row", 1)[1]
-    said = said.split("The check refuses a finding missing any.", 1)[0]
+    said = said.split("Each finding's section holds one finding block", 1)[1]
+    said = said.split("The check refuses a finding whose block", 1)[0]
     for where, text in (
         ("proofer.md step 7", step),
         ("`skills/code-review/SKILL.md` *The record*", said),
     ):
         missing = [key for key in needed if f"`{key}" not in text]
         assert missing == [], f"{where} does not name {missing}"
+        assert "`verdict: open`" not in text, f"{where} still writes `verdict: open`"
+    assert "opens with `<` and a letter" in step, step
 
 
 def test_the_template_is_the_record_the_check_reads():
