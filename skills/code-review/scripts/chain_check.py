@@ -1167,8 +1167,9 @@ def comment_lines(reader, text, rel):
 
     A record carries no HTML comment, and the check keeps no comment state,
     so it reads a comment as text; a line that begins one is refused rather
-    than read as part of the record. The read of a round record, a
-    `guarantee.md` and a `trail/gate.md` each ask this."""
+    than read as part of the record. The read of a round record asks this;
+    `hooks/lib/fields.py` refuses such a line of a `guarantee.md` and a
+    `trail/gate.md` with the same sentence."""
     lines = reader.readable(text or "")
     return [(rel, n + 1, reader.COMMENT_LINE) for n in reader.comment_lines(lines)]
 
