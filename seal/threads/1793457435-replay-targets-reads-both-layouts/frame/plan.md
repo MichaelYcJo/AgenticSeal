@@ -41,4 +41,4 @@ Neither generator gains a dependency, an environment variable or a migration. A 
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-01 | *Scope* items 4 and 5 are folded to round 1's fix (32584024), and item 4 grows to `seed_defects.py --case`, which names nothing for a name no shipped commit answers while another is read | Round 1's finding 1 named the two generators answering one input differently as part of the defect; leaving the sibling would ship that difference, and the fix is small in a file this work already changes. The verifying round reads both fixes at once | `skills/code-review/orchestration.md` *The fix pass then finds what the fixes left standing*; `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |
