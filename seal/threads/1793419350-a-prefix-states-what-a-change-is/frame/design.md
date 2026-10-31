@@ -61,19 +61,7 @@ Out.
 
 ### The classification
 
-A change takes the first row that fits, read from the top. A change two rows fit takes the higher, so a writer who finds one part that adds something stops there.
-
-| Prefix | When |
-|---|---|
-| `feat:` | After the change, a user or a party has something to use or to meet that nothing gave before: a command, a record format or a field in one, a step, a reading, or a refusal on a rule the change itself states. |
-| `fix:` | Behaviour existed and was wrong against a rule already stated in the tree, and the change makes it match. A check that starts refusing what its stated rule always refused is here. |
-| `refactor:` | The same kinds of outcome, reached another way: which party holds a judgment, a script that stops refusing what an agent now reads, a sequence rewritten as guidance, a structure moved. Nobody gains anything to use or to meet. |
-| `perf:` | The same behaviour, faster. |
-| `test:` | Tests only. |
-| `docs:` | Text no party acts on: an explanation, a README, a comment. |
-| `chore:` | Release preparation (the version move, the fold, the settle), configuration and dependencies that tell no party to do anything new, and a commit that writes only a work item's own records. |
-
-The test between `feat:` and `fix:` is whether the rule stood in the tree before the change, which a reader answers by opening the base. The test between `feat:` and `refactor:` is whether anything is new to use or to meet, which the issue's own line states ("a command, a record format, a step, a reading").
+The classification is the prefix table in `skills/commit-pr-convention/SKILL.md`, and it stands there once. Round 1's fix pass (`trail/rounds/round-1.md` findings 1 and 2, fixed at 9944919e) set its row order to `test:`, `perf:`, `docs:`, `chore:`, `feat:`, `fix:`, `refactor:`: every row that fits only a change wholly of its kind stands first, so the first-row rule can reach it. The rule this frame drew is unchanged: a change takes the first row that fits, a change with any part that adds something is `feat:`, and text a party acts on is never `docs:`, and is `chore:` only as a work item's own records or the settle. The orchestrator replaced this frame's copy of the table with this pointer on 2026-10-31, after round 1 left the copy in an order the skill no longer has.
 
 ### The version each prefix gives, and the push
 
