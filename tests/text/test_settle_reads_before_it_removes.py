@@ -173,7 +173,8 @@ def test_the_skill_says_a_misplaced_record_file_is_named_and_decides_nothing():
     shows = flat(skill().split("\n## What the dry run shows\n")[1].split("\n## ")[0])
     for said in (
         "**The files named like a record and not read**",
-        "at any path but that record's own",
+        "whose name is that of a record the settle reads there, `gaps.md`, "
+        "`frame/design.md` or `frame/plan.md`, at any path but that record's own",
         "Only the exact name is read, and no file's content, so none of its "
         "rows is counted and none keeps its directory",
         "what it holds is the settling session's to judge",
