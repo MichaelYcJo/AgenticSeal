@@ -157,8 +157,13 @@ check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
 ## 12 A defect belongs to a class, so enumerate the class
 
 Do not fix the coordinate. A finding names an instance; the fix is owed to
-every instance the same cause produces, and the hand-back says which were
-enumerated.
+every instance the same cause produces. List them by a method that makes the
+list whole: build it from what produces the defect, take the artefact apart
+into every one of its parts, or run a command that lists each thing holding
+the property. The instances in view, or a search for one wording, find only
+the spellings already seen. The hand-back names the method and what it
+listed, and the proofer judges the method as well as the instances: a list
+made by sampling is a finding even where every instance on it was fixed.
 check: none reader: the proofer at review
 
 ## 13 A defence resting on a platform guarantee is not verified
