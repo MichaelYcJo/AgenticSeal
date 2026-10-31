@@ -46,4 +46,4 @@ None to deploy. Two report lines change for a person who reads them: a deletion 
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-01 | Round 1's finding 1, a closing memo that became a link on the branch passing its deleted rows, was fixed by asking git each link's mode at the base (d64de886), and the frame's *Data & interfaces* is folded to state it. The opposite direction, a link at the base replaced by a real file, stays out as *Scope* says | The frame's reason for reading no mode, that no deletion passes, held for that direction and not for this one, which phase 1's change turned from a refusal into a pass; the crafter reads the frame, so the fold comes before the verifying round | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* (a decision after the frame is folded in place) |

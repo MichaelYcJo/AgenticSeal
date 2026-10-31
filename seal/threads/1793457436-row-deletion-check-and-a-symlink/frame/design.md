@@ -52,7 +52,8 @@ Out:
 
 - `skills/verify/scripts/unverified_check.py#unique_by_target(paths)` returns the sorted, de-duplicated real paths of `paths`. Its two callers in `#main` (the per-file loop and the tally) take them as they are.
 - `skills/verify/scripts/unverified_check.py#main`, in the `--baseline` arm of the per-file loop: a kept path whose `repo_relative` form leaves the repository root (`..` as its first component) is appended to `uncompared` with the Scope item 2 reason. It is not handed to `show()`. A path with no relative form at all is refused before the loop, as it is today.
-- What a person sees changes in two places. A deletion found through a link is reported under the target's path, where the link's path stood. A link to a file outside the repository is listed under `not compared` with a new reason.
+- `skills/verify/scripts/unverified_check.py#mode_at` asks `git ls-tree` whether a path was a link (`120000`) at the base, and `#compare_at` holds the one comparison of a path's rows at the base with the rows read here. After the per-file loop, each scanned path that is a link here and was not one at the base is compared again at its own path, against the rows its target holds now (round 1's finding 1).
+- What a person sees changes in three places. A deletion found through a link is reported under the target's path, where the link's path stood. A link to a file outside the repository is listed under `not compared` with a new reason. A closing memo that became a link on the branch, to a file holding fewer rows, is reported under the link's own path.
 
 ## Rule changes
 
