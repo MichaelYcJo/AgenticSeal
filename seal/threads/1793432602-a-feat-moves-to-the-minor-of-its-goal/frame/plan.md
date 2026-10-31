@@ -29,7 +29,7 @@ One phase: the build is one function's text, its two pins and two fragments, and
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1, 2 and 4 | `tests/github/test_release_completeness_check.py`, with S1 and S7 each seen red against the current text before the rewrite lands; `tests/text/test_a_release_cannot_ship_an_untrue_milestone.py`; `tests/behaviour/test_release_hygiene.py`, which reads loaded files for version strings; `git grep -n -i -E 'every later planned\|pulled back\|the same push\|names what to do: the push'` outside `seal/threads/` (S8) | |
+| 1 | `frame/design.md` *Scope* items 1, 2 and 4 | `tests/github/test_release_completeness_check.py`, with S1 and S7 each seen red against the current text before the rewrite lands; `tests/text/test_a_release_cannot_ship_an_untrue_milestone.py`; `tests/behaviour/test_release_hygiene.py`, which reads loaded files for version strings; `git grep -n -i -E 'every later planned\|pulled back\|the same push\|names what to do: the push'` outside `seal/threads/` (S8) | 27fc807a |
 
 ## Operational impact
 
