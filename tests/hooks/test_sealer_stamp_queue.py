@@ -61,7 +61,7 @@ def _local_template(tmp_path_factory):
         )
     (item / "routing.md").write_text(routing_record(), encoding="utf-8")
     (item / "trail" / "gate.md").write_text(
-        f"| Field | Value |\n|---|---|\n| Broad gate | {target} against {base} |\n",
+        f"```seal\nrun: {target} against {base}\n```\n",
         encoding="utf-8",
     )
     (item / "guarantee.md").write_text(

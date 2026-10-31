@@ -81,9 +81,13 @@ The close holds.
 GATE = """\
 # 1799000000-a-body: broad gate
 
-| Field | Value |
-|---|---|
-| Broad gate | 3333333 against main |
+```seal
+run: 2222222 against 4444444
+```
+
+```seal
+run: 3333333 against 4444444
+```
 """
 
 GAPS = """\
@@ -179,9 +183,13 @@ None. The fix closes round 1's finding.
 
 From `trail/gate.md`.
 
-| Field | Value |
-|---|---|
-| Broad gate | 3333333 against main |
+```seal
+run: 2222222 against 4444444
+```
+
+```seal
+run: 3333333 against 4444444
+```
 
 ## Not verified
 
@@ -313,6 +321,12 @@ class Test_compose:
                 "## From the records",
             ),
             ("changelog.md", CHANGELOG + "<details>\n", 3, "<details>"),
+            (
+                "trail/gate.md",
+                GATE.replace("run: 3333333", "run: HEAD"),
+                8,
+                "run: HEAD against 4444444",
+            ),
             ("gaps.md", GAPS + "</details>\n", 12, "</details>"),
             ("frame/plan.md", PLAN + "\n## Phases\n\nagain\n", 14, "## Phases"),
             (
@@ -326,7 +340,8 @@ class Test_compose:
         ],
     )
     def test_refuses_a_record_it_cannot_copy_faithfully(self, rel, text, line, said):
-        """S6. A round record `chain_check.py` refuses, a copied line equal
+        """S6. A round record `chain_check.py` refuses, a gate record whose
+        run block `hooks/lib/fields.py` refuses (#1198), a copied line equal
         to `HEADING`, `<details>` or `</details>`, which would put a second
         boundary line, a second fold or the fold's end inside the fold, a
         second section of one the body copies, and a copied line holding a

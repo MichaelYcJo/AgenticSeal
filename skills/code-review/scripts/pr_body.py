@@ -10,7 +10,7 @@ withheld verdicts were a sentence of it that restated one wrongly. This
 writes the part of the body below the line `HEADING` holds from the records
 themselves: the changelog fragment, the plan's `## Phases` section and the
 phase records' paths, each round record's `target:` line and its findings'
-labelled lines, the broad run's record, `gaps.md`'s `## Not verified` and
+labelled lines, the broad run's `seal` blocks, `gaps.md`'s `## Not verified` and
 `## Not done` sections, and every table line of `frame/questions.md`. It
 copies lines and composes none: no count, no summary, no rewording. Each
 section opens with a line of `FIXED` naming its source, and a record that is
@@ -29,8 +29,9 @@ line where `close_issues_on_release.py#keywords_in` reads a closing
 keyword: the `Closes` line is the orchestrator's, written above `HEADING`.
 
 Round records are read through `chain_check.py`'s grammar, the one reader of
-a round record, and a record it refuses is refused here with its sentence.
-The other records' headings are read through `unverified_check.py`'s
+a round record, and `trail/gate.md` through `hooks/lib/fields.py`, the one
+reader of a record's `seal` blocks; a record either refuses is refused here
+with its sentence. The other records' headings are read through `unverified_check.py`'s
 `readable` and `sections`, so a heading inside a fence is no heading. No
 record is parsed any other way.
 
@@ -161,7 +162,7 @@ ABSENT = "`{path}` is not in this work item."
 NO_PHASE = f"`{PHASE_DIR}/` holds no phase record."
 NO_ROUND = f"`{ROUND_DIR}/` holds no round record."
 NO_PLAN_PHASES = f"`{PLAN}` has no `{PHASES}` section."
-NO_GATE_TABLE = f"`{GATE}` holds no table line."
+NO_GATE_BLOCK = f"`{GATE}` holds no run block."
 NO_NOT_VERIFIED = f"`{GAPS}` has no `{NOT_VERIFIED}` section."
 NO_NOT_DONE = f"`{GAPS}` has no `{NOT_DONE}` section."
 NO_QUESTION_TABLE = f"`{QUESTIONS}` holds no table line."
@@ -186,7 +187,7 @@ FIXED = (
     NO_PHASE,
     NO_ROUND,
     NO_PLAN_PHASES,
-    NO_GATE_TABLE,
+    NO_GATE_BLOCK,
     NO_NOT_VERIFIED,
     NO_NOT_DONE,
     NO_QUESTION_TABLE,
@@ -377,16 +378,21 @@ def _tables(text):
 
 
 def _gate(texts):
+    """The broad run's blocks, each copied whole through
+    `hooks/lib/fields.py`, the reader the pull request's check reads them
+    through; a record it refuses is refused with its sentence (#1198)."""
     if GATE not in texts:
         return [_fixed(BROAD), _fixed(ABSENT.format(path=GATE))]
-    tables = _tables(texts[GATE])
-    if not tables:
-        return [_fixed(BROAD), _fixed(NO_GATE_TABLE)]
+    found = CHAIN.FIELDS.read(texts[GATE], CHAIN.FIELDS.GATE)
+    if found.refusals:
+        raise Refused([(GATE, line, why) for line, why in found.refusals])
+    if not found.blocks:
+        return [_fixed(BROAD), _fixed(NO_GATE_BLOCK)]
     raw = READER.gfm_lines(texts[GATE])
     return [
         _fixed(BROAD),
         _fixed(FROM.format(path=GATE)),
-        _copied(GATE, raw, tables[0], len(raw)),
+        *(_copied(GATE, raw, run.line - 1, run.end) for run in found.blocks),
     ]
 
 

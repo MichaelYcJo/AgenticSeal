@@ -1233,6 +1233,16 @@ def refused_here(common, ident, sha):
     return False
 
 
+def newest_run(chain, text):
+    """The commit of the last run block of the `trail/gate.md` TEXT, read
+    through the reader the pull request's check reads it through, or None
+    where TEXT is None, holds none, or holds a line that reader refuses."""
+    found = chain.FIELDS.read(text, chain.FIELDS.GATE) if text else None
+    if not found or found.refusals or not found.blocks:
+        return None
+    return found.blocks[-1].fields[chain.FIELDS.RUN].match["commit"]
+
+
 def _queue_values(
     chain, common, session, now, *, ident, target, cell, gate_text, rounds, branch, item
 ):
@@ -1242,11 +1252,10 @@ def _queue_values(
     `Target SHA` row, `gate_text` the `trail/gate.md` beside the guarantee or
     None, `rounds` the paths of what its `trail/rounds/` holds and `branch` the
     branch the audited commit stands on, or "" where none is named."""
-    reader = chain.SHARED_READER
     key = f"{ident}-{target}"
     newest = chain.EMPHASIS.sub("", cell.split(chain.EARLIER_RUN)[0]).split()
     base = newest[2] if len(newest) >= 3 and newest[1] == "against" else None
-    run = chain.newest_run(reader, gate_text) if gate_text else None
+    run = newest_run(chain, gate_text)
     count = sum(1 for path in rounds if ROUND_FILE.match(os.path.basename(path)))
     values = {
         "tree": target,

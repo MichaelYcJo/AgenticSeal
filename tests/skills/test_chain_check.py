@@ -140,12 +140,17 @@ OLD_RECORD = (
 MERGED_ITEM = "seal/threads/1788999999-a-merged-item"
 
 
-def gate_file(sha):
-    return (
-        "# 1791999999-a-work-item — broad gate\n\n"
-        "| Field | Value |\n|---|---|\n"
-        f"| Broad gate | {sha} against main |\n"
+# The base commit a fixture's run names; no arm reads it.
+GATE_BASE = "fedcba9"
+
+
+def gate_file(*runs):
+    """A `trail/gate.md` holding one run block per commit of RUNS, in the
+    order `seal gate --record` appends them, the last the newest."""
+    blocks = "\n".join(
+        f"```seal\nrun: {sha} against {GATE_BASE}\n```\n" for sha in runs
     )
+    return f"# 1791999999-a-work-item — broad gate\n\n{blocks}"
 
 
 def guarantee_file(sha, verdict="sealed"):
@@ -211,13 +216,9 @@ def _branch_template(tmp_path_factory):
         record(code, confirmations=confirm("round-1#1"), n=2),
     )
     reviewed = commit(d, "the verifying round")
-    # Two runs, newest first: the earlier one names a commit nobody can see,
-    # so a reader that took any run but the first would refuse the file.
-    write(
-        d,
-        f"{ITEM}/trail/gate.md",
-        gate_file(f"{reviewed} against main; earlier run: {'1' * 40}"),
-    )
+    # Two runs, the newest last: the earlier one names a commit nobody can
+    # see, so a reader that took any run but the last would refuse the file.
+    write(d, f"{ITEM}/trail/gate.md", gate_file("1" * 40, reviewed))
     write(d, f"{ITEM}/guarantee.md", guarantee_file(reviewed))
     commit(d, "the closing records")
     return d, code
@@ -236,7 +237,7 @@ def seal(d):
     """The closing records naming HEAD, committed: what a branch carries
     once the sealer has audited what is on it."""
     head = git(d, "rev-parse", "HEAD")
-    write(d, f"{ITEM}/trail/gate.md", gate_file(f"{head} against main"))
+    write(d, f"{ITEM}/trail/gate.md", gate_file(head))
     write(d, f"{ITEM}/guarantee.md", guarantee_file(head))
     commit(d, "the closing records, again")
 
@@ -446,10 +447,11 @@ def copied_tree(tree):
         READER.read_text(encoding="utf-8"), encoding="utf-8"
     )
     (tree / "hooks" / "lib").mkdir(parents=True)
-    (tree / "hooks" / "lib" / "blocks.py").write_text(
-        (ROOT / "hooks" / "lib" / "blocks.py").read_text(encoding="utf-8"),
-        encoding="utf-8",
-    )
+    for name in ("blocks.py", "fields.py"):
+        (tree / "hooks" / "lib" / name).write_text(
+            (ROOT / "hooks" / "lib" / name).read_text(encoding="utf-8"),
+            encoding="utf-8",
+        )
     (tree / "docs").mkdir()
     return script, tree / "docs" / "the-review-record.md"
 
@@ -2503,11 +2505,7 @@ def item(tmp_path, monkeypatch):
     write(d, f"{ITEM}/routing.md", SEALED_ROUTING)
     write(d, "f.txt", "two\n")
     audited = commit(d, "the work")
-    write(
-        d,
-        f"{ITEM}/trail/gate.md",
-        f"| Field | Value |\n|---|---|\n| Broad gate | {audited} against main |\n",
-    )
+    write(d, f"{ITEM}/trail/gate.md", gate_file(audited))
     write(d, f"{ITEM}/guarantee.md", guarantee(audited, "sealed"))
     commit(d, "the closing records")
     event = tmp_path / "event.json"
@@ -2520,11 +2518,7 @@ def reseal(root, original):
     """The closing records naming HEAD, committed; the guarantee carries
     `original: ORIGINAL` under its table where ORIGINAL is given."""
     head = git(root, "rev-parse", "HEAD")
-    write(
-        root,
-        f"{ITEM}/trail/gate.md",
-        f"| Field | Value |\n|---|---|\n| Broad gate | {head} against main |\n",
-    )
+    write(root, f"{ITEM}/trail/gate.md", gate_file(head))
     text = guarantee(head, "sealed")
     if original is not None:
         text = text.replace(
@@ -2961,22 +2955,81 @@ class Test_broad_gate:
         root, _sha = item
         assert chain.broad_gate(reader, str(root), ITEM, "main") == []
 
+    def test_accepts_the_last_run_block_as_the_newest(self, item):
+        """#1198, *Scope* item 2: `seal gate --record` appends a block per
+        run, so the last block is the newest run, and an earlier block naming
+        a commit nobody can see decides nothing; the same blocks the other
+        way round are a stale run. Seen red against the reader that took the
+        first block."""
+        root, sha = item
+        rel = f"{ITEM}/trail/gate.md"
+        write(root, rel, gate_file("1" * 40, sha))
+        commit(root, "an earlier run, then the run at the audited commit")
+        assert chain.broad_gate(reader, str(root), ITEM, "main") == []
+        write(root, rel, gate_file(sha, "1" * 40))
+        commit(root, "the runs the other way round")
+        [(path, line, why)] = chain.broad_gate(reader, str(root), ITEM, "main")
+        assert (path, line) == (rel, 0) and "the newest gate run" in why, why
+
     @pytest.mark.rule("record-comment-line-refused")
     def test_refuses_a_comment_line_at_its_line(self, item):
         """S5 of #1012: a `trail/gate.md` line that begins with `<!--` is
-        refused at its line, beside what the run's row says."""
+        refused at its line."""
+        root, sha = item
+        rel = f"{ITEM}/trail/gate.md"
+        write(root, rel, "<!-- the gate's guidance -->\n\n" + gate_file(sha))
+        commit(root, "a comment in the gate record")
+        assert chain.broad_gate(reader, str(root), ITEM, "main") == [
+            (rel, 1, reader.COMMENT_LINE)
+        ]
+
+    def test_refuses_a_record_with_no_run_block_naming_the_command(self, item):
+        """#1198, *Scope* item 9: a gate record of the shape before 0.27.0, its
+        run a table cell, holds no run block, and is refused with the one
+        sentence that names the command which appends one."""
         root, sha = item
         rel = f"{ITEM}/trail/gate.md"
         write(
             root,
             rel,
-            "<!-- the gate's guidance -->\n\n"
             f"| Field | Value |\n|---|---|\n| Broad gate | {sha} against main |\n",
         )
-        commit(root, "a comment in the gate record")
+        commit(root, "a gate record from before the blocks")
         assert chain.broad_gate(reader, str(root), ITEM, "main") == [
-            (rel, 1, reader.COMMENT_LINE)
+            (rel, 0, chain.NO_RUN_BLOCK)
         ]
+        assert "`seal gate --base <base> --record <item>`" in chain.NO_RUN_BLOCK
+        assert "since #1198" in chain.NO_RUN_BLOCK
+
+    def test_refuses_a_run_block_that_does_not_parse_at_its_line(self, item):
+        root, sha = item
+        rel = f"{ITEM}/trail/gate.md"
+        text = gate_file(sha).replace(f"run: {sha}", f"run:  {sha}")
+        write(root, rel, text)
+        commit(root, "a run line with two spaces")
+        [(path, line, why)] = chain.broad_gate(reader, str(root), ITEM, "main")
+        assert (path, line) == (
+            rel,
+            text.splitlines().index(f"run:  {sha} against {GATE_BASE}") + 1,
+        )
+        assert why.startswith(
+            f"`run:  {sha} against {GATE_BASE}` does not read whole"
+        ), why
+
+    def test_names_a_near_opener_as_not_read(self, item):
+        """A fence like the block's and not it is named in NOTICES, and its
+        run is no run: the record then holds none."""
+        root, sha = item
+        rel = f"{ITEM}/trail/gate.md"
+        text = gate_file(sha).replace("```seal", "```Seal")
+        write(root, rel, text)
+        commit(root, "a near opener")
+        notices = []
+        assert chain.broad_gate(reader, str(root), ITEM, "main", notices) == [
+            (rel, 0, chain.NO_RUN_BLOCK)
+        ]
+        line = text.splitlines().index("```Seal") + 1
+        assert notices == [(rel, line, chain.FIELDS.NEAR.format(line="```Seal"))]
 
 
 class Test_comment_lines:

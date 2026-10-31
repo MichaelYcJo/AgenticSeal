@@ -220,18 +220,19 @@ class Test_module:
         ]
         assert len(reads) == 1, [node.lineno for node in reads]
 
-    def test_the_gate_and_the_check_spell_the_file_and_separator_alike(self):
+    def test_the_gate_and_the_check_spell_the_file_and_flag_alike(self):
         assert gate.GATE_FILE == chain.BROAD_GATE_FILE
-        assert gate.EARLIER_RUN == chain.EARLIER_RUN
-        assert gate.ROW == chain.BROAD_GATE
         assert gate.CHAIN_SEALING == chain.SEALING
 
     def test_a_file_the_gate_wrote_is_read_by_the_check(self, tmp_path):
+        """#1198, *Scope* item 2: the run block the gate appends is the one
+        `chain_check.py#broad_gate` reads, through the same reader."""
         path = gate.write_gate_file(str(tmp_path), "abc1234", "def5678")
-        reader = load_module(READER, "unverified_reader_beside_broad_gate")
         text = pathlib.Path(path).read_text(encoding="utf-8")
-        assert chain.newest_run(reader, text) == "abc1234"
-        assert chain.newest_run(reader, text.replace("abc1234", "zz")) is None
+        found = chain.FIELDS.read(text, chain.FIELDS.GATE)
+        assert (found.refusals, found.notices) == ([], [])
+        (run,) = found.blocks
+        assert run.fields[chain.FIELDS.RUN].match["commit"] == "abc1234"
 
     def test_the_one_shell_site_is_run_and_it_applies_the_rewrite(self):
         """A2, the class by construction. `broad_gate.py` has exactly one call
@@ -1955,38 +1956,59 @@ class Test_round_records:
         assert gate.round_records(str(tmp_path)) == []
 
 
-class Test_kept_runs:
-    def test_accepts_a_new_run_first_and_keeps_the_earlier(self):
-        held = "aaa1111 against base1; earlier run: bbb2222 against base1"
-        assert gate.kept_runs(held, "ccc3333 against base1") == (
-            "ccc3333 against base1; earlier run: aaa1111 against base1"
-            "; earlier run: bbb2222 against base1"
-        )
-        assert gate.kept_runs("", "ccc3333 against base1") == "ccc3333 against base1"
-
-    def test_refuses_to_record_one_comparison_twice(self):
-        held = "aaa1111 against base1; earlier run: bbb2222 against base1"
-        assert gate.kept_runs(held, "aaa1111 against base1") == held
-        assert gate.kept_runs(held, "aaa1111 against base2").count("aaa1111") == 2
-
-
 class Test_write_gate_file:
-    def test_accepts_a_second_run_in_front_of_the_first(self, tmp_path):
-        gate.write_gate_file(str(tmp_path), "aaa1111", "base1")
-        path = gate.write_gate_file(str(tmp_path), "bbb2222", "base1")
+    def test_accepts_a_second_run_appended_below_the_first(self, tmp_path):
+        """#1198, *Scope* item 2: each green run appends one run block below
+        the blocks already there, so the last is the newest, and a file the
+        record had no block in keeps its text above the first one."""
+        record = tmp_path / "trail" / "gate.md"
+        record.parent.mkdir()
+        old = "| Field | Value |\n|---|---|\n| Broad gate | aaa1111 against base1 |\n"
+        record.write_text(old, encoding="utf-8")
+        gate.write_gate_file(str(tmp_path), "aaa1111", "bbb2222")
+        path = gate.write_gate_file(str(tmp_path), "ccc3333", "bbb2222")
         text = pathlib.Path(path).read_text(encoding="utf-8")
         assert path == os.path.join(str(tmp_path), "trail", "gate.md")
-        assert (
-            "| Broad gate | bbb2222 against base1; earlier run: aaa1111 against base1 |"
-        ) in text
+        assert text.startswith(old), text
+        found = chain.FIELDS.read(text, chain.FIELDS.GATE)
+        assert [b.fields[chain.FIELDS.RUN].value for b in found.blocks] == [
+            "aaa1111 against bbb2222",
+            "ccc3333 against bbb2222",
+        ]
+
+    def test_accepts_a_first_run_under_the_work_items_heading(self, tmp_path):
+        item = tmp_path / "1799000000-an-item"
+        item.mkdir()
+        path = gate.write_gate_file(str(item), "aaa1111", "bbb2222")
+        assert pathlib.Path(path).read_text(encoding="utf-8") == (
+            "# 1799000000-an-item \u2014 broad gate\n\n"
+            "```seal\nrun: aaa1111 against bbb2222\n```\n"
+        )
+
+    def test_refuses_to_record_one_run_twice(self, tmp_path):
+        """A re-run over an unchanged checkout appends nothing where the last
+        block names the same run; the same commit against another base is
+        another run."""
+        gate.write_gate_file(str(tmp_path), "aaa1111", "bbb2222")
+        path = gate.write_gate_file(str(tmp_path), "aaa1111", "bbb2222")
+        once = pathlib.Path(path).read_text(encoding="utf-8")
+        assert once.count("run: ") == 1, once
+        gate.write_gate_file(str(tmp_path), "aaa1111", "ccc3333")
+        text = pathlib.Path(path).read_text(encoding="utf-8")
+        assert text.count("run: aaa1111") == 2, text
+
+    def test_refuses_a_run_the_reader_would_refuse(self, tmp_path):
+        with pytest.raises(gate.Refused, match="does not read whole as `run: <value>`"):
+            gate.write_gate_file(str(tmp_path), "HEAD", "main")
+        assert not (tmp_path / "trail" / "gate.md").exists()
 
     def test_refuses_a_file_that_cannot_be_written_or_read(self, tmp_path):
         with pytest.raises(gate.Refused, match="could not be written"):
-            gate.write_gate_file(str(tmp_path / "no-such-item"), "aaa1111", "base1")
+            gate.write_gate_file(str(tmp_path / "no-such-item"), "aaa1111", "bbb2222")
         (tmp_path / "trail").mkdir()
         (tmp_path / "trail" / "gate.md").write_bytes(b"\xff\xfe")
         with pytest.raises(gate.Refused, match="could not be read"):
-            gate.write_gate_file(str(tmp_path), "aaa1111", "base1")
+            gate.write_gate_file(str(tmp_path), "aaa1111", "bbb2222")
 
 
 # The table the old generator's records carried, which the check's reader
@@ -2301,13 +2323,13 @@ class Test_compare_at_base:
 
 class Test_uncommitted_line:
     def test_accepts_a_written_file_git_sees_uncommitted(self, repo):
-        path = gate.write_gate_file(str(repo / ITEM), "c", "b")
+        path = gate.write_gate_file(str(repo / ITEM), "ccc3333", "bbb2222")
         assert gate.uncommitted_line(str(repo), path) == gate.CELL_UNCOMMITTED.format(
             path=RECORD_REL
         )
 
     def test_refuses_a_committed_file_and_no_file(self, repo):
-        path = gate.write_gate_file(str(repo / ITEM), "c", "b")
+        path = gate.write_gate_file(str(repo / ITEM), "ccc3333", "bbb2222")
         commit(repo, "the record")
         assert gate.uncommitted_line(str(repo), path) is None
         assert gate.uncommitted_line(str(repo), None) is None
@@ -2360,8 +2382,8 @@ class Test_gate:
         assert f"--baseline {base} --root" in chain_kept.splitlines()[0]
         # The gate draws nothing and queues no stamp (#975).
         assert not (repo / ".git" / "agentic-stamp").exists()
-        cell = (repo / ITEM / "trail" / "gate.md").read_text(encoding="utf-8")
-        assert f"| {ROW} | {tree} against {base} |" in cell
+        record = (repo / ITEM / "trail" / "gate.md").read_text(encoding="utf-8")
+        assert f"```seal\nrun: {tree} against {base}\n```\n" in record
         assert f"seal gate: `{ROW}` says: {SUITE_ROW}" in out.stderr
 
     def test_accepts_a_failure_the_base_shares_as_failing_on_base_too(

@@ -54,8 +54,10 @@ judged (`carried_by`). The arms are eight:
                 record under `Review | through the review chain`, and in
                 `guarantee.md` under `Review | straight to the PR`
                 (`originals_of`)
-  broad gate    `trail/gate.md`'s newest run is HEAD, or every commit after it
-                touches only the work item's own directory
+  broad gate    the last run block of `trail/gate.md`, the newest run, read
+                through `hooks/lib/fields.py`, is HEAD, or every commit after
+                it touches only the work item's own directory; a record with
+                no run block, or with a line the reader refuses, fails
   guarantee     `guarantee.md` names HEAD, or every commit after it touches
                 only the closing records, and its one `Verdict:` line
                 reads `sealed`
@@ -116,9 +118,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
 HOOKS = os.path.join(HERE, "..", "..", "..", "hooks", "lib")
 ROUTING = os.path.join(HOOKS, "routing.py")
+FIELDS_READER = os.path.join(HOOKS, "fields.py")
 
 TARGET = "Target SHA"
-BROAD_GATE = "Broad gate"
 # A thread's files, relative to its directory: `hooks/lib/optin.py`'s `GATE`,
 # `GUARANTEE`, `DESIGN` and `PLAN`, spelt here because this module loads
 # `routing` only inside the functions that are handed it.
@@ -168,8 +170,8 @@ RETIRED_SAYS = (
     "the new word; otherwise run `seal gate --base <base> --record <item>` "
     "and commit `trail/gate.md` first"
 )
-# What a gate record's entry is separated from the run behind it by. The newest
-# run stands first; `broad_gate.py#kept_runs` writes the rest behind it.
+# What the `Target SHA` row's entry is separated from the earlier run behind
+# it by.
 EARLIER_RUN = "; earlier run: "
 # The `Target SHA` row has one shape: the commit audited `against` the base,
 # one word each, then each earlier run of the sealer as `EARLIER_RUN` and
@@ -501,6 +503,8 @@ def grammar_row(cells, refuse, number, rows, reader):
 # decides what a check that cannot read a record means to it.
 try:
     SHARED_READER = load(READER, "agentic_unverified_reader_for_grammar")
+    # `hooks/lib/fields.py`, the one reader of a record's `seal` blocks.
+    FIELDS = load(FIELDS_READER, "agentic_fields_for_the_chain")
 except (OSError, SyntaxError, ImportError, SystemExit) as _exc:
     if __name__ != "__main__":
         raise
@@ -1529,16 +1533,6 @@ def earlier_verdicts(cell):
     return out
 
 
-def newest_run(reader, text):
-    """The commit the newest run of `trail/gate.md`'s `Broad gate` row was
-    taken at — the first word of its first entry, where that word is
-    SHA-shaped — or None."""
-    rows = table_rows(reader, reader.readable(text or ""))
-    cell = reader.visible(field(rows, BROAD_GATE) or "")
-    words = EMPHASIS.sub("", cell.split(EARLIER_RUN)[0]).split()
-    return words[0] if words and SHA_RE.fullmatch(words[0]) else None
-
-
 def is_ancestor(root, sha, ref):
     """True where `sha` is `ref` or an ancestor of it."""
     r = subprocess.run(
@@ -1936,10 +1930,29 @@ def originals_of(reader, routing, root, paths, items, direct=(), notices=None):
     return found
 
 
-def broad_gate(reader, root, item, base):
+# A gate record with no run block: one written before the run stood in a
+# block, or one nobody wrote a run into (#1198, *Scope* item 9).
+NO_RUN_BLOCK = (
+    "no run block: since #1198 the run stands in a `seal` block holding "
+    "`run: <tree> against <base commit>`, which `seal gate --base <base> "
+    "--record <item>` appends below the text already there on a green run"
+)
+
+
+def blocks_of(rel, text, kinds, notices=None):
+    """`(blocks, problems)` of the record REL holding KINDS, read through
+    `hooks/lib/fields.py`: every block, and each line it refuses as
+    `(rel, line, why)`. Each fence it names as not read goes to NOTICES."""
+    found = FIELDS.read(text, kinds)
+    if notices is not None:
+        notices.extend((rel, line, why) for line, why in found.notices)
+    return found.blocks, [(rel, line, why) for line, why in found.refusals]
+
+
+def broad_gate(reader, root, item, base, notices=None):
     """[(path, line, problem)] for the work item's `trail/gate.md`: absent,
-    a line that begins with `<!--` (`comment_lines`), unreadable, or naming
-    a run behind HEAD."""
+    a line `hooks/lib/fields.py` refuses, no run block, or a newest run, the
+    last block, behind HEAD. A fence named as not read goes to NOTICES."""
     rel = f"{item}/{BROAD_GATE_FILE}"
     text = read_record(root, rel)
     if text is None:
@@ -1952,14 +1965,16 @@ def broad_gate(reader, root, item, base):
                 "the sealer, and the run writes it on a green run",
             )
         ]
-    problems = comment_lines(reader, text, rel)
-    sha = newest_run(reader, text)
-    if sha is None:
-        return [*problems, (rel, 0, f"no SHA in its `{BROAD_GATE}` row")]
+    runs, problems = blocks_of(rel, text, FIELDS.GATE, notices)
+    if problems:
+        return problems
+    if not runs:
+        return [(rel, 0, NO_RUN_BLOCK)]
+    sha = runs[-1].fields[FIELDS.RUN].match["commit"]
     behind = follows(root, sha, base, item)
     if behind is None:
-        return problems
-    return [*problems, (rel, 0, follows_reason(behind, "the newest gate run"))]
+        return []
+    return [(rel, 0, follows_reason(behind, "the newest gate run"))]
 
 
 def verdicts_of(reader, text):
@@ -2409,7 +2424,7 @@ def main(argv=None):
         else:
             direct.append(item)
         notices.extend(unread(reader, routing, root, item, item in chained))
-        gate = broad_gate(reader, root, item, args.baseline)
+        gate = broad_gate(reader, root, item, args.baseline, notices)
         gate += guarantee(reader, root, item, args.baseline)
         if args.sealing:
             notices.extend((p, n, f"{SEALING_SAYS}: {m}") for p, n, m in gate)

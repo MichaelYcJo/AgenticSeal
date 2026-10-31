@@ -1118,7 +1118,6 @@ def _literal_strings():
         body.PHASES,
         body.NOT_DONE,
         chain.TARGET,
-        chain.BROAD_GATE,
         unverified.HEADING,
         unverified.CLOSED,
         *unverified.HEADER,

@@ -1284,11 +1284,7 @@ def closing_records(item, target, base):
     write(item, "trail/rounds/round-1.md", "x\n")
     write(item, "trail/rounds/round-2.md", "x\n")
     write(item, "trail/rounds/notes.md", "x\n")
-    write(
-        item,
-        "trail/gate.md",
-        f"| Field | Value |\n|---|---|\n| Broad gate | {target} against {base} |\n",
-    )
+    write(item, "trail/gate.md", f"```seal\nrun: {target} against {base}\n```\n")
     write(item, "guarantee.md", guarantee_text(target, base))
 
 
