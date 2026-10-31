@@ -48,6 +48,11 @@ def say_unanswered(names, answered, left):
 
 In `test_names_each_named_case_no_shipped_commit_answers_with_its_reason`, `unshipped` becomes `"seed_defects: seeded-12345678 not written: no shipped commit read has 12345678 as its first eight digits\n"`. The case also gains a run of `--list --case seeded-<full sha of commits["squash"]>` that expects that sentence for the full SHA, seen red against 46155dda. The changelog's sentence ends "or that no shipped commit read has the name's digits as its first eight."
 
+```seal
+verdict: fixed 28e10171
+answer: The finding holds: `targets` keeps a commit only where its first eight digits equal a name's digits, so the reason "no release shipped a commit that begins with" claimed a read the run never made. The paste-ready reason was applied. `say_unanswered` now says "no shipped commit read has <digits> as its first eight digits", and its docstring says that is all `targets` compares. The interface was kept: the module docstring gives a case's name as `seeded-<commit[:8]>`, so reading a full SHA or seven digits as a name would widen what `--case` accepts, which the frame does not ask. `test_names_each_named_case_no_shipped_commit_answers_with_its_reason` pins the new sentence, and it gains a `--list` run naming the shipped commit by its full SHA beside its eight-digit name. That run exits 1 with the new sentence for the full SHA alone. The case was seen red against 1f96e0a5's script on the old sentence (executed). `seal mutate` over the new reason went red (executed). The changelog fragment's sentence was rewritten in the same commit. `git grep` on the old wording found no other statement of it outside this record.
+```
+
 ## Confirmations
 
 ```seal
