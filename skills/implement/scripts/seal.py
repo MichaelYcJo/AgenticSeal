@@ -518,7 +518,7 @@ def manifest_of(repo, mode, files):
     manifest = {
         "format": FORMAT,
         "mode": mode,
-        "exported_at": datetime.datetime.now(datetime.timezone.utc).strftime(
+        "exported_at": datetime.datetime.now(datetime.UTC).strftime(
             "%Y-%m-%dT%H:%M:%SZ"
         ),
         "items": work_item_digests(files),
@@ -647,7 +647,7 @@ def export(args, cwd):
         return 1
 
     files, links = root_files(home)
-    when = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
+    when = datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d")
     stem = zip_stem(repo, when)
 
     if args.output:
