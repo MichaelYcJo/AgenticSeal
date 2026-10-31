@@ -1665,7 +1665,7 @@ class Test_queue_for_written_guarantee:
         assert queue_local(local) == [] and queued(local.common) == []
 
     @pytest.mark.rule("stamp-drawn-once")
-    @pytest.mark.parametrize("shape", ["as filed", "in blocks"])
+    @pytest.mark.parametrize("shape", ["as filed", "in blocks", "under the newest"])
     def test_a_guarantee_holding_a_fence_nobody_closed_queues_nothing(
         self, local, shape
     ):
@@ -1674,22 +1674,26 @@ class Test_queue_for_written_guarantee:
         below the fence and the pull request's check refuses it, so the
         stamp queues nothing. As filed, in the shape before #1198, the case
         is red at 15a5ce66, whose stamp read the one `Verdict:` line outside
-        a fence and never asked for a fence nobody closed; in blocks, red
-        against a reader without the unclosed-fence refusal."""
+        a fence and never asked for a fence nobody closed. In blocks, the
+        `withheld` block below is the newest and queues nothing on its own;
+        so the third shape puts the fence under the newest block, `sealed`,
+        where only the reader's refusal of the fence keeps the stamp from
+        queueing, and that one is red against a reader without the
+        refusal."""
         withheld = "withheld reason: the gate failed"
-        if shape == "as filed":
-            text = (
+        sealed = guarantee_text(local.target, local.base)
+        text = {
+            "as filed": (
                 "# an item — guarantee\n\n| Field | Value |\n|---|---|\n"
                 f"| Target SHA | {local.target} against {local.base} |\n\n"
                 "Verdict: sealed\n\n```\n\n"
                 f"Verdict: {withheld}\n"
-            )
-        else:
-            text = (
-                guarantee_text(local.target, local.base)
-                + "\n````\n\n"
-                + verdict_block(local.target, local.base, withheld)
-            )
+            ),
+            "in blocks": sealed
+            + "\n````\n\n"
+            + verdict_block(local.target, local.base, withheld),
+            "under the newest": sealed + "\n````\n\n" + f"Verdict: {withheld}\n",
+        }[shape]
         write(item_dir(local), "guarantee.md", text)
         assert queue_local(local) == [] and queued(local.common) == []
 
