@@ -115,19 +115,22 @@ says nothing writes English.
 `<prefix>: <one line, starting lower-case>`, in the repository's language.
 The prefix is not part of that: it stays as the table below spells it.
 
-**A change takes the first row that fits, read from the top.** A change two
-rows fit takes the higher one, so a writer who finds one part of the change
-that adds something stops at `feat:`.
+**A change takes the first row that fits, read from the top.** The first
+four rows each fit only a change that is wholly of their kind, so they stand
+first: the rows below them would otherwise take such a change, and a change
+with any other part falls past them. A change two rows fit takes the higher
+one, so a writer who finds one part of the change that adds something stops
+at `feat:`.
 
 | prefix | when |
 |---|---|
+| `test:` | tests only, and nothing else |
+| `perf:` | the same behaviour, faster, and nothing else |
+| `docs:` | only text no party acts on: an explanation, a README, a comment |
+| `chore:` | only release preparation, such as the version move, the changelog fold and the settle; configuration and dependencies that tell no party to do anything new; or a work item's own records |
 | `feat:` | after the change, a user or a party has something to use or to meet that nothing gave before: a command, a record format or a field in one, a step, a reading, or a refusal on a rule the change itself states |
 | `fix:` | behaviour existed and was wrong against a rule already stated in the tree, and the change makes it match; a check that starts refusing what its stated rule always refused is here |
 | `refactor:` | the same kinds of outcome, reached another way: which party holds a judgment, a script that stops refusing what an agent now reads, a sequence rewritten as guidance, a structure moved; nobody gains anything to use or to meet |
-| `perf:` | the same behaviour, faster |
-| `test:` | tests only |
-| `docs:` | text no party acts on: an explanation, a README, a comment |
-| `chore:` | release preparation, such as the version move, the changelog fold and the settle; configuration and dependencies that tell no party to do anything new; a commit that writes only a work item's own records |
 
 The test between `feat:` and `fix:` is whether the rule stood in the tree
 before the change, which a reader answers by opening the base. The test
@@ -135,11 +138,14 @@ between `feat:` and `refactor:` is whether anything is new to use or to meet.
 
 **Text a party reads and acts on is behaviour.** A skill, an agent
 definition, a template a party fills and a hook's message are such text, so
-a change to one takes `feat:`, `fix:` or `refactor:`, and never `docs:` or
-`chore:`.
+a change to one takes `feat:`, `fix:` or `refactor:`, and never `docs:`. It
+takes `chore:` in two cases only, both named in the `chore:` row: a work
+item's own records, which only that item's parties read and which leave with
+it, and the settle, which writes into the policy documents what the released
+work items' frames already decided.
 
-**`chore:` is never a change a party acts on**: not a check, a gate, a
-record's shape or a process step.
+**Apart from those two, `chore:` is never a change a party acts on**: not a
+check, a gate, a record's shape or a process step.
 
 **An issue's title takes the prefix the pull request that closes it will
 take**, chosen by this table, so no issue is filed `chore:` by default.
@@ -269,8 +275,8 @@ here: a branch name is typed into a shell and pasted into a URL.
 - A release branch is `release/vX.Y.Z`.
 
 ```
-chore/940-on-demand-files-state-the-current-rule
-docs/the-merge-rule-is-enforced-now
+fix/940-on-demand-files-state-the-current-rule
+docs/the-readme-says-how-to-install
 ```
 
 **The slug states the symptom.** A name carrying only the issue number
