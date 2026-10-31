@@ -3,7 +3,8 @@
 
   settle                        the dry run: each group of released designs that
                                 name one section, the designs to read whole, every
-                                open row, the judgments of each run, and what
+                                open row, the files named like a record and not
+                                read, the judgments of each run, and what
                                 `--apply` removes
   settle --apply                remove each released work item directory whose
                                 record holds no open row
@@ -40,7 +41,11 @@ the settling session to order by content. A design whose section does not parse,
 that has none, or in which the reader names a line it did not read, is
 listed to read whole. Every open `## Not verified` row of
 every released record is listed with the backticked paths it names and
-whether each is in the working tree. Every row of every released
+whether each is in the working tree. A file in a released work item's
+directory named like a record this reads there, `gaps.md`, `frame/design.md`
+or `frame/plan.md`, at any path but that record's own, is named as not read,
+with the record it is named like: only the name is read, so what it holds is
+the settling session's to judge. Every row of every released
 `frame/plan.md` *Judgments of the run* is listed, grouped by its `Judged
 against` cell, with its work item's round count; a heading near the
 section's, and a section whose table it cannot read, are named as not read. Nothing is refused or held in the dry
@@ -50,7 +55,9 @@ run.
 directory whose record holds no open row in the working tree, whether or not
 it wrote a `frame/design.md`, and prints the rows each removed record closed, with
 what closed each. A directory whose record still holds an open row, or one
-that cannot be read, is kept and named with its rows. It writes no policy
+that cannot be read, is kept and named with its rows. A file the dry run
+names as not read is named again under its directory's line, and decides
+nothing: it goes or stays with the directory. It writes no policy
 document: the settling session has written them by then, and `seal fold`'s
 lines over the policy root are printed after the removals.
 
@@ -404,6 +411,15 @@ ROWS_HEADING = (
     "the\nsettling session to decide as moot, answered or a measurement to "
     "re-home, and\nclose with `closed` and what closed it:"
 )
+MISPLACED_HEADING = (
+    "not read: each file named like a record the settle reads, away from that "
+    "record's place.\nThe settling session opens each one and decides each item "
+    "in it that reads as an\nopen row; `--apply` decides nothing on it and "
+    "removes it with its directory:"
+)
+# A misplaced record file, under the dry run's heading and after `not read: `
+# under `--apply`'s `removed` or `kept` line.
+MISPLACED = "{path}, named like `{place}` and away from its place"
 JUDGMENTS_HEADING = (
     "the judgments: the orchestrators' rows of each released plan's *Judgments "
     "of the run*,\ngrouped by the document each stands on, with each work "
@@ -498,6 +514,32 @@ def open_rows(root, records, ids, reader):
             )
         )
     return out
+
+
+def misplaced(records, work_item_id, reader):
+    """`[(path, place)]` for each misplaced record file in the work item's
+    directory under RECORDS, sorted: a regular file, or a link to one, whose
+    name is the last part of a record this reads in the directory, the
+    closing memo (`unverified_check.py#OVERVIEW`), `DESIGN` or `PLAN`, and
+    whose path from the directory is not that record's. PATH is that path,
+    and PLACE is the record's.
+
+    Only the exact name is read, and no file's content: whether such a file
+    holds what its record would is the settling session's to judge. A linked
+    directory is not followed."""
+    places = {p.rsplit("/", 1)[-1]: p for p in (reader.OVERVIEW, DESIGN, PLAN)}
+    top = under(records, f"{SPECS}/{work_item_id}")
+    out = []
+    for here, _dirs, names in os.walk(top):
+        for name in names:
+            place = places.get(name)
+            path = os.path.join(here, name)
+            if place is None or not os.path.isfile(path):
+                continue
+            rel = os.path.relpath(path, top).replace(os.sep, "/")
+            if rel != place:
+                out.append((rel, place))
+    return sorted(out)
 
 
 def judgments(records, ids):
@@ -737,6 +779,9 @@ def survey(root, ref, home=None):
         "why": why,
         "timeline": timeline(root, ref, ids, reader, records, merged),
         "rows": open_rows(root, records, ids, reader),
+        "misplaced": [
+            (i, held) for i in ids if (held := misplaced(records, i, reader))
+        ],
         "judgments": judgments(records, ids),
         "nothing": reader.NOTHING,
     }
@@ -808,7 +853,8 @@ def citations(root, work_item_ids):
 
 def report(found, ref, out):
     """The dry run: the groups, the designs to read whole, the open rows, the
-    judgments and what `--apply` removes. It refuses nothing, so it exits 0. In local mode
+    files named like a record and not read, the judgments and what `--apply`
+    removes. It refuses nothing, so it exits 0. In local mode
     it names the root first, lists each released work item with the pull
     request that merged it and each unreleased one with why, and says no
     commit holds what `--apply` removes."""
@@ -871,6 +917,12 @@ def report(found, ref, out):
                 for path, present in paths:
                     there = "in the tree" if present else "not in the tree"
                     write(f"            `{path}` {there}\n")
+    if found["misplaced"]:
+        write(f"\n{MISPLACED_HEADING}\n")
+        for work_item_id, held in found["misplaced"]:
+            for rel, place in held:
+                path = f"{SPECS}/{work_item_id}/{rel}"
+                write(f"    {MISPLACED.format(path=path, place=place)}\n")
     groups, unread = found["judgments"]
     if groups or unread:
         write(f"\n{JUDGMENTS_HEADING}\n")
@@ -950,14 +1002,17 @@ def closed_rows(records, directory, reader):
 def apply(found, root, out):
     """Remove each released directory whose record holds no open row in the
     working tree, printing the rows its record closed, and keep and name
-    each one that still holds a row. The directories are under
+    each one that still holds a row. Under each directory's line, each of
+    its misplaced record files (`misplaced`) is named as not read, and
+    decides nothing. The directories are under
     `found["records"]`: the repository's top ROOT, or in local mode the
     common git directory.
 
     **The candidates are read from the tree again, not taken from `survey`**:
     a classification made for a printed list is not a guard on a destructive
-    act. `found` gives *released*, which only git answers, and in local mode
-    `gh` with git."""
+    act; the misplaced record files are read again the same way. `found`
+    gives *released*, which only git answers, and in local mode `gh` with
+    git."""
     reader = load(READER, "agentic_unverified_reader")
     records = found["records"]
     ids = sorted(set(work_items(records)) & set(found["released"]))
@@ -965,6 +1020,10 @@ def apply(found, root, out):
     for work_item_id in ids:
         directory = f"{SPECS}/{work_item_id}"
         rows = reader.open_record_rows(records, None, directory)
+        unread = [
+            f"    not read: {MISPLACED.format(path=f'{directory}/{rel}', place=place)}\n"
+            for rel, place in misplaced(records, work_item_id, reader)
+        ]
         if rows:
             kept += 1
             out.write(
@@ -974,11 +1033,13 @@ def apply(found, root, out):
             )
             for name, item in rows:
                 out.write(f"    open in {name}: {item}\n")
+            out.write("".join(unread))
             continue
         closed = closed_rows(records, directory, reader)
         shutil.rmtree(under(records, directory))
         removed += 1
         out.write(f"removed {directory}/\n")
+        out.write("".join(unread))
         for item, who in closed:
             out.write(f"    closed in {reader.OVERVIEW}: {item}\n")
             out.write(f"        what closed it: {who}\n")

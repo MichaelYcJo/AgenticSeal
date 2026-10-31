@@ -7,7 +7,10 @@ whole and every open row, and refuses nothing; `--apply` removes each
 released directory whose record holds no open row in the working tree and
 writes no policy document (#1033). In local mode it reads the root under the
 git directory and asks `gh` which pull request merged from each work item's
-branch (#955). `Test_report` and `Test_apply` drive the
+branch (#955). A file in a work item's directory named like a record it
+reads, at another path, is named by both arms as not read and decides
+nothing (#1126); `Test_misplaced` holds the walk that finds it.
+`Test_report` and `Test_apply` drive the
 two arms over the `tree` fixture's history; `Test_main` runs the command over
 a repository whose merge order git holds, and over a local root with a `gh`
 stub on PATH. `Test_module` holds the loader, the
@@ -41,6 +44,8 @@ from conftest import (
     names_path,
     op,
     spec,
+    symlink_or_skip,
+    write,
 )
 from conftest import flattened as flat
 
@@ -188,6 +193,23 @@ def moment(repo, name=MOMENT, overview=None):
     git(repo, "add", "--", f"seal/threads/{name}")
     git(repo, "commit", "-qm", f"released {name}")
     return item
+
+
+def released_item(repo, name, held):
+    """A released work item holding HELD, `{path in its directory: text}`,
+    committed on its own path like `moment`."""
+    path = repo / "seal" / "threads" / name
+    for rel, text in held.items():
+        write(path, rel, text)
+    git(repo, "add", "--", f"seal/threads/{name}")
+    git(repo, "commit", "-qm", f"released {name}")
+    return path
+
+
+def not_read(name, rel, place):
+    """The line naming a misplaced record file, as the dry run and `--apply`
+    print it."""
+    return f"seal/threads/{name}/{rel}, named like `{place}` and away from its place"
 
 
 def docs_text(repo):
@@ -605,6 +627,112 @@ class Test_report:
             "(`skills/settle/SKILL.md` *Answer every check that reads the corpus*)"
         ) in " ".join(text.split()), text
 
+    def test_names_a_gaps_md_away_from_its_place_as_not_read(self, tree):
+        """S1 of #1126, #956's R31: a released work item whose only `gaps.md`
+        is `trail/gaps.md`, holding an open row. The settle reads the record
+        at its place alone, so the row is not counted; the dry run names the
+        file in a section of its own, which says who opens it and what
+        `--apply` does with it, and refuses nothing. Seen red with the fix
+        reverted in `settle.py`: the dry run named no file."""
+        name = "1700000007-trail"
+        released_item(tree, name, {"trail/gaps.md": OVERVIEW_OPEN})
+        code, text = run(tree)
+        assert f"seal/threads/{name}/trail/gaps.md" in text, text
+        assert code == 0, text
+        section = text.split(f"\n{settle.MISPLACED_HEADING}\n")[1].split("\n\n")[0]
+        assert section == f"    {not_read(name, 'trail/gaps.md', 'gaps.md')}", text
+        assert "0 open rows in 0 records\n" in text, text
+        # Contract rule 14: the heading a person acts on is pinned.
+        heading = flat(settle.MISPLACED_HEADING)
+        assert heading.startswith("not read: each file named like a record the "), (
+            heading
+        )
+        assert "settle reads, away from that record's place" in heading
+        assert (
+            "The settling session opens each one and decides each item in it "
+            "that reads as an open row" in heading
+        )
+        assert (
+            "`--apply` decides nothing on it and removes it with its directory"
+            in heading
+        )
+
+    def test_names_a_misplaced_design_and_plan_as_not_read(self, tree):
+        """S3 of #1126: the class is every file named like a record the settle
+        reads, `gaps.md`, `frame/design.md` and `frame/plan.md`, at any other
+        path of its directory, each named with the record it is named like.
+        A record at its own place is not named. Seen red with the fix
+        reverted in `settle.py`."""
+        top = "1700000007-top-design"
+        trail = "1700000008-trail-plan"
+        released_item(tree, top, {"design.md": "# a design\n"})
+        released_item(
+            tree,
+            trail,
+            {"frame/plan.md": "# a plan\n", "trail/plan.md": "# a plan\n"},
+        )
+        code, text = run(tree)
+        assert f"seal/threads/{top}/design.md" in text, text
+        assert code == 0, text
+        section = text.split(f"\n{settle.MISPLACED_HEADING}\n")[1].split("\n\n")[0]
+        assert section == (
+            f"    {not_read(top, 'design.md', 'frame/design.md')}\n"
+            f"    {not_read(trail, 'trail/plan.md', 'frame/plan.md')}"
+        ), text
+
+    def test_prints_no_section_where_nothing_is_misplaced(self, tree):
+        """S4 of #1126: every record at its place, so the section is not
+        printed."""
+        moment(tree, overview=OVERVIEW_OPEN)
+        code, text = run(tree)
+        assert code == 0, text
+        assert settle.MISPLACED_HEADING not in text, text
+        assert "named like" not in text, text
+
+
+def records_in_place(tmp_path, name):
+    """A work item directory under TMP_PATH holding the three records the
+    settle reads, each at its place, and the `misplaced` reader."""
+    top = tmp_path / "seal" / "threads" / name
+    for rel in ("gaps.md", "frame/design.md", "frame/plan.md"):
+        write(top, rel, "# x\n")
+    return top, settle.load(settle.READER, "agentic_unverified_reader")
+
+
+class Test_misplaced:
+    def test_accepts_a_file_or_a_link_to_one_at_another_path(self, tmp_path):
+        """*Scope* item 1 of #1126: a file named like a record, at any path
+        but the record's own, is named with the record, as a regular file or
+        as a link to one, and the records at their places are not. Seen red
+        with the place test removed."""
+        top, reader = records_in_place(tmp_path, "1700000001-a")
+        (top / "x").mkdir()
+        (top / "x" / "design.md").write_text("# x\n", encoding="utf-8")
+        (top / "trail").mkdir()
+        symlink_or_skip(top / "gaps.md", top / "trail" / "gaps.md")
+        assert settle.misplaced(str(tmp_path), "1700000001-a", reader) == [
+            ("trail/gaps.md", "gaps.md"),
+            ("x/design.md", "frame/design.md"),
+        ]
+
+    def test_refuses_a_directory_a_link_to_nothing_and_another_spelling(self, tmp_path):
+        """*Scope* item 1 of #1126: only the exact name of a file is read. A
+        directory of that name, a link to nothing, another spelling and a
+        longer name are not named, and a linked directory is not followed.
+        Seen red with the walk following links, and with the file test
+        removed."""
+        top, reader = records_in_place(tmp_path, "1700000001-a")
+        (top / "notes").mkdir()
+        (top / "notes" / "Gaps.md").write_text("# x\n", encoding="utf-8")
+        (top / "notes" / "gaps.md.bak").write_text("# x\n", encoding="utf-8")
+        (top / "trail" / "plan.md").mkdir(parents=True)
+        elsewhere = tmp_path / "elsewhere"
+        elsewhere.mkdir()
+        (elsewhere / "gaps.md").write_text("# x\n", encoding="utf-8")
+        symlink_or_skip(elsewhere, top / "linked", directory=True)
+        symlink_or_skip(tmp_path / "nowhere", top / "notes" / "plan.md")
+        assert settle.misplaced(str(tmp_path), "1700000001-a", reader) == []
+
 
 class Test_apply:
     def test_accepts_every_released_directory_with_no_open_row(self, tree):
@@ -709,6 +837,53 @@ class Test_apply:
         (item / "routing.md").write_text("# routing\n", encoding="utf-8")
         _, text = run(tree, "--apply")
         assert item.exists(), text
+
+    def test_removes_a_directory_whose_gaps_md_is_away_and_names_it(self, tree):
+        """S1 of #1126, `--apply`: the directory goes on its record at its
+        place, which it does not have, and the `removed` line is followed by
+        a `not read:` line naming `trail/gaps.md`; the exit code and the last
+        line's counts are as before. Seen red with the fix reverted in
+        `settle.py`: the directory went without a word."""
+        name = "1700000007-trail"
+        path = released_item(tree, name, {"trail/gaps.md": OVERVIEW_OPEN})
+        code, text = run(tree, "--apply")
+        assert f"not read: seal/threads/{name}/trail/gaps.md" in text, text
+        assert code == 0, text
+        assert not path.exists(), text
+        assert (
+            f"removed seal/threads/{name}/\n"
+            f"    not read: {not_read(name, 'trail/gaps.md', 'gaps.md')}\n"
+        ) in text, text
+        assert text.endswith(
+            "\nremoved 4 directories; kept 0, each with a row to close\n"
+        ), text
+
+    def test_keeps_on_the_record_at_its_place_and_names_the_copy(self, tree):
+        """S2 of #1126: a top-level `gaps.md` holding an open row and a
+        `frame/gaps.md` holding none. The directory is kept on the top-level
+        row, at exit 1, and the `kept` line's rows are followed by a `not
+        read:` line naming the copy; the dry run's section follows its open
+        rows. Seen red with the fix reverted in `settle.py`."""
+        name = "1700000007-copy"
+        path = released_item(
+            tree, name, {"gaps.md": OVERVIEW_OPEN, "frame/gaps.md": OVERVIEW_CLOSED}
+        )
+        _, report = run(tree)
+        assert f"seal/threads/{name}/frame/gaps.md" in report, report
+        rows = report.index(f"\n{settle.ROWS_HEADING}\n")
+        assert rows < report.index(f"\n{settle.MISPLACED_HEADING}\n"), report
+        code, text = run(tree, "--apply")
+        assert code == 1, text
+        assert path.exists(), text
+        assert (
+            f"kept seal/threads/{name}/: its record holds 1 open row; close "
+            "each (`closed` with what closed it) and run `seal settle --apply` again\n"
+            "    open in gaps.md: a claim nobody ran\n"
+            f"    not read: {not_read(name, 'frame/gaps.md', 'gaps.md')}\n"
+        ) in text, text
+        assert text.endswith(
+            "\nremoved 3 directories; kept 1, each with a row to close\n"
+        ), text
 
 
 class Test_main:
@@ -983,10 +1158,7 @@ class Test_main:
             held = repo / "elsewhere"
             held.mkdir()
             (held / "round-1.md").write_text("# Review round 1\n", encoding="utf-8")
-            try:
-                os.symlink(held, trail / "rounds", target_is_directory=True)
-            except (OSError, NotImplementedError):
-                pytest.skip("this platform makes no symbolic link here")
+            symlink_or_skip(held, trail / "rounds", directory=True)
         else:
             (trail / "rounds").mkdir()
             (trail / "rounds" / "round-1.md").write_text(
@@ -1372,6 +1544,27 @@ class Test_main:
         assert not local_dir(local, "1700000003-c").exists(), text
         assert local_dir(local, "1700000002-b").exists(), text
         assert "    closed in gaps.md: a claim\n" in text, text
+
+    def test_apply_in_local_mode_names_a_gaps_md_away_from_its_place(
+        self, local, gh, capfd
+    ):
+        """S5 of #1126: under the git directory the misplaced file is found
+        where `--apply` removes it. The dry run names `trail/gaps.md`, and
+        `--apply` removes the directory and names the file under its
+        `removed` line. Seen red with the fix reverted in `settle.py`."""
+        name = "1700000001-a"
+        path = local_item(local, name, "feat/1-a")
+        (path / "trail").mkdir()
+        (path / "trail" / "gaps.md").write_text(OPEN, encoding="utf-8")
+        gh.merged("feat/1-a", (11, merge(local, "feat/1-a")))
+        code, text = dry_run(local, capfd)
+        line = not_read(name, "trail/gaps.md", "gaps.md")
+        assert line in text, text
+        assert code == 0, text
+        code, text = apply(local, capfd)
+        assert code == 0, text
+        assert not path.exists(), text
+        assert f"removed seal/threads/{name}/\n    not read: {line}\n" in text, text
 
     @pytest.mark.parametrize("arm", [False, True], ids=["report", "apply"])
     @pytest.mark.parametrize("state", ["absent", "fails", "garbled", "entry"])
