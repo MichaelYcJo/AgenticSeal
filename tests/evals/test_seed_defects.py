@@ -398,6 +398,11 @@ class Test_module:
             "record in `seal/specs/<item>/rounds/` or "
             "`seal/threads/<item>/trail/rounds/`\n"
         )
+        # One commit that holds a round 1 record is a read, whatever its case.
+        commits, _repo = shipped_item(tmp_path, monkeypatch, layout=LAYOUTS[1])
+        monkeypatch.setattr(sd, "shipped", lambda _tags: [commits["squash"]])
+        assert sd.main(["--list"]) == 0
+        assert capsys.readouterr().err == ""
 
     def test_the_replay_and_seeded_generators_read_the_entries_too(
         self, tmp_path, monkeypatch
