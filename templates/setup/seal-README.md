@@ -53,11 +53,15 @@ the last export's manifest at `agentic-last-export.json`. The export walks
 this directory and nothing else, which is why the root has to be its own.
 
 **The first line of this file is the marker.** `hooks/lib/optin.py#MARKER` holds
-the same line, and every gate reads a `seal/` whose `README.md` does not open
-with it as a repository that never opted in: a directory the project keeps for
-itself, as a package named `seal` has one. First setup that meets such a
-directory writes nothing into it and keeps the root under the git directory.
-Leave the line as it is.
+the same line, and every gate passes over a `seal/` whose `README.md` does not
+open with it: such a directory is the project's own, as a package named `seal`
+has one. First setup that meets such a directory writes nothing into it and
+keeps the root under the git directory. The line is compared whole, with only
+its line end taken off, so a space after it, a byte order mark before it or a
+blank line above it makes it another line. The gates then read the root under
+the git directory where its `README.md` opens with the marker, and read the
+repository as one that never opted in where none does. Leave the line as it
+is.
 
 **The throwaway opt-out is the file `.git/agentic-scratch`, and it cannot be
 committed.** Where it exists, every gate reads the repository as one that
