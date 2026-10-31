@@ -59,6 +59,11 @@ HELD = [
 # ids: "a comment line below the same run", "a fence nobody closed below the same run"
 ```
 
+```seal
+verdict: fixed 1f41f9d7
+answer: Fixed as the finding proposes: `write_gate_file` reads the file as it will stand, the held file itself where its last block already names the run, refuses a line the reader refuses or a last block naming another run, and only then returns on that path; its docstring says so. The two held files are two more parameters of `Test_write_gate_file::test_refuses_a_file_whose_new_run_the_reader_would_not_read`, red against the writer at b92f3a9e (2 failed, executed) and green after; `seal mutate` reading the new block alone on the same-run path turned the case red (executed). Class, listed from every shipped writer of a record a `seal` block reader reads (a `git grep` for `trail/gate.md`, `guarantee.md` and `trail/rounds/` writers, and for every writer that reads its output back): `write_gate_file` is the one command that writes such a record; `evals/scripts/rule_cases.py` writes the scaffolds' round and gate records on every path and composes the body through `pr_body.compose`, which reads both through the reader with no early return; `skills/implement/scripts/seal.py#write_row` returns early only to refuse, and reads its row back before every write.
+```
+
 ### 2. At the 0.27.0 tag the release seal reads #1154's round records through the new reader, refuses both, and leaves the deferred row unread
 
 ```seal
@@ -89,6 +94,11 @@ The fix has three parts. First, the docstring, at `release_seal.py:297-304`:
 Second, one of two choices, which is the orchestrator's to make. It can rewrite #1154's `round-1.md` and `round-2.md` into blocks with their findings, verdicts and answers unchanged, in a commit that touches only them, as `aef89462` did for this work item's round 1. Or, where it holds a merged work item's records out of this pull request's reach, it can add an *Operational impact* line to `frame/plan.md`. That line would say the 0.27.0 release seal's deferred row reads not read for each work item merged into `release/v0.27.0` before this one.
 
 Third, `frame/design.md:13` names `release_seal.py#chain_counts` as the one reader that reads a released release's records at its tag, so the premise of *Scope* item 9 stands corrected.
+
+```seal
+verdict: fixed 75a4245a
+answer: Fixed in three parts. The docstring of `chain_counts` now states the block reader's refusals, a labelled record from before #1198 among them, and that a finding with no close block is open and counts none (75a4245a); no other sentence of `release_seal.py` states the old grammar (read). The orchestrator chose the rewrite and folded it into the frame at b92f3a9e. Block copies of #1154's `round-1.md` and `round-2.md`, the same text with each field moved into its round, finding, close or confirmation block, stand in the crafter's scratchpad at `rewrite-1154/round-1.md` and `rewrite-1154/round-2.md`; `chain_check.round_of` reads each with no error and with the targets, verdicts, paths, held numbers and `confirms:` references `v0.26.0`'s check reads from the committed records (`d25aad94`, findings 1 and 2 `fixed 885b3c1f` and `fixed 88d4f27c`; `a1d4e95a`, confirming `round-1#1` and `round-1#2`), and `chain_counts` over a copy of `seal/` holding them returns `(2, 4, 0, 0)` where the committed records give `(2, 4, 0, None)` (executed). The orchestrator commits the copies in a commit that touches only them. Class, listed from every shipped caller of the round-record readers (`record_findings`, `round_of`, `round_read`, `routing.rounds`, `trail/rounds/`) and every shipped parser of `verdict:`, `confirms:` or `severity:`: `release_seal.py#chain_counts` is the one that parses the round records of a work item other than the pull request's own; `settle.py` counts a released item's rounds by file name through `routing.rounds` and parses none, so a labelled record counts as any other; `seal_stamp.py` counts the guarantee's work item's rounds by file name; `broad_gate.py#rounds_rows` and `pr_body.py` read the work item they are given, the pull request's own; `chain_check.py` judges only the declarations this pull request carries, and reads other work items' designs alone; `unverified_check.py` (`seal unverified`) reads `gaps.md` and no round record; `replay_targets.py` and `seed_defects.py` read 0.22.x records with the check of the commit that wrote each; `noninferiority.py` reads eval sides, which *Operational impact* already says stop comparing; and `evals/scripts/behaviour.py#FINDINGS_SHAPE` is the proofer grader generator round 2's *Not judged* gives to phase 3.
+```
 
 ## Confirmations
 
