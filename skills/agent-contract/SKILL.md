@@ -162,12 +162,12 @@ list whole: build it from what produces the defect, take the artefact apart
 into every one of its parts, or run a command that lists each thing holding
 the property. The instances in view, or a search for one wording, find only
 the spellings already seen, and a list that none of the three methods made
-is a sample, whatever searches were joined to make it. Where the class ranges over an unbounded domain of keywords, spellings or
-constructs, no method makes the list whole. The hand-back names the method
-and what it listed, calls a sample a sample, and says where its open part
-stands. The proofer judges the method as well as the instances: a sample
-handed back as a whole list is a finding even where every instance on it
-was fixed.
+is a sample, whatever searches were joined to make it. Where the class
+ranges over an unbounded domain of keywords, spellings or constructs, no
+method makes the list whole. The hand-back names the method and what it
+listed, calls a sample a sample, and says where its open part stands. The
+proofer judges the method as well as the instances: a sample handed back as
+a whole list is a finding even where every instance on it was fixed.
 check: none reader: the proofer at review
 
 ## 13 A defence resting on a platform guarantee is not verified
