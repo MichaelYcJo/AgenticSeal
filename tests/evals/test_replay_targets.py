@@ -726,19 +726,55 @@ class Test_module:
         """Guards that a replay reads only what a pull request accepted, for
         a record in `seal` blocks as for a labelled one: a record the check
         refuses is left out naming the refusal, and a next record it refuses
-        confirms nothing. A record whose round block the parser refuses
-        still holds its other blocks, so it is judged as a record in blocks
-        and never read as a table. Seen red against phase 1's reader, which
-        gave `Target SHA (none) does not resolve`."""
+        confirms nothing. A record that holds a `seal` opener is judged as a
+        record in blocks and never read as a table, whether the parser reads
+        any of its blocks or refuses every one: its round block beside
+        finding blocks it reads, its round block alone, a fence that never
+        closes, or a fence the walk cannot place. A refusal that names no
+        opener leaves the record to the labelled and table readers. Seen red
+        against phase 1's reader for the first, and against phase 2's for
+        the other three, each of which gave `Target SHA (none) does not
+        resolve`; the last three are seen red against a reader that counts
+        every refusal, or a comment line, an unclosed fence or an unplaced
+        one of any info string."""
         rt = load_script("replay_targets")
         _specs, threads = rt.LAYOUTS
+        fence = "`" * 3
         bad = BLOCK_ROUND_1.replace("against main", "against main and more")
-        t, why = rt.round_target(
-            "i", 1, bad, BLOCK_ROUND_2, lambda _rel: None, layout=threads
+        head = "# i — review round 1\n\n"
+        tail = "\n## Findings\n\n## Confirmations\n"
+        refused = {
+            bad: (4, "`target: 1a2b3c4 against main and more` does not read"),
+            f"{head}{fence}seal\ntarget: 1a2b3c4 against main and more\n"
+            f"{fence}\n{tail}": (
+                4,
+                "`target: 1a2b3c4 against main and more` does not read",
+            ),
+            f"{head}{fence}seal\ntarget: 1a2b3c4 against main\n{tail}": (
+                0,
+                "no `## Findings` section",
+            ),
+            f"{head}<div>\n{fence}seal\ntarget: 1a2b3c4 against main\n"
+            f"{fence}\n{tail}": (4, "the walk cannot place this fence line"),
+        }
+        for text, (line, said) in refused.items():
+            t, why = rt.round_target(
+                "i", 1, text, BLOCK_ROUND_2, lambda _rel: None, layout=threads
+            )
+            assert t is None
+            assert why.startswith(
+                f"the check refuses the record at line {line}: {said}"
+            ), why
+        # A refusal that names no `seal` opener leaves the record to the
+        # other readers: a comment line, and a fence of another info string
+        # that never closes or that the walk cannot place.
+        commented = LABELLED_ROUND_1.replace(
+            "## Findings\n", "## Findings\n\n<!-- a template comment -->\n"
         )
-        assert t is None
-        assert why.startswith("the check refuses the record at line 4: "), why
-        assert "`target: 1a2b3c4 against main and more`" in why
+        table = "| Target SHA | 1a2b3c4 |\n"
+        assert rt.judged_by(commented) is rt.labelled_round
+        assert rt.judged_by(f"{table}\n{fence}python\nx = 1\n") is None
+        assert rt.judged_by(f"{table}\n<div>\n{fence}text\nx\n{fence}\n") is None
         worse = BLOCK_ROUND_2.replace("round-1#1\n", "round-1#1 and more\n")
         assert rt.confirmed(BLOCK_ROUND_2, 1) == {1, 2}
         assert rt.confirmed(worse, 1) == set()
@@ -786,6 +822,40 @@ class Test_module:
             "replay_targets: replay-1792000001-r5 not written: no round 5 record "
             "of its work item was read\n"
         )
+
+    def test_names_each_named_case_no_listed_line_answers_with_its_reason(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """Guards `--list` with `--case`: the list returned before the names
+        no written case answers were said, so a name no record answered
+        printed nothing and exited 0, where `seed_defects.py` says on the
+        same input that it read nothing and exits 1. A name no listed line
+        answers is said on stderr as `--case` says it, and the run exits 1;
+        a name a kept or a `left out:` line answers is said there alone.
+        Seen red against that exit 0."""
+        rt = load_script("replay_targets")
+        tagged_repo(tmp_path, monkeypatch, rt)
+        assert rt.main(["--list", "--case", "replay-1-r1"]) == 1
+        said = capsys.readouterr()
+        assert said.out == ""
+        assert said.err == (
+            "replay_targets: replay-1-r1 not written: no record of its work item "
+            "was read\n"
+        )
+        two_layouts(tmp_path, monkeypatch, rt)
+        names = ["replay-1792000001-r2", "replay-1792000001-r5"]
+        assert rt.main(["--list", *[x for n in names for x in ("--case", n)]]) == 1
+        said = capsys.readouterr()
+        assert said.out.splitlines()[1:] == [
+            "1792000001-a-threads-item r2  left out: target 2b3c4d5 does not resolve"
+        ]
+        assert said.err == (
+            "replay_targets: replay-1792000001-r5 not written: no round 5 record "
+            "of its work item was read\n"
+        )
+        listed = ["replay-1792000001-r1", names[0]]
+        assert rt.main(["--list", *[x for n in listed for x in ("--case", n)]]) == 0
+        assert capsys.readouterr().err == ""
 
     @pytest.mark.parametrize(
         "blocks",

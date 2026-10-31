@@ -10,8 +10,9 @@ closed, and every truth `recurred_truths.json` adds for the case or widens
 writes today. A record comes in one of three shapes, decided in this order
 by this tree's readers:
 
-  blocks     the record since #1198, which holds a `seal` block
-             `hooks/lib/fields.py` reads, judged and read by
+  blocks     the record since #1198, which holds a `seal` block, one
+             `hooks/lib/fields.py` reads or refuses (`blocked`), judged and
+             read by
              `chain_check.py#round_of` and `#round_read` of the commit that
              last wrote it, so no line of a block is read by a pattern of
              this file. The commit and the base are its round block's
@@ -45,7 +46,8 @@ case's prompt and graders name are each taken from the layout of the
 record they derive from. `--case` reads every release tag, so a committed
 case still regenerates after the release that moved its records out of the
 last two. A run that reads no round record in either layout says so on
-stderr, and `--case` names there each name it did not write and why.
+stderr, and `--case` names there each name it did not write and why;
+with `--list`, each name no line it lists answers.
 
 Usage:
   replay_targets.py --list                 every round with truth, and why
@@ -59,8 +61,8 @@ Usage:
                                            release tag; repeatable
 
 Exit codes: 0 written or listed · 1 fewer targets than --count, a named
-case not written, or no round record in either layout · 2 the arguments
-were unusable.
+case not written, or with --list not listed, or no round record in either
+layout · 2 the arguments were unusable.
 """
 
 import argparse
@@ -315,16 +317,28 @@ def checks_at(at):
 
 
 def blocked(text):
-    """True for a record in `seal` blocks: one holding a block this tree's
-    `hooks/lib/fields.py` reads, which no labelled or table record carries.
+    """True for a record in `seal` blocks: one holding a `seal` opener,
+    which no labelled or table record carries, where this tree's
+    `hooks/lib/fields.py` reads a block or refuses one.
 
     This tree's parser decides it, as `labelled` is decided, because the
-    shape is decided before any check judges the record. Any block of a
-    round record's kinds counts, not the round block alone, so a record
-    whose round block the parser refuses is still judged by its commit's
-    check, which names the refusal, and is never read as a table."""
+    shape is decided before any check judges the record. `read` answers for
+    every opener: a block it reads, a refusal inside the block it opened,
+    or a refusal at the opener's own line where the fence never closes or
+    the walk cannot place it. A refusal of another kind, a comment line or
+    an unclosed or unplaced fence of another info string, names no opener.
+    So a record whose every block the parser refuses is still judged by its
+    commit's check, which names the refusal, and is never read as a
+    table."""
     check, _reader = record_reader()
-    return bool(check.FIELDS.read(text, check.FIELDS.ROUND_RECORD).blocks)
+    fields = check.FIELDS
+    read = fields.read(text, fields.ROUND_RECORD)
+    lines = fields.blocks.gfm_lines(text or "")
+    return bool(read.blocks) or any(
+        why not in (fields.COMMENT_LINE, fields.UNCLOSED, fields.UNSURE)
+        or lines[line - 1] == fields.OPENER
+        for line, why in read.refusals
+    )
 
 
 def labelled(text):
@@ -936,6 +950,16 @@ def layouts_named():
     return " or ".join(layout.named() for layout in LAYOUTS)
 
 
+def say_unanswered(names, answered, kept, left):
+    """Say on stderr each of `--case` NAMES that ANSWERED does not hold,
+    with why it was not written (`not_written`); how many there were."""
+    unanswered = [name for name in names if name not in answered]
+    for name in unanswered:
+        why = not_written(name, kept, left)
+        print(f"replay_targets: {name} not written: {why}", file=sys.stderr)
+    return len(unanswered)
+
+
 def not_written(name, kept, left):
     """Why `--case` NAME was not written: the reason `round_target` gave for
     its round, else that no record of its round, or of its work item, was
@@ -955,8 +979,9 @@ def main(argv=None):
     items' records at every release tag; the rest reads the last two.
 
     A run that reads no round record says so on stderr and exits 1, and
-    `--case` names on stderr each name it did not write and why. An
-    unusable argument is argparse's exit 2."""
+    `--case` names on stderr each name it did not write and why, or with
+    `--list` each name no listed line answers, and exits 1. An unusable
+    argument is argparse's exit 2."""
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     p.add_argument("--list", action="store_true")
     p.add_argument("--count", type=int, default=4)
@@ -984,7 +1009,10 @@ def main(argv=None):
             print(f"{t['item']} r{t['n']}  {len(t['truths'])} truth  {t['size']} lines")
         for item, n, why in left:
             print(f"{item} r{n}  left out: {why}")
-        return 0
+        listed = {case_name(t) for t in kept} | {
+            case_name({"item": item, "n": n}) for item, n, _why in left
+        }
+        return 1 if say_unanswered(a.case, listed, kept, left) else 0
     chosen, items = [], set()
     for t in sorted(kept, key=lambda t: (t["size"], t["item"], t["n"])):
         if t["item"] not in items:
@@ -1010,11 +1038,7 @@ def main(argv=None):
             model=a.model,
         )
         print(f"{name}: {len(t['truths'])} truth, {t['size']} lines")
-    written = {case_name(t) for t in chosen}
-    for name in a.case:
-        if name not in written:
-            why = not_written(name, kept, left)
-            print(f"replay_targets: {name} not written: {why}", file=sys.stderr)
+    say_unanswered(a.case, {case_name(t) for t in chosen}, kept, left)
     return 0 if len(chosen) == a.count else 1
 
 
