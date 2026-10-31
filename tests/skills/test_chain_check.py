@@ -2208,23 +2208,30 @@ class Test_originals_of:
     ):
         """The third scenario of #1167, #1121's R9: in a migration repository
         a guarantee holding `Original: <sha>` and no `original:` line holds
-        none, and a ready pull request fails naming the file. Seen red
-        against the reading that counted the misspelt line as present and
-        passed."""
+        none, and a ready pull request fails naming the file, and the line
+        is printed at its line as not read. Seen red against the reading
+        that counted the misspelt line as present and passed; the naming,
+        round 3's finding 1, seen red against the `unread` that named a
+        guarantee's `Verdict:` lines alone."""
         root, _audited = item
         rel = f"{ITEM}/guarantee.md"
         direct_migrating(root, BASELINE)
         assert check(root, capsys)[0] == 0
         path = root / rel
-        path.write_text(
-            path.read_text(encoding="utf-8").replace("original:", "Original:"),
-            encoding="utf-8",
-        )
+        text = path.read_text(encoding="utf-8").replace("original:", "Original:")
+        path.write_text(text, encoding="utf-8")
         commit(root, "the sealer spelt the label otherwise")
         code, out = check(root, capsys)
         assert code == 1, out
         says = chain.NO_GUARANTEE_ORIGINAL.format(config=PARITY, sha=BASELINE)
         assert f"{rel}:0  {says}" in out.splitlines(), out
+        number = text.splitlines().index(f"Original: {BASELINE}") + 1
+        said = chain.UNREAD_LINE.format(
+            said=f"Original: {BASELINE}", label=f"`{chain.ORIGINAL_ROW}`"
+        )
+        assert [ln for ln in out.splitlines() if "not read" in ln] == [
+            f"{rel}:{number}  {said}"
+        ], out
 
     @pytest.mark.rule("parity-in-the-guarantee")
     def test_a_missing_guarantee_is_named_once(self, item, capsys):

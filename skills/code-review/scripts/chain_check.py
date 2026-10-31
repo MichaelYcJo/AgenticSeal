@@ -775,9 +775,12 @@ def unread(reader, routing, root, item, chained):
     """[(path, line, why)] for what the check did not read of a work item:
     under `chained`, each file under `trail/rounds/` that is no
     `round-N.md` (`UNREAD_FILE`) and each line of a round record that opens
-    like a label and is not it (`unread_lines`); and each line of its
+    like a label and is not it (`unread_lines`); each line of its
     `guarantee.md` that opens like `Verdict:` and is not it
-    (`unread_verdicts`). `main` prints them as notices."""
+    (`unread_verdicts`); and, where the work item is not chained, so that
+    `originals_of` reads the guarantee's `original:` line, each line of it
+    that opens like `original:` and is not it. `main` prints them as
+    notices."""
     found = []
     if chained:
         records, others = rounds_listed(routing, root, item)
@@ -790,6 +793,13 @@ def unread(reader, routing, root, item, chained):
     text = read_record(root, rel)
     if text is not None:
         found += unread_verdicts(reader, text, rel)
+        if not chained:
+            label = f"`{ORIGINAL_ROW}`"
+            found += [
+                (rel, i + 1, UNREAD_LINE.format(said=line.strip(), label=label))
+                for i, line in enumerate(reader.readable(text))
+                if opens_like(line) == ORIGINAL_ROW
+            ]
     return found
 
 
