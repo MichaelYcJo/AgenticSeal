@@ -562,7 +562,8 @@ class Test_check:
             + "\nThe compact:x note. Read the pact: it is short. A token with a"
             + " space beside its colon, pact: abc or pact :abc, is prose.\n\n```\n"
             + anchor_table((PACT_URL, CLAUSE_PATH, "x"))
-            + 'pact:orders-api/"## A"@1a2b3c4d\n```\n',
+            + 'pact:orders-api/"## A"@1a2b3c4d\n'
+            + "| pact | clause | hash |\n|---|---|---|\n```\n",
         )
         # A frame holding no anchor table says nothing. Each table here is
         # headed by a shape `header_key` leaves out, a plural, a code span, a
@@ -600,6 +601,9 @@ class Test_check:
             "superseded · 0 not taken · 0 unmatched · 0 broken"
         ), out
         assert "heads its table" not in out and "REFUSED" not in out, out
+        # Neither a header `header_key` leaves out nor a near header inside a
+        # fence is named (#1167, *Scope* item 6).
+        assert "NOT READ" not in out, out
 
     @pytest.mark.parametrize(
         "header",
@@ -626,14 +630,16 @@ class Test_check:
             "case and emphasis together",
         ],
     )
-    def test_accepts_an_anchor_table_whose_header_differs_only_by_case_or_emphasis(
+    def test_names_a_table_under_a_near_header_and_grades_none_of_it(
         self, world, header
     ):
-        """#1132, S3: a header whose cells differ from `Pact`, `Clause` and
-        `Hash` only by case, or by one emphasis run wrapping a whole cell,
-        is the anchor table, so its row is graded and counted. Seen red
-        against `a5533a3d`, where the row scan refused each row at exit 2
-        and no anchor table was read."""
+        """#1167, *Scope* item 6: the anchor table is read under the exact
+        header alone. A header whose cells differ from `Pact`, `Clause` and
+        `Hash` only by case, or by one emphasis run wrapping a whole cell, is
+        named at its line as a table the tool did not read, with the exact
+        header to write, pinned whole (contract rule 14); no row of it is
+        graded or counted, and it is in no exit class. Seen red against the
+        row graded and counted under it."""
         write(
             world.web,
             SPEC,
@@ -642,9 +648,15 @@ class Test_check:
         code, out = world.run()
         assert code == 0, out
         assert (
-            f"READ {SIGNER_URL} {posix(world.web)} — 1 pact anchor naming this pact"
+            f"NOT READ {SIGNER_URL} {SPEC}:1 — `{header}` opens like the anchor "
+            "table's header and is not it, so no row under it was read or graded "
+            "— where it cites a pact, write the header `| Pact | Clause | Hash |`, "
+            "cell for cell READ "
         ) in out, out
-        assert "REFUSED" not in out and " 1 ok " in out, out
+        assert (
+            f"READ {SIGNER_URL} {posix(world.web)} — 0 pact anchors naming this pact"
+        ) in out, out
+        assert "REFUSED" not in out and " 0 ok " in out, out
 
     @pytest.mark.parametrize(
         "fields, clause_path, code, line",
@@ -814,12 +826,12 @@ class Test_check:
         assert code == 2, out
         assert f"REFUSED {SIGNER_URL} {SPEC}:{ANCHOR_LINE} — {said}" in out, out
 
-    def test_refuses_an_undeclared_remote_under_a_lower_case_anchor_header(self, world):
-        """#1132, S4, the shape the seal could not decide: a header in lower
-        case is the anchor table, so its row naming a remote one letter off
-        the pact's is refused `UNDECLARED` as under the exact header. The
-        group above writes the exact header alone. Seen red against
-        `a5533a3d`, which read no table under this header and exited 0."""
+    def test_refuses_no_row_under_a_lower_case_header_and_names_it(self, world):
+        """#1132's S4, read again by #1167: under `| pact | clause | hash |` a
+        row naming a remote one letter off the pact's is not read, so it is
+        not refused `UNDECLARED`; the header is named, and whether the table
+        meant an anchor is the proofer's and the person's to judge. Seen red
+        against the refusal at exit 2."""
         cell = "git@example.com:org/ordres-api.git"
         write(
             world.web,
@@ -827,10 +839,26 @@ class Test_check:
             f"| pact | clause | hash |\n|---|---|---|\n| {cell} | {CLAUSE_PATH} | 1a2b3c4d |\n",
         )
         code, out = world.run()
-        assert code == 2, out
-        assert (
-            f"REFUSED {SIGNER_URL} {SPEC}:{ANCHOR_LINE} — {UNDECLARED.format(cell=cell)}"
-        ) in out, out
+        assert code == 0, out
+        assert f"NOT READ {SIGNER_URL} {SPEC}:1 — `| pact | clause | hash |`" in out
+        assert "REFUSED" not in out, out
+
+    def test_grades_the_exact_table_and_names_a_near_one_beside_it(self, world):
+        """A table under a near header below the anchor table is no second
+        anchor table: the anchor row is graded, the near header is named at
+        its line, and nothing is refused. Seen red against the refusal of
+        a second header."""
+        write(
+            world.web,
+            SPEC,
+            anchor_table((PACT_URL, CLAUSE_PATH, clause(V2)))
+            + "\n## More\n\n| pact | clause | hash |\n|---|---|---|\n"
+            + f"| {PACT_URL} | {CLAUSE_PATH} | 1a2b3c4d |\n",
+        )
+        code, out = world.run()
+        assert code == 0, out
+        assert f"NOT READ {SIGNER_URL} {SPEC}:7 — `| pact | clause | hash |`" in out
+        assert "REFUSED" not in out and " 1 ok " in out, out
 
     @pytest.mark.parametrize(
         "text, line",
@@ -928,14 +956,6 @@ class Test_check:
                 f"`| {PACT_URL} | {CLAUSE_PATH} | 1a2b3c4d |`, a row the walk "
                 "never reaches — it and every row below it would go unread",
             ),
-            (
-                anchor_table((PACT_URL, CLAUSE_PATH, "1a2b3c4d"))
-                + "\n## More\n\n| pact | clause | hash |\n|---|---|---|\n"
-                + f"| {PACT_URL} | {CLAUSE_PATH} | 1a2b3c4d |\n",
-                "the frame holds a second `| Pact | Clause | Hash |` header at "
-                "line 7, and the walk reads the first table only — move its rows "
-                "into the first table and delete the second header",
-            ),
         ],
         ids=[
             "a second table",
@@ -946,16 +966,15 @@ class Test_check:
             "a row below another table",
             "a row a comment parts from another table",
             "a row under a blank line",
-            "a second table in lower case",
         ],
     )
     def test_refuses_an_anchor_row_nobody_reads(self, world, text, said):
         """A row the walk does not reach would read as a signer citing
         nothing, so the frame is refused at exit 2. A second anchor table is
-        named as one wherever it stands, and under a header that differs
-        from the anchor header only by case or emphasis too (#1132, S5; seen
-        red against `a5533a3d`, which refused its row as one no anchor table
-        holds). A line under the table that opens no table of its own, a
+        named as one wherever it stands; a table under a header near the
+        anchor header is no anchor table and is named as not read
+        (`test_grades_the_exact_table_and_names_a_near_one_beside_it`). A
+        line under the table that opens no table of its own, a
         header with a delimiter row of its width directly under it, is a row
         nobody reads, and so is a row below such a table and above the next
         heading (round 2 of #913, finding 2)."""
