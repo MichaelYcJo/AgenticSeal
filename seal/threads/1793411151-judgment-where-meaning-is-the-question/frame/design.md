@@ -103,9 +103,9 @@ Table A is the table under *The checks* in the `add` item for `docs/what-a-scrip
 | No review without a build | a round reads a committed tree and its record names the commit | `chain_check.py`'s records arm: `target:` and every `fixed` commit are commits the branch holds |
 | No fix that no round reads | every change after the last round is read by a round, or by the sealer where it touched the work item's records alone | `chain_check.py`: the last record is at HEAD or only the work item's records follow it, and every `fixed` or `rejected` finding is named by the next record |
 | No seal without the broad run at HEAD | the sealer guarantees a tree the repository's `Broad gate` row in `seal/config.md` passed at HEAD | `agents/sealer.md` step 1 withholds without `trail/gate.md` at HEAD; `chain_check.py`'s broad gate arm |
+| No pull request without a seal | nothing reaches the base that the last independent party did not guarantee | `chain_check.py`'s guarantee arm: a ready pull request fails without `Verdict: sealed` at HEAD |
 
 The rows go into the core as written, with `chain_check.py` spelt by its path in the first row that names it and "the same check" after; the core is shipped to every repository, so the fourth row names the `Broad gate` row by its coordinate and no tool, since what the row runs is each repository's own (this one's runs ruff and `bin/test`, and no typecheck).
-| No pull request without a seal | nothing reaches the base that the last independent party did not guarantee | `chain_check.py`'s guarantee arm: a ready pull request fails without `Verdict: sealed` at HEAD |
 
 ### Table C. Where each party's judgment stands
 
