@@ -1,0 +1,60 @@
+# Implementation Plan: 1793490088-each-kind-of-restatement-is-measured
+
+## Technical context
+
+The work builds nothing. Each phase measures a group of kinds at `bf9efcba`, decides each, drafts the issues its decisions call for, and writes all of it into its own `trail/phases/phase-N.md` under `## What this phase found`. The design's *Data & interfaces* holds the parts, the kinds, the unit, the table's columns and a draft's shape.
+
+What the phases build on, by coordinate:
+
+- The verbatim reader: `tests/text/test_no_passage_is_pasted_into_a_second_file.py#words`, `#shared_counts` and `#longest_run`, with `WINDOW` 15 from `tests/text/test_a_moved_rule_leaves_its_definition.py:85`. The module's `BASELINE` is a stored count of shared runs per file pair, which G1's last sentence names as the kind of thing the tree does not keep. K1 to K3 weigh it.
+- The mechanisms that already hold a kind, listed in the design's *The kinds*. Their cost is read from `.test_durations` (the recorded seconds per case) and `wc -l`. What they caught is read from `git log --format='%h %s' -- <module>` and from the round records at the release tags that name the module.
+- The phrase-pin method of #1111: `475653e7:seal/threads/1793226630-most-contract-rules-are-proved-by-their-own-wording/frame/design.md`, *Data & interfaces*. K5 repeats it at `bf9efcba`.
+- The three standing work items for K7 and K10: `seal/threads/1793457435-replay-targets-reads-both-layouts/`, `seal/threads/1793457436-row-deletion-check-and-a-symlink/` and `seal/threads/1793457437-readers-state-the-shapes-they-pass/`.
+- The candidates for #1038: milestone 76's description (design G9).
+
+How the review chain reads the records. The proofer reads each phase record against the design: every kind of its group has a row; it runs each row's command at `bf9efcba` and compares the printed count (S1); it opens the drifted instances (S2); it reads each decision's grounds against G1 (S3) and each draft (S4); it runs S5's `wc -c` and S6's `git diff --name-only`. A finding on a row is a finding on a record, and its fix rewrites the row in its one record. The sealer reads the two records against the issue's *Done when* and the tree.
+
+Failure scenario of the chosen approach, six months on: the decisions are filed and built, the records have left with the directory at the 0.27.1 settle, and a later audit wants to repeat a count. The commands stand in the records at the release tag (`git show v0.27.1:<path>`) and in the comment's linked records, and they read `bf9efcba` by name, so they still print the same counts. What a later run cannot repeat is the reading: whether a passage is the same fact and whether it drifted. The instance lists keep each verdict at its coordinate, so the later run reads what changed and does not re-judge the rest.
+
+## Alternatives considered
+
+| Approach | Failure scenario | Verdict |
+|---|---|---|
+| **A1** Two phases by kind group, each row whole in one record (chosen) | The comment is assembled from two records, so the orchestrator copies two tables in order. The copy is verbatim, as `seal pr-body` copies records, and S5 checks the joined text | chosen: no fact of the table stands in two records |
+| A1 alternative: one phase for all fourteen kinds | One spawn reads every kind, including K4's two editions of about 8,000 words each and K12's code clusters, and the context runs short before the last rows are decided | rejected |
+| A1 alternative: phase 1 measures every kind, phase 2 decides every kind | Phase 2's table restates phase 1's commands and counts beside its decisions, which is the copy between two records of one work item that `docs/the-record-layout.md` *A fact of a work item has one record, and every other record cites it by path and heading* forbids | rejected |
+| **A2** The table and drafts in `trail/phases/phase-N.md` (chosen) | A reader looking for "the audit" finds it under a phase record's name. The design's *Scope* item 5 and the comment's preamble name both paths | chosen (design G6) |
+| A2 alternative: a new `audit.md` at the work item's top | `docs/the-record-layout.md` *seal/threads/<work-item-id>/* lists no such file, so the settle's dry run names it as not read and a session decides it by hand; giving it a home is a rule change for one work item | rejected |
+| A2 alternative: `gaps.md` or `changelog.md` | `gaps.md` answers what went out unproved; `changelog.md` is the release note a user reads. Neither question is the audit's | rejected |
+| **A3** Each command written whole in the record, reading `bf9efcba` (chosen) | A long command is a heredoc a reader copies out. Its text is in the record, so nothing outside the records has to survive | chosen |
+| A3 alternative: commit a measuring script to the tree | The tree changes outside the records, against the orchestrator's constraint, and the script becomes a mechanism with no record of a catch, which G1 weighs against keeping | rejected |
+| **A4** Exact commands for verbatim passages and fact-anchored units, and a stated sample of the record for paraphrase (chosen) | A paraphrase that never drifted and that no search reaches is not counted. Each row names that open part (S8), as contract rule 12 asks | chosen (design G2, G4) |
+| A4 alternative: read every pair of files for paraphrase | 538 files make about 145,000 pairs, and the reading would still not be whole, because a paraphrase has no bounded spelling | rejected |
+| **A5** K10, the standing copies inside one work item's records, measured (chosen) | The spawn prompt reads the issue's *Out of scope* as excluding the kind. The orchestrator may reject this in its one exchange, and K10's row then leaves phase 2 | chosen: `docs/the-review-record.md` *A finding's `verdict:` decides it, and severity is for people* says "#1147 audits what stands", and the owner's comment item 2 says the same; the issue's *Out of scope* line names #1020's recurrence check, which stays out (design G5) |
+| A5 alternative: K10 left out | The policy in force names this audit as the one that decides the standing copies, and nothing else would | rejected |
+| **A6** No changelog fragment (chosen) | The 0.27.1 release note says nothing about the audit, and a reader of the notes learns of it from #1147 | chosen (design G7) |
+| A6 alternative: a fragment naming the audit and its decisions | It restates the comment's table in a third place, and the issue numbers it would cite do not exist until after the seal | rejected |
+| **A7** The issue numbers recorded on GitHub only: in the comment's *Issue* cells and in the pull request body's orchestrator part, above the line `seal pr-body` keeps (chosen) | The records keep the draft ids and never the numbers, so a reader of the records at the tag maps a draft to its issue through the comment | chosen (design G8) |
+| A7 alternative: a commit after the seal writing the numbers into `plan.md` *Judgments of the run* | `chain_check.py`'s guarantee arm allows only `trail/gate.md` and `guarantee.md` after the verdict's commit, so the pull request check refuses until the sealer runs again | rejected unless the orchestrator takes the sealer's second run |
+| **A8** Kinds by the pair of parts that hold the two copies (chosen) | A shape of fact that crosses pairs, such as a figure or a coordinate, needs its own kind, K13, with P12 as its pair | chosen: the issue enumerates by pair, and the parts make the list whole (design G4) |
+| A8 alternative: kinds by the shape of the fact (sentence, list, figure, coordinate) | A shape crosses every pair, so a decision such as "README links to docs" has no row of its own to stand in | rejected |
+| **A9** The existing mechanisms on a kind (*The kinds*, last column) weighed for removal as an equal of keeping (chosen) | A mechanism kept for having existed survives another release with no recorded catch | chosen: G1 "existing is no reason to keep it"; each row states the catch and the cost it weighed |
+
+## Phases
+
+| Phase | Delivers | Verified by | Status |
+|---|---|---|---|
+| 1 | *Scope* items 1 to 4 for K1, K2, K3, K4, K5, K6 and K9; `gaps.md` from its template | each row's command, run at `bf9efcba`, prints its count; `git diff --name-only bf9efcba..HEAD` prints only this work item's paths; `tests/behaviour/test_chain_hooks_hardening.py::test_every_spec_directory_that_reached_the_ladder_has_an_overview` | |
+| 2 | *Scope* items 1 to 4 for K7, K8, K10, K11, K12, K13 and K14; *Scope* items 5 and 6 | the same, for its rows; the joined comment text under 65,536 characters by `wc -c`; the same case | |
+
+## Operational impact
+
+None for a deployer: the tree changes only under this work item's directory.
+
+For the orchestrator, after the seal: the comment is the preamble and the rows of K1 to K14 copied from the two phase records, each `D<n>` replaced by the filed issue's number. Each record is linked at the sealed commit. GitHub keeps a pull request's commits under `refs/pull/<n>/head`, so the link should still open after the squash (unverified; the orchestrator answers it by opening the link once the pull request has merged). The issue numbers go where design G8 and plan row A7 place them.
+
+## Judgments of the run
+
+| Date | Judgment | Grounds | Judged against |
+|---|---|---|---|
+| | | | |
