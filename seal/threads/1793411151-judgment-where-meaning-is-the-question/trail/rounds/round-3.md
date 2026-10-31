@@ -25,7 +25,7 @@ finding 1 is answered below.
 severity: should
 location: `skills/code-review/scripts/chain_check.py:774-793`, `tests/skills/test_chain_check.py:2206-2227`, `seal/threads/1793411151-judgment-where-meaning-is-the-question/gaps.md:24-26`
 evidence: executed `.venv/bin/python -m pytest -p no:xdist -q -s tests/skills/test_tmp_round3_probe.py::test_tmp_direct_guarantee_original_spelt_otherwise`
-verdict: open
+verdict: fixed b2f0bc30
 
 The crafter claimed this as departure d (`trail/phases/phase-2.md`, the
 paragraph on a near `original:` line in a guarantee, and `gaps.md` *Not
@@ -99,14 +99,14 @@ the start of a line, which the case's own `replace` already relies on;
 this round did not run it. The third paragraph of `gaps.md` *Not done*
 stops being true with the fix, and goes in the same commit.
 
-answer:
+answer: The finding holds: `originals_of` reads a `straight to the PR` guarantee's `original:` line, so a line spelt otherwise there looks like one of the form's lines, and the core says the check names it. `b2f0bc30` applies the paste-ready fix as written: `unread` names such a line where the work item is not chained, and a chained guarantee, whose `original:` line nothing reads, names nothing new. Its docstring says so. The case's new assertion, which pins the one `not read:` line at the guarantee's line 8, failed against the tree before the fix (executed) and passes after it. The same commit removes the `gaps.md` *Not done* paragraph that stood on the old reading. `trail/phases/phase-2.md` keeps departure d as what the phase found at the time; the fix pass writes no phase record. `bin/test` over `test_chain_check.py`, `test_seal_stamp.py` and `test_the_sealer_guarantees.py` passed, 434 cases (executed).
 
 ### 2. No case holds that a line inside a fence is not named, in a round record or in a guarantee
 
 severity: should
 location: `tests/skills/test_chain_check.py:3496-3550`, `tests/skills/test_chain_check.py:2454-2474`
 evidence: executed `bin/test tests/skills/test_chain_check.py tests/skills/test_seal_stamp.py tests/behaviour/test_the_sealer_guarantees.py -q`
-verdict: open
+verdict: fixed a143e583
 
 *Scope* item 5 defines the net as "a line outside every fence"
 (`frame/design.md:48`). Both readers keep it by blanking fences:
@@ -165,7 +165,7 @@ committed (contract rule 15). This round ran neither snippet; it ran the
 same two assertions over `unread_lines` and `unread_verdicts` directly,
 which passed against the code as it stands (`## Probes`).
 
-answer:
+answer: The finding holds: nothing pinned the fence half of the net. `a143e583` adds the two cases. `Test_main::test_names_no_line_inside_a_fence` is the paste-ready case as written. `Test_verdicts_of::test_names_no_verdict_line_inside_a_fence` keeps the paste's two assertions, with the first made exact: the one verdict read is `Verdict: sealed` at its line. Each case was seen red against its own mutant: `seal mutate` over `chain_check.py` at `a143e583`, one call per case. `reader.readable` became `reader.gfm_lines` in `unread`'s call of `unread_lines` for the first case, and in `unread_verdicts`' loop for the second. Both runs were red, and the file was restored (executed). The code is unchanged, so the commit is `test:`.
 
 ## Confirmations
 
