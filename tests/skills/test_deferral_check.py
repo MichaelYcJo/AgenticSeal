@@ -121,6 +121,46 @@ class Test_main:
         assert r.returncode == 0, r.stdout + r.stderr
         assert r.stdout == answered((TEST_YML, "pytest")), r.stdout
 
+    @pytest.mark.parametrize(
+        "char",
+        ["\u2028", "\u2029", "\x85", "\x0b", "\x0c", "\x1c", "\x1d", "\x1e"],
+        ids=[
+            "U+2028",
+            "U+2029",
+            "U+0085",
+            "U+000B",
+            "U+000C",
+            "U+001C",
+            "U+001D",
+            "U+001E",
+        ],
+    )
+    def test_a_step_is_printed_whole_where_a_comment_holds_a_break_yaml_does_not_take(
+        self, repo, char
+    ):
+        """#1167's second misreading: `str.splitlines` ends a line at eight
+        characters YAML 1.2 does not, which printed a word from a comment as
+        a command of its own. The step is printed as the line it is, comment
+        and all, for its reader."""
+        step = f"./deploy.sh # see{char}pytest"
+        workflow(
+            repo,
+            "test.yml",
+            "on: pull_request\njobs:\n  d:\n    steps:\n      - run: " + step + "\n",
+        )
+        r = run(["--kind", "tests", str(repo)])
+        assert r.returncode == 0, r.stdout + r.stderr
+        assert r.stdout == answered((TEST_YML, step)), r.stdout
+
+    @pytest.mark.parametrize("end", ["\r\n", "\r"], ids=["CRLF", "CR"])
+    def test_a_line_ends_at_each_of_yamls_line_breaks(self, repo, end):
+        (repo / ".github" / "workflows" / "test.yml").write_bytes(
+            end.join(["on: pull_request", *PYTEST_JOB.splitlines(), ""]).encode()
+        )
+        r = run(["--kind", "tests", str(repo)])
+        assert r.returncode == 0, r.stdout + r.stderr
+        assert r.stdout == answered((TEST_YML, "pytest")), r.stdout
+
     # --- the answerer is missing ---------------------------------------------
 
     def test_refuses_a_tree_with_no_ci_as_an_answerer(self, tmp_path):

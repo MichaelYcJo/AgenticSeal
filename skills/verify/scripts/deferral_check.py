@@ -92,10 +92,17 @@ TRIGGER = (
 
 
 def runners_in(text, kind):
-    """Command lines in `text` that run `kind`, deduped, in file order."""
+    """Command lines in `text` that run `kind`, deduped, in file order.
+
+    A line ends at LF, CR or CRLF: YAML 1.2's line breaks, and a
+    Jenkinsfile's, which is Groovy. `read` opens a file with universal
+    newlines, so all three arrive here as LF, and the text is split at LF
+    alone. `str.splitlines` also ends a line at U+2028, U+2029, U+0085,
+    U+000B, U+000C and U+001C to U+001E, so a runner word after one of
+    them inside a comment printed as a command line of its own; split at
+    LF, the line prints whole, comment and all, for its reader (#1167)."""
     found = []
-    # exempt from splitlines: YAML keys
-    for line in text.splitlines():
+    for line in text.split("\n"):
         stripped = line.strip().lstrip("-").strip()
         # exempt from heading_rule: a YAML or shell comment in a workflow's run lines
         if not stripped or stripped.startswith("#"):

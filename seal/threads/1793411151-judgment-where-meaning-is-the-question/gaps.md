@@ -26,8 +26,3 @@ read" is not built. `refixes` is no label's word, so the net *Scope* item 5
 derives from the labels does not name it, and the frame removes the list of
 old spellings that would. `trail/phases/phase-2.md` gives the grounds and
 the measurement of a wider net.
-
-`seal deferrals`' `runners_in` still ends a line at U+2028, so a runner word
-after that character inside a comment is read as a command line. The frame
-keeps `runners_in` as it is, and the reader the trigger line sends to the
-file sees the comment. `trail/phases/phase-4.md` gives the measurement.
