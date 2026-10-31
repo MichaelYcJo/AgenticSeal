@@ -21,9 +21,7 @@ and removes it; everything else under `seal/`, with `docs/`, is permanent. The l
 **The plugin writes only to its own root.** A `specs/` directory anywhere
 else is the project's own, read as history and never taken
 (`templates/setup/config.md` *Reference specs*), and no code of the plugin opens a
-top-level `specs/` or `.specseal/`: the 0.3.x layout moves by hand, with the
-commands README.md *Coming up from 0.3.x* gives, and that section says it is
-the only path. Where the root is, as a path a
+top-level `specs/` or `.specseal/`. Where the root is, as a path a
 session can type, is stated once, in contract rule 11.
 check: tests/behaviour/test_no_document_names_the_old_roots.py tests/hooks/test_optin.py
 
@@ -56,15 +54,11 @@ record.
 **A repository is opted in when `seal/` exists at its mode's location and
 its `README.md` opens with the plugin's marker**: `<repo>/seal/` in shared
 mode, `$(git rev-parse --git-common-dir)/seal/` in local mode. The marker is
-the first line of `templates/setup/seal-README.md`, written at first setup and by
-the migration of a repository installed before the plugin was renamed
-AgenticSeal. The hooks look at the
+the first line of `templates/setup/seal-README.md`, written at first setup.
+The hooks look at the
 two places in that order; whichever exists with the marker says both "on"
-and which mode. A `seal/` whose README opens with a heading an earlier
-release wrote (`hooks/lib/optin.py#EARLIER_HEADINGS`) is that release's root,
-which the session-start migration rewrites to the marker; until it does,
-it reads as not opted in, and first setup creates no second root beside
-it. A `seal/` whose README opens with neither is a project's own directory,
+and which mode. A `seal/` whose README does not open with the marker is a
+project's own directory,
 as a package named `seal` has one, and reads as not opted in; first setup
 that meets one writes nothing into it and keeps the root under the git
 directory. Nothing else is read, and there is no config
@@ -101,15 +95,7 @@ order, the first the default, each saying what it does:
   and local mode commits none.
 
 A repository with `seal/` at either place has been through this and is never
-asked again; the mode is read from where the folder is. A repository still on
-the 0.3.x layout is told, not asked, that it moves by hand with the commands
-README.md *Coming up from 0.3.x* gives (`skills/implement/bootstrap.md`). A repository installed before the plugin was renamed
-AgenticSeal has its work items moved into the thread layout by the
-session-start hook, on each branch whose tree still holds them. No stamp
-stands between a branch and its move. So in a repository that left shared
-mode for local mode, a branch cut before the switch has its own `seal/`
-moved and marked in the tree, and the hooks read that root first
-(`hooks/root-migrate.py`, its boundaries).
+asked again; the mode is read from where the folder is.
 check: tests/behaviour/test_first_setup_asks_once.py
 
 ### Shared or local

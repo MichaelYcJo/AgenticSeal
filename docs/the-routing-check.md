@@ -6,8 +6,6 @@ owes at the pull request is `docs/the-review-and-parity-arms.md`. How the
 hooks are registered is `docs/the-session-hooks.md`. Update spec and code
 together.
 
-## Where the routing is checked
-
 **A session's routing is checked where the session acts, at its edit tools
 before the first edit, and again at the pull request; this plugin writes
 nothing into a clone's git hooks.** The routing governs a session, and
@@ -17,19 +15,7 @@ framework and lefthook live, and a line or an entry in their committed
 configuration reaches every teammate. A check at git's level reaches people
 who do not use this plugin, with an experience they did not ask for (the
 owner, 2026-10-25).
-check: tests/hooks/test_routing_edit_gate.py tests/hooks/test_stub_remove.py
-
-**A session takes out, at its start, the git hook stubs an earlier release
-of this plugin wrote into its clone.** A stub is a file in the common git
-directory's `hooks/` whose second line starts with the marker
-`# specseal-git-hook`, the text every stub an earlier release wrote
-carries, and a hook file without it is never touched. The marker keeps the
-old name because the files it names were written under it. Each
-stub ran the plugin copy whose absolute path it names, so after an upgrade
-it goes on judging commits with the old copy for as long as that copy stays
-on disk. A clone no session of this release starts in keeps its stubs, and
-a person removes them by deleting the files that carry the marker.
-check: tests/hooks/test_stub_remove.py
+check: tests/hooks/test_routing_edit_gate.py tests/hooks/test_dispatch.py
 
 ## The edit check
 

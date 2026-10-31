@@ -95,8 +95,7 @@ hand fires the publish workflow too.
   outside plugins through the directory's submission and a nightly mirror of
   its review pipeline, and says per file whether the plugin has an entry, which
   commit it pins and whether that commit is on `main`. It exits 0 whatever it
-  finds: those files sync on somebody else's schedule, and a red nobody here
-  can act on is what `CLAUDE.md`'s first goal is against. The directory's own
+  finds: those files sync on somebody else's schedule, and a red nobody here can act on is what `skills/core/SKILL.md` *The first value: efficient development through the workflow* is against. The directory's own
   state, whether the plugin is published there and at which version, is not
   among its answers, because no script can reach the directory; the command
   says so and prints the page a person opens. Nothing fires it; a person runs
@@ -328,12 +327,8 @@ read it as two either.
 `Part of #N` remains the form for a pull request that advances an issue without
 finishing it. It links for a reader and asks nothing to close.
 
-**The version is named at the cut.** A release's milestone, `release: X.Y.Z`,
-names the version before its first work item starts, and the branch is cut
-as `release/vX.Y.Z` for it. A release whose content changes the answer, a
-minor become a patch or a patch become a minor, is cut again under the new
-name from the old branch, and the new branch's first pull request moves
-`plugin.json` to the new version.
+**The version is named at the cut, a `feat:` ships in the planned minor whose goal it shares, and the prefix is never lowered to fit the number.** A release's milestone, `release: X.Y.Z`, names the version before its first work item starts, and the branch is cut as `release/vX.Y.Z` for it. A release that carries a `feat:` is a minor, and every other prefix fits a patch; `skills/commit-pr-convention/SKILL.md` *Commit messages* says which change takes which prefix. A planned minor is a category with one goal, which its milestone's description states (`docs/issues-and-milestones.md` *A milestone answers when, and takes three shapes*), and the `feat:`s that share that goal ship together in it, so one minor is not made for each `feat:`. A `feat:` lands in a milestone when an issue titled `feat:` is filed into it or moved into it, or when a pull request takes `feat:` where its issue had another prefix. When it lands in a milestone numbered as a patch, its issue moves to the planned minor whose goal it shares. Where no planned minor shares its goal, or the work that follows needs it in effect before that minor ships, that milestone and every later planned `release:` milestone are renamed one step forward in one act instead, each keeping the step it had from the milestone before it, and every description is rewritten for the new numbers. A rename made because the work that follows needs the `feat:` sooner states its grounds in the renamed milestone's description: the work item that needs it, and why the minor that shares its goal ships too late. A `feat:` already squashed onto a patch's branch stays in that release's range, because the release pull request's reading counts it after a revert as well, so its repair is the same rename. A release branch already cut is cut again under the new name from the old one, and the new branch's first pull request moves `plugin.json` to the new version. Until a branch is cut under a name, the planned milestones' names follow their goals, and a regrouping renames them in one act, back as well as forward, with every description rewritten. Once a branch is cut, its name is never pulled back: a minor that carries no `feat:` ships as the minor it was named, because the branch, the `merged:` labels and `plugin.json` already carry that name. The release pull request refuses a patch-numbered release whose own commit subjects carry a `feat:`, and names each one. The reading is exact, and the rule it holds was approved on 2026-09-02, held by nothing, and broken by 14 of the 37 patch releases from v0.8.1 to v0.25.1.
+check: a-patch-carries-no-feat
 
 **`main` stays the default branch.** A fresh marketplace clone lands on the
 default branch, so making a release branch the default would hand every user

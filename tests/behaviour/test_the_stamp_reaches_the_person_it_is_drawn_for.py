@@ -256,7 +256,7 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     ) in rule
     assert "no ref of that clone holds" not in rule
     assert "copied here by hand" not in text
-    assert "the earlier-run chain alone skips a `sealed` this clone recorded" in rule
+    assert "the earlier blocks alone skip a `sealed` this clone recorded" in rule
     assert "**What the person's screen shows is not checked" in unchecked
     assert "No case, hook or workflow can observe a screen." in unchecked
     assert "check: none reader: the owner on the first real run" in unchecked
@@ -269,7 +269,7 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
         "names no branch, or a branch the clone no longer holds",
         "where no edit hook saw it written",
         "under a plugin older than the hook",
-        "never the `; earlier run:` chain",
+        "never the earlier blocks",
         "a values directory emptied by hand",
         "by coincidence, the very commit a copy of the item on another branch "
         "was sealed and drawn over",
@@ -326,7 +326,8 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
     )[1].split("**The hook holds its whole message under a budget", 1)[0]
     for said in (
         "`<git-common-dir>/agentic-stamp-refused/<id>-<target>`",
-        "`; earlier run: <sha> sealed`",
+        "an earlier verdict block reading `sealed` that this clone recorded "
+        "refusing is skipped",
         "One writer leaves it, for a row that stands in its own clone and "
         "nowhere else: `hooks/sealer-stamp-queue.py`, in either mode, where "
         "the `Branch` row's branch stands and does not hold the audited commit.",

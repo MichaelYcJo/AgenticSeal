@@ -10,6 +10,5 @@ This document is the standing account of that rule and what holds it.
 tree, and the review reads it against the diff.** Each row names the thing,
 the coordinate it stood at, and where it lands or why it can go. A work item
 removing nothing writes the no-change block of `skills/settle/SKILL.md`
-*Rule changes* in place of the table. A removal a phase makes that the
-frame did not name is a divergence, and it goes to `gaps.md`.
+*Rule changes* in place of the table. A removal a phase makes that the frame did not name is a divergence, and it goes to that phase's `trail/phases/phase-N.md` *What this phase found*.
 check: tests/behaviour/test_a_phase_hands_the_next_one_a_record.py
