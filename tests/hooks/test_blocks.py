@@ -44,7 +44,44 @@ class Test_gfm_lines:
             assert reader.gfm_lines(text, True) == text.splitlines(True), repr(text)
 
 
+class Test_walk:
+    def test_accepts_each_paired_fence_with_its_openers_info_string(self):
+        """#1198, *Scope* item 1: `hooks/lib/fields.py` reads a `seal` block
+        by its opener's info string, so the walk hands it, for every fence it
+        pairs, the opener's index and the text after its run. Two fences that
+        touch are two entries, and a fence quoted inside another is none."""
+        fence = "`" * 3
+        lines = [
+            f"{fence}seal",
+            "run: x",
+            fence,
+            f"{fence} Seal note",
+            fence,
+            "~~~~",
+            f"{fence}seal",
+            "~~~~",
+            "prose",
+        ]
+        assert blocks.walk(lines).opens == {0: "seal", 3: " Seal note", 5: ""}
+
+    def test_refuses_an_entry_for_an_opener_that_never_closes(self):
+        """An opener nobody closed is no fence: it stays in `unclosed`, and
+        a pair below it still has its entry."""
+        fence = "`" * 3
+        walked = blocks.walk(["~~~seal", "x", f"{fence}seal", "y", fence])
+        assert walked.unclosed == [0], walked.unclosed
+        assert walked.opens == {2: "seal"}, walked.opens
+
+
 class Test_walk_text:
+    def test_accepts_each_opener_at_the_reader_line_it_starts(self):
+        """`walk_text` answers per `str.splitlines` line, so an opener's
+        entry is keyed by the reader line that starts where the opener
+        does."""
+        fence = "`" * 3
+        text = f"a{BREAKS['LS']}b\n{fence}seal\nrun: x\n{fence}\n"
+        assert blocks.walk_text(text).opens == {2: "seal"}
+
     def test_refuses_to_claim_a_piece_inside_its_lines_open_comment(self):
         """#667 round 2, yellow 1. A piece after a break inside an inline
         comment its line left open is uncertain; a piece of a fenced line
