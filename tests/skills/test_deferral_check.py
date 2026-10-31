@@ -82,7 +82,7 @@ def answered(*ci):
 class Test_main:
     # --- a CI file holds a runner ---------------------------------------------
 
-    def test_a_workflow_holding_a_runner_is_named_and_its_trigger_left_to_the_reader(
+    def test_accepts_a_workflow_holding_a_runner_and_leaves_its_trigger_to_the_reader(
         self, repo
     ):
         workflow(
