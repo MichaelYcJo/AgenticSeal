@@ -964,7 +964,9 @@ class Test_unread_block:
     @pytest.mark.parametrize(
         "first", ["none - x", "None.", "- nothing - x", "-nothing", "* none"]
     )
-    def test_names_a_first_line_that_opens_like_the_block(self, first):
+    def test_refuses_a_first_line_that_opens_like_the_block_as_the_block(self, first):
+        """The line is not taken as the block: it is named as read as prose.
+        Refusing the section that holds it is its reader's act."""
         assert UC.unread_block([(3, first), (4, "more")]) == (
             3,
             f"`{first}` opens like {BLOCK} and is not it, so it was read as prose",
@@ -980,7 +982,9 @@ class Test_unread_block:
         ],
         ids=["the block", "a table", "another word", "not the first line"],
     )
-    def test_names_nothing_else(self, body):
+    def test_accepts_the_block_and_any_first_line_that_does_not_open_like_it(
+        self, body
+    ):
         assert UC.unread_block(body) is None
 
 

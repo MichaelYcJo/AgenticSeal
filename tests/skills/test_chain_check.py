@@ -2599,6 +2599,20 @@ class Test_verdicts_of:
         ]
         assert chain.unread_verdicts(reader, text, "g.md") == []
 
+    def test_refuses_a_verdict_line_inside_a_fence(self):
+        """A verdict line in its one shape, quoted in a fenced block beside
+        the guarantee's own, is no verdict line, so the one verdict read is
+        `sealed`. Seen red with `verdicts_of` reading `reader.gfm_lines`,
+        which blanks no fence, and so handing back both lines."""
+        fence = "`" * 3
+        text = guarantee("abc1234", "sealed") + (
+            f"\n{fence}markdown\nVerdict: withheld reason: an example\n{fence}\n"
+        )
+        lines = text.splitlines()
+        assert chain.verdicts_of(reader, text) == [
+            (lines.index("Verdict: sealed") + 1, "Verdict: sealed")
+        ]
+
     def test_the_verdict_patterns_are_linear_in_the_line(self):
         """#941's round 3 met a pattern that backtracked exponentially; the
         verdict line's patterns and the earlier run's repeat, so a long line
