@@ -801,7 +801,6 @@ class Test_old_names:
             "`docs/the-broad" + "-gate.md` and `graders/shape-writes-spec.md`\n"
             f"a commit made before the rename carries `{OLD}-Routing:`\n"
             f"# {OLD.lower()}-git-hook\n"
-            f"git clone https://github.com/MichaelYcJo/{OLD}.git\n"
             f'"renames": {{"{OLD.lower()}": "agentic"}}\n'
             f"git mv .{OLD.lower()}/README.md seal/README.md\n"
         )

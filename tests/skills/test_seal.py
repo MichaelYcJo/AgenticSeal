@@ -2490,35 +2490,11 @@ class Test_plugin_workflow:
         assert SEAL.plugin_workflow() == ""
 
 
-# The clone line every workflow a release before 0.23.0 wrote carries: the
-# repository under its name before #1051.
-OLD_CLONE = "https://github.com/MichaelYcJo/SpecSeal.git"
-
-
-def old_slug_workflow(pin="v0.22.4"):
-    """The workflow a release before 0.23.0 wrote: this release's template,
-    cloned at the old slug and pinned to an old release."""
-    return (
-        SEAL.plugin_workflow()
-        .replace(SEAL.PLUGIN_CLONE, OLD_CLONE)
-        .replace(f"v{SEAL.plugin_version()}", pin)
-    )
-
-
 class Test_workflow_at:
     def test_accepts_the_file_this_plugin_writes_as_its_own(self, take):
         repo = take("shared")
         workflow_in(repo, SEAL.plugin_workflow(), commit=False)
         assert SEAL.workflow_at(str(repo)) == ("plugin", SEAL.plugin_workflow())
-
-    def test_accepts_a_file_cloning_the_old_slug_as_its_own(self, take):
-        """#1051: through 0.23.x a workflow carrying the clone line of the
-        repository's name before the rename is this plugin's, so the report,
-        the install and the removal treat it as they treat their own."""
-        repo = take("shared")
-        old = old_slug_workflow()
-        workflow_in(repo, old, commit=False)
-        assert SEAL.workflow_at(str(repo)) == ("plugin", old)
 
     @pytest.mark.parametrize(
         "shape, kind",
@@ -2579,22 +2555,6 @@ class Test_install_workflow:
             "v0.1.0, so nothing was written",
         )
         assert open(path, encoding="utf-8").read() == old and staged(repo) == ""
-
-    def test_accepts_its_own_file_under_the_old_slug_by_rewriting_it(self, take):
-        """#1051: a workflow a release before the rename wrote clones the
-        plugin from the repository's old name. Install writes the template
-        over it, at the new slug and pinned to this release, and stages it."""
-        repo = take("shared")
-        path = workflow_in(repo, old_slug_workflow())
-        version = SEAL.plugin_version()
-        assert SEAL.install_workflow(str(repo)) == (
-            "written",
-            f"rewrote .github/workflows/hygiene.yml, which cloned the plugin "
-            f"from the repository's name before the rename, at the new name "
-            f"(pinned to v{version}) and staged it",
-        )
-        assert open(path, encoding="utf-8").read() == SEAL.plugin_workflow()
-        assert staged(repo) == ".github/workflows/hygiene.yml\n"
 
     @pytest.mark.parametrize(
         "shape, kind",

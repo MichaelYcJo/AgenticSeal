@@ -1024,9 +1024,6 @@ KEPT_OLD_NAMES = (
     # `docs/the-routing-check.md` *Where the routing is checked* spells until
     # the settle after the release removes that section.
     f"# {_OLD}-git-hook",
-    # The clone line a workflow written before the rename carries, which
-    # `seal.py#workflow_at` reads as this plugin's so that it is rewritten.
-    "MichaelYcJo/Spec" + "Seal.git",
     # The `renames` entry of `.claude-plugin/marketplace.json`, which carries
     # the plugin's old name to its new one and is append-only.
     f'"{_OLD}": "agentic"',
