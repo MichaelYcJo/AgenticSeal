@@ -4,7 +4,7 @@
 
 | Policy clause | What it fixes for this work |
 |---|---|
-| `docs/the-record-layout.md` *The unverified record, and the baseline it is read against* | Under `--baseline`, a `## Not verified` table that holds fewer rows than at the merge base fails the run. This work changes no part of that rule. It makes the code meet it where a tracked link stands beside its target. |
+| `docs/the-record-layout.md` *The fold, and what tells it from a deletion* | Under `--baseline`, a `## Not verified` table that holds fewer rows than at the merge base fails the run. This work changes no part of that rule. It makes the code meet it where a tracked link stands beside its target. |
 | `docs/the-record-layout.md` *The fold, and what tells it from a deletion*, the bullet *A line a record's rows are COUNTED on is blanked the same way on both sides of a comparison* | The two sides of a row comparison are read by one rule. This work applies the same principle one level up: both sides read the same file. |
 | `skills/core/SKILL.md` *The rule a mechanism is kept against* | A script names what it did not read and decides nothing on it. A kept path that no commit of the repository can hold is therefore named as not compared, never skipped in silence (Scope item 2). |
 | `docs/what-a-script-gates.md` *The checks*, row `seal unverified` | The row says what the check reads and refuses. Nothing in it changes, so no rule change is owed (`## Rule changes`). |
@@ -58,7 +58,7 @@ Out:
 ## Rule changes
 
 - nothing
-  why: The policy already says a `## Not verified` table that lost rows against the merge base fails the run (`docs/the-record-layout.md` *The unverified record, and the baseline it is read against*). This work makes the code meet that rule where a tracked link sorts before its target. Which path the check keeps is a property of the script, stated in its docstring.
+  why: The policy already says a `## Not verified` table that lost rows against the merge base fails the run (`docs/the-record-layout.md` *The fold, and what tells it from a deletion*). This work makes the code meet that rule where a tracked link sorts before its target. Which path the check keeps is a property of the script, stated in its docstring.
 
 ## Removes
 
