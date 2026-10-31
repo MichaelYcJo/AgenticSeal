@@ -100,8 +100,13 @@ this work is a wrong finding; passing over them is a silent pass. Both are
 avoided the same way: read the run against the base commit.
 
 **That comparison is reactive.** A baseline answers whose failure this is, so
-it is taken once an unexplained failure appears, and only for the tests that
-failed: `git stash`, that one file, `git stash pop`.
+it is taken once an unexplained failure appears, and only for the files that
+failed. The gate takes it itself, at the base, as
+`templates/setup/config.md` *The criterion for choosing a value*, rule 3,
+states. A file run at the base by hand runs in a `git worktree add` of the
+base commit, never under `git stash`: every worktree and session of the
+clone shares the one stash stack, so a pop can take another session's
+entry.
 
 - **Failing on base too**: not this work's finding. Name it, record it as a
   follow-up, and it does not block.
