@@ -214,7 +214,7 @@ class Test_judge:
 
 class Test_judge_feat:
     @pytest.mark.rule("a-patch-carries-no-feat")
-    def test_a_feat_in_a_patch_refuses_and_names_each_subject_and_the_push(self):
+    def test_refuses_a_feat_in_a_patch_and_names_each_subject_and_the_push(self):
         """S1. A `feat:` makes a minor, and a release named as a patch that
         carries one ships a minor's content under a patch's number, which 14
         of the 37 patch releases from v0.8.1 to v0.25.1 did. The refusal is
@@ -238,7 +238,7 @@ class Test_judge_feat:
         assert lines[0] == error, "the refusal is not the first line a reader meets"
 
     @pytest.mark.rule("a-patch-carries-no-feat")
-    def test_a_feat_in_a_minor_passes_and_counts(self):
+    def test_accepts_a_feat_in_a_minor_and_counts_it(self):
         """S2. A minor is where a `feat:` belongs."""
         lines, failed = feat_verdict(MINOR, ["feat: a thing (#10)", "fix: x (#9)"])
         assert not failed
