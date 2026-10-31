@@ -2823,6 +2823,7 @@ class Test_guarantee_original:
         for text in (
             "Verdict: sealed\n",
             verdict_block("abc1234").replace("Verdict:", "verdict:"),
+            verdict_block("abc1234") + "\n<!-- a note -->\n",
         ):
             assert chain.guarantee_original(text, "g.md", BASELINE, PARITY) == []
 
