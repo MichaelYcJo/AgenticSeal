@@ -970,20 +970,28 @@ def _chain():
 
 
 # The headings of a round record the parties and the eval graders read and
-# the check does not, so no grammar holds them.
-GRADED_HEADINGS = ["## Not judged", "## Probes"]
-# The section the confirmation blocks stand under, which the exclusion list
-# counts among the grammar's cells.
-CONFIRMATIONS = "## Confirmations"
+# the check does not, so no grammar holds them. The confirmation blocks
+# stand under `## Confirmations`, and the check reads the blocks, not the
+# heading.
+GRADED_HEADINGS = ["## Confirmations", "## Not judged", "## Probes"]
 
 
 def _round_record_grammar():
     """Every key of the `seal` blocks of a round record, read from
-    `hooks/lib/fields.py` rather than copied, the `## Findings` section
-    `chain_check.py` reads, and `## Confirmations`."""
+    `hooks/lib/fields.py` rather than copied, and the `## Findings` section
+    `chain_check.py` reads."""
     chain = _chain()
     keys = [key for kind in chain.FIELDS.ROUND_RECORD for key in kind.keys]
-    return [*dict.fromkeys(keys), chain.FINDINGS_HEADING, CONFIRMATIONS]
+    return [*dict.fromkeys(keys), chain.FINDINGS_HEADING]
+
+
+def _block_keys():
+    """Every key of the `seal` blocks of a round record, a `guarantee.md`
+    and a `trail/gate.md`, read from `hooks/lib/fields.py`, the one
+    spelling of them."""
+    fields = _chain().FIELDS
+    kinds = (*fields.ROUND_RECORD, *fields.GUARANTEE, *fields.GATE)
+    return [*dict.fromkeys(key for kind in kinds for key in kind.keys)]
 
 
 def _round_record_fields():
@@ -1109,16 +1117,18 @@ def _literal_strings():
     list's own grounds are *what a checker reads*, so a second source of it
     is a second source of the truth it claims to state.
 
-    The round record's literals are not among them: the list names the
-    grammar table that holds them (`test_the_exclusion_list_points_at_the_
-    grammar_table_and_restates_none_of_it`), so a checker's constant here is
-    one outside that table.
+    The keys of the `seal` blocks are not among them: the list names the
+    module that spells them (`test_the_exclusion_list_points_at_the_block_
+    grammar_and_restates_none_of_it`), so a checker's constant here is one
+    outside that module. The info string and the `## Findings` heading are,
+    since the module's keys do not hold them.
     """
     unverified = _checker(
         "unverified_check", "skills", "verify", "scripts", "unverified_check.py"
     )
     rules = _checker("rule_changes", "skills", "settle", "scripts", "rule_changes.py")
     body = _checker("pr_body", "skills", "code-review", "scripts", "pr_body.py")
+    chain = _chain()
     fields = {f"{f}:" for need, may in rules.GRAMMAR.values() for f in need + may}
     found = {
         body.HEADING,
@@ -1130,31 +1140,39 @@ def _literal_strings():
         f"## {rules.HEADING}",
         *rules.GRAMMAR,
         *fields,
+        chain.FIELDS.INFO,
+        chain.FINDINGS_HEADING,
     }
     return sorted(found)
 
 
-GRAMMAR_TABLE = "`docs/the-review-record.md` *The round record*"
+BLOCK_GRAMMAR = "`hooks/lib/fields.py`"
 
 
-def test_the_exclusion_list_points_at_the_grammar_table_and_restates_none_of_it():
-    """S4. The round record's labels, headings and values have one statement,
-    the grammar table `chain_check.py` loads, so the list names the table and
-    copies no cell of it: a copy here is a second source that drifts, and
-    a repository told the copy reads a list the check no longer holds.
+def test_the_exclusion_list_points_at_the_block_grammar_and_restates_none_of_it():
+    """S4, under #1198. The keys of a round record's, a guarantee's and a
+    gate record's `seal` blocks have one statement, `hooks/lib/fields.py`,
+    which `chain_check.py` and the stamp read them through, so the list names
+    the module and copies no key of it: a copy here is a second source that
+    drifts, and a repository told the copy reads a list the check no longer
+    holds. Seen red against the list that named the docs grammar table.
 
     Protects: the label list coming back into `templates/setup/config.md`, which
-    is where it drifted before; no other case reads the list for a cell of
-    the table."""
+    is where it drifted before; no other case reads the list for a key of
+    the module."""
     said = _governs_nothing()
-    assert GRAMMAR_TABLE in said, (
-        "the exclusion list no longer names the table that holds a round "
-        "record's literals"
+    assert BLOCK_GRAMMAR in said, (
+        "the exclusion list no longer names the module that spells the keys "
+        "of a record's `seal` blocks"
     )
-    copied = [key for key in _round_record_grammar() if f"`{key}`" in said]
+    assert "the-review-record.md" not in said, (
+        "the exclusion list still names the docs grammar table, which no "
+        "checker reads since #1198"
+    )
+    copied = [key for key in _block_keys() if f"`{key}`" in said]
     assert not copied, (
-        f"the exclusion list restates the grammar table's rows {copied}; it names "
-        "the table instead"
+        f"the exclusion list restates the module's keys {copied}; it names "
+        "the module instead"
     )
 
 
