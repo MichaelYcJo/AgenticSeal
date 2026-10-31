@@ -27,8 +27,8 @@ Creating the root is what opts the repository in: from the next command on,
 every gate here is awake. Where the root lands, committed with the repository
 or under the git directory on this machine only, is the person's decision and
 not the orchestrator's. Nobody reads a README to discover a question they did
-not know to ask, so this is the only place the mode and the migration
-question are asked at all.
+not know to ask, so this is the only place the mode, and whether the project
+ports an original codebase, are asked at all.
 
 **A `<repo>/seal/` whose `README.md` does not open with the marker is the
 project's own.** The marker is the first line of

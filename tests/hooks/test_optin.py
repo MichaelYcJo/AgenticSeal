@@ -431,8 +431,8 @@ class Test_opted_in:
 
         `.specseal/` reads as an ordinary directory now. A repository still
         holding one is a repository that never opted in, which is the same
-        standing as any other repository on the machine — until the session-start
-        hook moves it, which is the only thing that reads the name.
+        standing as any other repository on the machine, and nothing reads
+        the name.
         """
         legacy(repo)
         assert not optin.opted_in(str(repo))
@@ -559,8 +559,8 @@ class Test_parity_config:
 
 class Test_module:
     def test_the_template_opens_with_the_marker(self, optin):
-        """The template is what first setup and the migration write into a
-        root, so its first line and the constant are one value, pinned here."""
+        """The template is what first setup writes into a root, so its first
+        line and the constant are one value, pinned here."""
         with open(
             os.path.join(ROOT, "templates", "setup", "seal-README.md"), encoding="utf-8"
         ) as f:
