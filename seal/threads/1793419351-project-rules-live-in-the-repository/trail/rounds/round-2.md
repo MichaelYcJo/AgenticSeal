@@ -13,7 +13,7 @@ The fix pass's account was read as claims. It claimed a six-module narrow run wi
 severity: should
 location: `skills/agent-contract/SKILL.md:164-167`, `seal/threads/1793419351-project-rules-live-in-the-repository/changelog.md:3`
 evidence: read `skills/agent-contract/SKILL.md:159-169`, `skills/code-review/SKILL.md:167-169`, `seal/threads/1793419351-project-rules-live-in-the-repository/frame/design.md:47`, `seal/threads/1793419351-project-rules-live-in-the-repository/changelog.md:3`
-verdict: open
+verdict: fixed c5eec50b
 regression: round-1#3
 
 The unit is the sentence `9ad3b9f9` added to rule 12: "Where the class has no end, as spellings, keywords and constructs have none, no method makes the list whole". The frame's C2 (`frame/design.md:47`, phase 2's row of `frame/plan.md`) asks for a class enumerated "by a method that makes the list whole", the fix added a way out for a class with no end, and the defect came from round 1's own paste-ready text, which the fix pass applied as written.
@@ -46,14 +46,14 @@ In the fragment, replace "Where the class has no end, such as spellings," with:
 Where the class reaches past the tree, such as the spellings a check may be handed,
 ```
 
-answer:
+answer: Holds, fixed in my own words. The paste-ready body adds "a class drawn from the tree has an end, because the tree has one, and taking the tree apart lists it whole", a claim neither `skills/code-review/SKILL.md:167-169` nor rule 12 makes, so it was not applied. Rule 12 now restores the source's qualifier and says no more than it: "Where the class ranges over an unbounded domain of keywords, spellings or constructs, no method makes the list whole." A class drawn from the tree is no longer called endless, so the rule's "take the artefact apart" method stands for it. The fragment's sentence was rewritten to the same qualifier. `tests/text/test_no_passage_is_pasted_into_a_second_file.py` passes against `skills/code-review/SKILL.md`.
 
 ### 2. Rule 12 now calls rule 19's search a sample, so a fix pass that follows rule 19 hands back a finding
 
 severity: should
 location: `skills/agent-contract/SKILL.md:228-230`, `agents/crafter.md:176-179`, `skills/code-review/orchestration.md:71-78`
 evidence: read `skills/agent-contract/SKILL.md:159-169`, `skills/agent-contract/SKILL.md:228-232`, `agents/crafter.md:176-179`, `skills/code-review/orchestration.md:71-78`, `seal/threads/1793419351-project-rules-live-in-the-repository/trail/rounds/round-1.md:98`
-verdict: open
+verdict: fixed c5eec50b
 regression: round-1#3
 
 The unit is rule 12's clause "and a list made that way is a sample", with "a sample handed back as a whole list is a finding", both added by `9ad3b9f9`. The frame's C2 (`frame/design.md:47`) has the proofer judge the method a list was made by, the fix defined which methods make a sample, and the defect came from round 1's paste-ready text, which was never read against rule 19 or against the fix pass's own instructions.
@@ -77,7 +77,7 @@ next reader to choose between.
 
 In `agents/crafter.md:178`, replace "by `git grep` and its `check:` target" with "by a method rule 12 accepts, a `git grep` on its words and its `check:` target among the searches". In `skills/code-review/orchestration.md:75-76`, replace "by its words and by the `check:` target that holds it" with "by a method rule 12 accepts, its words and the `check:` target that holds it among the searches".
 
-answer:
+answer: Holds, fixed inside `skills/agent-contract/SKILL.md` in my own words and not by the paste-ready text, which edits `agents/crafter.md` and `skills/code-review/orchestration.md`, #1167's files in this run. Rule 19 keeps its search as the least one: the other statements are "found at least with `git grep` on its words", and "where nothing but that search listed them, the list is a sample, and the hand-back says so as rule 12 asks". Rule 12 no longer makes the search itself a finding: the hand-back "calls a sample a sample, and says where its open part stands", and the finding is "a sample handed back as a whole list". A fix pass that runs rule 19's search and labels its list a sample breaks neither rule. `agents/crafter.md:176-179` and `skills/code-review/orchestration.md:71-78` stay consistent with the reconciled rules. Each prescribes the word search and the `check:` target, which rule 19 now names as the least search, and neither says how the hand-back labels the list, which rule 12 decides. So they owe no edit, and the merge with #1167 owes nothing for this finding. Round 1's finding 4 answer, a one-word search handed back as the whole list, would be a finding under the reconciled rule 12. Round 2's construction by heading confirmed its close, so the record stands.
 
 ## Confirmations
 
