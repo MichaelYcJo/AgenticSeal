@@ -354,22 +354,23 @@ seal deferrals .              # is the test suite answered here?
 seal deferrals . --kind all   # tests, lint, typecheck
 ```
 
-It separates five outcomes that a reader otherwise collapses into one:
+It separates three outcomes that a reader otherwise collapses into one:
 
-- something answers on pull requests;
-- something answers, but only after the point being deferred;
-- something runs it, but its trigger could not be read, so it is not counted;
-- a local hook answers on the committer's machine only;
-- nothing answers.
+- a CI file holds a runner, and the tool names the file with the command
+  line it read;
+- a local hook runs it on the committer's machine only;
+- nothing runs it.
 
-Exit 1 means the row about to be written is not true.
+Exit 1 means no CI file holds a runner, so the row about to be written is
+not true. Exit 0 does not yet make it true. The tool reads no trigger, so
+open each CI file it names and read the trigger there: a workflow that runs
+on push to the default branch alone, or on a schedule, runs after the change
+merges and answers no deferral made before that.
 
 It reads command text rather than a YAML graph, so a runner reached through a
 composite action, a reusable workflow, or a script it cannot see reads as
-absent. It reads an event's name and not its filters, so a `pull_request`
-trigger limited to closed pull requests counts as answering. Disagreement
-with what CI really does is a finding about this tool, not permission to
-keep the row.
+absent. Disagreement with what CI really does is a finding about this tool,
+not permission to keep the row.
 
 ### And something has to read the row afterwards
 
