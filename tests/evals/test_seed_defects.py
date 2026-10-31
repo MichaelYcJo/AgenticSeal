@@ -417,8 +417,14 @@ class Test_module:
         there alone, and a run that read no round 1 record still says that
         after the names. Seen red against that silence. The reason for a
         name no commit read answers says what the run read, and not that no
-        release shipped the commit, which a shipped commit named by its full
-        SHA was told (round 2's finding 1); seen red against that reason."""
+        release shipped the commit (round 2's finding 1); seen red against
+        that reason. A name is read only in a case's form, `seeded-` and
+        eight lower-case hex digits, and any other name is answered with
+        that form: the bare digits of a commit the run listed, and a full
+        SHA, were told no shipped commit read had them (round 3's finding
+        1); seen red against that reason. A name given twice is one name,
+        where the run that wrote its case exited 1 saying nothing; seen red
+        against that exit 1."""
         sd = load_script("seed_defects")
         commits, repo = shipped_item(tmp_path, monkeypatch)
         write(repo, "b.py", "x = 2\n")
@@ -445,13 +451,20 @@ class Test_module:
         assert said.err == unshipped
         assert case(kept, gone) == 0
         assert capsys.readouterr().err == ""
-        sha = commits["squash"]
-        assert case(kept, f"seeded-{sha}") == 1
-        assert capsys.readouterr().err == (
-            f"seed_defects: seeded-{sha} not written: no shipped commit read "
-            f"has {sha} as its first eight digits\n"
+        form = (
+            " not written: a case is named seeded-<a shipped commit's first "
+            "eight hex digits, in lower case>\n"
         )
-        assert case(kept, gone, nothing, run=("--out", str(tmp_path / "out"))) == 1
+        sha = commits["squash"]
+        bare = kept.removeprefix("seeded-")
+        assert case(kept, f"seeded-{sha}", bare) == 1
+        said = capsys.readouterr()
+        assert said.out.startswith(f"{bare} a.py:"), said.out
+        assert said.err == f"seed_defects: seeded-{sha}{form}seed_defects: {bare}{form}"
+        out = ("--out", str(tmp_path / "out"))
+        assert case(kept, kept, run=out) == 0
+        assert capsys.readouterr().err == ""
+        assert case(kept, gone, nothing, run=out) == 1
         said = capsys.readouterr()
         assert said.out.startswith(f"{kept}: a.py#g, "), said.out
         assert said.err == (
@@ -465,8 +478,10 @@ class Test_module:
         )
         assert case(nothing) == 1
         assert capsys.readouterr().err == unshipped + empty
-        assert case(nothing, run=("--out", str(tmp_path / "out"))) == 1
+        assert case(nothing, run=out) == 1
         assert capsys.readouterr().err == unshipped + empty
+        assert case(bare, run=out) == 1
+        assert capsys.readouterr().err == f"seed_defects: {bare}{form}" + empty
 
     def test_the_replay_and_seeded_generators_read_the_entries_too(
         self, tmp_path, monkeypatch

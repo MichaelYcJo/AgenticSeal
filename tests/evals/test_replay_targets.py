@@ -804,7 +804,9 @@ class Test_module:
         nothing and exited 1, so a reader could not tell a record left out
         from a record never read. Each such name is said on stderr with the
         reason `round_target` gave, or that no record of its work item, or
-        of that round, was read. Seen red against the silent exit 1."""
+        of that round, was read. Seen red against the silent exit 1. A name
+        given twice is one name, where the run that wrote its case exited 1
+        saying nothing; seen red against that exit 1."""
         rt = load_script("replay_targets")
         tagged_repo(tmp_path, monkeypatch, rt)
         monkeypatch.setattr(rt, "origin_url", lambda: "https://example.com/x/y.git")
@@ -822,6 +824,9 @@ class Test_module:
             "replay_targets: replay-1792000001-r5 not written: no round 5 record "
             "of its work item was read\n"
         )
+        kept = ["--case", "replay-1792000001-r1"]
+        assert rt.main(["--out", str(tmp_path / "out"), *kept, *kept]) == 0
+        assert capsys.readouterr().err == ""
 
     def test_names_each_named_case_no_listed_line_answers_with_its_reason(
         self, tmp_path, monkeypatch, capsys
@@ -832,7 +837,10 @@ class Test_module:
         same input that it read nothing and exits 1. A name no listed line
         answers is said on stderr as `--case` says it, and the run exits 1;
         a name a kept or a `left out:` line answers is said there alone.
-        Seen red against that exit 0."""
+        Seen red against that exit 0. A name is read only in a case's form,
+        and any other name is answered with that form: a listed round named
+        without `replay-` was told no record of that round was read (round
+        3 of #1150); seen red against that reason."""
         rt = load_script("replay_targets")
         tagged_repo(tmp_path, monkeypatch, rt)
         assert rt.main(["--list", "--case", "replay-1-r1"]) == 1
@@ -856,6 +864,17 @@ class Test_module:
         listed = ["replay-1792000001-r1", names[0]]
         assert rt.main(["--list", *[x for n in listed for x in ("--case", n)]]) == 0
         assert capsys.readouterr().err == ""
+        # A name out of a case's form is read as none, here the round listed
+        # above without `replay-` and its work item without a round.
+        other = ["1792000001-r1", "replay-1792000001"]
+        assert rt.main(["--list", *[x for n in other for x in ("--case", n)]]) == 1
+        said = capsys.readouterr()
+        assert said.out == ""
+        assert said.err == "".join(
+            f"replay_targets: {n} not written: a case is named "
+            "replay-<the work item's epoch>-r<the round>\n"
+            for n in other
+        )
 
     @pytest.mark.parametrize(
         "blocks",

@@ -47,7 +47,10 @@ record they derive from. `--case` reads every release tag, so a committed
 case still regenerates after the release that moved its records out of the
 last two. A run that reads no round record in either layout says so on
 stderr, and `--case` names there each name it did not write and why;
-with `--list`, each name no line it lists answers.
+with `--list`, each name no line it lists answers. `--case` reads a name
+only in a case's form, `CASE_NAME`: a name of any other form is read as
+no work item's, and its reason is the form a case's name takes. A name
+given twice is one name.
 
 Usage:
   replay_targets.py --list                 every round with truth, and why
@@ -135,6 +138,10 @@ LAYOUTS = (
     Layout("seal/specs", "rounds"),
     Layout("seal/threads", "trail/rounds"),
 )
+# A case's name as `case_name` gives it, the one form `--case` reads a name
+# in, and what `--case` says of a name of any other form.
+CASE_NAME = re.compile(r"replay-(?P<epoch>[0-9]+)-r(?P<n>[1-9][0-9]*)")
+NAMED = "a case is named replay-<the work item's epoch>-r<the round>"
 FINDING = re.compile(r"^(?P<marker>🔴|🟡) (?P<k>\d+)$")
 CONFIRMS = re.compile(
     r"round (?P<n>\d+)'s (?:blocking )?(?:finding|🟡|🔴) (?P<k>\d+) is closed"
@@ -961,16 +968,19 @@ def say_unanswered(names, answered, kept, left):
 
 
 def not_written(name, kept, left):
-    """Why `--case` NAME was not written: the reason `round_target` gave for
-    its round, else that no record of its round, or of its work item, was
-    read among KEPT and LEFT."""
+    """Why `--case` NAME was not written: for a name out of `CASE_NAME`'s
+    form, that form (`NAMED`), since `main` reads no such name; else the
+    reason `round_target` gave for its round, else that no record of its
+    round, or of its work item, was read among KEPT and LEFT."""
+    m = CASE_NAME.fullmatch(name)
+    if m is None:
+        return NAMED
     for item, n, why in left:
         if case_name({"item": item, "n": n}) == name:
             return why
-    epoch, _r, n = name.removeprefix("replay-").rpartition("-r")
     read = {t["item"] for t in kept} | {item for item, _n, _why in left}
-    if epoch in {item.split("-")[0] for item in read}:
-        return f"no round {n} record of its work item was read"
+    if m["epoch"] in {item.split("-")[0] for item in read}:
+        return f"no round {m['n']} record of its work item was read"
     return "no record of its work item was read"
 
 
@@ -979,8 +989,9 @@ def main(argv=None):
     items' records at every release tag; the rest reads the last two.
 
     A run that reads no round record says so on stderr and exits 1, and
-    `--case` names on stderr each name it did not write and why, or with
-    `--list` each name no listed line answers, and exits 1. An unusable
+    `--case` reads only the names in `CASE_NAME`'s form, names on stderr
+    each name it did not write and why, or with `--list` each name no
+    listed line answers, and exits 1 where it named one. An unusable
     argument is argparse's exit 2."""
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     p.add_argument("--list", action="store_true")
@@ -991,7 +1002,7 @@ def main(argv=None):
     p.add_argument("--timeout", type=int, default=2400)
     a = p.parse_args(argv)
     if a.case:
-        items = {name.removeprefix("replay-").rsplit("-r", 1)[0] for name in a.case}
+        items = {m["epoch"] for m in map(CASE_NAME.fullmatch, a.case) if m}
         kept, left = targets(last_tags(None), items)
     else:
         tags = last_tags()
@@ -1022,7 +1033,6 @@ def main(argv=None):
             break
     if a.case:
         chosen = [t for t in kept if case_name(t) in a.case]
-        a.count = len(a.case)
     url = origin_url()
     for t in chosen:
         name = case_name(t)
@@ -1038,7 +1048,9 @@ def main(argv=None):
             model=a.model,
         )
         print(f"{name}: {len(t['truths'])} truth, {t['size']} lines")
-    say_unanswered(a.case, {case_name(t) for t in chosen}, kept, left)
+    unanswered = say_unanswered(a.case, {case_name(t) for t in chosen}, kept, left)
+    if a.case:
+        return 1 if unanswered else 0
     return 0 if len(chosen) == a.count else 1
 
 

@@ -44,11 +44,13 @@ Usage:
                                          release's shipped commits;
                                          repeatable
 
-`--case` names on stderr each name it did not write and why, as
-`replay_targets.py` does; with `--list`, each name no line it lists
-answers. A run in which no commit read holds a round 1 record in either
-layout prints each commit's `left out:` line where it lists, then says so
-on stderr, after those names.
+`--case` reads a name only in a case's form, `CASE_NAME`, and names on
+stderr each name it did not write and why, as `replay_targets.py` does;
+with `--list`, each name no line it lists answers. A name of any other
+form is read as no commit's, and its reason is the form a case's name
+takes. A name given twice is one name. A run in which no commit read
+holds a round 1 record in either layout prints each commit's `left out:`
+line where it lists, then says so on stderr, after those names.
 
 Exit codes: 0 written or listed · 1 fewer cases than --count, a named case
 not written, or with --list not listed, or no commit read holding a round
@@ -100,6 +102,12 @@ TOKEN = {
     "if not ": "not",
 }
 SUBJECT = re.compile(r"\(#\d+\)$")
+# A case's name as `case_name` gives it, the one form `--case` reads a name
+# in, and what `--case` says of a name of any other form.
+CASE_NAME = re.compile(r"seeded-(?P<prefix>[0-9a-f]{8})")
+NAMED = (
+    "a case is named seeded-<a shipped commit's first eight hex digits, in lower case>"
+)
 
 
 def shipped(tags):
@@ -377,17 +385,22 @@ def case_name(t):
 
 def say_unanswered(names, answered, left):
     """Say on stderr each of `--case` NAMES that ANSWERED does not hold,
-    with why it was not written: the reason its commit was left out with
-    among LEFT, else that no shipped commit read has the name's digits as
-    its first eight, which is all `targets` compares; how many there were.
-    The line is `replay_targets.py#say_unanswered`'s."""
+    with why it was not written: for a name out of `CASE_NAME`'s form, that
+    form (`NAMED`), since `main` reads no such name; else the reason its
+    commit was left out with among LEFT; else that no shipped commit read
+    has the name's digits as its first eight, which is all `targets`
+    compares; how many there were. The line is
+    `replay_targets.py#say_unanswered`'s."""
     unanswered = [name for name in names if name not in answered]
     for name in unanswered:
-        why = next(
-            (w for commit, w in left if case_name({"commit": commit}) == name),
-            "no shipped commit read has "
-            + name.removeprefix("seeded-")
-            + " as its first eight digits",
+        m = CASE_NAME.fullmatch(name)
+        why = (
+            NAMED
+            if m is None
+            else next(
+                (w for commit, w in left if case_name({"commit": commit}) == name),
+                f"no shipped commit read has {m['prefix']} as its first eight digits",
+            )
         )
         print(f"seed_defects: {name} not written: {why}", file=sys.stderr)
     return len(unanswered)
@@ -424,8 +437,9 @@ def main(argv=None):
     """Parse the arguments, then list or write. `--case` reads every release
     tag's shipped commits; the rest reads the last three tags'.
 
-    `--case` names on stderr each name it did not write and why, or with
-    `--list` each name no listed line answers, and exits 1. A run in which
+    `--case` reads only the names in `CASE_NAME`'s form, names on stderr
+    each name it did not write and why, or with `--list` each name no
+    listed line answers, and exits 1 where it named one. A run in which
     no commit read holds a round 1 record says so on stderr after its
     `left out:` lines and those names, and exits 1. An unusable argument
     is argparse's exit 2."""
@@ -438,7 +452,8 @@ def main(argv=None):
     p.add_argument("--timeout", type=int, default=2400)
     a = p.parse_args(argv)
     tags = rt.last_tags(None) if a.case else rt.last_tags(3)
-    prefixes = {name.removeprefix("seeded-") for name in a.case} if a.case else None
+    named = [m for m in map(CASE_NAME.fullmatch, a.case) if m]
+    prefixes = {m["prefix"] for m in named} if a.case else None
     kept, left, held = targets(tags, prefixes)
     chosen = []
     if a.list:
@@ -455,7 +470,6 @@ def main(argv=None):
         chosen = sorted(kept, key=lambda t: (t["size"], t["commit"]))[: a.count]
         if a.case:
             chosen = [t for t in kept if case_name(t) in a.case]
-            a.count = len(a.case)
         url = rt.origin_url()
         for t in chosen:
             behaviour.write_case(
@@ -482,7 +496,7 @@ def main(argv=None):
             file=sys.stderr,
         )
         return 1
-    if a.list:
+    if a.list or a.case:
         return 1 if unanswered else 0
     return 0 if len(chosen) == a.count else 1
 
