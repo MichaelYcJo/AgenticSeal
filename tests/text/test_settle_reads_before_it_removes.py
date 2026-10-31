@@ -101,7 +101,9 @@ def test_the_skill_states_the_settling_sessions_procedure():
     and step 8's broad gate is the one run that reads every check, run again
     after a fix. Round 4 of #1033, finding 1: each clause of steps 6 and 8
     that S13 names is pinned, step 6's fix and second dry run and step 8's
-    failure path among them."""
+    failure path among them. Round 1 of #1126, finding 1: step 4's paragraph
+    on a file the dry run names as not read, the one defence of
+    `frame/plan.md` A2's failure scenario, is pinned clause by clause."""
     text = flat(skill())
     procedure = text.split("## The settling session's procedure")[1].split("## ")[0]
     steps = [
@@ -113,6 +115,11 @@ def test_the_skill_states_the_settling_sessions_procedure():
         "close it in its record with `closed` and what closed it",
         "A row that fits more than one kind takes the first that fits, in the "
         "table's order",
+        "Open each file the dry run names as not read, and decide each item in "
+        "it that reads as an open row by the same table",
+        "Write nothing into the file, since `--apply` removes it with its directory",
+        "the pull request body names each such item with its kind and what "
+        "closed it, as it does a row",
         "take a default and write it down",
         "Run each rule's `check:` targets over what you wrote",
         "and change what a failure shows still standing on the old fact",
@@ -153,6 +160,35 @@ def test_the_skill_says_a_from_locates_and_is_no_precondition():
     apply = text.split("## What `--apply` does")[1].split("## ")[0]
     assert "It writes no policy document." in apply
     assert "whether or not it wrote a `frame/design.md`" in apply
+
+
+def test_the_skill_says_a_misplaced_record_file_is_named_and_decides_nothing():
+    """#1126, round 1 finding 1: a file named like a record the settle reads,
+    away from that record's place, is named by the dry run and by `--apply`
+    as not read; only its name is read, and it keeps no directory. The
+    command block, the dry run's item and `--apply`'s item each say so."""
+    text = flat(skill())
+    block = skill().split("```")[1]
+    assert "the files named like a record and not read" in flat(block), block
+    shows = flat(skill().split("\n## What the dry run shows\n")[1].split("\n## ")[0])
+    for said in (
+        "**The files named like a record and not read**",
+        "at any path but that record's own",
+        "Only the exact name is read, and no file's content, so none of its "
+        "rows is counted and none keeps its directory",
+        "what it holds is the settling session's to judge",
+        "The section is printed only where it names a file.",
+    ):
+        assert said in shows, said
+    apply = text.split("## What `--apply` does")[1].split("## ")[0]
+    for said in (
+        "**It names each file the dry run names as not read, and decides "
+        "nothing on it.**",
+        "A `not read:` line under the directory's `removed` or `kept` line "
+        "names the file, which goes or stays with its directory",
+        "the directory's record at its place alone decides which",
+    ):
+        assert said in apply, said
 
 
 def test_the_skill_says_a_settle_is_not_a_work_item_and_owes_no_range_row():
@@ -277,6 +313,14 @@ def test_both_cheat_sheets_carry_the_command(edition):
         row = f.read().split("`seal settle [--apply]`")[1].split("\n")[0]
     assert "`## Rule changes`" in row, row
     assert "`skills/settle/SKILL.md` *The settling session's procedure*" in row, row
+    # #1126, round 1 finding 1: the row names the misplaced record files
+    # among what the dry run prints.
+    misplaced = {
+        "README.md": "each file named like one of those records away from its "
+        "place, as not read",
+        "README.ko.md": "그 기록과 이름이 같지만 제자리가 아닌 곳에 있어 읽지 않은 파일",
+    }[edition]
+    assert misplaced in row, row
     assert "retire" not in row, row
     assert "`HEAD`" not in row, "the row still says the base is asked"
 
