@@ -689,19 +689,46 @@ class Test_report:
         assert "named like" not in text, text
 
 
+def records_in_place(tmp_path, name):
+    """A work item directory under TMP_PATH holding the three records the
+    settle reads, each at its place, and the `misplaced` reader."""
+    top = tmp_path / "seal" / "threads" / name
+    for rel in ("gaps.md", "frame/design.md", "frame/plan.md"):
+        (top / rel).parent.mkdir(parents=True, exist_ok=True)
+        (top / rel).write_text("# x\n", encoding="utf-8")
+    return top, settle.load(settle.READER, "agentic_unverified_reader")
+
+
+def link(target, at, directory=False):
+    try:
+        os.symlink(target, at, target_is_directory=directory)
+    except (OSError, NotImplementedError):
+        pytest.skip("this platform makes no symbolic link")
+
+
 class Test_misplaced:
-    def test_reads_names_alone_and_follows_no_linked_directory(self, tmp_path):
-        """*Scope* item 1 of #1126: the exact basename is read, at any path
-        but the record's own, as a regular file or a link to one; a linked
-        directory is not followed, and a directory, a link to nothing,
-        another spelling and a longer name are not named. Seen red with the
-        walk following links, and with the file test removed."""
-        reader = settle.load(settle.READER, "agentic_unverified_reader")
-        name = "1700000001-a"
-        top = tmp_path / "seal" / "threads" / name
-        for rel in ("gaps.md", "frame/design.md", "frame/plan.md", "x/design.md"):
-            (top / rel).parent.mkdir(parents=True, exist_ok=True)
-            (top / rel).write_text("# x\n", encoding="utf-8")
+    def test_accepts_a_file_or_a_link_to_one_at_another_path(self, tmp_path):
+        """*Scope* item 1 of #1126: a file named like a record, at any path
+        but the record's own, is named with the record, as a regular file or
+        as a link to one, and the records at their places are not. Seen red
+        with the place test removed."""
+        top, reader = records_in_place(tmp_path, "1700000001-a")
+        (top / "x").mkdir()
+        (top / "x" / "design.md").write_text("# x\n", encoding="utf-8")
+        (top / "trail").mkdir()
+        link(top / "gaps.md", top / "trail" / "gaps.md")
+        assert settle.misplaced(str(tmp_path), "1700000001-a", reader) == [
+            ("trail/gaps.md", "gaps.md"),
+            ("x/design.md", "frame/design.md"),
+        ]
+
+    def test_refuses_a_directory_a_link_to_nothing_and_another_spelling(self, tmp_path):
+        """*Scope* item 1 of #1126: only the exact name of a file is read. A
+        directory of that name, a link to nothing, another spelling and a
+        longer name are not named, and a linked directory is not followed.
+        Seen red with the walk following links, and with the file test
+        removed."""
+        top, reader = records_in_place(tmp_path, "1700000001-a")
         (top / "notes").mkdir()
         (top / "notes" / "Gaps.md").write_text("# x\n", encoding="utf-8")
         (top / "notes" / "gaps.md.bak").write_text("# x\n", encoding="utf-8")
@@ -709,16 +736,9 @@ class Test_misplaced:
         elsewhere = tmp_path / "elsewhere"
         elsewhere.mkdir()
         (elsewhere / "gaps.md").write_text("# x\n", encoding="utf-8")
-        try:
-            os.symlink(elsewhere, top / "linked", target_is_directory=True)
-            os.symlink(top / "gaps.md", top / "trail" / "gaps.md")
-            os.symlink(tmp_path / "nowhere", top / "notes" / "plan.md")
-        except (OSError, NotImplementedError):
-            pytest.skip("this platform makes no symbolic link")
-        assert settle.misplaced(str(tmp_path), name, reader) == [
-            ("trail/gaps.md", "gaps.md"),
-            ("x/design.md", "frame/design.md"),
-        ]
+        link(elsewhere, top / "linked", directory=True)
+        link(tmp_path / "nowhere", top / "notes" / "plan.md")
+        assert settle.misplaced(str(tmp_path), "1700000001-a", reader) == []
 
 
 class Test_apply:
