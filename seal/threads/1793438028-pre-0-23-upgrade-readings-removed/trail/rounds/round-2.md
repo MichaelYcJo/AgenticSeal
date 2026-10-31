@@ -1,6 +1,8 @@
 # Review round 2: 1793438028-pre-0-23-upgrade-readings-removed
 
+```seal
 target: a1d4e95a against origin/release/v0.27.0
+```
 
 This round has two jobs. It answers round 1's two closes, `885b3c1f` and `88d4f27c`. It also reviews phases 2 and 3 as code, `4f9b1e09..a1d4e95a`, against the frame at that head (`frame/design.md`, `frame/plan.md` rows 2 and 3). From round 1 this round carried coordinates, never verdicts. It opened the three locations of finding 1 and the one of finding 2, and it re-ran both findings' `executed` lines at `a1d4e95a` (*Probes*). One fact was carried and not re-established: round 1's account that phase 1's *Removes* rows were carried out at `d25aad94`. This round re-checked only the part the class searches below reach.
 
@@ -10,40 +12,64 @@ No finding is open. The crafters' accounts in `trail/phases/phase-2.md`, `trail/
 
 ## Confirmations
 
+```seal
 confirms: round-1#1
+```
 The close holds at all three locations. `tests/hooks/test_optin.py:432-435` now says "and nothing reads the name", and `:562-563` says "what first setup writes into a root". Round 1's executed grep, re-run at `a1d4e95a` over `tests/hooks/test_optin.py` and `skills/implement/bootstrap.md`, prints nothing, and `git ls-files hooks/root-migrate.py` prints nothing (executed). For `skills/implement/bootstrap.md:29-31`, the fix pass claimed that "the migration question" meant the port question, not the 0.3.x move, and that round 1's paste-ready text would drop a question the bootstrap asks. Both claims hold. At `716d8548` the sentence read "the only place the migration question gets asked at all" (`git show 716d8548`, executed). The bootstrap still asks "Does this project port behavior from an existing codebase?" in its step 3 (`skills/implement/bootstrap.md:163-165`), and its opening paragraph names that question (`:5-6`) (read). The new sentence names the mode and the port question, and the bootstrap asks nothing else about either. `bin/test tests/hooks/test_optin.py tests/behaviour/test_first_setup_asks_once.py` ran inside the twelve-module run in *Probes* and passed (executed). The fix commit's own sweep is a sample for paraphrase, as its answer says. This round's own sample is in *Probes*, and it found no further sentence of the class.
 
+```seal
 confirms: round-1#2
+```
 The close holds. `tests/behaviour/test_no_document_names_the_old_roots.py:30` reads `(?<![\w.])specs/<`, and the comment above it lost the 0.22.x clause (read). Round 1's executed grep for `/specs/<` over the scanned set, re-run at `a1d4e95a`, prints nothing (executed), so the narrowed pattern flags no shipped line. The fix pass claimed the new parametrized line of `test_the_check_can_fail` (`:181`) is red under the old lookbehind. A `python3 -c` comparison of the two patterns on that line gave `False` for the old and `True` for the new (executed), so the line separates them. The crafter's `seal mutate` run was not repeated (read). The `# exempt from old_names:` comment above the line is what keeps the census quiet on it. `tests/test_censuses.py` passed in the same run (executed).
 
+```seal
 confirms: none
+```
 Phase 2, departure 1. The crafter claimed that `tests/hooks/test_stub_remove.py`'s registration case held assertions beyond the stub remover, and that these moved into `tests/hooks/test_dispatch.py#Test_module.test_no_group_installs_into_git_or_reads_a_commit_before_it_runs`. At `4f9b1e09` that case (`tests/hooks/test_stub_remove.py:170-184`) asserted that `hook-install.py`, `answer-write.py` and `answer-clear.py` are in no group and not on disk, and that `hooks/git` is absent (read). `tests/hooks/test_dispatch.py:1164-1169` now holds the same assertions over the same `HOOKS` directory (read). `git grep` for the three names and `hooks/git` over `tests/` finds no other case that asserts them (executed), so the moved half covers something no other case in its group covers. The docstring cites `docs/the-routing-check.md` by file. The sentence it names moves from *Where the routing is checked* to *The routing check* at the settle, so a citation by file stays true across that move. The crafter's two red runs, the mutation and the planted `hooks/git/`, were not repeated (read).
 
+```seal
 confirms: none
+```
 Phase 2, departure 2. The crafter claimed that the three `stub-remove` phrases dropped from `tests/behaviour/test_the_stamp_reaches_the_person_it_is_drawn_for.py` were absence assertions that can no longer fail. They stood in the `gone` tuple that the loop at `:402-403` asserts absent (read). With no `stub-remove` row or script left, nothing could put them back into either README edition. The case keeps its other absence phrases and its presence checks, and it passed (executed).
 
+```seal
 confirms: none
+```
 Phase 2, the re-planted cases. This answers round 1's third *Not judged* row. The crafter claimed that `Test_classify`'s message leg now runs in `post-edit`, whose two registered gates both answer `PostToolUse`, as `session-start` did. `hooks/dispatch.py:585-586` answers every group outside `EVENTS` and not starting `pre-` as `PostToolUse`. `hooks/dispatch.py:92` registers `post-edit` as `("lint-python.py", "sealer-stamp-queue.py")` (read). So the leg at `tests/hooks/test_dispatch.py:465-489` runs the merge path the old `session-start` leg ran. `Test_draw` now plants `sealer-stamp-queue.py` where `stub-remove.py` stood (`:859`, `:899`). That name sorts after `routing-edit-gate.py`, which keeps the ordering-by-index point of the case (read). The module passed (executed). `bin/seal layout --pairs` lists no pair in any case phase 2 or 3 touched. Its one `tests/skills/test_seal.py` pair is in `Test_pinned`, which neither phase changed (executed).
 
+```seal
 confirms: none
+```
 Phase 2, the removal against *Removes* and *Scope* item 5. `hooks/stub-remove.py` and `tests/hooks/test_stub_remove.py` are gone (`git ls-files`, executed). `hooks/dispatch.py:93` reads `"session-start": ("version-check.py",)`, and the stub comment is gone (read). Both READMEs lost the `stub-remove` row, and `tests/behaviour/test_chain_hooks_hardening.py` passed over the table (executed). `bin/seal rules --check` printed `excused` for `docs/the-routing-check.md:20` and `:32`, naming this work item, and ended "2 excused in 265 check lines of 54 rule files" with exit 0 (executed). A `git grep` for the stub remover's names, `git-hook`, the old clone and the old markers outside the records (*Probes*) finds them only in `docs/the-routing-check.md:20-32`, inside the section the `remove` item takes out, in the census item and its fixture, and in the recorded eval cases (executed).
 
+```seal
 confirms: none
+```
 Phase 3, Q1. The crafter claimed that `carries_clone` folded into its callers with no change in behaviour. `skills/implement/scripts/seal.py:1936` and `:2101` test `PLUGIN_CLONE not in` the text, and `install_workflow` tests `kind == "plugin"` at `:1994` with no `old_slug` arm left (read). `seal.py` holds no other caller of the helper, and no file names `carries_clone` or `OLD_PLUGIN_CLONE` (executed). For the `remove_workflow` arm, the crafter claimed the mutation survived only because `-k remove_workflow` missed the case. The case that holds the arm is `tests/skills/test_seal.py:3379-3403`, in `Test_pr_checks`, and it asserts exit 1 and an untouched index. With `if False:` in place of the test, the arm would fall through to removal, so that case would fail. This was settled by reading, and the mutation was not re-run (read). S4 holds: a workflow without `PLUGIN_CLONE` is `other` at `:1936-1937`, and install keeps it at `:2000-2004` (read).
 
+```seal
 confirms: none
+```
 Phase 3, the update step. `skills/update/SKILL.md:122-125` names one pair, and `PAIRS` at `:141-143` holds one (read). `tests/behaviour/test_the_old_block_leaves_through_update.py:89-100` plants one block that holds a rule line and an `@` line, which the module's other cases (`:75`, `:103`, `:116`, `:128`) do not plant (read). The module docstring's "Releases from 0.23.0 to 0.24.x" matches the frame's *Removes* row for the markers. The module passed (executed). The crafter's mutation run was not repeated (read).
 
+```seal
 confirms: none
+```
 Phase 3, the kept pin at `tests/hooks/test_routing.py:128-139`. The crafter claimed the case reads nothing old and is of the kind the frame keeps. It plants the old implementer answer and asserts that the axis parses as unanswered, so it pins an old name as unread. That is the same kind as the `SpecSeal-Routing` pin, which *Out of scope, found and kept* names. It came from #1155 (`8de879bc`, executed `git log -S`). The frame's list does not name this case, so that list was a sample. The phase record says so, and the case stays rightly.
 
+```seal
 confirms: none
+```
 Phase 3, `KEPT_OLD_NAMES` and its fixture. `tests/censuses.py:1016-1035` holds four items (read). A `git grep -F -i` for each item, outside the records, the two census files and `evals/`, finds a living reader for every one (executed). These are `tests/skills/test_chain_check.py:3236-3243`, `docs/the-routing-check.md:25`, `.claude-plugin/marketplace.json:15`, and both `docs/one-root-by-lifetime` editions with two test modules. The `SpecSeal-Routing` comment no longer names a docs sentence, and no file under `docs/` spells the key. The fixture's `.specseal` line at `tests/test_censuses.py:805` now reads as the kept policy sentence. It still spells the item, so the case tests what it tested before, and the module passed (executed).
 
+```seal
 confirms: none
+```
 Phase 3, the platform quotes. The two pages were fetched with `curl` at the URLs `trail/phases/phase-3.md` gives. Each of the three sentences that record quotes was found once by `grep -F` (executed). A `grep -i` of both pages for `pin`, `ref` and `update` found no sentence that says how an install pinned with `#<ref>` moves off its ref (executed). That agrees with the frame and with `gaps.md`'s third *Not verified* row, and the search is a sample of the pages, not a whole read.
 
+```seal
 confirms: none
+```
 The orchestrator's records commits. `b074601f` changes the `add` item's `check:` line in `frame/design.md` to name `tests/hooks/test_routing_edit_gate.py tests/hooks/test_dispatch.py`. Both files exist, and the second holds the moved case (read). The commit also adds the matching row to `frame/plan.md` *Judgments of the run*. `a1d4e95a` marks `frame/questions.md` Q1 answered (b) and cites `db3dedf1`, which is the fold above (read).
 
 ## Not judged
