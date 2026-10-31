@@ -465,22 +465,6 @@ def copied_tree(tree):
     return script
 
 
-class Test_loading:
-    def test_loads_beside_no_policy_document(self, tmp_path):
-        """*Scope* item 5 of #1198: the round record's grammar is
-        `hooks/lib/fields.py`, so the check loads and reads a record with no
-        `docs/` beside it. Seen red against the check that loaded its grammar
-        table from `docs/the-review-record.md` at import, which raised
-        "cannot be read"."""
-        script = copied_tree(tmp_path / "tree")
-        assert not (tmp_path / "tree" / "docs").exists()
-        loaded = load(script, "chain_check_beside_no_document")
-        found, errors = loaded.record_findings(
-            reader, record("abc1234", [finding(1, "rejected")]), "r.md"
-        )
-        assert (errors, [f.verdict for f in found]) == ([], [(chain.REJECTED, None)])
-
-
 class Test_issue_of:
     def test_accepts_a_home_that_is_exactly_an_issue(self):
         assert chain.issue_of("#12") == 12
@@ -489,24 +473,6 @@ class Test_issue_of:
         assert chain.issue_of("to #664") is None
         assert chain.issue_of("#12.") is None
         assert chain.issue_of(None) is None
-
-
-@pytest.mark.rule("location-touched-by-fix")
-class Test_location_paths:
-    def test_accepts_one_or_more_backticked_coordinates(self):
-        """S22 (T33): the paths of a `location:` value the block's shape
-        matched, each backticked `path`, `path:line` or `path:first-last`
-        item to its first `:`; the shape's refusals are
-        `tests/hooks/test_fields.py`'s."""
-        for value, paths in (
-            ("`a.py`", ["a.py"]),
-            ("`a.py:12`", ["a.py"]),
-            ("`a.py:12-14`", ["a.py"]),
-            ("`docs/x/`", ["docs/x/"]),
-            ("`a.py:1`, `docs/b.md:3-4`", ["a.py", "docs/b.md"]),
-            ("`a.py:1`, `b.py`, `c/d.md:9`", ["a.py", "b.py", "c/d.md"]),
-        ):
-            assert chain.location_paths(value) == paths, value
 
 
 # --- a record ------------------------------------------------------------------------
@@ -604,6 +570,62 @@ class Test_round_of:
         ):
             assert words in chain.NO_ROUND_BLOCK, words
 
+    def test_accepts_each_confirmation_block_as_a_reference_or_none(self):
+        """S23: each entry is a confirmation block reading `round-<N>#<n>`,
+        read with its line, or `none`; a record with nothing to confirm may
+        leave the section out."""
+        text = record(
+            "abc1234",
+            confirmations=confirm("round-1#2") + confirm("none") + confirm("round-3#1"),
+            n=4,
+        )
+        read, errors = chain.round_of(reader, text, "r.md", 4)
+        assert errors == []
+        assert read.confirms == [
+            (line_at(text, "confirms: round-1#2"), (1, 2)),
+            (line_at(text, "confirms: round-3#1"), (3, 1)),
+        ]
+        left_out = record("abc1234").replace("## Confirmations\n", "")
+        read, errors = chain.round_of(reader, left_out, "r.md", 1)
+        assert (read.confirms, errors) == ([], [])
+
+    @pytest.mark.rule("round-record-read-by-label")
+    def test_refuses_a_value_it_cannot_read_and_reads_prose_as_nothing(self):
+        """S23 (T36): a `confirms:` value outside its shape is refused at its
+        line; a table under the heading, and a `confirms:` line outside every
+        block, are prose and confirm nothing."""
+        bad = (
+            "round 1's 3",
+            "Round-1#3",
+            "#3",
+            "round-1",
+            "**none**",
+            "None",
+            "round-1#2 holds",
+            "",
+        )
+        text = record(
+            "abc1234",
+            confirmations="".join(confirm(cell) for cell in bad) + confirm("none"),
+            n=2,
+        )
+        read, errors = chain.round_of(reader, text, "r.md", 2)
+        assert read.confirms == []
+        assert [line for _rel, line, _why in errors] == [
+            line_at(text, f"confirms: {cell}") for cell in bad
+        ], errors
+        for (_rel, _line, why), cell in zip(errors, bad, strict=True):
+            assert f"`confirms: {cell}`" in why, why
+            assert "`round-<N>#<n>` or `none`" in why, why
+        prose = record(
+            "abc1234",
+            confirmations="| Confirms | What holds |\n|---|---|\n| round-1#2 | x |\n\n"
+            "confirms: round-1#2\nheld.\n",
+            n=2,
+        )
+        assert chain.round_of(reader, prose, "r.md", 2)[0].confirms == []
+        assert chain.round_of(reader, prose, "r.md", 2)[1] == []
+
 
 def led(text, n, why, title="the parser drops a row"):
     """WHY led by the heading of finding N of TEXT, as a refusal in a
@@ -611,7 +633,7 @@ def led(text, n, why, title="the parser drops a row"):
     return f"### {n}. {title} {chain.DASH} {why}"
 
 
-class Test_findings:
+class Test_record_findings:
     def test_accepts_each_finding_by_its_blocks(self):
         """A finding's `### ` heading names it and its number; its finding
         block's `location:` names its paths and its `regression:`, where it
@@ -1071,8 +1093,6 @@ class Test_findings:
         second = opener_at(text, "verdict: rejected", 1)
         assert "holds no `answer:` line" in said[second], said
 
-
-class Test_record_findings:
     def test_accepts_a_record_whose_regions_close(self):
         text = record("abc1234", [finding(1, "open"), finding(2, "rejected")])
         found, errors = chain.record_findings(reader, text, "r.md")
@@ -1137,63 +1157,24 @@ class Test_record_findings:
         assert errors == [("r.md", line, reader.COMMENT_LINE)], errors
         assert [f.number for f in found] == [1, 2]
 
-
-class Test_confirmations:
-    def test_accepts_each_confirmation_block_as_a_reference_or_none(self):
-        """S23: each entry is a confirmation block reading `round-<N>#<n>`,
-        read with its line, or `none`; a record with nothing to confirm may
-        leave the section out."""
-        text = record(
-            "abc1234",
-            confirmations=confirm("round-1#2") + confirm("none") + confirm("round-3#1"),
-            n=4,
-        )
-        read, errors = chain.round_of(reader, text, "r.md", 4)
-        assert errors == []
-        assert read.confirms == [
-            (line_at(text, "confirms: round-1#2"), (1, 2)),
-            (line_at(text, "confirms: round-3#1"), (3, 1)),
-        ]
-        left_out = record("abc1234").replace("## Confirmations\n", "")
-        read, errors = chain.round_of(reader, left_out, "r.md", 1)
-        assert (read.confirms, errors) == ([], [])
-
-    @pytest.mark.rule("round-record-read-by-label")
-    def test_refuses_a_value_it_cannot_read_and_reads_prose_as_nothing(self):
-        """S23 (T36): a `confirms:` value outside its shape is refused at its
-        line; a table under the heading, and a `confirms:` line outside every
-        block, are prose and confirm nothing."""
-        bad = (
-            "round 1's 3",
-            "Round-1#3",
-            "#3",
-            "round-1",
-            "**none**",
-            "None",
-            "round-1#2 holds",
-            "",
-        )
-        text = record(
-            "abc1234",
-            confirmations="".join(confirm(cell) for cell in bad) + confirm("none"),
-            n=2,
-        )
-        read, errors = chain.round_of(reader, text, "r.md", 2)
-        assert read.confirms == []
-        assert [line for _rel, line, _why in errors] == [
-            line_at(text, f"confirms: {cell}") for cell in bad
-        ], errors
-        for (_rel, _line, why), cell in zip(errors, bad, strict=True):
-            assert f"`confirms: {cell}`" in why, why
-            assert "`round-<N>#<n>` or `none`" in why, why
-        prose = record(
-            "abc1234",
-            confirmations="| Confirms | What holds |\n|---|---|\n| round-1#2 | x |\n\n"
-            "confirms: round-1#2\nheld.\n",
-            n=2,
-        )
-        assert chain.round_of(reader, prose, "r.md", 2)[0].confirms == []
-        assert chain.round_of(reader, prose, "r.md", 2)[1] == []
+    @pytest.mark.rule("location-touched-by-fix")
+    def test_accepts_one_or_more_backticked_coordinates(self):
+        """S22 (T33): the paths of a `location:` value the block's shape
+        matched, each backticked `path`, `path:line` or `path:first-last`
+        item to its first `:`; the shape's refusals are
+        `tests/hooks/test_fields.py`'s. `chain_check.location_paths` is the
+        step of `finding_of` that gives a finding its paths, and has no
+        refusal of its own, since the value it takes is one
+        `hooks/lib/fields.py` already matched whole."""
+        for value, paths in (
+            ("`a.py`", ["a.py"]),
+            ("`a.py:12`", ["a.py"]),
+            ("`a.py:12-14`", ["a.py"]),
+            ("`docs/x/`", ["docs/x/"]),
+            ("`a.py:1`, `docs/b.md:3-4`", ["a.py", "docs/b.md"]),
+            ("`a.py:1`, `b.py`, `c/d.md:9`", ["a.py", "b.py", "c/d.md"]),
+        ):
+            assert chain.location_paths(value) == paths, value
 
 
 class Test_channel:
@@ -3664,6 +3645,20 @@ class Test_module:
         assert chain.frame_foot(reader, spec)[0] is None
         whole = "# spec\n\nprose\nFramed 2026-01-01 by framer, before the build.\n"
         assert chain.frame_foot(reader, whole)[0] == ("2026-01-01", "framer")
+
+    def test_loads_beside_no_policy_document(self, tmp_path):
+        """*Scope* item 5 of #1198: the round record's grammar is
+        `hooks/lib/fields.py`, so the check loads and reads a record with no
+        `docs/` beside it. Seen red against the check that loaded its grammar
+        table from `docs/the-review-record.md` at import, which raised
+        "cannot be read"."""
+        script = copied_tree(tmp_path / "tree")
+        assert not (tmp_path / "tree" / "docs").exists()
+        loaded = load(script, "chain_check_beside_no_document")
+        found, errors = loaded.record_findings(
+            reader, record("abc1234", [finding(1, "rejected")]), "r.md"
+        )
+        assert (errors, [f.verdict for f in found]) == ([], [(chain.REJECTED, None)])
 
 
 # --- left where they stand, for #923: they read the shipped documents --------------
