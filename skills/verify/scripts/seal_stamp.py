@@ -1142,7 +1142,7 @@ def guarantee_rows(target, branch, base, ident, run, rounds):
     return rows
 
 
-def guarantee_read(chain, text):
+def _guarantee_read(chain, text):
     """`(newest, earlier)`: the newest verdict block of the `guarantee.md`
     TEXT and the blocks of its earlier runs, read through
     `hooks/lib/fields.py`, the reader the pull request's check reads it
@@ -1155,12 +1155,12 @@ def guarantee_read(chain, text):
     return found.blocks[-1], found.blocks[:-1]
 
 
-def sealed_by(chain, block):
+def _sealed_by(chain, block):
     """True where the verdict BLOCK reads `sealed`."""
     return chain.FIELDS.verdict_word(block) == chain.FIELDS.SEALED
 
 
-def target_of(chain, block):
+def _target_of(chain, block):
     """The commit the verdict BLOCK audited."""
     return block.fields[chain.FIELDS.TARGET].match["commit"]
 
@@ -1183,10 +1183,10 @@ def sealed_before(chain, top, path, common=None, ident=None):
     has no parent: `git log` exits 128 and the history is empty."""
     for sha in (_git(top, "log", "--format=%H", "HEAD", "--", path) or "").split():
         text = _git(top, "show", f"{sha}:{path}")
-        newest, _earlier = guarantee_read(chain, text or "")
-        if newest is None or not sealed_by(chain, newest):
+        newest, _earlier = _guarantee_read(chain, text or "")
+        if newest is None or not _sealed_by(chain, newest):
             continue
-        target = target_of(chain, newest)
+        target = _target_of(chain, newest)
         if common and ident and refused_here(common, ident, target):
             continue
         return True
@@ -1255,7 +1255,7 @@ def refused_here(common, ident, sha):
     return False
 
 
-def newest_run(chain, text):
+def _newest_run(chain, text):
     """The commit of the last run block of the `trail/gate.md` TEXT, read
     through the reader the pull request's check reads it through, or None
     where TEXT is None, holds none, or holds a line that reader refuses."""
@@ -1276,7 +1276,7 @@ def _queue_values(
     `trail/rounds/` holds and `branch` the branch the audited commit stands
     on, or "" where none is named."""
     key = f"{ident}-{target}"
-    run = newest_run(chain, gate_text)
+    run = _newest_run(chain, gate_text)
     count = sum(1 for path in rounds if ROUND_FILE.match(os.path.basename(path)))
     values = {
         "tree": target,
@@ -1375,14 +1375,14 @@ def queue_for_written_guarantee(path, session, now=None):
     common, top = found
     with open(real, encoding="utf-8") as handle:
         text = handle.read()
-    newest, earlier = guarantee_read(chain, text)
-    if newest is None or not sealed_by(chain, newest):
+    newest, earlier = _guarantee_read(chain, text)
+    if newest is None or not _sealed_by(chain, newest):
         return []
-    target = target_of(chain, newest)
+    target = _target_of(chain, newest)
     ident = item_value(item)
     if any(
-        sealed_by(chain, block)
-        and not refused_here(common, ident, target_of(chain, block))
+        _sealed_by(chain, block)
+        and not refused_here(common, ident, _target_of(chain, block))
         for block in earlier
     ):
         return []

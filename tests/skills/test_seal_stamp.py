@@ -1481,6 +1481,38 @@ def _a_branch_gone(item):
     write(item_dir(item), "routing.md", routing_text("feat/merged"))
 
 
+class Test__guarantee_read:
+    def test_accepts_the_newest_block_and_the_earlier_ones(self):
+        text = guarantee_text("ccc3333", "base1", earlier=[("aaa1111", "sealed")])
+        newest, earlier = stamp._guarantee_read(chain, text)
+        assert stamp._target_of(chain, newest) == "ccc3333"
+        assert [stamp._target_of(chain, b) for b in earlier] == ["aaa1111"]
+        assert stamp._sealed_by(chain, newest) and stamp._sealed_by(chain, earlier[0])
+
+    def test_refuses_a_text_the_reader_refuses_or_holding_no_block(self):
+        """#1122: a line the pull request's reader refuses reads as no
+        guarantee, though a block above it reads."""
+        for text in (
+            guarantee_text("ccc3333", "base1") + "\n````\n",
+            guarantee_text("ccc3333", "base1") + "\n<!-- a note -->\n",
+            "| Target SHA | ccc3333 against base1 |\n\nVerdict: sealed\n",
+        ):
+            assert stamp._guarantee_read(chain, text) == (None, [])
+
+
+class Test__newest_run:
+    def test_accepts_the_last_run_block(self):
+        text = "```seal\nrun: aaa1111 against bbb2222\n```\n\n"
+        text += "```seal\nrun: ccc3333 against bbb2222\n```\n"
+        assert stamp._newest_run(chain, text) == "ccc3333"
+
+    def test_refuses_no_text_no_block_and_a_text_the_reader_refuses(self):
+        block = "```seal\nrun: ccc3333 against bbb2222\n```\n"
+        for text in (None, "", "| Broad gate | ccc3333 against bbb2222 |\n"):
+            assert stamp._newest_run(chain, text) is None
+        assert stamp._newest_run(chain, block + "<!-- a note -->\n") is None
+
+
 class Test_queue_for_written_guarantee:
     @pytest.mark.rule("stamp-drawn-once")
     def test_a_shared_mode_sealed_guarantee_queues_one_stamp_at_its_write(self, shared):
