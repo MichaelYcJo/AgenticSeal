@@ -9,9 +9,8 @@ and every HTML comment block, whose opener is a line of three backticks then
 CommonMark closes it. Each line inside it is `<key>: <value>`, or `<key>:`
 where the value's shape takes nothing, with the key spelt as `Kind` below
 spells it; the first line's key names the block's kind among the kinds the
-record holds. `frame/design.md` *Data & interfaces* Table F of work item
-1793437163 is the grammar this module holds as code, and a change to it is
-an edit here.
+record holds. This module is the one statement of that grammar, as #1198
+drew it, and a change to it is an edit here.
 
 `read` returns each block whose every line parses, each refusal and each
 notice, each refusal and notice at its 1-based line:
@@ -41,9 +40,10 @@ this module does not read.
 `assemble` is the one way a command writes a block: it builds the block from
 `(key, value)` pairs and refuses pairs this reader would refuse.
 
-Standard library only; it imports `blocks` beside it. A hook imports it, and
-`chain_check.py`, `seal_stamp.py`, `pr_body.py`, `broad_gate.py` and
-`unverified_check.py` load it by path, as they load `hooks/lib/routing.py`.
+Standard library only; it imports `blocks` beside it. `chain_check.py`,
+`broad_gate.py` and `unverified_check.py` load it by path, as they load
+`hooks/lib/routing.py`; `seal_stamp.py`, which the stamp hooks load, and
+`pr_body.py` reach it through `chain_check.FIELDS`.
 """
 
 import collections
@@ -123,9 +123,9 @@ class Kind:
         return f"Kind({self.name!r})"
 
 
-# Table F. Each value's shape is the `Shape` cell the round record's grammar
-# table in `docs/the-review-record.md` gave its label, and `verdict:` takes
-# no `open`: a finding with no close block is open.
+# The kinds. Each value's shape is the `Shape` cell the round record's
+# grammar table in `docs/the-review-record.md` gave its label before #1198,
+# and `verdict:` takes no `open`: a finding with no close block is open.
 ORIGINAL_SPEC = Spec(
     rf"(?P<commit>{COMMIT})",
     AT_MOST_ONE,
