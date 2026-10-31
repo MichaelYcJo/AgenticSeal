@@ -289,7 +289,7 @@ owner at the 0.27.0 release.
     configuration reaches every teammate. A check at git's level reaches people
     who do not use this plugin, with an experience they did not ask for (the
     owner, 2026-10-25).
-    check: tests/hooks/test_routing_edit_gate.py
+    check: tests/hooks/test_routing_edit_gate.py tests/hooks/test_dispatch.py
 
 ## Removes
 

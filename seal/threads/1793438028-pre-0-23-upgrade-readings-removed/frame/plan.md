@@ -112,4 +112,4 @@ owner accepted this cost on 2026-10-31.
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-10-31 | The `add` item of `## Rule changes` for `docs/the-routing-check.md` *The routing check* names `tests/hooks/test_dispatch.py` beside `tests/hooks/test_routing_edit_gate.py` on its `check:` line | Phase 2 moved the assertions that no group installs into git and that `hooks/git/` does not exist into `tests/hooks/test_dispatch.py#Test_module.test_no_group_installs_into_git_or_reads_a_commit_before_it_runs` (commit 77a3d523), so that case now holds the paragraph's "this plugin writes nothing into a clone's git hooks"; the crafter named it in `gaps.md` *Not done* and does not edit the frame | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* (a decision after the frame is folded in place); `skills/implement/SKILL.md` *2. Implement test-first, and let each rule name its test* |
