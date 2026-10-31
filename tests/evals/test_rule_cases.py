@@ -326,15 +326,21 @@ LABELLED_FINDING = (
 
 
 class Test_proofer_case:
-    def test_the_findings_shape_reads_an_open_finding_in_its_block(self):
+    def test_accepts_an_open_finding_in_its_block(self):
         """#1198 phase 3: `shape-findings` finds a finding as the round
         template has the proofer write it, a finding block under its heading
-        with no close block, and finds none written in labelled lines. Seen
-        red against the grader that asked for a `verdict:` line: it missed
-        the first and found the second."""
+        with no close block. Seen red against the grader that asked for a
+        `verdict:` line, which missed it."""
         found, match = case_graders(RULE)["shape-findings"]
         assert match == "contains"
         assert found.search(OPEN_FINDING)
+
+    def test_refuses_labelled_lines_a_bare_heading_and_a_close_alone(self):
+        """#1198 phase 3: `shape-findings` finds no finding written in
+        labelled lines, none under a heading with no number, and none where
+        a close block stands with no finding block. Seen red against the
+        grader that asked for a `verdict:` line, which found the first."""
+        found, _ = case_graders(RULE)["shape-findings"]
         assert not found.search(LABELLED_FINDING)
         heading = OPEN_FINDING.replace("### 1. ", "")
         assert not found.search(heading), "a finding with no numbered heading"
@@ -347,12 +353,10 @@ class Test_proofer_case:
 
 
 class Test_sealer_case:
-    def test_the_verdict_shape_reads_the_verdict_in_its_block(self):
-        """#1198 phase 3: each sealer case's `shape-verdict` finds the
-        verdict the case expects on the `Verdict:` line of a verdict block,
-        and finds none on the same line outside a block, which the check
-        reads as no verdict. Seen red against the grader that read a
-        `Verdict:` line anywhere."""
+    def shapes(self):
+        """`(name, pattern, match, sealed, line, block)` for each sealer
+        case: its `shape-verdict` grader read back, and the verdict line
+        the case expects inside a verdict block."""
         rc = load_script("rule_cases")
         sealer = [n for n, c in rc.cases() if c["agent"] == "sealer"]
         assert len(sealer) == len(rc.SEALER_RUNS)
@@ -361,8 +365,23 @@ class Test_sealer_case:
             sealed = name.endswith("-sealed")
             line = "Verdict: sealed" if sealed else "Verdict: withheld reason: x"
             block = f"{FENCE}seal\ntarget: abc1234 against main\n{line}\n{FENCE}\n"
+            yield name, found, match, sealed, line, block
+
+    def test_accepts_the_verdict_in_its_block(self):
+        """#1198 phase 3: each sealer case's `shape-verdict` finds the
+        verdict the case expects on the `Verdict:` line of a verdict block.
+        Seen red against a grader whose opener read `Seal`."""
+        for name, found, match, _sealed, _line, block in self.shapes():
             assert match == "contains"
             assert found.search("# Guarantee: i\n\n" + block), name
+
+    def test_refuses_the_line_outside_a_block_or_another_verdict(self):
+        """#1198 phase 3: each sealer case's `shape-verdict` finds none on
+        the same line outside a block, which the check reads as no verdict,
+        none on another verdict or a word the block reader refuses, and none
+        below a block that closed above it. Seen red against the grader that
+        read a `Verdict:` line anywhere."""
+        for name, found, _match, sealed, line, block in self.shapes():
             assert not found.search(f"# Guarantee: i\n\n{line}\n"), name
             other = "Verdict: withheld reason: x" if sealed else "Verdict: sealed"
             assert not found.search(block.replace(line, other)), name
