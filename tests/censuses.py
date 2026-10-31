@@ -1017,8 +1017,7 @@ KEPT_OLD_NAMES = (
     # The trailer key a commit made before the rename carries, which
     # `chain_check.py` no longer reads. It is still spelt by the case in
     # `tests/skills/test_chain_check.py#Test_routing_trailers` that pins the
-    # key as unread, and by `docs/the-routing-check.md` *At the pull
-    # request* until the settle after the release removes that sentence.
+    # key as unread.
     "Spec" + "Seal-Routing",
     # The second line of every git hook stub an earlier release wrote, which
     # `docs/the-routing-check.md` *Where the routing is checked* spells until

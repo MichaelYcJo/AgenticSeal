@@ -802,7 +802,7 @@ class Test_old_names:
             f"a commit made before the rename carries `{OLD}-Routing:`\n"
             f"# {OLD.lower()}-git-hook\n"
             f'"renames": {{"{OLD.lower()}": "agentic"}}\n'
-            f"git mv .{OLD.lower()}/README.md seal/README.md\n"
+            f"no code of the plugin opens a top-level `.{OLD.lower()}/`\n"
         )
         old = "\n".join(line for line, _ in OLD_SPELLINGS) + "\n"
         plant(tmp_path, "docs/living.md", living)
