@@ -1158,10 +1158,7 @@ class Test_main:
             held = repo / "elsewhere"
             held.mkdir()
             (held / "round-1.md").write_text("# Review round 1\n", encoding="utf-8")
-            try:
-                os.symlink(held, trail / "rounds", target_is_directory=True)
-            except (OSError, NotImplementedError):
-                pytest.skip("this platform makes no symbolic link here")
+            symlink_or_skip(held, trail / "rounds", directory=True)
         else:
             (trail / "rounds").mkdir()
             (trail / "rounds" / "round-1.md").write_text(
