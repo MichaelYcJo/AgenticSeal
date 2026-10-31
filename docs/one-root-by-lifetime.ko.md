@@ -23,9 +23,7 @@ layout — two roots, three lifetimes* 와 `docs/the-record-layout.md` 에
 **플러그인은 자기 루트에만 씁니다.** 그 밖의 자리에 있는 `specs/` 디렉터리는
 프로젝트 자신의 것이고, 이력으로 읽을 뿐 가져가지 않습니다
 (`templates/setup/config.md` *Reference specs*). 플러그인의 어떤 코드도 최상위
-`specs/` 나 `.specseal/` 을 열지 않습니다. 0.3.x 배치는 README.md *Coming up
-from 0.3.x* 가 주는 명령으로 손으로 옮기고, 그 절은 그것이 유일한 길이라고
-말합니다. 세션이 칠 수 있는 경로로 루트가
+`specs/` 나 `.specseal/` 을 열지 않습니다. 세션이 칠 수 있는 경로로 루트가
 어디 있는지는 contract rule 11 한 곳에 적혀 있습니다.
 check: tests/behaviour/test_no_document_names_the_old_roots.py tests/hooks/test_optin.py
 
@@ -55,14 +53,10 @@ corpus*). 병합 뒤에 `seal/threads/<id>/` 를 새로 읽는 코드는 그것�
 **저장소가 옵트인한 것은 그 모드의 자리에 `seal/` 이 있고 그 `README.md` 가
 플러그인의 표식으로 시작할 때입니다.** shared 모드면 `<repo>/seal/`, local
 모드면 `$(git rev-parse --git-common-dir)/seal/` 입니다. 표식은
-`templates/setup/seal-README.md` 의 첫 줄이고, 처음 설정과, 플러그인 이름이 AgenticSeal 로
-바뀌기 전에 설치된 저장소의 이전이 이것을 씁니다. 훅은 두 자리를 그 순서로 보고, 표식과 함께
-있는 쪽이 "켜졌다" 와 "어느 모드인가" 를 함께 말해 줍니다. README 가 이전
-릴리스가 쓴 제목(`hooks/lib/optin.py#EARLIER_HEADINGS`)으로 시작하는 `seal/` 은
-그 릴리스의 루트이고, 세션 시작의 이전이 표식으로 다시 씁니다. 그 전까지는
-옵트인하지 않은 것으로 읽고, 처음 설정은 그 옆에 두 번째 루트를 만들지
-않습니다. README 가 그 어느 쪽으로도 시작하지 않는
-`seal/` 은 `seal` 이라는 패키지가 가진 것처럼 프로젝트 자신의 디렉터리이고,
+`templates/setup/seal-README.md` 의 첫 줄이고, 처음 설정이 이것을 씁니다. 훅은
+두 자리를 그 순서로 보고, 표식과 함께
+있는 쪽이 "켜졌다" 와 "어느 모드인가" 를 함께 말해 줍니다. README 가 표식으로
+시작하지 않는 `seal/` 은 `seal` 이라는 패키지가 가진 것처럼 프로젝트 자신의 디렉터리이고,
 옵트인하지 않은 것으로 읽습니다. 그런 디렉터리를 만난 처음 설정은 그 안에
 아무것도 쓰지 않고 루트를 git 디렉터리 아래에 둡니다. 그 밖에는 아무것도 읽지 않고, 설정 키도 없습니다. git
 설정 키도, `.git/` 아래의 표시 파일도, 가져온 ref 도 폴더가 이미 하는 말을
@@ -98,15 +92,7 @@ check: tests/hooks/test_optin.py
   읽는데 local 모드는 아무것도 커밋하지 않기 때문입니다.
 
 두 자리 중 어디든 `seal/` 이 있는 저장소는 이미 이 과정을 거쳤으므로 다시
-묻지 않습니다. 모드는 폴더가 있는 자리로 읽습니다. 0.3.x 배치에 머물러 있는
-저장소에는 묻지 않고, README.md *Coming up from 0.3.x* 의 명령으로 직접
-옮긴다고 알리기만 합니다(`skills/implement/bootstrap.md`).
-플러그인 이름이 AgenticSeal 로 바뀌기 전에 설치한 저장소는 트리에 앞선
-배치가 남아 있는 브랜치마다 세션 시작 훅이 작업 항목을 스레드 배치로
-옮깁니다. 이미 옮겼다는 기록이 브랜치의 이동을 막지 않습니다. 그래서 shared
-모드에서 local 모드로 옮긴 저장소에서는 전환 전에 만든 브랜치의 `seal/` 이
-트리 안에서 옮겨지고 표식이 붙으며, 훅은 그 루트를 먼저 읽습니다
-(`hooks/root-migrate.py` 의 경계).
+묻지 않습니다. 모드는 폴더가 있는 자리로 읽습니다.
 check: tests/behaviour/test_first_setup_asks_once.py
 
 ### shared 인가 local 인가

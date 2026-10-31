@@ -60,6 +60,15 @@ recorded form of the routing question's `no work item` answer
 (`skills/commit-pr-convention/SKILL.md`). It owes an answer for every check
 in this repository carrying a population floor over `seal/threads/`.
 
+**Before `seal settle --apply`, the settling session counts, for each released work item routed through the review chain, the findings, the findings that carry a `regression:` or `reopens:` line, the findings whose every `location:` path is under `seal/threads/`, and the rounds, and posts the four numbers as a comment on the open `flow-baseline` issue.** The four are read from the work item's `trail/rounds/round-*.md` with `grep -h`, which reads a file wherever it lies: the `### <n>.` finding headings; the `regression:` and `reopens:` lines; the `location:` lines left with no backticked path once every path under `seal/threads/` is deleted from them; and the files. They are this repository's measure of #1148, which removed the records' copies of one another: 0.24.0's four work items read 17 recurring of 36 findings, 12 in records alone, and 0.25.0's one read 3 of 10, 1 in a record alone. A release whose records-alone count does not fall says the records still restate one another, and the next step is #1020's check that reads recurrence. The step is this repository's and ships to no user: the plugin's settle procedure (`skills/settle/SKILL.md` *The settling session's procedure*) does not take it, because the reader of the four numbers is this repository's owner and most installed repositories keep no `flow-baseline` log.
+check: none reader: the owner's settling session at this step
+
+**What `seal settle --apply` removed is committed before anything switches that checkout to another branch.** `--apply` deletes each directory from the working tree and stages nothing, and `git switch` exits 0 over an unstaged deletion while it restores every deleted file that differs between the two branches, saying nothing about it. In the 0.24 settle a switch to `main` and back restored 28 `gaps.md` files, the removal commit left them tracked, and the broad gate refused the tree. A comparison with another ref runs in a `git worktree` of that ref.
+check: none reader: the owner's settling session at this step
+
+**Before `seal settle --apply`, the settling session reads the dry run's *The judgments*, the orchestrators' rows from every released `frame/plan.md` grouped by the document each stands on, and rewrites a section where one kind of judgment recurs across work items or kept costing rounds.** The rows leave with their directories at `--apply`, so this is the one reading they get; `skills/core/SKILL.md` *A judgment stands on a source document, and is written down with both* says the guidance improves from that record and not from memory.
+check: none reader: the owner's settling session at this step
+
 ## 5. The release pull request
 
 ```bash
@@ -189,8 +198,7 @@ python3 .github/scripts/plugin_directory_check.py   # what the marketplace files
       an entry, which commit the entry pins, and whether that commit is an
       ancestor of `main`. **It reports and never fails**, deliberately: the
       files sync on somebody else's schedule, one of the two once went
-      twenty-eight days without a commit, and a red nobody can act on is what
-      `CLAUDE.md`'s first goal is against. Those files are not the directory,
+      twenty-eight days without a commit, and a red nobody can act on is what `skills/core/SKILL.md` *The first value: efficient development through the workflow* is against. Those files are not the directory,
       the catalog people browse inside Claude, and the directory is readable
       from nowhere a script can reach, so the command ends by saying it was
       not read and printing the address of the page that answers. A portal
@@ -254,3 +262,6 @@ leave.
       pull request moves `plugin.json` to that version.
 
 check: tests/hooks/test_version_check.py
+
+**The milestone `release: X.Y.Z` is closed once the close-issues run has closed its issues, by `gh api -X PATCH repos/<owner>/<repo>/milestones/<number> -f state=closed`.** Nothing else closes it: `.github/scripts/close_issues_on_release.py` closes each issue and leaves the milestone open with none in it, which reads as a release still in flight. `release: 0.20.0` stood open eleven days after its tag and `release: 0.21.0` five, each closed by hand.
+check: none reader: the orchestrator after the tag

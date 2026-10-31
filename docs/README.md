@@ -38,6 +38,7 @@ wrong states the correction in its `## Rule changes`
 | `docs/the-broad-gate.md` | who takes the one broad run, what it runs, and what it may say |
 | `docs/the-routing-check.md` | where a session's routing is checked: at its edit tools before the first edit, and at the pull request |
 | `docs/the-session-hooks.md` | how the hooks are registered, and what the implementer mark says |
+| `docs/what-a-script-gates.md` | which gates a script holds and which an agent holds, what each script reads, and what it does with what it did not read |
 
 `docs/experiments/` holds dated scratch documents and is no policy; `settle`
 never writes there.

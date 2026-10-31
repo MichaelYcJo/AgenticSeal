@@ -43,9 +43,7 @@ schedules from either: the one thing that reads a milestone checks a cut
 release against its pool and never decides what goes into one.
 
 `backlog:` is the unscheduled pool, and an issue leaves it in one act: the
-milestone changes. **A scheduled release milestone's description states the
-release's purpose and the grounds for the order its issues sit in**, and
-grounds belonging to one ticket sit on that ticket. So "what is in 1.2.3, and
+milestone changes. **A scheduled release milestone's description states the release's purpose and the grounds for the order its issues sit in**, and grounds belonging to one ticket sit on that ticket. A minor's purpose names the one goal its `feat:`s share, and a patch's purpose says it builds no `feat:`, so whether a `feat:` shares a minor's goal is judged against something written, by whoever files or moves it (`docs/branch-and-release.md` *Work accumulates on a release branch*). No label or field holds the goal, and no script reads it. So "what is in 1.2.3, and
 why in that order" is answered without opening a file. The number is
 illustrative, for the reason *A rolling log is titled after the version it
 rolled from* gives below.
@@ -319,9 +317,12 @@ Same prefix vocabulary as commits and pull requests (`feat:`, `fix:`,
 this is only the note that issues use it too.
 
 ```
-good   chore: the round cap is a ceiling and has been spent like a budget
+good   fix: the round cap is a ceiling and has been spent like a budget
 bad    Round cap improvements
 ```
+
+**An issue takes the prefix the pull request that closes it will take, by the same table, and `chore:` is never its default.** A title read in the tracker, the milestone and the release note says what kind of change is coming, and a `chore:` on a change to what a party does makes a design change read as housekeeping. Where the frame or the build finds the change is of another kind, the orchestrator retitles the issue when it titles the pull request. A `feat:` filed into, or moved into, a milestone numbered as a patch moves at that moment to the planned minor whose goal it shares, and the milestones are renamed forward only where none shares it, or where the work that follows needs it sooner and the renamed milestone's description names that work and why the minor sharing its goal is too late (`docs/branch-and-release.md` *Work accumulates on a release branch*).
+check: none reader: the orchestrator at each filing and each milestone move
 
 ## Reconstructing a missing milestone
 
