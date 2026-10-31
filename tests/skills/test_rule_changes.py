@@ -161,9 +161,14 @@ class Test_parse:
         parsed = parse(text)
         assert parsed.unread == [], parsed
         assert parsed.errors == [(line_of(text, heading), "a line outside an item")]
-        # The same heading under `## Scope`, above the section, is named.
-        above = spec("- nothing\n  why: a reason.").replace("In.", f"{heading}\n\nIn.")
-        assert [n for n, _ in parse(above).unread] == [line_of(above, heading)]
+        # The same heading under `## Scope`, above the section, or under
+        # `## Open questions`, below the heading that ends it, is named.
+        block = spec("- nothing\n  why: a reason.")
+        for outside in (
+            block.replace("In.", f"{heading}\n\nIn."),
+            block.replace("None.", f"{heading}\n\nNone."),
+        ):
+            assert [n for n, _ in parse(outside).unread] == [line_of(outside, heading)]
 
     def test_a_heading_with_other_letters_is_no_near_miss(self):
         """The class is the letters of `Rule changes`; a heading with other
