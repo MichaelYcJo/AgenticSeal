@@ -298,37 +298,6 @@ claude
 `/plugin uninstall agentic` 을 실행하고, 업데이트가 아직 들어내지 않은 블록이
 있으면 그 표시와 사이의 줄을 직접 지웁니다.
 
-### `specseal@specseal` 에서 오는 경우
-
-이름을 바꾸기 전에는 플러그인을 `specseal@specseal` 로 설치했습니다. Claude
-Code 는 마켓플레이스를 이름으로 알아보는데, 등록이 가리키는 카탈로그가 자기
-이름을 바꾸면 그 등록이 어떻게 되는지는 레퍼런스에 적혀 있지 않습니다. 그래서
-마켓플레이스를 새 이름으로 다시 등록합니다.
-
-```bash
-claude plugin marketplace remove specseal
-claude plugin marketplace add MichaelYcJo/AgenticSeal
-claude plugin install agentic@agenticseal
-```
-
-첫 줄은 `specseal@specseal` 도 함께 지우고 그 캐시도 지웁니다
-(`code.claude.com/docs/en/plugins/cli-reference.md` *plugin marketplace
-remove*). 옛 설치본이 `<!-- specseal:start -->` 와 `<!-- specseal:end -->`
-사이에 써 넣은 CLAUDE.md 블록은 새 설치본에 필요한 것을 담고 있지 않습니다.
-다음 릴리스에서 `/agentic:update` 가 들어내거나, 그 표시와 사이의 줄을 직접
-지웁니다. 옛 설치본의 업데이트
-명령은 옛 이름으로 돌기 때문에 새 이름으로 넘어가게 해 주지 못합니다. 이 세 줄은
-Claude Code 레퍼런스에서 읽은 것이고, 옛 설치본이 있는 기기에서 돌려 본 적은
-없습니다.
-
-이름을 바꾸기 전에 `seal pr-checks install` 이 `.github/workflows/hygiene.yml`
-을 써 둔 저장소라면, 세션 시작이 기록을 옮긴 뒤 `seal pr-checks install` 을
-다시 돌리고, 다시 쓰인 workflow 를 그 이동과 함께 커밋합니다. 옛 workflow 는
-고정된 릴리스를 clone 하는데, 그 릴리스는 작업 항목을 자기가 두던 자리에서,
-trailer 는 옛 이름으로 찾습니다. 그래서 이동 뒤에는 선언을 찾지 못하고, 아무것도
-검사하지 않은 채 모든 pull request 를 통과시킵니다. 세션 시작은 그 workflow 를
-찾으면 한 줄로 이 일을 알려 줍니다.
-
 ### 업데이트
 
 ```

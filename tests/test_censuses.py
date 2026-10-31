@@ -803,8 +803,6 @@ class Test_old_names:
             f"<!-- {OLD.lower()}:start --> and <!-- {OLD.lower()}:end -->\n"
             f"# {OLD.lower()}-git-hook\n"
             f"git clone https://github.com/MichaelYcJo/{OLD}.git\n"
-            f"claude plugin marketplace remove {OLD.lower()}, then "
-            f"`{OLD.lower()}@{OLD.lower()}` is gone\n"
             f'"renames": {{"{OLD.lower()}": "agentic"}}\n'
             f"git mv .{OLD.lower()}/README.md seal/README.md\n"
         )

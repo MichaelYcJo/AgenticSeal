@@ -1022,7 +1022,7 @@ KEPT_OLD_NAMES = (
     "Spec" + "Seal-Routing",
     # The CLAUDE.md block markers every release before the rename wrote,
     # which `/agentic:update` step 4 takes out with the block under the new
-    # ones, and which README.md *Install* names.
+    # ones.
     f"<!-- {_OLD}:start -->",
     f"<!-- {_OLD}:end -->",
     # The second line of every git hook stub an earlier release wrote, which
@@ -1032,10 +1032,6 @@ KEPT_OLD_NAMES = (
     # The clone line a workflow written before the rename carries, which
     # `seal.py#workflow_at` reads as this plugin's so that it is rewritten.
     "MichaelYcJo/Spec" + "Seal.git",
-    # The install a user made before the rename, which README.md *Install*
-    # removes by its old names.
-    f"{_OLD}@{_OLD}",
-    f"marketplace remove {_OLD}",
     # The `renames` entry of `.claude-plugin/marketplace.json`, which carries
     # the plugin's old name to its new one and is append-only.
     f'"{_OLD}": "agentic"',

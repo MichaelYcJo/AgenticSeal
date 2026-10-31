@@ -304,38 +304,6 @@ CLAUDE.md block between `<!-- agentic:start -->` and `<!-- agentic:end -->`;
 `/plugin uninstall agentic`, and delete such a block yourself, its markers
 and the lines between them, where no update has taken it out.
 
-### Coming from `specseal@specseal`
-
-The plugin was installed as `specseal@specseal` before it was renamed.
-Claude Code knows a marketplace by its name, and its reference does not say
-what a registration does when the catalog it points at changes its own name,
-so register the marketplace again under the new one:
-
-```bash
-claude plugin marketplace remove specseal
-claude plugin marketplace add MichaelYcJo/AgenticSeal
-claude plugin install agentic@agenticseal
-```
-
-The first line also uninstalls `specseal@specseal` and deletes its cache
-(`code.claude.com/docs/en/plugins/cli-reference.md` *plugin marketplace
-remove*). The CLAUDE.md block the old install wrote, between
-`<!-- specseal:start -->` and `<!-- specseal:end -->`, carries nothing the
-new install needs: `/agentic:update` takes it out at the next release, or
-you delete its markers and the lines between them. The update
-command of the old install runs the old names, so it cannot carry you
-across. These three lines are read from the Claude Code reference and have
-not been run on a machine that holds the old install.
-
-In a repository where `seal pr-checks install` wrote
-`.github/workflows/hygiene.yml` before the rename, run `seal pr-checks
-install` again once the session start has moved the records, and commit the
-rewritten workflow together with the move. The old workflow clones the
-release it was pinned to, which looks for work items where that release
-kept them and for the old trailer, so after the move it finds no declaration and
-passes every pull request without examining any. The session start's line
-says so where it finds that workflow.
-
 ### Updating
 
 ```
