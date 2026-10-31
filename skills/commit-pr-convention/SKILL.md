@@ -115,37 +115,56 @@ says nothing writes English.
 `<prefix>: <one line, starting lower-case>`, in the repository's language.
 The prefix is not part of that: it stays as the table below spells it.
 
-**A change takes the first row that fits, read from the top.** The first
-four rows each fit only a change that is wholly of their kind, so they stand
-first: the rows below them would otherwise take such a change, and a change
-with any other part falls past them. A change two rows fit takes the higher
-one, so a writer who finds one part of the change that adds something stops
-at `feat:`.
+**Each part of a change has one kind, read from its effect, and the change
+takes the highest kind among its parts as its prefix.** A part is a unit a
+reader can name: a section of a skill, a function, a test module, a work
+item's records, a dependency pin. Its kind answers one question: after the
+merge, what does a user, or a party working on a later change, meet
+differently because of this part? The answers exclude one another, so no
+order is needed to classify a part.
 
-| prefix | when |
+| kind | what a user, or a party working on a later change, meets after the merge |
 |---|---|
-| `test:` | tests only, and nothing else |
-| `perf:` | the same behaviour, faster, and nothing else |
-| `docs:` | only text no party acts on: an explanation, a README, a comment |
-| `chore:` | only release preparation, such as the version move, the changelog fold and the settle; configuration and dependencies that tell no party to do anything new; or a work item's own records |
-| `feat:` | after the change, a user or a party has something to use or to meet that nothing gave before: a command, a record format or a field in one, a step, a reading, or a refusal on a rule the change itself states |
-| `fix:` | behaviour existed and was wrong against a rule already stated in the tree, and the change makes it match; a check that starts refusing what its stated rule always refused is here |
-| `refactor:` | the same kinds of outcome, reached another way: which party holds a judgment, a script that stops refusing what an agent now reads, a sequence rewritten as guidance, a structure moved; nobody gains anything to use or to meet |
+| `feat:` | something to use or to meet that nothing gave before: a command, a record format or a field in one, a step, a reading, or a refusal on a rule this change states |
+| `fix:` | behaviour that was wrong against a rule already stated in the tree, now matching it; a check outside the tests that starts refusing what its stated rule always refused is here |
+| `perf:` | the same behaviour, sooner or at less cost |
+| `refactor:` | the same kinds of outcome, reached another way: which party holds a judgment, a script that stops refusing what an agent now reads, a sequence rewritten as guidance, a structure moved; nothing is new, corrected or faster |
+| `test:` | nothing outside the suite: a case added, removed or corrected; a suite is how a contributor checks a change, and no user or party outside it meets a case |
+| `docs:` | text read and acted on by nobody: an explanation, a README, a comment |
+| `chore:` | nothing: release preparation, such as the version move and the changelog fold; configuration and dependencies that change nothing met; a work item's own records, which only its parties read and which leave with it; and a part whose effect a released change already decided and was titled for |
+
+**The order of the table is the precedence among kinds**, and it acts only
+where one change holds parts of different kinds. It ranks by how much of
+what is met changes: something new, something corrected, something faster,
+something done another way, then the three kinds nobody outside the change
+meets. A part's tests and its work item's records are `test:` and `chore:`
+parts, below every kind someone meets, so they never decide the prefix of a
+change that holds a part someone meets.
 
 The test between `feat:` and `fix:` is whether the rule stood in the tree
 before the change, which a reader answers by opening the base. The test
-between `feat:` and `refactor:` is whether anything is new to use or to meet.
+between `fix:` and `refactor:` is whether the old behaviour was wrong
+against a rule the tree stated. The test between `perf:` and `refactor:` is
+whether anything met is sooner or cheaper. The test between `feat:` and
+`refactor:` is whether anything is new to use or to meet.
 
-**Text a party reads and acts on is behaviour.** A skill, an agent
-definition, a template a party fills and a hook's message are such text, so
-a change to one takes `feat:`, `fix:` or `refactor:`, and never `docs:`. It
-takes `chore:` in two cases only, both named in the `chore:` row: a work
-item's own records, which only that item's parties read and which leave with
-it, and the settle, which writes into the policy documents what the released
-work items' frames already decided.
+**Text a party reads and acts on is behaviour, and so are a check outside
+the tests, a gate, a record's shape and a process step.** A skill, an agent
+definition, a template a party fills and a hook's message are such text. A
+part that changes any of them is `feat:`, `fix:`, `perf:` or `refactor:`,
+never `docs:`, and `chore:` only where a released change already decided its
+effect, as the next paragraph says.
 
-**Apart from those two, `chore:` is never a change a party acts on**: not a
-check, a gate, a record's shape or a process step.
+**An effect is counted once, by the change that decided it.** A settle that
+writes into the policy documents a rule change a released work item stated
+adds nothing that work item's title did not already count, so that part is
+`chore:`. A section the settle rewrites where no released work item decided
+it is a part with its own effect, classified by the table, and it raises the
+settle's prefix above `chore:`. Guidance rewritten because its judgments
+kept costing more than they returned is such a section (`skills/core/SKILL.md`
+*The first value: efficient development through the workflow*). The same
+holds for the changelog fold and the version move: each writes what released
+changes decided.
 
 **An issue's title takes the prefix the pull request that closes it will
 take**, chosen by this table, so no issue is filed `chore:` by default.
