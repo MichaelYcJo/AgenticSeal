@@ -81,6 +81,8 @@ class Test_walk_text:
         fence = "`" * 3
         text = f"a{BREAKS['LS']}b\n{fence}seal\nrun: x\n{fence}\n"
         assert blocks.walk_text(text).opens == {2: "seal"}
+        split = f"{fence}seal{BREAKS['LS']}x\nrun: y\n{fence}\n"
+        assert blocks.walk_text(split).opens == {0: f"seal{BREAKS['LS']}x"}
 
     def test_refuses_to_claim_a_piece_inside_its_lines_open_comment(self):
         """#667 round 2, yellow 1. A piece after a break inside an inline
