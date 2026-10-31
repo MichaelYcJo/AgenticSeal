@@ -24,7 +24,7 @@ plan's five modules at `ce2bc211`. The repository declares no
 severity: should
 location: `skills/settle/scripts/settle.py:518-526`, `skills/settle/SKILL.md:180-181`, `tests/skills/test_settle.py`
 evidence: executed `bin/test tests/skills/test_tmp_round6.py -q -s -p no:xdist`
-verdict: open
+verdict: fixed 5387ce4e
 
 *Scope* item 7 names the near heading in the parse result "so
 `chain_check.py` prints it and passes, and the settle's dry run lists the
@@ -80,14 +80,14 @@ designs to read whole with the near heading's line. It is seen red against
 `ce2bc211`, where the first joins a group and the second is listed under
 nothing to write.
 
-answer:
+answer: The finding holds. Read against its grounds, the paste holds: a design with `unread` is read whole, and `errors` stays first. A near block line comes only with an items error, so it never reaches the new arm alone. A near-only design now lists the heading's line and reason in place of "no `## Rule changes` section", which says more and changes no listing. `5387ce4e` applies the `timeline` arm and the skill's dry-run bullet as written, and rewrites `timeline`'s docstring and the module docstring in place. `test_lists_a_design_with_a_line_its_reader_did_not_read_to_read_whole` in `tests/skills/test_settle.py` holds both designs. It was red at `6cec9edf`: alpha grouped with one change, beta listed under nothing to write (executed). With the arm switched off by `seal mutate`, the case is red (executed). Other statements, found by `git grep` on "read whole", "to read whole" and "another section" outside `seal/threads` and `docs/`: `settle.py`'s two docstrings, changed; `skills/settle/SKILL.md:87` and `:210`, which still hold; `README.md:267`, which names the list and not its members, and stands. `frame/design.md` *Scope* item 7, Table A's `seal settle` row inside the `add` for `docs/what-a-script-gates.md`, and the *Removes* row state the near heading without the read-whole arm. The frame is not this pass's to edit, so the hand-back names them.
 
 ### 2. A level-3 heading near `## Rule changes` inside the section is named as another section whose lines were not read, while the parser reads them
 
 severity: should
 location: `skills/settle/scripts/rule_changes.py:116-121`, `skills/settle/SKILL.md:88-95`, `tests/skills/test_rule_changes.py`
 evidence: executed `bin/test tests/skills/test_tmp_round6.py -q -s -p no:xdist`
-verdict: open
+verdict: fixed 6cec9edf
 
 The probe parsed `## Rule changes`, then `### rule changes`, then a
 `change` item. It returned the error `a line outside an item` at line 5,
@@ -127,14 +127,14 @@ A case in `tests/skills/test_rule_changes.py` pins `unread == []` and the
 refusal at the heading's line for the nested heading. It is seen red
 against `ce2bc211`.
 
-answer:
+answer: The finding holds. Read against its grounds sentence, the paste holds: each span ends at the next heading of level 2 or higher, the same `end` the parser computes. `6cec9edf` applies it, as `inside` over each exact heading's span. It rewrites the skill bullet in place to "that stands outside the section" and adds that a heading below level 2 inside the section is a line of it, refused as any line outside an item is. `parse`'s docstring and `chain_check.py`'s arm line change the same way. `test_a_near_heading_inside_the_section_is_a_line_of_it_and_not_named` was red at `ce2bc211` (executed). Phase 3's own case `test_a_near_miss_of_the_heading_is_another_section_named_at_its_line[beside-the-heading-### Rule changes]` had pinned the wrong reading, because it put the level-3 heading inside the section. It now puts the near heading above the section, outside at every level. `seal mutate` (executed): dropping `n not in inside` is red. A span read to the document's end survived the first draft, so `edf90008` adds the same heading under `## Open questions`, below the section's end, and that mutant is then red. Other statements, by `git grep` on "another section" and "at any level": the skill bullet, `parse`'s docstring and `chain_check.py:34`, all changed. `frame/design.md` *Scope* item 7, the scenario table's row and Table A's `seal settle` row say "a near heading ... is another section" with no scope, and the hand-back names them for the orchestrator.
 
 ### 3. The `not read:` lines of `seal rules --check` reach nobody at a pull request, and the answerer the gaps row names has no step that reads them
 
 severity: should
 location: `tests/github/test_rules.py:636-637`, `.github/workflows/hygiene.yml:169`, `seal/threads/1793411151-judgment-where-meaning-is-the-question/gaps.md:9`
 evidence: executed `grep -rn "seal rules\|rules.py\|test_rules" .github/workflows/`, `git grep -n -i "seal rules\|rule file\|check: line\|check line" -- agents/proofer.md skills/code-review/SKILL.md skills/code-review/orchestration.md`
-verdict: open
+verdict: fixed c4e91dd2
 
 The gaps row claimed that the proofer answers, at review of each diff that
 touches a rule file. Found: CI runs the check only inside
@@ -184,7 +184,7 @@ the suite's to gate, and this step only reports. The step goes before
 `hygiene.yml`, holds the step's command (contract rule 14). The gaps row is
 then closed with the commit.
 
-answer:
+answer: The finding holds, and the step is built, weighed against `skills/core/SKILL.md` *The rule a mechanism is kept against*. It removes no mechanism. It carries the report of the reader that replaced the near-line refusal. Without it, item 8 amounts to `frame/plan.md` A2, nets removed with no report, which the frame rejected. Cheaper homes were weighed and none reaches every pull request. The proofer has no step that reads a rule file for near lines. A straight-to-the-PR change has no proofer. The gaps row leaves at the settle. The suite case drops its capture. A `::notice` written from the test step would pass through pytest-xdist's workers, which nothing here showed reaching the log. `chain_check.py` ships to users' repositories, whose rule files are not this plugin's globs. Its price is one `python3` run per pull request, report-only, plus one `broad_gate.py#PARTITION` row with its reason. Adding a step moves the partition's pinned step counts (`tests/behaviour/test_the_gate_names_every_step_ci_runs.py`), and those changed in the same commit. The paste's YAML was applied with two changes. First, the step is named `the check lines rules.py did not read`: the paste's name put the bare word `seal` into `broad_gate.py`, which `test_one_word_one_meaning.py#test_the_gate_calls_its_run_no_seal_by_construction` refuses (executed, red, then folded into `c4e91dd2` before it left the clone). Second, the pin runs the step's own shell, taken out of `hygiene.yml`, over a tree holding a near line and a refused line. It reads the whole notice and exit 0 in place of matching the command's text. `seal mutate` over `hygiene.yml` (executed): the step renamed, `|| true` dropped, and the notice without file and line are each red. The gaps row is closed in the same commit. Other statements: `skills/settle/SKILL.md` *What this plugin checks* describes the shipped command and not this repository's CI, so it stands. Table A's `seal rules --check` row (`Runs at: the suite`) is the frame's, named in the hand-back.
 
 ## Confirmations
 
