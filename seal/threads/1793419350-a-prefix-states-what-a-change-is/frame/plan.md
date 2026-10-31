@@ -23,6 +23,7 @@ A second scenario: the refusal makes a writer lower a `feat:` to keep a release'
 | A9 A new script and step for the version reading | One more step, file and boundary case for a reading that uses the existing step's two reads | Rejected for A1's form inside `release_completeness_check.py` |
 | A10 Classify #1167 as `refactor:`, the owner's lean | Items 11 and 12 add a record section and a reading, which the issue's own `feat:` line names ("a record format, a step, a reading"), so a writer applying the table to #1167 gets `feat:` and a second writer told "refactor" disagrees | Rejected. `feat:`, by the first fitting row (`frame/design.md` *The first cases*). The milestone does not move either way |
 | A11 Keep the table's words and add a "chore is narrow" note | The words "behaviour that did not exist now does" and "same behaviour, different structure" do not separate #1167 from #1198 (the issue, read), so two writers still disagree | Rejected. The rows are rewritten in place |
+| A13 Drop the Table A row change and leave the row to the settle's reading of the code, so the merge order does not matter | Table A's row says the release step reads subjects' `(#N)` alone. A settle that misses the new reading leaves a policy row stating the old fact, which contract rule 19 asks the change to correct | Rejected (frame-reading exchange, 2026-10-31). The orchestrator merges this work after #1167 instead (*Operational impact*), which the core sentence needs as well |
 | A12 Pull a milestone back where a minor ends with no `feat:` | Every later milestone is renamed for a release that adds nothing, and the owner's decision keeps numbers | Rejected. A milestone is never pulled back |
 
 ## Phases
@@ -38,6 +39,8 @@ One phase, because the three items are small and a round over all of them reads 
 ## Operational impact
 
 No migration, environment variable or dependency. `plugin.json` is not moved here; #1167's last phase moves it to the release's version.
+
+**This work merges after #1167, by an act and not by the milestone's order.** The orchestrator opens this work's pull request only after #1167's has merged into `release/v0.26.0`, and merges `release/v0.26.0` into this branch before the broad gate. Two things stand on it. The settle applies designs in merge order, and the last `## Rule changes` item changes a row of `docs/what-a-script-gates.md`, which only #1167's design writes. The release check's "not read" naming follows the core sentence #1167's phase 1 wrote. The build itself does not wait: the phase builds on the base, and only the opening of the pull request waits.
 
 **A release pull request can now go red on its version.** The `::error::` line names the subjects and the push, so the person who meets it reads the repair there.
 
