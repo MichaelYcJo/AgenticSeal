@@ -385,7 +385,10 @@ adds any mechanism by what it takes away:
   its work removes* is the rule.
 - **What it reads.** A pull request that adds or changes a gate names the
   form the gate reads, what the gate names as a line it did not read, and
-  the agent and the step that judge the meaning of the same text.
+  the agent and the step that judge the meaning of the same text. The gate
+  names a line as not read only within the scope where it reads that form,
+  and each edge of that scope carries a case: a name given where the gate
+  does not read the form tells its reader to respell a line nothing reads.
   `skills/core/SKILL.md` *The rule a mechanism is kept against* is why: a
   script holds a gate only on a fact it reads exactly, and whether a line
   spelt otherwise meant the label is the reading agent's judgment.
