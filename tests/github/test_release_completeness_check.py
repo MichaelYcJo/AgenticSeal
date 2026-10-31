@@ -306,6 +306,7 @@ class Test_judge_feat:
 
 
 class Test_main:
+    @pytest.mark.rule("a-release-is-judged-under-its-two-names")
     @pytest.mark.parametrize(
         "head",
         ["hotfix/v1.2.4", "fix/88-a-thing", "main", "release/next", "release/v1.2", ""],
@@ -326,6 +327,7 @@ class Test_main:
         assert m.main() == 0
         assert "nothing to judge" in capsys.readouterr().out
 
+    @pytest.mark.rule("a-release-is-judged-under-its-two-names")
     def test_a_milestone_that_does_not_exist_says_it_verified_nothing(
         self, monkeypatch, capsys
     ):

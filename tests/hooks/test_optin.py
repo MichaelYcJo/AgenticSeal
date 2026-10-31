@@ -287,13 +287,25 @@ class Test_marked:
             "# seal\n\nThis package's own notes.\n",
             "\n{marker}\n",
             "{marker} of a fork\n",
+            "{marker} \n",
+            "\N{BYTE ORDER MARK}{marker}\n",
             "",
         ],
-        ids=["another heading", "the marker on line two", "a longer line", "empty"],
+        ids=[
+            "another heading",
+            "the marker on line two",
+            "a longer line",
+            "a space after it",
+            "a byte order mark before it",
+            "empty",
+        ],
     )
     def test_refuses_a_readme_whose_first_line_is_another(self, optin, tmp_path, text):
         """A `seal/` a project or a package keeps for itself is not the
-        plugin's root, whatever it holds below its first line."""
+        plugin's root, whatever it holds below its first line. The line is
+        compared whole with its line end alone taken off, so a space after the
+        marker, a byte order mark before it and a blank line above it each
+        make it another line, as `templates/setup/seal-README.md` says."""
         readme_at(tmp_path / "seal", text.format(marker=optin.MARKER))
         assert not optin.marked(str(tmp_path / "seal"))
 

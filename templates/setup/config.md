@@ -12,7 +12,10 @@ which is not. This file goes wherever that root already is.
 exceptions: `Mode` and `Broad gate`.** Every other item has a default, and
 the defaults are what every repository got before the row existed. A
 repository needs the file only where one of its answers is not the default;
-a file that restates the defaults is a file nobody needs.
+a file that restates the defaults is a file nobody needs. An item is named
+by its row's first cell spelt as this file spells it, case included. A first
+cell spelt otherwise, such as `Policy Root`, names no item, so the item reads
+as absent.
 
 **`Mode` has no default.** An absent one is filled in from where the folder
 is, by `seal mode` (*Mode* below). It is not silent while absent: a root with

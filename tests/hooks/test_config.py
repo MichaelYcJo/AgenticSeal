@@ -921,6 +921,14 @@ class Test_config_value:
         assert config.config_value(text, "Ledger frozen from") == (None, None)
         assert config.config_value(None, "Mode") == (None, None)
 
+    def test_an_item_spelt_otherwise_names_no_item(self, config):
+        """An item is its row's first cell spelt as `templates/setup/config.md`
+        spells it, case included, so a `Policy Root` row names no item and
+        `Policy root` reads as absent, which is what that file's paragraph on
+        absent rows says."""
+        text = TABLE.format(rows="| Policy Root | elsewhere |\n")
+        assert config.config_value(text, "Policy root") == (None, None)
+
     def test_a_fenced_example_of_a_row_does_not_double_the_live_one(self, config):
         """The count is over the rows `config_rows` takes, so the example a
         person pastes from `templates/setup/config.md` into a fence above the table
