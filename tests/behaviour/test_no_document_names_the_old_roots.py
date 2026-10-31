@@ -26,9 +26,8 @@ import re
 import pytest
 from conftest import ROOT, build_tracked_tree, decline_if_shrunken, git_listing, on_disk
 
-# `.specseal/` anywhere; `specs/<` unless it follows a `/` (the 0.22.x
-# `seal/` layout the migration names) or is part of a longer path segment.
-OLD_ROOT = re.compile(r"\.specseal/|(?<![\w/.])specs/<")
+# `.specseal/` anywhere; `specs/<` unless it is part of a longer path segment.
+OLD_ROOT = re.compile(r"\.specseal/|(?<![\w.])specs/<")
 
 SCANNED = (
     ".github/workflows",
@@ -178,6 +177,8 @@ def test_the_scan_covers_something():
         "the gate reads `specs/<work-item-id>/routing.md`",
         "<!-- specs/<unix-epoch-seconds>-<slug>/design.md — WHAT",
         "opt-in: `.specseal/` at the repo root",
+        # exempt from old_names: the 0.22.x layout the scan must refuse
+        "write it under `seal/specs/<work-item-id>/`",
     ],
 )
 def test_the_check_can_fail(line):
