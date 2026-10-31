@@ -336,7 +336,8 @@ class Test_main:
         )
         assert m.main() == 0
         out = capsys.readouterr().out
-        assert "verified NOTHING" in out, out
+        assert "the milestone reading verified NOTHING" in out, out
+        assert "That reading passes anyway" in out, out
         assert MILESTONE in out
 
     @pytest.mark.rule("a-patch-carries-no-feat")
@@ -356,7 +357,10 @@ class Test_main:
         )
         assert m.main() == 1
         out = capsys.readouterr().out
-        assert "verified NOTHING" in out, out
+        assert "the milestone reading verified NOTHING" in out, out
+        assert "Passing anyway" not in out, (
+            "the warning tells a reader a run that exits 1 passed"
+        )
         assert "::error::" in out and "`feat: a thing (#100)`" in out, out
 
     @pytest.mark.rule("a-patch-carries-no-feat")
