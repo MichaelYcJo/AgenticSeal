@@ -1110,9 +1110,12 @@ def unique_by_target(paths):
     side at it: a link kept in its target's place had its own blob read at
     the base, which holds no section, and a deleted row passed (#19). The
     real path may lie outside the scanned path, or outside the repository,
-    which `main` names as not compared. Presence is a different question and
-    keeps every path — `ls-tree` lists the link under its own name, so
-    dropping it here would report a file that is right there as deleted."""
+    which `main` names as not compared. A link whose own path held a file at
+    the base is read there by `main` as well, since this list leaves that
+    path out and those rows were the file's own. Presence is a different
+    question and keeps every path — `ls-tree` lists the link under its own
+    name, so dropping it here would report a file that is right there as
+    deleted."""
     return sorted({os.path.realpath(p) for p in paths})
 
 
@@ -1445,6 +1448,58 @@ def show(root, ref, rel):
     return r.stdout if r.returncode == 0 else None
 
 
+LINK_MODE = "120000"
+
+
+def mode_at(root, ref, rel):
+    """The mode `ref` records for `rel`, `LINK_MODE` for a symbolic link, or
+    None where `ref` holds no such path."""
+    r = subprocess.run(
+        ["git", "-C", root, "ls-tree", ref, "--", rel],
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    head = r.stdout.split(" ", 1)[0] if r.returncode == 0 else ""
+    return head or None
+
+
+def compare_at(root, base, at, rel, now, named):
+    """What a run says of the record reported as `rel`, which holds `now`
+    rows here, against the section `at` held at `base`: `("notice", line)`
+    where that section cannot be read, `("error", line)` where it held more
+    rows, and None where it held no more or `base` holds no `at`."""
+    base_text = show(root, base, at)
+    if base_text is None:
+        return None
+    base_open, base_closed, base_errors = check_text(
+        base_text, heading=LOOSE_HEADING, strict_header=False
+    )
+    if base_errors:
+        # Never a silent zero: a base this cannot read is a file whose
+        # count is unknown, and saying so is the whole point of the
+        # tool. It is not an error either — the author cannot edit a
+        # commit that already happened.
+        return "notice", annotate(
+            "notice",
+            rel,
+            1,
+            f"not compared: the section at {named} could "
+            f"not be read ({base_errors[0][1]})",
+        )
+    was = len(base_open) + len(base_closed)
+    if now < was:
+        return "error", annotate(
+            "error",
+            rel,
+            1,
+            f"{was} rows at {named}, {now} here. An item leaves "
+            f"this table by opening with the word `{CLOSED}` and "
+            "saying what closed it, never by being deleted",
+        )
+    return None
+
+
 def annotate(kind, path, line, message):
     """A GitHub annotation in CI, a plain line anywhere else."""
     if os.environ.get("GITHUB_ACTIONS"):
@@ -1615,42 +1670,41 @@ def main(argv=None):
                 continue
             # An unreadable section returns zero rows, and comparing that zero
             # told the author to restore rows that never left.
-            base_text = show(root, base, at)
-            if base_text is None:
-                continue
-            base_open, base_closed, base_errors = check_text(
-                base_text, heading=LOOSE_HEADING, strict_header=False
+            found = compare_at(
+                root, base, at, rel, len(open_rows) + len(closed_rows), named
             )
-            if base_errors:
-                # Never a silent zero: a base this cannot read is a file whose
-                # count is unknown, and saying so is the whole point of the
-                # tool. It is not an error either — the author cannot edit a
-                # commit that already happened.
-                uncompared.append(
-                    annotate(
-                        "notice",
-                        rel,
-                        1,
-                        f"not compared: the section at {named} could "
-                        f"not be read ({base_errors[0][1]})",
-                    )
-                )
-                continue
-            was = len(base_open) + len(base_closed)
-            now = len(open_rows) + len(closed_rows)
-            if now < was:
-                deleted.append(
-                    annotate(
-                        "error",
-                        rel,
-                        1,
-                        f"{was} rows at {named}, {now} here. An item leaves "
-                        f"this table by opening with the word `{CLOSED}` and "
-                        "saying what closed it, never by being deleted",
-                    )
-                )
+            if found:
+                kind, line = found
+                (uncompared if kind == "notice" else deleted).append(line)
 
     if args.baseline:
+        # The loop above reads the base at each real path. A path that is a
+        # link here and was a file at the base held its own rows there, and
+        # nothing else reads them: they are compared with what the link reads
+        # now, under the link's own path. A path that was a link at the base
+        # held no rows of its own there, so the real path's comparison is the
+        # only one owed for it.
+        for path in files:
+            if not os.path.islink(path):
+                continue
+            at = repo_relative(path, root)
+            if mode_at(root, base, at) == LINK_MODE:
+                continue
+            open_rows, closed_rows, errors = check_file(path)
+            if errors:
+                continue
+            found = compare_at(
+                root,
+                base,
+                at,
+                display_path(path, cwd),
+                len(open_rows) + len(closed_rows),
+                named,
+            )
+            if found:
+                kind, line = found
+                (uncompared if kind == "notice" else deleted).append(line)
+
         prefixes = sorted({repo_relative(real(p), root) for p in args.path})
         here = {repo_relative(f, root) for f in files}
         gone = [r for r in overviews_at(root, base, prefixes) if r not in here]

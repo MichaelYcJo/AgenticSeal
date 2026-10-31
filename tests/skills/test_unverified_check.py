@@ -1765,6 +1765,41 @@ class Test_show:
         assert UC.show(str(d), "HEAD", "gaps.md") == on_disk
 
 
+class Test_mode_at:
+    def test_accepts_a_tracked_link_as_a_link(self, linked):
+        at = f"specs/{link_of(linked)}/gaps.md"
+        assert UC.mode_at(str(linked), "HEAD", at) == UC.LINK_MODE
+
+    @pytest.mark.parametrize(
+        "at, mode",
+        [(f"specs/{WORK}/gaps.md", "100644"), ("specs/none/gaps.md", None)],
+        ids=["a file", "a path the ref does not hold"],
+    )
+    def test_refuses_a_file_or_an_absent_path_as_a_link(self, linked, at, mode):
+        assert UC.mode_at(str(linked), "HEAD", at) == mode
+
+
+class Test_compare_at:
+    @pytest.mark.parametrize(
+        "now, kind", [(1, "error"), (2, None)], ids=["fewer here", "as many"]
+    )
+    def test_refuses_fewer_rows_than_the_base_held_and_no_fewer(self, plain, now, kind):
+        at = f"specs/{WORK}/gaps.md"
+        found = UC.compare_at(str(plain), "HEAD", at, at, now, "HEAD")
+        assert (found and found[0]) == kind, found
+        if kind:
+            assert "2 rows at HEAD, 1 here" in found[1], found
+
+    def test_accepts_a_path_the_base_does_not_hold_as_nothing_to_compare(self, plain):
+        at = "specs/none/gaps.md"
+        assert UC.compare_at(str(plain), "HEAD", at, at, 0, "HEAD") is None
+
+    def test_refuses_to_count_a_base_section_it_cannot_read(self, tmp_path):
+        d = _committed(tmp_path, {"gaps.md": "# nothing here\n"})
+        found = UC.compare_at(str(d), "HEAD", "gaps.md", "gaps.md", 0, "HEAD")
+        assert found[0] == "notice" and "could not be read" in found[1], found
+
+
 # --- what a settle removed ----------------------------------------------------
 
 
@@ -2217,6 +2252,38 @@ class Test_main:
         assert "2 rows at HEAD, 1 here" in out, out
         named = [os.path.basename(os.path.dirname(p)) for p in reported_paths(out)]
         assert named == [WORK], out
+
+    @pytest.mark.parametrize(
+        "name",
+        [OTHER, "1779999999-link"],
+        ids=["the link sorts after its target", "the link sorts before its target"],
+    )
+    def test_refuses_a_memo_replaced_by_a_link_to_one_holding_fewer_rows(
+        self, tmp_path, monkeypatch, capsys, name
+    ):
+        """A memo that was a file at the base and is a link here held its own
+        rows there. With only the real path kept, nothing read the base at the
+        link's path, and its rows left with exit 0 in either order; before
+        #19's change they were compared only where the link sorted first.
+        They are compared with what the link reads now, under its own path."""
+        one_row = CANONICAL.replace(WINDOWS + "\n", "")
+        d = _committed(
+            tmp_path,
+            {
+                f"specs/{WORK}/gaps.md": memo(one_row),
+                f"specs/{name}/gaps.md": memo(CANONICAL, name),
+            },
+        )
+        os.remove(d / "specs" / name / "gaps.md")
+        symlink_or_skip(
+            os.path.join("..", WORK, "gaps.md"), str(d / "specs" / name / "gaps.md")
+        )
+        monkeypatch.chdir(d)
+        assert run([str(d), "--baseline", "HEAD"]) == 1
+        out = capsys.readouterr().out
+        assert "2 rows at HEAD, 1 here" in out, out
+        named = [os.path.basename(os.path.dirname(p)) for p in reported_paths(out)]
+        assert named == [name], out
 
     @pytest.mark.parametrize("volume", ["this volume", "another volume"])
     def test_accepts_a_link_to_a_file_beyond_the_repository_as_not_compared(

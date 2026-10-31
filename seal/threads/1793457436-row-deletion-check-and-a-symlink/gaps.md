@@ -10,4 +10,6 @@
 
 ## Not done
 
-Nothing beyond the list under *Out* in `frame/design.md` *Scope*, which gives each item left and its grounds.
+The list under *Out* in `frame/design.md` *Scope* gives each item left there and its grounds. Round 1's fix pass left one more.
+
+A link named as the argument itself, such as `seal unverified --baseline <ref> specs/a/gaps.md` where `specs/a/gaps.md` was a file at the base and is a link now, still passes the rows it lost with exit 0. `#overviews` resolves each argument once with `real()`, so the scan holds only the target's path and the link's own path never reaches the comparison. The presence arm builds its prefixes from the same resolved argument. A probe on this branch after the fix showed exit 0 for this case. The same probe exited 1 for the class round 1 named, with the link reached by scanning its directory. The behaviour predates this work: a92c358b resolved the argument the same way. Closing it means resolving only the argument's directory, in `#overviews` and in the presence arm's prefixes together, or the presence arm reports the target as deleted. That changes the argument resolution the frame leaves alone (`frame/design.md` *Grounding*, the row on `#overviews` and `#main`). It goes to the orchestrator as a candidate row for `seal/follow-up.md`.
