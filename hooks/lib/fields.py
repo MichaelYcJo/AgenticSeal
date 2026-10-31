@@ -385,5 +385,5 @@ def assemble(pairs, kinds):
 def verdict_word(block):
     """`sealed`, `withheld` or `undecided` for a verdict block, the first
     word of its `Verdict:` value; None for a block of another kind."""
-    said = block.fields.get(SEALER_VERDICT) if block.kind is VERDICT_BLOCK else None
+    said = block.fields.get(SEALER_VERDICT)
     return said.value.split(" ", 1)[0] if said else None
