@@ -10,6 +10,7 @@ import time
 
 import pytest
 from conftest import ROOT, census_case, load_hook_module
+from conftest import seal_block as block
 
 TARGET = "hooks/lib/fields.py"
 
@@ -18,11 +19,6 @@ fields = load_hook_module("lib/fields.py", "agentic_fields_under_test")
 FENCE = "`" * 3
 SHA = "abc1234"
 BASE = "def5678"
-
-
-def block(*lines, opener=FENCE + "seal"):
-    """A `seal` block holding LINES, closed, with a newline after it."""
-    return "\n".join([opener, *lines, FENCE]) + "\n"
 
 
 def verdict(target=SHA, said="sealed", original=None):

@@ -40,6 +40,7 @@ from conftest import (
 from conftest import commit_everything as commit
 from conftest import git_out as git
 from conftest import load_module as load
+from conftest import seal_block as block
 
 TARGET = "skills/code-review/scripts/chain_check.py"
 
@@ -68,11 +69,6 @@ ROUTING = """# a work item -- routing
 
 
 FENCE = "`" * 3
-
-
-def block(*lines, opener=FENCE + "seal"):
-    """A `seal` block holding LINES, closed, with a newline after it."""
-    return "\n".join([opener, *lines, FENCE]) + "\n"
 
 
 def close(verdict, answer="done", location=None):

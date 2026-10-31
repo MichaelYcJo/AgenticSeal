@@ -1538,6 +1538,16 @@ def write_transcript(root, session, entries, slug="-Users-x-repo"):
     return path
 
 
+# --- a `seal` block, as `hooks/lib/fields.py` reads one ---------------------------
+
+
+def seal_block(*lines, opener="`" * 3 + "seal"):
+    """A `seal` block holding LINES, closed, with a newline after it.
+    `tests/hooks/test_fields.py` and `tests/skills/test_chain_check.py`
+    write records with it."""
+    return "\n".join([opener, *lines, "`" * 3]) + "\n"
+
+
 # --- a work item's closing records, as the stamp's queue gates read them -------
 #
 # `tests/hooks/test_sealer_stamp_queue.py` writes them.
