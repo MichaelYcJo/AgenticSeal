@@ -9,7 +9,7 @@ target: b00c434e, fixes e6c957da..b00c434e
 severity: should
 location: `tests/skills/test_settle.py:1157-1164`
 evidence: executed `bin/seal mutate tests/skills/test_settle.py --tests "bin/test tests/skills/test_settle.py -q -p no:xdist -rs -k link" --replace <trail.mkdir() removed>`, `git grep -n "os\.symlink\|\.symlink_to(" -- tests evals`
-verdict: open
+verdict: fixed d79bed62
 reopens: round-1#2
 
 The close holds for the coordinate round 1 named and not for the class. The answer drew the class as "every copy of a conftest helper in the files this phase touched", listed from the helpers this phase added. That method leaves out, by how it is built, any copy that stood in a touched file before the phase. One does. In `Test_main::test_a_work_item_whose_rounds_cannot_be_listed_is_not_counted_as_none`, the `link` shape at `tests/skills/test_settle.py:1157-1164` makes its link inline: `os.symlink(held, trail / "rounds", target_is_directory=True)` inside a `try` that turns every `OSError` and `NotImplementedError` into `pytest.skip("this platform makes no symbolic link here")`. It has no check that the link's parent exists. It is the same copy of `tests/conftest.py#symlink_or_skip` that finding 2 named, in the same module, and it exists for the same reason: the shared helper took no directory flag. This fix pass gave the helper that flag in 851fb4cc, whose subject says "the settle's link cases make their links through conftest's symlink_or_skip". This case does not.
@@ -26,7 +26,7 @@ The fix replaces the inline `try` with the shared helper. `symlink_or_skip` is a
             symlink_or_skip(held, trail / "rounds", directory=True)
 ```
 
-answer:
+answer: The finding holds, and d79bed62 fixes it as proposed. The inline `try` around `os.symlink` is replaced by `symlink_or_skip(held, trail / "rounds", directory=True)`. With `trail.mkdir()` removed, `bin/seal mutate tests/skills/test_settle.py` now turns the `link` shape red on "the link's parent does not exist", where this round saw it survive as a skip (executed). Round 1's class was drawn from the helpers this phase added, so a copy that stood in a touched file before the phase fell outside it by how the list was built. This time the class is every link a case makes in the seven files this work item touches. Those files come from `git diff --name-only a83ce23e..HEAD` without the records. In them, `git grep -n -E "symlink|symlink_to|hardlink|os\.link\(|\.link_to\(|mklink|ln -s|CreateSymbolicLink|junction"` was run, setting aside the `symlink_or_skip(` calls (executed). It listed `tests/skills/test_settle.py:1162`, now fixed, and `tests/conftest.py:647`, the helper's own `os.symlink`. `tests/conftest.py:1412`'s `shutil.copytree(..., symlinks=True)` copies a template's links and makes none of a case's own, so it stands. The same search for `mkfifo` and `os.mknod`, the sibling helper `fifo_or_skip`'s class, finds only that helper. `README.md`, `README.ko.md`, `skills/settle/SKILL.md`, `skills/settle/scripts/settle.py` and `tests/text/test_settle_reads_before_it_removes.py` make no link. `tests/skills/test_agentic_pytest_record.py` is outside these files and stays as this round named it. The search reads spellings, so it is complete for the spellings listed, and a link made through another API would escape it. `bin/test tests/skills/test_settle.py -q -rs` gives 101 passed, none skipped (executed).
 
 ## Confirmations
 
