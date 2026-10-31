@@ -362,7 +362,7 @@ the repository.
 | a decision, with its grounds | the work item's records, as `skills/core/SKILL.md` *A judgment stands on a source document, and is written down with both* states |
 | a lesson about how an act is done | the file the act is read from, through the work item in progress where that work item changes the file: a skill or an agent definition edited in place, or a policy document through the work item's `## Rule changes` (`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*) |
 | a lesson or a decision whose home no work item in progress changes | an issue that names the home |
-| a reading of what a segment cost | the flow log (`skills/verify/orchestration.md` *Measure the segment, and feed the flow log*) |
+| a reading of what a segment cost | the log `skills/verify/orchestration.md` *Measure the segment, and feed the flow log* names for that reading |
 
 **A lesson seen once is given a home or judged not worth one.** The
 orchestrator weighs it under `skills/core/SKILL.md` *The rule a mechanism is
