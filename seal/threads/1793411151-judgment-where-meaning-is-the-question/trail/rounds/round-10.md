@@ -32,7 +32,7 @@ headings. That is the finding below.
 severity: should
 location: `tests/skills/test_settle.py:1029`, `skills/settle/scripts/settle.py:521-522`, `seal/threads/1793411151-judgment-where-meaning-is-the-question/frame/design.md:55`
 evidence: executed `bin/seal mutate skills/settle/scripts/settle.py --replace "        marks = rules.headings(lines)" "        marks = rules.headings(lines, comments=False)" --replace "if t != JUDGMENTS and rules.letters(t) == rules.letters(JUDGMENTS)" "if t != JUDGMENTS and rules.letters(t) == rules.letters(JUDGMENTS) and not any(u == JUDGMENTS for _m, _l, u in marks)" --tests "bin/test tests/skills/test_settle.py -q -p no:xdist"`
-verdict: open
+verdict: fixed 58d9c003
 regression: round-9#2
 
 The unit is the near-heading scan that `604ec0e8` added to `judgments`
@@ -140,7 +140,7 @@ of the run* outside a fence is named as not read" to "a live heading near
 *Judgments of the run*, one outside a fence and an HTML comment, is named
 as not read".
 
-answer:
+answer: Fixed as grounded. The two cases were read against the grounds and taken with one change: the beside-the-section case asserts the whole `not read:` line, as the near-heading case does. Each went red under its own mutant (`seal mutate`, at `58d9c003`): `rules.headings(lines, comments=False)` on the comment case, and naming only where the exact section is absent on the beside-the-section case. The docstring now says a heading inside a fence or an HTML comment is no heading. The orchestrator's extra ask, the unlistable `trail/rounds` branch of `routing.rounds_unreadable`, is a third row of the round-9#1 case: it makes the directory, then refuses `os.listdir` on that one path through `monkeypatch`, with no new helper and no root skip. It went red under `hooks/lib/routing.py`'s `os.listdir(where)` replaced by `pass`, and under settle's `rounds_unreadable` check removed. The module runs 93 of 93. The frame sentence for the orchestrator to fold: `frame/design.md:55`'s "a heading near *Judgments of the run* outside a fence is named as not read", to a live heading, one outside a fence and an HTML comment.
 
 ## Confirmations
 
