@@ -28,7 +28,7 @@ the settle; and every other statement of the old rule in the tree.
 severity: should
 location: `seal/threads/1793432602-a-feat-moves-to-the-minor-of-its-goal/changelog.md:3`
 evidence: executed `git grep -n -i -E 'every later planned|pushes the milestones|renamed one step|judge_feat' origin/main -- .`
-verdict: open
+verdict: fixed f7bf6ef5
 
 The claim of absence rests on the grep above. The texts compared were read
 at `seal/threads/1793432602-a-feat-moves-to-the-minor-of-its-goal/changelog.md:3`,
@@ -80,7 +80,7 @@ carries.
 - **A planned minor is a category with one goal, and a `feat:` that lands in a milestone numbered as a patch moves to the planned minor whose goal it shares (#1205).** A minor milestone's description states the one goal its `feat:`s share, and a patch's description says it builds no `feat:`. Whoever files a `feat:` issue into a patch-numbered milestone, or moves one there, moves it to the planned minor whose goal it shares. The milestones are renamed one step forward only in three cases: no planned minor shares the goal; the work that follows needs the `feat:` before that minor ships, and the renamed milestone's description names that work and says why the minor is too late; or the `feat:` is already squashed onto the patch's branch, where the release pull request's reading counts it even after a revert. Until a release branch is cut, a planned milestone's name follows its goal, and a regrouping renames milestones back as well as forward. Once a branch is cut, its name is never pulled back, so a minor with no `feat:` ships under the name its branch was cut with.
 ```
 
-answer:
+answer: The orchestrator applied the round's text as written, checked against `frame/design.md` *Scope* item 4: the entry keeps its four points and the A8 exception, and none of "no longer", "now names", "now says" or "still ships" stands in it. The finding is in the work item's records alone and the commit touched them alone, so the sealer reads it at HEAD.
 
 ## Confirmations
 
