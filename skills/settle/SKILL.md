@@ -179,7 +179,9 @@ nothing:
   whose commits no ancestry orders are marked `unordered`, for the settling
   session to order by content.
 - **The designs to read whole**: one whose `## Rule changes` does not parse,
-  with the reader's reason, and one with no such section.
+  with the reader's reason, one with no such section, and one in which the
+  reader names a line it did not read, a heading near `## Rule changes`
+  among them, with that line and its reason.
 - **Every open `## Not verified` row** of every released record, each with
   the backticked paths it names and whether each is in the working tree.
 - **The judgments**: every row of every released `frame/plan.md` *Judgments

@@ -37,7 +37,8 @@ carries its design's coordinate and two facts read from the working tree:
 whether its `from` is found in the section, and whether its `to` is. Two designs
 in one group whose commits no ancestry orders are marked unordered for
 the settling session to order by content. A design whose section does not parse,
-or that has none, is listed to read whole. Every open `## Not verified` row of
+that has none, or in which the reader names a line it did not read, is
+listed to read whole. Every open `## Not verified` row of
 every released record is listed with the backticked paths it names and
 whether each is in the working tree. Every row of every released
 `frame/plan.md` *Judgments of the run* is listed, grouped by its `Judged
@@ -580,7 +581,8 @@ def timeline(root, ref, ids, reader, records, merged=None):
     order is the merge commits MERGED names, `{id: (number, merge commit)}`
     (`rule_changes.py#merge_order`). A design with operations joins the groups
     `rule_changes.py#group` forms in merge order; one whose section does not
-    parse, or that has none, is to be read whole; one holding the no-change
+    parse, that has none, or that holds a line the reader names as not read
+    (`Parsed.unread`), is to be read whole; one holding the no-change
     block has nothing to write; a directory with no `frame/design.md` states no
     rule."""
     rules = load(RULES, "agentic_rule_changes")
@@ -598,6 +600,10 @@ def timeline(root, ref, ids, reader, records, merged=None):
         found = rules.parse(text, policy)
         if found.errors:
             whole.append((work_item_id, *found.errors[0]))
+        elif found.unread:
+            # A line the reader did not read can hold a rule change no group
+            # would hold, so the design is read whole, at that line.
+            whole.append((work_item_id, *found.unread[0]))
         elif found.ops is None:
             whole.append((work_item_id, 0, NO_SECTION))
         elif not found.ops:

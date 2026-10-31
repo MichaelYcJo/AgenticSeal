@@ -487,6 +487,44 @@ class Test_report:
         assert "refused" not in text and "kept" not in text, text
         assert "Nothing was written and nothing was removed" in text, text
 
+    def test_lists_a_design_with_a_line_its_reader_did_not_read_to_read_whole(
+        self, tree
+    ):
+        """Round 6 of #1167, finding 1: a design holding `## Rule changes` and
+        a heading near it parses, with the near heading in `unread`, and an
+        item under that heading no group would hold. The dry run lists the
+        design to read whole, at the near heading's line with the reader's
+        reason, and neither groups its other item nor calls it a design with
+        nothing to write. Seen red against the design grouped with one of
+        its two items, and the no-change one listed as having nothing to
+        write."""
+        change = (
+            "- change\n  file: docs/one-root.md\n  section: S\n"
+            "  from: old.\n  to: new.\n"
+        )
+        designs = {
+            "1700000001-alpha": spec(change) + f"\n## Rule Changes\n\n{change}",
+            "1700000002-beta": spec("- nothing\n  why: a reason.")
+            + f"\n## Rule Changes\n\n{change}",
+        }
+        for name, text in designs.items():
+            (tree / "seal" / "threads" / name / "frame" / "design.md").write_text(
+                text, encoding="utf-8"
+            )
+            git(tree, "add", "--", f"seal/threads/{name}")
+        git(tree, "commit", "-qm", "two designs with a heading near the section's")
+        code, text = run(tree)
+        assert code == 0, text
+        listed = text.split(settle.WHOLE_HEADING)[1].split("\n\n")[0] + "\n"
+        for name, design in designs.items():
+            where = f"seal/threads/{name}/frame/design.md:"
+            where += str(line_of(design, "## Rule Changes"))
+            said = "`## Rule Changes` opens like `## Rule changes` and is not it"
+            assert f"    {name}  {where}  {said}" in listed, text
+        assert "1. change  1700000001-alpha" not in text, text
+        nothing = text.split("no-change block (")[-1].split("\n\n")[0]
+        assert "1700000002-beta" not in nothing, text
+
     def test_an_unreleased_work_item_is_not_a_candidate(self, tree):
         """Released means present on the branch the release merges to, so this
         branch's own work item is outside the corpus entirely."""
