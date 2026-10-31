@@ -135,16 +135,19 @@ supports (*Grounding*, the row on the `#<ref>` form):
   `MichaelYcJo/AgenticSeal#v0.26.0`, the `#<ref>` form pinning a tag; and
   install `agentic@agenticseal` from it. Then start a session in each
   clone, commit the move, and run `/agentic:update`. Reaching 0.27.0
-  afterwards is said only as removing the pinned marketplace and adding it
-  again without the ref, the two acts the reference names. The note does
+  afterwards is said only as removing the pinned marketplace, adding it
+  again without the ref and installing `agentic@agenticseal` again, since
+  the remove uninstalls the plugin; the reference names the first two acts,
+  and the third is the install the first step already uses. The note does
   not promise that the path works end to end. It says nobody has run it on
   a machine holding such an install, as 0.23.0's note said of its own
   three commands.
 - Move the files by hand.
 
-It also names the one leftover a person sees either way: git hook stubs,
-deleted by removing the hook files whose second line starts with the old
-marker.
+It also names the one leftover a person sees on the second way: git hook
+stubs, deleted by removing the hook files whose second line starts with the
+old marker. The first way leaves none, because 0.26.0's session start runs
+`hooks/stub-remove.py` in each clone the way starts a session in.
 
 This path is the one thing the frame leaves unverified on purpose. Running
 it would change this machine's plugin configuration, so no party runs it.
