@@ -1963,6 +1963,11 @@ class Test_round_records:
         assert gate.round_records(str(tmp_path)) == []
 
 
+# A run block naming the run `write_gate_file(..., "aaa1111", "bbb2222")`
+# writes, held as the last block of a gate record.
+SAME_RUN = "`" * 3 + "seal\nrun: aaa1111 against bbb2222\n" + "`" * 3 + "\n"
+
+
 class Test_write_gate_file:
     def test_accepts_a_second_run_appended_below_the_first(self, tmp_path):
         """#1198, *Scope* item 2: each green run appends one run block below
@@ -2013,18 +2018,28 @@ class Test_write_gate_file:
 
     @pytest.mark.parametrize(
         "held",
-        ["# x\n\na note\n\n" + "`" * 3 + "\n", "<!-- a note -->\n\n# x\n"],
-        ids=["a fence nobody closed", "a comment line"],
+        [
+            "# x\n\na note\n\n" + "`" * 3 + "\n",
+            "<!-- a note -->\n\n# x\n",
+            "# x\n\n" + SAME_RUN + "\n<!-- a note -->\n",
+            "# x\n\n" + SAME_RUN + "\na note\n\n" + "`" * 3 + "\n",
+        ],
+        ids=[
+            "a fence nobody closed",
+            "a comment line",
+            "a comment line below the same run",
+            "a fence nobody closed below the same run",
+        ],
     )
     def test_refuses_a_file_whose_new_run_the_reader_would_not_read(
         self, tmp_path, held
     ):
-        """Round 1 of #1198, finding 2: the run is appended to whatever the
-        file holds, so the file as it would be written is read back. Below a
-        fence nobody closed the new block's closer closes that fence and no
-        run block reads; a comment line is refused at the pull request. Each
-        is refused here, where a person can fix the file, and the file is
-        left as it was."""
+        """Round 1 of #1198, finding 2, and round 2, finding 1: the file as
+        it will stand is read back, the held file itself where its last block
+        already names the run. Below a fence nobody closed the new block's
+        closer closes that fence and no run block reads; a comment line is
+        refused at the pull request. Each is refused here, where a person can
+        fix the file, and the file is left as it was."""
         record = tmp_path / "trail" / "gate.md"
         record.parent.mkdir()
         record.write_text(held, encoding="utf-8")
