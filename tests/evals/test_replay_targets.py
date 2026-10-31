@@ -31,6 +31,29 @@ def load_script(name):
     return module
 
 
+# The last release whose check reads a round record in labelled lines. Every
+# record a replay reads stands in them, and this tree's check reads `seal`
+# blocks from #1198 on, so a case that needs a commit's check to accept one
+# takes that release's check.
+LABELLED_AT = "v0.26.0"
+
+
+def labelled_check_files():
+    """`{path: text}` for each of `replay_targets.CHECK_FILES` the release
+    `LABELLED_AT` holds, read from this repository's history."""
+    found = {}
+    for rel in load_script("replay_targets").CHECK_FILES:
+        shown = subprocess.run(
+            ["git", "-C", ROOT, "show", f"{LABELLED_AT}:{rel}"],
+            capture_output=True,
+            encoding="utf-8",
+        )
+        if shown.returncode == 0:
+            found[rel] = shown.stdout
+    assert found, f"this clone holds no `{LABELLED_AT}` tag to take its check from"
+    return found
+
+
 LABELLED_ROUND_1 = """# i — review round 1
 
 target: 1a2b3c4 against main
@@ -112,7 +135,7 @@ class Test_confirmed:
         assert not rt.labelled(
             "| \U0001f7e2 | round 1's finding 2 is closed | `a:1` | confirmed |"
         )
-        read, why = rt.labelled_round(LABELLED_ROUND_1, rel, 1)
+        read, why = rt.labelled_round(LABELLED_ROUND_1, rel, 1, at=LABELLED_AT)
         assert why == ""
         assert read["sha"] == "1a2b3c4"
         assert read["value"] == "1a2b3c4 against main"
@@ -120,8 +143,8 @@ class Test_confirmed:
             (1, "a fixed defect", "`src/a.py:12`, `docs/a.md`", True),
             (2, "a finding that does not hold", "`src/b.py:3`", False),
         ]
-        assert rt.confirmed(LABELLED_ROUND_2, 1) == {1, 2}
-        assert rt.confirmed(LABELLED_ROUND_2, 2) == set()
+        assert rt.confirmed(LABELLED_ROUND_2, 1, at=LABELLED_AT) == {1, 2}
+        assert rt.confirmed(LABELLED_ROUND_2, 2, at=LABELLED_AT) == set()
 
     def test_refuses_a_labelled_record_the_check_refuses(self):
         """Guards that a replay reads only what a pull request accepted: a
@@ -133,12 +156,12 @@ class Test_confirmed:
         rt = load_script("replay_targets")
         rel = "seal/specs/i/rounds/round-1.md"
         bad = LABELLED_ROUND_1.replace("fixed abc1234", "fixed abc1234 and more")
-        read, why = rt.labelled_round(bad, rel, 1)
+        read, why = rt.labelled_round(bad, rel, 1, at=LABELLED_AT)
         assert read is None
         assert why.startswith("the check refuses the record at line 12: ")
         assert "reads `verdict: fixed abc1234 and more`" in why
         worse = LABELLED_ROUND_2.replace("round-1#1\n", "round-1#1 and more\n")
-        assert rt.confirmed(worse, 1) == set()
+        assert rt.confirmed(worse, 1, at=LABELLED_AT) == set()
 
 
 class Test_truth_pattern:
@@ -208,19 +231,14 @@ class Test_module:
             path.write_text(text, encoding="utf-8")
 
         git("init", "-q")
-        # The check's files as `replay_targets.py` copies them for a commit, the
-        # grammar document apart because the commit below holds an older one,
-        # and each at the one path this tree holds it at.
-        for rel in rt.CHECK_FILES:
-            path = os.path.join(ROOT, *rel.split("/"))
-            if rel.startswith("docs/") or not os.path.isfile(path):
-                continue
-            with open(path, encoding="utf-8") as f:
-                put(rel, f.read())
-        with open(
-            os.path.join(ROOT, "docs", "the-review-record.md"), encoding="utf-8"
-        ) as f:
-            doc = f.read()
+        # The check's files as `replay_targets.py` copies them for a commit, as
+        # the last release that read labelled lines holds them, the grammar
+        # document apart because the commit below holds an older one.
+        held = labelled_check_files()
+        for rel, said in held.items():
+            if not rel.startswith("docs/"):
+                put(rel, said)
+        doc = held["docs/the-review-record.md"]
         row = next(
             ln + "\n" for ln in doc.splitlines() if ln.startswith("| `evidence:` |")
         )
@@ -238,7 +256,7 @@ class Test_module:
 
         assert rt.written_at(rel, []) == written
         refused, why = rt.labelled_round(text, rel, 1)
-        assert refused is None and "no `evidence:` line" in why, why
+        assert refused is None and why.startswith("the check refuses the record"), why
         read, why = rt.labelled_round(text, rel, 1, at=written)
         assert why == ""
         assert read["findings"] == [
@@ -277,11 +295,11 @@ class Test_module:
         with the commit's reader and read with this tree's: it took the
         comment's line."""
         rt = load_script("replay_targets")
-        check, reader = rt.record_reader()
+        check, reader = rt.checks_at(LABELLED_AT)
 
         class Judged:
-            """This tree's reader as a reader before #1012 read a record: a
-            comment's lines are blank, and none is refused."""
+            """The reader of `LABELLED_AT` as a reader before #1012 read a
+            record: a comment's lines are blank, and none is refused."""
 
             def __getattr__(self, name):
                 return getattr(reader, name)
