@@ -62,28 +62,7 @@ Out.
 
 ### The classification
 
-Reframed after round 3. The first frame decided by the first row that fits, and the reframe after round 2 by the highest kind among a change's parts. Both were decision procedures meant to give two writers one answer. Round 2 found 3 findings in the first, and round 3 found 5 in the second (`trail/rounds/round-3.md`), and each close opened the next edge. Whether a change is new, corrected, faster or the same reached another way is a judgment of meaning, and `skills/core/SKILL.md` *The first value: efficient development through the workflow* says the workflow delegates that judgment and does not re-encode it as grammar. So the classification is guidance a writer weighs, and the writer states its grounds where a party reads them. The one exact mechanism is the release check, which reads `feat:` in its one spelling against the version (*The release check*).
-
-**A prefix is the writer's judgment of what the change does for whoever meets it after the merge, a user or a party working on a later change, and the writer states its grounds.** The skill gives each kind its meaning and examples, the precedence, and the clarifications below. They are what the writer weighs, not steps it executes.
-
-| Kind | What whoever meets the change meets | Examples |
-|---|---|---|
-| `feat:` | something new to use or to meet | a command; a record format; a refusal on a rule the change itself states; a thing removed that its users must now work around |
-| `fix:` | behaviour that was wrong against a rule the tree stated before the change, now matching it | a check that let through what its rule refused; a skill sentence that contradicted the policy it cites |
-| `perf:` | the same behaviour, sooner or at less cost | a file parsed once instead of once per row |
-| `refactor:` | the same kinds of outcome, reached another way | a judgment moved from a script to an agent; a gate retired because what it caught did not outweigh its cost; a skill nobody used, removed; a section moved to another file |
-| `test:` | nothing outside the repository's own tests | a case added or corrected, even one that refuses where the suite gates the merge |
-| `docs:` | text nobody acts on | a README's explanation; a comment |
-| `chore:` | upkeep that changes nothing anyone meets | the version move; the changelog fold; a dependency pin that changes nothing met; a work item's records committed alone; a settle that writes the rule changes released work items stated |
-
-The clarifications, each one sentence in the skill:
-
-- **Precedence.** Where a change does more than one of these, its prefix is the one highest in the table, because whoever meets it meets the largest change. (The release's reading of `feat:` is the repository's own rule, stated in `docs/branch-and-release.md` through `## Rule changes`, and the skill names no version: phase 3 left this clause out of the skill, and the orchestrator folded that here on 2026-10-31.)
-- **A change's own tests and its work item's records never decide its prefix.** A speed-up with the case that pins it is `perf:`, and a README edit with the case that pins its words is `docs:`.
-- **Text a party reads and acts on is behaviour.** A change to a skill, an agent definition, a template a party fills or a hook's message is never `docs:` and never `chore:`. A work item's own records describe their change and leave with it, so the previous clarification, not this one, governs them.
-- **"Before the change" is the branch the change merges into.** A rule stated only in the change's own work item, such as its frame, belongs to the change, so a commit that builds it takes the kind its pull request takes.
-- **An effect is counted once, by the change that decided it.** A settle that writes a rule change a released work item stated is `chore:`. A section it rewrites that no released work item decided is that rewrite's kind.
-- **The writer states the grounds.** The orchestrator's part of the pull request body says in one sentence why the title takes its prefix, and names the kind that came closest where one did. `agents/sealer.md` step 4 reads that part against the design and the diff (read), so a prefix the change does not bear out is a disagreement the sealer names. An issue's title takes the prefix of the pull request that closes it and is retitled with it.
+The classification is the guidance in `skills/commit-pr-convention/SKILL.md` *Commit messages* and the grounds sentence in its *Pull request bodies*, and it stands there once. Phase 3 built it from this frame's reframe after round 3 (b63534ef), and round 4's fix pass (8793f1f7) settled three of its sentences. Text a party reads and acts on is never `docs:`, and is `chore:` only as a work item's own records or as an effect a released change already decided. `docs:` is text people read and no party acts on, a README's install steps among it. The orchestrator states the grounds for a pull request's title, a crafter's commit takes the pull request's kind on those grounds, and the orchestrator retitles the issue when it titles a pull request of another kind. The orchestrator replaced this frame's copy of the guidance with this pointer on 2026-10-31, after round 4 left the copy saying what the skill no longer says.
 
 What this leaves open, stated as limits:
 
@@ -184,7 +163,7 @@ A reverted `feat:` still counts, as a reverted squash still counts toward D (the
 - add
   file: docs/issues-and-milestones.md
   section: An issue is titled like a commit
-  to: **An issue takes the prefix the pull request that closes it will take, by the same table, and `chore:` is never its default.** A title read in the tracker, the milestone and the release note says what kind of change is coming, and a `chore:` on a change to what a party does makes a design change read as housekeeping. Where the frame or the build finds the change is of another kind, the issue is retitled when the pull request is. A `feat:` filed into, or moved into, a milestone numbered as a patch pushes the milestones forward at that moment (`docs/branch-and-release.md` *Work accumulates on a release branch*).
+  to: **An issue takes the prefix the pull request that closes it will take, by the same table, and `chore:` is never its default.** A title read in the tracker, the milestone and the release note says what kind of change is coming, and a `chore:` on a change to what a party does makes a design change read as housekeeping. Where the frame or the build finds the change is of another kind, the orchestrator retitles the issue when it titles the pull request. A `feat:` filed into, or moved into, a milestone numbered as a patch pushes the milestones forward at that moment (`docs/branch-and-release.md` *Work accumulates on a release branch*).
     check: none reader: the orchestrator at each filing and each milestone move
 - change
   file: docs/issues-and-milestones.md
