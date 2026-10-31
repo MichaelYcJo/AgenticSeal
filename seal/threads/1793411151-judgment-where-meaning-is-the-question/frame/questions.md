@@ -40,8 +40,8 @@ reopens them.
   #1121 and #1125 are built or decided here; the seven others keep their
   decision and their milestone, which was renamed from 0.25.3 to 0.26.1 on
   2026-10-31 (executed).
-- **`tests/behaviour/test_one_word_one_meaning.py`.** Removed:
-  `frame/plan.md` A13.
+- **`tests/behaviour/test_one_word_one_meaning.py`.** Kept in this work
+  item, removal filed as #1197: `frame/plan.md` A13.
 - **A test over Table A.** Not built: `frame/plan.md` A7.
 - **The home of the gate inventory.** A new policy document through
   `## Rule changes`, not a section of an existing one, because the table
