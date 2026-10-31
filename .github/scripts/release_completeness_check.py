@@ -45,14 +45,19 @@ reporting:
 **A second question, from the same subjects: does a patch carry a `feat:`**
 (#1199). A `feat:` makes a minor, so a release whose version's third number
 is not 0 FAILS where one of its own subjects opens with `feat:`, and the
-error names each subject and the push `docs/branch-and-release.md` *Work
-accumulates on a release branch* states. The reading counts that one
+error names each subject and the two repairs `docs/branch-and-release.md`
+*Work accumulates on a release branch* states, each at the moment it can be
+made (#1205): before its squash, a `feat:` in a milestone numbered as a
+patch moves to the planned minor whose goal it shares; once squashed here,
+the milestone and every later planned one are renamed one step forward and
+the branch is cut again under the new name. The reading counts that one
 spelling. A subject whose first word is `feat` spelt otherwise, such as
 `Feat:` or `feat(agents):`, is printed as not read and changes no exit
 code; whether it meant the prefix is its writer's judgment. It needs no
 milestone, so it runs before the milestone reading and a missing milestone
-does not skip it. A reverted `feat:` still counts, as a reverted squash
-stays in D, and the repair is the same push.
+does not skip it. A `feat:` squashed here stays counted after a revert, as
+a reverted squash stays in D, so the repair the error names for it is the
+rename.
 
 It writes nothing anywhere. Exit 0 or 1, and a shape it cannot judge exits 0
 with the reason printed.
@@ -320,11 +325,15 @@ def judge_feat(version, subjects):
         named = "; ".join(f"`{s}`" for s in counted)
         lines.append(
             f"::error::{version} is a patch and this release branch carries "
-            f"{len(counted)} feat: subject(s): {named}. A feat: makes a minor, "
-            f"so rename {signal.milestone_title(version)!r} and every later "
-            f"planned release: milestone one step forward, cut this branch "
-            f"again under the new name, and move plugin.json to the new "
-            f"version in the new branch's first pull request "
+            f"{len(counted)} feat: subject(s): {named}. A feat: makes a minor. "
+            f"A feat: filed or moved into a milestone numbered as a patch "
+            f"moves, before its squash, to the planned minor whose goal it "
+            f"shares. One squashed onto this branch stays in its range, "
+            f"because this reading counts it after a revert as well, so the "
+            f"repair here is to rename {signal.milestone_title(version)!r} "
+            f"and every later planned release: milestone one step forward, "
+            f"cut this branch again under the new name, and move plugin.json "
+            f"to the new version in the new branch's first pull request "
             f"(docs/branch-and-release.md, Work accumulates on a release "
             f"branch). The prefix states what the change is and is never "
             f"lowered to fit the number"
@@ -336,8 +345,8 @@ def judge_feat(version, subjects):
     )
     if not patch and not counted:
         lines.append(
-            f"{version} carries no feat: and ships as the minor it was named; "
-            f"a milestone is never pulled back"
+            f"{version} carries no feat: and ships as the minor it was named, "
+            f"since its branch is cut under that name"
         )
     lines.extend(f"not read: {s}" for s in near)
     return lines, failed
