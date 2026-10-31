@@ -90,11 +90,23 @@ states; in a repository opted in by its `seal/` root,
 question is answered.
 
 **Judgment is not licence to skip a party.** A few invariants hold the chain
-and are not open to judgment: no review without a build, no fix that no
-round reads, no seal without the broad run at HEAD, no pull request without
-a seal, and no question to a person after the routing answer. Each names
-what it protects and is held by a mechanism; a rule that only orders acts,
-without one of those protections, is guidance.
+and are not open to judgment. Each names what it protects and is held by a
+mechanism, as the table gives them; a rule that only orders acts, without
+one of those protections, is guidance.
+
+| Invariant | What it protects | Held by |
+|---|---|---|
+| The routing answer comes before the first edit, and on a run routed `Automation` `yes` no question to a person follows it | a person is asked once, before the first edit, and a run the person sent end to end does not stop to ask | `hooks/routing-edit-gate.py` refuses the first edit on an undeclared branch; `hooks/question-gate.py` refuses the question tool under `Automation` `yes` |
+| No review without a build | a round reads a committed tree and its record names the commit | `skills/code-review/scripts/chain_check.py`'s records arm: every record carries one `target:` line, and HEAD descends from the last record's commit and from every `fixed` commit |
+| No fix that no round reads | every change after the last round is read by a round, or by the sealer where it touched the work item's records alone | the same check: the last record is at HEAD or only the work item's records follow it, and every `fixed` or `rejected` finding is named by the next record |
+| No seal without the broad run at HEAD | the sealer guarantees a tree the repository's `Broad gate` row in `seal/config.md` passed at HEAD | `agents/sealer.md` step 1 withholds without `trail/gate.md` at HEAD; the same check's broad gate arm |
+| No pull request without a seal | nothing reaches the base that the last independent party did not guarantee | the same check's guarantee arm: a ready pull request fails without `Verdict: sealed` at HEAD |
+
+The check refuses only a ready pull request, where first setup or `seal
+pr-checks install` put its workflow in the tree; before the pull request,
+and in local mode, the last four rows are held by `agents/sealer.md` step 1
+and by the orchestrator keeping `skills/code-review/orchestration.md`
+*Orchestrator: the pull request opens once the sealer seals*.
 
 ## The rule a mechanism is kept against
 
@@ -106,8 +118,13 @@ its own mechanisms by its own policy. A fact has one source, and every
 other place links to it. Less text means nothing said twice, not fewer lines:
 a change that grows is kept where what it adds serves a reader, and a count
 of the lines a change adds against those it removes is context, never a
-criterion. A script blocks work only on a fact it reads exactly, such as
-an exit code or a parser's result; a reading that is noisy or guessed from
+criterion. A script holds a gate only on a fact it reads exactly: an exit
+code, a parser's result, or a line of the plugin's own forms in the one
+spelling the form gives it. It names as not read a line or a file that
+looks like one of its form's and is not one, and decides nothing on it. No
+script carries a list of the spellings a label is written in: whether such
+a line meant the label is the judgment of the agent that reads the text. A
+reading that is noisy or guessed from
 words is reported, never used to block. Nothing is kept beside the tree to
 stay in step with it, such as a stored count or coordinate. Do not avoid
 the change a problem calls for: before a fix adapts to an existing

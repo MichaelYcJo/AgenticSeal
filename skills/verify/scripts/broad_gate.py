@@ -2231,6 +2231,13 @@ PARTITION = (
         None,
     ),
     (
+        "the check lines rules.py did not read",
+        None,
+        "prints notices and never fails, so there is nothing for an arm to "
+        "refuse. The exit code of the same command is the suite's, which "
+        "this gate runs",
+    ),
+    (
         "both READMEs move together",
         None,
         "raises a warning and never fails, so there is nothing for an arm to "

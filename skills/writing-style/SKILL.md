@@ -255,17 +255,17 @@ seal* 은 감사하는 쪽만 밝히고 감사받는 것은 밝히지 않는다.
 짧아도 비싸다.
 
 **읽는 쪽이 문법으로 받아들일 수 있는 기호를 쓰지 않고, 같은 값을 두 곳에
-적지 않고, 철자가 조금 틀린 줄이 통과할 수 있는 모양을 쓰지 않는다.** 줄표,
+적지 않고, 검사가 읽는 줄은 검사가 읽는 철자 하나로 쓴다.** 줄표,
 화살표, 가운뎃점, 파이프, 절 기호를 제목이나 문장 안에서 구분자처럼 쓰면 읽는
 쪽이 그것을 문법으로 읽을 수 있으므로, 그 자리는 낱말로 쓴다. 인용도 낱말로
 쓴다. 계약의 규칙은 `contract rule <N>` 으로, 계약 안과 `agents/` 에서는
 `rule <N>` 으로 하나씩 인용하고, 다른 파일의 절은 백틱으로 감싼 경로 뒤에
 그 파일의 제목이나 규칙을 여는 굵은 문장을 기울인 글자로 옮겨 인용한다. 같은 값이 두 곳에 있으면 한쪽만 고쳐지고, 읽는 쪽은 어느 것이 맞는지
-골라야 한다. 검사가 읽는 줄은 정해진 철자 하나만 읽히고 조금 틀린 철자는 그
-줄에서 거절되어야 한다. 조금 틀린 철자를 말없이 지나치는 검사는 그 줄을 읽지
-않은 것과 같다. 사례는 `plan.md` 의 승인 줄이다. 그 줄 뒤에 문장 하나를
+골라야 한다. 검사는 다르게 쓴 줄을 읽지 않은 줄이라고 그 자리에서 알리고,
+철자를 이유로 거절하지 않는다. 그 줄이 라벨을 뜻했는지는 그 글을 읽는
+에이전트가 판단한다. 사례는 `plan.md` 의 승인 줄이다. 그 줄 뒤에 문장 하나를
 덧붙이자, 그 줄을 읽던 검사는 승인이 없다고 읽었다.
-check: tests/github/test_rules.py tests/skills/test_rule_changes.py tests/test_censuses.py tests/text/test_the_agent_contract_holds_the_universal_rules.py tests/behaviour/test_a_cited_section_stands_in_its_file.py
+check: tests/github/test_rules.py tests/skills/test_chain_check.py tests/skills/test_rule_changes.py tests/test_censuses.py tests/text/test_the_agent_contract_holds_the_universal_rules.py tests/behaviour/test_a_cited_section_stands_in_its_file.py
 
 **저장소가 정의한 용어는 정의한 뜻으로만 쓰고, 같은 것을 다른 말로 바꿔 부르지
 않는다.** 한 대상을 두 낱말로 부르면 읽는 쪽은 둘을 다른 것으로 읽는다. 한

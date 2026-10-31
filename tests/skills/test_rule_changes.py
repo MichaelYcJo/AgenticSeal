@@ -31,13 +31,6 @@ def parse(text):
     return rules.parse(text, "docs")
 
 
-# What the reader says of a no-change line in any other spelling: the block
-# it expects, by name (S10).
-NO_CHANGE = (
-    "a section that holds nothing writes the block `- nothing` with `  why: <reason>`"
-)
-
-
 ALL_SHAPES = """\
 - change
   file: docs/a.md
@@ -66,7 +59,7 @@ class Test_parse:
     def test_accepts_each_shape_as_one_operation_with_its_line(self):
         text = spec(ALL_SHAPES)
         parsed = parse(text)
-        assert parsed.errors == [], parsed.errors
+        assert parsed.errors == [] and parsed.unread == [], parsed
         got = [(o.kind, o.file, o.section, o.old, o.new) for o in parsed.ops]
         assert got == [
             ("change", "docs/a.md", "S", "old sentence.", "New rule."),
@@ -128,33 +121,70 @@ class Test_parse:
     @pytest.mark.parametrize(
         "beside", [False, True], ids=["alone", "beside-the-heading"]
     )
-    def test_a_near_miss_of_the_heading_is_refused_at_its_line(self, heading, beside):
-        """A heading whose letters, case folded, are those of `Rule changes` and
-        that is not `## Rule changes` is a section its author wrote, not a spec
-        written before the section existed. It is refused at its line, naming
-        the one heading, whether or not the right heading stands too."""
+    def test_a_near_miss_of_the_heading_is_another_section_named_at_its_line(
+        self, heading, beside
+    ):
+        """#1167, *Scope* item 7: a heading at any level whose letters, case
+        folded, are those of `Rule changes` and that is not `## Rule changes`
+        is another section. Nothing of it is read and nothing is refused for
+        it: it is named in `unread` at its line, naming the one heading read.
+        Alone, the design has no section; above the heading, it stands
+        outside the section at every level, and the section under the
+        heading is read. A level-3 one inside the section is the next case.
+        Seen red against the refusal at its line."""
         body = "- nothing\n  why: a reason.\n\n"
         text = (
-            "# a work item\n\n"
+            f"# a work item\n\n{heading}\n\n{body}"
             + (f"## Rule changes\n\n{body}" if beside else "")
-            + f"{heading}\n\n{body}## Open questions\n\nNone.\n"
+            + "## Open questions\n\nNone.\n"
         )
         parsed = parse(text)
-        assert parsed.errors, parsed
-        line, why = parsed.errors[0]
+        ((line, why),) = parsed.unread
         assert line == line_of(text, heading), (line, why)
         assert f"`{heading}`" in why and "`## Rule changes`" in why, why
-        assert parsed.ops == [] and parsed.nothing is None
+        if beside:
+            assert parsed.ops is not None, parsed
+        else:
+            assert parsed == rules.Parsed(None, None, [], [(line, why)]), parsed
+
+    @pytest.mark.parametrize("heading", ["### rule changes", "#### Rule Changes"])
+    def test_a_near_heading_inside_the_section_is_a_line_of_it_and_not_named(
+        self, heading
+    ):
+        """Round 6 of #1167, finding 2: the section runs to the next heading
+        of level 2 or higher, so a heading below level 2 inside it is a line
+        of the section, read and refused as the items refuse a line outside
+        them, and not named as another section. One above the section, or
+        one that ends it, is another section and is named (the case above).
+        Seen red against the naming of every near heading."""
+        text = spec(f"{heading}\n- remove\n  file: docs/a.md\n  section: S")
+        parsed = parse(text)
+        assert parsed.unread == [], parsed
+        assert parsed.errors == [(line_of(text, heading), "a line outside an item")]
+        # The same heading under `## Scope`, above the section, or under
+        # `## Open questions`, below the heading that ends it, is named.
+        block = spec("- nothing\n  why: a reason.")
+        for outside in (
+            block.replace("In.", f"{heading}\n\nIn."),
+            block.replace("None.", f"{heading}\n\nNone."),
+        ):
+            assert [n for n, _ in parse(outside).unread] == [line_of(outside, heading)]
 
     def test_a_heading_with_other_letters_is_no_near_miss(self):
         """The class is the letters of `Rule changes`; a heading with other
-        letters is another section, and a spec holding only it has none."""
+        letters is another section, and a spec holding only it has none and
+        names nothing."""
         for heading in ("## Rules changes", "## Rule changes made", "## Changes"):
-            assert parse(f"# x\n\n{heading}\n\nText.\n") == rules.Parsed(None, None, [])
+            assert parse(f"# x\n\n{heading}\n\nText.\n") == rules.Parsed(
+                None, None, [], []
+            )
 
     def test_a_section_quoted_in_a_fence_is_not_read(self):
-        fenced = "# x\n\n```\n## Rule changes\n\n- remove\n  file: docs/a.md\n```\n"
-        assert parse(fenced).ops is None
+        """A heading inside a fence is no heading, so neither the section nor
+        a near miss of its heading is read, and nothing is named."""
+        for heading in ("## Rule changes", "## Rule Changes"):
+            fenced = f"# x\n\n```\n{heading}\n\n- remove\n  file: docs/a.md\n```\n"
+            assert parse(fenced) == rules.Parsed(None, None, [], []), heading
 
     @pytest.mark.rule("record-comment-line-refused")
     def test_a_comment_line_in_the_section_is_refused_at_its_line(self):
@@ -294,9 +324,9 @@ class Test_parse:
             ("- add\n  file: docs/\\evil.md\n  to: x", "- add", "docs/"),
             ("- add\n  file: docs/sub\\b.md\n  to: x", "- add", "docs/"),
             ("- add\n  file: docs/a.md\n  section: S\n  to:", "  to:", "empty"),
-            ("nothing — a reason.", "nothing — a reason.", NO_CHANGE),
-            ("nothing - a reason.", "nothing - a reason.", NO_CHANGE),
-            ("Nothing — a reason.", "Nothing — a reason.", NO_CHANGE),
+            ("nothing — a reason.", "nothing — a reason.", "a line outside an item"),
+            ("nothing - a reason.", "nothing - a reason.", "a line outside an item"),
+            ("Nothing — a reason.", "Nothing — a reason.", "a line outside an item"),
             ("- nothing", "- nothing", "`nothing` needs `why`"),
             ("- nothing\n  why:", "  why:", "`why` is empty"),
             (
@@ -350,6 +380,21 @@ class Test_parse:
         assert line == line_of(text, bad), (line, why)
         assert reason in why, why
 
+    @pytest.mark.parametrize(
+        "first", ["nothing — a reason.", "Nothing — a reason.", "- none"]
+    )
+    def test_a_line_that_opens_like_the_block_is_named_beside_its_refusal(self, first):
+        """#1167, *Scope* item 9: a first line that opens like the no-change
+        block and is not it is read as no block, so the section is refused as
+        any line outside the grammar is, and the line is named in `unread`
+        through `unverified_check.py#unread_block`, the reason built there.
+        Seen red against the refusal naming the block, with nothing named."""
+        text = spec(f"{first}\n")
+        parsed = parse(text)
+        line = line_of(text, first)
+        assert parsed.errors and parsed.errors[0][0] == line, parsed
+        assert parsed.unread == [rules.reader().unread_block([(line, first)])], parsed
+
     def test_a_second_block_is_refused_at_its_own_line(self):
         """The block stands alone, so a second `- nothing` is refused at its own
         line rather than passed unread behind the first; its unknown field would
@@ -374,7 +419,7 @@ class Test_parse:
         lines = text.split("\n")
         second = lines.index("## Rule changes", lines.index("## Rule changes") + 1)
         assert parse(text) == rules.Parsed(
-            [], None, [(second + 1, "a second `## Rule changes`")]
+            [], None, [(second + 1, "a second `## Rule changes`")], []
         )
 
 

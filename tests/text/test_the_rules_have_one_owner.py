@@ -701,3 +701,46 @@ def test_the_cap_counts_from_the_last_design_change():
     assert "the record that stopped the run" not in flat(*FRAMER), (
         "agents/framer.md still reads a regression's round as the end of the run"
     )
+
+
+JUDGMENTS = "`frame/plan.md` *Judgments of the run*"
+
+
+def test_the_orchestrators_run_judgments_are_rows_of_the_plan():
+    """#1167, *Scope* item 11. The cap, the second regression on one unit
+    and a decision folded after the frame are judgments the orchestrator
+    weighs, and each goes to one row of the plan's table, which the
+    settle's dry run reads; the extension line the proofer wrote from the
+    spawn prompt, which no round record ever carried, goes, and so does the
+    route taken whatever the comparison says. *The run* in the policy root
+    changes at the settle, so this reads the two skill files the
+    orchestrator acts from."""
+    text = flat(*ORCH)
+    run = text[
+        text.index("## Orchestrator: the run ends with a verifying round") : (
+            text.index(REGRESSION)
+        )
+    ]
+    regression = text[
+        text.index(REGRESSION) : text.index("## Orchestrator: the pull request opens")
+    ]
+    assert "as one row of " + JUDGMENTS in run, run
+    for signal in ("as many findings as the one before it", "a `regression:` line"):
+        assert signal in run, f"the cap no longer names the signal {signal!r}"
+    assert "the extension line" not in run, run
+    assert "extends one round at a time" not in run, run
+    row = regression[
+        regression.index("| the unit already had a regression") : regression.index(
+            "The framer's route:"
+        )
+    ]
+    assert JUDGMENTS in row, row
+    assert "whatever the sentence says" not in row, row
+    assert JUDGMENTS in the_order(), "a folded decision's grounds have no home"
+    fix_pass = text[
+        text.index("**The fix pass then finds") : text.index("**You type only the half")
+    ]
+    assert (
+        "names a statement of a rule it reworded that stands in the work "
+        "item's frame" in fix_pass
+    ), fix_pass
