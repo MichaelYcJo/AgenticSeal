@@ -42,8 +42,8 @@ listed to read whole. Every open `## Not verified` row of
 every released record is listed with the backticked paths it names and
 whether each is in the working tree. Every row of every released
 `frame/plan.md` *Judgments of the run* is listed, grouped by its `Judged
-against` cell, with its work item's round count; a section whose table it
-cannot read is named as not read. Nothing is refused or held in the dry
+against` cell, with its work item's round count; a heading near the
+section's, and a section whose table it cannot read, are named as not read. Nothing is refused or held in the dry
 run.
 
 **`--apply` removes, and only that.** It removes every released work item
@@ -119,6 +119,11 @@ DESIGN = "frame/design.md"
 PLAN = "frame/plan.md"
 JUDGMENTS = "Judgments of the run"
 JUDGMENTS_HEADER = ("Date", "Judgment", "Grounds", "Judged against")
+# What the dry run says of a heading near the judgments section, at its line.
+NEAR_JUDGMENTS = (
+    "line {line}: `{written}` opens like `## {heading}` and is not it, so "
+    "none of its rows were read"
+)
 TESTS = "tests/"
 
 # The command asked in local mode, once per branch, and how long it may take.
@@ -505,11 +510,16 @@ def judgments(records, ids):
               group and each work item in the order IDS lists them first.
               `rounds` is how many `round-N.md` the work item's
               `trail/rounds/` holds (`hooks/lib/routing.py#rounds`), or None
-              where that is a file and holds none
-      unread  `[(id, why)]` for a plan whose section holds no table under
-              the exact header, or whose table stops at a row it cannot read
+              where that is not a directory this can list
+              (`hooks/lib/routing.py#rounds_unreadable`): a file, a link or
+              a directory nothing can list, which holds a review git carries
+      unread  `[(id, why)]` for each heading of a plan whose letters, case
+              folded, are the section's and that is not it, at its line; and
+              for a plan whose section holds no table under the exact
+              header, or whose table stops at a row it cannot read
 
-    A plan with no such section holds no judgment and is in neither. A row
+    A plan with no such section and no near heading holds no judgment and
+    is in neither. A heading inside a fence is no heading. A row
     whose every cell is empty is the template's blank row, and no
     judgment. The table is read through `hooks/lib/config.py#gfm_table`
     over the section's lines alone, and nothing here grades a cell."""
@@ -522,7 +532,18 @@ def judgments(records, ids):
         if text is None:
             continue
         lines = rules.reader().gfm_lines(text)
-        if not any(t == JUDGMENTS for _n, _lv, t in rules.headings(lines)):
+        marks = rules.headings(lines)
+        unread += [
+            (
+                work_item_id,
+                NEAR_JUDGMENTS.format(
+                    line=n + 1, written=lines[n].strip(), heading=JUDGMENTS
+                ),
+            )
+            for n, _lv, t in marks
+            if t != JUDGMENTS and rules.letters(t) == rules.letters(JUDGMENTS)
+        ]
+        if not any(t == JUDGMENTS for _n, _lv, t in marks):
             continue
         span, why = rules.section_lines(text, JUDGMENTS)
         if span is None:
@@ -534,10 +555,12 @@ def judgments(records, ids):
         )
         if refusals:
             unread.append((work_item_id, refusals[0]))
-        try:
-            rounds = len(routing.rounds(under(records, f"{SPECS}/{work_item_id}")))
-        except NotADirectoryError:
-            rounds = None
+        where = under(records, f"{SPECS}/{work_item_id}")
+        # `routing.rounds` returns [] both for no record and for a
+        # `trail/rounds` it cannot list; `rounds_unreadable` says which.
+        rounds = (
+            None if routing.rounds_unreadable(where) else len(routing.rounds(where))
+        )
         for line, (date, judgment, grounds, against) in rows:
             if not any((date, judgment, grounds, against)):
                 continue
@@ -860,7 +883,8 @@ def report(found, ref, out):
                 counted = (
                     f"{rounds} round{plural(rounds)}"
                     if rounds is not None
-                    else "its trail/rounds is a file, so no round was counted"
+                    else "its trail/rounds is not a directory this can list, "
+                    "so no round was counted"
                 )
                 write(f"    {work_item_id}  {counted}\n")
                 for line, date, judgment, grounds in held:

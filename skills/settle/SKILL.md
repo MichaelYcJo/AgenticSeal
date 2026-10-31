@@ -188,9 +188,12 @@ nothing:
   of the run*, the decisions the orchestrator made in its run with their
   grounds, grouped by the `Judged against` cell, the document each stands
   on, with each work item's round count beside it. A plan with no such
-  section prints nothing, and a section whose table is not under the exact
-  header is named as not read. `--apply` removes the plans, so this is the
-  one reading the rows get.
+  section prints nothing. A heading whose letters, case folded, are the
+  section's and that is not it is named as not read at its line, and so is
+  a section whose table is not under the exact header. A `trail/rounds`
+  that is not a directory the dry run can list is named in place of a
+  count. `--apply` removes the plans, so this is the one reading the rows
+  get.
 - **What `--apply` removes**, the citations into it from outside
   `seal/threads/`, and the checks under `tests/` that read `seal/threads`.
 

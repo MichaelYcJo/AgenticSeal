@@ -958,6 +958,88 @@ class Test_main:
         assert "judged against:" not in block, block
         assert settle.REMOVES_HEADING in text, text
 
+    @pytest.mark.parametrize("shape", ["file", "link"])
+    def test_a_work_item_whose_rounds_cannot_be_listed_is_not_counted_as_none(
+        self, repo, capfd, shape
+    ):
+        """Round 9, finding 1. A `trail/rounds` that is a file or a link holds
+        a review git carries (`hooks/lib/routing.py#rounds_unreadable`), so
+        the dry run says it counted none rather than that none happened."""
+        item(repo, "1700000001-a", "- nothing\n  why: x.")
+        (specs_dir(repo, "1700000001-a") / "frame" / "plan.md").write_text(
+            "# Implementation Plan: a\n\n## Judgments of the run\n\n"
+            "| Date | Judgment | Grounds | Judged against |\n|---|---|---|---|\n"
+            "| 2026-10-01 | x | y | z |\n",
+            encoding="utf-8",
+        )
+        trail = specs_dir(repo, "1700000001-a") / "trail"
+        trail.mkdir()
+        if shape == "file":
+            (trail / "rounds").write_text("# Review round 1\n", encoding="utf-8")
+        else:
+            held = repo / "elsewhere"
+            held.mkdir()
+            (held / "round-1.md").write_text("# Review round 1\n", encoding="utf-8")
+            try:
+                os.symlink(held, trail / "rounds", target_is_directory=True)
+            except (OSError, NotImplementedError):
+                pytest.skip("this platform makes no symbolic link here")
+        commit(repo, "a")
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        assert (
+            "    1700000001-a  its trail/rounds is not a directory this can "
+            "list, so no round was counted\n"
+        ) in text, text
+        assert " round\n" not in text and " rounds\n" not in text, text
+
+    @pytest.mark.parametrize(
+        "heading",
+        [
+            "## Judgments of the Run",
+            "## judgments of the run",
+            "### Judgments Of The Run",
+        ],
+    )
+    def test_refuses_to_read_rows_under_a_heading_near_the_judgments_section(
+        self, repo, capfd, heading
+    ):
+        """Round 9, finding 2. A heading whose letters, case folded, are the
+        section's and that is not it is named at its line, and none of its
+        rows is read: `--apply` removes the plan, so silence here loses the
+        rows unread. Every live heading is the scope this reader scans."""
+        item(repo, "1700000001-a", "- nothing\n  why: x.")
+        (specs_dir(repo, "1700000001-a") / "frame" / "plan.md").write_text(
+            f"# Implementation Plan: a\n\n{heading}\n\n"
+            "| Date | Judgment | Grounds | Judged against |\n|---|---|---|---|\n"
+            "| 2026-10-01 | x | y | z |\n",
+            encoding="utf-8",
+        )
+        commit(repo, "a")
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        block = text.split(f"\n{settle.JUDGMENTS_HEADING}\n")[1]
+        assert block.startswith(
+            "    1700000001-a  seal/threads/1700000001-a/frame/plan.md  not read: "
+            f"line 3: `{heading}` opens like `## Judgments of the run` and is "
+            "not it, so none of its rows were read\n"
+        ), block
+        assert "judged against:" not in block, block
+
+    def test_accepts_a_near_heading_inside_a_fence_without_a_word(self, repo, capfd):
+        """The edge of finding 2's scope: a heading inside a fence is no
+        heading, so the reader names nothing for it."""
+        fence = "`" * 3
+        item(repo, "1700000001-a", "- nothing\n  why: x.")
+        (specs_dir(repo, "1700000001-a") / "frame" / "plan.md").write_text(
+            f"# Implementation Plan: a\n\n{fence}\n## Judgments of the Run\n{fence}\n",
+            encoding="utf-8",
+        )
+        commit(repo, "a")
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        assert settle.JUDGMENTS_HEADING not in text, text
+
     @pytest.mark.parametrize("flag", ["--retire", "--retire-process"])
     def test_the_retired_flags_are_an_argument_error(self, repo, flag, capfd):
         """A script that still calls either gets exit 2, which the changelog
