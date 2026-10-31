@@ -103,7 +103,10 @@ it costs**; existing is no reason to keep it. This test of whether a
 mechanism stays governs this plugin's own mechanisms, a gate, a check, a
 hook, a CI step or a rule among them; a user's repository keeps or drops
 its own mechanisms by its own policy. A fact has one source, and every
-other place links to it. A script blocks work only on a fact it reads exactly, such as
+other place links to it. Less text means nothing said twice, not fewer lines:
+a change that grows is kept where what it adds serves a reader, and the lines
+a change adds against those it removes are reported as context, never held as
+a criterion. A script blocks work only on a fact it reads exactly, such as
 an exit code or a parser's result; a reading that is noisy or guessed from
 words is reported, never used to block. Nothing is kept beside the tree to
 stay in step with it, such as a stored count or coordinate. Do not avoid
