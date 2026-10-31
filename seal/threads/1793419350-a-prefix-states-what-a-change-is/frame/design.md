@@ -27,7 +27,7 @@
 
 In. Each item is one decision of this frame; `frame/plan.md`'s Delivers cell cites them by number.
 
-1. **The prefix table classifies each part of a change by its effect, and the change takes the prefix of its highest part.** `skills/commit-pr-convention/SKILL.md` *Commit messages*: the table's rows and the sentences under it are rewritten in place to the rule in *Data & interfaces*, *The classification* (reframed after round 2). Text a party reads and acts on, such as a skill, an agent definition, a template a party fills or a hook's message, is behaviour, and so are a check outside the tests, a gate, a record's shape and a process step: a part that changes one is `feat:`, `fix:`, `perf:` or `refactor:`, never `docs:`, and `chore:` only where a released change already decided its effect and was titled for it, such as a settle writing a rule change that change stated, which is counted once, by that change. A work item's own records and its tests never decide the prefix of a change that holds a part someone meets. (Worded as phase 2 built it at 05b716f7, which found the frame's first wording contradicting its own next sentence; folded by the orchestrator on 2026-10-31.) An issue's title takes the prefix the pull request that closes it will take, chosen by the same table, so no issue is filed `chore:` by default. The prefix states what the change is and is never chosen to fit a release number. The skill names no version and no file of this repository: it ships to repositories whose versioning is their own.
+1. **A prefix is the writer's judgment of what the change does for whoever meets it, and the skill guides that judgment and asks for its grounds.** `skills/commit-pr-convention/SKILL.md` *Commit messages*: the table and the sentences under it are rewritten in place to *Data & interfaces*, *The classification* (reframed after round 3): each kind with its meaning and examples, the precedence, and the clarifications. A change's own tests and its work item's records never decide its prefix. Text a party reads and acts on, such as a skill, an agent definition, a template a party fills or a hook's message, is behaviour, so a change to it is never `docs:` and never `chore:`. An effect is counted once, by the change that decided it. *Pull request bodies* gains the grounds sentence the orchestrator writes. An issue's title takes the prefix the pull request that closes it will take, chosen by the same table, so no issue is filed `chore:` by default. The prefix states what the change is and is never chosen to fit a release number. The skill names no version and no file of this repository: it ships to repositories whose versioning is their own.
 2. **A repository's log decides a prefix's spelling, never which row a change takes.** In the same skill, the paragraph "A repository's own log outranks the table" is rewritten in place. The log still outranks the table on how a prefix is spelt and on a prefix the table lacks. Which row a change takes is the table's, because a log written by default teaches the default. *First, check the title against the history* gains one sentence: the comparison is of a title's shape and language, and the prefix is the table's.
 3. **The release pull request refuses a patch-numbered release whose own subjects carry a `feat:`.** `.github/scripts/release_completeness_check.py` gains the reading in *Data & interfaces*, *The release check*, in the existing step. The step's name keeps its opening words and adds the second question. The module docstring states the new direction beside the four it has. The cases go in `tests/github/test_release_completeness_check.py` and carry `@pytest.mark.rule("a-patch-carries-no-feat")`. Each is seen red (contract rule 15).
 4. **The policy root's changes are `## Rule changes` below**, written at the settle: the push rule and the version each prefix gives, an issue's prefix and the moment a push happens, the example title, and #1167's Table A row.
@@ -56,52 +56,76 @@ Out.
 | S7 a minor with no feat | Given head `release/v1.3.0` with no `feat:`, then it passes and says the release ships under the minor it was named, since a milestone is never pulled back | a case |
 | S8 the two named cases | Given the classification, when a writer titles #1167 and #1198, then both take `feat:`, each for the part *The first cases* names | the proofer reads the rewritten table against *The first cases* |
 | S9 an issue for a gate change | Given a new issue whose change alters what a check refuses, then the table gives `feat:`, `fix:` or `refactor:`, never `chore:` | the proofer reads the rewritten table |
-| S10 the cases | Given the rewritten *Commit messages*, when a writer classifies each case in *The cases the rule was run against*, then each gives the prefix that table names, and none depends on whether the change carries its tests or its work item's records | the proofer runs the table's cases against the rewritten skill text |
+| S10 the writer's grounds and the proofer's reading | Given the rewritten *Commit messages* and *Pull request bodies*, when the proofer reads the section, then each sentence has one reading (`skills/writing-style/SKILL.md`, the rules for text an agent reads), no sentence states a decision procedure or a claim that two writers always agree, each *Worked examples* row's prefix and grounds follow from the text, and *Pull request bodies* asks the orchestrator for one sentence of grounds | the proofer reads the text and the examples; the sealer reads the grounds sentence of this work's own pull request body at its seal |
 
 ## Data & interfaces
 
 ### The classification
 
-Reframed after round 2. The first frame and round 1's fix pass both decided by the first row that fits, over rows whose words overlapped. A change of one kind carrying its tests and its work item's records was never "only" of that kind, so it fell to a row below, and every fix added a word the next round found an edge of (`trail/rounds/round-1.md` finding 1, `trail/rounds/round-2.md` findings 1 to 3). The rule below replaces that procedure, and the skill's table at 9944919e with it.
+Reframed after round 3. The first frame decided by the first row that fits, and the reframe after round 2 by the highest kind among a change's parts. Both were decision procedures meant to give two writers one answer. Round 2 found 3 findings in the first, and round 3 found 5 in the second (`trail/rounds/round-3.md`), and each close opened the next edge. Whether a change is new, corrected, faster or the same reached another way is a judgment of meaning, and `skills/core/SKILL.md` *The first value: efficient development through the workflow* says the workflow delegates that judgment and does not re-encode it as grammar. So the classification is guidance a writer weighs, and the writer states its grounds where a party reads them. The one exact mechanism is the release check, which reads `feat:` in its one spelling against the version (*The release check*).
 
-**Each part of a change has one kind, read from its effect, and the change takes the highest kind among its parts.** A part is a unit a reader can name: a section of a skill, a function, a test module, a work item's records, a dependency pin. Its kind answers one question: after the merge, what does a user, or a party working on a later change, meet differently because of this part? The answers exclude one another, so no order is needed to classify a part:
+**A prefix is the writer's judgment of what the change does for whoever meets it after the merge, a user or a party working on a later change, and the writer states its grounds.** The skill gives each kind its meaning and examples, the precedence, and the clarifications below. They are what the writer weighs, not steps it executes.
 
-| Kind | What a user or a later party meets after the merge |
-|---|---|
-| `feat:` | Something to use or to meet that nothing gave before: a command, a record format or a field in one, a step, a reading, or a refusal on a rule this change states. |
-| `fix:` | Behaviour that was wrong against a rule already stated in the tree, now matching it. A check outside the tests that starts refusing what its stated rule always refused is here. |
-| `perf:` | The same behaviour, sooner or at less cost. |
-| `refactor:` | The same kinds of outcome, reached another way: which party holds a judgment, a script that stops refusing what an agent now reads, a sequence rewritten as guidance, a structure moved. Nothing is new, corrected or faster. |
-| `test:` | Nothing outside the suite: a case added, removed or corrected. A suite is how a contributor checks a change, and no user or party outside it meets a case. |
-| `docs:` | Text read and acted on by nobody: an explanation, a README, a comment. |
-| `chore:` | Nothing: release preparation (the version move, the changelog fold), configuration and dependencies that change nothing met, a work item's own records, which only its parties read and which leave with it, and a part whose effect a released change already decided and was titled for. |
-
-The order of the table is the precedence among kinds, and it acts only where one change holds parts of different kinds. It ranks by how much of what is met changes: something new, something corrected, something faster, something done another way, then the three kinds nobody outside the change meets. `feat:` stands highest for the release's sake as well: the release reads any `feat:` as a minor, and a `feat:` part titled under another kind is the defect this issue exists for. A part's tests and its work item's records are `test:` and `chore:` parts, below every kind someone meets, so they never decide the prefix of a change that has another part, and a change of one kind does not need to be "only" that kind.
-
-**An effect is counted once, by the change that decided it.** A settle that writes into the policy documents a rule change a released work item stated adds nothing that work item's title did not already count, so that part is `chore:`. A section the settle rewrites where no released work item decided it, such as guidance rewritten because its judgments kept costing more than they returned (`skills/core/SKILL.md` *The first value: efficient development through the workflow*), is a part with its own effect, classified by the table, and it raises the settle's prefix above `chore:`. The same holds for the fold and the version move: each writes what released changes decided.
-
-The test between `feat:` and `fix:` is whether the rule stood in the tree before the change, which a reader answers by opening the base. The test between `fix:` and `refactor:` is whether the old behaviour was wrong against that rule. The test between `perf:` and `refactor:` is whether anything met is sooner or cheaper.
-
-### The cases the rule was run against
-
-Run 2026-10-31 by the framer against the rule above. The first eight are the cases `trail/rounds/round-2.md` read, its finding 1 counted as two.
-
-| Case | Its parts and their kinds | Prefix |
+| Kind | What whoever meets the change meets | Examples |
 |---|---|---|
-| #1167 | items 1 to 10, judgments moved from scripts to agents: `refactor:`; item 11, a record section, and item 12, a reading in the settle's dry run: `feat:`; its tests and records | `feat:` |
-| #1198 | a record format and commands that assemble, disassemble and stack it: `feat:` | `feat:` |
-| #1199, this work | a refusal on the push rule this change states: `feat:`; the prefix table's new rule, which writers meet: `feat:`; tests and records | `feat:` |
-| a test with the fix it pins | the fix: `fix:`; the case: `test:` | `fix:` |
-| a dependency bump that changes nothing met, with its records | `chore:` and `chore:` | `chore:` |
-| a work item's records alone | `chore:` | `chore:` |
-| a speed-up with the case that pins it and its records, as `97e29b7a` (executed, `git show --name-only`: `hooks/`, `skills/evidence-check/scripts/`, `tests/`, its records) | `perf:`, `test:`, `chore:` | `perf:` |
-| a test change with its records, as `8cb58904` (executed, `git show --name-only`: `tests/`, `.test_durations`, its records), whose case read files it should not have | the corrected case: `test:`, since no one outside the suite meets it; `.test_durations` and records: `chore:` | `test:` |
-| a settle that writes released rule changes only | `chore:` | `chore:` |
-| a settle that also rewrites a guidance section no released work item decided | the rewrite: `refactor:`, `fix:` or `feat:` by its effect; the rest: `chore:` | the rewrite's kind |
-| a README edit with its changelog fragment | `docs:`, `chore:` | `docs:` |
-| a case that refuses, added to the suite alone | `test:` | `test:` |
+| `feat:` | something new to use or to meet | a command; a record format; a refusal on a rule the change itself states; a thing removed that its users must now work around |
+| `fix:` | behaviour that was wrong against a rule the tree stated before the change, now matching it | a check that let through what its rule refused; a skill sentence that contradicted the policy it cites |
+| `perf:` | the same behaviour, sooner or at less cost | a file parsed once instead of once per row |
+| `refactor:` | the same kinds of outcome, reached another way | a judgment moved from a script to an agent; a gate retired because what it caught did not outweigh its cost; a skill nobody used, removed; a section moved to another file |
+| `test:` | nothing outside the repository's own tests | a case added or corrected, even one that refuses where the suite gates the merge |
+| `docs:` | text nobody acts on | a README's explanation; a comment |
+| `chore:` | upkeep that changes nothing anyone meets | the version move; the changelog fold; a dependency pin that changes nothing met; a work item's records committed alone; a settle that writes the rule changes released work items stated |
 
-Each case gives one prefix. Each prefix the round-2 record's six holding cases gave is unchanged, and the two it found split now give one answer each: `perf:` and `test:` for the first, the rewrite's kind for the second.
+The clarifications, each one sentence in the skill:
+
+- **Precedence.** Where a change does more than one of these, its prefix is the one highest in the table, because whoever meets it meets the largest change, and a release reads any `feat:` as at least a minor.
+- **A change's own tests and its work item's records never decide its prefix.** A speed-up with the case that pins it is `perf:`, and a README edit with the case that pins its words is `docs:`.
+- **Text a party reads and acts on is behaviour.** A change to a skill, an agent definition, a template a party fills or a hook's message is never `docs:` and never `chore:`. A work item's own records describe their change and leave with it, so the previous clarification, not this one, governs them.
+- **"Before the change" is the branch the change merges into.** A rule stated only in the change's own work item, such as its frame, belongs to the change, so a commit that builds it takes the kind its pull request takes.
+- **An effect is counted once, by the change that decided it.** A settle that writes a rule change a released work item stated is `chore:`. A section it rewrites that no released work item decided is that rewrite's kind.
+- **The writer states the grounds.** The orchestrator's part of the pull request body says in one sentence why the title takes its prefix, and names the kind that came closest where one did. `agents/sealer.md` step 4 reads that part against the design and the diff (read), so a prefix the change does not bear out is a disagreement the sealer names. An issue's title takes the prefix of the pull request that closes it and is retitled with it.
+
+What this leaves open, stated as limits:
+
+- Two writers can still weigh a close case differently. The grounds sentence puts the weighing where the sealer reads it, and a review of the skill text holds each sentence to one meaning, but no procedure makes the two agree.
+- A `feat:` titled as another kind passes the release check, which reads the title and not the change. The grounds sentence and the sealer's reading are what meet it.
+
+### Worked examples
+
+The frame's own judgments, each with its grounds. They are examples for the writer and for the review, not a test the skill's text must pass by grammar.
+
+| Case | Prefix | Grounds |
+|---|---|---|
+| #1167 | `feat:` | Items 11 and 12 add a record section and a reading in the settle's dry run, which are new to meet. Items 1 to 10 alone would be `refactor:`, and precedence gives the higher |
+| #1198 | `feat:` | a record format and the commands that assemble, disassemble and stack it |
+| #1199, this work | `feat:` | a refusal on the push rule this change states, and a prefix rule writers now meet |
+| a test with the fix it pins | `fix:` | the test is the change's own |
+| a dependency bump that changes nothing met, with its records | `chore:` | |
+| a work item's records alone | `chore:` | |
+| a speed-up with its case and records, as `97e29b7a` | `perf:` | its case and records never decide |
+| a test change with `.test_durations` and its records, as `8cb58904` | `test:` | no one outside the suite meets the corrected case |
+| a settle that writes released rule changes only | `chore:` | counted once, by the released work items |
+| a settle that also rewrites guidance no released work item decided | the rewrite's kind | the rewrite is the settle's own effect |
+| a README edit with its changelog fragment | `docs:` | |
+| a case that refuses, added to the suite alone | `test:` | the suite is the repository's own tests, whether or not it gates the merge |
+| a README edit with the case that pins its words | `docs:` | its own test never decides |
+| a gate retired with nothing in its place; unused skills removed, as in `e391ea04` | `refactor:` | the outcomes its users met are reached without it, or nobody used it |
+| a command users ran, removed | `feat:` | its users meet something new: they must work around it, and a release that asks them to act is a minor (*#653*) |
+| a build commit on a work item's branch after its frame | its pull request's kind | the frame belongs to the change |
+| a dependency bump that corrects a defect users met | `fix:` | |
+| a skill's section moved to another file, its instructions unchanged | `refactor:` | |
+
+### Round 3's findings under this design
+
+Each finding of `trail/rounds/round-3.md` is answered by phase 3's rewrite of the skill, as follows.
+
+| Finding | Becomes | Where |
+|---|---|---|
+| 1, records `chore:` by the row and never `chore:` by the behaviour paragraph | absorbed: the behaviour clarification leaves a work item's records to the own-tests-and-records clarification | *The classification*, the second and third clarifications |
+| 2, a README with its pinning case becomes `test:` | absorbed: a change's own tests never decide its prefix, and no order among `test:`, `docs:` and `chore:` is drawn | the second clarification; the example |
+| 3, a removal fits no kind | absorbed as examples, with the frame's judgment: a removal is judged by what its users now meet, `refactor:` where they meet the same outcomes or nobody used it, `feat:` where they must work around it | the `feat:` and `refactor:` examples; *Worked examples* |
+| 4, "a gate" takes in a case the suite runs | absorbed: the behaviour clarification names text a party acts on and no gates, and the `test:` example names a refusing case where the suite gates the merge | the `test:` row; the third clarification |
+| 5, "the base" undefined | absorbed: before the change is the branch it merges into, and the change's own frame is the change's. A limit stays: the commits already on this branch, `c6ed2331` `feat:` and `05b716f7` `fix:`, keep their subjects, and the squash takes the pull request's title | the fourth clarification |
 
 ### The version each prefix gives, and the push
 
@@ -131,7 +155,7 @@ A reverted `feat:` still counts, as a reverted squash still counts toward D (the
 
 ### The first cases
 
-- **#1167: `feat:`.** Its Scope items 1 to 10, taken alone, are `refactor:`: they move judgments from scripts to agents and rewrite sequences as guidance, and nobody gains anything to use. Items 11 and 12 add a record section, `## Judgments of the run`, and a reading, *The judgments* in `seal settle`'s dry run, which are `feat:` parts. The change takes the highest kind among its parts. This departs from the owner's note in the issue that #1167 is "strictly more `refactor:` than `feat:`". The note is true of its bulk, and the rule decides by the highest kind among the parts, so that two writers reach the same prefix without weighing which part is larger. Under the table, #1167 would be `refactor:` only if items 11 and 12 moved out of it into a change of their own. Milestone 74 stays `0.26.0`. The issue's title, `chore:` today, takes `feat:`.
+- **#1167: `feat:`.** Its Scope items 1 to 10, taken alone, are `refactor:`: they move judgments from scripts to agents and rewrite sequences as guidance, and nobody gains anything to use. Items 11 and 12 add a record section, `## Judgments of the run`, and a reading, *The judgments* in `seal settle`'s dry run, which are new to meet. By the precedence, the change takes the highest of what it does. This is the frame's judgment, and it departs from the owner's note in the issue that #1167 is "strictly more `refactor:` than `feat:`". The note is true of its bulk. The precedence weighs what a reader meets, not which part is larger, and a `feat:` titled under another kind is hidden from the release reading. #1167 would be `refactor:` only if items 11 and 12 moved out of it into a change of their own. Milestone 74 stays `0.26.0`. The issue's title, `chore:` today, takes `feat:`.
 - **#1198: `feat:`.** It adds a record format and the commands that assemble, disassemble and stack it. Its title already says so. It sits in 75, a patch, so 75, 76 and 70 are pushed when the result is applied. If its review decides to drop the build, 75 is not pulled back.
 - **#1199, this work: `feat:`.** It adds a refusal on a rule it states, the push. The issue's title, `fix:` today, takes `feat:`. Milestone 74 is a minor, so nothing moves.
 
@@ -180,10 +204,12 @@ A reverted `feat:` still counts, as a reverted squash still counts toward D (the
 | The pull-back direction, "a minor become a patch" | `docs/branch-and-release.md` *Work accumulates on a release branch* | `## Rule changes` item 1: milestones are pushed forward and never pulled back (issue #1199, the owner's decision). |
 | The `chore:` row's unbounded "release preparation, configuration, dependencies" | `skills/commit-pr-convention/SKILL.md` *Commit messages* | Rewritten in place with what `chore:` is not (*Scope* item 1). |
 | The log outranking the table on which row a change takes | `skills/commit-pr-convention/SKILL.md` *Commit messages*, the paragraph opening "A repository's own log outranks the table" | Narrowed in place to spelling and to prefixes the table lacks (*Scope* item 2). |
-| The first-row rule and the "only", "and nothing else" words of the `test:`, `perf:`, `docs:` and `chore:` rows, as 9944919e wrote them | `skills/commit-pr-convention/SKILL.md` *Commit messages*, the paragraph opening "A change takes the first row that fits" and the table | Replaced in place by the per-part rule (*Data & interfaces*, *The classification*), in phase 2. |
+| The first-row rule and the "only", "and nothing else" words of the `test:`, `perf:`, `docs:` and `chore:` rows, as 9944919e wrote them | `skills/commit-pr-convention/SKILL.md` *Commit messages*, the paragraph opening "A change takes the first row that fits" and the table | Replaced in phase 2 by the per-part rule, which phase 3 replaces in turn (next row). |
+| The per-part rule, its claim that "the answers exclude one another, so no order is needed", and the table's order as a precedence among parts, as 05b716f7 wrote them | `skills/commit-pr-convention/SKILL.md` *Commit messages*, the paragraphs opening "Each part of a change has one kind" and "The order of the table is the precedence among kinds", and the `feat:`/`fix:` test paragraph | Replaced in phase 3 by the guidance in *Data & interfaces*, *The classification* (reframed after round 3). |
 | The sentence that the settle "writes into the policy documents what the released work items' frames already decided", and the two named `chore:` cases it closes | `skills/commit-pr-convention/SKILL.md` *Commit messages*, the paragraphs opening "Text a party reads and acts on is behaviour" and "Apart from those two" | Replaced by *An effect is counted once, by the change that decided it*, in phase 2. |
 | The example title `chore: the round cap is a ceiling…` | `docs/issues-and-milestones.md` *An issue is titled like a commit* | `## Rule changes` item 3. |
 | No mechanism | | This work adds a refusal and removes none. The reading rides the existing step and script and reuses its two reads, the subjects since the fork and the version from the head branch, so it adds no step, workflow, file or input. Nothing in the tree reads a version against a prefix today: the 2026-09-02 rule was never built (#653, read), so there is nothing to retire in its place. What the refusal would have caught is 14 of 37 patch releases (*Grounding*). |
 
 Framed 2026-10-31 by framer, before the build.
 Reframed 2026-10-31 by framer, after round 2.
+Reframed 2026-10-31 by framer, after round 3.

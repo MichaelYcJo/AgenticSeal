@@ -13,8 +13,13 @@ waits on a person.
 - **Does a change keep its kind when it carries its tests and its work
   item's records, and what is a settle?** Yes, and a settle is `chore:`
   unless it rewrites what no released work item decided. `frame/design.md`
-  *The classification* and *The cases the rule was run against*, and
-  `frame/plan.md` A14 to A18 (reframed after round 2).
+  *The classification* and *Worked examples*, and `frame/plan.md` A14 to
+  A22 (reframed after rounds 2 and 3).
+- **Is the prefix a procedure or a judgment?** A judgment the writer
+  weighs and states grounds for, which the sealer reads.
+  `frame/design.md` *The classification*, and `frame/plan.md` A19 to A21.
+- **What happens to round 3's five findings?** `frame/design.md`
+  *Round 3's findings under this design*.
 - **#1167 and #1198.** Both `feat:`. `frame/design.md` *The first cases*,
   and `frame/plan.md` A10.
 - **This issue's own prefix.** `feat:`. `frame/design.md` *The first cases*.
