@@ -16,7 +16,8 @@ writes today. A record comes in one of two shapes:
              `docs/the-review-record.md` holds, so each record is judged by
              the grammar in force when it was written (the owner's decision
              on #985) and a line the grammar gained later is not owed; a
-             record no commit wrote is read by this tree's check. The
+             record no commit wrote is read by this tree's check, which
+             reads `seal` blocks since #1198 and so refuses it. The
              commit and the base are its `target:` line, a finding is a
              `### <n>. ` section at `verdict: fixed <commit>`, and the next
              round confirms it on a `confirms: round-<N>#<n>` line. It
@@ -84,8 +85,8 @@ LOCATION = re.compile(
 )
 # The two labels of 0.22.0's record a replay reads a value from, the level of
 # its finding heading, and the verdict word a truth needs. Every record a
-# replay reads stands in labelled lines, which this tree's check stops
-# reading at #1198, so these are this file's own.
+# replay reads stands in labelled lines, and this tree's check reads a round
+# record's `seal` blocks since #1198, so these are this file's own.
 TARGET_LABEL = "target:"
 LOCATION_LABEL = "location:"
 FINDING_LEVEL = 3
@@ -280,7 +281,8 @@ def labelled_round(text, rel, n, at=None):
     `{"sha", "value", "findings", "confirms"}` — the `target:` commit and
     the line's whole value, each finding as `(n, symptom, its location
     value, fixed or not)`, and the `(round, finding)` pairs its `confirms:`
-    lines name.
+    lines name. This tree's check reads `seal` blocks since #1198, so it
+    refuses a record in labelled lines.
 
     A record that check refuses is `(None, the first refusal)`, so a replay
     reads only what the pull request accepted, by the grammar it was

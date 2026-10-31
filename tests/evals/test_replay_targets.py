@@ -210,7 +210,8 @@ class Test_module:
         the replay set lost 18 of its 31 rounds that way. Read through the check
         of the commit that last wrote it, in the tree or at a release tag, it is
         read as its pull request accepted it. A record no commit wrote is read
-        by the tree's check."""
+        by the tree's check, which reads `seal` blocks since #1198 and refuses
+        a record in labelled lines."""
         rt = load_script("replay_targets")
         repo = tmp_path / "repo"
         repo.mkdir()
@@ -256,7 +257,7 @@ class Test_module:
 
         assert rt.written_at(rel, []) == written
         refused, why = rt.labelled_round(text, rel, 1)
-        assert refused is None and why.startswith("the check refuses the record"), why
+        assert refused is None and "no round block" in why, why
         read, why = rt.labelled_round(text, rel, 1, at=written)
         assert why == ""
         assert read["findings"] == [

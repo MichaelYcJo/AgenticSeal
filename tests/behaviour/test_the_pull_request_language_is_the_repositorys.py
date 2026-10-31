@@ -965,28 +965,37 @@ def _checker(name, *parts):
 
 
 def _chain():
-    """`chain_check.py`, whose grammar table is loaded at its import."""
+    """`chain_check.py`, which loads `hooks/lib/fields.py` at its import."""
     return _checker("chain_check", "skills", "code-review", "scripts", "chain_check.py")
 
 
 # The headings of a round record the parties and the eval graders read and
-# the check does not, so no row of the grammar table holds them.
+# the check does not, so no grammar holds them.
 GRADED_HEADINGS = ["## Not judged", "## Probes"]
+# The section the confirmation blocks stand under, which the exclusion list
+# counts among the grammar's cells.
+CONFIRMATIONS = "## Confirmations"
+
+
+def _round_record_grammar():
+    """Every key of the `seal` blocks of a round record, read from
+    `hooks/lib/fields.py` rather than copied, the `## Findings` section
+    `chain_check.py` reads, and `## Confirmations`."""
+    chain = _chain()
+    keys = [key for kind in chain.FIELDS.ROUND_RECORD for key in kind.keys]
+    return [*dict.fromkeys(keys), chain.FINDINGS_HEADING, CONFIRMATIONS]
 
 
 def _round_record_fields():
-    """What a round record carries: every label and section of the grammar
-    table `chain_check.py` loads, read from the table rather than copied,
-    and the two graded headings. The finding heading's `Line` cell is a
-    pattern, and an old spelling stands in a table of its own, which no
-    record carries. Two lines are owed only where their condition holds,
-    `original:` in a repository that declares `seal/parity.md` and
-    `reopens:` on a finding that raises an earlier close, so the template's
-    one finding shows the other relation, `regression:`, and neither of
-    these."""
-    chain = _chain()
-    left_out = (chain.HEADING_ROW, chain.ORIGINAL_ROW, chain.REOPENS_ROW)
-    return [key for key in chain.GRAMMAR if key not in left_out] + GRADED_HEADINGS
+    """What a round record carries: its grammar and the graded headings.
+    Two lines are owed only where their condition holds, `original:` in a
+    repository that declares `seal/parity.md` and `reopens:` on a finding
+    that raises an earlier close, so the template's one finding shows the
+    other relation, `regression:`, and neither of these."""
+    fields = _chain().FIELDS
+    left_out = (fields.ORIGINAL, fields.REOPENS)
+    kept = [key for key in _round_record_grammar() if key not in left_out]
+    return kept + GRADED_HEADINGS
 
 
 ROUND_RECORD_FIELDS = _round_record_fields()
@@ -1143,7 +1152,7 @@ def test_the_exclusion_list_points_at_the_grammar_table_and_restates_none_of_it(
         "the exclusion list no longer names the table that holds a round "
         "record's literals"
     )
-    copied = [key for key in _chain().GRAMMAR if f"`{key}`" in said]
+    copied = [key for key in _round_record_grammar() if f"`{key}`" in said]
     assert not copied, (
         f"the exclusion list restates the grammar table's rows {copied}; it names "
         "the table instead"

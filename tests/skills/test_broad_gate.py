@@ -1931,15 +1931,22 @@ class Test_suite_counts:
 
 def a_round(*verdicts):
     """A round record in `templates/records/sdd-round.md`'s shape, one finding per
-    `verdict:` value."""
+    `verdict:` value, each closed by a close block reading it, none where it
+    is `open`."""
+    fence = "`" * 3
     found = "".join(
-        f"### {n}. x\n\nseverity: should\nlocation: `a:{n}`\n"
-        f"evidence: read `a:{n}`\nverdict: {verdict}\n\nwhy\n\nanswer: \n\n"
+        f"### {n}. x\n\n{fence}seal\nseverity: should\nlocation: `a:{n}`\n"
+        f"evidence: read `a:{n}`\n{fence}\n\nwhy\n\n"
+        + (
+            ""
+            if verdict == "open"
+            else f"{fence}seal\nverdict: {verdict}\nanswer:\n{fence}\n\n"
+        )
         for n, verdict in enumerate(verdicts, 1)
     )
     return (
         "# r — review round 1\n\n"
-        f"target: abc1234 against base\n\n## Findings\n\n{found}"
+        f"{fence}seal\ntarget: abc1234 against base\n{fence}\n\n## Findings\n\n{found}"
         "## Probes\n\n| Command | Result |\n|---|---|\n"
     )
 

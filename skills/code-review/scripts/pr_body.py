@@ -9,8 +9,8 @@ copied from them.
 withheld verdicts were a sentence of it that restated one wrongly. This
 writes the part of the body below the line `HEADING` holds from the records
 themselves: the changelog fragment, the plan's `## Phases` section and the
-phase records' paths, each round record's `target:` line and its findings'
-labelled lines, the broad run's `seal` blocks, `gaps.md`'s `## Not verified` and
+phase records' paths, each round record's `seal` blocks and its findings'
+headings, the broad run's `seal` blocks, `gaps.md`'s `## Not verified` and
 `## Not done` sections, and every table line of `frame/questions.md`. It
 copies lines and composes none: no count, no summary, no rewording. Each
 section opens with a line of `FIXED` naming its source, and a record that is
@@ -28,10 +28,10 @@ for line. A copied line equal to `HEADING`,
 line where `close_issues_on_release.py#keywords_in` reads a closing
 keyword: the `Closes` line is the orchestrator's, written above `HEADING`.
 
-Round records are read through `chain_check.py`'s grammar, the one reader of
-a round record, and `trail/gate.md` through `hooks/lib/fields.py`, the one
-reader of a record's `seal` blocks; a record either refuses is refused here
-with its sentence. The other records' headings are read through `unverified_check.py`'s
+Round records are read through `chain_check.py#round_read`, which places the
+blocks `hooks/lib/fields.py` reads by the record's headings, and
+`trail/gate.md` through `hooks/lib/fields.py`, the one reader of a record's
+`seal` blocks; a record either refuses is refused here with its sentence. The other records' headings are read through `unverified_check.py`'s
 `readable` and `sections`, so a heading inside a fence is no heading. No
 record is parsed any other way.
 
@@ -82,8 +82,8 @@ def _load(path, name):
     return module
 
 
-# Loaded once, here: `chain_check.py` with the round record's grammar it
-# loads at its import and the shared markdown reader it loads,
+# Loaded once, here: `chain_check.py` with the block reader and the shared
+# markdown reader it loads at its import,
 # `hooks/lib/routing.py`, whose `round_number` is the one ordering rule of
 # round records and whose `optin` names a work item's files, and
 # `.github/scripts/close_issues_on_release.py`, whose `keywords_in` is the one
@@ -122,11 +122,6 @@ FOLD_END = "</details>"
 PHASES = "## Phases"
 NOT_VERIFIED = READER.HEADING
 NOT_DONE = "## Not done"
-# The labelled lines of a finding the generator copies beside the
-# `verdict:`, `regression:` and `reopens:` lines `chain_check.py` names: rows
-# of the grammar table, read through its `label_of`.
-SEVERITY = "severity:"
-ANSWER = "answer:"
 
 # A work item's records, by their path under its directory.
 CHANGELOG = OPTIN.CHANGELOG
@@ -322,43 +317,30 @@ def _built(texts):
 
 
 def _round(rel, number, text):
-    """The blocks of one round record, read through `chain_check.py`."""
-    _found, errors = CHAIN.round_of(READER, text, rel, number)
-    if errors:
-        raise Refused(errors)
-    raw, seen = READER.gfm_lines(text), READER.readable(text)
-    section, spans, _error = CHAIN.finding_spans(READER, seen)
-    inside = {i for first, stop in spans for i in range(first, stop)}
-    target = [
-        i
-        for i, line in enumerate(seen)
-        if i not in inside and CHAIN.label_of(line) == CHAIN.TARGET_ROW
-    ]
+    """The blocks of one round record, read through `chain_check.py`, in the
+    record's order: each `seal` block outside every finding, the prose under
+    `## Findings` before its first finding, and each finding's heading one
+    level down followed by its finding block and its close block, each
+    block copied whole (#1198)."""
+    parsed = CHAIN.round_read(READER, text, rel)
+    if parsed.errors:
+        raise Refused(parsed.errors)
+    raw = READER.gfm_lines(text)
+
+    def whole(block):
+        return _copied(rel, raw, block.line - 1, block.end)
+
+    placed = [(block.line - 1, [whole(block)]) for block in parsed.outside]
+    if parsed.section is not None:
+        start, end = parsed.section
+        stop = parsed.spans[0][0] if parsed.spans else end
+        placed.append((start + 1, [_copied(rel, raw, start + 1, stop)]))
+    for k, (first, _stop) in enumerate(parsed.spans):
+        heading = [("#" + raw[first].lstrip(" "), (rel, first + 1))]
+        placed.append((first, [heading, *(whole(b) for b in parsed.inside[k])]))
     blocks = [_fixed(ROUND_HEADING.format(path=rel))]
-    blocks += [[(raw[i], (rel, i + 1))] for i in target]
-    if section is not None:
-        start, end = section
-        blocks.append(_copied(rel, raw, start + 1, spans[0][0] if spans else end))
-    for first, stop in spans:
-        blocks.append([("#" + raw[first].lstrip(" "), (rel, first + 1))])
-        for label in (
-            SEVERITY,
-            CHAIN.VERDICT_ROW,
-            CHAIN.REGRESSION_ROW,
-            CHAIN.REOPENS_ROW,
-        ):
-            blocks += [
-                [(raw[i], (rel, i + 1))]
-                for i in range(first + 1, stop)
-                if CHAIN.label_of(seen[i]) == label
-            ]
-        for i in range(first + 1, stop):
-            if CHAIN.label_of(seen[i]) == ANSWER:
-                end = i
-                while end < stop and raw[end].strip():
-                    end += 1
-                blocks.append(_copied(rel, raw, i, end))
-                break
+    for _at, copied in sorted(placed, key=lambda pair: pair[0]):
+        blocks += copied
     return blocks
 
 

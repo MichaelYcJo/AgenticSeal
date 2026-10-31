@@ -150,13 +150,17 @@ mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-untrue-body/trail/rounds/
 cat > 'seal/threads/1790000030-guarantee-untrue-body/trail/rounds/round-1.md' <<'AGENTIC_EOF'
 # 1790000030-guarantee-untrue-body — review round 1
 
+```seal
 target: b0b0b0b against main
+```
 
 ## Findings
 
 ## Confirmations
 
+```seal
 confirms: none
+```
 `shout` keeps empty text empty and its mark otherwise, at `src/textutil.py:4`.
 read against S1.
 
@@ -242,7 +246,13 @@ The phase records:
 
 ### `trail/rounds/round-1.md`
 
+```seal
 target: b0b0b0b against main
+```
+
+```seal
+confirms: none
+```
 
 ## Broad gate
 

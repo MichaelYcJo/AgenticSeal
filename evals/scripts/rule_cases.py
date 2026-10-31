@@ -781,8 +781,8 @@ none
 """
 # The build commit's placeholder in the records and the pull request body,
 # which the scaffold fills with the commit it makes. It is hexadecimal because
-# `chain_check.py`'s grammar reads a `target:` line only where it names a
-# commit, and `pr_body.compose` reads the round record through that grammar.
+# a round block's `target:` reads only where it names a commit, and
+# `pr_body.compose` reads the round record through `chain_check.py` first.
 BUILD_SHA = "b0b0b0b"
 SEALER_PHASE = """# Phase 1: {item}
 
@@ -795,13 +795,17 @@ before the change (`python3 -m unittest tests.test_textutil -q` with
 """
 SEALER_ROUND = """# {item} — review round 1
 
+```seal
 target: {build} against main
+```
 
 ## Findings
 
 ## Confirmations
 
+```seal
 confirms: none
+```
 `shout` keeps empty text empty and its mark otherwise, at `src/textutil.py:4`.
 read against S1.
 

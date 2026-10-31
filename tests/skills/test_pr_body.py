@@ -3,8 +3,8 @@
 Written by #1044's phase 1. The generator's units run in the process over a
 work item written under a case's own directory, and the command with its own
 `main`, so no shell runs under them. The fixture's records are the shapes
-the templates under `templates/records/` give, and its round records are
-ones `chain_check.py`'s grammar reads.
+the templates under `templates/records/` give, and its round records hold
+the `seal` blocks `chain_check.py` reads.
 """
 
 import os
@@ -41,32 +41,41 @@ None.
 ROUND_1 = """\
 # Review round 1: 1799000000-a-body
 
+```seal
 target: 1111111 against main
+```
 
 ## Findings
 
 ### 1. The writer drops the last line
 
+```seal
 severity: must
 location: `skills/x.py:3`
 evidence: read `skills/x.py:1-3`
-verdict: fixed 2222222
+```
 
 Why it matters, with its grounds.
 
-answer: fixed in 2222222: the writer keeps
-the last line now.
+```seal
+verdict: fixed 2222222
+answer: fixed in 2222222: the writer keeps the last line now.
+```
 
 ## Confirmations
 
+```seal
 confirms: none
+```
 The reader holds.
 """
 
 ROUND_2 = """\
 # Review round 2: 1799000000-a-body
 
+```seal
 target: 3333333, fixes 1111111..3333333
+```
 
 ## Findings
 
@@ -74,7 +83,9 @@ None. The fix closes round 1's finding.
 
 ## Confirmations
 
+```seal
 confirms: round-1#1
+```
 The close holds.
 """
 
@@ -162,22 +173,38 @@ The phase records:
 
 ### `trail/rounds/round-1.md`
 
+```seal
 target: 1111111 against main
+```
 
 #### 1. The writer drops the last line
 
+```seal
 severity: must
+location: `skills/x.py:3`
+evidence: read `skills/x.py:1-3`
+```
 
+```seal
 verdict: fixed 2222222
+answer: fixed in 2222222: the writer keeps the last line now.
+```
 
-answer: fixed in 2222222: the writer keeps
-the last line now.
+```seal
+confirms: none
+```
 
 ### `trail/rounds/round-2.md`
 
+```seal
 target: 3333333, fixes 1111111..3333333
+```
 
 None. The fix closes round 1's finding.
+
+```seal
+confirms: round-1#1
+```
 
 ## Broad gate
 
@@ -246,11 +273,14 @@ def unsourced(text, texts):
 
 class Test_compose:
     def test_accepts_a_work_item_as_the_records_text(self, tmp_path):
-        """S1. Every section the design lays out, in its order, holding the
-        records' lines: a finding's heading one level down, its answer
-        paragraph over two lines, a round with no finding, a line in Korean,
-        the line `HEADING` holds first, and one `<details>` around the
-        sections, its `<summary>` followed by a blank line."""
+        """S1, and #1198's scenario *The body copies blocks*. Every section
+        the design lays out, in its order, holding the records' lines: each
+        round's `seal` blocks verbatim, a finding's heading one level down
+        followed by its finding block and its close block, a round with no
+        finding, a line in Korean, the line `HEADING` holds first, and one
+        `<details>` around the sections, its `<summary>` followed by a blank
+        line. Seen red against the copy of a round's labelled lines, which
+        held no block."""
         texts = PR.read_item(str(item_of(tmp_path, RECORDS)))
         assert PR.compose(NAME, texts) == EXPECTED
 
@@ -313,7 +343,7 @@ class Test_compose:
             (
                 "trail/rounds/round-1.md",
                 ROUND_1.replace("verdict: fixed 2222222", "verdict: done"),
-                12,
+                20,
                 "verdict: done",
             ),
             (
@@ -475,7 +505,7 @@ class Test_main:
         assert PR.main([str(item), "--body", str(body), "--check"]) == 1
         out = capsys.readouterr().out
         assert out.startswith(
-            f"refused: seal/threads/{NAME}/trail/rounds/round-1.md:12: "
+            f"refused: seal/threads/{NAME}/trail/rounds/round-1.md:20: "
         )
         assert str(tmp_path) not in out
 

@@ -134,9 +134,12 @@ ROUTING = """| Axis | Answer |
 | Destination | open the pull request |
 | Branch | {branch} |
 """
+FENCE = "`" * 3
 ROUND = """# round {n}
 
+```seal
 target: abc1234 against base
+```
 
 ## Findings
 
@@ -156,10 +159,13 @@ OLD_ROUND = """# round {n}
 
 
 def finding(i, verdict):
-    """One finding of `templates/records/sdd-round.md`'s shape, at `verdict`."""
+    """One finding of `templates/records/sdd-round.md`'s shape: its finding
+    block, and a close block reading `verdict`, none where it is `open`."""
+    closed = f"{FENCE}seal\nverdict: {verdict}\nanswer:\n{FENCE}\n\n"
     return (
-        f"### {i}. a finding\n\nseverity: should\nlocation: `f.py:{i}`\n"
-        f"evidence: read `f.py:{i}`\nverdict: {verdict}\n\nwhy\n\nanswer: \n\n"
+        f"### {i}. a finding\n\n{FENCE}seal\nseverity: should\nlocation: `f.py:{i}`\n"
+        f"evidence: read `f.py:{i}`\n{FENCE}\n\nwhy\n\n"
+        + ("" if verdict == "open" else closed)
     )
 
 
@@ -498,7 +504,7 @@ class Test_chain_counts:
         )
         text = record.read_text(encoding="utf-8")
         answered = text.replace(
-            "answer: \n", "answer: #99 was deferred by another round\n"
+            "answer:\n", "answer: #99 was deferred by another round\n"
         )
         assert answered != text
         record.write_text(answered, encoding="utf-8")

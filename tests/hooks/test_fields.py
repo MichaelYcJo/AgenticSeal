@@ -38,6 +38,17 @@ def guarantee(*blocks_):
     return head + "\n".join(blocks_)
 
 
+def finding_with(line):
+    """A finding block holding a severity, a location and its evidence, and
+    LINE after them, or LINE in the location's place where it is one."""
+    lines = ["severity: must", "location: `a.py`", "evidence: read `a.py:1`"]
+    if line.startswith("location:"):
+        lines = [lines[0], lines[2], line]
+    else:
+        lines.append(line)
+    return block(*lines)
+
+
 def read(text, kinds=None):
     return fields.read(text, kinds or fields.GUARANTEE)
 
@@ -234,6 +245,124 @@ class Test_read:
         found = read(text)
         assert (found.blocks, found.refusals) == ([], [(line_of(text, line), said)])
 
+    def test_accepts_each_shape_of_a_close_a_location_and_a_reference(self):
+        """The values of a round record's blocks the check decides on, each
+        read whole with the named part it reads (#1198, moved from the
+        `chain_check.py` readers of a labelled line's value)."""
+        sha = "1a2b3c4d" * 5
+        for value, part in (
+            ("rejected", None),
+            ("fixed abc1234", "abc1234"),
+            (f"fixed {sha}", sha),
+            ("deferred #12", "#12"),
+            ("deferred the frame", "the frame"),
+        ):
+            (found,) = read(
+                block(f"verdict: {value}", "answer:"), fields.ROUND_RECORD
+            ).blocks
+            said = found.fields[fields.VERDICT].match
+            assert (said["commit"] or said["home"]) == part, value
+        for value in (
+            "`a.py`",
+            "`a.py:12`",
+            "`a.py:12-14`",
+            "`docs/x/`",
+            "`a.py:1`, `docs/b.md:3-4`",
+            "`a.py:1`, `b.py`, `c/d.md:9`",
+        ):
+            assert read(finding_with(f"location: {value}"), fields.ROUND_RECORD).blocks
+        for value, ref in (
+            ("round-2#3", ("2", "3")),
+            ("round-2", ("2", None)),
+            ("round-12#10", ("12", "10")),
+        ):
+            (found,) = read(
+                finding_with(f"regression: {value}"), fields.ROUND_RECORD
+            ).blocks
+            said = found.fields[fields.REGRESSION].match
+            assert (said["round"], said["finding"]) == ref, value
+
+    @pytest.mark.parametrize(
+        ("key", "value"),
+        [
+            *(
+                ("verdict:", value)
+                for value in (
+                    "Fixed abc1234",
+                    "fixed",
+                    "fixed abc1234.",
+                    "fixed abc123",
+                    "fixed " + "1a2b3c4d" * 5 + "0",
+                    "fixed ABC1234",
+                    "fixed abc1234 · fix pass: done",
+                    "fixed abc1234 and more",
+                    "deferred",
+                    "deferred ",
+                    "confirmed",
+                    "**fixed** abc1234",
+                    "open",
+                    "Open",
+                    " rejected",
+                    "",
+                )
+            ),
+            *(
+                ("location:", value)
+                for value in (
+                    "`:617`",
+                    "`a.py:1`, `:617`",
+                    "a.py:12",
+                    "`https://example.com/a`",
+                    "**`a.py:1`**",
+                    "`a.py:1`,`b.py`",
+                    "`a.py:1` and `b.py`",
+                    "`a.py:1`, ",
+                    "`a.py:x`",
+                    "`a.py:1-`",
+                    "`/abs/a.py`",
+                    "`a.py`.",
+                    "`a b.py`",
+                    "`a.py#unit`",
+                    "`a.py:1`, `b.py#unit`",
+                    "",
+                )
+            ),
+            *(
+                ("regression:", value)
+                for value in (
+                    "round 2's 3",
+                    "Round-2#3",
+                    "#3",
+                    "round-2#3.",
+                    "**round-2#3**",
+                    "`round-2#3`",
+                    "round-02#3",
+                    "round-2#03",
+                    "round-0#1",
+                    "round-2#",
+                    "round-2 #3",
+                    " round-2#3",
+                    "round-2#3, round-2#4",
+                    "none",
+                    "",
+                )
+            ),
+        ],
+    )
+    def test_refuses_a_round_value_outside_its_shape(self, key, value):
+        """Every other value of a close's `verdict:`, `open` among them since
+        a finding with no close block is open, of a `location:`, the
+        `path#unit` coordinate #923 leaked among them, and of a
+        `regression:` reference, refused at its line with its shape."""
+        line = f"{key} {value}"
+        if key == "verdict:":
+            text, kind = block(line, "answer:"), fields.CLOSE_BLOCK
+        else:
+            text, kind = finding_with(line), fields.FINDING_BLOCK
+        said = fields.SHAPE.format(line=line, key=key, says=kind.keys[key].says)
+        found = read(text, fields.ROUND_RECORD)
+        assert (found.blocks, found.refusals) == ([], [(line_of(text, line), said)])
+
     def test_the_verdict_shape_says_the_three_shapes(self):
         says = fields.VERDICT_BLOCK.keys[fields.SEALER_VERDICT].says
         for shape in (
@@ -360,6 +489,29 @@ class Test_verdict_word:
 
 
 class Test_module:
+    def test_the_round_template_opens_each_block_with_its_kind_and_reads(self):
+        """#1198's scenario *The templates parse*, for the round record: the
+        template holds a round block, a finding block and its close block,
+        and two confirmation blocks, each opening with its kind's key, and
+        the reader refuses no line of it, since every value the template
+        writes is one its key's shape reads or prose after `answer:`. Seen
+        red against the template in labelled lines, which held no block."""
+        path = os.path.join(ROOT, "templates", "records", "sdd-round.md")
+        with open(path, encoding="utf-8") as handle:
+            text = handle.read()
+        found = fields.read(text, fields.ROUND_RECORD)
+        assert (found.refusals, found.notices) == ([], [])
+        assert [b.kind for b in found.blocks] == [
+            fields.ROUND_BLOCK,
+            fields.FINDING_BLOCK,
+            fields.CLOSE_BLOCK,
+            fields.CONFIRMATION_BLOCK,
+            fields.CONFIRMATION_BLOCK,
+        ]
+        lines = text.split("\n")
+        for b in found.blocks:
+            assert lines[b.line].startswith(b.kind.opener + " "), lines[b.line]
+
     def test_the_guarantee_template_refuses_only_its_placeholders(self):
         """#1198's scenario *The templates parse*, for the guarantee: every
         block of the template opens with its kind's key, and every line the
