@@ -805,6 +805,121 @@ class Test_main:
         ) in text, text
         assert "\ngroup 1\n" not in text, text
 
+    def test_the_judgments_are_printed_by_the_document_each_stands_on(
+        self, repo, capfd
+    ):
+        """#1167, *Scope* item 12: each released plan's *Judgments of the
+        run*, read through `hooks/lib/config.py#gfm_table`, grouped by the
+        `Judged against` cell in the order the work items are listed, with
+        each work item's round count and each row's line. The template's
+        empty row is no judgment, and a plan with no such section prints
+        nothing for its work item."""
+        run_doc = "`docs/the-review-record.md` *The run*"
+        order = (
+            "`skills/implement/orchestration.md` *Orchestrator: the order "
+            "inside a ticket*"
+        )
+        plans = {
+            "1700000001-a": (
+                3,
+                [
+                    (
+                        "2026-10-01",
+                        "ended the rounds",
+                        "round 3 found 2, round 2 found 2",
+                        run_doc,
+                    ),
+                    ("", "", "", ""),
+                ],
+            ),
+            "1700000002-b": (
+                1,
+                [
+                    (
+                        "2026-10-02",
+                        "folded the owner's answer",
+                        "the owner answered Q1",
+                        order,
+                    ),
+                    (
+                        "2026-10-03",
+                        "sent a regression to the framer",
+                        "the frame named the unit",
+                        run_doc,
+                    ),
+                ],
+            ),
+        }
+        lines = {}
+        for name, (rounds, rows) in plans.items():
+            item(repo, name, "- nothing\n  why: x.")
+            table = "".join(f"| {' | '.join(row)} |\n" for row in rows)
+            plan = (
+                "# Implementation Plan: x\n\n## Phases\n\n"
+                "| Phase | Delivers | Verified by | Status |\n|---|---|---|---|\n"
+                "| 1 | a | b | c |\n\n## Judgments of the run\n\n"
+                "| Date | Judgment | Grounds | Judged against |\n|---|---|---|---|\n"
+                + table
+            )
+            (specs_dir(repo, name) / "frame" / "plan.md").write_text(
+                plan, encoding="utf-8"
+            )
+            lines[name] = [
+                line_of(plan, f"| {' | '.join(row)} |") for row in rows if row[0]
+            ]
+            held = specs_dir(repo, name) / "trail" / "rounds"
+            held.mkdir(parents=True)
+            for n in range(1, rounds + 1):
+                (held / f"round-{n}.md").write_text("# round\n", encoding="utf-8")
+        item(repo, "1700000003-c", "- nothing\n  why: x.")
+        (specs_dir(repo, "1700000003-c") / "frame" / "plan.md").write_text(
+            "# Implementation Plan: c\n\n## Phases\n", encoding="utf-8"
+        )
+        commit(repo, "a, b and c")
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        block = text.split(f"\n{settle.JUDGMENTS_HEADING}\n")[1].split(
+            f"\n\n{settle.REMOVES_HEADING}"
+        )[0]
+        a, b = lines["1700000001-a"], lines["1700000002-b"]
+        assert block == (
+            f"\njudged against: {run_doc}\n"
+            "    1700000001-a  3 rounds\n"
+            f"        frame/plan.md:{a[0]}  2026-10-01  ended the rounds\n"
+            "            grounds: round 3 found 2, round 2 found 2\n"
+            "    1700000002-b  1 round\n"
+            f"        frame/plan.md:{b[1]}  2026-10-03  sent a regression to the framer\n"
+            "            grounds: the frame named the unit\n"
+            f"\njudged against: {order}\n"
+            "    1700000002-b  1 round\n"
+            f"        frame/plan.md:{b[0]}  2026-10-02  folded the owner's answer\n"
+            "            grounds: the owner answered Q1"
+        ), block
+        assert "1700000003-c" not in block, block
+
+    def test_a_judgments_section_it_cannot_read_is_named_and_refuses_nothing(
+        self, repo, capfd
+    ):
+        """The core's rule for a script: a section that holds no table under
+        the exact header is named as not read, and the dry run still exits 0
+        and prints the rest."""
+        item(repo, "1700000001-a", "- nothing\n  why: x.")
+        (specs_dir(repo, "1700000001-a") / "frame" / "plan.md").write_text(
+            "# Implementation Plan: a\n\n## Judgments of the run\n\n"
+            "| Date | Judgment | Grounds |\n|---|---|---|\n| 2026-10-01 | x | y |\n",
+            encoding="utf-8",
+        )
+        commit(repo, "a")
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        block = text.split(f"\n{settle.JUDGMENTS_HEADING}\n")[1]
+        assert block.startswith(
+            "    1700000001-a  seal/threads/1700000001-a/frame/plan.md  not read: "
+            "holds no `| Date | Judgment | Grounds | Judged against |` table\n"
+        ), block
+        assert "judged against:" not in block, block
+        assert settle.REMOVES_HEADING in text, text
+
     @pytest.mark.parametrize("flag", ["--retire", "--retire-process"])
     def test_the_retired_flags_are_an_argument_error(self, repo, flag, capfd):
         """A script that still calls either gets exit 2, which the changelog
@@ -1497,6 +1612,13 @@ class Test_module:
         assert "order them by content" in flat(settle.UNORDERED)
         assert "moot, answered or a measurement to re-home" in flat(settle.ROWS_HEADING)
         assert "close with `closed` and what closed it" in flat(settle.ROWS_HEADING)
+        assert "grouped by the document each stands on" in flat(
+            settle.JUDGMENTS_HEADING
+        )
+        assert (
+            "rewrites a section where one kind of judgment recurs or kept "
+            "costing rounds" in flat(settle.JUDGMENTS_HEADING)
+        )
 
     def test_the_command_is_reachable_by_the_name_a_document_gives_it(self):
         """A6. The pair rule is
@@ -1527,8 +1649,10 @@ class Test_module:
             ("OPTIN", "it is what finds the repository's seal/ root"),
             (
                 "ROUTING",
-                "it is what reads the branch a local work item's `routing.md` names",
+                "it is what reads the branch a local work item's `routing.md` "
+                "names and counts a work item's round records",
             ),
+            ("CONFIG", "it is what reads a plan's *Judgments of the run* table"),
             ("RULES", "it is what reads a design's `## Rule changes`"),
             (
                 "FOLD_CHECK",

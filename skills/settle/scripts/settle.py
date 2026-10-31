@@ -3,7 +3,8 @@
 
   settle                        the dry run: each group of released designs that
                                 name one section, the designs to read whole, every
-                                open row, and what `--apply` removes
+                                open row, the judgments of each run, and what
+                                `--apply` removes
   settle --apply                remove each released work item directory whose
                                 record holds no open row
   settle --released-at REF      what counts as released (default origin/main)
@@ -38,7 +39,10 @@ in one group whose commits no ancestry orders are marked unordered for
 the settling session to order by content. A design whose section does not parse,
 or that has none, is listed to read whole. Every open `## Not verified` row of
 every released record is listed with the backticked paths it names and
-whether each is in the working tree. Nothing is refused or held in the dry
+whether each is in the working tree. Every row of every released
+`frame/plan.md` *Judgments of the run* is listed, grouped by its `Judged
+against` cell, with its work item's round count; a section whose table it
+cannot read is named as not read. Nothing is refused or held in the dry
 run.
 
 **`--apply` removes, and only that.** It removes every released work item
@@ -91,19 +95,29 @@ OPTIN = os.path.join(HERE, "..", "..", "..", "hooks", "lib", "optin.py")
 ROUTING = os.path.join(HERE, "..", "..", "..", "hooks", "lib", "routing.py")
 RULES = os.path.join(HERE, "rule_changes.py")
 FOLD_CHECK = os.path.join(HERE, "fold_check.py")
+CONFIG = os.path.join(HERE, "..", "..", "..", "hooks", "lib", "config.py")
 
 # What each sibling is for, in the sentence `load` prints when it is missing.
 PURPOSES = {
     READER: "it is where a record's open rows are read from",
     OPTIN: "it is what finds the repository's seal/ root",
-    ROUTING: "it is what reads the branch a local work item's `routing.md` names",
+    ROUTING: (
+        "it is what reads the branch a local work item's `routing.md` names "
+        "and counts a work item's round records"
+    ),
     RULES: "it is what reads a design's `## Rule changes`",
     FOLD_CHECK: "it is what reads the index and the one read after an apply",
+    CONFIG: "it is what reads a plan's *Judgments of the run* table",
 }
 
 SPECS = "seal/threads"
 # A thread's design, relative to its directory: `hooks/lib/optin.py#DESIGN`.
 DESIGN = "frame/design.md"
+# A thread's plan, and the section and table the orchestrator writes its
+# judgments of the run to (`templates/records/sdd-plan.md`).
+PLAN = "frame/plan.md"
+JUDGMENTS = "Judgments of the run"
+JUDGMENTS_HEADER = ("Date", "Judgment", "Grounds", "Judged against")
 TESTS = "tests/"
 
 # The command asked in local mode, once per branch, and how long it may take.
@@ -384,6 +398,13 @@ ROWS_HEADING = (
     "the\nsettling session to decide as moot, answered or a measurement to "
     "re-home, and\nclose with `closed` and what closed it:"
 )
+JUDGMENTS_HEADING = (
+    "the judgments: the orchestrators' rows of each released plan's *Judgments "
+    "of the run*,\ngrouped by the document each stands on, with each work "
+    "item's round count. The\nsettling session reads them before `--apply` "
+    "removes them, and rewrites a section\nwhere one kind of judgment recurs or "
+    "kept costing rounds (`skills/settle/SKILL.md`):"
+)
 REMOVES_HEADING = (
     "what `seal settle --apply` removes: each released directory whose record "
     "holds no open row:"
@@ -471,6 +492,65 @@ def open_rows(root, records, ids, reader):
             )
         )
     return out
+
+
+def judgments(records, ids):
+    """`(groups, unread)` for the plans of IDS under RECORDS, as they stand
+    in the working tree, where the open rows are read too.
+
+      groups  `[(judged against, [(id, rounds, [(line, date, judgment,
+              grounds)])])]`: every row of each plan's *Judgments of the run*,
+              grouped by its `Judged against` cell exactly as written, each
+              group and each work item in the order IDS lists them first.
+              `rounds` is how many `round-N.md` the work item's
+              `trail/rounds/` holds (`hooks/lib/routing.py#rounds`), or None
+              where that is a file and holds none
+      unread  `[(id, why)]` for a plan whose section holds no table under
+              the exact header, or whose table stops at a row it cannot read
+
+    A plan with no such section holds no judgment and is in neither. A row
+    whose every cell is empty is the template's blank row, and no
+    judgment. The table is read through `hooks/lib/config.py#gfm_table`
+    over the section's lines alone, and nothing here grades a cell."""
+    rules = load(RULES, "agentic_rule_changes")
+    routing = load(ROUTING, "agentic_routing_for_settle")
+    config = load(CONFIG, "agentic_config_for_settle")
+    groups, unread = {}, []
+    for work_item_id in ids:
+        text = read_text(records, f"{SPECS}/{work_item_id}/{PLAN}")
+        if text is None:
+            continue
+        lines = rules.reader().gfm_lines(text)
+        if not any(t == JUDGMENTS for _n, _lv, t in rules.headings(lines)):
+            continue
+        span, why = rules.section_lines(text, JUDGMENTS)
+        if span is None:
+            unread.append((work_item_id, why))
+            continue
+        first, last = span
+        rows, refusals = config.gfm_table(
+            "\n".join(lines[first - 1 : last]), JUDGMENTS_HEADER
+        )
+        if refusals:
+            unread.append((work_item_id, refusals[0]))
+        try:
+            rounds = len(routing.rounds(under(records, f"{SPECS}/{work_item_id}")))
+        except NotADirectoryError:
+            rounds = None
+        for line, (date, judgment, grounds, against) in rows:
+            if not any((date, judgment, grounds, against)):
+                continue
+            members = groups.setdefault(against, {})
+            members.setdefault(work_item_id, (rounds, []))[1].append(
+                (first - 1 + line, date, judgment, grounds)
+            )
+    return (
+        [
+            (against, [(i, r, held) for i, (r, held) in members.items()])
+            for against, members in groups.items()
+        ],
+        unread,
+    )
 
 
 def facts(root, op, rules):
@@ -627,6 +707,7 @@ def survey(root, ref, home=None):
         "why": why,
         "timeline": timeline(root, ref, ids, reader, records, merged),
         "rows": open_rows(root, records, ids, reader),
+        "judgments": judgments(records, ids),
         "nothing": reader.NOTHING,
     }
     found["citations"], found["readers"] = citations(root, ids)
@@ -696,8 +777,8 @@ def citations(root, work_item_ids):
 
 
 def report(found, ref, out):
-    """The dry run: the groups, the designs to read whole, the open rows and
-    what `--apply` removes. It refuses nothing, so it exits 0. In local mode
+    """The dry run: the groups, the designs to read whole, the open rows, the
+    judgments and what `--apply` removes. It refuses nothing, so it exits 0. In local mode
     it names the root first, lists each released work item with the pull
     request that merged it and each unreleased one with why, and says no
     commit holds what `--apply` removes."""
@@ -760,6 +841,25 @@ def report(found, ref, out):
                 for path, present in paths:
                     there = "in the tree" if present else "not in the tree"
                     write(f"            `{path}` {there}\n")
+    groups, unread = found["judgments"]
+    if groups or unread:
+        write(f"\n{JUDGMENTS_HEADING}\n")
+        for work_item_id, why in unread:
+            write(
+                f"    {work_item_id}  {SPECS}/{work_item_id}/{PLAN}  not read: {why}\n"
+            )
+        for against, members in groups:
+            write(f"\njudged against: {against or 'an empty cell'}\n")
+            for work_item_id, rounds, held in members:
+                counted = (
+                    f"{rounds} round{plural(rounds)}"
+                    if rounds is not None
+                    else "its trail/rounds is a file, so no round was counted"
+                )
+                write(f"    {work_item_id}  {counted}\n")
+                for line, date, judgment, grounds in held:
+                    write(f"        {PLAN}:{line}  {date}  {judgment}\n")
+                    write(f"            grounds: {grounds}\n")
     if found["released"]:
         write(f"\n{REMOVES_HEADING_LOCAL if local else REMOVES_HEADING}\n")
         for work_item_id in found["released"]:

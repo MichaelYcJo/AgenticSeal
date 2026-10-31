@@ -181,6 +181,13 @@ nothing:
   with the reader's reason, and one with no such section.
 - **Every open `## Not verified` row** of every released record, each with
   the backticked paths it names and whether each is in the working tree.
+- **The judgments**: every row of every released `frame/plan.md` *Judgments
+  of the run*, the decisions the orchestrator made in its run with their
+  grounds, grouped by the `Judged against` cell, the document each stands
+  on, with each work item's round count beside it. A plan with no such
+  section prints nothing, and a section whose table is not under the exact
+  header is named as not read. `--apply` removes the plans, so this is the
+  one reading the rows get.
 - **What `--apply` removes**, the citations into it from outside
   `seal/threads/`, and the checks under `tests/` that read `seal/threads`.
 
@@ -198,7 +205,11 @@ does not parse, an unordered pair and an open row are all shown.
    with its group and not applied. The rest of the document stays as it
    was, and no marker is written.
 3. Read each design listed to read whole, and write any rule it states the
-   same way.
+   same way. Then read *The judgments*: where one kind of judgment recurs
+   across work items under one document, or kept costing rounds, rewrite
+   that document's section in this settle, as step 2 writes a group's, so
+   the guidance improves from the record (`skills/core/SKILL.md` *A judgment
+   stands on a source document, and is written down with both*).
 4. Decide each open row against the tree, and close it in its record with
    `closed` and what closed it:
 
