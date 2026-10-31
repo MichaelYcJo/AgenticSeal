@@ -50,8 +50,12 @@ reopens them.
 - **How CI renders a `not read:` line.** Whether GitHub shows it as a notice
   annotation changes nothing built: the line prints either way, and phase 2
   picks the form (`frame/plan.md` *Operational impact*).
-- **The version.** Moved only where this pull request is the first into its
-  release branch; the orchestrator reads the branch before phase 5.
+- **The version and the base.** `release/v0.26.0`, with no pull request into
+  it yet (executed), so phase 5 moves `plugin.json` to `0.26.0` and the work
+  is a `feat:`: `frame/design.md` *Scope* item 14.
+- **The core's size under the hook's cap.** 8,147 of 10,000 characters with
+  item 1's draft (executed): `frame/design.md` *Grounding*; phase 1
+  re-measures the committed text.
 
 No row is open: every question the frame met, the tree or a probe answered,
 and no answer a person could give would change what gets built.
