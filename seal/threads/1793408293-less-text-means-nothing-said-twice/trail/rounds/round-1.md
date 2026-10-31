@@ -64,8 +64,8 @@ and a count of a change's added lines against its removed lines is context, neve
 The phase record of the fix pass states the new text and why, as
 `frame/design.md` *Scope* item 1 asks of a builder who rewords the sentence.
 
-verdict: open
-answer:
+verdict: fixed a45c2f93
+answer: The finding holds: "are reported as context" names no party and reads as a duty, and the owner's comment asks nobody to report a count. The paste-ready text was read as every party in every repository reads the core. It states what a count is where one is given and asks no party to produce one, and it keeps the frame's three parts and scope. The new clause is the proposed wording: "and a count of the lines a change adds against those it removes is context, never a criterion." Only its wrap differs: line 107 breaks after "a count", so lines 106 to 108 are 77, 75 and 71 columns, inside the paragraph's band, where the proposal ran line 107 to 78. Line 106 keeps `fewer lines` and line 107 keeps "a change that grows". The enumeration of `frame/design.md` *Data & interfaces* at the fix lists the same seventeen lines, the frame's fifteen and `skills/core/SKILL.md:106` and `:107` (executed). The fragment's lines 3 and 9 carry the proposed text in the same commit. The 45-module narrow run, which includes `tests/hooks/test_core.py`, `tests/behaviour/test_docs_line_wrap.py` and every module that reads the fragment, gave 2,909 passed and 9 skipped, exit 0 (executed). `git grep` for the clause's words found it also in `frame/design.md:26`, the framer's Scope item 1, which is left for the framer. The S1 row of the same file and `frame/plan.md` already state the count as context with no duty. `trail/phases/phase-1.md` says the sentence is Scope item 1 word for word, which was true at `af0bdaff`. A fix pass writes no phase record, so this answer records the new text and why in place of the phase record that *Scope* item 1 names.
 
 ## Confirmations
 
