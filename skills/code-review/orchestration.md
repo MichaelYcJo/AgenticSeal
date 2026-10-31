@@ -51,15 +51,15 @@ the same records. An orchestrator in a new session holds no `automation`
 press until it puts question 1 through `AskUserQuestion` again, so it does
 that before the spawn (`skills/implement/orchestration.md` *Question 1*).
 
-**The crafter's fix pass changes two lines per open finding of
-`trail/rounds/round-N.md`, its verdict and its answer, and nothing else but a
-coordinate it appends to `location:` where its fix went elsewhere**
-(`docs/the-review-record.md` *The round record*); it writes no
-`trail/phases/phase-N.md` and no `plan.md` row. **The orchestrator writes
-neither line of a finding the fix pass answers, and its fix-pass prompt leaves
-both lines to the crafter.** A close the orchestrator doubts goes into the
-verifying round's spawn prompt, since that round weighs every close, and the
-orchestrator does not rewrite the line.
+**The crafter's fix pass appends one close block to each open finding of
+`trail/rounds/round-N.md`, holding its verdict, its answer and, where its fix
+went to a path the finding does not name, a `location:` line naming it, and
+it edits nothing else in the record** (`docs/the-review-record.md` *The round
+record*); it writes no `trail/phases/phase-N.md` and no `plan.md` row.
+**The orchestrator writes no close block of a finding the fix pass answers,
+and its fix-pass prompt leaves every such block to the crafter.** A close the
+orchestrator doubts goes into the verifying round's spawn prompt, since that
+round weighs every close, and the orchestrator does not rewrite the block.
 
 **Two commits after the build are yours, not the crafter's**: a fix written after
 the last round, and the commit that integrates a sibling's squash. Each one that
@@ -80,10 +80,10 @@ stands in the work item's frame, which the fix pass does not edit, the
 orchestrator folds that statement in place, in a commit of its own, before it
 spawns the verifying round, so the round and the next crafter read one rule
 (`skills/implement/orchestration.md` *Orchestrator: the order inside a
-ticket*). Last, the fix pass writes the `verdict:` and `answer:` lines of
-every finding it answered, after its fix commits and those corrections,
-because a `fixed` verdict names a commit that already exists, and leaves the
-round record uncommitted. **On the hand-back the orchestrator commits the
+ticket*). Last, the fix pass appends the close block of every finding it
+answered, after its fix commits and those corrections, because a `fixed`
+verdict names a commit that already exists, and leaves the round record
+uncommitted. **On the hand-back the orchestrator commits the
 round record as the fix pass left it, in one commit for the whole pass, before
 it spawns the verifying round, and changes none of its lines.** That commit
 holds `trail/rounds/round-N.md` alone.
@@ -148,7 +148,9 @@ each decision to go on past the third round, or to stop, as one row of
 `frame/plan.md` *Judgments of the run*,** with the counts and signals you
 weighed as its grounds and the document you judged against; the proofer
 writes no line for it, and no person is asked mid-run. When you stop, every
-finding still open takes a home and reads `deferred <home>`.
+finding still open takes a home: you append its close block, its `verdict:`
+reading `deferred <home>` and its `answer:` saying why the run stopped there,
+and commit the close blocks of that step together.
 
 The condition is not *this round found nothing*, which would be unbounded. A
 verifying round that raises a `should` finding the crafter closes `rejected`,
@@ -161,8 +163,9 @@ reads that answer alone. Where the rejection holds, that round names it on a
 `reopens:` line naming it, which gets its fix pass and one more verifying
 round; a round carrying a `regression:` line is routed as the section below
 says, and where the work item returns to its framer the run goes on with the
-redesign. The run ends only on a round whose record holds no `open` or
-`rejected` finding and no `fixed` one that names a path outside the work
+redesign. The run ends only on a round whose record holds no finding without
+a close block, no `rejected` one, and no `fixed` one that names a path
+outside the work
 item's records or whose commit touched one, and whose `target:` commit is
 HEAD, or is followed only by the work item's own records (a verifying round,
 or the round you stopped at, whose open findings took their homes), since
@@ -193,7 +196,7 @@ The framer's route:
 
 | Step | What |
 |---|---|
-| The record | every open finding closes `deferred the frame`, and its `answer:` line names the regression that sent the work item back; you write both lines of every open finding in one commit |
+| The record | you append a close block to every open finding, its `verdict:` reading `deferred the frame` and its `answer:` naming the regression that sent the work item back, and commit every such block in one commit |
 | The framer | spawned again with the run's round records as its input; they are in the tree, so the prompt names them and carries nothing else. It rewrites `plan.md` (new phase rows; a closed phase keeps its commit) and `frame/design.md` where the scope moves, and adds `Reframed <date> by <who>, after round <N>.` under the `Framed` line. Where `routing.md` answers `Automation` with `yes`, the spawn asks nobody |
 | The redesign | you approve it when you spawn `crafter` for it; the spawn is the approval. It is then built and reviewed, and its first finding round starts the count again |
 
