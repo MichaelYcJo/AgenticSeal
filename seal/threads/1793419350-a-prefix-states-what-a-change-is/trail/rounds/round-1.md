@@ -19,7 +19,7 @@ the record has no `original:` line.
 severity: should
 location: `skills/commit-pr-convention/SKILL.md:118-128`
 evidence: read `skills/commit-pr-convention/SKILL.md:118-128`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/frame/design.md:64-74`
-verdict: open
+verdict: fixed 9944919e
 
 The skill now says a change takes the first row that fits, read from the
 top, and a change two rows fit takes the higher one (`:118-120`). The
@@ -60,14 +60,14 @@ below them would otherwise take it.
 | `chore:` | release preparation, such as the version move, the changelog fold and the settle; configuration and dependencies that tell no party to do anything new; a commit that writes only a work item's own records |
 ```
 
-answer:
+answer: Holds, and the class is wider than `perf:` and `test:` (contract rule 12). The `refactor:` row's words also take a dependency bump and a settle ("a structure moved", which finding 2 names), so `chore:` is swallowed the same way, and a README reorganisation fits "a structure moved" above `docs:`. The paste-ready text moves only `test:` and `perf:`, so it was not applied as written. The rule the fix states: every row that fits only a change wholly of its kind stands first, and a change with any other part falls past them. The new order is `test:`, `perf:`, `docs:`, `chore:`, `feat:`, `fix:`, `refactor:`. Each of the first four rows says so in its words ("and nothing else" or "only"), and the opening sentence says why they stand first. Re-checked after the reorder (read): #1167 is not wholly tests, speed, text no party acts on or records, so it falls to `feat:` through its Scope items 11 and 12. #1198 adds a record format and its commands, `feat:`. This work adds a refusal on a rule it states, `feat:`. A mixed change of a test and a fix falls past `test:` to `fix:`. The changelog fragment states the order in the same commit. `frame/design.md:64-74` keeps the old order, and the orchestrator folds the new one there.
 
 ### 2. The `chore:` row names the settle and a work item's records, and the two sentences under the table say text a party acts on is never `chore:`
 
 severity: should
 location: `skills/commit-pr-convention/SKILL.md:130`, `skills/commit-pr-convention/SKILL.md:136-142`
 evidence: read `skills/commit-pr-convention/SKILL.md:126-142`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/frame/design.md:74`
-verdict: open
+verdict: fixed 9944919e
 
 The `chore:` row (`:130`) names "the settle" and "a commit that writes only
 a work item's own records". Both write text a party reads and acts on. A
@@ -102,14 +102,14 @@ items' frames already decided.
 check, a gate, a record's shape or a process step.
 ```
 
-answer:
+answer: Holds. The paste-ready text says the two writes take `chore:` "whichever row above also fits them", and after finding 1's reorder `chore:` stands above `feat:`, `fix:` and `refactor:`, so the clause is false. The fix is written in other words: the sentence on text a party acts on now says such a change takes `feat:`, `fix:` or `refactor:` and never `docs:`, and takes `chore:` in two cases only, both named in the `chore:` row: a work item's own records, which only that item's parties read and which leave with it, and the settle, which writes into the policy documents what the released work items' frames already decided. The next sentence opens "Apart from those two". The `chore:` row says "or a work item's own records" in place of "a commit that writes only". The changelog fragment states both cases.
 
 ### 3. The branch-name examples teach two prefixes the rewritten table refuses
 
 severity: should
 location: `skills/commit-pr-convention/SKILL.md:271-274`
 evidence: read `skills/commit-pr-convention/SKILL.md:261-274`, `skills/commit-pr-convention/SKILL.md:136-142`
-verdict: open
+verdict: fixed 9944919e
 
 *Branch names* says a branch name takes the same prefix vocabulary as the
 commits (`:261`), and its two examples are
@@ -130,14 +130,14 @@ fix/940-on-demand-files-state-the-current-rule
 docs/the-readme-says-how-to-install
 ```
 
-answer:
+answer: Holds, applied as given after checking it against its grounds. #940's change made files a party reads state the current rule, so it is behaviour that was wrong against a stated rule, which is `fix:` (`gh issue view 940`, executed: its title is `chore:` today, the default this work removes). A README that says how to install is text no party acts on, so `docs:` fits. No other branch-name example under `skills/`, `agents/`, `templates/`, `docs/` or either README carries `chore/` or `docs/` (executed, `git grep`).
 
 ### 4. The missing-milestone warning was reworded and no case pins the new words
 
 severity: should
 location: `tests/github/test_release_completeness_check.py:339`, `tests/github/test_release_completeness_check.py:359`, `.github/scripts/release_completeness_check.py:372-381`
 evidence: read `.github/scripts/release_completeness_check.py:372-381`, `tests/github/test_release_completeness_check.py:319-360`
-verdict: open
+verdict: fixed 175f19d8
 
 The crafter's departure 4 (`trail/phases/phase-1.md`) rewrote the
 `::warning::` line from "this run verified NOTHING ... Passing anyway" to "the
@@ -167,7 +167,7 @@ the new text.
         assert "::error::" in out and "`feat: a thing (#100)`" in out, out
 ```
 
-answer:
+answer: Holds, applied as given. Both cases now pin "the milestone reading verified NOTHING". The exit-0 case pins "That reading passes anyway", and the exit-1 case refuses "Passing anyway". Seen red with `seal mutate` at 175f19d8 (executed): the warning's "the milestone" put back to "this run" turned the cases red, and "That reading passes" put back to "Passing anyway" turned them red as well. The second mutant alone turned the exit-1 case red, on its "Passing anyway" assertion. Both mutants: 2 red, 0 survived.
 
 ## Confirmations
 
