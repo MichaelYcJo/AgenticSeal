@@ -161,9 +161,12 @@ every instance the same cause produces. List them by a method that makes the
 list whole: build it from what produces the defect, take the artefact apart
 into every one of its parts, or run a command that lists each thing holding
 the property. The instances in view, or a search for one wording, find only
-the spellings already seen. The hand-back names the method and what it
-listed, and the proofer judges the method as well as the instances: a list
-made by sampling is a finding even where every instance on it was fixed.
+the spellings already seen, and a list made that way is a sample. Where the
+class has no end, as spellings, keywords and constructs have none, no method
+makes the list whole: the hand-back says so, and names where the open part
+is recorded. The hand-back names the method and what it listed, and the
+proofer judges the method as well as the instances: a sample handed back as
+a whole list is a finding even where every instance on it was fixed.
 check: none reader: the proofer at review
 
 ## 13 A defence resting on a platform guarantee is not verified
