@@ -1146,7 +1146,7 @@ class Test_module:
     def test_no_group_installs_into_git_or_reads_a_commit_before_it_runs(self):
         """#1027 S16: `pre-bash` holds the mode gate and nothing that reads a
         commit or carries a waiver to git, and `session-start` runs the
-        version check and the stub remover, in place of the installer and of
+        version check alone, in place of the installer, the stub remover and
         the move of an earlier layout (work item 1793438028). S1 of
         work item 1793240967: no group reads a command or a spawn for a branch
         switch or a worktree creation, so `pre-agent` holds the mark alone and
@@ -1160,7 +1160,7 @@ class Test_module:
         assert d.GROUPS["pre-bash"] == ("mode-gate.py",)
         assert d.GROUPS["pre-agent"] == ("implementer-mark.py",)
         assert "post-agent" not in d.GROUPS
-        assert d.GROUPS["session-start"] == ("version-check.py", "stub-remove.py")
+        assert d.GROUPS["session-start"] == ("version-check.py",)
         assert not any("install" in g for gates in d.GROUPS.values() for g in gates)
         everywhere = {g for gates in d.GROUPS.values() for g in gates}
         for gone in ("hook-install.py", "answer-write.py", "answer-clear.py"):

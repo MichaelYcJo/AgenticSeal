@@ -1026,7 +1026,8 @@ KEPT_OLD_NAMES = (
     f"<!-- {_OLD}:start -->",
     f"<!-- {_OLD}:end -->",
     # The second line of every git hook stub an earlier release wrote, which
-    # `hooks/stub-remove.py#MARKER` reads so it removes only its own stubs.
+    # `docs/the-routing-check.md` *Where the routing is checked* spells until
+    # the settle after the release removes that section.
     f"# {_OLD}-git-hook",
     # The clone line a workflow written before the rename carries, which
     # `seal.py#workflow_at` reads as this plugin's so that it is rewritten.
