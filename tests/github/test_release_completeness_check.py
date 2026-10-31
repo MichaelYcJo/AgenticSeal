@@ -214,11 +214,14 @@ class Test_judge:
 
 class Test_judge_feat:
     @pytest.mark.rule("a-patch-carries-no-feat")
-    def test_refuses_a_feat_in_a_patch_and_names_each_subject_and_the_push(self):
+    def test_refuses_a_feat_in_a_patch_and_names_each_subject_and_each_repair(self):
         """S1. A `feat:` makes a minor, and a release named as a patch that
         carries one ships a minor's content under a patch's number, which 14
         of the 37 patch releases from v0.8.1 to v0.25.1 did. The refusal is
-        read by whoever is stopped by it, so it names what to do: the push."""
+        read by whoever is stopped by it, so it names each repair at the
+        moment it can be made: before its squash, a `feat:` moves to the
+        planned minor whose goal it shares; once squashed here, it stays in
+        the range after a revert, and the repair is the rename."""
         lines, failed = feat_verdict(
             VERSION,
             ["fix: a repair (#9)", "feat: a thing (#10)", "feat: another (#11)"],
@@ -230,6 +233,9 @@ class Test_judge_feat:
         assert "`feat: a thing (#10)`" in error and "`feat: another (#11)`" in error
         assert "fix: a repair" not in error, "a fix: subject is named as a feat:"
         assert f"{VERSION} is a patch" in error, error
+        assert "before its squash" in error, error
+        assert "to the planned minor whose goal it shares" in error, error
+        assert "stays in its range" in error and "after a revert" in error, error
         assert f"rename {MILESTONE!r} and every later planned" in error, error
         assert "cut this branch again under the new name" in error, error
         assert "plugin.json" in error, error
@@ -284,14 +290,17 @@ class Test_judge_feat:
 
     @pytest.mark.rule("a-patch-carries-no-feat")
     def test_a_minor_with_no_feat_ships_as_the_minor_it_was_named(self):
-        """S7. A milestone is never pulled back, so a minor that ends up with no
-        `feat:` passes and says it ships under the number it was named."""
+        """S7. Once a branch is cut, its name is never pulled back, so a minor
+        that ends up with no `feat:` passes and says it ships as the minor it
+        was named, because its branch is cut under that name. Before the cut a
+        planned name follows its goal, which no reading here can see, so the
+        line states the bound and not an unbounded never."""
         lines, failed = feat_verdict(MINOR, ["fix: x (#9)"])
         assert not failed
         assert lines == [
             f"0 feat: subject(s) on this release branch, and {MINOR} is a minor",
-            f"{MINOR} carries no feat: and ships as the minor it was named; "
-            "a milestone is never pulled back",
+            f"{MINOR} carries no feat: and ships as the minor it was named, "
+            "since its branch is cut under that name",
         ], lines
 
 
