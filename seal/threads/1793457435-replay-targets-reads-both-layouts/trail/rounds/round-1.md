@@ -35,6 +35,11 @@ The fix is in the `--case` branch. Where nothing of the named work items was rea
 
 A case in `Test_module` should pin `main(["--list", "--case", "replay-1-r1"]) == 1` and its stderr line over `tagged_repo`. Contract rule 15 asks for it to be seen red against ea27b618 first.
 
+```seal
+verdict: fixed 32584024
+answer: The paste-ready fix covers the empty read alone, and the cause reaches further: `--list` returned before any name was said, so a name no listed line answers stayed silent even where another named item was read. The fix is written in this pass's own words. `main`'s `--list` branch now names each `--case` name that neither a kept line nor a `left out:` line answers, with `not_written`'s reason in the `not written` line `--case` already prints, and exits 1. The write path says its names through the same new helper, `say_unanswered`. `test_names_each_named_case_no_listed_line_answers_with_its_reason` pins the empty read, a partial read, and a kept and a left-out name that stay off stderr; it was seen red against ea27b618, which gave exit 0. The module docstring, `main`'s docstring, the `Exit codes` line and the changelog fragment's `--case` sentence were rewritten. `seed_defects.py --case` still says nothing for a name no shipped commit answers while another named commit is read; scope item 4 gives it the empty-read line alone, and `gaps.md` *Not done* leaves it to the orchestrator.
+```
+
 ### 2. A record in `seal` blocks whose every block the parser refuses is still read as a table, with the false reason `Target SHA (none) does not resolve`
 
 ```seal
@@ -64,6 +69,11 @@ def blocked(text):
 ```
 
 `test_refuses_a_record_in_seal_blocks_the_check_refuses` should gain the two records above. Each should be left out naming the check's refusal and not `Target SHA (none)`, and each should be seen red against ea27b618.
+
+```seal
+verdict: fixed 32584024
+answer: The paste-ready `blocked` was applied after reading `hooks/lib/fields.py#read` and `hooks/lib/blocks.py#Walk` in this release. It now also counts a refusal inside a block a `seal` opener opened, and an unclosed or unplaced fence at a line that is exactly the opener. The list was made by taking `read`'s outputs apart: the blocks it accepts, the eight refusals of `_block`, `UNCLOSED` and `UNSURE` (which name an opener of any info string, so only the `seal` opener's line counts), `COMMENT_LINE` (never an opener line) and the `NEAR` notice (not an opener in the form's spelling, so a record holding only such a fence still reaches the table reader, outside this class). `test_refuses_a_record_in_seal_blocks_the_check_refuses` gains three records: a round block alone with a refused `target:`, a `seal` fence that never closes, and one the walk cannot place. Each is left out with the check's refusal, and each gave `Target SHA (none) does not resolve` at ea27b618 (executed). The case also pins that a comment line and an unclosed or unplaced fence of another info string leave a record to the labelled and table readers; mutants that counted those went red. `blocked`'s docstring and the module docstring were rewritten, and the changelog fragment now says a record is judged whether the parser reads any of its blocks or refuses every one. Phase 2's departure and the frame's scope item 5 stand as the records of their time.
+```
 
 ## Confirmations
 
