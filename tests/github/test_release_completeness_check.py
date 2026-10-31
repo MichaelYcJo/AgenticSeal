@@ -233,6 +233,7 @@ class Test_judge_feat:
         assert "`feat: a thing (#10)`" in error and "`feat: another (#11)`" in error
         assert "fix: a repair" not in error, "a fix: subject is named as a feat:"
         assert f"{VERSION} is a patch" in error, error
+        assert "A feat: makes a minor." in error, error
         assert "before its squash" in error, error
         assert "to the planned minor whose goal it shares" in error, error
         assert "stays in its range" in error and "after a revert" in error, error
