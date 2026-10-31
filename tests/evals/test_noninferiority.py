@@ -789,11 +789,21 @@ class Test_finding_rows:
                 ),
                 ["location: `src/b.py:1`"],
             ),
+            (
+                printed(
+                    "### 1. a closed defect\n\n"
+                    + finding_block("location: `src/b.py:1`", "must")
+                    + f"\n{FENCE}seal\nverdict: fixed abc1234\nanswer: moved\n"
+                    f"location: `src/c.py:9`\n{FENCE}\n"
+                ),
+                ["location: `src/b.py:1`"],
+            ),
         ],
         ids=[
             "a fenced fix",
             "a shape the check refuses",
             "lines outside every finding",
+            "a close naming where the fix went",
         ],
     )
     def test_accepts_each_finding_as_its_location_lines(self, text, want):
