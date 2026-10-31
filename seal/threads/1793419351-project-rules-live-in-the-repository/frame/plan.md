@@ -44,7 +44,7 @@ The build edits four files of text and one test, and writes the changelog fragme
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Scope C1 | `tests/behaviour/test_every_orchestrator_act_names_its_delivery.py`, `tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py`, `tests/text/test_no_passage_is_pasted_into_a_second_file.py`, `tests/behaviour/test_docs_line_wrap.py`, `tests/text/test_the_rules_have_one_owner.py`, and every other module under `tests/` that names, imports or globs `skills/implement/orchestration.md` or `skills/implement/acts.md`, enumerated with `git grep -l` (contract rule 2) | |
+| 1 | Scope C1 | `tests/behaviour/test_every_orchestrator_act_names_its_delivery.py`, `tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py`, `tests/text/test_no_passage_is_pasted_into_a_second_file.py`, `tests/behaviour/test_docs_line_wrap.py`, `tests/text/test_the_rules_have_one_owner.py`, and every other module under `tests/` that names, imports or globs `skills/implement/orchestration.md` or `skills/implement/acts.md`, enumerated with `git grep -l` (contract rule 2) | d094e66c |
 | 2 | Scope C2, C3 and C4, and the work item's `changelog.md` | `tests/text/test_the_agent_contract_holds_the_universal_rules.py`, `tests/text/test_the_rules_have_one_owner.py` with the rewritten pin seen red against the old sentence, `tests/text/test_no_passage_is_pasted_into_a_second_file.py`, `tests/behaviour/test_docs_line_wrap.py`, and every other module that names, imports or globs `skills/agent-contract/SKILL.md`, `skills/verify/orchestration.md` or `skills/code-review/orchestration.md`, enumerated with `git grep -l` | |
 
 ## Operational impact
