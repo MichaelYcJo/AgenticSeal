@@ -2480,6 +2480,21 @@ class Test_verdicts_of:
         ]
         assert chain.unread_verdicts(reader, guarantee("abc1234", "sealed"), "g") == []
 
+    def test_names_no_verdict_line_inside_a_fence(self):
+        """The guarantee's net reads a line outside every fence too, so a
+        fenced `**Verdict:** withheld` is neither read nor named. Round 3's
+        finding 2: seen red against `unread_verdicts` reading the lines
+        through `reader.gfm_lines`, which blanks no fence."""
+        fence = "`" * 3
+        text = guarantee("abc1234", "sealed") + (
+            f"\n{fence}markdown\n**Verdict:** withheld\n{fence}\n"
+        )
+        lines = text.splitlines()
+        assert chain.verdicts_of(reader, text) == [
+            (lines.index("Verdict: sealed") + 1, "Verdict: sealed")
+        ]
+        assert chain.unread_verdicts(reader, text, "g.md") == []
+
     def test_the_verdict_patterns_are_linear_in_the_line(self):
         """#941's round 3 met a pattern that backtracked exponentially; the
         verdict line's patterns and the earlier run's repeat, so a long line
@@ -3555,6 +3570,22 @@ class Test_main:
             )
             in out.splitlines()
         ), out
+
+    def test_names_no_line_inside_a_fence(self, branch, ready, capsys):
+        """#1167, *Scope* item 5: the net reads a line outside every fence. A
+        paste-ready fix block quoting `Verdict: open` prints no `not read:`
+        line, and the exit code is the clean record's. Round 3's finding 2:
+        seen red against `unread` handing the record to `unread_lines`
+        through `reader.gfm_lines`, which blanks no fence."""
+        root, code_sha = branch
+        rel = f"{ITEM}/trail/rounds/round-1.md"
+        text = record(code_sha, [finding(1, f"fixed {code_sha[:8]}")])
+        write(root, rel, text.replace("x = 1", "Verdict: open"))
+        commit(root, "a fix block that quotes a verdict line")
+        seal(root)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert [ln for ln in out.splitlines() if "not read" in ln] == [], out
 
     def test_names_a_record_under_another_name_and_keeps_the_exit(
         self, branch, ready, capsys
