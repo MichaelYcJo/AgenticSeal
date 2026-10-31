@@ -115,59 +115,50 @@ says nothing writes English.
 `<prefix>: <one line, starting lower-case>`, in the repository's language.
 The prefix is not part of that: it stays as the table below spells it.
 
-**Each part of a change has one kind, read from its effect, and the change
-takes the highest kind among its parts as its prefix.** A part is a unit a
-reader can name: a section of a skill, a function, a test module, a work
-item's records, a dependency pin. Its kind answers one question: after the
-merge, what does a user, or a party working on a later change, meet
-differently because of this part? The answers exclude one another, so no
-order is needed to classify a part.
+**A prefix is the writer's judgment of what the change does for whoever
+meets it after the merge, a user or a party working on a later change, and
+the writer states its grounds.**
 
-| kind | what a user, or a party working on a later change, meets after the merge |
-|---|---|
-| `feat:` | something to use or to meet that nothing gave before: a command, a record format or a field in one, a step, a reading, or a refusal on a rule this change states |
-| `fix:` | behaviour that was wrong against a rule already stated in the tree, now matching it; a check outside the tests that starts refusing what its stated rule always refused is here |
-| `perf:` | the same behaviour, sooner or at less cost |
-| `refactor:` | the same kinds of outcome, reached another way: which party holds a judgment, a script that stops refusing what an agent now reads, a sequence rewritten as guidance, a structure moved; nothing is new, corrected or faster |
-| `test:` | nothing outside the suite: a case added, removed or corrected; a suite is how a contributor checks a change, and no user or party outside it meets a case |
-| `docs:` | text read and acted on by nobody: an explanation, a README, a comment |
-| `chore:` | nothing: release preparation, such as the version move and the changelog fold; configuration and dependencies that change nothing met; a work item's own records, which only its parties read and which leave with it; and a part whose effect a released change already decided and was titled for |
+| Kind | What whoever meets the change meets | Examples |
+|---|---|---|
+| `feat:` | something new to use or to meet | a command; a record format; a refusal on a rule the change itself states; a thing removed that its users must now work around |
+| `fix:` | behaviour that was wrong against a rule the tree stated before the change, now matching it | a check that let through what its rule refused; a skill sentence that contradicted the policy it cites |
+| `perf:` | the same behaviour, sooner or at less cost | a file parsed once instead of once per row |
+| `refactor:` | the same kinds of outcome, reached another way | a judgment moved from a script to an agent; a gate retired because what it caught did not outweigh its cost; a skill nobody used, removed; a section moved to another file |
+| `test:` | nothing outside the repository's own tests | a case added or corrected, even one that refuses where the suite gates the merge |
+| `docs:` | text nobody acts on | a README's explanation; a comment |
+| `chore:` | upkeep that changes nothing anyone meets | the version move; the changelog fold; a dependency pin that changes nothing met; a work item's records committed alone; a settle that writes the rule changes released work items stated |
 
-**The order of the table is the precedence among kinds**, and it acts only
-where one change holds parts of different kinds. It ranks by how much of
-what is met changes: something new, something corrected, something faster,
-something done another way, then the three kinds nobody outside the change
-meets. A part's tests and its work item's records are `test:` and `chore:`
-parts, below every kind someone meets, so they never decide the prefix of a
-change that holds a part someone meets.
+**Where a change does more than one of these, its prefix is the one highest
+in the table**, because whoever meets it meets the largest change.
 
-The test between `feat:` and `fix:` is whether the rule stood in the tree
-before the change, which a reader answers by opening the base. The test
-between `fix:` and `refactor:` is whether the old behaviour was wrong
-against a rule the tree stated. The test between `perf:` and `refactor:` is
-whether anything met is sooner or cheaper. The test between `feat:` and
-`refactor:` is whether anything is new to use or to meet.
+**A change's own tests and its work item's records never decide its
+prefix**, so a speed-up with the case that pins it is `perf:`, and a README
+edit with the case that pins its words is `docs:`.
 
-**Text a party reads and acts on is behaviour, and so are a check outside
-the tests, a gate, a record's shape and a process step.** A skill, an agent
-definition, a template a party fills and a hook's message are such text. A
-part that changes any of them is `feat:`, `fix:`, `perf:` or `refactor:`,
-never `docs:`, and `chore:` only where a released change already decided its
-effect, as the next paragraph says.
+**Text a party reads and acts on is behaviour**, so a change to a skill, an
+agent definition, a template a party fills or a hook's message is never
+`docs:` and never `chore:`, while a work item's own records, which describe
+their change and leave with it, fall under the paragraph before this one.
 
-**An effect is counted once, by the change that decided it.** A settle that
-writes into the policy documents a rule change a released work item stated
-adds nothing that work item's title did not already count, so that part is
-`chore:`. A section the settle rewrites where no released work item decided
-it is a part with its own effect, classified by the table, and it raises the
-settle's prefix above `chore:`. Guidance rewritten because its judgments
-kept costing more than they returned is such a section (`skills/core/SKILL.md`
-*The first value: efficient development through the workflow*). The same
-holds for the changelog fold and the version move: each writes what released
-changes decided.
+**"Before the change" is the branch the change merges into**, and a rule
+stated only in the change's own work item, such as its frame, belongs to the
+change, so a commit that builds it takes the kind its pull request takes.
+
+**An effect is counted once, by the change that decided it**, so a settle
+that writes a rule change a released work item stated is `chore:`, and a
+section it rewrites that no released work item decided is that rewrite's
+kind.
+
+**The writer states the grounds** in the orchestrator's part of the pull
+request body, as *Pull request bodies* says, and `agents/sealer.md` step 4
+reads that part against the design and the diff, so a prefix the change does
+not bear out is a disagreement the sealer names.
 
 **An issue's title takes the prefix the pull request that closes it will
-take**, chosen by this table, so no issue is filed `chore:` by default.
+take**, chosen by this table, so no issue is filed `chore:` by default, and
+the issue is retitled where the pull request takes a prefix other than the
+issue's.
 
 **The prefix states what the change is, and is never chosen to fit a release
 number.**
@@ -252,6 +243,9 @@ segment, and feed the flow log*.** That section states each row and where it
 is taken from. The writer links it rather than copying the rows into this
 file or into the body: two copies are two things to keep in step, and the one
 that drifts is the copy nobody owns.
+
+**The orchestrator's part says in one sentence why the title takes its
+prefix, and names the kind that came closest, where one did.**
 
 Where a translated body is wanted, **the writer puts it in the repository as a
 file and links it from the body.**
