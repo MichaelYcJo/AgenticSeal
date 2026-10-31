@@ -32,7 +32,7 @@ One phase, because the three items are small and a round over all of them reads 
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1, 2, 3 and 5 | `tests/github/test_release_completeness_check.py` with one case per scenario S1 to S7, each seen red with the refusal removed or the count inverted; `tests/text/test_a_release_cannot_ship_an_untrue_milestone.py`; the modules that read `skills/commit-pr-convention/SKILL.md` (`tests/behaviour/test_a_signer_declares_its_pact.py`, `tests/behaviour/test_chain_hooks_hardening.py`, `tests/behaviour/test_docs_line_wrap.py`, `tests/behaviour/test_the_pull_request_language_is_the_repositorys.py`, `tests/text/test_the_chain_section_has_one_shape.py`, `tests/text/test_the_settings_have_a_front_door.py`); `seal mutate` over the new judging function | |
+| 1 | `frame/design.md` *Scope* items 1, 2, 3 and 5 | `tests/github/test_release_completeness_check.py` with one case per scenario S1 to S7, each seen red with the refusal removed or the count inverted; `tests/text/test_a_release_cannot_ship_an_untrue_milestone.py`; the modules that read `skills/commit-pr-convention/SKILL.md` (`tests/behaviour/test_a_signer_declares_its_pact.py`, `tests/behaviour/test_chain_hooks_hardening.py`, `tests/behaviour/test_docs_line_wrap.py`, `tests/behaviour/test_the_pull_request_language_is_the_repositorys.py`, `tests/text/test_the_chain_section_has_one_shape.py`, `tests/text/test_the_settings_have_a_front_door.py`); `seal mutate` over the new judging function | 3c2012fe |
 
 *Scope* item 4, the policy root's changes, has no phase: the settle after this release applies `frame/design.md` `## Rule changes`.
 
