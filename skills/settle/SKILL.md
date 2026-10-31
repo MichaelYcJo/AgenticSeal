@@ -31,7 +31,8 @@ request.
 ```
 seal settle                  the dry run: each group of released designs that
                              name one section, the designs to read whole, every
-                             open row, and what --apply removes
+                             open row, the files named like a record and not
+                             read, and what --apply removes
 seal settle --apply          remove each released directory whose record
                              holds no open row
 seal settle --released-at REF  what counts as released (default origin/main)
@@ -184,6 +185,14 @@ nothing:
   among them, with that line and its reason.
 - **Every open `## Not verified` row** of every released record, each with
   the backticked paths it names and whether each is in the working tree.
+- **The files named like a record and not read**: a file in a released
+  work item's directory whose name is that of a record the settle reads
+  there, `gaps.md`, `frame/design.md` or `frame/plan.md`, at any path but
+  that record's own, such as `trail/gaps.md` or a top-level `design.md`,
+  each with the record it is named like. Only the exact name is read, and
+  no file's content, so none of its rows is counted and none keeps its
+  directory: what it holds is the settling session's to judge. The section
+  is printed only where it names a file.
 - **The judgments**: every row of every released `frame/plan.md` *Judgments
   of the run*, the decisions the orchestrator made in its run with their
   grounds, grouped by the `Judged against` cell, the document each stands
@@ -233,6 +242,12 @@ does not parse, an unordered pair and an open row are all shown.
    (`gh issue create`), its body listing each row it would answer with the
    row's work item, its text and its answerer. A repository with no tracker
    re-homes it as a `seal/follow-up.md` row.
+
+   Open each file the dry run names as not read, and decide each item in it
+   that reads as an open row by the same table. Write nothing into the
+   file, since `--apply` removes it with its directory; the pull request
+   body names each such item with its kind and what closed it, as it does
+   a row.
 5. Where the tree does not decide, take a default and write it down for the
    pull request body.
 6. Run each rule's `check:` targets over what you wrote, and change what a
@@ -266,6 +281,10 @@ does not parse, an unordered pair and an open row are all shown.
   committed is closed.
 - **It keeps a directory whose record still holds an open row**, or whose
   record cannot be read, and names each row.
+- **It names each file the dry run names as not read, and decides nothing
+  on it.** A `not read:` line under the directory's `removed` or `kept`
+  line names the file, which goes or stays with its directory; the
+  directory's record at its place alone decides which.
 - **It prints, for each directory it removed, the rows its record closed
   with what closed each**, so the pull request body can copy them.
 - **It writes no policy document.** The settling session has written them

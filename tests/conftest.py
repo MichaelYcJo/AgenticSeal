@@ -623,8 +623,10 @@ def shell_probe(name):
     return None
 
 
-def symlink_or_skip(target, link):
+def symlink_or_skip(target, link, directory=False):
     """`os.symlink(target, link)`, or skip the test where it is not permitted.
+    DIRECTORY makes it a directory link, which Windows needs for a target
+    that is a directory and POSIX ignores.
 
     Windows needs SeCreateSymbolicLinkPrivilege -- Developer Mode, or an
     elevated shell. A GitHub `windows-latest` runner has it and an ordinary
@@ -642,7 +644,7 @@ def symlink_or_skip(target, link):
     parent = os.path.dirname(os.path.abspath(str(link)))
     assert os.path.isdir(parent), f"the link's parent does not exist: {parent}"
     try:
-        os.symlink(target, link)
+        os.symlink(target, link, target_is_directory=directory)
     except OSError as exc:
         pytest.skip(f"symbolic links are not available here ({exc})")
 
