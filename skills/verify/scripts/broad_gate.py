@@ -2158,9 +2158,13 @@ def job_steps(text, job):
     empty answer from reading as a pass is the caller: the case that grades
     this repository refuses an empty list rather than counting zero
     unclassified steps.
+
+    A line ends at LF, CR or CRLF, YAML 1.2's line breaks: the text is
+    taken through universal newlines and split at LF alone, as
+    `deferral_check.py#runners_in` splits, so a name holding U+2028, which
+    `str.splitlines` also ends a line at, reads whole (#1198).
     """
-    # exempt from splitlines: YAML keys
-    lines = text.splitlines()
+    lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
     try:
         # Found by walking rather than by splitting on `"\njobs:\n"`: that
         # spelling cannot see a `jobs:` on the FIRST line of the file, and

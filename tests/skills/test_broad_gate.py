@@ -31,6 +31,7 @@ import sys
 import conftest
 import pytest
 from conftest import (
+    LS,
     census_case,
     git,
     git_out,
@@ -1738,6 +1739,32 @@ class Test_job_steps:
         runs — which is exactly A2's failure, arriving through the reader."""
         text = "jobs:\n  release:\n    steps:\n      - name: the step: and its tail\n"
         assert gate.job_steps(text, "release") == ["the step: and its tail"]
+
+    @pytest.mark.parametrize(
+        "text, expected",
+        [
+            (
+                f"jobs:\n  release:\n    steps:\n      - name: the step{LS}and its tail\n",
+                [f"the step{LS}and its tail"],
+            ),
+            (
+                "jobs:\r\n  release:\r\n    steps:\r\n      - name: the step\r\n",
+                ["the step"],
+            ),
+            (
+                "jobs:\r  release:\r    steps:\r      - name: the step\r",
+                ["the step"],
+            ),
+        ],
+        ids=["U+2028 inside a name", "CRLF line ends", "CR line ends"],
+    )
+    def test_accepts_a_line_ended_only_where_yaml_ends_it(self, text, expected):
+        """#1198, Scope item 10. YAML 1.2 ends a line at LF, CR or CRLF and
+        nowhere else, so a step name holding U+2028 is one name. Seen red
+        against `str.splitlines`, which ends a line at U+2028 too and read
+        `the step` alone; the two line-end shapes pin the universal newlines
+        the LF split comes after."""
+        assert gate.job_steps(text, "release") == expected
 
 
 class Test_base_is_main:

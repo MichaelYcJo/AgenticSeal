@@ -1072,6 +1072,27 @@ class Test_measure:
         paths = [f["path"] for f in data["agents"]["probe"]["files"]]
         assert "skills/alpha/SKILL.md" in paths and "skills/beta/SKILL.md" in paths
 
+    @pytest.mark.parametrize(
+        "text, expected",
+        [
+            (
+                f"---\nname: p\nskills:\n- alpha{LS}beta\n---\n",
+                ("p", [f"alpha{LS}beta"]),
+            ),
+            ("---\rname: p\rskills: [alpha]\r---\r", ("p", ["alpha"])),
+        ],
+        ids=["U+2028 inside an entry", "CR line ends"],
+    )
+    def test_a_frontmatter_line_ends_only_where_yaml_ends_it(
+        self, meter, text, expected
+    ):
+        """#1198, Scope item 10. YAML 1.2 ends a line at LF, CR or CRLF and
+        nowhere else, so a `skills:` entry holding U+2028 is one entry. Seen
+        red against `str.splitlines`, which ends a line at U+2028 too and read
+        `alpha` alone. `read` decodes the bytes as they are, so the CR shape
+        pins the universal newlines the LF split comes after."""
+        assert meter.frontmatter(text) == expected
+
     def test_the_baseline_agent_may_be_named_with_its_namespace(self, meter, tmp_path):
         """Round 1, finding 4. The refusal listed `agentic:tracer` among the
         agents the transcript spawned and refused `--baseline-agent
