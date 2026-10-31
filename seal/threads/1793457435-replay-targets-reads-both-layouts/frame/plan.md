@@ -1,0 +1,44 @@
+# Implementation Plan: 1793457435-replay-targets-reads-both-layouts
+
+## Technical context
+
+The work builds on these parts of the code:
+
+- `evals/scripts/replay_targets.py:73` `RECORD` matches the 0.22.x path alone. `#records` (`:129-159`) lists `seal/specs` in the working tree and at each tag. `#round_target` composes the record's path (`:645`), the path of `routing.md` at the target (`:669`) and the next record's path (`:674`) in that layout. `#prompt` (`:746`) and `#graders` (`:778`) compose the report path in it too.
+- A record's shape is decided by `#labelled` (`:252`), from a `target:` line among this tree's readable lines. `readable` blanks fenced lines, so a record in `seal` blocks is not labelled, and `round_target` reads it as a table record. `#labelled_round` (`:277-334`) asks the writing commit's `round_of` and then reads the `target:` and `location:` values with `label_value`. A block record has no such value outside its fences.
+- `#checks_at` (`:227-249`) already copies `hooks/lib/fields.py` at the writing commit. During framing (executed), the check of 7a8899d5 read three v0.27.0 block records with no error through `round_of` and `round_read`.
+- `evals/scripts/seed_defects.py:93` `SPEC` and `:204` hold the 0.22.x layout. `#target_of` (`:178-235`) calls `rt.round_target` with a `wrote` of its own. `#prompt` (`:327`) and `#graders` (`:348`) compose the report path.
+- The tests are `tests/evals/test_replay_targets.py` (529 lines) and `tests/evals/test_seed_defects.py` (498 lines). `test_replay_targets.py#labelled_check_files` and `test_seed_defects.py#shipped_item` build the fixture repositories that new cases extend.
+
+The record layouts are a closed pair: no release tag holds a third layout (`frame/design.md` *Grounding*, executed). The record grammars number three: the table, labelled lines, and `seal` blocks. A fourth grammar would be met the way #1198's was met: by a record the generator misreads.
+
+**Failure scenario of the chosen approach, six months out.** A release moves the records again, or #1198's block grammar is replaced. The layout statement and the shape order are each one place, so the next move edits one entry. The run that meets the change first prints the empty-read line, or a `left out:` line with a reason that names the grammar, rather than nothing. What breaks quietly is a grammar change that the writing commit's check still parses but whose values sit somewhere else, as `target:` moved into a fence at #1198. The guard against that is Scenario 4's case and its counterpart for the next grammar, which the next grammar change owes.
+
+## Alternatives considered
+
+| Approach | Failure scenario | Verdict |
+|---|---|---|
+| A1. Keep the 0.22.x paths, and add a second hard-coded copy of each for the thread layout at each of the eight places | The eight places drift. One of them already did: `seed_defects.py` was missed in the issue's first reading of `replay_targets.py`. A third layout repeats the edit eight times. | Rejected. One statement, read by both scripts (scope item 1). |
+| A2. One statement of both layouts; every derived path taken from the layout the record was read in | Phase 1 has to change `records`'s return shape, and the module's tests pin the present one. | **Chosen.** |
+| A3. The scaffolds write the thread layout: move a 0.22.x target tree's `seal/specs/<item>/` to `seal/threads/<item>/` with `rounds/` under `trail/`, and rewrite `seal/README.md`'s first line to `hooks/lib/optin.py#MARKER` | The move lands in the reviewed commit, so `base..target` holds every moved record and the proofer reviews a diff that never existed. Moving the base too means rewriting the history the case fetches. Either way, all eight committed cases change their scaffold, prompt and graders, and the moved records are still in a grammar the current check refuses (`NO_ROUND_BLOCK`). So the move does not give the side a tree it reads as a current one. | Rejected. Each case keeps rebuilding its target as that commit holds it. |
+| A4. Keep the committed scaffolds and cases, and let new cases come from thread-layout records, which already rebuild trees the current plugin reads as its root | The committed 0.22.x cases still rebuild trees whose `seal/` the current plugin does not read as its root (`frame/design.md` *Grounding*, executed). If that degrades what the side reads, the suite measures the plugin against trees no user still runs. That is Q1's measurement and Q2's decision, outside the reader. | **Chosen** for this work. The reader fix is what makes new cases possible at all. |
+| A5. The empty read exits with a new code 3 | A caller could tell "nothing to read" from "too few targets". No caller reads either code (executed: `grep` over `evals/scripts`), and the stderr line already tells a person which it was. | Rejected. Exit 1 stays "fewer than asked", and none is fewer. |
+| A6. Read a block record's `target:` and `location:` values with a pattern in `replay_targets.py`, as `label_value` reads labelled lines | It re-encodes `hooks/lib/fields.py`'s grammar in a second place, which `skills/core/SKILL.md` *The first value* rules out ("it reads what … a real parser returns"). | Rejected. The writing commit's `round_read` gives the parsed blocks. |
+| A7. Name every file under `seal/` named like a split record (`round-N-report.md` and the like) as not read | `--case` reads every tag, and 620 such paths stand at v0.9.1 to v0.22.3 (executed). Each run would print them all, and neither generator holds a gate, which is what the core's naming rule binds. | Rejected. Out of scope, with that reason (`frame/design.md` *Scope*). |
+
+## Phases
+
+| Phase | Delivers | Verified by | Status |
+|---|---|---|---|
+| 1 | Scope items 1, 2, 3, 4 and the layout half of 6 | `tests/evals/test_replay_targets.py` and `tests/evals/test_seed_defects.py`, run in one command, with Scenario 2's, 3's and 6's cases seen red first, and Scenario 1's thread-layout case. Scenario 1 run in a scratch clone with the tags after v0.23.1 deleted and `refs/pull/*/head` fetched. Scenario 5's `diff -r` of all eight committed cases regenerated at HEAD against a92c358b. The `test_census` case each of the two modules holds (`census_case`), which runs `tests/censuses.py`'s readers, `old_names` among them, over its script. | |
+| 2 | Scope item 5 and the grammar half of 6 | Scenario 4's case seen red against Phase 1's head, and the module's tests. Scenario 1's clone run over v0.27.0 and v0.26.0, where none of the 10 block records is left out as `Target SHA (none) does not resolve`. Scenario 5's diff again. | |
+
+## Operational impact
+
+Neither generator gains a dependency, an environment variable or a migration. A script or person that ran `--list` and read an empty output as "nothing to do" now gets exit 1 and a stderr line. No script in the tree does (executed: `grep`). The committed proofer cases do not change. Regenerating them anywhere still needs the reviewed commits in the local object store. On a fresh clone these are only reachable through `refs/pull/*/head`, which is how the framing probe fetched them. That was so before this work, and it is unchanged.
+
+## Judgments of the run
+
+| Date | Judgment | Grounds | Judged against |
+|---|---|---|---|
+| | | | |
