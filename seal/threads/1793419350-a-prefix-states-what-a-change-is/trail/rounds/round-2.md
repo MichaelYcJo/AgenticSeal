@@ -34,7 +34,7 @@ judgments call for (finding 2).
 severity: should
 location: `skills/commit-pr-convention/SKILL.md:118-133`
 evidence: executed `git show --name-only --format= 8cb58904`, `git show --name-only --format= 97e29b7a`, `git log origin/release/v0.26.0 --no-merges --format='%h %s'`
-verdict: open
+verdict: fixed 05b716f7
 reopens: round-1#1
 
 The close does not hold for the changes this repository titles. Round 1
@@ -82,14 +82,14 @@ outside the tests. A change two rows fit takes the higher one, so a writer
 who finds one part of the change that adds something stops at `feat:`.
 ```
 
-answer:
+answer: Routed by the orchestrator to the framer, not to a fix pass: the first-row rule was the mechanism the fixes chased. The reframe (fec2a3cc) replaced it with a per-part rule, and phase 2 built it at 05b716f7. Round 3 reopens this finding as its finding 2.
 
 ### 2. The new sentence says the settle writes only what the released frames decided, and the settle also rewrites guidance no frame decided
 
 severity: should
 location: `skills/commit-pr-convention/SKILL.md:142-145`
 evidence: read `skills/commit-pr-convention/SKILL.md:139-148`, `skills/core/SKILL.md:72-77`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/frame/design.md:30`
-verdict: open
+verdict: fixed 05b716f7
 regression: round-1#2
 
 The unit is the sentence `9944919e` added at `:142-145`, which names the
@@ -123,14 +123,14 @@ section it rewrites where their recorded judgments kept costing more than
 they returned.
 ```
 
-answer:
+answer: Routed with the other two to the framer's reframe (fec2a3cc). The settle is now *An effect is counted once, by the change that decided it*, built at 05b716f7. Round 3 confirms the close.
 
 ### 3. The frame's Scope item 1 still says text a party acts on is never `chore:`, and the fold says the frame's rule is unchanged
 
 severity: should
 location: `seal/threads/1793419350-a-prefix-states-what-a-change-is/frame/design.md:30`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/frame/design.md:64`
 evidence: executed `git grep -n -E "never .docs:. or .chore:.|.chore:. is never a change"`
-verdict: open
+verdict: fixed 05b716f7
 regression: round-1#1
 
 The unit is the paragraph `faedeb6f` wrote at `frame/design.md:64` in
@@ -170,7 +170,7 @@ The rule this frame drew stands with one change, made by round 1's finding
 2, where the frame had said text a party acts on is never `chore:`:
 ```
 
-answer:
+answer: Routed with the other two to the framer's reframe (fec2a3cc). Scope item 1 was rewritten there and folded at 5b6dc48f. Round 3 reopens this finding as its finding 1.
 
 ## Confirmations
 
