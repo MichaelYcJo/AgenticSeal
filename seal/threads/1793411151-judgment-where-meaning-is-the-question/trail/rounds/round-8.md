@@ -27,7 +27,7 @@ not read.
 severity: should
 location: `skills/verify/scripts/deferral_check.py:94-109`, `tests/skills/test_deferral_check.py:115`, `seal/threads/1793411151-judgment-where-meaning-is-the-question/gaps.md:27-30`
 evidence: executed `bin/test tests/skills/test_tmp_round7_probe.py -q -s -p no:xdist --basetemp=../basetemp`
-verdict: open
+verdict: fixed 7f69767f
 
 Claimed, in `gaps.md` *Not done* and `trail/phases/phase-4.md` *Found and
 not built*: `runners_in` still ends a line at U+2028; the frame keeps
@@ -132,7 +132,7 @@ beside the parametrised trigger case. It is seen red against the tool at
 The paragraph at `gaps.md:27-30` goes in the same commit, since the limit
 it states no longer stands.
 
-answer:
+answer: The finding holds. The case was applied as written, and the splitter was not. Read against its grounds, the paste's `\r\n|\r|\n` has two dead arms. `read` opens each file in text mode with universal newlines, so CR and CRLF reach `runners_in` as LF. A first draft took the regex, and `seal mutate` showed it: dropping `\r`, or keeping `\n` alone, survived (executed). So `7f69767f` splits at `"\n"` alone, and the docstring says why: LF, CR and CRLF are YAML 1.2's line breaks and a Jenkinsfile's, `read` turns all three into LF, and `str.splitlines` also breaks at the eight characters. `test_a_line_ends_at_each_of_yamls_line_breaks` pins `read`'s half with a CRLF file and a CR file. It passes on both trees by design. Its mutant, `read` opened with `newline=""`, is red. `hooks/lib/blocks.py#gfm_lines` splits at the same three ends but was not reused, because its contract is markdown and record text. After the fix, the step still holds a runner word, so the tool still exits 0 and names the file. It now prints the whole step, `./deploy.sh # see<char>pytest`, so the reader sees the comment. That is the case's assertion. The eight rows were red at `2b7eef28` on a `ci` line of `pytest` alone (executed). `seal mutate` over the final splitter gave 5 red of 5 (executed): `splitlines` restored; a split at LF and U+2028; a split at LF and all eight characters; `read` without universal newlines; the stale `# exempt from splitlines: YAML keys` put back. The last is the census: it holds the LF split, and run alone it refuses the comment with "the exemption excuses nothing, because splitlines does not flag the line below it; remove the comment" (executed). The `gaps.md` paragraph left in the same commit. The narrow run then found that phase 4 had renamed `Test_main`'s one `test_accepts_` case, which `seal layout --check` refuses. `bce21a12` renames it back. Other statements, by `git grep` on "U+2028", "runners_in" and "splitlines" with "YAML", outside `docs/`: `trail/phases/phase-4.md`'s *Found and not built* paragraph, a phase record a fix pass does not edit; `frame/design.md` *Scope* item 10 and its `## Removes` row, which close both misreadings as moot with the scan; and `changelog.md:14`, which now holds as written. The hand-back names all three. Other instances of the cause, by the census's exemption lines that name YAML: `broad_gate.py#job_steps` and `payload_meter.py#frontmatter` read YAML through `str.splitlines`. Both read the plugin's own files, outside this finding and phase 4, and the hand-back names them.
 
 ## Confirmations
 
