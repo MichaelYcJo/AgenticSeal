@@ -13,7 +13,7 @@ The fix pass's account was read as claims. It claimed the paste-ready text of ro
 severity: should
 location: `skills/agent-contract/SKILL.md:166-168`, `seal/threads/1793419351-project-rules-live-in-the-repository/changelog.md:3`
 evidence: executed `git show c5eec50b^:skills/agent-contract/SKILL.md`, `git grep -n -i -E 'open part|says so' -- skills agents docs templates CONTRIBUTING.md`
-verdict: open
+verdict: fixed 4d63917c
 regression: round-2#1
 
 The unit is the sentence of rule 12 that `c5eec50b` rewrote for round 2's finding 1: "Where the class ranges over an unbounded domain of keywords, spellings or constructs, no method makes the list whole." It ends at that point. The frame's C2 (`frame/design.md:47`, phase 2's row of `frame/plan.md`) asks for a method that makes the list whole and has the hand-back name the method. The fix restored the source's unbounded-domain qualifier. It also dropped the clause `9ad3b9f9` had put after it, "the hand-back says so, and names where the open part is recorded", and moved the duty to state an open part onto "a sample" alone. The defect came from that move, and `9194dd0e`'s definition of a sample now settles it.
@@ -43,7 +43,7 @@ In the fragment, `changelog.md:3`, replace "and a class over an unbounded domain
 and a class over an unbounded domain of keywords, spellings or constructs has no whole list, so the hand-back says so and where its open part stands.
 ```
 
-answer:
+answer: Holds. The paste-ready text was applied as written, rule 12 and the fragment, and nothing else in the rule changed. Each added word was checked against its sources. "no method makes the list whole, and the hand-back says so" is `skills/code-review/SKILL.md:167-169`'s "does not close it; the verdict says so", placed in the hand-back as `9ad3b9f9` had it. "says where the open part of a sample or of such a class stands" carries `9ad3b9f9`'s "names where the open part is recorded" and the source's "the limit goes to the skill's Known limits or a `deferred <home>`", in the word the rule already used. C2 (`frame/design.md:47`) and the lesson row (`frame/design.md:98`) say nothing about an unbounded domain, so neither is crossed. A list one of the three methods made over an unbounded domain now owes the hand-back's statement that it is open, and "the open part" names both kinds, so it has one reading. The contract-reading modules, line wrap among them, pass.
 
 ## Confirmations
 
