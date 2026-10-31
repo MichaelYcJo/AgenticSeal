@@ -25,7 +25,7 @@ The failure scenario of the chosen approach, six months on: a later work item ad
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1, 2 and 3, in one commit | S1: `git grep -n -F 'Less text means nothing said twice' -- skills/core/SKILL.md` gives one line, after the anchor. S3: the enumeration command of `frame/design.md` *Data & interfaces* at HEAD lists the fifteen recorded lines and the new sentence. S4 and S5: a narrow run of `tests/hooks/test_core.py`, `tests/behaviour/test_docs_line_wrap.py`, `tests/text/test_the_rules_claude_md_names_have_one_home.py`, `tests/text/test_no_passage_is_pasted_into_a_second_file.py`, `tests/hooks/test_version_check.py`, `tests/github/test_publish_release_note.py` and the other modules contract rule 2 names for the three paths, with the broad suite `unverified` and the orchestrator its answerer. S2 is the proofer's reading | |
+| 1 | `frame/design.md` *Scope* items 1, 2 and 3, in one commit | S1: `git grep -n -F 'Less text means nothing said twice' -- skills/core/SKILL.md` gives one line, after the anchor. S3: the enumeration command of `frame/design.md` *Data & interfaces* at HEAD lists the fifteen recorded lines and the new sentence. S4 and S5: a narrow run of `tests/hooks/test_core.py`, `tests/behaviour/test_docs_line_wrap.py`, `tests/text/test_the_rules_claude_md_names_have_one_home.py`, `tests/text/test_no_passage_is_pasted_into_a_second_file.py`, `tests/hooks/test_version_check.py`, `tests/github/test_publish_release_note.py` and the other modules contract rule 2 names for the three paths, with the broad suite `unverified` and the orchestrator its answerer. S2 is the proofer's reading | af0bdaff |
 
 ## Operational impact
 
