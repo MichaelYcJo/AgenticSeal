@@ -62,6 +62,13 @@ A ready pull request fails on any of them. A draft, or a run that observed no
 pull request, prints the same lines and exits 0. `docs/the-review-record.md`
 states the record and the rules these arms hold.
 
+Each label is read in its one spelling. A line that opens like a label and
+is not it, `Verdict: open` for `verdict:` or `**Verdict:**` for the
+guarantee's `Verdict:`, is prose to every arm, and a file under
+`trail/rounds/` that is no `round-N.md` is not read; the check names each
+(`unread`) and decides nothing on it. Whether the line meant the label is
+the judgment of the agent that reads the record.
+
 Usage:
   chain_check.py --baseline <ref> [--root DIR] [--worktree] [--sealing]
 
@@ -73,7 +80,9 @@ two arms, and the guarantee's `original:` line, print and do not fail.
 Exit: 0 nothing to refuse · 1 a refusal, each named `path:line  why` (a
 GitHub annotation in CI) · 2 the check could not run, a grammar table it
 cannot read, named by its file, and a reader that will not load among the
-causes.
+causes. A line or a file the check did not read is printed
+`path:line  not read: <why>`, a notice annotation in CI and never an error,
+and changes no exit code.
 """
 
 import argparse
@@ -134,9 +143,15 @@ VERDICT_SHAPES = (
     f"`{VERDICT} {SEALED}`, `{VERDICT} {WITHHELD} {REASON} <reason>` or "
     f"`{VERDICT} {UNDECIDED} {QUESTION} <question>`"
 )
-# A line that means the verdict: the label in any case, after any emphasis or
-# block markup, then a colon. One that is no shape is refused at its line.
-MEANT_VERDICT = re.compile(r"[\s*_`>#+-]*verdict[\s*_`]*:", re.IGNORECASE)
+# A line that opens like the verdict: the label's word in any case, after any
+# emphasis or block markup, then a colon. One that is not `Verdict:` at the
+# start of the line is prose, named as not read (`unread_verdicts`).
+OPENS_LIKE_VERDICT = re.compile(r"[\s*_`>#+-]*verdict[\s*_`]*:", re.IGNORECASE)
+UNREAD_VERDICT = (
+    "not read: `{said}` opens like `Verdict:` and is not it, so the check "
+    "read it as prose; the verdict line opens with `Verdict:` at the start of "
+    "the line, written exactly so"
+)
 # The words the verdict used before #969. A guarantee still carrying one was
 # written by a sealer that ran before the words changed, so it is refused on
 # its line with what to do, never read as the new word it meant.
@@ -166,18 +181,17 @@ TARGET_WRITTEN = (
     "<sha> <word>`, with `against <base>` after its SHA where it names one"
 )
 
-# A round record's grammar is two tables, `docs/the-review-record.md`
-# *The round record*, and nothing in this file restates them: `grammar`
-# loads both once, when this file is imported, and every reader below reads
-# a line through its row. What this file names is which row is which, by the
-# row's `Line` cell, the named parts of a row's shape it reads, and the four
+# A round record's grammar is the table in `docs/the-review-record.md`
+# *The round record*, and nothing in this file restates it: `grammar` loads
+# it once, when this file is imported, and every reader below reads a line
+# through its row. What this file names is which row is which, by the row's
+# `Line` cell, the named parts of a row's shape it reads, and the four
 # verdict words it decides on.
 GRAMMAR_DOC = os.path.join(HERE, "..", "..", "..", "docs", "the-review-record.md")
-# Where `grammar` finds the tables: the section's heading and each header
-# row. A rewrite of the document that moves one moves these with it (#941).
+# Where `grammar` finds the table: the section's heading and its header row.
+# A rewrite of the document that moves either moves these with it (#941).
 GRAMMAR_SECTION = "## The round record"
 GRAMMAR_COLUMNS = ("Line", "Shape", "Where", "How many", "Refused as")
-OLD_COLUMNS = ("Old spelling", "Means")
 # The words the table's `Where` and `How many` cells are written in. `How
 # many` counts per finding for a line in a finding, per record otherwise.
 IN_RECORD = "the record"
@@ -363,36 +377,14 @@ def table_at(reader, lines, start, end, columns, refuse):
     return rows
 
 
-def old_spelling(cells, refuse, number, old, rows):
-    """`(Old spelling, the label it Means)` for one row of the old-spellings
-    table at line NUMBER, or the GrammarError REFUSE makes: each cell one
-    code span, the spelling a label not in ROWS and not in OLD, and the
-    label one of ROWS."""
-    spans = [code_span(cell) for cell in cells]
-    if len(cells) != len(OLD_COLUMNS) or None in spans:
-        raise refuse("an old spelling's row is two cells, each one code span", number)
-    spelling, label = spans
-    if not spelling.endswith(":"):
-        raise refuse(
-            f"an old spelling is a label, and `{spelling}` ends in no `:`", number
-        )
-    if spelling in rows:
-        raise refuse(f"`{spelling}` is a label of the grammar table", number)
-    if spelling in old:
-        raise refuse(f"a second `{spelling}` old spelling", number)
-    if label not in rows or not label.endswith(":"):
-        raise refuse(f"`{label}` is no label of the grammar table", number)
-    return spelling, label
-
-
 def grammar(path, reader):
-    """`({Line: Row}, {Old spelling: label})` for the two tables under
-    `path`'s `GRAMMAR_SECTION`, in their order, read with the shared
-    `reader`; GrammarError where they cannot be.
+    """`{Line: Row}` for the table under `path`'s `GRAMMAR_SECTION`, in its
+    order, read with the shared `reader`; GrammarError where it cannot be.
 
-    The section is found by its heading and each table by its header row,
-    `GRAMMAR_COLUMNS` and `OLD_COLUMNS`, followed by a separator; its rows
-    run to the first line that is no row. A `Line` cell and a `Shape` cell
+    The section is found by its heading and the table by its header row,
+    `GRAMMAR_COLUMNS`, followed by a separator; its rows run to the first
+    line that is no row, and nothing else in the section is read, a second
+    table among it. A `Line` cell and a `Shape` cell
     are each one code span, a `Shape` compiles, and its pattern opens with
     its label where the row is a label's. A `Where` and a `How many` are the
     words this file names, in the pairs it reads: a section in the record,
@@ -401,9 +393,8 @@ def grammar(path, reader):
     `## Confirmations`, once, at most once or any number of times. Every row
     `READ_ROWS` names stands where its reader looks, with a `How many` that
     reader can keep and the named parts it reads, and no heading row stands
-    that this file reads nothing from. An old spelling is `old_spelling`'s.
-    Anything else is GrammarError naming `path`, and the line where there
-    is one."""
+    that this file reads nothing from. Anything else is GrammarError naming
+    `path`, and the line where there is one."""
 
     def refuse(why, line=None):
         at = f"{path}:{line}" if line else path
@@ -425,9 +416,6 @@ def grammar(path, reader):
     rows = {}
     for number, cells in table_at(reader, lines, start, end, GRAMMAR_COLUMNS, refuse):
         rows.update([grammar_row(cells, refuse, number, rows, reader)])
-    old = {}
-    for number, cells in table_at(reader, lines, start, end, OLD_COLUMNS, refuse):
-        old.update([old_spelling(cells, refuse, number, old, rows)])
     for key, read in READ_ROWS.items():
         row = rows.get(key)
         if row is None:
@@ -451,7 +439,7 @@ def grammar(path, reader):
                 + " or ".join(f"`{many}`" for many in read.many)
                 + " for it"
             )
-    return rows, old
+    return rows
 
 
 def grammar_row(cells, refuse, number, rows, reader):
@@ -514,7 +502,7 @@ except (OSError, SyntaxError, ImportError, SystemExit) as _exc:
     print(f"chain-check: the shared reader would not load ({_exc})", file=sys.stderr)
     raise SystemExit(2) from None
 try:
-    GRAMMAR, OLD_SPELLINGS = grammar(GRAMMAR_DOC, SHARED_READER)
+    GRAMMAR = grammar(GRAMMAR_DOC, SHARED_READER)
 except GrammarError as _exc:
     if __name__ != "__main__":
         raise
@@ -524,15 +512,15 @@ except GrammarError as _exc:
     )
     raise SystemExit(2) from None
 
-# What the readers below derive from the tables: the labels a line may open
-# with, the loose reading of a label or an old spelling in any spelling, and
-# the level of a finding's heading.
+# What the readers below derive from the table: the labels a line may open
+# with, the words of a line that opens like one, and the level of a
+# finding's heading.
 LABELS = tuple(k for k in GRAMMAR if k.endswith(":"))
-SPELT = {" ".join(k[:-1].lower().split()): k for k in (*LABELS, *OLD_SPELLINGS)}
-# A line that means a label and may not be spelt as one: its first words,
-# case folded and stripped of `*`, `_` and backticks, are a label's or an
-# old spelling's, followed by a colon (`misspelt`).
-MEANT = re.compile(
+SPELT = {" ".join(k[:-1].lower().split()): k for k in LABELS}
+# A line that opens like a label: its first words, case folded and stripped
+# of `*`, `_` and backticks, are a label's, followed by a colon. One that is
+# not the label is prose to the check, named as not read (`opens_like`).
+OPENS_LIKE = re.compile(
     r"^\s*[*_`]*\s*("
     + "|".join(
         r"\s+".join(re.escape(w) for w in words.split())
@@ -542,6 +530,18 @@ MEANT = re.compile(
     re.IGNORECASE,
 )
 FINDING_LEVEL = len(HEADING_ROW) - len(HEADING_ROW.lstrip("#"))
+# What the check prints of a line or a file it did not read. `main` prints
+# each as a notice, `path:line  not read: <why>` and a notice annotation in
+# CI, and none changes the exit code.
+UNREAD_LINE = (
+    "not read: `{said}` opens like the {label} label and is not it, so the "
+    "check read it as prose; it reads {label} at the start of a line, "
+    "lowercase, with no emphasis and one space after the colon"
+)
+UNREAD_FILE = (
+    "not read: `{name}` is no `round-N.md`, so the check read nothing of it "
+    "and judged the work item on the records it did read"
+)
 
 
 def section_count(key, many):
@@ -749,16 +749,48 @@ def read_record(root, rel):
     return git(root, "show", f"HEAD:{rel}")
 
 
-def round_records(routing, root, item):
-    """`<item>/trail/rounds/round-N.md` git carries, lowest round first."""
+def rounds_listed(routing, root, item):
+    """`(the round records, the other files)` directly under
+    `<item>/trail/rounds/`, as git carries them: the records are the names
+    `routing.round_number` reads, lowest round first, and the others every
+    other name, sorted."""
     where = f"{item}/{routing.ROUNDS_DIR}"
     listed = worktree_files(root, where) if WORKTREE else tracked_files(root, where)
-    found = []
+    found, others = [], []
     for name in listed:
         number = routing.round_number(name)
-        if number is not None:
+        if number is None:
+            others.append(f"{where}/{name}")
+        else:
             found.append((number, f"{where}/{name}"))
-    return [rel for _, rel in sorted(found)]
+    return [rel for _, rel in sorted(found)], sorted(others)
+
+
+def round_records(routing, root, item):
+    """`<item>/trail/rounds/round-N.md` git carries, lowest round first."""
+    return rounds_listed(routing, root, item)[0]
+
+
+def unread(reader, routing, root, item, chained):
+    """[(path, line, why)] for what the check did not read of a work item:
+    under `chained`, each file under `trail/rounds/` that is no
+    `round-N.md` (`UNREAD_FILE`) and each line of a round record that opens
+    like a label and is not it (`unread_lines`); and each line of its
+    `guarantee.md` that opens like `Verdict:` and is not it
+    (`unread_verdicts`). `main` prints them as notices."""
+    found = []
+    if chained:
+        records, others = rounds_listed(routing, root, item)
+        found += [
+            (rel, 0, UNREAD_FILE.format(name=rel.rsplit("/", 1)[-1])) for rel in others
+        ]
+        for rel in records:
+            found += unread_lines(reader.readable(read_record(root, rel) or ""), rel)
+    rel = f"{item}/{GUARANTEE_FILE}"
+    text = read_record(root, rel)
+    if text is not None:
+        found += unread_verdicts(reader, text, rel)
+    return found
 
 
 def event_payload_present():
@@ -992,14 +1024,28 @@ def finding_number(heading):
     return int(found["number"]) if found else None
 
 
-def misspelt(line):
-    """The label `line` means and is not spelt as, or None: for an old
-    spelling, the label its `Means` cell names; else the label itself."""
-    found = MEANT.match(line)
+def opens_like(line):
+    """The label `line` opens like and is not, or None."""
+    found = OPENS_LIKE.match(line)
     if not found or label_of(line):
         return None
-    key = SPELT[" ".join(found.group(1).lower().split())]
-    return OLD_SPELLINGS.get(key, key)
+    return SPELT[" ".join(found.group(1).lower().split())]
+
+
+def unread_lines(lines, rel):
+    """[(rel, line, why)] for each line of `lines`, `readable`'s, that opens
+    like a label and is not it (`opens_like`), at its line.
+
+    Such a line is prose to every reader here: it decides nothing, and a
+    finding that then lacks a line its row says is `one` is refused as
+    lacking it. Whether the line meant the label is the reading agent's
+    judgment, so the check names it and refuses nothing for it, and keeps
+    no list of the other spellings a label is written in."""
+    return [
+        (rel, i + 1, UNREAD_LINE.format(said=line.strip(), label=f"`{label}`"))
+        for i, line in enumerate(lines)
+        if (label := opens_like(line))
+    ]
 
 
 def confirmations_span(reader, lines):
@@ -1017,9 +1063,8 @@ def findings(reader, lines, rel):
     `lines` are `reader.readable`'s, so a labelled line inside a fence is no
     line. The one `## Findings` section is split at its `### `
     headings, and each finding is read by `finding_of` against the rows the
-    table places in a finding. Before any of it, a line anywhere in the
-    record that means a label or an old spelling and is not spelt as the
-    label is refused, and a finding carrying one is not read past it.
+    table places in a finding. A line that opens like a label and is not it
+    is prose here and refuses nothing; `unread_lines` names it.
     Everything the reader cannot read is an error `(rel, line, why)` naming
     the finding's heading, in line order: what `finding_spans` refuses, a
     heading the heading row does not match or with a number an earlier
@@ -1036,12 +1081,9 @@ def findings(reader, lines, rel):
     for i, line in enumerate(lines):
         if i in inside:
             continue
-        label = misspelt(line)
         key = label_of(line)
         where = GRAMMAR[key].where if key else None
-        if label:
-            errors.append((rel, i + 1, spelt_otherwise(label)))
-        elif where == IN_FINDING:
+        if where == IN_FINDING:
             errors.append((rel, i + 1, OUTSIDE.format(label=key)))
         elif where == IN_CONFIRMATIONS and i not in confirming:
             errors.append(
@@ -1067,14 +1109,6 @@ def findings(reader, lines, rel):
             )
             continue
         numbers.add(number)
-        said = [
-            (i, label) for i in range(first + 1, stop) if (label := misspelt(lines[i]))
-        ]
-        if said:
-            errors.extend(
-                (rel, i + 1, spelt_otherwise(label, heading)) for i, label in said
-            )
-            continue
         elsewhere = [
             (i, key)
             for i in range(first + 1, stop)
@@ -1097,15 +1131,6 @@ def findings(reader, lines, rel):
             found.append(found_here)
     errors.sort(key=lambda error: error[1])
     return found, errors
-
-
-def spelt_otherwise(label, heading=None):
-    """The refusal of a line that means `label` and is spelt another way."""
-    said = (
-        f"a label in another spelling: the check reads `{label}` at the start "
-        "of a line, lowercase, with no emphasis and one space after the colon"
-    )
-    return f"{heading} {DASH} {said}" if heading else said
 
 
 def finding_of(lines, first, stop, heading, rel):
@@ -1824,14 +1849,12 @@ def original_of(reader, text, rel, sha, config, missing=NO_ORIGINAL):
     that is not a prefix of SHA and of which SHA is not a prefix. The record
     is a round record, or the guarantee of a work item declaring `straight
     to the PR`, read by the same rule. A line the grammar table refuses,
-    standing in a finding, a second one, or one spelt otherwise, is
-    `read_whole`'s refusal at that line, and none is added here."""
+    standing in a finding or a second one, is `read_whole`'s refusal at that
+    line, and none is added here. A line that opens like the label and is
+    not it is no `original:` line, so a record holding only such a line
+    holds none (#1121's R9)."""
     lines, _found, _errors, outside = read_whole(reader, text, rel)
-    at = [
-        i
-        for i, line in enumerate(lines)
-        if ORIGINAL_ROW in (label_of(line), misspelt(line))
-    ]
+    at = [i for i, line in enumerate(lines) if label_of(line) == ORIGINAL_ROW]
     if not at:
         return [(rel, 0, missing.format(config=config, sha=sha))]
     found = outside[ORIGINAL_ROW]
@@ -1910,17 +1933,32 @@ def broad_gate(reader, root, item, base):
 
 
 def verdicts_of(reader, text):
-    """[(line number, line)] for every line outside fences that means the
-    verdict (`MEANT_VERDICT`), whatever its spelling, trailing
-    whitespace removed. An indent is markup, a code block at four spaces, so
-    an indented line is handed back with its indent and no shape reads it
-    whole."""
+    """[(line number, line)] for every line outside fences that opens with
+    `Verdict:` at the start of the line, exactly, trailing whitespace
+    removed. An indent is markup, a code block at four spaces, so an
+    indented line is no verdict line; `unread_verdicts` names it with every
+    other line that opens like the label."""
     found = []
     for i, raw in enumerate(reader.readable(text or "")):
         line = reader.visible(raw)
-        if MEANT_VERDICT.match(line):
-            found.append((i + 1, raw.rstrip() if raw[:1].isspace() else line))
+        if line.startswith(VERDICT) and not raw[:1].isspace():
+            found.append((i + 1, line))
     return found
+
+
+def unread_verdicts(reader, text, rel):
+    """[(rel, line, why)] for each line outside fences that opens like the
+    verdict (`OPENS_LIKE_VERDICT`) and that `verdicts_of` does not read, at
+    its line. Such a line is prose: whether it meant the verdict is the
+    reader's judgment, and the check refuses nothing for it."""
+    read = {n for n, _line in verdicts_of(reader, text)}
+    return [
+        (rel, i + 1, UNREAD_VERDICT.format(said=line))
+        for i, raw in enumerate(reader.readable(text or ""))
+        if (line := reader.visible(raw))
+        and OPENS_LIKE_VERDICT.match(line)
+        and i + 1 not in read
+    ]
 
 
 def verdict_word(line):
@@ -2340,6 +2378,7 @@ def main(argv=None):
             chained.append(item)
         else:
             direct.append(item)
+        notices.extend(unread(reader, routing, root, item, item in chained))
         gate = broad_gate(reader, root, item, args.baseline)
         gate += guarantee(reader, root, item, args.baseline)
         if args.sealing:
