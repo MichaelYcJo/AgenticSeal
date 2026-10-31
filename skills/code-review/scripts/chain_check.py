@@ -66,7 +66,8 @@ Each label is read in its one spelling. A line that opens like a label and
 is not it, `Verdict: open` for `verdict:` or `**Verdict:**` for the
 guarantee's `Verdict:`, is prose to every arm, and a file under
 `trail/rounds/` that is no `round-N.md` is not read; the check names each
-(`unread`) and decides nothing on it. Whether the line meant the label is
+(`unread`, and `unread_originals` for a guarantee whose `original:` line
+the original arm reads) and decides nothing on it. Whether the line meant the label is
 the judgment of the agent that reads the record.
 
 Usage:
@@ -775,12 +776,9 @@ def unread(reader, routing, root, item, chained):
     """[(path, line, why)] for what the check did not read of a work item:
     under `chained`, each file under `trail/rounds/` that is no
     `round-N.md` (`UNREAD_FILE`) and each line of a round record that opens
-    like a label and is not it (`unread_lines`); each line of its
+    like a label and is not it (`unread_lines`); and each line of its
     `guarantee.md` that opens like `Verdict:` and is not it
-    (`unread_verdicts`); and, where the work item is not chained, so that
-    `originals_of` reads the guarantee's `original:` line, each line of it
-    that opens like `original:` and is not it. `main` prints them as
-    notices."""
+    (`unread_verdicts`). `main` prints them as notices."""
     found = []
     if chained:
         records, others = rounds_listed(routing, root, item)
@@ -793,13 +791,6 @@ def unread(reader, routing, root, item, chained):
     text = read_record(root, rel)
     if text is not None:
         found += unread_verdicts(reader, text, rel)
-        if not chained:
-            label = f"`{ORIGINAL_ROW}`"
-            found += [
-                (rel, i + 1, UNREAD_LINE.format(said=line.strip(), label=label))
-                for i, line in enumerate(reader.readable(text))
-                if opens_like(line) == ORIGINAL_ROW
-            ]
     return found
 
 
@@ -1876,7 +1867,20 @@ def original_of(reader, text, rel, sha, config, missing=NO_ORIGINAL):
     return [(rel, at[0] + 1, OTHER_ORIGINAL.format(said=said, sha=sha))]
 
 
-def originals_of(reader, routing, root, paths, items, direct=()):
+def unread_originals(reader, text, rel):
+    """[(rel, line, why)] for each line outside fences of a guarantee
+    `originals_of` reads that opens like `original:` and is not it, at its
+    line (`UNREAD_LINE`). Such a line is prose: it decides nothing, and the
+    guarantee holding only it holds no `original:` line."""
+    label = f"`{ORIGINAL_ROW}`"
+    return [
+        (rel, i + 1, UNREAD_LINE.format(said=line.strip(), label=label))
+        for i, line in enumerate(reader.readable(text))
+        if opens_like(line) == ORIGINAL_ROW
+    ]
+
+
+def originals_of(reader, routing, root, paths, items, direct=(), notices=None):
     """[(path, line, problem)] for the round records of ITEMS, each declared
     through the review chain, and the `guarantee.md` of DIRECT, each
     declared `straight to the PR`, where git carries the migration config at
@@ -1885,7 +1889,9 @@ def originals_of(reader, routing, root, paths, items, direct=()):
     reach outside them. A guarantee git does not carry is `guarantee`'s
     refusal, and none is added here. A config whose `Baseline commit` names
     no SHA is one refusal naming it. None where `hooks/` would not load,
-    said on stderr."""
+    said on stderr. Each line of a guarantee it reads that opens like
+    `original:` and is not it goes to NOTICES (`unread_originals`), so the
+    line is named only where the guarantee owes an `original:` line."""
     config = f"{routing.optin.HOME}/{routing.optin.PARITY_CONFIG}"
     text = read_record(root, config)
     if text is None or not (items or direct):
@@ -1913,6 +1919,8 @@ def originals_of(reader, routing, root, paths, items, direct=()):
             found.extend(
                 original_of(reader, said, rel, sha, config, NO_GUARANTEE_ORIGINAL)
             )
+            if notices is not None:
+                notices.extend(unread_originals(reader, said, rel))
     return found
 
 
@@ -2399,7 +2407,7 @@ def main(argv=None):
     if found is None:
         return 2
     problems.extend(found)
-    found = originals_of(reader, routing, root, paths, chained, direct)
+    found = originals_of(reader, routing, root, paths, chained, direct, notices)
     if found is None:
         return 2
     for rel, line, message in found:

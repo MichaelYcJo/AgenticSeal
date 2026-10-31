@@ -2269,6 +2269,43 @@ class Test_originals_of:
         code, out = check(root, capsys)
         assert code == 0, out
 
+    @pytest.mark.rule("parity-in-the-guarantee")
+    def test_names_no_original_line_where_none_is_owed(self, item, capsys):
+        """Round 4 of #1167: a guarantee's `original:` line is read only where
+        `originals_of` reads the guarantee, so `Original: <sha>` is no line
+        of its form and is not named in either guarantee whose line no check
+        reads: with no migration config, and with one where the diff stays
+        inside the document roots. Seen red against the `unread` that named
+        it in every guarantee of a work item not chained."""
+        root, _audited = item
+        rel = f"{ITEM}/guarantee.md"
+
+        def respelt():
+            path = root / rel
+            text = path.read_text(encoding="utf-8")
+            assert text.count("original:") == 1, text
+            path.write_text(text.replace("original:", "Original:"), encoding="utf-8")
+            commit(root, "a guarantee holding Original: where none is owed")
+            code, out = check(root, capsys)
+            assert code == 0, out
+            assert [ln for ln in out.splitlines() if "not read" in ln] == [], out
+
+        reseal(root, BASELINE)
+        respelt()
+        git(root, "switch", "-q", "main")
+        write(root, PARITY, parity_file(BASELINE))
+        commit(root, f"{PARITY} on the base")
+        git(root, "switch", "-q", "-c", "feature/docs")
+        write(
+            root,
+            f"{ITEM}/routing.md",
+            SEALED_ROUTING.replace("feature/g", "feature/docs"),
+        )
+        write(root, "docs/a.md", "# a policy\n")
+        commit(root, "a documentation pass")
+        reseal(root, BASELINE)
+        respelt()
+
 
 class Test_original_of:
     def test_accepts_a_line_naming_the_baseline_by_a_prefix(self):
