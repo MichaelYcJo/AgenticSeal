@@ -203,6 +203,28 @@ def test_a_bound_on_the_sealers_run_that_is_not_zero_is_a_gap(tmp_path):
         assert sealer_grade_gaps(str(tmp_path)) == [gap], old
 
 
+def test_a_verdict_grader_that_reads_no_block_is_a_gap(tmp_path):
+    """T18's reader under #1198, on a case the tree does not hold. Every
+    committed sealer case reads its verdict in a verdict block, so a reader
+    that stopped asking for the block would still pass on the tree; a grader
+    that reads a `Verdict:` line anywhere is named here."""
+    case = tmp_path / "behaviour" / "sealer" / "c"
+    (case / "graders").mkdir(parents=True)
+    (case / "prompt.md").write_text("x\n", encoding="utf-8")
+    verdict = case / "graders" / "shape-verdict.md"
+    (case / "graders" / "shape-runs-no-broad-run.md").write_text(
+        "---\ntype: 'tool_used'\ntool: 'Bash'\n"
+        "input_match: 'seal\\s+gate\\s+--base'\nmax: 0\nmin: 0\n---\ng\n",
+        encoding="utf-8",
+    )
+    head = "---\npath: 'seal/threads/i/guarantee.md'\npattern: '"
+    verdict.write_text(f"{head}{BLOCK_PATTERN}Verdict: sealed$'\n---\nv\n", "utf-8")
+    assert sealer_grade_gaps(str(tmp_path)) == []
+    verdict.write_text(f"{head}^Verdict: sealed$'\n---\nv\n", "utf-8")
+    gap = f"{os.path.join('behaviour', 'sealer', 'c')}: no grader reads the verdict in guarantee.md"
+    assert sealer_grade_gaps(str(tmp_path)) == [gap]
+
+
 def test_each_way_a_committed_case_leaves_the_generator_is_named(tmp_path):
     """#969 S11's reader, on a pair the tree does not hold. The tree's cases
     equal the generator's, so a reader that missed a file on one side or a
