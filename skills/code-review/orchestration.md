@@ -188,9 +188,9 @@ and again on every push to it.
 **The orchestrator reads `gh pr view <N> --json state,mergeable` when the
 pull request opens, before each push to its branch and after each push, and
 waits on CI only under `OPEN` and `MERGEABLE`.** A `state` of `MERGED` or
-`CLOSED` stops the push: the owner may merge or close the pull request at
-any time after it opens, and a commit pushed to its branch then is in no
-pull request, so nothing checks, reviews or merges it, and the repair goes
+`CLOSED` stops the push. The owner may merge or close the pull request at
+any time after it opens, and a commit pushed to its branch after that is in
+no pull request: nothing checks, reviews or merges it. The repair then goes
 on a new branch cut from the base. `CONFLICTING` means GitHub made no merge
 ref for the pull request and runs no `pull_request` CI on it, and nothing
 else says so. `UNKNOWN` means GitHub has not computed the answer yet, and
