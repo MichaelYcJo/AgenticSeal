@@ -196,11 +196,11 @@ mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-untrue-body/trail/gate.md
 cat > 'seal/threads/1790000030-guarantee-untrue-body/trail/gate.md' <<'AGENTIC_EOF'
 # 1790000030-guarantee-untrue-body — broad gate
 
-| Field | Value |
-|---|---|
-| Broad gate | RUN_SHA against BASE_SHA |
+```seal
+run: a0a0a0a against c0c0c0c
+```
 AGENTIC_EOF
-sed "s/RUN_SHA/$run/; s/BASE_SHA/$(git rev-parse main)/" 'seal/threads/1790000030-guarantee-untrue-body/trail/gate.md' > record.tmp && mv record.tmp 'seal/threads/1790000030-guarantee-untrue-body/trail/gate.md'
+sed "s/a0a0a0a/$run/; s/c0c0c0c/$(git rev-parse main)/" 'seal/threads/1790000030-guarantee-untrue-body/trail/gate.md' > record.tmp && mv record.tmp 'seal/threads/1790000030-guarantee-untrue-body/trail/gate.md'
 git add -A
 git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'docs: the broad run on record'
 mkdir -p "$(dirname '.git/1790000030-guarantee-untrue-body/issue-101.md')"
@@ -248,9 +248,9 @@ target: b0b0b0b against main
 
 From `trail/gate.md`.
 
-| Field | Value |
-|---|---|
-| Broad gate | RUN_SHA against BASE_SHA |
+```seal
+run: a0a0a0a against c0c0c0c
+```
 
 ## Not verified
 
@@ -271,4 +271,4 @@ nothing
 
 </details>
 AGENTIC_EOF
-sed "s/b0b0b0b/$build/; s/RUN_SHA/$run/; s/BASE_SHA/$(git rev-parse main)/" '.git/1790000030-guarantee-untrue-body/pr-body.md' > record.tmp && mv record.tmp '.git/1790000030-guarantee-untrue-body/pr-body.md'
+sed "s/b0b0b0b/$build/; s/a0a0a0a/$run/; s/c0c0c0c/$(git rev-parse main)/" '.git/1790000030-guarantee-untrue-body/pr-body.md' > record.tmp && mv record.tmp '.git/1790000030-guarantee-untrue-body/pr-body.md'
