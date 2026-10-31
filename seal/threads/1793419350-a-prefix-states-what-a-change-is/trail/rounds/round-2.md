@@ -130,7 +130,7 @@ answer: Routed with the other two to the framer's reframe (fec2a3cc). The settle
 severity: should
 location: `seal/threads/1793419350-a-prefix-states-what-a-change-is/frame/design.md:30`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/frame/design.md:64`
 evidence: executed `git grep -n -E "never .docs:. or .chore:.|.chore:. is never a change"`
-verdict: fixed 05b716f7
+verdict: fixed 5b6dc48f
 regression: round-1#1
 
 The unit is the paragraph `faedeb6f` wrote at `frame/design.md:64` in
