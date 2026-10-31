@@ -11,7 +11,7 @@ Round 1 covers both phases, the range `f80f48e6..7a7f342f`: C1 (`7306c33b`, `d09
 severity: should
 location: `skills/code-review/orchestration.md:190-194`
 evidence: read `skills/code-review/orchestration.md:188-200`, `docs/release-checklist.md:13-16`, `seal/threads/1793419351-project-rules-live-in-the-repository/trail/phases/phase-2.md:11`, `seal/threads/1793419351-project-rules-live-in-the-repository/frame/design.md:184`
-verdict: open
+verdict: fixed a4280a14
 
 The paragraph says "A `state` of `MERGED` or `CLOSED` stops the push", and then "The repair then goes on a new branch cut from the base". The second sentence follows both states, so it reads for both. Under `MERGED` it holds: the base holds the work, and `docs/release-checklist.md:13-16` already says the corrections then need a pull request of their own. Under `CLOSED` it does not. The base does not hold the work, so a branch cut from it has nothing for the repair to amend, and the owner closed the pull request, which is a decision the orchestrator has no grounds to route around.
 
@@ -29,14 +29,14 @@ orchestrator pushes nothing and says in its report that the pull request
 was closed with a repair pending.
 ```
 
-answer:
+answer: Holds. The paste-ready fix was applied with the file's wrap: `MERGED` routes the repair to a new branch from the base, which holds the work, and `CLOSED` stops the push with the pending repair named in the orchestrator's report, because the base does not hold the work and the closing was the owner's decision. The pinned clause "`MERGED` or `CLOSED` stops the push" stands word for word, and `tests/text/test_the_rules_have_one_owner.py` passes. The fragment's sentence on the stop now says both routes. Phase 2's record called the extension to `CLOSED` within scope; this finding corrects that reading, and the record stays as the account of what the phase did.
 
 ### 2. The base comparison paragraph says the gate runs only the failing files at the base
 
 severity: should
 location: `skills/verify/orchestration.md:102-108`
 evidence: read `skills/verify/orchestration.md:102-108`, `templates/setup/config.md:365`
-verdict: open
+verdict: fixed e971a99c
 
 Phase 2's record claimed that C3 "cites the gate's own base run and does not restate it". The rewritten paragraph reads: "it is taken once an unexplained failure appears, and only for the files that failed. The gate takes it itself, at the base". The clause "only for the files that failed" stood before the change, in the sentence about the hand comparison under `git stash`. It now sits beside the gate's run and describes it. The rule the paragraph cites, `templates/setup/config.md:365` (rule 3), says the opposite: the row "runs once more, unchanged, at the base (nothing appended, no part cut, every part run as written)", and "The cost is one more run of the whole row, and only when the suite fails, whatever the number of failing files". So someone weighing the gate's cost, or deciding whether a failing file still needs a hand run, reads about a narrow base run that does not exist.
 
@@ -51,14 +51,14 @@ worktree and session of the clone shares the one stash stack, so a pop can
 take another session's entry.
 ```
 
-answer:
+answer: Holds. The paste-ready paragraph was checked against `templates/setup/config.md` rule 3 ("the row runs once more, unchanged, at the base", "one more run of the whole row, and only when the suite fails") and applied as written: the gate runs its whole row once more at the base and reads each failing file against that run. "Only for the files that failed" belonged to the hand comparison under `git stash`, and the hand run's sentence already says "a file".
 
 ### 3. Contract rule 12 asks every agent for a whole list, and says nothing of a class no list can close
 
 severity: should
 location: `skills/agent-contract/SKILL.md:159-166`
 evidence: read `skills/agent-contract/SKILL.md:159-166`, `skills/code-review/SKILL.md:167-169`
-verdict: open
+verdict: fixed 9ad3b9f9
 
 Rewritten rule 12 tells an agent to list the instances "by a method that makes the list whole". It names three methods and adds that "a list made by sampling is a finding even where every instance on it was fixed". Every agent receives this rule, and the crafter in a fix pass receives no other text on enumeration. Read alone, the rule says a whole list always exists. A class over a domain with no end, such as spellings, keywords or constructs, has no whole list. `skills/code-review/SKILL.md:167-169` says such an enumeration narrows a finding and does not close it, and sends the limit to Known limits or a `deferred <home>`. Only the proofer reads that sentence. So a crafter facing such a class can do one of two things. It can claim a method that makes the list whole, which it does not have. Or it can hand back a list the rule calls a finding, with no next step. The word "sampling" is also undefined: the sentence before it names two ways of listing, the instances in view and a search for one wording, and never says that these are what sampling means.
 
@@ -78,14 +78,14 @@ proofer judges the method as well as the instances: a sample handed back as
 a whole list is a finding even where every instance on it was fixed.
 ```
 
-answer:
+answer: Holds. The paste-ready body was read against `skills/code-review/SKILL.md:167-169`, its grounds: it now defines a sample as a list made from the instances in view or a search for one wording, says that a class with no end has no whole list and that the hand-back says so and names where the open part is recorded, and makes the finding a sample handed back as a whole list. It shares no run of words with `skills/code-review/SKILL.md` (`tests/text/test_no_passage_is_pasted_into_a_second_file.py` passes), and was applied as written. The fragment's rule 12 sentence gains the open case.
 
 ### 4. The acts row of the pull request section still states the read that C4 replaced
 
 severity: should
 location: `skills/implement/acts.md:75`
 evidence: executed `git grep -n -i 'json mergeable\|mergeable' -- . ':!seal/threads'`
-verdict: open
+verdict: fixed a4280a14
 
 C4 rewrote the act. The orchestrator now reads `gh pr view <N> --json state,mergeable` when the pull request opens, before each push and after each push, and stops a push on `MERGED` or `CLOSED` (`skills/code-review/orchestration.md:188-200`). The section's row in `skills/implement/acts.md:75` still gives the old fact as its grounds: "nothing records that `mergeable` was read before CI was waited on". It does not name the read before a push or the stop, which nothing records either. Contract rule 19 asks that the same commit correct every other sentence stating the old fact. Phase 2's record lists the searches it ran for rule 12's words and for `git stash`, and names no search for this sentence. The search above returns this row and no other place outside C4's own paragraph and its pin.
 
@@ -95,14 +95,14 @@ Replace the clause in the row's last cell:
 nothing records that `state` and `mergeable` were read when the pull request opened and before and after each push, or that a push stopped on `MERGED` or `CLOSED`,
 ```
 
-answer:
+answer: Holds. The clause was replaced as given; it names the reads at the opening, before and after each push, and the stop on `MERGED` or `CLOSED`. `git grep -n 'mergeable' -- . ':!seal/threads'` after the fix returns C4's paragraph, its pin, this row and the test-duration index, and nothing else states the old read.
 
 ### 5. The new section's table sends one decision to two places
 
 severity: should
 location: `skills/implement/orchestration.md:360-364`
 evidence: read `skills/implement/orchestration.md:360-364`, `skills/core/SKILL.md:67-73`
-verdict: open
+verdict: fixed 47cc66d2
 
 Row 1 sends "a decision, with its grounds" to the work item's records, as the core's sentence at `skills/core/SKILL.md:67-73` does for every decision. Row 3 sends "a lesson or a decision whose home no work item in progress changes" to an issue. A decision made in a run about something no work item changes matches both rows. One example is the owner's ruling on a release's version, made while another work item is being built. Row 1 sends it to the records and row 3 to an issue. The text an agent reads should give one reading, and here the orchestrator picks between them. The core gives the records reading only. The frame's *In an issue* paragraph (`frame/design.md`) does send decisions to issues, but only decisions made outside the work item, such as #1199's owner decision. That points to keeping row 3 for decisions made while no work item is in progress.
 
@@ -111,14 +111,14 @@ Row 1 sends "a decision, with its grounds" to the work item's records, as the co
 | a lesson whose home no work item in progress changes, or a decision made while no work item is in progress | an issue that names the home |
 ```
 
-answer:
+answer: Holds, fixed in my own words. Read against the finding's own example, the paste-ready split by when the decision was made sends the owner's ruling on a release's version, made while another work item is built, to that work item's records, which is not about that work item and is not where the frame's *In an issue* paragraph puts #1199's owner decision. The rows now split by what the decision is about: row 1 takes a decision about the work item in progress or a file it changes, and row 3 a lesson or a decision whose home no work item in progress changes. No decision fits both, and the finding's example lands in row 3, an issue.
 
 ### 6. The bold sentence lets local memory keep a copy of a rule
 
 severity: should
 location: `skills/implement/orchestration.md:354-358`
 evidence: read `skills/implement/orchestration.md:354-358`, `skills/implement/orchestration.md:374-377`, `seal/threads/1793419351-project-rules-live-in-the-repository/frame/plan.md:53`
-verdict: open
+verdict: fixed 47cc66d2
 
 Issue #1200's *Done when* asks the skill to say that "a session's local memory is not that place". The section says "never into a session's local memory alone". The word "alone" makes memory one of the places, as long as the repository holds the rule too. That allows a second copy of a rule beside the tree, which `skills/core/SKILL.md` *The rule a mechanism is kept against* forbids: "A fact has one source, and every other place links to it". The work item's own plan contradicts it too. After the merge it deletes every entry whose content stands in the tree (`frame/plan.md:53`, under *Operational impact*). The section's last paragraph limits memory to one machine's facts and the person's preferences, so the bold sentence and the last paragraph give two readings.
 
@@ -130,14 +130,14 @@ unknown to a run on any other machine and to anyone who reads the
 repository.
 ```
 
-answer:
+answer: Holds. The bold sentence was applied as given: "alone" is gone, and "kept only there" became "kept there", so the sentence and the section's last paragraph give one reading. `skills/implement/acts.md`'s row for the section still says "a lesson kept only in a session's local memory leaves the same tree as a run that learned nothing"; it describes what no check can see, not the rule, and it stands.
 
 ### 7. A lesson about a file the plugin ships has no reachable home when the run is in another repository
 
 severity: should
 location: `skills/implement/orchestration.md:363-364`
 evidence: read `skills/implement/orchestration.md:354-365`, `CLAUDE.md:21-23`, `seal/threads/1793419351-project-rules-live-in-the-repository/trail/phases/phase-1.md:9`
-verdict: open
+verdict: fixed 47cc66d2
 
 The section ships with the plugin and is read by the orchestrator in every repository the plugin runs in. Phase 1's record says so itself: it took the issue number out of the measurement row for that reason. Most acts the orchestrator learns about are read from the plugin's own files, such as a skill, an agent definition or `seal gate`. Row 2 sends such a lesson to "the file the act is read from", but only through a work item that changes that file, and no work item in a user's repository changes the plugin's files. So the lesson falls to row 3: "an issue that names the home". That issue would be filed in the user's own tracker, where nobody who can change the plugin file reads it. The other way the lesson can go is to edit the file in place, but the copy that loads is the installed one in the harness's cache. An edit there is local to one machine, and the next update erases it, which is the memory trap this section exists to remove. The section never separates the repository's own files from the plugin's.
 
@@ -147,7 +147,7 @@ The snippet below includes finding 5's change to the left cell. Wrap the cell as
 | a lesson whose home no work item in progress changes, or a decision made while no work item is in progress | an issue that names the home, in the tracker of the repository that holds the home; where the home is a file the plugin ships and the run is in another repository, the orchestrator names the lesson and that file in its report to the person, and edits no installed copy |
 ```
 
-answer:
+answer: Holds, and the home is the plugin's tracker, reached through the person. The orchestrator files nothing in another repository's tracker on its own: the person decides what goes there, and `skills/core/SKILL.md` makes asking a person the most expensive step, so the lesson goes in the report the person already reads, not in a question. Row 3 now says the issue goes in the tracker of the repository that holds the home. Where the home is a file the plugin ships and the run is in another repository, the orchestrator names the lesson and the file in its report, points at the tracker `.claude-plugin/plugin.json` names under `repository`, and edits no installed copy, which stays on one machine and is replaced at the next update. The paste-ready cell carried finding 5's split by time, which was not applied (finding 5's answer), so this cell is written in my own words over finding 5's row 3. The limit: the lesson reaches the plugin's maintainer only if the person takes it there, and nothing records whether they did.
 
 ## Confirmations
 
