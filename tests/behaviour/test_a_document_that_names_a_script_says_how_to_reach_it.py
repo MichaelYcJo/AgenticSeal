@@ -32,11 +32,13 @@ Two rules, and the second is narrower than the first on purpose:
 
 A script with no subcommand is exempt from the second rule because it has no
 command to name, and requiring its path in every document that mentions it
-would touch six files for a script nobody is told to run.
-`test_a_script_with_no_subcommand_is_shown_in_no_command_form` is what keeps
-that exemption from being a loophole: the moment a document shows such a
-script being invoked, the classification stops being true and goes red rather
-than standing as a note.
+would touch six files for a script nobody is told to run without being told
+where it is. `test_a_script_with_no_subcommand_is_shown_in_no_command_form`
+is what keeps that exemption from being a loophole: the moment a document
+shows such a script being invoked without its repo-relative path, the
+classification stops being true and goes red rather than standing as a note.
+An invocation with the path carries the locator the second rule asks for,
+as `agents/proofer.md` step 7 runs `chain_check.py` (#1198).
 
 Scope is what an agent's startup payload can contain: `agents/`, `skills/` and
 `templates/`. `docs/` stays out under
@@ -82,8 +84,9 @@ NO_SUBCOMMAND = {
         "command line of its own: no shipped document shows it with a flag."
     ),
     "chain_check.py": (
-        "Named in four shipped documents and shown with a flag in none of "
-        "them -- which is what `test_a_script_with_no_subcommand_is_shown_in_"
+        "Named in shipped documents and shown with a flag only by its "
+        "repo-relative path, as `agents/proofer.md` step 7 runs it -- which is "
+        "what `test_a_script_with_no_subcommand_is_shown_in_"
         "no_command_form` asserts, and the whole of it. A flag is the only "
         "sound tell in prose, so a bare mention in a list of checks is not "
         "caught: `templates/setup/config.md` names it beside three commands. "
@@ -173,14 +176,19 @@ def command_forms(text, script):
     writes `chain_check.py --worktree` except to say what to run.
 
     Used on the scripts that keep no subcommand: the classification below
-    rests on nobody being told to type them, and this is the property, asked
-    of the tree rather than assumed.
+    rests on nobody being told to type them without being told where they
+    are, and this is the property, asked of the tree rather than assumed. An
+    invocation by the script's repo-relative path carries its locator, the
+    one the rule above asks of a script with a subcommand, so it is not
+    counted (#1198 phase 3: `agents/proofer.md` step 7 runs `chain_check.py`
+    by its path, which a wrap had hidden from this reader).
     """
-    pattern = re.compile(rf"(?<![\w-]){re.escape(os.path.basename(script))}\s+-")
+    invoked = re.compile(rf"(?<![\w-]){re.escape(os.path.basename(script))}\s+-")
+    located = re.compile(rf"(?<![\w./-]){re.escape(script)}\s+-")
     return [
         (number, line)
         for number, line in enumerate(text.splitlines(), 1)
-        if pattern.search(line)
+        if len(invoked.findall(line)) > len(located.findall(line))
     ]
 
 
@@ -297,22 +305,30 @@ def test_a_document_naming_a_script_with_a_command_says_how_to_reach_it(pair):
     )
 
 
+def no_command_form_message(document, script, shown):
+    """What the case below says where DOCUMENT shows SCRIPT invoked on the
+    lines SHOWN, `(number, line)` each."""
+    base = os.path.basename(script)
+    return (
+        f"{document} shows {base} being invoked without its path, so the "
+        f"classification in {os.path.basename(__file__)} -- kept with no "
+        "subcommand because no document tells anybody to run it without "
+        "saying where it is -- is no longer true:\n"
+        + "\n".join(f"  {document}:{n}: {line.strip()}" for n, line in shown)
+        + "\n\nEither add it to `TOOLS` in `skills/implement/scripts/seal.py`, "
+        f"write the invocation with its path `{script}`, or take it out."
+    )
+
+
 @pytest.mark.parametrize("pair", unwrapped_pairs(), ids=label)
 def test_a_script_with_no_subcommand_is_shown_in_no_command_form(pair):
     """What keeps the exemption above from being a loophole. A script with no
-    subcommand is excused the locator rule because nobody is told to type it,
-    and this is that premise asked of the tree rather than assumed."""
+    subcommand is excused the locator rule because nobody is told to type it
+    without its repo-relative path, and this is that premise asked of the
+    tree rather than assumed."""
     document, script = pair
-    base = os.path.basename(script)
     shown = command_forms(read(os.path.join(ROOT, document)), script)
-    assert not shown, (
-        f"{document} shows {base} being invoked, so the classification in "
-        f"{os.path.basename(__file__)} -- kept with no subcommand because no "
-        "document tells anybody to run it -- is no longer true:\n"
-        + "\n".join(f"  {document}:{n}: {line.strip()}" for n, line in shown)
-        + "\n\nEither add it to `TOOLS` in `skills/implement/scripts/seal.py`, "
-        "or take the invocation out."
-    )
+    assert not shown, no_command_form_message(document, script, shown)
 
 
 # --- the checks can fail ---------------------------------------------------
@@ -364,6 +380,26 @@ def test_the_failure_message_offers_a_repair_that_actually_works():
     )
 
 
+def test_the_no_command_form_message_offers_every_repair_the_reader_accepts():
+    """Contract rule 14, round 3 of #1198, finding 2. Since #1198 phase 3
+    `command_forms` accepts an invocation that carries the script's
+    repo-relative path, so the message a red no-subcommand case prints names
+    that repair beside a subcommand and taking the invocation out, and says
+    the exemption holds for a script nobody is told to run without its path.
+    Seen red against the message that offered two repairs."""
+    script = "skills/x/scripts/chain_check.py"
+    message = no_command_form_message("d.md", script, [(3, "chain_check.py -q")])
+    for said in (
+        "d.md shows chain_check.py being invoked without its path",
+        "no document tells anybody to run it without saying where it is",
+        "  d.md:3: chain_check.py -q",
+        "add it to `TOOLS` in `skills/implement/scripts/seal.py`",
+        f"write the invocation with its path `{script}`",
+        "or take it out",
+    ):
+        assert said in message, (said, message)
+
+
 def test_the_bare_command_is_not_a_locator():
     """`seal.py` answers to `seal`, and every document in this repository
     contains that word. Read as a locator it makes the rule unfalsifiable for
@@ -400,13 +436,23 @@ def test_a_test_file_named_for_a_script_does_not_name_it():
 
 def test_a_planted_invocation_turns_the_classification_red():
     """The classification-defence case, driven from a fixture: a document that
-    starts showing a script with no subcommand being run has to fail rather
-    than pass quietly. Neutral text, no real path."""
+    starts showing a script with no subcommand being run without its
+    repo-relative path has to fail rather than pass quietly. Neutral text,
+    no real path."""
     script = "skills/x/scripts/chain_check.py"
     assert command_forms("Run `chain_check.py --worktree` first.\n", script)
     assert command_forms("    chain_check.py -q\n", script)
     assert not command_forms("`chain_check.py` reads the record.\n", script)
     assert not command_forms("what `chain_check.py new` would say\n", script)
+    # #1198 phase 3: an invocation by the script's repo-relative path carries
+    # its locator, so a reader reaches the script, and only a bare one counts.
+    located = "Run `python3 skills/x/scripts/chain_check.py --worktree`.\n"
+    assert not command_forms(located, script)
+    assert command_forms(located.replace("skills/x/", "other/"), script)
+    assert command_forms(located + "Then `chain_check.py -q`.\n", script)
+    assert command_forms(
+        located.replace(".\n", ", then `chain_check.py -q`.\n"), script
+    )
 
 
 def test_every_mention_lands_in_exactly_one_enumeration():

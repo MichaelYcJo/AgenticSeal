@@ -120,10 +120,17 @@ def scaffold_gaps(root=EVALS):
     return gaps
 
 
+# A grader pattern that reads a line of a `seal` block starts at the block's
+# opener, as the YAML of a grader file spells it.
+BLOCK_PATTERN = "^" + "`" * 3 + "seal\\n"
+
+
 def sealer_grade_gaps(root=EVALS):
-    """Each sealer case that does not grade the guarantor's file, or that
-    still grades the old sealer's `Broad gate` cell. The sealer's outcome is
-    its verdict in `guarantee.md`; `trail/gate.md` is the script's (#923)."""
+    """Each sealer case that does not grade the verdict in a verdict block of
+    the guarantor's file, or that still grades the old sealer's `Broad gate`
+    cell. The sealer's outcome is its verdict in `guarantee.md`, which
+    stands in a `seal` block since #1198; `trail/gate.md` is the script's
+    (#923)."""
     gaps = []
     top = os.path.normpath(os.path.join(root, "behaviour", "sealer"))
     cases = [d for d in case_dirs(root) if os.path.normpath(d).startswith(top + os.sep)]
@@ -135,7 +142,9 @@ def sealer_grade_gaps(root=EVALS):
             with open(path, encoding="utf-8") as f:
                 graders.append(f.read().split("---")[1])
         if not any(
-            re.search(r"path: '[^']*/guarantee\.md'", g) and "^Verdict:" in g
+            re.search(r"path: '[^']*/guarantee\.md'", g)
+            and BLOCK_PATTERN in g
+            and "Verdict: " in g
             for g in graders
         ):
             gaps.append(f"{rel(d, root)}: no grader reads the verdict in guarantee.md")
@@ -152,7 +161,7 @@ def sealer_grade_gaps(root=EVALS):
 
 
 def test_every_sealer_case_grades_the_guarantee():
-    """T18. A sealer case grades the verdict line of `guarantee.md`, and none
+    """T18. A sealer case grades the verdict block of `guarantee.md`, and none
     grades the `Broad gate` cell the sealer no longer writes.
 
     #969 T6: every sealer case also bounds a Bash `seal gate --base` at zero
@@ -173,7 +182,8 @@ def test_a_bound_on_the_sealers_run_that_is_not_zero_is_a_gap(tmp_path):
     (case / "graders").mkdir(parents=True)
     (case / "prompt.md").write_text("x\n", encoding="utf-8")
     (case / "graders" / "shape-verdict.md").write_text(
-        "---\npath: 'seal/threads/i/guarantee.md'\npattern: '^Verdict:'\n---\nv\n",
+        "---\npath: 'seal/threads/i/guarantee.md'\n"
+        f"pattern: '{BLOCK_PATTERN}Verdict: sealed$'\n---\nv\n",
         encoding="utf-8",
     )
     bound = (
@@ -191,6 +201,28 @@ def test_a_bound_on_the_sealers_run_that_is_not_zero_is_a_gap(tmp_path):
     ):
         grader.write_text(bound.replace(old, new), encoding="utf-8")
         assert sealer_grade_gaps(str(tmp_path)) == [gap], old
+
+
+def test_a_verdict_grader_that_reads_no_block_is_a_gap(tmp_path):
+    """T18's reader under #1198, on a case the tree does not hold. Every
+    committed sealer case reads its verdict in a verdict block, so a reader
+    that stopped asking for the block would still pass on the tree; a grader
+    that reads a `Verdict:` line anywhere is named here."""
+    case = tmp_path / "behaviour" / "sealer" / "c"
+    (case / "graders").mkdir(parents=True)
+    (case / "prompt.md").write_text("x\n", encoding="utf-8")
+    verdict = case / "graders" / "shape-verdict.md"
+    (case / "graders" / "shape-runs-no-broad-run.md").write_text(
+        "---\ntype: 'tool_used'\ntool: 'Bash'\n"
+        "input_match: 'seal\\s+gate\\s+--base'\nmax: 0\nmin: 0\n---\ng\n",
+        encoding="utf-8",
+    )
+    head = "---\npath: 'seal/threads/i/guarantee.md'\npattern: '"
+    verdict.write_text(f"{head}{BLOCK_PATTERN}Verdict: sealed$'\n---\nv\n", "utf-8")
+    assert sealer_grade_gaps(str(tmp_path)) == []
+    verdict.write_text(f"{head}^Verdict: sealed$'\n---\nv\n", "utf-8")
+    gap = f"{os.path.join('behaviour', 'sealer', 'c')}: no grader reads the verdict in guarantee.md"
+    assert sealer_grade_gaps(str(tmp_path)) == [gap]
 
 
 def test_each_way_a_committed_case_leaves_the_generator_is_named(tmp_path):

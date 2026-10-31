@@ -1,6 +1,6 @@
 """The round record is written in words, and so is every text that states it.
 
-The record's facts are its labelled lines; a mark the check does not read is
+The record's facts are its `seal` blocks; a mark the check does not read is
 a mark a reader has to sort, and sorting marks is what four rounds of this
 repository found read wrong. So no file an agent reads as instruction carries
 an emoji or a proof block: every definition, every skill's `SKILL.md` and

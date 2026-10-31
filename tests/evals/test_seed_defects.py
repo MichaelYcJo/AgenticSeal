@@ -17,7 +17,12 @@ import subprocess
 
 import pytest
 from conftest import census_case, commit_everything_as_e, git_out, write
-from test_replay_targets import LABELLED_ROUND_1, LABELLED_ROUND_2, ROOT, load_script
+from test_replay_targets import (
+    LABELLED_ROUND_1,
+    LABELLED_ROUND_2,
+    labelled_check_files,
+    load_script,
+)
 from test_rule_cases import entry, recurred_file, truth_regex
 
 TARGET = "evals/scripts/seed_defects.py"
@@ -82,14 +87,9 @@ def shipped_item(tmp_path, monkeypatch, first=seeded_round_1, second=True, crlf=
     git("init", "-q", "-b", "main")
     git("config", "uploadpack.allowAnySHA1InWant", "true")
     git("config", "core.autocrlf", "false")
-    for rel in rt.CHECK_FILES:
-        # `CHECK_FILES` names a check's file at each path a commit may hold
-        # it at, and this tree holds each at one of them.
-        path = os.path.join(ROOT, *rel.split("/"))
-        if not os.path.isfile(path):
-            continue
-        with open(path, encoding="utf-8") as f:
-            text = f.read()
+    for rel, text in labelled_check_files().items():
+        # The check of the last release that read labelled lines, at the one
+        # path of `CHECK_FILES` it holds each file at.
         if rel == "docs/the-review-record.md":
             text = re.sub(r"^\| `evidence:` \|.*\n", "", text, flags=re.M)
         put(rel, text)

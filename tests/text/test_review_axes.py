@@ -67,14 +67,18 @@ def test_the_record_of_a_comparison_names_its_writer():
     itself as the writer of a record its definition does not name. #1027
     removed the parity mark and gave the comparison under `straight to the
     PR` to the sealer (`questions.md` Q1's default), so the writers are the
-    proofer in each round record and the sealer in `guarantee.md`."""
+    proofer in each round record and the sealer in `guarantee.md`. #1198
+    put each line in a block: the round block, and the verdict block each
+    run of the sealer appends."""
     text = read("skills", "legacy-parity", "SKILL.md")
     heading = "\n## Recording the comparison\n"
     assert heading in text, "`legacy-parity` lost its section on the record"
     body = " ".join(text.split(heading, 1)[1].split("\n## ", 1)[0].split())
     for clause in (
-        "| through the review chain | the proofer, in each round record |",
-        "| straight to the PR | the sealer, once, in `guarantee.md` |",
+        "| through the review chain | the proofer, in the round block of each "
+        "round record |",
+        "| straight to the PR | the sealer, in the verdict block each of its "
+        "runs appends to `guarantee.md` |",
         "the tracer and the crafter record none",
     ):
         assert clause in body, f"the record of a comparison lost {clause!r}"

@@ -55,7 +55,8 @@ return.
 ## Order of work
 
 1. **Read the gate's record.** Open `trail/gate.md` in the work item's
-   directory, take its newest run's commit, and run
+   directory, take its newest run's commit, the first word of the `run:`
+   line in its last `seal` block, and run
    `git -C <root> log --no-merges --name-only <named>..HEAD ^<base>`;
    `docs/the-review-record.md` *What the check reads at the pull request* is
    the rule it applies, as `chain_check.py#follows` reads it.
@@ -97,19 +98,23 @@ return.
    against what the finding asked, and a record that does not say it is a
    disagreement like any other.
 5. **Write `guarantee.md`** from `templates/records/sdd-guarantee.md`, every row of
-   its two tables filled, and one verdict line, exactly one of
-   `Verdict: sealed`, `Verdict: withheld reason: <reason>` or
-   `Verdict: undecided question: <question>`, at the start of its line
-   and with no emphasis. Keep an
-   `Answered <date> by <who>:` line standing under an earlier verdict, and
-   read the answer as the owner's. Where git carries `seal/parity.md`, the
-   work item's `routing.md` answers `straight to the PR` and the diff
-   changes a path outside `docs/` and `seal/`, no round record compares the
-   change with the original, so you do: compare the audited commit with the
-   original through `skills/legacy-parity/SKILL.md`, then write one
-   `original: <sha>` line under the first table, `<sha>` being the migration
-   config's `Baseline commit`. A comparison you could not make is a
-   `withheld` verdict naming it, never a line.
+   its tables filled for this run, and append one verdict block below every
+   block an earlier run left, each line spelt as `hooks/lib/fields.py`
+   reads it: `target:` naming the audited commit as `<sha> against <base>`,
+   and one `Verdict:` line, exactly one of `Verdict: sealed`,
+   `Verdict: withheld reason: <reason>` or
+   `Verdict: undecided question: <question>`. Every `Verdict:` this file
+   names, steps 1 and 2's among them, stands in that block. Edit no earlier
+   block, keep an `Answered <date> by <who>:` line standing below the block
+   it answers, and read the answer as the owner's. Where git carries
+   `seal/parity.md`, the work item's `routing.md` answers
+   `straight to the PR` and the diff changes a path outside `docs/` and
+   `seal/`, no round record compares the change with the original, so you
+   do: compare the audited commit with the original through
+   `skills/legacy-parity/SKILL.md`, then write one `original: <sha>` line in
+   your verdict block, `<sha>` being the migration config's
+   `Baseline commit`. A comparison you could not make is a `withheld`
+   verdict naming it, never a line.
 6. **Return the file's text** as your report, every claim labelled
    `executed`, `read` or `unverified`.
 
@@ -164,9 +169,9 @@ after the one `guarantee.md` names, other than one touching only the closing
 records, `trail/gate.md` and `guarantee.md`, owes a new audit, and the check
 at the pull request refuses the file until it has one. Where an earlier
 `guarantee.md` stands, the new audit re-runs only the claims whose
-coordinates a commit since its `Target SHA` touched, reads the parties again,
-and keeps the earlier verdict on the `Target SHA` row as
-`; earlier run: <sha> <word>`, its verdict's word alone. The row holds
-`<sha> against <base>`, each one word, then those entries, and nothing
-else; any other text is refused at the row.
+coordinates a commit since its newest verdict block's `target:` touched,
+reads the parties again, and appends its own verdict block below the earlier
+ones, which stay as they were: the last block is the newest run, the one the
+check reads, and the stamp reads the earlier ones. A line of any block that
+does not parse is refused at its line.
 check: tests/behaviour/test_the_sealer_guarantees.py tests/skills/test_chain_check.py

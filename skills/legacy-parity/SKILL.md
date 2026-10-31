@@ -109,8 +109,8 @@ and `seal/`, the record is an `original:` line naming the migration config's
 
 | The declaration says | Who writes the `original:` line, and where |
 |---|---|
-| through the review chain | the proofer, in each round record |
-| straight to the PR | the sealer, once, in `guarantee.md` |
+| through the review chain | the proofer, in the round block of each round record |
+| straight to the PR | the sealer, in the verdict block each of its runs appends to `guarantee.md` |
 
 The pull-request check reads that line (`docs/the-review-record.md` *The
 round record*). A proofer that could not resolve the original writes no line

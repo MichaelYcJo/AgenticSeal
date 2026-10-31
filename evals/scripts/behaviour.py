@@ -73,12 +73,14 @@ def reach(agent):
     )
 
 
-# A finding as `templates/records/sdd-round.md` writes it: the `## Findings`
-# heading, then a `### <n>. ` section, then that section's `verdict:` line,
-# lowercase at the start of a line, before the next heading.
+# A finding as `templates/records/sdd-round.md` has the proofer write it: the
+# `## Findings` heading, then a `### <n>. ` section, then that section's
+# finding block, the `seal` block whose first line is its `severity:`, before
+# the next heading. A finding the proofer writes has no close block, so the
+# grader asks for none.
 FINDINGS_SHAPE = (
     r"^## Findings[ \t]*\n(?:(?!^## )[\s\S])*?^### \d+\. [^\n]+\n"
-    r"(?:(?!^##)[\s\S])*?^verdict: \S"
+    r"(?:(?!^##)[\s\S])*?^" + "`" * 3 + r"seal\nseverity: \S"
 )
 # The pictographs and symbols a mark is drawn from, as a JavaScript regex
 # with no `u` flag, where an astral pictograph is its surrogate pair.
@@ -107,7 +109,7 @@ def report_shape(agent, report):
             report,
             FINDINGS_SHAPE,
             "The report carries `## Findings` with a `### <n>.` section and its "
-            "`verdict:` line.",
+            "finding block.",
         ),
         report_regex(
             "shape",

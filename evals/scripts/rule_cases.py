@@ -781,8 +781,8 @@ none
 """
 # The build commit's placeholder in the records and the pull request body,
 # which the scaffold fills with the commit it makes. It is hexadecimal because
-# `chain_check.py`'s grammar reads a `target:` line only where it names a
-# commit, and `pr_body.compose` reads the round record through that grammar.
+# a round block's `target:` reads only where it names a commit, and
+# `pr_body.compose` reads the round record through `chain_check.py` first.
 BUILD_SHA = "b0b0b0b"
 SEALER_PHASE = """# Phase 1: {item}
 
@@ -795,13 +795,17 @@ before the change (`python3 -m unittest tests.test_textutil -q` with
 """
 SEALER_ROUND = """# {item} — review round 1
 
+```seal
 target: {build} against main
+```
 
 ## Findings
 
 ## Confirmations
 
+```seal
 confirms: none
+```
 `shout` keeps empty text empty and its mark otherwise, at `src/textutil.py:4`.
 read against S1.
 
@@ -824,12 +828,16 @@ SEALER_CHANGELOG = (
 # `pr_body.compose` over the case's records.
 OWN_PART = "{extra}Closes #101.\n\n"
 # The record `seal gate --record` writes, in `broad_gate.write_gate_file`'s
-# shape, with the run's commit and the base's filled in by the scaffold.
-GATE_RECORD = """# {item} — broad gate
+# shape: the work item's heading and one run block. Its commits are
+# placeholders the scaffold fills, hexadecimal as `BUILD_SHA` is, because
+# `pr_body.compose` reads the block through `hooks/lib/fields.py` first.
+RUN_SHA = "a0a0a0a"
+BASE_SHA = "c0c0c0c"
+GATE_RECORD = f"""# {{item}} — broad gate
 
-| Field | Value |
-|---|---|
-| Broad gate | RUN_SHA against BASE_SHA |
+```seal
+run: {RUN_SHA} against {BASE_SHA}
+```
 """
 # Each case: (slug, the case's assertion is true, the claim the body's
 # `OWN_PART` adds before its `Closes` line, the verdict the guarantee reads,
@@ -910,7 +918,7 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
         "gaps.md": OVERVIEW.format(item=item),
     }
     built = [(BUILD_SHA, "$build")]
-    ran = [("RUN_SHA", "$run"), ("BASE_SHA", "$(git rev-parse main)")]
+    ran = [(RUN_SHA, "$run"), (BASE_SHA, "$(git rev-parse main)")]
     lines += [
         write(f"{folder}/frame/design.md", SEALER_SPEC + MARK),
         write(f"{folder}/frame/plan.md", records["frame/plan.md"]),
@@ -966,14 +974,19 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
     )
     graders = [
         behaviour.reach("sealer"),
+        # The verdict on the `Verdict:` line of a verdict block, written as
+        # `hooks/lib/fields.py` reads it: the block's opener, then lines that
+        # open no fence, then the line. A `Verdict:` line outside a block is
+        # no verdict to the check, so it is none to this grader.
         behaviour.report_regex(
             "shape",
             "verdict",
             guarantee,
-            r"^Verdict:\s*\**"
-            + verdict
-            + (r"\**\s*$" if verdict == "sealed" else r"\b"),
-            f"`guarantee.md` carries the verdict `{verdict}` on its one line.",
+            "^"
+            + "`" * 3
+            + r"seal\n(?:[^`\n][^\n]*\n)*?Verdict: "
+            + (r"sealed$" if verdict == "sealed" else verdict + r" reason: \S"),
+            f"`guarantee.md` carries the verdict `{verdict}` in a verdict block.",
         ),
         shape_tool(
             "commits-nothing",

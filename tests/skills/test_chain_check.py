@@ -1,6 +1,6 @@
 """`skills/code-review/scripts/chain_check.py`, one class per function.
 
-Rebuilt by #942's phase 5. The readers of a round record, the grammar table
+Rebuilt by #942's phase 5. The readers of a round record's `seal` blocks
 and the reference channel run in the process on text. `main` runs in the
 process over a repository built once for the module and copied for each
 case that judges it: a branch with a routing declaration, a code commit, two
@@ -40,6 +40,7 @@ from conftest import (
 from conftest import commit_everything as commit
 from conftest import git_out as git
 from conftest import load_module as load
+from conftest import seal_block as block
 
 TARGET = "skills/code-review/scripts/chain_check.py"
 
@@ -67,6 +68,16 @@ ROUTING = """# a work item -- routing
 """
 
 
+FENCE = "`" * 3
+
+
+def close(verdict, answer="done", location=None):
+    """A finding's close block as the fix pass appends it: its `verdict:`,
+    its `answer:` and, where a fix went elsewhere, its `location:`."""
+    lines = [f"verdict: {verdict}", f"answer: {answer}"]
+    return block(*lines, *([f"location: {location}"] if location else []))
+
+
 def finding(
     n,
     verdict,
@@ -78,41 +89,57 @@ def finding(
     evidence="read `f.txt:1`",
 ):
     """One `### ` section of `## Findings`, in `templates/records/sdd-round.md`'s
-    shape, its `verdict:` line reading `verdict` and its `evidence:` line
-    `evidence`, or none where that is None."""
+    shape: its finding block, with an `evidence:` line reading `evidence`
+    or none where that is None, why it matters, the fix's fence, and a close
+    block reading `verdict`, or none where `verdict` is `open`."""
+    fields = [f"severity: {severity}", f"location: {location}"]
+    fields += [f"evidence: {evidence}"] if evidence is not None else []
+    fields += [f"regression: {regression}"] if regression else []
+    fields += [f"reopens: {reopens}"] if reopens else []
     return (
-        f"### {n}. {title}\n\n"
-        f"severity: {severity}\n"
-        f"location: {location}\n"
-        + (f"evidence: {evidence}\n" if evidence is not None else "")
-        + f"verdict: {verdict}\n"
-        + (f"regression: {regression}\n" if regression else "")
-        + (f"reopens: {reopens}\n" if reopens else "")
-        + "\nWhy it matters.\n\n"
-        "```python\nx = 1\n```\n\n"
-        "answer: \n"
+        f"### {n}. {title}\n\n" + block(*fields) + "\nWhy it matters.\n\n"
+        "```python\nx = 1\n```\n" + ("" if verdict == "open" else "\n" + close(verdict))
     )
 
 
 def confirm(reference, what="the fix holds"):
-    """One entry of `## Confirmations`: its `confirms:` line reading
+    """One entry of `## Confirmations`: its confirmation block reading
     `reference`, then the prose saying what holds, where and how."""
-    return f"confirms: {reference}\n{what}, at `f.txt:1`. read.\n\n"
+    return block(f"confirms: {reference}") + f"{what}, at `f.txt:1`. read.\n\n"
 
 
 def record(target, findings=(), confirmations="", n=1):
-    """A round record in `templates/records/sdd-round.md`'s shape: `findings` are
-    `finding()` sections, `confirmations` entries of `## Confirmations`."""
+    """A round record in `templates/records/sdd-round.md`'s shape: its round
+    block, `findings` the `finding()` sections, `confirmations` entries of
+    `## Confirmations`."""
     return (
         f"# 1791999999-a-work-item — review round {n}\n\n"
-        f"target: {target} against main\n\n"
-        "## Findings\n\n" + "\n".join(findings) + "\n## Confirmations\n\n"
+        + block(f"target: {target} against main")
+        + "\n## Findings\n\n"
+        + "\n".join(findings)
+        + "\n## Confirmations\n\n"
         f"{confirmations}\n"
         "## Not judged\n\n"
         "| What | Location | Who answers |\n|---|---|---|\n\n"
         "## Probes\n\n"
         "| Command | Result |\n|---|---|\n"
     )
+
+
+def line_at(text, line, k=0):
+    """The 1-based number of the K-th line of TEXT equal to LINE."""
+    return [i + 1 for i, said in enumerate(text.split("\n")) if said == line][k]
+
+
+def opener_at(text, first, k=0):
+    """The 1-based number of the opener of the K-th block of TEXT whose first
+    line is FIRST."""
+    lines = text.split("\n")
+    return [
+        i + 1
+        for i, said in enumerate(lines[:-1])
+        if said == FENCE + "seal" and lines[i + 1] == first
+    ][k]
 
 
 def rounds_of(*texts):
@@ -140,21 +167,30 @@ OLD_RECORD = (
 MERGED_ITEM = "seal/threads/1788999999-a-merged-item"
 
 
-def gate_file(sha):
-    return (
-        "# 1791999999-a-work-item — broad gate\n\n"
-        "| Field | Value |\n|---|---|\n"
-        f"| Broad gate | {sha} against main |\n"
+# The base commit a fixture's run names; no arm reads it.
+GATE_BASE = "fedcba9"
+
+
+def gate_file(*runs):
+    """A `trail/gate.md` holding one run block per commit of RUNS, in the
+    order `seal gate --record` appends them, the last the newest."""
+    blocks = "\n".join(
+        f"```seal\nrun: {sha} against {GATE_BASE}\n```\n" for sha in runs
     )
+    return f"# 1791999999-a-work-item — broad gate\n\n{blocks}"
+
+
+def verdict_block(sha, verdict="sealed", original=None):
+    """One verdict block of a `guarantee.md`, as the sealer appends it."""
+    lines = [f"target: {sha} against main"]
+    if original is not None:
+        lines.append(f"original: {original}")
+    lines.append(f"Verdict: {verdict}")
+    return "```seal\n" + "\n".join(lines) + "\n```\n"
 
 
 def guarantee_file(sha, verdict="sealed"):
-    return (
-        "# 1791999999-a-work-item — guarantee\n\n"
-        "| Field | Value |\n|---|---|\n"
-        f"| Target SHA | {sha} against main |\n\n"
-        f"Verdict: {verdict}\n"
-    )
+    return "# 1791999999-a-work-item — guarantee\n\n" + verdict_block(sha, verdict)
 
 
 SPEC = "# spec\n\nbody\n\nFramed 2026-10-15 by framer, before the build.\n"
@@ -211,13 +247,9 @@ def _branch_template(tmp_path_factory):
         record(code, confirmations=confirm("round-1#1"), n=2),
     )
     reviewed = commit(d, "the verifying round")
-    # Two runs, newest first: the earlier one names a commit nobody can see,
-    # so a reader that took any run but the first would refuse the file.
-    write(
-        d,
-        f"{ITEM}/trail/gate.md",
-        gate_file(f"{reviewed} against main; earlier run: {'1' * 40}"),
-    )
+    # Two runs, the newest last: the earlier one names a commit nobody can
+    # see, so a reader that took any run but the last would refuse the file.
+    write(d, f"{ITEM}/trail/gate.md", gate_file("1" * 40, reviewed))
     write(d, f"{ITEM}/guarantee.md", guarantee_file(reviewed))
     commit(d, "the closing records")
     return d, code
@@ -236,7 +268,7 @@ def seal(d):
     """The closing records naming HEAD, committed: what a branch carries
     once the sealer has audited what is on it."""
     head = git(d, "rev-parse", "HEAD")
-    write(d, f"{ITEM}/trail/gate.md", gate_file(f"{head} against main"))
+    write(d, f"{ITEM}/trail/gate.md", gate_file(head))
     write(d, f"{ITEM}/guarantee.md", guarantee_file(head))
     commit(d, "the closing records, again")
 
@@ -408,36 +440,15 @@ class Test_carried_by:
         )
 
 
-# --- grammar ------------------------------------------------------------------------
+# --- the round record's template and its loading ---------------------------------
 
 DOC = ROOT / "docs" / "the-review-record.md"
 TEMPLATE = ROOT / "templates" / "records" / "sdd-round.md"
 
 
-def doc_with(tmp_path, old, new):
-    """The grammar document with `old`, which stands once, replaced by `new`,
-    written to a path of its own."""
-    text = DOC.read_text(encoding="utf-8")
-    assert text.count(old) == 1, old
-    path = tmp_path / "the-review-record.md"
-    path.write_text(text.replace(old, new), encoding="utf-8")
-    return path
-
-
-def row_of(key):
-    """The table row of `key` as the document writes it, its line end
-    included."""
-    return next(
-        ln + "\n"
-        for ln in DOC.read_text(encoding="utf-8").splitlines()
-        if ln.startswith(f"| `{key}` |")
-    )
-
-
 def copied_tree(tree):
-    """`(script, document)`: the check and the files it loads at import,
-    copied under TREE, with `docs/` made and the grammar document not yet
-    written."""
+    """The check and the files it loads at import, copied under TREE, as the
+    path of the copied script."""
     script = tree / "skills" / "code-review" / "scripts" / "chain_check.py"
     script.parent.mkdir(parents=True)
     script.write_text(CHAIN.read_text(encoding="utf-8"), encoding="utf-8")
@@ -446,397 +457,52 @@ def copied_tree(tree):
         READER.read_text(encoding="utf-8"), encoding="utf-8"
     )
     (tree / "hooks" / "lib").mkdir(parents=True)
-    (tree / "hooks" / "lib" / "blocks.py").write_text(
-        (ROOT / "hooks" / "lib" / "blocks.py").read_text(encoding="utf-8"),
-        encoding="utf-8",
-    )
-    (tree / "docs").mkdir()
-    return script, tree / "docs" / "the-review-record.md"
-
-
-def readings(rows):
-    """`rows` as plain values, so two loads of one table compare equal."""
-    return {
-        k: (r.shape.pattern if r.shape else None, r.where, r.many, r.refused)
-        for k, r in rows.items()
-    }
-
-
-# Each way a table the check cannot read is broken, and what the refusal says.
-BROKEN = [
-    ("## The round record\n", "## The round records\n", "0 `## The round record`"),
-    ("| How many |", "| Count |", "holds no table headed"),
-    ("|---|---|---|---|---|\n| `target:`", "| `target:`", "separator row"),
-    (" | a severity is `must` or `should` |", " |", "4 cells"),
-    ("| `severity:` |", "| severity: |", "not one code span"),
-    ("| `severity:` |", "| `severity:` `x` |", "not one code span"),
-    ("(?:must\\|should)`", "(?:must\\|should`", "does not compile"),
-    ("| a finding | one | a severity", "| a section | one | a severity", "cannot read"),
-    ("| a finding | one | a severity", "| a finding | two | a severity", "cannot read"),
-    (row_of("reopens:"), "", "no `reopens:` row"),
-    ("`target: (?P<commit>", "`target: (?P<sha>", "no `(?P<commit>…)`"),
-    (
-        row_of("answer:"),
-        row_of("answer:") + "| `Answer:` | — | nowhere | none | x |\n",
-        "not one code span",
-    ),
-    (
-        row_of("answer:"),
-        row_of("answer:") + "| `said:` | `said: .+` | nowhere | one | x |\n",
-        "cannot read",
-    ),
-    ("`severity: (?:must", "`sev: (?:must", "cannot read"),
-    (row_of("severity:"), row_of("severity:") * 2, "a second `severity:` row"),
-    (
-        row_of("answer:"),
-        row_of("answer:") + "| `## Probes` | `## Probes` | the record | one | x |\n",
-        "reads nothing from",
-    ),
-    (
-        "| a finding | one | a verdict is",
-        "| a finding | any | a verdict is",
-        "`verdict:` row's `How many` is `any`, and the check can honour only `one`",
-    ),
-    (
-        "| a finding | one | a verdict is",
-        "| a finding | at most one | a verdict is",
-        "`How many` is `at most one`, and the check can honour only `one`",
-    ),
-    (
-        "| a finding | one | a location is",
-        "| a finding | at most one | a location is",
-        "`location:` row's `How many` is `at most one`",
-    ),
-    (
-        "| outside every finding | one | it names",
-        "| outside every finding | any | it names",
-        "`target:` row's `How many` is `any`",
-    ),
-    (
-        "| a finding | at most one | a reference is",
-        "| a finding | any | a reference is",
-        "`regression:` row's `How many` is `any`, and the check can honour only "
-        "`one` or `at most one`",
-    ),
-    (
-        "| a finding | at most one | a reopened close",
-        "| a finding | any | a reopened close",
-        "`reopens:` row's `How many` is `any`",
-    ),
-    (
-        "| outside every finding | at most one | it names the migration",
-        "| outside every finding | one | it names the migration",
-        "`original:` row's `How many` is `one`, and the check can honour only "
-        "`at most one`",
-    ),
-    (
-        "| a finding | one | a verdict is",
-        "| outside every finding | one | a verdict is",
-        '`verdict:` row stands "outside every finding", and the check reads it '
-        'only where the table says "a finding"',
-    ),
-    (
-        "| outside every finding | one | it names",
-        "| a finding | one | it names",
-        '`target:` row stands "a finding"',
-    ),
-    (
-        "| `## Confirmations` | any | it is",
-        "| a finding | any | it is",
-        '`confirms:` row stands "a finding"',
-    ),
-]
-
-
-class Test_grammar:
-    def test_accepts_the_table_and_reads_every_line_against_its_row_whole(
-        self, monkeypatch, tmp_path
-    ):
-        """S4 (T2): the table in `docs/the-review-record.md` *The round
-        record* is what the check reads: its rows are the ten labels, the
-        finding heading and the two sections, and the module's grammar is
-        the document's, read again here. Every line
-        `templates/records/sdd-round.md` writes of a row matches it whole, and the
-        same line with a word after it is refused wherever the row's shape
-        ends in fixed words. A row changed in the document changes what the
-        readers accept, so no constant stands beside the table."""
-        assert set(chain.GRAMMAR) == {
-            "target:",
-            "original:",
-            "severity:",
-            "location:",
-            "evidence:",
-            "verdict:",
-            "regression:",
-            "reopens:",
-            "answer:",
-            "confirms:",
-            "### <n>. <symptom>",
-            "## Findings",
-            "## Confirmations",
-        }, chain.GRAMMAR
-        rows = chain.grammar(str(DOC), reader)
-        assert readings(rows) == readings(chain.GRAMMAR)
-        cells = [c for r in readings(rows).values() for c in r]
-        assert not [c for c in cells if chain.DASH in str(c)], cells
-
-        lines = reader.readable(TEMPLATE.read_text(encoding="utf-8"))
-        # The template writes neither the `reopens:` line nor the `original:`
-        # one, each owed only where its condition holds (#988).
-        conditional = {
-            "reopens:": ["reopens: round-1#2"],
-            "original:": ["original: 1a2b3c4"],
-        }
-        for key in chain.LABELS:
-            row = chain.GRAMMAR[key]
-            written = [ln for ln in lines if chain.label_of(ln) == key]
-            written = written or conditional.get(key, [])
-            assert written, f"the template writes no `{key}` line"
-            for ln in written:
-                assert row.shape.fullmatch(ln), ln
-                trailing = row.shape.fullmatch(f"{ln} and more")
-                assert bool(trailing) == (key == "answer:"), ln
-        headings = [ln for ln in lines if ln.startswith("### ")]
-        assert headings and all(chain.finding_number(h) == 1 for h in headings)
-        for key in chain.SECTION_ROWS:
-            assert len(chain.sections_of(reader, lines, key)) == 1, key
-
-        could = record("abc1234", [finding(1, "rejected", severity="could")])
-        assert chain.record_findings(reader, could, "r.md")[1] != []
-        wider = doc_with(
-            tmp_path,
-            "`severity: (?:must\\|should)`",
-            "`severity: (?:must\\|should\\|could)`",
+    for name in ("blocks.py", "fields.py"):
+        (tree / "hooks" / "lib" / name).write_text(
+            (ROOT / "hooks" / "lib" / name).read_text(encoding="utf-8"),
+            encoding="utf-8",
         )
-        monkeypatch.setattr(chain, "GRAMMAR", chain.grammar(str(wider), reader))
-        assert chain.record_findings(reader, could, "r.md")[1] == []
-
-    @pytest.mark.parametrize("old, new, said", BROKEN)
-    def test_refuses_a_document_it_cannot_read_naming_it(
-        self, tmp_path, old, new, said
-    ):
-        """S4 (T2): a table the check cannot read stops it and is never a
-        pass: no section, no header, no separator, a row of the wrong width,
-        a `Line` that is no code span, a shape that does not compile, a
-        `Where` or `How many` the table does not use, a row the check reads
-        missing or naming no part it reads, a label whose shape does not open
-        with it, a row twice, a heading row the check reads nothing from, and
-        a row the check reads a meaning from standing where its reader does
-        not look or allowing a `How many` that reader cannot keep."""
-        path = doc_with(tmp_path, old, new)
-        with pytest.raises(chain.GrammarError) as refused:
-            chain.grammar(str(path), reader)
-        assert str(refused.value).startswith(str(path)), refused.value
-        assert said in str(refused.value), refused.value
-
-    def test_loads_beside_a_document_with_no_second_table(self, tmp_path):
-        """The fifth scenario of #1167: the section with its `Old spelling`
-        table removed, as the settle leaves it, is read, and the script
-        imported beside it loads with the same grammar. Seen red against the
-        loader that read the second table: "holds no table headed | Old
-        spelling | Means |"."""
-        table = re.search(
-            r"\n\| Old spelling \| Means \|\n(?:\|.*\|\n)+",
-            DOC.read_text(encoding="utf-8"),
-        )
-        path = doc_with(tmp_path, table.group(0), "\n") if table else DOC
-        assert "| Old spelling | Means |" not in path.read_text(encoding="utf-8")
-        assert readings(chain.grammar(str(path), reader)) == readings(chain.GRAMMAR)
-        script, target = copied_tree(tmp_path / "tree")
-        target.write_text(path.read_text(encoding="utf-8"), encoding="utf-8")
-        loaded = load(script, "chain_check_beside_one_table")
-        assert readings(loaded.GRAMMAR) == readings(chain.GRAMMAR)
-
-    def test_refuses_to_run_beside_a_document_it_cannot_read_with_exit_2(
-        self, tmp_path
-    ):
-        """Run as a command beside a broken document, the check exits 2 with
-        that sentence and no traceback, and beside no document the same;
-        imported, it raises the error for the importer to decide."""
-        old, new, said = BROKEN[7]
-        path = doc_with(tmp_path, old, new)
-        with pytest.raises(chain.GrammarError, match="cannot be read"):
-            chain.grammar(str(tmp_path / "no-such-document.md"), reader)
-        script, target = copied_tree(tmp_path / "tree")
-        named = os.path.join(str(script.parent), "..", "..", "..", "docs", target.name)
-        for present in (True, False):
-            if present:
-                target.write_text(path.read_text(encoding="utf-8"), encoding="utf-8")
-            else:
-                target.unlink()
-            done = subprocess.run(
-                [
-                    sys.executable,
-                    str(script),
-                    "--baseline",
-                    "HEAD",
-                    "--root",
-                    str(tmp_path),
-                ],
-                capture_output=True,
-                encoding="utf-8",
-                errors="replace",
-            )
-            assert done.returncode == 2, (present, done.returncode, done.stderr)
-            assert "Traceback" not in done.stderr, done.stderr
-            assert named in done.stderr, done.stderr
-            assert "grammar would not load" in done.stderr, done.stderr
-            assert (said if present else "cannot be read") in done.stderr, done.stderr
-        with pytest.raises(ValueError, match="cannot be read"):
-            load(script, "chain_check_imported_beside_no_table")
-
-
-# --- one value of a labelled line ----------------------------------------------------
-
-
-class Test_verdict_of:
-    def test_accepts_the_four_values(self):
-        sha = "1a2b3c4d" * 5
-        for value, read in (
-            ("open", (chain.OPEN, None)),
-            ("fixed abc1234", (chain.FIXED, "abc1234")),
-            (f"fixed {sha}", (chain.FIXED, sha)),
-            ("rejected", (chain.REJECTED, None)),
-            ("deferred #12", (chain.DEFERRED, "#12")),
-            ("deferred the frame", (chain.DEFERRED, "the frame")),
-        ):
-            assert chain.verdict_of(value) == read, value
-
-    @pytest.mark.parametrize(
-        "value",
-        [
-            "Fixed abc1234",
-            "fixed",
-            "fixed abc1234.",
-            "fixed abc123",
-            "fixed " + "1a2b3c4d" * 5 + "0",
-            "fixed ABC1234",
-            "fixed abc1234 · fix pass: done",
-            "fixed abc1234 and more",
-            "deferred",
-            "deferred ",
-            "confirmed",
-            "**fixed** abc1234",
-            "open — see below",
-            "Open",
-            " rejected",
-            "",
-        ],
-    )
-    def test_refuses_every_other_value(self, value):
-        assert chain.verdict_of(value) is None
-
-
-class Test_deferred_home:
-    def test_accepts_the_home_after_the_word(self):
-        assert chain.deferred_home("deferred #12") == "#12"
-        assert chain.deferred_home("deferred the frame") == "the frame"
-
-    def test_refuses_no_home_and_another_verdict(self):
-        assert chain.deferred_home("deferred") is None
-        assert chain.deferred_home("deferredness #12") is None
-        assert chain.deferred_home("fixed abc1234") is None
+    return script
 
 
 class Test_issue_of:
     def test_accepts_a_home_that_is_exactly_an_issue(self):
-        assert chain.issue_of(chain.deferred_home("deferred #12")) == 12
+        assert chain.issue_of("#12") == 12
 
     def test_refuses_a_home_of_prose(self):
-        assert chain.issue_of(chain.deferred_home("deferred to #664")) is None
-        assert chain.issue_of(chain.deferred_home("deferred #12.")) is None
+        assert chain.issue_of("to #664") is None
+        assert chain.issue_of("#12.") is None
         assert chain.issue_of(None) is None
-
-
-@pytest.mark.rule("location-touched-by-fix")
-class Test_location_of:
-    def test_accepts_one_or_more_backticked_coordinates(self):
-        """S22 (T33): one or more backticked `path`, `path:line` or
-        `path:first-last` items joined by `, `."""
-        for value, paths in (
-            ("`a.py`", ["a.py"]),
-            ("`a.py:12`", ["a.py"]),
-            ("`a.py:12-14`", ["a.py"]),
-            ("`docs/x/`", ["docs/x/"]),
-            ("`a.py:1`, `docs/b.md:3-4`", ["a.py", "docs/b.md"]),
-            ("`a.py:1`, `b.py`, `c/d.md:9`", ["a.py", "b.py", "c/d.md"]),
-        ):
-            assert chain.location_of(value) == paths, value
-
-    @pytest.mark.parametrize(
-        "value",
-        [
-            "`:617`",
-            "`a.py:1`, `:617`",
-            "a.py:12",
-            "`https://example.com/a`",
-            "**`a.py:1`**",
-            "`a.py:1`,`b.py`",
-            "`a.py:1` and `b.py`",
-            "`a.py:1`, ",
-            "`a.py:x`",
-            "`a.py:1-`",
-            "`/abs/a.py`",
-            "`a.py`.",
-            "`a b.py`",
-            "`a.py#unit`",
-            "`a.py:1`, `b.py#unit`",
-            "",
-        ],
-    )
-    def test_refuses_everything_else(self, value):
-        """The `path#unit` coordinate #923 leaked among them included."""
-        assert chain.location_of(value) is None
-
-
-class Test_reference_of:
-    def test_accepts_a_round_and_a_finding(self):
-        for value, read in (
-            ("round-2#3", (2, 3)),
-            ("round-2", (2, None)),
-            ("round-12#10", (12, 10)),
-        ):
-            assert chain.reference_of(value) == read, value
-
-    @pytest.mark.parametrize(
-        "value",
-        [
-            "round 2's 3",
-            "Round-2#3",
-            "#3",
-            "round-2#3.",
-            "**round-2#3**",
-            "`round-2#3`",
-            "round-02#3",
-            "round-2#03",
-            "round-0#1",
-            "round-2#",
-            "round-2 #3",
-            " round-2#3",
-            "round-2#3, round-2#4",
-            "none",
-            "",
-        ],
-    )
-    def test_refuses_every_other_spelling(self, value):
-        assert chain.reference_of(value) is None
 
 
 # --- a record ------------------------------------------------------------------------
 
 
 def target_of(text):
-    """`(the commit round_of reads off the record's target line, its
+    """`(the commit round_of reads off the record's round block, its
     errors)`."""
     read, errors = chain.round_of(reader, text, "r.md", 1)
     return read.target, errors
 
 
+# A round record in 0.26.0's shape, its fields on labelled lines: one a
+# reader of the blocks meets in a work item open across the change.
+LABELLED = (
+    "# 1791999999-a-work-item — review round 1\n\n"
+    "target: abc1234 against main\n\n"
+    "## Findings\n\n"
+    "### 1. the parser drops a row\n\n"
+    "severity: must\nlocation: `f.txt:1`\nevidence: read `f.txt:1`\n"
+    "verdict: rejected\n\nWhy it matters.\n\nanswer: it holds\n\n"
+    "## Confirmations\n\nconfirms: none\nheld, at `f.txt:1`. read.\n"
+)
+
+
 class Test_round_of:
-    def test_accepts_the_one_target_line_and_reads_its_commit(self):
-        """S4: a record's reviewed commit is its one `target:` line, reading
-        `<sha> against <base>` or, for a verifying round, `<sha>, fixes
-        <a>..<b>`; the commit is the first word."""
+    def test_accepts_the_one_round_block_and_reads_its_commit(self):
+        """S4: a record's reviewed commit is the `target:` line of its one
+        round block, reading `<sha> against <base>` or, for a verifying
+        round, `<sha>, fixes <a>..<b>`; the commit is the first word."""
         sha = "1a2b3c4d" * 5
         for value, read in (
             ("abc1234 against main", "abc1234"),
@@ -847,23 +513,22 @@ class Test_round_of:
             assert target_of(text) == (read, []), value
 
     @pytest.mark.rule("round-record-read-by-label")
-    def test_refuses_no_line_two_lines_or_a_value_it_cannot_read(self):
-        """S4: no `target:` line, the old `| Target SHA |` table row among the
-        ways to have none, two of them, or a value outside the two shapes is
-        refused by its line, and no commit is read."""
-        table = record("x").replace(
-            "target: x against main",
-            "| Field | Value |\n|---|---|\n| Target SHA | abc1234 against main |",
-        )
-        assert target_of(table) == (None, [("r.md", 0, chain.NO_TARGET)])
+    def test_refuses_a_second_round_block_or_a_value_it_cannot_read(self):
+        """S4: a second round block is refused at its opener, and a
+        `target:` value outside the two shapes at its line, where no commit
+        is read."""
         two = record("abc1234").replace(
-            "## Findings", "target: abc1234 against main\n\n## Findings"
+            "\n## Findings",
+            "\n" + block("target: abc1234 against main") + "\n## Findings",
         )
-        lines = reader.readable(two)
-        second = [i + 1 for i, ln in enumerate(lines) if ln.startswith("target:")][1]
-        sha, errors = target_of(two)
-        assert sha is None and [line for _rel, line, _why in errors] == [second]
-        assert "2 `target:` lines" in errors[0][2], errors
+        assert target_of(two)[1] == [
+            (
+                "r.md",
+                opener_at(two, "target: abc1234 against main", 1),
+                chain.SECOND_ROUND,
+            )
+        ]
+        assert "a round record holds one" in chain.SECOND_ROUND
         for value in (
             "abc1234",
             "ABC1234 against main",
@@ -874,20 +539,108 @@ class Test_round_of:
             "",
         ):
             text = record("x").replace("target: x against main", f"target: {value}")
-            lines = reader.readable(text)
-            at = next(i + 1 for i, ln in enumerate(lines) if ln.startswith("target:"))
+            line = f"target: {value}"
             sha, errors = target_of(text)
             assert sha is None, value
-            assert [(rel, line) for rel, line, _why in errors] == [("r.md", at)], value
+            assert [(rel, n) for rel, n, _why in errors] == [
+                ("r.md", line_at(text, line))
+            ], value
             assert "`<sha> against <base>`" in errors[0][2], value
 
+    @pytest.mark.rule("old-table-shape-refused")
+    def test_refuses_a_record_from_before_the_blocks_with_one_message(self):
+        """#1198's scenario *A record from before the change*: a round record
+        in 0.26.0's labelled lines, and one in the table shape before them,
+        hold no round block, so each is refused with the one message that
+        names the template, and nothing else of it is read. Seen red against
+        the 0.26.0 reader, which passes the labelled record."""
+        table = LABELLED.replace(
+            "target: abc1234 against main",
+            "| Field | Value |\n|---|---|\n| Target SHA | abc1234 against main |",
+        )
+        for text in (LABELLED, table):
+            read, errors = chain.round_of(reader, text, "r.md", 1)
+            assert errors == [("r.md", 0, chain.NO_ROUND_BLOCK)], errors
+            assert (read.findings, read.confirms, read.target) == ([], [], None)
+        for words in (
+            "no round block",
+            "`seal` blocks",
+            "`templates/records/sdd-round.md`",
+            "rewritten into blocks with its verdicts unchanged",
+        ):
+            assert words in chain.NO_ROUND_BLOCK, words
 
-class Test_findings:
-    def test_accepts_each_finding_by_its_labelled_lines(self):
-        """A finding's `### ` heading names it and its number; its one
-        `verdict:` line decides it, its one `location:` line names its paths
-        and its `regression:` line, where it stands, the earlier finding; a
-        severity, an answer and a confirmation decide nothing."""
+    def test_accepts_each_confirmation_block_as_a_reference_or_none(self):
+        """S23: each entry is a confirmation block reading `round-<N>#<n>`,
+        read with its line, or `none`; a record with nothing to confirm may
+        leave the section out."""
+        text = record(
+            "abc1234",
+            confirmations=confirm("round-1#2") + confirm("none") + confirm("round-3#1"),
+            n=4,
+        )
+        read, errors = chain.round_of(reader, text, "r.md", 4)
+        assert errors == []
+        assert read.confirms == [
+            (line_at(text, "confirms: round-1#2"), (1, 2)),
+            (line_at(text, "confirms: round-3#1"), (3, 1)),
+        ]
+        left_out = record("abc1234").replace("## Confirmations\n", "")
+        read, errors = chain.round_of(reader, left_out, "r.md", 1)
+        assert (read.confirms, errors) == ([], [])
+
+    @pytest.mark.rule("round-record-read-by-label")
+    def test_refuses_a_value_it_cannot_read_and_reads_prose_as_nothing(self):
+        """S23 (T36): a `confirms:` value outside its shape is refused at its
+        line; a table under the heading, and a `confirms:` line outside every
+        block, are prose and confirm nothing."""
+        bad = (
+            "round 1's 3",
+            "Round-1#3",
+            "#3",
+            "round-1",
+            "**none**",
+            "None",
+            "round-1#2 holds",
+            "",
+        )
+        text = record(
+            "abc1234",
+            confirmations="".join(confirm(cell) for cell in bad) + confirm("none"),
+            n=2,
+        )
+        read, errors = chain.round_of(reader, text, "r.md", 2)
+        assert read.confirms == []
+        assert [line for _rel, line, _why in errors] == [
+            line_at(text, f"confirms: {cell}") for cell in bad
+        ], errors
+        for (_rel, _line, why), cell in zip(errors, bad, strict=True):
+            assert f"`confirms: {cell}`" in why, why
+            assert "`round-<N>#<n>` or `none`" in why, why
+        prose = record(
+            "abc1234",
+            confirmations="| Confirms | What holds |\n|---|---|\n| round-1#2 | x |\n\n"
+            "confirms: round-1#2\nheld.\n",
+            n=2,
+        )
+        assert chain.round_of(reader, prose, "r.md", 2)[0].confirms == []
+        assert chain.round_of(reader, prose, "r.md", 2)[1] == []
+
+
+def led(text, n, why, title="the parser drops a row"):
+    """WHY led by the heading of finding N of TEXT, as a refusal in a
+    finding says it."""
+    return f"### {n}. {title} {chain.DASH} {why}"
+
+
+class Test_record_findings:
+    def test_accepts_each_finding_by_its_blocks(self):
+        """A finding's `### ` heading names it and its number; its finding
+        block's `location:` names its paths and its `regression:`, where it
+        stands, the earlier finding; its close block's `verdict:` decides it,
+        a close block's `location:` adds the path a fix went to, and a
+        finding with no close block is open. A severity, an answer and a
+        confirmation decide nothing."""
         text = record(
             "abc1234",
             [
@@ -900,18 +653,20 @@ class Test_findings:
                     location="`a.py:3`, `docs/b.md`",
                     regression="round-1",
                 ),
+                finding(4, "open")
+                + "\n"
+                + close("fixed abc1234", location="`g.txt:2`"),
             ],
             confirmations=confirm("round-1#2"),
         )
-        lines = reader.readable(text)
-        found, errors = chain.findings(reader, lines, "r.md")
+        found, errors = chain.record_findings(reader, text, "r.md")
         assert errors == []
         assert [
             (f.line, f.heading, f.number, f.verdict, f.paths, f.regression)
             for f in found
         ] == [
             (
-                lines.index("verdict: open") + 1,
+                line_at(text, "### 1. the parser drops a row"),
                 "### 1. the parser drops a row",
                 1,
                 (chain.OPEN, None),
@@ -919,7 +674,7 @@ class Test_findings:
                 None,
             ),
             (
-                lines.index("verdict: fixed abc1234") + 1,
+                line_at(text, "verdict: fixed abc1234"),
                 "### 2. the parser drops a row",
                 2,
                 (chain.FIXED, "abc1234"),
@@ -927,312 +682,348 @@ class Test_findings:
                 (1, 4),
             ),
             (
-                lines.index("verdict: deferred #12") + 1,
+                line_at(text, "verdict: deferred #12"),
                 "### 3. the parser drops a row",
                 3,
                 (chain.DEFERRED, "#12"),
                 ["a.py", "docs/b.md"],
                 (1, None),
             ),
+            (
+                line_at(text, "verdict: fixed abc1234", 1),
+                "### 4. the parser drops a row",
+                4,
+                (chain.FIXED, "abc1234"),
+                ["f.txt", "g.txt"],
+                None,
+            ),
         ]
-        assert found[1].regression_line == lines.index("regression: round-1#4") + 1
-        assert chain.findings(reader, reader.readable(record("abc1234")), "r.md") == (
-            [],
-            [],
-        )
+        assert found[1].regression_line == line_at(text, "regression: round-1#4")
+        assert chain.record_findings(reader, record("abc1234"), "r.md") == ([], [])
 
     @pytest.mark.rule("round-record-read-by-label")
-    def test_refuses_what_it_cannot_read_by_name(self):
-        """S3, S11, S22 (T26, T33): a finding with no `verdict:` line, two,
-        or its only one inside the fix block; a value outside the four; a
-        labelled line above the first finding or under another section; a
-        finding with no `location:` line, two, or one the check cannot read;
-        two `regression:` lines, or one it cannot read; no `## Findings`, or
-        two, or one with a word after its heading."""
+    def test_refuses_a_finding_with_no_finding_block_or_a_block_twice(self):
+        """A finding holds one finding block and one close block at most: a
+        section with no finding block is refused at its heading, a second
+        block of either kind at its opener, and the record's other findings
+        still read."""
         sections = [
-            finding(1, "rejected").replace("verdict: rejected\n", ""),
-            finding(2, "rejected").replace(
-                "verdict: rejected\n", "verdict: rejected\nverdict: open\n"
+            "### 1. the parser drops a row\n\nWhy it matters.\n",
+            finding(2, "rejected")
+            + "\n"
+            + block(
+                "severity: should", "location: `g.txt`", "evidence: read `g.txt:1`"
             ),
-            finding(3, "rejected")
-            .replace("verdict: rejected\n", "")
-            .replace("x = 1\n", "verdict: rejected\n"),
-            finding(4, "deferred #9").replace("location: `f.txt:1`\n", ""),
-            finding(5, "confirmed"),
-            finding(6, "deferred #9", location="f.txt:1"),
-            finding(7, "rejected").replace(
-                "location: `f.txt:1`\n", "location: `f.txt:1`\nlocation: `g.txt`\n"
-            ),
-            finding(8, "rejected", regression="round 1's 3"),
-            finding(9, "rejected", regression="round-1#3").replace(
-                "regression: round-1#3\n",
-                "regression: round-1#3\nregression: round-1#4\n",
-            ),
-            finding(10, "rejected"),
+            finding(3, "rejected") + "\n" + close("deferred #9"),
+            finding(4, "rejected"),
         ]
-        text = record(
-            "abc1234",
-            sections,
-            confirmations=confirm("none") + "\nlocation: `f.txt:1`\n",
-        ).replace("## Findings\n\n", "## Findings\n\nverdict: rejected\n\n")
-        lines = reader.readable(text)
-        found, errors = chain.findings(reader, lines, "r.md")
-        assert [f.heading for f in found] == ["### 10. the parser drops a row"]
-        heads = [i + 1 for i, ln in enumerate(lines) if ln.startswith("### ")]
-
-        def at(prefix, k=0):
-            return [i + 1 for i, ln in enumerate(lines) if ln.startswith(prefix)][k]
-
-        assert [(rel, line) for rel, line, _why in errors] == [
-            ("r.md", at("verdict: ")),
-            ("r.md", heads[0]),
-            ("r.md", at("verdict: open")),
-            ("r.md", heads[2]),
-            ("r.md", heads[3]),
-            ("r.md", at("verdict: confirmed")),
-            ("r.md", at("location: f.txt:1")),
-            ("r.md", at("location: `g.txt`")),
-            ("r.md", at("regression: round 1's 3")),
-            ("r.md", at("regression: round-1#4")),
-            ("r.md", at("location: ", -1)),
+        text = record("abc1234", sections)
+        found, errors = chain.record_findings(reader, text, "r.md")
+        assert [f.number for f in found] == [4]
+        assert errors == [
+            (
+                "r.md",
+                line_at(text, "### 1. the parser drops a row"),
+                led(text, 1, chain.NO_FINDING_BLOCK),
+            ),
+            (
+                "r.md",
+                opener_at(text, "severity: should"),
+                led(text, 2, chain.SECOND_BLOCK.format(kind="finding")),
+            ),
+            (
+                "r.md",
+                opener_at(text, "verdict: deferred #9"),
+                led(text, 3, chain.SECOND_BLOCK.format(kind="close")),
+            ),
         ], errors
-        said = [why for _rel, _line, why in errors]
-        assert "outside a finding" in said[0] and "outside a finding" in said[-1]
-        assert "`verdict:`" in said[0] and "`location:`" in said[-1]
-        for why, n in zip(said[1:10], range(1, 10), strict=True):
-            assert f"### {n}. the parser drops a row" in why, why
-        assert "2 `verdict:` lines" in said[2]
-        assert "no `verdict:` line" in said[1] and "no `verdict:` line" in said[3]
-        assert "no `location:` line" in said[4]
-        assert "`verdict: confirmed`" in said[5]
-        assert "`fixed <commit>`" in said[5] and "`deferred <home>`" in said[5]
-        assert "`location: f.txt:1`" in said[6] and "`path:line`" in said[6]
-        assert "2 `location:` lines" in said[7]
-        assert "`regression: round 1's 3`" in said[8] and "`round-<N>#<n>`" in said[8]
-        assert "2 `regression:` lines" in said[9]
-        assert chain.findings(
-            reader, reader.readable("# r\n\n## Probes\n"), "r.md"
-        ) == (
-            [],
-            [("r.md", 0, chain.NO_FINDINGS)],
-        )
+        for words in (
+            "no finding block",
+            "`severity:`",
+            "`templates/records/sdd-round.md`",
+        ):
+            assert words in chain.NO_FINDING_BLOCK, words
+        assert (
+            chain.SECOND_BLOCK.format(kind="close")
+        ) == "a second close block: a finding holds one"
+
+    def test_refuses_a_record_with_no_findings_section_or_two(self):
+        """The record holds one `## Findings` heading: none, a heading with a
+        word after it among the ways to have none, is refused naming the
+        section, where a finding block then stands outside every finding,
+        and a second at its line."""
+        assert chain.record_findings(
+            reader, block("target: abc1234 against main") + "\n## Probes\n", "r.md"
+        ) == ([], [("r.md", 0, chain.NO_FINDINGS)])
         longer = record("abc1234", [finding(1, "open")]).replace(
             "## Findings", "## Findings so far"
         )
-        assert chain.findings(reader, reader.readable(longer), "r.md") == (
-            [],
-            [("r.md", 0, chain.NO_FINDINGS)],
-        )
-        two = reader.readable(record("abc1234") + "\n## Findings\n")
-        second = [i + 1 for i, ln in enumerate(two) if ln == "## Findings"][1]
-        _found, errors = chain.findings(reader, two, "r.md")
-        assert [(line, why) for _rel, line, why in errors] == [
-            (second, chain.TWO_FINDINGS)
+        assert chain.record_findings(reader, longer, "r.md")[1] == [
+            ("r.md", 0, chain.NO_FINDINGS),
+            (
+                "r.md",
+                opener_at(longer, "severity: must"),
+                chain.OUTSIDE.format(kind="finding"),
+            ),
         ]
+        two = record("abc1234") + "\n## Findings\n"
+        assert chain.record_findings(reader, two, "r.md") == (
+            [],
+            [("r.md", line_at(two, "## Findings", 1), chain.TWO_FINDINGS)],
+        )
 
-    @pytest.mark.parametrize(
-        "spelling, label",
-        [
-            ("Verdict: open", "`verdict:`"),
-            ("**verdict:** open", "`verdict:`"),
-            ("verdict : open", "`verdict:`"),
-            ("verdict:open", "`verdict:`"),
-            ("Reopens: round-1#1", "`reopens:`"),
-            ("Severity: must", "`severity:`"),
-            ("Location: `f.txt:1`", "`location:`"),
-            ("**evidence:** read `a.py:1`", "`evidence:`"),
-            ("  answer : done", "`answer:`"),
-            ("Confirms: round-1#1", "`confirms:`"),
-            ("Target: abc1234 against main", "`target:`"),
-        ],
-    )
-    def test_names_a_label_in_another_spelling_and_refuses_nothing_for_it(
-        self, spelling, label
-    ):
-        """#1167, *Scope* item 5: a line whose first word, case-folded and
-        stripped of emphasis, is a label's and ends in a colon, and which is
-        not the label, is prose to the check. The finding carrying it is read
-        as it would be without it, and `unread_lines` names it at its line
-        with the label the check reads, which refuses nothing. Seen red
-        against the refusal "a label in another spelling"."""
+    @pytest.mark.rule("round-record-read-by-label")
+    def test_refuses_a_key_spelt_otherwise_at_its_line_and_reads_no_close(self):
+        """#1198's scenario *A misspelt key inside a block*: a close block
+        whose first line reads `Verdict: fixed abc1234` is refused at that
+        line with the keys a block of the record opens with, one whose
+        second line reads `Answer: done` at that line with the keys a close
+        block takes, and nothing closes either finding. Seen red against a
+        reader that skips the line."""
         text = record(
             "abc1234",
             [
-                finding(1, "rejected").replace(
-                    "\nWhy it matters.", f"\n{spelling}\n\nWhy it matters."
-                ),
-                finding(2, "rejected"),
+                finding(1, "open")
+                + "\n"
+                + block("Verdict: fixed abc1234", "answer: done"),
+                finding(2, "open")
+                + "\n"
+                + block("verdict: fixed abc1234", "Answer: done"),
             ],
         )
-        lines = reader.readable(text)
-        found, errors = chain.findings(reader, lines, "r.md")
-        assert ([f.number for f in found], errors) == ([1, 2], [])
-        [(rel, line, why)] = chain.unread_lines(lines, "r.md")
-        assert (rel, line) == ("r.md", lines.index(spelling) + 1)
-        assert why == chain.UNREAD_LINE.format(said=spelling.strip(), label=label)
-        assert why.startswith("not read: "), why
+        found, errors = chain.record_findings(reader, text, "r.md")
+        assert found == []
+        assert errors == [
+            (
+                "r.md",
+                line_at(text, "Verdict: fixed abc1234"),
+                led(
+                    text,
+                    1,
+                    chain.FIELDS.NO_KIND.format(
+                        line="Verdict: fixed abc1234",
+                        openers="`target:`, `severity:`, `verdict:` or `confirms:`",
+                    ),
+                ),
+            ),
+            (
+                "r.md",
+                line_at(text, "Answer: done"),
+                led(
+                    text,
+                    2,
+                    chain.FIELDS.NOT_A_FIELD.format(
+                        line="Answer: done",
+                        kind="close",
+                        keys="`verdict:`, `answer:` and `location:`",
+                    ),
+                ),
+            ),
+        ], errors
 
-    def test_a_verdict_in_another_spelling_leaves_its_finding_without_one(self):
-        """The first scenario of #1167: a finding whose verdict reads
-        `Verdict: open`, with no `verdict:` line, is refused at its heading
-        as lacking its `verdict:` line, the refusal the missing line alone
-        gives, and the `Verdict:` line is named as not read. Seen red against
-        the refusal "a label in another spelling" at the `Verdict:` line."""
+    def test_a_close_written_as_prose_leaves_the_finding_open(self):
+        """#1198's scenario *A close written as prose*: `verdict:` and
+        `answer:` lines outside every block under a finding are prose, so
+        the finding has no close block and reads as open, which a ready pull
+        request refuses at its heading, and no line names the prose. Seen
+        red against the reader of labelled lines, which read the `verdict:`
+        line as the finding's close."""
         text = record(
-            "abc1234", [finding(1, "open").replace("verdict: open", "Verdict: open")]
+            "abc1234",
+            [finding(1, "open") + "\nverdict: fixed abc1234\nanswer: done\n"],
         )
-        lines = reader.readable(text)
-        heading = "### 1. the parser drops a row"
-        assert chain.findings(reader, lines, "r.md") == (
+        found, errors = chain.record_findings(reader, text, "r.md")
+        assert errors == []
+        assert [(f.number, f.verdict, f.line) for f in found] == [
+            (1, (chain.OPEN, None), line_at(text, "### 1. the parser drops a row"))
+        ]
+        notices = []
+        chain.blocks_of("r.md", text, chain.FIELDS.ROUND_RECORD, notices)
+        assert notices == []
+
+    def test_a_near_opener_is_no_block_and_is_named(self):
+        """#1198's scenario *A near opener*: a finding block opened by three
+        backticks and `Seal` is no block, so the finding is refused for
+        lacking its finding block, and the opener is named at its line as
+        not read."""
+        near = FENCE + "Seal"
+        text = record(
+            "abc1234",
+            [
+                "### 1. the parser drops a row\n\n"
+                + block("severity: must", "location: `f.txt:1`", opener=near)
+            ],
+        )
+        found, errors = chain.record_findings(reader, text, "r.md")
+        assert (found, errors) == (
             [],
             [
                 (
                     "r.md",
-                    lines.index(heading) + 1,
-                    f"{heading} {chain.DASH} "
-                    + chain.no_record_line("verdict:", "a finding"),
+                    line_at(text, "### 1. the parser drops a row"),
+                    led(text, 1, chain.NO_FINDING_BLOCK),
                 )
             ],
         )
-        assert chain.unread_lines(lines, "r.md") == [
-            (
-                "r.md",
-                lines.index("Verdict: open") + 1,
-                chain.UNREAD_LINE.format(said="Verdict: open", label="`verdict:`"),
-            )
+        notices = []
+        chain.blocks_of("r.md", text, chain.FIELDS.ROUND_RECORD, notices)
+        assert notices == [
+            ("r.md", line_at(text, near), chain.FIELDS.NEAR.format(line=near))
         ]
 
-    def test_accepts_prose_that_only_begins_like_a_label(self):
-        outside = record("abc1234", [finding(1, "rejected")]).replace(
-            "## Not judged", "Verdict: rejected\n\n## Not judged"
+    def test_a_block_inside_the_fix_fence_is_no_finding_block(self):
+        """#1198's scenario *A block inside the fix fence*: a finding block
+        written inside a four-backtick fence belongs to that fence, so the
+        finding is refused for lacking its finding block."""
+        heading = "### 1. the parser drops a row"
+        quoted = block(
+            "severity: must", "location: `f.txt:1`", "evidence: read `f.txt:1`"
         )
-        lines = reader.readable(outside)
-        found, errors = chain.findings(reader, lines, "r.md")
-        assert ([f.number for f in found], errors) == ([1], [])
-        assert [
-            (line, "`verdict:`" in why)
-            for _rel, line, why in chain.unread_lines(lines, "r.md")
-        ] == [(lines.index("Verdict: rejected") + 1, True)]
-        for prose in ("Answers: none", "Verdicts read below.", "Severity matters."):
-            text = record("abc1234", [finding(1, "rejected")]).replace(
-                "Why it matters.", prose
-            )
-            lines = reader.readable(text)
-            assert chain.findings(reader, lines, "r.md")[1] == []
-            assert chain.unread_lines(lines, "r.md") == []
+        text = record(
+            "abc1234",
+            [f"{heading}\n\n{FENCE}`markdown\n{quoted}{FENCE}`\n"],
+        )
+        assert chain.record_findings(reader, text, "r.md") == (
+            [],
+            [("r.md", line_at(text, heading), led(text, 1, chain.NO_FINDING_BLOCK))],
+        )
+
+    @pytest.mark.rule("round-record-read-by-label")
+    def test_refuses_a_block_that_never_closes_at_its_opener(self):
+        """#1198's scenario *A block that never closes*: a `seal` block with
+        no closing fence is refused at its opener, every line after it is
+        hidden and no field, and what the reader saw before it is read."""
+        text = record(
+            "abc1234",
+            [
+                finding(1, "rejected"),
+                "### 2. the parser drops a row\n\n" + FENCE + "seal\nseverity: must\n",
+            ],
+        )
+        opener = line_at(text, FENCE + "seal", 3)
+        found, errors = chain.record_findings(reader, text, "r.md")
+        assert errors == [("r.md", opener, chain.FIELDS.UNCLOSED)], errors
+        assert [f.number for f in found] == [1]
+
+    @pytest.mark.rule("round-record-read-by-label")
+    def test_refuses_a_block_out_of_its_place(self):
+        """A round or confirmation block inside a finding, and a finding or
+        close block outside every finding, are refused at their opener, and
+        a finding holding a block out of its place is not read."""
+        stray = block(
+            "severity: should", "location: `g.txt`", "evidence: read `g.txt:1`"
+        )
+        text = record(
+            "abc1234",
+            [
+                finding(1, "rejected")
+                + "\n"
+                + block("target: abc1234 against main")
+                + "\n"
+                + block("confirms: none"),
+                finding(2, "rejected"),
+            ],
+        ).replace(
+            "## Not judged\n", "## Not judged\n\n" + stray + "\n" + close("rejected")
+        )
+        found, errors = chain.record_findings(reader, text, "r.md")
+        assert [f.number for f in found] == [2]
+        assert errors == [
+            (
+                "r.md",
+                opener_at(text, "target: abc1234 against main", 1),
+                led(text, 1, chain.INSIDE.format(kind="round")),
+            ),
+            (
+                "r.md",
+                opener_at(text, "confirms: none"),
+                led(text, 1, chain.INSIDE.format(kind="confirmation")),
+            ),
+            (
+                "r.md",
+                opener_at(text, "severity: should"),
+                chain.OUTSIDE.format(kind="finding"),
+            ),
+            (
+                "r.md",
+                opener_at(text, "verdict: rejected", 2),
+                chain.OUTSIDE.format(kind="close"),
+            ),
+        ], errors
+        assert "stands outside every finding" in chain.INSIDE.format(kind="round")
+        assert "`### <n>. <symptom>`" in chain.OUTSIDE.format(kind="close")
 
     @pytest.mark.rule("round-record-read-by-label")
     def test_refuses_a_reopens_line_beside_a_regression_or_naming_no_finding(self):
         """S23, S24 (T42): a `reopens:` line names an earlier finding as
         `round-<N>#<n>` and is read with its line. `reopens: round-1` is
-        refused, so is a second `reopens:` line, and a finding holding a
-        `reopens:` and a `regression:` line, at the later of the two, the
-        refusal naming which line each case takes. A bare label of either is
-        refused at its line."""
+        refused at its line, and so is a finding block holding a `reopens:`
+        and a `regression:` line, at the later of the two, each refusal led
+        by the finding's heading."""
         text = record(
             "abc1234",
             [
                 finding(1, "open", reopens="round-1#2"),
                 finding(2, "open", reopens="round-1"),
-                finding(3, "open", reopens="round-1#2").replace(
-                    "reopens: round-1#2\n",
-                    "reopens: round-1#2\nreopens: round-1#3\n",
-                ),
-                finding(4, "open", regression="round-1#2", reopens="round-1#3"),
-                finding(5, "open").replace(
-                    "verdict: open\n",
-                    "reopens: round-1#4\nverdict: open\nregression: round-1\n",
-                ),
-                finding(6, "open"),
+                finding(3, "open", regression="round-1#2", reopens="round-1#3"),
+                finding(4, "open"),
             ],
             n=2,
         )
-        lines = reader.readable(text)
-        found, errors = chain.findings(reader, lines, "r.md")
+        found, errors = chain.record_findings(reader, text, "r.md")
         assert [(f.number, f.reopens, f.regression) for f in found] == [
             (1, (1, 2), None),
-            (6, None, None),
+            (4, None, None),
         ], errors
-        assert found[0].reopens_line == lines.index("reopens: round-1#2") + 1
+        assert found[0].reopens_line == line_at(text, "reopens: round-1#2")
         assert found[1].reopens_line is None
-        fourth = lines.index("### 4. the parser drops a row")
-        assert [(rel, line) for rel, line, _why in errors] == [
-            ("r.md", lines.index("reopens: round-1") + 1),
-            ("r.md", lines.index("reopens: round-1#3") + 1),
-            ("r.md", lines.index("reopens: round-1#3", fourth) + 1),
-            ("r.md", lines.index("regression: round-1") + 1),
+        shape = chain.FIELDS.FINDING_BLOCK.keys[chain.FIELDS.REOPENS].says
+        assert errors == [
+            (
+                "r.md",
+                line_at(text, "reopens: round-1"),
+                led(
+                    text,
+                    2,
+                    chain.FIELDS.SHAPE.format(
+                        line="reopens: round-1", key="reopens:", says=shape
+                    ),
+                ),
+            ),
+            (
+                "r.md",
+                line_at(text, "reopens: round-1#3"),
+                led(
+                    text,
+                    3,
+                    chain.FIELDS.ONE_OF.format(
+                        key="reopens:", other="regression:", kind="finding"
+                    ),
+                ),
+            ),
         ], errors
-        said = [why for _rel, _line, why in errors]
-        for why, n in zip(said, (2, 3, 4, 5), strict=True):
-            assert f"### {n}. the parser drops a row" in why, why
-        assert "`reopens: round-1`" in said[0] and "`round-<N>#<n>`" in said[0]
-        assert "2 `reopens:` lines" in said[1]
-        for why in said[2:]:
-            assert "`regression:`" in why and "`reopens:`" in why, why
-            assert "a fix pass's own commit made the defect" in why, why
-            assert "does not hold" in why, why
-        for bare in ("reopens:", "regression:"):
-            text = record(
-                "abc1234",
-                [
-                    finding(1, "open").replace(
-                        "verdict: open\n", f"verdict: open\n{bare}\n"
-                    )
-                ],
-                n=2,
-            )
-            lines = reader.readable(text)
-            found, errors = chain.findings(reader, lines, "r.md")
-            assert found == [], bare
-            assert [line for _r, line, _w in errors] == [lines.index(bare) + 1], errors
-            assert f"`{bare}" in errors[0][2], errors
+        assert "`round-<N>#<n>`" in shape
 
-    def test_refuses_an_evidence_line_missing_twice_or_malformed(self):
-        """S1, S3, S4 (#985): a finding carries one `evidence:` line, matched
-        whole against its row: none is refused at its heading, two at the
-        second, and each value the row does not hold at its line with the
-        row's `Refused as`."""
-        malformed = (
-            "read `a.py`",
-            "read a.py:1",
-            "executed pytest",
-            "ran `x`",
-            None,
-            "executed `x` and more",
+    def test_refuses_a_finding_block_lacking_its_evidence_at_its_opener(self):
+        """S1, S3, S4 (#985): a finding block carries one `evidence:` line;
+        one with none is refused at its opener, led by the heading, and the
+        shapes the line takes are `tests/hooks/test_fields.py`'s."""
+        text = record(
+            "abc1234", [finding(1, "open", evidence=None), finding(2, "open")]
         )
-        sections = [
-            finding(1, "open", evidence=None),
-            finding(2, "open").replace(
-                "evidence: read `f.txt:1`\n",
-                "evidence: read `f.txt:1`\nevidence: executed `git grep -n x`\n",
-            ),
-            *(
-                finding(n, "open").replace(
-                    "evidence: read `f.txt:1`",
-                    f"evidence: {value}" if value else "evidence:",
-                )
-                for n, value in enumerate(malformed, 3)
-            ),
-            finding(9, "open"),
+        found, errors = chain.record_findings(reader, text, "r.md")
+        assert [f.number for f in found] == [2], errors
+        assert errors == [
+            (
+                "r.md",
+                opener_at(text, "severity: must"),
+                led(
+                    text,
+                    1,
+                    chain.FIELDS.MISSING.format(kind="finding", key="evidence:"),
+                ),
+            )
         ]
-        lines = reader.readable(record("abc1234", sections))
-        found, errors = chain.findings(reader, lines, "r.md")
-        assert [f.number for f in found] == [9], errors
-        heads = [i + 1 for i, ln in enumerate(lines) if ln.startswith("### ")]
-        said = [i + 1 for i, ln in enumerate(lines) if ln.startswith("evidence:")]
-        assert [(rel, line) for rel, line, _why in errors] == [
-            ("r.md", heads[0]),
-            ("r.md", said[1]),
-            *(("r.md", line) for line in said[2:8]),
-        ], errors
-        why = [w for _rel, _line, w in errors]
-        shape = "`executed` and each command run, or `read` and each `path:line`"
-        assert "no `evidence:` line: a finding carries one" in why[0], why[0]
-        assert shape in why[0], why[0]
-        assert "2 `evidence:` lines; a finding carries one" in why[1], why[1]
-        for n, w in enumerate(why[2:], 3):
-            assert f"### {n}. the parser drops a row" in w, w
-            assert "which the check cannot read" in w and shape in w, w
 
     def test_accepts_both_evidence_forms_and_their_lists(self):
         """S5 (#985): `executed` with one or more backticked commands, and
@@ -1250,36 +1041,11 @@ class Test_findings:
             "abc1234",
             [finding(n, "rejected", evidence=v) for n, v in enumerate(values, 1)],
         )
-        found, errors = chain.findings(reader, reader.readable(text), "r.md")
+        found, errors = chain.record_findings(reader, text, "r.md")
         assert errors == []
         assert [(f.number, f.verdict) for f in found] == [
             (n, (chain.REJECTED, None)) for n in range(1, 6)
         ]
-
-    def test_refuses_a_target_or_confirms_line_out_of_its_place(self):
-        """A `target:` or `confirms:` line inside a finding, and a
-        `confirms:` line outside `## Confirmations`, is refused at its line."""
-        inside = record(
-            "abc1234",
-            [
-                finding(1, "rejected").replace(
-                    "answer: \n", "target: abc1234 against main\n"
-                ),
-                finding(2, "rejected").replace("answer: \n", "confirms: none\n"),
-                finding(3, "rejected"),
-            ],
-        ).replace("## Probes", "confirms: none\n\n## Probes")
-        lines = reader.readable(inside)
-        found, errors = chain.findings(reader, lines, "r.md")
-        assert [f.number for f in found] == [3]
-        at = [i + 1 for i, ln in enumerate(lines) if ln.startswith(("target:", "conf"))]
-        assert [(rel, line) for rel, line, _why in errors] == [
-            ("r.md", line) for line in at[1:]
-        ], errors
-        said = [why for _rel, _line, why in errors]
-        assert "### 1." in said[0] and "`target:`" in said[0], said
-        assert "### 2." in said[1] and "`confirms:`" in said[1], said
-        assert "`confirms:`" in said[2] and chain.CONFIRMATIONS_HEADING in said[2]
 
     @pytest.mark.rule("round-record-read-by-label")
     def test_refuses_a_heading_with_no_number_or_a_number_twice(self):
@@ -1295,51 +1061,47 @@ class Test_findings:
                 finding(3, "open"),
             ],
         )
-        lines = reader.readable(text)
-        found, errors = chain.findings(reader, lines, "r.md")
+        found, errors = chain.record_findings(reader, text, "r.md")
         assert [f.number for f in found] == [1, 3]
         assert [(line, why.split(" — ")[0]) for _r, line, why in errors] == [
-            (lines.index("### 1. a second one") + 1, "### 1. a second one"),
+            (line_at(text, "### 1. a second one"), "### 1. a second one"),
             (
-                lines.index("### the parser drops a row") + 1,
+                line_at(text, "### the parser drops a row"),
                 "### the parser drops a row",
             ),
         ]
         assert "a second finding numbered 1" in errors[0][2]
         assert "no number" in errors[1][2]
 
-    def test_refuses_a_severity_off_the_table_and_a_finding_with_no_answer(self):
-        """Two refusals that arrive by construction from the table: a severity
-        other than `must` or `should`, and a finding with no `answer:` line."""
+    def test_refuses_a_severity_off_its_shape_and_a_close_with_no_answer(self):
+        """Two refusals that arrive by construction from the block grammar: a
+        severity other than `must` or `should`, at its line, and a close
+        block with no `answer:` line, at its opener."""
         text = record(
             "abc1234",
             [
                 finding(1, "rejected", severity="anything at all"),
-                finding(2, "rejected").replace("answer: \n", ""),
+                finding(2, "open") + "\n" + block("verdict: rejected"),
                 finding(3, "rejected"),
             ],
         )
-        lines = reader.readable(text)
-        found, errors = chain.findings(reader, lines, "r.md")
+        found, errors = chain.record_findings(reader, text, "r.md")
         assert [f.number for f in found] == [3], errors
         said = {line: why for _rel, line, why in errors}
-        severity = lines.index("severity: anything at all") + 1
+        severity = line_at(text, "severity: anything at all")
         assert "a severity is `must` or `should`" in said[severity], said
-        second = lines.index("### 2. the parser drops a row") + 1
-        assert "no `answer:` line" in said[second], said
+        second = opener_at(text, "verdict: rejected", 1)
+        assert "holds no `answer:` line" in said[second], said
 
-
-class Test_record_findings:
     def test_accepts_a_record_whose_regions_close(self):
         text = record("abc1234", [finding(1, "open"), finding(2, "rejected")])
         found, errors = chain.record_findings(reader, text, "r.md")
-        assert errors == []
-        assert found == chain.findings(reader, reader.readable(text), "r.md")[0]
+        assert errors == [] and [f.number for f in found] == [1, 2], errors
         quoted = record(
             "abc1234",
             [
                 finding(1, "rejected").replace(
-                    "answer: \n", "answer: the `<!--` opener is quoted\n"
+                    "answer: done", "answer: the `<!--` opener is quoted"
                 ),
                 finding(2, "open"),
             ],
@@ -1348,15 +1110,15 @@ class Test_record_findings:
         assert errors == [] and [f.number for f in found] == [1, 2], errors
 
     def test_accepts_a_bare_opener_later_in_a_line_as_text(self):
-        """S4 of #1012: a `<!--` nothing closes, after the start of an
-        `answer:` line, is text, so every finding after it is read. The
+        """S4 of #1012: a `<!--` nothing closes, after the start of a line of
+        a finding's prose, is text, so every finding after it is read. The
         reader that kept a comment state refused it as a comment that never
         closes."""
         text = record(
             "abc1234",
             [
                 finding(1, "rejected").replace(
-                    "answer: \n", "answer: a bare <!-- opens nothing\n"
+                    "Why it matters.", "Why it matters: a bare <!-- opens nothing"
                 ),
                 finding(2, "open"),
             ],
@@ -1372,10 +1134,7 @@ class Test_record_findings:
         opener = "~~~python"
         text = record(
             "abc1234",
-            [
-                finding(1, "rejected").replace("answer: \n", f"answer: \n{opener}\n"),
-                finding(2, "open"),
-            ],
+            [finding(1, "rejected") + f"\n{opener}\n", finding(2, "open")],
         )
         found, errors = chain.record_findings(reader, text, "r.md")
         line = text.splitlines().index(opener) + 1
@@ -1398,115 +1157,24 @@ class Test_record_findings:
         assert errors == [("r.md", line, reader.COMMENT_LINE)], errors
         assert [f.number for f in found] == [1, 2]
 
-
-class Test_confirmations:
-    def test_accepts_each_confirms_line_as_a_reference_or_none(self):
-        """S23: each entry is a `confirms:` line reading `round-<N>#<n>`, read
-        with its line, or `none`; a record with nothing to confirm may leave
-        the section out."""
-        text = record(
-            "abc1234",
-            confirmations=confirm("round-1#2") + confirm("none") + confirm("round-3#1"),
-            n=4,
-        )
-        lines = reader.readable(text)
-        found, errors = chain.confirmations(reader, lines, "r.md")
-        assert errors == []
-        assert found == [
-            (lines.index("confirms: round-1#2") + 1, (1, 2)),
-            (lines.index("confirms: round-3#1") + 1, (3, 1)),
-        ]
-        left_out = record("abc1234").replace("## Confirmations\n", "")
-        assert chain.confirmations(reader, reader.readable(left_out), "r.md") == (
-            [],
-            [],
-        )
-
-    @pytest.mark.parametrize(
-        "old, new, said",
-        [
-            (
-                "| the record | at most one | each entry is",
-                "| the record | one | each entry is",
-                "no `## Confirmations` section",
-            ),
-            (
-                row_of("confirms:"),
-                row_of("confirms:")
-                + "| `signed:` | `signed: .+` | `## Confirmations` | one | x |\n",
-                "no `signed:` line: `## Confirmations` carries one",
-            ),
-        ],
-    )
-    def test_refuses_a_section_left_out_where_the_table_says_one(
-        self, monkeypatch, tmp_path, old, new, said
-    ):
-        """Round 2's finding 1 of #964: the reader counts the section and each
-        row placed in it against no lines where it is absent, so `one` is kept
-        for every row there."""
-        left_out = record("abc1234", [finding(1, "open")]).replace(
-            "## Confirmations\n", ""
-        )
-        assert chain.round_of(reader, left_out, "r.md", 1)[1] == []
-        table = chain.grammar(str(doc_with(tmp_path, old, new)), reader)
-        monkeypatch.setattr(chain, "GRAMMAR", table)
-        errors = chain.round_of(reader, left_out, "r.md", 1)[1]
-        assert [(rel, line) for rel, line, _why in errors] == [("r.md", 0)], errors
-        assert said in errors[0][2], errors
-        signed = "signed: the proofer\n\n" * ("signed" in new)
-        kept = record("abc1234", [finding(1, "open")], confirm("none") + signed)
-        monkeypatch.setattr(chain, "LABELS", (*chain.LABELS, "signed:"))
-        assert chain.round_of(reader, kept, "r.md", 1)[1] == []
-
-    @pytest.mark.rule("round-record-read-by-label")
-    def test_refuses_a_line_or_a_table_it_cannot_read_by_line(self):
-        """S23 (T36): a `confirms:` value the row does not match whole, a
-        table row in the section, the old shape, and a second section."""
-        bad = (
-            "round 1's 3",
-            "Round-1#3",
-            "#3",
-            "round-1",
-            "**none**",
-            "None",
-            "round-1#2 holds",
-            "",
-        )
-        text = record(
-            "abc1234",
-            confirmations="".join(confirm(cell) for cell in bad) + confirm("none"),
-            n=2,
-        )
-        lines = reader.readable(text)
-        found, errors = chain.confirmations(reader, lines, "r.md")
-        assert found == []
-        at = [
-            i + 1
-            for i, ln in enumerate(lines)
-            if ln.startswith("confirms:") and ln != "confirms: none"
-        ]
-        assert [(rel, line) for rel, line, _why in errors] == [
-            ("r.md", line) for line in at
-        ], errors
-        for (_rel, _line, why), cell in zip(errors, bad, strict=True):
-            assert f"`confirms: {cell}`" in why, why
-            assert "`round-<N>#<n>` or `none`" in why, why
-        table = record(
-            "abc1234",
-            confirmations="| Confirms | What holds |\n|---|---|\n| round-1#2 | x |\n",
-            n=2,
-        )
-        lines = reader.readable(table)
-        found, errors = chain.confirmations(reader, lines, "r.md")
-        first = lines.index("| Confirms | What holds |") + 1
-        assert found == []
-        assert [line for _rel, line, _why in errors] == [first, first + 1, first + 2]
-        assert all("`confirms:`" in why for _rel, _line, why in errors), errors
-        two = reader.readable(record("abc1234") + "\n## Confirmations\n")
-        second = [i + 1 for i, ln in enumerate(two) if ln == "## Confirmations"][1]
-        assert chain.confirmations(reader, two, "r.md")[1] == [
-            ("r.md", second, chain.TWO_CONFIRMATIONS)
-        ]
+    @pytest.mark.rule("location-touched-by-fix")
+    def test_accepts_one_or_more_backticked_coordinates(self):
+        """S22 (T33): the paths of a `location:` value the block's shape
+        matched, each backticked `path`, `path:line` or `path:first-last`
+        item to its first `:`; the shape's refusals are
+        `tests/hooks/test_fields.py`'s. `chain_check.location_paths` is the
+        step of `finding_of` that gives a finding its paths, and has no
+        refusal of its own, since the value it takes is one
+        `hooks/lib/fields.py` already matched whole."""
+        for value, paths in (
+            ("`a.py`", ["a.py"]),
+            ("`a.py:12`", ["a.py"]),
+            ("`a.py:12-14`", ["a.py"]),
+            ("`docs/x/`", ["docs/x/"]),
+            ("`a.py:1`, `docs/b.md:3-4`", ["a.py", "docs/b.md"]),
+            ("`a.py:1`, `b.py`, `c/d.md:9`", ["a.py", "b.py", "c/d.md"]),
+        ):
+            assert chain.location_paths(value) == paths, value
 
 
 class Test_channel:
@@ -1574,30 +1242,22 @@ class Test_channel:
 
     def test_an_old_spelling_is_prose_and_names_no_finding(self):
         """The fourth scenario of #1167: `refixes:`, a spelling round records
-        carried before 0.22.x renamed the label, is prose. Round 2 carrying
-        `refixes: round-1#2` and nothing else naming round 1's finding 2
-        reads whole, and `channel` refuses that finding as unnamed by the
-        next record. Seen red against the refusal "a label in another
-        spelling" at the `refixes:` line. No list of old spellings stands
-        beside the grammar, so `unread_lines` does not name the line: its
-        first word is no label's."""
+        carried before 0.22.x renamed the label, is prose outside every
+        block. Round 2 carrying `refixes: round-1#2` and nothing else naming
+        round 1's finding 2 reads whole, and `channel` refuses that finding
+        as unnamed by the next record, and no notice names the line."""
         one = record(
             "abc1234",
             [finding(1, "rejected"), finding(2, "fixed abc1234", title="the second")],
         )
-        refixes = finding(1, "deferred #9").replace(
-            "answer: \n", "answer: \nrefixes: round-1#2\n"
-        )
+        refixes = finding(1, "deferred #9") + "\nrefixes: round-1#2\n"
         two = record("abc1234", [refixes], confirmations=confirm("round-1#1"), n=2)
         rounds, errors = rounds_of(one, two)
         assert errors == []
         [(rel, line, why)] = chain.channel(rounds)
-        assert (rel, line) == (
-            "round-1.md",
-            reader.readable(one).index("### 2. the second") + 1,
-        )
+        assert (rel, line) == ("round-1.md", line_at(one, "### 2. the second"))
         assert "`round-1#2`" in why and "names it on no" in why, why
-        assert chain.unread_lines(reader.readable(two), "round-2.md") == []
+        assert chain.FIELDS.read(two, chain.FIELDS.ROUND_RECORD).notices == []
 
     @pytest.mark.rule("round-record-read-by-label")
     def test_refuses_a_reference_naming_no_earlier_record_or_finding(self):
@@ -1622,14 +1282,13 @@ class Test_channel:
         rounds, errors = rounds_of(one, two)
         assert errors == []
         problems = chain.channel(rounds)
-        lines_one, lines_two = reader.readable(one), reader.readable(two)
         assert [(rel, line) for rel, line, _why in problems] == [
-            ("round-1.md", lines_one.index("regression: round-1#1") + 1),
-            ("round-1.md", lines_one.index("confirms: round-1#1") + 1),
-            ("round-2.md", lines_two.index("regression: round-3#1") + 1),
-            ("round-2.md", lines_two.index("regression: round-2") + 1),
-            ("round-2.md", lines_two.index("reopens: round-1#7") + 1),
-            ("round-2.md", lines_two.index("confirms: round-1#7") + 1),
+            ("round-1.md", line_at(one, "regression: round-1#1")),
+            ("round-1.md", line_at(one, "confirms: round-1#1")),
+            ("round-2.md", line_at(two, "regression: round-3#1")),
+            ("round-2.md", line_at(two, "regression: round-2")),
+            ("round-2.md", line_at(two, "reopens: round-1#7")),
+            ("round-2.md", line_at(two, "confirms: round-1#7")),
         ], problems
         said = [why for _rel, _line, why in problems]
         assert all("the first record" in why for why in said[:2]), said
@@ -1654,11 +1313,10 @@ class Test_channel:
                 finding(4, "open"),
             ],
         )
-        lines = reader.readable(last)
         problems = chain.channel(rounds_of(last)[0])
         assert [(rel, line) for rel, line, _why in problems] == [
-            ("round-1.md", lines.index("verdict: fixed abc1234") + 1),
-            ("round-1.md", lines.index("verdict: rejected") + 1),
+            ("round-1.md", line_at(last, "verdict: fixed abc1234")),
+            ("round-1.md", line_at(last, "verdict: rejected")),
         ], problems
         assert all(chain.VERIFYING_ROUND in why for _r, _l, why in problems)
         assert "### 1." in problems[0][2] and "### 2." in problems[1][2]
@@ -2143,14 +1801,14 @@ class Test_originals_of:
         assert code == 1, out
         says = chain.NO_ORIGINAL.format(config=PARITY, sha=BASELINE)
         for words in (
-            f"no `original:` line: `{PARITY}` declares a migration",
-            f"each round record carries `original: {BASELINE}`",
+            f"no `original:` line in the round block: `{PARITY}` declares a migration",
+            f"each round record's round block carries `original: {BASELINE}`",
             "written by the proofer once it compared the round's target with "
             "the original through `legacy-parity`",
         ):
             assert words in says, says
         assert original_lines(out) == [
-            f"{ITEM}/trail/rounds/round-{n}.md:0  {says}" for n in (1, 2)
+            f"{ITEM}/trail/rounds/round-{n}.md:3  {says}" for n in (1, 2)
         ], out
         ready.write_text(json.dumps({"pull_request": {"draft": True}}), "utf-8")
         code, out = check(root, capsys)
@@ -2183,11 +1841,9 @@ class Test_originals_of:
         code, out = check(root, capsys)
         assert code == 1, out
         rel = f"{ITEM}/trail/rounds/round-2.md"
-        line = reader.readable((root / rel).read_text("utf-8")).index(
-            f"original: {other}"
-        )
+        line = line_at((root / rel).read_text("utf-8"), f"original: {other}")
         says = chain.OTHER_ORIGINAL.format(said=other, sha=BASELINE)
-        assert original_lines(out) == [f"{rel}:{line + 1}  {says}"], out
+        assert original_lines(out) == [f"{rel}:{line}  {says}"], out
         assert other in says and BASELINE in says
 
     def test_refuses_a_config_whose_baseline_holds_no_commit(
@@ -2249,14 +1905,15 @@ class Test_originals_of:
         assert code == 1, out
         says = chain.NO_GUARANTEE_ORIGINAL.format(config=PARITY, sha=BASELINE)
         for words in (
-            f"no `original:` line: `{PARITY}` declares a migration, this work "
-            "item answers `straight to the PR`",
+            f"no `original:` line in the newest verdict block: `{PARITY}` "
+            "declares a migration, this work item answers `straight to the PR`",
             f"the sealer's guarantee carries `original: {BASELINE}`",
             "once it compared the audited commit with the original through "
             "`legacy-parity`",
         ):
             assert words in says, says
-        assert f"{rel}:0  {says}" in out.splitlines(), out
+        opener = (root / rel).read_text(encoding="utf-8").split("\n").index("```seal")
+        assert f"{rel}:{opener + 1}  {says}" in out.splitlines(), out
         code, out = check(root, capsys, "--sealing")
         assert code == 0, out
         direct_migrating(root, "fedcba9876543210")
@@ -2273,13 +1930,12 @@ class Test_originals_of:
     def test_refuses_a_direct_guarantee_whose_only_original_is_misspelt(
         self, item, capsys
     ):
-        """The third scenario of #1167, #1121's R9: in a migration repository
-        a guarantee holding `Original: <sha>` and no `original:` line holds
-        none, and a ready pull request fails naming the file, and the line
-        is printed at its line as not read. Seen red against the reading
-        that counted the misspelt line as present and passed; the naming,
-        round 3's finding 1, seen red against the `unread` that named a
-        guarantee's `Verdict:` lines alone."""
+        """The third scenario of #1167, #1121's R9, under #1198's blocks: in a
+        migration repository a verdict block holding `Original: <sha>` is
+        refused at that line with the keys the block takes, and the original
+        arm adds no second refusal for a guarantee the guarantee arm refuses.
+        Seen red against the reader of #1167, which read the line as prose,
+        named it as not read and refused the file for lacking the line."""
         root, _audited = item
         rel = f"{ITEM}/guarantee.md"
         direct_migrating(root, BASELINE)
@@ -2287,16 +1943,16 @@ class Test_originals_of:
         path = root / rel
         text = path.read_text(encoding="utf-8").replace("original:", "Original:")
         path.write_text(text, encoding="utf-8")
-        commit(root, "the sealer spelt the label otherwise")
+        commit(root, "the sealer spelt the key otherwise")
         code, out = check(root, capsys)
         assert code == 1, out
-        says = chain.NO_GUARANTEE_ORIGINAL.format(config=PARITY, sha=BASELINE)
-        assert f"{rel}:0  {says}" in out.splitlines(), out
         number = text.splitlines().index(f"Original: {BASELINE}") + 1
-        said = chain.UNREAD_LINE.format(
-            said=f"Original: {BASELINE}", label=f"`{chain.ORIGINAL_ROW}`"
+        said = chain.FIELDS.NOT_A_FIELD.format(
+            line=f"Original: {BASELINE}",
+            kind="verdict",
+            keys="`target:`, `original:` and `Verdict:`",
         )
-        assert [ln for ln in out.splitlines() if "not read" in ln] == [
+        assert [ln for ln in out.splitlines() if ln.startswith(f"{rel}:")] == [
             f"{rel}:{number}  {said}"
         ], out
 
@@ -2337,13 +1993,12 @@ class Test_originals_of:
         assert code == 0, out
 
     @pytest.mark.rule("parity-in-the-guarantee")
-    def test_names_no_original_line_where_none_is_owed(self, item, capsys):
-        """Round 4 of #1167: a guarantee's `original:` line is read only where
-        `originals_of` reads the guarantee, so `Original: <sha>` is no line
-        of its form and is not named in either guarantee whose line no check
-        reads: with no migration config, and with one where the diff stays
-        inside the document roots. Seen red against the `unread` that named
-        it in every guarantee of a work item not chained."""
+    def test_owes_no_original_line_where_none_is_owed(self, item, capsys):
+        """Round 4 of #1167: a guarantee's `original:` line is owed only where
+        `originals_of` reads the guarantee: with no migration config, and
+        with one where the diff stays inside the document roots, a verdict
+        block without one passes, and a block holding `Original: <sha>` is
+        refused for its line alone, never for a missing `original:` line."""
         root, _audited = item
         rel = f"{ITEM}/guarantee.md"
 
@@ -2354,9 +2009,13 @@ class Test_originals_of:
             path.write_text(text.replace("original:", "Original:"), encoding="utf-8")
             commit(root, "a guarantee holding Original: where none is owed")
             code, out = check(root, capsys)
-            assert code == 0, out
-            assert [ln for ln in out.splitlines() if "not read" in ln] == [], out
+            assert code == 1, out
+            refused = [ln for ln in out.splitlines() if ln.startswith(f"{rel}:")]
+            assert len(refused) == 1 and "is no field of a verdict block" in refused[0]
+            assert "no `original:` line" not in out, out
 
+        reseal(root, None)
+        assert check(root, capsys)[0] == 0
         reseal(root, BASELINE)
         respelt()
         git(root, "switch", "-q", "main")
@@ -2370,6 +2029,8 @@ class Test_originals_of:
         )
         write(root, "docs/a.md", "# a policy\n")
         commit(root, "a documentation pass")
+        reseal(root, None)
+        assert check(root, capsys)[0] == 0
         reseal(root, BASELINE)
         respelt()
 
@@ -2382,46 +2043,43 @@ class Test_original_of:
     @pytest.mark.parametrize(
         "where, said",
         [
-            ("inside", "a `original:` line inside a finding"),
-            ("twice", "2 `original:` lines; a round record carries one at most"),
+            ("inside", "is no field of a finding block"),
+            ("twice", "a second `original:` line: a round block holds one"),
+            ("spelt", "is no field of a round block"),
         ],
     )
-    def test_refuses_a_line_the_table_refuses_at_its_line_and_only_so(
+    def test_refuses_a_line_the_blocks_refuse_at_its_line_and_only_so(
         self, where, said
     ):
-        """S9: an `original:` line inside a finding and a second one are
-        refused at the line by the grammar table's row, and `original_of`
-        adds no second refusal saying the record has none."""
+        """S9 and #1121's R9: an `original:` line in a finding block, a
+        second one in the round block, and one spelt `Original:` are refused
+        at the line by the block grammar, and `original_of` adds no second
+        refusal saying the record has none."""
         text = record("abc1234", [finding(1, "rejected")])
         if where == "inside":
-            text = text.replace("answer: \n", f"answer: \noriginal: {BASELINE}\n")
-        else:
+            text = text.replace(
+                "evidence: read `f.txt:1`\n",
+                f"evidence: read `f.txt:1`\noriginal: {BASELINE}\n",
+            )
+            line = f"original: {BASELINE}"
+        elif where == "twice":
             text = with_original(with_original(text, BASELINE), BASELINE)
-        lines = reader.readable(text)
-        at = next(
-            i + 1 for i, ln in enumerate(lines) if ln.lower().startswith("original:")
-        )
+            line = f"original: {BASELINE}"
+        else:
+            text = with_original(text, BASELINE).replace("original:", "Original:")
+            line = f"Original: {BASELINE}"
         _round, errors = chain.round_of(reader, text, "r.md", 1)
-        assert [(line, said in why) for _r, line, why in errors] == [
-            (at + (where == "twice"), True)
+        assert [(n, said in why) for _r, n, why in errors] == [
+            (line_at(text, line, where == "twice"), True)
         ], errors
         assert chain.original_of(reader, text, "r.md", BASELINE, PARITY) == []
 
-    def test_a_line_spelt_otherwise_is_no_original_line(self):
-        """#1121's R9: `Original:` is prose, so the record reads whole, the
-        line is named as not read, and `original_of` refuses the record as
-        holding no `original:` line. Seen red against the reading that
-        counted the misspelt line as present and refused nothing."""
-        text = with_original(record("abc1234", [finding(1, "rejected")]), BASELINE)
-        text = text.replace("original:", "Original:")
-        lines = reader.readable(text)
-        assert chain.round_of(reader, text, "r.md", 1)[1] == []
-        assert [line for _r, line, _why in chain.unread_lines(lines, "r.md")] == [
-            lines.index(f"Original: {BASELINE}") + 1
-        ]
+    def test_refuses_a_round_block_with_no_original_line_at_its_opener(self):
+        text = record("abc1234", [finding(1, "rejected")])
         assert chain.original_of(reader, text, "r.md", BASELINE, PARITY) == [
-            ("r.md", 0, chain.NO_ORIGINAL.format(config=PARITY, sha=BASELINE))
+            ("r.md", 3, chain.NO_ORIGINAL.format(config=PARITY, sha=BASELINE))
         ]
+        assert chain.original_of(reader, LABELLED, "r.md", BASELINE, PARITY) == []
 
 
 class Test_parity_readers:
@@ -2462,17 +2120,21 @@ class Test_parity_readers:
 GUARANTEE_TEMPLATE = ROOT / "templates" / "records" / "sdd-guarantee.md"
 
 
-def guarantee(sha, verdict):
+def guarantee(sha, verdict, original=None, earlier=()):
+    """A `guarantee.md` from the template: its tables for people, then a
+    verdict block per run of EARLIER, each `(sha, verdict)`, then the newest
+    run's block for SHA, holding ORIGINAL where it is given."""
+    runs = [verdict_block(s, v) for s, v in earlier]
+    runs.append(verdict_block(sha, verdict, original))
     return (
         "# 1791999990-a-guaranteed-item — guarantee\n\n"
         "| Field | Value |\n|---|---|\n"
-        f"| Target SHA | {sha} against main |\n"
         f"| Broad gate | {sha} against main, as `trail/gate.md` names it |\n\n"
         "## Claims re-run\n\n"
         "| Claim | Source | Command | Result |\n|---|---|---|---|\n\n"
         "## The parties\n\n"
         "| Party | Says | Agrees with | Disagrees with |\n|---|---|---|---|\n\n"
-        f"Verdict: {verdict}\n"
+        + "\n".join(runs)
     )
 
 
@@ -2503,11 +2165,7 @@ def item(tmp_path, monkeypatch):
     write(d, f"{ITEM}/routing.md", SEALED_ROUTING)
     write(d, "f.txt", "two\n")
     audited = commit(d, "the work")
-    write(
-        d,
-        f"{ITEM}/trail/gate.md",
-        f"| Field | Value |\n|---|---|\n| Broad gate | {audited} against main |\n",
-    )
+    write(d, f"{ITEM}/trail/gate.md", gate_file(audited))
     write(d, f"{ITEM}/guarantee.md", guarantee(audited, "sealed"))
     commit(d, "the closing records")
     event = tmp_path / "event.json"
@@ -2517,20 +2175,11 @@ def item(tmp_path, monkeypatch):
 
 
 def reseal(root, original):
-    """The closing records naming HEAD, committed; the guarantee carries
-    `original: ORIGINAL` under its table where ORIGINAL is given."""
+    """The closing records naming HEAD, committed; the guarantee's verdict
+    block carries `original: ORIGINAL` where ORIGINAL is given."""
     head = git(root, "rev-parse", "HEAD")
-    write(
-        root,
-        f"{ITEM}/trail/gate.md",
-        f"| Field | Value |\n|---|---|\n| Broad gate | {head} against main |\n",
-    )
-    text = guarantee(head, "sealed")
-    if original is not None:
-        text = text.replace(
-            "\n## Claims re-run", f"\noriginal: {original}\n\n## Claims re-run"
-        )
-    write(root, f"{ITEM}/guarantee.md", text)
+    write(root, f"{ITEM}/trail/gate.md", gate_file(head))
+    write(root, f"{ITEM}/guarantee.md", guarantee(head, "sealed", original))
     commit(root, "the closing records, again")
 
 
@@ -2546,99 +2195,9 @@ def direct_migrating(root, original):
     reseal(root, original)
 
 
-class Test_verdicts_of:
-    def test_accepts_each_verdict_in_its_shape(self):
-        """S5 of #1000: the line is `Verdict: sealed`, `Verdict: withheld
-        reason: <…>` or `Verdict: undecided question: <…>`, read whole.
-        Protects: `withheld` with its reason left off read as `sealed`, and a
-        `sealed` with a rider passing."""
-        for said, word in (
-            ("sealed", "sealed"),
-            ("withheld reason: the body claims a README change", "withheld"),
-            ("undecided question: does #12 ask for the flag?", "undecided"),
-        ):
-            found = chain.verdicts_of(reader, guarantee("abc1234", said))
-            assert [chain.verdict_word(v) for _n, v in found] == [word], said
-        assert chain.verdict_word("Verdict: sealed, but the README is stale") is None
-        assert chain.verdict_word("Verdict: withheld") is None
-
-    def test_reads_the_label_exactly_and_names_a_line_that_opens_like_it(self):
-        """#1167, *Scope* item 5: `Verdict:` is read at the start of a line,
-        exactly. `**Verdict:** withheld` beside `Verdict: sealed` is no verdict
-        line, so the one verdict is `sealed`, and `unread_verdicts` names the
-        other at its line. Seen red against the loose reading, which handed
-        back both lines and so refused two verdicts."""
-        text = guarantee("abc1234", "sealed").replace(
-            "Verdict: sealed", "Verdict: sealed\n**Verdict:** withheld"
-        )
-        lines = text.splitlines()
-        assert chain.verdicts_of(reader, text) == [
-            (lines.index("Verdict: sealed") + 1, "Verdict: sealed")
-        ]
-        assert chain.unread_verdicts(reader, text, "g.md") == [
-            (
-                "g.md",
-                lines.index("**Verdict:** withheld") + 1,
-                chain.UNREAD_VERDICT.format(said="**Verdict:** withheld"),
-            )
-        ]
-        assert chain.unread_verdicts(reader, guarantee("abc1234", "sealed"), "g") == []
-
-    def test_names_no_verdict_line_inside_a_fence(self):
-        """The guarantee's net reads a line outside every fence too, so a
-        fenced `**Verdict:** withheld` is neither read nor named. Round 3's
-        finding 2: seen red against `unread_verdicts` reading the lines
-        through `reader.gfm_lines`, which blanks no fence."""
-        fence = "`" * 3
-        text = guarantee("abc1234", "sealed") + (
-            f"\n{fence}markdown\n**Verdict:** withheld\n{fence}\n"
-        )
-        lines = text.splitlines()
-        assert chain.verdicts_of(reader, text) == [
-            (lines.index("Verdict: sealed") + 1, "Verdict: sealed")
-        ]
-        assert chain.unread_verdicts(reader, text, "g.md") == []
-
-    def test_refuses_a_verdict_line_inside_a_fence(self):
-        """A verdict line in its one shape, quoted in a fenced block beside
-        the guarantee's own, is no verdict line, so the one verdict read is
-        `sealed`. Seen red with `verdicts_of` reading `reader.gfm_lines`,
-        which blanks no fence, and so handing back both lines."""
-        fence = "`" * 3
-        text = guarantee("abc1234", "sealed") + (
-            f"\n{fence}markdown\nVerdict: withheld reason: an example\n{fence}\n"
-        )
-        lines = text.splitlines()
-        assert chain.verdicts_of(reader, text) == [
-            (lines.index("Verdict: sealed") + 1, "Verdict: sealed")
-        ]
-
-    def test_the_verdict_patterns_are_linear_in_the_line(self):
-        """#941's round 3 met a pattern that backtracked exponentially; the
-        verdict line's patterns and the earlier run's repeat, so a long line
-        of their repeated characters is read inside the bound, which is far
-        above the linear time (under 0.1 s) and far below a backtracking
-        one (no end), so a loaded runner does not fail it."""
-        import time
-
-        start = time.monotonic()
-        for line in (
-            "Verdict: withheld reason: " + "x " * 50000,
-            "*_ " * 30000 + "verdict",
-            "Verdict: undecided question:" + " " * 100000,
-        ):
-            chain.verdict_word(line)
-            chain.verdicts_of(reader, line)
-        chain.earlier_verdicts("; earlier run: aaa1111 against " + "x" * 100000)
-        chain.earlier_verdicts("; earlier run: aaa1111" + " against x" * 30000)
-        chain.earlier_verdicts("aaa1111 against " + "x" * 100000 + ";")
-        chain.earlier_verdicts("earlier" + " " * 100000)
-        chain.earlier_verdicts(" " * 100000 + "earlier runs" + " " * 100000)
-        assert time.monotonic() - start < 5.0
-
-
-# S6 of #1000: lines that open with the label and are not one of its three
-# shapes. Each is refused at its line, and none reads as `sealed`.
+# S6 of #1000: lines that open with the key and are not one of its three
+# shapes, and a word the verdict used before #969. Each is refused at its
+# line naming the three, and none reads as `sealed`.
 NEAR_MISSES = (
     "Verdict: withheld — x",
     "Verdict: withheld - x",
@@ -2650,11 +2209,11 @@ NEAR_MISSES = (
     "Verdict: **sealed**",
     "Verdict: sealed reason: x",
     "Verdict: undecided reason: x",
+    "Verdict: sound",
 )
-# #1167, *Scope* item 5: lines that open like the label and are not it. Each
-# is prose to the check, named as not read, and leaves the guarantee with no
-# verdict line. Round 1 of #1000, finding 3: an indent is a code block at
-# four spaces.
+# #1198: lines that open like the key and are not it. Inside a verdict block
+# each is no field of its kind, refused at its line with the keys the block
+# takes.
 OPENS_LIKE = (
     "**Verdict:** sealed",
     "verdict: sealed",
@@ -2663,99 +2222,19 @@ OPENS_LIKE = (
 )
 
 
-class Test_earlier_verdicts:
-    """#975: the stamp is drawn once per work item, held by the `Target SHA`
-    row's own `; earlier run: <sha> <word>` chain rather than a count kept
-    beside the tree. One reader of that chain, beside the check's other
-    readers of the same row."""
+class Test_blocks_of:
+    def test_accepts_a_records_blocks_and_hands_its_notices_over(self):
+        text = verdict_block("abc1234") + "\n```Seal\nx\n```\n"
+        notices = []
+        found, problems = chain.blocks_of("g.md", text, chain.FIELDS.GUARANTEE, notices)
+        assert problems == [] and len(found) == 1
+        assert notices == [("g.md", 6, chain.FIELDS.NEAR.format(line="```Seal"))]
 
-    def test_accepts_each_earlier_run_with_its_verdict_word(self):
-        """S9 of #1000: an entry is `<sha> <word>`, with `against <base>`
-        after the SHA where it names one."""
-        cell = (
-            "ccc3333 against main; earlier run: bbb2222 against main sealed; "
-            "earlier run: aaa1111 withheld"
-        )
-        assert chain.earlier_verdicts(cell) == [
-            ("bbb2222", chain.SEALED),
-            ("aaa1111", chain.WITHHELD),
-        ]
-
-    def test_a_first_run_has_none(self):
-        assert chain.earlier_verdicts("aaa1111 against main") == []
-        assert chain.earlier_verdicts("") == []
-        assert chain.earlier_verdicts(None) == []
-
-    @pytest.mark.parametrize(
-        "entry",
-        [
-            "; earlier run: aaa1111 withheld — x",
-            "; earlier run: aaa1111 Sealed",
-            "; earlier run: `bbb2222` against main **sealed**",
-            "; earlier run: an earlier one, sealed",
-            # Round 1 of #1000, finding 4: a misspelt separator.
-            ";  earlier run: bbb2222 sealed",
-            "; Earlier run: bbb2222 sealed",
-            "; earlier run bbb2222 sealed",
-            "; earlier runs: bbb2222 sealed",
-            ", earlier run: bbb2222 sealed",
-            # Round 2 of #1000, finding 3: the row has one shape, so no
-            # spelling of the separator passes unread.
-            "; earlier-run: bbb2222 sealed",
-            "; earlier_run: bbb2222 sealed",
-            "; earlierrun: bbb2222 sealed",
-            # Any other text after the target, such as a second word of base.
-            " @ 4a6e24f6",
-            " (resolved as origin/main)",
-        ],
-    )
-    def test_refuses_text_after_the_target_that_is_no_earlier_run(self, entry):
-        """S9 of #1000, and round 1's finding 4 and round 2's finding 3: the
-        `Target SHA` value is `<sha> against <base>`, then each earlier run
-        as exactly `; earlier run: <sha> <word>`, and any other text after
-        the target comes back quoted with no word, for the arm to refuse.
-        Seen red against the reader that read the word by its prefix and
-        through emphasis, and against the one that looked for the separator
-        in some spellings: a hyphen, an underscore and the joined word gave
-        no entry at all."""
-        cell = f"ccc3333 against main{entry}"
-        assert chain.earlier_verdicts(cell) == [(entry.strip(), None)]
-
-    def test_an_entry_is_read_exactly_up_to_the_next_separator(self):
-        """Round 2 of #1000, finding 3: a space before the next separator is
-        text the shape does not hold, so that entry reads no word and the
-        one after it still reads."""
-        cell = "ccc3333 against main; earlier run: aaa1111 withheld ; earlier run: bbb2222 sealed"
-        assert chain.earlier_verdicts(cell) == [
-            ("; earlier run: aaa1111 withheld", None),
-            ("bbb2222", chain.SEALED),
-        ]
-
-    @pytest.mark.parametrize(
-        "entry",
-        [
-            "; earlier run: aaa1111 withheld — x",
-            "; earlier run: aaa1111 Sealed",
-            "; Earlier run: aaa1111 sealed",
-            "; earlier-run: aaa1111 sealed",
-        ],
-    )
-    def test_the_arm_refuses_an_entry_at_the_target_row(self, item, entry):
-        """S9 of #1000: the guarantee arm refuses it at the `Target SHA`
-        row's line, naming the entry and the shape it reads."""
-        root, sha = item
-        rel = f"{ITEM}/guarantee.md"
-        text = guarantee(sha, "sealed").replace(
-            f"| Target SHA | {sha} against main |",
-            f"| Target SHA | {sha} against main{entry} |",
-        )
-        write(root, rel, text)
-        commit(root, "an earlier run with a rider")
-        [(path, number, why)] = chain.guarantee(reader, str(root), ITEM, "main")
-        row = next(n for n, ln in enumerate(text.splitlines(), 1) if "Target SHA" in ln)
-        assert (path, number) == (rel, row), why
-        assert f"`{entry.strip()}`" in why, why
-        assert "`<sha> against <base>`" in why and "<sha> <word>`" in why, why
+    def test_refuses_each_line_the_reader_refuses_at_its_line(self):
+        text = verdict_block("abc1234").replace("Verdict:", "verdict:")
+        found, problems = chain.blocks_of("g.md", text, chain.FIELDS.GUARANTEE)
+        assert found == []
+        assert [(path, line) for path, line, _why in problems] == [("g.md", 3)]
 
 
 @pytest.mark.rule("ready-needs-sealed")
@@ -2764,6 +2243,26 @@ class Test_guarantee:
         root, _sha = item
         assert chain.guarantee(reader, str(root), ITEM, "main") == []
 
+    def test_accepts_the_newest_of_two_runs(self, item, capsys):
+        """#1198's scenario *Two sealer runs*: the sealer appends a verdict
+        block per run, so a `withheld` at an older commit above a `sealed`
+        at HEAD passes, and the same blocks the other way round read the
+        newest as `withheld`. Seen red against the reader that read the
+        first block."""
+        root, sha = item
+        rel = f"{ITEM}/guarantee.md"
+        older = git(root, "rev-parse", "HEAD~1")
+        text = guarantee(sha, "sealed", earlier=[(older, "withheld reason: x")])
+        write(root, rel, text)
+        commit(root, "a second run")
+        assert chain.guarantee(reader, str(root), ITEM, "main") == []
+        assert check(root, capsys)[0] == 0
+        swapped = verdict_block(sha) + "\n" + verdict_block(older, "withheld reason: x")
+        write(root, rel, swapped)
+        commit(root, "the runs the other way round")
+        problems = chain.guarantee(reader, str(root), ITEM, "main")
+        assert any("`Verdict: withheld reason: x`" in why for _p, _n, why in problems)
+
     def test_refuses_absent_unfilled_and_behind_head_by_name(self, item):
         root, _sha = item
         rel = f"{ITEM}/guarantee.md"
@@ -2771,39 +2270,67 @@ class Test_guarantee:
         later = commit(root, "a record after the guarantee")
         [(path, _line, why)] = chain.guarantee(reader, str(root), ITEM, "main")
         assert path == rel and later[:8] in why
-        write(root, rel, GUARANTEE_TEMPLATE.read_text(encoding="utf-8"))
+        template = GUARANTEE_TEMPLATE.read_text(encoding="utf-8")
+        write(root, rel, template)
         commit(root, "the template, unfilled")
-        problems = chain.guarantee(reader, str(root), ITEM, "main")
-        assert any("no SHA" in why for _p, _n, why in problems)
+        [(path, line, why)] = chain.guarantee(reader, str(root), ITEM, "main")
+        placeholder = template.split("\n")[line - 1]
+        assert path == rel and placeholder.startswith("target: <"), placeholder
+        assert why.startswith(f"`{placeholder}` does not read whole"), why
         head = git(root, "rev-parse", "HEAD")
-        write(root, rel, guarantee(head, "sealed") + "Verdict: sealed\n")
-        commit(root, "two verdicts")
-        [(_p, _n, why)] = chain.guarantee(reader, str(root), ITEM, "main")
-        assert "2 `Verdict:` lines" in why
-        write(root, rel, guarantee(head, "sealed").replace("Verdict: sealed\n", ""))
-        commit(root, "no verdict")
-        assert chain.guarantee(reader, str(root), ITEM, "main") == [
-            (rel, 0, "0 `Verdict:` lines; the guarantee carries one")
-        ]
-        hidden = guarantee(head, "sealed").replace(
-            "## The parties", "~~~\n\n## The parties"
+        two = guarantee(head, "sealed").replace(
+            "```seal\n", "```seal\nVerdict: sealed\n"
         )
-        write(root, rel, hidden)
-        commit(root, "a fence nobody closed")
-        opener = hidden.splitlines().index("~~~") + 1
-        problems = chain.guarantee(reader, str(root), ITEM, "main")
-        assert [(p, n) for p, n, _why in problems] == [(rel, opener), (rel, 0)]
-        assert "never closes" in problems[0][2], problems
+        write(root, rel, two)
+        commit(root, "a verdict above the target")
+        [(_p, _n, why)] = chain.guarantee(reader, str(root), ITEM, "main")
+        assert why == chain.FIELDS.NO_KIND.format(
+            line="Verdict: sealed", openers="`target:`"
+        )
         git(root, "rm", "-q", rel)
         commit(root, "no guarantee")
         [(_p, _n, why)] = chain.guarantee(reader, str(root), ITEM, "main")
         assert "git carries no guarantee file" in why
 
+    def test_refuses_a_guarantee_of_the_old_shape_naming_the_template(self, item):
+        """#1198's scenario *A record from before the change*, for the
+        guarantee, and *Scope* item 9: a `Target SHA` row and a `Verdict:`
+        line hold no verdict block, and the one refusal names the template
+        and says the sealer appends a block. Seen red against the reader
+        before #1198, which passed the record."""
+        root, sha = item
+        rel = f"{ITEM}/guarantee.md"
+        old = (
+            "| Field | Value |\n|---|---|\n"
+            f"| Target SHA | {sha} against main |\n\nVerdict: sealed\n"
+        )
+        write(root, rel, old)
+        commit(root, "a guarantee of the shape before the blocks")
+        assert chain.guarantee(reader, str(root), ITEM, "main") == [
+            (rel, 0, chain.NO_VERDICT_BLOCK)
+        ]
+        assert "`templates/records/sdd-guarantee.md`" in chain.NO_VERDICT_BLOCK
+        assert "appends one" in chain.NO_VERDICT_BLOCK
+
+    def test_refuses_a_fence_nobody_closed_between_two_runs(self, item):
+        """#1122, at the check: a `sealed` block, then a fence nobody closed,
+        then a `withheld` block. A renderer hides everything below the
+        fence, so the check refuses it at its opener."""
+        root, sha = item
+        rel = f"{ITEM}/guarantee.md"
+        newest = verdict_block(sha, "withheld reason: the gate failed")
+        text = guarantee(sha, "sealed") + "\n````\n\n" + newest
+        write(root, rel, text)
+        commit(root, "a fence nobody closed")
+        opener = text.split("\n").index("````") + 1
+        assert chain.guarantee(reader, str(root), ITEM, "main") == [
+            (rel, opener, chain.FIELDS.UNCLOSED)
+        ]
+
     def test_an_opener_quoted_in_a_code_span_hides_no_verdict(self, item):
         """Round 1 of #1000, finding 2: a claims cell quoting the comment
         opener in a code span, as two merged guarantees do, leaves the
-        verdict line below it read. Seen red against the scan that read the
-        opener: 0 `Verdict:` lines."""
+        verdict block below it read."""
         root, sha = item
         rel = f"{ITEM}/guarantee.md"
         text = guarantee(sha, "sealed").replace(
@@ -2817,13 +2344,12 @@ class Test_guarantee:
 
     @pytest.mark.rule("record-comment-line-refused")
     def test_refuses_a_comment_line_at_its_line(self, item):
-        """S5 of #1012: a verdict quoted in a comment above the verdict line
-        is refused at its line, and the line below it is still the one
-        verdict. The reader that kept a comment state passed it."""
+        """S5 of #1012: a verdict quoted in a comment above the verdict block
+        is refused at its line."""
         root, sha = item
         rel = f"{ITEM}/guarantee.md"
         text = guarantee(sha, "sealed").replace(
-            "Verdict: sealed", "<!-- Verdict: sealed -->\nVerdict: sealed"
+            "```seal\n", "<!-- Verdict: sealed -->\n```seal\n"
         )
         write(root, rel, text)
         commit(root, "a verdict in a comment")
@@ -2832,20 +2358,17 @@ class Test_guarantee:
             (rel, line, reader.COMMENT_LINE)
         ]
 
-    @pytest.mark.rule("ready-needs-sealed")
     @pytest.mark.parametrize("line", NEAR_MISSES)
     def test_refuses_a_near_miss_of_the_verdict_at_its_line(self, item, line):
-        """S6 of #1000. Seen red against the reader that stripped emphasis and
-        read a value by its prefix: `Sealed`, `**sealed**` and `**Verdict:**
-        sealed` passed as `sealed`, and the rest were refused naming no shape,
-        or not read at all."""
+        """S6 of #1000, inside a verdict block: the value is read whole
+        against the three shapes and refused at its line naming them. A word
+        the verdict used before #969 needs no list of its own (#1198,
+        `## Removes`)."""
         root, sha = item
         rel = f"{ITEM}/guarantee.md"
         text = guarantee(sha, "sealed").replace("Verdict: sealed", line)
         write(root, rel, text)
         commit(root, f"the sealer wrote {line}")
-        found = chain.verdicts_of(reader, text)
-        assert len(found) == 1 and chain.verdict_word(found[0][1]) != chain.SEALED
         [(path, number, why)] = chain.guarantee(reader, str(root), ITEM, "main")
         assert (path, number) == (rel, text.splitlines().index(line) + 1), why
         for shape in (
@@ -2855,33 +2378,42 @@ class Test_guarantee:
         ):
             assert shape in why, why
 
-    @pytest.mark.rule("ready-needs-sealed")
     @pytest.mark.parametrize("line", OPENS_LIKE)
-    def test_names_a_line_that_opens_like_the_verdict_and_reads_none(
-        self, item, capsys, line
-    ):
-        """#1167, *Scope* item 5: a line that opens like `Verdict:` and is not
-        it is prose. The guarantee holding it alone has no verdict line and
-        is refused naming the file, and the line is printed at its line as
-        not read, which adds nothing to the exit code. Seen red against the
-        reader that took the line as the verdict and refused it at its line
-        naming the three shapes."""
+    def test_refuses_a_line_that_opens_like_the_verdict_at_its_line(self, item, line):
+        """#1198: inside a block a line is a field or refused, so a verdict
+        spelt otherwise is refused at its line with the keys a verdict block
+        takes, where #1167 read it as prose. Seen red against that reader,
+        which named it and refused the file for having no verdict line."""
         root, sha = item
         rel = f"{ITEM}/guarantee.md"
         text = guarantee(sha, "sealed").replace("Verdict: sealed", line)
         write(root, rel, text)
         commit(root, f"the sealer wrote {line}")
         number = text.splitlines().index(line) + 1
-        assert chain.verdicts_of(reader, text) == []
-        assert chain.guarantee(reader, str(root), ITEM, "main") == [
-            (rel, 0, "0 `Verdict:` lines; the guarantee carries one")
-        ]
-        code, out = check(root, capsys)
-        assert code == 1, out
-        said = chain.UNREAD_VERDICT.format(said=line.strip())
-        assert f"{rel}:{number}  {said}" in out.splitlines(), out
+        said = chain.FIELDS.NOT_A_FIELD.format(
+            line=line, kind="verdict", keys="`target:`, `original:` and `Verdict:`"
+        )
+        assert chain.guarantee(reader, str(root), ITEM, "main") == [(rel, number, said)]
 
-    @pytest.mark.rule("ready-needs-sealed")
+    def test_names_a_near_opener_and_reads_no_verdict(self, item, capsys):
+        """A fence like the block's and not it is no block: the guarantee
+        holding it alone has no verdict block, and the opener is printed at
+        its line as not read, which adds nothing to the exit code."""
+        root, sha = item
+        rel = f"{ITEM}/guarantee.md"
+        text = guarantee(sha, "sealed").replace("```seal", "```Seal")
+        write(root, rel, text)
+        commit(root, "a near opener")
+        notices = []
+        assert chain.guarantee(reader, str(root), ITEM, "main", notices) == [
+            (rel, 0, chain.NO_VERDICT_BLOCK)
+        ]
+        number = text.splitlines().index("```Seal") + 1
+        said = chain.FIELDS.NEAR.format(line="```Seal")
+        assert notices == [(rel, number, said)]
+        code, out = check(root, capsys)
+        assert code == 1 and f"{rel}:{number}  {said}" in out.splitlines(), out
+
     def test_a_verdict_other_than_sealed_fails_a_ready_pull_request(self, item, capsys):
         """T8, S8 of #969: `withheld` and `undecided` fail a ready pull request
         naming the file and the verdict; a draft prints the same line and
@@ -2900,6 +2432,7 @@ class Test_guarantee:
             assert code == 1, out
             line = next(ln for ln in out.splitlines() if ln.startswith(f"{rel}:"))
             assert f"`Verdict: {verdict}`" in line and "needs `sealed`" in line, line
+            assert "appends its block" in line, line
             code, out = check(root, capsys, "--sealing")
             assert code == 0 and rel in out
         event = root.parent / "event.json"
@@ -2909,51 +2442,37 @@ class Test_guarantee:
         code, out = check(root, capsys)
         assert code == 0 and rel in out
 
-    @pytest.mark.rule("ready-needs-sealed")
-    def test_the_old_words_are_refused_by_line(self, item, capsys):
-        """T8, S8 of #969: a `guarantee.md` written before the words changed,
-        reading `sound`, `not sound` or `undecidable`, fails a ready pull request
-        on its `Verdict:` line, and the line says the word changed and what to
-        do: spawn the sealer again at HEAD where `trail/gate.md` names a run at
-        HEAD or one followed only by the work item's records, and otherwise run
-        the broad gate first (round 1 of #969, finding 4). The line asserts
-        nothing about the record it did not read (round 2, finding 2): the same
-        pass's `broad_gate` line may say the record is behind HEAD. Protects: two
-        spellings in one tree, where the check takes `sound` for the new
-        `sealed`, or refuses it with a line nobody can place."""
-        root, sha = item
-        rel = f"{ITEM}/guarantee.md"
-        for old in (
-            "sound",
-            "not sound — the body claims a README change",
-            "undecidable",
+
+class Test_guarantee_original:
+    def test_accepts_the_newest_blocks_baseline_or_a_prefix_of_it(self):
+        for said in (BASELINE, BASELINE[:10]):
+            text = guarantee("abc1234", "sealed", said, earlier=[("abc1234", "sealed")])
+            assert chain.guarantee_original(text, "g.md", BASELINE, PARITY) == []
+
+    def test_refuses_a_newest_block_with_none_or_another(self):
+        """#1198, *Scope* item 3: the newest block's `original:` is read, and
+        one in an earlier block does not stand for it."""
+        earlier = verdict_block("abc1234", "withheld reason: x", BASELINE)
+        text = earlier + "\n" + verdict_block("abc1234")
+        newest = text.split("\n").index("```seal", 2) + 1
+        says = chain.NO_GUARANTEE_ORIGINAL.format(config=PARITY, sha=BASELINE)
+        assert chain.guarantee_original(text, "g.md", BASELINE, PARITY) == [
+            ("g.md", newest, says)
+        ]
+        other = guarantee("abc1234", "sealed", "fedcba9876543210")
+        line = other.split("\n").index("original: fedcba9876543210") + 1
+        said = chain.OTHER_ORIGINAL.format(said="fedcba9876543210", sha=BASELINE)
+        assert chain.guarantee_original(other, "g.md", BASELINE, PARITY) == [
+            ("g.md", line, said)
+        ]
+
+    def test_refuses_nothing_of_a_guarantee_the_guarantee_arm_refuses(self):
+        for text in (
+            "Verdict: sealed\n",
+            verdict_block("abc1234").replace("Verdict:", "verdict:"),
+            verdict_block("abc1234") + "\n<!-- a note -->\n",
         ):
-            text = guarantee(sha, old)
-            number = text.splitlines().index(f"Verdict: {old}") + 1
-            write(root, rel, text)
-            commit(root, f"the sealer said {old} before the words changed")
-            code, out = check(root, capsys)
-            assert code == 1, out
-            line = next(ln for ln in out.splitlines() if ln.startswith(f"{rel}:"))
-            assert line.split()[0] == f"{rel}:{number}", line
-            word = old.split(" — ")[0]
-            assert f"`{word}` is a word the verdict no longer uses" in line, line
-            # S8 of #1000: the three shapes, and no dash form.
-            assert (
-                "`Verdict: sealed`, `Verdict: withheld reason: <reason>` or "
-                "`Verdict: undecided question: <question>`"
-            ) in line, line
-            assert chain.DASH not in line.split("no longer uses", 1)[1], line
-            assert (
-                "Where `trail/gate.md` names a run at HEAD, or one followed only "
-                "by the work item's records, spawn the sealer again at HEAD, which "
-                "writes the new word"
-            ) in line, line
-            assert (
-                "otherwise run `seal gate --base <base> --record <item>` and "
-                "commit `trail/gate.md` first"
-            ) in line, line
-            assert "still stands" not in line, line
+            assert chain.guarantee_original(text, "g.md", BASELINE, PARITY) == []
 
 
 class Test_broad_gate:
@@ -2961,37 +2480,81 @@ class Test_broad_gate:
         root, _sha = item
         assert chain.broad_gate(reader, str(root), ITEM, "main") == []
 
+    def test_accepts_the_last_run_block_as_the_newest(self, item):
+        """#1198, *Scope* item 2: `seal gate --record` appends a block per
+        run, so the last block is the newest run, and an earlier block naming
+        a commit nobody can see decides nothing; the same blocks the other
+        way round are a stale run. Seen red against the reader that took the
+        first block."""
+        root, sha = item
+        rel = f"{ITEM}/trail/gate.md"
+        write(root, rel, gate_file("1" * 40, sha))
+        commit(root, "an earlier run, then the run at the audited commit")
+        assert chain.broad_gate(reader, str(root), ITEM, "main") == []
+        write(root, rel, gate_file(sha, "1" * 40))
+        commit(root, "the runs the other way round")
+        [(path, line, why)] = chain.broad_gate(reader, str(root), ITEM, "main")
+        assert (path, line) == (rel, 0) and "the newest gate run" in why, why
+
     @pytest.mark.rule("record-comment-line-refused")
     def test_refuses_a_comment_line_at_its_line(self, item):
         """S5 of #1012: a `trail/gate.md` line that begins with `<!--` is
-        refused at its line, beside what the run's row says."""
+        refused at its line."""
         root, sha = item
         rel = f"{ITEM}/trail/gate.md"
-        write(
-            root,
-            rel,
-            "<!-- the gate's guidance -->\n\n"
-            f"| Field | Value |\n|---|---|\n| Broad gate | {sha} against main |\n",
-        )
+        write(root, rel, "<!-- the gate's guidance -->\n\n" + gate_file(sha))
         commit(root, "a comment in the gate record")
         assert chain.broad_gate(reader, str(root), ITEM, "main") == [
             (rel, 1, reader.COMMENT_LINE)
         ]
 
-
-class Test_comment_lines:
-    def test_accepts_a_record_whose_lines_open_no_comment(self):
-        """An opener quoted in a code span, later in a line or inside a fence
-        begins no line (*Scope* item 3 of #1012)."""
-        text = "a `<!--` b\nprose <!-- open\n```\n<!-- quoted\n```\n"
-        assert chain.comment_lines(reader, text, "r.md") == []
-
-    def test_refuses_each_comment_line_at_its_line(self):
-        text = "# r\n\n<!-- one -->\nprose\n   <!-- two\n"
-        assert chain.comment_lines(reader, text, "r.md") == [
-            ("r.md", 3, reader.COMMENT_LINE),
-            ("r.md", 5, reader.COMMENT_LINE),
+    def test_refuses_a_record_with_no_run_block_naming_the_command(self, item):
+        """#1198, *Scope* item 9: a gate record of the shape before 0.27.0, its
+        run a table cell, holds no run block, and is refused with the one
+        sentence that names the command which appends one."""
+        root, sha = item
+        rel = f"{ITEM}/trail/gate.md"
+        write(
+            root,
+            rel,
+            f"| Field | Value |\n|---|---|\n| Broad gate | {sha} against main |\n",
+        )
+        commit(root, "a gate record from before the blocks")
+        assert chain.broad_gate(reader, str(root), ITEM, "main") == [
+            (rel, 0, chain.NO_RUN_BLOCK)
         ]
+        assert "`seal gate --base <base> --record <item>`" in chain.NO_RUN_BLOCK
+        assert "since #1198" in chain.NO_RUN_BLOCK
+
+    def test_refuses_a_run_block_that_does_not_parse_at_its_line(self, item):
+        root, sha = item
+        rel = f"{ITEM}/trail/gate.md"
+        text = gate_file(sha).replace(f"run: {sha}", f"run:  {sha}")
+        write(root, rel, text)
+        commit(root, "a run line with two spaces")
+        [(path, line, why)] = chain.broad_gate(reader, str(root), ITEM, "main")
+        assert (path, line) == (
+            rel,
+            text.splitlines().index(f"run:  {sha} against {GATE_BASE}") + 1,
+        )
+        assert why.startswith(
+            f"`run:  {sha} against {GATE_BASE}` does not read whole"
+        ), why
+
+    def test_names_a_near_opener_as_not_read(self, item):
+        """A fence like the block's and not it is named in NOTICES, and its
+        run is no run: the record then holds none."""
+        root, sha = item
+        rel = f"{ITEM}/trail/gate.md"
+        text = gate_file(sha).replace("```seal", "```Seal")
+        write(root, rel, text)
+        commit(root, "a near opener")
+        notices = []
+        assert chain.broad_gate(reader, str(root), ITEM, "main", notices) == [
+            (rel, 0, chain.NO_RUN_BLOCK)
+        ]
+        line = text.splitlines().index("```Seal") + 1
+        assert notices == [(rel, line, chain.FIELDS.NEAR.format(line="```Seal"))]
 
 
 # --- the declaration for this branch, in local mode (#225) --------------------------
@@ -3375,29 +2938,31 @@ class Test_main:
     def test_refuses_an_open_finding_on_a_ready_pull_request(
         self, branch, ready, capsys
     ):
-        """S3 (T27): the `verdict:` lines decide, the line and the finding's
-        heading are named, and a draft prints the same line and passes. A
+        """#1198's scenario *An open finding* (S3, T27): a finding with no
+        close block is open, refused at its heading with the line the fix
+        pass appends, and a draft prints the same line and passes. A
         finding's `severity:` decides nothing."""
         root, code_sha = branch
         rel = f"{ITEM}/trail/rounds/round-1.md"
-        write(root, rel, record(code_sha, [finding(1, "open")]))
+        text = record(code_sha, [finding(1, "open")])
+        write(root, rel, text)
         commit(root, "the record, still open")
         code, out = check(root, capsys)
         assert code == 1
-        line = next(ln for ln in out.splitlines() if "### 1." in ln)
-        number = reader.readable(record(code_sha, [finding(1, "open")])).index(
-            "verdict: open"
+        heading = "### 1. the parser drops a row"
+        said = (
+            f"{rel}:{line_at(text, heading)}  {heading} {chain.DASH} {chain.OPEN_SAYS}"
         )
-        assert line.startswith(f"{rel}:{number + 1}"), line
-        assert "### 1. the parser drops a row" in line
-        assert (
-            "reads `verdict: open`: the fix pass answers it with another verdict, "
-            "and a verdict is `open`, `fixed <commit>`, `rejected` or `deferred <home>`"
-        ) in line
+        assert said in out.splitlines(), out
+        assert chain.OPEN_SAYS == (
+            "no close block, so the finding is open: the fix pass appends one "
+            "after its paste-ready fix, opening with `verdict:` and reading "
+            "`fixed <commit>`, `rejected` or `deferred <home>`"
+        )
         ready.write_text(json.dumps({"pull_request": {"draft": True}}), "utf-8")
         code, out = check(root, capsys)
         assert code == 0
-        assert any("### 1." in ln and "verdict: open" in ln for ln in out.splitlines())
+        assert said in out.splitlines(), out
         ready.write_text(json.dumps({"pull_request": {"draft": False}}), "utf-8")
         write(root, rel, record(code_sha, [finding(1, "rejected")]))
         commit(root, "the record, rejected at the most severe severity")
@@ -3445,10 +3010,11 @@ class Test_main:
         self, branch, ready, capsys
     ):
         """S22 (T34): a commit touching another path is refused naming the
-        finding, the commit and what it touched; one touching one of two
-        named paths, a file under a named directory, or a path the fix pass
-        appended passes, and so does the root commit. A path sharing a named
-        directory's prefix is not under it."""
+        finding, the commit and what it touched, and the `location:` line of
+        the close block that names where a fix went; one touching one of two
+        named paths, a file under a named directory, or a path the close
+        block names passes, and so does the root commit. A path sharing a
+        named directory's prefix is not under it."""
         root, code_sha = branch
         base = git(root, "rev-list", "--max-parents=0", "HEAD")
         made = {}
@@ -3466,7 +3032,9 @@ class Test_main:
             finding(2, f"fixed {made['g']}", location="`f.txt:1`, `g.txt:3`"),
             finding(3, f"fixed {made['dir']}", location="`docs/x/`"),
             finding(4, f"fixed {made['dir']}", location="`docs/x`"),
-            finding(5, f"fixed {made['h']}", location="`f.txt:1`, `h.txt`"),
+            finding(5, "open", location="`f.txt:1`")
+            + "\n"
+            + close(f"fixed {made['h']}", location="`h.txt`"),
             finding(6, f"fixed {base[:8]}", location="`f.txt`"),
             finding(7, f"fixed {made['near']}", location="`docs/x`"),
         ]
@@ -3491,6 +3059,10 @@ class Test_main:
         assert "`g.txt`" in named[0] and "`f.txt`" in named[0], named
         assert "### 7." in named[1] and "`docs/xy.md`" in named[1], named
         assert all("touches no path" in ln for ln in named), named
+        assert all(
+            "names that path on a `location:` line of its close block" in ln
+            for ln in named
+        ), named
 
     @pytest.mark.rule("run-ends-with-verifying-round")
     @pytest.mark.rule("last-record-at-head")
@@ -3636,23 +3208,24 @@ class Test_main:
     def test_names_a_line_it_did_not_read_as_a_notice_and_keeps_the_exit(
         self, branch, ready, capsys, monkeypatch
     ):
-        """#1167, *Scope* item 5 and *Operational impact*: a line that opens
-        like a label and is not it is printed `path:line  not read: <why>`,
-        and in CI as a notice annotation, never an error, and the exit code
-        is the one the record's other lines give: 0 beside a finding that
-        still has its `verdict:` line, 1 where the misspelt line was the
-        finding's only one, refused at the heading. Seen red against the
-        refusal "a label in another spelling", which failed both."""
+        """#1198's scenario *A near opener*: a fence opened by three
+        backticks and `Seal` is printed `path:line  not read: <why>`, and in
+        CI as a notice annotation, never an error, and the exit code is the
+        one the record's blocks give: 0 where the near fence stands in a
+        finding's prose, 1 where it was the finding's only block, refused at
+        the heading."""
         root, code_sha = branch
         rel = f"{ITEM}/trail/rounds/round-1.md"
+        near = FENCE + "Seal"
         text = record(code_sha, [finding(1, f"fixed {code_sha[:8]}")]).replace(
-            "\nWhy it matters.", "\n**verdict:** fixed\n\nWhy it matters."
+            "\nWhy it matters.", f"\n{near}\nverdict: fixed\n{FENCE}\n\nWhy it matters."
         )
         write(root, rel, text)
-        commit(root, "a prose line that opens like the verdict")
+        commit(root, "a fence like a block in the prose")
         seal(root)
-        number = reader.readable(text).index("**verdict:** fixed") + 1
-        said = chain.UNREAD_LINE.format(said="**verdict:** fixed", label="`verdict:`")
+        number = line_at(text, near)
+        said = chain.FIELDS.NEAR.format(line=near)
+        assert said.startswith("not read: "), said
         code, out = check(root, capsys)
         assert code == 0, out
         assert [ln for ln in out.splitlines() if "not read" in ln] == [
@@ -3666,39 +3239,29 @@ class Test_main:
         ], out
         monkeypatch.delenv("GITHUB_ACTIONS")
         only = record(code_sha, [finding(1, f"fixed {code_sha[:8]}")]).replace(
-            "verdict: fixed", "Verdict: fixed"
+            f"{FENCE}seal\nseverity:", f"{near}\nseverity:"
         )
         write(root, rel, only)
-        commit(root, "the finding's only verdict, spelt otherwise")
+        commit(root, "the finding's only block, opened otherwise")
         seal(root)
-        lines = reader.readable(only)
         code, out = check(root, capsys)
         assert code == 1, out
-        heading = lines.index("### 1. the parser drops a row") + 1
-        assert any(
-            ln.startswith(f"{rel}:{heading}  ### 1.") and "no `verdict:` line" in ln
-            for ln in out.splitlines()
-        ), out
+        heading = "### 1. the parser drops a row"
         assert (
-            f"{rel}:{lines.index(f'Verdict: fixed {code_sha[:8]}') + 1}  "
-            + (
-                chain.UNREAD_LINE.format(
-                    said=f"Verdict: fixed {code_sha[:8]}", label="`verdict:`"
-                )
-            )
-            in out.splitlines()
-        ), out
+            f"{rel}:{line_at(only, heading)}  {heading} {chain.DASH} "
+            f"{chain.NO_FINDING_BLOCK}"
+        ) in out.splitlines(), out
+        assert f"{rel}:{line_at(only, near)}  {said}" in out.splitlines(), out
 
     def test_names_no_line_inside_a_fence(self, branch, ready, capsys):
-        """#1167, *Scope* item 5: the net reads a line outside every fence. A
-        paste-ready fix block quoting `Verdict: open` prints no `not read:`
-        line, and the exit code is the clean record's. Round 3's finding 2:
-        seen red against `unread` handing the record to `unread_lines`
-        through `reader.gfm_lines`, which blanks no fence."""
+        """A paste-ready fix block quoting a near opener and a `verdict:`
+        line prints no `not read:` line, and the exit code is the clean
+        record's: a fence inside another fence is that fence's."""
         root, code_sha = branch
         rel = f"{ITEM}/trail/rounds/round-1.md"
         text = record(code_sha, [finding(1, f"fixed {code_sha[:8]}")])
-        write(root, rel, text.replace("x = 1", "Verdict: open"))
+        quoted = f"{FENCE}`markdown\n{FENCE}Seal\nverdict: open\n{FENCE}\n{FENCE}`"
+        write(root, rel, text.replace(f"{FENCE}python\nx = 1\n{FENCE}", quoted))
         commit(root, "a fix block that quotes a verdict line")
         seal(root)
         code, out = check(root, capsys)
@@ -3736,23 +3299,25 @@ class Test_main:
     def test_refuses_an_old_shape_record_and_an_unclosed_fence(
         self, branch, ready, capsys
     ):
-        """S11: a record of the old shape under the declared item has no
-        `## Findings` and is refused by name; a fence the proofer never closed
-        hides the open finding below it and is named at its opener."""
+        """S11 and #1198's scenario *A record from before the change*: a
+        record of an older shape under the declared item, the table's and
+        the labelled lines', holds no round block and is refused with one
+        line naming the template; a fence the proofer never closed hides the
+        open finding below it and is named at its opener."""
         root, code_sha = branch
         rel = f"{ITEM}/trail/rounds/round-1.md"
-        write(root, rel, OLD_RECORD.replace("0000000", code_sha))
-        commit(root, "an old-shape record")
-        seal(root)
-        code, out = check(root, capsys)
-        assert code == 1
-        assert f"{rel}:0" in out and chain.NO_FINDINGS in out
+        for old in (OLD_RECORD.replace("0000000", code_sha), LABELLED):
+            write(root, rel, old)
+            commit(root, "an old-shape record")
+            seal(root)
+            code, out = check(root, capsys)
+            assert code == 1
+            assert [ln for ln in out.splitlines() if ln.startswith(f"{rel}:")] == [
+                f"{rel}:0  {chain.NO_ROUND_BLOCK}"
+            ], out
         text = record(
             code_sha,
-            [
-                finding(1, "rejected").replace("answer: \n", "~~~python\n"),
-                finding(2, "open"),
-            ],
+            [finding(1, "rejected") + "\n~~~python\n", finding(2, "open")],
         )
         write(root, rel, text)
         commit(root, "a record with a fence left open")
@@ -4081,19 +3646,34 @@ class Test_module:
         whole = "# spec\n\nprose\nFramed 2026-01-01 by framer, before the build.\n"
         assert chain.frame_foot(reader, whole)[0] == ("2026-01-01", "framer")
 
+    def test_loads_beside_no_policy_document(self, tmp_path):
+        """*Scope* item 5 of #1198: the round record's grammar is
+        `hooks/lib/fields.py`, so the check loads and reads a record with no
+        `docs/` beside it. Seen red against the check that loaded its grammar
+        table from `docs/the-review-record.md` at import, which raised
+        "cannot be read"."""
+        script = copied_tree(tmp_path / "tree")
+        assert not (tmp_path / "tree" / "docs").exists()
+        loaded = load(script, "chain_check_beside_no_document")
+        found, errors = loaded.record_findings(
+            reader, record("abc1234", [finding(1, "rejected")]), "r.md"
+        )
+        assert (errors, [f.verdict for f in found]) == ([], [(chain.REJECTED, None)])
+
 
 # --- left where they stand, for #923: they read the shipped documents --------------
 
 
 def test_the_proofer_and_the_review_skill_name_every_line_a_finding_needs():
-    """S8 (#985): `agents/proofer.md` step 7 and `skills/code-review/SKILL.md`
-    *The record* each list the lines a finding carries, and each names
-    every row the table places in a finding as `one`, read from the table."""
-    needed = [
-        key
-        for key, row in chain.GRAMMAR.items()
-        if row.where == chain.IN_FINDING and row.many == chain.ONE
-    ]
+    """S8 (#985), under #1198: `agents/proofer.md` step 7 and
+    `skills/code-review/SKILL.md` *The record* each list the lines a
+    finding's block carries, and each names every key a finding block holds
+    one of, read from `hooks/lib/fields.py`. Neither has the proofer write a
+    `verdict:` line, which a finding with no close block no longer carries,
+    and step 7 says a prose line opening with `<` and a letter hides the
+    blocks below it from the reader (`trail/phases/phase-2.md` of #1198)."""
+    kind = chain.FIELDS.FINDING_BLOCK
+    needed = [key for key, spec in kind.keys.items() if spec.many == chain.FIELDS.ONE]
     assert "evidence:" in needed, needed
     proofer = " ".join((ROOT / "agents" / "proofer.md").read_text("utf-8").split())
     step = proofer.split("7. Write the record", 1)[1].split("## Never", 1)[0]
@@ -4101,54 +3681,74 @@ def test_the_proofer_and_the_review_skill_name_every_line_a_finding_needs():
         (ROOT / "skills" / "code-review" / "SKILL.md").read_text("utf-8").split()
     )
     said = skill.split("## The record ", 1)[1]
-    said = said.split("Each finding carries one line of each row", 1)[1]
-    said = said.split("The check refuses a finding missing any.", 1)[0]
+    said = said.split("Each finding's section holds one finding block", 1)[1]
+    said = said.split("The check refuses a finding whose block", 1)[0]
     for where, text in (
         ("proofer.md step 7", step),
         ("`skills/code-review/SKILL.md` *The record*", said),
     ):
         missing = [key for key in needed if f"`{key}" not in text]
         assert missing == [], f"{where} does not name {missing}"
+        assert "`verdict: open`" not in text, f"{where} still writes `verdict: open`"
+    assert "opens with `<` and a letter" in step, step
+
+
+def test_the_review_skill_sends_a_value_s_form_to_the_module_and_to_no_row():
+    """Round 3 of #1198, finding 1: `skills/code-review/SKILL.md` *The
+    record* names `hooks/lib/fields.py` as the one statement of each value's
+    shape, so no sentence of the section sends the proofer to a grammar row
+    or table, which the docs grammar the settle removes is the only one of.
+    Seen red against the `evidence:` bullet that said "the forms its row
+    gives"."""
+    skill = " ".join(
+        (ROOT / "skills" / "code-review" / "SKILL.md").read_text("utf-8").split()
+    )
+    record = skill.split("## The record ", 1)[1].split("**Paste-ready", 1)[0]
+    # The section's other rows are a config row and a `## Not judged` row.
+    for gone in ("its row", "grammar row", "grammar table", "the table"):
+        assert gone not in record, f"*The record* still says {gone!r}"
+    assert (
+        "`evidence:` names what the claim rests on, in the forms "
+        "`hooks/lib/fields.py` gives its value." in record
+    ), record
 
 
 def test_the_template_is_the_record_the_check_reads():
-    """S1 (T29, T38): `templates/records/sdd-round.md` is a record the check reads:
-    one `target:` line and no table above the findings; one finding at
-    `open`, located at one coordinate, resting on one `evidence:` line,
-    naming the regression `round-1#1`; a `verdict:` written inside its fix
-    block not read as a line; `## Confirmations` holding its two example
-    entries; no `reopens:` line and no `original:` line, with the review
-    skill saying where a `reopens:` finding's grounds open; the record
-    document naming the stand-in for a backtick; and no emoji anywhere."""
+    """S1 (T29, T38): `templates/records/sdd-round.md` is a record the check
+    reads: one round block and no table above the findings; one finding
+    whose block locates it at one coordinate, rests on one `evidence:` line
+    and names the regression `round-1#1`, with its close block after the fix
+    fence, `fixed` at a commit the fix pass names; a close written inside
+    the fix block not read as one; `## Confirmations` holding its two
+    example blocks; no `reopens:` line and no `original:` line, with the
+    review skill saying where a `reopens:` finding's grounds open; the
+    record document naming the stand-in for a backtick; and no emoji
+    anywhere."""
     text = TEMPLATE.read_text(encoding="utf-8")
-    lines = reader.readable(text)
-    found, errors = chain.record_findings(reader, text, "t")
+    read, errors = chain.round_of(reader, text, "t", 1)
     assert errors == []
-    assert [(f.verdict, f.paths, f.regression, f.reopens) for f in found] == [
-        ((chain.OPEN, None), ["path"], (1, 1), None)
+    assert [(f.verdict, f.paths, f.regression, f.reopens) for f in read.findings] == [
+        ((chain.FIXED, "1a2b3c4"), ["path"], (1, 1), None)
     ]
-    assert len([ln for ln in lines if chain.label_of(ln) == "evidence:"]) == 1
-    assert not any(ln.startswith(chain.REOPENS_ROW) for ln in lines)
-    assert not any(ln.startswith(chain.ORIGINAL_ROW) for ln in lines)
+    assert text.count("\nevidence: ") == 1
+    assert "\nreopens: " not in text and "\noriginal: " not in text
     skill = (ROOT / "skills" / "code-review" / "SKILL.md").read_text("utf-8")
     assert "where `reopens:` stands" in " ".join(skill.split())
     stand_in = "with `$(printf '\\140')` in place of the character"
     assert stand_in in " ".join(DOC.read_text(encoding="utf-8").split())
-    assert found[0].heading.startswith("### 1. ") and found[0].number == 1
-    confirmed, errors = chain.confirmations(reader, lines, "t")
-    assert errors == []
-    assert [ref for _line, ref in confirmed] == [(1, 2)]
-    assert [ln for ln in lines if ln.startswith("confirms:")] == [
-        "confirms: round-1#2",
-        "confirms: none",
-    ]
+    assert read.findings[0].heading.startswith("### 1. ")
+    assert read.findings[0].number == 1
+    assert [ref for _line, ref in read.confirms] == [(1, 2)]
+    assert text.count("\nconfirms: ") == 2 and "\nconfirms: none\n" in text
     head = text.split(chain.FINDINGS_HEADING)[0]
     assert chain.table_rows(reader, reader.readable(head)) == []
-    assert chain.round_of(reader, text, "t", 1)[0].target == "1a2b3c4"
-    fence = text.index("```", text.index("### 1. "))
-    line_end = text.index("\n", fence) + 1
-    fenced = text[:line_end] + "verdict: rejected\n" + text[line_end:]
-    found, errors = chain.findings(reader, reader.readable(fenced), "t")
+    assert read.target == "1a2b3c4"
+    start = text.index(FENCE + "seal\nverdict: ")
+    end = text.index(FENCE + "\n", start + len(FENCE)) + len(FENCE) + 1
+    without = text[:start] + text[end:]
+    fix = without.index(FENCE + "<lang>\n") + len(FENCE + "<lang>\n")
+    quoted = without[:fix] + "verdict: rejected\nanswer: x\n" + without[fix:]
+    found, errors = chain.record_findings(reader, quoted, "t")
     assert errors == [] and [f.verdict for f in found] == [(chain.OPEN, None)]
     assert [c for c in text if EMOJI.match(c)] == []
 

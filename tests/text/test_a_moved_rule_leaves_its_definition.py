@@ -525,20 +525,23 @@ def test_the_crafters_four_rules_stand_with_their_enforcers():
     )
 
 
-def test_the_crafters_fix_pass_writes_two_lines_and_sweeps_what_its_range_reworded():
-    """The crafter's half of the fix pass: the two lines it writes, the
-    coordinate it appends, and the sweep for every other place stating a rule
-    its range reworded (contract rule 12). The record's grammar is
-    `docs/the-review-record.md`'s and is held there; this holds the
-    definition's paragraph, which no other case reads."""
+def test_the_crafters_fix_pass_appends_a_close_block_and_sweeps_what_its_range_reworded():
+    """The crafter's half of the fix pass: the close block it appends, which
+    edits nothing of the proofer's, the coordinate the block carries, and the
+    sweep for every other place stating a rule its range reworded (contract
+    rule 12). The block's grammar is `hooks/lib/fields.py`'s and is held
+    there; this holds the definition's paragraph, which no other case
+    reads."""
     paragraph = flat(
-        crafter_rule("A fix pass writes two lines of each finding and no phase record.")
+        crafter_rule("A fix pass appends close blocks and writes no phase record.")
     )
     assert paragraph, "`agents/crafter.md` lost its fix-pass rule"
     for clause in (
         "`fixed <commit>`, `rejected` or `deferred <home>`",
         "`deferred <where it was repaired>`",
-        "append the one it did change after `, `",
+        # #1198, Scope item 7: the finding's own block is the proofer's.
+        "edits nothing else in the record",
+        "carries a `location:` line naming the one it did change",
         # #1148, Scope item 13: two fix passes of its run applied a round
         # record's paste-ready text to a procedure step as given, and each
         # carried a new defect into shipped text.
@@ -556,17 +559,20 @@ def test_the_crafters_fix_pass_writes_two_lines_and_sweeps_what_its_range_reword
         "in `answer:`.",
         "find every other place stating each rule your range reworded or removed",
         # #1041, S3: the owner's answer of 2026-10-28 gives the commit of the
-        # two lines to the orchestrator, so the crafter writes them last and
+        # closes to the orchestrator, so the crafter writes them last and
         # leaves them uncommitted.
-        "Last, after your last fix commit and its corrections, write the "
-        "`verdict:` and `answer:` lines of every finding you answered, and do "
-        "not commit them: the orchestrator commits the round record as you "
-        "left it.",
+        "Last, after your last fix commit and its corrections, append the "
+        "close block of every finding you answered, and do not commit them: "
+        "the orchestrator commits the round record as you left it.",
     ):
         assert clause in paragraph, f"the fix-pass rule lost {clause!r}"
-    assert "Then commit the `verdict:` and `answer:` lines" not in paragraph, (
-        "the fix-pass rule still has the crafter commit its own two lines"
-    )
+    for gone in (
+        "Then commit the `verdict:` and `answer:` lines",
+        # #1198: the fix pass no longer rewrites a line of the proofer's.
+        "rewrites `verdict:`",
+        "append the one it did change after `, `",
+    ):
+        assert gone not in paragraph, f"the fix-pass rule still says {gone!r}"
 
 
 def test_the_crafters_hand_back_carries_what_it_may_not_record_and_ends_in_no_block():
