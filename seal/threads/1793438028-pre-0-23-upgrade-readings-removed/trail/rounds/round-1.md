@@ -11,7 +11,7 @@ This round reviews phase 1, `b212e774..d25aad94`, against the frame at `8a6c5a4b
 severity: must
 location: `tests/hooks/test_optin.py:432-435`, `tests/hooks/test_optin.py:562-563`, `skills/implement/bootstrap.md:29-31`
 evidence: executed `git grep -n -E 'session-start|the migration (write|question)|migration$' d25aad94 -- tests/hooks/test_optin.py skills/implement/bootstrap.md`, `git ls-files hooks/root-migrate.py`
-verdict: open
+verdict: fixed 885b3c1f
 
 The frame lists `tests/hooks/test_optin.py`'s legacy-directory case among the cases kept, and says "Each docstring that says `hooks/root-migrate.py` reads the name is corrected (item 9)" (`frame/design.md:109-115`). Phase 1's plan row takes "the part of item 9 that cites `hooks/root-migrate.py`". The case is `test_refuses_the_legacy_directory`, and its docstring still says a repository holding `.specseal/` stands as any other "until the session-start hook moves it, which is the only thing that reads the name" (`tests/hooks/test_optin.py:432-435`). No hook moves it: `git ls-files hooks/root-migrate.py` prints nothing at `d25aad94`. The crafter corrected the scratch case two cases above it (`:419-421`) and left this one.
 
@@ -43,14 +43,14 @@ The class is any sentence that states the session-start move or the 0.3.x migrat
 not know to ask, so this is the only place the mode is asked at all.
 ```
 
-answer:
+answer: The finding holds for the two `tests/hooks/test_optin.py` docstrings, and both now carry the round's text. For `skills/implement/bootstrap.md:29-31`, the sentence was wrong to read but not in the way the round says. "The migration question" did not mean the 0.3.x move. It came from 716d8548, where the sentence read "the only place the migration question gets asked" above the question "Does this project port behavior from an existing codebase?". The bootstrap still asks that question, in its step 3 (`skills/implement/bootstrap.md:163-165` at 885b3c1f). The round's paste-ready text, "the only place the mode is asked", would drop a question the bootstrap asks. So the fix is in my words: "the only place the mode, and whether the project ports an original codebase, are asked at all". Both fixes are in 885b3c1f. `bin/test tests/hooks/test_optin.py tests/behaviour/test_first_setup_asks_once.py` passed, as did the other five modules that read `bootstrap.md` (executed). The class sweep covered every file phase 1 touched, plus `skills/`, `templates/`, `agents/`, `hooks/`, both READMEs, `CONTRIBUTING.md`, `CLAUDE.md` and `seal/README.md`. It searched with `git grep -i -E` for moves of a root or records, `migrat`, `session[- ]start`, `earlier release`, `before the rename`, `0.22`, `0.3.x` and `old`/`earlier layout`, and a second pass covered `docs/` in English and Korean. It found no further sentence that states the move as current outside `docs/`. Every `docs/` hit stands inside a `from` of `## Rule changes`, or is phase 2's (`docs/the-routing-check.md:22-25`) or unrelated (`docs/release-checklist.md:220`, the experiments). Four hits stand on purpose. `skills/settle/SKILL.md:173` and `rule_changes.py:343` describe threads `#EARLIER` still places, which the frame keeps. `tests/behaviour/test_first_setup_asks_once.py:681` says a paragraph was replaced, which is history. `tests/hooks/test_dispatch.py:1149` names the move as what the group no longer runs. Paraphrase is unbounded, so this sweep is a sample too.
 
 ### 2. The old-roots scan still exempts a `specs/<` after a `/`, an exception whose only lines this phase removed
 
 severity: should
 location: `tests/behaviour/test_no_document_names_the_old_roots.py:29-31`
 evidence: executed `git grep -n -F '/specs/<' b212e774 -- templates skills agents docs README.md README.ko.md seal/README.md CONTRIBUTING.md CLAUDE.md SECURITY.md .github/workflows`, `git grep -n -F '/specs/<' d25aad94 -- templates skills agents docs README.md README.ko.md seal/README.md CONTRIBUTING.md CLAUDE.md SECURITY.md .github/workflows`
-verdict: open
+verdict: fixed 88d4f27c
 
 `OLD_ROOT` is `\.specseal/|(?<![\w/.])specs/<`, and its comment says a `specs/<` after a `/` is "the 0.22.x `seal/` layout the migration names". At `b212e774` the only scanned lines that hold `/specs/<` are the two READMEs' by-hand step `git mv specs/<id> seal/specs/<id>` (`README.md:407`, `README.ko.md:399`). Phase 1 removed both sections and the migration. At `d25aad94` no scanned line holds `/specs/<`, so the `/` in the lookbehind and the comment's clause stand on a fact that is gone.
 
@@ -61,7 +61,7 @@ The exception is not inert. With it, a shipped document can tell a session to wr
 OLD_ROOT = re.compile(r"\.specseal/|(?<![\w.])specs/<")
 ```
 
-answer:
+answer: Fixed in 88d4f27c with the round's pattern and comment. The exemption now refuses a line it used to pass, so `test_the_check_can_fail` gains the line "write it under `seal/specs/<work-item-id>/`". That line carries an `# exempt from old_names:` comment, because `tests/test_censuses.py`'s census refused the old spelling in it (executed). The case was seen red against the old lookbehind with `bin/seal mutate tests/behaviour/test_no_document_names_the_old_roots.py --replace` (the new pattern swapped back to the old) `--tests "bin/test tests/behaviour/test_no_document_names_the_old_roots.py -q -p no:xdist -k test_the_check_can_fail"`, which printed `red` (executed). `bin/test tests/test_censuses.py tests/behaviour/test_no_document_names_the_old_roots.py -q` gave 194 passed, so the narrowed scan flags no line in the scanned set (executed).
 
 ## Confirmations
 
