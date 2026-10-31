@@ -185,12 +185,19 @@ pushed, and the branch is handed back committed and unpushed. Once
 body the sealer read, `gh pr create --body-file <that file>`. CI runs then,
 and again on every push to it.
 
-**After the pull request opens, and after each push to it, the orchestrator
-reads `gh pr view <N> --json mergeable` before it waits on CI.**
-`CONFLICTING` means GitHub made no merge ref for the pull request and runs no
-`pull_request` CI on it, and nothing else says so. `UNKNOWN` means GitHub
-has not computed the answer yet, and the orchestrator reads it again.
-`MERGEABLE` is the answer under which the orchestrator waits on CI.
+**The orchestrator reads `gh pr view <N> --json state,mergeable` when the
+pull request opens, before each push to its branch and after each push, and
+waits on CI only under `OPEN` and `MERGEABLE`.** A `state` of `MERGED` or
+`CLOSED` stops the push: the owner may merge or close the pull request at
+any time after it opens, and a commit pushed to its branch then is in no
+pull request, so nothing checks, reviews or merges it, and the repair goes
+on a new branch cut from the base. `CONFLICTING` means GitHub made no merge
+ref for the pull request and runs no `pull_request` CI on it, and nothing
+else says so. `UNKNOWN` means GitHub has not computed the answer yet, and
+the orchestrator reads it again. The wait is `gh pr checks <N> --watch`,
+which reads the checks of every workflow on the pull request; a single
+workflow's run, watched alone, can pass while another workflow's check
+fails.
 
 **A conflict with the base is integrated by merging the base into the
 branch, never by a rebase.** A rebase orphans the commits every round record
@@ -227,8 +234,9 @@ again, and the sealer again. Nothing else is built for it. The pull request
 stays open through that repair. Once the repair's broad run is committed,
 the orchestrator runs `seal pr-body` on the body file again and gives the
 file to the open pull request with
-`gh api -X PATCH repos/<owner>/<repo>/pulls/<N> -F body=@<file>`
-(`docs/release-checklist.md` names why not `gh pr edit`).
+`gh api -X PATCH repos/<owner>/<repo>/pulls/<N> -F body=@<file>`, not
+`gh pr edit`: that command's GraphQL query has stopped on an error about
+Projects (classic), and the REST call sends the body alone.
 
 **A repository that still opens a draft is not refused.** On a draft
 `chain_check` prints what it would refuse and exits 0, and `hygiene`'s
