@@ -958,13 +958,16 @@ class Test_main:
         assert "judged against:" not in block, block
         assert settle.REMOVES_HEADING in text, text
 
-    @pytest.mark.parametrize("shape", ["file", "link"])
+    @pytest.mark.parametrize("shape", ["file", "link", "unlistable"])
     def test_a_work_item_whose_rounds_cannot_be_listed_is_not_counted_as_none(
-        self, repo, capfd, shape
+        self, repo, capfd, monkeypatch, shape
     ):
-        """Round 9, finding 1. A `trail/rounds` that is a file or a link holds
-        a review git carries (`hooks/lib/routing.py#rounds_unreadable`), so
-        the dry run says it counted none rather than that none happened."""
+        """Round 9, finding 1. A `trail/rounds` that is a file, a link, or a
+        directory nothing can list holds a review git carries
+        (`hooks/lib/routing.py#rounds_unreadable`), so the dry run says it
+        counted none rather than that none happened. The unlistable
+        directory is made by refusing `os.listdir` on that one path, since
+        `chmod 000` does not bar a runner that is root."""
         item(repo, "1700000001-a", "- nothing\n  why: x.")
         (specs_dir(repo, "1700000001-a") / "frame" / "plan.md").write_text(
             "# Implementation Plan: a\n\n## Judgments of the run\n\n"
@@ -976,7 +979,7 @@ class Test_main:
         trail.mkdir()
         if shape == "file":
             (trail / "rounds").write_text("# Review round 1\n", encoding="utf-8")
-        else:
+        elif shape == "link":
             held = repo / "elsewhere"
             held.mkdir()
             (held / "round-1.md").write_text("# Review round 1\n", encoding="utf-8")
@@ -984,7 +987,22 @@ class Test_main:
                 os.symlink(held, trail / "rounds", target_is_directory=True)
             except (OSError, NotImplementedError):
                 pytest.skip("this platform makes no symbolic link here")
+        else:
+            (trail / "rounds").mkdir()
+            (trail / "rounds" / "round-1.md").write_text(
+                "# Review round 1\n", encoding="utf-8"
+            )
         commit(repo, "a")
+        if shape == "unlistable":
+            barred = os.path.normcase(os.path.realpath(trail / "rounds"))
+            listdir = os.listdir
+
+            def refusing(path="."):
+                if os.path.normcase(os.path.realpath(path)) == barred:
+                    raise PermissionError(13, "Permission denied", str(path))
+                return listdir(path)
+
+            monkeypatch.setattr(os, "listdir", refusing)
         code, text = dry_run(repo, capfd)
         assert code == 0, text
         assert (
@@ -1039,6 +1057,46 @@ class Test_main:
         code, text = dry_run(repo, capfd)
         assert code == 0, text
         assert settle.JUDGMENTS_HEADING not in text, text
+
+    def test_accepts_a_near_heading_inside_a_comment_without_a_word(self, repo, capfd):
+        """Round 10's edge of round 9's finding 2: a heading inside an HTML
+        comment is no live heading (`unverified_check.py#live_lines`), so
+        the reader names nothing for it."""
+        item(repo, "1700000001-a", "- nothing\n  why: x.")
+        (specs_dir(repo, "1700000001-a") / "frame" / "plan.md").write_text(
+            "# Implementation Plan: a\n\n<!--\n## Judgments of the Run\n-->\n",
+            encoding="utf-8",
+        )
+        commit(repo, "a")
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        assert settle.JUDGMENTS_HEADING not in text, text
+
+    def test_a_near_heading_is_named_beside_the_section_it_is_not(self, repo, capfd):
+        """A plan holding a near heading and the exact section gets the line
+        for the first and the rows of the second: the naming runs before the
+        reader looks for the exact section, and the near rows are not read."""
+        item(repo, "1700000001-a", "- nothing\n  why: x.")
+        header = "| Date | Judgment | Grounds | Judged against |\n|---|---|---|---|\n"
+        (specs_dir(repo, "1700000001-a") / "frame" / "plan.md").write_text(
+            "# Implementation Plan: a\n\n## Judgments Of The Run\n\n"
+            + header
+            + "| 2026-10-01 | near | y | z |\n\n## Judgments of the run\n\n"
+            + header
+            + "| 2026-10-02 | exact | y | z |\n",
+            encoding="utf-8",
+        )
+        commit(repo, "a")
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        block = text.split(f"\n{settle.JUDGMENTS_HEADING}\n")[1]
+        assert block.startswith(
+            "    1700000001-a  seal/threads/1700000001-a/frame/plan.md  not read: "
+            "line 3: `## Judgments Of The Run` opens like `## Judgments of the "
+            "run` and is not it, so none of its rows were read\n"
+        ), block
+        assert "2026-10-02  exact\n" in block, block
+        assert "2026-10-01  near" not in block, block
 
     @pytest.mark.parametrize("flag", ["--retire", "--retire-process"])
     def test_the_retired_flags_are_an_argument_error(self, repo, flag, capfd):

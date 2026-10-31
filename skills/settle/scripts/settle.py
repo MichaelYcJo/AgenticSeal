@@ -519,7 +519,8 @@ def judgments(records, ids):
               header, or whose table stops at a row it cannot read
 
     A plan with no such section and no near heading holds no judgment and
-    is in neither. A heading inside a fence is no heading. A row
+    is in neither. A heading inside a fence or an HTML comment is no
+    heading (`unverified_check.py#live_lines`). A row
     whose every cell is empty is the template's blank row, and no
     judgment. The table is read through `hooks/lib/config.py#gfm_table`
     over the section's lines alone, and nothing here grades a cell."""
