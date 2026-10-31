@@ -11,7 +11,7 @@ This is round 1, so no earlier record exists and no fact is carried. Every fact 
 severity: must
 location: `evals/scripts/rule_cases.py:826-833`, `evals/scripts/rule_cases.py:913`, `evals/behaviour/sealer/rule-sealer-false-red/scaffold.sh`, `evals/behaviour/sealer/rule-sealer-sealed/scaffold.sh`, `evals/behaviour/sealer/rule-sealer-stale-gate/scaffold.sh`, `evals/behaviour/sealer/rule-sealer-untrue-body/scaffold.sh`
 evidence: executed `bin/test tests/hooks/test_fields.py tests/hooks/test_blocks.py tests/skills/test_seal_stamp.py tests/skills/test_pr_body.py tests/behaviour/test_the_sealer_guarantees.py tests/behaviour/test_evals_layout.py tests/evals/test_replay_targets.py tests/hooks/test_sealer_stamp_queue.py -q`, `.venv/bin/python evals/scripts/rule_cases.py`, `.venv/bin/python -m pytest -q tests/behaviour/test_evals_layout.py tests/evals/test_rule_cases.py`
-verdict: open
+verdict: fixed e6c81213
 
 The crafter claimed that `tests/behaviour/test_evals_layout.py::test_the_sealer_cases_are_the_generators_output` is red at the phase boundary and that phase 3 owns the repair under *Scope* item 8. The claim about the result holds. At `968f5ac4` that case fails with four differing scaffolds: `rule-sealer-false-red`, `rule-sealer-sealed`, `rule-sealer-stale-gate` and `rule-sealer-untrue-body`. Every other case of the eight modules passed (1 failed, 314 passed).
 
@@ -38,14 +38,14 @@ run: {RUN_SHA} against {BASE_SHA}
 
 Then run `python3 evals/scripts/rule_cases.py` and commit the four regenerated scaffolds with it. Where the orchestrator keeps the repair in phase 3 anyway, `frame/plan.md`'s phase 3 row names the case in its *Verified by* cell.
 
-answer:
+answer: Fixed as the finding proposes: `GATE_RECORD` is one run block with the hexadecimal placeholders `a0a0a0a` and `c0c0c0c`, its comment states that shape, and `rule_cases.py` regenerated exactly the four sealer scaffolds; `tests/behaviour/test_evals_layout.py` and `tests/evals/test_rule_cases.py` pass (33). The class searched by `git grep` for a `Broad gate` cell with a run, `Target SHA` and `earlier run:` outside `seal/` and `docs/`, and for every writer of `trail/gate.md` or `guarantee.md` in `evals/scripts` and shipped code: no other generator or fixture writes either record in the old shape except the tests' deliberate old-shape refusal inputs; `agents/sealer.md` and `templates/setup/config.md` stay phase 3's. The phase record's paragraph that gave this case to phase 3 is rewritten in 5d5a1813.
 
 ### 2. `seal gate --record` reports success on a gate record whose new run the reader does not read
 
 severity: should
 location: `skills/verify/scripts/broad_gate.py:2463-2498`, `tests/skills/test_broad_gate.py:1959`
 evidence: executed `.venv/bin/python -m pytest -q -s tests/skills/test_tmp_round1.py`
-verdict: open
+verdict: fixed 3e51b9a1
 
 Before this phase, `write_gate_file` wrote the whole file from scratch, so its output always read. Now it appends the assembled block to whatever text `trail/gate.md` holds. It checks the block alone (`fields.assemble`) and never reads back the file it writes. Its docstring says it raises `Refused` where "the run is not one the reader reads", but that holds only for the block in isolation. This is a new failure path that the change introduces.
 
@@ -74,14 +74,14 @@ The command should refuse here, at the moment a person can fix the file, and not
 
 The regression case belongs in `Test_write_gate_file`. A held `trail/gate.md` of `"# x\n\na note\n\n" + "`" * 3 + "\n"` is refused with `match="was not written"`, and the file is left byte for byte as it was. The case should be seen red against `968f5ac4`, where the call returns the path.
 
-answer:
+answer: Fixed: `write_gate_file` reads the file as it would write it through `hooks/lib/fields.py` and refuses, writing nothing, where the reader refuses a line or the last block is not the new run. The new case `Test_write_gate_file::test_refuses_a_file_whose_new_run_the_reader_would_not_read`, over a held fence nobody closed and a held comment line, was red against the writer before the fix, and `seal mutate` over the two new refusals turned both red. Class: the only record writer this phase changed that appends is `write_gate_file`; `rule_cases.py` writes whole records and composes the body through `pr_body.compose`, which reads them through the reader, and the stamp and `pr_body.py` write no record.
 
 ### 3. `gaps.md` hands the orchestrator an "unexplained" failure whose cause is in this phase's first commit
 
 severity: should
 location: `seal/threads/1793437163-fields-stand-in-marked-blocks/gaps.md:8`, `seal/threads/1793437163-fields-stand-in-marked-blocks/trail/phases/phase-1.md:7`
 evidence: executed `.venv/bin/python -m pytest -q tests/evals/test_seed_defects.py tests/evals/test_replay_targets.py`
-verdict: open
+verdict: fixed 5d5a1813
 
 The row at `gaps.md:8` says `tests/evals/test_seed_defects.py` failed 7 of its 17 cases twice, that "the cause was not found", and that "no phase 1 change touches what it reads". The second statement is false, and the cause can be found. The test builds a repository from the working tree's copy of each `replay_targets.CHECK_FILES` file (`tests/evals/test_seed_defects.py:85-94`). One of those files is `skills/verify/scripts/unverified_check.py`. At `e52833c6` that module starts loading `hooks/lib/fields.py` when it is imported (`unverified_check.py:181` at `968f5ac4`). `CHECK_FILES` gained `hooks/lib/fields.py` only at `99ca2178`. So any tree between the two edits fails to load the copied check.
 
@@ -95,7 +95,7 @@ The row should be replaced by a closed account, for example:
 
 In `phase-1.md:7`, "`chain_check.py` now loads `hooks/lib/fields.py`" should become a sentence that names `unverified_check.py` from `e52833c6`, and `chain_check.py` from `99ca2178`.
 
-answer:
+answer: Fixed: the row is closed with its cause, and `phase-1.md` names `unverified_check.py` from `e52833c6` and `chain_check.py` from `99ca2178`. Run at `e52833c6`, `tests/evals/test_seed_defects.py` gave 7 failed, each on the copied check failing to load `skills/verify/scripts/../../../hooks/lib/fields.py`, which is the cause the finding names.
 
 ## Confirmations
 
