@@ -52,6 +52,11 @@ In `test_names_each_named_case_no_shipped_commit_answers_with_its_reason`, after
         assert capsys.readouterr().err == unshipped + empty
 ```
 
+```seal
+verdict: deferred #1228
+answer: Deferred by the orchestrator's decision recorded in `frame/plan.md` *Judgments of the run* (11d1ea61): this is the fourth finding of the run on how a generator answers a `--case` name, and the run stops after round 4 rather than spend another round on a maintainer's tool that gates nothing. #1228 carries the symptom, the coordinates and this round's paste-ready fix. The changelog sentence that said a name given twice is one name now says what still happens (a88fe334); the two docstrings keep it, and #1228 names them.
+```
+
 ### 2. `frame/design.md` *Scope* item 4 says a `--case` run exits 1 only where a name is unanswered, and `seed_defects.py --case` exits 1 with every name answered where no commit it read holds a round 1 record
 
 ```seal
@@ -67,6 +72,11 @@ A `--case` run no longer compares the number of cases written with the number of
 ```
 
 This replaces the last sentence of *Scope* item 4, from "A `--case` run exits 1 only" to its end.
+
+```seal
+verdict: fixed a88fe334
+answer: The orchestrator folded `frame/design.md` *Scope* item 4 with this round's text: a `--case` run exits 1 where a name is unanswered, and `seed_defects.py` also where no commit it read holds a round 1 record. The commit touches the work item's records alone.
+```
 
 ## Confirmations
 
