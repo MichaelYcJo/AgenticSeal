@@ -31,7 +31,8 @@ judged (`carried_by`). The arms are eight:
                 least one work item, in every work item `frame/design.md` its
                 own commits add or change (`edited_work_items`); a design with
                 no such section, and a work item with no design, pass, and a
-                heading near `## Rule changes` is another section
+                heading near `## Rule changes` outside the section is another
+                section
   records       `Review | through the review chain`: `trail/rounds/` holds at least
                 one `round-N.md`; each reads whole against the grammar table
                 of `docs/the-review-record.md` *The round record*, which

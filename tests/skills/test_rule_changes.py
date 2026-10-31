@@ -128,14 +128,15 @@ class Test_parse:
         folded, are those of `Rule changes` and that is not `## Rule changes`
         is another section. Nothing of it is read and nothing is refused for
         it: it is named in `unread` at its line, naming the one heading read.
-        Alone, the design has no section and the settle reads it whole;
-        beside the heading, the section under the heading is read. Seen red
-        against the refusal at its line."""
+        Alone, the design has no section; above the heading, it stands
+        outside the section at every level, and the section under the
+        heading is read. A level-3 one inside the section is the next case.
+        Seen red against the refusal at its line."""
         body = "- nothing\n  why: a reason.\n\n"
         text = (
-            "# a work item\n\n"
+            f"# a work item\n\n{heading}\n\n{body}"
             + (f"## Rule changes\n\n{body}" if beside else "")
-            + f"{heading}\n\n{body}## Open questions\n\nNone.\n"
+            + "## Open questions\n\nNone.\n"
         )
         parsed = parse(text)
         ((line, why),) = parsed.unread
@@ -145,6 +146,24 @@ class Test_parse:
             assert parsed.ops is not None, parsed
         else:
             assert parsed == rules.Parsed(None, None, [], [(line, why)]), parsed
+
+    @pytest.mark.parametrize("heading", ["### rule changes", "#### Rule Changes"])
+    def test_a_near_heading_inside_the_section_is_a_line_of_it_and_not_named(
+        self, heading
+    ):
+        """Round 6 of #1167, finding 2: the section runs to the next heading
+        of level 2 or higher, so a heading below level 2 inside it is a line
+        of the section, read and refused as the items refuse a line outside
+        them, and not named as another section. One above the section, or
+        one that ends it, is another section and is named (the case above).
+        Seen red against the naming of every near heading."""
+        text = spec(f"{heading}\n- remove\n  file: docs/a.md\n  section: S")
+        parsed = parse(text)
+        assert parsed.unread == [], parsed
+        assert parsed.errors == [(line_of(text, heading), "a line outside an item")]
+        # The same heading under `## Scope`, above the section, is named.
+        above = spec("- nothing\n  why: a reason.").replace("In.", f"{heading}\n\nIn.")
+        assert [n for n, _ in parse(above).unread] == [line_of(above, heading)]
 
     def test_a_heading_with_other_letters_is_no_near_miss(self):
         """The class is the letters of `Rule changes`; a heading with other

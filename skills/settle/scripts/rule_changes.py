@@ -102,10 +102,12 @@ def parse(text, policy_root):
     `file` is a top-level `.md` of the directory POLICY_ROOT.
 
     The section is read under `## Rule changes` alone. A heading at any
-    level whose letters, case folded, are that heading's and that is not it
-    is another section: none of its lines is read, nothing is refused for
-    it, and it goes to `unread` at its line (`NEAR_HEADING`), so a design
-    holding only it has no section and the settle reads it whole. A first
+    level whose letters, case folded, are that heading's, that is not it and
+    that stands outside the section is another section: none of its lines
+    is read, nothing is refused for it, and it goes to `unread` at its line
+    (`NEAR_HEADING`), so the settle reads the design whole. Such a heading
+    below level 2 inside the section is a line of the section, refused as
+    the items refuse a line outside them, and is not named. A first
     line of the section that opens like the no-change block and is not it
     goes there too (`unverified_check.py#unread_block`), beside the refusal
     the items give it. Whether either meant the form is the judgment of the
@@ -114,10 +116,17 @@ def parse(text, policy_root):
     lines = r.gfm_lines(text)
     marks = headings(lines, comments=False)
     found = [(n, lv) for n, lv, t in marks if lv == 2 and t == HEADING]
+    # A section runs to the next heading of level 2 or higher, so a heading
+    # below level 2 inside one is a line of it, read and refused as the
+    # items refuse a line outside them, and not named.
+    inside = set()
+    for start, _ in found:
+        end = next((n for n, lv, _ in marks if n > start and lv <= 2), len(lines))
+        inside.update(range(start + 1, end))
     unread = [
         (n + 1, NEAR_HEADING.format(written=lines[n].strip(), heading=HEADING))
         for n, lv, t in marks
-        if letters(t) == letters(HEADING) and (n, lv) not in found
+        if letters(t) == letters(HEADING) and (n, lv) not in found and n not in inside
     ]
 
     def done(ops, nothing, errors):
