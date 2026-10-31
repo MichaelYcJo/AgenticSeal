@@ -90,11 +90,14 @@ it aside. For a review with no path in at all, open a fresh session and call
 `@agent-agentic:proofer` there: the round history is files, so it is inherited
 either way.
 The review run is bounded: three finding rounds by default, counted from the
-last design change (a reframe, or a new phase you approved), and one more at
-a time only while each round finds fewer findings than the one before and
-none of them is a regression, a defect a fix pass's own commit introduced.
-A regression sent to a fix pass gets one verifying round for that fix, and
-it is not an extension. At the cap every
+last design change (a reframe, or a new phase you approved), are where the
+orchestrator weighs whether another round still pays. It goes on or stops by
+the signals of a run that is not converging, a round finding as many as the
+one before or a regression, a defect a fix pass's own commit introduced, among
+them, and writes that decision with its grounds in the work item's
+`frame/plan.md`, where `seal settle` reads it after the release. A regression
+sent to a fix pass gets one verifying round for that fix whatever the count.
+When the rounds stop, every
 finding still open is handed on and reads `deferred <home>`, whether or not
 everything was resolved. What is left is handed over rather than
 carried — an unanswered finding to `seal/follow-up.md`, a decision only
@@ -257,7 +260,7 @@ wrong for every other machine.
 
 | Command | Does |
 |---|---|
-| `seal deferrals . [--kind all]` | resolve the answerer an `unverified` row names — does anything here actually run the check you are deferring? Separates *answers on pull requests* from *answers too late*, *trigger unread, not counted*, *local hook only*, and *nothing* |
+| `seal deferrals . [--kind all]` | resolve the answerer an `unverified` row names — does anything here actually run the check you are deferring? Separates *a CI file holds a runner* from *local hook only* and *nothing*, and names each CI file with its command line; whether that file runs before the change merges is its trigger, which you open |
 | `seal unverified . [--baseline <ref>]` | read the rows those `unverified` labels left behind — what is still open, in which work item, and who was named to answer it. Fails on a section it cannot read, because a tolerant reader reports zero and zero reads as *all closed*. With `--baseline`, it compares counts against `git merge-base <ref> HEAD`: the point where this branch forked from that ref on a branch checkout, and the base's tip in CI, which checks a pull request out already merged into the base. Either way a work item that landed on the base afterwards is not this branch's removal. A table with fewer rows than at that commit fails, as does a `gaps.md` that was there and is gone. Replacing one row with another keeps the count and passes |
 | `seal cost --latest` | where a session's minutes went — command time, model time between calls, checks re-run for a result already produced, and how many tools went out per turn — numbers nothing inside a session can measure |
 | `seal cost --segments <transcript>` | one row per agent the run spawned, read from that agent's own transcript: its span, calls, tools per turn, mean gap, tokens, and the context its largest turn read. That span is in no other column — where a harness writes a spawn's result on acceptance, the `--spawns` table reads seconds for an agent that ran twenty minutes. A resumed agent is one row per stretch of work, so no span covers the wait between two of them — whether the command is given the run's transcript or that agent's own — and a segment that spawned an agent of its own prints a line saying so. Under the table it names each row whose tools per turn sit under its kind's bar — a proofer's or a framer's; a crafter's edit-test loop is exempt — and counts the rows it could not grade |

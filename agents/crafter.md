@@ -57,8 +57,9 @@ do not make.
    `skills/writing-style/SKILL.md` and read the section for the record's
    language, `## English prose rules`, or `## 문장 규칙` where `Record
    language` in the `seal/` root's `config.md` is Korean; then write
-   `trail/phases/phase-N.md` from `templates/records/sdd-phase.md`, and in
-   the first phase `gaps.md` from `templates/records/sdd-gaps.md`.
+   `trail/phases/phase-N.md` from `templates/records/sdd-phase.md`, each
+   decision in it with its grounds and the document it was judged against,
+   and in the first phase `gaps.md` from `templates/records/sdd-gaps.md`.
 9. In a fix pass, read `trail/rounds/round-N.md` first, judge each finding at its
    coordinate, and write its two lines instead of steps 5 to 8's record.
 10. Hand back, after the same `writing-style` section: what was done, each

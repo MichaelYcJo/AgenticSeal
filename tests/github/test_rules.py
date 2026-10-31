@@ -227,13 +227,49 @@ class Test_main:
     def test_a_refused_line_is_printed_with_why(self, tmp_path, capsys):
         """`seal rules <doc>` prints a line out of grammar under its section with the
         reason `--check` refuses it, and still exits 0."""
-        root = tree(tmp_path, "## One\n\nEnforced by: tests/test_x.py\n")
+        root = tree(tmp_path, "## One\n\ncheck: tests/test_x.py, tests/test_x.py\n")
         code, out, _ = run(root, capsys)
         assert code == 0
         assert (
-            "  check, line 3:\n    refused: `Enforced by: tests/test_x.py` is no check "
-            "line: write `check: <targets>` or `check: none reader: <who reads it>`\n"
+            "  check, line 3:\n    refused: `,` is no part of a check line: write "
+            "`check: <targets>` or `check: none reader: <who reads it>`\n"
         ) in out, out
+
+    def test_a_line_not_read_is_printed_as_one_and_holds_nothing(
+        self, tmp_path, capsys
+    ):
+        """#1167, *Scope* item 8: `seal rules <doc>` prints a line that opens
+        like a check line and is not one as not read, with the reason
+        `--check` names it, and the section it stands in holds no check line.
+        Seen red against the line printed as refused."""
+        root = tree(tmp_path, "## One\n\nEnforced by: tests/test_x.py\n")
+        code, out, _ = run(root, capsys)
+        assert code == 0
+        assert out == (
+            "## One\n"
+            "  not read, line 3: `Enforced by: tests/test_x.py` opens like a check "
+            "line and is not one, so it was not read: write `check: <targets>` or "
+            "`check: none reader: <who reads it>`\n"
+            "  (no check line)\n"
+        ), out
+
+    def test_a_heading_that_opens_like_a_check_line_is_printed_under_itself(
+        self, tmp_path, capsys
+    ):
+        """A heading that opens like a check line is a section of its own, so
+        the walk prints it, then names it as not read under it."""
+        root = tree(tmp_path, "## One\n\n## check: tests/test_x.py\n")
+        code, out, _ = run(root, capsys)
+        assert code == 0
+        assert out == (
+            "## One\n"
+            "  (no check line)\n\n"
+            "## check: tests/test_x.py\n"
+            "  not read, line 3: `## check: tests/test_x.py` opens like a check "
+            "line and is not one, so it was not read: write `check: <targets>` or "
+            "`check: none reader: <who reads it>`\n"
+            "  (no check line)\n"
+        ), out
 
     def test_a_test_under_a_dot_directory_is_not_read_for_markers(
         self, tmp_path, capsys
@@ -293,6 +329,7 @@ class Test_main:
         )
         code, out, _ = run(root, capsys)
         assert rules.main(["--check", "--root", str(root)]) == 0, capsys.readouterr()
+        assert "not read" not in capsys.readouterr().out
         after = sorted(
             (p, os.path.getsize(os.path.join(d, p)))
             for d, _, files in os.walk(root)
@@ -328,23 +365,14 @@ class Test_main:
     )
     def test_accepts_a_check_line_in_grammar(self, tmp_path, capsys, line, said):
         """S1, S2, S4. A line of resolving targets, one space apart, or the
-        no-target form with its reader, is exit 0."""
+        no-target form with its reader, is exit 0, and is read, not named."""
         code, out = checked(tmp_path, {"docs/a.md": doc(rule(line))}, capsys)
         assert code == 0, out
-        assert said in out, out
+        assert out == f"{said}\n", out
 
     @pytest.mark.parametrize(
         "line, why",
         [
-            (
-                f"Enforced by: {HELD}",
-                f"`Enforced by: {HELD}` is no check line: {EXPECTED}",
-            ),
-            (f"Check: {HELD}", f"`Check: {HELD}` is no check line: {EXPECTED}"),
-            (f"**check:** {HELD}", f"`**check:** {HELD}` is no check line: {EXPECTED}"),
-            (f"check : {HELD}", f"`check : {HELD}` is no check line: {EXPECTED}"),
-            (f"- check: {HELD}", f"`- check: {HELD}` is no check line: {EXPECTED}"),
-            (f"checks: {HELD}", f"`checks: {HELD}` is no check line: {EXPECTED}"),
             (
                 f"check: {HELD}::test_held",
                 f"`::` is no part of a check line: {EXPECTED}",
@@ -370,12 +398,6 @@ class Test_main:
             (f"check: {HELD} tests/test_gone.py", "tests/test_gone.py does not exist"),
         ],
         ids=[
-            "the old label",
-            "a capital",
-            "in bold",
-            "a space before the colon",
-            "a list bullet",
-            "a plural",
             "a test named after the path",
             "a comma",
             "an em dash",
@@ -401,9 +423,29 @@ class Test_main:
         assert "seal rules: 1 refused in 1 check lines of 1 rule files." in out, out
 
     @pytest.mark.parametrize(
-        "markup",
-        ["1. ", "> ", "## ", "- [ ] ", "| "],
+        "line",
+        [
+            f"Enforced by: {HELD}",
+            f"Check: {HELD}",
+            f"**check:** {HELD}",
+            f"check : {HELD}",
+            f"check:{HELD}",
+            f"checks: {HELD}",
+            f"- check: {HELD}",
+            f"1. check: {HELD}",
+            f"> check: {HELD}",
+            f"## check: {HELD}",
+            f"- [ ] check: {HELD}",
+            f"| check: {HELD}",
+        ],
         ids=[
+            "the old label",
+            "a capital",
+            "in bold",
+            "a space before the colon",
+            "no space after the colon",
+            "a plural",
+            "a list bullet",
             "an ordered-list number",
             "a blockquote mark",
             "a heading mark",
@@ -411,21 +453,51 @@ class Test_main:
             "a table pipe",
         ],
     )
-    def test_a_label_behind_block_markup_is_refused_at_its_line(
-        self, tmp_path, capsys, markup
+    def test_names_a_line_that_opens_like_one_and_is_not_one_at_exit_0(
+        self, tmp_path, capsys, line
     ):
-        """S5's one class: a line whose only content before `check:` is Markdown
-        block markup is a near miss, refused at its own line, never read and
-        never passed. Only the exact line shape is read."""
-        line = f"{markup}check: {HELD}"
+        """#1167, *Scope* item 8: only the one shape is read. A line that opens
+        like a check line and is not one, another case, emphasis, a space
+        before the colon, the plural, the old label or block markup before
+        the label, is named at its line, under its heading, as not read, and
+        decides nothing: the run is exit 0, and the line is no check line in
+        the count. Pinned whole (contract rule 14). Seen red against the
+        refusal at exit 1."""
         code, out = checked(tmp_path, {"docs/a.md": doc(rule(line))}, capsys)
+        # A line that is a heading stands under itself.
+        heading = line[3:] if line.startswith("## ") else "The heading"
+        assert code == 0, out
+        assert out == (
+            f"seal rules: not read: docs/a.md:6: {heading}: `{line}` opens like "
+            "a check line and is not one, so it was not read: write "
+            "`check: <targets>` or `check: none reader: <who reads it>`\n"
+            "seal rules: all 0 check lines in 1 rule files hold.\n"
+        ), out
+
+    @pytest.mark.parametrize(
+        "line",
+        [f"Checked: {HELD}", f"The check: {HELD}", f"A check line: {HELD}"],
+        ids=["another word", "a word before it", "words between"],
+    )
+    def test_names_no_line_that_does_not_open_like_one(self, tmp_path, capsys, line):
+        """A line whose label is another word, or that has words before the
+        label, is prose: neither read nor named."""
+        code, out = checked(tmp_path, {"docs/a.md": doc(rule(line))}, capsys)
+        assert code == 0, out
+        assert out == "seal rules: all 0 check lines in 1 rule files hold.\n", out
+
+    def test_names_a_line_beside_a_refusal_and_keeps_the_refusal(
+        self, tmp_path, capsys
+    ):
+        """The naming decides nothing either way: a refused check line in the
+        same file is still exit 1, and the named line is printed too."""
+        text = doc(rule(f"Check: {HELD}"), rule("check: tests/test_gone.py"))
+        code, out = checked(tmp_path, {"docs/a.md": text}, capsys)
         assert code == 1, out
-        refusals = [
-            row for row in out.splitlines() if row.startswith("seal rules: docs/a.md:")
-        ]
-        assert len(refusals) == 1, out
-        assert refusals[0].startswith("seal rules: docs/a.md:6: "), out
-        assert refusals[0].endswith(f"`{line}` is no check line: {EXPECTED}"), out
+        assert (
+            "seal rules: docs/a.md:9: The heading: tests/test_gone.py does not" in out
+        )
+        assert "seal rules: not read: docs/a.md:6: The heading: `Check: " in out, out
         assert "seal rules: 1 refused in 1 check lines of 1 rule files." in out, out
 
     @pytest.mark.parametrize(
@@ -555,9 +627,10 @@ class Test_main:
         """The fact read on every pull request: `seal rules --check` over this tree is
         exit 0. On a scratch copy of what the check reads (the rule files, the
         files their targets name and the tests carrying their markers) one target
-        renamed is exit 1 naming its line, and so is the old label planted in a
-        file of every other rule-file glob, so a walk that read `docs/*.md` alone,
-        or read a renamed target as resolving, goes red here. The pending designs
+        renamed is exit 1 naming its line, and so is a check line naming a gone
+        file, planted in a file of every other rule-file glob, so a walk that
+        read `docs/*.md` alone, or read a renamed target as resolving, goes red
+        here. The pending designs
         are copied too, so a line a pending `remove` excuses stays excused, and
         no defect is planted in a file such a `remove` names."""
         assert rules.main(["--check", "--root", ROOT]) == 0, capsys.readouterr().out
@@ -604,7 +677,7 @@ class Test_main:
                 )
                 text, renamed, named[pattern] = "\n".join(lines), rel, rel
             elif pattern not in named:
-                text += "\n\nEnforced by: tests/test_planted_and_gone.py\n"
+                text += "\n\ncheck: tests/test_planted_and_gone.py\n"
                 named[pattern] = rel
             destination = tmp_path / rel
             destination.parent.mkdir(parents=True, exist_ok=True)

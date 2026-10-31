@@ -337,9 +337,13 @@ def test_the_owner_states_the_dispatch_step_and_the_limit():
 def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge():
     """S7 of #945. A pull request GitHub cannot merge gets no merge ref and
     no `pull_request` CI, and nothing else says so, so the owner section
-    reads `mergeable` before it waits on CI. A conflict is integrated by a
-    merge, never a rebase, and the chain check reads no merge commit, so a
-    resolution outside the records gets a verifying round."""
+    reads `mergeable` before it waits on CI. #1200 adds `state` to the same
+    read, before a push as well as after it, because a commit pushed to the
+    branch of a merged pull request reaches no pull request, and the wait
+    reads every workflow's checks rather than one workflow's run. A conflict
+    is integrated by a merge, never a rebase, and the chain check reads no
+    merge commit, so a resolution outside the records gets a verifying
+    round."""
     text = flat(*ORCH)
     section = text[
         text.index("## Orchestrator: the pull request opens once the sealer seals") : (
@@ -347,7 +351,10 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
         )
     ]
     for said in (
-        "reads `gh pr view <N> --json mergeable` before it waits on CI",
+        "reads `gh pr view <N> --json state,mergeable` when the pull request "
+        "opens, before each push to its branch and after each push",
+        "`MERGED` or `CLOSED` stops the push",
+        "`gh pr checks <N> --watch`",
         "`CONFLICTING` means GitHub made no merge ref for the pull request and "
         "runs no `pull_request` CI on it, and nothing else says so",
         "`UNKNOWN` means GitHub has not computed the answer yet",
@@ -694,3 +701,46 @@ def test_the_cap_counts_from_the_last_design_change():
     assert "the record that stopped the run" not in flat(*FRAMER), (
         "agents/framer.md still reads a regression's round as the end of the run"
     )
+
+
+JUDGMENTS = "`frame/plan.md` *Judgments of the run*"
+
+
+def test_the_orchestrators_run_judgments_are_rows_of_the_plan():
+    """#1167, *Scope* item 11. The cap, the second regression on one unit
+    and a decision folded after the frame are judgments the orchestrator
+    weighs, and each goes to one row of the plan's table, which the
+    settle's dry run reads; the extension line the proofer wrote from the
+    spawn prompt, which no round record ever carried, goes, and so does the
+    route taken whatever the comparison says. *The run* in the policy root
+    changes at the settle, so this reads the two skill files the
+    orchestrator acts from."""
+    text = flat(*ORCH)
+    run = text[
+        text.index("## Orchestrator: the run ends with a verifying round") : (
+            text.index(REGRESSION)
+        )
+    ]
+    regression = text[
+        text.index(REGRESSION) : text.index("## Orchestrator: the pull request opens")
+    ]
+    assert "as one row of " + JUDGMENTS in run, run
+    for signal in ("as many findings as the one before it", "a `regression:` line"):
+        assert signal in run, f"the cap no longer names the signal {signal!r}"
+    assert "the extension line" not in run, run
+    assert "extends one round at a time" not in run, run
+    row = regression[
+        regression.index("| the unit already had a regression") : regression.index(
+            "The framer's route:"
+        )
+    ]
+    assert JUDGMENTS in row, row
+    assert "whatever the sentence says" not in row, row
+    assert JUDGMENTS in the_order(), "a folded decision's grounds have no home"
+    fix_pass = text[
+        text.index("**The fix pass then finds") : text.index("**You type only the half")
+    ]
+    assert (
+        "names a statement of a rule it reworded that stands in the work "
+        "item's frame" in fix_pass
+    ), fix_pass

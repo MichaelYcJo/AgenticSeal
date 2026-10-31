@@ -77,15 +77,23 @@ field per line, indented two spaces:
   line that begins inside a span an earlier line opened is refused at its
   line.
 - A design that changes no rule writes the no-change block in place of the
-  items, `- nothing` with its one field `why:`. Any other spelling of it is
-  refused at its line, naming the block.
+  items, `- nothing` with its one field `why:`, and the block is read in
+  that one spelling. A first line that opens like it and is not it, such as
+  `nothing — <why>` or `- none`, is no block: the section is refused at that
+  line as the items refuse any line outside them, and the reader names the
+  line as one it did not read. `## Not verified` reads the block the same
+  way.
 - A block that does not match whole is refused at its line, and its design
   joins no group: the settling session reads it whole.
-- The section's heading is `## Rule changes`, spelt exactly so. A heading at
-  any level whose letters, case folded, are those of `Rule changes`, and
-  that is not that heading, is a near miss: it is refused at its line. A
-  heading with other letters, such as `## Rules changes`, is another
-  section.
+- The section's heading is `## Rule changes`, spelt exactly so, and no
+  other heading is read as it. A heading whose letters, case folded, are
+  those of `Rule changes`, that is not that heading and that stands outside
+  the section, is another section: the reader names it, `chain-check`
+  prints it at its line as one it did not read and refuses nothing for it,
+  and the settle reads the design whole. Such a heading below level 2
+  inside the section is a line of the section, refused as any line outside
+  an item is. Whether a named heading meant the section is the judgment of
+  whoever reads the design, the proofer at review among them.
 
 `skills/settle/scripts/rule_changes.py` is the one reader.
 `chain-check` asks the same reader at the pull request, for each work item
@@ -111,18 +119,22 @@ stays English in every edition.
 - A marker names the tests of a rule whose test drives a script that can
   refuse a commit or fail a required pull-request job. Every other rule names
   files.
-- A line whose only content before the label is Markdown block markup or
-  emphasis is a near miss and is refused at its line; only the exact shape
-  above is read.
-- Every other spelling of the label is refused at its line too: another
-  case, a space before the colon, the plural, the word `Enforced by`. So is
-  a value holding `::`, a comma or an em dash, a reader with a space
-  more after `reader:`, a path that is no file of the repository, and a
-  marker no test carries.
+- Only the exact shape above is read. A line that opens like a check line
+  and is not one, the label in another case, under emphasis, behind
+  Markdown block markup, with a space before the colon, in the plural or as
+  the word `Enforced by`, is named at its line as not read and refused for
+  nothing; whether it meant a check line is review's to judge.
+- A check line is one line. A target wrapped onto the line below is not
+  read, and nothing names it, since the line below is prose: a check line
+  naming more targets than a wrapped line holds is written past the wrap.
+- A check line is refused at its line for a value holding `::`, a comma or
+  an em dash, a reader with a space more after `reader:`, a path that is no
+  file of the repository, and a marker no test carries.
 
 **What this plugin checks, and what it does not.** It ships `seal rules --check`
-(`.github/scripts/rules.py`), which reads every check line in a rule file and
-refuses one the grammar refuses. A refused line inside a section that a
+(`.github/scripts/rules.py`), which reads every check line in a rule file,
+refuses one the grammar refuses and names one it did not read. A refused
+line inside a section that a
 pending `remove` with no `from` takes out at the settle is printed as
 excused, with the work item that removes it, and is no refusal. A pending
 `change`, or a `remove` with a `from`, excuses nothing, and where the `seal/`
@@ -167,9 +179,21 @@ nothing:
   whose commits no ancestry orders are marked `unordered`, for the settling
   session to order by content.
 - **The designs to read whole**: one whose `## Rule changes` does not parse,
-  with the reader's reason, and one with no such section.
+  with the reader's reason, one with no such section, and one in which the
+  reader names a line it did not read, a heading near `## Rule changes`
+  among them, with that line and its reason.
 - **Every open `## Not verified` row** of every released record, each with
   the backticked paths it names and whether each is in the working tree.
+- **The judgments**: every row of every released `frame/plan.md` *Judgments
+  of the run*, the decisions the orchestrator made in its run with their
+  grounds, grouped by the `Judged against` cell, the document each stands
+  on, with each work item's round count beside it. A plan with no such
+  section prints nothing. A heading whose letters, case folded, are the
+  section's and that is not it is named as not read at its line, and so is
+  a section whose table is not under the exact header. A `trail/rounds`
+  that is not a directory the dry run can list is named in place of a
+  count. `--apply` removes the plans, so this is the one reading the rows
+  get.
 - **What `--apply` removes**, the citations into it from outside
   `seal/threads/`, and the checks under `tests/` that read `seal/threads`.
 
@@ -187,7 +211,11 @@ does not parse, an unordered pair and an open row are all shown.
    with its group and not applied. The rest of the document stays as it
    was, and no marker is written.
 3. Read each design listed to read whole, and write any rule it states the
-   same way.
+   same way. Then read *The judgments*: where one kind of judgment recurs
+   across work items under one document, or kept costing rounds, rewrite
+   that document's section in this settle, as step 2 writes a group's, so
+   the guidance improves from the record (`skills/core/SKILL.md` *A judgment
+   stands on a source document, and is written down with both*).
 4. Decide each open row against the tree, and close it in its record with
    `closed` and what closed it:
 
