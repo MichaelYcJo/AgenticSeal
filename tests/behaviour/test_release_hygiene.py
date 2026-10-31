@@ -10,8 +10,11 @@ import json
 import os
 import re
 import subprocess
+import sys
+import textwrap
 
-from conftest import ROOT, build_tracked_tree, git_listing, on_disk
+import pytest
+from conftest import ROOT, build_tracked_tree, git_listing, on_disk, workflow_step
 
 
 def read_text(*parts):
@@ -1330,6 +1333,49 @@ def test_the_pull_request_checks_the_chain_it_was_routed_to():
     assert os.path.isfile(
         os.path.join(ROOT, "skills", "code-review", "scripts", "chain_check.py")
     ), "the workflow calls a script that is not there"
+
+
+RULES_STEP = "the check lines rules.py did not read"
+RULES_COMMAND = "python3 .github/scripts/rules.py --check"
+
+
+@pytest.mark.skipif(os.name == "nt", reason="the step runs under bash on Linux")
+def test_the_check_lines_rules_did_not_read_reach_the_pull_request(tmp_path):
+    """Round 6 of #1167, finding 3: `seal rules --check` gates inside the
+    suite, whose capture keeps its output, so the hygiene step is where a
+    line it names as not read reaches the pull request: the step's own shell,
+    run over a tree holding one, prints it as a notice annotation at its
+    file and line, pinned whole (contract rule 14), and exits 0 whatever the
+    check's exit. Seen red against the workflow with no such step."""
+    text = open(
+        os.path.join(ROOT, ".github", "workflows", "hygiene.yml"), encoding="utf-8"
+    ).read()
+    lines = workflow_step(text, RULES_STEP).split("\n")
+    start = next(i for i, ln in enumerate(lines) if ln.strip() == "run: |") + 1
+    script = textwrap.dedent("\n".join(lines[start:]))
+    assert script.count(RULES_COMMAND) == 1, script
+    rules = os.path.join(ROOT, ".github", "scripts", "rules.py")
+    script = script.replace(
+        RULES_COMMAND, f'"{sys.executable}" "{rules}" --check --root "{tmp_path}"'
+    )
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs" / "a.md").write_text(
+        "# A\n\n## The heading\n\n**A rule.** Its why.\nCheck: tests/gone.py\n"
+        "check: tests/gone.py\n",
+        encoding="utf-8",
+    )
+    done = subprocess.run(
+        ["bash", "-eo", "pipefail", "-c", script],
+        capture_output=True,
+        encoding="utf-8",
+        cwd=tmp_path,
+    )
+    assert done.returncode == 0, done.stderr
+    assert done.stdout == (
+        "::notice file=docs/a.md,line=6::not read: The heading: `Check: "
+        "tests/gone.py` opens like a check line and is not one, so it was not "
+        "read: write `check: <targets>` or `check: none reader: <who reads it>`\n"
+    ), done.stdout
 
 
 def test_the_chain_check_reuses_the_reader_rather_than_writing_a_second():
