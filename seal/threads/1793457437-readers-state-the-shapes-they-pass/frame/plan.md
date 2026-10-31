@@ -41,4 +41,4 @@ None. No reader, hook, command or config row changes, and nothing a deployer run
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-01 | *Scope* items 1 and 3 are folded to the sentences round 1's fix pass wrote (fd549f8e, b5a4d754): the marker sentence names the root under the git directory, and the count sentence names the row shape `header_field` reads | Both findings were the frame's own wording carried into the build; the next crafter and the verifying round read the frame | `skills/code-review/orchestration.md` *The fix pass then finds what the fixes left standing* |
