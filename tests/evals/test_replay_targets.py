@@ -104,6 +104,97 @@ confirms: round-3#1
 another round's.
 """
 
+# One work item in each layout a release has kept its round records in, as
+# `(item, its directory, the directory of its round records, its branch)`.
+SPECS_ITEM = (
+    "1791000001-a-specs-item",
+    "seal/specs/1791000001-a-specs-item",
+    "rounds",
+    "feat/1-a-specs-item",
+)
+THREADS_ITEM = (
+    "1792000001-a-threads-item",
+    "seal/threads/1792000001-a-threads-item",
+    "trail/rounds",
+    "feat/2-a-threads-item",
+)
+
+
+def two_layouts(tmp_path, monkeypatch, rt):
+    """A repository whose tag `v1.0.0` holds `SPECS_ITEM`'s rounds 1 and 2
+    and whose tag `v1.1.0` holds `THREADS_ITEM`'s, each pair in its own
+    layout and in labelled lines, with the check of `LABELLED_AT` committed
+    before either. Round 1 of each reviewed the commit that added its
+    `routing.md`, against the base, and closed finding 1 fixed; round 2
+    confirms it. Neither pair stands in the working tree. RT reads the
+    repository. `{name: commit}`."""
+    repo = tmp_path / "layouts"
+    repo.mkdir()
+    who = ["-c", "user.name=x", "-c", "user.email=x@example.com"]
+
+    def git(*args):
+        return subprocess.run(
+            ["git", "-C", str(repo), *who, *args],
+            check=True,
+            capture_output=True,
+            encoding="utf-8",
+        ).stdout.strip()
+
+    def put(rel, text):
+        path = repo / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+
+    git("init", "-q")
+    for rel, said in labelled_check_files().items():
+        put(rel, said)
+    put("src/a.py", "x = 1\n")
+    git("add", "-A")
+    git("commit", "-qm", "base")
+    commits = {"base": git("rev-parse", "HEAD")}
+    for (item, home, rounds, branch), tag in (
+        (SPECS_ITEM, "v1.0.0"),
+        (THREADS_ITEM, "v1.1.0"),
+    ):
+        put(
+            f"{home}/routing.md",
+            f"| Axis | Answer |\n|---|---|\n| Branch | {branch} |\n",
+        )
+        git("add", "-A")
+        git("commit", "-qm", f"routing of {item}")
+        commits[item] = git("rev-parse", "HEAD")
+        first = LABELLED_ROUND_1.replace("# i ", f"# {item} ").replace(
+            "1a2b3c4 against main", f"{commits[item]} against {commits['base']}"
+        )
+        put(f"{home}/{rounds}/round-1.md", first)
+        put(
+            f"{home}/{rounds}/round-2.md",
+            LABELLED_ROUND_2.replace("# i ", f"# {item} "),
+        )
+        git("add", "-A")
+        git("commit", "-qm", f"rounds of {item}")
+        git("tag", tag)
+        git("rm", "-rq", home)
+        git("commit", "-qm", f"settled {item}")
+    monkeypatch.setattr(rt, "ROOT", str(repo))
+    return commits
+
+
+def tagged_repo(tmp_path, monkeypatch, rt):
+    """A repository holding no round record in either layout, its one commit
+    tagged `v1.0.0` and `v1.1.0`, with RT reading it."""
+    repo = tmp_path / "empty"
+    repo.mkdir()
+    who = ["-c", "user.name=x", "-c", "user.email=x@example.com"]
+    for args in (
+        ["init", "-q"],
+        ["commit", "-q", "--allow-empty", "-m", "base"],
+        ["tag", "v1.0.0"],
+        ["tag", "v1.1.0"],
+    ):
+        subprocess.run(["git", "-C", str(repo), *who, *args], check=True)
+    monkeypatch.setattr(rt, "ROOT", str(repo))
+
 
 class Test_confirmed:
     def test_accepts_a_fixed_finding_the_next_round_confirmed(self):
@@ -339,13 +430,14 @@ class Test_module:
         that wrote it, so a round written before the `evidence:` row still
         confirms the fix it names, and the replay keeps the target."""
         rt = load_script("replay_targets")
-        two = "seal/specs/i/rounds/round-2.md"
+        two = "seal/threads/i/trail/rounds/round-2.md"
+        _specs, threads = rt.LAYOUTS
         monkeypatch.setattr(
             rt,
             "records",
             lambda _tags, _items=None: {
-                ("i", 1): LABELLED_ROUND_1,
-                ("i", 2): LABELLED_ROUND_2,
+                ("i", 1): (threads, LABELLED_ROUND_1),
+                ("i", 2): (threads, LABELLED_ROUND_2),
             },
         )
         monkeypatch.setattr(rt, "written_at", lambda rel, _tags: f"at {rel}")
@@ -408,26 +500,132 @@ class Test_module:
     def test_records_read_only_the_named_items(self, monkeypatch, tmp_path):
         """Guards `--case`'s reach over every release tag: only the named work
         items' records are read, so reading all tags costs one listing a tag and
-        a `git show` per named record, never one per record in the history."""
+        a `git show` per named record, never one per record in the history.
+        Each record comes with the layout it was read in, from the working
+        tree and from a tag, in both layouts a release has kept its records
+        in."""
         rt = load_script("replay_targets")
-        shown = []
+        listed, shown = [], []
+        for item in ("1793-c", "1794-d"):
+            rounds = tmp_path / "seal" / "threads" / item / "trail" / "rounds"
+            rounds.mkdir(parents=True)
+            (rounds / "round-1.md").write_text(f"the tree's {item}", encoding="utf-8")
 
         def git(*args, check=True):
             if args[0] == "ls-tree":
+                listed.append(args)
                 return (
                     "seal/specs/1791-a/rounds/round-1.md\n"
                     "seal/specs/1792-b/rounds/round-1.md\n"
+                    "seal/threads/1793-c/trail/rounds/round-1.md\n"
+                    "seal/threads/1795-e/trail/rounds/round-2.md\n"
                 )
             shown.append(args[1])
             return f"text of {args[1]}"
 
         monkeypatch.setattr(rt, "ROOT", str(tmp_path))
         monkeypatch.setattr(rt, "git", git)
-        found = rt.records(["v1.0.0"], {"1791"})
+        found = rt.records(["v1.0.0"], {"1791", "1793", "1795"})
+        specs, threads = rt.LAYOUTS
         assert found == {
-            ("1791-a", 1): "text of v1.0.0:seal/specs/1791-a/rounds/round-1.md"
+            ("1791-a", 1): (
+                specs,
+                "text of v1.0.0:seal/specs/1791-a/rounds/round-1.md",
+            ),
+            ("1793-c", 1): (threads, "the tree's 1793-c"),
+            ("1795-e", 2): (
+                threads,
+                "text of v1.0.0:seal/threads/1795-e/trail/rounds/round-2.md",
+            ),
         }
-        assert shown == ["v1.0.0:seal/specs/1791-a/rounds/round-1.md"]
+        assert listed == [
+            ("ls-tree", "-r", "--name-only", "v1.0.0", "seal/specs", "seal/threads")
+        ]
+        assert shown == [
+            "v1.0.0:seal/specs/1791-a/rounds/round-1.md",
+            "v1.0.0:seal/threads/1795-e/trail/rounds/round-2.md",
+        ]
+
+    def test_reads_a_round_record_in_either_layout_a_release_kept_it_in(
+        self, tmp_path, monkeypatch
+    ):
+        """Guards #1150: every release from 0.23.0 on keeps its round records
+        at `seal/threads/<id>/trail/rounds/`, and the generator read only the
+        layout before it, so `--list` over the last two tags printed nothing.
+        A record in either layout gives a target, the next round, `routing.md`
+        at the target and the report path each in the layout of the record
+        they derive from. Seen red against the reader of one layout, which
+        kept the `seal/specs/` item alone."""
+        rt = load_script("replay_targets")
+        commits = two_layouts(tmp_path, monkeypatch, rt)
+        kept, left = rt.targets(["v1.1.0", "v1.0.0"])
+        assert [
+            (
+                t["item"],
+                t["target"],
+                t["base"],
+                t["branch"],
+                [x["k"] for x in t["truths"]],
+            )
+            for t in kept
+        ] == [
+            (item, commits[item], commits["base"], branch, [1])
+            for item, _home, _rounds, branch in (SPECS_ITEM, THREADS_ITEM)
+        ]
+        assert left == [
+            (SPECS_ITEM[0], 2, "target 2b3c4d5 does not resolve"),
+            (THREADS_ITEM[0], 2, "target 2b3c4d5 does not resolve"),
+        ]
+        for t, (_item, home, rounds, _branch) in zip(
+            kept, (SPECS_ITEM, THREADS_ITEM), strict=True
+        ):
+            report = f"{home}/{rounds}/round-1.md"
+            assert f"Write the report to `{report}`" in rt.prompt(t)
+            assert f"run `cat {report}` once" in rt.prompt(t)
+
+    def test_says_so_and_exits_1_where_it_reads_no_round_record(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """Guards #1150's silent read: a run that found no round record in
+        either layout printed nothing and exited 0, which reads as "nothing
+        to do". It names both layouts and the tags it read on stderr, and
+        exits 1. Seen red against that exit 0."""
+        rt = load_script("replay_targets")
+        tagged_repo(tmp_path, monkeypatch, rt)
+        assert rt.main(["--list"]) == 1
+        said = capsys.readouterr()
+        assert said.out == ""
+        assert said.err == (
+            "replay_targets: no round record in `seal/specs/<item>/rounds/` or "
+            "`seal/threads/<item>/trail/rounds/`, in the working tree or at "
+            "v1.1.0, v1.0.0\n"
+        )
+
+    def test_names_each_named_case_it_did_not_write_with_its_reason(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """Guards `--case` on a name no written case answers: the run named
+        nothing and exited 1, so a reader could not tell a record left out
+        from a record never read. Each such name is said on stderr with the
+        reason `round_target` gave, or that no record of its work item, or
+        of that round, was read. Seen red against the silent exit 1."""
+        rt = load_script("replay_targets")
+        tagged_repo(tmp_path, monkeypatch, rt)
+        monkeypatch.setattr(rt, "origin_url", lambda: "https://example.com/x/y.git")
+        assert rt.main(["--case", "replay-1-r1"]) == 1
+        assert capsys.readouterr().err == (
+            "replay_targets: replay-1-r1 not written: no record of its work item "
+            "was read\n"
+        )
+        two_layouts(tmp_path, monkeypatch, rt)
+        names = ["replay-1792000001-r2", "replay-1792000001-r5"]
+        assert rt.main([x for name in names for x in ("--case", name)]) == 1
+        assert capsys.readouterr().err == (
+            "replay_targets: replay-1792000001-r2 not written: target 2b3c4d5 "
+            "does not resolve\n"
+            "replay_targets: replay-1792000001-r5 not written: no round 5 record "
+            "of its work item was read\n"
+        )
 
     @pytest.mark.parametrize(
         "blocks",
@@ -493,9 +691,14 @@ class Test_module:
         module = load_script(script)
         rt = module if script == "replay_targets" else module.rt
         calls = []
+        # One round read and left out, so `--list` has a read to list.
+        if script == "replay_targets":
+            read = ([], [("1-i", 1, "left out")])
+        else:
+            read = ([], [("c" * 40, "left out")], 1)
         monkeypatch.setattr(rt, "last_tags", lambda count=2: calls.append(count) or [])
         monkeypatch.setattr(
-            module, "targets", lambda tags, only=None: calls.append(only) or ([], [])
+            module, "targets", lambda tags, only=None: calls.append(only) or read
         )
         monkeypatch.setattr(rt, "origin_url", lambda: "https://example.com/x/y.git")
         assert module.main(["--case", name]) == 1
@@ -513,6 +716,7 @@ class Test_module:
         t = {
             "item": "1-i",
             "n": 2,
+            "report": "seal/threads/1-i/trail/rounds/round-2.md",
             "branch": "b",
             "target": "t" * 40,
             "base": "a" * 40,

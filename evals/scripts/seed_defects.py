@@ -3,9 +3,12 @@
 
 A seeded case is the tree a shipped work item's round 1 reviewed, with one
 mutation in it. For a squash commit the release branch shipped, the
-generator reads the item's round 1 record at that commit, through
+generator finds the work item by the `routing.md` the commit adds, in
+either layout `replay_targets.py#LAYOUTS` names, reads the item's round 1
+record at that commit in the same layout, through
 `replay_targets.py#round_target` for either record shape, and builds the
-case at round 1's target against round 1's base. No round record exists in
+case at round 1's target against round 1's base. The case's report is
+written at the path of round 1's record. No round record exists in
 that tree, and every branch commit its files name is an ancestor of the
 target. The mutation lands on a line `base..target` added inside a Python
 unit, and it is amended into the target commit with the target's own
@@ -41,8 +44,13 @@ Usage:
                                          release's shipped commits;
                                          repeatable
 
-Exit codes: 0 written or listed · 1 fewer cases than --count, or a named
-case no release shipped · 2 the arguments were unusable.
+A run in which no commit read holds a round 1 record in either layout
+prints each commit's `left out:` line where it lists, then says so on
+stderr.
+
+Exit codes: 0 written or listed · 1 fewer cases than --count, a named case
+no release shipped, or no commit read holding a round 1 record · 2 the
+arguments were unusable.
 """
 
 import argparse
@@ -89,8 +97,6 @@ TOKEN = {
     " - 1": "-",
     "if not ": "not",
 }
-# exempt from old_names: the 0.22.x layout of the records its cases come from
-SPEC = re.compile(r"^seal/specs/(?P<item>[^/]+)/")
 SUBJECT = re.compile(r"\(#\d+\)$")
 
 
@@ -175,43 +181,65 @@ def seed(base, target, truths=()):
     return None
 
 
-def target_of(commit):
-    """`(target, "")` for the shipped squash COMMIT, or `(None, why)`: round
-    1 of the one work item whose `routing.md` the commit adds, read at the
-    commit by `replay_targets.py#round_target` with round 2 confirming its
-    fixes, and the seed `seed` finds in round 1's `base..target`. A labelled
-    record is judged by the check of the commit that last wrote it in
-    COMMIT's history, and COMMIT's first parent, the release branch the item
-    landed on, stands for a base ref round 1 names that no longer resolves.
+def round_1_of(commit):
+    """`((item, layout, round 1's record, round 2's or None), "")` for the
+    shipped squash COMMIT, or `(None, why)`: the one work item whose
+    `routing.md` the commit adds, in either of `replay_targets.py#LAYOUTS`,
+    and its round 1 and round 2 records at the commit, in the same layout.
 
-    A commit that is no squashed pull request, adds no work item or two,
-    holds no round 1 record, whose round 1 `round_target` leaves out, two
-    of whose round 1 truths accept one `location:` line (`shared_line`), or
-    whose range takes no seed is left out with the reason."""
+    A commit that is no squashed pull request, adds no work item or two, or
+    holds no round 1 record is left out with the reason."""
     subject = rt.git("log", "-1", "--format=%s", commit).strip()
     if not SUBJECT.search(subject):
         return None, "not a squashed pull request"
     added = rt.git("diff", "--name-only", "--diff-filter=A", f"{commit}^1", commit)
     items = sorted(
-        m["item"]
+        (item, layout)
         for n in added.split("\n")
-        if (m := SPEC.match(n)) and n.endswith("/routing.md")
+        for layout in rt.LAYOUTS
+        if (item := layout.routed(n))
     )
     if len(items) != 1:
         return None, f"adds {len(items)} work items' routing.md"
-    item = items[0]
-    # exempt from old_names: the 0.22.x layout of the records its cases come from
-    rounds = f"{commit}:seal/specs/{item}/rounds"
-    first = rt.git("show", f"{rounds}/round-1.md", check=False)
+    item, layout = items[0]
+    first = rt.git("show", f"{commit}:{layout.record(item, 1)}", check=False)
     if not first:
         return None, "holds no round 1 record"
-    second = rt.git("show", f"{rounds}/round-2.md", check=False) or None
+    second = rt.git("show", f"{commit}:{layout.record(item, 2)}", check=False)
+    return (item, layout, first, second or None), ""
+
+
+def target_of(commit):
+    """`(target, "")` for the shipped squash COMMIT, or `(None, why)`: round
+    1 of the one work item whose `routing.md` the commit adds (`round_1_of`)
+    and the case `target_at` builds on it."""
+    read, why = round_1_of(commit)
+    return (None, why) if read is None else target_at(commit, *read)
+
+
+def target_at(commit, item, layout, first, second):
+    """`(target, "")` for round 1 of ITEM, which the shipped squash COMMIT
+    holds in LAYOUT as FIRST with round 2 as SECOND, or `(None, why)`:
+    round 1 read by `replay_targets.py#round_target` with round 2
+    confirming its fixes, and the seed `seed` finds in round 1's
+    `base..target`. A labelled record is judged by the check of the commit
+    that last wrote it in COMMIT's history, and COMMIT's first parent, the
+    release branch the item landed on, stands for a base ref round 1 names
+    that no longer resolves. The target's `report` is round 1's record
+    path.
+
+    A round 1 `round_target` leaves out, two of whose truths accept one
+    `location:` line (`shared_line`), or whose range takes no seed is left
+    out with the reason."""
+    subject = rt.git("log", "-1", "--format=%s", commit).strip()
 
     def wrote(rel):
         return rt.git("log", "-1", "--format=%H", commit, "--", rel).strip() or None
 
     landed = rt.git("rev-parse", f"{commit}^1").strip()
-    t, why = rt.round_target(item, 1, first, second, wrote, False, landed)
+    t, why = rt.round_target(
+        item, 1, first, second, wrote, False, landed, layout=layout
+    )
     if t is None:
         return None, f"round 1: {why}"
     patterns = [truth["pattern"] for truth in t["truths"]]
@@ -252,19 +280,25 @@ def shared_line(patterns, locations):
 
 
 def targets(tags, prefixes=None):
-    """`[target]` for every shipped commit `target_of` builds a case on, and
-    `[(commit, why)]` for each left out; where PREFIXES is given, only the
-    commits whose first eight digits it names."""
-    kept, left = [], []
+    """`([target], [(commit, why)], held)`: a target for every shipped
+    commit `target_of` builds a case on, the reason each other one was left
+    out, and the number of commits whose round 1 record was read; where
+    PREFIXES is given, only the commits whose first eight digits it
+    names."""
+    kept, left, held = [], [], 0
     for commit in shipped(tags):
         if prefixes is not None and commit[:8] not in prefixes:
             continue
-        t, why = target_of(commit)
+        read, why = round_1_of(commit)
+        t = None
+        if read is not None:
+            held += 1
+            t, why = target_at(commit, *read)
         if t is None:
             left.append((commit, why))
         else:
             kept.append(t)
-    return kept, left
+    return kept, left, held
 
 
 # The scaffold's own mutation. The generator reads the source through git
@@ -322,9 +356,9 @@ def scaffold(t, url):
 
 def prompt(t):
     """The case prompt: the orchestrator's one spawn of a fresh round 1, at
-    HEAD against round 1's base."""
-    # exempt from old_names: the 0.22.x layout of the tree the case rebuilds
-    report = f"seal/specs/{t['item']}/rounds/round-1.md"
+    HEAD against round 1's base, its report at the path of round 1's
+    record."""
+    report = t["report"]
     return f"""You are the review orchestrator of this repository. Spawn exactly one `agentic:proofer` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Review, edit and commit nothing yourself. When it returns, run `cat {report}` once and reply with the report's path.
 
 BEGIN PROMPT
@@ -343,9 +377,8 @@ def graders(t):
     """Reach, shape and truth graders for one seeded case: the seeded line,
     each finding round 1 closed fixed that round 2 confirmed, and whatever
     the input file of recurred truths adds for the case at round 1's
-    target."""
-    # exempt from old_names: the 0.22.x layout of the tree the case rebuilds
-    report = f"seal/specs/{t['item']}/rounds/round-1.md"
+    target, over the report at the path of round 1's record."""
+    report = t["report"]
     seeded = (
         "seeded",
         t["pattern"],
@@ -371,7 +404,9 @@ def main(argv=None):
     """Parse the arguments, then list or write. `--case` reads every release
     tag's shipped commits; the rest reads the last three tags'.
 
-    An unusable argument is argparse's exit 2."""
+    A run in which no commit read holds a round 1 record says so on stderr
+    after its `left out:` lines, and exits 1. An unusable argument is
+    argparse's exit 2."""
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     p.add_argument("--list", action="store_true")
     p.add_argument("--count", type=int, default=4)
@@ -380,11 +415,9 @@ def main(argv=None):
     p.add_argument("--model", default=rt.MODEL)
     p.add_argument("--timeout", type=int, default=2400)
     a = p.parse_args(argv)
-    if a.case:
-        prefixes = {name.removeprefix("seeded-") for name in a.case}
-        kept, left = targets(rt.last_tags(None), prefixes)
-    else:
-        kept, left = targets(rt.last_tags(3))
+    tags = rt.last_tags(None) if a.case else rt.last_tags(3)
+    prefixes = {name.removeprefix("seeded-") for name in a.case} if a.case else None
+    kept, left, held = targets(tags, prefixes)
     if a.list:
         for t in sorted(kept, key=lambda t: t["size"]):
             print(
@@ -392,6 +425,15 @@ def main(argv=None):
             )
         for commit, why in left:
             print(f"{commit[:8]} left out: {why}")
+    if not held:
+        where = ", ".join(tags) or "no release tag"
+        print(
+            f"seed_defects: no shipped commit read at {where} holds a round 1 "
+            f"record in {rt.layouts_named()}",
+            file=sys.stderr,
+        )
+        return 1
+    if a.list:
         return 0
     chosen = sorted(kept, key=lambda t: (t["size"], t["commit"]))[: a.count]
     if a.case:

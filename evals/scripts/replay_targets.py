@@ -27,10 +27,14 @@ writes today. A record comes in one of two shapes:
              numbered red or yellow row, and a green row naming it
 
 Round records come from the working tree and from the last two release
-tags (`git show <tag>:<the record's path>`, in the layout `RECORD` names);
-`--case` reads
-every release tag, so a committed case still regenerates after the release
-that moved its records out of the last two.
+tags (`git show <tag>:<the record's path>`), in either of the two layouts
+`LAYOUTS` names: the one before 0.23.0 and the thread layout since. The
+next round's record, `routing.md` at the target and the report path the
+case's prompt and graders name are each taken from the layout of the
+record they derive from. `--case` reads every release tag, so a committed
+case still regenerates after the release that moved its records out of the
+last two. A run that reads no round record in either layout says so on
+stderr, and `--case` names there each name it did not write and why.
 
 Usage:
   replay_targets.py --list                 every round with truth, and why
@@ -43,8 +47,9 @@ Usage:
                                            (`replay-<id>-rN`), from any
                                            release tag; repeatable
 
-Exit codes: 0 written or listed · 1 fewer targets than --count, or a
-named case no release tag's records hold · 2 the arguments were unusable.
+Exit codes: 0 written or listed · 1 fewer targets than --count, a named
+case not written, or no round record in either layout · 2 the arguments
+were unusable.
 """
 
 import argparse
@@ -59,6 +64,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import typing
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import behaviour
@@ -67,10 +73,55 @@ ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OUT = os.path.join(ROOT, "evals", "behaviour", "proofer")
 CHECK = os.path.join(ROOT, "skills", "code-review", "scripts", "chain_check.py")
 SHA = re.compile(r"[0-9a-f]{7,40}")
-# The layout every round record a committed case was cut from stands in:
-# each tag this reads was cut before the plugin was renamed AgenticSeal.
-# exempt from old_names: the 0.22.x layout of the records its cases come from
-RECORD = re.compile(r"seal/specs/(?P<item>[^/]+)/rounds/round-(?P<n>\d+)\.md")
+
+
+class Layout(typing.NamedTuple):
+    """One layout a release has kept its round records in: ROOT is the
+    directory every work item's directory stands in, and ROUNDS the
+    directory under a work item's that holds its round records."""
+
+    root: str
+    rounds: str
+
+    def record(self, item, n):
+        """The path of ITEM's round N record."""
+        return f"{self.root}/{item}/{self.rounds}/round-{n}.md"
+
+    def routing(self, item):
+        """The path of ITEM's `routing.md`."""
+        return f"{self.root}/{item}/routing.md"
+
+    def named(self):
+        """The directory of a work item's round records, `<item>` standing
+        for the work item, as a message names it."""
+        return f"`{self.root}/<item>/{self.rounds}/`"
+
+    def round_of(self, path):
+        """`(item, n)` where PATH is a round record of this layout, else
+        None."""
+        m = re.fullmatch(
+            rf"{re.escape(self.root)}/(?P<item>[^/]+)/{re.escape(self.rounds)}"
+            r"/round-(?P<n>\d+)\.md",
+            path,
+        )
+        return (m["item"], int(m["n"])) if m else None
+
+    def routed(self, path):
+        """The work item whose `routing.md` PATH is in this layout, else
+        None."""
+        m = re.fullmatch(rf"{re.escape(self.root)}/(?P<item>[^/]+)/routing\.md", path)
+        return m["item"] if m else None
+
+
+# The two layouts a release has kept its round records in, the only place
+# either is spelt: the one before 0.23.0, which every committed case was cut
+# from, and the thread layout every release from 0.23.0 on holds. No release
+# tag holds both, and no work item stands in both.
+LAYOUTS = (
+    # exempt from old_names: the layout of the round records before 0.23.0
+    Layout("seal/specs", "rounds"),
+    Layout("seal/threads", "trail/rounds"),
+)
 FINDING = re.compile(r"^(?P<marker>🔴|🟡) (?P<k>\d+)$")
 CONFIRMS = re.compile(
     r"round (?P<n>\d+)'s (?:blocking )?(?:finding|🟡|🔴) (?P<k>\d+) is closed"
@@ -127,35 +178,36 @@ def last_tags(count=2):
 
 
 def records(tags, items=None):
-    """`{(item, n): text}` for every round record in the working tree and at
-    TAGS, the tree read first and a tag's copy of the same round skipped.
-    Where ITEMS is given, only the work items whose `<epoch>` prefix it
+    """`{(item, n): (layout, text)}` for every round record in the working
+    tree and at TAGS, in either of `LAYOUTS`, the tree read first and a tag's
+    copy of the same round skipped; LAYOUT is the one the record was read
+    in. Where ITEMS is given, only the work items whose `<epoch>` prefix it
     names are read.
 
-    A path outside the record shape is skipped."""
+    A path outside every layout's record shape is skipped."""
 
     def wanted(item):
         return items is None or item.split("-")[0] in items
 
     found = {}
-    specs = os.path.join(ROOT, "seal", "specs")
-    for item in sorted(os.listdir(specs)) if os.path.isdir(specs) else []:
-        rounds = os.path.join(specs, item, "rounds")
-        if not wanted(item) or not os.path.isdir(rounds):
-            continue
-        for name in sorted(os.listdir(rounds)):
-            # exempt from old_names: the 0.22.x layout of the records its cases come from
-            m = RECORD.fullmatch(f"seal/specs/{item}/rounds/{name}")
-            if m:
-                with open(os.path.join(rounds, name), encoding="utf-8") as f:
-                    found[(item, int(m["n"]))] = f.read()
+    for layout in LAYOUTS:
+        root = os.path.join(ROOT, *layout.root.split("/"))
+        for item in sorted(os.listdir(root)) if os.path.isdir(root) else []:
+            rounds = os.path.join(root, item, *layout.rounds.split("/"))
+            if not wanted(item) or not os.path.isdir(rounds):
+                continue
+            for name in sorted(os.listdir(rounds)):
+                key = layout.round_of(f"{layout.root}/{item}/{layout.rounds}/{name}")
+                if key:
+                    with open(os.path.join(rounds, name), encoding="utf-8") as f:
+                        found[key] = (layout, f.read())
+    roots = [layout.root for layout in LAYOUTS]
     for tag in tags:
-        # exempt from old_names: the 0.22.x layout of the records its cases come from
-        for path in git("ls-tree", "-r", "--name-only", tag, "seal/specs").split("\n"):
-            m = RECORD.fullmatch(path)
-            key = (m["item"], int(m["n"])) if m else None
-            if key and wanted(key[0]) and key not in found:
-                found[key] = git("show", f"{tag}:{path}")
+        for path in git("ls-tree", "-r", "--name-only", tag, *roots).split("\n"):
+            for layout in LAYOUTS:
+                key = layout.round_of(path)
+                if key and wanted(key[0]) and key not in found:
+                    found[key] = (layout, git("show", f"{tag}:{path}"))
     return found
 
 
@@ -626,23 +678,24 @@ def truths_with(case, truths, target):
     return out
 
 
-def round_target(item, n, text, nxt, wrote, replay=True, landed=None):
+def round_target(item, n, text, nxt, wrote, replay=True, landed=None, *, layout):
     """`(target, "")` for round N of ITEM, or `(None, why)`. TEXT is the
-    round's record and NXT the next round's, or None where there is none.
-    WROTE maps a record's path to the commit whose check judges it: the
-    commit that wrote it (`written_at`), or None for this tree's check.
-    LANDED is the commit the work landed on, where the caller knows it
-    (`ref_base`). A target is `{"item", "n", "target", "base", "base_ref",
-    "branch", "asked", "truths", "size"}`, its truths each finding the
-    round closed `fixed` that the next round confirms, as `{"k", "finding",
-    "location", "pattern"}`.
+    round's record and NXT the next round's, or None where there is none,
+    both read in LAYOUT, which gives the path of each record and of
+    `routing.md` at the target. WROTE maps a record's path to the commit
+    whose check judges it: the commit that wrote it (`written_at`), or None
+    for this tree's check. LANDED is the commit the work landed on, where
+    the caller knows it (`ref_base`). A target is `{"item", "n", "report",
+    "target", "base", "base_ref", "branch", "asked", "truths", "size"}`,
+    REPORT the round's record path, which the case's report is written at,
+    and its truths each finding the round closed `fixed` that the next
+    round confirms, as `{"k", "finding", "location", "pattern"}`.
 
     A round whose SHAs or branch do not resolve, or a labelled record the
     check of the commit that wrote it refuses, is left out with the reason.
     Where REPLAY is set, so is a round with no next round or with no
     truth; `seed_defects.py` builds on a round with neither."""
-    # exempt from old_names: the 0.22.x layout of the records its cases come from
-    rel = f"seal/specs/{item}/rounds/round-{n}.md"
+    rel = layout.record(item, n)
     if labelled(text):
         read, why = labelled_round(text, rel, n, wrote(rel))
         if read is None:
@@ -665,13 +718,11 @@ def round_target(item, n, text, nxt, wrote, replay=True, landed=None):
         names = "the asked paragraph"
     if not base:
         return None, f"{names} names no base that resolves"
-    # exempt from old_names: the 0.22.x layout of the records its cases come from
-    routing = git("show", f"{sha}:seal/specs/{item}/routing.md", check=False)
+    routing = git("show", f"{sha}:{layout.routing(item)}", check=False)
     branch = field(routing, "Branch")
     if not branch:
         return None, "routing.md at the target names no branch"
-    # exempt from old_names: the 0.22.x layout of the records its cases come from
-    following = f"seal/specs/{item}/rounds/round-{n + 1}.md"
+    following = layout.record(item, n + 1)
     done = set() if nxt is None else confirmed(nxt, n, following, wrote(following))
     truths = []
     for k, finding, location, fixed in rows:
@@ -693,6 +744,7 @@ def round_target(item, n, text, nxt, wrote, replay=True, landed=None):
     return {
         "item": item,
         "n": n,
+        "report": rel,
         "target": git("rev-parse", sha).strip(),
         "base": base,
         "base_ref": base_ref,
@@ -709,13 +761,15 @@ def targets(tags, items=None):
     judged by `round_target`."""
     found = records(tags, items)
     kept, left = [], []
-    for (item, n), text in sorted(found.items()):
+    for (item, n), (layout, text) in sorted(found.items()):
+        _layout, nxt = found.get((item, n + 1), (layout, None))
         t, why = round_target(
             item,
             n,
             text,
-            found.get((item, n + 1)),
+            nxt,
             lambda rel: written_at(rel, tags),
+            layout=layout,
         )
         if t is None:
             left.append((item, n, why))
@@ -740,10 +794,10 @@ def origin_url():
 
 def prompt(t):
     """The case prompt: the orchestrator's one spawn, then the report read
-    back so the run's trace holds it. The round's asked paragraph ends the
-    spawn where its record carried one, and nothing does where it did not."""
-    # exempt from old_names: the 0.22.x layout of the tree the case rebuilds
-    report = f"seal/specs/{t['item']}/rounds/round-{t['n']}.md"
+    back so the run's trace holds it, at the path of the round's record.
+    The round's asked paragraph ends the spawn where its record carried
+    one, and nothing does where it did not."""
+    report = t["report"]
     base = f"`{t['base_ref']}` at `{t['base']}`" if t["base_ref"] else f"`{t['base']}`"
     asked = " ".join(t["asked"].split())
     asked = f" {asked}" if asked else ""
@@ -773,9 +827,9 @@ def scaffold(t, url):
 
 
 def graders(t):
-    """Reach, shape and truth graders for one target."""
-    # exempt from old_names: the 0.22.x layout of the tree the case rebuilds
-    report = f"seal/specs/{t['item']}/rounds/round-{t['n']}.md"
+    """Reach, shape and truth graders for one target, over the report at
+    the path of the round's record."""
+    report = t["report"]
     own = [
         (
             f"{truth['k']}",
@@ -795,11 +849,32 @@ def case_name(t):
     return f"replay-{t['item'].split('-')[0]}-r{t['n']}"
 
 
+def layouts_named():
+    """Both of `LAYOUTS`, as a message names them."""
+    return " or ".join(layout.named() for layout in LAYOUTS)
+
+
+def not_written(name, kept, left):
+    """Why `--case` NAME was not written: the reason `round_target` gave for
+    its round, else that no record of its round, or of its work item, was
+    read among KEPT and LEFT."""
+    for item, n, why in left:
+        if case_name({"item": item, "n": n}) == name:
+            return why
+    epoch, _r, n = name.removeprefix("replay-").rpartition("-r")
+    read = {t["item"] for t in kept} | {item for item, _n, _why in left}
+    if epoch in {item.split("-")[0] for item in read}:
+        return f"no round {n} record of its work item was read"
+    return "no record of its work item was read"
+
+
 def main(argv=None):
     """Parse the arguments, then list or write. `--case` reads its work
     items' records at every release tag; the rest reads the last two.
 
-    An unusable argument is argparse's exit 2."""
+    A run that reads no round record says so on stderr and exits 1, and
+    `--case` names on stderr each name it did not write and why. An
+    unusable argument is argparse's exit 2."""
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     p.add_argument("--list", action="store_true")
     p.add_argument("--count", type=int, default=4)
@@ -812,7 +887,16 @@ def main(argv=None):
         items = {name.removeprefix("replay-").rsplit("-r", 1)[0] for name in a.case}
         kept, left = targets(last_tags(None), items)
     else:
-        kept, left = targets(last_tags())
+        tags = last_tags()
+        kept, left = targets(tags)
+        if not kept and not left:
+            where = ", ".join(tags) or "no release tag"
+            print(
+                f"replay_targets: no round record in {layouts_named()}, in the "
+                f"working tree or at {where}",
+                file=sys.stderr,
+            )
+            return 1
     if a.list:
         for t in sorted(kept, key=lambda t: t["size"]):
             print(f"{t['item']} r{t['n']}  {len(t['truths'])} truth  {t['size']} lines")
@@ -844,6 +928,11 @@ def main(argv=None):
             model=a.model,
         )
         print(f"{name}: {len(t['truths'])} truth, {t['size']} lines")
+    written = {case_name(t) for t in chosen}
+    for name in a.case:
+        if name not in written:
+            why = not_written(name, kept, left)
+            print(f"replay_targets: {name} not written: {why}", file=sys.stderr)
     return 0 if len(chosen) == a.count else 1
 
 
