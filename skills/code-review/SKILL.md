@@ -138,10 +138,10 @@ is absent; field names, headings and vocabulary words stay English
   close block: a finding with none is open, and the fix pass appends it with
   its `verdict:` and `answer:` lines. The check refuses a finding whose block
   is missing or lacks a line it holds one of.
-- `evidence:` names what the claim rests on, in the forms its row gives. A
-  claim that something is absent rests on a search, so its line is
-  `executed`. The check cannot tell such a claim from another; the round
-  reading the record does.
+- `evidence:` names what the claim rests on, in the forms
+  `hooks/lib/fields.py` gives its value. A claim that something is absent
+  rests on a search, so its line is `executed`. The check cannot tell such
+  a claim from another; the round reading the record does.
 - Each finding gives why it matters and its grounds, then the paste-ready
   fix in a fenced block, where the fix pass's close block will follow it.
   The grounds open with why the earlier close does not hold where

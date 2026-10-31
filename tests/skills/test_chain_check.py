@@ -3702,6 +3702,26 @@ def test_the_proofer_and_the_review_skill_name_every_line_a_finding_needs():
     assert "opens with `<` and a letter" in step, step
 
 
+def test_the_review_skill_sends_a_value_s_form_to_the_module_and_to_no_row():
+    """Round 3 of #1198, finding 1: `skills/code-review/SKILL.md` *The
+    record* names `hooks/lib/fields.py` as the one statement of each value's
+    shape, so no sentence of the section sends the proofer to a grammar row
+    or table, which the docs grammar the settle removes is the only one of.
+    Seen red against the `evidence:` bullet that said "the forms its row
+    gives"."""
+    skill = " ".join(
+        (ROOT / "skills" / "code-review" / "SKILL.md").read_text("utf-8").split()
+    )
+    record = skill.split("## The record ", 1)[1].split("**Paste-ready", 1)[0]
+    # The section's other rows are a config row and a `## Not judged` row.
+    for gone in ("its row", "grammar row", "grammar table", "the table"):
+        assert gone not in record, f"*The record* still says {gone!r}"
+    assert (
+        "`evidence:` names what the claim rests on, in the forms "
+        "`hooks/lib/fields.py` gives its value." in record
+    ), record
+
+
 def test_the_template_is_the_record_the_check_reads():
     """S1 (T29, T38): `templates/records/sdd-round.md` is a record the check
     reads: one round block and no table above the findings; one finding
