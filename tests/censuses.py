@@ -1020,11 +1020,6 @@ KEPT_OLD_NAMES = (
     # key as unread, and by `docs/the-routing-check.md` *At the pull
     # request* until the settle after the release removes that sentence.
     "Spec" + "Seal-Routing",
-    # The CLAUDE.md block markers every release before the rename wrote,
-    # which `/agentic:update` step 4 takes out with the block under the new
-    # ones.
-    f"<!-- {_OLD}:start -->",
-    f"<!-- {_OLD}:end -->",
     # The second line of every git hook stub an earlier release wrote, which
     # `docs/the-routing-check.md` *Where the routing is checked* spells until
     # the settle after the release removes that section.
