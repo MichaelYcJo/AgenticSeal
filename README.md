@@ -377,43 +377,6 @@ copies the block from `templates/setup/claude-md-block.md`; that template
 holds its two markers and nothing between them, so the update leaves an
 empty marker pair, and the next update removes it.
 
-### Coming up from 0.3.x
-
-0.3.x kept the plugin's files in two directories (`.specseal/`, `specs/<id>/`);
-every release since keeps them in one, `seal/`. The old pair opts nothing in,
-so every gate is silent in a repository that still holds it. No code of the
-plugin opens either directory, so you move them by hand with the commands
-below, and this is the only path.
-
-Move only the plugin's own work items out of `specs/`: a directory named
-`<unix-seconds>-<slug>` where git tracks a `routing.md`, or a file in a
-`rounds` directory directly under it. Every 0.3.x work item carried `routing.md`.
-Anything else under `specs/` is the project's own, whatever its name, and
-stays where it is.
-
-The README the second command moves is then overwritten from
-`templates/setup/seal-README.md`, because that file's first line is the marker every
-gate reads before it treats `seal/` as the plugin's root. Where
-`.specseal/scratch` marked the repository as throwaway, delete it instead of
-moving it: its successor is the file `.git/agentic-scratch`, which cannot be
-committed.
-
-```bash
-# exempt from old_names: the 0.22.x layout, which the plugin then moves into seal/threads/
-mkdir -p seal/specs
-git mv .specseal/README.md seal/README.md    # then overwrite it from templates/setup/seal-README.md
-git mv .specseal/* seal/                     # follow-up.md, parity.md and anything else in there
-# exempt from old_names: the 0.22.x layout, which the plugin then moves into seal/threads/
-git mv specs/<id> seal/specs/<id>            # each work item
-rmdir .specseal specs                        # git mv leaves them empty on disk; one holding something else stays
-```
-
-Then review `git diff --cached` and commit. That commit belongs to no work
-item, so a session making it in shared mode ends it with the trailer
-`Seal-Routing: no work item`. The plugin then moves each work item into
-`seal/threads/<id>/` the way it moves a repository installed before the
-rename, as staged `git mv` for you to review and commit the same way.
-
 ## First run
 
 Each gate acts only where the Where column of the gate table above says.

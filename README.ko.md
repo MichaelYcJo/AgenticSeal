@@ -370,42 +370,6 @@ claude plugin update agentic@agenticseal   # 그다음 적용 — 위 문단 참
 있고 그 사이에는 아무것도 없으므로, 그 업데이트는 빈 표시 한 쌍을 남기고
 그다음 업데이트가 그것을 지웁니다.
 
-### 0.3.x 에서 올라오는 경우
-
-0.3.x 는 플러그인 파일을 두 디렉터리(`.specseal/`, `specs/<id>/`)에 두었고,
-그 뒤의 릴리스는 모두 `seal/` 하나에 둡니다. 옛 두 디렉터리는 아무것도 켜지
-않으므로, 그것이 남아 있는 레포에서는 모든 게이트가 침묵합니다. 플러그인의
-어떤 코드도 두 디렉터리를 열지 않습니다. 그래서 아래 명령으로 직접 옮겨야
-하며, 옮기는 길은 이 방법 하나뿐입니다.
-
-`specs/` 에서 옮기는 것은 플러그인이 만든 작업 항목뿐입니다.
-`<unix-seconds>-<slug>` 이름의 디렉터리 가운데 바로 아래에 git 이 추적하는
-`routing.md` 나 `rounds` 디렉터리 아래 파일이 있는 것만 옮깁니다. 0.3.x 의 작업
-항목은 모두 `routing.md` 를 가지고 있었습니다. 그 밖에 `specs/` 아래 있는
-것은 이름이 무엇이든 프로젝트 자신의 것이므로 그 자리에 둡니다.
-
-두 번째 명령이 옮긴 README 는 `templates/setup/seal-README.md` 로 덮어씁니다. 그
-파일의 첫 줄이 표시 줄이고, 모든 게이트는 이 줄을 읽고 나서야 `seal/` 을
-플러그인의 루트로 봅니다. 일회용 표시 `.specseal/scratch` 가 있던 레포라면
-그 파일은 옮기지 말고 지웁니다. 그 표시의 후임은 커밋될 수 없는 파일
-`.git/agentic-scratch` 입니다.
-
-```bash
-# exempt from old_names: 0.22.x 의 배치이고, 그 뒤 플러그인이 seal/threads/ 로 옮긴다
-mkdir -p seal/specs
-git mv .specseal/README.md seal/README.md    # 그다음 templates/setup/seal-README.md 로 덮어쓴다
-git mv .specseal/* seal/                     # follow-up.md, parity.md 와 그 안의 나머지 모두
-# exempt from old_names: 0.22.x 의 배치이고, 그 뒤 플러그인이 seal/threads/ 로 옮긴다
-git mv specs/<id> seal/specs/<id>            # 작업 항목마다
-rmdir .specseal specs                        # git mv 는 빈 디렉터리를 디스크에 남긴다. 다른 것이 든 쪽은 남는다
-```
-
-그다음 `git diff --cached` 를 보고 커밋합니다. 이 커밋은 어느 작업 항목에도
-속하지 않으므로, shared 모드에서 세션이 커밋할 때는 트레일러
-`Seal-Routing: no work item` 으로 끝냅니다. 그 뒤 플러그인이 이름을 바꾸기
-전에 설치한 레포를 옮길 때와 같이 작업 항목마다 `seal/threads/<id>/` 로
-옮기고, 그것도 스테이징된 `git mv` 이므로 같은 방법으로 보고 커밋합니다.
-
 ## 처음 실행
 
 게이트는 저마다 위 게이트 표의 "어디서" 열이 말하는 곳에서만 동작합니다.

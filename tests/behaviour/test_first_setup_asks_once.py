@@ -350,23 +350,6 @@ def test_the_sentence_that_said_nowhere_else_is_gone():
     assert "`<repo>/seal/` and nowhere else" not in flat(both_halves())
 
 
-OLD_LAYOUT = "A repository still on the 0.3.x layout"
-
-
-def test_the_0_3_x_layout_is_sent_to_the_by_hand_path_and_the_bootstrap_goes_on():
-    """No code of the plugin opens the 0.3.x layout, so nothing moves it at
-    a session start: the bootstrap names README.md's by-hand section in one
-    line and continues to the question, and a top-level `specs/` stays the
-    project's own."""
-    boot = bootstrap()
-    told = paragraph(boot, OLD_LAYOUT)
-    assert "README.md *Coming up from 0.3.x*" in told, told
-    assert "continues" in told, told
-    assert "top-level `specs/` is the project's own" in told, told
-    assert "the plugin moves it" not in flat(boot), "the bootstrap promises a move"
-    assert boot.index(OLD_LAYOUT) < boot.index(RECORDS_ONLY)
-
-
 OWN_SEAL = "**A `<repo>/seal/` whose `README.md` opens with neither the marker"
 # The paragraph before it: a root an earlier release wrote waits for its move,
 # and the orchestrator creates nothing beside it.
@@ -567,10 +550,9 @@ def switch_block(readme):
     """The BY-HAND `bash` block under the README's switch section, comments
     off: two lines, local → shared and then shared → local.
 
-    Bounded at the next `## ` heading and asserted to be there, the way
-    `test_the_root_migrates_itself.by_hand_block` reads the coming-up block:
-    the lines are run under `bash -c`, so a block that left its section must
-    fail here rather than let a later block run in its place.
+    Bounded at the next `## ` heading and asserted to be there: the lines
+    are run under `bash -c`, so a block that left its section must fail
+    here rather than let a later block run in its place.
 
     The section holds more than one block since #104, which made switching a
     command (`seal mode`) and kept the by-hand pair below it. Taking "the
@@ -621,7 +603,7 @@ def test_the_switch_block_lands_the_root_at_the_tree_root_from_a_subdirectory(
     one way and back under the common directory the other.
 
     A bash block, run under `bash -c` line by line; the precondition is
-    executed, not assumed (`shell_probe`, for the reason the coming-up test
+    executed, not assumed (`shell_probe`, for the reason its docstring
     gives).
     """
     why = shell_probe("bash")

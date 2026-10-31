@@ -30,13 +30,6 @@ not the orchestrator's. Nobody reads a README to discover a question they did
 not know to ask, so this is the only place the mode and the migration
 question are asked at all.
 
-A repository still on the 0.3.x layout is moved by hand, with the commands
-README.md *Coming up from 0.3.x* gives, because no code of the plugin opens
-that layout. The orchestrator names that section in one line and continues
-with the question below. A top-level `specs/` is the project's own, a team's
-specifications or another tool's records, whatever its entries are named, and
-stays where it is: the plugin writes only to its own root.
-
 **A `<repo>/seal/` whose `README.md` opens with a heading an earlier release
 of the plugin wrote is that release's root, waiting for its move.** The
 headings are `hooks/lib/optin.py#EARLIER_HEADINGS`. The session-start move
