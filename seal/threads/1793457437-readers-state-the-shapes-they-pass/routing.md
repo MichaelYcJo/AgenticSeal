@@ -4,7 +4,7 @@
 |---|---|
 | Review | through the review chain |
 | Destination | open the pull request |
-| Planning | <framer, or: the session> |
+| Planning | framer |
 | Implementation | crafter |
 | Automation | yes |
 | Answer pressed | automation |
