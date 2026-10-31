@@ -30,7 +30,7 @@ The record layouts are a closed pair: no release tag holds a third layout (`fram
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Scope items 1, 2, 3, 4 and the layout half of 6 | `tests/evals/test_replay_targets.py` and `tests/evals/test_seed_defects.py`, run in one command, with Scenario 2's, 3's and 6's cases seen red first, and Scenario 1's thread-layout case. Scenario 1 run in a scratch clone with the tags after v0.23.1 deleted and `refs/pull/*/head` fetched. Scenario 5's `diff -r` of all eight committed cases regenerated at HEAD against a92c358b. The `test_census` case each of the two modules holds (`census_case`), which runs `tests/censuses.py`'s readers, `old_names` among them, over its script. | |
+| 1 | Scope items 1, 2, 3, 4 and the layout half of 6 | `tests/evals/test_replay_targets.py` and `tests/evals/test_seed_defects.py`, run in one command, with Scenario 2's, 3's and 6's cases seen red first, and Scenario 1's thread-layout case. Scenario 1 run in a scratch clone with the tags after v0.23.1 deleted and `refs/pull/*/head` fetched. Scenario 5's `diff -r` of all eight committed cases regenerated at HEAD against a92c358b. The `test_census` case each of the two modules holds (`census_case`), which runs `tests/censuses.py`'s readers, `old_names` among them, over its script. | 765cbce2 |
 | 2 | Scope item 5 and the grammar half of 6 | Scenario 4's case seen red against Phase 1's head, and the module's tests. Scenario 1's clone run over v0.27.0 and v0.26.0, where none of the 10 block records is left out as `Target SHA (none) does not resolve`. Scenario 5's diff again. | |
 
 ## Operational impact
