@@ -82,8 +82,9 @@ NO_SUBCOMMAND = {
         "command line of its own: no shipped document shows it with a flag."
     ),
     "chain_check.py": (
-        "Named in four shipped documents and shown with a flag in none of "
-        "them -- which is what `test_a_script_with_no_subcommand_is_shown_in_"
+        "Named in shipped documents and shown with a flag only by its "
+        "repo-relative path, as `agents/proofer.md` step 7 runs it -- which is "
+        "what `test_a_script_with_no_subcommand_is_shown_in_"
         "no_command_form` asserts, and the whole of it. A flag is the only "
         "sound tell in prose, so a bare mention in a list of checks is not "
         "caught: `templates/setup/config.md` names it beside three commands. "
@@ -173,14 +174,19 @@ def command_forms(text, script):
     writes `chain_check.py --worktree` except to say what to run.
 
     Used on the scripts that keep no subcommand: the classification below
-    rests on nobody being told to type them, and this is the property, asked
-    of the tree rather than assumed.
+    rests on nobody being told to type them without being told where they
+    are, and this is the property, asked of the tree rather than assumed. An
+    invocation by the script's repo-relative path carries its locator, the
+    one the rule above asks of a script with a subcommand, so it is not
+    counted (#1198 phase 3: `agents/proofer.md` step 7 runs `chain_check.py`
+    by its path, which a wrap had hidden from this reader).
     """
-    pattern = re.compile(rf"(?<![\w-]){re.escape(os.path.basename(script))}\s+-")
+    invoked = re.compile(rf"(?<![\w-]){re.escape(os.path.basename(script))}\s+-")
+    located = re.compile(rf"(?<![\w./-]){re.escape(script)}\s+-")
     return [
         (number, line)
         for number, line in enumerate(text.splitlines(), 1)
-        if pattern.search(line)
+        if len(invoked.findall(line)) > len(located.findall(line))
     ]
 
 
@@ -407,6 +413,12 @@ def test_a_planted_invocation_turns_the_classification_red():
     assert command_forms("    chain_check.py -q\n", script)
     assert not command_forms("`chain_check.py` reads the record.\n", script)
     assert not command_forms("what `chain_check.py new` would say\n", script)
+    # #1198 phase 3: an invocation by the script's repo-relative path carries
+    # its locator, so a reader reaches the script, and only a bare one counts.
+    located = "Run `python3 skills/x/scripts/chain_check.py --worktree`.\n"
+    assert not command_forms(located, script)
+    assert command_forms(located.replace("skills/x/", "other/"), script)
+    assert command_forms(located + "Then `chain_check.py -q`.\n", script)
 
 
 def test_every_mention_lands_in_exactly_one_enumeration():
