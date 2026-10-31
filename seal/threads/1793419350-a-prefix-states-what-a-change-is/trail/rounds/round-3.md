@@ -51,7 +51,7 @@ finding 4. Rows 13 to 17 are cases the frame did not run.
 severity: should
 location: `skills/commit-pr-convention/SKILL.md:151-156`, `skills/commit-pr-convention/SKILL.md:134`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/frame/design.md:30`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/changelog.md:7`
 evidence: read `skills/commit-pr-convention/SKILL.md:134-156`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/frame/design.md:30`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/trail/phases/phase-2.md:9`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/changelog.md:7`
-verdict: open
+verdict: fixed b63534ef
 reopens: round-2#3
 
 The close does not hold for the records. Round 2's finding 3 asked that
@@ -112,14 +112,14 @@ a part that changes one is `feat:`, `fix:`, `perf:` or `refactor:`, never
 change already decided its effect.
 ```
 
-answer:
+answer: Absorbed by phase 3's rewrite, as `frame/design.md` *Round 3's findings under this design* row 1 says; the paste-ready fix was not applied. The paragraph at `:151-156` is gone. The third clarification of *Commit messages* says a change to text a party acts on is never `docs:` and never `chore:`, and leaves a work item's own records to the second clarification, under which a change's own tests and records never decide its prefix. The `chore:` row's example names a work item's records committed alone. `changelog.md`'s `### Changed` entry was rewritten in the same commit and no longer says "never `docs:`" without the records. `frame/design.md:30` was rewritten by the reframe at ee035d00, not by this commit.
 
 ### 2. A `docs:` change that carries the case pinning its words takes `test:`, so its own test decides its prefix
 
 severity: should
 location: `skills/commit-pr-convention/SKILL.md:132-142`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/frame/design.md:75-79`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/changelog.md:7`
 evidence: read `skills/commit-pr-convention/SKILL.md:126-142`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/frame/design.md:69-79`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/trail/phases/phase-2.md:5-10`
-verdict: open
+verdict: fixed b63534ef
 reopens: round-2#1
 
 The close holds for every kind above `test:` and fails for `docs:`. Round
@@ -176,14 +176,14 @@ In changelog.md, the order reads `feat:`, `fix:`, `perf:`, `refactor:`,
 `docs:`, `test:`, `chore:`.
 ```
 
-answer:
+answer: Absorbed by phase 3's rewrite, as `frame/design.md` *Round 3's findings under this design* row 2 says; the row swap in the paste-ready fix was not applied. The second clarification says a change's own tests and its work item's records never decide its prefix, and gives a README edit with the case that pins its words as `docs:`. The table keeps `test:` above `docs:`, and the precedence clarification acts only where a change does more than one of these, which the second clarification keeps its own case from counting toward. `changelog.md` states the README example in the same commit. `frame/design.md:75-79` was rewritten by the reframe at ee035d00, not by this commit.
 
 ### 3. A part that takes something away fits no row, so a removed gate or an unused skill removed gets three prefixes
 
 severity: should
 location: `skills/commit-pr-convention/SKILL.md:131`, `skills/commit-pr-convention/SKILL.md:118-124`
 evidence: executed `git log origin/main --no-merges --format='%h %s' | grep -i -E ' (remov|drop|retire|delete)'`
-verdict: open
+verdict: fixed b63534ef
 
 The skill says each part has one kind and the answers exclude one another
 (`:118-124`). Each row describes what is met after the merge: something new,
@@ -217,14 +217,14 @@ the framer rather than choosing it.
 | `refactor:` | the same kinds of outcome, reached another way: which party holds a judgment, a script that stops refusing what an agent now reads, a refusal loosened or a mechanism removed with nothing in its place, a sequence rewritten as guidance, a structure moved; nothing is new, corrected or faster |
 ```
 
-answer:
+answer: Absorbed by phase 3's rewrite, as `frame/design.md` *Round 3's findings under this design* row 3 says, with the frame's judgment of the part this finding left open. The `refactor:` row's examples name a gate retired because what it caught did not outweigh its cost and a skill nobody used, removed. The `feat:` row's examples name a thing removed that its users must now work around, so a command its users ran, removed, is `feat:`, which answers this round's *Not judged* row on it (`frame/design.md` *Worked examples*). The claim at `:118-124` that the kinds exclude one another is gone.
 
 ### 4. "A gate" in the behaviour paragraph takes in a case the suite runs, so a refusing case added alone reads as `test:` or as `feat:` and `fix:`
 
 severity: should
 location: `skills/commit-pr-convention/SKILL.md:151-152`, `skills/commit-pr-convention/SKILL.md:132`
 evidence: read `skills/commit-pr-convention/SKILL.md:121-132`, `skills/commit-pr-convention/SKILL.md:151-156`, `skills/core/SKILL.md:43`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/trail/phases/phase-2.md:9`
-verdict: open
+verdict: fixed b63534ef
 
 The crafter's departure 3 (`trail/phases/phase-2.md:9`) says "outside the
 tests" keeps a case added to the suite alone at `test:`. The words qualify
@@ -253,14 +253,14 @@ and the `test:` row at :132:
 | `test:` | nothing outside the suite: a case added, removed or corrected, even one that refuses where the suite gates the merge; a suite is how a contributor checks a change, and no user or party outside it meets a case |
 ```
 
-answer:
+answer: Absorbed by phase 3's rewrite, as `frame/design.md` *Round 3's findings under this design* row 4 says; the paste-ready fix was not applied. The third clarification names text a party reads and acts on and no gate or check. The `test:` row says nothing outside the repository's own tests is met, and its example is a case added or corrected, even one that refuses where the suite gates the merge, so frame case 12 is `test:` in the place a writer reads it.
 
 ### 5. The test between `feat:` and `fix:` does not say which base a commit on a work item's branch opens, and this branch's two build commits took two prefixes for one shape
 
 severity: should
 location: `skills/commit-pr-convention/SKILL.md:144-145`, `skills/commit-pr-convention/SKILL.md:128`
 evidence: executed `git log --oneline f80f48e6..5b6dc48f`
-verdict: open
+verdict: fixed b63534ef
 
 The test reads "whether the rule stood in the tree before the change, which
 a reader answers by opening the base" (`:144-145`). The `feat:` row says "a
@@ -291,7 +291,7 @@ frame on the same branch, is stated by the change and not by the tree, so a
 commit that builds it reads the base its branch was cut from.
 ```
 
-answer:
+answer: Absorbed by phase 3's rewrite, as `frame/design.md` *Round 3's findings under this design* row 5 says; the paste-ready fix was not applied. The paragraph of tests between kinds at `:144-149` is gone, and the `feat:` row at `:128` is rewritten. The fourth clarification says "before the change" is the branch the change merges into, and that a rule stated only in the change's own work item, such as its frame, belongs to the change, so a commit that builds it takes the kind its pull request takes. This commit takes `feat:` by it. The limit the design names stands: `c6ed2331` `feat:` and `05b716f7` `fix:` keep their subjects, and the squash takes the pull request's title.
 
 ## Confirmations
 
