@@ -487,6 +487,44 @@ class Test_report:
         assert "refused" not in text and "kept" not in text, text
         assert "Nothing was written and nothing was removed" in text, text
 
+    def test_lists_a_design_with_a_line_its_reader_did_not_read_to_read_whole(
+        self, tree
+    ):
+        """Round 6 of #1167, finding 1: a design holding `## Rule changes` and
+        a heading near it parses, with the near heading in `unread`, and an
+        item under that heading no group would hold. The dry run lists the
+        design to read whole, at the near heading's line with the reader's
+        reason, and neither groups its other item nor calls it a design with
+        nothing to write. Seen red against the design grouped with one of
+        its two items, and the no-change one listed as having nothing to
+        write."""
+        change = (
+            "- change\n  file: docs/one-root.md\n  section: S\n"
+            "  from: old.\n  to: new.\n"
+        )
+        designs = {
+            "1700000001-alpha": spec(change) + f"\n## Rule Changes\n\n{change}",
+            "1700000002-beta": spec("- nothing\n  why: a reason.")
+            + f"\n## Rule Changes\n\n{change}",
+        }
+        for name, text in designs.items():
+            (tree / "seal" / "threads" / name / "frame" / "design.md").write_text(
+                text, encoding="utf-8"
+            )
+            git(tree, "add", "--", f"seal/threads/{name}")
+        git(tree, "commit", "-qm", "two designs with a heading near the section's")
+        code, text = run(tree)
+        assert code == 0, text
+        listed = text.split(settle.WHOLE_HEADING)[1].split("\n\n")[0] + "\n"
+        for name, design in designs.items():
+            where = f"seal/threads/{name}/frame/design.md:"
+            where += str(line_of(design, "## Rule Changes"))
+            said = "`## Rule Changes` opens like `## Rule changes` and is not it"
+            assert f"    {name}  {where}  {said}" in listed, text
+        assert "1. change  1700000001-alpha" not in text, text
+        nothing = text.split("no-change block (")[-1].split("\n\n")[0]
+        assert "1700000002-beta" not in nothing, text
+
     def test_an_unreleased_work_item_is_not_a_candidate(self, tree):
         """Released means present on the branch the release merges to, so this
         branch's own work item is outside the corpus entirely."""
@@ -804,6 +842,261 @@ class Test_main:
             "    1700000001-a\n"
         ) in text, text
         assert "\ngroup 1\n" not in text, text
+
+    def test_the_judgments_are_printed_by_the_document_each_stands_on(
+        self, repo, capfd
+    ):
+        """#1167, *Scope* item 12: each released plan's *Judgments of the
+        run*, read through `hooks/lib/config.py#gfm_table`, grouped by the
+        `Judged against` cell in the order the work items are listed, with
+        each work item's round count and each row's line. The template's
+        empty row is no judgment, and a plan with no such section prints
+        nothing for its work item."""
+        run_doc = "`docs/the-review-record.md` *The run*"
+        order = (
+            "`skills/implement/orchestration.md` *Orchestrator: the order "
+            "inside a ticket*"
+        )
+        plans = {
+            "1700000001-a": (
+                3,
+                [
+                    (
+                        "2026-10-01",
+                        "ended the rounds",
+                        "round 3 found 2, round 2 found 2",
+                        run_doc,
+                    ),
+                    ("", "", "", ""),
+                ],
+            ),
+            "1700000002-b": (
+                1,
+                [
+                    (
+                        "2026-10-02",
+                        "folded the owner's answer",
+                        "the owner answered Q1",
+                        order,
+                    ),
+                    (
+                        "2026-10-03",
+                        "sent a regression to the framer",
+                        "the frame named the unit",
+                        run_doc,
+                    ),
+                ],
+            ),
+        }
+        lines = {}
+        for name, (rounds, rows) in plans.items():
+            item(repo, name, "- nothing\n  why: x.")
+            table = "".join(f"| {' | '.join(row)} |\n" for row in rows)
+            plan = (
+                "# Implementation Plan: x\n\n## Phases\n\n"
+                "| Phase | Delivers | Verified by | Status |\n|---|---|---|---|\n"
+                "| 1 | a | b | c |\n\n## Judgments of the run\n\n"
+                "| Date | Judgment | Grounds | Judged against |\n|---|---|---|---|\n"
+                + table
+            )
+            (specs_dir(repo, name) / "frame" / "plan.md").write_text(
+                plan, encoding="utf-8"
+            )
+            lines[name] = [
+                line_of(plan, f"| {' | '.join(row)} |") for row in rows if row[0]
+            ]
+            held = specs_dir(repo, name) / "trail" / "rounds"
+            held.mkdir(parents=True)
+            for n in range(1, rounds + 1):
+                (held / f"round-{n}.md").write_text("# round\n", encoding="utf-8")
+        item(repo, "1700000003-c", "- nothing\n  why: x.")
+        (specs_dir(repo, "1700000003-c") / "frame" / "plan.md").write_text(
+            "# Implementation Plan: c\n\n## Phases\n", encoding="utf-8"
+        )
+        commit(repo, "a, b and c")
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        block = text.split(f"\n{settle.JUDGMENTS_HEADING}\n")[1].split(
+            f"\n\n{settle.REMOVES_HEADING}"
+        )[0]
+        a, b = lines["1700000001-a"], lines["1700000002-b"]
+        assert block == (
+            f"\njudged against: {run_doc}\n"
+            "    1700000001-a  3 rounds\n"
+            f"        frame/plan.md:{a[0]}  2026-10-01  ended the rounds\n"
+            "            grounds: round 3 found 2, round 2 found 2\n"
+            "    1700000002-b  1 round\n"
+            f"        frame/plan.md:{b[1]}  2026-10-03  sent a regression to the framer\n"
+            "            grounds: the frame named the unit\n"
+            f"\njudged against: {order}\n"
+            "    1700000002-b  1 round\n"
+            f"        frame/plan.md:{b[0]}  2026-10-02  folded the owner's answer\n"
+            "            grounds: the owner answered Q1"
+        ), block
+        assert "1700000003-c" not in block, block
+
+    def test_a_judgments_section_it_cannot_read_is_named_and_refuses_nothing(
+        self, repo, capfd
+    ):
+        """The core's rule for a script: a section that holds no table under
+        the exact header is named as not read, and the dry run still exits 0
+        and prints the rest."""
+        item(repo, "1700000001-a", "- nothing\n  why: x.")
+        (specs_dir(repo, "1700000001-a") / "frame" / "plan.md").write_text(
+            "# Implementation Plan: a\n\n## Judgments of the run\n\n"
+            "| Date | Judgment | Grounds |\n|---|---|---|\n| 2026-10-01 | x | y |\n",
+            encoding="utf-8",
+        )
+        commit(repo, "a")
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        block = text.split(f"\n{settle.JUDGMENTS_HEADING}\n")[1]
+        assert block.startswith(
+            "    1700000001-a  seal/threads/1700000001-a/frame/plan.md  not read: "
+            "holds no `| Date | Judgment | Grounds | Judged against |` table\n"
+        ), block
+        assert "judged against:" not in block, block
+        assert settle.REMOVES_HEADING in text, text
+
+    @pytest.mark.parametrize("shape", ["file", "link", "unlistable"])
+    def test_a_work_item_whose_rounds_cannot_be_listed_is_not_counted_as_none(
+        self, repo, capfd, monkeypatch, shape
+    ):
+        """Round 9, finding 1. A `trail/rounds` that is a file, a link, or a
+        directory nothing can list holds a review git carries
+        (`hooks/lib/routing.py#rounds_unreadable`), so the dry run says it
+        counted none rather than that none happened. The unlistable
+        directory is made by refusing `os.listdir` on that one path, since
+        `chmod 000` does not bar a runner that is root."""
+        item(repo, "1700000001-a", "- nothing\n  why: x.")
+        (specs_dir(repo, "1700000001-a") / "frame" / "plan.md").write_text(
+            "# Implementation Plan: a\n\n## Judgments of the run\n\n"
+            "| Date | Judgment | Grounds | Judged against |\n|---|---|---|---|\n"
+            "| 2026-10-01 | x | y | z |\n",
+            encoding="utf-8",
+        )
+        trail = specs_dir(repo, "1700000001-a") / "trail"
+        trail.mkdir()
+        if shape == "file":
+            (trail / "rounds").write_text("# Review round 1\n", encoding="utf-8")
+        elif shape == "link":
+            held = repo / "elsewhere"
+            held.mkdir()
+            (held / "round-1.md").write_text("# Review round 1\n", encoding="utf-8")
+            try:
+                os.symlink(held, trail / "rounds", target_is_directory=True)
+            except (OSError, NotImplementedError):
+                pytest.skip("this platform makes no symbolic link here")
+        else:
+            (trail / "rounds").mkdir()
+            (trail / "rounds" / "round-1.md").write_text(
+                "# Review round 1\n", encoding="utf-8"
+            )
+        commit(repo, "a")
+        if shape == "unlistable":
+            barred = os.path.normcase(os.path.realpath(trail / "rounds"))
+            listdir = os.listdir
+
+            def refusing(path="."):
+                if os.path.normcase(os.path.realpath(path)) == barred:
+                    raise PermissionError(13, "Permission denied", str(path))
+                return listdir(path)
+
+            monkeypatch.setattr(os, "listdir", refusing)
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        assert (
+            "    1700000001-a  its trail/rounds is not a directory this can "
+            "list, so no round was counted\n"
+        ) in text, text
+        assert " round\n" not in text and " rounds\n" not in text, text
+
+    @pytest.mark.parametrize(
+        "heading",
+        [
+            "## Judgments of the Run",
+            "## judgments of the run",
+            "### Judgments Of The Run",
+        ],
+    )
+    def test_refuses_to_read_rows_under_a_heading_near_the_judgments_section(
+        self, repo, capfd, heading
+    ):
+        """Round 9, finding 2. A heading whose letters, case folded, are the
+        section's and that is not it is named at its line, and none of its
+        rows is read: `--apply` removes the plan, so silence here loses the
+        rows unread. Every live heading is the scope this reader scans."""
+        item(repo, "1700000001-a", "- nothing\n  why: x.")
+        (specs_dir(repo, "1700000001-a") / "frame" / "plan.md").write_text(
+            f"# Implementation Plan: a\n\n{heading}\n\n"
+            "| Date | Judgment | Grounds | Judged against |\n|---|---|---|---|\n"
+            "| 2026-10-01 | x | y | z |\n",
+            encoding="utf-8",
+        )
+        commit(repo, "a")
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        block = text.split(f"\n{settle.JUDGMENTS_HEADING}\n")[1]
+        assert block.startswith(
+            "    1700000001-a  seal/threads/1700000001-a/frame/plan.md  not read: "
+            f"line 3: `{heading}` opens like `## Judgments of the run` and is "
+            "not it, so none of its rows were read\n"
+        ), block
+        assert "judged against:" not in block, block
+
+    def test_accepts_a_near_heading_inside_a_fence_without_a_word(self, repo, capfd):
+        """The edge of finding 2's scope: a heading inside a fence is no
+        heading, so the reader names nothing for it."""
+        fence = "`" * 3
+        item(repo, "1700000001-a", "- nothing\n  why: x.")
+        (specs_dir(repo, "1700000001-a") / "frame" / "plan.md").write_text(
+            f"# Implementation Plan: a\n\n{fence}\n## Judgments of the Run\n{fence}\n",
+            encoding="utf-8",
+        )
+        commit(repo, "a")
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        assert settle.JUDGMENTS_HEADING not in text, text
+
+    def test_accepts_a_near_heading_inside_a_comment_without_a_word(self, repo, capfd):
+        """Round 10's edge of round 9's finding 2: a heading inside an HTML
+        comment is no live heading (`unverified_check.py#live_lines`), so
+        the reader names nothing for it."""
+        item(repo, "1700000001-a", "- nothing\n  why: x.")
+        (specs_dir(repo, "1700000001-a") / "frame" / "plan.md").write_text(
+            "# Implementation Plan: a\n\n<!--\n## Judgments of the Run\n-->\n",
+            encoding="utf-8",
+        )
+        commit(repo, "a")
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        assert settle.JUDGMENTS_HEADING not in text, text
+
+    def test_a_near_heading_is_named_beside_the_section_it_is_not(self, repo, capfd):
+        """A plan holding a near heading and the exact section gets the line
+        for the first and the rows of the second: the naming runs before the
+        reader looks for the exact section, and the near rows are not read."""
+        item(repo, "1700000001-a", "- nothing\n  why: x.")
+        header = "| Date | Judgment | Grounds | Judged against |\n|---|---|---|---|\n"
+        (specs_dir(repo, "1700000001-a") / "frame" / "plan.md").write_text(
+            "# Implementation Plan: a\n\n## Judgments Of The Run\n\n"
+            + header
+            + "| 2026-10-01 | near | y | z |\n\n## Judgments of the run\n\n"
+            + header
+            + "| 2026-10-02 | exact | y | z |\n",
+            encoding="utf-8",
+        )
+        commit(repo, "a")
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        block = text.split(f"\n{settle.JUDGMENTS_HEADING}\n")[1]
+        assert block.startswith(
+            "    1700000001-a  seal/threads/1700000001-a/frame/plan.md  not read: "
+            "line 3: `## Judgments Of The Run` opens like `## Judgments of the "
+            "run` and is not it, so none of its rows were read\n"
+        ), block
+        assert "2026-10-02  exact\n" in block, block
+        assert "2026-10-01  near" not in block, block
 
     @pytest.mark.parametrize("flag", ["--retire", "--retire-process"])
     def test_the_retired_flags_are_an_argument_error(self, repo, flag, capfd):
@@ -1497,6 +1790,13 @@ class Test_module:
         assert "order them by content" in flat(settle.UNORDERED)
         assert "moot, answered or a measurement to re-home" in flat(settle.ROWS_HEADING)
         assert "close with `closed` and what closed it" in flat(settle.ROWS_HEADING)
+        assert "grouped by the document each stands on" in flat(
+            settle.JUDGMENTS_HEADING
+        )
+        assert (
+            "rewrites a section where one kind of judgment recurs or kept "
+            "costing rounds" in flat(settle.JUDGMENTS_HEADING)
+        )
 
     def test_the_command_is_reachable_by_the_name_a_document_gives_it(self):
         """A6. The pair rule is
@@ -1527,8 +1827,10 @@ class Test_module:
             ("OPTIN", "it is what finds the repository's seal/ root"),
             (
                 "ROUTING",
-                "it is what reads the branch a local work item's `routing.md` names",
+                "it is what reads the branch a local work item's `routing.md` "
+                "names and counts a work item's round records",
             ),
+            ("CONFIG", "it is what reads a plan's *Judgments of the run* table"),
             ("RULES", "it is what reads a design's `## Rule changes`"),
             (
                 "FOLD_CHECK",

@@ -234,6 +234,21 @@ def test_the_plan_template_carries_a_status_column():
     assert "|---|---|---|---|" in tpl
 
 
+def test_the_plan_template_carries_the_judgments_table():
+    """#1167, *Scope* item 11. The orchestrator writes its judgments of the
+    run to the plan, and `seal settle` reads them by this heading and this
+    header (`skills/settle/scripts/settle.py#JUDGMENTS_HEADER`), so the
+    shipped template carries both, with an empty row the settle reads as no
+    judgment."""
+    tpl = read("templates", "records", "sdd-plan.md")
+    after = tpl.split("\n## Judgments of the run\n")
+    assert len(after) == 2, "the plan template has no `## Judgments of the run`"
+    assert (
+        "\n| Date | Judgment | Grounds | Judged against |\n|---|---|---|---|\n"
+        in (after[1])
+    ), after[1]
+
+
 def test_the_skill_says_why_a_tick_is_refused():
     """The column is worth nothing if its closed value can be typed.
 

@@ -7,12 +7,15 @@ assignment, deploy on push to the default branch, and a migration-graph check
 — and not one of them ran the test suite. The named answerer did not exist,
 so the `unverified` row was a loophole wearing condition 4's clothes.
 
+The tool reads command lines and no trigger: it names each CI file holding a
+runner, and whether that file runs before the change merges is its reader's
+to open (#1167). No case here asserts an event the tool read.
+
 Every case runs the command, so each sits in `Test_main`, and the launcher's
 case in `Test_module`. #942's phase 6 placed them in classes.
 """
 
 import os
-import re
 import subprocess
 import sys
 
@@ -49,17 +52,39 @@ def workflow(repo, name, text):
 # A job that runs the test suite, for the cases that vary only the trigger.
 PYTEST_JOB = "jobs:\n  t:\n    steps:\n      - run: pytest\n"
 
+# The path a workflow is printed under, in the platform's separator.
+TEST_YML = os.path.join(".github", "workflows", "test.yml")
 
-def labelled(out, label):
-    """The lines of the command's output that open with LABEL, such as
-    `answers`, `too late` or `unread`."""
-    return [line for line in out.split("\n") if line.startswith(f"  {label} ")]
+LIMIT = (
+    "limit: reads command text, not a YAML graph: a runner reached through "
+    "a composite action, a reusable workflow, or a script this cannot see "
+    "reads as absent; no trigger is read, so a file named here may run only "
+    "after the change merges"
+)
+TRIGGER = (
+    "  trigger   not read: open each ci file above for whether it runs "
+    "before the change merges"
+)
+UNANSWERED = (
+    "Deferring tests to CI names an answerer that is not there. "
+    "Run it, or say it is unanswered."
+)
+
+
+def answered(*ci):
+    """The whole output for `--kind tests` where CI holds a runner: one
+    `ci` line per (file, commands) pair given, then the trigger line."""
+    lines = ["tests: a runner in CI"]
+    lines += [f"  ci        {name} — {cmds}" for name, cmds in ci]
+    return "\n".join([*lines, TRIGGER, "", LIMIT, ""])
 
 
 class Test_main:
-    # --- the answerer exists -------------------------------------------------
+    # --- a CI file holds a runner ---------------------------------------------
 
-    def test_accepts_pytest_on_a_pull_request_as_the_answerer(self, repo):
+    def test_accepts_a_workflow_holding_a_runner_and_leaves_its_trigger_to_the_reader(
+        self, repo
+    ):
         workflow(
             repo,
             "test.yml",
@@ -68,18 +93,73 @@ class Test_main:
         )
         r = run(["--kind", "tests", str(repo)])
         assert r.returncode == 0, r.stdout + r.stderr
-        assert "test.yml" in r.stdout
-        assert "pytest" in r.stdout
+        assert r.stdout == answered((TEST_YML, "uv run pytest")), r.stdout
 
-    def test_inline_event_list_is_read(self, repo):
+    @pytest.mark.parametrize(
+        "trigger",
+        [
+            "on:\n\tpull_request:\n",
+            "on: push # a\u2028b\n",
+            "on:\n  push:\n    branches: [main]\n",
+            "on: {pull_request: {}}\n",
+            "name: Test\n",
+        ],
+        ids=[
+            "a-block-indented-by-a-tab",
+            "a-line-separator-in-a-comment",
+            "a-push-only-block",
+            "a-flow-mapping",
+            "no-on-key",
+        ],
+    )
+    def test_the_output_is_the_same_whatever_the_trigger(self, repo, trigger):
+        """#1167: the owner's two misreadings, a tab-indented `on:` block
+        and U+2028 inside a comment, and every other trigger, read as one:
+        the file named, its runner line, and the trigger left unread."""
+        workflow(repo, "test.yml", trigger + PYTEST_JOB)
+        r = run(["--kind", "tests", str(repo)])
+        assert r.returncode == 0, r.stdout + r.stderr
+        assert r.stdout == answered((TEST_YML, "pytest")), r.stdout
+
+    @pytest.mark.parametrize(
+        "char",
+        ["\u2028", "\u2029", "\x85", "\x0b", "\x0c", "\x1c", "\x1d", "\x1e"],
+        ids=[
+            "U+2028",
+            "U+2029",
+            "U+0085",
+            "U+000B",
+            "U+000C",
+            "U+001C",
+            "U+001D",
+            "U+001E",
+        ],
+    )
+    def test_a_step_is_printed_whole_where_a_comment_holds_a_break_yaml_does_not_take(
+        self, repo, char
+    ):
+        """#1167's second misreading: `str.splitlines` ends a line at eight
+        characters YAML 1.2 does not, which printed a word from a comment as
+        a command of its own. The step is printed as the line it is, comment
+        and all, for its reader."""
+        step = f"./deploy.sh # see{char}pytest"
         workflow(
             repo,
-            "ci.yml",
-            "on: [push, pull_request]\njobs:\n  t:\n    steps:\n      - run: make test\n",
+            "test.yml",
+            "on: pull_request\njobs:\n  d:\n    steps:\n      - run: " + step + "\n",
         )
         r = run(["--kind", "tests", str(repo)])
         assert r.returncode == 0, r.stdout + r.stderr
-        assert "make test" in r.stdout
+        assert r.stdout == answered((TEST_YML, step)), r.stdout
+
+    @pytest.mark.parametrize("end", ["\r\n", "\r"], ids=["CRLF", "CR"])
+    def test_a_line_ends_at_each_of_yamls_line_breaks(self, repo, end):
+        (repo / ".github" / "workflows" / "test.yml").write_bytes(
+            end.join(["on: pull_request", *PYTEST_JOB.splitlines(), ""]).encode()
+        )
+        r = run(["--kind", "tests", str(repo)])
+        assert r.returncode == 0, r.stdout + r.stderr
+        assert r.stdout == answered((TEST_YML, "pytest")), r.stdout
 
     # --- the answerer is missing ---------------------------------------------
 
@@ -89,6 +169,17 @@ class Test_main:
         r = run(["--kind", "tests", str(d)])
         assert r.returncode == 1
         assert "nothing" in r.stdout.lower()
+        assert r.stdout == "\n".join(
+            [
+                "tests: NO RUNNER IN CI",
+                "  nothing runs it",
+                "",
+                LIMIT,
+                "",
+                UNANSWERED,
+                "",
+            ]
+        ), r.stdout
 
     def test_workflows_that_run_no_tests_do_not_resolve(self, repo):
         """The measured shape: three workflows, none of them a test run."""
@@ -106,183 +197,13 @@ class Test_main:
         )
         r = run(["--kind", "tests", str(repo)])
         assert r.returncode == 1
-        assert "assign.yml" not in r.stdout or "no runner" in r.stdout.lower()
+        assert "assign.yml" not in r.stdout, r.stdout
+        assert "deploy.yml" not in r.stdout, r.stdout
 
-    def test_runner_on_wrong_trigger_is_named_not_counted(self, repo):
-        """A suite that only runs after merge cannot answer a deferral made before it."""
-        workflow(
-            repo,
-            "post.yml",
-            "on:\n  push:\n    branches: [main]\njobs:\n"
-            "  t:\n    steps:\n      - run: pytest\n",
-        )
-        r = run(["--kind", "tests", str(repo)])
-        assert r.returncode == 1
-        assert "post.yml" in r.stdout
-        assert "pull_request" in r.stdout
-
-    # --- the trigger is read, or reported unread and not counted --------------
-
-    @pytest.mark.parametrize(
-        "trigger",
-        [
-            '"on":\n  push:\n    branches: [main]\n',
-            "on:\n    push:\n        branches: [main]\n",
-            "'on':\n  push:\n    branches: [main]\n",
-            "on:\n- push\n",
-            "on:\n  push: {branches: [main]}\n",
-            "on:\n  push: # on main\n    branches: [main]\n",
-        ],
-        ids=[
-            "double-quoted-key",
-            "block-at-four-spaces",
-            "single-quoted-key",
-            "sequence-at-indent-zero",
-            "key-with-a-value",
-            "key-with-a-comment",
-        ],
-    )
-    def test_a_push_only_trigger_in_each_spelling_is_too_late(self, repo, trigger):
-        """#1123: each spelling read as unread and counted as answering."""
-        workflow(repo, "post.yml", trigger + PYTEST_JOB)
-        r = run(["--kind", "tests", str(repo)])
-        assert r.returncode == 1, r.stdout + r.stderr
-        [line] = labelled(r.stdout, "too late")
-        assert "post.yml (on push, not pull_request)" in line
-
-    @pytest.mark.parametrize(
-        "trigger",
-        [
-            '"on":\n  pull_request:\n',
-            "on:\n    pull_request:\n        types: [opened]\n",
-            'on: ["pull_request"]\n',
-            "on:\n  - pull_request # the run\n",
-            "on: [pull_request, ]\n",
-            "on:\n  pull_request\n",
-            "on:\n  pull_request\n    # the run\n",
-            "on: pull_request\n  # the run\n",
-            "on:\tpull_request\n",
-        ],
-        ids=[
-            "double-quoted-key",
-            "block-at-four-spaces",
-            "quoted-name",
-            "item-with-a-comment",
-            "flow-list-trailing-comma",
-            "name-on-the-line-below",
-            "name-with-a-comment-below",
-            "inline-name-with-a-comment-below",
-            "a-tab-after-the-on-colon",
-        ],
-    )
-    def test_a_pull_request_trigger_in_the_wider_spellings_answers(self, repo, trigger):
-        workflow(repo, "test.yml", trigger + PYTEST_JOB)
-        r = run(["--kind", "tests", str(repo)])
-        assert r.returncode == 0, r.stdout + r.stderr
-        [line] = labelled(r.stdout, "answers")
-        assert "test.yml (on pull_request)" in line
-
-    @pytest.mark.parametrize(
-        "trigger",
-        [
-            "name: CI\n",
-            "on: {pull_request: {}}\n",
-            "on: [\n  push\n]\n",
-            "on: [pull_request,\n    push]\n",
-            "on: [pull_request, {types: [opened]}]\n",
-            "on:\n  pull_request:\n  ? push\n",
-            "on:\n    pull_request:\n  push:\n",
-            "on: [pull_request,,]\n",
-            "on:\n  pull_request\n  push\n",
-            "on:\n  pull_request\n    push\n",
-            "on:\n  - pull_request\n    closed\n",
-            "on: pull_request\n  push\n",
-            "on: [pull_request]\n  push\n",
-            "on:\n  pull_request:foo\n",
-            "on:\n  pull_request:x: y\n",
-            "on:pull_request\n",
-            "on:\n  pull_request:\xa0foo\n",
-            "on:\xa0pull_request\n",
-            "on: pull_request\xa0\n",
-            "on:\n  pull_request\xa0:\n",
-            "on: pull_request\xa0#x\n",
-            "on:\n  pull_request:\n\xa0 push:\n",
-            "on: pull_request\n\xa0\n",
-            "on: [pull_request,\xa0]\n",
-            "on\xa0: pull_request\n",
-        ],
-        ids=[
-            "no-on-key",
-            "flow-mapping",
-            "flow-list-across-lines",
-            "flow-list-closed-on-a-later-line",
-            "one-list-element-unread",
-            "one-block-entry-unread",
-            "a-line-shallower-than-the-block",
-            "two-trailing-commas",
-            "two-names-on-the-lines-below",
-            "a-name-continued-on-a-deeper-line",
-            "an-item-continued-on-a-deeper-line",
-            "an-inline-name-continued-on-a-deeper-line",
-            "an-inline-list-continued-on-a-deeper-line",
-            "a-name-glued-to-a-colon",
-            "a-key-holding-a-glued-colon",
-            "an-on-key-glued-to-its-value",
-            "a-name-glued-to-a-colon-by-a-unicode-space",
-            "an-on-key-glued-to-its-value-by-a-unicode-space",
-            "an-inline-name-ending-in-a-unicode-space",
-            "a-key-ending-in-a-unicode-space",
-            "a-comment-sign-after-a-unicode-space",
-            "a-block-line-opened-by-a-unicode-space",
-            "an-inline-name-above-a-line-of-a-unicode-space",
-            "a-flow-list-ending-in-a-unicode-space",
-            "an-on-key-ending-in-a-unicode-space",
-        ],
-    )
-    def test_an_unread_trigger_is_reported_and_not_counted(self, repo, trigger):
-        """One element the scan cannot read makes the whole trigger unread:
-        a partial set would read as the whole trigger."""
-        workflow(repo, "ci.yml", trigger + PYTEST_JOB)
-        r = run(["--kind", "tests", str(repo)])
-        assert r.returncode == 1, r.stdout + r.stderr
-        assert labelled(r.stdout, "answers") == [], r.stdout
-        [line] = labelled(r.stdout, "unread")
-        assert "ci.yml (trigger unread, not counted) — pytest" in line
-
-    def test_an_unread_workflow_beside_one_that_answers_still_resolves(self, repo):
-        workflow(repo, "nightly.yml", "name: Nightly\n" + PYTEST_JOB)
-        workflow(repo, "test.yml", "on: pull_request\n" + PYTEST_JOB)
-        r = run(["--kind", "tests", str(repo)])
-        assert r.returncode == 0, r.stdout + r.stderr
-        [answers] = labelled(r.stdout, "answers")
-        assert "test.yml (on pull_request)" in answers
-        [unread] = labelled(r.stdout, "unread")
-        assert "nightly.yml (trigger unread, not counted)" in unread
-
-    @pytest.mark.parametrize(
-        "trigger, code, label, events",
-        [
-            ("on: pull_request # trigger\n", 0, "answers", "pull_request"),
-            ("on: [push] # trigger\n", 1, "too late", "push"),
-        ],
-        ids=["inline-name", "inline-list"],
-    )
-    def test_a_trailing_comment_is_not_read_as_an_event(
-        self, repo, trigger, code, label, events
-    ):
-        workflow(repo, "ci.yml", trigger + PYTEST_JOB)
-        r = run(["--kind", "tests", str(repo)])
-        assert r.returncode == code, r.stdout + r.stderr
-        [line] = labelled(r.stdout, label)
-        read = re.search(r"\(on (.*?)(?:, not pull_request)?\) —", line)
-        assert read and read.group(1) == events, line
-
-    def test_the_printed_limit_names_a_trigger_it_cannot_read(self, tmp_path):
+    def test_the_printed_limit_says_no_trigger_is_read(self, tmp_path):
         r = run(["--kind", "tests", str(tmp_path)])
         [limit] = [line for line in r.stdout.split("\n") if line.startswith("limit: ")]
-        assert "flow mapping" in limit, limit
-        assert "unread and is not counted" in limit, limit
-        assert "filters (types, branches, paths) are not read" in limit, limit
+        assert limit == LIMIT, limit
 
     # --- a local hook is not CI ----------------------------------------------
 
@@ -295,6 +216,18 @@ class Test_main:
         assert r.returncode == 1
         assert "pre-commit" in r.stdout
         assert "local" in r.stdout.lower()
+        assert r.stdout == "\n".join(
+            [
+                "tests: NO RUNNER IN CI",
+                "  local     .pre-commit-config.yaml (the committer's machine "
+                "only) — pytest",
+                "",
+                LIMIT,
+                "",
+                UNANSWERED,
+                "",
+            ]
+        ), r.stdout
 
     # --- other CI systems ----------------------------------------------------
 
@@ -307,6 +240,7 @@ class Test_main:
         r = run(["--kind", "tests", str(d)])
         assert r.returncode == 0, r.stdout + r.stderr
         assert ".gitlab-ci.yml" in r.stdout
+        assert r.stdout == answered((".gitlab-ci.yml", "pytest -q")), r.stdout
 
     # --- kinds are independent -----------------------------------------------
 

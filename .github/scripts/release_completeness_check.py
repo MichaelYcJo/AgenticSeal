@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """A release cannot ship while its milestone claims work the release has not
-got.
+got, or while a release named as a patch carries a `feat:`.
 
 `docs/flow.md` used to carry this as a checklist bullet — *is everything in* —
 and #351 deleted the file. This is the same question asked by the machine, at
@@ -41,6 +41,23 @@ reporting:
             held for a failure of the signal rather than of its contents
     D \\ M   reports, passes. An issue somebody closed by hand mid-release is
             in D and in no open milestone, which is ordinary tracker hygiene
+
+**A second question, from the same subjects: does a patch carry a `feat:`**
+(#1199). A `feat:` makes a minor, so a release whose version's third number
+is not 0 FAILS where one of its own subjects opens with `feat:`, and the
+error names each subject and the two repairs `docs/branch-and-release.md`
+*Work accumulates on a release branch* states, each at the moment it can be
+made (#1205): before its squash, a `feat:` in a milestone numbered as a
+patch moves to the planned minor whose goal it shares; once squashed here,
+the milestone and every later planned one are renamed one step forward and
+the branch is cut again under the new name. The reading counts that one
+spelling. A subject whose first word is `feat` spelt otherwise, such as
+`Feat:` or `feat(agents):`, is printed as not read and changes no exit
+code; whether it meant the prefix is its writer's judgment. It needs no
+milestone, so it runs before the milestone reading and a missing milestone
+does not skip it. A `feat:` squashed here stays counted after a revert, as
+a reverted squash stays in D, so the repair the error names for it is the
+rename.
 
 It writes nothing anywhere. Exit 0 or 1, and a shape it cannot judge exits 0
 with the reason printed.
@@ -270,6 +287,71 @@ def judge(milestone_open, carried, labels, version):
     return lines, failed
 
 
+# The one spelling the version reading counts. A subject that spells the word
+# otherwise is named as not read, and no list of its other spellings is kept
+# (`skills/core/SKILL.md` *The rule a mechanism is kept against*).
+FEAT = "feat:"
+
+
+def first_word_is_feat(subject):
+    """Whether SUBJECT's first word, case folded and cut at its first `(`,
+    `!` or `:`, is `feat`."""
+    words = subject.split()
+    if not words:
+        return False
+    word = words[0]
+    for mark in "(!:":
+        word = word.split(mark, 1)[0]
+    return word.casefold() == "feat"
+
+
+def judge_feat(version, subjects):
+    """(lines, failed). The release's own subjects against its number.
+
+    A `feat:` makes a minor, so a release named as a patch, a version whose
+    third number is not 0, fails where one or more subjects open with
+    `feat:` (`docs/branch-and-release.md` *Work accumulates on a release
+    branch*). Pure, like `judge`, and in the same order: what stops the
+    release, then the count, then what is only reported.
+    """
+    counted = [s for s in subjects if s.startswith(FEAT)]
+    near = [s for s in subjects if not s.startswith(FEAT) and first_word_is_feat(s)]
+    patch = int(version.split(".")[2]) != 0
+    kind = "patch" if patch else "minor"
+    lines, failed = [], False
+
+    if patch and counted:
+        failed = True
+        named = "; ".join(f"`{s}`" for s in counted)
+        lines.append(
+            f"::error::{version} is a patch and this release branch carries "
+            f"{len(counted)} feat: subject(s): {named}. A feat: makes a minor. "
+            f"A feat: filed or moved into a milestone numbered as a patch "
+            f"moves, before its squash, to the planned minor whose goal it "
+            f"shares. One squashed onto this branch stays in its range, "
+            f"because this reading counts it after a revert as well, so the "
+            f"repair here is to rename {signal.milestone_title(version)!r} "
+            f"and every later planned release: milestone one step forward, "
+            f"cut this branch again under the new name, and move plugin.json "
+            f"to the new version in the new branch's first pull request "
+            f"(docs/branch-and-release.md, Work accumulates on a release "
+            f"branch). The prefix states what the change is and is never "
+            f"lowered to fit the number"
+        )
+
+    lines.append(
+        f"{len(counted)} feat: subject(s) on this release branch, and "
+        f"{version} is a {kind}"
+    )
+    if not patch and not counted:
+        lines.append(
+            f"{version} carries no feat: and ships as the minor it was named, "
+            f"since its branch is cut under that name"
+        )
+    lines.extend(f"not read: {s}" for s in near)
+    return lines, failed
+
+
 def main():
     head = os.environ.get("HEAD_BRANCH", "")
     version = signal.version_of(head)
@@ -289,19 +371,25 @@ def main():
     point = os.environ.get("HEAD_SHA") or "HEAD"
     milestone = signal.milestone_title(version)
 
+    # Read once and handed to both readings. The version reading runs first
+    # because it needs no milestone: the number is in the head's name.
+    subjects = subjects_since(merge_base(base, point), point)
+    feat_lines, feat_failed = judge_feat(version, subjects)
+    for line in feat_lines:
+        print(line)
+
     if milestone not in milestone_titles(repo):
         print(
-            f"::warning::no milestone {milestone!r} exists — this run "
-            f"verified NOTHING. `gh issue list --milestone` answers a title "
-            f"nothing has with an empty list, so the check would otherwise "
-            f"pass by measuring an empty set. Passing anyway: a release "
-            f"nobody scheduled is a person's call, not this gate's"
+            f"::warning::no milestone {milestone!r} exists — the milestone "
+            f"reading verified NOTHING. `gh issue list --milestone` answers a "
+            f"title nothing has with an empty list, so the check would "
+            f"otherwise pass by measuring an empty set. That reading passes "
+            f"anyway: a release nobody scheduled is a person's call, not "
+            f"this gate's"
         )
-        return 0
+        return 1 if feat_failed else 0
 
-    carried = set(
-        signal.issues_in(repo, subjects_since(merge_base(base, point), point))
-    )
+    carried = set(signal.issues_in(repo, subjects))
     lines, failed = judge(
         open_in_milestone(repo, milestone),
         carried,
@@ -310,7 +398,7 @@ def main():
     )
     for line in lines:
         print(line)
-    return 1 if failed else 0
+    return 1 if failed or feat_failed else 0
 
 
 if __name__ == "__main__":

@@ -32,7 +32,9 @@ gh pr list --state all --limit 10
 
 **The history is the rule even where no document states it.** Everything below
 was read off a repository's log, and repositories differ. A title that does
-not look like the ones in that list is the one that is wrong.
+not look like the ones in that list is the one that is wrong. The comparison
+is of a title's shape and language, and its prefix is the one the table in
+*Commit messages* gives the change.
 
 This step is first because the failure happens here: a list on screen is not
 a comparison made. Having run the command is not the same act as comparing
@@ -113,24 +115,66 @@ says nothing writes English.
 `<prefix>: <one line, starting lower-case>`, in the repository's language.
 The prefix is not part of that: it stays as the table below spells it.
 
-| prefix | when |
-|---|---|
-| `feat:` | behaviour that did not exist now does |
-| `fix:` | behaviour existed, was wrong, and is corrected |
-| `docs:` | documentation or comments only |
-| `test:` | tests only |
-| `refactor:` | same behaviour, different structure |
-| `perf:` | same behaviour, faster |
-| `chore:` | release preparation, configuration, dependencies |
+**A prefix is the writer's judgment of what the change does for whoever
+meets it after the merge, a user or a party working on a later change.**
 
-This table is the working default and it is what a repository with no history
-gets, because a first commit has nothing to compare against.
+| Kind | What whoever meets the change meets | Examples |
+|---|---|---|
+| `feat:` | something new to use or to meet | a command; a record format; a refusal on a rule the change itself states; a thing removed that its users must now work around |
+| `fix:` | behaviour that was wrong against a rule the tree stated before the change, now matching it | a check that let through what its rule refused; a skill sentence that contradicted the policy it cites |
+| `perf:` | the same behaviour, sooner or at less cost | a file parsed once instead of once per row |
+| `refactor:` | the same kinds of outcome, reached another way | a judgment moved from a script to an agent; a gate retired because what it caught did not outweigh its cost; a skill nobody used, removed; a section moved to another file |
+| `test:` | nothing outside the repository's own tests | a case added or corrected, even one that refuses where the suite gates the merge |
+| `docs:` | text people read and no party acts on | a README, its install steps among them; a comment |
+| `chore:` | upkeep that changes nothing anyone meets | the version move; the changelog fold; a dependency pin that changes nothing met; a work item's records committed alone; a settle that writes the rule changes released work items stated |
 
-**A repository's own log outranks the table.** Where it uses a prefix of its
-own for its workflow, the writer uses that one too; where it spells a shared
-one differently, the writer follows it. The writer invents none: a prefix
-nobody has used before teaches a reader nothing, and the log is how they learn
-what it means.
+**Where a change does more than one of these, its prefix is the one highest
+in the table**, because whoever meets it meets the largest change.
+
+**A change's own tests and its work item's records never decide its
+prefix**, so a speed-up with the case that pins it is `perf:`, and a README
+edit with the case that pins its words is `docs:`.
+
+**Text a party reads and acts on is behaviour**, such as a skill, an agent
+definition, a template a party fills or a hook's message, so a change to it
+is never `docs:`, and is `chore:` in two cases only: a work item's own
+records, which describe their change and leave with it and fall under the
+paragraph before this one, and an effect a released change already decided,
+such as a settle writing released rule changes, which the paragraph opening
+*An effect is counted once* gives `chore:`.
+
+**"Before the change" is the branch the change merges into**, and a rule
+stated only in the change's own work item, such as its frame, belongs to the
+change, so a commit that builds it takes the kind its pull request takes, on
+the grounds the orchestrator states for that pull request.
+
+**An effect is counted once, by the change that decided it**, so a settle
+that writes a rule change a released work item stated is `chore:`, and a
+section it rewrites that no released work item decided is that rewrite's
+kind.
+
+**The orchestrator states the grounds for a pull request's title** in its
+part of the body, as *Pull request bodies* says, and `agents/sealer.md` step
+4 reads that part against the design and the diff, so a prefix the change
+does not bear out is a disagreement the sealer names.
+
+**An issue's title takes the prefix the pull request that closes it will
+take**, chosen by this table, so no issue is filed `chore:` by default, and
+where the pull request takes a prefix other than the issue's, the
+orchestrator retitles the issue when it titles the pull request.
+
+**The prefix states what the change is, and is never chosen to fit a release
+number.**
+
+**A repository's own log decides how a prefix is spelt, and never which row
+a change takes.** Where the log spells a prefix of the table differently, the
+writer follows it. Where the log uses a prefix of its own for its workflow,
+one the table lacks, the writer uses that one too. The writer invents none: a
+prefix nobody has used before teaches a reader nothing, and the log is how
+they learn what it means. Which row a change takes is the table's, because a
+log written by default teaches the default. A repository with no history
+uses the table as it stands, because a first commit has nothing to compare
+against.
 
 **One language, in the subject and in the body: the one the row names.**
 Where feature branches squash, the commit body becomes the pull request body,
@@ -203,6 +247,9 @@ is taken from. The writer links it rather than copying the rows into this
 file or into the body: two copies are two things to keep in step, and the one
 that drifts is the copy nobody owns.
 
+**The orchestrator's part says in one sentence why the title takes its
+prefix, and names the kind that came closest, where one did.**
+
 Where a translated body is wanted, **the writer puts it in the repository as a
 file and links it from the body.**
 
@@ -244,8 +291,8 @@ here: a branch name is typed into a shell and pasted into a URL.
 - A release branch is `release/vX.Y.Z`.
 
 ```
-chore/940-on-demand-files-state-the-current-rule
-docs/the-merge-rule-is-enforced-now
+fix/940-on-demand-files-state-the-current-rule
+docs/the-readme-says-how-to-install
 ```
 
 **The slug states the symptom.** A name carrying only the issue number
@@ -257,7 +304,8 @@ place branch names are ever read.
 The writer answers these rather than assuming them.
 
 1. Was `gh pr list` run, **and the title compared to what it returned**?
-2. Does the title carry a prefix, from the vocabulary the commits used?
+2. Does the title carry the prefix the table in *Commit messages* gives the
+   change?
 3. Was **`config.md` in the root opened**, and are the title and body in
    the language its `Commit and pull request language` row names? No file and
    no such row both mean English.

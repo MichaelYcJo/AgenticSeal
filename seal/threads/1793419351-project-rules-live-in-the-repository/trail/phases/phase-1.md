@@ -1,0 +1,19 @@
+# Phase 1: 1793419351-project-rules-live-in-the-repository
+
+## What this phase found
+
+**The frame holds against the tree.** `skills/implement/orchestration.md` had 350 lines at `8ca3fde9` and ended with the paragraph opening **A work item that commits in more than one repository**, under *Orchestrator: how the work is routed*, as `frame/plan.md` *Technical context* says (executed: `wc -l`; read). The row `What the answer writes` was the last row of that file's headings in `skills/implement/acts.md` (read). The section is appended after line 350 and its row after that one, so no line of *Orchestrator: the order inside a ticket* moved, and the diff touches no line #1167's phase 5 edits.
+
+**The section does not say that an agent cannot read the memory.** Issue #1200 says no spawned agent reads it. In this harness the crafter spawned for this phase received the memory's index in its own context at startup (read: the crafter's own context). So the section rests on what holds on any harness: the memory is kept on one machine, outside the repository, and a run on another machine or a reader of the repository never meets it. This departs from the issue's wording and not from C1.
+
+**The measurement row cites the section that picks the log, not an issue number.** `frame/design.md` *The entries* gives a measurement's home as a log issue, #51 among them. The skill is read in every user's repository, where this repository's issue numbers mean nothing. The first wording named the flow log alone, while `skills/verify/orchestration.md` *Measure the segment, and feed the flow log* sends a cross-version reading to the durable log (read, its lines 169 to 196), so `d094e66c` rewrote the cell to name the log that section names for the reading.
+
+**The case was seen red, and none was written new.** With the section added and no row, `tests/behaviour/test_every_orchestrator_act_names_its_delivery.py` failed with "`Orchestrator: where a decision or a lesson is written` in `skills/implement/orchestration.md` is an act addressed to the orchestrator and the table has no row for it" (executed). With the row it passed (executed). That module reads every marked heading, so a case of its own would cover nothing its group does not.
+
+**The mutation is red.** `seal mutate skills/implement/acts.md` replaced the row's Act cell `| Orchestrator: where a decision or a lesson is written |` with `| where a decision or a lesson is written |`, with the case `test_every_orchestrator_act_names_its_delivery`: verdict `red`, exit 0, the file restored and the tree clean (executed at `7306c33b`). The first run's output was cut by a pipe, so it was taken a second time to read the verdict; both left the tree clean.
+
+**Nothing holds the section's sentences.** `git grep -n -i 'local memory\|decision or a lesson' -- tests` returns nothing (executed), so deleting the bold sentence or a row of the section's table leaves every module green. The acts row says so with `still a sentence`, and the plan's *Verified by* cell names no pin.
+
+**The narrow run.** The set is every module under `tests/` that names `skills/implement`, or reads the tracked tree through `conftest.py`'s `git_listing` or `on_disk`, or globs `skills/` or `*.md`, listed with `git grep -l`: 93 modules through `bin/test`. At `7306c33b`, before the records were written, it gave 4,212 passed, 9 skipped and one failure, `tests/behaviour/test_chain_hooks_hardening.py::test_every_spec_directory_that_reached_the_ladder_has_an_overview`, which asks for this work item's `gaps.md` (executed). At `d094e66c`, with this record, `gaps.md` and the Status cell in the working tree, it gave 4,213 passed and 9 skipped, exit 0 (executed).
+
+**The commits carry `fix:`.** The section changes what the orchestrator is told to do, which the owner's ruling being built in #1199 keeps out of `docs:` and `chore:`; the issue reports a defect, a rule a run on another machine did not know.

@@ -138,7 +138,7 @@ jobs:
       #
       # This is the first step in this file to use `gh`, which is why the job
       # gained the `permissions:` block above.
-      - name: the milestone this release claims is the work it carries
+      - name: the milestone this release claims is the work it carries, and a patch carries no feat
         env:
           GH_TOKEN: ${{ github.token }}
           HEAD_BRANCH: ${{ github.head_ref }}
@@ -163,6 +163,16 @@ jobs:
         shell: bash
         run: |
           python3 skills/implement/scripts/seal.py mode --check
+
+      # A report, not a gate: `seal rules --check` gates inside
+      # `tests/github/test_rules.py`, whose capture keeps its output, so the
+      # lines it names as not read are printed here as notices (#1167).
+      # Pinned in `tests/behaviour/test_release_hygiene.py`.
+      - name: the check lines rules.py did not read
+        shell: bash
+        run: |
+          out=$(python3 .github/scripts/rules.py --check) || true
+          printf '%s\n' "$out" | sed -n 's/^seal rules: not read: \([^:]*\):\([0-9]*\): /::notice file=\1,line=\2::not read: /p'
 
       # A reminder, not a gate: the language policy keeps the Korean README a
       # human-facing mirror, and mirrors drift one edit at a time.

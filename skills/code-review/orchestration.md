@@ -75,7 +75,12 @@ a later round; that is contract rule 12. For each rule its range reworded or
 removed, the crafter finds every other place stating it, by its words and by
 the `check:` target that holds it, and corrects each or names it in the
 hand-back with why it stands. The round that follows reads that list against
-the diff. Last, the fix pass writes the `verdict:` and `answer:` lines of
+the diff. Where the hand-back names a statement of a rule it reworded that
+stands in the work item's frame, which the fix pass does not edit, the
+orchestrator folds that statement in place, in a commit of its own, before it
+spawns the verifying round, so the round and the next crafter read one rule
+(`skills/implement/orchestration.md` *Orchestrator: the order inside a
+ticket*). Last, the fix pass writes the `verdict:` and `answer:` lines of
 every finding it answered, after its fix commits and those corrections,
 because a `fixed` verdict names a commit that already exists, and leaves the
 round record uncommitted. **On the hand-back the orchestrator commits the
@@ -117,24 +122,38 @@ So a run ends with a **verifying round**, and three things define it.
 The new units in that diff are the exception: they have been reviewed by
 nobody, so the verifying round reviews them as code.
 
-**A round that opens nothing needing a fix does not consume the cap.** The cap
-counts rounds that found something, because it exists to stop a loop that is
-not converging, and a round that finds nothing is the loop having converged.
-A verifying round that opens something IS a finding round and consumes the cap
-like any other, and one that opens nothing is by definition the last one,
-because the run ends at it.
+**A round that opens nothing needing a fix does not count.** The count
+holds rounds that found something, because it exists to make you weigh a
+loop that is not converging, and a round that finds nothing is the loop
+having converged. A verifying round that opens something IS a finding round
+and counts like any other, and one that opens nothing is by definition the
+last one, because the run ends at it.
 
-**A run has three finding rounds by default, counted from the last design
-change, extends one round at a time while the findings shrink, and at the
-cap every open finding takes the filing ladder.** `docs/the-review-record.md`
-*The run* states the cap, where its count starts again, the verifying round
-a regression's fix pass is owed whatever the count, the extension line the
-spawn prompt gives the proofer, and the ladder.
+**You end the rounds when they stop paying, and three finding rounds,
+counted from the last design change, are the point where you weigh that
+rather than spawn the next round by habit.** `docs/the-review-record.md`
+*The run* says what a design change is and where the count starts again.
+At that point, and at any round where a signal below shows, you weigh:
+
+| | What |
+|---|---|
+| The signals that the run is not converging | a round finds as many findings as the one before it, or more; a finding carries a `regression:` line; one kind of finding returns with a new instance, each fix pass having fixed the coordinate it was handed; a fix adds a mechanism, a check, a mark or a grammar rule, in place of removing a cause |
+| What going on costs | a round close to a finding round's price, since the frame, the inherited records and the probes set it |
+| What stopping costs | each open finding a home somebody acts on, by the homes *The run* gives, and a defect the release ships where the home is nobody's |
+
+A regression's fix pass is owed one verifying round whatever the count,
+because a fix no round reads is an invariant `skills/core/SKILL.md`
+*Judgment is not licence to skip a party* holds, not a judgment. **You write
+each decision to go on past the third round, or to stop, as one row of
+`frame/plan.md` *Judgments of the run*,** with the counts and signals you
+weighed as its grounds and the document you judged against; the proofer
+writes no line for it, and no person is asked mid-run. When you stop, every
+finding still open takes a home and reads `deferred <home>`.
 
 The condition is not *this round found nothing*, which would be unbounded. A
 verifying round that raises a `should` finding the crafter closes `rejected`,
-with its grounds, has opened nothing needing a fix, and it does not consume
-the cap. Its record is still not the last one: the check refuses a `rejected`
+with its grounds, has opened nothing needing a fix, and it does not count.
+Its record is still not the last one: the check refuses a `rejected`
 finding in the last record, and a `fixed` one that names a path outside the
 work item's records or whose commit touched one, so one more verifying round
 reads that answer alone. Where the rejection holds, that round names it on a
@@ -146,10 +165,10 @@ redesign. The run ends only on a round whose record holds no `open` or
 `rejected` finding and no `fixed` one that names a path outside the work
 item's records or whose commit touched one, and whose `target:` commit is
 HEAD, or is followed only by the work item's own records (a verifying round,
-or the round at the cap whose open findings took the filing ladder), since
+or the round you stopped at, whose open findings took their homes), since
 the check refuses a ready pull request whose last record fails either. A fix
-to a file outside the work item's records committed after that round, one
-the ladder's first rung sends to the diff among them, is followed by one more
+to a file outside the work item's records committed after that round, a
+leftover whose home is the diff among them, is followed by one more
 verifying round.
 
 ### A regression is routed by comparing the fix with the frame
@@ -164,7 +183,11 @@ the round on that sentence (`docs/the-review-record.md` *The run*):
 |---|---|
 | the fix built the phase's `plan.md` row and `frame/design.md` as written, and the defect stands anyway | no fix pass; the work item goes back to its framer, by the steps below |
 | the fix did something the frame does not say, or the defect is in how it was written, a review record's paste-ready fix applied as given among them | an ordinary fix pass, with the crafter told what the frame says |
-| the unit already had a regression routed to a fix pass in this run | the framer, by the steps below, whatever the sentence says |
+| the unit already had a regression routed to a fix pass in this run | the signal that the frame is wrong whatever the sentence reads: the framer, by the steps below, unless you can write, as the grounds of a row in `frame/plan.md` *Judgments of the run*, why the frame holds and the fix alone was wrong |
+
+Each route is a judgment, and you write it as one row of that table: the
+regression it answers and the route as the judgment, the comparison as its
+grounds, and *The run* as the document.
 
 The framer's route:
 
@@ -172,7 +195,7 @@ The framer's route:
 |---|---|
 | The record | every open finding closes `deferred the frame`, and its `answer:` line names the regression that sent the work item back; you write both lines of every open finding in one commit |
 | The framer | spawned again with the run's round records as its input; they are in the tree, so the prompt names them and carries nothing else. It rewrites `plan.md` (new phase rows; a closed phase keeps its commit) and `frame/design.md` where the scope moves, and adds `Reframed <date> by <who>, after round <N>.` under the `Framed` line. Where `routing.md` answers `Automation` with `yes`, the spawn asks nobody |
-| The redesign | you approve it when you spawn `crafter` for it; the spawn is the approval. It is then built and reviewed, and its first finding round starts the cap's count again |
+| The redesign | you approve it when you spawn `crafter` for it; the spawn is the approval. It is then built and reviewed, and its first finding round starts the count again |
 
 ## Orchestrator: the pull request opens once the sealer seals
 
@@ -185,12 +208,22 @@ pushed, and the branch is handed back committed and unpushed. Once
 body the sealer read, `gh pr create --body-file <that file>`. CI runs then,
 and again on every push to it.
 
-**After the pull request opens, and after each push to it, the orchestrator
-reads `gh pr view <N> --json mergeable` before it waits on CI.**
-`CONFLICTING` means GitHub made no merge ref for the pull request and runs no
-`pull_request` CI on it, and nothing else says so. `UNKNOWN` means GitHub
-has not computed the answer yet, and the orchestrator reads it again.
-`MERGEABLE` is the answer under which the orchestrator waits on CI.
+**The orchestrator reads `gh pr view <N> --json state,mergeable` when the
+pull request opens, before each push to its branch and after each push, and
+waits on CI only under `OPEN` and `MERGEABLE`.** A `state` of `MERGED` or
+`CLOSED` stops the push. The owner may merge or close the pull request at
+any time after it opens, and a commit pushed to its branch after that is in
+no pull request: nothing checks, reviews or merges it. Under `MERGED` the
+repair goes on a new branch cut from the base, which holds the work. Under
+`CLOSED` the base does not hold the work and the owner closed it, so the
+orchestrator pushes nothing and says in its report that the pull request was
+closed with a repair pending. `CONFLICTING` means GitHub made no merge
+ref for the pull request and runs no `pull_request` CI on it, and nothing
+else says so. `UNKNOWN` means GitHub has not computed the answer yet, and
+the orchestrator reads it again. The wait is `gh pr checks <N> --watch`,
+which reads the checks of every workflow on the pull request; a single
+workflow's run, watched alone, can pass while another workflow's check
+fails.
 
 **A conflict with the base is integrated by merging the base into the
 branch, never by a rebase.** A rebase orphans the commits every round record
@@ -227,8 +260,9 @@ again, and the sealer again. Nothing else is built for it. The pull request
 stays open through that repair. Once the repair's broad run is committed,
 the orchestrator runs `seal pr-body` on the body file again and gives the
 file to the open pull request with
-`gh api -X PATCH repos/<owner>/<repo>/pulls/<N> -F body=@<file>`
-(`docs/release-checklist.md` names why not `gh pr edit`).
+`gh api -X PATCH repos/<owner>/<repo>/pulls/<N> -F body=@<file>`, not
+`gh pr edit`: that command's GraphQL query has stopped on an error about
+Projects (classic), and the REST call sends the body alone.
 
 **A repository that still opens a draft is not refused.** On a draft
 `chain_check` prints what it would refuse and exits 0, and `hygiene`'s
