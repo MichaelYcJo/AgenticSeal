@@ -38,7 +38,7 @@ read as the source the skill is built against.
 severity: should
 location: `seal/threads/1793419350-a-prefix-states-what-a-change-is/frame/design.md:30`
 evidence: read `seal/threads/1793419350-a-prefix-states-what-a-change-is/frame/design.md:30`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/frame/design.md:65`, `skills/commit-pr-convention/SKILL.md:138-144`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/frame/plan.md:46`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/trail/rounds/round-3.md:52`, `agents/crafter.md:175-178`
-verdict: open
+verdict: fixed 275f45f9
 reopens: round-4#1
 
 The close holds in the skill and in the fragment, and does not hold in the
@@ -77,14 +77,14 @@ with
 so a change to it is never `docs:`, and is `chore:` only as a work item's own records or as an effect a released change already decided.
 ```
 
-answer:
+answer: The orchestrator applied the round's text as written, checked against `skills/commit-pr-convention/SKILL.md:138-144`: Scope item 1 now states the two `chore:` cases the skill states. The finding is in the frame alone and the commit touched the frame alone, so the sealer reads it at HEAD.
 
 ### 2. The fold's pointer paragraph says every crafter's commit takes the pull request's kind, where the skill says so only of a commit that builds a rule stated in its own work item
 
 severity: should
 location: `seal/threads/1793419350-a-prefix-states-what-a-change-is/frame/design.md:65`
 evidence: read `seal/threads/1793419350-a-prefix-states-what-a-change-is/frame/design.md:65`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/frame/design.md:93`, `skills/commit-pr-convention/SKILL.md:129`, `skills/commit-pr-convention/SKILL.md:146-149`, `agents/crafter.md:158-161`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/frame/plan.md:46`, `seal/threads/1793419350-a-prefix-states-what-a-change-is/trail/rounds/round-4.md:197`
-verdict: open
+verdict: fixed 275f45f9
 regression: round-4#3
 
 The unit is the pointer paragraph `9bd9acec` wrote in place of *The
@@ -124,7 +124,7 @@ with
 a commit that builds a rule stated only in its own work item takes the pull request's kind on those grounds
 ```
 
-answer:
+answer: The orchestrator applied the round's text as written, checked against `skills/commit-pr-convention/SKILL.md:146-149`: the pointer gives the pull request's kind only to a commit that builds a rule stated in its own work item. The finding is in the frame alone and the commit touched the frame alone, so the sealer reads it at HEAD.
 
 ## Confirmations
 
