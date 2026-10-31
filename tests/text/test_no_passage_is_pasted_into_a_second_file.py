@@ -212,7 +212,9 @@ BASELINE = {
     # Debt, every entry below. Lowered to the counts measured at #940's
     # last phase; each pair that measured zero left the table.
     ("README.md", "skills/implement/SKILL.md"): 2,
-    ("README.md", "skills/implement/orchestration.md"): 1,
+    # The acts row of the verifying round, which moved with its table to
+    # `skills/implement/acts.md` in #1148.
+    ("README.md", "skills/implement/acts.md"): 1,
     ("README.md", "skills/parity-setup/SKILL.md"): 1,
     ("agents/crafter.md", "skills/implement/SKILL.md"): 3,
     ("docs/one-root-by-lifetime.md", "skills/implement/SKILL.md"): 4,

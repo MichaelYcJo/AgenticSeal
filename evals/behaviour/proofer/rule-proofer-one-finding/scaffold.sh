@@ -94,8 +94,6 @@ mkdir -p "$(dirname 'seal/threads/1790000001-shout-ends-with-one-exclamation-mar
 cat > 'seal/threads/1790000001-shout-ends-with-one-exclamation-mark/frame/plan.md' <<'AGENTIC_EOF'
 # Implementation Plan: shout_twice
 
-Approved 2026-10-14 by the repository owner, when `crafter` was spawned.
-
 ## Phases
 
 | Phase | Delivers | Verified by | Status |

@@ -12,8 +12,8 @@ records and the findings format. The orchestrator reads both. The proofer
 preloads that one and never opens this one.
 
 Every `##` heading here opens with `Orchestrator:`, and
-`skills/implement/orchestration.md` *Orchestrator: which of these acts runs
-itself* lists each act with what notices when it is skipped.
+`skills/implement/acts.md` *Orchestrator: which of these acts runs itself*
+lists each act with what notices when it is skipped.
 
 ## Orchestrator: a phase is a fresh crafter, and a fix pass resumes the implementer
 
@@ -99,13 +99,18 @@ permits the load and does not oblige it.
 A round's findings are closed after it ends, by whoever writes the fixes. Every
 round but the last has a reader for those fixes: the round that follows, which
 answers each of its verdicts. The last round's fixes have none unless a round
-is spawned for them.
+is spawned for them, except a fix pass whose findings are all located in the
+work item's own records and whose commits touched only those records under
+`seal/threads/<id>/`: the sealer reads every record at HEAD and is that fix's
+reader, so the pass owes no verifying round, and the check passes its
+`fixed <commit>` in the last record. A finding located in code is read by a
+round whatever its fix touched.
 
 So a run ends with a **verifying round**, and three things define it.
 
 | Property | What |
 |---|---|
-| When | **after the fixes** for the previous round are committed, never before, or it reviews what has already been reviewed |
+| When | **after the fixes** for the previous round are committed, never before, or it reviews what has already been reviewed; a fix pass whose findings are all located in the work item's records, with commits that touched nothing else, owes none |
 | Target | the **diff of those fixes**, not the branch. That is what keeps it bounded, and bounded is not cheap: its cost is set by the frame, the inherited records and the probes, so it runs close to a finding round. `docs/the-review-record.md` *The run* states the rule |
 | Job | the answers, not new findings. For each finding the previous round closed `fixed <commit>` or `rejected`, is it actually closed: a `confirms:` line naming it where it is; where it is not, a finding whose `reopens:` line names it, or whose `regression:` line does where a fix pass's own commit made the defect |
 
@@ -129,20 +134,23 @@ spawn prompt gives the proofer, and the ladder.
 The condition is not *this round found nothing*, which would be unbounded. A
 verifying round that raises a `should` finding the crafter closes `rejected`,
 with its grounds, has opened nothing needing a fix, and it does not consume
-the cap. Its record is still not the last one: the check refuses a `fixed` or
-`rejected` finding in the last record, so one more verifying round reads that
-answer alone. Where the rejection holds, that round names it on a
+the cap. Its record is still not the last one: the check refuses a `rejected`
+finding in the last record, and a `fixed` one that names a path outside the
+work item's records or whose commit touched one, so one more verifying round
+reads that answer alone. Where the rejection holds, that round names it on a
 `confirms:` line; where it does not, that round raises a finding with a
 `reopens:` line naming it, which gets its fix pass and one more verifying
 round; a round carrying a `regression:` line is routed as the section below
 says, and where the work item returns to its framer the run goes on with the
-redesign. The run ends only on a round whose record holds no `open`, `fixed`
-or `rejected` finding and whose `target:` commit is HEAD, or is followed only
-by the work item's own records (a verifying round, or the round at the cap
-whose open findings took the filing ladder), since the check refuses a ready
-pull request whose last record fails either. A fix committed after that
-round, one the ladder's first rung sends to the diff among them, is followed
-by one more verifying round.
+redesign. The run ends only on a round whose record holds no `open` or
+`rejected` finding and no `fixed` one that names a path outside the work
+item's records or whose commit touched one, and whose `target:` commit is
+HEAD, or is followed only by the work item's own records (a verifying round,
+or the round at the cap whose open findings took the filing ladder), since
+the check refuses a ready pull request whose last record fails either. A fix
+to a file outside the work item's records committed after that round, one
+the ladder's first rung sends to the diff among them, is followed by one more
+verifying round.
 
 ### A regression is routed by comparing the fix with the frame
 
@@ -164,7 +172,7 @@ The framer's route:
 |---|---|
 | The record | every open finding closes `deferred the frame`, and its `answer:` line names the regression that sent the work item back; you write both lines of every open finding in one commit |
 | The framer | spawned again with the run's round records as its input; they are in the tree, so the prompt names them and carries nothing else. It rewrites `plan.md` (new phase rows; a closed phase keeps its commit) and `frame/design.md` where the scope moves, and adds `Reframed <date> by <who>, after round <N>.` under the `Framed` line. Where `routing.md` answers `Automation` with `yes`, the spawn asks nobody |
-| The redesign | you approve it when you spawn `crafter` for it, with a second `Approved` line in `plan.md` on a line of its own, in the shape `skills/implement/orchestration.md` *The plan is approved at the spawn* states; it is then built and reviewed, and its first finding round starts the cap's count again |
+| The redesign | you approve it when you spawn `crafter` for it; the spawn is the approval. It is then built and reviewed, and its first finding round starts the cap's count again |
 
 ## Orchestrator: the pull request opens once the sealer seals
 
@@ -253,23 +261,24 @@ runs nothing broad, and a missing or stale record comes back
 `Verdict: withheld reason: no broad run at HEAD`.
 
 **You write the pull request body after `trail/gate.md` is committed,
-because the body's first part copies that record.** Run
+because the body's copy of the records includes that record.** Run
 `seal pr-body <item> --body <scratchpad>/<work-item-id>/pr-body.md`, where
-`<item>` is the work item's directory. It writes the part of that file above
+`<item>` is the work item's directory. It writes the part of that file below
 the line `skills/code-review/scripts/pr_body.py#HEADING` holds, copied from
-the work item's records, and keeps byte for byte whatever stands under that
-line. On exit 1 its `refused:` lines name a record's file and line: repair
-that record, commit it, and run the command again. Then write your own part
-under that line, to the end of the file: what no record holds, such as the
-motivation, a note to reviewers, the `Closes` or `Part of` line, the broad
-run's printed figures, a CI run taken after the rounds, the chain section's
-comparison table, and the attribution line. Your part restates no record:
-where it needs a record's fact, it names the record's path. Edit nothing
-above the line; the sealer's `seal pr-body --check` withholds on a part
-above it that is not the records' text at HEAD. **Run the command again
-before every later spawn of the sealer and before every `gh api -X PATCH`
-of the body**, so the first part copies the records as the repair left
-them; your part stays as you wrote it.
+the work item's records inside one `<details>` fold, and keeps byte for byte
+whatever stands above that line. On exit 1 its `refused:` lines name a
+record's file and line: repair that record, commit it, and run the command
+again. Then write your own part above that line, from the top of the file,
+so the body opens with it: what no record holds, such as the motivation, a
+note to reviewers, the `Closes` or `Part of` line, the broad run's printed
+figures, a CI run taken after the rounds, the chain section's comparison
+table, and the attribution line. Your part restates no record: where it
+needs a record's fact, it names the record's path. Edit nothing below the
+line; the sealer's `seal pr-body --check` withholds on a part below it that
+is not the records' text at HEAD. **Run the command again before every
+later spawn of the sealer and before every `gh api -X PATCH` of the body**,
+so the copy holds the records as the repair left them; your part stays as
+you wrote it.
 `skills/commit-pr-convention/SKILL.md` *Pull request bodies* says which
 language each part is in.
 

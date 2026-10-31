@@ -377,7 +377,7 @@ def test_the_acts_table_row_names_the_preflight_and_stays_a_sentence():
     the broad run asks the same arms — and its grounds name the step."""
     rows = [
         line
-        for line in read("skills", "implement", "orchestration.md").splitlines()
+        for line in read("skills", "implement", "acts.md").splitlines()
         if line.startswith(f"| {SPAWN_SECTION} |")
     ]
     assert len(rows) == 1, f"{len(rows)} acts-table rows name the section"

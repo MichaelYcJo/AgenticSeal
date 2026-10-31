@@ -113,6 +113,8 @@ COVERED = [
     # Wrapped from its first line, so it goes in at birth rather than waiting
     # for the sweep that would otherwise be needed to bring it under.
     "SECURITY.md",
+    # The brand notice (#1174), wrapped from its first line, the same way.
+    "TRADEMARKS.md",
     "agents/proofer.md",
     # Wrapped from its first line, so it goes in at birth rather than waiting
     # for the sweep that would otherwise be needed to bring it under. It was
@@ -138,6 +140,9 @@ COVERED = [
     # fits at birth (83 columns, measured when it was cut), where the file it
     # was cut from does not, so covering it here loses nothing and keeps it.
     "skills/implement/orchestration.md",
+    # Cut from it in #1148, wrapped as it was.
+    "skills/implement/acts.md",
+    "skills/implement/multi-repository.md",
     # The bootstrap, cut from that file in #1046, the same way: its prose
     # was covered there, so it goes in at birth and keeps that coverage.
     "skills/implement/bootstrap.md",

@@ -28,8 +28,4 @@
 |---|---|---|
 | <a copy, a reader, a rule sentence, a test pin> | <the backticked path, then the heading in italics, or `path#unit` for a unit of code> | <the file or record that now owns it, or why nothing needs to> |
 
-## Open questions
-
-<none here: each is a row of `questions.md`>
-
 Framed <date> by <who>, before the build.

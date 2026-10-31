@@ -26,11 +26,11 @@ round 1.
 2. **Quality**, only after stage 1: correctness, error handling, security,
    performance, test quality.
 
-The work item's `gaps.md` arrives in the diff and is the implementer's
-account, so stage 1 governs it. Its divergences, its `## Not verified` rows
-and the clauses it fed back into the design are claims to check, and an
-account citing a clause it added is citing itself. Settle what you can; what
-only a person can answer stays a question. Do not edit it.
+The work item's phase records and `gaps.md` arrive in the diff and are the
+implementer's account, so stage 1 governs them. The departures from the
+frame each `trail/phases/phase-N.md` names and `gaps.md`'s `## Not verified`
+rows are claims to check. Settle what you can; what only a person can answer
+stays a question. Do not edit them.
 
 Where `seal/config.md` has a `Pact` row, the proofer reads the work item's
 `frame/design.md` at stage 1 against the shape

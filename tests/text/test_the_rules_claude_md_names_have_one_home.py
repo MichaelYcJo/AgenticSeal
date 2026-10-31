@@ -134,18 +134,15 @@ LINKED = {
     # The core holds the values and links only the rule its first value
     # names; it left `CLAUDE.md` for `skills/core/SKILL.md` with #1177. The
     # cadence row left `CLAUDE.md` with #940, and the merge and identifiers
-    # rows with #1169: no agent merges, and `agents/proofer.md` links the
-    # identifiers rule where review reads it.
+    # rows with #1169: no agent merges. `agents/proofer.md` linked the
+    # identifiers rule until #1148, which took the link out: a shipped
+    # definition names no file of this repository's own, and its bullet
+    # stands on its own words. It stays a carrier below.
     "skills/core/SKILL.md": ("batch",),
     ".github/scripts/plugin_directory_check.py": ("identifiers",),
     "tests/github/test_plugin_directory_check.py": ("identifiers",),
     "tests/test_conftest.py": ("identifiers",),
     "tests/behaviour/test_the_gate_asks_the_range_ci_will_ask.py": ("identifiers",),
-    # The fifth citation, spelled `no-real-identifiers`, which the enumerating
-    # grep's `real identifier` did not match (round 1). Round 1's fix pass
-    # re-enumerated every `CLAUDE.md` mention against all four rules' words,
-    # hyphenated, spaced or quoted, and found no other.
-    "agents/proofer.md": ("identifiers",),
 }
 
 # Every file in the class. A home is a carrier of the other rules, so a rule's
@@ -253,13 +250,13 @@ def test_a_restored_copy_is_named():
 def test_a_removed_link_is_named():
     """The other half can fail too: a row that drops its home's path is named,
     and so is one that keeps the path and drops the section."""
-    proofer = "agents/proofer.md"
+    linked = ".github/scripts/plugin_directory_check.py"
     texts = tree()
-    texts[proofer] = texts[proofer].replace(CONTRIBUTING, "the guide")
-    assert (proofer, "identifiers") in unlinked(texts)
+    texts[linked] = texts[linked].replace(CONTRIBUTING, "the guide")
+    assert (linked, "identifiers") in unlinked(texts)
     texts = tree()
-    texts[proofer] = texts[proofer].replace("*House rules*", "")
-    assert (proofer, "identifiers") in unlinked(texts)
+    texts[linked] = texts[linked].replace("House rules", "")
+    assert (linked, "identifiers") in unlinked(texts)
 
 
 def test_a_section_stops_at_its_sibling():

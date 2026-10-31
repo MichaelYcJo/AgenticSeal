@@ -35,11 +35,11 @@ DIRECT_REQUIRES = {
         "nothing required; the declaration is printed",
         "the broad run's `trail/gate.md`",
     ),
-    ("skills", "implement", "orchestration.md"): (
-        "| nothing required |",
-        STANDS,
-    ),
 }
+# The orchestration skill's four-combinations table and its closing paragraph
+# left for the policy root in #1148, which holds both; the skill keeps one
+# sentence on the direct answer and cites the section that holds the rest.
+WAIVER_SECTION = "`docs/the-review-and-parity-arms.md` *There is no standing waiver*"
 
 # The closing paragraph of the orchestration skill's routing section said the
 # direct answer was checked *by the token in every command* — false since the
@@ -74,15 +74,21 @@ def test_each_carrier_says_what_the_direct_answer_requires(parts):
 def test_the_routing_sections_closing_paragraph_names_the_seal_not_the_token():
     """The declaration silences the review arm for either answer, so no token
     checks the direct answer at any commit; what checks it is the sealer's
-    record at the pull request, and the paragraph now says so."""
+    record at the pull request. The skill's sentence says the broad run is
+    owed under the direct answer and cites the policy section that says
+    what checks it, and the policy section says it."""
     text = flat("skills", "implement", "orchestration.md")
     assert TOKEN_SENTENCE not in text, (
         "the paragraph still says a token checks the direct answer, which "
         "the declaration made false"
     )
-    assert "the direct answer against " + STANDS in text, (
-        "the paragraph does not say what checks the direct answer instead"
+    assert "the broad run is owed just the same" in text and WAIVER_SECTION in text, (
+        "the skill does not say the direct answer still owes the broad run, "
+        "or does not cite the section that says what checks it"
     )
+    assert "the direct route against the broad run's record" in flat(
+        "docs", "the-review-and-parity-arms.md"
+    ), "the policy section does not say what checks the direct answer"
 
 
 def test_the_specification_says_why_two_answers_and_not_three():
