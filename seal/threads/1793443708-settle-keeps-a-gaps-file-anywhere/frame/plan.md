@@ -32,7 +32,7 @@ The failure scenario of the chosen approach, in six months:
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1 to 6 | The cases for S1, S2, S3 and S5 in `tests/skills/test_settle.py`, each seen red with the fix reverted in `settle.py`, the printed texts pinned. S4: the module's existing cases pass unchanged. `tests/text/test_settle_reads_before_it_removes.py`, `tests/behaviour/test_settle_applies_rule_changes_in_place.py`, and every other module contract rule 2 names for a path the phase changes. `git grep` on the changed statements' words, run by contract rule 19. `chain_check.py --worktree` reads this design's `## Rule changes` without a refusal | |
+| 1 | `frame/design.md` *Scope* items 1 to 6 | The cases for S1, S2, S3 and S5 in `tests/skills/test_settle.py`, each seen red with the fix reverted in `settle.py`, the printed texts pinned. S4: the module's existing cases pass unchanged. `tests/text/test_settle_reads_before_it_removes.py`, `tests/behaviour/test_settle_applies_rule_changes_in_place.py`, and every other module contract rule 2 names for a path the phase changes. `git grep` on the changed statements' words, run by contract rule 19. `chain_check.py --worktree` reads this design's `## Rule changes` without a refusal | 2c44e0ef |
 
 ## Operational impact
 
