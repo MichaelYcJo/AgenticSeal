@@ -1101,21 +1101,19 @@ def nearest_existing(path):
 
 
 def unique_by_target(paths):
-    """One path per real file, first in sort order.
+    """One path per real file, the real file's own, in sort order.
 
     A tracked symbolic link and the file it points at are one record and two
-    paths. Counting both doubles its open items. Presence is a different
-    question and keeps every path — `ls-tree` lists the link under its own
-    name, so dropping it here would report a file that is right there as
-    deleted."""
-    seen, out = set(), []
-    for p in paths:
-        target = os.path.realpath(p)
-        if target in seen:
-            continue
-        seen.add(target)
-        out.append(p)
-    return out
+    paths. Counting both doubles its open items. The path kept is the one
+    `os.path.realpath` answers, whichever path the scan reached the file by,
+    because the row comparison reads the tree side through it and the base
+    side at it: a link kept in its target's place had its own blob read at
+    the base, which holds no section, and a deleted row passed (#19). The
+    real path may lie outside the scanned path, or outside the repository,
+    which `main` names as not compared. Presence is a different question and
+    keeps every path — `ls-tree` lists the link under its own name, so
+    dropping it here would report a file that is right there as deleted."""
+    return sorted({os.path.realpath(p) for p in paths})
 
 
 def repo_root(path):
@@ -1599,9 +1597,25 @@ def main(argv=None):
                 print(f"      open  {item}  —  {who}")
 
         if args.baseline and not errors:
+            # A kept path is a real path, and a link's target can lie outside
+            # the repository, where no commit holds it: `show` answers None
+            # there, and the file would leave the report in silence. With no
+            # relative form at all it is on another volume, outside as well.
+            at = repo_relative(path, root)
+            if at is None or at.split("/")[0] == "..":
+                uncompared.append(
+                    annotate(
+                        "notice",
+                        rel,
+                        1,
+                        "not compared: the file lies outside the repository, "
+                        "so no commit of the repository holds it",
+                    )
+                )
+                continue
             # An unreadable section returns zero rows, and comparing that zero
             # told the author to restore rows that never left.
-            base_text = show(root, base, repo_relative(path, root))
+            base_text = show(root, base, at)
             if base_text is None:
                 continue
             base_open, base_closed, base_errors = check_text(
