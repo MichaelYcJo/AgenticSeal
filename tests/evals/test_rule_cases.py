@@ -338,6 +338,12 @@ class Test_proofer_case:
         assert not found.search(LABELLED_FINDING)
         heading = OPEN_FINDING.replace("### 1. ", "")
         assert not found.search(heading), "a finding with no numbered heading"
+        closed_only = OPEN_FINDING.replace(
+            "severity: should\nlocation: `src/textutil.py:9`\n"
+            "evidence: read `src/textutil.py:9`\n",
+            "verdict: rejected\nanswer: x\n",
+        )
+        assert not found.search(closed_only), "a close block and no finding block"
 
 
 class Test_sealer_case:
@@ -360,6 +366,9 @@ class Test_sealer_case:
             assert not found.search(f"# Guarantee: i\n\n{line}\n"), name
             other = "Verdict: withheld reason: x" if sealed else "Verdict: sealed"
             assert not found.search(block.replace(line, other)), name
+            # A word the block reader refuses is no verdict either.
+            for near in ("Verdict: withheld", "Verdict: **sealed**"):
+                assert not found.search(block.replace(line, near)), (name, near)
 
 
 class Test_framer_case:
