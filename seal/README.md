@@ -57,7 +57,9 @@ the same line, and every gate reads a `seal/` whose `README.md` does not open
 with it as a repository that never opted in: a directory the project keeps for
 itself, as a package named `seal` has one. First setup that meets such a
 directory writes nothing into it and keeps the root under the git directory.
-Leave the line as it is.
+The line is compared whole, with only its line end taken off, so a space
+after it, a byte order mark before it or a blank line above it makes it
+another line, and every gate is then silent. Leave the line as it is.
 
 **The throwaway opt-out is the file `.git/agentic-scratch`, and it cannot be
 committed.** Where it exists, every gate reads the repository as one that

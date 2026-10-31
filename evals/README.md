@@ -59,7 +59,10 @@ of times, a run whose `modelUsage` is missing or short of a count, or
 one whose trace cannot be read or holds no tool call is no result, never a
 pass.
 `tests/evals/test_noninferiority.py` recomputes the record. Nothing in the tree
-makes a later edit owe a run.
+makes a later edit owe a run. `check` reads each of the record's four row
+counts only in the spacing `compare` writes, `| <name> | <value> |`. A count
+cell spaced otherwise reads as 0, so a record edited by hand can pass `check`
+on a count it never read.
 
 **A side already paid for is read again under another suite's truths
 without a run.** `noninferiority.py regrade --side IN.json --suite-rev REV

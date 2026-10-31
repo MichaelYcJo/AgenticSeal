@@ -1902,6 +1902,19 @@ class Test_check_record:
         assert any("says `pass` and its numbers give `fail`" in p for p in problems)
         assert any("rule 5" in p for p in problems)
 
+    def test_a_count_spaced_otherwise_is_read_as_naught(self):
+        """`check` reads a row count only in the spacing `compare` writes, so a
+        hand-edited record whose `New false rows` cell is spaced otherwise and
+        whose verdict line says `pass` passes on a count it never read, as
+        `evals/README.md` says."""
+        text = written(false=15)
+        assert any("false-finding rate rose" in p for p in NI.check_record(text))
+        edited = text.replace("| New false rows | 15 |", "|  New false rows | 15 |")
+        edited = edited.replace("Verdict: fail", "Verdict: pass")
+        assert edited.count("|  New false rows | 15 |") == 1
+        assert "Verdict: pass" in edited
+        assert NI.check_record(edited) == []
+
 
 MODEL_GRADERS = {
     ("c1", "truth-1"): ("truth", 2, 2, 2, 2),
