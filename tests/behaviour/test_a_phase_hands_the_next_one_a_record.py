@@ -121,7 +121,10 @@ def test_a_phase_record_carries_no_removal_table():
         skill
     ), "the skill's phase row does not say where a removal is recorded"
     rule = " ".join(read(REMOVES_RULE).split())
-    assert "frame did not name is a divergence, and it goes to `gaps.md`" in rule
+    assert (
+        "frame did not name is a divergence, and it goes to that phase's "
+        "`trail/phases/phase-N.md` *What this phase found*"
+    ) in rule
 
 
 def test_the_spec_template_carries_the_removes_section_above_the_mark():

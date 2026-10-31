@@ -158,7 +158,7 @@ def test_the_protocol_names_the_progress_channel_and_the_stall_signal():
         "the readout the implementer already writes during the run has to be "
         "named where the orchestrator reads, or git log stays the only answer"
     )
-    assert "time since it last advanced" in protocol, (
+    assert "time since the agent's transcript last changed" in protocol, (
         "wall clock cannot separate a long run that is finishing from a "
         "short one that is wedged; the stall signal can"
     )

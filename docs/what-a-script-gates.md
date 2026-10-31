@@ -13,7 +13,7 @@ this document is the standing account of its application.
 line or a file that looks like one of the form's and is not one; a
 judgment of meaning belongs to the agent that already reads the text, at
 a named step.** A closed form is an exit code, a real parser's
-result, a structure a command wrote, or a line of the plugin's own forms in the one spelling the form gives it, such as a field inside a `seal` block or the header `| Pact | Clause | Hash |`. A line spelt otherwise is
+result, a structure a command wrote, or a line of a form the plugin defines, spelt as that form spells it, such as a field inside a `seal` block or the header `| Pact | Clause | Hash |`. A line spelt otherwise is
 prose to the script: where the form requires the line, its absence is
 refused; where it does not, the line is named as one the script did not
 read, and whether it meant the label is the reading agent's judgment. No
