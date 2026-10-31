@@ -7,7 +7,8 @@
                             repository the current directory is in
   seal rules --check        every `check:` line in every rule file read, and
                             each one that is out of grammar or names a target
-                            that does not resolve named
+                            that does not resolve named; each line that opens
+                            like one and is not one named as not read
   seal rules ... --root DIR resolve in DIR instead
 
 A rule's text lives once, as the first sentence of the docstring of the test
@@ -21,6 +22,14 @@ and this module is its one reader. `seal rules --check` reads every rule file
 `RULE_FILES` names and every line a renderer shows in it, inside a rule
 paragraph or not. One suite case runs it over the tree, so it is read wherever
 the suite runs.
+
+**It reads one shape.** A check line is `check: ` after any leading spaces.
+A line that opens like one and is not one, another case, emphasis, block
+markup before the label, a space before the colon, the plural or the old
+label `Enforced by`, is printed as `seal rules: not read: path:line:
+heading: why` and decides nothing; whether it meant a check line is
+review's to judge. A target wrapped onto the line below is not read either,
+and nothing names it: the line below is prose.
 
 **How it errs:** it cannot tell a test that exists from one that asserts the
 rule, and a rule written with no `check:` line is read by nobody.
@@ -37,7 +46,8 @@ mode the designs sit under the common git directory, which a CI checkout does
 not hold, so no line is excused there.
 
 Exit codes: `seal rules <doc>` 0 the document was read, whatever its lines say.
-`seal rules --check` 0 every line holds or is excused, 1 a line is refused,
+`seal rules --check` 0 every line holds or is excused, whatever lines it did
+not read, 1 a line is refused,
 each named as `seal rules: path:line: heading: why`. 2 for either: a file it had to read cannot
 be read, a module it reads through is not in the tree, or neither or both of
 DOC and `--check` were given.
@@ -69,10 +79,11 @@ NO_TARGET = "none reader: "
 # Markdown block markup, one mark: a heading's `#` run, a list bullet or
 # number, a task box, a blockquote's `>`, a table's `|`.
 BLOCK_MARK = r"(?:#|[-+*]|[0-9]{1,9}[.)]|\[[ xX]\]|>|\|)"
-# What a near miss of the label looks like: the words in any case, with
-# nothing before them but spaces, block markup and emphasis, before a colon
-# with spaces around it. A line whose only content before `check:` is block
-# markup is refused at its line; only the exact shape is read.
+# A line that opens like a check line: the words in any case, with nothing
+# before them but spaces, block markup and emphasis, before a colon with
+# spaces around it. Only the one shape, `LABEL` after any leading spaces, is
+# read; every other line this matches is named as not read (`NOT_READ`) and
+# decides nothing, so whether it meant a check line is review's to judge.
 NEAR = re.compile(
     rf"^(?:\s|{BLOCK_MARK})*[*_]*\s*(?:checks?|enforced\s+by)\s*[*_]*\s*:",
     re.IGNORECASE,
@@ -82,6 +93,10 @@ MARKER = re.compile(r"[a-z0-9-]+")
 EVAL_CASES = "evals/behaviour/"
 EVAL_CASE = "case.yaml"
 EXPECTED = f"`{LABEL}<targets>` or `{LABEL}{NO_TARGET}<who reads it>`"
+NOT_READ = (
+    "`{line}` opens like a check line and is not one, so it was not read: "
+    f"write {EXPECTED}"
+)
 
 # The modules this reads through, each the one reader of its input: the GFM
 # line walker, the fence and comment rule, and the resolver of the repository.
@@ -146,12 +161,23 @@ def shown_lines(text):
 
 def check_lines(text):
     """`[(line number, heading, line)]` for every shown line of one markdown
-    document that is a `check:` line or a near miss of one, the line with its
-    ends stripped."""
+    document that is a `check:` line, `LABEL` after any leading spaces, the
+    line with its ends stripped."""
     return [
         (index + 1, heading, line.strip())
         for index, (line, visible, heading) in enumerate(shown_lines(text))
-        if visible and NEAR.match(line)
+        if visible and line.strip().startswith(LABEL)
+    ]
+
+
+def unread_lines(text):
+    """`[(line number, heading, why)]` for every shown line of one markdown
+    document that opens like a check line (`NEAR`) and is not one
+    (`NOT_READ`). Such a line is not read and decides nothing."""
+    return [
+        (index + 1, heading, NOT_READ.format(line=line.strip()))
+        for index, (line, visible, heading) in enumerate(shown_lines(text))
+        if visible and NEAR.match(line) and not line.strip().startswith(LABEL)
     ]
 
 
@@ -304,14 +330,20 @@ def line_problems(root, line):
 
 
 def unresolved(root):
-    """`(failures, excused, files, lines)`: each refusal in the rule files at
-    `root`, as `path:line: heading: why`; each refusal of a line inside a
-    section a pending `remove` takes out at the settle, the same with
-    `; <work item> removes this section at the settle` after it; and how
-    many rule files and check lines were read. Only that one shape of a
-    pending rule change is excused; the module docstring names what is
-    not."""
+    """`(failures, excused, unread, files, lines)`: each refusal in the rule
+    files at `root`, as `path:line: heading: why`; each refusal of a line
+    inside a section a pending `remove` takes out at the settle, the same
+    with `; <work item> removes this section at the settle` after it; each
+    line that opens like a check line and is not one, the same
+    (`unread_lines`); and how many rule files and check lines were read.
+    Only that one shape of a pending rule change is excused; the module
+    docstring names what is not."""
     found, excused, read, files = [], [], 0, rule_files(root)
+    unread = [
+        f"{path}:{number}: {heading}: {why}"
+        for path, text in files.items()
+        for number, heading, why in unread_lines(text)
+    ]
     changes = sibling("rule_changes")
     policy = sibling("config").policy_root(os.path.join(root, "seal"))
     items = changes.pending(root, policy)
@@ -328,17 +360,20 @@ def unresolved(root):
                     )
                 else:
                     found.append(failure)
-    return found, excused, len(files), read
+    return found, excused, unread, len(files), read
 
 
 def check(root):
-    """Print each refusal, each excused line and the count read; the exit
-    code is the verdict, and an excused line is no refusal."""
-    found, excused, files, lines = unresolved(root)
+    """Print each refusal, each excused line, each line not read and the
+    count read; the exit code is the verdict, and neither an excused line
+    nor a line not read is a refusal."""
+    found, excused, unread, files, lines = unresolved(root)
     for failure in found:
         print(f"seal rules: {failure}")
     for line in excused:
         print(f"seal rules: excused: {line}")
+    for line in unread:
+        print(f"seal rules: not read: {line}")
     if found:
         print(
             f"seal rules: {len(found)} refused in {lines} check lines of {files} rule files."
@@ -398,6 +433,7 @@ def render(root, text):
     check line's targets described, or a line saying it has none."""
     out, heading, held = [], None, False
     by_number = {number: line for number, _, line in check_lines(text)}
+    unread = {number: why for number, _, why in unread_lines(text)}
     reader = sibling("unverified_check")
     for number, (line, visible, _) in enumerate(shown_lines(text), 1):
         stripped = line.strip()
@@ -406,6 +442,11 @@ def render(root, text):
                 out.append("  (no check line)")
             out += ["", stripped]
             heading, held = stripped, False
+            if number in unread:
+                out.append(f"  not read, line {number}: {unread[number]}")
+            continue
+        if number in unread:
+            out.append(f"  not read, line {number}: {unread[number]}")
             continue
         if number not in by_number:
             continue

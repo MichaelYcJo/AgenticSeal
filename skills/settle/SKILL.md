@@ -118,18 +118,22 @@ stays English in every edition.
 - A marker names the tests of a rule whose test drives a script that can
   refuse a commit or fail a required pull-request job. Every other rule names
   files.
-- A line whose only content before the label is Markdown block markup or
-  emphasis is a near miss and is refused at its line; only the exact shape
-  above is read.
-- Every other spelling of the label is refused at its line too: another
-  case, a space before the colon, the plural, the word `Enforced by`. So is
-  a value holding `::`, a comma or an em dash, a reader with a space
-  more after `reader:`, a path that is no file of the repository, and a
-  marker no test carries.
+- Only the exact shape above is read. A line that opens like a check line
+  and is not one, the label in another case, under emphasis, behind
+  Markdown block markup, with a space before the colon, in the plural or as
+  the word `Enforced by`, is named at its line as not read and refused for
+  nothing; whether it meant a check line is review's to judge.
+- A check line is one line. A target wrapped onto the line below is not
+  read, and nothing names it, since the line below is prose: a check line
+  naming more targets than a wrapped line holds is written past the wrap.
+- A check line is refused at its line for a value holding `::`, a comma or
+  an em dash, a reader with a space more after `reader:`, a path that is no
+  file of the repository, and a marker no test carries.
 
 **What this plugin checks, and what it does not.** It ships `seal rules --check`
-(`.github/scripts/rules.py`), which reads every check line in a rule file and
-refuses one the grammar refuses. A refused line inside a section that a
+(`.github/scripts/rules.py`), which reads every check line in a rule file,
+refuses one the grammar refuses and names one it did not read. A refused
+line inside a section that a
 pending `remove` with no `from` takes out at the settle is printed as
 excused, with the work item that removes it, and is no refusal. A pending
 `change`, or a `remove` with a `from`, excuses nothing, and where the `seal/`
