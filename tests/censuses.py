@@ -1017,34 +1017,24 @@ KEPT_OLD_NAMES = (
     # The trailer key a commit made before the rename carries, which
     # `chain_check.py` no longer reads. It is still spelt by the case in
     # `tests/skills/test_chain_check.py#Test_routing_trailers` that pins the
-    # key as unread, and by `docs/the-routing-check.md` *At the pull
-    # request* until the settle after the release removes that sentence.
+    # key as unread.
     "Spec" + "Seal-Routing",
-    # The CLAUDE.md block markers every release before the rename wrote,
-    # which `/agentic:update` step 4 takes out with the block under the new
-    # ones, and which README.md *Install* names.
-    f"<!-- {_OLD}:start -->",
-    f"<!-- {_OLD}:end -->",
     # The second line of every git hook stub an earlier release wrote, which
-    # `hooks/stub-remove.py#MARKER` reads so it removes only its own stubs.
+    # `docs/the-routing-check.md` *Where the routing is checked* spells until
+    # the settle after the release removes that section.
     f"# {_OLD}-git-hook",
-    # The clone line a workflow written before the rename carries, which
-    # `seal.py#workflow_at` reads as this plugin's so that it is rewritten.
-    "MichaelYcJo/Spec" + "Seal.git",
-    # The install a user made before the rename, which README.md *Install*
-    # removes by its old names.
-    f"{_OLD}@{_OLD}",
-    f"marketplace remove {_OLD}",
     # The `renames` entry of `.claude-plugin/marketplace.json`, which carries
     # the plugin's old name to its new one and is append-only.
     f'"{_OLD}": "agentic"',
-    # The 0.3.x directory that README.md *Coming up from 0.3.x* moves by hand.
+    # The 0.3.x directory, which `docs/one-root-by-lifetime.md` names as one
+    # no code of the plugin opens, and which the cases pinning it as unread
+    # spell.
     f".{_OLD}",
 )
 # A released work item's record cited at the commit that holds it, as
 # `<commit>:<path>`, the form `git show` opens as written: the settle removed
-# the directory, the session-start move does not rewrite history, so the old
-# path is the only one any commit holds. Taken out of a line before OLD_NAME
+# the directory and nothing rewrites history, so the old path is the only one
+# any commit holds. Taken out of a line before OLD_NAME
 # reads it, whole, so the record names inside the path pass with it.
 HISTORY_PATH = re.compile(
     r"(?<![\w/:])[0-9a-f]{7,40}:"
@@ -1064,15 +1054,10 @@ OLD_NAME_RECORDS = (
 # A replayed or seeded eval case holds a run at a recorded commit, so its
 # bytes are the record (`evals/README.md`).
 RECORDED_CASE = re.compile(r"^evals/behaviour/[^/]+/(?:replay|seeded)-")
-# The migration and its cases spell the 0.22.x layout and the state names a
-# session start moves from, which is the one place those names are read.
 # The replay and seeded cases' generators read round records at the 0.22.x
 # layout every committed case was cut from, each such line exempted at the
 # generator, and their cases build those records.
 KEPT_FILES = (
-    "hooks/root-migrate.py",
-    "tests/hooks/test_root_migrate.py",
-    "tests/behaviour/test_the_root_migrates_itself.py",
     "tests/evals/test_replay_targets.py",
     "tests/evals/test_seed_defects.py",
 )

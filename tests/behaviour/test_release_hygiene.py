@@ -1430,8 +1430,8 @@ def test_this_repository_has_one_root_laid_out_by_lifetime():
     """S1 of the root move to `seal/`. It holds the whole tree — the rows
     that outlive a work item at its top, every work item whole under
     `specs/` — and neither of the two old roots exists. A `.specseal/` here
-    would opt nothing in and be read by nothing but the migration hook, which
-    is the silence every gate would give this repository.
+    would opt nothing in and be read by nothing, which is the silence every
+    gate would give this repository.
 
     S7 of #944: the evidence ledger does not come back. A rule is held by the
     test its `check:` line names, and nothing reads a ledger file."""
