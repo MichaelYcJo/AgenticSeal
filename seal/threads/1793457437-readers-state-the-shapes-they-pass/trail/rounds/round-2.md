@@ -46,6 +46,11 @@ Line 74, in the first cell:
 nothing in return for the four sentences, the four cases and the one marker this work adds
 ```
 
+```seal
+verdict: fixed 74a9f407
+answer: The orchestrator folded the four statements into `frame/design.md` with the round's paste-ready text: the R41 grounding, the S3 row with both cases and their mutations, the count of cases in `tests/evals/test_noninferiority.py`, and the four cases of the *Removes* row. The commit touches that file alone, inside the work item's records, so the sealer reads it at HEAD and no verifying round is owed.
+```
+
 ## Confirmations
 
 ```seal
