@@ -13,7 +13,7 @@ The fix pass's account was read as claims. It claimed that round 2's paste-ready
 severity: should
 location: `skills/agent-contract/SKILL.md:162-168`, `skills/agent-contract/SKILL.md:230-234`, `agents/crafter.md:177-179`, `skills/code-review/orchestration.md:74-77`, `seal/threads/1793419351-project-rules-live-in-the-repository/changelog.md:3`
 evidence: executed `git grep -n -i -E 'sample|least' -- agents/crafter.md skills/code-review/orchestration.md`, `git diff origin/release/v0.26.0 chore/1167-judgment-where-meaning-is-the-question -- agents/crafter.md skills/code-review/orchestration.md`
-verdict: open
+verdict: fixed 777ca4d8
 reopens: round-2#2
 
 The close does not hold at two of the three places round 2's finding 2 named. The rule 12 and rule 19 part holds: a fix pass that runs only rule 19's search and calls its list a sample now breaks neither rule. The fix pass then claimed that `agents/crafter.md:177-179` and `skills/code-review/orchestration.md:74-77` owe nothing, because they prescribe the word search and the `check:` target, rule 19 names the search as the least one, and rule 12 decides the label. Read against the rules as `c5eec50b` wrote them, the label does not reach the list those two files make.
@@ -40,7 +40,7 @@ In the fragment, replace "A list made only from those is handed back as a sample
 
 The other route is to edit the step itself. In `agents/crafter.md:177-179` and `skills/code-review/orchestration.md:74-77`, the search would be named the least one, and its list a sample unless one of rule 12's methods made it. That edits #1167's files, so it goes under the orchestrator's integration with #1167, or closes `deferred` naming #1167's work item.
 
-answer:
+answer: Holds. The paste-ready definitions were read as the contract's reader and checked against `frame/design.md:98` ("never by the instances you can see or a grep of one wording"), C2 at `frame/design.md:47` ("a method that makes the list whole") and `skills/code-review/SKILL.md:167-169`. Each defines a sample as what none of the whole-making methods made, which is what those sources say falls short, and adds no reach of its own. They were applied as written in `9194dd0e`: rule 12 reads "a list that none of the three methods made is a sample, whatever searches were joined to make it", and rule 19 reads "Where none of rule 12's three methods listed them, the list is a sample". The fragment's two sentences were replaced as given in the same commit. `9194dd0e` left one line of rule 12 at 128 columns, which `tests/behaviour/test_docs_line_wrap.py` refused, and `777ca4d8` rewrapped it with no word changed. "alone" and "nothing but that" no longer stand in either rule. Under the new definition, the list `agents/crafter.md:177-179` and `skills/code-review/orchestration.md:74-77` make by the word search and the `check:` target is a sample under rule 12, which they cite, and rule 12 has the hand-back say so. They stay as they are, so the merge with #1167 owes nothing for this finding.
 
 ## Confirmations
 
