@@ -37,6 +37,11 @@ In `frame/plan.md` *Operational impact*, the second and third sentences:
 Three report lines change for a person who reads them: a deletion found through a link names the target's path; a link to a file outside the repository is listed under `not compared` with a new reason; and a closing memo that was a file at the base and is a link now is reported under the link's own path where it holds fewer rows. The changelog fragment states all three under *Fixed*.
 ```
 
+```seal
+verdict: fixed b3c2c162
+answer: The orchestrator folded both sentences with the round's paste-ready text: `frame/design.md` *Out* now names `#mode_at` as the read that precision would cost, and `frame/plan.md` *Operational impact* counts three report lines. The commit touches those two files alone, inside the work item's records, so the sealer reads it at HEAD and no verifying round is owed.
+```
+
 ## Confirmations
 
 ```seal
