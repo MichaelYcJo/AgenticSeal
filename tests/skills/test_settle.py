@@ -693,8 +693,9 @@ class Test_misplaced:
     def test_reads_names_alone_and_follows_no_linked_directory(self, tmp_path):
         """*Scope* item 1 of #1126: the exact basename is read, at any path
         but the record's own, as a regular file or a link to one; a linked
-        directory is not followed, and a directory, another spelling and a
-        longer name are not named. Seen red with the walk following links."""
+        directory is not followed, and a directory, a link to nothing,
+        another spelling and a longer name are not named. Seen red with the
+        walk following links, and with the file test removed."""
         reader = settle.load(settle.READER, "agentic_unverified_reader")
         name = "1700000001-a"
         top = tmp_path / "seal" / "threads" / name
@@ -711,6 +712,7 @@ class Test_misplaced:
         try:
             os.symlink(elsewhere, top / "linked", target_is_directory=True)
             os.symlink(top / "gaps.md", top / "trail" / "gaps.md")
+            os.symlink(tmp_path / "nowhere", top / "notes" / "plan.md")
         except (OSError, NotImplementedError):
             pytest.skip("this platform makes no symbolic link")
         assert settle.misplaced(str(tmp_path), name, reader) == [
