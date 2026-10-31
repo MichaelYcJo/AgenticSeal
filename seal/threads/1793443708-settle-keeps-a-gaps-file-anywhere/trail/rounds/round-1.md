@@ -9,7 +9,7 @@ target: 1090b7c3 against origin/release/v0.27.0
 severity: should
 location: `skills/settle/SKILL.md:246-250`, `skills/settle/SKILL.md:284-287`, `skills/settle/SKILL.md:188-195`, `tests/text/test_settle_reads_before_it_removes.py:107-131`, `tests/text/test_settle_reads_before_it_removes.py:153-155`
 evidence: executed `git grep -n -F "Open each file the dry run names" -- tests evals`, `git grep -n -F "names each file the dry run names" -- tests evals`, `git grep -n -F "The files named like a record and not read" -- tests evals`
-verdict: open
+verdict: fixed a7bca714
 
 The frame's chosen approach rests on one sentence of the skill. `frame/plan.md` A2 names its own failure scenario: a settling session that skips the dry run's new section loses the misplaced file's rows, because `--apply` removes the file and decides nothing on it. The only defence is the new paragraph of step 4 in `skills/settle/SKILL.md:246-250`, which tells the session to open each file the dry run names, to write nothing into it, and to name each decided item in the pull request body. The crafter's departure 3 adds the last clause.
 
@@ -40,14 +40,14 @@ The fix adds the clauses to the existing list in order, and pins the two bullets
     assert "The files named like a record and not read" in shows
 ```
 
-answer:
+answer: The finding holds, and 5c9a8b52 and a7bca714 fix it. Step 4's paragraph joins `test_the_skill_states_the_settling_sessions_procedure`'s ordered list as three clauses, as proposed. The two items went into a new case, `test_the_skill_says_a_misplaced_record_file_is_named_and_decides_nothing`, not into `test_the_skill_says_a_from_locates_and_is_no_precondition`, whose name and docstring are about `from` and the policy write. The proposed split of the dry run's section on `"## "` would also stop at the item above, which quotes `## Not verified`, so the new case cuts that section from the raw text at line-start headings. The class is every sentence this phase added to the skill and the READMEs. It was listed by taking apart `git diff -U0 a83ce23e..1090b7c3 -- skills/settle/SKILL.md README.md README.ko.md` (executed), which gives six places: the command block, the dry run's item, step 4's paragraph, `--apply`'s item, and the cheat-sheet row of each README. Every clause of all six is now pinned. The new case holds the command block and both items, and `test_both_cheat_sheets_carry_the_command` holds each edition's clause. Each of the 16 pins was seen red: `bin/seal mutate` deleted or cut its sentence in `skills/settle/SKILL.md`, `README.md` or `README.ko.md`, and the module failed on that pin's assertion, with the tree clean after each run (executed). The `settle.py` docstrings this phase changed are code text outside the class, and no case pins them, as none pins the rest of that dry-run paragraph.
 
 ### 2. The new `link` helper copies `tests/conftest.py#symlink_or_skip` and drops its missing-parent guard
 
 severity: should
 location: `tests/skills/test_settle.py:702-706`, `tests/conftest.py:626-647`
 evidence: read `tests/skills/test_settle.py:702-706`, `tests/conftest.py:626-647`
-verdict: open
+verdict: fixed 851fb4cc
 
 `tests/conftest.py#symlink_or_skip` is the suite's one statement of how a case makes a symbolic link: it asks by attempting the call, and it skips where the platform refuses. Its docstring also states why it first asserts that the link's parent exists. Every error of a misbuilt fixture is an `OSError` too, so without that assertion a fixture bug reads as "no privilege here" on a machine that has the privilege, and the case skips instead of failing.
 
@@ -79,7 +79,7 @@ from conftest import symlink_or_skip
         symlink_or_skip(tmp_path / "nowhere", top / "notes" / "plan.md")
 ```
 
-answer:
+answer: The finding holds, and 851fb4cc fixes it as proposed. `symlink_or_skip` takes `directory=False` and passes it as `target_is_directory`, the copy `link` is gone, and the three calls go through the shared helper. Seen both ways with `bin/seal mutate tests/skills/test_settle.py`, deleting `(top / "trail").mkdir()` from `test_accepts_a_file_or_a_link_to_one_at_another_path` (executed). At e6c957da the case skipped as "this platform makes no symbolic link" and the mutation survived. At 851fb4cc it failed on `the link's parent does not exist`. The class is every copy of a conftest helper in the files this phase touched. It was listed from the helpers this phase added to `tests/skills/test_settle.py`, read from `git diff a83ce23e..1090b7c3 -- tests/` (executed), against the definitions in `tests/conftest.py` (read). `link` was one copy. `released_item` and `records_in_place` restated `conftest.py#write`, which makes a file's parent directories and writes its text, so both now call `write` in the same commit. `not_read` has no counterpart in conftest. This module's own `git` and `commit` resemble conftest's `git_out` and `commit_everything`, but they stood there before this phase (a83ce23e), so they stay. `tests/text/test_settle_reads_before_it_removes.py`, touched by finding 1's fix, gained no helper. The modules that call `symlink_or_skip` or name `conftest.py`, with the two changed modules and `tests/skills/test_test_layout.py`, ran green: 24 modules, 2192 passed and 3 skipped, and neither changed module skipped (executed).
 
 ## Confirmations
 
