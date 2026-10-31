@@ -367,8 +367,15 @@ class Test_sealer_case:
             other = "Verdict: withheld reason: x" if sealed else "Verdict: sealed"
             assert not found.search(block.replace(line, other)), name
             # A word the block reader refuses is no verdict either.
-            for near in ("Verdict: withheld", "Verdict: **sealed**"):
+            for near in (
+                "Verdict: withheld",
+                "Verdict: **sealed**",
+                "Verdict: sealed.",
+            ):
                 assert not found.search(block.replace(line, near)), (name, near)
+            # Nor is the line below a block that closed above it.
+            below = block.replace(f"{line}\n{FENCE}\n", f"{FENCE}\n{line}\n")
+            assert not found.search(below), name
 
 
 class Test_framer_case:
