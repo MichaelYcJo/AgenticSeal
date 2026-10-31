@@ -56,7 +56,7 @@ Each phase is one vertical slice, and the round that reviews it reads the files 
 | 2 | *Scope* item 5 | `tests/skills/test_chain_check.py`, with one case per row of the first five scenarios of *User scenarios & acceptance*, each seen red; `tests/skills/test_seal_stamp.py`; `seal mutate` over the report path and `original_of` | 84af7a2d |
 | 3 | *Scope* items 6, 7, 8, 9 | `tests/skills/test_pact_check.py`, `tests/skills/test_rule_changes.py`, `tests/github/test_rules.py`, `tests/skills/test_unverified_check.py`, each with the scenario's case seen red; `tests/skills/test_chain_check.py` for the near heading passing at the pull request | 9701ff87 |
 | 4 | *Scope* item 10 | `tests/skills/test_deferral_check.py`: the tab-indented scenario seen red, the nothing-runs case kept, and no case naming an event; `seal mutate` over `inspect` | 7b70b22f |
-| 5 | *Scope* items 11, 12, 14 | `tests/skills/test_settle.py` with the judgments scenario seen red; `tests/text/test_the_rules_have_one_owner.py`; `tests/behaviour/test_every_orchestrator_act_names_its_delivery.py`; `tests/behaviour/test_the_set_a_work_item_always_has.py`; `tests/behaviour/test_a_cited_section_stands_in_its_file.py`; `seal rules --check` over the changed files | |
+| 5 | *Scope* items 11, 12, 14 | `tests/skills/test_settle.py` with the judgments scenario seen red; `tests/text/test_the_rules_have_one_owner.py`; `tests/behaviour/test_every_orchestrator_act_names_its_delivery.py`; `tests/behaviour/test_the_set_a_work_item_always_has.py`; `tests/behaviour/test_a_cited_section_stands_in_its_file.py`; `seal rules --check` over the changed files | 9310a2de |
 
 *Scope* item 13, the policy root's changes, has no phase: the settle after this release applies `frame/design.md` `## Rule changes`.
 
