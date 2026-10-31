@@ -31,6 +31,11 @@ The fix names the module, as the paragraph above it does:
   claim from another; the round reading the record does.
 ```
 
+```seal
+verdict: fixed b36c5d9e
+answer: The finding holds, and b36c5d9e fixes it as proposed: the `evidence:` bullet of `skills/code-review/SKILL.md` *The record* now names `hooks/lib/fields.py` as where an `evidence:` value's forms stand. A new case, `tests/skills/test_chain_check.py::test_the_review_skill_sends_a_value_s_form_to_the_module_and_to_no_row`, pins the bullet and refuses "its row", "grammar row", "grammar table" and "the table" anywhere in the section; it was red on "its row" before the edit (executed). Class: every sentence that places a field, names a grammar row or table, or states the old premise, in the 67 files the branch's own commits since 977b1ac9 touched outside `seal/` and in every tracked file under `agents/`, `templates/` and `skills/code-review/`. Searched by `grep -i -E` for a row, column or cell after its, the, a, grammar or that; "grammar table"; "table above" and "table below"; labelled, label and labels; "at the start of a/its/the line"; "spelt otherwise"; "another spelling"; "opens like"; "with no emphasis"; "under emphasis"; "in the forms"; then for every backticked key of Table F and `Verdict:` without the word block; then for "under the verdict", "below the verdict", "on its row", "the guarantee's row", "the row holds", "verdict line", "one verdict" and "first table" (executed). Each hit was opened. None but this bullet places a field in a row or a table: the other rows are a config row, a `## Not judged` row, the sealer's claims and parties tables and the acts table, the other labels are the executed, read and unverified labels, `skills/legacy-parity/SKILL.md:91` is the parity review's own four words, and a sentence naming a key's line is true of the line in its block. The search reads spellings, so it is a sample of the class (contract rule 12), wider than phase 3's.
+```
+
 ### 2. The script-reach module still says no document tells anybody to run a script with no subcommand, after `command_forms` was changed to let `agents/proofer.md` do it
 
 ```seal
@@ -75,6 +80,11 @@ def test_a_script_with_no_subcommand_is_shown_in_no_command_form(pair):
         + "\n\nEither add it to `TOOLS` in `skills/implement/scripts/seal.py`, "
         f"write the invocation with its path `{script}`, or take it out."
     )
+```
+
+```seal
+verdict: fixed 8361d53a
+answer: The finding holds, and 8361d53a fixes it with the round's wording. The module docstring and the case's docstring now say the exemption holds for a script nobody is told to run without its repo-relative path, and the docstring names `agents/proofer.md` step 7 as such a run. The failure message moved into `no_command_form_message`, so a case can read it. It says the script is invoked without its path, and it offers three repairs: a `TOOLS` entry, the invocation written with the script's path, or taking the invocation out. The new case `test_the_no_command_form_message_offers_every_repair_the_reader_accepts` pins the message (contract rule 14). Against the old message text it failed on "being invoked without its path" (executed). `seal mutate` restored the old two-repair ending, and the case went red (executed). Class: the premise as the helper changed it, searched by `git grep -i -E` over the tree outside `seal/` for "no subcommand", "without a subcommand", "no `seal` subcommand", "nobody is told to run" and "nobody is told to type", "shown with a flag", "no document tells" and "locator rule" (executed). One more statement stood, the docstring of `test_a_planted_invocation_turns_the_classification_red`, and 56f89f48 corrects it. The `NO_SUBCOMMAND` reason, the `is_wrapped` messages and the enumeration case state no premise the helper changed. `bin/test tests/behaviour/test_a_document_that_names_a_script_says_how_to_reach_it.py` passes, 45 passed and 8 skipped (executed).
 ```
 
 ## Confirmations
