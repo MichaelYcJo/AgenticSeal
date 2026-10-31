@@ -23,7 +23,7 @@ no `original:` line.
 severity: should
 location: `skills/code-review/scripts/chain_check.py:796-802`, `skills/code-review/scripts/chain_check.py:1879-1916`, `tests/skills/test_chain_check.py:2206-2235`
 evidence: executed `bin/test tests/skills/test_tmp_round4_probe.py -p no:xdist -q -s`
-verdict: open
+verdict: fixed 321c8e58
 regression: round-3#1
 
 The unit is the block `b2f0bc30` added to `unread` at
@@ -136,7 +136,7 @@ snippet. A diff inside the document roots has no case here; the fix covers
 it by where the call stands, and the fix pass may add one if it is cheap
 with the `item` fixture.
 
-answer:
+answer: The finding holds. Before applying the paste-ready fix, I checked its code against its grounds sentence, which says the line is named "only where `original_of` reads the guarantee". The call stands in `originals_of`'s guarantee loop, after the config, the parity readers, the document-roots test and the baseline SHA have all let the read through, so it holds. `321c8e58` applies the fix as written: `unread_originals`, the `notices` argument of `originals_of`, the call in `main`, and the `unread` block and docstring sentence that `b2f0bc30` added, both removed. The module docstring's naming paragraph, which named `unread` alone, now names `unread_originals` too. The case is `test_names_no_original_line_where_none_is_owed`. It runs the paste's half, with no migration config, and adds the second member of the class, a config with a diff inside the document roots, through the setup of the case beside it. It failed at `a143e583`'s code on the first half (executed). After the fix, three `seal mutate` runs were red, each against the case it targets (executed): the naming put back into `unread` turned the new case red; the call in the loop removed turned `test_refuses_a_direct_guarantee_whose_only_original_is_misspelt` red; a naming placed before the document-roots return turned the new case's second half red. `bin/test` over `test_chain_check.py`, `test_seal_stamp.py` and `test_the_sealer_guarantees.py` passed, 435 cases (executed). `trail/phases/phase-2.md`'s departure d still says the line is not named; it stays as the phase's account, since a fix pass writes no phase record.
 
 ## Confirmations
 
