@@ -262,16 +262,18 @@ class Test_target_of:
         assert f"Write the report to `{report}`" in prompt
         assert f"run `cat {report}` once" in prompt
 
+    @pytest.mark.parametrize("layout", LAYOUTS, ids=["specs", "threads"])
     def test_a_seeded_case_counts_round_1s_confirmed_fixes_as_truths(
-        self, tmp_path, monkeypatch
+        self, tmp_path, monkeypatch, layout
     ):
         """Guards S9: at round 1's target the tree holds the defects round 1
         found, so each finding round 1 closed fixed that round 2 confirmed is a
         `truth-` grader beside `truth-seeded`, and the seed lands on no line a
         truth's window accepts: `f`'s line is in finding 1's window, so the
-        seed goes to `g`."""
+        seed goes to `g`. Round 2 is read in round 1's layout, either of the
+        two (#1150)."""
         sd = load_script("seed_defects")
-        commits, _repo = shipped_item(tmp_path, monkeypatch)
+        commits, _repo = shipped_item(tmp_path, monkeypatch, layout=layout)
         t, _why = sd.target_of(commits["squash"])
         assert (t["path"], t["line"], t["new"]) == ("a.py", 40, "    return b == 2")
         truths = {
