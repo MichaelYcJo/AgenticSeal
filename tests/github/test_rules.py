@@ -253,6 +253,24 @@ class Test_main:
             "  (no check line)\n"
         ), out
 
+    def test_a_heading_that_opens_like_a_check_line_is_printed_under_itself(
+        self, tmp_path, capsys
+    ):
+        """A heading that opens like a check line is a section of its own, so
+        the walk prints it, then names it as not read under it."""
+        root = tree(tmp_path, "## One\n\n## check: tests/test_x.py\n")
+        code, out, _ = run(root, capsys)
+        assert code == 0
+        assert out == (
+            "## One\n"
+            "  (no check line)\n\n"
+            "## check: tests/test_x.py\n"
+            "  not read, line 3: `## check: tests/test_x.py` opens like a check "
+            "line and is not one, so it was not read: write `check: <targets>` or "
+            "`check: none reader: <who reads it>`\n"
+            "  (no check line)\n"
+        ), out
+
     def test_a_test_under_a_dot_directory_is_not_read_for_markers(
         self, tmp_path, capsys
     ):
