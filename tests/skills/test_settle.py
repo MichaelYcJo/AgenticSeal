@@ -44,6 +44,8 @@ from conftest import (
     names_path,
     op,
     spec,
+    symlink_or_skip,
+    write,
 )
 from conftest import flattened as flat
 
@@ -198,8 +200,7 @@ def released_item(repo, name, held):
     committed on its own path like `moment`."""
     path = repo / "seal" / "threads" / name
     for rel, text in held.items():
-        (path / rel).parent.mkdir(parents=True, exist_ok=True)
-        (path / rel).write_text(text, encoding="utf-8")
+        write(path, rel, text)
     git(repo, "add", "--", f"seal/threads/{name}")
     git(repo, "commit", "-qm", f"released {name}")
     return path
@@ -694,16 +695,8 @@ def records_in_place(tmp_path, name):
     settle reads, each at its place, and the `misplaced` reader."""
     top = tmp_path / "seal" / "threads" / name
     for rel in ("gaps.md", "frame/design.md", "frame/plan.md"):
-        (top / rel).parent.mkdir(parents=True, exist_ok=True)
-        (top / rel).write_text("# x\n", encoding="utf-8")
+        write(top, rel, "# x\n")
     return top, settle.load(settle.READER, "agentic_unverified_reader")
-
-
-def link(target, at, directory=False):
-    try:
-        os.symlink(target, at, target_is_directory=directory)
-    except (OSError, NotImplementedError):
-        pytest.skip("this platform makes no symbolic link")
 
 
 class Test_misplaced:
@@ -716,7 +709,7 @@ class Test_misplaced:
         (top / "x").mkdir()
         (top / "x" / "design.md").write_text("# x\n", encoding="utf-8")
         (top / "trail").mkdir()
-        link(top / "gaps.md", top / "trail" / "gaps.md")
+        symlink_or_skip(top / "gaps.md", top / "trail" / "gaps.md")
         assert settle.misplaced(str(tmp_path), "1700000001-a", reader) == [
             ("trail/gaps.md", "gaps.md"),
             ("x/design.md", "frame/design.md"),
@@ -736,8 +729,8 @@ class Test_misplaced:
         elsewhere = tmp_path / "elsewhere"
         elsewhere.mkdir()
         (elsewhere / "gaps.md").write_text("# x\n", encoding="utf-8")
-        link(elsewhere, top / "linked", directory=True)
-        link(tmp_path / "nowhere", top / "notes" / "plan.md")
+        symlink_or_skip(elsewhere, top / "linked", directory=True)
+        symlink_or_skip(tmp_path / "nowhere", top / "notes" / "plan.md")
         assert settle.misplaced(str(tmp_path), "1700000001-a", reader) == []
 
 
