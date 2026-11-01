@@ -96,6 +96,11 @@ The skill's line on the listing (`skills/settle/SKILL.md:218-220`) and the
 module docstring's (`settle.py:62-64`) then say that a merge's own change is
 read too.
 
+```seal
+verdict: fixed 47c1bf70b
+answer: `settle.py#history` reads its `git log` with `--cc`, and its docstring says a merge whose result differs from every parent changes that path and, holding one status letter per parent, never reads as an add. The finding's case went in as `Test_main::test_a_merge_that_resolved_a_document_is_its_last_change` and was seen red at a3c3d24c9 with the side branch's commit printed as the last change; `seal mutate` dropping `--cc` at 47c1bf70b turned it red again. The module docstring, the skill's listing bullet and the changelog fragment say a merge that resolved a conflict in a document is its last change. Design *Data & interfaces* still writes the `git log` without `--cc` (and `git status` for the working tree, phase 1's departure), which is the orchestrator's to fold.
+```
+
 ### 2. A `--from` refused as no directory names the repository, though the path was read from the working directory
 
 ```seal
@@ -130,6 +135,11 @@ pins the opening `names no directory`, which still holds. Contract rule 14
 asks a case to pin the new clause. A case run with `monkeypatch.chdir(repo / "docs")`
 and `--from adr`, where `adr/` exists at the top, should assert that the
 sentence names `docs/adr` (no sentence like that is in the tree yet).
+
+```seal
+verdict: fixed 47c1bf70b
+answer: The class is every `--from` refusal that names a path, since `named_directory` reads each from the directory the command runs in, so all three were fixed and not the one: `FROM_NOT_A_DIRECTORY`, `FROM_OUTSIDE` and `FROM_UNDER_ROOT` each now end "it reads as <path> from the directory this runs in, so nothing was read", the path being `os.path.abspath(given)` before links are resolved, in my own words beside the proposed one. The parametrized refusal case gained a row running `--from adr` in `docs/` and asserts every sentence names the path as read; it was seen red on all its rows at a3c3d24c9. `seal mutate` handing each sentence the given path turned the case red for the not-a-directory and under-root sentences at 47c1bf70b; the outside sentence stayed green, because its only row gave an absolute path, so aea93bf36 added a row with `../elsewhere`, and the mutation then went red. The skill's refusals paragraph and the changelog fragment say the sentence names the path as read.
+```
 
 ### 3. The cheat-sheet case reads a 900-character window, not the row, and the `seal settle` row was cut to fit it
 
@@ -178,6 +188,11 @@ first edit, which directories to name and which of their documents to
 promote, ...". `--from` is refused beside `--apply`. `README.ko.md:259`
 carries the same pair.
 
+```seal
+verdict: fixed 57559a4a6
+answer: `test_the_cheat_sheets_name_the_design_file_the_settle_reads` reads the raw row, from the cell to the end of its line, as the finding's fix writes it, and asserts `frame/design.md` there. `README.md:265` says again "asks the person, before its first edit," and "`--apply` refuses `--from` and writes no document", and `README.ko.md:259` "첫 편집 전에" and "`--apply` 는 `--from` 을 거부하고". `seal mutate` taking `frame/design.md` out of each edition's row turned the case red at 57559a4a6, once per edition. No other case in the tree reads a README row through a character window (`git grep '\[:900\]' tests` printed none).
+```
+
 ### 4. A case's docstring still says no code of the plugin opens a top-level `specs/`
 
 ```seal
@@ -207,6 +222,11 @@ def test_no_hook_names_the_0_3_x_roots():
     """No code of the plugin opens `.specseal/` or a top-level `specs/` on
     its own, so no file under `hooks/`, its modules in `hooks/lib/` among
     them, names the first or keeps a constant for the second."""
+```
+
+```seal
+verdict: fixed 57559a4a6
+answer: The docstring of `test_no_hook_names_the_0_3_x_roots` opens "No code of the plugin opens `.specseal/` or a top-level `specs/` on its own", as the finding's fix writes it; the assertion is unchanged. A `git grep -i` outside `seal/threads/` for "top-level `specs/`", "opens `.specseal/`" and "top-level specs" found besides it only the two editions of `docs/one-root-by-lifetime.md`, which the design's rule changes rewrite at the settle, and statements of another fact: `hooks/lib/config.py:628` and `templates/setup/config.md:386` say the one layout the plugin read without a root is 0.3.x's, and two case docstrings say a test turns red if a constant widens to a top-level `specs/`. The search is by wording, so it is a sample.
 ```
 
 ## Confirmations
