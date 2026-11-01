@@ -1652,6 +1652,17 @@ class Test_as_named:
             os.path.realpath(str(d)), "specs", "hop", "a", "gaps.md"
         )
 
+    def test_accepts_a_parent_stepping_out_of_a_link_loop_without_a_crash(
+        self, plain, tmp_path
+    ):
+        """`loop -> loop/..` leads nowhere the file system reaches, and
+        following its text had no end, so the walk stops where `open` would
+        and the path is still given back."""
+        d = copy_of(plain, tmp_path)
+        symlink_or_skip(os.path.join("loop", os.pardir), str(d / "specs" / "loop"))
+        given = os.path.join(str(d), "specs", "loop", os.pardir, "gaps.md")
+        assert os.path.isabs(UC.as_named(given))
+
 
 class Test_spellings:
     def test_accepts_each_spelling_from_as_named_to_the_real_path(
