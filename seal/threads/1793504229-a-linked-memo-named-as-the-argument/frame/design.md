@@ -55,7 +55,7 @@ Out:
 | A named directory link | Given the directory `specs/a` held a 2-row memo at the base and is now a link to a directory whose memo holds 1. When the check runs on `specs/a`, or on `specs/a/gaps.md`, then each exits 1 with the same line. | the second case of Scope item 5, seen red at 4da937fa (P2 and P3 exit 0 there) |
 | A named link out of every repository | Given the link points at a smaller memo outside every repository. When the check runs on the link, then it exits 1 with the same line, and lists the target under `not compared` with the reason `the file lies outside the repository, so no commit of the repository holds it`. | the third case of Scope item 5, seen red at 4da937fa (P8 exits 2 there) |
 | A named link that lost nothing | Given a named link whose target holds as many rows as the base held at the link's path. When the check runs, then it exits 0. | the fourth case of Scope item 5 |
-| A tree reached through a link | Given a run that names a link to the repository's top, with a row dropped, or with a memo deleted. Then it exits 1, as it does now. | `test_refuses_a_deletion_reached_through_a_linked_path`, unchanged and green |
+| A tree reached through a link | Given a run that names a link to the repository's top, or a path through a link inside the repository, with a row dropped, or with a memo deleted. Then it exits 1, as a run through the top's link does now. | `test_refuses_a_deletion_reached_through_a_linked_path`, unchanged and green; `Test_main::test_refuses_a_memo_deleted_behind_a_link_inside_the_repository` |
 | Scanned links keep their reports | Given the scanned link cases #19 added. Then each keeps its exit and its line. | the `Test_main` cases the Grounding names, unchanged and green |
 
 ## Data & interfaces

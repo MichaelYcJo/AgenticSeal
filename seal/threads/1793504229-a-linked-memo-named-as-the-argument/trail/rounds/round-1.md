@@ -95,6 +95,11 @@ The fix reads the base under both spellings: the path as named, and its real pat
 
 The fix pass also owes the frame's scenario row and the changelog fragment a sentence for this layout, if the fix changes what they state.
 
+```seal
+verdict: fixed b7d19345
+answer: Fixed wider than the paste-ready fix. `spellings` gives the path as named, then with the components through each one resolved, ending at the real path; the typo check, the presence check's prefixes and its `here`, and the second arm read every spelling, and the second arm's line names the spelling it compared. The two-spelling fix misses the spelling between them: with `view` a link of this checkout to `specs`, and a memo that was a file at the base now a link, it reports a memo that is there as `present at HEAD and not here`, which mutant 5 of `trail/phases/phase-1.md` *Round 1's fix pass* shows. The round's case is in `Test_main` with a third shape for the typo check, each seen red at ab958884's script, and a fourth `NAMED_LINK` shape pins the spelling between. The phase record's table names every place in the module that holds a base listing against a tree path, as fixed or safe. The Windows case fold is covered by reading and stays in `gaps.md` *Not verified*. The macOS case fold predates the work (executed at 48d035aa) and is in *Not done*. The changelog fragment carries the sentence; the frame's scenario row is the framer's and is left to the orchestrator. The `..` row of *Not judged* is built as `frame/plan.md` *Judgments of the run* decides, in `absolute`, with a case in `Test_as_named` and one in `Test_repository_of`.
+```
+
 ## Confirmations
 
 ```seal
