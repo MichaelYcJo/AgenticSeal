@@ -47,4 +47,4 @@ No migration, environment variable or dependency. `seal settle` gains a flag; a 
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-02 | `--from` naming a directory above the `seal/` root stays accepted, and the skill states it as a limit; design *Scope* item 2 gains the sentence | Phase 1's crafter raised it in `gaps.md` *Not done*. A person names a directory that holds decisions, and one holding the whole repository is outside that flow; a guard that subtracted the root's files would be a new reading for a shape the flow does not produce, and the session's `skip` proposal already answers it | `skills/core/SKILL.md` *The rule a mechanism is kept against* |
