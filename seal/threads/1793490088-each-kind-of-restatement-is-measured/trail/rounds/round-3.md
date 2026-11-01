@@ -35,6 +35,11 @@ The fix takes the instance out of the bullet. The section's row keeps it, and D8
 +... The same pairs as the bullet above. An open body is a request that ranks below the tree's documents, and the framer of the work item that takes it opens what it cites (`skills/implement/SKILL.md` *1. Read the documents that outrank the code first*, "Verify clause numbers a ticket cites").
 ```
 
+```seal
+verdict: fixed 39e5dab8
+answer: The finding holds, and the orchestrator's fold at `39e5dab8` removed the sentence citing G10 from the fourth bullet as the diff above has it, so the issue's *Order* line against the milestone's order is answered once, in the row *P11 with P11* of *Pairs no command of this audit reads*; `frame/plan.md` *Judgments of the run* records the fold. The class, one instance or one part of a pair given two answerers or none, was swept in the files this pass writes: D8's title, body, milestone and answers were read whole against the section's opening sentence, and K13's row and *Instances K13* against the section's rows. Two places met it. K13's decision leaves the figure class to `seal/follow-up.md`'s figure row while the row *P12 with P8, its lists and figures* gives D8 the figures in code text; *Instances K13*'s open part now says D8 measures them and the follow-up row keeps the question whether a check reads figures. D8's *Scope* now gives each row its own method (finding 4's close), so the design's sentence at `frame/design.md:112`, "it measures the pair with the command of the kind nearest it", states D8's method a second time and differently; that is a framer file, left for the orchestrator's fold. The pairs themselves were not listed again: this round's S7 confirmation listed all 78 and found this instance and finding 2's.
+```
+
 ### 2. K13 reads no list in code text, phase 3 says the unread rest of K13's pairs stands in the section D8 carries, and no record gives those lists an answerer
 
 ```seal
@@ -64,6 +69,11 @@ nothing for the lists in shipped `.md`
 
 trail/phases/phase-2.md *Instances K13*, the open part:
 The open part: a coordinate whose path has no directory, one in `tests/` or `evals/behaviour/`, a figure or a list in code text, a figure the keyword list does not spell, and a docstring, comment or printed line out of step with the code of its own file that no open issue holds.
+```
+
+```seal
+verdict: fixed 69b5f806
+answer: The finding holds. The design half is the orchestrator's fold at `39e5dab8`, the row *P12 with P8, its lists and figures*, which gives D8 the figures as well as the lists in code text, so the paste-ready row was not applied as written. At `69b5f806` row K13's *Held twice* cell names that row for code text in place of saying the rest stands elsewhere, its *Decision* reads "nothing for the lists in shipped `.md`", and *Instances K13*'s open part names "a figure or a list in code text" and gives the tests, eval cases and code text to D8 by the rows *P12 with P9*, *P12 with P10* and *P12 with P8, its lists and figures*. `trail/phases/phase-3.md:12` names the section's rows that hold the rest of K12's and K13's narrowed pairs, and cites the design row for code text. The class, a part of a pair a kind's commands do not read that no record gives an answerer, was listed by taking the commands apart: each reader of `trail/phases/phase-1.md` and `trail/phases/phase-2.md` *Command setup* was read for the files it filters to, against the parts design *The kinds* gives its kind. One more instance: *Command lists* and *Command figures* also leave out the `.ko.md` editions and `templates/setup/hygiene.yml`, the one tracked template outside `.md`. Row K13 now names both, and *Instances K13* says who reads them: K4's command compares each edition's backticked tokens and figures with its English edition's, and the template, read at `bf9efcba`, holds no figure about the tree and no list of a source. Every other reader keeps to its parts: `docs/` and `agents/` hold only `.md` files, P2 is `.md` by its definition, each `.ko.md` file left out of K1 to K3 is K4's, and K5, K9, K11 and K12 read their parts whole or name what they do not read in their open parts.
 ```
 
 ### 3. *The parts* now says the parts are not the whole tree, and G4 and plan row A8 still say the parts make the list of kinds whole
@@ -97,6 +107,11 @@ trail/phases/phase-2.md *Preamble*, the end of its fourth sentence:
 ...; D8 carries those pairs and the tracked files no part of that design's *The parts* holds.
 ```
 
+```seal
+verdict: fixed 69b5f806
+answer: The finding holds. G4 and plan row A8 are the orchestrator's fold at `39e5dab8`. At `69b5f806` the preamble says, after the sentence naming *Pairs no command of this audit reads*, "The parts that design's *The parts* names are not the whole tree, and D8 carries those pairs and the tracked files no part holds." *Command comment*, run again from the repository's top at `69b5f806`, prints `join exit 0`, 26989 bytes and 26987 characters, and each of its 16 table lines stands whole in the two records (executed: `grep -qxF`, no miss); `trail/phases/phase-3.md` *Phase-boundary run* states the figure once, as measured after this pass. The class, a sentence of the records still claiming coverage the audit does not have, was searched in `gaps.md` and the three phase records outside fences, on the wordings "whole", "every pair", "each pair", "all pairs", "every part", "every file", "each file", "no pair" and "the tree is", each hit read. Two sentences of `trail/phases/phase-3.md` stated the frame in the present where the fold changed it, and each now names `bcfb181f`: *The parts are not whole* ("The frame at `bcfb181f` claims its list of pairs whole") and the item on drift the hand-back did not count ("The design's row for that pair named no known instance at `bcfb181f`"). Every other hit claims coverage over the parts or over the record's own read. A search on wordings is a sample, and a claim worded otherwise is not listed.
+```
+
 ### 4. D8 tells its answerer to measure each pair with "the kind that section names nearest it", and the section names a kind for 7 of its 20 pairs
 
 ```seal
@@ -117,6 +132,11 @@ The fix says what each kind of row is measured by.
 
 ```markdown
 > **Scope.** Each pair that section names, read at the work item's base. A pair whose row names a kind, or a kind's reader, is measured by that kind's command widened to the pair. Any other pair is measured by a reader chosen for the fact the row's second column names: a passage reader for shared prose, and a coordinate, list or figure reader for the tree's state. Each command is written whole in the work item's records, as #1147's commands are; a pair no command can list whole is read by a stated sample, and the record calls it one. ...
+```
+
+```seal
+verdict: fixed 69b5f806
+answer: The finding holds, and D8's *Scope* now says what each kind of row is measured by: "A pair whose row names a kind, a kind's reader or a kind's mechanism in its last column is measured by that kind's command, widened to the pair. A pair whose row names none is measured by a command this work's framer writes for what the row's second column says can stand in both parts. Either may instead be closed with the reason no record shows a drift there." The paste-ready text's reader per fact was not applied: which reader a pair without a kind needs is the framing D8's own work item does, and the scope names who writes it. The class, every sentence stating D8's method, was listed by reading D8 whole, its title, body, milestone and answers, and by `grep -n nearest` over the work item's records. D8's title said "each pair is measured by its nearest kind's command", and now says "each pair is measured, or closed where the record shows no drift". `frame/design.md:112` still says D8 "measures the pair with the command of the kind nearest it"; that is a framer file, left for the orchestrator's fold.
 ```
 
 ### 5. Phase 3 places #379 on K5's ground, and K5's overlaps leave it out, though round 2 finding 3's close read #379 and said every kind named every issue its loops return
@@ -142,6 +162,11 @@ trail/phases/phase-1.md *Instances K5*, the end of the open part:
 
 trail/phases/phase-2.md *Command tracker*, the list of the first loop's returns on a kind's ground:
 ... #1215, #1216 and #1228, with #379, which `trail/phases/phase-1.md` *Instances K5* names, and its second loop views #1229. ...
+```
+
+```seal
+verdict: fixed 69b5f806
+answer: The finding holds. *Instances K5*'s overlaps now name #379 in this pass's words: the ladder case holds that a directory with a `frame/design.md` or `frame/plan.md` owes its closing memo, where `agents/framer.md:120` withholds `gaps.md` from the framer, so the case is red from a framing commit until a phase writes the memo; it pins no wording, so K5's count and D4 do not take it, and its repair is #379's (read at `bf9efcba`). Phase 2's *Command tracker* list now holds #379 in its order. The class, an issue a record places on a kind's ground that the kind's overlaps or a tracker list leave out, was listed by building it from what the records cite: every issue number in `gaps.md`, the frame files and the three phase records, 44 numbers, each viewed for its state (executed: `gh issue view`), and for each kind K1 to K14 the open issues its row, its *Instances* and `trail/phases/phase-3.md` place on it compared with its overlaps; then each open issue the first loop of each *Command tracker* returns, run again on 2026-11-01 (executed: 31 open in phase 1's, 55 in phase 2's), compared with that block's list and with the records' placements. One more instance: #315, which phase 2's loop returns and *Instances K13* reads as a drift, was missing from phase 2's list, and the list now holds it. Every kind's overlaps name every open issue the records place on it, and phase 1's list is whole over its loop's returns that the records place. #390, which both loops return, is on the ground of a pair D8 carries and of no kind, so neither list names it, and `trail/phases/phase-3.md` *D8's overlaps and milestone* does. The list is whole over the issues the records cite; an issue on a kind's ground that no record cites is the tracker sample round 2's close names.
 ```
 
 ### 6. Phase 3 and D8 restate three facts whose home is another record: the 28 modules, the milestone's open count, and phase 2's reading of #238's line
@@ -175,6 +200,11 @@ trail/phases/phase-2.md:982, the clause on the milestone's state:
 
 trail/phases/phase-3.md:15:
 ... `trail/phases/phase-2.md` *Instances K13* reads #238's line `tests/hooks/test_version_check.py:107` against #238's measure; ...
+```
+
+```seal
+verdict: fixed 69b5f806
+answer: The finding holds, and each of the three facts now stands once. `trail/phases/phase-3.md` *Phase-boundary run* names "the modules `trail/phases/phase-2.md` *Phase-boundary run* names" with no count; *D8's overlaps and milestone* says "The milestone's open and closed counts are *Command tracker*'s milestone line"; D8's *Proposed milestone* says "its counts on 2026-11-01 are `trail/phases/phase-3.md` *Command tracker*'s"; and phase 3's item on drift the hand-back did not count reads #238's line "against #238's measure". The class, a fact one record of the work item states from another, was listed two ways over `routing.md`, the three frame files, `gaps.md` and the three phase records, outside fenced blocks. First, a probe keyed every figure, in digits or a number word to twenty, code spans included, after taking out commits, versions, issue numbers, coordinates, dates and the ids of kinds, drafts and parts, by its value and the next word, and printed the 100 keys that stand in two files; each was read. Second, it printed every run of ten or more words two of those files share, 53 runs, and each was read. Fixed beside the three: phase 2's and phase 3's *Phase-boundary run* counted phase 1's searches as "two" (now "the searches"); *Instances K14* restated #1197's count of `check:` lines (now cites *Instances K5*); *Instances K11* counted the process documents (now cites design row K9); phase 3's *What this phase changed* restated round 2 finding 2's close's list of the four framer folds (now cites it); D8's *Scope* restated phase 3's readings of #238, #390 and #506, and its *Proposed milestone* the same drifts (both now cite `trail/phases/phase-3.md` *Whether the frame holds*); and phase 3's milestone paragraph restated D8's ground (now cites it). Kept: "1641 passed" in phase 2 and phase 3, each its own run's result; the quotes of G1's sentences and of `docs/issues-and-milestones.md`, each a quote of the source it applies; the sentences each record states of its own blocks; and an issue's milestone written beside its number, which each record states at its own date. A fact restated in fresh words has no bounded spelling, so that half is a sample, and the round records, which the proofer writes, were not read. Three copies stand in framer files, left for the orchestrator's fold: plan row A10 counts "design G4's three answers", the plan's last *Judgments of the run* row counts the rounds' findings "6, 3 and 6", which the round records hold, and the design row *P12 with P8, its lists and figures* restates row K13's narrowing and cites phase 3 for it in place of `trail/phases/phase-2.md` *The table* row K13.
 ```
 
 ## Confirmations

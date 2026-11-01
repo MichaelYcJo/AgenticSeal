@@ -109,7 +109,7 @@ Every pair of parts not in the table above, the pairs unordered and each part wi
 
 ### Pairs no command of this audit reads
 
-In each pair below a fact can stand in both parts, and no kind's command reads the pair. D8, which the orchestrator files at the seal, answers each: it measures the pair with the command of the kind nearest it, or closes it with the reason no record shows a drift there. Where a pair has a known instance, the row names it.
+In each pair below a fact can stand in both parts, and no kind's command reads the pair. D8, which the orchestrator files at the seal, answers each, by the method its *Scope* states (`trail/phases/phase-2.md` *Drafts*, D8). Where a pair has a known instance, the row names it.
 
 | Pair | What can stand in both | Known instance, or what a kind already reads of it |
 |---|---|---|
@@ -131,8 +131,8 @@ In each pair below a fact can stand in both parts, and no kind's command reads t
 | P8 with P10 | an eval case copying code text that no script writes | K12's *Command regenerate* reads the cases a script under `evals/scripts/` writes |
 | P9 with P10 | a test and an eval case stating one fact | none |
 | P11 with P11 | an open issue's body and a milestone's description stating one order or scope | the issue's *Order* line against the milestone's order (G10) |
-| P12 with P9 | a coordinate or figure in a test's docstring or comment | K13's corpus leaves out `tests/` (`trail/phases/phase-2.md` *Whether the frame holds*, the K13 item); the record's instances are named in `trail/phases/phase-3.md` *Whether the frame holds*, the item on drift the hand-back did not count |
-| P12 with P8, its lists and figures | a list of an enumerable source, or a figure, in a docstring, a comment or a printed message | K13 reads coordinates in code text and no list or figure (`trail/phases/phase-3.md` *Whether the frame holds*, the item on S7's second clause); the drifts `trail/phases/phase-2.md` *Instances K13* reads from open issues are its instances |
+| P12 with P9 | a coordinate, list or figure in a test's docstring or comment | K13's corpus leaves out `tests/` (`trail/phases/phase-2.md` *Whether the frame holds*, the K13 item); the record's instances are named in `trail/phases/phase-3.md` *Whether the frame holds*, the item on drift the hand-back did not count |
+| P12 with P8, its lists and figures | a list of an enumerable source, or a figure, in a docstring, a comment or a printed message | what K13 reads in code text is stated in `trail/phases/phase-2.md` *The table*, row K13; the drifts `trail/phases/phase-2.md` *Instances K13* reads from open issues are its instances |
 | P12 with P10 | a coordinate or figure in an eval case | K13's corpus leaves out `evals/behaviour/` (the same item) |
 
 ### The table
