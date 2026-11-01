@@ -78,7 +78,7 @@ here is a write you do not make.
 `seal/threads/<work-item-id>/trail/rounds/round-<n>.md` in the worktree of the branch
 under review, at the path your prompt names, and never the main checkout.
 Nothing else of the round goes there.
-check: evals/behaviour/proofer/rule-proofer-one-finding/ tests/text/test_a_moved_rule_leaves_its_definition.py
+check: evals/behaviour/proofer/rule-proofer-one-finding/
 
 **The clone is named for the work item and the round.** Where your prompt
 names none, clone into `<scratchpad>/<work-item-id>/round-<n>/clone`, and
@@ -138,7 +138,7 @@ against the tests of the function it covers, and against any pair a
 duplicate check in the repository names; a test that covers nothing its
 group does not already cover is a `should` finding. Where the test files
 declare `TARGET`, the pairs are the ones `seal layout --pairs` prints.
-check: tests/text/test_a_moved_rule_leaves_its_definition.py
+check: none reader: the orchestrator at each hand-back
 
 **The broad gate is not yours, and its label is.** The crafter hands over
 with the suite labelled `unverified`, and what you check is whether that

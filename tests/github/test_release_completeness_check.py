@@ -235,12 +235,16 @@ class Test_judge_feat:
         assert f"{VERSION} is a patch" in error, error
         assert "A feat: makes a minor." in error, error
         assert "before its squash" in error, error
+        # The `::error::` line the completeness check prints, which whoever it
+        # stops reads for each repair: the move before the squash.
         assert "to the planned minor whose goal it shares" in error, error
         assert "stays in its range" in error and "after a revert" in error, error
+        # The same printed line's rename repair.
         assert f"rename {MILESTONE!r} and every later planned" in error, error
         assert "cut this branch again under the new name" in error, error
         assert "plugin.json" in error, error
         assert "docs/branch-and-release.md" in error, error
+        # The same printed line's closing clause.
         assert "never lowered to fit the number" in error, error
         assert lines[0] == error, "the refusal is not the first line a reader meets"
 

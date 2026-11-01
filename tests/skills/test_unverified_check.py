@@ -1912,6 +1912,8 @@ class Test_compare_at:
     def test_refuses_to_count_a_base_section_it_cannot_read(self, tmp_path):
         d = _committed(tmp_path, {"gaps.md": "# nothing here\n"})
         found = UC.compare_at(str(d), "HEAD", "gaps.md", "gaps.md", 0, "HEAD")
+        # The notice `seal unverified --baseline` prints for a base section it
+        # cannot read, which the person running it reads as no count.
         assert found[0] == "notice" and "could not be read" in found[1], found
 
 
@@ -2148,6 +2150,8 @@ class Test_main:
         memo_at(tmp_path, CANONICAL + "| an item | an answerer | a third cell |\n")
         assert run([str(tmp_path)]) == 1
         out = capsys.readouterr().out
+        # The refusal the check prints for a record it cannot read, which a
+        # reader must not take for zero open items.
         assert "could not be read" in out and "open: 0" not in out
         assert "This is not a report of zero open items." in out
         assert "open  how the gate renders in a TUI" not in out, out

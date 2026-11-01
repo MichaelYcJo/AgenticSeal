@@ -3394,7 +3394,8 @@ class Test_main:
         assert "is BETWEEN the rows" not in out, out
         assert "-16.4m" not in out, out
         # The cut a row ends at, never a spawn's result: the head row's cut is
-        # the first spawn's START.
+        # the first spawn's START. The cause `seal cost --spawns` prints for
+        # the orchestrator reading the report.
         assert "outlived the cut its row ends at" in out, out
         assert "outlived a spawn's result" not in out, out
 
@@ -3480,6 +3481,8 @@ class Test_main:
         path.write_text("\n".join(lines) + "\n", encoding="utf-8")
         out = " ".join(run(["--spawns", str(path)]).stdout.split())
         assert "no between-the-rows figure" in out, out
+        # The cause `seal cost --spawns` prints for the orchestrator reading
+        # the report: the cut, not a spawn's result.
         assert "outlived the cut its row ends at" in out, out
         # No call in this transcript ends after the spawn's result at 9s.
         assert "outlived a spawn's result" not in out, out
@@ -5223,6 +5226,8 @@ class Test_post:
         assert code == 1
         said = capsys.readouterr().out
         assert "nothing is open" in said
+        # The refusal `seal cost --post` prints when the log is closed, which
+        # tells the session reading it to open nothing.
         assert "not a session's act" in said
         assert _opened(seen) == [], "a closed log must never be reopened"
         assert _posted(seen) == []
@@ -5274,6 +5279,8 @@ class Test_post:
         assert "--body-file" in posted[0]
         assert _opened(seen) == []
         assert "posted the segment's reading to #42" in capsys.readouterr().out
+        # The body the command posts, built from its two arguments, which a
+        # reader of the flow log reads.
         assert "the rounds ran long" in bodies["text"]
         assert "span 19m, 99 calls" in bodies["text"]
 

@@ -397,6 +397,8 @@ class Test_main:
             "not say what to fix"
         )
         assert "changelog.md" in out, "the message does not name what it looked for"
+        # The refusal the publish job prints, which the person reading the
+        # job log acts on: a fragment the previous tag holds is not counted.
         assert f"that {PREVIOUS} does not already hold" in out, out
 
     def test_a_tag_that_is_not_a_version_goes_red(self, monkeypatch, tmp_path, capsys):

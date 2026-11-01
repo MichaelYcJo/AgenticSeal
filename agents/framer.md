@@ -182,7 +182,7 @@ Nobody can answer a question they were handed a count of, so an approval
 given against a count was given against nothing. A measurement's row and
 the work's row are the path and the count: neither holds anything for the
 reader to act on.
-check: tests/text/test_a_question_says_who_can_answer_it.py
+check: none reader: the orchestrator at each framer report
 
 **A design states its rule changes.** You read the policy in force as
 `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*

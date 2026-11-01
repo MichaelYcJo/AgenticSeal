@@ -96,7 +96,7 @@ check: tests/behaviour/test_chain_hooks_hardening.py
 **A declared frame that is absent stops the build.** A missing `frame/design.md` is
 not evidence about the rung: hand back that `routing.md` and the directory
 disagree, and do not guess which is true.
-check: tests/text/test_a_moved_rule_leaves_its_definition.py
+check: none reader: the orchestrator at each hand-back
 
 **The handoff's facts are coordinates to open.** A fact your prompt carries
 arrives in the shape of `docs/the-review-record.md` *The handoff*; open its

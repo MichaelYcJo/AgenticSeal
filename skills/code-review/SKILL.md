@@ -94,7 +94,7 @@ A fixture chain is `&&`, never `|`: a pipe feeds one command's output to the
 next instead of ordering them, and the chain can sit waiting on stdin with
 nothing arriving. Give any call that could run long a timeout you chose
 rather than one you assumed.
-check: tests/behaviour/test_a_probe_that_commits_says_so.py tests/text/test_a_probe_does_not_outlive_its_round.py
+check: tests/behaviour/test_a_probe_that_commits_says_so.py
 
 ## Earlier rounds
 

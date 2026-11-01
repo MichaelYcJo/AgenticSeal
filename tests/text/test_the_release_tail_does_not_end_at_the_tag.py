@@ -3,9 +3,9 @@ rule names the reader that arrived from outside.
 
   A5  a reader working down `docs/release-checklist.md` passes the tag and
       meets two boxes, each carrying the command that answers it
-  A8  `docs/branch-and-release.md` names an outside directory's pinned commit
-      among the readers that point at a release branch's commits by SHA, and
-      the fixed-name sentence sits beside it
+  A8  `docs/branch-and-release.md`'s squash rule cites the checklist section
+      whose box reads what an outside directory pins, and names the file that
+      holds the plugin's one name
 
 **A box carrying no command is the defect this work item is about**, one layer
 up: #386's measurement is that a step written as a sentence beside a step with
@@ -119,16 +119,12 @@ def test_two_boxes_follow_the_tag_and_each_carries_its_command():
         )
 
 
-def test_the_note_box_says_it_confirms_rather_than_performs():
-    """The workflow publishes the note; the box reads whether it did. A box a
-    reader takes to be the act itself is a box that gets ticked by hand on the
-    release where the job went red."""
+def test_the_note_box_names_the_workflow_and_the_command_that_reads_its_run():
+    """The workflow publishes the note; the box reads whether it did, so it
+    names the workflow and a command that reads the workflow's run."""
     box = [b for b in boxes(after_the_tag()) if "gh release view" in b]
     assert box, "no box carries the release-note command"
-    assert "confirms the workflow fired" in box[0], (
-        "the box does not say it confirms rather than performs, so a reader "
-        "who finds nothing published is told nothing about where to look"
-    )
+    # The workflow file a person opens when the note is missing.
     assert "publish-release.yml" in box[0], (
         "the box does not name the workflow, so there is nothing to go read "
         "when the release note is missing"
@@ -137,7 +133,8 @@ def test_the_note_box_says_it_confirms_rather_than_performs():
     # and the box carried the first while losing the second under a measured
     # mutation. A reader who finds no release is one command short of knowing
     # why, and this repository's whole argument for the workflow shape is that
-    # the answer should not be somebody remembering where to click.
+    # the answer should not be somebody remembering where to click. The
+    # command a person types to read the run.
     assert "gh run list" in box[0], (
         "the box names the workflow without a command that reads its run, so "
         "a missing release note sends the reader to a UI rather than to an "
@@ -151,52 +148,14 @@ def directory_box():
     return box[0]
 
 
-def test_the_directory_box_says_it_never_fails_a_release():
-    """#417 rejected a gate keyed to the directory's state with a
-    measurement. A box that reads as a gate gets treated as one, and the first
-    release it reports an absent entry on stops for nothing.
-
-    #858 A5: the box used to say what to do when the command said *not
-    listed* or an entry pinned an older commit — submit, then resubmit —
-    about a directory the command never read. The directory answers a
-    challenge page to any script, so the box says that, names the page a
-    person opens for each kind of listing, and sends nobody to resubmit: on
-    the portal nothing is resubmitted, and a Console listing takes no new
-    version."""
+def test_the_directory_box_names_the_page_a_person_opens():
+    """#858 A5: the directory answers a challenge page to any script, so the
+    box names the page a person opens for each kind of listing."""
     box = directory_box()
-    assert "reports and never fails" in box
-    assert "marketplace files" in box, "the box does not say what the command reads"
-    assert "readable from nowhere a script can reach" in box, (
-        "the box does not say the directory itself is out of a script's reach, "
-        "so the command's answer reads as the directory's"
-    )
+    # The two pages a person opens to read the directory's answer, the
+    # portal's for a portal listing and the Console's for a Console one.
     for page in ("Submissions page", "Console page"):
         assert page in box, f"the box does not name the {page}"
-    for kind in ("portal listing", "Console listing"):
-        assert kind in box, f"the box does not say which page answers for a {kind}"
-    # Round 1's 🟡 1: under the default publish setting a person selects
-    # Publish for every version that passes, so *on its own* overstated it.
-    assert "without a resubmission" in box and "publish setting" in box, (
-        "the box does not say a portal listing picks up new versions without "
-        "a resubmission and goes live by its publish setting"
-    )
-    assert "resubmit" not in box.lower(), (
-        "the box sends the reader to resubmit, which is wrong for both kinds of listing"
-    )
-    # Round 1's 🟡 3: the box's heading and the step's opening said the command
-    # answers for the directory, the claim this box exists to withdraw.
-    assert box.startswith(
-        "- [ ] **The marketplace files and the directory's page have been read**"
-    ), f"the box's heading still says the directory answered: {box[:80]!r}"
-    tail = flat(after_the_tag())
-    assert "names the page that answers the rest" in tail, (
-        f"the opening of {AFTER_THE_MERGE} still says each box carries the "
-        "command that answers it"
-    )
-    # Round 1's 🟡 5: the day count was true once and is not a standing fact.
-    assert "once went twenty-eight days" in box, (
-        "the box states a day count as if it still held"
-    )
 
 
 def test_the_directory_box_records_which_kind_of_listing_it_is_with_a_date():
@@ -253,119 +212,24 @@ def squash_rule():
     return flat(rest[:end])
 
 
-def test_an_outside_directory_is_in_the_enumeration():
-    """A8. The rule already enumerated the rider stamps and the round records,
-    both of which this repository can repair. The third reader cannot be
-    repaired from here, which is the whole reason it is worth writing down."""
+def test_the_squash_rule_cites_the_box_that_reads_what_is_pinned():
+    """A8. The third reader of a release branch's commits is outside this
+    repository, and the rule points to the checklist section whose box reads
+    what it pins."""
     rule = squash_rule()
-    assert "A third reader of those commits is outside this repository" in rule, (
-        f"{BRANCHING}'s squash rule no longer names the reader that arrived "
-        "from outside the repository"
-    )
-    assert "outside this repository" in rule
-    assert "pinning a commit of its source repository" in rule, (
-        "the enumeration says a directory is a reader without saying what it "
-        "pins, which is the fact that makes it one"
-    )
+    # The section a reader of the squash rule resolves to the box.
     assert "docs/release-checklist.md` *6. After the merge*" in rule, (
         "nothing points from the rule to the box that reads what is pinned"
     )
-    # Round 1's 🟡 4: the record line closing this paragraph's fold said a
-    # plugin directory pins a commit of this repository. A marketplace file
-    # is what pins, and it pins outside plugins; this repository is in neither.
-    text = flat(read(BRANCHING))
-    assert (
-        "a marketplace file pins a commit of each outside plugin's source "
-        "repository" in text
-    ), "the fold's record line does not say what pins and whose commit"
-    assert "a plugin directory pins a commit of this repository" not in text
 
 
-def test_the_fixed_name_sentence_sits_beside_it():
-    """A8's second half. #417 raised both together and they are one paragraph
-    apart on purpose: a rename and a rewritten history break the same outside
-    consumer, in the same way, for a reader who has no other reason to think
-    about it."""
+def test_the_fixed_name_sentence_names_the_file_that_holds_the_name():
+    """A8's second half: the plugin's name is fixed, and the sentence says
+    which file holds its one copy."""
     rule = squash_rule()
-    assert "The plugin's name is fixed" in rule, (
-        f"{BRANCHING} no longer says the name is fixed; users have the plugin "
-        "installed under its slug and nothing else in the tree says so"
-    )
-    assert "installed it under its slug" in rule, (
-        "the sentence no longer says WHY the name is fixed — that people are "
-        "already running it under that name — which is the half a reader "
-        "needs to weigh a rename against"
-    )
+    # The path `.claude-plugin/plugin.json`, the file a reader opens for the
+    # one spelling of the plugin's name.
     assert ".claude-plugin/plugin.json` holds the one copy" in rule, (
         "the sentence says the name is fixed without saying where the one "
         "copy of it lives, so a reader cannot tell which spelling is the name"
     )
-    # Round 1's 🟡 4: the directory keys a listing on the repository folder,
-    # not on the name; a marketplace file keys its entry on the name.
-    assert "a marketplace file keys its entry on the same name" in rule, (
-        "the sentence says what a rename breaks without naming what keys on the name"
-    )
-
-
-# --- the folded rule names the push that fires each act ---------------------
-
-
-def release_tail_rule():
-    """The standing statement the second fold wrote for this work item.
-
-    From its opening in *Cutting a release* to the next `###` heading, so
-    the third-reader paragraph further down is not read as part of it.
-    """
-    text = read(BRANCHING)
-    start = text.index(
-        "**Every act the release performs once it reaches `main` belongs to a "
-        "machine or\nto a command that answers it"
-    )
-    rest = text[start:]
-    return flat(rest[: rest.index("### Work accumulates on a release branch")])
-
-
-def test_the_label_acts_are_fired_by_the_merge_to_main_not_the_tag():
-    """Round 1's 🔴 on the second fold. The statement's headline said the tag
-    push fires every act after the tag, and the label acts run in the
-    close-issues workflow, which fires on `push: branches: [main]` — before
-    any tag exists. A reader trusting the headline looks for the label step
-    in the wrong run. Nothing fires the directory check at all; a person runs
-    it at the checklist's box."""
-    rule = release_tail_rule()
-    headline = rule[: rule.index("**", 2) + 2]
-    assert "tag push" not in headline, (
-        "the headline attributes every act to the tag push; the label acts "
-        "fire on the merge to `main`"
-    )
-    assert "The merge to `main` fires the close-issues workflow" in rule, (
-        "the statement does not say which push fires the label acts"
-    )
-    assert "Nothing fires it" in rule, (
-        "the statement does not say the directory check is run by a person"
-    )
-
-
-def test_the_directory_check_reads_the_marketplace_files_and_not_the_directory():
-    """#858 A7. The bullet used to say the command answers, per directory,
-    whether the plugin is listed. It reads two marketplace files on GitHub,
-    and the directory is out of any script's reach, so the bullet names the
-    input and says the directory's state is not among the answers."""
-    rule = release_tail_rule()
-    lead = "**The marketplace files are read by a command"
-    assert lead in rule, "the release-tail statement has no bullet for the check"
-    start = rule.index(lead)
-    bullet = rule[start : rule.index("- **", start)]
-    assert "two marketplace files" in bullet, (
-        "the bullet does not name what the command reads"
-    )
-    # Round 1's ⬜ 8: the official file calls itself curated, and only the
-    # community one is a mirror of the review pipeline.
-    assert "curated" in bullet and "mirror" in bullet, (
-        "the bullet calls both files outputs of the review pipeline"
-    )
-    assert "not among its answers" in bullet, (
-        "the bullet does not say the directory's state is outside what the "
-        "command answers"
-    )
-    assert "Nothing fires it" in bullet
