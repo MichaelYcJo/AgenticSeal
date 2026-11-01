@@ -173,6 +173,14 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
         "move, and the comment says the same probe at two sizes is the whole "
         "re-measurement; no release of AgenticSeal makes the number wrong"
     ),
+    ("skills/code-review/orchestration.md", "2.100.0"): (
+        "gh's, named in *Orchestrator: the pull request opens once the sealer "
+        "seals* as the build on which `gh pr checks <N> --watch`, run before "
+        "any check had reported, was measured to exit 1 without waiting "
+        "(#1222). The class is the git rows' above, a loaded file naming the "
+        "tool build a measurement was taken on: the behaviour is gh's to "
+        "change, and no release of AgenticSeal makes the number wrong"
+    ),
 }
 
 
