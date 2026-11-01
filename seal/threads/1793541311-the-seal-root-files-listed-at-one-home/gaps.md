@@ -10,4 +10,4 @@
 
 ## Not done
 
-The `### Process changes` row that `docs/the-record-layout.md` *A change writes fragments, never a shared file* asks for, because the diff changes `skills/verify/orchestration.md`. The same section names the orchestrator as its writer, so this phase left the row to the orchestrator (`trail/phases/phase-1.md` *Owed by another party*).
+The `### Process changes` row that `docs/the-record-layout.md` *A change writes fragments, never a shared file* asks for, because the diff changes `skills/verify/orchestration.md`. The same section names the orchestrator as its writer, so this phase left the row to the orchestrator (`trail/phases/phase-1.md` *Owed by another party*), and the orchestrator wrote it before round 1.
