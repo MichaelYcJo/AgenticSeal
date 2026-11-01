@@ -90,6 +90,11 @@ The fix adds two rows that set a coordinate within 15 lines of `g` but not over 
 
 The two new rows go red against the margin mutant. `a.py:55` is 10 lines past `g` and 25 short of `h`. `a.py:25-35` ends 10 lines before `g`. The new case goes red against the path mutant.
 
+```seal
+verdict: fixed f8174735
+answer: The finding holds. My round 1 span-check mutant replaced the whole check with `False`, so it never tested the margin, and the close block of round 1 overstated what it pinned. At f8174735 the parametrized case `Test_seed::test_keeps_the_seed_off_every_coordinate_a_truths_location_names` gains three rows. `line-within-the-window` is `a.py:55` and `range-ending-within-the-window` is `a.py:25-35`, as the round wrote them, and each keeps `g` at line 45 off by the margin alone. `another-files-line` is `b.py:45`, which leaves `g` free. The case asserts the seed's path, line and unit, so the `g` row can share the source and the parametrization. I took it as a row and not as the separate case the round proposed, because a separate case would have repeated the source. Each mutant was run with `seal mutate` against the module. Margin removed (`first <= line <= last`): red, at the two margin rows alone. Lower margin removed (`first <= line <= last + rt.WINDOW`): red, at `line-within-the-window`. Upper margin removed (`first - rt.WINDOW <= line <= last`): red, at `range-ending-within-the-window`. Path filter made `if False:`: red at `another-files-line`. Whole check `False`: red. Range end ignored (`int(m["line"])`): red. Unit span not appended: red. Bare path not appended: red. `target_at` wiring dropped: red. `git status --short` showed only this record afterwards. No generator code changed, so the committed cases stand.
+```
+
 ### 2. `frame/plan.md` still says the work changes neither generator, and `frame/questions.md` still tells the reader not to reopen whether either generator changes
 
 ```seal
@@ -111,6 +116,12 @@ The work builds on the two generators as 0.27.1 left them. How either chooses it
 
 <!-- frame/questions.md, the list of answered judgments -->
 - Whether either generator changes how it chooses its cases: `frame/plan.md` A3. Where a seed is placed inside a chosen case does change (`frame/design.md` *Scope* item 5).
+```
+
+```seal
+verdict: fixed 140727c5
+answer: The orchestrator made the fix at 140727c5 by rewriting the two sentences in place, because a fix pass does not edit the frame. `frame/plan.md`'s *Technical context* now says how either generator chooses its cases stays as it is and where `seed_defects.py#seed` places a seed changes. `frame/questions.md`'s answered list now names a change to how a generator chooses its cases and not a change to a generator. This pass made no edit for this finding.
+location: `seal/threads/1793521562-the-proofer-cases-come-from-thread-records/frame/plan.md`, `seal/threads/1793521562-the-proofer-cases-come-from-thread-records/frame/questions.md`
 ```
 
 ## Confirmations
