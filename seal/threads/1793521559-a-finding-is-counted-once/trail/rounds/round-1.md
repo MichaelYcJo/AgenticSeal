@@ -36,6 +36,11 @@ assert under == [
 ], under
 ```
 
+```seal
+verdict: fixed 2a695ac9
+answer: The finding holds: `hooks/lib/routing.py:611-646` answers True for any link, a path that is not a directory, and a directory nothing can list, and the line named only the second. `NOT_LISTED` now reads the paste-ready text, which is true of each of the three, and a comment above it names them. The case is parametrized over a file and a link to a directory holding a record, and pins the whole line; both were seen red against the old text before the fix, and `seal mutate` back to "it is not a directory" turned the case red after it. A directory nothing can list is not built, because the case would need to drop its own read permission. The phase record's decision 4 still quotes the old text, as the record of what stood at 2665efb1.
+```
+
 ### 2. A released work item whose `routing.md` is missing or does not parse leaves the table with no row and no line saying so
 
 ```seal
@@ -76,6 +81,11 @@ def chained(routing, where):
             continue
         if not through:
             continue
+```
+
+```seal
+verdict: fixed 41b938f6
+answer: The finding holds: `chained` returned False alike for `straight to the PR`, for a `routing.md` that could not be opened and for one `routing.parse` reads as no declaration, and `main` skipped all three in silence. The fix follows the paste-ready shape. `chained` returns `(True, None)`, `(False, None)` or `(None, why)`. `main` skips a released item the tree no longer holds, which `skills/settle/scripts/settle.py:1017` also leaves out, and prints `<path>/routing.md: whether it went through the review chain is not read: <why>` under the table for the `None` case; the sentence and the no-declaration reason are the constants `NOT_ROUTED` and `NO_DECLARATION`. One new case builds a chained item, a straight-to-the-PR item, an item with no `routing.md`, one whose `routing.md` is no declaration, and one removed after the release, and pins the table and both lines. It was seen red against the silent loop, and each of three `seal mutate` mutants (no line, no declaration read as another answer, no removed-item skip) turned it red. The module docstring now says the same, and `changelog.md` gains one sentence. `frame/design.md` *Scope* item 2 keeps its rows, and its *Data & interfaces* Stdout bullet does not name this line; the fix pass does not edit the frame.
 ```
 
 ## Confirmations
