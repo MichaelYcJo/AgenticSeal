@@ -60,6 +60,12 @@ S5's Then cell, from "then its comment weighs the count" to the cell's end:
   the next step, with no other issue filed
 ```
 
+```seal
+verdict: fixed 71410b52
+answer: 5e841a17 rewrote the frame locations: the fourth operation's `to` now reads a count that held level as one that rose, has the settling session's comment name the work items whose records-alone findings kept the count up and whether they restate one another, reads the count as `worse` only where they do, and makes #1020 the issue that follows with no other filed; G17's count, S5, *Scope* item 6 and the *Removes* row follow it. 71410b52 changes no path this finding's `location:` names; it brings the records to that frame. In `seal/threads/1793541310-a-band-flags-a-row-and-a-judgment-decides/changelog.md` the sentence "An issue follows only a reading judged `worse`, and the orchestrator or the settling session files it" now carries the one exception at the settle (the count is `worse` only where the findings that kept it up restate one another, a level count reads as one that rose, and #1020 is the issue, so the settling session files no other), and the `### Process changes` row's Change cell says the same. `gaps.md`'s third *Not verified* row now asks what the new *2b* `to` asks. The modules that read a fragment or a closing memo ran once over the result, 691 passed, exit 0 (executed).
+location: `seal/threads/1793541310-a-band-flags-a-row-and-a-judgment-decides/changelog.md`, `seal/threads/1793541310-a-band-flags-a-row-and-a-judgment-decides/gaps.md`
+```
+
 `changelog.md` describes the old *2b* sentence and names *2b* among the sections the settle cites the rule from. Both stay true under this fix, so the entry needs no change.
 
 ### 2. `plan.md`'s Phase 1 row still verifies one `add` and two `change` operations, and the sentence that widens its search stands beside it, so the cell's search, run as widened, contradicts the cell's own claim
@@ -84,6 +90,12 @@ plan.md, the Phases row for Phase 1:
 plan.md *Technical context*, the end of the sentence that opens "Phase 1
 closed before round 1":
   ..., which also confirms them by Phase 1's Verified-by cell.
+```
+
+```seal
+verdict: fixed 71410b52
+answer: 5e841a17 rewrote the frame locations: `frame/plan.md`'s Phase 1 Delivers and Verified-by cells now state the folded checks, and *Technical context* no longer states a widened check beside the cell. 71410b52 changes no path this finding's `location:` names; it is the commit that brings this work item's records to the frame 5e841a17 folded, `seal/threads/1793541310-a-band-flags-a-row-and-a-judgment-decides/changelog.md` and `gaps.md`, and the checks the rewritten cell names are the ones round 1's fix pass ran and recorded in its close blocks (four operations, the widened search with its two test lines read and placed outside the class, and the narrow run with `tests/github/test_finding_counts.py`, 974 passed).
+location: `seal/threads/1793541310-a-band-flags-a-row-and-a-judgment-decides/changelog.md`
 ```
 
 ## Confirmations
