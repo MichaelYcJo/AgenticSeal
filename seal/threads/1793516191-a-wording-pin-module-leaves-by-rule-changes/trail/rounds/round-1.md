@@ -33,6 +33,11 @@ The fix replaces the absolute path in line 18's command with a placeholder. The 
 **The rehearsal ran in one scratch clone, which is removed.** Executed: `git clone --no-local -q <the worktree> <scratchpad>/1793516191-a-wording-pin-module-leaves-by-rule-changes/clone`.
 ```
 
+```seal
+verdict: fixed 417a11d2
+answer: Line 18's clone command names the worktree as `<the worktree>`, as the fix gives, and the rest of the line stands. The boundary-set paragraph of `phase-1.md` now names `tests/test_censuses.py` among the modules that read the records and says phase 1 left it out. Executed in the worktree after the edit: `bin/test tests/test_censuses.py -q` exited 0 with `176 passed`. The class is a home path in any record of this work item: `grep -rn` over the work item's directory for `/Users/`, `/home/`, `/private/`, `/tmp/` and `~/` lists only this record's line 25, which quotes the census's own `/Users/x/` placeholder, and a second search for the user name, the worktree's directory name, `claude-501` and `$HOME` lists nothing (executed).
+```
+
 ### 2. The line-18 `to` puts the pact words' reader in prose under a check line that does not read them, so the issue's own example gets no `check: none reader:` line
 
 ```seal
@@ -66,6 +71,11 @@ The fix splits the rule. The definition paragraph keeps its test, and the words 
     check: none reader: the proofer at review
 ```
 
+```seal
+verdict: fixed c66f09cf
+answer: The framer's reframe split the rule as the fix gives: the line-18 `to` is `check: tests/hooks/test_config.py`, and an `add` at the end of *The words* states the pact's words as a rule of their own ending `check: none reader: the proofer at review`. The `add`'s sentences are the framer's, not the fix's: they name code, its comments and test names, and say that a text spelling the 0.18.x header in order to read it names no signer another way. G7, Scope item 1 and rows 22 to 24 cite the added rule, and P2 and P3 ran again over the new block. Phase 2 wrote the four operations into `docs/` in a scratch clone, where `seal rules --check` read 282 lines and the S3 modules passed (`trail/phases/phase-2.md`, executed).
+```
+
 ### 3. Two rows of *What each case held* do not place what their case asserts
 
 ```seal
@@ -84,6 +94,11 @@ Method: rule 12's second method. Each of the 24 cases was taken apart into its a
 ```markdown
 | 2 | `test_every_once_in_the_readme_states_its_grain` | the mode gate asks once per session per repository, the review-skill gate once per session per working tree | the behaviour: `tests/hooks/test_mode_gate.py:318`, one question for a local root across the clone's work trees, and `tests/hooks/test_review_skill_gate.py:137`, `:143` (read); the README's spelling of each grain, the proofer |
 | 7 | `test_the_row_that_could_not_be_true_is_corrected_not_reworded` | an old routing row is in neither implement file; the routing declaration is read for either review answer (`skills/implement/orchestration.md:314`) | the first, history, which `tests/behaviour/test_waiver_decided_at_start.py:25` records in its docstring; the second, `tests/hooks/test_routing_edit_gate.py:296-299`, which lets an edit through on a declared branch for both `Review` answers (read); the wording, the proofer |
+```
+
+```seal
+verdict: fixed c66f09cf
+answer: The framer's reframe rewrote both rows. Row 2 cites `tests/hooks/test_mode_gate.py:318` and its assertions at `:330-339` as the behaviour, says that case reads no README, and places the README's spelling of each grain and the absence of "Fires once per session," with the proofer. Row 7 places the second assertion at `tests/hooks/test_routing_edit_gate.py:296-299`, under `docs/the-review-and-parity-arms.md` at `:34-37` (read: `frame/design.md:61` and `:66` at `c66f09cf`).
 ```
 
 ### 4. *The successor issue* cites coordinates that resolve only inside this frame, which the settle removes
@@ -120,6 +135,11 @@ The orchestrator files it before `seal pr-body` runs, in the milestone `frame/qu
 - **Done when.** The module and every place above leave in one change, and each fact *The facts* names is held by the case, or the `check: none reader:` line, that its row names.
 ```
 
+```seal
+verdict: fixed c66f09cf
+answer: The framer's reframe rewrote *The successor issue* so that each coordinate in the body resolves outside this directory: the precondition is the search `git grep -n one_word_one_meaning -- docs`, and the design, `gaps.md` and *What each case held* are cited at the `v0.27.1` tag. The body also gains *The order* and *The README's reader* bullets (read: `frame/design.md:89-98` at `c66f09cf`). Phase 2 ran that search in the clone with the four operations written, and it listed nothing (`trail/phases/phase-2.md`, executed).
+```
+
 ### 5. *How the list was made whole* calls whole a search that took two of the module's 31 names beyond its cases
 
 ```seal
@@ -134,6 +154,11 @@ The grounds: the bullet claims the list was made whole by `git grep` on the path
 
 ```markdown
 - **How the list was made.** The module was taken apart into its 55 top-level names: its 24 cases, its 28 constants and its helpers `flat`, `pact_texts` and `without_the_policy_span`. Each name was searched with `git grep -n -w` outside the module, `.test_durations` and `seal/threads`, at `a6c5fb76`. Apart from other units named `flat`, the search lists one line, `tests/behaviour/test_a_shrunken_corpus_declines_to_judge.py:77`, which is on the list above. Beside it, `git grep -n one_word_one_meaning -- . ':!seal/threads'` lists the places above and the 24 rows of `.test_durations`, and `seal rules --check` after the deletion refuses one line, `skills/writing-style/SKILL.md:276`. For paths and identifiers the list is whole. No search lists a sentence that names the module in prose alone, with no path or identifier. That part is a sample, and this build's reviewer reads for it.
+```
+
+```seal
+verdict: fixed 417a11d2
+answer: Two commits answer it. The framer's reframe at `c66f09cf` rewrote the design's bullet as the fix gives, with the search run at `49f3b00b` (read: `frame/design.md:94`). The fix pass at `417a11d2` rewrote `trail/phases/phase-1.md:55` in place: it says phase 1's search took 26 of the module's 55 top-level names and was a sample, and cites the 55-name search in design *The successor issue*, *How the list was made*. The fix pass ran that search again at `c66f09cf` with the names taken from the module by `grep -oE` (executed): 55 names, 24 of them cases, and outside the lines that hold `flat` one line, `tests/behaviour/test_a_shrunken_corpus_declines_to_judge.py:77`.
 ```
 
 ### 6. Q1's default files the successor in `release: 0.27.2`, whose purpose it does not share, and leaves out `release: 0.27.3`, which already orders a wording-pin item after #1197
@@ -157,6 +182,11 @@ The fix adds the option and makes it the default. The plan's judgment row then r
 
 ```markdown
 | Q1 | Which milestone takes the successor issue that carries the module's removal? A milestone answers when (`docs/issues-and-milestones.md` *A milestone answers when, and takes three shapes*), and the removal can start only after a settle, which runs when the owner calls it (`docs/release-checklist.md` *2b. Settle what earlier releases left behind*). The open milestones' descriptions decide most of it. The answer changes nothing this pull request builds | a person | (a) `release: 0.27.2`. Its purpose, "it decides and documents", is not a removal's, it holds nine open issues past the ceiling, and its release is refused until the successor merges. (b) A `backlog:` milestone. No release is ever refused over it, and nothing schedules it either. (c) `release: 0.27.3`. Its purpose is to remove wording pins and stored copies, "it fixes and removes", its order already reads "the wording-pin item follows #1197", and it comes after 0.27.2, so a settle called at 0.27.2's step 2b lands first | (c) `release: 0.27.3`: the orchestrator files the successor there, and its body says the 0.27.3 wording-pin item follows it | open |
+```
+
+```seal
+verdict: fixed c66f09cf
+answer: The framer's reframe takes `release: 0.27.3`, in its own form rather than the fix's: Q1 is no open row but a question the tree answered, in `frame/questions.md`'s list, citing milestone 79's description and the plan's last judgment row. That row records the move from Q1's default with its grounds, and `frame/plan.md:13` and design *The successor issue* name 0.27.3. The successor's body carries the order in its *The order* bullet, naming #1233 (read: `frame/questions.md:9`, `frame/plan.md:49`, `frame/design.md:89`, `:92` at `c66f09cf`).
 ```
 
 ## Confirmations
