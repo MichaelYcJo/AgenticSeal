@@ -93,8 +93,17 @@ class Test_parse:
                 "  to: **Rule.**\n\n    check: none reader: review\n",
                 [(0, "**Rule.**"), (1, ""), (2, "check: none reader: review")],
             ),
+            (
+                "  to: **Rule.**  \n    check: none reader: review  ",
+                [(0, "**Rule.**  "), (1, "check: none reader: review")],
+            ),
         ],
-        ids=["on-the-field-line", "on-the-line-below", "holding-a-blank-line"],
+        ids=[
+            "on-the-field-line",
+            "on-the-line-below",
+            "holding-a-blank-line",
+            "trailing-spaces",
+        ],
     )
     def test_each_value_line_carries_its_line_in_the_design(self, to, lines):
         """#1215, *Scope* item 1: `Op.lines` maps each field to its value's
@@ -102,7 +111,8 @@ class Test_parse:
         empty lines dropped as `field_values` drops them, so the texts joined
         are the field's value. A `to:` with its value on the line below starts
         one line down, which an offset from `Op.line` would miss; the blank
-        line before the next item is the value's trailing one."""
+        line before the next item is the value's trailing one, and the last
+        line's trailing spaces leave as the value's do."""
         text = spec(
             f"- add\n  file: docs/a.md\n{to}\n- add\n  file: docs/b.md\n  to: B."
         )
