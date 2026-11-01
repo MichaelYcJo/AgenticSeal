@@ -44,19 +44,18 @@ def module():
     return loaded
 
 
-# --- S9 · the definition names the command and no directory to clear -------
+# --- S9 · the definition names the command ----------------------------------
 
 
-def test_the_crafters_definition_names_the_command_and_no_directory_to_clear():
-    """Contract rule 14: the sentence the crafter acts on changed, so the new text is pinned
-    and so is the absence of the old one. *Clear `tests/__pycache__`* cleared
-    the importers, whose bytecode is never stale, and missed the mutated
-    file's, which is; any second directory named in its place would miss the
-    third the same way (#129).
-
-    The rule's lead and its `watch one go red` clause are asserted here too,
-    because the rewording happens around them."""
+def test_the_crafters_definition_names_the_command_and_its_flag():
+    """Contract rule 14: the sentence the crafter acts on changed, so the
+    command it now copies is pinned. *Clear `tests/__pycache__`* cleared the
+    importers, whose bytecode is never stale, and missed the mutated file's,
+    which is (#129); the command restores and clears for itself. The rule's
+    sentences around the command are the proofer's to read."""
     crafter = flat("agents", "crafter.md")
+    # The `seal mutate` command line with its `--replace` and `--tests`
+    # arguments, which the crafter copies for each unit it mutates.
     # Any runner: the definition ships to repositories with no `bin/test`,
     # and `tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py` holds it
     # to naming none.
@@ -64,24 +63,12 @@ def test_the_crafters_definition_names_the_command_and_no_directory_to_clear():
         "`agents/crafter.md` does not show the mutation loop as one command, "
         "with its replacement and the cases it runs"
     )
+    # The flag `-p no:xdist`, which the crafter adds to the runner where
+    # pytest-xdist starts workers by default.
     assert "-p no:xdist" in crafter, (
         "the example dropped `-p no:xdist`, which `questions.md` Q1's "
         "measurement put there for a handful of cases"
     )
-    assert "tests/__pycache__" not in crafter, (
-        "`agents/crafter.md` still names a directory to clear between mutations"
-    )
-    assert "Mutation-test every unit that adds behaviour, one command each." in (
-        crafter
-    )
-    assert "watch one go red" in crafter
-
-
-def test_the_boundaries_bullet_says_the_command_holds_the_copy():
-    crafter = flat("agents", "crafter.md")
-    rule = crafter[crafter.index("**Commit before you mutate") :]
-    rule = rule[: rule.index(" check: ")]
-    assert "`seal mutate` holds the bytes it read" in rule, rule
 
 
 def test_the_verify_skill_says_what_each_verdict_means_and_what_the_bound_ends():

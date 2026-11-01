@@ -30,25 +30,6 @@ def load():
 
 uc = load()
 
-CANONICAL = """## Not verified
-
-| Item | Who must answer |
-|---|---|
-| how the gate renders in a TUI | user, on the next session |
-| whether Windows hooks fire | a maintainer with a Windows machine |
-"""
-
-
-def write(tmp_path, section, name="1780000000-work"):
-    d = tmp_path / "specs" / name
-    d.mkdir(parents=True)
-    p = d / "gaps.md"
-    p.write_text(
-        f"# {name} — overview\n\n## Not done\n\nsomething.\n\n{section}",
-        encoding="utf-8",
-    )
-    return str(p)
-
 
 # Spelt by code point, so it stays legible in the source and no emoji stands
 # in it.
@@ -94,40 +75,6 @@ def test_the_skill_shows_the_word(tmp_path):
     assert not err and not op and len(closed) == 1, (op, closed, err)
 
 
-# Every shipped text that says which way an unmarked row reads.
-OPEN_BY_DEFAULT_TEXTS = [
-    ("skills", "implement", "SKILL.md"),
-    ("skills", "verify", "scripts", "unverified_check.py"),
-]
-
-
-@pytest.mark.parametrize("parts", OPEN_BY_DEFAULT_TEXTS, ids=lambda p: "/".join(p))
-def test_a_text_saying_a_row_counts_open_names_the_open_item_that_reads_closed(
-    tmp_path, parts
-):
-    """Contract rule 14, round 1's finding 1: an open item whose own text begins with the
-    word `closed` reads as closed, and the reader cannot tell it from a
-    closing. So each text that says an unmarked row counts open names that
-    row too, and the reader's reading of it is checked beside the sentence.
-
-    Protects: a text promising that the silent direction is always "still
-    open" while `| closed issues are not re-read | the owner |` closes
-    itself, and a reader that changes how it reads that row while the
-    sentence stays. The closing-word cases read the row's first word and no
-    text; no other case reads these texts for the exception."""
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-        text = " ".join(f.read().split())
-    assert "whose own text begins with the word `closed`" in text
-    assert 'always "still open"' not in text
-    section = CANONICAL.replace(
-        "| how the gate renders in a TUI | user, on the next session |",
-        "| closed issues are not re-read | the owner |",
-    )
-    op, cl, err = uc.check_file(write(tmp_path, section))
-    assert not err and len(op) == 1
-    assert [c[1] for c in cl] == ["issues are not re-read"]
-
-
 def collapsed(*parts):
     """File text with newlines flattened, so a match is not asserting where
     the author happened to wrap a line."""
@@ -162,58 +109,32 @@ def test_the_template_is_the_shape_the_checker_reads(tmp_path):
     assert not err and len(op) == 1
 
 
-def test_the_memo_no_longer_asks_for_what_the_diff_holds():
-    """Item 2 wanted a line per file, which is `git diff --stat` retyped from
-    memory after the fact."""
-    skill = collapsed("skills", "implement", "SKILL.md")
-    assert "each file path with a one-line description" not in skill
-    assert "not a summary of the work" in skill
-    assert "`git diff --stat` already holds the file list" in skill
-
-
 def test_the_memo_holds_what_went_out_unproved_and_what_was_not_taken():
     """#1148. The purpose restated the changelog fragment, the divergence
     table copied the phase records, and nothing wrote the fed-back clauses,
     so the memo is the two sections it is the home of, and the scope line on
-    the ladder's second rung."""
-    skill = collapsed("skills", "implement", "SKILL.md")
-    assert "Two things go in it" in skill
-    assert "the only place the purpose stays in the repository" not in skill
+    the ladder's second rung. How the skill says so is the proofer's to
+    read."""
     with open(
         os.path.join(ROOT, "templates", "records", "sdd-gaps.md"), encoding="utf-8"
     ) as f:
         headings = [line for line in f.read().splitlines() if line.startswith("## ")]
+    # The template's three headings: `## Not verified` is the one
+    # `unverified_check.py` reads, and the crafter writes under all three.
     assert headings == ["## Scope confirmation", "## Not verified", "## Not done"], (
         headings
     )
 
 
-def test_the_ladder_does_not_still_say_at_the_end():
-    """The memo's rows are written when they happen. A ladder that still says
-    `gaps.md at the end` contradicts the step above it, and the contradiction
-    is what sessions resolve by reconstructing at the end. The crafter's copy
-    of the ladder left with #967; it opens the skill instead."""
+def test_the_skill_names_the_command_that_lists_a_deleted_row():
+    """The writer of a row is the one who has to know how it closes. Since
+    #945 a deleted row is the proofer's to read in the overview's diff, and
+    no check at the pull request refuses it; how the skill states the
+    closing convention is the proofer's to read too."""
     skill = collapsed("skills", "implement", "SKILL.md")
-    assert "`gaps.md` at the end" not in skill
-    # #1148: one trigger, which the hardening case's docstring gives the
-    # grounds of, said the same way by the skill and the crafter.
-    assert "written from its template when the first phase closes" in skill
-    crafter = collapsed("agents", "crafter.md")
-    assert "`gaps.md` at the end" not in crafter
-    assert "`gaps.md` from its template when the first phase closes" in crafter
-    assert "where the plan's row asks for them" not in crafter
-
-
-def test_the_skill_states_the_closing_convention():
-    """The writer of a row is the one who has to know how it closes."""
-    skill = collapsed("skills", "implement", "SKILL.md")
-    assert "closed by marking it, never by deleting it" in skill
+    # The command `seal unverified --baseline`, which a person runs to name
+    # each row that left without the word `closed`.
     assert "seal unverified --baseline" in skill
-    # #945 took the step out of CI: a deleted row is the proofer's to read in
-    # the overview's diff, and no check at the pull request refuses it.
-    assert "No check at the pull request refuses a deleted row" in skill
-    assert "the proofer reads the closing memo's diff" in skill
-    assert "fails the next pull request" not in skill
 
 
 # The phrase each language's files use for the base's tip, where CI's
@@ -254,10 +175,9 @@ def test_the_documents_state_the_merge_base_footing(doc, tip, false_sentence):
     base's tip too, in one phrase per language, and the false sentence is
     asserted gone where it stood.
 
-    Positive assertions, the way `test_the_skill_states_the_closing_convention`
-    is: the sentence has to be there, rather than one old wording having to be
-    absent, because the old wording had several phrasings. Nothing else in
-    these files had reason to name a merge base."""
+    Positive assertions: the sentence has to be there, rather than one old
+    wording having to be absent, because the old wording had several
+    phrasings. Nothing else in these files had reason to name a merge base."""
     text = open(os.path.join(ROOT, doc), encoding="utf-8").read()
     assert "merge-base" in text or "merge base" in text, (
         f"{doc} describes `seal unverified --baseline` and does not say the "

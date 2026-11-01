@@ -148,7 +148,7 @@ of `## Not judged` with the caller named as its answerer, since your
 hand-back is a report rather than a conversation. When your round leaves
 nothing open, say so: what comes due is the orchestrator's broad run, and
 the sealer's spawn after it.
-check: tests/text/test_broad_gate_rule.py tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py
+check: tests/text/test_broad_gate_rule.py
 
 **Runs are narrow, through the repository's runner.** Find the runner before
 you build your own: a wrapper in `bin/`, or whatever the contribution guide

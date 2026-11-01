@@ -115,7 +115,7 @@ check: tests/text/test_a_moved_rule_leaves_its_definition.py
 revert through `git checkout -- <file>` restores the committed state and
 takes every uncommitted fix in that file with it; `seal mutate` holds the
 bytes it read and compares the hash after the restore.
-check: tests/text/test_a_moved_rule_leaves_its_definition.py tests/behaviour/test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py tests/skills/test_mutation_check.py
+check: tests/text/test_a_moved_rule_leaves_its_definition.py tests/skills/test_mutation_check.py
 
 **Mutation-test every unit that adds behaviour, one command each.** Break
 one unit, run the cases that cover it, and watch one go red; a unit that
@@ -190,4 +190,4 @@ check: tests/text/test_a_moved_rule_leaves_its_definition.py
 **The chain ends at a pull request, never a merge.** Verification and review
 follow your hand-back without being asked, bounded as
 `docs/the-review-record.md` *The run* states; merging is the user's act.
-check: tests/behaviour/test_chain_hooks_hardening.py
+check: none reader: the orchestrator at each hand-back

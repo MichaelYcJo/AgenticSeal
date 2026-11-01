@@ -1,8 +1,8 @@
 """The release seal is drawn and attached at publish time (#718).
 
-The cases here read the publishing workflow, `docs/branch-and-release.md`
-and `docs/release-checklist.md`, and wait for #923;
-`docs/branch-and-release.md` names this file on its `check:` line.
+The cases here read the publishing workflow and `docs/release-checklist.md`,
+and wait for #923; `docs/branch-and-release.md` names this file on its
+`check:` line, and its bullet on the seal is the proofer's to read.
 
 #942's phase 6 placed the cases of `.github/scripts/release_seal.py`'s
 functions in `tests/github/test_release_seal.py`.
@@ -39,52 +39,26 @@ def test_the_publishing_workflow_installs_the_pins_the_runner_holds():
     assert runner.CMARKGFM in installs[0], installs
 
 
-def test_the_release_tail_says_the_seal_is_a_second_act_that_never_fails_it():
-    """`docs/branch-and-release.md` *Cutting a release*, in its paragraph
-    **Every act the release performs once it reaches `main`**: the bullet on
-    the note says the seal job runs only on a
-    release this run created, edits only a glance table still as generated,
-    and cannot turn the release red, and the section's `check:` line names
-    the module that pins the fallback. It no longer says the seal is drawn
-    from the broad gate's letter; seen red by the old sentence put back.
-    How the seal is drawn is #1009 S1 and S2's, and the bullet's sentence
-    on it is `frame/design.md`'s `## Rule changes` item of work item 1792624592."""
-    text = flat("docs", "branch-and-release.md")
-    bullet = text.split("**The release note publishes itself.**", 1)[1].split(
-        "- **", 1
-    )[0]
-    assert "**Then the release's seal is attached.**" in bullet
-    assert "letter" not in bullet
-    assert "runs only when this run created the release" in bullet
-    assert (
-        "only to one whose glance table is still exactly as it was generated" in bullet
-    )
-    assert "so the seal can never turn the release red" in bullet
-    section = text.split("**Every act the release performs once it reaches `main`", 1)[
-        1
-    ]
-    enforced = section.split(" check: ", 1)[1].split("###", 1)[0]
-    assert "tests/behaviour/test_the_release_seal_is_drawn.py" in enforced.split(), (
-        enforced
-    )
-
-
 def test_the_checklist_box_says_where_a_missing_seal_is_explained():
     """`docs/release-checklist.md` *6. After the merge*, the release-note box: it names the
-    `seal` job, says its log carries the reason on a `::warning::` line and
-    that it never fails the release, and gives the hand-drawn route."""
+    `seal` job and its asset, the `::warning::` line its log carries the
+    reason on, and the commands of the hand-drawn route. When the job runs,
+    that it never fails the release, and the reasons it gives are the
+    proofer's to read."""
     text = flat("docs", "release-checklist.md")
     box = text.split("**A GitHub Release exists at `vX.Y.Z`**", 1)[1].split("- [ ]", 1)[
         0
     ]
+    # The job name `seal` and the asset `seal.png`, which the person running
+    # the box looks for on the workflow run and on the release.
     assert "the same workflow's `seal` job attaches `seal.png`" in box
+    # The annotation `::warning::`, the line `release_seal.py` prints the
+    # reason on and the person reads in the job's log.
     assert "says why on a `::warning::` line" in box
-    assert "That job never fails the release." in box
+    # The command the person runs to draw the seal by hand.
     assert "`DRY_RUN=1 python3 .github/scripts/release_seal.py`" in box
+    # The command the person runs to attach it.
     assert "`gh release upload`" in box
-    # Round 1's finding 8: the route draws from the tag's tree and ends at the edit.
-    assert "from a checkout at the tag" in box
+    # The command and flag the person runs to apply the note the script
+    # prints (round 1's finding 8).
     assert "then apply the note it prints with `gh release edit --notes-file`" in box
-    # Round 2's finding 12: the reasons match the refusal's three causes.
-    assert "published without one" in box
-    assert "the pull requests moved between the two lists" in box

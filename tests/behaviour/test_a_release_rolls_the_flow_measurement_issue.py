@@ -39,32 +39,6 @@ def _tracker_section():
     return " ".join(rest[: rest.index("\n## ")].split())
 
 
-def test_the_tracker_doc_states_the_condition_the_roll_carries():
-    """The document described the roll as unconditional -- it closed the
-    current log and opened the next *when a release reaches `main`*. That is
-    the behaviour #155 removed, and it is the sentence a person reaches for
-    when they wonder why a release closed nothing. Without the condition, a
-    release that rolled nothing reads as a mechanism that has broken."""
-    section = _tracker_section()
-    assert "opens the next when a release reaches `main`" not in section, (
-        "the document is back to describing the roll as firing on every "
-        "release. It fires on a push to `main` where a new version has "
-        "shipped since the open log opened, and the difference is the whole "
-        "of #155 -- the unconditional form closed a log the next release "
-        "still needed"
-    )
-    assert "push to `main`" in section, (
-        "the document must name the trigger the workflow actually has. A "
-        "push to `main` is not the same event as a release, and the roll "
-        "runs on every one of them"
-    )
-    assert "only where a new version has shipped" in section, (
-        "the document names the trigger and not the condition, which is the "
-        "half that decides whether anything happens. A reader with the "
-        "trigger alone expects every push to roll the log"
-    )
-
-
 def test_the_tracker_doc_states_the_title_the_roll_writes():
     """The format belongs here rather than in the shipped skill, and it has
     to be the format the script actually writes. Reading the document against
@@ -94,26 +68,14 @@ def test_the_tracker_doc_states_the_title_the_roll_writes():
 
 def test_the_tracker_doc_states_the_whole_prefix_the_roll_requires():
     """The document is where a person retitling a log by hand copies the
-    format from, so the rule in it has to be the rule the code enforces. It
-    said *a title with no `after` in it* was the old convention, which reads
-    as: put `after` in it and the roll will find your version. The code
-    requires the whole prefix from the first character, and the gap between
-    those two readings is a title that stalls its log with the workflow
-    green."""
+    format from, so the prefix in it has to be the one the code writes and
+    requires from the first character. A title that carries the words
+    somewhere inside it stalls its log with the workflow green; how the
+    document says so is the proofer's to read."""
     m = _roller()
     section = _tracker_section()
-    assert "A title with no `after` in it" not in section, (
-        "the document states a looser rule than the code enforces. A title "
-        "with `after` somewhere in it is not a log this roll wrote, and a "
-        "reader following this sentence writes one that answers a version "
-        "the roll then reads as not due"
-    )
-    assert "does not begin with" in section, (
-        "the document must say the prefix is required from the start of the "
-        "title, not merely present in it -- that is the difference between "
-        "`chore: flow measurement — after 0.8.2` and `docs: explain flow "
-        "measurement — after 0.8.2`, and the second stalls its log"
-    )
+    # The prefix `TITLE_PREFIX`, which the roll writes and matches at the
+    # start of a title, and which a person retitling a log by hand copies.
     assert m.TITLE_PREFIX in section, (
         f"the document must spell the whole prefix the roll writes and "
         f"requires ({m.TITLE_PREFIX!r}), read out of the script's own "

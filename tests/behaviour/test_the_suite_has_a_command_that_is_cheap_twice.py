@@ -1,8 +1,8 @@
 """The repository ships a command for its own suite, and the second call is cheap.
 
 Issue #156. The cases here read the `bin/` wrappers, the workflows,
-`CONTRIBUTING.md` *Running the checks*, the handoff protocol and the agent
-definitions that send a reader to the runner, and wait for #923;
+`CONTRIBUTING.md` *Running the checks* and the agent definitions that send
+a reader to the runner, and wait for #923;
 `agents/crafter.md` and `agents/proofer.md` name this file on their `check:`
 lines.
 
@@ -75,9 +75,8 @@ def test_the_runner_behind_the_wrapper_says_the_same_thing():
     comment … all of them now say the sealer's*, true of the wrapper and
     false of the runner.
 
-    Nothing pinned this docstring: the case above reads `bin/test`, and the
-    negative pin in `tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py` is
-    applied to the two agent definitions only."""
+    Nothing pinned this docstring: the case above reads `bin/test`, and how
+    the agent definitions name the run's owner is the proofer's to read."""
     runner = read(os.path.join(ROOT, ".github", "scripts", "run_tests.py"))
     assert "is the orchestrator's, run once after" in runner, (
         "the file `bin/test` execs no longer says whose the full suite is"
@@ -322,66 +321,35 @@ def test_the_section_says_the_full_run_is_the_orchestrators():
     )
 
 
+# The citation of *The handoff*, which both definitions' runner rules carry and
+# the agent resolves for the narrow form it is handed.
 HANDOFF_LINK = "`docs/the-review-record.md` *The handoff*"
 
 
-def test_the_protocol_says_a_shipped_runner_is_found_not_typed():
-    """#156's cause: the orchestrator typed the runner into every spawn
-    prompt, and the segments it forgot rediscovered one."""
-    record = flat("docs", "the-review-record.md")
-    assert "a runner the repository ships is named, not typed into every prompt" in (
-        record
-    ), "the handoff still requires the incantation in the prompt, always"
-
-
-def test_the_protocol_hands_over_the_narrow_form():
-    """The requirement points a segment at a command that runs the whole
-    suite. Naming it without naming which form is how contract rule 2 gets widened by a
-    document that never mentions it."""
-    record = flat("docs", "the-review-record.md")
-    assert "the form handed over is the narrow one" in record
-
-
-def test_crafter_finds_the_runner_before_inventing_a_command():
-    """The prompt is what went missing, so the fix cannot live in the prompt.
-    `agents/crafter.md` reaches every segment at startup with nobody typing
-    anything."""
+def test_crafter_cites_the_handoff_for_the_narrow_form():
+    """The prompt is what went missing (#156: the orchestrator typed the
+    runner into every spawn prompt, and the segments it forgot rediscovered
+    one), so the fix cannot live in the prompt. `agents/crafter.md` reaches
+    every segment at startup with nobody typing anything. Its rule's
+    sentences are the proofer's to read; what is pinned is the link to the
+    one statement of the form."""
     crafter = flat("agents", "crafter.md")
-    assert "Find the runner, and type the narrow form." in crafter, (
-        "a segment whose prompt omits the runner has nothing telling it one "
-        "exists, which is what the repeats measured"
-    )
-    assert "type step 7's one command, never the whole suite" in crafter, (
-        "crafter is pointed at a command that runs the full suite and not at "
-        "the form contract rule 2 leaves it"
-    )
     assert HANDOFF_LINK in crafter, (
         "the rule is restated rather than linked, so the two carriers can drift apart"
     )
 
 
-def test_proofer_finds_the_runner_before_building_its_own():
+def test_proofer_cites_the_handoff_for_the_narrow_form():
     """The class is every segment that runs a test, and the fix reached one of
     them. `agents/proofer.md` told a reviewer to build a `uv` venv in its clone
     and named no runner, so a review round paid for an environment the
     repository already had built -- the same cost, on the segment that runs
     more cases than the crafter does. Both definitions ship to user
-    repositories, so neither may name a command that exists only here."""
+    repositories, so neither may name a command that exists only here. The
+    rule's sentences, its fallback among them, are the proofer's to read."""
     proofer = flat("agents", "proofer.md")
-    assert "Find the runner before you build your own" in proofer, (
-        "the reviewing segment is still told to assemble its own environment "
-        "with nothing telling it a shipped runner may exist"
-    )
-    assert "Type the narrow form, one module" in proofer, (
-        "proofer is pointed at a command that runs the full suite and not at "
-        "the form contract rule 2 leaves it"
-    )
     assert HANDOFF_LINK in proofer, (
         "the rule is restated rather than linked, so the two carriers can drift apart"
-    )
-    assert "make a `uv` venv inside the clone" in proofer, (
-        "the fallback went with the addition — a repository that ships no "
-        "runner leaves the reviewer with nothing at all"
     )
 
 

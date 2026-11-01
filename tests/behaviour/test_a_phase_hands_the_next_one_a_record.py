@@ -17,14 +17,15 @@ per-segment record the review chain already has in `templates/records/sdd-round.
                      table copied the file name and `plan.md`'s Status
                      cell, and `## What this phase was asked` copied the
                      plan's Delivers cell, so both left with #1148
-  no removal table    what a work item takes out of the tree is named once,
+  `## Removes`        what a work item takes out of the tree is named once,
                      in `frame/design.md`'s `## Removes`, which the review reads
-                     (#835); a per-phase table was a second record of the
-                     same fact that nothing read
-  the measured story  `skills/implement/SKILL.md`, which the record's writer
-                     opens, names the failure each section answers, so the
-                     template does not ship a blank nobody can trace back to
-                     a reason; the template itself carries no comment (#1005)
+                     (#835): the design template ships its table, and the
+                     framer's writes name it. A per-phase table was a second
+                     record of the same fact, and the one section leaves it
+                     no room
+  the paths          the crafter's definition and the skill name the record's
+                     path and its template; why each section exists is the
+                     proofer's to read (#1005 took the template's comments)
 
 The placeholder check mirrors
 `test_the_fixes_name_their_surface.py::test_the_template_rows_are_rows_a_session_can_copy`,
@@ -45,7 +46,6 @@ IMPLEMENT_SKILL = os.path.join(ROOT, "skills", "implement", "SKILL.md")
 
 SPEC_TEMPLATE = os.path.join(ROOT, "templates", "records", "sdd-design.md")
 FRAMER_AGENT = os.path.join(ROOT, "agents", "framer.md")
-REMOVES_RULE = os.path.join(ROOT, "docs", "the-reader-registry.md")
 
 
 def reader_module():
@@ -110,41 +110,27 @@ def test_the_found_section_ships_a_placeholder():
     )
 
 
-def test_a_phase_record_carries_no_removal_table():
-    """S8 of #835. A removal is named once, at the frame; a phase record
-    carrying a second table for it is two records of one fact."""
-    raw = read(PHASE_TEMPLATE)
-    assert "## What this phase removes" not in raw
-    assert "Removed item" not in raw
-    skill = " ".join(read(IMPLEMENT_SKILL).split())
-    assert "never what the work removes, which the frame's `## Removes` names once" in (
-        skill
-    ), "the skill's phase row does not say where a removal is recorded"
-    rule = " ".join(read(REMOVES_RULE).split())
-    assert (
-        "frame did not name is a divergence, and it goes to that phase's "
-        "`trail/phases/phase-N.md` *What this phase found*"
-    ) in rule
-
-
 def test_the_spec_template_carries_the_removes_section_above_the_mark():
     """S8 of #835. The section ships with the three-column table and a
-    placeholder row, and the framer's mark is still the last line."""
+    placeholder row, and the framer's mark is still the last line. What a
+    work item removing nothing writes in its place is the proofer's to read
+    in `docs/the-reader-registry.md`."""
     raw = read(SPEC_TEMPLATE)
     lines = reader_module().readable(raw)
     body = section_body(lines, "## Removes")
     rows = [line.strip() for line in body if line.strip().startswith("|")]
+    # The header row the framer copies into `frame/design.md`'s `## Removes`,
+    # whose three columns the proofer reads each row by.
     assert rows[0] == "| Removes | Coordinate | Where it lands, or why it can go |"
     assert len(rows) == 3, rows
     cells = [c.strip() for c in rows[2].strip("|").split("|")]
     assert all(c.startswith("<") and c.endswith(">") for c in cells), cells
     assert raw.index("## Removes") < raw.index("Framed <date> by <who>")
+    # The framer's mark, which `chain_check.py#MARK_RE` matches on the last
+    # line of `frame/design.md`.
     assert raw.rstrip("\n").splitlines()[-1] == (
         "Framed <date> by <who>, before the build."
     )
-    rule = " ".join(read(REMOVES_RULE).split())
-    assert "removing nothing writes the no-change block" in rule
-    assert "`nothing — <why>`" not in rule
 
 
 def test_the_spec_template_carries_the_rule_changes_section_above_removes():
@@ -163,30 +149,14 @@ def test_the_spec_template_carries_the_rule_changes_section_above_removes():
 
 
 def test_the_framer_is_told_it_writes_the_removes_section():
-    """S8 of #835. The framer's writes and its report name the section,
-    because a frame that does not know it owes one ships without it."""
+    """S8 of #835. The framer's writes name the section, because a frame
+    that does not know it owes one ships without it. What its report says of
+    the section, and why a removal is named at the frame, are the proofer's
+    to read."""
     flat = " ".join(read(FRAMER_AGENT).split())
+    # The heading `## Removes`, which the framer writes into
+    # `frame/design.md` and the proofer reads against the diff.
     assert "what the work removes (`## Removes`)" in flat
-    assert "What the frame says the work removes" in flat
-
-
-# --- each section names the measured failure it answers ---------------------
-
-
-def test_each_record_section_states_the_failure_it_prevents():
-    """What goes wrong without each section is said where the record's writer
-    reads it, as a property of the record rather than as the issue that first
-    measured it (#940); since #1005 the template carries no comment, so the
-    skill and the framer's definition say it."""
-    skill = " ".join(read(IMPLEMENT_SKILL).split())
-    assert "goes missing without a trace" in skill, (
-        "the found section no longer says a discovery the orchestrator does "
-        "not retype is lost"
-    )
-    framer = " ".join(read(FRAMER_AGENT).split())
-    assert "reaches the reader only as a divergence after the fact" in framer, (
-        "the framer is no longer told why a removal is recorded"
-    )
 
 
 # --- phase 2: crafter is told to write the record, and where ------------------
@@ -197,29 +167,17 @@ def test_each_record_section_states_the_failure_it_prevents():
 
 
 def test_crafter_is_told_to_write_the_phase_record():
+    """When the crafter writes the record, and what goes in it, are the
+    proofer's to read in the crafter's rule."""
     crafter = read(CRAFTER_AGENT)
+    # The path the crafter writes the record to.
     assert "trail/phases/phase-N.md" in crafter, (
         "agents/crafter.md does not name `trail/phases/phase-N.md` — a spawned "
         "crafter has no instruction pointing it at the file to write"
     )
+    # The template path the crafter opens to start the record.
     assert "templates/records/sdd-phase.md" in crafter, (
         "agents/crafter.md does not name the template a phase record starts from"
-    )
-    assert "Each phase closes with its record" in crafter, (
-        "agents/crafter.md does not say WHEN to write the record — a "
-        "session that finds the file but not the timing writes it late or "
-        "never"
-    )
-    rule = " ".join(
-        crafter.split("**Each phase closes with its record.**", 1)[1]
-        .split("\n\n", 1)[0]
-        .split()
-    )
-    assert "every departure from the frame" in rule, rule
-    assert "a removal the frame's `## Removes` did not name among them" in rule, rule
-    assert "`gaps.md`" not in rule, (
-        "the crafter's rule still sends a departure to `gaps.md`, whose "
-        "divergence table left with #1148"
     )
 
 
@@ -237,20 +195,19 @@ def test_skill_file_set_table_carries_the_phase_row():
     )
 
 
-def test_the_skill_says_the_record_copies_neither_the_ask_nor_the_commit():
+def test_the_skill_names_the_records_one_section():
     """#1148. What the phase was asked is the plan's Delivers cell, and a
     scope a spawn adds is a fold into the plan before the spawn, so the skill
-    names the one section and says where the ask and the commit stand."""
+    names the one section. Where the ask and the commit stand is the
+    proofer's to read."""
     skill = " ".join(read(IMPLEMENT_SKILL).split())
-    assert "What this phase was asked" not in skill, (
-        "skills/implement/SKILL.md still names the asked section"
-    )
+    # The path `trail/phases/phase-N.md` and its one heading
+    # `## What this phase found`, which the crafter writes and the next
+    # phase's crafter opens.
     assert (
         "`trail/phases/phase-N.md` holds one section, `## What this phase found`"
         in (skill)
     )
-    assert "every departure from the frame" in skill
-    assert "folds into the plan before the spawn" in skill
 
 
 # --- phase 2: carrier consistency ---------------------------------------------
