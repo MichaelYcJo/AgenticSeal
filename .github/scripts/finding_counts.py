@@ -68,8 +68,6 @@ def load(name, *parts):
     """The repository's module at `CODE/<parts>`, run under `name`."""
     path = os.path.join(CODE, *parts)
     spec = importlib.util.spec_from_file_location(name, path)
-    if spec is None or spec.loader is None:
-        raise ImportError(f"cannot load {path}")
     loaded = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(loaded)
     return loaded
