@@ -1565,17 +1565,18 @@ class Test_repository_of:
         )
         assert same_path(UC.repository_of(str(d / "specs" / WORK / "out.md")), d)
 
-    def test_accepts_a_parent_after_a_link_as_the_file_system_reads_it(
-        self, plain, tmp_path
-    ):
-        """`ext/..` is where `cd -P` lands, the second repository `ext` links
-        into, and not the first one its text names."""
+    def test_accepts_a_parent_as_real_reads_it(self, plain, tmp_path):
+        """A path that holds a `..` is compared in the repository `real`
+        reads it in, on every platform. `ext` links into a second
+        repository, so `ext/..` is the top of one of the two, whichever way
+        the platform's `realpath` reads it; its text names the first."""
         d = copy_of(plain, tmp_path)
         second = tmp_path / "second"
         (second / "inner").mkdir(parents=True)
         git(second, "init", "-q", "-b", "main")
         symlink_or_skip(str(second / "inner"), str(d / "ext"), directory=True)
-        assert same_path(UC.repository_of(str(d / "ext" / "..")), second)
+        given = str(d / "ext" / "..")
+        assert same_path(UC.repository_of(given), os.path.realpath(given))
 
 
 class Test_as_named:
@@ -1606,62 +1607,18 @@ class Test_as_named:
             str(tmp_path / "target")
         )
 
-    def test_accepts_a_parent_after_a_link_as_the_file_system_reads_it(
-        self, plain, tmp_path
-    ):
-        """`hop/..` steps out of `hop`, a link, so it steps up from where
-        `hop` leads, as `cd -P` and git read it. Dropping `hop/..` by its
-        text named `specs/WORK`, a directory the file system does not reach
-        through that path."""
-        d = copy_of(plain, tmp_path)
-        (d / "deep" / "inner").mkdir(parents=True)
-        symlink_or_skip(
-            os.path.join("..", "deep", "inner"), str(d / "specs" / "hop"), True
-        )
-        given = os.path.join(str(d), "specs", "hop", os.pardir, WORK, "gaps.md")
-        assert UC.as_named(given) == os.path.join(
-            os.path.realpath(str(d)), "deep", WORK, "gaps.md"
-        )
-
-    def test_accepts_a_link_a_parent_does_not_step_out_of_under_its_own_name(
-        self, plain, tmp_path
-    ):
-        """`hop/x/..` lands in `hop` itself where `x` is no link, so `hop`, a
-        link inside the repository, keeps its own name, as it does where the
-        path holds no `..`."""
-        d = copy_of(plain, tmp_path)
-        (d / "specs" / WORK / "x").mkdir()
-        symlink_or_skip(WORK, str(d / "specs" / "hop"), True)
-        given = os.path.join(str(d), "specs", "hop", "x", os.pardir, "gaps.md")
-        assert UC.as_named(given) == os.path.join(
-            os.path.realpath(str(d)), "specs", "hop", "gaps.md"
-        )
-
-    def test_accepts_a_link_above_the_link_a_parent_steps_out_of_under_its_own_name(
-        self, plain, tmp_path
-    ):
-        """`jump/..` steps out of `jump` alone: `jump` is followed by its own
-        text, `a/b`, from where it stands, so `hop`, the link above it, keeps
-        its own name."""
+    def test_accepts_a_path_holding_a_parent_as_real_reads_it(self, plain, tmp_path):
+        """A path that holds a `..` is its real path, on every platform, so
+        `hop`, a link the `..` does not step out of, is resolved as well. By
+        its text the path names `specs/hop/gaps.md`, and following only
+        `jump`, the link the `..` steps out of, names `specs/hop/a/gaps.md`;
+        a link the person named on such a path is #1240's."""
         d = copy_of(plain, tmp_path)
         (d / "specs" / WORK / "a" / "b").mkdir(parents=True)
         symlink_or_skip(WORK, str(d / "specs" / "hop"), True)
         symlink_or_skip(os.path.join("a", "b"), str(d / "specs" / WORK / "jump"), True)
         given = os.path.join(str(d), "specs", "hop", "jump", os.pardir, "gaps.md")
-        assert UC.as_named(given) == os.path.join(
-            os.path.realpath(str(d)), "specs", "hop", "a", "gaps.md"
-        )
-
-    def test_accepts_a_parent_stepping_out_of_a_link_loop_without_a_crash(
-        self, plain, tmp_path
-    ):
-        """`loop -> loop/..` leads nowhere the file system reaches, and
-        following its text had no end, so the walk stops where `open` would
-        and the path is still given back."""
-        d = copy_of(plain, tmp_path)
-        symlink_or_skip(os.path.join("loop", os.pardir), str(d / "specs" / "loop"))
-        given = os.path.join(str(d), "specs", "loop", os.pardir, "gaps.md")
-        assert os.path.isabs(UC.as_named(given))
+        assert UC.as_named(given) == os.path.realpath(given)
 
 
 class Test_spellings:

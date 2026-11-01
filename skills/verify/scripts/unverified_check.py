@@ -939,8 +939,8 @@ def overviews(paths):
     found = []
     for p in paths:
         # The argument is read through `as_named`, which resolves the way to
-        # the repository's top and a link a `..` steps out of, and keeps
-        # every other component as named.
+        # the repository's top and keeps every component inside it as named,
+        # except in a path that holds a `..`, which is its real path.
         # `ls-tree` lists a tracked symbolic link under its own path, so
         # resolving each file made a link that is right there read as deleted,
         # and resolving the argument whole left a named link's own path
@@ -1068,8 +1068,8 @@ def as_named(path):
     repository's top. Resolving the whole path read a named link as its
     target, so the rows the link's own path held at the base were never
     compared and left with exit 0 (#1225). git cannot give the path back as
-    named: `rev-parse --show-prefix` answers with links resolved too. A `..`
-    is read as `absolute` reads it."""
+    named: `rev-parse --show-prefix` answers with links resolved too. A path
+    that holds a `..` is its real path, which `absolute` gives."""
     full = absolute(path)
     top = repository_of(full)
     if top is None:
@@ -1090,45 +1090,18 @@ def as_named(path):
 
 
 def absolute(path):
-    """`path` made absolute, each `..` in it read as the file system reads it.
+    """`path` made absolute, and resolved through `real` where it holds a `..`.
 
     `os.path.abspath` drops `a/..` by its text, so where `a` is a link it
-    named a directory the file system does not reach through that path, and
-    the check compared a path nobody named. A `..` steps up from where the
-    component before it leads, as `cd -P` and git do. Where that component
-    is a link, it is followed by the link's own text, read by the same rule
-    from the directory that holds the link; where it is not, it is dropped
-    by its text, since stepping out of a directory lands where it stands.
-    Every other component, a link the `..` does not step out of among them,
-    is kept as named (#1225)."""
-    parts = pathlib.PurePath(path).parts
-    # Windows drops `a\..` by its text before any link is read, so the
-    # textual reading is the file system's own there.
-    if os.pardir not in parts or os.name == "nt":
-        return os.path.abspath(path)
-    # Past 40 links, the most Linux's `open` follows, the chain is taken for
-    # a loop, such as `a -> a/..`, and the walk leaves it where it stands.
-    hops = 40
-
-    def walk(here, parts):
-        nonlocal hops
-        for part in parts:
-            if part != os.pardir:
-                # An absolute part, the root of an absolute path or of a
-                # link's text, replaces `here`.
-                here = os.path.join(here, part)
-                continue
-            # `os.path.islink` asks about the last component with every link
-            # before it followed, which is where that link stands. A
-            # component that does not exist is no link.
-            while hops and os.path.islink(here):
-                hops -= 1
-                text = pathlib.PurePath(os.readlink(here)).parts
-                here = walk(os.path.dirname(here), text)
-            here = os.path.dirname(here)
-        return here
-
-    return walk(os.getcwd(), parts)
+    names a directory the file system does not reach through that path, and
+    the check compared a path nobody named. A path that holds a `..` is
+    therefore read as `real` reads it, as every argument was read before
+    #1225, so a link the person named on it is read as its target and the
+    rows its own path held are not compared (#1240). Every other path is
+    made absolute by its text, and `as_named` keeps its components."""
+    if os.pardir in pathlib.PurePath(path).parts:
+        return real(path)
+    return os.path.abspath(path)
 
 
 def spellings(path, root):
