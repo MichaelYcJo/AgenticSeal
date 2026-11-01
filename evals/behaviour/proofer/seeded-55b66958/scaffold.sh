@@ -5,7 +5,7 @@ git fetch -q --no-tags origin ab958884529f986a6b75fd23e8b38e954b6148d9
 git fetch -q --no-tags origin 48d035aa65cb566d32fd41972466e0825db54b9a
 git update-ref refs/remotes/origin/release/v0.27.1 48d035aa65cb566d32fd41972466e0825db54b9a
 git checkout -q -b fix/1225-a-linked-memo-named-as-the-argument ab958884529f986a6b75fd23e8b38e954b6148d9
-python3 - skills/verify/scripts/unverified_check.py 1053 '    while top is None and os.path.dirname(p) != p:' '    while top is None and os.path.dirname(p) == p:' <<'PY'
+python3 - skills/verify/scripts/unverified_check.py 1739 '            if os.path.realpath(path) == path:' '            if os.path.realpath(path) != path:' <<'PY'
 import sys
 path, line, old, new = sys.argv[1], int(sys.argv[2]), sys.argv[3], sys.argv[4]
 with open(path, encoding="utf-8", newline="") as f:
