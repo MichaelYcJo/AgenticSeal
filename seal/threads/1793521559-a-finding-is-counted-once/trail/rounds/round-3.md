@@ -63,6 +63,11 @@ The second names `why_not` in the paragraph and states the arm no case reaches:
 `.github/scripts/finding_counts.py`'s `chained`, `item_counts`, `load`, `readers` and `why_not` have no test class of their own, which `seal layout --check` reports and does not refuse. Each is reached through `main`. The mutation table in `trail/phases/phase-1.md` shows a case of `Test_main` going red under a mutation of each arm of `chained` and `item_counts`, and round 2's fix pass shows the same for `why_not`'s `strerror` arm. `why_not`'s other arm, an `OSError` with no `strerror`, is not reached from `main`, because no `open` call raises one, and no case builds it. `load` and `readers` hold no arm, and a reader that will not load is `Test_main`'s readers case.
 ```
 
+```seal
+verdict: fixed 259f8695
+answer: The finding holds: `why_not` came with no class, its no-strerror arm was reached by no case, and `gaps.md` *Not done* named four functions where `seal layout --check` reported five. Of the two options, the case was taken, since it reaches the arm where the paragraph could only say that nothing does. The paste-ready class was judged before it was applied and narrowed: its UnicodeDecodeError parameter and its file-opening ENOENT case restate `Test_main`'s not-UTF-8 and missing-routing.md cases, so `Test_why_not` holds two cases, named as the layout asks. The accepts case builds an `OSError` with an errno and an absolute filename and pins its `strerror` alone; the refuses case pins `OSError("no errno")` as `no errno` and `OSError()` as the empty text, never `None`. `seal mutate` with `and problem.strerror` deleted, and separately with the first arm returning the whole text, turned the class red both times. `seal layout --check` now reports `chained`, `item_counts`, `load` and `readers` with no class, the four `gaps.md:12` names, so its count and its reason are true as written and the paragraph is unchanged.
+```
+
 ## Confirmations
 
 ```seal
