@@ -42,3 +42,4 @@ None to deploy. A person who names a link, or a path through a linked directory,
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
 | | | | |
+| 2026-11-01 | Round 1's *Not judged* row on `..`: a `..` in a named path is read as the file system reads it, not by text. The part of the path up to its last `..` is resolved to its real path, the components after it are kept as named, and a case pins it | `os.path.abspath` drops `specs/a/..` by text, so where `specs/a` is a link the reader names a directory the file system does not reach, and the deletion check would compare a path nobody named. Reading `..` physically is what `git` and the shell's `cd -P` do with it, so the argument means what the person's own tools mean by it | `frame/design.md` *Scope* item 1, which keeps "the components inside the repository as typed" and says nothing of `..` |
