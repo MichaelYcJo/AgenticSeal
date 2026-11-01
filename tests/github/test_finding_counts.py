@@ -93,13 +93,16 @@ def run(root, capsys, ref="HEAD"):
 
 def table(root, capsys):
     """The rows `main` prints over `root`, committed, at HEAD, past the
-    header and the separator, and the lines under the table."""
+    header and the separator, and the lines under the table, which a blank
+    line parts from it so a renderer does not read them as rows."""
     commit_everything(str(root), "the work items")
     code, lines, err = run(root, capsys)
     assert code == 0, err
     assert lines[:2] == [HEADER, SEPARATOR], lines
     rows = [line for line in lines[2:] if line.startswith("| ")]
-    under = [line for line in lines[2 + len(rows) :] if line]
+    rest = lines[2 + len(rows) :]
+    under = [line for line in rest if line]
+    assert not under or rest[0] == "", rest
     return rows, under
 
 
