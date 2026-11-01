@@ -27,7 +27,7 @@ Failure scenario of the chosen approach, six months on: a pytest release renames
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1 and 2 | The new case seen red twice before it is committed: with `--no-fold-skipped` deleted from the line, and with `-rfEs` written `-rs`. Then, in one command, `bin/test tests/text/test_ci_gives_the_checks_what_they_need.py tests/behaviour/test_the_windows_leg_runs_in_shards_that_make_the_whole.py tests/skills/test_arm_check.py tests/skills/test_deferral_check.py -q`, with every other module `git grep -l 'test\.yml' -- tests` lists that reads the `pytest` job's line, per contract rule 2 | |
+| 1 | `frame/design.md` *Scope* items 1 and 2 | The new case seen red twice before it is committed: with `--no-fold-skipped` deleted from the line, and with `-rfEs` written `-rs`. Then, in one command, `bin/test tests/text/test_ci_gives_the_checks_what_they_need.py tests/behaviour/test_the_windows_leg_runs_in_shards_that_make_the_whole.py tests/skills/test_arm_check.py tests/skills/test_deferral_check.py -q`, with every other module `git grep -l 'test\.yml' -- tests` lists that reads the `pytest` job's line, per contract rule 2 | 0773118a |
 | 2 | `frame/design.md` *Scope* item 3, from the run the orchestrator dispatches on phase 1's commit and names in the spawn | For each of the four `windows-latest` jobs: `gh run view --job <id> --log`, its `SKIPPED` lines, and `gh run view <run> --json jobs,headSha` for each job's conclusion and the head commit. `gh run download <run> -n test-durations` searched for the three ids. Scenarios S3 and S4 | |
 
 ## Operational impact
