@@ -373,6 +373,8 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
         "'[.[] | select(.event == \"pull_request\")] | length'",
         "stops once the first prints the commit it pushed last and the second "
         "prints a count above 0",
+        "the second command exits 1 while no check at all has reported",
+        "The count reads the checks of GitHub Actions runs on `pull_request` alone",
         "within two minutes",
         "reads `gh pr view <N> --json state,mergeable` once more",
         "no check of a `pull_request` run reported on that commit and names the SHA",
