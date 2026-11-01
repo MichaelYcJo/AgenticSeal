@@ -43,4 +43,4 @@ None for a deployer: no migration, environment variable, dependency or compatibi
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-01 | The 0.27.3 release pull request opens once the last work item of the milestone has merged into `release/v0.27.3`, not with the first work item pull request, ahead of this work item's rule change reaching `docs/` | The owner filed #1258 into `release: 0.27.3` with this direction and pressed `automation` for the release; the early runs it removes caught nothing in 0.27.2 (this frame's design, executed `gh run list --branch release/v0.27.2`), and opening later than the step says costs only the milestone check's early red | `skills/core/SKILL.md` *The first value: efficient development through the workflow*; `docs/release-checklist.md` *5. The release pull request* as it stands at the base |
