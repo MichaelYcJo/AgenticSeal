@@ -40,4 +40,4 @@ None for a deployer: no migration, environment variable, dependency or compatibi
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-01 | The orchestrator rewrote `frame/design.md:26`'s scratch path, a real user path, as `<scratchpad>/…`, before the build; from here in the 0.27.3 run it greps each frame for `/Users/` and `/private/tmp` before the crafter's spawn | The second real path a framer wrote into a frame in this run (the first was #1231's, which the `real_identifiers` census refused at the crafter's phase boundary); the rule and its census already stand, so the home is a check at the spawn, not a new mechanism | `CONTRIBUTING.md` *No real identifiers*; `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, a problem that recurs within a run |
