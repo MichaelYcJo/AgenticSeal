@@ -26,6 +26,11 @@ Title: `chore: a crafter spawn opens 34,653 B of prose through Read where a smit
 The cause is one file. `agents/crafter.md` step 1 opens `skills/implement/SKILL.md`. All 9 crafter segments built a phase, and 7 of them read that file whole through `Read`, two of them twice. The other two, phase 2 of #1221 and phase 2 of #1222, opened line ranges of it through `sed`, which these readings do not count. At 0.20.0 the smith received `skills/implement/SKILL.md` in its preload. The crafter's preload fell by 73,242 B, and its first prefix fell from a median of 83,160 tokens to 44,342. Each whole read returns 33,989 B, the file with the line numbers `Read` adds.
 ```
 
+```seal
+verdict: fixed dd0f8454
+answer: The finding holds. I listed every tool call naming `implement/SKILL.md` in the two transcripts: `agent-a99ed23532f48819f` (#1221 phase 2) ran `sed -n 1,140p` and a second range, and `agent-aeef3fbe075f90ff0` (#1222 phase 2) ran `sed -n '293,468p'`, with no `Read` of the file. D5's title now ends "step 1 sends the crafter to it", and its second paragraph is the paste-ready text: 7 of the 9 phase builds read the file whole through `Read`, and the two others opened line ranges through `sed -n`. D5's question now also says that two of the nine already opened only parts. Rule 12 sweep: `git grep` over the records for "every crafter", "reads it whole" and "whole" found no other statement of it. D1's row ("one `Read` of `skills/implement/SKILL.md`"), decision 4 and the changelog name the file and no count of readers, and they stand.
+```
+
 ### 2. The withhold-over-the-body row reads `better`, -100 per cent, by a sort the before figure was not taken by, and D1 carries that verdict without the literal reading D3 gives
 
 ```seal
@@ -46,6 +51,11 @@ phase-3.md:169, D1's row:
 | Withheld runs over the hand-written body, per work item | 23 in 30, 0.22.x, from #1044 | 0 in the first 3 after #1103 · 1 in 0.27.2's 5 | better; by #1044's own sort, whose reason names the body, the first 3 give 2, which is the same within 20 % |
 ```
 
+```seal
+verdict: fixed dd0f8454
+answer: The finding holds. The before figure was taken by #1044's sort, the after by decision 7's, and only the prose and D3 said so. The reading's row is renamed "over the hand-written body", names decision 7 as its sort, and states the literal reading beside it: by #1044's own sort the first three give 2, -13.0 %, `same`. D1's row carries the same name and the literal reading in its verdict cell. The verdict stays `better` by decision 7, so the tallies 28, 9 and 3 of 40 stand. The row for 0.27.2's five now says it is the same by either sort, since #1248's reason names the orchestrator's part. Rule 12 sweep: `git grep` for "over the body" and "hand-written" over the records and the changelog found D3, the paragraph under the first withhold table and the changelog's "None of the first three work items after #1103 was withheld over the hand-written body". Each already states decision 7's sort or the literal reading, so they stand.
+```
+
 ### 3. `gaps.md` sends the owner the method behind the 12.3-minute slowest job, which phase 1 traced to one run and a 0.22.0 record
 
 ```seal
@@ -62,6 +72,11 @@ The claim: the row lists "the CI medians with the 12.3-minute slowest job" among
 | The method behind four of the body's *Before* figures: the 463 KB of on-demand skills and templates, the 160,228 test lines, and the ubuntu 9.9 and macOS 21.6 leg medians. No record states it, and no reading phase 1 tried gives them (`trail/phases/phase-1.md` *The decisions*, items 2, 4 and 5). The body's slowest job, 12.3 min, and its Windows 42.4 are one run's figures, run `38477758775`, and no median (`trail/phases/phase-1.md` *What the CI before is, where it does not reproduce*). Phase 3's reading rests on the re-run figures, as `frame/plan.md` *Alternatives considered* A1 chooses | nobody can re-derive the four from the tree; the owner, who measured during 0.22.0's framing, is the only answerer, and no comparison waits on it |
 ```
 
+```seal
+verdict: fixed dd0f8454
+answer: The finding holds. `trail/phases/phase-1.md` *What the CI before is, where it does not reproduce* traces the body's 12.3 min and Windows 42.4 to run `38477758775`, so the row asked the owner for a figure the record had settled. The `gaps.md` row now names the four figures with no method, the 463 KB, the 160,228 lines, ubuntu 9.9 and macOS 21.6, and says the 12.3 min and the 42.4 are one run's figures, citing that section. Its answerer cell reads "the four". Rule 12 sweep: `git grep` for "12.3" and "CI medians" found D2's "What did not reproduce" bullet in `trail/phases/phase-3.md`, which listed "its CI medians" among the figures no reading gave. It now names the ubuntu and macOS medians and says the slowest job and Windows figure are run `38477758775`'s. `trail/phases/phase-1.md:73` gives the body's 12.3 beside the re-run median under its own label `not reproduced`, which holds, and it stands.
+```
+
 ### 4. The orchestrator's list of acts posts D1 before filing the issues D1 names, and leaves out D6
 
 ```seal
@@ -74,6 +89,12 @@ Why it matters: `phase-3.md:147` sends the orchestrator to `frame/plan.md` *Oper
 
 ```markdown
 The orchestrator takes each act after the seal, in this order, since D1 names D4's and D5's numbers: file D4 and D5, edit #51's body with D1 and post D2 on #51, post D3 on #1044, and post D6 on #1020. `frame/plan.md` *Operational impact* lists the same acts but D6, which decision 3 adds, and orders D1 first. No draft holds a path outside the repository. `<sealed>` stands for the commit the sealer seals, which the orchestrator writes in before it posts.
+```
+
+```seal
+verdict: fixed dd0f8454
+location: `seal/threads/1793528484-the-process-measured-on-0-27-2/frame/plan.md:47-52`, `seal/threads/1793528484-the-process-measured-on-0-27-2/trail/phases/phase-3.md:147`
+answer: The finding holds. The orchestrator folded `frame/plan.md` *Operational impact* in place at `b91222b3`: D4 and D5 are filed first, then D1 and D2 go on #51, then D3 on #1044 and D6 on #1020. I did not apply the paste-ready text as given. Since `b91222b3` the plan names D6 and gives that order, so the text's "lists the same acts but D6 … and orders D1 first" no longer holds. The drafts' head in `trail/phases/phase-3.md` now cites the plan's order and states it in the same sequence, and D4's and D5's "file it, then name its number in D1" agree with it. Rule 12 sweep: `git grep` for "Operational impact" over the records found only the drafts' head and `frame/plan.md` itself. The changelog's list of acts names no order, and it stands.
 ```
 
 ## Confirmations
