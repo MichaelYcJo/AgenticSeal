@@ -132,7 +132,7 @@ In each pair below a fact can stand in both parts, and no kind's command reads t
 | P9 with P10 | a test and an eval case stating one fact | none |
 | P11 with P11 | an open issue's body and a milestone's description stating one order or scope | the issue's *Order* line against the milestone's order (G10) |
 | P12 with P9 | a coordinate, list or figure in a test's docstring or comment | K13's corpus leaves out `tests/` (`trail/phases/phase-2.md` *Whether the frame holds*, the K13 item); the record's instances are named in `trail/phases/phase-3.md` *Whether the frame holds*, the item on drift the hand-back did not count |
-| P12 with P8, its lists and figures | a list of an enumerable source, or a figure, in a docstring, a comment or a printed message | what K13 reads in code text is stated in `trail/phases/phase-2.md` *The table*, row K13; the drifts `trail/phases/phase-2.md` *Instances K13* reads from open issues are its instances |
+| P12 with P8, its lists and figures | a list of an enumerable source, or a figure, in a docstring, a comment or a printed message | what K13 reads in code text is stated in `trail/phases/phase-2.md` *The table*, row K13; its known instance is the figure at `hooks/lib/console.py:46`, which D7 repairs (`trail/phases/phase-2.md` *Instances K13*) |
 | P12 with P10 | a coordinate or figure in an eval case | K13's corpus leaves out `evals/behaviour/` (the same item) |
 
 ### The table
