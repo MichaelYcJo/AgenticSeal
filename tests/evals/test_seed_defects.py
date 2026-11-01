@@ -214,6 +214,57 @@ class Test_seed:
             unit,
         )
 
+    @pytest.mark.parametrize(
+        ("later", "line"),
+        [
+            ("`a.py:20-60`", 80),
+            ("`a.py:20\N{EN DASH}60`", 80),
+            ("`a.py:45`", 80),
+            ("`a.py#g`", 80),
+            ("`a.py`", None),
+        ],
+        ids=["range", "en-dash-range", "line", "unit", "bare-path"],
+    )
+    def test_keeps_the_seed_off_every_coordinate_a_truths_location_names(
+        self, tmp_path, monkeypatch, later, line
+    ):
+        """Guards round 1 finding 1 of #1229: a truth's regex is built from
+        the first coordinate of its finding's `location:` line alone, so a
+        seed within the window of a later coordinate was taken, and the line
+        round 1 wrote for the real finding also passed the seeded truth. A
+        seed lands within 15 lines of no coordinate a truth's location
+        names: a line, a range to its last line, a unit's lines, or the
+        whole file for a bare path. Here `f` is in the first coordinate's
+        window, `g` in the later one's, and `h` is clear of both."""
+        sd = load_script("seed_defects")
+        repo, base = based_repo(tmp_path, monkeypatch)
+        write(
+            repo,
+            "a.py",
+            "def f(a):\n    return a == 1\n"
+            + "\n" * 41
+            + "def g(a):\n    return a == 2\n"
+            + "\n" * 33
+            + "def h(a):\n    return a != 3\n",
+        )
+        target = commit_everything_as_e(repo, "target")
+        found = sd.seed(
+            base,
+            target,
+            [sd.rt.truth_pattern("`a.py:1`", target)],
+            [f"`a.py:1`, {later}"],
+        )
+        if line is None:
+            assert found is None
+        else:
+            assert found == (
+                "a.py",
+                line,
+                "    return a != 3",
+                "    return a == 3",
+                ["h"],
+            )
+
 
 class Test_target_of:
     @pytest.mark.parametrize("layout", LAYOUTS, ids=["specs", "threads"])
@@ -313,6 +364,23 @@ class Test_target_of:
         t, why = sd.target_of(commits["squash"])
         assert t is None
         assert why == "two of round 1's truths accept `location: `a.py:1``", why
+
+    def test_keeps_the_seed_off_a_later_coordinate_of_round_1s_finding(
+        self, tmp_path, monkeypatch
+    ):
+        """Guards round 1 finding 1 of #1229 where the case is built: round
+        1's fixed finding names `a.py:2` first and `a.py:40` after it, so `g`,
+        the one line clear of the first coordinate's window, is within the
+        second's, and the commit takes no seed."""
+        sd = load_script("seed_defects")
+
+        def later(target):
+            return seeded_round_1(target).replace("`a.py:2`", "`a.py:2`, `a.py:40`")
+
+        commits, _repo = shipped_item(tmp_path, monkeypatch, first=later)
+        t, why = sd.target_of(commits["squash"])
+        assert t is None
+        assert why == "no added line in a Python unit takes an operator", why
 
     @pytest.mark.parametrize(
         ("rel", "text", "why"),

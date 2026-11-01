@@ -151,8 +151,10 @@ AGAINST_AT = re.compile(
 )
 FIX_RANGE = re.compile(r"(?P<base>[0-9a-f]{7,40})\.\.(?P<head>[0-9a-f]{7,40})")
 AGAINST = re.compile(r"against\s+`?(?P<ref>origin/[\w./-]*[\w])`?")
+# A coordinate of a `location:` value: a path, with a line, a range of lines
+# ending at `last`, or a unit.
 LOCATION = re.compile(
-    r"`(?P<path>[\w./-]+\.\w+)(?::(?P<line>\d+)(?:[-\N{EN DASH}]\d+)?|#(?P<unit>[\w.]+))?`"
+    r"`(?P<path>[\w./-]+\.\w+)(?::(?P<line>\d+)(?:[-\N{EN DASH}](?P<last>\d+))?|#(?P<unit>[\w.]+))?`"
 )
 # The two labels of 0.22.0's record a replay reads a value from, the level of
 # its finding heading, and the verdict word a truth needs. This tree's check
@@ -755,17 +757,14 @@ def truths_with(case, truths, target):
                 raise SystemExit(
                     f"{case}: {e['grader']} names `{location}`, no coordinate"
                 )
-            last = re.search(r"[-\N{EN DASH}](\d+)$", location) if m["line"] else None
-            if last:
-                first = int(m["line"])
-                if int(last[1]) < first:
+            if m["last"]:
+                first, last = int(m["line"]), int(m["last"])
+                if last < first:
                     raise SystemExit(
                         f"{case}: {e['grader']} names `{location}`, a range "
                         "that ends before it starts"
                     )
-                options.append(
-                    lines_option(m["path"], first - window, int(last[1]) + window)
-                )
+                options.append(lines_option(m["path"], first - window, last + window))
             else:
                 options.append(truth_option(f"`{location}`", target, window))
         if not options:
