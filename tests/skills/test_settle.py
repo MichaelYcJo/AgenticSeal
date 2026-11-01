@@ -1969,18 +1969,23 @@ class Test_main:
         fifth = stamp(repo)
         write(repo, "adr/build.log", "ignored\n")
         write(repo, "adr/0003.md", "untracked\n")
+        # Staged and never committed: `ls-files` prints it after the
+        # untracked file, and the listing puts it first by its path.
+        write(repo, "adr/0000-staged.md", "staged\n")
+        git(repo, "add", "adr/0000-staged.md")
         write(repo, "adr/0001.md", "one, revised again\n")
         monkeypatch.chdir(repo)
         code, text = dry_run(repo, capfd, "--from", "adr")
         assert code == 0, text
         assert (
-            "\nfrom adr/: 6 documents\n"
+            "\nfrom adr/: 7 documents\n"
             f"    adr/0001.md  added {first}  last changed {third}  changed in the "
             "working tree\n"
             f"    adr/notes.txt  added {second}  last changed {second}\n"
             f"    adr/sub/0002.md  added {second}  last changed {second}\n"
             f"    adr/moved.md  added {fourth}  last changed {fourth}\n"
             f"    adr/.gitignore  added {fifth}  last changed {fifth}\n"
+            "    adr/0000-staged.md  no commit adds it\n"
             "    adr/0003.md  no commit adds it\n\n"
         ) in text, text
         assert "build.log" not in text, text

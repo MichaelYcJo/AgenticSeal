@@ -916,17 +916,20 @@ LISTED = ("ls-files", "-z", "--cached", "--others", "--exclude-standard")
 
 def documents(root, named):
     """`[(rel, [(path, added, last, changed)])]` for each directory NAMED,
-    `/`-joined from ROOT, in the order named and each once. A document is
-    every file `git ls-files --cached --others --exclude-standard` lists
-    under it, and one an earlier directory listed is not listed again.
-    ADDED and LAST are the commits `history` reads, each None for a file no
-    commit adds; CHANGED is whether `changed` names it. Documents are in the
-    order of their adding commits, then those no commit adds in path order."""
+    `/`-joined from ROOT, in the order named. A document is every file `git
+    ls-files --cached --others --exclude-standard` lists under it, once: a
+    path listed already, by this directory or an earlier one, is not listed
+    again. ADDED and LAST are the commits `history` reads, each None for a
+    file no commit adds; CHANGED is whether `changed` names it. Documents
+    are in the order of their adding commits, then those no commit adds in
+    path order."""
     seen, out = set(), []
-    for rel in dict.fromkeys(named):
-        listed = git_fields(root, *LISTED, "--", rel)
-        held = [p for p in dict.fromkeys(listed) if p and p not in seen]
-        seen.update(held)
+    for rel in named:
+        held = []
+        for p in git_fields(root, *LISTED, "--", rel):
+            if p and p not in seen:
+                seen.add(p)
+                held.append(p)
         added, last = history(root, rel)
         touched = changed(root, rel)
         dated = sorted((p for p in held if p in added), key=lambda p: added[p][0])
