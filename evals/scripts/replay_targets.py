@@ -798,7 +798,8 @@ def round_target(item, n, text, nxt, wrote, replay=True, landed=None, *, layout)
     squash that landed the work, or a later commit that rewrote the
     record. `seed_defects.py#target_at` passes the shipped squash's first
     parent, the tip the squash landed on. `ref_base` states the property
-    the base it takes from either rests on. A target is `{"item", "n", "report", "target", "base", "base_ref",
+    the base it takes from either rests on. A
+    target is `{"item", "n", "report", "target", "base", "base_ref",
     "branch", "asked", "truths", "size"}`,
     REPORT the round's record path, which the case's report is written at,
     and its truths each finding the round closed `fixed` that the next
