@@ -31,7 +31,7 @@ The failure scenario of the chosen approach, six months on: the owner has not ca
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
 | 1 | Scope 4, with the work item's `gaps.md` | design S2, S3, S4 and S5, run in one scratch clone under `<scratchpad>/1793516191-a-wording-pin-module-leaves-by-rule-changes/`, made with `git clone --no-local` and removed before the hand-back. S3's modules run in one command | 295f701a |
-| 2 | Scope 4 again, over `## Rule changes` as review round 1's finding 2 changed it: the line-18 `to` and the `add` | design S2, S3 and S5, in one scratch clone made as phase 1's was, with the four operations' `to` values written into `docs/`; S4 is not run again, since line 33's item did not change | |
+| 2 | Scope 4 again, over `## Rule changes` as review round 1's finding 2 changed it: the line-18 `to` and the `add` | design S2, S3 and S5, in one scratch clone made as phase 1's was, with the four operations' `to` values written into `docs/`; S4 is not run again, since line 33's item did not change | 953c6e54 |
 
 ## Operational impact
 
