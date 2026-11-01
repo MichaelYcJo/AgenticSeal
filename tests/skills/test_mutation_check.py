@@ -1300,6 +1300,8 @@ class Test_main:
             f"collecting the output waited {elapsed:.1f}s on the escaped child"
         )
         assert code == 2 and out.startswith("timed out after 1s"), out
+        # The verdict `seal mutate` prints, which names the escape as the
+        # bound's limit for the crafter reading it.
         assert "session of its own" in out, out
         assert target.read_bytes() == b"VALUE = 1\n"
 

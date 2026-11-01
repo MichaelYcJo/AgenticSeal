@@ -49,51 +49,6 @@ def stamp_section():
     return section.split("## The run", 1)[0]
 
 
-def test_the_policy_states_the_budget_and_names_its_case():
-    """A18. `docs/the-review-record.md` *The stamp* carries the budget rule,
-    and its `check:` line names this module; the paragraph nothing enforces
-    follows it. #832
-    and #853: the rule names the two rungs, with the disc and the text block
-    alone, the owner's disc 28 cells across, and one real run to a message;
-    the unchecked paragraph says nothing outside the disc is painted, so the
-    stamp is read in the terminal's own theme, where it gave the parchment's
-    contrast figures before decision 6 of work item 1791270164 retired the
-    sheet. The section moved from `docs/the-broad-gate.md` with #975."""
-    text = stamp_section()
-    budget = "**The hook holds its whole message under a budget named in the code"
-    screen = "**What the person's screen shows is not checked"
-    unchecked = screen + text.split(screen, 1)[1]
-    assert (
-        "So is how the stamp reads on a light background as well as a dark one. "
-        "Nothing outside the disc is painted, so its text is in the terminal's "
-        "own colours and theme"
-    ) in unchecked
-    assert "1.02 and 1.48" not in unchecked and "parchment" not in unchecked
-    rule = budget + text.split(budget, 1)[1].split(screen, 1)[0]
-    assert (
-        "check: tests/behaviour/test_the_stamp_reaches_the_person_it_is_drawn_for.py"
-        in rule
-    )
-    # Round 1's yellow 1, under the owner's rule of 2026-10-02 (`questions.md` Q6).
-    assert "A seal past what one message can carry stays pending" in rule
-    assert "a character outside the BMP is two" in rule
-    # #832 and #853: two rungs, with the disc and without it — and the reason
-    # is the owner's 28-cell disc having one size, not a smaller disc refused.
-    assert "A stamp has two rungs, with its disc and then without it" in rule
-    assert (
-        "the owner's disc is drawn 28 cells across and has one size, so there "
-        "is no smaller disc to step to, and no scale either"
-    ) in rule
-    assert "0.90" not in rule and "at every scale" not in rule
-    assert "one stamp of a real work item's size goes out per message" in rule
-    assert "does not fit with its disc by itself is the only one drawn" in rule
-    assert "as the text block with no disc" in rule
-    assert "0.80 and 0.75" not in rule and "at 0.75 by itself" not in rule
-    assert "24 cells" not in rule and "\N{SECTION SIGN} fragment" not in rule
-    assert "14 cells" not in rule and "sheet" not in rule
-    assert "The gate's own terminal drawing" not in rule, "the gate draws nothing"
-
-
 # --- S16: the rules are where they are read ----------------------------------
 
 
@@ -172,44 +127,22 @@ def test_the_form_bullet_says_what_draws_the_final_seal():
         assert said in text, said
 
 
-def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
+def test_the_policy_names_the_hook_the_marker_and_the_command_to_draw():
     """S16, the policy's half, and #975 S10 and S13. `docs/the-review-record.md`
-    *The stamp* carries the drawing rule with a `check:` line naming the marker the cases that queue and draw it
-    carry, and a second statement saying what the screen shows has no case.
-    That statement names every place the hook is silent — a foreign hooks
-    slot, a `python3` that cannot load `seal_stamp.py`, a main session
-    outside the clone, a plugin older than the hook — and `seal stamp --from
-    <path>` for where a file was written.
-
-    1792363231 S7 and S8, and #1027: the rule names the one trigger, the
-    write under either root, with the local facts that hold once per work
-    item. The unchecked paragraph does not hand the never-twice gap to an
-    issue: it names a guarantee that arrived other than by `Write` or
-    `Edit`, a verdict whose branch cannot be read, and the limits a write
-    no edit hook saw leaves, the coincidence `plan.md`'s path walk found
-    among them, and none of the removed `post-commit` guards. Red against
-    the paragraph at 769f2aa4, and against 2759a60d's, which still named
-    the guards."""
+    *The stamp* carries the drawing rule, names the hook that queues the
+    stamp, and ends in a `check:` line naming the marker the cases that
+    queue and draw it carry; a second statement, on what the screen shows,
+    names `seal stamp --from <path>` for where a file was written. The
+    rule's trigger, its limits and the places the hook is silent are the
+    proofer's to read (1792363231 S7 and S8, and #1027)."""
     text = stamp_section()
     screen = "**What the person's screen shows is not checked"
     rule, unchecked = text.split(screen, 1)
-    unchecked = screen + unchecked
-    assert (
-        "**The stamp is drawn once per work item, from the sealer's `sealed`, at "
-        "the end of the turn in which `guarantee.md` came to read it, at its "
-        "write, in either mode.**"
-    ) in rule
-    for local in (
-        "`hooks/sealer-stamp-queue.py`",
-        "after each `Write` or `Edit` of a `seal/threads/<id>/guarantee.md` "
-        "under either root",
-        "an ancestor of the branch the work item's `routing.md` names in its "
-        "`Branch` row",
-        "the root and the values directory share the common dir",
-        "a local-mode work item stays under the root until the settle after "
-        "its release removes it",
-    ):
-        assert local in rule, local
+    # The path of the hook that queues the stamp, which a person resolves
+    # to see what wrote the values file.
+    assert "`hooks/sealer-stamp-queue.py`" in rule
+    # The marker `.github/scripts/rules.py#markers` reads on the rule's check
+    # line, whose carriers the loop below reads back from that reader.
     assert "check: stamp-drawn-once" in rule
     from conftest import rule_carriers
 
@@ -228,83 +161,9 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
         "Test_main.test_accepts_the_main_sessions_stop_and_draws_once",
     ):
         assert case in held, case
-    # #975 round 6's finding 1: the double-stamp limit is stated where the
-    # rule is, as the class `sealed_before` cannot see, with its reason.
-    assert "draws the stamp again in that clone" in rule, (
-        "the double-stamp limit is stated where the rule is"
-    )
-    assert "the history is the only record the rule reads" in rule, (
-        "the limit says why it is one"
-    )
-    # #975 round 7's finding 1: the limit names the clone it holds in. The
-    # clone that drew the stamp keeps its values file, and an amend there
-    # queues nothing (`test_a_recommit_of_the_same_guarantee_queues_no_second_file`).
-    assert "in a clone that holds no values file for the work item" in rule, (
-        "the limit names the clone it holds in"
-    )
-    # 1792363231 round 2's finding 2: the class no longer names the copy from
-    # a commit no ref holds, which writes no record now. Round 3's finding
-    # 1: it names any copy onto a copy of the declared branch, whatever made
-    # it, and that the refusal's own way on draws the second stamp. The
-    # history reader skips nothing; only the chain skips a recorded refusal.
-    assert (
-        "A `sealed` that drew in another clone, brought onto a copy of its "
-        "declared branch that does not hold its audited commit, by hand or by "
-        "`checkout`, `cherry-pick -n` or `merge --squash`, is refused at its "
-        "write and recorded, and the new audit the refusal asks for draws "
-        "again there; it joins that class."
-    ) in rule
-    assert "no ref of that clone holds" not in rule
-    assert "copied here by hand" not in text
-    assert "the earlier blocks alone skip a `sealed` this clone recorded" in rule
-    assert "**What the person's screen shows is not checked" in unchecked
-    assert "No case, hook or workflow can observe a screen." in unchecked
-    assert "check: none reader: the owner on the first real run" in unchecked
-    # Round 1's yellow 1 of #400: the hook's silence where it cannot draw is
-    # stated where a person looks for why no stamp appeared, with the way to
-    # draw it.
-    assert "**Nor is the hook's silence where it cannot draw.**" in unchecked
-    for silence in (
-        "by a shell write, a commit fetched from elsewhere or `seal import`",
-        "names no branch, or a branch the clone no longer holds",
-        "where no edit hook saw it written",
-        "under a plugin older than the hook",
-        "never the earlier blocks",
-        "a values directory emptied by hand",
-        "by coincidence, the very commit a copy of the item on another branch "
-        "was sealed and drawn over",
-        # Round 3's findings 1 and 3 of work item 1792363231.
-        "brought onto a copy of its declared branch that does not hold its "
-        "audited commit",
-        "cannot load `seal_stamp.py`",
-        "outside the clone the stamp was queued in",
-        "predates the hook",
-    ):
-        assert silence in unchecked, silence
-    for guard in (
-        "reflog",
-        "patch-equivalent",
-        "in a clone other than the one that refused",
-        "brought from another branch of the clone",
-    ):
-        assert guard not in unchecked, guard
+    # The command `seal stamp --from <path>`, which the person types to draw
+    # a stamp the hook could not.
     assert "names `seal stamp --from <path>`" in unchecked
-    assert (
-        "The line reaches the person as the edit hook's message, and nobody "
-        "has watched that message on a screen yet."
-    ) in unchecked
-    for gone in ("commit gate", "post-commit", "pre-commit", "hooks slot"):
-        assert gone not in text, gone
-    for gone in (
-        # Spelled in two pieces, so S8's `git grep` for the pointer finds the
-        # policy clean and not this check on it.
-        "#" + "976",
-        "in local mode, where the `seal/` root sits under the git directory",
-        "already read `sealed` and that verdict drew nothing",
-    ):
-        assert gone not in text, gone
-    assert "`SEALED` line" not in text, "the gate's line is quoted as SEALED"
-    assert "the stamp says which copy drew it" not in text
 
 
 def test_the_policy_states_the_refusal_record_and_names_its_cases():

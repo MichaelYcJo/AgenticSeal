@@ -82,7 +82,7 @@ PARITY_WORDS = ["differs", "grounded", "equivalent", "unread"]
 
 def test_the_parity_verdicts_are_four_words():
     """T4 of #970: a parity review labels a verdict with one of four
-    lowercase words at the start of its line, and the section says so once.
+    lowercase words at the start of its line.
 
     The labels were four emoji nobody read, and no case read the section, so
     a mark or a fifth label could come back with every other case green."""
@@ -93,13 +93,11 @@ def test_the_parity_verdicts_are_four_words():
     labels = [
         line.split()[0] for line in lines[fences[0] + 1 : fences[1]] if line.strip()
     ]
+    # The four verdict words a parity review writes at the start of a line,
+    # which the caller of the review reads as its verdicts.
     assert labels == PARITY_WORDS, (
         f"{rel} {heading}: the labels are {labels}, not {PARITY_WORDS}"
     )
-    said = " ".join(" ".join(lines).split())
-    assert "A verdict is one of four words, lowercase, at the start of its line" in (
-        said
-    ), f"{rel} {heading} no longer says the four words are the only labels"
 
 
 def sentences(lines):
@@ -117,26 +115,28 @@ def test_a_repair_with_no_commit_closes_deferred_where_it_was_made():
     end = next(i for i in range(start, len(lines)) if lines[i].startswith("check: "))
     paragraph = sentences(lines[start:end])
 
+    # The sentence the verdict below is read in, so it cannot pass on a
+    # paragraph that names no such repair.
     outside = [s for s in paragraph if "outside the tree" in s]
     assert outside, (
         f"{rel} *The round record*: the fix-pass paragraph names no repair "
         "outside the tree"
     )
     for s in outside:
+        # The close block's `verdict:` value `deferred <where it was
+        # repaired>`, whose `deferred` word `hooks/lib/fields.py` reads.
         assert "`deferred <where it was repaired>`" in s, (
             f"a repair outside the tree closes `deferred <where it was repaired>`: {s}"
         )
 
+    # The sentence the verdict below is read in, as above.
     corrections = [s for s in paragraph if "correction to a record" in s]
     assert corrections, (
         f"{rel} *The round record*: the fix-pass paragraph names no record correction"
     )
     for s in corrections:
+        # The close block's `verdict:` value `fixed <commit>`, which
+        # `hooks/lib/fields.py` reads.
         assert "`fixed <commit>`" in s, (
             f"a repair a commit made closes `fixed <commit>`: {s}"
         )
-
-    sent = [s for s in sentences(lines) if "repair" in s and "`rejected`" in s]
-    assert not sent, (
-        f"{rel} *The round record* sends a repair to `rejected`:\n" + "\n".join(sent)
-    )

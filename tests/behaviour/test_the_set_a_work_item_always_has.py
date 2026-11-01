@@ -8,7 +8,7 @@ terms, and under the second one 33 of 35 work items here carry only a closing
 memo. That is either correct or a set that quietly fell apart, depending on
 which reading a session happens to hold.
 
-Three things settle it, and each is pinned below.
+Three things settle it.
 
   the condition   `frame/design.md` is owed when the work alters observable
                   behaviour, not when it touches six files. A count also
@@ -22,9 +22,10 @@ Three things settle it, and each is pinned below.
                   because no code has ever read it and it has never once been
                   created
 
-These are prose assertions, and prose assertions are worth exactly what their
-substrings are chosen to be. Each one below picks a phrase that cannot survive
-the drift it is guarding against.
+The cases below hold the sweep for a decision by file count, the paths, the
+tables and the cells the set's documents give a reader, and the absence of
+the home. How the skill words the condition and the status column is the
+proofer's to read.
 """
 
 import re
@@ -122,18 +123,16 @@ def test_the_top_rung_names_behaviour_rather_than_a_count():
             )
 
 
-def test_the_rung_gives_both_directions():
-    """S6, the half that makes it usable.
-
-    One direction alone is how a rule gets read as "when in doubt, write
-    one" or "when in doubt, don't". The small change that qualifies and the
-    large one that does not are both named, and naming them is what stops the
-    rung being re-read as a count. The branch that measured the first
-    direction is history since #967, kept in the issue rather than the skill.
+def test_the_rung_cites_the_issue_that_measured_the_count():
+    """S6. The skill names both directions, the small change that qualifies
+    and the large one that does not, which is the proofer's to read; it
+    cites the issue where the count's missing moment is recorded. The branch
+    that measured the first direction is history since #967, kept in the
+    issue rather than the skill.
     """
     skill = read("skills", "implement", "SKILL.md")
-    assert "One file, and it qualifies" in skill
-    assert "Many files, and it does not" in skill
+    # The issue number `#35`, which a reader looks up for when a count would
+    # have been taken.
     assert "issue #35" in skill, (
         "the count never said when it was taken, and that is the half a "
         "reader has to be able to look up"
@@ -249,56 +248,13 @@ def test_the_plan_template_carries_the_judgments_table():
     ), after[1]
 
 
-def test_the_skill_says_why_a_tick_is_refused():
-    """The column is worth nothing if its closed value can be typed.
-
-    A tick and the word `done` assert a present state nobody can check. A
-    commit asserts a past one that someone can open, which is the only reason
-    mutable-looking progress is allowed inside the contract at all. The rule
-    stands in the skill the plan's writer and builder open, and the template
-    ships the column alone.
-    """
-    tpl = " ".join(read("skills", "implement", "SKILL.md").split())
-    assert "a tick and the word `done` are refused" in tpl
-    assert "the commit that closed the phase" in tpl
-    assert "asserts a **past** state" in tpl, (
-        "the reason a hash is accepted where a tick is not is that it asserts "
-        "a past state — without it the rule is arbitrary and gets relaxed"
-    )
-
-
-def test_the_skill_stops_sending_task_lists_somewhere_else():
-    """The objection that sent them away was about form, and the answer is
-    the Status column. If the old sentence survives beside the new one, a
-    session gets two destinations and picks the first it reads."""
-    skill = read("skills", "implement", "SKILL.md")
-    assert "Phases table is the task list" in skill
-    assert "Task lists do not live here" not in skill
-    assert "belongs in `.specseal/`" not in skill
-
-
 def test_the_planner_writes_into_the_plan():
+    """Where the task list goes, and what the Status column gives up, are
+    the proofer's to read in the skills."""
     planner = read("skills", "feature-planner", "SKILL.md")
+    # The file `plan.md` and its Phases table, where the planner writes the
+    # phases a crafter later builds.
     assert "plan.md`, as its Phases table" in planner
-    assert ".specseal/tasks" not in planner
-
-
-def test_what_the_status_column_gives_up_is_written_down():
-    """A phase row is not a dependency graph, and a document that does not
-    say so gets a checker built on it. The planner, which produces the finer
-    structure, says so; `implement`'s account of the trade left with its
-    narration (#967)."""
-    planner = read("skills", "feature-planner", "SKILL.md")
-    assert "do not survive into the file" in planner
-
-
-def test_the_cost_of_a_judgment_over_a_count_is_stated():
-    """A rule that hides its own cost gets reverted by whoever finds it."""
-    skill = read("skills", "implement", "SKILL.md")
-    assert "two people can disagree" in skill, (
-        "the trade is a judgment for a measurement, and a document that does "
-        "not say so reads as though nothing was given up"
-    )
 
 
 # --- who writes each member of the set --------------------------------------
@@ -309,25 +265,14 @@ def test_the_cost_of_a_judgment_over_a_count_is_stated():
 # its record. The cases that pinned the line's shape left with it.
 
 
-def test_a_redesign_is_approved_by_the_spawn_that_builds_it():
-    """#1148 phase 4. The framer's route after a regression ended in a second
-    `Approved` line in `plan.md`; with the line gone, the redesign's row says
-    the spawn is the approval, as the first build's does."""
-    text = " ".join(read("skills", "code-review", "orchestration.md").split())
-    rows = [part for part in text.split("| The redesign |")[1:]]
-    assert len(rows) == 1, f"{len(rows)} redesign rows in the framer's route"
-    row = rows[0].split(" | ", 1)[0]
-    assert "the spawn is the approval" in row, row
-    assert "`Approved` line" not in row, row
-
-
 def test_the_file_set_names_who_writes_each_file():
     """The table listed what each member holds and never whose it is.
 
     That was true while one agent wrote all of them. With the frame drawn by
     `framer` and the records written by the builder, a table with no author
     column reads as a list one session works through, which is the shape the
-    split exists to end.
+    split exists to end. How the table says the plan is approved and when
+    `gaps.md` is written are the proofer's to read.
     """
     skill = read("skills", "implement", "SKILL.md")
     header = [
@@ -336,6 +281,8 @@ def test_the_file_set_names_who_writes_each_file():
     assert len(header) == 1, (
         "the SDD file-set table changed shape -- re-read *3. The SDD file set*"
     )
+    # The column `Written by`, which a session reads to learn whose each file
+    # of the set is, and whose cells the rest of this case reads.
     assert "| Written by |" in header[0], (
         "the file table of *3. The SDD file set* does not say who writes each "
         "member of the set. "
@@ -367,12 +314,3 @@ def test_the_file_set_names_who_writes_each_file():
             "built it. A table that hands it to the framer asks for a memo "
             "written before the work it is about"
         )
-    assert "approved by the spawn that builds it" in rows["`frame/plan.md`"]["Holds"], (
-        "the file table stops saying how the plan is approved, so the only "
-        "document that describes the whole set never says where the gate is"
-    )
-    assert "Approved <date> by <who>" not in rows["`frame/plan.md`"]["Holds"]
-    assert (
-        "written from its template when the first phase closes"
-        in (rows["`gaps.md`"]["When"])
-    ), "the file table gives `gaps.md` a trigger the crafter and the case do not"

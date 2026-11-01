@@ -77,6 +77,8 @@ class Test_main:
         assert len(created) == 1, tracker.calls
         assert created[0][3] == LABEL
         description = created[0][created[0].index("--description") + 1]
+        # The `--description` `tracker_labels.py` passes to `gh label create`,
+        # which a person reads on the tracker.
         assert "before the next work item starts" in description, (
             "the description is not the document's own sentence about what the label means"
         )

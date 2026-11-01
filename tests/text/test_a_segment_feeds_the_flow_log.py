@@ -29,8 +29,8 @@ the section now says which reading goes to which — a segment's own numbers to
 the rolling `flow-measurement` log, a reading that only means something across
 versions to the durable `flow-baseline` one — and separates a repository that
 never measured from one whose log stopped. The cases below pin both labels,
-the rule that separates them, the `--state all` lookup that tells the two
-zeroes apart, and the refusal that keeps a session from repairing the second.
+the rule that separates them, and the `--state all` lookup that tells the two
+zeroes apart.
 
 They also pin what the section may NOT say. This file ships to repositories
 that have neither this repository's `measurement` index label nor its
@@ -46,10 +46,11 @@ section now states the run-level comparison table — its rows, what each row is
 taken from, and the three sentences that keep it comparable: the tokens are
 counted rather than estimated and counted the same way every time, a run whose
 transcript covered only part of its branch says so in the prose rather than in
-a column, and the table itself carries no verdict. The cases below pin each of
-those, and one of them is structural rather than textual — every row of the
-table must name a source, because a row nobody can reproduce is a row the next
-run fills in by feel.
+a column, and the table itself carries no verdict. The cases below pin the
+rows, their sources and the counted tokens, and the other two sentences are
+the proofer's to read. One case is structural rather than textual — every row
+of the table must name a source, because a row nobody can reproduce is a row
+the next run fills in by feel.
 """
 
 import os
@@ -131,17 +132,13 @@ def test_skill_has_no_html_comments_at_all():
 
 def test_the_section_is_the_orchestrators_and_the_crafters_skill_names_it():
     """#940 split the verify skill along its headings: posting is withheld
-    from every agent (contract rule 6), so the section is in the orchestrator's
-    file, and the file the crafter and the sealer open carries no copy of it.
-    That file still prices the repeated run, which is the command the
-    section uses, and names the orchestrator's file in its opening."""
-    assert SECTION_HEADING in read(), "the orchestration file lost the section"
+    from every agent (contract rule 6), so the section is in the
+    orchestrator's file, and the opening of the file the crafter and the
+    sealer open names the orchestrator's file. Which file carries which
+    section is the proofer's to read."""
     crafters = read(CRAFTERS_SKILL)
-    assert SECTION_HEADING not in crafters, (
-        "the crafter's and the sealer's skill still carries the orchestrator's "
-        "measuring section"
-    )
-    assert "## The cost of a run that repeats" in crafters
+    # The path a reader of `skills/verify/SKILL.md` resolves to the
+    # orchestrator's two acts.
     assert "`skills/verify/orchestration.md`" in crafters.split("\n## ", 1)[0], (
         "the opening of `skills/verify/SKILL.md` does not say where the "
         "orchestrator's two acts are"
@@ -156,26 +153,9 @@ def test_the_section_names_the_measure_step():
     )
 
 
-def test_every_page_describing_the_segments_mode_names_its_grade():
-    """#640. `--segments` prints, under its table, every row whose tools per
-    turn sit under its kind's bar. The three documents that list what the
-    page prints would otherwise describe a page one block shorter than the
-    one a reader posts, which is the first frame of `agents/framer.md`'s
-    README omission over again."""
-    assert "which rows sit under their kind's bar" in section_body(), (
-        "step 1 lists the table's columns and not the grade under it"
-    )
-    for name, phrase in (
-        ("README.md", "sit under its kind's bar"),
-        ("README.ko.md", "종류의 기준선에 못 미치는 행"),
-    ):
-        with open(os.path.join(ROOT, name), encoding="utf-8") as f:
-            row = next(line for line in f if line.startswith("| `seal cost --segments"))
-        assert phrase in row, f"{name}'s `--segments` row does not name the grade"
-
-
 def test_the_section_names_the_lookup_command():
     body = section_body()
+    # The command the orchestrator types to find the open rolling log.
     assert "gh issue list --label flow-measurement --state open" in body, (
         "the section never names the exact lookup command — a session would "
         "have to guess how to find the destination issue rather than being "
@@ -239,59 +219,15 @@ def test_the_section_says_what_separates_the_two_logs():
     )
 
 
-def test_the_rolling_logs_life_is_bounded_by_two_releases():
-    """A rolling log opens at one release and the next one closes it, so a
-    reading posted to it survives until a new version ships.
-
-    The section used to say the log accumulated *for one version* and was
-    discarded *when that version ships*, which held only while the log was
-    named after a version that had not shipped yet — a prediction. #155 took
-    the prediction out: the version a log names is the one it rolled FROM,
-    already shipped by the time the log opens. A session following the old
-    sentence looks for a boundary that has already passed, and reads a log
-    that is about to close as one with a version's worth of life left."""
-    body = section_body()
-    assert "accumulates for one version" not in body, (
-        "the section describes the rolling log as one version's, ending when "
-        "that version ships. The version a log is named after has already "
-        "shipped when the log opens, so this points a reader at the wrong "
-        "end of the log's life"
-    )
-    assert "opens at a release" in body, (
-        "the section never says where a rolling log starts. A session that "
-        "cannot tell when the open log opened cannot tell how much of the "
-        "work its comments cover"
-    )
-    assert "until the next version ships" in body, (
-        "the section never says where a rolling log ends. That boundary is "
-        "what decides whether a reading posted now is still there to be read "
-        "— it is the whole reason the durable log exists"
-    )
-
-
 def test_the_section_separates_the_two_zeroes():
     body = section_body()
+    # The command the orchestrator types to tell a log that never existed
+    # from one that stopped.
     assert "gh issue list --label flow-measurement --state all" in body, (
         "the section must name the `--state all` lookup. A repository that "
         "never measured and one whose log stopped both read zero open, and "
         "the first is a no-op while the second is a broken invariant — one "
         "call tells them apart"
-    )
-
-
-def test_a_session_names_the_stopped_log_rather_than_opening_one():
-    """The obvious next step — if none is open, open one — is what breaks the
-    invariant the release-time roll depends on."""
-    body = section_body()
-    assert "not a session's act" in body, (
-        "the section must refuse outright: a session that finds the label "
-        "with a history and nothing open names it and opens nothing"
-    )
-    assert "two or more" in body, (
-        "the refusal must carry its reason — two sessions finishing segments "
-        "at the same moment both read zero and both create, and the next "
-        "release then fails on two or more. Without the reason the refusal "
-        "reads as caution and the next reader talks themselves out of it"
     )
 
 
@@ -311,24 +247,6 @@ def test_the_sections_opening_sentence_names_no_single_destination():
     assert "two" in opening, (
         "the opening must say there is more than one log. A reader who goes "
         "no further has to at least know a choice is being made for them"
-    )
-
-
-def test_the_durable_log_gets_the_same_two_zeroes():
-    """The section gives both labels the same exactly-one-open invariant and
-    then hands only one of them the `--state all` split. A durable log
-    somebody closed by hand then reads exactly like a repository that never
-    measured, which is #136's own failure recurring one label over."""
-    body = section_body()
-    assert "somebody closed the durable log" in body, (
-        "the section never says what a `flow-baseline` label with a history "
-        "and nothing open means, so the one reading that survives it -- the "
-        "cross-version one -- is silently dropped"
-    )
-    assert "is the first of those and nothing more" not in body, (
-        "the sentence folding `flow-baseline`'s zero into the harmless case "
-        "is back. It is the fold that makes a closed durable log "
-        "indistinguishable from a repository that never had one"
     )
 
 
@@ -414,64 +332,6 @@ def test_the_tokens_are_counted_rather_than_estimated():
         )
 
 
-def test_partial_coverage_is_stated_in_the_prose_and_not_as_a_column():
-    """`questions.md` assumption 6: a column would make it a parsed field, and
-    the number still has to be qualified where a person reads it."""
-    body = section_body()
-    assert "only part of its branch" in body, (
-        "the section never says what to do when a run's transcript covered "
-        "only part of its branch. The number is then smaller than the run, "
-        "and a comparison against a whole one reads as an improvement"
-    )
-    assert "rather than as a column" in body, (
-        "the partial-coverage note must be stated as prose beside the table "
-        "rather than as a column of it"
-    )
-    labels = [row[0].lower() for row in run_table_rows()]
-    assert not any("coverage" in label for label in labels), (
-        "coverage became a column of the run-level table. Assumption 6 keeps "
-        "it in the prose: a column is a field, and this one is a caveat"
-    )
-
-
-def test_the_table_carries_no_verdict():
-    body = section_body()
-    assert "carries no verdict" in body, (
-        "the section must say the table carries no verdict — #170's own "
-        "*Not this*. A table that judges is one the next run argues with "
-        "before it can compare anything"
-    )
-    assert "never in a column" in body, (
-        "the section must send what a row meant on one branch to the comment "
-        "beside the table rather than into a column of it"
-    )
-
-
-def test_the_table_is_the_runs_reading_where_the_rest_is_one_segments():
-    """The two readings live in one section, so the section has to say which
-    level each is taken at — otherwise the table reads as a fourth thing to
-    measure per segment."""
-    body = section_body()
-    assert "measures one segment" in body, (
-        "the section never says that everything above the table is one "
-        "segment's reading, so a reader cannot tell what level the table is "
-        "taken at"
-    )
-    assert "this run beside the last run measured" in body, (
-        "the section never says the table holds two runs side by side. One "
-        "run's numbers alone are a record, not a comparison"
-    )
-
-
-def test_the_table_is_not_a_third_destination():
-    body = section_body()
-    assert "not a third destination" in body, (
-        "the section names two logs and then adds a table without saying "
-        "where it goes. It goes to the rolling log the section already "
-        "names — a reader left to guess invents a third place"
-    )
-
-
 def labelled(fragment):
     """The one run-level row whose label carries `fragment`, as [label, source]."""
     rows = [row for row in run_table_rows() if fragment in row[0]]
@@ -526,108 +386,16 @@ def test_the_location_buckets_are_the_repositorys_own_definition_of_a_record():
 
 
 def test_the_broad_gate_row_asks_for_what_the_file_actually_carries():
-    """Round 1's finding 4, and the premise #174 reversed. Under #174 the
-    broad gate's record holds one entry per full-suite run, newest first, so
-    the count is read off it rather than remembered: the row may ask for it,
-    on the one condition that its source says where the count comes from.
-    Since the rename to AgenticSeal that record is `trail/gate.md` (#923, #1051),
-    and since #1198 each run is a `seal` block, the newest last."""
-    label, source = labelled("Broad gate")
-    if "how many times" in label:
-        assert "one `seal` block per full-suite run" in source, (
-            "the `Broad gate` row asks for a count without saying the file "
-            "holds one block per run, so the count comes from somewhere the "
-            "next run cannot check"
-        )
-        assert "newest first" not in source, (
-            "the row says the newest run comes first, and `seal gate --record` "
-            "appends it last"
-        )
+    """Round 1's finding 4, and the premise #174 reversed. The broad gate's
+    record holds one entry per full-suite run, so the count is read off it
+    rather than remembered, and the row's source names that record's file:
+    `trail/gate.md` since the rename to AgenticSeal (#923, #1051). How the
+    source describes the record's entries is the proofer's to read."""
+    _label, source = labelled("Broad gate")
+    # The path the orchestrator opens to read the count off.
     assert "`trail/gate.md`" in source, (
         "the row names no file the count is read from, which is the reason "
         "the count went unnoticed in the first place"
-    )
-
-
-def test_the_section_says_which_transcript_is_the_runs_own():
-    """Round 1's finding 7. The token row is taken over *the run's main
-    transcript* and nothing said which file that is. `--latest` walks the
-    whole project directory and takes the newest file, which on a run that
-    spawned segments is a segment — measured, on this very work item: it
-    landed on a subagent transcript and the token line read `1 transcript`
-    for a run with several."""
-    body = section_body()
-    assert "sitting directly under the project directory" in body, (
-        "the section asks for the run's main transcript and never says where "
-        "one is, so the reader takes whatever `--latest` hands them"
-    )
-    assert "lands on a segment" in body, (
-        "the section never says `--latest` can land on a segment, which is "
-        "the ordinary case on a run that spawned any"
-    )
-
-
-def test_the_section_names_batching_as_the_way_a_share_passes_one_hundred():
-    """A share over 100% is a true reading, and WHY it happens is the half a
-    person acts on. The paragraph used to send that reader looking for a
-    background command; measured over one machine's transcripts, 100% of the
-    overlap above a second is calls batched into one assistant message and
-    none of it crosses a turn. Nothing else in the tree reads this clause, so
-    without this case an edit can put the rarer cause back as the ordinary
-    one and no check says anything.
-
-    **The clauses are asserted WHOLE, not by their vocabulary** (#310). This
-    case shipped as four substring assertions and three rearrangements of the
-    paragraph walked past all of them: the two causes swapped, the
-    measurement inverted, and the old phrase re-added at the start of a
-    sentence — each one exit 0. Every regression the case exists against is a
-    rearrangement of true words, and no substring sees a rearrangement. Where
-    a paragraph carries a ranking (*this is the ordinary cause, that the
-    rarer one*) or a direction (*it came from A and not from B*), the
-    assertion has to carry the ranking or the direction. `section_body()`
-    collapses whitespace, so a whole-clause assertion survives a re-wrap and
-    only a change to the wording turns it red.
-
-    **And every needle is lowered, because the clause's POSITION in its
-    sentence is not the claim either.** Matched with its case, a needle that
-    starts with a capital pins the clause to being sentence-initial and one
-    that starts lower pins it to NOT being — the same defect, one direction
-    over. Round 1 found the first: `In practice, ` in front of the batching
-    clause changes no word of it, keeps the ranking and keeps the direction,
-    and turned this case red. All three positive needles are lowered, not
-    just that one."""
-    body = section_body()
-    assert "calls running at once" in body.lower(), (
-        "the paragraph must name concurrent calls as what puts a share over "
-        "100%, not something running in the background"
-    )
-    assert (
-        "batching is the ordinary way in and a background command is the "
-        "rarer one" in body.lower()
-    ), (
-        "batching is the ordinary way a share passes 100% and the background "
-        "command the rarer one; naming the two separately passes with the "
-        "ranking reversed, which is the edit this case exists to stop. "
-        "Lowered for the same reason the negative below is: the clause's "
-        "POSITION in its sentence is not the claim, so prefixing the "
-        "sentence leaves the ranking and the direction intact and must not "
-        "turn this red"
-    )
-    assert (
-        "every second of overlap above a second came from calls batched into "
-        "one message and none of it from a call that crossed a turn" in body.lower()
-    ), (
-        "the measured claim has a direction, and the vocabulary of both "
-        "halves survives inverting it — so the clause is asserted whole. "
-        "Lowered like the two above: this clause is mid-sentence today, so "
-        "a case-sensitive needle pins it to NOT being sentence-initial — "
-        "the same defect as pinning it to being sentence-initial, one "
-        "direction over"
-    )
-    assert "something running in the background" not in body.lower(), (
-        "the old wording named the rarer cause as the ordinary one. Lowered "
-        "because the same phrase returning at the start of a sentence is the "
-        "same regression"
     )
 
 
@@ -664,51 +432,13 @@ def test_the_section_no_longer_asks_for_the_split_by_hand():
     assert "measure only the slice that belongs to the segment just watched" not in body
 
 
-def test_the_section_says_the_mode_takes_the_resume_split():
-    """Removing the hand method is not enough: a reader who knows a resumed
-    transcript needs splitting has to be told the mode does it, or they will
-    do it anyway."""
-    body = section_body().lower()
-    assert "resumed" in body and "slice" in body, body[:200]
-    assert "one row per slice" in body, (
-        "the section drops the hand split without saying the mode takes it, "
-        "so a reader with a resumed transcript has no answer at all"
-    )
-
-
-def test_the_section_says_the_split_holds_given_the_agents_own_file():
-    """#637. The orchestrator holds the path the harness's task output names,
-    which is the agent's own file, and five releases of fix-pass readings were
-    taken from that file whole. The section has to say the mode splits that
-    file too, or a session holding it goes on reading the plain span."""
-    body = " ".join(section_body().split())
-    assert (
-        "The split is the same given the agent's own file: `--segments "
-        "<agent-*.jsonl>` prints that file's slices" in body
-    ), (
-        "the section says the mode splits a resumed agent only when it walks "
-        "the run's transcript, so a session holding the agent's own file "
-        "measures it whole"
-    )
-
-
-def test_the_section_sends_a_resumed_lone_segment_to_the_mode():
-    """#637, option 3's half. The section sent every lone segment to the plain
-    reading, and the plain reading of a resumed file is a span covering every
-    wait between its stretches. It has to say where a resumed one goes."""
-    body = " ".join(section_body().split())
-    assert "with no mode flag, unless the coordinator restarted it" in body, (
-        "the section sends a resumed lone segment to the plain reading, whose "
-        "span covers the waits between its stretches"
-    )
-    assert "`--segments <transcript>` is the reading that splits it" in body
-
-
 def test_the_section_says_the_mode_notices_a_spawn_inside_a_segment():
     """#343's half of the same command. A session that runs `--segments` at
     every segment boundary meets the `Contract rule 6` line there, and the
     section is where it learns that is what the line means."""
     body = section_body()
+    # The label of the line `session_cost.py --segments` prints for a spawn
+    # inside a segment, which the orchestrator matches to this section.
     assert "`Contract rule 6` line" in body, (
         "the section names the mode and not the one finding it can print "
         "that is about the agent's own conduct rather than its cost"

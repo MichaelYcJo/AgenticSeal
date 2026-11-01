@@ -24,48 +24,32 @@ PROTOCOL = ("docs", "the-review-record.md")
 
 
 def test_the_protocol_carries_the_handoff_before_round_one():
+    """The handoff names the labels a fact carries when it has no
+    coordinate, by their spelling. What a handoff carries otherwise is the
+    proofer's to read."""
     protocol = flat(*PROTOCOL)
-    assert "## The handoff" in read(*PROTOCOL), (
-        "the record's document says nothing about the handoff that starts the work"
-    )
-    assert "coordinates, never prose" in protocol
+    # The three labels by their spelling, which the orchestrator writes
+    # beside a fact and an agent reads; `hooks/lib/fields.py` matches the
+    # first two on a round record's `evidence:` line.
     assert "`executed`, `read` or `unverified`" in protocol, (
         "the labels a handoff fact carries are verify's three, by name — a "
         "fact with none is an assertion nobody has opened"
-    )
-    assert "An aggregate is not a coordinate" in protocol, (
-        "the measured failure went: a count travelled as if it were a "
-        "checkable fact, and the claim it stood for was wrong"
-    )
-    assert "where it is measured" in protocol, (
-        "a claim that flips on measurement point needs the point, not just "
-        "the place — two findings flipped on it in one work item"
     )
 
 
 def test_the_implementer_documents_point_at_the_section():
     """A protocol section nobody is routed to is the same defect one layer
     up: the answer exists and the party needing it does not know it is
-    there — which is how session_cost.py went unused for a day."""
+    there — which is how session_cost.py went unused for a day. What stays
+    in the definitions since phase 4 of #107 is the ROUTE: the section a
+    prompt's facts arrive under."""
     for parts in (("skills", "implement", "SKILL.md"), ("agents", "crafter.md")):
         text = flat(*parts)
+        # The path the implementer resolves to the section its prompt's
+        # facts arrive under.
         assert "`docs/the-review-record.md`" in text and "handoff" in text, "/".join(
             parts
         )
-
-    # Phase 4 of #107 re-pointed the second half. The rule that a fact with
-    # no coordinate and no label is an assertion nobody has opened is
-    # contract rule 5, which every agent receives at startup -- the crafter
-    # was one of two definitions stating it and the tracer stated it nowhere.
-    # What stays in the definitions is the ROUTE: the section a prompt's
-    # facts arrive under, which is what this case is about.
-    assert "assertion nobody has opened" in flat(
-        "skills", "agent-contract", "SKILL.md"
-    ), (
-        "the contract stopped saying what a fact with neither a coordinate "
-        "nor a label is, so the route above leads to a section whose rule "
-        "nothing states"
-    )
 
 
 # --- the rules a prompt no longer carries -----------------------------------
@@ -90,78 +74,15 @@ def test_the_protocol_no_longer_states_the_rules_it_points_at():
         )
 
 
-def test_the_crafters_definition_mandates_mutating_every_unit_it_added():
-    """The rule the case above says is `agents/crafter.md`'s is actually there.
-
-    Measured 2026-09-03 at `dcdf4e4`, phase 6 of #107: it was not. Phase 4
-    never moved *mutation-test every unit added, one at a time, before
-    handing over* into the definition, and phase 5 removed the one place it
-    had ever been written -- the protocol's interim list. So the case above
-    went green over a rule that had left the repository altogether, and the
-    work item built to stop rules going missing is what deleted it.
-
-    That is the general lesson, and it is why this case sits here rather
-    than in a module of its own: an absence check with no presence check
-    beside it cannot tell a rule that MOVED from a rule that was DELETED.
-    Three of the other four rows point at contract rule 1, contract rule 12
-    and contract rule 6. A contract rule that goes whole leaves a gap in the
-    numbering `test_the_agent_contract_holds_the_universal_rules.py` reads,
-    and that module pins rule 1's two command forms as well; this row
-    pointed at a definition and nothing pinned it.
-
-    Contract rule 15 is the neighbour, not this rule. It asks that a case be
-    seen red on the day it is planted; this asks that every unit the branch
-    added be broken before the branch leaves the implementer's hands. Both
-    halves are asserted -- the act and its timing -- because a definition
-    that kept only the act would read as contract rule 15 restated, which
-    `test_a_moved_rule_leaves_its_definition.py` would then be right to
-    refuse."""
-    crafter = flat("agents", "crafter.md")
-    # The whole clause, not its words one by one. Asserting `one at a time`
-    # alone passed under the mutation that removed the cadence, because the
-    # design gate two hundred lines up says asking questions `one at a time`
-    # is a cost paid repeatedly -- an unrelated sentence holding the phrase
-    # up. Measured while showing this case red, 2026-09-03.
-    # Since #967 the act is the rule's lead and the moment is its step in
-    # `## Order of work`: after the commit, before the narrow checks and the
-    # hand-back. Since #1091 the act binds each unit that adds behaviour,
-    # and a unit only renamed or moved owes no run.
-    assert (
-        "Commit, then run `seal mutate` over each unit that adds behaviour." in crafter
-    )
-    assert "Mutation-test every unit that adds behaviour, one command each." in (
-        crafter
-    ), (
-        "`agents/crafter.md` does not mandate mutating what it added, on that "
-        "cadence, at that moment. `frame/design.md` of work item 1788433011 puts the "
-        "rule in the crafter's own layer -- *only the agent that adds units "
-        "can* -- and the protocol that used to carry it is a pointer now, so "
-        "a definition without it leaves the rule stated nowhere at all. "
-        "Units broken together cannot say which case caught which, and a "
-        "mutation run after the handover is one the next reader takes on "
-        "trust, which is why the cadence and the timing are in the assertion "
-        "rather than beside it"
-    )
-    assert "watch one go red" in crafter, (
-        "the rule stopped asking for the observation that makes it a "
-        "measurement. Breaking a unit and running the suite is not a "
-        "mutation test until a case is seen to fail for it"
-    )
-
-
 # --- progress observability -------------------------------------------------
 
 
-def test_the_protocol_names_the_progress_channel_and_the_stall_signal():
+def test_the_protocol_names_the_meter():
+    """The section the orchestrator reads while an agent runs names the
+    script that reads the agent's transcript after the run. The progress
+    channel and the stall signal are the proofer's to read."""
     protocol = flat(*PROTOCOL)
-    assert "Status column" in protocol, (
-        "the readout the implementer already writes during the run has to be "
-        "named where the orchestrator reads, or git log stays the only answer"
-    )
-    assert "time since the agent's transcript last changed" in protocol, (
-        "wall clock cannot separate a long run that is finishing from a "
-        "short one that is wedged; the stall signal can"
-    )
+    # The script the orchestrator runs over the agent's transcript.
     assert "session_cost.py" in protocol, (
         "the meter existed through a full day of measurements nobody took, "
         "because nothing a session reads pointed at it"
@@ -171,17 +92,13 @@ def test_the_protocol_names_the_progress_channel_and_the_stall_signal():
 # --- the batching expectation in the contracts ------------------------------
 
 
-def test_the_crafters_contract_does_not_demand_what_a_serial_loop_cannot_give():
-    """The batching rule lands on the crafter with the caveat that keeps it
-    honest: an edit-test loop is serial, and a rule that ignores that is a
-    demand the work cannot meet. The caveat is contract rule 10's; the bar it
-    points at has one home, `docs/the-review-record.md` *The per-segment
-    bars*, and no definition carries a copy since #957."""
+def test_the_contract_cites_the_per_segment_bars():
+    """Contract rule 10 points each kind of segment at its bar, and the bar
+    has one home, `docs/the-review-record.md` *The per-segment bars*; no
+    definition carries a copy since #957."""
     contract = flat("skills", "agent-contract", "SKILL.md")
-    assert "An edit-test loop is serial" in contract, (
-        "the contract stopped conceding what a serial loop cannot give, so "
-        "the batching rule became a demand the work cannot meet"
-    )
+    # The citation every agent resolves to find the bar its segment is
+    # judged against.
     assert "`docs/the-review-record.md` *The per-segment bars*" in contract, (
         "the contract stopped pointing at the bars, and a figure with no home "
         "is one that measures the wrong agent"
@@ -206,39 +123,18 @@ def test_the_framers_definition_carries_its_opening():
     prompt goes missing without a trace (#107), and the framer's opening was
     exactly that: found by the 2026-09-28 sweep in no file at all.
 
-    The early write is a step of the order of work and the bound is a rule,
-    each asserted by phrase. The prohibition the prompts once carried is
-    asserted ABSENT over the whole definition, because the readings #456
-    took under it sat at the floor and the rewording forbids nothing."""
+    The bound is a rule of `agents/framer.md`, located by its lead. What it
+    cites and the command it gives for a large file are held by their
+    spelling; the bound's own wording is the proofer's to read."""
     text = read("agents", "framer.md")
-    whole = " ".join(text.split())
-    assert "skeleton `frame/design.md` inside your first few calls" in whole, (
-        "the early write went or lost its moment, and a skeleton written at "
-        "the end is what a watchdog loss leaves no trace of"
-    )
     rule = framer_rule(text, "Bound each call, not the reading.")
-    assert "about six reads or ranges" in rule, "the bound on one call went"
-    assert "never the whole reading list" in rule, (
-        "the bound says how large a call may be and not what it may not be, "
-        "which is the opening burst #456's stalls are the evidence about"
-    )
+    # The contract rule number the framer resolves for the rule the bound
+    # applies.
     assert "rule 10" in rule, "the bound stopped citing the rule it applies"
-    # Round 1's 🟡 3. Contract rule 10 says the files the handoff names go out in one
-    # call, so a bound with no exception for them contradicts the rule the
-    # bullet says it applies.
-    assert "whatever their number" in rule, (
-        "the bound reaches the files the spawn prompt names, which rule 10 says "
-        "go out in one call"
-    )
-    assert "read by range" in rule and "sed -n" in rule, (
+    # The command the framer types to read a large file by range.
+    assert "sed -n" in rule, (
         "the large-file half went, which is the third clause #478 recorded"
     )
-    for prohibition in ("read burst", "not to open with", "do not open with"):
-        assert prohibition not in whole.lower(), (
-            f"`agents/framer.md` carries {prohibition!r}. The rewording bounds "
-            "the opening and forbids nothing, because every reading taken "
-            "under the prohibition sat at the floor"
-        )
 
 
 # --- the per-segment bars (work item 1788277657, round 1's tests-todo) ------
@@ -247,25 +143,25 @@ def test_the_framers_definition_carries_its_opening():
 def test_the_protocol_names_a_bar_per_segment_kind():
     """One bar misread two of the three segment kinds: the ratio that judges
     a reviewer is the wrong question for an edit-test loop, and the meter's
-    numbers had no written rule at all about what they mean."""
+    numbers had no written rule at all about what they mean. Each kind's bar
+    is a value the orchestrator reads a segment against, held here by its
+    spelling; why each kind has its bar is the proofer's to read."""
     protocol = flat(*PROTOCOL)
+    # The reviewing bar, the value the orchestrator reads a proofer's
+    # segment against and `session_cost.py#SEGMENT_BARS` grades by.
     assert "tools per turn **≥ 1.8**" in protocol, "the reviewing bar went"
-    assert "never tools per turn" in protocol, (
-        "the implementing row must say which number does NOT judge it"
-    )
+    # The implementing bar, the value the orchestrator reads a crafter's
+    # segment against.
     assert "`repeats = 0`" in protocol, "the implementing bar went"
+    # The verifying row's value, which tells the orchestrator a verifying
+    # round is read against no bar.
     assert "| verifying | exempt |" in protocol
-    # #640. A frame is a wide read of independent documents, so the framer
-    # has a bar of its own, and the script's constant is cross-pinned to it
-    # below rather than read from it.
+    # #640. The framing bar, the value the orchestrator reads a framer's
+    # segment against and `session_cost.py#SEGMENT_BARS` grades by; the
+    # script's constant is cross-pinned to it below rather than read from it.
     assert "| framing | tools per turn **≥ 1.4** |" in protocol, (
         "the framing bar went, and `--segments` grades framer rows against a "
         "number no policy states"
-    )
-    assert "never a refusal threshold" in protocol, (
-        "the bar is a lens for rounds of ordinary size — a 23-call round "
-        "read 1.64 doing everything right, and a gate failing it would "
-        "punish the small honest round"
     )
 
 
@@ -291,145 +187,43 @@ def bars_section(text):
 
 
 def test_the_tying_paragraph_says_which_reading_applies_the_bars():
-    """#640. The paragraph said the script cannot tell a reviewer's
-    transcript from an edit-test loop, and for `--segments` that stopped
-    being true: a row's kind is the `subagent_type` of the spawn it was
-    joined to. The plain reading still cannot tell, which is why its
-    advisory stays where it is and why the sentence is narrowed to it rather
-    than removed."""
+    """#640. For `--segments` a row's kind is the `subagent_type` of the
+    spawn it was joined to, and the paragraph names that field. What the
+    paragraph says the plain reading cannot tell is the proofer's to read."""
     section = bars_section(read(*PROTOCOL))
-    assert "`--segments` applies the bars above by kind" in section, (
-        "the paragraph does not say the page grades a row, so a reader meets "
-        "a named row under a bar with no policy saying where it came from"
-    )
+    # The transcript field `session_cost.py` joins a row's kind by, which
+    # the orchestrator reads to know why a row is graded.
     assert "`subagent_type`" in section, (
         "the paragraph says the page knows a row's kind and not how"
     )
-    assert "a row with no kind is not graded" in section, (
-        "the paragraph leaves an unnamed row's grade to be guessed"
-    )
-    assert (
-        "the plain reading cannot tell a reviewer's transcript from an "
-        "edit-test loop" in section
-    ), (
-        "the sentence about what the script cannot tell was dropped instead "
-        "of narrowed, and it is still true of the plain reading"
-    )
 
 
-def test_the_bars_and_the_run_level_table_judge_different_things():
+def test_the_bars_section_cites_the_run_level_tables_owner():
     """Two instruments over the same run, and a reader who meets only the
-    bars has no way to know the second one exists.
-
-    A bar reads one transcript against its own kind. The run-level table
-    reads a whole run against the last run measured, which is a question no
-    bar asks -- rounds, wall clock, commits and tokens together. The section
-    that owns the bars is where that distinction has to be drawn, because it
-    is the section an orchestrator opens holding a segment's numbers.
-
-    The absence half is asserted as hard as the presence half. The table's
-    rows are defined in `skills/verify/SKILL.md`, and a copy of them here
-    would be a second thing to keep in step; and the table goes to the
-    rolling log the measurement section already names, so a sentence that
-    reads as a new home for a reading is the other way this paragraph can go
-    wrong."""
+    bars has no way to know the second one exists. The section that owns the
+    bars cites the section that owns the run-level table, by its file and
+    its heading. Which instrument judges what is the proofer's to read."""
     section = bars_section(read(*PROTOCOL))
-    assert (
-        "The bars judge a segment against its kind; the run-level table "
-        "judges a run against the last run measured." in section
-    ), (
-        "the section does not say which instrument judges what, so a reader "
-        "holding a segment's numbers meets one bar and no run"
-    )
     # `docs/` is not edited by a pull request: #940 moved the table to
     # `skills/verify/orchestration.md`, and its `## Rule changes` item moves
     # this citation at the settle after its release. Until then the section
-    # names the old path, and either path names the owner.
+    # names the old path, and either path names the owner. The path is the
+    # citation the orchestrator resolves for the table's rows.
     assert any(path in section for path in OWNER_PATHS), (
         "the section names no owner for the table, so a reader arriving for "
         "its rows leaves with neither them nor the path to them"
     )
+    # The heading the same citation names, which the orchestrator resolves
+    # in that file.
     assert "Measure the segment, and feed the flow log" in section, (
         "the pointer names the file and not the section, which is a whole "
         "skill to search for one table"
-    )
-    assert "not a destination of its own" in section, (
-        "the sentence reads as a third place a reading can go. The table "
-        "joins the segment readings in the rolling log; naming it beside the "
-        "bars must not invent a home for it"
-    )
-    assert "what the whole run cost" in section, (
-        "the paragraph says the table asks another question and never says "
-        "what it is, so a reader has the distinction and not the point of it"
-    )
-    for row in TABLE_ROWS:
-        assert row not in section, (
-            f"the section restates the table's rows ({row!r}). They are "
-            "defined in `skills/verify/SKILL.md`, and a second copy is a "
-            "second thing to keep in step"
-        )
-    # Round 2's finding 2. The labels above catch a paste-back OF THE TABLE;
-    # what round 1's finding 8 actually removed was a lowercase gloss that
-    # matches none of them. Replacing the sentence with it is already caught,
-    # because `what the whole run cost` goes with it -- but ADDING it back
-    # beside the sentence passed every case in this module. So the gloss is
-    # refused by its own removed wording, the way
-    # `test_the_protocol_no_longer_states_the_rules_it_points_at` refuses
-    # what phase 5 removed.
-    assert "rounds, wall clock, commits, findings and tokens" not in section, (
-        "the lowercase gloss of the table's rows is back in the bars "
-        "section. It is a second copy of the rows to keep in step, and being "
-        "lowercase prose rather than the labels is what let it sit here "
-        "through round 1 with nothing red"
     )
 
 
 # The table's owner, and the path `docs/the-review-record.md` named before
 # #940's rule change is applied.
 OWNER_PATHS = ("skills/verify/orchestration.md", "skills/verify/SKILL.md")
-
-# One fragment per row of the table in `skills/verify/orchestration.md`
-# *Measure the segment, and feed the flow log*, taken verbatim. Refused in the
-# bars section above and held to the owner below.
-TABLE_ROWS = (
-    "Rounds, finding and verifying",
-    "Wall clock, routing commit to last record",
-    "Commits, by kind",
-    "Findings by severity",
-    "Findings by `Location`",
-    "Records' share of the diff",
-    "Model turns",
-    "Segments: count, minutes and tokens per kind",
-    "Broad gate",
-)
-
-
-def test_the_refused_rows_are_the_owners_own():
-    """The coupling that keeps the refusal above worth having: a row reworded
-    in `skills/verify/SKILL.md` and not here leaves it guarding a string
-    nobody would paste. The same one
-    `tests/text/test_the_chain_section_has_one_shape.py` keeps over its own list.
-
-    Round 1's finding 8 widened that refusal from three labels to nine, and
-    round 2's finding 2 is that the widening does not reach what the finding
-    was raised against. That prose glossed five rows in lowercase -- `rounds,
-    wall clock, commits, findings and tokens` -- which shares no substring
-    with any label. So the two halves need two different checks, and the
-    gloss is refused by its own removed wording in the case above rather
-    than by this list.
-
-    Neither reaches a gloss somebody writes fresh, and no string can: the
-    words are lowercase and generic, and `rounds` occurs four times in
-    that section legitimately. That half is a reader's, and saying so is the
-    point of writing it down -- a list that reads as though it closed the
-    class is worse than one nobody expected to."""
-    owner = read("skills", "verify", "orchestration.md")
-    for row in TABLE_ROWS:
-        assert row in owner, (
-            f"{row!r} is no longer a row of the table in "
-            "`skills/verify/orchestration.md`, so the refusal above guards a string "
-            "nobody would paste. Re-take these from the owner's table"
-        )
 
 
 def test_the_scripts_bars_are_the_protocols():

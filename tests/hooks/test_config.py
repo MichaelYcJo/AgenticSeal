@@ -719,6 +719,8 @@ class Test_config_rows:
         """
         live = "| Item | Value |\n|---|---|\n| Mode | shared |\n"
         value, said = config.config_value("    ```\n" + live, "Mode")
+        # The refusal `hooks/lib/config.py` returns, whose remedy the person
+        # editing `config.md` follows.
         assert value is None and "leave a blank line above the header" in said, said
         assert config.config_rows("    ```\n\n" + live) == [("Mode", "shared")], (
             "four spaces is an indented code block and not a fence"
@@ -1843,6 +1845,8 @@ class Test_gfm_table:
         writer leave the blank line."""
         text = f"# Pact\n\n{above}| Signer |\n|---|\n| https://example.com/org/a |\n"
         _rows, refusals = config.gfm_table(text, ("Signer",))
+        # The refusal the walker returns, whose remedy the person editing the
+        # file follows.
         assert refusals and "blank line above the header" in refusals[0], refusals
 
     @pytest.mark.parametrize("name", ["LS", "PS", "NEL", "FF", "VT", "FS", "GS", "RS"])
@@ -1904,6 +1908,8 @@ class Test_gfm_table:
                 if above is None or not above.strip():
                     continue
                 _rows, refusals = config.gfm_table(text, header)
+                # The refusal the walker returns, whose remedy the person
+                # editing the file follows.
                 assert refusals and "blank line above the header" in refusals[0], (
                     kind,
                     indent,

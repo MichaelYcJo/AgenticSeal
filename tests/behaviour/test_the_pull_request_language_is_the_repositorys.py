@@ -10,13 +10,14 @@ Nothing in `hooks/` reads this file, and the reason is recorded rather than
 left as an absence a later reader takes for an oversight: judging what
 language a commit message is in means being wrong about names, identifiers
 and quoted English, and a wrong stop blocks a correct commit. The mechanism
-is the skill's text, the way it already is for the prefix vocabulary. So
-every case here is over prose, and each one pins a phrase chosen so that the
-drift it guards against cannot survive it.
+is the skill's text, the way it already is for the prefix vocabulary. So the
+cases here read the reader this file loads, and the spellings the skill and
+the template name: the file, the row, the branch shapes, the mirror's name.
+The skill's sentences around them are the proofer's to read.
 
-The absence half of each pair is what makes these worth having. A document
-can gain the corrected sentence and keep the old one two sections down, which
-is how two answers ship at once.
+Where a case still pairs a sentence with its absence, the absence half is
+what makes it worth having. A document can gain the corrected sentence and
+keep the old one two sections down, which is how two answers ship at once.
 """
 
 import glob
@@ -38,7 +39,10 @@ def test_the_skill_names_the_file_and_the_row():
     not know what to look for, and one that knows the row but not the path
     has nowhere to look."""
     text = flat(*SKILL)
+    # The file name a session opens for the row.
     assert "config.md" in text, "the skill does not name the file it reads"
+    # The row's item, which `hooks/lib/config.py` reads and a session looks
+    # for in the file.
     assert "Commit and pull request language" in text, "the skill does not name the row"
 
 
@@ -62,8 +66,8 @@ def test_the_default_is_stated_where_the_path_is():
     This case used to pin `No file, or no such row, means English` — the two
     absences the first draft named. Round 1 🟡 3 found two more (an empty
     value, an unreadable or unparseable file), so the sentence became a rule
-    over all of them and `test_the_skill_names_every_way_of_not_naming_one`
-    is where each one is now checked. What is left here is the placement.
+    over all of them, and `test_every_way_of_not_naming_a_language_lands_on_english`
+    drives the reader through each one. What is left here is the placement.
     """
     section = read(*SKILL).split(
         "## The language is the repository's, and it says so in a file", 1
@@ -162,6 +166,10 @@ def test_branch_names_stay_ascii():
         assert "ASCII" in text, f"{who} does not hold branch names to ASCII"
 
 
+# The four branch shapes, `<prefix>/<issue number>-<slug>`,
+# `feat/110-117-<slug>`, `<prefix>/<slug>` and `release/vX.Y.Z`, which a
+# session copies when it cuts a branch; the last is the one
+# `.github/scripts/label_merged_on_release_branch.py#RELEASE_BRANCH` matches.
 BRANCH_SHAPES = (
     "A branch cut from an issue is `<prefix>/<issue number>-<slug>`.",
     "A branch for two issues joins their numbers with a hyphen: `feat/110-117-<slug>`.",
@@ -170,25 +178,22 @@ BRANCH_SHAPES = (
 )
 
 
-def test_branch_names_state_the_issue_number_rule_once():
+def test_the_branch_names_section_states_the_shapes_and_the_list_links_it():
     """S6 of #940. The issue-number rule lives in *Branch names*, in place:
-    the four shapes are stated there, the exclusion list links the section
-    rather than restating a shape, and no example carries a number that is
-    not an issue's, which `perf/403-…` did."""
+    the four shapes are stated there, and the exclusion list links the
+    section. Whether a second statement of a shape or an example carrying a
+    number that is not an issue's, as `perf/403-…` did, is back is the
+    proofer's to read."""
     text = read(*SKILL)
     assert "## Branch names" in text, "the section was renamed; this case is now blind"
     section = " ".join(text.split("## Branch names", 1)[1].split("\n## ", 1)[0].split())
     for shape in BRANCH_SHAPES:
         assert shape in section, f"*Branch names* does not state {shape!r}"
     head = " ".join(text.split("## Branch names", 1)[0].split())
-    assert "<kebab-case-slug>" not in flat(*SKILL), (
-        "a second statement of the branch shape is back"
-    )
+    # The citation *Branch names*, which a session reading the exclusion list
+    # resolves to the section that states the shapes.
     assert "*Branch names* below states their shape" in head, (
         "the exclusion list no longer links the section that states the shape"
-    )
-    assert "perf/403" not in flat(*SKILL), (
-        "the example whose number reads as an issue under the rule is back"
     )
 
 
@@ -581,32 +586,6 @@ def test_the_tree_root_still_wins_over_the_git_directory(repo):
     assert configured_language(repo) == "Japanese"
 
 
-@pytest.mark.parametrize(
-    "parts, who", [(SKILL, "the skill"), (TEMPLATE, "the template")]
-)
-def test_the_mirrors_home_is_resolved_and_excludes_the_git_directory(parts, who):
-    """tests-todo row 7, from round 2 🟡 3.
-
-    Round 1 fixed this in prose and nothing pinned it, in the file whose
-    whole method is pinning prose. Three assertions, because the fix has
-    three parts and any one of them can be edited away on its own: the home
-    is resolved rather than spelled, the git directory is excluded, and the
-    reason is given rather than asserted.
-    """
-    text = flat(*parts)
-    assert "git directory" in text, (
-        f"{who} does not say where the mirror must NOT go, so local mode "
-        "gets a mirror nobody can open"
-    )
-    assert "commit candidate" in text or "cannot be committed" in text, (
-        f"{who} excludes the git directory without the reason, so the next "
-        "editor reads it as a preference"
-    )
-    assert "beside the documents the pull request already touches" in text, (
-        f"{who} says where the mirror does not go and not where it does"
-    )
-
-
 def test_a_mirror_named_for_a_country_is_caught():
     """tests-todo row 10, from round 2 🟡 7 — the can-it-fail half.
 
@@ -627,8 +606,7 @@ def test_a_mirror_named_for_a_country_is_caught():
 
 
 def test_the_documents_name_every_shape_the_walker_refuses_and_its_edit():
-    """S8 of #871, in `test_the_skill_names_every_way_of_not_naming_one`'s
-    pattern. `templates/setup/config.md`, `skills/config/SKILL.md` and
+    """S8 of #871. `templates/setup/config.md`, `skills/config/SKILL.md` and
     `hooks/lib/config.py#config_rows`' docstring each name the shapes the walker
     refuses with the one edit for each, and none of them still says the
     reader stops at a line and reads on, or that a row below a bad line is
@@ -669,18 +647,6 @@ def test_an_unreadable_config_lands_on_english_too(tmp_path):
     lands the same way."""
     (tmp_path / "seal" / "config.md").mkdir(parents=True)
     assert configured_language(tmp_path) == "English"
-
-
-def test_the_skill_names_every_way_of_not_naming_one():
-    """tests-todo row 2. The prose half: the reader above can only be right
-    if the document says the same thing, and a session reads the document."""
-    text = flat(*SKILL)
-    assert "Every way of not naming a language lands on English" in text, (
-        "the rule is not stated as one rule, so its cases read as a list "
-        "somebody may believe is complete"
-    )
-    for phrase in ("no file", "no such row", "an empty value", "does not parse"):
-        assert phrase in text, f"the skill does not name {phrase!r} as one of them"
 
 
 def test_the_template_is_one_item_value_table_whose_first_row_is_the_language():

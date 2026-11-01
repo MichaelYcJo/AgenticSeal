@@ -75,7 +75,7 @@ name this change's own axes before starting: money and rounding, time zones,
 resource lifetime, migration ordering, pagination while writes land, whatever
 the diff touches. Walk them like the rest. An axis you could not judge is a
 row of `## Not judged`, never a silent pass.
-check: tests/text/test_review_axes.py
+check: none reader: the orchestrator at each hand-back
 
 ## Probes and regression tests
 
@@ -94,7 +94,7 @@ A fixture chain is `&&`, never `|`: a pipe feeds one command's output to the
 next instead of ordering them, and the chain can sit waiting on stdin with
 nothing arriving. Give any call that could run long a timeout you chose
 rather than one you assumed.
-check: tests/behaviour/test_a_probe_that_commits_says_so.py tests/text/test_a_probe_does_not_outlive_its_round.py
+check: tests/behaviour/test_a_probe_that_commits_says_so.py
 
 ## Earlier rounds
 

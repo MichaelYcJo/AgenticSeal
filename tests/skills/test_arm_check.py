@@ -23,9 +23,9 @@ slice exactly, as `ONLY_ON_SOME_PYTHONS` declares it, and
 `.github/workflows/test.yml` to running this module at every bound of it and
 at the Python just below each.
 
-#942's phase 6 placed the cases in classes. The three that read the workflow
-or the verify skill, and the reader of the workflow's pytest lines, stay at
-the top level for #923.
+#942's phase 6 placed the cases in classes. The ones that read the workflow,
+and the reader of the workflow's pytest lines, stay at the top level for
+#923.
 """
 
 import ast
@@ -292,45 +292,6 @@ def test_a_job_counts_only_where_its_pytest_line_selects_this_module(line, runs)
     Red how: with `_removes_this_module` answering False, and with the
     `_UNREADABLE` branch deleted. Executed."""
     assert selects_this_module(line) is runs
-
-
-def test_the_skill_calls_its_survivor_counts_a_measurement_and_not_a_property():
-    """Round 1's finding 5, and it is this work item's own argument turned on
-    it.
-
-    #262 exists because a count typed into a document rots: its own table says
-    33 arms where the module has 31, because the file changed twice after the
-    count was taken. The section that introduces this checker then printed
-    `1 of 32` and `12 of 32` in a column headed like a property of the module,
-    with no date and nothing reading it.
-
-    What is pinned here is the CLAIM, not the numbers. A case asserting
-    `12 of 32` is the rotting list one file further on. Since #940 the
-    section prints no count at all, because the hook it was measured on was
-    removed and the column described nothing in the tree; it says a count is
-    a measurement, to be taken with the command and never written down.
-    Asserted as a whole clause and lowered, for the reasons #310's case
-    carries.
-
-    Red how: deleting the sentence, or putting a measured column back.
-    Executed."""
-    with open(
-        os.path.join(ROOT, "skills", "verify", "SKILL.md"), encoding="utf-8"
-    ) as f:
-        text = " ".join(f.read().split()).lower()
-    assert "a survivor count is a measurement, not a property of the module" in text, (
-        "a reader who takes a survivor count for a property of the module is "
-        "reading a number that moves when either the module or its cases "
-        "change — which is the rot #262 is about, arriving in the document "
-        "that introduces the checker"
-    )
-    assert "never write one into a document" in text, (
-        "and it has to say what to do instead, or the disclosure is a caveat "
-        "with no action in it"
-    )
-    assert " of 32 " not in text and "survived |" not in text, (
-        "the section prints a survivor count again"
-    )
 
 
 # --- the counting rule ----------------------------------------------------

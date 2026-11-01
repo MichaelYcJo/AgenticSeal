@@ -1018,21 +1018,20 @@ def test_the_python_floor_is_the_same_number_everywhere():
     )
 
 
-def test_update_takes_out_only_what_the_markers_hold():
+def test_update_names_the_marker_of_the_block_it_takes_out():
     """`claude plugin update` installs the plugin and never opens `CLAUDE.md`,
     so a block a release before 0.25.0 wrote stays unless the update command
-    takes it out (#1177). It takes the marker region and nothing outside it;
-    `tests/behaviour/test_the_old_block_leaves_through_update.py` runs the
-    step's command."""
+    takes it out (#1177). The command names the marker that opens the
+    region; `tests/behaviour/test_the_old_block_leaves_through_update.py`
+    runs the step's command, which takes the region and nothing outside it."""
     with open(
         os.path.join(ROOT, "skills", "update", "SKILL.md"), encoding="utf-8"
     ) as f:
         update = f.read()
+    # The marker `agentic:start`, which the update step's command matches in
+    # the user's `CLAUDE.md` to find the block it takes out.
     assert "agentic:start" in update, (
         "the update command stopped taking the preset block out"
-    )
-    assert "does not delete anything the user wrote" in update.lower(), (
-        "taking a release started resolving overlaps with the user's own text"
     )
 
 
@@ -1113,61 +1112,6 @@ def test_update_shows_what_changed_from_the_github_releases():
         assert refused not in flat, f"step 3 carries {refused!r}"
 
 
-def test_the_release_target_is_asked_before_the_work_starts():
-    """The base branch decides whether a PR is a release, so it is a question
-    with an answer available in the first minute.
-
-    Left to the end it arrives after the branch exists and the changelog entry
-    is already written under the wrong heading -- the same late-question
-    failure the commit gate was moved forward to avoid."""
-    # The branch question is part of the routing section, which is the
-    # orchestrator's half of `implement` since #292; the yes/no tell it
-    # answers to stays in the implementer's half. The skill is read as both.
-    # `agents/crafter.md` carried the same paragraph until #967: the crafter opens
-    # no pull request and asks nothing, so the question is not its own, and
-    # what stays for it is the absence below.
-    assert "## Unreleased" not in " ".join(read_text("agents", "crafter.md").split()), (
-        "crafter.md prescribes a changelog heading again"
-    )
-    for parts, text in (
-        (
-            ("skills", "implement", "orchestration.md"),
-            read_text("skills", "implement", "SKILL.md")
-            + read_text("skills", "implement", "orchestration.md"),
-        ),
-    ):
-        # Collapsed, because both files wrap these sentences at different
-        # columns and a literal match would be asserting the line breaks.
-        text = " ".join(text.split())
-        assert "A pull request into `main` is a release" in text, (
-            f"{parts[-1]} stopped saying which base branch means a release"
-        )
-        assert "release branch is not a release" in text, (
-            f"{parts[-1]} stopped saying which base branch does NOT release"
-        )
-        assert "accumulates" in text, (
-            f"{parts[-1]} lost the accumulate half of the question"
-        )
-        # Round 1, 🔴 7. This used to require the literal `## Unreleased`, and
-        # that is a heading THIS repository no longer has: entries accumulate
-        # as `seal/threads/<work-item-id>/changelog.md` fragments. A `crafter`
-        # reading
-        # its own contract therefore either created the heading — reddening
-        # the case that refused it in `CHANGELOG.md`, which #1053 removed with
-        # the file — or appended under the newest released section, the collision
-        # the fragments exist to remove. The two cases pulled against each
-        # other and the contract was the one that was wrong.
-        assert "## Unreleased" not in text, (
-            f"{parts[-1]} prescribes a changelog heading again. Where an "
-            "entry accumulates is the repository's convention, and a shipped "
-            "contract that names one sends a session to write it"
-        )
-        assert "yes/no" in text, (
-            f"{parts[-1]} stopped saying the question has two continuing "
-            "answers, which is what keeps a `no` from stranding the work"
-        )
-
-
 def test_the_token_stays_the_smallest_that_can_close_an_issue():
     """Read the permissions block as a mapping, not as text.
 
@@ -1217,110 +1161,34 @@ def test_no_korean_pr_body_claims_a_close_that_did_not_happen():
                 )
 
 
-def test_the_document_says_where_an_issue_actually_closes():
+def test_the_document_shows_the_forms_a_feature_pull_request_writes():
     """Three pull requests wrote a closing keyword into a base that is not the
     default branch, and GitHub closed nothing.
 
     #89 wrote `Closes #88`, #97 wrote `Closes #54`, #100 wrote `Closes #92`.
     All three merged into the release branch; #88 and #92 were closed by hand
-    once somebody noticed and #54 is still open. The squash messages carry no
-    keyword either, so the release merge does not fire one as a side effect —
-    which leaves the `release/*` to `main` pull request body as the only place
-    in the whole sequence where an issue closes at all.
-
-    Four things have to survive together or the rule is not the rule: that a
-    feature pull request's keyword does nothing, WHY (its base is not the
-    default branch), that the squash message is not a second chance, and where
-    the keywords go instead. Deleting any one of them leaves prose.
-
-    Collapsed before matching, because both documents are hand-wrapped and a
-    literal match would be asserting their line breaks.
+    once somebody noticed and #54 is still open. A workflow reads the
+    keywords instead. The document's example block is what a person copies,
+    and it names the form for a pull request that closes nothing. Where an
+    issue closes, why, and where the rule sits in the release sequence are
+    the proofer's to read.
     """
     doc = " ".join(read_text("docs", "branch-and-release.md").split())
-    assert "closing keyword does nothing when the base is `release/vX.Y.Z`" in doc, (
-        "the document stopped saying which base makes the keyword inert -- "
-        "and round 1 found the earlier wording, which blamed the kind of "
-        "branch, false for #87: a fix branch straight into `main` whose "
-        "`Closes #75` fired"
-    )
-    assert "The base is what decides this, not the kind of branch" in doc, (
-        "the exception went, so a hotfix headed for `main` reads this rule "
-        "and throws away a close that would have fired"
-    )
-    assert "default branch, and that branch is `main`" in doc, (
-        "the cause is stated with the wrong branch named as default, which "
-        "inverts the whole rule while every other sentence still reads true"
-    )
-    assert "left no LINK either, though the mention survives" in doc, (
-        "the link half went, or came back as the overstatement round 1 "
-        "measured false: `closingIssuesReferences` is `[]` and no `connected` "
-        "event exists, but the CROSS-REFERENCE does survive -- opening #88 "
-        "still shows #89. `no record at all` is the claim to keep out"
-    )
-    assert "squash commit message does not carry the keyword either" in doc, (
-        "nothing rules out the release merge firing the keyword as a side "
-        "effect, which is the reading that makes the rule look unnecessary"
-    )
-    assert "a workflow reads the keywords instead" in doc, (
-        "the document names no mechanism that closes an issue at all"
-    )
-    assert "keyword repeats before every number" in doc, (
-        "the collected form lost the reason it repeats the keyword — a bare "
-        "`Closes #88, #92` closes one issue of two and reads as though it "
-        "closed both"
-    )
-    # Round 1: every assertion above pins PROSE, and what gets copied into a
-    # release pull request body is the CODE BLOCK. Rewriting it to the exact
-    # form the paragraph beneath it warns against left all five green.
-    # The example is what a person copies. Round 1 rewrote it into the exact
-    # form the paragraph beneath warns against and every prose assertion
-    # stayed green, so the block itself is pinned.
+    # The example block a person copies into a feature pull request body:
+    # one keyword and one number, the form
+    # `.github/workflows/close-issues-on-release.yml` reads. Round 1
+    # rewrote it into the form the paragraph beneath warns against, and
+    # every prose assertion stayed green, so the block itself is pinned.
     assert "```\nCloses #88\n```" in read_text("docs", "branch-and-release.md"), (
         "the example block went, or grew back into a list -- one keyword and "
         "one number is what a feature pull request writes, and it is the only "
         "form the workflow reads"
     )
-    assert "skipped rather than\n" not in doc  # collapsed doc; guard the phrase below
-    assert "an issue already closed is skipped rather than" in doc, (
-        "the workflow's only-ever-closes property left the document, which is "
-        "what makes a re-run safe to reason about"
-    )
-    assert "A force-push is a different case and not a safe one" in doc, (
-        "the document went back to calling a force-push harmless. It is not "
-        "idempotent, it FAILS -- GitHub sends the displaced SHA and the range "
-        "cannot be resolved -- and the two are different claims"
-    )
-    assert "sanctions no shorter form" in doc, (
-        "the reason the keyword repeats went. It is what the documentation "
-        "PRESCRIBES -- an earlier draft asserted the bare list closes only "
-        "the first issue, which no source says and round 1 caught"
-    )
+    # The form `Part of #N`, which a person writes for a pull request that
+    # advances an issue without closing it; the code span is the fact.
     assert "`Part of #N` remains the form" in doc, (
         "the feature-pull-request form is gone -- the rule now says what does "
         "not work and nothing about what to write instead"
-    )
-    # The rule has to sit INSIDE the release sequence. `plan.md` rejected
-    # appending it to the end of the file in writing, and moving it there was
-    # green: a substring search reads a document as a bag of sentences.
-    shapes = doc.index("The two merge shapes are not interchangeable")
-    rule = doc.index("closing keyword does nothing when the base is")
-    version = doc.index("The version is named at the cut")
-    assert shapes < rule < version, (
-        "the rule left the release sequence -- a reader walking the sequence "
-        "to write the release pull request no longer arrives at it"
-    )
-    assert "by a workflow rather than by anybody's hand" in doc, (
-        "the bullet a sequence reader meets first went back to naming the "
-        "release pull request body as the place an issue closes. It sat sixty "
-        "lines above the paragraph that replaced it, so a reader walking the "
-        "sequence got the old answer and stopped -- and then wrote no "
-        "`Closes #N` for the workflow to read"
-    )
-    pointer = " ".join(read_text("CONTRIBUTING.md").split())
-    assert "which issues a release closes" in pointer, (
-        "CONTRIBUTING's release section stopped naming this among what "
-        "`docs/branch-and-release.md` holds, so a reader deciding whether to "
-        "open it before a merge is not told the answer is in there"
     )
 
 

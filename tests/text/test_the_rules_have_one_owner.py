@@ -35,7 +35,6 @@ TRACKER = ("docs", "issues-and-milestones.md")
 RECORD_LAYOUT = ("docs", "the-record-layout.md")
 CONFIG_TEMPLATE = ("templates", "setup", "config.md")
 CONFIG_SKILL = ("skills", "config", "SKILL.md")
-ROUND_TEMPLATE = ("templates", "records", "sdd-round.md")
 
 ONE_SEAL_IS_FINAL = (
     "`skills/verify/SKILL.md` *The hand-back's labels carry the claims, and "
@@ -247,97 +246,41 @@ def test_the_framers_route_closes_each_finding_with_a_close_block_in_one_commit(
         )
 
 
-def test_a_draft_is_tolerated_and_still_owes_the_record():
-    """#943 stopped telling an orchestrator to open a draft, and did not
-    refuse a repository whose people still open one.
-
-    BOTH halves are asserted: a draft is not refused, and the record is
-    still owed once it is marked ready. Requiring only the first would go
-    green over a document that had quietly turned the draft into a permanent
-    exemption.
-    """
-    assert "A repository that still opens a draft is not refused." in flat(*ORCH)
-    assert (
-        "`ready_for_review` event re-runs it when the draft is marked ready, "
-        "so the record is still owed then"
-    ) in flat(*ORCH)
-    assert "Nothing that can reach `main` is exempt" in flat(*ORCH)
-
-
 def test_the_orchestrator_writes_the_body_file_the_sealer_reads():
-    """S8 of #943, the orchestrator's half. `agents/sealer.md` reads the pull
-    request body from a file the spawn prompt names, because no pull request
-    exists when the sealer runs. The owner section writes that file, names it
-    in the spawn, opens the pull request with it, and gives a repaired body to
-    a pull request already open on the stated limit's path. Round 1 of #943
-    reverted each of the first three and this module stayed green.
-
-    S12 of #1044: `seal pr-body` writes the body's copy of the records, so
-    the orchestrator runs it after `trail/gate.md` is committed, which that
-    copy includes, writes its own part above the heading (#1148) and
-    restates no record there, and runs it again before every later sealer
-    spawn and every `PATCH` of the body, which is every repair's last step."""
+    """S8 of #943 and S12 of #1044, the orchestrator's half. The owner
+    section names the commands that write the pull request body's file and
+    send it, and the constant that marks where the copy of the records
+    starts. Each is something the orchestrator types or opens, so each is
+    held by its spelling; the order and the wording around them are the
+    proofer's to read."""
     text = flat(*ORCH)
     pinned = [
-        "the issue and the file holding the pull request body",
+        # The command the orchestrator types to open the pull request from
+        # the body file.
         "`gh pr create --body-file <that file>`",
+        # The command the orchestrator types to give an open pull request a
+        # repaired body.
         "`gh api -X PATCH repos/<owner>/<repo>/pulls/<N> -F body=@<file>`",
-        "write the pull request body after `trail/gate.md` is committed",
+        # The command the orchestrator types to write the body's copy of the
+        # records, with the scratchpad path the sealer's spawn names.
         "`seal pr-body <item> --body <scratchpad>/<work-item-id>/pr-body.md`",
+        # The citation the orchestrator resolves to find the line its own
+        # part goes above.
         "`skills/code-review/scripts/pr_body.py#HEADING`",
-        "Then write your own part above that line, from the top of the file",
-        "Your part restates no record",
-        "before every later spawn of the sealer and before every "
-        "`gh api -X PATCH` of the body",
     ]
     missing = [phrase for phrase in pinned if phrase not in text]
     assert missing == [], missing
-    assert "once you have written the pull request body to a file" not in text
-    gate = flat("docs", "the-broad-gate.md")
-    assert "before the pull request opens" in gate
-    assert "before a pull request is marked ready" not in gate
 
 
-def test_a_run_that_stops_before_the_pull_request_pushes_nothing():
-    """Round 1 of #943, finding 2. `Destination | stop before the pull
-    request` hands the branch back committed and unpushed, and the review
-    chain still runs under it, so both of the owner section's pushes are
-    conditioned on the destination."""
+def test_the_owner_names_the_dispatch_command():
+    """S4 of #943 and #1058. The owner section names the run that pays for
+    the other platforms before the pull request opens, as the command the
+    orchestrator types; why that run sees what a `pull_request` run sees,
+    and the limit left, are the proofer's to read."""
     text = flat(*ORCH)
-    assert (
-        "Where `Destination` reads `open the pull request`, push the branch"
-    ) in text
-    assert (
-        "Under `stop before the pull request` nothing is pushed, and the "
-        "branch is handed back committed and unpushed."
-    ) in text
-    assert (
-        "Under `stop before the pull request` push nothing: name the "
-        "platform risk in the hand-back"
-    ) in text
-
-
-def test_the_owner_states_the_dispatch_step_and_the_limit():
-    """S4 of #943. Opening the pull request after the sealer moves the other
-    platforms to the end, so the owner section says how a platform-specific
-    change pays for them earlier, and states what is left: a defect only one
-    platform shows is met at the pull request and takes the repair path.
-    #1058: the step names the run it reads, why that run's cases see what a
-    `pull_request` run's cases see, and what it cannot have."""
-    text = flat(*ORCH)
+    # The command the orchestrator types to dispatch the `tests` workflow on
+    # its branch.
     assert "run `gh workflow run tests --ref <branch>`" in text
-    assert (
-        "That run is a `workflow_dispatch` run of `tests`. Its cases see what "
-        "a `pull_request` run's cases see, because `tests/conftest.py` removes "
-        "every `GITHUB_` variable at import. It cannot have a pull request's "
-        "merge commit, or the `hygiene` workflow, which starts only on a "
-        "`pull_request` event."
-    ) in text
-    assert (
-        "**The stated limit: a defect that only one platform shows, in work "
-        "nobody expected to be platform-specific, is found when the pull "
-        "request opens, after the sealer.**"
-    ) in text
 
 
 def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge():
@@ -396,30 +339,6 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
 STEP_2 = "2. The framer writes `frame/design.md`, `plan.md` and `questions.md`."
 
 
-def test_the_order_opens_the_pull_request_after_the_sealer():
-    """`skills/implement/orchestration.md` *Orchestrator: the order inside a
-    ticket* is what a session reads to know what comes after the crafter. #943
-    moved the pull request from between the build and the rounds to after
-    the sealer, so no step of the order opens, keeps or readies a draft."""
-    text = flat(*ORCH_IMPL)
-    step = text[text.index(STEP_2) : text.index("3. The pull request body")]
-    # 1790815611 (#638) wrote the orchestrator's preflight in as the step
-    # before the sealer's spawn, and #969 the broad run after it: the sealer
-    # reads the run's record, so the run comes before the spawn. Since #940
-    # the step says it in words rather than arrows. #1044 put the body's
-    # copy of the records between the run and the spawn, since it copies
-    # the run's record and the sealer checks it.
-    assert (
-        "spawns the crafter (*The frame is read against the issue at the "
-        "spawn* below). The "
-        "proofer's rounds follow, then `seal gate --preflight` and `seal gate "
-        "--record`, both run by the orchestrator, then `seal pr-body`, which "
-        "the orchestrator runs to write the pull request body's copy of the "
-        "records, then the sealer, and then the pull request opens (" in step
-    ), step
-    assert "draft" not in step, step
-
-
 def test_the_order_no_longer_defers_the_framer_to_a_ticket():
     """Step 2 read `spec · plan (framer, once #84 exists; the session until
     then)` -- a step written before the agent it names, carrying its own
@@ -433,27 +352,6 @@ def test_the_order_no_longer_defers_the_framer_to_a_ticket():
             f"step 2 still carries `{gone}`. The framer ships, so the interval "
             "that clause covered is over and the escape reads as the rule"
         )
-
-
-def test_the_acts_table_says_no_commit_holds_who_wrote_the_close_block():
-    """#1041, the owner's answer of 2026-10-28: the fix pass commits neither
-    line, so the row's `Grounds` cell cannot send a reader to the history
-    for who wrote them. The table is `skills/implement/acts.md`'s since
-    #1148, and the two lines are one close block since #1198."""
-    text = flat("skills", "implement", "acts.md")
-    start = text.index(
-        "| Orchestrator: a phase is a fresh crafter, and a fix pass resumes the implementer |"
-    )
-    row = text[
-        start : text.index(
-            "| Orchestrator: the run ends with a verifying round |", start
-        )
-    ]
-    assert "is in no commit, because the fix pass commits no close block" in row
-    assert "`verdict:` and `answer:` lines" not in row
-    assert (
-        "whether that commit changed them are in the round record's history" not in row
-    )
 
 
 def the_order():
@@ -512,219 +410,37 @@ def test_a_recurring_problem_gets_a_prevention_home():
         assert said in order, f"the order no longer says {said!r}"
 
 
-def test_a_regression_is_a_defect_a_fix_passs_own_commit_made():
-    """The owner's ruling of 2026-10-16, on round 7 of work item 1791933022:
-    a `regression:` line names a defect a fix pass's own commit introduced,
-    and a defect in a unit a build phase made, which the framer designed and
-    the owner approved, is an ordinary finding of new work, so its round
-    gets its fix pass. The document states it, and the proofer, who writes
-    the line, says the same."""
-    run = flat(*RECORD)
-    run = run[run.index("## The run") : run.index("## The handoff")]
-    assert "A regression is a defect a fix pass's own commit introduced." in run
-    assert "is an ordinary finding of new work" in run
-    for carrier in (RECORD, PROOFER):
-        text = flat(*carrier)
-        assert "a fix pass's own commits added or changed" in text, (
-            f"{'/'.join(carrier)} does not say a `regression:` line is for a "
-            "unit a fix pass's own commits made"
-        )
-        assert "the fixes under review added or changed" not in text, (
-            f"{'/'.join(carrier)} still gives a `regression:` line to any unit "
-            "the reviewed commits made, a build phase's among them"
-        )
-        # Round 9 of 1791933022, finding 1: every `fixed` commit touches its
-        # finding's path, so a fix that did not hold has usually changed the
-        # unit its defect still stands in. The unit alone gave that finding
-        # both lines; the defect's origin decides it.
-        assert "those commits introduced" in text, (
-            f"{'/'.join(carrier)} gives a `regression:` line to a unit a fix "
-            "pass changed without asking whether its commits made the defect"
-        )
-        assert "left the defect standing" in text, (
-            f"{'/'.join(carrier)} does not say a `fixed` commit that left the "
-            "defect standing in the unit it changed takes `reopens:`"
-        )
-
-
 def sentences(text):
     """`text`, flattened, cut after each full stop: the unit a pinned
     relation has to stand in together."""
     return re.split(r"(?<=\.)\s+", text)
 
 
-def the_run():
-    text = flat(*RECORD)
-    return text[text.index("## The run") : text.index("## The handoff")]
-
-
 @pytest.mark.rule("run-ends-with-verifying-round")
 def test_a_close_that_does_not_hold_reopens_it():
-    """The owner's decision of 2026-10-16, on round 8 of work item
-    1791933022 (S9, S26): a close that does not hold where no fix pass's
-    commit made the defect is raised again on a `reopens:` line, as an
-    ordinary finding that gets its fix pass. *The run* says so; every
-    carrier that names the channel's `confirms:` and `regression:` lines in
-    one sentence names `reopens:` in it too; and the orchestration's
-    verifying-round section ends the run only where the check does."""
-    reopened = [
-        s for s in sentences(the_run()) if "`reopens:`" in s and "does not hold" in s
-    ]
-    assert reopened, "*The run* does not say a close that does not hold reopens"
-    assert any(
-        "where no fix pass's commit made the defect" in s
-        and "gets its fix pass" in s
-        and "framer" not in s
-        for s in reopened
-    ), reopened
+    """S9 and S26 of work item 1791933022. A verifying round answers each
+    closed finding on one of three line keywords, `confirms:`,
+    `regression:` and `reopens:`, which `hooks/lib/fields.py` spells and the
+    chain check reads. Every carrier that names the first two in one
+    sentence names the third in it too, so no carrier hands the proofer a
+    channel with a keyword missing. When a close reopens, and how the run
+    ends, are the proofer's to read."""
     for carrier in (RECORD, PROOFER, SKILL, ORCH):
         both = [
             s
             for s in sentences(flat(*carrier))
             if "`confirms:`" in s and "`regression:`" in s
         ]
+        # The two line keywords `hooks/lib/fields.py` spells, which the
+        # proofer writes and the chain check reads.
         assert both, f"{'/'.join(carrier)} names the channel nowhere"
         for s in both:
+            # The third line keyword of the same channel, `reopens:`, which
+            # the proofer writes and the chain check reads.
             assert "`reopens:`" in s, (
                 f"{'/'.join(carrier)} names the channel by `confirms:` and "
                 f"`regression:` alone: {s}"
             )
-    orch = flat(*ORCH)
-    verifying = orch[
-        orch.index("So a run ends with a **verifying round**") : orch.index(
-            "### A regression"
-        )
-    ]
-    assert "the run ends at that round" not in verifying
-    # #1148: a `fixed` finding located in the work item's records alone,
-    # whose commit touched them alone, is read by the sealer at HEAD, and the
-    # check passes it in the last record.
-    # #1198: a finding with no close block is open, and `open` is no verdict.
-    assert (
-        "run ends only on a round whose record holds no finding without a "
-        "close block, no `rejected` one, and no `fixed` one that names a path "
-        "outside the work item's records or whose commit touched one" in verifying
-    ), "the verifying-round section no longer says where the run ends"
-    # Round 9 of 1791933022, finding 3: the check holds a second condition on
-    # the same record, so a run ended on the first alone is refused.
-    assert (
-        "and whose `target:` commit is HEAD, or is followed only by the work "
-        "item's own records" in verifying
-    ), "the verifying-round section ends the run on one of the check's two conditions"
-
-
-@pytest.mark.rule("run-ends-with-verifying-round")
-def test_a_fix_pass_to_the_records_alone_owes_no_verifying_round():
-    """S4 of #1148. `chain_check.py#records` passes a `fixed` of the last
-    record located in the work item's records alone whose commit touched
-    them alone, so the orchestration that spawns the verifying round says
-    the same: such a fix pass owes none, its reader is the sealer, a
-    finding located in code owes the round whatever its fix touched, and
-    the round's *When* says the same exception (round 1 of #1148, finding
-    1)."""
-    orch = flat(*ORCH)
-    opening = orch[
-        orch.index("## Orchestrator: the run ends with a verifying round") : orch.index(
-            "So a run ends with a **verifying round**"
-        )
-    ]
-    assert (
-        "except a fix pass whose findings are all located in the work item's "
-        "own records and whose commits touched only those records" in opening
-    ), opening
-    assert "the sealer reads every record at HEAD and is that fix's reader" in opening
-    assert "the pass owes no verifying round" in opening, opening
-    assert (
-        "A finding located in code is read by a round whatever its fix touched"
-        in opening
-    ), opening
-    assert (
-        "**after the fixes** for the previous round are committed, never "
-        "before, or it reviews what has already been reviewed; a fix pass "
-        "whose findings are all located in the work item's records, with "
-        "commits that touched nothing else, owes none" in orch
-    ), "the verifying round's When row does not state the records-only exception"
-
-
-COMPARISON = ("what the frame says", "what the fix did", "where the defect came from")
-
-
-def test_a_regression_is_routed_by_comparing_the_fix_with_the_frame():
-    """The owner's refinement of 2026-10-16, on round 8 of work item
-    1791933022 (S27): a `regression:` line does not send the work item to
-    its framer by itself. One sentence of the finding's grounds compares the
-    fix with the frame, and the round is routed on it: to the framer where
-    the fix built what the frame says, to a fix pass where it departed or
-    the defect came from how it was written, and to the framer for a second
-    regression on the same unit after a fix-pass route."""
-    run = the_run()
-    assert "**A regression is routed by comparing the fix with the frame.**" in run
-    for carrier in (RECORD, PROOFER, ORCH):
-        assert any(
-            all(part in s for part in COMPARISON) for s in sentences(flat(*carrier))
-        ), f"{'/'.join(carrier)} does not name the comparison in one sentence"
-    for route in (
-        "Where the fix built what the frame says and the defect is still there",
-        "the work item goes back to its framer",
-        "Where the fix departed from the frame, or the defect came from how the "
-        "fix was written",
-        "a paste-ready fix taken from a review record among them",
-        "gets an ordinary fix pass",
-        "A second regression on the same unit after a fix-pass route is the "
-        "signal that the frame is wrong whatever the sentence reads",
-    ):
-        assert route in run, f"*The run* no longer says {route!r}"
-    assert "### A regression is routed by comparing the fix with the frame" in flat(
-        *ORCH
-    )
-    for carrier in (RECORD, ROUND_TEMPLATE, ORCH, PROOFER, FRAMER):
-        text = flat(*carrier)
-        for gone in (
-            "A round carrying a `regression:` line gets no fix pass",
-            "A round carrying one gets no fix pass",
-            "no fix pass is commissioned",
-            "the fix passes stop",
-            "A regression stops the fix passes",
-            "A regression sends the work item back to its framer",
-        ):
-            assert gone not in text, (
-                f"{'/'.join(carrier)} still routes on the `regression:` line "
-                f"alone: {gone!r}"
-            )
-
-
-def test_the_cap_counts_from_the_last_design_change():
-    """The owner's decision of 2026-10-16, on round 9 of work item
-    1791933022, finding 2: the round cap counts from the last design change,
-    a reframe or a new phase the owner approved, so the first review of new
-    work starts a fresh count; a regression routed to a fix pass is followed
-    by one verifying round whatever the count; and the loop guard stands.
-    The extension rule stopped extending at any round carrying a regression,
-    which left both routes a regression now takes with no round to go on to
-    past round 3; #1167 replaced the extension with the orchestrator's
-    judgment, settled into *The run* in 0.27.1's settle."""
-    run = the_run()
-    for said in (
-        "counted from the last design change",
-        "a reframe, or a new phase the owner approved in `frame/plan.md`",
-        "starts the count again",
-        "followed by one verifying round whatever the count",
-    ):
-        assert said in run, f"*The run* no longer says {said!r}"
-    assert (
-        "A second regression on the same unit after a fix-pass route is the "
-        "signal that the frame is wrong" in run
-    ), "*The run* lost the loop guard"
-    for carrier in (ORCH, ("README.md",)):
-        assert "counted from the last design change" in flat(*carrier), (
-            f"{'/'.join(carrier)} caps rounds without saying where the count starts"
-        )
-    assert "마지막 설계 변경" in flat("README.ko.md"), (
-        "README.ko.md caps rounds without saying where the count starts"
-    )
-    assert "the record that stopped the run" not in flat(*FRAMER), (
-        "agents/framer.md still reads a regression's round as the end of the run"
-    )
 
 
 JUDGMENTS = "`frame/plan.md` *Judgments of the run*"
@@ -734,11 +450,11 @@ def test_the_orchestrators_run_judgments_are_rows_of_the_plan():
     """#1167, *Scope* item 11. The cap, the second regression on one unit
     and a decision folded after the frame are judgments the orchestrator
     weighs, and each goes to one row of the plan's table, which the
-    settle's dry run reads; the extension line the proofer wrote from the
-    spawn prompt, which no round record ever carried, goes, and so does the
-    route taken whatever the comparison says. *The run* in the policy root
-    changes at the settle, so this reads the two skill files the
-    orchestrator acts from."""
+    settle's dry run reads. Each place the orchestrator acts from cites
+    that table, and the citation is what this reads; the signals the cap
+    names are the proofer's to read. *The run* in the policy root changes
+    at the settle, so this reads the two skill files the orchestrator acts
+    from."""
     text = flat(*ORCH)
     run = text[
         text.index("## Orchestrator: the run ends with a verifying round") : (
@@ -748,23 +464,16 @@ def test_the_orchestrators_run_judgments_are_rows_of_the_plan():
     regression = text[
         text.index(REGRESSION) : text.index("## Orchestrator: the pull request opens")
     ]
+    # The citation the orchestrator resolves to write a judgment at the cap.
     assert "as one row of " + JUDGMENTS in run, run
-    for signal in ("as many findings as the one before it", "a `regression:` line"):
-        assert signal in run, f"the cap no longer names the signal {signal!r}"
-    assert "the extension line" not in run, run
-    assert "extends one round at a time" not in run, run
     row = regression[
         regression.index("| the unit already had a regression") : regression.index(
             "The framer's route:"
         )
     ]
+    # The citation the orchestrator resolves to write a second regression's
+    # route.
     assert JUDGMENTS in row, row
-    assert "whatever the sentence says" not in row, row
+    # The citation the orchestrator resolves to write a decision folded into
+    # the frame.
     assert JUDGMENTS in the_order(), "a folded decision's grounds have no home"
-    fix_pass = text[
-        text.index("**The fix pass then finds") : text.index("**You type only the half")
-    ]
-    assert (
-        "names a statement of a rule it reworded that stands in the work "
-        "item's frame" in fix_pass
-    ), fix_pass

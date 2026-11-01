@@ -973,6 +973,8 @@ class Test_record_findings:
                 chain.OUTSIDE.format(kind="close"),
             ),
         ], errors
+        # The refusal `chain_check.py` prints for a block out of its place,
+        # which the proofer or the orchestrator reads to move the block.
         assert "stands outside every finding" in chain.INSIDE.format(kind="round")
         assert "`### <n>. <symptom>`" in chain.OUTSIDE.format(kind="close")
 
@@ -2546,6 +2548,8 @@ class Test_broad_gate:
         assert chain.broad_gate(reader, str(root), ITEM, "main") == [
             (rel, 0, chain.NO_RUN_BLOCK)
         ]
+        # The command the refusal names, which the orchestrator runs to append
+        # a run block.
         assert "`seal gate --base <base> --record <item>`" in chain.NO_RUN_BLOCK
         assert "since #1198" in chain.NO_RUN_BLOCK
 
@@ -3024,6 +3028,8 @@ class Test_main:
         assert len(named) == 2, out
         assert "### 1." in named[0] and "`0000000`" in named[0]
         assert "### 2." in named[1] and f"`{off[:8]}`" in named[1]
+        # The refusal `chain_check.py` prints for each such fix, which the
+        # orchestrator reads at the pull request's check.
         assert all("HEAD does not descend from" in ln for ln in named), named
 
     @pytest.mark.rule("round-record-read-by-label")
@@ -3214,6 +3220,8 @@ class Test_main:
         seal(root)
         code, out = check(root, capsys)
         assert code == 1
+        # The refusal `chain_check.py` prints, which tells the orchestrator a
+        # verifying round is owed.
         assert later[:8] in out and "a verifying round is owed" in out
 
     def test_refuses_a_chain_with_no_record_and_prints_it_on_a_draft(
@@ -3418,9 +3426,12 @@ class Test_main:
         assert code == 0, out
         line = next(ln for ln in out.splitlines() if f"{ITEM}/routing.md" in ln)
         assert "judged at its own pull request" in line and "(#7)" in line
+        # The ancestry refusal `chain_check.py` prints, absent from the release
+        # pull request's output and present below; the orchestrator reads it.
         assert "does not descend from" not in out
         monkeypatch.setenv("GITHUB_HEAD_REF", "feature/x")
         code, out = check(root, capsys)
+        # The same printed refusal, for a pull request from another branch.
         assert code == 1 and "does not descend from" in out
         assert "judged at its own pull request" not in out
         monkeypatch.setenv("GITHUB_HEAD_REF", RELEASE)
@@ -3429,6 +3440,7 @@ class Test_main:
         commit(root, "a change on the release branch itself (#8)")
         code, out = check(root, capsys)
         assert code == 1
+        # The same printed refusal, for a commit on the release branch itself.
         assert "does not descend from" in out
         assert "judged at its own pull request" not in out
 
@@ -3557,6 +3569,8 @@ class Test_retired:
         git(root, "add", "-A", "seal")
         code, out = check(root, capsys, "--worktree")
         assert code == 0, out
+        # The line `chain_check.py` prints when no root is in the working
+        # tree, which the session running `--worktree` reads.
         assert "so nothing is declared" in out
         assert "does not carry this file at HEAD" not in out
 
@@ -3691,12 +3705,11 @@ def test_the_proofer_and_the_review_skill_name_every_line_a_finding_needs():
     """S8 (#985), under #1198: `agents/proofer.md` step 7 and
     `skills/code-review/SKILL.md` *The record* each list the lines a
     finding's block carries, and each names every key a finding block holds
-    one of, read from `hooks/lib/fields.py`. Neither has the proofer write a
-    `verdict:` line, which a finding with no close block no longer carries,
-    and step 7 says a prose line opening with `<` and a letter hides the
-    blocks below it from the reader (`trail/phases/phase-2.md` of #1198)."""
+    one of, read from `hooks/lib/fields.py`."""
     kind = chain.FIELDS.FINDING_BLOCK
     needed = [key for key, spec in kind.keys.items() if spec.many == chain.FIELDS.ONE]
+    # The keys come from `hooks/lib/fields.py`, so this guards the read of
+    # them rather than a document.
     assert "evidence:" in needed, needed
     proofer = " ".join((ROOT / "agents" / "proofer.md").read_text("utf-8").split())
     step = proofer.split("7. Write the record", 1)[1].split("## Never", 1)[0]
@@ -3711,25 +3724,22 @@ def test_the_proofer_and_the_review_skill_name_every_line_a_finding_needs():
         ("`skills/code-review/SKILL.md` *The record*", said),
     ):
         missing = [key for key in needed if f"`{key}" not in text]
+        # Each key a finding block holds one of, spelled as `hooks/lib/fields.py`
+        # matches it, which the proofer writes from these two lists.
         assert missing == [], f"{where} does not name {missing}"
-        assert "`verdict: open`" not in text, f"{where} still writes `verdict: open`"
-    assert "opens with `<` and a letter" in step, step
 
 
-def test_the_review_skill_sends_a_value_s_form_to_the_module_and_to_no_row():
+def test_the_review_skill_sends_a_value_s_form_to_the_module():
     """Round 3 of #1198, finding 1: `skills/code-review/SKILL.md` *The
     record* names `hooks/lib/fields.py` as the one statement of each value's
-    shape, so no sentence of the section sends the proofer to a grammar row
-    or table, which the docs grammar the settle removes is the only one of.
-    Seen red against the `evidence:` bullet that said "the forms its row
-    gives"."""
+    shape. Seen red against the `evidence:` bullet that said "the forms its
+    row gives"."""
     skill = " ".join(
         (ROOT / "skills" / "code-review" / "SKILL.md").read_text("utf-8").split()
     )
     record = skill.split("## The record ", 1)[1].split("**Paste-ready", 1)[0]
-    # The section's other rows are a config row and a `## Not judged` row.
-    for gone in ("its row", "grammar row", "grammar table", "the table"):
-        assert gone not in record, f"*The record* still says {gone!r}"
+    # The path `hooks/lib/fields.py`, the code span, which the proofer
+    # resolves for the form of an `evidence:` value.
     assert (
         "`evidence:` names what the claim rests on, in the forms "
         "`hooks/lib/fields.py` gives its value." in record

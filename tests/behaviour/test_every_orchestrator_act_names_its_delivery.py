@@ -511,6 +511,9 @@ def test_the_table_reads_the_section_that_holds_it():
     section that holds it would be the one act in the class nothing counts.
     """
     titles = {title for _rel, title, _level in acts(ROOT)}
+    # A program's output: the heading `acts()` reads out of
+    # `skills/implement/acts.md`, which `skills/code-review/orchestration.md`
+    # cites and under which the orchestrator reads the delivery table.
     assert "Orchestrator: which of these acts runs itself" in titles
 
 

@@ -132,11 +132,3 @@ def test_the_document_answers_what_it_left_open(clause, what_it_answers):
     assert clause in flat(OWNER), (
         f"{OWNER} no longer says {what_it_answers}: {clause!r} is gone"
     )
-
-
-def test_the_no_sweep_rule_carries_its_reason():
-    """A rule with no reason is one the next reader overturns by having a
-    different intuition, and the obvious first move after creating a label is
-    to apply it everywhere."""
-    doc = flat(OWNER)
-    assert "a sweep is the batch, performed once, by the very party the label" in doc

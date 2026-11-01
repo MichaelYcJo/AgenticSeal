@@ -78,7 +78,7 @@ here is a write you do not make.
 `seal/threads/<work-item-id>/trail/rounds/round-<n>.md` in the worktree of the branch
 under review, at the path your prompt names, and never the main checkout.
 Nothing else of the round goes there.
-check: evals/behaviour/proofer/rule-proofer-one-finding/ tests/text/test_a_moved_rule_leaves_its_definition.py
+check: evals/behaviour/proofer/rule-proofer-one-finding/
 
 **The clone is named for the work item and the round.** Where your prompt
 names none, clone into `<scratchpad>/<work-item-id>/round-<n>/clone`, and
@@ -112,7 +112,7 @@ stands deferred: say where, and do not write it up again.
 
 A carried fact is re-derived when its check fails, or where `seal/parity.md`
 lists its path under coordinate-trust exceptions.
-check: tests/text/test_review_axes.py
+check: none reader: the orchestrator at each hand-back
 
 **A verifying round answers the closed findings.** Its target is the diff of
 the last fixes, `<sha>, fixes <a>..<b>`. Each finding the round before
@@ -138,7 +138,7 @@ against the tests of the function it covers, and against any pair a
 duplicate check in the repository names; a test that covers nothing its
 group does not already cover is a `should` finding. Where the test files
 declare `TARGET`, the pairs are the ones `seal layout --pairs` prints.
-check: tests/text/test_a_moved_rule_leaves_its_definition.py
+check: none reader: the orchestrator at each hand-back
 
 **The broad gate is not yours, and its label is.** The crafter hands over
 with the suite labelled `unverified`, and what you check is whether that
@@ -148,7 +148,7 @@ of `## Not judged` with the caller named as its answerer, since your
 hand-back is a report rather than a conversation. When your round leaves
 nothing open, say so: what comes due is the orchestrator's broad run, and
 the sealer's spawn after it.
-check: tests/text/test_broad_gate_rule.py tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py
+check: tests/text/test_broad_gate_rule.py
 
 **Runs are narrow, through the repository's runner.** Find the runner before
 you build your own: a wrapper in `bin/`, or whatever the contribution guide

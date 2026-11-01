@@ -41,11 +41,6 @@ DIRECT_REQUIRES = {
 # sentence on the direct answer and cites the section that holds the rest.
 WAIVER_SECTION = "`docs/the-review-and-parity-arms.md` *There is no standing waiver*"
 
-# The closing paragraph of the orchestration skill's routing section said the
-# direct answer was checked *by the token in every command* — false since the
-# declaration silenced the review arm for either answer.
-TOKEN_SENTENCE = "the direct answer by the token in every command"
-
 
 @pytest.mark.parametrize("parts", sorted(DIRECT_REQUIRES))
 def test_each_carrier_says_what_the_direct_answer_requires(parts):
@@ -71,36 +66,15 @@ def test_each_carrier_says_what_the_direct_answer_requires(parts):
         )
 
 
-def test_the_routing_sections_closing_paragraph_names_the_seal_not_the_token():
-    """The declaration silences the review arm for either answer, so no token
-    checks the direct answer at any commit; what checks it is the sealer's
-    record at the pull request. The skill's sentence says the broad run is
-    owed under the direct answer and cites the policy section that says
-    what checks it, and the policy section says it."""
+def test_the_routing_section_cites_what_checks_the_direct_answer():
+    """What checks the direct answer is the sealer's record at the pull
+    request, and the orchestration skill's sentence on the direct answer
+    cites the policy section that says so."""
     text = flat("skills", "implement", "orchestration.md")
-    assert TOKEN_SENTENCE not in text, (
-        "the paragraph still says a token checks the direct answer, which "
-        "the declaration made false"
-    )
-    assert "the broad run is owed just the same" in text and WAIVER_SECTION in text, (
-        "the skill does not say the direct answer still owes the broad run, "
-        "or does not cite the section that says what checks it"
-    )
-    assert "the direct route against the broad run's record" in flat(
-        "docs", "the-review-and-parity-arms.md"
-    ), "the policy section does not say what checks the direct answer"
-
-
-def test_the_specification_says_why_two_answers_and_not_three():
-    """Item 8 of the frame: the sentence a later reader of #241 finds beside
-    the declaration table instead of the ticket's proposal — what a
-    session's own check leaves that CI can read, and where it lives."""
-    text = flat("docs", "the-review-and-parity-arms.md")
-    assert "Two answers, and not three" in text, (
-        "the specification does not say why there is no third `Review` answer"
-    )
-    assert "a review that certifies itself" in text, (
-        "the paragraph does not carry the contract's reason"
+    # The section an orchestrator resolves to learn what checks the direct
+    # answer.
+    assert WAIVER_SECTION in text, (
+        "the skill does not cite the section that says what checks the direct answer"
     )
 
 
@@ -112,6 +86,8 @@ def test_the_release_checklist_names_the_waiver_as_the_no_work_item_answer():
     stepping around a gate. The checklist is read whole, because #1117's
     rule changes move the sentence from step 4 to step 2b at the settle."""
     text = flat("docs", "release-checklist.md")
+    # The routing answer `no work item`, the code span, which a session
+    # gives the routing question for such a commit.
     assert "`no work item` answer" in text, (
         "`docs/release-checklist.md` does not name the waiver as the routing "
         "question's `no work item` answer"
