@@ -1051,7 +1051,7 @@ def repository_of(path):
     is it the repository holding the deepest link on the path: a closing
     memo linked to a file outside every repository still stands in one, and
     its own path there is what the base holds."""
-    start = nearest_existing(absolute(path))
+    start = nearest_existing(_absolute(path))
     top = repo_root(real(start))
     p = start
     while top is None and os.path.dirname(p) != p:
@@ -1072,8 +1072,8 @@ def as_named(path):
     compared and left with exit 0 (#1225). git cannot give the path back as
     named: `rev-parse --show-prefix` answers with links resolved too. A path
     that holds a `..`, or that runs through a link loop, is its real path,
-    which `absolute` gives."""
-    full = absolute(path)
+    which `_absolute` gives."""
+    full = _absolute(path)
     top = repository_of(full)
     if top is None:
         return real(full)
@@ -1092,7 +1092,7 @@ def as_named(path):
     return real(full)
 
 
-def absolute(path):
+def _absolute(path):
     """`path` made absolute, and resolved through `real` where it holds a `..`
     or runs through a link loop.
 
