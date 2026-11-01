@@ -1,7 +1,0 @@
-You are the review orchestrator of this repository. Spawn exactly one `agentic:proofer` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Review, edit and commit nothing yourself. When it returns, run `cat seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-5.md` once and reply with the report's path.
-
-BEGIN PROMPT
-
-Review round 5 of work item `1791382684-every-reader-and-record-is-inventoried`. The clone is the current directory, on branch `chore/834-every-reader-and-record-is-inventoried` at `97c910d5bdaddf61aece9018c465857883978d37`; the base is `602fb87b709abe077db23ec520df331284754242`. Write the report to `seal/specs/1791382684-every-reader-and-record-is-inventoried/rounds/round-5.md` and return its path. Round 5 of #834, the redesign's verifying round, target 97c910d5. It was asked to inherit round 4's verdicts and check each fix in 602fb87b..9ceba9a3 — above all the direction definition now in `docs/the-reader-registry.md`: that it is the inventory's meaning, unambiguous, consistent with #835's spec and with every `Reads:` line already on the release branch, with the document's `Enforced by:` lines and fold markers intact — and whether the changelog's second bullet under `### Added` reads true, then the rest of the item fresh. The owner's choice to withdraw the backfill was not to be reopened.
-
-END PROMPT

@@ -214,6 +214,68 @@ class Test_seed:
             unit,
         )
 
+    @pytest.mark.parametrize(
+        ("later", "line", "unit"),
+        [
+            ("`a.py:20-60`", 80, ["h"]),
+            ("`a.py:20\N{EN DASH}60`", 80, ["h"]),
+            ("`a.py:45`", 80, ["h"]),
+            ("`a.py:55`", 80, ["h"]),
+            ("`a.py:25-35`", 80, ["h"]),
+            ("`a.py#g`", 80, ["h"]),
+            ("`a.py`", None, None),
+            ("`b.py:45`", 45, ["g"]),
+        ],
+        ids=[
+            "range",
+            "en-dash-range",
+            "line",
+            "line-within-the-window",
+            "range-ending-within-the-window",
+            "unit",
+            "bare-path",
+            "another-files-line",
+        ],
+    )
+    def test_keeps_the_seed_off_every_coordinate_a_truths_location_names(
+        self, tmp_path, monkeypatch, later, line, unit
+    ):
+        """Guards round 1 finding 1 of #1229: a truth's regex is built from
+        the first coordinate of its finding's `location:` line alone, so a
+        seed within the window of a later coordinate was taken, and the line
+        round 1 wrote for the real finding also passed the seeded truth. A
+        seed lands within 15 lines of no coordinate a truth's location
+        names: a line, a range to its last line, a unit's lines, or the
+        whole file for a bare path. Here `f`, at line 2, is in the first
+        coordinate's window, `g`, at 45, in the later one's, and `h`, at 80,
+        is clear of both. `a.py:55` and `a.py:25-35` keep `g` off by the 15
+        lines either side and not by covering it, as `:1060-1086` kept off
+        the seed at `:1053` in round 1 of #1229. A coordinate names lines of
+        its own path alone, so `b.py:45` leaves `g` free (round 2 finding 1
+        of #1229)."""
+        sd = load_script("seed_defects")
+        repo, base = based_repo(tmp_path, monkeypatch)
+        write(
+            repo,
+            "a.py",
+            "def f(a):\n    return a == 1\n"
+            + "\n" * 41
+            + "def g(a):\n    return a == 2\n"
+            + "\n" * 33
+            + "def h(a):\n    return a != 3\n",
+        )
+        target = commit_everything_as_e(repo, "target")
+        found = sd.seed(
+            base,
+            target,
+            [sd.rt.truth_pattern("`a.py:1`", target)],
+            [f"`a.py:1`, {later}"],
+        )
+        if line is None:
+            assert found is None
+        else:
+            assert (found[0], found[1], found[4]) == ("a.py", line, unit), found
+
 
 class Test_target_of:
     @pytest.mark.parametrize("layout", LAYOUTS, ids=["specs", "threads"])
@@ -313,6 +375,23 @@ class Test_target_of:
         t, why = sd.target_of(commits["squash"])
         assert t is None
         assert why == "two of round 1's truths accept `location: `a.py:1``", why
+
+    def test_keeps_the_seed_off_a_later_coordinate_of_round_1s_finding(
+        self, tmp_path, monkeypatch
+    ):
+        """Guards round 1 finding 1 of #1229 where the case is built: round
+        1's fixed finding names `a.py:2` first and `a.py:40` after it, so `g`,
+        the one line clear of the first coordinate's window, is within the
+        second's, and the commit takes no seed."""
+        sd = load_script("seed_defects")
+
+        def later(target):
+            return seeded_round_1(target).replace("`a.py:2`", "`a.py:2`, `a.py:40`")
+
+        commits, _repo = shipped_item(tmp_path, monkeypatch, first=later)
+        t, why = sd.target_of(commits["squash"])
+        assert t is None
+        assert why == "no added line in a Python unit takes an operator", why
 
     @pytest.mark.parametrize(
         ("rel", "text", "why"),
@@ -491,7 +570,9 @@ class Test_module:
         self, tmp_path, monkeypatch
     ):
         """Guards S6 for the other two generators: each writes an entry's truth
-        for the case it names, beside its own."""
+        for the case it names, beside its own. The suite the entries are
+        checked against is a directory of the test's own, so the case does
+        not lean on which cases the tree commits."""
         rt = load_script("replay_targets")
         sd = load_script("seed_defects")
         replay = "replay-1791382684-r2"
@@ -499,8 +580,12 @@ class Test_module:
         path = recurred_file(
             tmp_path, entry(case=replay, locations=["x.py"]), entry(case=seeded)
         )
-        monkeypatch.setattr(rt, "TRUTHS", path)
-        monkeypatch.setattr(sd.rt, "TRUTHS", path)
+        suite = tmp_path / "proofer"
+        for case in (replay, seeded):
+            (suite / case).mkdir(parents=True)
+        for module in (rt, sd.rt):
+            monkeypatch.setattr(module, "TRUTHS", path)
+            monkeypatch.setattr(module, "OUT", str(suite))
         t = {
             "item": "1791382684-every-reader-and-record-is-inventoried",
             "n": 2,

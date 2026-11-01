@@ -223,10 +223,43 @@ orchestrator pushes nothing and says in its report that the pull request was
 closed with a repair pending. `CONFLICTING` means GitHub made no merge
 ref for the pull request and runs no `pull_request` CI on it, and nothing
 else says so. `UNKNOWN` means GitHub has not computed the answer yet, and
-the orchestrator reads it again. The wait is `gh pr checks <N> --watch`,
-which reads the checks of every workflow on the pull request; a single
-workflow's run, watched alone, can pass while another workflow's check
-fails.
+the orchestrator reads it again.
+
+**The orchestrator waits on CI with `gh pr checks <N> --watch`, and starts
+the wait only once the commit it pushed last has a check of a `pull_request`
+run.** The wait reads the checks of every workflow on the pull request; a
+single workflow's run, watched alone, can pass while another workflow's
+check fails. Run before any
+check has reported on the pull request's head commit, the wait does not
+wait. With gh 2.100.0 it prints `no checks reported on the '<branch>'
+branch` and exits 1 without waiting. A failed check also exits 1, so right
+after a push the orchestrator reads that exit neither as a failure nor as
+nothing to wait for. The wait follows a short poll. Every ten seconds the
+orchestrator runs
+
+```
+gh pr view <N> --json headRefOid --jq .headRefOid
+gh pr checks <N> --json event --jq '[.[] | select(.event == "pull_request")] | length'
+```
+
+and stops once the first prints the commit it pushed last and the second
+prints a count above 0. It then runs the wait. The SHA keeps the wait off
+the finished checks of the commit before the push. The count keeps it off
+the checks of another event on the pushed commit itself. A run of another
+event on that commit, such as a `push` run, lists its checks on the pull
+request too, often finished before the pull request opens, and `--watch`
+over finished checks alone exits 0 at once. With `--json`, a failed check exits
+0, and the second command exits 1 while no check at all has reported, so
+that exit means the poll goes on. The count reads the checks of GitHub
+Actions runs on `pull_request` alone. Where the pull request's checks come
+from another CI service or another event, the poll reaches the limit below,
+and the report says so. A poll that has not got there within two minutes is
+not a pass. The orchestrator then reads
+`gh pr view <N> --json state,mergeable` once more, and the paragraph above
+says what each reading means. Under `OPEN` and `MERGEABLE` it says in its
+report that no check of a `pull_request` run reported on that commit and
+names the SHA. It waits no longer, and it does not treat the pull request
+as checked.
 
 **A conflict with the base is integrated by merging the base into the
 branch, never by a rebase.** A rebase orphans the commits every round record

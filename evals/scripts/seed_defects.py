@@ -24,7 +24,8 @@ Its truths are the mutated line, a `truth-` grader over the record's
 `location:` lines for `path:<line>` within 15 lines of it either way, and
 each finding round 1 closed `fixed` that round 2 confirms, by the replay
 rule, since the tree at round 1's target holds the defects round 1 found.
-The seed lands on no line the window of such a finding accepts. A real
+The seed lands on no line the window of such a finding accepts, and
+within 15 lines of no coordinate its `location:` names (`named`). A real
 defect that runs recurred on is a truth of the case too, where
 `recurred_truths.json` adds it (`replay_targets.py#truths_with`). The
 operators are `seal mutate`'s vocabulary, a replacement that lands
@@ -152,15 +153,16 @@ def code_tokens(source):
     return found
 
 
-def seed(base, target, truths=()):
+def seed(base, target, truths=(), locations=()):
     """The first mutation for `base..target`: `(path, line, old, new,
     names)`, or None.
 
     A file is a non-test `.py` the range changed; a line is one it added
-    inside a `def` or `class` whose text occurs once in the file, and whose
-    `location:` window no regex of TRUTHS accepts on any line; the operator
-    is the first that lands once on that line. OLD and NEW are the whole
-    line before and after."""
+    inside a `def` or `class` whose text occurs once in the file, whose
+    `location:` window no regex of TRUTHS accepts on any line, and whose
+    window reaches no coordinate of LOCATIONS, the `location:` values of
+    TRUTHS' findings (`named`); the operator is the first that lands once
+    on that line. OLD and NEW are the whole line before and after."""
     accepts = [re.compile(p, re.M) for p in truths]
     names = rt.git("diff", "--name-only", base, target).split("\n")
     for path in sorted(
@@ -171,6 +173,7 @@ def seed(base, target, truths=()):
             continue
         code = code_tokens(source)
         lines = source.split("\n")
+        spans = named(locations, path, source)
         for line in sorted(added_lines(base, target, path)):
             if line > len(lines):
                 continue
@@ -185,10 +188,38 @@ def seed(base, target, truths=()):
                 a.search(f"location: `{path}:{n}`") for a in accepts for n in window
             ):
                 continue
+            if any(
+                first - rt.WINDOW <= line <= last + rt.WINDOW for first, last in spans
+            ):
+                continue
             for old, new in OPERATORS:
                 if text.count(old) == 1 and (line, TOKEN[old]) in code:
                     return path, line, text, text.replace(old, new), unit
     return None
+
+
+def named(locations, path, source):
+    """`[(first, last)]`, the lines of PATH, whose text at the target is
+    SOURCE, that a coordinate of the `location:` values LOCATIONS names: a
+    line, a range to its last line, a unit's lines, or every line for the
+    bare path. A truth's regex is built from its finding's first coordinate
+    alone (`replay_targets.py#truth_pattern`), and a report that names the
+    finding as round 1 wrote it may name any of them, so a seed kept off
+    the regex alone can still be credited to the real finding's line."""
+    spans = []
+    for value in locations:
+        for m in rt.LOCATION.finditer(value):
+            if m["path"] != path:
+                continue
+            if m["line"]:
+                spans.append((int(m["line"]), int(m["last"] or m["line"])))
+            elif m["unit"]:
+                span = rt.unit_span(source, m["unit"])
+                if span:
+                    spans.append(span)
+            else:
+                spans.append((1, source.count("\n") + 1))
+    return spans
 
 
 def round_1_of(commit):
@@ -256,7 +287,9 @@ def target_at(commit, item, layout, first, second):
     row = shared_line(patterns, [truth["location"] for truth in t["truths"]])
     if row:
         return None, f"two of round 1's truths accept `{row}`"
-    found = seed(t["base"], t["target"], patterns)
+    found = seed(
+        t["base"], t["target"], patterns, [truth["location"] for truth in t["truths"]]
+    )
     if not found:
         return None, "no added line in a Python unit takes an operator"
     path, line, old, new, unit = found
