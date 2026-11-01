@@ -61,6 +61,11 @@ def why_not(problem):
         assert str(root) not in "\n".join(lines), lines
 ```
 
+```seal
+verdict: fixed 527cba5a
+answer: The finding holds at both lines: an `OSError`'s text carries the absolute filename, and both lines printed it after the path from the root. The paste-ready `why_not` was judged before it was applied and holds: `strerror` is the error's own words with no filename, an `OSError` built with no errno has no `strerror` and its text is said whole, and a `UnicodeDecodeError`'s text names no file. Its docstring is mine, without the "Precondition: none" clause. Both `chained` and `item_counts` call it; the only other exception text the script prints is the reader-load message, which goes to stderr and is not posted. The paste-ready case's literal "No such file or directory" was written as `os.strerror(errno.ENOENT)`, so the pin names the system's words on each platform. The unopenable-record case is parametrized over a record that is not UTF-8 and a record that is a directory, whose expected reason is the `strerror` the system gives for opening one (`Is a directory` on POSIX, `Permission denied` on Windows), and pins the whole line and that the root's path is absent. The directory parameter and the declaration case were seen red against the old text, and `seal mutate` making `why_not` return the whole text turned both red again after the fix.
+```
+
 ### 2. The docstring of `hooks/lib/routing.py#rounds_unreadable` states one of the three states its body answers for, the same narrowing round 1's finding 1 fixed in the script's message
 
 ```seal
@@ -77,6 +82,11 @@ This summary line is the likeliest source of the build phase's "it is not a dire
 def rounds_unreadable(item):
     """True when `rounds` beside the work item is a link, any link, a path
     that is not a directory, or a directory nothing can list.
+```
+
+```seal
+verdict: fixed 9eacfa51
+answer: The finding holds: the body of `rounds_unreadable` answers True for any link, for a path that is not a directory and for a directory nothing can list, and the summary named the second alone. The summary line now names all three, in place, with "a link of any kind" for the paste-ready "a link, any link". It is a docstring and adds no behaviour, so no case was written for it; `hooks/lib/routing.py` still imports, `ruff check` and `ruff format --check` pass on it, and the modules that load it pass. `git grep` for the old words "exists beside the work item" and "and is not a directory" outside `seal/threads/` finds no other statement of this fact. That search covers only the wording, so it is a sample, and the round's list of the five `rounds_unreadable` sites stands beside it.
 ```
 
 ## Confirmations
