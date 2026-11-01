@@ -38,6 +38,11 @@ answer is #1255's.
 
 The changelog fragment's second bullet changes "and none states a reason" to "and only `skills/code-review/scripts/chain_check.py` states one, that its loop must run before anything it loads". The frame's parenthesis at `frame/design.md:28` is the orchestrator's to fold the same way.
 
+```seal
+verdict: fixed bbf80a99
+answer: The finding holds: `skills/code-review/scripts/chain_check.py:108-110` runs its loop under "Before the readers load below: a refusal printed at import must not meet a console's code page", and its readers load at import in the `try` at lines 230-242 (read). The paste-ready text was read against the module docstring it lands in: "them" in "before it loads any of them" points back to the `hooks/lib/` modules of the sentence before, and "the others" to the other scripts under `skills/*/scripts/`, so it went in as written in place of "None of them says why ... #1255's". The changelog fragment's second bullet now says only `chain_check.py` states a reason, that its loop must run before anything it loads. The frame's parenthetical was re-folded by the orchestrator in 3e81b425, and this pass did not edit the frame. `uvx ruff format --check`, `uvx ruff check` and an import under `python3 -W error` passed on `hooks/lib/console.py`, and `bin/test` over `tests/hooks/test_console.py`, `tests/test_censuses.py`, `tests/behaviour/test_a_cited_section_stands_in_its_file.py`, `tests/behaviour/test_one_word_one_meaning.py`, `tests/behaviour/test_a_document_that_names_a_script_says_how_to_reach_it.py` and `tests/behaviour/test_docs_line_wrap.py` gave 341 passed and 8 skipped (executed). The old sentence still stands in round 1's close block and paste-ready text, and in the 1ac8b651 row of `frame/plan.md` *Judgments of the run*; each is a record of what was decided then, and this pass edits neither.
+```
+
 ### 2. The console docstring hands "which of them owes the import" to #1255, and #1255 holds which entry points owe the answer, not whether they import it
 
 ```seal
@@ -55,6 +60,11 @@ The fix says what #1255 holds. The replacement text in finding 1 ends with "Whic
 
 ```text
 Which entry points owe the answer is #1255's.
+```
+
+```seal
+verdict: fixed bbf80a99
+answer: The finding holds as the round measured it; this pass did not reopen #1255 and relies on the round's executed `gh issue view 1255` for what its body holds. The docstring's last sentence on the skill scripts now reads "Which entry points owe the answer is #1255's.", the round's text, and the changelog fragment's last clause now reads "and leaves which entry points owe the answer to #1255". `git grep -n -i -E "owes? the import|import is #1255|should import the module"` over the tree finds those words only under `seal/threads/`, in round 1's records, the 1ac8b651 row of `frame/plan.md` *Judgments of the run* and this round's own text (executed). The frame was re-folded by the orchestrator in 3e81b425 and was not edited here. Whether the import question gets an owner by being added to #1255 is the orchestrator's, as the round's *Not judged* table says.
 ```
 
 ## Confirmations
