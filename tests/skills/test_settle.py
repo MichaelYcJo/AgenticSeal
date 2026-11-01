@@ -2082,12 +2082,16 @@ class Test_main:
         out = capfd.readouterr()
         text = out.out + out.err
         assert code == 0, text
-        assert text == (
+        # The settled line names the root as git spells it, which on Windows
+        # is not `str(repo)`; its words are read instead.
+        assert text.startswith(
             f"{settle.DOCUMENTS_HEADING}\n"
             "\nfrom adr/: 1 document\n"
             f"    adr/0001.md  {listed}\n\n"
-            + settle.SETTLED.format(root=repo, specs=settle.SPECS)
+            "settle: seal/threads/ in "
         ), text
+        assert "holds no work item" in text and "A complete settle ends here" in text
+        assert text.count("\n") == settle.DOCUMENTS_HEADING.count("\n") + 6, text
 
     def test_a_named_directory_is_never_written(self, repo, capfd):
         """#1054 A6: the dry run with `--from`, then `--apply` removing a
