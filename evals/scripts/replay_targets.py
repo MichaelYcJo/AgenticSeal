@@ -528,9 +528,14 @@ def ref_base(target, ref, landed=None):
     """The merge-base of TARGET and REF, or an empty string. Where REF no
     longer resolves, a release branch deleted after its release, LANDED,
     the commit the work landed on, stands for it: a squash puts none of
-    TARGET's commits on that branch, so the two share the fork REF named."""
+    TARGET's commits on that branch, so the two share the fork REF named.
+
+    A tip that holds TARGET, the last writer of a branch still in progress
+    or a branch merged with a merge commit, gives no base: their merge-base
+    is TARGET itself, and the case would review an empty diff."""
     tip = ref if resolve(ref) else landed
-    return git("merge-base", target, tip, check=False).strip() if tip else ""
+    base = git("merge-base", target, tip, check=False).strip() if tip else ""
+    return "" if base and base == resolve(target) else base
 
 
 def base_of(paragraph, target, landed=None):
@@ -785,9 +790,11 @@ def round_target(item, n, text, nxt, wrote, replay=True, landed=None, *, layout)
     both read in LAYOUT, which gives the path of each record and of
     `routing.md` at the target. WROTE maps a record's path to the commit
     whose check judges it: the commit that wrote it (`written_at`), or None
-    for this tree's check. LANDED is the commit the work landed on, where
-    the caller knows it (`ref_base`). A target is `{"item", "n", "report",
-    "target", "base", "base_ref", "branch", "asked", "truths", "size"}`,
+    for this tree's check. LANDED is the commit the work landed on
+    (`ref_base`): `targets` passes the commit that last wrote the record,
+    and `seed_defects.py#target_at` the shipped commit's first parent. A
+    target is `{"item", "n", "report", "target", "base", "base_ref",
+    "branch", "asked", "truths", "size"}`,
     REPORT the round's record path, which the case's report is written at,
     and its truths each finding the round closed `fixed` that the next
     round confirms, as `{"k", "finding", "location", "pattern"}`.
@@ -861,8 +868,10 @@ def round_target(item, n, text, nxt, wrote, replay=True, landed=None, *, layout)
 def targets(tags, items=None):
     """`[target]` for every round with truth, and `[(item, n, why)]` for each
     round left out, over the records `records` reads at TAGS for ITEMS, each
-    judged by `round_target`."""
+    judged by `round_target`, which takes as LANDED the commit that last
+    wrote the record (`written_at`)."""
     found = records(tags, items)
+    wrote = functools.cache(lambda rel: written_at(rel, tags))
     kept, left = [], []
     for (item, n), (layout, text) in sorted(found.items()):
         _layout, nxt = found.get((item, n + 1), (layout, None))
@@ -871,7 +880,8 @@ def targets(tags, items=None):
             n,
             text,
             nxt,
-            lambda rel: written_at(rel, tags),
+            wrote,
+            landed=wrote(layout.record(item, n)),
             layout=layout,
         )
         if t is None:

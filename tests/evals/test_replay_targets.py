@@ -272,6 +272,64 @@ def two_layouts(
     return commits
 
 
+def deleted_release(tmp_path, monkeypatch, rt, squashed=True):
+    """A repository with no `origin/release/v1.0.0`, whose tag `v1.0.0`
+    holds `THREADS_ITEM`'s rounds 1 and 2 in `seal` blocks with this tree's
+    check. Round 1 reviewed T, the commit that added the item's
+    `routing.md` on top of the fork point F, against `release/v1.0.0`, and
+    closed finding 1 fixed; round 2 confirms it. Where SQUASHED is set, the
+    commit that wrote both records has F as its parent and holds T's change
+    but not T, as a squash merge does; otherwise it is committed on top of
+    T. Neither record stands in the working tree. RT reads the repository.
+    `{"fork": F, "target": T, "writer": the commit that wrote the records,
+    "git": a git runner in the repository}`."""
+    repo = tmp_path / "deleted"
+    repo.mkdir()
+    who = ["-c", "user.name=x", "-c", "user.email=x@example.com"]
+
+    def git(*args):
+        return subprocess.run(
+            ["git", "-C", str(repo), *who, *args],
+            check=True,
+            capture_output=True,
+            encoding="utf-8",
+        ).stdout.strip()
+
+    def put(rel, text):
+        path = repo / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+
+    item, home, held, branch = THREADS_ITEM
+    git("init", "-q")
+    for rel, said in tree_check_files().items():
+        put(rel, said)
+    put("src/a.py", "x = 1\n")
+    git("add", "-A")
+    git("commit", "-qm", "the fork point")
+    fork = git("rev-parse", "HEAD")
+    put(f"{home}/routing.md", f"| Axis | Answer |\n|---|---|\n| Branch | {branch} |\n")
+    git("add", "-A")
+    git("commit", "-qm", f"routing of {item}")
+    target = git("rev-parse", "HEAD")
+    git("branch", "-q", branch)
+    first = BLOCK_ROUND_1.replace("# i ", f"# {item} ").replace(
+        "1a2b3c4 against main", f"{target} against release/v1.0.0"
+    )
+    put(f"{home}/{held}/round-1.md", first)
+    put(f"{home}/{held}/round-2.md", BLOCK_ROUND_2.replace("# i ", f"# {item} "))
+    git("add", "-A")
+    if squashed:
+        git("reset", "-q", "--soft", fork)
+    git("commit", "-qm", f"rounds of {item}")
+    writer = git("rev-parse", "HEAD")
+    git("tag", "v1.0.0")
+    git("rm", "-rq", home)
+    git("commit", "-qm", f"settled {item}")
+    monkeypatch.setattr(rt, "ROOT", str(repo))
+    return {"fork": fork, "target": target, "writer": writer, "git": git}
+
+
 def tagged_repo(tmp_path, monkeypatch, rt):
     """A repository holding no round record in either layout, its one commit
     tagged `v1.0.0` and `v1.1.0`, with RT reading it."""
@@ -583,11 +641,61 @@ class Test_module:
         assert rt.target_base("2b3c4d5 against main", "T") == ("m" * 40, "origin/main")
         assert rt.target_base("2b3c4d5 against gone", "T") == ("", None)
         # A release branch deleted after its release: the commit the work landed
-        # on stands for it where the caller knows that commit (#986).
+        # on stands for it (#986), the commit that last wrote the record where
+        # `targets` passes it, the shipped commit's first parent where
+        # `seed_defects.py` does (#1224).
         landed = ("m" * 40, "origin/gone")
         assert rt.target_base("2b3c4d5 against gone", "T", landed="L") == landed
         assert rt.base_of("Round 1, against origin/gone.", "T") == ("", None)
         assert rt.base_of("Round 1, against origin/gone.", "T", landed="L") == landed
+
+    def test_a_round_on_a_deleted_release_branch_takes_its_base_from_its_record(
+        self, tmp_path, monkeypatch
+    ):
+        """Guards #1224: a release branch is deleted after its release, so a
+        round reviewed against it names a ref that no longer resolves, and
+        `targets` left every such round out as `the target line names no
+        base that resolves`, 18 rounds over the last two tags on 2026-11-01.
+        The commit that last wrote the record stands for the branch: a
+        squash puts none of the target's commits on it, so the merge-base
+        of the two is the fork the branch named. Seen red against the
+        `targets` that passed no landed commit, which left the round out
+        with that reason."""
+        rt = load_script("replay_targets")
+        made = deleted_release(tmp_path, monkeypatch, rt)
+        kept, left = rt.targets(["v1.0.0"])
+        assert [(t["item"], t["target"], t["base"], t["base_ref"]) for t in kept] == [
+            (
+                THREADS_ITEM[0],
+                made["target"],
+                made["fork"],
+                "origin/release/v1.0.0",
+            )
+        ]
+        assert [x["k"] for x in kept[0]["truths"]] == [1]
+        assert left == [(THREADS_ITEM[0], 2, "target 2b3c4d5 does not resolve")]
+
+    def test_a_tip_that_holds_the_target_gives_no_base(self, tmp_path, monkeypatch):
+        """Guards #1224's second half: a tip that already holds the target,
+        the last writer of a branch still in progress or a branch merged
+        with a merge commit, has the target itself as its merge-base, so the
+        case would review an empty diff, and `--count` picks the smallest
+        first. Such a round is left out as no base resolving, whether the
+        tip is the commit that wrote the record or a ref that resolves.
+        Seen red against a `ref_base` without the check, which kept a target
+        of 0 lines and returned the target for the ref."""
+        rt = load_script("replay_targets")
+        made = deleted_release(tmp_path, monkeypatch, rt, squashed=False)
+        kept, left = rt.targets(["v1.0.0"])
+        assert kept == []
+        assert left == [
+            (THREADS_ITEM[0], 1, "the target line names no base that resolves"),
+            (THREADS_ITEM[0], 2, "target 2b3c4d5 does not resolve"),
+        ]
+        made["git"]("update-ref", "refs/remotes/origin/release/v1.0.0", made["writer"])
+        assert rt.ref_base(made["target"], "origin/release/v1.0.0") == ""
+        made["git"]("update-ref", "refs/remotes/origin/release/v1.0.0", made["fork"])
+        assert rt.ref_base(made["target"], "origin/release/v1.0.0") == made["fork"]
 
     def test_records_read_only_the_named_items(self, monkeypatch, tmp_path):
         """Guards `--case`'s reach over every release tag: only the named work
