@@ -31,4 +31,4 @@ None for a deployer: no migration, environment variable, dependency or compatibi
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-01 | `.claude-plugin/plugin.json` moves to 0.27.3 in this work item, before its round 1, rather than in the first pull request into `release/v0.27.3` | #1231's and #1258's rounds had settled before the move was due, so a move there would have been a commit outside their records after the last round, owing one more round each; here a round reads it with the build. Pull requests into the release branch run no version step (`.github/workflows/hygiene.yml`'s version step exits 0 on any base but `main`), so the order of merges changes nothing the release pull request reads | `skills/implement/orchestration.md` *Orchestrator: how the work is routed*, where the version moves in the first pull request into the release branch; `skills/core/SKILL.md` *The first value: efficient development through the workflow* |
