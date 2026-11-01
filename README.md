@@ -114,7 +114,7 @@ Cross-session memory lives in the repo, not the session:
 
 | Root | Lifetime | Holds |
 |---|---|---|
-| `seal/` | permanent | everything this plugin maintains — the follow-up list, the repository's own config (the two language rows and the mode live there), the migration config — and, beneath it, the work items. Its existence, with its `README.md` opening with the marker line `templates/setup/seal-README.md` starts with, is also what opts the repository in, for each hook whose Where column under *The gates* below names `seal/` |
+| `seal/` | permanent | everything this plugin maintains, each file named in `docs/the-record-layout.md` *seal/*, and, beneath it, the work items. Its existence, with its `README.md` opening with the marker line `templates/setup/seal-README.md` starts with, is also what opts the repository in, for each hook whose Where column under *The gates* below names `seal/` |
 | `seal/threads/<id>/` | one work item | `frame/` (design, plan, questions), `trail/` (phases, review rounds, the broad run), and at its top `routing.md`, `changelog.md`, `guarantee.md` and `gaps.md`, the closing memo holding only what the diff cannot show. A human approves `frame/plan.md`, which is why this is a repository document and not tool state |
 | `docs/` | permanent | whatever policy documents the repository already keeps; the documentation convention is the project's. A work item states its rule changes in its design instead of editing them, and the settle after the release writes each section as the latest decision those changes state (`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*) |
 

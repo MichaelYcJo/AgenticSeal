@@ -1,0 +1,9 @@
+### Changed
+
+- **The `seal/` root's files are listed in one place, `docs/the-record-layout.md`, and every other place in the skills and the README links it (#1232).** `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes* drew the `seal/` tree, and the tree left out `config.md`. The record layout's *seal/* table left out `parity.md` and `pact.md`. Five passages also listed some of the root's files, and each list was short. The lifetimes table's `seal/` row, the `seal/` row of *Where the records live* in `README.md` and `README.ko.md`, and the docstring of `skills/implement/scripts/seal.py`, where it says what `seal export --check` counts, left out `README.md` and `pact.md`. The flow log's `Findings by Location` row in `skills/verify/orchestration.md` left out `parity.md` and `pact.md`. The skill now states the two lifetimes and links `docs/the-record-layout.md` *seal/* and *seal/threads/<work-item-id>/*, and the five passages link *seal/* in place of their lists. What each passage says is unchanged. The work item's rule changes add `seal/parity.md` and `seal/pact.md` to the *seal/* table, and make `docs/one-root-by-lifetime.md` and its Korean edition name the record layout alone for the layout. They are in force from this merge, and the settle after the release writes them. The trees in `README.md`, `README.ko.md`, `seal/README.md` and `templates/setup/seal-README.md` stay, and each lists the six entries the table will hold. No command's behaviour, test or check changes.
+
+### Process changes
+
+| Date | Change | Why | Source |
+|---|---|---|---|
+| 2026-11-01 | `skills/verify/orchestration.md` *Measure the segment, and feed the flow log*'s `Findings by Location` row names the `seal/` root's files by linking `docs/the-record-layout.md` *seal/*, not by listing three of them | the list had drifted from the root it named, and the record layout is that list's one home | https://github.com/MichaelYcJo/AgenticSeal/issues/1232 |

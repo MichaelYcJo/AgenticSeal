@@ -91,8 +91,9 @@ work away.
 
 **What the reminder counts, and what it does not.** `--check` prints
 `N work items changed since the last export`, where a work item is
-its directory `threads/<id>/`. Root-level files — `follow-up.md`, `config.md`,
-`parity.md` — are NOT counted, because the line
+its directory `threads/<id>/`. A root-level file, any file the root holds
+outside `threads/` (`docs/the-record-layout.md` *seal/* names each), is NOT
+counted, because the line
 the design specifies says *work items* and this command does not get to widen
 it. So a release whose only change was to `follow-up.md` reports 0. That gap
 is Q1 in the work item's `questions.md`, with the owner named; it is written
