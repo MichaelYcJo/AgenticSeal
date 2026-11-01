@@ -16,9 +16,8 @@ is what refuses it.
 leaves the commit gate no command line to read, with the heredoc shape that
 gate took as data; the commit gate is gone, and the reason is now that the
 routing check sees only the edit tools. The cases assert the new reason and
-the absence of the old one, following `tests/behaviour/test_one_word_one_meaning.py`: a
-document can gain the corrected sentence and keep the wrong one two
-paragraphs down, which is how two answers ship at once.
+the absence of the old one: a document can gain the corrected sentence and
+keep the wrong one two paragraphs down, which is how two answers ship at once.
 """
 
 from conftest import flat

@@ -632,9 +632,8 @@ BATCH_PHRASE = re.compile(r"\b(?:in|into|as) (?:one|a single|a) batch\b", re.IGN
 # change what is found, since no stem in `ASKING` and no word in
 # `BATCH_PHRASE` carries one. A printed file name losing its underscores is
 # worth less than a spelling the guard cannot see, which is the same trade
-# `chain_check.py` makes under the same name — and two constants called
-# `EMPHASIS` meaning two different things is what
-# `tests/behaviour/test_one_word_one_meaning.py` exists to stop.
+# `chain_check.py` makes under the same name, so the two constants called
+# `EMPHASIS` mean one thing.
 EMPHASIS = re.compile(r"[*_`]+")
 
 
