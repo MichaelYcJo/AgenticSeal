@@ -1,0 +1,43 @@
+# Implementation Plan: 1793521562-the-proofer-cases-come-from-thread-records
+
+## Technical context
+
+The work builds on the two generators as 0.27.1 left them, and changes neither.
+
+- `evals/scripts/replay_targets.py#main` (`:1003-1071`, read) reads the round records in the working tree and at the two newest `vX.Y.Z` tags. It sorts the kept rounds by `(size, item, n)` and writes the first round of each work item until it has `--count`. `--case` reads every release tag, for the named work items alone.
+- `evals/scripts/seed_defects.py#main` (`:436-502`, read) reads the commits shipped between the three newest tags (`#shipped`, `:113`). It writes the `--count` smallest by `(size, commit)`. It refuses a commit whose round 1 truths share a location (executed: `--list` leaves out `29d582ca` and `48d035aa` for that reason).
+- `replay_targets.py#recurred_truths` (`:711`) opens `evals/scripts/recurred_truths.json` for every case written by any of the three generators. It stops the run where an entry names a directory not under `OUT`, `evals/behaviour/proofer/`, whatever `--out` says. So the 10 entries for `replay-1791382684-r2` and `-r5` go out before, or in the same edit as, those two directories. With the entries still in and the directories gone, every generator exits 1 at its first case. That includes `rule_cases.py`, and `tests/behaviour/test_evals_layout.py::test_the_sealer_cases_are_the_generators_output` runs it.
+- `--list`, `--count` and `--case` need each reviewed commit to resolve. In this worktree, every target framing checked resolves without a fetch (executed: `git cat-file -e` of the four replay targets). A fresh `git clone --no-local` lacks them until `git fetch <GitHub URL> '+refs/pull/*/head:refs/remotes/pr/*'`. In such a clone, no round was left out as `does not resolve` (executed). So the worktree and the clone list the same rounds.
+- Each case `--count` writes depends on the records and tags present when it runs, so a run after a new release tag can pick other rounds. The committed cases are the record of the pick. `--case` regenerates them from the tags (executed: byte for byte at `479bfefa`).
+
+The failure scenario of the chosen approach, six months out: the suite holds 13 `truth-` graders where it held 27. Each replay case has one truth. `noninferiority.py#verdict` rule 1 lets recall fall by one find where a new run finds what was lost. In a pool of 13, one find is a larger share than in a pool of 27, so a rewrite that blunts the proofer on one kind of defect can pass on a pool this small. Two of the eight cases, `replay-1793457435-r3` and `seeded-5fd6b88c`, come from #1150's work item, and both review `evals/scripts/replay_targets.py`. So the suite leans toward the generators' own code. `frame/questions.md` Q2 holds the choice. Its default is this approach, and its other option is a `--case` run with the rounds named there.
+
+## Alternatives considered
+
+| Approach | Failure scenario | Verdict |
+|---|---|---|
+| A1. Replace the eight with what `replay_targets.py --count 4` and `seed_defects.py --count 4` write at the base | The suite drops from 27 truths to 13, with one truth per replay case (Technical context). A later `--count` run after a new tag picks other rounds, so "the smallest" names a moment, not a fixed set | **Chosen.** The owner chose (a), and the milestone asks for regeneration with the two generators. `--count` is the selection `evals/README.md` *The behaviour suite* documents, and the eight replaced were four of each. Every case regenerates with `--case` from the tags (executed). The truth count is the owner's to weigh (Q2) |
+| A2. Name thread-layout rounds with more truths through `--case`: one per work item, such as `replay-1793490088-r3` (6 truths, 396 lines), `replay-1793419350-r3` (4, 164), `replay-1793504229-r3` (3, 100) and `replay-1793343707-r4` (3, 213), from `--list` (executed) | A pick by hand that no generator rule reproduces, so the next regeneration by `--count` replaces it without a trace. Each run reads about 4.6 times the diff A1's four replay cases read (873 lines against 190) | Not chosen by the framer, because which rounds the suite measures is the owner's choice (#1150's Q2: "the cases measured change, and the owner chooses those"). It is option (b) of `frame/questions.md` Q2 |
+| A3. Change how `--count` chooses, for example by truths per line, or one work item across both generators | Every later regeneration of the suite changes with it, and this work item edits a generator its scope does not name | Rejected for this work: the owner's choice and the milestone ask for regeneration with the generators as they stand. A change to the selection rule is its own issue, and nobody has filed it |
+| A4. Keep the eight committed cases, the structure in place (option (b) of #1229) | Each case rebuilds a tree whose `seal/README.md` does not open with `hooks/lib/optin.py#MARKER`, so the current plugin does not read its `seal/` as the root (#1150's `## Grounding`, the `optin.py#MARKER` row). The suite measures a tree no user of the current release runs | Rejected. The premise that would keep the structure is comparability with recorded sides. Since 0.27.0 no recorded proofer side compares with a later run (executed: `gh release view v0.27.0`), so the premise fails. The owner chose (a) on 2026-11-01 |
+| A5. Keep the eight cases and rewrite their scaffolds to move `seal/specs/` into the thread layout | The move lands in the `base..target` diff the proofer reviews, so every case's diff gains a tree move the original round never reviewed, and its truths no longer match what was reviewed | Rejected, as #1150's `frame/plan.md` A3 rejected it. Cases cut from thread-layout records need no move (`frame/design.md` *Grounding*, the scaffold row) |
+| A6. Delete the `evals/README.md` paragraph on the point of comparison instead of rewriting it | `compare` still refuses a pair from different suites (`noninferiority.py:1196-1200`), and the README then gives a reader of that refusal no reason for it | Rejected. The paragraph is rewritten in place to name this work's squash as the point (`frame/design.md` scope item 4) |
+| A7. Keep the 10 recurred truths by moving them onto the new cases | Each entry names coordinates at a 0.22.x target (`skills/verify/scripts/session_cost.py:2838` and `hooks/routing.py:448` among them), lines that runs on those trees named, and no new case's tree holds those defects at those lines. `truths_with` would widen a truth with a location no run of the new case can name | Rejected. The entries leave with their cases and stay readable at `v0.27.1` |
+
+## Phases
+
+| Phase | Delivers | Verified by | Status |
+|---|---|---|---|
+| 1 | `frame/design.md` *Scope* items 1, 2, 3 and 4, in one commit | `frame/design.md` Scenarios 1 to 6. Scenario 2's `--case` runs and Scenario 3's scaffold runs go under the scratchpad, in a `git clone --no-local` for Scenario 2. Scenario 5's modules run in one command at the phase boundary. Contract rule 15 for a generated case: show each new `truth-` grader's pattern matching the `location:` line of the finding it was cut from, in the round record at its tag, and not matching that record with the line removed. For `truth-seeded`, show it matching a `location:` line at the mutated line and not matching one at 16 lines away | |
+
+## Operational impact
+
+No deployer is affected. Nothing ships in the plugin's runtime, and no setting, dependency or interface changes.
+
+The next proofer comparison runs both sides on the new suite. A side recorded before this work does not compare with one taken after it, which has held since 0.27.0. The new cases fetch their commits from GitHub as the old ones did, so a run needs network access, and the reviewed commits must stay reachable there through `refs/pull/*/head`.
+
+## Judgments of the run
+
+| Date | Judgment | Grounds | Judged against |
+|---|---|---|---|
+| | | | |
