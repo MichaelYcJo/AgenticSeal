@@ -1017,6 +1017,7 @@ def main(argv=None):
     p.add_argument("--model", default=MODEL)
     p.add_argument("--timeout", type=int, default=2400)
     a = p.parse_args(argv)
+    a.case = list(dict.fromkeys(a.case))
     if a.case:
         items = {m["epoch"] for m in map(CASE_NAME.fullmatch, a.case) if m}
         kept, left = targets(last_tags(None), items)
