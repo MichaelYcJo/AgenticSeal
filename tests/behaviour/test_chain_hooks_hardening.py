@@ -886,7 +886,6 @@ def test_the_questions_are_collected_before_the_work_not_during_it():
     #     straddles a heading would pass — and it is ruled out with grounds in
     #     `aa687d35:seal/specs/1789540097-three-checks-that-do-not-see-what-they-are-named-for/spec.md`
     #     *Out*.
-    #   · It reads `*` and not `_`. See `EMPHASIS` above for why.
     #   · It refuses by the WORDS in the window, so a definition that names a
     #     person answering for some other reason within 140 characters of a
     #     legitimate batch phrase is refused and has to be reworded. That is
