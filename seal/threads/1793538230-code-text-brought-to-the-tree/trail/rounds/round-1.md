@@ -33,6 +33,11 @@ import is #1255's.
 
 The changelog fragment's second bullet says the docstring "names each place's reason". After the fix, that is still true of the release scripts and `hooks/dispatch.py`, and the paragraph names the open question for the scripts under `skills/*/scripts/`. The fix pass decides whether the bullet needs to change.
 
+```seal
+verdict: fixed 18bbd105
+answer: The finding holds: at 1ac8b651, 11 of the 14 scripts under `skills/*/scripts/` that the docstring's command lists reach `hooks/lib/` (`seal.py` by a `sys.path` insert, the others by path, `pr_body.py` and `seal_stamp.py` through `chain_check.py`), and `arm_check.py`, `deferral_check.py` and `session_cost.py` reach none of it (executed: a `grep -c` per file for `sys.path.insert`, `spec_from_file_location` or `_load_hook(`, and a `hooks/lib` path, then each loader's target read). The paste-ready text's first clause says every one of these scripts reaches `hooks/lib/`, which those three do not, so the fix is in my own words: "Most of the scripts under `skills/*/scripts/` already reach `hooks/lib/`", with `seal.py`'s import and the by-path loads, then the same sentence that none states why it copies the loop and that which of them owes the import is #1255's. The paragraph's closing "A copied loop is cheaper than the machinery that would avoid it" stood on the same standalone premise and was removed, keeping "what must not diverge is the ANSWER". "This command lists them" now says it lists every place that spells the loop. The changelog fragment's second bullet no longer says the docstring names each place's reason: it names the reason the release scripts and `hooks/dispatch.py` state, and says the skill scripts state none. The frame's "(standalone by design)" was folded by the orchestrator in 1ac8b651, and this pass did not edit the frame. `git grep -n -i "standalone by design"` outside `seal/threads/` prints nothing at 18bbd105 (executed). The phase-2 record's decision 2 still states the premise as phase 2 took it; it is that phase's record and this pass writes none.
+```
+
 ## Confirmations
 
 ```seal
