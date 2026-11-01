@@ -526,9 +526,12 @@ def resolve(rev):
 
 def ref_base(target, ref, landed=None):
     """The merge-base of TARGET and REF, or an empty string. Where REF no
-    longer resolves, a release branch deleted after its release, LANDED,
-    the commit the work landed on, stands for it: a squash puts none of
-    TARGET's commits on that branch, so the two share the fork REF named.
+    longer resolves, a release branch deleted after its release, LANDED
+    stands for it: the tip REF had when the work was squashed onto it, or
+    a commit that descends from that squash. The base rests on one
+    property of LANDED: it holds none of TARGET's own commits, because a
+    squash copies them into one new commit, so LANDED and TARGET share the
+    fork REF named.
 
     A tip that holds TARGET, the last writer of a branch still in progress
     or a branch merged with a merge commit, gives no base: their merge-base
@@ -790,10 +793,12 @@ def round_target(item, n, text, nxt, wrote, replay=True, landed=None, *, layout)
     both read in LAYOUT, which gives the path of each record and of
     `routing.md` at the target. WROTE maps a record's path to the commit
     whose check judges it: the commit that wrote it (`written_at`), or None
-    for this tree's check. LANDED is the commit the work landed on
-    (`ref_base`): `targets` passes the commit that last wrote the record,
-    and `seed_defects.py#target_at` the shipped commit's first parent. A
-    target is `{"item", "n", "report", "target", "base", "base_ref",
+    for this tree's check. LANDED stands for a base ref that no longer
+    resolves. `targets` passes the commit that last wrote the record: the
+    squash that landed the work, or a later commit that rewrote the
+    record. `seed_defects.py#target_at` passes the shipped squash's first
+    parent, the tip the squash landed on. `ref_base` states the property
+    the base it takes from either rests on. A target is `{"item", "n", "report", "target", "base", "base_ref",
     "branch", "asked", "truths", "size"}`,
     REPORT the round's record path, which the case's report is written at,
     and its truths each finding the round closed `fixed` that the next

@@ -640,10 +640,9 @@ class Test_module:
         assert rt.target_base("2b3c4d5 against ce448bbe", "T") == ("c" * 40, None)
         assert rt.target_base("2b3c4d5 against main", "T") == ("m" * 40, "origin/main")
         assert rt.target_base("2b3c4d5 against gone", "T") == ("", None)
-        # A release branch deleted after its release: the commit the work landed
-        # on stands for it (#986), the commit that last wrote the record where
-        # `targets` passes it, the shipped commit's first parent where
-        # `seed_defects.py` does (#1224).
+        # A release branch deleted after its release: LANDED stands for it
+        # (#986). `round_target` names the commit each caller passes, and
+        # `ref_base` the property the base rests on (#1224).
         landed = ("m" * 40, "origin/gone")
         assert rt.target_base("2b3c4d5 against gone", "T", landed="L") == landed
         assert rt.base_of("Round 1, against origin/gone.", "T") == ("", None)
