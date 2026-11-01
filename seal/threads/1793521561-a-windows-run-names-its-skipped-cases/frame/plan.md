@@ -40,4 +40,5 @@ The orchestrator's acts between the phases: push the branch after phase 1 closes
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-01 | The frame was read against #1221 and spawned as committed, with no proposal to the framer | The flags, the pin and the dispatched run read in phase 2 meet the issue's *Done when*, and `-rfEs --no-fold-skipped` answers it where `-rs` alone would not (the frame's probe row) | `skills/implement/orchestration.md` *The frame is read against the issue at the spawn* |
+| 2026-11-01 | The three platform-skipped link cases of `tests/skills/test_agentic_pytest_record.py` that phase 2 found are filed as #1247 in `backlog: release & platform`, not repaired here | `frame/design.md` *Scope* *Out* names every case under `tests/`; the repair would widen a diff whose rounds have not started, and whether the cases pass on Windows is unknown until a run makes them try, which #1247's own pull request gives | `skills/implement/SKILL.md` *6. Drain the rows before the broad run, and keep the records* |
