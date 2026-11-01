@@ -42,6 +42,11 @@ The fix makes the last sentence a fact about the rule's reader. That fact is tru
     check: none reader: the proofer at review
 ```
 
+```seal
+verdict: fixed c0f5cd63
+answer: The finding holds. The orchestrator replaced the `add`'s last sentence in `frame/design.md` in place with this round's: "The reader is the proofer and not a case, because a case that refuses a word wherever it stands turns red where the meaning has not changed", the citation kept; `frame/plan.md` *Judgments of the run* records the fold.
+```
+
 ### 2. The successor's *How the list was made* bullet names `49f3b00b`, a branch commit that a clone of the base will not hold after the merge
 
 ```seal
@@ -66,6 +71,11 @@ The fix names the base in the branch commit's place. The rest of the bullet stay
 
 ```markdown
 - **How the list was made.** The module was taken apart into its 55 top-level names: its 24 cases, its 28 constants and its helpers `flat`, `pact_texts` and `without_the_policy_span`. Each name was searched with `git grep -n -w` outside the module, `.test_durations` and `seal/threads`, at `ad4556f4`. Apart from other units named `flat`, which import nothing from the module, the search lists one line, `tests/behaviour/test_a_shrunken_corpus_declines_to_judge.py:77`, which is on the list above. Beside it, `git grep -n one_word_one_meaning -- . ':!seal/threads'` lists the places above and the 24 rows of `.test_durations`, and `seal rules --check` with the module deleted, in a clone where the `to` values stood in `docs/`, refused one line, `skills/writing-style/SKILL.md:276`. For paths and identifiers the list is whole. No search lists a sentence that names the module in prose alone, with no path or identifier. That part is a sample, and this build's reviewer reads for it.
+```
+
+```seal
+verdict: fixed c0f5cd63
+answer: The finding holds. The orchestrator rewrote the bullet in `frame/design.md` in place, citing `ad4556f4`, the base this round showed gives the same result and a clone of the base keeps after the merge; `frame/plan.md` *Judgments of the run* records the fold.
 ```
 
 ## Confirmations
