@@ -46,6 +46,12 @@ def ref_base(target, ref, landed=None):
     commit's first parent, the tip the squash landed on. A
 ```
 
+```seal
+verdict: fixed e446f10d
+answer: Both docstrings are rewritten in place, in my own wording close to the paste-ready fix, so the property is stated once. `ref_base` (`evals/scripts/replay_targets.py:528-538`) says LANDED is the tip the base ref had when the work was squashed onto it, or a commit that descends from that squash, and states the one property its base rests on: LANDED holds none of the target's own commits. `round_target` (`evals/scripts/replay_targets.py:796-801`) names the commit each caller passes, `targets` the last writer of the record (the squash or a later commit that rewrote the record) and `seed_defects.py#target_at` the shipped squash's first parent, and cites `ref_base` for the property instead of restating it as the paste-ready text partly did; 17dde57b puts back the line break e446f10d dropped before the target's fields. A sweep with `git grep` for `work landed on` and `landed` outside `seal/threads` found one more statement of the old phrase, the comment at `tests/evals/test_replay_targets.py:643-645`, which now cites the two docstrings. The `targets` docstring and the `seed_defects.py#target_at` docstring already name what they pass, and stand.
+location: `tests/evals/test_replay_targets.py:643-645`
+```
+
 ## Confirmations
 
 ```seal
