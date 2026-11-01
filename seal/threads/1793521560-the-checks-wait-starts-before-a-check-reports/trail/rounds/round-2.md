@@ -38,6 +38,11 @@ run.** The wait reads
 
 The pin goes in the case's `said` tuple, and it must be seen red with the bold sentence put back as it stands at `a9468abd` (contract rule 15). The frame's three sentences, in place: *Scope* item 3 reads "ends once the pushed commit has a check of a `pull_request` run". S1 reads "only once the pushed commit has a check of a `pull_request` run". Plan row 1 reads "It covers the three ways the wait starts early: no check on the new head, the old head still named, and another event's finished check on the new head."
 
+```seal
+verdict: fixed 5a9d2f05
+answer: The finding holds: `skills/code-review/orchestration.md:228-229` still read "has a check" as `b2fa2eb6` wrote it (read). The bold rule now reads "starts the wait only once the commit it pushed last has a check of a `pull_request` run.", the condition the poll below it gives, and the paste-ready pin joined the case's `said` tuple with the rule's closing `.**` so it holds the whole rule. With the file at `a9468abd`'s bytes the case failed at that pin (executed), and after `5a9d2f05` `seal mutate` cutting the rule to "starts the wait.**" went red, with the file restored to HEAD (executed). The fragment's `### Fixed` heading said "waits for the first check to report" and now names the check of a `pull_request` run; its body and process row already did. A search of the section for "has a check", "lists a check", "first check", "any check", "no check", "such a check" and "count" found no other sentence stating the old condition: the ones left state the measured no-check exit, the count read's exit 1 and the report, each already of the new condition (executed: `awk` over lines 203-457 with `grep`). The same words over `skills`, `agents`, `docs`, `templates`, `hooks`, `README.md` and `CONTRIBUTING.md` found only line 229 (executed); a search for wordings is a sample. The three frame sentences are the orchestrator's fold at `36dc0cc1`, which this pass did not edit.
+```
+
 ## Confirmations
 
 ```seal
