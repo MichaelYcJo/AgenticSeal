@@ -96,7 +96,7 @@ Out:
     <path>  no commit adds it
 ```
 
-The exact words are the build's, held to *Scope* item 1. The facts come from three git commands run at the repository's top, each once per named directory (P1): `git ls-files --cached --others --exclude-standard -z -- <dir>` for the documents; `git log --full-history --topo-order --reverse --no-renames --name-status --format=... HEAD -- <dir>` for each path's adding commit, the last `A` line for it, and its last change, the last line naming it; and `git status --porcelain -z -- <dir>` for a working-tree change. A repository whose HEAD has no commit prints every document as one no commit adds.
+The exact words are the build's, held to *Scope* item 1. The facts come from three git commands run at the repository's top, each once per named directory (P1): `git ls-files --cached --others --exclude-standard -z -- <dir>` for the documents; `git log --full-history --topo-order --reverse --no-renames --name-status --cc --format=... HEAD -- <dir>` for each path's adding commit, the last `A` line for it, and its last change, the last line naming it, a merge that resolved the document among them; and `git diff HEAD --name-only -z --no-renames -- <dir>` for a working-tree change. A repository whose HEAD has no commit prints every document as one no commit adds.
 
 **The exit codes** are the base's, with *Scope* item 2's refusals added to exit 2.
 
