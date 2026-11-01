@@ -33,6 +33,11 @@ The fix rewrites D1's *Scope* sentence on the agent entries and its *Done when*.
 > **Done when.** The three passages each stand in one file; `BASELINE` holds no agent-definition pair and no entry but the `README.md` ones #1102 drains; a case shows a paste between an agent definition and a skill refused.
 ```
 
+```seal
+verdict: fixed b58bfdb0
+answer: The finding holds, and D1 is split at #1102. D1's *Scope* and *Done when* take the first form above, so pairs of two agent definitions leave what the check counts and the module keeps no passage text; that keeps no copy beside the tree and adds no pin of wording, so it agrees with K5's decision. The paste-ready text left the `README.md` entries standing with no work named to remove `BASELINE`, so in my own words D1 now names them as the stored count `skills/core/SKILL.md` *The rule a mechanism is kept against* refuses in "Nothing is kept beside the tree to stay in step with it, such as a stored count or coordinate", standing only until #1102, and D2, the comment for #1102, hands #1102 their removal with `BASELINE`, the ratchet and its policy sentence. D1's title, *Rule change* and *Order* follow, and K2's *Decision*, *Grounds* and *Issue* cells in `trail/phases/phase-1.md` *The table* now say the same, the last reading D1, D2. Each part is achievable in the milestone its draft proposes.
+```
+
 ### 2. D1, D3, D5 and D7 propose `release: 0.27.1` on its purpose alone, and do not weigh the sizing rule the design names for a draft's milestone
 
 ```seal
@@ -53,6 +58,11 @@ The fix rewrites D1's milestone paragraph so that it weighs the sizing rule, and
 
 ```markdown
 Proposed milestone: `release: 0.27.1`, or the next release that can take it. The 0.27.1 description's purpose is "the reader fixes and the restatement audit", a patch that "fixes, audits and removes, and builds no feat", and this removes a restatement and a stored count and adds no feat. Against it: the milestone holds eight work items on 2026-11-01, past the three or four `docs/issues-and-milestones.md` *A milestone answers when, and takes three shapes* gives as a ceiling, and nothing #1038 or #947 reads in 0.27.2 needs this change in effect first. The orchestrator weighs the two when it files D1, D3, D5 and D7.
+```
+
+```seal
+verdict: fixed b58bfdb0
+answer: The finding holds; the paste-ready paragraph was not applied, because it copies the 0.27.1 milestone description and leaves the choice open, where the drafts are filed as they say. `trail/phases/phase-1.md` *Drafts* now weighs every proposed milestone once against `docs/issues-and-milestones.md` *A milestone answers when, and takes three shapes*, its sizing sentence and its ceiling, with the counts of 0.27.1, 0.27.2 and 0.28.0 on 2026-11-01, and each draft states its own ground under it with no copy of a milestone description. D1, D3, D4 and D7 go to a new patch milestone, `release: 0.27.3`, four work items at the ceiling, after 0.27.2 and before 0.28.0, whose #1216, #1204 and #1215 start from what D1, D4 and D7 change; D5 goes to `backlog: review chain & agents`, since nothing needs it in effect first; D2 and D6 stay comments for #1102 and #1038, which add no work item.
 ```
 
 ### 3. K13 names no overlap with #506, an open issue on the same ground, which the phase's own tracker search returns
@@ -77,6 +87,11 @@ The open part: a coordinate whose path has no directory, one in `tests/` or `eva
 
 The fix also adds #506 to *Command tracker*'s list of open issues found (`phase-2.md:830`).
 
+```seal
+verdict: fixed b58bfdb0
+answer: The finding holds. #506 now stands in *Command tracker*'s list and in *Instances K13*'s overlaps, in my own words where the paste-ready text calls `hooks/lib/console.py:46` the class of #506's item 1: that item's proposed case compares a module docstring's enumeration with its own module, and the `console.py` figure counts copies in other files under `skills/*/scripts/`, so the case would not reach it. No draft becomes a comment for #506, since the instance is not a catch #506's case would have made and K13's row leaves the figure class to `seal/follow-up.md`'s row; D7 repairs the instance. The first loop of *Command tracker* was run again on 2026-11-01, and #506 is the one open issue on K13's ground it returns that the list lacked, by reading the titles it returns.
+```
+
 ### 4. Phase 1's *Phase-boundary run* names 18 modules as the ones its two searches found, and the two searches list 28 files at `bf9efcba`
 
 ```seal
@@ -97,6 +112,11 @@ The fix rewrites the sentence that names the modules. The module list after it s
 
 ```markdown
 With the records written, one command ran it and 17 of the 28 files the two searches list at `bf9efcba` (27 test modules and `tests/conftest.py`): those that read `seal/` of the tree, by `git grep -n -E 'ROOT[^\n]{0,40}("seal"|seal/)|("seal", "threads")' bf9efcba -- tests`, and those that walk the whole tree, by `git grep -l -E 'ls-files|os\.walk\(ROOT|glob\(.*ROOT.*\*\*' bf9efcba -- tests`, with `tests/behaviour/test_docs_line_wrap.py` added because it reads Markdown. The ten test modules the run left out are run by `trail/phases/phase-2.md` *Phase-boundary run*.
+```
+
+```seal
+verdict: fixed b58bfdb0
+answer: The finding holds; the two searches at `bf9efcba` list the files the finding counts (executed). The sentence in `trail/phases/phase-1.md` *Phase-boundary run* is rewritten in place as the paste-ready text has it, and it also names the ten test modules the run left out and says why `tests/conftest.py` needs no run of its own; the module list and the run's result after it stand as they were.
 ```
 
 ### 5. Three records restate a figure that has a home in a row, and four of the copies carry no commit
@@ -131,6 +151,11 @@ D7 title:   `fix: two comments cite code the tree has moved, a docstring counts 
 D7 body:    > The measure, at `bf9efcba`, is `seal/threads/1793490088-each-kind-of-restatement-is-measured/trail/phases/phase-2.md` at the sealed commit, ...
 ```
 
+```seal
+verdict: fixed b58bfdb0
+answer: The finding holds, and the class was listed by comparing every numeral and number word outside code spans and fences across `frame/design.md`, `frame/plan.md`, `gaps.md` and both phase records, then reading each value that stands in two of them; a figure in a code span, one below four followed by another word, and one written in other words are not compared, and `gaps.md` *Not verified* names that open part. Fixed: `gaps.md` rows on the edition pairs, the `seal/` layout and the drifts and stream answers, as the paste-ready text has them; D7's title without any count, its *Done when* naming its scope's items in place of counts, and its body at `bf9efcba`; and, beyond the finding's list, the suite's total time stated by both phase records (phase 2's K7 cell and *Command durations*' suite line removed), #1216's count of pinning cases (phase 2's K7 cell cites phase 1's row K5), D2's and D6's counts of passages and entry points, the two *Drafts* intros' counts, phase 2's *Whether the frame holds* citing G12 for the fiftieth `check: none` line, and phase 2 restating the comment length design S5 gives; every draft's measure line now carries `bf9efcba`. Not fixed: `frame/design.md:18`, G12, which is the framer's file and a write the crafter's definition does not name; `gaps.md` *Not done* records it, the hand-back names it for the orchestrator, and no record cites G12's copy any more.
+```
+
 ### 6. K12 leaves the eight committed proofer cases unmeasured, and a record at `bf9efcba` and this round's regeneration both measure them
 
 ```seal
@@ -157,6 +182,11 @@ phase-2.md K12 row, *Held twice*: "... 17 eval cases that `evals/scripts/rule_ca
 phase-2.md K12 row, *Drifted*: "... and the 25 cases are their generators' output, the 4 replay scaffolds but for the remote their generator reads from the clone (*Instances K12*)"
 
 gaps.md:14: the row is removed.
+```
+
+```seal
+verdict: fixed b58bfdb0
+answer: The finding holds. `trail/phases/phase-2.md` *Instances K12* now records the measure by citing this record's finding 6 and its *Probes* row for the two generators, with none of their figures, judges the replay scaffolds' remote line an input of the run and not drift, and cites `seal/threads/1793457435-replay-targets-reads-both-layouts/guarantee.md` *Claims re-run* for the same result; K12's *Held twice* and *Drifted* cells name the proofer cases and cite that measure. The `gaps.md` row is marked `closed` with what closed it instead of removed, since `skills/implement/SKILL.md` *4. The closing memo* closes an item by marking it, never by deleting it.
 ```
 
 ## Confirmations
