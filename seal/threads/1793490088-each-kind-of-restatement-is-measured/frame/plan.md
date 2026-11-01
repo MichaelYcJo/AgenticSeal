@@ -48,7 +48,7 @@ Failure scenario of the chosen approach, six months on: the decisions are filed 
 |---|---|---|---|
 | 1 | *Scope* items 1 to 4 for K1, K2, K3, K4, K5, K6 and K9; `gaps.md` from its template | each row's command, run at `bf9efcba`, prints its count; `git diff --name-only bf9efcba..HEAD` prints only this work item's paths; `tests/behaviour/test_chain_hooks_hardening.py::test_every_spec_directory_that_reached_the_ladder_has_an_overview` | cc2c6946 |
 | 2 | *Scope* items 1 to 4 for K7, K8, K10, K11, K12, K13 and K14; *Scope* items 5 and 6 | the same, for its rows; design S5; the same case | c63922bd |
-| 3 | *Scope* item 7 | design S7, read against *The kinds* and *Pairs no command of this audit reads*; the same case | |
+| 3 | *Scope* item 7 | design S7, read against *The kinds* and *Pairs no command of this audit reads*; the same case | 7358c7a3 |
 
 ## Operational impact
 
