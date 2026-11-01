@@ -30,7 +30,7 @@ The work touches three files and the frame's one rule change. Every coordinate i
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Scope items 1 to 7 | `tests/text/test_no_passage_is_pasted_into_a_second_file.py` green. S3's case seen red with the pair filter widened to every pair holding an `agents/` path. S4's case seen red against the module at the base. S5's two cases each shown able to fail by `seal mutate` of `over_baseline`'s comparison. The phase-boundary set of contract rule 2, which holds every module design G12 names | |
+| 1 | Scope items 1 to 7 | `tests/text/test_no_passage_is_pasted_into_a_second_file.py` green. S3's case seen red with the pair filter widened to every pair holding an `agents/` path. S4's case seen red against the module at the base. S5's two cases each shown able to fail by `seal mutate` of `over_baseline`'s comparison. The phase-boundary set of contract rule 2, which holds every module design G12 names | 43eaa555 |
 
 One phase, because the parts depend on each other: the three linked pairs leave `BASELINE` only once their links land, and a second phase would cost a spawn and a record for about four files. Within the phase, the cases of Scope item 6 come before the module's filter, as `skills/implement/SKILL.md` *2. Implement test-first, and let each rule name its test* states.
 
