@@ -31,7 +31,7 @@ The chosen approach's failure scenario in six months: someone replaces a closing
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Scope items 1, 2, 3, 4, 5 and 6 | `tests/skills/test_unverified_check.py`, the classes `Test_real`, `Test_overviews`, `Test_unique_by_target`, `Test_main` and the new reader's class, in one command. Each new case is seen red against 4da937fa's `unverified_check.py`: the named file link, directory link and linked-ancestor cases exit 0 there; the outside-every-repository case exits 2. `test_refuses_a_deletion_reached_through_a_linked_path` stays green, and is seen red against a build that keeps the argument's last component unresolved, which is the directory-only alternative. | |
+| 1 | Scope items 1, 2, 3, 4, 5 and 6 | `tests/skills/test_unverified_check.py`, the classes `Test_real`, `Test_overviews`, `Test_unique_by_target`, `Test_main` and the new reader's class, in one command. Each new case is seen red against 4da937fa's `unverified_check.py`: the named file link, directory link and linked-ancestor cases exit 0 there; the outside-every-repository case exits 2. `test_refuses_a_deletion_reached_through_a_linked_path` stays green, and is seen red against a build that keeps the argument's last component unresolved, which is the directory-only alternative. | e4ba92f5 |
 
 ## Operational impact
 
