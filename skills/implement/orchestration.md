@@ -96,8 +96,12 @@ request body, because each party judges its own target
 (`skills/core/SKILL.md` *Each agent judges its own target, independently of
 the others*) and a second round would be the orchestrator overriding the
 framer. Reading the plan and spawning the build is the approval, and no line
-records it. The counts of the run's proposals, agreements, agreements with a
-change and rejections go with the framer segment's reading to the flow log
+records it: a frame spawned as committed, with no proposal, takes no row of
+`frame/plan.md` *Judgments of the run*, and a question built on its default
+stands in `frame/questions.md` alone. Six of 0.27.x's fourteen work items
+wrote such a row, and each restated the spawn. The counts of the run's
+proposals, agreements, agreements with a change and rejections go with the
+framer segment's reading to the flow log
 (`skills/verify/orchestration.md` *Measure the segment, and feed the flow
 log*), and the settle weighs the exchange against what it cost under the
 core's mechanism rule. Its first instance, #1148's frame: four proposals,
