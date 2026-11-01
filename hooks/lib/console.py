@@ -47,8 +47,11 @@ Some entry points spell the loop inline instead of importing this. Most of the
 scripts under `skills/*/scripts/` already reach `hooks/lib/`:
 `skills/implement/scripts/seal.py` imports its modules after checking they are
 there, and others load them by path, directly or through a sibling script.
-None of them says why it copies the loop rather than loading this module the
-same way, and which of them owes the import is #1255's.
+`skills/code-review/scripts/chain_check.py` runs its loop before it loads any
+of them, so that the refusal it prints when one will not load does not meet a
+console's code page, and a load of this module would be one more load that can
+fail first. None of the others says why it copies the loop rather than loading
+this module the same way. Which entry points owe the answer is #1255's.
 `.github/scripts/release_report.py`, `.github/scripts/release_seal.py` and
 `.github/scripts/rules.py` load the tree's modules only when first asked, so a
 module that will not load ends in the script's own named result rather than a
