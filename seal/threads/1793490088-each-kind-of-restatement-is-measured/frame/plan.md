@@ -45,7 +45,7 @@ Failure scenario of the chosen approach, six months on: the decisions are filed 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
 | 1 | *Scope* items 1 to 4 for K1, K2, K3, K4, K5, K6 and K9; `gaps.md` from its template | each row's command, run at `bf9efcba`, prints its count; `git diff --name-only bf9efcba..HEAD` prints only this work item's paths; `tests/behaviour/test_chain_hooks_hardening.py::test_every_spec_directory_that_reached_the_ladder_has_an_overview` | cc2c6946 |
-| 2 | *Scope* items 1 to 4 for K7, K8, K10, K11, K12, K13 and K14; *Scope* items 5 and 6 | the same, for its rows; the joined comment text under 65,536 characters by `wc -c`; the same case | |
+| 2 | *Scope* items 1 to 4 for K7, K8, K10, K11, K12, K13 and K14; *Scope* items 5 and 6 | the same, for its rows; the joined comment text under 65,536 characters by `wc -c`; the same case | c63922bd |
 
 ## Operational impact
 
