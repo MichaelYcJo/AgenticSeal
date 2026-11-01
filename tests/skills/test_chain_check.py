@@ -701,6 +701,29 @@ class Test_record_findings:
         assert found[1].regression_line == line_at(text, "regression: round-1#4")
         assert chain.record_findings(reader, record("abc1234"), "r.md") == ([], [])
 
+    def test_located_holds_the_finding_blocks_paths_alone(self):
+        """S7 of work item 1793521559. `located` is the paths of the finding
+        block's own `location:`, in the order written, so a reader asking where
+        the defect shows does not read where the fix went; `paths` still
+        holds both blocks' paths, which the pull-request check reads. Seen red
+        with `located` built from the union."""
+        text = record(
+            "abc1234",
+            [
+                finding(1, "open", location="`seal/threads/1-x/frame/design.md:3`")
+                + "\n"
+                + close("fixed abc1234", location="`seal/threads/1-x/frame/plan.md`")
+            ],
+        )
+        found, errors = chain.record_findings(reader, text, "r.md")
+        assert errors == []
+        assert [(f.located, f.paths) for f in found] == [
+            (
+                ["seal/threads/1-x/frame/design.md"],
+                ["seal/threads/1-x/frame/design.md", "seal/threads/1-x/frame/plan.md"],
+            )
+        ]
+
     @pytest.mark.rule("round-record-read-by-label")
     def test_refuses_a_finding_with_no_finding_block_or_a_block_twice(self):
         """A finding holds one finding block and one close block at most: a
