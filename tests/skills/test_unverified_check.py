@@ -1541,6 +1541,60 @@ class Test_real:
         assert UC.real(str(tmp_path)) == os.path.realpath(str(tmp_path))
 
 
+class Test_repository_of:
+    def test_accepts_the_repository_the_real_path_is_in_over_the_links(
+        self, plain, tmp_path
+    ):
+        """A checkout linked from a directory that is itself a repository,
+        such as a home directory, is compared in the checkout."""
+        outer = tmp_path / "outer"
+        outer.mkdir()
+        git(outer, "init", "-q", "-b", "main")
+        symlink_or_skip(str(plain), str(outer / "checkout"), directory=True)
+        assert same_path(UC.repository_of(str(outer / "checkout" / "specs")), plain)
+
+    def test_accepts_the_repository_holding_a_link_out_of_every_repository(
+        self, plain, tmp_path
+    ):
+        """#1225: the real path is in no repository, and the link stands in
+        one, so that one is where its own path is compared."""
+        d = copy_of(plain, tmp_path)
+        write(tmp_path, "beyond/gaps.md", memo(CANONICAL))
+        symlink_or_skip(
+            str(tmp_path / "beyond" / "gaps.md"), str(d / "specs" / WORK / "out.md")
+        )
+        assert same_path(UC.repository_of(str(d / "specs" / WORK / "out.md")), d)
+
+
+class Test_as_named:
+    def test_accepts_a_link_inside_the_repository_under_its_own_name(
+        self, plain, tmp_path
+    ):
+        """#1225: the components inside the repository are kept as the person
+        named them, so a link among them is compared at its own path."""
+        d = copy_of(plain, tmp_path)
+        symlink_or_skip(WORK, str(d / "specs" / "named"), directory=True)
+        given = os.path.join(str(d), "specs", "named", "gaps.md")
+        assert UC.as_named(given) == os.path.join(
+            os.path.realpath(str(d)), "specs", "named", "gaps.md"
+        )
+
+    def test_accepts_a_link_to_the_repositorys_top_resolved(self, plain, tmp_path):
+        """git names the top with its links resolved, so the way to it is
+        resolved too, or the path matches no line of `ls-tree`."""
+        symlink_or_skip(str(plain), str(tmp_path / "link"), directory=True)
+        assert UC.as_named(str(tmp_path / "link" / "specs")) == os.path.join(
+            os.path.realpath(str(plain)), "specs"
+        )
+
+    def test_refuses_to_keep_a_name_outside_every_repository(self, tmp_path):
+        (tmp_path / "target").mkdir()
+        symlink_or_skip(str(tmp_path / "target"), str(tmp_path / "link"), True)
+        assert UC.as_named(str(tmp_path / "link")) == os.path.realpath(
+            str(tmp_path / "target")
+        )
+
+
 class Test_git_path:
     def test_accepts_a_windows_path_as_git_spells_it(self, monkeypatch):
         r"""git answers and accepts `/` on every platform; `os.sep` is
@@ -1968,6 +2022,39 @@ def reported_paths(out):
     return found
 
 
+# How a person names a closing memo through a link, each shape the path as
+# named and the path the base held the memo at.
+NAMED_LINK = (
+    "a file link",
+    "a directory link",
+    "a file under a linked directory",
+)
+
+
+def a_named_link(tmp_path, shape, lost):
+    """`(repository, path as named)`: `specs/OTHER/gaps.md` held two rows at
+    HEAD, and now the memo is a link to `specs/WORK/gaps.md`, or its
+    directory a link to `specs/WORK`, by SHAPE. WORK's memo holds one row
+    where LOST, and two otherwise."""
+    target = CANONICAL.replace(WINDOWS + "\n", "") if lost else CANONICAL
+    d = _committed(
+        tmp_path,
+        {
+            f"specs/{WORK}/gaps.md": memo(target),
+            f"specs/{OTHER}/gaps.md": memo(CANONICAL, OTHER),
+        },
+    )
+    if shape == "a file link":
+        named = d / "specs" / OTHER / "gaps.md"
+        os.remove(named)
+        symlink_or_skip(os.path.join("..", WORK, "gaps.md"), str(named))
+        return d, named
+    shutil.rmtree(d / "specs" / OTHER)
+    symlink_or_skip(WORK, str(d / "specs" / OTHER), directory=True)
+    named = d / "specs" / OTHER
+    return d, named if shape == "a directory link" else named / "gaps.md"
+
+
 class Test_main:
     # The plain run: what is open is reported, and a record that cannot be
     # read fails.
@@ -2335,6 +2422,59 @@ class Test_main:
         else:
             os.remove(d / "specs" / WORK / "gaps.md")
         assert run([str(tmp_path / "link"), "--baseline", "HEAD"]) == 1
+
+    @pytest.mark.parametrize("shape", list(NAMED_LINK))
+    def test_refuses_a_row_lost_through_a_link_the_person_names(
+        self, tmp_path, monkeypatch, capsys, shape
+    ):
+        """#1225: the argument was read through `real()`, so a named link
+        reached the scan as its target's path. Nothing read the base at the
+        path as named, and the rows it held there left with exit 0. They are
+        compared with what that path reads now, and the line names it."""
+        d, named = a_named_link(tmp_path, shape, lost=True)
+        monkeypatch.chdir(d)
+        assert run([str(named), "--baseline", "HEAD"]) == 1
+        out = capsys.readouterr().out
+        assert "2 rows at HEAD, 1 here" in out, out
+        reported = [UC.git_path(p) for p in reported_paths(out)]
+        assert reported == [f"specs/{OTHER}/gaps.md"], out
+
+    def test_refuses_a_row_lost_through_a_named_link_out_of_every_repository(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """#1225: the repository was looked up from the link's target, which
+        is in none, so the run exited 2 saying the path was in no repository,
+        though the link stands in one. The link's own path is compared there,
+        and the target, which no commit holds, is named as not compared."""
+        d = _committed(tmp_path, {f"specs/{OTHER}/gaps.md": memo(CANONICAL, OTHER)})
+        write(tmp_path, "beyond/gaps.md", memo(CANONICAL.replace(WINDOWS + "\n", "")))
+        named = d / "specs" / OTHER / "gaps.md"
+        os.remove(named)
+        symlink_or_skip(str(tmp_path / "beyond" / "gaps.md"), str(named))
+        monkeypatch.chdir(d)
+        assert run([str(named), "--baseline", "HEAD"]) == 1
+        out = capsys.readouterr().out
+        left = out.split("rows left the record without being closed:")[1]
+        assert "2 rows at HEAD, 1 here" in left, out
+        reported = [UC.git_path(p) for p in reported_paths(left)]
+        assert reported == [f"specs/{OTHER}/gaps.md"], out
+        uncompared = out.split("not compared against HEAD:")[1].split("rows left")[0]
+        said = (
+            "not compared: the file lies outside the repository, so no commit "
+            "of the repository holds it"
+        )
+        assert "beyond" in uncompared and said in uncompared, out
+
+    @pytest.mark.parametrize("shape", ["a file link", "a directory link"])
+    def test_accepts_a_link_the_person_names_that_lost_no_row(
+        self, tmp_path, capsys, shape
+    ):
+        """The base lists the path as named, and so does the scan, so nothing
+        reads as deleted; the target holds the two rows the base held there."""
+        _repo, named = a_named_link(tmp_path, shape, lost=False)
+        assert run([str(named), "--baseline", "HEAD"]) == 0
+        out = capsys.readouterr().out
+        assert "left the record" not in out and "not compared" not in out, out
 
     # `--baseline` at a base written before the corpus was normalised.
 

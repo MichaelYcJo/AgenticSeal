@@ -937,10 +937,13 @@ def overviews(paths):
     same rule, so a closing memo the walk leaves out is never reported deleted."""
     found = []
     for p in paths:
-        # The argument is resolved once, and nothing below it is. `ls-tree`
-        # lists a tracked symbolic link under its own path, so resolving each
-        # file made a link that is right there read as deleted.
-        p = real(p)
+        # The argument is read through `as_named`, which resolves only the
+        # way to the repository's top, and nothing below it is resolved.
+        # `ls-tree` lists a tracked symbolic link under its own path, so
+        # resolving each file made a link that is right there read as deleted,
+        # and resolving the argument whole left a named link's own path
+        # uncompared (#1225).
+        p = as_named(p)
         if os.path.isfile(p):
             found.append(p)
             continue
@@ -1022,15 +1025,65 @@ def reference_rule(start):
 def real(path):
     """`path` with symbolic links resolved.
 
-    Every path this compares has to come through here. `git rev-parse
-    --show-toplevel` answers with links already resolved, so a caller who
-    reaches the tree through one — `/tmp` on macOS is a link to `/private/tmp`,
-    and a code directory linked from home is the same shape — produced a
-    repo-relative path like `../link/specs`, which matches no line of
-    `ls-tree`. Both comparisons then found nothing to do and the run passed:
-    the state the ref check above exists to prevent, reached by another
-    door."""
+    `as_named` reads the part of an argument that leads to its repository's
+    top through here. `git rev-parse --show-toplevel` answers with links
+    already resolved, so a caller who reaches the tree through one — `/tmp`
+    on macOS is a link to `/private/tmp`, and a code directory linked from
+    home is the same shape — produced a repo-relative path like
+    `../link/specs`, which matches no line of `ls-tree`. Both comparisons
+    then found nothing to do and the run passed: the state the ref check
+    above exists to prevent, reached by another door."""
     return os.path.realpath(path)
+
+
+def repository_of(path):
+    """The top of the repository `path` is compared in, or None where there
+    is none.
+
+    The repository the real path of `path`'s nearest existing ancestor is in,
+    as before #1225, because a checkout reached through a link from a
+    directory that is itself a repository, such as a home directory, is
+    compared in the checkout. Only where the real path is in no repository
+    is it the repository holding the deepest link on the path: a closing
+    memo linked to a file outside every repository still stands in one, and
+    its own path there is what the base holds."""
+    start = nearest_existing(path)
+    top = repo_root(real(start))
+    p = start
+    while top is None and os.path.dirname(p) != p:
+        if os.path.islink(p):
+            top = repo_root(real(os.path.dirname(p)))
+        p = os.path.dirname(p)
+    return top
+
+
+def as_named(path):
+    """`path` as this check compares it: the way to its repository's top
+    resolved through `real`, and every component inside the repository kept
+    as the person named it. A path in no repository is its real path.
+
+    The top is the shortest prefix of the absolute path that is the
+    repository's top. Resolving the whole path read a named link as its
+    target, so the rows the link's own path held at the base were never
+    compared and left with exit 0 (#1225). git cannot give the path back as
+    named: `rev-parse --show-prefix` answers with links resolved too."""
+    top = repository_of(path)
+    if top is None:
+        return real(path)
+    full = os.path.abspath(path)
+    chain = [full]
+    while os.path.dirname(chain[-1]) != chain[-1]:
+        chain.append(os.path.dirname(chain[-1]))
+    for prefix in reversed(chain):
+        try:
+            if os.path.samefile(prefix, top):
+                inside = os.path.relpath(full, prefix)
+                if inside == os.curdir:
+                    return real(prefix)
+                return os.path.join(real(prefix), inside)
+        except OSError:
+            continue
+    return real(path)
 
 
 def git_path(path):
@@ -1110,9 +1163,9 @@ def unique_by_target(paths):
     side at it: a link kept in its target's place had its own blob read at
     the base, which holds no section, and a deleted row passed (#19). The
     real path may lie outside the scanned path, or outside the repository,
-    which `main` names as not compared. A link whose own path held a file at
-    the base is read there by `main` as well, since this list leaves that
-    path out and those rows were the file's own. Presence is a different
+    which `main` names as not compared. A path reached through a link, whose
+    own path held a file at the base, is read there by `main` as well, since
+    this list leaves that path out and those rows were the file's own. Presence is a different
     question and keeps every path — `ls-tree` lists the link under its own
     name, so dropping it here would report a file that is right there as
     deleted."""
@@ -1566,7 +1619,7 @@ def main(argv=None):
     # them would leave two arms of one refusal reading two revisions.
     root = base = named = None
     if args.baseline:
-        root = repo_root(real(nearest_existing(args.path[0])))
+        root = repository_of(args.path[0])
         if root is None:
             print(
                 f"seal unverified: --baseline {args.baseline} needs a git "
@@ -1602,11 +1655,8 @@ def main(argv=None):
         # and aborted the run mid-report. Said here instead: a path with no
         # relative form to `root` is not in `root`, because a working tree
         # cannot span volumes.
-        outside = [
-            p
-            for p in args.path
-            if repo_relative(real(nearest_existing(p)), root) is None
-        ]
+        compared = {p: as_named(p) for p in args.path}
+        outside = [p for p in args.path if repo_relative(compared[p], root) is None]
         if outside:
             print(
                 f"seal unverified: {outside[0]} is not in {root} — nothing "
@@ -1623,7 +1673,7 @@ def main(argv=None):
             if not overviews_at(
                 root,
                 base,
-                [repo_relative(real(p), root)],
+                [repo_relative(compared[p], root)],
             )
         ]
         if typos:
@@ -1678,14 +1728,15 @@ def main(argv=None):
                 (uncompared if kind == "notice" else deleted).append(line)
 
     if args.baseline:
-        # The loop above reads the base at each real path. A path that is a
-        # link here and was a file at the base held its own rows there, and
-        # nothing else reads them: they are compared with what the link reads
-        # now, under the link's own path. A path that was a link at the base
-        # held no rows of its own there, so the real path's comparison is the
-        # only one owed for it.
+        # The loop above reads the base at each real path. A path reached
+        # through a link here, the file itself a link or a directory on its
+        # way, and that was a file at the base, held its own rows there, and
+        # nothing else reads them: they are compared with what the path reads
+        # now, under the path as named. A path that was a link, or passed
+        # through one, at the base held no rows of its own there, so the real
+        # path's comparison is the only one owed for it.
         for path in files:
-            if not os.path.islink(path):
+            if os.path.realpath(path) == path:
                 continue
             at = repo_relative(path, root)
             if mode_at(root, base, at) == LINK_MODE:
@@ -1705,7 +1756,7 @@ def main(argv=None):
                 kind, line = found
                 (uncompared if kind == "notice" else deleted).append(line)
 
-        prefixes = sorted({repo_relative(real(p), root) for p in args.path})
+        prefixes = sorted({repo_relative(compared[p], root) for p in args.path})
         here = {repo_relative(f, root) for f in files}
         gone = [r for r in overviews_at(root, base, prefixes) if r not in here]
         # A settle takes the whole directory, so a memo removed from one that
