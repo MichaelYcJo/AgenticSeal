@@ -62,21 +62,27 @@ in this repository carrying a population floor over `seal/threads/`.
 
 **Before `seal settle --apply`, the settling session counts, for each released work item
 routed through the review chain, the findings, the findings that carry a `regression:`
-or `reopens:` line, the findings whose every `location:` path is under `seal/threads/`,
-and the rounds, and posts the four numbers as a comment on the open `flow-baseline`
-issue.** The four are read from the work item's `trail/rounds/round-*.md` with
-`grep -h`, which reads a file wherever it lies: the `### <n>.` finding headings; the
-`regression:` and `reopens:` lines; the `location:` lines left with no backticked path
-once every path under `seal/threads/` is deleted from them; and the files. They are this
-repository's measure of #1148, which removed the records' copies of one another:
-0.24.0's four work items read 17 recurring of 36 findings, 12 in records alone, and
-0.25.0's one read 3 of 10, 1 in a record alone. A release whose records-alone count does
-not fall says the records still restate one another, and the next step is #1020's check
-that reads recurrence. The step is this repository's and ships to no user: the plugin's
-settle procedure (`skills/settle/SKILL.md` *The settling session's procedure*) does not
-take it, because the reader of the four numbers is this repository's owner and most
-installed repositories keep no `flow-baseline` log.
-check: none reader: the owner's settling session at this step
+or `reopens:` line, the findings whose finding block names only paths under
+`seal/threads/` on its `location:` line, and the rounds, and posts the four numbers as a
+comment on the open `flow-baseline` issue.** `python3 .github/scripts/finding_counts.py`
+prints the four as the table the comment carries, one row per such work item. It reads
+each round record through `skills/code-review/scripts/chain_check.py#record_findings`,
+the reader the pull-request check holds a record to. So a finding is counted once: by
+its `### <n>. <symptom>` section that holds a finding block, by that block's
+`regression:` or `reopens:` line, and by that block's `location:` line alone. A close
+block's `location:` names where the fix went, not where the defect shows, and the count
+does not read it. A work item whose record the reader refuses a line of reads `not read`
+in its finding cells, and the refusal is printed under the table, because a count that
+skipped a refused finding is a wrong number. They are this repository's measure
+of #1148, which removed the records' copies of one another: 0.24.0's four work items
+read 17 recurring of 36 findings, 12 in records alone, and 0.25.0's one read 3 of 10, 1
+in a record alone. A release whose records-alone count does not fall says the records
+still restate one another, and the next step is #1020's check that reads recurrence. The
+step is this repository's and ships to no user: the plugin's settle procedure
+(`skills/settle/SKILL.md` *The settling session's procedure*) does not take it, because
+the reader of the four numbers is this repository's owner and most installed
+repositories keep no `flow-baseline` log.
+check: tests/github/test_finding_counts.py
 
 **What `seal settle --apply` removed is committed before anything switches that checkout
 to another branch.** `--apply` deletes each directory from the working tree and stages

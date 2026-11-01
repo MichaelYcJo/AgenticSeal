@@ -30,7 +30,7 @@ no values file and no drawing. The verdict word `sealed` is the sealer's,
 and the stamp is drawn from that verdict at its write, in either mode
 (`docs/the-review-record.md` *The stamp*), so a green suite is never read as
 a sealed work item.
-check: tests/behaviour/test_one_word_one_meaning.py tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py
+check: tests/skills/test_broad_gate.py tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py
 
 Where a rule every agent is bound by lives, and where one agent's own rule
 lives, is `docs/the-agent-set.md` *One contract every agent receives, and

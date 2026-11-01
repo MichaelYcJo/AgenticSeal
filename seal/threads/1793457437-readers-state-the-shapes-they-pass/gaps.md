@@ -4,8 +4,8 @@
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the format check over the whole tree after phase 1. The phase-boundary set of 57 modules is a sample built from three searches (`trail/phases/phase-1.md`), so a module reaching a changed path through a helper none of them names was not run. | the orchestrator, by `seal gate` with the `Broad gate` row of `seal/config.md` |
-| The full suite, the repository-wide lint and the format check over the whole tree after round 1's fix pass. Its boundary set of 67 modules is a sample built from two searches: modules that name a changed path or a work item's records, and modules that walk the tree through `git ls-files`, `os.walk` or a glob. | the orchestrator, by `seal gate` with the `Broad gate` row of `seal/config.md` |
+| closed The full suite, the repository-wide lint and the format check over the whole tree after phase 1. The phase-boundary set of 57 modules is a sample built from three searches (`trail/phases/phase-1.md`), so a module reaching a changed path through a helper none of them names was not run. | answered by `trail/gate.md`: the broad gate row of `seal/config.md`, the full suite with the repository-wide `ruff check` and `ruff format --check`, passed at `360c153b against a92c358b` (read by the settle that opens 0.27.3) |
+| closed The full suite, the repository-wide lint and the format check over the whole tree after round 1's fix pass. Its boundary set of 67 modules is a sample built from two searches: modules that name a changed path or a work item's records, and modules that walk the tree through `git ls-files`, `os.walk` or a glob. | answered by `trail/gate.md`: the broad gate row of `seal/config.md`, the full suite with the repository-wide `ruff check` and `ruff format --check`, passed at `360c153b against a92c358b` (read by the settle that opens 0.27.3) |
 
 ## Not done
 

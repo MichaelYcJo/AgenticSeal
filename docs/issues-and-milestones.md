@@ -218,6 +218,20 @@ and the release is refused until somebody writes the keyword, moves the
 issue, or builds it. The failure lands on the release rather than on the work
 item that caused it.
 
+**The release check judges a release only under the two names the release
+automation writes: a head branch named `release/vX.Y.Z` and a milestone titled
+`release: X.Y.Z`.** A head branch named otherwise is judged as nothing: the
+check prints that it is not a `release/vX.Y.Z` branch and exits 0 before it
+reads a subject. A milestone of that version under another title is no
+milestone of the release: the milestone reading prints a warning that it
+verified nothing and passes, and only the reading of the subjects for a
+`feat:` can still refuse. So a release branch cut under another name, or a
+milestone retitled by hand, reaches `main` with nothing compared, and the
+printed line is its one trace. Whoever cuts the branch or titles the milestone
+writes those two spellings (`docs/branch-and-release.md` *Work accumulates on a
+release branch*).
+check: a-release-is-judged-under-its-two-names
+
 ## A label says a ticket is already in, before the release ships
 
 **An issue a pull request into a release branch claimed carries

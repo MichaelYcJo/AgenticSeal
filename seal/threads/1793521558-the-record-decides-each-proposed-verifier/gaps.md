@@ -4,8 +4,8 @@
 
 | Item | Who must answer |
 |---|---|
-| How `claude plugin eval` reads a `not_contains` grader whose target file is absent, the question of candidate C5 that only a paid eval run answers (`frame/design.md` *Scope* item 5). No paid run is taken in 0.27.2 (`frame/plan.md` *Judgments of the run*), so phase 3 decides C5 on the record without it. | the repository owner, by one eval run over a case whose agent writes no such file, in a release where paid runs are taken |
-| The full suite, the repository-wide lint and the format check over the whole tree after phases 1 to 3. Each phase ran the modules its phase record's *Phase-boundary run* names. | the orchestrator, by `seal gate` with the `Broad gate` row of `seal/config.md` |
+| closed How `claude plugin eval` reads a `not_contains` grader whose target file is absent, the question of candidate C5 that only a paid eval run answers (`frame/design.md` *Scope* item 5). No paid run is taken in 0.27.2 (`frame/plan.md` *Judgments of the run*), so phase 3 decides C5 on the record without it. | re-homed to #1266, a paid run the owner withheld in 0.27.2 |
+| closed The full suite, the repository-wide lint and the format check over the whole tree after phases 1 to 3. Each phase ran the modules its phase record's *Phase-boundary run* names. | answered by `trail/gate.md`: the broad gate row of `seal/config.md`, the full suite with the repository-wide `ruff check` and `ruff format --check`, passed at `5531dbe6 against a8269d90` (read by the settle that opens 0.27.3) |
 
 ## Not done
 

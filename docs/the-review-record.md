@@ -162,11 +162,15 @@ check: tests/skills/test_broad_gate.py tests/skills/test_chain_check.py
 **The check reads no record of the old table's shape.** It opens the
 records of the work items this pull request's own commits declare or change
 and no other, so a record a merged pull request left behind is never judged
-at a pull request again, whatever its shape. Two readers outside the check
+at a pull request again, whatever its shape. Three readers outside the check
 still open merged records: `.github/scripts/release_seal.py#chain_counts`
 reads every record of a release with the `chain_check` of the tree it runs
-from, and `evals/scripts/replay_targets.py` reads each labelled record with
-the `chain_check` of the commit that last wrote it. A record of an older shape under an item this pull request carries holds no round block, and is refused with the message that names the template. A work item in flight across a change to the grammar meets the change as its records stand: its round records are rewritten into blocks, and its `guarantee.md` and `trail/gate.md` take a block below their old text when the sealer and `seal gate --record` run again. An added field is never supplied after the round that would have written it, so an item whose records predate an added field merges before the change or has its rounds written after it. A record written before a line was added lacks
+from, and `evals/scripts/replay_targets.py` and `evals/scripts/seed_defects.py`
+read each labelled record, and each record in `seal` blocks, with the
+`chain_check` of the commit that last wrote it, from either layout a release
+has kept its records in: the one before 0.23.0, and
+`seal/threads/<id>/trail/rounds/` since (`evals/scripts/replay_targets.py#LAYOUTS`
+names both). A record of an older shape under an item this pull request carries holds no round block, and is refused with the message that names the template. A work item in flight across a change to the grammar meets the change as its records stand: its round records are rewritten into blocks, and its `guarantee.md` and `trail/gate.md` take a block below their old text when the sealer and `seal gate --record` run again. An added field is never supplied after the round that would have written it, so an item whose records predate an added field merges before the change or has its rounds written after it. A record written before a line was added lacks
 it, and the lack is no finding for a later round.
 check: old-table-shape-refused
 
