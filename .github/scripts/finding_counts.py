@@ -105,6 +105,17 @@ def readers():
     return routing, chain, chain.SHARED_READER, settle
 
 
+def why_not(problem):
+    """Why a file was not read, in the error's own words and without the
+    absolute path an `OSError`'s text carries: the line already names the
+    file from the root, and the table is pasted into a public issue's
+    comment. An `OSError` with no `strerror`, built without an errno, and a
+    `UnicodeDecodeError`, whose text names no file, are said whole."""
+    if isinstance(problem, OSError) and problem.strerror:
+        return problem.strerror
+    return str(problem)
+
+
 def chained(routing, where):
     """`(True, None)` where `where/routing.md` parses with `Review` `through
     the review chain`, `(False, None)` where it parses with another answer,
@@ -113,7 +124,7 @@ def chained(routing, where):
         with open(os.path.join(where, routing.FILENAME), encoding="utf-8") as f:
             parsed = routing.parse(f.read())
     except (OSError, UnicodeDecodeError) as problem:
-        return None, str(problem)
+        return None, why_not(problem)
     if not parsed:
         return None, NO_DECLARATION
     return parsed["review"] == routing.CHAIN, None
@@ -139,7 +150,7 @@ def item_counts(root, where, routing, chain, reader, records_at):
             with open(path, encoding="utf-8") as handle:
                 text = handle.read()
         except (OSError, UnicodeDecodeError) as problem:
-            unread.append(f"{shown}: {problem}")
+            unread.append(f"{shown}: {why_not(problem)}")
             continue
         findings, errors = chain.record_findings(reader, text, shown)
         if errors:

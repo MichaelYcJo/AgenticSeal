@@ -7,6 +7,7 @@ so `--released-at` has a commit to read, and runs `main` in the process. The
 scenarios are work item 1793521559's S1 to S6.
 """
 
+import errno
 import os
 
 import pytest
@@ -196,16 +197,38 @@ class Test_main:
         assert under[0].startswith(f"{path}:{line}: "), under
         assert "a severity is `must` or `should`" in under[0], under
 
-    def test_a_record_that_cannot_be_opened_is_named_with_why(self, tmp_path, capsys):
-        """A record that is not UTF-8 leaves the finding cells `not read`, and
-        the line under the table names it with why."""
+    @pytest.mark.parametrize("shape", ["not UTF-8", "a directory"])
+    def test_a_record_that_cannot_be_opened_is_named_with_why(
+        self, tmp_path, capsys, shape
+    ):
+        """A record that is not UTF-8, or that the system will not open,
+        leaves the finding cells `not read`, and the line under the table names
+        it from the root with why: the error's own words, and never the
+        absolute path an `OSError`'s text carries, since the table is pasted
+        into a public issue. Seen red against the line that printed the
+        error's whole text (round 2, finding 1)."""
         root = git_repo(tmp_path / "repo")
         where = item(root, rounds=[record(finding(1, "`f.py:1`"))])
-        (where / "trail" / "rounds" / "round-2.md").write_bytes(b"\xff\xfe round\n")
+        second = where / "trail" / "rounds" / "round-2.md"
+        if shape == "not UTF-8":
+            second.write_bytes(b"\xff\xfe round\n")
+            why = (
+                "'utf-8' codec can't decode byte 0xff in position 0: invalid start byte"
+            )
+        else:
+            second.mkdir()
+            (second / "kept.md").write_text("kept\n", encoding="utf-8")
+            try:
+                open(second, encoding="utf-8").close()
+            except OSError as problem:
+                # The system's words for it: `Is a directory` on POSIX, and
+                # `Permission denied` on Windows.
+                why = problem.strerror
         rows, under = table(root, capsys)
         assert rows == [f"| {ITEM} | not read | not read | not read | 2 |"]
         path = f"seal/threads/{ITEM}/trail/rounds/round-2.md"
-        assert len(under) == 1 and under[0].startswith(f"{path}: "), under
+        assert under == [f"{path}: {why}"], under
+        assert str(root) not in "\n".join(under), under
 
     @pytest.mark.parametrize("shape", ["a file", "a link to a directory of records"])
     def test_rounds_that_cannot_be_listed_read_not_read_in_every_cell(
@@ -282,9 +305,14 @@ class Test_main:
         assert code == 0, err
         said = "whether it went through the review chain is not read"
         assert lines[:4] == [HEADER, SEPARATOR, f"| {ITEM} | 1 | 0 | 0 | 1 |", ""]
-        assert lines[4].startswith(
+        # The reason is the error's own words without the absolute path its
+        # text carries, since the table is pasted into a public issue (round
+        # 2, finding 1).
+        assert lines[4] == (
             f"seal/threads/1700000004-no-routing/routing.md: {said}: "
+            + os.strerror(errno.ENOENT)
         ), lines
+        assert str(root) not in "\n".join(lines), lines
         assert lines[5:] == [
             "seal/threads/1700000005-no-declaration/routing.md: "
             f"{said}: it is no declaration `hooks/lib/routing.py#parse` reads",
