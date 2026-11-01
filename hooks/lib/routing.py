@@ -609,7 +609,8 @@ def rounds(item):
 
 
 def rounds_unreadable(item):
-    """True when `rounds` exists beside the work item and is not a directory.
+    """True when `rounds` beside the work item is a link of any kind, a path
+    that is not a directory, or a directory nothing can list.
 
     Told apart from "no records" because the two need opposite answers: one
     is 28 of this repository's 35 work items and must stay quiet, the other
