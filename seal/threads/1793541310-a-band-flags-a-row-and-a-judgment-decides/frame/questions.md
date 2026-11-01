@@ -2,7 +2,8 @@
 
 The ticket left these judgments open, and the tree answered each. Nobody reopens them:
 
-- Which other sentences turn a moved number into an issue directly: one, in `docs/release-checklist.md` *5*. Design `## Grounding` G5, G9 and G10.
+- Which sentences turn a moved number into an issue or a verdict directly: two, in `docs/release-checklist.md` *5* and *2b*. Design `## Grounding` G5, G9, G10 and G17, `plan.md` A11.
+- Where the weighing is written and who reads it: design G18, `plan.md` A12.
 - Whether #51's section still owes the rewrite *Done when* names: it does not. Design G7.
 - How the change to *5* stacks on #1258's: design G3, `plan.md` *Technical context*.
 - Where in `docs/measuring-a-run.md` the rule goes: design G4.
