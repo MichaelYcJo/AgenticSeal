@@ -45,6 +45,11 @@ The case below was run in the scratch clone. It passed at 7e5561f4d and failed u
         ], out
 ```
 
+```seal
+verdict: fixed decfee662
+answer: the finding holds; `test_reads_the_to_of_an_add_as_of_a_change` stands in `Test_check_lines_in_a_to` above `test_reads_no_check_line_in_a_from`, as the paste-ready case gives it, and `seal mutate` with `WRITES_A_TO = ("change",)` turned it red (executed)
+```
+
 ### 2. The refusal says `seal rules --check` refuses the line in the file the settle writes, and that reader never reads a file outside `docs/`
 
 ```seal
@@ -82,6 +87,11 @@ The design's `to`, `frame/design.md:77-86`, rewritten with the value's indent:
     and refuses nothing. A `from` is read for no check line, since the
     settle writes none into the policy root.
     check: a-check-line-in-a-to-is-read-at-the-pull-request
+```
+
+```seal
+verdict: fixed decfee662
+answer: the finding holds, since `RULE_FILES` reads `docs/*.md` alone while `parse` accepts any configured policy root; `CHECK_LINE_SAYS` and its pinned copy now read as the paste-ready text, and `seal mutate` restoring the old message turned the four refusal cases red (executed); the same claim stood in the `rules.py` docstring, now "before the settle writes the line into the policy root", and in the changelog fragment, whose title now names the reader behind `seal rules --check` and whose `seal rules --check` sentence is said of this repository, whose policy root is `docs/`; the design's `to` at `frame/design.md:77-86` is the framer's and is left to the orchestrator to fold with the paste-ready text, which reads true under any policy root
 ```
 
 ## Confirmations
