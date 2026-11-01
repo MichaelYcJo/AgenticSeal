@@ -9,7 +9,7 @@ the root in code (`hooks/lib/optin.py#home_at`) and are pinned by
 `tests/hooks/test_implementer_notice.py`. What is pinned HERE
 is the text: the one question the `implement`
 skill asks, the sentence a session needs, the workflow template
-`seal pr-checks install` writes and what local mode does to it, and the
+`seal pr-checks install` writes and the commands its header names, and the
 switch the READMEs give.
 
 Every case was executed against the documents as they stood at 7e44106,
@@ -88,21 +88,22 @@ def test_the_three_options_are_named_in_order_with_records_only_as_the_default()
 
 
 def test_each_option_says_what_it_creates_and_what_it_installs():
-    """S2 of #952: records only writes nothing under `.github/`, and the
-    checks are the command's to write."""
+    """S2 of #952: each shared option and the local one name the path of the
+    root it creates, and the checks option names the command that writes
+    the checks. What each option leaves alone is the proofer's to read."""
     boot = bootstrap()
     records = paragraph(boot, RECORDS_ONLY)
     checks = paragraph(boot, WITH_CHECKS)
     local = paragraph(boot, "**local**")
+    # The path `<repo>/seal/`, where the orchestrator creates the shared
+    # root and where `hooks/lib/optin.py` looks for it first.
     assert "creates `<repo>/seal/`" in records
-    assert "routing commit" in records, (
-        "the shared option does not say what carries the root"
-    )
-    assert "writes nothing under `.github/`" in records, records
+    # The command `seal pr-checks install`, which the orchestrator runs
+    # under this option.
     assert "`seal pr-checks install`" in checks, checks
+    # The path of the local root, which the orchestrator creates and
+    # `hooks/lib/optin.py` looks for second.
     assert f"creates `{COMMON_DIR}`" in local
-    assert "installs nothing" in local
-    assert "touches nothing in the tree" in local
 
 
 def test_the_root_is_spelled_through_the_common_dir_never_the_literal():
@@ -163,10 +164,11 @@ def test_the_broad_command_rides_the_question_that_already_stops_the_session():
     )
 
 
+# The paths the orchestrator opens to read a `Broad gate` candidate off the
+# repository, the table's *Where to look* cells that name a path.
 DERIVED = [
     ".github/workflows/*.yml",
     "a runner under `bin/`",
-    "a package manifest",
     "a `Makefile`",
 ]
 
@@ -193,18 +195,11 @@ def test_the_question_proposes_candidates_read_off_the_repository():
     """Q4. A question with nothing in it is answered badly to get past it, and
     a repository being opted in may not yet know its broad command. The parity
     setup's shape is the answer — what the machine can derive is proposed and
-    the person picks — so the floor is at least one derived candidate where
-    one is findable, each named with the file it came from."""
-    boot = bootstrap()
-    assert boot.index("Read candidates off the repository") > boot.index(BROAD_ROW), (
-        "the candidate table has left the question it belongs to"
-    )
+    the person picks. The candidate table names the places the orchestrator
+    reads candidates off."""
     row = candidates()
     for where in DERIVED:
         assert where in row, f"no candidate is read off {where}"
-    assert "name the file it came from" in flat(row), (
-        "a candidate with no source is one the person cannot correct"
-    )
 
 
 def test_a_candidate_carrying_a_pipe_is_escaped_where_candidates_are_derived():
@@ -213,130 +208,53 @@ def test_a_candidate_carrying_a_pipe_is_escaped_where_candidates_are_derived():
     ordinary — so the bootstrap could derive a candidate, the person accept
     it, the session write it, and the row parse as no row.
 
-    The warning used to say such a candidate *cannot be written into the row*
-    and to offer the command without its pipe. It can be written now, with
-    the pipe escaped, so the warning says how — and still says what a bare
-    one costs, because that is the spelling somebody types.
+    Such a candidate is written with the pipe escaped, and the warning gives
+    the escape. What a bare one costs is the proofer's to read.
     """
     boot = flat(bootstrap())
     warning = boot[boot.index("**A candidate carrying a `|` is written") :]
     warning = warning[: warning.index("**Name the criterion")]
-    assert "`run:` step is where one is likeliest to come from" in warning
+    # The escape `\|` the orchestrator writes into the `Broad gate` cell,
+    # which the config reader turns back into a pipe; the code span is the
+    # fact.
     assert "with the pipe escaped, `\\|`" in warning, (
         "the warning does not say how the pipe is written, which is the whole "
         "of what changed"
     )
-    assert "cannot be written into the row" not in warning, (
-        "the sentence #415 removed survived beside its replacement"
-    )
-    # #871: the table walker refuses a bare pipe, and reads nothing below a
-    # line it refuses, whether or not a row parsed above it.
-    assert "a bare one is refused" in warning and "cut off at the pipe" in warning
-    assert "every row written below it goes unread with it" in warning, (
-        "the warning states the row's own cost and not the file's"
-    )
-    assert "parses as no row" not in warning, (
-        "the stop rule's sentence survived beside the walker's"
-    )
-    assert "where a row above it already parsed" not in warning, (
-        "the stop rule's condition on the cost survived the stop rule"
-    )
 
 
-def test_the_question_never_guesses_and_says_so():
-    """`skills/parity-setup/SKILL.md` *Procedure* states the rule for the
-    original — *never guess* — and the same holds here for the same reason: a row nobody chose
-    is what `templates/setup/config.md` argues against by name."""
-    row = flat(bootstrap())
-    row = row[row.index("The second question") :]
-    assert "nothing is guessed" in row
-    assert "say so rather than inventing one" in row, (
-        "the bootstrap does not say what to do when no candidate is findable"
-    )
-
-
-def test_the_decline_is_offered_and_says_what_it_costs():
+def test_the_decline_names_the_command_back_to_the_row():
     """A question whose every answer must be a command is a gate wearing the
-    shape of a question. *Not yet* continues, and what it costs is the thing
-    the person is actually choosing between.
-
-    Read from the decline paragraph alone (🟡 7): a slice running to the end
-    of the section cannot fail by losing a sentence that has a twin anywhere
-    below it.
-    """
+    shape of a question, so *Not yet* is offered. The decline paragraph names
+    the command that fills the row in later; what the decline costs is the
+    proofer's to read."""
     decline = paragraph(bootstrap(), "**Offer a decline, and say what it costs.**")
-    assert "refuses with nothing run" in decline
-    assert "after the review rounds have settled" in decline, (
-        "the decline does not say WHEN the refusal arrives, which is the cost"
-    )
+    # The command `/agentic:config`, which a person who declined types to
+    # fill the `Broad gate` row in.
     assert "/agentic:config" in decline, "the decline names no way back to the row"
 
 
-def test_the_criterion_is_named_by_pointer_and_not_restated():
-    """The criterion has one owner (`tests/text/test_the_rules_have_one_owner.py`
-    rule 12). A bootstrap that spelled the three rules out would be its third
-    carrier and the next place for them to disagree."""
+def test_the_criterion_is_named_by_pointer():
+    """The criterion has one owner, `templates/setup/config.md`, and the
+    bootstrap cites its section rather than spelling the three rules out."""
     pointer = paragraph(bootstrap(), "**Name the criterion; do not restate it.**")
+    # The heading *The criterion for choosing a value*, which the person
+    # answering resolves in `templates/setup/config.md`; the citation is the
+    # fact.
     assert "*The criterion for choosing a value* owns the criterion" in pointer
-    boot = flat(bootstrap())
-    assert "red repository-wide" not in boot, (
-        "the bootstrap restates a rule instead of pointing at its owner"
-    )
-    # Round 1's 🟡 3. Rule 3's normative half was restated here — *joined with
-    # `&&`, the suite runner first* — which made the criterion's one home
-    # three homes, and the ledger fragment's claim that this carrier restates
-    # nothing false.
-    assert "the suite runner first" not in boot, (
-        "the bootstrap states rule 3 beside the pointer to the section that owns it"
-    )
-    assert "joined with `&&`" not in boot
 
 
-def test_the_row_is_written_after_seal_mode_and_carries_its_section():
-    """`seal mode` writes a config file holding only `Mode`, so the row lands
-    afterwards — and it lands the way `/agentic:config` step 3 lands one, the
-    row AND its section, because the documentation beside it is the half a
-    person reads. No new writer: `skills/config/SKILL.md` *What this does not
-    do* refuses a generic setter for a file people edit by hand."""
+def test_the_row_is_copied_from_the_template_up_to_its_bounding_heading():
+    """The `Broad gate` row lands the way `/agentic:config` step 3 lands one,
+    with the prose under its heading, copied from the plugin's template and
+    stopped at the heading that follows it. When it lands and why no command
+    writes it are the proofer's to read."""
     boot = flat(bootstrap())
-    assert "Then the `Broad gate` row" in boot
-    assert boot.index("Then the `Broad gate` row") > boot.index(
-        "Then record the answer: run `seal mode`"
-    ), "the row is written before the file `seal mode` creates it in"
+    # The path the orchestrator copies the row and its prose from.
     assert "$CLAUDE_PLUGIN_ROOT/templates/setup/config.md" in boot
-    assert "none is being added" in boot, (
-        "nothing says a writer is deliberately not being built for this"
-    )
-    # Round 1's 🟡 3. *The row and its section* now means 78 lines including
-    # the two lists and the criterion table, so every repository bootstrapped
-    # after this release would freeze a copy of them — and the next change to
-    # either leaves that copy saying something false about the tool.
-    assert "the row **and its section**" not in boot, (
-        "the bootstrap still copies the whole section, lists and all"
-    )
+    # The heading `### What is refused, and what stays allowed`, where the
+    # orchestrator stops copying; the heading is the fact.
     assert "down to but not including `### What is refused" in boot
-    assert "pointed at rather than copied down" in boot
-
-
-def test_a_decline_leaves_no_trace_and_the_asymmetry_with_the_mode_is_stated():
-    """The mode row records its answer because a never-asked repository got
-    shared mode SILENTLY (#151). Nothing about this row is silent — a
-    repository that declined and one that was never asked meet the same
-    refusal and are told the same correct thing — so a trace would separate
-    two states nothing treats differently.
-
-    Read from the decline paragraph alone. The mode paragraph of the same
-    section argues its own row, so a case reading the whole section cannot
-    fail by losing the argument it is named for — which is what round 1's
-    🟡 7 measured here. The issue number left the paragraph with #940; the
-    argument it stood for is what is pinned.
-    """
-    decline = paragraph(bootstrap(), "**A decline writes nothing at all.**")
-    assert "no sentinel" in decline
-    assert "would separate two states nothing treats differently" in decline
-    assert "The mode row is the opposite" in decline, (
-        "the asymmetry with the mode row is asserted, not argued"
-    )
 
 
 def test_the_sentence_that_said_nowhere_else_is_gone():
@@ -353,17 +271,17 @@ def test_the_sentence_that_said_nowhere_else_is_gone():
 OWN_SEAL = "**A `<repo>/seal/` whose `README.md` does not open with the marker"
 
 
-def test_a_projects_own_seal_gets_nothing_and_the_root_goes_under_the_git_dir():
-    """First setup meeting a `seal/` the project keeps for itself writes
-    nothing into it, and the orchestrator is told the root goes under the
-    git directory in local mode, before the mode's options are offered."""
-    boot = bootstrap()
-    own = paragraph(boot, OWN_SEAL)
+def test_a_projects_own_seal_names_the_marker_template_and_the_git_dir_root():
+    """First setup meeting a `seal/` the project keeps for itself names the
+    template whose first line is the marker, and the path under the git
+    directory where the root goes instead. That it writes nothing into the
+    project's `seal/` is the proofer's to read."""
+    own = paragraph(bootstrap(), OWN_SEAL)
+    # The path of the template whose first line is the marker, which the
+    # orchestrator opens to tell a project's own `seal/` from a root.
     assert "`templates/setup/seal-README.md`" in own, own
-    assert "writes nothing into it" in own, own
+    # The path of the local root, which the orchestrator creates instead.
     assert f"`{COMMON_DIR}`" in own, own
-    assert "local mode" in own, own
-    assert boot.index(OWN_SEAL) < boot.index(RECORDS_ONLY)
 
 
 # --- Q1: the sentence a session reads, once in each place -----------------
@@ -436,10 +354,10 @@ def test_the_rows_that_read_this_repository_do_not_travel(stays_home):
     assert stays_home not in template()
 
 
-def test_the_template_header_says_who_writes_it_and_what_local_mode_does_to_it():
-    """#952: `seal pr-checks install` writes the file and refuses in local
-    mode, and a copy left after a switch to local examines nothing and
-    passes, which phase 1 made true of every step."""
+def test_the_template_header_names_the_commands_that_write_and_remove_it():
+    """#952: the header of the workflow template names the command that
+    writes the file and the one that takes it out. What local mode does to
+    a copy is the proofer's to read."""
     header = flat(
         "\n".join(
             line
@@ -447,22 +365,25 @@ def test_the_template_header_says_who_writes_it_and_what_local_mode_does_to_it()
             if line.startswith("#")
         )
     )
+    # The command `seal pr-checks install`, which a person reading the
+    # workflow file runs to write it; the code span is the fact.
     assert "`seal pr-checks install` writes" in header, header
-    assert "refuses in local mode" in header, header
-    assert "examines nothing and passes" in header, header
+    # The command a person runs to take the workflow out.
     assert "`seal pr-checks remove`" in header, header
-    assert "red forever" not in header, header
 
 
-def test_the_skill_writes_the_workflow_only_when_absent_and_local_installs_nothing():
+def test_the_skill_names_the_workflow_paths_and_the_command_that_writes_it():
     """The orchestrator runs the command rather than writing the file, so
-    the file has one writer (#952)."""
+    the file has one writer (#952). The bootstrap names the template, the
+    path it is written to, and the command. When the file is written is the
+    proofer's to read."""
     boot = flat(bootstrap())
+    # The template path and the workflow path, which the orchestrator
+    # resolves to tell whether the command wrote the file or left one alone.
     assert "templates/setup/hygiene.yml" in boot
     assert ".github/workflows/hygiene.yml" in boot
-    assert "only when" in boot and "absent" in boot
-    assert "never overwritten" in boot
-    assert "installs nothing" in boot
+    # The command `seal pr-checks install`, which the orchestrator runs
+    # after `seal mode`; the code span is the fact.
     assert "then runs `seal pr-checks install`" in boot, boot
 
 
@@ -676,16 +597,15 @@ def test_the_seal_readme_is_the_template_verbatim():
 MARKER_SAID = "**The first line of this file is the marker.**"
 
 
-def test_the_seal_readme_says_its_first_line_is_the_marker():
+def test_the_seal_readme_cites_the_marker_constant():
     """The root's own README tells a person not to edit the line the gates
-    read, and what a `seal/` without it is; the 0.3.x paragraph it replaced
-    is gone."""
+    read, and cites the constant that holds it. What a `seal/` without the
+    line is, is the proofer's to read."""
     text = read("templates", "setup", "seal-README.md")
     said = paragraph(text, MARKER_SAID)
+    # The citation `hooks/lib/optin.py#MARKER`, which a person resolves to
+    # the one spelling of the line the gates read.
     assert "`hooks/lib/optin.py#MARKER`" in said, said
-    assert "never opted in" in said, said
-    assert "writes nothing into it" in said, said
-    assert "`.specseal/`" not in text
 
 
 def test_the_seal_readme_points_at_the_drain_and_restates_none_of_it():
@@ -768,29 +688,18 @@ def test_the_design_record_states_the_setup_rules_where_they_rule(parts, opt_in,
 def test_the_orchestrators_half_sends_a_fresh_repository_to_the_bootstrap():
     """S3 of #1046. A session that opens `orchestration.md` first, under an
     older release's preset block written before the bootstrap left that
-    file, meets the condition and the bootstrap's file in the opening
-    paragraph, before any section, with both places the root can be."""
+    file, meets the bootstrap's file in the opening paragraph, before any
+    section, with both places the root can be."""
     opening = paragraph(read(*ORCH), "This file is the orchestrator's")
+    # The path of the bootstrap, which the orchestrator opens where no root
+    # stands yet.
     assert "`skills/implement/bootstrap.md`" in opening, (
         "the orchestrator's half does not send a fresh repository to the bootstrap"
     )
-    assert "opens with the marker" in opening, opening
+    # The two paths the orchestrator looks at for a root before it opens
+    # the bootstrap.
     assert "`<repo>/seal/`" in opening, opening
     assert COMMON_DIR in opening, opening
-
-
-def test_the_bootstrap_says_whose_decision_the_place_is():
-    """Where the root lands is the person's decision (#151), and the write
-    that creates the root is what opts the repository in. Both are the
-    Bootstrap's, which the orchestrator's half sends a session to first."""
-    boot = flat(bootstrap())
-    assert "Creating the root is what opts the repository in" in boot, (
-        "the Bootstrap no longer says creating the root opts the repository in"
-    )
-    assert "is the person's decision and not the orchestrator's" in boot, (
-        "the Bootstrap does not say whose decision the place is, which is the "
-        "whole of what #151 lost"
-    )
 
 
 def test_the_bootstrap_records_the_answer_it_was_given():

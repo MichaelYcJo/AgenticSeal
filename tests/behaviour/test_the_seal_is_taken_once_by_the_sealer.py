@@ -158,8 +158,9 @@ def test_this_repositorys_own_config_is_answered_exactly_as_before(tmp_path):
 def test_the_documents_name_the_line_that_says_to_commit_the_cell():
     """S2's documentation (contract rule 14). The orchestrator is told
     what to do with the line — the commit is the orchestrator's act. Since
-    #969 the sealer sees none of the gate's lines and is told no line's
-    wording (`tests/behaviour/test_the_sealer_guarantees.py::TestDefinition`)."""
+    #969 the sealer sees none of the gate's lines, and the orchestrator
+    quotes them (`tests/behaviour/test_the_sealer_guarantees.py::TestDefinition`
+    reads the outputs line it quotes)."""
     orchestration = " ".join(
         read_document(os.path.join("skills", "code-review", "orchestration.md")).split()
     )

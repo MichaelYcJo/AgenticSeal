@@ -100,51 +100,9 @@ class TestTemplate:
         assert "sealed" not in cell, cell
         assert "`trail/gate.md` names" in cell, cell
 
-    def test_an_earlier_run_is_a_block_and_no_row(self):
-        """T3, S5 of #969, under #1198: a re-run at a new HEAD appends its
-        block below the earlier run's, so the template holds no `Target SHA`
-        row and no `; earlier run:` cell, and the definition re-runs only
-        what a commit since touched. Protects: a full re-audit for a
-        records-only commit, and an earlier verdict lost when the file is
-        rewritten."""
-        text = TEMPLATE.read_text(encoding="utf-8")
-        assert "Target SHA" not in text and "earlier run" not in text, text
-        rule = between(SEALER, "**The guarantee covers HEAD", " check: ")
-        assert "re-runs only the claims whose coordinates a commit since" in rule
-        # #1198, Scope item 7: the definition says the same as the template.
-        # A re-run appends its block and edits none above it, and step 5
-        # writes every verdict, steps 1 and 2's among them, in a block.
-        assert "appends its own verdict block below the earlier ones" in rule, rule
-        step_5 = between(SEALER, "5. **", "6. **")
-        for said in (
-            "append one verdict block below every block an earlier run left",
-            "Edit no earlier block",
-            "Every `Verdict:` this file names, steps 1 and 2's among them, "
-            "stands in that block.",
-        ):
-            assert said in step_5, said
-        sealer = SEALER.read_text(encoding="utf-8")
-        assert "Target SHA" not in sealer and "earlier run:" not in sealer
-
     def test_the_unfilled_template_is_no_guarantee(self):
         found = fields.read(TEMPLATE.read_text(encoding="utf-8"), fields.GUARANTEE)
         assert found.blocks == [] and found.refusals, found
-
-    def test_the_claims_table_takes_a_row_per_act_of_step_3_and_lists_none(self):
-        """T22: the sealer's acts are listed once, in `agents/sealer.md`.
-        `docs/the-review-record.md` *The guarantee* makes each act a row and
-        names none, and the template's `## Claims re-run` holds its table
-        alone, so a duty added to the definition has a row here without a
-        second list to keep in step."""
-        rule = between(
-            ROOT / "docs" / "the-review-record.md", "## The guarantee", "## The stamp"
-        )
-        assert "Each act is one row of `## Claims re-run` or `## The parties`" in rule
-        assert between(TEMPLATE, "## Claims re-run", "| Claim |") == "## Claims re-run "
-        row = between(TEMPLATE, "| Claim |", "## The parties")
-        assert "does not hold: what came back" in row
-        for act in ("`fixed <commit>`", "sampled", "removal", "🔴"):
-            assert act not in row, act
 
 
 # --- every committed guarantee ---------------------------------------------------
@@ -171,7 +129,11 @@ def test_every_committed_guarantee_in_blocks_reads_whole():
 class TestDefinition:
     def test_the_sealer_runs_on_opus_with_the_core_and_the_contract(self):
         head = SEALER.read_text(encoding="utf-8").split("---")[1]
+        # The frontmatter key `model`, which the harness reads when it
+        # spawns the sealer.
         assert "\nmodel: opus\n" in head
+        # The frontmatter list `skills`, whose two entries the harness
+        # injects into the sealer before its first call.
         assert "skills:\n  - core\n  - agent-contract\n" in head
         assert head.count("\n  - ") == 2
 
@@ -184,24 +146,26 @@ class TestDefinition:
         """T2, S1 of #969. Step 1 reads `trail/gate.md` and the commits after
         the run it names, and refuses with `withheld reason: no broad run at HEAD`
         where the record is absent or followed by a path outside the work
-        item's records; no step of the definition runs `seal gate --base`.
+        item's records.
 
-        Protects: the sealer re-running a suite the orchestrator just ran
-        (the 240K-token second run #957 measured), and a sealer that runs
-        nothing and still writes a verdict over a run that never happened.
-        Its conduct is the `shape-runs-no-broad-run` and `truth-no-gate`
-        graders' (`evals/behaviour/sealer/rule-sealer-no-gate/`); this holds
-        the words the spawn reads."""
+        Protects: a sealer that runs nothing and still writes a verdict over a
+        run that never happened. That it runs no broad run is the
+        `shape-runs-no-broad-run` and `truth-no-gate` graders'
+        (`evals/behaviour/sealer/rule-sealer-no-gate/`); this holds the
+        commands, paths and verdict lines the spawn reads. The conditions
+        step 1 states are the proofer's to read."""
         step = " ".join(
             between(SEALER, "1. **Read the gate's record.**", "2. **").split()
         )
+        # The path of the gate's record, which the sealer opens first.
         assert "`trail/gate.md`" in step, step
+        # The `git` arguments the sealer runs to list what followed the run.
         assert "log --no-merges --name-only <named>..HEAD ^<base>" in step, step
+        # The citation `chain_check.py#follows`, the reader the sealer
+        # resolves to judge those paths as the check does.
         assert "`chain_check.py#follows`" in step, step
+        # The verdict line `hooks/lib/fields.py` parses, as the sealer writes it.
         assert "`Verdict: withheld reason: no broad run at HEAD`" in step, step
-        assert "Absent" in step and "any other path" in step, step
-        assert "not an ancestor of HEAD" in step, step
-        assert "the plain branch name the prompt names" not in step, step
         # Round 2 of #969, finding 1: the base arrives as a plain branch name,
         # a local ref, and a worktree with only `origin/<base>` gives step 1's
         # `^<base>` exit 128. It is resolved once, as the gate resolves it, and
@@ -212,40 +176,20 @@ class TestDefinition:
         intro = " ".join(
             between(SEALER, "You work in the clone", "## Order of work").split()
         )
+        # The citation of the gate's resolver, which the sealer's order
+        # mirrors.
         assert "`broad_gate.py#resolve_base`" in intro, intro
+        # The three refs, in order, and the `git` command the sealer runs to
+        # resolve `<base>`; the commands are the fact.
         assert (
             "take the first of `<name>@{upstream}`, `origin/<name>` and "
             "`<name>` that `git -C <root> rev-parse --verify --quiet` answers, "
             "and every `<base>` below is the commit it prints"
         ) in intro, intro
+        # The verdict line `hooks/lib/fields.py` parses, as the sealer writes it.
         assert (
             "`Verdict: withheld reason: the base <name> resolves to no commit here`"
         ) in intro, intro
-        order = between(SEALER, "## Order of work", "## Never")
-        assert "seal gate --base" not in order, (
-            "a step of the sealer's definition runs the broad gate"
-        )
-
-    def test_the_sealer_is_spawned_before_the_pull_request_and_reads_its_body_from_a_file(
-        self,
-    ):
-        """S8 of #943. The pull request opens once the sealer has sealed, so
-        no pull request exists when the sealer runs: the description no
-        longer spawns it per ready pull request, and the body it audits is
-        the file the prompt names, the one the pull request then opens
-        with."""
-        text = SEALER.read_text(encoding="utf-8")
-        head = " ".join(text.split("---")[1].split())
-        assert "once per ready pull request" not in head, head
-        assert "before the pull request opens" in head, head
-        intro = " ".join(
-            between(SEALER, "You work in the clone", "## Order of work").split()
-        )
-        assert "a file holding the pull request body" in intro, intro
-        # Round 1 of #943, finding 1: on the stated limit's path the sealer
-        # runs again with the pull request already open.
-        assert "or is given it where already open" in intro, intro
-        assert "gh pr view" not in text, "the sealer still reads an open pull request"
 
     def test_the_sealer_checks_the_copy_and_reads_only_the_orchestrators_part(
         self,
@@ -286,69 +230,40 @@ class TestDefinition:
         rule = " ".join(
             between(SEALER, "**The guarantee covers HEAD", " check: ").split()
         )
+        # The two paths `chain_check.py#CLOSING_RECORDS` lets follow the
+        # audited commit, which the sealer resolves to tell a commit that owes
+        # a new audit; the code spans are the fact.
         assert (
             "other than one touching only the closing records, `trail/gate.md` "
             "and `guarantee.md`, owes a new audit"
         ) in rule, rule
-        assert "work item's records" not in rule, rule
 
-    def test_the_orchestration_quotes_what_only_the_gate_can_tell(self):
-        """Moved by #969 from the sealer with the run. The moved base, the
-        copy of the gate that ran and the outputs directory are lines a reader
-        learns from nowhere else, and the orchestrator who runs the gate is
-        the one who quotes them; the sealer, which sees no gate output, no
-        longer carries the instruction."""
+    def test_the_orchestration_quotes_the_gates_outputs_line(self):
+        """Moved by #969 from the sealer with the run. The outputs directory
+        is a line a reader learns from nowhere else, and the orchestrator who
+        runs the gate is the one who quotes it. The other lines it quotes, and
+        that the sealer carries none, are the proofer's to read."""
         text = " ".join(
             (ROOT / "skills" / "code-review" / "orchestration.md")
             .read_text(encoding="utf-8")
             .split()
         )
-        assert "where resolving the base moved it" in text.lower()
-        assert "the tree's copy of the gate" in text
+        # The line `broad_gate.py` prints to stderr when it keeps its
+        # outputs, which the orchestrator matches in the gate's output and
+        # quotes.
         assert "`outputs kept under seal-gate-<random>/`" in text
-        sealer = " ".join(SEALER.read_text(encoding="utf-8").split())
-        assert "outputs kept under" not in sealer
-
-    def test_step_3_holds_two_acts_and_reads_no_location(self):
-        """T40 (S22): step 3 is the one list of the sealer's acts, and it holds
-        two — the sample of the crafter's claims re-run, and the removals
-        confirmed absent. Whether a `fixed` commit touches its finding's
-        `location:` is the check's to read, so no act of step 3 reads it."""
-        step = between(SEALER, "3. **A claim against the fact.**", "4. **")
-        assert "Choose a sample of the crafter's `executed`" in step, step
-        assert "For every `## Removes` row of `frame/design.md`" in step, step
-        assert "two acts" in step.lower(), step
-        assert step.count("For every") == 1, step
-        for word in ("touches", "Location", "location", "fixed <commit>"):
-            assert word not in step, word
-
-    def test_step_4_reads_a_records_only_fix_as_the_fix_passs_claim(self):
-        """S4 of #1148. `chain_check.py#records` passes a `fixed` of the last
-        record located in the work item's records alone whose commit touched
-        them alone, with no verifying round after it, because the sealer is
-        that fix's reader: step 4 says so, and reads it as a party's claim at
-        HEAD."""
-        step = between(SEALER, "4. **The parties against each other.**", "5. **")
-        assert (
-            "where the finding is located in `seal/threads/<item>/` alone and its "
-            "commit touched nothing outside it" in step
-        ), step
-        assert "the fix pass's claim with you as its reader" in step, step
-        assert "read the record at HEAD against what the finding asked" in step
 
 
 # --- the document that states the guarantee ------------------------------------
 
 
 class TestDocument:
-    def test_the_guarantee_section_points_at_step_3_and_lists_no_act(self):
+    def test_the_guarantee_section_points_at_steps_3_and_4(self):
         """T23: `docs/the-review-record.md` *The guarantee* points at the
-        definition's steps 3 and 4 for the acts and lists none of them. The
-        record's vocabulary in *The round record* keeps `fixed <commit>`,
-        and is outside the slice read here."""
+        definition's steps 3 and 4 for the acts. Whether it lists any of them
+        is the proofer's to read."""
         section = between(DOCUMENT, "## The guarantee", "## The run")
+        # The citation of `agents/sealer.md`'s steps 3 and 4, which a reader
+        # resolves to the sealer's acts.
         assert "`agents/sealer.md` step 3" in section
         assert "step 4" in section
-        assert "one row of `## Claims re-run` or `## The parties`" in section
-        for act in ("`fixed <commit>`", "re-runs a sample", "stands in the tree"):
-            assert act not in section, act

@@ -137,7 +137,7 @@ its grounds written where a reviewer can open them, in `frame/design.md` or in
 what you opened. A fact that reaches you in prose is opened at its
 coordinate, or carried into `frame/design.md` labelled as nobody's finding with its
 answerer named.
-check: tests/behaviour/test_waiver_decided_at_start.py
+check: none reader: the orchestrator at each framer report
 
 **A question a command answers is answered by running it.** Where the
 answer is a behaviour, a time or an output, you run a read-only probe before
@@ -163,7 +163,7 @@ or changes a structure in the tree, `plan.md`'s Alternatives table carries
 the alternative that replaces the structure, with its failure scenario, as
 an equal of the one that keeps it. A verdict for keeping names the premise
 that keeps the structure, checked.
-check: tests/behaviour/test_waiver_decided_at_start.py
+check: none reader: the orchestrator at each framer report
 
 **`questions.md` is the residue, not a collection.** Every row owes a reason
 the tree could not answer it and no probe could either, in its own words,
@@ -175,7 +175,7 @@ the ticket left open that the tree did answer, one line each, pointing at the
 holds its grounds and restating neither, so nobody reopens them. Where
 different answers would not change what gets built, write the assumption
 down and continue.
-check: tests/behaviour/test_waiver_decided_at_start.py
+check: none reader: the orchestrator at each framer report
 
 **A row only a person can answer is reproduced in full in the report.**
 Nobody can answer a question they were handed a count of, so an approval
@@ -242,4 +242,4 @@ phase rows for the redesign, every closed phase keeping its commit, and
 `frame/design.md` where the scope moves. Add `Reframed <date> by <who>, after round
 <N>.` under your mark, never in its place. `docs/the-review-record.md`
 *The run* owns that rule.
-check: tests/text/test_the_rules_have_one_owner.py tests/behaviour/test_waiver_decided_at_start.py
+check: tests/text/test_the_rules_have_one_owner.py

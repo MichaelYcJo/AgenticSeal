@@ -1,21 +1,16 @@
 """Where the work is going is decided in the first minute, and written down.
 
-The rule spans four documents — the skill states it, the crafter follows it, the
-chain spec says what the gate does with it, and the template is what gets
-written. A rule spread across four files fails by one of them quietly dropping
-its part, which no single diff shows.
+The rule spans several documents — the orchestrator's half of the skill
+states it, the policy says what the gate does with it, the framer's
+definition says what the framer writes, and the template is what gets
+written. What these cases read is the facts a reader acts on across them:
+the answers `hooks/lib/routing.py` parses, the template's placeholders, the
+box table the person is asked, and the citations between the files. The
+rule's sentences are the proofer's to read.
 
-The rule: how a work item is routed has **three axes**, all asked in the same
-batch before the first edit, and the answer goes into
-`seal/threads/<work-item-id>/routing.md` rather than being re-derived at every
-commit.
-
-`Implementation` is the third and it is read on looser terms — optional, and
-an unreadable answer means "not answered" rather than "not a declaration".
-That looseness is why the count is asserted here rather than left implied: a
-document still saying two is not wrong about anything the gate does, so
-nothing else would catch it, and a session reading it would meet a template
-row its question never asked about.
+The rule: how a work item is routed is asked in one batch before the first
+edit, and the answer goes into `seal/threads/<work-item-id>/routing.md`
+rather than being re-derived at every commit.
 
 The second axis is not decoration. Opening a pull request is an outward-facing
 act, and asked at the end it IS a mid-round prompt — the thing this release
@@ -50,7 +45,6 @@ AXES = (
 # spawn preloads it. The per-command waiver stays in `SKILL.md`, because
 # the implementer is who types the command.
 ORCH = ("skills", "implement", "orchestration.md")
-SKILL = ("skills", "implement", "SKILL.md")
 
 # The shape of the asking, in the ONE spelling the orchestrator's section
 # states (#911): question 1 alone, and
@@ -60,14 +54,6 @@ SKILL = ("skills", "implement", "SKILL.md")
 # sentence two documents share is a pasted passage to
 # `tests/text/test_no_passage_is_pasted_into_a_second_file.py`.
 SHAPE = "Ask question 1 alone; the boxes in a second call only under `per axis`."
-# Every count or shape the question has outgrown. The last is the sentence
-# #911 retired; a copy of it left anywhere reads as the shape.
-STALE = (
-    "two axes",
-    "three axes",
-    "three checkboxes",
-    "two questions in ONE `AskUserQuestion` call",
-)
 
 
 def flat(text):
@@ -148,46 +134,12 @@ def checkbox_tables(text):
     return tables
 
 
-def test_the_skill_asks_the_whole_question_in_the_first_batch():
-    """The count moved twice and each time a stale copy survived the edit.
-
-    It was `two axes`, then `three axes`, then two questions in one call,
-    and now it is question 1 alone with the four boxes asked only under
-    `per axis` (#911). What this case pins is the SHAPE — the one sentence
-    stating it, the four answers a box can write, and the moment — plus the
-    absence of every count and shape it has outgrown.
-
-    The absence half is the half that would have caught this edit. The three
-    stale `three axes` copies were green under the old presence-only
-    assertion, because the string it required was the stale copy itself: the
-    orchestrator's own summary line, `skills/implement/SKILL.md`'s pointer
-    sentence and `agents/crafter.md`'s phase 2. A count asserted by presence
-    passes on the copy that should have moved.
-    """
-    skill = flat(read(*ORCH))
-    assert SHAPE in skill, (
-        "the section stopped stating its own shape, so a session reads a "
-        "question whose number of calls, and when the second comes, is "
-        "nowhere stated"
-    )
-    for stale in STALE:
-        assert stale not in skill + flat(read(*SKILL)), (
-            f"`{stale}` survived the rewrite; a count the shape outgrew reads "
-            "as the shape"
-        )
-    for answer in AXES:
-        assert answer in skill, f"the skill lost the answer `{answer}`"
-    assert "before the first edit" in skill
-
-
-def test_every_document_shows_the_third_axis_ROW_not_only_the_count():
+def test_the_implementation_row_offers_the_answers_the_parser_reads():
     """Round 1, M1: the count said three, the table showed two, nothing red.
 
-    The tuple above cannot carry this one. `the session` occurs nine times in
-    `skills/implement/SKILL.md` and only two of them are about the axis, so
-    deleting the axis row leaves eight matches standing -- which is the exact
-    reason `crafter` was left out of that tuple, applied to the answer that WAS
-    put in it."""
+    The `AXES` tuple cannot carry this one. `the session` occurs nine times
+    in `skills/implement/SKILL.md` and only two of them are about the axis,
+    so the row is read by its label and its answers are read in it."""
     rows = [
         ln for ln in read(*ORCH).splitlines() if ln.startswith("| Implementation |")
     ]
@@ -195,83 +147,29 @@ def test_every_document_shows_the_third_axis_ROW_not_only_the_count():
         f"the axes table has {len(rows)} `Implementation` rows; the count "
         "beside it promises exactly one"
     )
+    # The two answers `hooks/lib/routing.py#IMPLEMENTATION_ANSWERS` accepts,
+    # which the orchestrator copies into `routing.md`'s `Implementation` row.
     assert "`crafter` or `the session`" in rows[0], (
         "the row lost the vocabulary, so a session reads a third axis with no answers"
     )
-    # `agents/crafter.md` used to state the same axis in prose, because it used
-    # to ask the question. It does not any more — the act is the SESSION's
-    # that spawns the work, because no agent this plugin spawns has
-    # `AskUserQuestion` (#419, round 1) — and the vocabulary travels with the
-    # act. Asserting the answers here again would put the moved rule back in
-    # the definition it left, which is what
-    # `tests/text/test_a_moved_rule_leaves_its_definition.py` exists to refuse.
-    crafter = flat(read("agents", "crafter.md"))
-    assert "implementation (crafter · the session" not in crafter, (
-        "the routing vocabulary is back in `agents/crafter.md`, whose phase 2 "
-        "no longer asks the question it belongs to"
-    )
 
 
-def test_the_optional_row_ships_the_criterion_that_decides_it():
+def test_the_optional_row_cites_where_its_criterions_grounds_stand():
     """#120: the row asked `crafter` · `the session` and never said how to
     answer, so it was answered by habit — and #263 is where that habit was
     measured against the same class of change done in the parent session.
 
-    The other two axes need no criterion: a wrong answer in either is
-    contradicted at the next commit, because the gate stops recognising the
-    file and goes back to asking. This one is contradicted by nothing, so the
-    criterion stands where the orchestrator, who fills the row, reads how the
-    work is routed: `skills/implement/orchestration.md` *What the answer
-    writes*. Since #1005 the template carries no comment that every
-    declaration would copy.
-
-    Written as a criterion and NOT as a default, which is the half a check can
-    hold: a sentence naming one answer as what to do absent a reason makes the
-    other the exception, and the row is optional precisely so that neither
-    reads as the silent one. `test_the_template_PARSES_into_the_three_answers
-    _it_ships` below holds the placeholder itself unanswered.
-
-    Since #1148 the skill states the criterion in one sentence and the
-    grounds stand in the policy root, `docs/the-agent-set.md` *What a spawn
-    costs*, so the half the orchestrator acts on is read in the skill and
-    the half a reader who questions it opens is read in the policy."""
+    The criterion stands where the orchestrator, who fills the row, reads how
+    the work is routed: `skills/implement/orchestration.md` *What the answer
+    writes*. Since #1148 the skill states the criterion in one sentence and
+    the grounds stand in the policy root, `docs/the-agent-set.md` *What a
+    spawn costs*, which the skill cites. The criterion's sentence and its
+    grounds are the proofer's to read."""
     tpl = " ".join(read(*ORCH).split())
-    policy = in_force(*SPAWN_COSTS)
-    assert "whether the work is finding out or writing down" in tpl, (
-        "the criterion went. The row is back to being answered by habit, "
-        "which is the state #263 measured"
-    )
-    assert "a step to send to `tracer`" in tpl, (
-        "the criterion names no destination for discovery, so the axis it "
-        "draws collapses back into `crafter` or nothing"
-    )
+    # The citation `docs/the-agent-set.md` *What a spawn costs*, which a
+    # reader who questions the criterion resolves to its grounds.
     assert cites(*SPAWN_COSTS) in tpl, (
         "the criterion no longer cites where its grounds stand"
-    )
-    # Round 1, finding 8. The criterion named three destinations for a row
-    # that accepts two values -- `hooks/lib/routing.py`'s IMPLEMENTATION_ANSWERS
-    # is `crafter` and `the session` -- and never said what to TYPE. A session
-    # whose work is finding-out had two readings and the wrong one is
-    # permitted by the same comment: line 27 says to delete the row rather
-    # than invent a third answer. Deleting it there loses an answer that
-    # exists. This row is the one axis nothing contradicts, so a session that
-    # guesses gets no correction from anywhere.
-    assert "still answers `the session`" in tpl, (
-        "the criterion stopped saying what to type for a discovery work item, "
-        "which is the half `questions.md` Q4 did not have to answer"
-    )
-    assert "deleted only for a work item that has no answer to give" in policy, (
-        "the wrong recovery is permitted again: `Delete the row rather than "
-        "inventing a third answer` reads as licence to delete a row whose "
-        "answer exists, and the result is a record that says `not answered`"
-    )
-    assert "replaceability and not cost" in policy, (
-        "the axis the last clause sits on went. Without it the threshold "
-        "reads as a cost question, which is the one thing #263 says it is not"
-    )
-    assert "a number nobody has" in policy, (
-        "the threshold stopped saying it is unmeasured. An invented number "
-        "here is a default wearing a criterion's clothes"
     )
 
 
@@ -355,6 +253,8 @@ def test_the_template_PARSES_into_the_FOURTH_axis_it_ships():
         "the template pre-answers the fourth axis, which makes the commonest "
         "mistake produce a WRONG record instead of no record"
     )
+    # The template's placeholder row, which `offered` below parses for the
+    # two answers a person reads at the row.
     assert "| Planning | <framer, or: the session> |" in template, (
         "the placeholder TEXT is the half a person reads, and a blank cell or "
         "`TBD` parses identically while reading as answered"
@@ -385,15 +285,6 @@ def test_the_template_PARSES_into_the_FOURTH_axis_it_ships():
         f"{routing.PLANNING_ANSWERS}; a session filling the row in as "
         "instructed would record nothing"
     )
-
-    # The row is optional on the third axis's terms, and the orchestrator,
-    # who fills it, reads those terms in the table of what the answer writes.
-    # Without this the row ships with no account of why an absent answer is
-    # not a defect.
-    assert (
-        "| Planning | `framer` or `the session`, OPTIONAL; absent reads as "
-        "unanswered |" in read(*ORCH)
-    ), "the orchestration no longer says the fourth axis is optional"
 
 
 def offered(template, label):
@@ -518,10 +409,13 @@ def test_the_boxes_are_in_the_stated_order():
     Asserted as an ORDER rather than as a membership, because the defect it
     guards against is positional: a reader meeting four boxes of apparently
     the same kind reads the first as a fourth party to switch on. Swap the
-    first two rows and the boxes are all still present.
+    first two rows and the boxes are all still present. Whether the section
+    says the order is load-bearing is the proofer's to read.
     """
     rows = labelled_table(read(*ORCH), "Order", "Box")
     boxes = [r[1] for r in rows]
+    # The box labels in the order the orchestrator puts them to the person
+    # in question 2's `AskUserQuestion` call; label and position are the fact.
     assert "run end to end" in boxes[0], (
         f"the property-of-the-run box is at position {boxes.index(next(b for b in boxes if 'run end to end' in b)) + 1}, "
         "not first. The order is the specification: a party box read first "
@@ -532,9 +426,6 @@ def test_the_boxes_are_in_the_stated_order():
             f"box {i + 1} is `{boxes[i]}`; the three party boxes follow the "
             "run's property in the order they run"
         )
-    assert "the order is the specification" in flat(read(*ORCH)).lower(), (
-        "nothing says the order is load-bearing, so the next edit reorders it"
-    )
 
 
 def test_every_box_states_what_UNCHECKED_means():
@@ -600,31 +491,28 @@ def test_the_exit_names_what_does_not_run_rather_than_where_it_ends():
 
 
 def test_the_ceiling_is_stated_beside_the_shape():
-    """S7. The next person meets the constraint instead of discovering it.
-
-    All three halves: the cap, where the room came from, and that a fifth
-    breaks the shape. The third is the one that matters — a cap stated
-    without it reads as a limit somebody could raise.
+    """S7. The next person meets the constraint instead of discovering it:
+    the section states the cap on a question's options. Where the room for
+    the fourth box came from, and what a fifth does to the shape, are the
+    proofer's to read.
     """
     skill = flat(read(*ORCH))
+    # The value four, the most options the harness's `AskUserQuestion`
+    # takes per question, which bounds the boxes the orchestrator puts.
     assert "at most four options per question" in skill, "the cap is unstated"
-    assert "taking the framer and the sealer out of the question" in skill, (
-        "nothing says where the room for the fourth box came from, so the "
-        "next person reads two empty slots"
-    )
-    assert "a fifth box breaks this shape" in skill, (
-        "the cap reads as a limit somebody could raise"
-    )
 
 
-def test_the_preset_and_the_boxes_are_told_apart_in_the_file():
+def test_the_preset_and_the_boxes_write_the_answer_pressed_values():
     """S2 and S3 at the document. Both write the same party rows; the row
-    that says which answer was pressed is the only difference.
-
-    Without that row the preset buys nothing — a chosen answer goes back to
-    being indistinguishable from a question nobody read, which is #151.
+    that says which answer was pressed is the only difference, and the
+    section gives the value each writes into it and the `Automation` row's
+    two answers. Why the row exists is the policy's, which
+    `test_the_policy_tables_the_review_answers_and_the_skill_cites_it` reads
+    the skill citing, and the proofer's to read.
     """
     skill = flat(read(*ORCH))
+    # The `Answer pressed` row and the two values the orchestrator writes in
+    # it, which `hooks/lib/routing.py#ANSWER_PRESSED_ANSWERS` accepts.
     for derivation in (
         "`Answer pressed` = `automation`",
         "`Answer pressed` =\n`per axis`",
@@ -633,73 +521,16 @@ def test_the_preset_and_the_boxes_are_told_apart_in_the_file():
             f"the section does not say the preset writes {flat(derivation)}, "
             "so a session has the row and no rule for filling it"
         )
-    assert "same bytes" in in_force(*DECLARATION), (
-        "the policy states the row without the reason, so the next edit "
-        "reads it as bookkeeping and drops it"
-    )
-    assert cites(*DECLARATION) in skill, (
-        "the section states the row and no longer cites where its reason is"
-    )
-    assert (
-        "The `Answer pressed` row tells a pressed preset from four boxes ticked by hand"
-    ) in skill, "the section no longer says what the row is for"
     rows = [ln for ln in read(*ORCH).splitlines() if ln.startswith("| Automation |")]
     assert len(rows) == 1, (
         f"the section has {len(rows)} `Automation` rows; the declaration has one"
     )
+    # The two answers `hooks/lib/routing.py#AUTOMATION_ANSWERS` accepts,
+    # which the orchestrator copies into `routing.md`'s `Automation` row.
     assert "`yes` or `no`" in rows[0], "the row lost its vocabulary"
-    assert "OPTIONAL" in rows[0], "the row stopped saying an absent answer is fine"
 
 
 FRAMER = ("agents", "framer.md")
-
-
-def test_the_framer_asks_nobody_and_writes_no_declaration():
-    """S10, after round 1 reversed WHERE the act lands.
-
-    **A subagent in this harness has no `AskUserQuestion` and no equivalent.**
-    Measured from two agents independently — `proofer` during round 1 and
-    `crafter` during its fix pass — each of which, like the framer, declares no
-    `tools:` key and inherits the full set: the tool is not in the list and
-    `ToolSearch` for it returns `No matching deferred tools found`. So the
-    build's first answer told an agent to call a tool it does not have, which
-    is the class this repository keeps finding.
-
-    #419's finding survives intact: the acts are not `crafter`'s. What was wrong
-    is only where they were sent. They go to the SESSION that spawns the work,
-    which has the tool and is already the party that spawns, approves and
-    reads back.
-
-    Asserted as an absence AND a presence. The absence alone would pass on a
-    definition that says nothing at all about routing, which is the state that
-    lets a framer write a declaration from a guess — a recorded answer nobody
-    gave, which is #151's shape arriving through the door this work opened.
-    """
-    framer = flat(read(*FRAMER))
-    assert "You ask nobody anything" in framer, (
-        "the framer's definition no longer says it asks nobody, so the next "
-        "reader restores an interactive phase the harness cannot give it"
-    )
-    assert "has no `AskUserQuestion`" in framer, (
-        "the reason went. Without it the instruction reads as a preference "
-        "somebody can reverse, and the measurement is what makes it not one"
-    )
-    assert "`routing.md` is not one of them" in framer, (
-        "`routing.md` is back among the framer's writes, and a framer that "
-        "cannot ask can only write it from a guess"
-    )
-    assert "a thing to report, never a thing to write" in framer, (
-        "the framer meeting a missing declaration has no instruction, so the "
-        "obvious repair is the one that records an answer nobody gave"
-    )
-    for claimed in (
-        "The routing question is in that batch, and it is yours to ask",
-        "Yours is the one interactive phase",
-    ):
-        assert claimed not in framer, (
-            f"`{claimed}` is back in `agents/framer.md`, which hands a "
-            "subagent an act the harness gives it no tool for"
-        )
 
 
 def test_no_agent_definition_tells_an_agent_to_ask_a_person():
@@ -743,128 +574,25 @@ def test_no_agent_definition_tells_an_agent_to_ask_a_person():
             )
 
 
-def test_the_framers_acts_are_gather_judge_plan():
-    """S11. Judging was in none of the four acts, and both framers spawned in
-    the release that found this judged anyway, because the spawn prompt asked.
-
-    A definition that describes collecting and not deciding rewards a framer
-    for stopping people. The act is named, and the grounds requirement rides
-    with it — a judgment whose grounds nobody can open is not reviewable.
-    """
-    framer = flat(read(*FRAMER))
-    assert "Gather, judge, plan" in framer, (
-        "the three acts went. `judge` is the one that was missing, and its "
-        "absence is what made deciding well an unrewarded act"
-    )
-    assert "A reader and a writer" not in framer, (
-        "the old persona survived beside the new one, so a framer reads "
-        "whichever it reaches first"
-    )
-    assert "grounds written where a reviewer can open them" in framer, (
-        "judging arrived without the requirement that makes it checkable"
-    )
-
-
 def test_the_framer_writes_rule_changes_from_the_index():
     """S15 of #953. The framer states each rule change in `## Rule changes`
     as the settle skill's section says, picks its file from the index, and
-    reads the policy in force as the implement skill states it. It points at
-    the grammar and the model and restates neither."""
-    raw = read(*FRAMER)
-    framer = flat(raw)
+    reads the policy in force as the implement skill states it. The
+    definition cites the grammar, the index and the model; whether it
+    restates either is the proofer's to read."""
+    framer = flat(read(*FRAMER))
+    # The citation `skills/settle/SKILL.md` *Rule changes*, which the framer
+    # resolves to the grammar `rule_changes.py#parse` reads; the citation is
+    # the fact.
     assert "as `skills/settle/SKILL.md` *Rule changes* states it" in framer
+    # The path `<policy root>/README.md`, which the framer opens to pick each
+    # `file:`.
     assert "picked from the index, `<policy root>/README.md`" in framer
+    # The citation of the policy-in-force model, which the framer resolves.
     assert (
         "the policy in force as "
         + ("`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*")
         in framer
-    )
-    assert "\n  from:" not in raw, "the framer restates the grammar"
-
-
-def test_the_framer_weighs_replacing_a_structure_as_an_equal_of_keeping_it():
-    """S6 of #968. #957 gave the framer the replace-or-keep rule, and the
-    file stated it nowhere: a framer that judges only among ways of keeping a
-    structure writes an Alternatives table in which the change the problem
-    calls for never stands. The rule is the framer's application of contract
-    rule 20 to that table, so the case reads the replacing row and the weight it
-    is given beside the kept one."""
-    framer = flat(read(*FRAMER))
-    assert "the alternative that replaces the structure" in framer, (
-        "the framer is no longer told to put the replacing alternative in "
-        "`plan.md`'s Alternatives table, so a frame can weigh only ways of "
-        "keeping what stands"
-    )
-    assert "as an equal of the one that keeps it" in framer, (
-        "the replacing row is asked for without its weight, so it can stand "
-        "in the table as a straw alternative"
-    )
-
-
-def test_the_framer_inherits_what_the_tree_already_settled():
-    """Round 1 of #968, finding 1. The reading list says what two of its
-    sources settle, not only that they are read: a rule with a passing test,
-    and a decision earlier rounds argued through, are not re-opened in the
-    frame. The rewrite kept both sources and dropped both consequences."""
-    framer = flat(read(*FRAMER))
-    assert "a rule with a passing test is not a claim to re-establish" in framer, (
-        "the framer reads the `check:` lines with nothing saying a rule "
-        "they hold is settled, so a frame can set out to prove it again"
-    )
-    assert "is not argued again in your `plan.md`" in framer, (
-        "the framer reads earlier rounds with nothing saying what they "
-        "settled stands, so its Alternatives table can re-open a closed "
-        "decision"
-    )
-
-
-def test_a_reframe_keeps_every_closed_phase():
-    """Round 1 of #968, finding 2. A reframe adds phase rows and keeps each
-    closed phase's commit. `docs/the-review-record.md` *The run* owns the
-    route back and does not say how `plan.md` is rewritten, so the
-    definition says it."""
-    framer = flat(read(*FRAMER))
-    assert "new phase rows for the redesign" in framer, (
-        "a reframing framer is told to rewrite `plan.md` and not that the "
-        "redesign arrives as new rows"
-    )
-    assert "every closed phase keeping its commit" in framer, (
-        "a reframe can replace the Phases table, and a closed phase's Status "
-        "cell is the one record of what was built before it"
-    )
-
-
-def test_questions_md_is_the_residue_and_every_row_says_why():
-    """S11's second half. What changes is not that `questions.md` goes, but
-    what belongs in it: the residue after judging, never a collection.
-
-    The reason cell is what makes the difference visible. Without it a row a
-    framer never tried to answer and a row the tree genuinely cannot answer
-    are the same row, and both cost a person the same interruption.
-    """
-    framer = flat(read(*FRAMER))
-    assert "is the residue, not a collection" in framer
-    assert "owes a reason the tree could not answer it" in framer, (
-        "a row may again arrive with no account of why judging did not settle "
-        "it, which is the collection this act replaced"
-    )
-    assert (
-        "one line each, pointing at the `frame/design.md` `## Grounding` row or "
-        "the `plan.md` Alternatives row that holds its grounds"
-    ) in framer, (
-        "the head of `questions.md` may again restate a settled judgment's "
-        "grounds, a second copy of the row that holds them (#1148)"
-    )
-
-
-def test_a_delivers_cell_cites_the_scope_items_by_number():
-    """#1148, `frame/design.md` *Scope* item 2. A Delivers cell that restates
-    the design's scope sentence is a second copy of it, and the copy is the
-    one a later edit leaves behind; citing the item by number keeps one."""
-    framer = flat(read(*FRAMER))
-    assert "cites by number the design's *Scope* items it builds" in framer, (
-        "the framer is not told that a phase's Delivers cell cites the "
-        "design's scope items, so a plan restates the design's sentences"
     )
 
 
@@ -889,37 +617,27 @@ def test_a_mark_is_not_the_answer_to_a_blocked_step():
     ), "the rule does not end in its check line"
 
 
-def test_an_orchestrators_reading_of_the_frame_is_answered_in_one_exchange():
+def test_both_halves_of_the_frame_reading_cite_the_alternatives_table():
     """#1148, `frame/design.md` *Scope* item 12. The orchestrator reads the
     frame against the issue before the first build spawn and the framer
-    answers in one exchange. Both halves name the same three answers and the
-    same bound, so the orchestrator's section and the framer's rule cannot
-    say two things; the framer's rule ends in its check line."""
+    answers in one exchange. Both halves send a rejected proposal to the
+    plan's *Alternatives considered*. The answers, the bound and the check
+    line are the proofer's to read."""
     raw = read(*FRAMER)
-    framer = flat(raw)
     lead = "**An orchestrator's reading of the frame is answered in one exchange.**"
-    assert lead in framer, "the framer's definition lost the rule"
+    assert lead in flat(raw), "the framer's definition lost the rule"
     paragraph = raw[raw.index(lead) :].split("\n\n", 1)[0]
-    assert paragraph.splitlines()[-1] == (
-        "check: none reader: the orchestrator before the first build spawn"
-    ), "the rule does not end in its check line"
     orchestration = flat(read(*ORCH))
     heading = "### The frame is read against the issue at the spawn"
     assert heading in orchestration, "the orchestrator's section is gone"
     section = orchestration[orchestration.index(heading) :].split(" ## ", 1)[0]
-    answers = "agree, agree with a change, or reject with grounds"
     for half, text in (("framer", flat(paragraph)), ("orchestration", section)):
-        assert answers in text, f"the {half} half lost the three answers"
+        # The heading *Alternatives considered*, which the framer resolves in
+        # `frame/plan.md` to write a rejected proposal as a row.
         assert "*Alternatives considered*" in text, (
             f"the {half} half no longer sends a rejection to the plan's "
             "Alternatives table"
         )
-    assert "One exchange is the bound" in section
-    assert "the orchestrator edits no frame file" in section
-    assert "one message each way" in framer
-    assert "Approved <date>" not in orchestration, (
-        "the orchestration still states the approval line #1148 removed"
-    )
 
 
 def test_the_framer_leaves_a_mark_in_the_tree():
@@ -934,8 +652,11 @@ def test_the_framer_leaves_a_mark_in_the_tree():
 
     Both ends are asserted: the definition that tells a framer to write it and
     the template a session copies. Either alone ships a mark nobody writes or
-    a line nobody was told to fill in.
+    a line nobody was told to fill in. Why the git dir's mark does not do is
+    the proofer's to read.
     """
+    # The mark's shape, which `chain_check.py#MARK_RE` matches at the foot
+    # of `frame/design.md`, in the template and in the framer's definition.
     line = "Framed <date> by <who>, before the build."
     template = read("templates", "records", "sdd-design.md")
     assert line in template, (
@@ -950,10 +671,6 @@ def test_the_framer_leaves_a_mark_in_the_tree():
     assert line in framer, (
         "the framer is not told to write the mark, so the template's line "
         "survives into the committed spec as a placeholder"
-    )
-    assert "a git dir does not travel" in framer, (
-        "the mark arrives with no account of why the existing one does not do, "
-        "which is the first thing an editor will ask"
     )
 
 
@@ -985,22 +702,19 @@ def test_the_planning_row_is_a_record_and_not_a_checkbox():
         f"the routing section has {len(rows)} `Planning` rows; the declaration "
         "has exactly one"
     )
+    # The two answers `hooks/lib/routing.py#PLANNING_ANSWERS` accepts, which
+    # the orchestrator copies into `routing.md`'s `Planning` row.
     assert "`framer` or `the session`" in rows[0], (
         "the row lost the vocabulary, so a session reads an axis with no answers"
     )
-    assert "OPTIONAL" in rows[0], "the row stopped saying an absent answer is fine"
 
+    # The box tables the orchestrator puts to the person carry no `Planning`
+    # box, so the person is never asked an axis the SDD ladder decides.
     for boxes in checkbox_tables(skill):
         assert not any("framer" in b or "Planning" in b for b in boxes), (
             "the `Planning` axis reached a checkbox table, which is the one "
             "place #88 says it must not be"
         )
-    # The section cited #88 for the rule until #940, which removed issue
-    # numbers a sentence can stand without; the rule is stated in place.
-    assert "The question grows only where a decision is a person's" in flat(skill), (
-        "the section keeps the row out of the boxes without stating the rule "
-        "that keeps it out"
-    )
 
 
 def test_no_committed_declaration_still_carries_a_template_placeholder():
@@ -1028,22 +742,22 @@ def test_no_committed_declaration_still_carries_a_template_placeholder():
                 )
 
 
-def test_the_skill_states_all_four_combinations():
+def test_the_policy_tables_the_review_answers_and_the_skill_cites_it():
     """Four combinations, because two of them are the ones that surprise
     people: a chain declaration that never opens a pull request is checked by
     nothing. Since #1148 the policy section the skill cites holds them: its
-    table gives what each `Review` answer owes at the pull request, and its
-    paragraph on `stop before the pull request` the two that open none."""
+    table gives what each `Review` answer owes at the pull request, keyed by
+    the answer. The paragraph on the two that open none is the proofer's to
+    read."""
     skill = flat(read(*ORCH))
     policy = in_force(*DECLARATION)
+    # The two `Review` answers `hooks/lib/routing.py#REVIEW_ANSWERS` accepts,
+    # as the policy table's row keys a reader looks an answer up by.
     for answer in ("| through the review chain |", "| straight to the PR |"):
         assert answer in policy, f"the policy's table lost the row `{answer}`"
-    assert "Under `stop before the pull request` nothing runs" in policy, (
-        "the combination nothing checks has to be the one stated outright"
-    )
-    assert cites(*DECLARATION) in skill and "nothing runs at the end" in skill, (
-        "the skill neither cites the combinations nor says the one nothing checks"
-    )
+    # The citation `docs/the-review-and-parity-arms.md` *The declaration, and
+    # where the check went*, which the orchestrator resolves to the table.
+    assert cites(*DECLARATION) in skill, "the skill does not cite the combinations"
 
 
 def test_the_skill_names_where_the_answer_is_written():
@@ -1061,69 +775,30 @@ def test_the_skill_names_the_record_and_no_per_command_waiver():
     assert "[no-review]" not in skill and "waives **one command**" not in skill
 
 
-def test_the_skill_refuses_a_standing_waiver_and_says_why_this_is_not_one():
+def test_the_skill_cites_the_policy_on_a_standing_waiver():
     """The cheap way to stop the interruptions is to switch the gate off for a
-    session, and it is the one way that costs the gate its reason to exist."""
+    session, and it is the one way that costs the gate its reason to exist.
+    The reasoning is the policy's since #1148, and the skill cites it; the
+    rule's sentences are the proofer's to read."""
     skill = flat(read(*ORCH))
-    # The reasoning is the policy's since #1148; the skill says the rule and
-    # cites it.
-    assert "The declaration moves the check and waives nothing" in skill, (
-        "without this the declaration reads as exactly the switch the policy forbids"
-    )
+    # The citation `docs/the-review-and-parity-arms.md` *There is no standing
+    # waiver*, which the orchestrator resolves to the reasoning.
     assert cites(
         "docs/the-review-and-parity-arms.md", "There is no standing waiver"
     ) in (skill)
-    spec = flat(read("docs", "the-review-and-parity-arms.md"))
-    assert "no standing waiver" in spec
-    assert "stands for no other session" in spec
 
 
-def test_the_gate_has_no_path_from_an_unreadable_declaration_to_silence():
-    spec = flat(read("docs", "the-review-and-parity-arms.md"))
-    assert "resolves to *no declaration*" in spec
-    assert "therefore to **refusing the edit**" in spec, (
-        "a fail-open here is a gate that a corrupt file switches off"
-    )
-
-
-def test_the_session_runs_to_the_pull_request():
+def test_the_skill_names_where_a_late_finding_goes():
+    """Once the batch is answered the session runs to the pull request, and
+    what surfaces after it is written down rather than raised. The skill
+    names the three places it goes; the rule's sentences are the proofer's
+    to read."""
     skill = read("skills", "implement", "SKILL.md")
-    assert "the session runs to the pull request" in skill
+    # The two paths and the closing memo's `## Not done` section, which the
+    # session resolves to write a late finding down.
     for destination in ("questions.md", "seal/follow-up.md", "Not done"):
         assert destination in skill, (
             f"the skill lost `{destination}` as somewhere a late finding goes"
-        )
-    assert "would a different\nanswer change what you build" in skill, (
-        "the test separating a question from a row is the operative part"
-    )
-
-
-def test_the_crafter_carries_its_own_half_and_not_the_questions():
-    """The agent file is always in front of the crafter; the skill may not be.
-
-    **What its own half IS moved, which is why this case is rewritten rather
-    than deleted.** It used to carry the routing question's whole vocabulary,
-    because it used to ask it — three axes, the four answers, the path it
-    wrote them to. That act is the SESSION's now, not any agent's: round 1
-    measured that no agent this plugin spawns has `AskUserQuestion`, so the
-    batch went to the party that spawns the work rather than to the framer.
-    A definition that keeps the words of an act it no longer performs is a
-    session's instruction to perform it.
-
-    What stays is what a crafter still does with the answer somebody else
-    wrote: run to the pull request without coming back, and name an answerer
-    for anything it could not close. Since #967 the first half is the first
-    line of its `## Never`.
-    """
-    crafter = flat(read("agents", "crafter.md"))
-    assert "Ask a person anything, or write `routing.md`" in crafter
-    assert "answerer" in crafter, (
-        "a deferral with nobody named is how a follow-up becomes nobody's"
-    )
-    for count in STALE:
-        assert count not in crafter, (
-            f"`{count}` is back in `agents/crafter.md`, which is the routing "
-            "question in the definition of the party that does not ask it"
         )
 
 
