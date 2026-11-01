@@ -31,6 +31,11 @@ The 12 absent answers outside `hooks/` are catches of the same kind wherever the
 `hooks/lib/launch.py`, which the census reads and exempts at its `__main__` with its reason;
 ```
 
+```seal
+verdict: fixed ad27c06f
+answer: Holds: `hooks/lib/launch.py:105` carries `# exempt from entry_point: the launcher imports nothing before its floor check`, and `tests/censuses.py#entry_point` reads `hooks/` (read at `813665f0`). The three paste-ready replacements were applied as written to row C9's two cells and to *Instances C9*. D6's *What changes* now says the launcher's exemption already stands under `hooks/` and that the row counts it apart from the 15. The decision stays `build`.
+```
+
 ### 2. Row C10's grounds say *The dependency rule* sends a writer to the `path#name` form, and that section names no such form
 
 ```seal
@@ -44,6 +49,11 @@ Why it matters: the last sentence of row C10's *Grounds* reads "`docs/one-root-b
 ```markdown
 Row C10, *Grounds*, replace the last sentence with:
 `docs/one-root-by-lifetime.md` *The dependency rule* says that nothing may need to be found and updated when something else moves, and that "A record citing `path:line` breaks it". A `path#name` breaks the same way when its name moves, and no case reads one. #1038's comment of 2026-11-01 places the case's `check:` line under that rule
+```
+
+```seal
+verdict: fixed ad27c06f
+answer: Holds: `docs/one-root-by-lifetime.md` *The dependency rule* (lines 28-50 at this worktree) names `path:line` and no other citation form. Row C10's last *Grounds* sentence was replaced with the paste-ready text, which rests the `check:` line's home on #1038's comment of 2026-11-01. D7 is unchanged, since its body already places the line there through its own `## Rule changes`.
 ```
 
 ### 3. Row C12 and D8 close #951 without weighing the cases #951 says the check removes, and without naming them as the open part
@@ -67,6 +77,11 @@ D8, second paragraph of the quoted comment, append after "since no agent runs a 
 Nor did the reading count the cases whose only job a type check would do, which this issue names as what the check removes; a count of them, set against the repair, reopens this question with that row as its baseline.
 ```
 
+```seal
+verdict: fixed ad27c06f
+answer: Holds: #951's body says "A case whose only job a type check now does is a candidate for removal", and row C12 weighed the catch side alone. The *Command or coordinate* replacement was applied as written. The *Grounds* addition is in my own words: it says the drop stands on the catch side alone, that the saving was not measured, why a suite that catches type-shaped defects before the merge cannot show that saving on the catch side, and that a count of those cases reopens the question. In D8 the paste-ready sentence was split into two sentences, with the same content. The decision stays `drop`.
+```
+
 ### 4. *Instances C7* gives withheld line 9's quote as an example of the other 47 lines and says the phase records were exact, which line 9's own reading contradicts
 
 ```seal
@@ -79,6 +94,11 @@ Why it matters: *Instances C7* says "Most of the other 47 lines name the orchest
 
 ```markdown
 Most of the other 47 lines name the orchestrator's pull request body. Several of those overstate what the records said, such as a body's "the other three were fixed" where its phase record reads "1 and 2 deferred to the frame, 3 and 4 fixed".
+```
+
+```seal
+verdict: fixed ad27c06f
+answer: Holds: in a scratch clone with `refs/pull/*/head` fetched, *Command C7* (b) printed 53 distinct withheld lines. The phrase "every unit added was broken once" stands only in the line at `245502810`, the record's line 9, which the same paragraph judges as a claim that no longer held. The line at `a013383da` holds "the other three were fixed" against "1 and 2 deferred to the frame, 3 and 4 fixed" (executed). The sentence was replaced with the paste-ready text, and the scratch clone was removed afterwards.
 ```
 
 ## Confirmations
