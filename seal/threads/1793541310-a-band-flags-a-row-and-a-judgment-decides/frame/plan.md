@@ -36,7 +36,7 @@ Failure scenarios of the chosen approach, six months on:
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | *Scope* item 4. It confirms items 1 to 3 and 5 at the build's head | `rule_changes.py#parse` on `frame/design.md` returns one `add` and two `change` operations and no error, and `#pattern` finds each `from` in `#section_lines` of its section, run once as a `test_tmp_*` probe and deleted. `git grep -n -i -E 'issue it opens\|that grew'` outside `seal/threads/` lists only `docs/release-checklist.md`. Narrow: `tests/github/test_rules.py`, `tests/behaviour/test_a_cited_section_stands_in_its_file.py`, `tests/behaviour/test_the_set_a_work_item_always_has.py`, `tests/behaviour/test_release_hygiene.py`, `tests/github/test_publish_release_note.py` and `tests/text/test_a_record_carries_no_comment.py`, the modules that read a pending design, a work item's set or a changelog fragment | |
+| 1 | *Scope* item 4. It confirms items 1 to 3 and 5 at the build's head | `rule_changes.py#parse` on `frame/design.md` returns one `add` and two `change` operations and no error, and `#pattern` finds each `from` in `#section_lines` of its section, run once as a `test_tmp_*` probe and deleted. `git grep -n -i -E 'issue it opens\|that grew'` outside `seal/threads/` lists only `docs/release-checklist.md`. Narrow: `tests/github/test_rules.py`, `tests/behaviour/test_a_cited_section_stands_in_its_file.py`, `tests/behaviour/test_the_set_a_work_item_always_has.py`, `tests/behaviour/test_release_hygiene.py`, `tests/github/test_publish_release_note.py` and `tests/text/test_a_record_carries_no_comment.py`, the modules that read a pending design, a work item's set or a changelog fragment | 6718f5de |
 
 ## Operational impact
 
