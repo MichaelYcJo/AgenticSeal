@@ -41,4 +41,4 @@ None for a deployer: no migration, environment variable, dependency or compatibi
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-02 | The follow-up the frame's Scope 7 owes is filed as #1277 in `backlog: review chain & agents`, holding the gate module's removal, the round-cap line, the three Scope 9 lines (`docs/the-broad-gate.md:42`, `docs/the-record-layout.md:156`, `docs/branch-and-release.md:165`) and the two lines whose named module no longer reads the rule (`docs/the-review-record.md:371`, `docs/branch-and-release.md:114`); the orchestrator wrote the fragment's `### Process changes` row at d2006b8f | The four phase records name each line (read); a release milestone is the owner's to plan, so the issue waits in a backlog milestone for the settle after 0.27.3; `docs/the-record-layout.md` names the orchestrator as the process row's writer, and the diff changes six agent and skill files | `skills/implement/orchestration.md` *Orchestrator: where a decision or a lesson is written*; `docs/the-record-layout.md` *A change writes fragments, never a shared file* |
