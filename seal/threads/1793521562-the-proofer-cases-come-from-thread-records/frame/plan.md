@@ -2,7 +2,7 @@
 
 ## Technical context
 
-The work builds on the two generators as 0.27.1 left them, and changes neither.
+The work builds on the two generators as 0.27.1 left them, and keeps how each chooses its cases. After round 1 it changes where `seed_defects.py#seed` places a seed (*Scope* item 5), and `replay_targets.py#LOCATION` gains the `last` group that the seed's check and `truths_with` both read.
 
 - `evals/scripts/replay_targets.py#main` (`:1003-1071`, read) reads the round records in the working tree and at the two newest `vX.Y.Z` tags. It sorts the kept rounds by `(size, item, n)` and writes the first round of each work item until it has `--count`. `--case` reads every release tag, for the named work items alone.
 - `evals/scripts/seed_defects.py#main` (`:436-502`, read) reads the commits shipped between the three newest tags (`#shipped`, `:113`). It writes the `--count` smallest by `(size, commit)`. It refuses a commit whose round 1 truths share a location (executed: `--list` leaves out `29d582ca` and `48d035aa` for that reason).
