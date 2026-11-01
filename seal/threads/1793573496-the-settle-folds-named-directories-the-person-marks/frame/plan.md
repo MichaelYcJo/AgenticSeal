@@ -35,7 +35,7 @@ Every coordinate is at the base, `57d6665b5`.
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
 | 1 | Design *Scope* items 1, 2 and 3, and from item 8 `settle.py`'s module docstring and `--from` help and `SHIPPED`'s reason for `seal settle` | The cases for design A1 to A6, each seen red against the base, and `tests/skills/test_settle.py` with `tests/behaviour/test_a_reference_root_is_read_and_never_taken.py` in one command | `8578438c1` |
-| 2 | Design *Scope* items 4 to 7, and the rest of item 8: `skills/settle/SKILL.md`, the two `README` rows and `templates/setup/config.md` *Reference specs* | `tests/text/test_settle_reads_before_it_removes.py`, `tests/behaviour/test_a_reference_root_is_read_and_never_taken.py`, `tests/behaviour/test_docs_line_wrap.py` and every other module that reads a changed path, in one command; `seal rules --check` where a `check:` line is written; design A9's `git grep` read at the phase's close | |
+| 2 | Design *Scope* items 4 to 7, and the rest of item 8: `skills/settle/SKILL.md`, the two `README` rows and `templates/setup/config.md` *Reference specs* | `tests/text/test_settle_reads_before_it_removes.py`, `tests/behaviour/test_a_reference_root_is_read_and_never_taken.py`, `tests/behaviour/test_docs_line_wrap.py` and every other module that reads a changed path, in one command; `seal rules --check` where a `check:` line is written; design A9's `git grep` read at the phase's close | `7868ee56f` |
 
 ## Operational impact
 
