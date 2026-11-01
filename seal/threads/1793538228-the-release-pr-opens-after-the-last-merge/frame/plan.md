@@ -1,0 +1,46 @@
+# Implementation Plan: the release pull request opens after the last work item merges (#1258)
+
+## Technical context
+
+The work changes one paragraph of policy, `docs/release-checklist.md` *5. The release pull request* at lines 106 to 114 of `5f0cf7a7`. It changes it through `frame/design.md` *Rule changes*, and the settle after the release writes it into `docs/`. A pull request does not edit the policy root (`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*). The rule is in force from this work item's merge, because the policy in force is the baseline plus the unsettled designs' rule changes. So 0.27.3's own release pull request already opens under it.
+
+The build writes no source, test or workflow. It writes the work item's `changelog.md` (`agents/crafter.md`: the crafter writes it in the last phase). The step's `check:` line, `tests/github/test_release_completeness_check.py`, is outside the `from` and the `to`, so it stays unchanged (design G11).
+
+Framing executed `test_tmp_rule_change.py` under the scratchpad against a `git clone --no-local` of the base. `skills/settle/scripts/rule_changes.py#parse` read the design's `## Rule changes` as one `change` with no error and no unread line. `#section_lines` found *5. The release pull request* at lines 99 to 159 of `docs/release-checklist.md`, and `#pattern` found the `from` there. The `to` value's longest line is 76 columns, under the 88 that `tests/behaviour/test_docs_line_wrap.py` holds `docs/release-checklist.md` to once the settle writes it.
+
+Failure scenarios of the chosen approach, six months on:
+
+- No orchestrating session is running when the last pull request merges, so nobody opens the release pull request. The release waits with every work item merged and no pull request into `main`. `gh pr list --base main` shows that state to anyone who looks, and the fix is step 5's one command. Under a milestone the owner sends through automation, as 0.27.3's is, the session that drives the milestone is the one that reads the moment.
+- A settle's pull request into the release branch is not open yet when both commands read true. The release pull request opens, and the settle's merge runs `tests` once more. That is one run, against five on 0.27.2.
+- A hotfix moved `main` during the release. The release branch then meets the hotfix first at the release pull request, and not at an early run. A conflict or a red run then shows at the end, and its repair is one more pull request into the release branch before the merge.
+- #1263 rewrites this section after this work item merges, and may reword or drop the two commands. Its frame reads this design's `to` as the section's latest decision.
+
+## Alternatives considered
+
+| Approach | Failure scenario | Verdict |
+|---|---|---|
+| A1 Open after the last pull request into `release/vX.Y.Z` has merged. The orchestrator reads the moment from `gh pr list --base release/vX.Y.Z --state open` and from the release pull request's own milestone check run by hand (design G9, G10) | The four in *Technical context* | Chosen. It removes the cause, the pull request being open while work merges, and adds no mechanism. Its reading is the script the release pull request already runs |
+| A2 Keep the structure in the tree: open with the first work item pull request that finds none open, and leave it open | On 0.27.2, five of six `tests` runs, 13 jobs each, read trees their own pull requests had already tested, and `hygiene` read red on each by design (G7). Every release pays the same, and a reader learns to ignore a red check | Rejected. The premise that keeps it is that the early runs catch something before the end. Checked on 0.27.2 (G7): none of the five `tests` runs failed, and the five `hygiene` reds were the milestone reading that step 0 settles by planning. The only thing they would catch earlier is a hotfix on `main` (*Technical context*), and 0.27.2 had none |
+| A3 Keep it open early, and hold `tests` back on a release pull request behind a job that runs `release_completeness_check.py` first, with the matrix under `needs:` (the issue weighed it) | It works, but it adds a job to `test.yml` and a case to pin it, and its only catch is the cost of a step opened too early | Rejected. `skills/core/SKILL.md` *The rule a mechanism is kept against*: moving the step removes the cause |
+| A4 Open it early as a draft, and mark it ready after the last merge | `test.yml` runs on drafts, since nothing in it reads draft state (`.github/workflows/test.yml` `on:`). Making drafts skip is a workflow change. `ready_for_review` is not one of the events `test.yml` runs on, so pressing ready would run nothing without another trigger change | Rejected. It needs two workflow changes, and the act after the last merge stays |
+| A5 Open it with the pull request of the work item the milestone check shows to be the last one (option (b) of `1793226631`'s Q1, design G6) | Two last work items in flight each see the other, and neither opens it. One run still comes before the last merge | Rejected for the race `1793226631` found |
+| A6 A workflow on a push to `release/*` opens the release pull request once the milestone check passes | A pull request a workflow creates with its own token starts no workflow, as a tag such a workflow creates starts none (`docs/branch-and-release.md` *Cutting a release*, read; GitHub's behaviour, not probed here). `tests` would never run without a personal token, which is a new secret and a new mechanism | Rejected |
+| A7 Also write the moment into `docs/branch-and-release.md`, as the issue's *Done when* asks | That document holds no sentence about the moment (G3), and its *Cutting a release* hands the day-of steps to the checklist. A second copy gives the fact two sources, and one gets corrected without the other | Rejected under `skills/core/SKILL.md` *The rule a mechanism is kept against* ("A fact has one source"). The reason stays with the step, as it does at the base |
+| A8 Read the moment from the `merged: X.Y.Z` label alone: every open milestone issue carries it | The label is a cache of what the branch carries (`.github/scripts/release_completeness_check.py` docstring: "D is the source of truth and L is a cache of it"). A failed label write holds the release with nothing wrong, and the label does not see a settle | Rejected for the script that reads D, and for the open pull request list |
+| A9 Turn the step's `check:` line into `check: none reader: <who>` | The paragraph still states the milestone check's refusal, and now has the orchestrator run the script. `tests/github/test_release_completeness_check.py` reads both. A `none` line would drop a case that reads part of what the step says | Rejected (G11). The line stays |
+
+## Phases
+
+| Phase | Delivers | Verified by | Status |
+|---|---|---|---|
+| 1 | *Scope* item 2. It confirms items 1 and 3 at the build's head | `rule_changes.py#parse` on `frame/design.md` returns one `change` and no error, and `#pattern` finds its `from` in `#section_lines` of the section, run once as a `test_tmp_*` probe and deleted. `git grep -n -i -E 'finds none open\|leaves it open'` outside `seal/threads/` lists only `docs/release-checklist.md`. Narrow: `tests/github/test_rules.py`, `tests/behaviour/test_a_cited_section_stands_in_its_file.py` and `tests/behaviour/test_the_set_a_work_item_always_has.py`, the modules that read a pending design or a work item's set | |
+
+## Operational impact
+
+None for a deployer: no migration, environment variable, dependency or compatibility break. One act of the way of working moves. The orchestrator no longer opens the release pull request with the first work item pull request into the branch. It opens it once both commands of the new step read true. At framing no pull request into `main` is open (executed: `gh pr list --base main --state open`). Under the policy at the base, the first of #1231, #1235 and this work item to open its pull request would open 0.27.3's release pull request. Holding that act until this design merges is the orchestrator's judgment, and its row goes below.
+
+## Judgments of the run
+
+| Date | Judgment | Grounds | Judged against |
+|---|---|---|---|
+| | | | |
