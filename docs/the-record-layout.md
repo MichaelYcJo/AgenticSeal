@@ -16,7 +16,7 @@ is found, the copy is the defect.
 |---|---|---|---|
 | The changelog | `seal/threads/<work-item-id>/changelog.md` while a work item is open; the GitHub Release at the `vX.Y.Z` tag once its release is published | each fragment is under target | the repository's releases on GitHub, by tag |
 | A work item's files | `seal/threads/<work-item-id>/` | each file under target | the table under *seal/threads/<work-item-id>/* below |
-| The repository's rules | `CLAUDE.md` for the rules a session must hold, `CONTRIBUTING.md` for a contributor's procedure, and the `docs/` document each one links to | each file under target | this document, and `docs/README.md` |
+| The repository's rules | `skills/core/SKILL.md` for the core every party reads, `CLAUDE.md` for how a session in this repository reaches it, `CONTRIBUTING.md` for a contributor's procedure, and the `docs/` document each one links to | each file under target | this document, and `docs/README.md` |
 | The configuration | `seal/config.md`, one row per item; `templates/setup/config.md` documents every row | under target | the `Item` column |
 | The follow-up list | `seal/follow-up.md`, one row per item that waits on a named party | under target | its rows, each naming who answers it |
 | The process rows | a `### Process changes` table at the end of a work item's `changelog.md` while its work item is open; the release note's table of the same name once its release is published | each fragment is under target | the repository's releases on GitHub, by tag |
@@ -49,9 +49,7 @@ after the release that ships it, and the history keeps it after that.
 check: tests/github/test_publish_release_note.py
 
 **A change to the way of working writes its process row in its own
-fragment.** A work item whose diff changes `CLAUDE.md`, an `agents/*.md`
-file, a `skills/*/orchestration.md` file or `skills/implement/bootstrap.md`
-ends its `changelog.md` with the line `### Process changes` and a table in
+fragment.** A work item whose diff changes `skills/core/SKILL.md`, `CLAUDE.md`, an `agents/*.md` file, a `skills/*/orchestration.md` file or `skills/implement/bootstrap.md` ends its `changelog.md` with the line `### Process changes` and a table in
 the shape `templates/records/process.md` gives: one row per change, holding
 the date, the change, one line of why, and a link to the issue comment or
 commit it came from. The orchestrator writes it with the fragment. A row
@@ -111,6 +109,13 @@ tracker. Each is closed in the record, `closed` with what closed it, and
 in the working tree. The settle's pull request body carries every closure,
 an issue carries every re-homed row, and git keeps the record. A released
 work item that wrote no `frame/design.md` states no rule and goes the same way.
+A file in its directory with the name of a record the settle reads, a
+`gaps.md`, a `design.md` or a `plan.md`, at any path but that record's
+own, is named by the dry run and by `seal settle --apply` as a file the
+settle did not read. The settling session opens it and decides each item
+in it that reads as an open row, as it decides a row. `--apply` decides
+nothing on it and removes it with the directory. Keeping the directory
+for it would take a file's name as a guess at what it holds.
 check: tests/skills/test_settle.py
 
 **The settle writes each section as the latest decision the released
@@ -278,10 +283,10 @@ file answers.
 |---|---|
 | `routing.md` | who frames, builds and reviews this work, and where it ends — answered before the first edit |
 | `frame/design.md` | what is built, its scenarios, and the decisions with their grounds |
-| `frame/plan.md` | in which phases it is built, how each is shown, and the approval line |
+| `frame/plan.md` | in which phases it is built, how each is shown, which approach was chosen over which, and the judgments the orchestrator made in the run, each with its grounds and the document it stands on |
 | `frame/questions.md` | which decisions only a person could make, and how each was answered |
-| `gaps.md` | where the build departed from the frame, what was not verified and who answers it, and what was not done |
-| `trail/phases/phase-N.md` | what one build phase was asked, found and removed |
+| `gaps.md` | what was not verified and who answers it, and what was within reach and deliberately not taken |
+| `trail/phases/phase-N.md` | what building one phase found, each departure from the frame among it |
 | `trail/rounds/round-N.md` | what one review round read, found and closed |
 | `changelog.md` | this work item's entry in the next release's notes |
 | `trail/gate.md` | the orchestrator's one broad run, on either routing answer |
@@ -292,12 +297,7 @@ leave together.** `routing.md`, the frame (`frame/design.md`,
 `frame/plan.md`, `frame/questions.md`), the trail (`trail/rounds/`,
 `trail/phases/`, `trail/gate.md`) and the files at the thread's top
 (`gaps.md`, `changelog.md`, `guarantee.md`, and a `pr.*.md` where one was
-written) go with the directory, whole, when the settle removes it. A
-repository installed before the plugin was renamed AgenticSeal holds the
-files at their old names in the earlier layout, which
-`hooks/root-migrate.py#THREAD_PATHS` maps onto this one, and the hook moves them into this layout
-at the session start of each branch whose tree still holds them, as staged
-`git mv` in shared mode and as renames under the git directory in local mode
+written) go with the directory, whole, when the settle removes it
 (*The fold, and what tells it from a deletion* above, and
 `docs/release-checklist.md` *2b*). A document that still cites a record of
 it writes the path a commit holds, as `<commit>:<path>`, which `git show`
@@ -305,19 +305,13 @@ opens as written; in this repository `tests/censuses.py#HISTORY_PATH` is
 the one form `old_names` passes.
 check: tests/skills/test_settle.py
 
-**A record a template starts carries no HTML comment.** Its template holds
-headings, table headers, placeholders, the labelled lines the record's
-grammar asks for and the foot line, and nothing else. The guidance for
+**A record a template starts carries no HTML comment.** Its template holds headings, table headers, placeholders, the `seal` blocks the record's grammar asks for and the foot line, and nothing else. The guidance for
 writing the record is in the skill or agent definition its writer reads,
 stated there once. A comment copied into every record is a second copy of
 that guidance, and every reader of the record has to model it.
 check: tests/text/test_a_record_carries_no_comment.py
 
-**A record holds a fence only around a finding's paste-ready fix, and a
-labelled line a check reads stands outside every fence, at the start of its
-line.** The readers keep one fence state, by the fence rule of
-`hooks/lib/blocks.py`, because a fix to a record's own grammar can hold a line
-shaped like a label, and that line belongs to the fix.
+**A record holds a fence around a finding's paste-ready fix and around each of its `seal` blocks, and a field a check reads stands inside a `seal` block and nowhere else.** The readers keep one fence state, by the fence rule of `hooks/lib/blocks.py`, so a `seal` block quoted inside a fix belongs to the fix and is not read, and `hooks/lib/fields.py` is the one reader of the blocks.
 check: tests/skills/test_chain_check.py
 
 **A reader of a record keeps no comment state: it reads `<!--` as text, and
@@ -336,11 +330,14 @@ framed before its template lost its comments, so that reader keeps the
 comment walk of `hooks/lib/blocks.py`.
 check: record-comment-line-refused
 
+**A fact of a work item has one record, and every other record cites it by path and heading.** What changed, for a user, is `changelog.md`'s. What is built, its grounds, its rule changes and its removals are `frame/design.md`'s. In which phases, by which approach and with which commit each closed is `frame/plan.md`'s. What only a person could decide, and what was assumed in its place, is `frame/questions.md`'s. What building one phase found, each departure from the frame among it, is that phase's `trail/phases/phase-N.md`. What one round found is its `trail/rounds/round-N.md`. The one broad run is `trail/gate.md`. What went out unproved and what was within reach and not taken is `gaps.md`. The sealer's audit is `guarantee.md`. A record cites another's fact by its path and heading and does not restate it, so a template holds no section or cell that could hold only a copy. In 0.24.0, 12 of 17 recurring review findings stood only in a work item's own records, one restating another (#1148).
+check: tests/behaviour/test_a_phase_hands_the_next_one_a_record.py tests/behaviour/test_unverified_rows_close.py
+
 ## The root records
 
 | File | The question it answers |
 |---|---|
-| `CLAUDE.md` | the rules a session in this repository must hold, each linking to its home |
+| `CLAUDE.md` | how a session in this repository reaches the core, `skills/core/SKILL.md`, which the plugin's hook prints from the tree here; any rule this repository alone asks of a session, each linking to its home |
 | `CONTRIBUTING.md` | how a contribution is made and checked, and what a change to a gate must carry |
 | `README.md` and `README.ko.md` | what the plugin is and how to install it |
 
@@ -352,3 +349,6 @@ value in a row is a reviewer's finding. No two rule documents may share more
 15-word runs than their pair was measured at, which does not see a rule
 restated in fresh words.
 check: tests/text/test_the_rules_claude_md_names_have_one_home.py tests/text/test_no_passage_is_pasted_into_a_second_file.py
+
+**Shipped text an agent or a user reads points only at documents the plugin ships: no agent definition, template, skill document or message a script prints names this repository's `CONTRIBUTING.md` or `CLAUDE.md`.** An agent reads a `skills/`, `templates/` or `docs/` path as the plugin's and a bare file name as the repository it works in, so a shipped sentence naming `CONTRIBUTING.md` names, in a user's repository, a file that is not this one. A rule an agent applies lives in its definition or in the skill it opens at that step, and this repository's contributor's guide cites it where a person needs it. A comment or docstring in a shipped script is read by whoever maintains the plugin, a contributor, so it may cite `CONTRIBUTING.md`. The direction is read from the links as written, by `git grep -l 'CONTRIBUTING\|CLAUDE\.md' -- agents templates 'skills/**/*.md'`, whose only hits name a user's own `CLAUDE.md`, and by reading the printed messages of a script the review changes; the proofer does both at stage 1 of a review that changes a shipped document.
+check: none reader: the proofer at review

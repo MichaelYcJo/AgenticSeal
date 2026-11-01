@@ -202,7 +202,7 @@ def test_a_record_written_before_a_line_was_added_is_no_finding():
     0.21 record judged by 0.22's grammar, counted a `wrong` finding."""
     record = " ".join(read("docs", "the-review-record.md").split())
     for said in (
-        "an added line is never supplied after the round that would have written it",
+        "added field is never supplied after the round that would have written it",
         "A record written before a line was added lacks it, and the lack is "
         "no finding for a later round.",
     ):

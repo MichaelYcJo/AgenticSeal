@@ -46,18 +46,16 @@ check: tests/behaviour/test_a_signer_declares_its_pact.py
 
 ## One routing answer, one id, every gated repository
 
-**The routing question is asked once, the work-item id is minted once, and
-a declaration goes into every repository the work item commits in that
-already has a `seal/` root, and into no other.** The id names the directory
-in every repository, so each share's changelog fragment and changelog marker
-are keyed alike, and a directory named differently in each would have to be
-renamed later, moving both. A repository with no root is named in the
-handback and left alone, because writing into it would create its root,
-which is the bootstrap's decision and the person's. Nothing checks that every
-share carries one id: an id minted twice cannot be told from a signer's own
-work item that cites the pact without changing it.
-`skills/implement/orchestration.md` *A work item that commits in more than
-one repository* is the procedure.
+**The routing question is asked once, the work-item id is minted once, and a declaration
+goes into every repository the work item commits in that already has a `seal/` root, and
+into no other.** The id names the directory in every repository, so each share's
+changelog fragment and changelog marker are keyed alike, and a directory named
+differently in each would have to be renamed later, moving both. A repository with no
+root is named in the handback and left alone, because writing into it would create its
+root, which is the bootstrap's decision and the person's. Nothing checks that every
+share carries one id: an id minted twice cannot be told from a signer's own work item
+that cites the pact without changing it. `skills/implement/multi-repository.md`
+*Orchestrator: a work item that commits in more than one repository* is the procedure.
 check: tests/behaviour/test_a_signer_declares_its_pact.py tests/behaviour/test_every_orchestrator_act_names_its_delivery.py
 
 ## How a signer names the pact
@@ -92,19 +90,18 @@ table here, so nothing in a row is quoted or escaped except a pipe, written
 over, for that pact's `seal pact` to grade.
 check: tests/skills/test_pact_check.py tests/skills/test_coordinates.py tests/hooks/test_config.py
 
-**The anchor table is the table whose header means `| Pact | Clause | Hash |`,
-and one closed normalisation decides that.** Each header cell is compared
-case folded, after one emphasis run is removed where it wraps the whole cell:
-`*` or `_`, one to three long, the same run on both sides and no space just
-inside it. So `| pact | clause | hash |` and `| **Pact** | Clause | Hash |`
-head the anchor table, and its rows are graded and refused as the exact
-header's are. GitHub renders a header cell bold, and the same letters in
-another case are the same word, so a script that answered that these differ
-would report a signer citing nothing where it cites a clause. Nothing else is
-in the normalisation. A code span is a mention of the word rather than a use,
-strikethrough marks it deleted, and a plural, another word, another order or
-another width is another table. A second header the normalisation reads is
-refused as a second anchor table.
+**The anchor table is the table whose header is `| Pact | Clause | Hash |`, cell for
+cell, and a table whose header is near it is named and not read.** A header whose cells,
+case folded and with one emphasis run removed, are those words is the near one:
+`seal pact` names it at its line, with the exact header to write, grades no row of it
+and refuses nothing for it. Whether `| pact | clause | hash |` meant the anchor table is
+the judgment of the person reading the report and of the proofer reading the frame,
+never the tool's, so the tool carries no normalisation of the header
+(`skills/core/SKILL.md` *Judgment is spent where meaning is the question, and a script
+answers the rest*). The template writes the exact header. A code span is a mention of
+the word rather than a use, strikethrough marks it deleted, and a plural, another word,
+another order or another width is another table. A second exact header is refused as a
+second anchor table.
 check: tests/skills/test_pact_check.py
 
 **`seal pact` refuses, at exit 2, a row of the anchor table it cannot grade

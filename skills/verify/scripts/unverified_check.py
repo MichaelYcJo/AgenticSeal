@@ -67,8 +67,10 @@ deleted (`unwritten_root`).
 """
 
 import argparse
+import errno
 import importlib.util
 import os
+import pathlib
 import re
 import subprocess
 import sys
@@ -937,10 +939,15 @@ def overviews(paths):
     same rule, so a closing memo the walk leaves out is never reported deleted."""
     found = []
     for p in paths:
-        # The argument is resolved once, and nothing below it is. `ls-tree`
-        # lists a tracked symbolic link under its own path, so resolving each
-        # file made a link that is right there read as deleted.
-        p = real(p)
+        # The argument is read through `as_named`, which resolves the way to
+        # the repository's top and keeps every component inside it as named,
+        # except in a path that holds a `..` or runs through a link loop,
+        # which is its real path.
+        # `ls-tree` lists a tracked symbolic link under its own path, so
+        # resolving each file made a link that is right there read as deleted,
+        # and resolving the argument whole left a named link's own path
+        # uncompared (#1225).
+        p = as_named(p)
         if os.path.isfile(p):
             found.append(p)
             continue
@@ -1022,15 +1029,122 @@ def reference_rule(start):
 def real(path):
     """`path` with symbolic links resolved.
 
-    Every path this compares has to come through here. `git rev-parse
-    --show-toplevel` answers with links already resolved, so a caller who
-    reaches the tree through one — `/tmp` on macOS is a link to `/private/tmp`,
-    and a code directory linked from home is the same shape — produced a
-    repo-relative path like `../link/specs`, which matches no line of
-    `ls-tree`. Both comparisons then found nothing to do and the run passed:
-    the state the ref check above exists to prevent, reached by another
-    door."""
+    `as_named` reads the part of an argument that leads to its repository's
+    top through here. `git rev-parse --show-toplevel` answers with links
+    already resolved, so a caller who reaches the tree through one — `/tmp`
+    on macOS is a link to `/private/tmp`, and a code directory linked from
+    home is the same shape — produced a repo-relative path like
+    `../link/specs`, which matches no line of `ls-tree`. Both comparisons
+    then found nothing to do and the run passed: the state the ref check
+    above exists to prevent, reached by another door."""
     return os.path.realpath(path)
+
+
+def repository_of(path):
+    """The top of the repository `path` is compared in, or None where there
+    is none.
+
+    The repository the real path of `path`'s nearest existing ancestor is in,
+    as before #1225, because a checkout reached through a link from a
+    directory that is itself a repository, such as a home directory, is
+    compared in the checkout. Only where the real path is in no repository
+    is it the repository holding the deepest link on the path: a closing
+    memo linked to a file outside every repository still stands in one, and
+    its own path there is what the base holds."""
+    start = nearest_existing(_absolute(path))
+    top = repo_root(real(start))
+    p = start
+    while top is None and os.path.dirname(p) != p:
+        if os.path.islink(p):
+            top = repo_root(real(os.path.dirname(p)))
+        p = os.path.dirname(p)
+    return top
+
+
+def as_named(path):
+    """`path` as this check compares it: the way to its repository's top
+    resolved through `real`, and every component inside the repository kept
+    as the person named it. A path in no repository is its real path.
+
+    The top is the shortest prefix of the absolute path that is the
+    repository's top. Resolving the whole path read a named link as its
+    target, so the rows the link's own path held at the base were never
+    compared and left with exit 0 (#1225). git cannot give the path back as
+    named: `rev-parse --show-prefix` answers with links resolved too. A path
+    that holds a `..`, or that runs through a link loop, is its real path,
+    which `_absolute` gives."""
+    full = _absolute(path)
+    top = repository_of(full)
+    if top is None:
+        return real(full)
+    chain = [full]
+    while os.path.dirname(chain[-1]) != chain[-1]:
+        chain.append(os.path.dirname(chain[-1]))
+    for prefix in reversed(chain):
+        try:
+            if os.path.samefile(prefix, top):
+                inside = os.path.relpath(full, prefix)
+                if inside == os.curdir:
+                    return real(prefix)
+                return os.path.join(real(prefix), inside)
+        except OSError:
+            continue
+    return real(full)
+
+
+def _absolute(path):
+    """`path` made absolute, and resolved through `real` where it holds a `..`
+    or runs through a link loop.
+
+    `os.path.abspath` drops `a/..` by its text, so where `a` is a link it
+    names a directory the file system does not reach through that path, and
+    the check compared a path nobody named. A path that holds a `..` is
+    therefore read as `real` reads it, as every argument was read before
+    #1225, so a link the person named on it is read as its target and the
+    rows its own path held are not compared (#1240). A path through a link
+    loop, such as `loop -> loop/..`, leads nowhere the scan can enter, so it
+    is read as `real` reads it too: kept as named, the scan read nothing
+    under it, and the base's memo under its real spelling was reported
+    deleted though it is there. POSIX names the loop `ELOOP`; Windows
+    answers an unfollowable link with `ERROR_CANT_RESOLVE_FILENAME`, 1921,
+    as `ntpath.realpath` reads it. Every other path is made absolute by its
+    text, and `as_named` keeps its components."""
+    if os.pardir in pathlib.PurePath(path).parts:
+        return real(path)
+    try:
+        os.stat(path)
+    except OSError as error:
+        if error.errno == errno.ELOOP or getattr(error, "winerror", None) == 1921:
+            return real(path)
+    return os.path.abspath(path)
+
+
+def spellings(path, root):
+    """Each repo-relative spelling the base may list `path` under, `path` in
+    `as_named`'s form: as named, then with the components through each one
+    resolved, ending at the real path.
+
+    `ls-tree` lists a path through directories only, never through a link.
+    Where a component inside the repository is a link, the base spells the
+    path as named if that link was a directory at the base (#1225), and
+    resolved if it was a link there too. Asking the base under one spelling
+    passed a memo deleted behind a link with exit 0. Resolving a component
+    resolves every link before it, so these are each spelling `real` can
+    give; one that keeps a link above a link it resolves is not among them.
+    On Windows `real` also gives the case the disk holds, so a component
+    typed in another case is read in the disk's case by the last of them."""
+    rel = repo_relative(path, root)
+    if rel is None:
+        return []
+    parts = [] if rel == os.curdir else rel.split("/")
+    found = [rel]
+    for i in range(1, len(parts) + 1):
+        head = real(os.path.join(root, *parts[:i]))
+        at = repo_relative(os.path.join(head, *parts[i:]), root)
+        # None on another volume, where no commit of this repository holds it.
+        if at is not None and at not in found:
+            found.append(at)
+    return found
 
 
 def git_path(path):
@@ -1101,21 +1215,22 @@ def nearest_existing(path):
 
 
 def unique_by_target(paths):
-    """One path per real file, first in sort order.
+    """One path per real file, the real file's own, in sort order.
 
     A tracked symbolic link and the file it points at are one record and two
-    paths. Counting both doubles its open items. Presence is a different
-    question and keeps every path — `ls-tree` lists the link under its own
-    name, so dropping it here would report a file that is right there as
-    deleted."""
-    seen, out = set(), []
-    for p in paths:
-        target = os.path.realpath(p)
-        if target in seen:
-            continue
-        seen.add(target)
-        out.append(p)
-    return out
+    paths. Counting both doubles its open items. The path kept is the one
+    `os.path.realpath` answers, whichever path the scan reached the file by,
+    because the row comparison reads the tree side through it and the base
+    side at it: a link kept in its target's place had its own blob read at
+    the base, which holds no section, and a deleted row passed (#19). The
+    real path may lie outside the scanned path, or outside the repository,
+    which `main` names as not compared. A path reached through a link is
+    read by `main` as well, at each of its `spellings` that held a file at
+    the base, since this list leaves those paths out and those rows were the
+    files' own. Presence is a different question and keeps every path —
+    `ls-tree` lists the link under its own name, so dropping it here would
+    report a file that is right there as deleted."""
+    return sorted({os.path.realpath(p) for p in paths})
 
 
 def repo_root(path):
@@ -1447,6 +1562,58 @@ def show(root, ref, rel):
     return r.stdout if r.returncode == 0 else None
 
 
+LINK_MODE = "120000"
+
+
+def mode_at(root, ref, rel):
+    """The mode `ref` records for `rel`, `LINK_MODE` for a symbolic link, or
+    None where `ref` holds no such path."""
+    r = subprocess.run(
+        ["git", "-C", root, "ls-tree", ref, "--", rel],
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    head = r.stdout.split(" ", 1)[0] if r.returncode == 0 else ""
+    return head or None
+
+
+def compare_at(root, base, at, rel, now, named):
+    """What a run says of the record reported as `rel`, which holds `now`
+    rows here, against the section `at` held at `base`: `("notice", line)`
+    where that section cannot be read, `("error", line)` where it held more
+    rows, and None where it held no more or `base` holds no `at`."""
+    base_text = show(root, base, at)
+    if base_text is None:
+        return None
+    base_open, base_closed, base_errors = check_text(
+        base_text, heading=LOOSE_HEADING, strict_header=False
+    )
+    if base_errors:
+        # Never a silent zero: a base this cannot read is a file whose
+        # count is unknown, and saying so is the whole point of the
+        # tool. It is not an error either — the author cannot edit a
+        # commit that already happened.
+        return "notice", annotate(
+            "notice",
+            rel,
+            1,
+            f"not compared: the section at {named} could "
+            f"not be read ({base_errors[0][1]})",
+        )
+    was = len(base_open) + len(base_closed)
+    if now < was:
+        return "error", annotate(
+            "error",
+            rel,
+            1,
+            f"{was} rows at {named}, {now} here. An item leaves "
+            f"this table by opening with the word `{CLOSED}` and "
+            "saying what closed it, never by being deleted",
+        )
+    return None
+
+
 def annotate(kind, path, line, message):
     """A GitHub annotation in CI, a plain line anywhere else."""
     if os.environ.get("GITHUB_ACTIONS"):
@@ -1513,7 +1680,7 @@ def main(argv=None):
     # them would leave two arms of one refusal reading two revisions.
     root = base = named = None
     if args.baseline:
-        root = repo_root(real(nearest_existing(args.path[0])))
+        root = repository_of(args.path[0])
         if root is None:
             print(
                 f"seal unverified: --baseline {args.baseline} needs a git "
@@ -1549,11 +1716,8 @@ def main(argv=None):
         # and aborted the run mid-report. Said here instead: a path with no
         # relative form to `root` is not in `root`, because a working tree
         # cannot span volumes.
-        outside = [
-            p
-            for p in args.path
-            if repo_relative(real(nearest_existing(p)), root) is None
-        ]
+        compared = {p: as_named(p) for p in args.path}
+        outside = [p for p in args.path if repo_relative(compared[p], root) is None]
         if outside:
             print(
                 f"seal unverified: {outside[0]} is not in {root} — nothing "
@@ -1562,17 +1726,10 @@ def main(argv=None):
                 file=sys.stderr,
             )
             return 2
+        spelt = {p: spellings(compared[p], root) for p in args.path}
 
     if missing and args.baseline:
-        typos = [
-            p
-            for p in missing
-            if not overviews_at(
-                root,
-                base,
-                [repo_relative(real(p), root)],
-            )
-        ]
+        typos = [p for p in missing if not overviews_at(root, base, spelt[p])]
         if typos:
             print(
                 f"seal unverified: no such path: {typos[0]} — and nothing "
@@ -1599,46 +1756,70 @@ def main(argv=None):
                 print(f"      open  {item}  —  {who}")
 
         if args.baseline and not errors:
-            # An unreadable section returns zero rows, and comparing that zero
-            # told the author to restore rows that never left.
-            base_text = show(root, base, repo_relative(path, root))
-            if base_text is None:
-                continue
-            base_open, base_closed, base_errors = check_text(
-                base_text, heading=LOOSE_HEADING, strict_header=False
-            )
-            if base_errors:
-                # Never a silent zero: a base this cannot read is a file whose
-                # count is unknown, and saying so is the whole point of the
-                # tool. It is not an error either — the author cannot edit a
-                # commit that already happened.
+            # A kept path is a real path, and a link's target can lie outside
+            # the repository, where no commit holds it: `show` answers None
+            # there, and the file would leave the report in silence. With no
+            # relative form at all it is on another volume, outside as well.
+            at = repo_relative(path, root)
+            if at is None or at.split("/")[0] == "..":
                 uncompared.append(
                     annotate(
                         "notice",
                         rel,
                         1,
-                        f"not compared: the section at {named} could "
-                        f"not be read ({base_errors[0][1]})",
+                        "not compared: the file lies outside the repository, "
+                        "so no commit of the repository holds it",
                     )
                 )
                 continue
-            was = len(base_open) + len(base_closed)
-            now = len(open_rows) + len(closed_rows)
-            if now < was:
-                deleted.append(
-                    annotate(
-                        "error",
-                        rel,
-                        1,
-                        f"{was} rows at {named}, {now} here. An item leaves "
-                        f"this table by opening with the word `{CLOSED}` and "
-                        "saying what closed it, never by being deleted",
-                    )
-                )
+            # An unreadable section returns zero rows, and comparing that zero
+            # told the author to restore rows that never left.
+            found = compare_at(
+                root, base, at, rel, len(open_rows) + len(closed_rows), named
+            )
+            if found:
+                kind, line = found
+                (uncompared if kind == "notice" else deleted).append(line)
 
     if args.baseline:
-        prefixes = sorted({repo_relative(real(p), root) for p in args.path})
-        here = {repo_relative(f, root) for f in files}
+        # The loop above reads the base at each real path. A path reached
+        # through a link here, the file itself a link or a directory on its
+        # way, is spelt at the base as named or with some of its links
+        # resolved (`spellings`). Each such spelling that was a file at the
+        # base held its own rows there, and nothing else reads them: they are
+        # compared with what the path reads now, under that spelling, once
+        # however many scanned paths reach it. A spelling that was a link at
+        # the base held no rows of its own there.
+        spelt_here = {path: spellings(path, root) for path in files}
+        owed = {}
+        for path, ats in spelt_here.items():
+            real_at = repo_relative(os.path.realpath(path), root)
+            for at in ats:
+                if at != real_at:
+                    owed.setdefault(at, path)
+        for at, path in owed.items():
+            if mode_at(root, base, at) == LINK_MODE:
+                continue
+            open_rows, closed_rows, errors = check_file(path)
+            if errors:
+                continue
+            found = compare_at(
+                root,
+                base,
+                at,
+                display_path(under_root(root, at), cwd),
+                len(open_rows) + len(closed_rows),
+                named,
+            )
+            if found:
+                kind, line = found
+                (uncompared if kind == "notice" else deleted).append(line)
+
+        # The base lists each memo under one spelling of its path, so the
+        # prefixes carry each spelling of every argument, and a memo the
+        # scan reads is here under each spelling of its own path.
+        prefixes = sorted({at for p in args.path for at in spelt[p]})
+        here = {at for ats in spelt_here.values() for at in ats}
         gone = [r for r in overviews_at(root, base, prefixes) if r not in here]
         # A settle takes the whole directory, so a memo removed from one that
         # stays is a deletion whatever the predicate would say.

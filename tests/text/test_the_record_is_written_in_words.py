@@ -112,7 +112,7 @@ def sentences(lines):
 def test_a_repair_with_no_commit_closes_deferred_where_it_was_made():
     rel = "docs/the-review-record.md"
     lines, _ = section(read(rel), "## The round record")
-    opener = "**The fix pass writes two lines per finding"
+    opener = "**The fix pass appends one close block per finding"
     start = next(i for i, line in enumerate(lines) if line.startswith(opener))
     end = next(i for i in range(start, len(lines)) if lines[i].startswith("check: "))
     paragraph = sentences(lines[start:end])

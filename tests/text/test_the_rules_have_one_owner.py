@@ -99,7 +99,8 @@ RULES = {
     # new issue is a rung rather than the default.
     "14 a finding is filed where somebody will act": (
         RECORD,
-        "A leftover finding takes the first rung that fits.",
+        "A leftover finding goes where somebody will act on it, and the "
+        "orchestrator writes why there.",
         # The crafter's copy of the ladder left with #967. Filing is the
         # orchestrator's act (the ladder's own `check:` line says so), and a
         # crafter hands a leftover back with its answerer (its step 10).
@@ -650,8 +651,8 @@ def test_a_regression_is_routed_by_comparing_the_fix_with_the_frame():
         "fix was written",
         "a paste-ready fix taken from a review record among them",
         "gets an ordinary fix pass",
-        "A second regression on the same unit after a fix-pass route goes to the "
-        "framer whatever the comparison says.",
+        "A second regression on the same unit after a fix-pass route is the "
+        "signal that the frame is wrong whatever the sentence reads",
     ):
         assert route in run, f"*The run* no longer says {route!r}"
     assert "### A regression is routed by comparing the fix with the frame" in flat(
@@ -678,22 +679,22 @@ def test_the_cap_counts_from_the_last_design_change():
     1791933022, finding 2: the round cap counts from the last design change,
     a reframe or a new phase the owner approved, so the first review of new
     work starts a fresh count; a regression routed to a fix pass is followed
-    by one verifying round that is not an extension; and the loop guard
-    stands. The extension rule stopped extending at any round carrying a
-    regression, which left both routes a regression now takes with no round
-    to go on to past round 3."""
+    by one verifying round whatever the count; and the loop guard stands.
+    The extension rule stopped extending at any round carrying a regression,
+    which left both routes a regression now takes with no round to go on to
+    past round 3; #1167 replaced the extension with the orchestrator's
+    judgment, settled into *The run* in 0.27.1's settle."""
     run = the_run()
     for said in (
         "counted from the last design change",
         "a reframe, or a new phase the owner approved in `frame/plan.md`",
         "starts the count again",
-        "followed by one verifying round, whatever the count",
-        "is not an extension",
+        "followed by one verifying round whatever the count",
     ):
         assert said in run, f"*The run* no longer says {said!r}"
     assert (
-        "A second regression on the same unit after a fix-pass route goes to the "
-        "framer whatever the comparison says." in run
+        "A second regression on the same unit after a fix-pass route is the "
+        "signal that the frame is wrong" in run
     ), "*The run* lost the loop guard"
     for carrier in (ORCH, ("README.md",)):
         assert "counted from the last design change" in flat(*carrier), (
@@ -701,9 +702,6 @@ def test_the_cap_counts_from_the_last_design_change():
         )
     assert "마지막 설계 변경" in flat("README.ko.md"), (
         "README.ko.md caps rounds without saying where the count starts"
-    )
-    assert "counting from round 1:" in run, (
-        "*The run*'s extension line does not say where the count started"
     )
     assert "the record that stopped the run" not in flat(*FRAMER), (
         "agents/framer.md still reads a regression's round as the end of the run"
