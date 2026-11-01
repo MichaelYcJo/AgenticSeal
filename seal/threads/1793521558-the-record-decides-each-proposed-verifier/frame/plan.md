@@ -47,7 +47,7 @@ Failure scenario of the chosen approach, six months on: a dropped candidate's de
 |---|---|---|---|
 | 1 | *Scope* items 1 to 3 for C1, C7 and C8; *Scope* item 5, with `gaps.md` from its template | each `Command C<n>` of the record run as written; S4's `git diff --name-only 813665f0..HEAD`; `tests/behaviour/test_unverified_rows_close.py`, `tests/behaviour/test_a_phase_hands_the_next_one_a_record.py`, `tests/behaviour/test_chain_hooks_hardening.py::test_every_spec_directory_that_reached_the_ladder_has_an_overview` | `4dbc85a2` |
 | 2 | *Scope* items 1 to 3 for C2, C11, C13 and C14 | the same, for its rows | `df10fd53` |
-| 3 | *Scope* items 1 to 3 for C3, C4, C5, C6, C9, C10 and C12; *Scope* items 4 and 6 | the same, for its rows; S7; `tests/text/test_a_rider_reaches_its_file.py` where `seal/follow-up.md` changed | |
+| 3 | *Scope* items 1 to 3 for C3, C4, C5, C6, C9, C10 and C12; *Scope* items 4 and 6 | the same, for its rows; S7; `tests/text/test_a_rider_reaches_its_file.py` where `seal/follow-up.md` changed | `111f4c9c` |
 
 ## Operational impact
 
