@@ -1609,9 +1609,10 @@ class Test_as_named:
     def test_accepts_a_parent_after_a_link_as_the_file_system_reads_it(
         self, plain, tmp_path
     ):
-        """A `..` steps up from where the link leads, as `cd -P` and git
-        read it. Dropping `hop/..` by its text named `specs/WORK`, a
-        directory the file system does not reach through that path."""
+        """`hop/..` steps out of `hop`, a link, so it steps up from where
+        `hop` leads, as `cd -P` and git read it. Dropping `hop/..` by its
+        text named `specs/WORK`, a directory the file system does not reach
+        through that path."""
         d = copy_of(plain, tmp_path)
         (d / "deep" / "inner").mkdir(parents=True)
         symlink_or_skip(
@@ -1620,6 +1621,35 @@ class Test_as_named:
         given = os.path.join(str(d), "specs", "hop", os.pardir, WORK, "gaps.md")
         assert UC.as_named(given) == os.path.join(
             os.path.realpath(str(d)), "deep", WORK, "gaps.md"
+        )
+
+    def test_accepts_a_link_a_parent_does_not_step_out_of_under_its_own_name(
+        self, plain, tmp_path
+    ):
+        """`hop/x/..` lands in `hop` itself where `x` is no link, so `hop`, a
+        link inside the repository, keeps its own name, as it does where the
+        path holds no `..`."""
+        d = copy_of(plain, tmp_path)
+        (d / "specs" / WORK / "x").mkdir()
+        symlink_or_skip(WORK, str(d / "specs" / "hop"), True)
+        given = os.path.join(str(d), "specs", "hop", "x", os.pardir, "gaps.md")
+        assert UC.as_named(given) == os.path.join(
+            os.path.realpath(str(d)), "specs", "hop", "gaps.md"
+        )
+
+    def test_accepts_a_link_above_the_link_a_parent_steps_out_of_under_its_own_name(
+        self, plain, tmp_path
+    ):
+        """`jump/..` steps out of `jump` alone: `jump` is followed by its own
+        text, `a/b`, from where it stands, so `hop`, the link above it, keeps
+        its own name."""
+        d = copy_of(plain, tmp_path)
+        (d / "specs" / WORK / "a" / "b").mkdir(parents=True)
+        symlink_or_skip(WORK, str(d / "specs" / "hop"), True)
+        symlink_or_skip(os.path.join("a", "b"), str(d / "specs" / WORK / "jump"), True)
+        given = os.path.join(str(d), "specs", "hop", "jump", os.pardir, "gaps.md")
+        assert UC.as_named(given) == os.path.join(
+            os.path.realpath(str(d)), "specs", "hop", "a", "gaps.md"
         )
 
 
