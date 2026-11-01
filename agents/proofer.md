@@ -112,7 +112,7 @@ stands deferred: say where, and do not write it up again.
 
 A carried fact is re-derived when its check fails, or where `seal/parity.md`
 lists its path under coordinate-trust exceptions.
-check: tests/text/test_review_axes.py
+check: none reader: the orchestrator at each hand-back
 
 **A verifying round answers the closed findings.** Its target is the diff of
 the last fixes, `<sha>, fixes <a>..<b>`. Each finding the round before

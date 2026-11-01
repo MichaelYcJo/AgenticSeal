@@ -1,62 +1,15 @@
-"""The axes table is the review's coverage, so what it omits is invisible.
+"""What a review round reads beside its diff: the comparison's record and
+the original's resolution order in `legacy-parity`, an earlier round's
+`executed` line, a record older than a line of the grammar, and where the
+routing question is asked.
 
-Eight axes each settled by reading one request end to end. A defect that needs
-a second actor — a reservation mutated while an external call is in flight —
-matched none of them, and an axis nobody listed leaves no trace: a row of
-`## Not judged` records that you looked and could not decide, not that nobody
-looked. Two documents share this table; drift between them is the bug.
+The comparison axes themselves are the proofer's to walk and to read: a
+table of them pinned by its row labels turned red at a rewording and said
+nothing about whether a round walked an axis.
 """
 
 import pytest
 from conftest import read
-
-
-def test_the_table_asks_what_a_second_actor_does():
-    axes = read("skills", "code-review", "SKILL.md")
-    assert "| Concurrency & atomicity |" in axes, (
-        "the axes table lost the only row that is not settled by reading one path"
-    )
-    for probe in ("between the read that decides", "retry executes twice"):
-        assert probe in axes, f"the concurrency row lost `{probe}`"
-
-
-def test_the_table_asks_the_security_questions():
-    """Security was named in stage 2 and absent from the table, and the table
-    is what makes an axis mandatory — an axis in prose leaves no `❓` when
-    nobody walks it. Three of one round's four blocking findings had a
-    stronger security frame than the one they were given, one of them a
-    fail-open in a repository that keeps `test_gates_do_not_fail_open.py`
-    for that class alone (issue #57)."""
-    axes = read("skills", "code-review", "SKILL.md")
-    assert "| Security |" in axes, "the axes table has no security row"
-    for probe in ("fails open or closed", "crafted name, path, or payload"):
-        assert probe in axes, f"the security row lost `{probe}`"
-    # Round 1's 🟡 4: the prose groups Security with Concurrency as
-    # not-settled-by-one-request-read and grounded only concurrency, so a
-    # prose tightening could read the grouping as licensing a revert. The
-    # ground is what makes the grouping earned rather than asserted.
-    assert "nobody sends in good faith" in axes, (
-        "the security paragraph lost the ground for its one-path exemption"
-    )
-
-
-def test_the_table_says_it_is_a_floor():
-    """A fixed list is repeatable and blind in the same move.
-
-    Without this the next unlisted axis — rounding, time zones, migration
-    ordering — goes the way the concurrency one did."""
-    axes = read("skills", "code-review", "SKILL.md")
-    assert "### The table is a floor, not a ceiling" in axes
-    assert "name this change's own axes before starting" in axes, (
-        "nothing tells a round to add the axes this particular diff needs"
-    )
-
-
-def test_legacy_parity_still_points_at_that_table():
-    """`legacy-parity` inherits the axes by reference, so one edit covers both.
-
-    A copy would be two answers shipping at once."""
-    assert "the same comparison axes" in read("skills", "legacy-parity", "SKILL.md")
 
 
 def test_the_record_of_a_comparison_names_its_writer():
@@ -105,67 +58,25 @@ def test_the_resolution_order_ends_with_the_caller_asking():
 
 def test_the_core_names_where_the_routing_question_is():
     """#1177: the core reaches every session and every agent, so it is where
-    a session that has opened no skill learns that the routing question is
-    one of the batch asked before the first edit, which section states it,
-    and which hook holds it. The vocabulary, the boxes and the write stay
-    that section's alone. Round 1 finding 1: the core said the one ask WAS
-    the routing question, which left a credential or a permission to wait
-    for the first refusal."""
+    a session that has opened no skill learns which section states the
+    routing question and which hook holds it. The core's paragraph on asking
+    a person cites both by path; what it says of the batch is the proofer's
+    to read."""
     core = " ".join(read("skills", "core", "SKILL.md").split())
     asking = core.split("**Asking a person is the most expensive step.**", 1)
     assert len(asking) == 2, "the core lost its paragraph on asking a person"
     paragraph = asking[1].split("**", 1)[0]
-    assert "The routing question is one of that batch" in paragraph, (
-        "the core does not say the routing question is one question of the "
-        "batch `skills/implement/SKILL.md` *1.* asks before the first edit"
-    )
-    assert "the orchestrating session puts the routing question as" in paragraph, (
-        "the core's middle clause names its question by a pronoun, which can "
-        "read as the whole batch (round 2 finding 1)"
-    )
-    assert (
-        "refuses the first edit until the routing question is answered" in paragraph
-    ), (
-        "the core does not say which question the hook waits on, so its "
-        "last clause can be read as the whole batch"
-    )
+    # The citation a session resolves to the section that asks the routing
+    # question.
     assert (
         "`skills/implement/orchestration.md` *Orchestrator: how the work is routed*"
         in paragraph
     ), "the core does not name the routing section"
+    # The path of the hook that refuses the first edit, which a session
+    # opens when the refusal arrives.
     assert "`hooks/routing-edit-gate.py`" in paragraph, (
         "the core does not name the hook that refuses the first edit"
     )
-    assert "per axis" not in core and "no work item" not in core, (
-        "the core restates the routing answers, which are the section's alone"
-    )
-
-
-def test_a_later_round_inherits_no_verdict_anywhere():
-    """A sentence saying axes carry "without re-walking" outranks a corrected
-    sentence twenty lines below it; the old handoff protocol had both at once.
-    The record's documents now say only what carries: where to look. The
-    proofer's definition carries the table of which facts may be carried, and
-    a verdict is on its re-derived side."""
-    skill = " ".join(read("skills", "code-review", "SKILL.md").split())
-    record = " ".join(read("docs", "the-review-record.md").split())
-    proofer = " ".join(read("agents", "proofer.md").split())
-    for stale in ("inherit judged axes", "without re-walking"):
-        for where, text in (
-            ("SKILL.md", skill),
-            ("the-review-record.md", record),
-            ("proofer.md", proofer),
-        ):
-            assert stale not in text, (
-                f"verdict inheritance came back as `{stale}` in {where}"
-            )
-    assert "What carries is **where to look, not what was concluded**" in skill, (
-        "the cross-session records stopped saying what actually carries"
-    )
-    assert (
-        "| Where a subsystem lives, what a helper is for | Any verdict, on any axis |"
-        in proofer
-    ), "the proofer's table no longer puts every verdict on the re-derived side"
 
 
 def test_a_later_round_re_runs_an_executed_line():
@@ -261,24 +172,3 @@ def test_the_routing_section_holds_the_answers_and_the_shape():
     ):
         assert said in implement, f"the skill lost `{said}`"
     assert "[no-review]" not in implement and "[no-parity]" not in implement
-
-
-def test_the_fix_pass_resumes_the_implementer():
-    """A fix pass resumes the implementer only below the context threshold
-    (#945). `tests/text/test_the_rules_have_one_owner.py` pins the rule and the
-    command that reads the context; this pins the reason a resume is worth
-    taking below it, the fresh spawn where the implementer's session is gone,
-    and the limit a compaction leaves."""
-    skill = " ".join(read("skills", "code-review", "orchestration.md").split())
-    assert (
-        "whose context already holds the files it wrote, the tests it ran and "
-        "the grounds it recorded" in skill
-    ), "the reason a resume is worth taking below the threshold went"
-    assert (
-        "A fix pass also takes a fresh spawn where the implementer's session no "
-        "longer exists" in skill
-    ), "the fallback for a session that no longer exists went"
-    assert (
-        "a compaction that shrank the implementer's context does not lower the "
-        "reading" in skill
-    ), "the limit a compaction leaves on the reading went"

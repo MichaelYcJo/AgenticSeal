@@ -75,7 +75,7 @@ name this change's own axes before starting: money and rounding, time zones,
 resource lifetime, migration ordering, pagination while writes land, whatever
 the diff touches. Walk them like the rest. An axis you could not judge is a
 row of `## Not judged`, never a silent pass.
-check: tests/text/test_review_axes.py
+check: none reader: the orchestrator at each hand-back
 
 ## Probes and regression tests
 

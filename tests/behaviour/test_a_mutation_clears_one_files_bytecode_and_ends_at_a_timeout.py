@@ -54,10 +54,8 @@ def test_the_crafters_definition_names_the_command_and_no_directory_to_clear():
     file's, which is; any second directory named in its place would miss the
     third the same way (#129).
 
-    The two sentences `tests/text/test_the_handoff_before_round_one.py` pins are
-    asserted here too, because the rewording happens around them and that
-    case is the one that would notice their loss -- this one says the loss
-    did not come from this edit."""
+    The rule's lead and its `watch one go red` clause are asserted here too,
+    because the rewording happens around them."""
     crafter = flat("agents", "crafter.md")
     # Any runner: the definition ships to repositories with no `bin/test`,
     # and `tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py` holds it

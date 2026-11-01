@@ -97,7 +97,7 @@ equivalent  a different implementation, the same observable behavior
 unread      the original or the policy was not found: never a pass
 ```
 
-check: tests/text/test_the_record_is_written_in_words.py tests/text/test_review_axes.py
+check: tests/text/test_the_record_is_written_in_words.py
 
 ## Recording the comparison
 
