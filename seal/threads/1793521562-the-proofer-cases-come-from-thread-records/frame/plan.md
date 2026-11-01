@@ -40,4 +40,5 @@ The next proofer comparison runs both sides on the new suite. A side recorded be
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-01 | No paid eval run is taken in 0.27.2, so Q1 stays a `## Not verified` row | The owner answered the session's `AskUserQuestion` before the first edit with "돌리지 않음" (no run) | `skills/implement/SKILL.md` *1. Read the documents that outrank the code first* |
+| 2026-11-01 | The frame was read against #1229 and spawned as committed, with no proposal; Q2 is built on its default (a), `--count 4` | (a) is the one choice the generators' own rule reproduces, and the owner's choice of 2026-11-01 named the layout, not the rounds; the two `tests/` comments the frame also rewrites are edited by no sibling work item of 0.27.2 (read: the four sibling frames' scopes) | `skills/implement/orchestration.md` *The frame is read against the issue at the spawn* |
