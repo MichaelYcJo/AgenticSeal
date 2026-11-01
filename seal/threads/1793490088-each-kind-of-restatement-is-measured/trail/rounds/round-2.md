@@ -35,6 +35,11 @@ The fix removes the paragraph. The plan's row already records why the fold, and 
 -`frame/design.md` G12 states figures at `bf9efcba` that `trail/phases/phase-1.md` *The table* row K9 and `trail/phases/phase-2.md` *Command nones* hold, and the owner's comment figure at `6be0c1f1` that phase 2's row K14 holds. Round 1 finding 5 names the first two. The fix pass of round 1 did not rewrite G12: `frame/design.md` is the framer's (`skills/implement/SKILL.md` *3. The SDD file set*, column *Written by*), and the crafter's definition names no write to it. Each phase record cites its own rows and not G12, so no record leans on G12's copy.
 ```
 
+```seal
+verdict: fixed a15b9e96
+answer: The finding holds, and the paragraph is removed as the diff above has it; `frame/plan.md` *Judgments of the run* records why the orchestrator's fold rewrote G12. The paragraph before it said D7 carries every drift *Instances K13* names, and this pass adds to *Instances K13* drifts that open issues hold (finding 3's close), so that paragraph now says D7 carries the stream answers and the drifts row K13 repairs, and each other drift stays with the open issue that holds it.
+```
+
 ### 2. Two figures in the frame remain in the class finding 5 named, inside the comparison its close describes, and the close names only G12
 
 ```seal
@@ -63,6 +68,11 @@ frame/design.md:90, K12's cell *Record of drift in the issue*:
 `seal/follow-up.md`, the row on `console.to_utf8()`, measured at `11f3cde8`
 ```
 
+```seal
+verdict: fixed e3ec7f3d
+answer: The finding holds, and both locations are the orchestrator's fold at `e3ec7f3d`: plan row A4 cites design G13 for the files its probe read, and design K12's last cell cites `seal/follow-up.md`'s `console.to_utf8()` row with its commit and phase 2's row K12, neither with a figure of its own; `frame/plan.md` *Judgments of the run* records the fold. The class, a figure restated between this work item's records or standing in one with no commit, was listed again after that fold by a probe over `routing.md`, the three frame files, `gaps.md` and both phase records: every figure in digits or number words, code spans included and the command code inside fences left out, keyed by its value and the word after it, each key standing in two files printed and read, and each figure of the files that carry no record-wide moment (`routing.md`, the frame files, `gaps.md`) read for its commit. In the records the crafter writes, one copy was fixed in `a15b9e96`: the heading "Seven sentences ..." quoted under both phase 1's *Instances K2* and phase 2's *Instances K11* now stands in phase 1's alone, and phase 2 cites it. Four stand in framer files, left for the orchestrator's fold: `frame/plan.md:24` (A1's alternative gives K4's editions a word count with no commit), `frame/plan.md:48` (phase 2's *Verified by* restates the comment length design S5 gives), `frame/design.md:13` (G7 counts 0.27.1's fragments with no commit, which phase 2's *Command K8* states at `bf9efcba`), and `frame/design.md:88` (K10's cell quotes the 0.24.0 figure of `docs/the-record-layout.md` that phase 2's row K10 also quotes). A figure written in other words has no bounded spelling, so that part of the class is a sample.
+```
+
 ### 3. *Instances K11* says no open issue reads its class, and phase 2's own tracker search returns four that hold docstrings out of step with their code
 
 ```seal
@@ -85,6 +95,11 @@ The fix rewrites the last paragraph of *Instances K11*, and changes no decision.
 
 ```markdown
 The open part: a docstring that restates a rule in fresh words, a docstring or comment out of step with the code it describes, which no command here reads, and a printed message built by concatenation of pieces under four words. Overlaps: #146, #317, #706 and #710 (`backlog: review chain & agents`), each a docstring or comment of a script out of step with the code it describes; at `bf9efcba` the sentences #146, #317 and #706 name still stand (`.github/scripts/roll_flow_measurement_issue.py`'s module docstring, `skills/verify/scripts/arm_check.py#Verdict`, `skills/verify/scripts/mutation_check.py#main`). No draft extends them, since K11's decision is a written rule the proofer reads and each issue repairs its own instance.
+```
+
+```seal
+verdict: fixed a15b9e96
+answer: The finding holds on the overlaps, and not on the kind; the paste-ready text was not applied as written. Read at `bf9efcba`, the sentences of #146, #317, #706 and #710 each stand out of step with the code of their own file: `roll_flow_measurement_issue.py:76-78` against `#landed_create`, `arm_check.py#Verdict`'s docstring against `run_arms`, `mutation_check.py:570-575` against `mutation_run`'s `finally`, and `arm_check.py:953-958` against the outer `finally` when `--only` selects no arm, which answers this round's *Not judged* row on the code behind #706 and #710. A docstring or comment out of step with the code of its own file is code text with the tree's own state, P8 with P12, which design *The kinds* gives K13, and not K11's pair of code text with a rule document; K11's command compares the two and shares no run with such a sentence, so its count, drifted count, decision and grounds stand, and are not rewritten. *Instances K11*'s overlaps now name the four, and say where they are read. *Instances K13* reads them with #315 and #1228, which the tracker returns on the same ground, as six drifts no command reads, and reads #238, #1128 and #706's third item without counting them; K13's *Drifted*, *Caught in the record*, *Decision* and *Grounds* cells hold the six, and its open part names the class. No draft becomes a comment on any of them: each issue holds its instance's repair and its *Done when*, and a comment would add only that the sentence stands at `bf9efcba`, which the open issue already claims. The class of this finding and round 1 finding 3, an open issue on a kind's ground that the row does not name, was listed by running the first loop of both *Command tracker* blocks on 2026-11-01 and reading each of the 62 open issues they return against the ground of every kind, K1 to K14, by title and by body where the title did not settle it. Added: #1102 under K2, the four under K11, #1038 under K12, #146, #238, #315, #317, #706, #710, #1128 and #1228 under K13, and #1215 under K14; K1 and K3 to K10 already named every one. A tracker search is a search on words, so the list is a sample, and both *Command tracker* paragraphs now say so. Met beside it: design *The kinds* places no kind for a test with code text (P9 with P8), where #238 pins the version-check notice; `gaps.md` names that for the orchestrator.
 ```
 
 ## Confirmations
