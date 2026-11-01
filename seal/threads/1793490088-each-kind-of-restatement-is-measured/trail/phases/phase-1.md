@@ -558,7 +558,7 @@ The modules *Command K5* lists first are `tests/behaviour/test_waiver_decided_at
 
 The round-record sample's 14 K5 findings, judged by heading: each is a behaviour a case did not hold or a rule text a case did not read, and none is a pin out of step with its rule. A pin cannot stand out of step at a green commit, which is the cost #1216 names.
 
-The open part: a pin whose literal is shorter than four words, built by concatenation, or held in a constant, is not listed; a case that reads a rule's text through a regular expression is not listed. Overlaps: #1197 (`release: 0.27.1`) removes `tests/behaviour/test_one_word_one_meaning.py` and its three `check:` lines; #1216 (`release: 0.28.0`) names at the pull request each pin a design's rule change will break. D4 takes the other modules and names both.
+The open part: a pin whose literal is shorter than four words, built by concatenation, or held in a constant, is not listed; a case that reads a rule's text through a regular expression is not listed. Overlaps: #1197 (`release: 0.27.1`) removes `tests/behaviour/test_one_word_one_meaning.py` and its three `check:` lines; #1216 (`release: 0.28.0`) names at the pull request each pin a design's rule change will break. D4 takes the other modules and names both. #379 (`backlog: review chain & agents`): `tests/behaviour/test_chain_hooks_hardening.py::test_every_spec_directory_that_reached_the_ladder_has_an_overview` holds that a directory with a `frame/design.md` or `frame/plan.md` owes its closing memo, where `agents/framer.md:120` withholds `gaps.md` from the framer, so the case is red from a framing commit until a phase writes the memo. It pins no wording and so is not counted here, D4 does not take it, and its repair is #379's.
 
 #### Instances K6
 
