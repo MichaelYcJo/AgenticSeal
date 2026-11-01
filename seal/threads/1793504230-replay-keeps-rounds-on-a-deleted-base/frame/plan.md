@@ -36,7 +36,7 @@ The cases are in `tests/evals/test_replay_targets.py`:
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1, 2 and 3 | `tests/evals/test_replay_targets.py` and `tests/evals/test_seed_defects.py` in one command, with Scenario 2's and Scenario 3's cases each seen red first (contract rule 15), and the `test_census` case of each module. Scenarios 1, 4 and 5 in a `git clone --no-local` of the phase's head with the origin's branches fetched and pruned and `refs/pull/*/head` fetched, each against the same command at 48d035aa. | |
+| 1 | `frame/design.md` *Scope* items 1, 2 and 3 | `tests/evals/test_replay_targets.py` and `tests/evals/test_seed_defects.py` in one command, with Scenario 2's and Scenario 3's cases each seen red first (contract rule 15), and the `test_census` case of each module. Scenarios 1, 4 and 5 in a `git clone --no-local` of the phase's head with the origin's branches fetched and pruned and `refs/pull/*/head` fetched, each against the same command at 48d035aa. | f07d5ae9 |
 
 ## Operational impact
 
