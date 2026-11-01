@@ -1,0 +1,49 @@
+# Implementation Plan: a band flags a measured row, and a judgment of what the change buys decides it (#1263)
+
+## Technical context
+
+The work changes policy in three places, all through `frame/design.md` *Rule changes*: an `add` to `docs/measuring-a-run.md` *What a measurement must survive, and what it must not invent*, a `change` to one paragraph of `docs/release-checklist.md` *5. The release pull request* (lines 126 to 133 at `cd694aa3`), and a `change` to the index row for `docs/measuring-a-run.md` in `docs/README.md` *The checks*. A pull request does not edit the policy root (`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*). The rule is in force from this work item's merge, because the policy in force is the baseline plus the unsettled designs' rule changes, so 0.27.3's own release pull request body already weighs its grown rows under it.
+
+The change to *5* stacks on #1258's (design G3). #1258's `from` and `to` cover only the section's first paragraph. This work's `from` is the later paragraph **Read the release table before the merge.**, which #1258 leaves as it stands. So the `from` reads the same at the base and after #1258's change applies, and the settle reads the two operations in merge order as one group with neither superseded.
+
+The build writes no source, test, workflow or policy file. It writes the work item's `changelog.md` (`agents/crafter.md`: the crafter writes it in the last phase).
+
+Framing executed `test_tmp_rule_changes.py` under `<scratchpad>/1793541310-a-band-flags-a-row-and-a-judgment-decides/frame/`, against a `git clone --no-local` of the worktree at `8a46ee09` with this design copied in, and removed the directory after. `skills/settle/scripts/rule_changes.py#parse` read three operations, one `add` and two `change`, with no error and no unread line. `#section_lines` found *What a measurement must survive, and what it must not invent* at lines 50 to 78 of `docs/measuring-a-run.md`, *5. The release pull request* at lines 105 to 165 of `docs/release-checklist.md`, and *The checks* at lines 33 to 44 of `docs/README.md`. `#pattern` found both `from` values in their sections, and no `to` is in the tree yet. The longest prose line of the two rule `to` values is 71 columns, under the 88 that `tests/behaviour/test_docs_line_wrap.py` holds `docs/` to; check lines are skipped there.
+
+Failure scenarios of the chosen approach, six months on:
+
+- A weighing is written as a formality: "judged not worse" with grounds that name nothing a reader can open. The rule asks for the change, its cost, what it bought and the record each stands in, so a reviewer can see one that names none of them. No script can tell a sound weighing from a thin one, and the core puts that reading with the proofer and the owner, not with a script (design G13).
+- A reading that truly costs more is weighed as worth it, and no issue follows. The weighing then stands in the record with its grounds, and the next measurement against it shows whether the purchase held. Before this work the same reading got an issue that the owner read and closed. After it, the cost is a reviewer reading the weighing at the moment it is written.
+- A future measuring work item writes its band into its frame and an issue draft for each row past it, as #947 did. The rule in `docs/measuring-a-run.md` is policy, and that frame contradicts it, so it is fixed and not followed (`skills/implement/SKILL.md` *1. Read the documents that outrank the code first*). The framer of that work item reads the rule at step 4 of its order of work.
+- The settle rewords one of the two rules. The citation in *5* names the bold lead of the new rule, and `tests/behaviour/test_a_cited_section_stands_in_its_file.py` fails at the settle's broad run when the lead and the citation part, which the settle's step 8 answers.
+
+## Alternatives considered
+
+| Approach | Failure scenario | Verdict |
+|---|---|---|
+| A1 The rule in `docs/measuring-a-run.md`, and *5* applies it to the release table by citing it. The weighing is written by the party that writes the reading, and an issue follows only a reading judged `worse` | The four in *Technical context* | Chosen. The issue names both homes, the fact has one source, and the release table, which has no band, reads every growth as a row for the same judgment |
+| A2 Keep the structure in the tree: *5*'s sentence "A preload or a document that grew is a question the pull request's body answers, or an issue it opens", and nothing in `docs/measuring-a-run.md` | A grown row goes straight to an issue whenever the body does not answer it, and a measuring work item sets its own band and its own verdict in its frame, as #947 did. #1259 is the cost on record (design G7, G8) | Rejected. The premise that keeps it is that a grown number is likely a defect and an issue is the cheap way to look. Checked against 0.27.2's reading: both rows past their band were judged not worse on reading what the change bought, and #1259 closed `NOT_PLANNED`. The "question the body answers" half already holds a judgment, but the sentence lets the issue stand in for it |
+| A3 Write the full rule in both documents | The two copies drift at the next edit, and a reader chooses between them | Rejected under `skills/core/SKILL.md` *The rule a mechanism is kept against* ("A fact has one source"). *5* cites the rule's bold lead |
+| A4 Write the rule in `docs/release-checklist.md` *5* alone | The rule then covers the release table and not a measurement of the process or a segment's reading, where #947's band acted. The issue names `docs/measuring-a-run.md` as a home | Rejected |
+| A5 Weigh a reading past its band in either direction, `better` as well as `worse` | Every row that improved then owes a written weighing. Such a row files no issue and costs no reader a close, and #51's `better` rows would read as out of rule while nobody has found one wrong | Rejected. The cost the issue names is a false `worse` and the issue it files. The rule weighs a reading past its band toward more cost |
+| A6 Give the release table a band of its own, such as 1 per cent on a document's bytes, so a small growth needs no weighing | A band set without a measurement of noise is a guess. A preload's or a document's bytes are exact, so they carry no noise for a band to absorb. A band there would let a small copy of a rule pass unweighed, which is the growth a reader most needs to see | Rejected. The table stays without a band, and every growth is a row for the judgment |
+| A7 A script or check that refuses a `worse` row with no weighing beside it, or an issue filed from a band | It would have to read whether a sentence weighs a cost against a purchase, which is meaning. `skills/core/SKILL.md` *The first value* says a script does not re-encode that judgment as a grammar rule | Rejected. The reader is the proofer at review, as the new rule's `check:` line names, and the owner at the release pull request's merge |
+| A8 Change `docs/the-review-record.md` *The per-segment bars* so the run-level table no longer "judges a run" | The sentence files nothing, and `skills/verify/orchestration.md` already says the same table "carries no verdict" (design G9, G10). A rule change there widens the work into a file no request names, for no reading that changes | Rejected. Named in *Scope*, out |
+| A9 Leave *5*'s paragraph with no `check:` line, as it stands at the base | A `to` that states a rule ends with one check line (`skills/settle/SKILL.md` *A rule has one shape*). Two modules already read what the paragraph states as fact (design G11) | Rejected. The line names those two modules. A `check: none reader:` line would name nobody for facts two cases already read |
+| A10 Leave the index row of `docs/README.md` as it is | A framer picks each `file:` from the index (`skills/settle/SKILL.md` *The index*). A framer looking for how a moved reading is judged does not find it in a row that names only what a segment measures and where a reading goes | Rejected. One row changes |
+
+## Phases
+
+| Phase | Delivers | Verified by | Status |
+|---|---|---|---|
+| 1 | *Scope* item 4. It confirms items 1 to 3 and 5 at the build's head | `rule_changes.py#parse` on `frame/design.md` returns one `add` and two `change` operations and no error, and `#pattern` finds each `from` in `#section_lines` of its section, run once as a `test_tmp_*` probe and deleted. `git grep -n -i -E 'issue it opens\|that grew'` outside `seal/threads/` lists only `docs/release-checklist.md`. Narrow: `tests/github/test_rules.py`, `tests/behaviour/test_a_cited_section_stands_in_its_file.py`, `tests/behaviour/test_the_set_a_work_item_always_has.py`, `tests/behaviour/test_release_hygiene.py`, `tests/github/test_publish_release_note.py` and `tests/text/test_a_record_carries_no_comment.py`, the modules that read a pending design, a work item's set or a changelog fragment | |
+
+## Operational impact
+
+None for a deployer: no migration, environment variable, dependency or compatibility break. One act of the way of working changes. A reading past its band, or a release table row that grew, is weighed by the party that writes it, and the orchestrator files an issue only for a reading judged `worse`. 0.27.3's release pull request is the first whose body the rule governs.
+
+## Judgments of the run
+
+| Date | Judgment | Grounds | Judged against |
+|---|---|---|---|
+| | | | |
