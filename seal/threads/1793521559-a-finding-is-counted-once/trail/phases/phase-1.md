@@ -52,6 +52,8 @@
 | 1793516191-a-wording-pin-module-leaves-by-rule-changes | 8 | 2 | 8 | 2 |
 ```
 
+**The phase-boundary set passed at 0d28fe61**: 3523 passed and 9 skipped, exit 0 (executed, one `bin/test <modules> -q`). The 51 modules are the plan's two; `tests/github/test_release_seal.py`, which counts records through `#record_findings`; `tests/test_censuses.py`; every test module that names `chain_check`; every one that globs `seal/threads/`; every one that lists the tracked files and reads markdown or `seal/`; `tests/behaviour/test_docs_line_wrap.py`; and the four modules under `tests/evals/`, whose scripts load `chain_check.py`. The list was built by `git grep -l` for each of those properties, so a module that reads a changed path by a spelling none of those searches matches is outside it. `ruff check` and `ruff format --check` passed on the four changed Python files (executed, exit 0 each).
+
 **The policy root is untouched.** `git diff --stat 813665f0...HEAD -- docs/` printed nothing at c832a026 and at 1da90703 (executed). Scope item 4 is the design's `## Rule changes`, and the settle applies it.
 
 **Other places stating the count.** `git grep -n "grep -h\|records alone\|regression or reopens" -- ':!seal/threads'` finds the grep recipe at `docs/release-checklist.md:68` alone, which the design's second rule change replaces at the settle (executed). The other hits for "records alone" state the pull-request check's rule, which reads the work item's own records and the union of both blocks' paths, and `frame/design.md` *Out*, second bullet, keeps that rule. This is a search for the wording, so it is a sample and not a whole list.
