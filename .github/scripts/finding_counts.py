@@ -61,7 +61,13 @@ HEADER = "| work item | findings | regression or reopens | records alone | round
 SEPARATOR = "|---|---|---|---|---|"
 NOT_READ = "not read"
 DEFAULT_REF = "origin/main"
-NOT_LISTED = "the round records cannot be listed: it is not a directory"
+# Said of every state `hooks/lib/routing.py#rounds_unreadable` answers for,
+# and so of none of them alone: any link, a path that is not a directory,
+# and a directory nothing can list.
+NOT_LISTED = (
+    "the round records cannot be listed: it is a link, a file, or a "
+    "directory nothing can list"
+)
 
 
 def load(name, *parts):
