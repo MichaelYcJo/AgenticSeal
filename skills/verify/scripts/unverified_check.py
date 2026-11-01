@@ -67,6 +67,7 @@ deleted (`unwritten_root`).
 """
 
 import argparse
+import errno
 import importlib.util
 import os
 import pathlib
@@ -940,7 +941,8 @@ def overviews(paths):
     for p in paths:
         # The argument is read through `as_named`, which resolves the way to
         # the repository's top and keeps every component inside it as named,
-        # except in a path that holds a `..`, which is its real path.
+        # except in a path that holds a `..` or runs through a link loop,
+        # which is its real path.
         # `ls-tree` lists a tracked symbolic link under its own path, so
         # resolving each file made a link that is right there read as deleted,
         # and resolving the argument whole left a named link's own path
@@ -1069,7 +1071,8 @@ def as_named(path):
     target, so the rows the link's own path held at the base were never
     compared and left with exit 0 (#1225). git cannot give the path back as
     named: `rev-parse --show-prefix` answers with links resolved too. A path
-    that holds a `..` is its real path, which `absolute` gives."""
+    that holds a `..`, or that runs through a link loop, is its real path,
+    which `absolute` gives."""
     full = absolute(path)
     top = repository_of(full)
     if top is None:
@@ -1090,17 +1093,29 @@ def as_named(path):
 
 
 def absolute(path):
-    """`path` made absolute, and resolved through `real` where it holds a `..`.
+    """`path` made absolute, and resolved through `real` where it holds a `..`
+    or runs through a link loop.
 
     `os.path.abspath` drops `a/..` by its text, so where `a` is a link it
     names a directory the file system does not reach through that path, and
     the check compared a path nobody named. A path that holds a `..` is
     therefore read as `real` reads it, as every argument was read before
     #1225, so a link the person named on it is read as its target and the
-    rows its own path held are not compared (#1240). Every other path is
-    made absolute by its text, and `as_named` keeps its components."""
+    rows its own path held are not compared (#1240). A path through a link
+    loop, such as `loop -> loop/..`, leads nowhere the scan can enter, so it
+    is read as `real` reads it too: kept as named, the scan read nothing
+    under it, and the base's memo under its real spelling was reported
+    deleted though it is there. POSIX names the loop `ELOOP`; Windows
+    answers an unfollowable link with `ERROR_CANT_RESOLVE_FILENAME`, 1921,
+    as `ntpath.realpath` reads it. Every other path is made absolute by its
+    text, and `as_named` keeps its components."""
     if os.pardir in pathlib.PurePath(path).parts:
         return real(path)
+    try:
+        os.stat(path)
+    except OSError as error:
+        if error.errno == errno.ELOOP or getattr(error, "winerror", None) == 1921:
+            return real(path)
     return os.path.abspath(path)
 
 

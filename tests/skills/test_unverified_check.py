@@ -2539,6 +2539,21 @@ class Test_main:
         reported = [UC.git_path(p) for p in reported_paths(out)]
         assert reported == [f"specs/{OTHER}/gaps.md"], out
 
+    def test_refuses_a_row_lost_under_a_named_link_loop_as_real_reads_it(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """`loop -> loop/..` leads nowhere the walk can enter, so a named loop
+        is read as `real` reads it, as before #1225. Kept as named, the scan
+        read nothing under it, and the base's memo under its real spelling
+        was reported deleted though it is there."""
+        d = _committed(tmp_path, {f"specs/{WORK}/gaps.md": memo(CANONICAL)})
+        write(d, f"specs/{WORK}/gaps.md", memo(CANONICAL.replace(WINDOWS + "\n", "")))
+        symlink_or_skip(os.path.join("loop", os.pardir), str(d / "specs" / "loop"))
+        monkeypatch.chdir(d)
+        assert run([os.path.join("specs", "loop"), "--baseline", "HEAD"]) == 1
+        out = capsys.readouterr().out
+        assert "2 rows at HEAD, 1 here" in out and "not here" not in out, out
+
     def test_refuses_a_row_lost_through_a_named_link_out_of_every_repository(
         self, tmp_path, monkeypatch, capsys
     ):
