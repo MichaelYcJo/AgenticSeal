@@ -7,6 +7,7 @@
 | The suite beyond phase 1's narrow run, the repository-wide lint and the format check | the orchestrator's broad gate, `seal gate --base origin/release/v0.28.0 --record seal/threads/1793573444-a-check-line-inside-a-to-is-read-at-the-pull-request` |
 | That `seal rules --check` prints at this branch what it printed at the base for the same rule files (design S7): it was run at phase 1's commit alone, exit 0, and not at the base for a comparison | the proofer at round 1, reading the `unresolved` diff in `.github/scripts/rules.py` |
 | That `chain_check.py` loads `.github/scripts/rules.py` in a user's CI, from the plugin clone `templates/setup/hygiene.yml` makes: read from the template and the installed plugin's tree (design G9), never run in a user's repository | the proofer at round 1, reading `templates/setup/hygiene.yml` |
+| That the release note the tag builds shows this fragment under its `<!-- specs/... -->` marker once: read from `.github/scripts/publish_release_note.py#section`, not run against this fragment | the tag's workflow at the 0.28.0 release, and the orchestrator reading the published note |
 
 ## Not done
 
