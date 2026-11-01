@@ -28,7 +28,7 @@ The failure scenario of the chosen approach, six months out: the suite holds 13 
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1, 2, 3 and 4, in one commit | `frame/design.md` Scenarios 1 to 6. Scenario 2's `--case` runs and Scenario 3's scaffold runs go under the scratchpad, in a `git clone --no-local` for Scenario 2. Scenario 5's modules run in one command at the phase boundary. Contract rule 15 for a generated case: show each new `truth-` grader's pattern matching the `location:` line of the finding it was cut from, in the round record at its tag, and not matching that record with the line removed. For `truth-seeded`, show it matching a `location:` line at the mutated line and not matching one at 16 lines away | |
+| 1 | `frame/design.md` *Scope* items 1, 2, 3 and 4, in one commit | `frame/design.md` Scenarios 1 to 6. Scenario 2's `--case` runs and Scenario 3's scaffold runs go under the scratchpad, in a `git clone --no-local` for Scenario 2. Scenario 5's modules run in one command at the phase boundary. Contract rule 15 for a generated case: show each new `truth-` grader's pattern matching the `location:` line of the finding it was cut from, in the round record at its tag, and not matching that record with the line removed. For `truth-seeded`, show it matching a `location:` line at the mutated line and not matching one at 16 lines away | dd333022 |
 
 ## Operational impact
 
