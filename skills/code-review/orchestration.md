@@ -226,9 +226,10 @@ else says so. `UNKNOWN` means GitHub has not computed the answer yet, and
 the orchestrator reads it again.
 
 **The orchestrator waits on CI with `gh pr checks <N> --watch`, and starts
-the wait only once the commit it pushed last has a check.** The wait reads
-the checks of every workflow on the pull request; a single workflow's run,
-watched alone, can pass while another workflow's check fails. Run before any
+the wait only once the commit it pushed last has a check of a `pull_request`
+run.** The wait reads the checks of every workflow on the pull request; a
+single workflow's run, watched alone, can pass while another workflow's
+check fails. Run before any
 check has reported on the pull request's head commit, the wait does not
 wait. With gh 2.100.0 it prints `no checks reported on the '<branch>'
 branch` and exits 1 without waiting. A failed check also exits 1, so right

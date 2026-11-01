@@ -367,6 +367,8 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
         "`gh pr checks <N> --watch`",
         "`no checks reported on the '<branch>' branch`",
         "exits 1 without waiting",
+        "starts the wait only once the commit it pushed last has a check of a "
+        "`pull_request` run.**",
         "Every ten seconds the orchestrator runs",
         "gh pr view <N> --json headRefOid --jq .headRefOid",
         "gh pr checks <N> --json event --jq "
