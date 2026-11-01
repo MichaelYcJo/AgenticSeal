@@ -32,5 +32,4 @@ None. The scripts are maintainer tools that write proofer eval cases. No script 
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
 | 2026-11-01 | Round 1's *Not judged* row on `origin_url()` stopping a `--case` run before it names an unanswered name: no issue is filed | A scaffold fetches from a GitHub origin, so a clone without one can write no case, and `replay_targets.py#origin_url` stops with a sentence naming that origin (`replay_targets.py:900-910`). The names it leaves unsaid are of a run that could answer none of them | `frame/design.md` *Scope*, the item out of scope on `origin_url()` |
