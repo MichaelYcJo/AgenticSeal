@@ -36,7 +36,7 @@ The failure scenario of the chosen approach, six months on: a reader takes a `be
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1, 2, 3, 4 and 5 | The `git diff --stat` of *Scope* item 1 and of scenario S8, each printing nothing. Scenarios S1 and S2 for every row. Then, in one command, `bin/test tests/test_censuses.py -q` with every other module `git grep -l 'seal/threads' -- tests` lists that reads a work item's records, per contract rule 2 | |
+| 1 | `frame/design.md` *Scope* items 1, 2, 3, 4 and 5 | The `git diff --stat` of *Scope* item 1 and of scenario S8, each printing nothing. Scenarios S1 and S2 for every row. Then, in one command, `bin/test tests/test_censuses.py -q` with every other module `git grep -l 'seal/threads' -- tests` lists that reads a work item's records, per contract rule 2 | 1b493ce2 |
 | 2 | `frame/design.md` *Scope* items 6 and 7, over the segments *Scope* item 1 lists | Each segment named by session prefix and agent file, with its kind and plugin version. Scenarios S1, S2 and S9. The same one command as phase 1 | |
 | 3 | `frame/design.md` *Scope* items 8, 9, 10, 11 and 12 | Scenarios S1 to S9, S3 to S7 read against phases 1 and 2's records. The same one command as phase 1 | |
 
