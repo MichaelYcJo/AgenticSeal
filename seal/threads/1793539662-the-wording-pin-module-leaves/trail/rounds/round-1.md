@@ -29,6 +29,11 @@ EMPHASIS = re.compile(r"[*_`]+")
 
 The fix touches a comment and no code, so it owes no case (`skills/verify/SKILL.md` *The narrow command still has to be able to fail*, the row for a comment or docstring inside source).
 
+```seal
+verdict: fixed 36f836f5
+answer: The finding holds: `git grep -n -w EMPHASIS` lists one constant, at `tests/behaviour/test_chain_hooks_hardening.py:637` before the fix. The paste-ready text was applied as the finding words it, after reading it as the comment's reader would. Line 623 now reads `# All three markdown markers. Round 1's` followed by the U+1F7E1 mark and `2:`, the round's text from there on is unchanged and rewrapped, and the comment ends at "worth less than a spelling the guard cannot see." with no mention of `chain_check.py` or a second constant. The class is every sentence stating that `chain_check.py` holds a normaliser named `EMPHASIS` or that two such constants exist. It was listed with `git grep -n -i -E "normali[sz]er of this|same name|emphasis"` over the tree outside `seal/threads` and `.test_durations`, and `git grep -n chain_check` over the module. Those found the two clauses this fix removes and no other. The one other statement is `trail/phases/phase-1.md:17`, a phase record, which a fix pass does not write, so it stands as the build's past claim and this block corrects it. The fix changes a comment alone, so it owes no case and no mutation run (`skills/verify/SKILL.md` *The narrow command still has to be able to fail*). `bin/test tests/behaviour/test_chain_hooks_hardening.py -q` exited 0, and `uvx ruff check` and `uvx ruff format --check` on the file exited 0 (executed). The fix changes nothing the work item ships, so `changelog.md` is unchanged.
+```
+
 ## Confirmations
 
 ```seal
