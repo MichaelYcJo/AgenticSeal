@@ -67,4 +67,5 @@ The tracker acts are the orchestrator's, after the seal and before the pull requ
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-01 | G6's first decision is the owner's answer, not a carried claim: no paid eval run is taken in 0.27.2 | The orchestrator put the question through `AskUserQuestion` before the first edit, and the owner chose "돌리지 않음" (no run); a row only such a run answers is a `## Not verified` row with its answerer named | `skills/implement/SKILL.md` *1. Read the documents that outrank the code first* |
+| 2026-11-01 | The frame was read against #1038 and its milestone and spawned as committed, with no proposal to the framer; Q1 is built on its default (a) | The candidates, the build-or-drop table per phase and the tracker acts held by the orchestrator meet the issue's *Done when*; the milestone's later sentence "the kept ones are filed into one minor together" outranks the body's "in this milestone", and Q1's default follows it | `skills/implement/orchestration.md` *The frame is read against the issue at the spawn* |
