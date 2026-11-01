@@ -1,7 +1,8 @@
-"""Three workflow settings decide whether the checks below them mean anything,
+"""Four workflow settings decide whether the checks below them mean anything,
 and how often they are paid for.
 
-None is visible from the checks themselves, and the first two failed silently.
+None is visible from the checks themselves, and all but the third failed
+silently.
 
 **Checkout depth.** `actions/checkout@v4` fetches one commit and no tag
 unless told otherwise. `tests/behaviour/test_release_hygiene.py` reads this
@@ -31,6 +32,17 @@ for the same pull request, and touches nothing else: a `push` to `main` is
 the run `release-report` reads for a release tag's minutes, and GitHub keeps
 one pending run per concurrency group and cancels any older pending one,
 whatever `cancel-in-progress` says.
+
+**Which cases a leg names.** A case that skips on one system passes nothing
+there, and a leg run with `-q` alone names no skipped case: it prints a count,
+and the cases one helper skips fold under that helper's line, so every case
+`tests/conftest.py#symlink_or_skip` skips reads as the line of its
+`pytest.skip` call.
+Rows that deferred a Windows question to the Windows legs met a log that could
+not answer them (#1221). Each `pytest` leg therefore passes `-rfEs
+--no-fold-skipped`, which names every skipped case with its reason. `-r`
+replaces pytest's default `fE` rather than adding to it, so a leg passing
+`-rs` would also stop naming the cases that failed.
 
 **The workflow the plugin ships.** `seal pr-checks install` writes
 `templates/setup/hygiene.yml` into a user's repository, where it runs on
@@ -624,6 +636,32 @@ def test_every_pytest_leg_has_a_timeout_and_the_job_reads_it():
     job = jobs(text)["pytest"]
     assert "\n    timeout-minutes: ${{ matrix.timeout }}\n" in job, (
         "the job does not read the matrix's timeout"
+    )
+
+
+# What every `pytest` leg hands pytest so that its short summary names each
+# skipped case and still names each failed one (#1221).
+REPORT_FLAGS = ("-rfEs", "--no-fold-skipped")
+
+
+def test_every_pytest_leg_names_each_case_it_skipped_and_each_it_failed():
+    """#1221. A row that defers a platform question to a leg is answered by
+    that leg's log, and only where the log names the case. Seen red with
+    `--no-fold-skipped` deleted from the line, and with `-rfEs` written
+    `-rs`."""
+    runs = [
+        ln.strip()
+        for ln in jobs(read("test.yml"))["pytest"].splitlines()
+        if ln.strip().startswith("- run: pytest ")
+    ]
+    assert len(runs) == 1, runs
+    words = runs[0].split()
+    missing = [flag for flag in REPORT_FLAGS if flag not in words]
+    assert not missing, (
+        f"the pytest line does not pass {missing}: {runs[0]}. `-r` replaces "
+        "pytest's default `fE`, so a leg passing `-rs` drops its FAILED lines, "
+        "and without `--no-fold-skipped` the cases one helper skips fold under "
+        "the helper's line and no case is named"
     )
 
 

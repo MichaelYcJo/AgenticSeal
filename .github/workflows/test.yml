@@ -152,10 +152,18 @@ jobs:
           git config --global user.name ci
       # `--durations=50`: each leg prints its own slowest cases, so a figure
       # for one operating system is read off that operating system (#841).
+      # `-rfEs --no-fold-skipped`: each leg's short summary names every case
+      # it skipped, with pytest's reason, beside every case that failed or
+      # errored, so a row that defers a platform question to a leg is
+      # answered by that leg's log (#1221). `-r` replaces pytest's default
+      # `fE` rather than adding to it, so the default is written out; without
+      # `--no-fold-skipped`, the cases one helper skips, such as every case
+      # `tests/conftest.py#symlink_or_skip` skips, fold under the helper's
+      # line and no case is named. The option needs pytest 8.3.0 or later.
       # `split` is empty on ubuntu, so that leg runs the whole suite as
       # before. `store` is empty everywhere but Windows, and it follows the
       # split because it is about the session the split leaves.
-      - run: pytest tests/ -q -n auto --durations=50 ${{ matrix.split }} ${{ matrix.store }}
+      - run: pytest tests/ -q -n auto --durations=50 -rfEs --no-fold-skipped ${{ matrix.split }} ${{ matrix.store }}
       # A shard's part, uploaded whether its cases passed or failed: a red
       # case still has a price. Only where `store` is set, because anywhere
       # else `.test_durations` is the committed file, and a part holding the
