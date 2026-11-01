@@ -498,7 +498,7 @@ done | sort -u
 for n in 1216 1197 1020 1038 1215 1102; do gh issue view "$n" --json number,state,milestone,title,body; done
 ```
 
-Run on 2026-11-01. The open issues on the same ground it found are #1020, #1038, #1102, #1197, #1215 and #1216. Each row's overlap is named in *Instances*.
+Run on 2026-11-01, and its first loop again by the fix pass over round 2, which read its returns against every kind as `trail/phases/phase-2.md` *Command tracker* says. The open issues this block's first loop returns on a kind's ground are #315, #706, #710, #1020, #1038, #1102, #1128, #1197, #1215 and #1229, and its second loop views #1216. Each kind's overlaps are named under its *Instances*, in this record or in `trail/phases/phase-2.md`.
 
 ### Instances
 
@@ -524,7 +524,7 @@ The 31 citations *Command citations* prints at `bf9efcba` were each read against
 
 The round-record sample's 9 K2 findings, judged by heading; the body of each was not opened. Out of step between two rule texts: `v0.22.0` `1791933022…/rounds/round-8.md` 1 and `round-9.md` 2; `v0.22.1` `1792126889…/rounds/round-1.md` 1 and `round-2.md` 1; `v0.22.1` `1792252400…/rounds/round-1.md` 2 ("Seven sentences outside the two #967 and #968 files still give the broad run, its stamp or its log to the sealer"); `v0.26.0` `1793419351…/trail/rounds/round-2.md` 2. Not a restatement: `v0.23.0` `1793081611…` 3, `v0.22.2` `1792367880…` 3, `v0.24.1` `1793240968…` 1.
 
-The open part: a paraphrase of a rule in fresh words, the kind #1040 found, is reached by no command. Overlaps: #1216 reads `to` values with this kind's reader and edits nothing of `BASELINE`; D1 and #1216 both touch `tests/text/test_no_passage_is_pasted_into_a_second_file.py`, so D1 names the order.
+The open part: a paraphrase of a rule in fresh words, the kind #1040 found, is reached by no command. Overlaps: #1216 reads `to` values with this kind's reader and edits nothing of `BASELINE`; D1 and #1216 both touch `tests/text/test_no_passage_is_pasted_into_a_second_file.py`, so D1 names the order. #1102 removes the `README.md` entries of `BASELINE` that D1 leaves standing, which D2 hands it.
 
 #### Instances K3
 
