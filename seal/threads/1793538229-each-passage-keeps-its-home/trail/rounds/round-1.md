@@ -29,6 +29,11 @@ The claim was that the docstring cites "the measure at its commit, as the docstr
 
 The same commit replaces `79252e48` with `48d035aa` at `frame/design.md:3` and `:14`, where the frame says the measure is read.
 
+```seal
+verdict: fixed 25c268b4
+answer: The finding holds. `tests/text/test_no_passage_is_pasted_into_a_second_file.py:30` now cites `48d035aa:seal/threads/1793490088-each-kind-of-restatement-is-measured/trail/phases/phase-1.md` *The table*, row K2. `48d035aa` is an ancestor of `origin/release/v0.27.3` (executed: `git merge-base --is-ancestor`, exit 0), and its file holds the row `| K2 policy and instructions` that the docstring quotes (executed: `git show 48d035aa:<path>`). The module ran green after the edit, 9 passed, and `ruff check` and `ruff format --check` exit 0 on it (executed). The two frame lines, `frame/design.md:3` and `:14`, were changed by the orchestrator in `541e8c5e`, and this pass does not edit the frame. `git grep 79252e48` over `tests`, `docs`, `skills`, `agents`, `templates` and the three root files finds nothing after `25c268b4` (executed). The one other place in this work item's diff that still cites `79252e48` is `trail/phases/phase-1.md:7`. That line records what phase 1 read, and a fix pass writes no phase record, so it stands, and the hand-back names it.
+```
+
 ## Confirmations
 
 ```seal
