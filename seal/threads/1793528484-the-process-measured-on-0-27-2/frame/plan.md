@@ -57,4 +57,5 @@ Each phase spawn hands the crafter the scratch directory and says not to write t
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-01 | G3's no-paid-eval decision is the owner's answer, not a carried claim | The orchestrator put the question through `AskUserQuestion` before the first edit of 0.27.2, and the owner chose "돌리지 않음" (no run) | `skills/implement/SKILL.md` *1. Read the documents that outrank the code first* |
+| 2026-11-01 | #947 started before #1038's merge, and the frame was spawned as committed with Q1 built on its default (a) | Every work item of 0.27.2 that changes a process file had merged at `94b03636`; #1038's diff is its own records and one `seal/follow-up.md` row, which the framer confirmed, so the tree measured is the release's final one; the frame meets the issue's asks that still read a thing the tree holds and names the stale ones with grounds | `skills/implement/orchestration.md` *The frame is read against the issue at the spawn* |
