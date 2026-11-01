@@ -54,9 +54,8 @@ SCANNED = (
     "agents",
     "templates",
     "tests",
-    # `tests/behaviour/test_one_word_one_meaning.py`, the module this sweep is modelled
-    # on, reads this file for the same kind of claim, and it is where a rule
-    # gets restated for a session that never opens `docs/`.
+    # It is where a rule gets restated for a session that never opens
+    # `docs/`.
     "CLAUDE.md",
     "README.md",
     "README.ko.md",
@@ -104,8 +103,7 @@ def flat(rel):
     """The file with every run of whitespace collapsed to one space.
 
     A hand-wrapped paragraph is one sentence to a reader and several lines to
-    `in`. This is the reader `tests/behaviour/test_one_word_one_meaning.py` already uses
-    for the same reason.
+    `in`.
     """
     return " ".join(read(rel).split())
 
@@ -330,8 +328,7 @@ def test_the_sweep_reads_a_statement_whose_wrap_falls_inside_it():
 
 def test_the_scanned_set_reaches_the_file_a_rule_gets_restated_in():
     """`CLAUDE.md` is where a rule is restated for a session that never opens
-    `docs/`, and `tests/behaviour/test_one_word_one_meaning.py` — the module this sweep
-    is modelled on — already reads it."""
+    `docs/`."""
     files, _missing = tracked()
     assert "CLAUDE.md" in files, (
         "CLAUDE.md is outside the sweep, so a second answer stated there is "

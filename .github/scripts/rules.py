@@ -510,8 +510,16 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    for _name in ("stdout", "stderr"):
+    # `hooks/lib/console.py#STREAMS` owns this answer. The loop is spelt here
+    # rather than imported because this script loads the tree's modules only
+    # when first asked (`sibling`), so a module that will not load ends in the
+    # script's own `Unreadable` and exit 2.
+    for _name, _errors in (
+        ("stdin", "replace"),
+        ("stdout", "replace"),
+        ("stderr", "backslashreplace"),
+    ):
         _stream = getattr(sys, _name, None)
         if hasattr(_stream, "reconfigure"):
-            _stream.reconfigure(encoding="utf-8", errors="replace")
+            _stream.reconfigure(encoding="utf-8", errors=_errors)
     sys.exit(main())

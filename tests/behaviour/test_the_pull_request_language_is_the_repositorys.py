@@ -16,8 +16,7 @@ drift it guards against cannot survive it.
 
 The absence half of each pair is what makes these worth having. A document
 can gain the corrected sentence and keep the old one two sections down, which
-is how two answers ship at once — `tests/behaviour/test_one_word_one_meaning.py` is
-this repository's precedent for pinning both halves.
+is how two answers ship at once.
 """
 
 import glob

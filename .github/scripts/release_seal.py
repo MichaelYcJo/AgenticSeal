@@ -530,10 +530,6 @@ def seal_release(tag, repo, dry):
 
 
 def main():
-    for name in ("stdout", "stderr"):
-        stream = getattr(sys, name, None)
-        if hasattr(stream, "reconfigure"):
-            stream.reconfigure(encoding="utf-8", errors="replace")
     tag = os.environ.get("TAG", "").strip()
     repo = os.environ.get("REPO", "").strip()
     dry = os.environ.get("DRY_RUN", "").strip() not in ("", "0", "false", "no")
@@ -554,4 +550,16 @@ def main():
 
 
 if __name__ == "__main__":
+    # `hooks/lib/console.py#STREAMS` owns this answer. The loop is spelt here
+    # rather than imported because this script loads the tree's modules only
+    # when first asked (`module`), so a module that will not load ends in
+    # today's note and an exit of 0 (`main`).
+    for _name, _errors in (
+        ("stdin", "replace"),
+        ("stdout", "replace"),
+        ("stderr", "backslashreplace"),
+    ):
+        _stream = getattr(sys, _name, None)
+        if hasattr(_stream, "reconfigure"):
+            _stream.reconfigure(encoding="utf-8", errors=_errors)
     sys.exit(main())
