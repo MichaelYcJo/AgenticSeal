@@ -67,6 +67,11 @@ They catch two things earlier, and both show at the one run after the last merge
 - Two work items each pass their own pull request's `tests`, and the later one's last run started before the earlier one merged. A defect they make only together then shows at the release pull request's one run, and not at the merge that made it. Its repair is one more pull request into the release branch before the merge, as with a hotfix.
 ```
 
+```seal
+verdict: fixed 4e4f7f3c
+answer: The finding holds; `gh pr list --base release/v0.27.2` and `gh run list --commit` for #1250 and #1252 were re-run in the fix pass and give the same times: #1250 merged at 09:48:00Z, and #1252's last run started at 09:43:26Z before it merged at 09:48:15Z. 4e4f7f3c applies the paste-ready text to `changelog.md:3`, and corrects the same fact in the process row's Why cell at `changelog.md:9` ("over trees already tested" became "mostly over trees already tested; on 0.27.2 five of six runs came before the last merge"). The frame locations, `frame/design.md` *Rule changes* `to` and *Scope* item 1, `frame/plan.md` A2 and the fifth failure scenario, were rewritten by the orchestrator in 99642896.
+```
+
 ### 2. The step reads the moment from the milestone check's exit code, and the script exits 0 in two shapes where it read no milestone
 
 ```seal
@@ -102,6 +107,11 @@ The `to`, lines 77 to 83, rewritten:
 ```
 
 `changelog.md:3`, the clause "which must exit 0", becomes "which must exit 0 and print its `M (open in ...)` line". In the process row at `changelog.md:9`, "exiting 0" becomes "exiting 0 with its `M` line printed".
+
+```seal
+verdict: fixed 4e4f7f3c
+answer: The finding holds; `.github/scripts/release_completeness_check.py:362` prints the "nothing to judge" line and `:284` the `M (open in ...)` line, read in the fix pass. 4e4f7f3c applies the paste-ready text to `changelog.md:3` ("which must exit 0 and print its `M (open in ...)` line") and to the process row at `changelog.md:9` ("exiting 0 with its `M` line printed"). The frame location, the `to` of `frame/design.md` *Rule changes*, was rewritten by the orchestrator in 99642896.
+```
 
 ## Confirmations
 
