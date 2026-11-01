@@ -215,18 +215,30 @@ class Test_seed:
         )
 
     @pytest.mark.parametrize(
-        ("later", "line"),
+        ("later", "line", "unit"),
         [
-            ("`a.py:20-60`", 80),
-            ("`a.py:20\N{EN DASH}60`", 80),
-            ("`a.py:45`", 80),
-            ("`a.py#g`", 80),
-            ("`a.py`", None),
+            ("`a.py:20-60`", 80, ["h"]),
+            ("`a.py:20\N{EN DASH}60`", 80, ["h"]),
+            ("`a.py:45`", 80, ["h"]),
+            ("`a.py:55`", 80, ["h"]),
+            ("`a.py:25-35`", 80, ["h"]),
+            ("`a.py#g`", 80, ["h"]),
+            ("`a.py`", None, None),
+            ("`b.py:45`", 45, ["g"]),
         ],
-        ids=["range", "en-dash-range", "line", "unit", "bare-path"],
+        ids=[
+            "range",
+            "en-dash-range",
+            "line",
+            "line-within-the-window",
+            "range-ending-within-the-window",
+            "unit",
+            "bare-path",
+            "another-files-line",
+        ],
     )
     def test_keeps_the_seed_off_every_coordinate_a_truths_location_names(
-        self, tmp_path, monkeypatch, later, line
+        self, tmp_path, monkeypatch, later, line, unit
     ):
         """Guards round 1 finding 1 of #1229: a truth's regex is built from
         the first coordinate of its finding's `location:` line alone, so a
@@ -234,8 +246,13 @@ class Test_seed:
         round 1 wrote for the real finding also passed the seeded truth. A
         seed lands within 15 lines of no coordinate a truth's location
         names: a line, a range to its last line, a unit's lines, or the
-        whole file for a bare path. Here `f` is in the first coordinate's
-        window, `g` in the later one's, and `h` is clear of both."""
+        whole file for a bare path. Here `f`, at line 2, is in the first
+        coordinate's window, `g`, at 45, in the later one's, and `h`, at 80,
+        is clear of both. `a.py:55` and `a.py:25-35` keep `g` off by the 15
+        lines either side and not by covering it, as `:1060-1086` kept off
+        the seed at `:1053` in round 1 of #1229. A coordinate names lines of
+        its own path alone, so `b.py:45` leaves `g` free (round 2 finding 1
+        of #1229)."""
         sd = load_script("seed_defects")
         repo, base = based_repo(tmp_path, monkeypatch)
         write(
@@ -257,13 +274,7 @@ class Test_seed:
         if line is None:
             assert found is None
         else:
-            assert found == (
-                "a.py",
-                line,
-                "    return a != 3",
-                "    return a == 3",
-                ["h"],
-            )
+            assert (found[0], found[1], found[4]) == ("a.py", line, unit), found
 
 
 class Test_target_of:
