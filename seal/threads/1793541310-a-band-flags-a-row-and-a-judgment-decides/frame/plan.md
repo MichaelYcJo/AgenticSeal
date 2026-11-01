@@ -46,4 +46,4 @@ None for a deployer: no migration, environment variable, dependency or compatibi
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-01 | Round 1's four findings, each located in `frame/design.md` (G5's list, the `add`'s scope and its writers, the `check:` lines), go to the framer to fold into its frame; the crafter's fix pass then brings `changelog.md` along and appends the close blocks | Every finding is in the frame's rule-change text, which the fix pass does not edit, and one adds a fourth `change`, a design act; the orchestrator's own folds were wrong twice in this run (#1235's round 2), so the party that drew the frame folds them | `skills/core/SKILL.md` *Each agent judges its own target, independently of the others*; `skills/code-review/orchestration.md` *Orchestrator: a phase is a fresh crafter, and a fix pass resumes the implementer* |
