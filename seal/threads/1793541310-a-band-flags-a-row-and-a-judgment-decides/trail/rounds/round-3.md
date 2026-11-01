@@ -59,6 +59,11 @@ one another" or "whether those findings restate one another" becomes
 and each following "only where they do" becomes "only where one does".
 ```
 
+```seal
+verdict: fixed 85444c5f
+answer: 48e57eef rewrote the frame locations: the fourth operation's `to`, *Scope* item 6, S5, the *Removes* row and G17 now ask of each records-alone finding whether it found a stale copy, a record that restates a fact another record holds and was left as it stood when that source changed, the copies #1148 removed, and read the count as `worse` only where stale copies are what kept it up. That wording, and not the paste-ready "stands on one record restating another", is the frame's, so 85444c5f follows it. 85444c5f brings the three record copies to it: `changelog.md:3`'s exception at the settle and `changelog.md:9`'s process row now name the stale copy and its definition and read the count as `worse` only where stale copies kept it up, and `gaps.md:9` asks whether each such finding found a stale copy and reads the count as `worse` only where stale copies are what kept it up. The quotation of the old sentence on `changelog.md:3`, "said the records still restated one another", stands as quoted text. A `grep -n` for `restate` over `changelog.md`, `gaps.md` and `trail/phases/phase-1.md` lists that quotation and the two definitions and nothing else (executed). The seven modules that read a changelog fragment or a closing memo ran once over the result, 691 passed, exit 0 (executed).
+```
+
 ## Confirmations
 
 ```seal
