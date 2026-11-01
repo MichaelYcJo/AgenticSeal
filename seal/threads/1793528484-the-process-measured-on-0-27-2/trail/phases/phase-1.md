@@ -14,9 +14,9 @@
 | #1222 | #1250 | merged | `161a42aa` | `c87f1bed` |
 | #1223 | #1252 | merged | `a8269d90` | `f11a5ba7` |
 | #1229 | #1253 | merged | `94b03636` | `451986d5` |
-| #1038 | #1257 | open, `before its merge` | none | `f8d1b8f6` |
+| #1038 | #1257 | merged 2026-11-01T11:35:14Z, after this phase read it | `569780ef` | `f8d1b8f6` |
 
-#1038's branch head is now `f8d1b8f6` (executed: `gh pr view 1257 --json headRefOid`). The frame read its records at `3937d861` (`frame/design.md` G7). Phases 2 and 3 read #1038 at the head they find and name it.
+#1038's branch head was `f8d1b8f6` when this phase read it (executed: `gh pr view 1257 --json headRefOid`). #1257 merged at 2026-11-01T11:35:14Z as `569780ef` with its head still `f8d1b8f6`, and #1038's directory is the same at both commits (executed: `gh pr view 1257 --json state,mergedAt,mergeCommit,headRefOid`, `git diff --stat f8d1b8f6 569780ef -- seal/threads/1793521558-the-record-decides-each-proposed-verifier`, which printed nothing), so the readings taken at `f8d1b8f6` are its merged state. The frame read its records at `3937d861` (`frame/design.md` G7). Phases 2 and 3 read #1038 at the head they find and name it.
 
 ### Whether the frame holds
 
@@ -75,7 +75,7 @@ The after tree adds a session-side preload that the `CLAUDE.md` row does not cou
 | Windows | 42.4 | 40.8 | 8.9 | not reproduced |
 | macOS | 21.6 | 19.8 | 3.6 | not reproduced |
 
-The before sample is 60 runs and the after sample 5, one per after work item, since each branch had one completed, uncancelled `tests` run on a `pull_request` event. #1038's row is run `41298025465`, `before its merge`. The before sample takes every push to a pull request on that day, several to a branch, while the after sample takes one run per branch.
+The before sample is 60 runs and the after sample 5, one per after work item, since each branch had one completed, uncancelled `tests` run on a `pull_request` event. #1038's row is run `41298025465`, at the head #1257 later merged unchanged. The before sample takes every push to a pull request on that day, several to a branch, while the after sample takes one run per branch.
 
 ### What the CI before is, where it does not reproduce
 

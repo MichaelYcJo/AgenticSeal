@@ -5,7 +5,7 @@
 ### The measured state
 
 - **The after tree is still `94b03636`**, the head of `origin/release/v0.27.2` after `git fetch origin` when the phase started (executed: `git rev-parse origin/release/v0.27.2`). `git diff --stat 94b03636 origin/release/v0.27.2 -- . ':!seal/threads' ':!seal/follow-up.md'` printed nothing, so no process change landed after the frame. Scenario S8's `git diff --stat origin/release/v0.27.2...HEAD -- . ':!seal/threads/1793528484-the-process-measured-on-0-27-2'` printed nothing at `43076c9f` (both executed).
-- **#1038 is not merged.** Pull request #1257 was open at `f8d1b8f6` at 2026-11-01T11:10:16Z (executed: `date -u`, then `gh pr view 1257 --json state,headRefOid,mergedAt,mergeCommit`). Its rounds and withholds below are read at that head and labelled `before its merge`.
+- **#1038 was read at `f8d1b8f6`, which then merged unchanged.** Pull request #1257 was open at `f8d1b8f6` at 2026-11-01T11:10:16Z (executed: `date -u`, then `gh pr view 1257 --json state,headRefOid,mergedAt,mergeCommit`). Round 1 of this work item found it merged, and the fix pass confirmed it: #1257 merged at 2026-11-01T11:35:14Z as `569780ef` with its head still `f8d1b8f6`, and #1038's directory is the same at both commits (executed: `gh pr view 1257 --json state,mergedAt,mergeCommit,headRefOid`, `git diff --stat f8d1b8f6 569780ef -- seal/threads/1793521558-the-record-decides-each-proposed-verifier`, which printed nothing). So #1038's rounds and withholds below, read at that head, are its merged state.
 - **No #1038 segment was added after phase 2's moment.** Session `fabe08e7` held 36 subagent transcripts at 2026-11-01T11:10:16Z: the 35 phase 2 counted, and `agent-a6411a2e819603fbb`, this phase's own (executed: `ls <session>/subagents/*.jsonl | wc -l`, and each `.meta.json`'s `agentType` and description sorted by the transcript's modification time). Phase 2's reading of #1038's six segments stands, so `segments.py` was not run again.
 - **The after work items and their directories.** Each directory was matched to its issue by the number its `changelog.md` names, and each one's records at the merge commit equal its pull request's head (executed: `git diff --quiet refs/pull/<n>/head <merge> -- seal/threads/<directory>`).
 
@@ -15,7 +15,7 @@
 | #1222 | #1250 | `1793521560-the-checks-wait-starts-before-a-check-reports` | `161a42aa` |
 | #1223 | #1252 | `1793521559-a-finding-is-counted-once` | `a8269d90` |
 | #1229 | #1253 | `1793521562-the-proofer-cases-come-from-thread-records` | `94b03636` |
-| #1038 | #1257 | `1793521558-the-record-decides-each-proposed-verifier` | `f8d1b8f6`, `before its merge` |
+| #1038 | #1257 | `1793521558-the-record-decides-each-proposed-verifier` | `f8d1b8f6`, merged unchanged as `569780ef` |
 
 ### Whether the frame holds
 
@@ -41,7 +41,7 @@ Every figure below is `executed` by the command its paragraph names, and each co
 | Before, 0.21.0's 14 items, at `2eb472b1` | 14 | 6, 3, 4, 3, 3, 2, 6, 2, 3, 5, 2, 2, 6, 3 | 3 | 3.6 |
 | Before, 0.21.1's 8 items, at `2eb472b1` | 8 | 2, 2, 2, 2, 3, 3, 1, 1 | 2 | 2.0 |
 | Before, both | 22 | 66 in all | 3 | 3.0 |
-| After, the five at the heads named above | 5 | #1221 1, #1222 3, #1223 4, #1229 3, #1038 1 (`before its merge`) | 3 | 2.4 |
+| After, the five at the heads named above | 5 | #1221 1, #1222 3, #1223 4, #1229 3, #1038 1 | 3 | 2.4 |
 
 Every before work item's `routing.md` reads `Review` `through the review chain` at `2eb472b1`. The 14 items' round files at `2eb472b1` equal those at `v0.21.0`, and the 8 items' round files equal those at `v0.21.1` (executed: `git diff --stat` of each pair over the items' `rounds/` directories, each printing nothing). `finding_counts.py`'s rows for the five after items, with the other released work items it prints left out:
 
@@ -51,9 +51,9 @@ Every before work item's `routing.md` reads `Review` `through the review chain` 
 | 1793521560-the-checks-wait-starts-before-a-check-reports | 3 | 1 | 0 | 3 |
 | 1793521559-a-finding-is-counted-once | 5 | 2 | 0 | 4 |
 | 1793521562-the-proofer-cases-come-from-thread-records | 3 | 2 | 1 | 3 |
-| 1793521558-the-record-decides-each-proposed-verifier, `before its merge` | 4 | 0 | 4 | 1 |
+| 1793521558-the-record-decides-each-proposed-verifier | 4 | 0 | 4 | 1 |
 
-**Whether runs under the current *The run* paragraph converge** (`recurrence.py`, over the five). For C11's window, the 17 work items merged after PR #1191 through #1244, this work cites #1038's `trail/phases/phase-2.md` *The decisions*, row C11, at `f8d1b8f6`, `before its merge`, and counts nothing again. That row counts 111 findings, 30 of them recurring, and four chains of three or more in shipped text, those of #1201, #1203, #1230 and #1241. Shipped text means a `location:` path outside the work item's directory. One fact about the window bears on the question and is not in that row. #1201 is the chain whose plan holds no *Judgments of the run* section, and it merged at 2026-10-31T07:14:33Z. That was before #1202, the design `96c11614` that brought the current paragraph, merged at 07:16:17Z, and `96c11614` is not an ancestor of #1201's head (executed: `gh pr view 1201 --json mergedAt`, `git log -1 --format=%cI 96c11614`, `git merge-base --is-ancestor`). So none of C11's four chains ran under the current paragraph without a *Judgments of the run* section: three had the section take the structural question, as the row says, and #1201's run predates the paragraph. Whether every other run of the window past three finding rounds holds its row is not counted here (`gaps.md` *Not done*).
+**Whether runs under the current *The run* paragraph converge** (`recurrence.py`, over the five). For C11's window, the 17 work items merged after PR #1191 through #1244, this work cites #1038's `trail/phases/phase-2.md` *The decisions*, row C11, at `f8d1b8f6`, the head #1257 merged, and counts nothing again. That row counts 111 findings, 30 of them recurring, and four chains of three or more in shipped text, those of #1201, #1203, #1230 and #1241. Shipped text means a `location:` path outside the work item's directory. One fact about the window bears on the question and is not in that row. #1201 is the chain whose plan holds no *Judgments of the run* section, and it merged at 2026-10-31T07:14:33Z. That was before #1202, the design `96c11614` that brought the current paragraph, merged at 07:16:17Z, and `96c11614` is not an ancestor of #1201's head (executed: `gh pr view 1201 --json mergedAt`, `git log -1 --format=%cI 96c11614`, `git merge-base --is-ancestor`). So none of C11's four chains ran under the current paragraph without a *Judgments of the run* section: three had the section take the structural question, as the row says, and #1201's run predates the paragraph. Whether every other run of the window past three finding rounds holds its row is not counted here (`gaps.md` *Not done*).
 
 | Work item | Findings | Recurring, each with its line | Chains of three or more | Rounds holding a finding | Reframed | *Judgments of the run* past or at the third finding round |
 |---|---|---|---|---|---|---|
@@ -61,7 +61,7 @@ Every before work item's `routing.md` reads `Review` `through the review chain` 
 | #1222 | 3 | `round-2#1 reopens: round-1#1` | none | 1, 2 | no | not owed |
 | #1223 | 5 | `round-2#1 regression: round-1#2`, `round-3#1 regression: round-2#1` | `round-1#2` to `round-2#1` to `round-3#1`, all in `.github/scripts/finding_counts.py`, the third also in its `gaps.md` | 1, 2, 3 | no | held: the row "After three finding rounds, the run goes on", naming the counts 2, 2, 1 and this section's paragraphs |
 | #1229 | 3 | `round-2#1 regression: round-1#1`, `round-2#2 regression: round-1#1` | none | 1, 2 | no | not owed |
-| #1038, `before its merge` | 4 | none | none | 1 | no | not owed |
+| #1038 | 4 | none | none | 1 | no | not owed |
 
 None of the five has a fourth finding round. #1223's round 4 is a verifying round whose `## Findings` reads "None" (read). #1229's two regressions name one finding in one round, so neither is the second regression after a fix-pass route that the paragraph names as the frame's signal.
 
@@ -85,7 +85,7 @@ The five after work items, read from each head's `guarantee.md`, which keeps eve
 | #1222 (#1250) | 0 | 0 | 0 |
 | #1223 (#1252) | 0 | 0 | 0 |
 | #1229 (#1253) | 0 | 0 | 0 |
-| #1038 (#1257), `before its merge` | 0 | 0 | 0 |
+| #1038 (#1257) | 0 | 0 | 0 |
 
 The six sealer segments phase 2 counted for these five, two of them #1221's, agree: one run per verdict block (`trail/phases/phase-2.md` *Each segment*).
 
@@ -133,9 +133,9 @@ A measure read off the tree is `same` within 1 per cent. A measure read off runs
 | Recurring findings, as a share of findings | this record, *The measures*, the C11 citation and the rounds table's after rows | +8.8 % | runs | same |
 | Chains of three or more, per work item | the same | -15.0 % | runs | same |
 | A chain of three or more under the current paragraph, in a run with no *Judgments of the run* row for it | this record, *The measures*, the convergence paragraph and table | none on either side | runs | same |
-| Withheld runs over the body per work item, #1044's 0.22.x figure against the first three after #1103 | #1044's body, *The record*, and this record's first withhold table | -100 % | runs | better |
+| Withheld runs over the hand-written body per work item, #1044's 0.22.x figure against the first three after #1103, sorted by decision 7. By #1044's own sort, a reason that names the body, the first three give 2, which is -13.0 % and `same` | #1044's body, *The record*, and this record's first withhold table | -100 % | runs | better |
 | Withheld runs per work item, the same pair | the same | +11.1 % | runs | same |
-| Withheld runs over the body per work item, #1044's 0.22.x figure against 0.27.2's five | #1044's body, *The record*, and this record's second withhold table | -73.9 % | runs | better |
+| Withheld runs over the body per work item, #1044's 0.22.x figure against 0.27.2's five, the same by either sort | #1044's body, *The record*, and this record's second withhold table | -73.9 % | runs | better |
 | Withheld runs per work item, the same pair | the same | -77.8 % | runs | better |
 
 Of the 40 rows, 28 read `better`, 9 `same` and 3 `worse`. The 3 `worse` rows have two causes, and each cause has an issue draft: D4 for the session's start, and D5 for both crafter prose rows.
@@ -144,7 +144,7 @@ Three limits bound every `better` row read off runs. First, the after sample is 
 
 ### Drafts
 
-The orchestrator takes each act after the seal (`frame/plan.md` *Operational impact*). No draft holds a path outside the repository. `<sealed>` stands for the commit the sealer seals, which the orchestrator writes in before it posts.
+The orchestrator takes each act after the seal, in the order `frame/plan.md` *Operational impact* gives. D1 names D4's and D5's numbers, so D4 and D5 are filed first. Then the orchestrator edits #51's body with D1 and posts D2 on #51, and last it posts D3 on #1044 and D6 on #1020. No draft holds a path outside the repository. `<sealed>` stands for the commit the sealer seals, which the orchestrator writes in before it posts.
 
 #### D1
 
@@ -166,7 +166,7 @@ Read on 2026-11-01 at `94b03636`, the head of `release/v0.27.2` that #947 measur
 | CI per pull request: slowest job · ubuntu · Windows · macOS, median | 11.6 · 9.4 · 40.8 · 19.8 min | 2.8 · 1.5 · 8.9 · 3.6 min | better |
 | Review rounds per work item, median | 3 (22 work items) | 3 (5 work items) | same |
 | Recurring findings · chains of three or more | 30 of 111 · 4 in 17 work items, 0.25.1 to 0.27.1, from #1038's C11 row | 5 of 17 · 1 in 5 work items | same |
-| Withheld runs over the pull request body, per work item | 23 in 30, 0.22.x, from #1044 | 0 in the first 3 after #1103 · 1 in 0.27.2's 5 | better |
+| Withheld runs over the hand-written body, per work item | 23 in 30, 0.22.x, from #1044 | 0 in the first 3 after #1103 · 1 in 0.27.2's 5 | better. By #1044's own sort, a reason that names the body, the first 3 give 2, which is the same within 20 % |
 
 The after sample is small, a harness release moved the first prefix as well, and CI follows a suite half the size, so a `better` here is the process and its context together. Each `worse` row has an issue: <D4's number> and <D5's number>.
 ```
@@ -183,9 +183,9 @@ Home: a comment on #51. Act: post it.
 The records are `seal/threads/1793528484-the-process-measured-on-0-27-2/trail/phases/phase-1.md`, `phase-2.md` and `phase-3.md` at `<sealed>`. Every figure stands there beside the command that printed it, and every probe stands whole under its record's *Commands*. Nothing was added to the tree to measure with.
 
 - **Samples.** The tree: `f95f0ba8` for preload and `v0.21.1` for the other tree measures before, and `94b03636` after. The runs: session `db35d01d`'s 30 segments under plugin 0.20.0 before, and session `fabe08e7`'s 32 segments of #1221, #1222, #1223, #1229 and #1038 under plugin 0.27.1 after. The rounds: the 22 work items 0.21.0 and 0.21.1 added, against the five. The withholds: #1044's 0.22.x figure, against the first three work items after #1103 and the five.
-- **What did not reproduce.** The body's on-demand 463 KB, its 160,228 test lines, its CI medians and its first-turn and prose figures were not given by any reading tried, so the comparison uses the re-run. `phase-1.md` and `phase-2.md` each list the readings tried.
+- **What did not reproduce.** No reading tried gave the body's on-demand 463 KB, its 160,228 test lines, its ubuntu and macOS medians, or its first-turn and prose figures. Its slowest job, 12.3 min, and its Windows 42.4 are one run's figures, run `38477758775`, not medians over the day. The comparison uses the re-run for all of them. `phase-1.md` and `phase-2.md` each list the readings tried.
 - **What the readings cannot separate.** The first prefix moved under a harness change, from Claude Code 2.1.292 to 2.1.316. CI follows a suite that went from 13,914 collected cases to 6,277. The prose readings count `Read` results only, and both samples open most prose through `Bash`.
-- **#1038** was read at its pull request's head `f8d1b8f6`, before its merge.
+- **#1038** was read at its pull request's head `f8d1b8f6`, which merged unchanged.
 - **The round cap.** The extending cap #947's body asked to judge was replaced by the three-round default in `docs/the-review-record.md` *The run*. None of the five work items read had a fourth finding round. #1223's run went on at its third with a *Judgments of the run* row, and its chain of three regressions in one script is a comment on #1020. #1038's C11 row holds the chains of the 17 work items before them.
 ```
 
@@ -223,14 +223,14 @@ What this issue asks: whether every session needs the whole core printed at its 
 
 Home: a new issue, with the label `measurement` and no milestone (`frame/questions.md` Q1, default (a)). Act: file it, then name its number in D1 and in the pull request body.
 
-Title: `chore: a crafter spawn opens 34,653 B of prose through Read where a smith spawn opened 846 B, since skills/implement/SKILL.md left the preload and step 1 reads it whole`
+Title: `chore: a crafter spawn opens 34,653 B of prose through Read where a smith spawn opened 846 B, since skills/implement/SKILL.md left the preload and step 1 sends the crafter to it`
 
 ```markdown
 #947 measured the prose an agent opens through `Read` per spawn (`seal/threads/1793528484-the-process-measured-on-0-27-2/trail/phases/phase-2.md` at `<sealed>`, *The measures*, and `phase-3.md` *The reading*, the two crafter prose rows). The median over 9 crafter segments under plugin 0.27.1 is 34,653 B for every `.md` file and 33,989 B for the plugin's prose. The median over 4 smith segments under plugin 0.20.0 is 846 B and 0 B.
 
-The cause is one file. `agents/crafter.md` step 1 opens `skills/implement/SKILL.md`, and 7 of the 9 crafter segments read it through `Read`, two of them twice. At 0.20.0 the smith received `skills/implement/SKILL.md` in its preload. The crafter's preload fell by 73,242 B, and its first prefix fell from a median of 83,160 tokens to 44,342. The on-demand read returns 33,989 B of that file to every crafter spawn that builds a phase.
+The cause is one file. `agents/crafter.md` step 1 opens `skills/implement/SKILL.md`. All 9 crafter segments built a phase, and 7 of them read that file whole through `Read`, two of them twice. The other two, phase 2 of #1221 and phase 2 of #1222, opened line ranges of it through `sed -n`, which these readings do not count. At 0.20.0 the smith received `skills/implement/SKILL.md` in its preload. The crafter's preload fell by 73,242 B, and its first prefix fell from a median of 83,160 tokens to 44,342. Each whole read returns 33,989 B, the file with the line numbers `Read` adds.
 
-What this issue asks: whether a crafter needs the whole of `skills/implement/SKILL.md` at each spawn, or a part of it. That skill also holds the orchestrator's sections and the document layout. The readings count `Read` results only, and both samples open most prose through `Bash`, so the before may read low.
+What this issue asks: whether a crafter needs the whole of `skills/implement/SKILL.md` at each spawn, or a part of it. Two of the nine crafters already opened only parts of it. That skill also holds the orchestrator's sections and the document layout. The readings count `Read` results only, and both samples open most prose through `Bash`, so the before may read low.
 ```
 
 #### D6
