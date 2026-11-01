@@ -620,10 +620,9 @@ ASKING_WINDOW = 140
 # a different thing and is not done here: that direction makes a legitimate
 # definition unwritable, which is round 2's finding pointing the other way.
 BATCH_PHRASE = re.compile(r"\b(?:in|into|as) (?:one|a single|a) batch\b", re.IGNORECASE)
-# All three markdown markers, which is what the normaliser of this same name
-# in `skills/code-review/scripts/chain_check.py` already settled on. Round 1's 🟡 2: `*` alone left out the
-# marker these files use MOST — code spans outnumber asterisks in four of the
-# five definitions, `agents/proofer.md` 250 to 159 and `agents/crafter.md` 202 to
+# All three markdown markers. Round 1's 🟡 2: `*` alone left out the marker
+# these files use MOST — code spans outnumber asterisks in four of the five
+# definitions, `agents/proofer.md` 250 to 159 and `agents/crafter.md` 202 to
 # 142 — so `` in `one batch` `` reached no window at all.
 #
 # The build kept `_` out on the grounds that stripping it mangles the window a
@@ -631,10 +630,7 @@ BATCH_PHRASE = re.compile(r"\b(?:in|into|as) (?:one|a single|a) batch\b", re.IGN
 # carries one. That cost is real and it is the ONLY cost: stripping `_` cannot
 # change what is found, since no stem in `ASKING` and no word in
 # `BATCH_PHRASE` carries one. A printed file name losing its underscores is
-# worth less than a spelling the guard cannot see, which is the same trade
-# `chain_check.py` makes under the same name — and two constants called
-# `EMPHASIS` meaning two different things is what
-# `tests/behaviour/test_one_word_one_meaning.py` exists to stop.
+# worth less than a spelling the guard cannot see.
 EMPHASIS = re.compile(r"[*_`]+")
 
 
@@ -890,7 +886,6 @@ def test_the_questions_are_collected_before_the_work_not_during_it():
     #     straddles a heading would pass — and it is ruled out with grounds in
     #     `aa687d35:seal/specs/1789540097-three-checks-that-do-not-see-what-they-are-named-for/spec.md`
     #     *Out*.
-    #   · It reads `*` and not `_`. See `EMPHASIS` above for why.
     #   · It refuses by the WORDS in the window, so a definition that names a
     #     person answering for some other reason within 140 characters of a
     #     legitimate batch phrase is refused and has to be reworded. That is
