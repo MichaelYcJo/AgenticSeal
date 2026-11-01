@@ -47,4 +47,4 @@ Phase 1 is one slice: the field, the shared composition and the arm are each unt
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-02 | One crafter spawn built phases 1 and 2, departing from a fresh spawn per phase | Phase 2 held only the changelog fragment and the version move; a fresh spawn would have re-read the frame and the phase-1 record to write two files, and the phase-1 record still closed before phase 2 started | `skills/code-review/orchestration.md` *Orchestrator: a phase is a fresh crafter, and a fix pass resumes the implementer* |
