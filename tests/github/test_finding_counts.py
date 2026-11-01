@@ -10,7 +10,7 @@ scenarios are work item 1793521559's S1 to S6.
 import os
 
 import pytest
-from conftest import ROOT, census_case, commit_everything, git_repo
+from conftest import ROOT, census_case, commit_everything, git_out, git_repo
 from conftest import load_module as load
 from conftest import seal_block as block
 
@@ -254,6 +254,42 @@ class Test_main:
         code, lines, err = run(root, capsys, ref=released)
         assert code == 0, err
         assert lines == [HEADER, SEPARATOR, f"| {ITEM} | 1 | 0 | 0 | 1 |", ""]
+
+    def test_a_declaration_that_cannot_be_read_is_named_under_the_table(
+        self, tmp_path, capsys
+    ):
+        """A released work item whose `routing.md` is missing, or is no
+        declaration `hooks/lib/routing.py#parse` reads, is no row, since
+        whether it went through the review chain is not known, and the line
+        under the table names its `routing.md` and why. One routed straight
+        to the pull request is no row and no line, and one released and
+        since removed from the tree is neither, as `seal settle` lists it
+        nowhere. Seen red against the loop that skipped all of them alike
+        (round 1, finding 2)."""
+        root = git_repo(tmp_path / "repo")
+        one = record(finding(1, "`f.py:1`"))
+        item(root, ITEM, rounds=[one])
+        item(root, "1700000002-direct", rounds=[one], review="straight to the PR")
+        missing = item(root, "1700000004-no-routing", rounds=[one])
+        (missing / "routing.md").unlink()
+        broken = item(root, "1700000005-no-declaration", rounds=[one])
+        (broken / "routing.md").write_text("# routing\n\nnone\n", encoding="utf-8")
+        item(root, "1700000006-removed", rounds=[one])
+        released = commit_everything(str(root), "the work items")
+        git_out(str(root), "rm", "-rq", "seal/threads/1700000006-removed")
+        commit_everything(str(root), "a work item removed after the release")
+        code, lines, err = run(root, capsys, ref=released)
+        assert code == 0, err
+        said = "whether it went through the review chain is not read"
+        assert lines[:4] == [HEADER, SEPARATOR, f"| {ITEM} | 1 | 0 | 0 | 1 |", ""]
+        assert lines[4].startswith(
+            f"seal/threads/1700000004-no-routing/routing.md: {said}: "
+        ), lines
+        assert lines[5:] == [
+            "seal/threads/1700000005-no-declaration/routing.md: "
+            f"{said}: it is no declaration `hooks/lib/routing.py#parse` reads",
+            "",
+        ], lines
 
     def test_refuses_a_ref_that_does_not_resolve_and_exits_2(self, tmp_path, capsys):
         """S5. A `--released-at` that names no commit prints why on stderr,

@@ -17,17 +17,20 @@ not where the defect shows, so the count does not read it.
 **The rows are the work items `seal settle` treats as released**: those
 whose directory is present at `--released-at`
 (`skills/settle/scripts/settle.py#released`, default `origin/main` as the
-settle defaults it), and whose `routing.md` parses with `Review` `through
-the review chain` (`hooks/lib/routing.py#parse`). The rounds are
-`hooks/lib/routing.py#rounds`.
+settle defaults it), that the tree still holds, and whose `routing.md`
+parses with `Review` `through the review chain` (`hooks/lib/routing.py#parse`).
+The rounds are `hooks/lib/routing.py#rounds`.
 
 **An incomplete count is a wrong number**, the stance
 `.github/scripts/release_seal.py#chain_counts` takes. A work item one of
 whose records the reader refuses a line of, or that cannot be opened, reads
 `not read` in its three finding cells, and its rounds cell holds the count.
 A work item whose `trail/rounds/` cannot be listed reads `not read` in all
-four. Under the table, one line names each record or directory not read,
-and why.
+four. A released work item whose `routing.md` cannot be opened, or is no
+declaration, is no row, since whether it went through the review chain is
+not known. Under the table, one line names each record, directory or
+`routing.md` not read, and why; a work item routed straight to the pull
+request is no row and no line.
 
 It ships to no user: this repository's settling session types it at step
 2b and posts the table to the `flow-baseline` issue itself. It writes
@@ -68,6 +71,11 @@ NOT_LISTED = (
     "the round records cannot be listed: it is a link, a file, or a "
     "directory nothing can list"
 )
+# Said of a released work item whose `routing.md` cannot be read or is no
+# declaration: whether it is a row is not known, so it is none, and this
+# line says so under the table.
+NOT_ROUTED = "whether it went through the review chain is not read"
+NO_DECLARATION = "it is no declaration `hooks/lib/routing.py#parse` reads"
 
 
 def load(name, *parts):
@@ -98,14 +106,17 @@ def readers():
 
 
 def chained(routing, where):
-    """True where `where/routing.md` parses with `Review` `through the
-    review chain`."""
+    """`(True, None)` where `where/routing.md` parses with `Review` `through
+    the review chain`, `(False, None)` where it parses with another answer,
+    and `(None, why)` where it cannot be opened or is no declaration."""
     try:
         with open(os.path.join(where, routing.FILENAME), encoding="utf-8") as f:
             parsed = routing.parse(f.read())
-    except (OSError, UnicodeDecodeError):
-        return False
-    return bool(parsed) and parsed["review"] == routing.CHAIN
+    except (OSError, UnicodeDecodeError) as problem:
+        return None, str(problem)
+    if not parsed:
+        return None, NO_DECLARATION
+    return parsed["review"] == routing.CHAIN, None
 
 
 def item_counts(root, where, routing, chain, reader, records_at):
@@ -180,7 +191,17 @@ def main(argv=None):
     rows, unread = [], []
     for name in sorted(released):
         where = os.path.join(root, settle.SPECS, name)
-        if not chained(routing, where):
+        if not os.path.isdir(where):
+            # Released and since removed from the tree: `seal settle` lists
+            # it nowhere either, so it is no row and no line.
+            continue
+        through, why = chained(routing, where)
+        if through is None:
+            declared = os.path.join(where, routing.FILENAME)
+            shown = os.path.relpath(declared, root).replace(os.sep, "/")
+            unread.append(f"{shown}: {NOT_ROUTED}: {why}")
+            continue
+        if not through:
             continue
         cells, said = item_counts(root, where, routing, chain, reader, settle.SPECS)
         rows.append(f"| {name} | " + " | ".join(str(c) for c in cells) + " |")
