@@ -1051,8 +1051,7 @@ RULE_CHANGES_UNREAD = "not read: {why}"
 # A check line inside an `add` or `change` `to` that `rules.py` refuses.
 CHECK_LINE_SAYS = (
     "`.github/scripts/rules.py`, the reader `seal rules --check` uses, refuses "
-    "this check line, and the settle writes it into `{file}`, where that reader "
-    "refuses it with no pull request left to fix it in: {why}"
+    "this check line, which the settle writes into `{file}` as it stands: {why}"
 )
 # The operations whose `to` the settle writes into the policy root.
 WRITES_A_TO = ("add", "change")

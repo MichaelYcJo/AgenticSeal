@@ -24,7 +24,7 @@ paragraph or not. One suite case runs it over the tree, so it is read wherever
 the suite runs. At the pull request, `skills/code-review/scripts/chain_check.py`
 asks the same reader, through `refused_lines` and `unread_lines`, for each
 check line inside a design's `add` or `change` `to`, before the settle writes
-the line into a rule file.
+the line into the policy root.
 
 **It reads one shape.** A check line is `check: ` after any leading spaces.
 A line that opens like one and is not one, another case, emphasis, block

@@ -1785,8 +1785,7 @@ class Test_rule_changes_read:
 # `chain.CHECK_LINE_SAYS` meets a case.
 CHECK_LINE_SAYS = (
     "`.github/scripts/rules.py`, the reader `seal rules --check` uses, refuses "
-    "this check line, and the settle writes it into `{file}`, where that reader "
-    "refuses it with no pull request left to fix it in: {why}"
+    "this check line, which the settle writes into `{file}` as it stands: {why}"
 )
 COMMA = "check: none reader: a, b"
 
@@ -1897,6 +1896,21 @@ class Test_check_lines_in_a_to:
         assert code == 0, out
         assert spec_lines(out) == [
             f"::notice file={ITEM}/frame/design.md,line={number}::{notice}"
+        ], out
+
+    def test_reads_the_to_of_an_add_as_of_a_change(self, branch, ready, capsys):
+        """S1 for an `add`: the settle writes an `add`'s `to` into the policy
+        root as it writes a `change`'s, so the comma line is refused at its
+        line. Seen red under the mutation that reads a `change` alone."""
+        root, _code = branch
+        text = spec_with(
+            f"- add\n  file: docs/policy.md\n  to: new words.\n    {COMMA}\n"
+        )
+        put_spec(root, text)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        assert spec_lines(out) == [
+            check_line_refusal(text, f"    {COMMA}", reason(root, COMMA))
         ], out
 
     def test_reads_no_check_line_in_a_from(self, branch, ready, capsys):
