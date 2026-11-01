@@ -1074,7 +1074,7 @@ class Test_module:
         """Guards the replay prompt of a labelled record, which carries no asked
         paragraph: the spawn ends at the report's path with nothing after it,
         and a table record's paragraph still follows that sentence after one
-        space, as the four committed cases were written."""
+        space."""
         rt = load_script("replay_targets")
         t = {
             "item": "1-i",

@@ -1051,8 +1051,8 @@ OLD_NAME_RECORDS = (
 # bytes are the record (`evals/README.md`).
 RECORDED_CASE = re.compile(r"^evals/behaviour/[^/]+/(?:replay|seeded)-")
 # The replay and seeded cases' generators read round records in both layouts
-# a release has kept them in, the one before 0.23.0 that every committed case
-# was cut from among them, spelt once and exempted at
+# a release has kept them in, the one before 0.23.0 among them, spelt once
+# and exempted at
 # `evals/scripts/replay_targets.py#LAYOUTS`, and their cases build records in
 # both.
 KEPT_FILES = (
