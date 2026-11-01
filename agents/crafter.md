@@ -42,12 +42,12 @@ each open finding; a write not named here is a write you do not make.
    hand that back.
 5. Read what the phase changes against the table in `skills/verify/SKILL.md`
    *The narrow command still has to be able to fail*. Build the phase as a
-   vertical slice. Where a unit adds behaviour: each case first, seen red
-   against the tree as it stands, then the code, then the case green. Where
-   a unit is only renamed or moved, write no case new for it: the existing
-   cases that prove it at the new name or path, and the census that table's
-   row asks for, go into `trail/phases/phase-N.md`'s
-   `## What this phase found`.
+   vertical slice. Where a unit adds behaviour, build it as
+   `skills/implement/SKILL.md` *2. Implement test-first, and let each rule
+   name its test* states. Where a unit is only renamed or moved, write no
+   case new for it: the existing cases that prove it at the new name or
+   path, and the census that table's row asks for, go into
+   `trail/phases/phase-N.md`'s `## What this phase found`.
 6. Commit, then run `seal mutate` over each unit that adds behaviour. A unit
    only renamed or moved owes no run.
 7. Run the phase-boundary set contract rule 2 names, as one command through
