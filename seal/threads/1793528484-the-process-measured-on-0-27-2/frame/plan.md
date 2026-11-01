@@ -46,9 +46,9 @@ None to deploy. No dependency, variable or file outside the work item's director
 
 The orchestrator's acts, after the seal and before or with the pull request:
 
-1. Edit #51's body with D1, and post D2 on #51.
-2. Post D3 on #1044.
-3. File each issue draft of phase 3 in the milestone `frame/questions.md` Q1 gives, and name each issue in the pull request body.
+1. File each issue draft of phase 3 (D4, D5) in the milestone `frame/questions.md` Q1 gives, and name each issue in the pull request body. They come first because D1 cites their numbers.
+2. Edit #51's body with D1, its draft ids replaced by the numbers step 1 filed, and post D2 on #51.
+3. Post D3 on #1044, and D6 on #1020.
 4. Close #947 through this pull request's body, one closing keyword before its number. The keyword closes nothing on a `release/v0.27.2` base and closes #947 when the release reaches `main` (`docs/branch-and-release.md` *A closing keyword does nothing when the base is `release/vX.Y.Z`.*).
 
 Each phase spawn hands the crafter the scratch directory and says not to write that path, or any transcript's path, into a record (G15). Where `seal pr-body` refuses an issue number written after a closing keyword in a record, as it did on #1038's branch at `3937d861`, the number is written as a code span.
@@ -59,3 +59,4 @@ Each phase spawn hands the crafter the scratch directory and says not to write t
 |---|---|---|---|
 | 2026-11-01 | G3's no-paid-eval decision is the owner's answer, not a carried claim | The orchestrator put the question through `AskUserQuestion` before the first edit of 0.27.2, and the owner chose "돌리지 않음" (no run) | `skills/implement/SKILL.md` *1. Read the documents that outrank the code first* |
 | 2026-11-01 | #947 started before #1038's merge, and the frame was spawned as committed with Q1 built on its default (a) | Every work item of 0.27.2 that changes a process file had merged at `94b03636`; #1038's diff is its own records and one `seal/follow-up.md` row, which the framer confirmed, so the tree measured is the release's final one; the frame meets the issue's asks that still read a thing the tree holds and names the stale ones with grounds | `skills/implement/orchestration.md` *The frame is read against the issue at the spawn* |
+| 2026-11-01 | Round 1's #4 is the frame's: *Operational impact* is reordered in place so the issues D1 cites are filed before D1, and D6 joins the list; the fix pass corrects the drafts' head in `phase-3.md` | The frame's order would have #51's body cite issue numbers that did not exist yet, and it omitted the act on #1020 phase 3 drafted | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |
