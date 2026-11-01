@@ -13,9 +13,8 @@ pact included.** The pact is `seal/pact.md` in one of them. That repository
 has no noun of its own: it is the pact's repository, identified by holding
 the file, and where more than one pact can be meant, a text says which by
 naming where it is held. `seal pact` is the command that reads every signer
-from there. The three names are the owner's, and a case holds other words for
-them out of the shipped text.
-check: tests/behaviour/test_one_word_one_meaning.py tests/hooks/test_config.py
+from there.
+check: tests/hooks/test_config.py
 
 **A pact headed with the word 0.18.x used still reads, and `seal pact`
 names the rename on it in no exit class.** Through 0.18.x a signer was
@@ -28,7 +27,18 @@ naming the file, both headers and the release that renamed them before that
 file's other lines, and its exit is what the new header gives. No command
 rewrites a pact: the line says to rename the header when the file is next
 edited, and every text this plugin ships says `signer`.
-check: tests/skills/test_pact_check.py tests/hooks/test_config.py tests/behaviour/test_one_word_one_meaning.py
+check: tests/skills/test_pact_check.py tests/hooks/test_config.py
+
+**The three names are the owner's, and a text this plugin ships that names one
+of them another way is the proofer's to find at review, the word 0.18.x used
+for a signer included.** That holds for code, its comments and the names of its
+tests as it holds for prose. A text that spells the 0.18.x header in order to
+read it, as the rule on a pact headed with that word says, names no signer
+another way. The reader is the proofer and not a case, because a case that
+refuses a word wherever it stands turns red where the meaning has not changed
+(`skills/core/SKILL.md` *Judgment is spent where meaning is the question, and a
+script answers the rest*).
+check: none reader: the proofer at review
 
 ## When there is a pact at all
 
