@@ -130,8 +130,8 @@ class Layout(typing.NamedTuple):
 
 
 # The two layouts a release has kept its round records in, the only place
-# either is spelt: the one before 0.23.0, which every committed case was cut
-# from, and the thread layout every release from 0.23.0 on holds. No release
+# either is spelt: the one before 0.23.0, and the thread layout every
+# release from 0.23.0 on holds. No release
 # tag holds both, and no work item stands in both.
 LAYOUTS = (
     # exempt from old_names: the layout of the round records before 0.23.0

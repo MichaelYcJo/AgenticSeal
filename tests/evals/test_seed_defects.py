@@ -491,7 +491,9 @@ class Test_module:
         self, tmp_path, monkeypatch
     ):
         """Guards S6 for the other two generators: each writes an entry's truth
-        for the case it names, beside its own."""
+        for the case it names, beside its own. The suite the entries are
+        checked against is a directory of the test's own, so the case does
+        not lean on which cases the tree commits."""
         rt = load_script("replay_targets")
         sd = load_script("seed_defects")
         replay = "replay-1791382684-r2"
@@ -499,8 +501,12 @@ class Test_module:
         path = recurred_file(
             tmp_path, entry(case=replay, locations=["x.py"]), entry(case=seeded)
         )
-        monkeypatch.setattr(rt, "TRUTHS", path)
-        monkeypatch.setattr(sd.rt, "TRUTHS", path)
+        suite = tmp_path / "proofer"
+        for case in (replay, seeded):
+            (suite / case).mkdir(parents=True)
+        for module in (rt, sd.rt):
+            monkeypatch.setattr(module, "TRUTHS", path)
+            monkeypatch.setattr(module, "OUT", str(suite))
         t = {
             "item": "1791382684-every-reader-and-record-is-inventoried",
             "n": 2,

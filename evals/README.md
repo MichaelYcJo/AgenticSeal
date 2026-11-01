@@ -85,11 +85,11 @@ it again. Its committed record stays as it was judged, and `check` and
 `model`, which read a record and no side, still read it.
 
 **A proofer comparison compares two sides taken from the same point.** The
-squash commit that lands #986 on `release/v0.22.3` is that point for the
-proofer's suite, whose directory carried the agent's earlier name until the rename: from it, both sides run the seeded cases built at round 1's
-target and both keep `report_text`. No side taken before it compares with
-one taken after it, and `compare` refuses such a pair twice over, since the
-suite trees differ and the earlier side keeps no text.
+squash commit that lands #1229 on `release/v0.27.2` is that point for the
+proofer's suite: from it, both sides run the replay and seeded cases cut
+from thread-layout round records, and both keep `report_text`. No side
+taken before it compares with one taken after it, because the suite trees
+differ and `compare` refuses such a pair.
 
 **Every grader reads an outcome, never a sentence of a definition.** A
 `truth-` grader is a real or seeded defect the report names, a `shape-`
