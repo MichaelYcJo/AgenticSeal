@@ -37,3 +37,40 @@
 target: 0d8b7ab8 against 14bfd992
 Verdict: withheld reason: the orchestrator's part of the pull request body says "541e8c5e and 25c268b4 moved every citation to `48d035aa`", and the tree contradicts it at `seal/threads/1793538229-each-passage-keeps-its-home/trail/phases/phase-1.md:7`, which still says the measure stands at `79252e48`, kept on purpose by round 2 (`trail/rounds/round-2.md:60`); the sentence must name the citations that moved (the module docstring and `frame/design.md:3` and `:14`) and the one record line that keeps the old commit
 ```
+
+## Re-audit at 9342ad9c
+
+| Field | Value |
+|---|---|
+| Broad gate | e759ff53 against 14bfd992 |
+
+`trail/gate.md`'s last `seal` block still names `e759ff53`, an ancestor of HEAD `9342ad9c` (`git merge-base --is-ancestor`, exit 0). `git log --no-merges --name-only e759ff53..HEAD ^14bfd992` lists three commits, `0d8b7ab8` (`trail/gate.md`), `3446cddc` (`guarantee.md`) and `9342ad9c` (`frame/plan.md`), every path under `seal/threads/1793538229-each-passage-keeps-its-home/`. The base `release/v0.27.3` resolved through `release/v0.27.3@{upstream}` to `14bfd992`. Executed. `seal pr-body seal/threads/1793538229-each-passage-keeps-its-home --body <pr-body.md> --check` exited 0 under both the installed plugin's `seal` and the tree's `bin/seal`. Executed. `chain_check.py --baseline 14bfd992 --root . --sealing` exited 0 at HEAD; its two lines named this file as behind HEAD and its verdict as `withheld`, which this block answers. Executed. `git diff --stat 0d8b7ab8 HEAD` lists `frame/plan.md` (one line added, line 47) and `guarantee.md` alone, so the claims of the first audit whose coordinates no commit since touched stand as it re-ran them, and only the ones below are re-run. Executed.
+
+### Claims re-run
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| 541e8c5e moved `frame/design.md:3` and `:14`, and 25c268b4 the module's docstring, to `48d035aa` | the pull request body's first part, line 6 | `git show 541e8c5e`, `git show 25c268b4`, filtered to changed lines; `git grep -n '79252e48\|48d035aa' HEAD` | Holds: `541e8c5e` rewrites `frame/design.md` lines 3 and 14 from `79252e48` to `48d035aa`; `25c268b4` rewrites one docstring line, now `tests/text/test_no_passage_is_pasted_into_a_second_file.py:30`. Executed. |
+| `trail/phases/phase-1.md:7` keeps `79252e48` as the record of what phase 1 read, which round 2 judged to stand | the pull request body's first part, line 6; `trail/rounds/round-2.md:60` | `sed -n 7p trail/phases/phase-1.md`; the same `git grep` | Holds: line 7 reads "The measure's row K2 and *Instances K2* stand at `79252e48` as design G6 quotes them", and no other line of the tree outside the round records, the plan row and `guarantee.md` cites `79252e48`. Executed. |
+| c1837d28 rewrote *The probes*' interpreter path | the pull request body's first part, line 6 | `git show c1837d28 -- frame/design.md` | Holds: the absolute `.venv/bin/python` path becomes "the main checkout's `.venv/bin/python -I`". Executed. |
+| Round 2's `regression: round-1#1` is routed to an ordinary fix pass, taken at 0d248cf2, owing no verifying round | `frame/plan.md:47` (added by `9342ad9c`) | `git show 9342ad9c`; `grep -n regression` over both round records; read `skills/code-review/orchestration.md:102-112` and `:190-202`; `git show --stat 0d248cf2` | Holds: `9342ad9c` touches `frame/plan.md` alone. Round 2's sentence (`trail/rounds/round-2.md:24`) places the defect in how the fold's row was written, the table's ordinary-fix-pass route; round 1 carries no `regression:` line, so the unit had no earlier one; `0d248cf2` touched `frame/plan.md` alone, a records-only fix the section exempts from a verifying round. Executed and read. |
+| Round 2's `fixed 0d248cf2` still stands at `frame/plan.md:46` | `trail/rounds/round-2.md:41-42` | `git diff -U0 0d8b7ab8 HEAD -- frame/plan.md`; `gh issue view 1270 --json title,state` | Holds: the diff's one hunk is `@@ -46,0 +47 @@`, so line 46 is as the first audit read it; #1270 is open. Executed. |
+| The suite at `e759ff53`: 6270 passed, 9 skipped, as the gate printed | the pull request body's first part, line 7 | none: the full suite is no agent's to run (contract rule 2) | Unverified. The body now attributes the counts to the gate's printed output, not to `trail/gate.md`, which holds the run line alone (read). The orchestrator answers for them. |
+| No `seal/parity.md` in git, so no comparison with an original is owed | `agents/sealer.md` step 5 | `git ls-files seal/parity.md` | Holds: nothing listed. Executed. |
+
+### The parties
+
+Read at `9342ad9c`. Every record but `frame/plan.md` and `guarantee.md` is as the first audit read it at `0d8b7ab8`; the issue body was read again with `gh issue view 1231` (last updated `2026-11-01T03:27:41Z`, unchanged).
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | as the first audit read it: K2.6, K2.8 and K2.9 each keep one home; a pair of two definitions is not counted; `BASELINE` keeps the two `README.md` entries; one rule change to *The root records* | the issue body; the diff; the claims re-run in both audits | none |
+| the build | as the first audit read it: phase 1 at `43eaa555`, three stated departures | the diff; the design; every seen-red claim the first audit re-ran | none |
+| the last round | round 2: round 1's fix confirmed, `trail/phases/phase-1.md:7` kept, the judgment row's undercount `fixed 0d248cf2` | `frame/plan.md:46` at HEAD; `frame/plan.md:47`, which records the finding's route on the round's own sentence | none |
+| the changelog | as the first audit read it: three passages in one file each; two definitions no longer counted; `BASELINE` from 16 entries to 2 | the diff; the design; the issue | none |
+| the orchestrator's part of the pull request body | the change and its folds; names `frame/design.md:3` and `:14` and the docstring as moved, `trail/phases/phase-1.md:7` as kept; round 2's regression route has a row in *Judgments of the run*; the suite counts are the gate's printed output | the tree (the claims re-run above); round 2 (`trail/rounds/round-2.md:60`); `frame/plan.md:45-47`; the merge `e759ff53` of `14bfd992` | none |
+
+```seal
+target: 9342ad9c against 14bfd992
+Verdict: sealed
+```
