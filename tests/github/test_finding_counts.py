@@ -239,7 +239,7 @@ class Test_main:
         assert code == 0, err
         assert lines == [HEADER, SEPARATOR, f"| {ITEM} | 1 | 0 | 0 | 1 |", ""]
 
-    def test_a_ref_that_does_not_resolve_is_said_and_exits_2(self, tmp_path, capsys):
+    def test_refuses_a_ref_that_does_not_resolve_and_exits_2(self, tmp_path, capsys):
         """S5. A `--released-at` that names no commit prints why on stderr,
         nothing on stdout, and exits 2."""
         root = git_repo(tmp_path / "repo")
@@ -266,7 +266,9 @@ class Test_main:
         assert code == 2 and out == ""
         assert "no reader" in err, err
 
-    def test_prints_the_comments_table_in_work_item_order(self, tmp_path, capsys):
+    def test_accepts_a_tree_and_prints_the_comments_table_in_work_item_order(
+        self, tmp_path, capsys
+    ):
         """S6. The header and the separator are the table #51's comments
         carry, and the rows follow in work item id order, whatever order the
         directories were made in."""
