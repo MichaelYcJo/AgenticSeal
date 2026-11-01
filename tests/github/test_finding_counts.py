@@ -364,4 +364,22 @@ class Test_main:
         assert under == []
 
 
+class Test_why_not:
+    def test_accepts_an_os_error_and_says_its_strerror_without_its_path(self):
+        """An `OSError` carrying an errno is said in its `strerror` alone, so
+        the absolute filename its text holds never reaches the table pasted
+        into a public issue (round 2, finding 1)."""
+        problem = OSError(errno.ENOENT, os.strerror(errno.ENOENT), "/abs/routing.md")
+        assert "/abs/routing.md" in str(problem)
+        assert counts().why_not(problem) == os.strerror(errno.ENOENT)
+
+    def test_refuses_to_say_none_for_an_os_error_with_no_strerror(self):
+        """An `OSError` built with no errno has no `strerror`, and is said
+        whole rather than as `None`. No `open` in `main` raises one, so only
+        this case reaches the arm. Seen red with `and problem.strerror`
+        removed, which said `None` (round 3, finding 1)."""
+        assert counts().why_not(OSError("no errno")) == "no errno"
+        assert counts().why_not(OSError()) == ""
+
+
 test_census = census_case(TARGET)
