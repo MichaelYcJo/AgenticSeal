@@ -34,6 +34,11 @@ The fix deletes the bullet, since an emphasis marker is no longer residue. The b
 
 The fix changes a comment and no code, so it owes no case (`skills/verify/SKILL.md` *The narrow command still has to be able to fail*, the row for a comment or docstring inside source).
 
+```seal
+verdict: fixed 9e99aa4b
+answer: The finding holds: `EMPHASIS` is `[*_`]+`, `batch_instructions` strips it from the whole body before the search, and the case at `:779-795` asserts that `collect them in _one batch_` is found (read). The round's fix was applied as written: the bullet "It reads `*` and not `_`. See `EMPHASIS` above for why." is deleted, and the bullets above and below it are unchanged. The class is every sentence in the module that states which emphasis markers the guard strips. It was listed with `grep -n -i -E "emphasis|underscore|asterisk|\`_\`"` over the module, which found the residue bullet and the comment above `EMPHASIS`. Every hit left after the fix says or assumes that all three markers are stripped, and `git grep -n -w EMPHASIS` outside `seal/threads` lists the constant and its two uses alone (executed). The fix changes a comment alone, so it owes no case and no mutation run (`skills/verify/SKILL.md` *The narrow command still has to be able to fail*). `bin/test tests/behaviour/test_chain_hooks_hardening.py -q` exited 0, and `uvx ruff check` and `uvx ruff format --check` on the file exited 0 (executed). The fix changes nothing the work item ships, so `changelog.md` is unchanged.
+```
+
 ## Confirmations
 
 ```seal
