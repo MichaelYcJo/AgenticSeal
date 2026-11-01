@@ -913,11 +913,18 @@ class Test_module:
         reason `round_target` gave, or that no record of its work item, or
         of that round, was read. Seen red against the silent exit 1. A name
         given twice is one name, where the run that wrote its case exited 1
-        saying nothing; seen red against that exit 1."""
+        saying nothing; seen red against that exit 1. So is a name no
+        written case answers, which was named on stderr once for each time
+        it was given (#1228); seen red against that repeated line."""
         rt = load_script("replay_targets")
         tagged_repo(tmp_path, monkeypatch, rt)
         monkeypatch.setattr(rt, "origin_url", lambda: "https://example.com/x/y.git")
         assert rt.main(["--case", "replay-1-r1"]) == 1
+        assert capsys.readouterr().err == (
+            "replay_targets: replay-1-r1 not written: no record of its work item "
+            "was read\n"
+        )
+        assert rt.main(["--case", "replay-1-r1", "--case", "replay-1-r1"]) == 1
         assert capsys.readouterr().err == (
             "replay_targets: replay-1-r1 not written: no record of its work item "
             "was read\n"

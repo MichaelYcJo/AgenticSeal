@@ -451,6 +451,7 @@ def main(argv=None):
     p.add_argument("--model", default=rt.MODEL)
     p.add_argument("--timeout", type=int, default=2400)
     a = p.parse_args(argv)
+    a.case = list(dict.fromkeys(a.case))
     tags = rt.last_tags(None) if a.case else rt.last_tags(3)
     named = [m for m in map(CASE_NAME.fullmatch, a.case) if m]
     prefixes = {m["prefix"] for m in named} if a.case else None

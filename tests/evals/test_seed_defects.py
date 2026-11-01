@@ -424,7 +424,9 @@ class Test_module:
         SHA, were told no shipped commit read had them (round 3's finding
         1); seen red against that reason. A name given twice is one name,
         where the run that wrote its case exited 1 saying nothing; seen red
-        against that exit 1."""
+        against that exit 1. So is a name no listed line answers, which was
+        named on stderr once for each time it was given (#1228); seen red
+        against that repeated line."""
         sd = load_script("seed_defects")
         commits, repo = shipped_item(tmp_path, monkeypatch)
         write(repo, "b.py", "x = 2\n")
@@ -477,6 +479,8 @@ class Test_module:
             "`seal/threads/<item>/trail/rounds/`\n"
         )
         assert case(nothing) == 1
+        assert capsys.readouterr().err == unshipped + empty
+        assert case(nothing, nothing) == 1
         assert capsys.readouterr().err == unshipped + empty
         assert case(nothing, run=out) == 1
         assert capsys.readouterr().err == unshipped + empty
