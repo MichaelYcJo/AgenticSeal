@@ -23,11 +23,13 @@ through `sys.modules` and runs once, the way `import optin` already does in
 four gates.
 
 There is no load fallback here and none is wanted. A gate that cannot read a
-command line has no verdict to give, so a soft failure and a hard one are the
-same silence — the difference would only be which line it happens on.
-`hooks/dispatch.py:72` (`except Exception: return ""`) is what turns either
-into silence, and that is the place to fix it; a `try` around the import here
-would only make the silence look deliberate.
+command line has no verdict to give, so a soft failure and a hard one end the
+same way, and the difference would only be which line it happens on.
+`hooks/dispatch.py#run_gate` is where a gate that raised ends. It skips that
+gate, so the tool call goes ahead as if the gate had printed nothing, and it
+writes the failure down for the `stop` group to say once per gate per session.
+A `try` around the import here would swallow the failure before it reached
+`run_gate`, and leave nothing for it to write down.
 """
 
 import os

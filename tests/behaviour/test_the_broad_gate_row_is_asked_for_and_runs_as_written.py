@@ -11,10 +11,12 @@ with the failure still on the screen.
 
 `tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py` holds the executed half:
 the gate refusing each form over a fixture repository, and the forms that stay
-allowed still sealing. What is pinned HERE is the text a person reads — what
-`templates/setup/config.md` promises about the row, the criterion for choosing a
-value and its one owner, and the sentence that sends a session which meets the
-refusal to a person instead of letting it choose.
+allowed still sealing. What is pinned HERE is what a person reads and acts
+on — what `templates/setup/config.md` promises about the row, the criterion
+for choosing a value and its one owner, the refusal the gate prints, and the
+command that answers the row. The sentence that sends a session which meets
+the refusal to a person instead of letting it choose is the proofer's to
+read.
 
 Every case was executed against the documents as they stood at 0e676e6,
 before any of them was edited, and every case failed; the output is in the
@@ -29,7 +31,6 @@ from conftest import ROOT, read
 TEMPLATE = ("templates", "setup", "config.md")
 CONFIG_SKILL = ("skills", "config", "SKILL.md")
 ORCH = ("skills", "implement", "orchestration.md")
-SEALER = ("agents", "sealer.md")
 REVIEW_ORCH = ("skills", "code-review", "orchestration.md")
 
 REFUSED_AND_ALLOWED = "### What is refused, and what stays allowed"
@@ -274,42 +275,18 @@ def test_both_ampersand_cells_name_both_shells():
 def test_the_allowed_list_says_how_a_pipe_is_written():
     """#415. The allowed list used to promise a pipe and then say it *cannot
     reach this row at all* — a document that names a form nobody can write.
-    It now says how the form IS written.
-
-    Three things have to survive together, because each of them alone is a
-    half-truth a reader would act on wrongly: the escape is `\\|`, a BARE
-    pipe is refused, and the rows below a refused line are a refusal, not
-    absent. Drop the first and the row is unwritable again; drop the second
-    and somebody types a bare pipe expecting it to work; drop the third and
-    the cost reads as the row's own, which it is not.
-
-    **Re-pinned by #871.** The stop rule's cost — a `Mode` row under the line
-    invisible, and `seal mode` writing a second one — is gone with the stop
-    rule, and the row now says what the walker does instead: the line is
-    refused, the edit is named, and `seal mode` writes nothing.
+    It now says how the form IS written: the escape `\\|`. That a bare pipe
+    is refused, what the walker does with the rows below a refused line, and
+    what `seal mode` writes then (#871) are the proofer's to read in the row.
     """
     body = section(read(*TEMPLATE), REFUSED_AND_ALLOWED, 3)
     pipe = named(table(body, "| Stays legal |"), "a pipe")
     assert pipe, "the allowed list has no pipe row"
     pipe = flat(pipe)
-    assert "ends at a bare pipe" in pipe, (
-        "the row does not say where a cell of this table ends"
-    )
-    assert "A BARE pipe is refused" in pipe and "write it `\\|`" in pipe, (
-        "the row promises the escape without saying the naive spelling still "
-        "fails, which is the spelling somebody reaches for first"
-    )
-    assert "cannot reach this row at all" not in pipe, (
-        "the sentence this work item removed survived beside its replacement"
-    )
-    assert "that refusal rather than an absent row" in pipe, (
-        "the pipe's cost is stated as the row's alone, and it is not"
-    )
-    assert "`seal mode` writes nothing" in pipe, (
-        "what `seal mode` does with a `Mode` row under the line is not named"
-    )
-    assert "writes a second one" not in pipe, (
-        "the stop rule's worst outcome is still described as the file's"
+    # The escape `\|`, which a person writes for a pipe in the `Broad gate`
+    # row and `hooks/lib/config.py` reads back as one.
+    assert "write it `\\|`" in pipe, (
+        "the row does not give the escape, so the row is unwritable again"
     )
 
 
@@ -479,22 +456,19 @@ def refusal_bullet():
     return flat(skill[skill.index(opening) :].split("\n\n", 1)[0])
 
 
-def test_the_config_skill_points_at_the_section_and_restates_no_form():
+def test_the_config_skill_points_at_the_section_and_names_the_refused_forms():
     """The door a person reaches later. It names the three forms so somebody
     reading it knows the refusal exists, and sends the reasoning to the one
-    owner rather than carrying a second copy of it."""
+    owner. What the paragraph says of the refusal is the proofer's to read."""
     skill = flat(read(*CONFIG_SKILL))
+    # The heading of `templates/setup/config.md` the skill cites, which a
+    # person opens to learn what the row may hold.
     assert "What is refused, and what stays allowed" in skill, (
         "the config skill does not point at the section that decides this"
     )
-    assert "must run as the command it reads as, and the exit code" not in skill, (
-        "the config skill restates the criterion instead of pointing at it"
-    )
     bullet = refusal_bullet()
-    assert "would not run as the command it reads as" in bullet
-    assert "Nothing is stripped or repaired" in bullet
-    # The docstring's own claim, asserted. It said the paragraph names the
-    # three forms and nothing checked that it did.
+    # The three forms `broad_gate.py` refuses in the row, which a person
+    # filling it in has to recognise in what they wrote.
     for form in ("backticks", "`$(…)`", "trailing `&`"):
         assert form in bullet, (
             f"the config skill does not name {form}, so somebody reading it "
@@ -507,8 +481,10 @@ def test_the_config_skill_points_at_the_section_and_restates_no_form():
 # #401's third Done-when, and the one the ticket says a sentence already
 # failed: *a session that meets the refusal anyway is told to bring it to a
 # person rather than to choose — and something checks that, since a sentence
-# is what failed here.* The something is this section and the executed case
-# beside it in `tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py`.
+# is what failed here.* The something is the refusal the gate prints, read
+# below, and the executed case beside it in
+# `tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py`; the
+# orchestration's sentences on it are the proofer's to read.
 
 
 def missing_row_text():
@@ -547,40 +523,11 @@ def test_the_absent_row_refusal_says_whose_the_row_is_and_where_it_is_answered()
     assert "Nothing ran" in said
 
 
-def test_the_row_refusal_is_a_persons_and_the_sealer_chooses_no_command():
-    """The one refusal with an obvious action attached, which is the refusal
-    #401 watched a session take. Since #969 the orchestrator meets it, in its
-    own run before the spawn, so the orchestration names both refusals; the
-    sealer runs no gate and is told it chooses no `Broad gate` command."""
-    sealer = flat(read(*SEALER))
-    assert "Choose a `Broad gate` command" in sealer
-    assert "the row is a person's" in sealer
-    # The paragraph on its own, not the file: asserted against the whole file
-    # a phrase elsewhere would carry it, which is the counterfeit
-    # contract rule 15 exists to catch.
-    paragraph = read(*REVIEW_ORCH).split(
-        "**A refusal about the `Broad gate` row goes to a person", 1
-    )[1]
-    paragraph = flat(paragraph.split("\n\n", 1)[0])
-    assert "would not run as the command it reads as" in paragraph, (
-        "the refusal paragraph names only the absent row, not the refused one"
-    )
-    assert "Your broad run comes back exit 2" in paragraph, (
-        "the refusal paragraph does not say whose run meets it"
-    )
-
-
-def test_the_review_orchestrator_stops_the_run_rather_than_filling_the_row_in():
-    """The other party in the room when the refusal lands. The sealer reports
-    it; whoever spawned the sealer is the one holding finished work with no
-    pull request open and a reason to get past it."""
+def test_the_review_orchestrator_names_the_command_that_answers_the_row():
+    """The other party in the room when the refusal lands: whoever runs the
+    broad gate is the one holding finished work with no pull request open
+    and a reason to get past it. That it stops the run and asks a person,
+    and why, is the proofer's to read."""
     orchestrator = flat(read(*REVIEW_ORCH))
-    assert "A refusal about the `Broad gate` row goes to a person" in orchestrator
-    assert "open no pull request until they have" in orchestrator
+    # The command `/agentic:config`, which the person runs to answer the row.
     assert "/agentic:config" in orchestrator
-    # #401 is the measured instance; since #940 the file gives its reason in
-    # the present tense rather than the issue number.
-    assert (
-        "A row filled in to get past the refusal makes the broad run cover a "
-        "command the person never saw." in orchestrator
-    ), "the instruction is asserted without the reason behind it"

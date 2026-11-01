@@ -622,7 +622,8 @@ class Test_report:
         assert "cited from" not in beta, "a marker or a bare id is not a path"
         assert "tests/test_reads.py" in text.split("checks that read")[1], text
         # Contract rule 14: the heading a person reads names the section that
-        # says what each check owes, by its heading text.
+        # says what each check owes, by its heading text. The citation the
+        # settle's report prints, which the settling session resolves.
         assert (
             "(`skills/settle/SKILL.md` *Answer every check that reads the corpus*)"
         ) in " ".join(text.split()), text
@@ -1434,6 +1435,8 @@ class Test_main:
         )
         removes = flat(settle.REMOVES_HEADING_LOCAL)
         assert "In local mode no commit holds these directories" in removes
+        # The heading the local dry run prints, with the command the settling
+        # session runs to keep a copy.
         assert "`seal export` takes a copy for whoever wants one" in removes
         assert "no ancestry orders their pull requests' merge commits" in flat(
             settle.UNORDERED_LOCAL
@@ -1977,12 +1980,15 @@ class Test_module:
     def test_the_dry_runs_headings_say_who_decides(self):
         """Contract rule 14: the sentences a person acts on are pinned, not only
         their presence."""
+        # The headings the dry run prints, which the settling session reads
+        # for what it decides under each.
         assert "writes each section as its group's latest decision" in flat(
             settle.GROUPS_HEADING
         )
         assert "order them by content" in flat(settle.UNORDERED)
         assert "moot, answered or a measurement to re-home" in flat(settle.ROWS_HEADING)
         assert "close with `closed` and what closed it" in flat(settle.ROWS_HEADING)
+        # The judgments heading the dry run prints, read the same way.
         assert "grouped by the document each stands on" in flat(
             settle.JUDGMENTS_HEADING
         )

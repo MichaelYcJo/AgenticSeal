@@ -74,7 +74,6 @@ APPLIES_THE_SHARED_GUARD = {
     # #929's census of what runs before any floor: it returns the missing
     # half, and its liveness half hands that to `decline_if_shrunken`.
     "tests/hooks/test_launch.py#before_any_floor": 1,
-    "tests/behaviour/test_one_word_one_meaning.py#test_no_live_text_says_the_word_0_19_0_renamed": 1,
     # The reader itself. It lists the modules it is about to parse, and a
     # module listed and not on disk would end the enumeration at it --
     # this case reporting no offender because it read almost nothing.

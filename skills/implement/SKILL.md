@@ -51,9 +51,8 @@ empty value, a file that cannot be read. A config nobody can read must not
 stop the work.
 
 **It is independent of `Commit and pull request language`.** Setting one does
-not carry the other, and the two surfaces have different audiences: a pull
-request is read by whoever opens it, and a record is read by whoever comes
-back to the decision six months later.
+not carry the other; `docs/one-root-by-lifetime.md` *What the repository
+decides for itself, and how it is read* gives the reasons.
 
 **What stays English whatever it says**, because these are read literally
 rather than by a person: every field name, section heading and vocabulary
@@ -74,7 +73,7 @@ laid out by **lifetime**, not by who wrote it:
 |---|---|---|---|
 | `docs/` | Permanent, cumulative | Must still be true in 6 months | **Norms, ratified by humans.** Read when the repository has them; the documentation convention is the project's. The policy root (`docs/` unless `seal/config.md`'s `Policy root` names another) is the baseline, and a pull request does not edit it. A work item's design states its changes in `## Rule changes`, the settle after the release writes each section as the latest decision the released designs state, checked against the code (`skills/settle/SKILL.md`), and the policy in force is the baseline plus the latest decision the unsettled designs' rule changes state at each section, in merge order |
 | `seal/threads/<work-item-id>/` | One work item | Its role ends when this work ships (the frame, the trail, the closing memo) | The contract this work executes against. A human approves `frame/plan.md`, which is why this is a repository document and not tool state |
-| `seal/`, everything above `threads/` | Permanent | Everything this plugin maintains | Written and read by machines: the repository's config, the migration config, the follow-up list |
+| `seal/`, everything above `threads/` | Permanent | Everything this plugin maintains | Written and read by machines |
 
 A `specs/` the project kept before the plugin is neither root: it is a
 **reference root**, as `templates/setup/config.md` *Reference specs* says — history
@@ -96,26 +95,10 @@ other machines. The second is local mode: under the common git directory, so
 every linked worktree of the clone shares it, and never a commit candidate.
 A repository with both is shared, and nothing else — no config key — is
 read. What sits directly under it is permanent; what sits under
-`seal/threads/` lives as long as its work item:
-
-```
-seal/
-├── README.md         what the root holds, and where the export rules are
-├── parity.md         migration config, only when declared
-├── pact.md           the pact, only in the repository that holds one
-├── follow-up.md      schedulable items in a repository with no tracker
-└── threads/<work-item-id>/
-    ├── routing.md    the routing answer, written by the session before the
-    │                 first edit; a framer reads it and never writes it
-    ├── frame/        design.md, plan.md, questions.md: the design before the build
-    ├── trail/phases/phase-N.md   what one build phase found
-    ├── trail/rounds/round-N.md   one review round — closed at merge, removed
-    │                             with its work item at the settle after its release
-    ├── trail/gate.md             the one broad run, written by `seal gate --record`
-    ├── changelog.md  this work item's entry in the next release's notes
-    ├── gaps.md       the closing memo
-    └── guarantee.md  the sealer's verdict, from `templates/records/sdd-guarantee.md`
-```
+`seal/threads/` lives as long as its work item. Each file the root holds,
+and the question it answers, is in `docs/the-record-layout.md` *seal/*, and
+each file of a work item's directory is in `docs/the-record-layout.md`
+*seal/threads/<work-item-id>/*.
 
 The review round records live beside the work item they are about, with the
 routing declaration and the rest of the SDD set (`docs/the-review-record.md`).
@@ -161,12 +144,8 @@ it or dropping it.
   `## Rule changes`, with a freshly allocated number.
 - A spawn prompt's facts arrive under `docs/the-review-record.md`'s
   handoff: coordinates rather than prose, each fact labelled
-  executed, read, or unverified. A fact with no coordinate and no label is an
-  assertion nobody has opened — open it before building on it, however
-  confident the prompt that carried it. An aggregate (a count, a total) is
-  not a coordinate: the number can be checked while the claim it stands for
-  cannot, and one such fact reached five documents before a review round
-  found it false.
+  executed, read, or unverified. What a fact with neither is, and why an
+  aggregate is not a coordinate, is contract rule 5.
 
 **Collect what needs a person before the first edit, and ask it in one batch.**
 Read the policy, the SDD set and the ticket looking for the questions as well

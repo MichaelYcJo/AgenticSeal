@@ -15,10 +15,11 @@ is what refuses it.
 #1027 changed the second reason. It was that an edit through the `Edit` tool
 leaves the commit gate no command line to read, with the heredoc shape that
 gate took as data; the commit gate is gone, and the reason is now that the
-routing check sees only the edit tools. The cases assert the new reason and
-the absence of the old one, following `tests/behaviour/test_one_word_one_meaning.py`: a
-document can gain the corrected sentence and keep the wrong one two
-paragraphs down, which is how two answers ship at once.
+routing check sees only the edit tools. A case asserts the absence of the
+old one: a document can gain the corrected sentence and keep the wrong one
+two paragraphs down, which is how two answers ship at once. The reasons
+themselves are the proofer's to read; the case that reads the contract pins
+the tool's name.
 """
 
 from conftest import flat
@@ -28,31 +29,13 @@ CRAFTER = ("agents", "crafter.md")
 CARRIERS = (CONTRACT,)
 
 
-def test_the_rule_names_the_tool_and_pairs_its_two_reasons():
-    """The instruction itself, in each file that states it. One reason alone
-    reads as a style preference."""
+def test_the_rule_names_the_tool():
+    """The instruction itself, in each file that states it."""
     for parts in CARRIERS:
         text = flat(*parts)
         who = "/".join(parts)
+        # The name of the tool an agent calls for a file edit.
         assert "`Edit` tool" in text, f"{who} stopped naming the tool"
-        assert "Two reasons point the same way" in text, f"{who} lost the pairing"
-        assert "An edit must be able to fail" in text, f"{who} lost reason 1"
-
-
-def test_the_rule_names_the_second_reason():
-    """Reason 2 is only here: the routing check refuses at the edit tools,
-    so an edit made through the shell reaches no check before the pull
-    request. The proofer never loads `implement`, so for every agent this is
-    the only place it is stated."""
-    for parts in CARRIERS:
-        text = flat(*parts)
-        who = "/".join(parts)
-        assert "the routing check sees only the edit tools" in text, (
-            f"{who} lost reason 2 -- that the routing check reads the edit tools"
-        )
-        assert "an edit through the shell is invisible to it" in text, (
-            f"{who} lost the consequence"
-        )
 
 
 def test_the_rule_no_longer_rests_on_the_commit_gate():

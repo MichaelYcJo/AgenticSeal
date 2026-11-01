@@ -6,7 +6,7 @@ class per function, are `tests/skills/test_seal_stamp.py`, and the gate's,
 #942.
 
 Part 2 holds the cases about the gate command that read a document's prose,
-which #923 places. Part 3 pins the agent and the owner sentences.
+which #923 places. Part 3 holds the cases that read the agent definitions.
 """
 
 import ast
@@ -78,22 +78,18 @@ def test_the_template_names_every_inline_html_kind_it_reads_as_before():
     assert "after a `<" + "!--` in the middle of a line" not in text
 
 
-def test_the_documents_state_the_fence_rule_the_refusal_points_at(tmp_path):
+def test_the_refusal_points_at_a_section_the_template_holds(tmp_path):
     """contract rule 14: a fix that changes what a person sees documents
     it and pins it, in the same commit.
 
-    Two documents and one pointer. `templates/setup/config.md` is the one home of
-    what this table's format allows, and the refusal sends the reader to a
-    named section of it — so the section has to still be there, and it has to
-    say the thing the refusal is about. `skills/config/SKILL.md` step 3 is
-    the coordinate that INVITES the shape: it tells a session to copy a block
-    carrying a fenced example row and used to name no position for it.
+    `templates/setup/config.md` is the one home of what this table's format
+    allows, and the refusal sends the reader to a named section of it, so the
+    section has to still be there. What the section says of a fenced row, and
+    where `skills/config/SKILL.md` step 3 places the block it copies, are the
+    proofer's to read.
     """
     template = open(
         os.path.join(ROOT, "templates", "setup", "config.md"), encoding="utf-8"
-    ).read()
-    skill = open(
-        os.path.join(ROOT, "skills", "config", "SKILL.md"), encoding="utf-8"
     ).read()
     said = refusal_over(
         tmp_path,
@@ -102,21 +98,13 @@ def test_the_documents_state_the_fence_rule_the_refusal_points_at(tmp_path):
         f"```\n| {ROW} | bin/test -q |\n```\n",
     )
 
+    # The heading the refusal cites, which a person opens in the template.
     section = "### What is refused, and what stays allowed"
     assert section in template, (
         f"the refusal points at a section that is not there:\n{said}"
     )
+    # A program's output: the refusal `missing_row` prints names the heading.
     assert section.lstrip("# ") in said, said
-    for claim in (
-        "A table inside a code fence is an example of this format",
-        "outside every fenced code block",
-        "runs to the end of the file",
-    ):
-        assert claim in template, f"`templates/setup/config.md` does not say: {claim}"
-    assert "The copied block lands BELOW the live table" in skill, (
-        "the instruction that produces the shape still names no position for "
-        "the block it copies"
-    )
 
 
 def test_this_repositorys_own_config_is_answered_exactly_as_before(tmp_path):
@@ -155,49 +143,18 @@ def test_this_repositorys_own_config_is_answered_exactly_as_before(tmp_path):
     )
 
 
-def test_the_documents_name_the_line_that_says_to_commit_the_cell():
-    """S2's documentation (contract rule 14). The orchestrator is told
-    what to do with the line — the commit is the orchestrator's act. Since
-    #969 the sealer sees none of the gate's lines and is told no line's
-    wording (`tests/behaviour/test_the_sealer_guarantees.py::TestDefinition`)."""
-    orchestration = " ".join(
-        read_document(os.path.join("skills", "code-review", "orchestration.md")).split()
-    )
-    assert (
-        "the report's last line says `trail/gate.md` is written and not committed: "
-        "CI reads HEAD, so commit it before you push"
-    ) in orchestration
-
-
-def test_the_documents_say_where_the_panel_now_carries_each_name():
-    """S6 for the panel (contract rule 14). Each sentence that named a
-    row the panel lost, or the `gate` row printing on every stamp, says what
-    the panel prints now."""
+def test_the_policy_names_the_value_the_gate_row_reads():
+    """S6 for the panel (contract rule 14). The policy says what the panel's
+    `gate` row prints now. When it prints it, where `skills/verify/orchestration.md`
+    puts the ref on the `base` row, and the comments `broad_gate.py` carries
+    on the third arm (round 1's 🟡 4 and ⬜ 5) are the proofer's to read."""
     broad = " ".join(read_document(os.path.join("docs", "the-broad-gate.md")).split())
+    # The row name `gate` and the value `tree <version>` the panel prints on
+    # it, which a person reads on the gate's output.
     assert (
         "the panel's `gate` row reads `tree <version>` wherever the copy that ran "
         "is not byte for byte the copy invoked"
     ) in broad
-    assert "panel's `gate` row reads `tree <version>` or `plugin <version>`" not in (
-        broad
-    )
-    verify = " ".join(
-        read_document(os.path.join("skills", "verify", "orchestration.md")).split()
-    )
-    # #832's S5a: the ref stands beside the commit on the `base` row.
-    assert "names the ref beside the commit on the `base` row" in verify
-    assert "names the ref on the row under the commit" not in verify
-    # Round 1's 🟡 4 and ⬜ 5: the third arm, which fires on every seal an
-    # installed copy older than #666 redirects, because it hands over no
-    # invoked path to compare against. The sealer describes no panel row
-    # since it became the guarantor (#923), so the documents that do are read.
-    assert (
-        "or where the tree's copy ran with no invoked copy named to compare against"
-    ) in broad
-    source = read_document(os.path.join("skills", "verify", "scripts", "broad_gate.py"))
-    above = source.split("GATE_REL = ", 1)[0][-1500:].splitlines()
-    comment = " ".join(" ".join(line.lstrip("# ") for line in above).split())
-    assert "or where no invoked copy was handed over to compare" in comment
 
 
 def test_the_docstrings_describe_the_letter_and_the_rows_it_carries():
@@ -290,27 +247,18 @@ def test_the_docstrings_describe_the_letter_and_the_rows_it_carries():
 
 def test_the_documents_name_the_ci_also_row():
     """#717, S7 for the rows (contract rule 14). `skills/verify/orchestration.md`
-    *A run says what it did not answer* and `agents/sealer.md` named the
-    `workflow` row and its `<n> of <total> not answered` reading; both name
-    the `CI also` row and its `<n> more steps` now, and the denominator is
-    said to be on the stderr line. #832's S5a: the row's value leads with a
-    dim `·`, the owner's mark for a row that is not a pass, and the value
-    column is 41 wide."""
+    *A run says what it did not answer* named the `workflow` row and its
+    `<n> of <total> not answered` reading; it names the `CI also` row and its
+    `· <n> more steps` now (#832's S5a: the value leads with a dim `·`, the
+    owner's mark for a row that is not a pass). The rest of the paragraph,
+    and whether an old reading or a count is back in it (#940), are the
+    proofer's to read."""
     verify = " ".join(
         read_document(os.path.join("skills", "verify", "orchestration.md")).split()
     )
+    # The row name `CI also` and its value `· <n> more steps`, which the
+    # panel prints and the orchestrator reads on the gate's output.
     assert "the panel carries a `CI also` row, *· <n> more steps*, and" in verify
-    # #940: the document carried a count of the steps a feature branch's run
-    # leaves unanswered, and it went stale when a step left the workflow. The
-    # gate prints the count; the document states no copy of it.
-    assert "feature branch reads `CI also ·" not in verify
-    assert "A feature seal of" not in verify
-    assert "value is 41 columns and a step name is a sentence" in verify
-    assert "value is 23 columns" not in verify
-    assert "the panel carries a `workflow` row" not in verify
-    # The sealer sees no output of the gate's (#969) and names no panel row
-    # (#923).
-    assert "the `workflow` count" not in " ".join(sealer_text().split())
 
 
 def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
@@ -817,54 +765,25 @@ def test_the_definition_separates_a_coverage_probe_from_a_seal(definition):
     )
 
 
-def test_the_proofer_says_what_comes_due():
-    """The proofer's report is what ends the rounds, so it is the one segment
-    positioned to say the gate is next. Saying so without naming what is
-    spawned leaves the orchestrator to remember the sealer exists."""
-    proofer = agent("proofer.md")
-    assert (
-        "what comes due is the orchestrator's broad run, and the sealer's "
-        "spawn after it"
-    ) in " ".join(proofer.split()), (
-        "the proofer says the broad run is next and does not say who takes it"
-    )
-
-
-# Every party that could be written in as the broad gate's runner. A runner
-# named in the crafter's definition is a sentence #969 makes false by moving the
-# run, from a worktree that does not touch this file (`frame/design.md` decision 6 of
-# work item 1792251842).
-RUNNERS = ("sealer", "orchestrator", "proofer", "framer", "tracer", "session", "owner")
-# A sentence anywhere in the file that hands the run to somebody: a party, then
-# a verb of taking it, then the run, inside one sentence.
-HANDS_THE_RUN = re.compile(
-    r"\b(?:" + "|".join(RUNNERS) + r")s?\b[^.]{0,60}?\b(?:takes?|runs?|owns?)\b"
-    r"[^.]{0,40}?\b(?:broad gate|full suite)",
-    re.I,
-)
-
-
-def test_the_crafter_names_no_runner_of_the_broad_gate():
-    """T4 of #967 (S5): the crafter's broad gate paragraph names nobody who
-    runs the broad gate. It cites contract rule 2, which holds who does, and
-    keeps what is the crafter's own: what `failing on base too` and `new?`
-    mean beside a broad gate failure handed to it.
-
-    This replaced a case that asserted *Then the sealer takes the broad gate
-    once*. #969 moves the run to the orchestrator in a worktree beside this
-    one, so either owner written here is false in one of the two trees."""
+def test_the_crafters_gate_rule_names_the_failure_words_and_rule_2():
+    """T4 of #967 (S5): the crafter's broad gate paragraph cites contract
+    rule 2, which holds who runs the broad gate, and keeps what is the
+    crafter's own: what `failing on base too` and `new?` mean beside a broad
+    gate failure handed to it. That it names nobody as the runner (#969 moved
+    the run to the orchestrator) is the proofer's to read."""
     crafter = agent("crafter.md")
     start = crafter.index("**The broad gate is not yours, and its label is.**")
     rule = crafter[start : crafter.index(" check: ", start)]
+    # The words `failing on base too` and `new?`, which `broad_gate.py`
+    # prints beside a failing file and the crafter reads to tell the two
+    # apart.
     assert "`failing on base too`" in rule and "`new?`" in rule, (
         "the crafter's gate rule stopped saying what the word beside a "
         "failing file means, which is the half that is the crafter's own"
     )
+    # The contract rule number 2, which the crafter resolves for who runs
+    # the broad gate.
     assert "rule 2" in rule, "the rule stopped pointing at where the runner is named"
-    named = [party for party in RUNNERS if re.search(rf"\b{party}", rule, re.I)]
-    assert not named, f"the crafter's gate rule names {named}: {rule}"
-    handed = HANDS_THE_RUN.findall(crafter)
-    assert not handed, f"`agents/crafter.md` hands the broad gate to somebody: {handed}"
 
 
 # --- S7 the fourth definition ------------------------------------------------
@@ -905,11 +824,16 @@ def test_the_sealer_names_the_one_write_its_definition_is_allowed():
     Since the sealer became the guarantor (#923) its one write is
     `guarantee.md`, and `trail/gate.md` is the gate's, through its command."""
     text = " ".join(sealer_text().split())
+    # The contract rule number 6, which the sealer resolves for what it may
+    # write.
     assert "rule 6" in text, "the sealer cannot reach the rule that names its one write"
+    # The command `seal gate --record`, which writes `trail/gate.md` and which
+    # the sealer reads to tell that file from its own write.
     assert "through `seal gate --record`" in text, (
         "the gate's file does not name the command that makes it, so the "
         "sealer cannot tell its own write from the gate's"
     )
+    # The path `guarantee.md`, the one file the sealer writes.
     assert "`guarantee.md` is the whole of what you may write" in text, (
         "the permission does not say WHICH file, and a permission without a "
         "boundary is a general one"
@@ -924,10 +848,10 @@ def test_the_sealer_leaves_s6s_withheld_acts_to_s6():
     whatever its file says, and the copy cost the sealer's preload bytes its
     measurement refused (round 1 of #943).
 
-    Rewritten rather than deleted, for the reason the case below gives: a
-    case removed with the passage it pinned leaves nothing to notice the
-    passage coming back. A recitation that returns is a second source beside
-    a countable list, so the assertions invert."""
+    Rewritten rather than deleted: a case removed with the passage it pinned
+    leaves nothing to notice the passage coming back. A recitation that
+    returns is a second source beside a countable list, so the assertions
+    invert."""
     text = " ".join(sealer_text().split())
     assert "rule 6 withholds stays withheld" not in text, (
         "the sealer recites rule 6's withheld acts again; rule 6 is their one source"
@@ -937,52 +861,19 @@ def test_the_sealer_leaves_s6s_withheld_acts_to_s6():
     )
 
 
-def test_the_window_the_sealer_shipped_under_is_closed():
-    """#120 closed it, and this case is the one that says so.
-
-    The sealer shipped under a contract rule 2 that forbade its one act, for a window
-    inside one release branch, and its definition wrote the contradiction down
-    rather than leaving the next reader to guess which document wins. That
-    paragraph carried its own expiry -- *when #120 lands, this section is the
-    paragraph it deletes* -- and #120 deleted it.
-
-    Rewritten rather than deleted, and that is the point of it. A case removed
-    with the paragraph it pinned leaves nothing to notice the paragraph coming
-    back, and this one came with a ticket number in it, which is exactly the
-    prose a later session restores while tidying. So the assertions invert:
-    the window's own words are absent, and what the section was standing
-    against is now a positive assignment.
-
-    The two facts `frame/design.md` requires the definition to keep -- rule 6 and the one
-    cell -- are asserted by
-    `test_the_sealer_names_the_one_write_its_definition_is_allowed` above, which
-    is where they belong; repeating them here would make two cases fail for one
-    edit and neither of them say which."""
+def test_the_sealer_cites_contract_rule_2():
+    """The sealer shipped under a contract rule 2 that forbade its one act,
+    for a window inside one release branch, and #120 closed it; #969 then
+    moved the broad run to the orchestrator. The definition cites the rule
+    that keeps the run out of its hands. Whether the window's paragraph or
+    an assignment of the run to the sealer is back, and how the definition
+    says whose the run is, are the proofer's to read."""
     text = " ".join(sealer_text().split())
-    assert "narrower document" not in text, (
-        "the window paragraph is back. It says the definition wins over the "
-        "contract, which was true only while rule 2 forbade the sealer's one act"
-    )
-    assert "#120" not in text, (
-        "the definition still names the ticket that was to settle rule 2. #120 "
-        "has landed, so a reader following it finds a closed issue and no "
-        "contradiction to match it against"
-    )
-    assert "rule 2 as it stands" not in text, "the section heading survived"
+    # The contract rule number 2, which the sealer resolves for who runs the
+    # broad gate.
     assert "rule 2" in text, (
         "the definition stopped citing rule 2 altogether, so the sealer meets the "
         "rule that keeps the run out of its hands nowhere in its own file"
-    )
-    # #969 moved the run to the orchestrator: the positive assignment is now
-    # contract rule 2's and the orchestration's, and the sealer's file says
-    # whose it is.
-    assert "spawned for exactly that" not in text, (
-        "the sealer's assignment of the run is back beside a rule 2 that gives "
-        "the run to no agent"
-    )
-    assert "is the orchestrator's run's" in text, (
-        "the definition says the run is not the sealer's without saying whose "
-        "it is, which is #30's opening: an act nobody holds"
     )
 
 

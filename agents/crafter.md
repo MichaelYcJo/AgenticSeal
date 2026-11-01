@@ -42,12 +42,12 @@ each open finding; a write not named here is a write you do not make.
    hand that back.
 5. Read what the phase changes against the table in `skills/verify/SKILL.md`
    *The narrow command still has to be able to fail*. Build the phase as a
-   vertical slice. Where a unit adds behaviour: each case first, seen red
-   against the tree as it stands, then the code, then the case green. Where
-   a unit is only renamed or moved, write no case new for it: the existing
-   cases that prove it at the new name or path, and the census that table's
-   row asks for, go into `trail/phases/phase-N.md`'s
-   `## What this phase found`.
+   vertical slice. Where a unit adds behaviour, build it as
+   `skills/implement/SKILL.md` *2. Implement test-first, and let each rule
+   name its test* states. Where a unit is only renamed or moved, write no
+   case new for it: the existing cases that prove it at the new name or
+   path, and the census that table's row asks for, go into
+   `trail/phases/phase-N.md`'s `## What this phase found`.
 6. Commit, then run `seal mutate` over each unit that adds behaviour. A unit
    only renamed or moved owes no run.
 7. Run the phase-boundary set contract rule 2 names, as one command through
@@ -96,7 +96,7 @@ check: tests/behaviour/test_chain_hooks_hardening.py
 **A declared frame that is absent stops the build.** A missing `frame/design.md` is
 not evidence about the rung: hand back that `routing.md` and the directory
 disagree, and do not guess which is true.
-check: tests/text/test_a_moved_rule_leaves_its_definition.py
+check: none reader: the orchestrator at each hand-back
 
 **The handoff's facts are coordinates to open.** A fact your prompt carries
 arrives in the shape of `docs/the-review-record.md` *The handoff*; open its
@@ -115,7 +115,7 @@ check: tests/text/test_a_moved_rule_leaves_its_definition.py
 revert through `git checkout -- <file>` restores the committed state and
 takes every uncommitted fix in that file with it; `seal mutate` holds the
 bytes it read and compares the hash after the restore.
-check: tests/text/test_a_moved_rule_leaves_its_definition.py tests/behaviour/test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py tests/skills/test_mutation_check.py
+check: tests/text/test_a_moved_rule_leaves_its_definition.py tests/skills/test_mutation_check.py
 
 **Mutation-test every unit that adds behaviour, one command each.** Break
 one unit, run the cases that cover it, and watch one go red; a unit that
@@ -131,7 +131,7 @@ Each run is bounded at 300 s unless `--timeout` says otherwise, and a
 timed-out run is a result to report. Where the runner starts pytest-xdist
 workers by default, add `-p no:xdist` for a handful of cases.
 `skills/verify/SKILL.md` carries the verdicts and their exit codes.
-check: tests/text/test_the_handoff_before_round_one.py tests/behaviour/test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py tests/skills/test_mutation_check.py
+check: tests/behaviour/test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py tests/skills/test_mutation_check.py
 
 **A stop at three failed fixes is handed back.** The rule is
 `skills/implement/SKILL.md` *2. Implement test-first, and let each rule
@@ -190,4 +190,4 @@ check: tests/text/test_a_moved_rule_leaves_its_definition.py
 **The chain ends at a pull request, never a merge.** Verification and review
 follow your hand-back without being asked, bounded as
 `docs/the-review-record.md` *The run* states; merging is the user's act.
-check: tests/behaviour/test_chain_hooks_hardening.py
+check: none reader: the orchestrator at each hand-back

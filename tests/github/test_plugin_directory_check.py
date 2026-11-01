@@ -209,6 +209,8 @@ class Test_line:
                 "main",
             )
         )
+        # The line `plugin_directory_check.py` prints for a failed fetch, which
+        # the person running the release box reads.
         assert "could not be read" in out and "HTTP 503" in out
         assert "not a reason to stop" in out
 
@@ -229,6 +231,8 @@ class Test_line:
                     "main",
                 )
             )
+            # The line the check prints for a payload that is no marketplace
+            # file, which the person running the release box reads.
             assert "could not be read" in out, payload
 
 

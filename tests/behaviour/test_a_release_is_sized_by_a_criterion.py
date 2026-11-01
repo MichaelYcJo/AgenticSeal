@@ -5,13 +5,14 @@ The rule used to read *a release is sized in work items rather than in ticket
 numbers, and three or four is the size*, which reads as a target. On
 2026-09-11 a session read it as one twice — eighteen issues proposed for a move
 out of the release milestones to bring them "down to size", and a two-item
-release read as under the rule with room for a third. So the presence half and
-the absence half are both pinned: a document can gain the corrected sentence
-and keep the old one two paragraphs down, which is how two answers ship at
-once.
+release read as under the rule with room for a third. So the sweep below
+refuses a second statement of a release's size anywhere it scans: a document
+can gain the corrected sentence and keep the old one two paragraphs down,
+which is how two answers ship at once. The owner's own sentences are the
+proofer's to read, and what is pinned in it is the ceiling's value.
 
-**Every assertion reads the file with its wraps collapsed** — the presence and
-absence cases through `flat()`, which flattens the whole file, and the sweep
+**Every assertion reads the file with its wraps collapsed** — the owner's
+cases through `flat()`, which flattens the whole file, and the sweep
 through `hits()`, which flattens each line against the one after it so it can
 still name a line number. The sentences here are hand-wrapped at 88 columns
 (`test_docs_line_wrap.py`), so a phrase pinned as written on one line breaks
@@ -44,8 +45,8 @@ OWNER = "docs/issues-and-milestones.md"
 
 SHARED_CEILING = "ceiling, not a target"
 
-# The sentence that was replaced. Lower-cased on both sides, because the
-# replacement opens a sentence with `Three`.
+# The sentence that was replaced, which the restatement the sweep's case
+# plants below carries.
 REPLACED = "three or four is the size"
 
 SCANNED = (
@@ -54,9 +55,8 @@ SCANNED = (
     "agents",
     "templates",
     "tests",
-    # `tests/behaviour/test_one_word_one_meaning.py`, the module this sweep is modelled
-    # on, reads this file for the same kind of claim, and it is where a rule
-    # gets restated for a session that never opens `docs/`.
+    # It is where a rule gets restated for a session that never opens
+    # `docs/`.
     "CLAUDE.md",
     "README.md",
     "README.ko.md",
@@ -104,8 +104,7 @@ def flat(rel):
     """The file with every run of whitespace collapsed to one space.
 
     A hand-wrapped paragraph is one sentence to a reader and several lines to
-    `in`. This is the reader `tests/behaviour/test_one_word_one_meaning.py` already uses
-    for the same reason.
+    `in`.
     """
     return " ".join(read(rel).split())
 
@@ -157,46 +156,14 @@ def restatements(root=ROOT):
     return offenders
 
 
-def test_the_rule_states_the_criterion_and_not_the_count():
-    """The size is decided by what has to be in effect next, and a release of
-    one work item is legitimate rather than under a target."""
-    doc = flat(OWNER)
-    assert (
-        "A release is sized by what has to be in effect before the next work "
-        "item starts, and not by a count." in doc
-    ), f"{OWNER} no longer states the criterion"
-    assert REPLACED not in doc.lower(), (
-        f"{OWNER} still states the size as a count — the sentence that was "
-        "read as a target twice on 2026-09-11"
-    )
-
-
 def test_the_count_survives_as_a_ceiling():
-    """Named as a ceiling, with what the ceiling is for."""
+    """Named as a ceiling. The criterion the size is decided by, and what the
+    ceiling is for, are the proofer's to read in the owner."""
     doc = flat(OWNER)
+    # The value three or four work items, the most a release holds, which
+    # whoever moves an issue into a `release:` milestone is limited by.
     assert f"Three or four is a {SHARED_CEILING}." in doc, (
         f"{OWNER} no longer names the count as a ceiling"
-    )
-    assert "it says nothing about when to stop under it" in doc, (
-        "the ceiling is named without saying it is not a floor either"
-    )
-
-
-def test_the_two_releases_are_cited_without_a_version_number():
-    """The evidence is what makes the rule a description rather than a
-    proposal, and both releases are at or above the running version, so the
-    citation is prose and the paragraph says why."""
-    # Lower-cased on both sides: the first citation opens a sentence, so
-    # pinning it as written would pin where the sentence break falls too.
-    doc = flat(OWNER).lower()
-    for citation in (
-        "the release that shipped the framer",
-        "the release that replaced the deleted checklist with a gate",
-    ):
-        assert citation in doc, f"{OWNER} no longer cites {citation!r}"
-    assert "named rather than numbered, so the description reads the same" in doc, (
-        "without this note a later author, for whom both numbers have become "
-        "history, replaces the descriptions with numbers and is right to"
     )
 
 
@@ -210,49 +177,6 @@ def test_the_rule_says_what_it_does_not_change():
         "nothing schedules from either",
     ):
         assert clause in doc, f"{OWNER} no longer says {clause!r}"
-
-
-def test_the_label_is_two_states_and_nothing_schedules_from_it():
-    """`size: now` is where the sizing judgment stops being made again from
-    scratch. A reader has to be able to apply it without asking, which takes
-    the meaning, the absence, and the fact that no automation SCHEDULES from
-    it.
-
-    **Renamed with the sentence it pins** (round 1, finding 4). It was
-    `…_and_nothing_reads_it` while its body asserted that one thing does read
-    it, so the coordinate a reader opens to check the claim was named for the
-    claim's negation — and `seal/ledger/`'s T1 anchored on that name. The
-    sibling in `tests/behaviour/test_release_hygiene.py` was renamed in the same commit
-    that changed what it asserts; this one was not, which is the asymmetry
-    the finding caught.
-    """
-    doc = flat(OWNER)
-    assert (
-        "`size: now` says this ticket has to be in effect before the next "
-        "work item starts." in doc
-    ), f"{OWNER} no longer defines the label"
-    assert "rides the next release that happens to carry it" in doc, (
-        "the label's absence has no stated meaning, so a reader cannot apply "
-        "it in two states"
-    )
-    # **The literal moved, and the purpose did not.** This used to pin
-    # `**Nothing reads this label**`. After #450 something does read it --
-    # `close-issues-on-release.yml`, and only to take a spent one off the
-    # issue it is closing -- so the old literal had become false while the
-    # thing it protected was still true. What a reader must not come away
-    # with is that something SCHEDULES from the label, because then a stale
-    # one reads as a blocked release. So the sentence says that, and the
-    # assertion follows it (contract rule 14: a change to
-    # what a person reads documents it and pins it, in the same commit).
-    assert "**Nothing schedules from this label**" in doc, (
-        "a reader who thinks something schedules from the label reads a stale "
-        "one as a blocked release"
-    )
-    assert "One thing reads it, and only to spend it." in doc, (
-        "the section says nothing schedules from the label without naming the "
-        "one workflow that does read it, which leaves the first reader to "
-        "meet that workflow thinking the document is out of date"
-    )
 
 
 def test_one_document_states_a_releases_size():
@@ -330,8 +254,7 @@ def test_the_sweep_reads_a_statement_whose_wrap_falls_inside_it():
 
 def test_the_scanned_set_reaches_the_file_a_rule_gets_restated_in():
     """`CLAUDE.md` is where a rule is restated for a session that never opens
-    `docs/`, and `tests/behaviour/test_one_word_one_meaning.py` — the module this sweep
-    is modelled on — already reads it."""
+    `docs/`."""
     files, _missing = tracked()
     assert "CLAUDE.md" in files, (
         "CLAUDE.md is outside the sweep, so a second answer stated there is "

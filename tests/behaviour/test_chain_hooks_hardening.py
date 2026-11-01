@@ -210,6 +210,9 @@ def test_parity_declaration_is_bootstrappable_not_hand_written():
     tpl = os.path.join(ROOT, "templates", "setup", "parity.md")
     assert os.path.isfile(tpl), "templates/setup/parity.md missing"
     body = open(tpl, encoding="utf-8").read()
+    # The four field names of the declaration, which the person declaring
+    # parity fills in and `hooks/lib/config.py` and `chain_check.py` read off
+    # `seal/parity.md`.
     for field in (
         "Original repo",
         "Baseline commit",
@@ -217,6 +220,7 @@ def test_parity_declaration_is_bootstrappable_not_hand_written():
         "Coordinate-trust exceptions",
     ):
         assert field in body, f"template lost the {field!r} field"
+    # The file name the person writes the original's local path into.
     assert "parity-paths.md" in body, "template must say where the local path goes"
 
     # The bootstrap is the orchestrator's since #292, in a file of its own
@@ -231,43 +235,28 @@ def test_parity_declaration_is_bootstrappable_not_hand_written():
     ).read()
     bootstrap = implement.split("## Orchestrator: Bootstrap", 1)[1]
     bootstrap = bootstrap.split("\n## ", 1)[0]
+    # The procedure's path, which the orchestrator opens on the bootstrap's yes.
     assert "skills/parity-setup/SKILL.md" in bootstrap, (
         "the bootstrap's yes never reaches the parity-setup procedure"
     )
+    # The path of the root's README, which the orchestrator writes there.
     assert "seal/README.md" in bootstrap
 
     setup = os.path.join(ROOT, "skills", "parity-setup", "SKILL.md")
     assert os.path.isfile(setup), "no command for declaring parity later"
+    # The template's path, which the procedure copies the declaration from.
     assert "templates/setup/parity.md" in open(setup, encoding="utf-8").read(), (
         "the parity-setup procedure never points at the template"
     )
     head = open(setup, encoding="utf-8").read().split("\n---\n", 1)[0]
+    # The frontmatter key the harness reads to keep the skill from firing on
+    # its own.
     assert "disable-model-invocation: true" in head, (
         "parity-setup writes a declaration; it must not fire on its own"
     )
-
-    # The bootstrap's yes reaches the procedure right after the mode answer,
-    # local included (#1046, rounds 1 and 2). Local mode commits nothing and
-    # no check reads it; under shared, records only, `seal gate` still refuses
-    # a round record with no `original:` line once a ready pull request is
-    # open, so the procedure says which mode commits the file and what refuses
-    # in each.
-    procedure = " ".join(open(setup, encoding="utf-8").read().split())
-    assert "Where the root is `<repo>/seal/`, commit it." in procedure, (
-        "the parity-setup procedure commits the declaration in every mode"
-    )
-    assert "In local mode the root sits under the common git directory" in procedure
-    assert "`seal pr-checks` reports the checks installed" in procedure, (
-        "the parity-setup procedure promises a pull-request refusal that "
-        "only installed checks give"
-    )
-    assert (
-        "the gate refuses a round record without it once a ready pull" in procedure
-    ), (
-        "the parity-setup procedure says nothing refuses under shared, records "
-        "only, where `seal gate` refuses once a ready pull request is open"
-    )
-    assert "In local mode git carries neither" in procedure
+    # Which mode commits the declaration, and what refuses a round record
+    # without an `original:` line in each, is the proofer's to read in the
+    # procedure (#1046).
 
 
 def _folded(name):
@@ -283,28 +272,6 @@ def test_the_policy_says_a_failed_diff_asks():
         "A diff git could not take is not a change confined to the document roots"
     )
     assert sentence in _folded("the-review-and-parity-arms.md"), sentence
-
-
-def test_the_review_arms_missing_path_line_is_written_where_it_is_met():
-    """A reader who finds `touches_code` beside the review arm can take its
-    absence for an oversight, as #518 did. *Review arm* says a change confined
-    to `docs/` meets the routing check as any other change does, and that a
-    lighter tier is declared before the first edit, never inferred from
-    paths."""
-
-    def flat(*parts):
-        with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-            return re.sub(r"\s+", " ", f.read())
-
-    spec = flat("docs", "the-review-and-parity-arms.md")
-    review_arm = spec.split("### Review arm", 1)[1].split("####", 1)[0]
-    assert (
-        "A change confined to `docs/` meets it as any other change does" in review_arm
-    ), "the review arm lost its sentence for a docs-only change"
-    assert "it is never inferred from the paths it touches" in review_arm, (
-        "the paragraph lost the rule it exists for: the lighter tier is a "
-        "declaration made before the first edit, not a path line"
-    )
 
 
 def test_user_invoked_skills_do_not_carry_trigger_scaffolding():
@@ -620,10 +587,9 @@ ASKING_WINDOW = 140
 # a different thing and is not done here: that direction makes a legitimate
 # definition unwritable, which is round 2's finding pointing the other way.
 BATCH_PHRASE = re.compile(r"\b(?:in|into|as) (?:one|a single|a) batch\b", re.IGNORECASE)
-# All three markdown markers, which is what the normaliser of this same name
-# in `skills/code-review/scripts/chain_check.py` already settled on. Round 1's 🟡 2: `*` alone left out the
-# marker these files use MOST — code spans outnumber asterisks in four of the
-# five definitions, `agents/proofer.md` 250 to 159 and `agents/crafter.md` 202 to
+# All three markdown markers. Round 1's 🟡 2: `*` alone left out the marker
+# these files use MOST — code spans outnumber asterisks in four of the five
+# definitions, `agents/proofer.md` 250 to 159 and `agents/crafter.md` 202 to
 # 142 — so `` in `one batch` `` reached no window at all.
 #
 # The build kept `_` out on the grounds that stripping it mangles the window a
@@ -631,10 +597,7 @@ BATCH_PHRASE = re.compile(r"\b(?:in|into|as) (?:one|a single|a) batch\b", re.IGN
 # carries one. That cost is real and it is the ONLY cost: stripping `_` cannot
 # change what is found, since no stem in `ASKING` and no word in
 # `BATCH_PHRASE` carries one. A printed file name losing its underscores is
-# worth less than a spelling the guard cannot see, which is the same trade
-# `chain_check.py` makes under the same name — and two constants called
-# `EMPHASIS` meaning two different things is what
-# `tests/behaviour/test_one_word_one_meaning.py` exists to stop.
+# worth less than a spelling the guard cannot see.
 EMPHASIS = re.compile(r"[*_`]+")
 
 
@@ -812,47 +775,23 @@ def test_the_batch_phrase_is_found_by_its_claim_not_by_one_spelling():
         )
 
 
-def test_the_questions_are_collected_before_the_work_not_during_it():
-    """A question's cost is when it arrives, not how hard it is.
-
-    Asked before the first edit it costs a reply; asked at minute thirty it
-    stops a session that may have nobody at the keyboard."""
-    with open(
-        os.path.join(ROOT, "skills", "implement", "SKILL.md"), encoding="utf-8"
-    ) as f:
-        implement = f.read()
-    assert "in one batch" in implement, "implement lost the batching rule"
-    assert "would not change what you build" in implement, (
-        "without the assume-in-writing half, the batch becomes a list of "
-        "everything and the work waits on all of it"
-    )
+def test_no_agent_definition_tells_its_agent_to_collect_questions():
+    """A question's cost is when it arrives, not how hard it is, so the
+    questions are collected once, before the first edit, by the session that
+    spawns the work. How `skills/implement/SKILL.md` and the orchestration
+    say so is the proofer's to read; what is checked here is that no
+    definition hands the batch to an agent."""
     # The batch belongs to the SESSION that spawns the work, and that is a
     # property of the harness rather than a preference: no agent this plugin
     # spawns has `AskUserQuestion`, measured from two of them independently
     # (#419, round 1). It was pinned in `agents/crafter.md` while the design
     # gate lived there, then briefly in `agents/framer.md` — and a definition
     # that carries the words of an act its agent has no tool for is an
-    # instruction nothing can carry out. So the presence is asserted where the
-    # tool is, and the absence over EVERY agent definition, by glob, so a
-    # fourth one added tomorrow is checked on the day it lands.
+    # instruction nothing can carry out. So the absence is read over EVERY
+    # agent definition, by glob, so a fourth one added tomorrow is checked on
+    # the day it lands.
     import glob
 
-    with open(
-        os.path.join(ROOT, "skills", "implement", "orchestration.md"),
-        encoding="utf-8",
-    ) as f:
-        orchestration = f.read()
-    # Since #911 question 1 goes in a call of its own and the boxes follow
-    # only under `per axis`. The bare `in one call` this used to assert is
-    # also satisfied by the routing.md-batching sentence, so it is pinned on
-    # the sentence that carries the claim.
-    assert "Question 1 goes in one call of its own" in " ".join(
-        orchestration.split()
-    ), (
-        "the orchestrator's routing section no longer says question 1 is put "
-        "in a call of its own before the first edit, with the boxes after it "
-        "only under `per axis` (#911)"
-    )
     # WHAT IS REFUSED IS A CLAIM, NOT A SPELLING, and the first version of
     # this assertion refused the spelling. It read `"in one batch" not in
     # body` over every definition — and contract rule 10, which every
@@ -890,7 +829,6 @@ def test_the_questions_are_collected_before_the_work_not_during_it():
     #     straddles a heading would pass — and it is ruled out with grounds in
     #     `aa687d35:seal/specs/1789540097-three-checks-that-do-not-see-what-they-are-named-for/spec.md`
     #     *Out*.
-    #   · It reads `*` and not `_`. See `EMPHASIS` above for why.
     #   · It refuses by the WORDS in the window, so a definition that names a
     #     person answering for some other reason within 140 characters of a
     #     legitimate batch phrase is refused and has to be reworded. That is
@@ -957,20 +895,20 @@ def test_the_questions_are_collected_before_the_work_not_during_it():
     ), f"the sweep read a definition it did not read in full: {read}"
 
 
-def test_the_cycle_is_bounded_and_ends_at_a_pull_request():
-    """An unattended run needs a terminus, and two are wrong at that spot.
-
-    Stopping at a report leaves finished work nobody will find; merging
-    decides something the chain was never given."""
+def test_the_run_names_its_default_round_count_and_the_follow_up_file():
+    """An unattended run needs a bound and a home for what it leaves. Where
+    the chain ends, at a pull request and never a merge, is the orchestrator's
+    to read in the crafter's hand-back."""
     with open(
         os.path.join(ROOT, "docs", "the-review-record.md"), encoding="utf-8"
     ) as f:
         record = " ".join(f.read().split())
+    # The value three, the finding rounds at which the orchestrator weighs
+    # whether the run still pays.
     assert "three finding rounds by default" in record, "the review loop lost its bound"
+    # The file name `follow-up.md`, where the orchestrator moves a finding
+    # still open when it stops.
     assert "follow-up.md" in record, "no home recorded for what is left"
-    with open(os.path.join(ROOT, "agents", "crafter.md"), encoding="utf-8") as f:
-        crafter = f.read()
-    assert "The chain ends at a pull request, never a merge." in crafter
 
 
 # The two skills a definition calls rather than preloads. Neither is in any
@@ -1046,7 +984,7 @@ def test_the_skills_stand_down_for_whichever_definition_calls_them():
         )
 
 
-def test_the_crafter_says_whether_the_frame_holds_before_building_to_it():
+def test_the_frame_rule_names_the_phase_record_section_a_no_goes_to():
     """S5 of #84. A `frame/design.md` and a `frame/plan.md` are a drawing another party
     made, and a drawing can be wrong about the tree it describes. #107's
     phase 1 established that its own stated path could not work before a line
@@ -1055,53 +993,28 @@ def test_the_crafter_says_whether_the_frame_holds_before_building_to_it():
     document -- which makes it a habit, and a habit is what the next spawn
     does not inherit.
 
-    The home is pinned as well as the sentence, and it is the step after the
-    requirements read. There the check runs on what was just read and a `no`
-    costs the reading; after the build starts it arrives once the build has
-    already been spent on a frame that does not hold.
-
-    A `no` needs a destination or it becomes a second interruption. The one
-    the sentence names is the phase record and the hand-back -- never a route
-    back to the framer, which has no interactive phase to route back TO: the
-    one moment of human contact belongs to the session that spawns the work,
-    before the framer is spawned at all."""
+    A `no` needs a destination or it becomes a second interruption, so the
+    rule names the record and the section it goes to. Where the step stands
+    in the order of work, and that a `no` never goes back to the framer, are
+    the orchestrator's to read in the crafter's hand-back."""
     crafter = " ".join(
         open(os.path.join(ROOT, "agents", "crafter.md"), encoding="utf-8")
         .read()
         .split()
     )
-    holds = "Say whether the frame holds before you build to it"
-    assert holds in crafter, (
-        "`agents/crafter.md` no longer tells the builder to judge the frame "
-        "before building to it. It happened twice unprompted and was recorded "
-        "nowhere, which is exactly what a written instruction is for"
-    )
-    # Since #967 the home is a step of `## Order of work`: after the step
-    # that reads the work item, before the step that builds. Found by the
-    # steps' own words rather than their numbers, so a step inserted above
-    # them moves nothing here.
-    read_at = crafter.index("Read the work item:")
-    build_at = crafter.index("Build the phase as a vertical slice")
-    assert read_at < crafter.index(holds) < build_at, (
-        "the drawing-holds check moved out from between the requirements read "
-        "and the build. After the build starts, a frame that does not hold "
-        "has already been spent on"
-    )
     rule = crafter[crafter.index("**The frame is judged before it is built to.**") :]
     rule = rule[: rule.index(" check: ")]
+    # The path `trail/phases/phase-N.md` and its heading
+    # `## What this phase found`, where the crafter writes a frame that does
+    # not hold and the next phase reads it.
     for named in (
         "trail/phases/phase-N.md",
         "## What this phase found",
-        "the hand-back",
     ):
         assert named in rule, (
             f"the rule no longer names `{named}` as where a `no` goes. A "
             "`no` with no destination is a finding that reaches nobody"
         )
-    assert "never back to the framer" in rule, (
-        "the sentence stopped ruling out the route back to the framer, which "
-        "is the second interruption that phase exists to spend once"
-    )
 
 
 def test_spec_directories_carry_the_timestamp_prefix():

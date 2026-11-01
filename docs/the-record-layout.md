@@ -183,14 +183,19 @@ check: tests/behaviour/test_whether_a_line_is_live_is_asked_by_what_the_line_doe
   `hooks/lib/config.py#hidden_lines`, which reads `seal/config.md`, keeps,
   wherever its walk is unsure, the fence-only reading it gave before the walk:
   a row below a fence nobody closed declares nothing, and a row below a
-  comment opener nobody closed still declares unless a fence that closes
-  holds it, because that reading never hid one, and the walk may miss no row
-  the older reading saw. `hooks/lib/routing.py#shown`,
-  which reads a `routing.md` and is not one of the four, keeps the reading
-  it gave before the walk the same way, and that reading hid nothing: a row
-  below a fence or a comment opener nobody closed still declares there,
-  unless a fence that closes holds it. Those rows are the places a line
-  nobody wrote live declares something; at every other fence or comment,
+  comment opener nobody closed is not hidden, because that reading never hid
+  one, and the walk may miss no row the older reading saw. That row declares
+  nothing either: `hooks/lib/config.py#config_table` refuses a
+  `| Item | Value |` header inside an HTML block opened above it and never
+  closed, because GFM renders no table there, so every item of that table is
+  a refusal, which a hook reads as silence and a command prints with exit 2
+  (`templates/setup/config.md` *Repository config*).
+  `hooks/lib/routing.py#shown`, which reads a `routing.md` and is not one of
+  the four, keeps the reading it gave before the walk the same way, and that
+  reading hid nothing: a row below a fence or a comment opener nobody closed
+  still declares there, unless a fence that closes holds it. Those
+  `routing.md` rows are the places a line nobody wrote live declares
+  something; at every other fence or comment,
   what this protects is that nothing is excused or declared by a line
   nobody wrote live. The wrong answer is a statement left unbound, a hook
   that says nothing, or a gate that asks.

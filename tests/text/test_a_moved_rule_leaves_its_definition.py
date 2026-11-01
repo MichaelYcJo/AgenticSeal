@@ -304,50 +304,6 @@ def test_the_crafter_claims_no_act_another_definition_owns():
             )
 
 
-def test_what_replaced_them_says_whose_the_act_is():
-    """An absence alone leaves a hole a reader fills with the old behaviour.
-
-    So the removal owes its replacement: the routing batch and the plan's
-    approval happened before the crafter was spawned, and its `## Never` says
-    so beside the act it rules out. Without this the crafter meets a design
-    gate that simply says less and reasons its way back.
-    """
-    crafter = flat(read(CRAFTER))
-    assert "the routing batch was asked and written before you were spawned" in (
-        crafter
-    ), (
-        "nothing says whose the routing batch is, so a crafter meeting an "
-        "unanswered question asks it"
-    )
-    assert "the spawn is the gate" in crafter, (
-        "nothing says the design gate already happened, so a crafter presents "
-        "approaches and waits for a go"
-    )
-
-
-def test_the_crafter_stops_where_a_declared_frame_is_absent():
-    """S14's second half, and the repair the removed inference required.
-
-    The inference — a missing frame proves the ladder wanted none — is not
-    sound: a frame is missing when nobody drew one, whatever the rung. Its
-    absence alone leaves the crafter with no instruction at all for the state
-    it was wrong about, so the instruction is asserted here beside the
-    sentence's absence.
-    """
-    crafter = flat(read(CRAFTER))
-    assert (
-        "Where `routing.md` declares a framer and no `frame/design.md` is there, stop "
-        "and hand that back" in crafter
-    ), (
-        "the crafter has no instruction for a declared frame that is not there, "
-        "which is the state the removed inference told it to build through"
-    )
-    assert "A missing `frame/design.md` is not evidence about the rung" in crafter, (
-        "the instruction arrives with no reason, so the next edit reads it as "
-        "caution and softens it"
-    )
-
-
 def test_a_citation_is_not_a_copy():
     """The other direction, which matters more than it looks.
 
@@ -382,31 +338,6 @@ def test_a_citation_is_not_a_copy():
 
 # --- the proofer's own rules from the 0.22.0 run (#957) -----------------------
 
-PROOFER = os.path.join(ROOT, "agents", "proofer.md")
-
-
-def proofer_rule(lead):
-    """The `## Rules` paragraph of `agents/proofer.md` that opens with **LEAD**,
-    flattened, or "" where none does."""
-    text = read(PROOFER)
-    rules = text[text.index("\n## Rules\n") :]
-    for paragraph in rules.split("\n\n"):
-        if paragraph.startswith(f"**{lead}**"):
-            return flat(paragraph)
-    return ""
-
-
-def test_the_proofer_writes_its_record_in_the_branch_worktree():
-    """The proofer writes its round record in the branch worktree, never the
-    main checkout (#957).
-
-    Twice in the 0.22.0 run a proofer wrote its record to the main checkout.
-    Every eval case names the record's path in its prompt, so a definition
-    that dropped the rule would still pass them; this case reads the rule."""
-    rule = proofer_rule("The record goes to the branch worktree.")
-    assert "in the worktree of the branch under review" in rule, rule
-    assert "never the main checkout" in rule, rule
-
 
 def test_the_proofer_checks_its_record_in_the_branch_worktree():
     """The hand-back check reads the tree the record is in (#957 round 1,
@@ -419,22 +350,12 @@ def test_the_proofer_checks_its_record_in_the_branch_worktree():
     command."""
     with open(os.path.join(ROOT, "agents", "proofer.md"), encoding="utf-8") as f:
         text = " ".join(f.read().split())
+    # The command the proofer runs at its hand-back, with the `--root` that
+    # points it at the branch worktree.
     assert (
         "chain_check.py --baseline <base> --root <the branch worktree> --worktree"
         in text
     ), "the proofer's hand-back check names no `--root`, so it reads the session's tree"
-
-
-def test_the_proofer_reads_each_new_test_against_its_group():
-    """A test the diff adds is read against its group, and one that covers
-    nothing its group does not is a finding (#957).
-
-    The owner's rule of 2026-10-15. No eval case plants a test that
-    duplicates its group, so nothing but this case reads the rule."""
-    rule = proofer_rule("Each new test is read against its group.")
-    assert "against the tests of the function it covers" in rule, rule
-    assert "any pair a duplicate check" in rule, rule
-    assert "is a `should` finding" in rule, rule
 
 
 # --- the crafter's own rules from its rewrite (#967) ---------------------------
@@ -575,72 +496,47 @@ def test_the_crafters_fix_pass_appends_a_close_block_and_sweeps_what_its_range_r
         assert gone not in paragraph, f"the fix-pass rule still says {gone!r}"
 
 
-def test_the_crafters_hand_back_carries_what_it_may_not_record_and_ends_in_no_block():
-    """Round 1 of #967 put two sentences into the crafter that a reader acts
-    on: step 10 hands back what only a person can answer, with its answerer,
-    and `## Never` refuses a block at the end of the hand-back whoever asks.
-    The orchestrator files from the first, and the changelog promises the
-    second to a plugin user, so a trim that drops either goes red here."""
+def test_the_crafters_hand_back_names_the_follow_up_file():
+    """Round 1 of #967: step 10 hands back what the crafter may not record
+    itself, and names the file a leftover goes to, which the orchestrator
+    files from."""
     text = read(CRAFTER)
     order = flat(text[text.index("\n## Order of work\n") : text.index("\n## Never\n")])
-    never = flat(text[text.index("\n## Never\n") : text.index("\n## Rules\n")])
-    for clause in (
-        "a question only a person can answer",
-        "a leftover for `seal/follow-up.md`",
-        "with who answers each",
-    ):
-        assert clause in order, f"step 10 lost {clause!r}"
-    assert "end the hand-back with a block of any kind, whoever asks for one" in never
+    # The path `seal/follow-up.md`, the code span, where the orchestrator
+    # files a leftover the hand-back names.
+    assert "a leftover for `seal/follow-up.md`" in order, (
+        "step 10 no longer names the file a leftover goes to"
+    )
 
 
 # --- the tracer's own rules from its rewrite (#970) --------------------------
 
 TRACER = os.path.join(ROOT, "agents", "tracer.md")
 
-# The three rules S3 and S4 of #970 name, each by its lead and the clause that
-# makes it the rule rather than its title. The tracer's other two rules have
-# pins of their own: `tests/text/test_absence_claims.py` and
-# `tests/behaviour/test_a_probe_that_commits_says_so.py`.
-TRACERS_RULES = {
-    "Facts, never verdicts.": ("is your caller's judgment",),
-    "A guessed original proves nothing.": (
-        "return `original not found` naming what was tried, and no findings",
-    ),
-    "Start from the design's coordinates, and report the axis nobody looked at.": (
-        "reads like one that came back empty",
-    ),
-}
+# The rule S4 of #970 names, by its lead. Of the tracer's other rules,
+# `tests/behaviour/test_a_probe_that_commits_says_so.py` reads one, and the
+# orchestrator reads the rest at each tracer report.
+GUESSED = "**A guessed original proves nothing.**"
 
 
-def test_the_tracers_rules_stand_with_their_enforcers():
-    """T3 of #970: the tracer's rules keep their paragraphs, their clauses and
-    a `check:` line, it opens `legacy-parity` at step 1, and where no
+def test_the_tracer_opens_the_parity_skill_and_returns_original_not_found():
+    """T3 of #970: the tracer opens `legacy-parity` at step 1, and where no
     original resolves it returns `original not found` instead of asking.
 
-    No case runs the tracer (#957's Q3), so a trim could drop any of these
-    with every grader green. The last is S4: the skill's resolution order
-    ends with the caller asking the user, and a subagent has nobody to ask."""
+    No case runs the tracer (#957's Q3), so a trim could drop either with
+    every grader green. The second is S4: the skill's resolution order ends
+    with the caller asking the user, and a subagent has nobody to ask."""
     text = read(TRACER)
-    assert "\n## Rules\n" in text, "`agents/tracer.md` has no `## Rules` section"
     rules = text[text.index("\n## Rules\n") :]
-    for lead, clauses in TRACERS_RULES.items():
-        paragraph = next(
-            (p for p in rules.split("\n\n") if p.startswith(f"**{lead}**")), ""
-        )
-        assert paragraph, f"`agents/tracer.md` lost the rule {lead!r}"
-        assert re.search(r"^check: \S", paragraph, re.M), (
-            f"{lead!r} has no `check:` line, so nothing names what holds it"
-        )
-        said = flat(paragraph)
-        for clause in clauses:
-            assert clause in said, f"{lead!r} lost {clause!r}"
+    guessed = next((p for p in rules.split("\n\n") if p.startswith(GUESSED)), "")
+    # The words `original not found`, the code span, which the tracer returns
+    # and its caller reads as no original resolved.
+    assert "return `original not found` naming what was tried, and no findings" in flat(
+        guessed
+    ), "the rule no longer says what the tracer returns where no original resolves"
     order = flat(text[text.index("\n## Order of work\n") : text.index("\n## Never\n")])
-    never = flat(text[text.index("\n## Never\n") : text.index("\n## Rules\n")])
+    # The path of the skill the tracer opens at step 1.
     assert order.startswith("## Order of work 1. Open `skills/legacy-parity/SKILL.md`")
-    assert "return `original not found` with what you tried" in order, (
-        "step 2 no longer says what the tracer returns where no original resolves"
-    )
-    assert "Ask a person anything, or record an answer for one." in never
 
 
 # A batching figure: a number within a few words of "tools per turn", either

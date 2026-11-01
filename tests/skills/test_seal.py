@@ -2359,6 +2359,8 @@ class Test_write_row:
         home.mkdir()
         write_config(home, before)
         said = seal.write_row(str(home), "shared")
+        # The walker's cause `write_row` returns, which the person who ran
+        # `seal mode` reads to repair the file.
         assert "inside an HTML block opened above it and never closed" in said, said
         assert "defect in this command" not in said, said
         assert (home / "config.md").read_text(encoding="utf-8") == before
@@ -2604,6 +2606,8 @@ class Test_install_workflow:
             assert not os.path.lexists(path)
             assert "was NOT written" in line
         if shape in no_root:
+            # The line `seal pr-checks install` prints with no shared root,
+            # which the person who ran it reads, with the command it names.
             assert (
                 "the checks read committed records" in line
                 and "`seal mode shared` puts it in the tree" in line
@@ -3027,6 +3031,8 @@ class Test_switch:
             "  .github/workflows/hygiene.yml stays: in local mode its checks "
             "examine nothing and pass, and `seal pr-checks remove` takes them out\n"
         ) in out
+        # The two commands `seal mode local` prints for moving the records
+        # between clones, which the person who switched runs.
         assert "`seal export` here and `seal import` there" in out
         commit_everything_as_e(repo, "the switch to local")
         code, out = said(capsys, repo, "mode", "shared")
@@ -3484,6 +3490,8 @@ class Test_pr_checks:
         before = snapshot(repo)
         code, out = said(capsys, repo, "pr-checks", "install")
         assert code == 1, out
+        # The refusal `seal pr-checks install` prints in local mode, which the
+        # person who ran it reads.
         assert "the checks read committed records" in out
         assert snapshot(repo) == before
 

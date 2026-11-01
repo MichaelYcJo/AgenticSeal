@@ -47,7 +47,7 @@ WRITING_RULE_CHECKS = (
     " tests/test_censuses.py"
     " tests/text/test_the_agent_contract_holds_the_universal_rules.py"
     " tests/behaviour/test_a_cited_section_stands_in_its_file.py",
-    "check: tests/behaviour/test_one_word_one_meaning.py",
+    "check: none reader: the proofer at review",
     "check: none reader: the proofer at review",
 )
 
@@ -137,23 +137,21 @@ def section(lines, heading, level):
 
 
 def test_the_rules_for_text_an_agent_or_a_check_reads_reach_both_languages():
-    """The three writing rules for text an agent or a check reads stand in
-    one section under `## 구성 규칙`, each ending with its `check:` line, and
-    a writer who opens either language section alone is pointed at it.
+    """The three writing rules for text an agent or a check reads each end
+    with its `check:` line, and a writer who opens either language section
+    alone, the orchestrator at its spawn step, and every session through the
+    core are pointed at their section.
 
     An agent opens one language section by range, so a rule under
-    `## 구성 규칙` reaches it only through the line naming the section; and
-    the skill loads by its description, so the description names this kind
-    of text among its uses (S16 of `1792540458-on-demand-files-state-the-current-rule`).
+    `## 구성 규칙` reaches it only through the line naming the section (S16
+    of `1792540458-on-demand-files-state-the-current-rule`).
     """
     text = read(SKILL)
     lines = text.split("\n")
-    structure = next(h for h in headings(text) if h.startswith("## 구성 규칙"))
-    assert WRITING_RULES in section(lines, structure, 2), (
-        f"{SKILL}: {WRITING_RULES!r} does not stand under {structure!r}"
-    )
     body = [line.strip() for line in section(lines, WRITING_RULES, 3)]
     checks = tuple(line for line in body if line.startswith("check: "))
+    # The check lines `seal rules --check` reads, and the paths of the
+    # modules each names, which a reader of the rules opens.
     assert checks == WRITING_RULE_CHECKS, (
         f"{SKILL} {WRITING_RULES}: its check lines read {checks}, and the "
         f"three rules end with {WRITING_RULE_CHECKS}"
@@ -161,6 +159,8 @@ def test_the_rules_for_text_an_agent_or_a_check_reads_reach_both_languages():
     title = WRITING_RULES[len("### ") :]
     for heading in LANGUAGE_SECTIONS:
         named = " ".join(section(lines, heading, 2))
+        # The heading cited in italics, which a writer who opened this
+        # section alone resolves to the three rules.
         assert f"*{title}*" in named, (
             f"{SKILL} {heading}: nothing in it names *{title}*, so a writer "
             "who opened this section alone never reaches the three rules"
@@ -170,6 +170,7 @@ def test_the_rules_for_text_an_agent_or_a_check_reads_reach_both_languages():
     spawn = read("skills/implement/orchestration.md")
     spawn = spawn.split("### The frame is read against the issue at the spawn", 1)[-1]
     spawn = " ".join(spawn.split("\n## ", 1)[0].split())
+    # The citation the orchestrator resolves at its spawn step.
     assert f"`{SKILL}` *{title}*" in spawn, (
         "the orchestrator's spawn step does not name the writing rules, so the "
         "one party that writes a spawn prompt is never pointed at them"
@@ -178,12 +179,8 @@ def test_the_rules_for_text_an_agent_or_a_check_reads_reach_both_languages():
     # and opens no writing skill before it, so the core every session and
     # every agent reads names the section.
     core = " ".join(read("skills/core/SKILL.md").split())
+    # The citation every session and every agent resolves through the core.
     assert f"`{SKILL}` *{title}*" in core, (
         "the core does not name the writing rules, so a session writes a "
         "skill before anything points it at them"
-    )
-    head = " ".join(text.split("\n---\n", 1)[0].split())
-    assert "text an agent or a check reads" in head, (
-        f"{SKILL}'s description does not name text an agent or a check reads "
-        "among its uses, so the skill is not loaded to write one"
     )

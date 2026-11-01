@@ -318,6 +318,8 @@ class Test_target_of:
         assert not any(line.startswith("git rm") for line in lines), lines
         prompt = sd.prompt(t)
         assert f"on branch `{SEEDED_BRANCH}` at HEAD" in prompt
+        # The prompt `seed_defects.py` writes, which the proofer under test
+        # reads for its base.
         assert f"the base is `{commits['base']}`" in prompt
         assert commits["target"] not in prompt and commits["squash"] not in prompt
         report = f"{layout[0]}/{SEEDED_ITEM}/{layout[1]}/round-1.md"
