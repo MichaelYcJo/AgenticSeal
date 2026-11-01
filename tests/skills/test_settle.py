@@ -1995,6 +1995,35 @@ class Test_main:
             heading < text.index("\nfrom adr/") < text.index(settle.REMOVES_HEADING)
         ), text
 
+    def test_a_merge_that_resolved_a_document_is_its_last_change(
+        self, repo, capfd, monkeypatch
+    ):
+        """#1054, round 1's finding 1: a merge whose conflict resolution
+        rewrote a document is the commit that last changed it, since `git log`
+        prints a merge's own change only under `--cc`."""
+        item(repo, "1700000001-a", op("add", "U", new="Rule."))
+        write(repo, "adr/0001.md", "one\n")
+        commit(repo, "a decision")
+        first = stamp(repo)
+        git(repo, "checkout", "-qb", "side")
+        write(repo, "adr/0001.md", "side\n")
+        commit(repo, "side")
+        git(repo, "checkout", "-q", "main")
+        write(repo, "adr/0001.md", "main\n")
+        commit(repo, "main")
+        # The merge conflicts and exits 1, which `git` here would raise on.
+        subprocess.run(
+            ["git", "-C", str(repo), "merge", "--no-ff", "-q", "side"],
+            capture_output=True,
+        )
+        write(repo, "adr/0001.md", "resolved\n")
+        commit(repo, "merge side, resolved")
+        merged = stamp(repo)
+        monkeypatch.chdir(repo)
+        code, text = dry_run(repo, capfd, "--from", "adr")
+        assert code == 0, text
+        assert f"    adr/0001.md  added {first}  last changed {merged}\n" in text, text
+
     def test_a_file_under_two_named_directories_is_listed_once(
         self, repo, capfd, monkeypatch
     ):
@@ -2013,32 +2042,46 @@ class Test_main:
         assert "\nfrom a/b/: 0 documents\n" in text, text
 
     @pytest.mark.parametrize(
-        "given, said",
+        "where, given, said",
         [
-            ("missing", "names no directory in the working tree"),
-            ("docs/a.md", "names no directory in the working tree"),
-            ("{outside}", "is outside the repository"),
-            ("seal", "is the seal/ root or under it"),
-            ("seal/threads", "is the seal/ root or under it"),
+            (".", "missing", "names no directory"),
+            (".", "docs/a.md", "names no directory"),
+            ("docs", "adr", "names no directory"),
+            (".", "{outside}", "is outside the repository"),
+            (".", "seal", "is the seal/ root or under it"),
+            (".", "seal/threads", "is the seal/ root or under it"),
         ],
-        ids=["missing", "a-file", "outside", "the-root", "under-the-root"],
+        ids=[
+            "missing",
+            "a-file",
+            "a-directory-of-the-top-read-from-a-subdirectory",
+            "outside",
+            "the-root",
+            "under-the-root",
+        ],
     )
     def test_refuses_a_from_that_names_no_directory_to_read(
-        self, repo, capfd, monkeypatch, tmp_path, given, said
+        self, repo, capfd, monkeypatch, tmp_path, where, given, said
     ):
         """#1054 A4: a path that is no directory of the working tree, one
         outside the repository, and the `seal/` root or a path under it, whose
         records the settle already reads, each exit 2 with one sentence naming
-        the path, and nothing is read or removed."""
+        the path, and nothing is read or removed. The sentence names the path
+        as it was read, from the directory the command runs in, so `--from
+        adr` run in `docs/` names `docs/adr` where `adr/` stands at the top
+        (round 1's finding 2)."""
         (tmp_path / "elsewhere").mkdir()
         given = given.format(outside=tmp_path / "elsewhere")
+        write(repo, "adr/0001.md", "a decision\n")
         item(repo, "1700000001-a", op("add", "U", new="Rule."))
         commit(repo, "a")
         before = files(repo)
-        monkeypatch.chdir(repo)
+        monkeypatch.chdir(repo / where)
         code, text = dry_run(repo, capfd, "--from", given)
         assert code == 2, text
         assert text.startswith(f"settle: --from {given} {said}"), text
+        # The path the command read, which the person opens next.
+        assert f" it reads as {os.path.abspath(given)} from " in text, text
         assert text.count("\n") == 1 and text.endswith(".\n"), text
         assert files(repo) == before
 

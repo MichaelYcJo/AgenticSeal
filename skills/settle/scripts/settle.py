@@ -59,12 +59,13 @@ Each `--from DIR` is read from the directory this runs in, and names a
 directory of the working tree outside the `seal/` root. A document is every
 file `git ls-files --cached --others --exclude-standard` lists under it, at
 any depth and of any extension. Each is printed with the commit that added it
-and the commit that last changed it, read from one `git log` per directory
-with renames off, so a moved file counts as added where it lands, and with
-whether `git diff HEAD` names it changed in the working tree. Documents are
-listed in the order of the commits that add them, and those no commit adds
-come last, in path order; a file two named directories hold is listed under
-the first. Which section a document bears on, and whether it is promoted, is
+and the commit that last changed it, read from one `git log` per directory.
+Renames are off, so a moved file counts as added where it lands, and `--cc`
+is on, so a merge that resolved a conflict in a document is its last change.
+A document `git diff HEAD` names is printed as changed in the working tree.
+Documents are listed in the order of the commits that add them, and those no
+commit adds come last, in path order; a file two named directories hold is
+listed under the first. Which section a document bears on, and whether it is promoted, is
 the settling session's to propose and the person's to mark: nothing here
 reads what a document says. A root holding no work item lists them before
 its settled line.
@@ -471,22 +472,26 @@ DOCUMENTS_HEADING = (
 NO_COMMIT = "no commit adds it"
 CHANGED = "changed in the working tree"
 
-# What `--from` refuses, each with exit 2 before anything is read.
+# What `--from` refuses, each with exit 2 before anything is read. A path is
+# read from the directory this runs in, which need not be the repository's
+# top, so each sentence names the path as it was read.
 FROM_WITH_APPLY = (
     "settle: --from and --apply cannot be given together: --apply removes only "
     "under seal/threads/ and reads no named directory, so nothing was read and "
     "nothing was removed.\n"
 )
 FROM_NOT_A_DIRECTORY = (
-    "settle: --from {given} names no directory in the working tree of {root}, "
-    "so nothing was read.\n"
+    "settle: --from {given} names no directory: it reads as {path} from the "
+    "directory this runs in, so nothing was read.\n"
 )
 FROM_OUTSIDE = (
-    "settle: --from {given} is outside the repository at {root}, so nothing was read.\n"
+    "settle: --from {given} is outside the repository at {root}: it reads as "
+    "{path} from the directory this runs in, so nothing was read.\n"
 )
 FROM_UNDER_ROOT = (
     "settle: --from {given} is the seal/ root or under it, at {home}, whose "
-    "records the settle already reads, so nothing was read.\n"
+    "records the settle already reads: it reads as {path} from the directory "
+    "this runs in, so nothing was read.\n"
 )
 
 
@@ -852,15 +857,17 @@ def named_directory(root, home, given):
     """`(rel, None)` for a `--from` GIVEN naming a directory of the working
     tree at ROOT outside the `seal/` root HOME, REL its path from ROOT
     written with `/`, or `(None, refusal)`. GIVEN is read from the directory
-    this runs in, and every path is compared resolved."""
-    path = os.path.realpath(os.path.abspath(given))
+    this runs in, and every path is compared resolved; a refusal names it as
+    it was read, before links are resolved."""
+    read = os.path.abspath(given)
+    path = os.path.realpath(read)
     top = os.path.realpath(root)
     if not os.path.isdir(path):
-        return None, FROM_NOT_A_DIRECTORY.format(given=given, root=root)
+        return None, FROM_NOT_A_DIRECTORY.format(given=given, path=read)
     if not inside(path, top):
-        return None, FROM_OUTSIDE.format(given=given, root=root)
+        return None, FROM_OUTSIDE.format(given=given, root=root, path=read)
     if inside(path, os.path.realpath(home)):
-        return None, FROM_UNDER_ROOT.format(given=given, home=home)
+        return None, FROM_UNDER_ROOT.format(given=given, home=home, path=read)
     return os.path.relpath(path, top).replace(os.sep, "/"), None
 
 
@@ -880,11 +887,15 @@ def history(root, rel):
     from one `git log` with renames off, oldest first: `added` is `{path:
     (place, commit)}` for the last commit adding each path, PLACE its
     position in the log, and `last` is `{path: commit}` for the last commit
-    naming it. A commit is its short hash and date. A HEAD with no commit
-    gives neither."""
+    naming it. `--cc` names a merge whose result differs from every parent
+    at a path, such as a conflict it resolved, as changing that path; its
+    status holds one letter per parent, so it never reads as an add. A
+    clean merge names nothing. A commit is its short hash and date. A HEAD
+    with no commit gives neither."""
     fields = git_fields(
         root, "log", "-z", "--full-history", "--topo-order", "--reverse",
-        "--no-renames", "--name-status", "--format=%x01%h %cs", "HEAD", "--", rel,
+        "--no-renames", "--name-status", "--cc", "--format=%x01%h %cs",
+        "HEAD", "--", rel,
     )  # fmt: skip
     added, last, commit, status = {}, {}, None, None
     for place, field in enumerate(fields):

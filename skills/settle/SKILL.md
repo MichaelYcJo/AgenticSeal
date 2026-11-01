@@ -214,10 +214,11 @@ nothing:
   A document is every file
   `git ls-files --cached --others --exclude-standard` lists under the
   directory, at any depth and of any extension, so a file git ignores is
-  not one. Each line holds the file's
-  path, the commit that added it and the commit that last changed it, each
-  as a short hash and a date, read from one `git log` per directory with
-  renames off, so a moved file counts as added where it lands. A line
+  not one. Each line holds the file's path, the commit that added it and
+  the commit that last changed it, each as a short hash and a date, read
+  from one `git log` per directory. Renames are off, so a moved file counts
+  as added where it lands, and a merge's own change is read (`--cc`), so a
+  merge that resolved a conflict in the file is its last change. A line
   ends `changed in the working tree` where `git diff HEAD` names the file.
   A file no commit adds, untracked or staged and never committed, reads
   `no commit adds it`. Documents are listed in the order of the commits
@@ -339,8 +340,9 @@ and removes nothing**: a path that names no directory in the working tree,
 a path outside the repository, the `seal/` root or a path under it, whose
 records the settle already reads, and `--from` beside `--apply`. `--apply`
 removes only under `seal/threads/`, and a flag it accepted would read as
-one it acted on. A named directory holding no document is listed with 0
-documents.
+one it acted on. Each sentence about a path names it as it was read, from
+the directory `seal settle` runs in. A named directory holding no document
+is listed with 0 documents.
 
 **The listing is not a proposal.** Each of its lines is what git answers
 about one file, as *What the dry run shows* gives them: its path, its two
