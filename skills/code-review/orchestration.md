@@ -237,17 +237,28 @@ nothing to wait for. The wait follows a short poll. Every ten seconds the
 orchestrator runs
 
 ```
-gh pr view <N> --json headRefOid,statusCheckRollup --jq '[.headRefOid, (.statusCheckRollup | length)]'
+gh pr view <N> --json headRefOid --jq .headRefOid
+gh pr checks <N> --json event --jq '[.[] | select(.event == "pull_request")] | length'
 ```
 
-and stops once the SHA it prints is the commit it pushed last and the count
-is above 0. It then runs the wait. The SHA keeps the wait off the finished
-checks of the commit before the push. A poll that has not got there within
-two minutes is not a pass. The orchestrator then reads
+and stops once the first prints the commit it pushed last and the second
+prints a count above 0. It then runs the wait. The SHA keeps the wait off
+the finished checks of the commit before the push. The count keeps it off
+the checks of another event on the pushed commit itself. A run of another
+event on that commit, such as a `push` run, lists its checks on the pull
+request too, often finished before the pull request opens, and `--watch`
+over finished checks alone exits 0 at once. With `--json`, a failed check exits
+0, and the second command exits 1 while no check at all has reported, so
+that exit means the poll goes on. The count reads the checks of GitHub
+Actions runs on `pull_request` alone. Where the pull request's checks come
+from another CI service or another event, the poll reaches the limit below,
+and the report says so. A poll that has not got there within two minutes is
+not a pass. The orchestrator then reads
 `gh pr view <N> --json state,mergeable` once more, and the paragraph above
 says what each reading means. Under `OPEN` and `MERGEABLE` it says in its
-report that no check reported on that commit and names the SHA. It waits no
-longer, and it does not treat the pull request as checked.
+report that no check of a `pull_request` run reported on that commit and
+names the SHA. It waits no longer, and it does not treat the pull request
+as checked.
 
 **A conflict with the base is integrated by merging the base into the
 branch, never by a rebase.** A rebase orphans the commits every round record

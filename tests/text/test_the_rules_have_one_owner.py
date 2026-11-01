@@ -350,7 +350,10 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
     is integrated by a merge, never a rebase, and the chain check reads no
     merge commit, so a resolution outside the records gets a verifying
     round. #1222 adds the poll before the wait, because the wait run before a
-    check has reported exits 1 without waiting."""
+    check has reported exits 1 without waiting. Round 1 of #1222 counts the
+    checks of `pull_request` runs alone, because a finished check of another
+    event on the pushed commit ended the poll before the pull request's own
+    checks were listed, and pins the poll's stop condition and its report."""
     text = flat(*ORCH)
     section = text[
         text.index("## Orchestrator: the pull request opens once the sealer seals") : (
@@ -364,8 +367,15 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
         "`gh pr checks <N> --watch`",
         "`no checks reported on the '<branch>' branch`",
         "exits 1 without waiting",
-        "--json headRefOid,statusCheckRollup",
+        "Every ten seconds the orchestrator runs",
+        "gh pr view <N> --json headRefOid --jq .headRefOid",
+        "gh pr checks <N> --json event --jq "
+        "'[.[] | select(.event == \"pull_request\")] | length'",
+        "stops once the first prints the commit it pushed last and the second "
+        "prints a count above 0",
         "within two minutes",
+        "reads `gh pr view <N> --json state,mergeable` once more",
+        "no check of a `pull_request` run reported on that commit and names the SHA",
         "`CONFLICTING` means GitHub made no merge ref for the pull request and "
         "runs no `pull_request` CI on it, and nothing else says so",
         "`UNKNOWN` means GitHub has not computed the answer yet",
