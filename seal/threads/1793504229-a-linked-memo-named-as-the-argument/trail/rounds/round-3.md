@@ -62,6 +62,11 @@ The fix gives each case the result each platform's reading gives. With it applie
 
 Precondition, beside the OS boundary: Win32 path handling drops `a\..` by its text before any reparse point is read. The code's comment at `:1105-1106` already assumes this, and no run here checked it.
 
+```seal
+verdict: fixed b46c616b
+answer: Fixed by removing the reading the three cases pinned, not by the paste-ready fix. `frame/plan.md` *Judgments of the run*, the `..` row at 9acfafe1, reads a path that holds a `..` as the release did, by `real(path)`. So `absolute` now gives `real(path)` for such a path and `os.path.abspath(path)` for every other one, with no walk and no branch on `os.name`. `Test_as_named` keeps one `..` case, `test_accepts_a_path_holding_a_parent_as_real_reads_it`, on the layout of the link-above case, and it asserts `as_named(given) == os.path.realpath(given)`. Its other `..` cases are removed, because under the decision each pins the same equality and the kept layout fails every mutant they fail. `Test_repository_of::test_accepts_a_parent_as_real_reads_it` asserts that the repository is `os.path.realpath(given)`, since `ext/..` lands at a repository's top under either platform's reading. Neither case expects one platform's result, so the paste-ready fix's per-platform `landed` is not needed, and both sides call the same `realpath` on Windows (read). The `as_named` case failed against d9b5f6e3's script with `.../hop/a/gaps.md` against `.../<WORK>/a/gaps.md` (executed). The `repository_of` case cannot fail there: on POSIX the walk lands in the directory `real` lands in, and on Windows both drop the `..` by its text. Two `seal mutate` runs on the `..` branch, `real(path)` replaced by `os.path.abspath(path)` and by `real(os.path.abspath(path))`, each failed both cases (executed). The module passed with 388 cases, and the phase-boundary set of 30 modules passed with 2395 and the same 9 skips (executed). Whether the link cases run on the Windows legs stays with those legs, as `gaps.md` *Not verified* names.
+```
+
 ### 2. A link loop spends the walk's budget and then climbs one directory per link, so `specs/loop/..` is named "not in" a repository
 
 ```seal
@@ -134,6 +139,11 @@ class _LinkLoop(Exception):
 
 Precondition: `real` is `os.path.realpath`, which the Python documentation says resolves a loop as far as it can and raises nothing when `strict` is false. The fix assumes nothing else.
 
+```seal
+verdict: fixed b46c616b
+answer: Fixed by the removal. The walk and its 40-link budget left `absolute` at b46c616b, so a loop is read as `os.path.realpath` reads it, as at 48d035aa, and nothing climbs once a budget runs out. The paste-ready `_LinkLoop` fallback and its rewritten case were not applied, because they repair a walk that no longer exists. The loop case `test_accepts_a_parent_stepping_out_of_a_link_loop_without_a_crash` went with the walk, since a loop is now no branch of its own: a path that holds a `..` goes to `real` whatever links it holds, and `Test_as_named::test_accepts_a_path_holding_a_parent_as_real_reads_it` pins that branch. With `specs/loop -> loop/..` in a fresh repository, `as_named` gave `<repo>/a/gaps.md` for `specs/loop/../a/gaps.md` and `<repo>` for `specs/loop/..`, both inside the repository, and `repository_of` gave `<repo>` for each (executed, CPython 3.12.11, a scratch directory, then removed). `trail/phases/phase-1.md:13` is rewritten in place at cd5fb330 and states no budget and no loop.
+```
+
 ### 3. `gaps.md` keeps the shape `spellings` cannot make open because it needs a per-link reader, and `absolute` is now that reader
 
 ```seal
@@ -148,6 +158,11 @@ The fix pass can take either way. One way reuses the walk's step in `spellings`:
 
 ```markdown
 `spellings` does not give a spelling that keeps a link above a link it resolves, because `real()` resolves every link before the one it is asked about (`trail/phases/phase-1.md` *Round 1's fix pass*, *Where the class stays open*). The base spells a path that way only where a component that was a directory at the base is now a link, and holds below it a link that stood at the base too. `absolute` already follows one link by its own text and keeps the link above it as named, and `spellings` could take that step for the base's spellings. It is left out because no layout of the plugin makes the shape: the plugin puts no link under `seal/threads/`, so a pull request cannot build it against a base that lacks the lower link.
+```
+
+```seal
+verdict: fixed cd5fb330
+answer: Fixed by rewriting the sentence in place, in my own words and not as the paste-ready text. b46c616b removed the walk, so the paste-ready sentence that `absolute` already follows one link by its own text would no longer be true. The sentence about a second resolver is gone. The paragraph now says that no layout of the plugin makes the shape, and that it is #1240's, because the shape comes from matching the base's listing to the scan by spellings of one path. The same commit adds two paragraphs to `gaps.md` *Not done*. The first is the old name left behind as a link, from the preamble and W3, which held at 48d035aa. The second is the path that holds a `..`, now read through its real path: a link the person names on it is read as its target, and the release read it that way too. Both cite #1240. The case fold stays with #1238, as it stood.
 ```
 
 ## Confirmations
