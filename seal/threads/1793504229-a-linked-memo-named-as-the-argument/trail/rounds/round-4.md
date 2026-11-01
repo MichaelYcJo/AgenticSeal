@@ -30,6 +30,11 @@ Why it matters: the fragment becomes the release note a person reads. It says "T
 A path that holds a `..` is still read through its real path, as before, so a link named on such a path, such as `../a/gaps.md` typed from a sibling directory, is read as its target, and the rows its own path held are not compared (#1240).
 ```
 
+```seal
+verdict: fixed fa73cf34
+answer: The sentence is rewritten in place, in my own words, because finding 2's fix adds a second path the check reads through its real path. After "keeps every part inside the repository as typed." the fragment now says: "A path that holds a `..`, or that runs through a link loop, is still read through its real path, as before. So a link named on a path that holds a `..`, such as `../a/gaps.md` typed from a sibling directory, is read as its target, and the rows its own path held are not compared (#1240)." The loop names no lost row, since a loop read through `real` prints the release's line. The second sentence is round 4's, split in two.
+```
+
 ### 2. A named link loop is kept as named, so the scan reads nothing under it, and the base's memo under its real spelling is reported deleted though it is there
 
 ```seal
@@ -81,6 +86,11 @@ import errno
 
 Precondition, beside the OS boundary: on POSIX, `os.stat` of a path through a loop raises `OSError` with `errno.ELOOP`, which the probe ran. On Windows, the error for a reparse-point loop is taken to be `ERROR_CANT_RESOLVE_FILENAME` (1921). That was read and not run, so the Windows legs answer for it. If the fix pass leaves the loop as it stands, the close is `deferred` to a home the orchestrator names. #1240's *Done when* does not cover this case: a comparison by file identity still finds nothing scanned under the loop.
 
+```seal
+verdict: fixed fa73cf34
+answer: Round 4's fallback is built in `absolute` (`skills/verify/scripts/unverified_check.py:1095-1119`), not after the call to it in `as_named`. `as_named` reads the argument through `absolute`, so it falls back as the finding asks. `repository_of` reads the argument through `absolute` too, so the root and the compared path still come from one reading, as `trail/phases/phase-1.md:13` states. Where `os.stat(path)` raises with `errno.ELOOP`, or with `winerror` 1921, `absolute` returns `real(path)`, as 48d035aa read every argument. The Windows code is read and not run. CPython 3.12.11's `ntpath.py:675-676` lists 1921, `ERROR_CANT_RESOLVE_FILENAME`, as "implies unfollowable symlink" among the errors `realpath` steps past. `gaps.md` *Not verified* names the Windows legs as its answerer, and says that Windows may resolve `loop\..` by its text, so that the case builds no loop there. The docstrings of `absolute` and `as_named` and the comment in `overviews` name the loop in the same commit. The case is round 4's, `Test_main::test_refuses_a_row_lost_under_a_named_link_loop_as_real_reads_it` (`tests/skills/test_unverified_check.py:2542`), placed after `test_refuses_a_row_lost_through_a_link_the_person_names`; no case in `Test_main` or `Test_as_named` named a loop before it. It failed against 792cf390's script, which 6431e637 holds byte for byte, with `present at HEAD and not here` in the output, and passed after the fix (executed). Two `seal mutate` runs at fa73cf34 each went red: the condition replaced by `if False:`, and the fallback's `return real(path)` replaced by `pass` (executed, each `seal mutate` exit 0). The module passed with 389 cases, the phase-boundary set of 30 modules with 2396 and the same 9 skips, and `uvx ruff check` and `uvx ruff format --check` on the two files exited 0 (executed). The class was listed by the errors `os.stat` raises for an argument whose path holds a link. `ELOOP` is the one where the scan enters nothing while `real` gives another spelling. A dangling link raises `ENOENT`, and the memo is then absent, so `not here` is true. That second instance was read and not run, so the list is a sample.
+```
+
 ### 3. The plan's `..` row and the phase record each name a different two of the three `..` readings this item built, and neither says that the cases at `trail/phases/phase-1.md:79-80` went
 
 ```seal
@@ -105,6 +115,11 @@ Three readings of `..` were built, and the round after each one questioned or re
 Three other readings were built for this work item, and the round after each one questioned or refuted it. Phase 1 dropped `a/..` by its text through `os.path.abspath`, which names a directory the file system does not reach where `a` is a link, and round 1 asked about it. Round 1's fix pass resolved the part up to the last `..` through `real`, which also resolved a link the `..` never stepped out of, and round 2 found a row lost behind it. Round 2's fix pass followed only the link a `..` steps out of, by that link's own text. Round 3 found two defects in that third reading.
 ...
 The walk and its budget are gone, and so are the `..` cases of each earlier reading, the two that *Round 1's fix pass* lists as seen red among them.
+```
+
+```seal
+verdict: fixed fa73cf34
+answer: The plan cell, `frame/plan.md:45`, was rewritten with round 4's text by the orchestrator at 6431e637. fa73cf34 rewrote `trail/phases/phase-1.md:13` with round 4's paste-ready text: "Three other readings" through "in that third reading", and the sentence on the cases that left. The b7d19345 reading was checked at `git show b7d19345:skills/verify/scripts/unverified_check.py`, whose `absolute` resolves the part up to the last `..` through `real` (read). Lines 79-80 and 94-95 stand, as the finding says. In the same commit, the passage's sentence on what `absolute` gives, and a closing sentence, name finding 2's loop reading, because `absolute` changed there.
 ```
 
 ## Confirmations
