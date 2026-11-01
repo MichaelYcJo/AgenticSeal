@@ -2433,15 +2433,18 @@ class Test_main:
         named = [os.path.basename(os.path.dirname(p)) for p in reported_paths(out)]
         assert named == [name], out
 
+    @pytest.mark.parametrize("named", ["the tree", "the link"])
     @pytest.mark.parametrize("volume", ["this volume", "another volume"])
     def test_accepts_a_link_to_a_file_beyond_the_repository_as_not_compared(
-        self, tmp_path, monkeypatch, capsys, volume
+        self, tmp_path, monkeypatch, capsys, volume, named
     ):
         """#19: with the real path kept, a link's target outside the
         repository is a path no commit holds; `show` answered None and the
         file left the report in silence. Its open rows are read, and it is
         named with the reason that is true. On another volume it has no
-        relative form at all, induced so every leg runs it."""
+        relative form at all, induced so every leg runs it. The link named
+        itself has no real spelling in the repository there either, and the
+        base is asked under the spellings it has."""
         d = _committed(tmp_path, {f"specs/{WORK}/gaps.md": memo(CANONICAL)})
         write(tmp_path, "beyond/gaps.md", memo(CANONICAL, OTHER))
         (d / "specs" / OTHER).mkdir()
@@ -2459,9 +2462,11 @@ class Test_main:
 
             monkeypatch.setattr(os.path, "relpath", refuses_beyond)
         monkeypatch.chdir(d)
-        assert run([str(d), "--baseline", "HEAD"]) == 0
+        given = d if named == "the tree" else d / "specs" / OTHER / "gaps.md"
+        assert run([str(given), "--baseline", "HEAD"]) == 0
         out = capsys.readouterr().out
-        assert "2 closing memos · 4 open" in out, out
+        memos = "2 closing memos · 4" if named == "the tree" else "1 closing memos · 2"
+        assert f"{memos} open" in out, out
         named = out.split("not compared against HEAD:")[1]
         said = (
             "not compared: the file lies outside the repository, so no commit "
