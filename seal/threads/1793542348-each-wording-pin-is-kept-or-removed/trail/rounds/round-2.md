@@ -51,6 +51,11 @@ The sentence that opens "A kept assert still matches its literal whole" keeps it
 Rewording the phrase one of the exceptions pins turns it red as well, until the follow-up issue removes it.
 ```
 
+```seal
+verdict: fixed 9c0ec060
+answer: The finding holds; the four asserts were read at their lines in the fix pass: the three comments open "A phrase of the rule, not a fact" at `tests/text/test_broad_gate_rule.py:62`, `tests/text/test_a_rider_reaches_its_file.py:85` and `tests/text/test_settle_reads_before_it_removes.py:54`, and `tests/text/test_a_gate_that_fails_says_so.py:25-28` asserts the *Registration* lead with no comment. 9c0ec060 rewrites the three sentences of `changelog.md:3` in my own words for the same facts. The lead says the suite keeps four asserts that pin a rule's phrase until a follow-up issue moves the `docs/` lines that need them. "107 asserts stay" now says 103 carry a comment naming a fact and its reader, and names the four with what each carries. The rewording sentence speaks of a kept assert that pins a fact, followed by the paste-ready sentence for the four. Each sentence was read against the four asserts before the commit. The paste-ready "Each carries a comment" was not taken, because it is false for the four the next sentence names. `grep` over the work item's records for "keeps only", "each with a comment", "every kept assert" and "names the fact to keep" lists only the rewritten lead and `trail/phases/phase-1.md:19`, whose "Every kept assert has its fact and its reader" is phase 1's record, which this pass does not write; its held-back assert's own comment says it pins a phrase (executed).
+```
+
 ## Confirmations
 
 ```seal
