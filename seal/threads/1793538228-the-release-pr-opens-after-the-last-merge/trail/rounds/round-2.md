@@ -36,6 +36,11 @@ The last cell of `frame/design.md:99`, rewritten:
 It can go, because the release pull request now opens when that check already reads green. A milestone check that names an issue at the opening is now step 0's milestone box left undone, and one that fails for a `feat:` on a patch or for a stray label names its own repair. The `to`'s last two sentences say both
 ```
 
+```seal
+verdict: fixed fa60e10c
+answer: The finding holds. The orchestrator rewrote the *Removes* cell at `frame/design.md:99` in place with the round's paste-ready text, so it names both the step-0 reading and the other refusals' own repair and points at the `to`'s last two sentences. The commit touched only the work item's records.
+```
+
 ## Confirmations
 
 ```seal
