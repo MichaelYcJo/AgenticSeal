@@ -697,6 +697,23 @@ class Test_main:
         assert f"seal rules: {len(named)} refused in " in out, out
 
 
+class Test_refused_lines:
+    def test_names_each_refused_line_of_one_text_and_nothing_else(self, tmp_path):
+        """#1215, *Scope* item 2: one text's refusals, each at its line under
+        its heading with the reader's reason, the targets resolved in the tree
+        at the root. A held line and a line that opens like a check line and
+        is not one are no refusal; `unread_lines` names the second."""
+        (tmp_path / "held.py").write_text("", "utf-8")
+        text = (
+            "# H\n\ncheck: held.py\ncheck: none reader: a, b\n"
+            "Check: x\ncheck: gone.py\n"
+        )
+        assert rules.refused_lines(str(tmp_path), text) == [
+            (4, "H", f"`,` is no part of a check line: {EXPECTED}"),
+            (6, "H", "gone.py does not exist"),
+        ]
+
+
 class Test_module:
     @pytest.mark.parametrize("mark", ["#", "-", "*", ">", "|", "1. ", " "])
     def test_a_long_run_of_markup_with_no_label_is_answered_at_once(self, mark):

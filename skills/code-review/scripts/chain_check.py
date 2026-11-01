@@ -32,7 +32,11 @@ judged (`carried_by`). The arms are eight:
                 own commits add or change (`edited_work_items`); a design with
                 no such section, and a work item with no design, pass, and a
                 heading near `## Rule changes` outside the section is another
-                section
+                section; in a section that parses, each `check:` line inside
+                an `add` or `change` `to` is read by `.github/scripts/rules.py`,
+                the reader `seal rules --check` uses, and a line it refuses is
+                refused at its line in the design (`check_lines_in`); a `from`
+                is read for no check line
   records       `Review | through the review chain`: `trail/rounds/` holds at least
                 one `round-N.md`; each reads whole through
                 `hooks/lib/fields.py`, its blocks placed by its `## Findings`
@@ -78,7 +82,9 @@ read; the check names each (`blocks_of`, `unread`) and decides nothing on
 it. What such a fence meant is the judgment of the agent that reads the
 record. The same holds for each line `rule_changes.parse` names in a design
 the rule-changes arm reads, a heading near `## Rule changes` among them
-(`rule_changes_read`).
+(`rule_changes_read`), and for each line of an `add` or `change` `to` that
+`rules.py` names as opening like a check line and not being one
+(`check_lines_in`).
 
 Usage:
   chain_check.py --baseline <ref> [--root DIR] [--worktree] [--sealing]
@@ -122,6 +128,12 @@ READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.p
 HOOKS = os.path.join(HERE, "..", "..", "..", "hooks", "lib")
 ROUTING = os.path.join(HOOKS, "routing.py")
 FIELDS_READER = os.path.join(HOOKS, "fields.py")
+# `.github/scripts/rules.py`, the one reader of a `check:` line, which `seal
+# rules --check` runs over the rule files. A user's CI clones the plugin
+# whole, so it stands here there too (`templates/setup/hygiene.yml`).
+CHECK_LINES_READER = os.path.join(
+    HERE, "..", "..", "..", ".github", "scripts", "rules.py"
+)
 
 # A thread's files, relative to its directory: `hooks/lib/optin.py`'s `GATE`,
 # `GUARANTEE`, `DESIGN` and `PLAN`, spelt here because this module loads
@@ -1033,17 +1045,84 @@ RULE_CHANGES_SAYS = (
     "`## Rule changes` does not parse, so `settle` cannot group this design by the "
     "sections it names and the settle has to read it whole: {reason}"
 )
-# A line `rule_changes.parse` names as one it did not read, with its reason.
+# A line `rule_changes.parse` names as one it did not read, with its reason,
+# and a line of a `to` that `rules.py#unread_lines` names.
 RULE_CHANGES_UNREAD = "not read: {why}"
+# A check line inside an `add` or `change` `to` that `rules.py` refuses.
+CHECK_LINE_SAYS = (
+    "`.github/scripts/rules.py`, the reader `seal rules --check` uses, refuses "
+    "this check line, and the settle writes it into `{file}`, where that reader "
+    "refuses it with no pull request left to fix it in: {why}"
+)
+# The operations whose `to` the settle writes into the policy root.
+WRITES_A_TO = ("add", "change")
+
+
+class Unreadable(Exception):
+    """A reader of a design could not run, and the sentence says why."""
+
+
+_check_lines = None
+
+
+def check_lines_reader():
+    """`CHECK_LINES_READER`, loaded by path once, or Unreadable naming it."""
+    global _check_lines
+    if _check_lines is None:
+        try:
+            _check_lines = load(CHECK_LINES_READER, "agentic_rules_for_the_chain")
+        except (OSError, SyntaxError, ImportError, SystemExit) as exc:
+            raise Unreadable(
+                f"the check-line reader `.github/scripts/rules.py` would not load "
+                f"({exc})"
+            ) from None
+    return _check_lines
+
+
+def check_lines_in(root, rel, ops, notices=None):
+    """[(path, line, problem)] for each check line inside the `to` of an
+    `add` or `change` of OPS, a design's operations at REL, that
+    `rules.py#refused_lines` refuses, at its line in the design (`Op.lines`),
+    its targets resolved in the tree at ROOT. Each line of such a `to` that
+    `rules.py#unread_lines` names goes to NOTICES. A `from` is not read: the
+    settle writes none into the policy root. Unreadable where `rules.py`
+    will not load or cannot read the tree."""
+    found = []
+    for op in ops:
+        if op.kind not in WRITES_A_TO:
+            continue
+        numbers = [number for number, _ in op.lines["to"]]
+        text = "\n".join(said for _, said in op.lines["to"])
+        checks = check_lines_reader()
+        try:
+            refused = checks.refused_lines(root, text)
+            unread = checks.unread_lines(text)
+        except checks.Unreadable as exc:
+            raise Unreadable(
+                f"`.github/scripts/rules.py` could not read the check lines of "
+                f"{rel}: {exc}"
+            ) from None
+        found += [
+            (rel, numbers[n - 1], CHECK_LINE_SAYS.format(file=op.file, why=why))
+            for n, _heading, why in refused
+        ]
+        if notices is not None:
+            notices.extend(
+                (rel, numbers[n - 1], RULE_CHANGES_UNREAD.format(why=why))
+                for n, _heading, why in unread
+            )
+    return found
 
 
 def rule_changes_read(reader, root, item, notices=None):
     """[(path, line, problem)] for the work item's `frame/design.md` whose
     `## Rule changes` section `rule_changes.parse`, the one reader `settle`
-    groups by, refuses; [] where git carries no design. Each line the parser
-    names as one it did not read goes to NOTICES (`RULE_CHANGES_UNREAD`).
-    The reader is reached through `unverified_check.py#rule_changes`, which
-    raises where it will not load."""
+    groups by, refuses, or, where it parses, for each check line inside an
+    `add` or `change` `to` that `rules.py` refuses (`check_lines_in`); []
+    where git carries no design. Each line the parser names as one it did
+    not read, and each line of a `to` `rules.py` names so, goes to NOTICES
+    (`RULE_CHANGES_UNREAD`). The reader is reached through
+    `unverified_check.py#rule_changes`, which raises where it will not load."""
     rel = f"{item}/{SPEC_FILE}"
     text = read_record(root, rel)
     if text is None:
@@ -1057,13 +1136,13 @@ def rule_changes_read(reader, root, item, notices=None):
     return [
         (rel, line, RULE_CHANGES_SAYS.format(reason=reason))
         for line, reason in parsed.errors
-    ]
+    ] + check_lines_in(root, rel, parsed.ops or [], notices)
 
 
 def rule_changes_of(reader, root, items, notices=None):
     """[(path, line, problem)] from `rule_changes_read` over every work item
-    directory of ITEMS, its notices going to NOTICES, or None where the
-    reader would not load, which is said on stderr."""
+    directory of ITEMS, its notices going to NOTICES, or None where a
+    reader would not load or could not read, which is said on stderr."""
     found = []
     try:
         for item in items:
@@ -1073,6 +1152,9 @@ def rule_changes_of(reader, root, items, notices=None):
             f"chain-check: the rule-changes reader would not load ({exc})",
             file=sys.stderr,
         )
+        return None
+    except Unreadable as exc:
+        print(f"chain-check: {exc}", file=sys.stderr)
         return None
     return found
 

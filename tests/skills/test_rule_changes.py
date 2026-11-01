@@ -79,6 +79,46 @@ class Test_parse:
         ]
 
     @pytest.mark.parametrize(
+        "to, lines",
+        [
+            (
+                "  to: **Rule.** Its grounds.\n    check: none reader: review",
+                [(0, "**Rule.** Its grounds."), (1, "check: none reader: review")],
+            ),
+            (
+                "  to:\n    **Rule.** Its grounds.\n    check: none reader: review",
+                [(1, "**Rule.** Its grounds."), (2, "check: none reader: review")],
+            ),
+            (
+                "  to: **Rule.**\n\n    check: none reader: review\n",
+                [(0, "**Rule.**"), (1, ""), (2, "check: none reader: review")],
+            ),
+        ],
+        ids=["on-the-field-line", "on-the-line-below", "holding-a-blank-line"],
+    )
+    def test_each_value_line_carries_its_line_in_the_design(self, to, lines):
+        """#1215, *Scope* item 1: `Op.lines` maps each field to its value's
+        lines, each with its line in the design, the leading and trailing
+        empty lines dropped as `field_values` drops them, so the texts joined
+        are the field's value. A `to:` with its value on the line below starts
+        one line down, which an offset from `Op.line` would miss; the blank
+        line before the next item is the value's trailing one."""
+        text = spec(
+            f"- add\n  file: docs/a.md\n{to}\n- add\n  file: docs/b.md\n  to: B."
+        )
+        parsed = parse(text)
+        assert parsed.errors == [], parsed
+        first, second = parsed.ops
+        at = line_of(text, to.split("\n")[0])
+        assert first.lines["to"] == [(at + k, said) for k, said in lines]
+        assert "\n".join(said for _, said in first.lines["to"]) == first.new
+        assert first.lines["file"] == [(at - 1, "docs/a.md")]
+        assert second.lines == {
+            "file": [(line_of(text, "  file: docs/b.md"), "docs/b.md")],
+            "to": [(line_of(text, "  to: B."), "B.")],
+        }
+
+    @pytest.mark.parametrize(
         "body, why",
         [
             (

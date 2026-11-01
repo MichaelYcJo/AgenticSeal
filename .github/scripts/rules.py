@@ -21,7 +21,10 @@ The grammar of the line is `skills/settle/SKILL.md` *A rule has one shape*,
 and this module is its one reader. `seal rules --check` reads every rule file
 `RULE_FILES` names and every line a renderer shows in it, inside a rule
 paragraph or not. One suite case runs it over the tree, so it is read wherever
-the suite runs.
+the suite runs. At the pull request, `skills/code-review/scripts/chain_check.py`
+asks the same reader, through `refused_lines` and `unread_lines`, for each
+check line inside a design's `add` or `change` `to`, before the settle writes
+the line into a rule file.
 
 **It reads one shape.** A check line is `check: ` after any leading spaces.
 A line that opens like one and is not one, another case, emphasis, block
@@ -329,6 +332,19 @@ def line_problems(root, line):
     return [p for p in (target_problem(root, t) for t in targets) if p]
 
 
+def refused_lines(root, text):
+    """`[(line number, heading, why)]` for each refusal of a check line in one
+    markdown TEXT (`check_lines`), its targets resolved in the tree at `root`
+    (`line_problems`). `unresolved` reads each rule file through it, and
+    `skills/code-review/scripts/chain_check.py` each `add` or `change` `to`
+    of a design."""
+    return [
+        (number, heading, why)
+        for number, heading, line in check_lines(text)
+        for why in line_problems(root, line)
+    ]
+
+
 def unresolved(root):
     """`(failures, excused, unread, files, lines)`: each refusal in the rule
     files at `root`, as `path:line: heading: why`; each refusal of a line
@@ -348,18 +364,14 @@ def unresolved(root):
     policy = sibling("config").policy_root(os.path.join(root, "seal"))
     items = changes.pending(root, policy)
     for path, text in files.items():
-        for number, heading, line in check_lines(text):
-            read += 1
-            problems = line_problems(root, line)
-            item = changes.removed_by(items, path, text, number) if problems else None
-            for problem in problems:
-                failure = f"{path}:{number}: {heading}: {problem}"
-                if item:
-                    excused.append(
-                        f"{failure}; {item} removes this section at the settle"
-                    )
-                else:
-                    found.append(failure)
+        read += len(check_lines(text))
+        for number, heading, problem in refused_lines(root, text):
+            failure = f"{path}:{number}: {heading}: {problem}"
+            item = changes.removed_by(items, path, text, number)
+            if item:
+                excused.append(f"{failure}; {item} removes this section at the settle")
+            else:
+                found.append(failure)
     return found, excused, unread, len(files), read
 
 

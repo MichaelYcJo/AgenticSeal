@@ -1779,6 +1779,172 @@ class Test_rule_changes_read:
             assert spec_lines(out, item) == [], (item, out)
 
 
+# --- a check line inside a `to`, at the pull request (#1215) --------------------
+
+# The refusal's text around `rules.py`'s reason, pinned here so an edit to
+# `chain.CHECK_LINE_SAYS` meets a case.
+CHECK_LINE_SAYS = (
+    "`.github/scripts/rules.py`, the reader `seal rules --check` uses, refuses "
+    "this check line, and the settle writes it into `{file}`, where that reader "
+    "refuses it with no pull request left to fix it in: {why}"
+)
+COMMA = "check: none reader: a, b"
+
+
+def change_to(*lines, old="old words."):
+    """A `change` of `docs/policy.md` whose `to` holds LINES, its first on
+    the field line, and whose `from` reads OLD."""
+    to = "\n".join([f"  to: {lines[0]}", *(f"    {line}" for line in lines[1:])])
+    return (
+        f"- change\n  file: docs/policy.md\n  section: A section\n  from: {old}\n{to}\n"
+    )
+
+
+def check_line_refusal(text, line, why, item=ITEM):
+    """The line the check prints outside CI for the check line LINE of
+    ITEM's spec reading TEXT, refused for WHY."""
+    said = CHECK_LINE_SAYS.format(file="docs/policy.md", why=why)
+    return f"{item}/frame/design.md:{line_at(text, line)}  {said}"
+
+
+def reason(root, line):
+    """`rules.py`'s one reason for refusing LINE in the tree at ROOT."""
+    (why,) = chain.check_lines_reader().line_problems(str(root), line)
+    return why
+
+
+@pytest.mark.rule("a-check-line-in-a-to-is-read-at-the-pull-request")
+class Test_check_lines_in_a_to:
+    def test_refuses_a_line_the_reader_refuses_at_its_line_in_the_design(
+        self, branch, ready, capsys
+    ):
+        """S1: a `to` ending with `check: none reader: a, b` is refused at
+        that line of the design, exit 1, with `rules.py`'s reason for the
+        comma. Seen red against the base, which passed it at exit 0."""
+        root, _code = branch
+        text = spec_with(change_to("new words.", COMMA))
+        put_spec(root, text)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        why = reason(root, COMMA)
+        assert "`,` is no part of a check line" in why
+        assert spec_lines(out) == [check_line_refusal(text, f"    {COMMA}", why)], out
+
+    def test_accepts_a_line_the_reader_holds_and_prints_nothing(
+        self, branch, ready, capsys
+    ):
+        """S2: `check: none reader: the proofer at review` holds, and nothing
+        is printed for the design. Seen red under the mutation that refuses
+        every check line the `to` holds."""
+        root, _code = branch
+        put_spec(
+            root,
+            spec_with(
+                change_to("new words.", "check: none reader: the proofer at review")
+            ),
+        )
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert spec_lines(out) == [], out
+
+    def test_refuses_a_target_that_is_no_file_of_the_repository(
+        self, branch, ready, capsys
+    ):
+        """S3: a target that does not resolve in the tree is refused at its
+        line with `rules.py`'s "does not exist". Seen red against the base."""
+        root, _code = branch
+        line = "check: tests/no_such_file.py"
+        text = spec_with(change_to("new words.", line))
+        put_spec(root, text)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        why = reason(root, line)
+        assert why == "tests/no_such_file.py does not exist"
+        assert spec_lines(out) == [check_line_refusal(text, f"    {line}", why)], out
+
+    def test_refuses_a_line_on_the_field_line_at_the_field_line(
+        self, branch, ready, capsys
+    ):
+        """S6: a `to` whose value opens with the check line is refused at the
+        `to:` line itself. Seen red against the base."""
+        root, _code = branch
+        text = spec_with(change_to(COMMA))
+        put_spec(root, text)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        assert spec_lines(out) == [
+            check_line_refusal(text, f"  to: {COMMA}", reason(root, COMMA))
+        ], out
+
+    def test_names_a_near_line_as_not_read_at_its_line_and_passes(
+        self, branch, ready, capsys, monkeypatch
+    ):
+        """S4: `Check: x` opens like a check line and is not one; it is
+        printed as not read at its design line, a notice annotation in CI,
+        and decides nothing. Seen red against the base, which named nothing."""
+        root, _code = branch
+        text = spec_with(change_to("new words.", "Check: x"))
+        put_spec(root, text)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        (why,) = [w for _, _, w in chain.check_lines_reader().unread_lines("Check: x")]
+        notice = chain.RULE_CHANGES_UNREAD.format(why=why)
+        number = line_at(text, "    Check: x")
+        assert spec_lines(out) == [f"{ITEM}/frame/design.md:{number}  {notice}"], out
+        monkeypatch.setenv("GITHUB_ACTIONS", "true")
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert spec_lines(out) == [
+            f"::notice file={ITEM}/frame/design.md,line={number}::{notice}"
+        ], out
+
+    def test_reads_no_check_line_in_a_from(self, branch, ready, capsys):
+        """S5: the comma line in a `change`'s `from` and in a `remove`'s
+        `from` passes and is not named, since the settle writes neither into
+        the policy root. Seen red under the mutation that reads every field."""
+        root, _code = branch
+        removed = (
+            "- remove\n  file: docs/policy.md\n  section: A section\n"
+            f"  from: old words.\n    {COMMA}\n"
+        )
+        old = f"old words.\n    {COMMA}"
+        text = spec_with(
+            change_to("new words.", "check: none reader: review", old=old) + removed
+        )
+        put_spec(root, text)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert spec_lines(out) == [], out
+
+    def test_ends_at_exit_2_where_its_reader_will_not_load_or_read(
+        self, branch, ready, capsys, monkeypatch
+    ):
+        """A `rules.py` that will not load ends the check at exit 2, the
+        reason on stderr; so does one that loads and cannot read the tree, a
+        test file that does not parse where a `to` names a marker."""
+        root, _code = branch
+        put_spec(root, spec_with(change_to("new words.", "check: none reader: review")))
+        there = chain.CHECK_LINES_READER
+        monkeypatch.setattr(chain, "_check_lines", None)
+        monkeypatch.setattr(chain, "CHECK_LINES_READER", str(root / "no_rules.py"))
+        code = chain.main(["--baseline", "main", "--root", str(root)])
+        err = capsys.readouterr().err
+        assert code == 2, err
+        assert "chain-check: the check-line reader `.github/scripts/rules.py` " in err
+        assert "would not load" in err
+        monkeypatch.setattr(chain, "CHECK_LINES_READER", there)
+        write(root, "tests/test_broken.py", '@pytest.mark.rule("x")\ndef test_x(:\n')
+        put_spec(root, spec_with(change_to("new words.", "check: some-marker")))
+        code = chain.main(["--baseline", "main", "--root", str(root)])
+        err = capsys.readouterr().err
+        assert code == 2, err
+        assert (
+            "chain-check: `.github/scripts/rules.py` could not read the check "
+            f"lines of {ITEM}/frame/design.md: tests/test_broken.py could not be "
+            "read as Python (SyntaxError)"
+        ) in err
+
+
 # --- the parity arm at the pull request (#988) -------------------------------------
 
 PARITY = "seal/parity.md"
