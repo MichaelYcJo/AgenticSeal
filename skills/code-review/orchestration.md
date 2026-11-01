@@ -152,6 +152,19 @@ finding still open takes a home: you append its close block, its `verdict:`
 reading `deferred <home>` and its `answer:` saying why the run stopped there,
 and commit the close blocks of that step together.
 
+**Where the signal is one mechanism whose edges each fix pass chased, the next
+fix pass decides what the mechanism reads, and takes no further edge.** That is
+the core's question for this signal (`skills/core/SKILL.md` *The rule a
+mechanism is kept against*). The fix states the inputs the mechanism answers,
+enumerates every path that reads them, and answers any other input by naming
+the form it takes. Where deciding it is a rebuild the issue did not ask for,
+the mechanism leaves as its own issue and the branch keeps the release's
+reading of it, so the run reads no edge the release did not have. The row that
+decides either names the next verifying round as the run's last. 0.27.x's
+judgment rows read this signal in four work items, which took 5, 4, 7 and 4
+rounds; the one at 7 built three readings of one input, each refuted by the
+round after it, before it kept the release's reading and filed the mechanism.
+
 The condition is not *this round found nothing*, which would be unbounded. A
 verifying round that raises a `should` finding the crafter closes `rejected`,
 with its grounds, has opened nothing needing a fix, and it does not count.
