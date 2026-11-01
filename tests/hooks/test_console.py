@@ -16,6 +16,7 @@ of its own, and its case is `tests/hooks/test_dispatch.py`'s. The case comes fro
 import io
 import json
 import os
+import runpy
 import subprocess
 import sys
 
@@ -96,6 +97,34 @@ class Test_module:
         assert decision_of(r) == "deny", (
             f"{encoding}: the gate went silent on its own, which the harness reads "
             f"as approval. stderr: {r.stderr.decode('utf-8', 'replace')[-300:]}"
+        )
+
+    @pytest.mark.parametrize(
+        ("script", "code"),
+        [("release_report.py", 2), ("release_seal.py", 0), ("rules.py", 2)],
+    )
+    def test_a_release_script_run_on_its_own_gives_the_answer_streams_holds(
+        self, monkeypatch, script, code
+    ):
+        """Each of these scripts spells the loop inline, because it loads the
+        tree's modules only when first asked, and this case holds its copy to
+        `STREAMS` read at run time. Run with no argument and no `TAG`, each
+        ends at its `main`'s own verdict: exit 2 for the two that refuse a
+        missing argument, and `release_seal.py`'s `no seal:` at exit 0, which
+        never fails a release."""
+        console = load_hook_module("lib/console.py", "console_for_release_scripts")
+        path = os.path.join(ROOT, ".github", "scripts", script)
+        streams = {name: cp949_stream() for name, _ in console.STREAMS}
+        for name, stream in streams.items():
+            monkeypatch.setattr(sys, name, stream)
+        monkeypatch.setattr(sys, "argv", [path])
+        monkeypatch.delenv("TAG", raising=False)
+        with pytest.raises(SystemExit) as ended:
+            runpy.run_path(path, run_name="__main__")
+        said = {name: (s.encoding, s.errors) for name, s in streams.items()}
+        assert (ended.value.code, said) == (
+            code,
+            {name: ("utf-8", errors) for name, errors in console.STREAMS},
         )
 
 
