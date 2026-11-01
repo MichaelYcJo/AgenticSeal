@@ -698,11 +698,19 @@ class Test_main:
 
 
 class Test_refused_lines:
-    def test_names_each_refused_line_of_one_text_and_nothing_else(self, tmp_path):
+    def test_accepts_a_text_whose_lines_hold_in_the_tree_at_the_root(self, tmp_path):
+        """#1215, *Scope* item 2: a target that resolves in the tree at the
+        root, a line naming its reader, and a line that opens like a check
+        line and is not one give no refusal; `unread_lines` names the last."""
+        (tmp_path / "held.py").write_text("", "utf-8")
+        text = "# H\n\ncheck: held.py\ncheck: none reader: review\nCheck: x\n"
+        assert rules.refused_lines(str(tmp_path), text) == []
+
+    def test_refuses_each_refused_line_of_one_text_at_its_line(self, tmp_path):
         """#1215, *Scope* item 2: one text's refusals, each at its line under
-        its heading with the reader's reason, the targets resolved in the tree
-        at the root. A held line and a line that opens like a check line and
-        is not one are no refusal; `unread_lines` names the second."""
+        its heading with the reader's reason, for its grammar or for a target
+        the tree at the root does not hold; the held line between them and
+        the near line give none."""
         (tmp_path / "held.py").write_text("", "utf-8")
         text = (
             "# H\n\ncheck: held.py\ncheck: none reader: a, b\n"

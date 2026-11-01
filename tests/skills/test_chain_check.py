@@ -1813,7 +1813,7 @@ def reason(root, line):
 
 
 @pytest.mark.rule("a-check-line-in-a-to-is-read-at-the-pull-request")
-class Test_check_lines_in_a_to:
+class Test_check_lines_in:
     def test_refuses_a_line_the_reader_refuses_at_its_line_in_the_design(
         self, branch, ready, capsys
     ):
