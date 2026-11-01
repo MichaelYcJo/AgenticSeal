@@ -28,7 +28,7 @@ The work touches three files; the policy changes are `frame/design.md` *Rule cha
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Scope items 1 to 4 | P1 and P2 of `frame/design.md` re-run on the built tree, giving S1 and S2: no tree under `skills/`, and no window in the three files naming a subset of the root's files. `tests/behaviour/test_a_cited_section_stands_in_its_file.py` green for the new citations. The phase-boundary set of contract rule 2 over the three changed paths, from *Technical context* | |
+| 1 | Scope items 1 to 4 | P1 and P2 of `frame/design.md` re-run on the built tree, giving S1 and S2: no tree under `skills/`, and no window in the three files naming a subset of the root's files. `tests/behaviour/test_a_cited_section_stands_in_its_file.py` green for the new citations. The phase-boundary set of contract rule 2 over the three changed paths, from *Technical context* | f15fcb33 |
 
 One phase: the three edits are each a few lines, none depends on another, and a second phase would cost a spawn and a record. No case is added. The work adds no behaviour a case can pin: it removes copies and adds links, and the new links are held by the existing cited-section check.
 
