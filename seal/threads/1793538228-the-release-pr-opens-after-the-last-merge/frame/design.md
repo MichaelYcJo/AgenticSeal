@@ -21,7 +21,7 @@
 
 In:
 
-1. *5. The release pull request* in `docs/release-checklist.md` says the orchestrator opens the release pull request once the last pull request into `release/vX.Y.Z` has merged. It also says why: the early runs re-test trees already tested, and only the last run reads the tree that ships. It names the two commands that read the moment, G9's milestone check and G10's open pull request list. It no longer says that the milestone check is red by design. The `check:` line stays (G11). This item is written as the `change` in *Rule changes*, and the settle after the release writes it into `docs/`.
+1. *5. The release pull request* in `docs/release-checklist.md` says the orchestrator opens the release pull request once the last pull request into `release/vX.Y.Z` has merged. It also says why: an early run mostly re-tests a tree its own pull request already tested, and the one run after the last merge reads every tree the early runs would have read first, the tree that ships. It names the two commands that read the moment, G9's milestone check and G10's open pull request list. It no longer says that the milestone check is red by design. The `check:` line stays (G11). This item is written as the `change` in *Rule changes*, and the settle after the release writes it into `docs/`.
 2. The work item's `changelog.md`: one entry, and one `### Process changes` row in the shape of `templates/records/process.md`, because the change moves an act of the way of working.
 3. No other file in the tree changes, because no other sentence states the early moment (G2, G3).
 
@@ -66,21 +66,30 @@ None. No schema, no script and no workflow changes. The step calls `.github/scri
     request, so no pull request comes between the last work item and this one.
     A release pull request opened earlier takes each later squash merge into
     the branch as a push to its head. Its `tests` run then reads a tree the
-    merged pull request already tested on its own merge ref, since `main` stays
-    where the release branch was cut unless a hotfix moves it. Opened after the
-    last merge, it runs `tests` once, on the tree the release ships, and what
-    runs only on a pull request into `main` answers once: `release-report`,
-    and the `hygiene` workflow's version and milestone steps.
+    merged pull request tested on its own merge ref only where nothing else
+    merged into the branch after that test started, since `main` stays where
+    the release branch was cut unless a hotfix moves it. Where something did,
+    the run is the first to read the two together, and the one run after the
+    last merge reads them together as well. Opened after the last merge, it
+    runs `tests` once, on the tree the release ships, and what runs only on a
+    pull request into `main` answers once: `release-report`, and the
+    `hygiene` workflow's version and milestone steps.
     The orchestrator reads that moment from two commands after
     `git fetch origin`. `gh pr list --base release/vX.Y.Z --state open` lists no
     pull request; a settle's pull request closes no issue, so only this command
-    sees it. And the release pull request's own milestone check exits 0, run as
+    sees it. And the release pull request's own milestone check exits 0 and
+    prints its `M (open in 'release: X.Y.Z')` line, run as
     `python3 .github/scripts/release_completeness_check.py` with
     `HEAD_BRANCH=release/vX.Y.Z`, `HEAD_SHA=origin/release/vX.Y.Z` and `REPO`
     set to what `gh repo view --json nameWithOwner --jq .nameWithOwner`
-    prints. That check fails the release pull request while the milestone
-    claims an issue the branch does not carry, and names each one. An issue it
-    names that no branch is building is step 0's milestone box, left undone.
+    prints. Exit 0 alone does not read the moment: the script also exits 0
+    when the branch name is not a release name and when no milestone of that
+    title exists, and then prints a line saying so in place of the `M` line.
+    That check fails the release pull request while the milestone claims an
+    issue the branch does not carry, and names each one. An issue it names
+    that no branch is building is step 0's milestone box, left undone. Where
+    it fails for another reason, a patch carrying a `feat:` or a label on an
+    issue the branch does not carry, its `::error::` line names the repair.
 
 ## Removes
 
