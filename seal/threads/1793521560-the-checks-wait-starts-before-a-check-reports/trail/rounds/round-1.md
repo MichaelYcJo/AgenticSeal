@@ -45,6 +45,11 @@ finished checks alone exits 0 at once. The count reads GitHub Actions runs on
 poll reaches the limit below and the report says so.
 ```
 
+```seal
+verdict: fixed 4f13f382
+answer: The finding holds, and the fix is written in my own words rather than the paste-ready reads. `gh pr checks 1245 --json event` lists `label` with event `push` beside 14 `pull_request` checks (executed), so the rollup count was 1 before any `pull_request` run existed. The paste-ready `gh run list --commit <sha> --event pull_request` counts runs, and on #1245 both runs were created at 09:15:25Z while their first check started at 09:15:28Z (executed: `gh run list --commit 29d582ca... --json createdAt,startedAt`, `gh pr view 1245 --json statusCheckRollup`). No read-only probe shows when that check was listed, so a run count can end the poll while `--watch` still reads only `label`. The poll's second read is now `gh pr checks <N> --json event --jq '[.[] | select(.event == "pull_request")] | length'`, which counts on the list `--watch` itself reads: 14 and exit 0 on #1245, exit 0 on #1209 with a failed check, exit 1 with `no checks reported` on octocat/Hello-World#11673 (all executed). `skills/code-review/orchestration.md:236-261` states the two reads, the stop condition, the exit 1 meaning the poll goes on, the limit to GitHub Actions `pull_request` runs, and a report naming no check of a `pull_request` run; the paragraph names `push` runs as the measured case and no `workflow_dispatch` run, which no probe here listed on a pull request's head. `changelog.md`'s entry and process row follow the paragraph, and the pin moved in the same commit. `frame/design.md:56` is not edited by this pass; the hand-back names it with the other frame sentences that state the old read.
+```
+
 ### 2. The pin case holds the poll's read but not its stop condition or the report it ends in
 
 ```seal
@@ -63,6 +68,11 @@ The fix adds two facts to the case's `said` tuple, in the spelling the paragraph
 ```
 
 Each is seen red with its sentence deleted before it is committed (contract rule 15).
+
+```seal
+verdict: fixed e45e7326
+answer: The finding holds. Taken apart sentence by sentence, the paragraph's facts a reader acts on are now pinned in the case at `tests/text/test_the_rules_have_one_owner.py:370-380`: the interval, the two reads, the stop condition, the exit 1 of the count read, the count's limit to `pull_request` runs, the two-minute limit, the second `state,mergeable` read and the report, in the spelling finding 1's fix gives them (`4f13f382` and `e45e7326`). The sentences left unpinned give a reason, not an act. The new reads were red against `fb6735fc`'s paragraph before `4f13f382` (executed: the case failed at `gh pr view <N> --json headRefOid --jq .headRefOid`). After each commit, `seal mutate` deleted each new fact from `skills/code-review/orchestration.md` in turn, six mutants and then two, and the case went red under all eight, with `git status --short` empty after (executed).
+```
 
 ## Confirmations
 
