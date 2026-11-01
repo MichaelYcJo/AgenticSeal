@@ -29,7 +29,7 @@ The failure scenario of the chosen approach, in six months: `STREAMS` changes, f
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Design *Scope* 1 | The Scope 1 case, seen red against the base before the fix (rule 15) and green after. Run narrowly in one command at the phase boundary: `tests/hooks/test_console.py`, `tests/github/test_release_report.py`, `tests/github/test_release_seal.py`, `tests/github/test_rules.py`, and every other test module that reads a changed path | |
+| 1 | Design *Scope* 1 | The Scope 1 case, seen red against the base before the fix (rule 15) and green after. Run narrowly in one command at the phase boundary: `tests/hooks/test_console.py`, `tests/github/test_release_report.py`, `tests/github/test_release_seal.py`, `tests/github/test_rules.py`, and every other test module that reads a changed path | d1cf58b3 |
 | 2 | Design *Scope* 2, 3, 4 and 5 | Each item's method, run at the phase's commit as design *User scenarios & acceptance* S4 to S6 state it. Run narrowly: the test modules that read `hooks/lib/cmdline.py`, `hooks/lib/console.py`, `skills/verify/scripts/unverified_check.py` or `tests/hooks/test_console.py`. `uvx ruff format --check` on the changed files | |
 
 Phase 2 follows phase 1 because Scope 4's docstring names the places phase 1 leaves.
