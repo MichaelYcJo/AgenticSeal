@@ -147,12 +147,15 @@ ROUND_TEMPLATE = "templates/records/sdd-round.md"
 # or of its heading where it has no close, its heading and the heading's
 # number, the verdict, the paths of its finding's and its close's
 # `location:`, its `regression:` reference and its `reopens:` reference,
-# each with that line's number, where it has one, and the line of its
-# heading.
+# each with that line's number, where it has one, the line of its heading,
+# and the paths of its finding's `location:` alone. `paths` is where the
+# defect shows and where the fix went, which the pull-request check reads;
+# `located` is where the defect shows, which a count of findings by place
+# reads (`.github/scripts/finding_counts.py`).
 Finding = collections.namedtuple(
     "Finding",
     "line heading number verdict paths regression regression_line reopens "
-    "reopens_line heading_line",
+    "reopens_line heading_line located",
 )
 # One record as `channel` reads it: its path and number, its findings, the
 # numbers of every `### <n>. ` heading it holds, its `confirms:` references,
@@ -737,8 +740,9 @@ def finding_of(rel, heading, number, first, blocks):
     HEADING stands at index FIRST, from BLOCKS, its section's finding and
     close blocks in order: a section with no finding block is refused at
     the heading, and a second finding or close block at its opener. The
-    verdict is its close block's, `(OPEN, None)` where it has none, and its
-    paths are its finding block's `location:` and its close block's."""
+    verdict is its close block's, `(OPEN, None)` where it has none, its
+    `located` is its finding block's `location:` paths in the order written,
+    and its `paths` are those followed by its close block's."""
     finds = [b for b in blocks if b.kind is FIELDS.FINDING_BLOCK]
     closes = [b for b in blocks if b.kind is FIELDS.CLOSE_BLOCK]
     lead = f"{heading} {DASH} "
@@ -751,7 +755,8 @@ def finding_of(rel, heading, number, first, blocks):
     if errors:
         return None, sorted(errors, key=lambda error: error[1])
     said = finds[0].fields
-    paths = location_paths(said[FIELDS.LOCATION].value)
+    located = location_paths(said[FIELDS.LOCATION].value)
+    paths = list(located)
     if closes:
         closed = closes[0].fields
         verdict = closed[FIELDS.VERDICT]
@@ -775,6 +780,7 @@ def finding_of(rel, heading, number, first, blocks):
             reference(reopens.match) if reopens else None,
             reopens.line if reopens else None,
             first + 1,
+            located,
         ),
         [],
     )
