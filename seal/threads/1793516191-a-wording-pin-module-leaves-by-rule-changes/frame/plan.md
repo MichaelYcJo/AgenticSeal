@@ -43,5 +43,4 @@ The orchestrator files the successor issue before `seal pr-body` runs, with the 
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
 | 2026-11-01 | Phase 1's three points on the successor issue's text are folded by the orchestrator into design *The successor issue*: the six test lines named with their commit in place of "the four docstrings", the case-name and constant searches with the prose part named open, and the suite after the deletion handed to the successor's phase boundary. Q1 takes its default, `release: 0.27.2`, under the run's automation | The text is the body the orchestrator files, so each place the successor owes stands named in it, as #1147's direction asked of a source a later work item acts on. Automation routes no question to the owner during the run (`hooks/question-gate.py`) | `skills/core/SKILL.md` *The rule a mechanism is kept against*, "A fact has one source"; `frame/questions.md` Q1 |
