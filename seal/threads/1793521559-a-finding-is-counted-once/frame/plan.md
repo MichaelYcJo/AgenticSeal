@@ -29,7 +29,7 @@ The failure scenario of the chosen approach, six months on: the round record's g
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Scope items 1, 2 and 3 of `frame/design.md` | `bin/test tests/github/test_finding_counts.py tests/skills/test_chain_check.py`, and each module that reads `chain_check.py` or `.github/scripts/` as contract rule 2 lists them. `python3 .github/scripts/finding_counts.py --released-at 813665f0` from the worktree, whose output reads as S8 says and is pasted into the phase record. Each new case seen red as its scenario's row says | |
+| 1 | Scope items 1, 2 and 3 of `frame/design.md` | `bin/test tests/github/test_finding_counts.py tests/skills/test_chain_check.py`, and each module that reads `chain_check.py` or `.github/scripts/` as contract rule 2 lists them. `python3 .github/scripts/finding_counts.py --released-at 813665f0` from the worktree, whose output reads as S8 says and is pasted into the phase record. Each new case seen red as its scenario's row says | 1da90703 |
 
 Scope item 4 is written in `frame/design.md` `## Rule changes` and is applied at the settle after the release. No phase builds it, and the diff edits nothing under `docs/` (S9).
 
