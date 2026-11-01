@@ -44,6 +44,12 @@ Where the fix pass reads it as outside the class instead, G10 gains the
 sentence with its grounds, and Scope item 5 names it.
 ```
 
+```seal
+verdict: fixed efbac823
+answer: 25295dfe rewrote the frame locations: G5 rebuilds the producer list from `git ls-files` over the shipped scripts and names `finding_counts.py`, G17 reads the step 2b sentence as an instance of the class, and *Rule changes* gains the fourth `change`, to *2b*. efbac823 changes no path this finding's `location:` names; it brings `seal/threads/1793541310-a-band-flags-a-row-and-a-judgment-decides/changelog.md` to the folded frame (the entry names the records-alone count as a row for the weighing, the settle's list adds *2b*, and the process row's Change cell names the count and both issue openers) and adds a `gaps.md` row for the first settle under the rule. Re-checked at that tree (executed): the probe read four operations, one `add` and three `change`, with each `from` in its section and no `to` in the tree; `git grep -n -i -E 'issue it opens|that grew|does not fall' -- ':!seal/threads'` lists `docs/release-checklist.md:79`, `:131` and `:132`, and two test lines that use the words for something else, `tests/skills/test_unverified_check.py:2206` and `tests/text/test_ci_gives_the_checks_what_they_need.py:613`, read and placed outside the class; the narrow run with `tests/github/test_finding_counts.py` added passed, 974 cases over 14 modules.
+location: `seal/threads/1793541310-a-band-flags-a-row-and-a-judgment-decides/changelog.md`, `seal/threads/1793541310-a-band-flags-a-row-and-a-judgment-decides/gaps.md`
+```
+
 ### 2. The new rule's first sentence is unscoped, and it reads over the behaviour suite's pass rules 2 and 5, which fail a side from a noise band alone; G10 weighed only rule 4
 
 ```seal
@@ -67,6 +73,12 @@ The `add`'s `to`, a sentence after its first two sentences:
     a band in this sense: `evals/README.md` *The behaviour suite*'s pass
     rules decide whether a preload rewrite proved itself not worse, and file
     nothing.
+```
+
+```seal
+verdict: fixed efbac823
+answer: 25295dfe rewrote the frame locations: G10 places pass rules 2 and 5 outside the class with `FALSE_MARGIN` and `TOKEN_MARGIN` named, and the `add` gains the sentence that a margin a claim fixes before its run is that claim's criterion and not a band. efbac823 changes no path this finding's `location:` names; it brings `seal/threads/1793541310-a-band-flags-a-row-and-a-judgment-decides/changelog.md` to it: the entry says the behaviour suite's pass rules stay as they are and file nothing, and the settle's list names the sentence that places the margins outside the rule.
+location: `seal/threads/1793541310-a-band-flags-a-row-and-a-judgment-decides/changelog.md`
 ```
 
 ### 3. The rule names the orchestrator's `--says` sentence as a place for the weighing, and that sentence has no band and two readings of what it owes
@@ -95,6 +107,12 @@ In the `add`'s `to`, the sentence on who writes the weighing:
 
 The other fix keeps the clause. It would have to say that a comparison with no band reads every move toward more cost as past it. It would also have to add a citation of the rule to `skills/verify/orchestration.md` *Measure the segment, and feed the flow log*, and add a scenario for it. The `changelog.md` entry names no `--says`, so it stands either way.
 
+```seal
+verdict: fixed efbac823
+answer: 25295dfe rewrote the frame locations: the `add` drops the `--says` sentence and names the release pull request's body, the settling session's comment on the `flow-baseline` issue and a measuring work item's phase record as the places for the weighing, and *Out* names the `--says` sentence with G18 as its grounds. efbac823 changes no path this finding's `location:` names; it brings `seal/threads/1793541310-a-band-flags-a-row-and-a-judgment-decides/changelog.md` to it: the entry names the three places and says the orchestrator or the settling session files the issue.
+location: `seal/threads/1793541310-a-band-flags-a-row-and-a-judgment-decides/changelog.md`
+```
+
 ### 4. No `check:` line names a reader for the release pull request body's weighing, the one tree instance this work replaces
 
 ```seal
@@ -111,6 +129,12 @@ The `add`'s last line:
 ```
 
 The value holds no comma, `::` or em dash, as `skills/settle/SKILL.md` *A rule has one shape* requires. The changed *5* keeps its two modules for the facts they read.
+
+```seal
+verdict: fixed efbac823
+answer: 25295dfe rewrote the frame location: the `add`'s last line reads `check: none reader: the proofer at review and the owner before a release or settle pull request's merge`, and *5* keeps its two modules. efbac823 changes no path this finding's `location:` names; it brings `seal/threads/1793541310-a-band-flags-a-row-and-a-judgment-decides/changelog.md` to it: the entry says the proofer reads the weighing at review and the owner before a release or settle pull request merges.
+location: `seal/threads/1793541310-a-band-flags-a-row-and-a-judgment-decides/changelog.md`
+```
 
 ## Confirmations
 
