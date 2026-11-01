@@ -21,7 +21,7 @@ Failure scenario of the chosen approach, six months on: the decisions are filed 
 | Approach | Failure scenario | Verdict |
 |---|---|---|
 | **A1** Two phases by kind group, each row whole in one record (chosen) | The comment is assembled from two records, so the orchestrator copies two tables in order. The copy is verbatim, as `seal pr-body` copies records, and S5 checks the joined text | chosen: no fact of the table stands in two records |
-| A1 alternative: one phase for all fourteen kinds | One spawn reads every kind, including K4's two editions of about 8,000 words each and K12's code clusters, and the context runs short before the last rows are decided | rejected |
+| A1 alternative: one phase for all fourteen kinds | One spawn reads every kind, including K4's two editions, read section by section in both languages, and K12's code clusters, and the context runs short before the last rows are decided | rejected |
 | A1 alternative: phase 1 measures every kind, phase 2 decides every kind | Phase 2's table restates phase 1's commands and counts beside its decisions, which is the copy between two records of one work item that `docs/the-record-layout.md` *A fact of a work item has one record, and every other record cites it by path and heading* forbids | rejected |
 | **A2** The table and drafts in `trail/phases/phase-N.md` (chosen) | A reader looking for "the audit" finds it under a phase record's name. The design's *Scope* item 5 and the comment's preamble name both paths | chosen (design G6) |
 | A2 alternative: a new `audit.md` at the work item's top | `docs/the-record-layout.md` *seal/threads/<work-item-id>/* lists no such file, so the settle's dry run names it as not read and a session decides it by hand; giving it a home is a rule change for one work item | rejected |
@@ -39,13 +39,16 @@ Failure scenario of the chosen approach, six months on: the decisions are filed 
 | **A8** Kinds by the pair of parts that hold the two copies (chosen) | A shape of fact that crosses pairs, such as a figure or a coordinate, needs its own kind, K13, with P12 as its pair | chosen: the issue enumerates by pair, and the parts make the list whole (design G4) |
 | A8 alternative: kinds by the shape of the fact (sentence, list, figure, coordinate) | A shape crosses every pair, so a decision such as "README links to docs" has no row of its own to stand in | rejected |
 | **A9** The existing mechanisms on a kind (*The kinds*, last column) weighed for removal as an equal of keeping (chosen) | A mechanism kept for having existed survives another release with no recorded catch | chosen: G1 "existing is no reason to keep it"; each row states the catch and the cost it weighed |
+| **A10** Every pair of parts answered in the design, with one of design G4's three answers, and the unmeasured pairs carried by D8 (chosen at the reframe after round 2) | D8 reaches a release only if its answerer measures pairs no record has shown drifting, so most of its rows may close with "no drift in the record". That cost is one issue, and it buys a frame whose claim of wholeness #1038 can act on | chosen: `skills/core/SKILL.md` *The first value: efficient development through the workflow*, judgment where meaning is the question: whether a pair can hold one fact in both parts is a reading the framer makes once, at the cost of one table, and each answer 2 spares D8 a measurement. G4's rule 12 calls a list no method made whole a sample, and a sample #1038 acts on as whole is the divergence the owner's direction refuses |
+| A10 alternative: S7 rewritten to the pairs *The kinds* measures, and the rest left unnamed | #1038 and the next audit read "the kinds" with no list of what was never looked at, so a later drift on an unnamed pair reads as a kind this audit cleared. Naming the rest in the preamble would need the same list that A10 writes | rejected |
 
 ## Phases
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
 | 1 | *Scope* items 1 to 4 for K1, K2, K3, K4, K5, K6 and K9; `gaps.md` from its template | each row's command, run at `bf9efcba`, prints its count; `git diff --name-only bf9efcba..HEAD` prints only this work item's paths; `tests/behaviour/test_chain_hooks_hardening.py::test_every_spec_directory_that_reached_the_ladder_has_an_overview` | cc2c6946 |
-| 2 | *Scope* items 1 to 4 for K7, K8, K10, K11, K12, K13 and K14; *Scope* items 5 and 6 | the same, for its rows; the joined comment text under 65,536 characters by `wc -c`; the same case | c63922bd |
+| 2 | *Scope* items 1 to 4 for K7, K8, K10, K11, K12, K13 and K14; *Scope* items 5 and 6 | the same, for its rows; design S5; the same case | c63922bd |
+| 3 | *Scope* item 7 | design S7, read against *The kinds* and *Pairs no command of this audit reads*; the same case | |
 
 ## Operational impact
 

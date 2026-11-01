@@ -10,6 +10,7 @@ The judgments the ticket left open that the tree answered, so nobody reopens the
 - Where the filed issues' numbers are recorded without a commit after the seal: design G8, plan A7.
 - Which milestone a decision for a new check proposes: design G9.
 - How a decision on a kind that a mechanism already holds is weighed: design *Scope* item 3, plan A9.
+- Which pairs of parts the audit measures, and who answers the rest: design G4 and *Pairs no command of this audit reads*, plan A10.
 
 No question is left for a person, a measurement or the work, so the table holds no row.
 
