@@ -43,10 +43,20 @@ imported would do it to `pytest` too. Every gate is also runnable on its own —
 that is how the tests drive them and how anyone debugging one reaches them — so
 each carries the call rather than relying on `dispatch.py` having made it.
 
-The five scripts under `skills/*/scripts/` spell the loop inline instead of
-importing this. They are standalone by design and assume nothing about their
-import path; four lines duplicated is cheaper than the machinery that would
-avoid it, and what must not diverge is the ANSWER, which is written down here.
+Some entry points spell the loop inline instead of importing this, each for a
+reason of its own. The scripts under `skills/*/scripts/` are standalone by
+design and assume nothing about their import path.
+`.github/scripts/release_report.py`, `.github/scripts/release_seal.py` and
+`.github/scripts/rules.py` load the tree's modules only when first asked, so a
+module that will not load ends in the script's own named result rather than a
+traceback. `hooks/dispatch.py` writes down the gates that failed, and must not
+depend on a module whose failure it reports. This command lists them, with
+this file among them:
+
+    git grep -l "[.]reconfigure(" -- '*.py' ':!tests' ':!evals/behaviour'
+
+A copied loop is cheaper than the machinery that would avoid it, and what must
+not diverge is the ANSWER, which is written down here.
 """
 
 import sys

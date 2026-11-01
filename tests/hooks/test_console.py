@@ -69,14 +69,14 @@ class Test_to_utf8:
 class Test_module:
     @pytest.mark.parametrize("encoding", HOSTILE)
     def test_a_gate_run_on_its_own_still_reaches_a_verdict(self, korean_repo, encoding):
-        """The seven `console.to_utf8()` calls, bound.
+        """The gates' own `console.to_utf8()` calls, bound.
 
         `dispatch.py` is what production spawns, and its copy of the loop is held
         by `tests/hooks/test_dispatch.py`. The per-gate calls are for the other
         documented way in -- `hooks/lib/console.py` says each gate is runnable on its
         own -- and nothing measured that: neutering `to_utf8` to a bare `return`
-        left the suite at its own baseline, so all seven could be deleted and the
-        tree stays green. The gate run is the routing check at the edit tools,
+        left the suite at its own baseline, so every one of them could be deleted
+        and the tree stays green. The gate run is the routing check at the edit tools,
         whose refusal names the repository's path, which holds `KOREAN`.
         """
         r = subprocess.run(
