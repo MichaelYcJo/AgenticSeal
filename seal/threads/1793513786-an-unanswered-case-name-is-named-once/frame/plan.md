@@ -22,7 +22,7 @@ Failure scenario of the chosen approach, six months on: a new caller imports `sa
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1, 2, 3 and 4 | The two runs of Scope item 2 seen red with `eb97d23e`'s `evals/scripts/replay_targets.py` and `evals/scripts/seed_defects.py` put back, and green after. Then, in one command, `bin/test tests/evals/test_replay_targets.py tests/evals/test_seed_defects.py tests/evals/test_rule_cases.py tests/test_censuses.py tests/behaviour/test_a_rewritten_definition_proved_non_inferior.py tests/text/test_no_case_tells_the_agent_it_is_evaluated.py -q`, the modules that read the two changed scripts (executed: `git grep -ln 'replay_targets\|seed_defects' -- tests`). | |
+| 1 | `frame/design.md` *Scope* items 1, 2, 3 and 4 | The two runs of Scope item 2 seen red with `eb97d23e`'s `evals/scripts/replay_targets.py` and `evals/scripts/seed_defects.py` put back, and green after. Then, in one command, `bin/test tests/evals/test_replay_targets.py tests/evals/test_seed_defects.py tests/evals/test_rule_cases.py tests/test_censuses.py tests/behaviour/test_a_rewritten_definition_proved_non_inferior.py tests/text/test_no_case_tells_the_agent_it_is_evaluated.py -q`, the modules that read the two changed scripts (executed: `git grep -ln 'replay_targets\|seed_defects' -- tests`). | e4d0b0be |
 
 ## Operational impact
 
