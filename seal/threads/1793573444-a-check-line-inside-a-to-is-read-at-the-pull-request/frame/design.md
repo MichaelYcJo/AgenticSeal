@@ -78,9 +78,9 @@ Out:
     `## Rule changes` the check parses is read by `.github/scripts/rules.py`,
     the reader `seal rules --check` uses, and a line that reader refuses is a
     refusal at its line in the design, carrying the reader's reason.** The
-    settle writes each `to` into the policy root, where `seal rules --check`
-    first reads it, and a line refused there has no pull request left to fix
-    it in. A line that opens like a check line and is not one is named at its
+    settle writes each `to` into the policy root as it stands. Where that
+    root is `docs`, `seal rules --check` first reads the line there, and a
+    line refused there has no pull request left to fix it in. A line that opens like a check line and is not one is named at its
     line as not read and refuses nothing. A `from` is read for no check line,
     since the settle writes none into the policy root.
     check: a-check-line-in-a-to-is-read-at-the-pull-request
