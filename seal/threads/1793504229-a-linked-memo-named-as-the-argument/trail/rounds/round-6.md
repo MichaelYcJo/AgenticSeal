@@ -50,6 +50,11 @@ class Test_absolute:
 
 The precondition at the OS boundary: on POSIX, `os.path.realpath("link/..")` reads `..` from the link's target, so it gives `far`, and a body that returns `os.path.abspath` gives `tmp_path` and fails the second case. On Windows `realpath` may read `..` by its text, as the docstring of `test_accepts_a_parent_as_real_reads_it` allows. There the second case passes for either body, so it is seen red on POSIX. The class goes after `Test_repository_of`, before `Test_as_named`.
 
+```seal
+verdict: fixed 9580f0f9
+answer: Fixed by the second option, not the paste-ready class: `absolute` is renamed `_absolute` at its definition and at its two calls, in `repository_of` and `as_named`, and `as_named`'s docstring names it by the new name. Its only callers are those two, in the same module, so `CONTRIBUTING.md` *The test layout* owes a private helper no class, and `Test_repository_of` and `Test_as_named` keep the cases that pin its `..` branch, and `Test_main` the case that pins its loop branch. `git grep` found no other caller and no attribute access to the old name in the tree. `trail/phases/phase-1.md` and `gaps.md` name the function by the new name. After the rename, `bin/seal layout --check tests` exits 0 with `151 files read, 0 refused, 86 declare no TARGET` and prints no `report:` line for `skills/verify/scripts/unverified_check.py`, where this round's probe at a6c538e9 printed `function absolute has no class Test_absolute` (executed at 9580f0f9; the earlier line read from `## Probes`). `bin/test tests/skills/test_unverified_check.py tests/skills/test_test_layout.py -q` gives 472 passed (executed), and `uvx ruff check` and `uvx ruff format --check` on the module exit 0 (executed).
+```
+
 ## Confirmations
 
 ```seal
