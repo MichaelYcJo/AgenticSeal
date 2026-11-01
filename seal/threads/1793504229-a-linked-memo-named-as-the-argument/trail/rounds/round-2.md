@@ -96,6 +96,11 @@ def absolute(path):
 
 The Windows line rests on the phase record's reading of CPython's `ntpath.py`, which this round did not re-read. No Windows run reached it.
 
+```seal
+verdict: fixed a06475d7
+answer: Fixed wider than the paste-ready fix. The paste-ready `absolute` resolves the link a `..` steps out of through `real`, which also resolves every link above that one: with `hop` a link to WORK and `jump` a link in WORK to `a/b`, `specs/hop/jump/../gaps.md` reads as `specs/WORK/a/gaps.md`. That is the same class, a link the `..` never steps out of read as its target. So `absolute` walks the path, and at each `..` it follows the component before it only where that component is a link, by the link's own text, read by the same rule from the directory that holds the link. Every other component keeps its name. On Windows it stays textual, through `os.path.abspath`, as the paste-ready fix has it. A budget of 40 links stops a loop such as `loop -> loop/..`, which the mutual walk would otherwise follow until `RecursionError`. Round 2's case is in `Test_as_named`, with two more: `test_accepts_a_link_above_the_link_a_parent_steps_out_of_under_its_own_name` pins the wider form, and `test_accepts_a_parent_stepping_out_of_a_link_loop_without_a_crash` (f688d596) pins the budget. Round 2's case and the link-above case failed at f50c0e26's script, executed. Five `seal mutate` runs were each red, executed: the link followed through `real` (the paste-ready form) failed the link-above case; every kept component resolved through `real` failed round 2's case and the link-above case; the link branch removed failed both `..`-after-a-link cases and the link-above case; the budget set to 0 failed the same three; the budget set to 10**6 failed the loop case with `RecursionError`. The `#overviews` comment, the `Test_as_named` docstring round 2 names, and the phase record's `..` paragraph (`trail/phases/phase-1.md:13`, 6430c61a) are rewritten in place. The module passed, 391 cases, and `uvx ruff check` and `uvx ruff format --check` on the two changed files exited 0, executed. `frame/plan.md:47` still says the fix pass builds round 2's form of `absolute`, and that row is the orchestrator's.
+```
+
 ## Confirmations
 
 ```seal
