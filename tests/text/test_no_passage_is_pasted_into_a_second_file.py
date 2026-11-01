@@ -22,7 +22,14 @@ of this method missed. Then the text is lowercased, stripped of `` ` ``, `*`,
 `|`, `>` and `#`, and split into words.
 
 **What is counted.** For each unordered pair of files, the number of distinct
-runs of `WINDOW` consecutive words the two share. `WINDOW` is imported from
+runs of `WINDOW` consecutive words the two share. A pair of two agent
+definitions, both under `agents/`, is not counted: a passage two definitions
+share states a fact about each file that holds it, and each agent reads only
+its own definition, so a link would cost every spawn a read and remove
+nothing said twice
+(`48d035aa:seal/threads/1793490088-each-kind-of-restatement-is-measured/trail/phases/phase-1.md`
+*The table*, row K2). A definition paired with any other file is counted,
+since a skill or a document restating a definition is a copy. `WINDOW` is imported from
 `tests/text/test_a_moved_rule_leaves_its_definition.py`, never typed here: that
 module measured it between the longest kept application (10 words) and the
 smallest real copy (25), and this is the same question asked of more files.
@@ -35,16 +42,17 @@ The paraphrase half was measured once, by hand, and its result is recorded in
 `67694cba:seal/specs/1791076836-every-rule-claude-md-restates-has-one-home/spec.md`
 *The method and its result* rather than checked.
 
-**Why a ratchet.** The tree already holds copies, measured into `BASELINE`
-below, and moving them is #755's work, cluster by cluster. So the check fails
-when a pair not in `BASELINE` shares any run, or when a pair's count goes
-above its baseline. It passes when a count goes down, and the baseline need
-not be lowered in the same change: otherwise every branch that edits a
-duplicated passage would edit this one table, which is the shared-file
-conflict `docs/the-record-layout.md` *A change writes fragments, never a
-shared file* exists to stop. The cost is slack, stated: a pair that has
-drained can take a later copy up to its old count. The work that drains a
-pair lowers its entry on purpose.
+**Why a ratchet.** The tree still holds two copies, both in `README.md`,
+measured into `BASELINE` below. #1102 rewrites `README.md`, links them, and
+removes `BASELINE` and the ratchet with them, so that any shared run fails.
+Until then the check fails when a pair not in `BASELINE` shares any run, or
+when a pair's count goes above its baseline. It passes when a count goes
+down, and the baseline need not be lowered in the same change: otherwise
+every branch that edits a duplicated passage would edit this one table,
+which is the shared-file conflict `docs/the-record-layout.md` *A change
+writes fragments, never a shared file* exists to stop. The cost is slack,
+stated: a pair that has drained can take a later copy up to its old count.
+The work that drains a pair lowers its entry on purpose.
 
 **What it does not catch.** A rule restated in fresh words. Measured against
 the three restatements #730 names, it finds one of three, the merge table,
@@ -57,11 +65,14 @@ import itertools
 import os
 import re
 
+import pytest
 from conftest import ROOT, git_listing, on_disk
 from test_a_moved_rule_leaves_its_definition import WINDOW
 
 TOP_FILES = ("CLAUDE.md", "CONTRIBUTING.md", "README.md")
 TOP_DIRS = ("docs/", "skills/", "agents/", "templates/")
+# A pair whose two paths both start here is not counted (*What is counted*).
+DEFINITIONS = "agents/"
 
 HOME_ACT = "link to the home instead of copying it, per `docs/the-record-layout.md`"
 
@@ -136,6 +147,8 @@ def shared_counts(texts):
     counts = {}
     for rels in owners.values():
         for pair in itertools.combinations(rels, 2):
+            if pair[0].startswith(DEFINITIONS) and pair[1].startswith(DEFINITIONS):
+                continue
             counts[pair] = counts.get(pair, 0) + 1
     return counts
 
@@ -180,45 +193,14 @@ def tree():
     return texts
 
 
-# Measured on 2026-10-04 at this work item's phase 1 tree, and again after
-# `release/v0.18.1` was merged in at edee5ca2. Every entry is debt
-# that #755 moves, cluster by cluster, except where a comment names the rule
-# that makes the copy sanctioned. A change that drains a pair may lower its
-# entry; nothing has to.
+# A stored count, which `skills/core/SKILL.md` *The rule a mechanism is kept
+# against* refuses, standing until #1102 links the two `README.md` passages
+# these entries count and removes them with `BASELINE` and the ratchet.
 BASELINE = {
-    # Sanctioned: the opening paragraph every agent definition carries,
-    # which tests/text/test_every_agent_reads_the_contract.py requires word for
-    # word. crafter-framer adds the shared `skills:` list, and
-    # crafter-proofer adds debt of its own (cluster b of the remainder
-    # issue). The framer's entries were measured on its rewrite (#968): the
-    # opening, the step sentence saying whose `skills/` paths are, the step
-    # opening `writing-style` by section, and with the crafter the
-    # reference-root sentence and its `## Never` line, each the same words in
-    # every definition of #957's shape. framer-tracer was measured again at
-    # the merge of `release/v0.22.2`, once #970 gave the tracer the same
-    # step sentence. Every pair was measured again at #1177's phase 1, whose
-    # opening sentence names the core beside the contract: four runs more in
-    # each pair, the sentence's own, and nothing else moved.
-    ("agents/crafter.md", "agents/framer.md"): 28,
-    ("agents/crafter.md", "agents/proofer.md"): 22,
-    ("agents/crafter.md", "agents/sealer.md"): 18,
-    ("agents/crafter.md", "agents/tracer.md"): 8,
-    ("agents/framer.md", "agents/proofer.md"): 35,
-    ("agents/framer.md", "agents/sealer.md"): 18,
-    ("agents/framer.md", "agents/tracer.md"): 8,
-    ("agents/proofer.md", "agents/sealer.md"): 18,
-    ("agents/proofer.md", "agents/tracer.md"): 8,
-    ("agents/sealer.md", "agents/tracer.md"): 9,
-    # Debt, every entry below. Lowered to the counts measured at #940's
-    # last phase; each pair that measured zero left the table.
     ("README.md", "skills/implement/SKILL.md"): 2,
     # The acts row of the verifying round, which moved with its table to
     # `skills/implement/acts.md` in #1148.
     ("README.md", "skills/implement/acts.md"): 1,
-    ("README.md", "skills/parity-setup/SKILL.md"): 1,
-    ("agents/crafter.md", "skills/implement/SKILL.md"): 3,
-    ("docs/one-root-by-lifetime.md", "skills/implement/SKILL.md"): 4,
-    ("skills/agent-contract/SKILL.md", "skills/implement/SKILL.md"): 1,
 }
 
 
@@ -244,18 +226,27 @@ def a_sentence_of(text, length=20):
     return " ".join(words(text)[200 : 200 + length])
 
 
-def test_a_paste_is_named_with_the_pair_the_run_and_the_act():
-    """S6: twenty words of `CONTRIBUTING.md` pasted into another rule document
-    are named, with both files, the count, the run and the act.
+@pytest.mark.parametrize(
+    "source, planted",
+    [
+        ("CONTRIBUTING.md", "docs/planted.md"),
+        # A definition paired with a file outside `agents/` is still counted:
+        # a skill restating a definition is the paste #1231 linked away.
+        ("agents/crafter.md", "skills/planted/SKILL.md"),
+    ],
+)
+def test_a_paste_is_named_with_the_pair_the_run_and_the_act(source, planted):
+    """S6: twenty words of a rule document pasted into another are named,
+    with both files, the count, the run and the act.
 
     The paste lands in a document of its own, so the pair is new and the
     longest run it reports is the paste and not a copy the tree already
     held."""
     texts = tree()
-    paste = a_sentence_of(texts["CONTRIBUTING.md"])
-    texts["docs/planted.md"] = "Some words of its own.\n\n" + paste + "\n"
+    paste = a_sentence_of(texts[source])
+    texts[planted] = "Some words of its own.\n\n" + paste + "\n"
     found = over_baseline(texts, BASELINE)
-    named = [f for f in found if "CONTRIBUTING.md and docs/planted.md" in f]
+    named = [f for f in found if f"{source} and {planted}" in f]
     assert named, found
     assert f"share {20 - WINDOW + 1} runs" in named[0], named[0]
     assert "longest is 20 words" in named[0], named[0]
@@ -263,17 +254,27 @@ def test_a_paste_is_named_with_the_pair_the_run_and_the_act():
     assert "link to the home instead of copying it" in named[0].lower()
 
 
+def planted_pair(length=40):
+    """Two rule documents sharing a passage of LENGTH placeholder words.
+
+    The ratchet's cases plant their pair rather than read the tree's
+    largest one, so they hold on a tree that shares no run at all."""
+    passage = " ".join(f"w{i}" for i in range(length))
+    return {
+        "docs/one.md": f"Words of the first file.\n\n{passage}\n",
+        "skills/two/SKILL.md": f"Other words, the second's.\n\n{passage}\n",
+    }
+
+
 def test_a_count_over_its_baseline_is_named_and_one_at_it_is_not():
-    """The ratchet's own edge, on a pair the table already holds."""
-    texts = tree()
+    """The ratchet's own edge: a pair at its entry passes, one above it is
+    named."""
+    texts = planted_pair()
     counts = shared_counts(texts)
-    pair = max(counts, key=counts.get)
-    assert not [
-        f
-        for f in over_baseline(texts, {**BASELINE, pair: counts[pair]})
-        if f.startswith(f"{pair[0]} and {pair[1]} share")
-    ]
-    found = over_baseline(texts, {**BASELINE, pair: counts[pair] - 1})
+    pair = ("docs/one.md", "skills/two/SKILL.md")
+    assert counts[pair] > 1, counts
+    assert not over_baseline(texts, {pair: counts[pair]})
+    found = over_baseline(texts, {pair: counts[pair] - 1})
     assert [f for f in found if f.startswith(f"{pair[0]} and {pair[1]} share")]
 
 
@@ -283,9 +284,9 @@ def test_a_removed_copy_passes_without_a_baseline_edit():
     One shared run is broken in the second file, so the pair still shares
     something and is still judged; a check that held counts exactly, rather
     than at most, fails here."""
-    texts = tree()
+    texts = planted_pair()
     counts = shared_counts(texts)
-    a, b = max(counts, key=counts.get)
+    a, b = "docs/one.md", "skills/two/SKILL.md"
     mine = words(texts[b])
     common = windows(words(texts[a])) & windows(mine)
     first = next(
@@ -297,7 +298,7 @@ def test_a_removed_copy_passes_without_a_baseline_edit():
     texts[b] = " ".join(mine)
     after = shared_counts(texts)
     assert 0 < after[(a, b)] < counts[(a, b)]
-    assert not over_baseline(texts, {**BASELINE, (a, b): counts[(a, b)]})
+    assert not over_baseline(texts, {(a, b): counts[(a, b)]})
 
 
 def test_a_wrapped_section_name_is_one_token():
@@ -330,4 +331,15 @@ def test_fences_and_headings_are_not_read_and_case_and_backticks_are_not_words()
     # A copy whose first word was capitalised by its new sentence is a copy.
     assert shared_counts({"a.md": run.upper(), "b.md": f"`{run}`"}) == {
         ("a.md", "b.md"): 1
+    }
+
+
+def test_a_run_two_definitions_share_is_not_counted_and_one_beside_a_skill_is():
+    """A pair of two agent definitions is left out of the count, and a
+    definition paired with a file outside `agents/` is still counted."""
+    run = " ".join(f"w{i}" for i in range(WINDOW))
+    texts = {"agents/a.md": run, "agents/b.md": run, "skills/c/SKILL.md": run}
+    assert shared_counts(texts) == {
+        ("agents/a.md", "skills/c/SKILL.md"): 1,
+        ("agents/b.md", "skills/c/SKILL.md"): 1,
     }

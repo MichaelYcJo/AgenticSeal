@@ -51,9 +51,8 @@ empty value, a file that cannot be read. A config nobody can read must not
 stop the work.
 
 **It is independent of `Commit and pull request language`.** Setting one does
-not carry the other, and the two surfaces have different audiences: a pull
-request is read by whoever opens it, and a record is read by whoever comes
-back to the decision six months later.
+not carry the other; `docs/one-root-by-lifetime.md` *What the repository
+decides for itself, and how it is read* gives the reasons.
 
 **What stays English whatever it says**, because these are read literally
 rather than by a person: every field name, section heading and vocabulary
@@ -161,12 +160,8 @@ it or dropping it.
   `## Rule changes`, with a freshly allocated number.
 - A spawn prompt's facts arrive under `docs/the-review-record.md`'s
   handoff: coordinates rather than prose, each fact labelled
-  executed, read, or unverified. A fact with no coordinate and no label is an
-  assertion nobody has opened — open it before building on it, however
-  confident the prompt that carried it. An aggregate (a count, a total) is
-  not a coordinate: the number can be checked while the claim it stands for
-  cannot, and one such fact reached five documents before a review round
-  found it false.
+  executed, read, or unverified. What a fact with neither is, and why an
+  aggregate is not a coordinate, is contract rule 5.
 
 **Collect what needs a person before the first edit, and ask it in one batch.**
 Read the policy, the SDD set and the ticket looking for the questions as well
