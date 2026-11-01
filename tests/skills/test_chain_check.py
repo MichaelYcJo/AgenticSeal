@@ -1881,7 +1881,8 @@ class Test_check_lines_in_a_to:
     ):
         """S4: `Check: x` opens like a check line and is not one; it is
         printed as not read at its design line, a notice annotation in CI,
-        and decides nothing. Seen red against the base, which named nothing."""
+        and decides nothing. Seen red under the mutation that drops the
+        notices of a `to`."""
         root, _code = branch
         text = spec_with(change_to("new words.", "Check: x"))
         put_spec(root, text)
