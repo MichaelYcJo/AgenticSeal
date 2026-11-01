@@ -31,7 +31,7 @@ The failure scenario of the chosen approach, six months on: a rule under `docs/`
 | 1 | Scope items 1 and 6, and items 8, 9, 10 and 11 for group A | S1 over group A, S2, S4 and S7 executed; S8 at review; the suite beyond *The narrow run* labelled `unverified`, answered by the orchestrator's broad gate | 899db781 |
 | 2 | Scope items 2, 5 and 13, and items 8, 9, 10 and 11 for group B | S1 over group B, S2, S3, S4, S6 and S7 executed; S8 at review; the suite beyond *The narrow run* `unverified`, answered by the orchestrator's broad gate | 244e726f |
 | 3 | Scope item 3, and items 8, 9, 10 and 11 for group C | S1 over group C, S2, S4 and S7 executed; S8 at review; the suite beyond *The narrow run* `unverified`, answered by the orchestrator's broad gate | bcdca4c6 |
-| 4 | Scope items 4 and 12, and items 8, 9, 10 and 11 for group D | S1 over all four groups, S2, S4 and S7 executed; S8 at review; the suite beyond *The narrow run* `unverified`, answered by the orchestrator's broad gate | |
+| 4 | Scope items 4 and 12, and items 8, 9, 10 and 11 for group D | S1 over all four groups, S2, S4 and S7 executed; S8 at review; the suite beyond *The narrow run* `unverified`, answered by the orchestrator's broad gate | af47212a |
 
 ## Operational impact
 
