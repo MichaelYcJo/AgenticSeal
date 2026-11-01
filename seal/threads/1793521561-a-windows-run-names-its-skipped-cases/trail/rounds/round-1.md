@@ -28,6 +28,11 @@ The module docstring and the case say "each `pytest` leg" (`tests/text/test_ci_g
 - **Each leg of the `pytest` job in this repository's test workflow names every case it skipped, with pytest's reason, and still names every case that failed (#1221).** The `pytest` job of `.github/workflows/test.yml` ran with `-q` alone, which prints a count of skipped cases and no case. The cases one helper skips were folded under the helper's line, so a Windows shard's log could not say whether the link cases of `tests/conftest.py#symlink_or_skip` ran there. Rows that deferred that question to the Windows legs therefore stayed open. The line now passes `-rfEs --no-fold-skipped`, so the short summary carries one `SKIPPED <node id> - Skipped: <reason>` line per skipped case. `-r` replaces pytest's default `fE`, so the default is written out, and each `FAILED <node id>` line stays. A case in `tests/text/test_ci_gives_the_checks_what_they_need.py` pins both flags. The option needs pytest 8.3.0 or later, and CI installs pytest unpinned. The first run with the flags answered #1221: the three link cases it names passed on the Windows leg, and no case of `tests/skills/test_unverified_check.py` skipped there.
 ```
 
+```seal
+verdict: fixed 74c3bb00
+answer: The finding holds. `.github/workflows/test.yml:243` runs `pytest tests/skills/test_arm_check.py -q` with no flag, and the comment at `:72-73` gives each Windows shard a disjoint part, so the fragment overstated both scopes. The paste-ready text was applied as given, and `changelog.md:3` now matches it line for line. `git grep` over the work item's records for "every Windows shard", "each leg" and "every leg" found one more sentence of the same kind outside the fragment: `trail/phases/phase-2.md:5` says "Every leg that skipped a case printed one" `SKIPPED` line, which the `arms-grammar (3.13)` leg does not meet. A fix pass writes no phase record, so it stands, and the hand-back names it.
+```
+
 ### 2. The closing memo still says the orchestrator will choose a home for the three skipped link cases, after the orchestrator chose #1247
 
 ```seal
@@ -40,6 +45,11 @@ Why it matters: `gaps.md` *Not done* is where a leftover is handed over. `skills
 
 ```markdown
 The three link cases of `tests/skills/test_agentic_pytest_record.py` that skip on the Windows legs through `skipif(os.name == "nt")` are not moved onto `tests/conftest.py#symlink_or_skip`. Run 41290162769 shows the runner can make links, so they go unproved there for a reason that does not hold. `frame/design.md` *Scope*, *Out* keeps every case under `tests/` out of this work. The orchestrator filed them as #1247 in `backlog: release & platform` (`frame/plan.md` *Judgments of the run*), from the draft in `trail/phases/phase-2.md`.
+```
+
+```seal
+verdict: fixed e7726f5d
+answer: The finding holds. `frame/plan.md` *Judgments of the run* and the Q2 Status at `frame/questions.md:15` home the three cases in #1247, and `gh issue view 1247` shows it open in milestone `backlog: release & platform` with phase 2's draft as its body (executed). The paste-ready text was applied as given, and `gaps.md:15` now matches it. The same commit limits two other sentences of the memo to the `pytest` job's legs, the class finding 1 names: the closed S1 row's answer at `gaps.md:7` ("every leg of the `pytest` job installed", "each of those legs that skipped") and the open `FAILED` row at `gaps.md:8` ("every leg of that run's `pytest` job installed"). Neither row's Item cell or open or closed state changed.
 ```
 
 ## Confirmations
