@@ -42,4 +42,4 @@ None. No migration, environment variable, dependency or compatibility break. The
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-01 | Round 1's finding 1 is folded into `frame/design.md` *Scope* 4 by the orchestrator: the scripts under `skills/*/scripts/` copy the loop with no stated reason, and which of them owe the import is #1255's; the fix pass answers `hooks/lib/console.py`'s docstring | `skills/implement/scripts/seal.py:238-242` imports `hooks/lib/` modules at the top (read), so "standalone by design" was a premise the frame never checked | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, a decision folded into the frame in place |
