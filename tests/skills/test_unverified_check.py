@@ -1578,6 +1578,14 @@ class Test_repository_of:
         given = str(d / "ext" / "..")
         assert same_path(UC.repository_of(given), os.path.realpath(given))
 
+    def test_refuses_a_link_that_stands_in_no_repository(self, tmp_path):
+        """A link names a repository only where git finds one at the link's
+        own directory. Here neither the real path nor the link is in one, so
+        there is no repository to compare the path in."""
+        (tmp_path / "target").mkdir()
+        symlink_or_skip(str(tmp_path / "target"), str(tmp_path / "link"), True)
+        assert UC.repository_of(str(tmp_path / "link" / "gaps.md")) is None
+
 
 class Test_as_named:
     def test_accepts_a_link_inside_the_repository_under_its_own_name(
