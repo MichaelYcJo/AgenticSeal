@@ -33,7 +33,7 @@ Failure scenarios of the chosen approach, six months on:
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | *Scope* item 2. It confirms items 1 and 3 at the build's head | `rule_changes.py#parse` on `frame/design.md` returns one `change` and no error, and `#pattern` finds its `from` in `#section_lines` of the section, run once as a `test_tmp_*` probe and deleted. `git grep -n -i -E 'finds none open\|leaves it open'` outside `seal/threads/` lists only `docs/release-checklist.md`. Narrow: `tests/github/test_rules.py`, `tests/behaviour/test_a_cited_section_stands_in_its_file.py` and `tests/behaviour/test_the_set_a_work_item_always_has.py`, the modules that read a pending design or a work item's set | |
+| 1 | *Scope* item 2. It confirms items 1 and 3 at the build's head | `rule_changes.py#parse` on `frame/design.md` returns one `change` and no error, and `#pattern` finds its `from` in `#section_lines` of the section, run once as a `test_tmp_*` probe and deleted. `git grep -n -i -E 'finds none open\|leaves it open'` outside `seal/threads/` lists only `docs/release-checklist.md`. Narrow: `tests/github/test_rules.py`, `tests/behaviour/test_a_cited_section_stands_in_its_file.py` and `tests/behaviour/test_the_set_a_work_item_always_has.py`, the modules that read a pending design or a work item's set | d873da4f |
 
 ## Operational impact
 
