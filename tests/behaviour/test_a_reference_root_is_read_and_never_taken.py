@@ -53,7 +53,11 @@ NOT_A_CHECK = "is not a check of the tree"
 
 SHIPPED = {
     "seal unverified": (PREDICATE, "the walk and the base, by one rule"),
-    "seal settle": (PINNED, "settle.py#SPECS; its citation scan reads as a citer"),
+    "seal settle": (
+        PINNED,
+        "settle.py#SPECS; its citation scan reads as a citer, and --from reads "
+        "only a directory a person names and writes nothing there",
+    ),
     "seal pact": (PINNED, "pact_check.py#anchor_files, under each signer's root"),
     "seal gate": (NO_WALK, "runs the row, chain_check.py and seal.py mode"),
     "seal fold": (NO_WALK, "reads the top level of docs/ and seal/config.md"),
