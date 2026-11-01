@@ -42,4 +42,4 @@ None for a deployer: no migration, environment variable, dependency or compatibi
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-01 | The orchestrator rewrote `frame/design.md` *The probes*' interpreter path, a real user path, as the main checkout's `.venv/bin/python -I`, before round 1 | The census `real_identifiers` refused the line at `43eaa555` (crafter's phase-boundary run, executed), the crafter writes no frame file, and the edit changes no scope, scenario or rule change | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, a decision folded into the frame in place |
