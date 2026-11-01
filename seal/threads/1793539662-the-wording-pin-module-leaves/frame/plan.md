@@ -21,7 +21,7 @@ The failure scenario of the chosen approach, six months on: a skill or a README 
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Scope items 1 to 7 | S1, S2 and S5 executed; S3 and S4 seen red then green; S6 in one command over the modules `frame/design.md` *The narrow run* lists, with the module removed; the suite beyond that set labelled `unverified`, answered by the orchestrator's broad gate | |
+| 1 | Scope items 1 to 7 | S1, S2 and S5 executed; S3 and S4 seen red then green; S6 in one command over the modules `frame/design.md` *The narrow run* lists, with the module removed; the suite beyond that set labelled `unverified`, answered by the orchestrator's broad gate | b27b9835 |
 
 ## Operational impact
 
