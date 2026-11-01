@@ -37,6 +37,11 @@ The grounds cell, rewritten in place. The judgment cell's last sentence stays or
 `git merge-base --is-ancestor 48d035aa origin/release/v0.27.3` exits 0 (executed). The class, listed for this one commit by `git grep -n '79252e48:'` at the base `5f0cf7a7` and `gh issue view <N> --json body` (executed): this work item's docstring and two frame lines, fixed; its `trail/phases/phase-1.md:7`, a record of what phase 1 read, kept; seven citations in `seal/threads/1793521558-the-record-decides-each-proposed-verifier/`, which #1257 merged at `569780ef` after `48d035aa` had landed, so no round of that work item caught them, and which the 0.27.x settle `14bfd992` removed; and the bodies of #1231 to #1236, #1255 and #1256. A citation of another squashed commit is not listed, so the list is a sample of the class. Weighed against a new mechanism: a tree check would have refused #1257's seven lines and reads no issue body
 ```
 
+```seal
+verdict: fixed 0d248cf2
+answer: The finding holds. The orchestrator rewrote the row at `frame/plan.md:46` in place with the round's grounds cell, which names the method and calls the list a sample, and reversed its last judgment: the class is filed as #1270 rather than judged one instance. Nothing outside the work item's records changed.
+```
+
 ## Confirmations
 
 ```seal
