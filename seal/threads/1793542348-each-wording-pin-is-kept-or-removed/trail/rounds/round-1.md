@@ -41,6 +41,12 @@ The fix keeps phase 4's ruling and names the module that still reads the rule in
 
 In the same commit, G7 (`frame/design.md:13`) and the `## Removes` row at `:126` say that the case reading the cap's default count is `tests/behaviour/test_chain_hooks_hardening.py#test_the_run_names_its_default_round_count_and_the_follow_up_file`, which stays. The orchestrator corrects the matching sentence of #1277, which the fix pass cannot edit.
 
+```seal
+verdict: fixed 025edf92
+location: `seal/threads/1793542348-each-wording-pin-is-kept-or-removed/changelog.md:4`
+answer: The finding holds; `tests/behaviour/test_chain_hooks_hardening.py#test_the_run_names_its_default_round_count_and_the_follow_up_file` asserts "three finding rounds by default" over `docs/the-review-record.md`, read in the fix pass. The frame locations, the `to` of `frame/design.md` *Rule changes*, G7 and the `## Removes` row, were folded by the framer in 3d7e63ff, and this pass did not edit the frame. 025edf92 changed none of the finding's locations: it brings `changelog.md:4`, which said the round-count line names the settling session at the dry run's judgments, to the folded `to`, so the line names `tests/behaviour/test_chain_hooks_hardening.py`. The orchestrator took the line out of #1277 and its judgment row in ad811978. `trail/phases/phase-1.md:5` still says `#test_the_cap_counts_from_the_last_design_change` was the only case reading the cap; it is phase 1's record, and this pass writes none.
+```
+
 ### 2. The changelog fragment says a reworded rule no longer turns these cases red, but each kept assert still matches its whole literal
 
 ```seal
@@ -62,6 +68,11 @@ A removed case no longer turns red when a rule is reworded with its meaning unch
 ```
 
 This text replaces the sentence that opens "A rule reworded with its meaning unchanged" at the end of the first bullet of `changelog.md:3`.
+
+```seal
+verdict: fixed 025edf92
+answer: The finding holds; the three kept asserts it names still match their whole literal at 025edf92, read in the fix pass. The paste-ready text's first sentence says a removed case no longer turns red, which a case that is gone cannot do, so the fix is in my own words: "Rewording a rule without changing its meaning no longer meets the 399 removed asserts", followed by the paste-ready text's second and third sentences unchanged. The bullet's bold lead made the same claim, that the suite "no longer pins a rule's wording", and now says the suite keeps only the asserts on a rule's text that pin a fact a reader acts on. `grep` over the work item's `changelog.md`, `gaps.md` and `trail/phases/` for "reworded", "turns ... red" and "no longer pins" lists no other record stating the claim (executed).
+```
 
 ## Confirmations
 
