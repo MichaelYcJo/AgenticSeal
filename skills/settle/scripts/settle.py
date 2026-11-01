@@ -61,7 +61,7 @@ file `git ls-files --cached --others --exclude-standard` lists under it, at
 any depth and of any extension. Each is printed with the commit that added it
 and the commit that last changed it, read from one `git log` per directory
 with renames off, so a moved file counts as added where it lands, and with
-whether `git status` names it changed in the working tree. Documents are
+whether `git diff HEAD` names it changed in the working tree. Documents are
 listed in the order of the commits that add them, and those no commit adds
 come last, in path order; a file two named directories hold is listed under
 the first. Which section a document bears on, and whether it is promoted, is
@@ -903,18 +903,10 @@ def history(root, rel):
 
 
 def changed(root, rel):
-    """The tracked paths under REL that `git status` names changed in the
-    index or the working tree since their last commit."""
-    fields = git_fields(root, "status", "--porcelain", "-z", "-uno", "--", rel)
-    out, rest = set(), iter(fields)
-    for entry in rest:
-        if len(entry) < 4:
-            continue
-        out.add(entry[3:])
-        if "R" in entry[:2] or "C" in entry[:2]:
-            # A rename or a copy carries its source as the next field.
-            next(rest, None)
-    return out
+    """The tracked paths under REL whose working tree, staged or not,
+    differs from HEAD, read with renames off so each field is one path."""
+    diff = ("diff", "HEAD", "--name-only", "-z", "--no-renames", "--", rel)
+    return {p for p in git_fields(root, *diff) if p}
 
 
 # What a named directory's documents are: every file git lists under it,
