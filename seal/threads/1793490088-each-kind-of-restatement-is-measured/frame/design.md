@@ -57,7 +57,7 @@ Out.
 
 ### The parts
 
-The tree at `bf9efcba`, taken apart into the places a fact can be stated (executed: `git ls-tree --name-only bf9efcba`, and a count of `.md` and `.py` files per directory).
+The tree at `bf9efcba`, taken apart into the places a fact can be stated (executed: `git ls-tree --name-only bf9efcba`, and a count of `.md` and `.py` files per directory). The parts are not the whole tree: the tracked files no part holds are listed by `trail/phases/phase-3.md` *Command parts*, and D8 carries them with the unmeasured pairs.
 
 | Part | Paths |
 |---|---|
@@ -131,7 +131,7 @@ In each pair below a fact can stand in both parts, and no kind's command reads t
 | P8 with P10 | an eval case copying code text that no script writes | K12's *Command regenerate* reads the cases a script under `evals/scripts/` writes |
 | P9 with P10 | a test and an eval case stating one fact | none |
 | P11 with P11 | an open issue's body and a milestone's description stating one order or scope | the issue's *Order* line against the milestone's order (G10) |
-| P12 with P9 | a coordinate or figure in a test's docstring or comment | K13's corpus leaves out `tests/` (`trail/phases/phase-2.md` *Whether the frame holds*, the K13 item) |
+| P12 with P9 | a coordinate or figure in a test's docstring or comment | K13's corpus leaves out `tests/` (`trail/phases/phase-2.md` *Whether the frame holds*, the K13 item); the record's instances are named in `trail/phases/phase-3.md` *Whether the frame holds*, the item on drift the hand-back did not count |
 | P12 with P10 | a coordinate or figure in an eval case | K13's corpus leaves out `evals/behaviour/` (the same item) |
 
 ### The table
