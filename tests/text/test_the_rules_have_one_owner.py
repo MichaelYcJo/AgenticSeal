@@ -349,7 +349,8 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
     reads every workflow's checks rather than one workflow's run. A conflict
     is integrated by a merge, never a rebase, and the chain check reads no
     merge commit, so a resolution outside the records gets a verifying
-    round."""
+    round. #1222 adds the poll before the wait, because the wait run before a
+    check has reported exits 1 without waiting."""
     text = flat(*ORCH)
     section = text[
         text.index("## Orchestrator: the pull request opens once the sealer seals") : (
@@ -361,6 +362,10 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
         "opens, before each push to its branch and after each push",
         "`MERGED` or `CLOSED` stops the push",
         "`gh pr checks <N> --watch`",
+        "`no checks reported on the '<branch>' branch`",
+        "exits 1 without waiting",
+        "--json headRefOid,statusCheckRollup",
+        "within two minutes",
         "`CONFLICTING` means GitHub made no merge ref for the pull request and "
         "runs no `pull_request` CI on it, and nothing else says so",
         "`UNKNOWN` means GitHub has not computed the answer yet",

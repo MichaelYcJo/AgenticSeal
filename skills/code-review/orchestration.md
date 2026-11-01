@@ -223,10 +223,31 @@ orchestrator pushes nothing and says in its report that the pull request was
 closed with a repair pending. `CONFLICTING` means GitHub made no merge
 ref for the pull request and runs no `pull_request` CI on it, and nothing
 else says so. `UNKNOWN` means GitHub has not computed the answer yet, and
-the orchestrator reads it again. The wait is `gh pr checks <N> --watch`,
-which reads the checks of every workflow on the pull request; a single
-workflow's run, watched alone, can pass while another workflow's check
-fails.
+the orchestrator reads it again.
+
+**The orchestrator waits on CI with `gh pr checks <N> --watch`, and starts
+the wait only once the commit it pushed last has a check.** The wait reads
+the checks of every workflow on the pull request; a single workflow's run,
+watched alone, can pass while another workflow's check fails. Run before any
+check has reported on the pull request's head commit, the wait does not
+wait. With gh 2.100.0 it prints `no checks reported on the '<branch>'
+branch` and exits 1 without waiting. A failed check also exits 1, so right
+after a push the orchestrator reads that exit neither as a failure nor as
+nothing to wait for. The wait follows a short poll. Every ten seconds the
+orchestrator runs
+
+```
+gh pr view <N> --json headRefOid,statusCheckRollup --jq '[.headRefOid, (.statusCheckRollup | length)]'
+```
+
+and stops once the SHA it prints is the commit it pushed last and the count
+is above 0. It then runs the wait. The SHA keeps the wait off the finished
+checks of the commit before the push. A poll that has not got there within
+two minutes is not a pass. The orchestrator then reads
+`gh pr view <N> --json state,mergeable` once more, and the paragraph above
+says what each reading means. Under `OPEN` and `MERGEABLE` it says in its
+report that no check reported on that commit and names the SHA. It waits no
+longer, and it does not treat the pull request as checked.
 
 **A conflict with the base is integrated by merging the base into the
 branch, never by a rebase.** A rebase orphans the commits every round record
