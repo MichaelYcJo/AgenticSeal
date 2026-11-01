@@ -36,6 +36,11 @@ The fix that matches Scope items 2 to 4 links the home in place of the list, in 
 
 The other route is an Out item at `frame/design.md:44` that names the row and gives its own grounds, for example that #1102 rewrites the whole section. No document read this round gives those grounds today: #1102's body asks for a rewrite of both editions, and its comment names the tree alone.
 
+```seal
+verdict: fixed f907c6ee
+answer: The finding holds: `frame/design.md:44` gives grounds for the README trees alone, and `trail/phases/phase-1.md:37` was wrong to read the row into them. `README.md:117` and `README.ko.md:112` now carry the two paste-ready rows as written, each linking `docs/the-record-layout.md` *seal/* in place of the list, and nothing else in either README changed. The config row's fact the list carried, the two language rows and the mode, still stands in each README's tree under `config.md`. `changelog.md` now names the two README rows among the passages that link the home. Executed at `f907c6ee`: `bin/test -q` over 44 modules, the modules under `tests/` that name `README.md` or `README.ko.md` joined to the cited-section, line-wrap, census and both-editions modules, gave 2798 passed and 1 skipped. `seal mutate` renamed the cited section to `*seall/*` in each README in turn, and `test_every_cited_section_stands_in_its_file` went red naming `README.md:117` and `README.ko.md:112`, with each file restored from held bytes. `trail/phases/phase-1.md:37` still states that design *Scope* leaves the row to #1102; a fix pass writes no phase record, so that sentence stands as the build's account and this block corrects it.
+```
+
 ## Confirmations
 
 ```seal
