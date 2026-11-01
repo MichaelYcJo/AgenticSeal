@@ -43,4 +43,5 @@ None for a user. The new script runs only when this repository's settling sessio
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-01 | The frame was read against #1223 and spawned as committed, with no proposal to the framer | The script through `chain_check.py#record_findings`, the `located` field and the three rule changes meet the issue's *Done when* | `skills/implement/orchestration.md` *The frame is read against the issue at the spawn* |
+| 2026-11-01 | Round 1's fix pass changed what the script prints under the table, so `frame/design.md` *Data & interfaces*'s Stdout bullet is folded in place to state the two lines | The fix pass names the bullet as standing on the old output and does not edit the frame; the verifying round and any later crafter read one statement | `skills/code-review/orchestration.md` *Orchestrator: a phase is a fresh crafter, and a fix pass resumes the implementer* |
