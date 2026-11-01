@@ -242,10 +242,12 @@ seal* 은 감사하는 쪽만 밝히고 감사받는 것은 밝히지 않는다.
 실제로 `seal` 은 세 가지를 동시에 가리켰다. proofer 가 남기는 리뷰 표시, sealer
 가 찍는 도장, crafter 의 증명 블록이고, 앞의 둘은 나란히 열리는 두 파일에 있었다.
 
-**이 문장은 보장이 아니다.** 규칙을 적어 두고 다시 깨진 사례가 일곱 건이며,
-고치는 것은 검사다. AgenticSeal 자신의 저장소에서는 `seal` 한 낱말만 검사가
-걸려 있고(`tests/behaviour/test_one_word_one_meaning.py`), 남은 낱말을 훑어 찾는 일은
-#331 이다.
+**이 문장은 보장이 아니다.** 규칙을 적어 두고도 다시 깨진 사례가 일곱 건이다.
+주인이 익명으로 남은 문장은 리뷰에서 proofer 가 읽어 찾는다. 아래 절
+*에이전트와 검사가 읽는 글은 한 가지로만 읽히게 쓴다* 의 두 번째 규칙이 읽는
+쪽으로 적은 것도 그 proofer 다. 검사가 아니라 읽는 쪽이 맡는 까닭은 한 낱말이
+주인 하나를 가리키는지가 뜻의 문제이기 때문이다(`skills/core/SKILL.md`
+*Judgment is spent where meaning is the question, and a script answers the rest*).
 
 ### 에이전트와 검사가 읽는 글은 한 가지로만 읽히게 쓴다
 
@@ -273,7 +275,7 @@ check: tests/github/test_rules.py tests/skills/test_chain_check.py tests/skills/
 낱말에 두 뜻을 실으면 어느 뜻인지 문장 밖에서 골라야 한다. 여럿이 가질 수 있는
 것은 위의 *여럿이 가질 수 있는 것은 누구 것인지 밝힌다* 를 따르고, 사례도 그
 절의 `seal` 이다.
-check: tests/behaviour/test_one_word_one_meaning.py
+check: none reader: the proofer at review
 
 **무엇을 하라는 문장은 누가, 언제, 어느 파일에서 하고 무엇이 되면 끝인지를
 밝히고, 그중 하나가 빠질 만큼 줄이지 않는다.** 하는 쪽은 orchestrator, framer,

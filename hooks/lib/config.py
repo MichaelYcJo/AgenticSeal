@@ -1410,9 +1410,9 @@ def baseline_commit(text):
 # Until 0.19.0 every repository of a work item that keeps a pact had another
 # name, and the pact's one-column table carried it into a file nobody
 # regenerates. It still reads (`read_table`), and `seal pact` prints the
-# sentence below where it reads one. This unit is the one place the old word is written, which is
-# what lets `tests/behaviour/test_one_word_one_meaning.py` refuse it everywhere else and
-# exclude this unit by name (`docs/the-pact.md` *The words*).
+# sentence below where it reads one. This unit is the one place the old word
+# is written, and it spells the old header in order to read it, which
+# `docs/the-pact.md` *The words* says names no signer another way.
 RENAMED_IN = "0.19.0"
 
 

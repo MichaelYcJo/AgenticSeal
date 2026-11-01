@@ -60,7 +60,7 @@ orchestrator's own minutes; `--segments` opens the OTHER transcripts, one row
 per agent this run spawned, and given a resumed agent's own transcript it
 reads that one file, one row per stretch of work (#637) — each row one
 agent's own stretch either way. `skills/verify/orchestration.md` *Measure the
-segment* owns that distinction and `tests/behaviour/test_one_word_one_meaning.py` holds it.
+segment, and feed the flow log* owns that distinction.
 """
 
 import argparse

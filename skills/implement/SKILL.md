@@ -73,7 +73,7 @@ laid out by **lifetime**, not by who wrote it:
 |---|---|---|---|
 | `docs/` | Permanent, cumulative | Must still be true in 6 months | **Norms, ratified by humans.** Read when the repository has them; the documentation convention is the project's. The policy root (`docs/` unless `seal/config.md`'s `Policy root` names another) is the baseline, and a pull request does not edit it. A work item's design states its changes in `## Rule changes`, the settle after the release writes each section as the latest decision the released designs state, checked against the code (`skills/settle/SKILL.md`), and the policy in force is the baseline plus the latest decision the unsettled designs' rule changes state at each section, in merge order |
 | `seal/threads/<work-item-id>/` | One work item | Its role ends when this work ships (the frame, the trail, the closing memo) | The contract this work executes against. A human approves `frame/plan.md`, which is why this is a repository document and not tool state |
-| `seal/`, everything above `threads/` | Permanent | Everything this plugin maintains | Written and read by machines: the repository's config, the migration config, the follow-up list |
+| `seal/`, everything above `threads/` | Permanent | Everything this plugin maintains | Written and read by machines |
 
 A `specs/` the project kept before the plugin is neither root: it is a
 **reference root**, as `templates/setup/config.md` *Reference specs* says — history
@@ -95,26 +95,10 @@ other machines. The second is local mode: under the common git directory, so
 every linked worktree of the clone shares it, and never a commit candidate.
 A repository with both is shared, and nothing else — no config key — is
 read. What sits directly under it is permanent; what sits under
-`seal/threads/` lives as long as its work item:
-
-```
-seal/
-├── README.md         what the root holds, and where the export rules are
-├── parity.md         migration config, only when declared
-├── pact.md           the pact, only in the repository that holds one
-├── follow-up.md      schedulable items in a repository with no tracker
-└── threads/<work-item-id>/
-    ├── routing.md    the routing answer, written by the session before the
-    │                 first edit; a framer reads it and never writes it
-    ├── frame/        design.md, plan.md, questions.md: the design before the build
-    ├── trail/phases/phase-N.md   what one build phase found
-    ├── trail/rounds/round-N.md   one review round — closed at merge, removed
-    │                             with its work item at the settle after its release
-    ├── trail/gate.md             the one broad run, written by `seal gate --record`
-    ├── changelog.md  this work item's entry in the next release's notes
-    ├── gaps.md       the closing memo
-    └── guarantee.md  the sealer's verdict, from `templates/records/sdd-guarantee.md`
-```
+`seal/threads/` lives as long as its work item. Each file the root holds,
+and the question it answers, is in `docs/the-record-layout.md` *seal/*, and
+each file of a work item's directory is in `docs/the-record-layout.md`
+*seal/threads/<work-item-id>/*.
 
 The review round records live beside the work item they are about, with the
 routing declaration and the rest of the SDD set (`docs/the-review-record.md`).

@@ -16,6 +16,7 @@ of its own, and its case is `tests/hooks/test_dispatch.py`'s. The case comes fro
 import io
 import json
 import os
+import runpy
 import subprocess
 import sys
 
@@ -68,14 +69,14 @@ class Test_to_utf8:
 class Test_module:
     @pytest.mark.parametrize("encoding", HOSTILE)
     def test_a_gate_run_on_its_own_still_reaches_a_verdict(self, korean_repo, encoding):
-        """The seven `console.to_utf8()` calls, bound.
+        """The gates' own `console.to_utf8()` calls, bound.
 
         `dispatch.py` is what production spawns, and its copy of the loop is held
         by `tests/hooks/test_dispatch.py`. The per-gate calls are for the other
         documented way in -- `hooks/lib/console.py` says each gate is runnable on its
         own -- and nothing measured that: neutering `to_utf8` to a bare `return`
-        left the suite at its own baseline, so all seven could be deleted and the
-        tree stays green. The gate run is the routing check at the edit tools,
+        left the suite at its own baseline, so every one of them could be deleted
+        and the tree stays green. The gate run is the routing check at the edit tools,
         whose refusal names the repository's path, which holds `KOREAN`.
         """
         r = subprocess.run(
@@ -96,6 +97,34 @@ class Test_module:
         assert decision_of(r) == "deny", (
             f"{encoding}: the gate went silent on its own, which the harness reads "
             f"as approval. stderr: {r.stderr.decode('utf-8', 'replace')[-300:]}"
+        )
+
+    @pytest.mark.parametrize(
+        ("script", "code"),
+        [("release_report.py", 2), ("release_seal.py", 0), ("rules.py", 2)],
+    )
+    def test_a_release_script_run_on_its_own_gives_the_answer_streams_holds(
+        self, monkeypatch, script, code
+    ):
+        """Each of these scripts spells the loop inline, because it loads the
+        tree's modules only when first asked, and this case holds its copy to
+        `STREAMS` read at run time. Run with no argument and no `TAG`, each
+        ends at its `main`'s own verdict: exit 2 for the two that refuse a
+        missing argument, and `release_seal.py`'s `no seal:` at exit 0, which
+        never fails a release."""
+        console = load_hook_module("lib/console.py", "console_for_release_scripts")
+        path = os.path.join(ROOT, ".github", "scripts", script)
+        streams = {name: cp949_stream() for name, _ in console.STREAMS}
+        for name, stream in streams.items():
+            monkeypatch.setattr(sys, name, stream)
+        monkeypatch.setattr(sys, "argv", [path])
+        monkeypatch.delenv("TAG", raising=False)
+        with pytest.raises(SystemExit) as ended:
+            runpy.run_path(path, run_name="__main__")
+        said = {name: (s.encoding, s.errors) for name, s in streams.items()}
+        assert (ended.value.code, said) == (
+            code,
+            {name: ("utf-8", errors) for name, errors in console.STREAMS},
         )
 
 

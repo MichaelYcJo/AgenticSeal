@@ -111,9 +111,8 @@ _BLOCKS = _load_hook("blocks.py", "agentic_blocks_for_unverified")
 # at any indentation as GitHub does, so a fence under a list item masks a
 # closing keyword (`docs/issues-and-milestones.md` *A keyword inside a fence
 # or a code span claims nothing*); `tests/behaviour/test_docs_line_wrap.py#fenced_numbers`,
-# which strips a line's indentation first;
-# `tests/behaviour/test_release_hygiene.py#overwide_rows`, which keeps no fence state;
-# and the oracle walk in `tests/skills/test_unverified_check.py`. A new reader
+# which strips a line's indentation first; and the oracle walk in
+# `tests/skills/test_unverified_check.py`. A new reader
 # that decides by line whether it stands inside a fence belongs in one of
 # these two lists.
 fence_opener = _BLOCKS.fence_opener
