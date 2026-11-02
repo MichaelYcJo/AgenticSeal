@@ -161,12 +161,11 @@ Out:
   from: The settle's dry run prints the rows of every released work item
     grouped by the document they stand on, and the settling session rewrites
     the section where one kind of judgment keeps costing rounds.
-  to: The settle's dry run prints the rows of every released work item
-    grouped by the document they stand on, and beside them the rows of every
-    plan an earlier settle removed, read from the history with the release
-    each shipped in. The settling session rewrites the section where one kind
-    of judgment keeps costing rounds, within one release or across releases,
-    and whether two rows are one kind is its judgment.
+  to: The settle's dry run prints the judgment rows of the released work
+    items and, beside them, those earlier settles removed, which the history
+    still holds. The settling session rewrites the section where one kind of
+    judgment keeps costing rounds, in one release or across several, and
+    deciding that two rows are one kind is its own judgment.
 - change
   file: docs/release-checklist.md
   section: 2b. Settle what earlier releases left behind
@@ -180,8 +179,8 @@ Out:
     guidance improves from that record and not from memory.
   to: **Before `seal settle --apply`, the settling session reads the dry
     run's *The judgments* and *The judgments earlier settles removed*, and
-    rewrites a section where one kind of judgment recurs across work items or
-    across releases, or kept costing rounds.** *The judgments* holds the
+    rewrites a section where the same kind of judgment came back, within
+    this release or over several, or cost rounds each time it was made.** *The judgments* holds the
     orchestrators' rows from every released `frame/plan.md`. *The judgments
     earlier settles removed* holds the rows of every plan an earlier settle
     removed, read from the history with the release each shipped in. Both
