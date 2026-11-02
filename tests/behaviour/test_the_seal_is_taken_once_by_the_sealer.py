@@ -526,6 +526,24 @@ def test_the_measurement_its_cost_and_its_limits_are_told_where_the_row_is_writt
         "The gate also says there how many sessions at `HEAD` stopped "
         "part-way, because the test such a session stopped in may be in no "
         "list.",
+        # #883: that stop fails the suite even where the row exited 0.
+        "Where one did, the suite fails even where the row exited 0, as it "
+        "does when a test calls `pytest.exit()` with a return code of 0 or "
+        "`os._exit(0)`, because a stop that chooses the exit code says neither "
+        "that the session ran every test it collected nor that nothing it ran "
+        "failed; the failure form says so, and no `trail/gate.md` is written.",
+        # #883 rounds 1 and 2: the two stops no record shows, each with what
+        # the gate reads per session, so the sentences hold for a row that
+        # runs pytest once or several times.
+        "Two stops are out of the record's reach. A `pytest.exit()` raised by "
+        "a `pytest_sessionfinish` hook that runs after the recorder's comes "
+        "after the session's `end` line, so that session reads as one that ran "
+        "to its end, and its pytest exits with the code that hook chose.",
+        "A stop raised before the recorder writes a session's first line, such "
+        "as a `pytest.exit()` in a conftest's `pytest_configure`, leaves no "
+        "record of that session, so the gate reads the run as though that "
+        "session never started: it judges the run on the row's exit and on the "
+        "records the row's other sessions left, where there are any.",
         "**The cost is one more run of the whole row, and only when the suite "
         "fails**, whatever the number of failing files.",
         "so a part after the runner that the branch's own run never reached, "
