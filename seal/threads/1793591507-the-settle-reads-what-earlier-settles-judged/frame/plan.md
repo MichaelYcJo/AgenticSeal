@@ -85,4 +85,4 @@ variable and no argument. `--apply`, `--draft` and `--from` are unchanged.
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-02 | The design's G4 cites the owner's no-cap decision at #1289's body and #1288's *Done when*, where the framer had it only through the spawn prompt | The decision was written into both issues the same day; a coordinate lets the sealer and the settle read it rather than take the orchestrator's word | `skills/core/SKILL.md` *A judgment stands on a source document, and is written down with both* |
