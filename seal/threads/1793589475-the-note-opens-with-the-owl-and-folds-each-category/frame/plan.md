@@ -75,4 +75,4 @@ are never rewritten.
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-02 | Round 1's `must` is answered in the frame before the fix pass: the renderer writes each pull request title as text, `<` outside a code span becoming `&lt;`, and the stated limit with its count of 0 in 318 goes; A6's rejection stands for fragments and for tag-reading, not for titles | #1293, merged into this release, has three bare `details` tags in its title, and round 1 rendered the note through GitHub and saw two folds open in its line; a squash subject cannot be rewritten after the merge. Escaping every `<` of a title reads no tag, so it is no second reader beside #1218's; and #1044's byte-for-byte copy binds the records' text, not a commit subject | `skills/core/SKILL.md` *The rule a mechanism is kept against* |

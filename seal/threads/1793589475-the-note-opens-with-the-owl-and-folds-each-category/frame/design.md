@@ -70,12 +70,14 @@ In scope:
 5. **The folds stay well formed.** Each `<details>`, `<summary>` and
    `</details>` the renderer writes stands on a line of its own, with a
    blank line after the summary line and before the closing tag, as the
-   full-changelog fold does today. Nothing escapes the text inside. A tag in
-   a pull request title or a fragment stays text where it sits in a code
-   span. A fragment's bare tag is refused at `seal pr-body` by #1218. A pull
-   request title's bare tag would close its category's fold early; that is
-   a limit, stated in `release_body`'s docstring with the count of 0 in 318
-   titles (*Grounding*).
+   full-changelog fold does today. A pull request title is written as text:
+   each `<` outside a code span becomes `&lt;`, read with
+   `close_issues_on_release.py#SPAN`, so no title opens or closes a fold or
+   any other element, and a code span stays code. This reads no tag: it is
+   the renderer writing a subject line as the text it is. A fragment is not
+   escaped, since it is the records' own text and its bare tag is refused at
+   `seal pr-body` by #1218. #1293's own title, merged into this release with
+   three bare `details` tags, is the instance that showed a title can hold one.
 6. **The code's own text states the new note.** The module docstring of
    `publish_release_note.py` (`:31-41` and `:84-91`), the docstrings of the
    functions that write and replace the header, `release_body`'s docstring,
