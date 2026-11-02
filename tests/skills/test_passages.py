@@ -46,22 +46,26 @@ class Test_in_corpus:
     def test_accepts_a_rule_document(self, rel):
         assert passages.in_corpus(rel)
 
+    # One path per guard of `in_corpus`, each refused by that guard alone, so
+    # widening any one guard fails exactly its path. Membership in
+    # `TOP_FILES` and the `TOP_DIRS` prefix are the two sides of one `or`, so
+    # each is widened at its boundary: membership to every top-level path,
+    # the prefix to its directory names without their slash.
     @pytest.mark.parametrize(
         "rel",
         [
-            # Under `docs/`, so the `.ko.md` exclusion alone refuses it.
-            "docs/the-review-record.ko.md",
-            # A top-level `.md` outside `TOP_FILES` and no edition, so the
-            # membership alone refuses it.
-            "SECURITY.md",
-            "seal/threads/1-x/frame/design.md",
-            "tests/README.md",
+            # Under `skills/` and no edition: the `.md` suffix alone.
             "skills/README.txt",
-            "hooks/notes.md",
-            "docs",
+            # Under `docs/`: the `.ko.md` exclusion alone.
+            "docs/the-review-record.ko.md",
+            # A tracked top-level `.md` outside `TOP_FILES`: membership alone.
+            "SECURITY.md",
+            # A directory whose name `docs` begins: the prefix's slash alone.
+            "docs-old/notes.md",
         ],
+        ids=["the-md-suffix", "the-ko-exclusion", "top-files", "top-dirs-slash"],
     )
-    def test_refuses_an_edition_a_record_and_a_file_outside_the_corpus(self, rel):
+    def test_refuses_a_path_one_guard_alone_refuses(self, rel):
         assert not passages.in_corpus(rel)
 
 
