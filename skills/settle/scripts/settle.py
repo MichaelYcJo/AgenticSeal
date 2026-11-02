@@ -1113,7 +1113,6 @@ def earlier_judgments(root, ref, present):
             root,
             "log",
             "--no-renames",
-            "--no-follow",
             "--full-history",
             "--diff-filter=D",
             "--name-only",
