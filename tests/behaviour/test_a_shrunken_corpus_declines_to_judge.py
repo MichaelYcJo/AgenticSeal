@@ -88,6 +88,9 @@ APPLIES_THE_SHARED_GUARD = {
     # citations both read. Both readers judge what they find, so it skips
     # the missing half.
     "tests/behaviour/test_a_cited_section_stands_in_its_file.py#corpus": 1,
+    # #1270's `<commit>:<path>` citations. It refuses what it finds, so it
+    # skips the missing half.
+    "tests/text/test_a_cited_commit_outlives_the_squash.py#cited": 1,
     # #1055's outline sweep over every tracked edition pair. It returns the
     # missing half, and its caller asserts two pairs alive, so it hands that
     # half to `decline_if_shrunken` before judging.
