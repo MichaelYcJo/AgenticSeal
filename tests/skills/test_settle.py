@@ -2343,31 +2343,35 @@ class Test_main:
     ):
         """S4 and S5. A was added before B and B's `change` quotes A's `to`,
         so only merge order leaves B's `to`, whatever their ids say. C's
-        `from` is not there: C is printed with its coordinate and reason,
-        and D, after it, is placed. The run exits 0, writes only under the
-        policy root, and leaves every released directory as it was."""
+        first `from` is not there: that operation is printed with its
+        coordinate and reason, and C's next operation and D, after it, are
+        placed. The run exits 0, writes only under the policy root, and
+        leaves every released directory as it was."""
         item(repo, "1700000009-a", op("change", "S", "old sentence.", "y."))
         commit(repo, "a")
         item(repo, "1700000001-b", op("change", "S", "y.", "z."))
         commit(repo, "b")
-        item(repo, "1700000005-c", op("change", "T", "gone words.", "w."))
+        missed = op("change", "T", "gone words.", "w.")
+        item(repo, "1700000005-c", missed + "\n" + op("add", "T", new="Kept."))
         commit(repo, "c")
         item(repo, "1700000002-d", op("add", "U", new="Rule."))
         commit(repo, "d")
         records = {k: v for k, v in files(repo).items() if k.startswith("seal")}
         code, text = dry_run(repo, capfd, "--draft")
         assert code == 0, text
-        line = line_of(spec(op("change", "T", "gone words.", "w.")), "- change")
+        line = line_of(spec(missed), "- change")
         assert text == (
             "not placed  change  1700000005-c  "
             f"seal/threads/1700000005-c/frame/design.md:{line}  "
             "the `from` text is not in section `T` of docs/a.md\n"
-            "placed 3 of 4 operations in docs/\n"
+            "placed 4 of 5 operations in docs/\n"
             f"{settle.DRAFTED}"
         ), text
-        assert (repo / "docs" / "a.md").read_text(encoding="utf-8") == DOC.replace(
-            "old sentence.", "z."
-        ).replace("Last.\n", "Last.\n\nRule.\n")
+        assert (repo / "docs" / "a.md").read_text(encoding="utf-8") == (
+            DOC.replace("old sentence.", "z.")
+            .replace("T's text.\n", "T's text.\n\nKept.\n")
+            .replace("Last.\n", "Last.\n\nRule.\n")
+        )
         assert git(repo, "status", "--porcelain") == " M docs/a.md\n"
         assert {k: v for k, v in files(repo).items() if k.startswith("seal")} == (
             records
