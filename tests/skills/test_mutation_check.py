@@ -21,6 +21,7 @@ skill.
 import importlib.util
 import os
 import pathlib
+import platform
 import py_compile
 import re
 import shlex
@@ -119,8 +120,14 @@ class Test_batch_run:
             ([("A = 1", "A = 2"), ("D = 1", "D = 2")], 2),
             ([("= 1", "= 2"), ("A = 1", "A = 2")], 1),
             ([("A = 1", "A = 2"), ("B = 1", "B = 1")], 2),
+            ([("A = 1", "A = 2"), ("B = 1", "B = ")], 2),
         ],
-        ids=["lands-nowhere", "lands-three-times", "changes-nothing"],
+        ids=[
+            "lands-nowhere",
+            "lands-three-times",
+            "changes-nothing",
+            "does-not-compile",
+        ],
     )
     def test_refuses_every_pair_when_one_cannot_land_once(
         self, tmp_path, pairs, number
@@ -209,6 +216,18 @@ with open(sys.argv[1], encoding="utf-8") as f:
 def red_on(tmp_path, target, marker, name="red_on.py"):
     """The cases command that is red only against the mutant holding `marker`."""
     return cases_command(probe(tmp_path, FAILS_ON_THE_MUTANT, name), target, marker)
+
+
+# Logs that it ran, then compiles and runs the module it is handed, the way
+# cases that load a script by path do: a module that does not compile fails
+# them whatever its units do (#898).
+LOADS = """\
+import sys
+with open(sys.argv[2], "a", encoding="utf-8") as f:
+    f.write("ran\\n")
+with open(sys.argv[1], "rb") as f:
+    exec(compile(f.read(), sys.argv[1], "exec"))
+"""
 
 
 # Reports the bytes of the file it is handed, so a case can see what the
@@ -410,8 +429,10 @@ class Test_main:
         assert re.match(
             r"baseline: the cases pass against the file as it is" + SECONDS, lines[0]
         ), out
-        assert re.match(r"mutant 1: red" + SECONDS, lines[1]), out
-        assert re.match(r"mutant 2: red" + SECONDS, lines[2]), out
+        # The cases' exit code, which says a collection error (pytest's 2)
+        # apart from a failing case; the command decides nothing from it.
+        assert re.match(r"mutant 1: red \(exit 1, \d+\.\ds\)$", lines[1]), out
+        assert re.match(r"mutant 2: red \(exit 1, \d+\.\ds\)$", lines[2]), out
         assert re.match(
             r"seal mutate: 2 mutants, 2 red, 0 SURVIVED, 0 with no verdict" + SECONDS,
             lines[3],
@@ -713,6 +734,89 @@ class Test_main:
         assert f"{count} times" in out, f"the refusal does not name the count: {out}"
         assert after == before, "a refused replacement wrote something"
         assert not log.exists(), "a refused replacement still ran the cases"
+
+    @pytest.mark.parametrize(
+        ("new", "line"),
+        [("OTHER = ", "line 2"), ("return 2", "line 2"), ("OTHER = \x00", None)],
+        ids=["syntax-error", "compile-only-error", "null-byte"],
+    )
+    def test_a_python_mutant_that_does_not_compile_is_refused_before_any_write(
+        self, tmp_path, capsys, new, line
+    ):
+        """#898: cases that load the module fail on a mutant that does not
+        compile whatever the unit does, so their red is the syntax error's and
+        not a case noticing the break. `return 2` at module level passes
+        `ast.parse` and only the compiler refuses it. A null byte's error
+        carries no line, and the sentence names none."""
+        target = tmp_path / "target.py"
+        target.write_text("VALUE = 1\nOTHER = 2\n", encoding="utf-8")
+        log = tmp_path / "ran.txt"
+        loads = probe(tmp_path, LOADS)
+        before = snapshot(tmp_path)
+
+        code, out = run(
+            [
+                target,
+                "--replace",
+                "OTHER = 2",
+                new,
+                "--tests",
+                cases_command(loads, target, log),
+            ],
+            capsys,
+        )
+        assert code == 2, out
+        assert out.startswith("refused: "), out
+        assert "does not compile" in out, out
+        if line:
+            assert f"{line}:" in out, f"the refusal does not name the line: {out}"
+        assert "line None" not in out, out
+        assert snapshot(tmp_path) == before, "a refused mutant wrote something"
+        assert not log.exists(), "the cases ran before the refusal"
+
+    @pytest.mark.parametrize(
+        ("source", "pairs", "first_word", "uncompiled"),
+        [
+            (b"VALUE = 1\nprint(\n", [("VALUE = 1", "VALUE = 2")], "red", True),
+            (
+                b"VALUE = 1\nprint(\n",
+                [("VALUE = 1", "VALUE = 2"), ("VALUE = 1", "VALUE = 2 ")],
+                "baseline",
+                True,
+            ),
+            (b"\xef\xbb\xbfVALUE = 1\n", [("VALUE = 1", "VALUE = 2")], "red", False),
+        ],
+        ids=["does-not-compile", "does-not-compile-in-a-batch", "byte-order-mark"],
+    )
+    def test_a_python_file_is_compiled_as_it_is_before_its_mutants(
+        self, tmp_path, capsys, source, pairs, first_word, uncompiled
+    ):
+        """A file that does not compile as it is under the running interpreter
+        may still run under the cases' own, so its mutants are decided by the
+        cases' exit code alone, and the first line says they were not
+        compiled. A byte-order mark compiles from the bytes on disk, which is
+        what the compile reads, so that file is compiled and says nothing."""
+        target = tmp_path / "target.py"
+        target.write_bytes(source)
+        code, out = run(
+            [
+                target,
+                *replaces(pairs),
+                "--tests",
+                red_on(tmp_path, target, "VALUE = 2"),
+            ],
+            capsys,
+        )
+        first = out.splitlines()[0]
+        assert code == 0, out
+        assert first.startswith(f"{first_word}: "), out
+        if uncompiled:
+            assert "no mutant was compiled" in first, out
+            assert f"Python {platform.python_version()}" in first, out
+            assert "line 2:" in first, out
+        else:
+            assert "no mutant was compiled" not in out, out
+        assert target.read_bytes() == source
 
     def test_a_replacement_that_lands_once_is_what_the_cases_see(
         self, tmp_path, capsys
@@ -1196,6 +1300,33 @@ class Test_main:
         assert target.read_text(encoding="utf-8") == text
         assert code == 1 and out.startswith("SURVIVED"), out
         assert not (tmp_path / "__pycache__").exists()
+
+    @pytest.mark.parametrize(
+        "name",
+        ["notes.md", "script", "target.PY"],
+        ids=["markdown", "no-suffix", "upper-case"],
+    )
+    def test_a_file_whose_name_does_not_end_in_py_is_not_compiled(
+        self, tmp_path, capsys, name
+    ):
+        """Only a `.py` target is compiled. A sentence or a workflow a case
+        reads is not a program, and a mutant of it that would not compile as
+        Python runs as it always did."""
+        target = tmp_path / name
+        target.write_text("VALUE = 1\n", encoding="utf-8")
+        code, out = run(
+            [
+                target,
+                "--replace",
+                "VALUE = 1",
+                "VALUE = (",
+                "--tests",
+                red_on(tmp_path, target, "VALUE = ("),
+            ],
+            capsys,
+        )
+        assert code == 0 and out.startswith("red: "), out
+        assert target.read_text(encoding="utf-8") == "VALUE = 1\n"
 
     # --- S5 · a run that never returns ends at the bound, and so does its child
 
