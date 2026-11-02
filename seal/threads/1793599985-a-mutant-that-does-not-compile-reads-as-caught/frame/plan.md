@@ -50,4 +50,4 @@ Every coordinate is at `954bf5a5` in this worktree (read unless labelled).
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-02 | The orchestrator moves `.claude-plugin/plugin.json` from `0.28.1` to `0.29.0` in 0b37d14a and folds *Scope* item 6 and S9 to that version | #1299 is a feat in this release, a patch carries none, and no planned minor shares its goal; the orchestrator reported renaming the release forward as its default, the owner renamed the milestones (0.28.1 to 0.29.0, 0.29.0 to 0.30.0, 0.30.0 to 0.31.0), and the orchestrator cut `release/v0.29.0` from `release/v0.28.1` at 40e6c23e. This pull request is still the release's first, so it carries the version | `docs/branch-and-release.md` *Work accumulates on a release branch* and *Cutting a release* |
