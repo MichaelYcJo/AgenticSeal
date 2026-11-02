@@ -58,11 +58,10 @@ decides for itself, and how it is read* gives the reasons.
 rather than by a person: every field name, section heading and vocabulary
 word the checkers match, listed in `templates/setup/config.md` under *What no row
 governs* — that list is derived from the checkers' own constants, so it
-cannot drift from them; `<!-- specs/<work-item-id> -->` and the other
-markers; a `drained` line and the `closed` that opens a closed row; and all
-code — identifiers, comments, docstrings, file names, test function names. A
-translated field name is not a translation, it is a checker that
-stops reading.
+cannot drift from them; the `<!-- -->` markers; a `drained` line and the
+`closed` that opens a closed row; and all code — identifiers, comments,
+docstrings, file names, test function names. A translated field name is
+not a translation, it is a checker that stops reading.
 
 ## Document layout — two roots, three lifetimes
 
