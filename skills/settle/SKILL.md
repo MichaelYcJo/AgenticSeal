@@ -218,8 +218,32 @@ nothing:
   section's and that is not it is named as not read at its line, and so is
   a section whose table is not under the exact header. A `trail/rounds`
   that is not a directory the dry run can list is named in place of a
-  count. `--apply` removes the plans, so this is the one reading the rows
-  get.
+  count.
+- **The judgments earlier settles removed**: every row of every
+  `seal/threads/<id>/frame/plan.md` a commit on `--released-at` deleted,
+  where no directory `<id>` stands in the working tree. One `git log -z
+  --no-renames --full-history --diff-filter=D` of the ref over
+  `seal/threads` lists the deletions. `-z` keeps a path holding a
+  character past ASCII unquoted, and `--no-renames` keeps a deletion a
+  deletion where the same commit adds a similar plan, such as another work
+  item's. Each plan is read once, at the
+  parent of the newest commit that deleted it, by the reader *The
+  judgments* uses: a near heading and a table not under the exact header
+  are named as not read, at the coordinate `<short>^:<path>`. The rows are
+  grouped by the `Judged against` cell exactly as written, in the order
+  first met, the removing commits newest first. Each work item's line gives
+  the lowest `vX.Y.Z` tag that holds the commit adding its plan, or says no
+  tag holds that commit, and the removing commit's short hash with its
+  `(#N)`. A `git` that fails is named with what it said, and the dry run
+  goes on. The section counts nothing and matches no row to another, so a
+  row here sharing a cell with a row above is not a recurrence, and two
+  cells spelt apart are not two kinds: whether two rows are one kind is the
+  settling session's judgment (step 5). The section is printed only where
+  it holds a row or a line not read, so a run with no earlier settle
+  prints what it printed before. Two limits no guard covers: a shallow
+  clone lists no plan deleted past its boundary, and a plan only a merge
+  commit's own resolution deleted is not listed, because the query reads
+  non-merge diffs.
 - **The named directories**, printed only with `--from`: each directory
   named, with its count of documents, and under it one line per document.
   A document is every file
@@ -322,11 +346,15 @@ is decided no more than the dry run's groups are.
    group and not applied, and where the draft wrote it, it is taken out.
    The rest of the document stays as it was, and no marker is written.
 5. Read each design listed to read whole, and write any rule it states the
-   same way. Then read *The judgments*: where one kind of judgment recurs
-   across work items under one document, or kept costing rounds, rewrite
-   that document's section in this settle, as step 4 writes a group's, so
-   the guidance improves from the record (`skills/core/SKILL.md` *A judgment
-   stands on a source document, and is written down with both*).
+   same way. Then read *The judgments* and *The judgments earlier settles
+   removed*: where one kind of judgment recurs across work items or across
+   releases, or kept costing rounds, rewrite the section that kind stands on
+   in this settle, as step 4 writes a group's, so the guidance improves from
+   the record (`skills/core/SKILL.md` *A judgment stands on a source
+   document, and is written down with both*). Whether an earlier row is one
+   kind with a current row is your judgment, read from what each row says
+   and not from its cell's spelling: the dry run groups by the cell as
+   written and decides no kind.
 6. Decide each open row against the tree, and close it in its record with
    `closed` and what closed it:
 
@@ -387,7 +415,9 @@ is decided no more than the dry run's groups are.
     the code coordinate, and the path of each promoted document), each
     operation the draft did not place with how it was written, the rows
     by kind with what closed each, the defaults it took, the answers for
-    the checks that read the corpus, and how it was checked. It names each
+    the checks that read the corpus, each kind of judgment that recurred
+    across releases with the releases it recurred in, and how it was
+    checked. It names each
     directory `--apply` kept for its note, with the tag, the pull request
     and where its fragment can be read, as its `kept` line gives them, so
     the owner can repair that note before a later `--apply` removes the
@@ -599,6 +629,10 @@ request's merge commit, whatever the merge method was.
   commits' place in `git rev-list --topo-order --reverse` of
   `--released-at`, and two whose merge commits no ancestry orders are marked
   `unordered`.
+- **The judgments earlier settles removed.** `--apply` removes a local
+  directory from the git directory, and no commit holds it, so the history
+  holds an earlier plan only where the repository once committed its
+  `seal/` root. Where none did, the section is not printed.
 - **What the dry run adds.** Its first line names the root's path and says
   it is local mode. Each released work item is listed with its pull
   request's number and its merge commit, for the settle's pull request body
