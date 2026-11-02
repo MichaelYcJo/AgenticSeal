@@ -34,10 +34,10 @@ description of the milestone `release: X.Y.Z`, its `Purpose:` label left out.
 The fragments are also a page of reasoning per change, and a note that was
 only that read as a wall of prose to somebody asking what changed (#572). So
 after the theme the note says what the pull requests merged into
-`release/vX.Y.Z` already say -- a count, one line per pull request under its
-conventional-commit type with the issues its body closes, a credit for every
-outside contributor, how to update -- and keeps the fragments beneath,
-folded. Nothing here composes prose: every line is a milestone's sentence, a
+`release/vX.Y.Z` already say -- a count, one fold per conventional-commit
+type under its name and count holding one line per pull request with the
+issues its body closes (#1153), a credit for every outside contributor, how
+to update -- and keeps the fragments beneath, folded. Nothing here composes prose: every line is a milestone's sentence, a
 pull request title, a number, a handle or a fragment.
 
 **The title comes from the tagged commit's message**, which carries the
@@ -445,8 +445,8 @@ GLANCE_HEADING = "### 📊 At a glance"
 FULL_SUMMARY = "📋 Full changelog — what each change does and why"
 UPDATE_HEADING = "### ⬆️ Update"
 
-# A pull request title's conventional-commit type, and the heading its line
-# goes under. The order here is the order the note reads in: what a user can
+# A pull request title's conventional-commit type, and the name of the fold
+# its line goes in. The order here is the order the note reads in: what a user can
 # now do, then what stopped going wrong, then what only a contributor sees.
 # A type not listed -- or a title with no type at all -- goes under Other
 # rather than being dropped, so the list stays a partition of the release.
@@ -653,12 +653,24 @@ def release_body(theme, rendered, pulls, owner):
     they can open.
 
     Read top to bottom it answers, in order, what the release is for, how
-    big it is, what changed -- one line per pull request under its type, with
-    the issues it closed -- who outside the project helped, and how to get
-    it. The fragments `section` rendered follow, folded, because they are
-    the reasoning a reader wants for one change rather than the list they
-    read for all of them. Every line is read from the milestone, the pull
-    requests and the history; nothing here writes a sentence.
+    big it is, what changed -- one fold per type, its summary the type's
+    name and the number of pull requests in it, holding one line per pull
+    request with the issues it closed (#1153) -- who outside the project
+    helped, and how to get it. The fragments `section` rendered follow,
+    folded, because they are the reasoning a reader wants for one change
+    rather than the list they read for all of them. Every line is read from
+    the milestone, the pull requests and the history; nothing here writes a
+    sentence.
+
+    Every fold's tags stand on lines of their own, with a blank line after
+    the summary line and before the closing tag, so GitHub reads the lines
+    between as Markdown. Nothing inside a fold is escaped. A tag inside a
+    code span is text and stays where it is. A fragment holding a bare
+    `details` tag is refused at `seal pr-body` before its pull request opens
+    (#1218). A pull request title holding a bare `</details>` closes its
+    type's fold early, and the lines after it fall outside: that is a limit,
+    since 0 of the 318 pull request titles merged by 2026-11-02 held a
+    `details` tag at all.
 
     With no pull request to read -- the list failed, or a release was cut
     with none -- the note is the theme line and `rendered`, unfolded. With no
@@ -684,7 +696,16 @@ def release_body(theme, rendered, pulls, owner):
     order = list(dict.fromkeys([h for _, h in TYPES] + [OTHER]))
     for heading in order:
         if heading in groups:
-            parts += ["", f"### {heading}", ""] + groups[heading]
+            lines = groups[heading]
+            parts += [
+                "",
+                "<details>",
+                f"<summary>{heading} ({len(lines)})</summary>",
+                "",
+                *lines,
+                "",
+                "</details>",
+            ]
     thanks = thanks_section(pulls, owner)
     if thanks:
         parts += ["", thanks]

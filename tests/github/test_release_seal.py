@@ -658,7 +658,7 @@ class Test_main:
             "closed, the suite at 7003 passed and 66 skipped, 1 work item over 1 "
             f'review round, 1 of them capped, 1 issue deferred" width="{DRAWN_WIDTH}">\n\n'
             "\U0001f500 Pull requests **2** · ✅ Issues closed **2** · \U0001f64c Outside contributors **1**"
-            "\n\n### ✨ Features"
+            "\n\n<details>\n<summary>✨ Features (1)</summary>"
         ), body[:600]
         assert hub.calls.index(upload) < hub.calls.index(edit)
 
@@ -735,7 +735,7 @@ class Test_main:
                 "| ✅ Issues closed | **2** |", "| ✅ Issues closed | **3** |"
             )
         elif case == "the glance table is there twice":
-            body = note() + "\n\n" + note().split("\n\n### ✨")[0]
+            body = note() + "\n\n" + note().split("\n\n<details>")[0]
         mod, hub = wired(
             monkeypatch,
             tmp_path,

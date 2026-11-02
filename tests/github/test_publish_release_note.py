@@ -15,9 +15,10 @@ that ships a release fires, and a tag pushed by hand (#1117):
       and where no such line is readable it is the tag name and the log says
       which was used, what it expected and what it found
   A5  the note is a summary read from the release's pull requests -- counts,
-      one line per change under its type with the issues it closed, every
-      outside contributor thanked by handle -- over the fragments, folded;
-      with no pull request to read it is the fragments alone (#572)
+      one fold per type under its name and count holding one line per change
+      with the issues it closed (#1153), every outside contributor thanked by
+      handle -- over the fragments, folded; with no pull request to read it
+      is the fragments alone (#572)
 
 #1053 removed the gathered release files, so the fragments are read from the
 history at the tag (S1, S5, S6) and the note opens with the release's theme,
@@ -43,11 +44,14 @@ the script at `c55c3083b`, in phase 1 of work item
 read the workflow and the release checklist.
 """
 
+import html.parser
 import importlib.util
 import json
 import os
 
+import cmarkgfm
 import pytest
+from cmarkgfm.cmark import Options
 from conftest import ROOT, census_case, commit_everything, git_out, git_repo, write
 
 TARGET = ".github/scripts/publish_release_note.py"
@@ -234,6 +238,77 @@ def lines_under(body, heading):
         if line.startswith("- "):
             out.append(line)
     return out
+
+
+# `RELEASE`'s pull request lines, under the summary of the fold each lands
+# in, in the order the note reads in.
+FOLDED = [
+    ("✨ Features (1)", ["- A third (#15) · closes #100 — thanks @another"]),
+    (
+        "\U0001f41b Fixes (2)",
+        [
+            "- The owner's own change (#10) · closes #100, #101",
+            "- And a second thing (#14) · closes #103 — thanks @someone",
+        ],
+    ),
+    (
+        "\U0001f4da Docs (1)",
+        ["- Explain a thing (#11) · closes #102 — thanks @someone"],
+    ),
+    ("\U0001f9f9 Chores (2)", ["- Bump (#12)", "- Bump again (#13)"]),
+    ("\U0001f4e6 Other (1)", ["- An untyped title (#16)"]),
+]
+
+
+def fold(summary, lines):
+    """One category's fold, exactly as the note carries it."""
+    return "\n".join(
+        ["<details>", f"<summary>{summary}</summary>", "", *lines, "", "</details>"]
+    )
+
+
+class Folds(html.parser.HTMLParser):
+    """Each `details` element in rendered HTML, as `(summary, [list item
+    texts])`, in the order each closes, the texts as a reader sees them."""
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.folds, self.open, self.text = [], [], None
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "details":
+            self.open.append(["", []])
+        elif tag in ("summary", "li") and self.open:
+            self.text = []
+
+    def handle_endtag(self, tag):
+        if tag in ("summary", "li") and self.open and self.text is not None:
+            said = "".join(self.text).strip()
+            if tag == "summary":
+                self.open[-1][0] = said
+            else:
+                self.open[-1][1].append(said)
+            self.text = None
+        elif tag == "details" and self.open:
+            self.folds.append(tuple(self.open.pop()))
+
+    def handle_data(self, data):
+        if self.text is not None:
+            self.text.append(data)
+
+
+def folds_read(body):
+    """The `details` elements of `body` as GitHub renders a release note:
+    cmark-gfm, the renderer the suite pins
+    (`.github/scripts/run_tests.py#CMARKGFM`), with raw HTML kept."""
+    reader = Folds()
+    reader.feed(
+        cmarkgfm.github_flavored_markdown_to_html(
+            body, options=Options.CMARK_OPT_UNSAFE
+        )
+    )
+    reader.close()
+    return reader.folds
 
 
 class Test_main:
@@ -535,39 +610,49 @@ class Test_main:
         found = f"`{line}`" if line else "no `release:` line"
         assert found in out, out
 
-    def test_every_change_is_one_line_under_its_type(self, monkeypatch, tmp_path):
-        """A5. The list is a partition of the release: every pull request lands
-        under exactly one heading, an unknown or missing type under Other, and
-        each line names the issues its body closes -- read the way the closer
-        reads them, so a quoted keyword closes nothing."""
-        _, body = published(monkeypatch, tmp_path, RELEASE)
-        assert lines_under(body, "### \U0001f41b Fixes") == [
-            "- The owner's own change (#10) · closes #100, #101",
-            "- And a second thing (#14) · closes #103 — thanks @someone",
-        ]
-        assert lines_under(body, "### ✨ Features") == [
-            "- A third (#15) · closes #100 — thanks @another"
-        ]
-        assert lines_under(body, "### \U0001f4da Docs") == [
-            "- Explain a thing (#11) · closes #102 — thanks @someone"
-        ]
-        assert lines_under(body, "### \U0001f9f9 Chores") == [
-            "- Bump (#12)",
-            "- Bump again (#13)",
-        ]
-        assert lines_under(body, "### \U0001f4e6 Other") == ["- An untyped title (#16)"]
+    def test_each_type_is_a_fold_under_its_name_and_count(self, monkeypatch, tmp_path):
+        """A5 and #1153 S1. The list is a partition of the release: every pull
+        request lands in exactly one fold, an unknown or missing type in
+        Other's, and each line names the issues its body closes -- read the
+        way the closer reads them, so a quoted keyword closes nothing. A
+        fold's summary is its type's name and the number of pull requests in
+        it; its tags stand on lines of their own, with a blank line after the
+        summary and before the closing tag; one blank line parts two folds;
+        and the folds follow in the order the note is meant to read in. No
+        `### ` line names a type. Seen red against the renderer that wrote a
+        `### ` heading over each type's lines."""
+        mod, body = published(monkeypatch, tmp_path, RELEASE)
+        folds = "\n\n".join(fold(summary, lines) for summary, lines in FOLDED)
+        assert f"\n\n{folds}\n\n" in body, body
+        names = {heading for _, heading in mod.TYPES} | {mod.OTHER}
+        headed = [s for s in body.splitlines() if s[:4] == "### " and s[4:] in names]
+        assert headed == [], "a type is still a heading over its lines"
         assert "#999" not in body, "a keyword inside a code span was read as a claim"
-        assert (
-            body.index("### ✨ Features")
-            < body.index("### \U0001f41b Fixes")
-            < body.index("### \U0001f4da Docs")
-        ), "the headings are not in the order the note is meant to read in"
+
+    def test_github_reads_each_fold_as_one_element_holding_its_lines(
+        self, monkeypatch, tmp_path
+    ):
+        """#1153 S1, read the way GitHub reads it. Rendered as a release note
+        is rendered, each fold is one `details` element whose summary is its
+        name and count and which holds its own pull request lines as list
+        items, and the full changelog's fold follows them. A title quoting a
+        closing `details` tag in a code span is text, and stays in its fold.
+        Seen red against the renderer that wrote a `### ` heading over each
+        type's lines, and with the blank line after a fold's summary taken
+        out, which leaves the fold's lines raw HTML and no list."""
+        quoting = pull(17, OWNER, "fix: a title quoting `</details>`")
+        mod, body = published(monkeypatch, tmp_path, [*RELEASE, quoting])
+        read = [(summary, [line[2:] for line in lines]) for summary, lines in FOLDED]
+        fixes = [*read[1][1], "A title quoting </details> (#17)"]
+        read[1] = ("\U0001f41b Fixes (3)", fixes)
+        changelog = (mod.FULL_SUMMARY, [NOTES.replace("**", "")[2:]])
+        assert folds_read(body) == [*read, changelog]
 
     def test_the_glance_counts_the_release(self, monkeypatch, tmp_path):
         """A5. Seven changes, four distinct issues closed (#100 twice counts
         once), two outside people however many pull requests they made."""
         mod, body = published(monkeypatch, tmp_path, RELEASE)
-        glance = body[: body.index("### ✨ Features")]
+        glance = body[: body.index("<details>")]
         assert glance.startswith(mod.GLANCE_HEADING)
         assert "| \U0001f500 Pull requests | **7** |" in glance
         assert "| ✅ Issues closed | **4** |" in glance
@@ -594,12 +679,13 @@ class Test_main:
         follows)."""
         entries = [*ENTRIES, ("1700000001-b", "- b", None)]
         mod, body = published(monkeypatch, tmp_path, RELEASE, entries=entries)
-        fold = body[body.index("<details>") :]
+        opens = body.index(f"<details>\n<summary>{mod.FULL_SUMMARY}</summary>")
+        fold = body[opens:]
         assert fold == (
             f"<details>\n<summary>{mod.FULL_SUMMARY}</summary>\n\n"
             f"{LINK}\n{NOTES}\n\n- b\n\n</details>"
         ), fold
-        assert body.index(mod.UPDATE_HEADING) < body.index("<details>")
+        assert body.index(mod.UPDATE_HEADING) < opens
         assert "/agentic:update" in body
 
     def test_a_release_with_no_outside_contribution_thanks_nobody(
@@ -744,7 +830,7 @@ class Test_module:
         mod, body = published(monkeypatch, tmp_path, RELEASE)
         work, closed, people = mod.tally(RELEASE, OWNER)
         block = mod.glance(work, closed, people)
-        assert body.startswith(block + "\n\n### ✨ Features"), body[:400]
+        assert body.startswith(block + "\n\n" + fold(*FOLDED[0])), body[:400]
         assert mod.sealed_glance(
             "https://example.com/seal.png", "a seal", 160, work, closed, people
         ) == (
