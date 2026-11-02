@@ -42,6 +42,11 @@ The fix replaces the parameter with a `.md` under a directory that shares the `d
         ],
 ```
 
+```seal
+verdict: fixed 16e94d923
+answer: Held; built to the orchestrator's answer in `frame/plan.md` *Judgments of the run*, last row. Read off `passages.py#in_corpus` (`:57-61`), the guards are four: the `.md` suffix, the `.ko.md` exclusion, `TOP_FILES` membership, and the `TOP_DIRS` prefix with its trailing slash. The refusing case is now `test_refuses_a_path_one_guard_alone_refuses`, with one path per guard and ids naming each: `skills/README.txt`, `docs/the-review-record.ko.md`, `SECURITY.md` and the round's `docs-old/notes.md`. The other four paths, `"docs"` among them, each refused by two guards or by the prefix alongside another path, leave. Membership and the prefix are the two sides of one `or`, so a side widened to `True` defeats both and no path could fail under one alone; each is widened at its boundary, and the comment above the case says so. Executed with `seal mutate`, one guard per run: the suffix widened to `True` failed only `[the-md-suffix]`, the edition exclusion dropped failed only `[the-ko-exclusion]`, membership widened to `"/" not in rel` failed only `[top-files]`, and `TOP_DIRS` without its slashes failed only `[top-dirs-slash]`. `tests/skills/test_passages.py` passed (16), and `bin/seal layout --check tests`, `uvx ruff check` and `uvx ruff format --check` each exited 0. `.test_durations` holds no case of this module, so the rename needs no entry there.
+```
+
 ## Confirmations
 
 ```seal
