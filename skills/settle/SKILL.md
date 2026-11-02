@@ -40,7 +40,8 @@ seal settle --from DIR       the dry run, and every document of DIR, a
                              directory a person names, with the commits that
                              added and last changed each; repeatable
 seal settle --apply          remove each released directory whose record
-                             holds no open row
+                             holds no open row and whose version's published
+                             note, where one is read, carries its entry
 seal settle --released-at REF  what counts as released (default origin/main)
 ```
 
@@ -331,7 +332,11 @@ does not parse, an unordered pair and an open row are all shown.
     grounds (the work item ids in merge order, the superseded operations,
     the code coordinate, and the path of each promoted document), the rows
     by kind with what closed each, the defaults it took, the answers for
-    the checks that read the corpus, and how it was checked. It names the
+    the checks that read the corpus, and how it was checked. It names each
+    directory `--apply` kept for its note, with the tag, the pull request
+    and where its fragment can be read, as its `kept` line gives them, so
+    the owner can repair that note before a later `--apply` removes the
+    directory. It names the
     directories the first question's answer named, or says the answer was
     "none" and whether the session took it for want of a way to ask. It
     lists every proposal row with its place, its proposal, its grounds and
@@ -436,6 +441,36 @@ and the document stays where it was, as it was.
   committed is closed.
 - **It keeps a directory whose record still holds an open row**, or whose
   record cannot be read, and names each row.
+- **Where the root is shared, it keeps a released directory whose version's
+  published note does not carry its entry, and names it.** The published
+  note is the one copy of a fragment outside the history, and the removal
+  leaves the history as the only copy, so a note that lost an entry is
+  caught before that. The check runs after the open-row check, for each
+  directory that check would remove.
+  - A note is read where `--released-at` holds the work item's
+    `changelog.md`, the oldest commit adding it ends its subject with
+    `(#N)`, and a `vX.Y.Z` tag holds that commit. The version is the lowest
+    such tag by number.
+  - The note is the version's release in one
+    `gh api --paginate 'repos/{owner}/{repo}/releases?per_page=100'` list,
+    drafts left out. It carries the entry where its body links
+    `https://github.com/<owner>/<name>/pull/<N>`, under any owner and name
+    and with no digit after N, or holds `<!-- specs/<id> -->`, the comment
+    the notes published before entries linked their pull requests carry.
+  - A directory whose note does not carry the entry is kept, and its `kept`
+    line names the tag, the pull request and `git show <commit>:<path>` for
+    its fragment's text. So is one whose version has no published release,
+    where the list holds at least one; where it holds none, the repository
+    publishes no Releases, and the directory goes.
+  - A directory with no note to read goes as before: no `changelog.md` at
+    `--released-at`, an adding commit that names no pull request, or no
+    version tag. A `no note read:` line under its `removed` line says which
+    case held.
+  - The list is asked once, before the first removal, and only where some
+    directory gets as far as a version tag. A list `gh` cannot give, and a
+    `git` that cannot read what a note is checked by, stop the run with
+    exit 2 and one sentence saying what was said, and nothing is removed.
+    The dry run reads no note.
 - **It names each file the dry run names as not read, and decides nothing
   on it.** A `not read:` line under the directory's `removed` or `kept`
   line names the file, which goes or stays with its directory; the
@@ -447,7 +482,10 @@ and the document stays where it was, as it was.
   after the removals.
 
 It exits 0 when it kept nothing, 1 when it kept a directory, and 2 when the
-arguments or the tree are unusable. Its last line counts each.
+arguments or the tree are unusable, a note that cannot be checked among
+them. Its
+last line counts each, the directories kept for a row apart from those kept
+for a note.
 
 **A reference root is history, read where the work touches what it
 describes, and input to a settle only where a person names it.** A
@@ -480,8 +518,9 @@ request's merge commit, whatever the merge method was.
   and untouched, in three states: no `routing.md` that `hooks/lib/routing.py`
   reads as a declaration naming a branch, no merged pull request from that
   branch, or no listed merge commit reachable from `--released-at`, a pull
-  request listed with no merge commit among them. Shared mode never asks
-  `gh`.
+  request listed with no merge commit among them. Shared mode asks `gh`
+  only in `--apply`, for the release list, and only where a directory it
+  would remove gets as far as a version tag (*What `--apply` does*).
 - **A `gh` that cannot be asked stops the run.** Where `gh` is not on
   `PATH` or its query fails, `seal settle` exits 2 with one sentence naming `gh`
   and what it said, and reads and removes nothing. Every work item would
@@ -500,7 +539,9 @@ request's merge commit, whatever the merge method was.
   directories, and that `seal export` takes a copy for whoever wants one.
 - **What `--apply` does.** It removes each released local directory whose
   record holds no open row, from the git directory, and keeps and names one
-  that holds a row, with the exit codes *What `--apply` does* states. No
+  that holds a row, with the exit codes *What `--apply` does* states. It
+  reads no published note: no fragment is committed in local mode, so no
+  note is built from the history. No
   commit holds what it removes, and none needs to: a work item's records
   end their role when it ships, and the settling session closes its rows
   first.
@@ -522,7 +563,8 @@ because the flow does not name a fork's branches.
 ## A released work item with no `frame/design.md`
 
 A released work item with no `frame/design.md` states no rule, and it leaves like
-any other: `--apply` removes it once its record holds no open row. The dry
+any other: `--apply` removes it once its record holds no open row, unless
+its published note keeps it (*What `--apply` does*). The dry
 run lists it as stating no rule, and its open rows with every other record's.
 
 ## Answer every check that reads the corpus

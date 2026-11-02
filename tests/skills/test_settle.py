@@ -297,6 +297,9 @@ if "fail" in answers:
 if "raw" in answers:
     sys.stdout.write(answers["raw"] + "\\n")
     sys.exit(0)
+if args[:1] == ["api"]:
+    sys.stdout.write(answers.get("api", "[]") + "\\n")
+    sys.exit(0)
 branch = args[args.index("--head") + 1] if "--head" in args else ""
 sys.stdout.write(json.dumps(answers.get("branches", {}).get(branch, [])) + "\\n")
 """
@@ -332,6 +335,12 @@ class Gh:
     def say(self, raw):
         """Exit 0 with RAW on stdout, whatever was asked."""
         self.answers["raw"] = raw
+        self.write()
+
+    def releases(self, *pages):
+        """Answer `gh api` with PAGES, each a list of releases, one JSON
+        array after another, the way `--paginate` prints them."""
+        self.answers["api"] = "".join(json.dumps(page) for page in pages)
         self.write()
 
     def calls(self):
@@ -426,6 +435,29 @@ def merge(repo, branch, into="main"):
     git(repo, "switch", "-q", into)
     git(repo, "merge", "-q", "--no-ff", "-m", f"merge {branch}", branch)
     return git(repo, "rev-parse", "HEAD").strip()
+
+
+# --- the published note `--apply` reads where the root is shared (#1139) ----
+
+
+def fragment(repo, name, subject, tag=None):
+    """A released work item whose `changelog.md` the commit SUBJECT adds on
+    the current branch, tagged TAG where one is given; its directory."""
+    write(specs_dir(repo, name), "changelog.md", f"- what {name} changed\n")
+    commit(repo, subject)
+    if tag is not None:
+        git(repo, "tag", tag)
+    return specs_dir(repo, name)
+
+
+def release(tag, body="", draft=False):
+    """One release as `gh api repos/{owner}/{repo}/releases` lists it."""
+    return {"tag_name": tag, "draft": draft, "body": body}
+
+
+# The one call `--apply` makes for the release list, as the stub logs it.
+RELEASES_CALL = ["api", "--paginate", "repos/{owner}/{repo}/releases?per_page=100"]
+RELEASES_ASKED = "`gh api --paginate repos/{owner}/{repo}/releases?per_page=100`"
 
 
 class Test_tracked_text:
@@ -755,7 +787,8 @@ class Test_apply:
             assert f"removed seal/threads/{name}/\n" in text, text
         assert (tree / "seal" / "threads" / "1700000004-delta").exists(), text
         assert text.endswith(
-            "\nremoved 3 directories; kept 0, each with a row to close\n"
+            "\nremoved 3 directories; kept 0 with a row to close and 0 whose note "
+            "lacks its entry\n"
         )
 
     def test_apply_leaves_a_team_specs_of_the_same_name_on_disk(self, tree):
@@ -792,6 +825,7 @@ class Test_apply:
         assert docs_text(tree) == before, "the apply wrote into docs/"
         assert (
             f"removed seal/threads/{MOMENT}/\n"
+            "    no note read: HEAD holds no `changelog.md` in its directory\n"
             "    closed in gaps.md: a claim\n"
             "        what closed it: run on 2026-01-01\n"
         ) in text, text
@@ -861,10 +895,12 @@ class Test_apply:
         assert not path.exists(), text
         assert (
             f"removed seal/threads/{name}/\n"
+            "    no note read: HEAD holds no `changelog.md` in its directory\n"
             f"    not read: {not_read(name, 'trail/gaps.md', 'gaps.md')}\n"
         ) in text, text
         assert text.endswith(
-            "\nremoved 4 directories; kept 0, each with a row to close\n"
+            "\nremoved 4 directories; kept 0 with a row to close and 0 whose note "
+            "lacks its entry\n"
         ), text
 
     def test_keeps_on_the_record_at_its_place_and_names_the_copy(self, tree):
@@ -891,7 +927,8 @@ class Test_apply:
             f"    not read: {not_read(name, 'frame/gaps.md', 'gaps.md')}\n"
         ) in text, text
         assert text.endswith(
-            "\nremoved 3 directories; kept 1, each with a row to close\n"
+            "\nremoved 3 directories; kept 1 with a row to close and 0 whose note "
+            "lacks its entry\n"
         ), text
 
 
@@ -1681,20 +1718,245 @@ class Test_main:
             "from `feat/1-a` that merged: #11 with no merge commit\n"
         ) in text, text
 
-    def test_shared_mode_never_asks_gh(self, repo, gh, capfd):
-        """S6 of #955: a shared root's work items are released by presence at
-        `--released-at`, so neither command asks `gh`, even for an item whose
-        `routing.md` names a branch."""
-        item(repo, "1700000001-a", op("add", "S", new="Rule."))
-        (specs_dir(repo, "1700000001-a") / "routing.md").write_text(
-            ROUTED.format(name="1700000001-a", branch="feat/1-a"), encoding="utf-8"
+    def test_shared_mode_asks_gh_for_no_note_it_cannot_read(self, repo, gh, capfd):
+        """S6 of #955 and S7 of #1139: a shared root's work items are
+        released by presence at `--released-at`, so the dry run asks no
+        `gh`, even for an item whose `routing.md` names a branch. `--apply`
+        asks it only for a note it can read. One released work item holds no
+        `changelog.md`, the commit adding another's names no pull request
+        though `v1.0.0` holds it, and no version tag holds the third's. Each
+        goes, and the line under its `removed` line says which case held."""
+        bare = moment(repo)
+        write(
+            specs_dir(repo, "1700000001-a"),
+            "routing.md",
+            ROUTED.format(name="1700000001-a", branch="feat/1-a"),
         )
-        commit(repo, "a")
+        fragment(repo, "1700000001-a", "feat: a", tag="v1.0.0")
+        unnumbered = git(repo, "rev-parse", "v1.0.0").strip()
+        fragment(repo, "1700000002-b", "feat: b (#42)")
+        untagged = git(repo, "rev-parse", "main").strip()
         code, text = dry_run(repo, capfd)
         assert code == 0, text
         code, text = apply(repo, capfd)
         assert code == 0, text
-        assert not specs_dir(repo, "1700000001-a").exists(), text
+        assert not bare.exists(), text
+        assert (
+            f"removed seal/threads/{MOMENT}/\n"
+            "    no note read: main holds no `changelog.md` in its directory\n"
+        ) in text, text
+        assert (
+            "removed seal/threads/1700000001-a/\n"
+            f"    no note read: {unnumbered}, the commit that added its "
+            "`changelog.md`, names no pull request\n"
+        ) in text, text
+        assert (
+            "removed seal/threads/1700000002-b/\n"
+            f"    no note read: no `vX.Y.Z` tag holds {untagged}, the commit "
+            "that added its `changelog.md`\n"
+        ) in text, text
+        assert text.endswith(
+            "\nremoved 3 directories; kept 0 with a row to close and 0 whose "
+            "note lacks its entry\n"
+        ), text
+        assert gh.calls() == [], gh.calls()
+
+    def test_apply_keeps_a_directory_its_published_note_does_not_carry(
+        self, repo, gh, capfd
+    ):
+        """S4 of #1139. `v1.2.3` holds the fragments of two released work
+        items, added by `(#42)` and `(#43)`, and so does `v1.10.0`. The
+        version is the lowest tag by number, `v1.2.3`, whose note links #43,
+        #420 and another work item's marker, none of which carries #42. So
+        `--apply` keeps the first directory and names the tag, the pull
+        request and where its fragment can be read, removes the second,
+        exits 1, and lists the releases once. `v1.10.0`'s note carries #42,
+        and a version read by its text would have taken it. The dry run asks
+        no `gh`."""
+        kept = fragment(repo, "1700000001-a", "feat: a (#42)")
+        fragment(repo, "1700000002-b", "feat: b (#43)", tag="v1.2.3")
+        git(repo, "tag", "v1.10.0")
+        at = git(repo, "rev-parse", "main").strip()
+        gh.releases(
+            [
+                release("v1.10.0", "[#42](https://github.com/o/r/pull/42)"),
+                release(
+                    "v1.2.3",
+                    "[#43](https://github.com/o/r/pull/43)\n"
+                    "[#420](https://github.com/o/r/pull/420)\n"
+                    "<!-- specs/1700000002-b -->\n",
+                ),
+            ]
+        )
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        assert gh.calls() == [], gh.calls()
+        code, text = apply(repo, capfd)
+        assert code == 1, text
+        assert kept.exists(), text
+        assert not specs_dir(repo, "1700000002-b").exists(), text
+        assert (
+            "kept seal/threads/1700000001-a/: the published note of v1.2.3 does "
+            "not carry its entry, a link to pull request #42; repair the note "
+            f"from `git show {at}:seal/threads/1700000001-a/changelog.md` and "
+            "run `seal settle --apply` again\n"
+        ) in text, text
+        assert "removed seal/threads/1700000002-b/\n" in text, text
+        assert text.endswith(
+            "\nremoved 1 directory; kept 0 with a row to close and 1 whose note "
+            "lacks its entry\n"
+        ), text
+        assert gh.calls() == [RELEASES_CALL], gh.calls()
+
+    @pytest.mark.parametrize("carried", ["link", "marker"])
+    def test_apply_removes_a_directory_its_published_note_carries(
+        self, repo, gh, capfd, carried
+    ):
+        """S5 of #1139. A note carries the entry where it links the pull
+        request under any owner and name, since a renamed repository's old
+        links redirect, or where it holds the work item's marker, which the
+        notes published before #1139 carry. The list comes in two pages, as
+        `--paginate` prints a long one."""
+        path = fragment(repo, "1700000001-a", "feat: a (#42)", tag="v1.2.3")
+        body = (
+            "- [#42](https://github.com/old/name/pull/42)\n"
+            if carried == "link"
+            else "<!-- specs/1700000001-a -->\n"
+        )
+        gh.releases([release("v1.0.0")], [release("v1.2.3", body)])
+        code, text = apply(repo, capfd)
+        assert code == 0, text
+        assert not path.exists(), text
+        assert "removed seal/threads/1700000001-a/\n" in text, text
+        assert text.endswith(
+            "\nremoved 1 directory; kept 0 with a row to close and 0 whose note "
+            "lacks its entry\n"
+        ), text
+
+    @pytest.mark.parametrize("state", ["fails", "garbled", "entry"])
+    def test_apply_stops_where_the_release_list_cannot_be_read(
+        self, repo, gh, capfd, state
+    ):
+        """S6 of #1139. A `gh` that fails, or answers anything but pages that
+        are each a list of objects, stops `--apply` with exit 2 and one
+        sentence naming `gh` and what it said. No directory goes, the one
+        that needs no note among them."""
+        bare = moment(repo)
+        tagged = fragment(repo, "1700000001-a", "feat: a (#42)", tag="v1.2.3")
+        if state == "fails":
+            gh.fail("HTTP 401: Bad credentials (https://api.github.com/releases)")
+            said = (
+                f"{RELEASES_ASKED} exited 4: HTTP 401: Bad credentials "
+                "(https://api.github.com/releases)"
+            )
+        else:
+            gh.say(
+                '{"message": "Not Found"}'
+                if state == "garbled"
+                else '[{"tag_name": "v1.2.3", "draft": false}][1]'
+            )
+            said = f"{RELEASES_ASKED} did not answer a list of releases"
+        code, text = apply(repo, capfd)
+        assert code == 2, text
+        assert bare.exists(), text
+        assert tagged.exists(), text
+        assert text.startswith(
+            f"settle: `gh` cannot be asked for this repository's releases: {said}. "
+            "Nothing was removed."
+        ), text
+
+    @pytest.mark.parametrize("listed", ["another", "a draft"])
+    def test_apply_keeps_a_directory_whose_tag_has_no_published_release(
+        self, repo, gh, capfd, listed
+    ):
+        """S7b of #1139, its first half. `v1.2.3` holds the fragment, and the
+        list holds another published release, so the repository publishes
+        Releases and `v1.2.3` lacks one. A draft at `v1.2.3` is not
+        published, and another tag's note is not this one's, though both
+        link #42."""
+        path = fragment(repo, "1700000001-a", "feat: a (#42)", tag="v1.2.3")
+        at = git(repo, "rev-parse", "main").strip()
+        link = "[#42](https://github.com/o/r/pull/42)"
+        listing = [release("v1.0.0", link)]
+        if listed == "a draft":
+            listing.append(release("v1.2.3", link, draft=True))
+        gh.releases(listing)
+        code, text = apply(repo, capfd)
+        assert code == 1, text
+        assert path.exists(), text
+        assert (
+            "kept seal/threads/1700000001-a/: v1.2.3 has no published GitHub "
+            "Release, so no note carries its entry, a link to pull request #42; "
+            f"publish one from `git show {at}:seal/threads/1700000001-a/"
+            "changelog.md` and run `seal settle --apply` again\n"
+        ) in text, text
+
+    @pytest.mark.parametrize("listed", ["none", "a draft"])
+    def test_apply_removes_where_the_repository_publishes_no_release(
+        self, repo, gh, capfd, listed
+    ):
+        """S7b of #1139, its second half. The list holds no published
+        release, so the repository publishes no Releases: the directory goes,
+        and the line under its `removed` line says so."""
+        path = fragment(repo, "1700000001-a", "feat: a (#42)", tag="v1.2.3")
+        gh.releases([release("v1.2.3", draft=True)] if listed == "a draft" else [])
+        code, text = apply(repo, capfd)
+        assert code == 0, text
+        assert not path.exists(), text
+        assert (
+            "removed seal/threads/1700000001-a/\n"
+            "    no note read: this repository has published no GitHub Release, "
+            "so v1.2.3 has no note\n"
+        ) in text, text
+
+    def test_an_open_row_keeps_its_directory_before_its_note_is_read(
+        self, repo, gh, capfd
+    ):
+        """S8 of #1139. The record holds an open row and the note lacks the
+        entry. The row keeps the directory as before, and no note is read
+        for it, so `gh` is not asked."""
+        path = specs_dir(repo, "1700000001-a")
+        write(path, "gaps.md", OPEN)
+        fragment(repo, "1700000001-a", "feat: a (#42)", tag="v1.2.3")
+        gh.releases([release("v1.2.3", "no entry")])
+        code, text = apply(repo, capfd)
+        assert code == 1, text
+        assert path.exists(), text
+        assert (
+            "kept seal/threads/1700000001-a/: its record holds 1 open row; close "
+            "each (`closed` with what closed it) and run `seal settle --apply` again\n"
+            "    open in gaps.md: a claim nobody ran\n"
+        ) in text, text
+        assert text.endswith(
+            "\nremoved 0 directories; kept 1 with a row to close and 0 whose note "
+            "lacks its entry\n"
+        ), text
+        assert gh.calls() == [], gh.calls()
+
+    def test_a_git_that_cannot_read_the_adding_commit_stops_apply(
+        self, repo, gh, capfd, monkeypatch
+    ):
+        """#1139's phase 2. Where `git` cannot read the commit that added a
+        released `changelog.md`, the pull request it names is unknown, and
+        removing on an unknown is the quiet path an unreadable release list
+        is refused for. So `--apply` exits 2 with what `git` said, asks no
+        `gh`, and removes nothing."""
+        bare = moment(repo)
+        path = fragment(repo, "1700000001-a", "feat: a (#42)", tag="v1.2.3")
+
+        def refuse(root, revisions, rel):
+            raise RuntimeError(f"`git log {revisions} -- {rel}` exited 128: fatal")
+
+        monkeypatch.setattr(settle, "adding_commit", refuse)
+        code, text = apply(repo, capfd)
+        assert code == 2, text
+        assert bare.exists(), text
+        assert path.exists(), text
+        assert text.startswith("settle: `git log "), text
+        assert (
+            "exited 128: fatal, so the pull request a released `changelog.md` "
+            "names cannot be read. Nothing was removed.\n"
+        ) in text, text
         assert gh.calls() == [], gh.calls()
 
     def test_a_local_item_with_no_branch_is_unreleased_and_gh_is_not_asked(
@@ -2477,6 +2739,13 @@ class Test_module:
             settle.DOCUMENTS_HEADING
         )
         assert "the person marks it" in flat(settle.DOCUMENTS_HEADING)
+        # What the dry run says `--apply` removes, which the note can keep
+        # where the dry run cannot say so (#1139).
+        assert (
+            "each released directory whose record holds no open row, unless its "
+            "version's published note, which `--apply` alone reads, lacks its "
+            "entry" in flat(settle.REMOVES_HEADING)
+        )
 
     def test_the_command_is_reachable_by_the_name_a_document_gives_it(self):
         """A6. The pair rule is

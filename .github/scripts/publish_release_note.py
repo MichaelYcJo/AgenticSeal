@@ -141,8 +141,9 @@ PURPOSE_LABEL = "Purpose:"
 # `vX.Y.Z`. Anything else under `v*` -- `v1.2`, `vnext`, a typo -- is a shape
 # this cannot name a version for, and it says so rather than guessing one.
 # `label_merged_on_release_branch.py#version_of` refuses a branch name the
-# same way and for the same reason.
-TAG_RE = re.compile(r"^v(\d+\.\d+\.\d+)$")
+# same way and for the same reason. It is `settle.py#VERSION_RE`, so the
+# note is published at the version whose note `seal settle --apply` reads.
+TAG_RE = settle.VERSION_RE
 
 
 # The title line `docs/release-checklist.md` *5. The release pull request*
