@@ -399,6 +399,37 @@ def merged_pull_requests(root, branch):
 # through this pattern too, so the note and the settle name one version.
 VERSION_RE = re.compile(r"^v(\d+\.\d+\.\d+)$")
 
+# The line that opens an entry of a release note built from the fragments:
+# `.github/scripts/publish_release_note.py#section` writes it from this, and
+# `BUILT_RE` reads it. Before #1139 an entry opened with `MARKER` instead.
+PULL_LINK = "[#{number}](https://github.com/{repo}/pull/{number})"
+MARKER = "<!-- specs/{work_item_id} -->"
+
+
+def _line_of(form, **fields):
+    """A pattern matching one whole line written from FORM, each field
+    `{name}` read as the pattern FIELDS gives it, a field repeated in FORM
+    read as the same text each time."""
+    pattern, seen = re.escape(form), set()
+    for name, field in fields.items():
+        spelt = re.escape("{" + name + "}")
+        pattern = pattern.replace(spelt, f"(?P<{name}>{field})", 1)
+        pattern = pattern.replace(spelt, f"(?P={name})")
+        seen.add(name)
+    return f"^{pattern}$"
+
+
+# A line a note built from the fragments holds above an entry: its link to
+# the pull request, under any owner and name, or the old marker. A note
+# holding neither, in a repository none of whose published notes holds one,
+# was written by hand or by another tool, and says nothing of a fragment.
+BUILT_RE = re.compile(
+    _line_of(PULL_LINK, number=r"\d+", repo=r"[^/\s]+/[^/\s]+")
+    + "|"
+    + _line_of(MARKER, work_item_id=r"\S+"),
+    re.M,
+)
+
 # The release list, asked once by `--apply`; gh fills in the owner and the
 # name from the checkout's remote.
 RELEASES = "repos/{owner}/{repo}/releases?per_page=100"
@@ -472,15 +503,20 @@ def published_releases(root):
 def carries(body, number, work_item_id):
     """Whether a note's BODY carries a work item's entry: a link to pull
     request NUMBER under any owner and name, since a renamed repository's
-    old links redirect, or the marker `<!-- specs/<id> -->` that the notes
-    published before #1139 carry."""
+    old links redirect, or the marker (`MARKER`) that the notes published
+    before #1139 carry."""
     link = rf"https://github\.com/[^/\s]+/[^/\s]+/pull/{number}(?!\d)"
-    return bool(re.search(link, body)) or f"<!-- specs/{work_item_id} -->" in body
+    marker = MARKER.format(work_item_id=work_item_id)
+    return bool(re.search(link, body)) or marker in body
 
 
 # What `--apply` prints for a directory its note decides. Each is pinned by
 # `tests/skills/test_settle.py`.
 NO_FRAGMENT = "no note read: {ref} holds no `changelog.md` in its directory"
+NO_TEXT = (
+    "no note read: its `changelog.md` at {ref} holds no text, and the release "
+    "note gives an empty fragment no entry"
+)
 NO_NUMBER = (
     "no note read: {commit}, the commit that added its `changelog.md`, names no "
     "pull request"
@@ -492,6 +528,11 @@ NO_TAG = (
 NO_RELEASES = (
     "no note read: this repository has published no GitHub Release, so {tag} "
     "has no note"
+)
+NOT_BUILT = (
+    "no note read: no published release of this repository opens an entry "
+    "with a `[#N](https://github.com/<owner>/<name>/pull/N)` line or the old "
+    "marker, so its notes are not built from the fragments"
 )
 NOT_CARRIED = (
     "kept {directory}/: the published note of {tag} does not carry its entry, a "
@@ -511,23 +552,34 @@ def notes(root, ref, ids):
     published note keeps its directory, and LINE is what `--apply` prints
     for it, or None for a note that carries its entry.
 
-    A note is read where REF holds the work item's `changelog.md`, the
-    commit adding it names a pull request (`adding_commit`), and a version
-    tag holds that commit. The note is the version's release in one list
-    of the repository's releases, asked only where some work item gets
-    that far. A version with no release in the list keeps its directory,
-    unless the list holds no published release at all. Raises `Unasked`
-    where the list cannot be read, and `Unread` where `git` cannot read
-    what a note is checked by, so the caller removes nothing."""
+    A note is read where REF holds the work item's `changelog.md` with text
+    in it, since the release note skips an empty fragment
+    (`publish_release_note.py#fragments`), the commit adding it names a
+    pull request (`adding_commit`), and a version tag holds that commit.
+    The note is the version's release in one list of the repository's
+    releases, asked only where some work item gets that far. Notes are read
+    only where some published release holds a line `BUILT_RE` reads, so
+    the repository builds its notes from the fragments; where none does,
+    or the list holds no published release, every directory goes, named.
+    A version with no release in the list keeps its directory. Raises
+    `Unasked` where the list cannot be read, and `Unread` where `git`
+    cannot read what a note is checked by, so the caller removes nothing.
+
+    The fragment's text is read at REF, and the release note read it at
+    the newest commit of its range that holds it: a fragment emptied or
+    filled after the tag reads differently here, a limit no guard covers."""
     out, pending = {}, {}
     try:
         at = git_out(root, "rev-parse", "--verify", f"{ref}^{{commit}}").strip()
         for work_item_id in ids:
             path = f"{SPECS}/{work_item_id}/changelog.md"
             held = git_out(root, "ls-tree", "--name-only", at, "--", path).strip()
+            text = git_out(root, "show", f"{at}:{path}").strip() if held else ""
             commit, number = adding_commit(root, at, path) if held else (None, None)
             if commit is None:
                 out[work_item_id] = (False, NO_FRAGMENT.format(ref=ref))
+            elif not text:
+                out[work_item_id] = (False, NO_TEXT.format(ref=ref))
             elif number is None:
                 out[work_item_id] = (False, NO_NUMBER.format(commit=commit))
             elif (tag := version(root, commit)) is None:
@@ -539,6 +591,7 @@ def notes(root, ref, ids):
     if not pending:
         return out
     published = published_releases(root)
+    built = any(BUILT_RE.search(b) for bodies in published.values() for b in bodies)
     for work_item_id, (tag, number, path) in pending.items():
         said = {
             "directory": f"{SPECS}/{work_item_id}",
@@ -549,6 +602,8 @@ def notes(root, ref, ids):
         }
         if not published:
             out[work_item_id] = (False, NO_RELEASES.format(tag=tag))
+        elif not built:
+            out[work_item_id] = (False, NOT_BUILT)
         elif tag not in published:
             out[work_item_id] = (True, NO_RELEASE.format(**said))
         elif not any(carries(b, number, work_item_id) for b in published[tag]):

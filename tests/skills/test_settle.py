@@ -442,10 +442,13 @@ def merge(repo, branch, into="main"):
 # --- the published note `--apply` reads where the root is shared (#1139) ----
 
 
-def fragment(repo, name, subject, tag=None):
-    """A released work item whose `changelog.md` the commit SUBJECT adds on
-    the current branch, tagged TAG where one is given; its directory."""
-    write(specs_dir(repo, name), "changelog.md", f"- what {name} changed\n")
+def fragment(repo, name, subject, tag=None, text=None):
+    """A released work item whose `changelog.md`, holding TEXT or a line of
+    its own, the commit SUBJECT adds on the current branch, tagged TAG where
+    one is given; its directory."""
+    if text is None:
+        text = f"- what {name} changed\n"
+    write(specs_dir(repo, name), "changelog.md", text)
     commit(repo, subject)
     if tag is not None:
         git(repo, "tag", tag)
@@ -1821,7 +1824,7 @@ class Test_main:
         `--paginate` prints a long one."""
         path = fragment(repo, "1700000001-a", "feat: a (#42)", tag="v1.2.3")
         body = (
-            "- [#42](https://github.com/old/name/pull/42)\n"
+            "[#42](https://github.com/old/name/pull/42)\n"
             if carried == "link"
             else "<!-- specs/1700000001-a -->\n"
         )
@@ -1830,6 +1833,8 @@ class Test_main:
         assert code == 0, text
         assert not path.exists(), text
         assert "removed seal/threads/1700000001-a/\n" in text, text
+        # The note was read and carried the entry: no reason for not reading it.
+        assert "no note read" not in text, text
         assert text.endswith(
             "\nremoved 1 directory; kept 0 with a row to close and 0 whose note "
             "lacks its entry\n"
@@ -1911,6 +1916,61 @@ class Test_main:
             "    no note read: this repository has published no GitHub Release, "
             "so v1.2.3 has no note\n"
         ) in text, text
+
+    def test_apply_removes_where_no_published_note_is_built_from_the_fragments(
+        self, repo, gh, capfd
+    ):
+        """Round 1 finding 1 of #1139. The release note is built from the
+        fragments by this repository's CI script, which ships to nobody. A
+        user's notes are written by hand or by another tool: one links the
+        pull request as an issue, one links it on another host, GitHub's
+        generated line links another pull request inside a sentence, and a
+        conventional-changelog line holds the link's very shape inside a
+        longer line. No published release holds a whole line the release
+        note opens an entry with, so a missing entry says nothing of the
+        fragment, and the directory goes, named."""
+        path = fragment(repo, "1700000001-a", "feat: a (#42)", tag="v1.2.3")
+        gh.releases(
+            [
+                release(
+                    "v1.2.2",
+                    "[#42](https://ghe.example.com/o/r/pull/42)\n"
+                    "* b by @x in https://github.com/o/r/pull/41\n"
+                    "* **settle:** c ([#40](https://github.com/o/r/pull/40))\n",
+                ),
+                release("v1.2.3", "- a ([#42](https://github.com/o/r/issues/42))\n"),
+            ]
+        )
+        code, text = apply(repo, capfd)
+        assert code == 0, text
+        assert not path.exists(), text
+        assert (
+            "removed seal/threads/1700000001-a/\n"
+            "    no note read: no published release of this repository opens an "
+            "entry with a `[#N](https://github.com/<owner>/<name>/pull/N)` line "
+            "or the old marker, so its notes are not built from the fragments\n"
+        ) in text, text
+        assert gh.calls() == [RELEASES_CALL], gh.calls()
+
+    def test_apply_removes_a_directory_whose_fragment_is_empty(self, repo, gh, capfd):
+        """Round 1 finding 2 of #1139. The release note gives an empty
+        fragment no entry (`publish_release_note.py#fragments`), so no note
+        can carry it: the directory goes, the line under its `removed` line
+        says the fragment holds no text, and no `gh` is asked for it. The
+        other notes are built from the fragments and lack its link."""
+        path = fragment(
+            repo, "1700000001-a", "feat: a (#42)", tag="v1.2.3", text="\n  \n"
+        )
+        gh.releases([release("v1.2.3", "[#41](https://github.com/o/r/pull/41)\n")])
+        code, text = apply(repo, capfd)
+        assert code == 0, text
+        assert not path.exists(), text
+        assert (
+            "removed seal/threads/1700000001-a/\n"
+            "    no note read: its `changelog.md` at main holds no text, and the "
+            "release note gives an empty fragment no entry\n"
+        ) in text, text
+        assert gh.calls() == [], gh.calls()
 
     def test_an_open_row_keeps_its_directory_before_its_note_is_read(
         self, repo, gh, capfd

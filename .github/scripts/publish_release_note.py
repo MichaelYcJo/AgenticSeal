@@ -277,8 +277,10 @@ def process_shape():
     return lines[0], rows[0], rows[1]
 
 
-# An entry's first line: the pull request that added its fragment.
-PULL_LINK = "[#{number}](https://github.com/{repo}/pull/{number})"
+# An entry's first line: the pull request that added its fragment. It is
+# `settle.py#PULL_LINK`, whose `BUILT_RE` tells `seal settle --apply` that a
+# note was built from the fragments.
+PULL_LINK = settle.PULL_LINK
 
 
 def split_process(body, heading):
