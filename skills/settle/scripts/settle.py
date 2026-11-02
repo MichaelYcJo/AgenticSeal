@@ -534,9 +534,8 @@ DRAFT_WITH_FROM = (
 # `--draft`'s last line, after its count.
 DRAFTED = (
     "This draft decides nothing. Read every section it wrote against the code, "
-    "and write each\noperation it did not place by hand, as "
-    "`skills/settle/SKILL.md` *The settling session's\nprocedure* step 4 "
-    "says.\n"
+    "and write each\noperation it did not place by hand, as step 4 of "
+    "`skills/settle/SKILL.md`\n*The settling session's procedure* says.\n"
 )
 
 
