@@ -380,8 +380,10 @@ sentence adds no claim of its own. Edit nothing below the
 line; the sealer's `seal pr-body --check` withholds on a part below it that
 is not the records' text at HEAD. **Run the command again before every
 later spawn of the sealer and before every `gh api -X PATCH` of the body**,
-so the copy holds the records as the repair left them; your part stays as
-you wrote it.
+so the copy holds the records as the repair left them. Your part stays as
+you wrote it, except where the repair changed a record that a sentence of
+your part copies or cites: open that record again, and correct the
+sentence or its coordinate.
 `skills/commit-pr-convention/SKILL.md` *Pull request bodies* says which
 language each part is in.
 
