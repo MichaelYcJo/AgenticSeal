@@ -73,10 +73,17 @@ In scope:
    the list is a note that does not carry the entry: its directory is kept
    and named, where the list holds at least one non-draft release. Where
    the list holds none, the repository publishes no Releases, and the
+   directory goes as before with that reason under `removed`. The check
+   reads a note only in a repository whose notes this plugin's renderer
+   writes, told apart by the same list: at least one non-draft release body
+   holds a line of the renderer's shape, a pull-request link or the old
+   marker. Where none does, the repository writes its notes by hand or by
+   another tool, a missing entry says nothing about the fragment, and every
    directory goes as before with that reason under `removed`. Where no note
    can be read for a work item, its directory also goes as before, and the
-   line under `removed` says which case applied: no fragment, no pull
-   request named, or no version tag (`questions.md` Q1).
+   line under `removed` says which case applied: no fragment or an empty
+   one, which the renderer skips, no pull request named, or no version tag
+   (`questions.md` Q1).
 5. **The settle's own text states it.** `skills/settle/SKILL.md` covers the
    usage block, *What `--apply` does*, *In local mode* (its sentence that
    shared mode never asks `gh`), and the procedure's pull-request-body

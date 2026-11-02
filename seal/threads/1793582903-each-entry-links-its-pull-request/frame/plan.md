@@ -97,4 +97,4 @@
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-02 | Round 1's `must` and `should` are answered in the frame before the fix pass: the note check reads only in a repository where some published release body holds a line of the renderer's shape, and an empty fragment is a case of no note read | The renderer that makes a note from fragments is this repository's CI script and ships to nobody, so in a user's repository a note without a renderer line says nothing about a fragment, and every directory would be kept for ever. Which repositories the renderer writes for is read exactly from the list the check already fetches; the renderer skips an empty fragment, so no note can carry it | `skills/core/SKILL.md` *The rule a mechanism is kept against* |
