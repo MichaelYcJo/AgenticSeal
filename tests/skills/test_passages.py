@@ -46,12 +46,15 @@ class Test_in_corpus:
     def test_accepts_a_rule_document(self, rel):
         assert passages.in_corpus(rel)
 
-    # One path per guard of `in_corpus`, each refused by that guard alone, so
-    # widening a guard at a boundary named here fails exactly its paths.
-    # Membership in `TOP_FILES` and the `TOP_DIRS` prefix are the two sides
-    # of one `or`, so each is widened at its boundary: membership to every
-    # top-level path, the prefix to its directory names without their slash
-    # and to a directory it does not list.
+    # Paths each let through by widening one guard of `in_corpus` at one
+    # boundary named here and by no other, one or more per guard, so
+    # widening a guard at a boundary named here fails exactly that
+    # boundary's paths. Membership in `TOP_FILES` and the `TOP_DIRS` prefix
+    # are the two sides of one `or`, and a side widened to `True` lets
+    # through what the other side refuses, so each is widened at its
+    # boundary: membership to every top-level path, the prefix to its
+    # directory names without their slash and to a directory it does not
+    # list.
     @pytest.mark.parametrize(
         "rel",
         [
