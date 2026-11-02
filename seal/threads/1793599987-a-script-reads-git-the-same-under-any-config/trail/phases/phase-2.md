@@ -80,7 +80,7 @@ readers changed:
 | `Test_moved::test_accepts_a_pure_move[a-name-imported-from-a-test-file-whose-name-is-not-ascii]` | `name V: its definition differs from the base's`, exit 1 |
 
 **Mutation (executed).** The runs used #898's fixed copy,
-`/Users/michael/Documents/GitHub/SpecSeal-worktrees/fix/898-a-mutant-that-does-not-compile-reads-as-caught/bin/seal mutate`
+`bin/seal mutate` in #898's worktree
 at `ef81822e3`, which refuses a mutant that does not compile. Each mutant
 ran against the new case of its reader alone, after commit `a77538b81`.
 A batch run prints only the verdicts, so each mutant of a batch was also run

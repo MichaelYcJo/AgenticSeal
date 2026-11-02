@@ -112,4 +112,4 @@ so the check reads git this way once that pin moves.
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-03 | The orchestrator folds round 1's finding 2 into `frame/design.md`'s `to:`, as the fix pass's close block wrote it: the `-z` half covers a path taken out of output git quotes under `core.quotePath`, names the listings with "such as", and states the readers that take no path out and the unquoted `rev-parse` and `worktree list --porcelain` | The fix pass bounded the rule by the property rather than by the record's closed list of commands, on a probe where `git check-ignore -v --non-matching` quoted a Hangul name; the folded design parses to one `add` with no errors and nothing unread (executed by the orchestrator) | `skills/core/SKILL.md` *The rule a mechanism is kept against*; `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |

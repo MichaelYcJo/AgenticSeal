@@ -180,17 +180,25 @@ and the rest are read.
   section: Which gate a script holds
   to: **A script reads git the same under any configuration: each git
     command a script under `hooks/`, `skills/` or `.github/scripts/` starts
-    whose subcommand `hooks/lib/gitcmd.py` names is built by its `argv`,
-    and a script that takes paths out of git's output asks for them with
-    `-z`.** A person's or a repository's git configuration can put text
-    into the fields a script parses, take a commit's paths out, or follow a
-    path into another one's history. `argv` sets each key measured to do
-    that with `-c`, which outranks every configuration file. Its docstring
-    names each key, what it changes and the subcommands it changes, and a
-    key or subcommand found later is added there and nowhere else. `-z`
-    ends each path with a NUL and quotes none, whatever `core.quotePath`
-    says. A key nobody has measured is a limit until a run shows it changes
-    a reading. Whether a call is one of these is read at review, and
+    whose subcommand `hooks/lib/gitcmd.py` names is built by its `argv`, and
+    a script that takes a path out of output git quotes under
+    `core.quotePath` asks for it with `-z`.** A person's or a repository's
+    git configuration can put text into the fields a script parses, take a
+    commit's paths out, or follow a path into another one's history. `argv`
+    sets each key measured to do that with `-c`, which outranks every
+    configuration file. Its docstring names each key, what it changes and
+    the subcommands it changes, and a key or subcommand found later is added
+    there and nowhere else. Git quotes the paths its listings print, such as
+    those of `ls-tree`, `ls-files` and `status --porcelain` and the
+    `--name-only`, `--name-status` and `--raw` output of `log`, `diff` and
+    `diff-tree`. `-z` ends each such path with a NUL and quotes none,
+    whatever `core.quotePath` says. A reader that only asks whether git
+    printed anything, prints git's line as it came, or compares the line
+    with an ASCII path the script names takes no path out. `rev-parse` and
+    `worktree list --porcelain` print a path unquoted, and a path that holds
+    a newline breaks the second, a limit no flow of the plugin reaches. A
+    key nobody has measured is a limit until a run shows it changes a
+    reading. Whether a call is one of these is read at review, and
     `tests/hooks/test_gitcmd.py` holds each key.
     check: none reader: the proofer at a change that adds or edits a git call in a script
 
