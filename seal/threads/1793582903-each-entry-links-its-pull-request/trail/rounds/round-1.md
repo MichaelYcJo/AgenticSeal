@@ -107,6 +107,11 @@ for a note linking `/issues/42`. It is seen red against `a8d9015fa`, where
 the directory is kept with exit 1. The rule changes' `add` to
 `docs/the-record-layout.md` and the SKILL's bullets gain the sentence.
 
+```seal
+verdict: fixed 316bdc2d1
+answer: Built to the frame as folded at bbd15ec5e (design Scope item 4), which departs from the paste-ready fix in one place, written here in my own words: the test is repository-wide, not per tag. `notes` reads a note only where some non-draft release body in the one list holds a whole line `BUILT_RE` reads, and otherwise every pending directory goes with `NOT_BUILT` under `removed`. `PULL_LINK` and `MARKER` now live in `settle.py`, the renderer takes `PULL_LINK` from there, and `BUILT_RE` is derived from both by `_line_of`, anchored to a whole line with the number repeated. `test_apply_removes_where_no_published_note_is_built_from_the_fragments` holds the round's `/issues/42` and non-github.com shapes, a GitHub-generated line and a conventional-changelog line. Run against the source at bbd15ec5e (the two source files stashed, then restored by `stash pop`), it went red at `assert code == 0` with the round's `kept ... does not carry its entry` line. Each guard alone removed went red under `seal mutate`, each exit 0: `elif not built` (the new case), `built = False` (S4, and S7b where the only built line is another release's), the line anchors (the new case, through the conventional-changelog line), and the marker alternative (S5[marker]). S5's link body lost its `- ` prefix, which made it no built line, and S5 now asserts that no `no note read` line is printed. The text followed in 4c5e6de76: the SKILL's *What `--apply` does*, the module docstring, `--apply` help, `REMOVES_HEADING` and its pin, both README rows, both editions of the `seal/` README, and the changelog fragment.
+```
+
 ### 2. An empty `changelog.md` keeps its directory for ever, because the release note gives it no entry
 
 ```seal
@@ -161,6 +166,11 @@ NO_TEXT = (
 
 A case beside S7 in `tests/skills/test_settle.py` pins the `NO_TEXT` line
 with no `gh` call. It is seen red against `a8d9015fa`.
+
+```seal
+verdict: fixed 316bdc2d1
+answer: Applied as the paste-ready fix reads, with `NO_TEXT` worded "holds no text, and the release note gives an empty fragment no entry"; the limit it names (text read at `--released-at`, not at the newest commit of the tag's range) is stated in `notes`'s docstring. `test_apply_removes_a_directory_whose_fragment_is_empty` writes `"\n  \n"` under `feat: a (#42)` and `v1.2.3` beside a built note that lacks #42, and asserts the `NO_TEXT` line and no `gh` call. Against the source at bbd15ec5e it went red at `assert code == 0` with the `kept ... does not carry its entry` line; `elif not text:` changed to `elif False:` went red the same way under `seal mutate`, exit 0. The SKILL, the module docstring and the changelog fragment name the empty fragment as a case of no note read (4c5e6de76).
+```
 
 ## Confirmations
 
