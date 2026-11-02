@@ -29,6 +29,7 @@ import subprocess
 import sys
 import textwrap
 import time
+import warnings
 
 import conftest
 import pytest
@@ -463,6 +464,9 @@ class Test_main:
         ), out
         assert len(seen(log)) == 4, "the baseline or a mutant did not run once"
         assert target.read_text(encoding="utf-8") == ORIGINAL
+        # Only a red line carries the cases' exit code (#898).
+        for line in re.findall(r"^mutant \d+: SURVIVED.*$", out, re.M):
+            assert re.match(r"mutant \d+: SURVIVED" + SECONDS, line), out
 
     @pytest.mark.parametrize(
         "pairs", [[PAIRS[0]], [PAIRS[0], PAIRS[2]]], ids=["one-pair", "a-batch"]
@@ -817,6 +821,51 @@ class Test_main:
         else:
             assert "no mutant was compiled" not in out, out
         assert target.read_bytes() == source
+
+    def test_a_run_that_measured_nothing_carries_no_clause(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """The not-compiled clause rides a verdict, so a mutated run that
+        timed out keeps its own first line."""
+        mod = module()
+        runs = iter(
+            [
+                (mod.SURVIVED, "the cases passed", ""),
+                (mod.TIMED_OUT, "after 2s: no verdict", ""),
+            ]
+        )
+        monkeypatch.setattr(mod, "run_cases", lambda *a, **k: next(runs))
+        target = tmp_path / "target.py"
+        target.write_text("VALUE = 1\nprint(\n", encoding="utf-8")
+        code = mod.main(
+            [str(target), "--replace", "VALUE = 1", "VALUE = 2", "--tests", "x"]
+        )
+        out = capsys.readouterr().out
+        assert code == 2 and out.startswith("timed out after 2s"), out
+        assert "no mutant was compiled" not in out, out
+
+    def test_a_warning_raised_while_compiling_is_not_printed(self, tmp_path, capsys):
+        """An invalid escape is a `SyntaxWarning` the compiler emits, and
+        printed it would come before the verdict, which is the first line."""
+        target = tmp_path / "target.py"
+        target.write_text('VALUE = "\\d"\n', encoding="utf-8")
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            code, out = run(
+                [
+                    target,
+                    "--replace",
+                    "VALUE",
+                    "OTHER",
+                    "--tests",
+                    red_on(tmp_path, target, "OTHER"),
+                ],
+                capsys,
+            )
+        assert code == 0 and out.startswith("red: "), out
+        assert not [w for w in caught if issubclass(w.category, SyntaxWarning)], [
+            str(w.message) for w in caught
+        ]
 
     def test_a_replacement_that_lands_once_is_what_the_cases_see(
         self, tmp_path, capsys
