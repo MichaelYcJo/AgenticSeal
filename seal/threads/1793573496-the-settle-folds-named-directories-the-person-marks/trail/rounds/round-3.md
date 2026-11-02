@@ -128,6 +128,11 @@ The case passes against the current reader, because the behaviour is
 already right. It pins the explanation that the docstring and the skill now
 give, and it goes red under a reader that skips a merge it calls clean.
 
+```seal
+verdict: fixed 68b7f1970
+answer: The finding holds: "a clean merge, or one whose result is one parent's, names nothing" was my round 2 sentence, drawn from a probe whose clean merge touched the file on one side only. `history`'s docstring now reads, in the finding's words, that a merge is named where its result differs from every parent, "one that resolved a conflict in it, wrote it new, or combined two parents' edits to it with no conflict", and that a merge whose result at the path is one parent's names nothing. The module docstring, the skill's listing bullet and the changelog fragment say a merge whose result differs from every parent, by a conflict it resolved or by two parents' edits it combined, changed the file. The proposed case was not added: it reaches `history` with the status `MM`, the shape `test_a_merge_that_resolved_a_document_is_its_last_change` already drives through the same branch, and the reader cannot tell a clean merge from a resolved one, so no reader that skips "a merge it calls clean" can be written against these fields; a case that covers nothing its group does not is not added (`agents/crafter.md` *A new test starts from its group*). `frame/design.md:99` states the one rule and no clean-merge claim, so nothing there is named for this finding.
+```
+
 ### 2. A user's `log.showRoot` or `log.showSignature` changes what the history reader parses, and the listing then misdates documents
 
 ```seal
@@ -223,6 +228,11 @@ committed. A signature case needs a signed commit, which `ssh-keygen` and
 it skips, as `symlink_or_skip` does for links. Whether that case earns its
 cost beside the flag is the fix pass's call. The flag alone is read by no
 case.
+
+```seal
+verdict: fixed 68b7f1970
+answer: `history`'s `git log` carries `--root --no-show-signature`, on this branch's reader only (`plan.md`'s last judgment; `rule_changes.py#order` and the base's other readers are #1283), and its docstring says the two flags hold the walk to its fields whatever `log.showRoot` and `log.showSignature` say; the module docstring, the skill's listing bullet and the changelog fragment say neither key changes the dates. One case per key, each seen red at 9a5751664's reader before the flags went in: `test_a_document_the_root_commit_added_is_dated_under_any_show_root` (the finding's case; `docs/a.md` printed `no commit adds it`) and `test_a_signed_commit_is_read_under_any_show_signature`, which signs a commit with an ed25519 key `ssh-keygen` makes in the case and skips where `ssh-keygen` is absent (`adr/0001.md` printed `no commit adds it`). After the commit, `seal mutate` dropping `--root` turned the first red and dropping `--no-show-signature` turned the second red. Both cases set the key through `GIT_CONFIG_COUNT`, which needs git 2.31, and the signature case needs ssh signing, git 2.34; this run used git 2.50.1 on macOS. `frame/design.md:99` writes the `git log` without `--root --no-show-signature`, for the orchestrator to fold.
+```
 
 ## Confirmations
 
