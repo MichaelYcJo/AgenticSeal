@@ -11,6 +11,9 @@
   settle --from DIR             the dry run, and every document of DIR, a
                                 directory a person names, with the commits
                                 that added and last changed each; repeatable
+  settle --draft                write every released operation into the
+                                policy root in merge order, and name each one
+                                not placed; it decides nothing
   settle --released-at REF      what counts as released (default origin/main)
   settle --root DIR             a repository other than this one
 
@@ -26,8 +29,9 @@ and only in local mode.
 
 **The designs say what was decided and in what order, the code says what holds
 now, and the settling session writes each section as the latest decision the
-code bears out. The script reads and removes; it neither writes `docs/` nor
-judges.** `skills/settle/SKILL.md` is the settling session's procedure.
+code bears out. The script reads and removes, and with `--draft` writes the
+released operations literally into the policy root; it judges nothing.**
+`skills/settle/SKILL.md` is the settling session's procedure.
 
 **The dry run is the timeline.** Each released design's `## Rule changes` is
 read through `rule_changes.py`, as `--released-at` holds it where the root is
@@ -74,6 +78,20 @@ the settling session's to propose and the person's to mark: nothing here
 reads what a document says. A root holding no work item lists them before
 its settled line.
 
+**`--draft` writes the released operations as they are written, and decides
+nothing (#1217).** It reads what the dry run reads, and applies each
+operation of each design the dry run groups, in merge order and in the order
+its design writes them, through `rule_changes.py#apply_op` to the policy
+root in the working tree, each over the text the earlier ones left. A
+superseded operation is applied like any other. An operation `apply_op`
+does not place is printed with its kind, its work item, its design's
+coordinate and the reason, and the rest go on. It writes each document it
+changed once, with its line ends, creates the one an `add` with no section
+names and deletes the one a `remove` empties, and prints how many operations
+it placed of how many and the sentence that sends the settling session to
+the procedure's step 4. A second run applies every operation again to what
+the first left: that is a limit the skill states, not a guard.
+
 **`--apply` removes, and only that.** It removes every released work item
 directory whose record holds no open row in the working tree, whether or not
 it wrote a `frame/design.md`, and prints the rows each removed record closed, with
@@ -100,15 +118,17 @@ refuses the run, since every local work item would then read as unreleased.
 A repository that opted out with the scratch marker, an empty FILE read the
 way `hooks/lib/optin.py#home_at` reads it, is refused.
 
-Exit codes: 0 the report was produced, `--apply` kept nothing, or the root
-holds no work item, which is the state a complete settle reaches; 1 `--apply`
+Exit codes: 0 the report was produced, `--apply` kept nothing, `--draft`
+ran, whatever it placed, or the root holds no work item, which is the state
+a complete settle reaches; 1 `--apply`
 kept a directory whose record holds an open row or cannot be read; 2 the
 arguments or the tree were unusable: a `--released-at` ref that does not
 resolve, a root at neither place, a repository that opted out, in local mode
 a `gh` that is not on PATH or whose query fails, a sibling script that is
 not beside it, a `--from` that names no directory of the working tree, one
-outside the repository, the `seal/` root or a path under it, and `--from`
-beside `--apply`, which removes only under `seal/threads/`. An interpreter below
+outside the repository, the `seal/` root or a path under it, `--from`
+beside `--apply`, which removes only under `seal/threads/`, and `--draft`
+beside `--apply` or `--from`. An interpreter below
 the floor never reaches this file through `seal settle`: `hooks/lib/launch.py`
 refuses `seal` with 2 first.
 """
@@ -499,6 +519,26 @@ FROM_UNDER_ROOT = (
     "this runs in, so nothing was read.\n"
 )
 
+# What `--draft` refuses, each with exit 2 before anything is read (#1217).
+DRAFT_WITH_APPLY = (
+    "settle: --draft and --apply cannot be given together: the draft is "
+    "written and read before anything is removed, so nothing was written and "
+    "nothing was removed.\n"
+)
+DRAFT_WITH_FROM = (
+    "settle: --draft and --from cannot be given together: the draft writes "
+    "only the released designs' operations, and a promoted document is "
+    "written by the settling session, so nothing was read and nothing was "
+    "written.\n"
+)
+# `--draft`'s last line, after its count.
+DRAFTED = (
+    "This draft decides nothing. Read every section it wrote against the code, "
+    "and write each\noperation it did not place by hand, as "
+    "`skills/settle/SKILL.md` *The settling session's\nprocedure* step 4 "
+    "says.\n"
+)
+
 
 # A backticked span that names a repository path: a `/` in it, or a file
 # name with one of the extensions this repository's files carry. What
@@ -703,7 +743,9 @@ def timeline(root, ref, ids, reader, records, merged=None):
     a design, so it is read from its directory under RECORDS, and the merge
     order is the merge commits MERGED names, `{id: (number, merge commit)}`
     (`rule_changes.py#merge_order`). A design with operations joins the groups
-    `rule_changes.py#group` forms in merge order; one whose section does not
+    `rule_changes.py#group` forms in merge order, and `specs` lists those
+    designs in that order with their operations, for `--draft`; one whose
+    section does not
     parse, that has none, or that holds a line the reader names as not read
     (`Parsed.unread`), is to be read whole; one holding the no-change
     block has nothing to write; a directory with no `frame/design.md` states no
@@ -755,6 +797,7 @@ def timeline(root, ref, ids, reader, records, merged=None):
         )
     return {
         "groups": groups,
+        "specs": [(i, parsed[i]) for i, _ in ordered],
         "whole": whole,
         "nothing": nothing,
         "spec_less": spec_less,
@@ -1174,6 +1217,49 @@ def report(found, ref, out):
     return 0
 
 
+# --- the draft (#1217) -----------------------------------------------------
+
+
+def draft(found, root, out):
+    """Write every operation of every design the dry run groups into the
+    policy root, in merge order and in the order its design writes them,
+    each through `rule_changes.py#apply_op` over the text the earlier ones
+    left. Each document is read once and written once at the end, with its
+    line ends as they are; one an `add` with no section names is created,
+    and one a `remove` empties is deleted. Each operation not placed is
+    printed with its reason, the rest go on, and nothing decides which
+    operation is the latest: the exit code is 0 whatever was placed."""
+    rules = load(RULES, "agentic_rule_changes")
+    read, texts, placed, total = {}, {}, 0, 0
+    for work_item_id, ops in found["timeline"]["specs"]:
+        for op in ops:
+            total += 1
+            if op.file not in texts:
+                read[op.file] = texts[op.file] = read_text(root, op.file)
+            text, why = rules.apply_op(texts[op.file], op)
+            if why:
+                where = f"{SPECS}/{work_item_id}/{DESIGN}:{op.line}"
+                out.write(f"not placed  {op.kind}  {work_item_id}  {where}  {why}\n")
+                continue
+            texts[op.file] = text
+            placed += 1
+    for rel, text in texts.items():
+        if text == read[rel]:
+            continue
+        path = under(root, rel)
+        if text is None:
+            if os.path.isfile(path):
+                os.remove(path)
+            continue
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8", newline="") as f:
+            f.write(text)
+    policy = load(READER, "agentic_unverified_reader").policy_root(root)
+    out.write(f"placed {placed} of {total} operation{plural(total)} in {policy}/\n")
+    out.write(DRAFTED)
+    return 0
+
+
 # --- the apply -------------------------------------------------------------
 
 AFTER_HEADING = (
@@ -1303,7 +1389,20 @@ def main(argv=None):
         "commit that last changed it, and writes nothing there. Repeatable, and "
         "refused beside --apply",
     )
+    ap.add_argument(
+        "--draft",
+        action="store_true",
+        help="write every operation of the released designs into the policy "
+        "root as it stands, in merge order, and name each one not placed with "
+        "the reason; it decides nothing. Refused beside --apply and --from",
+    )
     args = ap.parse_args(argv)
+    if args.draft and args.apply:
+        sys.stderr.write(DRAFT_WITH_APPLY)
+        return 2
+    if args.draft and args.named:
+        sys.stderr.write(DRAFT_WITH_FROM)
+        return 2
     if args.named and args.apply:
         sys.stderr.write(FROM_WITH_APPLY)
         return 2
@@ -1373,6 +1472,8 @@ def main(argv=None):
         return 2
     if args.apply:
         return apply(found, root, out=sys.stdout)
+    if args.draft:
+        return draft(found, root, out=sys.stdout)
     if listed is not None:
         found["documents"] = listed
     return report(found, args.released_at, out=sys.stdout)

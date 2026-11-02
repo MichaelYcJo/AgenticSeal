@@ -22,7 +22,11 @@ readers that excuse such a line: `.github/scripts/rules.py` and
 and what its `to` repeats of another rule document, over texts their caller
 hands them, for `chain_check.py` to name as notices (#1216); a copy is read
 through `passages.py`, the paste check's reader, loaded by path.
-`settle` prints what they read; nothing here writes a file.
+`apply_op` places one operation in one document's text as the grammar
+places it, for `settle --draft` to write (#1217); it reads a table row
+through `hooks/lib/config.py`, loaded by path.
+`settle` prints what they read and writes what `apply_op` returns; nothing
+here writes a file.
 
 Headings and fences are read through
 `skills/verify/scripts/unverified_check.py` (`live_lines`, `heading_level`,
@@ -45,6 +49,7 @@ import subprocess
 HERE = os.path.dirname(os.path.abspath(__file__))
 READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
 PASSAGES = os.path.join(HERE, "passages.py")
+CONFIG = os.path.join(HERE, "..", "..", "..", "hooks", "lib", "config.py")
 
 HEADING = "Rule changes"
 # Each operation's fields: (required, optional). The item lines, their fields
@@ -74,6 +79,7 @@ NEAR_HEADING = (
 
 _reader = None
 _passages = None
+_config = None
 
 
 def reader():
@@ -93,6 +99,17 @@ def passages():
         _passages = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(_passages)
     return _passages
+
+
+def config():
+    """`hooks/lib/config.py`, the reader of a GFM table row held to
+    cmark-gfm, loaded by path once."""
+    global _config
+    if _config is None:
+        spec = importlib.util.spec_from_file_location("agentic_rules_config", CONFIG)
+        _config = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(_config)
+    return _config
 
 
 def heading_text(line):
@@ -302,6 +319,131 @@ def section_lines(text, section):
     while end > h + 1 and not lines[end - 1].strip():
         end -= 1
     return (h + 1, end), None
+
+
+# --- placing one operation in one document's text (#1217) ---------------------
+
+
+def _cut(text, s, e):
+    """TEXT with [s, e) removed, and the line or blank line it leaves tidied."""
+    if e < len(text) and text[e] in " \t":
+        while e < len(text) and text[e] in " \t":
+            e += 1
+    else:
+        while s > 0 and text[s - 1] in " \t":
+            s -= 1
+    out = text[:s] + text[e:]
+    start = out.rfind("\n", 0, s) + 1
+    stop = out.find("\n", s)
+    if out[start : stop if stop >= 0 else len(out)].strip():
+        return out
+    out = out[:start] + (out[stop + 1 :] if stop >= 0 else "")
+    if out[max(0, start - 2) : start] == "\n\n" and out[start : start + 1] == "\n":
+        out = out[:start] + out[start + 1 :]
+    return out
+
+
+def _last_row(lines, first, stop, new):
+    """The index in LINES of the last row of the last table in
+    LINES[first:stop], where NEW is one line `config.py#table_cells` reads
+    as a row; else None. A table opens where `config.py#opens_table` finds a
+    header over its delimiter row, on a line outside a fence or a comment,
+    and its rows run to the first blank line, as GFM ends a table."""
+    cfg = config()
+    if "\n" in new or cfg.table_cells(new) is None:
+        return None
+    bare = [line.rstrip("\r\n") for line in lines]
+    live = [flag for _, flag in reader().live_lines(bare)]
+    last, n = None, first
+    while n < stop:
+        under = [(n + 1, bare[n + 1])] if n + 1 < stop else []
+        if not (live[n] and cfg.opens_table(n, bare[n], under)):
+            n += 1
+            continue
+        n += 1
+        while n + 1 < stop and bare[n + 1].strip():
+            n += 1
+        last, n = n, n + 1
+    return last
+
+
+def apply_op(text, op):
+    """OP placed in TEXT, a document's text with its line ends, as *Rule
+    changes* in `skills/settle/SKILL.md` places each kind: `(new text, None)`;
+    `(None, None)` where a `remove` with no `from` leaves the document empty,
+    so it is deleted; or `(None, why)` where OP is not placed, WHY naming the
+    file and the section. TEXT is None for a document not in the tree.
+
+    A `from` is found by `pattern` in its section's lines, and only once
+    there. An `add` whose `to` is one table row lands as the last row of the
+    last table in the section's own text (`_last_row`), and where no table
+    stands there, as any `add` does. The document's line end, CRLF or LF, is
+    kept in what it writes. `seal settle --draft` calls it once per released
+    operation. `copies` above applies an operation too, to the whole document
+    with no section, for the runs of words the document will hold; a new
+    operation kind is applied in both."""
+    if op.kind == "add" and op.section is None:
+        if text is not None:
+            return None, f"{op.file} exists, and an add with no section creates one"
+        return op.new + "\n", None
+    if text is None:
+        return None, f"{op.file} does not exist"
+    lines = reader().gfm_lines(text, keepends=True)
+    marks = headings([line.rstrip("\r\n") for line in lines])
+    at = [(n, lv) for n, lv, t in marks if t == op.section]
+    if not at:
+        return None, f"no heading `{op.section}` in {op.file}"
+    h, level = at[0]
+    end = next((n for n, lv, _ in marks if n > h and lv <= level), len(lines))
+    # A whole-section removal whose heading text the section's own
+    # sub-headings repeat names the outer one: a title and the first section
+    # under it often read alike, and the outer range holds every other match.
+    nested = op.kind == "remove" and op.old is None and all(n < end for n, _ in at)
+    if len(at) > 1 and not nested:
+        return None, f"heading `{op.section}` appears {len(at)} times in {op.file}"
+    nl = "\r\n" if "\r\n" in text else "\n"
+
+    if op.kind == "remove" and op.old is None:
+        out = "".join(lines[:h] + lines[end:])
+        if not out.strip():
+            return None, None
+        if end == len(lines):
+            out = out.rstrip("\r\n") + nl
+        return out, None
+
+    if op.kind == "add":
+        own = next((n for n, _, _ in marks if n > h), len(lines))
+        row = _last_row(lines, h + 1, own, op.new)
+        if row is not None:
+            head = lines[: row + 1]
+            if not head[-1].endswith(("\n", "\r")):
+                head[-1] += nl
+            return "".join([*head, op.new + nl, *lines[row + 1 :]]), None
+        q = own
+        while q > h + 1 and not lines[q - 1].strip():
+            q -= 1
+        head = lines[:q]
+        if not head[-1].endswith(("\n", "\r")):
+            head[-1] += nl
+        tail = lines[q:own] + lines[own:]
+        rule = nl.join(op.new.split("\n")) + nl
+        gap = [nl] if own < len(lines) and not lines[q:own] else []
+        return "".join([*head, nl, rule, *gap, *tail]), None
+
+    offset = len("".join(lines[: h + 1]))
+    region = "".join(lines[h + 1 : end])
+    hits = list(pattern(op.old).finditer(region))
+    if not hits:
+        return None, f"the `from` text is not in section `{op.section}` of {op.file}"
+    if len(hits) > 1:
+        return None, (
+            f"the `from` text appears {len(hits)} times in section `{op.section}` "
+            f"of {op.file}"
+        )
+    s, e = offset + hits[0].start(), offset + hits[0].end()
+    if op.kind == "change":
+        return text[:s] + nl.join(op.new.split("\n")) + text[e:], None
+    return _cut(text, s, e), None
 
 
 # --- what an operation takes out of a test and repeats of a document ----------

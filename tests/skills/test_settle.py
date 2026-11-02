@@ -11,7 +11,9 @@ branch (#955). A file in a work item's directory named like a record it
 reads, at another path, is named by both arms as not read and decides
 nothing (#1126); `Test_misplaced` holds the walk that finds it. With
 `--from`, the dry run lists every document of each directory a person
-names and writes nothing there (#1054).
+names and writes nothing there (#1054). With `--draft`, it writes every
+released operation into the policy root in merge order and names each one
+not placed (#1217).
 `Test_report` and `Test_apply` drive the
 two arms over the `tree` fixture's history; `Test_main` runs the command over
 a repository whose merge order git holds, and over a local root with a `gh`
@@ -1893,20 +1895,23 @@ class Test_main:
 
     @pytest.mark.rule("an-empty-root-is-settled")
     @pytest.mark.parametrize("keep_empty_dir", [True, False], ids=["empty", "absent"])
-    @pytest.mark.parametrize("apply", [False, True], ids=["report", "apply"])
-    def test_accepts_a_settled_root_and_says_so(self, tmp_path, keep_empty_dir, apply):
+    @pytest.mark.parametrize(
+        "flags", [[], ["--apply"], ["--draft"]], ids=["report", "apply", "draft"]
+    )
+    def test_accepts_a_settled_root_and_says_so(self, tmp_path, keep_empty_dir, flags):
         """G7. After the last settle a fresh checkout has no `seal/threads/` at
         all and the tree that ran `--apply` has an empty one. Both are the state
         a complete settle reaches, and `settle` used to refuse the first at exit
-        2 — so the command could not run on its own finished work."""
+        2 — so the command could not run on its own finished work. `--draft`
+        there has no operation to write, and writes nothing (#1217)."""
         repo = settled_repo(tmp_path, keep_empty_dir)
+        before = git(repo, "status", "--porcelain", "--untracked-files=all")
         argv = [sys.executable, SCRIPT, "--root", str(repo), "--released-at", "HEAD"]
-        r = subprocess.run(
-            argv + (["--apply"] if apply else []), capture_output=True, encoding="utf-8"
-        )
+        r = subprocess.run(argv + flags, capture_output=True, encoding="utf-8")
         assert r.returncode == 0, r.stdout + r.stderr
         assert "holds no work item" in r.stdout, r.stdout + r.stderr
         assert "A complete settle ends here" in r.stdout, r.stdout
+        assert git(repo, "status", "--porcelain", "--untracked-files=all") == before
 
     @pytest.mark.rule("an-empty-root-is-settled")
     @pytest.mark.parametrize("arm", [False, True], ids=["report", "apply"])
@@ -2330,6 +2335,105 @@ class Test_main:
         assert not specs_dir(repo, "1700000001-a").exists(), text
         assert named() == before
         assert status() == said
+
+    # --- `--draft`: the released operations written literally (#1217) --------
+
+    def test_draft_writes_each_operation_in_merge_order_and_names_what_it_missed(
+        self, repo, capfd
+    ):
+        """S4 and S5. A was added before B and B's `change` quotes A's `to`,
+        so only merge order leaves B's `to`, whatever their ids say. C's
+        `from` is not there: C is printed with its coordinate and reason,
+        and D, after it, is placed. The run exits 0, writes only under the
+        policy root, and leaves every released directory as it was."""
+        item(repo, "1700000009-a", op("change", "S", "old sentence.", "y."))
+        commit(repo, "a")
+        item(repo, "1700000001-b", op("change", "S", "y.", "z."))
+        commit(repo, "b")
+        item(repo, "1700000005-c", op("change", "T", "gone words.", "w."))
+        commit(repo, "c")
+        item(repo, "1700000002-d", op("add", "U", new="Rule."))
+        commit(repo, "d")
+        records = {k: v for k, v in files(repo).items() if k.startswith("seal")}
+        code, text = dry_run(repo, capfd, "--draft")
+        assert code == 0, text
+        line = line_of(spec(op("change", "T", "gone words.", "w.")), "- change")
+        assert text == (
+            "not placed  change  1700000005-c  "
+            f"seal/threads/1700000005-c/frame/design.md:{line}  "
+            "the `from` text is not in section `T` of docs/a.md\n"
+            "placed 3 of 4 operations in docs/\n"
+            f"{settle.DRAFTED}"
+        ), text
+        assert (repo / "docs" / "a.md").read_text(encoding="utf-8") == DOC.replace(
+            "old sentence.", "z."
+        ).replace("Last.\n", "Last.\n\nRule.\n")
+        assert git(repo, "status", "--porcelain") == " M docs/a.md\n"
+        assert {k: v for k, v in files(repo).items() if k.startswith("seal")} == (
+            records
+        )
+
+    def test_draft_creates_and_deletes_whole_documents(self, repo, capfd):
+        """An `add` with no section creates its document, and a `remove`
+        that empties one deletes it. A document written with CRLF is read
+        and written with its line ends as they are."""
+        (repo / "docs" / "b.md").write_bytes(b"## Only\r\n\r\nText.\r\n\r\n## Two\r\n")
+        write(repo, "docs/c.md", "## Gone\n\nText.\n")
+        commit(repo, "b and c")
+        item(
+            repo,
+            "1700000001-a",
+            "\n".join(
+                [
+                    op("add", new="# New", file="docs/new.md"),
+                    op("remove", "Only", file="docs/b.md"),
+                    op("remove", "Gone", file="docs/c.md"),
+                ]
+            ),
+        )
+        commit(repo, "a")
+        code, text = dry_run(repo, capfd, "--draft")
+        assert code == 0, text
+        assert text.startswith("placed 3 of 3 operations in docs/\n"), text
+        assert (repo / "docs" / "new.md").read_bytes() == b"# New\n"
+        assert (repo / "docs" / "b.md").read_bytes() == b"## Two\r\n"
+        assert not (repo / "docs" / "c.md").exists()
+
+    @pytest.mark.parametrize(
+        "other", [["--apply"], ["--from", "adr"]], ids=["apply", "from"]
+    )
+    def test_refuses_draft_beside_apply_or_from_and_writes_nothing(
+        self, repo, capfd, other
+    ):
+        """S6: `--draft` writes the released operations and nothing else, so
+        a flag beside it that it would ignore is refused with exit 2 and one
+        sentence, and the tree is left as it was."""
+        write(repo, "adr/0001.md", "a decision\n")
+        item(repo, "1700000001-a", op("add", "U", new="Rule."))
+        commit(repo, "a")
+        other = [str(repo / "adr") if o == "adr" else o for o in other]
+        before = files(repo)
+        code, text = dry_run(repo, capfd, "--draft", *other)
+        assert code == 2, text
+        assert text.startswith("settle: --draft and " + other[0]), text
+        assert text.count("\n") == 1 and text.endswith(".\n"), text
+        assert files(repo) == before
+
+    def test_draft_in_local_mode_reads_the_design_under_the_git_directory(
+        self, local, gh, capfd
+    ):
+        """S7: the released design is read from its directory under the git
+        directory, and the draft writes the repository's policy root."""
+        local_item(local, "1700000001-a", "feat/1-a", op("add", "U", new="Rule."))
+        gh.merged("feat/1-a", (11, merge(local, "feat/1-a")))
+        records = sorted(p for p in (local / ".git" / "seal").rglob("*"))
+        code, text = dry_run(local, capfd, "--draft")
+        assert code == 0, text
+        assert text.startswith("placed 1 of 1 operation in docs/\n"), text
+        assert (local / "docs" / "a.md").read_text(encoding="utf-8") == (
+            DOC.replace("Last.\n", "Last.\n\nRule.\n")
+        )
+        assert sorted(p for p in (local / ".git" / "seal").rglob("*")) == records
 
 
 class Test_module:

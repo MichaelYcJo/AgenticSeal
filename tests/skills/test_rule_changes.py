@@ -561,6 +561,206 @@ class Test_pattern:
         assert rules.pattern(text).search(region) is None
 
 
+# --- placing one operation in one document's text (#1217) ----------------------
+
+# A section whose own text holds two tables, and whose sub-section holds a
+# third: an `add` of one table row lands in the second.
+TABLES = """\
+# A policy
+
+## S
+
+Intro.
+
+| A | B |
+|---|---|
+| 1 | 2 |
+
+Between.
+
+| C | D |
+|---|---|
+| 3 | 4 |
+
+After.
+
+### S child
+
+| E | F |
+|---|---|
+| 5 | 6 |
+"""
+
+
+class Test_apply_op:
+    @pytest.mark.parametrize(
+        "kind, section, old, new, want",
+        [
+            (
+                "change",
+                "S",
+                "old sentence.",
+                "new sentence.",
+                DOC.replace("old sentence.", "new sentence."),
+            ),
+            (
+                "add",
+                "S",
+                None,
+                "Rule.",
+                DOC.replace("After.\n\n###", "After.\n\nRule.\n\n###"),
+            ),
+            ("remove", "S", "old sentence.", None, DOC.replace("old sentence. ", "")),
+            ("remove", "T", None, None, DOC.replace("## T\n\nx.\n\nT's text.\n\n", "")),
+            ("remove", "U", None, None, DOC.replace("\n## U\n\nLast.\n", "")),
+        ],
+        ids=["change", "add", "remove a from", "remove a section", "remove the last"],
+    )
+    def test_places_each_kind_where_the_grammar_says(
+        self, kind, section, old, new, want
+    ):
+        """S1: a `change`'s `from` becomes its `to` inside the section, an
+        `add` stands at the end of the section's own text before its first
+        sub-heading, a `from` is cut with the space it leaves, and the whole
+        section goes up to the next heading of its level or higher."""
+        assert rules.apply_op(DOC, one_op(kind, section, old, new)) == (want, None)
+
+    def test_accepts_an_add_with_no_section_as_a_new_document(self):
+        assert rules.apply_op(None, one_op("add", new="# New")) == ("# New\n", None)
+
+    def test_a_remove_that_empties_the_document_deletes_it(self):
+        text = "## Only\n\nText.\n"
+        assert rules.apply_op(text, one_op("remove", "Only")) == (None, None)
+
+    def test_a_whole_section_remove_names_the_outer_of_two_alike_headings(self):
+        """A title and the first section under it often read alike, and the
+        outer range holds every other match, so the outer one goes."""
+        text = "# A policy\n\n## Same\n\n### Same\n\nText.\n\n## Other\n\nKept.\n"
+        assert rules.apply_op(text, one_op("remove", "Same")) == (
+            "# A policy\n\n## Other\n\nKept.\n",
+            None,
+        )
+
+    @pytest.mark.parametrize(
+        "text, kind, section, old, why",
+        [
+            (None, "change", "S", "old sentence.", "docs/a.md does not exist"),
+            (
+                DOC,
+                "add",
+                None,
+                None,
+                "docs/a.md exists, and an add with no section creates one",
+            ),
+            (DOC, "change", "Nowhere", "x.", "no heading `Nowhere` in docs/a.md"),
+            (
+                DOC + "\n## S\n\nAgain.\n",
+                "change",
+                "S",
+                "old sentence.",
+                "heading `S` appears 2 times in docs/a.md",
+            ),
+            (
+                DOC,
+                "change",
+                "S",
+                "absent words.",
+                "the `from` text is not in section `S` of docs/a.md",
+            ),
+            (
+                DOC.replace("Child text.", "old sentence."),
+                "change",
+                "S",
+                "old sentence.",
+                "the `from` text appears 2 times in section `S` of docs/a.md",
+            ),
+        ],
+        ids=[
+            "no document",
+            "a new document that exists",
+            "no heading",
+            "a heading twice",
+            "no from",
+            "a from twice",
+        ],
+    )
+    def test_refuses_what_it_cannot_place_once_and_names_why(
+        self, text, kind, section, old, why
+    ):
+        """S2: an operation that is not placed writes nothing, and its reason
+        names the file and the section, for the settle to print."""
+        found = rules.apply_op(text, one_op(kind, section, old, "New."))
+        assert found == (None, why)
+
+    @pytest.mark.parametrize(
+        "text, new, want",
+        [
+            (
+                TABLES,
+                "| 7 | 8 |",
+                TABLES.replace("| 3 | 4 |\n", "| 3 | 4 |\n| 7 | 8 |\n"),
+            ),
+            (
+                TABLES,
+                "| 7 |",
+                TABLES.replace("| 3 | 4 |\n", "| 3 | 4 |\n| 7 |\n"),
+            ),
+            (
+                DOC,
+                "| 7 | 8 |",
+                DOC.replace("After.\n\n###", "After.\n\n| 7 | 8 |\n\n###"),
+            ),
+            (
+                TABLES,
+                "| 7 | 8 |\n    | 9 | 0 |",
+                TABLES.replace(
+                    "After.\n\n###", "After.\n\n| 7 | 8 |\n| 9 | 0 |\n\n###"
+                ),
+            ),
+            (
+                "## S\n\n```\n| A | B |\n|---|---|\n| 1 | 2 |\n```\n",
+                "| 7 | 8 |",
+                "## S\n\n```\n| A | B |\n|---|---|\n| 1 | 2 |\n```\n\n| 7 | 8 |\n",
+            ),
+        ],
+        ids=[
+            "the last table",
+            "a row of another width",
+            "no table",
+            "two rows",
+            "a table in a fence",
+        ],
+    )
+    def test_an_add_of_one_table_row_lands_in_the_sections_last_table(
+        self, text, new, want
+    ):
+        """S3: a `to` that is one table row lands as the last row of the last
+        table in the section's own text, whatever its width, and the
+        sub-section's table is not the section's. Where no table stands
+        there, or the `to` is two lines, it lands as any `add` does."""
+        assert rules.apply_op(text, one_op("add", "S", new=new)) == (want, None)
+
+    @pytest.mark.parametrize(
+        "kind, section, old, new",
+        [
+            ("change", "S", "old sentence.", "new\n    sentence."),
+            ("add", "S", None, "Rule\n    run on."),
+            ("add", "S", None, "| 7 | 8 |"),
+            ("remove", "S", "old sentence.", None),
+            ("remove", "U", None, None),
+        ],
+        ids=["change", "add", "table row", "remove a from", "remove the last"],
+    )
+    def test_keeps_a_crlf_documents_line_ends(self, kind, section, old, new):
+        """`questions.md` Q2: a document written with CRLF keeps CRLF on
+        every line, the ones an operation writes among them."""
+        text = TABLES.replace("Intro.", "Before. old sentence. After.")
+        text = (text + "\n## U\n\nLast.\n").replace("\n", "\r\n")
+        out, why = rules.apply_op(text, one_op(kind, section, old, new))
+        assert why is None and out != text
+        assert "\n" not in out.replace("\r\n", ""), out
+
+
 # --- what an operation takes out of a test and repeats of a document (#1216) ---
 
 PLANTED = '''\
