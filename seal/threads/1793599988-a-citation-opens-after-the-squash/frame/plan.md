@@ -66,4 +66,4 @@ change (`frame/design.md` G9).
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-02 | After round 2 reopened round-1#2, the orchestrator asked the fix pass to state the tree case's verdict inputs and pin each once, not take the next edge; round 3 is the run's last | Signal: one mechanism's edge returned across two rounds (two unpinned edges in round 1, one reopened in round 2), each fix pass fixing the coordinate it was handed. The fix pass listed three inputs (no reaching ref, refs and no refused citation, refs and a refused citation) and pinned each with one case through `verdict(root)`; round 3 confirmed round-2#1, re-ran 13 mutants red and opened nothing | `skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round*; `skills/core/SKILL.md` *The rule a mechanism is kept against* |
