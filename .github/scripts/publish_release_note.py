@@ -669,15 +669,17 @@ def badge(label, value):
     its bright red, in the service's default style. Its alt text is the
     label and the value in words, so a reader whose client draws no image,
     or who opens the note while the service does not answer, still reads
-    the result. The address and the alt text are escaped, so a quote cannot
-    end an attribute and a `<` opens no tag."""
+    the result. The alt text is escaped, so a quote cannot end the
+    attribute and a `<` opens no tag. The address needs no escape:
+    `badge_text` leaves only letters, digits, `_.-~` and `%` in it, and
+    `BADGE_URL`'s own characters mean nothing to HTML."""
     url = BADGE_URL.format(
         label=badge_text(label),
         value=badge_text(value),
         colour=BADGE_VALUE_COLOUR,
         edge=BADGE_LABEL_COLOUR,
     )
-    return f'<img src="{html.escape(url)}" alt="{html.escape(f"{label}: {value}")}">'
+    return f'<img src="{url}" alt="{html.escape(f"{label}: {value}")}">'
 
 
 def count_badges(work, closed, people):
@@ -707,8 +709,9 @@ def sealed_header(image_url, alt, width, sealed, results, work, closed, people):
     where the repository leaves the image off (#1204), the results' cell is
     the table's one cell, and `alt` and `width` are not read. A reader
     whose client draws no image still has every number, in each badge's
-    alt text. The URL and `alt` are escaped, as `badge` escapes each
-    badge, so a quote cannot end an attribute and a `<` opens no tag."""
+    alt text. The image's URL and `alt` are escaped, as `badge` escapes
+    each badge's alt text, so a quote cannot end an attribute and a `<`
+    opens no tag."""
     lines = [
         " ".join(badge(label, value) for label, value in line)
         for line in [*sealed, *count_badges(work, closed, people), *results]
