@@ -4,7 +4,8 @@
   settle                        the dry run: each group of released designs that
                                 name one section, the designs to read whole, every
                                 open row, the files named like a record and not
-                                read, the judgments of each run, and what
+                                read, the judgments of each run, those of
+                                the plans earlier settles removed, and what
                                 `--apply` removes
   settle --apply                remove each released work item directory whose
                                 record holds no open row and whose version's
@@ -57,8 +58,15 @@ with the record it is named like: only the name is read, so what it holds is
 the settling session's to judge. Every row of every released
 `frame/plan.md` *Judgments of the run* is listed, grouped by its `Judged
 against` cell, with its work item's round count; a heading near the
-section's, and a section whose table it cannot read, are named as not read. Nothing is refused or held in the dry
-run.
+section's, and a section whose table it cannot read, are named as not read.
+After them come the rows of every `frame/plan.md` a commit on
+`--released-at` deleted from a work item with no directory in the tree, the
+plans earlier settles removed: each read at that commit's parent by the
+same reader, grouped the same way, with the release whose tag holds the
+commit that added it and the removing commit's `(#N)`. A `git` that fails
+there is named, and no row is matched to another: whether two rows are one
+kind is the settling session's to judge. Nothing is refused or held in the
+dry run.
 
 **`--from` reads a directory a person names, and writes nothing there.**
 Each `--from DIR` is read from the directory this runs in, and names a
@@ -803,6 +811,19 @@ JUDGMENTS_HEADING = (
     "removes them, and rewrites a section\nwhere one kind of judgment recurs or "
     "kept costing rounds (`skills/settle/SKILL.md`):"
 )
+# Its neighbour, the rows of the plans earlier settles removed, read from the
+# history of `--released-at` (#1281), and what a work item's line says where
+# no release can be named for it. The heading says who decides the kind.
+EARLIER_HEADING = (
+    "the judgments earlier settles removed: the rows of each `frame/plan.md` a "
+    "commit on\n`--released-at` deleted, read at that commit's parent and "
+    "grouped by the document each\nstands on, with the release each shipped "
+    "in. The script matches no row to another:\nwhether a row here is one kind "
+    "with a row above is the settling session's to judge,\nand it rewrites a "
+    "section where a kind recurs across releases (`skills/settle/SKILL.md`):"
+)
+NO_RELEASE_TAG = "no `vX.Y.Z` tag holds {commit}, the commit that added its plan"
+NO_ADDING_COMMIT = "no commit on {ref} adds its plan"
 REMOVES_HEADING = (
     "what `seal settle --apply` removes: each released directory whose record "
     "holds no open row,\nunless `--apply`, which alone reads the published "
@@ -982,65 +1003,168 @@ def judgments(records, ids):
               where that is not a directory this can list
               (`hooks/lib/routing.py#rounds_unreadable`): a file, a link or
               a directory nothing can list, which holds a review git carries
-      unread  `[(id, why)]` for each heading of a plan whose letters, case
-              folded, are the section's and that is not it, at its line; and
-              for a plan whose section holds no table under the exact
-              header, or whose table stops at a row it cannot read
+      unread  `[(id, why)]` for each line `plan_rows` names as not read
 
-    A plan with no such section and no near heading holds no judgment and
-    is in neither. A heading inside a fence or an HTML comment is no
-    heading (`unverified_check.py#live_lines`). A row
-    whose every cell is empty is the template's blank row, and no
-    judgment. The table is read through `hooks/lib/config.py#gfm_table`
-    over the section's lines alone, and nothing here grades a cell."""
-    rules = load(RULES, "agentic_rule_changes")
+    Each plan is read by `plan_rows`, the reader the plans earlier settles
+    removed are read by (`earlier_judgments`). A plan with no such section
+    and no near heading holds no judgment and is in neither."""
     routing = load(ROUTING, "agentic_routing_for_settle")
-    config = load(CONFIG, "agentic_config_for_settle")
     groups, unread = {}, []
     for work_item_id in ids:
         text = read_text(records, f"{SPECS}/{work_item_id}/{PLAN}")
         if text is None:
             continue
-        lines = rules.reader().gfm_lines(text)
-        marks = rules.headings(lines)
-        unread += [
-            (
-                work_item_id,
-                NEAR_JUDGMENTS.format(
-                    line=n + 1, written=lines[n].strip(), heading=JUDGMENTS
-                ),
-            )
-            for n, _lv, t in marks
-            if t != JUDGMENTS and rules.letters(t) == rules.letters(JUDGMENTS)
-        ]
-        if not any(t == JUDGMENTS for _n, _lv, t in marks):
+        rows, whys = plan_rows(text)
+        unread += [(work_item_id, why) for why in whys]
+        if not rows:
             continue
-        span, why = rules.section_lines(text, JUDGMENTS)
-        if span is None:
-            unread.append((work_item_id, why))
-            continue
-        first, last = span
-        rows, refusals = config.gfm_table(
-            "\n".join(lines[first - 1 : last]), JUDGMENTS_HEADER
-        )
-        if refusals:
-            unread.append((work_item_id, refusals[0]))
         where = under(records, f"{SPECS}/{work_item_id}")
         # `routing.rounds` returns [] both for no record and for a
         # `trail/rounds` it cannot list; `rounds_unreadable` says which.
         rounds = (
             None if routing.rounds_unreadable(where) else len(routing.rounds(where))
         )
-        for line, (date, judgment, grounds, against) in rows:
-            if not any((date, judgment, grounds, against)):
-                continue
+        for line, date, judgment, grounds, against in rows:
             members = groups.setdefault(against, {})
             members.setdefault(work_item_id, (rounds, []))[1].append(
-                (first - 1 + line, date, judgment, grounds)
+                (line, date, judgment, grounds)
             )
     return (
         [
             (against, [(i, r, held) for i, (r, held) in members.items()])
+            for against, members in groups.items()
+        ],
+        unread,
+    )
+
+
+def plan_rows(text):
+    """`(rows, unread)` for one plan's TEXT, the one reader of *Judgments of
+    the run* for the released plans and the removed ones alike.
+
+      rows    `[(line, date, judgment, grounds, judged against)]`, each row
+              of the section's table but the template's blank one, with its
+              line in TEXT
+      unread  `[why]`: each heading whose letters, case folded, are the
+              section's and that is not it, at its line; a section holding
+              no table under the exact header; a table that stops at a row
+              it cannot read
+
+    A heading inside a fence or an HTML comment is no heading
+    (`unverified_check.py#live_lines`). The table is read through
+    `hooks/lib/config.py#gfm_table` over the section's lines alone, and
+    nothing here grades a cell."""
+    rules = load(RULES, "agentic_rule_changes")
+    config = load(CONFIG, "agentic_config_for_settle")
+    lines = rules.reader().gfm_lines(text)
+    marks = rules.headings(lines)
+    unread = [
+        NEAR_JUDGMENTS.format(line=n + 1, written=lines[n].strip(), heading=JUDGMENTS)
+        for n, _lv, t in marks
+        if t != JUDGMENTS and rules.letters(t) == rules.letters(JUDGMENTS)
+    ]
+    if not any(t == JUDGMENTS for _n, _lv, t in marks):
+        return [], unread
+    span, why = rules.section_lines(text, JUDGMENTS)
+    if span is None:
+        return [], [*unread, why]
+    first, last = span
+    rows, refusals = config.gfm_table(
+        "\n".join(lines[first - 1 : last]), JUDGMENTS_HEADER
+    )
+    return (
+        [(first - 1 + line, *cells) for line, cells in rows if any(cells)],
+        unread + refusals[:1],
+    )
+
+
+# A path the history lists that is a work item's plan, and nothing else.
+REMOVED_PLAN_RE = re.compile(rf"{re.escape(SPECS)}/([^/]+)/{re.escape(PLAN)}")
+
+
+def earlier_judgments(root, ref, present):
+    """`(groups, unread)` for every `frame/plan.md` a commit on REF deleted
+    whose work item has no directory among PRESENT, the ids
+    `work_items(records)` lists: the plans earlier settles removed.
+
+      groups  `[(judged against, [(id, released, removed, [(coordinate,
+              date, judgment, grounds)])])]`, grouped by the `Judged
+              against` cell exactly as written, in the order first met:
+              the removing commits newest first, and within one commit the
+              plans in the order git lists them. `released` is the lowest
+              `vX.Y.Z` tag that holds the commit adding the plan
+              (`adding_commit`, `version`), or the sentence saying none
+              does. `removed` is `(short hash, pull request number or
+              None)`, the number read by `PULL_REQUEST_RE`. A coordinate is
+              `<short>^:seal/threads/<id>/frame/plan.md:<line>`
+      unread  `[(where, why)]`: what `plan_rows` names for a plan, at its
+              `<short>^:` path, and a `git` that fails, with what it said;
+              `where` is empty where the history itself was not read
+
+    One `git log --no-renames --full-history --diff-filter=D` of REF over
+    `seal/threads` lists the deletions. A merge shows no diff in it, so a
+    deletion is listed at the commit that made it, and a plan only a
+    merge's own resolution deleted is not listed. Each plan is read once,
+    at the parent of the newest commit that deleted it. Nothing here
+    matches, counts or filters a row by its cells: whether two rows are
+    one kind is the settling session's to judge."""
+    try:
+        listed = git_out(
+            root,
+            "log",
+            "--no-renames",
+            "--no-follow",
+            "--full-history",
+            "--diff-filter=D",
+            "--name-only",
+            "--format=%x00%H%x00%h%x00%s",
+            ref,
+            "--",
+            SPECS,
+        )
+    except RuntimeError as failed:
+        return [], [("", str(failed))]
+    deleted, seen = [], set()
+    commit = None
+    # exempt from splitlines: git output
+    for line in listed.splitlines():
+        if line.startswith("\x00"):
+            commit = line[1:].split("\x00", 2)
+            continue
+        matched = REMOVED_PLAN_RE.fullmatch(line)
+        if not matched or commit is None or line in seen:
+            continue
+        seen.add(line)
+        if matched.group(1) not in present:
+            deleted.append((commit, matched.group(1), line))
+    groups, unread = {}, []
+    for (full, short, subject), work_item_id, path in deleted:
+        where = f"{short}^:{path}"
+        try:
+            text = git_out(root, "show", f"{full}^:{path}")
+            adding, _number = adding_commit(root, ref, path)
+            if adding is None:
+                released = NO_ADDING_COMMIT.format(ref=ref)
+            elif (tag := version(root, adding)) is None:
+                added = git_out(root, "rev-parse", "--short", adding).strip()
+                released = NO_RELEASE_TAG.format(commit=added)
+            else:
+                released = f"released in {tag}"
+        except RuntimeError as failed:
+            unread.append((f"{work_item_id}  {where}", str(failed)))
+            continue
+        rows, whys = plan_rows(text)
+        unread += [(f"{work_item_id}  {where}", why) for why in whys]
+        number = PULL_REQUEST_RE.search(subject.strip())
+        removed = (short, int(number.group(1)) if number else None)
+        for line, date, judgment, grounds, against in rows:
+            members = groups.setdefault(against, {})
+            members.setdefault(work_item_id, (released, removed, []))[2].append(
+                (f"{where}:{line}", date, judgment, grounds)
+            )
+    return (
+        [
+            (against, [(i, r, d, held) for i, (r, d, held) in members.items()])
             for against, members in groups.items()
         ],
         unread,
@@ -1213,6 +1337,7 @@ def survey(root, ref, home=None):
             (i, held) for i in ids if (held := misplaced(records, i, reader))
         ],
         "judgments": judgments(records, ids),
+        "earlier": earlier_judgments(root, ref, present),
         "nothing": reader.NOTHING,
     }
     found["citations"], found["readers"] = citations(root, ids)
@@ -1435,7 +1560,8 @@ def citations(root, work_item_ids):
 
 def report(found, ref, out):
     """The dry run: the groups, the designs to read whole, the open rows, the
-    files named like a record and not read, the judgments, the documents of
+    files named like a record and not read, the judgments, the judgments
+    earlier settles removed, the documents of
     the named directories where `main` put them in FOUND, and what `--apply`
     removes. It refuses nothing, so it exits 0. In local mode
     it names the root first, lists each released work item with the pull
@@ -1525,6 +1651,19 @@ def report(found, ref, out):
                 write(f"    {work_item_id}  {counted}\n")
                 for line, date, judgment, grounds in held:
                     write(f"        {PLAN}:{line}  {date}  {judgment}\n")
+                    write(f"            grounds: {grounds}\n")
+    groups, unread = found["earlier"]
+    if groups or unread:
+        write(f"\n{EARLIER_HEADING}\n")
+        for where, why in unread:
+            write(f"    {where + '  ' if where else ''}not read: {why}\n")
+        for against, members in groups:
+            write(f"\njudged against: {against or 'an empty cell'}\n")
+            for work_item_id, released, (short, number), held in members:
+                by = f"{short} (#{number})" if number is not None else short
+                write(f"    {work_item_id}  {released}; removed by {by}\n")
+                for where, date, judgment, grounds in held:
+                    write(f"        {where}  {date}  {judgment}\n")
                     write(f"            grounds: {grounds}\n")
     if "documents" in found:
         write("\n")
