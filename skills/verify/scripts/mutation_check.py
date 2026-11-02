@@ -20,7 +20,15 @@ So this is the loop as one command:
     seal mutate <file> --replace OLD NEW --tests "<command>" [--timeout S]
 
 It refuses a replacement that does not land exactly once, before anything is
-run. It runs the command once against the file as it is, and goes on only if
+run. For a file whose name ends in `.py` it then compiles the mutant with the
+builtin `compile` over the bytes the write would put on disk, and refuses one
+that does not compile: cases that load the module fail on the syntax error
+whatever the unit does, and that red read as a case noticing the break
+(#898). The file as it is is compiled first, and where it does not compile
+under the interpreter running this command, no mutant is compiled and the
+first line printed says so with that interpreter's version: the cases may
+run under another interpreter that reads the file. No other kind of file is
+compiled. It runs the command once against the file as it is, and goes on only if
 that passes: a red means a case failed BECAUSE of the break, never because
 the command selected nothing or a case was already failing. Then it writes
 the break, removes the mutated file's cached bytecode for every interpreter
@@ -35,7 +43,8 @@ own output. The bound applies to each of the two runs.
   timed out        exit 2   the bound was reached; no verdict
   could not start  exit 2   the command could not be spawned; no verdict
   could not run    exit 2   anything else went wrong; no verdict
-  refused          exit 2   nothing was written
+  refused          exit 2   nothing was written: OLD does not land once, or
+                            a .py mutant does not compile
   not restored     exit 2   the file on disk may still hold the mutation
   interrupted      exit 2   Ctrl-C; the run was ended and the file restored
 
@@ -49,11 +58,13 @@ a batch, #942's instrument for a module's sample of mutants:
     seal mutate <file> --replace OLD1 NEW1 --replace OLD2 NEW2 ... --tests "<command> -x"
 
 Every pair is checked against the file as it is before anything runs, and
-one that does not land exactly once refuses the whole batch, naming the
-pair by its place. The command then runs once against the file as it is,
-and each mutant is written alone, run once and restored, in the order
-given. One line is printed per pair, `mutant <n>: <verdict>`, with its
-seconds; a run with no verdict adds its detail and its output beneath. A
+one that does not land exactly once, or a `.py` mutant that does not
+compile, refuses the whole batch, naming the pair by its place. The command
+then runs once against the file as it is, and each mutant is written alone,
+run once and restored, in the order given. One line is printed per pair,
+`mutant <n>: <verdict>`, with its seconds; a red adds the cases' exit code,
+`mutant <n>: red (exit <N>, <s>s)`, which the command decides nothing from,
+and a run with no verdict adds its detail and its output beneath. A
 last line counts the verdicts. The exit is 1 where any mutant survived, 2
 where none did and a run measured nothing, and 0 where every mutant is red.
 A run with no verdict does not stop the batch, but `no baseline`, `not
@@ -112,11 +123,13 @@ import argparse
 import hashlib
 import importlib.util
 import os
+import platform
 import signal
 import subprocess
 import sys
 import tempfile
 import time
+import warnings
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ARM_CHECK = os.path.join(HERE, "arm_check.py")
@@ -192,6 +205,58 @@ def mutated(text: str, old: str, new: str, path: str) -> str:
             f"Nothing was written. Widen OLD until it names one place."
         )
     return text.replace(old, new, 1)
+
+
+def compile_error(source: bytes, path: str) -> str | None:
+    """`line N: <message>` where `source` does not compile, `None` where it does.
+
+    The builtin `compile` over bytes, not `ast.parse`: the compiler also
+    refuses a module-level `return`, a top-level `break` and a `nonlocal`
+    with no binding, which `ast.parse` accepts, and the bytes are what the
+    write would put on disk, so a byte-order mark reads as it would from the
+    file. `dont_inherit=True` keeps this script's own `from __future__ import
+    annotations` out of the compile: under 3.12 and 3.13 that flag refuses a
+    named expression in an annotation, which a target holding no such import
+    compiles. Warnings are silenced so the verdict stays the first line
+    printed. A null byte's error carries no line, and the text then names
+    none."""
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        try:
+            compile(source, path, "exec", dont_inherit=True)
+        except SyntaxError as exc:
+            return f"line {exc.lineno}: {exc.msg}" if exc.lineno else exc.msg
+    return None
+
+
+def compiled(path: str, original: bytes, afters, numbered: bool) -> str:
+    """Compile a `.py` file's mutants before anything is written or run.
+
+    `Refused` for the first mutant that does not compile, naming its pair by
+    its place where `numbered`: the cases would fail on the syntax error
+    whatever the unit does, and that red would read as a case noticing the
+    break (#898). A file that does not compile as it is under this
+    interpreter may still run under the cases' own, so its mutants are not
+    compiled, and the clause returned says so for the first line printed;
+    `""` otherwise, and for any file whose name does not end in `.py`."""
+    if not path.endswith(".py"):
+        return ""
+    error = compile_error(original, path)
+    if error:
+        return (
+            f"no mutant was compiled, because {path} does not compile as it is "
+            f"under Python {platform.python_version()} ({error})"
+        )
+    for number, after in enumerate(afters, 1):
+        error = compile_error(after.encode("utf-8"), path)
+        if error:
+            place = f"pair {number}: " if numbered else ""
+            raise Refused(
+                f"{place}the mutant does not compile ({path}, {error}), so the "
+                f"cases would fail on that error whatever the unit does. "
+                f"Nothing was written and the cases did not run."
+            )
+    return ""
 
 
 def strategy(os_name: str) -> str:
@@ -316,11 +381,13 @@ def mutation_run(
     """Run the cases against the file as it is, then write one mutation, run
     them again, and restore. `(verdict, detail, output)`.
 
-    `Refused` before any run; `NO_BASELINE` when the cases fail before the
-    write; `NotRestored` when the restore did not land, which replaces
-    whatever the run said."""
+    `Refused` before any run, a `.py` mutant that does not compile among it;
+    `NO_BASELINE` when the cases fail before the write; `NotRestored` when
+    the restore did not land, which replaces whatever the run said. A red or
+    a SURVIVED carries `compiled`'s clause where the file was not compiled."""
     original, original_sha, text = _held(path)
     after = mutated(text, old, new, path)
+    uncompiled = compiled(path, original, [after], numbered=False)
     env = _environment()
 
     # Every removal is handed `cwd`: a relative `PYTHONPYCACHEPREFIX` names a
@@ -342,7 +409,10 @@ def mutation_run(
         # Again after the write: the baseline's cases may have written the
         # original's `.pyc`, which a same-length break matches.
         clear_bytecode_cache(path, cwd=cwd)
-        return run_cases(command, cwd=cwd, env=env, timeout=timeout)
+        verdict, detail, output = run_cases(command, cwd=cwd, env=env, timeout=timeout)
+        if uncompiled and verdict in EXIT:
+            detail = f"{detail}; {uncompiled}"
+        return verdict, detail, output
     finally:
         _put_back(path, original, original_sha, cwd)
 
@@ -363,7 +433,10 @@ def batch_run(
     otherwise the verdict that measured nothing, after which nothing more is
     yielded and no mutant was written. Then one item per pair, in the order
     given. `Refused` comes before any run, naming the first pair that does
-    not land exactly once; `NotRestored` ends the batch where it happens."""
+    not land exactly once, or after every pair has landed, the first `.py`
+    mutant that does not compile; `NotRestored` ends the batch where it
+    happens. The baseline's item carries `compiled`'s clause where the file
+    was not compiled."""
     original, original_sha, text = _held(path)
     afters = []
     for number, (old, new) in enumerate(pairs, 1):
@@ -371,6 +444,7 @@ def batch_run(
             afters.append(mutated(text, old, new, path))
         except Refused as exc:
             raise Refused(f"pair {number}: {exc}") from exc
+    uncompiled = compiled(path, original, afters, numbered=True)
     env = _environment()
 
     clear_bytecode_cache(path, cwd=cwd)
@@ -383,7 +457,8 @@ def batch_run(
     if refusal:
         yield (*refusal, seconds)
         return
-    yield BASELINE, "the cases pass against the file as it is", "", seconds
+    passed = "the cases pass against the file as it is"
+    yield BASELINE, f"{passed}; {uncompiled}" if uncompiled else passed, "", seconds
 
     for after in afters:
         started = time.monotonic()
@@ -435,12 +510,11 @@ def _baseline(command, *, cwd, env, timeout):
     ran against (round 1, 🔴 1)."""
     before, detail, output = run_cases(command, cwd=cwd, env=env, timeout=timeout)
     if before == RED:
-        # The baseline's own exit, `(exit N)` from `run_cases`' red detail:
-        # pytest's 5 and 4 are what tell a mistyped `-k` from a failing case.
-        exited = detail[detail.rfind("(exit ") :]
+        # The baseline's own exit: pytest's 5 and 4 are what tell a mistyped
+        # `-k` from a failing case.
         return (
             NO_BASELINE,
-            f"the cases fail against the file as it is {exited}, so a failure "
+            f"the cases fail against the file as it is ({_exit_of(detail)}), so a failure "
             f"under the mutation would say nothing about it. The break was "
             f"never written",
             output,
@@ -455,6 +529,11 @@ def _baseline(command, *, cwd, env, timeout):
             output,
         )
     return None
+
+
+def _exit_of(detail: str) -> str:
+    """`exit N`, from the `(exit N)` that `run_cases` ends a red's detail with."""
+    return detail[detail.rfind("(exit ") + 1 : detail.rfind(")")]
 
 
 def _put_back(path: str, original: bytes, original_sha: str, cwd: str) -> None:
@@ -506,7 +585,9 @@ def main(argv=None) -> int:
         required=True,
         help=(
             "literal text, no regex. OLD must occur exactly once or nothing "
-            "is written; NEW may be empty. Given more than once, each pair is "
+            "is written; NEW may be empty. For a .py file, a mutant that does "
+            "not compile is refused before anything is written or run. Given "
+            "more than once, each pair is "
             "a mutant of one batch: the baseline runs once, then each mutant "
             "once, and -x in --tests stops each run at its first failure"
         ),
@@ -621,7 +702,13 @@ def _report_batch(results, started: float) -> int:
     for number, (verdict, detail, output, seconds) in enumerate(results, 1):
         verdicts.append(verdict)
         lead = f"mutant {number}: "
-        if verdict in EXIT:
+        if verdict == RED:
+            # The cases' exit code, printed and never decided on: under
+            # pytest a 2 is a collection error, and a 1 is a failing case or
+            # an import error raised inside one (#898).
+            print(f"{lead}{verdict} ({_exit_of(detail)}, {seconds:.1f}s)", flush=True)
+            continue
+        if verdict == SURVIVED:
             print(f"{lead}{verdict} ({seconds:.1f}s)", flush=True)
             continue
         print(_line(verdict, detail, seconds, lead), flush=True)
