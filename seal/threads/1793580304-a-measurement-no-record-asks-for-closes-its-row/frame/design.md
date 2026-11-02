@@ -25,7 +25,7 @@
 
 In:
 
-1. `skills/settle/SKILL.md` *The settling session's procedure* step 6. The table gains the kind **a measurement no record asks for** between *answered* and *a measurement nobody has taken*, and *a measurement nobody has taken* covers only a measurement something on record needs. The rows read as `## Data & interfaces` gives them.
+1. `skills/settle/SKILL.md` *The settling session's procedure* step 6. The table gains the kind **a measurement no record asks for** between *answered* and *a measurement nobody has taken*. *A measurement nobody has taken* keeps its base *When* cell, so every measurement no record asks for fits both kinds, and the table's order closes it before it can be re-homed. The rows read as `## Data & interfaces` gives them.
 2. The same step's order paragraph says why the new kind comes before re-homing: a measurement no record asks for is closed before it can open an issue.
 3. The same step's re-home paragraph names a measurement something on record needs as the one re-homed, and adds the record that needs each row's answer to the issue body it lists.
 4. `skills/settle/scripts/settle.py#ROWS_HEADING` names the four kinds in the table's order. It proposes no kind for a row.
@@ -89,7 +89,7 @@ Step 6's table, as the build writes it. The cells carry the decision; the wrap a
 
 | Removes | Coordinate | Where it lands, or why it can go |
 |---|---|---|
-| The duty to re-home every measurement nobody has taken as an issue. Its catch record: the 0.22.4 settle opened 27 issues under it, and 22 of them closed as not planned (G9) | `skills/settle/SKILL.md` *The settling session's procedure* step 6, the row *a measurement nobody has taken* and the paragraph under the table | The row and paragraph are rewritten in place to cover a measurement something on record needs. A measurement nothing waits on is closed in its record with its reason, which the settle's pull request body lists |
+| The duty to re-home every measurement nobody has taken as an issue. Its catch record: the 0.22.4 settle opened 27 issues under it, and 22 of them closed as not planned (G9) | `skills/settle/SKILL.md` *The settling session's procedure* step 6, the row *a measurement nobody has taken* and the paragraph under the table | The row keeps its base *When* cell. The new kind before it, and the order paragraph rewritten in place, leave it only a measurement something on record needs. A measurement nothing waits on is closed in its record with its reason, which the settle's pull request body lists |
 | The same duty as policy | `docs/the-record-layout.md` *The fold, and what tells it from a deletion* | `## Rule changes` above, written by the settle after the release |
 | The three-kind phrase of the dry run's heading and its pin | `skills/settle/scripts/settle.py#ROWS_HEADING`, `tests/skills/test_settle.py#Test_module::test_the_dry_runs_headings_say_who_decides` | Rewritten in place to the four kinds |
 | "their order and the row kinds" in what the docstring leaves to the proofer | `tests/text/test_settle_reads_before_it_removes.py#test_the_skill_states_the_settling_sessions_procedure` | The new case holds the order. What each kind means stays the proofer's |
