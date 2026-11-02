@@ -308,39 +308,6 @@ RESULTS_CELL = "<br>".join(
 )
 
 
-class Unimaged(html.parser.HTMLParser):
-    """Each table cell's text as a reader whose client draws no image reads
-    it: every `<img>` replaced by its alt text, and each `<br>` a line end."""
-
-    def __init__(self):
-        super().__init__(convert_charrefs=True)
-        self.cells, self.inside = [], False
-
-    def handle_starttag(self, tag, attrs):
-        if tag == "td":
-            self.cells.append("")
-            self.inside = True
-        elif self.inside and tag == "img":
-            self.cells[-1] += dict(attrs).get("alt") or ""
-        elif self.inside and tag == "br":
-            self.cells[-1] += "\n"
-
-    def handle_endtag(self, tag):
-        if tag == "td":
-            self.inside = False
-
-    def handle_data(self, data):
-        if self.inside:
-            self.cells[-1] += data
-
-
-def unimaged(table):
-    reader = Unimaged()
-    reader.feed(table)
-    reader.close()
-    return reader.cells
-
-
 def fold(summary, lines):
     """One category's fold, exactly as the note carries it."""
     return "\n".join(
@@ -954,8 +921,11 @@ class Test_module:
         carrying its display width, because the PNG is drawn at twice that
         size for a high-density screen. Each badge's alt text is its label
         and value, so a reader whose client draws no image reads every
-        result in words. The URL, the alt text and every badge are escaped,
-        so a quote cannot end an attribute and a `<` opens no tag. Seen red
+        result in words; the whole-string assertion pins every alt
+        attribute, which is #1299 S3. The image's URL and alt text, and each
+        badge's alt text, are escaped, so a quote cannot end an attribute
+        and a `<` opens no tag; a badge's address is percent-encoded and
+        needs no escape. Seen red
         against the `sealed_header` that wrote `SEALED` in bold and the
         results as text, one per line, and with the badge's alt attribute
         alone left out."""
@@ -979,13 +949,6 @@ class Test_module:
             f"<td>{RESULTS_CELL}</td>\n"
             "</tr>\n</table>"
         ), sealed
-        # The page read with no image drawn: each badge is its alt text.
-        assert unimaged(sealed) == [
-            "a seal",
-            "SEALED: v1.2.3\ncommit: aaa11111 on: main\npull requests: 7 merged"
-            "\nissues: 4 closed\noutside contributors: 2"
-            "\nsuite: 5 passed skipped: 0\ncapped: not read",
-        ], sealed
         alone = [pull(10, OWNER, "fix: one", "Closes #100")]
         work, closed, people = mod.tally(alone, OWNER)
         odd = mod.sealed_header(
@@ -1011,9 +974,6 @@ class Test_module:
             )
             + "</td>"
         ) in odd, odd
-        assert unimaged(odd)[1] == (
-            'SEALED: v<1>\npull requests: 1 merged\nissues: 1 closed\na & b: say "x"'
-        ), odd
 
     def test_the_sealed_header_given_no_image_is_its_results_cell_alone(
         self, monkeypatch, tmp_path
