@@ -14,15 +14,16 @@ that ships a release fires, and a tag pushed by hand (#1117):
   A4  the title is read from the `release: X.Y.Z symptoms: <symptoms>` line,
       and where no such line is readable it is the tag name and the log says
       which was used, what it expected and what it found
-  A5  the note is a summary read from the release's pull requests -- counts,
-      one fold per type under its name and count holding one line per change
-      with the issues it closed (#1153), every outside contributor thanked by
-      handle -- over the fragments, folded; with no pull request to read it
-      is the fragments alone (#572)
+  A5  the note is a summary read from the release's pull requests -- a
+      header of its counts, one fold per type under its name and count
+      holding one line per change with the issues it closed (#1153), every
+      outside contributor thanked by handle -- over the fragments, folded;
+      with no pull request to read it is the fragments alone (#572)
 
 #1053 removed the gathered release files, so the fragments are read from the
-history at the tag (S1, S5, S6) and the note opens with the release's theme,
-one sentence of its milestone's description (S2, S3, S4).
+history at the tag (S1, S5, S6), and the note carries the release's theme,
+one sentence of its milestone's description (S2, S3, S4), under its header
+(#1153).
 
 **Nothing here reaches GitHub.** `gh` is replaced at the module's own `run`
 and `release_exists` by `Releases`, which records the calls as argument
@@ -260,6 +261,18 @@ FOLDED = [
 ]
 
 
+def header(*lines):
+    """A note's header holding `lines` in one cell, exactly as the note
+    carries it (#1153)."""
+    return f"<table>\n<tr>\n<td>{'<br>'.join(lines)}</td>\n</tr>\n</table>"
+
+
+# The header `publish` writes for `RELEASE`: seven pull requests, four
+# distinct issues closed (#100 twice counts once), and two outside people
+# however many pull requests they made.
+HEADER = header("7 pull requests merged", "4 issues closed", "2 outside contributors")
+
+
 def fold(summary, lines):
     """One category's fold, exactly as the note carries it."""
     return "\n".join(
@@ -440,12 +453,11 @@ class Test_main:
         )
         assert "<!-- specs/" not in note, note
 
-    def test_the_note_opens_with_the_releases_theme(
-        self, monkeypatch, tmp_path, capsys
-    ):
-        """S2 of #1053. The first line of the note is the first sentence of the
-        description of the milestone `release: X.Y.Z`, its `Purpose:` label
-        left out, read from every milestone in every state."""
+    def test_the_theme_follows_the_notes_header(self, monkeypatch, tmp_path, capsys):
+        """S2 of #1053, and #1153 S2. The line under the note's header is the
+        first sentence of the description of the milestone `release: X.Y.Z`,
+        its `Purpose:` label left out, read from every milestone in every
+        state, and the first fold follows it."""
         described = "Purpose: the notes come from the fragments. Order: S1, then S2."
         mod, tracker = wire(
             monkeypatch,
@@ -461,8 +473,8 @@ class Test_main:
         assert mod.main() == 0
         out = capsys.readouterr().out
         note = out.split("characters of notes\n", 1)[1]
-        assert note.splitlines()[0] == "The notes come from the fragments.", note[:300]
-        assert note.splitlines()[2] == mod.GLANCE_HEADING, note[:300]
+        opening = f"{HEADER}\n\nThe notes come from the fragments.\n\n<details>\n"
+        assert note.startswith(opening), note[:300]
         (args,) = tracker.milestones.calls
         assert "--paginate" in args, args
         assert args[-1].startswith(f"repos/{REPO}/milestones?state=all"), args
@@ -499,7 +511,8 @@ class Test_main:
         )
         assert mod.main() == 0
         assert len(tracker.creates()) == 1, tracker.calls
-        assert body_of(tracker).startswith(mod.GLANCE_HEADING), body_of(tracker)[:200]
+        body = body_of(tracker)
+        assert body.startswith(f"{HEADER}\n\n<details>\n"), body[:200]
         out = capsys.readouterr().out
         assert said in out and "no theme line" in out, out
 
@@ -648,15 +661,22 @@ class Test_main:
         changelog = (mod.FULL_SUMMARY, [NOTES.replace("**", "")[2:]])
         assert folds_read(body) == [*read, changelog]
 
-    def test_the_glance_counts_the_release(self, monkeypatch, tmp_path):
-        """A5. Seven changes, four distinct issues closed (#100 twice counts
-        once), two outside people however many pull requests they made."""
-        mod, body = published(monkeypatch, tmp_path, RELEASE)
-        glance = body[: body.index("<details>")]
-        assert glance.startswith(mod.GLANCE_HEADING)
-        assert "| \U0001f500 Pull requests | **7** |" in glance
-        assert "| ✅ Issues closed | **4** |" in glance
-        assert "| \U0001f64c Outside contributors | **2** |" in glance
+    def test_the_note_opens_with_a_header_of_its_counts(self, monkeypatch, tmp_path):
+        """A5 and #1153 S2. The note opens with a table of one cell holding
+        the release's counts in words, one per line -- seven changes, four
+        distinct issues closed, two outside people -- then the theme and the
+        first fold. A release of one pull request closing one issue says each
+        in the singular, and has no contributors' line. No glance heading or
+        table is left. Seen red against the note that opened with the theme
+        and carried the glance table under it."""
+        theme = [milestone("Purpose: a theme. And more.")]
+        _, body = published(monkeypatch, tmp_path, RELEASE, milestones=theme)
+        assert body.startswith(f"{HEADER}\n\nA theme.\n\n{fold(*FOLDED[0])}\n\n"), body
+        assert "At a glance" not in body, body
+        alone = [pull(10, OWNER, "fix: one", "Closes #100")]
+        _, body = published(monkeypatch, tmp_path, alone)
+        one = header("1 pull request merged", "1 issue closed")
+        assert body.startswith(f"{one}\n\n<details>\n"), body
 
     def test_an_outside_contributor_is_thanked_by_handle(self, monkeypatch, tmp_path):
         """A5. The owner's pull requests and a bot's are the release's own work;
@@ -695,7 +715,7 @@ class Test_main:
         the summary is there, and no credit line or count is invented."""
         mod, body = published(monkeypatch, tmp_path, [pull(10, OWNER, "fix: a thing")])
         assert mod.THANKS_HEADING not in body
-        assert "Outside contributors" not in body
+        assert "outside contributor" not in body
         assert "thanks @" not in body
 
     @pytest.mark.parametrize(
@@ -815,38 +835,53 @@ class Test_module:
         out = capsys.readouterr().out
         assert "the note is the theme line and the fragments alone" in out, out
 
-    def test_the_glance_block_is_built_by_one_function_and_its_sealed_twin_by_another(
+    def test_the_header_is_built_by_one_function_and_its_sealed_twin_by_another(
         self, monkeypatch, tmp_path
     ):
-        """S1's shape (#718). The note's glance block is exactly `glance`'s, so
-        the seal can find it by the same function; `sealed_glance` is the heading,
-        the image, a blank line and one line carrying every row the table had, in
-        its order. Since #832 the image is an `<img>` carrying its display
+        """#718's shape, and #1153 S2 and S3. The note's header is exactly
+        `header`'s, so the seal can find it by the same function.
+        `sealed_header` is the same table with two cells: the image, and the
+        results one per line, `SEALED` in bold before the sealed version,
+        the counts `header` states in its order, then the stamp's other
+        results. Since #832 the image is an `<img>` carrying its display
         width, because the PNG is drawn at twice that size for a high-density
-        screen and Markdown's image syntax has no width; and the alt text and
-        the URL are escaped for the attribute they sit in, so a quote cannot end
-        it early. Seen red against the Markdown image, and by the escape
-        removed."""
+        screen. The URL, the alt text and every line are escaped, so a quote
+        cannot end an attribute and a `<` opens no tag. Seen red against the
+        glance block and its sealed twin, which wrote a heading, an image on
+        a line of its own and one line of the counts."""
         mod, body = published(monkeypatch, tmp_path, RELEASE)
         work, closed, people = mod.tally(RELEASE, OWNER)
-        block = mod.glance(work, closed, people)
-        assert body.startswith(block + "\n\n" + fold(*FOLDED[0])), body[:400]
-        assert mod.sealed_glance(
-            "https://example.com/seal.png", "a seal", 160, work, closed, people
-        ) == (
-            f"{mod.GLANCE_HEADING}\n\n"
-            '<img src="https://example.com/seal.png" alt="a seal" width="160">\n\n'
-            "\U0001f500 Pull requests **7** · ✅ Issues closed **4** · \U0001f64c Outside contributors **2**"
+        assert mod.header(work, closed, people) == HEADER
+        assert body.startswith(HEADER + "\n\n" + fold(*FOLDED[0])), body[:400]
+        results = ["the suite at 5 passed and 0 skipped", "capped not read"]
+        sealed = mod.sealed_header(
+            "https://example.com/seal.png",
+            "a seal",
+            160,
+            "v1.2.3 at aaa11111 on main",
+            results,
+            work,
+            closed,
+            people,
         )
+        assert sealed == (
+            "<table>\n<tr>\n"
+            '<td><img src="https://example.com/seal.png" alt="a seal" width="160"></td>\n'
+            "<td><b>SEALED</b> v1.2.3 at aaa11111 on main<br>7 pull requests merged"
+            "<br>4 issues closed<br>2 outside contributors"
+            "<br>the suite at 5 passed and 0 skipped<br>capped not read</td>\n"
+            "</tr>\n</table>"
+        ), sealed
         alone = [pull(10, OWNER, "fix: one", "Closes #100")]
         work, closed, people = mod.tally(alone, OWNER)
-        assert mod.sealed_glance("u", "a", 160, work, closed, people).endswith(
-            "\U0001f500 Pull requests **1** · ✅ Issues closed **1**"
+        odd = mod.sealed_header(
+            'u?a=1&b="2"', 'a "seal" <b>', 80, "v<1>", ["a & b"], work, closed, people
         )
-        odd = mod.sealed_glance('u?a=1&b="2"', 'a "seal" <b>', 80, work, closed, people)
         assert (
-            '<img src="u?a=1&amp;b=&quot;2&quot;" alt="a &quot;seal&quot; &lt;b&gt;" '
-            'width="80">'
+            '<td><img src="u?a=1&amp;b=&quot;2&quot;" alt="a &quot;seal&quot; &lt;b&gt;" '
+            'width="80"></td>\n'
+            "<td><b>SEALED</b> v&lt;1&gt;<br>1 pull request merged<br>1 issue closed"
+            "<br>a &amp; b</td>"
         ) in odd, odd
 
     @pytest.mark.parametrize(

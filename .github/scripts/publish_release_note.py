@@ -28,17 +28,21 @@ history. The pull request's body holds the work item's records (`seal
 pr-body`), so one click leads from an entry to the reasons behind it. A
 fragment whose adding commit names no pull request is its text alone.
 
-**The note opens with the release's theme**, the first sentence of the
-description of the milestone `release: X.Y.Z`, its `Purpose:` label left out.
+**The note opens with a header of the release's counts** (#1153), an HTML
+table of one cell holding, one per line, the pull requests merged, the
+issues they closed, and the outside contributors where there are any. **The
+release's theme follows it**, the first sentence of the description of the
+milestone `release: X.Y.Z`, its `Purpose:` label left out.
 
 The fragments are also a page of reasoning per change, and a note that was
 only that read as a wall of prose to somebody asking what changed (#572). So
-after the theme the note says what the pull requests merged into
-`release/vX.Y.Z` already say -- a count, one fold per conventional-commit
-type under its name and count holding one line per pull request with the
-issues its body closes (#1153), a credit for every outside contributor, how
-to update -- and keeps the fragments beneath, folded. Nothing here composes prose: every line is a milestone's sentence, a
-pull request title, a number, a handle or a fragment.
+the note says what the pull requests merged into `release/vX.Y.Z` already
+say -- the counts in its header, then one fold per conventional-commit type
+under its name and count holding one line per pull request with the issues
+its body closes (#1153), a credit for every outside contributor, how to
+update -- and keeps the fragments beneath, folded. Nothing here composes
+prose: every line is a milestone's sentence, a pull request title, a
+number, a handle or a fragment.
 
 **The title comes from the tagged commit's message**, which carries the
 `release: X.Y.Z symptoms: <symptoms>` line `docs/release-checklist.md`
@@ -86,9 +90,9 @@ note is fixable in one edit, and a failed job at the tag is not.
 `created=false` goes to `$GITHUB_OUTPUT` where the workflow sets it, and the
 `seal` job in the same workflow runs only on `true`: the seal edits the note,
 so it is held to the line above and never touches a release this run did
-not write. The glance block is built by `glance`, and the seal's replacement
-for it by `sealed_glance`, so both shapes live in the file that owns the
-heading and the seal finds the block by the function that wrote it.
+not write. The header is built by `header`, and the seal's replacement for
+it by `sealed_header`, so both shapes live in the file that owns the counts
+and the seal finds the header by the function that wrote it.
 
 `DRY_RUN=1` prints the note it would create and writes nothing, for the reason
 `close_issues_on_release.py`'s docstring gives: a tool whose only mode has
@@ -441,7 +445,6 @@ def release_exists(repo, tag):
 
 
 THANKS_HEADING = "### 🙌 Thanks to"
-GLANCE_HEADING = "### 📊 At a glance"
 FULL_SUMMARY = "📋 Full changelog — what each change does and why"
 UPDATE_HEADING = "### ⬆️ Update"
 
@@ -584,7 +587,7 @@ def thanks_section(pulls, owner):
 def tally(pulls, owner):
     """`(work, closed, people)`: the release's own pull requests, the issues
     their bodies close in order and each once, and the outside contributors'
-    logins -- what the glance block counts."""
+    logins -- what the header counts."""
     work, closed = changes(pulls), []
     for pull in work:
         closed += [n for n in closed_by(pull) if n not in closed]
@@ -592,45 +595,60 @@ def tally(pulls, owner):
     return work, closed, people
 
 
-def glance(work, closed, people):
-    """The `### 📊 At a glance` block exactly as the note carries it: the
-    heading and a table of the counts, the outside contributors' row only
-    where there are some. `release_seal.py` finds the block in a published
-    note by this text, so a note edited by hand afterwards is left alone."""
-    parts = [
-        GLANCE_HEADING,
-        "",
-        "| | |",
-        "| --- | ---: |",
-        f"| 🔀 Pull requests | **{len(work)}** |",
-        f"| ✅ Issues closed | **{len(closed)}** |",
+def plural(count, word):
+    return f"{count} {word}{'' if count == 1 else 's'}"
+
+
+def counts(work, closed, people):
+    """The release's counts in words, one line each: the pull requests
+    merged, the issues they closed, and the outside contributors only where
+    there are some. Both headers state them in these words (#1153)."""
+    lines = [
+        plural(len(work), "pull request") + " merged",
+        plural(len(closed), "issue") + " closed",
     ]
     if people:
-        parts.append(f"| 🙌 Outside contributors | **{len(people)}** |")
-    return "\n".join(parts)
+        lines.append(plural(len(people), "outside contributor"))
+    return lines
 
 
-def sealed_glance(image_url, alt, width, work, closed, people):
-    """What replaces `glance`'s block once the release seal is attached
-    (#718): the heading, the seal as an image with `alt` as its text, a blank
-    line, and one line carrying every row the table had, in its order, so a
-    reader whose browser does not draw the image still has every count.
+def table(*cells):
+    """An HTML table of one row holding `cells`, each line of a cell parted
+    by `<br>`. No line inside it is blank, so GitHub reads the whole table
+    as one HTML block, and the Markdown after it starts on the blank line
+    that follows."""
+    row = [f"<td>{'<br>'.join(cell)}</td>" for cell in cells]
+    return "\n".join(["<table>", "<tr>", *row, "</tr>", "</table>"])
 
-    The image is an `<img>` `width` CSS pixels wide (#832): the PNG is drawn
-    at twice that for a high-density screen, and Markdown's image syntax has
-    no width, so it would show twice its size. The URL and `alt` are escaped
-    for the attribute each sits in, so a quote in either cannot end it."""
-    counts = [
-        f"🔀 Pull requests **{len(work)}**",
-        f"✅ Issues closed **{len(closed)}**",
-    ]
-    if people:
-        counts.append(f"🙌 Outside contributors **{len(people)}**")
+
+def header(work, closed, people):
+    """The header the note opens with, exactly as the note carries it: a
+    table of one cell holding `counts`. `release_seal.py` finds the header
+    in a published note by this text, so a note edited by hand afterwards,
+    or one whose header a run of the seal already replaced, is left alone."""
+    return table([html.escape(line) for line in counts(work, closed, people)])
+
+
+def sealed_header(image_url, alt, width, sealed, results, work, closed, people):
+    """What replaces `header`'s table once the release seal is attached
+    (#718, #1153): the same table with two cells. The first holds the seal
+    as an `<img>` `width` CSS pixels wide with `alt` as its text (#832: the
+    PNG is drawn at twice that for a high-density screen). The second holds
+    the stamp's results one per line, as the stamp sets them beside its
+    disc: `SEALED` in bold before `sealed`, the sealed version, commit and
+    branch; the lines `counts` states; then `results`, the stamp's other
+    rows. A reader whose browser does not draw the image still has every
+    number as text. The URL, `alt` and every line are escaped, so a quote
+    cannot end an attribute and a `<` opens no tag."""
     image = (
         f'<img src="{html.escape(image_url)}" alt="{html.escape(alt)}" '
         f'width="{int(width)}">'
     )
-    return "\n".join([GLANCE_HEADING, "", image, "", " · ".join(counts)])
+    lines = [
+        f"<b>SEALED</b> {html.escape(sealed)}",
+        *(html.escape(line) for line in [*counts(work, closed, people), *results]),
+    ]
+    return table([image], lines)
 
 
 def write_output(name, value):
@@ -649,11 +667,12 @@ def write_output(name, value):
 
 
 def release_body(theme, rendered, pulls, owner):
-    """The note: the theme line, a summary a reader scans, and the fragments
-    they can open.
+    """The note: a header of the counts, the theme line, a summary a reader
+    scans, and the fragments they can open.
 
-    Read top to bottom it answers, in order, what the release is for, how
-    big it is, what changed -- one fold per type, its summary the type's
+    Read top to bottom it answers, in order, how big the release is -- the
+    header `header` writes, which the seal later replaces -- what it is for,
+    what changed -- one fold per type, its summary the type's
     name and the number of pull requests in it, holding one line per pull
     request with the issues it closed (#1153) -- who outside the project
     helped, and how to get it. The fragments `section` rendered follow,
@@ -673,13 +692,13 @@ def release_body(theme, rendered, pulls, owner):
     `details` tag at all.
 
     With no pull request to read -- the list failed, or a release was cut
-    with none -- the note is the theme line and `rendered`, unfolded. With no
-    theme, the line and the blank line after it are left out.
+    with none -- the note has no header and is the theme line and
+    `rendered`, unfolded. With no theme, the line and the blank line beside
+    it are left out.
     """
-    opening = [theme, ""] if theme else []
     work, closed, people = tally(pulls, owner)
     if not work:
-        return "\n".join([*opening, rendered])
+        return "\n".join([*([theme, ""] if theme else []), rendered])
     groups = {}
     for pull in work:
         heading, text = kind_and_text(pull["title"])
@@ -692,7 +711,7 @@ def release_body(theme, rendered, pulls, owner):
             line += f" — thanks @{login}"
         groups.setdefault(heading, []).append(line)
 
-    parts = [*opening, glance(work, closed, people)]
+    parts = [header(work, closed, people), *(["", theme] if theme else [])]
     order = list(dict.fromkeys([h for _, h in TYPES] + [OTHER]))
     for heading in order:
         if heading in groups:
