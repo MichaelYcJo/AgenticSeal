@@ -2162,6 +2162,35 @@ class Test_pins_and_copies_in:
         number = line_at(text, f"  to: {passage}")
         assert spec_lines(out) == [f"{ITEM}/frame/design.md:{number}  {said}"], out
 
+    def test_names_a_passage_two_adds_of_one_design_put_in_two_documents(
+        self, branch, ready, capsys
+    ):
+        """Round 3, finding 1: two `add`s of one passage into two documents
+        that do not hold it. Each document holds it after the settle, so each
+        `to` names the other document. Seen red against `a10750aea`, which
+        printed nothing for the design."""
+        root, _code = branch
+        passage = f"Then {words_of(15)} and on."
+        write(root, "docs/a.md", "# A\n\n## One\n\nOther words here.\n")
+        write(root, "docs/b.md", "# B\n\n## Two\n\nStill other words.\n")
+        text = spec_with(
+            f"- add\n  file: docs/a.md\n  section: One\n  to: {passage}\n"
+            f"- add\n  file: docs/b.md\n  section: Two\n  to: {passage}\n"
+        )
+        planted_spec(root, text)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        run = f"then {words_of(14)}"
+        first, second = [
+            i + 1 for i, ln in enumerate(text.split("\n")) if passage in ln
+        ]
+        assert spec_lines(out) == [
+            f"{ITEM}/frame/design.md:{first}  "
+            + COPY_SAYS.format(path="docs/b.md", count=4, window=15, run=run),
+            f"{ITEM}/frame/design.md:{second}  "
+            + COPY_SAYS.format(path="docs/a.md", count=4, window=15, run=run),
+        ], out
+
     def test_accepts_a_passage_the_design_moves_naming_no_copy(
         self, branch, ready, capsys
     ):

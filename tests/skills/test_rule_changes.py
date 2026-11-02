@@ -688,5 +688,25 @@ class Test_copies:
         found = rules.copies(o, texts, {"docs/a.md": [(passage, kept)]})
         assert found == [("docs/a.md", 3, f"then {run_of(WINDOW - 1)}")]
 
+    def test_names_a_run_another_add_of_the_design_puts_in(self):
+        """Round 3, finding 1: an `add` of the same design puts its `to` into
+        `docs/a.md`, which holds the passage after the settle though the tree
+        does not yet."""
+        passage = f"Then {run_of(WINDOW)} and on."
+        texts = {"docs/a.md": "## S\n\nOther words.\n"}
+        o = one_op("add", new=passage, file="docs/b.md")
+        found = rules.copies(o, texts, {"docs/a.md": [(None, passage)]})
+        assert found == [("docs/a.md", 4, f"then {run_of(WINDOW - 1)}")]
+
+    def test_names_a_run_a_change_puts_in_where_its_from_is_not_yet_there(self):
+        """A `change` whose `from` stands in another pending design's `to`, not
+        in the tree, still leaves its `to` in its document after the settle,
+        so the `to` is put in though nothing is found to replace."""
+        passage = f"Then {run_of(WINDOW)} and on."
+        texts = {"docs/a.md": "## S\n\nOther words.\n"}
+        o = one_op("add", new=passage, file="docs/b.md")
+        found = rules.copies(o, texts, {"docs/a.md": [("words not there", passage)]})
+        assert found == [("docs/a.md", 4, f"then {run_of(WINDOW - 1)}")]
+
 
 test_census = census_case(TARGET)

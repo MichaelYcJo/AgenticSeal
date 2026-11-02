@@ -364,12 +364,18 @@ def copies(op, texts, gone=None):
     OP's `to`, read as `passages.py#words` reads both: the number of distinct
     runs shared and the first of them in the `to`'s order. GONE, `{path:
     [(text, put)]}`, is what the same design's operations do to each
-    document: each TEXT is found once by `pattern`, across any wrapping, and
-    replaced by PUT, the `to` of a `change`, or by nothing for a `remove`,
-    before the runs are counted. So a passage the design moves leaves no copy
-    where it took it from, and a passage a `change` keeps in its `to` is
-    still a copy there. [] for an operation with no `to`, or whose file
-    `passages.py#in_corpus` leaves out."""
+    document, all three kinds the parser reads applied before the runs are
+    counted. A `change` gives its `from` and its `to`: the `from` is found
+    once by `pattern`, across any wrapping, and replaced by the `to`, and a
+    `to` whose `from` is not in the document yet, standing in another
+    pending design's `to`, is put at its end. A `remove` gives its text and
+    None, and the text is taken out. An `add` gives None and its `to`, put at
+    the document's end. So a passage the design moves leaves no copy where
+    it took it from, a passage a `change` keeps in its `to` is still a copy
+    there, and one passage two `add`s put into two documents is a copy in
+    each. A run that would span a `to` put at a document's end and the words
+    the settle places around it is not counted. [] for an operation with no
+    `to`, or whose file `passages.py#in_corpus` leaves out."""
     p = passages()
     if op.new is None or not p.in_corpus(op.file):
         return []
@@ -381,11 +387,14 @@ def copies(op, texts, gone=None):
             continue
         text = texts[path]
         for taken, put in (gone or {}).get(path, ()):
+            found = 0
             if taken and taken.split():
                 # A function, so a backslash in PUT is text, not a group.
-                text = pattern(taken).sub(
+                text, found = pattern(taken).subn(
                     lambda _m, put=put: f"\n{put or ''}\n", text, count=1
                 )
+            if not found and put:
+                text = f"{text}\n{put}\n"
         shared = p.windows(p.words(text)).intersection(order)
         if shared:
             out.append((path, len(shared), next(r for r in order if r in shared)))
