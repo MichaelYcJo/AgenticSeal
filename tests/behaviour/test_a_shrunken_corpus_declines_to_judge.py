@@ -69,7 +69,6 @@ APPLIES_THE_SHARED_GUARD = {
     "tests/test_censuses.py#test_every_file_no_module_file_declares_meets_every_census": 1,
     "tests/behaviour/test_no_document_names_the_old_roots.py#tracked": 1,
     "tests/behaviour/test_release_hygiene.py#tracked": 1,
-    "tests/behaviour/test_a_release_is_sized_by_a_criterion.py#tracked": 1,
     "tests/hooks/test_launch.py#floor_carriers": 1,
     # #929's census of what runs before any floor: it returns the missing
     # half, and its liveness half hands that to `decline_if_shrunken`.
