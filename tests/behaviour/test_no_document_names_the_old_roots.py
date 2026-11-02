@@ -6,13 +6,10 @@ A session follows the first path it reads. Every shipped text now says
 sends that session to write a file nothing reads — the silence every gate
 gives the old layout is what makes the miss invisible.
 
-Two kinds of mention keep the old name on purpose, and each is listed
-below with its reason, so the allowlist cannot grow without one:
-
-  - the design record and its Korean twin, which name both trees because
-    the move is what they are about;
-  - a marker or a retired key, which is read by a script or kept as
-    history — the `<!-- specs/<id> -->` text in the changelog and the ledger.
+One kind of mention keeps the old name on purpose, and each is listed
+below with its reason, so the allowlist cannot grow without one: the design
+record and its Korean twin, which name both trees because the move is what
+they are about.
 
 No code reads the old names, and `test_no_hook_names_the_0_3_x_roots` below
 holds that for `hooks/`; the round records, overviews and plans of released
@@ -47,7 +44,6 @@ SUFFIXES = (".md", ".yml", ".sh")
 # A line carrying one of these keeps the old name on purpose. Each entry is
 # checked to still occur somewhere, so a reason cannot outlive its line.
 KEEP = {
-    "<!-- specs/<work-item-id> -->": "the marker text in the changelog and the ledger is unchanged (Q2)",
     "`specs/` or `.specseal/`": "the policy naming the 0.3.x roots no code opens",
     "`specs/` 나 `.specseal/`": "the same policy in the Korean edition",
 }
@@ -190,7 +186,6 @@ def test_the_check_can_fail(line):
     [
         "rows go in `seal/ledger/<work-item-id>.md`",
         "the gate reads `seal/threads/<work-item-id>/routing.md`",
-        "one `###` section marked with `<!-- specs/<work-item-id> -->`",
         "the file `.git/agentic-scratch`",
     ],
 )

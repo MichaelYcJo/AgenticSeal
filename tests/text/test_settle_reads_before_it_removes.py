@@ -223,7 +223,9 @@ def test_the_module_and_the_skill_both_say_how_local_mode_settles():
         "a pull request listed with no merge commit among them",
         "`seal export` takes a copy for whoever wants one",
         "removes each released local directory whose record holds no open row",
-        "Shared mode never asks `gh`",
+        "Shared mode asks `gh` only in `--apply`, for the release list, and "
+        "only where a directory it would remove gets as far as a version tag",
+        "It reads no published note: no fragment is committed in local mode",
         "reached `--released-at` without a pull request reads as unreleased, "
         "and its directory is removed by hand",
         "A repository on a host `gh` cannot ask cannot settle in local mode",
