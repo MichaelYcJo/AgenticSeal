@@ -140,8 +140,9 @@ def merge_base(base, head="HEAD"):
 
 
 def subjects_since(point, head="HEAD"):
+    out = closer.run(*closer.gitcmd.argv("log", "--format=%s", f"{point}..{head}"))
     # exempt from splitlines: git output
-    return closer.run("git", "log", "--format=%s", f"{point}..{head}").splitlines()
+    return out.splitlines()
 
 
 def issue_numbers(out):

@@ -121,6 +121,7 @@ sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "..", "..", "hooks", "lib"))
 sys.path.insert(0, os.path.join(HERE, "..", "..", "skills", "verify", "scripts"))
 import console  # noqa: E402
+import gitcmd  # noqa: E402
 from blocks import gfm_lines  # noqa: E402
 from close_issues_on_release import SPAN, keywords_in  # noqa: E402
 from unverified_check import heading_level  # noqa: E402
@@ -186,8 +187,9 @@ def version_of(tag):
 
 
 def git(*args):
-    """`git` run in the repository at `ROOT`; its standard output."""
-    return run("git", "-C", ROOT, *args)
+    """`git` run in the repository at `ROOT`, its argv
+    `hooks/lib/gitcmd.py#argv`'s; its standard output."""
+    return run(*gitcmd.argv("-C", ROOT, *args))
 
 
 def previous_tag(tag):
@@ -422,7 +424,7 @@ def commit_message(tag):
     commit is the release merge, whose subject GitHub writes as
     `Merge pull request #N from <owner>/release/vX.Y.Z`.
     """
-    return run("git", "log", "-1", "--format=%B", tag)
+    return run(*gitcmd.argv("log", "-1", "--format=%B", tag))
 
 
 def release_exists(repo, tag):

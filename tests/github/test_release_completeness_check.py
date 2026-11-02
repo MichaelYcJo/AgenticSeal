@@ -80,7 +80,7 @@ class Tracker:
         self.calls.append(args)
         if args[:2] == ("git", "merge-base"):
             return "f" * 40 + "\n"
-        if args[:2] == ("git", "log"):
+        if args[0] == "git" and "log" in args:
             return "\n".join(self.subjects) + "\n"
         if args[:2] == ("gh", "api"):
             return json.dumps([{"title": t} for t in self.milestones])
@@ -392,7 +392,7 @@ class Test_main:
         assert "D (carried by this release branch): #88" in out, (
             "the milestone reading did not run beside the version reading"
         )
-        logs = [args for args in tracker.calls if args[:2] == ("git", "log")]
+        logs = [args for args in tracker.calls if args[0] == "git" and "log" in args]
         assert len(logs) == 1, f"the subjects were read {len(logs)} times"
 
     def test_a_milestone_refusal_fails_the_step_with_no_feat(self, monkeypatch):

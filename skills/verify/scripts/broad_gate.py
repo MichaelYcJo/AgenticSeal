@@ -231,9 +231,14 @@ def stamp_module():
 
 
 def git(root, *args):
-    """stdout of a git call in `root`, or None on a non-zero exit."""
+    """stdout of a git call in `root`, or None on a non-zero exit. The argv
+    is `hooks/lib/gitcmd.py#argv`'s."""
+    gitcmd = load(
+        os.path.join(PLUGIN, "hooks", "lib", "gitcmd.py"),
+        "agentic_gitcmd_for_broad_gate",
+    )
     r = subprocess.run(
-        ["git", "-C", root, *args],
+        gitcmd.argv("-C", root, *args),
         capture_output=True,
         encoding="utf-8",
         errors="replace",

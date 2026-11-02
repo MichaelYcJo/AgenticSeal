@@ -73,6 +73,14 @@ import re
 import subprocess
 import sys
 
+sys.path.insert(
+    0,
+    os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "..", "..", "hooks", "lib"
+    ),
+)
+import gitcmd
+
 # GitHub's own set. Each has to appear immediately before its number -- the
 # documentation asks for full syntax for each issue and sanctions no shorter
 # form, so `Closes #1, #2` is not read as two here either.
@@ -383,9 +391,9 @@ def arrived(before, after):
             "request behind it in this push is not seen."
         )
         # exempt from splitlines: git output
-        return run("git", "log", "-1", "--format=%s", after).splitlines()
+        return run(*gitcmd.argv("log", "-1", "--format=%s", after)).splitlines()
     # exempt from splitlines: git output
-    return run("git", "log", "--format=%s", f"{before}..{after}").splitlines()
+    return run(*gitcmd.argv("log", "--format=%s", f"{before}..{after}")).splitlines()
 
 
 def main():

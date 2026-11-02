@@ -137,7 +137,7 @@ class Releases:
         if args[:3] == ("gh", "release", "create"):
             self.existing.add(args[3])
             return ""
-        if args[:2] == ("git", "log"):
+        if args[0] == "git" and "log" in args:
             return self.message
         raise AssertionError(f"unexpected command: {args}")
 
