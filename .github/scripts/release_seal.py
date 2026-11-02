@@ -120,7 +120,7 @@ DENSITY = 2
 # a dry run still prints the rows in. That column is `{label:<8}`, not the
 # longest label: `deferred` is exactly eight, which is the only reason the
 # column looked set by it. Since #832 the image carries no rows: they reach
-# the note as the lines beside it in the header's second cell (`results`).
+# the note as the badges in the header's results cell (`results`, #1299).
 LABELS = ("SEALED", "tag", "PRs", "issues", "suite", "items", "capped", "deferred")
 # The widest value a release's panel carries before the frame would cut it.
 # It was `skills/verify/scripts/broad_gate.py#PANEL_VALUE_WIDTH` until #832
@@ -183,14 +183,14 @@ def release_rows(version, sha, pulls_n, issues_n, suite, chain):
 
 
 def results(rows):
-    """`(sealed, lines)`: the stamp's results in words, which the note's
-    header shows beside the image (#1153). `sealed` is the sealed version,
-    the tagged commit and its branch, which the header writes after a bold
-    `SEALED`. `lines` are the suite, the work items over their review
-    rounds, how many were capped and the issues deferred, one each, in the
-    phrases of the alt text written by hand for 0.17.0's seal; a row not
-    read says so in its line. The pull requests and issues are left out:
-    the header states them in `publish_release_note.py#counts`' words."""
+    """`(sealed, lines)`: the stamp's results as badge lines, each a list of
+    `(label, value)` pairs, which the note's header shows as badges in its
+    results cell (#1153, #1299). `sealed` is the sealed version, then the
+    tagged commit with each branch it is on. `lines` are the suite and its
+    skips, the review rounds and the work items, and how many were capped
+    and the issues deferred, two to a line; a row not read gives `not read`
+    on each badge it feeds. The pull requests and issues are left out:
+    `publish_release_note.py#count_badges` states them."""
     by = {}
     for label, value in rows:
         if label:
@@ -199,22 +199,25 @@ def results(rows):
         else:
             by[last].append(value)
     tag = by["tag"]
-    sealed = f"{by['SEALED'][0]} at {tag[0]}" + "".join(f" on {b}" for b in tag[1:])
-    suite = [part.strip() for value in by["suite"] for part in value.split(",")]
-    lines = ["the suite at " + " and ".join(suite)]
+    sealed = [
+        [("SEALED", by["SEALED"][0])],
+        [("commit", tag[0]), *(("on", branch) for branch in tag[1:])],
+    ]
+    passed, skipped = [
+        part.strip() for value in by["suite"] for part in value.split(",")
+    ]
+    lines = [[("suite", passed), ("skipped", skipped.split()[0])]]
     items, capped, deferred = by["items"][0], by["capped"][0], by["deferred"][0]
     if items == NOT_READ:
-        lines.append("work items not read")
+        lines.append([("review", NOT_READ), ("work items", NOT_READ)])
     else:
         count, rounds = items.split(" . ")
-        rounds = rounds.replace("round", "review round")
-        lines.append(f"{plural(int(count), 'work item')} over {rounds}")
-    if capped == NOT_READ:
-        lines.append("capped not read")
-    else:
-        lines.append(f"{capped.split()[0]} of them capped")
+        lines.append([("review", rounds), ("work items", count)])
     lines.append(
-        "deferred not read" if deferred == NOT_READ else f"{deferred} deferred"
+        [
+            ("capped", capped if capped == NOT_READ else capped.split()[0]),
+            ("deferred", deferred if deferred == NOT_READ else deferred.split()[0]),
+        ]
     )
     return sealed, lines
 
