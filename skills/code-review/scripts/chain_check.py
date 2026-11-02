@@ -36,7 +36,10 @@ judged (`carried_by`). The arms are eight:
                 an `add` or `change` `to` is read by `.github/scripts/rules.py`,
                 the reader `seal rules --check` uses, and a line it refuses is
                 refused at its line in the design (`check_lines_in`); a `from`
-                is read for no check line
+                is read for no check line; and against each operation, the
+                string constants of the tracked tests under `tests/` and the
+                rule documents are read from the working tree, to name its
+                test pins and copies (`pins_and_copies_in`)
   records       `Review | through the review chain`: `trail/rounds/` holds at least
                 one `round-N.md`; each reads whole through
                 `hooks/lib/fields.py`, its blocks placed by its `## Findings`
@@ -82,9 +85,21 @@ read; the check names each (`blocks_of`, `unread`) and decides nothing on
 it. What such a fence meant is the judgment of the agent that reads the
 record. The same holds for each line `rule_changes.parse` names in a design
 the rule-changes arm reads, a heading near `## Rule changes` among them
-(`rule_changes_read`), and for each line of an `add` or `change` `to` that
+(`rule_changes_read`), for each line of an `add` or `change` `to` that
 `rules.py` names as opening like a check line and not being one
-(`check_lines_in`).
+(`check_lines_in`), and for what the pin and copy reading could not read:
+a listing git could not make, a test file under `tests/` it could not
+open, decode or parse, a rule document it could not open or decode, and
+the section a `remove` with no `from` takes out where the working tree
+lacks its document or its heading. A design's operation that takes a
+test's string constant of four words or more out of the policy root, and
+an `add` or `change` `to` that shares a run of 15 words with another rule
+document as the design's `add`, `change` and `remove` operations all leave
+it, read as
+`tests/text/test_no_passage_is_pasted_into_a_second_file.py` reads one, are
+named as notices at their lines in the design and refuse nothing
+(`pins_and_copies_in`): whether a named pin or copy is a finding is the
+proofer's judgment at review.
 
 Usage:
   chain_check.py --baseline <ref> [--root DIR] [--worktree] [--sealing]
@@ -1053,6 +1068,33 @@ CHECK_LINE_SAYS = (
     "`.github/scripts/rules.py`, the reader `seal rules --check` uses, refuses "
     "this check line, which the settle writes into `{file}` as it stands: {why}"
 )
+# A string constant of a test that an operation takes out of the policy root
+# and its `to` does not hold (`rule_changes.py#pins`), named at the `from`.
+PIN_SAYS = (
+    "a test pins text this operation takes out of `{file}`: `{test}:{line}` "
+    'holds "{literal}", and the `to` does not'
+)
+# A run of `passages.py#WINDOW` words a `to` shares with another rule document
+# (`rule_changes.py#copies`), named at the `to`.
+COPY_SAYS = (
+    "this `to` repeats a passage of `{path}`: {count} of its runs of {window} "
+    'words stand there, one of them "{run}"'
+)
+# A test file the pin reading could not parse or decode, after `not read: `.
+TEST_UNREAD = "`{path}` could not be read as Python ({why}), so no pin in it is named"
+# A rule document the copy reading could not open or decode, after `not read: `.
+DOCUMENT_UNREAD = "`{path}` could not be read ({why}), so no copy of it is named"
+# The section a `remove` with no `from` takes out, which the pin reading could
+# not read in the working tree, after `not read: `.
+SECTION_UNREAD = (
+    "the section `{section}` of `{file}` that this `remove` takes out could not "
+    "be read ({why}), so no pin in it is named"
+)
+# A listing of tracked files git could not make, after `not read: `.
+LISTING_UNREAD = (
+    "git could not list the tracked files `{pathspec}` matches, so none of them "
+    "is read for a {what}"
+)
 # The operations whose `to` the settle writes into the policy root.
 WRITES_A_TO = ("add", "change")
 
@@ -1113,15 +1155,160 @@ def check_lines_in(root, rel, ops, notices=None):
     return found
 
 
-def rule_changes_read(reader, root, item, notices=None):
+def _tracked(root, pathspec, unread, what):
+    """The paths git tracks under ROOT that PATHSPEC matches; where git cannot
+    list them, [] and a notice on UNREAD naming WHAT goes unread."""
+    out = git(root, "ls-files", "-z", "--", pathspec)
+    if out is None:
+        why = LISTING_UNREAD.format(pathspec=pathspec, what=what)
+        unread.append(("", 0, RULE_CHANGES_UNREAD.format(why=why)))
+        return []
+    return [p for p in out.split("\0") if p]
+
+
+# What stops the pin reading of one test file: it cannot be opened or decoded,
+# or `ast.parse` refuses it or gives up on its nesting.
+TEST_UNREADABLE = (
+    OSError,
+    UnicodeDecodeError,
+    SyntaxError,
+    ValueError,
+    RecursionError,
+    MemoryError,
+)
+
+
+def _read_tree(rules, root):
+    """What the pin and copy reading reads of the working tree at ROOT:
+    `literals`, `[(path, line, text)]` of every tracked `*.py` under `tests/`
+    (`rule_changes.py#literals`); `documents`, `{path: text}` of every
+    tracked rule document (`passages.py#in_corpus`); and `unread`, a notice
+    for each listing git could not make and, at line 0, for each such test
+    or document that could not be opened, decoded or parsed. A file git
+    lists and the tree has deleted is skipped: it is no file of the tree the
+    settle writes into. A limit, not read for: a tracked path whose name is
+    not UTF-8 reaches here with U+FFFD in place of its bytes, since `git()`
+    decodes with `errors="replace"`, so it does not open and is skipped as
+    deleted, unnamed; a rule document or a test with such a name is a shape
+    outside the flow this check serves."""
+    literals, unread, documents = [], [], {}
+    for path in _tracked(root, "tests/*.py", unread, "pin"):
+        try:
+            with open(os.path.join(root, *path.split("/")), encoding="utf-8") as f:
+                found = rules.literals(f.read())
+        except FileNotFoundError:
+            continue
+        except TEST_UNREADABLE as exc:
+            why = TEST_UNREAD.format(path=path, why=type(exc).__name__)
+            unread.append((path, 0, RULE_CHANGES_UNREAD.format(why=why)))
+            continue
+        literals += [(path, line, text) for line, text in found]
+    in_corpus = rules.passages().in_corpus
+    for path in _tracked(root, "*.md", unread, "copy"):
+        if not in_corpus(path):
+            continue
+        try:
+            with open(os.path.join(root, *path.split("/")), encoding="utf-8") as f:
+                documents[path] = f.read()
+        except FileNotFoundError:
+            continue
+        except (OSError, UnicodeDecodeError) as exc:
+            why = DOCUMENT_UNREAD.format(path=path, why=type(exc).__name__)
+            unread.append((path, 0, RULE_CHANGES_UNREAD.format(why=why)))
+    return {"literals": literals, "unread": unread, "documents": documents}
+
+
+def _section_text(rules, root, op):
+    """`(text, None)` for the section OP takes out, as its document in the
+    working tree at ROOT holds it (`rule_changes.py#section_lines`), or
+    `(None, why)` where the document cannot be opened or decoded, or the
+    section is not there once."""
+    try:
+        with open(os.path.join(root, *op.file.split("/")), encoding="utf-8") as f:
+            text = f.read()
+    except FileNotFoundError:
+        text = None
+    except (OSError, UnicodeDecodeError) as exc:
+        return None, type(exc).__name__
+    span, why = rules.section_lines(text, op.section)
+    if span is None:
+        return None, why
+    return "\n".join(rules.reader().gfm_lines(text)[span[0] - 1 : span[1]]), None
+
+
+def pins_and_copies_in(reader, root, rel, ops, sources):
+    """[(path, line, notice)] for OPS, a design's operations at REL, refusing
+    nothing: each test literal an operation takes out of the policy root and
+    its `to` does not hold (`rule_changes.py#pins`), at the first line of its
+    `from`, or at the operation's line for a `remove` with no `from`, which
+    takes its section out whole; and each rule document an `add` or `change`
+    `to` shares a run of `passages.py#WINDOW` words with
+    (`rule_changes.py#copies`), at the `to`'s first line. The tests and the
+    rule documents are read from the working tree at ROOT once per run, into
+    SOURCES (`_read_tree`), and the first call returns the notices for what
+    could not be read there. A copy is counted in each document as all three
+    kinds of the design's operations leave it, each `change`'s `from`
+    replaced by its `to`, each text a `remove` takes out removed, and each
+    other `add`'s `to` added (`rule_changes.py#copies`), so a passage the
+    design moves is no copy, one a `change` keeps in its `to` still is, and
+    one two `add`s put into two documents is one in each. A section a
+    `remove` with no
+    `from` cannot read is named as not read at the operation's line."""
+    if not ops:
+        return []
+    rules = reader.rule_changes()
+    out = []
+    if not sources:
+        sources.update(_read_tree(rules, root))
+        out += sources["unread"]
+    window = rules.passages().WINDOW
+    taking, gone = [], {}
+    for op in ops:
+        if op.old is not None:
+            taken, at = op.old, op.lines["from"][0][0]
+        elif op.kind == "remove":
+            taken, why = _section_text(rules, root, op)
+            at = op.line
+            if taken is None:
+                said = SECTION_UNREAD.format(file=op.file, section=op.section, why=why)
+                out.append((rel, at, RULE_CHANGES_UNREAD.format(why=said)))
+        else:
+            taken, at = None, op.line
+        taking.append((op, taken, at))
+        if taken:
+            # What the settle leaves in OP's file: a `change` puts its `to`
+            # where its `from` stood, and a `remove` puts nothing there.
+            gone.setdefault(op.file, []).append((taken, op.new))
+        elif op.kind == "add" and op.new:
+            # An `add` takes nothing out and puts its `to` into OP's file.
+            gone.setdefault(op.file, []).append((None, op.new))
+    for op, taken, at in taking:
+        out += [
+            (rel, at, PIN_SAYS.format(file=op.file, test=t, line=n, literal=said))
+            for t, n, said in rules.pins(op, taken, sources["literals"])
+        ]
+        out += [
+            (
+                rel,
+                op.lines["to"][0][0],
+                COPY_SAYS.format(path=path, count=count, window=window, run=run),
+            )
+            for path, count, run in rules.copies(op, sources["documents"], gone)
+        ]
+    return out
+
+
+def rule_changes_read(reader, root, item, notices=None, sources=None):
     """[(path, line, problem)] for the work item's `frame/design.md` whose
     `## Rule changes` section `rule_changes.parse`, the one reader `settle`
     groups by, refuses, or, where it parses, for each check line inside an
     `add` or `change` `to` that `rules.py` refuses (`check_lines_in`); []
     where git carries no design. Each line the parser names as one it did
     not read, and each line of a `to` `rules.py` names so, goes to NOTICES
-    (`RULE_CHANGES_UNREAD`). The reader is reached through
-    `unverified_check.py#rule_changes`, which raises where it will not load."""
+    (`RULE_CHANGES_UNREAD`), and so does each test pin and copy of its
+    operations (`pins_and_copies_in`), read into SOURCES. The reader is
+    reached through `unverified_check.py#rule_changes`, which raises where
+    it will not load."""
     rel = f"{item}/{SPEC_FILE}"
     text = read_record(root, rel)
     if text is None:
@@ -1132,20 +1319,28 @@ def rule_changes_read(reader, root, item, notices=None):
             (rel, line, RULE_CHANGES_UNREAD.format(why=why))
             for line, why in parsed.unread
         )
-    return [
+    found = [
         (rel, line, RULE_CHANGES_SAYS.format(reason=reason))
         for line, reason in parsed.errors
     ] + check_lines_in(root, rel, parsed.ops or [], notices)
+    if notices is not None:
+        notices.extend(
+            pins_and_copies_in(
+                reader, root, rel, parsed.ops or [], {} if sources is None else sources
+            )
+        )
+    return found
 
 
-def rule_changes_of(reader, root, items, notices=None):
+def rule_changes_of(reader, root, items, notices=None, sources=None):
     """[(path, line, problem)] from `rule_changes_read` over every work item
-    directory of ITEMS, its notices going to NOTICES, or None where a
-    reader would not load or could not read, which is said on stderr."""
+    directory of ITEMS, its notices going to NOTICES and what it reads of the
+    tree to SOURCES, or None where a reader would not load or could not
+    read, which is said on stderr."""
     found = []
     try:
         for item in items:
-            found.extend(rule_changes_read(reader, root, item, notices))
+            found.extend(rule_changes_read(reader, root, item, notices, sources))
     except (OSError, SyntaxError, ImportError, SystemExit) as exc:
         print(
             f"chain-check: the rule-changes reader would not load ({exc})",
@@ -1774,6 +1969,9 @@ def main(argv=None):
         if item not in judged
     ]
     chained, direct = [], []
+    # What the rule-changes arm reads of the tree for pins and copies, read
+    # once on the first design with operations.
+    sources = {}
     texts = {rel: read_record(root, rel) for rel in declarations}
     by_settle = retired(reader, root, fork, texts)
     for rel in declarations:
@@ -1806,7 +2004,7 @@ def main(argv=None):
         problems.extend(
             (rel, 0, p) for p in frame(reader, routing, root, item, declared)
         )
-        found = rule_changes_of(reader, root, [item], notices)
+        found = rule_changes_of(reader, root, [item], notices, sources)
         if found is None:
             return 2
         problems.extend(found)
@@ -1822,7 +2020,7 @@ def main(argv=None):
             notices.extend((p, n, f"{SEALING_SAYS}: {m}") for p, n, m in gate)
         else:
             problems.extend(gate)
-    found = rule_changes_of(reader, root, edited, notices)
+    found = rule_changes_of(reader, root, edited, notices, sources)
     if found is None:
         return 2
     problems.extend(found)
