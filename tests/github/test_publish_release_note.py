@@ -957,8 +957,8 @@ class Test_module:
         result in words. The URL, the alt text and every badge are escaped,
         so a quote cannot end an attribute and a `<` opens no tag. Seen red
         against the `sealed_header` that wrote `SEALED` in bold and the
-        results as text, one per line; the alt reading seen red with the
-        badge's alt attribute alone left out."""
+        results as text, one per line, and with the badge's alt attribute
+        alone left out."""
         mod, body = published(monkeypatch, tmp_path, RELEASE)
         work, closed, people = mod.tally(RELEASE, OWNER)
         assert mod.header(work, closed, people) == HEADER
