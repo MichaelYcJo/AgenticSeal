@@ -21,8 +21,12 @@ in the tree. The fragments are the ones the commits after the previous
 `vX.Y.Z` tag added and that tag does not already hold, each read at the
 newest commit of that range whose tree holds it, so a work item a settle
 removed before the tag still has its entry.
-Each goes under an HTML comment naming its work item, the one link from a
-released entry back to the work that produced it.
+Each opens with a link to the pull request that added it (#1139). The range's
+commit that adds a fragment is its pull request's squash commit, whose
+subject GitHub ends with `(#N)`, so the number is read here, once, from the
+history. The pull request's body holds the work item's records (`seal
+pr-body`), so one click leads from an entry to the reasons behind it. A
+fragment whose adding commit names no pull request is its text alone.
 
 **The note opens with the release's theme**, the first sentence of the
 description of the milestone `release: X.Y.Z`, its `Purpose:` label left out.
@@ -100,6 +104,7 @@ already hold.
 """
 
 import html
+import importlib.util
 import json
 import os
 import re
@@ -114,6 +119,14 @@ import console  # noqa: E402
 from blocks import gfm_lines  # noqa: E402
 from close_issues_on_release import keywords_in  # noqa: E402
 from unverified_check import heading_level  # noqa: E402
+
+# `seal settle`, loaded by path for `adding_commit`: the one reader of the
+# commit that adds a fragment and the pull request it names, kept in the
+# settle so that the note and the settle read one number (#1139).
+SETTLE = os.path.join(HERE, "..", "..", "skills", "settle", "scripts", "settle.py")
+_spec = importlib.util.spec_from_file_location("agentic_settle_for_the_note", SETTLE)
+settle = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(settle)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 # A work item's changelog fragment, its id captured.
@@ -193,9 +206,11 @@ def commit_range(previous, tag):
 
 
 def fragments(revisions):
-    """`[(work item id, body)]` for every changelog fragment a commit in
-    `revisions` added, in id order, an empty body skipped. The paths are
-    sorted, and each holds its id, so the paths' order is the ids'.
+    """`[(work item id, body, pull request number or None)]` for every
+    changelog fragment a commit in `revisions` added, in id order, an empty
+    body skipped. The paths are sorted, and each holds its id, so the paths'
+    order is the ids'. The number is the one the oldest commit of the range
+    that adds the fragment names (`settle.py#adding_commit`).
 
     Each is read at the newest commit of the range whose tree holds it, so a
     fragment a settle removed before the tag is read as it stood last.
@@ -237,9 +252,18 @@ def fragments(revisions):
             if git("ls-tree", "--name-only", commit, "--", path).strip():
                 body = git("show", f"{commit}:{path}").strip()
                 if body:
-                    out.append((found.group(1), body))
+                    out.append((found.group(1), body, pull_request(revisions, path)))
                 break
     return out
+
+
+def pull_request(revisions, path):
+    """The pull request number the commit of `revisions` that adds `path`
+    names, or None. A `git` that fails stops the run, as `run` does."""
+    try:
+        return settle.adding_commit(ROOT, revisions, path)[1]
+    except RuntimeError as problem:
+        sys.exit(str(problem))
 
 
 def process_shape():
@@ -250,6 +274,10 @@ def process_shape():
         lines = gfm_lines(handle.read())
     rows = [line for line in lines if line.startswith("|")]
     return lines[0], rows[0], rows[1]
+
+
+# An entry's first line: the pull request that added its fragment.
+PULL_LINK = "[#{number}](https://github.com/{repo}/pull/{number})"
 
 
 def split_process(body, heading):
@@ -274,9 +302,11 @@ def split_process(body, heading):
     return "\n".join(kept).strip(), table[2:]
 
 
-def section(entries):
-    """The fragments as the note carries them: each work item's marker line,
-    its body, and a blank line before the next.
+def section(entries, repo):
+    """The fragments as the note carries them: each entry's link to the pull
+    request that added it, in `repo`, its body, and a blank line before the
+    next. An entry with no number has no link line, and one with neither a
+    link nor a body left is not written (#1139).
 
     Every row of every fragment's process section is lifted into one
     `### Process changes` table above them, in id order and each fragment's
@@ -286,10 +316,14 @@ def section(entries):
     """
     heading, header, delimiter = process_shape()
     rows, parts = [], []
-    for item, body in entries:
+    for _, body, number in entries:
         rest, found = split_process(body, heading)
         rows += found
-        parts.append(f"<!-- specs/{item} -->" + (f"\n{rest}" if rest else ""))
+        lines = [] if number is None else [PULL_LINK.format(repo=repo, number=number)]
+        if rest:
+            lines.append(rest)
+        if lines:
+            parts.append("\n".join(lines))
     fragments = "\n\n".join(parts)
     if not rows:
         return fragments
@@ -733,7 +767,7 @@ def main(argv=None):
     else:
         print(f"no theme line: {said}")
     pulls = merged_pulls(repo, version)
-    body = release_body(theme, section(entries), pulls, repo.split("/")[0])
+    body = release_body(theme, section(entries, repo), pulls, repo.split("/")[0])
     if pulls is not None and not thanks_section(pulls, repo.split("/")[0]):
         print("no outside contribution in this release, so no Thanks to section")
     if dry:

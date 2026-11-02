@@ -6,8 +6,8 @@ consecutive releases skipped it. The repair is a workflow the push to `main`
 that ships a release fires, and a tag pushed by hand (#1117):
 
   A1  the changelog fragments the release's commits added, less those the
-      previous tag holds, become the release note at that tag, each under its
-      work item's marker
+      previous tag holds, become the release note at that tag, each under a
+      link to the pull request that added it (#1139)
   A2  a release already at the tag is left exactly as it is, exit 0
   A3  a tag whose range added no fragment the previous tag does not hold goes
       RED, naming the range's tags
@@ -34,7 +34,9 @@ stands in for `subprocess.run`. The cases that read the history drive a real
 against the script with the one behaviour it pins removed, in phase 1 of
 work item `1790076050-the-release-tail-is-three-acts-no-document-names`, and
 S1 to S6 against the script at `8a1173c8`, in phase 1 of work item
-`1793188384-the-release-notes-are-kept-twice`.
+`1793188384-the-release-notes-are-kept-twice`, and the link cases against
+the script at `c55c3083b`, in phase 1 of work item
+`1793582903-each-entry-links-its-pull-request`.
 
 #942's phase 6 placed these cases from
 `tests/behaviour/test_a_release_publishes_its_note.py`, which keeps the cases that
@@ -63,8 +65,11 @@ REPO = "example/repo"
 SYMPTOMS = "two acts nobody wrote down"
 NOTES = "- **A thing that changed.** And what it changes for a reader."
 
-# The fragments the release's commits added, as `fragments` returns them.
-ENTRIES = [("1700000000-a-work-item", NOTES)]
+# The fragments the release's commits added, as `fragments` returns them:
+# the work item, the fragment, and the pull request its adding commit names.
+ENTRIES = [("1700000000-a-work-item", NOTES, 42)]
+# The line the note writes above that fragment.
+LINK = f"[#42](https://github.com/{REPO}/pull/42)"
 
 
 def module(path, name):
@@ -236,8 +241,8 @@ class Test_main:
         self, monkeypatch, tmp_path, capsys
     ):
         """A1. The body is the fragments the release's commits added, less those
-        the previous tag holds, each under the marker naming its work item, and
-        it links to no file in the tree."""
+        the previous tag holds, each under a link to the pull request that
+        added it, and it links to no file in the tree."""
         mod, tracker = wire(monkeypatch, tmp_path, message=title_line())
         assert mod.main() == 0
         created = tracker.creates()
@@ -245,7 +250,7 @@ class Test_main:
         args = created[0]
         assert args[3] == TAG
         body = args[args.index("--notes") + 1]
-        assert f"<!-- specs/1700000000-a-work-item -->\n{NOTES}" in body, body
+        assert f"{LINK}\n{NOTES}" in body, body
         assert "changelog/" not in body, "the note still names a gathered file"
         assert "published the release" in capsys.readouterr().out
 
@@ -265,9 +270,9 @@ class Test_main:
         commit_everything(repo, "the release before")
         git_out(repo, "tag", PREVIOUS)
         write(repo, thread.format("1700000002-second"), "- second entry\n")
-        commit_everything(repo, "the later work item")
+        commit_everything(repo, "the later work item (#2)")
         write(repo, thread.format("1700000001-first"), "- first entry\n")
-        commit_everything(repo, "the earlier work item")
+        commit_everything(repo, "the earlier work item (#1)")
         write(repo, thread.format("1700000001-first"), "- first entry, revised\n")
         write(repo, thread.format("1700000000-older"), "- older entry, edited\n")
         commit_everything(repo, "a fix brings its fragment along")
@@ -277,7 +282,7 @@ class Test_main:
         # so only `--no-renames` keeps it from reading as a rename.
         write(repo, thread.format("1700000003-third"), "- first entry, revised\n")
         write(repo, thread.format("1700000004-empty"), "\n  \n")
-        commit_everything(repo, "the settle")
+        commit_everything(repo, "the settle (#3)")
         git_out(repo, "tag", TAG)
 
         mod = publisher()
@@ -293,9 +298,10 @@ class Test_main:
         monkeypatch.setenv("DRY_RUN", "1")
         assert mod.main() == 0
         out = capsys.readouterr().out
-        first = "<!-- specs/1700000001-first -->\n- first entry, revised"
-        second = "<!-- specs/1700000002-second -->\n- second entry"
-        third = "<!-- specs/1700000003-third -->\n- first entry, revised"
+        pulls = f"https://github.com/{REPO}/pull"
+        first = f"[#1]({pulls}/1)\n- first entry, revised"
+        second = f"[#2]({pulls}/2)\n- second entry"
+        third = f"[#3]({pulls}/3)\n- first entry, revised"
         assert first in out and second in out and third in out, out
         assert out.index(first) < out.index(second) < out.index(third), (
             "the fragments are not in id order"
@@ -303,6 +309,55 @@ class Test_main:
         assert "1700000004-empty" not in out, "an empty fragment became an entry"
         assert "older entry" not in out, "a fragment of the release before reached it"
         assert "changelog/" not in out, out
+
+    def test_each_entry_links_the_pull_request_that_added_it(
+        self, monkeypatch, tmp_path, capsys
+    ):
+        """S1, S2 and S3 of #1139. The entry's first line links the pull
+        request whose number ends the subject of the range's commit that added
+        the fragment, in the `REPO` the note is built for. A later commit that
+        edits the fragment names no number for it. Where the subject ends with
+        several `(#N)`, as a title that ends with its issue does, the last is
+        the pull request. An adding commit with no `(#N)` gives the fragment's
+        text alone, and no entry carries the hidden work-item marker. Driven
+        through a real `git` history."""
+        repo = git_repo(tmp_path / "repo")
+        thread = "seal/threads/{}/changelog.md"
+        git_out(repo, "tag", PREVIOUS)
+        write(repo, thread.format("1700000001-linked"), "- linked entry\n")
+        commit_everything(repo, "feat: a change (#42)")
+        write(repo, thread.format("1700000001-linked"), "- linked entry, revised\n")
+        commit_everything(repo, "fix: a later edit (#43)")
+        write(repo, thread.format("1700000002-titled"), "- titled entry\n")
+        commit_everything(repo, "fix: a title that ends with its issue (#7) (#44)")
+        write(repo, thread.format("1700000003-bare"), "- bare entry\n")
+        commit_everything(repo, "a commit pushed with no pull request")
+        git_out(repo, "tag", TAG)
+
+        mod = publisher()
+        monkeypatch.setattr(mod, "ROOT", str(repo))
+        monkeypatch.chdir(repo)
+        monkeypatch.setattr(mod, "release_exists", lambda repo, tag: False)
+        monkeypatch.setattr(mod, "merged_pulls", lambda repo, version: None)
+        monkeypatch.setattr(
+            mod, "milestone_description", lambda repo, version: ("", "none")
+        )
+        monkeypatch.setenv("TAG", TAG)
+        monkeypatch.setenv("REPO", "o/r")
+        monkeypatch.setenv("DRY_RUN", "1")
+        assert mod.main() == 0
+        note = capsys.readouterr().out.split("characters of notes\n", 1)[1]
+        assert "[#42](https://github.com/o/r/pull/42)\n- linked entry, revised" in (
+            note
+        ), note
+        assert "#43" not in note, "a commit that edited the fragment was linked"
+        assert "[#44](https://github.com/o/r/pull/44)\n- titled entry" in note, note
+        assert "pull/7)" not in note, "the issue the title ends with was linked"
+        assert "- titled entry\n\n- bare entry" in note, (
+            "an adding commit that names no pull request gave its entry a line "
+            f"above the fragment: {note}"
+        )
+        assert "<!-- specs/" not in note, note
 
     def test_the_note_opens_with_the_releases_theme(
         self, monkeypatch, tmp_path, capsys
@@ -528,15 +583,15 @@ class Test_main:
     ):
         """A5. The fragments are the reasoning, and none of it is lost: they
         follow the summary whole, inside a fold that ends the note, each under
-        its marker with a blank line before the next (#1053: no link to a file
+        the link to its pull request, or alone where its adding commit names
+        none, with a blank line before the next (#1053: no link to a file
         follows)."""
-        entries = [*ENTRIES, ("1700000001-b", "- b")]
+        entries = [*ENTRIES, ("1700000001-b", "- b", None)]
         mod, body = published(monkeypatch, tmp_path, RELEASE, entries=entries)
         fold = body[body.index("<details>") :]
         assert fold == (
             f"<details>\n<summary>{mod.FULL_SUMMARY}</summary>\n\n"
-            f"<!-- specs/1700000000-a-work-item -->\n{NOTES}\n\n"
-            "<!-- specs/1700000001-b -->\n- b\n\n</details>"
+            f"{LINK}\n{NOTES}\n\n- b\n\n</details>"
         ), fold
         assert body.index(mod.UPDATE_HEADING) < body.index("<details>")
         assert "/agentic:update" in body
@@ -566,7 +621,7 @@ class Test_main:
         section alone was before #572."""
         theme = [milestone("Purpose: a theme. And more.")]
         _, body = published(monkeypatch, tmp_path, pulls, milestones=theme)
-        assert body == f"A theme.\n\n<!-- specs/1700000000-a-work-item -->\n{NOTES}"
+        assert body == f"A theme.\n\n{LINK}\n{NOTES}"
         if pulls is None:
             assert "no outside contribution" not in capsys.readouterr().out, (
                 "a list that could not be read is reported as a release nobody helped"
@@ -793,7 +848,8 @@ class Test_module:
         branch into `main`, whose first parent never held the fragment, and the
         settle removed it on the release branch (0.22.4). A fragment of the
         release before, restored by a commit in the range, is not read again
-        (0.15.3). Round 1 of #1053, finding 1."""
+        (0.15.3). Round 1 of #1053, finding 1. The pull request its adding
+        commit names is read through the same merge (#1139)."""
         repo = git_repo(tmp_path / "repo")
         thread = "seal/threads/{}/changelog.md"
         write(repo, thread.format("1700000000-older"), "- older entry\n")
@@ -801,7 +857,7 @@ class Test_module:
         git_out(repo, "tag", PREVIOUS)
         git_out(repo, "switch", "-q", "-c", "release")
         write(repo, thread.format("1700000001-first"), "- first entry\n")
-        commit_everything(repo, "the work item")
+        commit_everything(repo, "the work item (#5)")
         git_out(repo, "rm", "-q", "-r", "seal/threads/1700000001-first")
         git_out(repo, "rm", "-q", "-r", "seal/threads/1700000000-older")
         commit_everything(repo, "the settle")
@@ -813,7 +869,7 @@ class Test_module:
         mod = publisher()
         monkeypatch.setattr(mod, "ROOT", str(repo))
         revisions = mod.commit_range(mod.previous_tag(TAG), TAG)
-        assert mod.fragments(revisions) == [("1700000001-first", "- first entry")]
+        assert mod.fragments(revisions) == [("1700000001-first", "- first entry", 5)]
 
 
 class Test_section:
@@ -822,8 +878,9 @@ class Test_section:
         fragment with a `### Process changes` table. The note carries one
         such table above the fragments, holding every fragment's rows in id
         order, and each fragment follows without its section, so a row is
-        shown once. A fragment that is the section alone keeps its marker
-        line with nothing under it. Seen red against `section` at
+        shown once. A fragment that is the section alone keeps its link line
+        with nothing under it, and gives no entry where its adding commit
+        names no pull request (#1139). Seen red against `section` at
         `4134055a`, which folded each table into its fragment."""
         header = "| Date | Change | Why | Source |\n|---|---|---|---|\n"
         first = (
@@ -837,16 +894,28 @@ class Test_section:
             + header
             + "| 2026-10-03 | three | why three | https://example.com/3 |"
         )
-        entries = [("1-first", first), ("2-second", "- b"), ("3-third", third)]
-        assert publisher().section(entries) == (
+        fourth = (
+            "### Process changes\n\n"
+            + header
+            + "| 2026-10-04 | four | why four | https://example.com/4 |"
+        )
+        entries = [
+            ("1-first", first, 1),
+            ("2-second", "- b", 2),
+            ("3-third", third, 3),
+            ("4-fourth", fourth, None),
+        ]
+        pulls = f"https://github.com/{REPO}/pull"
+        assert publisher().section(entries, REPO) == (
             "### Process changes\n\n"
             + header
             + "| 2026-10-01 | one | why one | https://example.com/1 |\n"
             + "| 2026-10-02 | two | why two | https://example.com/2 |\n"
-            + "| 2026-10-03 | three | why three | https://example.com/3 |\n\n"
-            + "<!-- specs/1-first -->\n- **A change.** What it does.\n\n"
-            + "<!-- specs/2-second -->\n- b\n\n"
-            + "<!-- specs/3-third -->"
+            + "| 2026-10-03 | three | why three | https://example.com/3 |\n"
+            + "| 2026-10-04 | four | why four | https://example.com/4 |\n\n"
+            + f"[#1]({pulls}/1)\n- **A change.** What it does.\n\n"
+            + f"[#2]({pulls}/2)\n- b\n\n"
+            + f"[#3]({pulls}/3)"
         )
 
     def test_refuses_to_take_a_line_past_the_next_heading(self):
@@ -855,19 +924,21 @@ class Test_section:
         header = "| Date | Change | Why | Source |\n|---|---|---|---|\n"
         later = "### Removed\n\n| What | Where |\n|---|---|\n| a file | `x.md` |"
         body = f"### Process changes\n\n{header}| d | c | w | s |\n\n{later}"
-        assert publisher().section([("1-first", body)]) == (
-            f"### Process changes\n\n{header}| d | c | w | s |\n\n"
-            f"<!-- specs/1-first -->\n{later}"
+        assert publisher().section([("1-first", body, None)], REPO) == (
+            f"### Process changes\n\n{header}| d | c | w | s |\n\n{later}"
         )
 
     def test_refuses_a_table_where_no_fragment_carries_a_row(self):
         """S10 of #1117. With no process row in any fragment, the output is
-        what `section` returned before #1117: each marker line and its body,
-        and no `### Process changes` heading."""
-        entries = [("1-first", "- a\n\n### Removed\n\n- gone"), ("2-second", "- b")]
-        assert publisher().section(entries) == (
-            "<!-- specs/1-first -->\n- a\n\n### Removed\n\n- gone\n\n"
-            "<!-- specs/2-second -->\n- b"
+        what `section` returned before #1117: each entry, its link line and
+        its body, and no `### Process changes` heading."""
+        entries = [
+            ("1-first", "- a\n\n### Removed\n\n- gone", 1),
+            ("2-second", "- b", None),
+        ]
+        assert publisher().section(entries, REPO) == (
+            f"[#1](https://github.com/{REPO}/pull/1)\n- a\n\n### Removed\n\n- gone\n\n"
+            "- b"
         )
 
 

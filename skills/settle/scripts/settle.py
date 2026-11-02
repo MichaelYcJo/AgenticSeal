@@ -257,6 +257,59 @@ def reaches(root, ref, commit):
     return r.returncode == 0
 
 
+# The `(#N)` GitHub appends to a pull request's title when it squashes, at
+# the end of the commit's subject.
+PULL_REQUEST_RE = re.compile(r"\(#(\d+)\)$")
+
+
+def adding_commit(root, revisions, path):
+    """`(commit, pull request number or None)` for the oldest commit of
+    REVISIONS, a range or a ref in the repository at ROOT, that adds PATH, or
+    `(None, None)` where no commit there adds it.
+
+    The number is the digits of the `(#N)` that ends the commit's stripped
+    subject. Where a title ends with its issue, as `... (#7) (#42)` does, the
+    last is the pull request's, because GitHub appends it after the title.
+    This is the one reader of that number, so the release note's link
+    (`.github/scripts/publish_release_note.py#fragments`) and any other
+    reader of it cannot name different pull requests (#1139).
+
+    `--no-renames` keeps an added fragment from reading as a rename of one a
+    settle deleted. `--full-history` walks every parent, because a release's
+    tag is a merge into `main` whose first parent never held the path
+    (0.22.4). Raises `RuntimeError`, saying what `git` said, where it fails.
+    """
+    r = subprocess.run(
+        [
+            "git",
+            "-C",
+            root,
+            "log",
+            "--no-renames",
+            "--diff-filter=A",
+            "--full-history",
+            "--format=%H%x00%s",
+            revisions,
+            "--",
+            path,
+        ],
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    if r.returncode != 0:
+        raise RuntimeError(
+            f"`git log {revisions} -- {path}` exited {r.returncode}: {r.stderr.strip()}"
+        )
+    # exempt from splitlines: git output
+    listed = [line for line in r.stdout.splitlines() if line]
+    if not listed:
+        return None, None
+    commit, _, subject = listed[-1].partition("\x00")
+    found = PULL_REQUEST_RE.search(subject.strip())
+    return commit, int(found.group(1)) if found else None
+
+
 class Unasked(Exception):
     """`gh` could not be asked; the message says what it said."""
 

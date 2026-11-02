@@ -24,10 +24,9 @@ in the handback and write nothing into it.
 
 **One id, minted once, names the directory in every repository.** Take
 `date +%s` once, pick one slug, and use the resulting directory name in every
-repository. The id is what every share is keyed by:
-its changelog fragment and the `<!-- specs/<work-item-id> -->` marker the
-release note carries above that fragment. A directory named differently in
-each repository would have to be renamed later, and the rename moves both.
+repository. The id is what every share is keyed by, its changelog
+fragment among them. A directory named differently in each repository would
+have to be renamed later, and the rename moves the fragment with it.
 Nothing checks this, because nothing can tell an id minted twice from a
 signer's own work item that cites the pact without changing it, and that
 second case is legitimate and common.
