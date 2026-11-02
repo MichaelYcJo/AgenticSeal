@@ -78,6 +78,11 @@ The fix restores the three paths, each with an id, and narrows the header's clai
         assert not passages.in_corpus(rel)
 ```
 
+```seal
+verdict: fixed d0992cfd8
+answer: Held; the paste-ready change applied as written, per the orchestrator's judgment row. The three paths return as parameters `top-dirs-not-tests`, `top-dirs-not-hooks` and `top-dirs-not-records`, the four one-guard parameters stand unchanged, and the comment narrows to boundaries named there, calling the directory paths a sample of the directories outside the list. Executed with `seal mutate`, one run each: `TOP_DIRS` with `"tests/"` added failed only `[top-dirs-not-tests]`, with `"hooks/"` added only `[top-dirs-not-hooks]`, and with `"seal/"` added only `[top-dirs-not-records]`. The four one-guard widenings were rerun and each still failed only its own parameter. `tests/skills/test_passages.py` passed (19), and `bin/seal layout --check tests`, `uvx ruff check` and `uvx ruff format --check` each exited 0.
+```
+
 ## Confirmations
 
 ```seal
