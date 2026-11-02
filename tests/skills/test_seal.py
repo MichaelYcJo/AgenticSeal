@@ -487,6 +487,12 @@ class Test_refuse_without_hooks:
                 "it is what reads the core hook's first line",
                 None,
             ),
+            (
+                ["mode", "--check"],
+                "it is what builds the `git status` this command reads, the "
+                "same under any git configuration",
+                None,
+            ),
         ],
         ids=[
             "optin.py",
@@ -495,6 +501,7 @@ class Test_refuse_without_hooks:
             "routing.py",
             "hooksession.py",
             "core.py",
+            "gitcmd.py",
         ],
     )
     def test_a_script_copied_alone_exits_2_and_names_what_it_misses(
