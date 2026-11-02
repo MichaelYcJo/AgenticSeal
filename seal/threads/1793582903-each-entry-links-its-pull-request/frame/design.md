@@ -17,7 +17,7 @@ finding, carried here as its spawn prompt states it).
 | `docs/the-record-layout.md` *The fold, and what tells it from a deletion*: "`seal settle --apply` removes a directory only once its record holds no open row in the working tree." | The condition this work adds to. The added rule goes into that section through an `add`, beside the open-row rule it extends. |
 | `docs/release-checklist.md` *2b. Settle what earlier releases left behind*: "The second removes every released work item directory whose record holds no open row, and names any it keeps." | This restates the removal condition, so it changes with it. |
 | `docs/release-checklist.md` *6. After the merge*: the box "A GitHub Release exists at `vX.Y.Z`" | That box catches a release that was never published only if someone works through it. The settle check catches the same shape at removal: a version tag with no published Release keeps its directory, wherever the repository has published at least one Release (`questions.md` Q1). |
-| `skills/core/SKILL.md` *The rule a mechanism is kept against*: "A script holds a gate only on a fact it reads exactly … It names as not read a line or a file that looks like one of its form's and is not one, and decides nothing on it." | The settle keeps a directory only on three facts it reads exactly: the releases API's JSON, a URL string in the note's body, and the `(#N)` that ends a commit subject. Where one of them is missing, it names the work item as one whose note it did not read, and decides nothing on that. |
+| `skills/core/SKILL.md` *The rule a mechanism is kept against*: "A script holds a gate only on a fact it reads exactly … It names as not read a line or a file that looks like one of its form's and is not one, and decides nothing on it." | The settle keeps a directory only on four facts it reads exactly: the releases API's JSON, whether any release body holds a whole line of the renderer's shape, a URL string in the note's body, and the `(#N)` that ends a commit subject. Where one of them is missing, it names the work item as one whose note it did not read, and decides nothing on that. |
 | `skills/core/SKILL.md` *The rule a mechanism is kept against*: "A mechanism stays only while its record of what it caught outweighs what it costs" | The new check on `--apply` is a mechanism. `## Removes` names what goes in return: the hidden marker, whose writer no script read. |
 | `skills/settle/SKILL.md` *In local mode*: "A `gh` that cannot be asked stops the run." | The issue asks for the same stop when the release list cannot be read. The skill's sentence "Shared mode never asks `gh`." stops being true and is rewritten. |
 | #1053, merged as `f15b3f998` (#1140); its design *Scope* items 1 and 3 (read at that commit) | Built on: the note is read from the history at the tag, `--full-history` reaches a fragment that a settle removed before the tag (0.22.4), and a fragment the previous tag holds is skipped (0.15.3). Departed from: item 3 put each fragment "under an HTML comment `<!-- specs/<work-item-id> -->`". The grounds for the departure: the comment's only reader was a person, who had to search the history for the id (`git log --all -- seal/threads/<id>/`), and no script reads it (`git grep -n '<!-- specs/'` outside `seal/threads/` finds the writer at `.github/scripts/publish_release_note.py:292` and no reader, executed). |
@@ -127,7 +127,7 @@ Out of scope:
 | S4 the settle keeps a directory its note does not carry | Given a released work item whose fragment was added by `... (#42)`, a tag `v1.2.3` that holds that commit, and a stubbed release list where `v1.2.3`'s body carries neither the pull request's URL nor `<!-- specs/<id> -->`. When `seal settle --apply` runs, then it exits 1, the directory stays, and its `kept` line names `v1.2.3`, `#42`, and where the fragment can be read. | A case in `tests/skills/test_settle.py` with a `gh` stub on PATH, seen red |
 | S5 a carried entry goes | The same tree, where the body carries `https://github.com/o/r/pull/42` (or `<!-- specs/<id> -->`). Then the directory is removed and the exit is 0. A body that carries only `https://github.com/o/r/pull/420` does not carry #42. | Cases in the same module |
 | S6 an unreadable list stops the run | Given a `gh` stub that fails or prints something that is not a JSON list. Then the run exits 2 with one sentence naming `gh` and what it said, and removes no directory, including those that need no note. | A case in the same module, seen red |
-| S7 no note to read | Given a released work item with no `changelog.md`, one whose adding commit names no pull request, and one that no `vX.Y.Z` tag holds. Then each is removed, and the line under its `removed` line names which case held. Given no candidate with a version tag, `gh` is never run: a `GH` that is not on PATH leaves the exit at 0. | Cases in the same module |
+| S7 no note to read | Given a released work item with no `changelog.md`, one with an empty one, one whose adding commit names no pull request, one that no `vX.Y.Z` tag holds, and a repository whose published notes hold no line of the renderer's shape. Then each is removed, and the line under its `removed` line names which case held. Given no candidate with a version tag, `gh` is never run: a `GH` that is not on PATH leaves the exit at 0. | Cases in the same module |
 | S7b a tag with no published Release | Given a candidate whose tag `v1.2.3` has no release in the list, or only a draft. Where the list holds another non-draft release, the directory is kept and named for `v1.2.3`'s missing Release, with exit 1. Where the list holds no non-draft release at all, the directory is removed, and the line under `removed` says the repository publishes no Releases. | Cases in the same module, the first seen red |
 | S8 an open row still decides first | Given a directory whose record holds an open row and whose note lacks its entry. Then it is kept for the row, as today, and the note is not read for it. | A case in the same module |
 | S9 the rule changes parse | `skills/settle/scripts/rule_changes.py#parse` reads this design's `## Rule changes` with no refusal and no unread line. | Executed by the framer in a scratch clone (`plan.md` *Technical context*), and by `seal chain-check` at the pull request |
@@ -162,7 +162,10 @@ Out of scope:
   `https://github\.com/[^/\s]+/[^/\s]+/pull/<N>(?!\d)`, or the literal
   `<!-- specs/<id> -->`. Any owner and name are accepted because a
   repository renamed after a note was published keeps the old name in that
-  note's links, and GitHub redirects them.
+  note's links, and GitHub redirects them. Carried is read only where the
+  repository's notes are built from the fragments: some non-draft release
+  body in the list holds a whole line of the renderer's shape, the
+  pull-request link an entry opens with or the old marker.
 - **Output**: a `kept` line for a note, in the shape of the open-row `kept`
   line, ends by saying what to do (repair the note, then run
   `seal settle --apply` again). A line under `removed` says no note was
@@ -210,9 +213,12 @@ Out of scope:
     list that cannot be read stops the run and removes nothing. A version
     tag with no published Release does not carry the entry, so its
     directory is kept, unless the repository has published no Release at
-    all. A work item with no fragment, no pull request named or no version
+    all. A note is read only in a repository whose notes are built from the
+    fragments, told by a published release whose body holds a whole line
+    linking a pull request as an entry opens, or the old comment. A work
+    item with no fragment, an empty one, no pull request named or no version
     tag has no note to read, nor has one in a repository that publishes no
-    Releases. Its directory goes as the open-row rule decides, with the
+    Releases or whose notes are not built from the fragments. Its directory goes as the open-row rule decides, with the
     reason printed beside it.
     check: tests/skills/test_settle.py
 - change
@@ -221,8 +227,9 @@ Out of scope:
   from: The second removes every released work item directory whose record
     holds no open row, and names any it keeps.
   to: The second removes every released work item directory whose record
-    holds no open row and whose version's published note carries its entry,
-    and names any it keeps with why. The settle's pull request body names
+    holds no open row and whose version's published note carries its entry
+    where the repository's notes are built from the fragments, and names any
+    it keeps with why. The settle's pull request body names
     each directory kept for its note, and the owner repairs that note
     before a later `--apply` removes it.
 
