@@ -18,6 +18,10 @@ ancestry orders, and `section_lines` finds a section's lines in a document.
 their `remove` items with no `from` takes a line's section out, for the two
 readers that excuse such a line: `.github/scripts/rules.py` and
 `tests/behaviour/test_a_cited_section_stands_in_its_file.py`.
+`literals`, `pins` and `copies` say what an operation takes out of a test
+and what its `to` repeats of another rule document, over texts their caller
+hands them, for `chain_check.py` to name as notices (#1216); a copy is read
+through `passages.py`, the paste check's reader, loaded by path.
 `settle` prints what they read; nothing here writes a file.
 
 Headings and fences are read through
@@ -30,6 +34,7 @@ keeps the comment state for `section_lines` and `overlapping`, which read the
 policy documents.
 """
 
+import ast
 import collections
 import glob
 import importlib.util
@@ -39,6 +44,7 @@ import subprocess
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
+PASSAGES = os.path.join(HERE, "passages.py")
 
 HEADING = "Rule changes"
 # Each operation's fields: (required, optional). The item lines, their fields
@@ -67,6 +73,7 @@ NEAR_HEADING = (
 )
 
 _reader = None
+_passages = None
 
 
 def reader():
@@ -76,6 +83,16 @@ def reader():
         _reader = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(_reader)
     return _reader
+
+
+def passages():
+    """`passages.py`, the paste check's reader, loaded by path once."""
+    global _passages
+    if _passages is None:
+        spec = importlib.util.spec_from_file_location("agentic_passages", PASSAGES)
+        _passages = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(_passages)
+    return _passages
 
 
 def heading_text(line):
@@ -285,6 +302,82 @@ def section_lines(text, section):
     while end > h + 1 and not lines[end - 1].strip():
         end -= 1
     return (h + 1, end), None
+
+
+# --- what an operation takes out of a test and repeats of a document ----------
+
+# A string constant of a test reads as a pin of a rule's text from this many
+# words: the floor #1278's lister used. At three words the 0.27.1 settle's
+# record names 44 pins against 26 and none more of the literals that failed
+# (#1216 design G10).
+LITERAL_WORDS = 4
+
+
+def _collapsed(text):
+    return " ".join(text.split())
+
+
+def literals(source):
+    """`[(line, text)]` for each string constant of the Python SOURCE that is
+    no docstring and holds at least `LITERAL_WORDS` words, its whitespace runs
+    collapsed to one space, at the line it starts on. An implicit
+    concatenation is one constant, as the parser joins it. Raises the
+    parser's SyntaxError or ValueError where SOURCE does not parse; naming
+    that file is the caller's."""
+    tree = ast.parse(source)
+    docstrings = set()
+    for node in ast.walk(tree):
+        if isinstance(
+            node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)
+        ):
+            first = node.body[0] if node.body else None
+            if isinstance(first, ast.Expr) and isinstance(first.value, ast.Constant):
+                docstrings.add(id(first.value))
+    found = set()
+    for node in ast.walk(tree):
+        if (
+            isinstance(node, ast.Constant)
+            and isinstance(node.value, str)
+            and id(node) not in docstrings
+        ):
+            text = _collapsed(node.value)
+            if len(text.split()) >= LITERAL_WORDS:
+                found.add((node.lineno, text))
+    return sorted(found)
+
+
+def pins(op, taken, found):
+    """The entries of FOUND, `[(path, line, text)]` as `literals` gives a
+    test file's, whose text stands in TAKEN and not in OP's `to`, both with
+    their whitespace runs collapsed. TAKEN is what OP takes out of the policy
+    root: its `from`, or for a `remove` with no `from` its section's text;
+    None where it takes out nothing."""
+    if not taken:
+        return []
+    taken, kept = _collapsed(taken), _collapsed(op.new or "")
+    return [f for f in found if f[2] in taken and f[2] not in kept]
+
+
+def copies(op, texts):
+    """`[(path, count, run)]` for each rule document of TEXTS, `{path: text}`,
+    other than OP's file, that shares a run of `passages.py#WINDOW` words with
+    OP's `to`, read as `passages.py#words` reads both: the number of distinct
+    runs shared and the first of them in the `to`'s order. [] for an
+    operation with no `to`, or whose file `passages.py#in_corpus` leaves
+    out."""
+    p = passages()
+    if op.new is None or not p.in_corpus(op.file):
+        return []
+    said = p.words(op.new)
+    order = [" ".join(said[i : i + p.WINDOW]) for i in range(len(said) - p.WINDOW + 1)]
+    out = []
+    for path in sorted(texts):
+        if path == op.file or not p.in_corpus(path):
+            continue
+        shared = p.windows(p.words(texts[path])).intersection(order)
+        if shared:
+            out.append((path, len(shared), next(r for r in order if r in shared)))
+    return out
 
 
 # --- the pending designs, not yet settled -------------------------------------

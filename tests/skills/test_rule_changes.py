@@ -561,4 +561,101 @@ class Test_pattern:
         assert rules.pattern(text).search(region) is None
 
 
+# --- what an operation takes out of a test and repeats of a document (#1216) ---
+
+PLANTED = '''\
+"""A module docstring of more than four words."""
+
+
+def test_x():
+    """A function docstring of more than four words."""
+    assert "the rule says   this\\nhere" in text
+    assert "three words only" in text
+    assert b"the bytes say this here" in data
+    assert ("joined across two "
+            "lines by the parser") in text
+'''
+
+
+def one_op(kind, section=None, old=None, new=None, file="docs/a.md"):
+    """The one operation of a section holding `op(...)`'s item."""
+    (found,) = parse(spec(op(kind, section, old, new, file))).ops
+    return found
+
+
+class Test_literals:
+    def test_accepts_each_string_of_four_words_at_its_line_collapsed(self):
+        """A docstring, a shorter string and a bytes constant are no literal;
+        an implicit concatenation is one, at its first line."""
+        assert rules.literals(PLANTED) == [
+            (6, "the rule says this here"),
+            (9, "joined across two lines by the parser"),
+        ]
+
+    def test_refuses_a_source_that_does_not_parse(self):
+        with pytest.raises(SyntaxError):
+            rules.literals("def test_x(:\n")
+
+
+FOUND = [
+    ("tests/test_a.py", 7, "the rule says this here"),
+    ("tests/test_b.py", 3, "a sentence nobody takes out"),
+]
+
+
+class Test_pins:
+    def test_accepts_a_literal_the_from_holds_and_the_to_drops(self):
+        """The `from` holds the literal wrapped across two lines, and still
+        holds it."""
+        o = one_op("change", "S", "Then the rule says this here.", "A new rule.")
+        assert rules.pins(o, "Then the rule says\n  this here.", FOUND) == [FOUND[0]]
+
+    def test_refuses_a_literal_the_to_keeps_or_nothing_taken(self):
+        o = one_op(
+            "change",
+            "S",
+            "Then the rule says this here.",
+            "So the rule says this here.",
+        )
+        assert rules.pins(o, o.old, FOUND) == []
+        assert rules.pins(one_op("add", new="A rule."), None, FOUND) == []
+
+    def test_accepts_a_section_a_remove_takes_out_whole(self):
+        o = one_op("remove", "S")
+        section = "## S\n\nWhere the rule says this\nhere, it stands.\n"
+        assert rules.pins(o, section, FOUND) == [FOUND[0]]
+
+
+def run_of(n):
+    """N placeholder words."""
+    return " ".join(f"w{i}" for i in range(n))
+
+
+WINDOW = rules.passages().WINDOW
+
+
+class Test_copies:
+    def test_accepts_a_run_the_to_shares_with_another_rule_document(self):
+        texts = {
+            "docs/a.md": f"Here {run_of(WINDOW)} stands.\n",
+            "skills/b/SKILL.md": f"Its own words, then {run_of(WINDOW + 1)} and on.\n",
+            "seal/x.md": f"{run_of(WINDOW + 1)} and on\n",
+        }
+        o = one_op("change", "S", "old words.", f"New {run_of(WINDOW + 1)} rule.")
+        assert rules.copies(o, texts) == [
+            ("skills/b/SKILL.md", 2, run_of(WINDOW)),
+        ]
+
+    @pytest.mark.parametrize(
+        "file, shared",
+        [("docs/a.md", WINDOW - 1), ("docs/a.ko.md", WINDOW)],
+        ids=["fourteen-words", "a-korean-edition"],
+    )
+    def test_refuses_a_shorter_run_and_a_to_outside_the_corpus(self, file, shared):
+        texts = {"skills/b/SKILL.md": f"Then {run_of(shared)} and on.\n"}
+        o = one_op("add", new=f"New {run_of(shared)} rule.", file=file)
+        assert rules.copies(o, texts) == []
+        assert rules.copies(one_op("remove", "S"), texts) == []
+
+
 test_census = census_case(TARGET)

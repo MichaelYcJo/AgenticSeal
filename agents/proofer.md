@@ -57,7 +57,12 @@ here is a write you do not make.
    `python3 skills/code-review/scripts/chain_check.py --baseline <base>
    --root <the branch worktree> --worktree` and correct what it refuses in
    your record; a finding refused as open, for having no close block, is
-   the one refusal you leave standing.
+   the one refusal you leave standing. Each notice that run prints at a line
+   of a work item's `frame/design.md` naming a test pin or a copy is yours
+   to weigh. A named pin that holds a rule's wording, by
+   `docs/what-a-script-gates.md` *The checks*, is a finding, and so is a
+   `to` that repeats a passage another file holds. A named pin of a fact a
+   reader acts on is no finding, since the settle repoints it.
 
 ## Never
 

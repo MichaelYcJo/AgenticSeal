@@ -1960,6 +1960,162 @@ class Test_check_lines_in:
         ) in err
 
 
+# --- the pins and copies of a rule change, at the pull request (#1216) ----------
+
+# The notices' texts, pinned here so an edit to `chain.PIN_SAYS` or
+# `chain.COPY_SAYS` meets a case.
+PIN_SAYS = (
+    "a test pins text this operation takes out of `{file}`: `{test}:{line}` "
+    'holds "{literal}", and the `to` does not'
+)
+COPY_SAYS = (
+    "this `to` repeats a passage of `{path}`: {count} of its runs of {window} "
+    'words stand there, one of them "{run}"'
+)
+OLD_RULE = "the old rule says this"
+# A literal of five words at line 3, a docstring holding the same words at
+# line 2, and a literal of three words at line 4: the `from` below holds all
+# three, and only the first is a pin.
+PINNING = (
+    "def test_x():\n"
+    f'    """{OLD_RULE}"""\n'
+    f'    assert "{OLD_RULE}" in text\n'
+    '    assert "the old rule" in text\n'
+)
+
+
+def words_of(n):
+    return " ".join(f"w{i}" for i in range(n))
+
+
+def pin_said(file="docs/policy.md"):
+    """The pin notice for `OLD_RULE` at line 3 of `tests/test_pinning.py`."""
+    return PIN_SAYS.format(
+        file=file, test="tests/test_pinning.py", line=3, literal=OLD_RULE
+    )
+
+
+def planted_spec(root, text):
+    """`put_spec`, with the files a case planted beside it committed and a
+    round at HEAD, so the spec's notices are all the check prints for it."""
+    put_spec(root, text)
+    reviewed_to_head(root)
+
+
+@pytest.mark.rule("a-rule-change-names-the-pins-and-copies-it-breaks")
+class Test_pins_and_copies_in:
+    def test_names_a_pin_at_the_froms_line_and_no_docstring_or_three_words(
+        self, branch, ready, capsys, monkeypatch
+    ):
+        """S1, S5: a `from` holding a test's literal of five words, which the
+        `to` drops, is named at the `from`'s line, a notice annotation in CI,
+        and the ready pull request exits 0. The docstring and the literal of
+        three words the `from` also holds are not named. Seen red against the
+        base, which printed nothing for the design."""
+        root, _code = branch
+        write(root, "tests/test_pinning.py", PINNING)
+        text = spec_with(change_to("a new rule.", old=f"{OLD_RULE}."))
+        planted_spec(root, text)
+        number = line_at(text, f"  from: {OLD_RULE}.")
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert spec_lines(out) == [f"{ITEM}/frame/design.md:{number}  {pin_said()}"]
+        monkeypatch.setenv("GITHUB_ACTIONS", "true")
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert spec_lines(out) == [
+            f"::notice file={ITEM}/frame/design.md,line={number}::{pin_said()}"
+        ], out
+
+    def test_accepts_a_to_that_keeps_the_literal_naming_nothing(
+        self, branch, ready, capsys
+    ):
+        """S2: the `to` keeps the literal, so nothing is named. Seen red
+        under the mutation that reads no `to`."""
+        root, _code = branch
+        write(root, "tests/test_pinning.py", PINNING)
+        planted_spec(
+            root, spec_with(change_to(f"So {OLD_RULE}, and more.", old=f"{OLD_RULE}."))
+        )
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert spec_lines(out) == [], out
+
+    def test_names_a_pin_in_a_section_a_remove_takes_out_whole(
+        self, branch, ready, capsys
+    ):
+        """S3: a `remove` with no `from` takes its section out, as the working
+        tree holds it, and a literal standing there is named at the
+        operation's line. Seen red against the base."""
+        root, _code = branch
+        write(root, "tests/test_pinning.py", PINNING)
+        write(
+            root,
+            "docs/policy.md",
+            f"# Policy\n\n## A section\n\nWhere {OLD_RULE}, it\nstands.\n\n"
+            "## Another\n\nOther words.\n",
+        )
+        text = spec_with("- remove\n  file: docs/policy.md\n  section: A section\n")
+        planted_spec(root, text)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        number = line_at(text, "- remove")
+        assert spec_lines(out) == [f"{ITEM}/frame/design.md:{number}  {pin_said()}"]
+
+    def test_names_a_copy_at_the_tos_line_and_no_run_of_fourteen(
+        self, branch, ready, capsys
+    ):
+        """S4: a `to` sharing one run of 15 words with a `skills/` file names
+        that file and the run at the `to`'s line; another file sharing 14
+        words is not named. Seen red against the base."""
+        root, _code = branch
+        run = words_of(15)
+        write(root, "skills/planted/SKILL.md", f"Its own words, then {run} and on.\n")
+        write(root, "skills/short/SKILL.md", f"Then {words_of(14)} and on.\n")
+        text = spec_with(change_to(f"New {run} rule."))
+        planted_spec(root, text)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        said = COPY_SAYS.format(
+            path="skills/planted/SKILL.md", count=1, window=15, run=run
+        )
+        number = line_at(text, f"  to: New {run} rule.")
+        assert spec_lines(out) == [f"{ITEM}/frame/design.md:{number}  {said}"], out
+
+    def test_refuses_to_name_a_copy_landing_in_a_korean_edition(
+        self, branch, ready, capsys
+    ):
+        """S5: a `to` that lands in a `*.ko.md` file is outside the corpus and
+        names no copy. Seen red under the mutation that admits every `.md`."""
+        root, _code = branch
+        run = words_of(15)
+        write(root, "skills/planted/SKILL.md", f"Its own words, then {run} and on.\n")
+        planted_spec(
+            root, spec_with(f"- add\n  file: docs/policy.ko.md\n  to: New {run}.\n")
+        )
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert spec_lines(out) == [], out
+
+    def test_names_a_test_file_that_does_not_parse_as_not_read(
+        self, branch, ready, capsys
+    ):
+        """S5: a test file that does not parse is named as not read at its
+        line 0, and the exit code is the one the other arms give. Seen red
+        against the base."""
+        root, _code = branch
+        write(root, "tests/test_broken.py", "def test_x(:\n")
+        planted_spec(root, spec_with(change_to("a new rule.", old=f"{OLD_RULE}.")))
+        code, out = check(root, capsys)
+        assert code == 0, out
+        why = (
+            "`tests/test_broken.py` could not be read as Python (SyntaxError), "
+            "so no pin in it is named"
+        )
+        assert f"tests/test_broken.py:0  not read: {why}" in out.splitlines(), out
+        assert spec_lines(out) == [], out
+
+
 # --- the parity arm at the pull request (#988) -------------------------------------
 
 PARITY = "seal/parity.md"
