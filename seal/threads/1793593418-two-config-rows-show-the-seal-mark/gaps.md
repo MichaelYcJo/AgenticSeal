@@ -14,5 +14,4 @@
 
 ## Not done
 
-- `frame/design.md`'s `## Rule changes` add to `docs/the-review-record.md` *The guarantee* does not say that a base the clone cannot resolve writes no mark and is named (`trail/phases/phase-1.md` *Decision: a base that does not resolve writes no mark, and is named*). The design is the framer's to write, and the sentence it adds holds as written, so the departure is recorded in the phase record and left for the orchestrator to fold into the frame or leave.
 - No case runs `DRY_RUN=1` under a row other than `yes`. The dry run's only branch on the row is the draw, which the S6 cases already hold, and `release_seal.py`'s docstring states that the PNG is drawn only where the row turns the image on. A case for it would repeat S6 through a second door.
