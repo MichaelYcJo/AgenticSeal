@@ -154,7 +154,29 @@ seal mutate <file> --replace "<old>" "<new>" --tests "bin/test tests/<module>.py
 
 `<old>` is literal text and must occur exactly once in the file, or nothing
 is written; `<new>` may be empty, which deletes. Any UTF-8 text file can be
-the target. The command first runs `--tests` against the file as it is, and
+the target.
+
+**A `.py` mutant that does not compile is refused before anything is written
+or run.** Cases that load the module fail on the syntax error whatever the
+unit does, and that red would read as a case noticing the break. For a target
+whose name ends in `.py`, the command compiles each mutant with the builtin
+`compile` over the bytes the write would put on disk, and refuses at the
+first `SyntaxError`, naming its line. The file as it is is compiled first.
+Where it does not compile under the interpreter running `seal`, no mutant is
+compiled, the verdict comes from the cases' exit code alone, and the first
+line printed says the mutants were not compiled, with that interpreter's
+version and the error's line: the cases may run under another interpreter
+that reads the file. No other kind of file is compiled or parsed, a `.md`,
+a `.yml`, a JSON or TOML file and a script with no `.py` suffix among them,
+so a mutant its loader cannot parse can still read `red`. Two limits stay
+beside that one. The compile uses the grammar of the interpreter running
+`seal`, not the cases', so a construct only one of the two accepts is read
+wrongly in one direction or the other. And a mutant that compiles and then fails at import, a misspelt
+module-level name for one, is not refused: whether its red watches the unit
+is for the reader of the run, and running that one pair alone shows the
+output.
+
+The command first runs `--tests` against the file as it is, and
 goes on only if that passes. A `-k` that selects nothing, a mistyped module
 and a case that already fails each exit non-zero, and without that run each
 would read `red` for a unit no case ran against. Then it writes the break,
@@ -171,7 +193,8 @@ The first line printed is the verdict, then the command's own output:
 - `SURVIVED`, exit 1: the cases passed, so nothing they run watches the unit.
 - exit 2 for every run that measured nothing: `no baseline` (the cases fail
   without the break, so the break was never written), `timed out`, `could not
-  start`, `could not run`, `refused` (nothing was written), `not restored`
+  start`, `could not run`, `refused` (nothing was written: `<old>` does not
+  land once, or a `.py` mutant does not compile), `not restored`
   (the file may still hold the break; restore it from the commit made
   before the run), and
   `interrupted`.
@@ -181,11 +204,15 @@ watches, or at the first run that could not say.
 
 **Several mutants of one file go in one call.** Give `--replace OLD NEW` once
 per mutant. Every pair is checked before anything runs, and one that does not
-land exactly once refuses the whole call. The baseline then runs once, and
+land exactly once, or a `.py` mutant that does not compile, refuses the whole
+call, naming the pair by its place. The baseline then runs once, and
 each mutant is written alone, run once and restored, in the order given. The
 call prints `mutant <n>: <verdict>` per pair and a line counting the
-verdicts, and exits 1 where any mutant survived, 2 where none did and a run
-measured nothing, and 0 where every mutant is red. Put `-x` in `--tests`, so
+verdicts. A red line carries the cases' exit code, `mutant <n>: red (exit
+<N>, <s>s)`, and the command decides nothing from it: under pytest a 2 is a
+collection error, and a 1 is a failing case or an import error raised
+inside one. The call exits 1 where any mutant survived, 2 where none did
+and a run measured nothing, and 0 where every mutant is red. Put `-x` in `--tests`, so
 each mutant's run stops at the first case that notices it; the command does
 not stop the cases itself.
 
