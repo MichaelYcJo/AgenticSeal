@@ -80,6 +80,11 @@ The other route keeps the exclusive cells. It then removes the case and S4,
 and puts back #1033's docstring. That route goes against the issue's *Done
 when*, "a case pins the table's order", so the frame would have to say why.
 
+```seal
+verdict: fixed 6ab86e6a3
+answer: Step 6's last row in `skills/settle/SKILL.md` reads the base sentence alone, "it names a run, a platform or a reading no record holds", as the finding's fix and design `:65` (folded at d2d786022) write it, so every measurement no record asks for also fits *a measurement nobody has taken* and the table's order is what closes it first. The order paragraph now says that in so many words, and the order case's docstring says the order closes such a row before it can be re-homed and that the two rows swapped re-home every unmeasured row. The case was shown red at 6ab86e6a3 by `bin/seal mutate skills/settle/SKILL.md` swapping the two measurement rows (red, the case read `['moot', 'answered', 'a measurement nobody has taken', 'a measurement no record asks for']`; the command exited 0 and the tree was clean after). The changelog fragment says a measurement no record asks for fits both kinds and the first fit closes it. Design G6 and `:65` are the orchestrator's and already state this.
+```
+
 ### 2. "On record" admits the row's own work item's records, so a row citing its own review finding or question reads as a measurement something needs and is re-homed again
 
 ```seal
@@ -136,6 +141,11 @@ finding, question and design, which are what #1061 and #1062 cite.
 `frame/design.md:67` and `frame/questions.md:15` say the same in the
 frame's words. The changelog sentence at `changelog.md:3`, "On record means a
 record other than the row itself", follows the skill.
+
+```seal
+verdict: fixed 6ab86e6a3
+answer: The *On record* paragraph under step 6's table in `skills/settle/SKILL.md` now says a record that outlives the settle and rests on the answer, an open issue, a failed run, or a rule or design of another work item, and that the row's own work item, its design, questions and rounds among them, is not one because `--apply` removes its directory; the row's own `Who must answer` cell is not one either. It follows design `:67` as the orchestrator folded it at d2d786022, in place of the finding's paste-ready text, which also counted a finding of another work item and "a failed run whose cause the answer would settle"; the frame's list is the one built to. `changelog.md:3` says the same. `frame/questions.md:15` was corrected by the orchestrator at d2d786022.
+```
 
 ## Confirmations
 
