@@ -32,6 +32,7 @@ in #942's round 9 fix pass, each a case of this module alone.
 import io
 import json
 import os
+import shutil
 import subprocess
 import sys
 
@@ -2105,6 +2106,53 @@ class Test_main:
         code, text = dry_run(repo, capfd, "--from", "adr")
         assert code == 0, text
         assert f"    adr/0001.md  added {first}  last changed {revised}\n" in text, text
+
+    def test_a_document_the_root_commit_added_is_dated_under_any_show_root(
+        self, repo, capfd, monkeypatch
+    ):
+        """#1054, round 3's finding 2: `log.showRoot=false` hides the root
+        commit's paths from `git log`, and the listing reads them anyway, so
+        a document the root commit added is not one no commit adds."""
+        root = stamp(repo)
+        monkeypatch.setenv("GIT_CONFIG_COUNT", "1")
+        monkeypatch.setenv("GIT_CONFIG_KEY_0", "log.showRoot")
+        monkeypatch.setenv("GIT_CONFIG_VALUE_0", "false")
+        monkeypatch.chdir(repo)
+        code, text = dry_run(repo, capfd, "--from", "docs")
+        assert code == 0, text
+        assert f"    docs/a.md  added {root}  last changed {root}\n" in text, text
+
+    def test_a_signed_commit_is_read_under_any_show_signature(
+        self, repo, capfd, monkeypatch, tmp_path
+    ):
+        """#1054, round 3's finding 2: `log.showSignature=true` writes a
+        signed commit's verification into the log ahead of its header, which
+        shifted every field after it, and the listing reads the commit's
+        change anyway. The commit is signed with an ssh key made here, and
+        the case skips where `ssh-keygen` is not installed."""
+        keygen = shutil.which("ssh-keygen")
+        if keygen is None:
+            pytest.skip("ssh-keygen is not installed, so no commit can be signed")
+        key = tmp_path / "signing"
+        subprocess.run(
+            [keygen, "-q", "-t", "ed25519", "-N", "", "-f", str(key)],
+            check=True,
+            capture_output=True,
+        )
+        git(repo, "config", "gpg.format", "ssh")
+        git(repo, "config", "user.signingkey", str(key))
+        item(repo, "1700000001-a", op("add", "U", new="Rule."))
+        write(repo, "adr/0001.md", "one\n")
+        git(repo, "add", "-A")
+        git(repo, "commit", "-q", "-S", "-m", "a signed decision")
+        signed = stamp(repo)
+        monkeypatch.setenv("GIT_CONFIG_COUNT", "1")
+        monkeypatch.setenv("GIT_CONFIG_KEY_0", "log.showSignature")
+        monkeypatch.setenv("GIT_CONFIG_VALUE_0", "true")
+        monkeypatch.chdir(repo)
+        code, text = dry_run(repo, capfd, "--from", "adr")
+        assert code == 0, text
+        assert f"    adr/0001.md  added {signed}  last changed {signed}\n" in text, text
 
     def test_a_file_under_two_named_directories_is_listed_once(
         self, repo, capfd, monkeypatch

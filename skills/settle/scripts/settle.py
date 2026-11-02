@@ -62,8 +62,10 @@ any depth and of any extension. Each is printed with the commit that added it
 and the commit that last changed it, read from one `git log` per directory.
 Renames are off, so a moved file counts as added where it lands, and `--cc`
 is on, so a merge's own change is read: a merge that wrote a file no parent
-holds added it, and one that resolved a conflict in it changed it. A
+holds added it, and one whose result differs from every parent at it, by a
+conflict it resolved or by two parents' edits it combined, changed it. A
 deletion adds and changes nothing (`history` states each status it reads).
+The person's `log.showRoot` and `log.showSignature` change nothing it reads.
 A document `git diff HEAD` names is printed as changed in the working tree.
 Documents are listed in the order of the commits that add them, and those no
 commit adds come last, in path order; a file two named directories hold is
@@ -890,7 +892,10 @@ def history(root, rel):
     `added` is `{path: (place, commit)}` for the last commit adding each
     path, PLACE its position in the log, and `last` is `{path: commit}` for
     the last commit changing it. A commit is its short hash and date. A
-    HEAD with no commit gives neither.
+    HEAD with no commit gives neither. `--root` and `--no-show-signature`
+    hold the walk to these fields whatever the person's `log.showRoot` and
+    `log.showSignature` say: the first keeps the root commit's paths, and
+    the second keeps a signature's verification out of the output.
 
     The log names a path at a commit with a status of one letter per
     parent, the path compared with that parent; a commit with one parent,
@@ -898,9 +903,11 @@ def history(root, rel):
     does not hold the path, and this commit does), `M` (both hold it, with
     other content), `T` (both hold it, as another type of file) or `D` (the
     parent holds it, and this commit does not). A merge is named at a path
-    only where its result differs from every parent, so a clean merge, or
-    one whose result is one parent's, names nothing, and the letters of one
-    status are either all `D` or all from `A`, `M` and `T`.
+    only where its result differs from every parent: a merge that resolved
+    a conflict in it, wrote it new, or combined two parents' edits to it
+    with no conflict. A merge whose result at the path is one parent's
+    names nothing. The letters of one status are either all `D` or all
+    from `A`, `M` and `T`.
 
     One rule reads every shape. **A status with no `D` changes the path,
     and a status whose letters are all `A` also adds it**: `A` on an
@@ -914,8 +921,8 @@ def history(root, rel):
     prints what the walk read."""
     fields = git_fields(
         root, "log", "-z", "--full-history", "--topo-order", "--reverse",
-        "--no-renames", "--name-status", "--cc", "--format=%x01%h %cs",
-        "HEAD", "--", rel,
+        "--no-renames", "--name-status", "--cc", "--root", "--no-show-signature",
+        "--format=%x01%h %cs", "HEAD", "--", rel,
     )  # fmt: skip
     added, last, commit, status = {}, {}, None, None
     for place, field in enumerate(fields):
