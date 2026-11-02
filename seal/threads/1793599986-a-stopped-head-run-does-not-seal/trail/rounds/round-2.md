@@ -101,6 +101,11 @@ for the orchestrator to fold:
 # (#883 round 1). One
 ```
 
+```seal
+verdict: fixed 3de5c6c8
+answer: The finding holds. `read_record` reads every keyed file under `records/` (`broad_gate.py:1746-1767`), so a stop before the recorder's `session` line removes only that session's record. The gate then judges the run on the row's exit and on the records the other sessions left. "Started no pytest" is true only where no other session left a record. I checked the record's replacement against that and wrote the consequence by what the gate reads per session: the stop "leaves no record of that session, so the gate reads the run as though that session never started: it judges the run on the row's exit and on the records the row's other sessions left, where there are any". That sentence is in `templates/setup/config.md` rule 3, and its pin in `tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py` moved with it. The `RAN_TO_ITS_END` comment in `broad_gate.py` now says the same in short form. I removed the limit sentences from `changelog.md` instead of rewording them: the changelog now names the two kinds and points to rule 3, so the limit has one home. #898's `seal mutate` over `templates/setup/config.md` put the old clause "it judges the run on its exit alone." back in place of the new one; the pin went red (executed). `git grep` on "started no pytest", "exit alone" and "judged on its exit" now finds the old clause only in `frame/design.md:78-79` and the round records; every other hit is the separate list of reasons a run left no record. The frame sentence at `frame/design.md:72-79` is finding 2's to fold, and its replacement there replaces this finding's change to the `to:`.
+```
+
 ### 2. The folded `to:` repeats the limit sentence rule 3 of `templates/setup/config.md` keeps, so after the settle one fact stands in two rule documents
 
 ```seal
@@ -158,6 +163,11 @@ tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py:535-539:
   A `pytest.exit()` raised by a `pytest_sessionfinish` hook that runs after
   the recorder's comes after the session's `end` line, so that session
   reads as one that ran to its end.
+```
+
+```seal
+verdict: fixed 3de5c6c8
+answer: The finding holds. I took the first way: both limits are kept in `templates/setup/config.md` rule 3 alone, and the `to:` names them and points there. Rule 3 now opens the limits with "Two stops are out of the record's reach." The `pytest_sessionfinish` sentence follows, and I read it against pytest 9.2.0's `wrap_session` (`_pytest/main.py:366-373`, read). That code catches an `Exit` raised in `pytest_sessionfinish` and sets the session's exit status to its code, so the sentence ends "and its pytest exits with the code that hook chose", not only "reads as one that ran to its end". Finding 1's sentence comes after it. Both are in the rule 3 pin list. #898's `seal mutate` deleted the opening sentence in one mutant and the new exit clause in another; both went red against the pin (executed). I also wrote the exit clause into the `RAN_TO_ITS_END` comment. The orchestrator folds `frame/design.md:72-79`, the end of the `to:` text. Replace from "Two kinds of stop stay out of the record's reach." through "and is judged on its exit alone." with this text, the record's own wording, which I checked against the gate: "Two kinds of stop stay out of the record's reach: a `pytest.exit()` raised by a `pytest_sessionfinish` hook that runs after the recorder's, and a stop raised before the recorder writes a session's first line. `templates/setup/config.md` *The criterion for choosing a value*, rule 3, says how the gate reads a run with each." I measured it with `rule_changes.copies` against rule 3 as it stands at 3de5c6c8: it shares no run of 15 words (executed). The `to:` as folded at f66eca7f shares 17 runs with the same rule 3 (executed), which shows the measurement can find a copy. At `frame/design.md:37`, *Scope* Out, I propose replacing the last sentence, "Both stay the limits `RAN_TO_ITS_END`'s comment and the recorder's docstring name.", with "Both stay limits, stated in `templates/setup/config.md` rule 3 and named in `RAN_TO_ITS_END`'s comment and the recorder's docstring." *Scope* item 2 is unchanged.
 ```
 
 ## Confirmations
