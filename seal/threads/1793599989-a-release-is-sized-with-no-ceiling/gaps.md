@@ -10,4 +10,4 @@
 
 ## Not done
 
-`read(rel, root=ROOT)` in `tests/behaviour/test_a_release_is_sized_by_a_criterion.py` keeps a `root` parameter that no remaining caller passes. Design *Scope* item 4 keeps `read`, and removing a parameter that does no harm is a refactor this work did not ask for.
+nothing

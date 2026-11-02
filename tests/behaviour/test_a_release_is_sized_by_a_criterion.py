@@ -21,8 +21,8 @@ from conftest import ROOT
 OWNER = "docs/issues-and-milestones.md"
 
 
-def read(rel, root=ROOT):
-    with open(os.path.join(root, rel), encoding="utf-8") as f:
+def read(rel):
+    with open(os.path.join(ROOT, rel), encoding="utf-8") as f:
         return f.read()
 
 
