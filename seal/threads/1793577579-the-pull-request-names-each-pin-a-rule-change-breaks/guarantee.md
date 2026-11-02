@@ -35,3 +35,37 @@ The audit read the main clone at `053e83510`, against the base `origin/release/v
 target: 053e83510 against 405109767
 Verdict: withheld reason: the crafter's seen-red claim at trail/phases/phase-1.md:25 for tests/skills/test_chain_check.py::Test_pins_and_copies_in::test_refuses_to_name_a_copy_landing_in_a_korean_edition does not hold as a pin of design S5. With only the `.ko.md` exclusion removed from skills/settle/scripts/passages.py#in_corpus, the case passes. Its `to` at tests/skills/test_chain_check.py:2094 ("New w0 ... w14.") shares no run of 15 words with the planted skills/planted/SKILL.md, because the period joins "w14.". Under the named mutation (every `.md` admitted), the case goes red only because the work item's own frame/design.md is then read as a rule document. So the case pins nothing of the guard it is named for (contract rule 15). It needs a `to` that shares a run with the planted file, shown red with that one exclusion removed.
 ```
+
+## Run 2: the repair, at dfe622d0f
+
+| Field | Value |
+|---|---|
+| Broad gate | `6130c91b6 against 405109767` |
+
+This run audits the main clone at `dfe622d0f` against the same base, `405109767`. `trail/gate.md`'s last block names `6130c91b6 against 405109767`, and that commit is an ancestor of HEAD. `git log --no-merges --name-only 6130c91b6..HEAD ^405109767` lists one commit, `dfe622d0f`, and it touches only `trail/gate.md` (executed). The gate's output reads `BROAD GATE PASSED ... @ 6130c91b6 against origin/release/v0.28.0 @ 405109767`, `6217 passed · 12 skipped`, `chain ✓ exit 0` (read). `seal pr-body <item> --body pr-1216.md --check` exited 0 (executed).
+
+The commits since `053e83510`, the target of the block above, change three test files and nothing else outside the work item's records (executed, `git diff 053e83510 HEAD -- tests skills`). The three files are `tests/skills/test_chain_check.py` (the Korean-edition case), `tests/skills/test_rule_changes.py` (the fourteen-word parameter) and `tests/skills/test_passages.py` (`Test_in_corpus`'s refusal case). So this run re-runs the claims at those coordinates and S8. It carries the other rows above, whose coordinates no commit since touched. Re-runs ran in a `git clone --no-local` at `dfe622d0f` under the scratchpad, one mutation at a time, each reverted before the next. The clone was removed after the runs. Unmutated, the three touched groups pass: 43 passed (executed).
+
+### Claims re-run
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| The Korean-edition case now shares a run with its planted file and fails with only the `.ko.md` exclusion removed, the line naming that file | `a83d8c19c`; the case's docstring at `tests/skills/test_chain_check.py:2088-2091`; `trail/rounds/round-5.md` | `.venv/bin/python -m pytest -q -p no:cacheprovider -p no:xdist tests/skills/test_passages.py tests/skills/test_rule_changes.py::Test_copies tests/skills/test_chain_check.py::Test_pins_and_copies_in`, with only `and not rel.endswith(".ko.md")` removed from `passages.py#in_corpus` | holds (executed): 3 failed, 40 passed. The chain-check case fails on `this `to` repeats a passage of `skills/planted/SKILL.md`: 1 of its runs of 15 words stand there`, and the other two failures are `[the-ko-exclusion]` and `Test_copies[a-korean-edition]`. The withheld point of the block above is answered |
+| The fourteen-word unit case read its length from `WINDOW` and pinned no window length, and now fails with `WINDOW` moved | `a83d8c19c`; `tests/skills/test_rule_changes.py:651-653` | the same pytest over `Test_copies::test_refuses_a_shorter_run_and_a_to_outside_the_corpus` and `Test_pins_and_copies_in::test_names_a_copy_at_the_tos_line_and_no_run_of_fourteen` with `passages.py`'s `WINDOW = 14`, then the unit case as it stood at `053e83510` under the same mutation | holds (executed): at HEAD both fail (`[fourteen-words]` and the chain-check case). The case at `053e83510` passes under the mutation (2 passed), so the repair's premise holds too |
+| Each `Test_in_corpus` refusal parameter fails when its own boundary is widened, and only that one | `tests/skills/test_passages.py:49-88`, its comment and ids; `trail/rounds/round-6.md` to `round-10.md` | `pytest tests/skills/test_passages.py::Test_in_corpus` under each widening alone: `.ko.md` exclusion removed; `rel in TOP_FILES` read as `"/" not in rel`; `TOP_DIRS` without slashes; the `.md` suffix test read as `True`; `"tests/"` added to `TOP_DIRS`; `"seal/"` added to `TOP_DIRS` | holds (executed): 1 failed, 13 passed under each, and the failing id is `[the-ko-exclusion]`, `[top-files]`, `[top-dirs-slash]`, `[the-md-suffix]`, `[top-dirs-not-tests]` and `[top-dirs-not-records]` in turn. `[top-dirs-not-hooks]` was not run, since it is the same shape as the two directory widenings that were |
+| S8: the check prints no pin and no copy for this design | `trail/phases/phase-1.md:40` | `python3 skills/code-review/scripts/chain_check.py --baseline 405109767283ff05d343f251049eb530a741bae6 --root . --worktree`, in the main clone at HEAD | holds (executed): exit 0, and no notice for the design. The only lines naming the work item are the block above, which falls behind HEAD after `a83d8c19c`, and its verdict. This block answers both |
+
+### The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | unchanged since `053e83510`; S5 has a chain-check case for a `to` landing in a `*.ko.md` file | the Korean-edition re-run above (executed) | none. The `## Removes` departure stands as recorded at `trail/phases/phase-1.md:7` |
+| the build | the repair `a83d8c19c` and the fix commits `19004e9a7`, `16e94d923`, `d0992cfd8`, `22d2fa3bc` and `13a7bbccb`, each touching test files only | the tree, and every mutation above | none |
+| the last round | round 10 at `2d5254039` opens no finding and confirms round 9's rename | the tree: only `round-10.md` and `gate.md` follow `2d5254039` (executed, the log above). Rounds 5 to 9 each open one `should`, and each is closed `fixed` and confirmed by the next round (read) | none |
+| the changelog | unchanged since `053e83510` | the code, which is also unchanged since then | none |
+| the orchestrator's part of the pull request body | adds a bullet on the withhold and rounds 5 to 10, the rows after the withhold, the guarantee record, and the broad run at `6130c91b6` | `round-5.md` to `round-10.md`; the five judgment rows after `879fc39ae` in `frame/plan.md`, each committed alone in `frame/plan.md`; `round-2.md` finding 1 and `round-8.md` finding 1 for the paste-ready text applied as given; `gh issue view 1286` (open, titled on both problems); and the gate output (read) | itself, in one clause, and `round-10.md`: "rounds 5 to 10 each found one more instance" overstates by one round, since `round-10.md` *Findings* reads `None.` The same sentence then states "rounds 5 to 9 found 1 each and round 10 none", which agrees with the records, so no count a reader acts on is wrong. Writing "rounds 5 to 9" in the first clause would make the sentence read one way |
+
+```seal
+target: dfe622d0f against 405109767
+Verdict: sealed
+```
