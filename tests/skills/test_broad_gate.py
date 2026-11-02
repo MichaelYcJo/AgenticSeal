@@ -2197,6 +2197,14 @@ NO_RECORD_HERE = (
     "suite.txt), so this exit code is not a count of failing tests"
 )
 
+# Pinned verbatim for the same reason (contract rule 14): it is the one line
+# that says why a suite whose row exited 0 failed (#883).
+STOPPED_AT_EXIT_0 = (
+    "the row exited 0, and the gate fails the suite all the same because a "
+    "pytest session it ran stopped part-way: an exit of 0 says only that "
+    "nothing the session ran failed, not that it ran every test it collected"
+)
+
 
 def a_counted_record(sessions=1, **counts):
     """A `RunRecord` of SESSIONS sessions whose counts are COUNTS."""
@@ -2253,6 +2261,22 @@ class Test_failure_lines:
         assert lines[4] == "  t/a.py  new"
         assert lines[5] == gate.UNENDED_HERE.format(count=2)
         assert lines[-2:] == ["1 failed", "full output: /k/suite.txt"]
+        assert STOPPED_AT_EXIT_0 not in lines
+
+    def test_accepts_a_suite_that_exited_0_and_says_why_it_failed(self):
+        """S4 of #883: the line comes for an exit of 0 alone, after the
+        check's first lines and ahead of the count of stopped sessions."""
+        check = gate.Check(gate.SUITE, 0, "first\n", "/k/suite.txt")
+        record = a_record(sessions=1, counts={"passed": 1}, unended=1)
+        lines = gate.failure_lines(check, None, record)
+        assert lines == [
+            "exit 0",
+            "first",
+            STOPPED_AT_EXIT_0,
+            gate.UNENDED_HERE.format(count=1),
+            "1 passed",
+            "full output: /k/suite.txt",
+        ]
 
     def test_refuses_to_call_files_compared_where_no_record_was_left(self):
         check = gate.Check(gate.SUITE, 1, "", "/k/suite.txt")
@@ -2479,6 +2503,37 @@ class Test_gate:
         assert "  tests/test_two.py  new\n" in out
         assert "1 failed, 1 passed" in out
         assert not (repo / ITEM / "trail" / "gate.md").exists()
+
+    @pytest.mark.parametrize(
+        "stop",
+        ["pytest.exit('stopping here', returncode=0)", "os._exit(0)"],
+        ids=["pytest-exit-0", "os-exit-0"],
+    )
+    def test_refuses_a_suite_a_test_stopped_at_exit_0(
+        self, repo, tmp_path, capsys, stop
+    ):
+        """S1 and S2 of #883. The row exits 0 with a later test never run:
+        `pytest.exit()` writes an `end` line whose `stopped` names it, and
+        `os._exit(0)` writes no `end` line at all. Either fails the suite,
+        writes no `trail/gate.md`, and runs nothing at the base, because the
+        record holds no failing file to compare."""
+        write(
+            repo,
+            "tests/test_stop.py",
+            "import os\n\nimport pytest\n\n\n"
+            f"def test_a():\n    {stop}\n\n\n"
+            "def test_b():\n    assert False, 'never reached'\n",
+        )
+        commit(repo, "a test that stops the session")
+        keep = tmp_path / "out"
+        assert gate.gate(namespace(repo, keep, record=str(repo / ITEM))) == 1
+        out = capsys.readouterr().out
+        assert out.startswith("BROAD GATE FAILED   feature @ ")
+        assert re.search(r"^  suite +exit 0$", out, re.M), out
+        assert f"  {STOPPED_AT_EXIT_0}\n" in out
+        assert f"  {gate.UNENDED_HERE.format(count=1)}\n" in out
+        assert not (repo / ITEM / "trail" / "gate.md").exists()
+        assert not (keep / "suite-at-base.txt").exists()
 
     def test_accepts_a_preflight_that_runs_no_row_and_writes_nothing(
         self, repo, tmp_path, capsys
