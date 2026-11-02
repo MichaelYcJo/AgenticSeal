@@ -140,7 +140,10 @@ stays English in every edition.
 
 **What this plugin checks, and what it does not.** It ships `seal rules --check`
 (`.github/scripts/rules.py`), which reads every check line in a rule file,
-refuses one the grammar refuses and names one it did not read. A refused
+refuses one the grammar refuses and names one it did not read. At the pull
+request, `chain-check` asks the same reader for each check line inside an
+`add` or `change` `to` of a design, and refuses a line that reader refuses
+at that line of the design. A refused
 line inside a section that a
 pending `remove` with no `from` takes out at the settle is printed as
 excused, with the work item that removes it, and is no refusal. A pending

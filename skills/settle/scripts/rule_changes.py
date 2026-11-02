@@ -7,7 +7,9 @@ the no-change block are spelt once in `unverified_check.py`, which reads
 `## Not verified` with the same block. `parse` reads a section into operations,
 refusing at its line any block that does not match whole, and names, without
 refusing it, a line that opens like one of the section's forms and is not it.
-`order` reads merge
+Each operation carries its fields' lines at their lines in the design
+(`Op.lines`), by which `skills/code-review/scripts/chain_check.py` names a
+check line inside a `to` at its line. `order` reads merge
 order from git, `merge_order` reads it in local mode from the merge commits
 `settle` hands it, `group` joins the released designs whose operations name one
 place into one group, `unordered` names the pairs inside a group that no
@@ -48,7 +50,10 @@ GRAMMAR = {
     "remove": (("file", "section"), ("from",)),
 }
 
-Op = collections.namedtuple("Op", "kind file section old new line")
+# `lines` maps each field's name to its value's lines as they land, each
+# with its line in the design: `[(line number, text)]`, whose texts joined
+# with `\n` are the value `old`, `new`, `file` or `section` holds.
+Op = collections.namedtuple("Op", "kind file section old new line lines")
 # `ops` is None where the design has no section; `nothing` is the `why` of a
 # section holding the no-change block; `errors` is `[(line, reason)]`;
 # `unread` is `[(line, why)]` for each line that opens like one of the
@@ -196,6 +201,7 @@ def parse(text, policy_root):
         return done([], None, [error])
 
     out = []
+    numbers = [no for no, _ in body]
     for item in ops:
         values, error = r.field_values(item, *GRAMMAR[item["kind"]])
         file = (values or {}).get("file", "")
@@ -215,9 +221,30 @@ def parse(text, policy_root):
                 values.get("from"),
                 values.get("to"),
                 item["line"],
+                {
+                    name: value_lines(numbers, first, parts)
+                    for name, (first, parts) in item["fields"].items()
+                },
             )
         )
     return done(out, None, [])
+
+
+def value_lines(numbers, first, parts):
+    """`[(line number, text)]` for one field whose value lines are PARTS, the
+    first at line FIRST, NUMBERS being the line numbers of the section's body
+    in order: each part takes the number of its body line, and the leading
+    empty parts and the trailing blank ones are dropped and the last part's
+    end trimmed, as `unverified_check.py#field_values` strips its value."""
+    at = numbers.index(first)
+    lines = list(zip(numbers[at : at + len(parts)], parts))
+    while lines and lines[0][1] == "":
+        lines.pop(0)
+    while lines and not lines[-1][1].strip():
+        lines.pop()
+    if lines:
+        lines[-1] = (lines[-1][0], lines[-1][1].rstrip())
+    return lines
 
 
 # --- where an operation's text stands in a document ---------------------------
