@@ -61,7 +61,7 @@ once the sealer seals* 가 정한다.
 
 무엇을 어떻게 확인했는지 적는다. **테스트가 실제로 결함을 잡는지 확인했다면 그것도 적는다.** 통과 숫자만으로는 그 테스트가 아무것도 검증하지 않아도 알 수 없다.
 
-리뷰 체인을 거친 본문에서는 기록에 없는 검증만 이 표에 적는다. 뒷부분에는 `frame/plan.md` 의 `## Phases` 절과 phase 기록의 경로가 옮겨져 있다. 회차 기록마다 `seal` 블록 전부와 각 지적의 제목도 옮겨져 있고, `trail/gate.md` 의 `seal` 블록과 `gaps.md` 의 `## Not verified` 절도 옮겨져 있다. phase 기록의 본문은 옮겨지지 않는다. phase 기록에 적힌 검증이 필요할 때 그것을 어떻게 적는지는 `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals* 가 정한다. 표에 남는 것은 광역 실행이 출력한 숫자, 회차가 끝난 뒤에 돌린 CI 결과처럼 어느 기록에도 없는 것이다.
+리뷰 체인을 거친 본문에서 이 표는 오케스트레이터가 쓰는 앞부분에 든다. 광역 실행이 출력한 숫자와 회차가 끝난 뒤에 돌린 CI 결과는 어느 기록에도 없으므로 이 표에 적는다. 뒷부분에는 `frame/plan.md` 의 `## Phases` 절과 phase 기록의 경로가 옮겨져 있다. 회차 기록마다 `seal` 블록 전부와 각 지적의 제목도 옮겨져 있고, `trail/gate.md` 의 `seal` 블록과 `gaps.md` 의 `## Not verified` 절도 옮겨져 있다. phase 기록의 본문은 옮겨지지 않는다. 기록에 적힌 검증을 이 표에 적을 때 그것을 어떻게 적는지는 `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals* 가 정한다.
 
 ## 다른 팀에 답할 때
 
