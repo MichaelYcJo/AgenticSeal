@@ -45,3 +45,45 @@ The scratch clone named below is a `git clone --no-local` of the worktree at
 target: c53fb3a7d against 9c61be933
 Verdict: withheld reason: four record claims do not hold at c53fb3a7d. (1) The build's closing memo, gaps.md line 10, says "No case builds a local-mode root", where tests/skills/test_pr_body.py lines 737-765, added at 863a7d2af, build one and passed at HEAD; the pull request body copies that row. (2) The design, frame/design.md lines 177-182 *Data & interfaces*, lists the lines a reader sees without the unresolved-base line and the sealed-commit line that pr_body.py lines 223-230 print and its own Scope item 2 names; round 2 finding 1 left it to the same edit, and 332455460 did not make it. (3) The orchestrator's part of the pull request body, line 17, gives the broad run as "6328 passed, 12 skipped" citing trail/gate.md, which holds only `run: 42883972e against 9c61be933`. (4) The same part, line 15, cites frame/plan.md *Judgments of the run* for commits 09d7e5c8f, e20307530, e3981d8fb, f2c96cda7 and 332455460; that table holds no commit and no row for 332455460, whose fold trail/rounds/round-2.md finding 1's answer states.
 ```
+
+## Re-audit at 3f234897a
+
+The newest block above names `c53fb3a7d`. The one commit since then,
+`3f234897a`, touches `frame/design.md`, `frame/plan.md`, `gaps.md` and
+`guarantee.md` under this work item, and nothing else (executed
+`git log --no-merges --name-only c53fb3a7d..HEAD`; `git diff --stat
+c53fb3a7d HEAD` outside the work item prints nothing). The gate's run
+`42883972e` is still followed only by this work item's records, and the
+base still resolves to `9c61be933` (executed). No code coordinate changed,
+so the code claims re-run above stand at this HEAD. This run re-reads the
+four reasons, the records the commit touched, and the parties.
+
+| Field | Value |
+|---|---|
+| Broad gate | 42883972e against 9c61be933 |
+
+### Claims re-run
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| The body file's part below `## From the records` is the records' own text | the orchestrator's `seal pr-body` rewrite after `3f234897a` | `seal pr-body <item> --body <the body file> --check`, with the installed 0.27.3 `seal` and with the tree's `bin/seal` | holds: exit 0 from each, `matches:` (executed) |
+| Reason 1: `gaps.md` no longer says no case builds a local-mode root | `3f234897a`, `gaps.md` | `git show 3f234897a -- gaps.md` | holds: the row is removed. Its subject, a seal at HEAD in local mode, is held by `tests/skills/test_pr_body.py:737-765`, which passed at `c53fb3a7d`, and round 1's confirmation on local mode (executed, read) |
+| Reason 2: *Data & interfaces* names the unresolved-base line and the sealed-commit line | `frame/design.md:177-184` | read against `pr_body.py:223-230` (`BASE_UNSEEN`, `NOT_IN_HISTORY`) and *Scope* item 2 (`:65-67`) | holds: the sentence names the base git cannot resolve and the sealed commit the work item's checkout's HEAD does not hold, as the code prints and *Scope* item 2 says (read) |
+| The new *Judgments of the run* row | `frame/plan.md:108` | read against `3f234897a`'s diff and the block above | holds: it states the two record edits and their grounds as made (read) |
+| Reason 3: the broad-run line cites only what `trail/gate.md` holds | the pull request body, the orchestrator's part, last bullet | read `trail/gate.md`; `broad_gate.py` docstring on `--record` | holds: no counts and no conflict claim remain. "Passed" stands on the record, which `seal gate --record` writes only on success (read) |
+| Reason 4: the commit line cites the records that hold each commit, and every commit named touches only the work item's records | the pull request body, the orchestrator's part, the commits bullet | `git show --stat` of 09d7e5c8f, e20307530, be0548a17, 950150dbf, e3981d8fb, bf3efaf23, f2c96cda7, 39d06243f, 332455460, 5f6c4100e, c53fb3a7d and 3f234897a; `git merge-tree --write-tree 5f6c4100e 9c61be933` against `42883972e^{tree}`; `git diff --name-only 9c61be933...HEAD` | holds: each non-merge commit touches only this work item's records. The merge `42883972e` resolves no conflict, since its tree equals the clean merge's, and it adds no path to the pull request's diff, whose 12 paths outside the work item are this work's own. `routing.md`, *Judgments of the run* and `trail/rounds/round-2.md:483` hold what they are cited for. That be0548a17 is the orchestrator's is the orchestrator's own account, and no record contradicts it (executed, read) |
+
+### The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | As above, and *Data & interfaces* now names every line `seal pr-body` prints about the mark | the tree (`pr_body.py:207-238`, `#seal_mark` at `:396`); its own *Scope* item 2 and `add`; the changelog; round 2 | none |
+| the build | The diff and the phase records as above; the closing memo without the local-mode row | the design; the tree; every re-run above | none |
+| the last round | Round 2 confirms round 1's three fixes and raises one finding, whose records fix `332455460` and `3f234897a` now complete | the design and the changelog at HEAD | none |
+| the changelog | Unchanged since the block above | the design's `add` and `change` values; the code; `orchestration.md`; the issue | none |
+| the orchestrator's part of the pull request body | The summary, the framer's rejected alternatives, the rounds, the orchestrator's commits by the records that hold them, the merge, and the broad run as `trail/gate.md` records it | the changelog; `frame/plan.md` A2, A5 to A7, A11 and *Judgments of the run*; `frame/questions.md` Q1; both round records; `routing.md`; `trail/gate.md`; the tree | none |
+
+```seal
+target: 3f234897a against 9c61be933
+Verdict: sealed
+```
