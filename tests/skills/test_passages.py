@@ -84,7 +84,7 @@ class Test_in_corpus:
             "top-dirs-not-records",
         ],
     )
-    def test_refuses_a_path_one_guard_alone_refuses(self, rel):
+    def test_refuses_a_path_one_widened_boundary_alone_lets_through(self, rel):
         assert not passages.in_corpus(rel)
 
 
