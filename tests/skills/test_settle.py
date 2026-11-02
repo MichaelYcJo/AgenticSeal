@@ -2024,6 +2024,62 @@ class Test_main:
         assert code == 0, text
         assert f"    adr/0001.md  added {first}  last changed {merged}\n" in text, text
 
+    def test_a_merge_that_wrote_a_document_no_parent_holds_adds_it(
+        self, repo, capfd, monkeypatch
+    ):
+        """#1054, round 2's finding 1: a merge whose result holds a document
+        neither parent holds is the commit that added it, since `--cc` gives
+        that path one `A` per parent and an add is every letter `A`."""
+        item(repo, "1700000001-a", op("add", "U", new="Rule."))
+        write(repo, "adr/0001.md", "one\n")
+        commit(repo, "a decision")
+        git(repo, "checkout", "-qb", "side")
+        write(repo, "adr/side.md", "side\n")
+        commit(repo, "side")
+        git(repo, "checkout", "-q", "main")
+        write(repo, "adr/main.md", "main\n")
+        commit(repo, "main")
+        git(repo, "merge", "--no-ff", "--no-commit", "-q", "side")
+        write(repo, "adr/0002.md", "written in the merge\n")
+        commit(repo, "merge side, adding adr/0002.md")
+        merged = stamp(repo)
+        monkeypatch.chdir(repo)
+        code, text = dry_run(repo, capfd, "--from", "adr")
+        assert code == 0, text
+        assert f"    adr/0002.md  added {merged}  last changed {merged}\n" in text, text
+
+    def test_a_deletion_is_no_change_to_a_document_head_holds(
+        self, repo, capfd, monkeypatch
+    ):
+        """#1054, round 2's finding 1: a status whose letters are `D` says the
+        commit took the path out of its tree, so it is neither an add nor a
+        change. Here `main` changes a document, `side` deletes it, and the
+        merge keeps `main`'s content, so `--cc` names nothing at the merge and
+        `side`'s deletion, which the walk reads after `main`'s change, is not
+        the document's last change."""
+        item(repo, "1700000001-a", op("add", "U", new="Rule."))
+        write(repo, "adr/0001.md", "one\n")
+        commit(repo, "a decision")
+        first = stamp(repo)
+        git(repo, "checkout", "-qb", "side")
+        git(repo, "rm", "-q", "adr/0001.md")
+        commit(repo, "side deletes it")
+        git(repo, "checkout", "-q", "main")
+        write(repo, "adr/0001.md", "one, revised\n")
+        commit(repo, "main revises it")
+        revised = stamp(repo)
+        # A modify/delete conflict, which `git` here would raise on.
+        subprocess.run(
+            ["git", "-C", str(repo), "merge", "--no-ff", "-q", "side"],
+            capture_output=True,
+        )
+        write(repo, "adr/0001.md", "one, revised\n")
+        commit(repo, "merge side, keeping main's revision")
+        monkeypatch.chdir(repo)
+        code, text = dry_run(repo, capfd, "--from", "adr")
+        assert code == 0, text
+        assert f"    adr/0001.md  added {first}  last changed {revised}\n" in text, text
+
     def test_a_file_under_two_named_directories_is_listed_once(
         self, repo, capfd, monkeypatch
     ):

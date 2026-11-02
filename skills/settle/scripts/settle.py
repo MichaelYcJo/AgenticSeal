@@ -61,7 +61,9 @@ file `git ls-files --cached --others --exclude-standard` lists under it, at
 any depth and of any extension. Each is printed with the commit that added it
 and the commit that last changed it, read from one `git log` per directory.
 Renames are off, so a moved file counts as added where it lands, and `--cc`
-is on, so a merge that resolved a conflict in a document is its last change.
+is on, so a merge's own change is read: a merge that wrote a file no parent
+holds added it, and one that resolved a conflict in it changed it. A
+deletion adds and changes nothing (`history` states each status it reads).
 A document `git diff HEAD` names is printed as changed in the working tree.
 Documents are listed in the order of the commits that add them, and those no
 commit adds come last, in path order; a file two named directories hold is
@@ -884,14 +886,32 @@ def git_fields(root, *args):
 
 def history(root, rel):
     """`(added, last)` for the files under REL as HEAD's history holds them,
-    from one `git log` with renames off, oldest first: `added` is `{path:
-    (place, commit)}` for the last commit adding each path, PLACE its
-    position in the log, and `last` is `{path: commit}` for the last commit
-    naming it. `--cc` names a merge whose result differs from every parent
-    at a path, such as a conflict it resolved, as changing that path; its
-    status holds one letter per parent, so it never reads as an add. A
-    clean merge names nothing. A commit is its short hash and date. A HEAD
-    with no commit gives neither."""
+    from one `git log --no-renames --name-status --cc`, oldest first:
+    `added` is `{path: (place, commit)}` for the last commit adding each
+    path, PLACE its position in the log, and `last` is `{path: commit}` for
+    the last commit changing it. A commit is its short hash and date. A
+    HEAD with no commit gives neither.
+
+    The log names a path at a commit with a status of one letter per
+    parent, the path compared with that parent; a commit with one parent,
+    or none, has one letter. With renames off a letter is `A` (the parent
+    does not hold the path, and this commit does), `M` (both hold it, with
+    other content), `T` (both hold it, as another type of file) or `D` (the
+    parent holds it, and this commit does not). A merge is named at a path
+    only where its result differs from every parent, so a clean merge, or
+    one whose result is one parent's, names nothing, and the letters of one
+    status are either all `D` or all from `A`, `M` and `T`.
+
+    One rule reads every shape. **A status with no `D` changes the path,
+    and a status whose letters are all `A` also adds it**: `A` on an
+    ordinary commit, and `AA` or `AAA` on a merge that wrote a file no
+    parent holds, add it; `M`, `T`, `MM`, `AM` or `MA` change content some
+    earlier commit added. **A status of `D` letters adds and changes
+    nothing**: the commit took the path out of its own tree, and a
+    deletion on one line of history says nothing of the content HEAD holds
+    from another. A path HEAD holds again only untracked keeps the dates of
+    its history before the deletion; this reads no tree, and the listing
+    prints what the walk read."""
     fields = git_fields(
         root, "log", "-z", "--full-history", "--topo-order", "--reverse",
         "--no-renames", "--name-status", "--cc", "--format=%x01%h %cs",
@@ -900,9 +920,10 @@ def history(root, rel):
     added, last, commit, status = {}, {}, None, None
     for place, field in enumerate(fields):
         if status is not None:
-            last[field] = commit
-            if status == "A":
-                added[field] = (place, commit)
+            if "D" not in status:
+                last[field] = commit
+                if set(status) == {"A"}:
+                    added[field] = (place, commit)
             status = None
             continue
         field = field.lstrip("\n")
