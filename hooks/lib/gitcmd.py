@@ -24,7 +24,8 @@ and `git status` a script under `hooks/`, `skills/` or `.github/scripts/`
 starts is built by `argv` (`docs/what-a-script-gates.md` *Which gate a
 script holds*). A key or a subcommand found later to change a reading is
 added here and nowhere else. `core.quotePath` is not set: a script that
-takes paths out of git's output asks for them with `-z`, which quotes none.
+takes a path out of output git quotes under it asks for the path with `-z`,
+which quotes none.
 """
 
 KEYS = (
