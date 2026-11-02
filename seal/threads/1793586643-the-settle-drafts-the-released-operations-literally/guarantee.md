@@ -34,3 +34,37 @@ The base `origin/release/v0.28.0` resolves to `30ba21373` (executed: `git rev-pa
 target: 84e810ec0 against 30ba21373
 Verdict: sealed
 ```
+
+## Re-audit at 39d26f9b0
+
+| Field | Value |
+|---|---|
+| Broad gate | `9a3b10d0a against bf18be7d1`, the last `seal` block of `trail/gate.md` (read). `9a3b10d0a` is an ancestor of HEAD (executed: `git merge-base --is-ancestor`, exit 0), and `git log --no-merges --name-only 9a3b10d0a..HEAD ^bf18be7d1` (executed) lists one commit after it, `39d26f9b0`, touching `trail/gate.md` alone. The gate's output (read) reads `BROAD GATE PASSED` at `9a3b10d0a` against `bf18be7d1`, 6270 passed and 12 skipped, chain exit 0 |
+
+The base `origin/release/v0.28.0` now resolves to `bf18be7d1` (executed: `git rev-parse --verify --quiet`). The commits since the last block's target `84e810ec0` are `39eced4c0` (this file alone), the merge `1ad922165` of `bf18be7d1` (#1291), `9a3b10d0a` (`trail/rounds/round-2.md` alone) and `39d26f9b0` (`trail/gate.md` alone) (executed: `git log`). Of the coordinates the earlier claims stand on, the merge touched `skills/settle/scripts/settle.py`, `skills/settle/SKILL.md`, both READMEs and `tests/skills/test_settle.py`, and not `skills/settle/scripts/rule_changes.py` (executed: `git diff --stat 84e810ec0 HEAD -- skills/settle/scripts/rule_changes.py`, empty). So the claims on `settle.py` and its cases were re-run, and the `apply_op`, `_cut` and Removes rows above carry. `seal pr-body ... --check` over the rewritten body exited 0 (executed). The pull request's `release` check at HEAD fails with "the guarantee is behind HEAD: commit 9a3b10d0 after it touches ... round-2.md" (executed: `gh run view 41384538018 --log-failed`), which is the check refusing the earlier block, as it should, until this block is committed. Every probe ran in a `git clone --no-local` of HEAD under the scratchpad, and each clone was removed afterwards.
+
+### Claims re-run
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| The two modules pass at HEAD, with #1139's cases merged in | `trail/rounds/round-2.md:52` | `bin/test tests/skills/test_rule_changes.py tests/skills/test_settle.py -q` at `39d26f9b0` | holds: exit 0, 254 passed |
+| Seen red against the new base: the 35 cases #1217 adds fail on `bf18be7d1`'s code | `trail/phases/phase-1.md:24` | in the clone, `git checkout bf18be7d1 -- skills/settle/scripts/rule_changes.py skills/settle/scripts/settle.py skills/settle/SKILL.md`, then `bin/test ... -k "Test_apply_op or draft"`, and the complement `-k "not (Test_apply_op or draft)"` | holds: 35 failed and 2 passed, the 2 being #1139's `[a draft]` cases of `test_apply_removes_where_the_repository_publishes_no_release` and `test_apply_keeps_a_directory_whose_tag_has_no_published_release`, whose id names a draft release and not this flag (executed: `-rA`). The complement passes, 217, exit 0 |
+| The merged `main` keeps both refusals ahead of `--apply`'s new `try`, and `draft` does not stop at an operation not placed | `trail/rounds/round-2.md:37`, `trail/phases/phase-1.md:31` | three mutants through the Edit tool in the clone (`continue` turned to `break` at `settle.py:1574`; `DRAFT_WITH_APPLY` and `DRAFT_WITH_FROM` refusals at `:1747-1752` removed), then `bin/test tests/skills/test_settle.py -q -rf` | holds: exit 1, failing exactly `test_draft_writes_each_operation_in_merge_order_and_names_what_it_missed` and `test_refuses_draft_beside_apply_or_from_and_writes_nothing[apply]` and `[from]`; restored after |
+| S8 still replays with the merged `settle.py` | `trail/phases/phase-1.md:34`, `changelog.md` | `python3 <HEAD clone>/skills/settle/scripts/settle.py --root <clone at a92c358b8^> --released-at HEAD --draft`, then `git status --porcelain` and `git diff --quiet a92c358b8 -- docs/README.md` | holds: exit 0, `placed 93 of 94 operations in docs/`, the one `not placed` line at `1793411151` `frame/design.md:227`; 15 paths changed, all under `docs/`; the README diff exit 0 |
+| `DRAFTED`'s "step 4" still names the writing step after the merge | `settle.py#DRAFTED`, `skills/settle/SKILL.md` | `grep -n` over the procedure's numbered steps at HEAD | holds: step 4 at `skills/settle/SKILL.md:309` opens with the optional draft, step 9 runs `--apply` (read) |
+| The resolution keeps both sides of the README rows, the exit codes and `main` | `trail/rounds/round-2.md` *Confirmations* | `git show --cc 1ad922165` | holds: the exit-code paragraph names `--draft` under 0 and 2 and the unread note under 1 and 2; `main` holds #1139's `try` with `Unasked` and `Unread` and then `if args.draft` (read). The usage line `settle --from DIR` one column left of its neighbours is the base's text (the combined diff marks it present in `bf18be7d1`), not this resolution's |
+
+### The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | unchanged since the last block | the issue's *Done when* and the tree at HEAD, re-read where the merge touched it (above) | none |
+| the build | unchanged since the last block, merged with #1291 | the re-runs above; `settle.py#draft` and `rule_changes.py` unchanged by the merge (`trail/rounds/round-2.md:9`, and the empty `rule_changes.py` diff, executed) | none |
+| the last round | `round-2.md` at `1ad922165`: the resolution keeps both sides, the auto-merged `SKILL.md` and `test_settle.py` read as one text, no finding | `git show --cc 1ad922165` (executed), the mutants and modules above | none |
+| the changelog | unchanged since the last block | S8 re-run above, the code at HEAD (read) | none |
+| the orchestrator's part of the pull request body | adds "The merge after the seal": #1139 merged into the base as #1291, merged at `1ad922165` keeping both sides of each README row and of `settle.py`'s exit codes and `main`, round 2 opened nothing; its commit list gains the merge; the broad run after the merge at `9a3b10d0a` against `bf18be7d1`, 6270 passed and 12 skipped | `git log -1 bf18be7d1` (its subject ends `(#1291)`, executed) and `gh pr view 1291` (merge commit `bf18be7d1` into `release/v0.28.0`, executed); `git show --cc 1ad922165` (executed); `trail/rounds/round-2.md`; `trail/gate.md` and the gate output (read). The other bullets stand as the last block read them | none. #1291 names no closing issue (`gh pr view 1291`, executed), and the bullet's "#1139" stands on `bf18be7d1`'s message and on `seal/threads/1793582903-each-entry-links-its-pull-request/frame/design.md:1`, both naming #1139 (executed: `git show -s bf18be7d1`; read); the commit list still leaves out the two frame commits, as the last block noted |
+
+```seal
+target: 39d26f9b0 against bf18be7d1
+Verdict: sealed
+```
