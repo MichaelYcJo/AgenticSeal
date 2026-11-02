@@ -441,16 +441,18 @@ and the document stays where it was, as it was.
   committed is closed.
 - **It keeps a directory whose record still holds an open row**, or whose
   record cannot be read, and names each row.
-- **Where the root is shared, it keeps a released directory whose version's
-  published note does not carry its entry, and names it.** The published
-  note is the one copy of a fragment outside the history, and the removal
-  leaves the history as the only copy, so a note that lost an entry is
-  caught before that. The check runs after the open-row check, for each
-  directory that check would remove.
+- **Where the root is shared and the repository's notes are built from the
+  fragments, it keeps a released directory whose version's published note
+  does not carry its entry, and names it.** The published note is the one
+  copy of a fragment outside the history, and the removal leaves the
+  history as the only copy, so a note that lost an entry is caught before
+  that. The check runs after the open-row check, for each directory that
+  check would remove.
   - A note is read where `--released-at` holds the work item's
-    `changelog.md`, the oldest commit adding it ends its subject with
-    `(#N)`, and a `vX.Y.Z` tag holds that commit. The version is the lowest
-    such tag by number.
+    `changelog.md` with text in it, the oldest commit adding it ends its
+    subject with `(#N)`, and a `vX.Y.Z` tag holds that commit. The version
+    is the lowest such tag by number. An empty fragment gets no entry in a
+    note, so none is read for it.
   - The note is the version's release in one
     `gh api --paginate 'repos/{owner}/{repo}/releases?per_page=100'` list,
     drafts left out. It carries the entry where its body links
@@ -458,15 +460,25 @@ and the document stays where it was, as it was.
     and with no digit after N, or holds the HTML comment naming the work
     item's id, which the notes published before entries linked their pull
     requests carry.
+  - **Notes are read only where the repository builds them from the
+    fragments.** The release workflow that builds a note from the fragments
+    is AgenticSeal's own (`.github/scripts/publish_release_note.py`), and
+    the plugin ships no copy, so a repository's notes may be written by
+    hand or by another tool and say nothing of a fragment. The same list
+    tells the two apart: where no published release holds a whole line
+    `[#N](https://github.com/<owner>/<name>/pull/N)`, the line that opens
+    an entry, or the old comment on a line of its own, no note is read and
+    every directory goes.
   - A directory whose note does not carry the entry is kept, and its `kept`
     line names the tag, the pull request and `git show <commit>:<path>` for
     its fragment's text. So is one whose version has no published release,
     where the list holds at least one; where it holds none, the repository
     publishes no Releases, and the directory goes.
   - A directory with no note to read goes as before: no `changelog.md` at
-    `--released-at`, an adding commit that names no pull request, or no
-    version tag. A `no note read:` line under its `removed` line says which
-    case held.
+    `--released-at` or one with no text, an adding commit that names no
+    pull request, no version tag, no published release, or notes not built
+    from the fragments. A `no note read:` line under its `removed` line
+    says which case held.
   - The list is asked once, before the first removal, and only where some
     directory gets as far as a version tag. A list `gh` cannot give, and a
     `git` that cannot read what a note is checked by, stop the run with

@@ -87,17 +87,22 @@ nothing: it goes or stays with the directory. It writes no policy
 document: the settling session has written them by then, and `seal fold`'s
 lines over the policy root are printed after the removals.
 
-**Where the root is shared, `--apply` keeps a released directory whose
-version's published note does not carry its entry.** The published note is
+**Where the root is shared and the repository's notes are built from the
+fragments, `--apply` keeps a released directory whose version's published
+note does not carry its entry.** The published note is
 the one copy of a fragment outside the history, and the removal leaves the
 history as the only copy. A note is read for a directory the open-row check
-would remove, where `--released-at` holds its `changelog.md`, the commit
+would remove, where `--released-at` holds its `changelog.md` with text in
+it, since an empty fragment gets no entry, the commit
 that added it names a pull request (`adding_commit`), and a `vX.Y.Z` tag
 holds that commit. The version is the lowest such tag by number, and its
 note is its release in one `gh api --paginate` list of the repository's
 releases, drafts left out. The note carries the entry where it links that
 pull request, under any owner and name, or holds `<!-- specs/<id> -->`,
-which the notes published before #1139 carry. A directory whose note does
+which the notes published before #1139 carry. The workflow that builds a
+note from the fragments is this repository's, and the plugin ships none, so
+notes are read only where some published release holds a whole line
+`BUILT_RE` reads, the line that opens an entry. A directory whose note does
 not carry it is kept and named with the tag, the pull request and the
 commit and path its fragment can be read at, and so is one whose version
 has no published release, unless the list holds no published release at
@@ -780,8 +785,8 @@ JUDGMENTS_HEADING = (
 )
 REMOVES_HEADING = (
     "what `seal settle --apply` removes: each released directory whose record "
-    "holds no open row,\nunless its version's published note, which `--apply` "
-    "alone reads, lacks its entry:"
+    "holds no open row,\nunless `--apply`, which alone reads the published "
+    "notes, finds its entry missing\nfrom a note built from the fragments:"
 )
 REMOVES_HEADING_LOCAL = (
     "what `seal settle --apply` removes: each released directory whose record "
@@ -1540,8 +1545,9 @@ def closed_rows(records, directory, reader):
 
 def apply(found, root, out):
     """Remove each released directory whose record holds no open row in the
-    working tree and, where the root is shared, whose published note
-    carries its entry (`notes`), printing the rows its record closed. Keep
+    working tree and, where the root is shared, whose published note, where
+    one is read, carries its entry (`notes`), printing the rows its record
+    closed. Keep
     and name each one that still holds a row, and each one its note keeps.
     Under each directory's line, why no note was read, where none was, and
     each of its misplaced record files (`misplaced`), named as not read and
@@ -1631,7 +1637,8 @@ def main(argv=None):
         action="store_true",
         help="remove each released work item directory whose record holds no "
         "open row in the working tree and, where the root is shared, whose "
-        "version's published note carries its entry, and name each one kept",
+        "version's published note, where one built from the fragments is read, "
+        "carries its entry, and name each one kept",
     )
     ap.add_argument(
         "--from",

@@ -2805,9 +2805,10 @@ class Test_module:
         # What the dry run says `--apply` removes, which the note can keep
         # where the dry run cannot say so (#1139).
         assert (
-            "each released directory whose record holds no open row, unless its "
-            "version's published note, which `--apply` alone reads, lacks its "
-            "entry" in flat(settle.REMOVES_HEADING)
+            "each released directory whose record holds no open row, unless "
+            "`--apply`, which alone reads the published notes, finds its entry "
+            "missing from a note built from the fragments"
+            in flat(settle.REMOVES_HEADING)
         )
 
     def test_the_command_is_reachable_by_the_name_a_document_gives_it(self):

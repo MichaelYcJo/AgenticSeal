@@ -7,7 +7,7 @@ its release is settled. The settle writes into `docs/` each section the
 released designs' `## Rule changes` name, as their latest decision, and
 `seal settle --apply` removes each released directory whole whose record holds no
 open row, whether or not it wrote a `frame/design.md`, and keeps one whose
-version's published note does not carry its entry. A settle is not a work item and
+version's published note, built from the fragments, does not carry its entry. A settle is not a work item and
 opens no directory here.
 `skills/settle/SKILL.md` is the procedure and `skills/settle/scripts/settle.py`
 the command behind it. A work item's directory is safe to delete wholesale
