@@ -68,6 +68,11 @@ The fix rewrites item 6's last two lines. The orchestrator may widen the
    `alt` text (S3) is pinned by S1's whole-string assertion.
 ```
 
+```seal
+verdict: fixed 9db877db
+answer: The orchestrator's commit rewrites item 6 at `frame/design.md:83-86` to the fix's text: a case for the encoding (S4), with S3 pinned by S1's whole-string assertion. It also widens the `frame/plan.md:97` row to name item 6. A `grep` for `S3` across `frame/design.md`, `frame/plan.md` and `frame/questions.md` finds no other sentence asking for a separate S3 case. Item 6 now agrees with the S3 cell at `:119` and with the tree. This is outside this finding: *Scope* item 2 at `:69-70` still says the whole URL is HTML-escaped, which `ddbef6c1` made untrue, and the hand-back names it.
+```
+
 ## Confirmations
 
 ```seal
