@@ -1724,10 +1724,13 @@ def record_path(path, worktree):
 # exit of a session that ran to its end. Every exit above was measured with
 # the recorder loaded on pytest 6.1, 7.0 and 9.1 (#849 round 2), and again
 # with every stop `stopped` carries on the same three builds and on 9.1 with
-# pytest-xdist 3.8 under `-n 2` (`trail/phases/phase-1.md` of 1791384158). One stop
-# shows in neither: a `pytest.exit()` raised by a `pytest_sessionfinish`
-# hook that runs after the recorder's is raised after the `end` line was
-# written, and that session reads as one that ran to its end. One
+# pytest-xdist 3.8 under `-n 2` (`trail/phases/phase-1.md` of 1791384158). Two
+# kinds of stop show in neither. A `pytest.exit()` raised by a
+# `pytest_sessionfinish` hook that runs after the recorder's is raised after
+# the `end` line was written, and that session reads as one that ran to its
+# end. A stop raised before the recorder writes its `session` line, such as a
+# `pytest.exit()` in a conftest's `pytest_configure`, leaves no record, and
+# the run reads as one that started no pytest (#883 round 1). One
 # over-strictness is named rather than closed: pytest sets `shouldfail` after
 # the test that reaches `-x` or `--maxfail`, last test or not, so a session
 # whose limit fell on its last test ran every test and still reads unended
