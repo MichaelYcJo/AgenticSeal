@@ -57,6 +57,11 @@ for op in ops:
 
 A subtracted run is only removed where a run of the other document's text equals a run of the taken text after `passages.py#words`. A `from` that `words` normalises differently from the document's text (a wrapped section name, for one) still leaves its runs standing. That residue is a notice, which refuses nothing.
 
+```seal
+verdict: fixed 28e82bf4d
+answer: Held, fixed in my own words rather than the paste-ready fix: `rule_changes.py#copies` takes a `gone` argument, `{path: [text]}`, and takes each text out of its document once through `rule_changes.py#pattern`, across any wrapping, before counting runs, where the proposal subtracted the taken text's runs; so a passage the document holds twice still counts once taken out, and no normalisation residue is left. `chain_check.py#pins_and_copies_in` collects each `from`, and each section a `remove` with no `from` takes out, per document once per design. Seen red at `4105fd13c`: `Test_copies::test_refuses_a_run_that_stands_only_in_text_the_design_takes_out` and `::test_accepts_a_run_the_document_still_holds_after_what_is_taken_out` (no `gone` argument), and `Test_pins_and_copies_in::test_accepts_a_passage_the_design_moves_naming_no_copy` (named `docs/policy.md`); `seal mutate` 4 of 4 red over the subtraction and its call. With the reader fixed, `agents/proofer.md` step 7 now makes a copy a finding where another file keeps the passage after the settle, which also covers a removal by another pending design that this design's read cannot see. `frame/design.md:101` ("a copy are findings") holds for a copy so counted, and `:48` (*Scope* item 6) states the old proofer sentence; both are named to the orchestrator to fold to "a copy another file keeps after the settle".
+```
+
 ### 2. The pin reading of a `remove` with no `from` reads nothing, and says nothing, where the working tree lacks its document or section
 
 ```seal
@@ -104,6 +109,11 @@ def _section_text(rules, root, op):
 
 `section_lines`'s second value is assumed to be a sentence saying why, as its call in `rule_changes.py` reads it. The tree was not checked for its type at every return. Each new notice is pinned by a case in `Test_pins_and_copies_in`, as contract rule 14 asks.
 
+```seal
+verdict: fixed 28e82bf4d
+answer: Held. The class was listed by taking the reading apart into each source it opens: the two `git ls-files` listings (`tests/*.py`, `*.md`); each test file's open, decode and `ast.parse`, which raises `SyntaxError` or `ValueError` on a bad source and `RecursionError` or `MemoryError` past its nesting limit; each rule document's open and decode; and a `remove` with no `from`'s document open and decode and its `section_lines` lookup (no heading, or one standing twice). A `from` and a `to` are design text and open nothing. Each instance is now named as not read: `LISTING_UNREAD` (no path, line 0) for a listing git cannot make, `TEST_UNREAD` with the error's name for every test-file failure (`TEST_UNREADABLE`, which also covers the `MemoryError` row of `## Not judged`), `DOCUMENT_UNREAD`, now `could not be read (<error>)`, for a document's open or decode, and `SECTION_UNREAD` at the operation's line with `section_lines`' own reason, an absent document reading "the document is not in the tree". A `FileNotFoundError` on a listed test or document, one the working tree deleted, is still skipped, since it is no file of the tree the settle writes into; that is the one silent case left, and `_read_tree`'s docstring says so. Seen red at `4105fd13c`: `test_names_a_section_a_remove_cannot_read_as_not_read` (both ids), `test_names_a_test_and_a_document_it_cannot_open_as_not_read`, `test_names_a_test_the_parser_gives_up_on_as_not_read` (both ids) and `test_names_a_listing_git_could_not_make_as_not_read`; `seal mutate` 6 of 6 red over the branches. Other statements: `chain_check.py`'s module docstring is corrected in the same commit; `frame/design.md:102` ("A test file the check cannot parse is named as not read") and `:120` (`each test file it cannot parse`) state the narrower rule and are named to the orchestrator to fold.
+```
+
 ### 3. The plan's signal for removing the reading fires on the path the design intends, so the settle cannot weigh the mechanism by it
 
 ```seal
@@ -118,6 +128,11 @@ The design's own numbers frame the noise question that the signal should answer.
 
 ```markdown
 The signal is the count the settle reads in the released work items' round records: how many pin and copy notices became findings at review, against how many were printed. A named fact pin that the settle repointed is the designed path. It counts as a notice that caught nothing, and is no failure. A settle whose broad run fails on a wording pin or a copy that a pull request named and its proofer passed is the second signal. Where the count stays at nothing over two settles, the answer is to remove the pin half, since `skills/core/SKILL.md` *The rule a mechanism is kept against* weighs it by what it caught.
+```
+
+```seal
+verdict: fixed 4105fd13c
+answer: Held, and folded by the orchestrator at `4105fd13c`, with a row in `## Judgments of the run`, since a fix pass does not edit `frame/plan.md`. I read the fold and find it right: a named fact pin the settle repoints is now the intended path, and the signal is the count of notices that became findings at review against the notices printed. That count rests on a finding naming the notice it came from, which nothing told the proofer to do, so `28e82bf4d` adds to `agents/proofer.md` step 7 that a finding taken from such a notice quotes it, and the changelog's process row says so.
 ```
 
 ## Confirmations
