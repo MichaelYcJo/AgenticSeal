@@ -4,7 +4,7 @@
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the format check at the branch's head | the orchestrator's broad gate, `seal gate --base release/v0.28.1 --record` this work item |
+| The full suite, the repository-wide lint and the format check at the branch's head | the orchestrator's broad gate, `seal gate --base release/v0.29.0 --record` this work item |
 | The new cases of `tests/skills/test_mutation_check.py` on CI's `windows-latest` legs (`questions.md` Q1) | the orchestrator, reading the four Windows legs of the pull request's CI run |
 
 ## Not done
