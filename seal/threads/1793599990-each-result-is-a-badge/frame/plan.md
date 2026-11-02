@@ -47,7 +47,7 @@ the sentence that names the results.
 service retires or changes its `/badge/` path, rate-limits GitHub's image
 proxy, or is down when a reader opens a note the proxy has not cached. The
 results cell then shows each badge's `alt` text, or a broken-image mark
-beside it, on every note since 0.28.1; no job fails, and every number is
+beside it, on every note since 0.29.0; no job fails, and every number is
 still in the page. A second scenario: the seal is redrawn in another colour
 under #857's rule that a new page image is a new icon, and the badges keep
 the old reds, because the two colours are constants read from today's icon
@@ -87,7 +87,7 @@ outside the tests.
 - No migration, no environment variable, no new package. One outside host
   is read by a reader's page, never by a job: the Shields badge service,
   through GitHub's image proxy.
-- The first note with badges is v0.28.1's. Published notes are unchanged.
+- The first note with badges is v0.29.0's. Published notes are unchanged.
 - The plugin ships no release workflow, so no user's repository sees this.
 
 ## Judgments of the run

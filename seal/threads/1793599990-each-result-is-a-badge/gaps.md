@@ -4,8 +4,8 @@
 
 | Item | Who must answer |
 |---|---|
-| Whether a reader's browser shows each badge's alt text in its place when the badge service or GitHub's image proxy cannot serve it (`frame/questions.md` Q1). No browser runs in this environment, and the alt text is written whichever way the browser draws it. | a measurement: the owner opens v0.28.1's published note with images blocked |
-| How the badges look on a published release page. The cases pin the HTML, and the framer rendered a sample table through GitHub's Markdown API, but no release carrying the new header exists before v0.28.1 is tagged. | the owner, reading v0.28.1's note once the seal job has run |
+| Whether a reader's browser shows each badge's alt text in its place when the badge service or GitHub's image proxy cannot serve it (`frame/questions.md` Q1). No browser runs in this environment, and the alt text is written whichever way the browser draws it. | a measurement: the owner opens v0.29.0's published note with images blocked |
+| How the badges look on a published release page. The cases pin the HTML, and the framer rendered a sample table through GitHub's Markdown API, but no release carrying the new header exists before v0.29.0 is tagged. | the owner, reading v0.29.0's note once the seal job has run |
 
 ## Not done
 
