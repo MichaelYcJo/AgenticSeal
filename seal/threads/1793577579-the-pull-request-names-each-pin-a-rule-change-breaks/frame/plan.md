@@ -52,3 +52,4 @@ Phase 1 is one slice. The reader, its move and the arm cannot be shown through `
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
+| 2026-11-02 | One crafter spawn builds phases 1 and 2, departing from a fresh spawn per phase, as #1215's did | Phase 2 holds only the changelog fragment and its process row; a fresh spawn would re-read the frame and phase 1's record to write one file. This is the second work item of 0.28.0 to take this departure, which the settle reads against the rule | `skills/code-review/orchestration.md` *Orchestrator: a phase is a fresh crafter, and a fix pass resumes the implementer* |
