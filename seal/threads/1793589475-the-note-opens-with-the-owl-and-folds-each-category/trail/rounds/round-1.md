@@ -139,6 +139,11 @@ retitle #1293 with its tags in code spans before the release merges to
 the fragment then state the limit with #1293 as its one instance, and no
 count. That course leaves the class open for the next title.
 
+```seal
+verdict: fixed 789522175
+answer: Built to the frame as c835b4cbd folded the answer in (`frame/design.md` *Scope* item 5, `frame/plan.md` *Judgments of the run*). `kind_and_text`, the one function both the folds and the thanks section read a title through, now writes each `<` outside a code span as `&lt;`, reading code spans with `close_issues_on_release.py#SPAN`; fragments are not escaped. The paste-ready code was read against `SPAN` and holds, since the pattern has no capturing group of its own, but the fix is written in my own words as one `re.sub` over a span-or-`<` alternation (`SPAN_OR_LT_RE`) rather than a split and rejoin. The count of 0 in 318 and the limit sentence it grounded are gone from `release_body`'s docstring and from `changelog.md`, which now say what the renderer does with a title. The render case takes #1293's title, and a new case `test_a_bare_tag_in_a_title_is_written_as_text` holds a bare `<details>` alone and a bare `</details>` alone, through the fold's line, the thanks line and the rendered folds. All three were red at c835b4cbd (exit 1: the render case at `tests/github/test_publish_release_note.py:680`, the reader meeting #1293's tags as folds; both bare-tag cases at `:693`, the line holding the tag raw), and red again under `seal mutate` with only the escape removed, at the same lines (exit 0, verdict red); a second mutant that escaped code spans too was red at `:680`. The phase's narrow modules with `tests/test_censuses.py` and `tests/github/test_close_issues_on_release.py` passed 495 (exit 0); `bin/seal layout --check tests` and ruff on the two changed Python files exited 0 (executed).
+```
+
 ## Confirmations
 
 ```seal
