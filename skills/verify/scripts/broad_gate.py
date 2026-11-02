@@ -1728,9 +1728,10 @@ def record_path(path, worktree):
 # kinds of stop show in neither. A `pytest.exit()` raised by a
 # `pytest_sessionfinish` hook that runs after the recorder's is raised after
 # the `end` line was written, and that session reads as one that ran to its
-# end. A stop raised before the recorder writes its `session` line, such as a
-# `pytest.exit()` in a conftest's `pytest_configure`, leaves no record, and
-# the run reads as one that started no pytest (#883 round 1). One
+# end while its pytest exits with the code that hook chose. A stop raised before the recorder writes its `session` line, such as a
+# `pytest.exit()` in a conftest's `pytest_configure`, leaves no record of that
+# session, and the gate reads the run as though that session never started:
+# on the row's exit and the other sessions' records (#883 rounds 1 and 2). One
 # over-strictness is named rather than closed: pytest sets `shouldfail` after
 # the test that reaches `-x` or `--maxfail`, last test or not, so a session
 # whose limit fell on its last test ran every test and still reads unended
