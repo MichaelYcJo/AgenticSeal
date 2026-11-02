@@ -42,11 +42,23 @@ seal fold
 
 The first prints each group of released designs whose rule changes name one
 section, in merge order, and every open row of every released record.
-Between the first and the second, the session running the settle writes each
-section as its group's latest decision, checked against the code, and closes
-each open row with what closed it, asking nobody. The second removes every
-released work item directory whose record holds no open row, and names any
-it keeps. `seal fold` then reads
+Before the first, the session running the settle asks the person
+whether any directory besides `seal/` holds decisions to fold, and
+passes each one named to the first as `--from <dir>`. Where the first
+lists a document of one, the session proposes each document as promote
+or skip, and the person marks the rows in a second question, before
+the session's first edit. Between the first and the second, the session
+writes each section as its group's latest decision, checked against the
+code, writes each decision the person marked promote into its section,
+and closes each open row with what closed it, asking nobody about
+either. A named directory is read and never written
+(`docs/the-record-layout.md` *The fold, and what tells it from a
+deletion*). The second removes every released work item directory whose record
+holds no open row and whose version's published note carries its entry
+where the repository's notes are built from the fragments, and names any
+it keeps with why. The settle's pull request body names
+each directory kept for its note, and the owner repairs that note
+before a later `--apply` removes it. `seal fold` then reads
 the documents the settle wrote, and names each one past its ceiling as one
 to split (`skills/settle/SKILL.md` *A document past its ceiling is split,
 never trimmed*). The settle's pull request body states each decision with
@@ -76,8 +88,20 @@ in its finding cells, and the refusal is printed under the table, because a coun
 skipped a refused finding is a wrong number. They are this repository's measure
 of #1148, which removed the records' copies of one another: 0.24.0's four work items
 read 17 recurring of 36 findings, 12 in records alone, and 0.25.0's one read 3 of 10, 1
-in a record alone. A release whose records-alone count does not fall says the records
-still restate one another, and the next step is #1020's check that reads recurrence. The
+in a record alone. A records-alone count that does not fall is no verdict. #1148 is
+measured by this count falling, so a count that holds level is read
+as one that rose: it is a row for the judgment
+`docs/measuring-a-run.md` *A band flags a reading for judgment, and a
+judgment decides whether it is worse* asks, because a release's mix
+of work moves the count as well as stale copies do. A stale copy is
+a record that restates a fact another record holds and was left as
+it stood when that source changed; #1148 removed the records' copies
+of one another so that none could go stale. The settling session's
+comment names the work items whose records-alone findings kept the
+count up, and says of each such finding whether it found a stale
+copy. The count is `worse` only where stale copies are what kept it
+up. #1020's check is then the next step, and #1020 is the issue that
+follows, so the session files no other. The
 step is this repository's and ships to no user: the plugin's settle procedure
 (`skills/settle/SKILL.md` *The settling session's procedure*) does not take it, because
 the reader of the four numbers is this repository's owner and most installed
@@ -93,13 +117,20 @@ them tracked, and the broad gate refused the tree. A comparison with another ref
 a `git worktree` of that ref.
 check: none reader: the owner's settling session at this step
 
-**Before `seal settle --apply`, the settling session reads the dry run's *The
-judgments*, the orchestrators' rows from every released `frame/plan.md` grouped by the
-document each stands on, and rewrites a section where one kind of judgment recurs across
-work items or kept costing rounds.** The rows leave with their directories at `--apply`,
-so this is the one reading they get; `skills/core/SKILL.md` *A judgment stands on a
-source document, and is written down with both* says the guidance improves from that
-record and not from memory.
+**Before `seal settle --apply`, the settling session reads the dry
+run's *The judgments* and *The judgments earlier settles removed*, and
+rewrites a section where the same kind of judgment came back, within
+this release or over several, or cost rounds each time it was made.** *The judgments* holds the
+orchestrators' rows from every released `frame/plan.md`. *The judgments
+earlier settles removed* holds the rows of every plan an earlier settle
+removed, read from the history with the release each shipped in. Both
+are grouped by the document each row stands on. The pull request body
+names each kind that recurred across releases with the releases it
+recurred in. The rows leave the tree with their directories at
+`--apply`, and the history keeps them for the next settle, so nothing is
+kept beside the tree to carry them; `skills/core/SKILL.md` *A judgment
+stands on a source document, and is written down with both* says the
+guidance improves from that record and not from memory.
 check: none reader: the owner's settling session at this step
 
 ## 5. The release pull request
@@ -109,28 +140,57 @@ gh pr create --base main --head release/vX.Y.Z \
   --title "release: X.Y.Z symptoms: <the symptoms the release answers>" --body-file <file>
 ```
 
-**The orchestrator opens the release pull request, and the owner's one
-required act at a release is its merge.** The reads below and the boxes of
-step 6 are reports that fail nothing. The version moved in the release's
-first pull request, so no pull request comes between the last work item and
-this one. The orchestrator opens it with the first work item pull request
-into `release/vX.Y.Z` that finds none open, and leaves it open. Its milestone
-check fails while the milestone claims an issue the branch does not carry,
-by design, and goes green on the push that merges the last one.
+**The orchestrator opens the release pull request once the last pull
+request into `release/vX.Y.Z` has merged, and the owner's one required act
+at a release is its merge.** The reads below and the boxes of step 6 are
+reports that fail nothing. The version moved in the release's first pull
+request, so no pull request comes between the last work item and this one.
+A release pull request opened earlier takes each later squash merge into
+the branch as a push to its head. Its `tests` run then reads a tree the
+merged pull request tested on its own merge ref only where nothing else
+merged into the branch after that test started, since `main` stays where
+the release branch was cut unless a hotfix moves it. Where something did,
+the run is the first to read the two together, and the one run after the
+last merge reads them together as well. Opened after the last merge, it
+runs `tests` once, on the tree the release ships, and what runs only on a
+pull request into `main` answers once: `release-report`, and the
+`hygiene` workflow's version and milestone steps.
+The orchestrator reads that moment from two commands after
+`git fetch origin`. `gh pr list --base release/vX.Y.Z --state open` lists no
+pull request; a settle's pull request closes no issue, so only this command
+sees it. And the release pull request's own milestone check exits 0 and
+prints its `M (open in 'release: X.Y.Z')` line, run as
+`python3 .github/scripts/release_completeness_check.py` with
+`HEAD_BRANCH=release/vX.Y.Z`, `HEAD_SHA=origin/release/vX.Y.Z` and `REPO`
+set to what `gh repo view --json nameWithOwner --jq .nameWithOwner`
+prints. Exit 0 alone does not read the moment: the script also exits 0
+when the branch name is not a release name and when no milestone of that
+title exists, and then prints a line saying so in place of the `M` line.
+That check fails the release pull request while the milestone claims an
+issue the branch does not carry, and names each one. An issue it names
+that no branch is building is step 0's milestone box, left undone. Where
+it fails for another reason, a patch carrying a `feat:` or a label on an
+issue the branch does not carry, its `::error::` line names the repair.
 check: tests/github/test_release_completeness_check.py
 
 Press ***Create a merge commit***, never squash: the review records name the
 release branch's commits on their `target:` lines, and a squash discards
 them.
 
-**Read the release table before the merge.** The pull request's `tests` run
-carries it in the `release-report` job's summary, under *Against vA.B.C*:
-each agent's preload bytes, the suite's seconds, each leg's minutes and each
-document's bytes, beside the same reading at the last release tag, and under
-it each test file's priced cases and seconds at the tag and now. It fails
-nothing. A preload or a document that grew is a question the pull request's
-body answers, or an issue it opens. A leg's minutes compare one run with one
-run and swing on the same code, so they are read and never acted on alone.
+**Read the release table before the merge.** The pull request's
+`tests` run carries it in the `release-report` job's summary, under
+*Against vA.B.C*: each agent's preload bytes, the suite's seconds,
+each leg's minutes and each document's bytes, beside the same reading
+at the last release tag, and under it each test file's priced cases
+and seconds at the tag and now. It fails nothing, and no row of it is
+a verdict. The table has no band, so a preload or a document that grew
+is a row for the judgment `docs/measuring-a-run.md` *A band flags a
+reading for judgment, and a judgment decides whether it is worse*
+asks. The orchestrator writes that weighing in the pull request's
+body, and opens an issue only for a row the weighing judges `worse`. A
+leg's minutes compare one run with one run and swing on the same code,
+so they are read and never acted on alone.
+check: tests/github/test_release_report.py tests/text/test_the_release_table_reads_two_trees_and_fails_nothing.py
 
 **Each release clears what grew.** The test file rows are a report and never
 a ceiling: a heavily exercised module needs the cases it needs. The owner
@@ -202,18 +262,21 @@ python3 .github/scripts/plugin_directory_check.py   # what the marketplace files
       fragment the previous version tag does not already hold; for a `v*`
       tag that is not `vX.Y.Z`; and when a `gh` call it makes fails. A
       missing title line is not one of them: it falls back to the tag name.
-      The note opens with the release's theme line, then a summary of the
-      release's pull requests and a `### 🙌 Thanks to` line for each outside
+      The note opens with a header of the release's counts and the theme
+line under it, then the release's pull requests, one fold per
+conventional-commit type under its name and count, and a `### 🙌 Thanks to` line for each outside
       contributor, over the fragments folded; where the job log says the
       pull requests could not be listed, the note went out as the theme line
       and the fragments alone, which one `gh release edit` repairs. After
-      the note, the same workflow's `seal` job attaches `seal.png` and puts
-      it where the glance table stood. Where the note still shows the
-      table, the `seal` job's log says why on a `::warning::` line: the
+      the note, the same workflow's `seal` job attaches `seal.png` and puts it in the note's header, beside the
+results the stamp states, where `seal/config.md`'s
+`Release note seal mark` row reads `yes`; under any other value it
+attaches nothing, and the header holds the results alone. Where the row
+reads `yes` and the header still shows no image, the `seal` job's log says why on a `::warning::` line: the
       suite at the tag did not pass, the seal could not be drawn or
-      written, a `gh` call failed, or the glance table was not in the note
-      as generated: edited before the job reached it, published without
-      one, or the pull requests moved between the two lists. That job never
+      written, a `gh` call failed, or the header was not in the note as generated: edited before the job
+reached it, already replaced by an earlier run of the job, published
+without one, or the pull requests moved between the two lists. That job never
       fails the release. To draw one by hand, from a checkout at the tag,
       run the suite with the broad gate's recorder loaded
       (`PYTHONPATH="$PWD/skills/verify/scripts/pytest_record"`,

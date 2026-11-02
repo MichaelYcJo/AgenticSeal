@@ -34,7 +34,7 @@ wrong states the correction in its `## Rule changes`
 
 | File | The question it answers |
 |---|---|
-| `docs/measuring-a-run.md` | what a segment of a run measures, and where the reading goes |
+| `docs/measuring-a-run.md` | what a segment of a run measures, how a reading that moved is judged, and where the reading goes |
 | `docs/the-broad-gate.md` | who takes the one broad run, what it runs, and what it may say |
 | `docs/the-routing-check.md` | where a session's routing is checked: at its edit tools before the first edit, and at the pull request |
 | `docs/the-session-hooks.md` | how the hooks are registered, and what the implementer mark says |

@@ -68,24 +68,40 @@ hand fires the publish workflow too.
   the range that holds it, so a work item a settle removed before the tag
   still has its entry. It goes red on a tag whose range added no
   fragment the previous tag does not already hold, which is the release
-  shipping unexplained. The note opens with the release's theme, the first
-  sentence of its milestone's description with a leading `Purpose:` left
-  out; a milestone that cannot be read leaves the note without one and never
-  fails the job. A summary read from the pull requests merged into
-  `release/vX.Y.Z` follows: counts, one line per pull request under its
-  conventional-commit type with the issues it closed, a `### 🙌 Thanks to`
+  shipping unexplained. The note opens with a header, an HTML table whose one cell holds the
+release's counts as text, one per line: the pull requests merged, the
+issues they closed, and the outside contributors where there are any.
+The release's theme follows it, the first sentence of its milestone's
+description with a leading `Purpose:` left out; a milestone that cannot
+be read leaves the note without one and never fails the job. A summary read from the pull requests merged into
+`release/vX.Y.Z` follows: one fold per conventional-commit type, its
+summary the type's name and the number of pull requests under it, and
+in it one line per pull request with the issues it closed, a `### 🙌 Thanks to`
   line for every author other than the repository owner and bots, and how to
-  update. The fragments follow, folded, each under an HTML comment naming its
-  work item. A pull request title is therefore a line of the release note: write
+  update. The fragments follow, folded, each under a link to the pull request
+that added it. A pull request title is therefore a line of the release note: write
   it as one. **Then the release's seal is attached.** A second job in the same
-  workflow runs only when this run created the release. It runs the suite at
-  the tag, attaches the page form of the stamp's mark, the PNG that
-  `.claude-plugin/plugin.json` names as its `icon`, as `seal.png`, and
-  replaces the glance table with the image at its display width and one
-  line of the table's counts. The PNG is drawn from `assets/seals/owl.svg`
+  workflow runs only when this run created the release. It runs the suite at the tag and replaces the note's header with a
+table whose last cell holds the results the stamp states, as badges, one
+or two to a line. They are the sealed version and commit, the pull requests
+merged, the issues closed, the outside contributors where there are
+any, the suite's counts, the work items and their review rounds, how many were capped, and
+the issues deferred. A badge is a static image from the Shields badge
+service showing a label and a value in two of the seal's reds, and its
+alt text is that label and value in words. So a reader whose client
+draws no image, or who opens the note while the service does not
+answer, still has every result. Where `seal/config.md`'s
+`Release note seal mark` row reads `yes` at the tag, the job first
+attaches the page form of the stamp's mark, the PNG that
+`.claude-plugin/plugin.json` names as its `icon`, as `seal.png`, and the
+table opens with a cell holding that image at its display width. Its alt text names the image alone, because the badges' alt text
+carries every number. Under any other value nothing is attached and the table is the
+results' cell alone; `templates/setup/config.md` *The seal mark* states
+the row's values and who reads it. The PNG is drawn from `assets/seals/owl.svg`
   by the command `assets/seals/README.md` gives, and the job installs no
-  imaging library to attach it. That edit is the only change it makes to a note, and
-  only to one whose glance table is still exactly as it was generated. Any
+  imaging library to attach it. That edit is the only change it makes to a note, and only to one
+whose header is still exactly as it was generated, so a run of the job
+after the first finds no such header and uploads and edits nothing. Any
   failure is a `::warning::` in the job log and leaves the note as it was
   published, so the seal can never turn the release red. How a browser shows
   the image on the release page is seen by a person; the job reads no page.
@@ -239,9 +255,13 @@ from them at the tag.** Which file a change writes, and why, is
 `docs/the-record-layout.md` *A change writes fragments, never a shared file*.
 No branch gathers them. `.github/scripts/publish_release_note.py` reads, from
 the history at the tag, the fragments the release's commits added and the
-previous version tag does not already hold, and writes each under an HTML
-comment naming its work item, invisible to a reader and the only link from a
-released entry back to the work that produced it. `DRY_RUN=1` prints the note
+previous version tag does not already hold, and writes each under a link to the pull request that added it. The
+commit of the range that adds a fragment is its pull request's squash
+commit, whose subject ends with `(#N)`, so the number is read once, at
+the tag, from the history. The pull request's body holds the records'
+text (`seal pr-body`), so one click leads from an entry to the reasons
+behind it. A fragment whose adding commit names no pull request is
+written with no link. `DRY_RUN=1` prints the note
 and writes nothing.
 check: tests/github/test_publish_release_note.py
 

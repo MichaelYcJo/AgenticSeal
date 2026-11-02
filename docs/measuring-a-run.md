@@ -77,6 +77,32 @@ contain. A refusal that prints two sums rather than their difference leaves
 the reader able to see which of the two is wrong.
 check: tests/skills/test_session_cost.py
 
+**A band flags a reading for judgment, and a judgment decides whether
+it is worse.** A band is how far a reading may move from the reading it
+is compared with and still read as the same. A reading past its band
+has moved past the noise its measure carries, and the band says nothing
+more: it cannot say whether what the change cost outweighs what the
+change bought. A margin a claim fixes before its run is that claim's
+criterion and not a band in this sense: the pass rules of
+`evals/README.md` *The behaviour suite* decide whether one preload
+rewrite proved itself not worse, and they file nothing. A reading past
+its band toward more cost is weighed, and the weighing is written
+beside the reading: the change that moved it, what that change cost,
+what it bought, and the record each stands in. The reading is `worse`
+only where the cost outweighs what was bought. The party that writes
+the reading writes the weighing: the orchestrator in a release pull
+request's body, the settling session in its comment on the
+`flow-baseline` issue, and the crafter in the phase record of a work
+item that measures the process. An issue follows a reading judged
+`worse` so, filed by the orchestrator or the settling session, and
+none follows a reading whose only ground is its band. A band read as a
+verdict filed #1259, for a session start that grew by 397 B because
+the core now reaches every session from one source, and the owner
+closed it as not a defect. An issue a band files costs its reader a
+reading and a close, and the count of `worse` readings then says less
+than it seems to.
+check: none reader: the proofer at review and the owner before a release or settle pull request's merge
+
 ## Where a reading goes
 
 **A measurement nobody posted is a measurement nobody has.** Whichever
