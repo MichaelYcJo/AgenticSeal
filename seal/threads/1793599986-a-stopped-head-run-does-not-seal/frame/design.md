@@ -34,7 +34,7 @@ Out:
 - **Naming what stopped the session, or the test it stopped in, in the failure form.** `records/` in the kept output holds each `stopped` entry, and `UNENDED_HERE` already points there. The test a session stopped in would be read off the order of the record's lines, and under xdist that order is not the order the tests ran in, so the name would be a guess.
 - **Running the row at the base to say whether the base stops too.** The verdict is the same either way: the gate fails a suite with a failure the base shares as well. It would cost one more full run. Where the orchestrator needs the answer, `skills/verify/orchestration.md` already says to run at the base in a `git worktree add`.
 - **`unread` and `unplaced` at exit 0.** Neither says that a test went unrun. A cut `end` line leaves no `end` line, which `unended` counts already.
-- **The stops no record shows.** A `pytest.exit()` raised by a `pytest_sessionfinish` hook that runs after the recorder's is raised after the `end` line was written. A stop raised before the recorder writes its `session` line, such as a `pytest.exit()` in a conftest's `pytest_configure`, leaves no record. Both stay the limits `RAN_TO_ITS_END`'s comment and the recorder's docstring name.
+- **The stops no record shows.** A `pytest.exit()` raised by a `pytest_sessionfinish` hook that runs after the recorder's is raised after the `end` line was written. A stop raised before the recorder writes its `session` line, such as a `pytest.exit()` in a conftest's `pytest_configure`, leaves no record. Both stay limits, stated in `templates/setup/config.md` rule 3 and named in `RAN_TO_ITS_END`'s comment and the recorder's docstring.
 - **The recorder, `RAN_TO_ITS_END`, the base's words, the panel's layout and `.github/scripts/release_seal.py`.** None changes.
 
 ## User scenarios & acceptance *(mandatory)*
@@ -70,13 +70,11 @@ No schema changes. The recorder's lines and `RunRecord`'s fields stay as they ar
     an empty list, or where its exit is not 0, 1 or 5. Where any session at `HEAD`
     reads so, the run fails, writes no `trail/gate.md`, and its failure form
     says that the row exited 0 and how many sessions stopped. Two kinds of
-    stop stay out of the record's reach. A `pytest.exit()` raised by a
-    `pytest_sessionfinish` hook that runs after the recorder's comes after
-    the session's `end` line, so the session reads as one that ran to its
-    end. A stop raised before the recorder writes a session's first line,
-    such as a `pytest.exit()` in a conftest's `pytest_configure`, leaves no
-    record, so the run reads as one that started no pytest and is judged on
-    its exit alone.
+    stop stay out of the record's reach: a `pytest.exit()` raised by a
+    `pytest_sessionfinish` hook that runs after the recorder's, and a stop
+    raised before the recorder writes a session's first line.
+    `templates/setup/config.md` *The criterion for choosing a value*, rule
+    3, says how the gate reads a run with each.
     check: tests/skills/test_broad_gate.py
 
 ## Removes
