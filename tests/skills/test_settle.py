@@ -5,7 +5,9 @@ refuses (#458, closing #83). Its dry run groups the released specs whose
 `## Rule changes` name one section, in merge order, lists the specs to read
 whole and every open row, and refuses nothing; `--apply` removes each
 released directory whose record holds no open row in the working tree and
-writes no policy document (#1033). In local mode it reads the root under the
+writes no policy document (#1033), and where the root is shared keeps one
+whose version's published note does not carry its entry, read from a `gh`
+stub's release list (#1139). In local mode it reads the root under the
 git directory and asks `gh` which pull request merged from each work item's
 branch (#955). A file in a work item's directory named like a record it
 reads, at another path, is named by both arms as not read and decides
