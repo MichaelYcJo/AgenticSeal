@@ -49,8 +49,11 @@ class Test_in_corpus:
     @pytest.mark.parametrize(
         "rel",
         [
+            # Under `docs/`, so the `.ko.md` exclusion alone refuses it.
             "docs/the-review-record.ko.md",
-            "README.ko.md",
+            # A top-level `.md` outside `TOP_FILES` and no edition, so the
+            # membership alone refuses it.
+            "SECURITY.md",
             "seal/threads/1-x/frame/design.md",
             "tests/README.md",
             "skills/README.txt",
