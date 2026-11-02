@@ -1418,6 +1418,46 @@ class Test_main:
         assert code == 0, text
         assert settle.EARLIER_HEADING not in text, text
 
+    def test_a_plan_is_read_once_at_its_newest_deletion_under_any_rename_config(
+        self, repo, capfd, monkeypatch
+    ):
+        """#1281, design *Scope* item 1. A plan deleted, added again and
+        deleted again is read once, at the newest deletion's parent. The
+        newest deletion adds a copy of the plan elsewhere, which
+        `diff.renames=true` pairs with it as a rename; `--no-renames` keeps
+        it a deletion. Seen red with the once-only check removed, and with
+        `--no-renames` removed."""
+        old = "1700000001-old"
+        removed_plan(
+            repo,
+            old,
+            judgments_plan([("2026-10-01", "first", "y", "z")]),
+            "the old work item (#3)",
+            "drop it (#5)",
+        )
+        plan = judgments_plan([("2026-10-02", "second", "y", "z")])
+        write(repo / "seal" / "threads" / old, "frame/plan.md", plan)
+        commit(repo, "the old work item again (#6)")
+        git(repo, "rm", "-rq", f"seal/threads/{old}")
+        write(repo, "docs/kept.md", plan)
+        commit(repo, "settle 0.1.0 (#7)")
+        short = git(repo, "rev-parse", "--short", "HEAD").strip()
+        released_item(repo, "1700000002-new", {"routing.md": "# new — routing\n"})
+        monkeypatch.setenv("GIT_CONFIG_COUNT", "1")
+        monkeypatch.setenv("GIT_CONFIG_KEY_0", "diff.renames")
+        monkeypatch.setenv("GIT_CONFIG_VALUE_0", "true")
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        assert settle.EARLIER_HEADING in text, text
+        block = text.split(f"\n{settle.EARLIER_HEADING}\n")[1].split(
+            f"\n\n{settle.REMOVES_HEADING}"
+        )[0]
+        assert "  2026-10-01  first\n" not in block, block
+        assert (
+            f"; removed by {short} (#7)\n        {short}^:seal/threads/{old}/"
+            f"frame/plan.md:7  2026-10-02  second\n"
+        ) in block, block
+
     @pytest.mark.parametrize("added_by", ["an untagged commit", "no commit"])
     def test_names_a_plan_no_tag_holds_and_a_removal_no_number_names(
         self, repo, capfd, monkeypatch, added_by
