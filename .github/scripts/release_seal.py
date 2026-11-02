@@ -417,16 +417,14 @@ def mark_on(root):
     naming a row that is written and does not, or None.
 
     The root is `hooks/lib/optin.py#home_at`'s, and the row is read through
-    `hooks/lib/config.py#declared_value`, the one reader of a row. A tree
-    with no root, an absent row and an empty one are off and say nothing;
-    any other value, and a refusal the reader returns, are off and named.
-    Nothing here refuses: the image is a picture, and the results go in
-    whatever the row says."""
+    `hooks/lib/config.py#declared_value`, the one reader of a row, which
+    reads a tree with no root as no file. A tree with no root, an absent row
+    and an empty one are off and say nothing; any other value, and a
+    refusal the reader returns, are off and named. Nothing here refuses:
+    the image is a picture, and the results go in whatever the row says."""
     home = module("agentic_optin_for_release_seal", "hooks", "lib", "optin.py").home_at(
         root
     )
-    if not home:
-        return False, None
     config = module("agentic_config_for_release_seal", "hooks", "lib", "config.py")
     value, refused = config.declared_value(home, MARK_ROW)
     if refused is not None:

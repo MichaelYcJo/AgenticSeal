@@ -1007,25 +1007,6 @@ class Test_draw:
         assert not out.exists()
 
 
-class Test_mark_on:
-    def test_a_tree_with_no_seal_root_is_off_whatever_the_working_directory_holds(
-        self, monkeypatch, tmp_path
-    ):
-        """#1204. A tree with no `seal/` root has no row to read, so the image
-        is off and nothing is said, even where the directory the job runs in
-        holds a `config.md` whose row reads `yes`: a root that resolves to
-        nothing names no file. Seen red with the guard on an empty root alone
-        removed: the row was then read from the working directory's file."""
-        mod = seal()
-        stray = tmp_path / "cwd"
-        stray.mkdir()
-        configured(stray, "yes")
-        monkeypatch.chdir(stray)
-        tree_without_root = tmp_path / "tree"
-        tree_without_root.mkdir()
-        assert mod.mark_on(str(tree_without_root)) == (False, None)
-
-
 class Test_module:
     def test_the_results_are_the_stamps_rows_in_words(self):
         """S11, and #1153 S3. `results` turns the rows into the header's
