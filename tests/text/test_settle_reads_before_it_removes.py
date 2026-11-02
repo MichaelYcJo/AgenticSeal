@@ -75,9 +75,11 @@ def test_the_skill_states_the_settling_sessions_procedure():
 
 
 def test_the_skill_orders_the_row_kinds_so_only_a_needed_measurement_opens_an_issue():
-    """S4 of #1045. A row takes the first kind that fits in step 6's table,
-    so the order decides that a measurement no record asks for is closed
-    before it can be re-homed as an issue. What each kind means is the
+    """S4 of #1045. A row takes the first kind that fits in step 6's table.
+    Every measurement no record asks for also fits *a measurement nobody has
+    taken*, whose *When* cell is the base sentence alone, so the order is
+    what closes it before it can be re-homed as an issue. With the two rows
+    swapped, every unmeasured row is re-homed. What each kind means is the
     proofer's to read."""
     procedure = skill().split("\n## The settling session's procedure\n")[1]
     procedure = procedure.split("\n## ")[0]

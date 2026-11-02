@@ -280,17 +280,21 @@ does not parse, an unordered pair and an open row are all shown.
    | moot | it names a unit the tree no longer holds | the coordinate showing the unit gone |
    | answered | another record or a later run already answered it | that record or run, named |
    | a measurement no record asks for | it names a run, a platform or a reading no record holds, and no failure, report or decision on record depends on its answer | the reason, naming what the answer would have decided; nothing is opened |
-   | a measurement nobody has taken | it names a run, a platform or a reading no record holds, and a failure, report or decision on record depends on its answer | the issue it is re-homed to |
+   | a measurement nobody has taken | it names a run, a platform or a reading no record holds | the issue it is re-homed to |
 
-   On record means in a record other than the row itself: an open issue, a
-   failed run, a review finding, or a rule or design that rests on the
-   answer. The row's own `Who must answer` cell is not such a record.
+   On record means in a record that outlives the settle and rests on the
+   answer: an open issue, a failed run, or a rule or design of another work
+   item. The row's own work item is not such a record, its design, its
+   questions and its rounds among them, because `--apply` removes its
+   directory and nothing in it can wait on the answer. The row's own `Who
+   must answer` cell is not one either.
 
    A row that fits more than one kind takes the first that fits, in the
    table's order. A measurement of a unit the tree no longer holds can no
-   longer be taken, so it is moot. A measurement no record asks for is
-   closed before it can open an issue, because an issue nothing on record
-   waits on costs its reader a reading and a close.
+   longer be taken, so it is moot. Every measurement no record asks for
+   also fits *a measurement nobody has taken*, and it comes first, so it is
+   closed before it can open an issue: an issue nothing on record waits on
+   costs its reader a reading and a close.
 
    A measurement something on record needs is re-homed with one issue per
    distinct measurement (`gh issue create`), its body listing each row it
