@@ -33,6 +33,11 @@ The fix makes that one parameter assert the whole sentence. It then pins the tag
             ),
 ```
 
+```seal
+verdict: fixed 662bca509
+answer: The paste-ready parameter was read against `pr_body.py:474-478` and is the sentence that code composes for the line `a sentence <details`, so it was applied as given at `tests/skills/test_pr_body.py:373`. Under the round's mutant alone, which removes the repair clause, `bin/seal mutate` printed red: that one parameter failed, its assertion reading the whole sentence against the sentence without "; write it in a code span". `tests/skills/test_pr_body.py` passes 31 cases, and `bin/seal layout --check tests`, `uvx ruff check` and `uvx ruff format --check` exit 0. Every other new parameter's `said` value was compared with the fixed tail every refusal ends with, the backticked `<details>`: none is a substring of it, so each still pins its tag name.
+```
+
 ## Confirmations
 
 ```seal
