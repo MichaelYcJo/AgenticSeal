@@ -9,3 +9,4 @@ row and what an absent one means. -->
 | Mode | shared |
 | Broad gate | uvx ruff check . && uvx ruff format --check . && bin/test -q |
 | Document token ceiling | 25000 |
+| Pull request seal mark | yes |

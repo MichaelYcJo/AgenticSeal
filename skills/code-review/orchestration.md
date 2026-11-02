@@ -220,9 +220,14 @@ then.** Where `Destination` reads `open the pull request`, push the branch as
 often as you like while the work is built and reviewed: a branch with no
 pull request runs nothing. Under `stop before the pull request` nothing is
 pushed, and the branch is handed back committed and unpushed. Once
-`guarantee.md` reading `sealed` is committed, open the pull request with the
-body the sealer read, `gh pr create --body-file <that file>`. CI runs then,
-and again on every push to it.
+`guarantee.md` reading `sealed` is committed, run `seal pr-body` once more on
+the body file the sealer read, and open the pull request with it,
+`gh pr create --body-file <that file>`. That run changes no copied line,
+because the copy reads no `guarantee.md`. Where `seal/config.md`'s
+`Pull request seal mark` row reads `yes`, it writes the seal mark under the
+heading, which the body the sealer checked could not hold, since the sealer
+checks it before its own verdict exists (`templates/setup/config.md` *The
+seal mark*). CI runs then, and again on every push to it.
 
 **The orchestrator reads `gh pr view <N> --json state,mergeable` when the
 pull request opens, before each push to its branch and after each push, and

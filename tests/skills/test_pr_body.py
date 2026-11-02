@@ -7,10 +7,12 @@ the templates under `templates/records/` give, and its round records hold
 the `seal` blocks `chain_check.py` reads.
 """
 
+import json
 import os
+import subprocess
 
 import pytest
-from conftest import ROOT, census_case, load_module, write
+from conftest import ROOT, census_case, load_module, mark_root, write
 
 TARGET = "skills/code-review/scripts/pr_body.py"
 
@@ -271,6 +273,65 @@ def unsourced(text, texts):
     ]
 
 
+# #1204: a manifest with the three fields the mark's address is built from,
+# and the line `seal pr-body` writes from it.
+MANIFEST = {
+    "repository": "https://github.com/owner/plugin",
+    "version": "1.2.3",
+    "icon": "./.claude-plugin/icon.png",
+}
+MARK_LINE = (
+    '<img src="https://github.com/owner/plugin/raw/v1.2.3/.claude-plugin/icon.png" '
+    'alt="Sealed" width="128">'
+)
+ROW = "| Pull request seal mark | yes |\n"
+SEALED = "Verdict: sealed"
+
+
+def manifest_of(tmp_path, fields):
+    """FIELDS written as a manifest under `tmp_path`, and its path."""
+    path = tmp_path / "plugin.json"
+    path.write_text(json.dumps(fields), encoding="utf-8")
+    return str(path)
+
+
+def git_in(repo, *args):
+    """`git -C REPO <args>`'s stdout, stripped."""
+    return subprocess.run(
+        ["git", "-C", str(repo), *args],
+        check=True,
+        capture_output=True,
+        encoding="utf-8",
+    ).stdout.strip()
+
+
+def sealed_item(repo, row=ROW, verdict=SEALED, base="feature/x"):
+    """The work item NAME in REPO's shared root, holding RECORDS, with
+    `config.md`'s table holding ROW, committed; then, where VERDICT is
+    given, a `guarantee.md` whose one block names that commit against BASE
+    with VERDICT, committed after it, as the orchestrator commits the
+    sealer's verdict."""
+    home = mark_root(repo / "seal")
+    if row is not None:
+        write(home, "config.md", "| Item | Value |\n|---|---|\n" + row)
+    item = home / "threads" / NAME
+    for rel, text in RECORDS.items():
+        write(item, rel, text)
+    git_in(repo, "add", "-A")
+    git_in(repo, "commit", "-qm", "the build")
+    if verdict is not None:
+        sha = git_in(repo, "rev-parse", "HEAD")
+        write(
+            item,
+            "guarantee.md",
+            f"# Guarantee: {NAME}\n\n```seal\ntarget: {sha} against {base}\n"
+            f"{verdict}\n```\n",
+        )
+        git_in(repo, "add", "-A")
+        git_in(repo, "commit", "-qm", "the seal")
+    return item
+
+
 class Test_compose:
     def test_accepts_a_work_item_as_the_records_text(self, tmp_path):
         """S1, and #1198's scenario *The body copies blocks*. Every section
@@ -462,7 +523,166 @@ class Test_read_item:
             PR.read_item(str(path))
 
 
+NOT_YES = (
+    "`Pull request seal mark` reads `{value}`, not `yes`, so the row is not "
+    "read and the body carries no seal mark"
+)
+NO_FIELD = (
+    "`.claude-plugin/plugin.json` has no `{field}`, so the mark's address is "
+    "not built and the body carries no seal mark"
+)
+
+
+class Test_seal_mark:
+    """#1204. The mark under the heading, where the repository's row reads
+    `yes` and the work item is sealed at HEAD."""
+
+    def test_accepts_a_seal_only_its_guarantee_follows(self, repo, tmp_path):
+        """S1. The row reads `yes`, the newest block reads `sealed` at a
+        commit only the guarantee's own commit follows, and the line is the
+        manifest's `repository`, `/raw/v`, `version` and `icon` path."""
+        item = sealed_item(repo)
+        manifest = manifest_of(tmp_path, MANIFEST)
+        assert PR.seal_mark(str(item), str(repo), manifest) == (MARK_LINE, None)
+
+    def test_accepts_the_plugins_own_manifest(self, repo):
+        """S1's address read from the manifest three directories above the
+        script, the plugin's own, which this reads and never writes."""
+        with open(PR.MANIFEST, encoding="utf-8") as handle:
+            own = json.load(handle)
+        src = f"{own['repository']}/raw/v{own['version']}/{own['icon'][2:]}"
+        item = sealed_item(repo)
+        assert PR.seal_mark(str(item), str(repo)) == (
+            f'<img src="{src}" alt="Sealed" width="128">',
+            None,
+        )
+
+    @pytest.mark.parametrize(
+        "verdict",
+        [
+            None,
+            "Verdict: withheld reason: a claim does not hold",
+            "Verdict: undecided question: which one?",
+            "Verdict: done",
+        ],
+        ids=["no guarantee", "withheld", "undecided", "a refused block"],
+    )
+    def test_refuses_a_work_item_not_sealed_saying_nothing(
+        self, repo, tmp_path, verdict
+    ):
+        """S2. No guarantee, a newest block reading `withheld` or
+        `undecided`, and one `hooks/lib/fields.py` refuses: no mark, and no
+        line, since the sealer and the pull request's check name those."""
+        item = sealed_item(repo, verdict=verdict)
+        manifest = manifest_of(tmp_path, MANIFEST)
+        assert PR.seal_mark(str(item), str(repo), manifest) == (None, None)
+
+    def test_refuses_a_seal_a_later_commit_follows(self, repo, tmp_path):
+        """S3. A commit outside the closing records after the sealed one, a
+        repair nobody sealed: no mark. Seen red with the `follows` condition
+        alone removed, where the mark stood."""
+        item = sealed_item(repo)
+        write(repo, "f.txt", "a repair\n")
+        git_in(repo, "commit", "-qam", "a repair")
+        manifest = manifest_of(tmp_path, MANIFEST)
+        assert PR.seal_mark(str(item), str(repo), manifest) == (None, None)
+
+    def test_refuses_a_seal_whose_base_does_not_resolve(self, repo, tmp_path):
+        """S3's class: `follows` lists the later commits against the base,
+        and a base this repository cannot resolve lists none, so a stale
+        seal would read as one at HEAD. No mark, and the base named. Seen red
+        with the base's read alone removed, where the mark stood."""
+        item = sealed_item(repo, base="no-such-base")
+        write(repo, "f.txt", "a repair\n")
+        git_in(repo, "commit", "-qam", "a repair")
+        manifest = manifest_of(tmp_path, MANIFEST)
+        assert PR.seal_mark(str(item), str(repo), manifest) == (
+            None,
+            "the guarantee names the base `no-such-base`, which this "
+            "repository cannot resolve, so whether its seal is at HEAD is not "
+            "read and the body carries no seal mark",
+        )
+
+    @pytest.mark.parametrize(
+        "row, said",
+        [
+            (None, None),
+            ("| Pull request seal mark |  |\n", None),
+            ("| Pull request seal mark | Yes |\n", NOT_YES.format(value="Yes")),
+            ("| Pull request seal mark | on |\n", NOT_YES.format(value="on")),
+            ("| Pull request seal mark | true |\n", NOT_YES.format(value="true")),
+            (
+                ROW + ROW,
+                "`Pull request seal mark` is not read: `Pull request seal mark` "
+                "appears 2 times — one value; the body carries no seal mark",
+            ),
+        ],
+        ids=["absent", "empty", "Yes", "on", "true", "written twice"],
+    )
+    def test_refuses_a_row_other_than_yes(self, repo, tmp_path, row, said):
+        """S4. Only `yes`, exactly so, turns the mark on. An absent or empty
+        row says nothing; any other value, and a refused row, is named as
+        not read. The `Yes` case seen red with the comparison alone
+        case-folded, where the mark stood."""
+        item = sealed_item(repo, row=row)
+        manifest = manifest_of(tmp_path, MANIFEST)
+        assert PR.seal_mark(str(item), str(repo), manifest) == (None, said)
+
+    @pytest.mark.parametrize("field", ["repository", "version", "icon"])
+    def test_refuses_a_manifest_lacking_a_field(self, repo, tmp_path, field):
+        """S5. A manifest the address cannot be built from: no mark, and
+        the field named."""
+        item = sealed_item(repo)
+        lacking = {key: value for key, value in MANIFEST.items() if key != field}
+        manifest = manifest_of(tmp_path, lacking)
+        assert PR.seal_mark(str(item), str(repo), manifest) == (
+            None,
+            NO_FIELD.format(field=field),
+        )
+
+    def test_refuses_a_manifest_that_is_not_json(self, repo, tmp_path):
+        """S5. A manifest that will not read: no mark, and it named."""
+        item = sealed_item(repo)
+        manifest = tmp_path / "plugin.json"
+        manifest.write_text("{", encoding="utf-8")
+        mark, said = PR.seal_mark(str(item), str(repo), str(manifest))
+        assert mark is None
+        assert said.startswith("`.claude-plugin/plugin.json` is not read ("), said
+
+
 class Test_main:
+    def test_accepts_a_sealed_work_item_with_the_mark_under_the_heading(
+        self, repo, tmp_path, monkeypatch, capsys
+    ):
+        """S1 through the command, run in the repository: the part opens
+        with a blank line, the mark, a blank line and the fold, `--check`
+        on that body exits 0, and nothing is said about the mark."""
+        item = sealed_item(repo)
+        monkeypatch.setattr(PR, "MANIFEST", manifest_of(tmp_path, MANIFEST))
+        monkeypatch.chdir(repo)
+        body = tmp_path / "pr-body.md"
+        assert PR.main([str(item), "--body", str(body)]) == 0
+        marked = EXPECTED.replace(
+            "## From the records\n\n", f"## From the records\n\n{MARK_LINE}\n\n", 1
+        )
+        assert body.read_text(encoding="utf-8") == marked
+        assert PR.main([str(item), "--body", str(body), "--check"]) == 0
+        assert "seal pr-body:" not in capsys.readouterr().out
+
+    def test_refuses_the_mark_on_a_row_other_than_yes_and_exits_0(
+        self, repo, tmp_path, monkeypatch, capsys
+    ):
+        """S4 through the command: the row named as not read on one line
+        before `wrote:`, the body today's, and exit 0."""
+        item = sealed_item(repo, row="| Pull request seal mark | Yes |\n")
+        monkeypatch.chdir(repo)
+        body = tmp_path / "pr-body.md"
+        assert PR.main([str(item), "--body", str(body)]) == 0
+        out = capsys.readouterr().out.splitlines()
+        assert out[0] == "seal pr-body: " + NOT_YES.format(value="Yes")
+        assert out[1].startswith("wrote: ")
+        assert body.read_text(encoding="utf-8") == EXPECTED
+
     def test_accepts_a_stale_body_and_keeps_its_own_part_byte_for_byte(self, tmp_path):
         """S8. The part above the heading, the orchestrator's, is kept as
         its bytes stood, a CRLF line among them, and the part below it is

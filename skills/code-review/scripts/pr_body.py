@@ -16,6 +16,17 @@ copies lines and composes none: no count, no summary, no rewording. Each
 section opens with a line of `FIXED` naming its source, and a record that is
 not there is named by its own line of `FIXED`.
 
+One fixed line depends on a record's verdict (#1204): the seal mark, `MARK`,
+the plugin's icon at the tag of the plugin's version, stands between
+`HEADING` and the fold where `seal/config.md`'s `Pull request seal mark`
+row reads `yes` and the work item's `guarantee.md` reads `sealed` at HEAD,
+as `seal_mark` reads them. Its address is built from the plugin's manifest,
+which is read and never written. It carries no record text, and `--check`
+composes it the same way, so the sealer's check, run before its own
+verdict exists, reads a part with no mark from that run. A row other than
+`yes`, and a manifest the address cannot be built from, are named on one
+line opening `seal pr-body:` and change no exit code.
+
 The body opens with the orchestrator's part, the summary a reader needs
 first, and `HEADING` follows it. The copy stands below that line in one
 `<details>` fold, whose `<summary>` names the copy and is followed by a
@@ -64,7 +75,9 @@ under the `seal/` root, and the line; 2 the arguments are unusable,
 
 import argparse
 import difflib
+import html
 import importlib.util
+import json
 import os
 import re
 import sys
@@ -93,7 +106,8 @@ def _load(path, name):
 # Loaded once, here: `chain_check.py` with the block reader and the shared
 # markdown reader it loads at its import,
 # `hooks/lib/routing.py`, whose `round_number` is the one ordering rule of
-# round records and whose `optin` names a work item's files, and
+# round records and whose `optin` names a work item's files,
+# `hooks/lib/config.py`, the one reader of a `seal/config.md` row, and
 # `.github/scripts/close_issues_on_release.py`, whose `keywords_in` is the one
 # reader of a closing keyword. The plugin ships from the repository root, so
 # `.github/scripts/` stands three levels above HERE in a clone and in an
@@ -102,6 +116,9 @@ def _load(path, name):
 try:
     CHAIN = _load(CHAIN_CHECK, "agentic_chain_check_for_the_pr_body")
     ROUTING = CHAIN.load(CHAIN.ROUTING, "agentic_routing_for_the_pr_body")
+    CONFIG = CHAIN.load(
+        os.path.join(CHAIN.HOOKS, "config.py"), "agentic_config_for_the_pr_body"
+    )
     CLOSER = _load(
         os.path.join(
             HERE, "..", "..", "..", ".github", "scripts", "close_issues_on_release.py"
@@ -153,8 +170,9 @@ PHASE_RE = re.compile(r"phase-(\d+)\.md")
 # character is this.
 TABLE = "|"
 
-# Every fixed line the generated part can hold. `{name}` is the work item's
-# directory name and `{path}` a record's path under it.
+# Every fixed line the generated part can hold, beside the seal mark,
+# `MARK`. `{name}` is the work item's directory name and `{path}` a record's
+# path under it.
 SUMMARY = (
     f"<summary>Copied from the records in {OPTIN.HOME}/{OPTIN.WORK_ITEMS}/{{name}}/ "
     "by seal pr-body.</summary>"
@@ -177,6 +195,41 @@ NO_GATE_BLOCK = f"`{GATE}` holds no run block."
 NO_NOT_VERIFIED = f"`{GAPS}` has no `{NOT_VERIFIED}` section."
 NO_NOT_DONE = f"`{GAPS}` has no `{NOT_DONE}` section."
 NO_QUESTION_TABLE = f"`{QUESTIONS}` holds no table line."
+
+# #1204: the seal mark, one fixed line between `HEADING`'s blank line and
+# `FOLD`, written where `seal/config.md`'s `MARK_ROW` reads `MARK_ON`
+# exactly and the work item is sealed at HEAD (`seal_mark`). Its address is
+# built from the plugin's manifest, which stands three levels above HERE as
+# `.github/scripts/` does, and which this reads and never writes.
+MARK_ROW = "Pull request seal mark"
+MARK_ON = "yes"
+MANIFEST = os.path.join(HERE, "..", "..", "..", ".claude-plugin", "plugin.json")
+MANIFEST_NAME = ".claude-plugin/plugin.json"
+MARK_FIELDS = ("repository", "version", "icon")
+MARK = '<img src="{src}" alt="{alt}" width="{width}">'
+MARK_ALT = "Sealed"
+MARK_WIDTH = 128
+# What `seal_mark` says where the mark is not written and nothing else
+# names why; printed after `seal pr-body: `.
+NO_MARK = "the body carries no seal mark"
+ROW_NOT_YES = (
+    f"`{MARK_ROW}` reads `{{value}}`, not `{MARK_ON}`, so the row is not read "
+    f"and {NO_MARK}"
+)
+ROW_REFUSED = f"`{MARK_ROW}` is not read: {{why}}; {NO_MARK}"
+BASE_UNSEEN = (
+    "the guarantee names the base `{base}`, which this repository cannot "
+    f"resolve, so whether its seal is at HEAD is not read and {NO_MARK}"
+)
+NO_MANIFEST = (
+    f"`{MANIFEST_NAME}` is not read ({{why}}), so the mark's address is not "
+    f"built and {NO_MARK}"
+)
+NO_FIELD = (
+    f"`{MANIFEST_NAME}` has no `{{field}}`, so the mark's address is not built "
+    f"and {NO_MARK}"
+)
+
 FIXED = (
     HEADING,
     FOLD,
@@ -265,6 +318,94 @@ def read_item(item):
                 if number(name) is not None:
                     _read_into(texts, item, f"{where}/{name}")
     return texts
+
+
+def _seal_at_head(item, root):
+    """`(sealed, note)`: whether `guarantee.md` in the work item's directory
+    ITEM is sealed at HEAD of the repository at ROOT, the way
+    `chain_check.py#guarantee` asks it. Its blocks are read through
+    `hooks/lib/fields.py` with no refusal, the newest reads `sealed`, and
+    `chain_check.py#follows` finds the commit its `target:` names to be
+    HEAD or followed only by the closing records, against the base the same
+    line names. NOTE names a base this repository cannot resolve, where
+    `follows` would list no later commit; every other way of not being
+    sealed is the sealer's and the pull request check's to name."""
+    try:
+        with open(os.path.join(item, OPTIN.GUARANTEE), encoding="utf-8") as handle:
+            text = handle.read()
+    except (OSError, UnicodeDecodeError):
+        return False, None
+    found = CHAIN.FIELDS.read(text, CHAIN.FIELDS.GUARANTEE)
+    if found.refusals or not found.blocks:
+        return False, None
+    newest = found.blocks[-1]
+    if CHAIN.FIELDS.verdict_word(newest) != CHAIN.FIELDS.SEALED:
+        return False, None
+    target = newest.fields[CHAIN.FIELDS.TARGET].match
+    base = target["base"]
+    if (
+        CHAIN.git(root, "rev-parse", "--verify", "--quiet", f"{base}^{{commit}}")
+        is None
+    ):
+        return False, BASE_UNSEEN.format(base=base)
+    name = os.path.basename(os.path.normpath(os.path.abspath(item)))
+    rel = f"{OPTIN.HOME}/{OPTIN.WORK_ITEMS}/{name}"
+    behind = CHAIN.follows(
+        root, target["commit"], base, rel, only=CHAIN.CLOSING_RECORDS
+    )
+    return behind is None, None
+
+
+def _mark_line(manifest):
+    """`(line, note)`: the mark built from the plugin's manifest at MANIFEST,
+    its `repository`, `/raw/v`, its `version`, `/` and its `icon` with a
+    leading `./` dropped, escaped; or None and the sentence naming what the
+    manifest lacks."""
+    try:
+        with open(manifest, encoding="utf-8") as handle:
+            fields = json.load(handle)
+    except OSError as exc:
+        return None, NO_MANIFEST.format(why=exc.strerror or exc)
+    except ValueError as exc:
+        return None, NO_MANIFEST.format(why=exc)
+    if not isinstance(fields, dict):
+        fields = {}
+    for field in MARK_FIELDS:
+        if not isinstance(fields.get(field), str) or not fields[field]:
+            return None, NO_FIELD.format(field=field)
+    icon = fields["icon"]
+    if icon.startswith("./"):
+        icon = icon[2:]
+    src = f"{fields['repository']}/raw/v{fields['version']}/{icon}"
+    return MARK.format(
+        src=html.escape(src), alt=html.escape(MARK_ALT), width=MARK_WIDTH
+    ), None
+
+
+def seal_mark(item, root, manifest=None):
+    """`(line, note)` for the work item's directory ITEM in the repository
+    at ROOT: the mark `_composed` writes under `HEADING`, or None, and the
+    one sentence `seal pr-body` prints about it, or None (#1204).
+
+    The mark is written where `MARK_ROW` in the root's `config.md`, read
+    through `hooks/lib/config.py#declared_value`, reads `MARK_ON` exactly
+    and the work item is sealed at HEAD (`_seal_at_head`). An absent or
+    empty row, and a work item not sealed at HEAD, write no mark and say
+    nothing. Any other value, a refused row, a base that does not resolve,
+    and a manifest the address cannot be built from, at MANIFEST or the
+    plugin's own, write no mark and are named. Nothing here refuses: the
+    mark is a picture, and no row of it stops the body."""
+    value, refused = CONFIG.declared_value(OPTIN.home_at(root), MARK_ROW)
+    if refused is not None:
+        return None, ROW_REFUSED.format(why=refused)
+    if not value:
+        return None, None
+    if value != MARK_ON:
+        return None, ROW_NOT_YES.format(value=value)
+    sealed, note = _seal_at_head(item, root)
+    if not sealed:
+        return None, note
+    return _mark_line(manifest or MANIFEST)
 
 
 def _copied(rel, raw, first, stop):
@@ -433,10 +574,11 @@ def _claims(rel, line, seen):
     ]
 
 
-def _composed(name, texts):
+def _composed(name, texts, mark=None):
     """`[(line, source)]` for the generated part below `HEADING`, that line
-    left out: a blank line, `FOLD`, the summary naming the copy, a blank
-    line, each section followed by a blank line, and `FOLD_END`. `source`
+    left out: a blank line, the line MARK and a blank line where it is
+    given, `FOLD`, the summary naming the copy, a blank line, each section
+    followed by a blank line, and `FOLD_END`. `source`
     is `(path, line)` for a copied line and None for a fixed one. Refused at
     the record's line where a copied line is equal to `HEADING`, which would
     stand inside the fold as a second boundary line, or holds a `TAG` outside
@@ -451,7 +593,10 @@ def _composed(name, texts):
     blocks += _gaps(texts, NOT_VERIFIED, NO_NOT_VERIFIED)
     blocks += _gaps(texts, NOT_DONE, NO_NOT_DONE)
     blocks += _questions(texts)
-    below = [("", None), (FOLD, None), (SUMMARY.format(name=name), None), ("", None)]
+    below = [("", None)]
+    if mark:
+        below += [(mark, None), ("", None)]
+    below += [(FOLD, None), (SUMMARY.format(name=name), None), ("", None)]
     for block in blocks:
         if block:
             below += [*block, ("", None)]
@@ -487,11 +632,12 @@ def _joined(below):
     return "\n".join(line for line, _source in below) + "\n"
 
 
-def compose(name, texts):
+def compose(name, texts, mark=None):
     """The generated part of the body for the work item called NAME, from
     `read_item`'s mapping TEXTS: `HEADING`, then `_composed`'s lines, the
-    fold's end the last."""
-    return HEADING + "\n" + _joined(_composed(name, texts))
+    seal mark MARK first where `seal_mark` gave one, the fold's end the
+    last."""
+    return HEADING + "\n" + _joined(_composed(name, texts, mark))
 
 
 def split(body):
@@ -594,12 +740,14 @@ def main(argv=None):
         print(f"seal pr-body: {args.item} is not a directory", file=sys.stderr)
         return 2
     name = os.path.basename(os.path.normpath(os.path.abspath(args.item)))
+    mark, note = seal_mark(args.item, OPTIN.repo_root(os.getcwd()))
+    said = f"seal pr-body: {note}\n" if note else ""
     try:
-        below = _composed(name, read_item(args.item))
+        below = _composed(name, read_item(args.item), mark)
         body = _body(args.body)
         if args.check:
             _check(below, body)
-            print(f"matches: {args.body} below `{HEADING}` is the records' text")
+            print(f"{said}matches: {args.body} below `{HEADING}` is the records' text")
             return 0
         own = "" if body is None else split(body)[0]
         try:
@@ -611,7 +759,7 @@ def main(argv=None):
         for where, line, why in refused.causes:
             print(f"refused: {_place(where, line, args.item, args.body)}: {why}")
         return 1
-    print(f"wrote: {args.body} below `{HEADING}` from {args.item}'s records")
+    print(f"{said}wrote: {args.body} below `{HEADING}` from {args.item}'s records")
     return 0
 
 
