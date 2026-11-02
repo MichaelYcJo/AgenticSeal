@@ -76,7 +76,7 @@ helpers, for the notes published after it.
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Scope items 1 to 7 | S1 to S6 by their cases in `tests/github/test_publish_release_note.py` and `tests/github/test_release_seal.py`, each new or changed assertion seen red first; S7 by its unchanged case; `tests/test_censuses.py` and the census case of each touched module for S8. The two modules and the census module are the phase's narrow run. | |
+| 1 | Scope items 1 to 7 | S1 to S6 by their cases in `tests/github/test_publish_release_note.py` and `tests/github/test_release_seal.py`, each new or changed assertion seen red first; S7 by its unchanged case; `tests/test_censuses.py` and the census case of each touched module for S8. The two modules and the census module are the phase's narrow run. | 9d693098 |
 
 One phase, because the slice cannot be cut thinner and stay green:
 `sealed_header`'s inputs change type, and `results` is its only caller
