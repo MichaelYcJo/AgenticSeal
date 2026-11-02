@@ -61,10 +61,10 @@ file `git ls-files --cached --others --exclude-standard` lists under it, at
 any depth and of any extension. Each is printed with the commit that added it
 and the commit that last changed it, read from one `git log` per directory.
 Renames are off, so a moved file counts as added where it lands, and `--cc`
-is on, so a merge's own change is read: a merge that wrote a file no parent
-holds added it, and one whose result differs from every parent at it, by a
-conflict it resolved or by two parents' edits it combined, changed it. A
-deletion adds and changes nothing (`history` states each status it reads).
+is on, so a merge's own change is read: a merge whose result at a file
+differs from every parent's changed it, and added it where no parent holds
+it. A deletion adds and changes nothing (`history` states each status it
+reads).
 The person's `log.showRoot` and `log.showSignature` change nothing it reads.
 A document `git diff HEAD` names is printed as changed in the working tree.
 Documents are listed in the order of the commits that add them, and those no
@@ -903,11 +903,12 @@ def history(root, rel):
     does not hold the path, and this commit does), `M` (both hold it, with
     other content), `T` (both hold it, as another type of file) or `D` (the
     parent holds it, and this commit does not). A merge is named at a path
-    only where its result differs from every parent: a merge that resolved
-    a conflict in it, wrote it new, or combined two parents' edits to it
-    with no conflict. A merge whose result at the path is one parent's
-    names nothing. The letters of one status are either all `D` or all
-    from `A`, `M` and `T`.
+    where its result there differs from every parent's, however it came to
+    differ, and nowhere else: a merge whose result at the path is one
+    parent's names nothing. `--name-status` names such a merge even where
+    `--cc -p` would print no hunk of it, as for a merge with no conflict
+    that took one parent's edit at each hunk. The letters of one status
+    are either all `D` or all from `A`, `M` and `T`.
 
     One rule reads every shape. **A status with no `D` changes the path,
     and a status whose letters are all `A` also adds it**: `A` on an

@@ -32,7 +32,6 @@ in #942's round 9 fix pass, each a case of this module alone.
 import io
 import json
 import os
-import shutil
 import subprocess
 import sys
 
@@ -2025,6 +2024,31 @@ class Test_main:
         assert code == 0, text
         assert f"    adr/0001.md  added {first}  last changed {merged}\n" in text, text
 
+    def test_a_clean_merge_of_two_edits_is_a_documents_last_change(
+        self, repo, capfd, monkeypatch
+    ):
+        """#1054, round 4's finding 1: a merge with no conflict that combines
+        two branches' edits to one document holds content neither parent
+        holds. Its hunks are all ones `--cc` calls uninteresting, and
+        `--name-status` still names it `MM`, so it is the last change."""
+        item(repo, "1700000001-a", op("add", "U", new="Rule."))
+        body = "".join(f"line {i}\n" for i in range(30))
+        write(repo, "adr/0001.md", body)
+        commit(repo, "a decision")
+        first = stamp(repo)
+        git(repo, "checkout", "-qb", "side")
+        write(repo, "adr/0001.md", body.replace("line 25\n", "line 25, side\n"))
+        commit(repo, "side edits the end")
+        git(repo, "checkout", "-q", "main")
+        write(repo, "adr/0001.md", body.replace("line 2\n", "line 2, main\n"))
+        commit(repo, "main edits the start")
+        git(repo, "merge", "--no-ff", "-q", "-m", "merge side", "side")
+        merged = stamp(repo)
+        monkeypatch.chdir(repo)
+        code, text = dry_run(repo, capfd, "--from", "adr")
+        assert code == 0, text
+        assert f"    adr/0001.md  added {first}  last changed {merged}\n" in text, text
+
     def test_a_merge_that_wrote_a_document_no_parent_holds_adds_it(
         self, repo, capfd, monkeypatch
     ):
@@ -2128,23 +2152,36 @@ class Test_main:
         """#1054, round 3's finding 2: `log.showSignature=true` writes a
         signed commit's verification into the log ahead of its header, which
         shifted every field after it, and the listing reads the commit's
-        change anyway. The commit is signed with an ssh key made here, and
-        the case skips where `ssh-keygen` is not installed."""
-        keygen = shutil.which("ssh-keygen")
-        if keygen is None:
-            pytest.skip("ssh-keygen is not installed, so no commit can be signed")
+        change anyway. The commit is signed with an ssh key made here, by
+        `ssh-keygen`, which the repository's own config names as the signing
+        program, so a person's `gpg.ssh.program` does not reach the case
+        (round 4's finding 2). Where the key cannot be made or the commit
+        cannot be signed, for want of `ssh-keygen`, of one that signs, or of
+        a git that signs with ssh (2.34), the case skips with what failed."""
         key = tmp_path / "signing"
-        subprocess.run(
-            [keygen, "-q", "-t", "ed25519", "-N", "", "-f", str(key)],
-            check=True,
-            capture_output=True,
-        )
+        try:
+            made = subprocess.run(
+                ["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-f", str(key)],
+                capture_output=True,
+                encoding="utf-8",
+            )
+        except FileNotFoundError:
+            pytest.skip("ssh-keygen is not installed, so no commit can be signed")
+        if made.returncode != 0:
+            pytest.skip(f"ssh-keygen made no key: {made.stderr.strip()}")
         git(repo, "config", "gpg.format", "ssh")
+        git(repo, "config", "gpg.ssh.program", "ssh-keygen")
         git(repo, "config", "user.signingkey", str(key))
         item(repo, "1700000001-a", op("add", "U", new="Rule."))
         write(repo, "adr/0001.md", "one\n")
         git(repo, "add", "-A")
-        git(repo, "commit", "-q", "-S", "-m", "a signed decision")
+        signing = subprocess.run(
+            ["git", "-C", str(repo), "commit", "-q", "-S", "-m", "a signed decision"],
+            capture_output=True,
+            encoding="utf-8",
+        )
+        if signing.returncode != 0:
+            pytest.skip(f"git could not sign a commit: {signing.stderr.strip()}")
         signed = stamp(repo)
         monkeypatch.setenv("GIT_CONFIG_COUNT", "1")
         monkeypatch.setenv("GIT_CONFIG_KEY_0", "log.showSignature")

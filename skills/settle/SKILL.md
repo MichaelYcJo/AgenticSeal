@@ -218,11 +218,11 @@ nothing:
   the commit that last changed it, each as a short hash and a date, read
   from one `git log` per directory. Renames are off, so a moved file counts
   as added where it lands, and a merge's own change is read (`--cc`): a
-  merge that wrote a file no parent holds added it, and one whose result
-  differs from every parent at it, by a conflict it resolved or by two
-  parents' edits it combined, changed it. A commit that deleted the file
-  is neither its add nor its change, so a deletion on a branch whose merge
-  kept another branch's content is not the file's last change. The
+  merge whose result at the file differs from every parent's changed it,
+  and added it where no parent holds it, however the result came to
+  differ. A commit that deleted the file is neither its add nor its
+  change; for example, a deletion on a branch whose merge kept another
+  branch's content is not the file's last change. The
   person's `log.showRoot` and `log.showSignature` change none of these
   dates. A line ends `changed in the working tree` where `git diff HEAD`
   names the file.
