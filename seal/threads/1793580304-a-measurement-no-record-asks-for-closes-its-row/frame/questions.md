@@ -12,7 +12,7 @@ The ticket left these judgments open, and the tree answered each. Nobody reopens
 - Whether a new column on `## Not verified` rows carries what waits on the answer: `plan.md` A7.
 - What the re-homed issue's body adds: `plan.md` A9.
 
-Assumed, because a different answer builds the same text: "on record" counts a record other than the row itself, and a row's own `Who must answer` cell is not one (design `## Data & interfaces`).
+Assumed, because a different answer builds the same text: "on record" counts a record that outlives the settle, and the row's own work item, its `Who must answer` cell among it, is not one (design `## Data & interfaces`).
 
 No row is open. Every question this work raised was answered by the tree or by a probe.
 

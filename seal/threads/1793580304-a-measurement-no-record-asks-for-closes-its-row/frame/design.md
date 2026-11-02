@@ -62,9 +62,9 @@ Step 6's table, as the build writes it. The cells carry the decision; the wrap a
 | moot | it names a unit the tree no longer holds | the coordinate showing the unit gone |
 | answered | another record or a later run already answered it | that record or run, named |
 | a measurement no record asks for | it names a run, a platform or a reading no record holds, and no failure, report or decision on record depends on its answer | the reason, naming what the answer would have decided; nothing is opened |
-| a measurement nobody has taken | it names a run, a platform or a reading no record holds, and a failure, report or decision on record depends on its answer | the issue it is re-homed to |
+| a measurement nobody has taken | it names a run, a platform or a reading no record holds | the issue it is re-homed to |
 
-"On record" means a record other than the row itself: an open issue, a failed run, a review finding, or a rule or design that rests on the answer. A row's own `Who must answer` cell is not such a record.
+"On record" means a record that outlives the settle and rests on the answer: an open issue, a failed run, or a rule or design of another work item. The row's own work item is not such a record, its design, questions and rounds among them, because `--apply` removes its directory and nothing in it can wait on the answer; the row's own `Who must answer` cell is not one either.
 
 `settle.py#ROWS_HEADING` changes its text only. No function, argument or output line changes, and the three cases that split the report on the constant (`tests/skills/test_settle.py` lines 592, 882 and 1532) read it by name.
 

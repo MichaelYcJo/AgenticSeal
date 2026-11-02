@@ -53,3 +53,4 @@ None. No migration, environment variable or dependency. The dry run's heading ab
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
 | | | | |
+| 2026-11-02 | Round 1's two findings are answered in the frame first, then by a fix pass: the last kind's *When* cell returns to the base sentence so the table's order decides between the two measurement kinds, and "on record" means a record that outlives the settle, the row's own work item excluded | Finding 1: with the two cells each other's negation, no row fits both and the order case pinned wording, not a fact a reader acts on (`docs/what-a-script-gates.md` *The checks*). Finding 2: #1061 and #1062, closed not planned in 0.22.4, each cite their own work item's records, which `--apply` removes; the owner's decision of 2026-10-27 is that such rows open nothing | `skills/settle/SKILL.md` *The settling session's procedure* |
