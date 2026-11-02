@@ -392,6 +392,10 @@ file says whether it predates the work: `new` is this work's to repair,
 `failing on base too`
 is a follow-up to name, and `new?` carries the reason nothing at the base
 measured it, so run that file at the base before treating it as either.
+A failing suite that names no file and counts sessions that stopped
+part-way, at exit 0 too, had a pytest session at `HEAD` stop before its
+end: `records/` in the kept output says what stopped it, and a stop the
+branch added is this work's to repair.
 Review a repair where it touched a file outside the work item's records, and
 run the gate again. On the broad run's exit 2 nothing ran; a refusal about the row goes
 to a person, as *A refusal about the `Broad gate` row* below says.

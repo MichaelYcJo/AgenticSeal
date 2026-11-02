@@ -1,0 +1,89 @@
+# Guarantee: 1793599990-each-result-is-a-badge
+
+| Field | Value |
+|---|---|
+| Broad gate | 6d4ef6368 against d57e9ee7a |
+
+The audit ran on the branch at `5f17fa375` against `release/v0.29.0`. That
+name resolved to `origin/release/v0.29.0` at `d57e9ee7a`, the first of
+`release/v0.29.0@{upstream}`, `origin/release/v0.29.0` and `release/v0.29.0`
+that `git rev-parse --verify --quiet` answered (executed). `trail/gate.md`'s
+one `seal` block names the run `6d4ef6368`. That commit is an ancestor of
+HEAD (`git merge-base --is-ancestor`, exit 0). `git log --no-merges
+--name-only 6d4ef6368..HEAD ^d57e9ee7a` lists one commit, `5f17fa375`, and
+it touches only this work item's `trail/gate.md` (executed). `seal pr-body
+seal/threads/1793599990-each-result-is-a-badge --body <the prompt's
+pr-body.md> --check` exited 0, both from the tree's `bin/seal` and from the
+installed 0.28.0 copy (executed). No `seal/parity.md` is tracked, so this
+block carries no `original:` line (executed: `ls`).
+
+## Claims re-run
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| Seen red: the rewritten cases were run against the code before the change and gave 12 failed and 2 passed. The 2 passes were the two parameters of the unchanged re-run case | `trail/phases/phase-1.md` *Seen red* | in a `git clone --no-local` of the worktree at `5f17fa375`, under the scratchpad's `1793599990-each-result-is-a-badge/at-base/`, `git checkout d57e9ee7a -- .github/scripts/publish_release_note.py .github/scripts/release_seal.py tests/censuses.py`, then `bin/test tests/github/test_publish_release_note.py tests/github/test_release_seal.py -q -p no:randomly -k "sealed_twin or given_no_image or badge or accepts_a_published_note or row_other_than_yes or dry_run_draws or labelled_values or second_run_finds_no_header"`; the clone removed after | holds (executed): `12 failed, 2 passed`, exit 1. The failures are the two `sealed_header` cases, the S4 case, the `results` case, `test_accepts_a_published_note_and_replaces_its_header`, the six parameters of `test_a_row_other_than_yes_...` and the dry run case. The prose cell `<b>SEALED</b> v1.2.3 at aaa11111 on main<br>...` is what came back. The two passes are `test_a_second_run_finds_no_header_to_replace_and_writes_nothing` |
+| Mutation of `publish_release_note.py`: the encoder without doubling, the value colour set to the label colour, and the badge without its `alt` each go red | `trail/phases/phase-1.md` *Mutation*; `trail/rounds/round-2.md` *Probes* row 2 | in a `git clone --no-local` at `5f17fa375`, #898's `.../fix/898-a-mutant-that-does-not-compile-reads-as-caught/bin/seal mutate .github/scripts/publish_release_note.py` with those three `--replace` pairs, run against `-k 'sealed_twin or given_no_image or badge_spells'`. The colour and `alt` pairs were run again without `-x`. The no-doubling mutant was also applied with the Edit tool and its case run by hand | holds (executed): 3 red, 0 survived, then 2 red at exit 1 without `-x`. By hand, the no-doubling mutant failed only `test_a_badge_spells_its_label_and_value_as_the_service_reads_them`, at its decoder: it read `['a', 'b c d', ...]` where `['a-b_c d', ...]` was expected. The file was restored with `git checkout --` |
+| Mutation of `release_seal.py#results`: the review and work items values swapped, `skipped` left with its word, and the not-read review line dropped each go red | `trail/phases/phase-1.md` *Mutation* | the same `seal mutate` on `.github/scripts/release_seal.py` with those three `--replace` pairs, against `bin/test tests/github/test_release_seal.py -q -k 'labelled_values or accepts_a_published_note'` | holds (executed): 3 red at exit 1, 0 survived |
+| Mutation of `tests/censuses.py`: with the badge host gone from `ALLOWED_DOMAINS`, `test_publish_release_note.py::test_census` goes red and names the host at `publish_release_note.py:655` | `trail/phases/phase-1.md` *Mutation* | the same `seal mutate` on `tests/censuses.py`, deleting the `ALLOWED_DOMAINS` line, against `bin/test tests/github/test_publish_release_note.py -q -k test_census` | holds (executed): red at exit 1, `.github/scripts/publish_release_note.py:655: real_identifiers: <the host> is a real-looking domain` |
+| The two touched modules pass at the audited tree, 106 cases | `trail/rounds/round-1.md` and `round-2.md` *Probes* row 1 | `bin/test tests/github/test_publish_release_note.py tests/github/test_release_seal.py -q` in the clone at `5f17fa375`, clean (`git status --short` printed nothing) | holds (executed): `106 passed`, exit 0 |
+| Every `## Removes` row: the phrases `results` composed, the bold `SEALED` line and the prose lines, and the docstring sentences on prose lines | `frame/design.md` `## Removes`; `changelog.md:3` | `git grep -n -I` at HEAD, outside `seal/threads` and Markdown, for `<b>SEALED</b>`, `the suite at `, `of them capped`, `work items not read`, `capped not read`, `deferred not read`, `phrases of the alt text`, `lines beside it in the header`, `results as text` | holds (executed). There are no hits in the code that builds the cell. `the suite at` remains only in unrelated sentences (`release_seal.py:280`, `:531`, the workflow's step names, other modules). `results as text` remains only in test docstrings that name what each case was seen red against (`test_publish_release_note.py:930`, `:986`; `test_release_seal.py:715`, `:784`). The policy row is the settle's (`## Rule changes`), and `docs/branch-and-release.md` is unchanged in the diff (executed: `git diff --stat`) |
+| The colours `#8e0c12` and `#d42420` are read from `assets/seals/owl.svg` | `changelog.md:3`; `frame/design.md` *Data & interfaces* | `grep -n -i -e d42420 -e 8e0c12 assets/seals/owl.svg` | holds (executed): `:3`, the wax gradient's outer stop `#8e0c12`; `:18`, the relief fill `#d42420` |
+| The version the work ships in. The changelog says "The first note with badges is v0.28.1's" | `changelog.md:3`, written in `f67724225` (the crafter's phase 1 close) | `git show d57e9ee7a:.claude-plugin/plugin.json` and `git show HEAD:.claude-plugin/plugin.json`; `git branch -r`; `git tag -l`; `gh api repos/MichaelYcJo/SpecSeal/milestones`; `gh issue view 1299` | does not hold (executed). `.claude-plugin/plugin.json:4` reads `"version": "0.29.0"` at the base and at HEAD. The pull request's base is `release/v0.29.0`, and #1299's milestone is `release: 0.29.0`. That milestone's description says it was "Renamed from release: 0.28.1 on 2026-11-02" to carry #1299, and that `release/v0.29.0` is cut from `release/v0.28.1`. No `v0.28.1` tag exists, and none is planned, so the first note with badges is v0.29.0's |
+
+## The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | In `sealed_header`, each result line becomes one or two `/badge/` images. Each label and value has `-` and `_` doubled and is then percent-encoded with nothing safe. The `alt` is `label: value`. `results` returns `(label, value)` lines. The cell is the same with the image off, `header` and `counts` are unchanged, and the badge host joins `ALLOWED_DOMAINS`. It removes the phrase composition. After the folds, *Scope* item 2 says the URL needs no escape, and item 6 says S3 is pinned by S1's whole string | the issue's *The change* and every point of *What the frame decides*; the diff of `.github/scripts/publish_release_note.py`, `release_seal.py`, `publish-release.yml` and `tests/censuses.py`; the cases re-run above | Its *Operational impact* (`frame/plan.md:90`) says "The first note with badges is v0.28.1's", and its failure scenario (`frame/plan.md:50`) says "every note since 0.28.1". `frame/questions.md:28` Q1's default says "Answerable after the 0.28.1 release". The tree's version, `.claude-plugin/plugin.json:4` `0.29.0`, contradicts all three. The *Grounding* row at `frame/design.md:28` reports the owner's decision "ships them in 0.28.1" as the issue states it, which is the same release renamed |
+| the build | Phase 1 built *Scope* items 1 to 7 at `eca0e549f` and removed the badge address's escape at `ddbef6c1` as a stated departure. The seen-red run gave 12 failed and 2 passed, mutants went red in three files, and the narrow set gave 470 passed | the design as folded; the tree (every claim re-run above holds); round 1's confirmation of the escape departure | `gaps.md:7-8`, written in the same commit `f67724225`: its answerers are "the owner opens v0.28.1's published note" and "no release ... exists before v0.28.1 is tagged". Both name a release the tree does not make |
+| the last round | Round 2 at `99091356` confirms round 1's two fixes at `2a82f15a`. It raises one `should`, that *Scope* item 6 still asks for a separate S3 case, closed `fixed 9db877db`, and names *Scope* item 2's stale escape sentence outside its finding | The fix commit `9db877db` and the later fold `a1116ee9` touch only this work item's `frame/` (executed: `git log --name-only`). At HEAD, item 6 reads "a case for the encoding (S4). The `alt` text (S3) is pinned by S1's whole-string assertion", as the finding's fix asked. Item 2 reads "the URL needs no escape", which matches `badge` at `publish_release_note.py:667-682` (read) | none |
+| the changelog | One `### Changed` entry describes the badges, the two reds, the `alt` text, the same cell with the image off, the unchanged `header`, and the census host. It also says "The first note with badges is v0.28.1's" | the diff; `frame/design.md` *Scope* and *Data & interfaces*; `assets/seals/owl.svg:3`, `:18` | `.claude-plugin/plugin.json:4` at HEAD (`0.29.0`), the base `release/v0.29.0`, and the milestone `release: 0.29.0`'s rename note. This sentence reaches the published release note |
+| the orchestrator's part of the pull request body | `Closes #1299`; prefix `feat:`, the release's one, with the milestone renamed from 0.28.1 to 0.29.0 to carry it; the owner's decisions; the form A1 over A2, A5 and A6; the outside host; what it removes; two rounds fixed at `2a82f15a` and `9db877db`; the orchestrator's commits touch only the records except the merge `6d4ef636`; the broad run at `6d4ef636` against `d57e9ee7` | the tree's version `0.29.0`; the milestone; `frame/plan.md` A1, A2, A4 to A6; `## Removes`; both rounds; `git log --no-merges --name-only d57e9ee7a..HEAD`, where only `eca0e549`, `ddbef6c1`, `9d693098` and `2a82f15a`, the crafter's commits, touch paths outside the records (executed); `trail/gate.md` | Its part below `## From the records` copies `changelog.md:3`, `gaps.md:7-8` and `frame/questions.md:28`. Those name v0.28.1 as the release that carries the badges, while the part above names 0.29.0. The body tells two stories, and the tree decides for 0.29.0 |
+
+```seal
+target: 5f17fa375 against d57e9ee7a
+Verdict: withheld reason: changelog.md:3 (the crafter's fragment, f67724225) says "The first note with badges is v0.28.1's", and the tree at 5f17fa375 ships this in 0.29.0 (.claude-plugin/plugin.json:4 reads "0.29.0" at HEAD and at the base release/v0.29.0, and the milestone release: 0.29.0 records 0.28.1 renamed to 0.29.0), so no v0.28.1 note will carry badges; the same release stands in gaps.md:7-8, frame/questions.md:28 (Q1 default) and frame/plan.md:50 and :90, and the first three reach the pull request body's copy
+```
+
+## Re-audit at 3aa1f46ea
+
+| Field | Value |
+|---|---|
+| Broad gate | 6d4ef6368 against d57e9ee7a |
+
+`release/v0.29.0` still resolves to `origin/release/v0.29.0` at `d57e9ee7a`,
+read after a `git fetch` (executed). HEAD is `3aa1f46ea`. `git log
+--no-merges --name-only 6d4ef6368..HEAD ^d57e9ee7a` lists two commits,
+`5f17fa375` and `3aa1f46ea`. Between them they touch only this work item's
+`trail/gate.md`, `changelog.md`, `gaps.md`, `frame/plan.md`,
+`frame/questions.md` and `guarantee.md`, so the broad run still stands at
+HEAD (executed). `3aa1f46ea` carries the earlier verdict block unchanged:
+`git show HEAD:<this file>` against the file as it stood before this block
+was appended printed no difference (executed). Since the earlier block's
+target `5f17fa375`, no commit has touched code or tests, so none of the
+earlier claims' coordinates changed and no claim is re-run. The command
+`seal pr-body <item> --body <the prompt's pr-body.md> --check` exited 0, both from the
+tree's `bin/seal` and from the installed 0.28.0 copy (executed). No
+`seal/parity.md` is tracked, so this block carries no `original:` line.
+
+## Claims re-run
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| The repair: every forward-looking 0.28.1 in the work item's records now names 0.29.0, the release `.claude-plugin/plugin.json:4` carries | `3aa1f46ea`; the earlier block's reason | `git diff 5f17fa375..HEAD`; `grep -rn '0\.28\.1'` over this work item's `*.md` | holds (executed). `changelog.md:3` now reads "The first note with badges is v0.29.0's". `gaps.md:7-8`, `frame/questions.md:28` Q1 and `frame/plan.md:50` and `:90` now name 0.29.0, and the diff changes nothing else in those files. The 0.28.1 left in the records sit in four places. `routing.md:17` is the owner's dated answer. The round records give their targets, bases and `Not judged` rows as they stood at each round. `frame/design.md:5`, `:28` and `:48` say what the framer read: the branch it was cut from, the issue's "In 0.28.1", and the milestone under its name then. `frame/design.md:38` uses `release/v0.28.1` as a probe's sample value. None of them tells a reader which release carries the badges |
+| The pull request body's copy holds the repaired records | the prompt's `pr-body.md` | `seal pr-body ... --check`; `grep -n` of the versions on its lines 27, 164, 165 and 182 | holds (executed). The check exits 0. The copied fragment, the two `Not verified` rows and Q1 name v0.29.0. Only the round 1 target line (`:50`) names `release/v0.28.1`, and that line is the round's own record |
+
+## The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | as the earlier block reads it; *Operational impact* and the failure scenario now say the first note with badges is v0.29.0's, and Q1's default says the measurement is taken after the 0.29.0 release | the issue; the diff; `.claude-plugin/plugin.json:4` (`0.29.0`); the milestone `release: 0.29.0` | none |
+| the build | as the earlier block reads it, with the code unchanged since `5f17fa375`; `gaps.md` now names the owner reading v0.29.0's note | the design; the tree; the claims the earlier block re-ran, whose coordinates no commit since has touched | none |
+| the last round | round 2, unchanged since the earlier block: `fixed 9db877db`, read at HEAD as the finding asked | the frame at HEAD (*Scope* items 2 and 6) | none |
+| the changelog | the one `### Changed` entry as before, with the first note with badges now v0.29.0's | the diff; `frame/design.md` *Scope*; `assets/seals/owl.svg:3`, `:18`; the tree's version `0.29.0` | none |
+| the orchestrator's part of the pull request body | unchanged: `feat:`, the release's one, with the milestone renamed from 0.28.1 to 0.29.0; the rounds; its commits; the broad run at `6d4ef636` | the part below `## From the records`, which now also names 0.29.0; the tree's version; `trail/gate.md` | none |
+
+```seal
+target: 3aa1f46ea against d57e9ee7a
+Verdict: sealed
+```

@@ -28,7 +28,8 @@ name: publish the release note
 # `seal` alone keeps `true` and meets the header guard instead: the first
 # run replaced the header, so the second finds none to replace). It runs the
 # suite at the tag and replaces the note's header with a table of the
-# stamp's results as text (#1153, `.github/scripts/release_seal.py`). Where
+# stamp's results as badges, each with its result as alt text (#1153,
+# #1299, `.github/scripts/release_seal.py`). Where
 # `seal/config.md`'s `Release note seal mark` row reads `yes` at the tag
 # (#1204), it first attaches the page form of the stamp's mark, the PNG
 # `.claude-plugin/plugin.json` names as its `icon` (#857), as `seal.png`, and
