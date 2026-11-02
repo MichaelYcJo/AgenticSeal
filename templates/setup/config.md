@@ -439,6 +439,7 @@ is off unless its row turns it on, and none of them stops anything.
 
 ```markdown
 | Pull request seal mark | yes |
+| Release note seal mark | yes |
 ```
 
 | Value | Means |
@@ -457,6 +458,14 @@ where the newest verdict block of the work item's `guarantee.md` reads
 sealer and the pull request's check name why. The mark's address is the
 plugin's repository, so a body carrying it shows the image while that
 repository stays public and the version's tag exists.
+
+**`Release note seal mark`** is read by the `seal` job of this plugin's own
+release workflow (`.github/scripts/release_seal.py#mark_on`), at the
+release's tag. Under `yes` the job attaches the plugin's icon to the release
+as `seal.png` and the note's header shows it beside the results the stamp
+states; under any other value it attaches nothing and the header holds the
+results alone. The plugin ships no release workflow, so in any other
+repository nothing reads this row.
 
 **A row that will not read writes no mark and is named**, a row written
 twice among them; the command's exit code is what it would be without the

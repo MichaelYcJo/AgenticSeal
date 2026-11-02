@@ -923,6 +923,33 @@ class Test_module:
             "<br>a &amp; b</td>"
         ) in odd, odd
 
+    def test_the_sealed_header_given_no_image_is_its_results_cell_alone(
+        self, monkeypatch, tmp_path
+    ):
+        """#1204 S7. Where the repository leaves the release note's seal
+        image off, `sealed_header` is given no image and builds a table of
+        one cell: the same lines, in the same order and escaped the same
+        way, as the two-cell header's second cell holds. Seen red against
+        the `sealed_header` that always drew the image's cell."""
+        mod, _body = published(monkeypatch, tmp_path, RELEASE)
+        work, closed, people = mod.tally(RELEASE, OWNER)
+        results = ["the suite at 5 passed and 0 skipped", "capped not read"]
+        said = ("v1.2.3 at aaa11111 on main", results, work, closed, people)
+        two = mod.sealed_header("https://example.com/seal.png", "a seal", 160, *said)
+        one = mod.sealed_header(None, None, None, *said)
+        assert one == (
+            "<table>\n<tr>\n"
+            "<td><b>SEALED</b> v1.2.3 at aaa11111 on main<br>7 pull requests merged"
+            "<br>4 issues closed<br>2 outside contributors"
+            "<br>the suite at 5 passed and 0 skipped<br>capped not read</td>\n"
+            "</tr>\n</table>"
+        ), one
+        image = (
+            '<td><img src="https://example.com/seal.png" alt="a seal" '
+            'width="160"></td>\n'
+        )
+        assert two.replace(image, "") == one, (two, one)
+
     @pytest.mark.parametrize(
         "description, theme",
         [

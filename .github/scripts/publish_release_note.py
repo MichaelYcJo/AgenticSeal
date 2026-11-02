@@ -91,8 +91,9 @@ note is fixable in one edit, and a failed job at the tag is not.
 `seal` job in the same workflow runs only on `true`: the seal edits the note,
 so it is held to the line above and never touches a release this run did
 not write. The header is built by `header`, and the seal's replacement for
-it by `sealed_header`, so both shapes live in the file that owns the counts
-and the seal finds the header by the function that wrote it.
+it by `sealed_header`, with the seal's image or without it (#1204), so every
+shape lives in the file that owns the counts and the seal finds the header
+by the function that wrote it.
 
 `DRY_RUN=1` prints the note it would create and writes nothing, for the reason
 `close_issues_on_release.py`'s docstring gives: a tool whose only mode has
@@ -642,24 +643,29 @@ def header(work, closed, people):
 
 
 def sealed_header(image_url, alt, width, sealed, results, work, closed, people):
-    """What replaces `header`'s table once the release seal is attached
-    (#718, #1153): the same table with two cells. The first holds the seal
-    as an `<img>` `width` CSS pixels wide with `alt` as its text (#832: the
-    PNG is drawn at twice that for a high-density screen). The second holds
-    the stamp's results one per line, as the stamp sets them beside its
-    disc: `SEALED` in bold before `sealed`, the sealed version, commit and
-    branch; the lines `counts` states; then `results`, the stamp's other
-    rows. A reader whose browser does not draw the image still has every
-    number as text. The URL, `alt` and every line are escaped, so a quote
-    cannot end an attribute and a `<` opens no tag."""
-    image = (
-        f'<img src="{html.escape(image_url)}" alt="{html.escape(alt)}" '
-        f'width="{int(width)}">'
-    )
+    """What replaces `header`'s table once the release seal has run (#718,
+    #1153): the same table, whose last cell holds the stamp's results one
+    per line, as the stamp sets them beside its disc: `SEALED` in bold
+    before `sealed`, the sealed version, commit and branch; the lines
+    `counts` states; then `results`, the stamp's other rows. Given an
+    `image_url`, the table has two cells, and the first holds the seal as
+    an `<img>` `width` CSS pixels wide with `alt` as its text (#832: the PNG
+    is drawn at twice that for a high-density screen). Given none, where
+    the repository leaves the image off (#1204), the results' cell is the
+    table's one cell, and `alt` and `width` are not read. A reader whose
+    browser does not draw the image still has every number as text. The
+    URL, `alt` and every line are escaped, so a quote cannot end an
+    attribute and a `<` opens no tag."""
     lines = [
         f"<b>SEALED</b> {html.escape(sealed)}",
         *(html.escape(line) for line in [*counts(work, closed, people), *results]),
     ]
+    if image_url is None:
+        return table(lines)
+    image = (
+        f'<img src="{html.escape(image_url)}" alt="{html.escape(alt)}" '
+        f'width="{int(width)}">'
+    )
     return table([image], lines)
 
 

@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
-"""Draw the release's seal as a PNG, attach it, and put it in the note (#718).
+"""Put the release's seal in the note: the stamp's results, and the seal's
+PNG beside them where the repository turns the image on (#718, #1204).
+
+**The image is one row's to turn on** (#1204). `MARK_ROW` in the `config.md`
+of the tree's `seal/` root, read through `hooks/lib/config.py`, turns it on
+where it reads `MARK_ON` exactly (`mark_on`). Then the PNG is attached as
+`ASSET` and the note's header becomes a table of two cells, the image beside
+the results. Under any other answer nothing is drawn or attached, and the
+header becomes a table of the results' cell alone. An absent or empty row
+says nothing; any other value, and a row the reader refuses, are named on a
+`::warning::` line, and the results still go in. The plugin ships no release
+workflow, so the row is read in this repository alone.
 
 **The seal is the page form of the stamp's mark** (#857). The mark has two
 forms: a sprite the terminal stamp draws
@@ -33,16 +44,17 @@ here is one log line and one `::warning::` with an exit of 0, and nothing is
 edited unless the note's header is still in it exactly once as
 `publish_release_note.py#header` wrote it (#1153). A note somebody edited
 after publication is left alone, and so is its asset list; so is a note a
-run of this job already sealed, whose header is the two-cell one by then,
-so a re-run uploads and edits nothing. The upload comes before the edit, so
-an edit that fails leaves an attached image the note does not show, which
-the warning names.
+run of this job already sealed, whose header is the sealed one by then, with
+the image or without it, so a re-run uploads and edits nothing. The upload
+comes before the edit, so an edit that fails leaves an attached image the
+note does not show, which the warning names.
 
 `DRY_RUN=1` draws the PNG at `SEAL_PNG` (by default `seal.png` in a
-temporary directory), prints the rows and the note it would write, and
-uploads and edits nothing, so the seal of a release whose job did not run can
-be drawn by hand from a checkout at the tag, attached with
-`gh release upload` and shown with `gh release edit --notes-file`.
+temporary directory) where the row turns the image on, prints the rows and
+the note it would write, and uploads and edits nothing, so the seal of a
+release whose job did not run can be drawn by hand from a checkout at the
+tag, attached with `gh release upload` and shown with
+`gh release edit --notes-file`.
 
 Environment: `TAG`, `REPO`, `GH_TOKEN`, `SUITE_RECORDS` (the directory the
 recorder wrote in) and `SUITE_KEY` (the key the run at the tag was handed),
@@ -385,6 +397,46 @@ def chain_counts(root, pulls):
 # The asset's name on the release, and so the last part of its URL.
 ASSET = "seal.png"
 
+# #1204: the row of the tree's `seal/config.md` that turns the image on, and
+# the one value that does. What `mark_on` says where a row is written and
+# does not turn it on, printed after `IMAGE_WARNING`.
+MARK_ROW = "Release note seal mark"
+MARK_ON = "yes"
+IMAGE_WARNING = "::warning::release seal image: "
+NO_IMAGE = "the note's header holds the results without the seal's image"
+ROW_NOT_YES = (
+    f"`{MARK_ROW}` reads `{{value}}`, not `{MARK_ON}`, so the row is not read "
+    f"and {NO_IMAGE}"
+)
+ROW_REFUSED = f"`{MARK_ROW}` is not read: {{why}}; {NO_IMAGE}"
+
+
+def mark_on(root):
+    """`(on, note)`: whether `MARK_ROW` in the `config.md` of the `seal/`
+    root of the tree at ROOT reads `MARK_ON` exactly, and the sentence
+    naming a row that is written and does not, or None.
+
+    The root is `hooks/lib/optin.py#home_at`'s, and the row is read through
+    `hooks/lib/config.py#declared_value`, the one reader of a row. A tree
+    with no root, an absent row and an empty one are off and say nothing;
+    any other value, and a refusal the reader returns, are off and named.
+    Nothing here refuses: the image is a picture, and the results go in
+    whatever the row says."""
+    home = module("agentic_optin_for_release_seal", "hooks", "lib", "optin.py").home_at(
+        root
+    )
+    if not home:
+        return False, None
+    config = module("agentic_config_for_release_seal", "hooks", "lib", "config.py")
+    value, refused = config.declared_value(home, MARK_ROW)
+    if refused is not None:
+        return False, ROW_REFUSED.format(why=refused)
+    if not value:
+        return False, None
+    if value != MARK_ON:
+        return False, ROW_NOT_YES.format(value=value)
+    return True, None
+
 
 class Refused(Exception):
     """A reason the seal is not attached; `main` says it and exits 0."""
@@ -466,8 +518,9 @@ def draw(png):
 
 
 def seal_release(tag, repo, dry):
-    """Draw, attach and show the seal for `tag`, or raise `Refused` at the
-    first thing that stops it -- before any write, apart from the edit."""
+    """Put the seal for `tag` in its note, drawing and attaching its image
+    where `mark_on` reads the row on, or raise `Refused` at the first thing
+    that stops it -- before any write, apart from the edit."""
     note = publisher()
     version = note.version_of(tag)
     if version is None:
@@ -490,12 +543,18 @@ def seal_release(tag, repo, dry):
     rows = release_rows(version, tagged(tag), len(work), len(closed), suite, chain)
     for label, value in rows:
         print(f"{label:<8} {value}")
-    # The upload names the asset after the file, so a run that uploads
-    # writes `ASSET` in a directory of its own; `SEAL_PNG` is a dry run's.
-    path = os.environ.get("SEAL_PNG") if dry else ""
-    path = path or os.path.join(tempfile.mkdtemp(prefix="release-seal-"), ASSET)
-    width = draw(path)
-    print(f"copied the icon the plugin's manifest names to {path}")
+    # Read before the draw, so a tree that leaves the image off never meets
+    # a refusal of the draw's over an image it does not show.
+    on, unread = mark_on(ROOT)
+    if unread:
+        print(IMAGE_WARNING + unread)
+    if on:
+        # The upload names the asset after the file, so a run that uploads
+        # writes `ASSET` in a directory of its own; `SEAL_PNG` is a dry run's.
+        path = os.environ.get("SEAL_PNG") if dry else ""
+        path = path or os.path.join(tempfile.mkdtemp(prefix="release-seal-"), ASSET)
+        width = draw(path)
+        print(f"copied the icon the plugin's manifest names to {path}")
     try:
         body = json.loads(gh("release", "view", tag, "--repo", repo, "--json", "body"))[
             "body"
@@ -510,16 +569,25 @@ def seal_release(tag, repo, dry):
             "of this job already replaced it, it went out without one, or the "
             "pull requests moved between the two lists; nothing was uploaded"
         )
-    image = f"https://github.com/{repo}/releases/download/{tag}/{ASSET}"
-    alt = f"The {version} release seal"
     said, lines = results(rows)
-    replacement = note.sealed_header(
-        image, alt, width, said, lines, work, closed, people
-    )
+    if on:
+        image = f"https://github.com/{repo}/releases/download/{tag}/{ASSET}"
+        alt = f"The {version} release seal"
+        replacement = note.sealed_header(
+            image, alt, width, said, lines, work, closed, people
+        )
+    else:
+        replacement = note.sealed_header(
+            None, None, None, said, lines, work, closed, people
+        )
     sealed = body.replace(table, replacement)
     if dry:
         print("DRY_RUN -- nothing uploaded and nothing edited; the note would read:")
         print(sealed)
+        return
+    if not on:
+        gh("release", "edit", tag, "--repo", repo, "--notes", sealed)
+        print(f"put the seal's results in {tag}'s note, with no image")
         return
     gh("release", "upload", tag, path, "--repo", repo)
     try:
