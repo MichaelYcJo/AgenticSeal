@@ -648,7 +648,9 @@ class Test_copies:
 
     @pytest.mark.parametrize(
         "file, shared",
-        [("docs/a.md", WINDOW - 1), ("docs/a.ko.md", WINDOW)],
+        # Fourteen is written out, not `WINDOW - 1`: a run read from the
+        # module's own constant moves with it, and pins no window length.
+        [("docs/a.md", 14), ("docs/a.ko.md", WINDOW)],
         ids=["fourteen-words", "a-korean-edition"],
     )
     def test_refuses_a_shorter_run_and_a_to_outside_the_corpus(self, file, shared):

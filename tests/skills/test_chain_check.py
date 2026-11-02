@@ -2086,12 +2086,15 @@ class Test_pins_and_copies_in:
         self, branch, ready, capsys
     ):
         """S5: a `to` that lands in a `*.ko.md` file is outside the corpus and
-        names no copy. Seen red under the mutation that admits every `.md`."""
+        names no copy, though it shares a run of 15 words with a planted
+        `skills/` file. Seen red with only the `.ko.md` exclusion of
+        `passages.py#in_corpus` removed, the line naming that planted file."""
         root, _code = branch
         run = words_of(15)
         write(root, "skills/planted/SKILL.md", f"Its own words, then {run} and on.\n")
         planted_spec(
-            root, spec_with(f"- add\n  file: docs/policy.ko.md\n  to: New {run}.\n")
+            root,
+            spec_with(f"- add\n  file: docs/policy.ko.md\n  to: New {run} rule.\n"),
         )
         code, out = check(root, capsys)
         assert code == 0, out
