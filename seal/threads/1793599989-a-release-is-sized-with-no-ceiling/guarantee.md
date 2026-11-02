@@ -34,3 +34,28 @@ The base `release/v0.29.0` has no local branch and no upstream here, and `origin
 target: d36fbe9b8 against d57e9ee7a
 Verdict: withheld reason: the orchestrator's part of the pull request body, line 8, says the sweep "refused the judgment sentence this work writes", citing `frame/design.md` `## Removes`; the sentence this work writes is the `to` at `frame/design.md:84-98`, and the base's `STATES_A_SIZE` (`d57e9ee7a:tests/behaviour/test_a_release_is_sized_by_a_criterion.py:86-93`) matches nothing in it, while `restatements` (`:146-151`) skips the owner the `to` lands in, so the sweep never refused it (executed). The cited row says the sweep "refuses the judgment this work states" (`frame/design.md:107`), measured by G7 on two sentences the framer wrote (`frame/design.md:13`); the fix is to copy that or the changelog's sentence "Measured before the build, the sweep matched none of five sentences that state a count and matched both of two sentences that state the judgment." (`changelog.md:3`) into line 8 in its place. Every other claim re-run holds, and the design, the build, the rounds and the changelog agree with the issue and the tree
 ```
+
+## Claims re-run at 27b05115
+
+This run audits what came after the block above's `target:`, d36fbe9b8. One commit follows it, 27b05115, and it touches this file alone, adding the block above unchanged (executed: `git log --no-merges --name-only d36fbe9b8..HEAD`; `git diff --quiet d36fbe9b8 27b05115` over every other path, exit 0). No coordinate of the claims above was touched, so they are not re-run. The one thing that changed is the body file, which lives outside the tree, so its first part is read again.
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| The broad run still stands at HEAD: only this work item's records follow its commit | `trail/gate.md` | `git log --no-merges --name-only a89bb8971..HEAD ^d57e9ee7a`, the base resolved through `origin/release/v0.29.0` to d57e9ee7a (executed) | holds: d36fbe9b touches `trail/gate.md` alone and 27b05115 touches `guarantee.md` alone |
+| The body's part below `## From the records` is the records' own text | the body file the prompt names | `bin/seal pr-body seal/threads/1793599989-a-release-is-sized-with-no-ceiling --body <file> --check` at 27b05115 (executed) | holds: exit 0, "is the records' text" |
+| Body line 8 now quotes `changelog.md:3` word for word | the orchestrator's part of the body, line 8 | `grep -F` of "Measured before the build, the sweep matched none of five sentences that state a count and matched both of two sentences that state the judgment." in `changelog.md` and in the body; `grep 'refused the judgment'` in the body (executed) | holds: the sentence stands once in `changelog.md`, at the body's line 8 and in the records' copy below the heading; "refused the judgment" stands nowhere in the body. G7's measurement behind the sentence was re-run in the block above's table and holds |
+
+## The parties at 27b05115
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | unchanged since d36fbe9b8 | the issue, the tree and the build, as the run above found | none |
+| the build | unchanged since d36fbe9b8 | the diff, as the run above found | none |
+| the last round | round 3, unchanged since d36fbe9b8 | the merge resolution, as the run above found | none |
+| the changelog | unchanged since d36fbe9b8 | the design, the diff and G7 re-run above | none |
+| the orchestrator's part of the pull request body | as read above, with line 8 now quoting `changelog.md:3`; every other line unchanged, and "the orchestrator's commits touch only the work item's records, except that merge" still holds with 27b05115 (read, executed above) | the issue body, the design, the rounds, `trail/gate.md`, the changelog and the tracker, as the run above found | none |
+
+```seal
+target: 27b05115 against d57e9ee7a
+Verdict: sealed
+```
