@@ -96,6 +96,11 @@ The fix records an `add`'s `to` with no text taken out, and `copies` puts it at 
 
 Both cases ran in the scratch clone: the unit case failed at `7f0bb99b7` and passed with the fix, and the chain-check case is the probe as it ran. With the fix, `tests/skills/test_rule_changes.py` and `Test_pins_and_copies_in` passed whole (93 passed).
 
+```seal
+verdict: fixed 225bd1c6c
+answer: Held; built to the orchestrator's answer in `frame/plan.md` *Judgments of the run*, last row. `pins_and_copies_in` records an `add`'s `to` as `(None, to)`, and `copies` applies all three kinds the parser reads: a `change`'s `from` replaced by its `to`, a `remove`'s text taken out, an `add`'s `to` put at the document's end. One step within the `change` kind goes past the paste-ready fix: where a `change`'s `from` is not in the document yet, because it stands in another pending design's `to`, its `to` is still put at the end, since the settle writes it there. This design has two such `change`s. Run over this design as it stood at `a0dc967db`, the fixed reader names finding 2's copy both ways, at `:88` and at `:121`, where the round's fix alone names only `:121` (executed, inline over `git show a0dc967db:` of the design). Cases, each seen red against `a10750aea`: `Test_copies::test_names_a_run_another_add_of_the_design_puts_in` and `::test_names_a_run_a_change_puts_in_where_its_from_is_not_yet_there`, and `Test_pins_and_copies_in::test_names_a_passage_two_adds_of_one_design_put_in_two_documents`, which pins both notices whole. `seal mutate` 3 of 3 red. Corrected in the same commit: `chain_check.py`'s module docstring and `pins_and_copies_in`'s docstring, `copies`' docstring (which also states that a run spanning a `to` put at a document's end and its neighbours is not counted), and the changelog sentence. Design *Scope* item 3, as folded at `a10750aea`, holds for the code. The S7 copy half, rerun once with a `test_tmp_` probe over `git archive a92c358b^` and `a92c358b` and then removed, names the same five pairs as phase 1, each reworded by the settle, so the fix changes no pair.
+```
+
 ### 2. This design's own `add` and its `change` of `docs/what-a-script-gates.md` *The checks* share two runs of 15 words, so the 0.28.0 settle writes a copy the paste test refuses
 
 ```seal
@@ -118,6 +123,11 @@ The fix keeps the list in the `add`, whose section is the home of what the check
 
 ```markdown
   to: each line of a `to` that opens like a `check:` line and is not one, and each source it cannot read, as `docs/the-review-record.md` *What the check reads at the pull request* lists them; names each test pin a `from` takes out and each run a `to` shares with another rule document, refusing neither;
+```
+
+```seal
+verdict: fixed a10750aea
+answer: Held, and folded by the orchestrator at `a10750aea`: the `change`'s `to` for `docs/what-a-script-gates.md` *The checks* now points at the `add`'s section instead of listing the unread sources again. Confirmed with the fixed `copies` of `225bd1c6c`: `chain_check.py --baseline origin/release/v0.28.0 --root . --worktree` printed no line for this design's `frame/design.md` (executed, exit 0), while the same reader over the design as it stood at `a0dc967db` names the copy at `:88` and at `:121` (executed), so the silence is the fold's and not the reader's. Design S8 holds.
 ```
 
 ## Confirmations
