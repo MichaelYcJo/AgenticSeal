@@ -1,0 +1,39 @@
+# Implementation Plan: 1793588973-pr-body-reads-a-details-tag-as-github-does
+
+## Technical context
+
+- `skills/code-review/scripts/pr_body.py#_composed` (`:420-466`) builds the generated part and then reads every copied line against its record's `readable` line, `seen[rel][line - 1]` (`:443`). Three refusals stand there: a line equal to `HEADING` (`:446`), a readable line equal to `FOLD` or `FOLD_END` (`:454`), and a closing keyword through `_claims` (`:404-417`). `_claims` reads the line through `CLOSER.keywords_in`, whose code-span pattern is `.github/scripts/close_issues_on_release.py#SPAN` (`:123`). `CLOSER` is loaded once at import (`:94-110`), so the new arm needs no new import.
+- `unverified_check.py#readable` blanks fenced lines only (`skills/verify/scripts/unverified_check.py:603-626`). A round record's `seal` blocks are fenced, so a tag inside one is never read; in the body they render as code.
+- The cases: `tests/skills/test_pr_body.py#Test_compose::test_refuses_a_record_it_cannot_copy_faithfully` (`:340-388`) is parametrized over `(rel, text, line, said)` and asserts one cause at `(rel, line)` whose sentence holds `said`. The new refused cases join that list. The passing case is a separate test, because that test asserts a refusal.
+- Other modules that load or read `pr_body.py` (executed, `git grep -n pr_body -- tests evals`): `tests/evals/test_rule_cases.py` and `evals/scripts/rule_cases.py`, which compose the eval cases' bodies; `tests/behaviour/test_the_sealer_guarantees.py`; `tests/behaviour/test_the_pull_request_language_is_the_repositorys.py`; `tests/skills/test_seal.py`; `tests/text/test_the_rules_have_one_owner.py`. None of their record fixtures holds a `details` tag outside the body's own fold lines (executed, `git grep -i -E '</?details([[:space:]/>]|$)' -- evals tests`).
+- The failure scenario of the chosen approach, six months on: a record line that GitHub would render as text, such as `</details>` in a `frame/questions.md` table cell or in an indented code block of a `gaps.md` row, is refused. The orchestrator learns it from a `refused:` line naming the record's path and line, wraps the tag in a code span, commits, and runs `seal pr-body` again: one record commit, and no person asked. No such line stood in the copied records of `v0.25.1` to `HEAD` (`frame/design.md` *Grounding*). The opposite failure, a tag that GitHub reads and the reading passes, needs two backticks around it that GitHub does not read as a code span, such as an escaped backtick; the docstring's *Limits* list names it.
+
+## Alternatives considered
+
+| Approach | Failure scenario | Verdict |
+|---|---|---|
+| A1 Refuse a copied line holding `<details` or `</details`, in any case, followed by whitespace, `/`, `>` or the line's end, outside a fence and a code span; the code span is the spelling that passes | It refuses some lines GitHub renders as text: in a table cell, after a backslash, in an indented code block, in an HTML comment (executed, the probe in `frame/design.md` *Grounding*). Each has a passing spelling, the code span, and none stood in a copied record from `v0.25.1` to `HEAD` | **Chosen**. It reads a character sequence and no meaning, and GitHub's reading of a `details` tag is a subset of it: every line the probe and the issue saw end or open a fold is refused |
+| A2 Keep the copy unrefused and write a backslash before each `<` that opens a `details` tag, so GitHub renders it as text | The copy is no longer the record's bytes, which `pr_body.py#_check` and `agents/sealer.md` step 2 rest on (#1044's premise, `frame/design.md` *Grounding*). It needs the same pattern as A1, so no grammar goes; the over-reading moves from a refusal that names its line to a silent change, and inside an indented code block the backslash shows (executed, the probe) | Rejected |
+| A3 Replace the structure: escape every `<` of a copied line outside a code span, so no copied line is read as HTML at all. This removes the `details` reading, and it would also keep `<who>` and the other tags GitHub drops today | Every copied line holding `<` differs from its record, so the body's copy stops being the records' bytes and the squash commit keeps `\<` in each. The backslash shows inside an indented code block, which `readable` does not tell apart (executed, the probe), so a correct reading needs a CommonMark block parser the plugin's scripts do not carry. It also widens the work to a rendering loss no issue names | Rejected: the premise that keeps the structure, a copy checked byte for byte against its record is not a second source, is checked in the tree (`frame/design.md` *Grounding*) |
+| A4 Put the copy inside a fence, so GitHub reads no HTML in it | Tables and headings render as source, which reverses #1148's A9c, whose reason was a readable copy | Rejected |
+| A5 Drop the fold | A stray `</details>` would then end nothing, but `a <details> b` still opens a fold over the rest of the body (executed, the probe), and the body is several screens long again, which #1148's A9b rejected | Rejected |
+| A6 Hold A1's reading to cmark-gfm over an enumerated corpus, as `tests/behaviour/test_one_table_walker_reads_what_gfm_renders.py` holds the table walker (#647) | Whether a `details` tag ends the fold is decided after cmark-gfm, by GitHub's sanitizer and HTML parser: a `</details>` in a table cell ends nothing on GitHub (executed, the probe), and the suite's oracles stop at cmark-gfm's or markdown-it-py's output (read, `tests/gfm_table_oracle.py` and `tests/commonmark_oracle.py`, their docstrings). A1 is a superset by construction, and a corpus module would guard a reading that has refused no record line yet | Rejected |
+| A7 Keep the equality test | Its premise, that only a line equal to `<details>` or `</details>` ends the fold, is false: the issue measured four other lines, and the probe found seven more that end or open a fold | Rejected |
+
+## Phases
+
+| Phase | Delivers | Verified by | Status |
+|---|---|---|---|
+| 1 | `frame/design.md` *Scope* items 1, 2, 3 and 4 | Each new refused case of S1 and S2 shown red with only its own guard of the reading removed, and S3's passing case shown red with only the code-span blanking removed, each written in the phase record; in one command, `bin/test tests/skills/test_pr_body.py tests/evals/test_rule_cases.py tests/behaviour/test_the_sealer_guarantees.py tests/behaviour/test_the_pull_request_language_is_the_repositorys.py tests/skills/test_seal.py tests/text/test_the_rules_have_one_owner.py tests/hooks/test_launch.py -q`; `bin/seal layout --check tests`; `uvx ruff check` and `uvx ruff format --check` on `skills/code-review/scripts/pr_body.py` and `tests/skills/test_pr_body.py`; S5's `bin/seal pr-body` over this work item at exit 0; the full suite `unverified`, answered by the orchestrator's broad gate | |
+
+## Operational impact
+
+No dependency, environment variable or migration. `seal pr-body` refuses more record lines than before, and its exit codes and the `refused:` line's shape are unchanged. A record line written with a bare `details` tag outside a code span, which passed before, is now refused at its path and line. None stands in this tree's copied records today (`frame/design.md` *Grounding*). #1204 edits `pr_body.py` after this merges into `release/v0.28.0`, and the docstring it builds on is the one *Scope* item 2 writes.
+
+What `CONTRIBUTING.md` *What a change to a gate must carry* asks the pull request to state: the gate blocks more, and a wrong refusal costs one record commit by the orchestrator. It asks no person anything. It reads the character sequence of *Scope* item 1 and names no line as unread, because it decides nothing on meaning. The agent that judges a refused line's meaning is the orchestrator, as it repairs the record.
+
+## Judgments of the run
+
+| Date | Judgment | Grounds | Judged against |
+|---|---|---|---|
+| | | | |
