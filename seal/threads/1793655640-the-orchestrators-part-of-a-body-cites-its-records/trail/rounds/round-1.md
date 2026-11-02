@@ -30,6 +30,11 @@ once the sealer seals* 가 기록의 사실을 적으라고 하는 방식대로 
 
 Contract rule 19 asks the same commit to correct what stood on the old judgment: the clause of `frame/design.md` G10 that calls line 64 in agreement.
 
+```seal
+verdict: fixed e88b42fd6
+answer: The finding holds: the fourth sentence of `skills/writing-style/outside-the-review.md:64` asked for the record's path alone and forbade the record's sentence, which is the old rule. It now reads "phase 기록의 본문은 옮겨지지 않는다. phase 기록에 적힌 검증이 필요할 때 그것을 어떻게 적는지는 `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals* 가 정한다.", in my own words: the paste-ready "적으라고 하는 방식대로 적는다" stacks two verbs of writing, and the sentence written mirrors the pointer at `:27-30`, so the section points to the home the same way twice and restates none of it. The paragraph stays on one line, as the other paragraphs of that subsection are. The clause of `frame/design.md` G10 is the orchestrator's to fold, not this pass's; its replacement for "`skills/writing-style/outside-the-review.md:63` asks that a phase record's verification be cited by path and not written again. That agrees with the new rule, and the line stays." is "`skills/writing-style/outside-the-review.md:64` said how the verification table cites a phase record's verification, by the record's path alone, which is the old rule; it now points to item 1's section, as the line at `:27-30` does (round 1, finding 1)." The sentence removed is a copy the frame's `## Removes` did not name, and a row for it there is the orchestrator's to add. `trail/phases/phase-1.md` *Other places stating the rule* still says the line stays; a fix pass writes no phase record, so this block is where the judgment stands corrected.
+```
+
 ### 2. The rule says when the orchestrator opens a cited record, but not that it opens it again after a record repair
 
 ```seal
@@ -53,6 +58,11 @@ part copies or cites: open that record again, and correct the sentence or
 its coordinate.
 ```
 
+```seal
+verdict: fixed e88b42fd6
+answer: The finding holds: under the rewritten rule the orchestrator's part holds record sentences and line coordinates, and "your part stays as you wrote it" told the orchestrator to keep them after a repair that moves or changes them. The repair sentence of `skills/code-review/orchestration.md` now ends "so the copy holds the records as the repair left them. Your part stays as you wrote it, except where the repair changed a record that a sentence of your part copies or cites: open that record again, and correct the sentence or its coordinate." That is the paste-ready text with "that" added after "a record", read at the step that runs it: the orchestrator after a withhold whose repair touched a record, before the next spawn of the sealer or the next `gh api -X PATCH`. The sentence at `:372-373` is unchanged, since it governs the first writing and the new sentence governs each repair. Only the sentence the finding names changed, and `git merge-tree --write-tree HEAD af889979` exited 0 against the base with #883 merged (executed). `git grep` outside `seal/threads/` for "stays as you wrote", "part stays", "as the repair left" and the PATCH phrase found only this sentence (executed). `skills/code-review/orchestration.md` *Commit `guarantee.md`* already lists the orchestrator's part as a thing a repair touches, and `skills/code-review/scripts/pr_body.py:37`'s "A rewrite keeps the orchestrator's part byte for byte" is the command's behaviour; both agree and stand. That search is for wordings, so it is a sample in the sense of contract rule 12.
+```
+
 ### 3. The process row says the 0.29.0 withholds were on sentences written from memory, and their records say each cited a record that does not hold its fact
 
 ```seal
@@ -67,6 +77,11 @@ A process row is what the settle reads to judge whether a change to the way of w
 
 ```markdown
 The old rule said the part restates no record, and every 0.28.0 body stated records' facts above the fold anyway (`frame/design.md` G4); the sealer withheld twice in 0.28.0 on a sentence of that part written from memory of the run (`frame/design.md` G6), and twice in 0.29.0 (#1270, #1289) on a sentence that cited a record which does not hold its fact (each one's `guarantee.md`, the withheld block)
+```
+
+```seal
+verdict: fixed bce68fe8
+answer: Read bce68fe8 against the finding, and it holds. Its Why cell cites `frame/design.md` G4 for the 0.28.0 bodies and G6 for the two 0.28.0 withholds, and says that in 0.29.0 the sealer withheld for #1270 and #1289 on a sentence citing a record row that did not hold the fact it stated. Both withheld blocks say that (executed: `git show` of each branch's `guarantee.md`). #1270's at `:57` cites `frame/plan.md` A3 and A4, which cover `trail/` and `guarantee.md` only. #1289's at `:35` cites `frame/design.md` `## Removes`, whose row says the sweep "refuses the judgment this work states". The 0.28.0 sentence, "on a sentence of that part that a record did not hold", fits G6. Each withhold held at least one sentence no record held: the count and the owner's ask for #1054, and the inference past `round-1.md:47` for #1139. G6's fourth sentence was a record's own wrong sentence, so the row says "a sentence", not "the sentences". Nothing in the cell is still wrong. The orchestrator's wording departs from the paste-ready text and keeps its substance.
 ```
 
 ## Confirmations
