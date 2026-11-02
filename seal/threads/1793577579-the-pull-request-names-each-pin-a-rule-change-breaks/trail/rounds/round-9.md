@@ -34,6 +34,11 @@ It is no `must`. No assertion is wrong: every parameter fails under its own boun
         assert not passages.in_corpus(rel)
 ```
 
+```seal
+verdict: fixed 13a7bbccb
+answer: Held; the round's rename applied and nothing else changed. The case is now `test_refuses_a_path_one_widened_boundary_alone_lets_through`, keeping the `test_refuses_` prefix the layout check reads. A rename adds no behaviour, so the cases at the new name are its proof: its 7 parameters passed, and so did the whole of `tests/skills/test_passages.py`. The census of the old spelling, `git grep -n one_guard_alone -- tests skills`, finds nothing (exit 1), so the old name stands only in round records, which are history. `bin/seal layout --check tests`, `uvx ruff check` and `uvx ruff format --check` each exited 0.
+```
+
 ## Confirmations
 
 ```seal
