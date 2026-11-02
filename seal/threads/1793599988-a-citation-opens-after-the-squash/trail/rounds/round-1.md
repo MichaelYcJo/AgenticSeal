@@ -69,6 +69,11 @@ surviving mutants turn red (executed, in the clone; *Probes* row 5).
 def test_a_citation_of_the_squash_is_accepted(tmp_path, ref):
 ```
 
+```seal
+verdict: fixed b01ec5b1
+answer: The finding holds, and the paste-ready parametrisation was applied as given after reading it against `planted`: `BASES` points `refs/heads/main` and `refs/heads/release/v9.9.9` at the parent, and `reach` moves only the named ref to the cited commit, so exactly one ref of one pattern contains it in each run. S3 now runs over `refs/heads/main`, `refs/heads/release/v9.9.9`, `refs/remotes/origin/main` and `refs/remotes/origin/release/v9.9.9`, and its docstring says that CI reaches an open release branch's squash through the remote release pattern alone. Seen red through #898's `seal mutate` at edc09b4c, each mutant alone against S3 (executed, exit 0 each): deleting each of the four `REACHING` lines turns red exactly the S3 parameter of that pattern. The sentence in `trail/phases/phase-1.md:49-51` that S3 "covers the local refs a contributor has and the remote-tracking refs CI's checkout has" is stale in the way the finding says: at the phase's commit it covered one remote-tracking ref, and from b01ec5b1 it covers one ref of each of the four patterns. The phase record is not the fix pass's to edit, so it stands with this answer as its correction. No other file states the old parametrisation (executed: `git grep` for `S3`, `remote-tracking` and `refs/remotes/origin/main` across the work item and the module).
+```
+
 ### 2. The tree case's skip, Scope item 3, is pinned by no case: a tree case that returns without skipping stays green
 
 ```seal
@@ -110,6 +115,11 @@ def test_no_reaching_ref_judges_nothing(tmp_path, monkeypatch):
     with pytest.raises(pytest.skip.Exception) as skipped:
         test_every_cited_commit_outlives_the_squash()
     assert all(pattern in str(skipped.value) for pattern in REACHING)
+```
+
+```seal
+verdict: fixed b01ec5b1
+answer: The finding holds, and the fix is written in my own words rather than the paste-ready text. The paste-ready text patches the module's `ROOT` through `sys.modules[__name__]` and calls the tree case. The fix moves the tree case's whole verdict into `assert_outlives(root)`, which skips with `NO_REF` where no reaching ref stands and fails with `refusal(found)` otherwise; the tree case runs it over `ROOT`, and S6 runs it over the planted repository under `pytest.raises(pytest.skip.Exception)` and reads the four patterns from the skip's own reason. Grounds: no module global is patched, and the shape is the sibling reader's `tests/behaviour/test_a_cited_section_stands_in_its_file.py#assert_resolved`. The same class has a third member, which the finding did not name: S7 built its message by calling `refusal` itself, so a tree case that failed with no message, `assert not found`, was pinned by no case. S7 now runs `assert_outlives` under `pytest.raises(AssertionError)` and reads the parts from the failure. The class was listed by taking the tree case apart into its three parts, the `unreached` call, the skip and the failure's message; each now has a case. Seen red through #898's `seal mutate` at edc09b4c, each mutant alone against its case (executed, exit 0 each): `pytest.skip(NO_REF)` to `return` and to `pytest.skip("")` turn S6 red, and `assert not found, refusal(found)` to `assert not found` turns S7 red. In the same batch, `continue` to `pass` after a file that is not UTF-8 turns the tree case red on a `TypeError` (executed). The batch of all eight mutants of this pass gave 8 red and 0 SURVIVED (executed, exit 0). The sentence in `trail/phases/phase-1.md:56-60` that S7 asserts the module's constants still holds, now over the tree case's failure rather than over `refusal`'s return; the phase record stands with this answer as its update.
 ```
 
 ## Confirmations
