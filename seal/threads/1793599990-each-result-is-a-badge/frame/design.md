@@ -82,8 +82,8 @@ In scope:
    and because a note whose seal did not run keeps its counts as text.
 6. **The cases that pin the prose lines are rewritten to the badge lines**,
    each new or changed assertion seen red before the change it pins:
-   the six cases *Grounding* lists, plus a case for the encoding (S4) and
-   one for the `alt` text (S3).
+   the six cases *Grounding* lists, plus a case for the encoding (S4).
+   The `alt` text (S3) is pinned by S1's whole-string assertion.
 7. **The code's own text states the badges**: `sealed_header`'s docstring
    (`publish_release_note.py:646-659`), `results`' docstring
    (`release_seal.py:186-193`), the comment above `LABELS`
