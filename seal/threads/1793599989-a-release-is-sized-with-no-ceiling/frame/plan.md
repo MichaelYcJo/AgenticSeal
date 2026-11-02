@@ -46,4 +46,4 @@ None. No migration, environment variable, dependency or configuration row. A mai
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-02 | The orchestrator folds round 1's findings 1 and 2 into the design's `to` and *Scope* item 1 as the fix pass wrote them in finding 1's close block: an overflowing issue moves to a later `release:` milestone, a `feat:` only where `docs/branch-and-release.md` sends it, and the judgment weighs work items | The fix pass agreed with both findings and may not edit the frame; the crafter re-parsed the replacement with `rule_changes.parse` in a scratch copy (one op, no errors, nothing unread, placed); the verifying round reads the folded text | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*; `docs/branch-and-release.md` *Work accumulates on a release branch* |

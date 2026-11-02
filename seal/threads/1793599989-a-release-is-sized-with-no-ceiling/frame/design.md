@@ -36,7 +36,7 @@ The earlier decisions this frame stands on, each with its coordinate. E3, E4, E5
 
 In:
 
-1. **The ceiling paragraph is rewritten through `## Rule changes`.** The one `change` below replaces `docs/issues-and-milestones.md:32-37` with a paragraph that states no number. It says that whoever places an issue in a `release:` milestone judges whether the release has grown past what its description can make clear, that the description shows the judgment, that an issue which does not have to be in effect before the next work item starts is the one that moves, and that the judgment counts work items, not ticket numbers. It ends with `check: none reader: whoever places an issue in a release milestone`. The criterion at `:23-30` and the description rule at `:46-54` are unchanged, so the section still says what decides a release's size.
+1. **The ceiling paragraph is rewritten through `## Rule changes`.** The one `change` below replaces `docs/issues-and-milestones.md:32-37` with a paragraph that states no number. It says that whoever places an issue in a `release:` milestone judges whether the release has grown past what its description can make clear, that the description shows the judgment, that an issue which does not have to be in effect before the next work item starts is the one that moves, to a later `release:` milestone and for a `feat:` only where `docs/branch-and-release.md` *Work accumulates on a release branch* sends it, and that the judgment weighs work items, not ticket numbers. It ends with `check: none reader: whoever places an issue in a release milestone`. The criterion at `:23-30` and the description rule at `:46-54` are unchanged, so the section still says what decides a release's size.
 2. **The ceiling's case leaves.** `test_the_count_survives_as_a_ceiling` and `SHARED_CEILING` are removed from `tests/behaviour/test_a_release_is_sized_by_a_criterion.py` (E3).
 3. **The sweep leaves.** `test_one_document_states_a_releases_size`, `test_the_sweep_can_fail`, `test_the_pattern_catches_the_noun_forms_and_not_only_the_verb`, `test_the_sweep_reads_a_statement_whose_wrap_falls_inside_it`, `test_the_scanned_set_reaches_the_file_a_rule_gets_restated_in` and `test_the_sweep_survives_a_tracked_file_the_tree_deleted` are removed. So are the units only they use: `REPLACED`, `SCANNED`, `SUFFIXES`, `STATES_A_SIZE`, `SELF`, `hits`, `tracked`, `restatements`, `NOUN_FORMS`, the comments above them, and the imports left unused (`os` stays where `read` uses it; `re`, `build_tracked_tree`, `git_listing` and `on_disk` go where nothing uses them).
 4. **The module keeps one case, and says what it holds.** `test_the_rule_says_what_it_does_not_change`, `OWNER`, `read` and `flat` stay. The module docstring is rewritten in place to state what the module now reads, the paragraph of `:39-43`, and why it reads the file with wraps collapsed, which `tests/text/test_the_release_tail_does_not_end_at_the_tag.py:24-27` cites. The docstring states no count and no history of the sweep (contract rule 19).
@@ -89,8 +89,10 @@ No code, schema, command or configuration row changes. `docs/` changes at the se
     under it. The description shows the judgment. Once it can no longer name
     the one purpose its issues share, or the grounds for their order, the
     release carries more than a reader can follow. An issue that does not
-    have to be in effect before the next work item starts then moves to the
-    next release. The judgment counts work items rather than ticket numbers.
+    have to be in effect before the next work item starts then moves to a
+    later `release:` milestone, and a `feat:` moves only where
+    `docs/branch-and-release.md` *Work accumulates on a release branch*
+    sends it. The judgment weighs work items rather than ticket numbers.
     One branch's leftovers arrive as several ticket numbers that a reader
     takes for several releases' worth of work, so a ticket set that will be
     one branch is judged as one item.
