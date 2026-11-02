@@ -154,6 +154,21 @@ def assert_outlives(root):
     assert not found, refusal(found)
 
 
+def verdict(root):
+    """`assert_outlives(root)`'s outcome as `(outcome, text)`: `("skipped",
+    reason)` where no reaching ref stands, `("passed", "")` where refs stand
+    and nothing is refused, and `("failed", message)` where a citation is
+    refused. A case reads the outcome it expects, so a verdict that skips,
+    passes or fails in the wrong state turns it red and never skips it."""
+    try:
+        assert_outlives(root)
+    except pytest.skip.Exception as skipped:
+        return "skipped", str(skipped)
+    except AssertionError as failed:
+        return "failed", str(failed)
+    return "passed", ""
+
+
 def test_every_cited_commit_outlives_the_squash():
     """S1: every `<commit>:<path>` this tree reads names a commit `main` or a
     release branch contains. A checkout with no such ref is not judged
@@ -226,13 +241,15 @@ def test_a_citation_of_a_feature_branchs_commit_is_refused(tmp_path, rel):
 )
 def test_a_citation_of_the_squash_is_accepted(tmp_path, ref):
     """S3: a commit that one ref of each pattern in `REACHING` contains, the
-    other bases standing at its parent, is named nowhere. CI's checkout
-    holds only the remote-tracking refs, and an open release branch's
-    squash is reached there through `refs/remotes/*/release/*` alone."""
+    other bases standing at its parent, is named nowhere, and the tree
+    case's verdict passes rather than skipping. CI's checkout holds only the
+    remote-tracking refs, and an open release branch's squash is reached
+    there through `refs/remotes/*/release/*` alone."""
     root, commit = planted(tmp_path, reach=(ref,))
     cite(root, {"docs/a.md": citing(commit)})
     assert cited(root) == [("docs/a.md", 2, commit[:8])]
     assert unreached(root) == []
+    assert verdict(root) == ("passed", "")
 
 
 NOT_READ = (
@@ -282,9 +299,9 @@ def test_no_reaching_ref_judges_nothing(tmp_path):
     )
     cite(root, {"docs/a.md": citing(commit)})
     assert unreached(root) is None
-    with pytest.raises(pytest.skip.Exception) as skipped:
-        assert_outlives(root)
-    assert all(pattern in str(skipped.value) for pattern in REACHING)
+    outcome, reason = verdict(root)
+    assert outcome == "skipped"
+    assert all(pattern in reason for pattern in REACHING)
 
 
 def test_the_refusal_says_where_and_the_repair(tmp_path):
@@ -292,8 +309,7 @@ def test_the_refusal_says_where_and_the_repair(tmp_path):
     repair and the `git fetch` sentence."""
     root, commit = planted(tmp_path)
     cite(root, {"docs/a.md": citing(commit), "hooks/a.py": citing(commit)})
-    with pytest.raises(AssertionError) as failed:
-        assert_outlives(root)
-    message = str(failed.value)
+    outcome, message = verdict(root)
+    assert outcome == "failed"
     for part in ("docs/a.md:2", "hooks/a.py:2", commit[:8], REPAIR, FETCH):
         assert part in message
