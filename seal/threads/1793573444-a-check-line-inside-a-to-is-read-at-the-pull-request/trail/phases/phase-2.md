@@ -1,0 +1,13 @@
+# Phase 2: 1793573444-a-check-line-inside-a-to-is-read-at-the-pull-request
+
+## What this phase found
+
+**One claim in the plan's *Verified by* cell does not hold against the tree, and the fragment was built without it.** The cell says the fragment opens with the work item's `<!-- specs/<work-item-id> -->` marker, "as the other fragments under `seal/threads/` do". None of the seven other `changelog.md` files under `seal/threads/` opens with a marker (read). Each opens with a `###` heading such as `### Changed` or `### Fixed`. `.github/scripts/publish_release_note.py#section` writes the marker itself at the tag, as `<!-- specs/{item} -->` above each fragment's body (read, line 292). A fragment that carried the marker would show it twice in the release note. So the fragment opens with `### Fixed`, as the other fragments open. Judged against: `docs/the-record-layout.md` *A change writes fragments, never a shared file*, and the script that builds the note.
+
+**The fragment carries no `### Process changes` table.** `docs/the-record-layout.md` *A change to the way of working writes its process row in its own fragment* asks for one where the diff changes `skills/core/SKILL.md`, `CLAUDE.md`, an `agents/*.md` file, a `skills/*/orchestration.md` file or `skills/implement/bootstrap.md`. This work item's diff changes none of them (`git diff --name-only origin/release/v0.28.0 HEAD`, executed). `skills/settle/SKILL.md` is the one skill it changes, and it is not on that list.
+
+**The heading is `### Fixed`.** The check passed a design whose check line `seal rules --check` refused after the settle, and the issue's title files that as a defect. That is a fix, even though what a user sees is a pull request that fails where it used to pass. The fragment states that effect in its own sentence.
+
+**The version moves in the commit that adds the fragment.** `origin/release/v0.28.0` held `0.27.3` in `.claude-plugin/plugin.json`, and no commit stood on it beyond `main` (executed: `git log --oneline main..origin/release/v0.28.0` printed no line). So this is the first pull request into the branch. `skills/implement/orchestration.md` *Which branch the pull request lands on* says the version moves to the branch's name in that pull request, in the commit that adds the work item's changelog entry. That commit is `ff6e32dd6`. No other tracked file outside `seal/threads/` names `0.27.3` (`git grep -n '0\.27\.3'`, executed).
+
+**The narrow run.** It ran the 63 modules that name `plugin.json`, `.claude-plugin`, a changelog, `publish_release_note`, a `"version"` key or `seal/threads`, `tests/behaviour/test_release_hygiene.py` among them, in one command at `ff6e32dd6`: 4091 passed, 1 skipped, exit 0 (executed).

@@ -70,7 +70,7 @@ import os
 import re
 
 import pytest
-from conftest import ROOT, read
+from conftest import ROOT, load_module, read
 from conftest import flattened as flat
 from conftest import repo_relative as name
 from test_the_agent_contract_holds_the_universal_rules import HEADING
@@ -81,8 +81,13 @@ AGENTS = sorted(glob.glob(os.path.join(ROOT, "agents", "*.md")))
 # A run of this many consecutive words is longer than any phrase two of these
 # documents share by writing about the same mechanism, and shorter than the
 # smallest copy phase 4 removed. Both bounds are measured; see the docstring
-# and `test_the_window_sits_between_what_was_measured`.
-WINDOW = 15
+# and `test_the_window_sits_between_what_was_measured`. The number is
+# `skills/settle/scripts/passages.py`'s, the reader the paste check and
+# `chain-check` share (#1216).
+WINDOW = load_module(
+    os.path.join(ROOT, "skills", "settle", "scripts", "passages.py"),
+    "agentic_passages_for_the_moved_rule_check",
+).WINDOW
 
 # What the two ends of that margin were, when the number was chosen. These are
 # not the rule -- they are what makes the rule auditable, and the case below

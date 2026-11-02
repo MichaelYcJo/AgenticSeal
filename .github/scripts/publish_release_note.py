@@ -21,20 +21,28 @@ in the tree. The fragments are the ones the commits after the previous
 `vX.Y.Z` tag added and that tag does not already hold, each read at the
 newest commit of that range whose tree holds it, so a work item a settle
 removed before the tag still has its entry.
-Each goes under an HTML comment naming its work item, the one link from a
-released entry back to the work that produced it.
+Each opens with a link to the pull request that added it (#1139). The range's
+commit that adds a fragment is its pull request's squash commit, whose
+subject GitHub ends with `(#N)`, so the number is read here, once, from the
+history. The pull request's body holds the work item's records (`seal
+pr-body`), so one click leads from an entry to the reasons behind it. A
+fragment whose adding commit names no pull request is its text alone.
 
-**The note opens with the release's theme**, the first sentence of the
-description of the milestone `release: X.Y.Z`, its `Purpose:` label left out.
+**The note opens with a header of the release's counts** (#1153), an HTML
+table of one cell holding, one per line, the pull requests merged, the
+issues they closed, and the outside contributors where there are any. **The
+release's theme follows it**, the first sentence of the description of the
+milestone `release: X.Y.Z`, its `Purpose:` label left out.
 
 The fragments are also a page of reasoning per change, and a note that was
 only that read as a wall of prose to somebody asking what changed (#572). So
-after the theme the note says what the pull requests merged into
-`release/vX.Y.Z` already say -- a count, one line per pull request under its
-conventional-commit type with the issues its body closes, a credit for every
-outside contributor, how to update -- and keeps the fragments beneath,
-folded. Nothing here composes prose: every line is a milestone's sentence, a
-pull request title, a number, a handle or a fragment.
+the note says what the pull requests merged into `release/vX.Y.Z` already
+say -- the counts in its header, then one fold per conventional-commit type
+under its name and count holding one line per pull request with the issues
+its body closes (#1153), a credit for every outside contributor, how to
+update -- and keeps the fragments beneath, folded. Nothing here composes
+prose: every line is a milestone's sentence, a pull request title, a
+number, a handle or a fragment.
 
 **The title comes from the tagged commit's message**, which carries the
 `release: X.Y.Z symptoms: <symptoms>` line `docs/release-checklist.md`
@@ -82,9 +90,10 @@ note is fixable in one edit, and a failed job at the tag is not.
 `created=false` goes to `$GITHUB_OUTPUT` where the workflow sets it, and the
 `seal` job in the same workflow runs only on `true`: the seal edits the note,
 so it is held to the line above and never touches a release this run did
-not write. The glance block is built by `glance`, and the seal's replacement
-for it by `sealed_glance`, so both shapes live in the file that owns the
-heading and the seal finds the block by the function that wrote it.
+not write. The header is built by `header`, and the seal's replacement for
+it by `sealed_header`, with the seal's image or without it (#1204), so every
+shape lives in the file that owns the counts and the seal finds the header
+by the function that wrote it.
 
 `DRY_RUN=1` prints the note it would create and writes nothing, for the reason
 `close_issues_on_release.py`'s docstring gives: a tool whose only mode has
@@ -100,6 +109,7 @@ already hold.
 """
 
 import html
+import importlib.util
 import json
 import os
 import re
@@ -112,8 +122,16 @@ sys.path.insert(0, os.path.join(HERE, "..", "..", "hooks", "lib"))
 sys.path.insert(0, os.path.join(HERE, "..", "..", "skills", "verify", "scripts"))
 import console  # noqa: E402
 from blocks import gfm_lines  # noqa: E402
-from close_issues_on_release import keywords_in  # noqa: E402
+from close_issues_on_release import SPAN, keywords_in  # noqa: E402
 from unverified_check import heading_level  # noqa: E402
+
+# `seal settle`, loaded by path for `adding_commit`: the one reader of the
+# commit that adds a fragment and the pull request it names, kept in the
+# settle so that the note and the settle read one number (#1139).
+SETTLE = os.path.join(HERE, "..", "..", "skills", "settle", "scripts", "settle.py")
+_spec = importlib.util.spec_from_file_location("agentic_settle_for_the_note", SETTLE)
+settle = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(settle)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 # A work item's changelog fragment, its id captured.
@@ -128,8 +146,9 @@ PURPOSE_LABEL = "Purpose:"
 # `vX.Y.Z`. Anything else under `v*` -- `v1.2`, `vnext`, a typo -- is a shape
 # this cannot name a version for, and it says so rather than guessing one.
 # `label_merged_on_release_branch.py#version_of` refuses a branch name the
-# same way and for the same reason.
-TAG_RE = re.compile(r"^v(\d+\.\d+\.\d+)$")
+# same way and for the same reason. It is `settle.py#VERSION_RE`, so the
+# note is published at the version whose note `seal settle --apply` reads.
+TAG_RE = settle.VERSION_RE
 
 
 # The title line `docs/release-checklist.md` *5. The release pull request*
@@ -193,9 +212,11 @@ def commit_range(previous, tag):
 
 
 def fragments(revisions):
-    """`[(work item id, body)]` for every changelog fragment a commit in
-    `revisions` added, in id order, an empty body skipped. The paths are
-    sorted, and each holds its id, so the paths' order is the ids'.
+    """`[(work item id, body, pull request number or None)]` for every
+    changelog fragment a commit in `revisions` added, in id order, an empty
+    body skipped. The paths are sorted, and each holds its id, so the paths'
+    order is the ids'. The number is the one the oldest commit of the range
+    that adds the fragment names (`settle.py#adding_commit`).
 
     Each is read at the newest commit of the range whose tree holds it, so a
     fragment a settle removed before the tag is read as it stood last.
@@ -237,9 +258,18 @@ def fragments(revisions):
             if git("ls-tree", "--name-only", commit, "--", path).strip():
                 body = git("show", f"{commit}:{path}").strip()
                 if body:
-                    out.append((found.group(1), body))
+                    out.append((found.group(1), body, pull_request(revisions, path)))
                 break
     return out
+
+
+def pull_request(revisions, path):
+    """The pull request number the commit of `revisions` that adds `path`
+    names, or None. A `git` that fails stops the run, as `run` does."""
+    try:
+        return settle.adding_commit(ROOT, revisions, path)[1]
+    except RuntimeError as problem:
+        sys.exit(str(problem))
 
 
 def process_shape():
@@ -250,6 +280,12 @@ def process_shape():
         lines = gfm_lines(handle.read())
     rows = [line for line in lines if line.startswith("|")]
     return lines[0], rows[0], rows[1]
+
+
+# An entry's first line: the pull request that added its fragment. It is
+# `settle.py#PULL_LINK`, whose `BUILT_RE` tells `seal settle --apply` that a
+# note was built from the fragments.
+PULL_LINK = settle.PULL_LINK
 
 
 def split_process(body, heading):
@@ -274,9 +310,11 @@ def split_process(body, heading):
     return "\n".join(kept).strip(), table[2:]
 
 
-def section(entries):
-    """The fragments as the note carries them: each work item's marker line,
-    its body, and a blank line before the next.
+def section(entries, repo):
+    """The fragments as the note carries them: each entry's link to the pull
+    request that added it, in `repo`, its body, and a blank line before the
+    next. An entry with no number has no link line, and one with neither a
+    link nor a body left is not written (#1139).
 
     Every row of every fragment's process section is lifted into one
     `### Process changes` table above them, in id order and each fragment's
@@ -286,10 +324,14 @@ def section(entries):
     """
     heading, header, delimiter = process_shape()
     rows, parts = [], []
-    for item, body in entries:
+    for _, body, number in entries:
         rest, found = split_process(body, heading)
         rows += found
-        parts.append(f"<!-- specs/{item} -->" + (f"\n{rest}" if rest else ""))
+        lines = [] if number is None else [PULL_LINK.format(repo=repo, number=number)]
+        if rest:
+            lines.append(rest)
+        if lines:
+            parts.append("\n".join(lines))
     fragments = "\n\n".join(parts)
     if not rows:
         return fragments
@@ -404,12 +446,11 @@ def release_exists(repo, tag):
 
 
 THANKS_HEADING = "### 🙌 Thanks to"
-GLANCE_HEADING = "### 📊 At a glance"
 FULL_SUMMARY = "📋 Full changelog — what each change does and why"
 UPDATE_HEADING = "### ⬆️ Update"
 
-# A pull request title's conventional-commit type, and the heading its line
-# goes under. The order here is the order the note reads in: what a user can
+# A pull request title's conventional-commit type, and the name of the fold
+# its line goes in. The order here is the order the note reads in: what a user can
 # now do, then what stopped going wrong, then what only a contributor sees.
 # A type not listed -- or a title with no type at all -- goes under Other
 # rather than being dropped, so the list stays a partition of the release.
@@ -499,8 +540,19 @@ def changes(pulls):
     return sorted(pulls or (), key=lambda p: p["number"])
 
 
+# A code span, read as `close_issues_on_release.py#SPAN` reads one, or a `<`
+# outside one.
+SPAN_OR_LT_RE = re.compile(f"({SPAN.pattern})|<")
+
+
 def kind_and_text(title):
-    """`(heading, text)`: where a title's line goes, and what it reads."""
+    """`(heading, text)`: where a title's line goes, and what it reads.
+
+    The title is written as text: each `<` outside a code span becomes
+    `&lt;`, which GitHub shows as `<`, so a tag a title quotes shows as the
+    tag and opens or closes no fold or other element, and a code span stays
+    code (#1153; #1293's title holds three `details` tags bare). Both the
+    fold's lines and the thanks section's read a title through here."""
     title = TRAILING_REF_RE.sub("", title.strip())
     found = TITLE_RE.match(title)
     heading, text = OTHER, title
@@ -508,7 +560,8 @@ def kind_and_text(title):
         heading = dict(TYPES).get(found.group("type").lower(), OTHER)
         text = found.group("text")
     # A line reads as a sentence; a title that opens on code keeps its case.
-    return heading, text[:1].upper() + text[1:]
+    text = text[:1].upper() + text[1:]
+    return heading, SPAN_OR_LT_RE.sub(lambda m: m.group(1) or "&lt;", text)
 
 
 def closed_by(pull):
@@ -547,7 +600,7 @@ def thanks_section(pulls, owner):
 def tally(pulls, owner):
     """`(work, closed, people)`: the release's own pull requests, the issues
     their bodies close in order and each once, and the outside contributors'
-    logins -- what the glance block counts."""
+    logins -- what the header counts."""
     work, closed = changes(pulls), []
     for pull in work:
         closed += [n for n in closed_by(pull) if n not in closed]
@@ -555,45 +608,65 @@ def tally(pulls, owner):
     return work, closed, people
 
 
-def glance(work, closed, people):
-    """The `### 📊 At a glance` block exactly as the note carries it: the
-    heading and a table of the counts, the outside contributors' row only
-    where there are some. `release_seal.py` finds the block in a published
-    note by this text, so a note edited by hand afterwards is left alone."""
-    parts = [
-        GLANCE_HEADING,
-        "",
-        "| | |",
-        "| --- | ---: |",
-        f"| 🔀 Pull requests | **{len(work)}** |",
-        f"| ✅ Issues closed | **{len(closed)}** |",
+def plural(count, word):
+    return f"{count} {word}{'' if count == 1 else 's'}"
+
+
+def counts(work, closed, people):
+    """The release's counts in words, one line each: the pull requests
+    merged, the issues they closed, and the outside contributors only where
+    there are some. Both headers state them in these words (#1153)."""
+    lines = [
+        plural(len(work), "pull request") + " merged",
+        plural(len(closed), "issue") + " closed",
     ]
     if people:
-        parts.append(f"| 🙌 Outside contributors | **{len(people)}** |")
-    return "\n".join(parts)
+        lines.append(plural(len(people), "outside contributor"))
+    return lines
 
 
-def sealed_glance(image_url, alt, width, work, closed, people):
-    """What replaces `glance`'s block once the release seal is attached
-    (#718): the heading, the seal as an image with `alt` as its text, a blank
-    line, and one line carrying every row the table had, in its order, so a
-    reader whose browser does not draw the image still has every count.
+def table(*cells):
+    """An HTML table of one row holding `cells`, each line of a cell parted
+    by `<br>`. No line inside it is blank, so GitHub reads the whole table
+    as one HTML block, and the Markdown after it starts on the blank line
+    that follows."""
+    row = [f"<td>{'<br>'.join(cell)}</td>" for cell in cells]
+    return "\n".join(["<table>", "<tr>", *row, "</tr>", "</table>"])
 
-    The image is an `<img>` `width` CSS pixels wide (#832): the PNG is drawn
-    at twice that for a high-density screen, and Markdown's image syntax has
-    no width, so it would show twice its size. The URL and `alt` are escaped
-    for the attribute each sits in, so a quote in either cannot end it."""
-    counts = [
-        f"🔀 Pull requests **{len(work)}**",
-        f"✅ Issues closed **{len(closed)}**",
+
+def header(work, closed, people):
+    """The header the note opens with, exactly as the note carries it: a
+    table of one cell holding `counts`. `release_seal.py` finds the header
+    in a published note by this text, so a note edited by hand afterwards,
+    or one whose header a run of the seal already replaced, is left alone."""
+    return table([html.escape(line) for line in counts(work, closed, people)])
+
+
+def sealed_header(image_url, alt, width, sealed, results, work, closed, people):
+    """What replaces `header`'s table once the release seal has run (#718,
+    #1153): the same table, whose last cell holds the stamp's results one
+    per line, as the stamp sets them beside its disc: `SEALED` in bold
+    before `sealed`, the sealed version, commit and branch; the lines
+    `counts` states; then `results`, the stamp's other rows. Given an
+    `image_url`, the table has two cells, and the first holds the seal as
+    an `<img>` `width` CSS pixels wide with `alt` as its text (#832: the PNG
+    is drawn at twice that for a high-density screen). Given none, where
+    the repository leaves the image off (#1204), the results' cell is the
+    table's one cell, and `alt` and `width` are not read. A reader whose
+    browser does not draw the image still has every number as text. The
+    URL, `alt` and every line are escaped, so a quote cannot end an
+    attribute and a `<` opens no tag."""
+    lines = [
+        f"<b>SEALED</b> {html.escape(sealed)}",
+        *(html.escape(line) for line in [*counts(work, closed, people), *results]),
     ]
-    if people:
-        counts.append(f"🙌 Outside contributors **{len(people)}**")
+    if image_url is None:
+        return table(lines)
     image = (
         f'<img src="{html.escape(image_url)}" alt="{html.escape(alt)}" '
         f'width="{int(width)}">'
     )
-    return "\n".join([GLANCE_HEADING, "", image, "", " · ".join(counts)])
+    return table([image], lines)
 
 
 def write_output(name, value):
@@ -612,25 +685,37 @@ def write_output(name, value):
 
 
 def release_body(theme, rendered, pulls, owner):
-    """The note: the theme line, a summary a reader scans, and the fragments
-    they can open.
+    """The note: a header of the counts, the theme line, a summary a reader
+    scans, and the fragments they can open.
 
-    Read top to bottom it answers, in order, what the release is for, how
-    big it is, what changed -- one line per pull request under its type, with
-    the issues it closed -- who outside the project helped, and how to get
-    it. The fragments `section` rendered follow, folded, because they are
-    the reasoning a reader wants for one change rather than the list they
-    read for all of them. Every line is read from the milestone, the pull
-    requests and the history; nothing here writes a sentence.
+    Read top to bottom it answers, in order, how big the release is -- the
+    header `header` writes, which the seal later replaces -- what it is for,
+    what changed -- one fold per type, its summary the type's
+    name and the number of pull requests in it, holding one line per pull
+    request with the issues it closed (#1153) -- who outside the project
+    helped, and how to get it. The fragments `section` rendered follow,
+    folded, because they are the reasoning a reader wants for one change
+    rather than the list they read for all of them. Every line is read from
+    the milestone, the pull requests and the history; nothing here writes a
+    sentence.
+
+    Every fold's tags stand on lines of their own, with a blank line after
+    the summary line and before the closing tag, so GitHub reads the lines
+    between as Markdown. A pull request title reaches its fold with each `<`
+    outside a code span written `&lt;` (`kind_and_text`), so a tag it quotes
+    is text, inside a code span or out of one, and opens or closes no fold.
+    A fragment is not escaped: it is the records' own text, and one holding
+    a bare `details` tag is refused at `seal pr-body` before its pull
+    request opens (#1218).
 
     With no pull request to read -- the list failed, or a release was cut
-    with none -- the note is the theme line and `rendered`, unfolded. With no
-    theme, the line and the blank line after it are left out.
+    with none -- the note has no header and is the theme line and
+    `rendered`, unfolded. With no theme, the line and the blank line beside
+    it are left out.
     """
-    opening = [theme, ""] if theme else []
     work, closed, people = tally(pulls, owner)
     if not work:
-        return "\n".join([*opening, rendered])
+        return "\n".join([*([theme, ""] if theme else []), rendered])
     groups = {}
     for pull in work:
         heading, text = kind_and_text(pull["title"])
@@ -643,11 +728,20 @@ def release_body(theme, rendered, pulls, owner):
             line += f" — thanks @{login}"
         groups.setdefault(heading, []).append(line)
 
-    parts = [*opening, glance(work, closed, people)]
+    parts = [header(work, closed, people), *(["", theme] if theme else [])]
     order = list(dict.fromkeys([h for _, h in TYPES] + [OTHER]))
     for heading in order:
         if heading in groups:
-            parts += ["", f"### {heading}", ""] + groups[heading]
+            lines = groups[heading]
+            parts += [
+                "",
+                "<details>",
+                f"<summary>{heading} ({len(lines)})</summary>",
+                "",
+                *lines,
+                "",
+                "</details>",
+            ]
     thanks = thanks_section(pulls, owner)
     if thanks:
         parts += ["", thanks]
@@ -733,7 +827,7 @@ def main(argv=None):
     else:
         print(f"no theme line: {said}")
     pulls = merged_pulls(repo, version)
-    body = release_body(theme, section(entries), pulls, repo.split("/")[0])
+    body = release_body(theme, section(entries, repo), pulls, repo.split("/")[0])
     if pulls is not None and not thanks_section(pulls, repo.split("/")[0]):
         print("no outside contribution in this release, so no Thanks to section")
     if dry:

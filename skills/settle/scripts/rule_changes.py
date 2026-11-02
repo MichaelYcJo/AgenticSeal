@@ -7,7 +7,9 @@ the no-change block are spelt once in `unverified_check.py`, which reads
 `## Not verified` with the same block. `parse` reads a section into operations,
 refusing at its line any block that does not match whole, and names, without
 refusing it, a line that opens like one of the section's forms and is not it.
-`order` reads merge
+Each operation carries its fields' lines at their lines in the design
+(`Op.lines`), by which `skills/code-review/scripts/chain_check.py` names a
+check line inside a `to` at its line. `order` reads merge
 order from git, `merge_order` reads it in local mode from the merge commits
 `settle` hands it, `group` joins the released designs whose operations name one
 place into one group, `unordered` names the pairs inside a group that no
@@ -16,7 +18,15 @@ ancestry orders, and `section_lines` finds a section's lines in a document.
 their `remove` items with no `from` takes a line's section out, for the two
 readers that excuse such a line: `.github/scripts/rules.py` and
 `tests/behaviour/test_a_cited_section_stands_in_its_file.py`.
-`settle` prints what they read; nothing here writes a file.
+`literals`, `pins` and `copies` say what an operation takes out of a test
+and what its `to` repeats of another rule document, over texts their caller
+hands them, for `chain_check.py` to name as notices (#1216); a copy is read
+through `passages.py`, the paste check's reader, loaded by path.
+`apply_op` places one operation in one document's text as the grammar
+places it, for `settle --draft` to write (#1217); it reads a table row
+through `hooks/lib/config.py`, loaded by path.
+`settle` prints what they read and writes what `apply_op` returns; nothing
+here writes a file.
 
 Headings and fences are read through
 `skills/verify/scripts/unverified_check.py` (`live_lines`, `heading_level`,
@@ -28,6 +38,7 @@ keeps the comment state for `section_lines` and `overlapping`, which read the
 policy documents.
 """
 
+import ast
 import collections
 import glob
 import importlib.util
@@ -37,6 +48,8 @@ import subprocess
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
+PASSAGES = os.path.join(HERE, "passages.py")
+CONFIG = os.path.join(HERE, "..", "..", "..", "hooks", "lib", "config.py")
 
 HEADING = "Rule changes"
 # Each operation's fields: (required, optional). The item lines, their fields
@@ -48,7 +61,10 @@ GRAMMAR = {
     "remove": (("file", "section"), ("from",)),
 }
 
-Op = collections.namedtuple("Op", "kind file section old new line")
+# `lines` maps each field's name to its value's lines as they land, each
+# with its line in the design: `[(line number, text)]`, whose texts joined
+# with `\n` are the value `old`, `new`, `file` or `section` holds.
+Op = collections.namedtuple("Op", "kind file section old new line lines")
 # `ops` is None where the design has no section; `nothing` is the `why` of a
 # section holding the no-change block; `errors` is `[(line, reason)]`;
 # `unread` is `[(line, why)]` for each line that opens like one of the
@@ -62,6 +78,8 @@ NEAR_HEADING = (
 )
 
 _reader = None
+_passages = None
+_config = None
 
 
 def reader():
@@ -71,6 +89,27 @@ def reader():
         _reader = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(_reader)
     return _reader
+
+
+def passages():
+    """`passages.py`, the paste check's reader, loaded by path once."""
+    global _passages
+    if _passages is None:
+        spec = importlib.util.spec_from_file_location("agentic_passages", PASSAGES)
+        _passages = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(_passages)
+    return _passages
+
+
+def config():
+    """`hooks/lib/config.py`, the reader of a GFM table row held to
+    cmark-gfm, loaded by path once."""
+    global _config
+    if _config is None:
+        spec = importlib.util.spec_from_file_location("agentic_rules_config", CONFIG)
+        _config = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(_config)
+    return _config
 
 
 def heading_text(line):
@@ -196,6 +235,7 @@ def parse(text, policy_root):
         return done([], None, [error])
 
     out = []
+    numbers = [no for no, _ in body]
     for item in ops:
         values, error = r.field_values(item, *GRAMMAR[item["kind"]])
         file = (values or {}).get("file", "")
@@ -215,9 +255,30 @@ def parse(text, policy_root):
                 values.get("from"),
                 values.get("to"),
                 item["line"],
+                {
+                    name: value_lines(numbers, first, parts)
+                    for name, (first, parts) in item["fields"].items()
+                },
             )
         )
     return done(out, None, [])
+
+
+def value_lines(numbers, first, parts):
+    """`[(line number, text)]` for one field whose value lines are PARTS, the
+    first at line FIRST, NUMBERS being the line numbers of the section's body
+    in order: each part takes the number of its body line, and the leading
+    empty parts and the trailing blank ones are dropped and the last part's
+    end trimmed, as `unverified_check.py#field_values` strips its value."""
+    at = numbers.index(first)
+    lines = list(zip(numbers[at : at + len(parts)], parts))
+    while lines and lines[0][1] == "":
+        lines.pop(0)
+    while lines and not lines[-1][1].strip():
+        lines.pop()
+    if lines:
+        lines[-1] = (lines[-1][0], lines[-1][1].rstrip())
+    return lines
 
 
 # --- where an operation's text stands in a document ---------------------------
@@ -258,6 +319,228 @@ def section_lines(text, section):
     while end > h + 1 and not lines[end - 1].strip():
         end -= 1
     return (h + 1, end), None
+
+
+# --- placing one operation in one document's text (#1217) ---------------------
+
+
+def _cut(text, s, e):
+    """TEXT with [s, e) removed, and the line or blank line it leaves tidied."""
+    if e < len(text) and text[e] in " \t":
+        while e < len(text) and text[e] in " \t":
+            e += 1
+    else:
+        while s > 0 and text[s - 1] in " \t":
+            s -= 1
+    out = text[:s] + text[e:]
+    start = out.rfind("\n", 0, s) + 1
+    stop = out.find("\n", s)
+    if out[start : stop if stop >= 0 else len(out)].strip():
+        return out
+    out = out[:start] + (out[stop + 1 :] if stop >= 0 else "")
+    if out[max(0, start - 2) : start] == "\n\n" and out[start : start + 1] == "\n":
+        out = out[:start] + out[start + 1 :]
+    return out
+
+
+def _last_row(lines, first, stop, new):
+    """The index in LINES of the last row of the last table in
+    LINES[first:stop], where NEW is one line `config.py#table_cells` reads
+    as a row; else None. A table opens where `config.py#opens_table` finds a
+    header over its delimiter row, on a line outside a fence or a comment,
+    and its rows run to the first blank line, as GFM ends a table."""
+    cfg = config()
+    if "\n" in new or cfg.table_cells(new) is None:
+        return None
+    bare = [line.rstrip("\r\n") for line in lines]
+    live = [flag for _, flag in reader().live_lines(bare)]
+    last, n = None, first
+    while n < stop:
+        under = [(n + 1, bare[n + 1])] if n + 1 < stop else []
+        if not (live[n] and cfg.opens_table(n, bare[n], under)):
+            n += 1
+            continue
+        n += 1
+        while n + 1 < stop and bare[n + 1].strip():
+            n += 1
+        last, n = n, n + 1
+    return last
+
+
+def apply_op(text, op):
+    """OP placed in TEXT, a document's text with its line ends, as *Rule
+    changes* in `skills/settle/SKILL.md` places each kind: `(new text, None)`;
+    `(None, None)` where a `remove` with no `from` leaves the document empty,
+    so it is deleted; or `(None, why)` where OP is not placed, WHY naming the
+    file and the section. TEXT is None for a document not in the tree.
+
+    A `from` is found by `pattern` in its section's lines, and only once
+    there. An `add` whose `to` is one table row lands as the last row of the
+    last table in the section's own text (`_last_row`), and where no table
+    stands there, as any `add` does. The document's line end, CRLF or LF, is
+    kept in what it writes. `seal settle --draft` calls it once per released
+    operation. `copies` above applies an operation too, to the whole document
+    with no section, for the runs of words the document will hold; a new
+    operation kind is applied in both."""
+    if op.kind == "add" and op.section is None:
+        if text is not None:
+            return None, f"{op.file} exists, and an add with no section creates one"
+        return op.new + "\n", None
+    if text is None:
+        return None, f"{op.file} does not exist"
+    lines = reader().gfm_lines(text, keepends=True)
+    marks = headings([line.rstrip("\r\n") for line in lines])
+    at = [(n, lv) for n, lv, t in marks if t == op.section]
+    if not at:
+        return None, f"no heading `{op.section}` in {op.file}"
+    h, level = at[0]
+    end = next((n for n, lv, _ in marks if n > h and lv <= level), len(lines))
+    # A whole-section removal whose heading text the section's own
+    # sub-headings repeat names the outer one: a title and the first section
+    # under it often read alike, and the outer range holds every other match.
+    nested = op.kind == "remove" and op.old is None and all(n < end for n, _ in at)
+    if len(at) > 1 and not nested:
+        return None, f"heading `{op.section}` appears {len(at)} times in {op.file}"
+    nl = "\r\n" if "\r\n" in text else "\n"
+
+    if op.kind == "remove" and op.old is None:
+        out = "".join(lines[:h] + lines[end:])
+        if not out.strip():
+            return None, None
+        if end == len(lines):
+            out = out.rstrip("\r\n") + nl
+        return out, None
+
+    if op.kind == "add":
+        own = next((n for n, _, _ in marks if n > h), len(lines))
+        row = _last_row(lines, h + 1, own, op.new)
+        if row is not None:
+            head = lines[: row + 1]
+            if not head[-1].endswith(("\n", "\r")):
+                head[-1] += nl
+            return "".join([*head, op.new + nl, *lines[row + 1 :]]), None
+        q = own
+        while q > h + 1 and not lines[q - 1].strip():
+            q -= 1
+        head = lines[:q]
+        if not head[-1].endswith(("\n", "\r")):
+            head[-1] += nl
+        tail = lines[q:own] + lines[own:]
+        rule = nl.join(op.new.split("\n")) + nl
+        gap = [nl] if own < len(lines) and not lines[q:own] else []
+        return "".join([*head, nl, rule, *gap, *tail]), None
+
+    offset = len("".join(lines[: h + 1]))
+    region = "".join(lines[h + 1 : end])
+    hits = list(pattern(op.old).finditer(region))
+    if not hits:
+        return None, f"the `from` text is not in section `{op.section}` of {op.file}"
+    if len(hits) > 1:
+        return None, (
+            f"the `from` text appears {len(hits)} times in section `{op.section}` "
+            f"of {op.file}"
+        )
+    s, e = offset + hits[0].start(), offset + hits[0].end()
+    if op.kind == "change":
+        return text[:s] + nl.join(op.new.split("\n")) + text[e:], None
+    return _cut(text, s, e), None
+
+
+# --- what an operation takes out of a test and repeats of a document ----------
+
+# A string constant of a test reads as a pin of a rule's text from this many
+# words: the floor #1278's lister used. At three words the 0.27.1 settle's
+# record names 44 pins against 26 and none more of the literals that failed
+# (#1216 design G10).
+LITERAL_WORDS = 4
+
+
+def _collapsed(text):
+    return " ".join(text.split())
+
+
+def literals(source):
+    """`[(line, text)]` for each string constant of the Python SOURCE that is
+    no docstring and holds at least `LITERAL_WORDS` words, its whitespace runs
+    collapsed to one space, at the line it starts on. An implicit
+    concatenation is one constant, as the parser joins it. Raises the
+    parser's SyntaxError or ValueError where SOURCE does not parse; naming
+    that file is the caller's."""
+    tree = ast.parse(source)
+    docstrings = set()
+    for node in ast.walk(tree):
+        if isinstance(
+            node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)
+        ):
+            first = node.body[0] if node.body else None
+            if isinstance(first, ast.Expr) and isinstance(first.value, ast.Constant):
+                docstrings.add(id(first.value))
+    found = set()
+    for node in ast.walk(tree):
+        if (
+            isinstance(node, ast.Constant)
+            and isinstance(node.value, str)
+            and id(node) not in docstrings
+        ):
+            text = _collapsed(node.value)
+            if len(text.split()) >= LITERAL_WORDS:
+                found.add((node.lineno, text))
+    return sorted(found)
+
+
+def pins(op, taken, found):
+    """The entries of FOUND, `[(path, line, text)]` as `literals` gives a
+    test file's, whose text stands in TAKEN and not in OP's `to`, both with
+    their whitespace runs collapsed. TAKEN is what OP takes out of the policy
+    root: its `from`, or for a `remove` with no `from` its section's text;
+    None where it takes out nothing."""
+    if not taken:
+        return []
+    taken, kept = _collapsed(taken), _collapsed(op.new or "")
+    return [f for f in found if f[2] in taken and f[2] not in kept]
+
+
+def copies(op, texts, gone=None):
+    """`[(path, count, run)]` for each rule document of TEXTS, `{path: text}`,
+    other than OP's file, that shares a run of `passages.py#WINDOW` words with
+    OP's `to`, read as `passages.py#words` reads both: the number of distinct
+    runs shared and the first of them in the `to`'s order. GONE, `{path:
+    [(text, put)]}`, is what the same design's operations do to each
+    document, all three kinds the parser reads applied before the runs are
+    counted. A `change` gives its `from` and its `to`: the `from` is found
+    once by `pattern`, across any wrapping, and replaced by the `to`, and a
+    `to` whose `from` is not in the document yet, standing in another
+    pending design's `to`, is put at its end. A `remove` gives its text and
+    None, and the text is taken out. An `add` gives None and its `to`, put at
+    the document's end. So a passage the design moves leaves no copy where
+    it took it from, a passage a `change` keeps in its `to` is still a copy
+    there, and one passage two `add`s put into two documents is a copy in
+    each. A run that would span a `to` put at a document's end and the words
+    the settle places around it is not counted. [] for an operation with no
+    `to`, or whose file `passages.py#in_corpus` leaves out."""
+    p = passages()
+    if op.new is None or not p.in_corpus(op.file):
+        return []
+    said = p.words(op.new)
+    order = [" ".join(said[i : i + p.WINDOW]) for i in range(len(said) - p.WINDOW + 1)]
+    out = []
+    for path in sorted(texts):
+        if path == op.file or not p.in_corpus(path):
+            continue
+        text = texts[path]
+        for taken, put in (gone or {}).get(path, ()):
+            found = 0
+            if taken and taken.split():
+                # A function, so a backslash in PUT is text, not a group.
+                text, found = pattern(taken).subn(
+                    lambda _m, put=put: f"\n{put or ''}\n", text, count=1
+                )
+            if not found and put:
+                text = f"{text}\n{put}\n"
+        shared = p.windows(p.words(text)).intersection(order)
+        if shared:
+            out.append((path, len(shared), next(r for r in order if r in shared)))
+    return out
 
 
 # --- the pending designs, not yet settled -------------------------------------

@@ -220,9 +220,14 @@ then.** Where `Destination` reads `open the pull request`, push the branch as
 often as you like while the work is built and reviewed: a branch with no
 pull request runs nothing. Under `stop before the pull request` nothing is
 pushed, and the branch is handed back committed and unpushed. Once
-`guarantee.md` reading `sealed` is committed, open the pull request with the
-body the sealer read, `gh pr create --body-file <that file>`. CI runs then,
-and again on every push to it.
+`guarantee.md` reading `sealed` is committed, run `seal pr-body` once more on
+the body file the sealer read, and open the pull request with it,
+`gh pr create --body-file <that file>`. That run changes no copied line,
+because the copy reads no `guarantee.md`. Where `seal/config.md`'s
+`Pull request seal mark` row reads `yes`, it writes the seal mark under the
+heading, which the body the sealer checked could not hold, since the sealer
+checks it before its own verdict exists (`templates/setup/config.md` *The
+seal mark*). CI runs then, and again on every push to it.
 
 **The orchestrator reads `gh pr view <N> --json state,mergeable` when the
 pull request opens, before each push to its branch and after each push, and
@@ -311,7 +316,13 @@ the orchestrator runs `seal pr-body` on the body file again and gives the
 file to the open pull request with
 `gh api -X PATCH repos/<owner>/<repo>/pulls/<N> -F body=@<file>`, not
 `gh pr edit`: that command's GraphQL query has stopped on an error about
-Projects (classic), and the REST call sends the body alone.
+Projects (classic), and the REST call sends the body alone. Whenever the
+sealer's next `sealed` verdict is committed while the pull request is open,
+after this repair, a merge from the base or any other repair, run
+`seal pr-body` on the file once more and send it the same way. The body
+sent before that verdict carries no seal mark, since the seal it stood on
+no longer held at HEAD, and only a run after the verdict can write the mark
+the `Pull request seal mark` row asks for.
 
 **A repository that still opens a draft is not refused.** On a draft
 `chain_check` prints what it would refuse and exits 0, and `hygiene`'s

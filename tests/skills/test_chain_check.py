@@ -1779,6 +1779,553 @@ class Test_rule_changes_read:
             assert spec_lines(out, item) == [], (item, out)
 
 
+# --- a check line inside a `to`, at the pull request (#1215) --------------------
+
+# The refusal's text around `rules.py`'s reason, pinned here so an edit to
+# `chain.CHECK_LINE_SAYS` meets a case.
+CHECK_LINE_SAYS = (
+    "`.github/scripts/rules.py`, the reader `seal rules --check` uses, refuses "
+    "this check line, which the settle writes into `{file}` as it stands: {why}"
+)
+COMMA = "check: none reader: a, b"
+
+
+def change_to(*lines, old="old words."):
+    """A `change` of `docs/policy.md` whose `to` holds LINES, its first on
+    the field line, and whose `from` reads OLD."""
+    to = "\n".join([f"  to: {lines[0]}", *(f"    {line}" for line in lines[1:])])
+    return (
+        f"- change\n  file: docs/policy.md\n  section: A section\n  from: {old}\n{to}\n"
+    )
+
+
+def check_line_refusal(text, line, why, item=ITEM):
+    """The line the check prints outside CI for the check line LINE of
+    ITEM's spec reading TEXT, refused for WHY."""
+    said = CHECK_LINE_SAYS.format(file="docs/policy.md", why=why)
+    return f"{item}/frame/design.md:{line_at(text, line)}  {said}"
+
+
+def reason(root, line):
+    """`rules.py`'s one reason for refusing LINE in the tree at ROOT."""
+    (why,) = chain.check_lines_reader().line_problems(str(root), line)
+    return why
+
+
+@pytest.mark.rule("a-check-line-in-a-to-is-read-at-the-pull-request")
+class Test_check_lines_in:
+    def test_refuses_a_line_the_reader_refuses_at_its_line_in_the_design(
+        self, branch, ready, capsys
+    ):
+        """S1: a `to` ending with `check: none reader: a, b` is refused at
+        that line of the design, exit 1, with `rules.py`'s reason for the
+        comma. Seen red against the base, which passed it at exit 0."""
+        root, _code = branch
+        text = spec_with(change_to("new words.", COMMA))
+        put_spec(root, text)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        why = reason(root, COMMA)
+        assert "`,` is no part of a check line" in why
+        assert spec_lines(out) == [check_line_refusal(text, f"    {COMMA}", why)], out
+
+    def test_accepts_a_line_the_reader_holds_and_prints_nothing(
+        self, branch, ready, capsys
+    ):
+        """S2: `check: none reader: the proofer at review` holds, and nothing
+        is printed for the design. Seen red under the mutation that refuses
+        every check line the `to` holds."""
+        root, _code = branch
+        put_spec(
+            root,
+            spec_with(
+                change_to("new words.", "check: none reader: the proofer at review")
+            ),
+        )
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert spec_lines(out) == [], out
+
+    def test_refuses_a_target_that_is_no_file_of_the_repository(
+        self, branch, ready, capsys
+    ):
+        """S3: a target that does not resolve in the tree is refused at its
+        line with `rules.py`'s "does not exist". Seen red against the base."""
+        root, _code = branch
+        line = "check: tests/no_such_file.py"
+        text = spec_with(change_to("new words.", line))
+        put_spec(root, text)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        why = reason(root, line)
+        assert why == "tests/no_such_file.py does not exist"
+        assert spec_lines(out) == [check_line_refusal(text, f"    {line}", why)], out
+
+    def test_refuses_a_line_on_the_field_line_at_the_field_line(
+        self, branch, ready, capsys
+    ):
+        """S6: a `to` whose value opens with the check line is refused at the
+        `to:` line itself. Seen red against the base."""
+        root, _code = branch
+        text = spec_with(change_to(COMMA))
+        put_spec(root, text)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        assert spec_lines(out) == [
+            check_line_refusal(text, f"  to: {COMMA}", reason(root, COMMA))
+        ], out
+
+    def test_names_a_near_line_as_not_read_at_its_line_and_passes(
+        self, branch, ready, capsys, monkeypatch
+    ):
+        """S4: `Check: x` opens like a check line and is not one; it is
+        printed as not read at its design line, a notice annotation in CI,
+        and decides nothing. Seen red under the mutation that drops the
+        notices of a `to`."""
+        root, _code = branch
+        text = spec_with(change_to("new words.", "Check: x"))
+        put_spec(root, text)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        (why,) = [w for _, _, w in chain.check_lines_reader().unread_lines("Check: x")]
+        notice = chain.RULE_CHANGES_UNREAD.format(why=why)
+        number = line_at(text, "    Check: x")
+        assert spec_lines(out) == [f"{ITEM}/frame/design.md:{number}  {notice}"], out
+        monkeypatch.setenv("GITHUB_ACTIONS", "true")
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert spec_lines(out) == [
+            f"::notice file={ITEM}/frame/design.md,line={number}::{notice}"
+        ], out
+
+    def test_reads_the_to_of_an_add_as_of_a_change(self, branch, ready, capsys):
+        """S1 for an `add`: the settle writes an `add`'s `to` into the policy
+        root as it writes a `change`'s, so the comma line is refused at its
+        line. Seen red under the mutation that reads a `change` alone."""
+        root, _code = branch
+        text = spec_with(
+            f"- add\n  file: docs/policy.md\n  to: new words.\n    {COMMA}\n"
+        )
+        put_spec(root, text)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        assert spec_lines(out) == [
+            check_line_refusal(text, f"    {COMMA}", reason(root, COMMA))
+        ], out
+
+    def test_reads_no_check_line_in_a_from(self, branch, ready, capsys):
+        """S5: the comma line in a `change`'s `from` and in a `remove`'s
+        `from` passes and is not named, since the settle writes neither into
+        the policy root. Seen red under the mutation that reads every field."""
+        root, _code = branch
+        removed = (
+            "- remove\n  file: docs/policy.md\n  section: A section\n"
+            f"  from: old words.\n    {COMMA}\n"
+        )
+        old = f"old words.\n    {COMMA}"
+        text = spec_with(
+            change_to("new words.", "check: none reader: review", old=old) + removed
+        )
+        put_spec(root, text)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert spec_lines(out) == [], out
+
+    def test_ends_at_exit_2_where_its_reader_will_not_load_or_read(
+        self, branch, ready, capsys, monkeypatch
+    ):
+        """A `rules.py` that will not load ends the check at exit 2, the
+        reason on stderr; so does one that loads and cannot read the tree, a
+        test file that does not parse where a `to` names a marker."""
+        root, _code = branch
+        put_spec(root, spec_with(change_to("new words.", "check: none reader: review")))
+        there = chain.CHECK_LINES_READER
+        monkeypatch.setattr(chain, "_check_lines", None)
+        monkeypatch.setattr(chain, "CHECK_LINES_READER", str(root / "no_rules.py"))
+        code = chain.main(["--baseline", "main", "--root", str(root)])
+        err = capsys.readouterr().err
+        assert code == 2, err
+        assert "chain-check: the check-line reader `.github/scripts/rules.py` " in err
+        assert "would not load" in err
+        monkeypatch.setattr(chain, "CHECK_LINES_READER", there)
+        write(root, "tests/test_broken.py", '@pytest.mark.rule("x")\ndef test_x(:\n')
+        put_spec(root, spec_with(change_to("new words.", "check: some-marker")))
+        code = chain.main(["--baseline", "main", "--root", str(root)])
+        err = capsys.readouterr().err
+        assert code == 2, err
+        assert (
+            "chain-check: `.github/scripts/rules.py` could not read the check "
+            f"lines of {ITEM}/frame/design.md: tests/test_broken.py could not be "
+            "read as Python (SyntaxError)"
+        ) in err
+
+
+# --- the pins and copies of a rule change, at the pull request (#1216) ----------
+
+# The notices' texts, pinned here so an edit to `chain.PIN_SAYS` or
+# `chain.COPY_SAYS` meets a case.
+PIN_SAYS = (
+    "a test pins text this operation takes out of `{file}`: `{test}:{line}` "
+    'holds "{literal}", and the `to` does not'
+)
+COPY_SAYS = (
+    "this `to` repeats a passage of `{path}`: {count} of its runs of {window} "
+    'words stand there, one of them "{run}"'
+)
+OLD_RULE = "the old rule says this"
+# A literal of five words at line 3, a docstring holding the same words at
+# line 2, and a literal of three words at line 4: the `from` below holds all
+# three, and only the first is a pin.
+PINNING = (
+    "def test_x():\n"
+    f'    """{OLD_RULE}"""\n'
+    f'    assert "{OLD_RULE}" in text\n'
+    '    assert "the old rule" in text\n'
+)
+
+
+def words_of(n):
+    return " ".join(f"w{i}" for i in range(n))
+
+
+def pin_said(file="docs/policy.md"):
+    """The pin notice for `OLD_RULE` at line 3 of `tests/test_pinning.py`."""
+    return PIN_SAYS.format(
+        file=file, test="tests/test_pinning.py", line=3, literal=OLD_RULE
+    )
+
+
+def planted_spec(root, text):
+    """`put_spec`, with the files a case planted beside it committed and a
+    round at HEAD, so the spec's notices are all the check prints for it."""
+    put_spec(root, text)
+    reviewed_to_head(root)
+
+
+@pytest.mark.rule("a-rule-change-names-the-pins-and-copies-it-breaks")
+class Test_pins_and_copies_in:
+    def test_names_a_pin_at_the_froms_line_and_no_docstring_or_three_words(
+        self, branch, ready, capsys, monkeypatch
+    ):
+        """S1, S5: a `from` holding a test's literal of five words, which the
+        `to` drops, is named at the `from`'s line, a notice annotation in CI,
+        and the ready pull request exits 0. The docstring and the literal of
+        three words the `from` also holds are not named. Seen red against the
+        base, which printed nothing for the design."""
+        root, _code = branch
+        write(root, "tests/test_pinning.py", PINNING)
+        text = spec_with(change_to("a new rule.", old=f"{OLD_RULE}."))
+        planted_spec(root, text)
+        number = line_at(text, f"  from: {OLD_RULE}.")
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert spec_lines(out) == [f"{ITEM}/frame/design.md:{number}  {pin_said()}"]
+        monkeypatch.setenv("GITHUB_ACTIONS", "true")
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert spec_lines(out) == [
+            f"::notice file={ITEM}/frame/design.md,line={number}::{pin_said()}"
+        ], out
+
+    def test_accepts_a_to_that_keeps_the_literal_naming_nothing(
+        self, branch, ready, capsys
+    ):
+        """S2: the `to` keeps the literal, so nothing is named. Seen red
+        under the mutation that reads no `to`."""
+        root, _code = branch
+        write(root, "tests/test_pinning.py", PINNING)
+        planted_spec(
+            root, spec_with(change_to(f"So {OLD_RULE}, and more.", old=f"{OLD_RULE}."))
+        )
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert spec_lines(out) == [], out
+
+    def test_names_a_pin_in_a_section_a_remove_takes_out_whole(
+        self, branch, ready, capsys
+    ):
+        """S3: a `remove` with no `from` takes its section out, as the working
+        tree holds it, and a literal standing there is named at the
+        operation's line. Seen red against the base."""
+        root, _code = branch
+        write(root, "tests/test_pinning.py", PINNING)
+        write(
+            root,
+            "docs/policy.md",
+            f"# Policy\n\n## A section\n\nWhere {OLD_RULE}, it\nstands.\n\n"
+            "## Another\n\nOther words.\n",
+        )
+        text = spec_with("- remove\n  file: docs/policy.md\n  section: A section\n")
+        planted_spec(root, text)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        number = line_at(text, "- remove")
+        assert spec_lines(out) == [f"{ITEM}/frame/design.md:{number}  {pin_said()}"]
+
+    def test_names_a_copy_at_the_tos_line_and_no_run_of_fourteen(
+        self, branch, ready, capsys
+    ):
+        """S4: a `to` sharing one run of 15 words with a `skills/` file names
+        that file and the run at the `to`'s line; another file sharing 14
+        words is not named. Seen red against the base."""
+        root, _code = branch
+        run = words_of(15)
+        write(root, "skills/planted/SKILL.md", f"Its own words, then {run} and on.\n")
+        write(root, "skills/short/SKILL.md", f"Then {words_of(14)} and on.\n")
+        text = spec_with(change_to(f"New {run} rule."))
+        planted_spec(root, text)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        said = COPY_SAYS.format(
+            path="skills/planted/SKILL.md", count=1, window=15, run=run
+        )
+        number = line_at(text, f"  to: New {run} rule.")
+        assert spec_lines(out) == [f"{ITEM}/frame/design.md:{number}  {said}"], out
+
+    def test_refuses_to_name_a_copy_landing_in_a_korean_edition(
+        self, branch, ready, capsys
+    ):
+        """S5: a `to` that lands in a `*.ko.md` file is outside the corpus and
+        names no copy, though it shares a run of 15 words with a planted
+        `skills/` file. Seen red with only the `.ko.md` exclusion of
+        `passages.py#in_corpus` removed, the line naming that planted file."""
+        root, _code = branch
+        run = words_of(15)
+        write(root, "skills/planted/SKILL.md", f"Its own words, then {run} and on.\n")
+        planted_spec(
+            root,
+            spec_with(f"- add\n  file: docs/policy.ko.md\n  to: New {run} rule.\n"),
+        )
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert spec_lines(out) == [], out
+
+    def test_names_a_test_file_that_does_not_parse_as_not_read(
+        self, branch, ready, capsys
+    ):
+        """S5: a test file that does not parse is named as not read at its
+        line 0, and the exit code is the one the other arms give. Seen red
+        against the base."""
+        root, _code = branch
+        write(root, "tests/test_broken.py", "def test_x(:\n")
+        planted_spec(root, spec_with(change_to("a new rule.", old=f"{OLD_RULE}.")))
+        code, out = check(root, capsys)
+        assert code == 0, out
+        why = (
+            "`tests/test_broken.py` could not be read as Python (SyntaxError), "
+            "so no pin in it is named"
+        )
+        assert f"tests/test_broken.py:0  not read: {why}" in out.splitlines(), out
+        assert spec_lines(out) == [], out
+
+    def test_names_a_rule_document_that_does_not_decode_as_not_read(
+        self, branch, ready, capsys
+    ):
+        """A rule document that is not UTF-8 is named as not read at its line
+        0, and the exit code is the one the other arms give. Seen red against
+        the build before the document's notice existed, which skipped it
+        silently."""
+        root, _code = branch
+        (root / "skills" / "bad").mkdir(parents=True)
+        (root / "skills" / "bad" / "SKILL.md").write_bytes(b"\xff\xfe not text\n")
+        planted_spec(root, spec_with(change_to("a new rule.")))
+        code, out = check(root, capsys)
+        assert code == 0, out
+        why = (
+            "`skills/bad/SKILL.md` could not be read (UnicodeDecodeError), so no "
+            "copy of it is named"
+        )
+        assert f"skills/bad/SKILL.md:0  not read: {why}" in out.splitlines(), out
+
+    def test_names_a_copy_a_change_keeps_in_its_to(self, branch, ready, capsys):
+        """Round 2, finding 1: a `change` that shortens a passage of
+        `docs/policy.md` and keeps a run of 15 of its words, beside an `add`
+        of the whole passage to `docs/other.md`: `docs/policy.md` keeps a copy
+        after the settle, named at the `add`'s `to`. Seen red against
+        `c783f18f4`, which read the `change` as a `remove`."""
+        root, _code = branch
+        passage = f"Then {words_of(15)} and on."
+        kept = f"Then {words_of(15)} and see the other file."
+        write(
+            root,
+            "docs/policy.md",
+            f"# Policy\n\n## A section\n\n{passage}\n\n## Another\n\nOther words.\n",
+        )
+        text = spec_with(
+            "- change\n  file: docs/policy.md\n  section: A section\n"
+            f"  from: {passage}\n  to: {kept}\n"
+            f"- add\n  file: docs/other.md\n  to: {passage}\n"
+        )
+        planted_spec(root, text)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        said = COPY_SAYS.format(
+            path="docs/policy.md", count=3, window=15, run=f"then {words_of(14)}"
+        )
+        number = line_at(text, f"  to: {passage}")
+        assert spec_lines(out) == [f"{ITEM}/frame/design.md:{number}  {said}"], out
+
+    def test_names_a_passage_two_adds_of_one_design_put_in_two_documents(
+        self, branch, ready, capsys
+    ):
+        """Round 3, finding 1: two `add`s of one passage into two documents
+        that do not hold it. Each document holds it after the settle, so each
+        `to` names the other document. Seen red against `a10750aea`, which
+        printed nothing for the design."""
+        root, _code = branch
+        passage = f"Then {words_of(15)} and on."
+        write(root, "docs/a.md", "# A\n\n## One\n\nOther words here.\n")
+        write(root, "docs/b.md", "# B\n\n## Two\n\nStill other words.\n")
+        text = spec_with(
+            f"- add\n  file: docs/a.md\n  section: One\n  to: {passage}\n"
+            f"- add\n  file: docs/b.md\n  section: Two\n  to: {passage}\n"
+        )
+        planted_spec(root, text)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        run = f"then {words_of(14)}"
+        first, second = [
+            i + 1 for i, ln in enumerate(text.split("\n")) if passage in ln
+        ]
+        assert spec_lines(out) == [
+            f"{ITEM}/frame/design.md:{first}  "
+            + COPY_SAYS.format(path="docs/b.md", count=4, window=15, run=run),
+            f"{ITEM}/frame/design.md:{second}  "
+            + COPY_SAYS.format(path="docs/a.md", count=4, window=15, run=run),
+        ], out
+
+    def test_accepts_a_passage_the_design_moves_naming_no_copy(
+        self, branch, ready, capsys
+    ):
+        """Round 1, finding 1: a design that removes a section of
+        `docs/policy.md` and adds its passage to `docs/other.md` moves it, so
+        `docs/policy.md` holds no copy after the settle and none is named.
+        Seen red against `4105fd13c`, which named `docs/policy.md`."""
+        root, _code = branch
+        passage = f"Then {words_of(15)} and on."
+        write(
+            root,
+            "docs/policy.md",
+            f"# Policy\n\n## A section\n\n{passage}\n\n## Another\n\nOther words.\n",
+        )
+        planted_spec(
+            root,
+            spec_with(
+                "- remove\n  file: docs/policy.md\n  section: A section\n"
+                f"- add\n  file: docs/other.md\n  to: {passage}\n"
+            ),
+        )
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert spec_lines(out) == [], out
+
+    @pytest.mark.parametrize(
+        "policy, why",
+        [
+            (None, "the document is not in the tree"),
+            ("# Policy\n\n## Another\n\nwords.\n", "no heading `Missing`"),
+        ],
+        ids=["no-document", "no-section"],
+    )
+    def test_names_a_section_a_remove_cannot_read_as_not_read(
+        self, branch, ready, capsys, policy, why
+    ):
+        """Round 1, finding 2: a `remove` with no `from` whose document or
+        section the working tree lacks is named as not read at the
+        operation's line, with the section reader's reason. Seen red against
+        `4105fd13c`, which printed nothing."""
+        root, _code = branch
+        if policy is not None:
+            write(root, "docs/policy.md", policy)
+        text = spec_with("- remove\n  file: docs/policy.md\n  section: Missing\n")
+        planted_spec(root, text)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        said = (
+            "the section `Missing` of `docs/policy.md` that this `remove` takes "
+            f"out could not be read ({why}), so no pin in it is named"
+        )
+        number = line_at(text, "- remove")
+        assert spec_lines(out) == [
+            f"{ITEM}/frame/design.md:{number}  not read: {said}"
+        ], out
+
+    def test_names_a_test_and_a_document_it_cannot_open_as_not_read(
+        self, branch, ready, capsys
+    ):
+        """Round 1, finding 2: a tracked test file and a tracked rule document
+        that the working tree holds as a directory cannot be opened, and each
+        is named as not read; the error's name is the platform's. Seen red
+        against `4105fd13c`, which skipped both."""
+        root, _code = branch
+        write(root, "tests/test_gone.py", "x = 1\n")
+        write(root, "skills/gone/SKILL.md", "Words.\n")
+        planted_spec(root, spec_with(change_to("a new rule.")))
+        for rel in ("tests/test_gone.py", "skills/gone/SKILL.md"):
+            (root / rel).unlink()
+            (root / rel).mkdir()
+        code, out = check(root, capsys)
+        assert code == 0, out
+        lines = out.splitlines()
+        test = "tests/test_gone.py:0  not read: `tests/test_gone.py` could not be read as Python ("
+        document = "skills/gone/SKILL.md:0  not read: `skills/gone/SKILL.md` could not be read ("
+        assert [ln for ln in lines if ln.startswith(test)], out
+        assert [ln for ln in lines if ln.startswith(document)], out
+
+    @pytest.mark.parametrize("error", [RecursionError, MemoryError])
+    def test_names_a_test_the_parser_gives_up_on_as_not_read(
+        self, branch, ready, capsys, monkeypatch, error
+    ):
+        """Round 1, finding 2: `ast.parse` raises `RecursionError` or
+        `MemoryError` on a source nested past its limit, and such a test file
+        is named as not read rather than ending the check. Seen red against
+        `4105fd13c`, where the error ended the run."""
+        root, _code = branch
+        write(root, "tests/test_deep.py", "x = 1  # deep\n")
+        planted_spec(root, spec_with(change_to("a new rule.")))
+        rules = chain.SHARED_READER.rule_changes()
+        literals = rules.literals
+
+        def gives_up(source):
+            if "# deep" in source:
+                raise error
+            return literals(source)
+
+        monkeypatch.setattr(rules, "literals", gives_up)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        why = (
+            f"`tests/test_deep.py` could not be read as Python ({error.__name__}), "
+            "so no pin in it is named"
+        )
+        assert f"tests/test_deep.py:0  not read: {why}" in out.splitlines(), out
+
+    def test_names_a_listing_git_could_not_make_as_not_read(
+        self, branch, ready, capsys, monkeypatch
+    ):
+        """Round 1, finding 2: where git cannot list the tracked tests, none
+        is read, and the run says so rather than reading as no pin. Seen red
+        against `4105fd13c`, which printed nothing."""
+        root, _code = branch
+        planted_spec(root, spec_with(change_to("a new rule.")))
+        git_of = chain.git
+
+        def no_listing(where, *args):
+            # The tracked listing alone; `changed` lists untracked files too.
+            return None if args[:2] == ("ls-files", "-z") else git_of(where, *args)
+
+        monkeypatch.setattr(chain, "git", no_listing)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        lines = out.splitlines()
+        for pathspec, what in (("tests/*.py", "pin"), ("*.md", "copy")):
+            said = (
+                f"git could not list the tracked files `{pathspec}` matches, so "
+                f"none of them is read for a {what}"
+            )
+            assert f"not read: {said}" in lines, out
+
+
 # --- the parity arm at the pull request (#988) -------------------------------------
 
 PARITY = "seal/parity.md"

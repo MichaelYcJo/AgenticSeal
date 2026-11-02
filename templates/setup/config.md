@@ -142,11 +142,10 @@ every repository, whatever either row says:
   `## Rule changes` heading, the items `add`, `change`, `remove` and
   `nothing`, and the fields `file:`, `section:`, `from:`, `to:` and `why:`.
   A translated field name is not a translation, it is a broken gate.
-- **The markers and anchors.** `<!-- specs/<work-item-id> -->`, the word
-  `closed` that opens a closed `## Not verified` row, the line
-  `## From the records` that opens the part of a pull request body
-  `seal pr-body` copies from the records, and the anchor table's header
-  cells `Pact`, `Clause` and `Hash`.
+- **The markers and anchors.** The word `closed` that opens a closed
+  `## Not verified` row, the line `## From the records` that opens the
+  part of a pull request body `seal pr-body` copies from the records, and
+  the anchor table's header cells `Pact`, `Clause` and `Hash`.
 - **Code.** Identifiers, comments, docstrings, file names, and test function
   names.
 - **The item column of this table**, which is a key rather than prose: the
@@ -389,7 +388,9 @@ reference root.
 root out: `seal unverified` prunes it from a directory walk while still
 reading a file named to it explicitly. A prefix naming the plugin's own root
 or anything under it is dropped, because the root's records are read whatever
-this row says; `seal settle --apply` removes only under `seal/threads/`. One reader
+this row says; `seal settle --apply` removes only under `seal/threads/`.
+`seal settle --from` reads a reference root only where a person names it at
+the settle, whatever this row says, and writes nothing there. One reader
 answers the row, `hooks/lib/config.py#reference_roots`, and one predicate the
 path question, `hooks/lib/config.py#under_reference_root`.
 
@@ -430,6 +431,45 @@ or names it, like any item no reader asks for, and whoever next edits the
 file deletes it. No reader names it, because naming it would keep a reader
 for a row that changes nothing, and a refusal would stop `seal pact` at the
 pact's repository over it.
+
+## The seal mark
+
+A row per surface the seal mark is shown on beside the terminal stamp. Each
+is off unless its row turns it on, and none of them stops anything.
+
+```markdown
+| Pull request seal mark | yes |
+| Release note seal mark | yes |
+```
+
+| Value | Means |
+|---|---|
+| `yes`, written exactly so | the surface carries the mark |
+| absent or empty | no mark, and nothing is said |
+| any other value, such as `Yes`, `on` or `true` | no mark, and the command that writes the surface names the row and its value as not read |
+
+**`Pull request seal mark`** is read by `seal pr-body`
+(`skills/code-review/scripts/pr_body.py#seal_mark`). Under `yes` it writes
+one line, the plugin's icon at the tag of the plugin's version, between the
+line `skills/code-review/scripts/pr_body.py#HEADING` holds and the fold,
+where the newest verdict block of the work item's `guarantee.md` reads
+`sealed` at a commit that only the closing records, `trail/gate.md` and
+`guarantee.md`, follow. A work item not sealed at HEAD gets no mark, and the
+sealer and the pull request's check name why. The mark's address is the
+plugin's repository, so a body carrying it shows the image while that
+repository stays public and the version's tag exists.
+
+**`Release note seal mark`** is read by the `seal` job of this plugin's own
+release workflow (`.github/scripts/release_seal.py#mark_on`), at the
+release's tag. Under `yes` the job attaches the plugin's icon to the release
+as `seal.png` and the note's header shows it beside the results the stamp
+states; under any other value it attaches nothing and the header holds the
+results alone. The plugin ships no release workflow, so in any other
+repository nothing reads this row.
+
+**A row that will not read writes no mark and is named**, a row written
+twice among them; the command's exit code is what it would be without the
+row.
 
 ## The fold's values
 

@@ -79,6 +79,56 @@ class Test_parse:
         ]
 
     @pytest.mark.parametrize(
+        "to, lines",
+        [
+            (
+                "  to: **Rule.** Its grounds.\n    check: none reader: review",
+                [(0, "**Rule.** Its grounds."), (1, "check: none reader: review")],
+            ),
+            (
+                "  to:\n    **Rule.** Its grounds.\n    check: none reader: review",
+                [(1, "**Rule.** Its grounds."), (2, "check: none reader: review")],
+            ),
+            (
+                "  to: **Rule.**\n\n    check: none reader: review\n",
+                [(0, "**Rule.**"), (1, ""), (2, "check: none reader: review")],
+            ),
+            (
+                "  to: **Rule.**  \n    check: none reader: review  ",
+                [(0, "**Rule.**  "), (1, "check: none reader: review")],
+            ),
+        ],
+        ids=[
+            "on-the-field-line",
+            "on-the-line-below",
+            "holding-a-blank-line",
+            "trailing-spaces",
+        ],
+    )
+    def test_each_value_line_carries_its_line_in_the_design(self, to, lines):
+        """#1215, *Scope* item 1: `Op.lines` maps each field to its value's
+        lines, each with its line in the design, the leading and trailing
+        empty lines dropped as `field_values` drops them, so the texts joined
+        are the field's value. A `to:` with its value on the line below starts
+        one line down, which an offset from `Op.line` would miss; the blank
+        line before the next item is the value's trailing one, and the last
+        line's trailing spaces leave as the value's do."""
+        text = spec(
+            f"- add\n  file: docs/a.md\n{to}\n- add\n  file: docs/b.md\n  to: B."
+        )
+        parsed = parse(text)
+        assert parsed.errors == [], parsed
+        first, second = parsed.ops
+        at = line_of(text, to.split("\n")[0])
+        assert first.lines["to"] == [(at + k, said) for k, said in lines]
+        assert "\n".join(said for _, said in first.lines["to"]) == first.new
+        assert first.lines["file"] == [(at - 1, "docs/a.md")]
+        assert second.lines == {
+            "file": [(line_of(text, "  file: docs/b.md"), "docs/b.md")],
+            "to": [(line_of(text, "  to: B."), "B.")],
+        }
+
+    @pytest.mark.parametrize(
         "body, why",
         [
             (
@@ -509,6 +559,369 @@ class Test_pattern:
     )
     def test_refuses_a_word_inside_another(self, text, region):
         assert rules.pattern(text).search(region) is None
+
+
+# --- placing one operation in one document's text (#1217) ----------------------
+
+# A section whose own text holds two tables, and whose sub-section holds a
+# third: an `add` of one table row lands in the second.
+TABLES = """\
+# A policy
+
+## S
+
+Intro.
+
+| A | B |
+|---|---|
+| 1 | 2 |
+
+Between.
+
+| C | D |
+|---|---|
+| 3 | 4 |
+
+After.
+
+### S child
+
+| E | F |
+|---|---|
+| 5 | 6 |
+"""
+
+
+class Test_apply_op:
+    @pytest.mark.parametrize(
+        "kind, section, old, new, want",
+        [
+            (
+                "change",
+                "S",
+                "old sentence.",
+                "new sentence.",
+                DOC.replace("old sentence.", "new sentence."),
+            ),
+            (
+                "add",
+                "S",
+                None,
+                "Rule.",
+                DOC.replace("After.\n\n###", "After.\n\nRule.\n\n###"),
+            ),
+            ("remove", "S", "old sentence.", None, DOC.replace("old sentence. ", "")),
+            ("remove", "S", "Before.", None, DOC.replace("Before. ", "")),
+            ("remove", "S", "After.", None, DOC.replace(" After.", "")),
+            ("remove", "T", "x.", None, DOC.replace("x.\n\n", "")),
+            ("remove", "T", None, None, DOC.replace("## T\n\nx.\n\nT's text.\n\n", "")),
+            ("remove", "U", None, None, DOC.replace("\n## U\n\nLast.\n", "")),
+        ],
+        ids=[
+            "change",
+            "add",
+            "remove a from",
+            "remove a from opening its line",
+            "remove a from closing its line",
+            "remove a from that is its line",
+            "remove a section",
+            "remove the last",
+        ],
+    )
+    def test_places_each_kind_where_the_grammar_says(
+        self, kind, section, old, new, want
+    ):
+        """S1: a `change`'s `from` becomes its `to` inside the section, an
+        `add` stands at the end of the section's own text before its first
+        sub-heading, a `from` is cut with the space beside it or the line it
+        empties, and the whole
+        section goes up to the next heading of its level or higher."""
+        assert rules.apply_op(DOC, one_op(kind, section, old, new)) == (want, None)
+
+    def test_accepts_an_add_with_no_section_as_a_new_document(self):
+        assert rules.apply_op(None, one_op("add", new="# New")) == ("# New\n", None)
+
+    def test_a_remove_that_empties_the_document_deletes_it(self):
+        text = "## Only\n\nText.\n"
+        assert rules.apply_op(text, one_op("remove", "Only")) == (None, None)
+
+    def test_a_whole_section_remove_names_the_outer_of_two_alike_headings(self):
+        """A title and the first section under it often read alike, and the
+        outer range holds every other match, so the outer one goes."""
+        text = "# A policy\n\n## Same\n\n### Same\n\nText.\n\n## Other\n\nKept.\n"
+        assert rules.apply_op(text, one_op("remove", "Same")) == (
+            "# A policy\n\n## Other\n\nKept.\n",
+            None,
+        )
+
+    @pytest.mark.parametrize(
+        "text, kind, section, old, why",
+        [
+            (None, "change", "S", "old sentence.", "docs/a.md does not exist"),
+            (
+                DOC,
+                "add",
+                None,
+                None,
+                "docs/a.md exists, and an add with no section creates one",
+            ),
+            (DOC, "change", "Nowhere", "x.", "no heading `Nowhere` in docs/a.md"),
+            (
+                DOC + "\n## S\n\nAgain.\n",
+                "change",
+                "S",
+                "old sentence.",
+                "heading `S` appears 2 times in docs/a.md",
+            ),
+            (
+                DOC,
+                "change",
+                "S",
+                "absent words.",
+                "the `from` text is not in section `S` of docs/a.md",
+            ),
+            (
+                DOC.replace("Child text.", "old sentence."),
+                "change",
+                "S",
+                "old sentence.",
+                "the `from` text appears 2 times in section `S` of docs/a.md",
+            ),
+        ],
+        ids=[
+            "no document",
+            "a new document that exists",
+            "no heading",
+            "a heading twice",
+            "no from",
+            "a from twice",
+        ],
+    )
+    def test_refuses_what_it_cannot_place_once_and_names_why(
+        self, text, kind, section, old, why
+    ):
+        """S2: an operation that is not placed writes nothing, and its reason
+        names the file and the section, for the settle to print."""
+        found = rules.apply_op(text, one_op(kind, section, old, "New."))
+        assert found == (None, why)
+
+    @pytest.mark.parametrize(
+        "text, new, want",
+        [
+            (
+                TABLES,
+                "| 7 | 8 |",
+                TABLES.replace("| 3 | 4 |\n", "| 3 | 4 |\n| 7 | 8 |\n"),
+            ),
+            (
+                TABLES,
+                "| 7 |",
+                TABLES.replace("| 3 | 4 |\n", "| 3 | 4 |\n| 7 |\n"),
+            ),
+            (
+                DOC,
+                "| 7 | 8 |",
+                DOC.replace("After.\n\n###", "After.\n\n| 7 | 8 |\n\n###"),
+            ),
+            (
+                TABLES,
+                "| 7 | 8 |\n    | 9 | 0 |",
+                TABLES.replace(
+                    "After.\n\n###", "After.\n\n| 7 | 8 |\n| 9 | 0 |\n\n###"
+                ),
+            ),
+            (
+                "## S\n\n```\n| A | B |\n|---|---|\n| 1 | 2 |\n```\n",
+                "| 7 | 8 |",
+                "## S\n\n```\n| A | B |\n|---|---|\n| 1 | 2 |\n```\n\n| 7 | 8 |\n",
+            ),
+        ],
+        ids=[
+            "the last table",
+            "a row of another width",
+            "no table",
+            "two rows",
+            "a table in a fence",
+        ],
+    )
+    def test_an_add_of_one_table_row_lands_in_the_sections_last_table(
+        self, text, new, want
+    ):
+        """S3: a `to` that is one table row lands as the last row of the last
+        table in the section's own text, whatever its width, and the
+        sub-section's table is not the section's. Where no table stands
+        there, or the `to` is two lines, it lands as any `add` does."""
+        assert rules.apply_op(text, one_op("add", "S", new=new)) == (want, None)
+
+    @pytest.mark.parametrize(
+        "kind, section, old, new",
+        [
+            ("change", "S", "old sentence.", "new\n    sentence."),
+            ("add", "S", None, "Rule\n    run on."),
+            ("add", "S", None, "| 7 | 8 |"),
+            ("remove", "S", "old sentence.", None),
+            ("remove", "U", None, None),
+        ],
+        ids=["change", "add", "table row", "remove a from", "remove the last"],
+    )
+    def test_keeps_a_crlf_documents_line_ends(self, kind, section, old, new):
+        """`questions.md` Q2: a document written with CRLF keeps CRLF on
+        every line, the ones an operation writes among them."""
+        text = TABLES.replace("Intro.", "Before. old sentence. After.")
+        text = (text + "\n## U\n\nLast.\n").replace("\n", "\r\n")
+        out, why = rules.apply_op(text, one_op(kind, section, old, new))
+        assert why is None and out != text
+        assert "\n" not in out.replace("\r\n", ""), out
+
+
+# --- what an operation takes out of a test and repeats of a document (#1216) ---
+
+PLANTED = '''\
+"""A module docstring of more than four words."""
+
+
+def test_x():
+    """A function docstring of more than four words."""
+    assert "the rule says   this\\nhere" in text
+    assert "three words only" in text
+    assert b"the bytes say this here" in data
+    assert ("joined across two "
+            "lines by the parser") in text
+'''
+
+
+def one_op(kind, section=None, old=None, new=None, file="docs/a.md"):
+    """The one operation of a section holding `op(...)`'s item."""
+    (found,) = parse(spec(op(kind, section, old, new, file))).ops
+    return found
+
+
+class Test_literals:
+    def test_accepts_each_string_of_four_words_at_its_line_collapsed(self):
+        """A docstring, a shorter string and a bytes constant are no literal;
+        an implicit concatenation is one, at its first line."""
+        assert rules.literals(PLANTED) == [
+            (6, "the rule says this here"),
+            (9, "joined across two lines by the parser"),
+        ]
+
+    def test_refuses_a_source_that_does_not_parse(self):
+        with pytest.raises(SyntaxError):
+            rules.literals("def test_x(:\n")
+
+
+FOUND = [
+    ("tests/test_a.py", 7, "the rule says this here"),
+    ("tests/test_b.py", 3, "a sentence nobody takes out"),
+]
+
+
+class Test_pins:
+    def test_accepts_a_literal_the_from_holds_and_the_to_drops(self):
+        """The `from` holds the literal wrapped across two lines, and still
+        holds it."""
+        o = one_op("change", "S", "Then the rule says this here.", "A new rule.")
+        assert rules.pins(o, "Then the rule says\n  this here.", FOUND) == [FOUND[0]]
+
+    def test_refuses_a_literal_the_to_keeps_or_nothing_taken(self):
+        o = one_op(
+            "change",
+            "S",
+            "Then the rule says this here.",
+            "So the rule says this here.",
+        )
+        assert rules.pins(o, o.old, FOUND) == []
+        assert rules.pins(one_op("add", new="A rule."), None, FOUND) == []
+
+    def test_accepts_a_section_a_remove_takes_out_whole(self):
+        o = one_op("remove", "S")
+        section = "## S\n\nWhere the rule says this\nhere, it stands.\n"
+        assert rules.pins(o, section, FOUND) == [FOUND[0]]
+
+
+def run_of(n):
+    """N placeholder words."""
+    return " ".join(f"w{i}" for i in range(n))
+
+
+WINDOW = rules.passages().WINDOW
+
+
+class Test_copies:
+    def test_accepts_a_run_the_to_shares_with_another_rule_document(self):
+        texts = {
+            "docs/a.md": f"Here {run_of(WINDOW)} stands.\n",
+            "skills/b/SKILL.md": f"Its own words, then {run_of(WINDOW + 1)} and on.\n",
+            "seal/x.md": f"{run_of(WINDOW + 1)} and on\n",
+        }
+        o = one_op("change", "S", "old words.", f"New {run_of(WINDOW + 1)} rule.")
+        assert rules.copies(o, texts) == [
+            ("skills/b/SKILL.md", 2, run_of(WINDOW)),
+        ]
+
+    @pytest.mark.parametrize(
+        "file, shared",
+        # Fourteen is written out, not `WINDOW - 1`: a run read from the
+        # module's own constant moves with it, and pins no window length.
+        [("docs/a.md", 14), ("docs/a.ko.md", WINDOW)],
+        ids=["fourteen-words", "a-korean-edition"],
+    )
+    def test_refuses_a_shorter_run_and_a_to_outside_the_corpus(self, file, shared):
+        texts = {"skills/b/SKILL.md": f"Then {run_of(shared)} and on.\n"}
+        o = one_op("add", new=f"New {run_of(shared)} rule.", file=file)
+        assert rules.copies(o, texts) == []
+        assert rules.copies(one_op("remove", "S"), texts) == []
+
+    def test_refuses_a_run_that_stands_only_in_text_the_design_takes_out(self):
+        """A design that moves a passage from `docs/a.md` to `docs/b.md` takes
+        it out of the first, wrapped as the document holds it, so no copy is
+        left there after the settle (round 1, finding 1)."""
+        passage = f"Then {run_of(WINDOW)} and on."
+        texts = {"docs/a.md": "## S\n\n" + passage.replace(" w7 ", "\nw7 ") + "\n"}
+        o = one_op("add", new=passage, file="docs/b.md")
+        assert rules.copies(o, texts, {"docs/a.md": [(passage, None)]}) == []
+
+    def test_accepts_a_run_the_document_still_holds_after_what_is_taken_out(self):
+        """The passage stands twice in `docs/a.md` and the design takes one
+        out, so the other is still a copy."""
+        passage = f"Then {run_of(WINDOW)} and on."
+        texts = {"docs/a.md": f"{passage}\n\nWords between.\n\n{passage}\n"}
+        o = one_op("add", new=passage, file="docs/b.md")
+        assert rules.copies(o, texts, {"docs/a.md": [(passage, None)]}) == [
+            ("docs/a.md", 4, f"then {run_of(WINDOW - 1)}")
+        ]
+
+    def test_accepts_a_run_a_change_keeps_in_its_to(self):
+        """Round 2, finding 1: a `change` replaces its `from` with its `to`,
+        and one that rewrites the passage in `docs/a.md` and keeps 15 of its
+        words leaves a copy there after the settle. A backslash in the `to` is
+        text, not a group reference."""
+        passage = f"Then {run_of(WINDOW)} and on."
+        kept = f"Then {run_of(WINDOW)} and see the other file \\1."
+        texts = {"docs/a.md": f"## S\n\n{passage}\n"}
+        o = one_op("add", new=passage, file="docs/b.md")
+        found = rules.copies(o, texts, {"docs/a.md": [(passage, kept)]})
+        assert found == [("docs/a.md", 3, f"then {run_of(WINDOW - 1)}")]
+
+    def test_names_a_run_another_add_of_the_design_puts_in(self):
+        """Round 3, finding 1: an `add` of the same design puts its `to` into
+        `docs/a.md`, which holds the passage after the settle though the tree
+        does not yet."""
+        passage = f"Then {run_of(WINDOW)} and on."
+        texts = {"docs/a.md": "## S\n\nOther words.\n"}
+        o = one_op("add", new=passage, file="docs/b.md")
+        found = rules.copies(o, texts, {"docs/a.md": [(None, passage)]})
+        assert found == [("docs/a.md", 4, f"then {run_of(WINDOW - 1)}")]
+
+    def test_names_a_run_a_change_puts_in_where_its_from_is_not_yet_there(self):
+        """A `change` whose `from` stands in another pending design's `to`, not
+        in the tree, still leaves its `to` in its document after the settle,
+        so the `to` is put in though nothing is found to replace."""
+        passage = f"Then {run_of(WINDOW)} and on."
+        texts = {"docs/a.md": "## S\n\nOther words.\n"}
+        o = one_op("add", new=passage, file="docs/b.md")
+        found = rules.copies(o, texts, {"docs/a.md": [("words not there", passage)]})
+        assert found == [("docs/a.md", 4, f"then {run_of(WINDOW - 1)}")]
 
 
 test_census = census_case(TARGET)

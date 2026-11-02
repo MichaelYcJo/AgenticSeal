@@ -45,6 +45,8 @@ present hides exactly those.
 | `Policy root` | `docs` | the directory of the ratified policy documents, which the settle writes |
 | `Reference specs` | *every directory named `specs` outside the root* | the directories this repository kept its own specifications in, which the plugin reads as history and never takes |
 | `Pact` | *none: no pact is held elsewhere* | the origin remote URL of the repository holding a pact this repository signs, several separated by `;` |
+| `Pull request seal mark` | *off: no mark* | whether `seal pr-body` writes the plugin's seal mark under the pull request body's `## From the records` heading once the work item is sealed at HEAD; `yes` turns it on |
+| `Release note seal mark` | *off: no image* | whether the release's `seal` job attaches the seal image and shows it beside the results in the release note's header; `yes` turns it on. Read only by this plugin's own release workflow, so a row in any other repository changes nothing |
 
 **Every way of not naming a language lands on English**: no file, no such
 row, an empty value, a file that does not parse. Say the default and the

@@ -3,8 +3,9 @@
 The release seal is drawn and attached at publish time (#718). The push to
 `main` that ships a release, or a tag pushed by hand, tags it and publishes
 the note (#1117); a second job then runs the suite at the tag, draws one
-seal for the release, attaches it, and puts it where the note's glance table
-stood. Any failure leaves the note as it was.
+seal for the release, attaches it, and replaces the note's header with the
+image beside the stamp's results (#1153). Any failure leaves the note as it
+was.
 
 Since #857 (work item 1793152332) the seal is the page form of the stamp's
 mark: `release_seal.py#draw` copies the PNG `.claude-plugin/plugin.json`
@@ -240,10 +241,25 @@ class GitHub:
         return [a for a in self.calls if a[:2] == ("release", verb)]
 
 
-def note(pulls=PULLS):
+def note(pulls=PULLS, theme=""):
     """The note `publish_release_note.release_body` publishes for `pulls`."""
     publisher = load(PUBLISHER, "publish_release_note_for_the_seal")
-    return publisher.release_body("", SECTION, pulls, OWNER)
+    return publisher.release_body(theme, SECTION, pulls, OWNER)
+
+
+# The header `publish` writes for `PULLS`, which the seal finds and replaces.
+HEADER = (
+    "<table>\n<tr>\n"
+    "<td>2 pull requests merged<br>2 issues closed<br>1 outside contributor</td>\n"
+    "</tr>\n</table>"
+)
+# Why the seal leaves a note whose header is not `publish`'s.
+NOT_THERE = (
+    "the header is not in the note exactly once as `header` writes it for "
+    "this release -- the note was edited after publication, a run of this "
+    "job already replaced it, it went out without one, or the pull requests "
+    "moved between the two lists; nothing was uploaded"
+)
 
 
 # The width the stand-in for `draw` answers. The real draw never answers
@@ -259,12 +275,37 @@ def drawn(png):
     return DRAWN_WIDTH
 
 
+# #1204: the row that turns the release note's seal image on, which this
+# repository's `seal/config.md` writes reading `yes`.
+MARK_ROW = "Release note seal mark"
+
+
+def configured(home, value):
+    """`config.md` under the `seal/` root `home`, holding `MARK_ROW` reading
+    `value`, written once per entry where `value` is a tuple; no file where
+    `value` is None."""
+    if value is None:
+        return
+    values = value if isinstance(value, tuple) else (value,)
+    rows = "".join(f"| {MARK_ROW} | {each} |\n" for each in values)
+    (home / "config.md").write_text(
+        "| Item | Value |\n|---|---|\n" + rows, encoding="utf-8"
+    )
+
+
 def wired(
-    monkeypatch, tmp_path, body=None, fails=(), pulls=PULLS, stand_in=True, **env
+    monkeypatch,
+    tmp_path,
+    body=None,
+    fails=(),
+    pulls=PULLS,
+    stand_in=True,
+    mark="yes",
+    **env,
 ):
-    """The seal with a fixture suite, a fixture tree, no route to GitHub,
-    and `drawn` standing in for `draw`, or the real `draw` where `stand_in`
-    is False."""
+    """The seal with a fixture suite, a fixture tree whose `MARK_ROW` reads
+    `mark` (`configured`), no route to GitHub, and `drawn` standing in for
+    `draw`, or the real `draw` where `stand_in` is False."""
     mod = seal()
     hub = GitHub(mod, note(pulls) if body is None else body, fails)
     if stand_in:
@@ -272,6 +313,7 @@ def wired(
     monkeypatch.setattr(mod, "gh", hub.gh)
     monkeypatch.setattr(mod, "tagged", lambda tag: SHA)
     monkeypatch.setattr(mod, "ROOT", tree(tmp_path, verdicts=[["deferred #12"]]))
+    configured(tmp_path / "seal", mark)
     publisher = mod.publisher()
     monkeypatch.setattr(
         publisher,
@@ -315,8 +357,8 @@ REASONS = {
     "gh pr list fails": "gh pr list could not list",
     "gh release view fails": "gh release view failed",
     "gh release upload fails": "gh release upload failed",
-    "the glance table is not there": "not in the note exactly once",
-    "the glance table is there twice": "not in the note exactly once",
+    "the header is not there": "not in the note exactly once",
+    "the header is there twice": "not in the note exactly once",
     "gh release edit fails": "gh release edit failed",
     "a module will not load": "ImportError: no publisher",
 }
@@ -624,18 +666,22 @@ class Test_chain_counts:
 
 
 class Test_main:
-    def test_accepts_a_published_note_and_replaces_its_glance_table(
+    def test_accepts_a_published_note_and_replaces_its_header(
         self, monkeypatch, tmp_path
     ):
-        """S1, S7, and #1009 S3. The PNG is uploaded as `seal.png`, and the
-        edited note is the published one with its glance block replaced by the
-        heading, the image at the release-download URL with its alt text and the
-        display width `draw` answered, a blank line and one line of the counts
-        -- every other byte unchanged. The PNG is `DENSITY` times that width
-        (#1009 S1), so the width is what keeps it from showing twice its size.
-        Seen red before `main` existed, before the image carried a width, and
-        by a width the note computed apart from `draw`."""
-        mod, hub = wired(monkeypatch, tmp_path)
+        """S1, S7, #1009 S3, and #1153 S3. The PNG is uploaded as `seal.png`
+        before the edit, and the edited note is the published one with its
+        header replaced by the two-cell table: the image at the
+        release-download URL with alt text naming it and the display width
+        `draw` answered, then the stamp's results one per line -- every other
+        byte unchanged, so the theme and the first fold follow. The PNG is
+        `DENSITY` times that width (#1009 S1), so the width is what keeps it
+        from showing twice its size. Seen red before `main` existed, before
+        the image carried a width, by a width the note computed apart from
+        `draw`, and against the seal that replaced the glance table with a
+        heading, the image and one line of the counts."""
+        published = note(theme="A theme.")
+        mod, hub = wired(monkeypatch, tmp_path, body=published)
         assert mod.main() == 0
         (upload,) = hub.writes("upload")
         assert upload[:3] == ("release", "upload", TAG)
@@ -644,23 +690,115 @@ class Test_main:
         (edit,) = hub.writes("edit")
         assert edit[:5] == ("release", "edit", TAG, "--repo", REPO)
         body = edit[edit.index("--notes") + 1]
-        publisher = load(PUBLISHER, "publish_release_note_for_s1")
-        work, closed, people = publisher.tally(PULLS, OWNER)
-        rows = mod.release_rows("1.2.3", SHA, 2, 2, (7003, 66), (1, 1, 1, 1))
         image = f"https://github.com/{REPO}/releases/download/{TAG}/seal.png"
-        sealed = publisher.sealed_glance(
-            image, mod.alt_text(rows), DRAWN_WIDTH, work, closed, people
+        sealed = (
+            "<table>\n<tr>\n"
+            f'<td><img src="{image}" alt="The 1.2.3 release seal" '
+            f'width="{DRAWN_WIDTH}"></td>\n'
+            "<td><b>SEALED</b> v1.2.3 at aaa11111 on main<br>2 pull requests merged"
+            "<br>2 issues closed<br>1 outside contributor"
+            "<br>the suite at 7003 passed and 66 skipped"
+            "<br>1 work item over 1 review round<br>1 of them capped"
+            "<br>1 issue deferred</td>\n"
+            "</tr>\n</table>"
         )
-        assert body == note().replace(publisher.glance(work, closed, people), sealed)
+        assert published.count(HEADER) == 1, published[:400]
+        assert body == published.replace(HEADER, sealed), body[:800]
         assert body.startswith(
-            f'### \U0001f4ca At a glance\n\n<img src="{image}" alt="The 1.2.3 release seal: '
-            "SEALED v1.2.3 at aaa11111 on main, 2 pull requests merged, 2 issues "
-            "closed, the suite at 7003 passed and 66 skipped, 1 work item over 1 "
-            f'review round, 1 of them capped, 1 issue deferred" width="{DRAWN_WIDTH}">\n\n'
-            "\U0001f500 Pull requests **2** · ✅ Issues closed **2** · \U0001f64c Outside contributors **1**"
-            "\n\n### ✨ Features"
-        ), body[:600]
+            f"{sealed}\n\nA theme.\n\n<details>\n<summary>✨ Features (1)</summary>"
+        ), body[:800]
         assert hub.calls.index(upload) < hub.calls.index(edit)
+
+    @pytest.mark.parametrize(
+        "mark, warned",
+        [
+            pytest.param(None, None, id="absent"),
+            pytest.param("", None, id="empty"),
+            pytest.param(
+                "Yes",
+                f"`{MARK_ROW}` reads `Yes`, not `yes`, so the row is not read "
+                "and the note's header holds the results without the seal's image",
+                id="Yes",
+            ),
+            pytest.param(
+                "on",
+                f"`{MARK_ROW}` reads `on`, not `yes`, so the row is not read "
+                "and the note's header holds the results without the seal's image",
+                id="on",
+            ),
+            pytest.param(
+                "true",
+                f"`{MARK_ROW}` reads `true`, not `yes`, so the row is not read "
+                "and the note's header holds the results without the seal's image",
+                id="true",
+            ),
+            pytest.param(
+                ("yes", "yes"),
+                f"`{MARK_ROW}` is not read: `{MARK_ROW}` appears 2 times — one "
+                "value; the note's header holds the results without the seal's "
+                "image",
+                id="written twice",
+            ),
+        ],
+    )
+    def test_a_row_other_than_yes_attaches_nothing_and_puts_the_results_alone(
+        self, monkeypatch, tmp_path, capsys, mark, warned
+    ):
+        """#1204 S6. Where the tree's `Release note seal mark` row is absent,
+        empty, any value but `yes`, or refused, the seal draws and uploads
+        nothing, and replaces `publish`'s header with a table of one cell
+        holding the results the two-cell header's second cell holds, every
+        other byte of the note unchanged. Absent and empty say nothing; any
+        other value, and a refusal, are named on one `::warning::` line, and
+        the exit stays 0. Seen red with the row's read alone removed: the
+        upload then runs."""
+        published = note(theme="A theme.")
+        mod, hub = wired(monkeypatch, tmp_path, body=published, mark=mark)
+        assert mod.main() == 0
+        assert hub.writes("upload") == [], hub.calls
+        (edit,) = hub.writes("edit")
+        body = edit[edit.index("--notes") + 1]
+        results = (
+            "<table>\n<tr>\n"
+            "<td><b>SEALED</b> v1.2.3 at aaa11111 on main<br>2 pull requests merged"
+            "<br>2 issues closed<br>1 outside contributor"
+            "<br>the suite at 7003 passed and 66 skipped"
+            "<br>1 work item over 1 review round<br>1 of them capped"
+            "<br>1 issue deferred</td>\n"
+            "</tr>\n</table>"
+        )
+        assert body == published.replace(HEADER, results), body[:800]
+        out = capsys.readouterr().out.splitlines()
+        assert not any(line.startswith("copied the icon") for line in out), out
+        warnings = [line for line in out if line.startswith("::warning::")]
+        expected = (
+            [] if warned is None else [f"::warning::release seal image: {warned}"]
+        )
+        assert warnings == expected, out
+
+    @pytest.mark.parametrize("mark", ["yes", None], ids=["yes", "absent"])
+    def test_a_second_run_finds_no_header_to_replace_and_writes_nothing(
+        self, monkeypatch, tmp_path, capsys, mark
+    ):
+        """#1153 S4, and #1204 S8 under either answer of the row. After the
+        first run the note holds the sealed header, with the image or
+        without, so a second run of the job finds no header as `publish`
+        writes it, uploads nothing and edits nothing, and its `::warning::`
+        line names a run that already replaced it among the reasons. Seen
+        red with the exact-header guard in `seal_release` alone removed: the
+        second run then uploaded the image again and edited the note, and
+        under the absent row edited it again."""
+        mod, hub = wired(monkeypatch, tmp_path, mark=mark)
+        assert mod.main() == 0
+        (edit,) = hub.writes("edit")
+        hub.body = edit[edit.index("--notes") + 1]
+        assert HEADER not in hub.body, hub.body[:400]
+        hub.calls.clear()
+        capsys.readouterr()
+        assert mod.main() == 0
+        assert hub.writes("upload") == [] and hub.writes("edit") == [], hub.calls
+        out = capsys.readouterr().out
+        assert f"::warning::release seal skipped: {NOT_THERE}" in out, out
 
     @pytest.mark.parametrize(
         "case",
@@ -679,8 +817,8 @@ class Test_main:
             "gh pr list fails",
             "gh release view fails",
             "gh release upload fails",
-            "the glance table is not there",
-            "the glance table is there twice",
+            "the header is not there",
+            "the header is there twice",
             "gh release edit fails",
             "a module will not load",
         ],
@@ -730,12 +868,10 @@ class Test_main:
             fails = ("upload",)
         elif case == "gh release edit fails":
             fails = ("edit",)
-        elif case == "the glance table is not there":
-            body = note().replace(
-                "| ✅ Issues closed | **2** |", "| ✅ Issues closed | **3** |"
-            )
-        elif case == "the glance table is there twice":
-            body = note() + "\n\n" + note().split("\n\n### ✨")[0]
+        elif case == "the header is not there":
+            body = note().replace("2 issues closed", "3 issues closed")
+        elif case == "the header is there twice":
+            body = note() + "\n\n" + note().split("\n\n<details>")[0]
         mod, hub = wired(
             monkeypatch,
             tmp_path,
@@ -789,25 +925,18 @@ class Test_main:
     def test_a_hand_edited_note_is_left_alone_and_nothing_is_uploaded(
         self, monkeypatch, tmp_path, capsys
     ):
-        """S3. A glance table changed by one character after publication is not
-        the generated shape: the note is not edited, the asset is not uploaded,
-        and the log says the table was not found."""
-        edited = note().replace(
-            "| \U0001f500 Pull requests | **2** |",
-            "| \U0001f500 Pull requests | **2**  |",
-        )
+        """S3, and #1153 S5. A header changed by one character after
+        publication is not the generated shape: the note is not edited, the
+        asset is not uploaded, and the log says the header was not found."""
+        edited = note().replace("2 pull requests merged", "2 pull requests  merged")
+        assert edited != note()
         mod, hub = wired(monkeypatch, tmp_path, body=edited)
         assert mod.main() == 0
         assert hub.writes("upload") == [] and hub.writes("edit") == []
         out = capsys.readouterr().out
-        # Round 1's finding 7: the refusal names every way the table can be
+        # Round 1's finding 7: the refusal names every way the header can be
         # missing, not a hand edit alone.
-        assert (
-            "the glance table is not in the note exactly once as `glance` writes it "
-            "for this release -- the note was edited after publication, went out "
-            "without one, or the pull requests moved between the two lists; nothing "
-            "was uploaded"
-        ) in out, out
+        assert NOT_THERE in out, out
 
     def test_a_dry_run_draws_and_prints_and_writes_nothing(
         self, monkeypatch, tmp_path, capsys
@@ -831,7 +960,8 @@ class Test_main:
         assert (
             "deferred 1 issue" in out and "suite    7003 passed, 66 skipped" in out
         ), out
-        assert 'alt="The 1.2.3 release seal: SEALED v1.2.3 at aaa11111' in out, out
+        assert 'alt="The 1.2.3 release seal"' in out, out
+        assert "<b>SEALED</b> v1.2.3 at aaa11111 on main<br>" in out, out
         assert "::warning::" not in out, out
 
 
@@ -878,24 +1008,31 @@ class Test_draw:
 
 
 class Test_module:
-    def test_the_alt_text_is_one_sentence_carrying_every_value(self):
-        """S11. One sentence in the shape of 0.17.0's hand-written alt text,
-        carrying every value of the rows, with no `]` and no line break, so the
-        Markdown image it sits in cannot end early."""
-        text = seal().alt_text(ROWS)
-        assert text == (
-            "The 1.2.3 release seal: SEALED v1.2.3 at aaa11111 on main, 10 pull "
-            "requests merged, 11 issues closed, the suite at 7003 passed and 66 "
-            "skipped, 10 work items over 27 review rounds, 6 of them capped, 13 "
-            "issues deferred"
-        ), text
-        unread = seal().release_rows("1.2.3", "aaa11111", 1, 1, (5, 0), (None,) * 4)
-        text = seal().alt_text(unread)
-        assert "work items not read" in text and "deferred not read" in text, text
-        assert "]" not in text and "\n" not in text
-        # A value carrying either cannot end the image early.
-        odd = [(label, f"{value}]\n[") for label, value in ROWS]
-        assert not set("[]\n") & set(seal().alt_text(odd))
+    def test_the_results_are_the_stamps_rows_in_words(self):
+        """S11, and #1153 S3. `results` turns the rows into the header's
+        lines: the sealed version, tagged commit and branch, then the suite,
+        the work items over their review rounds, how many were capped and
+        the issues deferred, in the phrases 0.17.0's hand-written alt text
+        used. A suite split over two rows is one line, and a row not read
+        says so in its line. Seen red against the alt sentence that carried
+        every value in one string."""
+        sealed, lines = seal().results(ROWS)
+        assert sealed == "v1.2.3 at aaa11111 on main", sealed
+        assert lines == [
+            "the suite at 7003 passed and 66 skipped",
+            "10 work items over 27 review rounds",
+            "6 of them capped",
+            "13 issues deferred",
+        ], lines
+        unread = seal().release_rows(
+            "1.2.3", "aaa11111", 1, 1, (10003, 166), (None,) * 4
+        )
+        assert seal().results(unread)[1] == [
+            "the suite at 10003 passed and 166 skipped",
+            "work items not read",
+            "capped not read",
+            "deferred not read",
+        ]
 
     def test_a_refused_gh_or_git_call_is_a_reason_naming_the_call(self, monkeypatch):
         """S2's inputs. `gh` answers a call's stdout and turns a non-zero exit

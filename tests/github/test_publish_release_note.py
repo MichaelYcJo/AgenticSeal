@@ -6,22 +6,24 @@ consecutive releases skipped it. The repair is a workflow the push to `main`
 that ships a release fires, and a tag pushed by hand (#1117):
 
   A1  the changelog fragments the release's commits added, less those the
-      previous tag holds, become the release note at that tag, each under its
-      work item's marker
+      previous tag holds, become the release note at that tag, each under a
+      link to the pull request that added it (#1139)
   A2  a release already at the tag is left exactly as it is, exit 0
   A3  a tag whose range added no fragment the previous tag does not hold goes
       RED, naming the range's tags
   A4  the title is read from the `release: X.Y.Z symptoms: <symptoms>` line,
       and where no such line is readable it is the tag name and the log says
       which was used, what it expected and what it found
-  A5  the note is a summary read from the release's pull requests -- counts,
-      one line per change under its type with the issues it closed, every
+  A5  the note is a summary read from the release's pull requests -- a
+      header of its counts, one fold per type under its name and count
+      holding one line per change with the issues it closed (#1153), every
       outside contributor thanked by handle -- over the fragments, folded;
       with no pull request to read it is the fragments alone (#572)
 
 #1053 removed the gathered release files, so the fragments are read from the
-history at the tag (S1, S5, S6) and the note opens with the release's theme,
-one sentence of its milestone's description (S2, S3, S4).
+history at the tag (S1, S5, S6), and the note carries the release's theme,
+one sentence of its milestone's description (S2, S3, S4), under its header
+(#1153).
 
 **Nothing here reaches GitHub.** `gh` is replaced at the module's own `run`
 and `release_exists` by `Releases`, which records the calls as argument
@@ -34,18 +36,23 @@ stands in for `subprocess.run`. The cases that read the history drive a real
 against the script with the one behaviour it pins removed, in phase 1 of
 work item `1790076050-the-release-tail-is-three-acts-no-document-names`, and
 S1 to S6 against the script at `8a1173c8`, in phase 1 of work item
-`1793188384-the-release-notes-are-kept-twice`.
+`1793188384-the-release-notes-are-kept-twice`, and the link cases against
+the script at `c55c3083b`, in phase 1 of work item
+`1793582903-each-entry-links-its-pull-request`.
 
 #942's phase 6 placed these cases from
 `tests/behaviour/test_a_release_publishes_its_note.py`, which keeps the cases that
 read the workflow and the release checklist.
 """
 
+import html.parser
 import importlib.util
 import json
 import os
 
+import cmarkgfm
 import pytest
+from cmarkgfm.cmark import Options
 from conftest import ROOT, census_case, commit_everything, git_out, git_repo, write
 
 TARGET = ".github/scripts/publish_release_note.py"
@@ -63,8 +70,11 @@ REPO = "example/repo"
 SYMPTOMS = "two acts nobody wrote down"
 NOTES = "- **A thing that changed.** And what it changes for a reader."
 
-# The fragments the release's commits added, as `fragments` returns them.
-ENTRIES = [("1700000000-a-work-item", NOTES)]
+# The fragments the release's commits added, as `fragments` returns them:
+# the work item, the fragment, and the pull request its adding commit names.
+ENTRIES = [("1700000000-a-work-item", NOTES, 42)]
+# The line the note writes above that fragment.
+LINK = f"[#42](https://github.com/{REPO}/pull/42)"
 
 
 def module(path, name):
@@ -231,13 +241,112 @@ def lines_under(body, heading):
     return out
 
 
+# `RELEASE`'s pull request lines, under the summary of the fold each lands
+# in, in the order the note reads in.
+FOLDED = [
+    ("✨ Features (1)", ["- A third (#15) · closes #100 — thanks @another"]),
+    (
+        "\U0001f41b Fixes (2)",
+        [
+            "- The owner's own change (#10) · closes #100, #101",
+            "- And a second thing (#14) · closes #103 — thanks @someone",
+        ],
+    ),
+    (
+        "\U0001f4da Docs (1)",
+        ["- Explain a thing (#11) · closes #102 — thanks @someone"],
+    ),
+    ("\U0001f9f9 Chores (2)", ["- Bump (#12)", "- Bump again (#13)"]),
+    ("\U0001f4e6 Other (1)", ["- An untyped title (#16)"]),
+]
+
+
+def header(*lines):
+    """A note's header holding `lines` in one cell, exactly as the note
+    carries it (#1153)."""
+    return f"<table>\n<tr>\n<td>{'<br>'.join(lines)}</td>\n</tr>\n</table>"
+
+
+# The header `publish` writes for `RELEASE`: seven pull requests, four
+# distinct issues closed (#100 twice counts once), and two outside people
+# however many pull requests they made.
+HEADER = header("7 pull requests merged", "4 issues closed", "2 outside contributors")
+
+
+def fold(summary, lines):
+    """One category's fold, exactly as the note carries it."""
+    return "\n".join(
+        ["<details>", f"<summary>{summary}</summary>", "", *lines, "", "</details>"]
+    )
+
+
+# #1293, merged into release/v0.28.0, whose title holds three `details` tags
+# bare, and the text its line reads as on the page.
+PR_1293 = pull(
+    1293,
+    OWNER,
+    "fix: seal pr-body refused only an exact <details> or </details> line, "
+    "and GitHub ends the fold at one inside a sentence, indented or in "
+    "capitals, and nests a second at <details open>",
+)
+TEXT_1293 = (
+    "Seal pr-body refused only an exact <details> or </details> line, and "
+    "GitHub ends the fold at one inside a sentence, indented or in capitals, "
+    "and nests a second at <details open> (#1293)"
+)
+
+
+class Folds(html.parser.HTMLParser):
+    """Each `details` element in rendered HTML, as `(summary, [list item
+    texts])`, in the order each closes, the texts as a reader sees them."""
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.folds, self.open, self.text = [], [], None
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "details":
+            self.open.append(["", []])
+        elif tag in ("summary", "li") and self.open:
+            self.text = []
+
+    def handle_endtag(self, tag):
+        if tag in ("summary", "li") and self.open and self.text is not None:
+            said = "".join(self.text).strip()
+            if tag == "summary":
+                self.open[-1][0] = said
+            else:
+                self.open[-1][1].append(said)
+            self.text = None
+        elif tag == "details" and self.open:
+            self.folds.append(tuple(self.open.pop()))
+
+    def handle_data(self, data):
+        if self.text is not None:
+            self.text.append(data)
+
+
+def folds_read(body):
+    """The `details` elements of `body` as GitHub renders a release note:
+    cmark-gfm, the renderer the suite pins
+    (`.github/scripts/run_tests.py#CMARKGFM`), with raw HTML kept."""
+    reader = Folds()
+    reader.feed(
+        cmarkgfm.github_flavored_markdown_to_html(
+            body, options=Options.CMARK_OPT_UNSAFE
+        )
+    )
+    reader.close()
+    return reader.folds
+
+
 class Test_main:
     def test_accepts_the_releases_fragments_as_the_release_note(
         self, monkeypatch, tmp_path, capsys
     ):
         """A1. The body is the fragments the release's commits added, less those
-        the previous tag holds, each under the marker naming its work item, and
-        it links to no file in the tree."""
+        the previous tag holds, each under a link to the pull request that
+        added it, and it links to no file in the tree."""
         mod, tracker = wire(monkeypatch, tmp_path, message=title_line())
         assert mod.main() == 0
         created = tracker.creates()
@@ -245,7 +354,7 @@ class Test_main:
         args = created[0]
         assert args[3] == TAG
         body = args[args.index("--notes") + 1]
-        assert f"<!-- specs/1700000000-a-work-item -->\n{NOTES}" in body, body
+        assert f"{LINK}\n{NOTES}" in body, body
         assert "changelog/" not in body, "the note still names a gathered file"
         assert "published the release" in capsys.readouterr().out
 
@@ -265,9 +374,9 @@ class Test_main:
         commit_everything(repo, "the release before")
         git_out(repo, "tag", PREVIOUS)
         write(repo, thread.format("1700000002-second"), "- second entry\n")
-        commit_everything(repo, "the later work item")
+        commit_everything(repo, "the later work item (#2)")
         write(repo, thread.format("1700000001-first"), "- first entry\n")
-        commit_everything(repo, "the earlier work item")
+        commit_everything(repo, "the earlier work item (#1)")
         write(repo, thread.format("1700000001-first"), "- first entry, revised\n")
         write(repo, thread.format("1700000000-older"), "- older entry, edited\n")
         commit_everything(repo, "a fix brings its fragment along")
@@ -277,7 +386,7 @@ class Test_main:
         # so only `--no-renames` keeps it from reading as a rename.
         write(repo, thread.format("1700000003-third"), "- first entry, revised\n")
         write(repo, thread.format("1700000004-empty"), "\n  \n")
-        commit_everything(repo, "the settle")
+        commit_everything(repo, "the settle (#3)")
         git_out(repo, "tag", TAG)
 
         mod = publisher()
@@ -293,9 +402,10 @@ class Test_main:
         monkeypatch.setenv("DRY_RUN", "1")
         assert mod.main() == 0
         out = capsys.readouterr().out
-        first = "<!-- specs/1700000001-first -->\n- first entry, revised"
-        second = "<!-- specs/1700000002-second -->\n- second entry"
-        third = "<!-- specs/1700000003-third -->\n- first entry, revised"
+        pulls = f"https://github.com/{REPO}/pull"
+        first = f"[#1]({pulls}/1)\n- first entry, revised"
+        second = f"[#2]({pulls}/2)\n- second entry"
+        third = f"[#3]({pulls}/3)\n- first entry, revised"
         assert first in out and second in out and third in out, out
         assert out.index(first) < out.index(second) < out.index(third), (
             "the fragments are not in id order"
@@ -304,12 +414,66 @@ class Test_main:
         assert "older entry" not in out, "a fragment of the release before reached it"
         assert "changelog/" not in out, out
 
-    def test_the_note_opens_with_the_releases_theme(
+    def test_each_entry_links_the_pull_request_that_added_it(
         self, monkeypatch, tmp_path, capsys
     ):
-        """S2 of #1053. The first line of the note is the first sentence of the
-        description of the milestone `release: X.Y.Z`, its `Purpose:` label
-        left out, read from every milestone in every state."""
+        """S1, S2 and S3 of #1139. The entry's first line links the pull
+        request whose number ends the subject of the range's commit that added
+        the fragment, in the `REPO` the note is built for. A later commit that
+        edits the fragment, or adds it again after a removal, names no number
+        for it: the oldest adding commit does. Where the subject ends with
+        several `(#N)`, as a title that ends with its issue does, the last is
+        the pull request. An adding commit with no `(#N)` gives the fragment's
+        text alone, and no entry carries the hidden work-item marker. Driven
+        through a real `git` history."""
+        repo = git_repo(tmp_path / "repo")
+        thread = "seal/threads/{}/changelog.md"
+        git_out(repo, "tag", PREVIOUS)
+        write(repo, thread.format("1700000001-linked"), "- linked entry\n")
+        commit_everything(repo, "feat: a change (#42)")
+        write(repo, thread.format("1700000001-linked"), "- linked entry, revised\n")
+        commit_everything(repo, "fix: a later edit (#43)")
+        git_out(repo, "rm", "-q", "-r", "seal/threads/1700000001-linked")
+        commit_everything(repo, "chore: removed by mistake (#45)")
+        write(repo, thread.format("1700000001-linked"), "- linked entry, revised\n")
+        commit_everything(repo, "chore: restored (#46)")
+        write(repo, thread.format("1700000002-titled"), "- titled entry\n")
+        commit_everything(repo, "fix: a title that ends with its issue (#7) (#44)")
+        write(repo, thread.format("1700000003-bare"), "- bare entry\n")
+        commit_everything(repo, "a commit pushed with no pull request")
+        git_out(repo, "tag", TAG)
+
+        mod = publisher()
+        monkeypatch.setattr(mod, "ROOT", str(repo))
+        monkeypatch.chdir(repo)
+        monkeypatch.setattr(mod, "release_exists", lambda repo, tag: False)
+        monkeypatch.setattr(mod, "merged_pulls", lambda repo, version: None)
+        monkeypatch.setattr(
+            mod, "milestone_description", lambda repo, version: ("", "none")
+        )
+        monkeypatch.setenv("TAG", TAG)
+        monkeypatch.setenv("REPO", "o/r")
+        monkeypatch.setenv("DRY_RUN", "1")
+        assert mod.main() == 0
+        note = capsys.readouterr().out.split("characters of notes\n", 1)[1]
+        assert "[#42](https://github.com/o/r/pull/42)\n- linked entry, revised" in (
+            note
+        ), note
+        for later in ("#43", "#45", "#46"):
+            assert later not in note, f"a later commit than the oldest add, {later}"
+        assert "[#44](https://github.com/o/r/pull/44)\n- titled entry" in note, note
+        assert "pull/7)" not in note, "the issue the title ends with was linked"
+        assert "- titled entry\n\n- bare entry" in note, (
+            "an adding commit that names no pull request gave its entry a line "
+            f"above the fragment: {note}"
+        )
+        assert "<!-- specs/" not in note, note
+
+    def test_the_theme_follows_the_notes_header(self, monkeypatch, tmp_path, capsys):
+        """S2 of #1053, and #1153 S2. The line under the note's header is the
+        first sentence of the description of the milestone `release: X.Y.Z`,
+        its `Purpose:` label left out, read from every milestone in every
+        state, and the first fold follows it."""
         described = "Purpose: the notes come from the fragments. Order: S1, then S2."
         mod, tracker = wire(
             monkeypatch,
@@ -325,8 +489,8 @@ class Test_main:
         assert mod.main() == 0
         out = capsys.readouterr().out
         note = out.split("characters of notes\n", 1)[1]
-        assert note.splitlines()[0] == "The notes come from the fragments.", note[:300]
-        assert note.splitlines()[2] == mod.GLANCE_HEADING, note[:300]
+        opening = f"{HEADER}\n\nThe notes come from the fragments.\n\n<details>\n"
+        assert note.startswith(opening), note[:300]
         (args,) = tracker.milestones.calls
         assert "--paginate" in args, args
         assert args[-1].startswith(f"repos/{REPO}/milestones?state=all"), args
@@ -363,7 +527,8 @@ class Test_main:
         )
         assert mod.main() == 0
         assert len(tracker.creates()) == 1, tracker.calls
-        assert body_of(tracker).startswith(mod.GLANCE_HEADING), body_of(tracker)[:200]
+        body = body_of(tracker)
+        assert body.startswith(f"{HEADER}\n\n<details>\n"), body[:200]
         out = capsys.readouterr().out
         assert said in out and "no theme line" in out, out
 
@@ -474,43 +639,83 @@ class Test_main:
         found = f"`{line}`" if line else "no `release:` line"
         assert found in out, out
 
-    def test_every_change_is_one_line_under_its_type(self, monkeypatch, tmp_path):
-        """A5. The list is a partition of the release: every pull request lands
-        under exactly one heading, an unknown or missing type under Other, and
-        each line names the issues its body closes -- read the way the closer
-        reads them, so a quoted keyword closes nothing."""
-        _, body = published(monkeypatch, tmp_path, RELEASE)
-        assert lines_under(body, "### \U0001f41b Fixes") == [
-            "- The owner's own change (#10) · closes #100, #101",
-            "- And a second thing (#14) · closes #103 — thanks @someone",
-        ]
-        assert lines_under(body, "### ✨ Features") == [
-            "- A third (#15) · closes #100 — thanks @another"
-        ]
-        assert lines_under(body, "### \U0001f4da Docs") == [
-            "- Explain a thing (#11) · closes #102 — thanks @someone"
-        ]
-        assert lines_under(body, "### \U0001f9f9 Chores") == [
-            "- Bump (#12)",
-            "- Bump again (#13)",
-        ]
-        assert lines_under(body, "### \U0001f4e6 Other") == ["- An untyped title (#16)"]
-        assert "#999" not in body, "a keyword inside a code span was read as a claim"
-        assert (
-            body.index("### ✨ Features")
-            < body.index("### \U0001f41b Fixes")
-            < body.index("### \U0001f4da Docs")
-        ), "the headings are not in the order the note is meant to read in"
-
-    def test_the_glance_counts_the_release(self, monkeypatch, tmp_path):
-        """A5. Seven changes, four distinct issues closed (#100 twice counts
-        once), two outside people however many pull requests they made."""
+    def test_each_type_is_a_fold_under_its_name_and_count(self, monkeypatch, tmp_path):
+        """A5 and #1153 S1. The list is a partition of the release: every pull
+        request lands in exactly one fold, an unknown or missing type in
+        Other's, and each line names the issues its body closes -- read the
+        way the closer reads them, so a quoted keyword closes nothing. A
+        fold's summary is its type's name and the number of pull requests in
+        it; its tags stand on lines of their own, with a blank line after the
+        summary and before the closing tag; one blank line parts two folds;
+        and the folds follow in the order the note is meant to read in. No
+        `### ` line names a type. Seen red against the renderer that wrote a
+        `### ` heading over each type's lines."""
         mod, body = published(monkeypatch, tmp_path, RELEASE)
-        glance = body[: body.index("### ✨ Features")]
-        assert glance.startswith(mod.GLANCE_HEADING)
-        assert "| \U0001f500 Pull requests | **7** |" in glance
-        assert "| ✅ Issues closed | **4** |" in glance
-        assert "| \U0001f64c Outside contributors | **2** |" in glance
+        folds = "\n\n".join(fold(summary, lines) for summary, lines in FOLDED)
+        assert f"\n\n{folds}\n\n" in body, body
+        names = {heading for _, heading in mod.TYPES} | {mod.OTHER}
+        headed = [s for s in body.splitlines() if s[:4] == "### " and s[4:] in names]
+        assert headed == [], "a type is still a heading over its lines"
+        assert "#999" not in body, "a keyword inside a code span was read as a claim"
+
+    def test_github_reads_each_fold_as_one_element_holding_its_lines(
+        self, monkeypatch, tmp_path
+    ):
+        """#1153 S1, read the way GitHub reads it. Rendered as a release note
+        is rendered, each fold is one `details` element whose summary is its
+        name and count and which holds its own pull request lines as list
+        items, and the full changelog's fold follows them. A title quoting a
+        closing `details` tag in a code span is text, and stays in its fold,
+        and so is #1293's title, which holds three `details` tags bare. Seen
+        red against the renderer that wrote a `### ` heading over each type's
+        lines, with the blank line after a fold's summary taken out, which
+        leaves the fold's lines raw HTML and no list, and with #1293's title
+        written as it is, whose tags the reader then met as folds."""
+        quoting = pull(17, OWNER, "fix: a title quoting `</details>`")
+        mod, body = published(monkeypatch, tmp_path, [*RELEASE, quoting, PR_1293])
+        read = [(summary, [line[2:] for line in lines]) for summary, lines in FOLDED]
+        fixes = [*read[1][1], "A title quoting </details> (#17)", TEXT_1293]
+        read[1] = ("\U0001f41b Fixes (4)", fixes)
+        changelog = (mod.FULL_SUMMARY, [NOTES.replace("**", "")[2:]])
+        assert folds_read(body) == [*read, changelog]
+
+    @pytest.mark.parametrize("tag", ["<details>", "</details>"])
+    def test_a_bare_tag_in_a_title_is_written_as_text(self, monkeypatch, tmp_path, tag):
+        """#1153 S1, round 1's finding 1. A title holding a bare `details`
+        tag alone, opening or closing, reaches its fold's line and the thanks
+        line with its `<` written `&lt;`, so the page shows the tag and the
+        fold holds the line whole, with the full changelog's fold after it.
+        Seen red against the renderer that wrote the title as it is, and
+        again with only the escape removed."""
+        title = f"fix: a bare {tag} in a title"
+        mod, body = published(monkeypatch, tmp_path, [pull(20, "outsider", title)])
+        shown = f"A bare {tag.replace('<', '&lt;')} in a title"
+        assert f"\n- {shown} (#20) — thanks @outsider\n" in body, body
+        assert f"\n- **@outsider** — {shown} (#20)\n" in body, body
+        assert folds_read(body) == [
+            (
+                "\U0001f41b Fixes (1)",
+                [f"A bare {tag} in a title (#20) — thanks @outsider"],
+            ),
+            (mod.FULL_SUMMARY, [NOTES.replace("**", "")[2:]]),
+        ]
+
+    def test_the_note_opens_with_a_header_of_its_counts(self, monkeypatch, tmp_path):
+        """A5 and #1153 S2. The note opens with a table of one cell holding
+        the release's counts in words, one per line -- seven changes, four
+        distinct issues closed, two outside people -- then the theme and the
+        first fold. A release of one pull request closing one issue says each
+        in the singular, and has no contributors' line. No glance heading or
+        table is left. Seen red against the note that opened with the theme
+        and carried the glance table under it."""
+        theme = [milestone("Purpose: a theme. And more.")]
+        _, body = published(monkeypatch, tmp_path, RELEASE, milestones=theme)
+        assert body.startswith(f"{HEADER}\n\nA theme.\n\n{fold(*FOLDED[0])}\n\n"), body
+        assert "At a glance" not in body, body
+        alone = [pull(10, OWNER, "fix: one", "Closes #100")]
+        _, body = published(monkeypatch, tmp_path, alone)
+        one = header("1 pull request merged", "1 issue closed")
+        assert body.startswith(f"{one}\n\n<details>\n"), body
 
     def test_an_outside_contributor_is_thanked_by_handle(self, monkeypatch, tmp_path):
         """A5. The owner's pull requests and a bot's are the release's own work;
@@ -528,17 +733,18 @@ class Test_main:
     ):
         """A5. The fragments are the reasoning, and none of it is lost: they
         follow the summary whole, inside a fold that ends the note, each under
-        its marker with a blank line before the next (#1053: no link to a file
+        the link to its pull request, or alone where its adding commit names
+        none, with a blank line before the next (#1053: no link to a file
         follows)."""
-        entries = [*ENTRIES, ("1700000001-b", "- b")]
+        entries = [*ENTRIES, ("1700000001-b", "- b", None)]
         mod, body = published(monkeypatch, tmp_path, RELEASE, entries=entries)
-        fold = body[body.index("<details>") :]
+        opens = body.index(f"<details>\n<summary>{mod.FULL_SUMMARY}</summary>")
+        fold = body[opens:]
         assert fold == (
             f"<details>\n<summary>{mod.FULL_SUMMARY}</summary>\n\n"
-            f"<!-- specs/1700000000-a-work-item -->\n{NOTES}\n\n"
-            "<!-- specs/1700000001-b -->\n- b\n\n</details>"
+            f"{LINK}\n{NOTES}\n\n- b\n\n</details>"
         ), fold
-        assert body.index(mod.UPDATE_HEADING) < body.index("<details>")
+        assert body.index(mod.UPDATE_HEADING) < opens
         assert "/agentic:update" in body
 
     def test_a_release_with_no_outside_contribution_thanks_nobody(
@@ -548,7 +754,7 @@ class Test_main:
         the summary is there, and no credit line or count is invented."""
         mod, body = published(monkeypatch, tmp_path, [pull(10, OWNER, "fix: a thing")])
         assert mod.THANKS_HEADING not in body
-        assert "Outside contributors" not in body
+        assert "outside contributor" not in body
         assert "thanks @" not in body
 
     @pytest.mark.parametrize(
@@ -566,7 +772,7 @@ class Test_main:
         section alone was before #572."""
         theme = [milestone("Purpose: a theme. And more.")]
         _, body = published(monkeypatch, tmp_path, pulls, milestones=theme)
-        assert body == f"A theme.\n\n<!-- specs/1700000000-a-work-item -->\n{NOTES}"
+        assert body == f"A theme.\n\n{LINK}\n{NOTES}"
         if pulls is None:
             assert "no outside contribution" not in capsys.readouterr().out, (
                 "a list that could not be read is reported as a release nobody helped"
@@ -668,39 +874,81 @@ class Test_module:
         out = capsys.readouterr().out
         assert "the note is the theme line and the fragments alone" in out, out
 
-    def test_the_glance_block_is_built_by_one_function_and_its_sealed_twin_by_another(
+    def test_the_header_is_built_by_one_function_and_its_sealed_twin_by_another(
         self, monkeypatch, tmp_path
     ):
-        """S1's shape (#718). The note's glance block is exactly `glance`'s, so
-        the seal can find it by the same function; `sealed_glance` is the heading,
-        the image, a blank line and one line carrying every row the table had, in
-        its order. Since #832 the image is an `<img>` carrying its display
+        """#718's shape, and #1153 S2 and S3. The note's header is exactly
+        `header`'s, so the seal can find it by the same function.
+        `sealed_header` is the same table with two cells: the image, and the
+        results one per line, `SEALED` in bold before the sealed version,
+        the counts `header` states in its order, then the stamp's other
+        results. Since #832 the image is an `<img>` carrying its display
         width, because the PNG is drawn at twice that size for a high-density
-        screen and Markdown's image syntax has no width; and the alt text and
-        the URL are escaped for the attribute they sit in, so a quote cannot end
-        it early. Seen red against the Markdown image, and by the escape
-        removed."""
+        screen. The URL, the alt text and every line are escaped, so a quote
+        cannot end an attribute and a `<` opens no tag. Seen red against the
+        glance block and its sealed twin, which wrote a heading, an image on
+        a line of its own and one line of the counts."""
         mod, body = published(monkeypatch, tmp_path, RELEASE)
         work, closed, people = mod.tally(RELEASE, OWNER)
-        block = mod.glance(work, closed, people)
-        assert body.startswith(block + "\n\n### ✨ Features"), body[:400]
-        assert mod.sealed_glance(
-            "https://example.com/seal.png", "a seal", 160, work, closed, people
-        ) == (
-            f"{mod.GLANCE_HEADING}\n\n"
-            '<img src="https://example.com/seal.png" alt="a seal" width="160">\n\n'
-            "\U0001f500 Pull requests **7** · ✅ Issues closed **4** · \U0001f64c Outside contributors **2**"
+        assert mod.header(work, closed, people) == HEADER
+        assert body.startswith(HEADER + "\n\n" + fold(*FOLDED[0])), body[:400]
+        results = ["the suite at 5 passed and 0 skipped", "capped not read"]
+        sealed = mod.sealed_header(
+            "https://example.com/seal.png",
+            "a seal",
+            160,
+            "v1.2.3 at aaa11111 on main",
+            results,
+            work,
+            closed,
+            people,
         )
+        assert sealed == (
+            "<table>\n<tr>\n"
+            '<td><img src="https://example.com/seal.png" alt="a seal" width="160"></td>\n'
+            "<td><b>SEALED</b> v1.2.3 at aaa11111 on main<br>7 pull requests merged"
+            "<br>4 issues closed<br>2 outside contributors"
+            "<br>the suite at 5 passed and 0 skipped<br>capped not read</td>\n"
+            "</tr>\n</table>"
+        ), sealed
         alone = [pull(10, OWNER, "fix: one", "Closes #100")]
         work, closed, people = mod.tally(alone, OWNER)
-        assert mod.sealed_glance("u", "a", 160, work, closed, people).endswith(
-            "\U0001f500 Pull requests **1** · ✅ Issues closed **1**"
+        odd = mod.sealed_header(
+            'u?a=1&b="2"', 'a "seal" <b>', 80, "v<1>", ["a & b"], work, closed, people
         )
-        odd = mod.sealed_glance('u?a=1&b="2"', 'a "seal" <b>', 80, work, closed, people)
         assert (
-            '<img src="u?a=1&amp;b=&quot;2&quot;" alt="a &quot;seal&quot; &lt;b&gt;" '
-            'width="80">'
+            '<td><img src="u?a=1&amp;b=&quot;2&quot;" alt="a &quot;seal&quot; &lt;b&gt;" '
+            'width="80"></td>\n'
+            "<td><b>SEALED</b> v&lt;1&gt;<br>1 pull request merged<br>1 issue closed"
+            "<br>a &amp; b</td>"
         ) in odd, odd
+
+    def test_the_sealed_header_given_no_image_is_its_results_cell_alone(
+        self, monkeypatch, tmp_path
+    ):
+        """#1204 S7. Where the repository leaves the release note's seal
+        image off, `sealed_header` is given no image and builds a table of
+        one cell: the same lines, in the same order and escaped the same
+        way, as the two-cell header's second cell holds. Seen red against
+        the `sealed_header` that always drew the image's cell."""
+        mod, _body = published(monkeypatch, tmp_path, RELEASE)
+        work, closed, people = mod.tally(RELEASE, OWNER)
+        results = ["the suite at 5 passed and 0 skipped", "capped not read"]
+        said = ("v1.2.3 at aaa11111 on main", results, work, closed, people)
+        two = mod.sealed_header("https://example.com/seal.png", "a seal", 160, *said)
+        one = mod.sealed_header(None, None, None, *said)
+        assert one == (
+            "<table>\n<tr>\n"
+            "<td><b>SEALED</b> v1.2.3 at aaa11111 on main<br>7 pull requests merged"
+            "<br>4 issues closed<br>2 outside contributors"
+            "<br>the suite at 5 passed and 0 skipped<br>capped not read</td>\n"
+            "</tr>\n</table>"
+        ), one
+        image = (
+            '<td><img src="https://example.com/seal.png" alt="a seal" '
+            'width="160"></td>\n'
+        )
+        assert two.replace(image, "") == one, (two, one)
 
     @pytest.mark.parametrize(
         "description, theme",
@@ -776,6 +1024,19 @@ class Test_module:
         assert mod.previous_tag("v0.1.0") is None
         assert mod.commit_range(None, "v0.1.0") == "v0.1.0"
 
+    def test_a_git_that_cannot_read_the_adding_commit_stops_the_run(self, monkeypatch):
+        """#1139. Where `git` cannot read the commit that adds a fragment,
+        the job stops saying what `git` said, as `run` does, rather than
+        publishing that entry without its link."""
+        mod = publisher()
+
+        def fails(root, revisions, path):
+            raise RuntimeError("`git log nosuch -- p` exited 128: bad revision")
+
+        monkeypatch.setattr(mod.settle, "adding_commit", fails)
+        with pytest.raises(SystemExit, match="exited 128: bad revision"):
+            mod.pull_request("nosuch", "p")
+
     def test_the_process_table_takes_its_shape_from_the_template(self):
         """#1117. The heading, the header row and the delimiter row `section`
         writes are `templates/records/process.md`'s, the section's one
@@ -793,7 +1054,8 @@ class Test_module:
         branch into `main`, whose first parent never held the fragment, and the
         settle removed it on the release branch (0.22.4). A fragment of the
         release before, restored by a commit in the range, is not read again
-        (0.15.3). Round 1 of #1053, finding 1."""
+        (0.15.3). Round 1 of #1053, finding 1. The pull request its adding
+        commit names is read through the same merge (#1139)."""
         repo = git_repo(tmp_path / "repo")
         thread = "seal/threads/{}/changelog.md"
         write(repo, thread.format("1700000000-older"), "- older entry\n")
@@ -801,7 +1063,7 @@ class Test_module:
         git_out(repo, "tag", PREVIOUS)
         git_out(repo, "switch", "-q", "-c", "release")
         write(repo, thread.format("1700000001-first"), "- first entry\n")
-        commit_everything(repo, "the work item")
+        commit_everything(repo, "the work item (#5)")
         git_out(repo, "rm", "-q", "-r", "seal/threads/1700000001-first")
         git_out(repo, "rm", "-q", "-r", "seal/threads/1700000000-older")
         commit_everything(repo, "the settle")
@@ -813,7 +1075,7 @@ class Test_module:
         mod = publisher()
         monkeypatch.setattr(mod, "ROOT", str(repo))
         revisions = mod.commit_range(mod.previous_tag(TAG), TAG)
-        assert mod.fragments(revisions) == [("1700000001-first", "- first entry")]
+        assert mod.fragments(revisions) == [("1700000001-first", "- first entry", 5)]
 
 
 class Test_section:
@@ -822,8 +1084,9 @@ class Test_section:
         fragment with a `### Process changes` table. The note carries one
         such table above the fragments, holding every fragment's rows in id
         order, and each fragment follows without its section, so a row is
-        shown once. A fragment that is the section alone keeps its marker
-        line with nothing under it. Seen red against `section` at
+        shown once. A fragment that is the section alone keeps its link line
+        with nothing under it, and gives no entry where its adding commit
+        names no pull request (#1139). Seen red against `section` at
         `4134055a`, which folded each table into its fragment."""
         header = "| Date | Change | Why | Source |\n|---|---|---|---|\n"
         first = (
@@ -837,16 +1100,28 @@ class Test_section:
             + header
             + "| 2026-10-03 | three | why three | https://example.com/3 |"
         )
-        entries = [("1-first", first), ("2-second", "- b"), ("3-third", third)]
-        assert publisher().section(entries) == (
+        fourth = (
+            "### Process changes\n\n"
+            + header
+            + "| 2026-10-04 | four | why four | https://example.com/4 |"
+        )
+        entries = [
+            ("1-first", first, 1),
+            ("2-second", "- b", 2),
+            ("3-third", third, 3),
+            ("4-fourth", fourth, None),
+        ]
+        pulls = f"https://github.com/{REPO}/pull"
+        assert publisher().section(entries, REPO) == (
             "### Process changes\n\n"
             + header
             + "| 2026-10-01 | one | why one | https://example.com/1 |\n"
             + "| 2026-10-02 | two | why two | https://example.com/2 |\n"
-            + "| 2026-10-03 | three | why three | https://example.com/3 |\n\n"
-            + "<!-- specs/1-first -->\n- **A change.** What it does.\n\n"
-            + "<!-- specs/2-second -->\n- b\n\n"
-            + "<!-- specs/3-third -->"
+            + "| 2026-10-03 | three | why three | https://example.com/3 |\n"
+            + "| 2026-10-04 | four | why four | https://example.com/4 |\n\n"
+            + f"[#1]({pulls}/1)\n- **A change.** What it does.\n\n"
+            + f"[#2]({pulls}/2)\n- b\n\n"
+            + f"[#3]({pulls}/3)"
         )
 
     def test_refuses_to_take_a_line_past_the_next_heading(self):
@@ -855,19 +1130,21 @@ class Test_section:
         header = "| Date | Change | Why | Source |\n|---|---|---|---|\n"
         later = "### Removed\n\n| What | Where |\n|---|---|\n| a file | `x.md` |"
         body = f"### Process changes\n\n{header}| d | c | w | s |\n\n{later}"
-        assert publisher().section([("1-first", body)]) == (
-            f"### Process changes\n\n{header}| d | c | w | s |\n\n"
-            f"<!-- specs/1-first -->\n{later}"
+        assert publisher().section([("1-first", body, None)], REPO) == (
+            f"### Process changes\n\n{header}| d | c | w | s |\n\n{later}"
         )
 
     def test_refuses_a_table_where_no_fragment_carries_a_row(self):
         """S10 of #1117. With no process row in any fragment, the output is
-        what `section` returned before #1117: each marker line and its body,
-        and no `### Process changes` heading."""
-        entries = [("1-first", "- a\n\n### Removed\n\n- gone"), ("2-second", "- b")]
-        assert publisher().section(entries) == (
-            "<!-- specs/1-first -->\n- a\n\n### Removed\n\n- gone\n\n"
-            "<!-- specs/2-second -->\n- b"
+        what `section` returned before #1117: each entry, its link line and
+        its body, and no `### Process changes` heading."""
+        entries = [
+            ("1-first", "- a\n\n### Removed\n\n- gone", 1),
+            ("2-second", "- b", None),
+        ]
+        assert publisher().section(entries, REPO) == (
+            f"[#1](https://github.com/{REPO}/pull/1)\n- a\n\n### Removed\n\n- gone\n\n"
+            "- b"
         )
 
 
