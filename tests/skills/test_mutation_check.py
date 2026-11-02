@@ -18,6 +18,8 @@ The old file keeps the cases that read the crafter's definition and the verify
 skill.
 """
 
+import __future__
+
 import importlib.util
 import os
 import pathlib
@@ -229,6 +231,27 @@ with open(sys.argv[2], "a", encoding="utf-8") as f:
 with open(sys.argv[1], "rb") as f:
     exec(compile(f.read(), sys.argv[1], "exec"))
 """
+
+# A line that compiles in a file with no future import under 3.12 and 3.13,
+# and is refused once `from __future__ import annotations` is on.
+ANNOTATED = "OTHER: (y := 1) = 2"
+
+
+def _annotations_flag_refuses_more():
+    """Whether this interpreter refuses `ANNOTATED` only under the flag, which
+    is where `dont_inherit=True` changes what the command refuses."""
+
+    def compiles(flags):
+        try:
+            compile(ANNOTATED + "\n", "t.py", "exec", flags, dont_inherit=True)
+        except SyntaxError:
+            return False
+        return True
+
+    return compiles(0) and not compiles(__future__.annotations.compiler_flag)
+
+
+ANNOTATIONS_FLAG_REFUSES_MORE = _annotations_flag_refuses_more()
 
 
 # Reports the bytes of the file it is handed, so a case can see what the
@@ -777,6 +800,35 @@ class Test_main:
         assert "line None" not in out, out
         assert snapshot(tmp_path) == before, "a refused mutant wrote something"
         assert not log.exists(), "the cases ran before the refusal"
+
+    @pytest.mark.skipif(
+        not ANNOTATIONS_FLAG_REFUSES_MORE,
+        reason="this interpreter compiles a named expression in an annotation "
+        "the same with and without `from __future__ import annotations`",
+    )
+    def test_a_mutant_is_compiled_without_the_scripts_own_future_flags(
+        self, tmp_path, capsys
+    ):
+        """`dont_inherit=True`. The script's own `from __future__ import
+        annotations` would otherwise reach the compile, and under 3.12 and
+        3.13 that flag refuses a named expression in an annotation, which a
+        target holding no such import compiles and its cases can run (round 2,
+        finding 1)."""
+        target = tmp_path / "target.py"
+        target.write_text("VALUE = 1\nOTHER = 2\n", encoding="utf-8")
+        code, out = run(
+            [
+                target,
+                "--replace",
+                "OTHER = 2",
+                ANNOTATED,
+                "--tests",
+                red_on(tmp_path, target, "(y := 1)"),
+            ],
+            capsys,
+        )
+        assert code == 0, out
+        assert out.startswith("red: "), out
 
     @pytest.mark.parametrize(
         ("source", "pairs", "marker", "exits", "first_word", "uncompiled"),

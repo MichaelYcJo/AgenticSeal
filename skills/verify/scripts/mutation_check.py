@@ -214,8 +214,12 @@ def compile_error(source: bytes, path: str) -> str | None:
     refuses a module-level `return`, a top-level `break` and a `nonlocal`
     with no binding, which `ast.parse` accepts, and the bytes are what the
     write would put on disk, so a byte-order mark reads as it would from the
-    file. Warnings are silenced so the verdict stays the first line printed.
-    A null byte's error carries no line, and the text then names none."""
+    file. `dont_inherit=True` keeps this script's own `from __future__ import
+    annotations` out of the compile: under 3.12 and 3.13 that flag refuses a
+    named expression in an annotation, which a target holding no such import
+    compiles. Warnings are silenced so the verdict stays the first line
+    printed. A null byte's error carries no line, and the text then names
+    none."""
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         try:
