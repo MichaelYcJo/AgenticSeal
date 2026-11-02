@@ -360,6 +360,24 @@ class Test_compose:
                 "run: HEAD against 4444444",
             ),
             ("gaps.md", GAPS + "</details>\n", 12, "</details>"),
+            (
+                "changelog.md",
+                CHANGELOG + "a sentence with </details> inside it\n",
+                3,
+                "`</details>`",
+            ),
+            ("changelog.md", CHANGELOG + "  </details>\n", 3, "`</details>`"),
+            ("changelog.md", CHANGELOG + "</DETAILS>\n", 3, "`</DETAILS>`"),
+            ("changelog.md", CHANGELOG + "<details open>\n", 3, "`<details open>`"),
+            ("changelog.md", CHANGELOG + "a <details/> b\n", 3, "`<details/>`"),
+            (
+                "changelog.md",
+                CHANGELOG + "a sentence <details\n",
+                3,
+                "holds `<details`, a `details` tag GitHub would read as a second "
+                "fold or as the end of the copy's one `<details>`; write it in a "
+                "code span",
+            ),
             ("frame/plan.md", PLAN + "\n## Phases\n\nagain\n", 14, "## Phases"),
             (
                 "changelog.md",
@@ -374,18 +392,29 @@ class Test_compose:
     def test_refuses_a_record_it_cannot_copy_faithfully(self, rel, text, line, said):
         """S6. A round record `chain_check.py` refuses, a gate record whose
         run block `hooks/lib/fields.py` refuses (#1198), a copied line equal
-        to `HEADING`, `<details>` or `</details>`, which would put a second
-        boundary line, a second fold or the fold's end inside the fold, a
-        second section of one the body copies, and a copied line holding a
-        closing keyword, which would close an issue no party claimed, are
-        each refused at the record's path and line, with a sentence naming
-        what was read there. A closing keyword in a code span or a fence
-        claims nothing, as `close_issues_on_release.py#keywords_in` reads
-        it, and a `</details>` in a fence ends no fold."""
+        to `HEADING`, which would put a second boundary line inside the
+        fold, a copied line holding `<details` or `</details` in any case and
+        anywhere in it, followed by whitespace, `/`, `>` or the line's end,
+        outside a code span, which GitHub reads as a second fold or the
+        fold's end (#1218), a second section of one the body copies, and a
+        copied line holding a closing keyword, which would close an issue no
+        party claimed, are each refused at the record's path and line, with
+        a sentence naming what was read there. A closing keyword in a code
+        span or a fence claims nothing, as
+        `close_issues_on_release.py#keywords_in` reads it, and a
+        `</details>` in a fence ends no fold."""
         with pytest.raises(PR.Refused) as refused:
             PR.compose(NAME, {**RECORDS, rel: text})
         assert [(where, at) for where, at, _ in refused.value.causes] == [(rel, line)]
         assert said in refused.value.causes[0][2]
+
+    def test_accepts_a_details_tag_in_a_code_span(self):
+        """S3 of #1218. A `details` tag in a code span is text to GitHub, and
+        the code span is the one spelling of it a copied line passes in; the
+        line stands in the fold as written."""
+        span = "`</details>` in a span"
+        text = PR.compose(NAME, {**RECORDS, "changelog.md": CHANGELOG + span + "\n"})
+        assert span in text.split("\n")
 
 
 class Test_split:
