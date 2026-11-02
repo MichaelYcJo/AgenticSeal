@@ -2134,6 +2134,34 @@ class Test_pins_and_copies_in:
         )
         assert f"skills/bad/SKILL.md:0  not read: {why}" in out.splitlines(), out
 
+    def test_names_a_copy_a_change_keeps_in_its_to(self, branch, ready, capsys):
+        """Round 2, finding 1: a `change` that shortens a passage of
+        `docs/policy.md` and keeps a run of 15 of its words, beside an `add`
+        of the whole passage to `docs/other.md`: `docs/policy.md` keeps a copy
+        after the settle, named at the `add`'s `to`. Seen red against
+        `c783f18f4`, which read the `change` as a `remove`."""
+        root, _code = branch
+        passage = f"Then {words_of(15)} and on."
+        kept = f"Then {words_of(15)} and see the other file."
+        write(
+            root,
+            "docs/policy.md",
+            f"# Policy\n\n## A section\n\n{passage}\n\n## Another\n\nOther words.\n",
+        )
+        text = spec_with(
+            "- change\n  file: docs/policy.md\n  section: A section\n"
+            f"  from: {passage}\n  to: {kept}\n"
+            f"- add\n  file: docs/other.md\n  to: {passage}\n"
+        )
+        planted_spec(root, text)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        said = COPY_SAYS.format(
+            path="docs/policy.md", count=3, window=15, run=f"then {words_of(14)}"
+        )
+        number = line_at(text, f"  to: {passage}")
+        assert spec_lines(out) == [f"{ITEM}/frame/design.md:{number}  {said}"], out
+
     def test_accepts_a_passage_the_design_moves_naming_no_copy(
         self, branch, ready, capsys
     ):

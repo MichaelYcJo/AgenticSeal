@@ -94,7 +94,7 @@ the section a `remove` with no `from` takes out where the working tree
 lacks its document or its heading. A design's operation that takes a
 test's string constant of four words or more out of the policy root, and
 an `add` or `change` `to` that shares a run of 15 words with another rule
-document as the design's own removals leave it, read as
+document as the design's operations leave it, read as
 `tests/text/test_no_passage_is_pasted_into_a_second_file.py` reads one, are
 named as notices at their lines in the design and refuse nothing
 (`pins_and_copies_in`): whether a named pin or copy is a finding is the
@@ -1185,7 +1185,11 @@ def _read_tree(rules, root):
     for each listing git could not make and, at line 0, for each such test
     or document that could not be opened, decoded or parsed. A file git
     lists and the tree has deleted is skipped: it is no file of the tree the
-    settle writes into."""
+    settle writes into. A limit, not read for: a tracked path whose name is
+    not UTF-8 reaches here with U+FFFD in place of its bytes, since `git()`
+    decodes with `errors="replace"`, so it does not open and is skipped as
+    deleted, unnamed; a rule document or a test with such a name is a shape
+    outside the flow this check serves."""
     literals, unread, documents = [], [], {}
     for path in _tracked(root, "tests/*.py", unread, "pin"):
         try:
@@ -1241,9 +1245,11 @@ def pins_and_copies_in(reader, root, rel, ops, sources):
     (`rule_changes.py#copies`), at the `to`'s first line. The tests and the
     rule documents are read from the working tree at ROOT once per run, into
     SOURCES (`_read_tree`), and the first call returns the notices for what
-    could not be read there. A copy is counted after the text the design's
-    operations take out of each document leaves it (`rule_changes.py#copies`),
-    so a passage the design moves is no copy. A section a `remove` with no
+    could not be read there. A copy is counted in each document as the
+    design's operations leave it, each `change`'s `from` replaced by its `to`
+    and each text a `remove` takes out removed (`rule_changes.py#copies`), so
+    a passage the design moves is no copy and one a `change` keeps in its
+    `to` still is. A section a `remove` with no
     `from` cannot read is named as not read at the operation's line."""
     if not ops:
         return []
@@ -1267,7 +1273,9 @@ def pins_and_copies_in(reader, root, rel, ops, sources):
             taken, at = None, op.line
         taking.append((op, taken, at))
         if taken:
-            gone.setdefault(op.file, []).append(taken)
+            # What the settle leaves in OP's file: a `change` puts its `to`
+            # where its `from` stood, and a `remove` puts nothing there.
+            gone.setdefault(op.file, []).append((taken, op.new))
     for op, taken, at in taking:
         out += [
             (rel, at, PIN_SAYS.format(file=op.file, test=t, line=n, literal=said))

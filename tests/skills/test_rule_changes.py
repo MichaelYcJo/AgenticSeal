@@ -664,7 +664,7 @@ class Test_copies:
         passage = f"Then {run_of(WINDOW)} and on."
         texts = {"docs/a.md": "## S\n\n" + passage.replace(" w7 ", "\nw7 ") + "\n"}
         o = one_op("add", new=passage, file="docs/b.md")
-        assert rules.copies(o, texts, {"docs/a.md": [passage]}) == []
+        assert rules.copies(o, texts, {"docs/a.md": [(passage, None)]}) == []
 
     def test_accepts_a_run_the_document_still_holds_after_what_is_taken_out(self):
         """The passage stands twice in `docs/a.md` and the design takes one
@@ -672,9 +672,21 @@ class Test_copies:
         passage = f"Then {run_of(WINDOW)} and on."
         texts = {"docs/a.md": f"{passage}\n\nWords between.\n\n{passage}\n"}
         o = one_op("add", new=passage, file="docs/b.md")
-        assert rules.copies(o, texts, {"docs/a.md": [passage]}) == [
+        assert rules.copies(o, texts, {"docs/a.md": [(passage, None)]}) == [
             ("docs/a.md", 4, f"then {run_of(WINDOW - 1)}")
         ]
+
+    def test_accepts_a_run_a_change_keeps_in_its_to(self):
+        """Round 2, finding 1: a `change` replaces its `from` with its `to`,
+        and one that rewrites the passage in `docs/a.md` and keeps 15 of its
+        words leaves a copy there after the settle. A backslash in the `to` is
+        text, not a group reference."""
+        passage = f"Then {run_of(WINDOW)} and on."
+        kept = f"Then {run_of(WINDOW)} and see the other file \\1."
+        texts = {"docs/a.md": f"## S\n\n{passage}\n"}
+        o = one_op("add", new=passage, file="docs/b.md")
+        found = rules.copies(o, texts, {"docs/a.md": [(passage, kept)]})
+        assert found == [("docs/a.md", 3, f"then {run_of(WINDOW - 1)}")]
 
 
 test_census = census_case(TARGET)

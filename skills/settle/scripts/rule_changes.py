@@ -363,11 +363,12 @@ def copies(op, texts, gone=None):
     other than OP's file, that shares a run of `passages.py#WINDOW` words with
     OP's `to`, read as `passages.py#words` reads both: the number of distinct
     runs shared and the first of them in the `to`'s order. GONE, `{path:
-    [text]}`, is what the same design's operations take out of each document:
-    each such text is taken out of the document once, found by `pattern`
-    across any wrapping, before the runs are counted, so a design that moves a
-    passage from one document to another leaves no copy where it took it
-    from. [] for an operation with no `to`, or whose file
+    [(text, put)]}`, is what the same design's operations do to each
+    document: each TEXT is found once by `pattern`, across any wrapping, and
+    replaced by PUT, the `to` of a `change`, or by nothing for a `remove`,
+    before the runs are counted. So a passage the design moves leaves no copy
+    where it took it from, and a passage a `change` keeps in its `to` is
+    still a copy there. [] for an operation with no `to`, or whose file
     `passages.py#in_corpus` leaves out."""
     p = passages()
     if op.new is None or not p.in_corpus(op.file):
@@ -379,9 +380,12 @@ def copies(op, texts, gone=None):
         if path == op.file or not p.in_corpus(path):
             continue
         text = texts[path]
-        for taken in (gone or {}).get(path, ()):
+        for taken, put in (gone or {}).get(path, ()):
             if taken and taken.split():
-                text = pattern(taken).sub("\n", text, count=1)
+                # A function, so a backslash in PUT is text, not a group.
+                text = pattern(taken).sub(
+                    lambda _m, put=put: f"\n{put or ''}\n", text, count=1
+                )
         shared = p.windows(p.words(text)).intersection(order)
         if shared:
             out.append((path, len(shared), next(r for r in order if r in shared)))
