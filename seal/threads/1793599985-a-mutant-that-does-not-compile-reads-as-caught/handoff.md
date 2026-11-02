@@ -7,7 +7,7 @@ Written 2026-11-02 by the orchestrator, to move the work to a new session. The s
 - Phase 1 (the compile refusal) and phase 2 (the changelog fragment and the version) are built. The orchestrator moved `.claude-plugin/plugin.json` on to 0.29.0 (0b37d14a) after the release was renamed.
 - Round 1 opened two `should` findings, fixed at edc09b4c. Round 2, the verifying round, confirmed both and opened two `should` findings: `dont_inherit=True` unpinned (fixed by the crafter at f8532a37) and five stale 0.28.1 sentences in the records (fixed by the orchestrator at dd9ec76d). The fix pass's close blocks are committed at 40c33242.
 - One more stale line, `frame/plan.md:14`, which the fix pass named and could not edit, is corrected in the commit that adds this file.
-- **A verifying round 3 is owed** for f8532a37, which touched `tests/skills/test_mutation_check.py` and a docstring in `skills/verify/scripts/mutation_check.py`. Its target is `<HEAD>, fixes 46775ced..<HEAD>`.
+- **The rounds have settled.** Verifying round 3 (target `4a9ab347, fixes 46775ced..4a9ab347`) confirmed both of round 2's findings and opened nothing.
 - No broad run, no `trail/gate.md`, no `guarantee.md`. The branch is pushed. No pull request is open.
 
 ## The release around it
@@ -18,8 +18,8 @@ Written 2026-11-02 by the orchestrator, to move the work to a new session. The s
 ## Next steps, in order
 
 1. Put routing question 1 through `AskUserQuestion` again, alone, before the first spawn (`skills/implement/orchestration.md` *Question 1*); `routing.md` already holds the boxes.
-2. Spawn the proofer for verifying round 3 on 46775ced..HEAD. Mutants run with this branch's own `bin/seal mutate`.
-3. Once the rounds settle: `seal gate --preflight --base release/v0.29.0`, then `seal gate --base release/v0.29.0 --record 1793599985-a-mutant-that-does-not-compile-reads-as-caught`; commit `trail/gate.md`.
+2. Delete this file in a records-only commit (the sealer reads every record at HEAD).
+3. `seal gate --preflight --base release/v0.29.0`, then `seal gate --base release/v0.29.0 --record 1793599985-a-mutant-that-does-not-compile-reads-as-caught`; commit `trail/gate.md`.
 4. `seal pr-body`, the orchestrator's part, the sealer, then the pull request into `release/v0.29.0`; squash-merge once CI is green (the owner's answer for this release). Read the Windows legs for `frame/questions.md` Q1.
 
 ## Facts a new session needs
