@@ -106,6 +106,11 @@ with no merge diff, so a design a merge wrote is not found there either. That
 line is outside this diff. A design is added by its work item's own commits,
 so the shape does not arise there in the workflow.
 
+```seal
+verdict: fixed 2ba0c6866
+answer: Fixed as a decided reader, not as one more edge, per `plan.md`'s last judgment. `settle.py#history`'s docstring now states every status `git log --no-renames --name-status --cc` prints for a path, enumerated by a probe run once (ordinary `A`, `M`, `D`, `T`; two-parent `MM`, `AA`, `AM`, `MA`, `DD`, with a clean merge and a merge keeping one parent's content naming nothing; octopus `AAA`) and by git's rule that a merge is named only where its result differs from every parent, so one status is all `D` or all from `A`, `M`, `T`. One rule reads them: no `D` changes the path, all `A` also adds it, all `D` adds and changes nothing. One case per class, each seen red: `test_a_merge_that_wrote_a_document_no_parent_holds_adds_it` (the finding's case, all `A`) and `test_a_deletion_is_no_change_to_a_document_head_holds` (all `D`: a branch's deletion the walk read after the kept content was printed as the last change) failed at 2c4023db8's reader; the change class is round 1's `MM` case plus `test_a_merge_that_rewrote_a_document_one_parent_lacks_changes_it` (`AM`, fed390e7b), added because `seal mutate` widening the add test to `"A" in status` survived until it stood, then went red. `seal mutate` also turned the add arm (`status == "A"`) and the `D` arm (`if True:`) red. The module docstring, the skill's listing bullet and the changelog say a merge that wrote a file no parent holds added it and a deletion is neither. Left as a stated limit, not built: a path deleted and held again only untracked keeps its earlier dates, since the reader reads no tree. The design's *Data & interfaces* (design.md:99) still says the adding commit is "the last `A` line" and the last change "the last line naming it", for the orchestrator to fold.
+```
+
 ## Confirmations
 
 ```seal
