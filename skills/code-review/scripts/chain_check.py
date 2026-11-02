@@ -87,10 +87,14 @@ record. The same holds for each line `rule_changes.parse` names in a design
 the rule-changes arm reads, a heading near `## Rule changes` among them
 (`rule_changes_read`), for each line of an `add` or `change` `to` that
 `rules.py` names as opening like a check line and not being one
-(`check_lines_in`), and for each test file under `tests/` the pin reading
-could not parse and each rule document it could not decode. A design's operation that takes a test's string constant
-of four words or more out of the policy root, and an `add` or `change` `to`
-that shares a run of 15 words with another rule document, read as
+(`check_lines_in`), and for what the pin and copy reading could not read:
+a listing git could not make, a test file under `tests/` it could not
+open, decode or parse, a rule document it could not open or decode, and
+the section a `remove` with no `from` takes out where the working tree
+lacks its document or its heading. A design's operation that takes a
+test's string constant of four words or more out of the policy root, and
+an `add` or `change` `to` that shares a run of 15 words with another rule
+document as the design's own removals leave it, read as
 `tests/text/test_no_passage_is_pasted_into_a_second_file.py` reads one, are
 named as notices at their lines in the design and refuse nothing
 (`pins_and_copies_in`): whether a named pin or copy is a finding is the
@@ -1077,8 +1081,19 @@ COPY_SAYS = (
 )
 # A test file the pin reading could not parse or decode, after `not read: `.
 TEST_UNREAD = "`{path}` could not be read as Python ({why}), so no pin in it is named"
-# A rule document the copy reading could not decode, after `not read: `.
-DOCUMENT_UNREAD = "`{path}` could not be read as UTF-8, so no copy of it is named"
+# A rule document the copy reading could not open or decode, after `not read: `.
+DOCUMENT_UNREAD = "`{path}` could not be read ({why}), so no copy of it is named"
+# The section a `remove` with no `from` takes out, which the pin reading could
+# not read in the working tree, after `not read: `.
+SECTION_UNREAD = (
+    "the section `{section}` of `{file}` that this `remove` takes out could not "
+    "be read ({why}), so no pin in it is named"
+)
+# A listing of tracked files git could not make, after `not read: `.
+LISTING_UNREAD = (
+    "git could not list the tracked files `{pathspec}` matches, so none of them "
+    "is read for a {what}"
+)
 # The operations whose `to` the settle writes into the policy root.
 WRITES_A_TO = ("add", "change")
 
@@ -1139,10 +1154,27 @@ def check_lines_in(root, rel, ops, notices=None):
     return found
 
 
-def _tracked(root, pathspec):
-    """The paths git tracks under ROOT that PATHSPEC matches, or []."""
+def _tracked(root, pathspec, unread, what):
+    """The paths git tracks under ROOT that PATHSPEC matches; where git cannot
+    list them, [] and a notice on UNREAD naming WHAT goes unread."""
     out = git(root, "ls-files", "-z", "--", pathspec)
-    return [p for p in (out or "").split("\0") if p]
+    if out is None:
+        why = LISTING_UNREAD.format(pathspec=pathspec, what=what)
+        unread.append(("", 0, RULE_CHANGES_UNREAD.format(why=why)))
+        return []
+    return [p for p in out.split("\0") if p]
+
+
+# What stops the pin reading of one test file: it cannot be opened or decoded,
+# or `ast.parse` refuses it or gives up on its nesting.
+TEST_UNREADABLE = (
+    OSError,
+    UnicodeDecodeError,
+    SyntaxError,
+    ValueError,
+    RecursionError,
+    MemoryError,
+)
 
 
 def _read_tree(rules, root):
@@ -1150,48 +1182,53 @@ def _read_tree(rules, root):
     `literals`, `[(path, line, text)]` of every tracked `*.py` under `tests/`
     (`rule_changes.py#literals`); `documents`, `{path: text}` of every
     tracked rule document (`passages.py#in_corpus`); and `unread`, a notice
-    at line 0 for each such test that does not decode or parse and each such
-    document that does not decode. A file git lists and the tree has deleted
-    is skipped."""
+    for each listing git could not make and, at line 0, for each such test
+    or document that could not be opened, decoded or parsed. A file git
+    lists and the tree has deleted is skipped: it is no file of the tree the
+    settle writes into."""
     literals, unread, documents = [], [], {}
-    for path in _tracked(root, "tests/*.py"):
+    for path in _tracked(root, "tests/*.py", unread, "pin"):
         try:
             with open(os.path.join(root, *path.split("/")), encoding="utf-8") as f:
                 found = rules.literals(f.read())
-        except OSError:
+        except FileNotFoundError:
             continue
-        except (UnicodeDecodeError, SyntaxError, ValueError) as exc:
+        except TEST_UNREADABLE as exc:
             why = TEST_UNREAD.format(path=path, why=type(exc).__name__)
             unread.append((path, 0, RULE_CHANGES_UNREAD.format(why=why)))
             continue
         literals += [(path, line, text) for line, text in found]
     in_corpus = rules.passages().in_corpus
-    for path in _tracked(root, "*.md"):
+    for path in _tracked(root, "*.md", unread, "copy"):
         if not in_corpus(path):
             continue
         try:
             with open(os.path.join(root, *path.split("/")), encoding="utf-8") as f:
                 documents[path] = f.read()
-        except OSError:
+        except FileNotFoundError:
             continue
-        except UnicodeDecodeError:
-            why = DOCUMENT_UNREAD.format(path=path)
+        except (OSError, UnicodeDecodeError) as exc:
+            why = DOCUMENT_UNREAD.format(path=path, why=type(exc).__name__)
             unread.append((path, 0, RULE_CHANGES_UNREAD.format(why=why)))
     return {"literals": literals, "unread": unread, "documents": documents}
 
 
 def _section_text(rules, root, op):
-    """The text OP's section spans in its document as the working tree at
-    ROOT holds it (`rule_changes.py#section_lines`), or None."""
+    """`(text, None)` for the section OP takes out, as its document in the
+    working tree at ROOT holds it (`rule_changes.py#section_lines`), or
+    `(None, why)` where the document cannot be opened or decoded, or the
+    section is not there once."""
     try:
         with open(os.path.join(root, *op.file.split("/")), encoding="utf-8") as f:
             text = f.read()
-    except (OSError, UnicodeDecodeError):
-        return None
-    span, _why = rules.section_lines(text, op.section)
+    except FileNotFoundError:
+        text = None
+    except (OSError, UnicodeDecodeError) as exc:
+        return None, type(exc).__name__
+    span, why = rules.section_lines(text, op.section)
     if span is None:
-        return None
-    return "\n".join(rules.reader().gfm_lines(text)[span[0] - 1 : span[1]])
+        return None, why
+    return "\n".join(rules.reader().gfm_lines(text)[span[0] - 1 : span[1]]), None
 
 
 def pins_and_copies_in(reader, root, rel, ops, sources):
@@ -1203,8 +1240,11 @@ def pins_and_copies_in(reader, root, rel, ops, sources):
     `to` shares a run of `passages.py#WINDOW` words with
     (`rule_changes.py#copies`), at the `to`'s first line. The tests and the
     rule documents are read from the working tree at ROOT once per run, into
-    SOURCES (`_read_tree`), and the first call returns the notices for the
-    test files that would not parse."""
+    SOURCES (`_read_tree`), and the first call returns the notices for what
+    could not be read there. A copy is counted after the text the design's
+    operations take out of each document leaves it (`rule_changes.py#copies`),
+    so a passage the design moves is no copy. A section a `remove` with no
+    `from` cannot read is named as not read at the operation's line."""
     if not ops:
         return []
     rules = reader.rule_changes()
@@ -1213,13 +1253,22 @@ def pins_and_copies_in(reader, root, rel, ops, sources):
         sources.update(_read_tree(rules, root))
         out += sources["unread"]
     window = rules.passages().WINDOW
+    taking, gone = [], {}
     for op in ops:
         if op.old is not None:
             taken, at = op.old, op.lines["from"][0][0]
         elif op.kind == "remove":
-            taken, at = _section_text(rules, root, op), op.line
+            taken, why = _section_text(rules, root, op)
+            at = op.line
+            if taken is None:
+                said = SECTION_UNREAD.format(file=op.file, section=op.section, why=why)
+                out.append((rel, at, RULE_CHANGES_UNREAD.format(why=said)))
         else:
             taken, at = None, op.line
+        taking.append((op, taken, at))
+        if taken:
+            gone.setdefault(op.file, []).append(taken)
+    for op, taken, at in taking:
         out += [
             (rel, at, PIN_SAYS.format(file=op.file, test=t, line=n, literal=said))
             for t, n, said in rules.pins(op, taken, sources["literals"])
@@ -1230,7 +1279,7 @@ def pins_and_copies_in(reader, root, rel, ops, sources):
                 op.lines["to"][0][0],
                 COPY_SAYS.format(path=path, count=count, window=window, run=run),
             )
-            for path, count, run in rules.copies(op, sources["documents"])
+            for path, count, run in rules.copies(op, sources["documents"], gone)
         ]
     return out
 

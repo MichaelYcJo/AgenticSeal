@@ -358,13 +358,17 @@ def pins(op, taken, found):
     return [f for f in found if f[2] in taken and f[2] not in kept]
 
 
-def copies(op, texts):
+def copies(op, texts, gone=None):
     """`[(path, count, run)]` for each rule document of TEXTS, `{path: text}`,
     other than OP's file, that shares a run of `passages.py#WINDOW` words with
     OP's `to`, read as `passages.py#words` reads both: the number of distinct
-    runs shared and the first of them in the `to`'s order. [] for an
-    operation with no `to`, or whose file `passages.py#in_corpus` leaves
-    out."""
+    runs shared and the first of them in the `to`'s order. GONE, `{path:
+    [text]}`, is what the same design's operations take out of each document:
+    each such text is taken out of the document once, found by `pattern`
+    across any wrapping, before the runs are counted, so a design that moves a
+    passage from one document to another leaves no copy where it took it
+    from. [] for an operation with no `to`, or whose file
+    `passages.py#in_corpus` leaves out."""
     p = passages()
     if op.new is None or not p.in_corpus(op.file):
         return []
@@ -374,7 +378,11 @@ def copies(op, texts):
     for path in sorted(texts):
         if path == op.file or not p.in_corpus(path):
             continue
-        shared = p.windows(p.words(texts[path])).intersection(order)
+        text = texts[path]
+        for taken in (gone or {}).get(path, ()):
+            if taken and taken.split():
+                text = pattern(taken).sub("\n", text, count=1)
+        shared = p.windows(p.words(text)).intersection(order)
         if shared:
             out.append((path, len(shared), next(r for r in order if r in shared)))
     return out

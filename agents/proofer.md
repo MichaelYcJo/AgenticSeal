@@ -61,8 +61,10 @@ here is a write you do not make.
    of a work item's `frame/design.md` naming a test pin or a copy is yours
    to weigh. A named pin that holds a rule's wording, by
    `docs/what-a-script-gates.md` *The checks*, is a finding, and so is a
-   `to` that repeats a passage another file holds. A named pin of a fact a
-   reader acts on is no finding, since the settle repoints it.
+   `to` that repeats a passage another file keeps after the settle. A named
+   pin of a fact a reader acts on is no finding, since the settle repoints
+   it. A finding you take from such a notice quotes the notice, so the
+   settle can count what the notices caught.
 
 ## Never
 

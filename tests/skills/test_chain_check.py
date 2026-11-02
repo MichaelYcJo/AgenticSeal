@@ -2128,8 +2128,142 @@ class Test_pins_and_copies_in:
         planted_spec(root, spec_with(change_to("a new rule.")))
         code, out = check(root, capsys)
         assert code == 0, out
-        why = "`skills/bad/SKILL.md` could not be read as UTF-8, so no copy of it is named"
+        why = (
+            "`skills/bad/SKILL.md` could not be read (UnicodeDecodeError), so no "
+            "copy of it is named"
+        )
         assert f"skills/bad/SKILL.md:0  not read: {why}" in out.splitlines(), out
+
+    def test_accepts_a_passage_the_design_moves_naming_no_copy(
+        self, branch, ready, capsys
+    ):
+        """Round 1, finding 1: a design that removes a section of
+        `docs/policy.md` and adds its passage to `docs/other.md` moves it, so
+        `docs/policy.md` holds no copy after the settle and none is named.
+        Seen red against `4105fd13c`, which named `docs/policy.md`."""
+        root, _code = branch
+        passage = f"Then {words_of(15)} and on."
+        write(
+            root,
+            "docs/policy.md",
+            f"# Policy\n\n## A section\n\n{passage}\n\n## Another\n\nOther words.\n",
+        )
+        planted_spec(
+            root,
+            spec_with(
+                "- remove\n  file: docs/policy.md\n  section: A section\n"
+                f"- add\n  file: docs/other.md\n  to: {passage}\n"
+            ),
+        )
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert spec_lines(out) == [], out
+
+    @pytest.mark.parametrize(
+        "policy, why",
+        [
+            (None, "the document is not in the tree"),
+            ("# Policy\n\n## Another\n\nwords.\n", "no heading `Missing`"),
+        ],
+        ids=["no-document", "no-section"],
+    )
+    def test_names_a_section_a_remove_cannot_read_as_not_read(
+        self, branch, ready, capsys, policy, why
+    ):
+        """Round 1, finding 2: a `remove` with no `from` whose document or
+        section the working tree lacks is named as not read at the
+        operation's line, with the section reader's reason. Seen red against
+        `4105fd13c`, which printed nothing."""
+        root, _code = branch
+        if policy is not None:
+            write(root, "docs/policy.md", policy)
+        text = spec_with("- remove\n  file: docs/policy.md\n  section: Missing\n")
+        planted_spec(root, text)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        said = (
+            "the section `Missing` of `docs/policy.md` that this `remove` takes "
+            f"out could not be read ({why}), so no pin in it is named"
+        )
+        number = line_at(text, "- remove")
+        assert spec_lines(out) == [
+            f"{ITEM}/frame/design.md:{number}  not read: {said}"
+        ], out
+
+    def test_names_a_test_and_a_document_it_cannot_open_as_not_read(
+        self, branch, ready, capsys
+    ):
+        """Round 1, finding 2: a tracked test file and a tracked rule document
+        that the working tree holds as a directory cannot be opened, and each
+        is named as not read; the error's name is the platform's. Seen red
+        against `4105fd13c`, which skipped both."""
+        root, _code = branch
+        write(root, "tests/test_gone.py", "x = 1\n")
+        write(root, "skills/gone/SKILL.md", "Words.\n")
+        planted_spec(root, spec_with(change_to("a new rule.")))
+        for rel in ("tests/test_gone.py", "skills/gone/SKILL.md"):
+            (root / rel).unlink()
+            (root / rel).mkdir()
+        code, out = check(root, capsys)
+        assert code == 0, out
+        lines = out.splitlines()
+        test = "tests/test_gone.py:0  not read: `tests/test_gone.py` could not be read as Python ("
+        document = "skills/gone/SKILL.md:0  not read: `skills/gone/SKILL.md` could not be read ("
+        assert [ln for ln in lines if ln.startswith(test)], out
+        assert [ln for ln in lines if ln.startswith(document)], out
+
+    @pytest.mark.parametrize("error", [RecursionError, MemoryError])
+    def test_names_a_test_the_parser_gives_up_on_as_not_read(
+        self, branch, ready, capsys, monkeypatch, error
+    ):
+        """Round 1, finding 2: `ast.parse` raises `RecursionError` or
+        `MemoryError` on a source nested past its limit, and such a test file
+        is named as not read rather than ending the check. Seen red against
+        `4105fd13c`, where the error ended the run."""
+        root, _code = branch
+        write(root, "tests/test_deep.py", "x = 1  # deep\n")
+        planted_spec(root, spec_with(change_to("a new rule.")))
+        rules = chain.SHARED_READER.rule_changes()
+        literals = rules.literals
+
+        def gives_up(source):
+            if "# deep" in source:
+                raise error
+            return literals(source)
+
+        monkeypatch.setattr(rules, "literals", gives_up)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        why = (
+            f"`tests/test_deep.py` could not be read as Python ({error.__name__}), "
+            "so no pin in it is named"
+        )
+        assert f"tests/test_deep.py:0  not read: {why}" in out.splitlines(), out
+
+    def test_names_a_listing_git_could_not_make_as_not_read(
+        self, branch, ready, capsys, monkeypatch
+    ):
+        """Round 1, finding 2: where git cannot list the tracked tests, none
+        is read, and the run says so rather than reading as no pin. Seen red
+        against `4105fd13c`, which printed nothing."""
+        root, _code = branch
+        planted_spec(root, spec_with(change_to("a new rule.")))
+        git_of = chain.git
+
+        def no_listing(where, *args):
+            # The tracked listing alone; `changed` lists untracked files too.
+            return None if args[:2] == ("ls-files", "-z") else git_of(where, *args)
+
+        monkeypatch.setattr(chain, "git", no_listing)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        lines = out.splitlines()
+        for pathspec, what in (("tests/*.py", "pin"), ("*.md", "copy")):
+            said = (
+                f"git could not list the tracked files `{pathspec}` matches, so "
+                f"none of them is read for a {what}"
+            )
+            assert f"not read: {said}" in lines, out
 
 
 # --- the parity arm at the pull request (#988) -------------------------------------

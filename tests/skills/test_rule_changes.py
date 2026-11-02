@@ -657,5 +657,24 @@ class Test_copies:
         assert rules.copies(o, texts) == []
         assert rules.copies(one_op("remove", "S"), texts) == []
 
+    def test_refuses_a_run_that_stands_only_in_text_the_design_takes_out(self):
+        """A design that moves a passage from `docs/a.md` to `docs/b.md` takes
+        it out of the first, wrapped as the document holds it, so no copy is
+        left there after the settle (round 1, finding 1)."""
+        passage = f"Then {run_of(WINDOW)} and on."
+        texts = {"docs/a.md": "## S\n\n" + passage.replace(" w7 ", "\nw7 ") + "\n"}
+        o = one_op("add", new=passage, file="docs/b.md")
+        assert rules.copies(o, texts, {"docs/a.md": [passage]}) == []
+
+    def test_accepts_a_run_the_document_still_holds_after_what_is_taken_out(self):
+        """The passage stands twice in `docs/a.md` and the design takes one
+        out, so the other is still a copy."""
+        passage = f"Then {run_of(WINDOW)} and on."
+        texts = {"docs/a.md": f"{passage}\n\nWords between.\n\n{passage}\n"}
+        o = one_op("add", new=passage, file="docs/b.md")
+        assert rules.copies(o, texts, {"docs/a.md": [passage]}) == [
+            ("docs/a.md", 4, f"then {run_of(WINDOW - 1)}")
+        ]
+
 
 test_census = census_case(TARGET)
