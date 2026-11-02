@@ -235,7 +235,9 @@ Out of scope:
     the newest verdict block of `guarantee.md` reads `sealed` at a commit
     that only the closing records follow, so the mark means what the stamp
     means (*The stamp*). An absent or empty row puts no mark, and any other
-    value puts none and is named as not read. The sealer's
+    value puts none and is named as not read. A base the verdict block names
+    that git cannot resolve where the command runs puts no mark either, and
+    is named, since whether the seal holds at HEAD cannot then be read. The sealer's
     `seal pr-body --check` runs before its own verdict exists, so the copy
     it checks carries no mark from that run. The orchestrator runs
     `seal pr-body` once more after it commits a `sealed` guarantee, and that

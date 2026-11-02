@@ -101,4 +101,4 @@ body.
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-02 | Phase 1's departure is folded into the design's `add`: a base the guarantee names that git cannot resolve puts no mark and is named | `chain_check.py#follows` answers None for an unresolved base, which reads as HEAD, so a stale seal would have carried the mark that S3 forbids; the crafter checked the base first and named the gap, which the frame's sentence did not state | `skills/core/SKILL.md` *The rule a mechanism is kept against* |
