@@ -39,6 +39,11 @@ The fix replaces lines 91-93 of the `to`, from "release carries more than a read
 
 In `changelog.md:3`, "moves to the next release." becomes "moves to a later release, and a `feat:` only where `docs/branch-and-release.md` *Work accumulates on a release branch* sends it." Once the `to` changes, rerun `chain_check.py --worktree` to confirm the check line is still read and no pin is named.
 
+```seal
+verdict: fixed c72cff98
+answer: The finding holds: `docs/branch-and-release.md:329`, under *Work accumulates on a release branch* (heading at `:120`), sends a `feat:` in a patch-numbered milestone to the planned minor whose goal it shares or renames the milestones forward, and no pending design changes that paragraph. `changelog.md:3` now reads "moves to a later release, and a `feat:` only where `docs/branch-and-release.md` *Work accumulates on a release branch* sends it." A fix pass does not edit the frame, so the orchestrator folds the `to`. It replaces `frame/design.md:91-93`, from "    release carries more than a reader can follow." to "    next release. The judgment counts work items rather than ticket numbers.", with these five lines: "    release carries more than a reader can follow. An issue that does not" / "    have to be in effect before the next work item starts then moves to a" / "    later `release:` milestone, and a `feat:` moves only where" / "    `docs/branch-and-release.md` *Work accumulates on a release branch*" / "    sends it. The judgment weighs work items rather than ticket numbers." These lines also carry finding 2's fix. Those words are the proofer's, and I read them as the settle and a later reader of the section would. With the five lines applied to a scratch copy of the design, `rule_changes.parse` with root `docs` returned one op, `errors=[]` and `unread=[]`, and `apply_op` placed it with no refusal, the check line still last in the paragraph (executed). The cited section stands in `docs/branch-and-release.md` (read). The same rule is stated a second time at `frame/design.md:39`, *Scope* item 1, so the orchestrator also replaces "is the one that moves, and that the judgment counts work items, not ticket numbers." there with "is the one that moves, to a later `release:` milestone and for a `feat:` only where `docs/branch-and-release.md` *Work accumulates on a release branch* sends it, and that the judgment weighs work items, not ticket numbers." `chain_check.py --worktree` is to be re-run once the orchestrator's commit is in.
+```
+
 ### 2. "The judgment counts work items" puts a count back into the paragraph that removes the number
 
 ```seal
@@ -54,6 +59,11 @@ Why it matters: S6 (`frame/design.md:67`) asks that a reader of the `to` "reads 
 ```
 
 The line keeps its place in the `to` (line 93; its first words follow finding 1's fix if that lands first). In `changelog.md:3`, "The judgment counts work items rather than ticket numbers" becomes "The judgment weighs work items rather than ticket numbers".
+
+```seal
+verdict: fixed c72cff98
+answer: The finding holds: after the settle, `docs/issues-and-milestones.md:23-24` sizes a release "and not by a count", and "counts" in the `to` gives a reader a second reading. `changelog.md:3` now reads "The judgment weighs work items rather than ticket numbers". For the `to`, the fifth of the five replacement lines in finding 1's close block ends "sends it. The judgment weighs work items rather than ticket numbers.", so the orchestrator's one fold of `frame/design.md:91-93` applies both fixes. The *Scope* item 1 sentence at `frame/design.md:39` changes "counts" to "weighs" in the replacement given there.
+```
 
 ### 3. `read` keeps a `root` parameter that only the removed sweep passed
 
@@ -72,6 +82,11 @@ def read(rel):
 ```
 
 The `## Not done` section of `gaps.md` (`:11-13`) goes with it, since it holds only this row.
+
+```seal
+verdict: fixed 51bfa4ed
+answer: The finding holds: at `ea581e55` no caller of `read` passes `root`, and *Scope* item 3 removes the units only the sweep used. My closing memo gave the opposite reason, and it was wrong. `read` is now `def read(rel):` and opens `os.path.join(ROOT, rel)`, as the paste-ready fix gives it. Ruff check and format exit 0, and the module passes (executed). The `## Not done` heading of `gaps.md` stays, with its row replaced by `nothing`: the template's own wording for that section is "or nothing", and `skills/implement/SKILL.md` *4. The closing memo* says a memo with nothing left reads `nothing`. The decision recorded in `trail/phases/phase-1.md` stays as the build made it, because a fix pass writes no phase record. This close block is where that decision is reversed.
+```
 
 ## Confirmations
 
