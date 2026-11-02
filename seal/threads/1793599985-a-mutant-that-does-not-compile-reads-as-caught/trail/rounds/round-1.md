@@ -27,6 +27,11 @@ The fix is one assertion, replacing line 773. It was shown red under this mutant
         assert out.startswith("refused: the mutant does not compile"), out
 ```
 
+```seal
+verdict: fixed edc09b4c7
+answer: The finding holds: `mutation_run` passes `numbered=False`, and S1 asserted only the `refused: ` prefix, so a `pair 1:` on a single pair passed. S1 now asserts `out.startswith("refused: the mutant does not compile")`, which replaces the old prefix line and the now redundant `"does not compile" in out` line. Under this branch's own `bin/seal mutate`, `numbered=False` to `numbered=True` at the single call site now reads red, at S1 `syntax-error` (executed). The batch call site, `numbered=True` to `numbered=False`, also reads red, at S3 `does-not-compile` (executed). The rule 12 point stands: phase 1's sixteen mutants were a sample. The fix pass took every added code line of `mutation_check.py` in `git diff e6b7f84a HEAD` as the list and set each against a mutant. The only lines left without one are wording the design leaves to the crafter (the path inside the clause and the refusal's sentence) and `dont_inherit=True`. Reading says that last mutant is equivalent: the one future flag the script would pass on is `annotations`, and it changes no refusal.
+```
+
 ### 2. The not-compiled clause on a single pair's SURVIVED is pinned by no case
 
 ```seal
@@ -75,6 +80,11 @@ The fix is a parameter of S4 whose cases pass against the mutant. A probe showed
         # The body as it stands, with `red_on(tmp_path, target, marker)` in place
         # of `red_on(tmp_path, target, "VALUE = 2")` and `assert code == exits, out`
         # in place of `assert code == 0, out`.
+```
+
+```seal
+verdict: fixed edc09b4c7
+answer: The finding holds: every S4 parameter ran cases that go red, so `verdict in EXIT` narrowed to `verdict == RED` stayed green. S4 gained `marker` and `exits` columns and a parameter, `a-survivor-of-a-file-that-does-not-compile`. Its cases look for text no mutant holds, so the run reads SURVIVED at exit 1, and the first line must carry the not-compiled clause with the interpreter's version and the original's line. This is the proofer's shape, applied after reading it against `mutation_run`: a SURVIVED detail gets the clause by the same join as a red. Under this branch's own `bin/seal mutate`, `if uncompiled and verdict in EXIT:` to `if uncompiled and verdict == RED:` now reads red, at that parameter (executed). The module passes with 66 cases (executed).
 ```
 
 ## Confirmations
