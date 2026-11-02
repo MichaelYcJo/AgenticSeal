@@ -1328,9 +1328,11 @@ def overviews_at(root, ref, prefixes):
     The scan walks the tree as it is now, so a file deleted wholesale never
     enters it and its rows leave without a word. Deleting the file was
     therefore cheaper and quieter than deleting one row from it, which is the
-    behaviour the row check exists to make expensive."""
+    behaviour the row check exists to make expensive. `-z` ends each path
+    with a NUL and quotes none, whatever `core.quotePath` says, so a path
+    that is not ASCII is read as it is."""
     r = subprocess.run(
-        ["git", "-C", root, "ls-tree", "-r", "--name-only", ref],
+        ["git", "-C", root, "ls-tree", "-r", "-z", "--name-only", ref],
         capture_output=True,
         encoding="utf-8",
         errors="replace",
@@ -1345,8 +1347,7 @@ def overviews_at(root, ref, prefixes):
         if loaded and p != "." and config.under_reference_root(p, roots)
     ]
     out = []
-    # exempt from splitlines: git output
-    for rel in r.stdout.splitlines():
+    for rel in r.stdout.split("\0"):
         if os.path.basename(rel) != OVERVIEW:
             continue
         # The same skip list the scan walks with. Built by a different rule,
@@ -1403,7 +1404,9 @@ def settled(root, ref, directories):
 
 def tree_at(root, ref, directory):
     """Repo-relative paths under `directory` at `ref`; the disk when `ref` is
-    None. `directory` is `/`-joined, and so is every path returned."""
+    None. `directory` is `/`-joined, and so is every path returned. At a ref
+    the paths come from `-z`, which quotes none, whatever `core.quotePath`
+    says."""
     if ref is None:
         top = under_root(root, directory)
         out = []
@@ -1414,13 +1417,12 @@ def tree_at(root, ref, directory):
                 out.append(git_path(rel))
         return out
     r = subprocess.run(
-        ["git", "-C", root, "ls-tree", "-r", "--name-only", ref, "--", directory],
+        ["git", "-C", root, "ls-tree", "-r", "-z", "--name-only", ref, "--", directory],
         capture_output=True,
         encoding="utf-8",
         errors="replace",
     )
-    # exempt from splitlines: git output
-    return r.stdout.splitlines() if r.returncode == 0 else []
+    return [rel for rel in r.stdout.split("\0") if rel] if r.returncode == 0 else []
 
 
 def _text_at(root, ref, rel):

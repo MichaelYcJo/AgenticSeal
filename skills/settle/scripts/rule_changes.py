@@ -652,9 +652,9 @@ def order(root, ref, ids, specs="seal/threads"):
     comes last, with commit None."""
     r = subprocess.run(
         gitcmd().argv(
-            "-C", root, "log", "--full-history", "--topo-order",
+            "-C", root, "log", "-z", "--full-history", "--topo-order",
             "--reverse", "--no-renames", "--diff-filter=A", "--name-only",
-            "--format=%x00%H",
+            "--format=%x01%H",
             ref, "--", specs, EARLIER[0],
         ),
         capture_output=True,
@@ -662,9 +662,13 @@ def order(root, ref, ids, specs="seal/threads"):
         errors="replace",
     )  # fmt: skip
     first, commit = {}, None
-    # exempt from splitlines: git output
-    for line in r.stdout.splitlines():
-        if line.startswith("\0"):
+    # `-z` ends each path with a NUL and quotes none, whatever
+    # `core.quotePath` says; a commit's field opens with U+0001, which no
+    # path under SPECS starts with, and the path that follows it opens with
+    # a newline.
+    for line in r.stdout.split("\0"):
+        line = line.lstrip("\n")
+        if line.startswith("\x01"):
             commit = line[1:]
             continue
         for base, name in ((specs, DESIGN), EARLIER):

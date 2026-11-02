@@ -626,6 +626,21 @@ class Test_report:
         assert "1700000004-delta" not in text, text
         assert "1 unreleased and untouched" in text, text
 
+    def test_a_released_work_item_whose_id_is_not_ascii_is_a_candidate(self, tree):
+        """#1283. `released` reads the ref's tree with `-z`, so a work item
+        id that holds a character git quotes under the default
+        `core.quotePath` is released where its directory stands. Seen red
+        against the listing without `-z`, where the item read as unreleased."""
+        name = "1700000006-정렬"
+        moment(tree, name=name, overview=OVERVIEW_CLOSED)
+        code, text = run(tree)
+        assert code == 0, text
+        assert "released at HEAD: 4 work items; 1 unreleased and untouched\n" in (
+            text
+        ), text
+        stated = text.split("no `frame/design.md`, so no rule stated:\n")[1]
+        assert stated.split("\n\n")[0] == f"    {name}", text
+
     def test_a_spec_less_directory_is_listed_as_stating_no_rule(self, tree):
         """D3: a directory with no `frame/design.md` states no rule, so it is listed
         apart from the specs, and its record's rows with every other's."""
@@ -3043,6 +3058,21 @@ class Test_module:
         ids = ["1700000001-a", "1700000002-b"]
         found = [i for i, _ in rules.order(str(repo), "HEAD", ids)]
         assert found == ["1700000002-b", "1700000001-a"], found
+
+    def test_merge_order_of_an_id_that_is_not_ascii_is_its_designs_add(self, repo):
+        """#1283. `rule_changes.py#order` reads the history with `-z`, so a
+        design whose id git quotes under the default `core.quotePath` is
+        placed by the commit that adds it, not last with no commit. Seen red
+        against the reading without `-z`."""
+        item(repo, "1700000001-정렬", op("add", "U", new="A."))
+        commit(repo, "a is framed")
+        added = git(repo, "rev-parse", "HEAD").strip()
+        item(repo, "1700000002-b", op("add", "U", new="B."))
+        commit(repo, "b is framed")
+        ids = ["1700000001-정렬", "1700000002-b"]
+        found = rules.order(str(repo), "HEAD", ids)
+        assert found[0] == ("1700000001-정렬", added), found
+        assert [i for i, _ in found] == ids, found
 
     def test_merge_order_of_a_moved_thread_is_its_first_add_before_the_move(self, repo):
         """The session-start move adds every 0.22.x thread's design in one

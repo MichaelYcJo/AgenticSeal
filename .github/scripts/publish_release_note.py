@@ -228,10 +228,13 @@ def fragments(revisions):
     first parent never held a fragment the settle removed on the release
     branch (0.22.4). A fragment the range's lower tag already holds was
     released there and is skipped, though a commit in the range restored its
-    directory (0.15.3).
+    directory (0.15.3). The added paths are read with `-z`, which ends each
+    with a NUL and quotes none, whatever `core.quotePath` says, so a
+    fragment whose id is not ASCII is read as it is.
     """
     added = git(
         "log",
+        "-z",
         "--no-renames",
         "--diff-filter=A",
         "--name-only",
@@ -243,8 +246,7 @@ def fragments(revisions):
     # holds was released there, and a commit that restores its directory
     # adds nothing new (0.15.3).
     previous = revisions.split("..")[0] if ".." in revisions else None
-    # exempt from splitlines: git output
-    for path in sorted(set(added.splitlines())):
+    for path in sorted(set(added.split("\0"))):
         found = FRAGMENT_RE.match(path)
         if not found:
             continue

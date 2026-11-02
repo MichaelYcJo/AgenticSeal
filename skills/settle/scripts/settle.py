@@ -281,9 +281,10 @@ def released(root, ref):
     None for a ref that does not resolve, and the caller refuses: a ref this
     cannot read would make every work item read as unreleased and the report
     say there is nothing to do, the quiet zero every checker here is written
-    against."""
+    against. `-z` ends each path with a NUL and quotes none, whatever
+    `core.quotePath` says, so an id that is not ASCII is read as it is."""
     r = subprocess.run(
-        ["git", "-C", root, "ls-tree", "-r", "--name-only", ref],
+        ["git", "-C", root, "ls-tree", "-r", "-z", "--name-only", ref],
         capture_output=True,
         encoding="utf-8",
         errors="replace",
@@ -292,8 +293,7 @@ def released(root, ref):
         return None
     prefix = SPECS + "/"
     found = set()
-    # exempt from splitlines: git output
-    for line in r.stdout.splitlines():
+    for line in r.stdout.split("\0"):
         if line.startswith(prefix):
             rest = line[len(prefix) :]
             if "/" in rest:
