@@ -194,6 +194,9 @@ nothing:
   among them, with that line and its reason.
 - **Every open `## Not verified` row** of every released record, each with
   the backticked paths it names and whether each is in the working tree.
+  Their heading names the four kinds of *The settling session's procedure*
+  step 6 in its table's order, and gives no row a kind: the settling
+  session decides each.
 - **The files named like a record and not read**: a file in a released
   work item's directory whose name is that of a record the settle reads
   there, `gaps.md`, `frame/design.md` or `frame/plan.md`, at any path but
@@ -276,16 +279,24 @@ does not parse, an unordered pair and an open row are all shown.
    |---|---|---|
    | moot | it names a unit the tree no longer holds | the coordinate showing the unit gone |
    | answered | another record or a later run already answered it | that record or run, named |
-   | a measurement nobody has taken | it names a run, a platform or a reading no record holds | the issue it is re-homed to |
+   | a measurement no record asks for | it names a run, a platform or a reading no record holds, and no failure, report or decision on record depends on its answer | the reason, naming what the answer would have decided; nothing is opened |
+   | a measurement nobody has taken | it names a run, a platform or a reading no record holds, and a failure, report or decision on record depends on its answer | the issue it is re-homed to |
+
+   On record means in a record other than the row itself: an open issue, a
+   failed run, a review finding, or a rule or design that rests on the
+   answer. The row's own `Who must answer` cell is not such a record.
 
    A row that fits more than one kind takes the first that fits, in the
-   table's order: a measurement of a unit the tree no longer holds can no
-   longer be taken, so it is moot.
+   table's order. A measurement of a unit the tree no longer holds can no
+   longer be taken, so it is moot. A measurement no record asks for is
+   closed before it can open an issue, because an issue nothing on record
+   waits on costs its reader a reading and a close.
 
-   A measurement is re-homed with one issue per distinct measurement
-   (`gh issue create`), its body listing each row it would answer with the
-   row's work item, its text and its answerer. A repository with no tracker
-   re-homes it as a `seal/follow-up.md` row.
+   A measurement something on record needs is re-homed with one issue per
+   distinct measurement (`gh issue create`), its body listing each row it
+   would answer with the row's work item, its text, its answerer and the
+   record that needs its answer. A repository with no tracker re-homes it
+   as a `seal/follow-up.md` row.
 
    Open each file the dry run names as not read, and decide each item in it
    that reads as an open row by the same table. Write nothing into the

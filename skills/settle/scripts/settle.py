@@ -433,8 +433,9 @@ NO_SECTION = "no `## Rule changes` section"
 NOTHING_HEADING = "the no-change block (`- {nothing}`), so no section to write:"
 ROWS_HEADING = (
     "open rows: every open `## Not verified` row of every released record, for "
-    "the\nsettling session to decide as moot, answered or a measurement to "
-    "re-home, and\nclose with `closed` and what closed it:"
+    "the\nsettling session to decide as moot, answered, a measurement no record "
+    "asks for,\nor a measurement to re-home, and close with `closed` and what "
+    "closed it:"
 )
 MISPLACED_HEADING = (
     "not read: each file named like a record the settle reads, away from that "

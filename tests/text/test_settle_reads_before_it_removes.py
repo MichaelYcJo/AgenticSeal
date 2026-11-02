@@ -65,12 +65,36 @@ def test_the_skill_names_the_floors_a_fold_has_to_answer():
 def test_the_skill_states_the_settling_sessions_procedure():
     """S11 and S13, #1033's *In* item 3. The settling session's procedure
     names the file a measurement nobody has taken is re-homed in. The
-    steps, their order and the row kinds are the proofer's to read."""
+    steps, their order and what each row kind means are the proofer's to
+    read; the order of the row kinds is the next case's."""
     text = flat(skill())
     procedure = text.split("## The settling session's procedure")[1].split("## ")[0]
     # The path `seal/follow-up.md`, where the settling session writes the
     # row for a measurement nobody has taken (`questions.md` Q1's default).
     assert "`seal/follow-up.md` row" in procedure
+
+
+def test_the_skill_orders_the_row_kinds_so_only_a_needed_measurement_opens_an_issue():
+    """S4 of #1045. A row takes the first kind that fits in step 6's table,
+    so the order decides that a measurement no record asks for is closed
+    before it can be re-homed as an issue. What each kind means is the
+    proofer's to read."""
+    procedure = skill().split("\n## The settling session's procedure\n")[1]
+    procedure = procedure.split("\n## ")[0]
+    lines = [line.strip() for line in procedure.splitlines()]
+    header = lines.index("| The row is | When | What closes it |")
+    kinds = []
+    # The rows under the header and its separator, up to the table's end.
+    for line in lines[header + 2 :]:
+        if not line.startswith("|"):
+            break
+        kinds.append(line.split("|")[1].strip())
+    assert kinds == [
+        "moot",
+        "answered",
+        "a measurement no record asks for",
+        "a measurement nobody has taken",
+    ], kinds
 
 
 def test_the_skill_names_how_a_settle_edits_and_commits():

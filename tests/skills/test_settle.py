@@ -2402,7 +2402,11 @@ class Test_module:
             settle.GROUPS_HEADING
         )
         assert "order them by content" in flat(settle.UNORDERED)
-        assert "moot, answered or a measurement to re-home" in flat(settle.ROWS_HEADING)
+        # The four kinds of the skill's step 6, in its table's order (#1045).
+        assert (
+            "moot, answered, a measurement no record asks for, or a measurement "
+            "to re-home" in flat(settle.ROWS_HEADING)
+        )
         assert "close with `closed` and what closed it" in flat(settle.ROWS_HEADING)
         # The judgments heading the dry run prints, read the same way.
         assert "grouped by the document each stands on" in flat(
