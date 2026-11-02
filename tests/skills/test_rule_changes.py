@@ -611,17 +611,28 @@ class Test_apply_op:
                 DOC.replace("After.\n\n###", "After.\n\nRule.\n\n###"),
             ),
             ("remove", "S", "old sentence.", None, DOC.replace("old sentence. ", "")),
+            ("remove", "S", "Before.", None, DOC.replace("Before. ", "")),
+            ("remove", "T", "x.", None, DOC.replace("x.\n\n", "")),
             ("remove", "T", None, None, DOC.replace("## T\n\nx.\n\nT's text.\n\n", "")),
             ("remove", "U", None, None, DOC.replace("\n## U\n\nLast.\n", "")),
         ],
-        ids=["change", "add", "remove a from", "remove a section", "remove the last"],
+        ids=[
+            "change",
+            "add",
+            "remove a from",
+            "remove a from opening its line",
+            "remove a from that is its line",
+            "remove a section",
+            "remove the last",
+        ],
     )
     def test_places_each_kind_where_the_grammar_says(
         self, kind, section, old, new, want
     ):
         """S1: a `change`'s `from` becomes its `to` inside the section, an
         `add` stands at the end of the section's own text before its first
-        sub-heading, a `from` is cut with the space it leaves, and the whole
+        sub-heading, a `from` is cut with the space beside it or the line it
+        empties, and the whole
         section goes up to the next heading of its level or higher."""
         assert rules.apply_op(DOC, one_op(kind, section, old, new)) == (want, None)
 
