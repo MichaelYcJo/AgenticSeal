@@ -24,9 +24,10 @@ proofer 는 이 파일을 열지 않는다. proofer 가 쓰는 글은 리뷰 코
 `skills/code-review/scripts/pr_body.py#HEADING` 이 담은 줄 아래에
 `<details>` 하나로 접혀 있다. 오케스트레이터는 뒷부분을 고쳐 쓰지 않고,
 쉬운 말로 바꾸지 않고, 번역하지 않는다. 그 부분의 한 줄이라도 기록의 줄과
-다르면 sealer 의 `seal pr-body --check` 가 판정을 보류한다. 오케스트레이터는
-그 줄 위에 기록에 없는 것만 쓰고, 기록에 있는 사실이 필요하면 다시 쓰지 않고
-그 기록의 경로를 적는다.
+다르면 sealer 의 `seal pr-body --check` 가 판정을 보류한다. 오케스트레이터가
+그 줄 위에 무엇을 쓰고, 기록에 있는 사실을 어떻게 적는지는
+`skills/code-review/orchestration.md` *Orchestrator: the pull request opens
+once the sealer seals* 가 정한다.
 
 ### 도메인 용어를 쉬운 말로 바꾼다
 

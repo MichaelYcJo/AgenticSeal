@@ -238,8 +238,10 @@ it.
 part.** The table is what makes this run readable beside the last one, so
 it stands above the orchestrator's prose rather than under it, where a
 reader who stops after the body's first screen still has the numbers. What
-the rounds found is copied from the round records, so the orchestrator's
-part does not restate it.
+the rounds found is the copy's, copied from the round records, and a
+round's fact in the orchestrator's part is stated as
+`skills/code-review/orchestration.md` *Orchestrator: the pull request opens
+once the sealer seals* says.
 
 **The rows have one owner: `skills/verify/orchestration.md` *Measure the
 segment, and feed the flow log*.** That section states each row and where it

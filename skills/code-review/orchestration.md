@@ -366,8 +366,17 @@ again. Then write your own part above that line, from the top of the file,
 so the body opens with it: what no record holds, such as the motivation, a
 note to reviewers, the `Closes` or `Part of` line, the broad run's printed
 figures, a CI run taken after the rounds, the chain section's comparison
-table, and the attribution line. Your part restates no record: where it
-needs a record's fact, it names the record's path. Edit nothing below the
+table, and the attribution line. A sentence of your part that states a
+record's fact is that record's own sentence, or carries the record's
+coordinate: its path, and the row, heading, finding or line that holds the
+fact. Open that record when you write the sentence, after the last fix
+pass, and do not write the fact from your memory of the run. A count, an
+"each", "every" or "all", and a decision attributed to a person, such as
+"the owner asked", carry the coordinate of what they count or of where the
+person's answer stands, such as `routing.md`, a `frame/questions.md` row's
+`Status` cell or an issue comment. A copied sentence carries its record's
+claim and no more: the sealer reads the record against the tree, so the
+sentence adds no claim of its own. Edit nothing below the
 line; the sealer's `seal pr-body --check` withholds on a part below it that
 is not the records' text at HEAD. **Run the command again before every
 later spawn of the sealer and before every `gh api -X PATCH` of the body**,
