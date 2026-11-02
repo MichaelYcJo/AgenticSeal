@@ -770,8 +770,8 @@ class Test_main:
             capsys,
         )
         assert code == 2, out
-        assert out.startswith("refused: "), out
-        assert "does not compile" in out, out
+        # One pair names no place: `pair 1:` would speak of a list never given.
+        assert out.startswith("refused: the mutant does not compile"), out
         if line:
             assert f"{line}:" in out, f"the refusal does not name the line: {out}"
         assert "line None" not in out, out
@@ -779,21 +779,50 @@ class Test_main:
         assert not log.exists(), "the cases ran before the refusal"
 
     @pytest.mark.parametrize(
-        ("source", "pairs", "first_word", "uncompiled"),
+        ("source", "pairs", "marker", "exits", "first_word", "uncompiled"),
         [
-            (b"VALUE = 1\nprint(\n", [("VALUE = 1", "VALUE = 2")], "red", True),
+            (
+                b"VALUE = 1\nprint(\n",
+                [("VALUE = 1", "VALUE = 2")],
+                "VALUE = 2",
+                0,
+                "red",
+                True,
+            ),
+            (
+                b"VALUE = 1\nprint(\n",
+                [("VALUE = 1", "VALUE = 2")],
+                "NOT IN THE FILE",
+                1,
+                "SURVIVED",
+                True,
+            ),
             (
                 b"VALUE = 1\nprint(\n",
                 [("VALUE = 1", "VALUE = 2"), ("VALUE = 1", "VALUE = 2 ")],
+                "VALUE = 2",
+                0,
                 "baseline",
                 True,
             ),
-            (b"\xef\xbb\xbfVALUE = 1\n", [("VALUE = 1", "VALUE = 2")], "red", False),
+            (
+                b"\xef\xbb\xbfVALUE = 1\n",
+                [("VALUE = 1", "VALUE = 2")],
+                "VALUE = 2",
+                0,
+                "red",
+                False,
+            ),
         ],
-        ids=["does-not-compile", "does-not-compile-in-a-batch", "byte-order-mark"],
+        ids=[
+            "does-not-compile",
+            "a-survivor-of-a-file-that-does-not-compile",
+            "does-not-compile-in-a-batch",
+            "byte-order-mark",
+        ],
     )
     def test_a_python_file_is_compiled_as_it_is_before_its_mutants(
-        self, tmp_path, capsys, source, pairs, first_word, uncompiled
+        self, tmp_path, capsys, source, pairs, marker, exits, first_word, uncompiled
     ):
         """A file that does not compile as it is under the running interpreter
         may still run under the cases' own, so its mutants are decided by the
@@ -807,12 +836,12 @@ class Test_main:
                 target,
                 *replaces(pairs),
                 "--tests",
-                red_on(tmp_path, target, "VALUE = 2"),
+                red_on(tmp_path, target, marker),
             ],
             capsys,
         )
         first = out.splitlines()[0]
-        assert code == 0, out
+        assert code == exits, out
         assert first.startswith(f"{first_word}: "), out
         if uncompiled:
             assert "no mutant was compiled" in first, out
