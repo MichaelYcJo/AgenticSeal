@@ -20,8 +20,9 @@ designs pile up into a timeline: a later design may restate what an earlier
 one decided, and the code may have moved past both. **The designs say what
 was decided and in what order,
 the code says what holds now, and the settling session writes each section as
-the latest decision the code bears out. The script reads and removes; it
-neither writes `docs/` nor judges.**
+the latest decision the code bears out. The script reads and removes, and
+with `--draft` writes the released operations literally into the policy root
+as a starting text; it judges nothing.**
 
 The settling session is the session the owner runs the settle in. **It puts
 the person at most two questions, both before its first edit, and none after
@@ -39,6 +40,9 @@ seal settle                  the dry run: each group of released designs that
 seal settle --from DIR       the dry run, and every document of DIR, a
                              directory a person names, with the commits that
                              added and last changed each; repeatable
+seal settle --draft          write every released operation into the policy
+                             root in merge order, and name each one not
+                             placed; it decides nothing
 seal settle --apply          remove each released directory whose record
                              holds no open row and whose version's published
                              note, where one is read, carries its entry
@@ -67,7 +71,7 @@ field per line, indented two spaces:
 
 | Operation | Fields | What it says |
 |---|---|---|
-| `add` | `file`, `to`; `section` optional | `to` belongs at the end of the section's own text, before its first sub-heading. With no `section`, `to` is a new document, `file` |
+| `add` | `file`, `to`; `section` optional | `to` belongs at the end of the section's own text, before its first sub-heading. A `to` that is one table row belongs as the last row of the last table in that text. With no `section`, `to` is a new document, `file` |
 | `change` | `file`, `section`, `from`, `to` | the text `from` quotes becomes `to` |
 | `remove` | `file`, `section`; `from` optional | the text `from` quotes goes, or with no `from` the whole section, up to the next heading of its level or higher |
 | `nothing` | `why` | changes no rule, and stands alone in the section |
@@ -245,6 +249,50 @@ nothing:
 Nothing is refused or held in the dry run: a stale `from`, a section that
 does not parse, an unordered pair and an open row are all shown.
 
+## What `--draft` writes
+
+**`seal settle --draft` writes a starting text for step 4 of the procedure,
+and no section it writes is settled.** It reads what the dry run reads, and
+writes each operation of each design the dry run groups into the policy root
+in the working tree, where *Rule changes* above places its kind. The designs
+come in merge order, a design's operations in the order it lists them, and
+each operation is written over the text the earlier ones left. A superseded
+operation is written like any other, because the script has no notion of
+which decision is latest. It creates the document an `add` with no `section`
+names, deletes one a `remove` leaves empty, keeps each document's line ends,
+and writes nothing outside the policy root.
+
+- **What it prints.** One line for each operation it did not place:
+  `not placed`, the operation's kind, its work item, its design's coordinate,
+  and the reason. The reason is one of these: the document or the heading is
+  not there, the heading is there twice, the `from` is not in its section
+  exactly once, or an `add` with no `section` names a document that exists.
+  The operations after one not placed are written all the same. The last two
+  lines count the operations placed of all of them, and send the settling
+  session to step 4. It exits 0 whatever it placed, since an operation not
+  placed is no verdict.
+- **What it refuses.** `--draft` beside `--apply`, or beside `--from`, exits
+  2 with one sentence and writes nothing. A root holding no work item prints
+  its settled line and writes nothing.
+- **It is run once, before the first edit of the policy root.** It writes
+  over the policy root as it stands, so a second run writes every operation
+  again over what the first wrote. No guard stops that.
+  `git checkout HEAD -- <policy root>` followed by
+  `git clean -f -- <policy root>` returns the root to `HEAD` before a second
+  run.
+
+**The script answers what a script answers exactly, and the settling session
+judges the rest.** The draft answers where the grammar places each
+operation, and whether its heading and its `from` stand there once. Every
+question of meaning stays the settling session's, as step 4 states: which
+operation is a group's latest decision, and what an earlier one it restates
+leaves standing; whether a section the draft wrote reads as one rule, or
+holds a check line with the old paragraph still running on below it; whether
+a sentence still names what another design removed; how each operation not
+placed is written; and whether the code has moved past the decision. A
+section the draft wrote is a listing of what the designs said, in place, and
+is decided no more than the dry run's groups are.
+
 ## The settling session's procedure
 
 1. Put the first question of *Directories a person names* to the person:
@@ -258,15 +306,21 @@ does not parse, an unordered pair and an open row are all shown.
    person names*. The listing is git's facts about each file, and the row
    is yours to write. Where it lists none, ask nothing more. Both questions
    come before the first edit, and no step after this one asks anything.
-4. For each group, read every operation in merge order, the section as it
+4. Optionally, first run `seal settle --draft` (*What `--draft` writes*),
+   and commit what it wrote as one commit before any other edit, so the
+   pull request shows the literal pass and the settling session's judgment
+   as two diffs. The draft decides nothing: every section it wrote is read
+   below against the code like a section the settling session wrote, and
+   each operation it printed as not placed is written by hand. Then, for
+   each group, read every operation in merge order, the section as it
    stands, and the code the rule names, its `check:` targets first. Each
    row the person's answer left marked `promote` joins the group of the
    place it names, as *Directories a person names* says. Write the section
    as the latest decision states it, in your own words. Where the code has
    moved past that decision, write what the code does. An earlier
    operation the latest one restates is superseded: it is settled with its
-   group and not applied. The rest of the document stays as it was, and no
-   marker is written.
+   group and not applied, and where the draft wrote it, it is taken out.
+   The rest of the document stays as it was, and no marker is written.
 5. Read each design listed to read whole, and write any rule it states the
    same way. Then read *The judgments*: where one kind of judgment recurs
    across work items under one document, or kept costing rounds, rewrite
@@ -330,7 +384,8 @@ does not parse, an unordered pair and an open row are all shown.
     row again. The step is done when the row passes with no edit after it.
 11. Open the pull request. Its body lists, per group, the decision and its
     grounds (the work item ids in merge order, the superseded operations,
-    the code coordinate, and the path of each promoted document), the rows
+    the code coordinate, and the path of each promoted document), each
+    operation the draft did not place with how it was written, the rows
     by kind with what closed each, the defaults it took, the answers for
     the checks that read the corpus, and how it was checked. It names each
     directory `--apply` kept for its note, with the tag, the pull request
