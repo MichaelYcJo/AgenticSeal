@@ -116,6 +116,11 @@ body." with:
     the checkout the command runs in.
 ```
 
+```seal
+verdict: fixed 332455460
+answer: The finding holds; the orchestrator's fold at f2c96cda7 hung the new clause on the base sentence. The three sentences went in as given, records only: the design's `add`, *Scope* item 2 and `changelog.md`. `seal chain-check --worktree` and `seal rules --check` exited 0 after the edit (executed).
+```
+
 ## Confirmations
 
 ```seal
