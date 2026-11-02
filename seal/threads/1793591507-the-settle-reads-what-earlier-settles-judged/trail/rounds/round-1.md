@@ -104,6 +104,11 @@ with the fix above:
         assert f"\n    {old}  " in text, text
 ```
 
+```seal
+verdict: fixed 0e45a9122
+answer: The finding holds. Before taking the paste-ready reading, its parse was checked against git's own output (executed: `git log -z --name-only "--format=%x01%H %h %s"` over `origin/main`, read through `od -c`): each commit's field ends in a NUL, and the first path after it opens with a newline, which the `lstrip("\n")` takes off, so no path is swallowed into a subject. The reading went in as given, `--no-show-signature` with it, as `settle.py#history` reads; the comment above the loop is in my own words, and the docstring and `skills/settle/SKILL.md` *What the dry run shows* now name `-z` and why. The case went in as `Test_main::test_a_removed_plan_of_a_non_ascii_id_is_read`, with the released item made by `released_item`. Seen red against `bcafb8f69`, the unchanged code, at its last line, `assert f"\n    {old}  " in text` (executed). `--no-show-signature` had no case, so `29bbfba17` adds `test_a_signed_removal_is_read_under_any_show_signature`, which signs the removing commit with an ssh key as the `--from` case does; it went red with `--no-show-signature` alone removed, at the same assertion (executed, `seal mutate`). The class, listed from every `git` call in `settle.py` and `rule_changes.py` that prints paths (rule 12): `settle.py#tracked_names`, `#tracked_text` (which `#citations` reads), `#history`, `#changed` and `#documents` read with `-z`; `settle.py#notes` reads only whether `ls-tree` printed anything, and `#adding_commit` prints no path; `settle.py#released` (`ls-tree -r --name-only`, no `-z`) and `rule_changes.py#order` (`log --name-only`, no `-z`) read a quoted path. A probe repository whose one work item id ends in two Hangul syllables printed "0 work items; 1 unreleased" (executed), so `released` reads such a work item as never released. Both came before this branch and lie outside its frame, and are named in the hand-back for the orchestrator to route.
+```
+
 ### 2. No case pins `--no-renames`, and the closing memo's grounds for its surviving mutant name the wrong case
 
 ```seal
@@ -156,6 +161,11 @@ failed with `--no-renames` alone removed from `settle.py:1115`.
 
 The memo's paragraph then loses its `--no-renames` half. What it says of
 `--full-history` stays; Confirmations below weighs it.
+
+```seal
+verdict: fixed 0e45a9122
+answer: The finding holds: the closing memo's grounds named a directory renamed in place, and one commit that removes a plan and adds another work item's from the same template is enough. The case went in as given, as `Test_main::test_a_plan_deleted_where_another_is_added_is_still_read`; it passed at `0e45a9122` and went red with `--no-renames` alone removed, at `assert f"\n    {old}  " in text` (executed, `seal mutate`). The docstring of `earlier_judgments` and `skills/settle/SKILL.md` *What the dry run shows* now say what `--no-renames` keeps. `gaps.md` *Not done* was rewritten at `8c38dcf69`: its paragraph now names `--full-history` alone, with the grounds the round's edges give for it. The phase record's mutation paragraph still says `--no-renames` survived; it is phase 1's account, and a fix pass writes no phase record.
+```
 
 ## Confirmations
 
