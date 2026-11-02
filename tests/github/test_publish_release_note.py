@@ -837,6 +837,19 @@ class Test_module:
         assert mod.previous_tag("v0.1.0") is None
         assert mod.commit_range(None, "v0.1.0") == "v0.1.0"
 
+    def test_a_git_that_cannot_read_the_adding_commit_stops_the_run(self, monkeypatch):
+        """#1139. Where `git` cannot read the commit that adds a fragment,
+        the job stops saying what `git` said, as `run` does, rather than
+        publishing that entry without its link."""
+        mod = publisher()
+
+        def fails(root, revisions, path):
+            raise RuntimeError("`git log nosuch -- p` exited 128: bad revision")
+
+        monkeypatch.setattr(mod.settle, "adding_commit", fails)
+        with pytest.raises(SystemExit, match="exited 128: bad revision"):
+            mod.pull_request("nosuch", "p")
+
     def test_the_process_table_takes_its_shape_from_the_template(self):
         """#1117. The heading, the header row and the delimiter row `section`
         writes are `templates/records/process.md`'s, the section's one
