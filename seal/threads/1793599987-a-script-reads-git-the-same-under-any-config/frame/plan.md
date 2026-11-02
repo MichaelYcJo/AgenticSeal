@@ -93,7 +93,7 @@ finding against a named party.
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
 | 1 | Scope 1, 2 and 5 | `tests/hooks/test_gitcmd.py`, one parameter per key of `frame/design.md` *Data & interfaces*, each seen red with that key's `-c` removed from `argv`; then the narrow run over the test modules that read a changed path, at least `tests/skills/test_settle.py`, `test_rule_changes.py`, `test_chain_check.py`, `test_seal_stamp.py`, `test_broad_gate.py` and `test_seal.py`, and `tests/github/test_publish_release_note.py`, `test_close_issues_on_release.py` and `test_release_completeness_check.py`, and `seal layout --check tests` | c8246d3c |
-| 2 | Scope 4 | one case per reader with a work item, fragment or test file whose name is not ASCII, as `frame/design.md` *User scenarios & acceptance* lists, each seen red against `5dc1f37e`; the narrow run over the modules those cases sit in | |
+| 2 | Scope 4 | one case per reader with a work item, fragment or test file whose name is not ASCII, as `frame/design.md` *User scenarios & acceptance* lists, each seen red against `5dc1f37e`; the narrow run over the modules those cases sit in | a77538b8 |
 
 ## Operational impact
 
