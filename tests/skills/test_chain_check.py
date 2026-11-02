@@ -2115,6 +2115,22 @@ class Test_pins_and_copies_in:
         assert f"tests/test_broken.py:0  not read: {why}" in out.splitlines(), out
         assert spec_lines(out) == [], out
 
+    def test_names_a_rule_document_that_does_not_decode_as_not_read(
+        self, branch, ready, capsys
+    ):
+        """A rule document that is not UTF-8 is named as not read at its line
+        0, and the exit code is the one the other arms give. Seen red against
+        the build before the document's notice existed, which skipped it
+        silently."""
+        root, _code = branch
+        (root / "skills" / "bad").mkdir(parents=True)
+        (root / "skills" / "bad" / "SKILL.md").write_bytes(b"\xff\xfe not text\n")
+        planted_spec(root, spec_with(change_to("a new rule.")))
+        code, out = check(root, capsys)
+        assert code == 0, out
+        why = "`skills/bad/SKILL.md` could not be read as UTF-8, so no copy of it is named"
+        assert f"skills/bad/SKILL.md:0  not read: {why}" in out.splitlines(), out
+
 
 # --- the parity arm at the pull request (#988) -------------------------------------
 

@@ -88,7 +88,7 @@ the rule-changes arm reads, a heading near `## Rule changes` among them
 (`rule_changes_read`), for each line of an `add` or `change` `to` that
 `rules.py` names as opening like a check line and not being one
 (`check_lines_in`), and for each test file under `tests/` the pin reading
-could not parse. A design's operation that takes a test's string constant
+could not parse and each rule document it could not decode. A design's operation that takes a test's string constant
 of four words or more out of the policy root, and an `add` or `change` `to`
 that shares a run of 15 words with another rule document, read as
 `tests/text/test_no_passage_is_pasted_into_a_second_file.py` reads one, are
@@ -1077,6 +1077,8 @@ COPY_SAYS = (
 )
 # A test file the pin reading could not parse or decode, after `not read: `.
 TEST_UNREAD = "`{path}` could not be read as Python ({why}), so no pin in it is named"
+# A rule document the copy reading could not decode, after `not read: `.
+DOCUMENT_UNREAD = "`{path}` could not be read as UTF-8, so no copy of it is named"
 # The operations whose `to` the settle writes into the policy root.
 WRITES_A_TO = ("add", "change")
 
@@ -1146,10 +1148,11 @@ def _tracked(root, pathspec):
 def _read_tree(rules, root):
     """What the pin and copy reading reads of the working tree at ROOT:
     `literals`, `[(path, line, text)]` of every tracked `*.py` under `tests/`
-    (`rule_changes.py#literals`); `unread`, a notice at line 0 for each such
-    file that does not decode or parse; and `documents`, `{path: text}` of
-    every tracked rule document (`passages.py#in_corpus`). A file git lists
-    and the tree has deleted is skipped."""
+    (`rule_changes.py#literals`); `documents`, `{path: text}` of every
+    tracked rule document (`passages.py#in_corpus`); and `unread`, a notice
+    at line 0 for each such test that does not decode or parse and each such
+    document that does not decode. A file git lists and the tree has deleted
+    is skipped."""
     literals, unread, documents = [], [], {}
     for path in _tracked(root, "tests/*.py"):
         try:
@@ -1169,8 +1172,11 @@ def _read_tree(rules, root):
         try:
             with open(os.path.join(root, *path.split("/")), encoding="utf-8") as f:
                 documents[path] = f.read()
-        except (OSError, UnicodeDecodeError):
+        except OSError:
             continue
+        except UnicodeDecodeError:
+            why = DOCUMENT_UNREAD.format(path=path)
+            unread.append((path, 0, RULE_CHANGES_UNREAD.format(why=why)))
     return {"literals": literals, "unread": unread, "documents": documents}
 
 
