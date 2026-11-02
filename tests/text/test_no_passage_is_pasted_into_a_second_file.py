@@ -19,7 +19,10 @@ one is sanctioned. Fenced code blocks and heading lines are dropped. A quoted
 section name -- a `.md` path followed by `*...*` -- becomes one token, because a link shares its heading's words by
 design; the name may wrap across a line, which is the case the first draft
 of this method missed. Then the text is lowercased, stripped of `` ` ``, `*`,
-`|`, `>` and `#`, and split into words.
+`|`, `>` and `#`, and split into words. The selection and the normalisation
+are `skills/settle/scripts/passages.py`'s code (`in_corpus`, `words`,
+`windows`), which `skills/code-review/scripts/chain_check.py` reads a
+design's `to` through as well (#1216), and this module imports them.
 
 **What is counted.** For each unordered pair of files, the number of distinct
 runs of `WINDOW` consecutive words the two share. A pair of two agent
@@ -29,9 +32,9 @@ its own definition, so a link would cost every spawn a read and remove
 nothing said twice
 (`48d035aa:seal/threads/1793490088-each-kind-of-restatement-is-measured/trail/phases/phase-1.md`
 *The table*, row K2). A definition paired with any other file is counted,
-since a skill or a document restating a definition is a copy. `WINDOW` is imported from
-`tests/text/test_a_moved_rule_leaves_its_definition.py`, never typed here: that
-module measured it between the longest kept application (10 words) and the
+since a skill or a document restating a definition is a copy. `WINDOW` is
+`skills/settle/scripts/passages.py`'s, never typed here:
+`tests/text/test_a_moved_rule_leaves_its_definition.py` measured it between the longest kept application (10 words) and the
 smallest real copy (25), and this is the same question asked of more files.
 
 **Why verbatim.** The measured failure is a paste. A check that tried to
@@ -63,26 +66,21 @@ both restated in other words. Saying otherwise would be the counterfeit
 
 import itertools
 import os
-import re
 
 import pytest
-from conftest import ROOT, git_listing, on_disk
-from test_a_moved_rule_leaves_its_definition import WINDOW
+from conftest import ROOT, git_listing, load_module, on_disk
 
-TOP_FILES = ("CLAUDE.md", "CONTRIBUTING.md", "README.md")
-TOP_DIRS = ("docs/", "skills/", "agents/", "templates/")
+passages = load_module(
+    os.path.join(ROOT, "skills", "settle", "scripts", "passages.py"),
+    "agentic_passages_for_the_paste_check",
+)
+WINDOW, TOP_FILES = passages.WINDOW, passages.TOP_FILES
+in_corpus, words, windows = passages.in_corpus, passages.words, passages.windows
+
 # A pair whose two paths both start here is not counted (*What is counted*).
 DEFINITIONS = "agents/"
 
 HOME_ACT = "link to the home instead of copying it, per `docs/the-record-layout.md`"
-
-FENCE = re.compile(r"^ *(`{3,}|~{3,})")
-HEADING = re.compile(r"^ {0,3}#{1,6}(\s|$)")
-# A section quoted by name after a `.md` path (with or without its
-# possessive). `[^*]` crosses a line break, so a wrapped name is one name.
-SECTION = re.compile(r"`?[\w./-]+\.md`?(?:'s)?\s+\*[^*]{1,200}\*")
-SECTION_TOKEN = " section-citation "
-STRIP = str.maketrans("", "", "`*|>#")
 
 
 def corpus():
@@ -92,48 +90,9 @@ def corpus():
     what it finds, and a missing file can only lower a count, which never
     fails it."""
     listed = git_listing(ROOT, "ls-files", "--", "*.md")
-    rules = [
-        rel
-        for rel in listed
-        if (rel in TOP_FILES or rel.startswith(TOP_DIRS)) and not rel.endswith(".ko.md")
-    ]
+    rules = [rel for rel in listed if in_corpus(rel)]
     present, _missing = on_disk(ROOT, rules)
     return sorted(present)
-
-
-def lines(text):
-    """TEXT's lines, ended where GFM ends one: LF, CR or CRLF alone."""
-    return text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
-
-
-def words(text):
-    """TEXT normalised as the docstring says, as a list of words."""
-    kept, fence = [], None
-    for line in lines(text):
-        opened = FENCE.match(line)
-        if fence:
-            if (
-                opened
-                and opened.group(1)[0] == fence[0]
-                and len(opened.group(1)) >= len(fence)
-                and not line.strip().strip(fence[0])
-            ):
-                fence = None
-            continue
-        if opened:
-            fence = opened.group(1)
-            continue
-        if HEADING.match(line):
-            continue
-        kept.append(line)
-    text = SECTION.sub(SECTION_TOKEN, "\n".join(kept))
-    return text.lower().translate(STRIP).split()
-
-
-def windows(word_list):
-    return {
-        " ".join(word_list[i : i + WINDOW]) for i in range(len(word_list) - WINDOW + 1)
-    }
 
 
 def shared_counts(texts):
@@ -299,39 +258,6 @@ def test_a_removed_copy_passes_without_a_baseline_edit():
     after = shared_counts(texts)
     assert 0 < after[(a, b)] < counts[(a, b)]
     assert not over_baseline(texts, {(a, b): counts[(a, b)]})
-
-
-def test_a_wrapped_section_name_is_one_token():
-    """A link carries its heading's words; a name broken across a line is
-    still the name, and two links to one long heading share nothing."""
-    name = (
-        "A change writes fragments, never a shared file, and the release "
-        "gathers every one of them before it folds"
-    )
-    assert len(name.split()) > WINDOW
-    one = f"See `docs/the-record-layout.md` *{name}* for where it goes.\n"
-    wrapped = name.replace(" a shared", chr(10) + "a shared")
-    two = f"Read `docs/the-record-layout.md`\n*{wrapped}*\nfirst.\n"
-    path = f"`CONTRIBUTING.md`'s *{name}*\n"
-    other = f"As docs/the-record-layout.md *{name}* says.\n"
-    assert not shared_counts(
-        {"one.md": one, "two.md": two, "three.md": path, "four.md": other}
-    )
-
-
-def test_fences_and_headings_are_not_read_and_case_and_backticks_are_not_words():
-    """A fenced block and a heading line are dropped, and a copy whose first
-    word its new sentence capitalised, or which it backticked, is a copy."""
-    run = " ".join(f"w{i}" for i in range(WINDOW))
-    fenced = f"```\n{run}\n```\n"
-    heading = f"## {run}\n"
-    for skipped in (fenced, heading):
-        assert not shared_counts({"a.md": skipped, "b.md": run}), skipped
-    assert shared_counts({"a.md": run, "b.md": run}) == {("a.md", "b.md"): 1}
-    # A copy whose first word was capitalised by its new sentence is a copy.
-    assert shared_counts({"a.md": run.upper(), "b.md": f"`{run}`"}) == {
-        ("a.md", "b.md"): 1
-    }
 
 
 def test_a_run_two_definitions_share_is_not_counted_and_one_beside_a_skill_is():
