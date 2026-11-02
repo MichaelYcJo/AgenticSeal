@@ -564,15 +564,24 @@ class Test_seal_mark:
             "Verdict: withheld reason: a claim does not hold",
             "Verdict: undecided question: which one?",
             "Verdict: done",
+            f"{SEALED}\n```\n\n```seal\nVerdict: done",
         ],
-        ids=["no guarantee", "withheld", "undecided", "a refused block"],
+        ids=[
+            "no guarantee",
+            "withheld",
+            "undecided",
+            "a refused block",
+            "a refused block after a sealed one",
+        ],
     )
     def test_refuses_a_work_item_not_sealed_saying_nothing(
         self, repo, tmp_path, verdict
     ):
         """S2. No guarantee, a newest block reading `withheld` or
-        `undecided`, and one `hooks/lib/fields.py` refuses: no mark, and no
-        line, since the sealer and the pull request's check name those."""
+        `undecided`, and a file `hooks/lib/fields.py` refuses a line of,
+        after a sealed block too: no mark, and no line, since the sealer and
+        the pull request's check name those. The last seen red with the
+        refusal's read alone removed, where the mark stood."""
         item = sealed_item(repo, verdict=verdict)
         manifest = manifest_of(tmp_path, MANIFEST)
         assert PR.seal_mark(str(item), str(repo), manifest) == (None, None)
