@@ -81,6 +81,10 @@ count when `--record` names a work item, with the deferred findings' homes
 beneath it (`rounds_rows`); and last, where git still sees `trail/gate.md`
 uncommitted, one line saying so: CI reads HEAD. The owner's marks are
 written in ASCII on a console that is not UTF-8, or under `--shape`. A run
+fails where a check exits non-zero, and where the suite's record at `HEAD`
+counts a pytest session that stopped part-way, whatever the row's exit
+(#883): a stop that chooses the exit code, as `pytest.exit()` and
+`os._exit()` do, can give 0 over tests that never ran. A run
 that fails prints `BROAD GATE FAILED` with the same names and the failing
 checks with their first lines (`failed_form`). No run writes a values file
 or a drawing.
@@ -1732,10 +1736,14 @@ def record_path(path, worktree):
 # exit of a session that ran to its end. Every exit above was measured with
 # the recorder loaded on pytest 6.1, 7.0 and 9.1 (#849 round 2), and again
 # with every stop `stopped` carries on the same three builds and on 9.1 with
-# pytest-xdist 3.8 under `-n 2` (`trail/phases/phase-1.md` of 1791384158). One stop
-# shows in neither: a `pytest.exit()` raised by a `pytest_sessionfinish`
-# hook that runs after the recorder's is raised after the `end` line was
-# written, and that session reads as one that ran to its end. One
+# pytest-xdist 3.8 under `-n 2` (`trail/phases/phase-1.md` of 1791384158). Two
+# kinds of stop show in neither. A `pytest.exit()` raised by a
+# `pytest_sessionfinish` hook that runs after the recorder's is raised after
+# the `end` line was written, and that session reads as one that ran to its
+# end while its pytest exits with the code that hook chose. A stop raised before the recorder writes its `session` line, such as a
+# `pytest.exit()` in a conftest's `pytest_configure`, leaves no record of that
+# session, and the gate reads the run as though that session never started:
+# on the row's exit and the other sessions' records (#883 rounds 1 and 2). One
 # over-strictness is named rather than closed: pytest sets `shouldfail` after
 # the test that reaches `-x` or `--maxfail`, last test or not, so a session
 # whose limit fell on its last test ran every test and still reads unended
@@ -2725,7 +2733,11 @@ def failure_lines(check, verdicts=None, record=None):
     session stopped in may have written no failing line — one that kills
     plain pytest writes only its passing setup, and a `KeyboardInterrupt`
     writes no call — and the tests it never reached wrote none, so its file
-    can be in no list above.
+    can be in no list above. That count alone fails the suite, whatever the
+    row's exit (#883), so a failing `suite` whose exit is 0 says first, under
+    its own lines and above any file list, why it failed
+    (`STOPPED_AT_EXIT_0`): a stop that chooses the exit code can give 0 over
+    tests that never ran, and over a test that failed before it.
 
     **Where a line of the record at `HEAD` did not parse, it says how many**
     (#869). `record.unread` is the count of them; the gate passed each over,
@@ -2741,6 +2753,10 @@ def failure_lines(check, verdicts=None, record=None):
     the exit is not a count. Where a record holds lines that did not parse,
     `UNREAD_HERE` has already said why no count follows."""
     lines = [f"exit {check.code}", *check.first_lines()]
+    # Only the suite is handed a record, and it reaches here at exit 0 only
+    # where the record counts a stopped session.
+    if check.code == 0 and record is not None and record.unended:
+        lines.append(STOPPED_AT_EXIT_0)
     if verdicts:
         # Where no pytest at `HEAD` left a record the base is not run, and
         # every row says so; nor is it where the base could not be checked
@@ -2801,6 +2817,19 @@ UNENDED_HERE = (
     "--maxfail, a plugin's stop) or ended it on an error of its own, so a test "
     "it stopped in may be in no list and the tests it never reached are in "
     "none (each session's record is under records/)"
+)
+
+# The line under a failing suite's own lines where the row exited 0 and the
+# gate failed it on a session at `HEAD` that stopped part-way (#883): a test
+# that calls `pytest.exit()` with a return code of 0, or ends its process with
+# `os._exit(0)`, stops the session there with the row still at exit 0, and
+# that exit holds whether or not a test failed before the stop.
+STOPPED_AT_EXIT_0 = (
+    "the row exited 0, and the gate fails the suite all the same because a "
+    "pytest session it ran stopped part-way: a stop such as pytest.exit() or "
+    "os._exit() chooses the exit code itself, so an exit of 0 says neither "
+    "that the session ran every test it collected nor that nothing it ran "
+    "failed"
 )
 
 # The line under the listing where a line of the records the row's pytest
@@ -3000,8 +3029,9 @@ def gate(args, ascii_marks=False):
     # that table was declared to end (#468). Every arm below runs either way.
     # The row's run records what each pytest it starts ran (#825), under a key
     # made for this run alone. The record is read once, here, for every
-    # outcome (#869): the failure loop below takes its failing files and its
-    # counts from it, and the panel its counts.
+    # outcome (#869): the failure loop below takes from it whether a session
+    # stopped part-way (#883), its failing files and its counts, and the panel
+    # its counts.
     head_key = record_key("head")
     head = None
     if not args.preflight:
@@ -3025,7 +3055,12 @@ def gate(args, ascii_marks=False):
 
     failures = []
     for name, check in checks.items():
-        if not check.failed:
+        # A check fails on its exit, and the suite fails as well where its
+        # record here counts a session that stopped part-way, whatever the
+        # row's exit (#883): `pytest.exit()` with a return code of 0, or
+        # `os._exit(0)`, leaves the row at 0 over tests that never ran. The
+        # other arms have no record, so their exit is all there is to read.
+        if not check.failed and not (name == SUITE and head.unended):
             continue
         verdicts, record = None, None
         if name == SUITE:
@@ -3034,7 +3069,9 @@ def gate(args, ascii_marks=False):
             # compare, so the `FAILED` lines only name the files, and the base
             # is not run (#825). A session that stopped part-way here is
             # counted under the list (#849 round 1), and so is a line of the
-            # record that did not parse (#869).
+            # record that did not parse (#869). A suite failed at exit 0 for
+            # a stopped session holds a failing file only where a test failed
+            # before the stop, and only then is the base run.
             record = head
             if head.sessions:
                 files = list(head.failing)

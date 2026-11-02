@@ -65,9 +65,12 @@ The last two are read off the session at `pytest_sessionfinish`, where
 pytest's own setters have left them: neither can be unset once set. A stop
 no hook shows -- an internal error, a usage error, a `pytest.exit()` in an
 xdist worker, which reaches the controller as an internal error -- still
-shows in `exitstatus`, and the gate reads both. One stop shows in neither:
-a `pytest.exit()` raised by a `pytest_sessionfinish` hook that runs after
-this one is raised after the `end` line was written.
+shows in `exitstatus`, and the gate reads both. Two kinds of stop show in
+neither. A `pytest.exit()` raised by a `pytest_sessionfinish` hook that
+runs after this one is raised after the `end` line was written. A stop
+raised before `Recorder.pytest_sessionstart` writes the `session` line, such
+as a `pytest.exit()` in a conftest's `pytest_configure`, which pytest calls
+ahead of this module's, leaves no file at all (#883 round 1).
 
 A line's path is the node's own: `item.path` for a test, the module that
 COLLECTED it, and `collector.path` for a failed collection, `fspath` below
