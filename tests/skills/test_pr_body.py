@@ -370,7 +370,14 @@ class Test_compose:
             ("changelog.md", CHANGELOG + "</DETAILS>\n", 3, "`</DETAILS>`"),
             ("changelog.md", CHANGELOG + "<details open>\n", 3, "`<details open>`"),
             ("changelog.md", CHANGELOG + "a <details/> b\n", 3, "`<details/>`"),
-            ("changelog.md", CHANGELOG + "a sentence <details\n", 3, "`<details`"),
+            (
+                "changelog.md",
+                CHANGELOG + "a sentence <details\n",
+                3,
+                "holds `<details`, a `details` tag GitHub would read as a second "
+                "fold or as the end of the copy's one `<details>`; write it in a "
+                "code span",
+            ),
             ("frame/plan.md", PLAN + "\n## Phases\n\nagain\n", 14, "## Phases"),
             (
                 "changelog.md",
