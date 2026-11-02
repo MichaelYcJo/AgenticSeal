@@ -145,6 +145,11 @@ The case passes against the current reader. It goes red under a reader that
 reads the merge's hunks the way `--cc -p` does, and it is the one case that
 pins the sentence the texts now state.
 
+```seal
+verdict: fixed ffb376cfa
+answer: Answered as `plan.md`'s last judgment decides, not by adding a fourth kind. Each text now states the rule and lists no kinds of merge: `history`'s docstring says a merge is named at a path where its result there differs from every parent's, however it came to differ, and nowhere else, with one example marked as one (`--name-status` names such a merge where `--cc -p` prints no hunk, "as for a merge with no conflict that took one parent's edit at each hunk"); the module docstring, the skill's listing bullet and the changelog fragment say a merge whose result at a file differs from every parent's changed it, and added it where no parent holds it, and the skill's deletion example is marked "for example". Round 3's case went in unchanged as `test_a_clean_merge_of_two_edits_is_a_documents_last_change`; it passes at the current reader, and `seal mutate` dropping `--cc` at ffb376cfa turned it red, which is how it was seen red. `frame/design.md:99` still lists kinds ("so a merge that resolved or wrote the document is read as a change or an add"), for the orchestrator to fold.
+```
+
 ### 2. The signed-commit case errors instead of skipping where the person's git config names another ssh signing program
 
 ```seal
@@ -202,6 +207,11 @@ Beside `test_settle.py:2142-2143`:
 Precondition: the bare name `ssh-keygen` is resolved on git's own `PATH`, as
 git's default is. On Windows, Git for Windows resolves its bundled copy,
 which may not be the one `shutil.which` found. That was not run here.
+
+```seal
+verdict: fixed ffb376cfa
+answer: As decided in `plan.md`'s last judgment. The case writes `gpg.ssh.program` as `ssh-keygen` into its own repository's config beside `gpg.format` and `user.signingkey`, and the `shutil.which` gate is gone: it skips with what failed where `ssh-keygen` cannot be run or makes no key, and where `git commit -S` fails, which covers a git older than 2.34 and an `ssh-keygen` without `-Y sign`. Seen red first: at 3ed5dd51b, under a `GIT_CONFIG_GLOBAL` whose `gpg.ssh.program` was `/usr/bin/false`, the case raised `CalledProcessError` (exit 128 from `git commit -S`); at ffb376cfa under the same global it passed. `seal mutate` deleting the `gpg.ssh.program` line, under that global, reported SURVIVED, because the case then skipped ("git could not sign a commit: error: ...") and a skip is no failure; that is the skip this judgment asks for, so the program line is held by the pass-under-a-foreign-signer run above, not by a mutation verdict, and a broken signing setup in CI shows as a skip, as the finding warned.
+```
 
 ## Confirmations
 
