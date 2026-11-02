@@ -100,7 +100,7 @@ Out, each with its grounds:
 | S4 The crafter's whole read of implement loses the orchestrator's text | Given a crafter reading `skills/implement/SKILL.md` whole, when it reads, then the batch question, the ladder and the row drain are not in it, and `skills/implement/orchestration.md` holds them under its own headings | the proofer reads both files; byte count before and after in the phase record |
 | S5 A grouped policy root parses | Given a design whose `file:` is `docs/<group>/<name>.md`, when `rule_changes.py` parses it, then it is read; given `docs/a/b/c.md`, then it is refused at its line | new cases in the settle's test module, each seen red first |
 | S6 A `move` is placed | Given a `move` of a section into an existing document, when the draft places it, then the section leaves `file` with its sub-sections and stands at the end of `into` at its own level; given a `move` with no `section`, then the document is renamed; given an `into` that does not exist for a section move, or that exists for a document move, then it is not placed and the reason names the file | new cases, seen red first |
-| S7 A move rewrites its citations | Given a placed `move`, when the draft writes it, then each tracked UTF-8 file outside the records that named the old path (a document move) or cited `` `old` *section* `` (a section move) names the new one, and the draft prints each file it rewrote with its count | new cases, seen red first |
+| S7 A move rewrites its one token | Given a placed `move`, when the draft writes it, then each backticked old path (a document move), or each backticked old path followed by the moved section's italic text (a section move), in a tracked UTF-8 file outside the records names the new path; a path in any other spelling is unchanged; and the draft prints each file it rewrote with its count | new cases, seen red first, one of them pinning that an unbackticked path is left |
 | S8 `seal fold` reads groups | Given a policy root whose index names `docs/g/x.md`, when `seal fold` runs, then `docs/g/x.md` is measured against the ceiling and held to one index row; a subdirectory the index names no document of, such as `docs/experiments/`, is not read | new cases in `tests/skills/test_fold_check.py`, seen red first |
 | S9 A citation whose path a pending change corrects is excused | Given a policy document citing `` `skills/settle/SKILL.md` *Rule changes* `` and a pending `change` whose `from` holds that citation and whose `to` holds the same text under another path, when the cited-section case runs, then the citation is excused, not dangling | a new fixture case in `tests/behaviour/test_a_cited_section_stands_in_its_file.py`, seen red first |
 | S10 After the settle no document is past its ceiling, and every citation resolves | Given a scratch clone of HEAD, when this design's operations are placed by the draft's placement code and `seal fold` runs there, then no document is past 25,000 estimated tokens, and the cited-section case passes there | executed by the crafter in the scratch clone, recorded in the last phase's record; the live reading is the settle after 0.30.0 |
@@ -163,10 +163,32 @@ run and the release, and a fifth for the layout a repository is set up with:
 | Group | Who opens it, and at which step | Documents after the settle |
 |---|---|---|
 | `docs/forms/` | two parties that exchange a record: the one that writes it and the one that reads it | `the-round-record.md` (new), `the-guarantee.md` (new), `the-reader-registry.md` |
-| `docs/running/` | the orchestrator while it runs a work item, and an agent sent to one section | `the-run.md` (new: *The run*, *The handoff*, *The per-segment bars*), `the-agent-set.md`, `the-review-and-parity-arms.md`, `the-broad-gate.md`, `measuring-a-run.md` |
+| `docs/running/` | the orchestrator while it runs a work item, and an agent that its definition, the contract or a skill it opens sends to one section | `the-run.md` (new: *The run*, *The handoff*, *The per-segment bars*), `the-agent-set.md`, `the-review-and-parity-arms.md`, `the-broad-gate.md`, `measuring-a-run.md`, `what-a-script-gates.md` |
 | `docs/releasing/` | the orchestrator and the owner at a release and its settle | `branch-and-release.md`, `issues-and-milestones.md`, `release-checklist.md` |
-| `docs/checks/` | a person who changes a hook or a script, and the settling session; no agent | `the-pull-request-check.md` (new), `the-stamp.md` (new), `the-fold.md` (new), `the-unverified-record.md` (new), `what-a-script-gates.md`, `the-session-hooks.md`, `the-routing-check.md` |
-| `docs/layout/` | whoever sets a repository up or places a record | `one-root-by-lifetime.md`, `one-root-by-lifetime.ko.md`, `the-record-layout.md`, `the-pact.md` |
+| `docs/checks/` | a person who changes a hook or a script, and the settling session. No agent acts on them: where the contract or a skill an agent opens cites one, the citing text already states what the agent does, and the citation gives the reason | `the-pull-request-check.md` (new), `the-stamp.md` (new), `the-fold.md` (new), `the-unverified-record.md` (new), `the-session-hooks.md`, `the-routing-check.md` |
+| `docs/layout/` | whoever sets a repository up, and the framer, the crafter and the orchestrator where they place or write a record | `one-root-by-lifetime.md`, `one-root-by-lifetime.ko.md`, `the-record-layout.md`, `the-pact.md` |
+
+Each group's reader line is checked against every citation of a policy
+document from the texts an agent receives or opens: `agents/*.md`, the core,
+the contract, and the `SKILL.md` of `implement`, `verify`, `code-review`,
+`legacy-parity`, `writing-style`, `confidence-check` and `feature-planner`
+(executed: a probe reading each `` `docs/<name>.md` *section* `` citation in
+those files, and `tr | grep -o` for the path-only ones; the orchestrator's
+files name the orchestrator and need no check). The list was made from what
+produces the readers, the files an agent reads, so it is whole for citations
+in those two spellings; a mention in other words is not in it.
+
+| Citation, from the agent side | Group after the settle | The line holds because |
+|---|---|---|
+| *The round record*: `agents/crafter.md`, `skills/implement/SKILL.md`, `skills/legacy-parity/SKILL.md`; *The guarantee*: `agents/sealer.md` | `forms/` | the writer and the reader of each record are its parties |
+| *The run*: `agents/crafter.md`, `agents/framer.md`, `skills/implement/SKILL.md`; *The handoff*: `agents/crafter.md`, `agents/proofer.md`; *The per-segment bars*: contract rule 10; *One contract every agent receives, and one definition each*: `skills/implement/SKILL.md` | `running/` | an agent sent to one section |
+| `docs/what-a-script-gates.md` *The checks*: `agents/proofer.md` step 7, which acts on it to judge a pin | `running/` | the proofer acts on it at review, so it leaves the group no agent acts on (orchestrator's reading at 7849e7757, agreed) |
+| `docs/the-routing-check.md` *The edit check*: contract rule 9; `docs/the-routing-check.md`: `skills/implement/SKILL.md` *2.* | `checks/` | rule 9 states the act, editing through the edit tools, and the citation gives the reason the shell is not seen; *2.* states that no gate stops a commit and cites where the routing is checked |
+| *The stamp*: `skills/verify/SKILL.md` *The hand-back's labels carry the claims, and the one seal is the sealer's* | `checks/` | the sentence states that the hooks draw the stamp, and no agent draws it |
+| *What the check reads at the pull request*: `agents/sealer.md` step 1 | `checks/` | D2 item 3 repoints the sealer to `chain_check.py#follows` in this pull request |
+| *seal/*, *A commit after the build brings its changelog fragment along*: `skills/implement/SKILL.md`; *What the repository decides for itself, and how it is read*: the same | `layout/` | the framer and the crafter, writing a record. `docs/the-pact.md` is named by `skills/implement/multi-repository.md`, which the orchestrator opens for a work item spanning repositories (`git grep`, executed) |
+
+No agent-side citation names a `releasing/` document.
 
 `docs/README.md` stays at the top, one table per group, and the group's
 reader is stated once, in the sentence over its table, rather than at the top
@@ -216,7 +238,8 @@ changes, read across every group.
 |---|---|
 | `skills/settle/scripts/rule_changes.py#parse` | `file` is `<policy root>/<name>.md` or `<policy root>/<group>/<name>.md`, one level and no deeper, no `\` or `:`. A new kind `move`: fields `file`, `into`, and an optional `section`. `into` is held to the same path shape |
 | `rule_changes.py#apply_op`, `#copies`, `#pins` | a `move` with a `section` cuts the section, from its heading to the next heading of its level or higher, out of `file` and appends it at the end of `into` at its own level, with one blank line before it; `into` must exist. A `move` with no `section` renames `file` to `into`, which must not exist. A move changes no wording, so it names no pin of wording and no copy |
-| `skills/settle/scripts/settle.py`, the draft's placement | places a `move` in merge order like any operation, then rewrites each mention of the moved path (a document move) or each citation `` `file` *section* `` (a section move) in every tracked UTF-8 file outside the records, printing each file and its count. A citation the rewrite cannot read, such as one wrapped across comment lines, is left for the cited-section case, which names it at the settle's broad run |
+| `skills/settle/scripts/settle.py`, the draft's placement | places a `move` in merge order like any operation |
+| `skills/settle/scripts/settle.py`, the draft's path rewrite (its own phase, after the grammar and the readers) | **The draft rewrites one token, the moved path written whole between two backticks with nothing else inside them, in every tracked UTF-8 file outside the records, and prints each file it rewrote with its count; every other spelling of a moved path is left as it stands, for the cited-section case and the settle's broad run to name.** For a section move the token is rewritten only where the moved section's italic text follows it, so a citation of a section that stays is not touched. No list of spellings is kept: a path wrapped across lines, quoted without backticks or built at run time is one the suite names or nobody does, and the settling session answers each it names |
 | `skills/settle/scripts/fold_check.py#documents`, `#index_problems` | a document is a top-level `.md` of the policy root, or a `.md` directly inside a subdirectory the index names at least one document of. Every such document is measured against the ceiling and held to one row |
 | `.github/scripts/rules.py`, `.github/scripts/release_report.py#DOCUMENTS`, and every other reader the build finds listing the policy root's documents | read the documents `fold_check.py#documents` reads |
 | `tests/behaviour/test_a_cited_section_stands_in_its_file.py#excuser` | a pending `change` excuses a citation where its `from` holds the citation's path and text together and its `to` does not hold that same pair (S9) |
@@ -437,7 +460,7 @@ the release that carries the settle after 0.30.0 for the policy root;
   into: docs/releasing/release-checklist.md
 - move
   file: docs/what-a-script-gates.md
-  into: docs/checks/what-a-script-gates.md
+  into: docs/running/what-a-script-gates.md
 - move
   file: docs/the-session-hooks.md
   into: docs/checks/the-session-hooks.md
@@ -482,7 +505,7 @@ the release that carries the settle after 0.30.0 for the policy root;
   file: docs/README.md
   section: docs/
   to: ## Running a work item
-    Opened by the orchestrator while it runs a work item, and by an agent its definition sends to one section.
+    Opened by the orchestrator while it runs a work item, and by an agent that its definition, the contract or a skill it opens sends to one section.
     | File | The question it answers |
     |---|---|
     | `docs/running/the-run.md` | how the review chain's run is bounded and ended, and what a spawn prompt hands an agent |
@@ -490,6 +513,7 @@ the release that carries the settle after 0.30.0 for the policy root;
     | `docs/running/the-review-and-parity-arms.md` | what each routing answer owes at the pull request, and what the parity arm wants of a change in a migration |
     | `docs/running/the-broad-gate.md` | who takes the one broad run, what it runs, and what it may say |
     | `docs/running/measuring-a-run.md` | what a segment of a run measures, how a reading that moved is judged, and where the reading goes |
+    | `docs/running/what-a-script-gates.md` | which gates a script holds and which an agent holds, what each script reads, and what it does with what it did not read |
 - add
   file: docs/README.md
   section: docs/
@@ -504,21 +528,20 @@ the release that carries the settle after 0.30.0 for the policy root;
   file: docs/README.md
   section: docs/
   to: ## The checks
-    Opened by a person who changes a hook or a script, and by the settling session; no agent acts on them.
+    Opened by a person who changes a hook or a script, and by the settling session. No agent acts on them: where the contract or a skill an agent opens cites one, the citing text already states what the agent does, and the citation gives the reason.
     | File | The question it answers |
     |---|---|
     | `docs/checks/the-pull-request-check.md` | what the check reads of a work item's records at the pull request |
     | `docs/checks/the-stamp.md` | what the seal stamp draws, and for whom |
     | `docs/checks/the-fold.md` | what tells a settle from a deletion |
     | `docs/checks/the-unverified-record.md` | what the unverified record is read against |
-    | `docs/checks/what-a-script-gates.md` | which gates a script holds and which an agent holds, what each script reads, and what it does with what it did not read |
     | `docs/checks/the-session-hooks.md` | how the hooks are registered, and what the implementer mark says |
     | `docs/checks/the-routing-check.md` | where a session's routing is checked: at its edit tools before the first edit, and at the pull request |
 - add
   file: docs/README.md
   section: docs/
   to: ## The layout
-    Opened by whoever sets a repository up or places a record.
+    Opened by whoever sets a repository up, and by the framer, the crafter and the orchestrator where they place or write a record.
     | File | The question it answers |
     |---|---|
     | `docs/layout/one-root-by-lifetime.md` and `docs/layout/one-root-by-lifetime.ko.md` | where the plugin's one root is, what opts a repository in, what first setup asks, and what the repository's config rows decide |
