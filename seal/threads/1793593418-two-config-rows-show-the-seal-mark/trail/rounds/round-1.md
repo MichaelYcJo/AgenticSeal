@@ -213,6 +213,11 @@ second run. Everything else cites the template.
     check: tests/skills/test_pr_body.py
 ```
 
+```seal
+verdict: fixed e3981d8fb
+answer: The finding holds. The orchestrator folded both rewritten `to` values into `frame/design.md` as given, records only, with a row in `frame/plan.md` *Judgments of the run*; `seal chain-check --worktree` and `seal rules --check` exited 0 after the fold (executed).
+```
+
 ## Confirmations
 
 ```seal
