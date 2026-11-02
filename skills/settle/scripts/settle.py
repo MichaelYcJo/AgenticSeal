@@ -79,7 +79,6 @@ is on, so a merge's own change is read: a merge whose result at a file
 differs from every parent's changed it, and added it where no parent holds
 it. A deletion adds and changes nothing (`history` states each status it
 reads).
-The person's `log.showRoot` and `log.showSignature` change nothing it reads.
 A document `git diff HEAD` names is printed as changed in the working tree.
 Documents are listed in the order of the commits that add them, and those no
 commit adds come last, in path order; a file two named directories hold is
@@ -186,6 +185,7 @@ ROUTING = os.path.join(HERE, "..", "..", "..", "hooks", "lib", "routing.py")
 RULES = os.path.join(HERE, "rule_changes.py")
 FOLD_CHECK = os.path.join(HERE, "fold_check.py")
 CONFIG = os.path.join(HERE, "..", "..", "..", "hooks", "lib", "config.py")
+GITCMD = os.path.join(HERE, "..", "..", "..", "hooks", "lib", "gitcmd.py")
 
 # What each sibling is for, in the sentence `load` prints when it is missing.
 PURPOSES = {
@@ -198,6 +198,10 @@ PURPOSES = {
     RULES: "it is what reads a design's `## Rule changes`",
     FOLD_CHECK: "it is what reads the index and the one read after an apply",
     CONFIG: "it is what reads a plan's *Judgments of the run* table",
+    GITCMD: (
+        "it is what holds what this command reads of `git log` to one "
+        "reading under any git configuration"
+    ),
 }
 
 SPECS = "seal/threads"
@@ -277,9 +281,10 @@ def released(root, ref):
     None for a ref that does not resolve, and the caller refuses: a ref this
     cannot read would make every work item read as unreleased and the report
     say there is nothing to do, the quiet zero every checker here is written
-    against."""
+    against. `-z` ends each path with a NUL and quotes none, whatever
+    `core.quotePath` says, so an id that is not ASCII is read as it is."""
     r = subprocess.run(
-        ["git", "-C", root, "ls-tree", "-r", "--name-only", ref],
+        ["git", "-C", root, "ls-tree", "-r", "-z", "--name-only", ref],
         capture_output=True,
         encoding="utf-8",
         errors="replace",
@@ -288,8 +293,7 @@ def released(root, ref):
         return None
     prefix = SPECS + "/"
     found = set()
-    # exempt from splitlines: git output
-    for line in r.stdout.splitlines():
+    for line in r.stdout.split("\0"):
         if line.startswith(prefix):
             rest = line[len(prefix) :]
             if "/" in rest:
@@ -335,27 +339,21 @@ def adding_commit(root, revisions, path):
     `--full-history` walks every parent, because a release's tag is a merge
     into `main` whose first parent never held the path (0.22.4). No rename is
     read: the pathspec names one path, so the path a rename would pair it
-    with is never in the diff. `--no-follow` and `--root` hold that whatever
-    the person's `log.follow` and `log.showRoot` say: the first would follow
-    the path into another path's add, and the second hides an add the root
-    commit makes. Raises `RuntimeError`, saying what `git` said, where it
-    fails.
+    with is never in the diff. Raises `RuntimeError`, saying what `git` said,
+    where it fails.
     """
     r = subprocess.run(
-        [
-            "git",
+        load(GITCMD, "agentic_gitcmd_for_settle").argv(
             "-C",
             root,
             "log",
-            "--no-follow",
-            "--root",
             "--diff-filter=A",
             "--full-history",
             "--format=%H%x00%s",
             revisions,
             "--",
             path,
-        ],
+        ),
         capture_output=True,
         encoding="utf-8",
         errors="replace",
@@ -477,7 +475,9 @@ def git_out(root, *args):
     """The standard output of `git ARGS` at ROOT, every pathspec literal.
     Raises `RuntimeError`, saying what `git` said, where it fails."""
     r = subprocess.run(
-        ["git", "-C", root, "--literal-pathspecs", *args],
+        load(GITCMD, "agentic_gitcmd_for_settle").argv(
+            "-C", root, "--literal-pathspecs", *args
+        ),
         capture_output=True,
         encoding="utf-8",
         errors="replace",
@@ -1117,7 +1117,6 @@ def earlier_judgments(root, ref, present):
             "-z",
             "--no-renames",
             "--full-history",
-            "--no-show-signature",
             "--diff-filter=D",
             "--name-only",
             "--format=%x01%H %h %s",
@@ -1385,7 +1384,10 @@ def git_fields(root, *args):
     """The NUL-separated fields of `git ARGS` run at ROOT with every
     pathspec literal, or [] where git exits non-zero."""
     r = subprocess.run(
-        ["git", "-C", root, "--literal-pathspecs", *args], capture_output=True
+        load(GITCMD, "agentic_gitcmd_for_settle").argv(
+            "-C", root, "--literal-pathspecs", *args
+        ),
+        capture_output=True,
     )
     if r.returncode != 0:
         return []
@@ -1398,10 +1400,7 @@ def history(root, rel):
     `added` is `{path: (place, commit)}` for the last commit adding each
     path, PLACE its position in the log, and `last` is `{path: commit}` for
     the last commit changing it. A commit is its short hash and date. A
-    HEAD with no commit gives neither. `--root` and `--no-show-signature`
-    hold the walk to these fields whatever the person's `log.showRoot` and
-    `log.showSignature` say: the first keeps the root commit's paths, and
-    the second keeps a signature's verification out of the output.
+    HEAD with no commit gives neither.
 
     The log names a path at a commit with a status of one letter per
     parent, the path compared with that parent; a commit with one parent,
@@ -1428,8 +1427,7 @@ def history(root, rel):
     prints what the walk read."""
     fields = git_fields(
         root, "log", "-z", "--full-history", "--topo-order", "--reverse",
-        "--no-renames", "--name-status", "--cc", "--root", "--no-show-signature",
-        "--format=%x01%h %cs", "HEAD", "--", rel,
+        "--no-renames", "--name-status", "--cc", "--format=%x01%h %cs", "HEAD", "--", rel,
     )  # fmt: skip
     added, last, commit, status = {}, {}, None, None
     for place, field in enumerate(fields):

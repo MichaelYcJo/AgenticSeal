@@ -139,7 +139,7 @@ class Releases:
         if args[:3] == ("gh", "release", "create"):
             self.existing.add(args[3])
             return ""
-        if args[:2] == ("git", "log"):
+        if args[0] == "git" and "log" in args:
             return self.message
         raise AssertionError(f"unexpected command: {args}")
 
@@ -1149,6 +1149,28 @@ class Test_module:
         monkeypatch.setattr(mod, "ROOT", str(repo))
         revisions = mod.commit_range(mod.previous_tag(TAG), TAG)
         assert mod.fragments(revisions) == [("1700000001-first", "- first entry", 5)]
+
+    def test_a_fragment_whose_id_is_not_ascii_reaches_the_note(
+        self, tmp_path, monkeypatch
+    ):
+        """#1283. The range's added paths are read with `-z`, so a fragment
+        whose id git quotes under the default `core.quotePath`, which CI has
+        too, is read as it is and not left out. Seen red against the reading
+        without `-z`, which returned the ASCII fragment alone."""
+        repo = git_repo(tmp_path / "repo")
+        thread = "seal/threads/{}/changelog.md"
+        git_out(repo, "tag", PREVIOUS)
+        write(repo, thread.format("1700000001-정렬"), "- sorted entry\n")
+        commit_everything(repo, "the work item (#5)")
+        write(repo, thread.format("1700000002-plain"), "- plain entry\n")
+        commit_everything(repo, "the other work item (#6)")
+        git_out(repo, "tag", TAG)
+        mod = publisher()
+        monkeypatch.setattr(mod, "ROOT", str(repo))
+        assert mod.fragments(f"{PREVIOUS}..{TAG}") == [
+            ("1700000001-정렬", "- sorted entry", 5),
+            ("1700000002-plain", "- plain entry", 6),
+        ]
 
 
 class Test_section:

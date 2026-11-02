@@ -257,10 +257,8 @@ nothing:
   and added it where no parent holds it, however the result came to
   differ. A commit that deleted the file is neither its add nor its
   change; for example, a deletion on a branch whose merge kept another
-  branch's content is not the file's last change. The
-  person's `log.showRoot` and `log.showSignature` change none of these
-  dates. A line ends `changed in the working tree` where `git diff HEAD`
-  names the file.
+  branch's content is not the file's last change. A line ends `changed in
+  the working tree` where `git diff HEAD` names the file.
   A file no commit adds, untracked or staged and never committed, reads
   `no commit adds it`. Documents are listed in the order of the commits
   that add them, and those no commit adds come last, in path order. A file

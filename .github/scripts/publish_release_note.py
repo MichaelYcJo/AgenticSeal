@@ -122,6 +122,7 @@ sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "..", "..", "hooks", "lib"))
 sys.path.insert(0, os.path.join(HERE, "..", "..", "skills", "verify", "scripts"))
 import console  # noqa: E402
+import gitcmd  # noqa: E402
 from blocks import gfm_lines  # noqa: E402
 from close_issues_on_release import SPAN, keywords_in  # noqa: E402
 from unverified_check import heading_level  # noqa: E402
@@ -187,8 +188,9 @@ def version_of(tag):
 
 
 def git(*args):
-    """`git` run in the repository at `ROOT`; its standard output."""
-    return run("git", "-C", ROOT, *args)
+    """`git` run in the repository at `ROOT`, its argv
+    `hooks/lib/gitcmd.py#argv`'s; its standard output."""
+    return run(*gitcmd.argv("-C", ROOT, *args))
 
 
 def previous_tag(tag):
@@ -227,10 +229,13 @@ def fragments(revisions):
     first parent never held a fragment the settle removed on the release
     branch (0.22.4). A fragment the range's lower tag already holds was
     released there and is skipped, though a commit in the range restored its
-    directory (0.15.3).
+    directory (0.15.3). The added paths are read with `-z`, which ends each
+    with a NUL and quotes none, whatever `core.quotePath` says, so a
+    fragment whose id is not ASCII is read as it is.
     """
     added = git(
         "log",
+        "-z",
         "--no-renames",
         "--diff-filter=A",
         "--name-only",
@@ -242,8 +247,7 @@ def fragments(revisions):
     # holds was released there, and a commit that restores its directory
     # adds nothing new (0.15.3).
     previous = revisions.split("..")[0] if ".." in revisions else None
-    # exempt from splitlines: git output
-    for path in sorted(set(added.splitlines())):
+    for path in sorted(set(added.split("\0"))):
         found = FRAGMENT_RE.match(path)
         if not found:
             continue
@@ -423,7 +427,7 @@ def commit_message(tag):
     commit is the release merge, whose subject GitHub writes as
     `Merge pull request #N from <owner>/release/vX.Y.Z`.
     """
-    return run("git", "log", "-1", "--format=%B", tag)
+    return run(*gitcmd.argv("log", "-1", "--format=%B", tag))
 
 
 def release_exists(repo, tag):

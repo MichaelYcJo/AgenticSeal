@@ -2775,6 +2775,36 @@ class Test_main:
         assert "will not load, so nothing ran: the mark chart is bad" in out.stderr
         assert "Traceback" not in out.stderr and not keep.exists()
 
+    def test_refuses_a_copy_without_the_git_helper_in_a_sentence(self, tmp_path):
+        """#1283, round 1's finding 1. The gate builds every git command with
+        `hooks/lib/gitcmd.py#argv`, and `main` asks git for the root before
+        anything runs. A copy whose `seal_stamp.py` loads and whose plugin
+        holds no helper exits 2 with the loader's sentence, not 1 in a
+        traceback, which reads as a gate that ran and failed."""
+        scripts = tmp_path / "plugin" / "skills" / "verify" / "scripts"
+        scripts.mkdir(parents=True)
+        shutil.copy(ROOT / TARGET, scripts / "broad_gate.py")
+        write(scripts, "seal_stamp.py", "def is_utf8(stream):\n    return True\n")
+        keep = tmp_path / "out"
+        out = subprocess.run(
+            [
+                sys.executable,
+                str(scripts / "broad_gate.py"),
+                "--base",
+                "x",
+                "--keep-output",
+                str(keep),
+            ],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=120,
+            cwd=tmp_path,
+        )
+        assert out.returncode == 2, out.stderr
+        assert "gitcmd.py — this copy of the plugin is missing it" in out.stderr
+        assert "Traceback" not in out.stderr and not keep.exists()
+
     def test_refuses_to_run_when_called_in_process_beside_a_broken_sibling(
         self, tmp_path, monkeypatch, capsys
     ):

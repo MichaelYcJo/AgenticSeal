@@ -1094,7 +1094,10 @@ def _moved_main(root, base, olds, news):
         shown = _git(root, "show", f"{sha}:{path}")
         return shown.stdout if shown.returncode == 0 else None
 
-    listed = _git(root, "ls-tree", "-r", "--name-only", sha, TESTS).stdout.split("\n")
+    # `-z`: each path ends with a NUL and none is quoted, whatever
+    # `core.quotePath` says, so a test file whose name is not ASCII is read.
+    listed = _git(root, "ls-tree", "-r", "-z", "--name-only", sha, TESTS).stdout
+    listed = listed.split("\0")
     present = []
     for directory, subdirectories, names in os.walk(os.path.join(root, TESTS[:-1])):
         subdirectories[:] = sorted(d for d in subdirectories if d != "__pycache__")

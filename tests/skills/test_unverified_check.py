@@ -50,6 +50,8 @@ uc = UC
 
 WORK = "1780000000-work"
 OTHER = "1780000001-other"
+# A work item id git quotes under the default `core.quotePath` (#1283).
+NON_ASCII = "1780000012-정렬"
 TUI = "| how the gate renders in a TUI | user, on the next session |"
 WINDOWS = "| whether Windows hooks fire | a maintainer with a Windows machine |"
 CANONICAL = f"""## Not verified
@@ -1822,6 +1824,15 @@ class Test_overviews_at:
         assert UC.overviews_at(str(joined), "HEAD", ["."]) == [f"{OURS}/gaps.md"]
         assert UC.overviews_at(str(joined), "HEAD", ["specs"]) == [f"{TEAM}/gaps.md"]
 
+    def test_accepts_the_overview_of_an_id_that_is_not_ascii(self, tmp_path):
+        """#1283. The ref's tree is read with `-z`, so a work item whose id
+        git quotes under the default `core.quotePath` has its `gaps.md`
+        listed as it is. Seen red against the listing without `-z`, which
+        listed nothing."""
+        rel = f"specs/{NON_ASCII}/gaps.md"
+        d = _committed(tmp_path, {rel: memo(CANONICAL, NON_ASCII)})
+        assert UC.overviews_at(str(d), "HEAD", ["."]) == [rel]
+
     @pytest.mark.parametrize(
         "ref, prefix",
         [("HEAD", "specs/1780000000-wor"), ("HEAD", "build"), ("nosuch", ".")],
@@ -1842,6 +1853,16 @@ class Test_tree_at:
         listed = [f"specs/{SETTLE_A}/design.md", f"specs/{SETTLE_A}/gaps.md"]
         assert UC.tree_at(str(settle), "HEAD", f"specs/{SETTLE_A}") == listed
         assert UC.tree_at(str(settle), None, f"specs/{SETTLE_A}") == listed
+
+    def test_accepts_a_directory_whose_id_is_not_ascii(self, tmp_path):
+        """#1283. At a ref the paths come from `ls-tree -z`, so they are
+        returned as they are and as the disk gives them, not in git's
+        quoting. Seen red against the listing without `-z`."""
+        directory = f"specs/{NON_ASCII}"
+        d = _committed(tmp_path, {f"{directory}/gaps.md": memo(CANONICAL)})
+        listed = [f"{directory}/gaps.md"]
+        assert UC.tree_at(str(d), "HEAD", directory) == listed
+        assert UC.tree_at(str(d), None, directory) == listed
 
     @pytest.mark.parametrize("ref", ["HEAD", None, "nosuch"])
     def test_refuses_a_directory_that_is_not_there(self, settle, ref):

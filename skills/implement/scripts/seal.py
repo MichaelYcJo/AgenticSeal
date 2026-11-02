@@ -206,6 +206,8 @@ HOOK_PURPOSES = {
     "hooksession.py": "it names the variable a session's id is read from",
     # `seal core` reads it; the command refuses here, before any subcommand.
     "core.py": "it is what reads the core hook's first line",
+    "gitcmd.py": "it is what builds the `git status` this command reads, the "
+    "same under any git configuration",
 }
 
 
@@ -238,6 +240,7 @@ def refuse_without_hooks(hooks=HOOKS):
 refuse_without_hooks()
 sys.path.insert(0, HOOKS)
 import config as repo_config  # noqa: E402
+import gitcmd  # noqa: E402
 import hooksession  # noqa: E402
 import optin  # noqa: E402
 import routing  # noqa: E402
@@ -1724,7 +1727,7 @@ def porcelain(repo, *paths):
     """
     try:
         done = subprocess.run(
-            ["git", "-C", repo, "status", "--porcelain", "--", *paths],
+            gitcmd.argv("-C", repo, "status", "--porcelain", "--", *paths),
             capture_output=True,
             encoding="utf-8",
             errors="replace",

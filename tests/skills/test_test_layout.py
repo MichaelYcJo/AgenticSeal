@@ -635,6 +635,14 @@ UNREAD = (
 OLD_H, H = "tests/test_old_h.py", "tests/test_h.py"
 OLD_K, K = "tests/test_old_k.py", "tests/test_k.py"
 OLD_N, N = "tests/test_old_n.py", "tests/test_n.py"
+# A test file whose name git quotes under the default `core.quotePath`, and
+# a case that imports from it (#1283).
+SORTED, OLD_P, P = "tests/test_정렬.py", "tests/test_old_p.py", "tests/test_p.py"
+SORTED_CASE = "from test_정렬 import V\n\n\ndef test_sorted():\n    assert V\n"
+SORTED_NEW = (
+    "from test_정렬 import V\n\n\nclass Test_module:\n"
+    "    def test_sorted(self):\n        assert V\n"
+)
 INSIDE_NEW, UNREAD_NEW = (
     "class Test_module:\n" + textwrap.indent(source.replace("():", "(self):"), "    ")
     for source in (INSIDE, UNREAD)
@@ -698,6 +706,8 @@ def _moved_world(tmp_path_factory):
     write(repo, OLD_H, INSIDE)
     write(repo, OLD_K, VIEW + "def test_view():\n    assert view()\n")
     write(repo, OLD_N, UNREAD)
+    write(repo, SORTED, "V = 1\n")
+    write(repo, OLD_P, SORTED_CASE)
     write(repo, "tests/data/rows.txt", "a 1\n")
     return repo, commit_everything_as_e(repo, "base")
 
@@ -777,7 +787,11 @@ class Test_moved:
                 (OLD_D,),
                 10,
                 11,
-            )
+            ),
+            # #1283: the base's tests are listed with `-z`, so a test file
+            # git quotes the name of is read at the base as it is. Seen red
+            # against the listing without `-z`.
+            ({P: SORTED_NEW}, None, (OLD_P,), 1, 1),
         ],
         ids=[
             "every-kind-of-move",
@@ -791,6 +805,7 @@ class Test_moved:
             "a-local-import-beside-a-changed-name-it-does-not-take",
             "a-changed-name-of-a-local-import-the-case-does-not-read",
             "a-name-imported-from-a-test-file-in-an-area",
+            "a-name-imported-from-a-test-file-whose-name-is-not-ascii",
         ],
     )
     def test_accepts_a_pure_move(

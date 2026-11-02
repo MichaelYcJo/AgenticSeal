@@ -626,6 +626,21 @@ class Test_report:
         assert "1700000004-delta" not in text, text
         assert "1 unreleased and untouched" in text, text
 
+    def test_a_released_work_item_whose_id_is_not_ascii_is_a_candidate(self, tree):
+        """#1283. `released` reads the ref's tree with `-z`, so a work item
+        id that holds a character git quotes under the default
+        `core.quotePath` is released where its directory stands. Seen red
+        against the listing without `-z`, where the item read as unreleased."""
+        name = "1700000006-정렬"
+        moment(tree, name=name, overview=OVERVIEW_CLOSED)
+        code, text = run(tree)
+        assert code == 0, text
+        assert "released at HEAD: 4 work items; 1 unreleased and untouched\n" in (
+            text
+        ), text
+        stated = text.split("no `frame/design.md`, so no rule stated:\n")[1]
+        assert stated.split("\n\n")[0] == f"    {name}", text
+
     def test_a_spec_less_directory_is_listed_as_stating_no_rule(self, tree):
         """D3: a directory with no `frame/design.md` states no rule, so it is listed
         apart from the specs, and its record's rows with every other's."""
@@ -1493,52 +1508,6 @@ class Test_main:
         code, text = dry_run(repo, capfd)
         assert code == 0, text
         assert f"\n    {old}  " in text, text
-
-    def test_a_signed_removal_is_read_under_any_show_signature(
-        self, repo, capfd, monkeypatch, tmp_path
-    ):
-        """#1281, round 1's fix pass. `log.showSignature=true` writes a
-        signed commit's verification ahead of its header, where the history
-        read looks for the commit's fields, so the read passes
-        `--no-show-signature`. Signed with an ssh key made here, as
-        `test_a_signed_commit_is_read_under_any_show_signature` signs, and
-        skipped where no commit can be signed. Seen red with
-        `--no-show-signature` alone removed."""
-        key = tmp_path / "signing"
-        try:
-            made = subprocess.run(
-                ["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-f", str(key)],
-                capture_output=True,
-                encoding="utf-8",
-            )
-        except FileNotFoundError:
-            pytest.skip("ssh-keygen is not installed, so no commit can be signed")
-        if made.returncode != 0:
-            pytest.skip(f"ssh-keygen made no key: {made.stderr.strip()}")
-        git(repo, "config", "gpg.format", "ssh")
-        git(repo, "config", "gpg.ssh.program", "ssh-keygen")
-        git(repo, "config", "user.signingkey", str(key))
-        old = "1700000001-old"
-        plan = judgments_plan([("2026-10-01", "ended the rounds", "y", "z")])
-        write(repo / "seal" / "threads" / old, "frame/plan.md", plan)
-        commit(repo, "the old work item (#3)")
-        git(repo, "rm", "-rq", f"seal/threads/{old}")
-        signing = subprocess.run(
-            ["git", "-C", str(repo), "commit", "-q", "-S", "-m", "settle (#7)"],
-            capture_output=True,
-            encoding="utf-8",
-        )
-        if signing.returncode != 0:
-            pytest.skip(f"git could not sign a commit: {signing.stderr.strip()}")
-        short = git(repo, "rev-parse", "--short", "HEAD").strip()
-        released_item(repo, "1700000002-new", {"routing.md": "# new — routing\n"})
-        monkeypatch.setenv("GIT_CONFIG_COUNT", "1")
-        monkeypatch.setenv("GIT_CONFIG_KEY_0", "log.showSignature")
-        monkeypatch.setenv("GIT_CONFIG_VALUE_0", "true")
-        code, text = dry_run(repo, capfd)
-        assert code == 0, text
-        assert f"\n    {old}  " in text, text
-        assert f"; removed by {short} (#7)\n" in text, text
 
     @pytest.mark.parametrize("added_by", ["an untagged commit", "no commit"])
     def test_names_a_plan_no_tag_holds_and_a_removal_no_number_names(
@@ -2778,66 +2747,6 @@ class Test_main:
         assert code == 0, text
         assert f"    adr/0001.md  added {first}  last changed {revised}\n" in text, text
 
-    def test_a_document_the_root_commit_added_is_dated_under_any_show_root(
-        self, repo, capfd, monkeypatch
-    ):
-        """#1054, round 3's finding 2: `log.showRoot=false` hides the root
-        commit's paths from `git log`, and the listing reads them anyway, so
-        a document the root commit added is not one no commit adds."""
-        root = stamp(repo)
-        monkeypatch.setenv("GIT_CONFIG_COUNT", "1")
-        monkeypatch.setenv("GIT_CONFIG_KEY_0", "log.showRoot")
-        monkeypatch.setenv("GIT_CONFIG_VALUE_0", "false")
-        monkeypatch.chdir(repo)
-        code, text = dry_run(repo, capfd, "--from", "docs")
-        assert code == 0, text
-        assert f"    docs/a.md  added {root}  last changed {root}\n" in text, text
-
-    def test_a_signed_commit_is_read_under_any_show_signature(
-        self, repo, capfd, monkeypatch, tmp_path
-    ):
-        """#1054, round 3's finding 2: `log.showSignature=true` writes a
-        signed commit's verification into the log ahead of its header, which
-        shifted every field after it, and the listing reads the commit's
-        change anyway. The commit is signed with an ssh key made here, by
-        `ssh-keygen`, which the repository's own config names as the signing
-        program, so a person's `gpg.ssh.program` does not reach the case
-        (round 4's finding 2). Where the key cannot be made or the commit
-        cannot be signed, for want of `ssh-keygen`, of one that signs, or of
-        a git that signs with ssh (2.34), the case skips with what failed."""
-        key = tmp_path / "signing"
-        try:
-            made = subprocess.run(
-                ["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-f", str(key)],
-                capture_output=True,
-                encoding="utf-8",
-            )
-        except FileNotFoundError:
-            pytest.skip("ssh-keygen is not installed, so no commit can be signed")
-        if made.returncode != 0:
-            pytest.skip(f"ssh-keygen made no key: {made.stderr.strip()}")
-        git(repo, "config", "gpg.format", "ssh")
-        git(repo, "config", "gpg.ssh.program", "ssh-keygen")
-        git(repo, "config", "user.signingkey", str(key))
-        item(repo, "1700000001-a", op("add", "U", new="Rule."))
-        write(repo, "adr/0001.md", "one\n")
-        git(repo, "add", "-A")
-        signing = subprocess.run(
-            ["git", "-C", str(repo), "commit", "-q", "-S", "-m", "a signed decision"],
-            capture_output=True,
-            encoding="utf-8",
-        )
-        if signing.returncode != 0:
-            pytest.skip(f"git could not sign a commit: {signing.stderr.strip()}")
-        signed = stamp(repo)
-        monkeypatch.setenv("GIT_CONFIG_COUNT", "1")
-        monkeypatch.setenv("GIT_CONFIG_KEY_0", "log.showSignature")
-        monkeypatch.setenv("GIT_CONFIG_VALUE_0", "true")
-        monkeypatch.chdir(repo)
-        code, text = dry_run(repo, capfd, "--from", "adr")
-        assert code == 0, text
-        assert f"    adr/0001.md  added {signed}  last changed {signed}\n" in text, text
-
     def test_a_file_under_two_named_directories_is_listed_once(
         self, repo, capfd, monkeypatch
     ):
@@ -3094,23 +3003,12 @@ class Test_main:
 
 
 class Test_adding_commit:
-    @pytest.mark.parametrize(
-        "key, value",
-        [
-            pytest.param("log.follow", "true", id="log.follow"),
-            pytest.param("log.showRoot", "false", id="log.showRoot"),
-        ],
-    )
-    def test_accepts_the_oldest_add_under_any_log_config(
-        self, tmp_path, monkeypatch, key, value
-    ):
-        """#1139. The pull request a fragment's adding commit names is read
-        in a person's repository, under their git config. The root commit
-        adds one fragment, and a settle's commit removes it and adds another
-        with the same text. `log.follow=true` followed the second path into
-        the first one's add and named its pull request. `log.showRoot=false`
-        hid the root commit's add and named none. Seen red with `--no-follow`
-        and `--root` taken out."""
+    def test_accepts_the_oldest_add_of_each_path(self, tmp_path):
+        """#1139. The root commit adds one fragment, and a settle's commit
+        removes it and adds another with the same text, so each path names
+        the pull request of its own add. What a person's `log.follow` and
+        `log.showRoot` would change of this reading is held by
+        `hooks/lib/gitcmd.py`, whose cases are `tests/hooks/test_gitcmd.py`."""
         repo = tmp_path / "repo"
         first = "seal/threads/1700000001-first/changelog.md"
         second = "seal/threads/1700000002-second/changelog.md"
@@ -3122,9 +3020,6 @@ class Test_adding_commit:
         git(repo, "rm", "-q", first)
         write(repo, second, "- the same text\n")
         commit(repo, "the settle (#2)")
-        monkeypatch.setenv("GIT_CONFIG_COUNT", "1")
-        monkeypatch.setenv("GIT_CONFIG_KEY_0", key)
-        monkeypatch.setenv("GIT_CONFIG_VALUE_0", value)
         assert settle.adding_commit(str(repo), "HEAD", first)[1] == 1
         assert settle.adding_commit(str(repo), "HEAD", second)[1] == 2
 
@@ -3163,6 +3058,21 @@ class Test_module:
         ids = ["1700000001-a", "1700000002-b"]
         found = [i for i, _ in rules.order(str(repo), "HEAD", ids)]
         assert found == ["1700000002-b", "1700000001-a"], found
+
+    def test_merge_order_of_an_id_that_is_not_ascii_is_its_designs_add(self, repo):
+        """#1283. `rule_changes.py#order` reads the history with `-z`, so a
+        design whose id git quotes under the default `core.quotePath` is
+        placed by the commit that adds it, not last with no commit. Seen red
+        against the reading without `-z`."""
+        item(repo, "1700000001-정렬", op("add", "U", new="A."))
+        commit(repo, "a is framed")
+        added = git(repo, "rev-parse", "HEAD").strip()
+        item(repo, "1700000002-b", op("add", "U", new="B."))
+        commit(repo, "b is framed")
+        ids = ["1700000001-정렬", "1700000002-b"]
+        found = rules.order(str(repo), "HEAD", ids)
+        assert found[0] == ("1700000001-정렬", added), found
+        assert [i for i, _ in found] == ids, found
 
     def test_merge_order_of_a_moved_thread_is_its_first_add_before_the_move(self, repo):
         """The session-start move adds every 0.22.x thread's design in one
@@ -3291,6 +3201,11 @@ class Test_module:
             (
                 "FOLD_CHECK",
                 "it is what reads the index and the one read after an apply",
+            ),
+            (
+                "GITCMD",
+                "it is what holds what this command reads of `git log` to one "
+                "reading under any git configuration",
             ),
         ],
     )
