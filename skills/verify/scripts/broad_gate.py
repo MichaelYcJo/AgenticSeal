@@ -230,15 +230,22 @@ def stamp_module():
     return load(STAMP, "agentic_seal_stamp_for_broad_gate")
 
 
-def git(root, *args):
-    """stdout of a git call in `root`, or None on a non-zero exit. The argv
-    is `hooks/lib/gitcmd.py#argv`'s."""
-    gitcmd = load(
+@functools.lru_cache(maxsize=1)
+def gitcmd_module():
+    """`hooks/lib/gitcmd.py`, loaded once per process, or `Refused`. A
+    refusal is not cached, so each later call raises it again."""
+    return load(
         os.path.join(PLUGIN, "hooks", "lib", "gitcmd.py"),
         "agentic_gitcmd_for_broad_gate",
     )
+
+
+def git(root, *args):
+    """stdout of a git call in `root`, or None on a non-zero exit. The argv
+    is `hooks/lib/gitcmd.py#argv`'s, and a helper that will not load raises
+    `Refused`."""
     r = subprocess.run(
-        gitcmd.argv("-C", root, *args),
+        gitcmd_module().argv("-C", root, *args),
         capture_output=True,
         encoding="utf-8",
         errors="replace",
@@ -3165,7 +3172,12 @@ def main(argv=None, console_wants_ascii=False):
     # child resolves it for itself. A root that is not a repository takes
     # `gate`'s own refusal below, unchanged.
     known, _unknown = parser.parse_known_args(argv)
-    root = repo_root(os.path.abspath(known.root or os.getcwd()))
+    # The first git call: a helper that will not load ends the gate here.
+    try:
+        root = repo_root(os.path.abspath(known.root or os.getcwd()))
+    except Refused as exc:
+        sys.stderr.write(str(exc) + "\n")
+        return 2
     if root is not None:
         shipped = shipped_gate(root)
         if shipped is not None:
