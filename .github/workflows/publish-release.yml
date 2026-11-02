@@ -25,16 +25,17 @@ name: publish the release note
 # Then the seal (#718). A second job, `seal`, runs only when `publish` created
 # the release in this run (`created` is its output; a re-pushed tag or a full
 # re-run finds a release already there and writes `false`, and a re-run of
-# `seal` alone keeps `true` and meets the glance-table guard instead). It
-# runs the suite at the tag, attaches the page form of the stamp's mark, the
-# PNG `.claude-plugin/plugin.json` names as its `icon` (#857), as
-# `seal.png`, and replaces the
-# note's glance table with the image and one line of the table's counts
-# (`.github/scripts/release_seal.py`). Every step of it is
-# `continue-on-error`, and every failure the script meets is a log line and a
-# `::warning::` with an exit of 0: the note is already out, and a seal that
-# cannot be drawn costs the image and never the counts. So nothing in that
-# job can turn the workflow red or touch a note this run did not write.
+# `seal` alone keeps `true` and meets the header guard instead: the first
+# run replaced the header, so the second finds none to replace). It runs the
+# suite at the tag, attaches the page form of the stamp's mark, the PNG
+# `.claude-plugin/plugin.json` names as its `icon` (#857), as `seal.png`, and
+# replaces the note's header with a table of two cells, the image beside the
+# stamp's results as text (#1153, `.github/scripts/release_seal.py`). Every
+# step of it is `continue-on-error`, and every failure the script meets is a
+# log line and a `::warning::` with an exit of 0: the note is already out,
+# and a seal that cannot be drawn costs the image and never the counts. So
+# nothing in that job can turn the workflow red or touch a note this run did
+# not write.
 
 on:
   push:

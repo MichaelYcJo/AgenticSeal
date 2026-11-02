@@ -30,10 +30,13 @@ the release in the same run. The note is already out by then, so a seal that
 cannot be drawn costs the image and never the counts -- the rule
 `publish_release_note.py`'s docstring states for its summary. Every failure
 here is one log line and one `::warning::` with an exit of 0, and nothing is
-edited unless the glance table is still in the note exactly as `glance`
-wrote it: a note somebody edited after publication is left alone, and so is
-its asset list. The upload comes before the edit, so an edit that fails
-leaves an attached image the note does not show, which the warning names.
+edited unless the note's header is still in it exactly once as
+`publish_release_note.py#header` wrote it (#1153). A note somebody edited
+after publication is left alone, and so is its asset list; so is a note a
+run of this job already sealed, whose header is the two-cell one by then,
+so a re-run uploads and edits nothing. The upload comes before the edit, so
+an edit that fails leaves an attached image the note does not show, which
+the warning names.
 
 `DRY_RUN=1` draws the PNG at `SEAL_PNG` (by default `seal.png` in a
 temporary directory), prints the rows and the note it would write, and
@@ -52,7 +55,6 @@ import functools
 import importlib.util
 import json
 import os
-import re
 import subprocess
 import sys
 import tempfile
@@ -86,7 +88,7 @@ def _module(name, path):
 
 def publisher():
     """`.github/scripts/publish_release_note.py`, which owns the note's
-    glance block, the pull request list and how a release is counted."""
+    header, the pull request list and how a release is counted."""
     return module(
         "agentic_publish_release_note", ".github", "scripts", "publish_release_note.py"
     )
@@ -106,7 +108,7 @@ DENSITY = 2
 # a dry run still prints the rows in. That column is `{label:<8}`, not the
 # longest label: `deferred` is exactly eight, which is the only reason the
 # column looked set by it. Since #832 the image carries no rows: they reach
-# the note as its alt text (`alt_text`).
+# the note as the lines beside it in the header's second cell (`results`).
 LABELS = ("SEALED", "tag", "PRs", "issues", "suite", "items", "capped", "deferred")
 # The widest value a release's panel carries before the frame would cut it.
 # It was `skills/verify/scripts/broad_gate.py#PANEL_VALUE_WIDTH` until #832
@@ -168,13 +170,15 @@ def release_rows(version, sha, pulls_n, issues_n, suite, chain):
     return rows
 
 
-def alt_text(rows):
-    """One sentence carrying every value of `rows`, in the shape of the alt
-    text written by hand for 0.17.0's seal, for a reader whose browser does
-    not draw the image. No `]`, `[` or line break is let through: the text
-    was first written into a Markdown image, which any of them ends early.
-    Since #832 it sits in an `<img>`'s `alt`, and `sealed_glance` escapes it
-    for that attribute."""
+def results(rows):
+    """`(sealed, lines)`: the stamp's results in words, which the note's
+    header shows beside the image (#1153). `sealed` is the sealed version,
+    the tagged commit and its branch, which the header writes after a bold
+    `SEALED`. `lines` are the suite, the work items over their review
+    rounds, how many were capped and the issues deferred, one each, in the
+    phrases of the alt text written by hand for 0.17.0's seal; a row not
+    read says so in its line. The pull requests and issues are left out:
+    the header states them in `publish_release_note.py#counts`' words."""
     by = {}
     for label, value in rows:
         if label:
@@ -182,30 +186,25 @@ def alt_text(rows):
             last = label
         else:
             by[last].append(value)
-    sealed, tag = by["SEALED"][0], by["tag"]
-    first = f"The {sealed.removeprefix('v')} release seal: SEALED {sealed} at {tag[0]}"
+    tag = by["tag"]
+    sealed = f"{by['SEALED'][0]} at {tag[0]}" + "".join(f" on {b}" for b in tag[1:])
     suite = [part.strip() for value in by["suite"] for part in value.split(",")]
-    parts = [
-        first + "".join(f" on {more}" for more in tag[1:]),
-        plural(int(by["PRs"][0].split()[0]), "pull request") + " merged",
-        plural(int(by["issues"][0].split()[0]), "issue") + " closed",
-        "the suite at " + " and ".join(suite),
-    ]
+    lines = ["the suite at " + " and ".join(suite)]
     items, capped, deferred = by["items"][0], by["capped"][0], by["deferred"][0]
     if items == NOT_READ:
-        parts.append("work items not read")
+        lines.append("work items not read")
     else:
         count, rounds = items.split(" . ")
         rounds = rounds.replace("round", "review round")
-        parts.append(f"{plural(int(count), 'work item')} over {rounds}")
+        lines.append(f"{plural(int(count), 'work item')} over {rounds}")
     if capped == NOT_READ:
-        parts.append("capped not read")
+        lines.append("capped not read")
     else:
-        parts.append(f"{capped.split()[0]} of them capped")
-    parts.append(
+        lines.append(f"{capped.split()[0]} of them capped")
+    lines.append(
         "deferred not read" if deferred == NOT_READ else f"{deferred} deferred"
     )
-    return re.sub(r"[\]\[\r\n]+", " ", ", ".join(parts))
+    return sealed, lines
 
 
 # --- the sources ---------------------------------------------------------
@@ -503,18 +502,21 @@ def seal_release(tag, repo, dry):
         ]
     except (ValueError, KeyError, TypeError) as problem:
         raise Refused(f"gh release view printed no note: {problem}") from problem
-    table = note.glance(work, closed, people)
+    table = note.header(work, closed, people)
     if body.count(table) != 1:
         raise Refused(
-            "the glance table is not in the note exactly once as `glance` "
-            "writes it for this release -- the note was edited after "
-            "publication, went out without one, or the pull requests moved "
-            "between the two lists; nothing was uploaded"
+            "the header is not in the note exactly once as `header` writes it "
+            "for this release -- the note was edited after publication, a run "
+            "of this job already replaced it, it went out without one, or the "
+            "pull requests moved between the two lists; nothing was uploaded"
         )
     image = f"https://github.com/{repo}/releases/download/{tag}/{ASSET}"
-    sealed = body.replace(
-        table, note.sealed_glance(image, alt_text(rows), width, work, closed, people)
+    alt = f"The {version} release seal"
+    said, lines = results(rows)
+    replacement = note.sealed_header(
+        image, alt, width, said, lines, work, closed, people
     )
+    sealed = body.replace(table, replacement)
     if dry:
         print("DRY_RUN -- nothing uploaded and nothing edited; the note would read:")
         print(sealed)
