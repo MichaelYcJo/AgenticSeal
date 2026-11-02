@@ -1494,6 +1494,52 @@ class Test_main:
         assert code == 0, text
         assert f"\n    {old}  " in text, text
 
+    def test_a_signed_removal_is_read_under_any_show_signature(
+        self, repo, capfd, monkeypatch, tmp_path
+    ):
+        """#1281, round 1's fix pass. `log.showSignature=true` writes a
+        signed commit's verification ahead of its header, where the history
+        read looks for the commit's fields, so the read passes
+        `--no-show-signature`. Signed with an ssh key made here, as
+        `test_a_signed_commit_is_read_under_any_show_signature` signs, and
+        skipped where no commit can be signed. Seen red with
+        `--no-show-signature` alone removed."""
+        key = tmp_path / "signing"
+        try:
+            made = subprocess.run(
+                ["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-f", str(key)],
+                capture_output=True,
+                encoding="utf-8",
+            )
+        except FileNotFoundError:
+            pytest.skip("ssh-keygen is not installed, so no commit can be signed")
+        if made.returncode != 0:
+            pytest.skip(f"ssh-keygen made no key: {made.stderr.strip()}")
+        git(repo, "config", "gpg.format", "ssh")
+        git(repo, "config", "gpg.ssh.program", "ssh-keygen")
+        git(repo, "config", "user.signingkey", str(key))
+        old = "1700000001-old"
+        plan = judgments_plan([("2026-10-01", "ended the rounds", "y", "z")])
+        write(repo / "seal" / "threads" / old, "frame/plan.md", plan)
+        commit(repo, "the old work item (#3)")
+        git(repo, "rm", "-rq", f"seal/threads/{old}")
+        signing = subprocess.run(
+            ["git", "-C", str(repo), "commit", "-q", "-S", "-m", "settle (#7)"],
+            capture_output=True,
+            encoding="utf-8",
+        )
+        if signing.returncode != 0:
+            pytest.skip(f"git could not sign a commit: {signing.stderr.strip()}")
+        short = git(repo, "rev-parse", "--short", "HEAD").strip()
+        released_item(repo, "1700000002-new", {"routing.md": "# new — routing\n"})
+        monkeypatch.setenv("GIT_CONFIG_COUNT", "1")
+        monkeypatch.setenv("GIT_CONFIG_KEY_0", "log.showSignature")
+        monkeypatch.setenv("GIT_CONFIG_VALUE_0", "true")
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        assert f"\n    {old}  " in text, text
+        assert f"; removed by {short} (#7)\n" in text, text
+
     @pytest.mark.parametrize("added_by", ["an untagged commit", "no commit"])
     def test_names_a_plan_no_tag_holds_and_a_removal_no_number_names(
         self, repo, capfd, monkeypatch, added_by
