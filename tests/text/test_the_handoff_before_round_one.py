@@ -204,12 +204,8 @@ def test_the_bars_section_cites_the_run_level_tables_owner():
     bars cites the section that owns the run-level table, by its file and
     its heading. Which instrument judges what is the proofer's to read."""
     section = bars_section(read(*PROTOCOL))
-    # `docs/` is not edited by a pull request: #940 moved the table to
-    # `skills/verify/orchestration.md`, and its `## Rule changes` item moves
-    # this citation at the settle after its release. Until then the section
-    # names the old path, and either path names the owner. The path is the
-    # citation the orchestrator resolves for the table's rows.
-    assert any(path in section for path in OWNER_PATHS), (
+    # The path is the citation the orchestrator resolves for the table's rows.
+    assert OWNER_PATH in section, (
         "the section names no owner for the table, so a reader arriving for "
         "its rows leaves with neither them nor the path to them"
     )
@@ -221,9 +217,8 @@ def test_the_bars_section_cites_the_run_level_tables_owner():
     )
 
 
-# The table's owner, and the path `docs/the-review-record.md` named before
-# #940's rule change is applied.
-OWNER_PATHS = ("skills/verify/orchestration.md", "skills/verify/SKILL.md")
+# The table's owner.
+OWNER_PATH = "skills/verify/orchestration.md"
 
 
 def test_the_scripts_bars_are_the_protocols():

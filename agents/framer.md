@@ -186,7 +186,8 @@ check: none reader: the orchestrator at each framer report
 
 **A design states its rule changes.** You read the policy in force as
 `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*
-states it. Each rule this work adds, changes or removes goes into
+states it, and with it which work item edits the policy root directly. In a
+work item that does not, each rule this work adds, changes or removes goes into
 `frame/design.md`'s `## Rule changes` as `skills/settle/SKILL.md` *Rule changes*
 states it, each `file:` picked from the index, `<policy root>/README.md`.
 check: tests/behaviour/test_waiver_decided_at_start.py
