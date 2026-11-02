@@ -263,12 +263,13 @@ def record_reader():
 # What a commit's check needs beside it to load: the script, the reader it
 # loads when imported, the hook module that reader takes its fence rule and
 # line split from (#1005), the reader of a record's `seal` blocks both load
-# (#1198), and the document whose grammar table it reads. A file a commit
-# does not hold is not copied: a check from before the table carries its
-# grammar in its code, a reader from before #1005 keeps its own fence rule,
-# and a check from before #1198 loads no `fields.py`. The fence module is
-# named at both paths it has stood at, and a commit holds one of them:
-# `hooks/lib/blocks.py` from #1060 on, and the path above it before.
+# (#1198), the builder of the check's git commands (#1283), and the document
+# whose grammar table it reads. A file a commit does not hold is not copied:
+# a check from before the table carries its grammar in its code, a reader
+# from before #1005 keeps its own fence rule, a check from before #1198
+# loads no `fields.py`, and one from before #1283 no `gitcmd.py`. The fence
+# module is named at both paths it has stood at, and a commit holds one of
+# them: `hooks/lib/blocks.py` from #1060 on, and the path above it before.
 CHECK_FILES = (
     "skills/code-review/scripts/chain_check.py",
     "skills/verify/scripts/unverified_check.py",
@@ -276,6 +277,7 @@ CHECK_FILES = (
     # exempt from vacated_paths: the path a commit before #1060 holds it at
     "hooks/blocks.py",
     "hooks/lib/fields.py",
+    "hooks/lib/gitcmd.py",
     "docs/the-review-record.md",
 )
 CHECKS = {}
