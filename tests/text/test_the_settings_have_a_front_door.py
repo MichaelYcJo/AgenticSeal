@@ -33,6 +33,10 @@ ROWS = (
     # the table, and the row a signer declares its pact in (#647).
     "Reference specs",
     "Pact",
+    # The seal mark on a pull request body, read by `seal pr-body`, and on
+    # the release note, read by this repository's `seal` job (#1204).
+    "Pull request seal mark",
+    "Release note seal mark",
 )
 
 

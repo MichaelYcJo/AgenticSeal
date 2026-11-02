@@ -275,12 +275,37 @@ def drawn(png):
     return DRAWN_WIDTH
 
 
+# #1204: the row that turns the release note's seal image on, which this
+# repository's `seal/config.md` writes reading `yes`.
+MARK_ROW = "Release note seal mark"
+
+
+def configured(home, value):
+    """`config.md` under the `seal/` root `home`, holding `MARK_ROW` reading
+    `value`, written once per entry where `value` is a tuple; no file where
+    `value` is None."""
+    if value is None:
+        return
+    values = value if isinstance(value, tuple) else (value,)
+    rows = "".join(f"| {MARK_ROW} | {each} |\n" for each in values)
+    (home / "config.md").write_text(
+        "| Item | Value |\n|---|---|\n" + rows, encoding="utf-8"
+    )
+
+
 def wired(
-    monkeypatch, tmp_path, body=None, fails=(), pulls=PULLS, stand_in=True, **env
+    monkeypatch,
+    tmp_path,
+    body=None,
+    fails=(),
+    pulls=PULLS,
+    stand_in=True,
+    mark="yes",
+    **env,
 ):
-    """The seal with a fixture suite, a fixture tree, no route to GitHub,
-    and `drawn` standing in for `draw`, or the real `draw` where `stand_in`
-    is False."""
+    """The seal with a fixture suite, a fixture tree whose `MARK_ROW` reads
+    `mark` (`configured`), no route to GitHub, and `drawn` standing in for
+    `draw`, or the real `draw` where `stand_in` is False."""
     mod = seal()
     hub = GitHub(mod, note(pulls) if body is None else body, fails)
     if stand_in:
@@ -288,6 +313,7 @@ def wired(
     monkeypatch.setattr(mod, "gh", hub.gh)
     monkeypatch.setattr(mod, "tagged", lambda tag: SHA)
     monkeypatch.setattr(mod, "ROOT", tree(tmp_path, verdicts=[["deferred #12"]]))
+    configured(tmp_path / "seal", mark)
     publisher = mod.publisher()
     monkeypatch.setattr(
         publisher,
@@ -683,16 +709,86 @@ class Test_main:
         ), body[:800]
         assert hub.calls.index(upload) < hub.calls.index(edit)
 
-    def test_a_second_run_finds_no_header_to_replace_and_writes_nothing(
-        self, monkeypatch, tmp_path, capsys
+    @pytest.mark.parametrize(
+        "mark, warned",
+        [
+            pytest.param(None, None, id="absent"),
+            pytest.param("", None, id="empty"),
+            pytest.param(
+                "Yes",
+                f"`{MARK_ROW}` reads `Yes`, not `yes`, so the row is not read "
+                "and the note's header holds the results without the seal's image",
+                id="Yes",
+            ),
+            pytest.param(
+                "on",
+                f"`{MARK_ROW}` reads `on`, not `yes`, so the row is not read "
+                "and the note's header holds the results without the seal's image",
+                id="on",
+            ),
+            pytest.param(
+                "true",
+                f"`{MARK_ROW}` reads `true`, not `yes`, so the row is not read "
+                "and the note's header holds the results without the seal's image",
+                id="true",
+            ),
+            pytest.param(
+                ("yes", "yes"),
+                f"`{MARK_ROW}` is not read: `{MARK_ROW}` appears 2 times — one "
+                "value; the note's header holds the results without the seal's "
+                "image",
+                id="written twice",
+            ),
+        ],
+    )
+    def test_a_row_other_than_yes_attaches_nothing_and_puts_the_results_alone(
+        self, monkeypatch, tmp_path, capsys, mark, warned
     ):
-        """#1153 S4. After the first run the note holds the two-cell header,
-        so a second run of the job finds no header as `publish` writes it,
-        uploads nothing and edits nothing, and its `::warning::` line names a
-        run that already replaced it among the reasons. Seen red with the
-        exact-header guard in `seal_release` alone removed: the second run
-        then uploaded the image again and edited the note."""
-        mod, hub = wired(monkeypatch, tmp_path)
+        """#1204 S6. Where the tree's `Release note seal mark` row is absent,
+        empty, any value but `yes`, or refused, the seal draws and uploads
+        nothing, and replaces `publish`'s header with a table of one cell
+        holding the results the two-cell header's second cell holds, every
+        other byte of the note unchanged. Absent and empty say nothing; any
+        other value, and a refusal, are named on one `::warning::` line, and
+        the exit stays 0. Seen red with the row's read alone removed: the
+        upload then runs."""
+        published = note(theme="A theme.")
+        mod, hub = wired(monkeypatch, tmp_path, body=published, mark=mark)
+        assert mod.main() == 0
+        assert hub.writes("upload") == [], hub.calls
+        (edit,) = hub.writes("edit")
+        body = edit[edit.index("--notes") + 1]
+        results = (
+            "<table>\n<tr>\n"
+            "<td><b>SEALED</b> v1.2.3 at aaa11111 on main<br>2 pull requests merged"
+            "<br>2 issues closed<br>1 outside contributor"
+            "<br>the suite at 7003 passed and 66 skipped"
+            "<br>1 work item over 1 review round<br>1 of them capped"
+            "<br>1 issue deferred</td>\n"
+            "</tr>\n</table>"
+        )
+        assert body == published.replace(HEADER, results), body[:800]
+        out = capsys.readouterr().out.splitlines()
+        assert not any(line.startswith("copied the icon") for line in out), out
+        warnings = [line for line in out if line.startswith("::warning::")]
+        expected = (
+            [] if warned is None else [f"::warning::release seal image: {warned}"]
+        )
+        assert warnings == expected, out
+
+    @pytest.mark.parametrize("mark", ["yes", None], ids=["yes", "absent"])
+    def test_a_second_run_finds_no_header_to_replace_and_writes_nothing(
+        self, monkeypatch, tmp_path, capsys, mark
+    ):
+        """#1153 S4, and #1204 S8 under either answer of the row. After the
+        first run the note holds the sealed header, with the image or
+        without, so a second run of the job finds no header as `publish`
+        writes it, uploads nothing and edits nothing, and its `::warning::`
+        line names a run that already replaced it among the reasons. Seen
+        red with the exact-header guard in `seal_release` alone removed: the
+        second run then uploaded the image again and edited the note, and
+        under the absent row edited it again."""
+        mod, hub = wired(monkeypatch, tmp_path, mark=mark)
         assert mod.main() == 0
         (edit,) = hub.writes("edit")
         hub.body = edit[edit.index("--notes") + 1]
