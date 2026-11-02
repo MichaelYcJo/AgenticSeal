@@ -30,7 +30,7 @@ The chosen approach's failure scenario, six months on. A repository whose suite 
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Scope 1, 2 and 3 of `frame/design.md`, in one commit or in commits that each keep the suite's own pins in step (contract rule 14) | The new cases of S1 and S2 and the Scope 2 unit case in `tests/skills/test_broad_gate.py`, each seen red at 40e6c23e or with the change reverted (contract rule 15). S3 and S4 by the existing cases in `tests/skills/test_broad_gate.py`. The moved pin in `tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py`. Run as one narrow command over those two modules, and over each module that reads a path the phase changed (contract rule 2). `seal mutate` over the new arm in `broad_gate.py#gate` and `failure_lines`, with each surviving mutant named. The suite is the orchestrator's broad run. | |
+| 1 | Scope 1, 2 and 3 of `frame/design.md`, in one commit or in commits that each keep the suite's own pins in step (contract rule 14) | The new cases of S1 and S2 and the Scope 2 unit case in `tests/skills/test_broad_gate.py`, each seen red at 40e6c23e or with the change reverted (contract rule 15). S3 and S4 by the existing cases in `tests/skills/test_broad_gate.py`. The moved pin in `tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py`. Run as one narrow command over those two modules, and over each module that reads a path the phase changed (contract rule 2). `seal mutate` over the new arm in `broad_gate.py#gate` and `failure_lines`, with each surviving mutant named. The suite is the orchestrator's broad run. | 944c1463 |
 
 ## Operational impact
 
