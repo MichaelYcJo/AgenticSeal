@@ -96,6 +96,11 @@ frame/design.md *Rule changes*, the `to:` text, lines 60-62:
   ran failed either.
 ```
 
+```seal
+verdict: fixed cb60fc2e
+answer: The finding holds: `pytest.exit(returncode=0)` and `os._exit(0)` choose the exit code themselves, so an exit of 0 after a failing test is still 0. I wrote the wording in my own words, not the record's paste-ready text, and used one wording in every place it stands. `STOPPED_AT_EXIT_0` and its verbatim pin in `tests/skills/test_broad_gate.py` now read "a stop such as pytest.exit() or os._exit() chooses the exit code itself, so an exit of 0 says neither that the session ran every test it collected nor that nothing it ran failed". The module docstring, the `failure_lines` docstring, `templates/setup/config.md` rule 3 with its pin in `tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py`, and `changelog.md` say the same in prose. The orchestrator folds two frame sentences. At `frame/design.md:27`, replace "and that an exit of 0 says only that nothing the session ran failed." with "and that a stop which chooses the exit code says neither that the session ran every test it collected nor that nothing it ran failed." At `frame/design.md:60-62`, replace "An exit of 0 says that nothing the session ran failed. It does not say that the session ran every test it collected." with "An exit of 0 does not say that the session ran every test it collected, and where a stop chose that code, as `pytest.exit()` and `os._exit()` do, it does not say that nothing the session ran failed either." `seal mutate` (the #898 worktree's copy) put the old text back into the constant, and the pinning cases went red; it put the old sentence back into rule 3, and the pin went red (executed).
+```
+
 ### 2. The rule and the changelog say one stop stays out of the record's reach, and a conftest's `pytest_configure` calling `pytest.exit(returncode=0)` is a second: the gate passes it and writes `trail/gate.md`
 
 ```seal
@@ -162,6 +167,11 @@ frame/design.md *Scope*, Out, the bullet at line 37:
     Both stay limits.
 ```
 
+```seal
+verdict: fixed cb60fc2e
+answer: The finding holds: "one stop" was a sample. I took the limit sentence and not the recorder change. Three grounds. First, `frame/design.md` *Scope* Out keeps the recorder as it is, and #883 asks for a refusal at the gate. Second, a stop in a conftest's `pytest_configure` comes before any test is collected, which is a different shape of run from the one this issue is about. Third, the recorder change has a cost of its own: pytest runs `pytest_configure` with no session for `--help` and `--markers` (read: `_pytest/helpconfig.py:175` and `_pytest/mark/__init__.py:139` in the venv's pytest 9.2.0), so a `session` line written at configure would leave a keyed file with no `end` line, and such a row would fail as stopped. The limit is now written by its cause, not by instance: a stop raised before the recorder writes a session's first line, such as a `pytest.exit()` in a conftest's `pytest_configure`, leaves no record, so the run reads as one that started no pytest and is judged on its exit alone. That wording covers the `tryfirst` `pytest_sessionstart` case the round read and did not run, without my claiming it was measured. In `cb60fc2e` it went into `changelog.md`, and into `templates/setup/config.md` rule 3 with its pin, which the #898 `seal mutate` showed red when the sentence was deleted (executed). In `d43beea9` the recorder's docstring and the `RAN_TO_ITS_END` comment in `broad_gate.py`, which said "One stop shows in neither", now name both kinds; both are comments only. The orchestrator folds two frame sentences. At `frame/design.md:71-73`, replace "One stop stays out of the record's reach: a `pytest.exit()` raised by a `pytest_sessionfinish` hook that runs after the recorder's." with "Two kinds of stop stay out of the record's reach. A `pytest.exit()` raised by a `pytest_sessionfinish` hook that runs after the recorder's comes after the session's `end` line, so the session reads as one that ran to its end. A stop raised before the recorder writes a session's first line, such as a `pytest.exit()` in a conftest's `pytest_configure`, leaves no record, so the run reads as one that started no pytest and is judged on its exit alone." At `frame/design.md:37`, replace the bullet with "- **The stops no record shows.** A `pytest.exit()` raised by a `pytest_sessionfinish` hook that runs after the recorder's is raised after the `end` line was written. A stop raised before the recorder writes its `session` line, such as a `pytest.exit()` in a conftest's `pytest_configure`, leaves no record. Both stay the limits `RAN_TO_ITS_END`'s comment and the recorder's docstring name."
+```
+
 ### 3. Two boundaries of the new line are watched by no case: its place above the file list, and its absence at an exit other than 0 or 1
 
 ```seal
@@ -208,6 +218,11 @@ two mutants).
         for code in (2, 3, 4):
             check = gate.Check(gate.SUITE, code, "first\n", "/k/suite.txt")
             assert STOPPED_AT_EXIT_0 not in gate.failure_lines(check, None, record)
+```
+
+```seal
+verdict: fixed cb60fc2e
+answer: The finding holds: no case watched the line's place above the file list, or its absence at an exit of 2, 3 or 4. I read the paste-ready case against `failure_lines` and `Test_failure_lines`, and its asserts match the function's order. I added it to `Test_failure_lines` with the record's body and a docstring that names the exits it covers. It passes against the fixed code. It was seen red with the #898 worktree's `seal mutate` against `Test_failure_lines or Test_gate` (executed): `check.code == 0` turned into `check.code != 1` went red, and the append moved below the verdicts block went red, on this case at index 2. Both mutants compile, because that `seal mutate` refuses a mutant that does not, before it runs any case. The same batch put back the line's old text and removed the append, and both went red.
 ```
 
 ## Confirmations
