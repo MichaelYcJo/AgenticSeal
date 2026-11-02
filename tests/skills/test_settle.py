@@ -2048,6 +2048,32 @@ class Test_main:
         assert code == 0, text
         assert f"    adr/0002.md  added {merged}  last changed {merged}\n" in text, text
 
+    def test_a_merge_that_rewrote_a_document_one_parent_lacks_changes_it(
+        self, repo, capfd, monkeypatch
+    ):
+        """#1054, round 2's finding 1: a merge that rewrites a document only
+        `side` holds prints `AM` under `--cc`, an `A` against `main` beside an
+        `M` against `side`. Not every letter is `A`, so the merge changed the
+        document and `side`'s commit still added it."""
+        item(repo, "1700000001-a", op("add", "U", new="Rule."))
+        write(repo, "adr/0001.md", "one\n")
+        commit(repo, "a decision")
+        git(repo, "checkout", "-qb", "side")
+        write(repo, "adr/side.md", "side\n")
+        commit(repo, "side adds a document")
+        added = stamp(repo)
+        git(repo, "checkout", "-q", "main")
+        write(repo, "adr/main.md", "main\n")
+        commit(repo, "main")
+        git(repo, "merge", "--no-ff", "--no-commit", "-q", "side")
+        write(repo, "adr/side.md", "side, rewritten in the merge\n")
+        commit(repo, "merge side, rewriting adr/side.md")
+        merged = stamp(repo)
+        monkeypatch.chdir(repo)
+        code, text = dry_run(repo, capfd, "--from", "adr")
+        assert code == 0, text
+        assert f"    adr/side.md  added {added}  last changed {merged}\n" in text, text
+
     def test_a_deletion_is_no_change_to_a_document_head_holds(
         self, repo, capfd, monkeypatch
     ):
