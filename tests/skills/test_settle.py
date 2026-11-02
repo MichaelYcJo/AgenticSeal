@@ -1461,6 +1461,39 @@ class Test_main:
             f"frame/plan.md:7  2026-10-02  second\n"
         ) in block, block
 
+    def test_a_removed_plan_of_a_non_ascii_id_is_read(self, repo, capfd):
+        """#1281, round 1, finding 1. A work item id may hold any character
+        the slug takes, and git quotes such a path under the default
+        `core.quotePath` unless `-z` is given, so the history is read with
+        `-z`. Seen red against the reading without it."""
+        old = "1700000001-정렬"
+        plan = judgments_plan([("2026-10-01", "ended the rounds", "y", "z")])
+        write(repo / "seal" / "threads" / old, "frame/plan.md", plan)
+        commit(repo, "the old work item (#3)")
+        git(repo, "rm", "-rq", f"seal/threads/{old}")
+        commit(repo, "settle 0.1.0 (#7)")
+        released_item(repo, "1700000002-new", {"routing.md": "# new — routing\n"})
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        assert f"\n    {old}  " in text, text
+
+    def test_a_plan_deleted_where_another_is_added_is_still_read(self, repo, capfd):
+        """#1281, round 1, finding 2, design *Scope* item 1. One commit
+        deletes a work item's plan and adds another's from the same text, so
+        git's rename detection would pair the two and list no deletion. Seen
+        red with `--no-renames` alone removed from `earlier_judgments`."""
+        git(repo, "config", "diff.renames", "true")
+        old, new = "1700000001-old", "1700000002-new"
+        plan = judgments_plan([("2026-10-01", "ended the rounds", "y", "z")])
+        write(repo / "seal" / "threads" / old, "frame/plan.md", plan)
+        commit(repo, "the old work item (#3)")
+        git(repo, "rm", "-rq", f"seal/threads/{old}")
+        write(repo / "seal" / "threads" / new, "frame/plan.md", plan)
+        commit(repo, "settle 0.1.0 and frame the new one (#7)")
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        assert f"\n    {old}  " in text, text
+
     @pytest.mark.parametrize("added_by", ["an untagged commit", "no commit"])
     def test_names_a_plan_no_tag_holds_and_a_removal_no_number_names(
         self, repo, capfd, monkeypatch, added_by

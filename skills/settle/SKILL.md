@@ -221,9 +221,12 @@ nothing:
   count.
 - **The judgments earlier settles removed**: every row of every
   `seal/threads/<id>/frame/plan.md` a commit on `--released-at` deleted,
-  where no directory `<id>` stands in the working tree. One `git log
+  where no directory `<id>` stands in the working tree. One `git log -z
   --no-renames --full-history --diff-filter=D` of the ref over
-  `seal/threads` lists the deletions, and each plan is read once, at the
+  `seal/threads` lists the deletions. `-z` keeps a path holding a
+  character past ASCII unquoted, and `--no-renames` keeps a deletion a
+  deletion where the same commit adds a similar plan, such as another work
+  item's. Each plan is read once, at the
   parent of the newest commit that deleted it, by the reader *The
   judgments* uses: a near heading and a table not under the exact header
   are named as not read, at the coordinate `<short>^:<path>`. The rows are

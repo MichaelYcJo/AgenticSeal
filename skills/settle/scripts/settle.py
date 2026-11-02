@@ -1101,8 +1101,10 @@ def earlier_judgments(root, ref, present):
               `<short>^:` path, and a `git` that fails, with what it said;
               `where` is empty where the history itself was not read
 
-    One `git log --no-renames --full-history --diff-filter=D` of REF over
-    `seal/threads` lists the deletions. A merge shows no diff in it, so a
+    One `git log -z --no-renames --full-history --diff-filter=D` of REF over
+    `seal/threads` lists the deletions: `-z` so that no path is quoted,
+    and `--no-renames` so that a deletion beside a similar added path, such
+    as another work item's plan, is not paired with it as a rename. A merge shows no diff in it, so a
     deletion is listed at the commit that made it, and a plan only a
     merge's own resolution deleted is not listed. Each plan is read once,
     at the parent of the newest commit that deleted it. Nothing here
@@ -1112,11 +1114,13 @@ def earlier_judgments(root, ref, present):
         listed = git_out(
             root,
             "log",
+            "-z",
             "--no-renames",
             "--full-history",
+            "--no-show-signature",
             "--diff-filter=D",
             "--name-only",
-            "--format=%x00%H%x00%h%x00%s",
+            "--format=%x01%H %h %s",
             ref,
             "--",
             SPECS,
@@ -1125,10 +1129,14 @@ def earlier_judgments(root, ref, present):
         return [], [("", str(failed))]
     deleted, seen = [], set()
     commit = None
-    # exempt from splitlines: git output
-    for line in listed.splitlines():
-        if line.startswith("\x00"):
-            commit = line[1:].split("\x00", 2)
+    # `-z` ends each path with a NUL and quotes none, whatever
+    # `core.quotePath` says; a commit's field opens with U+0001, which no
+    # path under SPECS starts with, and the path that follows it opens with
+    # a newline.
+    for line in listed.split("\0"):
+        line = line.lstrip("\n")
+        if line.startswith("\x01"):
+            commit = line[1:].split(" ", 2)
             continue
         matched = REMOVED_PLAN_RE.fullmatch(line)
         if not matched or commit is None or line in seen:
