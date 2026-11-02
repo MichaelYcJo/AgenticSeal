@@ -2332,6 +2332,42 @@ class Test_main:
         assert status() == said
 
 
+class Test_adding_commit:
+    @pytest.mark.parametrize(
+        "key, value",
+        [
+            pytest.param("log.follow", "true", id="log.follow"),
+            pytest.param("log.showRoot", "false", id="log.showRoot"),
+        ],
+    )
+    def test_the_persons_log_config_changes_no_number(
+        self, tmp_path, monkeypatch, key, value
+    ):
+        """#1139. The pull request a fragment's adding commit names is read
+        in a person's repository, under their git config. The root commit
+        adds one fragment, and a settle's commit removes it and adds another
+        with the same text. `log.follow=true` followed the second path into
+        the first one's add and named its pull request. `log.showRoot=false`
+        hid the root commit's add and named none. Seen red with `--no-follow`
+        and `--root` taken out."""
+        repo = tmp_path / "repo"
+        first = "seal/threads/1700000001-first/changelog.md"
+        second = "seal/threads/1700000002-second/changelog.md"
+        write(repo, first, "- the same text\n")
+        git(repo, "init", "-q", "-b", "main")
+        git(repo, "config", "user.email", "x@example.com")
+        git(repo, "config", "user.name", "x")
+        commit(repo, "the first work item (#1)")
+        git(repo, "rm", "-q", first)
+        write(repo, second, "- the same text\n")
+        commit(repo, "the settle (#2)")
+        monkeypatch.setenv("GIT_CONFIG_COUNT", "1")
+        monkeypatch.setenv("GIT_CONFIG_KEY_0", key)
+        monkeypatch.setenv("GIT_CONFIG_VALUE_0", value)
+        assert settle.adding_commit(str(repo), "HEAD", first)[1] == 1
+        assert settle.adding_commit(str(repo), "HEAD", second)[1] == 2
+
+
 class Test_module:
     def test_merge_order_is_the_commit_that_adds_the_spec(self, repo):
         """A work item's directory is born with its `routing.md`, often well

@@ -274,10 +274,14 @@ def adding_commit(root, revisions, path):
     (`.github/scripts/publish_release_note.py#fragments`) and any other
     reader of it cannot name different pull requests (#1139).
 
-    `--no-renames` keeps an added fragment from reading as a rename of one a
-    settle deleted. `--full-history` walks every parent, because a release's
-    tag is a merge into `main` whose first parent never held the path
-    (0.22.4). Raises `RuntimeError`, saying what `git` said, where it fails.
+    `--full-history` walks every parent, because a release's tag is a merge
+    into `main` whose first parent never held the path (0.22.4). No rename is
+    read: the pathspec names one path, so the path a rename would pair it
+    with is never in the diff. `--no-follow` and `--root` hold that whatever
+    the person's `log.follow` and `log.showRoot` say: the first would follow
+    the path into another path's add, and the second hides an add the root
+    commit makes. Raises `RuntimeError`, saying what `git` said, where it
+    fails.
     """
     r = subprocess.run(
         [
@@ -285,7 +289,8 @@ def adding_commit(root, revisions, path):
             "-C",
             root,
             "log",
-            "--no-renames",
+            "--no-follow",
+            "--root",
             "--diff-filter=A",
             "--full-history",
             "--format=%H%x00%s",
