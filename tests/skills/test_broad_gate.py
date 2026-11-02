@@ -2277,6 +2277,8 @@ class Test_failure_lines:
             "1 passed",
             "full output: /k/suite.txt",
         ]
+        finished = a_record(sessions=1, counts={"passed": 1})
+        assert STOPPED_AT_EXIT_0 not in gate.failure_lines(check, None, finished)
 
     def test_refuses_to_call_files_compared_where_no_record_was_left(self):
         check = gate.Check(gate.SUITE, 1, "", "/k/suite.txt")

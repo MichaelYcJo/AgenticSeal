@@ -2735,9 +2735,9 @@ def failure_lines(check, verdicts=None, record=None):
     the exit is not a count. Where a record holds lines that did not parse,
     `UNREAD_HERE` has already said why no count follows."""
     lines = [f"exit {check.code}", *check.first_lines()]
-    if check.name == SUITE and check.code == 0 and record is not None:
-        if record.unended:
-            lines.append(STOPPED_AT_EXIT_0)
+    stopped = record is not None and record.unended
+    if check.name == SUITE and check.code == 0 and stopped:
+        lines.append(STOPPED_AT_EXIT_0)
     if verdicts:
         # Where no pytest at `HEAD` left a record the base is not run, and
         # every row says so; nor is it where the base could not be checked
