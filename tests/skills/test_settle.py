@@ -1470,6 +1470,7 @@ class Test_main:
         released_item(repo, "1700000002-new", {"routing.md": "# new — routing\n"})
         code, text = dry_run(repo, capfd)
         assert code == 0, text
+        assert settle.EARLIER_HEADING in text, text
         block = text.split(f"\n{settle.EARLIER_HEADING}\n")[1].split(
             f"\n\n{settle.REMOVES_HEADING}"
         )[0]
@@ -1506,6 +1507,7 @@ class Test_main:
         monkeypatch.setattr(settle, "git_out", git_out)
         code, text = dry_run(repo, capfd)
         assert code == 0, text
+        assert settle.EARLIER_HEADING in text, text
         block = text.split(f"\n{settle.EARLIER_HEADING}\n")[1].split(
             f"\n\n{settle.REMOVES_HEADING}"
         )[0]
