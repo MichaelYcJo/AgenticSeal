@@ -116,8 +116,9 @@ check: tests/text/test_the_rules_have_one_owner.py tests/text/test_a_moved_rule_
 section of each `frame/design.md` it parses, the records, the broad gate's
 file, the sealer's guarantee, the `Seal-Routing` trailers of the pull
 request's own commits and, where `seal/parity.md` is declared, the
-migration config's `Baseline commit`, and nothing else of a round
-record.** It judges the
+migration config's `Baseline commit`, and, against a design's
+operations, the string constants of the test files under `tests/` and
+the rule documents, and nothing else of a round record.** It judges the
 `routing.md` naming the pull request's branch and every one its own commits
 add or change. A ready pull request fails on any refusal, each named
 `path:line  why`; a draft, or a run that observed no pull request, prints the
@@ -249,6 +250,39 @@ nothing. Where git cannot say whether HEAD has the entry, the
 declarations stay judged.
 check: nothing-declared-nothing-owed
 
+**Each check line inside an `add` or `change` `to` of a design whose
+`## Rule changes` the check parses is read by `.github/scripts/rules.py`,
+the reader `seal rules --check` uses, and a line that reader refuses is a
+refusal at its line in the design, carrying the reader's reason.** The
+settle writes each `to` into the policy root as it stands. Where that
+root is `docs`, `seal rules --check` first reads the line there, and a
+line refused there has no pull request left to fix it in. A line that
+opens like a check line and is not one is named at its line as not read
+and refuses nothing. A `from` is read for no check line,
+since the settle writes none into the policy root.
+check: a-check-line-in-a-to-is-read-at-the-pull-request
+
+**For each operation of a design whose `## Rule changes` the check
+parses, the check names the test pins and the copies the settle will
+make, each as a notice at the operation's line in the design, and
+refuses nothing for them.** A pin is a string constant of at least four
+words in a Python file under `tests/`, read through `ast` with its
+docstrings left out, that a `from` holds, or the section a `remove`
+with no `from` takes out, and that the `to` does not hold. A copy is a
+run of 15 words a `to` shares with another rule document, read as
+`tests/text/test_no_passage_is_pasted_into_a_second_file.py` reads one,
+through `skills/settle/scripts/passages.py`. A design's operations
+reach the policy root only at the settle, so without the notice a pin
+and a copy meet the suite first there, after the pull request that
+could answer them has merged. The proofer weighs each notice at review.
+A pin of a rule's wording and a copy another file keeps after the
+settle are findings, and the settle repoints a pin of a fact. A
+source the reading cannot read, a test file, a rule document, a
+section a `remove` names or a file listing, is named as not read. A pin
+the reader cannot list, such as a literal built at run time, meets the
+suite at the settle's broad run.
+check: a-rule-change-names-the-pins-and-copies-it-breaks
+
 ## The guarantee
 
 **The sealer is the final, independent guarantor: it verifies, independently
@@ -267,8 +301,7 @@ names none of them, so the list has one home. Each act is one row of
 re-judge the design or the code's quality.
 check: tests/behaviour/test_the_sealer_guarantees.py
 
-**The pull request body opens with the orchestrator's part, in the repository's language, and the records' copy follows it in one fold; the sealer reads only the orchestrator's part.** `seal pr-body` writes the part of the body below the line `skills/code-review/scripts/pr_body.py#HEADING` holds, copied from the work item's records inside one `<details>` block whose `<summary>` names the copy and is followed by a blank line, with nothing inside it folded again; the orchestrator writes above that line only what no record holds. A reader who stops after the first screen has the orchestrator's part, and the squash commit keeps the block's tags as text. The sealer runs `seal pr-body --check` on the body file before it compares the parties, and withholds where the part below the line is not what the records give. That part then gives it nothing to compare: the records it copies are what the sealer audits.
-check: tests/skills/test_pr_body.py tests/behaviour/test_the_sealer_guarantees.py
+**The pull request body opens with the orchestrator's part, in the repository's language, and the records' copy follows it in one fold; the sealer reads only the orchestrator's part.** `seal pr-body` writes the part of the body below the line `skills/code-review/scripts/pr_body.py#HEADING` holds, copied from the work item's records inside one `<details>` block whose `<summary>` names the copy and is followed by a blank line, with nothing inside it folded again; the orchestrator writes above that line what no record holds, and states a record's fact only as that record's own sentence or with the coordinate of the row, heading, finding or line that holds it. A reader who stops after the first screen has the orchestrator's part, and the squash commit keeps the block's tags as text. The sealer runs `seal pr-body --check` on the body file before it compares the parties, and withholds where the part below the line is not what the records give. That part then gives it nothing to compare: the records it copies are what the sealer audits.
 check: tests/skills/test_pr_body.py tests/behaviour/test_the_sealer_guarantees.py
 
 **Its verdict is `guarantee.md`, from `templates/records/sdd-guarantee.md`**: the broad gate's run, the claims re-run and the parties compared, in tables for people, and one `seal` block per run of the sealer, appended below the blocks of earlier runs and never edited after its run. A verdict block holds `target: <sha> against <base>`, each one word, the `original:` line where *What the check reads at the pull request* owes one, and one `Verdict:` line, `sealed`, `withheld reason: <the claim, its party, its coordinate>` or `undecided question: <the question, for the owner>`, written exactly so. The last block is the newest run and the others are the earlier runs, which the stamp reads. A guarantee with no verdict block, or with a line of a block that does not parse, is refused naming the file and the line. An undecided question is the owner's: the answer goes on a line below the newest block, and the sealer runs again at the new HEAD and appends its block.
@@ -284,6 +317,28 @@ the sample is written in the file so the miss can be found afterwards.
 Whether five stories agree is a judgment, so a disagreement it does not see
 is missed.
 check: none reader: a reader of the guarantee's own tables
+
+**A pull request body carries the seal mark only where the
+repository turns it on and the work item is sealed at HEAD.**
+`seal pr-body` writes the mark, the plugin's icon at the tag of the
+plugin's version, as the first line under the line
+`skills/code-review/scripts/pr_body.py#HEADING` holds. It writes it
+where `seal/config.md`'s `Pull request seal mark` row reads `yes` and
+the newest verdict block of `guarantee.md` reads `sealed` at a commit
+that only the closing records follow, so the mark means what the stamp
+means (*The stamp*). It reads the row and HEAD in the work item's own
+checkout, and, for a work item under the common git directory, in the
+checkout the command runs in. A base the verdict block names that git
+cannot resolve there, and a sealed commit that checkout's HEAD does not
+hold, put no mark either, and are named, since whether the seal holds at
+HEAD cannot then be read. The row's other
+values, and what the mark's address ties a body to, are
+`templates/setup/config.md` *The seal mark*'s. The sealer's
+`seal pr-body --check` runs before its own verdict exists, so the copy
+it checks carries no mark from that run. The orchestrator runs
+`seal pr-body` once more after it commits a `sealed` guarantee, and that
+run changes no copied line, because the copy reads no `guarantee.md`.
+check: tests/skills/test_pr_body.py
 
 ## The stamp
 
@@ -425,7 +480,7 @@ round is the loop having converged.
 check: run-ends-with-verifying-round
 
 **The orchestrator ends the rounds when they stop paying, and a run has three finding rounds by default, counted from the last design change, as the point where it weighs that rather than spawning the next round by habit.** A design change is a reframe, or a new phase the owner approved in `frame/plan.md`, so the first finding round that reviews new work starts the count again at one, whatever the record's number. The signals that a run is not converging, and what going on and stopping each cost, are `skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round*'s. A round that opens nothing needing a fix is the loop having converged and counts toward nothing. A regression's fix pass is followed by one verifying round whatever the count, because a fix nobody read is the invariant Table B of the core holds. Every such decision, past the third round or at it, is a row of `frame/plan.md` *Judgments of the run* naming the counts weighed and this section; the proofer writes no line for it. When the orchestrator stops, every finding still open takes a home from the table below and reads `deferred <home>`. No person is asked mid-run.
-check: tests/text/test_the_rules_have_one_owner.py
+check: tests/behaviour/test_chain_hooks_hardening.py
 
 **A regression is routed by comparing the fix with the frame.** A
 regression is a defect a fix pass's own commit introduced. Where a finding
@@ -494,7 +549,7 @@ its question states no default: the session takes none of the ways on
 that question offers, and hands the stop back at the end of the run.
 check: tests/hooks/test_question_gate.py
 
-**The orchestrator's judgments of a run are rows of `frame/plan.md` *Judgments of the run*, each with its grounds and the document it stands on.** The decisions this section leaves to the orchestrator, to go on past the third round or to stop, a regression's route, a leftover's home, and a decision folded into the frame after the frame was committed, are judgments and not sequences, and `skills/core/SKILL.md` *A judgment stands on a source document, and is written down with both* asks that each be written where the next session reads it. The settle's dry run prints the rows of every released work item grouped by the document they stand on, and the settling session rewrites the section where one kind of judgment keeps costing rounds. The framer's judgments stand in its *Alternatives considered* and the proofer's in its findings, and neither is copied here.
+**The orchestrator's judgments of a run are rows of `frame/plan.md` *Judgments of the run*, each with its grounds and the document it stands on.** The decisions this section leaves to the orchestrator, to go on past the third round or to stop, a regression's route, a leftover's home, and a decision folded into the frame after the frame was committed, are judgments and not sequences, and `skills/core/SKILL.md` *A judgment stands on a source document, and is written down with both* asks that each be written where the next session reads it. The settle's dry run prints the judgment rows of the released work items and, beside them, those earlier settles removed, which the history still holds. The settling session rewrites the section where one kind of judgment keeps costing rounds, in one release or across several, and deciding that two rows are one kind is its own judgment. The framer's judgments stand in its *Alternatives considered* and the proofer's in its findings, and neither is copied here.
 check: none reader: the settling session at the dry run's judgments
 
 ## The handoff

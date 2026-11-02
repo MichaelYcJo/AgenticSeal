@@ -29,12 +29,22 @@ two, because the next work item had to start with the replacement in effect.
 Neither was cut short of a target. Both are named rather than numbered, so
 the description reads the same on every release.
 
-**Three or four is a ceiling, not a target.** It is as much as one section can
-describe while a reader still comes away knowing what the release is about, and
-it says nothing about when to stop under it. The count is in work items rather
-than in ticket numbers, because one branch's leftovers arrive as several
-ticket numbers that a reader counts as several releases' worth of work. Size a
-ticket set that will be one branch as one item.
+**No number caps a release: whoever places an issue in a `release:`
+milestone judges whether the release has grown past what its description
+can make clear.** A number is read as a limit whatever it is called. It
+stops a release on the count while the description could still say what
+the release is about, and it says nothing of a release that grows too far
+under it. The description shows the judgment. Once it can no longer name
+the one purpose its issues share, or the grounds for their order, the
+release carries more than a reader can follow. An issue that does not
+have to be in effect before the next work item starts then moves to a
+later `release:` milestone, and a `feat:` moves only where
+`docs/branch-and-release.md` *Work accumulates on a release branch*
+sends it. The judgment weighs work items rather than ticket numbers.
+One branch's leftovers arrive as several ticket numbers that a reader
+takes for several releases' worth of work, so a ticket set that will be
+one branch is judged as one item.
+check: none reader: whoever places an issue in a release milestone
 
 **What the criterion does not change.** It decides a release's size and nothing
 else. A `release:` milestone is still the pool a release is cut from rather than

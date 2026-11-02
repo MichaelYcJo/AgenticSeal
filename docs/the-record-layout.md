@@ -102,9 +102,14 @@ qualifies reached users in the code with the release, so holding the
 directory back stops nothing. The settling session reads each row against
 the tree. A row naming a unit the tree no longer holds is moot; a row
 another record or a later run already answered is answered, and the closure
-names that record; a row naming a measurement nobody has taken is re-homed
-as an issue, or as a `seal/follow-up.md` row in a repository with no
-tracker. Each is closed in the record, `closed` with what closed it, and
+names that record; a row naming a measurement no failure, report or
+decision on record depends on is closed with that reason and opens
+nothing; and a row naming a measurement something on record needs is
+re-homed as an issue, or as a `seal/follow-up.md` row in a repository
+with no tracker. A row that fits more than one kind takes the first
+that fits, in this order, so only a measurement something on record
+needs opens an issue, since an issue no record waits on is read only to
+be closed. Each is closed in the record, `closed` with what closed it, and
 `seal settle --apply` removes a directory only once its record holds no open row
 in the working tree. The settle's pull request body carries every closure,
 an issue carries every re-homed row, and git keeps the record. A released
@@ -129,9 +134,13 @@ section states what the code does. The settling session writes the section;
 an operation's `from` locates the text its design's framer read, and a
 `from` that no longer matches is history, not a refusal. The rest of the
 document stays as it was, and no marker is written. `settle` groups the
-designs, shows
-each group's history and removes the directories; it writes no policy
-document.
+designs, shows each group's history and removes the directories. Run with
+`--draft`, it first writes every released operation
+into the policy root in merge order, a superseded one among them, where the
+operation's design places it, and names each one it could not place with
+the reason. The draft decides nothing: the settling session reads every
+section it wrote against the code, as it reads a section it wrote itself,
+and takes out what the latest decision does not keep.
 check: tests/skills/test_rule_changes.py tests/skills/test_settle.py
 
 **A settle is not a work item.** It opens no directory under `seal/threads/`.
@@ -239,6 +248,38 @@ changes the policy root alone, so no check reads a removal there, and its
 commits carry no trailer, as no local-mode commit does.
 check: tests/skills/test_settle.py
 
+**A directory a person names at the settle is read and never
+written, and only the documents the person marks promote reach the
+policy root.** A repository's decisions also stand outside `seal/`, in
+architecture decision records, RFCs and another tool's spec files, and
+nothing gathers them into the policy root on its own. So the settling
+session asks the person, before its first edit, whether any directory
+besides `seal/` holds decisions to fold. `seal settle --from <dir>`
+lists every document of each directory named, placed in the timeline by
+the commit that added it and the commit that last changed it. The
+session proposes each document as promote or skip, with the section it
+bears on and the grounds, read from the document and checked against
+the code, and the person marks each row in one more question. A
+promoted decision is written into its section as a released design's
+is, and the section cites the document by its path. The settle's pull
+request body states each row with its mark. No step writes, moves or
+removes a file under a named directory, and `seal settle --apply`
+removes only under `seal/threads/`. A first answer of "none" runs the
+settle with no `--from`, and no configuration row names such a
+directory. `skills/settle/SKILL.md` *The settling session's procedure*
+is the procedure.
+check: tests/skills/test_settle.py
+
+**The settle removes a released work item's directory only once the
+published note of the version that shipped it carries its entry.** Once
+the directory goes, git history holds the fragment and the note is its
+only other copy, so the settle is where a missing entry has to be found.
+Which note is read, what counts as carrying an entry, and which work
+items and repositories have no note to read are stated in
+`skills/settle/SKILL.md` *What `--apply` does*. Where no note can be
+read, the open-row rule alone decides, and the reason is printed.
+check: tests/skills/test_settle.py
+
 ## The unverified record, and the baseline it is read against
 
 **A baseline reference is resolved once, to a merge base, and every arm reads
@@ -274,6 +315,8 @@ common directory otherwise.
 |---|---|
 | `seal/README.md` | what the root holds, where it lives in each mode, and which file states the export rules |
 | `seal/config.md` | what this repository says about itself, one row per item |
+| `seal/parity.md` | which codebase this repository ports behaviour from, and at which baseline commit; present only where a migration is declared |
+| `seal/pact.md` | what two or more repositories keep together; present only in the repository that holds the pact |
 | `seal/follow-up.md` | which items wait on a named party, and who |
 | `seal/threads/<work-item-id>/` | one work item's records, the table below |
 
@@ -338,6 +381,23 @@ check: record-comment-line-refused
 **A fact of a work item has one record, and every other record cites it by path and heading.** What changed, for a user, is `changelog.md`'s. What is built, its grounds, its rule changes and its removals are `frame/design.md`'s. In which phases, by which approach and with which commit each closed is `frame/plan.md`'s. What only a person could decide, and what was assumed in its place, is `frame/questions.md`'s. What building one phase found, each departure from the frame among it, is that phase's `trail/phases/phase-N.md`. What one round found is its `trail/rounds/round-N.md`. The one broad run is `trail/gate.md`. What went out unproved and what was within reach and not taken is `gaps.md`. The sealer's audit is `guarantee.md`. A record cites another's fact by its path and heading and does not restate it, so a template holds no section or cell that could hold only a copy. In 0.24.0, 12 of 17 recurring review findings stood only in a work item's own records, one restating another (#1148).
 check: tests/behaviour/test_a_phase_hands_the_next_one_a_record.py tests/behaviour/test_unverified_rows_close.py
 
+**A `<commit>:<path>` citation names a commit that `main` or a release
+branch reaches, except in a work item's `trail/` and its
+`guarantee.md`.** A feature branch squashes into its release branch, and
+the squash discards every commit the branch wrote, so a citation of one
+opens in no clone after the merge, and a reader sent to it finds no
+source. The commit to cite is the squash that holds the same file, or
+the path at HEAD where the file is the branch's own. A round record, a
+phase record and a guarantee cite what a party ran at the branch's own
+commits, which the squash orphans as it orphans the round's `target:`
+line, and they leave with the work item; a file under
+`evals/behaviour/` is not read either. A bare commit is not read: a
+plan's Status cell and a round's `fixed` line name the branch's own
+commits by rule, and whether a sentence cites a bare commit as where a
+file was read is the reviewer's reading. Where the checkout holds no
+`main` or release branch ref, nothing is judged.
+check: tests/text/test_a_cited_commit_outlives_the_squash.py
+
 ## The root records
 
 | File | The question it answers |
@@ -351,8 +411,9 @@ path and section, the moment a session needs the rule, and the act in one
 sentence of the row's own, with the value the act needs.** It carries no
 table, reasoning or history. Only the home's sentences are pinned, so a stale
 value in a row is a reviewer's finding. No two rule documents may share more
-15-word runs than their pair was measured at, which does not see a rule
-restated in fresh words.
+15-word runs than their pair was measured at, except two agent definitions,
+since a passage two definitions share states a fact about each file that
+holds it; the count does not see a rule restated in fresh words.
 check: tests/text/test_the_rules_claude_md_names_have_one_home.py tests/text/test_no_passage_is_pasted_into_a_second_file.py
 
 **Shipped text an agent or a user reads points only at documents the plugin ships: no agent definition, template, skill document or message a script prints names this repository's `CONTRIBUTING.md` or `CLAUDE.md`.** An agent reads a `skills/`, `templates/` or `docs/` path as the plugin's and a bare file name as the repository it works in, so a shipped sentence naming `CONTRIBUTING.md` names, in a user's repository, a file that is not this one. A rule an agent applies lives in its definition or in the skill it opens at that step, and this repository's contributor's guide cites it where a person needs it. A comment or docstring in a shipped script is read by whoever maintains the plugin, a contributor, so it may cite `CONTRIBUTING.md`. The direction is read from the links as written, by `git grep -l 'CONTRIBUTING\|CLAUDE\.md' -- agents templates 'skills/**/*.md'`, whose only hits name a user's own `CLAUDE.md`, and by reading the printed messages of a script the review changes; the proofer does both at stage 1 of a review that changes a shipped document.

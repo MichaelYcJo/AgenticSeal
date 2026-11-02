@@ -182,8 +182,11 @@ the close block carries a `location:` line naming the one it did change, and
 `answer:` names it. Once the fixes are committed, find every other place
 stating each rule your range reworded or removed, by `git grep` and its
 `check:` target, and correct each or say in the hand-back why it stands
-(rule 12). Last, after your last fix commit and its corrections, append the
-close block of every finding you answered, and do not commit them: the
+(rule 12). Read the statements beside each coordinate first, the rest of its
+paragraph and the name, docstring and comments of a case you changed: a
+search on the rule's words misses them, and each one left returns as a round.
+Last, after your last fix commit and its corrections, append the close block
+of every finding you answered, and do not commit them: the
 orchestrator commits the round record as you left it.
 check: tests/text/test_a_moved_rule_leaves_its_definition.py
 

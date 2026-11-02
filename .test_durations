@@ -5877,7 +5877,6 @@
     "tests/text/test_a_document_has_room_for_the_next_fold.py::test_both_cheat_sheets_point_to_the_checks_home[README.ko.md]": 0.0014014999999858446,
     "tests/text/test_a_document_has_room_for_the_next_fold.py::test_both_cheat_sheets_point_to_the_checks_home[README.md]": 0.0016517000000533244,
     "tests/text/test_a_document_has_room_for_the_next_fold.py::test_settle_owns_the_placement_rule": 0.0009707999999761796,
-    "tests/text/test_a_gate_that_fails_says_so.py::test_the_registration_section_says_a_failure_is_said_and_names_its_case": 0.0012457000000267726,
     "tests/text/test_a_language_section_of_writing_style_opens_alone.py::test_each_language_section_of_writing_style_opens_alone": 0.0032113000000322245,
     "tests/text/test_a_language_section_of_writing_style_opens_alone.py::test_the_rules_for_text_an_agent_or_a_check_reads_reach_both_languages": 0.002561600000007047,
     "tests/text/test_a_merged_ticket_says_so_on_the_tracker.py::test_the_checkout_has_the_range_the_script_reads": 0.0010651999999993222,
