@@ -40,6 +40,11 @@ The fix replaces the parameter with a top-level `.md` outside `TOP_FILES` and no
         ],
 ```
 
+```seal
+verdict: fixed 19004e9a7
+answer: Held; the paste-ready fix applied. `README.ko.md` gives its place to `SECURITY.md`, a tracked top-level file outside `TOP_FILES`, and `docs/the-review-record.ko.md` stays as the parameter only the `.ko.md` exclusion refuses, each with a comment saying which guard holds it. Executed with `seal mutate` on `passages.py#in_corpus`: with `rel in TOP_FILES` widened to `"/" not in rel`, only `[SECURITY.md]` failed; with the `.ko.md` exclusion dropped, only `[docs/the-review-record.ko.md]` failed. `tests/skills/test_passages.py` passed (19), and `bin/seal layout --check tests`, `uvx ruff check` and `uvx ruff format --check` each exited 0.
+```
+
 ## Confirmations
 
 ```seal
