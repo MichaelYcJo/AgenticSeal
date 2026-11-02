@@ -1840,8 +1840,9 @@ class Test_main:
         """S6 of #1139. A `gh` that fails, or answers anything but pages that
         are each a list of objects, stops `--apply` with exit 2 and one
         sentence naming `gh` and what it said. No directory goes, the one
-        that needs no note among them."""
-        bare = moment(repo)
+        that needs no note among them, which sorts first so that a note read
+        only when its directory's turn comes would have let it go."""
+        bare = moment(repo, "1700000000-bare")
         tagged = fragment(repo, "1700000001-a", "feat: a (#42)", tag="v1.2.3")
         if state == "fails":
             gh.fail("HTTP 401: Bad credentials (https://api.github.com/releases)")
