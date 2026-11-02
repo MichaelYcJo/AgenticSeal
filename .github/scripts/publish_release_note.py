@@ -121,7 +121,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "..", "hooks", "lib"))
 sys.path.insert(0, os.path.join(HERE, "..", "..", "skills", "verify", "scripts"))
 import console  # noqa: E402
 from blocks import gfm_lines  # noqa: E402
-from close_issues_on_release import keywords_in  # noqa: E402
+from close_issues_on_release import SPAN, keywords_in  # noqa: E402
 from unverified_check import heading_level  # noqa: E402
 
 # `seal settle`, loaded by path for `adding_commit`: the one reader of the
@@ -539,8 +539,19 @@ def changes(pulls):
     return sorted(pulls or (), key=lambda p: p["number"])
 
 
+# A code span, read as `close_issues_on_release.py#SPAN` reads one, or a `<`
+# outside one.
+SPAN_OR_LT_RE = re.compile(f"({SPAN.pattern})|<")
+
+
 def kind_and_text(title):
-    """`(heading, text)`: where a title's line goes, and what it reads."""
+    """`(heading, text)`: where a title's line goes, and what it reads.
+
+    The title is written as text: each `<` outside a code span becomes
+    `&lt;`, which GitHub shows as `<`, so a tag a title quotes shows as the
+    tag and opens or closes no fold or other element, and a code span stays
+    code (#1153; #1293's title holds three `details` tags bare). Both the
+    fold's lines and the thanks section's read a title through here."""
     title = TRAILING_REF_RE.sub("", title.strip())
     found = TITLE_RE.match(title)
     heading, text = OTHER, title
@@ -548,7 +559,8 @@ def kind_and_text(title):
         heading = dict(TYPES).get(found.group("type").lower(), OTHER)
         text = found.group("text")
     # A line reads as a sentence; a title that opens on code keeps its case.
-    return heading, text[:1].upper() + text[1:]
+    text = text[:1].upper() + text[1:]
+    return heading, SPAN_OR_LT_RE.sub(lambda m: m.group(1) or "&lt;", text)
 
 
 def closed_by(pull):
@@ -683,13 +695,12 @@ def release_body(theme, rendered, pulls, owner):
 
     Every fold's tags stand on lines of their own, with a blank line after
     the summary line and before the closing tag, so GitHub reads the lines
-    between as Markdown. Nothing inside a fold is escaped. A tag inside a
-    code span is text and stays where it is. A fragment holding a bare
-    `details` tag is refused at `seal pr-body` before its pull request opens
-    (#1218). A pull request title holding a bare `</details>` closes its
-    type's fold early, and the lines after it fall outside: that is a limit,
-    since 0 of the 318 pull request titles merged by 2026-11-02 held a
-    `details` tag at all.
+    between as Markdown. A pull request title reaches its fold with each `<`
+    outside a code span written `&lt;` (`kind_and_text`), so a tag it quotes
+    is text, inside a code span or out of one, and opens or closes no fold.
+    A fragment is not escaped: it is the records' own text, and one holding
+    a bare `details` tag is refused at `seal pr-body` before its pull
+    request opens (#1218).
 
     With no pull request to read -- the list failed, or a release was cut
     with none -- the note has no header and is the theme line and

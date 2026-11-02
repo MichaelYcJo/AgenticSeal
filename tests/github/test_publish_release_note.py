@@ -280,6 +280,22 @@ def fold(summary, lines):
     )
 
 
+# #1293, merged into release/v0.28.0, whose title holds three `details` tags
+# bare, and the text its line reads as on the page.
+PR_1293 = pull(
+    1293,
+    OWNER,
+    "fix: seal pr-body refused only an exact <details> or </details> line, "
+    "and GitHub ends the fold at one inside a sentence, indented or in "
+    "capitals, and nests a second at <details open>",
+)
+TEXT_1293 = (
+    "Seal pr-body refused only an exact <details> or </details> line, and "
+    "GitHub ends the fold at one inside a sentence, indented or in capitals, "
+    "and nests a second at <details open> (#1293)"
+)
+
+
 class Folds(html.parser.HTMLParser):
     """Each `details` element in rendered HTML, as `(summary, [list item
     texts])`, in the order each closes, the texts as a reader sees them."""
@@ -649,17 +665,40 @@ class Test_main:
         is rendered, each fold is one `details` element whose summary is its
         name and count and which holds its own pull request lines as list
         items, and the full changelog's fold follows them. A title quoting a
-        closing `details` tag in a code span is text, and stays in its fold.
-        Seen red against the renderer that wrote a `### ` heading over each
-        type's lines, and with the blank line after a fold's summary taken
-        out, which leaves the fold's lines raw HTML and no list."""
+        closing `details` tag in a code span is text, and stays in its fold,
+        and so is #1293's title, which holds three `details` tags bare. Seen
+        red against the renderer that wrote a `### ` heading over each type's
+        lines, with the blank line after a fold's summary taken out, which
+        leaves the fold's lines raw HTML and no list, and with #1293's title
+        written as it is, whose tags the reader then met as folds."""
         quoting = pull(17, OWNER, "fix: a title quoting `</details>`")
-        mod, body = published(monkeypatch, tmp_path, [*RELEASE, quoting])
+        mod, body = published(monkeypatch, tmp_path, [*RELEASE, quoting, PR_1293])
         read = [(summary, [line[2:] for line in lines]) for summary, lines in FOLDED]
-        fixes = [*read[1][1], "A title quoting </details> (#17)"]
-        read[1] = ("\U0001f41b Fixes (3)", fixes)
+        fixes = [*read[1][1], "A title quoting </details> (#17)", TEXT_1293]
+        read[1] = ("\U0001f41b Fixes (4)", fixes)
         changelog = (mod.FULL_SUMMARY, [NOTES.replace("**", "")[2:]])
         assert folds_read(body) == [*read, changelog]
+
+    @pytest.mark.parametrize("tag", ["<details>", "</details>"])
+    def test_a_bare_tag_in_a_title_is_written_as_text(self, monkeypatch, tmp_path, tag):
+        """#1153 S1, round 1's finding 1. A title holding a bare `details`
+        tag alone, opening or closing, reaches its fold's line and the thanks
+        line with its `<` written `&lt;`, so the page shows the tag and the
+        fold holds the line whole, with the full changelog's fold after it.
+        Seen red against the renderer that wrote the title as it is, and
+        again with only the escape removed."""
+        title = f"fix: a bare {tag} in a title"
+        mod, body = published(monkeypatch, tmp_path, [pull(20, "outsider", title)])
+        shown = f"A bare {tag.replace('<', '&lt;')} in a title"
+        assert f"\n- {shown} (#20) — thanks @outsider\n" in body, body
+        assert f"\n- **@outsider** — {shown} (#20)\n" in body, body
+        assert folds_read(body) == [
+            (
+                "\U0001f41b Fixes (1)",
+                [f"A bare {tag} in a title (#20) — thanks @outsider"],
+            ),
+            (mod.FULL_SUMMARY, [NOTES.replace("**", "")[2:]]),
+        ]
 
     def test_the_note_opens_with_a_header_of_its_counts(self, monkeypatch, tmp_path):
         """A5 and #1153 S2. The note opens with a table of one cell holding
