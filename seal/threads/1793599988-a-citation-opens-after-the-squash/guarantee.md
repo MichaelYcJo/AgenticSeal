@@ -56,3 +56,45 @@ CI's Windows leg on the pull request answers it).
 target: dc9d47ea against d57e9ee7
 Verdict: withheld reason: the orchestrator's part of the pull request body, bullet "What it does not read", says issue bodies "stay the proofer's" citing frame/plan.md A3 and A4; frame/design.md:58 and the body's own last bullet leave issue bodies to the orchestrator, and A3 and A4 (frame/plan.md:43-44) cover trail/ and guarantee.md only, with bare ids decided at frame/design.md:16 (G2); drop "and issue bodies" from that bullet and cite G2 for bare ids
 ```
+
+## Re-audit at f2af3a56
+
+| Field | Value |
+|---|---|
+| Broad gate | d04f8fa9d against d57e9ee7a (`trail/gate.md`, its last `seal` block, unchanged). Followed to HEAD only by 1793c862 (`trail/gate.md`), dc9d47ea (`frame/questions.md`) and f2af3a56 (`guarantee.md`), all under this work item's directory (executed: `git log --no-merges --name-only d04f8fa9d..HEAD ^d57e9ee7a`) |
+
+`origin/release/v0.29.0` still resolves to d57e9ee7a (executed). f2af3a56
+adds this file and nothing else (executed: `git diff --stat dc9d47ea..HEAD`),
+and the working copy matched it before this block was appended (executed:
+`git status --short`, empty). No claim of the earlier block has a coordinate
+that f2af3a56 touched, so none is re-run; the earlier block's re-runs were
+made at dc9d47ea, whose tree differs from f2af3a56's in this file alone.
+`seal pr-body seal/threads/1793599988-a-citation-opens-after-the-squash --body <scratchpad>/1793599988-a-citation-opens-after-the-squash/pr-body.md
+--check` exited 0 at f2af3a56 (executed, the tree's `bin/seal`).
+
+## Claims re-run
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| The withheld claim is gone: the bullet no longer assigns issue bodies to the proofer, and its citations carry what it states | pull request body, bullet **What it does not read** | read the body file above `## From the records` against `frame/design.md:16` (G2), `:56`, `:58` and `frame/plan.md:43-44` (A3, A4) | holds (read): "Bare commit ids stay the proofer's (`frame/design.md` G2)" matches G2's "the proofer goes on reading it"; "`trail/` and `guarantee.md` stay out ... (`frame/plan.md` A3, A4)" matches A3's grounds; issue bodies are named only in the last bullet, which leaves them to the orchestrator as `frame/design.md:58` does |
+| The orchestrator's commits touch only the work item's records, except the merge | pull request body, *The orchestrator's commits* | `git log --no-merges --name-only d57e9ee7a..HEAD`, paths outside this work item's directory | holds (executed): f2af3a56 touches `guarantee.md` alone; outside the directory only 44b215bc, b01ec5b1 and 34c55c1e, the crafter's, as before |
+
+Not re-run, as in the earlier block: the full suite, lint and typecheck at
+d04f8fa9d (unverified here; `trail/gate.md` and the orchestrator's `seal gate`
+answer it), and the module on CI's Windows leg (unverified; CI's Windows leg
+on the pull request answers it).
+
+## The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | unchanged since the earlier block | the issue's *Done when*; the tree | none |
+| the build | unchanged since the earlier block | the design; the diff; the earlier block's re-runs | none |
+| the last round | `trail/rounds/round-3.md`, unchanged | the diff at HEAD | none |
+| the changelog | `changelog.md`, unchanged | the design; the diff | none |
+| the orchestrator's part of the pull request body | as before, with the **What it does not read** bullet rewritten | the design, the plan, the rounds, the changelog and the tree on every claim the earlier block checked, and on the rewritten bullet | none |
+
+```seal
+target: f2af3a56 against d57e9ee7
+Verdict: sealed
+```
