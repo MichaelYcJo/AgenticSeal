@@ -177,7 +177,9 @@ Out of scope:
 - **The lines a reader sees** when the mark is not written: one line opening
   `seal pr-body:`, printed beside `wrote:` or `matches:`, naming
   `Pull request seal mark` and its value, or the manifest's field, as not
-  read. In `seal`, one `::warning::` line naming `Release note seal mark`
+  read, or naming the base the guarantee names that git cannot resolve, or
+  the sealed commit that the work item's checkout's HEAD does not hold. In
+  `seal`, one `::warning::` line naming `Release note seal mark`
   and its value. The crafter writes and pins each sentence (contract
   rule 14).
 - **`sealed_header`** takes the image as optional: given one, the table of
