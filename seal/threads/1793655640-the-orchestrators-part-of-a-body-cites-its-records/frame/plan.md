@@ -35,4 +35,4 @@ None. No command, output, config row or dependency changes. A session running th
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-03 | The orchestrator folds round 1's finding 1 into `frame/design.md`: G10's clause on `skills/writing-style/outside-the-review.md` now says the line stated the old rule and points to item 1's section, and `## Removes` gains a row for the sentence the fix pass removed | The fix pass agreed with the finding, rewrote the line at e88b42fd, and gave G10's replacement in its close block; the frame had called the line consistent, and the sealer reads the frame | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*; `docs/the-reader-registry.md` *A frame names what its work removes* |
