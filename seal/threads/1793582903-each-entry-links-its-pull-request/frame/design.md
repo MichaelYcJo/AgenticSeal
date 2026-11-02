@@ -200,26 +200,13 @@ Out of scope:
 - add
   file: docs/the-record-layout.md
   section: The fold, and what tells it from a deletion
-  to: **`seal settle --apply` keeps a released work item's directory whose
-    version's published note does not carry its entry, and names it.** The
-    published note is the one copy of a fragment outside the history, and
-    the settle is the step that leaves the history as the only copy, so a
-    note that lost an entry is caught there, before it becomes permanent.
-    The version is the lowest `vX.Y.Z` tag that holds the commit adding the
-    work item's `changelog.md`, and the note is that tag's published GitHub
-    Release. The note carries the entry where it links the pull request
-    that commit names, or where it holds the comment naming the work item
-    that notes carried before entries linked their pull requests. A release
-    list that cannot be read stops the run and removes nothing. A version
-    tag with no published Release does not carry the entry, so its
-    directory is kept, unless the repository has published no Release at
-    all. A note is read only in a repository whose notes are built from the
-    fragments, told by a published release whose body holds a whole line
-    linking a pull request as an entry opens, or the old comment. A work
-    item with no fragment, an empty one, no pull request named or no version
-    tag has no note to read, nor has one in a repository that publishes no
-    Releases or whose notes are not built from the fragments. Its directory goes as the open-row rule decides, with the
-    reason printed beside it.
+  to: **The settle removes a released work item's directory only once the
+    published note of the version that shipped it carries its entry.** Once
+    the directory goes, git history holds the fragment and the note is its
+    only other copy, so the settle is where a missing entry has to be found. Which note is read, what counts as carrying an entry, and
+    which work items and repositories have no note to read are stated in
+    `skills/settle/SKILL.md` *What `--apply` does*. Where no note can be
+    read, the open-row rule alone decides, and the reason is printed.
     check: tests/skills/test_settle.py
 - change
   file: docs/release-checklist.md
