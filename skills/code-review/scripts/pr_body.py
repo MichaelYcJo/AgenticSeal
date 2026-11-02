@@ -23,10 +23,12 @@ blank line so the Markdown inside renders, and nothing inside it is folded
 again. A rewrite keeps the orchestrator's part byte for byte, and the
 squash commit keeps the fold's tags as text. `frame/design.md` *Data &
 interfaces* of the work item that last reshaped this lays out the part line
-for line. A copied line equal to `HEADING`,
-`FOLD` or `FOLD_END` is refused at the record's line, and so is a copied
-line where `close_issues_on_release.py#keywords_in` reads a closing
-keyword: the `Closes` line is the orchestrator's, written above `HEADING`.
+for line. A copied line equal to `HEADING` is refused at the record's
+line, and so is a copied line holding a `details` tag, `<details` or
+`</details` in any case followed by whitespace, `/`, `>` or the line's end,
+outside a fence and a code span (#1218), and a copied line where
+`close_issues_on_release.py#keywords_in` reads a closing keyword: the
+`Closes` line is the orchestrator's, written above `HEADING`.
 
 Round records are read through `chain_check.py#round_read`, which places the
 blocks `hooks/lib/fields.py` reads by the record's headings, and
@@ -43,6 +45,12 @@ Limits, stated here and not guarded:
   pull request cannot open the paths the generated part names. The copied
   text still stands in the body.
 - A body edited on GitHub after the pull request opens is read by nobody.
+- The `details` tag reading reads characters, not GitHub's rendering. A tag
+  GitHub renders as text is refused too where it is spelt as a tag outside a
+  code span: in a table cell, after a backslash, in an indented code block,
+  in an HTML comment. A tag between two backticks that GitHub does not read
+  as a code span, such as an escaped backtick, is read as inside a span and
+  passes.
 - Exit 2's line names `<item>` as it was given, or the module that would not
   load by its installed path. The normal flow gives neither: the sealer is
   handed a work item's directory that exists, from an installed plugin.
@@ -117,6 +125,14 @@ HEADING = "## From the records"
 # and ended on the part's last line.
 FOLD = "<details>"
 FOLD_END = "</details>"
+# A `details` tag on a copied line, as GitHub reads one (#1218): `<details`
+# or `</details`, in any case and anywhere in the line, followed by
+# whitespace, `/`, `>` or the line's end, read once fences and code spans
+# are blanked. It opens a second fold or ends the copy's one fold early,
+# whether the line is a sentence, a list item or indented. The form a
+# record gives such a tag is a code span, the one spelling that passes;
+# what follows the lookahead, up to a `>`, only names the tag as read.
+TAG = re.compile(r"</?details(?=[\s/>]|$)[^>]*>?", re.IGNORECASE)
 # The record headings the generator reads, beside `gaps.md`'s
 # `## Not verified`, which is `unverified_check.py#HEADING`.
 PHASES = "## Phases"
@@ -423,11 +439,11 @@ def _composed(name, texts):
     line, each section followed by a blank line, and `FOLD_END`. `source`
     is `(path, line)` for a copied line and None for a fixed one. Refused at
     the record's line where a copied line is equal to `HEADING`, which would
-    stand inside the fold as a second boundary line, or, outside a fence, to
-    `FOLD` or `FOLD_END`, which would fold a part again or end the fold
-    early, or where it holds a closing keyword outside a fence and a code
-    span, since GitHub and the release's closer would close the issue it
-    names."""
+    stand inside the fold as a second boundary line, or holds a `TAG` outside
+    a fence and a code span, which would fold a part again or end the fold
+    early, or holds a closing keyword outside a fence and a code span, since
+    GitHub and the release's closer would close the issue it names. The tag
+    and the keyword are read on one line, blanked one way."""
     blocks = _changed(texts)
     blocks += _built(texts)
     blocks += _rounds(texts)
@@ -451,13 +467,14 @@ def _composed(name, texts):
                     f"reads `{HEADING}`, the line the body's two parts split at",
                 )
             )
-        elif seen[rel][line - 1] in (FOLD, FOLD_END):
+        elif tag := TAG.search(CLOSER.SPAN.sub(" ", seen[rel][line - 1])):
             causes.append(
                 (
                     rel,
                     line,
-                    f"reads `{said}`, which would fold the copy again or end "
-                    f"its one `{FOLD}` early",
+                    f"holds `{tag.group()}`, a `details` tag GitHub would read "
+                    f"as a second fold or as the end of the copy's one "
+                    f"`{FOLD}`; write it in a code span",
                 )
             )
         causes += _claims(rel, line, seen[rel])
