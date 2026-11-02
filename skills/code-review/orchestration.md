@@ -316,7 +316,13 @@ the orchestrator runs `seal pr-body` on the body file again and gives the
 file to the open pull request with
 `gh api -X PATCH repos/<owner>/<repo>/pulls/<N> -F body=@<file>`, not
 `gh pr edit`: that command's GraphQL query has stopped on an error about
-Projects (classic), and the REST call sends the body alone.
+Projects (classic), and the REST call sends the body alone. Whenever the
+sealer's next `sealed` verdict is committed while the pull request is open,
+after this repair, a merge from the base or any other repair, run
+`seal pr-body` on the file once more and send it the same way. The body
+sent before that verdict carries no seal mark, since the seal it stood on
+no longer held at HEAD, and only a run after the verdict can write the mark
+the `Pull request seal mark` row asks for.
 
 **A repository that still opens a draft is not refused.** On a draft
 `chain_check` prints what it would refuse and exits 0, and `hygiene`'s
