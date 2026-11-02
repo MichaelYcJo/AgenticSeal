@@ -88,6 +88,11 @@ directory over the first worktree's sealed item and asks for the mark. The
 design's *Technical context* sentence "`pr-body` asks `follows` with the
 root of the repository it runs in" is rewritten to match.
 
+```seal
+verdict: fixed 863a7d2af
+answer: The finding holds, and the fix follows the proposal after reading it against the code. `main` takes the root from `OPTIN.repo_root` of the item's path and falls back to the working directory's where that answers "", as it does for a local-mode item under the common git directory (read `hooks/lib/optin.py#repo_root`). `_seal_at_head` names a sealed commit that `follows` answers `unseen` or `off` for in a new sentence, `NOT_IN_HISTORY`, which prints the commit as the guarantee writes it rather than cut to eight characters. Four cases were added. In `Test_main`: a run from the main checkout over a work item sealed in a linked worktree, and a local-mode item run from its checkout. In `Test_seal_mark`: a sealed commit HEAD does not descend from (a soft reset) and one the repository cannot resolve. Before the fix the main-checkout case and both naming cases failed, and the local-mode case passed (executed). After the commit, `seal mutate` showed each case red with its guard alone changed (executed, exit 0 each): the root read from the working directory alone, the fallback dropped, the naming removed, and the naming narrowed to `off` alone and to `unseen` alone. `tests/skills/test_pr_body.py` read 56 passed. Seventy-two modules (every one naming `orchestration.md`, `pr_body`, `seal/threads` or `changelog`, plus `tests/hooks/test_launch.py` and `tests/test_censuses.py`) read 4167 passed and 1 skipped, then `bin/seal layout --check tests` read 149 files and refused none; ruff check and format --check passed on both files (executed). Three sentences still read the old way, and none is this pass's to edit: `frame/plan.md` *Technical context* ("the root of the repository it runs in"), `trail/phases/phase-1.md` *Decisions settled while writing the code*, and the design's `add` ("git cannot resolve where the command runs"), which now means the work item's checkout.
+```
+
 ### 2. After a repair on an open pull request, nothing runs `seal pr-body` once the repair is sealed, so the mark leaves the body for good
 
 ```seal
@@ -128,6 +133,11 @@ sealer's next `sealed` is committed, run `seal pr-body` on the body file
 once more and give it to the pull request the same way: the body given
 before that seal carries no mark, and only a run after it writes the one
 the `Pull request seal mark` row asks for.
+```
+
+```seal
+verdict: fixed a8c41097a
+answer: The finding holds. `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals*, the stated limit, now ends with the step in my own words. Whenever the sealer's next `sealed` verdict is committed while the pull request is open, after this repair, a merge from the base or any other repair, the orchestrator runs `seal pr-body` once more and sends the body the same way. The proposal's sentence covered the repair alone. The finding also names the merge from the base, whose paragraph does not point to the stated limit, so the sentence names every re-seal. The `withheld` repair paragraph already defers to the stated limit and is unchanged. Read against the design's `add`: "runs `seal pr-body` once more after it commits a `sealed` guarantee" already holds for every `sealed` commit, so the `add` needs no change for this. I read the section's opening paragraph and the proposal before writing, so the new sentence does not repeat their wording. `changelog.md` gains the step in its first entry and in its process row. The text tests that read `orchestration.md` ran in the same 72-module command as finding 1's: 4167 passed and 1 skipped, then `bin/seal layout --check tests` refused none (executed).
 ```
 
 ### 3. Two of the design's rule changes copy the row documentation `templates/setup/config.md` *The seal mark* keeps, so after the settle each fact stands twice

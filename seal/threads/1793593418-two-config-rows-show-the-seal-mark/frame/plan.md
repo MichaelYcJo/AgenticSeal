@@ -27,7 +27,8 @@ Every coordinate is at `09d7e5c8f` in this worktree (read unless labelled).
   commit of the branch touches only `trail/gate.md` and `guarantee.md`
   under the work item. In local mode no commit touches the work item, so
   the answer is None only at HEAD. `pr-body` asks `follows` with the root
-  of the repository it runs in, and the work item as `seal/threads/<name>`.
+  of the checkout that holds the work item, or the working directory where
+  no such root is found, and the work item as `seal/threads/<name>`.
 - **The config reader.** `hooks/lib/config.py#config_text` and
   `#config_value` (`:390-470`) give `(value, refusal)` for one row.
   `release_seal.py#module` (`:73-75`) loads a tree module by path at first
@@ -103,3 +104,4 @@ body.
 |---|---|---|---|
 | 2026-11-02 | Phase 1's departure is folded into the design's `add`: a base the guarantee names that git cannot resolve puts no mark and is named | `chain_check.py#follows` answers None for an unresolved base, which reads as HEAD, so a stale seal would have carried the mark that S3 forbids; the crafter checked the base first and named the gap, which the frame's sentence did not state | `skills/core/SKILL.md` *The rule a mechanism is kept against* |
 | 2026-11-02 | Review round 1 finding 3 is folded into the design: the `branch-and-release` `change` and the `the-review-record` `add` no longer restate the rows' values, the release row's one reader, or the address tie, and cite `templates/setup/config.md` *The seal mark* for them | the template is where a row is documented (`docs/one-root-by-lifetime.md`), and the settle would have written each fact into a second file; the policy keeps the condition, the meaning beside *The stamp*, the unresolved base and the two `seal pr-body` runs | `skills/core/SKILL.md` *The rule a mechanism is kept against* |
+| 2026-11-02 | The fix pass for round 1 finding 1 is folded into the design's `add` and *Technical context*: the mark is read in the work item's own checkout, and a sealed commit that checkout's HEAD does not hold puts no mark and is named | `pr_body.py` read the root from the working directory, so a run from another checkout dropped the mark silently (round 1 finding 1, fixed at 863a7d2af); the frame's sentences still named the directory the command runs in | `skills/core/SKILL.md` *The rule a mechanism is kept against* |

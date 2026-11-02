@@ -233,8 +233,9 @@ Out of scope:
     where `seal/config.md`'s `Pull request seal mark` row reads `yes` and
     the newest verdict block of `guarantee.md` reads `sealed` at a commit
     that only the closing records follow, so the mark means what the stamp
-    means (*The stamp*). A base the verdict block names that git cannot
-    resolve where the command runs puts no mark either, and is named, since
+    means (*The stamp*). It reads both in the work item's own checkout. A
+    base the verdict block names that git cannot resolve there, or that the
+    checkout's HEAD does not hold, puts no mark either, and is named, since
     whether the seal holds at HEAD cannot then be read. The row's other
     values, and what the mark's address ties a body to, are
     `templates/setup/config.md` *The seal mark*'s. The sealer's
