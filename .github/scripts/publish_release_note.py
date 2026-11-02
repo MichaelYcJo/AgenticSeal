@@ -115,6 +115,7 @@ import os
 import re
 import subprocess
 import sys
+import urllib.parse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -615,7 +616,8 @@ def plural(count, word):
 def counts(work, closed, people):
     """The release's counts in words, one line each: the pull requests
     merged, the issues they closed, and the outside contributors only where
-    there are some. Both headers state them in these words (#1153)."""
+    there are some. `header` states them in these words (#1153), and
+    `sealed_header` states the same counts as badges (`count_badges`)."""
     lines = [
         plural(len(work), "pull request") + " merged",
         plural(len(closed), "issue") + " closed",
@@ -642,23 +644,74 @@ def header(work, closed, people):
     return table([html.escape(line) for line in counts(work, closed, people)])
 
 
+# The sealed header's badges (#1299), drawn by the Shields badge service
+# from their address alone. Their two colours are the seal's reds, read from
+# `assets/seals/owl.svg`: the label's is the wax's dark outer edge, the
+# gradient's outer stop, and the value's is the raised relief of the owl and
+# its border. A seal redrawn in other colours is a new icon (#857), and the
+# redraw edits these two with it.
+BADGE_LABEL_COLOUR = "8e0c12"
+BADGE_VALUE_COLOUR = "d42420"
+BADGE_URL = "https://img.shields.io/badge/{label}-{value}-{colour}?labelColor={edge}"
+
+
+def badge_text(text):
+    """`text` as the badge service's address spells a label or a value: each
+    `-` and then each `_` doubled, because the service splits the segment at
+    a single `-` and reads a single `_` as a space, then percent-encoded with
+    nothing left safe, so a space, a `/`, a `%`, a `?` and a `#` each mean
+    themselves."""
+    return urllib.parse.quote(text.replace("-", "--").replace("_", "__"), safe="")
+
+
+def badge(label, value):
+    """One badge as an `<img>`: `label` on the seal's dark red, `value` on
+    its bright red, in the service's default style. Its alt text is the
+    label and the value in words, so a reader whose client draws no image,
+    or who opens the note while the service does not answer, still reads
+    the result. The address and the alt text are escaped, so a quote cannot
+    end an attribute and a `<` opens no tag."""
+    url = BADGE_URL.format(
+        label=badge_text(label),
+        value=badge_text(value),
+        colour=BADGE_VALUE_COLOUR,
+        edge=BADGE_LABEL_COLOUR,
+    )
+    return f'<img src="{html.escape(url)}" alt="{html.escape(f"{label}: {value}")}">'
+
+
+def count_badges(work, closed, people):
+    """The counts `counts` states, as badge lines of `(label, value)` pairs:
+    the pull requests merged, the issues they closed, and the outside
+    contributors only where there are some."""
+    lines = [
+        [("pull requests", f"{len(work)} merged")],
+        [("issues", f"{len(closed)} closed")],
+    ]
+    if people:
+        lines.append([("outside contributors", str(len(people)))])
+    return lines
+
+
 def sealed_header(image_url, alt, width, sealed, results, work, closed, people):
     """What replaces `header`'s table once the release seal has run (#718,
-    #1153): the same table, whose last cell holds the stamp's results one
-    per line, as the stamp sets them beside its disc: `SEALED` in bold
-    before `sealed`, the sealed version, commit and branch; the lines
-    `counts` states; then `results`, the stamp's other rows. Given an
-    `image_url`, the table has two cells, and the first holds the seal as
-    an `<img>` `width` CSS pixels wide with `alt` as its text (#832: the PNG
-    is drawn at twice that for a high-density screen). Given none, where
-    the repository leaves the image off (#1204), the results' cell is the
-    table's one cell, and `alt` and `width` are not read. A reader whose
-    browser does not draw the image still has every number as text. The
-    URL, `alt` and every line are escaped, so a quote cannot end an
-    attribute and a `<` opens no tag."""
+    #1153): the same table, whose last cell holds the stamp's results as
+    badges (#1299). `sealed` and `results` are badge lines, each a list of
+    `(label, value)` pairs, as `release_seal.py#results` hands them:
+    `sealed` the sealed version, then the commit and its branch; then the
+    counts `count_badges` states; then `results`, the stamp's other rows.
+    The badges of one line are parted by a space, and the lines by `<br>`.
+    Given an `image_url`, the table has two cells, and the first holds the
+    seal as an `<img>` `width` CSS pixels wide with `alt` as its text (#832:
+    the PNG is drawn at twice that for a high-density screen). Given none,
+    where the repository leaves the image off (#1204), the results' cell is
+    the table's one cell, and `alt` and `width` are not read. A reader
+    whose client draws no image still has every number, in each badge's
+    alt text. The URL and `alt` are escaped, as `badge` escapes each
+    badge, so a quote cannot end an attribute and a `<` opens no tag."""
     lines = [
-        f"<b>SEALED</b> {html.escape(sealed)}",
-        *(html.escape(line) for line in [*counts(work, closed, people), *results]),
+        " ".join(badge(label, value) for label, value in line)
+        for line in [*sealed, *count_badges(work, closed, people), *results]
     ]
     if image_url is None:
         return table(lines)
