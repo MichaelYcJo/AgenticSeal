@@ -44,3 +44,46 @@ block carries no `original:` line (executed: `ls`).
 target: 5f17fa375 against d57e9ee7a
 Verdict: withheld reason: changelog.md:3 (the crafter's fragment, f67724225) says "The first note with badges is v0.28.1's", and the tree at 5f17fa375 ships this in 0.29.0 (.claude-plugin/plugin.json:4 reads "0.29.0" at HEAD and at the base release/v0.29.0, and the milestone release: 0.29.0 records 0.28.1 renamed to 0.29.0), so no v0.28.1 note will carry badges; the same release stands in gaps.md:7-8, frame/questions.md:28 (Q1 default) and frame/plan.md:50 and :90, and the first three reach the pull request body's copy
 ```
+
+## Re-audit at 3aa1f46ea
+
+| Field | Value |
+|---|---|
+| Broad gate | 6d4ef6368 against d57e9ee7a |
+
+`release/v0.29.0` still resolves to `origin/release/v0.29.0` at `d57e9ee7a`,
+read after a `git fetch` (executed). HEAD is `3aa1f46ea`. `git log
+--no-merges --name-only 6d4ef6368..HEAD ^d57e9ee7a` lists two commits,
+`5f17fa375` and `3aa1f46ea`. Between them they touch only this work item's
+`trail/gate.md`, `changelog.md`, `gaps.md`, `frame/plan.md`,
+`frame/questions.md` and `guarantee.md`, so the broad run still stands at
+HEAD (executed). `3aa1f46ea` carries the earlier verdict block unchanged:
+`git show HEAD:<this file>` against the file as it stood before this block
+was appended printed no difference (executed). Since the earlier block's
+target `5f17fa375`, no commit has touched code or tests, so none of the
+earlier claims' coordinates changed and no claim is re-run. The command
+`seal pr-body <item> --body <the prompt's pr-body.md> --check` exited 0, both from the
+tree's `bin/seal` and from the installed 0.28.0 copy (executed). No
+`seal/parity.md` is tracked, so this block carries no `original:` line.
+
+## Claims re-run
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| The repair: every forward-looking 0.28.1 in the work item's records now names 0.29.0, the release `.claude-plugin/plugin.json:4` carries | `3aa1f46ea`; the earlier block's reason | `git diff 5f17fa375..HEAD`; `grep -rn '0\.28\.1'` over this work item's `*.md` | holds (executed). `changelog.md:3` now reads "The first note with badges is v0.29.0's". `gaps.md:7-8`, `frame/questions.md:28` Q1 and `frame/plan.md:50` and `:90` now name 0.29.0, and the diff changes nothing else in those files. The 0.28.1 left in the records sit in four places. `routing.md:17` is the owner's dated answer. The round records give their targets, bases and `Not judged` rows as they stood at each round. `frame/design.md:5`, `:28` and `:48` say what the framer read: the branch it was cut from, the issue's "In 0.28.1", and the milestone under its name then. `frame/design.md:38` uses `release/v0.28.1` as a probe's sample value. None of them tells a reader which release carries the badges |
+| The pull request body's copy holds the repaired records | the prompt's `pr-body.md` | `seal pr-body ... --check`; `grep -n` of the versions on its lines 27, 164, 165 and 182 | holds (executed). The check exits 0. The copied fragment, the two `Not verified` rows and Q1 name v0.29.0. Only the round 1 target line (`:50`) names `release/v0.28.1`, and that line is the round's own record |
+
+## The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | as the earlier block reads it; *Operational impact* and the failure scenario now say the first note with badges is v0.29.0's, and Q1's default says the measurement is taken after the 0.29.0 release | the issue; the diff; `.claude-plugin/plugin.json:4` (`0.29.0`); the milestone `release: 0.29.0` | none |
+| the build | as the earlier block reads it, with the code unchanged since `5f17fa375`; `gaps.md` now names the owner reading v0.29.0's note | the design; the tree; the claims the earlier block re-ran, whose coordinates no commit since has touched | none |
+| the last round | round 2, unchanged since the earlier block: `fixed 9db877db`, read at HEAD as the finding asked | the frame at HEAD (*Scope* items 2 and 6) | none |
+| the changelog | the one `### Changed` entry as before, with the first note with badges now v0.29.0's | the diff; `frame/design.md` *Scope*; `assets/seals/owl.svg:3`, `:18`; the tree's version `0.29.0` | none |
+| the orchestrator's part of the pull request body | unchanged: `feat:`, the release's one, with the milestone renamed from 0.28.1 to 0.29.0; the rounds; its commits; the broad run at `6d4ef636` | the part below `## From the records`, which now also names 0.29.0; the tree's version; `trail/gate.md` | none |
+
+```seal
+target: 3aa1f46ea against d57e9ee7a
+Verdict: sealed
+```
