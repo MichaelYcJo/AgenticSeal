@@ -1002,34 +1002,13 @@ def label(values):
 
 # --- the stamp, queued at a sealed guarantee's write ------------------------
 #
-# The owner's rule of 2026-10-18: the stamp means every party verified the
-# work item, the sealer last, and the work is done. So it is drawn once per
-# work item, from `guarantee.md` reading `sealed`, never from the broad
-# gate's run. The edit gate calls `queue_for_written_guarantee` (below) at
-# the guarantee's write, under either root, and the `Stop` hook draws what it
-# queued.
-#
-# Once per work item is held by four facts the tree and the clone carry,
-# and no count kept beside them: a values file whose name,
-# `<ns>-<id>-<target sha>.json`, carries the work item's id, under any
-# session's directory, pending or drawn, whatever commit it named; the
-# audited commit standing on the branch the work item's `routing.md` names;
-# in shared mode, the guarantee reading `sealed` at a commit of HEAD's
-# history (`sealed_before`); and the guarantee's earlier verdict blocks,
-# one per earlier run of the sealer — a `sealed` after a `sealed` was
-# stamped at the first. The last two hold across clones. Both skip one kind
-# of block, a `sealed` this clone recorded refusing (`refused_here`): the
-# writer records it where the branch does not hold the audited commit, and
-# that block can still be committed, so the sealer's new audit, appended
-# below it, draws the work item's one stamp. Any other `sealed` in the
-# history drew where it was made, or was committed where no edit hook saw
-# it written, and the history cannot tell the two apart, so it counts (#975
-# `questions.md` Q8). A `sealed` written over a history that carries no
-# earlier `sealed` queues again in a clone that holds no values file for the
-# work item: a second seal on a copy of the branch that had not fetched the
-# first. That is a stated limit (`questions.md` Q9): across clones the
-# history is the only record read, and nothing beside the tree counts
-# stamps.
+# The rule, and what holds it to once per work item with its limits, is
+# `docs/the-review-record.md` *The stamp*. The edit gate calls
+# `queue_for_written_guarantee` (below) at the guarantee's write, under
+# either root, and the `Stop` hook draws what it queued. The values file's
+# name, `<ns>-<id>-<target sha>.json`, carries the work item's id;
+# `sealed_before` reads HEAD's history, and `refused_here` names a `sealed`
+# this clone recorded refusing.
 
 ROUND_FILE = re.compile(r"^round-\d+\.md$")
 CHAIN_CHECK = os.path.join(
@@ -1368,12 +1347,8 @@ def queue_for_written_guarantee(path, session, now=None):
     mode HEAD's history carries no `sealed` of the file (`sealed_before`
     from HEAD, since the write is not yet committed), and the audited commit
     is an ancestor of the branch the work item's `routing.md` names in its
-    `Branch` row. A local root has no history, and none is needed: the root
-    and the values files share the common dir, so a values file for the id,
-    pending or drawn, is a complete record of the work item's stamp in this
-    clone. The branch is what keeps a `sealed` written long ago quiet, since
-    a local-mode work item stays under the root until the settle after its
-    release removes it. Where the branch stands and
+    `Branch` row; why a local root needs no history, and what the branch
+    keeps quiet, is that section's. Where the branch stands and
     does not hold the audited commit, the refusal is recorded
     (`record_refusal`) and the one line returned is `NOT_ON_BRANCH`; a
     branch that is gone or unnamed says nothing. Raises whatever reading the

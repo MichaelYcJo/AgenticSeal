@@ -3,10 +3,9 @@
 
 Issue #400, work item 1790562543, #975 and work item 1792363231. A Bash
 call's stdout is a pipe into a tool result that reaches the person folded
-behind `ctrl+o`, so a stamp drawn there was never seen. The stamp means every
-party verified the work item, the sealer last, so since #975 it is drawn once
-per work item from the sealer's `guarantee.md` reading `sealed`, and never
-from the broad gate's run, which draws nothing. In either mode
+behind `ctrl+o`, so a stamp drawn there was never seen. When a stamp is
+drawn, and what it means, is `docs/the-review-record.md` *The stamp*. In
+either mode
 `hooks/sealer-stamp-queue.py` writes the stamp's rows at the `Write` or
 `Edit` of the guarantee (`seal_stamp.queue_for_written_guarantee`) to a
 values file under `<git-common-dir>/agentic-stamp/<session>/`, keyed by the

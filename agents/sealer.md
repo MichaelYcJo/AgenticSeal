@@ -166,12 +166,10 @@ check: evals/behaviour/sealer/rule-sealer-sealed/
 
 **The guarantee covers HEAD, and a re-run audits what came after.** A commit
 after the one `guarantee.md` names, other than one touching only the closing
-records, `trail/gate.md` and `guarantee.md`, owes a new audit, and the check
-at the pull request refuses the file until it has one. Where an earlier
+records, `trail/gate.md` and `guarantee.md`, owes a new audit
+(`docs/the-review-record.md` *The guarantee*). Where an earlier
 `guarantee.md` stands, the new audit re-runs only the claims whose
 coordinates a commit since its newest verdict block's `target:` touched,
 reads the parties again, and appends its own verdict block below the earlier
-ones, which stay as they were: the last block is the newest run, the one the
-check reads, and the stamp reads the earlier ones. A line of any block that
-does not parse is refused at its line.
-check: tests/behaviour/test_the_sealer_guarantees.py tests/skills/test_chain_check.py
+ones, which stay as they were.
+check: tests/behaviour/test_the_sealer_guarantees.py

@@ -285,10 +285,8 @@ check: a-rule-change-names-the-pins-and-copies-it-breaks
 
 ## The guarantee
 
-**The sealer is the final, independent guarantor: it verifies, independently
-of the crafter and the proofer, that the work before it holds.** Its
-reference is the issue body and the tree, never an agent's word or the
-orchestrator's summary. It runs after the changelog fragment is written, the
+**The sealer is the final, independent guarantor**, and what it verifies
+against is `agents/sealer.md` *Job*'s. It runs after the changelog fragment is written, the
 orchestrator's broad run has written `trail/gate.md`, and the pull request
 body is written from the records, on both routing answers; it reads that
 record and runs nothing broad, and its order of work is
@@ -528,20 +526,9 @@ question put at minute thirty waits for somebody who is not there.
 The session builds on the default the question states, records that
 default in the work item's `frame/questions.md` as one row, and names it in
 the pull request body, where the owner can overturn it. The routing
-question put alone, single-select and with its text, goes through
-while this session's transcript can be read and holds no answer to
-it from this clone, because a run resumed in a new session has to
-put question 1 again for the gates that read the press; once it is
-answered, it is refused like any other question. Any routing answer
-from this clone in the session spends the exemption, including one
-given for another work item, so a session that has already answered
-for another branch cannot put question 1 again; that is outside the
-one-issue flow. The declaration is read through `hooks/lib/routing.py` for the
-branch checked out where the session sits, and every way of not
-reading it is the attended answer. The file is written by the model,
-which is why no gate reads the `automation` press from it. It is read
-here only to refuse, so a row the model forged binds only the model,
-and a row edited to `no` is in the diff the review reads. A session
+question put alone goes through until this session has answered it
+here, and what the gate reads and each case it lets through is
+`hooks/question-gate.py`'s docstring. A session
 sitting in a checkout whose branch is not the declared one is not
 held, and neither is a question asked as plain text. A gate whose own
 reason says to ask with the question tool meets this refusal too, and

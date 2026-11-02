@@ -227,12 +227,10 @@ pull request runs nothing. Under `stop before the pull request` nothing is
 pushed, and the branch is handed back committed and unpushed. Once
 `guarantee.md` reading `sealed` is committed, run `seal pr-body` once more on
 the body file the sealer read, and open the pull request with it,
-`gh pr create --body-file <that file>`. That run changes no copied line,
-because the copy reads no `guarantee.md`. Where `seal/config.md`'s
-`Pull request seal mark` row reads `yes`, it writes the seal mark under the
-heading, which the body the sealer checked could not hold, since the sealer
-checks it before its own verdict exists (`templates/setup/config.md` *The
-seal mark*). CI runs then, and again on every push to it.
+`gh pr create --body-file <that file>`. That run changes no copied line and
+writes the seal mark where the repository turns it on
+(`docs/the-review-record.md` *The guarantee*). CI runs then, and again on
+every push to it.
 
 **The orchestrator reads `gh pr view <N> --json state,mergeable` when the
 pull request opens, before each push to its branch and after each push, and
@@ -362,9 +360,9 @@ runs nothing broad, and a missing or stale record comes back
 **You write the pull request body after `trail/gate.md` is committed,
 because the body's copy of the records includes that record.** Run
 `seal pr-body <item> --body <scratchpad>/<work-item-id>/pr-body.md`, where
-`<item>` is the work item's directory. It writes the part of that file below
-the line `skills/code-review/scripts/pr_body.py#HEADING` holds, copied from
-the work item's records inside one `<details>` fold, and keeps byte for byte
+`<item>` is the work item's directory. It writes the records' copy below
+the line `skills/code-review/scripts/pr_body.py#HEADING` holds, as
+`docs/the-review-record.md` *The guarantee* states, and keeps byte for byte
 whatever stands above that line. On exit 1 its `refused:` lines name a
 record's file and line: repair that record, commit it, and run the command
 again. Then write your own part above that line, from the top of the file,
@@ -464,9 +462,9 @@ the same arms, and refuses the same way after its suite.
 **The stamp is drawn for you at the end of the turn in which the sealer's
 report arrives, and you never draw one.** The broad run
 draws nothing: its stdout opens `BROAD GATE PASSED` or `BROAD GATE FAILED`,
-which say whether the broad command passed and judge nothing. The stamp means
-every party verified the work item, the sealer last, so it is drawn once per
-work item from the sealer's verdict: where the newest verdict block of
+which say whether the broad command passed and judge nothing. The stamp is
+drawn once per work item from the sealer's verdict
+(`docs/the-review-record.md` *The stamp*): where the newest verdict block of
 `guarantee.md` reads `Verdict: sealed` and the block reader refuses none of
 its lines, the sealer's own `Write` of it queues the
 stamp's values, under either root, and the `Stop` hook draws them after your
