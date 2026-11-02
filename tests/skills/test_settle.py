@@ -218,6 +218,31 @@ def released_item(repo, name, held):
     return path
 
 
+def judgments_plan(rows, heading="## Judgments of the run"):
+    """A `frame/plan.md` whose HEADING, on line 3, holds ROWS under the
+    exact *Judgments of the run* header."""
+    table = "".join(f"| {' | '.join(row)} |\n" for row in rows)
+    return (
+        f"# Implementation Plan: x\n\n{heading}\n\n"
+        "| Date | Judgment | Grounds | Judged against |\n|---|---|---|---|\n" + table
+    )
+
+
+def removed_plan(repo, name, plan, added, removed, tag=None):
+    """A work item whose PLAN a commit with subject ADDED adds, TAG holds
+    where given, and a commit with subject REMOVED deletes with its
+    directory, as an earlier settle's `--apply` leaves it. `(adding commit,
+    removing commit's short hash)`."""
+    write(repo / "seal" / "threads" / name, "frame/plan.md", plan)
+    commit(repo, added)
+    adding = git(repo, "rev-parse", "HEAD").strip()
+    if tag:
+        git(repo, "tag", tag)
+    git(repo, "rm", "-rq", f"seal/threads/{name}")
+    commit(repo, removed)
+    return adding, git(repo, "rev-parse", "--short", "HEAD").strip()
+
+
 def not_read(name, rel, place):
     """The line naming a misplaced record file, as the dry run and `--apply`
     print it."""
@@ -1322,6 +1347,298 @@ class Test_main:
         ), block
         assert "2026-10-02  exact\n" in block, block
         assert "2026-10-01  near" not in block, block
+
+    def test_the_judgments_earlier_settles_removed_are_read_from_the_history(
+        self, repo, capfd
+    ):
+        """#1281, design S1. A plan a commit on the ref deleted is read at
+        that commit's parent, after *The judgments*: its rows grouped by the
+        `Judged against` cell as written, each work item with the release
+        that holds its adding commit and the removing commit's `(#N)`, and
+        each row at its coordinate in the history."""
+        run_doc = "`docs/the-review-record.md` *The run*"
+        order = (
+            "`skills/implement/orchestration.md` *Orchestrator: the order "
+            "inside a ticket*"
+        )
+        rows = [
+            ("2026-10-01", "ended the rounds", "round 3 found 2", run_doc),
+            ("2026-10-02", "folded the owner's answer", "the owner answered Q1", order),
+        ]
+        plan = judgments_plan(rows)
+        old = "1700000001-old"
+        _, short = removed_plan(
+            repo, old, plan, "the old work item (#3)", "settle 0.1.0 (#7)", "v0.1.0"
+        )
+        released_item(
+            repo,
+            "1700000002-new",
+            {"frame/plan.md": judgments_plan([("2026-10-03", "x", "y", run_doc)])},
+        )
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        assert text.index(settle.JUDGMENTS_HEADING) < text.index(
+            settle.EARLIER_HEADING
+        ), text
+        block = text.split(f"\n{settle.EARLIER_HEADING}\n")[1].split(
+            f"\n\n{settle.REMOVES_HEADING}"
+        )[0]
+        where = f"{short}^:seal/threads/{old}/frame/plan.md"
+        a, b = (line_of(plan, f"| {' | '.join(row)} |") for row in rows)
+        assert block == (
+            f"\njudged against: {run_doc}\n"
+            f"    {old}  released in v0.1.0; removed by {short} (#7)\n"
+            f"        {where}:{a}  2026-10-01  ended the rounds\n"
+            "            grounds: round 3 found 2\n"
+            f"\njudged against: {order}\n"
+            f"    {old}  released in v0.1.0; removed by {short} (#7)\n"
+            f"        {where}:{b}  2026-10-02  folded the owner's answer\n"
+            "            grounds: the owner answered Q1"
+        ), block
+
+    def test_a_deleted_plan_whose_directory_stands_is_not_an_earlier_one(
+        self, repo, capfd
+    ):
+        """#1281, design S3. A plan deleted from a work item whose directory
+        stands in the working tree is no earlier settle's removal, so it is
+        not read and the section is not printed. Seen red with the exclusion
+        of `work_items(records)` alone removed."""
+        name = "1700000001-a"
+        released_item(
+            repo,
+            name,
+            {
+                "routing.md": "# a — routing\n",
+                "frame/plan.md": judgments_plan([("2026-10-01", "x", "y", "z")]),
+            },
+        )
+        git(repo, "rm", "-q", f"seal/threads/{name}/frame/plan.md")
+        commit(repo, "a drops its plan (#7)")
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        assert settle.EARLIER_HEADING not in text, text
+
+    def test_a_plan_is_read_once_at_its_newest_deletion(self, repo, capfd):
+        """#1281, design *Scope* item 1. A plan deleted, added again and
+        deleted again is read once, at the newest deletion's parent, and
+        the work items of one cell come in the order of their removing
+        commits, newest first, whatever their ids' order. Seen red with the
+        once-only check removed, and with the deletions taken oldest first."""
+        removed_plan(
+            repo,
+            "1700000000-older",
+            judgments_plan([("2026-09-01", "older", "y", "z")]),
+            "the older work item (#1)",
+            "settle 0.0.1 (#2)",
+        )
+        old = "1700000001-old"
+        removed_plan(
+            repo,
+            old,
+            judgments_plan([("2026-10-01", "first", "y", "z")]),
+            "the old work item (#3)",
+            "drop it (#5)",
+        )
+        plan = judgments_plan([("2026-10-02", "second", "y", "z")])
+        write(repo / "seal" / "threads" / old, "frame/plan.md", plan)
+        commit(repo, "the old work item again (#6)")
+        git(repo, "rm", "-rq", f"seal/threads/{old}")
+        commit(repo, "settle 0.1.0 (#7)")
+        short = git(repo, "rev-parse", "--short", "HEAD").strip()
+        released_item(repo, "1700000002-new", {"routing.md": "# new — routing\n"})
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        assert settle.EARLIER_HEADING in text, text
+        block = text.split(f"\n{settle.EARLIER_HEADING}\n")[1].split(
+            f"\n\n{settle.REMOVES_HEADING}"
+        )[0]
+        assert "  2026-10-01  first\n" not in block, block
+        assert block.index(f"    {old}  ") < block.index("    1700000000-older  "), (
+            block
+        )
+        assert (
+            f"; removed by {short} (#7)\n        {short}^:seal/threads/{old}/"
+            f"frame/plan.md:7  2026-10-02  second\n"
+        ) in block, block
+
+    def test_a_removed_plan_of_a_non_ascii_id_is_read(self, repo, capfd):
+        """#1281, round 1, finding 1. A work item id may hold any character
+        the slug takes, and git quotes such a path under the default
+        `core.quotePath` unless `-z` is given, so the history is read with
+        `-z`. Seen red against the reading without it."""
+        old = "1700000001-정렬"
+        plan = judgments_plan([("2026-10-01", "ended the rounds", "y", "z")])
+        write(repo / "seal" / "threads" / old, "frame/plan.md", plan)
+        commit(repo, "the old work item (#3)")
+        git(repo, "rm", "-rq", f"seal/threads/{old}")
+        commit(repo, "settle 0.1.0 (#7)")
+        released_item(repo, "1700000002-new", {"routing.md": "# new — routing\n"})
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        assert f"\n    {old}  " in text, text
+
+    def test_a_plan_deleted_where_another_is_added_is_still_read(self, repo, capfd):
+        """#1281, round 1, finding 2, design *Scope* item 1. One commit
+        deletes a work item's plan and adds another's from the same text, so
+        git's rename detection would pair the two and list no deletion. Seen
+        red with `--no-renames` alone removed from `earlier_judgments`."""
+        git(repo, "config", "diff.renames", "true")
+        old, new = "1700000001-old", "1700000002-new"
+        plan = judgments_plan([("2026-10-01", "ended the rounds", "y", "z")])
+        write(repo / "seal" / "threads" / old, "frame/plan.md", plan)
+        commit(repo, "the old work item (#3)")
+        git(repo, "rm", "-rq", f"seal/threads/{old}")
+        write(repo / "seal" / "threads" / new, "frame/plan.md", plan)
+        commit(repo, "settle 0.1.0 and frame the new one (#7)")
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        assert f"\n    {old}  " in text, text
+
+    def test_a_signed_removal_is_read_under_any_show_signature(
+        self, repo, capfd, monkeypatch, tmp_path
+    ):
+        """#1281, round 1's fix pass. `log.showSignature=true` writes a
+        signed commit's verification ahead of its header, where the history
+        read looks for the commit's fields, so the read passes
+        `--no-show-signature`. Signed with an ssh key made here, as
+        `test_a_signed_commit_is_read_under_any_show_signature` signs, and
+        skipped where no commit can be signed. Seen red with
+        `--no-show-signature` alone removed."""
+        key = tmp_path / "signing"
+        try:
+            made = subprocess.run(
+                ["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-f", str(key)],
+                capture_output=True,
+                encoding="utf-8",
+            )
+        except FileNotFoundError:
+            pytest.skip("ssh-keygen is not installed, so no commit can be signed")
+        if made.returncode != 0:
+            pytest.skip(f"ssh-keygen made no key: {made.stderr.strip()}")
+        git(repo, "config", "gpg.format", "ssh")
+        git(repo, "config", "gpg.ssh.program", "ssh-keygen")
+        git(repo, "config", "user.signingkey", str(key))
+        old = "1700000001-old"
+        plan = judgments_plan([("2026-10-01", "ended the rounds", "y", "z")])
+        write(repo / "seal" / "threads" / old, "frame/plan.md", plan)
+        commit(repo, "the old work item (#3)")
+        git(repo, "rm", "-rq", f"seal/threads/{old}")
+        signing = subprocess.run(
+            ["git", "-C", str(repo), "commit", "-q", "-S", "-m", "settle (#7)"],
+            capture_output=True,
+            encoding="utf-8",
+        )
+        if signing.returncode != 0:
+            pytest.skip(f"git could not sign a commit: {signing.stderr.strip()}")
+        short = git(repo, "rev-parse", "--short", "HEAD").strip()
+        released_item(repo, "1700000002-new", {"routing.md": "# new — routing\n"})
+        monkeypatch.setenv("GIT_CONFIG_COUNT", "1")
+        monkeypatch.setenv("GIT_CONFIG_KEY_0", "log.showSignature")
+        monkeypatch.setenv("GIT_CONFIG_VALUE_0", "true")
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        assert f"\n    {old}  " in text, text
+        assert f"; removed by {short} (#7)\n" in text, text
+
+    @pytest.mark.parametrize("added_by", ["an untagged commit", "no commit"])
+    def test_names_a_plan_no_tag_holds_and_a_removal_no_number_names(
+        self, repo, capfd, monkeypatch, added_by
+    ):
+        """#1281, design S4. Where no `vX.Y.Z` tag holds the commit that
+        added the plan, the work item's line names that commit, and a
+        removing commit whose subject ends in no `(#N)` is named alone.
+        Where no commit on the ref adds the plan, as for one only a merge's
+        own resolution added, the line says so."""
+        old = "1700000001-old"
+        adding, short = removed_plan(
+            repo,
+            old,
+            judgments_plan([("2026-10-01", "x", "y", "z")]),
+            "the old work item",
+            "drop the old work item",
+        )
+        released_item(repo, "1700000002-new", {"routing.md": "# new — routing\n"})
+        released = (
+            "no `vX.Y.Z` tag holds "
+            + git(repo, "rev-parse", "--short", adding).strip()
+            + ", the commit that added its plan"
+        )
+        if added_by == "no commit":
+            monkeypatch.setattr(settle, "adding_commit", lambda *_: (None, None))
+            released = "no commit on main adds its plan"
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        assert f"\n    {old}  {released}; removed by {short}\n" in text, text
+
+    def test_names_a_near_heading_in_a_removed_plan_and_reads_none_of_its_rows(
+        self, repo, capfd
+    ):
+        """#1281, design S5. A removed plan is read by the reader the
+        released plans are read by, so a near heading is named at its
+        coordinate in the history, none of its rows is printed, and the dry
+        run exits 0. Seen red with the reader's near-heading branch alone
+        removed."""
+        old = "1700000001-old"
+        _, short = removed_plan(
+            repo,
+            old,
+            judgments_plan(
+                [("2026-10-01", "x", "y", "z")], heading="## Judgments Of The Run"
+            ),
+            "the old work item (#3)",
+            "settle 0.1.0 (#7)",
+            "v0.1.0",
+        )
+        released_item(repo, "1700000002-new", {"routing.md": "# new — routing\n"})
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        assert settle.EARLIER_HEADING in text, text
+        block = text.split(f"\n{settle.EARLIER_HEADING}\n")[1].split(
+            f"\n\n{settle.REMOVES_HEADING}"
+        )[0]
+        assert block == (
+            f"    {old}  {short}^:seal/threads/{old}/frame/plan.md  not read: "
+            "line 3: `## Judgments Of The Run` opens like `## Judgments of the "
+            "run` and is not it, so none of its rows were read"
+        ), block
+
+    @pytest.mark.parametrize("failing", ["log", "show", "tag"])
+    def test_a_git_that_cannot_read_an_earlier_plan_is_named_and_refuses_nothing(
+        self, repo, capfd, monkeypatch, failing
+    ):
+        """#1281, design *Scope* item 4. The history's `git log`, a plan's
+        `git show` or its tag read that fails is named with what git said,
+        no row of that plan is printed, and the dry run exits 0."""
+        old = "1700000001-old"
+        _, short = removed_plan(
+            repo,
+            old,
+            judgments_plan([("2026-10-01", "x", "y", "z")]),
+            "the old work item (#3)",
+            "settle 0.1.0 (#7)",
+            "v0.1.0",
+        )
+        released_item(repo, "1700000002-new", {"routing.md": "# new — routing\n"})
+        real = settle.git_out
+
+        def git_out(root, *args):
+            if args[0] == failing and (failing != "log" or "--diff-filter=D" in args):
+                raise RuntimeError("git said no")
+            return real(root, *args)
+
+        monkeypatch.setattr(settle, "git_out", git_out)
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        assert settle.EARLIER_HEADING in text, text
+        block = text.split(f"\n{settle.EARLIER_HEADING}\n")[1].split(
+            f"\n\n{settle.REMOVES_HEADING}"
+        )[0]
+        where = (
+            ""
+            if failing == "log"
+            else f"{old}  {short}^:seal/threads/{old}/frame/plan.md  "
+        )
+        assert block == f"    {where}not read: git said no", block
 
     @pytest.mark.parametrize("flag", ["--retire", "--retire-process"])
     def test_the_retired_flags_are_an_argument_error(self, repo, flag, capfd):
@@ -2914,6 +3231,13 @@ class Test_module:
         assert (
             "rewrites a section where one kind of judgment recurs or kept "
             "costing rounds" in flat(settle.JUDGMENTS_HEADING)
+        )
+        # The earlier settles' rows: the script matches none of them to a
+        # row above, and the kind is the settling session's (#1281).
+        assert "The script matches no row to another" in flat(settle.EARLIER_HEADING)
+        assert (
+            "whether a row here is one kind with a row above is the settling "
+            "session's to judge" in flat(settle.EARLIER_HEADING)
         )
         # The named directories' heading: the session proposes, the person
         # marks (#1054).
