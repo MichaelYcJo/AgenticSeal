@@ -2340,7 +2340,7 @@ class Test_adding_commit:
             pytest.param("log.showRoot", "false", id="log.showRoot"),
         ],
     )
-    def test_the_persons_log_config_changes_no_number(
+    def test_accepts_the_oldest_add_under_any_log_config(
         self, tmp_path, monkeypatch, key, value
     ):
         """#1139. The pull request a fragment's adding commit names is read
@@ -2366,6 +2366,25 @@ class Test_adding_commit:
         monkeypatch.setenv("GIT_CONFIG_VALUE_0", value)
         assert settle.adding_commit(str(repo), "HEAD", first)[1] == 1
         assert settle.adding_commit(str(repo), "HEAD", second)[1] == 2
+
+    def test_refuses_a_number_the_subject_does_not_end_with_and_a_failed_git(
+        self, repo
+    ):
+        """#1139. A `(#N)` inside the subject is not the pull request's, so
+        the adding commit names none. A path no commit adds has no adding
+        commit. A ref `git` cannot read raises with what `git` said, so the
+        release note's job stops rather than writing an entry with no link.
+        Seen red with the subject's end anchor taken out, and with the check
+        of `git`'s exit taken out."""
+        path = "seal/threads/1700000001-a/changelog.md"
+        write(repo, path, "- a\n")
+        commit(repo, "fix: (#7) is not where the title ends")
+        added = git(repo, "rev-parse", "HEAD").strip()
+        assert settle.adding_commit(str(repo), "HEAD", path) == (added, None)
+        missing = "seal/threads/1700000002-none/changelog.md"
+        assert settle.adding_commit(str(repo), "HEAD", missing) == (None, None)
+        with pytest.raises(RuntimeError, match="nosuch"):
+            settle.adding_commit(str(repo), "nosuch", path)
 
 
 class Test_module:
