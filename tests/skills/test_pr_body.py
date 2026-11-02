@@ -9,6 +9,7 @@ the `seal` blocks `chain_check.py` reads.
 
 import json
 import os
+import re
 import subprocess
 
 import pytest
@@ -612,6 +613,34 @@ class Test_seal_mark:
             "read and the body carries no seal mark",
         )
 
+    @pytest.mark.parametrize("held", ["off", "unseen"])
+    def test_refuses_a_seal_head_does_not_hold_naming_it(self, repo, tmp_path, held):
+        """Round 1's finding 1's class. A guarantee sealed at a commit HEAD
+        does not descend from, as a local-mode work item read from another
+        branch's checkout, or at one this repository cannot resolve: whether
+        the seal is at HEAD cannot be read there, so no mark, and the commit
+        and the checkout named. Seen red with the naming alone removed,
+        where nothing was said."""
+        item = sealed_item(repo)
+        guarantee = item / "guarantee.md"
+        if held == "off":
+            text = guarantee.read_text(encoding="utf-8")
+            sealed = re.search(r"target: (\S+)", text).group(1)
+            git_in(repo, "reset", "-q", "--soft", "HEAD~2")
+        else:
+            sealed = "f" * 40
+            text = guarantee.read_text(encoding="utf-8")
+            guarantee.write_text(
+                re.sub(r"target: \S+", f"target: {sealed}", text), encoding="utf-8"
+            )
+        manifest = manifest_of(tmp_path, MANIFEST)
+        assert PR.seal_mark(str(item), str(repo), manifest) == (
+            None,
+            f"the guarantee is sealed at `{sealed}`, which HEAD in {repo} does "
+            "not hold, so whether its seal is at HEAD is not read and the body "
+            "carries no seal mark",
+        )
+
     @pytest.mark.parametrize(
         "row, said",
         [
@@ -676,6 +705,63 @@ class Test_main:
         )
         assert body.read_text(encoding="utf-8") == marked
         assert PR.main([str(item), "--body", str(body), "--check"]) == 0
+        assert "seal pr-body:" not in capsys.readouterr().out
+
+    def test_accepts_a_sealed_work_item_run_from_another_checkout(
+        self, repo, tmp_path, monkeypatch, capsys
+    ):
+        """Round 1's finding 1. The orchestrator runs from the main checkout
+        and reaches the work item in a linked worktree, whose branch the
+        main checkout's HEAD does not hold. The row, the base and HEAD are
+        read in the work item's own checkout, so the body carries the mark
+        as it does when run from the worktree. Seen red with the root read
+        from the working directory alone, as it was: no mark."""
+        write(
+            mark_root(repo / "seal"), "config.md", "| Item | Value |\n|---|---|\n" + ROW
+        )
+        git_in(repo, "add", "-A")
+        git_in(repo, "commit", "-qm", "the row")
+        worktree = tmp_path / "worktree"
+        git_in(repo, "worktree", "add", "-q", "-b", "feat/1-x", str(worktree))
+        item = sealed_item(worktree)
+        monkeypatch.setattr(PR, "MANIFEST", manifest_of(tmp_path, MANIFEST))
+        monkeypatch.chdir(repo)
+        body = tmp_path / "pr-body.md"
+        assert PR.main([str(item), "--body", str(body)]) == 0
+        marked = EXPECTED.replace(
+            "## From the records\n\n", f"## From the records\n\n{MARK_LINE}\n\n", 1
+        )
+        assert body.read_text(encoding="utf-8") == marked
+        assert "seal pr-body:" not in capsys.readouterr().out
+
+    def test_accepts_a_local_mode_work_item_from_the_working_directorys_checkout(
+        self, repo, tmp_path, monkeypatch, capsys
+    ):
+        """Round 1's finding 1, local mode. The work item sits under the
+        common git directory, where git finds no checkout, so the row, the
+        base and HEAD are read in the working directory's checkout, and a
+        seal at its HEAD carries the mark. Seen red with that fallback alone
+        removed: no mark."""
+        home = mark_root(repo / ".git" / "seal")
+        write(home, "config.md", "| Item | Value |\n|---|---|\n" + ROW)
+        item = home / "threads" / NAME
+        for rel, text in RECORDS.items():
+            write(item, rel, text)
+        sha = git_in(repo, "rev-parse", "HEAD")
+        write(
+            item,
+            "guarantee.md",
+            f"# Guarantee: {NAME}\n\n```seal\ntarget: {sha} against feature/x\n"
+            f"{SEALED}\n```\n",
+        )
+        monkeypatch.setattr(PR, "MANIFEST", manifest_of(tmp_path, MANIFEST))
+        monkeypatch.chdir(repo)
+        body = tmp_path / "pr-body.md"
+        assert PR.main([str(item), "--body", str(body)]) == 0
+        marked = EXPECTED.replace(
+            "## From the records\n\n", f"## From the records\n\n{MARK_LINE}\n\n", 1
+        )
+        assert body.read_text(encoding="utf-8") == marked
         assert "seal pr-body:" not in capsys.readouterr().out
 
     def test_refuses_the_mark_on_a_row_other_than_yes_and_exits_0(

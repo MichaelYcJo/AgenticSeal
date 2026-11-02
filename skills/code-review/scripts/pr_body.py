@@ -23,9 +23,12 @@ row reads `yes` and the work item's `guarantee.md` reads `sealed` at HEAD,
 as `seal_mark` reads them. Its address is built from the plugin's manifest,
 which is read and never written. It carries no record text, and `--check`
 composes it the same way, so the sealer's check, run before its own
-verdict exists, reads a part with no mark from that run. A row other than
-`yes`, and a manifest the address cannot be built from, are named on one
-line opening `seal pr-body:` and change no exit code.
+verdict exists, reads a part with no mark from that run. The row and HEAD
+are read in the work item's own checkout, and in the working directory's
+where the item sits under the common git directory. A row other than
+`yes`, a seal that checkout cannot be read against, and a manifest the
+address cannot be built from are named on one line opening
+`seal pr-body:` and change no exit code.
 
 The body opens with the orchestrator's part, the summary a reader needs
 first, and `HEADING` follows it. The copy stands below that line in one
@@ -221,6 +224,10 @@ BASE_UNSEEN = (
     "the guarantee names the base `{base}`, which this repository cannot "
     f"resolve, so whether its seal is at HEAD is not read and {NO_MARK}"
 )
+NOT_IN_HISTORY = (
+    "the guarantee is sealed at `{commit}`, which HEAD in {root} does not "
+    f"hold, so whether its seal is at HEAD is not read and {NO_MARK}"
+)
 NO_MANIFEST = (
     f"`{MANIFEST_NAME}` is not read ({{why}}), so the mark's address is not "
     f"built and {NO_MARK}"
@@ -327,9 +334,11 @@ def _seal_at_head(item, root):
     `hooks/lib/fields.py` with no refusal, the newest reads `sealed`, and
     `chain_check.py#follows` finds the commit its `target:` names to be
     HEAD or followed only by the closing records, against the base the same
-    line names. NOTE names a base this repository cannot resolve, where
-    `follows` would list no later commit; every other way of not being
-    sealed is the sealer's and the pull request check's to name."""
+    line names. NOTE names what ROOT cannot read the seal against: a base
+    it cannot resolve, where `follows` would list no later commit, and a
+    sealed commit its HEAD does not hold, as in a checkout other than the
+    work item's. Every other way of not being sealed is the sealer's and
+    the pull request check's to name."""
     try:
         with open(os.path.join(item, OPTIN.GUARANTEE), encoding="utf-8") as handle:
             text = handle.read()
@@ -353,6 +362,8 @@ def _seal_at_head(item, root):
     behind = CHAIN.follows(
         root, target["commit"], base, rel, only=CHAIN.CLOSING_RECORDS
     )
+    if behind is not None and behind[0] in ("unseen", "off"):
+        return False, NOT_IN_HISTORY.format(commit=target["commit"], root=root)
     return behind is None, None
 
 
@@ -392,7 +403,8 @@ def seal_mark(item, root, manifest=None):
     and the work item is sealed at HEAD (`_seal_at_head`). An absent or
     empty row, and a work item not sealed at HEAD, write no mark and say
     nothing. Any other value, a refused row, a base that does not resolve,
-    and a manifest the address cannot be built from, at MANIFEST or the
+    a sealed commit HEAD does not hold, and a manifest the address cannot be
+    built from, at MANIFEST or the
     plugin's own, write no mark and are named. Nothing here refuses: the
     mark is a picture, and no row of it stops the body."""
     value, refused = CONFIG.declared_value(OPTIN.home_at(root), MARK_ROW)
@@ -740,7 +752,13 @@ def main(argv=None):
         print(f"seal pr-body: {args.item} is not a directory", file=sys.stderr)
         return 2
     name = os.path.basename(os.path.normpath(os.path.abspath(args.item)))
-    mark, note = seal_mark(args.item, OPTIN.repo_root(os.getcwd()))
+    # The mark is read in the work item's own checkout, so a run from
+    # another checkout of the repository writes the body a run from the
+    # item's would. A local-mode item sits under the common git directory,
+    # where git finds no checkout and `repo_root` answers "", so its
+    # checkout is the working directory's.
+    root = OPTIN.repo_root(os.path.abspath(args.item)) or OPTIN.repo_root(os.getcwd())
+    mark, note = seal_mark(args.item, root)
     said = f"seal pr-body: {note}\n" if note else ""
     try:
         below = _composed(name, read_item(args.item), mark)
