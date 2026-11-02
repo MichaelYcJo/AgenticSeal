@@ -1224,18 +1224,19 @@ def draft(found, root, out):
     """Write every operation of every design the dry run groups into the
     policy root, in merge order and in the order its design writes them,
     each through `rule_changes.py#apply_op` over the text the earlier ones
-    left. Each document is read once and written once at the end, with its
-    line ends as they are; one an `add` with no section names is created,
-    and one a `remove` empties is deleted. Each operation not placed is
+    left. Each document an operation names is read once and written once at
+    the end, with its line ends as they are; one an `add` with no section
+    names is created, the policy root with it where it is absent, and one a
+    `remove` empties is deleted. Each operation not placed is
     printed with its reason, the rest go on, and nothing decides which
     operation is the latest: the exit code is 0 whatever was placed."""
     rules = load(RULES, "agentic_rule_changes")
-    read, texts, placed, total = {}, {}, 0, 0
+    texts, placed, total = {}, 0, 0
     for work_item_id, ops in found["timeline"]["specs"]:
         for op in ops:
             total += 1
             if op.file not in texts:
-                read[op.file] = texts[op.file] = read_text(root, op.file)
+                texts[op.file] = read_text(root, op.file)
             text, why = rules.apply_op(texts[op.file], op)
             if why:
                 where = f"{SPECS}/{work_item_id}/{DESIGN}:{op.line}"
@@ -1244,8 +1245,6 @@ def draft(found, root, out):
             texts[op.file] = text
             placed += 1
     for rel, text in texts.items():
-        if text == read[rel]:
-            continue
         path = under(root, rel)
         if text is None:
             if os.path.isfile(path):

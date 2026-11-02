@@ -2399,6 +2399,17 @@ class Test_main:
         assert (repo / "docs" / "b.md").read_bytes() == b"## Two\r\n"
         assert not (repo / "docs" / "c.md").exists()
 
+    def test_draft_creates_the_policy_root_its_first_document_needs(self, repo, capfd):
+        """A repository whose policy root is absent gets it from the `add`
+        that creates its first document."""
+        git(repo, "rm", "-rq", "docs")
+        commit(repo, "no policy root")
+        item(repo, "1700000001-a", op("add", new="# New", file="docs/new.md"))
+        commit(repo, "a")
+        code, text = dry_run(repo, capfd, "--draft")
+        assert code == 0, text
+        assert (repo / "docs" / "new.md").read_bytes() == b"# New\n"
+
     @pytest.mark.parametrize(
         "other", [["--apply"], ["--from", "adr"]], ids=["apply", "from"]
     )
