@@ -40,6 +40,11 @@ It is no `must`. No assertion changed, and every parameter fails under its own b
     # without their slash and to a directory it does not list.
 ```
 
+```seal
+verdict: fixed 22d2fa3bc
+answer: Held; the round's text applied with one clause written in my own words. Its first line, "Paths each refused by one guard of `in_corpus` alone", still claims more than the case shows: `SECURITY.md` and the three directory paths fall outside both sides of the `or` at once, `TOP_FILES` membership and the `TOP_DIRS` prefix. The header now reads "Paths each let through by widening one guard of `in_corpus` at one boundary named here and by no other, one or more per guard", then the round's "so widening a guard at a boundary named here fails exactly that boundary's paths". The `or` sentence gains why each side is widened at a boundary, "a side widened to `True` lets through what the other side refuses". No parameter, id or assertion changed. Each sentence was read against `passages.py:57-61` and a run, all executed with `seal mutate`. The seven named boundaries each failed exactly their own parameter: the suffix `[the-md-suffix]`, the edition exclusion `[the-ko-exclusion]`, membership to every top-level path `[top-files]`, the prefix without its slash `[top-dirs-slash]`, and `tests/`, `hooks/` and `seal/` added `[top-dirs-not-tests]`, `[top-dirs-not-hooks]`, `[top-dirs-not-records]`. Membership widened to `True`, and the prefix widened to `True`, each failed the same five, `top-files` and the four prefix parameters. The inner comments each hold against these runs. `tests/skills/test_passages.py` passed, and `uvx ruff check` and `uvx ruff format --check` each exited 0.
+```
+
 ## Confirmations
 
 ```seal
