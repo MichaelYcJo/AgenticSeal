@@ -455,8 +455,9 @@ and the document stays where it was, as it was.
     `gh api --paginate 'repos/{owner}/{repo}/releases?per_page=100'` list,
     drafts left out. It carries the entry where its body links
     `https://github.com/<owner>/<name>/pull/<N>`, under any owner and name
-    and with no digit after N, or holds `<!-- specs/<id> -->`, the comment
-    the notes published before entries linked their pull requests carry.
+    and with no digit after N, or holds the HTML comment naming the work
+    item's id, which the notes published before entries linked their pull
+    requests carry.
   - A directory whose note does not carry the entry is kept, and its `kept`
     line names the tag, the pull request and `git show <commit>:<path>` for
     its fragment's text. So is one whose version has no published release,

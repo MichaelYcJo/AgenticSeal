@@ -426,8 +426,8 @@ def git_out(root, *args):
 
 
 def version(root, commit):
-    """The lowest `vX.Y.Z` tag that holds COMMIT, compared by number so that
-    `v1.2.3` is below `v1.10.0`, or None where none does. A tag of any other
+    """The lowest `vX.Y.Z` tag that holds COMMIT, its three parts compared
+    as numbers and not as text, or None where none does. A tag of any other
     shape is no version."""
     found = []
     for name in git_out(root, "tag", "--contains", commit, "--list", "v*").split():
