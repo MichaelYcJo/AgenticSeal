@@ -77,6 +77,11 @@ describe the old cells.
 | The duty to re-home every measurement nobody has taken as an issue. Its catch record: the 0.22.4 settle opened 27 issues under it, and 22 of them closed as not planned (G9) | `skills/settle/SKILL.md` *The settling session's procedure* step 6, the row *a measurement nobody has taken* and the paragraph under the table | The row keeps its base *When* cell. The new kind before it, and the order paragraph rewritten in place, leave it only a measurement something on record needs. A measurement nothing waits on is closed in its record with its reason, which the settle's pull request body lists |
 ```
 
+```seal
+verdict: fixed 02dad8e2f
+answer: The orchestrator folded this round's two paste-ready texts into `frame/design.md` *Scope* item 1 (`:28`) and the `## Removes` row (`:92`) at 02dad8e2f, records only; `git diff 7f6104b47 02dad8e2f` shows both lines replaced by the round's text word for word and nothing else. They match the skill: `skills/settle/SKILL.md:283` reads `| a measurement nobody has taken | it names a run, a platform or a reading no record holds | the issue it is re-homed to |`, the base *When* cell. The fix pass changed no file for this finding.
+```
+
 ## Confirmations
 
 ```seal
