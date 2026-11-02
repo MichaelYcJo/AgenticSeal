@@ -66,8 +66,9 @@ In scope:
    Each `-` is doubled, then each `_` is doubled, then the text is
    percent-encoded with nothing left safe (`urllib.parse.quote(text,
    safe="")`), so a space is `%20`, a `/` is `%2F` and a `%` is `%25`. The
-   whole URL and the `alt` text are then HTML-escaped as every attribute in
-   the header is today.
+   `alt` text is then HTML-escaped as every attribute in the header is
+   today; the URL needs no escape, because the encoding leaves no character
+   HTML reads.
 3. **`release_seal.py#results` hands the stamp's results as labelled
    values, not as phrases.** It returns the same two parts it returns today,
    the sealed part and the other results, each as badge lines: lists of
