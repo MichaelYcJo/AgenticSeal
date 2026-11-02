@@ -39,9 +39,8 @@ breaks. What can break is the exact-text guard: a change to the counts'
 words that lands between `publish` and `seal` of one run would make `seal`
 refuse. Both read the words from one function at one tag in one run, so
 that needs a change to the function inside a single workflow run, which
-cannot happen. A pull request title that holds a bare `</details>` would
-close its category's fold early; the limit sentence says so, and the next
-person to see it fixes one note with `gh release edit`.
+cannot happen. A pull request title that holds a bare `</details>` is written as text, its
+`<` as `&lt;`, so it closes no fold (`frame/plan.md` *Judgments of the run*).
 
 ## Alternatives considered
 
@@ -52,7 +51,7 @@ person to see it fixes one note with `gh release edit`.
 | A3. Replace the two jobs with one: `publish` runs the suite first and writes the whole header once, with no edit | The note waits for a 30-minute suite after the merge, and a red or hung suite delays or stops the note. #718 put the seal in a `continue-on-error` job after the note precisely so that a seal that cannot be drawn costs the image and never the note. Premise checked: the `seal` job is `continue-on-error: true` with `timeout-minutes: 60`, and its suite step has `timeout-minutes: 30` (`publish-release.yml`, read). | Rejected. The split is what keeps the note independent of the suite, and the issue keeps the re-run rule. |
 | A4. Find the header by an HTML comment marker that `publish` writes and `seal` looks for | The marker is a new mark in the note with no reader but the seal, and a hand edit that keeps the marker and changes the counts would be overwritten. | Rejected. The issue asks for no new mark, and the exact-text guard already finds the block. |
 | A5. Keep the glance table in `publish`'s note and let `seal` turn it into the two-cell header | A seal that fails leaves the old table and its heading on the note. | Rejected. The issue removes the separate table, and A1 removes it whether or not `seal` succeeds. |
-| A6. The renderer escapes a `details` or `summary` tag outside a code span in each title and fragment | A second reader of the same tag, in a stdlib script, beside #1218's reader at `seal pr-body`. It guards a shape found in 0 of 318 merged titles and 0 of 68 published notes (`frame/design.md` *Grounding*). | Rejected. The fragment is held at the pull request by #1218, and the title is a limit stated in the docstring. |
+| A6. The renderer escapes a `details` or `summary` tag outside a code span in each title and fragment | A second reader of the same tag, in a stdlib script, beside #1218's reader at `seal pr-body`. It guards a shape found in 0 of 318 merged titles and 0 of 68 published notes (`frame/design.md` *Grounding*). | Rejected for fragments and for reading a tag: the fragment is held at the pull request by #1218. For titles the renderer escapes every `<` outside a code span, which reads no tag, after #1293's title broke the count this row stood on (*Judgments of the run*, row 1). |
 | A7. An SVG asset in place of the PNG | Every release asset is served as `application/octet-stream`, and a browser draws an SVG only when it is served as `image/svg+xml` (`frame/design.md` *Grounding*). The note would show a broken image. | Rejected. PNG stays, as the issue's default says. |
 | A8. Strip the emoji from the category summaries under the owner's rule against symbols a reader trips on | The note's type names change in every release from 0.28.0 on, which the issue does not ask for, and its own example writes the summary with the type's emoji. No script reads the summaries. | Rejected. The header the work adds carries none, and the glance's emoji and its ` · ` go with it. |
 | A9. Fold the thanks and update sections too | The update command, which every reader needs, is hidden behind a click. | Rejected. They are not categories, and the issue names categories. |
