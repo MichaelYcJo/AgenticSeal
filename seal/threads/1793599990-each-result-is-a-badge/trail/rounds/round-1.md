@@ -77,6 +77,11 @@ docstring where S3 is pinned:
 #    pins every alt attribute, which is #1299 S3."
 ```
 
+```seal
+verdict: fixed 2a82f15a
+answer: The finding holds: a string equal to a fixed literal always parses to the same cells, so neither reading could fail while the exact-string assertions above it passed. `Unimaged`, `unimaged` and both assertions are removed, and the docstring now says the whole-string assertion pins every alt attribute, which is #1299 S3, in the fix's words merged with finding 2's sentence. `trail/phases/phase-1.md` and `frame/design.md` S3 still describe the parser reading; the hand-back names both.
+```
+
 ### 2. The sealed header case's docstring says every badge is escaped, and the badge's address is not
 
 ```seal
@@ -104,6 +109,11 @@ not.
         result in words. The image's URL and alt text, and each badge's alt
         text, are escaped, so a quote cannot end an attribute and a `<` opens
         no tag; a badge's address is percent-encoded and needs no escape.
+```
+
+```seal
+verdict: fixed 2a82f15a
+answer: The finding holds: `sealed_header` escapes the image's URL and alt and `badge` escapes only each badge's alt text. The docstring now says so and that a badge's address is percent-encoded and needs no escape, which is the fix's sentence rewrapped. `git grep` for the old wording and for `escapes each badge` finds no other place stating it.
 ```
 
 ## Confirmations
