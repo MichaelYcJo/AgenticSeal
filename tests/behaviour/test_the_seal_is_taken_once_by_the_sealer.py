@@ -529,9 +529,14 @@ def test_the_measurement_its_cost_and_its_limits_are_told_where_the_row_is_writt
         # #883: that stop fails the suite even where the row exited 0.
         "Where one did, the suite fails even where the row exited 0, as it "
         "does when a test calls `pytest.exit()` with a return code of 0 or "
-        "`os._exit(0)`, because an exit of 0 says only that nothing the "
-        "session ran failed; the failure form says so, and no `trail/gate.md` "
-        "is written.",
+        "`os._exit(0)`, because a stop that chooses the exit code says neither "
+        "that the session ran every test it collected nor that nothing it ran "
+        "failed; the failure form says so, and no `trail/gate.md` is written.",
+        # #883 round 1's finding 2: the stops no record shows, as a class.
+        "A stop raised before the recorder writes a session's first line, such "
+        "as a `pytest.exit()` in a conftest's `pytest_configure`, leaves no "
+        "record, so that run reads as one that started no pytest and is judged "
+        "on its exit alone.",
         "**The cost is one more run of the whole row, and only when the suite "
         "fails**, whatever the number of failing files.",
         "so a part after the runner that the branch's own run never reached, "

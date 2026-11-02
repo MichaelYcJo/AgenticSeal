@@ -2201,8 +2201,10 @@ NO_RECORD_HERE = (
 # that says why a suite whose row exited 0 failed (#883).
 STOPPED_AT_EXIT_0 = (
     "the row exited 0, and the gate fails the suite all the same because a "
-    "pytest session it ran stopped part-way: an exit of 0 says only that "
-    "nothing the session ran failed, not that it ran every test it collected"
+    "pytest session it ran stopped part-way: a stop such as pytest.exit() or "
+    "os._exit() chooses the exit code itself, so an exit of 0 says neither "
+    "that the session ran every test it collected nor that nothing it ran "
+    "failed"
 )
 
 
@@ -2279,6 +2281,25 @@ class Test_failure_lines:
         ]
         finished = a_record(sessions=1, counts={"passed": 1})
         assert STOPPED_AT_EXIT_0 not in gate.failure_lines(check, None, finished)
+
+    def test_accepts_the_exit_0_line_above_the_files_and_at_no_other_exit(self):
+        """#883 round 1: a test failed before the stop, so the suite at exit 0
+        lists a file, and the line still comes directly under the check's
+        first lines. An interrupt, an internal error or a usage error with a
+        stopped session exits 2, 3 or 4, and the line is never said there."""
+        record = a_record(sessions=1, counts={"failed": 1, "passed": 1}, unended=1)
+        check = gate.Check(gate.SUITE, 0, "first\n", "/k/suite.txt")
+        lines = gate.failure_lines(check, {"t/a.py": gate.NEW}, record)
+        assert lines[:5] == [
+            "exit 0",
+            "first",
+            STOPPED_AT_EXIT_0,
+            gate.COMPARED_AT_BASE,
+            "  t/a.py  new",
+        ]
+        for code in (2, 3, 4):
+            check = gate.Check(gate.SUITE, code, "first\n", "/k/suite.txt")
+            assert STOPPED_AT_EXIT_0 not in gate.failure_lines(check, None, record)
 
     def test_refuses_to_call_files_compared_where_no_record_was_left(self):
         check = gate.Check(gate.SUITE, 1, "", "/k/suite.txt")

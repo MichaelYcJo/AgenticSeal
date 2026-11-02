@@ -83,7 +83,8 @@ uncommitted, one line saying so: CI reads HEAD. The owner's marks are
 written in ASCII on a console that is not UTF-8, or under `--shape`. A run
 fails where a check exits non-zero, and where the suite's record at `HEAD`
 counts a pytest session that stopped part-way, whatever the row's exit
-(#883): an exit of 0 says only that nothing the session ran failed. A run
+(#883): a stop that chooses the exit code, as `pytest.exit()` and
+`os._exit()` do, can give 0 over tests that never ran. A run
 that fails prints `BROAD GATE FAILED` with the same names and the failing
 checks with their first lines (`failed_form`). No run writes a values file
 or a drawing.
@@ -2718,8 +2719,9 @@ def failure_lines(check, verdicts=None, record=None):
     writes no call — and the tests it never reached wrote none, so its file
     can be in no list above. That count alone fails the suite, whatever the
     row's exit (#883), so a failing `suite` whose exit is 0 says first, under
-    its own lines, why it failed (`STOPPED_AT_EXIT_0`): an exit of 0 says
-    only that nothing the session ran failed.
+    its own lines and above any file list, why it failed
+    (`STOPPED_AT_EXIT_0`): a stop that chooses the exit code can give 0 over
+    tests that never ran, and over a test that failed before it.
 
     **Where a line of the record at `HEAD` did not parse, it says how many**
     (#869). `record.unread` is the count of them; the gate passed each over,
@@ -2804,11 +2806,14 @@ UNENDED_HERE = (
 # The line under a failing suite's own lines where the row exited 0 and the
 # gate failed it on a session at `HEAD` that stopped part-way (#883): a test
 # that calls `pytest.exit()` with a return code of 0, or ends its process with
-# `os._exit(0)`, stops the session there with the row still at exit 0.
+# `os._exit(0)`, stops the session there with the row still at exit 0, and
+# that exit holds whether or not a test failed before the stop.
 STOPPED_AT_EXIT_0 = (
     "the row exited 0, and the gate fails the suite all the same because a "
-    "pytest session it ran stopped part-way: an exit of 0 says only that "
-    "nothing the session ran failed, not that it ran every test it collected"
+    "pytest session it ran stopped part-way: a stop such as pytest.exit() or "
+    "os._exit() chooses the exit code itself, so an exit of 0 says neither "
+    "that the session ran every test it collected nor that nothing it ran "
+    "failed"
 )
 
 # The line under the listing where a line of the records the row's pytest
