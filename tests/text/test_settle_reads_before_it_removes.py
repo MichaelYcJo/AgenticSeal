@@ -25,12 +25,14 @@ def test_the_cheat_sheets_name_the_design_file_the_settle_reads():
     released work item with no design leaves like any other is the
     proofer's to read."""
     for edition in ("README.md", "README.ko.md"):
+        with open(os.path.join(ROOT, edition), encoding="utf-8") as f:
+            # The row is one line of the table: the cell, then up to its end.
+            row = f.read().split("`seal settle [--apply]`")[1].split("\n", 1)[0]
         # The path `frame/design.md`, which the person running
         # `seal settle` resolves to the file it reads.
-        assert (
-            "`frame/design.md`"
-            in document(edition).split("`seal settle [--apply]`")[1][:900]
-        ), f"{edition}'s cheat-sheet row does not name the rule arm"
+        assert "`frame/design.md`" in row, (
+            f"{edition}'s cheat-sheet row does not name the rule arm"
+        )
 
 
 SKILL = os.path.join(ROOT, "skills", "settle", "SKILL.md")
