@@ -97,6 +97,11 @@ def copies(op, texts, gone=None):
 
 The chain-check case is the probe as it ran, and it is red at `c783f18f4`. The count of runs is left out of its assert because it depends on `passages.py#words`; the unit case pins the path. The fold of *Scope* item 3 that finding 3 asks for states the replacement too.
 
+```seal
+verdict: fixed bd8c45c2a
+answer: Held; the paste-ready fix applied. `pins_and_copies_in` collects `(from, to)` pairs into `gone`, the `to` None for a `remove`, and `copies` replaces each found text with its pair's `to` through a function, so a backslash in a `to` is text. Cases: `Test_copies::test_accepts_a_run_a_change_keeps_in_its_to` (its `to` carries a backslash) and `Test_pins_and_copies_in::test_names_a_copy_a_change_keeps_in_its_to`, which pins the whole notice (3 runs), each seen red against `c783f18f4`; the two round-1 unit cases now pass pairs. `seal mutate`: 3 of 3 red (the `to` not written, a string replacement that reads the backslash, the pair carrying None). Corrected in the same commit: `chain_check.py`'s module docstring (`:97`) and `pins_and_copies_in`'s docstring, `copies`' docstring, and the changelog sentence, each now reading the document as the design's operations leave it.
+```
+
 ### 2. A tracked file whose name is not UTF-8 is still skipped unnamed, so the class the close lists as whole has an instance it left silent
 
 ```seal
@@ -135,6 +140,11 @@ def _not_found(path, unread, what):
 
 `_read_tree`'s docstring then says that a deleted file is skipped and a file whose name did not decode is named. A case in `Test_pins_and_copies_in` monkeypatches `chain.git` to list `tests/test_�.py` and expects the notice. That runs on every platform. Where the fix pass judges the case outside the flow this tool serves, the cheaper answer is one limit sentence in that docstring naming the case, and no guard.
 
+```seal
+verdict: fixed bd8c45c2a
+answer: Held as a gap in the close's list, answered by a stated limit and no guard, as the orchestrator's judgment row of round 2 in `frame/plan.md` decides: a tracked path whose name is not UTF-8 is a shape outside the flow a design's rule documents and tests take. `_read_tree`'s docstring now says such a name reaches it with U+FFFD in place of its bytes, since `git()` decodes with `errors="replace"`, does not open, and is skipped as deleted, unnamed. No case pins a docstring sentence, and no behaviour changed.
+```
+
 ### 3. The design still states `copies(op, texts)` as comparing each document as the tree holds it, which the fix changed
 
 ```seal
@@ -152,6 +162,11 @@ A fix pass does not edit `frame/design.md`, so this is the orchestrator's fold. 
 ```
 
 and at `:78`, `copies(op, texts, gone)` in place of `copies(op, texts)`.
+
+```seal
+verdict: deferred the orchestrator's fold of `frame/design.md` before round 3
+answer: Held, and left to the orchestrator's fold, since a fix pass does not edit `frame/design.md`. After `bd8c45c2a` the round's proposed text for *Scope* item 3 (`frame/design.md:45`) is true of the code: `copies(op, texts, gone)` reads each corpus path other than `file` as the design's operations leave it, each `change`'s `from` replaced by its `to` and each text a `remove` takes out removed, and returns the count and one run of what it shares with the `to`. *Data & interfaces* (`:78`) then reads `copies(op, texts, gone)`. A `git grep` for `copies(op, texts)` and the old collection's wording over the tree outside the round records finds these two sentences and no other.
+```
 
 ## Confirmations
 
