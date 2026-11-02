@@ -52,6 +52,11 @@ The fix is a case beside S1 in `Test_main`. It was shown red under the mutant by
         assert out.startswith("red: "), out
 ```
 
+```seal
+verdict: fixed f8532a373
+answer: The finding holds. My round-1 close called this mutant equivalent, and that was a reading with no probe behind it. Under this worktree's 3.13.9 venv and 3.12.9, `OTHER: (y := 1) = 2` compiles with no flags and is refused under `__future__.annotations.compiler_flag`. Under 3.15.0 it is refused both ways (executed). The case is the proofer's body, applied after reading it against `compile_error`, with one change in my own words: the skip is computed, not keyed to a version. `ANNOTATIONS_FLAG_REFUSES_MORE` compiles `ANNOTATED` with and without the flag on the running interpreter, and the case is skipped only where the flag changes nothing, where the mutant really is equivalent. This avoids asserting that 3.14 behaves like 3.15, which nothing here measured. The case ran, not skipped, under the 3.13.9 venv, and the module passed with 67 cases (executed). `compile_error`'s docstring now says what `dont_inherit=True` keeps out. Under this branch's own `bin/seal mutate`, the call's `dont_inherit=True` to `dont_inherit=False` reads red at `test_a_mutant_is_compiled_without_the_scripts_own_future_flags` (executed). OLD had to name the whole call, because the docstring now holds the bare words too. The file was restored and `git status` is clean.
+```
+
 ### 2. The fold to 0.29.0 left the frame and the closing memo naming 0.28.1 where a reader acts on the version
 
 ```seal
@@ -78,6 +83,11 @@ design.md:20  ... This is the first pull request into `release/v0.29.0`, which t
 plan.md:39    ... `git show --stat` of the commit lists both files, and `plugin.json` reads `0.29.0` at HEAD (S9). ...
 plan.md:46    - A session that types a bare `seal` runs the installed plugin, and gets the fix only once 0.29.0 is released and installed. ...
 gaps.md:7     | ... | the orchestrator's broad gate, `seal gate --base release/v0.29.0 --record` this work item |
+```
+
+```seal
+verdict: fixed dd9ec76d
+answer: Read `git show dd9ec76d` against each line the finding lists. G11 now says the installed plugin stays 0.28.0 until 0.29.0 is released, and the worktree is cut from `release/v0.29.0`. G12 names the first pull request into `release/v0.29.0`, renamed from `release/v0.28.1`. The plan's phase 2 row reads `0.29.0` at HEAD (S9). *Operational impact* says the fix arrives once 0.29.0 is released. `gaps.md:7` names `--base release/v0.29.0`. All five are fixed (read). A `0\.2[89]\.[01]` search over the work item's records at HEAD found one more line that still stands on the old version, outside both the finding's listing and dd9ec76d: `frame/plan.md:14`, *Technical context* "The version", which says `docs/branch-and-release.md` *Cutting a release* "puts the move to `0.28.1` in the commit that adds the release's first fragment". The crafter's definition allows no edit to `frame/plan.md` outside the Status cell, so that line is for the orchestrator. The other hits record what happened at the time, and they stand: design G4's milestone read, *Scope* item 6's history clause, the plan's *Judgments of the run* row, `routing.md:17`, the phase records and the round records.
 ```
 
 ## Confirmations
