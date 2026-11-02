@@ -9,7 +9,9 @@ writes no policy document (#1033). In local mode it reads the root under the
 git directory and asks `gh` which pull request merged from each work item's
 branch (#955). A file in a work item's directory named like a record it
 reads, at another path, is named by both arms as not read and decides
-nothing (#1126); `Test_misplaced` holds the walk that finds it.
+nothing (#1126); `Test_misplaced` holds the walk that finds it. With
+`--from`, the dry run lists every document of each directory a person
+names and writes nothing there (#1054).
 `Test_report` and `Test_apply` drive the
 two arms over the `tree` fixture's history; `Test_main` runs the command over
 a repository whose merge order git holds, and over a local root with a `gh`
@@ -78,6 +80,12 @@ def item(repo, name, changes):
 def commit(repo, message):
     git(repo, "add", "-A")
     git(repo, "commit", "-qm", message)
+
+
+def stamp(repo):
+    """HEAD's short hash and date, as the named-directory listing prints a
+    commit."""
+    return git(repo, "log", "-1", "--format=%h %cs").strip()
 
 
 @pytest.fixture
@@ -1915,6 +1923,414 @@ class Test_main:
             "complete settle ends here.\n"
         ), text
 
+    # --- `--from`: the directories a person names (#1054) --------------------
+
+    def test_a_run_without_from_prints_no_named_directory_listing(self, repo, capfd):
+        """#1054 A1: the listing is printed only where a person named a
+        directory, so a run without `--from` prints what it printed before;
+        the cases above hold that output line for line."""
+        write(repo, "adr/0001.md", "a decision\n")
+        item(repo, "1700000001-a", op("add", "U", new="Rule."))
+        commit(repo, "a")
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        assert settle.DOCUMENTS_HEADING not in text, text
+        assert "adr/0001.md" not in text, text
+
+    def test_from_lists_every_document_of_a_named_directory_in_gits_order(
+        self, repo, capfd, monkeypatch
+    ):
+        """#1054 A2: every file git lists under the directory is a document,
+        nested or of any extension, and an ignored file is none. Each is
+        listed once in the order of the commits that add it, a moved file
+        counting as added where it lands, with its last change beside it; a
+        file changed in the working tree says so, and one no commit adds
+        comes last. The path is read from the directory the command runs in,
+        and the listing stands after the judgments and before what `--apply`
+        removes."""
+        item(repo, "1700000001-a", op("add", "U", new="Rule."))
+        write(repo, "adr/0001.md", "one\n")
+        write(repo, "adr/old/moved.md", "moved\n")
+        commit(repo, "first records")
+        first = stamp(repo)
+        write(repo, "adr/sub/0002.md", "nested\n")
+        write(repo, "adr/notes.txt", "no md extension\n")
+        commit(repo, "second records")
+        second = stamp(repo)
+        write(repo, "adr/0001.md", "one, revised\n")
+        commit(repo, "revise the first")
+        third = stamp(repo)
+        git(repo, "mv", "adr/old/moved.md", "adr/moved.md")
+        commit(repo, "move one")
+        fourth = stamp(repo)
+        write(repo, "adr/.gitignore", "*.log\n")
+        git(repo, "add", "adr/.gitignore")
+        git(repo, "commit", "-qm", "ignore logs")
+        fifth = stamp(repo)
+        write(repo, "adr/build.log", "ignored\n")
+        write(repo, "adr/0003.md", "untracked\n")
+        # Staged and never committed: `ls-files` prints it after the
+        # untracked file, and the listing puts it first by its path.
+        write(repo, "adr/0000-staged.md", "staged\n")
+        git(repo, "add", "adr/0000-staged.md")
+        write(repo, "adr/0001.md", "one, revised again\n")
+        monkeypatch.chdir(repo)
+        code, text = dry_run(repo, capfd, "--from", "adr")
+        assert code == 0, text
+        assert (
+            "\nfrom adr/: 7 documents\n"
+            f"    adr/0001.md  added {first}  last changed {third}  changed in the "
+            "working tree\n"
+            f"    adr/notes.txt  added {second}  last changed {second}\n"
+            f"    adr/sub/0002.md  added {second}  last changed {second}\n"
+            f"    adr/moved.md  added {fourth}  last changed {fourth}\n"
+            f"    adr/.gitignore  added {fifth}  last changed {fifth}\n"
+            "    adr/0000-staged.md  no commit adds it\n"
+            "    adr/0003.md  no commit adds it\n\n"
+        ) in text, text
+        assert "build.log" not in text, text
+        assert "adr/old/" not in text, text
+        heading = text.index(f"\n{settle.DOCUMENTS_HEADING}\n")
+        assert (
+            heading < text.index("\nfrom adr/") < text.index(settle.REMOVES_HEADING)
+        ), text
+
+    def test_a_merge_that_resolved_a_document_is_its_last_change(
+        self, repo, capfd, monkeypatch
+    ):
+        """#1054, round 1's finding 1: a merge whose conflict resolution
+        rewrote a document is the commit that last changed it, since `git log`
+        prints a merge's own change only under `--cc`."""
+        item(repo, "1700000001-a", op("add", "U", new="Rule."))
+        write(repo, "adr/0001.md", "one\n")
+        commit(repo, "a decision")
+        first = stamp(repo)
+        git(repo, "checkout", "-qb", "side")
+        write(repo, "adr/0001.md", "side\n")
+        commit(repo, "side")
+        git(repo, "checkout", "-q", "main")
+        write(repo, "adr/0001.md", "main\n")
+        commit(repo, "main")
+        # The merge conflicts and exits 1, which `git` here would raise on.
+        subprocess.run(
+            ["git", "-C", str(repo), "merge", "--no-ff", "-q", "side"],
+            capture_output=True,
+        )
+        write(repo, "adr/0001.md", "resolved\n")
+        commit(repo, "merge side, resolved")
+        merged = stamp(repo)
+        monkeypatch.chdir(repo)
+        code, text = dry_run(repo, capfd, "--from", "adr")
+        assert code == 0, text
+        assert f"    adr/0001.md  added {first}  last changed {merged}\n" in text, text
+
+    def test_a_clean_merge_of_two_edits_is_a_documents_last_change(
+        self, repo, capfd, monkeypatch
+    ):
+        """#1054, round 4's finding 1: a merge with no conflict that combines
+        two branches' edits to one document holds content neither parent
+        holds. Its hunks are all ones `--cc` calls uninteresting, and
+        `--name-status` still names it `MM`, so it is the last change."""
+        item(repo, "1700000001-a", op("add", "U", new="Rule."))
+        body = "".join(f"line {i}\n" for i in range(30))
+        write(repo, "adr/0001.md", body)
+        commit(repo, "a decision")
+        first = stamp(repo)
+        git(repo, "checkout", "-qb", "side")
+        write(repo, "adr/0001.md", body.replace("line 25\n", "line 25, side\n"))
+        commit(repo, "side edits the end")
+        git(repo, "checkout", "-q", "main")
+        write(repo, "adr/0001.md", body.replace("line 2\n", "line 2, main\n"))
+        commit(repo, "main edits the start")
+        git(repo, "merge", "--no-ff", "-q", "-m", "merge side", "side")
+        merged = stamp(repo)
+        monkeypatch.chdir(repo)
+        code, text = dry_run(repo, capfd, "--from", "adr")
+        assert code == 0, text
+        assert f"    adr/0001.md  added {first}  last changed {merged}\n" in text, text
+
+    def test_a_merge_that_wrote_a_document_no_parent_holds_adds_it(
+        self, repo, capfd, monkeypatch
+    ):
+        """#1054, round 2's finding 1: a merge whose result holds a document
+        neither parent holds is the commit that added it, since `--cc` gives
+        that path one `A` per parent and an add is every letter `A`."""
+        item(repo, "1700000001-a", op("add", "U", new="Rule."))
+        write(repo, "adr/0001.md", "one\n")
+        commit(repo, "a decision")
+        git(repo, "checkout", "-qb", "side")
+        write(repo, "adr/side.md", "side\n")
+        commit(repo, "side")
+        git(repo, "checkout", "-q", "main")
+        write(repo, "adr/main.md", "main\n")
+        commit(repo, "main")
+        git(repo, "merge", "--no-ff", "--no-commit", "-q", "side")
+        write(repo, "adr/0002.md", "written in the merge\n")
+        commit(repo, "merge side, adding adr/0002.md")
+        merged = stamp(repo)
+        monkeypatch.chdir(repo)
+        code, text = dry_run(repo, capfd, "--from", "adr")
+        assert code == 0, text
+        assert f"    adr/0002.md  added {merged}  last changed {merged}\n" in text, text
+
+    def test_a_merge_that_rewrote_a_document_one_parent_lacks_changes_it(
+        self, repo, capfd, monkeypatch
+    ):
+        """#1054, round 2's finding 1: a merge that rewrites a document only
+        `side` holds prints `AM` under `--cc`, an `A` against `main` beside an
+        `M` against `side`. Not every letter is `A`, so the merge changed the
+        document and `side`'s commit still added it."""
+        item(repo, "1700000001-a", op("add", "U", new="Rule."))
+        write(repo, "adr/0001.md", "one\n")
+        commit(repo, "a decision")
+        git(repo, "checkout", "-qb", "side")
+        write(repo, "adr/side.md", "side\n")
+        commit(repo, "side adds a document")
+        added = stamp(repo)
+        git(repo, "checkout", "-q", "main")
+        write(repo, "adr/main.md", "main\n")
+        commit(repo, "main")
+        git(repo, "merge", "--no-ff", "--no-commit", "-q", "side")
+        write(repo, "adr/side.md", "side, rewritten in the merge\n")
+        commit(repo, "merge side, rewriting adr/side.md")
+        merged = stamp(repo)
+        monkeypatch.chdir(repo)
+        code, text = dry_run(repo, capfd, "--from", "adr")
+        assert code == 0, text
+        assert f"    adr/side.md  added {added}  last changed {merged}\n" in text, text
+
+    def test_a_deletion_is_no_change_to_a_document_head_holds(
+        self, repo, capfd, monkeypatch
+    ):
+        """#1054, round 2's finding 1: a status whose letters are `D` says the
+        commit took the path out of its tree, so it is neither an add nor a
+        change. Here `main` changes a document, `side` deletes it, and the
+        merge keeps `main`'s content, so `--cc` names nothing at the merge and
+        `side`'s deletion, which the walk reads after `main`'s change, is not
+        the document's last change."""
+        item(repo, "1700000001-a", op("add", "U", new="Rule."))
+        write(repo, "adr/0001.md", "one\n")
+        commit(repo, "a decision")
+        first = stamp(repo)
+        git(repo, "checkout", "-qb", "side")
+        git(repo, "rm", "-q", "adr/0001.md")
+        commit(repo, "side deletes it")
+        git(repo, "checkout", "-q", "main")
+        write(repo, "adr/0001.md", "one, revised\n")
+        commit(repo, "main revises it")
+        revised = stamp(repo)
+        # A modify/delete conflict, which `git` here would raise on.
+        subprocess.run(
+            ["git", "-C", str(repo), "merge", "--no-ff", "-q", "side"],
+            capture_output=True,
+        )
+        write(repo, "adr/0001.md", "one, revised\n")
+        commit(repo, "merge side, keeping main's revision")
+        monkeypatch.chdir(repo)
+        code, text = dry_run(repo, capfd, "--from", "adr")
+        assert code == 0, text
+        assert f"    adr/0001.md  added {first}  last changed {revised}\n" in text, text
+
+    def test_a_document_the_root_commit_added_is_dated_under_any_show_root(
+        self, repo, capfd, monkeypatch
+    ):
+        """#1054, round 3's finding 2: `log.showRoot=false` hides the root
+        commit's paths from `git log`, and the listing reads them anyway, so
+        a document the root commit added is not one no commit adds."""
+        root = stamp(repo)
+        monkeypatch.setenv("GIT_CONFIG_COUNT", "1")
+        monkeypatch.setenv("GIT_CONFIG_KEY_0", "log.showRoot")
+        monkeypatch.setenv("GIT_CONFIG_VALUE_0", "false")
+        monkeypatch.chdir(repo)
+        code, text = dry_run(repo, capfd, "--from", "docs")
+        assert code == 0, text
+        assert f"    docs/a.md  added {root}  last changed {root}\n" in text, text
+
+    def test_a_signed_commit_is_read_under_any_show_signature(
+        self, repo, capfd, monkeypatch, tmp_path
+    ):
+        """#1054, round 3's finding 2: `log.showSignature=true` writes a
+        signed commit's verification into the log ahead of its header, which
+        shifted every field after it, and the listing reads the commit's
+        change anyway. The commit is signed with an ssh key made here, by
+        `ssh-keygen`, which the repository's own config names as the signing
+        program, so a person's `gpg.ssh.program` does not reach the case
+        (round 4's finding 2). Where the key cannot be made or the commit
+        cannot be signed, for want of `ssh-keygen`, of one that signs, or of
+        a git that signs with ssh (2.34), the case skips with what failed."""
+        key = tmp_path / "signing"
+        try:
+            made = subprocess.run(
+                ["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-f", str(key)],
+                capture_output=True,
+                encoding="utf-8",
+            )
+        except FileNotFoundError:
+            pytest.skip("ssh-keygen is not installed, so no commit can be signed")
+        if made.returncode != 0:
+            pytest.skip(f"ssh-keygen made no key: {made.stderr.strip()}")
+        git(repo, "config", "gpg.format", "ssh")
+        git(repo, "config", "gpg.ssh.program", "ssh-keygen")
+        git(repo, "config", "user.signingkey", str(key))
+        item(repo, "1700000001-a", op("add", "U", new="Rule."))
+        write(repo, "adr/0001.md", "one\n")
+        git(repo, "add", "-A")
+        signing = subprocess.run(
+            ["git", "-C", str(repo), "commit", "-q", "-S", "-m", "a signed decision"],
+            capture_output=True,
+            encoding="utf-8",
+        )
+        if signing.returncode != 0:
+            pytest.skip(f"git could not sign a commit: {signing.stderr.strip()}")
+        signed = stamp(repo)
+        monkeypatch.setenv("GIT_CONFIG_COUNT", "1")
+        monkeypatch.setenv("GIT_CONFIG_KEY_0", "log.showSignature")
+        monkeypatch.setenv("GIT_CONFIG_VALUE_0", "true")
+        monkeypatch.chdir(repo)
+        code, text = dry_run(repo, capfd, "--from", "adr")
+        assert code == 0, text
+        assert f"    adr/0001.md  added {signed}  last changed {signed}\n" in text, text
+
+    def test_a_file_under_two_named_directories_is_listed_once(
+        self, repo, capfd, monkeypatch
+    ):
+        """#1054 A3: `--from a` and `--from a/b` both hold `a/b/inner.md`, and
+        it is listed once, under the first directory named that holds it;
+        each path is read from the directory the command runs in."""
+        item(repo, "1700000001-a", op("add", "U", new="Rule."))
+        write(repo, "a/top.md", "top\n")
+        write(repo, "a/b/inner.md", "inner\n")
+        commit(repo, "a")
+        monkeypatch.chdir(repo / "a")
+        code, text = dry_run(repo, capfd, "--from", ".", "--from", "b")
+        assert code == 0, text
+        assert text.count("a/b/inner.md  ") == 1, text
+        assert "\nfrom a/: 2 documents\n" in text, text
+        assert "\nfrom a/b/: 0 documents\n" in text, text
+
+    @pytest.mark.parametrize(
+        "where, given, said",
+        [
+            (".", "missing", "names no directory"),
+            (".", "docs/a.md", "names no directory"),
+            ("docs", "adr", "names no directory"),
+            (".", "{outside}", "is outside the repository"),
+            (".", "../elsewhere", "is outside the repository"),
+            (".", "seal", "is the seal/ root or under it"),
+            (".", "seal/threads", "is the seal/ root or under it"),
+        ],
+        ids=[
+            "missing",
+            "a-file",
+            "a-directory-of-the-top-read-from-a-subdirectory",
+            "outside",
+            "outside-and-relative",
+            "the-root",
+            "under-the-root",
+        ],
+    )
+    def test_refuses_a_from_that_names_no_directory_to_read(
+        self, repo, capfd, monkeypatch, tmp_path, where, given, said
+    ):
+        """#1054 A4: a path that is no directory of the working tree, one
+        outside the repository, and the `seal/` root or a path under it, whose
+        records the settle already reads, each exit 2 with one sentence naming
+        the path, and nothing is read or removed. The sentence names the path
+        as it was read, from the directory the command runs in, so `--from
+        adr` run in `docs/` names `docs/adr` where `adr/` stands at the top
+        (round 1's finding 2)."""
+        (tmp_path / "elsewhere").mkdir()
+        given = given.format(outside=tmp_path / "elsewhere")
+        write(repo, "adr/0001.md", "a decision\n")
+        item(repo, "1700000001-a", op("add", "U", new="Rule."))
+        commit(repo, "a")
+        before = files(repo)
+        monkeypatch.chdir(repo / where)
+        code, text = dry_run(repo, capfd, "--from", given)
+        assert code == 2, text
+        assert text.startswith(f"settle: --from {given} {said}"), text
+        # The path the command read, which the person opens next.
+        assert f" it reads as {os.path.abspath(given)} from " in text, text
+        assert text.count("\n") == 1 and text.endswith(".\n"), text
+        assert files(repo) == before
+
+    def test_refuses_from_beside_apply_and_removes_nothing(self, repo, capfd):
+        """#1054 A4: `--apply` removes only under `seal/threads/`, so a
+        `--from` it accepted would read as one it acted on. The pair exits 2
+        with one sentence naming both, and the released directory stays."""
+        write(repo, "adr/0001.md", "a decision\n")
+        item(repo, "1700000001-a", op("add", "U", new="Rule."))
+        commit(repo, "a")
+        before = files(repo)
+        code, text = dry_run(repo, capfd, "--apply", "--from", str(repo / "adr"))
+        assert code == 2, text
+        assert text.startswith("settle: --from and --apply"), text
+        assert text.count("\n") == 1 and text.endswith(".\n"), text
+        assert files(repo) == before
+        assert specs_dir(repo, "1700000001-a").is_dir()
+
+    @pytest.mark.parametrize("committed", [True, False], ids=["committed", "no-head"])
+    def test_a_root_with_no_work_item_lists_the_named_documents_and_is_settled(
+        self, tmp_path, capfd, committed
+    ):
+        """#1054 A5: a root holding no work item lists the named documents,
+        then prints the settled line, exit 0, with no `--released-at`. In a
+        repository whose HEAD has no commit, every document is one no commit
+        adds."""
+        repo = tmp_path / "repo"
+        mark_root(repo / "seal")
+        write(repo, "adr/0001.md", "a decision\n")
+        git(repo, "init", "-q")
+        git(repo, "config", "user.email", "x@example.com")
+        git(repo, "config", "user.name", "x")
+        if committed:
+            commit(repo, "a decision")
+        listed = (
+            f"added {stamp(repo)}  last changed {stamp(repo)}"
+            if committed
+            else "no commit adds it"
+        )
+        code = settle.main(["--root", str(repo), "--from", str(repo / "adr")])
+        out = capfd.readouterr()
+        text = out.out + out.err
+        assert code == 0, text
+        # The settled line names the root as git spells it, which on Windows
+        # is not `str(repo)`; its words are read instead.
+        assert text.startswith(
+            f"{settle.DOCUMENTS_HEADING}\n"
+            "\nfrom adr/: 1 document\n"
+            f"    adr/0001.md  {listed}\n\n"
+            "settle: seal/threads/ in "
+        ), text
+        assert "holds no work item" in text and "A complete settle ends here" in text
+        assert text.count("\n") == settle.DOCUMENTS_HEADING.count("\n") + 6, text
+
+    def test_a_named_directory_is_never_written(self, repo, capfd):
+        """#1054 A6: the dry run with `--from`, then `--apply` removing a
+        released work item, leave every file under the named directory with
+        the path and the bytes it had, and its `git status` as it was."""
+        item(repo, "1700000001-a", op("add", "U", new="Rule."))
+        write(repo, "adr/0001.md", "a decision\n")
+        write(repo, "adr/sub/0002.txt", "another\n")
+        commit(repo, "a and its records")
+        write(repo, "adr/0001.md", "a decision, revised\n")
+        write(repo, "adr/0003.md", "untracked\n")
+
+        def named():
+            return {k: v for k, v in files(repo).items() if k.startswith("adr")}
+
+        def status():
+            return git(repo, "status", "--porcelain", "--untracked-files=all", "adr")
+
+        before, said = named(), status()
+        code, text = dry_run(repo, capfd, "--from", str(repo / "adr"))
+        assert code == 0, text
+        code, text = apply(repo, capfd)
+        assert code == 0, text
+        assert not specs_dir(repo, "1700000001-a").exists(), text
+        assert named() == before
+        assert status() == said
+
 
 class Test_module:
     def test_merge_order_is_the_commit_that_adds_the_spec(self, repo):
@@ -1986,7 +2402,11 @@ class Test_module:
             settle.GROUPS_HEADING
         )
         assert "order them by content" in flat(settle.UNORDERED)
-        assert "moot, answered or a measurement to re-home" in flat(settle.ROWS_HEADING)
+        # The four kinds of the skill's step 6, in its table's order (#1045).
+        assert (
+            "moot, answered, a measurement no record asks for, or a measurement "
+            "to re-home" in flat(settle.ROWS_HEADING)
+        )
         assert "close with `closed` and what closed it" in flat(settle.ROWS_HEADING)
         # The judgments heading the dry run prints, read the same way.
         assert "grouped by the document each stands on" in flat(
@@ -1996,6 +2416,12 @@ class Test_module:
             "rewrites a section where one kind of judgment recurs or kept "
             "costing rounds" in flat(settle.JUDGMENTS_HEADING)
         )
+        # The named directories' heading: the session proposes, the person
+        # marks (#1054).
+        assert "The settling session proposes each one as promote or skip" in flat(
+            settle.DOCUMENTS_HEADING
+        )
+        assert "the person marks it" in flat(settle.DOCUMENTS_HEADING)
 
     def test_the_command_is_reachable_by_the_name_a_document_gives_it(self):
         """A6. The pair rule is

@@ -96,9 +96,9 @@ def test_no_shipped_document_names_the_old_roots():
 
 
 def test_no_hook_names_the_0_3_x_roots():
-    """No code of the plugin opens `.specseal/` or a top-level `specs/`, so
-    no file under `hooks/`, its modules in `hooks/lib/` among them, names the
-    first or keeps a constant for the second."""
+    """No code of the plugin opens `.specseal/` or a top-level `specs/` on
+    its own, so no file under `hooks/`, its modules in `hooks/lib/` among
+    them, names the first or keeps a constant for the second."""
     for here in (("hooks",), ("hooks", "lib")):
         for name in sorted(os.listdir(os.path.join(ROOT, *here))):
             if name.endswith(".py"):

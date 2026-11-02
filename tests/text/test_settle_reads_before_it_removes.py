@@ -25,12 +25,14 @@ def test_the_cheat_sheets_name_the_design_file_the_settle_reads():
     released work item with no design leaves like any other is the
     proofer's to read."""
     for edition in ("README.md", "README.ko.md"):
+        with open(os.path.join(ROOT, edition), encoding="utf-8") as f:
+            # The row is one line of the table: the cell, then up to its end.
+            row = f.read().split("`seal settle [--apply]`")[1].split("\n", 1)[0]
         # The path `frame/design.md`, which the person running
         # `seal settle` resolves to the file it reads.
-        assert (
-            "`frame/design.md`"
-            in document(edition).split("`seal settle [--apply]`")[1][:900]
-        ), f"{edition}'s cheat-sheet row does not name the rule arm"
+        assert "`frame/design.md`" in row, (
+            f"{edition}'s cheat-sheet row does not name the rule arm"
+        )
 
 
 SKILL = os.path.join(ROOT, "skills", "settle", "SKILL.md")
@@ -63,12 +65,38 @@ def test_the_skill_names_the_floors_a_fold_has_to_answer():
 def test_the_skill_states_the_settling_sessions_procedure():
     """S11 and S13, #1033's *In* item 3. The settling session's procedure
     names the file a measurement nobody has taken is re-homed in. The
-    steps, their order and the row kinds are the proofer's to read."""
+    steps, their order and what each row kind means are the proofer's to
+    read; the order of the row kinds is the next case's."""
     text = flat(skill())
     procedure = text.split("## The settling session's procedure")[1].split("## ")[0]
     # The path `seal/follow-up.md`, where the settling session writes the
     # row for a measurement nobody has taken (`questions.md` Q1's default).
     assert "`seal/follow-up.md` row" in procedure
+
+
+def test_the_skill_orders_the_row_kinds_so_only_a_needed_measurement_opens_an_issue():
+    """S4 of #1045. A row takes the first kind that fits in step 6's table.
+    Every measurement no record asks for also fits *a measurement nobody has
+    taken*, whose *When* cell is the base sentence alone, so the order is
+    what closes it before it can be re-homed as an issue. With the two rows
+    swapped, every unmeasured row is re-homed. What each kind means is the
+    proofer's to read."""
+    procedure = skill().split("\n## The settling session's procedure\n")[1]
+    procedure = procedure.split("\n## ")[0]
+    lines = [line.strip() for line in procedure.splitlines()]
+    header = lines.index("| The row is | When | What closes it |")
+    kinds = []
+    # The rows under the header and its separator, up to the table's end.
+    for line in lines[header + 2 :]:
+        if not line.startswith("|"):
+            break
+        kinds.append(line.split("|")[1].strip())
+    assert kinds == [
+        "moot",
+        "answered",
+        "a measurement no record asks for",
+        "a measurement nobody has taken",
+    ], kinds
 
 
 def test_the_skill_names_how_a_settle_edits_and_commits():

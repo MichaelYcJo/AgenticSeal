@@ -8,6 +8,9 @@
                                 `--apply` removes
   settle --apply                remove each released work item directory whose
                                 record holds no open row
+  settle --from DIR             the dry run, and every document of DIR, a
+                                directory a person names, with the commits
+                                that added and last changed each; repeatable
   settle --released-at REF      what counts as released (default origin/main)
   settle --root DIR             a repository other than this one
 
@@ -51,6 +54,26 @@ against` cell, with its work item's round count; a heading near the
 section's, and a section whose table it cannot read, are named as not read. Nothing is refused or held in the dry
 run.
 
+**`--from` reads a directory a person names, and writes nothing there.**
+Each `--from DIR` is read from the directory this runs in, and names a
+directory of the working tree outside the `seal/` root. A document is every
+file `git ls-files --cached --others --exclude-standard` lists under it, at
+any depth and of any extension. Each is printed with the commit that added it
+and the commit that last changed it, read from one `git log` per directory.
+Renames are off, so a moved file counts as added where it lands, and `--cc`
+is on, so a merge's own change is read: a merge whose result at a file
+differs from every parent's changed it, and added it where no parent holds
+it. A deletion adds and changes nothing (`history` states each status it
+reads).
+The person's `log.showRoot` and `log.showSignature` change nothing it reads.
+A document `git diff HEAD` names is printed as changed in the working tree.
+Documents are listed in the order of the commits that add them, and those no
+commit adds come last, in path order; a file two named directories hold is
+listed under the first. Which section a document bears on, and whether it is promoted, is
+the settling session's to propose and the person's to mark: nothing here
+reads what a document says. A root holding no work item lists them before
+its settled line.
+
 **`--apply` removes, and only that.** It removes every released work item
 directory whose record holds no open row in the working tree, whether or not
 it wrote a `frame/design.md`, and prints the rows each removed record closed, with
@@ -82,8 +105,10 @@ holds no work item, which is the state a complete settle reaches; 1 `--apply`
 kept a directory whose record holds an open row or cannot be read; 2 the
 arguments or the tree were unusable: a `--released-at` ref that does not
 resolve, a root at neither place, a repository that opted out, in local mode
-a `gh` that is not on PATH or whose query fails, and a sibling script that is
-not beside it. An interpreter below
+a `gh` that is not on PATH or whose query fails, a sibling script that is
+not beside it, a `--from` that names no directory of the working tree, one
+outside the repository, the `seal/` root or a path under it, and `--from`
+beside `--apply`, which removes only under `seal/threads/`. An interpreter below
 the floor never reaches this file through `seal settle`: `hooks/lib/launch.py`
 refuses `seal` with 2 first.
 """
@@ -408,8 +433,9 @@ NO_SECTION = "no `## Rule changes` section"
 NOTHING_HEADING = "the no-change block (`- {nothing}`), so no section to write:"
 ROWS_HEADING = (
     "open rows: every open `## Not verified` row of every released record, for "
-    "the\nsettling session to decide as moot, answered or a measurement to "
-    "re-home, and\nclose with `closed` and what closed it:"
+    "the\nsettling session to decide as moot, answered, a measurement no record "
+    "asks for,\nor a measurement to re-home, and close with `closed` and what "
+    "closed it:"
 )
 MISPLACED_HEADING = (
     "not read: each file named like a record the settle reads, away from that "
@@ -440,6 +466,37 @@ READERS_HEADING = (
     "checks that read `seal/threads` — each owes an answer "
     "(`skills/settle/SKILL.md`\n*Answer every check that reads the corpus*) "
     "before the directories go:"
+)
+# The named directories' listing (#1054), printed only with `--from`.
+DOCUMENTS_HEADING = (
+    "named directories: every document of each directory named with `--from`, "
+    "with the\ncommit that added it and the commit that last changed it. The "
+    "settling session\nproposes each one as promote or skip, and the person "
+    "marks it\n(`skills/settle/SKILL.md`):"
+)
+NO_COMMIT = "no commit adds it"
+CHANGED = "changed in the working tree"
+
+# What `--from` refuses, each with exit 2 before anything is read. A path is
+# read from the directory this runs in, which need not be the repository's
+# top, so each sentence names the path as it was read.
+FROM_WITH_APPLY = (
+    "settle: --from and --apply cannot be given together: --apply removes only "
+    "under seal/threads/ and reads no named directory, so nothing was read and "
+    "nothing was removed.\n"
+)
+FROM_NOT_A_DIRECTORY = (
+    "settle: --from {given} names no directory: it reads as {path} from the "
+    "directory this runs in, so nothing was read.\n"
+)
+FROM_OUTSIDE = (
+    "settle: --from {given} is outside the repository at {root}: it reads as "
+    "{path} from the directory this runs in, so nothing was read.\n"
+)
+FROM_UNDER_ROOT = (
+    "settle: --from {given} is the seal/ root or under it, at {home}, whose "
+    "records the settle already reads: it reads as {path} from the directory "
+    "this runs in, so nothing was read.\n"
 )
 
 
@@ -789,6 +846,158 @@ def survey(root, ref, home=None):
     return found
 
 
+# --- the directories a person names (#1054) ---------------------------------
+
+
+def inside(path, top):
+    """Whether the resolved PATH is TOP or under it. Paths on two drives
+    share no prefix, and `commonpath` raises for them."""
+    try:
+        return os.path.commonpath([path, top]) == top
+    except ValueError:
+        return False
+
+
+def named_directory(root, home, given):
+    """`(rel, None)` for a `--from` GIVEN naming a directory of the working
+    tree at ROOT outside the `seal/` root HOME, REL its path from ROOT
+    written with `/`, or `(None, refusal)`. GIVEN is read from the directory
+    this runs in, and every path is compared resolved; a refusal names it as
+    it was read, before links are resolved."""
+    read = os.path.abspath(given)
+    path = os.path.realpath(read)
+    top = os.path.realpath(root)
+    if not os.path.isdir(path):
+        return None, FROM_NOT_A_DIRECTORY.format(given=given, path=read)
+    if not inside(path, top):
+        return None, FROM_OUTSIDE.format(given=given, root=root, path=read)
+    if inside(path, os.path.realpath(home)):
+        return None, FROM_UNDER_ROOT.format(given=given, home=home, path=read)
+    return os.path.relpath(path, top).replace(os.sep, "/"), None
+
+
+def git_fields(root, *args):
+    """The NUL-separated fields of `git ARGS` run at ROOT with every
+    pathspec literal, or [] where git exits non-zero."""
+    r = subprocess.run(
+        ["git", "-C", root, "--literal-pathspecs", *args], capture_output=True
+    )
+    if r.returncode != 0:
+        return []
+    return r.stdout.decode("utf-8", "replace").split("\0")
+
+
+def history(root, rel):
+    """`(added, last)` for the files under REL as HEAD's history holds them,
+    from one `git log --no-renames --name-status --cc`, oldest first:
+    `added` is `{path: (place, commit)}` for the last commit adding each
+    path, PLACE its position in the log, and `last` is `{path: commit}` for
+    the last commit changing it. A commit is its short hash and date. A
+    HEAD with no commit gives neither. `--root` and `--no-show-signature`
+    hold the walk to these fields whatever the person's `log.showRoot` and
+    `log.showSignature` say: the first keeps the root commit's paths, and
+    the second keeps a signature's verification out of the output.
+
+    The log names a path at a commit with a status of one letter per
+    parent, the path compared with that parent; a commit with one parent,
+    or none, has one letter. With renames off a letter is `A` (the parent
+    does not hold the path, and this commit does), `M` (both hold it, with
+    other content), `T` (both hold it, as another type of file) or `D` (the
+    parent holds it, and this commit does not). A merge is named at a path
+    where its result there differs from every parent's, however it came to
+    differ, and nowhere else: a merge whose result at the path is one
+    parent's names nothing. `--name-status` names such a merge even where
+    `--cc -p` would print no hunk of it, as for a merge with no conflict
+    that took one parent's edit at each hunk. The letters of one status
+    are either all `D` or all from `A`, `M` and `T`.
+
+    One rule reads every shape. **A status with no `D` changes the path,
+    and a status whose letters are all `A` also adds it**: `A` on an
+    ordinary commit, and `AA` or `AAA` on a merge that wrote a file no
+    parent holds, add it; `M`, `T`, `MM`, `AM` or `MA` change content some
+    earlier commit added. **A status of `D` letters adds and changes
+    nothing**: the commit took the path out of its own tree, and a
+    deletion on one line of history says nothing of the content HEAD holds
+    from another. A path HEAD holds again only untracked keeps the dates of
+    its history before the deletion; this reads no tree, and the listing
+    prints what the walk read."""
+    fields = git_fields(
+        root, "log", "-z", "--full-history", "--topo-order", "--reverse",
+        "--no-renames", "--name-status", "--cc", "--root", "--no-show-signature",
+        "--format=%x01%h %cs", "HEAD", "--", rel,
+    )  # fmt: skip
+    added, last, commit, status = {}, {}, None, None
+    for place, field in enumerate(fields):
+        if status is not None:
+            if "D" not in status:
+                last[field] = commit
+                if set(status) == {"A"}:
+                    added[field] = (place, commit)
+            status = None
+            continue
+        field = field.lstrip("\n")
+        if field.startswith("\x01"):
+            commit = field[1:]
+        elif field:
+            status = field
+    return added, last
+
+
+def changed(root, rel):
+    """The tracked paths under REL whose working tree, staged or not,
+    differs from HEAD, read with renames off so each field is one path."""
+    diff = ("diff", "HEAD", "--name-only", "-z", "--no-renames", "--", rel)
+    return {p for p in git_fields(root, *diff) if p}
+
+
+# What a named directory's documents are: every file git lists under it,
+# tracked or untracked, and none it ignores.
+LISTED = ("ls-files", "-z", "--cached", "--others", "--exclude-standard")
+
+
+def documents(root, named):
+    """`[(rel, [(path, added, last, changed)])]` for each directory NAMED,
+    `/`-joined from ROOT, in the order named. A document is every file `git
+    ls-files --cached --others --exclude-standard` lists under it, once: a
+    path listed already, by this directory or an earlier one, is not listed
+    again. ADDED and LAST are the commits `history` reads, each None for a
+    file no commit adds; CHANGED is whether `changed` names it. Documents
+    are in the order of their adding commits, then those no commit adds in
+    path order."""
+    seen, out = set(), []
+    for rel in named:
+        held = []
+        for p in git_fields(root, *LISTED, "--", rel):
+            if p and p not in seen:
+                seen.add(p)
+                held.append(p)
+        added, last = history(root, rel)
+        touched = changed(root, rel)
+        dated = sorted((p for p in held if p in added), key=lambda p: added[p][0])
+        undated = sorted(p for p in held if p not in added)
+        out.append(
+            (
+                rel,
+                [(p, added[p][1], last[p], p in touched) for p in dated]
+                + [(p, None, None, False) for p in undated],
+            )
+        )
+    return out
+
+
+def write_documents(listed, out):
+    """The listing `documents` read, under its heading."""
+    out.write(f"{DOCUMENTS_HEADING}\n")
+    for rel, held in listed:
+        out.write(f"\nfrom {rel}/: {len(held)} document{plural(len(held))}\n")
+        for path, added, last, touched in held:
+            if added is None:
+                out.write(f"    {path}  {NO_COMMIT}\n")
+                continue
+            said = f"  {CHANGED}" if touched else ""
+            out.write(f"    {path}  added {added}  last changed {last}{said}\n")
+
+
 # A path into a work item directory, however it is spelled before `threads/`.
 # The name may be cut short with an ellipsis, which is how this repository's
 # prose abbreviates a long id; a marker and a bare id carry no `/` after the
@@ -853,7 +1062,8 @@ def citations(root, work_item_ids):
 
 def report(found, ref, out):
     """The dry run: the groups, the designs to read whole, the open rows, the
-    files named like a record and not read, the judgments and what `--apply`
+    files named like a record and not read, the judgments, the documents of
+    the named directories where `main` put them in FOUND, and what `--apply`
     removes. It refuses nothing, so it exits 0. In local mode
     it names the root first, lists each released work item with the pull
     request that merged it and each unreleased one with why, and says no
@@ -943,6 +1153,9 @@ def report(found, ref, out):
                 for line, date, judgment, grounds in held:
                     write(f"        {PLAN}:{line}  {date}  {judgment}\n")
                     write(f"            grounds: {grounds}\n")
+    if "documents" in found:
+        write("\n")
+        write_documents(found["documents"], out)
     if found["released"]:
         write(f"\n{REMOVES_HEADING_LOCAL if local else REMOVES_HEADING}\n")
         for work_item_id in found["released"]:
@@ -1078,7 +1291,22 @@ def main(argv=None):
         help="remove each released work item directory whose record holds no "
         "open row in the working tree, and name each one kept",
     )
+    ap.add_argument(
+        "--from",
+        dest="named",
+        action="append",
+        default=[],
+        metavar="DIR",
+        help="a directory outside seal/ that a person names as holding decisions "
+        "to fold, read from the directory this runs in: the dry run lists every "
+        "document git lists under it, with the commit that added it and the "
+        "commit that last changed it, and writes nothing there. Repeatable, and "
+        "refused beside --apply",
+    )
     args = ap.parse_args(argv)
+    if args.named and args.apply:
+        sys.stderr.write(FROM_WITH_APPLY)
+        return 2
 
     root = os.path.abspath(args.root or os.getcwd())
     # The root is resolved through the one resolver, `hooks/lib/optin.py#home_at`,
@@ -1109,10 +1337,21 @@ def main(argv=None):
             "none has nothing to settle.\n"
         )
         return 2
+    named = []
+    for given in args.named:
+        rel, refused = named_directory(root, home, given)
+        if refused:
+            sys.stderr.write(refused)
+            return 2
+        named.append(rel)
+    listed = documents(root, named) if named else None
     local, records = records_of(root, home)
     # A settled root is not an unusable one (#517): an empty `seal/threads/`, or
     # none in a fresh checkout of that commit, is where a complete settle ends.
     if not work_items(records):
+        if listed is not None:
+            write_documents(listed, sys.stdout)
+            sys.stdout.write("\n")
         if local:
             sys.stdout.write(SETTLED_LOCAL.format(home=home))
         else:
@@ -1134,6 +1373,8 @@ def main(argv=None):
         return 2
     if args.apply:
         return apply(found, root, out=sys.stdout)
+    if listed is not None:
+        found["documents"] = listed
     return report(found, args.released_at, out=sys.stdout)
 
 

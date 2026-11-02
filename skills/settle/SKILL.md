@@ -23,16 +23,22 @@ the code says what holds now, and the settling session writes each section as
 the latest decision the code bears out. The script reads and removes; it
 neither writes `docs/` nor judges.**
 
-The settling session is the session the owner runs the settle in. **It asks
-nobody at any step**: it decides from the tree, takes a default where the
-tree does not decide and writes it down, and the owner reviews its pull
-request.
+The settling session is the session the owner runs the settle in. **It puts
+the person at most two questions, both before its first edit, and none after
+them**: which directories besides `seal/` hold decisions to fold, and, where
+the dry run lists a document of one, which of the documents listed the
+settle promotes (*Directories a person names*). Everything else it decides
+from the tree: it takes a default where the tree does not decide and writes
+it down, and the owner reviews its pull request.
 
 ```
 seal settle                  the dry run: each group of released designs that
                              name one section, the designs to read whole, every
                              open row, the files named like a record and not
                              read, and what --apply removes
+seal settle --from DIR       the dry run, and every document of DIR, a
+                             directory a person names, with the commits that
+                             added and last changed each; repeatable
 seal settle --apply          remove each released directory whose record
                              holds no open row
 seal settle --released-at REF  what counts as released (default origin/main)
@@ -188,6 +194,9 @@ nothing:
   among them, with that line and its reason.
 - **Every open `## Not verified` row** of every released record, each with
   the backticked paths it names and whether each is in the working tree.
+  Their heading names the four kinds of *The settling session's procedure*
+  step 6 in its table's order, and gives no row a kind: the settling
+  session decides each.
 - **The files named like a record and not read**: a file in a released
   work item's directory whose name is that of a record the settle reads
   there, `gaps.md`, `frame/design.md` or `frame/plan.md`, at any path but
@@ -206,6 +215,29 @@ nothing:
   that is not a directory the dry run can list is named in place of a
   count. `--apply` removes the plans, so this is the one reading the rows
   get.
+- **The named directories**, printed only with `--from`: each directory
+  named, with its count of documents, and under it one line per document.
+  A document is every file
+  `git ls-files --cached --others --exclude-standard` lists under the
+  directory, at any depth and of any extension, so a file git ignores is
+  not one. Each line holds the file's path, the commit that added it and
+  the commit that last changed it, each as a short hash and a date, read
+  from one `git log` per directory. Renames are off, so a moved file counts
+  as added where it lands, and a merge's own change is read (`--cc`): a
+  merge whose result at the file differs from every parent's changed it,
+  and added it where no parent holds it, however the result came to
+  differ. A commit that deleted the file is neither its add nor its
+  change; for example, a deletion on a branch whose merge kept another
+  branch's content is not the file's last change. The
+  person's `log.showRoot` and `log.showSignature` change none of these
+  dates. A line ends `changed in the working tree` where `git diff HEAD`
+  names the file.
+  A file no commit adds, untracked or staged and never committed, reads
+  `no commit adds it`. Documents are listed in the order of the commits
+  that add them, and those no commit adds come last, in path order. A file
+  two named directories hold is listed under the first one named. A root
+  holding no work item prints the listing before its settled line. No line
+  of it is a proposal (*Directories a person names*).
 - **What `--apply` removes**, the citations into it from outside
   `seal/threads/`, and the checks under `tests/` that read `seal/threads`.
 
@@ -214,67 +246,187 @@ does not parse, an unordered pair and an open row are all shown.
 
 ## The settling session's procedure
 
-1. Run `seal settle`, the dry run, on the settle's branch.
-2. For each group, read every operation in merge order, the section as it
-   stands, and the code the rule names, its `check:` targets first. Write
-   the section as the latest decision states it, in your own words. Where
-   the code has moved past that decision, write what the code does. An
-   earlier operation the latest one restates is superseded: it is settled
-   with its group and not applied. The rest of the document stays as it
-   was, and no marker is written.
-3. Read each design listed to read whole, and write any rule it states the
+1. Put the first question of *Directories a person names* to the person:
+   which directories besides `seal/` hold decisions to fold. A session that
+   cannot put it takes the answer "none".
+2. Run `seal settle`, the dry run, on the settle's branch, with
+   `--from <dir>` for each directory the answer named.
+3. Where the dry run lists a document of a named directory, read each
+   document whole with the code it bears on, write its proposal row, and
+   put the table to the person as the second question of *Directories a
+   person names*. The listing is git's facts about each file, and the row
+   is yours to write. Where it lists none, ask nothing more. Both questions
+   come before the first edit, and no step after this one asks anything.
+4. For each group, read every operation in merge order, the section as it
+   stands, and the code the rule names, its `check:` targets first. Each
+   row the person's answer left marked `promote` joins the group of the
+   place it names, as *Directories a person names* says. Write the section
+   as the latest decision states it, in your own words. Where the code has
+   moved past that decision, write what the code does. An earlier
+   operation the latest one restates is superseded: it is settled with its
+   group and not applied. The rest of the document stays as it was, and no
+   marker is written.
+5. Read each design listed to read whole, and write any rule it states the
    same way. Then read *The judgments*: where one kind of judgment recurs
    across work items under one document, or kept costing rounds, rewrite
-   that document's section in this settle, as step 2 writes a group's, so
+   that document's section in this settle, as step 4 writes a group's, so
    the guidance improves from the record (`skills/core/SKILL.md` *A judgment
    stands on a source document, and is written down with both*).
-4. Decide each open row against the tree, and close it in its record with
+6. Decide each open row against the tree, and close it in its record with
    `closed` and what closed it:
 
    | The row is | When | What closes it |
    |---|---|---|
    | moot | it names a unit the tree no longer holds | the coordinate showing the unit gone |
    | answered | another record or a later run already answered it | that record or run, named |
+   | a measurement no record asks for | it names a run, a platform or a reading no record holds, and no failure, report or decision on record depends on its answer | the reason, naming what the answer would have decided; nothing is opened |
    | a measurement nobody has taken | it names a run, a platform or a reading no record holds | the issue it is re-homed to |
 
-   A row that fits more than one kind takes the first that fits, in the
-   table's order: a measurement of a unit the tree no longer holds can no
-   longer be taken, so it is moot.
+   On record means in a record that outlives the settle and rests on the
+   answer: an open issue, a failed run, or a rule or design of another work
+   item. The row's own work item is not such a record, its design, its
+   questions and its rounds among them, because `--apply` removes its
+   directory and nothing in it can wait on the answer. The row's own `Who
+   must answer` cell is not one either.
 
-   A measurement is re-homed with one issue per distinct measurement
-   (`gh issue create`), its body listing each row it would answer with the
-   row's work item, its text and its answerer. A repository with no tracker
-   re-homes it as a `seal/follow-up.md` row.
+   A row that fits more than one kind takes the first that fits, in the
+   table's order. A measurement of a unit the tree no longer holds can no
+   longer be taken, so it is moot. Every measurement no record asks for
+   also fits *a measurement nobody has taken*, and it comes first, so it is
+   closed before it can open an issue: an issue nothing on record waits on
+   costs its reader a reading and a close.
+
+   A measurement something on record needs is re-homed with one issue per
+   distinct measurement (`gh issue create`), its body listing each row it
+   would answer with the row's work item, its text, its answerer and the
+   record that needs its answer. A repository with no tracker re-homes it
+   as a `seal/follow-up.md` row.
 
    Open each file the dry run names as not read, and decide each item in it
    that reads as an open row by the same table. Write nothing into the
    file, since `--apply` removes it with its directory; the pull request
    body names each such item with its kind and what closed it, as it does
    a row.
-5. Where the tree does not decide, take a default and write it down for the
-   pull request body.
-6. Run each rule's `check:` targets over what you wrote, and change what a
+7. Where the tree does not decide, take a default and write it down for the
+   pull request body. Ask the person nothing: the questions of steps 1 and 3
+   are the only ones a settle puts.
+8. Run each rule's `check:` targets over what you wrote, and change what a
    failure shows still standing on the old fact. Then run the dry run
    again: a `to` not found is where you reworded, which the body explains.
    The step is done when every `check:` target passes. It does not look
    for the other checks that read what you wrote, such as a line-length
    check, a pin on a sentence you rewrote, or a check that reads the
    corpus: a search of the tests' text finds a module only by how it
-   spells a path, so no such search lists them all, and step 8 runs every
+   spells a path, so no such search lists them all, and step 10 runs every
    one.
-7. Run `seal settle --apply`.
-8. Run the repository's `Broad gate` row. It is the one run that reads
-   every check. Where a case fails because a pin under `tests/` or a copy
-   such as a README row still states the old fact, change that pin or
-   copy, and name each in the pull request body. Where a check that reads
-   the corpus fails, answer it as *Answer every check that reads the
-   corpus* says. Run the failing modules until they pass, then run the
-   row again. The step is done when the row passes with no edit after it.
-9. Open the pull request. Its body lists, per group, the decision and its
-   grounds (the work item ids in merge order, the superseded operations, the code
-   coordinate), the rows by kind with what closed each, the defaults it
-   took, the answers for the checks that read the corpus, and how it was
-   checked.
+9. Run `seal settle --apply`, with no `--from`, which it refuses.
+10. Run the repository's `Broad gate` row. It is the one run that reads
+    every check. Where a case fails because a pin under `tests/` or a copy
+    such as a README row still states the old fact, change that pin or
+    copy, and name each in the pull request body. Where a check that reads
+    the corpus fails, answer it as *Answer every check that reads the
+    corpus* says. Run the failing modules until they pass, then run the
+    row again. The step is done when the row passes with no edit after it.
+11. Open the pull request. Its body lists, per group, the decision and its
+    grounds (the work item ids in merge order, the superseded operations,
+    the code coordinate, and the path of each promoted document), the rows
+    by kind with what closed each, the defaults it took, the answers for
+    the checks that read the corpus, and how it was checked. It names the
+    directories the first question's answer named, or says the answer was
+    "none" and whether the session took it for want of a way to ask. It
+    lists every proposal row with its place, its proposal, its grounds and
+    the person's mark.
+
+## Directories a person names
+
+**A directory besides `seal/` that holds decisions, such as architecture
+decision records, RFCs or another tool's spec files, reaches the policy
+root only through a settle, only where a person names it, and only in the
+documents the person marks `promote`.** Nothing in the plugin finds or opens
+such a directory on its own, and no configuration row names one. Which
+directories hold decisions, and which of their decisions becomes policy,
+are the person's to decide, and the tree answers neither, so the settle
+asks. Every other judgment of the settle stays the settling session's.
+
+**The first question asks which directories besides `seal/` hold decisions
+to fold.** The settling session puts it before its first edit. Its answers
+are "none", which runs the settle as it runs without `--from`, or one or
+more paths, each passed to the dry run as `--from <dir>`, relative to the
+directory `seal settle` runs in or absolute. The question states the one
+limit no guard covers, in this sentence: a directory that holds the `seal/`
+root, such as the repository's top, lists the root's own files too, and the
+settling session proposes each of them `skip`, because the settle already
+reads those records. A session that cannot put the question takes "none",
+and its pull request body says so.
+
+**`--from` refuses four things, each with exit 2 and one sentence, and reads
+and removes nothing**: a path that names no directory in the working tree,
+a path outside the repository, the `seal/` root or a path under it, whose
+records the settle already reads, and `--from` beside `--apply`. `--apply`
+removes only under `seal/threads/`, and a flag it accepted would read as
+one it acted on. Each sentence about a path names it as it was read, from
+the directory `seal settle` runs in. A named directory holding no document
+is listed with 0 documents.
+
+**The listing is not a proposal.** Each of its lines is what git answers
+about one file, as *What the dry run shows* gives them: its path, its two
+commits, and whether the working tree changed it. The script reads no
+document's content, so a line says nothing of what the document decides,
+which section it bears on, or whether it is promoted, and neither does the
+document's place in the listing, its directory, its name or its extension.
+The proposal is the settling session's to write, and the mark is the
+person's.
+
+**The settling session writes one proposal row per document**, after
+reading the document whole with the code it bears on:
+
+- **The place** is named as an operation of *Rule changes* names one: a
+  `file` picked from the index (*The index*) and a `section`. It names an
+  existing heading, or a new section or a new document marked as new. A
+  document bearing on several sections names each in its one row. The
+  document's own headings decide nothing.
+- **The proposal** is `promote` or `skip`.
+- **The grounds** say what a promote writes, read from the document and
+  checked against the code. A document holding one decision the code bears
+  out and one the code has left is proposed `promote`, with grounds naming
+  the first alone. A plan not yet built, a decision the code has since
+  left, a document whose decisions bear on no section of the policy, and a
+  file of the `seal/` root are each proposed `skip`, with that reason as the
+  grounds.
+- **A document skipped at an earlier settle** is proposed `skip` again, with
+  grounds naming that settle's pull request, where two facts hold: the last
+  settle's pull request body holds the document's row marked `skip`, and
+  the document's last change is a commit that settle's merge commit reaches
+  (`git merge-base --is-ancestor <last change> <merge commit>` exits 0). The
+  session finds the last settle's pull request from the last commit that
+  changed the policy root. Every other document is new, a document no
+  commit adds among them.
+
+**The second question puts the numbered table to the person once**, before
+the first edit, in this shape:
+
+| # | Document | Place | Proposal | Grounds | Mark |
+|---|---|---|---|---|---|
+
+The `Mark` cell is empty in the question and holds the person's mark in
+the pull request body. The answers are "as proposed", "skip every row", or
+the numbers of the rows whose mark the person flips, and every answer
+continues. A listing that holds no document asks nothing.
+
+**Only a row the person's answer leaves marked `promote` is written, and it
+is written as a released design's operation is.** It joins the group of the
+place it names, and the group is ordered by commits, the listing's beside
+the designs', a document deciding as of its last change. The session writes
+the section as the group's latest decision checked against the code, in its
+own words and with no marker, and the section's grounds cite the document
+by its repository path, as the paragraph on reference roots under *What
+`--apply` does* asks of a statement a settle writes.
+
+**A named directory is read and never written.** No step of the settle
+writes, moves or removes a file under it, and `seal settle --apply` removes
+only under `seal/threads/` and refuses `--from`. A promoted decision reaches
+the policy root in the settling session's words with the document's path,
+and the document stays where it was, as it was.
 
 ## What `--apply` does
 
@@ -297,11 +449,15 @@ does not parse, an unordered pair and an open row are all shown.
 It exits 0 when it kept nothing, 1 when it kept a directory, and 2 when the
 arguments or the tree are unusable. Its last line counts each.
 
-**A reference root is history, never input.** A project's own `specs/`, as
-`templates/setup/config.md` *Reference specs* says, is read where the work touches
-what it describes and cited in the `frame/design.md` whose rule changes it informed.
-`seal settle` never writes there, and neither does the settling session:
-`--apply` removes only under `seal/threads/`.
+**A reference root is history, read where the work touches what it
+describes, and input to a settle only where a person names it.** A
+project's own `specs/`, as `templates/setup/config.md` *Reference specs*
+says, is read where the work touches what it describes, and cited in the
+`frame/design.md` whose rule changes it informed or in the section a settle
+writes from it. It reaches a settle only as a directory the person names at
+the first question of *Directories a person names*, and the settle does not
+read the row. `seal settle` never writes there, and neither does the
+settling session: `--apply` removes only under `seal/threads/`.
 
 ## In local mode
 
@@ -416,7 +572,9 @@ settling would never end.
 ## What this does not do
 
 - The script does not judge. Which decision is latest, whether the code has
-  moved past it, and what each row is are the settling session's, and the
-  owner reviews them at the pull request.
+  moved past it, what each row is, and the place, the proposal and the
+  grounds of each named document are the settling session's, the mark on
+  each document is the person's, and the owner reviews them at the pull
+  request.
 - It does not fail a build. No gate refuses a branch for an unsettled work
   item.

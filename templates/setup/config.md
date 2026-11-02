@@ -389,7 +389,9 @@ reference root.
 root out: `seal unverified` prunes it from a directory walk while still
 reading a file named to it explicitly. A prefix naming the plugin's own root
 or anything under it is dropped, because the root's records are read whatever
-this row says; `seal settle --apply` removes only under `seal/threads/`. One reader
+this row says; `seal settle --apply` removes only under `seal/threads/`.
+`seal settle --from` reads a reference root only where a person names it at
+the settle, whatever this row says, and writes nothing there. One reader
 answers the row, `hooks/lib/config.py#reference_roots`, and one predicate the
 path question, `hooks/lib/config.py#under_reference_root`.
 
