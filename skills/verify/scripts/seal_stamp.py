@@ -1040,6 +1040,15 @@ CHAIN_CHECK = os.path.join(
     "scripts",
     "chain_check.py",
 )
+GITCMD = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "..",
+    "..",
+    "..",
+    "hooks",
+    "lib",
+    "gitcmd.py",
+)
 # The line the edit gate prints as its message. It names the way to draw the
 # stamp by hand, because the
 # hook draws nothing, and says nothing, where it cannot: a `python3` that
@@ -1075,12 +1084,22 @@ def quote(path, windows=None):
 def _git(cwd, *args):
     """stdout of a git call in `cwd`, or None on a non-zero exit."""
     r = subprocess.run(
-        ["git", "-C", cwd, *args],
+        _gitcmd().argv("-C", cwd, *args),
         capture_output=True,
         encoding="utf-8",
         errors="replace",
     )
     return r.stdout if r.returncode == 0 else None
+
+
+def _gitcmd():
+    """`hooks/lib/gitcmd.py`, which builds every git command `_git` runs."""
+    spec = importlib.util.spec_from_file_location(
+        "agentic_gitcmd_for_the_stamp", GITCMD
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def _chain_check():

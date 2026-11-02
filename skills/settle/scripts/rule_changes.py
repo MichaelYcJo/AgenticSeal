@@ -50,6 +50,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
 PASSAGES = os.path.join(HERE, "passages.py")
 CONFIG = os.path.join(HERE, "..", "..", "..", "hooks", "lib", "config.py")
+GITCMD = os.path.join(HERE, "..", "..", "..", "hooks", "lib", "gitcmd.py")
 
 HEADING = "Rule changes"
 # Each operation's fields: (required, optional). The item lines, their fields
@@ -80,6 +81,7 @@ NEAR_HEADING = (
 _reader = None
 _passages = None
 _config = None
+_gitcmd = None
 
 
 def reader():
@@ -110,6 +112,17 @@ def config():
         _config = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(_config)
     return _config
+
+
+def gitcmd():
+    """`hooks/lib/gitcmd.py`, which builds a `git log` read the same under
+    any git configuration, loaded by path once."""
+    global _gitcmd
+    if _gitcmd is None:
+        spec = importlib.util.spec_from_file_location("agentic_rules_gitcmd", GITCMD)
+        _gitcmd = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(_gitcmd)
+    return _gitcmd
 
 
 def heading_text(line):
@@ -638,20 +651,24 @@ def order(root, ref, ids, specs="seal/threads"):
     under a new id counting as added where it lands. An id no such commit adds
     comes last, with commit None."""
     r = subprocess.run(
-        [
-            "git", "-C", root, "log", "--full-history", "--topo-order",
+        gitcmd().argv(
+            "-C", root, "log", "-z", "--full-history", "--topo-order",
             "--reverse", "--no-renames", "--diff-filter=A", "--name-only",
-            "--format=%x00%H",
+            "--format=%x01%H",
             ref, "--", specs, EARLIER[0],
-        ],
+        ),
         capture_output=True,
         encoding="utf-8",
         errors="replace",
     )  # fmt: skip
     first, commit = {}, None
-    # exempt from splitlines: git output
-    for line in r.stdout.splitlines():
-        if line.startswith("\0"):
+    # `-z` ends each path with a NUL and quotes none, whatever
+    # `core.quotePath` says; a commit's field opens with U+0001, which no
+    # path under SPECS starts with, and the path that follows it opens with
+    # a newline.
+    for line in r.stdout.split("\0"):
+        line = line.lstrip("\n")
+        if line.startswith("\x01"):
             commit = line[1:]
             continue
         for base, name in ((specs, DESIGN), EARLIER):

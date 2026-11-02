@@ -457,7 +457,7 @@ def copied_tree(tree):
         READER.read_text(encoding="utf-8"), encoding="utf-8"
     )
     (tree / "hooks" / "lib").mkdir(parents=True)
-    for name in ("blocks.py", "fields.py"):
+    for name in ("blocks.py", "fields.py", "gitcmd.py"):
         (tree / "hooks" / "lib" / name).write_text(
             (ROOT / "hooks" / "lib" / name).read_text(encoding="utf-8"),
             encoding="utf-8",

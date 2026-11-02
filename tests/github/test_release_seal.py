@@ -253,6 +253,38 @@ HEADER = (
     "<td>2 pull requests merged<br>2 issues closed<br>1 outside contributor</td>\n"
     "</tr>\n</table>"
 )
+
+
+def badge(path, alt):
+    """One badge exactly as the sealed header carries it (#1299): `path` is
+    the label and the value as the badge service's address spells them."""
+    return (
+        f'<img src="https://img.shields.io/badge/{path}-d42420?labelColor=8e0c12" '
+        f'alt="{alt}">'
+    )
+
+
+# The results cell the seal writes for `PULLS` and the fixture tree, as
+# badges one or two to a line, in the two-cell header and in the one-cell
+# header alike (#1299).
+RESULTS_CELL = "<br>".join(
+    [
+        badge("SEALED-v1.2.3", "SEALED: v1.2.3"),
+        badge("commit-aaa11111", "commit: aaa11111")
+        + " "
+        + badge("on-main", "on: main"),
+        badge("pull%20requests-2%20merged", "pull requests: 2 merged"),
+        badge("issues-2%20closed", "issues: 2 closed"),
+        badge("outside%20contributors-1", "outside contributors: 1"),
+        badge("suite-7003%20passed", "suite: 7003 passed")
+        + " "
+        + badge("skipped-66", "skipped: 66"),
+        badge("review-1%20round", "review: 1 round")
+        + " "
+        + badge("work%20items-1", "work items: 1"),
+        badge("capped-1", "capped: 1") + " " + badge("deferred-1", "deferred: 1"),
+    ]
+)
 # Why the seal leaves a note whose header is not `publish`'s.
 NOT_THERE = (
     "the header is not in the note exactly once as `header` writes it for "
@@ -673,13 +705,14 @@ class Test_main:
         before the edit, and the edited note is the published one with its
         header replaced by the two-cell table: the image at the
         release-download URL with alt text naming it and the display width
-        `draw` answered, then the stamp's results one per line -- every other
-        byte unchanged, so the theme and the first fold follow. The PNG is
-        `DENSITY` times that width (#1009 S1), so the width is what keeps it
-        from showing twice its size. Seen red before `main` existed, before
-        the image carried a width, by a width the note computed apart from
-        `draw`, and against the seal that replaced the glance table with a
-        heading, the image and one line of the counts."""
+        `draw` answered, then the stamp's results as badges (#1299 S6) --
+        every other byte unchanged, so the theme and the first fold follow.
+        The PNG is `DENSITY` times that width (#1009 S1), so the width is
+        what keeps it from showing twice its size. Seen red before `main`
+        existed, before the image carried a width, by a width the note
+        computed apart from `draw`, against the seal that replaced the
+        glance table with a heading, the image and one line of the counts,
+        and against the seal that wrote the results as text."""
         published = note(theme="A theme.")
         mod, hub = wired(monkeypatch, tmp_path, body=published)
         assert mod.main() == 0
@@ -695,11 +728,7 @@ class Test_main:
             "<table>\n<tr>\n"
             f'<td><img src="{image}" alt="The 1.2.3 release seal" '
             f'width="{DRAWN_WIDTH}"></td>\n'
-            "<td><b>SEALED</b> v1.2.3 at aaa11111 on main<br>2 pull requests merged"
-            "<br>2 issues closed<br>1 outside contributor"
-            "<br>the suite at 7003 passed and 66 skipped"
-            "<br>1 work item over 1 review round<br>1 of them capped"
-            "<br>1 issue deferred</td>\n"
+            f"<td>{RESULTS_CELL}</td>\n"
             "</tr>\n</table>"
         )
         assert published.count(HEADER) == 1, published[:400]
@@ -744,29 +773,22 @@ class Test_main:
     def test_a_row_other_than_yes_attaches_nothing_and_puts_the_results_alone(
         self, monkeypatch, tmp_path, capsys, mark, warned
     ):
-        """#1204 S6. Where the tree's `Release note seal mark` row is absent,
-        empty, any value but `yes`, or refused, the seal draws and uploads
-        nothing, and replaces `publish`'s header with a table of one cell
-        holding the results the two-cell header's second cell holds, every
-        other byte of the note unchanged. Absent and empty say nothing; any
-        other value, and a refusal, are named on one `::warning::` line, and
-        the exit stays 0. Seen red with the row's read alone removed: the
-        upload then runs."""
+        """#1204 S6, and #1299 S6. Where the tree's `Release note seal mark`
+        row is absent, empty, any value but `yes`, or refused, the seal draws
+        and uploads nothing, and replaces `publish`'s header with a table of
+        one cell holding the badges the two-cell header's second cell holds,
+        every other byte of the note unchanged. Absent and empty say
+        nothing; any other value, and a refusal, are named on one
+        `::warning::` line, and the exit stays 0. Seen red with the row's
+        read alone removed: the upload then runs; and against the seal that
+        wrote the results as text."""
         published = note(theme="A theme.")
         mod, hub = wired(monkeypatch, tmp_path, body=published, mark=mark)
         assert mod.main() == 0
         assert hub.writes("upload") == [], hub.calls
         (edit,) = hub.writes("edit")
         body = edit[edit.index("--notes") + 1]
-        results = (
-            "<table>\n<tr>\n"
-            "<td><b>SEALED</b> v1.2.3 at aaa11111 on main<br>2 pull requests merged"
-            "<br>2 issues closed<br>1 outside contributor"
-            "<br>the suite at 7003 passed and 66 skipped"
-            "<br>1 work item over 1 review round<br>1 of them capped"
-            "<br>1 issue deferred</td>\n"
-            "</tr>\n</table>"
-        )
+        results = f"<table>\n<tr>\n<td>{RESULTS_CELL}</td>\n</tr>\n</table>"
         assert body == published.replace(HEADER, results), body[:800]
         out = capsys.readouterr().out.splitlines()
         assert not any(line.startswith("copied the icon") for line in out), out
@@ -961,7 +983,7 @@ class Test_main:
             "deferred 1 issue" in out and "suite    7003 passed, 66 skipped" in out
         ), out
         assert 'alt="The 1.2.3 release seal"' in out, out
-        assert "<b>SEALED</b> v1.2.3 at aaa11111 on main<br>" in out, out
+        assert 'alt="SEALED: v1.2.3">' in out and 'alt="on: main">' in out, out
         assert "::warning::" not in out, out
 
 
@@ -1008,30 +1030,33 @@ class Test_draw:
 
 
 class Test_module:
-    def test_the_results_are_the_stamps_rows_in_words(self):
-        """S11, and #1153 S3. `results` turns the rows into the header's
-        lines: the sealed version, tagged commit and branch, then the suite,
-        the work items over their review rounds, how many were capped and
-        the issues deferred, in the phrases 0.17.0's hand-written alt text
-        used. A suite split over two rows is one line, and a row not read
-        says so in its line. Seen red against the alt sentence that carried
-        every value in one string."""
+    def test_the_results_are_the_stamps_rows_as_labelled_values(self):
+        """S11, #1153 S3, and #1299 S5. `results` turns the rows into the
+        header's badge lines, each a list of `(label, value)` pairs: the
+        sealed version, then the tagged commit and its branch; then the
+        suite and its skips, the review rounds and the work items, and how
+        many were capped and the issues deferred. A suite split over two
+        rows is one line, and a row not read says `not read` on each badge
+        it feeds. Seen red against the alt sentence that carried every
+        value in one string, and against the `results` that wrote the
+        phrases of 0.17.0's hand-written alt text."""
         sealed, lines = seal().results(ROWS)
-        assert sealed == "v1.2.3 at aaa11111 on main", sealed
+        assert sealed == [
+            [("SEALED", "v1.2.3")],
+            [("commit", "aaa11111"), ("on", "main")],
+        ], sealed
         assert lines == [
-            "the suite at 7003 passed and 66 skipped",
-            "10 work items over 27 review rounds",
-            "6 of them capped",
-            "13 issues deferred",
+            [("suite", "7003 passed"), ("skipped", "66")],
+            [("review", "27 rounds"), ("work items", "10")],
+            [("capped", "6"), ("deferred", "13")],
         ], lines
         unread = seal().release_rows(
             "1.2.3", "aaa11111", 1, 1, (10003, 166), (None,) * 4
         )
         assert seal().results(unread)[1] == [
-            "the suite at 10003 passed and 166 skipped",
-            "work items not read",
-            "capped not read",
-            "deferred not read",
+            [("suite", "10003 passed"), ("skipped", "166")],
+            [("review", "not read"), ("work items", "not read")],
+            [("capped", "not read"), ("deferred", "not read")],
         ]
 
     def test_a_refused_gh_or_git_call_is_a_reason_naming_the_call(self, monkeypatch):

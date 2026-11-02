@@ -262,6 +262,8 @@ try:
     SHARED_READER = load(READER, "agentic_unverified_reader_for_grammar")
     # `hooks/lib/fields.py`, the one reader of a record's `seal` blocks.
     FIELDS = load(FIELDS_READER, "agentic_fields_for_the_chain")
+    # `hooks/lib/gitcmd.py`, which builds every git command `git` runs.
+    GITCMD = load(os.path.join(HOOKS, "gitcmd.py"), "agentic_gitcmd_for_the_chain")
 except (OSError, SyntaxError, ImportError, SystemExit) as _exc:
     if __name__ != "__main__":
         raise
@@ -318,7 +320,7 @@ OPEN_SAYS = (
 def git(root, *args):
     """`git -C root <args>`'s stdout, or None where git exited non-zero."""
     r = subprocess.run(
-        ["git", "-C", root, *args],
+        GITCMD.argv("-C", root, *args),
         capture_output=True,
         encoding="utf-8",
         errors="replace",
