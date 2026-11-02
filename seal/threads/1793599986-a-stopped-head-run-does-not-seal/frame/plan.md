@@ -40,4 +40,4 @@ None to deploy: no migration, no new variable, no new dependency. A repository w
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-02 | The orchestrator folds round 1's findings 1 and 2 into `frame/design.md` (*Scope* item 2, the *Scope* Out bullet on the stops no record shows, and the `to:`) as the fix pass's close blocks wrote them: an exit of 0 a stop chose says neither that every collected test ran nor that none failed, and a stop before the recorder's first line is the second limit | The fix pass agreed with both findings, took the limit sentence over a recorder change on the frame's *Scope* Out and on `pytest_configure` running for `--help` and `--markers`, and may not edit the frame; the verifying round reads the folded text | `skills/code-review/orchestration.md` *Orchestrator: a phase is a fresh crafter, and a fix pass resumes the implementer*; `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |
