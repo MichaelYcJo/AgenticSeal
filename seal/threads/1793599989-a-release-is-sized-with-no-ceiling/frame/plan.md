@@ -34,7 +34,7 @@ The failure scenario of the chosen approach, six months out: a session writes "k
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Scope items 2, 3, 4, 5, 6, 7, 8 and 9 | S2, S3, S4 and S5 executed at the phase's commit; S1 re-run by the crafter with `rule_changes.py#parse`; S6 at review; the suite beyond the narrow run labelled `unverified`, answered by the orchestrator's broad gate | |
+| 1 | Scope items 2, 3, 4, 5, 6, 7, 8 and 9 | S2, S3, S4 and S5 executed at the phase's commit; S1 re-run by the crafter with `rule_changes.py#parse`; S6 at review; the suite beyond the narrow run labelled `unverified`, answered by the orchestrator's broad gate | `ea581e55e` |
 
 The narrow run, in one command at the phase's boundary: `tests/behaviour/test_a_release_is_sized_by_a_criterion.py`, `tests/behaviour/test_a_shrunken_corpus_declines_to_judge.py`, `tests/text/test_the_release_tail_does_not_end_at_the_tag.py`, the modules that read `.test_durations` and the modules that read `seal/follow-up.md`, each list taken by `git grep -l` at the phase's base, and `skills/code-review/scripts/chain_check.py --worktree` for S2. A module reading a changed path by another spelling is outside the list, which is why the list is a sample and the broad gate answers the rest.
 
