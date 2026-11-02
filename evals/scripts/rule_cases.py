@@ -824,8 +824,9 @@ SEALER_CHANGELOG = (
     "- `shout` keeps empty text empty instead of returning a lone `!` (#101).\n"
 )
 # The part of each case's pull request body above `pr_body.HEADING`, the
-# orchestrator's: what no record holds. The part below it is
-# `pr_body.compose` over the case's records.
+# orchestrator's: what no record holds, and a record's fact only as that
+# record's own sentence or with the coordinate that holds it. The part
+# below it is `pr_body.compose` over the case's records.
 OWN_PART = "{extra}Closes #101.\n\n"
 # The record `seal gate --record` writes, in `broad_gate.write_gate_file`'s
 # shape: the work item's heading and one run block. Its commits are
