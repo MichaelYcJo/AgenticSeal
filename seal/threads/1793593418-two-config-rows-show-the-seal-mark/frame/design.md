@@ -209,10 +209,9 @@ Out of scope:
     `.claude-plugin/plugin.json` names as its `icon`, as `seal.png`, and the
     table opens with a cell holding that image at its display width. Its
     alt text names the image alone, because the results' cell carries every
-    number. Where the row is absent or empty, nothing is attached and the
-    table is the results' cell alone. Any other value does the same, and
-    the job names it on a `::warning::` line as not read. The plugin ships
-    no release workflow, so the row is read in this repository alone.
+    number. Under any other value nothing is attached and the table is the
+    results' cell alone; `templates/setup/config.md` *The seal mark* states
+    the row's values and who reads it.
 - change
   file: docs/release-checklist.md
   section: 6. After the merge
@@ -234,17 +233,15 @@ Out of scope:
     where `seal/config.md`'s `Pull request seal mark` row reads `yes` and
     the newest verdict block of `guarantee.md` reads `sealed` at a commit
     that only the closing records follow, so the mark means what the stamp
-    means (*The stamp*). An absent or empty row puts no mark, and any other
-    value puts none and is named as not read. A base the verdict block names
-    that git cannot resolve where the command runs puts no mark either, and
-    is named, since whether the seal holds at HEAD cannot then be read. The sealer's
+    means (*The stamp*). A base the verdict block names that git cannot
+    resolve where the command runs puts no mark either, and is named, since
+    whether the seal holds at HEAD cannot then be read. The row's other
+    values, and what the mark's address ties a body to, are
+    `templates/setup/config.md` *The seal mark*'s. The sealer's
     `seal pr-body --check` runs before its own verdict exists, so the copy
     it checks carries no mark from that run. The orchestrator runs
     `seal pr-body` once more after it commits a `sealed` guarantee, and that
     run changes no copied line, because the copy reads no `guarantee.md`.
-    The mark's address ties the body to the plugin's repository staying
-    public and to the version's tag existing; a body written by a version
-    with no tag shows no image until the tag exists.
     check: tests/skills/test_pr_body.py
 
 ## Removes
