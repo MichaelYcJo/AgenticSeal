@@ -4,7 +4,7 @@
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck at the work item's last commit | the orchestrator's broad gate, `seal gate`, after the review rounds settle |
+| closed The full suite, the repository-wide lint and the typecheck at the work item's last commit | answered: `trail/gate.md`, the `Broad gate` row passed at `561cb8de6` against `bf18be7d1`, and `guarantee.md` sealed on it |
 
 ## Not done
 

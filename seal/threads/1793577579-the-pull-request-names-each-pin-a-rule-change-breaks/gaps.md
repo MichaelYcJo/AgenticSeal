@@ -4,8 +4,8 @@
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck at the branch's HEAD; each phase ran only its boundary set | the orchestrator, at `seal gate` after the review rounds settle |
-| The new cases of `tests/skills/test_chain_check.py`, `tests/skills/test_rule_changes.py` and `tests/skills/test_passages.py` on the Windows leg, where the paths come from `git ls-files` and are joined for `open` | the pull request's `.github/workflows/test.yml` run |
+| closed The full suite, the repository-wide lint and the typecheck at the branch's HEAD; each phase ran only its boundary set | answered: `trail/gate.md`, the `Broad gate` row passed at `4b80b41ed` against `405109767`, and `guarantee.md` sealed on it |
+| closed The new cases of `tests/skills/test_chain_check.py`, `tests/skills/test_rule_changes.py` and `tests/skills/test_passages.py` on the Windows leg, where the paths come from `git ls-files` and are joined for `open` | answered: #1287's `tests` run 41377690120 at `070afe377` passed on its four `windows-latest` legs and every Linux leg |
 
 ## Not done
 

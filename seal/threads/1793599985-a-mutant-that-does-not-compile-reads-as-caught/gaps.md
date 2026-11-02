@@ -4,8 +4,8 @@
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the format check at the branch's head | the orchestrator's broad gate, `seal gate --base release/v0.29.0 --record` this work item |
-| The new cases of `tests/skills/test_mutation_check.py` on CI's `windows-latest` legs (`questions.md` Q1) | the orchestrator, reading the four Windows legs of the pull request's CI run |
+| closed The full suite, the repository-wide lint and the format check at the branch's head | answered: `trail/gate.md`, the `Broad gate` row passed at `9492ef0e0` against `40e6c23e6`, and `guarantee.md` sealed on it |
+| closed The new cases of `tests/skills/test_mutation_check.py` on CI's `windows-latest` legs (`questions.md` Q1) | answered: #1300's `tests` run 41410113844 at `a3747c180` passed on its four `windows-latest` legs and every Linux leg; the new cases carry no platform skip |
 
 ## Not done
 

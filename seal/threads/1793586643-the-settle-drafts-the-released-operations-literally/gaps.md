@@ -4,8 +4,8 @@
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck at the branch's HEAD; the phase ran only its boundary set (`frame/questions.md` Q1) | the orchestrator, at `seal gate` after the review rounds settle |
-| That `settle.py#draft` writes `\n` as itself on Windows: its `open(..., newline="")` is the one unit whose mutant survived here, since on POSIX `\n` is already the line separator. `test_draft_creates_and_deletes_whole_documents` reads the bytes and goes red there if the write translates | the pull request's `.github/workflows/test.yml` run on its Windows leg |
+| closed The full suite, the repository-wide lint and the typecheck at the branch's HEAD; the phase ran only its boundary set (`frame/questions.md` Q1) | answered: `trail/gate.md`, the `Broad gate` row passed at `a45626d5e` against `30ba21373`, and `guarantee.md` sealed on it |
+| closed That `settle.py#draft` writes `\n` as itself on Windows: its `open(..., newline="")` is the one unit whose mutant survived here, since on POSIX `\n` is already the line separator. `test_draft_creates_and_deletes_whole_documents` reads the bytes and goes red there if the write translates | answered: #1292's `tests` run 41384983409 at `3ef45ba3a` passed on its four `windows-latest` legs and every Linux leg; `tests/skills/test_settle.py#test_draft_creates_and_deletes_whole_documents` carries no platform skip |
 
 ## Not done
 

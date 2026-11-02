@@ -4,8 +4,8 @@
 
 | Item | Who must answer |
 |---|---|
-| Whether this repository's own `Broad gate` row, `bin/test -q`, leaves any pytest session at `HEAD` stopped part-way, so that the new arm fails this branch's own broad run (`frame/questions.md` Q1) | the orchestrator's broad run, `seal gate --base release/v0.28.1 --record` this work item |
-| The two new gate cases, `pytest.exit()` with a return code of 0 and `os._exit(0)`, ran on macOS with pytest 9.2.0 alone; they have not run on Linux or Windows | the pull request's CI test job on its Linux and Windows legs |
+| closed Whether this repository's own `Broad gate` row, `bin/test -q`, leaves any pytest session at `HEAD` stopped part-way, so that the new arm fails this branch's own broad run (`frame/questions.md` Q1) | answered: `trail/gate.md`, the `Broad gate` row passed at `a4c4e7f34` against `d57e9ee7a` with the new arm in place, so no session at that head stopped part-way, and `guarantee.md` sealed on it |
+| closed The two new gate cases, `pytest.exit()` with a return code of 0 and `os._exit(0)`, ran on macOS with pytest 9.2.0 alone; they have not run on Linux or Windows | answered: #1305's `tests` run 41532886473 at `1cd82b2a5` passed on its four `windows-latest` legs and every Linux leg |
 
 ## Not done
 

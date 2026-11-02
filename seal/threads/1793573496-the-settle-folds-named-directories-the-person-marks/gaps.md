@@ -4,10 +4,10 @@
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the format check at the work item's head | the orchestrator, by `seal gate --base <base> --record <item>` once the review rounds settle |
-| The listing and the refusals on Windows, where `inside` meets two drives and git spells paths with forward slashes; the build ran on macOS alone | the `windows-latest` jobs of `.github/workflows/test.yml` at the pull request |
-| The settling session's two questions, its proposal table and what reaches the policy root (design A7) | the owner, reading the settle's pull request body against its diff (`frame/questions.md` Q1, default (a)) |
-| That `hooks/question-gate.py` lets the settle's two questions through on a settle's branch, which has no `routing.md` (design G10, read and not run) | the owner, at the first settle that names a directory |
+| closed The full suite, the repository-wide lint and the format check at the work item's head | answered: `trail/gate.md`, the `Broad gate` row passed at `bdbb9d416` against `8d39d6f80`, and `guarantee.md` sealed on it |
+| closed The listing and the refusals on Windows, where `inside` meets two drives and git spells paths with forward slashes; the build ran on macOS alone | answered: #1284's `tests` run 41368455712 at `69ca0937b` passed on its four `windows-latest` legs and every Linux leg |
+| closed The settling session's two questions, its proposal table and what reaches the policy root (design A7) | a measurement no record asks for: this settle (`chore/settle-0.28-0.29`) put the first question, and the answer was "none", so no listing, proposal table or promotion arose; no failure, issue or design waits on that path, and the answer would have decided whether the table and the promotion read as `skills/settle/SKILL.md` *Directories a person names* says |
+| closed That `hooks/question-gate.py` lets the settle's two questions through on a settle's branch, which has no `routing.md` (design G10, read and not run) | answered: `hooks/question-gate.py:104` returns where no routing is declared, and this settle (`chore/settle-0.28-0.29`)'s first question went through on a branch with no `routing.md` |
 
 ## Not done
 

@@ -15,15 +15,17 @@ and its checkers define the formats, the way `.github/` is GitHub's. Three
 lifetimes, each with one home: a session's state sits beside the root under
 the common git directory and is never committed; a work item's directory,
 `seal/threads/<id>/`, lives until the settle writes its design's sections
-and removes it; everything else under `seal/`, with `docs/`, is permanent. The layout, file by file, is `docs/the-record-layout.md` *seal/* and
+and removes it; everything else under `seal/`, with `docs/`, is permanent.
+The layout, file by file, is `docs/the-record-layout.md` *seal/* and
 *seal/threads/<work-item-id>/*.
 
 **The plugin writes only to its own root.** A `specs/` directory anywhere
 else is the project's own, read as history and never taken
-(`templates/setup/config.md` *Reference specs*), and no code of the plugin opens a top-level `specs/` or `.specseal/` on
-its own. `seal settle --from` reads a directory only where a person
-names it at the settle, and writes nothing there. Where the root is, as a path a
-session can type, is stated once, in contract rule 11.
+(`templates/setup/config.md` *Reference specs*), and no code of the plugin
+opens a top-level `specs/` or `.specseal/` on its own. `seal settle --from`
+reads a directory only where a person names it at the settle, and writes
+nothing there. Where the root is, as a path a session can type, is stated
+once, in contract rule 11.
 check: tests/behaviour/test_no_document_names_the_old_roots.py tests/hooks/test_optin.py
 
 ## The dependency rule
@@ -46,12 +48,13 @@ something else moves.** A record citing `path:line` breaks it: a line moves
 for edits unrelated to the claim, so the citation has to be re-anchored, and
 a squash orphans it. A settle rewrites `docs/` and removes directories at
 every release it is called for, so anything coupled to a path or a position
-inside a work item breaks the same way. The coupling left is a record of what a party ran at the branch's own
-commits: a round record's `target:` line, and a `<commit>:<path>` that a
-work item's `trail/` or `guarantee.md` cites at such a commit. Both are
-read while the pull request is open and go with the record. Every other
-`<commit>:<path>` names a commit `main` or a release branch reaches
-(`docs/the-record-layout.md` *seal/threads/<work-item-id>/*).
+inside a work item breaks the same way. The coupling left is a record of
+what a party ran at the branch's own commits: a round record's `target:`
+line, and a `<commit>:<path>` that a work item's `trail/` or `guarantee.md`
+cites at such a commit. Both are read while the pull request is open and go
+with the record. Every other `<commit>:<path>` names a commit `main` or a
+release branch reaches (`docs/the-record-layout.md`
+*seal/threads/<work-item-id>/*).
 
 ## The opt-in signal is the root itself
 

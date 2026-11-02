@@ -4,9 +4,9 @@
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the format check at the branch's head; phase 1 ran the modules `trail/phases/phase-1.md` names | the orchestrator, by `seal gate --base <base> --record <item>` once the review rounds settle |
-| Whether a settling session closes a row as *a measurement no record asks for* only where nothing on record depends on its answer, and re-homes the rest with the record that needs each answer in the issue body (`frame/design.md` S1 and S2). No settle has run under the rule yet, and no case can read that judgment | the settling session of the settle after this release, and the owner, reading that settle's pull request body, which lists each row by kind with what closed it |
-| That `chain-check` reads this design's `## Rule changes` as one `change` and refuses nothing (`frame/design.md` S5). The framer ran probe P1 through the same reader at `0633f9a5`; the build changed no line of the design and did not run the check | `chain-check` in CI at the pull request |
+| closed The full suite, the repository-wide lint and the format check at the branch's head; phase 1 ran the modules `trail/phases/phase-1.md` names | answered: `trail/gate.md`, the `Broad gate` row passed at `e3494ee85` against `5161c421e`, and `guarantee.md` sealed on it |
+| closed Whether a settling session closes a row as *a measurement no record asks for* only where nothing on record depends on its answer, and re-homes the rest with the record that needs each answer in the issue body (`frame/design.md` S1 and S2). No settle has run under the rule yet, and no case can read that judgment | answered: this settle (`chore/settle-0.28-0.29`)'s pull request body lists every row by kind with what closed it, each row closed as a measurement no record asks for naming what its answer would have decided, and each re-homed row with the record that holds it |
+| closed That `chain-check` reads this design's `## Rule changes` as one `change` and refuses nothing (`frame/design.md` S5). The framer ran probe P1 through the same reader at `0633f9a5`; the build changed no line of the design and did not run the check | answered: this settle (`chore/settle-0.28-0.29`)'s dry run read the design as one `change`, group 13 operation 2, and listed it under no design to read whole |
 
 ## Not done
 

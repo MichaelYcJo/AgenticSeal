@@ -42,27 +42,26 @@ seal fold
 
 The first prints each group of released designs whose rule changes name one
 section, in merge order, and every open row of every released record.
-Before the first, the session running the settle asks the person
-whether any directory besides `seal/` holds decisions to fold, and
-passes each one named to the first as `--from <dir>`. Where the first
-lists a document of one, the session proposes each document as promote
-or skip, and the person marks the rows in a second question, before
-the session's first edit. Between the first and the second, the session
-writes each section as its group's latest decision, checked against the
-code, writes each decision the person marked promote into its section,
-and closes each open row with what closed it, asking nobody about
-either. A named directory is read and never written
-(`docs/the-record-layout.md` *The fold, and what tells it from a
-deletion*). The second removes every released work item directory whose record
-holds no open row and whose version's published note carries its entry
-where the repository's notes are built from the fragments, and names any
-it keeps with why. The settle's pull request body names
-each directory kept for its note, and the owner repairs that note
-before a later `--apply` removes it. `seal fold` then reads
-the documents the settle wrote, and names each one past its ceiling as one
-to split (`skills/settle/SKILL.md` *A document past its ceiling is split,
-never trimmed*). The settle's pull request body states each decision with
-its grounds and lists the defaults it took, and the owner reviews it.
+Before the first, the session running the settle asks the person whether
+any directory besides `seal/` holds decisions to fold, and passes each one
+named to the first as `--from <dir>`. Where the first lists a document of
+one, the session proposes each document as promote or skip, and the person
+marks the rows in a second question, before the session's first edit.
+Between the first and the second, the session writes each section as its
+group's latest decision, checked against the code, writes each decision the
+person marked promote into its section, and closes each open row with what
+closed it, asking nobody about either. A named directory is read and never
+written (`docs/the-record-layout.md` *The fold, and what tells it from a
+deletion*). The second removes every released work item directory whose
+record holds no open row and whose version's published note carries its
+entry where the repository's notes are built from the fragments, and names
+any it keeps with why. The settle's pull request body names each directory
+kept for its note, and the owner repairs that note before a later `--apply`
+removes it. `seal fold` then reads the documents the settle wrote, and names
+each one past its ceiling as one to split (`skills/settle/SKILL.md` *A
+document past its ceiling is split, never trimmed*). The settle's pull
+request body states each decision with its grounds and lists the defaults
+it took, and the owner reviews it.
 
 `skills/settle/SKILL.md` is the procedure. **A settle is not a work item**:
 it opens no directory under `seal/threads/`, its session runs
@@ -89,23 +88,20 @@ skipped a refused finding is a wrong number. They are this repository's measure
 of #1148, which removed the records' copies of one another: 0.24.0's four work items
 read 17 recurring of 36 findings, 12 in records alone, and 0.25.0's one read 3 of 10, 1
 in a record alone. A records-alone count that does not fall is no verdict. #1148 is
-measured by this count falling, so a count that holds level is read
-as one that rose: it is a row for the judgment
-`docs/measuring-a-run.md` *A band flags a reading for judgment, and a
-judgment decides whether it is worse* asks, because a release's mix
-of work moves the count as well as stale copies do. A stale copy is
-a record that restates a fact another record holds and was left as
-it stood when that source changed; #1148 removed the records' copies
-of one another so that none could go stale. The settling session's
-comment names the work items whose records-alone findings kept the
-count up, and says of each such finding whether it found a stale
-copy. The count is `worse` only where stale copies are what kept it
-up. #1020's check is then the next step, and #1020 is the issue that
-follows, so the session files no other. The
-step is this repository's and ships to no user: the plugin's settle procedure
-(`skills/settle/SKILL.md` *The settling session's procedure*) does not take it, because
-the reader of the four numbers is this repository's owner and most installed
-repositories keep no `flow-baseline` log.
+measured by this count falling, so a count that holds level is read as one that
+rose: it is a row for the judgment `docs/measuring-a-run.md` *A band flags a
+reading for judgment, and a judgment decides whether it is worse* asks, because a
+release's mix of work moves the count as well as stale copies do. A stale copy is a
+record that restates a fact another record holds and was left as it stood when that
+source changed; #1148 removed the records' copies of one another so that none could
+go stale. The settling session's comment names the work items whose records-alone
+findings kept the count up, and says of each such finding whether it found a stale
+copy. The count is `worse` only where stale copies are what kept it up. #1020's
+check is then the next step, and #1020 is the issue that follows, so the session
+files no other. The step is this repository's and ships to no user: the plugin's
+settle procedure (`skills/settle/SKILL.md` *The settling session's procedure*) does
+not take it, because the reader of the four numbers is this repository's owner and
+most installed repositories keep no `flow-baseline` log.
 check: tests/github/test_finding_counts.py
 
 **What `seal settle --apply` removed is committed before anything switches that checkout
@@ -120,15 +116,15 @@ check: none reader: the owner's settling session at this step
 **Before `seal settle --apply`, the settling session reads the dry
 run's *The judgments* and *The judgments earlier settles removed*, and
 rewrites a section where the same kind of judgment came back, within
-this release or over several, or cost rounds each time it was made.** *The judgments* holds the
-orchestrators' rows from every released `frame/plan.md`. *The judgments
-earlier settles removed* holds the rows of every plan an earlier settle
-removed, read from the history with the release each shipped in. Both
-are grouped by the document each row stands on. The pull request body
-names each kind that recurred across releases with the releases it
-recurred in. The rows leave the tree with their directories at
-`--apply`, and the history keeps them for the next settle, so nothing is
-kept beside the tree to carry them; `skills/core/SKILL.md` *A judgment
+this release or over several, or cost rounds each time it was made.**
+*The judgments* holds the orchestrators' rows from every released
+`frame/plan.md`. *The judgments earlier settles removed* holds the rows of
+every plan an earlier settle removed, read from the history with the
+release each shipped in. Both are grouped by the document each row stands
+on. The pull request body names each kind that recurred across releases
+with the releases it recurred in. The rows leave the tree with their
+directories at `--apply`, and the history keeps them for the next settle,
+so nothing is kept beside the tree to carry them; `skills/core/SKILL.md` *A judgment
 stands on a source document, and is written down with both* says the
 guidance improves from that record and not from memory.
 check: none reader: the owner's settling session at this step
@@ -154,12 +150,12 @@ the run is the first to read the two together, and the one run after the
 last merge reads them together as well. Opened after the last merge, it
 runs `tests` once, on the tree the release ships, and what runs only on a
 pull request into `main` answers once: `release-report`, and the
-`hygiene` workflow's version and milestone steps.
-The orchestrator reads that moment from two commands after
-`git fetch origin`. `gh pr list --base release/vX.Y.Z --state open` lists no
-pull request; a settle's pull request closes no issue, so only this command
-sees it. And the release pull request's own milestone check exits 0 and
-prints its `M (open in 'release: X.Y.Z')` line, run as
+`hygiene` workflow's version and milestone steps. The orchestrator reads
+that moment from two commands after `git fetch origin`.
+`gh pr list --base release/vX.Y.Z --state open` lists no pull request; a
+settle's pull request closes no issue, so only this command sees it. And the
+release pull request's own milestone check exits 0 and prints its
+`M (open in 'release: X.Y.Z')` line, run as
 `python3 .github/scripts/release_completeness_check.py` with
 `HEAD_BRANCH=release/vX.Y.Z`, `HEAD_SHA=origin/release/vX.Y.Z` and `REPO`
 set to what `gh repo view --json nameWithOwner --jq .nameWithOwner`
@@ -263,21 +259,26 @@ python3 .github/scripts/plugin_directory_check.py   # what the marketplace files
       tag that is not `vX.Y.Z`; and when a `gh` call it makes fails. A
       missing title line is not one of them: it falls back to the tag name.
       The note opens with a header of the release's counts and the theme
-line under it, then the release's pull requests, one fold per
-conventional-commit type under its name and count, and a `### 🙌 Thanks to` line for each outside
-      contributor, over the fragments folded; where the job log says the
-      pull requests could not be listed, the note went out as the theme line
-      and the fragments alone, which one `gh release edit` repairs. After
-      the note, the same workflow's `seal` job attaches `seal.png` and puts it in the note's header, beside the
-results the stamp states, where `seal/config.md`'s
-`Release note seal mark` row reads `yes`; under any other value it
-attaches nothing, and the header holds the results alone. Where the row
-reads `yes` and the header still shows no image, the `seal` job's log says why on a `::warning::` line: the
-      suite at the tag did not pass, the seal could not be drawn or
-      written, a `gh` call failed, or the header was not in the note as generated: edited before the job
-reached it, already replaced by an earlier run of the job, published
-without one, or the pull requests moved between the two lists. That job never
-      fails the release. To draw one by hand, from a checkout at the tag,
+      line under it, then the release's pull requests, one fold per
+      conventional-commit type under its name and count, and a
+      `### 🙌 Thanks to` line for each outside contributor, over the
+      fragments folded; where the job log says the pull requests could not
+      be listed, the note went out as the theme line and the fragments
+      alone, which one `gh release edit` repairs. After the note, the same
+      workflow's `seal` job attaches `seal.png` and puts it in the header,
+      beside the results the stamp states as badges, where
+      `seal/config.md`'s `Release note seal mark` row reads `yes`; under any
+      other value it attaches nothing and puts the results in the header
+      alone. Where the header still shows the counts as text, the `seal`
+      job's log says why on a `::warning::` line: the suite at the tag did
+      not pass or its counts could not be read, the icon could not be
+      copied, a `gh` call failed, or the header was not in the note as
+      generated: edited before the job reached it, already replaced by an
+      earlier run of the job, published without one, or the pull requests
+      moved between the two lists. A row written with a value other than
+      `yes` is named on a `::warning::` line of its own, and the results go
+      in without the image. That job never
+      fails the release. To seal one by hand, from a checkout at the tag,
       run the suite with the broad gate's recorder loaded
       (`PYTHONPATH="$PWD/skills/verify/scripts/pytest_record"`,
       `PYTEST_ADDOPTS='-p agentic_pytest_record'`, and
@@ -285,7 +286,7 @@ without one, or the pull requests moved between the two lists. That job never
       that exists and a key you choose), then run
       `DRY_RUN=1 python3 .github/scripts/release_seal.py` with `TAG`,
       `REPO`, `SUITE_RECORDS` (that directory) and `SUITE_KEY` (that key)
-      set; attach the PNG it names with
+      set; attach the PNG it names, where it names one, with
       `gh release upload`, then apply the note it prints with
       `gh release edit --notes-file`.
 - [ ] **The marketplace files and the directory's page have been read**, by

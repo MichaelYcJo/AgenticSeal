@@ -4,7 +4,7 @@
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck at the branch's HEAD; the phase ran only its boundary set (contract rule 2) | the orchestrator, at `seal gate` after the review rounds settle |
+| closed The full suite, the repository-wide lint and the typecheck at the branch's HEAD; the phase ran only its boundary set (contract rule 2) | answered: `trail/gate.md`, the `Broad gate` row passed at `5c01946f3` against `4ab345cba`, and `guarantee.md` sealed on it |
 
 ## Not done
 

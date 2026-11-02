@@ -21,10 +21,11 @@
 
 **플러그인은 자기 루트에만 씁니다.** 그 밖의 자리에 있는 `specs/` 디렉터리는
 프로젝트 자신의 것이고, 이력으로 읽을 뿐 가져가지 않습니다
-(`templates/setup/config.md` *Reference specs*). 플러그인의 어떤 코드도 최상위 `specs/` 나 `.specseal/` 을 스스로 열지
-않습니다. `seal settle --from` 은 settle 때 사람이 이름을 댄 디렉터리만
-읽고, 그 안에는 아무것도 쓰지 않습니다. 세션이 칠 수 있는 경로로 루트가
-어디 있는지는 contract rule 11 한 곳에 적혀 있습니다.
+(`templates/setup/config.md` *Reference specs*). 플러그인의 어떤 코드도
+최상위 `specs/` 나 `.specseal/` 을 스스로 열지 않습니다.
+`seal settle --from` 은 settle 때 사람이 이름을 댄 디렉터리만 읽고, 그
+안에는 아무것도 쓰지 않습니다. 세션이 칠 수 있는 경로로 루트가 어디
+있는지는 contract rule 11 한 곳에 적혀 있습니다.
 check: tests/behaviour/test_no_document_names_the_old_roots.py tests/hooks/test_optin.py
 
 ## 종속 규칙
@@ -45,11 +46,11 @@ corpus*). 병합 뒤에 `seal/threads/<id>/` 를 새로 읽는 코드는 그것�
 어깁니다. 줄 번호는 그 주장과 무관한 편집에도 움직여서 인용을 다시 잡아야
 하고, squash 가 그 인용을 고아로 만듭니다. settle 은 불릴 때마다 `docs/` 를
 다시 쓰고 디렉터리를 지우므로, 작업 항목 안의 경로나 위치에 묶인 것은
-무엇이든 같은 식으로 깨집니다. 남은 묶임은 당사자가 브랜치 자신의 커밋에서 실행한 것의 기록입니다.
-라운드 기록의 `target:` 줄, 그리고 작업 항목의 `trail/` 이나
-`guarantee.md` 가 그런 커밋에서 인용한 `<commit>:<path>` 가 그것입니다.
-둘 다 PR 이 열려 있는 동안 읽히고 기록과 함께 사라집니다. 그 밖의
-`<commit>:<path>` 는 `main` 이나 릴리스 브랜치가 닿는 커밋을 가리킵니다
+무엇이든 같은 식으로 깨집니다. 남은 묶임은 당사자가 브랜치 자신의 커밋에서
+실행한 것의 기록입니다. 라운드 기록의 `target:` 줄, 그리고 작업 항목의
+`trail/` 이나 `guarantee.md` 가 그런 커밋에서 인용한 `<commit>:<path>` 가
+그것입니다. 둘 다 PR 이 열려 있는 동안 읽히고 기록과 함께 사라집니다. 그
+밖의 `<commit>:<path>` 는 `main` 이나 릴리스 브랜치가 닿는 커밋을 가리킵니다
 (`docs/the-record-layout.md` *seal/threads/<work-item-id>/*).
 
 ## 옵트인 신호는 루트 자체다

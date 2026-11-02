@@ -45,16 +45,17 @@ check: tests/text/test_broad_gate_rule.py tests/text/test_every_agent_reads_the_
 part-way has not passed, whatever the row's exit.** An exit of 0 does
 not say that the session ran every test it collected, and where a stop
 chose that code, as `pytest.exit()` and `os._exit()` do, it does not say
-that nothing the session ran failed either. A test that calls `pytest.exit()` with a
-return code of 0, or ends its process with `os._exit(0)`, stops the
-session there with the row still at exit 0. A run passed on that exit
-would write `trail/gate.md`, and the sealer would guarantee a suite
-nobody finished. So the gate reads the stop off its own recorder's
-record, as it does at the base. It counts a session as stopped part-way
-where its record holds no `end` line, where that line's `stopped` is not
-an empty list, or where its exit is not 0, 1 or 5. Where any session at `HEAD`
-reads so, the run fails, writes no `trail/gate.md`, and its failure form
-says that the row exited 0 and how many sessions stopped. Two kinds of
+that nothing the session ran failed either. A test that calls
+`pytest.exit()` with a return code of 0, or ends its process with
+`os._exit(0)`, stops the session there with the row still at exit 0. A
+run passed on that exit would write `trail/gate.md`, and the sealer
+would guarantee a suite nobody finished. So the gate reads the stop off
+its own recorder's record, as it does at the base. It counts a session
+as stopped part-way where its record holds no `end` line, where that
+line's `stopped` is not an empty list, or where its exit is not 0, 1
+or 5. Where any session at `HEAD` reads so, the run fails, writes no
+`trail/gate.md`, and its failure form says that the row exited 0 and how
+many sessions stopped. Two kinds of
 stop stay out of the record's reach: a `pytest.exit()` raised by a
 `pytest_sessionfinish` hook that runs after the recorder's, and a stop
 raised before the recorder writes a session's first line.
