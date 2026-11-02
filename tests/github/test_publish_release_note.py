@@ -316,7 +316,8 @@ class Test_main:
         """S1, S2 and S3 of #1139. The entry's first line links the pull
         request whose number ends the subject of the range's commit that added
         the fragment, in the `REPO` the note is built for. A later commit that
-        edits the fragment names no number for it. Where the subject ends with
+        edits the fragment, or adds it again after a removal, names no number
+        for it: the oldest adding commit does. Where the subject ends with
         several `(#N)`, as a title that ends with its issue does, the last is
         the pull request. An adding commit with no `(#N)` gives the fragment's
         text alone, and no entry carries the hidden work-item marker. Driven
@@ -328,6 +329,10 @@ class Test_main:
         commit_everything(repo, "feat: a change (#42)")
         write(repo, thread.format("1700000001-linked"), "- linked entry, revised\n")
         commit_everything(repo, "fix: a later edit (#43)")
+        git_out(repo, "rm", "-q", "-r", "seal/threads/1700000001-linked")
+        commit_everything(repo, "chore: removed by mistake (#45)")
+        write(repo, thread.format("1700000001-linked"), "- linked entry, revised\n")
+        commit_everything(repo, "chore: restored (#46)")
         write(repo, thread.format("1700000002-titled"), "- titled entry\n")
         commit_everything(repo, "fix: a title that ends with its issue (#7) (#44)")
         write(repo, thread.format("1700000003-bare"), "- bare entry\n")
@@ -350,7 +355,8 @@ class Test_main:
         assert "[#42](https://github.com/o/r/pull/42)\n- linked entry, revised" in (
             note
         ), note
-        assert "#43" not in note, "a commit that edited the fragment was linked"
+        for later in ("#43", "#45", "#46"):
+            assert later not in note, f"a later commit than the oldest add, {later}"
         assert "[#44](https://github.com/o/r/pull/44)\n- titled entry" in note, note
         assert "pull/7)" not in note, "the issue the title ends with was linked"
         assert "- titled entry\n\n- bare entry" in note, (
