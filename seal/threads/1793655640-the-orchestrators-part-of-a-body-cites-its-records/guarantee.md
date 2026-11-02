@@ -34,3 +34,35 @@ The audit is of HEAD 8a0591674 against `release/v0.29.0`, resolved as `origin/re
 target: 8a0591674 against 1854b5e9f
 Verdict: withheld reason: the design (frame/design.md:33, Scope item 1) says "Nothing else in the section changes", and the changelog (changelog.md:3, ### Fixed) says the section "now says four things" with the Process changes row (changelog.md:9) naming the same four; the tree at skills/code-review/orchestration.md:383-386 also carries a fifth change, made by e88b42fd6 for round 1 finding 2: "Your part stays as you wrote it, except where the repair changed a record that a sentence of your part copies or cites: open that record again, and correct the sentence or its coordinate." Fold round 1 finding 2 into Scope item 1 as finding 1 was folded, and name the repair exception in the ### Fixed entry and the Process changes Change cell; then run seal pr-body again
 ```
+
+## Re-audit at e53b1ec9b
+
+| Field | Value |
+|---|---|
+| Broad gate | 1b44b1b53 against 1854b5e9f |
+
+HEAD is e53b1ec9b. `git log --no-merges --name-only 1b44b1b53..HEAD ^1854b5e9f` lists ad164954e, 8a0591674 and e53b1ec9b, each touching only paths under `seal/threads/1793655640-the-orchestrators-part-of-a-body-cites-its-records/`, and `git diff 1b44b1b53 HEAD` outside that directory is empty (executed). The base still resolves as `origin/release/v0.29.0` at 1854b5e9f (executed). `seal pr-body <item> --body <file> --check` exited 0 with the installed `seal` and with the tree's `bin/seal` (executed). e53b1ec9b touched `frame/design.md:33`, `changelog.md:3` and `changelog.md:9`, and committed the block above unchanged. No code changed since the earlier audit, so its re-run claims stand as they were, and only those coordinates were re-run.
+
+### Claims re-run
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| The design's quote of the repair clause is the tree's sentence | `frame/design.md:33` | the clause searched in `frame/design.md` and, with line breaks joined, in `skills/code-review/orchestration.md` | holds: one occurrence in each, word for word (executed) |
+| The rule change still parses as one `change` after the design's edit | `frame/design.md` `## Rule changes` | `rule_changes.parse` over `frame/design.md` at HEAD | holds: one `change`, `errors=[]`, `unread=[]` (executed) |
+| The section now says five things, the fifth being the repair exception | `changelog.md:3` | read against `skills/code-review/orchestration.md:369-386` | holds: the four points of `:369-380` and the exception at `:383-386` (read) |
+| The Process changes Change cell names the repair exception | `changelog.md:9` | read against `skills/code-review/orchestration.md:381-386` | holds: "corrected before the sealer's next spawn" names one of the two moments the tree's sentence gives (each later spawn of the sealer and each `gh api -X PATCH`) and contradicts neither (read) |
+
+### The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | *Scope* item 1 now names the repair clause after round 1's finding 2, and then "Nothing else in the section changes" (`frame/design.md:33`) | the build: the section's changes at HEAD are item 1's four points and that clause (read) | none |
+| the build | unchanged since the earlier audit; nothing outside the work item's records changed after 1b44b1b53 (executed) | the design, the rounds, the changelog | none |
+| the last round | round 3 at d28734cf opens nothing; no round record changed | the build | none |
+| the changelog | `### Fixed`: "now says five things", the fifth being the repair exception; the Change cell gains it (`changelog.md:3`, `:9`) | the build and the design's item 1 | none |
+| the orchestrator's part of the pull request body | as before, with "one the bodies merged into `release/v0.28.0` did not keep (`frame/design.md` G4)" and "#883's insertion into another paragraph ... (`frame/design.md` G11)" | G4 and G11, which e53b1ec9b did not touch (read); the two `changelog.md` `### Fixed` sentences it quotes still stand word for word in `changelog.md:3` (read); e53b1ec9b touches only the records, so "touch only the work item's records, except that merge" still holds (executed) | none |
+
+```seal
+target: e53b1ec9b against 1854b5e9f
+Verdict: sealed
+```
