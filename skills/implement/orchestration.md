@@ -55,7 +55,17 @@ because a crafter reads the frame and not the issue's comments. In the
 commit that folds it, the orchestrator writes the decision, its grounds and
 the document it judged against as one row of `frame/plan.md` *Judgments of
 the run*, because the rewritten sentence keeps no reason for itself and the
-settle reads the row. Until the decision is folded, the orchestrator keeps
+settle reads the row. Where a crafter's hand-back names a frame statement
+its work contradicts, the orchestrator reads each frame file it folds into
+whole against HEAD, not only the named line, and rewrites every statement
+HEAD contradicts: the crafter's list is its reading of a file it does not
+write. After the fold commit, the orchestrator reads that commit and each
+file of the work item's directory that states the present whole against
+HEAD, as contract rule 12 asks of the party that fixes. Where that reading
+finds a statement in a file the crafter writes, `gaps.md` or
+`changelog.md`, the orchestrator hands it to the crafter that made the
+fix, resumed as a fix pass is, before it spawns the next round or phase.
+Until the decision is folded, the orchestrator keeps
 one line of its own in `plan.md` naming the comments to fold, below the
 title, and deletes that line in the commit that folds them. Before the
 frame is committed, the orchestrator folds the decision into the issue body

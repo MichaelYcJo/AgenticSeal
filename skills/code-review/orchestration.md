@@ -71,22 +71,22 @@ fragment along* owns that rule.
 **The fix pass then finds what the fixes left standing.** A fix repairs the
 coordinate a finding named, and the fact the finding was about is usually
 stated in more than one place, so the other statements survive and arrive as
-a later round; that is contract rule 12. For each rule its range reworded or
-removed, the crafter finds every other place stating it, by its words and by
-the `check:` target that holds it, and corrects each or names it in the
-hand-back with why it stands. The round that follows reads that list against
-the diff. Where the hand-back names a statement of a rule it reworded that
-stands in the work item's frame, which the fix pass does not edit, the
-orchestrator folds that statement in place, in a commit of its own, before it
-spawns the verifying round, so the round and the next crafter read one rule
-(`skills/implement/orchestration.md` *Orchestrator: the order inside a
-ticket*). Last, the fix pass appends the close block of every finding it
-answered, after its fix commits and those corrections, because a `fixed`
-verdict names a commit that already exists, and leaves the round record
-uncommitted. **On the hand-back the orchestrator commits the
-round record as the fix pass left it, in one commit for the whole pass, before
-it spawns the verifying round, and changes none of its lines.** That commit
-holds `trail/rounds/round-N.md` alone.
+a later round; that is contract rule 12. The fix pass's hand-back carries
+the method of its read of its range and the work item's records, each frame
+statement that read names, and the sample of statements across the tree, as
+contract rule 12 asks of the party that fixes. The round that follows reads
+that account as a claim. Where the hand-back names a frame statement, which
+the fix pass does not edit, the orchestrator folds the frame as
+`skills/implement/orchestration.md` *Orchestrator: the order inside a
+ticket* states, in a commit of its own, before it spawns the verifying
+round, so the round and the next crafter read one rule. Last, the fix pass
+appends the close block of every finding it answered, after its fix
+commits and the corrections its read made, because a `fixed` verdict names
+a commit that already exists, and leaves the round record uncommitted. **On
+the hand-back the orchestrator commits the round record as the fix pass
+left it, in one commit for the whole pass, before it spawns the verifying
+round, and changes none of its lines.** That commit holds
+`trail/rounds/round-N.md` alone.
 
 **You type only the half of a spawn prompt that changes between rounds.**
 `skills/agent-contract/SKILL.md` reaches every agent you spawn at startup,

@@ -60,9 +60,12 @@ each open finding; a write not named here is a write you do not make.
     claim labelled `executed`, `read` or `unverified`, the suite labelled
     `unverified` with the orchestrator named as its answerer, each declined
     instruction as one line saying what was asked and which rule refused it
-    (rule 3), what this file does not let you record yourself (a question only
-    a person can answer, a leftover for `seal/follow-up.md`) with who answers
-    each, and changed files by absolute path.
+    (rule 3), the account the rule *Before you hand back, your range and the
+    work item's records are read whole against HEAD* asks for, each part's
+    method and what it listed and each frame statement named for the
+    orchestrator, what this file does not let you record yourself (a question
+    only a person can answer, a leftover for `seal/follow-up.md`) with who
+    answers each, and changed files by absolute path.
 
 ## Never
 
@@ -155,6 +158,24 @@ removal the frame's `## Removes` did not name among them; `frame/plan.md`'s
 Status cell holds the commit.
 check: tests/behaviour/test_a_phase_hands_the_next_one_a_record.py
 
+**Before you hand back, your range and the work item's records are read
+whole against HEAD.** In a phase and in a fix pass, after your last
+commit, read every hunk of your range's diff with the paragraph or unit
+around it, a case's name, docstring and comments among them. Read whole
+each file of `seal/threads/<work-item-id>/` that states the present:
+`routing.md`, the three frame files, `gaps.md` and `changelog.md`. Fix in
+your range every statement HEAD contradicts in a file your *Job* lets you
+write. Name each one that stands in a file you do not write, `routing.md`
+or a frame file outside your Status cell, in the hand-back with its
+coordinate and the fact HEAD gives, for the orchestrator to fold. That set
+is closed (rule 12), so none of it is handed on as a sample. Then find the
+other places across the tree that state each rule your range reworded or
+removed, by `git grep` on its words and by its `check:` target, and
+correct each or say in the hand-back why it stands; that list is a sample,
+and the hand-back calls it one. What you did not finish goes to `gaps.md`
+`## Not done` with why.
+check: tests/text/test_a_moved_rule_leaves_its_definition.py
+
 **A fix pass appends close blocks and writes no phase record.** It appends
 one close block per finding it answers, the `seal` block
 `templates/records/sdd-round.md` places in the finding's section after its
@@ -177,12 +198,9 @@ design's `## Rule changes` writes at a later settle. Where that reading fails,
 write the fix in your own words and say so in `answer:`.
 Where your fix changed none of the paths the finding's `location:` lists,
 the close block carries a `location:` line naming the one it did change, and
-`answer:` names it. Once the fixes are committed, find every other place
-stating each rule your range reworded or removed, by `git grep` and its
-`check:` target, and correct each or say in the hand-back why it stands
-(rule 12). Read the statements beside each coordinate first, the rest of its
-paragraph and the name, docstring and comments of a case you changed: a
-search on the rule's words misses them, and each one left returns as a round.
+`answer:` names it. Once the fixes are committed, make the reading *Before
+you hand back, your range and the work item's records are read whole
+against HEAD* asks for.
 Last, after your last fix commit and its corrections, append the close block
 of every finding you answered, and do not commit them: the
 orchestrator commits the round record as you left it.
