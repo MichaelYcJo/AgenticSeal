@@ -99,7 +99,6 @@ Out:
 | Three check lines | `docs/running/the-broad-gate.md:42`, `docs/checks/the-fold.md:93`, `docs/releasing/branch-and-release.md:185` | a and b: no case reads the rule. c: the rule's home, `docs/forms/the-round-record.md:91-96`, names its case |
 | One target | `tests/behaviour/test_the_stamp_reaches_the_person_it_is_drawn_for.py` on `docs/checks/the-stamp.md:89` | `tests/hooks/test_sealer_stamp.py` stays on the line and reads the budget |
 | Three kept wording asserts | the assert at `tests/text/test_broad_gate_rule.py:61-67` and the docstring clause at `:53-54`; `tests/text/test_settle_reads_before_it_removes.py#test_the_skill_names_the_floors_a_fold_has_to_answer`; `tests/text/test_a_rider_reaches_its_file.py#test_the_record_says_why_target_sha_names_a_commit` | Nowhere: each pinned wording, which `docs/running/what-a-script-gates.md` *The checks* removes |
-
 | The `Answer pressed` row, its parse and the sentences that prescribe it | `templates/records/sdd-routing.md`; `hooks/lib/routing.py` `ANSWER_PRESSED` and the `pressed` key; `skills/implement/orchestration.md`; `docs/running/the-review-and-parity-arms.md` *The declaration, and where the check went*; the eval scaffolds and `evals/scripts/rule_cases.py` | No code acts on the stored value, and the question gate reads the transcript (*Scope* 8) |
 
 This work adds no mechanism. Each row above removes a line, a branch, a case or a sentence, and none is replaced by a new mark, check or case.
