@@ -576,8 +576,8 @@ ASKING_WINDOW = 140
 #
 #   *go in **one batch** before the first edit*  -- verbatim from the
 #       sentence `CLAUDE.md`'s goal section carried until #730 left the rule
-#       to `skills/implement/SKILL.md` *1. Read the documents that outrank
-#       the code first*;
+#       to `skills/implement/orchestration.md` *Orchestrator: what needs a
+#       person is asked in one batch, before the first edit*;
 #       the emphasis markers break the
 #       literal;
 #   *in a single batch* and *as a single batch* -- ordinary synonyms.
@@ -778,8 +778,8 @@ def test_the_batch_phrase_is_found_by_its_claim_not_by_one_spelling():
 def test_no_agent_definition_tells_its_agent_to_collect_questions():
     """A question's cost is when it arrives, not how hard it is, so the
     questions are collected once, before the first edit, by the session that
-    spawns the work. How `skills/implement/SKILL.md` and the orchestration
-    say so is the proofer's to read; what is checked here is that no
+    spawns the work. How `skills/implement/orchestration.md` says so is the
+    proofer's to read; what is checked here is that no
     definition hands the batch to an agent."""
     # The batch belongs to the SESSION that spawns the work, and that is a
     # property of the harness rather than a preference: no agent this plugin

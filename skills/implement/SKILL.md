@@ -146,61 +146,10 @@ it or dropping it.
   executed, read, or unverified. What a fact with neither is, and why an
   aggregate is not a coordinate, is contract rule 5.
 
-**Collect what needs a person before the first edit, and ask it in one batch.**
-Read the policy, the SDD set and the ticket looking for the questions as well
-as the answers, and put every one of them in front of the user at the start:
-a decision only they can make, an approval, a credential, a permission the
-session does not have.
-
-The cost of a question is not its difficulty, it is when it arrives. Asked
-before the work starts, it costs a reply. Asked at minute thirty, it stops
-everything until someone is at the keyboard — and the longer a session is
-meant to run unattended, the more of it a late question wastes. Asking one at
-a time is the same failure spread out: three interruptions cost three waits.
-
-Two things sharpen the list:
-
-- **A question you can answer is not a question.** Read the documents and the
-  code first. What survives that is the batch.
-- **Assume, in writing, whatever would not change what you build.** State the
-  assumption in `questions.md` and continue. Only where different answers mean
-  different code does the work actually have to wait.
-
-Something a session cannot do for itself belongs on the same list — widening
-its own permissions, for one, which the harness blocks by design. Better
-found in the first minute than at the commit.
-
-**A question in this batch names its answers, and every answer continues.**
-"Should I release this?" and "should the proofer review it?" both have a `no`
-that leads nowhere — the session that answers it is holding finished work with
-no destination, which is a gate wearing the shape of a question. A yes/no is
-the tell. Ask which of two named paths instead, and say what each one does.
-
-**The first edit waits for the routing answer, and a gate holds that.**
-`hooks/routing-edit-gate.py` refuses a `Write`, `Edit` or `NotebookEdit` of
-a file in an opted-in repository while no `routing.md` names the branch
-checked out where the file is and the session has not run
-`seal no-work-item` on that branch. A file under the `seal/` root or one git
-ignores is not judged, so the declaration can always be written first.
-`seal no-work-item` records, for this session on the branch checked out
-where it runs, that its change belongs to no work item; on a detached HEAD
-it records nothing.
-
-**Once the batch is answered, the session runs to the pull request.** What
-surfaces after it is written down rather than raised: a decision only a person
-can make goes to `questions.md`, a finding you neither fixed nor answered to
-`seal/follow-up.md` with an answerer named — a deferral to nobody is how
-"someone will look at it" becomes nobody did (`skills/verify/SKILL.md` *The
-answerer has to exist*) — and what was deliberately left goes to the closing
-memo's Not done section. Each is named in the PR body, because a leftover
-nobody can find was not handed over. On a branch whose `routing.md` answers
-`Automation` with `yes`, `hooks/question-gate.py` holds this, and
-`docs/the-review-record.md` *The run* is the rule.
-
-The test for whether something is a question or a row: would a different
-answer change what you build *now*? If it would not, raising it spends a
-person's attention on something that was never blocking, and the session that
-waits for the reply spends more.
+What needs a person is asked once, in one batch, before the first edit, by
+the orchestrator, which opens `skills/implement/orchestration.md`
+*Orchestrator: what needs a person is asked in one batch, before the first
+edit* when it starts a work item.
 
 ### 2. Implement test-first, and let each rule name its test
 
@@ -270,43 +219,16 @@ check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
 ### 3. The SDD file set
 
-**When a work item is required** — the same threshold the Design Gate uses,
-because they are the same judgment. Drawing no line is how the set quietly
-stops being written.
-
-| Work | What to write |
-|---|---|
-| It **alters observable behaviour** — a gate's verdict, a hook's output, a skill's or agent's instructions, a public API, text a person reads and acts on. Or it changes a value someone waits on or is limited by — a timeout, a retry count, a rate, a size cap — and NAMING that value is what puts it on this rung | `frame/design.md` and `plan.md` **before** implementing — approval of `plan.md` IS the gate — then the closing memo |
-| It alters none of that and is more than one line — a refactor, a performance pass, a formatting sweep, a test that pins what already holds. These four are DEFAULTS, not a closed list: a performance pass that moves a timeout a person waits on belongs on the rung above, and the value's name is what moves it | the closing memo. A one-line scope confirmation replaces the plan |
-| A typo, a config value, a one-line fix | nothing |
-
-**Behaviour, not file count, and the difference runs both ways.** The top rung
-used to read *6+ files, a new module, or an architectural choice*, and two of
-those three conditions measured size.
-
-- **One file, and it qualifies.** A change to an agent's persona is two files
-  of wording, and wording is what a session reads and acts on, so it needs a
-  plan at file one.
-- **Many files, and it does not.** Copying test repositories instead of
-  running `git init` for each touched more files than that and altered nothing
-  anyone can observe — no verdict, no output, no instruction. The suite runs
-  faster and says the same things.
-
-A count also has to say **when** it is taken, and the gate it guards — plan
-approval — exists only before the first edit (issue #35); a test with no
-number has no such moment, so the question stops needing an answer.
-
-What it costs: *does this alter observable behaviour* is a judgment where
-*six files* was a count, and two people can disagree about a borderline case.
-That is the trade — a judgment that is about the right thing beats a
-measurement of the wrong one, and the list in the rung is what keeps the
-judgment from being free-form. The way out of a default is to NAME the value a
-person waits on or is limited by, which a reader can open and check. *I judged
-it observable* is not something anyone can check, and it is not a way out.
+Which files a work item has, and whether it has a `frame/design.md` and a
+`plan.md` at all, is the ladder's: the orchestrator reads it in
+`skills/implement/orchestration.md` *Orchestrator: when a work item is
+required* before it spawns a framer.
 
 `questions.md` is not on that ladder: it starts with the batch collected
-before the first edit (step 1) and gains a row whenever a decision only a
-human can make appears later, at any size. A late one still gets written — the
+before the first edit (`skills/implement/orchestration.md` *Orchestrator:
+what needs a person is asked in one batch, before the first edit*) and
+gains a row whenever a decision only a human can make appears later, at any
+size. A late one still gets written — the
 batch is what keeps it from being the only way they arrive. A question is a
 row there and never a sentence of `frame/design.md`, because an unanswered question
 in prose reads as decided.
@@ -404,11 +326,12 @@ expensive way to get a worse answer.
    prose, because those are decisions rather than pending claims
    (`## Not done`).
 
-On the ladder's second rung, `## Scope confirmation` holds the one line
-that replaces `plan.md`. Why the work exists is the changelog fragment's,
-and a departure from the frame is the phase record's that made it. A memo
-with nothing unverified and nothing left is correct and short: the
-no-change block and `nothing`.
+On the ladder's second rung (`skills/implement/orchestration.md`
+*Orchestrator: when a work item is required*), `## Scope confirmation`
+holds the one line that replaces `plan.md`. Why the work exists is the
+changelog fragment's, and a departure from the frame is the phase record's
+that made it. A memo with nothing unverified and nothing left is correct and
+short: the no-change block and `nothing`.
 
 **`## Not verified` is read by a machine, so it has one shape** — a
 `| Item | Who must answer |` table, or alone the no-change block
@@ -474,23 +397,7 @@ it stands at the tag;
 `docs/the-record-layout.md` *A commit after the build brings its changelog
 fragment along* owns that rule.
 
-### 6. Drain the rows before the broad run, and keep the records
-
-**The orchestrator moves every unresolved row out once the last round record
-has no finding open, and before it runs `seal gate --preflight`**, whichever
-party `routing.md`'s `Implementation` row names: the orchestrator opens the
-pull request, and every commit after the broad run, a `seal/follow-up.md` row
-among them, leaves `trail/gate.md` stale for the sealer
-(`skills/code-review/orchestration.md` *Orchestrator: the pull request opens
-once the sealer seals*). A row is out when it stands at its destination
-below:
-
-| Remaining item | Destination |
-|---|---|
-| Doable within this pull request | done now, by the party that builds the work item, and reviewed by a verifying round before the broad run, unless every finding it closes is located in the work item's records and it touched nothing else |
-| Waiting on prerequisite work | `seal/follow-up.md` |
-| Needs a decision | An `add` in `frame/design.md`'s `## Rule changes` to the policy document's open-questions section |
-
-Each finding that moves out reads `deferred <home>` in its round record. The
-records themselves stay through the merge, and leave with their work item's
-directory at the settle after its release.
+Once the last round record has no finding open, the orchestrator moves the
+rows still open to their destinations, as
+`skills/implement/orchestration.md` *Orchestrator: drain the rows before the
+broad run, and keep the records* states.

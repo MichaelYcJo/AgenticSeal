@@ -81,9 +81,10 @@ none.
 catch the same defect, the one that stops to ask a person costs more, and
 the design that asks argues why its question is worth that cost. Whatever
 needs a person is asked once, together, before the first edit, as
-`skills/implement/SKILL.md` *1. Read the documents that outrank the code
-first* states with its reasoning. The routing question is one of that batch,
-and the orchestrating session puts the routing question as
+`skills/implement/orchestration.md` *Orchestrator: what needs a person is
+asked in one batch, before the first edit* states with its reasoning. The
+routing question is one of that batch, and the orchestrating session puts
+the routing question as
 `skills/implement/orchestration.md` *Orchestrator: how the work is routed*
 states; in a repository opted in by its `seal/` root,
 `hooks/routing-edit-gate.py` refuses the first edit until the routing

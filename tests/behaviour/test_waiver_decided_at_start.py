@@ -769,10 +769,12 @@ def test_the_skill_names_where_the_answer_is_written():
 
 def test_the_skill_names_the_record_and_no_per_command_waiver():
     """#1027: nothing reads `[no-review]` any more, so the skill that taught
-    it as the way past the gate names the record that replaced it."""
-    skill = flat(read("skills", "implement", "SKILL.md"))
-    assert "`seal no-work-item`" in skill
-    assert "[no-review]" not in skill and "waives **one command**" not in skill
+    it as the way past the gate names the record that replaced it. The
+    paragraph is in the orchestrator's half since #1312."""
+    assert "`seal no-work-item`" in flat(read(*ORCH))
+    for parts in (ORCH, ("skills", "implement", "SKILL.md")):
+        skill = flat(read(*parts))
+        assert "[no-review]" not in skill and "waives **one command**" not in skill
 
 
 def test_the_skill_cites_the_policy_on_a_standing_waiver():
@@ -792,8 +794,8 @@ def test_the_skill_names_where_a_late_finding_goes():
     """Once the batch is answered the session runs to the pull request, and
     what surfaces after it is written down rather than raised. The skill
     names the three places it goes; the rule's sentences are the proofer's
-    to read."""
-    skill = read("skills", "implement", "SKILL.md")
+    to read. The paragraph is in the orchestrator's half since #1312."""
+    skill = read(*ORCH)
     # The two paths and the closing memo's `## Not done` section, which the
     # session resolves to write a late finding down.
     for destination in ("questions.md", "seal/follow-up.md", "Not done"):

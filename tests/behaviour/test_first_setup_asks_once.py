@@ -610,14 +610,16 @@ def test_the_seal_readme_cites_the_marker_constant():
 
 def test_the_seal_readme_points_at_the_drain_and_restates_none_of_it():
     """Round 2 of #940, finding 2. Who moves a work item's open rows, when
-    and where each goes is `skills/implement/SKILL.md` section 6's alone; a
-    second statement here drifted from it on all three. The README names the
-    section and carries no destination of its own."""
+    and where each goes is `skills/implement/orchestration.md`'s drain
+    section's alone; a second statement here drifted from it on all three.
+    The README names the section and carries no destination of its own."""
     text = read("templates", "setup", "seal-README.md")
     rules = flat(text.split("\n## Export rules\n", 1)[1].split("\n## ", 1)[0])
-    heading = "### 6. Drain the rows before the broad run, and keep the records"
-    assert heading in read("skills", "implement", "SKILL.md")
-    cited = "`skills/implement/SKILL.md` " + f"*{heading[4:]}*"
+    heading = (
+        "## Orchestrator: drain the rows before the broad run, and keep the records"
+    )
+    assert heading in read("skills", "implement", "orchestration.md")
+    cited = "`skills/implement/orchestration.md` " + f"*{heading[3:]}*"
     assert cited in rules, rules
     for copied in ("| Item still here |", "follow-up.md", "open-questions"):
         assert copied not in rules, (copied, rules)

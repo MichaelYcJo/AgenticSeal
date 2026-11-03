@@ -15,7 +15,10 @@ the act in one sentence of its own words:
   the merge method per direction   docs/branch-and-release.md
   no real identifiers              CONTRIBUTING.md
   the commit cadence               skills/implement/SKILL.md, step 2
-  the question batch               skills/implement/SKILL.md, step 1
+  the question batch               skills/implement/orchestration.md,
+                                   *Orchestrator: what needs a person is
+                                   asked in one batch, before the first
+                                   edit*, since #1312
 
 The commit cadence's row left `CLAUDE.md` with #940, whose rule keeps a row
 only where the owning file cannot reach a session in time; its home stays
@@ -89,8 +92,8 @@ RULES = {
         ),
     ),
     "batch": (
-        IMPLEMENT,
-        "1. Read the documents that outrank the code first",
+        ORCH,
+        "Orchestrator: what needs a person is asked in one batch, before the first edit",
         (
             "Asking one at a time is the same failure spread out: three "
             "interruptions cost three waits.",
@@ -262,6 +265,6 @@ def test_a_removed_link_is_named():
 def test_a_section_stops_at_its_sibling():
     """*Under its section* means that section: step 1 of `implement` does not
     run on into step 2, so a needle moved between them is caught."""
-    first = section(IMPLEMENT, RULES["batch"][1])
+    first = section(IMPLEMENT, "1. Read the documents that outrank the code first")
     for needle in RULES["cadence"][2]:
         assert " ".join(needle.split()) not in first

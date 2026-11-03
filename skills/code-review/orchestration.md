@@ -336,8 +336,8 @@ record is still owed then. Nothing that can reach `main` is exempt.
 more steps come before it opens: the preflight, the broad run, the pull
 request body, and then the sealer's spawn. You take them once the work
 item's `changelog.md` states what the work item ships and every row
-`skills/implement/SKILL.md` *6. Drain the rows before the broad run, and
-keep the records* names has reached its destination.
+`skills/implement/orchestration.md` *Orchestrator: drain the rows before
+the broad run, and keep the records* names has reached its destination.
 The party that builds the work item writes that fragment: the crafter, or you
 where `routing.md` answers `Implementation` with `the session`
 (`docs/the-record-layout.md` *A change writes fragments, never a shared

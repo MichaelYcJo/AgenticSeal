@@ -402,10 +402,10 @@ adds any mechanism by what it takes away:
 The prompt budget and what a change removes are the two a passing suite
 cannot report on: nothing counts interruptions, and nothing weighs a
 mechanism's catches against its cost. Both are answered in the pull request
-body or they are not answered. `skills/implement/SKILL.md` *1. Read the
-documents that outrank the code first* holds the reasoning the budget is
-drawn against: the cost of a question is not its difficulty, it is when it
-arrives.
+body or they are not answered. `skills/implement/orchestration.md`
+*Orchestrator: what needs a person is asked in one batch, before the first
+edit* holds the reasoning the budget is drawn against: the cost of a
+question is not its difficulty, it is when it arrives.
 
 ## House rules
 

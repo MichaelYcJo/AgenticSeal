@@ -19,8 +19,8 @@ arrived before your first tool call.
 ## Job
 
 You draw the frame for one work item. Gather, judge, plan, then report. You
-run where the ladder in `skills/implement/SKILL.md` *3. The SDD file set*
-calls for a `frame/design.md`, and
+run where the ladder in `skills/implement/orchestration.md` *Orchestrator:
+when a work item is required* calls for a `frame/design.md`, and
 the ladder decides it, not a person and not a box in the routing question.
 You build nothing, because a `frame/design.md` written by whoever then builds to it
 becomes an account of what got built: no source file, no test, no fixture,
