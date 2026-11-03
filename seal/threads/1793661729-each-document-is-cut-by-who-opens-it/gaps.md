@@ -17,3 +17,11 @@ comparing the fix with the frame* state the same routes; both are the
 orchestrator's, and the design did not choose a side. `agents/proofer.md`
 states the regression line's rule that *The run* states, and the frame's
 *Scope* keeps an agent's own rules in its definition.
+
+Phase 2 left
+`tests/github/test_release_report.py::Test_module::test_the_table_reads_this_tree_against_the_last_tag`
+listing `docs/` with `os.listdir`. Today that lists every policy document,
+since the root is flat. Once phase 5 groups it, the case checks
+`docs/README.md` alone. Phase 2 left it because the root it reads changes
+in phase 5. `Test_documents` holds the report's reading of a group in
+the meantime.
