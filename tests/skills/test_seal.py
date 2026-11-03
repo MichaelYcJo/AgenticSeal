@@ -1316,7 +1316,8 @@ class Test_destination_root:
         assert f"  {shared}   (shared mode — read first)\n" in why
         # #1102 round 1, finding 2: the message sent the person to the
         # README's *Shared or local*, whose `seal mode` refuses both roots
-        # too, and whose by-hand moves would nest one root inside the other.
+        # too, and the by-hand moves it links would nest one root inside the
+        # other.
         # It says the step that ends the state, and that `seal mode` refuses.
         flat = " ".join(why.split())
         assert (
