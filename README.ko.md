@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/seals/owl.svg" width="180"
+  <img src="assets/seals/owl.svg" width="150"
        alt="AgenticSeal 의 문장. 작은 올빼미가 붉은 밀랍 인장에 찍혀 있다">
 </p>
 
@@ -18,18 +18,6 @@ seal 은 마지막 에이전트가 쓰는 보증서입니다. 커밋 하나를 �
 이슈와 트리에 맞는다고 적습니다. 실행은 그 seal 을 기록에 담은 pull request
 에서 끝나고, 머지는 하지 않습니다. 머지는 사용자가 합니다.
 
-에이전트 하나에게 자기 작업을 리뷰하게 하는 것과는 다릅니다. 방금 쓴 것을
-리뷰하는 에이전트는 자기 추론을 다시 읽게 되고, 대개 그 추론에 동의합니다.
-여기서는 만드는 쪽이 리뷰하거나 seal 을 남기는 쪽이 되는 일이 없습니다. 각
-에이전트는 다른 에이전트가 쓴 것을 사실이 아니라 확인할 주장으로 읽습니다
-(`skills/core/SKILL.md` *Each agent judges its own target, independently of
-the others*).
-
-에이전트가 돌려주는 보고에는 주장마다 라벨이 붙습니다. `executed` 는 명령을
-실제로 돌렸다는 뜻이고, `read` 는 코드나 글을 읽었다는 뜻이며, `unverified` 는
-아무도 돌리지 않았다는 뜻입니다. `unverified` 인 주장에는 누가 답할지가 함께
-적힙니다. 돌지 않은 검사를 통과했다고 보고하는 일은 없습니다.
-
 ```mermaid
 flowchart LR
     issue([이슈]) --> routing{{라우팅 질문}}
@@ -45,6 +33,12 @@ flowchart LR
 
 ## 설치
 
+```bash
+claude
+> /plugin marketplace add MichaelYcJo/AgenticSeal
+> /plugin install agentic@agenticseal
+```
+
 `git` 과, PATH 에서 `python3` 으로 실행되는 Python 3.12 이상이 필요합니다.
 훅(Claude Code 의 이벤트마다 플러그인이 돌리는 스크립트)이 파이썬
 스크립트이고, 플러그인은 그 스크립트를 `python3` 명령으로 돌리기 때문입니다.
@@ -54,15 +48,21 @@ flowchart LR
 Windows 의 공식 설치본은 `python3` 이라는 이름을 만들지 않으므로, 그곳에서는
 훅마다 `py -3` 으로 한 번 더 시도합니다.
 
-```bash
-claude
-> /plugin marketplace add MichaelYcJo/AgenticSeal
-> /plugin install agentic@agenticseal
-```
-
 설치는 이것으로 끝입니다. `CLAUDE.md` 에는 아무것도 쓰지 않습니다. 자동 포맷
 훅은 `uv`, `uvx`, `ruff` 가운데 설치된 것을 쓰고, 하나도 없으면 아무것도 하지
 않습니다. 지우려면 `/plugin uninstall agentic` 을 실행합니다.
+
+이 워크플로는 에이전트 하나에게 자기 작업을 리뷰하게 하는 것과 다릅니다. 방금
+쓴 것을 리뷰하는 에이전트는 자기 추론을 다시 읽게 되고, 대개 그 추론에 동의합니다.
+여기서는 만드는 쪽이 리뷰하거나 seal 을 남기는 쪽이 되는 일이 없습니다. 각
+에이전트는 다른 에이전트가 쓴 것을 사실이 아니라 확인할 주장으로 읽습니다
+(`skills/core/SKILL.md` *Each agent judges its own target, independently of
+the others*).
+
+에이전트가 돌려주는 보고에는 주장마다 라벨이 붙습니다. `executed` 는 명령을
+실제로 돌렸다는 뜻이고, `read` 는 코드나 글을 읽었다는 뜻이며, `unverified` 는
+아무도 돌리지 않았다는 뜻입니다. `unverified` 인 주장에는 누가 답할지가 함께
+적힙니다. 돌지 않은 검사를 통과했다고 보고하는 일은 없습니다.
 
 ### 업데이트
 

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/seals/owl.svg" width="180"
+  <img src="assets/seals/owl.svg" width="150"
        alt="The AgenticSeal emblem: a little owl pressed into a red wax seal">
 </p>
 
@@ -17,18 +17,6 @@ change, build it, review it and seal it. The run ends at a pull request whose
 records carry a seal: the last agent's written guarantee that the work agrees
 with the issue and the tree at one commit. It never merges. Merging is yours.
 
-That differs from asking one agent to review its own work. An agent reviewing
-what it just wrote reads its own reasoning back and tends to agree with it.
-Here the party that builds is never the party that reviews or seals, and
-each agent reads what the others wrote as claims to check, not as facts
-(`skills/core/SKILL.md` *Each agent judges its own target, independently of
-the others*).
-
-Every report an agent hands back labels each claim `executed` (it ran the
-command), `read` (it read the code or the text) or `unverified` (nobody ran
-it), and an `unverified` claim names who answers it. A check that did not run
-is never reported as passing.
-
 ```mermaid
 flowchart LR
     issue([Issue]) --> routing{{Routing question}}
@@ -44,6 +32,12 @@ flowchart LR
 
 ## Install
 
+```bash
+claude
+> /plugin marketplace add MichaelYcJo/AgenticSeal
+> /plugin install agentic@agenticseal
+```
+
 You need `git`, and Python 3.12 or newer answering to `python3` on your PATH.
 The hooks are Python scripts, and `python3` is the command the plugin runs
 them with. Run `python3 -V` before you install: macOS ships 3.9 as
@@ -51,15 +45,22 @@ them with. Run `python3 -V` before you install: macOS ships 3.9 as
 told. On Windows, where the official installer creates no `python3`, each
 hook falls back to `py -3`.
 
-```bash
-claude
-> /plugin marketplace add MichaelYcJo/AgenticSeal
-> /plugin install agentic@agenticseal
-```
-
 That is the whole install. Nothing is written into your `CLAUDE.md`. The
 auto-format hook uses `uv`, `uvx` or `ruff` where one is installed, and does
 nothing where none is. To uninstall, run `/plugin uninstall agentic`.
+
+This workflow differs from asking one agent to review its own work. An agent
+reviewing what it just wrote reads its own reasoning back and tends to agree
+with it.
+Here the party that builds is never the party that reviews or seals, and
+each agent reads what the others wrote as claims to check, not as facts
+(`skills/core/SKILL.md` *Each agent judges its own target, independently of
+the others*).
+
+Every report an agent hands back labels each claim `executed` (it ran the
+command), `read` (it read the code or the text) or `unverified` (nobody ran
+it), and an `unverified` claim names who answers it. A check that did not run
+is never reported as passing.
 
 ### Updating
 
