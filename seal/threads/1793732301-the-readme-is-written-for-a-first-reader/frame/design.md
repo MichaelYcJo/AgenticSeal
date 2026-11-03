@@ -77,7 +77,7 @@ Out:
 - `tests/text/test_no_passage_is_pasted_into_a_second_file.py`: `BASELINE` and the ratchet go (*Scope* 4).
 - `tests/behaviour/test_chain_hooks_hardening.py::test_the_marketplace_describes_the_plugin_in_the_manifests_words`: one assertion more (*Scope* 7).
 - The cases of `frame/plan.md` *Technical context*, table *The cases that read the two editions*: repointed as that table says.
-- `assets/seals/owl-social.svg`, `assets/seals/owl-social.png`: new. `assets/seals/README.md` *The little owl — from 0.25.1*: one paragraph and one image line more.
+- `assets/seals/owl-social.svg`, `assets/seals/owl-social.png`: new. `assets/seals/README.md` *The little owl — from 0.25.1*: one paragraph and one image line more, and the file's opening sentence on what each owl's entry holds names the preview's two files.
 - No hook, script, skill, agent definition or policy document changes, apart from the rule change below, which the settle writes.
 
 ## Rule changes
