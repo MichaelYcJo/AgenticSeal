@@ -16,7 +16,7 @@ lifetimes, each with one home: a session's state sits beside the root under
 the common git directory and is never committed; a work item's directory,
 `seal/threads/<id>/`, lives until the settle writes its design's sections
 and removes it; everything else under `seal/`, with `docs/`, is permanent.
-The layout, file by file, is `docs/the-record-layout.md` *seal/* and
+The layout, file by file, is `docs/layout/the-record-layout.md` *seal/* and
 *seal/threads/<work-item-id>/*.
 
 **The plugin writes only to its own root.** A `specs/` directory anywhere
@@ -53,7 +53,7 @@ what a party ran at the branch's own commits: a round record's `target:`
 line, and a `<commit>:<path>` that a work item's `trail/` or `guarantee.md`
 cites at such a commit. Both are read while the pull request is open and go
 with the record. Every other `<commit>:<path>` names a commit `main` or a
-release branch reaches (`docs/the-record-layout.md`
+release branch reaches (`docs/layout/the-record-layout.md`
 *seal/threads/<work-item-id>/*).
 
 ## The opt-in signal is the root itself
@@ -191,7 +191,7 @@ record. The plugin's `name` and the prefix of every agent and skill is
 | AgenticSeal | the plugin, whose one sentence is the first line of README.md under its title, and the `description` of `.claude-plugin/plugin.json` |
 | `seal/` | the root, visible beside `docs/`, because the work items in flight are what people read while a pull request is open |
 | `seal/threads/<id>/` | a work item's directory: one thread, one issue, one branch, one pull request, with `frame/` for the design before the build, `trail/` for what passed between the parties, and `routing.md`, `changelog.md`, `guarantee.md` and `gaps.md` at its top, each record placed by what it is and never by which agent wrote it |
-| framer, crafter, proofer, sealer, tracer | the agents, each named for its part of one order, which `docs/the-agent-set.md` *One contract every agent receives, and one definition each* states |
+| framer, crafter, proofer, sealer, tracer | the agents, each named for its part of one order, which `docs/running/the-agent-set.md` *One contract every agent receives, and one definition each* states |
 
 A directory and an agent say what each is to whoever meets it first, so
 neither is named for a metaphor. Every shipped

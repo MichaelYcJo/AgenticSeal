@@ -38,7 +38,7 @@ OLD_MARK = chr(0x2705)
 # Every shipped text that tells a session how a `## Not verified` row closes.
 CLOSING_TEXTS = [
     ("templates", "setup", "config.md"),
-    ("docs", "the-record-layout.md"),
+    ("docs", "checks", "the-fold.md"),
     ("skills", "implement", "SKILL.md"),
     ("skills", "verify", "SKILL.md"),
     ("skills", "settle", "SKILL.md"),

@@ -442,7 +442,7 @@ class Test_carried_by:
 
 # --- the round record's template and its loading ---------------------------------
 
-DOC = ROOT / "docs" / "the-review-record.md"
+DOC = ROOT / "docs" / "forms" / "the-round-record.md"
 TEMPLATE = ROOT / "templates" / "records" / "sdd-round.md"
 
 

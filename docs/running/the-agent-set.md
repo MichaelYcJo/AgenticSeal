@@ -81,7 +81,8 @@ check: none reader: the orchestrator before the first build spawn
 of each finding it answers, the orchestrator's broad run writes
 `trail/gate.md`, and the sealer's verdict is `guarantee.md` at the thread's
 top.**
-`docs/the-review-record.md` holds what each of those files carries.
+`docs/forms/the-round-record.md`, `docs/checks/the-pull-request-check.md`
+and `docs/forms/the-guarantee.md` hold what each of those files carries.
 check: tests/skills/test_chain_check.py
 
 No case runs the tracer. That a spawn opens `legacy-parity` first, returns
@@ -94,7 +95,7 @@ part of a pull request body, a phase record or a review verdict that says
 what the tree does not is caught by a party that wrote none of them. It
 re-judges neither the frame nor the code's quality, which stay the framer's
 and the proofer's, and it runs on Opus, the level of the agents it audits.
-`docs/the-review-record.md` *The guarantee* holds the rule.
+`docs/forms/the-guarantee.md` *The guarantee* holds the rule.
 check: tests/behaviour/test_the_sealer_guarantees.py
 
 **A build phase leaves a record, the way a review round does.** What a phase discovers
@@ -138,7 +139,7 @@ line; the sealer's in `guarantee.md` *The parties*. The orchestrator has no reco
 its own, and a judgment it made in the run, to go on or stop, to route a regression, to
 file a leftover, to fold a decision into the frame, reached the next session only
 through a spawn prompt or memory, so it writes each as one row of the plan's table,
-which the settle reads (`docs/the-review-record.md` *The run*).
+which the settle reads (`docs/running/the-run.md` *The run*).
 check: none reader: the settling session at the dry run's judgments
 
 ## What a spawn costs

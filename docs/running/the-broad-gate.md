@@ -18,7 +18,7 @@ reasons past.
 The run judges nothing. `seal gate` runs the repository's broad command,
 reports what the commands said, and writes the work item's `trail/gate.md`;
 the sealer's own verdict, which follows the run, is a separate file
-(`docs/the-review-record.md` *The guarantee*). A run that judges is a run
+(`docs/forms/the-guarantee.md` *The guarantee*). A run that judges is a run
 whose verdict nobody can separate from its measurement.
 check: tests/text/test_broad_gate_rule.py
 
@@ -28,12 +28,12 @@ the tree and the base it measured; a passing run prints its panel's rows as
 text under that line, the same bytes on a terminal as on a pipe, and writes
 no values file and no drawing. The verdict word `sealed` is the sealer's,
 and the stamp is drawn from that verdict at its write, in either mode
-(`docs/the-review-record.md` *The stamp*), so a green suite is never read as
+(`docs/checks/the-stamp.md` *The stamp*), so a green suite is never read as
 a sealed work item.
 check: tests/skills/test_broad_gate.py tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py
 
 Where a rule every agent is bound by lives, and where one agent's own rule
-lives, is `docs/the-agent-set.md` *One contract every agent receives, and
+lives, is `docs/running/the-agent-set.md` *One contract every agent receives, and
 one definition each*.
 
 **A suite that is not mentioned reads as a suite that passed.** An agent's

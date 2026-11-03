@@ -18,6 +18,7 @@ import json
 import os
 
 import pytest
+from censuses import POLICY_GROUPS
 from conftest import ROOT, census_case
 
 TARGET = ".github/scripts/release_report.py"
@@ -154,6 +155,32 @@ class Test_module_rows:
             )
 
 
+INDEX = "| File | About |\n|---|---|\n| `docs/g/x.md` | x |\n"
+
+
+class Test_documents:
+    def test_accepts_the_top_level_and_each_group_the_index_names(self, tmp_path):
+        """#1312 S6: the policy root's rows are the documents
+        `skills/settle/scripts/fold_check.py#documents` lists, the top level
+        and each group the index names."""
+        docs = {"README": INDEX, "g/x": "abc\n"}
+        root = tree(tmp_path / "t", "", {"t::a": 1.0}, docs)
+        assert sorted(report.documents(root)) == [
+            "CLAUDE.md",
+            "CONTRIBUTING.md",
+            "docs/README.md",
+            "docs/g/x.md",
+            "skills/core/SKILL.md",
+        ]
+
+    def test_refuses_a_directory_the_index_names_nothing_of(self, tmp_path):
+        """#1312 S6: a directory the index names no document of, such as
+        `docs/experiments/`, gives no row."""
+        docs = {"README": INDEX, "g/x": "abc\n", "experiments/e": "e\n"}
+        root = tree(tmp_path / "t", "", {"t::a": 1.0}, docs)
+        assert "docs/experiments/e.md" not in report.documents(root)
+
+
 class Test_leg_minutes:
     def test_accepts_a_leg_without_its_job_that_has_no_start_time(self, tmp_path):
         started = job("pytest (ubuntu-latest, 3.12, 1)", 9)
@@ -279,6 +306,7 @@ class Test_main:
             ("no durations", ".test_durations under"),
             ("durations not json", "cannot be read"),
             ("durations not seconds", "is no object of case ids to seconds"),
+            ("index not utf-8", "docs/README.md could not be read as text"),
         ],
     )
     def test_a_tree_that_cannot_be_read_is_exit_2(self, tmp_path, capsys, spoil, said):
@@ -292,6 +320,10 @@ class Test_main:
         elif spoil == "durations not json":
             with open(durations, "w", encoding="utf-8") as handle:
                 handle.write("{")
+        elif spoil == "index not utf-8":
+            os.makedirs(os.path.join(at, "docs"))
+            with open(os.path.join(at, "docs", "README.md"), "wb") as handle:
+                handle.write(b"| \xff |\n")
         else:
             with open(durations, "w", encoding="utf-8") as handle:
                 handle.write('{"t::a": "slow"}')
@@ -306,7 +338,8 @@ class Test_main:
 class Test_module:
     def test_the_table_reads_this_tree_against_the_last_tag(self):
         """The repository's own two trees read: an agent row for every agent
-        this tree defines, three leg rows, and a row for every `docs/*.md`."""
+        this tree defines, three leg rows, and a row for every `docs/*.md` and
+        every document of the groups `docs/` holds (#1312)."""
         rows = report.table(
             "v0",
             report.reading(ROOT, report.meter()),
@@ -321,6 +354,12 @@ class Test_module:
         for agent in agents:
             assert found[f"preload `{agent}` (bytes)"][2] == "+0 (+0.0%)", agent
         docs = [f for f in os.listdir(os.path.join(ROOT, "docs")) if f.endswith(".md")]
+        docs += [
+            f"{group}/{f}"
+            for group in POLICY_GROUPS
+            for f in os.listdir(os.path.join(ROOT, "docs", group))
+            if f.endswith(".md")
+        ]
         for name in docs:
             assert f"`docs/{name}` (bytes)" in found, name
         assert sum(1 for k in found if k.endswith("leg (minutes)")) == 3, found

@@ -97,10 +97,10 @@ def in_force(rel, section):
 
 # The two policy sections the routing rows cite for their grounds (#1148).
 DECLARATION = (
-    "docs/the-review-and-parity-arms.md",
+    "docs/running/the-review-and-parity-arms.md",
     "The declaration, and where the check went",
 )
-SPAWN_COSTS = ("docs/the-agent-set.md", "What a spawn costs")
+SPAWN_COSTS = ("docs/running/the-agent-set.md", "What a spawn costs")
 
 
 def cites(rel, section):
@@ -162,11 +162,11 @@ def test_the_optional_row_cites_where_its_criterions_grounds_stand():
     The criterion stands where the orchestrator, who fills the row, reads how
     the work is routed: `skills/implement/orchestration.md` *What the answer
     writes*. Since #1148 the skill states the criterion in one sentence and
-    the grounds stand in the policy root, `docs/the-agent-set.md` *What a
+    the grounds stand in the policy root, `docs/running/the-agent-set.md` *What a
     spawn costs*, which the skill cites. The criterion's sentence and its
     grounds are the proofer's to read."""
     tpl = " ".join(read(*ORCH).split())
-    # The citation `docs/the-agent-set.md` *What a spawn costs*, which a
+    # The citation `docs/running/the-agent-set.md` *What a spawn costs*, which a
     # reader who questions the criterion resolves to its grounds.
     assert cites(*SPAWN_COSTS) in tpl, (
         "the criterion no longer cites where its grounds stand"
@@ -581,10 +581,10 @@ def test_the_framer_writes_rule_changes_from_the_index():
     definition cites the grammar, the index and the model; whether it
     restates either is the proofer's to read."""
     framer = flat(read(*FRAMER))
-    # The citation `skills/settle/SKILL.md` *Rule changes*, which the framer
-    # resolves to the grammar `rule_changes.py#parse` reads; the citation is
-    # the fact.
-    assert "as `skills/settle/SKILL.md` *Rule changes* states it" in framer
+    # The citation `skills/settle/rule-changes.md` *Rule changes*, which the
+    # framer resolves to the grammar `rule_changes.py#parse` reads; the
+    # citation is the fact.
+    assert "as `skills/settle/rule-changes.md` *Rule changes* states it" in framer
     # The path `<policy root>/README.md`, which the framer opens to pick each
     # `file:`.
     assert "picked from the index, `<policy root>/README.md`" in framer
@@ -755,7 +755,7 @@ def test_the_policy_tables_the_review_answers_and_the_skill_cites_it():
     # as the policy table's row keys a reader looks an answer up by.
     for answer in ("| through the review chain |", "| straight to the PR |"):
         assert answer in policy, f"the policy's table lost the row `{answer}`"
-    # The citation `docs/the-review-and-parity-arms.md` *The declaration, and
+    # The citation `docs/running/the-review-and-parity-arms.md` *The declaration, and
     # where the check went*, which the orchestrator resolves to the table.
     assert cites(*DECLARATION) in skill, "the skill does not cite the combinations"
 
@@ -769,10 +769,12 @@ def test_the_skill_names_where_the_answer_is_written():
 
 def test_the_skill_names_the_record_and_no_per_command_waiver():
     """#1027: nothing reads `[no-review]` any more, so the skill that taught
-    it as the way past the gate names the record that replaced it."""
-    skill = flat(read("skills", "implement", "SKILL.md"))
-    assert "`seal no-work-item`" in skill
-    assert "[no-review]" not in skill and "waives **one command**" not in skill
+    it as the way past the gate names the record that replaced it. The
+    paragraph is in the orchestrator's half since #1312."""
+    assert "`seal no-work-item`" in flat(read(*ORCH))
+    for parts in (ORCH, ("skills", "implement", "SKILL.md")):
+        skill = flat(read(*parts))
+        assert "[no-review]" not in skill and "waives **one command**" not in skill
 
 
 def test_the_skill_cites_the_policy_on_a_standing_waiver():
@@ -781,10 +783,10 @@ def test_the_skill_cites_the_policy_on_a_standing_waiver():
     The reasoning is the policy's since #1148, and the skill cites it; the
     rule's sentences are the proofer's to read."""
     skill = flat(read(*ORCH))
-    # The citation `docs/the-review-and-parity-arms.md` *There is no standing
+    # The citation `docs/running/the-review-and-parity-arms.md` *There is no standing
     # waiver*, which the orchestrator resolves to the reasoning.
     assert cites(
-        "docs/the-review-and-parity-arms.md", "There is no standing waiver"
+        "docs/running/the-review-and-parity-arms.md", "There is no standing waiver"
     ) in (skill)
 
 
@@ -792,8 +794,8 @@ def test_the_skill_names_where_a_late_finding_goes():
     """Once the batch is answered the session runs to the pull request, and
     what surfaces after it is written down rather than raised. The skill
     names the three places it goes; the rule's sentences are the proofer's
-    to read."""
-    skill = read("skills", "implement", "SKILL.md")
+    to read. The paragraph is in the orchestrator's half since #1312."""
+    skill = read(*ORCH)
     # The two paths and the closing memo's `## Not done` section, which the
     # session resolves to write a late finding down.
     for destination in ("questions.md", "seal/follow-up.md", "Not done"):

@@ -39,14 +39,14 @@ def seal_stamp(*args):
 
 
 def stamp_section():
-    """`docs/the-review-record.md` *The stamp*, flattened: the stamp's rules
-    stand beside the verdict they are drawn from since #975, and
-    `docs/the-broad-gate.md` keeps none of them."""
-    text = flat("docs", "the-review-record.md")
-    assert "## Where the stamp is drawn" not in flat("docs", "the-broad-gate.md")
-    section = text.split("## The stamp ", 1)[1]
-    assert text.index("## The guarantee") < text.index("## The stamp ")
-    return section.split("## The run", 1)[0]
+    """`docs/checks/the-stamp.md` *The stamp*, flattened: the stamp's rules
+    stand in a document of their own since #1312, and `docs/running/the-broad-gate.md`
+    keeps none of them."""
+    text = flat("docs", "checks", "the-stamp.md")
+    assert "## Where the stamp is drawn" not in flat(
+        "docs", "running", "the-broad-gate.md"
+    )
+    return text.split("## The stamp ", 1)[1]
 
 
 # --- S16: the rules are where they are read ----------------------------------
@@ -128,7 +128,7 @@ def test_the_form_bullet_says_what_draws_the_final_seal():
 
 
 def test_the_policy_names_the_hook_the_marker_and_the_command_to_draw():
-    """S16, the policy's half, and #975 S10 and S13. `docs/the-review-record.md`
+    """S16, the policy's half, and #975 S10 and S13. `docs/checks/the-stamp.md`
     *The stamp* carries the drawing rule, names the hook that queues the
     stamp, and ends in a `check:` line naming the marker the cases that
     queue and draw it carry; a second statement, on what the screen shows,

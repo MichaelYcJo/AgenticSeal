@@ -357,7 +357,7 @@ class Test_keywords_in:
     def test_accepts_only_a_keyword_before_a_number(self):
         """The regexes, read rather than searched for.
 
-        The fenced `Closes #88` in `docs/branch-and-release.md` is the example a
+        The fenced `Closes #88` in `docs/releasing/branch-and-release.md` is the example a
         person copies, so a pull request body quoting the document must not close
         the issue the document names — and bodies here quote documents routinely.
         """
@@ -439,7 +439,7 @@ class Test_keywords_in:
             # drop real claims, which is the wrong direction for a closer.
             ("- a bullet whose text\n    Closes #5", ["5"]),
             # Whether GitHub acts on a keyword inside an HTML comment is
-            # unmeasured (`docs/issues-and-milestones.md` *A keyword claims
+            # unmeasured (`docs/releasing/issues-and-milestones.md` *A keyword claims
             # the one number after it*), and a measurement needs a scratch
             # pull request on a tracker; until it is taken the shape stays.
             ("<!-- Closes #6 -->", ["6"]),
@@ -1086,7 +1086,7 @@ class Test_module:
 
         **This used to say `only ever closes`, and #450 changed what is true.**
         The script now also removes `size: now` from the issue it is closing —
-        the moment `docs/issues-and-milestones.md` had already named as where a
+        the moment `docs/releasing/issues-and-milestones.md` had already named as where a
         spent sizing label comes off, with nothing acting on it. So `issue edit`
         is no longer forbidden outright; what is forbidden is `issue edit` in any
         form but `--remove-label`, because the property being protected was never

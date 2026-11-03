@@ -16,7 +16,7 @@ def test_the_skills_example_reads_as_the_skill_says():
     """The grammar has one statement, the skill's; its example is read by the
     parser, so the two cannot drift apart."""
     with open(
-        os.path.join(ROOT, "skills", "settle", "SKILL.md"), encoding="utf-8"
+        os.path.join(ROOT, "skills", "settle", "rule-changes.md"), encoding="utf-8"
     ) as f:
         section = f.read().split("\n## Rule changes\n", 1)[1]
     example = section.split("```\n", 2)[1]
@@ -25,7 +25,7 @@ def test_the_skills_example_reads_as_the_skill_says():
     [only] = parsed.ops
     assert (only.kind, only.file, only.section) == (
         "change",
-        "docs/the-review-record.md",
+        "docs/forms/the-round-record.md",
         "The round record",
     )
     for kind, (need, may) in rules.GRAMMAR.items():

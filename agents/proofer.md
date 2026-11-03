@@ -60,7 +60,7 @@ here is a write you do not make.
    the one refusal you leave standing. Each notice that run prints at a line
    of a work item's `frame/design.md` naming a test pin or a copy is yours
    to weigh. A named pin that holds a rule's wording, by
-   `docs/what-a-script-gates.md` *The checks*, is a finding, and so is a
+   `docs/running/what-a-script-gates.md` *The checks*, is a finding, and so is a
    `to` that repeats a passage another file keeps after the settle. A named
    pin of a fact a reader acts on is no finding, since the settle repoints
    it. A finding you take from such a notice quotes the notice, so the
@@ -160,7 +160,7 @@ check: tests/text/test_broad_gate_rule.py
 **Runs are narrow, through the repository's runner.** Find the runner before
 you build your own: a wrapper in `bin/`, or whatever the contribution guide
 names first, works in your clone and is cheap on the second call. Type the
-narrow form, one module (`docs/the-review-record.md` *The handoff*). Where
+narrow form, one module (`docs/running/the-run.md` *The handoff*). Where
 the repository ships none, make a `uv` venv inside the clone, since `pytest`
 is not installed for the system interpreter. A claim of absence, such
 as nothing in the suite catching this, is a probe: run it over the module that

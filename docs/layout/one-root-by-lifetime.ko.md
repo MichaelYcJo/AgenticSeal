@@ -16,7 +16,7 @@
 세션의 상태는 루트 옆, 공통 git 디렉터리 아래에 있고 커밋되지 않습니다. 작업
 항목의 디렉터리 `seal/threads/<id>/` 는 settle 이 그 설계의 절을 쓰고
 디렉터리를 지울 때까지 삽니다. 그 밖의 `seal/` 아래 파일은 `docs/` 와 함께
-영구적입니다. 파일 하나하나의 배치는 `docs/the-record-layout.md` *seal/* 와
+영구적입니다. 파일 하나하나의 배치는 `docs/layout/the-record-layout.md` *seal/* 와
 *seal/threads/<work-item-id>/* 에 있습니다.
 
 **플러그인은 자기 루트에만 씁니다.** 그 밖의 자리에 있는 `specs/` 디렉터리는
@@ -51,7 +51,7 @@ corpus*). 병합 뒤에 `seal/threads/<id>/` 를 새로 읽는 코드는 그것�
 `trail/` 이나 `guarantee.md` 가 그런 커밋에서 인용한 `<commit>:<path>` 가
 그것입니다. 둘 다 PR 이 열려 있는 동안 읽히고 기록과 함께 사라집니다. 그
 밖의 `<commit>:<path>` 는 `main` 이나 릴리스 브랜치가 닿는 커밋을 가리킵니다
-(`docs/the-record-layout.md` *seal/threads/<work-item-id>/*).
+(`docs/layout/the-record-layout.md` *seal/threads/<work-item-id>/*).
 
 ## 옵트인 신호는 루트 자체다
 
@@ -184,7 +184,7 @@ check: tests/behaviour/test_first_setup_asks_once.py tests/hooks/test_optin.py t
 | AgenticSeal | 플러그인. 그 한 문장은 README.ko.md 제목 아래 첫 줄과 `.claude-plugin/plugin.json` 의 `description` 에 있다 |
 | `seal/` | 루트. PR 이 열려 있는 동안 사람이 읽는 것이 진행 중인 작업 항목이므로, `docs/` 옆에 보이게 둔다 |
 | `seal/threads/<id>/` | 작업 항목의 디렉터리. 스레드 하나가 이슈 하나, 브랜치 하나, PR 하나다. 빌드 전의 설계는 `frame/`, 당사자 사이에 오간 것은 `trail/` 에 두고, 맨 위에 `routing.md`, `changelog.md`, `guarantee.md`, `gaps.md` 를 둔다. 기록은 무엇인가로 자리를 정하고, 어느 에이전트가 썼는가로 정하지 않는다 |
-| framer, crafter, proofer, sealer, tracer | 에이전트. 각 이름은 한 순서 안의 자기 몫을 말하고, 그 순서는 `docs/the-agent-set.md` *One contract every agent receives, and one definition each* 에 있다 |
+| framer, crafter, proofer, sealer, tracer | 에이전트. 각 이름은 한 순서 안의 자기 몫을 말하고, 그 순서는 `docs/running/the-agent-set.md` *One contract every agent receives, and one definition each* 에 있다 |
 
 디렉터리와 에이전트는 처음 만나는 사람에게 자기가 무엇인지 말해야 하므로,
 어느 쪽도 비유로 이름 붙이지 않습니다. 배포되는 산출물은 모두 영어로 씁니다. 플러그인은 남을 위한 것이고 토큰마다

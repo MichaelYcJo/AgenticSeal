@@ -73,9 +73,9 @@ the workflow off in every clone.
 
 ## Export rules
 
-`skills/implement/SKILL.md` *6. Drain the rows before the broad run, and keep
-the records* states who moves the rows still open in a work item's directory
-out of it, when, and where each one goes.
+`skills/implement/orchestration.md` *Orchestrator: drain the rows before the
+broad run, and keep the records* states who moves the rows still open in a
+work item's directory out of it, when, and where each one goes.
 
 ## Layout
 

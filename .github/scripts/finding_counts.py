@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Print the four numbers of `docs/release-checklist.md` step 2b, one row
+"""Print the four numbers of `docs/releasing/release-checklist.md` step 2b, one row
 per released work item routed through the review chain (#1223).
 
 **A finding is counted once, by its own block.** The step counts, per work

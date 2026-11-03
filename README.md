@@ -114,9 +114,9 @@ Cross-session memory lives in the repo, not the session:
 
 | Root | Lifetime | Holds |
 |---|---|---|
-| `seal/` | permanent | everything this plugin maintains, each file named in `docs/the-record-layout.md` *seal/*, and, beneath it, the work items. Its existence, with its `README.md` opening with the marker line `templates/setup/seal-README.md` starts with, is also what opts the repository in, for each hook whose Where column under *The gates* below names `seal/` |
+| `seal/` | permanent | everything this plugin maintains, each file named in `docs/layout/the-record-layout.md` *seal/*, and, beneath it, the work items. Its existence, with its `README.md` opening with the marker line `templates/setup/seal-README.md` starts with, is also what opts the repository in, for each hook whose Where column under *The gates* below names `seal/` |
 | `seal/threads/<id>/` | one work item | `frame/` (design, plan, questions), `trail/` (phases, review rounds, the broad run), and at its top `routing.md`, `changelog.md`, `guarantee.md` and `gaps.md`, the closing memo holding only what the diff cannot show. A human approves `frame/plan.md`, which is why this is a repository document and not tool state |
-| `docs/` | permanent | whatever policy documents the repository already keeps; the documentation convention is the project's. A work item states its rule changes in its design instead of editing them, and the settle after the release writes each section as the latest decision those changes state (`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*) |
+| `docs/` | permanent | whatever policy documents the repository already keeps; the documentation convention is the project's. A work item whose subject is the policy root itself edits it directly in its pull request; one whose subject is the code states its rule changes in its design, and the settle after the release writes each section as the latest decision those changes state (`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*) |
 
 ```
 seal/
@@ -144,7 +144,9 @@ plugin does not manufacture the first.
 
 Missing files bootstrap from `templates/`. The round records, the check at the
 pull request and the handoff to an agent are specified in
-[docs/the-review-record.md](./docs/the-review-record.md).
+[docs/forms/the-round-record.md](./docs/forms/the-round-record.md),
+[docs/checks/the-pull-request-check.md](./docs/checks/the-pull-request-check.md)
+and [docs/running/the-run.md](./docs/running/the-run.md).
 
 **A rule names the test that holds it.** A rule a policy document states ends
 with a `check:` line naming the test files that hold it, or a marker its
@@ -165,9 +167,9 @@ them (measured: 220ms → 104ms before a Bash call, 323ms → 120ms after). A ga
 that fails to load or crashes is skipped and the call goes ahead; at the end of
 the turn you are told which gate it was, once per session. Full decision
 tables:
-[docs/the-routing-check.md](./docs/the-routing-check.md) ·
-[docs/the-review-and-parity-arms.md](./docs/the-review-and-parity-arms.md) ·
-[docs/the-review-record.md](./docs/the-review-record.md).
+[docs/checks/the-routing-check.md](./docs/checks/the-routing-check.md) ·
+[docs/running/the-review-and-parity-arms.md](docs/running/the-review-and-parity-arms.md)
+· [docs/checks/the-pull-request-check.md](./docs/checks/the-pull-request-check.md).
 
 | Gate | Fires | Does | Where |
 |---|---|---|---|
@@ -195,8 +197,8 @@ the pull request: CI reads the same file out of the diff and, for anything
 routed through the chain, requires a committed round record with no finding
 left unanswered. A pull request that declared neither way is judged by its
 commits' `Seal-Routing` trailers alone
-([docs/the-routing-check.md](./docs/the-routing-check.md)), and a notice says
-nothing else was checked.
+([docs/checks/the-routing-check.md](./docs/checks/the-routing-check.md)), and a
+notice says nothing else was checked.
 
 A round's findings are closed after it ends, by whoever writes the
 fixes, and the round that follows is what reads them — except after the last
@@ -263,7 +265,7 @@ wrong for every other machine.
 | `seal cost --latest` | where a session's minutes went — command time, model time between calls, checks re-run for a result already produced, and how many tools went out per turn — numbers nothing inside a session can measure |
 | `seal cost --segments <transcript>` | one row per agent the run spawned, read from that agent's own transcript: its span, calls, tools per turn, mean gap, tokens, and the context its largest turn read. That span is in no other column — where a harness writes a spawn's result on acceptance, the `--spawns` table reads seconds for an agent that ran twenty minutes. A resumed agent is one row per stretch of work, so no span covers the wait between two of them — whether the command is given the run's transcript or that agent's own — and a segment that spawned an agent of its own prints a line saying so. Under the table it names each row whose tools per turn sit under its kind's bar — a proofer's or a framer's; a crafter's edit-test loop is exempt — and counts the rows it could not grade |
 | `seal settle [--apply]` | the dry run: the `## Rule changes` the released designs state, grouped by the section each names and in merge order, with whether each `from` and `to` is in that section now; the designs to read whole; every open row of every released record; each file named like one of those records away from its place, as not read; and what `--apply` removes. It refuses nothing. With `--from <dir>`, repeatable, it also lists every document of a directory a person names, with the commits that added and last changed each, and writes nothing there. The session running the settle asks the person, before its first edit, which directories to name and which of their documents to promote, then writes the sections and decides the open rows (`skills/settle/SKILL.md` *The settling session's procedure*). `--draft` writes every released operation into the policy root as the design states it, in merge order and superseded ones included, prints each one it could not place with the reason, and decides nothing: the session commits it on its own and reads each section it wrote against the code. `--apply` refuses `--from` and writes no document: it removes each released directory whose record holds no open row, with a `frame/design.md` or without, keeps one whose version's published GitHub Release note, where the repository builds its notes from the fragments, does not carry its entry, the link to the pull request that added its `changelog.md`, and names each it keeps with why (`skills/settle/SKILL.md` *What `--apply` does*) |
-| `seal fold [--ceiling <n>]` | checks the top level of the policy root for one read and the index, as `skills/settle/scripts/fold_check.py` and its rows in `templates/setup/config.md` *The fold's values* state them. The flag replaces its row for one run |
+| `seal fold [--ceiling <n>]` | checks the documents of the policy root and of each group its index names for one read and the index, as `skills/settle/scripts/fold_check.py` and its rows in `templates/setup/config.md` *The fold's values* state them. The flag replaces its row for one run |
 | `seal rules <doc> [--root <dir>]` · `seal rules --check [--root <dir>]` | `seal rules <doc>` prints each heading of a document and, under it, the targets of its `check:` lines, each with the first sentence of its test's docstring, or why the target does not resolve. A rule's text lives once, in that docstring, so this is how a document and its tests read side by side, and it exits 0 whatever it finds. `seal rules --check` reads every check line in every rule file and exits 1 naming each one out of grammar or naming a target that is gone, by file, line and heading. Such a line inside a section an unsettled design's `remove` with no `from` takes out at the settle is printed as excused, naming that work item, and does not fail the check; a pending `change` excuses nothing, and where the `seal/` root is local no line is excused. One case of the suite runs it over the tree. The targets resolve in the repository the command is typed in, and neither form writes anything |
 | `seal pact [ROOT]` | run at the repository holding a pact (`seal/pact.md`), the one copy of a contract several repositories keep together: reads every signer the pact lists, found through `~/.claude/agentic/pact-paths.md` or a sibling checkout, checks that each names the pact in its `Pact` row, and grades every pact anchor it cites. `SUPERSEDED` says the signer was built against an older clause, `NOT TAKEN` names the branch holding a change the pact has not taken, `UNMATCHED` and `BROKEN` say read both sides or re-coordinate. Local only: a signer's CI can read one repository, so it reads nothing of the pact |
 | `seal core [--transcript <path>]` | whether this session's context holds the core, `skills/core/SKILL.md`, once and whole, read from the session's transcript: exit 0 where one `SessionStart` hook entry in context holds the file its first line names, 1 with the reason otherwise. The core arrives from the plugin's `SessionStart` hook and not from a `CLAUDE.md` file, so `/memory` does not list it; type `! seal core` in a session to see which core it holds. Run from an agent's Bash, it reads the session that spawned the agent |
@@ -471,7 +473,7 @@ git rm -r --cached "$(git rev-parse --show-toplevel)/seal" && mv "$(git rev-pars
 
 Doing it that way leaves `.github/` alone, as `seal mode` does. A workflow
 left behind after a move to local stays in the tree, and
-`docs/one-root-by-lifetime.md` *Shared or local* says which pin passes there
+`docs/layout/one-root-by-lifetime.md` *Shared or local* says which pin passes there
 and how to move one that fails.
 
 Between two machines the move is not available, because the other machine has

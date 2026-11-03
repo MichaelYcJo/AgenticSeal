@@ -63,193 +63,14 @@ found", which is a different sentence from "not there". Never promote one to
 a document: a policy or a rule built on a search nobody could repeat is the
 same defect as a `read` reported as passing, with a longer fuse.
 
-#### `seal arms` asks condition 2 of a whole module, one arm at a time
+#### A module or a unit: `seal arms` and `seal mutate`
 
-Condition 2 is asked of the case at hand. **A module has arms nobody
-ever asked it of**, and a count of them taken by hand is wrong as soon as the
-module changes.
-
-```
-seal arms hooks/routing-edit-gate.py
-seal arms hooks/routing-edit-gate.py --tests "bin/test tests/hooks/test_routing_edit_gate.py -q"
-```
-
-With no `--tests` it lists the arms and mutates nothing. With `--tests` it
-first runs that command once against the module as it is, which has to pass
-(below). Then it makes each arm wrong in turn, runs the command again, and
-names the arms nothing kills. It restores the module from held bytes and
-compares the sha256 after every mutation, never with `git checkout`, which
-reaches the uncommitted work in the rest of the tree.
-
-**`--timeout` bounds the wait, and not the work.** Each operator's command is
-waited for at most 900 seconds by default (`--timeout 0` removes the bound),
-and an arm asks two operators, so one arm can take twice that. When the bound
-is reached, only the command's own process is killed. A wrapper command is the
-one that leaks: where `--tests` names a runner that starts pytest as a child of
-its own, as the example above does, a timed-out pair leaves that suite running,
-unbounded and unreported, beside every arm after it. The first run against the
-unmutated module is waited for under the same bound and leaks the same way
-when it reaches it, before the run is refused. Against a module whose
-suite can approach the bound, name the pytest command in `--tests` directly
-rather than a wrapper.
-
-**There are two ways to be wrong and the counts differ by a lot**, so the
-report keeps them apart and a quoted number has to say which one it is:
-
-| Operator | Asks |
-|---|---|
-| `invert` | would a case notice this test being **backwards** |
-| `remove` | would a case notice this arm being **absent** |
-
-**A survivor count is a measurement, not a property of the module**: it moves
-when either the module or its cases change. Take it with the command above
-whenever it is needed, and never write one into a document.
-
-The two denominators differ because **a pair both operators answer identically
-is asked once.** A handler with one type left is aimed at what nothing raises
-by either operator, so `invert` refuses it and the report names the pair;
-`remove` keeps it.
-
-An arm counts watched when **either** is noticed, because *does any case
-depend on this arm* is answered by one yes.
-
-An arm is an `ExceptHandler` counting each member of an except tuple
-separately, or an `If`, `While` or `IfExp` counting each **top-level** member
-of the boolean test separately, plus a `match_case`'s alternatives and guard
-and a comprehension's `if` guards. The walk is derived from the grammar rather
-than from a list, and it **refuses an AST node type it does not recognise**
-instead of skipping it: a walk that skips silently undercounts the way a hand
-count does.
-
-**A `killed` is a measurement only when the command passed without the
-mutation**, so `--tests` runs once against the module as it is before
-anything is written. A `-k` that selects no case, a module path that does not
-exist and a case already failing each exit non-zero whatever the module
-holds, so without that run each would read `killed` beside every arm. When
-that first run exits non-zero, does not return within `--timeout`, or cannot
-be spawned, the command prints `no baseline:` with the cause and what the
-command printed, writes nothing, measures no arm, and exits 2, the code it
-already gives a negative `--timeout`. If the command itself changed the module
-during that run, the module is put back from the bytes read before it and the
-line says so instead. Where it cannot be put back, because the command left
-it unreadable, unwritable or replaced by a directory, the line names the
-error.
-
-Two things it does not claim. **A survivor is not automatically a defect:** an
-arm that cannot be constructed, or one whose removal preserves behaviour,
-belongs in the report and is not work anybody owes. And a measured run is
-**report-only, exit 0 either way**: whether an unwatched arm should fail a
-run is an open decision, not an omission.
-
-#### `seal mutate` asks condition 2 of one unit, one break at a time
-
-`seal arms` breaks a module's arms under two fixed operators. The unit an
-implementer has just added is usually something else: a constant, a flipped
-comparison, a sentence a case pins. The break is whatever makes that unit
-wrong, so the loop is one command per break:
-
-```
-seal mutate <file> --replace "<old>" "<new>" --tests "bin/test tests/<module>.py -q -k <cases> -p no:xdist"
-```
-
-`<old>` is literal text and must occur exactly once in the file, or nothing
-is written; `<new>` may be empty, which deletes. Any UTF-8 text file can be
-the target.
-
-**A `.py` mutant that does not compile is refused before anything is written
-or run.** Cases that load the module fail on the syntax error whatever the
-unit does, and that red would read as a case noticing the break. For a target
-whose name ends in `.py`, the command compiles each mutant with the builtin
-`compile` over the bytes the write would put on disk, and refuses at the
-first `SyntaxError`, naming its line. The file as it is is compiled first.
-Where it does not compile under the interpreter running `seal`, no mutant is
-compiled, the verdict comes from the cases' exit code alone, and the first
-line printed says the mutants were not compiled, with that interpreter's
-version and the error's line: the cases may run under another interpreter
-that reads the file. No other kind of file is compiled or parsed, a `.md`,
-a `.yml`, a JSON or TOML file and a script with no `.py` suffix among them,
-so a mutant its loader cannot parse can still read `red`. Two limits stay
-beside that one. The compile uses the grammar of the interpreter running
-`seal`, not the cases', so a construct only one of the two accepts is read
-wrongly in one direction or the other. And a mutant that compiles and then fails at import, a misspelt
-module-level name for one, is not refused: whether its red watches the unit
-is for the reader of the run, and running that one pair alone shows the
-output.
-
-The command first runs `--tests` against the file as it is, and
-goes on only if that passes. A `-k` that selects nothing, a mistyped module
-and a case that already fails each exit non-zero, and without that run each
-would read `red` for a unit no case ran against. Then it writes the break,
-removes that file's cached bytecode
-for every interpreter tag, runs `--tests` with `PYTHONDONTWRITEBYTECODE=1`,
-puts the file back from the bytes it read first and compares their sha256,
-and removes the bytecode again. Nothing is read from git. The script is
-`skills/verify/scripts/mutation_check.py`, and it uses `seal arms`'s own two
-functions for the bytecode and the restore.
-
-The first line printed is the verdict, then the command's own output:
-
-- `red`, exit 0: a case failed against the break, so the unit is watched.
-- `SURVIVED`, exit 1: the cases passed, so nothing they run watches the unit.
-- exit 2 for every run that measured nothing: `no baseline` (the cases fail
-  without the break, so the break was never written), `timed out`, `could not
-  start`, `could not run`, `refused` (nothing was written: `<old>` does not
-  land once, or a `.py` mutant does not compile), `not restored`
-  (the file may still hold the break; restore it from the commit made
-  before the run), and
-  `interrupted`.
-
-So `seal mutate … && seal mutate …` stops at the first unit nothing
-watches, or at the first run that could not say.
-
-**Several mutants of one file go in one call.** Give `--replace OLD NEW` once
-per mutant. Every pair is checked before anything runs, and one that does not
-land exactly once, or a `.py` mutant that does not compile, refuses the whole
-call, naming the pair by its place. The baseline then runs once, and
-each mutant is written alone, run once and restored, in the order given. The
-call prints `mutant <n>: <verdict>` per pair and a line counting the
-verdicts. A red line carries the cases' exit code, `mutant <n>: red (exit
-<N>, <s>s)`, and the command decides nothing from it: under pytest a 2 is a
-collection error, and a 1 is a failing case or an import error raised
-inside one. The call exits 1 where any mutant survived, 2 where none did
-and a run measured nothing, and 0 where every mutant is red. Put `-x` in `--tests`, so
-each mutant's run stops at the first case that notices it; the command does
-not stop the cases itself.
-
-**Why the cache beside the file, and not `tests/__pycache__`.** CPython runs
-a cached `.pyc` instead of the source whenever the size and whole-second
-mtime it recorded still match, and a same-length break written inside one
-second matches. Only the mutated file's cache can be stale. An importer's is
-valid for its unchanged source, so clearing `tests/__pycache__` removes
-caches that are right and misses the one that matters whenever the mutated
-file lives anywhere else. Every tag goes, because the
-interpreter that runs the command and the one that runs the cases can
-differ.
-
-**The cases inherit `PYTHONDONTWRITEBYTECODE=1`.** A case that needs a
-`.pyc` to exist, such as one that plants a cache to show it is removed, has
-to write it itself, with `py_compile` or with `sys.dont_write_bytecode`
-switched off for the plant. An import made under the variable writes
-nothing, and the case then goes red on its own precondition whatever the
-break was.
-
-**The bound ends the run, not only the process it spawned.** `--timeout` is
-300 seconds by default for each of the two runs, and `0` removes it. On
-POSIX the command runs in a session of its own and a timed-out run's whole
-process group is killed, so a wrapper's pytest does not outlive the verdict.
-That is the hole `seal arms`'s bound still has. The group of a run
-that exited is ended too, and the wait is on the process rather than on its
-output, so a child the cases leave behind neither outlives the verdict nor
-holds it back. A process that put itself in yet another session is outside
-the group and outlives the kill; the verdict names that as the bound's
-limit, and cannot tell whether one did. Ctrl-C
-reaches this command rather than the cases, and it ends the group before the
-restore. On Windows only the direct child is ended, and the verdict says that
-anything it started was not.
-
-`-p no:xdist` belongs on a handful of cases: starting the workers takes
-longer than the cases do. For a module's arms rather than one unit,
-`seal arms` above is the command.
+`seal arms` asks condition 2 of a whole module, one arm at a time, and
+`skills/verify/seal-arms.md` holds the command. `seal mutate` asks it of one
+unit, one break at a time, and `skills/verify/seal-mutate.md` holds the
+command, its verdicts and their exit codes. A party that proves condition 2
+of a module or of a unit opens the file of the command it runs, before it
+runs it.
 
 ### 3. Bound to the tree
 
@@ -298,7 +119,7 @@ run.
   written. The edit hook writes the values it is drawn from at the file's
   write, under either root, and the `Stop` hook draws them in the
   orchestrator's session
-  (`docs/the-review-record.md` *The stamp*). The broad gate draws nothing:
+  (`docs/checks/the-stamp.md` *The stamp*). The broad gate draws nothing:
   its line reads `BROAD GATE PASSED` or `BROAD GATE FAILED` and judges
   nothing. So seeing the drawing means the last seal was earned.
 

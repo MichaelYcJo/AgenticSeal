@@ -74,8 +74,10 @@ judged (`carried_by`). The arms are eight:
                 verdict block, or with a line the reader refuses, fails
 
 A ready pull request fails on any of them. A draft, or a run that observed no
-pull request, prints the same lines and exits 0. `docs/the-review-record.md`
-states the record and the rules these arms hold.
+pull request, prints the same lines and exits 0.
+`docs/checks/the-pull-request-check.md` *What the check reads at the pull request* states the rules these arms hold,
+and `docs/forms/the-round-record.md` *The round record* and
+`docs/forms/the-guarantee.md` *The guarantee* the records they read.
 
 In a round record, `guarantee.md` and `trail/gate.md` a field stands in a
 `seal` block, every line of which parses or is refused at its line, and a
@@ -1776,7 +1778,7 @@ ROOT_LEFT_SAYS = (
     "trailers and nothing else"
 )
 
-# The trailer a session's commit ends with (`docs/the-routing-check.md` *At
+# The trailer a session's commit ends with (`docs/checks/the-routing-check.md` *At
 # the pull request*), and its one value that names no work item.
 TRAILER = "Seal-Routing"
 NO_WORK_ITEM = "no work item"

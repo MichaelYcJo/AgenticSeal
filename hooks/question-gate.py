@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """PreToolUse gate: on a branch declared `Automation` `yes`, no question is put.
 
-The rule is `docs/the-review-record.md` *The run*. This file holds what the
+The rule is `docs/running/the-run.md` *The run*. This file holds what the
 rule rests on.
 
 The declaration is read through `routing.declared`, so a linked worktree, a
@@ -13,7 +13,8 @@ one branch) is the attended answer, and the gate prints nothing.
 
 `routing.md` is written by the model, which is why no gate reads the
 `automation` press from it. Read here only to refuse, a row the model forged
-binds only the model.
+binds only the model, and a row edited to `no` is in the diff the review
+reads.
 
 The routing question put alone goes through while this session's transcript
 can be read and holds no answer to it from this clone, read by the press
@@ -31,11 +32,6 @@ Any routing answer from this clone in the session spends the exemption,
 including one given for another work item, so a session that has already
 answered for another branch cannot put question 1 again. That is outside the
 one-issue flow, and is a limit rather than a mechanism.
-
-A gate whose own reason says to ask with the question tool meets this
-refusal too, and its question states no default: the session takes none of
-the ways on that question offers, and hands the stop back at the end of the
-run.
 
 Failure direction: it blocks more. A wrong deny costs one default the pull
 request body names; a wrong allow is the stopped run this gate exists to end.

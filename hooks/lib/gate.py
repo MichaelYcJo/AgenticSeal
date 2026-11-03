@@ -1,7 +1,7 @@
 """Whether a change reaches outside the document roots, which the parity arm
 asks at the pull request.
 
-The rule is `docs/the-review-and-parity-arms.md` *Parity arm*: a change
+The rule is `docs/running/the-review-and-parity-arms.md` *Parity arm*: a change
 confined to `docs/` and `seal/` owes no comparison with an original, because
 nothing there can be compared against one. `skills/code-review/scripts/
 chain_check.py#originals_of` loads this file by path and asks `touches_code`

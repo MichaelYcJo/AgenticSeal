@@ -109,7 +109,7 @@ _BLOCKS = _load_hook("blocks.py", "agentic_blocks_for_unverified")
 # place. Readers that keep a rule of their own, each on purpose: the pull request
 # body readers through `close_issues_on_release.py#FENCE`, which open a fence
 # at any indentation as GitHub does, so a fence under a list item masks a
-# closing keyword (`docs/issues-and-milestones.md` *A keyword inside a fence
+# closing keyword (`docs/releasing/issues-and-milestones.md` *A keyword inside a fence
 # or a code span claims nothing*); `tests/behaviour/test_docs_line_wrap.py#fenced_numbers`,
 # which strips a line's indentation first; and the oracle walk in
 # `tests/skills/test_unverified_check.py`. A new reader
@@ -139,7 +139,7 @@ CLOSED = "closed"
 # naming the edit; a base revision's reads it as the word, because nobody can
 # edit a commit that already happened.
 OLD_MARK = chr(0x2705)
-# A design section's items, `skills/settle/SKILL.md` *Rule changes*: the
+# A design section's items, `skills/settle/rule-changes.md` *Rule changes*: the
 # item's line, then one field per line indented two spaces, a value continuing
 # on the lines below it indented four.
 ITEM_RE = re.compile(r"^- (\S+)\s*$")
@@ -262,7 +262,7 @@ def fence_spans(lines):
     to the end, because a gate reading a record treats it as quoted. A reader of a
     line that HOLDS something — an open row — reads it,
     because only a block that closes is certainly a quotation
-    (`docs/the-record-layout.md`'s *Whether a line is live is asked by what
+    (`docs/checks/the-fold.md`'s *Whether a line is live is asked by what
     the line does*).
     """
     spans, opener, first = [], None, None
@@ -534,7 +534,7 @@ def live_lines(lines, comments=True):
     `comments` is `liveness`'s, handed to both.
 
     A line that excuses or declares something is not taken on doubt, the
-    second of the three answers `docs/the-record-layout.md` *The fold, and
+    second of the three answers `docs/checks/the-fold.md` *The fold, and
     what tells it from a deletion* gives: what this parks, `rule_changes.py`
     reads as no heading.
 
@@ -605,7 +605,7 @@ def readable(text):
 
     A line a record's rows are counted on is blanked the same way on both
     sides of a comparison, the third of the three answers
-    `docs/the-record-layout.md` *The fold, and what tells it from a
+    `docs/checks/the-fold.md` *The fold, and what tells it from a
     deletion* gives: a fence nobody closed is blanked to the end, and the
     readers that judge a record refuse the table it hid as absent, while
     `broad_gate.py`'s label, which never stops a run that passed, is
@@ -1392,7 +1392,7 @@ def settled(root, ref, directories):
     **The one predicate, and every reader of a removal asks it**:
     `--baseline` below and `chain_check.py`, each of the merge base it
     already computes, and each handing it only directories absent on its
-    head side. Its rule is `docs/the-record-layout.md` *The fold, and what
+    head side. Its rule is `docs/checks/the-fold.md` *The fold, and what
     tells it from a deletion*. A directory is settled when it held a file at
     REF. What its record held there and what the policy root holds of its
     design are not read: the settling session writes each section in its own

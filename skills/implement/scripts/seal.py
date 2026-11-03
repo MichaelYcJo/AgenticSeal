@@ -8,7 +8,7 @@ workflow that checks pull requests against the committed root.
 
 In local mode the work-item records live under the common git directory, so a new machine or a re-clone starts with nothing and CI's checks
 cannot run. That is the mode's whole trade-off
-(`docs/one-root-by-lifetime.md`, "Shared or local"), and without a way to
+(`docs/layout/one-root-by-lifetime.md`, "Shared or local"), and without a way to
 carry a copy it reads as *lose it* rather than *take a copy*. This is that
 way:
 
@@ -92,7 +92,7 @@ work away.
 **What the reminder counts, and what it does not.** `--check` prints
 `N work items changed since the last export`, where a work item is
 its directory `threads/<id>/`. A root-level file, any file the root holds
-outside `threads/` (`docs/the-record-layout.md` *seal/* names each), is NOT
+outside `threads/` (`docs/layout/the-record-layout.md` *seal/* names each), is NOT
 counted, because the line
 the design specifies says *work items* and this command does not get to widen
 it. So a release whose only change was to `follow-up.md` reports 0. That gap
@@ -1430,7 +1430,7 @@ def write_members(archive, into):
 # the repository WANTS; the folder's location says what it HAS. A gate that
 # trusted the row would go looking in a place with no folder, and everything
 # in `optin` is documented to fail toward "not opted in" rather than toward a
-# guess (`docs/one-root-by-lifetime.md`, "The opt-in signal is the root
+# guess (`docs/layout/one-root-by-lifetime.md`, "The opt-in signal is the root
 # itself").
 
 # The config table is READ in `hooks/lib/config.py` and WRITTEN here. The reader
@@ -2747,7 +2747,7 @@ def no_work_item(args, cwd):
     resolved as the edit gate resolves it (`routing.worktree_branch`): the
     branch checked out, else the branch a paused rebase there names. Where
     the repository, the session or the branch is missing, nothing is written.
-    The rule is `docs/the-routing-check.md` *The edit check*."""
+    The rule is `docs/checks/the-routing-check.md` *The edit check*."""
     where = args.root or cwd
     repo = optin.repo_root(where)
     if not repo:

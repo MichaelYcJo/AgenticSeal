@@ -24,7 +24,7 @@ names rather than keeping a second copy.
 
 **Not in `optin.py`, deliberately.** That module's docstring says there is no
 config key and everything in it fails toward *not opted in*; the root's
-existence is the opt-in and `docs/one-root-by-lifetime.md` *The opt-in signal
+existence is the opt-in and `docs/layout/one-root-by-lifetime.md` *The opt-in signal
 is the root itself* is the clause. The `Mode` row decides nothing about opting
 in -- it RECORDS an answer -- and putting it in that module would read as the
 clause being softened.
@@ -181,7 +181,7 @@ def hidden_lines(lines, text=None):
 
     A line that declares something is not taken on doubt where the older
     reading would not take it, the second of the three answers
-    `docs/the-record-layout.md` *The fold, and what tells it from a
+    `docs/checks/the-fold.md` *The fold, and what tells it from a
     deletion* gives: a row this hides is no declaration, so a hook says
     nothing and a gate asks, and `seal gate` names a fence left open.
 
@@ -706,12 +706,12 @@ def policy_root(home):
 # work item is a SIGNER, the pact's repository included. A signer other
 # than the pact's repository names the pact here, by the origin remote URL of
 # the repository that holds it, and the pact's repository needs no row: it is
-# identified by holding `seal/pact.md` (`docs/the-pact.md`).
+# identified by holding `seal/pact.md` (`docs/layout/the-pact.md`).
 #
 # One command asks this row, through THIS reader:
 # `skills/verify/scripts/pact_check.py`, run as `seal pact`, which reads
 # every signer from the pact's repository and refuses what will not parse. A
-# signer's CI reads nothing of the pact (`docs/the-pact.md`).
+# signer's CI reads nothing of the pact (`docs/layout/the-pact.md`).
 
 PACT_ROW = "Pact"
 PACT_SEPARATOR = ";"
@@ -1412,7 +1412,7 @@ def baseline_commit(text):
 # regenerates. It still reads (`read_table`), and `seal pact` prints the
 # sentence below where it reads one. This unit is the one place the old word
 # is written, and it spells the old header in order to read it, which
-# `docs/the-pact.md` *The words* says names no signer another way.
+# `docs/layout/the-pact.md` *The words* says names no signer another way.
 RENAMED_IN = "0.19.0"
 
 

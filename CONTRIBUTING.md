@@ -5,7 +5,7 @@
 **A contributor bases the branch on the open release branch, not on
 `main`.** GitHub offers `main` by default, and for everything except a
 release that default is the wrong one here. Work collects on one release
-branch and `main` moves once per release; `docs/branch-and-release.md` *Work
+branch and `main` moves once per release; `docs/releasing/branch-and-release.md` *Work
 accumulates on a release branch* holds the reasoning, and this section is the
 part a contributor needs.
 
@@ -381,7 +381,7 @@ adds any mechanism by what it takes away:
   what it costs. `skills/core/SKILL.md` *The rule a mechanism is kept
   against* is why.
   What goes is listed under its `frame/design.md`'s `## Removes`, which the review
-  reads against the diff; `docs/the-reader-registry.md` *A frame names what
+  reads against the diff; `docs/forms/the-reader-registry.md` *A frame names what
   its work removes* is the rule.
 - **What it reads.** A pull request that adds or changes a gate names the
   form the gate reads, what the gate names as a line it did not read, and
@@ -402,18 +402,18 @@ adds any mechanism by what it takes away:
 The prompt budget and what a change removes are the two a passing suite
 cannot report on: nothing counts interruptions, and nothing weighs a
 mechanism's catches against its cost. Both are answered in the pull request
-body or they are not answered. `skills/implement/SKILL.md` *1. Read the
-documents that outrank the code first* holds the reasoning the budget is
-drawn against: the cost of a question is not its difficulty, it is when it
-arrives.
+body or they are not answered. `skills/implement/orchestration.md`
+*Orchestrator: what needs a person is asked in one batch, before the first
+edit* holds the reasoning the budget is drawn against: the cost of a
+question is not its difficulty, it is when it arrives.
 
 ## House rules
 
 - **A change writes a fragment, never a shared registry.** Which file a
-  change writes its changelog entry into is `docs/the-record-layout.md`
+  change writes its changelog entry into is `docs/layout/the-record-layout.md`
   *A change writes fragments, never a shared file*. No branch writes the
   release notes: the tag's workflow builds them from the fragments, as
-  `docs/branch-and-release.md` *Work accumulates on a release branch* says.
+  `docs/releasing/branch-and-release.md` *Work accumulates on a release branch* says.
 
 - **No real identifiers.** Examples, fixtures, and docs use `example.com`
   and `/Users/x/` only. The `real_identifiers` census in `tests/censuses.py`
@@ -466,7 +466,7 @@ arrives.
 
 ## Cutting a release
 
-`docs/branch-and-release.md` holds it: where a branch is cut from, **which
+`docs/releasing/branch-and-release.md` holds it: where a branch is cut from, **which
 merge method each direction takes** (they are not interchangeable), the two
 things that carry the version, how the release note is built from the
 changelog fragments, and

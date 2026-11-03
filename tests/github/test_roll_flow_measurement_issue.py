@@ -21,7 +21,7 @@ deliberate rather than left over -- it is also the migration path.
 
 #942's phase 6 placed these cases from
 `tests/behaviour/test_a_release_rolls_the_flow_measurement_issue.py`, which keeps the
-cases that read `docs/issues-and-milestones.md` against the script's
+cases that read `docs/releasing/issues-and-milestones.md` against the script's
 constants.
 """
 
@@ -662,7 +662,7 @@ class Test_main:
     def test_a_new_version_since_the_log_opened_rolls_it(self, monkeypatch):
         """The other half. The new title names the version this tree ships, which
         is the one thing the release moment makes certain -- not the next one,
-        which `docs/branch-and-release.md` says is not known until the end."""
+        which `docs/releasing/branch-and-release.md` says is not known until the end."""
         m = _roller()
         closed, creates = _roll_harness(
             m, monkeypatch, "chore: flow measurement — after 0.7.0", "0.8.0"

@@ -199,7 +199,7 @@ Co-Authored-By: <the harness's co-author line>
 
 The value is a field, not prose, so it stays as spelt in every language.
 Why a session's commit carries it, why a local-mode commit does not, and
-what `chain-check` does with it are `docs/the-routing-check.md` *At the pull
+what `chain-check` does with it are `docs/checks/the-routing-check.md` *At the pull
 request*.
 
 ## Pull request titles

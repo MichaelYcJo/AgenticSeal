@@ -19,7 +19,7 @@ runs at the handoff to review; the hand-back carries the suite as
 `skills/verify/SKILL.md` *Scope: cheap and often, broad and once* holds the
 reason: a run taken before the rounds is spent by the first finding. Findings
 are the expected case rather than the exception: the review chain runs three
-finding rounds by default (`docs/the-review-record.md` *The run*).
+finding rounds by default (`docs/running/the-run.md` *The run*).
 
 **"After the rounds settle" is a row, not a moment, and this is the row: the
 last `trail/rounds/round-N.md` has no finding open.** The phrase alone names no
@@ -34,7 +34,7 @@ types, with nothing else running, and `skills/code-review/orchestration.md`
 *Orchestrator: the pull request opens once the sealer seals* owns when,
 before the sealer is spawned. The run judges no failure and fixes none; the
 sealer reads its record, and what it guarantees after it
-is `docs/the-review-record.md` *The guarantee*. `seal gate --preflight`,
+is `docs/forms/the-guarantee.md` *The guarantee*. `seal gate --preflight`,
 which the orchestrator runs before the broad run, is not this run: it runs
 the gate's record arms, runs no suite, and writes nothing.
 
@@ -230,7 +230,7 @@ what sends a cross-version reading nowhere while everything looks fine.
 
 What a label answers that a milestone cannot, and why tidying one of these
 issues by hand breaks the next release, are the tracker's own conventions
-rather than this skill's. `docs/issues-and-milestones.md` holds them where a
+rather than this skill's. `docs/releasing/issues-and-milestones.md` holds them where a
 repository keeps one.
 
 Where a log is open, the orchestrator takes the two steps as part of the
@@ -302,7 +302,7 @@ segment that just finished, not as a follow-up someone might do later:
    because its transcript holds nothing but itself; the orchestrator's holds
    every cycle of the run, so the whole file is no row of its own. A
    **spawn cycle** is not the review chain's cycle, which
-   `docs/the-review-record.md` owns: it ends when a spawn call's result
+   `docs/running/the-run.md` owns: it ends when a spawn call's result
    arrives and begins where the row before it ended, so the head is the
    framing before the first spawn, cycle N runs from spawn N-1's result to
    spawn N's, and the tail is the closing work after the last one.
@@ -430,7 +430,7 @@ gathers up.
 | Wall clock, routing commit to last record, build and chain apart | `git log` of the branch |
 | Commits, by kind | `git log --format=%s` |
 | Findings by severity | the `severity:` line of each finding block in the round records |
-| Findings by `Location`: record, code or tests, and docs | the `location:` line of each finding block. A record is anything under `seal/threads/`, the work item's own documents, because a finding in one is about the run's own paperwork rather than about the tool. That path, not the whole of `seal/`: every file the root holds outside `threads/`, each named in `docs/the-record-layout.md` *seal/*, is the repository's own and belongs under `docs` |
+| Findings by `Location`: record, code or tests, and docs | the `location:` line of each finding block. A record is anything under `seal/threads/`, the work item's own documents, because a finding in one is about the run's own paperwork rather than about the tool. That path, not the whole of `seal/`: every file the root holds outside `threads/`, each named in `docs/layout/the-record-layout.md` *seal/*, is the repository's own and belongs under `docs` |
 | Records' share of the diff | `git diff --numstat` against the base, the record paths above counted apart |
 | Model turns, output tokens, cache write and cache read | `session_cost.py`'s token line over the run's main transcript |
 | Segments: count, minutes and tokens per kind | the agent completion notices, or the subagent transcripts |

@@ -45,7 +45,7 @@ reporting:
 **A second question, from the same subjects: does a patch carry a `feat:`**
 (#1199). A `feat:` makes a minor, so a release whose version's third number
 is not 0 FAILS where one of its own subjects opens with `feat:`, and the
-error names each subject and the two repairs `docs/branch-and-release.md`
+error names each subject and the two repairs `docs/releasing/branch-and-release.md`
 *Work accumulates on a release branch* states, each at the moment it can be
 made (#1205): before its squash, a `feat:` in a milestone numbered as a
 patch moves to the planned minor whose goal it shares; once squashed here,
@@ -120,7 +120,7 @@ def merge_base(base, head="HEAD"):
 
     `origin/main..HEAD` is the obvious spelling and it is wrong the moment
     `main` moves during a release's life, which a hotfix does
-    (`docs/branch-and-release.md` has the hotfix row). What the release
+    (`docs/releasing/branch-and-release.md` has the hotfix row). What the release
     carries is what it accumulated since it was cut, and that is measured
     from the fork point.
 
@@ -311,7 +311,7 @@ def judge_feat(version, subjects):
 
     A `feat:` makes a minor, so a release named as a patch, a version whose
     third number is not 0, fails where one or more subjects open with
-    `feat:` (`docs/branch-and-release.md` *Work accumulates on a release
+    `feat:` (`docs/releasing/branch-and-release.md` *Work accumulates on a release
     branch*). Pure, like `judge`, and in the same order: what stops the
     release, then the count, then what is only reported.
     """
@@ -335,7 +335,7 @@ def judge_feat(version, subjects):
             f"and every later planned release: milestone one step forward, "
             f"cut this branch again under the new name, and move plugin.json "
             f"to the new version in the new branch's first pull request "
-            f"(docs/branch-and-release.md, Work accumulates on a release "
+            f"(docs/releasing/branch-and-release.md, Work accumulates on a release "
             f"branch). The prefix states what the change is and is never "
             f"lowered to fit the number"
         )
@@ -357,7 +357,7 @@ def main():
     head = os.environ.get("HEAD_BRANCH", "")
     version = signal.version_of(head)
     if version is None:
-        # `docs/branch-and-release.md` lists a hotfix branch as the other
+        # `docs/releasing/branch-and-release.md` lists a hotfix branch as the other
         # thing that reaches `main`, and a hotfix carries no release
         # milestone. Skipping is the answer rather than guessing a version.
         print(f"{head!r} is not a release/vX.Y.Z branch — nothing to judge")

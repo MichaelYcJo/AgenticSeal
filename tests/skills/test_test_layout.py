@@ -88,7 +88,7 @@ class Test_file_name_for:
         )
 
     def test_refuses_to_name_a_document(self):
-        assert layout.file_name_for("docs/the-review-record.md", []) is None
+        assert layout.file_name_for("docs/running/the-run.md", []) is None
 
 
 class Test_definitions:

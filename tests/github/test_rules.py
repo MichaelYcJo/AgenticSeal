@@ -4,7 +4,7 @@
 `seal rules --check` fails where a check line is refused. A rule's text lives
 once, as the first sentence of the docstring of the test that holds it, and
 a rule file lists its tests by `check:` line, in the grammar
-`skills/settle/SKILL.md` *A rule has one shape* states. `seal rules <doc>` never
+`skills/settle/rule-changes.md` *A rule has one shape* states. `seal rules <doc>` never
 fails for what it finds; `seal rules --check` reads every rule file and is exit 1
 where a line is out of grammar or a target is gone, and one case here runs
 it over the tree, so the suite is where the fact is read.
@@ -132,6 +132,9 @@ def checked(tmp_path, files, capsys):
 
 
 EXPECTED = "write `check: <targets>` or `check: none reader: <who reads it>`"
+# The bucket the tree-wide case plants one defect in for the policy root's
+# documents, which no `RULE_FILES` glob names (`rules.py#policy_documents`).
+POLICY_DOCUMENTS = "the policy root"
 
 
 class Test_main:
@@ -347,6 +350,18 @@ class Test_main:
         assert "seal rules: cannot read" in captured.err
         assert captured.out == ""
 
+    def test_a_policy_index_that_cannot_be_read_is_exit_2(self, tmp_path, capsys):
+        """#1312 S6: the policy root's groups are read off its index, so an
+        index that is not UTF-8 stops the check, rather than reading the root
+        as one that has no group."""
+        (tmp_path / "docs").mkdir()
+        (tmp_path / "docs" / "README.md").write_bytes(b"| \xff |\n")
+        code = rules.main(["--check", "--root", str(tmp_path)])
+        captured = capsys.readouterr()
+        assert code == 2, captured
+        assert "docs/README.md could not be read as text (not UTF-8)" in captured.err
+        assert captured.out == ""
+
     @pytest.mark.parametrize(
         "line, said",
         [
@@ -548,6 +563,37 @@ class Test_main:
             in out
         ), out
 
+    def test_a_check_line_in_a_skills_supporting_file_is_read(self, tmp_path, capsys):
+        """#1312: a section a skill's `SKILL.md` hands to a supporting file
+        beside it keeps its check line read there."""
+        text = doc(rule("check: tests/test_gone_s.py"))
+        code, out = checked(tmp_path, {"skills/x/supporting.md": text}, capsys)
+        assert code == 1, out
+        assert (
+            "seal rules: skills/x/supporting.md:6: The heading: "
+            "tests/test_gone_s.py does not exist" in out
+        ), out
+
+    def test_a_group_the_policy_index_names_is_read_and_no_other_directory_is(
+        self, tmp_path, capsys
+    ):
+        """#1312 S6: the policy root's rule files are the documents
+        `skills/settle/scripts/fold_check.py#documents` lists, so a check line
+        in a group the index names is read, and one in a directory the index
+        names nothing of, such as `docs/experiments/`, is not."""
+        files = {
+            "docs/README.md": "| File | About |\n|---|---|\n| `docs/g/a.md` | a |\n",
+            "docs/g/a.md": doc(rule("check: tests/test_gone_g.py")),
+            "docs/experiments/b.md": doc(rule("check: tests/test_gone_e.py")),
+        }
+        code, out = checked(tmp_path, files, capsys)
+        assert code == 1, out
+        assert (
+            "seal rules: docs/g/a.md:6: The heading: tests/test_gone_g.py does not exist"
+            in out
+        ), out
+        assert "experiments" not in out, out
+
     @pytest.mark.parametrize(
         "files, verdict, said",
         [
@@ -628,9 +674,9 @@ class Test_main:
         exit 0. On a scratch copy of what the check reads (the rule files, the
         files their targets name and the tests carrying their markers) one target
         renamed is exit 1 naming its line, and so is a check line naming a gone
-        file, planted in a file of every other rule-file glob, so a walk that
-        read `docs/*.md` alone, or read a renamed target as resolving, goes red
-        here. The pending designs
+        file, planted in a file of every other rule-file glob and in a document
+        of the policy root, so a walk that read the policy root alone, or read
+        a renamed target as resolving, goes red here. The pending designs
         are copied too, so a line a pending `remove` excuses stays excused, and
         no defect is planted in a file such a `remove` names."""
         assert rules.main(["--check", "--root", ROOT]) == 0, capsys.readouterr().out
@@ -662,7 +708,10 @@ class Test_main:
                     destination = tmp_path / source
                     destination.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copyfile(origin, destination)
-            pattern = next(p for p in rules.RULE_FILES if fnmatch.fnmatchcase(rel, p))
+            pattern = next(
+                (p for p in rules.RULE_FILES if fnmatch.fnmatchcase(rel, p)),
+                POLICY_DOCUMENTS,
+            )
             line = next((n for n, targets in held if targets), None)
             # One file per glob carries the planted defect, so a glob whose first
             # file names no target is planted there, not renamed in a later one.
@@ -683,7 +732,7 @@ class Test_main:
             destination.parent.mkdir(parents=True, exist_ok=True)
             destination.write_text(text, "utf-8", newline="\n")
         assert renamed is not None, "no rule file in the tree names a target"
-        assert set(named) == set(rules.RULE_FILES), named
+        assert set(named) == {*rules.RULE_FILES, POLICY_DOCUMENTS}, named
         assert rules.main(["--check", "--root", str(tmp_path)]) == 1
         out = capsys.readouterr().out
         assert re.search(

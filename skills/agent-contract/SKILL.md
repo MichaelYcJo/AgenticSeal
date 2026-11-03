@@ -40,9 +40,7 @@ boundary, in one command, the cases the phase's plan row names and the test
 modules that read a path the phase changed, whether they name it, import it
 or glob the directory that holds it. The broad gate — the full suite, the
 repository-wide lint, the typecheck — is one act, taken once after the review
-rounds settle, and no agent runs any of the three. The orchestrator runs
-`seal gate --base <base> --record <item>` with nothing else running, then
-spawns the sealer, which reads the record that run wrote. Hand over with the
+rounds settle, and no agent runs any of the three. Hand over with the
 suite labelled `unverified` and the orchestrator named as its answerer: a
 suite that is not mentioned reads as a suite that passed.
 check: tests/text/test_broad_gate_rule.py evals/behaviour/sealer/rule-sealer-no-gate/
@@ -122,7 +120,7 @@ refuses a `Write`, `Edit` or `NotebookEdit` on a branch no routing
 declaration names, before the edit lands; a `sed -i`, a redirection or a
 script writes a file with no edit tool, so an edit through the shell is
 invisible to it, and only the pull request's trailer arm is left to catch
-the change (`docs/the-routing-check.md` *The edit check*).
+the change (`docs/checks/the-routing-check.md` *The edit check*).
 check: tests/text/test_edits_go_through_the_edit_tool.py
 
 ## 10 Batch independent reads and runs
@@ -134,7 +132,7 @@ the requirements read, where every file the handoff names can be opened in
 one call, has no excuse. An edit-test loop is serial — a call whose input
 depends on the last result cannot go out with it — and a review reads
 independent things, which is where batching pays most. The bar each kind of
-segment is judged by is `docs/the-review-record.md` *The per-segment bars*,
+segment is judged by is `docs/running/the-run.md` *The per-segment bars*,
 and no definition states a second copy of it.
 check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
@@ -235,10 +233,9 @@ sample, and the hand-back says so as rule 12 asks. A correction written beside t
 sentence it corrects leaves both for the next reader to choose between.
 check: none reader: the proofer at review
 
-## 20 Do not avoid the change a problem calls for
+## 20 Retired: do not avoid the change a problem calls for
 
-A structure in the tree is a reference, not a constraint. Weigh replacing it
-as an equal of keeping it, and when you conclude something should stay,
-check the premise that keeps it before you rest on it. The change a problem
-calls for, avoided, leaves the problem in place under a smaller edit.
+Retired by #1312: `skills/core/SKILL.md` *The rule a mechanism is kept
+against* states it, and a conclusion to keep a structure checks the premise
+that keeps it.
 check: none reader: the proofer at review

@@ -21,7 +21,7 @@ lists each act with what notices when it is skipped.
 orchestrator never resumes a crafter across a phase boundary.** The
 orchestrator hands the fresh crafter the phase records the earlier phases
 wrote, `trail/phases/phase-N.md`, and a brief in the shape of
-`docs/the-review-record.md` *The handoff*: coordinates rather than prose,
+`docs/running/the-run.md` *The handoff*: coordinates rather than prose,
 each fact labelled. A phase record is written to carry what one phase found
 to the next, and a resumed crafter pays its whole earlier context again on
 every turn to hold what the record already holds.
@@ -54,7 +54,7 @@ that before the spawn (`skills/implement/orchestration.md` *Question 1*).
 **The crafter's fix pass appends one close block to each open finding of
 `trail/rounds/round-N.md`, holding its verdict, its answer and, where its fix
 went to a path the finding does not name, a `location:` line naming it, and
-it edits nothing else in the record** (`docs/the-review-record.md` *The round
+it edits nothing else in the record** (`docs/forms/the-round-record.md` *The round
 record*); it writes no `trail/phases/phase-N.md` and no `plan.md` row.
 **The orchestrator writes no close block of a finding the fix pass answers,
 and its fix-pass prompt leaves every such block to the crafter.** A close the
@@ -65,7 +65,7 @@ round weighs every close, and the orchestrator does not rewrite the block.
 the last round, and the commit that integrates a sibling's squash. Each one that
 changes what the work item ships brings the work item's `changelog.md` along, the
 way the crafter's fix pass does.
-`docs/the-record-layout.md` *A commit after the build brings its changelog
+`docs/layout/the-record-layout.md` *A commit after the build brings its changelog
 fragment along* owns that rule.
 
 **The fix pass then finds what the fixes left standing.** A fix repairs the
@@ -116,7 +116,7 @@ So a run ends with a **verifying round**, and three things define it.
 | Property | What |
 |---|---|
 | When | **after the fixes** for the previous round are committed, never before, or it reviews what has already been reviewed; a fix pass whose findings are all located in the work item's records, with commits that touched nothing else, owes none |
-| Target | the **diff of those fixes**, not the branch. That is what keeps it bounded, and bounded is not cheap: its cost is set by the frame, the inherited records and the probes, so it runs close to a finding round. `docs/the-review-record.md` *The run* states the rule |
+| Target | the **diff of those fixes**, not the branch. That is what keeps it bounded, and bounded is not cheap: its cost is set by the frame, the inherited records and the probes, so it runs close to a finding round. `docs/running/the-run.md` *The run* states the rule |
 | Job | the answers, not new findings. For each finding the previous round closed `fixed <commit>` or `rejected`, is it actually closed: a `confirms:` line naming it where it is; where it is not, a finding whose `reopens:` line names it, or whose `regression:` line does where a fix pass's own commit made the defect |
 
 The new units in that diff are the exception: they have been reviewed by
@@ -131,7 +131,7 @@ last one, because the run ends at it.
 
 **You end the rounds when they stop paying, and three finding rounds,
 counted from the last design change, are the point where you weigh that
-rather than spawn the next round by habit.** `docs/the-review-record.md`
+rather than spawn the next round by habit.** `docs/running/the-run.md`
 *The run* says what a design change is and where the count starts again.
 At that point, and at any round where a signal below shows, you weigh:
 
@@ -198,7 +198,7 @@ verifying round.
 finding's `regression:` line routes nothing by itself. Its grounds open
 with the unit and then one sentence comparing the fix with the frame: what
 the frame says, what the fix did and where the defect came from. You route
-the round on that sentence (`docs/the-review-record.md` *The run*):
+the round on that sentence (`docs/running/the-run.md` *The run*):
 
 | The sentence says | The route |
 |---|---|
@@ -227,12 +227,10 @@ pull request runs nothing. Under `stop before the pull request` nothing is
 pushed, and the branch is handed back committed and unpushed. Once
 `guarantee.md` reading `sealed` is committed, run `seal pr-body` once more on
 the body file the sealer read, and open the pull request with it,
-`gh pr create --body-file <that file>`. That run changes no copied line,
-because the copy reads no `guarantee.md`. Where `seal/config.md`'s
-`Pull request seal mark` row reads `yes`, it writes the seal mark under the
-heading, which the body the sealer checked could not hold, since the sealer
-checks it before its own verdict exists (`templates/setup/config.md` *The
-seal mark*). CI runs then, and again on every push to it.
+`gh pr create --body-file <that file>`. That run changes no copied line and
+writes the seal mark where the repository turns it on
+(`docs/forms/the-guarantee.md` *The guarantee*). CI runs then, and again on
+every push to it.
 
 **The orchestrator reads `gh pr view <N> --json state,mergeable` when the
 pull request opens, before each push to its branch and after each push, and
@@ -286,7 +284,7 @@ as checked.
 
 **A conflict with the base is integrated by merging the base into the
 branch, never by a rebase.** A rebase orphans the commits every round record
-names on its `target:` line (`docs/release-checklist.md` *0. Before
+names on its `target:` line (`docs/releasing/release-checklist.md` *0. Before
 starting*). The orchestrator merges once, after the branch whose changes
 conflict with this one has landed on the base. Where the merge resolved a
 conflict in a file outside the work item's records, the orchestrator spawns
@@ -338,11 +336,11 @@ record is still owed then. Nothing that can reach `main` is exempt.
 more steps come before it opens: the preflight, the broad run, the pull
 request body, and then the sealer's spawn. You take them once the work
 item's `changelog.md` states what the work item ships and every row
-`skills/implement/SKILL.md` *6. Drain the rows before the broad run, and
-keep the records* names has reached its destination.
+`skills/implement/orchestration.md` *Orchestrator: drain the rows before
+the broad run, and keep the records* names has reached its destination.
 The party that builds the work item writes that fragment: the crafter, or you
 where `routing.md` answers `Implementation` with `the session`
-(`docs/the-record-layout.md` *A change writes fragments, never a shared
+(`docs/layout/the-record-layout.md` *A change writes fragments, never a shared
 file*). The preflight and the broad run are yours, and no agent takes either.
 **Run `seal gate --preflight --base <base>`; on its exit 0, with nothing else
 running, run `seal gate --base <base> --record <item>`**, which takes the
@@ -355,16 +353,16 @@ directly. **On exit 0 commit `trail/gate.md`, then write the pull request
 body, then spawn `sealer` with the base and the work item's directory**, the
 issue and the file holding the pull request body. The
 sealer reads that record, audits the work against the issue and the tree,
-and writes `guarantee.md` (`docs/the-review-record.md` *The guarantee*); it
+and writes `guarantee.md` (`docs/forms/the-guarantee.md` *The guarantee*); it
 runs nothing broad, and a missing or stale record comes back
 `Verdict: withheld reason: no broad run at HEAD`.
 
 **You write the pull request body after `trail/gate.md` is committed,
 because the body's copy of the records includes that record.** Run
 `seal pr-body <item> --body <scratchpad>/<work-item-id>/pr-body.md`, where
-`<item>` is the work item's directory. It writes the part of that file below
-the line `skills/code-review/scripts/pr_body.py#HEADING` holds, copied from
-the work item's records inside one `<details>` fold, and keeps byte for byte
+`<item>` is the work item's directory. It writes the records' copy below
+the line `skills/code-review/scripts/pr_body.py#HEADING` holds, as
+`docs/forms/the-guarantee.md` *The guarantee* states, and keeps byte for byte
 whatever stands above that line. On exit 1 its `refused:` lines name a
 record's file and line: repair that record, commit it, and run the command
 again. Then write your own part above that line, from the top of the file,
@@ -440,7 +438,7 @@ not hold, which the pull request's check refuses as stale, spawn the sealer
 again at HEAD and commit what it writes; never edit a block by hand. The
 stamp's writer recorded the refusal at the write, so the new audit, whose
 block stands below the refused verdict's block, draws the work item's stamp
-(`docs/the-review-record.md` *The stamp*).
+(`docs/checks/the-stamp.md` *The stamp*).
 
 **The preflight is yours, and it is not the broad gate.** It runs every
 arm of the gate except the `Broad gate` row, in the gate's order and over the
@@ -464,9 +462,9 @@ the same arms, and refuses the same way after its suite.
 **The stamp is drawn for you at the end of the turn in which the sealer's
 report arrives, and you never draw one.** The broad run
 draws nothing: its stdout opens `BROAD GATE PASSED` or `BROAD GATE FAILED`,
-which say whether the broad command passed and judge nothing. The stamp means
-every party verified the work item, the sealer last, so it is drawn once per
-work item from the sealer's verdict: where the newest verdict block of
+which say whether the broad command passed and judge nothing. The stamp is
+drawn once per work item from the sealer's verdict
+(`docs/checks/the-stamp.md` *The stamp*): where the newest verdict block of
 `guarantee.md` reads `Verdict: sealed` and the block reader refuses none of
 its lines, the sealer's own `Write` of it queues the
 stamp's values, under either root, and the `Stop` hook draws them after your

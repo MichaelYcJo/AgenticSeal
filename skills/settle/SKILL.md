@@ -14,8 +14,15 @@ description: |
 
 # settle — write each section's latest decision
 
-A work item's design states the rules its work changes in its `## Rule
-changes` section, and the section is reviewed with the design. Released
+Where its subject is the code, a work item's design states the rules the
+work changes in its `## Rule changes` section, and the section is reviewed
+with the design. A work item whose subject is the policy root edits the root
+in its own pull request (`skills/implement/SKILL.md` *Document layout — two roots, three
+lifetimes*). The
+section's grammar, the shape of a rule and the index are
+`skills/settle/rule-changes.md`, which the design's author opens to write
+the section and the settling session opens before step 4 of the procedure.
+Released
 designs pile up into a timeline: a later design may restate what an earlier
 one decided, and the code may have moved past both. **The designs say what
 was decided and in what order,
@@ -52,125 +59,13 @@ seal settle --released-at REF  what counts as released (default origin/main)
 The script is `skills/settle/scripts/settle.py`, and `seal settle` runs it;
 `bin/seal` is on the Bash tool's PATH while the plugin is enabled. It needs
 python 3.12 or newer.
-Where the `seal/` root is under the common git directory, *In local mode*
-below says what changes.
-
-## Rule changes
-
-A work item's design states the rules it changes in its `## Rule changes`
-section, one item per operation. The operation's line comes first, then one
-field per line, indented two spaces:
-
-```
-- change
-  file: docs/the-review-record.md
-  section: The round record
-  from: the sentence as it reads now.
-  to: the sentence as it will read.
-```
-
-| Operation | Fields | What it says |
-|---|---|---|
-| `add` | `file`, `to`; `section` optional | `to` belongs at the end of the section's own text, before its first sub-heading. A `to` that is one table row belongs as the last row of the last table in that text. With no `section`, `to` is a new document, `file` |
-| `change` | `file`, `section`, `from`, `to` | the text `from` quotes becomes `to` |
-| `remove` | `file`, `section`; `from` optional | the text `from` quotes goes, or with no `from` the whole section, up to the next heading of its level or higher |
-| `nothing` | `why` | changes no rule, and stands alone in the section |
-
-- `file` is a top-level `.md` file of the policy root, `seal/config.md`'s
-  `Policy root` row (`docs` when absent), joined with `/` and holding no `\`
-  or `:`. `section` is a heading's text at any level.
-- **`from` is the text as the design's framer read it.** It locates the change
-  for the settling session and for a reviewer, and it is not a
-  precondition: a `from` the section no longer holds is history, and the dry
-  run says so. The dry run compares it, and `to`, with runs of whitespace
-  collapsed; every other character, emoji included, is matched as itself.
-- A value continues on the lines below it indented four spaces, and lands
-  with that indent removed. A code span closes on the line that opens it: a
-  line that begins inside a span an earlier line opened is refused at its
-  line.
-- A design that changes no rule writes the no-change block in place of the
-  items, `- nothing` with its one field `why:`, and the block is read in
-  that one spelling. A first line that opens like it and is not it, such as
-  `nothing — <why>` or `- none`, is no block: the section is refused at that
-  line as the items refuse any line outside them, and the reader names the
-  line as one it did not read. `## Not verified` reads the block the same
-  way.
-- A block that does not match whole is refused at its line, and its design
-  joins no group: the settling session reads it whole.
-- The section's heading is `## Rule changes`, spelt exactly so, and no
-  other heading is read as it. A heading whose letters, case folded, are
-  those of `Rule changes`, that is not that heading and that stands outside
-  the section, is another section: the reader names it, `chain-check`
-  prints it at its line as one it did not read and refuses nothing for it,
-  and the settle reads the design whole. Such a heading below level 2
-  inside the section is a line of the section, refused as any line outside
-  an item is. Whether a named heading meant the section is the judgment of
-  whoever reads the design, the proofer at review among them.
-
-`skills/settle/scripts/rule_changes.py` is the one reader.
-`chain-check` asks the same reader at the pull request, for each work item
-whose `routing.md` it judges and, on a pull request that declares at least
-one work item, for every work item `frame/design.md` its own commits add or change
-(`docs/the-review-record.md` *What the check reads at the pull request*).
-
-## A rule has one shape
-
-**A rule has one shape: the rule, its grounds, and the line naming what
-reads it.** A `to` value that states a rule opens with the rule as one bold
-sentence, gives its grounds as prose, and ends with one check line, which
-stays English in every edition.
-
-- A check line is a shown line of a rule file whose text, after any leading
-  spaces, starts with `check: `, lowercase, one space after the colon.
-- It names one or more targets separated by single spaces, or no target,
-  written exactly `check: none reader: <who reads it>`.
-- A target is a file of the repository, an eval case directory
-  `evals/behaviour/<agent>/<case>/` holding `case.yaml`, or a marker:
-  lowercase letters, digits and hyphens, carried by at least one test as
-  `@pytest.mark.rule("<marker>")`.
-- A marker names the tests of a rule whose test drives a script that can
-  refuse a commit or fail a required pull-request job. Every other rule names
-  files.
-- Only the exact shape above is read. A line that opens like a check line
-  and is not one, the label in another case, under emphasis, behind
-  Markdown block markup, with a space before the colon, in the plural or as
-  the word `Enforced by`, is named at its line as not read and refused for
-  nothing; whether it meant a check line is review's to judge.
-- A check line is one line. A target wrapped onto the line below is not
-  read, and nothing names it, since the line below is prose: a check line
-  naming more targets than a wrapped line holds is written past the wrap.
-- A check line is refused at its line for a value holding `::`, a comma or
-  an em dash, a reader with a space more after `reader:`, a path that is no
-  file of the repository, and a marker no test carries.
-
-**What this plugin checks, and what it does not.** It ships `seal rules --check`
-(`.github/scripts/rules.py`), which reads every check line in a rule file,
-refuses one the grammar refuses and names one it did not read. At the pull
-request, `chain-check` asks the same reader for each check line inside an
-`add` or `change` `to` of a design, and refuses a line that reader refuses
-at that line of the design. A refused
-line inside a section that a
-pending `remove` with no `from` takes out at the settle is printed as
-excused, with the work item that removes it, and is no refusal. A pending
-`change`, or a `remove` with a `from`, excuses nothing, and where the `seal/`
-root is local no line is excused. Whether
-a target really enforces its rule, whether a rule paragraph carries the
-line at all, and whether two rules contradict each other, it cannot read:
-that is review's, and it is review's to find.
-
-## The index
-
-**`<policy root>/README.md` is the index: one table row per topic, naming
-its file.** A row names its documents as backticked paths, a `.ko.md`
-edition on its English edition's row. A framer picks each `file:` from it.
-Where it exists, `seal fold` refuses a top-level document no row names, one
-named on two rows, and a row that names none. A settling session that
-creates the policy root writes the index with it, and after the removals
-`--apply` names the row each new document is owed.
+Where the `seal/` root is under the common git directory,
+`skills/settle/local-mode.md` *In local mode* says what changes, and the
+settling session opens it before step 2 of the procedure.
 
 ## When it runs
 
-**When the owner calls it, as `docs/release-checklist.md` *2b. Settle what
+**When the owner calls it, as `docs/releasing/release-checklist.md` *2b. Settle what
 earlier releases left behind* says.** It
 is invoked, never triggered: no hook runs it and no gate refuses a branch
 over an unsettled work item.
@@ -264,56 +159,13 @@ nothing:
   that add them, and those no commit adds come last, in path order. A file
   two named directories hold is listed under the first one named. A root
   holding no work item prints the listing before its settled line. No line
-  of it is a proposal (*Directories a person names*).
+  of it is a proposal (`skills/settle/named-directories.md` *Directories a
+  person names*).
 - **What `--apply` removes**, the citations into it from outside
   `seal/threads/`, and the checks under `tests/` that read `seal/threads`.
 
 Nothing is refused or held in the dry run: a stale `from`, a section that
 does not parse, an unordered pair and an open row are all shown.
-
-## What `--draft` writes
-
-**`seal settle --draft` writes a starting text for step 4 of the procedure,
-and no section it writes is settled.** It reads what the dry run reads, and
-writes each operation of each design the dry run groups into the policy root
-in the working tree, where *Rule changes* above places its kind. The designs
-come in merge order, a design's operations in the order it lists them, and
-each operation is written over the text the earlier ones left. A superseded
-operation is written like any other, because the script has no notion of
-which decision is latest. It creates the document an `add` with no `section`
-names, deletes one a `remove` leaves empty, keeps each document's line ends,
-and writes nothing outside the policy root.
-
-- **What it prints.** One line for each operation it did not place:
-  `not placed`, the operation's kind, its work item, its design's coordinate,
-  and the reason. The reason is one of these: the document or the heading is
-  not there, the heading is there twice, the `from` is not in its section
-  exactly once, or an `add` with no `section` names a document that exists.
-  The operations after one not placed are written all the same. The last two
-  lines count the operations placed of all of them, and send the settling
-  session to step 4. It exits 0 whatever it placed, since an operation not
-  placed is no verdict.
-- **What it refuses.** `--draft` beside `--apply`, or beside `--from`, exits
-  2 with one sentence and writes nothing. A root holding no work item prints
-  its settled line and writes nothing.
-- **It is run once, before the first edit of the policy root.** It writes
-  over the policy root as it stands, so a second run writes every operation
-  again over what the first wrote. No guard stops that.
-  `git checkout HEAD -- <policy root>` followed by
-  `git clean -f -- <policy root>` returns the root to `HEAD` before a second
-  run.
-
-**The script answers what a script answers exactly, and the settling session
-judges the rest.** The draft answers where the grammar places each
-operation, and whether its heading and its `from` stand there once. Every
-question of meaning stays the settling session's, as step 4 states: which
-operation is a group's latest decision, and what an earlier one it restates
-leaves standing; whether a section the draft wrote reads as one rule, or
-holds a check line with the old paragraph still running on below it; whether
-a sentence still names what another design removed; how each operation not
-placed is written; and whether the code has moved past the decision. A
-section the draft wrote is a listing of what the designs said, in place, and
-is decided no more than the dry run's groups are.
 
 ## The settling session's procedure
 
@@ -324,11 +176,13 @@ is decided no more than the dry run's groups are.
    `--from <dir>` for each directory the answer named.
 3. Where the dry run lists a document of a named directory, read each
    document whole with the code it bears on, write its proposal row, and
-   put the table to the person as the second question of *Directories a
-   person names*. The listing is git's facts about each file, and the row
+   put the table to the person as the second question of
+   `skills/settle/named-directories.md` *Directories a person names*. The
+   listing is git's facts about each file, and the row
    is yours to write. Where it lists none, ask nothing more. Both questions
    come before the first edit, and no step after this one asks anything.
-4. Optionally, first run `seal settle --draft` (*What `--draft` writes*),
+4. Optionally, first run `seal settle --draft`, after opening
+   `skills/settle/draft.md` *What `--draft` writes*,
    and commit what it wrote as one commit before any other edit, so the
    pull request shows the literal pass and the settling session's judgment
    as two diffs. The draft decides nothing: every section it wrote is read
@@ -337,7 +191,8 @@ is decided no more than the dry run's groups are.
    each group, read every operation in merge order, the section as it
    stands, and the code the rule names, its `check:` targets first. Each
    row the person's answer left marked `promote` joins the group of the
-   place it names, as *Directories a person names* says. Write the section
+   place it names, as `skills/settle/named-directories.md` *Directories a
+   person names* says. Write the section
    as the latest decision states it, in your own words. Where the code has
    moved past that decision, write what the code does. An earlier
    operation the latest one restates is superseded: it is settled with its
@@ -447,74 +302,10 @@ settling session proposes each of them `skip`, because the settle already
 reads those records. A session that cannot put the question takes "none",
 and its pull request body says so.
 
-**`--from` refuses four things, each with exit 2 and one sentence, and reads
-and removes nothing**: a path that names no directory in the working tree,
-a path outside the repository, the `seal/` root or a path under it, whose
-records the settle already reads, and `--from` beside `--apply`. `--apply`
-removes only under `seal/threads/`, and a flag it accepted would read as
-one it acted on. Each sentence about a path names it as it was read, from
-the directory `seal settle` runs in. A named directory holding no document
-is listed with 0 documents.
-
-**The listing is not a proposal.** Each of its lines is what git answers
-about one file, as *What the dry run shows* gives them: its path, its two
-commits, and whether the working tree changed it. The script reads no
-document's content, so a line says nothing of what the document decides,
-which section it bears on, or whether it is promoted, and neither does the
-document's place in the listing, its directory, its name or its extension.
-The proposal is the settling session's to write, and the mark is the
-person's.
-
-**The settling session writes one proposal row per document**, after
-reading the document whole with the code it bears on:
-
-- **The place** is named as an operation of *Rule changes* names one: a
-  `file` picked from the index (*The index*) and a `section`. It names an
-  existing heading, or a new section or a new document marked as new. A
-  document bearing on several sections names each in its one row. The
-  document's own headings decide nothing.
-- **The proposal** is `promote` or `skip`.
-- **The grounds** say what a promote writes, read from the document and
-  checked against the code. A document holding one decision the code bears
-  out and one the code has left is proposed `promote`, with grounds naming
-  the first alone. A plan not yet built, a decision the code has since
-  left, a document whose decisions bear on no section of the policy, and a
-  file of the `seal/` root are each proposed `skip`, with that reason as the
-  grounds.
-- **A document skipped at an earlier settle** is proposed `skip` again, with
-  grounds naming that settle's pull request, where two facts hold: the last
-  settle's pull request body holds the document's row marked `skip`, and
-  the document's last change is a commit that settle's merge commit reaches
-  (`git merge-base --is-ancestor <last change> <merge commit>` exits 0). The
-  session finds the last settle's pull request from the last commit that
-  changed the policy root. Every other document is new, a document no
-  commit adds among them.
-
-**The second question puts the numbered table to the person once**, before
-the first edit, in this shape:
-
-| # | Document | Place | Proposal | Grounds | Mark |
-|---|---|---|---|---|---|
-
-The `Mark` cell is empty in the question and holds the person's mark in
-the pull request body. The answers are "as proposed", "skip every row", or
-the numbers of the rows whose mark the person flips, and every answer
-continues. A listing that holds no document asks nothing.
-
-**Only a row the person's answer leaves marked `promote` is written, and it
-is written as a released design's operation is.** It joins the group of the
-place it names, and the group is ordered by commits, the listing's beside
-the designs', a document deciding as of its last change. The session writes
-the section as the group's latest decision checked against the code, in its
-own words and with no marker, and the section's grounds cite the document
-by its repository path, as the paragraph on reference roots under *What
-`--apply` does* asks of a statement a settle writes.
-
-**A named directory is read and never written.** No step of the settle
-writes, moves or removes a file under it, and `seal settle --apply` removes
-only under `seal/threads/` and refuses `--from`. A promoted decision reaches
-the policy root in the settling session's words with the document's path,
-and the document stays where it was, as it was.
+Where the answer names a directory, the settling session opens
+`skills/settle/named-directories.md` before step 2 of the procedure. It
+holds what `--from` refuses, the proposal row the session writes for each
+document, the second question, and how a promoted row is written.
 
 ## What `--apply` does
 
@@ -593,73 +384,6 @@ the first question of *Directories a person names*, and the settle does not
 read the row. `seal settle` never writes there, and neither does the
 settling session: `--apply` removes only under `seal/threads/`.
 
-## In local mode
-
-**In local mode `seal settle` reads the work items under the common git
-directory, and a work item is released when the pull request from the
-branch its `routing.md` names has merged, its merge commit reachable from
-`--released-at`.** No ref holds a local work item's directory, so presence
-at a ref cannot say that it shipped. What reaches the ref is its pull
-request's merge commit, whatever the merge method was.
-
-- **Where it reads.** Every `seal/threads/<id>/` path is read and removed
-  under `$(git rev-parse --git-common-dir)`, so a work item's directory is
-  `<git-common-dir>/seal/threads/<id>/`, and it is printed as
-  `seal/threads/<id>/`. The policy root, the tracked files the citations are
-  read from, and `tests/` are read from the repository's top.
-- **What released means.** `seal settle` reads the `Branch` row of each work
-  item's `routing.md` and asks
-  `gh pr list --head <branch> --state merged --json number,mergeCommit`
-  from the repository's top, once per branch. A work item is unreleased,
-  and untouched, in three states: no `routing.md` that `hooks/lib/routing.py`
-  reads as a declaration naming a branch, no merged pull request from that
-  branch, or no listed merge commit reachable from `--released-at`, a pull
-  request listed with no merge commit among them. Shared mode asks `gh`
-  only in `--apply`, for the release list, and only where a directory it
-  would remove gets as far as a version tag (*What `--apply` does*).
-- **A `gh` that cannot be asked stops the run.** Where `gh` is not on
-  `PATH` or its query fails, `seal settle` exits 2 with one sentence naming `gh`
-  and what it said, and reads and removes nothing. Every work item would
-  otherwise read as unreleased, and the run would say there is nothing to
-  settle.
-- **The design and the order.** Each `frame/design.md` is read from its directory,
-  since no ref holds it. The released designs are listed by their merge
-  commits' place in `git rev-list --topo-order --reverse` of
-  `--released-at`, and two whose merge commits no ancestry orders are marked
-  `unordered`.
-- **The judgments earlier settles removed.** `--apply` removes a local
-  directory from the git directory, and no commit holds it, so the history
-  holds an earlier plan only where the repository once committed its
-  `seal/` root. Where none did, the section is not printed.
-- **What the dry run adds.** Its first line names the root's path and says
-  it is local mode. Each released work item is listed with its pull
-  request's number and its merge commit, for the settle's pull request body
-  to cite, and each unreleased one with which of the three states holds.
-  The heading of what `--apply` removes says that no commit holds those
-  directories, and that `seal export` takes a copy for whoever wants one.
-- **What `--apply` does.** It removes each released local directory whose
-  record holds no open row, from the git directory, and keeps and names one
-  that holds a row, with the exit codes *What `--apply` does* states. It
-  reads no published note: no fragment is committed in local mode, so no
-  note is built from the history. No
-  commit holds what it removes, and none needs to: a work item's records
-  end their role when it ships, and the settling session closes its rows
-  first.
-- **The settling session's procedure is the same.** It writes the
-  repository's committed policy root, and creates it with its index where
-  it is absent (*The index*).
-
-**The limits, which no guard covers.** A work item whose branch reached
-`--released-at` without a pull request reads as unreleased, and its
-directory is removed by hand. A repository on a host `gh` cannot ask cannot
-settle in local mode, and the exit-2 sentence says so. A branch name that a
-later work item reuses, after an earlier pull request from it merged, reads
-that later work item as released. So does a merged pull request from a fork
-whose branch has the same name, since `gh pr list --head` matches a branch's
-name and not its owner. The one-issue flow names each branch after its
-issue, which makes either match unlikely; it does not rule out the second,
-because the flow does not name a fork's branches.
-
 ## A released work item with no `frame/design.md`
 
 A released work item with no `frame/design.md` states no rule, and it leaves like
@@ -672,7 +396,7 @@ run lists it as stating no rule, and its open rows with every other record's.
 **A settle is not finished until every check in your repository that carries
 a population floor over `seal/threads/` has been answered.** A floor is an
 assertion like `len(records) > 200` over a walk of `seal/threads/`, and a
-settle shrinks the corpus by design (`docs/one-root-by-lifetime.md` *The
+settle shrinks the corpus by design (`docs/layout/one-root-by-lifetime.md` *The
 dependency rule*), and a list of readers written in any document is not the
 whole list.
 The dry run lists every `tests/` file that reads `seal/threads`, and every path
@@ -692,8 +416,10 @@ into a comment.
 
 After the removals, `--apply` names each document past the `Document token
 ceiling` row in `seal/config.md`, as `seal fold` does, and neither refuses
-it. Such a document is recommended to be split by topic along its own
-headings, in that pull request or a later one, and nothing is cut to fit.
+it. Such a document is recommended to be split by who opens each section
+and at which step, as `skills/core/SKILL.md` *The first value: efficient
+development through the workflow* states, in that pull request or a later
+one, and nothing is cut to fit.
 The plugin sets no ceiling; a repository states its own.
 
 ## A settle is not a work item

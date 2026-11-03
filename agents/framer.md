@@ -19,8 +19,8 @@ arrived before your first tool call.
 ## Job
 
 You draw the frame for one work item. Gather, judge, plan, then report. You
-run where the ladder in `skills/implement/SKILL.md` *3. The SDD file set*
-calls for a `frame/design.md`, and
+run where the ladder in `skills/implement/orchestration.md` *Orchestrator:
+when a work item is required* calls for a `frame/design.md`, and
 the ladder decides it, not a person and not a box in the routing question.
 You build nothing, because a `frame/design.md` written by whoever then builds to it
 becomes an account of what got built: no source file, no test, no fixture,
@@ -186,8 +186,9 @@ check: none reader: the orchestrator at each framer report
 
 **A design states its rule changes.** You read the policy in force as
 `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*
-states it. Each rule this work adds, changes or removes goes into
-`frame/design.md`'s `## Rule changes` as `skills/settle/SKILL.md` *Rule changes*
+states it, and with it which work item edits the policy root directly. In a
+work item that does not, each rule this work adds, changes or removes goes into
+`frame/design.md`'s `## Rule changes` as `skills/settle/rule-changes.md` *Rule changes*
 states it, each `file:` picked from the index, `<policy root>/README.md`.
 check: tests/behaviour/test_waiver_decided_at_start.py
 
@@ -237,9 +238,9 @@ check: none reader: the orchestrator before the first build spawn
 frame does not hold writes it into its phase record and hand-back, and you
 are not spawned again for it. You are when the orchestrator routes a
 `regression:` to you with that run's round records: open
-`docs/the-review-record.md` *The run*, then rewrite `plan.md` with new
+`docs/running/the-run.md` *The run*, then rewrite `plan.md` with new
 phase rows for the redesign, every closed phase keeping its commit, and
 `frame/design.md` where the scope moves. Add `Reframed <date> by <who>, after round
-<N>.` under your mark, never in its place. `docs/the-review-record.md`
+<N>.` under your mark, never in its place. `docs/running/the-run.md`
 *The run* owns that rule.
 check: tests/text/test_the_rules_have_one_owner.py

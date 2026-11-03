@@ -1,6 +1,6 @@
 # Release checklist
 
-The sequence in `docs/branch-and-release.md`, as the list to work down on the
+The sequence in `docs/releasing/branch-and-release.md`, as the list to work down on the
 day. That document says why each step exists; this one says what to type and
 what to look at before the next step.
 
@@ -51,7 +51,7 @@ Between the first and the second, the session writes each section as its
 group's latest decision, checked against the code, writes each decision the
 person marked promote into its section, and closes each open row with what
 closed it, asking nobody about either. A named directory is read and never
-written (`docs/the-record-layout.md` *The fold, and what tells it from a
+written (`docs/checks/the-fold.md` *The fold, and what tells it from a
 deletion*). The second removes every released work item directory whose
 record holds no open row and whose version's published note carries its
 entry where the repository's notes are built from the fragments, and names
@@ -89,7 +89,7 @@ of #1148, which removed the records' copies of one another: 0.24.0's four work i
 read 17 recurring of 36 findings, 12 in records alone, and 0.25.0's one read 3 of 10, 1
 in a record alone. A records-alone count that does not fall is no verdict. #1148 is
 measured by this count falling, so a count that holds level is read as one that
-rose: it is a row for the judgment `docs/measuring-a-run.md` *A band flags a
+rose: it is a row for the judgment `docs/running/measuring-a-run.md` *A band flags a
 reading for judgment, and a judgment decides whether it is worse* asks, because a
 release's mix of work moves the count as well as stale copies do. A stale copy is a
 record that restates a fact another record holds and was left as it stood when that
@@ -180,7 +180,7 @@ each leg's minutes and each document's bytes, beside the same reading
 at the last release tag, and under it each test file's priced cases
 and seconds at the tag and now. It fails nothing, and no row of it is
 a verdict. The table has no band, so a preload or a document that grew
-is a row for the judgment `docs/measuring-a-run.md` *A band flags a
+is a row for the judgment `docs/running/measuring-a-run.md` *A band flags a
 reading for judgment, and a judgment decides whether it is worse*
 asks. The orchestrator writes that weighing in the pull request's
 body, and opens an issue only for a row the weighing judges `worse`. A

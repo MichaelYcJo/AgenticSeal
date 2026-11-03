@@ -17,9 +17,11 @@ prints the two together so the whole picture reads without a second copy:
 nothing is written, committed or generated, because a committed copy would be
 a second source and a file every branch rewrites.
 
-The grammar of the line is `skills/settle/SKILL.md` *A rule has one shape*,
+The grammar of the line is `skills/settle/rule-changes.md` *A rule has one shape*,
 and this module is its one reader. `seal rules --check` reads every rule file
-`RULE_FILES` names and every line a renderer shows in it, inside a rule
+`RULE_FILES` names, every document of the policy root
+`skills/settle/scripts/fold_check.py#documents` lists (`policy_documents`),
+and every line a renderer shows in them, inside a rule
 paragraph or not. One suite case runs it over the tree, so it is read wherever
 the suite runs. At the pull request, `skills/code-review/scripts/chain_check.py`
 asks the same reader, through `refused_lines` and `unread_lines`, for each
@@ -67,14 +69,13 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 SENTENCE = re.compile(r"(.+?[.!?])(?:\s|$)")
-# Where a rule is stated, and so where a `check:` line is read.
+# Where a rule is stated, and so where a `check:` line is read, beside the
+# policy root's documents, which `fold_check.py#documents` lists.
 RULE_FILES = (
     "CLAUDE.md",
     "CONTRIBUTING.md",
     "agents/*.md",
-    "docs/*.md",
-    "skills/*/SKILL.md",
-    "skills/*/orchestration.md",
+    "skills/*/*.md",
     "templates/*/*.md",
 )
 LABEL = "check: "
@@ -119,6 +120,10 @@ SIBLINGS = {
     "rule_changes": (
         os.path.join("skills", "settle", "scripts", "rule_changes.py"),
         "it is what reads the rule changes the settle has not yet written",
+    ),
+    "fold_check": (
+        os.path.join("skills", "settle", "scripts", "fold_check.py"),
+        "it is what lists the policy root's documents",
     ),
 }
 
@@ -210,15 +215,35 @@ def parse(line):
 
 def rule_files(root):
     """`{path: text}` of every rule file in the tree at `root`, by
-    `RULE_FILES`, its path written with `/`."""
+    `RULE_FILES` and `policy_documents`, its path written with `/`."""
+    paths = [
+        path
+        for pattern in RULE_FILES
+        for path in sorted(glob.glob(os.path.join(root, *pattern.split("/"))))
+    ]
+    paths += [os.path.join(root, *rel.split("/")) for rel in policy_documents(root)]
     out = {}
-    for pattern in RULE_FILES:
-        for path in sorted(glob.glob(os.path.join(root, *pattern.split("/")))):
-            if os.path.isfile(path):
-                rel = os.path.relpath(path, root).replace(os.sep, "/")
-                with open(path, encoding="utf-8", errors="replace") as handle:
-                    out[rel] = handle.read()
+    for path in paths:
+        if os.path.isfile(path):
+            rel = os.path.relpath(path, root).replace(os.sep, "/")
+            with open(path, encoding="utf-8", errors="replace") as handle:
+                out[rel] = handle.read()
     return out
+
+
+def policy_documents(root):
+    """The documents of the policy root of the tree at `root`, as
+    `skills/settle/scripts/fold_check.py#documents` lists them: its top level
+    and each group its index names. Nothing where the policy root is no
+    directory, and Unreadable where its index cannot be read."""
+    policy = sibling("config").policy_root(os.path.join(root, "seal"))
+    if not os.path.isdir(os.path.join(root, *policy.split("/"))):
+        return []
+    fold = sibling("fold_check")
+    try:
+        return fold.documents(root, policy)
+    except fold.Unusable as refused:
+        raise Unreadable(str(refused)) from None
 
 
 def carried_by(decorator):

@@ -66,8 +66,8 @@ WORKFLOWS = os.path.join(ROOT, ".github", "workflows")
 
 # Events GitHub does NOT include by default, and that a workflow needs where
 # it runs the one script that reads draft state: `chain_check.py` excuses a
-# draft (`docs/the-review-record.md` *What the check reads at the pull
-# request*), so leaving draft state has to re-run it.
+# draft (`docs/checks/the-pull-request-check.md` *What the check reads at
+# the pull request*), so leaving draft state has to re-run it.
 DRAFT_EVENTS = ("ready_for_review", "converted_to_draft")
 DRAFT_READER = "chain_check.py"
 
@@ -685,7 +685,9 @@ POINTER = f"One source: `{TEMPLATE}`, the workflow the plugin ships."
 
 # Where the chain checker's refusals are listed, which the template's comment
 # on the chain step names instead of listing them.
-REFUSALS = "`docs/the-review-record.md` *What the check reads at the pull request*"
+REFUSALS = (
+    "`docs/checks/the-pull-request-check.md` *What the check reads at the pull request*"
+)
 CHAIN_STEP = "a declared review chain has the round record it claimed"
 
 

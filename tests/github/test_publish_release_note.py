@@ -614,7 +614,7 @@ class Test_main:
     def test_the_title_is_the_line_the_checklist_prescribes(
         self, monkeypatch, tmp_path, capsys
     ):
-        """A4, first branch, and S15 of #1000. `docs/release-checklist.md`
+        """A4, first branch, and S15 of #1000. `docs/releasing/release-checklist.md`
         *5. The release pull request*
         prescribes `release: X.Y.Z symptoms: <symptoms>` for the release pull
         request, and the merge commit's BODY carries it — the subject is GitHub's

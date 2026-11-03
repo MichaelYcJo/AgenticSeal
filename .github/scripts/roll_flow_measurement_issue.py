@@ -14,7 +14,7 @@ default branch). The release's first pull request moved
 `.claude-plugin/plugin.json`'s version, and it reaches `main` in the same
 push as the rest of the release, so the checked-out tree carries the
 just-shipped version -- the fact everything below depends on
-(`docs/branch-and-release.md` "Cutting a release").
+(`docs/releasing/branch-and-release.md` "Cutting a release").
 
 **The log is named after the version it rolls FROM, and it rolls only when a
 new version has shipped since.** At the moment this runs, the tree names the
@@ -171,7 +171,7 @@ TITLE_MARKER = "flow measurement — after "
 # is the one direction the docstring above says must be unreachable.
 #
 # `TITLE_MARKER` is built into this rather than spelled out again, because
-# `docs/issues-and-milestones.md` is read against the marker by name and two
+# `docs/releasing/issues-and-milestones.md` is read against the marker by name and two
 # constants drifting apart is the same fault one level up.
 TITLE_PREFIX = f"chore: {TITLE_MARKER}"
 
@@ -179,7 +179,7 @@ MILESTONE_NOTE = (
     f"The `{INDEX_MILESTONE}` milestone could not be set on this issue -- it "
     f"has been renamed, deleted, or is not resolvable from the release "
     f"workflow. Set it by hand if it still exists. Nothing automated reads a "
-    f"milestone (`docs/issues-and-milestones.md`), so this costs a person a "
+    f"milestone (`docs/releasing/issues-and-milestones.md`), so this costs a person a "
     f'wrong answer to "what is in this version" and costs no check anything.'
 )
 

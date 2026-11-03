@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """rule_changes — the one reader of a design's `## Rule changes` section.
 
-The grammar is `skills/settle/SKILL.md` *Rule changes*. `GRAMMAR` below is
+The grammar is `skills/settle/rule-changes.md` *Rule changes*. `GRAMMAR` below is
 the one spelling of its operations in code; the item lines, their fields and
 the no-change block are spelt once in `unverified_check.py`, which reads
 `## Not verified` with the same block. `parse` reads a section into operations,
@@ -151,7 +151,9 @@ def letters(text):
 
 def parse(text, policy_root):
     """The `## Rule changes` section of a design's TEXT, as a `Parsed`; each
-    `file` is a top-level `.md` of the directory POLICY_ROOT.
+    `file` is a `.md` of the directory POLICY_ROOT or of one group directory
+    directly in it, `<policy root>/<name>.md` or
+    `<policy root>/<group>/<name>.md`.
 
     The section is read under `## Rule changes` alone. A heading at any
     level whose letters, case folded, are that heading's, that is not it and
@@ -252,12 +254,18 @@ def parse(text, policy_root):
     for item in ops:
         values, error = r.field_values(item, *GRAMMAR[item["kind"]])
         file = (values or {}).get("file", "")
-        # No separator of either system and no drive colon in the name, so a
-        # value joins to one file at the top level on every platform.
-        if not error and not re.fullmatch(
-            re.escape(policy_root) + r"/[^/\\:]+\.md", file
-        ):
-            error = (item["line"], f"`{file}` is not a top-level {policy_root}/ file")
+        # No separator of either system and no drive colon in a name, so a
+        # value joins to one file on every platform: at the top level, or in
+        # one group directory that is neither `.` nor `..`.
+        placed = re.fullmatch(
+            re.escape(policy_root) + r"/(?:([^/\\:]+)/)?[^/\\:]+\.md", file
+        )
+        if not error and (not placed or placed.group(1) in (".", "..")):
+            error = (
+                item["line"],
+                f"`{file}` is not a `.md` of {policy_root}/ or of one group "
+                "directory in it",
+            )
         if error:
             return done([], None, [error])
         out.append(
@@ -382,7 +390,7 @@ def _last_row(lines, first, stop, new):
 
 def apply_op(text, op):
     """OP placed in TEXT, a document's text with its line ends, as *Rule
-    changes* in `skills/settle/SKILL.md` places each kind: `(new text, None)`;
+    changes* in `skills/settle/rule-changes.md` places each kind: `(new text, None)`;
     `(None, None)` where a `remove` with no `from` leaves the document empty,
     so it is deleted; or `(None, why)` where OP is not placed, WHY naming the
     file and the section. TEXT is None for a document not in the tree.

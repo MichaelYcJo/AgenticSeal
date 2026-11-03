@@ -127,7 +127,7 @@ class Test_judge:
         assert "::error::" in out, "the refusal is not annotated as an error"
 
     def test_a_pull_request_body_with_no_closing_keyword_refuses_the_release(self):
-        """S8. `docs/issues-and-milestones.md` says a missing `Closes #N` "costs
+        """S8. `docs/releasing/issues-and-milestones.md` says a missing `Closes #N` "costs
         an issue that stays open forever"; this is the first thing that reports
         it, and it reports it as the milestone claiming an item that is not in.
 
@@ -243,7 +243,7 @@ class Test_judge_feat:
         assert f"rename {MILESTONE!r} and every later planned" in error, error
         assert "cut this branch again under the new name" in error, error
         assert "plugin.json" in error, error
-        assert "docs/branch-and-release.md" in error, error
+        assert "docs/releasing/branch-and-release.md" in error, error
         # The same printed line's closing clause.
         assert "never lowered to fit the number" in error, error
         assert lines[0] == error, "the refusal is not the first line a reader meets"
@@ -318,7 +318,7 @@ class Test_main:
     def test_refuses_a_head_that_is_not_a_release_branch_with_a_reason(
         self, monkeypatch, capsys, head
     ):
-        """S7. `docs/branch-and-release.md` lists a hotfix branch as the other
+        """S7. `docs/releasing/branch-and-release.md` lists a hotfix branch as the other
         thing that reaches `main`, and a hotfix carries no release milestone.
         Guessing a version out of the name is the one thing that must not
         happen."""

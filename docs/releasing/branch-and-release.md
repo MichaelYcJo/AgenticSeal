@@ -6,7 +6,7 @@ version. It is read before a merge, which is why it is not a section of
 
 ## Cutting a release
 
-The day-of list, in the order the steps run, is `docs/release-checklist.md`.
+The day-of list, in the order the steps run, is `docs/releasing/release-checklist.md`.
 This section is the why.
 
 Two things carry the version, and different code reads each. A release
@@ -59,11 +59,11 @@ hand fires the publish workflow too.
   where no such tag exists, and takes the tag where it already names that
   commit, which is a re-run. It publishes a note built from the release's
   changelog fragments, titled from the tagged commit's
-  `release: X.Y.Z symptoms: <symptoms>` line (`docs/release-checklist.md`
+  `release: X.Y.Z symptoms: <symptoms>` line (`docs/releasing/release-checklist.md`
   *5. The release pull request*), read whole and exactly so. It never
   republishes a release that exists, and falls back to the tag name when no
   line reads so, logging the shape it expected and the `release:` line it
-  found. Which fragments it reads is `docs/the-record-layout.md` *A change
+  found. Which fragments it reads is `docs/layout/the-record-layout.md` *A change
   writes fragments, never a shared file*, each read at the newest commit of
   the range that holds it, so a work item a settle removed before the tag
   still has its entry. It goes red on a tag whose range added no
@@ -125,10 +125,10 @@ hand fires the publish workflow too.
   the release reaches `main`, the close-issues workflow runs
   `.github/scripts/tracker_labels.py --apply`, which creates every declared
   label the tracker lacks, and takes `size: now` off each issue it closes.
-  `docs/issues-and-milestones.md` owns what the label means; this says only who
+  `docs/releasing/issues-and-milestones.md` owns what the label means; this says only who
   performs the acts. Whether the label exists is what `gh label list` says.
 
-`docs/release-checklist.md` *6. After the merge* carries a box for each of the
+`docs/releasing/release-checklist.md` *6. After the merge* carries a box for each of the
 first two. The first confirms the workflow fired and is not where the note
 gets written; the second is where the command is run.
 check: tests/behaviour/test_a_release_publishes_its_note.py tests/github/test_publish_release_note.py tests/github/test_tag_release.py tests/text/test_the_release_tail_does_not_end_at_the_tag.py tests/behaviour/test_the_release_seal_is_drawn.py tests/github/test_release_seal.py
@@ -181,7 +181,7 @@ resolving.
 
 **The `target:` line in every `round-N.md` names a commit.** After a squash it
 resolves for nobody, which is why the check reads it only while the branch
-that holds the commit is open (`docs/the-review-record.md` *The round record*).
+that holds the commit is open (`docs/forms/the-round-record.md` *The round record*).
 check: tests/text/test_a_rider_reaches_its_file.py
 
 **A third reader of those commits is outside this repository.** A marketplace
@@ -192,7 +192,7 @@ browse inside Claude, holds a commit too: a plugin submitted at its developer
 portal is served from a scanned commit of the branch or tag the submission
 tracks (`claude.com/docs/plugins/submit`). Breaking the rule above therefore
 also breaks a consumer nobody here can reach, for people the owner cannot
-name. `docs/release-checklist.md` *6. After the merge* carries the box that
+name. `docs/releasing/release-checklist.md` *6. After the merge* carries the box that
 reads what is pinned. This paragraph is a record rather than a rule: a
 marketplace file pins a commit of each outside plugin's source repository.
 The rule it supports, that anything reaching `main` is a merge commit, is held
@@ -256,7 +256,7 @@ is why the version moves in the release's first pull request.
 
 **The changelog entries arrive as fragments, and the release note is built
 from them at the tag.** Which file a change writes, and why, is
-`docs/the-record-layout.md` *A change writes fragments, never a shared file*.
+`docs/layout/the-record-layout.md` *A change writes fragments, never a shared file*.
 No branch gathers them. `.github/scripts/publish_release_note.py` reads, from
 the history at the tag, the fragments the release's commits added and the
 previous version tag does not already hold, and writes each under a link to
@@ -309,7 +309,7 @@ it.
 that a ticket already in the release stops looking like one nobody has
 started. It answers *is this in yet*, which the paragraph above leaves open
 for the length of a release; *is this done* is still the close, still when
-`main` moves. `docs/issues-and-milestones.md` owns both mechanisms and the
+`main` moves. `docs/releasing/issues-and-milestones.md` owns both mechanisms and the
 reason the two moments are different.
 
 Collecting the numbers into the release pull request's own body would be a
@@ -350,7 +350,7 @@ read it as two either.
 `Part of #N` remains the form for a pull request that advances an issue without
 finishing it. It links for a reader and asks nothing to close.
 
-**The version is named at the cut, a `feat:` ships in the planned minor whose goal it shares, and the prefix is never lowered to fit the number.** A release's milestone, `release: X.Y.Z`, names the version before its first work item starts, and the branch is cut as `release/vX.Y.Z` for it. A release that carries a `feat:` is a minor, and every other prefix fits a patch; `skills/commit-pr-convention/SKILL.md` *Commit messages* says which change takes which prefix. A planned minor is a category with one goal, which its milestone's description states (`docs/issues-and-milestones.md` *A milestone answers when, and takes three shapes*), and the `feat:`s that share that goal ship together in it, so one minor is not made for each `feat:`. A `feat:` lands in a milestone when an issue titled `feat:` is filed into it or moved into it, or when a pull request takes `feat:` where its issue had another prefix. When it lands in a milestone numbered as a patch, its issue moves to the planned minor whose goal it shares. Where no planned minor shares its goal, or the work that follows needs it in effect before that minor ships, that milestone and every later planned `release:` milestone are renamed one step forward in one act instead, each keeping the step it had from the milestone before it, and every description is rewritten for the new numbers. A rename made because the work that follows needs the `feat:` sooner states its grounds in the renamed milestone's description: the work item that needs it, and why the minor that shares its goal ships too late. A `feat:` already squashed onto a patch's branch stays in that release's range, because the release pull request's reading counts it after a revert as well, so its repair is the same rename. A release branch already cut is cut again under the new name from the old one, and the new branch's first pull request moves `plugin.json` to the new version. Until a branch is cut under a name, the planned milestones' names follow their goals, and a regrouping renames them in one act, back as well as forward, with every description rewritten. Once a branch is cut, its name is never pulled back: a minor that carries no `feat:` ships as the minor it was named, because the branch, the `merged:` labels and `plugin.json` already carry that name. The release pull request refuses a patch-numbered release whose own commit subjects carry a `feat:`, and names each one. The reading is exact, and the rule it holds was approved on 2026-09-02, held by nothing, and broken by 14 of the 37 patch releases from v0.8.1 to v0.25.1.
+**The version is named at the cut, a `feat:` ships in the planned minor whose goal it shares, and the prefix is never lowered to fit the number.** A release's milestone, `release: X.Y.Z`, names the version before its first work item starts, and the branch is cut as `release/vX.Y.Z` for it. A release that carries a `feat:` is a minor, and every other prefix fits a patch; `skills/commit-pr-convention/SKILL.md` *Commit messages* says which change takes which prefix. A planned minor is a category with one goal, which its milestone's description states (`docs/releasing/issues-and-milestones.md` *A milestone answers when, and takes three shapes*), and the `feat:`s that share that goal ship together in it, so one minor is not made for each `feat:`. A `feat:` lands in a milestone when an issue titled `feat:` is filed into it or moved into it, or when a pull request takes `feat:` where its issue had another prefix. When it lands in a milestone numbered as a patch, its issue moves to the planned minor whose goal it shares. Where no planned minor shares its goal, or the work that follows needs it in effect before that minor ships, that milestone and every later planned `release:` milestone are renamed one step forward in one act instead, each keeping the step it had from the milestone before it, and every description is rewritten for the new numbers. A rename made because the work that follows needs the `feat:` sooner states its grounds in the renamed milestone's description: the work item that needs it, and why the minor that shares its goal ships too late. A `feat:` already squashed onto a patch's branch stays in that release's range, because the release pull request's reading counts it after a revert as well, so its repair is the same rename. A release branch already cut is cut again under the new name from the old one, and the new branch's first pull request moves `plugin.json` to the new version. Until a branch is cut under a name, the planned milestones' names follow their goals, and a regrouping renames them in one act, back as well as forward, with every description rewritten. Once a branch is cut, its name is never pulled back: a minor that carries no `feat:` ships as the minor it was named, because the branch, the `merged:` labels and `plugin.json` already carry that name. The release pull request refuses a patch-numbered release whose own commit subjects carry a `feat:`, and names each one. The reading is exact, and the rule it holds was approved on 2026-09-02, held by nothing, and broken by 14 of the 37 patch releases from v0.8.1 to v0.25.1.
 check: a-patch-carries-no-feat
 
 **`main` stays the default branch.** A fresh marketplace clone lands on the

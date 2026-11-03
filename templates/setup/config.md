@@ -402,7 +402,7 @@ so the next reader can open the same file.
 ## Pact
 
 One row, written in a signer of a pact held in another repository
-(`docs/the-pact.md`). A work item that commits in more than one repository,
+(`docs/layout/the-pact.md`). A work item that commits in more than one repository,
 where those repositories keep a contract together, keeps the one copy of that
 contract in `seal/pact.md` in one of them. Every repository of the work item
 is a signer, and every one except the pact's repository names the pact
@@ -483,7 +483,7 @@ plugin sets no value; these rows are where a repository states its own.
 
 | Row | Value | Absent |
 |---|---|---|
-| `Document token ceiling` | a positive whole number of estimated tokens. A top-level document of the policy root past it is reported as one to split | no length is checked |
+| `Document token ceiling` | a positive whole number of estimated tokens. A document of the policy root or of one of its groups past it is reported as one to split | no length is checked |
 | `Policy root` | the repository-relative directory of the ratified policy documents, which the settle writes and every reader of them reads | `docs` |
 
 **The estimate is a document's UTF-8 bytes halved, rounded up.** Measured
