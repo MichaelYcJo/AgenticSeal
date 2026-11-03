@@ -197,8 +197,8 @@ it, so the commands of the placeholder S and of both owls write the tag's
 ![The little owl as a vector seal: a round-headed owl with ringed eyes and a scalloped breast, perched on an olive branch inside a fret border, pressed into a red wax seal](../../.claude-plugin/icon.png)
 
 - **The social preview:** `owl-social.png`, the image a page shows beside
-  a shared link to the repository. It is 1280 × 640 pixels, under 1 MB, and
-  opaque, as GitHub's guidance for the image asks. Its source is
+  a shared link to the repository. It is 1280 × 640 pixels and under 1 MB,
+  on the solid background GitHub's guidance recommends. Its source is
   `owl-social.svg`, which places `owl.svg` by `<image href="owl.svg">`,
   480 pixels square and centred, on a solid `#f4ecdc` field, and copies
   none of the owl's paths. GitHub reads no file in the tree for the
