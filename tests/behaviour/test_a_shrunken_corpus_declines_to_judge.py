@@ -77,9 +77,9 @@ APPLIES_THE_SHARED_GUARD = {
     # module listed and not on disk would end the enumeration at it --
     # this case reporting no offender because it read almost nothing.
     "tests/behaviour/test_a_shrunken_corpus_declines_to_judge.py#suite_modules": 1,
-    # #730's ratchet. It judges what it finds and fails only on a count that
-    # rose, so a file listed and not on disk can lower a count and never
-    # raise one; it skips the missing half and does not decline.
+    # #730's paste check. It names every pair of the files it finds that
+    # shares a run, so a file listed and not on disk removes pairs and adds
+    # none; it skips the missing half and does not decline.
     "tests/text/test_no_passage_is_pasted_into_a_second_file.py#corpus": 1,
     # #867's heading rule held to markdown-it over every tracked `.md`. Both
     # its callers judge what they find, so it skips the missing half.
