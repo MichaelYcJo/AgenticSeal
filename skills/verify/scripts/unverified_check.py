@@ -139,7 +139,7 @@ CLOSED = "closed"
 # naming the edit; a base revision's reads it as the word, because nobody can
 # edit a commit that already happened.
 OLD_MARK = chr(0x2705)
-# A design section's items, `skills/settle/SKILL.md` *Rule changes*: the
+# A design section's items, `skills/settle/rule-changes.md` *Rule changes*: the
 # item's line, then one field per line indented two spaces, a value continuing
 # on the lines below it indented four.
 ITEM_RE = re.compile(r"^- (\S+)\s*$")

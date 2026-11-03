@@ -57,7 +57,7 @@ FACTS = {
 
 SPELLINGS = [(number, spelling) for number in FACTS for spelling in FACTS[number][1]]
 
-# A check line as `skills/settle/SKILL.md` *A rule has one shape* states it:
+# A check line as `skills/settle/rule-changes.md` *A rule has one shape* states it:
 # after any leading spaces, `check: `, lowercase, one space after the colon.
 CHECK_LINE = re.compile(r"^ *check: .*$", re.M)
 
@@ -132,7 +132,7 @@ def test_the_sections_are_numbered_from_one_without_a_gap_or_a_repeat():
 
 def test_every_rule_carries_one_check_line():
     """`seal rules --check` reads the check lines there are, and cannot read
-    whether a rule carries one at all (`skills/settle/SKILL.md` *A rule has
+    whether a rule carries one at all (`skills/settle/rule-changes.md` *A rule has
     one shape*). A rule with none names nothing that reads it."""
     assert rules_without_one_check_line(read()) == []
 

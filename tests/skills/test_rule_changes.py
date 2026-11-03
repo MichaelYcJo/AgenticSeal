@@ -1,6 +1,6 @@
 """`skills/settle/scripts/rule_changes.py`, one class per function.
 
-The grammar of a spec's `## Rule changes` is `skills/settle/SKILL.md` *Rule
+The grammar of a spec's `## Rule changes` is `skills/settle/rule-changes.md` *Rule
 changes*, and this module is its one reader (#953). `Test_parse` asks the
 reader directly; `Test_pattern`, `Test_section_lines` and `Test_group` read
 the texts and places a settle shows over one document in memory (#1033).

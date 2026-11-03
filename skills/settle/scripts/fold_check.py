@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """seal fold — hold the policy root's documents to one read and one index.
 
-`skills/settle/SKILL.md` gives a document one read and the policy root one
-index. This is the reader of both, shipped (#566, #953).
+`skills/settle/SKILL.md` gives a document one read, and
+`skills/settle/rule-changes.md` gives the policy root one index. This is the
+reader of both, shipped (#566, #953).
 
   seal fold                      every check, with the values seal/config.md states
   seal fold --ceiling N          report documents past N estimated tokens, this run

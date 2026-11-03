@@ -581,10 +581,10 @@ def test_the_framer_writes_rule_changes_from_the_index():
     definition cites the grammar, the index and the model; whether it
     restates either is the proofer's to read."""
     framer = flat(read(*FRAMER))
-    # The citation `skills/settle/SKILL.md` *Rule changes*, which the framer
-    # resolves to the grammar `rule_changes.py#parse` reads; the citation is
-    # the fact.
-    assert "as `skills/settle/SKILL.md` *Rule changes* states it" in framer
+    # The citation `skills/settle/rule-changes.md` *Rule changes*, which the
+    # framer resolves to the grammar `rule_changes.py#parse` reads; the
+    # citation is the fact.
+    assert "as `skills/settle/rule-changes.md` *Rule changes* states it" in framer
     # The path `<policy root>/README.md`, which the framer opens to pick each
     # `file:`.
     assert "picked from the index, `<policy root>/README.md`" in framer

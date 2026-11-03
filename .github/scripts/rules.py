@@ -17,7 +17,7 @@ prints the two together so the whole picture reads without a second copy:
 nothing is written, committed or generated, because a committed copy would be
 a second source and a file every branch rewrites.
 
-The grammar of the line is `skills/settle/SKILL.md` *A rule has one shape*,
+The grammar of the line is `skills/settle/rule-changes.md` *A rule has one shape*,
 and this module is its one reader. `seal rules --check` reads every rule file
 `RULE_FILES` names, every document of the policy root
 `skills/settle/scripts/fold_check.py#documents` lists (`policy_documents`),

@@ -4,7 +4,7 @@
 `seal rules --check` fails where a check line is refused. A rule's text lives
 once, as the first sentence of the docstring of the test that holds it, and
 a rule file lists its tests by `check:` line, in the grammar
-`skills/settle/SKILL.md` *A rule has one shape* states. `seal rules <doc>` never
+`skills/settle/rule-changes.md` *A rule has one shape* states. `seal rules <doc>` never
 fails for what it finds; `seal rules --check` reads every rule file and is exit 1
 where a line is out of grammar or a target is gone, and one case here runs
 it over the tree, so the suite is where the fact is read.

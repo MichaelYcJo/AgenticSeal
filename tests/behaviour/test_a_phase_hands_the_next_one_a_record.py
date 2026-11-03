@@ -141,10 +141,10 @@ def test_the_spec_template_carries_the_rule_changes_section_above_removes():
     assert section_body(lines, "## Rule changes") == []
     assert raw.index("## Rule changes") < raw.index("## Removes")
     framer = " ".join(read(FRAMER_AGENT).split())
-    assert "`skills/settle/SKILL.md` *Rule changes*" in framer
+    assert "`skills/settle/rule-changes.md` *Rule changes*" in framer
     assert (
         "## Rule changes"
-        in read(os.path.join(ROOT, "skills", "settle", "SKILL.md")).splitlines()
+        in read(os.path.join(ROOT, "skills", "settle", "rule-changes.md")).splitlines()
     )
 
 

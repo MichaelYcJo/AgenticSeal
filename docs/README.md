@@ -3,7 +3,7 @@
 The standing policy, one row per topic and one table per subject. A `docs/`
 document outranks the work items' designs, and a design that finds one
 wrong states the correction in its `## Rule changes`
-(`skills/settle/SKILL.md` *Rule changes*).
+(`skills/settle/rule-changes.md` *Rule changes*).
 
 ## The process
 

@@ -12,7 +12,7 @@ import os
 from conftest import ROOT
 from test_rules import rules
 
-SETTLE = os.path.join(ROOT, "skills", "settle", "SKILL.md")
+SETTLE = os.path.join(ROOT, "skills", "settle", "rule-changes.md")
 
 
 def test_the_slice_document_resolves_every_target():

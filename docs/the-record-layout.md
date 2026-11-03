@@ -239,7 +239,7 @@ check: an-empty-root-is-settled
 commit, not by its directory's presence at a ref.** The directory sits under
 the common git directory, where no ref holds it, so `settle` asks which pull
 request from the branch its `routing.md` names has merged and whether
-`--released-at` reaches that merge commit; `skills/settle/SKILL.md` *In
+`--released-at` reaches that merge commit; `skills/settle/local-mode.md` *In
 local mode* gives the states that leave a work item unreleased. The settling
 session writes the committed policy root as in shared mode, and
 `seal settle --apply` removes each released local directory whose record holds no

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """rule_changes — the one reader of a design's `## Rule changes` section.
 
-The grammar is `skills/settle/SKILL.md` *Rule changes*. `GRAMMAR` below is
+The grammar is `skills/settle/rule-changes.md` *Rule changes*. `GRAMMAR` below is
 the one spelling of its operations in code; the item lines, their fields and
 the no-change block are spelt once in `unverified_check.py`, which reads
 `## Not verified` with the same block. `parse` reads a section into operations,
@@ -390,7 +390,7 @@ def _last_row(lines, first, stop, new):
 
 def apply_op(text, op):
     """OP placed in TEXT, a document's text with its line ends, as *Rule
-    changes* in `skills/settle/SKILL.md` places each kind: `(new text, None)`;
+    changes* in `skills/settle/rule-changes.md` places each kind: `(new text, None)`;
     `(None, None)` where a `remove` with no `from` leaves the document empty,
     so it is deleted; or `(None, why)` where OP is not placed, WHY naming the
     file and the section. TEXT is None for a document not in the tree.

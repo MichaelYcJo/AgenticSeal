@@ -214,7 +214,7 @@ under `docs/`, or in the *Verifiable how* cell of the design's scenario table â€
 so the case is the record that the rule holds, and CI running the suite is
 the check. A rule no case can hold says `check: none reader: <who reads it>`,
 and the reader is who holds it instead. The grammar is
-`skills/settle/SKILL.md` *A rule has one shape*.
+`skills/settle/rule-changes.md` *A rule has one shape*.
 
 This is the input for the reviewer and the next ticket: a case somebody can
 run rather than a reading somebody did. A judgment settled by opening code
@@ -412,7 +412,7 @@ no-change block and `nothing`.
 
 **`## Not verified` is read by a machine, so it has one shape** â€” a
 `| Item | Who must answer |` table, or alone the no-change block
-`skills/settle/SKILL.md` *Rule changes* states, `- nothing` with its one
+`skills/settle/rule-changes.md` *Rule changes* states, `- nothing` with its one
 field `why:`. Any other spelling of the heading, the header row or the block
 fails the check rather than reporting zero, because zero reads as "everything
 has been closed". The template's placeholder row fails it too, until it is

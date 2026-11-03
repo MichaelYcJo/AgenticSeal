@@ -36,10 +36,11 @@ def test_the_cheat_sheets_name_the_design_file_the_settle_reads():
 
 
 SKILL = os.path.join(ROOT, "skills", "settle", "SKILL.md")
+LOCAL_MODE = os.path.join(ROOT, "skills", "settle", "local-mode.md")
 
 
-def skill():
-    with open(SKILL, encoding="utf-8") as f:
+def skill(path=SKILL):
+    with open(path, encoding="utf-8") as f:
         return f.read()
 
 
@@ -207,7 +208,7 @@ def test_the_module_and_the_skill_both_say_how_local_mode_settles():
     assert "opted out" in exits, "exit 2 covers the opt-out and the list does not"
     assert "Local mode is refused" not in head, head
     assert "refuses to run in local mode" not in flat(skill())
-    section = flat(skill().split("\n## In local mode\n")[1].split("\n## ")[0])
+    section = flat(skill(LOCAL_MODE).split("\n## In local mode\n")[1].split("\n## ")[0])
     for said in (
         "under the common git directory",
         "so a work item's directory is `<git-common-dir>/seal/threads/<id>/`",
