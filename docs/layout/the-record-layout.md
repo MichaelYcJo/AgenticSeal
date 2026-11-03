@@ -120,8 +120,8 @@ leave together.** `routing.md`, the frame (`frame/design.md`,
 `trail/phases/`, `trail/gate.md`) and the files at the thread's top
 (`gaps.md`, `changelog.md`, `guarantee.md`, and a `pr.*.md` where one was
 written) go with the directory, whole, when the settle removes it
-(*The fold, and what tells it from a deletion* above, and
-`docs/releasing/release-checklist.md` *2b*). A document that still cites a record of
+(`docs/checks/the-fold.md` *The fold, and what tells it from a deletion*,
+and `docs/releasing/release-checklist.md` *2b*). A document that still cites a record of
 it writes the path a commit holds, as `<commit>:<path>`, which `git show`
 opens as written; in this repository `tests/censuses.py#HISTORY_PATH` is
 the one form `old_names` passes.

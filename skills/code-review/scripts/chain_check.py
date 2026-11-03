@@ -76,7 +76,8 @@ judged (`carried_by`). The arms are eight:
 A ready pull request fails on any of them. A draft, or a run that observed no
 pull request, prints the same lines and exits 0.
 `docs/checks/the-pull-request-check.md` *What the check reads at the pull request* states the rules these arms hold,
-and its *The round record* and *The guarantee* the records they read.
+and `docs/forms/the-round-record.md` *The round record* and
+`docs/forms/the-guarantee.md` *The guarantee* the records they read.
 
 In a round record, `guarantee.md` and `trail/gate.md` a field stands in a
 `seal` block, every line of which parses or is refused at its line, and a
