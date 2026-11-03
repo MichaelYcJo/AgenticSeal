@@ -116,6 +116,15 @@ class Test_parse:
         assert parsed["implementation"] is None
         assert parsed["planning"] is None
 
+    def test_a_row_the_reader_does_not_read_changes_no_answer(self):
+        """#1277: a declaration written before the `Answer pressed` row left
+        the template still carries it, and reads with the answers it gives
+        without the row. The committed declarations held this until the
+        settle removes them; this case holds it after."""
+        legacy = with_row("Answer pressed", "automation")
+        assert routing.parse(two_axis_text()) is not None
+        assert routing.parse(legacy) == routing.parse(two_axis_text())
+
     def test_accepts_the_third_axis_where_it_is_there(self):
         """S2."""
         for answer in routing.IMPLEMENTATION_ANSWERS:
