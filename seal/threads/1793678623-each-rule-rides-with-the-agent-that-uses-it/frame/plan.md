@@ -80,4 +80,4 @@ which is why D2's list names the number.
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-03 | No paid behaviour-suite run is taken for this preload rewrite | `evals/README.md:19` opens with "A rewrite of an agent's preload is proved not worse by running this suite", and the same section states that nothing in the tree makes a later edit owe a run; #1312's preload rewrite took none on that sentence (`seal/threads/1793661729-each-document-is-cut-by-who-opens-it/frame/design.md:27`), and 0.32.0's #1254 narrows the suite because its record does not bear the opening sentence out. The owner was told and may ask for a run | `evals/README.md` *The behaviour suite — `behaviour/<agent>/`* |
