@@ -1314,6 +1314,17 @@ class Test_destination_root:
         assert root == ""
         assert why.startswith("both roots exist, and the gates read the first of them:")
         assert f"  {shared}   (shared mode — read first)\n" in why
+        # #1102 round 1, finding 2: the message sent the person to the
+        # README's *Shared or local*, whose `seal mode` refuses both roots
+        # too, and whose by-hand moves would nest one root inside the other.
+        # It says the step that ends the state, and that `seal mode` refuses.
+        flat = " ".join(why.split())
+        assert (
+            "keep the root that holds the records you want, copy across by hand "
+            "what only the other holds, and delete the other" in flat
+        ), why
+        assert "`seal mode` refuses while both exist, too." in flat, why
+        assert "README" not in why, why
 
     @pytest.mark.parametrize("into", [None, "local"])
     def test_refuses_a_local_root_it_cannot_place(self, tmp_path, into):
