@@ -75,8 +75,7 @@ RULE_FILES = (
     "CLAUDE.md",
     "CONTRIBUTING.md",
     "agents/*.md",
-    "skills/*/SKILL.md",
-    "skills/*/orchestration.md",
+    "skills/*/*.md",
     "templates/*/*.md",
 )
 LABEL = "check: "

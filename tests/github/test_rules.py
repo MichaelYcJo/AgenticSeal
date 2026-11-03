@@ -563,6 +563,17 @@ class Test_main:
             in out
         ), out
 
+    def test_a_check_line_in_a_skills_supporting_file_is_read(self, tmp_path, capsys):
+        """#1312: a section a skill's `SKILL.md` hands to a supporting file
+        beside it keeps its check line read there."""
+        text = doc(rule("check: tests/test_gone_s.py"))
+        code, out = checked(tmp_path, {"skills/x/supporting.md": text}, capsys)
+        assert code == 1, out
+        assert (
+            "seal rules: skills/x/supporting.md:6: The heading: "
+            "tests/test_gone_s.py does not exist" in out
+        ), out
+
     def test_a_group_the_policy_index_names_is_read_and_no_other_directory_is(
         self, tmp_path, capsys
     ):
