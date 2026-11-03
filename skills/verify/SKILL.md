@@ -40,10 +40,12 @@ verification, and the run only executes it.
 
 Show the check CAN go red. For a bug fix: the reproduction failed before the
 change (or fails when the change is reverted). For a new test: it was
-observed failing against the pre-change code. A check that has never been
-seen red is a counterfeit seal. This is the condition generic gates skip,
-and the one that catches assertion-free tests, mocked-away behavior, and
-wrong-file test runs.
+observed failing against the pre-change code, except that a new test
+asserting that something is not named, counted, read or let through, where
+it passes there, is shown red the way contract rule 15 states. A check that
+has never been seen red is a counterfeit seal. This is the condition
+generic gates skip, and the one that catches assertion-free tests,
+mocked-away behavior, and wrong-file test runs.
 
 #### An absence claim is only as good as the search behind it
 

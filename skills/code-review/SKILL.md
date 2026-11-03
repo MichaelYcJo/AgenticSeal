@@ -169,9 +169,9 @@ resolution, file modes, symlinks, a subprocess's working directory, encoding
 — states the precondition it assumes beside the line, or says it has none.
 
 **A paste-ready fix reaches every statement of the fact it repairs, or names
-where it stops.** A fix pass takes the snippet as the repair, so a snippet
-scoped to the one coordinate the finding names leaves the fact's other
-statements standing: the rest of the paragraph,
+where it stops.** A fix pass that finds the snippet holds applies it as
+the repair, so a snippet scoped to the one coordinate the finding names
+leaves the fact's other statements standing: the rest of the paragraph,
 a frame cell such as *Removes*, the name, docstring and comment of the case it
 changes, and every condition the sentence covers, such as a row that runs
 pytest once and one that runs it several times. Each of those returns as the

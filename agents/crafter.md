@@ -164,12 +164,16 @@ with no commit on the branch is `deferred <where it was repaired>`), and its
 `answer:` says what was done.
 The pass edits nothing else in the record: the finding's own block is the
 proofer's (`docs/forms/the-round-record.md` *The round record*).
-A paste-ready fix is the proofer's claim and not the fix. Apply it only
-after reading it as its text's own reader would: a procedure step is read
-in either `seal/` root (contract rule 11), under every condition its file
-names, and in the release that ships it. In that release, a section the
-step cites holds the text the release ships, not the text a design's
-`## Rule changes` writes at a later settle. Where that reading fails,
+A paste-ready fix is the proofer's claim and not the fix, and a spawn
+prompt or a judgment row that tells you to apply it names the fix without
+waiving the reading below. Apply it only after reading it against the
+frame and the code: what `frame/design.md` and the `frame/plan.md` row of
+the phase that built it say the changed unit does, and every input the
+code hands that unit. A procedure step is also read as its own reader
+would: in either `seal/` root (contract rule 11), under every condition
+its file names, and in the release that ships it. In that release, a
+section the step cites holds the text the release ships, not the text a
+design's `## Rule changes` writes at a later settle. Where that reading fails,
 write the fix in your own words and say so in `answer:`.
 Where your fix changed none of the paths the finding's `location:` lists,
 the close block carries a `location:` line naming the one it did change, and
