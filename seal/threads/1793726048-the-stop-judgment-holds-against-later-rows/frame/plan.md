@@ -2,16 +2,17 @@
 
 ## Technical context
 
-The work edits prose at four coordinates and no code:
+The work edits prose at five coordinates and no code:
 
 - `skills/code-review/orchestration.md:133-154`, the stop paragraph, its table and the row sentence under it. `tests/text/test_the_rules_have_one_owner.py#test_the_orchestrators_run_judgments_are_rows_of_the_plan` reads the section from its heading to *A regression is routed by comparing the fix with the frame* for "as one row of `frame/plan.md` *Judgments of the run*", which the rewrite keeps (`frame/design.md` G15). The paragraphs at `:156-172` and from `:174` stay.
+- `skills/code-review/orchestration.md` *A regression is routed by comparing the fix with the frame*, the lead before its table, which round 1's fix gave one sentence (`:228-236` at `89480ded9`).
 - `skills/implement/orchestration.md:480`, the drain table's first row. No case pins it (G15).
 - `skills/code-review/SKILL.md:127-131`, the bullet the new bullet follows. `tests/text/test_the_rules_have_one_owner.py` `RULES` entry 3 pins "a defect the release would ship" there.
 - `agents/proofer.md:136-140`. No case pins it (G15). The rule carries no `check:` line, and the rewrite adds none.
 
 No case is added. Each new sentence is a rule a reviewer reads, as `skills/settle/rule-changes.md` *A rule has one shape* allows for a rule no case holds. A case asserting that a sentence of guidance stands would pin wording, which `docs/running/what-a-script-gates.md` sends away. So contract rule 15 has no new case to apply to.
 
-The `change` in `frame/design.md` `## Rule changes` is read by `chain_check.py`'s rule-changes arm, which names a test literal the `from` holds (none, G15) and a 15-word run its `to` shares with another corpus file. The text of *Scope* item 1 in `skills/code-review/orchestration.md` must share no run of 15 words with that `to` (S7).
+Each `change` in `frame/design.md` `## Rule changes` is read by `chain_check.py`'s rule-changes arm, which names a test literal the `from` holds (none, G15) and a 15-word run its `to` shares with another corpus file. The text of *Scope* item 1 in `skills/code-review/orchestration.md` must share no run of 15 words with that `to` (S7).
 
 **Failure scenario of the chosen approach.** In six months, a run's stop row homes a `should` that mattered: a wrong sentence in a skill that the next release's agents act on, which the proofer graded `should` and not `must`. The release ships it, and its home is an issue that waits. The cost is one release of a wrong sentence where the home is rung 2 or 3, and the defect reaches nobody where the home is rung 4. The guard against it is the proofer's severity: a defect to fix before merge is a `must`, and a `must` still gets its fix after the stop. A second scenario: an orchestrator judges a run excessive too early, at round 2, to save tokens. The stop row's grounds must name what the next round can catch, and the settle's dry run reads every judgment row against what it cost and caught (`docs/running/the-run.md` *The run*, its last paragraph).
 
@@ -51,3 +52,4 @@ The orchestrator owns these acts, after the seal:
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
 | 2026-11-04 | `frame/design.md` and `frame/plan.md` give the stop paragraph as `skills/code-review/orchestration.md:133-154` and the proofer rule as `agents/proofer.md:136-140`, the base ranges; the orchestrator folds both before round 1 | the crafter's hand-back names both ranges as one line short at `bf9f6998e`, and the orchestrator read line 154 and line 140 there as each passage's last line; the frame's other coordinates are the base's, which HEAD does not contradict | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |
+| 2026-11-04 | `frame/design.md` takes what round 1's fix at `89480ded9` built and adds the two `change` entries round 1's finding 1 and finding 2 need for `docs/running/the-run.md`: *Scope* items 1 (a seventh point, on the regression route), 2, 3, 5, both Out bullets on the cap and the route, S1, S4, two *Removes* rows, and the first entry's `to` naming *Judgments of the run* in place of "that table"; `frame/plan.md` *Technical context* counts five coordinates | the fix pass's hand-back names each cell and gives the two entries, which it parsed with `skills/settle/scripts/rule_changes.py` and read for 15-word runs in a scratch copy (executed by the crafter); `docs/` is the settle's to write, so finding 1 closes `deferred` to this fold; the orchestrator read `frame/design.md` whole against HEAD after the fold | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, and `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes* |

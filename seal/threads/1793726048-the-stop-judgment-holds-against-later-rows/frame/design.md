@@ -29,16 +29,17 @@ Each row is labelled `read` where the framer opened the text, and `executed` whe
 
 In:
 
-1. **`skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round*, the paragraph opening **You end the rounds when they stop paying** and its table, through "commit the close blocks of that step together." (`:133-154`), rewritten in place.** The bold lead's three-round weighing point stays, and so does the clause "as one row of `frame/plan.md` *Judgments of the run*" (G15). The rewrite says six things:
+1. **`skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round*, the paragraph opening **You end the rounds when they stop paying** and its table, through "commit the close blocks of that step together." (`:133-154`), rewritten in place, with one sentence in the lead of *A regression is routed by comparing the fix with the frame*.** The bold lead's three-round weighing point stays, and so does the clause "as one row of `frame/plan.md` *Judgments of the run*" (G15). The rewrite says seven things:
    1. The orchestrator judges a run excessive at any round, by what the next round can catch against what it costs. No number of rounds decides it. The three finding rounds are where that weighing is owed, not a cap.
    2. The table gains a row, *What the next round can catch*. The next round's target is the last fix's diff (G11), so its catch is bounded by what that diff can break. A fix that changes no assertion, such as a test's comment or name, can be caught out only on its own wording.
    3. Such a fix owes no round of its own where another fix already owes one: it rides in that fix pass. This is guidance on the orchestrator's weighing. It changes no invariant and does not answer `frame/questions.md` Q1.
    4. Once the orchestrator judges the run excessive, it writes that in one row, naming what it weighed. From that row on, a `must` gets its fix pass and its verifying round. Every other finding takes a home that costs no round: rung 2, 3 or 4 of `docs/running/the-run.md` *The run*'s table, or a fix confined to the work item's records. The orchestrator spawns no fix pass for such a finding. It appends the close block reading `deferred <home>`, as the section already says.
    5. The stop row binds every row after it. A later row spends no round on a finding other than a `must`, whatever document it cites, the drain's first row (item 2) and the leftover table's rung 1 among them. The stop row has already weighed that fix against the round it costs. Only a design change ends the stop, and the count starts again at its first finding round.
    6. A repair the sealer's withheld verdict asks for is no finding and no row. The stop does not reach it, and its round is owed as G2 says.
-2. **`skills/implement/orchestration.md` *Orchestrator: drain the rows before the broad run, and keep the records*, the first row of its table (`:480`), rewritten in place.** Where a row of `frame/plan.md` *Judgments of the run* has judged the run excessive, only a `must` is done now. Every other item doable within the pull request takes a home item 1 allows, and the row cites item 1's section for it. The row's other clauses stay.
+   7. A finding with a `regression:` line is no exception. From the stop row on, only a `must` is routed by *A regression is routed by comparing the fix with the frame*, whose lead says so; every other regression takes a home that costs no round, never a fix pass and never the framer, whose redesign would end the stop.
+2. **`skills/implement/orchestration.md` *Orchestrator: drain the rows before the broad run, and keep the records*, the first row of its table (`:480`), rewritten in place.** Where a row of `frame/plan.md` *Judgments of the run* has judged the run excessive, only a `must`, or an item whose fix is confined to the work item's records, is done now. Every other item doable within the pull request takes a home item 1 allows, and the row cites item 1's section for it. The row's other clauses stay.
 3. **`skills/code-review/SKILL.md` *The record*, one bullet after the bullet opening "A finding is a defect." (`:127-131`).** The bullet makes five points:
-   1. A case that holds no fact the frame states is weighed by what the release ships without the fix. Such a case is one that no *Scope* item, acceptance row or `check:` line of a rule the diff changes names, such as a test of a helper the work moved or wrote beside its *Scope*.
+   1. A case that holds no fact the frame states is weighed by what the release ships without the fix. Such a case is one whose assertions hold no behaviour that a *Scope* item, an acceptance row or a `check:` line of a rule the diff changes states, such as a test of a helper the work moved or wrote beside its *Scope*; a fact that only a *Grounding* row states does not count.
    2. A parameter that pins nothing, a guard of code the diff did not change that no case pins, or a comment or a name that claims more than the case pins leaves the code as the frame says. So it is not a `should` by default, and the round opens no finding for it.
    3. A comment and a name of such a case are read by whoever next edits the case, and by no party at a step. So they are not the "sentence an agent reads and acts on" of the bullet before.
    4. The round names such a gap in one sentence of its prose, with its coordinate.
@@ -46,7 +47,7 @@ In:
 
    The bullet keeps "a defect the release would ship" where it stands (G15).
 4. **`agents/proofer.md` *Each new test is read against its group* (`:136-140`).** "A test that covers nothing its group does not already cover is a `should` finding" keeps its rule, except for a case that holds no fact the frame states. The sentence cites item 3's bullet for that case and does not restate it.
-5. **`docs/running/the-run.md` *The run*, `:48`, through `## Rule changes` below.** After a stop row, the diff is a home only for a `must` or for a fix confined to the work item's records. The settle writes it; no party of this run edits `docs/`.
+5. **`docs/running/the-run.md` *The run*, `:13`, `:29-30` and `:48`, through the three `change` entries of `## Rule changes` below.** The zero-finding round's sentence names the three finding rounds as the weighing point and no cap; a regression is routed at any round except that after a stop row only a `must` takes a route; and after a stop row the diff is a home only for a `must` or for a fix confined to the work item's records. The settle writes them; no party of this run edits `docs/`.
 6. The work item's `changelog.md`, with one `### Process changes` row for items 1, 2 and 5 and one for items 3 and 4. Each row's *Why* cell cites G7.
 
 Decided, and nothing is built for it:
@@ -59,18 +60,18 @@ Decided, and nothing is built for it:
 Out:
 
 - `README.md` (G18). #1102 rewrites it last in this release, and its restatement of the bound stays true.
-- `docs/running/the-run.md:13`'s "the cap" and `agents/proofer.md:132`'s "a round told the run is capped". Both name the weighing point that stays (item 9), and both stay true.
+- `agents/proofer.md:132`'s "a round told the run is capped". "Capped" there names a run the orchestrator stopped, as the `chain: capped` label does, and stays true. `docs/running/the-run.md:13`'s "the cap stops a loop" did not, and item 5 changes it.
 - `docs/forms/the-round-record.md` *A finding's `verdict:` decides it, and severity is for people*. It states what `must` and `should` are, and item 3 changes neither word's meaning. It names the class item 3 takes out of `should` nowhere.
-- The second regression route in `skills/code-review/orchestration.md` *A regression is routed by comparing the fix with the frame*. A route is a judgment of where a regression goes, and item 1 binds only whether a round is spent on a finding other than a `must`. A regression that is a `must` still takes its route.
+- The routes themselves in `skills/code-review/orchestration.md` *A regression is routed by comparing the fix with the frame*. Item 1's seventh point adds one sentence to the section's lead, so that after a stop row only a `must` takes a route; the routes' table and the framer's steps stay as they are.
 
 ## User scenarios & acceptance *(mandatory)*
 
 | Scenario | Given / When / Then | Verifiable how |
 |---|---|---|
-| S1 The stop holds against a later row | Given #1216's rows after rounds 6 to 9 (G7), when an orchestrator reads item 1's section at round 7 with the row after round 6 standing, then round 7's `should`, a regression, takes a home of rung 2, 3 or 4 and no fix pass, and the rows after rounds 7 and 9 have no ground the section leaves open | read by the round against item 1's six points; the section names the drain row and rung 1 as rows that do not reopen the stop |
+| S1 The stop holds against a later row | Given #1216's rows after rounds 6 to 9 (G7), when an orchestrator reads item 1's section at round 7 with the row after round 6 standing, then round 7's `should`, a regression, takes a home of rung 2, 3 or 4 and no fix pass, and the rows after rounds 7 and 9 have no ground the section leaves open | read by the round against item 1's six points; the section names the drain row and rung 1 as rows that do not reopen the stop, and the regression route's lead routes only a `must` after a stop row |
 | S2 No number decides excess | Given item 1's rewrite, when it is read, then the judgment of excess rests on what the next round can catch against its cost, and the three rounds read as where the weighing is owed | read; `grep -c 'three finding rounds by default' docs/running/the-run.md` still prints `1` |
 | S3 A `must` after the stop | Given a stop row, when the next verifying round opens a `must`, then the `must` gets its fix pass and its verifying round | read in item 1's fourth point |
-| S4 The drain after a stop | Given a stop row, when the orchestrator drains the rows before the broad run, then an item doable within the pull request other than a `must` takes a home and is not done now | read at `skills/implement/orchestration.md`, the drain table's first row |
+| S4 The drain after a stop | Given a stop row, when the orchestrator drains the rows before the broad run, then an item doable within the pull request other than a `must` or a fix confined to the work item's records takes a home and is not done now | read at `skills/implement/orchestration.md`, the drain table's first row |
 | S5 #1216's round 5 finding | Given round 5's finding (G7), when a proofer weighs it under item 3's bullet, then it is no `should`: `in_corpus` moved with its body, the case holds no fact the frame states, and the round names it in its prose | read; the same holds for rounds 6 to 9's findings |
 | S6 The proofer's group rule | Given `agents/proofer.md` after item 4, when a new case holding no fact the frame states covers nothing its group does not, then the sentence sends the proofer to item 3's bullet | read |
 | S7 The rule change parses | Given this design, when `python3 skills/code-review/scripts/chain_check.py --baseline <base> --root . --worktree` runs in the main clone, then it refuses nothing for this design's `## Rule changes` and prints no pin notice and no copy notice for its `change` | executed by the crafter, as #1216's S8 was |
@@ -87,7 +88,19 @@ No script, form, field, template, hook or severity value changes. `hooks/lib/fie
   file: docs/running/the-run.md
   section: The run
   from: The homes, with when each fits, are the rows below; the cheapest home that reaches a party who agreed to act is the one to take, a new issue is not the default, and the row the orchestrator writes in `frame/plan.md` *Judgments of the run* names the home and the party:
-  to: The homes, with when each fits, are the rows below; the cheapest home that reaches a party who agreed to act is the one to take, and a new issue is not the default. After a row of `frame/plan.md` *Judgments of the run* has judged the run excessive, the first rung holds only a `must` and a fix confined to the work item's records, because any other fix or rejection costs a round the stop has refused; every other finding takes the second, third or fourth rung (`skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round*). The row the orchestrator writes in that table names the home and the party:
+  to: The homes, with when each fits, are the rows below; the cheapest home that reaches a party who agreed to act is the one to take, and a new issue is not the default. After a row of `frame/plan.md` *Judgments of the run* has judged the run excessive, the first rung holds only a `must` and a fix confined to the work item's records, because any other fix or rejection costs a round the stop has refused; every other finding takes the second, third or fourth rung (`skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round*). The row the orchestrator writes in `frame/plan.md` *Judgments of the run* names the home and the party:
+
+- change
+  file: docs/running/the-run.md
+  section: The run
+  from: A round opening nothing that needs a fix does not count toward the cap: the cap stops a loop that is not converging, and such a round is the loop having converged.
+  to: A round opening nothing that needs a fix does not count toward the three finding rounds, which mark where the orchestrator weighs a loop that is not converging and are no cap: such a round is the loop having converged.
+
+- change
+  file: docs/running/the-run.md
+  section: The run
+  from: No label carries that sentence, and the orchestrator routes the round on it, at any round of the run.
+  to: No label carries that sentence, and the orchestrator routes the round on it, at any round of the run, except that once a row of `frame/plan.md` *Judgments of the run* has judged the run excessive, only a `must` takes a route, and every other regression takes a home that costs no round (`skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round*).
 
 ## Removes
 
@@ -97,6 +110,8 @@ No script, form, field, template, hook or severity value changes. `hooks/lib/fie
 | "done now" for every item doable within the pull request, after a stop row too | `skills/implement/orchestration.md` *Orchestrator: drain the rows before the broad run, and keep the records*, the table's first row | *Scope* item 2's row, in place |
 | `should` by default for every gap a round finds in a new case, a case that holds no fact the frame states among them | `agents/proofer.md` *Each new test is read against its group* | *Scope* item 3's bullet in `skills/code-review/SKILL.md` *The record*, which item 4's sentence cites |
 | the diff as a home for any finding in a unit the branch owns, after a stop row too | `docs/running/the-run.md` *The run*, the paragraph opening **A leftover finding goes where somebody will act on it** | the `change` in `## Rule changes`, written by the settle |
+| the three finding rounds as the cap that stops a loop | `docs/running/the-run.md` *The run*, the paragraph opening **A run ends with a verifying round** | the first `change` in `## Rule changes`, written by the settle |
+| a regression routed at any round, after a stop row too | `docs/running/the-run.md` *The run*, the paragraph opening **A regression is routed by comparing the fix with the frame**, and the lead of `skills/code-review/orchestration.md` *A regression is routed by comparing the fix with the frame* | *Scope* item 1's seventh point in the skill; the second `change` in `## Rule changes`, written by the settle |
 
 The work adds two rules, the stop's binding and the weighing of a case that holds no fact the frame states. In return it narrows the three rules above, which pulled the other way in #1216's run, and the rule change narrows the fourth. Its catch record is G7: rounds 5 to 10 of one run, about 670k tokens of proofer spawns, and no `must` among their six findings. Under items 1 and 3, round 5's finding is not a `should`, and if it had been raised, a stop row would have homed it. It adds no gate, check, hook, CI step, line grammar, label or mark.
 
