@@ -175,6 +175,15 @@ fails at line 116 with "README: the heading levels differ: English [1, 2,
 census case fails on `frame/questions.md:17`, above. `uvx ruff check` and
 `uvx ruff format --check` over the six changed test modules exited 0.
 
+ded17da0b then edits `README.md` alone: the *Commands* section says the
+`seal` commands are on the Bash tool's PATH and typed after `!`, the
+routing paragraph says "the hooks" read `routing.md` where it said "each
+hook", since core-start and lint-python do not, and one paragraph is
+re-wrapped. The same set ran again over the tree ded17da0b commits, in the
+same one command,
+with the same result: 784 passed, and the same two cases failed on the
+same lines (executed). The Status cell names ded17da0b.
+
 **What phase 3 inherits.** The Korean arms this phase left in place are
 `READMES["README.ko.md"]` and `LEFT_BEHIND["README.ko.md"]` in
 `tests/behaviour/test_first_setup_asks_once.py`, the `README.ko.md` entry
