@@ -35,6 +35,11 @@ this repository's and ships to no user: the plugin's
 
 The two other statements need the same change. `frame/design.md` *Scope* item 1 is the framer's or the orchestrator's to fold, since `agents/crafter.md` *Job* names no write to it. Its second and third sentences become "In its place, the settling session files one issue that names each stale copy that kept the count up, the record it stood in, and the file the lesson belongs in. That is the home `skills/implement/orchestration.md` *Orchestrator: where a decision or a lesson is written* gives a lesson whose home no work item in progress changes." In `changelog.md` entry 3, the last sentence becomes "Where stale copies kept the count up, the settling session now files one issue that names each such stale copy, the record it stood in, and the file the lesson belongs in." The replacement lines in the checklist keep the paragraph's `check: tests/github/test_finding_counts.py` line and do not change it. That case reads the count's script and not this sentence.
 
+```seal
+verdict: fixed d4697987e
+answer: The finding holds against `skills/implement/orchestration.md:486`, where the row's left cell is a lesson whose home no work item in progress changes and its right cell, where the orchestrator writes it, is an issue that names the home. The paste-ready text was not applied as given: its sentence "That issue is the home ... gives" still makes the issue the home, while the row makes the home a file and the issue the place the lesson is written. The checklist now has the issue name each stale copy, the record it stood in, and the file the lesson belongs in, and says that an issue naming that file is where the cited section writes a lesson whose home no work item in progress changes; the paragraph's last sentence was reflowed and its words kept. The changelog's third entry and the first row of `gaps.md` *Not verified*, which state the same issue contents, moved with it. `frame/design.md:27` is left for the orchestrator to fold, and `trail/phases/phase-1.md:37-38` stands as the record of what phase 1 built at `df433eee2`. `tests/github/test_finding_counts.py`, the paragraph's check target, reads the count's script and no sentence of the step, so it needed no change; it and the cited-section, line-wrap and paste cases pass at `d4697987e`.
+```
+
 ## Confirmations
 
 ```seal
