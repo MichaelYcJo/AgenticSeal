@@ -1,0 +1,52 @@
+# Implementation Plan: the stop judgment holds against later rows (#1288)
+
+## Technical context
+
+The work edits prose at four coordinates and no code:
+
+- `skills/code-review/orchestration.md:133-153`, the stop paragraph, its table and the row sentence under it. `tests/text/test_the_rules_have_one_owner.py#test_the_orchestrators_run_judgments_are_rows_of_the_plan` reads the section from its heading to *A regression is routed by comparing the fix with the frame* for "as one row of `frame/plan.md` *Judgments of the run*", which the rewrite keeps (`frame/design.md` G15). The paragraphs at `:156-172` and from `:174` stay.
+- `skills/implement/orchestration.md:480`, the drain table's first row. No case pins it (G15).
+- `skills/code-review/SKILL.md:127-131`, the bullet the new bullet follows. `tests/text/test_the_rules_have_one_owner.py` `RULES` entry 3 pins "a defect the release would ship" there.
+- `agents/proofer.md:136-139`. No case pins it (G15). The rule carries no `check:` line, and the rewrite adds none.
+
+No case is added. Each new sentence is a rule a reviewer reads, as `skills/settle/rule-changes.md` *A rule has one shape* allows for a rule no case holds. A case asserting that a sentence of guidance stands would pin wording, which `docs/running/what-a-script-gates.md` sends away. So contract rule 15 has no new case to apply to.
+
+The `change` in `frame/design.md` `## Rule changes` is read by `chain_check.py`'s rule-changes arm, which names a test literal the `from` holds (none, G15) and a 15-word run its `to` shares with another corpus file. The text of *Scope* item 1 in `skills/code-review/orchestration.md` must share no run of 15 words with that `to` (S7).
+
+**Failure scenario of the chosen approach.** In six months, a run's stop row homes a `should` that mattered: a wrong sentence in a skill that the next release's agents act on, which the proofer graded `should` and not `must`. The release ships it, and its home is an issue that waits. The cost is one release of a wrong sentence where the home is rung 2 or 3, and the defect reaches nobody where the home is rung 4. The guard against it is the proofer's severity: a defect to fix before merge is a `must`, and a `must` still gets its fix after the stop. A second scenario: an orchestrator judges a run excessive too early, at round 2, to save tokens. The stop row's grounds must name what the next round can catch, and the settle's dry run reads every judgment row against what it cost and caught (`docs/running/the-run.md` *The run*, its last paragraph).
+
+## Alternatives considered
+
+| Approach | Failure scenario | Verdict |
+|---|---|---|
+| A numeric cap on rounds, such as five finding rounds and then a stop | The owner decided against it on 2026-11-02 (G1). A run whose rounds keep finding `must`s would stop with a `must` open, or the cap would need an exception for a `must`, which is the judgment again with a number in front of it | rejected |
+| Keep the stop as a judgment that a later row may override with grounds (the tree as it stands) | #1216's run: the rows after rounds 7 and 9 each overrode the stop on a document, one of them on a rule in no file (G7, G8). Each override had grounds, so a rule that asks only for grounds cannot tell them from the stop they reverse | rejected |
+| A check that refuses a ready pull request whose round records go past a stop row, or a `fixed` commit after one | Whether a row judged the run excessive is a reading of a table cell's meaning, and a script that read it would re-encode that judgment as a grammar (G3) | rejected |
+| A third severity below `should`, such as `could`, in `hooks/lib/fields.py`, the template and the check | It adds a value to a line grammar that every round writes. The check decides nothing on severity (`docs/forms/the-round-record.md`), so the value would sort findings for people only, and a finding graded `could` still asks for a close block and, where fixed, a round. Item 3 keeps the gap out of `## Findings` | rejected |
+| Remove the three-round weighing point too, so that only the signals and the catch-against-cost weighing call for a row (replaces a structure) | A run whose rounds each open fewer findings of a new kind shows no signal of G4's table, and nothing then owes a row. The premise that keeps the point: in each of the five chains of three or more findings #1020's framer counted, a judgment row stood at or before the third finding round (`seal/threads/1793714292-one-kind-of-finding-recurs-across-review-rounds/frame/design.md` G10, executed by that framer; read here), and #1216's row at round 3 is one of them. The point did its work there; the rows after it did not hold | kept; item 1's first point says it is where the weighing is owed, not a cap |
+| Let the proofer raise the gap as a `should` and let the orchestrator home it | Before a stop, a `should` asks for a fix or a reason (`docs/forms/the-round-record.md`), and the crafter's `rejected` in the last record costs one more verifying round (G4's section, `:174-194`). So each gap costs a close block and a round before the orchestrator can judge the run excessive. Round 5's finding was one of these | rejected |
+| Put the weighing of a case that holds no fact the frame states in `agents/proofer.md` alone | The issue asks for the review skill. The proofer opens `skills/code-review/SKILL.md` at its step 1, and the orchestrator reads both halves of code-review, so the skill is the one home both reach. `agents/proofer.md` cites it (item 4) | rejected |
+| Edit `docs/running/the-run.md:48` directly in this pull request | The work's subject is three skills and an agent definition. `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes* sends a work item whose subject is the code to `## Rule changes` (G13). Until the settle, `:48` read alone still offers rung 1 after a stop, and item 1's section names rung 1 as a row that does not reopen the stop, so the orchestrator at that step reads one answer | rejected |
+| Narrow the stop only in the drain row and leave G4's section silent on later rows | Round 7's override cited no drain row (G7). A rule in the drain alone holds one of the two overrides, and the next one cites a third document | rejected |
+| Rewrite G4's stop paragraph so a stop binds later rows, a `must` keeps its fix and every other finding takes a home that costs no round; weigh a case that holds no fact the frame states in `skills/code-review/SKILL.md` *The record*; narrow the drain row, the proofer's group rule and rung 1 in place (chosen) | The failure scenario above | chosen |
+
+## Phases
+
+| Phase | Delivers | Verified by | Status |
+|---|---|---|---|
+| 1 | `frame/design.md` *Scope* items 1, 2, 3, 4 and 6 | `frame/design.md` S1 to S9 | |
+
+## Operational impact
+
+No migration, environment variable, dependency or compatibility break.
+
+The orchestrator owns these acts, after the seal:
+
+- The pull request body carries `Closes #1288` and no `Closes #97` (`frame/design.md` *Scope* item 10).
+- The body names `frame/questions.md` Q1 and the default the build stands on, where the owner can overturn it (`docs/running/the-run.md` *The run*, the paragraph opening **On a branch whose `routing.md` reads `Automation` `yes`**).
+- A comment on #97 names *Scope* item 3 as the answer to the shape #97 measured, for a case that holds no fact the frame states, and names its lever *Defer the pin to its own ticket* as still decided against.
+
+## Judgments of the run
+
+| Date | Judgment | Grounds | Judged against |
+|---|---|---|---|
