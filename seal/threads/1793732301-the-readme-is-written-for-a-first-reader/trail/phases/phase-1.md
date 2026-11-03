@@ -48,6 +48,12 @@ commit 2d43466d2):
 - The committed PNG was viewed: the little owl's red wax seal, whole, centred
   on the parchment field, with even margins left and right.
 
+b8365df07 then rewords one sentence of the paragraph. GitHub's page
+recommends a solid background, and the first wording said the page asks
+for one. The command line is not in that diff, so the redraw above still
+stands for it (read: `git diff 2d43466d2 b8365df07`). The two corpus
+modules that read the file passed again at b8365df07 (executed).
+
 **The narrow set** (executed, one command):
 `bin/test -q -p no:xdist tests/behaviour/test_release_hygiene.py
 tests/behaviour/test_the_release_check_watches_what_ships.py

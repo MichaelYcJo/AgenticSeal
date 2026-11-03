@@ -97,7 +97,7 @@ The arxiv study link (2602.11988) stays, in *How it works*, because `CONTRIBUTIN
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | *Scope* 8 | The entry's command, run from a throwaway environment with `resvg_py` 0.5.0, redraws the committed PNG byte for byte; `file` and `wc -c` show 1280 × 640 and under 1,000,000 bytes; the image is viewed (executed, in the phase record). `tests/behaviour/test_release_hygiene.py` and `tests/behaviour/test_the_release_check_watches_what_ships.py`, run narrowly. | 2d43466d2 |
+| 1 | *Scope* 8 | The entry's command, run from a throwaway environment with `resvg_py` 0.5.0, redraws the committed PNG byte for byte; `file` and `wc -c` show 1280 × 640 and under 1,000,000 bytes; the image is viewed (executed, in the phase record). `tests/behaviour/test_release_hygiene.py` and `tests/behaviour/test_the_release_check_watches_what_ships.py`, run narrowly. | b8365df07 |
 | 2 | *Scope* 1, 2, 4, 6 (the `README.md` arm of each case, and every case that reads `README.md` alone) and 7. `README.ko.md` is untouched. | Each module the pin table names, run narrowly, except that `tests/behaviour/test_both_editions_carry_the_same_folds.py::test_every_paired_document_carries_the_same_headings` is expected red until phase 3 and the phase record says so. S2's and S4's cases seen red as `frame/design.md` *User scenarios* says. | |
 | 3 | *Scope* 3, and 6 for the `README.ko.md` arms | Each module the pin table names, run narrowly, `test_both_editions_carry_the_same_folds.py` green; the Korean edition read against the English one, section by section, as the phase record states | |
 
