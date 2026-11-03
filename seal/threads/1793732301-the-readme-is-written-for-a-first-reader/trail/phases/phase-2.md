@@ -41,7 +41,7 @@ one source": the command is that source here.
 **`frame/questions.md:17` fails `tests/test_censuses.py`.** The case
 `Test_module::test_every_file_no_module_file_declares_meets_every_census`
 names that line under `real_identifiers`, for
-`raw.githubusercontent.com` in Q2's options cell. This phase did not
+the raw-file host named in Q2's options cell. This phase did not
 change that file (read: `git diff --stat 27a7a389c a734aa9ea` lists no
 path under `seal/`), and the census judges each file on its own, so the
 failure predates the phase. The census reads every tracked file, and no
