@@ -134,14 +134,15 @@ is absent; field names, headings and vocabulary words stay English
   behaviour that a *Scope* item, an acceptance row or a `check:` line of a
   rule the diff changes states. A fact that only a *Grounding* row states
   does not count. A test of a helper the work moved, or wrote beside its
-  *Scope*, is such a case. A parameter in it that pins nothing, a guard in
-  it of code the diff did not change that no case pins, or a comment or
-  name of it that claims more than it pins leaves the code as the frame
-  says. So such a gap is not a
-  `should` by default, and the round opens no finding for it. A comment and
-  a name of such a case are read by whoever next edits the case and by no
-  party at a step, so they are not the sentence an agent reads and acts on
-  of the bullet above. The round names such a gap in one sentence of its
+  *Scope*, is such a case only where no *Scope* item, acceptance row or
+  `check:` line states what the helper does. A parameter in such a case
+  that pins nothing, a guard in it of code the diff did not change that no
+  case pins, or a comment or name of it that claims more than it pins
+  leaves the code as the frame says. So such a gap is not a `should` by
+  default, and the round opens no finding for it. A comment and a name of
+  such a case are read by whoever next edits the case and by no party at a
+  step, so they are not the sentence an agent reads and acts on of the
+  bullet above. The round names such a gap in one sentence of its
   prose outside `## Findings`, with its coordinate. The gap is a `should`
   where the grounds name a behaviour the diff changed that no case then
   holds, which is the *Regression test* row's `should` in *Probes and
