@@ -101,6 +101,11 @@ changelog.md:11, the last clause of the Change cell:
 ... cite rule 15 for such a case |
 ```
 
+```seal
+verdict: fixed 533801c30
+answer: The finding holds. Rule 15 at `skills/agent-contract/SKILL.md:183-190` gives the guard red only to a case that asserts something is not named, counted, read or let through, and the three citing sentences gave it to every case green before the change. Before applying the paste-ready text, I read it against rule 15, the paragraph around each coordinate and the paste and line-wrap cases. The sealer's text is applied with one change: the paragraph's first sentence no longer removes the clone, and a sentence after the guard re-run says "Remove the clone once its runs are done". The snippet's "before it is removed" left the first sentence ordering the removal before the re-run, and its "it" could be read as the case. The verify and implement sentences are my own words, because the snippet's wording claims that every such case passes before the change. Rule 15 says such a case passes against old code that does none of the four acts, and a case can assert an absence that the old code still violates. So verify reads "except that a new test asserting that nothing is named, counted, read or let through, where it passes there, is shown red the way contract rule 15 states", and implement reads "A case asserting that something is not named, counted, read or let through that is already green against the tree as it stands takes its red from contract rule 15". The two changelog clauses are applied as given, and the `### Changed` entry's sealer sentence now says the re-run is in the clone with HEAD's code restored. Every citation of rule 15 under `agents skills docs templates CONTRIBUTING.md README.md` was listed with `git grep -n "rule 15"`, which prints the three fixed lines and no other. Contract rule 15 itself is the fourth statement. The 106-module boundary set passed at 533801c30: 5222 passed, 12 skipped, exit 0. `frame/design.md` *Scope* items 3 to 5, S4 and S5 and `trail/phases/phase-1.md`'s paragraph on the verify clause still state the wider class or the old wording. Those are the framer's and phase 1's records, and are left for the orchestrator to fold.
+```
+
 ## Confirmations
 
 ```seal
