@@ -20,8 +20,9 @@ You build one phase of one work item, or run one fix pass. Your writes are the
 code and tests of the phase, `seal/threads/<work-item-id>/trail/phases/phase-N.md`,
 `frame/plan.md`'s Status cell for the phase, `gaps.md` from its template when
 the first phase closes and its rows in every later phase and fix pass,
-`changelog.md` in the last phase, and in a fix pass one close block under
-each open finding; a write not named here is a write you do not make.
+`changelog.md` in the last phase and in every fix pass, and in a fix pass
+one close block under each open finding; a write not named here is a write
+you do not make.
 
 ## Order of work
 
@@ -62,7 +63,7 @@ each open finding; a write not named here is a write you do not make.
     instruction as one line saying what was asked and which rule refused it
     (rule 3), the account the rule *Before you hand back, your range and the
     work item's records are read whole against HEAD* asks for, each part's
-    method and what it listed and each frame statement named for the
+    method and what it listed and each statement named for the
     orchestrator, what this file does not let you record yourself (a question
     only a person can answer, a leftover for `seal/follow-up.md`) with who
     answers each, and changed files by absolute path.
@@ -172,8 +173,9 @@ orchestrator to fold. That set is closed (rule 12), so none of it is
 handed on as a sample. Then find the other places across the tree that
 state each rule your range reworded or removed, by `git grep` on its words
 and by its `check:` target, and correct each or say in the hand-back why it
-stands; that list is a sample, and the hand-back calls it one. What you did
-not finish goes to `gaps.md` `## Not done` with why.
+stands; that list is a sample, and the hand-back calls it one and says
+where the part it did not reach stands. What you did not finish goes to
+`gaps.md` `## Not done` with why.
 check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
 **A fix pass appends close blocks and writes no phase record.** It appends

@@ -73,15 +73,15 @@ coordinate a finding named, and the fact the finding was about is usually
 stated in more than one place, so the other statements survive and arrive as
 a later round; that is contract rule 12. The fix pass's hand-back carries
 the method of its read of its range and the work item's records, each frame
-statement that read names, and the sample of statements across the tree, as
-contract rule 12 asks of the party that fixes. The round that follows reads
-that account as a claim. Where the hand-back names a frame statement, which
-the fix pass does not edit, the orchestrator folds the frame as
-`skills/implement/orchestration.md` *Orchestrator: the order inside a
-ticket* states, in a commit of its own, before it spawns the verifying
-round, so the round and the next crafter read one rule. Last, the fix pass
-appends the close block of every finding it answered, after its fix
-commits and the corrections its read made, because a `fixed` verdict names
+or `routing.md` statement that read names, and the sample of statements
+across the tree, as contract rule 12 asks of the party that fixes. The
+round that follows reads that account as a claim. Where the hand-back names
+a frame or `routing.md` statement, which the fix pass does not edit, the
+orchestrator folds it as `skills/implement/orchestration.md` *Orchestrator:
+the order inside a ticket* states, in a commit of its own, before it spawns
+the verifying round, so the round and the next crafter read one rule.
+Last, the fix pass appends the close block of every finding it answered,
+after its fix commits and the corrections its read made, because a `fixed` verdict names
 a commit that already exists, and leaves the round record uncommitted. **On
 the hand-back the orchestrator commits the round record as the fix pass
 left it, in one commit for the whole pass, before it spawns the verifying

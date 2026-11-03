@@ -487,7 +487,10 @@ def test_the_crafter_reads_its_range_and_the_records_whole_before_it_hands_back(
         "orchestrator to fold.",
         "That set is closed (rule 12), so none of it is handed on as a sample.",
         "by `git grep` on its words and by its `check:` target",
-        "that list is a sample, and the hand-back calls it one.",
+        # Round 1 of #1318, finding 3: a sample's hand-back still says where
+        # the part it did not reach stands (contract rule 12).
+        "that list is a sample, and the hand-back calls it one and says where "
+        "the part it did not reach stands.",
         "What you did not finish goes to `gaps.md` `## Not done` with why.",
     ):
         assert clause in said, f"the rule lost {clause!r}"

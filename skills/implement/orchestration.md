@@ -55,16 +55,20 @@ because a crafter reads the frame and not the issue's comments. In the
 commit that folds it, the orchestrator writes the decision, its grounds and
 the document it judged against as one row of `frame/plan.md` *Judgments of
 the run*, because the rewritten sentence keeps no reason for itself and the
-settle reads the row. Where a crafter's hand-back names a frame statement
-its work contradicts, the orchestrator reads each frame file it folds into
-whole against HEAD, not only the named line, and rewrites every statement
-HEAD contradicts: the crafter's list is its reading of a file it does not
-write. After the fold commit, the orchestrator reads that commit and each
-file of the work item's directory that states the present whole against
-HEAD, as contract rule 12 asks of the party that fixes. Where that reading
-finds a statement in a file the crafter writes, `gaps.md` or
-`changelog.md`, the orchestrator hands it to the crafter that made the
-fix, resumed as a fix pass is, before it spawns the next round or phase.
+settle reads the row. Where a crafter's hand-back names a statement its
+work contradicts in a file the crafter does not write, a frame file or
+`routing.md`, the orchestrator reads each such file whole against HEAD,
+not only the named line, and rewrites every statement HEAD contradicts:
+the crafter's list is its reading of a file it does not write. After the
+fold commit, the orchestrator reads that commit and each file of the work
+item's directory that states the present whole against HEAD, as contract
+rule 12 asks of the party that fixes. Where that reading finds a statement
+in a file the crafter writes, `gaps.md` or `changelog.md`, the
+orchestrator hands it to a fix pass before it spawns the next round or
+phase. The fix pass is the crafter that wrote the work item's last build
+or fix commit, resumed or spawned fresh as
+`skills/code-review/orchestration.md` *Orchestrator: a phase is a fresh
+crafter, and a fix pass resumes the implementer* states.
 Until the decision is folded, the orchestrator keeps one line of its own
 in `plan.md` naming the comments to fold, below the title, and deletes that
 line in the commit that folds them. Before the

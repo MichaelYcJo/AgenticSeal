@@ -164,12 +164,14 @@ HEAD contradicts neither. A list of a closed set is never a sample. A
 sample stays a sample only where the class is open, as the other
 statements of a rule across the tree are, or a class over an unbounded
 domain of keywords, spellings or constructs, where no method makes the list
-whole; the hand-back says so. The hand-back names each part's method and
-what it listed, calls a sample a sample, and names what you did not finish
-as not done, never as the proofer's share. The proofer reads that account
-as a claim and verifies it on its own: a statement the closed set held that
-the account missed, or a sample handed back as a whole list, is a finding
-on the method, even where every instance on the list was fixed.
+whole; the hand-back says so, and says where the part of the class its
+list did not reach stands. The hand-back names each part's method and what
+it listed, calls a sample a sample, and names what you did not finish as
+not done. Neither the part a sample did not reach nor what you did not
+finish is the proofer's share. The proofer reads that account as a claim
+and verifies it on its own: a statement the closed set held that the
+account missed, or a sample handed back as a whole list, is a finding on
+the method, even where every instance on the list was fixed.
 
 ## 13 A defence resting on a platform guarantee is not verified
 

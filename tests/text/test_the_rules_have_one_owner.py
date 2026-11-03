@@ -380,15 +380,20 @@ def test_a_decision_after_the_frame_is_folded_into_it():
         "naming the comments to fold, below the title,",
         "folds the decision into the issue body",
         # #1318, Scope item 5: #1234's fold widened only the *Scope* item a
-        # finding named, so a fold reads the frame file whole, and the records
-        # after its commit.
-        "the orchestrator reads each frame file it folds into whole against "
-        "HEAD, not only the named line, and rewrites every statement HEAD "
-        "contradicts",
+        # finding named, so a fold reads the file whole, and the records
+        # after its commit. Round 1 of #1318, finding 2: the files a crafter
+        # names are the frame's and `routing.md`, and the party a record's
+        # statement goes back to is found after a phase or an issue comment
+        # too, where no fix was made.
+        "in a file the crafter does not write, a frame file or `routing.md`, "
+        "the orchestrator reads each such file whole against HEAD, not only "
+        "the named line, and rewrites every statement HEAD contradicts",
         "After the fold commit, the orchestrator reads that commit and each "
         "file of the work item's directory that states the present whole "
         "against HEAD",
-        "the orchestrator hands it to the crafter that made the fix",
+        "the orchestrator hands it to a fix pass before it spawns the next "
+        "round or phase. The fix pass is the crafter that wrote the work "
+        "item's last build or fix commit",
     ):
         assert said in order, f"the order no longer says {said!r}"
 
