@@ -129,6 +129,23 @@ is absent; field names, headings and vocabulary words stay English
   something wrong or telling a person something wrong, to fix or say why
   not. A wrong sentence an agent reads and acts on is `should`; a sentence
   that only reads badly is no finding.
+- A case that holds no fact the frame states is weighed by what the release
+  ships without the fix. Such a case is one whose assertions hold no
+  behaviour that a *Scope* item, an acceptance row or a `check:` line of a
+  rule the diff changes states. A fact that only a *Grounding* row states
+  does not count. A parameter in such a case that pins nothing, a guard in
+  it of code the diff did not change that no case pins, or a comment or
+  name of it that claims more than it pins leaves the code as the frame
+  says. So such a gap is not a `should` by default, and the round opens no
+  finding for it. A comment and a name of such a case are read by whoever
+  next edits the case and by no party at a step, so they are not the
+  sentence an agent reads and acts on of the bullet above. The round names
+  such a gap in one sentence of its prose outside `## Findings`, with its
+  coordinate. The gap is a `should` where the grounds name a behaviour the
+  diff changed that no case then holds, which is the *Regression test*
+  row's `should` in *Probes and regression tests*. A false claim the build
+  makes about such a case, a `seen red` among them, is a finding like any
+  false claim.
 - `location:` names every place the defect shows, and the path the fix
   changes where that is elsewhere, because a `fixed` commit must touch one.
 - Each finding's section holds one finding block, opened by its

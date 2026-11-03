@@ -136,7 +136,9 @@ check: tests/text/test_the_rules_have_one_owner.py tests/text/test_the_verifying
 **Each new test is read against its group.** A test the diff adds is read
 against the tests of the function it covers, and against any pair a
 duplicate check in the repository names; a test that covers nothing its
-group does not already cover is a `should` finding. Where the test files
+group does not already cover is a `should` finding. A case that holds no
+fact the frame states is the exception, and `skills/code-review/SKILL.md`
+*The record* weighs it. Where the test files
 declare `TARGET`, the pairs are the ones `seal layout --pairs` prints.
 
 **The broad gate is not yours, and its label is.** The crafter hands over
