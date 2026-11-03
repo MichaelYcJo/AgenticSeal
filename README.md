@@ -144,7 +144,9 @@ plugin does not manufacture the first.
 
 Missing files bootstrap from `templates/`. The round records, the check at the
 pull request and the handoff to an agent are specified in
-[docs/the-review-record.md](./docs/the-review-record.md).
+[docs/forms/the-round-record.md](./docs/forms/the-round-record.md),
+[docs/checks/the-pull-request-check.md](./docs/checks/the-pull-request-check.md)
+and [docs/running/the-run.md](./docs/running/the-run.md).
 
 **A rule names the test that holds it.** A rule a policy document states ends
 with a `check:` line naming the test files that hold it, or a marker its
@@ -167,7 +169,7 @@ the turn you are told which gate it was, once per session. Full decision
 tables:
 [docs/the-routing-check.md](./docs/the-routing-check.md) ·
 [docs/the-review-and-parity-arms.md](./docs/the-review-and-parity-arms.md) ·
-[docs/the-review-record.md](./docs/the-review-record.md).
+[docs/checks/the-pull-request-check.md](./docs/checks/the-pull-request-check.md).
 
 | Gate | Fires | Does | Where |
 |---|---|---|---|

@@ -87,13 +87,13 @@ def test_a_later_round_re_runs_an_executed_line():
     `## Probes` row. The record's document states it beside the line, and
     `skills/code-review/SKILL.md` *Earlier rounds*, which the proofer follows, says it
     where a round reads the earlier records."""
-    record = " ".join(read("docs", "the-review-record.md").split())
+    record = " ".join(read("docs", "forms", "the-round-record.md").split())
     for said in (
         "**A later round re-runs an `executed` line rather than re-deriving "
         "the claim.**",
         "writes it again from its `## Probes` row",
     ):
-        assert said in record, f"the-review-record.md lost `{said}`"
+        assert said in record, f"the-round-record.md lost `{said}`"
     skill = " ".join(read("skills", "code-review", "SKILL.md").split())
     rounds = skill.split("## Earlier rounds", 1)[1].split("## The record", 1)[0]
     said = (
@@ -111,13 +111,13 @@ def test_a_record_written_before_a_line_was_added_is_no_finding():
     it, and a later round that judges it by the new grammar reports a defect
     nobody could have avoided. #971's `false-rows.md:117` is that class: a
     0.21 record judged by 0.22's grammar, counted a `wrong` finding."""
-    record = " ".join(read("docs", "the-review-record.md").split())
+    record = " ".join(read("docs", "checks", "the-pull-request-check.md").split())
     for said in (
         "added field is never supplied after the round that would have written it",
         "A record written before a line was added lacks it, and the lack is "
         "no finding for a later round.",
     ):
-        assert said in record, f"the-review-record.md lost `{said}`"
+        assert said in record, f"the-pull-request-check.md lost `{said}`"
 
 
 def test_the_routing_section_holds_the_answers_and_the_shape():

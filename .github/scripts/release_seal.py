@@ -133,7 +133,7 @@ PANEL_VALUE_WIDTH = 23
 # (`questions.md` Q8).
 NOT_READ = "not read"
 # The label the review chain puts on a pull request whose run ended at the
-# round cap (`docs/the-review-record.md`).
+# round cap (`docs/running/the-run.md`).
 CAPPED_LABEL = "chain: capped"
 
 

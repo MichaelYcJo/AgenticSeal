@@ -25,7 +25,7 @@ def test_the_skills_example_reads_as_the_skill_says():
     [only] = parsed.ops
     assert (only.kind, only.file, only.section) == (
         "change",
-        "docs/the-review-record.md",
+        "docs/forms/the-round-record.md",
         "The round record",
     )
     for kind, (need, may) in rules.GRAMMAR.items():

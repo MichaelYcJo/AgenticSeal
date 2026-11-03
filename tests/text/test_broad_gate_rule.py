@@ -165,7 +165,7 @@ def test_the_reviewer_has_a_field_for_the_question_the_default_produces():
 
 def test_the_broad_gate_state_survives_a_handoff():
     """A session joining at round 3 cannot see which commands were run."""
-    assert "`trail/gate.md`" in read("docs", "the-review-record.md"), (
+    assert "`trail/gate.md`" in read("docs", "checks", "the-pull-request-check.md"), (
         "the record lost the file that tells the next session whether the one "
         "broad run already happened"
     )

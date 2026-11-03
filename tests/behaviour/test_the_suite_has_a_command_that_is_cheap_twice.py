@@ -323,7 +323,7 @@ def test_the_section_says_the_full_run_is_the_orchestrators():
 
 # The citation of *The handoff*, which both definitions' runner rules carry and
 # the agent resolves for the narrow form it is handed.
-HANDOFF_LINK = "`docs/the-review-record.md` *The handoff*"
+HANDOFF_LINK = "`docs/running/the-run.md` *The handoff*"
 
 
 def test_crafter_cites_the_handoff_for_the_narrow_form():

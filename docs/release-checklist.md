@@ -51,7 +51,7 @@ Between the first and the second, the session writes each section as its
 group's latest decision, checked against the code, writes each decision the
 person marked promote into its section, and closes each open row with what
 closed it, asking nobody about either. A named directory is read and never
-written (`docs/the-record-layout.md` *The fold, and what tells it from a
+written (`docs/checks/the-fold.md` *The fold, and what tells it from a
 deletion*). The second removes every released work item directory whose
 record holds no open row and whose version's published note carries its
 entry where the repository's notes are built from the fragments, and names

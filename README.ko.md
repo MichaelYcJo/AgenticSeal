@@ -137,7 +137,9 @@ seal/
 
 없는 파일은 `templates/` 에서 만들어집니다. 리뷰 회차가 트리에 무엇을 남기는지,
 PR 검사가 그중 무엇을 읽는지, 세션이 에이전트에게 일을 어떻게 넘기는지는
-[docs/the-review-record.md](./docs/the-review-record.md) 에 있습니다.
+[docs/forms/the-round-record.md](./docs/forms/the-round-record.md),
+[docs/checks/the-pull-request-check.md](./docs/checks/the-pull-request-check.md),
+[docs/running/the-run.md](./docs/running/the-run.md) 에 있습니다.
 
 **규칙은 자기를 지키는 테스트를 적어 둡니다.** 정책서가 적은 규칙은
 `check:` 줄로 끝나고, 그 줄에는 그 규칙을 지키는 테스트 파일이나 그 테스트들이
@@ -160,7 +162,7 @@ PR 검사가 그중 무엇을 읽는지, 세션이 에이전트에게 일을 어
 번, 턴이 끝날 때 알려 줍니다. 판정표 전문은 다음 세 문서에 있습니다.
 [docs/the-routing-check.md](./docs/the-routing-check.md) ·
 [docs/the-review-and-parity-arms.md](./docs/the-review-and-parity-arms.md) ·
-[docs/the-review-record.md](./docs/the-review-record.md)
+[docs/checks/the-pull-request-check.md](./docs/checks/the-pull-request-check.md)
 
 | 게이트 | 언제 | 무엇을 | 어디서 |
 |---|---|---|---|

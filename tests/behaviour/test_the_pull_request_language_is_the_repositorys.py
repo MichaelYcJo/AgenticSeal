@@ -1130,7 +1130,7 @@ def test_the_exclusion_list_points_at_the_block_grammar_and_restates_none_of_it(
         "the exclusion list no longer names the module that spells the keys "
         "of a record's `seal` blocks"
     )
-    assert "the-review-record.md" not in said, (
+    assert "the-round-record.md" not in said, (
         "the exclusion list still names the docs grammar table, which no "
         "checker reads since #1198"
     )

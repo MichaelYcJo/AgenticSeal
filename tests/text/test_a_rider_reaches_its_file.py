@@ -81,7 +81,9 @@ def test_the_record_says_why_target_sha_names_a_commit():
     that unwritten re-opens #239's question for the one place a commit is
     still named. The case holds one clause `docs/branch-and-release.md:165`
     still names this module for."""
-    text = " ".join(read(os.path.join(ROOT, "docs", "the-review-record.md")).split())
+    text = " ".join(
+        read(os.path.join(ROOT, "docs", "forms", "the-round-record.md")).split()
+    )
     # A phrase of the rule, not a fact: the last assert of this module that
     # reads the rule `docs/branch-and-release.md:165` closes, kept unchanged
     # until that line's change lands (#1233, `frame/design.md` Scope item 9).

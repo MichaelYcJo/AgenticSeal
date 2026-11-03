@@ -74,8 +74,8 @@ judged (`carried_by`). The arms are eight:
                 verdict block, or with a line the reader refuses, fails
 
 A ready pull request fails on any of them. A draft, or a run that observed no
-pull request, prints the same lines and exits 0. `docs/the-review-record.md`
-*What the check reads at the pull request* states the rules these arms hold,
+pull request, prints the same lines and exits 0.
+`docs/checks/the-pull-request-check.md` *What the check reads at the pull request* states the rules these arms hold,
 and its *The round record* and *The guarantee* the records they read.
 
 In a round record, `guarantee.md` and `trail/gate.md` a field stands in a

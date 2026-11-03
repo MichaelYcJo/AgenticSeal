@@ -20,7 +20,7 @@ from conftest import flat, read
 # --- the handoff before round 1 ---------------------------------------------
 
 
-PROTOCOL = ("docs", "the-review-record.md")
+PROTOCOL = ("docs", "running", "the-run.md")
 
 
 def test_the_protocol_carries_the_handoff_before_round_one():
@@ -47,7 +47,7 @@ def test_the_implementer_documents_point_at_the_section():
         text = flat(*parts)
         # The path the implementer resolves to the section its prompt's
         # facts arrive under.
-        assert "`docs/the-review-record.md`" in text and "handoff" in text, "/".join(
+        assert "`docs/running/the-run.md`" in text and "handoff" in text, "/".join(
             parts
         )
 
@@ -94,12 +94,12 @@ def test_the_protocol_names_the_meter():
 
 def test_the_contract_cites_the_per_segment_bars():
     """Contract rule 10 points each kind of segment at its bar, and the bar
-    has one home, `docs/the-review-record.md` *The per-segment bars*; no
+    has one home, `docs/running/the-run.md` *The per-segment bars*; no
     definition carries a copy since #957."""
     contract = flat("skills", "agent-contract", "SKILL.md")
     # The citation every agent resolves to find the bar its segment is
     # judged against.
-    assert "`docs/the-review-record.md` *The per-segment bars*" in contract, (
+    assert "`docs/running/the-run.md` *The per-segment bars*" in contract, (
         "the contract stopped pointing at the bars, and a figure with no home "
         "is one that measures the wrong agent"
     )

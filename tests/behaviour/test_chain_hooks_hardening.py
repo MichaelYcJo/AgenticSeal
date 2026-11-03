@@ -900,7 +900,7 @@ def test_the_run_names_its_default_round_count_and_the_follow_up_file():
     the chain ends, at a pull request and never a merge, is the orchestrator's
     to read in the crafter's hand-back."""
     with open(
-        os.path.join(ROOT, "docs", "the-review-record.md"), encoding="utf-8"
+        os.path.join(ROOT, "docs", "running", "the-run.md"), encoding="utf-8"
     ) as f:
         record = " ".join(f.read().split())
     # The value three, the finding rounds at which the orchestrator weighs

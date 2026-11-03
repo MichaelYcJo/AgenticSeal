@@ -100,7 +100,8 @@ each file of a work item's directory is in `docs/the-record-layout.md`
 *seal/threads/<work-item-id>/*.
 
 The review round records live beside the work item they are about, with the
-routing declaration and the rest of the SDD set (`docs/the-review-record.md`).
+routing declaration and the rest of the SDD set
+(`docs/forms/the-round-record.md`).
 A work item's directory exists from its first commit, because routing is
 written into it before the first edit.
 
@@ -141,7 +142,7 @@ it or dropping it.
 - Verify clause numbers a ticket cites. Tickets are written before (or drift
   from) the documents they cite; a missing clause is an `add` in the design's
   `## Rule changes`, with a freshly allocated number.
-- A spawn prompt's facts arrive under `docs/the-review-record.md`'s
+- A spawn prompt's facts arrive under `docs/running/the-run.md`'s
   handoff: coordinates rather than prose, each fact labelled
   executed, read, or unverified. What a fact with neither is, and why an
   aggregate is not a coordinate, is contract rule 5.
@@ -251,7 +252,7 @@ without a registry — take it from `date +%s` when creating the directory.
 | File | Starts from | Written by | Holds | When |
 |---|---|---|---|---|
 | `routing.md` | `templates/records/sdd-routing.md` | the session that spawns the work, from the batch it asked — never a subagent, which has no way to put the question to anybody | the routing answer | before the first edit, and so before a framer is spawned |
-| `frame/design.md` | `templates/records/sdd-design.md` | the framer | WHAT — scope, mandatory user scenarios & acceptance, grounding clauses, the rule changes the settle writes into the policy root (`## Rule changes`), and the framer's mark at its foot, with a `Reframed … after round <N>.` line under it for each time the review chain sent the work item back (`docs/the-review-record.md` *The run* owns that rule) | before implementing |
+| `frame/design.md` | `templates/records/sdd-design.md` | the framer | WHAT — scope, mandatory user scenarios & acceptance, grounding clauses, the rule changes the settle writes into the policy root (`## Rule changes`), and the framer's mark at its foot, with a `Reframed … after round <N>.` line under it for each time the review chain sent the work item back (`docs/running/the-run.md` *The run* owns that rule) | before implementing |
 | `frame/plan.md` | `templates/records/sdd-plan.md` | the framer; the orchestrator adds the rows of `## Judgments of the run` | HOW — phases as vertical slices, alternatives with failure scenarios; this is the Design Gate's artifact, approved by the spawn that builds it. Its last section holds the orchestrator's judgments of the run, each with its grounds and the document it stands on, which `seal settle`'s dry run reads | before implementing (gated work); a judgment's row when it is made |
 | `frame/questions.md` | `templates/records/sdd-questions.md` | the framer opens the rows; each row's `Who can answer` cell names who closes it | decisions only a human can make — extracted so nothing ships on a silent assumption | one batch before the first edit, then as they arise |
 | `gaps.md` | `templates/records/sdd-gaps.md` | the builder | the closing memo — what went out unproved and who answers it, and what was within reach and not taken (below) | written from its template when the first phase closes; every later phase and fix pass adds to it |
@@ -371,7 +372,7 @@ and findings from execution are labeled separately.
 
 A session fixing review feedback starts at `seal/threads/<work-item-id>/trail/rounds/`,
 **not** at the inline comments: the proofer writes `round-N.md`, and the next
-review round reads it (`docs/the-review-record.md` *The round record*).
+review round reads it (`docs/forms/the-round-record.md` *The round record*).
 
 A finding is a claim too, and it arrives from someone who did not write the
 code. Open the coordinate and judge it yourself: fix what holds, and where it
@@ -385,7 +386,7 @@ rebuilt — only re-checked for whether the finding is now fixed.
 
 **A fix pass appends one close block to each open finding in
 `trail/rounds/round-N.md`, edits nothing else in it, and writes no phase
-record** — `docs/the-review-record.md` *The round record* names the three
+record** — `docs/forms/the-round-record.md` *The round record* names the three
 closing verdicts, and `hooks/lib/fields.py` spells the block's lines. A
 `fixed` commit must touch a path the finding's `location:` names; where the
 fix went somewhere else, the close block carries a `location:` line naming

@@ -21,8 +21,8 @@ by this tree's readers:
              reads `verdict: fixed <commit>`, and the next round confirms it
              in a block reading `confirms: round-<N>#<n>`. It carries no
              asked paragraph, so the prompt carries none
-  labelled   0.22.0's record (`docs/the-review-record.md` *The round
-             record*), judged by the `chain_check.py` of the commit that
+  labelled   0.22.0's record (`v0.22.0:docs/the-review-record.md` *The
+             round record*), judged by the `chain_check.py` of the commit that
              last wrote it and its lines read by that commit's reader
              (#1012), with the grammar that commit's
              `docs/the-review-record.md` holds, so each record is judged by

@@ -26,7 +26,7 @@ CHAIN = ROOT / "skills" / "code-review" / "scripts" / "chain_check.py"
 READER = ROOT / "skills" / "verify" / "scripts" / "unverified_check.py"
 TEMPLATE = ROOT / "templates" / "records" / "sdd-guarantee.md"
 SEALER = ROOT / "agents" / "sealer.md"
-DOCUMENT = ROOT / "docs" / "the-review-record.md"
+DOCUMENT = ROOT / "docs" / "forms" / "the-guarantee.md"
 
 
 def between(path, start, end):
@@ -259,10 +259,11 @@ class TestDefinition:
 
 class TestDocument:
     def test_the_guarantee_section_points_at_steps_3_and_4(self):
-        """T23: `docs/the-review-record.md` *The guarantee* points at the
+        """T23: `docs/forms/the-guarantee.md` *The guarantee* points at the
         definition's steps 3 and 4 for the acts. Whether it lists any of them
         is the proofer's to read."""
-        section = between(DOCUMENT, "## The guarantee", "## The run")
+        text = " ".join(DOCUMENT.read_text(encoding="utf-8").split())
+        section = text.split("## The guarantee", 1)[1]
         # The citation of `agents/sealer.md`'s steps 3 and 4, which a reader
         # resolves to the sealer's acts.
         assert "`agents/sealer.md` step 3" in section

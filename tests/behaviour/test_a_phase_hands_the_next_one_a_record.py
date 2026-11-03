@@ -10,7 +10,7 @@ so they live only in a transcript the next phase's session never opens.
 
 `templates/records/sdd-phase.md` gives the build side the same committed,
 per-segment record the review chain already has in `templates/records/sdd-round.md`
-(`docs/the-review-record.md` *The round record*). This module pins:
+(`docs/forms/the-round-record.md` *The round record*). This module pins:
 
   one section        the title and `## What this phase found`, with a
                      placeholder rather than a filled claim. The field

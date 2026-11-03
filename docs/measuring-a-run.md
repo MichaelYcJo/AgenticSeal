@@ -4,7 +4,7 @@ A run is a sequence of segments, each one an agent spawned for a piece of
 work. This document says what gets measured, what the measurement is read
 against, and where a reading goes so somebody can use it.
 
-`docs/the-review-record.md` *The per-segment bars* holds the bar each kind of
+`docs/running/the-run.md` *The per-segment bars* holds the bar each kind of
 segment is judged against, because it is part of what a handoff carries. This
 document is about the measurement itself.
 

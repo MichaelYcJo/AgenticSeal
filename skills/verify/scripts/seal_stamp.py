@@ -1003,7 +1003,7 @@ def label(values):
 # --- the stamp, queued at a sealed guarantee's write ------------------------
 #
 # The rule, and what holds it to once per work item with its limits, is
-# `docs/the-review-record.md` *The stamp*. The edit gate calls
+# `docs/checks/the-stamp.md` *The stamp*. The edit gate calls
 # `queue_for_written_guarantee` (below) at the guarantee's write, under
 # either root, and the `Stop` hook draws what it queued. The values file's
 # name, `<ns>-<id>-<target sha>.json`, carries the work item's id;
@@ -1032,7 +1032,7 @@ GITCMD = os.path.join(
 # stamp by hand, because the
 # hook draws nothing, and says nothing, where it cannot: a `python3` that
 # cannot load this file, a main session whose working directory is outside
-# this clone, a plugin older than the hook (`docs/the-review-record.md`
+# this clone, a plugin older than the hook (`docs/checks/the-stamp.md`
 # *The stamp*).
 QUEUED = (
     "agentic: the stamp for {id} is drawn at the end of this turn from "
@@ -1334,7 +1334,7 @@ def queue_for_written_guarantee(path, session, now=None):
     its audited commit is off the work item's branch, else none.
 
     It reads the file from disk at its write, the moment the verdict comes
-    to read `sealed`, in shared mode as in local mode (`docs/the-review-record.md`
+    to read `sealed`, in shared mode as in local mode (`docs/checks/the-stamp.md`
     *The stamp*). `path` must be `<root>/threads/<id>/guarantee.md`, where
     `<root>` is the repository's root in force (`optin.home_at`, through
     `written_root`): `<repo>/seal/` in shared mode, `<common>/seal/` in local

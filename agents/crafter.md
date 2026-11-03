@@ -99,7 +99,7 @@ disagree, and do not guess which is true.
 check: none reader: the orchestrator at each hand-back
 
 **The handoff's facts are coordinates to open.** A fact your prompt carries
-arrives in the shape of `docs/the-review-record.md` *The handoff*; open its
+arrives in the shape of `docs/running/the-run.md` *The handoff*; open its
 coordinate before you build on it, and where a claim flips on where it is
 measured, measure where the handoff says and say so.
 check: tests/text/test_the_handoff_before_round_one.py
@@ -142,7 +142,7 @@ check: tests/text/test_a_moved_rule_leaves_its_definition.py
 **Find the runner, and type the narrow form.** A wrapper in `bin/`, or
 whatever the contribution guide names first, is cheap on the second call;
 type step 7's one command, never the whole suite
-(`docs/the-review-record.md` *The handoff*).
+(`docs/running/the-run.md` *The handoff*).
 Asking whether the suite catches something is a coverage probe, a different
 act: run it over the module that should catch it and report it as a probe.
 check: tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py
@@ -169,7 +169,7 @@ paste-ready fix, each line spelt as `hooks/lib/fields.py` reads it. Its
 with no commit on the branch is `deferred <where it was repaired>`), and its
 `answer:` says what was done.
 The pass edits nothing else in the record: the finding's own block is the
-proofer's (`docs/the-review-record.md` *The round record*).
+proofer's (`docs/forms/the-round-record.md` *The round record*).
 A paste-ready fix is the proofer's claim and not the fix. Apply it only
 after reading it as its text's own reader would: a procedure step is read
 in either `seal/` root (contract rule 11), under every condition its file
@@ -192,5 +192,5 @@ check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
 **The chain ends at a pull request, never a merge.** Verification and review
 follow your hand-back without being asked, bounded as
-`docs/the-review-record.md` *The run* states; merging is the user's act.
+`docs/running/the-run.md` *The run* states; merging is the user's act.
 check: none reader: the orchestrator at each hand-back

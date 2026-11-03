@@ -2,7 +2,7 @@
 
 Authority for how the hooks are registered and for the implementer mark.
 Where a session's routing is checked is `docs/the-routing-check.md`. The
-review run the hooks serve is `docs/the-review-record.md`. Update spec and
+review run the hooks serve is `docs/running/the-run.md`. Update spec and
 code together.
 
 ## Registration

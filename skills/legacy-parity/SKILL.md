@@ -112,7 +112,7 @@ and `seal/`, the record is an `original:` line naming the migration config's
 | through the review chain | the proofer, in the round block of each round record |
 | straight to the PR | the sealer, in the verdict block each of its runs appends to `guarantee.md` |
 
-The pull-request check reads that line (`docs/the-review-record.md` *The
+The pull-request check reads that line (`docs/forms/the-round-record.md` *The
 round record*). A proofer that could not resolve the original writes no line
 and raises an `unread` finding, and a sealer that could not compare writes a
 `withheld` verdict naming it (`agents/sealer.md`). A line for work nobody

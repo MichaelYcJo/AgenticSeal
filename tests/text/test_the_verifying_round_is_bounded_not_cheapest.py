@@ -98,10 +98,10 @@ def test_the_verifying_bar_is_grounded_on_neither_cost_nor_size():
     23-call round, so a size ground is false in the other direction."""
     row = "| verifying | exempt |"
     with open(
-        os.path.join(ROOT, "docs", "the-review-record.md"), encoding="utf-8"
+        os.path.join(ROOT, "docs", "running", "the-run.md"), encoding="utf-8"
     ) as f:
         rows = [line for line in f if line.startswith(row)]
-    assert len(rows) == 1, f"docs/the-review-record.md has {len(rows)} `{row}` rows"
+    assert len(rows) == 1, f"docs/running/the-run.md has {len(rows)} `{row}` rows"
     grounds = rows[0][len(row) :]
     for word in ("cheap", "small", "by design", "afford"):
         assert word not in grounds, (

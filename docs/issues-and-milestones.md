@@ -1,7 +1,7 @@
 # Issues and milestones
 
 What the issue tracker's fields mean here, and which of them anything reads.
-`docs/branch-and-release.md` owns the merge rules, `docs/the-review-record.md`
+`docs/branch-and-release.md` owns the merge rules, `docs/running/the-run.md`
 the round cap, and this document the tracker's conventions.
 
 ## A milestone answers when, and takes three shapes
@@ -86,7 +86,7 @@ and that share is why the filing decision is a ladder rather than a reflex.
 **Quote the date with the number.** The label set moves, so a share written
 without its as-of date goes false quietly, and a reader re-taking the query
 cannot tell which of the two changed.
-`docs/the-review-record.md` *The run* owns where a filed finding goes; this
+`docs/running/the-run.md` *The run* owns where a filed finding goes; this
 section owns what the label means.
 
 **`flow-measurement` is a label that is not an index.** It is a lookup key,

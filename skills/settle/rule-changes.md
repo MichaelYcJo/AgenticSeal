@@ -14,7 +14,7 @@ field per line, indented two spaces:
 
 ```
 - change
-  file: docs/the-review-record.md
+  file: docs/forms/the-round-record.md
   section: The round record
   from: the sentence as it reads now.
   to: the sentence as it will read.
@@ -65,7 +65,8 @@ field per line, indented two spaces:
 `chain-check` asks the same reader at the pull request, for each work item
 whose `routing.md` it judges and, on a pull request that declares at least
 one work item, for every work item `frame/design.md` its own commits add or change
-(`docs/the-review-record.md` *What the check reads at the pull request*).
+(`docs/checks/the-pull-request-check.md` *What the check reads at the pull
+request*).
 
 ## A rule has one shape
 

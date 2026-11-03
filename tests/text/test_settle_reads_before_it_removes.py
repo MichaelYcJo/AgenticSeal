@@ -4,7 +4,7 @@ documents, the READMEs, the checklist and the cheat sheets, which wait for
 
 #942's phase 6 placed the cases that run the command or call
 `skills/settle/scripts/settle.py`'s functions in `tests/skills/test_settle.py`, and
-the `tree` fixture in `tests/conftest.py`. `docs/the-record-layout.md` names
+the `tree` fixture in `tests/conftest.py`. `docs/checks/the-fold.md` names
 this file on the `check:` lines whose rules the skill cases here hold. Since
 #1033 the skill states the settling session's procedure, and the cases that
 read it are its S11.
@@ -55,7 +55,7 @@ def test_the_skill_names_the_floors_a_fold_has_to_answer():
     the run passes — is the one that turns a check into a comment."""
     text = flat(skill())
     # A phrase of the rule, not a fact: the last assert of this module that
-    # reads the rule `docs/the-record-layout.md:156` closes, whose section
+    # reads the rule `docs/checks/the-fold.md:84` closes, whose section
     # *Answer every check that reads the corpus* gives these three answers.
     # Kept unchanged until that line's change lands (#1233,
     # `frame/design.md` Scope item 9).

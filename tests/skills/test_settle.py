@@ -1120,7 +1120,7 @@ class Test_main:
         each work item's round count and each row's line. The template's
         empty row is no judgment, and a plan with no such section prints
         nothing for its work item."""
-        run_doc = "`docs/the-review-record.md` *The run*"
+        run_doc = "`docs/running/the-run.md` *The run*"
         order = (
             "`skills/implement/orchestration.md` *Orchestrator: the order "
             "inside a ticket*"
@@ -1371,7 +1371,7 @@ class Test_main:
         `Judged against` cell as written, each work item with the release
         that holds its adding commit and the removing commit's `(#N)`, and
         each row at its coordinate in the history."""
-        run_doc = "`docs/the-review-record.md` *The run*"
+        run_doc = "`docs/running/the-run.md` *The run*"
         order = (
             "`skills/implement/orchestration.md` *Orchestrator: the order "
             "inside a ticket*"

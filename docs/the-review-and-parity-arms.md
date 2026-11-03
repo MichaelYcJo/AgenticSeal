@@ -4,8 +4,8 @@ Authority for what each routing answer owes at the pull request, and for
 the parity arm: what a change in a migration owes, and where that is
 checked. Where a session's routing is checked, at its edit tools and at the
 pull request, is `docs/the-routing-check.md`. What the pull-request check
-reads of a round record is `docs/the-review-record.md`. Update spec and code
-together.
+reads of a round record is `docs/checks/the-pull-request-check.md`. Update
+spec and code together.
 
 ## The two arms
 
@@ -43,7 +43,8 @@ the first edit.
 | nothing readable, or no file | refused, unless the session recorded, on that branch, that its change belongs to no work item | each commit's `Seal-Routing` trailer is judged as `docs/the-routing-check.md` *At the pull request* states; nothing else is checked, and a notice says so |
 
 What the check reads of each round record under the first answer is
-`docs/the-review-record.md` *What the check reads at the pull request*.
+`docs/checks/the-pull-request-check.md` *What the check reads at the pull
+request*.
 check: routing-read-first
 
 **`straight to the PR` owes the broad run's `trail/gate.md` and the sealer's
@@ -90,11 +91,11 @@ at once, and the retirement is `seal settle --apply` removing a released work
 item's directory whole. A settle is what tells a retirement from a deletion,
 because both leave the file absent at `HEAD`: a declaration whose directory
 is gone is asked `unverified_check.py#settled` at the merge base, the
-predicate `docs/the-record-layout.md` *The fold, and what tells it from a
+predicate `docs/checks/the-fold.md` *The fold, and what tells it from a
 deletion* states. Where it holds, the check prints `retired: a settle`;
 where it does not, the refusal stands, except where the tree the check reads
-has no top-level `seal` entry (`docs/the-review-record.md` *What the check
-reads at the pull request*).
+has no top-level `seal` entry (`docs/checks/the-pull-request-check.md` *What
+the check reads at the pull request*).
 
 Every record is read as git carries it at `HEAD`, never as the working tree
 holds it, because CI never sees a working tree. `--worktree` reads the working
@@ -148,8 +149,8 @@ above names for each answer, because a comparison exists only after the
 change it compares.** In a review chain the proofer compares the change with
 the original after the crafter has committed it, so a check at the commit
 would meet each build commit before any comparison of it exists. What the
-check reads is `docs/the-review-record.md` *What the check reads at the pull
-request*.
+check reads is `docs/checks/the-pull-request-check.md` *What the check reads
+at the pull request*.
 Under `straight to the PR` no review round records a comparison, so the
 sealer compares the audited commit with the original through
 `legacy-parity` and writes the line in `guarantee.md`, where the check

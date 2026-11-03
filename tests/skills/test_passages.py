@@ -34,7 +34,7 @@ class Test_in_corpus:
     @pytest.mark.parametrize(
         "rel",
         [
-            "docs/the-review-record.md",
+            "docs/running/the-run.md",
             "skills/implement/SKILL.md",
             "agents/crafter.md",
             "templates/records/sdd-round.md",
@@ -61,7 +61,7 @@ class Test_in_corpus:
             # Under `skills/` and no edition: the `.md` suffix alone.
             "skills/README.txt",
             # Under `docs/`: the `.ko.md` exclusion alone.
-            "docs/the-review-record.ko.md",
+            "docs/running/the-run.ko.md",
             # A tracked top-level `.md` outside `TOP_FILES`: membership alone.
             "SECURITY.md",
             # A directory whose name `docs` begins: the prefix's slash alone.

@@ -160,7 +160,7 @@ check: tests/text/test_broad_gate_rule.py
 **Runs are narrow, through the repository's runner.** Find the runner before
 you build your own: a wrapper in `bin/`, or whatever the contribution guide
 names first, works in your clone and is cheap on the second call. Type the
-narrow form, one module (`docs/the-review-record.md` *The handoff*). Where
+narrow form, one module (`docs/running/the-run.md` *The handoff*). Where
 the repository ships none, make a `uv` venv inside the clone, since `pytest`
 is not installed for the system interpreter. A claim of absence, such
 as nothing in the suite catching this, is a probe: run it over the module that

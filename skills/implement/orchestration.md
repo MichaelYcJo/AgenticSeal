@@ -112,7 +112,7 @@ one agreed, two agreed with a change, one rejected.
 **The spawn prompt is text an agent reads.** The orchestrator writes it to
 the rules of `skills/writing-style/SKILL.md` *에이전트와 검사가 읽는 글은 한
 가지로만 읽히게 쓴다*: each fact it hands over carries its coordinate or its
-label (`docs/the-review-record.md` *The handoff*), and each instruction names
+label (`docs/running/the-run.md` *The handoff*), and each instruction names
 who acts, on which file, and what counts as done.
 
 ## Orchestrator: what needs a person is asked in one batch, before the first edit
@@ -166,7 +166,7 @@ answerer has to exist*) — and what was deliberately left goes to the closing
 memo's Not done section. Each is named in the PR body, because a leftover
 nobody can find was not handed over. On a branch whose `routing.md` answers
 `Automation` with `yes`, `hooks/question-gate.py` holds this, and
-`docs/the-review-record.md` *The run* is the rule.
+`docs/running/the-run.md` *The run* is the rule.
 
 The test for whether something is a question or a row: would a different
 answer change what you build *now*? If it would not, raising it spends a
@@ -304,7 +304,7 @@ went*).
 **`Automation` is held by a gate.** While the row reads `yes`,
 `hooks/question-gate.py` refuses every question on the declared branch but
 question 1 put alone before the person has answered it in this session, and
-`docs/the-review-record.md` *The run* is the rule.
+`docs/running/the-run.md` *The run* is the rule.
 
 **The declaration has one more row, and nobody is asked about it.**
 

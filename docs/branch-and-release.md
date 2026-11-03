@@ -181,7 +181,7 @@ resolving.
 
 **The `target:` line in every `round-N.md` names a commit.** After a squash it
 resolves for nobody, which is why the check reads it only while the branch
-that holds the commit is open (`docs/the-review-record.md` *The round record*).
+that holds the commit is open (`docs/forms/the-round-record.md` *The round record*).
 check: tests/text/test_a_rider_reaches_its_file.py
 
 **A third reader of those commits is outside this repository.** A marketplace

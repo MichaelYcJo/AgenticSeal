@@ -119,7 +119,7 @@ run.
   written. The edit hook writes the values it is drawn from at the file's
   write, under either root, and the `Stop` hook draws them in the
   orchestrator's session
-  (`docs/the-review-record.md` *The stamp*). The broad gate draws nothing:
+  (`docs/checks/the-stamp.md` *The stamp*). The broad gate draws nothing:
   its line reads `BROAD GATE PASSED` or `BROAD GATE FAILED` and judges
   nothing. So seeing the drawing means the last seal was earned.
 
