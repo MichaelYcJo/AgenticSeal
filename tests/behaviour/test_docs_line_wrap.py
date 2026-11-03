@@ -57,8 +57,15 @@ rules = _rules()
 
 
 def is_rule_file(relative):
-    """Whether `seal rules --check` reads RELATIVE's check lines."""
-    return any(fnmatch.fnmatch(relative, p) for p in rules.RULE_FILES)
+    """Whether `seal rules --check` reads RELATIVE's check lines: a file a
+    `RULE_FILES` glob names, or a document of this tree's policy root
+    (`rules.py#policy_documents`)."""
+    return relative in POLICY_DOCUMENTS or any(
+        fnmatch.fnmatch(relative, p) for p in rules.RULE_FILES
+    )
+
+
+POLICY_DOCUMENTS = set(rules.policy_documents(ROOT))
 
 
 def _fence_reader():

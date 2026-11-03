@@ -154,6 +154,24 @@ class Test_module_rows:
             )
 
 
+class Test_documents:
+    def test_reads_the_policy_documents_seal_fold_reads(self, tmp_path):
+        """#1312 S6: the policy root's rows are the documents
+        `skills/settle/scripts/fold_check.py#documents` lists, the top level
+        and each group the index names; a directory the index names nothing
+        of, such as `docs/experiments/`, gives no row."""
+        index = "| File | About |\n|---|---|\n| `docs/g/x.md` | x |\n"
+        docs = {"README": index, "g/x": "abc\n", "experiments/e": "e\n"}
+        root = tree(tmp_path / "t", "", {"t::a": 1.0}, docs)
+        assert sorted(report.documents(root)) == [
+            "CLAUDE.md",
+            "CONTRIBUTING.md",
+            "docs/README.md",
+            "docs/g/x.md",
+            "skills/core/SKILL.md",
+        ]
+
+
 class Test_leg_minutes:
     def test_accepts_a_leg_without_its_job_that_has_no_start_time(self, tmp_path):
         started = job("pytest (ubuntu-latest, 3.12, 1)", 9)

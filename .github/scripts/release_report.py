@@ -21,7 +21,9 @@ into `main` and appends what it prints to the job's summary.
                       --jq '.jobs[]'` prints it; `no run found` where the
                       file is absent, empty or holds no such job
   `<document>`        the bytes of the core (`skills/core/SKILL.md`),
-                      `CLAUDE.md`, `CONTRIBUTING.md` and each `docs/*.md`,
+                      `CLAUDE.md`, `CONTRIBUTING.md` and each document of
+                      the policy root that `seal fold` reads
+                      (`skills/settle/scripts/fold_check.py#documents`),
                       each CRLF counted as the LF git stores
 
 Under it, a second table under `### Test files against <TAG>` gives one row
@@ -33,8 +35,8 @@ prepares the release. A leg's minutes compare one run with one run, which
 swing on the same code, and the table's header says so.
 
 Exit codes: **0** the table was printed, whatever it shows · **2** a tree,
-its `.test_durations`, an agent definition, or the meter it reads through
-cannot be read.
+its `.test_durations`, an agent definition, its policy root's index, or a
+module it reads through cannot be read.
 """
 
 import argparse
@@ -48,9 +50,12 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
-METER = os.path.join(ROOT, "skills", "verify", "scripts", "payload_meter.py")
+METER = "skills/verify/scripts/payload_meter.py"
+FOLD = "skills/settle/scripts/fold_check.py"
+CONFIG = "hooks/lib/config.py"
 DURATIONS = ".test_durations"
-DOCUMENTS = ("skills/core/SKILL.md", "CLAUDE.md", "CONTRIBUTING.md", "docs/*.md")
+# Beside these, each document of the policy root `FOLD`'s `documents` lists.
+DOCUMENTS = ("skills/core/SKILL.md", "CLAUDE.md", "CONTRIBUTING.md")
 # The legs of the tests workflow, in the order a reader compares them, and
 # the name of a pytest job, whose leg is the operating system it opens with.
 LEGS = ("ubuntu", "windows", "macos")
@@ -75,17 +80,21 @@ class Unreadable(Exception):
     says which."""
 
 
-def meter():
-    """`payload_meter.py`, loaded by path, or Unreadable."""
-    if not os.path.isfile(METER):
-        raise Unreadable(
-            "cannot read skills/verify/scripts/payload_meter.py, which measures "
-            "an agent's preload"
-        )
-    spec = importlib.util.spec_from_file_location("agentic_release_meter", METER)
+def script(rel, name, purpose):
+    """The module at `rel` under this tree, loaded by path, or Unreadable
+    naming it and what it is for."""
+    path = os.path.join(ROOT, *rel.split("/"))
+    if not os.path.isfile(path):
+        raise Unreadable(f"cannot read {rel}, which {purpose}")
+    spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def meter():
+    """`payload_meter.py`, loaded by path, or Unreadable."""
+    return script(METER, "agentic_release_meter", "measures an agent's preload")
 
 
 def lf_bytes(path):
@@ -176,12 +185,28 @@ def files_table(tag, rows):
 
 def documents(root):
     """`{path: bytes}` of the core, `CLAUDE.md`, `CONTRIBUTING.md` and each
-    `docs/*.md` in the tree at `root`, each path written with `/`."""
+    document of the policy root in the tree at `root`, as `FOLD`'s
+    `documents` lists them: its top level and each group its index names.
+    Each path is written with `/`; Unreadable where the index cannot be
+    read."""
+    paths = [
+        path
+        for pattern in DOCUMENTS
+        for path in sorted(glob.glob(os.path.join(root, *pattern.split("/"))))
+    ]
+    config = script(CONFIG, "agentic_release_config", "reads the policy root row")
+    policy = config.policy_root(os.path.join(root, "seal"))
+    if os.path.isdir(os.path.join(root, *policy.split("/"))):
+        fold = script(FOLD, "agentic_release_fold", "lists the policy documents")
+        try:
+            listed = fold.documents(root, policy)
+        except fold.Unusable as refused:
+            raise Unreadable(str(refused)) from None
+        paths += [os.path.join(root, *rel.split("/")) for rel in listed]
     out = {}
-    for pattern in DOCUMENTS:
-        for path in sorted(glob.glob(os.path.join(root, *pattern.split("/")))):
-            if os.path.isfile(path):
-                out[os.path.relpath(path, root).replace(os.sep, "/")] = lf_bytes(path)
+    for path in paths:
+        if os.path.isfile(path):
+            out[os.path.relpath(path, root).replace(os.sep, "/")] = lf_bytes(path)
     return out
 
 
