@@ -471,8 +471,18 @@ def test_the_crafters_fix_pass_appends_a_close_block_and_sweeps_what_its_range_r
         # #1148, Scope item 13: two fix passes of its run applied a round
         # record's paste-ready text to a procedure step as given, and each
         # carried a new defect into shipped text.
-        "A paste-ready fix is the proofer's claim and not the fix.",
-        "Apply it only after reading it as its text's own reader would",
+        "A paste-ready fix is the proofer's claim and not the fix",
+        # #1286, Scope item 1: #1216's round 7 applied a paste-ready text as
+        # its judgment row said, and round 1 kept a proposal's collection
+        # against the frame's own rule, so an instruction to apply waives no
+        # reading, and the reading is against the frame and the code.
+        "a spawn prompt or a judgment row that tells you to apply it names "
+        "the fix without waiving the reading below.",
+        "Apply it only after reading it against the frame and the code: what "
+        "`frame/design.md` and the `frame/plan.md` row of the phase that built "
+        "it say the changed unit does, and every input the code hands that "
+        "unit.",
+        "A procedure step is also read as its own reader would",
         # Round 4 of #1148, finding 2: the release is the third axis, which
         # round 1's paste-ready fix failed by citing a section a later settle
         # writes.

@@ -161,7 +161,9 @@ edit* when it starts a work item.
 
 **Each scenario that adds behaviour is built the same way: its case first,
 seen red against the tree as it stands, then the code, then the case
-green.** A rename or a move adds no behaviour, and is proved as
+green.** A case that is already green against the tree as it stands,
+such as a case asserting that something is not named, takes its red from
+contract rule 15. A rename or a move adds no behaviour, and is proved as
 `skills/verify/SKILL.md` *The narrow command still has to be able to fail*
 says: by the cases it already has, with no case written new. A rule the work
 states or changes ends with a `check:` line naming that case — in its home

@@ -180,8 +180,14 @@ quietly taking it back.
 
 Show the case failing — against the old code, or with the sentence it pins
 deleted — before it is committed as a case, and say in the hand-back how it
-was shown. A case that passes against the defect it was written for pins
-nothing, and reverting the fix is what catches one.
+was shown. A case that asserts something is not named, counted, read or
+let through passes against old code that does none of it, so it is shown
+red with only the guard it names removed, and its failing line is read for
+that guard. Where it stays green because a second guard also holds it, or
+fails on a line that names something else, it pins nothing of the guard it
+names. A case that passes against the defect it was written for pins
+nothing, and reverting the fix, or removing its one guard, is what catches
+one.
 
 ## 17 Clean up only what you started
 
