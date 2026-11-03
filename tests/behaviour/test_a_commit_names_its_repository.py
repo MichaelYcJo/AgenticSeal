@@ -10,13 +10,12 @@ orchestrator's loop over a variable met the gate in all three milestone runs.
 The rule stands in `skills/implement/SKILL.md` *2. Implement test-first, and
 let each rule name its test*, which the crafter, the session that builds and
 the orchestrator read. Every other agent commits too, where a spawn prompt
-asks or a probe commits, and reads only the part of that file its step
-needs, so contract rule 6 states the form in one sentence and points at the
-rule.
+asks or a probe commits, and no step of theirs opens *2.*, so contract rule
+6 states the form in one sentence and points at the rule.
 
 The cases read the rule's lead, the `git -C` form an agent types, the
-contract's pointer and the orchestration's citation of the rule. The rule's reason is the proofer's to
-read.
+contract's pointer and the orchestration's citation of the rule. The rule's
+reason is the proofer's to read.
 #1027 removed every gate that read a commit, and the reason that rested on
 that reading went with it; the shell's starting directory is the one left.
 The rule points at contract rule 9 rather than restating it.
@@ -70,8 +69,8 @@ def test_it_points_at_the_edit_rule_rather_than_restating_it():
 
 def test_the_contract_points_every_agents_commit_at_the_rule():
     """The framer commits where a spawn prompt asks, and a proofer's,
-    sealer's or tracer's probe may commit in its clone. None of them reads
-    implement's *2.*, so the contract every agent preloads carries the form
+    sealer's or tracer's probe may commit in its clone. No step of theirs
+    opens implement's *2.*, so the contract every agent preloads carries the form
     and the citation."""
     text = " ".join(read(*CONTRACT).split())
     assert "absolute path after `git -C` in a command of its own" in text, (
