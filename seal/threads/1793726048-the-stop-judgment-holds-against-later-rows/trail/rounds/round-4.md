@@ -35,6 +35,11 @@ The statements of the definition, listed by taking apart each file that states i
 
 The rest of the row stands as written.
 
+```seal
+verdict: fixed cdaf42d8b
+answer: The finding holds. The second process row of `changelog.md` now reads "a `check:` line of a rule the diff changes", as `:4`, the bullet and `frame/design.md` *Scope* item 3 do. The orchestrator made the fix after judging the run excessive at this round (`frame/plan.md` *Judgments of the run* row 6): the fix is confined to the work item's records, so the sealer reads it and no round follows.
+```
+
 ## Confirmations
 
 ```seal
