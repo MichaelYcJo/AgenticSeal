@@ -39,7 +39,6 @@ one definition each*.
 **A suite that is not mentioned reads as a suite that passed.** An agent's
 handover carries the suite labelled `unverified` with the orchestrator named
 as its answerer: labelled, never omitted.
-check: tests/text/test_broad_gate_rule.py tests/text/test_every_agent_reads_the_contract.py
 
 **A suite whose record says a pytest session at `HEAD` stopped
 part-way has not passed, whatever the row's exit.** An exit of 0 does

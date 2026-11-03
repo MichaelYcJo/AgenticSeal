@@ -90,7 +90,6 @@ longer exercises moves to a record built in `tmp_path`. A repair is green
 before the fold and after it; one green only once the directories are gone is
 a lowering. `skills/settle/SKILL.md` *Answer every check that reads the
 corpus* gives the three answers.
-check: tests/text/test_settle_reads_before_it_removes.py
 
 **A document with a `.ko.md` edition changes with it, heading for heading.**
 The two editions are prose in two languages, so the check compares what is

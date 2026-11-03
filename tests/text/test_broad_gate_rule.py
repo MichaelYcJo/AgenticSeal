@@ -50,20 +50,12 @@ def test_the_broad_gate_section_cites_the_owner_of_its_timing():
 def test_the_crafter_puts_both_answers_in_the_hand_back():
     """What stayed with the implementer when contract rule 2 and contract
     rule 3 moved: the crafter's definition cites both rules its hand-back
-    answers. Where the two answers land is the proofer's to read, except the
-    one clause `docs/running/the-broad-gate.md:42` still names this module for."""
+    answers. Where the two answers land is the proofer's to read."""
     crafter = flat("agents", "crafter.md")
     # The two contract rule numbers the crafter resolves for what its
     # hand-back answers.
     assert "rule 2" in crafter and "rule 3" in crafter, (
         "the implementer can no longer reach the rules its hand-back answers"
-    )
-    # A phrase of the rule, not a fact: the last assert of this module that
-    # reads the rule `docs/running/the-broad-gate.md:42` closes, kept unchanged until
-    # that line's change lands (#1233, `frame/design.md` Scope item 9).
-    assert "the suite labelled `unverified`" in crafter, (
-        "the suite stopped going over labelled, and a suite that is simply "
-        "not mentioned reads as a suite that passed"
     )
 
 
