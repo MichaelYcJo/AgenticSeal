@@ -477,7 +477,7 @@ below:
 
 | Remaining item | Destination |
 |---|---|
-| Doable within this pull request | done now, by the party that builds the work item, and reviewed by a verifying round before the broad run, unless every finding it closes is located in the work item's records and it touched nothing else |
+| Doable within this pull request | done now, by the party that builds the work item, and reviewed by a verifying round before the broad run, unless every finding it closes is located in the work item's records and it touched nothing else. Once a row of `frame/plan.md` *Judgments of the run* judges the run excessive, only a `must` is done now, and every other item takes a home that costs no round, as `skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round* states |
 | Waiting on prerequisite work | `seal/follow-up.md` |
 | Needs a decision | the policy document's open-questions section: written there directly where the work item's subject is the policy root, and otherwise an `add` in `frame/design.md`'s `## Rule changes` (`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*) |
 

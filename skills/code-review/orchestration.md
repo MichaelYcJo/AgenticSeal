@@ -134,13 +134,21 @@ last one, because the run ends at it.
 counted from the last design change, are the point where you weigh that
 rather than spawn the next round by habit.** `docs/running/the-run.md`
 *The run* says what a design change is and where the count starts again.
-At that point, and at any round where a signal below shows, you weigh:
+The three rounds are where the weighing is owed, and they are no cap: no
+number of rounds decides that a run is excessive. At that point, and at any
+round where a signal below shows, you weigh what the next round can catch
+against what it costs:
 
 | | What |
 |---|---|
 | The signals that the run is not converging | a round finds as many findings as the one before it, or more; a finding carries a `regression:` line; one kind of finding returns with a new instance, each fix pass having fixed the coordinate it was handed; a fix adds a mechanism, a check, a mark or a grammar rule, in place of removing a cause |
+| What the next round can catch | what the diff of the last fixes can break, because that diff is the round's target (the *Target* row above). A fix that changes no assertion, such as a test's comment or its name, can be caught out only on its own wording |
 | What going on costs | a round close to a finding round's price, since the frame, the inherited records and the probes set it |
 | What stopping costs | each open finding a home somebody acts on, by the homes *The run* gives, and a defect the release ships where the home is nobody's |
+
+A fix that changes no assertion owes no round of its own where another fix
+already owes one: it rides in that fix pass, and that pass's verifying
+round reads it. This weighs what a round costs and changes no invariant.
 
 A regression's fix pass is owed one verifying round whatever the count,
 because a fix no round reads is an invariant `skills/core/SKILL.md`
@@ -152,6 +160,24 @@ writes no line for it, and no person is asked mid-run. When you stop, every
 finding still open takes a home: you append its close block, its `verdict:`
 reading `deferred <home>` and its `answer:` saying why the run stopped there,
 and commit the close blocks of that step together.
+
+**A row that judges the run excessive binds every row after it.** Its
+grounds name what the next round could catch and what it would cost. From
+that row on, a `must` gets its fix pass and its verifying round. Every
+other finding takes a home that costs no round. That home is rung 2, 3 or 4
+of the homes *The run* gives, where you append its close block reading
+`deferred <home>` and spawn no fix pass for it, or a fix confined to the
+work item's records, which the sealer reads. A later row spends no round on
+a finding that is not a `must`, whatever document it cites. The first row
+of `skills/implement/orchestration.md` *Orchestrator: drain the rows before
+the broad run, and keep the records* and rung 1 of *The run*'s homes are
+among those documents, because the stop row has already weighed that fix
+against the round it costs. Only a design change ends the stop, and the
+count starts again at the first finding round that reviews the new design.
+A repair that the sealer's withheld verdict asks for is no finding and
+takes no row, so the stop does not reach it. A round reads that repair
+unless it touched only the work item's records, as the table of
+`skills/core/SKILL.md` *Judgment is not licence to skip a party* holds.
 
 **Where the signal is one mechanism whose edges each fix pass chased, the next
 fix pass decides what the mechanism reads, and takes no further edge.** That is
