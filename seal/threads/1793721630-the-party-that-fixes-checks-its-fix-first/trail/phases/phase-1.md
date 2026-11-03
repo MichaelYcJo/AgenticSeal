@@ -76,8 +76,9 @@ on its first run with "lost its rule" for that reason (executed).
 - `skills/code-review/orchestration.md`, 1 mutant, 1 red, under `-k
   implementers_context`. It restored "those corrections".
 
-`7422e78f5` then rewrapped two of the crafter rule's lines and reworded
-the clause on the files the crafter does not write. No clause the case
+`7422e78f5` then rewrapped lines of the crafter rule and of the fold
+paragraph, and reworded the clause on the files the crafter does not
+write. No clause the case
 pins changed its words, and the case passed at that commit (executed).
 Contract rule 12's sentences and the review file's new sentences have no
 case (`gaps.md`), so no mutant was run over them.
@@ -100,11 +101,14 @@ over `tests/`.
 
 **The other statements across the tree of each rule this range reworded
 or removed are a sample (contract rule 12).** The method was `git grep -n`
-over the tree, outside `seal/threads/`, for "open part of a sample", "find
+over the tree outside `seal/threads/` for "open part of a sample", "find
 every other place", "by its words and by the", "folds that statement",
-"reads that list against", "statements beside each coordinate", "calls a
-sample a sample", "rule 12", "sample", "left standing", "whole list" and
-"sweep". It listed these, and each stands.
+"reads that list against", "statements beside each coordinate", "proofer's
+share", "calls a sample a sample" and "rule 12". A second `git grep -n -i`
+over `agents`, `skills`, `docs`, `templates`, `hooks`, `README.md` and
+`CONTRIBUTING.md` searched "sample", "left standing", "whole list",
+"sweep", "reworded or removed" and "every other place stat". They listed
+these, and each stands.
 
 - `skills/agent-contract/SKILL.md:213-214`, rule 19, says a list none of
   rule 12's three methods made is a sample. Rule 12 still says so.
