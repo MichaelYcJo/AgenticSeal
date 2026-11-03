@@ -160,7 +160,7 @@ PR 검사가 그중 무엇을 읽는지, 세션이 에이전트에게 일을 어
 104ms, 후 323ms → 120ms). 게이트가 불러와지지 않거나 도중에 멈추면 그
 게이트만 건너뛰고 호출은 그대로 진행됩니다. 어느 게이트였는지는 세션마다 한
 번, 턴이 끝날 때 알려 줍니다. 판정표 전문은 다음 세 문서에 있습니다.
-[docs/the-routing-check.md](./docs/the-routing-check.md) ·
+[docs/checks/the-routing-check.md](./docs/checks/the-routing-check.md) ·
 [docs/the-review-and-parity-arms.md](./docs/the-review-and-parity-arms.md) ·
 [docs/checks/the-pull-request-check.md](./docs/checks/the-pull-request-check.md)
 
@@ -189,8 +189,8 @@ PR 검사가 그중 무엇을 읽는지, 세션이 에이전트에게 일을 어
 간다고 적힌 것에 대해서는 커밋된 라운드 기록을 요구합니다. 그 기록에 답하지
 않은 지적이 하나라도 남아 있으면 막습니다. 어느 쪽도 선언하지 않은 PR 은
 커밋의 `Seal-Routing` 트레일러로만 판정하고
-([docs/the-routing-check.md](./docs/the-routing-check.md)), 그 밖에는 아무것도
-검사하지 않았다는 알림을 남깁니다.
+([docs/checks/the-routing-check.md](./docs/checks/the-routing-check.md)), 그 밖에는
+아무것도 검사하지 않았다는 알림을 남깁니다.
 
 한 회차의 지적은 그 회차가 끝난 뒤에 수정으로 닫히고, 그 수정을 읽는 것은 다음
 회차입니다. 마지막 회차만 예외였습니다 — 아무도 읽지 않았습니다.

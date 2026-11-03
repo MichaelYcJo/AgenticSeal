@@ -1155,7 +1155,7 @@ class Test_module:
         The gates that wrote a clone's git hooks or carried a waiver to git
         stay out of every group and off disk, and `hooks/git/` stays gone:
         this plugin writes nothing into a clone's git hooks
-        (`docs/the-routing-check.md`)."""
+        (`docs/checks/the-routing-check.md`)."""
         d = dispatch_module()
         assert d.GROUPS["pre-bash"] == ("mode-gate.py",)
         assert d.GROUPS["pre-agent"] == ("implementer-mark.py",)

@@ -122,7 +122,7 @@ refuses a `Write`, `Edit` or `NotebookEdit` on a branch no routing
 declaration names, before the edit lands; a `sed -i`, a redirection or a
 script writes a file with no edit tool, so an edit through the shell is
 invisible to it, and only the pull request's trailer arm is left to catch
-the change (`docs/the-routing-check.md` *The edit check*).
+the change (`docs/checks/the-routing-check.md` *The edit check*).
 check: tests/text/test_edits_go_through_the_edit_tool.py
 
 ## 10 Batch independent reads and runs

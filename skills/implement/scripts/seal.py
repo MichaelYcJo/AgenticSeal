@@ -2747,7 +2747,7 @@ def no_work_item(args, cwd):
     resolved as the edit gate resolves it (`routing.worktree_branch`): the
     branch checked out, else the branch a paused rebase there names. Where
     the repository, the session or the branch is missing, nothing is written.
-    The rule is `docs/the-routing-check.md` *The edit check*."""
+    The rule is `docs/checks/the-routing-check.md` *The edit check*."""
     where = args.root or cwd
     repo = optin.repo_root(where)
     if not repo:

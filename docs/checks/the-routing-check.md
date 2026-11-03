@@ -3,7 +3,7 @@
 Authority for where a session's routing is checked: at its edit tools,
 before the first edit, and at the pull request. What each routing answer
 owes at the pull request is `docs/the-review-and-parity-arms.md`. How the
-hooks are registered is `docs/the-session-hooks.md`. Update spec and code
+hooks are registered is `docs/checks/the-session-hooks.md`. Update spec and code
 together.
 
 **A session's routing is checked where the session acts, at its edit tools

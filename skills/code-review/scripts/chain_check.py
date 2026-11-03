@@ -1777,7 +1777,7 @@ ROOT_LEFT_SAYS = (
     "trailers and nothing else"
 )
 
-# The trailer a session's commit ends with (`docs/the-routing-check.md` *At
+# The trailer a session's commit ends with (`docs/checks/the-routing-check.md` *At
 # the pull request*), and its one value that names no work item.
 TRAILER = "Seal-Routing"
 NO_WORK_ITEM = "no work item"

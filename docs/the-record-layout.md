@@ -146,7 +146,7 @@ release came from. The refusal stands where the reader reads:
 `frame/design.md`'s `## Rule changes`. A base revision that holds such a line is not compared,
 because nobody can edit a commit that already happened. A `routing.md` is
 the exception: its reader, `hooks/lib/routing.py`, runs in the edit check
-(`docs/the-routing-check.md` *The edit check*) before every edit in an
+(`docs/checks/the-routing-check.md` *The edit check*) before every edit in an
 opted-in repository, where a refusal would stop the edits of a work item
 framed before its template lost its comments, so that reader keeps the
 comment walk of `hooks/lib/blocks.py`.

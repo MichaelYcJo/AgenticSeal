@@ -197,8 +197,8 @@ COVERED = [
     "docs/measuring-a-run.md",
     "docs/the-agent-set.md",
     # The routing check's documents, each written wrapped and in at birth.
-    "docs/the-session-hooks.md",
-    "docs/the-routing-check.md",
+    "docs/checks/the-session-hooks.md",
+    "docs/checks/the-routing-check.md",
     "docs/the-review-and-parity-arms.md",
     # The pact's policy (#647), written wrapped and in at birth.
     "docs/the-pact.md",

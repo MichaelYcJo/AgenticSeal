@@ -434,7 +434,7 @@ def declared(cwd, root):
 # UTF-8, each line ending in a newline. `seal no-work-item` adds the branch it
 # ran on, and `hooks/routing-edit-gate.py` lets the session's edits through on
 # a branch a line names and on no other. The rule is
-# `docs/the-routing-check.md` *The edit check*.
+# `docs/checks/the-routing-check.md` *The edit check*.
 NO_WORK_ITEM = "agentic-no-work-item"
 # A record older than this is pruned when one is written.
 NO_WORK_ITEM_AGE = 86400

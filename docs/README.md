@@ -36,8 +36,6 @@ The orchestrator and the owner open these at a release and its settle.
 |---|---|
 | `docs/measuring-a-run.md` | what a segment of a run measures, how a reading that moved is judged, and where the reading goes |
 | `docs/the-broad-gate.md` | who takes the one broad run, what it runs, and what it may say |
-| `docs/the-routing-check.md` | where a session's routing is checked: at its edit tools before the first edit, and at the pull request |
-| `docs/the-session-hooks.md` | how the hooks are registered, and what the implementer mark says |
 | `docs/what-a-script-gates.md` | which gates a script holds and which an agent holds, what each script reads, and what it does with what it did not read |
 
 ## docs/forms/
@@ -73,6 +71,8 @@ and the citation gives the reason.
 | `docs/checks/the-stamp.md` | what the stamp hooks and `seal_stamp.py` draw, for a person who changes them |
 | `docs/checks/the-fold.md` | what `seal settle` and `seal fold` read to tell a settle from a deletion |
 | `docs/checks/the-unverified-record.md` | what `unverified_check.py` reads, and the baseline it reads against |
+| `docs/checks/the-routing-check.md` | where a session's routing is checked: at its edit tools before the first edit, and at the pull request |
+| `docs/checks/the-session-hooks.md` | how the hooks are registered, and what the implementer mark says |
 
 `docs/experiments/` holds dated scratch documents and is no policy; `settle`
 never writes there.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """PreToolUse gate: the first edit on an undeclared branch is refused.
 
-The rule is `docs/the-routing-check.md` *The edit check*. The routing is
+The rule is `docs/checks/the-routing-check.md` *The edit check*. The routing is
 decided before the first edit, so this gate checks that moment itself: a
 `Write`, `Edit` or `NotebookEdit` of a file in an opted-in repository's
 worktree is refused while no routing declaration names the branch checked out

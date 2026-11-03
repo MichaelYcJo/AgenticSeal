@@ -34,7 +34,7 @@ It sits in `hooks/` because each wrapper it serves reaches it relative to
 itself, as `$here/../hooks/lib/launch.py`, and `hooks/` already ships the modules the
 scripts share. `hooks/hooks.json` does not run through it: a gate that fails
 is skipped and said, and the call goes ahead
-(`docs/the-session-hooks.md` *Registration*), where exit 2 from a hook
+(`docs/checks/the-session-hooks.md` *Registration*), where exit 2 from a hook
 is the harness's word for blocking the call.
 
 Exit codes: 2 for an interpreter below the floor or no script named, with

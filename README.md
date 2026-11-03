@@ -167,7 +167,7 @@ them (measured: 220ms → 104ms before a Bash call, 323ms → 120ms after). A ga
 that fails to load or crashes is skipped and the call goes ahead; at the end of
 the turn you are told which gate it was, once per session. Full decision
 tables:
-[docs/the-routing-check.md](./docs/the-routing-check.md) ·
+[docs/checks/the-routing-check.md](./docs/checks/the-routing-check.md) ·
 [docs/the-review-and-parity-arms.md](./docs/the-review-and-parity-arms.md) ·
 [docs/checks/the-pull-request-check.md](./docs/checks/the-pull-request-check.md).
 
@@ -197,8 +197,8 @@ the pull request: CI reads the same file out of the diff and, for anything
 routed through the chain, requires a committed round record with no finding
 left unanswered. A pull request that declared neither way is judged by its
 commits' `Seal-Routing` trailers alone
-([docs/the-routing-check.md](./docs/the-routing-check.md)), and a notice says
-nothing else was checked.
+([docs/checks/the-routing-check.md](./docs/checks/the-routing-check.md)), and a
+notice says nothing else was checked.
 
 A round's findings are closed after it ends, by whoever writes the
 fixes, and the round that follows is what reads them — except after the last

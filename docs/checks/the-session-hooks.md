@@ -1,7 +1,7 @@
 # The session hooks
 
 Authority for how the hooks are registered and for the implementer mark.
-Where a session's routing is checked is `docs/the-routing-check.md`. The
+Where a session's routing is checked is `docs/checks/the-routing-check.md`. The
 review run the hooks serve is `docs/running/the-run.md`. Update spec and
 code together.
 

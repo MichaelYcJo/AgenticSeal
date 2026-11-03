@@ -3,7 +3,7 @@
 Authority for what each routing answer owes at the pull request, and for
 the parity arm: what a change in a migration owes, and where that is
 checked. Where a session's routing is checked, at its edit tools and at the
-pull request, is `docs/the-routing-check.md`. What the pull-request check
+pull request, is `docs/checks/the-routing-check.md`. What the pull-request check
 reads of a round record is `docs/checks/the-pull-request-check.md`. Update
 spec and code together.
 
@@ -11,7 +11,7 @@ spec and code together.
 
 **No arm runs at the commit.** The review arm is the routing check, which
 runs at a session's edit tools and at the pull request
-(`docs/the-routing-check.md`), and the parity arm is checked at the pull
+(`docs/checks/the-routing-check.md`), and the parity arm is checked at the pull
 request alone, as *Parity arm* below states. The migration config lives at
 `seal/parity.md`, so declaring it creates `seal/`, which opts the
 repository into the routing check too.
@@ -21,7 +21,7 @@ check: tests/hooks/test_routing_edit_gate.py tests/skills/test_chain_check.py
 
 **The review arm is the routing check.** Where it runs is *The two arms*
 above; what it refuses, what it reads and what lets an edit through without
-a declaration are `docs/the-routing-check.md`. A change confined to `docs/`
+a declaration are `docs/checks/the-routing-check.md`. A change confined to `docs/`
 meets it as any other change does, because `docs/` is the policy the code
 conforms to and review finds defects there as it does in code. A
 documentation pass that should reach nobody is routed that way before the
@@ -40,7 +40,7 @@ the first edit.
 |---|---|---|
 | through the review chain | allowed | a committed `trail/rounds/round-N.md` with no finding left `open`, the last record's `target:` commit at HEAD or followed only by the work item's own records, and the broad run's `trail/gate.md` and the sealer's `guarantee.md` beside it |
 | straight to the PR | allowed | `trail/gate.md` beside the work item's records, naming the one broad run the orchestrator took at a SHA the tree can see, and the sealer's `guarantee.md` reading `sealed` at HEAD. A draft pull request prints instead of failing, and the declaration is printed either way |
-| nothing readable, or no file | refused, unless the session recorded, on that branch, that its change belongs to no work item | each commit's `Seal-Routing` trailer is judged as `docs/the-routing-check.md` *At the pull request* states; nothing else is checked, and a notice says so |
+| nothing readable, or no file | refused, unless the session recorded, on that branch, that its change belongs to no work item | each commit's `Seal-Routing` trailer is judged as `docs/checks/the-routing-check.md` *At the pull request* states; nothing else is checked, and a notice says so |
 
 What the check reads of each round record under the first answer is
 `docs/checks/the-pull-request-check.md` *What the check reads at the pull
@@ -67,7 +67,7 @@ direct route against the broad run's record, and no value means no
 enforcement anywhere. Which declaration applies is settled by the branch it
 names, looked up from the checked-out branch. Every way that lookup can fail
 (a renamed branch, a detached HEAD outside the two cases
-`docs/the-routing-check.md` *The edit check* allows, two declarations naming
+`docs/checks/the-routing-check.md` *The edit check* allows, two declarations naming
 one branch, a file that will not parse) resolves to *no declaration*, and
 therefore to **refusing the edit**: a fail-open here would be a gate a
 corrupt file switches off.
@@ -128,7 +128,7 @@ original was consulted.
 |---|---|
 | through the review chain | each round record's `original:` line |
 | straight to the PR | one `original:` line in the sealer's `guarantee.md` |
-| none | nowhere, and no comparison is checked: each commit's `Seal-Routing` trailer is judged as `docs/the-routing-check.md` *At the pull request* states, and a commit reading `no work item` is printed, visible in history |
+| none | nowhere, and no comparison is checked: each commit's `Seal-Routing` trailer is judged as `docs/checks/the-routing-check.md` *At the pull request* states, and a commit reading `no work item` is printed, visible in history |
 | any, for a change confined to `docs/`, `seal/` | nothing is owed: nothing there can be compared against an original |
 
 "The change" is every path the pull request changes against its base.

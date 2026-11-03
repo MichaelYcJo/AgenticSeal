@@ -129,7 +129,7 @@ sealer's.
 check: parity-in-the-guarantee
 
 **On every pull request, the check reads the `Seal-Routing` trailer of
-each of its own commits, as `docs/the-routing-check.md` *At the pull
+each of its own commits, as `docs/checks/the-routing-check.md` *At the pull
 request* states.**
 check: routing-trailer-at-the-pull-request
 
