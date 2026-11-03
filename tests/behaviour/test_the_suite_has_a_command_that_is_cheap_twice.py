@@ -371,7 +371,7 @@ def test_the_cheat_sheet_does_not_offer_the_runner():
     PATH never gets a say. A row in the table that names commands a reader
     types would name the one command there that cannot be typed."""
     readme = read(os.path.join(ROOT, "README.md"))
-    sheet = readme[readme.index("## Cheat sheet") :]
+    sheet = readme[readme.index("## Commands") :]
     rows = [line for line in sheet.splitlines() if line.startswith("| `")]
     assert not [row for row in rows if "bin/test" in row or "`test" in row], (
         "the cheat sheet offers a command a plugin user cannot type, and "

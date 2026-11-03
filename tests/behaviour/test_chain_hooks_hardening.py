@@ -129,7 +129,13 @@ def test_the_marketplace_describes_the_plugin_in_the_manifests_words():
     """#1055 S13. `.claude-plugin/plugin.json`'s `description` is the one
     source of the sentence that describes the plugin. JSON cannot link, so
     `.claude-plugin/marketplace.json` carries it twice, at its top level and
-    in its plugin entry, and each copy must equal the source."""
+    in its plugin entry, and each copy must equal the source.
+
+    #1102 S2: `README.md` carries it a third time, as the paragraph directly
+    under `# AgenticSeal`, because the page's first reader meets the plugin
+    there and a link cannot stand in for the sentence. The paragraph is
+    wrapped at the page's line limit, so it is read with its line breaks
+    folded."""
     with open(
         os.path.join(ROOT, ".claude-plugin", "plugin.json"), encoding="utf-8"
     ) as f:
@@ -144,6 +150,12 @@ def test_the_marketplace_describes_the_plugin_in_the_manifests_words():
     entries = [p for p in marketplace["plugins"] if p.get("name") == manifest["name"]]
     assert len(entries) == 1, entries
     assert entries[0].get("description") == source, "marketplace.json, plugin entry"
+    with open(os.path.join(ROOT, "README.md"), encoding="utf-8") as f:
+        lines = f.read().splitlines()
+    under = lines[lines.index("# AgenticSeal") + 1 :]
+    assert under[:1] == [""], "README.md: a line other than a blank follows the title"
+    paragraph = under[1 : under.index("", 1)]
+    assert " ".join(paragraph) == source, "README.md, the paragraph under the title"
 
 
 def test_every_option_the_manifest_declares_is_one_a_hook_reads():
