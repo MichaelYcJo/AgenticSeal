@@ -379,9 +379,9 @@ def test_a_decision_after_the_frame_is_folded_into_it():
         "the orchestrator keeps one line of its own in `plan.md`",
         "naming the comments to fold, below the title,",
         "folds the decision into the issue body",
-        # #1318, Scope item 5: #1234's fold widened only the cell a finding
-        # named, so a fold reads the frame file whole, and the records after
-        # its commit.
+        # #1318, Scope item 5: #1234's fold widened only the *Scope* item a
+        # finding named, so a fold reads the frame file whole, and the records
+        # after its commit.
         "the orchestrator reads each frame file it folds into whole against "
         "HEAD, not only the named line, and rewrites every statement HEAD "
         "contradicts",
