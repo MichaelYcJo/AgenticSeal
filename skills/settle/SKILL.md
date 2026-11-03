@@ -413,8 +413,9 @@ into a comment.
 
 After the removals, `--apply` names each document past the `Document token
 ceiling` row in `seal/config.md`, as `seal fold` does, and neither refuses
-it. Such a document is recommended to be split by topic along its own
-headings, in that pull request or a later one, and nothing is cut to fit.
+it. Such a document is recommended to be split by who opens each section
+and at which step, in that pull request or a later one, and nothing is cut
+to fit.
 The plugin sets no ceiling; a repository states its own.
 
 ## A settle is not a work item

@@ -2,8 +2,8 @@
 
 A document fits one read, and the policy root has one index (#953).
 `seal fold` reports each document of the policy root or of one of its groups whose
-estimate is past the `Document token ceiling` row as one to split along its
-own headings, and exits 0 on it: the estimate is a guess from bytes, so it is
+estimate is past the `Document token ceiling` row as one to split by who
+opens each section and at which step, and exits 0 on it: the estimate is a guess from bytes, so it is
 a report and not a gate. Its index arm refuses a `<policy root>/README.md`
 that misses a document, names one twice, or holds a row naming none. The
 rows and the estimate are stated once, in `templates/setup/config.md` *The fold's
@@ -100,7 +100,7 @@ class Test_main:
         assert code == 0, (code, out, err)
         assert (
             "seal fold: docs/big.md is about 25001 tokens, past the ceiling of "
-            "25000: split it along its own headings\n"
+            "25000: split it by who opens each section and at which step\n"
         ) in out, out
         assert "docs/at.md is about" not in out, out
         assert (

@@ -1669,7 +1669,10 @@ class Test_main:
             "docs/a.md is about "
             in text.split("past the ceiling")[0].rsplit("\n", 1)[-1]
         ), text
-        assert "past the ceiling of 10: split it along its own headings" in text, text
+        assert (
+            "past the ceiling of 10: split it by who opens each section and at "
+            "which step" in text
+        ), text
         assert settle.AFTER_HEADING in text, text
 
     def test_local_mode_lists_a_released_and_an_unreleased_item(self, local, gh, capfd):

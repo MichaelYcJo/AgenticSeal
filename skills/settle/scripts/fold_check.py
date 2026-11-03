@@ -16,8 +16,8 @@ index names a document of (`groups`). A directory the index names nothing
 of, and anything below a group, is not read.
 
 **One read.** Each document whose estimate (`tokens`) is past the `Document
-token ceiling` row is named as one to split along its own headings. That is a
-report and never a failure: the estimate is a guess from bytes, and a
+token ceiling` row is named as one to split by who opens each section and at
+which step. That is a report and never a failure: the estimate is a guess from bytes, and a
 document past one tool's per-call cap is still read in more calls (the
 owner's answer of 2026-10-20).
 
@@ -210,7 +210,7 @@ def past_ceiling_lines(found, ceiling):
     """The report a person reads for `past_ceiling`'s answer, one line each."""
     return [
         f"{rel} is about {count} tokens, past the ceiling of {ceiling}: split "
-        "it along its own headings"
+        "it by who opens each section and at which step"
         for rel, count in found
     ]
 

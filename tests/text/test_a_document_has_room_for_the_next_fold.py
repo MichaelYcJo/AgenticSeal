@@ -32,7 +32,7 @@ def test_settle_owns_the_placement_rule():
     section = text.split("\n## A document past its ceiling is split, never trimmed\n")
     section = " ".join(section[1].split("\n## ")[0].split())
     for phrase in (
-        "is recommended to be split by topic along its own headings",
+        "is recommended to be split by who opens each section and at which step",
         "nothing is cut to fit",
         "The plugin sets no ceiling",
     ):
