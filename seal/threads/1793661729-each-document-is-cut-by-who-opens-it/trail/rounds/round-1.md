@@ -48,6 +48,12 @@ README.ko.md:114, the docs/ row's last cell, from "작업 항목은" to the end:
 정책 루트 자체가 주제인 작업 항목은 그 pull request 에서 이 문서를 직접 고치고, 코드가 주제인 작업 항목은 이 문서를 고치지 않고 바꿀 규칙을 설계에 적으며, 릴리스 뒤의 settle 이 그 변경이 말하는 가장 나중 결정으로 절마다 써 넣는다(`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*) |
 ```
 
+```seal
+verdict: fixed 170372c72
+answer: Both README rows take the paste-ready text as given. The class was listed by two scans of every tracked .md, .py and .yml file outside seal/threads/ and CHANGELOG.md, sentence by sentence: one for a sentence naming the policy root or a design's rule changes with a write verb and a negation, one for a sentence naming the policy root or rule changes with a writer (settle, pull request, work item) and a write verb; each hit was read. Beyond the READMEs they found six more statements that every policy change goes through a design's rule changes or that only the settle changes the policy root, each now stating the subject boundary or dropping the premise: skills/implement/orchestration.md's open-decision row and lesson row, skills/implement/SKILL.md's missing-clause sentence, the opening of skills/settle/SKILL.md, the grammar's opening in skills/settle/rule-changes.md, skills/settle/named-directories.md's way of finding the last settle's pull request, which took the last commit that changed the policy root, and the docstring of test_the_orchestrators_run_judgments_are_rows_of_the_plan. The scans match the root's names and verbs they list, so a statement in other words still escapes them; this is a sample of that unbounded class.
+location: `skills/implement/orchestration.md:472`, `skills/implement/orchestration.md:489`, `skills/implement/SKILL.md:146-149`, `skills/settle/SKILL.md:17-21`, `skills/settle/rule-changes.md:11-15`, `skills/settle/named-directories.md:51-55`, `tests/text/test_the_rules_have_one_owner.py:455-456`
+```
+
 ### 2. The record layout still sends its reader to the fold section "above", which moved to another document
 
 ```seal
@@ -87,6 +93,12 @@ written) go with the directory, whole, when the settle removes it
 and `docs/releasing/release-checklist.md` *2b*). A document that still cites a record of
 ```
 
+```seal
+verdict: fixed d990b38b5
+answer: The record layout takes the paste-ready text as given. The class was listed from what produces it: every heading the base held in a file this branch renamed, cut or deleted and that file no longer holds at HEAD (32 headings), then every italic citation of each of those headings in the tracked files outside seal/threads/ and CHANGELOG.md (135), each checked for the nearest preceding backticked path in its paragraph naming the file that holds the heading now; and every italic heading followed by above or below (24), each checked against its own file. One more instance stood: skills/code-review/scripts/chain_check.py's docstring said the pull request check's document holds *The round record* and *The guarantee* ("its"), and it now names docs/forms/the-round-record.md and docs/forms/the-guarantee.md. The other hits resolve: a path named a line earlier or later, or a test variable holding the path. A reference to a moved section spelt in other words than its heading is outside both lists.
+location: `docs/layout/the-record-layout.md:123-124`, `skills/code-review/scripts/chain_check.py:79-80`
+```
+
 ### 3. The changelog says the moved policy text changed only in paths and four references, and leaves out the guarantee's rewritten opening
 
 ```seal
@@ -118,6 +130,11 @@ The moved text is unchanged except for re-pointed paths, four cross-references t
 
 changelog.md:8, at the end of the item:
 *The guarantee*'s opening restated the sealer's job from its definition, and now cites `agents/sealer.md` *Job* for it.
+```
+
+```seal
+verdict: fixed b204b7e8b
+answer: Item 8 takes the paste-ready sentence as given. Item 5's paste-ready text points to "the next item", which is item 6, the readers of group directories, so item 5 is written in other words: the moved text changed in re-pointed paths, four cross-references, and two passages that now cite where their text stands, which the item on such passages names. A word diff of each of the seven moved sections against its base text (executed) found those changes and no others: the guarantee's opening and its two cross-references, the run's question-gate paragraph and its one cross-reference, one in the pull request check, and one re-pointed skills path in the fold. The fragment is the one statement of the fact against the release base; trail/phases/phase-5.md S7 measured the phase 5 moves against ecaa65963, after phase 1's edits, and holds there.
 ```
 
 ## Confirmations
