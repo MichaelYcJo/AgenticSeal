@@ -110,8 +110,9 @@ first two is caught at the next edit, because the gate stops recognising the fil
 wrong answer in the others is contradicted by nothing, so a file copied and never
 revisited lands on not answered rather than on an answer nobody gave. An absent
 `Automation` row means nobody was asked, which is why `no` is never written where the
-question was not put. Under `stop before the pull request` nothing runs at the end, the orchestrator says so
-in the hand-back, and the broad run's record is owed when a pull request opens.
+question was not put. Under `stop before the pull request` nothing runs at the end, the
+orchestrator says so in the hand-back, and the broad run's record is owed when a pull
+request opens.
 check: tests/hooks/test_routing.py tests/behaviour/test_waiver_decided_at_start.py
 
 ### Parity arm
