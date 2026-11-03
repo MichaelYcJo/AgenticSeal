@@ -45,9 +45,10 @@ In:
    the agents that act on it, and each section of each agent definition with
    the step that uses it, each with its decision.
 2. **Rules leave the contract where one agent acts on them** (D1): rule 16
-   moves into `skills/implement/SKILL.md` *2.*, and rule 2's phase-boundary
-   set moves into `skills/verify/SKILL.md` *Scope: cheap and often, broad
-   and once*.
+   moves into `skills/implement/SKILL.md` *2.*, with one sentence of contract
+   rule 6 stating the `git -C` form and pointing there for the agents that
+   commit without opening it, and rule 2's phase-boundary set moves into
+   `skills/verify/SKILL.md` *Scope: cheap and often, broad and once*.
 3. **The retired lines go** (D2): rules 8 and 20, and rule 16's number once
    it moves, become numbers the preamble lists as retired. The numbering
    reader reads that list.
@@ -104,12 +105,12 @@ Out, each with its grounds:
 | Scenario | Given / When / Then | Verifiable how |
 |---|---|---|
 | S1 The reading is recorded | Given this design, when a reviewer opens a row of *The reading*, then its coordinate at 0c68b9933 holds the section, its agents and step are named, and its decision matches what the diff did | the proofer opens the coordinates with `git show 0c68b9933:<path>` |
-| S2 A one-agent rule rides with its step | Given HEAD, when the crafter or the session builds a phase, then the commit form of old rule 16 stands in `skills/implement/SKILL.md` *2.* and the phase-boundary set in `skills/verify/SKILL.md`'s *Scope* table, and the contract holds neither | `tests/behaviour/test_a_commit_names_its_repository.py` and `tests/text/test_broad_gate_rule.py`, retargeted at the new homes and run narrow |
+| S2 A one-agent rule rides with its step | Given HEAD, when the crafter or the session builds a phase, then the commit form of old rule 16 stands in `skills/implement/SKILL.md` *2.* and the phase-boundary set in `skills/verify/SKILL.md`'s *Scope* table; the contract no longer holds the set, and holds of the commit rule only rule 6's sentence stating the `git -C` form and pointing at implement's rule, for the agents that commit without opening implement *2.* | `tests/behaviour/test_a_commit_names_its_repository.py`, retargeted at the new home, with its case `test_the_contract_points_every_agents_commit_at_the_rule`; `tests/text/test_broad_gate_rule.py`; run narrow |
 | S3 A retired number is listed, not kept as a line | Given the contract at HEAD, when the numbering case reads it, then its headings increase and repeat no number, every missing number up to the highest is in the preamble's retired list, and no listed number is a heading | the new numbering cases, each seen red first against a planted gap and a planted listed heading (phase 1) |
 | S4 No citation names a retired number | Given HEAD, when the cited-section case runs, then no tracked file outside the records cites rules 8, 16 or 20 | `tests/behaviour/test_a_cited_section_stands_in_its_file.py`, run narrow |
 | S5 Every agent still resolves the plugin's paths | Given any agent at HEAD, when it reads its preload, then contract rule 11 states once where `skills/`, `templates/`, `docs/` and `agents/` paths resolve, and no definition restates it | `git grep -n "two directories above" -- agents/` lists nothing; `tests/text/test_every_agent_reads_the_contract.py` passes |
 | S6 Each removed copy is reachable at its step | Given each D3 row, when its reader takes that step, then the kept side is a file that agent opens at that step | the proofer reads each D3 row against *The reading*'s *Opened at that step* column |
-| S7 No preload grows, and the change shows | Given v0.30.0 and HEAD, when `release_report.py` runs, then no agent's preload is larger at HEAD, and the table is in the last phase record for the pull request body | D6; the command and its table in the phase record |
+| S7 No preload grows, and the change shows | Given v0.30.0 and HEAD, when `release_report.py` runs, then no agent's preload is larger at HEAD, the last phase record holds the table it measured with the commit it measured, and `changelog.md` holds the figures at the work item's last code commit for the pull request body | D6; the command and its table in the phase record; the changelog's figures against each agent's `wc -c` sum at HEAD |
 | S8 The census is taken before and after | Given the base and HEAD, when D6's census runs on each, then both readings and each removed copy's pair are in the last phase record | D6 |
 | S9 Nothing the issue keeps out moves | Given the diff, when the proofer reads it, then no `docs/` file changes, and `skills/*/orchestration.md` changes only where a retired number was cited | `git diff --stat 0c68b9933...HEAD -- docs/ skills/*/orchestration.md` |
 
@@ -334,8 +335,10 @@ crafter and the framer when they read *2.*.
   shows the probe is the same. A copy D3 removed is named as gone from its
   pair. The two pinned phrases stay shared by design.
 - Both readings, the commands and the list of D3 and D4 removals go into the
-  last phase record. The pull request body copies the preload table from
-  there.
+  last phase record, which states the commit it measured. A fix after that
+  phase that changes a measured file brings the figures in `changelog.md`
+  to the new HEAD, and the pull request body copies the figures from the
+  changelog.
 
 ### D7 Policy in force
 
