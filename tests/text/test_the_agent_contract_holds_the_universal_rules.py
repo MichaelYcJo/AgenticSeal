@@ -174,6 +174,20 @@ def test_a_gap_the_preamble_does_not_list_is_named():
     ]
 
 
+def test_a_repeated_number_is_named():
+    """A second section under a number already used is red, though no
+    number goes missing."""
+    text = read()
+    assert numbering_faults(text) == []
+    first, after = list(HEADING.finditer(text))[:2]
+    copy = text[first.start() : after.start()]
+    mutated = text[: after.start()] + copy + text[after.start() :]
+    numbers = [int(n) for n, _ in HEADING.findall(mutated)]
+    assert numbering_faults(mutated) == [
+        f"the headings do not increase without a repeat: {numbers}"
+    ]
+
+
 def test_a_listed_number_that_has_a_heading_is_named():
     """A number added to the list while its rule still stands is red."""
     text = read()
