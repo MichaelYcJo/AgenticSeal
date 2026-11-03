@@ -313,11 +313,13 @@ checkbox can be ticked, and a **Status** column that is empty or holds the
 commit that closed the phase. A commit asserts a **past** state that someone
 can open, so a tick and the word `done` are refused where a hash is not. The
 party that builds a phase fills its cell as the phase closes, not at the end.
-Where feature branches squash, those commits stop resolving at the merge, and
-**a rebase during the work does the same earlier and more quietly**, because
-the orphaned object still answers `git cat-file` in the worktree that wrote
-it; **the party that rebases the branch re-reads the column after the
-rebase**. Nothing measures from the column, which is why that is tolerable.
+Where feature branches squash, those commits stop resolving at the merge.
+Nothing measures from the column, which is why that is tolerable. A rebase
+during the work would orphan them earlier and more quietly, because the
+orphaned object still answers `git cat-file` in the worktree that wrote it,
+and it would orphan the commits the round records name as well. So a work
+item's branch is never rebased (`skills/code-review/orchestration.md`
+*Orchestrator: the pull request opens once the sealer seals*).
 
 **`frame/design.md` ends with its frame's mark**, `Framed <date> by <who>, before the
 build.`, where `<who>` is the `Planning` row's answer in `routing.md`,

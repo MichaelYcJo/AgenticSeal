@@ -59,9 +59,11 @@ settle reads the row. Until the decision is folded, the orchestrator keeps
 one line of its own in `plan.md` naming the comments to fold, below the
 title, and deletes that line in the commit that folds them. Before the
 frame is committed, the orchestrator folds the decision into the issue body
-instead
-(`docs/releasing/issues-and-milestones.md` *An issue is its body and its comments
-together*). The orchestrator's prompt that spawns the framer hands it the
+instead, in place, and the comment that carried it records why. A body that
+contradicts a comment leaves the reader to work out which is current, and a
+block of updates written above the old text leaves two versions to choose
+between. GitHub keeps the body's edit history, so rewriting it loses
+nothing. The orchestrator's prompt that spawns the framer hands it the
 issue whole: the body as folded, and one line naming the comments the issue
 has, none or each comment's link, with the command that read them,
 `gh issue view <N> --json body,comments`, and the date it ran.

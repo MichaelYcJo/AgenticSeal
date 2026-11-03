@@ -317,18 +317,9 @@ check: tests/github/test_close_issues_on_release.py
 Corrections, measurements and improvements land as comments, and the body is
 what answers *what does this ticket now ask for*.
 
-**A decision is folded into the body in place, and the comment that
-carried it records why.** A body that contradicts a comment leaves the
-reader to work out which is current, and a block of updates written
-above the old text leaves two versions to choose between. GitHub keeps
-the body's edit history, so rewriting it loses nothing. The framer is
-handed the request whole: the body as folded, and the orchestrator's line
-naming the comments the issue has, read with `gh issue view` on the day of
-the spawn. So no framer asks whether a comment changes the request. Once an
-item is framed, its frame is what the builder reads, and a later decision is
-folded into the frame instead (`skills/implement/orchestration.md`
-*Orchestrator: the order inside a ticket*).
-check: none reader: the framer at every frame
+How a decision is folded into the body, and into the frame once the item is
+framed, is `skills/implement/orchestration.md` *Orchestrator: the order
+inside a ticket*.
 
 An issue that is a **log rather than a ticket**, `#51` and the rolling
 `flow-measurement` log, keeps its body the same way with different

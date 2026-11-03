@@ -17,9 +17,9 @@ running.
 - [ ] Merge the release branch into a work item's branch only when the
       branch needs something the release branch holds; the squash discards
       the merge commit either way.
-      **Never rebase a work item's branch, for any reason.** Every round
-      record names its branch's commits on its `target:` line, and a rebase
-      orphans them.
+      **Never rebase a work item's branch, for any reason.**
+      `skills/code-review/orchestration.md` *Orchestrator: the pull request
+      opens once the sealer seals* states the rule and its reason.
 - [ ] **The milestone `release: X.Y.Z` holds what this release is actually
       carrying, and nothing else.** Every open issue in it that is not
       shipping moves to another milestone now, a planning act that needs no
@@ -30,9 +30,8 @@ running.
 
 ## 2b. Settle what earlier releases left behind
 
-**`settle` runs when the owner calls it, not at every release.** A release
-whose owner has not called it skips this step, and the work items wait on
-disk for the settle the owner calls.
+`skills/settle/SKILL.md` *When it runs* says when the settle runs. A release
+whose owner has not called the settle skips this step.
 
 ```bash
 seal settle
