@@ -156,16 +156,18 @@ class Test_main:
         """#1312 S6: a directory of the policy root that the index names a
         document of is a group, and each `.md` directly in it is measured
         against the ceiling and held to one index row. A directory the index
-        names nothing of, such as `docs/experiments/`, and a directory below
-        a group are not read, however large their documents."""
+        names nothing of, such as `docs/experiments/`, a directory below a
+        group, and `..` named as one are not read, however large their
+        documents."""
         big = "x" * 50001
-        rows = "| `docs/a.md` | a |\n| `docs/g/x.md` | x |\n"
+        rows = "| `docs/a.md` | a |\n| `docs/g/x.md` | x |\n| `docs/../out.md` | o |\n"
         files = {
             "a.md": "# A\n",
             "g/x.md": big,
             "g/y.md": "# Y\n",
             "g/deep/z.md": big,
             "experiments/e.md": big,
+            "../out.md": big,
             "README.md": INDEX + rows,
         }
         code, out, err = command("--root", tree(tmp_path, files), "--ceiling", "25000")
@@ -175,7 +177,9 @@ class Test_main:
         ) in out, out
         assert "seal fold: docs/g/x.md is about 25001 tokens, past the ceiling" in out
         assert "docs/README.md has no row naming docs/g/y.md\n" in out, out
+        assert "docs/README.md:5 names no document of docs/\n" in out, out
         assert "deep" not in out and "experiments" not in out, out
+        assert "out.md" not in out, out
         _, shown, _ = command("--help")
         assert "of the policy root or of one of its groups" in " ".join(shown.split())
 
