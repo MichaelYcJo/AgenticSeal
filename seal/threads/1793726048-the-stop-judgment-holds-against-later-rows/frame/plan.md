@@ -4,10 +4,10 @@
 
 The work edits prose at four coordinates and no code:
 
-- `skills/code-review/orchestration.md:133-153`, the stop paragraph, its table and the row sentence under it. `tests/text/test_the_rules_have_one_owner.py#test_the_orchestrators_run_judgments_are_rows_of_the_plan` reads the section from its heading to *A regression is routed by comparing the fix with the frame* for "as one row of `frame/plan.md` *Judgments of the run*", which the rewrite keeps (`frame/design.md` G15). The paragraphs at `:156-172` and from `:174` stay.
+- `skills/code-review/orchestration.md:133-154`, the stop paragraph, its table and the row sentence under it. `tests/text/test_the_rules_have_one_owner.py#test_the_orchestrators_run_judgments_are_rows_of_the_plan` reads the section from its heading to *A regression is routed by comparing the fix with the frame* for "as one row of `frame/plan.md` *Judgments of the run*", which the rewrite keeps (`frame/design.md` G15). The paragraphs at `:156-172` and from `:174` stay.
 - `skills/implement/orchestration.md:480`, the drain table's first row. No case pins it (G15).
 - `skills/code-review/SKILL.md:127-131`, the bullet the new bullet follows. `tests/text/test_the_rules_have_one_owner.py` `RULES` entry 3 pins "a defect the release would ship" there.
-- `agents/proofer.md:136-139`. No case pins it (G15). The rule carries no `check:` line, and the rewrite adds none.
+- `agents/proofer.md:136-140`. No case pins it (G15). The rule carries no `check:` line, and the rewrite adds none.
 
 No case is added. Each new sentence is a rule a reviewer reads, as `skills/settle/rule-changes.md` *A rule has one shape* allows for a rule no case holds. A case asserting that a sentence of guidance stands would pin wording, which `docs/running/what-a-script-gates.md` sends away. So contract rule 15 has no new case to apply to.
 
@@ -50,3 +50,4 @@ The orchestrator owns these acts, after the seal:
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
+| 2026-11-04 | `frame/design.md` and `frame/plan.md` give the stop paragraph as `skills/code-review/orchestration.md:133-154` and the proofer rule as `agents/proofer.md:136-140`, the base ranges; the orchestrator folds both before round 1 | the crafter's hand-back names both ranges as one line short at `bf9f6998e`, and the orchestrator read line 154 and line 140 there as each passage's last line; the frame's other coordinates are the base's, which HEAD does not contradict | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |
