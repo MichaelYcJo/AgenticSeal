@@ -63,7 +63,7 @@ hand fires the publish workflow too.
   *5. The release pull request*), read whole and exactly so. It never
   republishes a release that exists, and falls back to the tag name when no
   line reads so, logging the shape it expected and the `release:` line it
-  found. Which fragments it reads is `docs/the-record-layout.md` *A change
+  found. Which fragments it reads is `docs/layout/the-record-layout.md` *A change
   writes fragments, never a shared file*, each read at the newest commit of
   the range that holds it, so a work item a settle removed before the tag
   still has its entry. It goes red on a tag whose range added no
@@ -256,7 +256,7 @@ is why the version moves in the release's first pull request.
 
 **The changelog entries arrive as fragments, and the release note is built
 from them at the tag.** Which file a change writes, and why, is
-`docs/the-record-layout.md` *A change writes fragments, never a shared file*.
+`docs/layout/the-record-layout.md` *A change writes fragments, never a shared file*.
 No branch gathers them. `.github/scripts/publish_release_note.py` reads, from
 the history at the tag, the fragments the release's commits added and the
 previous version tag does not already hold, and writes each under a link to

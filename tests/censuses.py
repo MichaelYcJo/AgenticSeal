@@ -1023,7 +1023,7 @@ KEPT_OLD_NAMES = (
     # The `renames` entry of `.claude-plugin/marketplace.json`, which carries
     # the plugin's old name to its new one and is append-only.
     f'"{_OLD}": "agentic"',
-    # The 0.3.x directory, which `docs/one-root-by-lifetime.md` names as one
+    # The 0.3.x directory, which `docs/layout/one-root-by-lifetime.md` names as one
     # no code of the plugin opens, and which the cases pinning it as unread
     # spell.
     f".{_OLD}",

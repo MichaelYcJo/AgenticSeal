@@ -32,7 +32,7 @@ signer's own work item that cites the pact without changing it, and that
 second case is legitimate and common.
 
 **Where the repositories keep a contract together, they sign a pact.**
-`docs/the-pact.md` holds the model. Two conditions decide it, and both must
+`docs/layout/the-pact.md` holds the model. Two conditions decide it, and both must
 hold: the work item commits in more than one repository, and those
 repositories share contract. A sentence is contract when another
 repository's code would be wrong if it changed. Where both hold:

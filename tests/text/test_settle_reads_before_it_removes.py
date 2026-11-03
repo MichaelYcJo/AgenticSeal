@@ -45,7 +45,7 @@ def skill(path=SKILL):
 
 
 def test_the_skill_names_the_floors_a_fold_has_to_answer():
-    """A11. `docs/one-root-by-lifetime.md` *The dependency rule* names two
+    """A11. `docs/layout/one-root-by-lifetime.md` *The dependency rule* names two
     readers and the real list is longer — fourteen test modules read this
     repository's own corpus and at least six carry a population floor. A
     session that folds without answering them removes the population its own

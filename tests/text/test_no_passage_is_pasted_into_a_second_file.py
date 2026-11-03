@@ -1,6 +1,6 @@
 """No passage of a rule document is pasted into a second one (#730).
 
-`docs/the-record-layout.md` says that a file stating a rule another file is
+`docs/layout/the-record-layout.md` says that a file stating a rule another file is
 the home of links to that home and does not restate it, and that where a copy
 is found the copy is the defect. Nothing found copies. Four were measured
 before this module existed, each arriving as a paste: #107's contract section
@@ -52,7 +52,7 @@ Until then the check fails when a pair not in `BASELINE` shares any run, or
 when a pair's count goes above its baseline. It passes when a count goes
 down, and the baseline need not be lowered in the same change: otherwise
 every branch that edits a duplicated passage would edit this one table,
-which is the shared-file conflict `docs/the-record-layout.md` *A change
+which is the shared-file conflict `docs/layout/the-record-layout.md` *A change
 writes fragments, never a shared file* exists to stop. The cost is slack,
 stated: a pair that has drained can take a later copy up to its old count.
 The work that drains a pair lowers its entry on purpose.
@@ -80,7 +80,9 @@ in_corpus, words, windows = passages.in_corpus, passages.words, passages.windows
 # A pair whose two paths both start here is not counted (*What is counted*).
 DEFINITIONS = "agents/"
 
-HOME_ACT = "link to the home instead of copying it, per `docs/the-record-layout.md`"
+HOME_ACT = (
+    "link to the home instead of copying it, per `docs/layout/the-record-layout.md`"
+)
 
 
 def corpus():

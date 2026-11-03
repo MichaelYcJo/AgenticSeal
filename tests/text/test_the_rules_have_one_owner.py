@@ -32,7 +32,7 @@ VERIFY = ("skills", "verify", "SKILL.md")
 SEALER = ("agents", "sealer.md")
 FRAMER = ("agents", "framer.md")
 TRACKER = ("docs", "releasing", "issues-and-milestones.md")
-RECORD_LAYOUT = ("docs", "the-record-layout.md")
+RECORD_LAYOUT = ("docs", "layout", "the-record-layout.md")
 CONFIG_TEMPLATE = ("templates", "setup", "config.md")
 CONFIG_SKILL = ("skills", "config", "SKILL.md")
 
@@ -47,7 +47,7 @@ AFTER_THE_SEAL = (
 CONTRIBUTING = ("CONTRIBUTING.md",)
 CRITERION_OWNER = "`templates/setup/config.md` *The criterion for choosing a value* owns the criterion"
 FRAGMENT_OWNER = (
-    "`docs/the-record-layout.md` *A commit after the build brings its "
+    "`docs/layout/the-record-layout.md` *A commit after the build brings its "
     "changelog fragment along* owns that rule"
 )
 RUN_OWNS_THE_RULE = "`docs/running/the-run.md` *The run* owns that rule"

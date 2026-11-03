@@ -109,7 +109,7 @@ proofer 는 그 기록을 다시 돌리는 대신 감사합니다. 명령이 실
 
 | 루트 | 수명 | 담는 것 |
 |---|---|---|
-| `seal/` | 영구 | 이 플러그인이 유지하는 전부(파일 하나하나는 `docs/the-record-layout.md` *seal/* 에 있다)와 그 아래의 작업 항목들. 이 디렉터리가 있고 그 안의 `README.md` 가 `templates/setup/seal-README.md` 의 첫 줄인 표시 줄로 시작한다는 것 자체가 옵트인이며, 이것을 보는 훅은 아래 「게이트」 표의 "어디서" 열에 `seal/` 이 적힌 훅이다 |
+| `seal/` | 영구 | 이 플러그인이 유지하는 전부(파일 하나하나는 `docs/layout/the-record-layout.md` *seal/* 에 있다)와 그 아래의 작업 항목들. 이 디렉터리가 있고 그 안의 `README.md` 가 `templates/setup/seal-README.md` 의 첫 줄인 표시 줄로 시작한다는 것 자체가 옵트인이며, 이것을 보는 훅은 아래 「게이트」 표의 "어디서" 열에 `seal/` 이 적힌 훅이다 |
 | `seal/threads/<id>/` | 작업 항목 하나 | `frame/`(design, plan, questions), `trail/`(phases, 리뷰 라운드, broad run), 그리고 맨 위의 `routing.md`, `changelog.md`, `guarantee.md`, diff 가 보여 주지 못하는 것만 적는 마무리 메모 `gaps.md`. `frame/plan.md` 는 사람이 승인하므로 도구 상태가 아니라 레포의 문서다 |
 | `docs/` | 영구 | 레포가 원래 갖고 있는 정책서. 문서 관례는 그 프로젝트의 것이다. 작업 항목은 이 문서를 고치지 않고 바꿀 규칙을 설계에 적으며, 릴리스 뒤의 settle 이 그 변경이 말하는 가장 나중 결정으로 절마다 써 넣는다(`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*) |
 
@@ -469,7 +469,7 @@ git rm -r --cached "$(git rev-parse --show-toplevel)/seal" && mv "$(git rev-pars
 그렇게 해도 `seal mode` 와 마찬가지로 `.github/` 에는 손대지 않습니다.
 local 로 옮긴 뒤에도 워크플로는 트리에 남고, 어느 고정이 그곳에서
 통과하는지와 실패하는 고정을 어떻게 옮기는지는
-`docs/one-root-by-lifetime.ko.md` *shared 인가 local 인가* 가 말합니다.
+`docs/layout/one-root-by-lifetime.ko.md` *shared 인가 local 인가* 가 말합니다.
 
 기계가 둘이면 이 방법을 쓸 수 없습니다. 다른 기계에는 옮길 폴더 자체가
 없기 때문입니다. 아래의 `seal export` 와 `seal import` 가 그것을 위한

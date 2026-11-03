@@ -65,7 +65,7 @@ round weighs every close, and the orchestrator does not rewrite the block.
 the last round, and the commit that integrates a sibling's squash. Each one that
 changes what the work item ships brings the work item's `changelog.md` along, the
 way the crafter's fix pass does.
-`docs/the-record-layout.md` *A commit after the build brings its changelog
+`docs/layout/the-record-layout.md` *A commit after the build brings its changelog
 fragment along* owns that rule.
 
 **The fix pass then finds what the fixes left standing.** A fix repairs the
@@ -340,7 +340,7 @@ item's `changelog.md` states what the work item ships and every row
 the broad run, and keep the records* names has reached its destination.
 The party that builds the work item writes that fragment: the crafter, or you
 where `routing.md` answers `Implementation` with `the session`
-(`docs/the-record-layout.md` *A change writes fragments, never a shared
+(`docs/layout/the-record-layout.md` *A change writes fragments, never a shared
 file*). The preflight and the broad run are yours, and no agent takes either.
 **Run `seal gate --preflight --base <base>`; on its exit 0, with nothing else
 running, run `seal gate --base <base> --record <item>`**, which takes the

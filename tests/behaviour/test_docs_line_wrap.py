@@ -201,7 +201,7 @@ COVERED = [
     "docs/checks/the-routing-check.md",
     "docs/running/the-review-and-parity-arms.md",
     # The pact's policy (#647), written wrapped and in at birth.
-    "docs/the-pact.md",
+    "docs/layout/the-pact.md",
 ]
 
 

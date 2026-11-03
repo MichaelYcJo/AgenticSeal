@@ -230,7 +230,7 @@ def test_no_carrier_restates_a_home():
     found = restated(tree())
     assert not found, (
         f"a carrier states a home's own sentence: {found}. Link to the home "
-        "instead, per `docs/the-record-layout.md`: a rule written in two "
+        "instead, per `docs/layout/the-record-layout.md`: a rule written in two "
         "files is two rules after the first edit to either"
     )
 

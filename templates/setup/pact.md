@@ -1,7 +1,7 @@
 # Pact
 
 <!-- seal/pact.md is the one copy of what two or more repositories keep
-together (`docs/the-pact.md`). It lives in one of them, the pact's
+together (`docs/layout/the-pact.md`). It lives in one of them, the pact's
 repository, and every repository of a work item that keeps it is a
 signer, that one included.
 

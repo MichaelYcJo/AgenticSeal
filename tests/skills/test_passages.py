@@ -97,11 +97,11 @@ class Test_words:
             "gathers every one of them before it folds"
         )
         assert len(name.split()) > WINDOW
-        one = f"See `docs/the-record-layout.md` *{name}* for where it goes.\n"
+        one = f"See `docs/layout/the-record-layout.md` *{name}* for where it goes.\n"
         wrapped = name.replace(" a shared", chr(10) + "a shared")
-        two = f"Read `docs/the-record-layout.md`\n*{wrapped}*\nfirst.\n"
+        two = f"Read `docs/layout/the-record-layout.md`\n*{wrapped}*\nfirst.\n"
         path = f"`CONTRIBUTING.md`'s *{name}*\n"
-        other = f"As docs/the-record-layout.md *{name}* says.\n"
+        other = f"As docs/layout/the-record-layout.md *{name}* says.\n"
         assert not shared(one, two, path, other)
 
     def test_refuses_fences_and_headings_and_reads_case_and_backticks_as_no_words(

@@ -1,9 +1,13 @@
 # docs/
 
-The standing policy, one row per topic and one table per subject. A `docs/`
-document outranks the work items' designs, and a design that finds one
+The standing policy, one directory per group of documents and one table per
+group, each group holding what one kind of reader opens at one kind of step.
+A `docs/` document outranks the work items' designs. A design that finds one
 wrong states the correction in its `## Rule changes`
-(`skills/settle/rule-changes.md` *Rule changes*).
+(`skills/settle/rule-changes.md` *Rule changes*), unless its work item's
+subject is the policy root itself; which kind of work item edits a document
+directly and which states the correction is in `skills/implement/SKILL.md`
+*Document layout — two roots, three lifetimes*.
 
 ## docs/forms/
 
@@ -56,13 +60,16 @@ and the citation gives the reason.
 | `docs/checks/the-routing-check.md` | where a session's routing is checked: at its edit tools before the first edit, and at the pull request |
 | `docs/checks/the-session-hooks.md` | how the hooks are registered, and what the implementer mark says |
 
-## The records
+## docs/layout/
+
+Whoever sets a repository up opens these, and so do the framer, the crafter
+and the orchestrator where they place or write a record.
 
 | File | The question it answers |
 |---|---|
-| `docs/one-root-by-lifetime.md` and `docs/one-root-by-lifetime.ko.md` | where the plugin's one root is, what opts a repository in, what first setup asks, and what the repository's config rows decide |
-| `docs/the-record-layout.md` | where each kind of record lives, which file a change writes, and when a later commit brings the changelog fragment along |
-| `docs/the-pact.md` | where a contract several repositories keep together lives, how each knows about it, and what checks it |
+| `docs/layout/one-root-by-lifetime.md` and `docs/layout/one-root-by-lifetime.ko.md` | where the plugin's one root is, what opts a repository in, what first setup asks, and what the repository's config rows decide |
+| `docs/layout/the-record-layout.md` | where each kind of record lives, which file a change writes, and when a later commit brings the changelog fragment along |
+| `docs/layout/the-pact.md` | where a contract several repositories keep together lives, how each knows about it, and what checks it |
 
 `docs/experiments/` holds dated scratch documents and is no policy; `settle`
 never writes there.

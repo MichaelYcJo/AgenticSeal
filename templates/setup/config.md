@@ -402,7 +402,7 @@ so the next reader can open the same file.
 ## Pact
 
 One row, written in a signer of a pact held in another repository
-(`docs/the-pact.md`). A work item that commits in more than one repository,
+(`docs/layout/the-pact.md`). A work item that commits in more than one repository,
 where those repositories keep a contract together, keeps the one copy of that
 contract in `seal/pact.md` in one of them. Every repository of the work item
 is a signer, and every one except the pact's repository names the pact

@@ -51,7 +51,7 @@ empty value, a file that cannot be read. A config nobody can read must not
 stop the work.
 
 **It is independent of `Commit and pull request language`.** Setting one does
-not carry the other; `docs/one-root-by-lifetime.md` *What the repository
+not carry the other; `docs/layout/one-root-by-lifetime.md` *What the repository
 decides for itself, and how it is read* gives the reasons.
 
 **What stays English whatever it says**, because these are read literally
@@ -83,6 +83,9 @@ The axis is lifetime and authority, **not audience** — humans and AI read all
 three. (Labeling policies "for humans" would push sessions away from reading
 them, and policy outranks everything else when a repository has it.)
 
+Inside the policy root, documents are grouped by who opens them and at which
+step, and any party may open any group.
+
 `seal/` lives at one of two places, and its presence at either, with a
 `README.md` that opens with the marker `hooks/lib/optin.py#MARKER` holds, is what
 tells the gates this repository runs the workflow. **Every `seal/…` path in
@@ -95,9 +98,9 @@ every linked worktree of the clone shares it, and never a commit candidate.
 A repository with both is shared, and nothing else — no config key — is
 read. What sits directly under it is permanent; what sits under
 `seal/threads/` lives as long as its work item. Each file the root holds,
-and the question it answers, is in `docs/the-record-layout.md` *seal/*, and
-each file of a work item's directory is in `docs/the-record-layout.md`
-*seal/threads/<work-item-id>/*.
+and the question it answers, is in `docs/layout/the-record-layout.md`
+*seal/*, and each file of a work item's directory is in
+`docs/layout/the-record-layout.md` *seal/threads/<work-item-id>/*.
 
 The review round records live beside the work item they are about, with the
 routing declaration and the rest of the SDD set
@@ -395,7 +398,7 @@ that coordinate, and its `answer:` says so. The build's phases keep theirs.
 A fix that changes what the work item ships brings the work item's
 `changelog.md` along, because the release note is built from that fragment as
 it stands at the tag;
-`docs/the-record-layout.md` *A commit after the build brings its changelog
+`docs/layout/the-record-layout.md` *A commit after the build brings its changelog
 fragment along* owns that rule.
 
 Once the last round record has no finding open, the orchestrator moves the

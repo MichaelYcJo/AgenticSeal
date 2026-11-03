@@ -393,7 +393,7 @@ run lists it as stating no rule, and its open rows with every other record's.
 **A settle is not finished until every check in your repository that carries
 a population floor over `seal/threads/` has been answered.** A floor is an
 assertion like `len(records) > 200` over a walk of `seal/threads/`, and a
-settle shrinks the corpus by design (`docs/one-root-by-lifetime.md` *The
+settle shrinks the corpus by design (`docs/layout/one-root-by-lifetime.md` *The
 dependency rule*), and a list of readers written in any document is not the
 whole list.
 The dry run lists every `tests/` file that reads `seal/threads`, and every path

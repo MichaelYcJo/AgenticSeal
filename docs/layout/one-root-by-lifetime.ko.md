@@ -16,7 +16,7 @@
 세션의 상태는 루트 옆, 공통 git 디렉터리 아래에 있고 커밋되지 않습니다. 작업
 항목의 디렉터리 `seal/threads/<id>/` 는 settle 이 그 설계의 절을 쓰고
 디렉터리를 지울 때까지 삽니다. 그 밖의 `seal/` 아래 파일은 `docs/` 와 함께
-영구적입니다. 파일 하나하나의 배치는 `docs/the-record-layout.md` *seal/* 와
+영구적입니다. 파일 하나하나의 배치는 `docs/layout/the-record-layout.md` *seal/* 와
 *seal/threads/<work-item-id>/* 에 있습니다.
 
 **플러그인은 자기 루트에만 씁니다.** 그 밖의 자리에 있는 `specs/` 디렉터리는
@@ -51,7 +51,7 @@ corpus*). 병합 뒤에 `seal/threads/<id>/` 를 새로 읽는 코드는 그것�
 `trail/` 이나 `guarantee.md` 가 그런 커밋에서 인용한 `<commit>:<path>` 가
 그것입니다. 둘 다 PR 이 열려 있는 동안 읽히고 기록과 함께 사라집니다. 그
 밖의 `<commit>:<path>` 는 `main` 이나 릴리스 브랜치가 닿는 커밋을 가리킵니다
-(`docs/the-record-layout.md` *seal/threads/<work-item-id>/*).
+(`docs/layout/the-record-layout.md` *seal/threads/<work-item-id>/*).
 
 ## 옵트인 신호는 루트 자체다
 

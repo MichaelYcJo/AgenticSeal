@@ -199,7 +199,7 @@ def test_the_branch_names_section_states_the_shapes_and_the_list_links_it():
 
 def test_the_response_language_stays_out_of_the_repository_file():
     """S6. Issue #82's third done-when row, and
-    `docs/one-root-by-lifetime.md` before it: what the session says to you is
+    `docs/layout/one-root-by-lifetime.md` before it: what the session says to you is
     a person's setting. Two people in one repository can want different
     answers there and the same one here, which is why one file cannot hold
     both."""

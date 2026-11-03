@@ -410,7 +410,7 @@ question is not its difficulty, it is when it arrives.
 ## House rules
 
 - **A change writes a fragment, never a shared registry.** Which file a
-  change writes its changelog entry into is `docs/the-record-layout.md`
+  change writes its changelog entry into is `docs/layout/the-record-layout.md`
   *A change writes fragments, never a shared file*. No branch writes the
   release notes: the tag's workflow builds them from the fragments, as
   `docs/releasing/branch-and-release.md` *Work accumulates on a release branch* says.

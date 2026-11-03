@@ -160,7 +160,7 @@ The person needs to see that list rather than *done*.
 
 Going to shared puts the records in the tree. **The commit is the point of no
 return, not the move**: once it lands, the records stay in the history
-whatever later leaves the tree. `docs/one-root-by-lifetime.md` *Shared or
+whatever later leaves the tree. `docs/layout/one-root-by-lifetime.md` *Shared or
 local* holds that rule. Until that commit, `git reset -- :/seal` and then
 `seal mode local` walk the whole thing back. The reset comes first because
 the switch stages the move, and `seal mode` refuses a switch over a staged
