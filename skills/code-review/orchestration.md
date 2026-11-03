@@ -283,9 +283,10 @@ names the SHA. It waits no longer, and it does not treat the pull request
 as checked.
 
 **A conflict with the base is integrated by merging the base into the
-branch, never by a rebase.** A rebase orphans the commits every round record
-names on its `target:` line. The orchestrator merges once, after the branch
-whose changes conflict with this one has landed on the base. Where the merge
+branch, never by a rebase.** A work item's branch is not rebased for any
+reason, because a rebase orphans the commits every round record names on
+its `target:` line. The orchestrator merges once, after the branch whose
+changes conflict with this one has landed on the base. Where the merge
 resolved a conflict in a file outside the work item's records, the
 orchestrator spawns a verifying round on that resolution, because the chain
 check lists the branch's commits with `--no-merges` and reads no merge commit
