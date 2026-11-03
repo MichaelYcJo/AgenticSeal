@@ -172,12 +172,17 @@ a finding that is not a `must`, whatever document it cites. The first row
 of `skills/implement/orchestration.md` *Orchestrator: drain the rows before
 the broad run, and keep the records* and rung 1 of *The run*'s homes are
 among those documents, because the stop row has already weighed that fix
-against the round it costs. Only a design change ends the stop, and the
-count starts again at the first finding round that reviews the new design.
-A repair that the sealer's withheld verdict asks for is no finding and
-takes no row, so the stop does not reach it. A round reads that repair
-unless it touched only the work item's records, as the table of
-`skills/core/SKILL.md` *Judgment is not licence to skip a party* holds.
+against the round it costs. A finding with a `regression:` line is no
+exception: from the stop row on, you route a `must` alone by *A regression
+is routed by comparing the fix with the frame* below, and every other
+regression takes a home that costs no round, as every other finding does,
+never a fix pass and never the framer, whose redesign would end the stop.
+Only a design change ends the stop, and the count starts again at the
+first finding round that reviews the new design. A repair that the
+sealer's withheld verdict asks for is no finding and takes no row, so the
+stop does not reach it. A round reads that repair unless it touched only
+the work item's records, as the table of `skills/core/SKILL.md` *Judgment
+is not licence to skip a party* holds.
 
 **Where the signal is one mechanism whose edges each fix pass chased, the next
 fix pass decides what the mechanism reads, and takes no further edge.** That is
@@ -225,7 +230,10 @@ verifying round.
 finding's `regression:` line routes nothing by itself. Its grounds open
 with the unit and then one sentence comparing the fix with the frame: what
 the frame says, what the fix did and where the defect came from. You route
-the round on that sentence (`docs/running/the-run.md` *The run*):
+the round on that sentence (`docs/running/the-run.md` *The run*). Once a
+row has judged the run excessive, only a `must` takes a route below, and
+any other regression takes a home by the paragraph opening **A row that
+judges the run excessive binds every row after it**:
 
 | The sentence says | The route |
 |---|---|
