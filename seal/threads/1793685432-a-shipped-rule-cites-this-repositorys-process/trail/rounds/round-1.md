@@ -39,6 +39,11 @@ This snippet does not reach every statement of the fact. The fix pass owes these
 - `frame/design.md:28`, `frame/design.md:66` and `frame/plan.md:21` say the skill already states the rule. The frame is the orchestrator's to fold, with a `frame/plan.md` *Judgments of the run* row (`skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*). The crafter's fix pass does not edit it.
 - `skills/implement/SKILL.md:304-307` says "a rebase during the work does the same earlier and more quietly" and "the party that rebases the branch re-reads the column after the rebase". That sentence was already at odds with the checklist box at the base, and this diff does not touch it. Once a shipped skill says a branch is not rebased for any reason, it reads as the remedy for a rebase made against the rule. The fix pass judges whether it stands as that remedy or is rewritten to say so. Either way, it says which in its answer.
 
+```seal
+verdict: fixed 620c24798
+answer: The finding holds. The paste-ready snippet is applied word for word in `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals*. The pinned bold sentence is unchanged, the sentence after it now says a work item's branch is not rebased for any reason, and the rest of the paragraph is re-wrapped with no word changed. The checklist line at `docs/releasing/release-checklist.md:20-22` is left as it is, since it is now true. The remedy sentence in `skills/implement/SKILL.md` *3. The SDD file set* is rewritten rather than kept: under a rule that no party rebases a work item's branch, "the party that rebases the branch re-reads the column after the rebase" reads as a rebase the workflow allows. It now says a rebase would orphan the Status column's commits earlier and more quietly, and the round records' commits as well, so a work item's branch is never rebased, and it cites the code-review section. That wording is the fix pass's own, since the round gave no snippet for it. The `### Changed` entry at `changelog.md:3` no longer says the skill already stated the rule, and it names both skill changes. The process row at `changelog.md:10` is left to the orchestrator, as the spawn asks, and the frame rows were folded at 10e3ba4e4. The other statements were found with `git grep -n -i rebase` over `skills agents templates hooks bin docs`, each hit read. The rest describe how a hook or the stamp behaves during or after a rebase, and none says the workflow allows one. So they stand.
+```
+
 ### 2. The phase record says the fold rule was reworded, and the sentences moved verbatim
 
 ```seal
@@ -61,6 +66,11 @@ so the next four lines of that paragraph were re-wrapped.
 ```
 
 These two snippets replace the clauses they name at lines 9 and 11 of the phase record. Nothing else in the record states either fact (executed: `grep -n -E 'reworded|re-wrapped'` over the work item's records).
+
+```seal
+verdict: fixed 620c24798
+answer: The finding holds. Both snippets replace the clauses they name in `trail/phases/phase-1.md`, word for word. The line-9 clause now says the fold rule's sentences moved word for word, and that A3 holds because the source paragraph is removed in the same commit. The line-11 clause now says four lines were re-wrapped. The crafter's phase-1 hand-back made the same three-lines claim, and this answer corrects it.
+```
 
 ## Confirmations
 
