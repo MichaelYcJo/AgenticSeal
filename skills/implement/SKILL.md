@@ -167,9 +167,8 @@ says: by the cases it already has, with no case written new. A rule the work
 states or changes ends with a `check:` line naming that case — in its home
 under `docs/`, or in the *Verifiable how* cell of the design's scenario table —
 so the case is the record that the rule holds, and CI running the suite is
-the check. A rule no case can hold says `check: none reader: <who reads it>`,
-and the reader is who holds it instead. The grammar is
-`skills/settle/rule-changes.md` *A rule has one shape*.
+the check. A rule no case can hold carries no check line, and review reads
+it. The grammar is `skills/settle/rule-changes.md` *A rule has one shape*.
 
 This is the input for the reviewer and the next ticket: a case somebody can
 run rather than a reading somebody did. A judgment settled by opening code

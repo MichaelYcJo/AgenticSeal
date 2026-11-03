@@ -42,7 +42,7 @@ ALL_SHAPES = """\
   section: S
   to: **Rule.** Its grounds
     run on.
-    check: none reader: review
+    check: tests/test_x.py
 - remove
   file: docs/a.md
   section: T
@@ -68,7 +68,7 @@ class Test_parse:
                 "docs/a.md",
                 "S",
                 None,
-                "**Rule.** Its grounds\nrun on.\ncheck: none reader: review",
+                "**Rule.** Its grounds\nrun on.\ncheck: tests/test_x.py",
             ),
             ("remove", "docs/a.md", "T", None, None),
             ("remove", "docs/a.md", "S", "x.", None),
@@ -91,20 +91,20 @@ class Test_parse:
         "to, lines",
         [
             (
-                "  to: **Rule.** Its grounds.\n    check: none reader: review",
-                [(0, "**Rule.** Its grounds."), (1, "check: none reader: review")],
+                "  to: **Rule.** Its grounds.\n    check: tests/test_x.py",
+                [(0, "**Rule.** Its grounds."), (1, "check: tests/test_x.py")],
             ),
             (
-                "  to:\n    **Rule.** Its grounds.\n    check: none reader: review",
-                [(1, "**Rule.** Its grounds."), (2, "check: none reader: review")],
+                "  to:\n    **Rule.** Its grounds.\n    check: tests/test_x.py",
+                [(1, "**Rule.** Its grounds."), (2, "check: tests/test_x.py")],
             ),
             (
-                "  to: **Rule.**\n\n    check: none reader: review\n",
-                [(0, "**Rule.**"), (1, ""), (2, "check: none reader: review")],
+                "  to: **Rule.**\n\n    check: tests/test_x.py\n",
+                [(0, "**Rule.**"), (1, ""), (2, "check: tests/test_x.py")],
             ),
             (
-                "  to: **Rule.**  \n    check: none reader: review  ",
-                [(0, "**Rule.**  "), (1, "check: none reader: review")],
+                "  to: **Rule.**  \n    check: tests/test_x.py  ",
+                [(0, "**Rule.**  "), (1, "check: tests/test_x.py")],
             ),
         ],
         ids=[

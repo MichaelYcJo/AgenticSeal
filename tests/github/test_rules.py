@@ -131,7 +131,7 @@ def checked(tmp_path, files, capsys):
     return code, capsys.readouterr().out
 
 
-EXPECTED = "write `check: <targets>` or `check: none reader: <who reads it>`"
+EXPECTED = "write `check: <targets>`"
 # The bucket the tree-wide case plants one defect in for the policy root's
 # documents, which no `RULE_FILES` glob names (`rules.py#policy_documents`).
 POLICY_DOCUMENTS = "the policy root"
@@ -235,7 +235,7 @@ class Test_main:
         assert code == 0
         assert (
             "  check, line 3:\n    refused: `,` is no part of a check line: write "
-            "`check: <targets>` or `check: none reader: <who reads it>`\n"
+            "`check: <targets>`\n"
         ) in out, out
 
     def test_a_line_not_read_is_printed_as_one_and_holds_nothing(
@@ -251,8 +251,7 @@ class Test_main:
         assert out == (
             "## One\n"
             "  not read, line 3: `Enforced by: tests/test_x.py` opens like a check "
-            "line and is not one, so it was not read: write `check: <targets>` or "
-            "`check: none reader: <who reads it>`\n"
+            "line and is not one, so it was not read: write `check: <targets>`\n"
             "  (no check line)\n"
         ), out
 
@@ -269,8 +268,7 @@ class Test_main:
             "  (no check line)\n\n"
             "## check: tests/test_x.py\n"
             "  not read, line 3: `## check: tests/test_x.py` opens like a check "
-            "line and is not one, so it was not read: write `check: <targets>` or "
-            "`check: none reader: <who reads it>`\n"
+            "line and is not one, so it was not read: write `check: <targets>`\n"
             "  (no check line)\n"
         ), out
 
@@ -296,23 +294,15 @@ class Test_main:
         assert code == 1, out
         assert "no test carries the marker `hidden-rule`" in out, out
 
-    def test_an_eval_case_and_a_no_target_line_are_printed_as_what_they_are(
-        self, tmp_path, capsys
-    ):
-        """S4's reading half. An eval case directory resolves and is named as one;
-        `check: none reader: <who>` names no target and prints its reader."""
-        root = tree(
-            tmp_path,
-            "## One\n\ncheck: evals/behaviour/proofer/a/\n\n"
-            "## Two\n\ncheck: none reader: the proofer at review\n",
-        )
+    def test_an_eval_case_is_printed_as_one(self, tmp_path, capsys):
+        """An eval case directory resolves and is named as one."""
+        root = tree(tmp_path, "## One\n\ncheck: evals/behaviour/proofer/a/\n")
         case = root / "evals" / "behaviour" / "proofer" / "a"
         case.mkdir(parents=True)
         (case / "case.yaml").write_text("name: a\n", "utf-8")
         code, out, _ = run(root, capsys)
         assert code == 0
         assert "    evals/behaviour/proofer/a/: an eval case\n" in out, out
-        assert "    no target, read by the proofer at review\n" in out, out
 
     def test_a_fenced_or_commented_line_is_an_example_and_writes_nothing(
         self, tmp_path, capsys
@@ -370,17 +360,13 @@ class Test_main:
                 f"check: {HELD} held-rule",
                 "seal rules: all 1 check lines in 1 rule files hold.",
             ),
-            (
-                "check: none reader: the proofer at review",
-                "seal rules: all 1 check lines in 1 rule files hold.",
-            ),
             (f"  check: {HELD}", "seal rules: all 1 check lines in 1 rule files hold."),
         ],
-        ids=["a file", "S2 two targets", "S4 no target", "indented under a list item"],
+        ids=["a file", "S2 two targets", "indented under a list item"],
     )
     def test_accepts_a_check_line_in_grammar(self, tmp_path, capsys, line, said):
-        """S1, S2, S4. A line of resolving targets, one space apart, or the
-        no-target form with its reader, is exit 0, and is read, not named."""
+        """S1, S2. A line of resolving targets, one space apart, is exit 0,
+        and is read, not named."""
         code, out = checked(tmp_path, {"docs/a.md": doc(rule(line))}, capsys)
         assert code == 0, out
         assert out == f"{said}\n", out
@@ -393,20 +379,7 @@ class Test_main:
                 f"`::` is no part of a check line: {EXPECTED}",
             ),
             (f"check: {HELD}, {HELD}", f"`,` is no part of a check line: {EXPECTED}"),
-            ("check: none — a reader", f"`—` is no part of a check line: {EXPECTED}"),
-            ("check: none", f"a line naming no target names its reader: {EXPECTED}"),
-            (
-                "check: none reader:",
-                f"a line naming no target names its reader: {EXPECTED}",
-            ),
-            (
-                "check: none reader the proofer",
-                f"a line naming no target names its reader: {EXPECTED}",
-            ),
-            (
-                "check: none reader:  the proofer",
-                f"a line naming no target names its reader: {EXPECTED}",
-            ),
+            (f"check: {HELD} — why", f"`—` is no part of a check line: {EXPECTED}"),
             (f"check: {HELD}  held-rule", "targets are separated by one space"),
             ("check: gone-rule", "no test carries the marker `gone-rule`"),
             ("check: tests/test_gone.py", "tests/test_gone.py does not exist"),
@@ -416,10 +389,6 @@ class Test_main:
             "a test named after the path",
             "a comma",
             "an em dash",
-            "none alone",
-            "a reader with nothing after it",
-            "a reader with no colon",
-            "a reader behind two spaces",
             "two spaces",
             "a marker no test carries",
             "a file gone",
@@ -485,7 +454,7 @@ class Test_main:
         assert out == (
             f"seal rules: not read: docs/a.md:6: {heading}: `{line}` opens like "
             "a check line and is not one, so it was not read: write "
-            "`check: <targets>` or `check: none reader: <who reads it>`\n"
+            "`check: <targets>`\n"
             "seal rules: all 0 check lines in 1 rule files hold.\n"
         ), out
 
@@ -749,10 +718,12 @@ class Test_main:
 class Test_refused_lines:
     def test_accepts_a_text_whose_lines_hold_in_the_tree_at_the_root(self, tmp_path):
         """#1215, *Scope* item 2: a target that resolves in the tree at the
-        root, a line naming its reader, and a line that opens like a check
-        line and is not one give no refusal; `unread_lines` names the last."""
+        root, a line naming two that resolve, and a line that opens like a
+        check line and is not one give no refusal; `unread_lines` names the
+        last."""
         (tmp_path / "held.py").write_text("", "utf-8")
-        text = "# H\n\ncheck: held.py\ncheck: none reader: review\nCheck: x\n"
+        (tmp_path / "also.py").write_text("", "utf-8")
+        text = "# H\n\ncheck: held.py\ncheck: also.py held.py\nCheck: x\n"
         assert rules.refused_lines(str(tmp_path), text) == []
 
     def test_refuses_each_refused_line_of_one_text_at_its_line(self, tmp_path):
@@ -762,8 +733,7 @@ class Test_refused_lines:
         the near line give none."""
         (tmp_path / "held.py").write_text("", "utf-8")
         text = (
-            "# H\n\ncheck: held.py\ncheck: none reader: a, b\n"
-            "Check: x\ncheck: gone.py\n"
+            "# H\n\ncheck: held.py\ncheck: held.py, held.py\nCheck: x\ncheck: gone.py\n"
         )
         assert rules.refused_lines(str(tmp_path), text) == [
             (4, "H", f"`,` is no part of a check line: {EXPECTED}"),
