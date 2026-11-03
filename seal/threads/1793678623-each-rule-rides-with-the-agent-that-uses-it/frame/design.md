@@ -111,7 +111,7 @@ Out, each with its grounds:
 | S5 Every agent still resolves the plugin's paths | Given any agent at HEAD, when it reads its preload, then contract rule 11 states once where `skills/`, `templates/`, `docs/` and `agents/` paths resolve, and no definition restates it | `git grep -n "two directories above" -- agents/` lists nothing; `tests/text/test_every_agent_reads_the_contract.py` passes |
 | S6 Each removed copy is reachable at its step | Given each D3 row, when its reader takes that step, then the kept side is a file that agent opens at that step | the proofer reads each D3 row against *The reading*'s *Opened at that step* column |
 | S7 No preload grows, and the change shows | Given v0.30.0 and HEAD, when `release_report.py` runs, then no agent's preload is larger at HEAD, the last phase record holds the table it measured with the commit it measured, and `changelog.md` holds the figures at the work item's last code commit for the pull request body | D6; the command and its table in the phase record; the changelog's figures against each agent's `wc -c` sum at HEAD |
-| S8 The census is taken before and after | Given the base and HEAD, when D6's census runs on each, then both readings and each removed copy's pair are in the last phase record | D6 |
+| S8 The census is taken before and after | Given the base and HEAD, when D6's census runs on each, then both readings and each removed copy's pair are in the last phase record, with the commit it measured, and `changelog.md` holds the reading at the work item's last code commit | D6 |
 | S9 Nothing the issue keeps out moves | Given the diff, when the proofer reads it, then no `docs/` file changes, and `skills/*/orchestration.md` changes only where a retired number was cited | `git diff --stat 0c68b9933...HEAD -- docs/ skills/*/orchestration.md` |
 
 ## Data & interfaces
@@ -234,7 +234,7 @@ change.
 | Rule | New home | Why there |
 |---|---|---|
 | 16, whole, with its `check:` line | `skills/implement/SKILL.md` *2. Implement test-first, and let each rule name its test*, as a bold-lead rule after *Commit at the smallest step that stands on its own* | the parties that build read that file: the crafter (87 of 88 spawns), the session where it builds, and the orchestrator that cites the rule. An agent that commits without opening it, the framer where a spawn prompt asks and any agent's probe, has contract rule 6's one sentence pointing at it, so every agent pays that sentence in place of the 714 bytes |
-| 2's first sentence, the phase-boundary set | the *Phase boundary* row of `skills/verify/SKILL.md` *Scope: cheap and often, broad and once*, which now says "the set contract rule 2 names" | the crafter's step 5 already sends it to the table beneath that one, and the session that builds reads `verify` too. Rule 2 keeps the slice tests, the broad gate and the `unverified` hand-over |
+| 2's first sentence, the phase-boundary set | the *Phase boundary* row of `skills/verify/SKILL.md` *Scope: cheap and often, broad and once*, which now holds the set itself | the crafter's step 5 already sends it to the table beneath that one, and the session that builds reads `verify` too. Rule 2 keeps the slice tests, the broad gate and the `unverified` hand-over |
 
 Rule 16's text moves with its wording, apart from "A file edit is rule 9's",
 which becomes "contract rule 9". The citations of rule 16 go to its new
@@ -281,7 +281,7 @@ reads, and is reworded by the same rule 19.
 
 | Copy | Kept on | The other side | Opened at that step |
 |---|---|---|---|
-| where the plugin's `skills/`, `templates/` and `docs/` paths resolve | contract rule 11, as one sentence naming `agents/` too, for this file and the agent's definition; the heading becomes *Where the plugin's paths and the `seal/` root resolve, and the language its records are written in* | the sentence leaves `agents/crafter.md:29-33`, `agents/framer.md:44-47`, `agents/proofer.md:27-30`, `agents/sealer.md:43-45`; `agents/tracer.md:27-29` keeps "Open `skills/legacy-parity/SKILL.md`." | the contract, preloaded before the definition |
+| where the plugin's `skills/`, `templates/` and `docs/` paths resolve | contract rule 11, as one sentence naming `agents/` too, for this file and the agent's definition; the heading becomes *Where the plugin's paths and the `seal/` root resolve, and the record language* | the sentence leaves `agents/crafter.md:29-33`, `agents/framer.md:44-47`, `agents/proofer.md:27-30`, `agents/sealer.md:43-45`; `agents/tracer.md:27-29` keeps "Open `skills/legacy-parity/SKILL.md`." | the contract, preloaded before the definition |
 | the reference root is read where the work touches it | `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes* | leaves crafter step 2 and framer step 4. The *Never* lines stay. `tests/behaviour/test_a_reference_root_is_read_and_never_taken.py`'s reader case for the two definitions reads the implement section (the existing case at the new path) | crafter step 1 opens implement; the framer opens *Document layout* for *A design states its rule changes* |
 | the parity record's `original:` line | `skills/legacy-parity/SKILL.md` *Recording the comparison* | proofer step 5 and sealer step 5 keep the act, "compare", and cite the section for the record | each step opens that skill in the same sentence |
 | who writes when the frame does not hold | `agents/crafter.md` *The frame is judged before it is built to* | the first sentence of the framer's *The one route back is the review chain's* goes | the framer is not spawned at that moment, so it needs no copy |
@@ -323,8 +323,10 @@ crafter and the framer when they read *2.*.
 ### D6 The measurement
 
 - **Preloads:** `uv run python .github/scripts/release_report.py --against
-  v0.30.0 --at <dir>` with `<dir>` a clone at HEAD. The `preload` rows at
-  v0.30.0 are the before, and the rows at HEAD are the after.
+  v0.30.0 --at <base> --root <head>`, with `<base>` a clone at 0c68b9933
+  and `<head>` a clone at HEAD, since `--at` is the tag's tree and `--root`
+  the current one. The `preload` rows at v0.30.0 are the before, and the
+  rows at HEAD are the after.
 - **Census:** a read-only probe in the crafter's scratch directory, run at
   0c68b9933 and at HEAD. It tokenizes every tracked `.md` and `.py` file
   outside `seal/` and `tests/` into lowercase runs of
