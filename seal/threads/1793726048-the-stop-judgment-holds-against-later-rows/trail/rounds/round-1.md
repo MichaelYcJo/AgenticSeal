@@ -32,6 +32,11 @@ The frame's *Scope* Out (`frame/design.md:62`) keeps `:13` because it "name[s] t
 
 Where the snippet stops: `agents/proofer.md:132` ("a round told the run is capped") and `docs/forms/the-round-record.md:105` ("files at the cap") use the word for the stop row, not for the count, so they do not contradict `:137-138`. The fix pass weighs `agents/proofer.md:132`, because this branch already edits that file. The *Scope* Out bullet at `frame/design.md:62` goes stale with the fix, and the fix pass owes it too. `README.md:92` is #1102's (G18). The fix pass runs S7's command over the new `to` for copy notices.
 
+```seal
+verdict: deferred frame/design.md ## Rule changes, the orchestrator's fold
+answer: The finding holds: `docs/running/the-run.md:13` makes the count the cap that stops a loop, and `skills/code-review/orchestration.md:137-138` says the three rounds are no cap. This pass edits nothing in `docs/` (G13) and does not write `frame/design.md`, so the repair is a second `change` in `## Rule changes`, handed to the orchestrator to fold. Its `from` is the sentence at `:12-15` as HEAD holds it. Its `to` is written in this pass's own words so that it also says the rounds are no cap: "A round opening nothing that needs a fix does not count toward the three finding rounds, which mark where the orchestrator weighs a loop that is not converging and are no cap: such a round is the loop having converged." In a scratch copy of the design, `rule_changes.py` parsed it and placed it in `docs/running/the-run.md`, and `chain_check.py#pins_and_copies_in` printed no pin and no copy notice (executed). The same reading named a planted 15-word copy. `agents/proofer.md:132` stays as it is. There "capped" is the word of the `chain: capped` label and of `docs/releasing/branch-and-release.md:91` for a run the orchestrator stopped, not for the count, and a round spawned after a stop row still reports what it finds at its severity. The *Scope* Out bullet at `frame/design.md:62` goes stale with the fold, and the hand-back names it.
+```
+
 ### 2. After a stop row, a `should` that carries a `regression:` line can still take the framer's route, and the redesign that route makes ends the stop
 
 ```seal
@@ -75,6 +80,11 @@ It adds a `change` to `frame/design.md` `## Rule changes` for the policy root's 
 
 Where the snippets stop: the *Scope* Out bullet at `frame/design.md:64` and S1 at `:70` state the old reach, and the fix pass owes them. `skills/implement/acts.md`'s row for the route section stays true. The fix pass runs S7's command, because the two `to` values and the new sentences must share no run of 15 words.
 
+```seal
+verdict: fixed 89480ded9
+answer: The finding holds, and the fix is in this pass's own words at both coordinates. In the stop paragraph, the sentence on a finding with a `regression:` line stands after the sentence naming the drain row and rung 1, not after "whatever document it cites.", because placed there it would part "those documents" from the sentence it refers to. It says that from the stop row on you route a `must` alone, and every other regression takes a home that costs no round, never a fix pass and never the framer, whose redesign would end the stop. The route section's lead says that once a row has judged the run excessive, only a `must` takes a route below, and any other regression takes a home by the stop paragraph. `docs/running/the-run.md:29-30` is handed to the orchestrator as a third `change` to fold, from "No label carries that sentence, and the orchestrator routes the round on it, at any round of the run." to the same sentence followed by ", except that once a row of `frame/plan.md` *Judgments of the run* has judged the run excessive, only a `must` takes a route, and every other regression takes a home that costs no round", with a citation of `skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round*. The scratch reading printed no refusal and no notice for it (executed). The *Scope* Out bullet at `frame/design.md:64` and S1 at `:70` state the old reach, and the hand-back names them.
+```
+
 ### 3. The drain row's new clause does only a `must` now, while the paragraph it cites makes a fix confined to the work item's records one of the homes
 
 ```seal
@@ -90,6 +100,11 @@ Why it matters: the drain row's new clause (`skills/implement/orchestration.md:4
 ```
 
 Where the snippet stops: *Scope* item 2 (`frame/design.md:39`) and S4 (`:73`) state "only a `must` is done now" too. They are the frame's records, and the fix pass weighs them.
+
+```seal
+verdict: fixed 89480ded9
+answer: The finding holds. The paste-ready row was read against `skills/code-review/orchestration.md:164-171` and the design's `to` at `frame/design.md:90`, which both keep a fix confined to the work item's records after a stop, and it was applied as given. The row's first clause already says that such a fix owes no verifying round, so the two clauses agree. *Scope* item 2 and S4 still say "only a `must` is done now", and the hand-back names them for the orchestrator to fold.
+```
 
 ### 4. The new bullet tests whether a *Scope* item names the case, so "a case that holds no fact the frame states" reads two ways on the case S5 cites
 
@@ -116,6 +131,11 @@ The fix replaces the bullet's first three sentences and keeps the rest as writte
 ```
 
 Where the snippet stops: `agents/proofer.md:139-140` uses the label and cites the bullet, so it needs no change. *Scope* item 3's first point (`frame/design.md:41`) states the same definition, and the fix pass weighs it as the frame's record.
+
+```seal
+verdict: fixed 89480ded9
+answer: The finding holds. The paste-ready sentences were read against *Scope* item 3's first point and S5. The frame lists only *Scope* items, acceptance rows and `check:` lines, and S5 takes round 5's case as one that holds no fact the frame states although its grounds quoted a *Grounding* row. So excluding a fact that only a *Grounding* row states is the frame's reading made explicit, and the sentences were applied as given, with the bullet's following lines rewrapped to the 88-column limit `tests/behaviour/test_docs_line_wrap.py` reads (executed). `agents/proofer.md:139-141` cites the bullet and needed no change. *Scope* item 3's first point still states the old definition, and the hand-back names it.
+```
 
 ## Confirmations
 
