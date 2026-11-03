@@ -284,12 +284,11 @@ as checked.
 
 **A conflict with the base is integrated by merging the base into the
 branch, never by a rebase.** A rebase orphans the commits every round record
-names on its `target:` line (`docs/releasing/release-checklist.md` *0. Before
-starting*). The orchestrator merges once, after the branch whose changes
-conflict with this one has landed on the base. Where the merge resolved a
-conflict in a file outside the work item's records, the orchestrator spawns
-a verifying round on that resolution, because the chain check lists the
-branch's commits with `--no-merges` and reads no merge commit
+names on its `target:` line. The orchestrator merges once, after the branch
+whose changes conflict with this one has landed on the base. Where the merge
+resolved a conflict in a file outside the work item's records, the
+orchestrator spawns a verifying round on that resolution, because the chain
+check lists the branch's commits with `--no-merges` and reads no merge commit
 (`skills/code-review/scripts/chain_check.py#follows`). The merge moves HEAD
 past `trail/gate.md` and `guarantee.md`, so after the merge, and after that
 verifying round's record is committed where one is owed, the orchestrator

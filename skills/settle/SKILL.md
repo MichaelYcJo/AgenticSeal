@@ -65,10 +65,9 @@ settling session opens it before step 2 of the procedure.
 
 ## When it runs
 
-**When the owner calls it, as `docs/releasing/release-checklist.md` *2b. Settle what
-earlier releases left behind* says.** It
-is invoked, never triggered: no hook runs it and no gate refuses a branch
-over an unsettled work item.
+**When the owner calls it, not at every release.** Released work items wait
+on disk until then. It is invoked, never triggered: no hook runs it and no
+gate refuses a branch over an unsettled work item.
 
 ## What the dry run shows
 
