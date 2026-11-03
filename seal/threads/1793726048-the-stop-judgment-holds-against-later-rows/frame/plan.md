@@ -34,7 +34,7 @@ The `change` in `frame/design.md` `## Rule changes` is read by `chain_check.py`'
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1, 2, 3, 4 and 6 | `frame/design.md` S1 to S9 | |
+| 1 | `frame/design.md` *Scope* items 1, 2, 3, 4 and 6 | `frame/design.md` S1 to S9 | 72c77856e |
 
 ## Operational impact
 
