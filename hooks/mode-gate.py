@@ -64,7 +64,7 @@ one folder is what it was measured doing.
 **No waiver token.** The commit gate's two arms each carried one until
 #1027, because each was about whether a CHANGE was checked, and a change can
 honestly be exempt. This is about setup, the way on takes one command, and a token would
-build exactly the standing exemption `docs/the-review-and-parity-arms.md`
+build exactly the standing exemption `docs/running/the-review-and-parity-arms.md`
 refuses. `ask` is the escape hatch, and it is one an unattended run can take.
 
 Everything here fails toward silence, the way `hooks/lib/optin.py` does: a

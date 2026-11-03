@@ -1000,7 +1000,7 @@ OLD_NAME = re.compile(
             # `graders/shape-writes-spec.md`, is not the record.
             r"(?<![\w-])(?:" + "sp" + "ec|over" + r"view)\.md\b",
             # The broad run's record, now `trail/gate.md`, and the command
-            # now `seal gate`; `docs/the-broad-gate.md` names the act.
+            # now `seal gate`; `docs/running/the-broad-gate.md` names the act.
             r"(?<!the-)broad" + "-gate",
             # The hand-offs, now under a thread's `trail/`.
             r"(?<!trail/)\b(?:pha" + "ses|rou" + "nds)/",

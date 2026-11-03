@@ -161,8 +161,8 @@ PR 검사가 그중 무엇을 읽는지, 세션이 에이전트에게 일을 어
 게이트만 건너뛰고 호출은 그대로 진행됩니다. 어느 게이트였는지는 세션마다 한
 번, 턴이 끝날 때 알려 줍니다. 판정표 전문은 다음 세 문서에 있습니다.
 [docs/checks/the-routing-check.md](./docs/checks/the-routing-check.md) ·
-[docs/the-review-and-parity-arms.md](./docs/the-review-and-parity-arms.md) ·
-[docs/checks/the-pull-request-check.md](./docs/checks/the-pull-request-check.md)
+[docs/running/the-review-and-parity-arms.md](docs/running/the-review-and-parity-arms.md)
+· [docs/checks/the-pull-request-check.md](./docs/checks/the-pull-request-check.md)
 
 | 게이트 | 언제 | 무엇을 | 어디서 |
 |---|---|---|---|

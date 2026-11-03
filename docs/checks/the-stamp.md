@@ -11,7 +11,7 @@ either mode.** The stamp means every party
 verified the work item, the sealer last, and the work is done, so it is
 drawn from that verdict and never from the broad gate's run, which comes
 before the sealer has read anything and draws nothing
-(`docs/the-broad-gate.md` *One act, one owner*). A `post-edit` gate,
+(`docs/running/the-broad-gate.md` *One act, one owner*). A `post-edit` gate,
 `hooks/sealer-stamp-queue.py`, runs after each `Write` or `Edit` of a
 `seal/threads/<id>/guarantee.md` under either root. Where the reader the pull request's check reads it through refuses none of its lines and its newest verdict block reads `Verdict: sealed`, it writes the stamp's values under
 `<git-common-dir>/agentic-stamp/<session>/` for the payload's session,

@@ -31,7 +31,7 @@ STANDS = "the broad run's `trail/gate.md`"
 # R12: a whole-file substring pin is evidence only where the words occur
 # nowhere else).
 DIRECT_REQUIRES = {
-    ("docs", "the-review-and-parity-arms.md"): (
+    ("docs", "running", "the-review-and-parity-arms.md"): (
         "nothing required; the declaration is printed",
         "the broad run's `trail/gate.md`",
     ),
@@ -39,7 +39,9 @@ DIRECT_REQUIRES = {
 # The orchestration skill's four-combinations table and its closing paragraph
 # left for the policy root in #1148, which holds both; the skill keeps one
 # sentence on the direct answer and cites the section that holds the rest.
-WAIVER_SECTION = "`docs/the-review-and-parity-arms.md` *There is no standing waiver*"
+WAIVER_SECTION = (
+    "`docs/running/the-review-and-parity-arms.md` *There is no standing waiver*"
+)
 
 
 @pytest.mark.parametrize("parts", sorted(DIRECT_REQUIRES))

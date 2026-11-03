@@ -97,10 +97,10 @@ def in_force(rel, section):
 
 # The two policy sections the routing rows cite for their grounds (#1148).
 DECLARATION = (
-    "docs/the-review-and-parity-arms.md",
+    "docs/running/the-review-and-parity-arms.md",
     "The declaration, and where the check went",
 )
-SPAWN_COSTS = ("docs/the-agent-set.md", "What a spawn costs")
+SPAWN_COSTS = ("docs/running/the-agent-set.md", "What a spawn costs")
 
 
 def cites(rel, section):
@@ -162,11 +162,11 @@ def test_the_optional_row_cites_where_its_criterions_grounds_stand():
     The criterion stands where the orchestrator, who fills the row, reads how
     the work is routed: `skills/implement/orchestration.md` *What the answer
     writes*. Since #1148 the skill states the criterion in one sentence and
-    the grounds stand in the policy root, `docs/the-agent-set.md` *What a
+    the grounds stand in the policy root, `docs/running/the-agent-set.md` *What a
     spawn costs*, which the skill cites. The criterion's sentence and its
     grounds are the proofer's to read."""
     tpl = " ".join(read(*ORCH).split())
-    # The citation `docs/the-agent-set.md` *What a spawn costs*, which a
+    # The citation `docs/running/the-agent-set.md` *What a spawn costs*, which a
     # reader who questions the criterion resolves to its grounds.
     assert cites(*SPAWN_COSTS) in tpl, (
         "the criterion no longer cites where its grounds stand"
@@ -755,7 +755,7 @@ def test_the_policy_tables_the_review_answers_and_the_skill_cites_it():
     # as the policy table's row keys a reader looks an answer up by.
     for answer in ("| through the review chain |", "| straight to the PR |"):
         assert answer in policy, f"the policy's table lost the row `{answer}`"
-    # The citation `docs/the-review-and-parity-arms.md` *The declaration, and
+    # The citation `docs/running/the-review-and-parity-arms.md` *The declaration, and
     # where the check went*, which the orchestrator resolves to the table.
     assert cites(*DECLARATION) in skill, "the skill does not cite the combinations"
 
@@ -783,10 +783,10 @@ def test_the_skill_cites_the_policy_on_a_standing_waiver():
     The reasoning is the policy's since #1148, and the skill cites it; the
     rule's sentences are the proofer's to read."""
     skill = flat(read(*ORCH))
-    # The citation `docs/the-review-and-parity-arms.md` *There is no standing
+    # The citation `docs/running/the-review-and-parity-arms.md` *There is no standing
     # waiver*, which the orchestrator resolves to the reasoning.
     assert cites(
-        "docs/the-review-and-parity-arms.md", "There is no standing waiver"
+        "docs/running/the-review-and-parity-arms.md", "There is no standing waiver"
     ) in (skill)
 
 

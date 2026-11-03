@@ -259,8 +259,8 @@ def test_parity_declaration_is_bootstrappable_not_hand_written():
     # procedure (#1046).
 
 
-def _folded(name):
-    with open(os.path.join(ROOT, "docs", name), encoding="utf-8") as f:
+def _folded(*parts):
+    with open(os.path.join(ROOT, "docs", *parts), encoding="utf-8") as f:
         return " ".join(f.read().split())
 
 
@@ -271,7 +271,7 @@ def test_the_policy_says_a_failed_diff_asks():
     sentence = (
         "A diff git could not take is not a change confined to the document roots"
     )
-    assert sentence in _folded("the-review-and-parity-arms.md"), sentence
+    assert sentence in _folded("running", "the-review-and-parity-arms.md"), sentence
 
 
 def test_user_invoked_skills_do_not_carry_trigger_scaffolding():

@@ -52,7 +52,7 @@ def test_the_crafter_puts_both_answers_in_the_hand_back():
     """What stayed with the implementer when contract rule 2 and contract
     rule 3 moved: the crafter's definition cites both rules its hand-back
     answers. Where the two answers land is the proofer's to read, except the
-    one clause `docs/the-broad-gate.md:42` still names this module for."""
+    one clause `docs/running/the-broad-gate.md:42` still names this module for."""
     crafter = flat("agents", "crafter.md")
     # The two contract rule numbers the crafter resolves for what its
     # hand-back answers.
@@ -60,7 +60,7 @@ def test_the_crafter_puts_both_answers_in_the_hand_back():
         "the implementer can no longer reach the rules its hand-back answers"
     )
     # A phrase of the rule, not a fact: the last assert of this module that
-    # reads the rule `docs/the-broad-gate.md:42` closes, kept unchanged until
+    # reads the rule `docs/running/the-broad-gate.md:42` closes, kept unchanged until
     # that line's change lands (#1233, `frame/design.md` Scope item 9).
     assert "the suite labelled `unverified`" in crafter, (
         "the suite stopped going over labelled, and a suite that is simply "

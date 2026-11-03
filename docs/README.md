@@ -5,39 +5,6 @@ document outranks the work items' designs, and a design that finds one
 wrong states the correction in its `## Rule changes`
 (`skills/settle/rule-changes.md` *Rule changes*).
 
-## docs/releasing/
-
-The orchestrator and the owner open these at a release and its settle.
-
-| File | The question it answers |
-|---|---|
-| `docs/releasing/branch-and-release.md` | where a branch is cut from, how it merges back, and what carries the version |
-| `docs/releasing/issues-and-milestones.md` | what the issue tracker's fields mean here, and which of them anything reads |
-| `docs/releasing/release-checklist.md` | what to type on the day of a release, in order |
-
-## The records
-
-| File | The question it answers |
-|---|---|
-| `docs/one-root-by-lifetime.md` and `docs/one-root-by-lifetime.ko.md` | where the plugin's one root is, what opts a repository in, what first setup asks, and what the repository's config rows decide |
-| `docs/the-record-layout.md` | where each kind of record lives, which file a change writes, and when a later commit brings the changelog fragment along |
-
-## The agents and the review
-
-| File | The question it answers |
-|---|---|
-| `docs/the-agent-set.md` | how the rules are split between the agents a work item spawns |
-| `docs/the-pact.md` | where a contract several repositories keep together lives, how each knows about it, and what checks it |
-| `docs/the-review-and-parity-arms.md` | what each routing answer owes at the pull request, and what the parity arm wants of a change in a migration |
-
-## The checks
-
-| File | The question it answers |
-|---|---|
-| `docs/measuring-a-run.md` | what a segment of a run measures, how a reading that moved is judged, and where the reading goes |
-| `docs/the-broad-gate.md` | who takes the one broad run, what it runs, and what it may say |
-| `docs/what-a-script-gates.md` | which gates a script holds and which an agent holds, what each script reads, and what it does with what it did not read |
-
 ## docs/forms/
 
 Two parties that exchange a record open these: the one that writes it and the
@@ -57,6 +24,21 @@ the one section its definition, the contract or a skill it opens sends it to.
 | File | The question it answers |
 |---|---|
 | `docs/running/the-run.md` | the orchestrator's rules for the review chain's run, its bound and end, and for what it hands each agent |
+| `docs/running/the-agent-set.md` | how the rules are split between the agents a work item spawns |
+| `docs/running/the-review-and-parity-arms.md` | what each routing answer owes at the pull request, and what the parity arm wants of a change in a migration |
+| `docs/running/the-broad-gate.md` | who takes the one broad run, what it runs, and what it may say |
+| `docs/running/what-a-script-gates.md` | which gates a script holds and which an agent holds, what each script reads, and what it does with what it did not read |
+| `docs/running/measuring-a-run.md` | what a segment of a run measures, how a reading that moved is judged, and where the reading goes |
+
+## docs/releasing/
+
+The orchestrator and the owner open these at a release and its settle.
+
+| File | The question it answers |
+|---|---|
+| `docs/releasing/branch-and-release.md` | where a branch is cut from, how it merges back, and what carries the version |
+| `docs/releasing/issues-and-milestones.md` | what the issue tracker's fields mean here, and which of them anything reads |
+| `docs/releasing/release-checklist.md` | what to type on the day of a release, in order |
 
 ## docs/checks/
 
@@ -73,6 +55,14 @@ and the citation gives the reason.
 | `docs/checks/the-unverified-record.md` | what `unverified_check.py` reads, and the baseline it reads against |
 | `docs/checks/the-routing-check.md` | where a session's routing is checked: at its edit tools before the first edit, and at the pull request |
 | `docs/checks/the-session-hooks.md` | how the hooks are registered, and what the implementer mark says |
+
+## The records
+
+| File | The question it answers |
+|---|---|
+| `docs/one-root-by-lifetime.md` and `docs/one-root-by-lifetime.ko.md` | where the plugin's one root is, what opts a repository in, what first setup asks, and what the repository's config rows decide |
+| `docs/the-record-layout.md` | where each kind of record lives, which file a change writes, and when a later commit brings the changelog fragment along |
+| `docs/the-pact.md` | where a contract several repositories keep together lives, how each knows about it, and what checks it |
 
 `docs/experiments/` holds dated scratch documents and is no policy; `settle`
 never writes there.

@@ -33,7 +33,7 @@ a sealed work item.
 check: tests/skills/test_broad_gate.py tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py
 
 Where a rule every agent is bound by lives, and where one agent's own rule
-lives, is `docs/the-agent-set.md` *One contract every agent receives, and
+lives, is `docs/running/the-agent-set.md` *One contract every agent receives, and
 one definition each*.
 
 **A suite that is not mentioned reads as a suite that passed.** An agent's

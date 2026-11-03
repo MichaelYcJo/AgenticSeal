@@ -35,7 +35,7 @@ finding 4).
 repository into `tests/skills/test_broad_gate.py`: the reader's, the partition's
 shape and arms, the reasons' wording, the command run over a fixture
 repository, `coverage_line`'s and `base_is_main`'s. The cases here read
-`hygiene.yml`, `skills/verify/orchestration.md` or `docs/the-broad-gate.md`,
+`hygiene.yml`, `skills/verify/orchestration.md` or `docs/running/the-broad-gate.md`,
 which #923 places.
 """
 

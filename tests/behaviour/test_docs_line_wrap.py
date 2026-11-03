@@ -193,13 +193,13 @@ COVERED = [
     ".github/PULL_REQUEST_TEMPLATE.md",
     # The policy documents the first fold wrote. Each was written wrapped,
     # so each goes in at birth with no sweep to owe.
-    "docs/the-broad-gate.md",
-    "docs/measuring-a-run.md",
-    "docs/the-agent-set.md",
+    "docs/running/the-broad-gate.md",
+    "docs/running/measuring-a-run.md",
+    "docs/running/the-agent-set.md",
     # The routing check's documents, each written wrapped and in at birth.
     "docs/checks/the-session-hooks.md",
     "docs/checks/the-routing-check.md",
-    "docs/the-review-and-parity-arms.md",
+    "docs/running/the-review-and-parity-arms.md",
     # The pact's policy (#647), written wrapped and in at birth.
     "docs/the-pact.md",
 ]

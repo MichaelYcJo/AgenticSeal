@@ -2,7 +2,7 @@
 
 Authority for where a session's routing is checked: at its edit tools,
 before the first edit, and at the pull request. What each routing answer
-owes at the pull request is `docs/the-review-and-parity-arms.md`. How the
+owes at the pull request is `docs/running/the-review-and-parity-arms.md`. How the
 hooks are registered is `docs/checks/the-session-hooks.md`. Update spec and code
 together.
 
@@ -32,7 +32,7 @@ or a remote-tracking `refs/remotes/<remote>/<branch>`, is allowed, because
 commits made there reach a pull request only through a branch, which this
 gate and the trailer arm judge. The tool input is a path, so no command is
 read. Every way the declaration cannot be read is no declaration, as
-`docs/the-review-and-parity-arms.md` states.
+`docs/running/the-review-and-parity-arms.md` states.
 check: tests/hooks/test_routing_edit_gate.py
 
 **Three kinds of file are not judged: one under the repository's `seal/`

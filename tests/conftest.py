@@ -52,7 +52,7 @@ REVIEW_CHAIN_DOCS = (
     ("docs", "checks", "the-stamp.md"),
     ("docs", "checks", "the-session-hooks.md"),
     ("docs", "checks", "the-routing-check.md"),
-    ("docs", "the-review-and-parity-arms.md"),
+    ("docs", "running", "the-review-and-parity-arms.md"),
 )
 
 

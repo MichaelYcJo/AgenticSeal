@@ -148,7 +148,9 @@ def test_the_policy_names_the_value_the_gate_row_reads():
     `gate` row prints now. When it prints it, where `skills/verify/orchestration.md`
     puts the ref on the `base` row, and the comments `broad_gate.py` carries
     on the third arm (round 1's 🟡 4 and ⬜ 5) are the proofer's to read."""
-    broad = " ".join(read_document(os.path.join("docs", "the-broad-gate.md")).split())
+    broad = " ".join(
+        read_document(os.path.join("docs", "running", "the-broad-gate.md")).split()
+    )
     # The row name `gate` and the value `tree <version>` the panel prints on
     # it, which a person reads on the gate's output.
     assert (

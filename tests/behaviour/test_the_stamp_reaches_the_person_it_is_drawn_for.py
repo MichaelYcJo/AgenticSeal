@@ -40,10 +40,12 @@ def seal_stamp(*args):
 
 def stamp_section():
     """`docs/checks/the-stamp.md` *The stamp*, flattened: the stamp's rules
-    stand in a document of their own since #1312, and `docs/the-broad-gate.md`
+    stand in a document of their own since #1312, and `docs/running/the-broad-gate.md`
     keeps none of them."""
     text = flat("docs", "checks", "the-stamp.md")
-    assert "## Where the stamp is drawn" not in flat("docs", "the-broad-gate.md")
+    assert "## Where the stamp is drawn" not in flat(
+        "docs", "running", "the-broad-gate.md"
+    )
     return text.split("## The stamp ", 1)[1]
 
 

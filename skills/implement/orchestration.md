@@ -280,14 +280,14 @@ rows; what differs is how many clicks it took and which row says so.
 `templates/records/sdd-routing.md`, which ships `Review` and `Destination`
 answered and the optional rows as placeholders. An absent `Automation` row
 means nobody was asked, so `no` is never written where the question was not
-put. The grounds of both are `docs/the-review-and-parity-arms.md` *The
+put. The grounds of both are `docs/running/the-review-and-parity-arms.md` *The
 declaration, and where the check went*.
 
 **`Implementation` is answered by whether the work is finding out or writing
 down.** Finding out is a step to send to `tracer`, and the orchestrator that
 reads the facts back and writes the code still answers `the session`;
 `crafter` answers where the diff is large enough to threaten what the
-orchestrator still has to hold (`docs/the-agent-set.md` *What a spawn
+orchestrator still has to hold (`docs/running/the-agent-set.md` *What a spawn
 costs*). The file ends with `## Why this way`, one or two sentences nothing
 reads.
 
@@ -298,7 +298,7 @@ boxes under `per axis` writes the same four rows and `Answer pressed` =
 
 **The `Answer pressed` row tells a pressed preset from four boxes ticked by
 hand**, and question 1's third option never reaches it
-(`docs/the-review-and-parity-arms.md` *The declaration, and where the check
+(`docs/running/the-review-and-parity-arms.md` *The declaration, and where the check
 went*).
 
 **`Automation` is held by a gate.** While the row reads `yes`,
@@ -364,7 +364,7 @@ worktree's path written out after `git -C`, never a loop over a variable
 naming it (contract rule 16).
 
 **What each combination of `Review` and `Destination` checks, and where**,
-is `docs/the-review-and-parity-arms.md` *The declaration, and where the
+is `docs/running/the-review-and-parity-arms.md` *The declaration, and where the
 check went*. Under `stop before the pull request` nothing runs at the end,
 and the orchestrator says so in the handback.
 
@@ -374,7 +374,7 @@ the review chain`, and in the sealer's `guarantee.md` under `straight to the
 PR`. A change confined to `docs/` and `seal/` owes none
 (`skills/legacy-parity/SKILL.md` *Recording the comparison*). The shapes
 that leave code nobody compared, with nothing that reads it, are listed in
-`docs/the-review-and-parity-arms.md` *Parity arm*.
+`docs/running/the-review-and-parity-arms.md` *Parity arm*.
 
 The declaration is what the edit check reads, for **either** review answer,
 so a declared work item edits whichever reviewer it named, and CI reads the
@@ -412,7 +412,7 @@ guide names the command.
 
 **The declaration moves the check and waives nothing**: the direct answer
 turns off the reviewer, and the broad run is owed just the same
-(`docs/the-review-and-parity-arms.md` *There is no standing waiver*).
+(`docs/running/the-review-and-parity-arms.md` *There is no standing waiver*).
 
 **A work item that commits in more than one repository** asks the routing
 question once and writes every answer into each gated repository it commits

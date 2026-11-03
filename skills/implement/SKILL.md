@@ -265,7 +265,7 @@ scratch.
 
 `Written by` is the same kind of column, for the same kind of reason. The
 split it records is what `agents/framer.md` exists for, and
-`docs/the-agent-set.md` *One contract every agent receives, and one
+`docs/running/the-agent-set.md` *One contract every agent receives, and one
 definition each* says why the party that draws a contract is not the party
 that executes it. A table that lists the set without naming
 an author reads as a list one session works through — which is what every work

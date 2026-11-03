@@ -168,8 +168,8 @@ that fails to load or crashes is skipped and the call goes ahead; at the end of
 the turn you are told which gate it was, once per session. Full decision
 tables:
 [docs/checks/the-routing-check.md](./docs/checks/the-routing-check.md) ·
-[docs/the-review-and-parity-arms.md](./docs/the-review-and-parity-arms.md) ·
-[docs/checks/the-pull-request-check.md](./docs/checks/the-pull-request-check.md).
+[docs/running/the-review-and-parity-arms.md](docs/running/the-review-and-parity-arms.md)
+· [docs/checks/the-pull-request-check.md](./docs/checks/the-pull-request-check.md).
 
 | Gate | Fires | Does | Where |
 |---|---|---|---|
