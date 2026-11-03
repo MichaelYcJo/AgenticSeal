@@ -76,9 +76,12 @@ field per line, indented two spaces:
 | `remove` | `file`, `section`; `from` optional | the text `from` quotes goes, or with no `from` the whole section, up to the next heading of its level or higher |
 | `nothing` | `why` | changes no rule, and stands alone in the section |
 
-- `file` is a top-level `.md` file of the policy root, `seal/config.md`'s
-  `Policy root` row (`docs` when absent), joined with `/` and holding no `\`
-  or `:`. `section` is a heading's text at any level.
+- `file` is a `.md` file of the policy root, `seal/config.md`'s
+  `Policy root` row (`docs` when absent), or of one of its groups:
+  `<policy root>/<name>.md` or `<policy root>/<group>/<name>.md`, one group
+  directory deep and no deeper, joined with `/` and holding no `\` or `:`,
+  with no group named `.` or `..`. `section` is a heading's text at any
+  level.
 - **`from` is the text as the design's framer read it.** It locates the change
   for the settling session and for a reviewer, and it is not a
   precondition: a `from` the section no longer holds is history, and the dry

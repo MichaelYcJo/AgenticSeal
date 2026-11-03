@@ -171,7 +171,7 @@ def excuser(rel, line, said, text, pending):
     `from` holds the citation and whose `to` does not corrects it, and so
     does a `remove` with no `from` whose section holds the line
     (`rule_changes.removed_by`). `parse` reads an item's `file` only as a
-    top-level file of the policy root."""
+    file of the policy root or of one of its groups."""
     cited = f"*{said}*"
     for o, item in pending:
         if o.file == rel and o.old is not None:

@@ -151,7 +151,9 @@ def letters(text):
 
 def parse(text, policy_root):
     """The `## Rule changes` section of a design's TEXT, as a `Parsed`; each
-    `file` is a top-level `.md` of the directory POLICY_ROOT.
+    `file` is a `.md` of the directory POLICY_ROOT or of one group directory
+    directly in it, `<policy root>/<name>.md` or
+    `<policy root>/<group>/<name>.md`.
 
     The section is read under `## Rule changes` alone. A heading at any
     level whose letters, case folded, are that heading's, that is not it and
@@ -252,12 +254,18 @@ def parse(text, policy_root):
     for item in ops:
         values, error = r.field_values(item, *GRAMMAR[item["kind"]])
         file = (values or {}).get("file", "")
-        # No separator of either system and no drive colon in the name, so a
-        # value joins to one file at the top level on every platform.
-        if not error and not re.fullmatch(
-            re.escape(policy_root) + r"/[^/\\:]+\.md", file
-        ):
-            error = (item["line"], f"`{file}` is not a top-level {policy_root}/ file")
+        # No separator of either system and no drive colon in a name, so a
+        # value joins to one file on every platform: at the top level, or in
+        # one group directory that is neither `.` nor `..`.
+        placed = re.fullmatch(
+            re.escape(policy_root) + r"/(?:([^/\\:]+)/)?[^/\\:]+\.md", file
+        )
+        if not error and (not placed or placed.group(1) in (".", "..")):
+            error = (
+                item["line"],
+                f"`{file}` is not a `.md` of {policy_root}/ or of one group "
+                "directory in it",
+            )
         if error:
             return done([], None, [error])
         out.append(
