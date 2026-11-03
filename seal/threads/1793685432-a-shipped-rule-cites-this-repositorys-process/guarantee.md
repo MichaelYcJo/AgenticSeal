@@ -14,8 +14,8 @@ is an ancestor of HEAD (`git merge-base --is-ancestor`, executed, exit 0).
 alone, which touches only `trail/gate.md` (executed). The repository tracks
 no `seal/parity.md` (`git ls-files`, executed, no output), so this block owes
 no `original:` line. `seal pr-body
-seal/threads/1793685432-a-shipped-rule-cites-this-repositorys-process --body
-<scratchpad>/1793685432-pr-body.md --check` exited 0 (executed). Every re-run
+seal/threads/1793685432-a-shipped-rule-cites-this-repositorys-process
+--body <scratchpad>/1793685432-pr-body.md --check` exited 0 (executed). Every re-run
 below took place in a `git clone --no-local` at 8d2e5d61a under
 `<scratchpad>/1793685432/at-head/`, with a second clone under
 `<scratchpad>/1793685432/at-base/` for the states before the change. Both
