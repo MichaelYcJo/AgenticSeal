@@ -49,6 +49,11 @@ The statements of the condition, listed by taking apart each file that states th
 
 The four bullet lines are 72 to 74 columns, inside the 88 that `tests/behaviour/test_docs_line_wrap.py` reads, and the fix pass runs that module.
 
+```seal
+verdict: fixed 67cac0f00
+answer: The finding holds: the condition bffc022d6 wrote read what the helper does and dropped "of a rule the diff changes", so it put #1216's `Test_in_corpus` back in the class of weighed gaps. By the route of `frame/plan.md` *Judgments of the run* row 5, this pass did not apply the paste-ready sentences, which keep an example. It removed the helper-test sentence from the bullet of `skills/code-review/SKILL.md` *The record*. The definition and the *Grounding* exclusion stand word for word, and the bullet names no kind of case. The next sentence already opened "A parameter in such a case", which now points back to the definition, and the lines from there to the bullet's end are rewrapped. Against S5, read at `v0.28.0`: #1216's *Scope* item 1 names `in_corpus(rel)` as "the selection rule of G8 as a predicate on a repository path", moved as it stands. G8, a *Grounding* row, alone states the corpus: the tracked `*.md` under `docs/`, `skills/`, `agents/` and `templates/`, the three top files, and no `*.ko.md`. `Test_in_corpus`'s assertions hold that membership and exclusion, a fact only a *Grounding* row states, so under the bullet the case holds no fact the frame states and round 5's gap is no `should`. That reading takes *Scope* item 1's citation of G8 as no statement of the fact, which is what "a fact that only a *Grounding* row states" says, and the proofer reads it there. `tests/behaviour/test_docs_line_wrap.py`, `tests/text/test_the_rules_have_one_owner.py`, `tests/text/test_no_passage_is_pasted_into_a_second_file.py` and `tests/behaviour/test_a_cited_section_stands_in_its_file.py` exited 0 in one command (executed).
+```
+
 ## Confirmations
 
 ```seal
