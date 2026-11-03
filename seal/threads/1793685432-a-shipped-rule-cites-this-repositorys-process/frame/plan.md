@@ -29,7 +29,7 @@ The failure scenario of the chosen approach, six months on: a later work item re
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Scope items 1, 2, 3, 4 and 5 of `frame/design.md`, and the six rows of its `## Removes` | A1 and A6 by their commands. A2, A3 and A5 in one narrow run of `tests/behaviour/test_a_cited_section_stands_in_its_file.py`, `tests/text/test_no_passage_is_pasted_into_a_second_file.py`, `tests/text/test_the_rules_have_one_owner.py`, `tests/text/test_settle_reads_before_it_removes.py`, `tests/behaviour/test_the_windows_leg_runs_in_shards_that_make_the_whole.py`, `tests/behaviour/test_docs_line_wrap.py` and `tests/skills/test_settle.py`. The run also includes every other module that reads one of the five edited paths, which the builder lists with `git grep -l` on each path (contract rule 2). A4 is read by the proofer | |
+| 1 | Scope items 1, 2, 3, 4 and 5 of `frame/design.md`, and the six rows of its `## Removes` | A1 and A6 by their commands. A2, A3 and A5 in one narrow run of `tests/behaviour/test_a_cited_section_stands_in_its_file.py`, `tests/text/test_no_passage_is_pasted_into_a_second_file.py`, `tests/text/test_the_rules_have_one_owner.py`, `tests/text/test_settle_reads_before_it_removes.py`, `tests/behaviour/test_the_windows_leg_runs_in_shards_that_make_the_whole.py`, `tests/behaviour/test_docs_line_wrap.py` and `tests/skills/test_settle.py`. The run also includes every other module that reads one of the five edited paths, which the builder lists with `git grep -l` on each path (contract rule 2). A4 is read by the proofer | 8b14bdbb7 |
 
 ## Operational impact
 
