@@ -381,7 +381,7 @@ adds any mechanism by what it takes away:
   what it costs. `skills/core/SKILL.md` *The rule a mechanism is kept
   against* is why.
   What goes is listed under its `frame/design.md`'s `## Removes`, which the review
-  reads against the diff; `docs/the-reader-registry.md` *A frame names what
+  reads against the diff; `docs/forms/the-reader-registry.md` *A frame names what
   its work removes* is the rule.
 - **What it reads.** A pull request that adds or changes a gate names the
   form the gate reads, what the gate names as a line it did not read, and

@@ -114,7 +114,7 @@ def test_the_spec_template_carries_the_removes_section_above_the_mark():
     """S8 of #835. The section ships with the three-column table and a
     placeholder row, and the framer's mark is still the last line. What a
     work item removing nothing writes in its place is the proofer's to read
-    in `docs/the-reader-registry.md`."""
+    in `docs/forms/the-reader-registry.md`."""
     raw = read(SPEC_TEMPLATE)
     lines = reader_module().readable(raw)
     body = section_body(lines, "## Removes")

@@ -20,7 +20,6 @@ The orchestrator and the owner open these at a release and its settle.
 | File | The question it answers |
 |---|---|
 | `docs/one-root-by-lifetime.md` and `docs/one-root-by-lifetime.ko.md` | where the plugin's one root is, what opts a repository in, what first setup asks, and what the repository's config rows decide |
-| `docs/the-reader-registry.md` | how a frame names what its work removes |
 | `docs/the-record-layout.md` | where each kind of record lives, which file a change writes, and when a later commit brings the changelog fragment along |
 
 ## The agents and the review
@@ -50,6 +49,7 @@ one that reads it.
 |---|---|
 | `docs/forms/the-round-record.md` | what a review round leaves in the tree: the proofer writes it, the crafter closes its findings, and `chain_check.py` reads it at the pull request |
 | `docs/forms/the-guarantee.md` | what the sealer's verdict holds: the sealer writes it, and the orchestrator and the pull request check read it |
+| `docs/forms/the-reader-registry.md` | how a frame names what its work removes |
 
 ## docs/running/
 
