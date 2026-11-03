@@ -96,13 +96,14 @@ source changed; #1148 removed the records' copies of one another so that none co
 go stale. The settling session's comment names the work items whose records-alone
 findings kept the count up, and says of each such finding whether it found a stale
 copy. The count is `worse` only where stale copies are what kept it up. Where it
-is, the session files one issue that names each such stale copy and the record it
-stood in. That issue is the home `skills/implement/orchestration.md` *Orchestrator:
-where a decision or a lesson is written* gives a lesson that no work item in
-progress changes. The step is this repository's and ships to no user: the plugin's
-settle procedure (`skills/settle/SKILL.md` *The settling session's procedure*) does
-not take it, because the reader of the four numbers is this repository's owner and
-most installed repositories keep no `flow-baseline` log.
+is, the session files one issue that names each such stale copy, the record it
+stood in, and the file the lesson belongs in. An issue naming that file is where
+`skills/implement/orchestration.md` *Orchestrator: where a decision or a lesson is
+written* writes a lesson whose home no work item in progress changes. The step is
+this repository's and ships to no user: the plugin's settle procedure
+(`skills/settle/SKILL.md` *The settling session's procedure*) does not take it,
+because the reader of the four numbers is this repository's owner and most
+installed repositories keep no `flow-baseline` log.
 check: tests/github/test_finding_counts.py
 
 **What `seal settle --apply` removed is committed before anything switches that checkout

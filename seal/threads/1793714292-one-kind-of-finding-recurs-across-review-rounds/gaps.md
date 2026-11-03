@@ -4,7 +4,7 @@
 
 | Item | Who must answer |
 |---|---|
-| No case reads the sentence that replaces #1020's check in `docs/releasing/release-checklist.md` *2b. Settle what earlier releases left behind*, where the settling session files one issue naming each stale copy and the record it stood in. The paragraph's `check: tests/github/test_finding_counts.py` reads the count's script and not that sentence, before this phase or after it. A diff that drops or rewords the sentence passes the suite | the proofer at review |
+| No case reads the sentence that replaces #1020's check in `docs/releasing/release-checklist.md` *2b. Settle what earlier releases left behind*, where the settling session files one issue naming each stale copy, the record it stood in, and the file the lesson belongs in. The paragraph's `check: tests/github/test_finding_counts.py` reads the count's script and not that sentence, before this phase or after it. A diff that drops or rewords the sentence passes the suite | the proofer at review |
 | The changelog fragment's first entry states that every chain of three or more findings that ran under the current *The run* had a judgment row at or before its third finding, in the two windows `frame/design.md` G8 and G10 read. That rests on the framer's reading of #1038's and #947's records (G8, G9) and on the framer's executed probe over 34 pull requests (G10). This phase did not run that probe again | the proofer at review, against `frame/design.md` G8 to G10 |
 
 ## Not done
