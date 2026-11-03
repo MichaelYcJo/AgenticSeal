@@ -5,7 +5,7 @@
 **A contributor bases the branch on the open release branch, not on
 `main`.** GitHub offers `main` by default, and for everything except a
 release that default is the wrong one here. Work collects on one release
-branch and `main` moves once per release; `docs/branch-and-release.md` *Work
+branch and `main` moves once per release; `docs/releasing/branch-and-release.md` *Work
 accumulates on a release branch* holds the reasoning, and this section is the
 part a contributor needs.
 
@@ -413,7 +413,7 @@ question is not its difficulty, it is when it arrives.
   change writes its changelog entry into is `docs/the-record-layout.md`
   *A change writes fragments, never a shared file*. No branch writes the
   release notes: the tag's workflow builds them from the fragments, as
-  `docs/branch-and-release.md` *Work accumulates on a release branch* says.
+  `docs/releasing/branch-and-release.md` *Work accumulates on a release branch* says.
 
 - **No real identifiers.** Examples, fixtures, and docs use `example.com`
   and `/Users/x/` only. The `real_identifiers` census in `tests/censuses.py`
@@ -466,7 +466,7 @@ question is not its difficulty, it is when it arrives.
 
 ## Cutting a release
 
-`docs/branch-and-release.md` holds it: where a branch is cut from, **which
+`docs/releasing/branch-and-release.md` holds it: where a branch is cut from, **which
 merge method each direction takes** (they are not interchangeable), the two
 things that carry the version, how the release note is built from the
 changelog fragments, and

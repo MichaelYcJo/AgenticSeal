@@ -186,7 +186,7 @@ RELEASE_BRANCH = re.compile(r"release/v\d+\.\d+\.\d+")
 # stands and nowhere else in the file — the shape `test_release_hygiene.py`
 # gives *the branch `release/v0.3.0` shipped as 0.2.0*.
 RELEASE_BRANCH_HISTORY = {
-    "docs/issues-and-milestones.md": "the branch `release/v0.3.0` shipped as 0.2.0",
+    "docs/releasing/issues-and-milestones.md": "the branch `release/v0.3.0` shipped as 0.2.0",
 }
 
 
@@ -227,7 +227,7 @@ def test_the_widened_pin_reads_a_file_the_four_surfaces_never_held(tmp_path):
         tmp_path / "tree",
         {
             "skills/x/SKILL.md": "Run `x --range origin/release/v1.2.3...HEAD`.\n",
-            "docs/issues-and-milestones.md": (
+            "docs/releasing/issues-and-milestones.md": (
                 "Here the branch `release/v0.3.0` shipped as 0.2.0, once.\n"
             ),
         },

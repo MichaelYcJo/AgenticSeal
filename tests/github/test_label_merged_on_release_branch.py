@@ -113,7 +113,7 @@ class Test_version_of:
     def test_accepts_a_release_branch_and_names_its_milestone_and_label(self):
         """One fact spelled four ways, and nothing checked the chain before.
 
-        `docs/issues-and-milestones.md` and `docs/release-checklist.md` both write
+        `docs/releasing/issues-and-milestones.md` and `docs/releasing/release-checklist.md` both write
         parts of it out in prose; the gate and the signal both have to agree with
         it and with each other, and a mismatch between `release: X.Y.Z` and
         `merged: X.Y.Z` is a release blocked on a milestone nothing can satisfy.
@@ -142,7 +142,7 @@ class Test_version_of:
         """A shape it cannot name a version for is skipped, never guessed.
 
         The workflow triggers on `release/*`, so `release/next` reaches this and a
-        version read out of it would be invented. `docs/branch-and-release.md`
+        version read out of it would be invented. `docs/releasing/branch-and-release.md`
         names only `release/vX.Y.Z`.
         """
         assert signal().version_of(branch) is None
@@ -240,7 +240,7 @@ class Test_main:
 
     def test_a_keyword_inside_a_fence_labels_nothing(self, monkeypatch):
         """The readers are the closer's, so a quoted example is not a claim here
-        either. A body quoting `docs/branch-and-release.md`'s fenced example would
+        either. A body quoting `docs/releasing/branch-and-release.md`'s fenced example would
         otherwise label the issue that document names, and bodies here quote the
         documents routinely."""
         m = signal()

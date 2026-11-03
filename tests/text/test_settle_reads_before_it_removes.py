@@ -156,7 +156,7 @@ def test_the_release_checklist_carries_the_by_hand_step():
     """G5. `settle` is invoked and never triggered, so the only thing that
     makes it happen is a line in the list somebody works down on the day:
     the command, and the skill the step is read from."""
-    text = document("docs", "release-checklist.md")
+    text = document("docs", "releasing", "release-checklist.md")
     # The command the person working down the checklist types.
     assert "settle --apply" in text, "the checklist never names the step"
     # The path that person opens for the procedure.

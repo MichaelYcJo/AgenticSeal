@@ -1,9 +1,9 @@
 """#386 and #417: the checklist does not stop at the tag, and the merge-method
 rule names the reader that arrived from outside.
 
-  A5  a reader working down `docs/release-checklist.md` passes the tag and
+  A5  a reader working down `docs/releasing/release-checklist.md` passes the tag and
       meets two boxes, each carrying the command that answers it
-  A8  `docs/branch-and-release.md`'s squash rule cites the checklist section
+  A8  `docs/releasing/branch-and-release.md`'s squash rule cites the checklist section
       whose box reads what an outside directory pins, and names the file that
       holds the plugin's one name
 
@@ -21,7 +21,7 @@ previous release.
 
 **Every assertion reads the file with its wraps collapsed.** These documents
 are hand-wrapped at 88 columns (`tests/behaviour/test_docs_line_wrap.py` covers
-`docs/release-checklist.md`), so a phrase pinned as written on one line breaks
+`docs/releasing/release-checklist.md`), so a phrase pinned as written on one line breaks
 the moment a word is added earlier in the paragraph — the reader
 `tests/behaviour/test_a_release_is_sized_by_a_criterion.py` already uses, for the reason
 its own docstring gives.
@@ -30,7 +30,7 @@ its own docstring gives.
 documents with the sentence or box it pins removed; the mutations and what
 each case said were recorded in
 phase 2 of work item `1790076050-the-release-tail-is-three-acts-no-document-names`,
-whose rule `docs/branch-and-release.md` *Cutting a release* now carries.
+whose rule `docs/releasing/branch-and-release.md` *Cutting a release* now carries.
 """
 
 import os
@@ -38,9 +38,9 @@ import re
 
 from conftest import ROOT
 
-CHECKLIST = "docs/release-checklist.md"
+CHECKLIST = "docs/releasing/release-checklist.md"
 AFTER_THE_MERGE = "*6. After the merge*"
-BRANCHING = "docs/branch-and-release.md"
+BRANCHING = "docs/releasing/branch-and-release.md"
 
 # The two commands the boxes carry. Each is a real invocation, and the second
 # element is the file it has to reach, so a renamed script fails here rather
@@ -74,7 +74,7 @@ def section(rel, heading):
 
 
 def after_the_tag():
-    """`docs/release-checklist.md` *6. After the merge* from the acts after the tag on.
+    """`docs/releasing/release-checklist.md` *6. After the merge* from the acts after the tag on.
 
     A5's *Then* is about what FOLLOWS the tag, which the merge's workflow
     creates. A box above that paragraph is one a reader working down the file
@@ -218,7 +218,7 @@ def test_the_squash_rule_cites_the_box_that_reads_what_is_pinned():
     what it pins."""
     rule = squash_rule()
     # The section a reader of the squash rule resolves to the box.
-    assert "docs/release-checklist.md` *6. After the merge*" in rule, (
+    assert "docs/releasing/release-checklist.md` *6. After the merge*" in rule, (
         "nothing points from the rule to the box that reads what is pinned"
     )
 

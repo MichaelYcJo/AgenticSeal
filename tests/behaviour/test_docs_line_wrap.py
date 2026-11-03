@@ -158,7 +158,7 @@ COVERED = [
     "skills/commit-pr-convention/SKILL.md",
     # Wrapped from its first line, so it goes in at birth rather than waiting
     # for the sweep that would otherwise be needed to bring it under.
-    "docs/release-checklist.md",
+    "docs/releasing/release-checklist.md",
     # The same, and the first `templates/` entry. Its siblings are not here
     # because they hold tree drawings and placeholder rows wider than the
     # limit, and bringing those under is a sweep, not this work item.
@@ -185,7 +185,7 @@ COVERED = [
     "skills/settle/named-directories.md",
     # The same, and the tracker's own authority: it was written wrapped, so it
     # never had a maximum to bring down.
-    "docs/issues-and-milestones.md",
+    "docs/releasing/issues-and-milestones.md",
     # Wrapped from its first line, so it goes in at birth. Nearly all of it is
     # HTML comments, which GitHub does not render and this file does not skip
     # — and the edit box a contributor reads them in wraps nothing for them,

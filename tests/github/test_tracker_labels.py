@@ -19,7 +19,7 @@ about a write that did NOT happen.
 
 #942's phase 6 placed these cases from
 `tests/behaviour/test_a_declared_label_reaches_the_tracker.py`, which keeps the cases
-that read the workflow and `docs/issues-and-milestones.md`.
+that read the workflow and `docs/releasing/issues-and-milestones.md`.
 """
 
 from conftest import census_case

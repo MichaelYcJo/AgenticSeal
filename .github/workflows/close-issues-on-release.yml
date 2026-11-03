@@ -12,7 +12,7 @@ name: close issues on release
 # reaches `main`, every keyword its constituent pull requests already wrote is
 # read and acted on.
 #
-# `docs/branch-and-release.md` carries the rule and the reasoning.
+# `docs/releasing/branch-and-release.md` carries the rule and the reasoning.
 
 on:
   push:

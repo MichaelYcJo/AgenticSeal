@@ -12,7 +12,7 @@ So each rule now has one home, which states it, and `CLAUDE.md` keeps a row
 that names the home's path and section, says when the rule applies, and gives
 the act in one sentence of its own words:
 
-  the merge method per direction   docs/branch-and-release.md
+  the merge method per direction   docs/releasing/branch-and-release.md
   no real identifiers              CONTRIBUTING.md
   the commit cadence               skills/implement/SKILL.md, step 2
   the question batch               skills/implement/orchestration.md,
@@ -54,7 +54,7 @@ import re
 
 from conftest import ROOT
 
-BRANCHES = "docs/branch-and-release.md"
+BRANCHES = "docs/releasing/branch-and-release.md"
 CONTRIBUTING = "CONTRIBUTING.md"
 IMPLEMENT = "skills/implement/SKILL.md"
 ORCH = "skills/implement/orchestration.md"
@@ -156,7 +156,7 @@ CARRIERS = (
     CONTRIBUTING,
     BRANCHES,
     IMPLEMENT,
-    "docs/release-checklist.md",
+    "docs/releasing/release-checklist.md",
     ".github/scripts/plugin_directory_check.py",
     "tests/github/test_plugin_directory_check.py",
     "tests/test_conftest.py",

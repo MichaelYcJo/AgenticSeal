@@ -1,5 +1,5 @@
 """`.github/scripts/finding_counts.py`, the four numbers of
-`docs/release-checklist.md` step 2b (#1223).
+`docs/releasing/release-checklist.md` step 2b (#1223).
 
 Each case builds a repository in a temporary directory: work items under
 `seal/threads/`, each with its `routing.md` and its round records, committed

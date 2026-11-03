@@ -60,7 +60,7 @@ one line of its own in `plan.md` naming the comments to fold, below the
 title, and deletes that line in the commit that folds them. Before the
 frame is committed, the orchestrator folds the decision into the issue body
 instead
-(`docs/issues-and-milestones.md` *An issue is its body and its comments
+(`docs/releasing/issues-and-milestones.md` *An issue is its body and its comments
 together*). The orchestrator's prompt that spawns the framer hands it the
 issue whole: the body as folded, and one line naming the comments the issue
 has, none or each comment's link, with the command that read them,

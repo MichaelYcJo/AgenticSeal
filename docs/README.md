@@ -5,13 +5,15 @@ document outranks the work items' designs, and a design that finds one
 wrong states the correction in its `## Rule changes`
 (`skills/settle/rule-changes.md` *Rule changes*).
 
-## The process
+## docs/releasing/
+
+The orchestrator and the owner open these at a release and its settle.
 
 | File | The question it answers |
 |---|---|
-| `docs/branch-and-release.md` | where a branch is cut from, how it merges back, and what carries the version |
-| `docs/issues-and-milestones.md` | what the issue tracker's fields mean here, and which of them anything reads |
-| `docs/release-checklist.md` | what to type on the day of a release, in order |
+| `docs/releasing/branch-and-release.md` | where a branch is cut from, how it merges back, and what carries the version |
+| `docs/releasing/issues-and-milestones.md` | what the issue tracker's fields mean here, and which of them anything reads |
+| `docs/releasing/release-checklist.md` | what to type on the day of a release, in order |
 
 ## The records
 

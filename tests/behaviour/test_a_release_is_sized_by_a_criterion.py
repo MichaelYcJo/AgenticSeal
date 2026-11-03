@@ -1,6 +1,6 @@
 """What the criterion that sizes a release does not change.
 
-`docs/issues-and-milestones.md` *A milestone answers when, and takes three
+`docs/releasing/issues-and-milestones.md` *A milestone answers when, and takes three
 shapes* sizes a release by what has to be in effect before the next work item
 starts, and its paragraph opening **What the criterion does not change.** says
 what stays as it was: a `release:` milestone is still the pool a release is cut
@@ -18,7 +18,7 @@ import os
 
 from conftest import ROOT
 
-OWNER = "docs/issues-and-milestones.md"
+OWNER = "docs/releasing/issues-and-milestones.md"
 
 
 def read(rel):

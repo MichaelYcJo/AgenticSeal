@@ -1,6 +1,6 @@
 # Release checklist
 
-The sequence in `docs/branch-and-release.md`, as the list to work down on the
+The sequence in `docs/releasing/branch-and-release.md`, as the list to work down on the
 day. That document says why each step exists; this one says what to type and
 what to look at before the next step.
 

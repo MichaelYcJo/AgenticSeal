@@ -92,7 +92,7 @@ NO_SUBCOMMAND = {
         "caught: `templates/setup/config.md` names it beside three commands. "
         "Every place outside `tests/` that invokes it carries its full path "
         "-- `.github/workflows/hygiene.yml`, `templates/setup/hygiene.yml` and "
-        "`docs/release-checklist.md` by hand, and "
+        "`docs/releasing/release-checklist.md` by hand, and "
         "`skills/verify/scripts/broad_gate.py` in code; the test modules that "
         "load it build the "
         "same path -- so it is reachable everywhere it is reached. "

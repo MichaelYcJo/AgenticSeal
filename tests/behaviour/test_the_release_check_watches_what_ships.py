@@ -30,7 +30,7 @@ import pytest
 from conftest import ROOT, read
 
 WORKFLOW = os.path.join(ROOT, ".github", "workflows", "hygiene.yml")
-RELEASE_DOC = os.path.join(ROOT, "docs", "branch-and-release.md")
+RELEASE_DOC = os.path.join(ROOT, "docs", "releasing", "branch-and-release.md")
 STEP = "a change to what ships must move the version"
 
 # What the plugin loader reads or puts in front of a user while the plugin is
@@ -137,7 +137,7 @@ def test_every_top_level_entry_is_classified():
 
 
 def test_the_release_document_names_the_same_roots():
-    """`docs/branch-and-release.md` tells the release sequence which roots
+    """`docs/releasing/branch-and-release.md` tells the release sequence which roots
     trigger the bump. It said five when the pattern said five; both say six —
     the SAME six, so a seventh root written into the paragraph, or one taken
     out of it, reads as a disagreement with the workflow rather than as prose."""
@@ -146,7 +146,7 @@ def test_the_release_document_names_the_same_roots():
     paragraph = doc.split("the `hygiene` workflow", 1)[1].split("\n\n", 1)[0]
     named = set(re.findall(r"`([^`]+)/`", paragraph))
     assert named == SHIPS, (
-        f"docs/branch-and-release.md's paragraph about the hygiene workflow "
+        f"docs/releasing/branch-and-release.md's paragraph about the hygiene workflow "
         f"names {sorted(named)} and the pattern's roots are {sorted(SHIPS)} — "
         "the two have to agree, and this file is where the list is decided"
     )

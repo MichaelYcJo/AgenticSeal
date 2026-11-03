@@ -30,7 +30,7 @@ from conftest import ROOT, read
 from test_tracker_labels import labels_module
 
 WORKFLOW = os.path.join(ROOT, ".github", "workflows", "close-issues-on-release.yml")
-OWNER = "docs/issues-and-milestones.md"
+OWNER = "docs/releasing/issues-and-milestones.md"
 
 
 def flat(rel):

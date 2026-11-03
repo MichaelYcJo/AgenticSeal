@@ -85,10 +85,10 @@ def test_the_release_checklist_names_the_waiver_as_the_no_work_item_answer():
     `Seal-Routing: no work item` trailer on each commit — rather than
     stepping around a gate. The checklist is read whole, because #1117's
     rule changes move the sentence from step 4 to step 2b at the settle."""
-    text = flat("docs", "release-checklist.md")
+    text = flat("docs", "releasing", "release-checklist.md")
     # The routing answer `no work item`, the code span, which a session
     # gives the routing question for such a commit.
     assert "`no work item` answer" in text, (
-        "`docs/release-checklist.md` does not name the waiver as the routing "
+        "`docs/releasing/release-checklist.md` does not name the waiver as the routing "
         "question's `no work item` answer"
     )

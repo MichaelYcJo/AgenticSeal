@@ -284,7 +284,7 @@ as checked.
 
 **A conflict with the base is integrated by merging the base into the
 branch, never by a rebase.** A rebase orphans the commits every round record
-names on its `target:` line (`docs/release-checklist.md` *0. Before
+names on its `target:` line (`docs/releasing/release-checklist.md` *0. Before
 starting*). The orchestrator merges once, after the branch whose changes
 conflict with this one has landed on the base. Where the merge resolved a
 conflict in a file outside the work item's records, the orchestrator spawns

@@ -1,7 +1,7 @@
 # Issues and milestones
 
 What the issue tracker's fields mean here, and which of them anything reads.
-`docs/branch-and-release.md` owns the merge rules, `docs/running/the-run.md`
+`docs/releasing/branch-and-release.md` owns the merge rules, `docs/running/the-run.md`
 the round cap, and this document the tracker's conventions.
 
 ## A milestone answers when, and takes three shapes
@@ -39,7 +39,7 @@ the one purpose its issues share, or the grounds for their order, the
 release carries more than a reader can follow. An issue that does not
 have to be in effect before the next work item starts then moves to a
 later `release:` milestone, and a `feat:` moves only where
-`docs/branch-and-release.md` *Work accumulates on a release branch*
+`docs/releasing/branch-and-release.md` *Work accumulates on a release branch*
 sends it. The judgment weighs work items rather than ticket numbers.
 One branch's leftovers arrive as several ticket numbers that a reader
 takes for several releases' worth of work, so a ticket set that will be
@@ -57,8 +57,9 @@ changes. **A scheduled release milestone's description states the release's purp
 the grounds for the order its issues sit in**, and grounds belonging to one ticket sit
 on that ticket. A minor's purpose names the one goal its `feat:`s share, and a patch's
 purpose says it builds no `feat:`, so whether a `feat:` shares a minor's goal is judged
-against something written, by whoever files or moves it (`docs/branch-and-release.md`
-*Work accumulates on a release branch*). No label or field holds the goal, and no script
+against something written, by whoever files or moves it
+(`docs/releasing/branch-and-release.md` *Work accumulates on a release branch*). No
+label or field holds the goal, and no script
 reads it. So "what is in 1.2.3, and why in that order" is answered without opening a
 file. The number is illustrative, for the reason *A rolling log is titled after the
 version it rolled from* gives below.
@@ -209,7 +210,7 @@ two open ones fail the same check from the other side.
 branch does not carry, and names each one. So a milestone left holding next
 quarter's work produces a red release pull request, at the moment the release
 is being cut, which is the worst moment to do the scheduling it is asking for.
-`docs/release-checklist.md` *0. Before starting* is where that act belongs:
+`docs/releasing/release-checklist.md` *0. Before starting* is where that act belongs:
 the box asking whether the milestone holds what the release is carrying is
 ticked before any of the release's cost is paid.
 
@@ -238,8 +239,8 @@ verified nothing and passes, and only the reading of the subjects for a
 `feat:` can still refuse. So a release branch cut under another name, or a
 milestone retitled by hand, reaches `main` with nothing compared, and the
 printed line is its one trace. Whoever cuts the branch or titles the milestone
-writes those two spellings (`docs/branch-and-release.md` *Work accumulates on a
-release branch*).
+writes those two spellings (`docs/releasing/branch-and-release.md` *Work
+accumulates on a release branch*).
 check: a-release-is-judged-under-its-two-names
 
 ## A label says a ticket is already in, before the release ships
@@ -359,8 +360,8 @@ titles the pull request. A `feat:` filed into, or moved into, a milestone number
 patch moves at that moment to the planned minor whose goal it shares, and the milestones
 are renamed forward only where none shares it, or where the work that follows needs it
 sooner and the renamed milestone's description names that work and why the minor sharing
-its goal is too late (`docs/branch-and-release.md` *Work accumulates on a release
-branch*).
+its goal is too late (`docs/releasing/branch-and-release.md` *Work accumulates on a
+release branch*).
 check: none reader: the orchestrator at each filing and each milestone move
 
 ## Reconstructing a missing milestone

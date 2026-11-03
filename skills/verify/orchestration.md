@@ -230,7 +230,7 @@ what sends a cross-version reading nowhere while everything looks fine.
 
 What a label answers that a milestone cannot, and why tidying one of these
 issues by hand breaks the next release, are the tracker's own conventions
-rather than this skill's. `docs/issues-and-milestones.md` holds them where a
+rather than this skill's. `docs/releasing/issues-and-milestones.md` holds them where a
 repository keeps one.
 
 Where a log is open, the orchestrator takes the two steps as part of the
