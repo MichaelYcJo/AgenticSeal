@@ -36,3 +36,35 @@
 target: bba941b76 against 29182a206
 Verdict: withheld reason: the orchestrator's part of the pull request body (its Title prefix paragraph) grounds the docs: prefix on skills/commit-pr-convention/SKILL.md:146-149, which gives a commit building a work item's own rule the pull request's kind and does not decide that kind; the same section says a change to a message a party reads and acts on is never docs: (:138-144) and a change doing more than one kind takes the highest (:131-132), and the diff changes the message seal import prints where both roots exist (skills/implement/scripts/seal.py:1059-1063), so the planned title and #1102's (:161-164) take the kind that change has, chosen and grounded by the orchestrator
 ```
+
+## Re-audit at eba0c2f42
+
+| Field | Value |
+|---|---|
+| Broad gate | b2bbe990a against 29182a206, still the one block of `trail/gate.md`. The commits after it are bba941b76 (`trail/gate.md`) and eba0c2f42 (`guarantee.md`), both under the work item's directory (executed: `git log --no-merges --name-only b2bbe990a..HEAD ^29182a206`; `git merge-base --is-ancestor b2bbe990a HEAD` exited 0) |
+
+The base resolves to 29182a206 as before. After the earlier block's target, `git diff --stat bba941b76..HEAD` changes `guarantee.md` alone (executed), so no claim's coordinate moved and no claim of the earlier tables is re-run. This run re-reads the parties. Only the orchestrator's part of the pull request body and #1102's title changed.
+
+### Claims re-run
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| The body's copy of the records is still the records' own text | the rewritten body file, below `## From the records` | `bin/seal pr-body seal/threads/1793732301-the-readme-is-written-for-a-first-reader --body <scratchpad>/1793732301-the-readme-is-written-for-a-first-reader/pr-body.md --check`, and the same with the installed `seal` | holds (executed): exit 0 from both |
+| The base's *Shared or local* move, at line 468, is an `mv` of the local root to `$(git rev-parse --show-toplevel)/seal` | the body's *Title prefix* paragraph | `git show 29182a206:README.md \| sed -n 455,475p` | holds (executed): line 468 reads `mv "$(git rev-parse --git-common-dir)/seal" "$(git rev-parse --show-toplevel)/seal" && git add …`, under "By hand it is a move and a commit" |
+| With both roots present that move puts one root inside the other | the body's *Title prefix* paragraph; `trail/rounds/round-2.md`, the `round-1#2` confirmation | in `<scratchpad>/1793732301-the-readme-is-written-for-a-first-reader/mvprobe/`: `mkdir -p a/seal b/seal; touch a/seal/x; mv a/seal b/seal; find`, then the directory removed | holds (executed): the result is `b/seal/seal/x`. The target root gains a nested `seal/`, which no gate reads as a root |
+| #1102 is retitled `fix:` | the orchestrator's message | `gh issue view 1102 --json title` | holds (executed): the title opens "fix: the README grew one section at a time" |
+
+### The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | as the earlier table gives it | as the earlier table gives it; unchanged since bba941b76 | none |
+| the build | as the earlier table gives it | as the earlier table gives it | none |
+| the last round | round 2 at 00052c56a, unchanged | as the earlier table gives it; eba0c2f42 touched only `guarantee.md`, which no round reads | none |
+| the changelog | unchanged; it lists the `seal import` message as its own bullet | the design and the diff | none |
+| the orchestrator's part of the pull request body | as before, except the *Title prefix* paragraph (body file, line 10). It now says the `seal import` message is behaviour and not `docs:`, and that a change of several kinds takes the highest kind. It says the message was wrong at the base: it sent the reader to a move that nests one root inside the other in the one state the message is printed in. So it chooses `fix:`, calls the README rewrite `docs:` and the ratchet's removal a test change, and retitles #1102. The planned title in the orchestrator's message opens `fix:` | `skills/commit-pr-convention/SKILL.md:131-132` and `:138-144` (read). The `fix:` row, "behaviour that was wrong against a rule the tree stated before the change" (`:124`), is borne out. At the base the refusal said that importing into one root "would leave the other where nothing reads it" (`git show 29182a206:skills/implement/scripts/seal.py`, the earlier diff's context). The move it pointed to then left a root nested where nothing reads it (executed above). The issue's new title agrees (executed). The rest of the body is unchanged in substance and agrees with the records, as the earlier table gives it (read) | none. The planned title is the orchestrator's message's claim, since no file holds it (unverified; the orchestrator answers it when it titles the pull request). The branch keeps its `docs/` name. `skills/commit-pr-convention/SKILL.md:289` names the prefix a branch is cut with, and this audit reads no rule that a later retitle renames the branch |
+
+```seal
+target: eba0c2f42 against 29182a206
+Verdict: sealed
+```
