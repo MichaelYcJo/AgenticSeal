@@ -84,6 +84,11 @@ generic gates skip, and the one that catches assertion-free tests,
 mocked-away behavior, and wrong-file test runs.
 ```
 
+```seal
+verdict: fixed 252eaaa38
+answer: The finding holds. Contract rule 15 at `skills/agent-contract/SKILL.md:183-184` and `frame/design.md` *Scope* item 4, as folded at 6ad052ce3, name a case that asserts something is not named, counted, read or let through, and my fix at 533801c30 wrote "nothing is named", which leaves out a case asserting that one given file is not named. Before applying the paste-ready text I read it against *Scope* item 4 and rule 15: it names the same class in the same words, and it changes nothing else in the sentence. So 252eaaa38 applies it as given, with the paragraph rewrapped as the snippet shows. `tests/text/test_no_passage_is_pasted_into_a_second_file.py` and `tests/behaviour/test_docs_line_wrap.py` gave 55 passed, exit 0. Then I read every file my two fix commits touched for another statement of the class: `agents/sealer.md`, `skills/verify/SKILL.md`, `skills/implement/SKILL.md` and the work item's `changelog.md`. Each other statement says "something is not named" in rule 15's words (`agents/sealer.md:145-146`, `skills/implement/SKILL.md:164-165`, `changelog.md:4` and `:11`). `skills/verify/SKILL.md:292`, "A new test that passed on first run and was never seen red", stays true. `git grep -n -i "nothing is named"` outside `trail/` and the Korean editions now prints no shipped sentence of the class. It prints `frame/design.md` G7, the framer's description of #1216's case, `frame/plan.md` *Judgments of the run* row 3, and three unrelated docstrings and comments.
+```
+
 ## Confirmations
 
 ```seal
