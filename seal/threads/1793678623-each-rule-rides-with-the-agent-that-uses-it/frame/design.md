@@ -57,7 +57,6 @@ In:
    proofer's and the sealer's step 5, and the framer's reframe rule loses
    its first sentence. Two copied sentences leave the contract's preamble,
    and rule 19 cites the core for what the core states.
-   `skills/implement/SKILL.md` *2.* drops its restatement of rule 9.
 5. **History goes** (D4): the two `Retired by` lines, with item 3.
 6. **The measurement** (D6): `preloads` and the ten-word census before and
    after, in the last phase record, for the pull request.
@@ -288,11 +287,15 @@ reads, and is reworded by the same rule 19.
 | the contract preamble's "You received this file at startup, before your first tool call, through the `skills:` list in your definition." | every definition's opening sentence | the preamble sentence goes | the definition |
 | the preamble's "A role's rules live in that role's definition" | the core's *Each agent judges its own target* | the clause goes; "a rule that would need a per-role exception here is not universal" stays | the core, preloaded first |
 | rule 19's "and in the same commit removes or corrects what stood on the old fact" | the core's *The rule a mechanism is kept against* | rule 19 cites the core for the rule, and keeps the method: `git grep` on its words, a sample named as rule 12 asks, and no correction beside its sentence | the core, preloaded |
-| implement *2.*'s *An edit must be able to fail* and the two paragraphs after it | contract rule 9, which every agent and the session receive | the three paragraphs become one sentence citing contract rule 9 | the contract |
 
-The last row edits a file outside the three sets, because the issue's copy
-rule keeps one side and has the other cite it. The contract side is the one
-every reader receives, and D1 edits the same section of implement.
+One copy stays on both sides. `skills/implement/SKILL.md` *2.*'s *An edit must
+be able to fail* and the two paragraphs after it restate contract rule 9.
+Its readers include a session that builds where `Implementation` is `the
+session`, and the orchestrator. Neither is preloaded with the contract, which
+binds such a session "only if you load it" (`skills/implement/SKILL.md:20-25`,
+read). So at that step the kept side would be a file its reader does not
+open, and implement keeps its paragraphs, the `assert old in text` form among
+them (the orchestrator's reading, agreed).
 
 ### D4 History
 
@@ -312,9 +315,9 @@ Estimated from the section bytes above. The measurement decides.
 | sealer | 31,879 | about -1,550 |
 | tracer | 25,085 | about -1,300 |
 
-The contract loses about 1,300 bytes and every agent shares that. The crafter
-and the framer also read about 500 bytes less of `skills/implement/SKILL.md`,
-since the rule-9 copy is longer than rule 16.
+The contract loses about 1,300 bytes and every agent shares that.
+`skills/implement/SKILL.md` grows by rule 16, about 600 bytes, for the
+crafter and the framer when they read *2.*.
 
 ### D6 The measurement
 
@@ -366,7 +369,6 @@ design `seal/threads/1793661729-each-document-is-cut-by-who-opens-it/` states
 | the crafter's act in the framer's reframe rule | `agents/framer.md` *The one route back is the review chain's*, first sentence | `agents/crafter.md` *The frame is judged before it is built to* (D3) |
 | two copied sentences of the preamble | `skills/agent-contract/SKILL.md` preamble | every definition's opening sentence, and `skills/core/SKILL.md` *Each agent judges its own target* (D3) |
 | rule 19's restatement of the core | `skills/agent-contract/SKILL.md` *19 A change rewrites the text it amends in place* | `skills/core/SKILL.md` *The rule a mechanism is kept against* (D3) |
-| implement's restatement of rule 9 | `skills/implement/SKILL.md` *2.*, *An edit must be able to fail* and the two paragraphs after it | contract rule 9 (D3) |
 
 This work adds no mechanism. D2 changes what an existing case reads, and the
 case refuses the same defect, a lost or reused number, in the form the new
