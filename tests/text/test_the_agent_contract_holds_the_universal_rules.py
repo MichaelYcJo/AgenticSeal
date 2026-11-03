@@ -11,7 +11,9 @@ and the numbers increase without a repeat. A rule that retires leaves the
 file, and the preamble lists its number as retired. So every number from one
 up to the highest that no heading holds is a listed one, and no listed
 number holds a heading: a rule that goes whole with its number unlisted is
-red, and so is a listed number that still has a section. Every
+red, and so is a listed number that still has a section. Only the highest
+number used can go unseen, from the list or as a rule, since nothing else
+in the file says it was used; that is left to review. Every
 section carries exactly one `check:` line, which names what reads the rule:
 a case, an eval case, or `none reader:` and who reads it instead. A rule's
 sentences are not pinned here. #1111 found no pin's history showing a catch,
