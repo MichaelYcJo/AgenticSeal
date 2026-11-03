@@ -47,7 +47,6 @@ a newline breaks the second, a limit no flow of the plugin reaches. A
 key nobody has measured is a limit until a run shows it changes a
 reading. Whether a call is one of these is read at review, and
 `tests/hooks/test_gitcmd.py` holds each key.
-check: none reader: the proofer at a change that adds or edits a git call in a script
 
 ## The checks
 
@@ -86,4 +85,3 @@ A test that held the table from both sides would be a mechanism with no
 catch to its name on the day it was added, and
 `skills/core/SKILL.md` *The rule a mechanism is kept against* is why it is
 not built.
-check: none reader: the settling session and the proofer at a change to a gate

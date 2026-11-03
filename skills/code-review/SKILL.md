@@ -75,7 +75,6 @@ name this change's own axes before starting: money and rounding, time zones,
 resource lifetime, migration ordering, pagination while writes land, whatever
 the diff touches. Walk them like the rest. An axis you could not judge is a
 row of `## Not judged`, never a silent pass.
-check: none reader: the orchestrator at each hand-back
 
 ## Probes and regression tests
 
@@ -182,7 +181,6 @@ snippet cannot cover them, say in the grounds which statements it leaves and
 that the fix pass owes them too. The judgment rows of 0.26.0 to 0.29.0 trace
 nine regressions in seven work items to a paste-ready fix applied as given
 whose reach was one coordinate.
-check: none reader: the fix pass and the round that reads it
 
 **A finding is not closed too early.**
 
@@ -193,5 +191,3 @@ check: none reader: the fix pass and the round that reads it
   is reported.
 - A claim a fix writes into a document closes when a test pins the document,
   not when the sentence lands.
-
-check: none reader: the next round

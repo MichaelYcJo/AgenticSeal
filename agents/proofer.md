@@ -113,7 +113,6 @@ stands deferred: say where, and do not write it up again.
 
 A carried fact is re-derived when its check fails, or where `seal/parity.md`
 lists its path under coordinate-trust exceptions.
-check: none reader: the orchestrator at each hand-back
 
 **A verifying round answers the closed findings.** Its target is the diff of
 the last fixes, `<sha>, fixes <a>..<b>`. Each finding the round before
@@ -139,7 +138,6 @@ against the tests of the function it covers, and against any pair a
 duplicate check in the repository names; a test that covers nothing its
 group does not already cover is a `should` finding. Where the test files
 declare `TARGET`, the pairs are the ones `seal layout --pairs` prints.
-check: none reader: the orchestrator at each hand-back
 
 **The broad gate is not yours, and its label is.** The crafter hands over
 with the suite labelled `unverified`, and what you check is whether that

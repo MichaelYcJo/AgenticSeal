@@ -129,4 +129,3 @@ the edit hook's message names `seal stamp --from <path>`, and a stamp that did n
 hand from it, once. Where none was, the pull request's check is what says the
 work item was sealed.
 No case, hook or workflow can observe a screen.
-check: none reader: the owner on the first real run after a change here

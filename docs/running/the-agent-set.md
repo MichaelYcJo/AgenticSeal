@@ -73,7 +73,6 @@ settle weighs the exchange against its cost. Its first instance, #1148's frame, 
 four proposals: one agreed, two agreed with a change, one rejected. The procedure is
 `skills/implement/orchestration.md` *The frame is read against the issue at the spawn*,
 and the framer's half is `agents/framer.md`.
-check: none reader: the orchestrator before the first build spawn
 
 ## What each party writes, and when
 
@@ -117,7 +116,6 @@ stops being, and every sentence in it borrows the authority of the sentences
 still true. The rules that survive move into the documents that own their
 subjects, with the cases that pin them, because a case deleted with its
 document is coverage nobody decided to give up.
-check: none reader: review
 
 **What an agent leaves in the scratchpad is named for the work item it
 serves, so two agents alive at once cannot pick the same name.** Every agent
@@ -140,7 +138,6 @@ its own, and a judgment it made in the run, to go on or stop, to route a regress
 file a leftover, to fold a decision into the frame, reached the next session only
 through a spawn prompt or memory, so it writes each as one row of the plan's table,
 which the settle reads (`docs/running/the-run.md` *The run*).
-check: none reader: the settling session at the dry run's judgments
 
 ## What a spawn costs
 
@@ -182,4 +179,3 @@ diff is large enough to crowd out what the orchestrator must keep in hand. That
 threshold is a number nobody has; the axis is replaceability and not cost, because the
 orchestrator is the one participant a release cannot replace mid-run. The row is deleted
 only for a work item that has no answer to give.
-check: none reader: the orchestrator at the routing question

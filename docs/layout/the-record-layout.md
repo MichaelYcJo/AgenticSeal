@@ -55,7 +55,6 @@ the date, the change, one line of why, and a link to the issue comment or
 commit it came from. The orchestrator writes it with the fragment. A row
 written with its change leaves no write for the end of the release, and the
 next framer reads what the way of working became and why.
-check: none reader: the framer of the next work item
 
 **The release note lifts every process row into one table.** Under the
 heading `### Process changes`, above the fragments, the note carries every
@@ -73,7 +72,6 @@ that no longer ships. The rule binds whoever writes the commit: the crafter's
 fix pass, a fix written after the last round, and an integration commit after a sibling's squash, which the
 orchestrator writes. A commit that changes nothing a release note states owes
 the fragment nothing.
-check: none reader: the next round's proofer and the sealer
 
 ## docs/
 
@@ -191,4 +189,3 @@ holds it; the count does not see a rule restated in fresh words.
 check: tests/text/test_the_rules_claude_md_names_have_one_home.py tests/text/test_no_passage_is_pasted_into_a_second_file.py
 
 **Shipped text an agent or a user reads points only at documents the plugin ships: no agent definition, template, skill document or message a script prints names this repository's `CONTRIBUTING.md` or `CLAUDE.md`.** An agent reads a `skills/`, `templates/` or `docs/` path as the plugin's and a bare file name as the repository it works in, so a shipped sentence naming `CONTRIBUTING.md` names, in a user's repository, a file that is not this one. A rule an agent applies lives in its definition or in the skill it opens at that step, and this repository's contributor's guide cites it where a person needs it. A comment or docstring in a shipped script is read by whoever maintains the plugin, a contributor, so it may cite `CONTRIBUTING.md`. The direction is read from the links as written, by `git grep -l 'CONTRIBUTING\|CLAUDE\.md' -- agents templates 'skills/**/*.md'`, whose only hits name a user's own `CLAUDE.md`, and by reading the printed messages of a script the review changes; the proofer does both at stage 1 of a review that changes a shipped document.
-check: none reader: the proofer at review

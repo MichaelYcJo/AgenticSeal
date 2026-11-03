@@ -197,7 +197,6 @@ reads what is pinned. This paragraph is a record rather than a rule: a
 marketplace file pins a commit of each outside plugin's source repository.
 The rule it supports, that anything reaching `main` is a merge commit, is held
 outside the tree by the `main` ruleset.
-check: none reader: the main ruleset on GitHub
 
 **The plugin's name is fixed, and that is not a style question.** Everybody
 already running it installed it under its slug, so renaming it breaks their

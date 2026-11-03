@@ -13,13 +13,11 @@ up to the highest that no heading holds is a listed one, and no listed
 number holds a heading: a rule that goes whole with its number unlisted is
 red, and so is a listed number that still has a section. Only the highest
 number used can go unseen, from the list or as a rule, since nothing else
-in the file says it was used; that is left to review. Every
-section carries exactly one `check:` line, which names what reads the rule:
-a case, an eval case, or `none reader:` and who reads it instead. A rule's
-sentences are not pinned here. #1111 found no pin's history showing a catch,
-and every pin's change came with its own rule's rewording, so a rule
-reworded to the same meaning stays green. A sentence deleted from inside a
-rule that keeps its heading and its `check:` line is left to review.
+in the file says it was used; that is left to review. A rule's sentences
+are not pinned here. #1111 found no pin's history showing a catch, and
+every pin's change came with its own rule's rewording, so a rule reworded
+to the same meaning stays green. A sentence deleted from inside a rule that
+keeps its heading is left to review.
 
 Two facts are pinned, because a reader depends on their characters: rule
 1's two command forms, which an agent copies into a shell, and rule 11's two
@@ -52,8 +50,7 @@ RETIRED = re.compile(r"retired\s+numbers\s+are\s+((?:\d+,\s+)*\d+(?:\s+and\s+\d+
 
 # A fact a reader needs fixed character for character, by the rule whose
 # body holds it: what the fact is and who reads it, then the spellings that
-# carry it. Nothing else of a rule's wording is pinned; its `check:` line
-# names what reads it.
+# carry it. Nothing else of a rule's wording is pinned.
 FACTS = {
     1: (
         "the two command forms an agent copies into a shell",
@@ -66,10 +63,6 @@ FACTS = {
 }
 
 SPELLINGS = [(number, spelling) for number in FACTS for spelling in FACTS[number][1]]
-
-# A check line as `skills/settle/rule-changes.md` *A rule has one shape* states it:
-# after any leading spaces, `check: `, lowercase, one space after the colon.
-CHECK_LINE = re.compile(r"^ *check: .*$", re.M)
 
 
 def read(rel=CONTRACT):
@@ -105,15 +98,6 @@ def missing_facts(text):
         (number, spelling)
         for number, spelling in SPELLINGS
         if spelling not in " ".join(found.get(number, "").split())
-    ]
-
-
-def rules_without_one_check_line(text):
-    """[N] for every rule whose body holds no `check:` line, or more than one."""
-    return [
-        number
-        for number, body in bodies(text).items()
-        if len(CHECK_LINE.findall(body)) != 1
     ]
 
 
@@ -202,13 +186,6 @@ def test_a_listed_number_that_has_a_heading_is_named():
     ]
 
 
-def test_every_rule_carries_one_check_line():
-    """`seal rules --check` reads the check lines there are, and cannot read
-    whether a rule carries one at all (`skills/settle/rule-changes.md` *A rule has
-    one shape*). A rule with none names nothing that reads it."""
-    assert rules_without_one_check_line(read()) == []
-
-
 def test_no_pin_is_its_own_heading():
     """A fact the heading satisfies survives the body being emptied."""
     headings = {number: heading for number, (heading, _, _) in spans(read()).items()}
@@ -268,28 +245,6 @@ def test_moving_a_sentence_to_another_section_is_caught():
     missing = missing_facts(moved)
     assert [s for n, s in missing if n == 11] == list(FACTS[11][1])
     assert all(s in " ".join(bodies(moved)[10].split()) for s in FACTS[11][1])
-
-
-def test_a_rule_that_loses_or_doubles_its_check_line_is_named():
-    """The check-line case can fail at every rule, both ways: a rule whose
-    line goes, and a rule that carries a second one. A sentence that names
-    `check: ` inside a line is prose, not a second line."""
-    text = read()
-    for number, (_, start, end) in spans(text).items():
-        body = text[start:end]
-        line = CHECK_LINE.search(body)
-        dropped = body[: line.start()] + body[line.end() :]
-        doubled = body[: line.end()] + "\n" + line.group(0) + body[line.end() :]
-        for mutated in (dropped, doubled):
-            assert rules_without_one_check_line(
-                text[:start] + mutated + text[end:]
-            ) == [number], number
-        prose = (
-            body[: line.start()]
-            + "Name it on a `check: x` line.\n"
-            + body[line.start() :]
-        )
-        assert rules_without_one_check_line(text[:start] + prose + text[end:]) == []
 
 
 def misspelled_headings(text):

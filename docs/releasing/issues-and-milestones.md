@@ -44,7 +44,6 @@ sends it. The judgment weighs work items rather than ticket numbers.
 One branch's leftovers arrive as several ticket numbers that a reader
 takes for several releases' worth of work, so a ticket set that will be
 one branch is judged as one item.
-check: none reader: whoever places an issue in a release milestone
 
 **What the criterion does not change.** It decides a release's size and nothing
 else. A `release:` milestone is still the pool a release is cut from rather than
@@ -353,7 +352,6 @@ are renamed forward only where none shares it, or where the work that follows ne
 sooner and the renamed milestone's description names that work and why the minor sharing
 its goal is too late (`docs/releasing/branch-and-release.md` *Work accumulates on a
 release branch*).
-check: none reader: the orchestrator at each filing and each milestone move
 
 ## Reconstructing a missing milestone
 

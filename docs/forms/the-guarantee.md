@@ -34,7 +34,6 @@ check: ready-needs-sealed
 the sample is written in the file so the miss can be found afterwards.
 Whether five stories agree is a judgment, so a disagreement it does not see
 is missed.
-check: none reader: a reader of the guarantee's own tables
 
 **A pull request body carries the seal mark only where the
 repository turns it on and the work item is sealed at HEAD.**
