@@ -80,7 +80,10 @@ record — a file that outlives the round, a cell inside one, a mark on the
 tree — is yours only where your own file names it, and a definition that
 names no write names none. Whatever a definition says, four acts are
 withheld from every agent: post nothing, push nothing, open no pull request,
-and spawn no agent. Your final output is the report, and what is done with
+and spawn no agent. A commit you do make, a probe's included, writes the
+repository's absolute path after `git -C` in a command of its own, as
+`skills/implement/SKILL.md` *A commit names its repository in the command
+that makes it* states. Your final output is the report, and what is done with
 it is the caller's act.
 check: tests/text/test_every_agent_reads_the_contract.py
 

@@ -8,11 +8,14 @@ milestone-49 run three of the four stops that reached the person began
 orchestrator's loop over a variable met the gate in all three milestone runs.
 
 The rule stands in `skills/implement/SKILL.md` *2. Implement test-first, and
-let each rule name its test*, read by every party that commits: the crafter,
-the session that builds, and the orchestrator.
+let each rule name its test*, which the crafter, the session that builds and
+the orchestrator read. Every other agent commits too, where a spawn prompt
+asks or a probe commits, and reads only the part of that file its step
+needs, so contract rule 6 states the form in one sentence and points at the
+rule.
 
-The cases read the rule's lead, the `git -C` form an agent types, and the
-orchestration's citation of the rule. The rule's reason is the proofer's to
+The cases read the rule's lead, the `git -C` form an agent types, the
+contract's pointer and the orchestration's citation of the rule. The rule's reason is the proofer's to
 read.
 #1027 removed every gate that read a commit, and the reason that rested on
 that reading went with it; the shell's starting directory is the one left.
@@ -23,6 +26,7 @@ from conftest import read
 
 IMPLEMENT = ("skills", "implement", "SKILL.md")
 ORCHESTRATION = ("skills", "implement", "orchestration.md")
+CONTRACT = ("skills", "agent-contract", "SKILL.md")
 LEAD = "**A commit names its repository in the command that makes it.**"
 
 
@@ -62,6 +66,21 @@ def test_it_points_at_the_edit_rule_rather_than_restating_it():
     assert "contract rule 9" in body
     for copied in ("subprocess.run", "An edit must be able to fail"):
         assert copied not in body, f"the rule restates a neighbour: {copied!r}"
+
+
+def test_the_contract_points_every_agents_commit_at_the_rule():
+    """The framer commits where a spawn prompt asks, and a proofer's,
+    sealer's or tracer's probe may commit in its clone. None of them reads
+    implement's *2.*, so the contract every agent preloads carries the form
+    and the citation."""
+    text = " ".join(read(*CONTRACT).split())
+    assert "absolute path after `git -C` in a command of its own" in text, (
+        "the contract no longer states the commit form every agent types"
+    )
+    assert (
+        "`skills/implement/SKILL.md` *A commit names its repository in the "
+        "command that makes it*" in text
+    ), "the contract no longer points an agent's commit at the rule"
 
 
 def test_the_orchestration_cites_the_rule():
