@@ -391,7 +391,7 @@ def test_the_skill_names_the_workflow_paths_and_the_command_that_writes_it():
 
 READMES = {
     "README.md": ("## Your first work item", "### Shared or local"),
-    "README.ko.md": ("## 처음 실행", "### shared 인가 local 인가"),
+    "README.ko.md": ("## 첫 작업 항목", "### shared 인가 local 인가"),
 }
 # A workflow left after a move to local stays, and which pin passes is the
 # rule's home to say, linked rather than restated (round 2 of #952, finding 1).
@@ -402,10 +402,10 @@ LEFT_BEHIND = {
         "there and how to move one that fails.",
     ),
     "README.ko.md": (
-        "local 로 옮긴 뒤에도 워크플로는 트리에 남고, 어느 고정이 그곳에서 "
-        "통과하는지와 실패하는 고정을 어떻게 옮기는지는 "
-        "`docs/layout/one-root-by-lifetime.ko.md` *shared 인가 local 인가* 가 "
-        "말합니다.",
+        "local 로 옮긴 뒤에도 워크플로 파일은 트리에 남습니다.",
+        "어느 릴리스에 고정된 파일이 그곳에서 통과하는지, 통과하지 못하는 파일의 "
+        "고정은 어떻게 바꾸는지는 `docs/layout/one-root-by-lifetime.ko.md` "
+        "*shared 인가 local 인가* 에 있습니다.",
     ),
 }
 
@@ -415,8 +415,8 @@ def test_the_readme_gives_the_switch_under_the_first_work_item(readme):
     """The subsection stands under the section that walks a first reader
     through a work item, and names the checks' command, the way back before
     the commit to shared, the workflow a move to local leaves, and the pair
-    that works between two machines. The two by-hand moves left the English
-    edition in #1102 for the template every root's `seal/README.md` is, and
+    that works between two machines. The two by-hand moves left both
+    editions in #1102 for the template every root's `seal/README.md` is, and
     `switch_block` reads them there."""
     text = read(readme)
     first_run, subsection = READMES[readme]

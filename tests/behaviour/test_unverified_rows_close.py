@@ -137,16 +137,15 @@ def test_the_skill_names_the_command_that_lists_a_deleted_row():
     assert "seal unverified --baseline" in skill
 
 
-# The phrase each language's files use for the base's tip, where CI's
-# comparison lands (#612).
+# The phrase the files use for the base's tip, where CI's comparison lands
+# (#612). Since #1102 neither README edition states the footing, which the
+# rows below keep.
 TIP_EN = "the base's tip"
-TIP_KO = "base 브랜치의 끝"
 
 
 @pytest.mark.parametrize(
     "doc, tip, false_sentence",
     [
-        ("README.ko.md", TIP_KO, None),
         (os.path.join("skills", "verify", "SKILL.md"), TIP_EN, None),
         # The module's docstrings (#612). The phrase stands here three times,
         # so this row cannot see the `--baseline` help alone go back to the
@@ -171,7 +170,7 @@ def test_the_documents_state_the_merge_base_footing(doc, tip, false_sentence):
     is the head already merged into the base. The files said only the first
     and placed it in CI (#612), and two of them said CI never compares at the
     tip, which is false. So each file that places the comparison names the
-    base's tip too, in one phrase per language, and the false sentence is
+    base's tip too, in one phrase, and the false sentence is
     asserted gone where it stood.
 
     Positive assertions: the sentence has to be there, rather than one old
