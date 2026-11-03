@@ -42,6 +42,11 @@ The first and last lines join the paragraph's text as it stands at `:78` and `:8
 - `frame/design.md` S5 (`:73`) and *Removes* row 4 (`:94`) stay true after the fix, and so does the work item's `changelog.md`, whose last sentence says the paragraph "cites both homes". The fix pass reads each of them against its wording.
 - No case reads the fold sentence. `gaps.md` *Not verified* row 2 says so, and it stays true. Whether the fix pass adds a clause of this sentence to a case is its decision, and it says which in its answer.
 
+```seal
+verdict: fixed cc57960ce
+answer: Holds. I wrote the sentence in my own words, shorter than the paste-ready text. "Read whole and not at the named line alone" restated the home's "not only the named line", which the citation already brings, so `skills/code-review/orchestration.md:78-83` now reads "the orchestrator folds each file that holds such a statement, read whole, as `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* states". The paragraph is rewrapped. The line-wrap, paste and cited-section cases pass, and S5's `git grep` still prints nothing. I added the clause to `tests/text/test_the_rules_have_one_owner.py#test_the_fix_pass_reads_the_implementers_context_before_it_resumes`, which reads this section already. It went red with round 1's "folds it as" put back by `seal mutate`. `f766d927a` moved its comment above it. `gaps.md` row 2 now says which sentences that case reads (`cc57960ce`, `5bd959407`). S5, *Removes* row 4 and `changelog.md`'s "cites both homes" stay true. `frame/design.md` *Scope* item 6's "The fold sentence folds the frame as" is named in the hand-back for the orchestrator to fold.
+```
+
 ## Confirmations
 
 ```seal
