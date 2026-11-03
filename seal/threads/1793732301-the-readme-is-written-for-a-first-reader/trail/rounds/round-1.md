@@ -90,6 +90,11 @@ at `frame/design.md:64`, which should name the viewport the reading takes
 records stay as they are, and the fix pass names the move in its own
 record.
 
+```seal
+verdict: fixed d64965d6f
+answer: Built to the folded *Scope* item 1 rather than to the paste-ready fix alone. In both editions the install block now stands directly under the install heading and the requirement paragraph follows it unchanged; the paragraphs on why the parties are separate and on the claim labels moved below the install's uninstall paragraph, and the owl is drawn at 150 pixels instead of 180. The moved paragraph's first words changed, "That differs" to "This workflow differs" and "에이전트 하나에게 … 것과는 다릅니다" to "이 워크플로는 에이전트 하나에게 … 것과 다릅니다", because after the install its "That" would name the install. Measured as S1 states (executed: `gh api markdown -f mode=markdown`, `github-markdown-css` 5.5.1 and `mermaid` 10.9.1 in a 1012-pixel container, headless Chrome 1440 by 900, at d64965d6f): the install block's bottom stands at 785 pixels in `README.md` and 773 in `README.ko.md`, the owl's bottom at 182 and the chart at 513 to 594 and 489 to 582. The same harness read c4ad189b5 at 1,101 and 1,091 where this round read 1,169 and 1,157, so it sits 68 pixels higher than the round's; with that difference added the blocks end at 853 and 841, within 900 either way.
+```
+
 ### 2. The import's two-root refusal sends the person to a README section that no longer holds the commands it promises
 
 ```seal
@@ -145,6 +150,11 @@ current message before it commits the reword. The docstring comments at
 `skills/implement/scripts/seal.py:1758` and `:2499` ("the README's `mv` by
 hand") stay true of `seal/README.md` and are not in this finding's reach.
 
+```seal
+verdict: fixed 7c1bb00fb
+answer: The message is reworded in the fix pass's own words, not the paste-ready ones: read in the state that prints it, both roots present, the two by-hand moves in `seal/README.md` would move one root into the other (`mv` into an existing `seal/` nests it), so the message now says "Move or remove one first: keep the root that holds the records you want, copy across by hand what only the other holds, and delete the other. `seal mode` refuses while both exist, too." The pin in `test_refuses_two_roots_whatever_into_says` asserts both sentences and that no README is named; it ran red against the old message (three parametrisations failed) before the reword, and two `seal mutate` runs over the new sentences each read red after the commit; 24c035842 corrects the pin's comment, which named the by-hand moves as the README's rather than the ones it links. `gaps.md` *Not done* drops its paragraph on the message (9b44c80e5), and `changelog.md` gains a bullet for it.
+```
+
 ### 3. A comment in the shrunken-corpus census still describes the paste check as the ratchet this branch removed
 
 ```seal
@@ -179,6 +189,11 @@ words change:
     # #730's paste check. It names every pair of the files it finds that
     # shares a run, so a file listed and not on disk removes pairs and adds
     # none; it skips the missing half and does not decline.
+```
+
+```seal
+verdict: fixed 8cff4fa5a
+answer: The comment now reads as the round's paste-ready text, word for word; the entry's value stays 1. A `git grep -i -E 'ratchet|BASELINE|measured at|over_baseline'` outside the records and `.test_durations` found no other statement of the ratchet but the policy sentence `docs/layout/the-record-layout.md:185-188`, which the design's `## Rule changes` carries to the settle.
 ```
 
 ## Confirmations
