@@ -72,15 +72,15 @@ request*).
 
 ## A rule has one shape
 
-**A rule has one shape: the rule, its grounds, and the line naming what
-reads it.** A `to` value that states a rule opens with the rule as one bold
-sentence, gives its grounds as prose, and ends with one check line, which
-stays English in every edition.
+**A rule has one shape: the rule, its grounds, and, where a case holds it,
+the line naming that case.** A `to` value that states a rule opens with the
+rule as one bold sentence and gives its grounds as prose. Where a case holds
+the rule, the value ends with one check line, which stays English in every
+edition. A rule no case holds carries no check line, and review reads it.
 
 - A check line is a shown line of a rule file whose text, after any leading
   spaces, starts with `check: `, lowercase, one space after the colon.
-- It names one or more targets separated by single spaces, or no target,
-  written exactly `check: none reader: <who reads it>`.
+- It names one or more targets separated by single spaces.
 - A target is a file of the repository, an eval case directory
   `evals/behaviour/<agent>/<case>/` holding `case.yaml`, or a marker:
   lowercase letters, digits and hyphens, carried by at least one test as
@@ -97,8 +97,8 @@ stays English in every edition.
   read, and nothing names it, since the line below is prose: a check line
   naming more targets than a wrapped line holds is written past the wrap.
 - A check line is refused at its line for a value holding `::`, a comma or
-  an em dash, a reader with a space more after `reader:`, a path that is no
-  file of the repository, and a marker no test carries.
+  an em dash, a path that is no file of the repository, and a marker no
+  test carries.
 
 **What this plugin checks, and what it does not.** It ships `seal rules --check`
 (`.github/scripts/rules.py`), which reads every check line in a rule file,
@@ -111,9 +111,9 @@ pending `remove` with no `from` takes out at the settle is printed as
 excused, with the work item that removes it, and is no refusal. A pending
 `change`, or a `remove` with a `from`, excuses nothing, and where the `seal/`
 root is local no line is excused. Whether
-a target really enforces its rule, whether a rule paragraph carries the
-line at all, and whether two rules contradict each other, it cannot read:
-that is review's, and it is review's to find.
+a target really enforces its rule, whether a rule with no check line has a
+case it should name, and whether two rules contradict each other, it cannot
+read: that is review's, and it is review's to find.
 
 ## The index
 

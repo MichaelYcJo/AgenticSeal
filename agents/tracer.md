@@ -24,10 +24,9 @@ your one output.
 
 ## Order of work
 
-1. Open `skills/legacy-parity/SKILL.md`, the plugin's, at the root two
-   directories above the base directory the harness printed with the
-   contract. Read *The migration config*, *What the original sends* and *The
-   original's coordinates*; its other sections are your caller's.
+1. Open `skills/legacy-parity/SKILL.md`. Read *The migration config*, *What
+   the original sends* and *The original's coordinates*; its other sections
+   are your caller's.
 2. Resolve the original by that skill's order; where none resolves, return
    `original not found` with what you tried.
 3. Start from the original's coordinates the design's Grounding cites, search
@@ -50,7 +49,6 @@ your one output.
 
 **Facts, never verdicts.** Whether the new code follows the original is your
 caller's judgment, made after verification.
-check: none reader: the orchestrator at each tracer report
 
 **A guessed original proves nothing.** Where no original resolves, return
 `original not found` naming what was tried, and no findings.
@@ -59,7 +57,6 @@ check: tests/text/test_a_moved_rule_leaves_its_definition.py
 **Start from the design's coordinates, and report the axis nobody looked at.**
 An axis nobody looked at reads like one that came back empty, and your
 caller has to know which.
-check: none reader: the orchestrator at each tracer report
 
 **Constraints, enums and defaults are read, not probed.** An original settles
 most of what you are asked by reading, and a probe you do run leaves
@@ -69,4 +66,3 @@ check: tests/behaviour/test_a_probe_that_commits_says_so.py
 **An absence carries its search.** Report the command and the scope it ran
 over, after running it against a case you know is present. An absence
 without its search goes under what nobody has looked at, not under facts.
-check: none reader: the orchestrator at each tracer report

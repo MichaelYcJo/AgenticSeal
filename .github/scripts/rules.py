@@ -37,7 +37,7 @@ review's to judge. A target wrapped onto the line below is not read either,
 and nothing names it: the line below is prose.
 
 **How it errs:** it cannot tell a test that exists from one that asserts the
-rule, and a rule written with no `check:` line is read by nobody.
+rule, and a rule written with no `check:` line is read by review alone.
 
 `seal rules --check` excuses one shape of a pending rule change: a refused
 line inside a section that an unsettled design's `remove` with no `from`
@@ -79,7 +79,6 @@ RULE_FILES = (
     "templates/*/*.md",
 )
 LABEL = "check: "
-NO_TARGET = "none reader: "
 # Markdown block markup, one mark: a heading's `#` run, a list bullet or
 # number, a task box, a blockquote's `>`, a table's `|`.
 BLOCK_MARK = r"(?:#|[-+*]|[0-9]{1,9}[.)]|\[[ xX]\]|>|\|)"
@@ -96,7 +95,7 @@ REFUSED_IN_VALUE = ("::", ",", "—")
 MARKER = re.compile(r"[a-z0-9-]+")
 EVAL_CASES = "evals/behaviour/"
 EVAL_CASE = "case.yaml"
-EXPECTED = f"`{LABEL}<targets>` or `{LABEL}{NO_TARGET}<who reads it>`"
+EXPECTED = f"`{LABEL}<targets>`"
 NOT_READ = (
     "`{line}` opens like a check line and is not one, so it was not read: "
     f"write {EXPECTED}"
@@ -190,27 +189,18 @@ def unread_lines(text):
 
 
 def parse(line):
-    """`(targets, reader, why)` for one stripped check line: the targets it
-    names, or the reader of a no-target line, or why it is refused."""
+    """`(targets, why)` for one stripped check line: the targets it names,
+    or why it is refused."""
     if not line.startswith(LABEL):
-        return [], None, f"`{line}` is no check line: write {EXPECTED}"
+        return [], f"`{line}` is no check line: write {EXPECTED}"
     value = line[len(LABEL) :]
     for symbol in REFUSED_IN_VALUE:
         if symbol in value:
-            return [], None, f"`{symbol}` is no part of a check line: write {EXPECTED}"
-    if value == "none" or value.startswith("none "):
-        reader = value[len(NO_TARGET) :]
-        if not value.startswith(NO_TARGET) or not reader or reader != reader.strip():
-            return (
-                [],
-                None,
-                f"a line naming no target names its reader: write {EXPECTED}",
-            )
-        return [], reader, None
+            return [], f"`{symbol}` is no part of a check line: write {EXPECTED}"
     targets = value.split(" ")
     if not all(targets):
-        return [], None, "targets are separated by one space"
-    return targets, None, None
+        return [], "targets are separated by one space"
+    return targets, None
 
 
 def rule_files(root):
@@ -351,7 +341,7 @@ def target_problem(root, target):
 
 def line_problems(root, line):
     """Every reason one stripped check line is refused, empty where it holds."""
-    targets, _reader, why = parse(line)
+    targets, why = parse(line)
     if why:
         return [why]
     return [p for p in (target_problem(root, t) for t in targets) if p]
@@ -488,12 +478,10 @@ def render(root, text):
         if number not in by_number:
             continue
         held = True
-        targets, who, why = parse(by_number[number])
+        targets, why = parse(by_number[number])
         out.append(f"  check, line {number}:")
         if why:
             out.append(f"    refused: {why}")
-        elif who is not None:
-            out.append(f"    no target, read by {who}")
         for target in targets:
             out += [f"    {each}" for each in describe(root, target)]
     if heading is not None and not held:

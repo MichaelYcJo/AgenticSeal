@@ -1140,8 +1140,7 @@ def write_unreadable(home, shape):
 
 
 def git(repo, *args, check=True):
-    """git driven from Python in REPO, so no Bash line carries a commit
-    (contract rule 8); the completed process."""
+    """git driven from Python in REPO; the completed process."""
     return subprocess.run(
         ["git", "-C", str(repo), *args],
         check=check,

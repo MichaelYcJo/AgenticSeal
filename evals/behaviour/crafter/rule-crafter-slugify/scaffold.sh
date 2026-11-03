@@ -66,7 +66,6 @@ cat > 'seal/threads/1790000011-slugify/routing.md' <<'AGENTIC_EOF'
 | Planning | framer |
 | Implementation | crafter |
 | Automation | yes |
-| Answer pressed | automation |
 | Branch | feat/slugify |
 AGENTIC_EOF
 git add -A

@@ -22,7 +22,6 @@ original's coordinates*. The sections that judge and record are its caller's.
 **Preserve the original's behavior.** A migration is not a redesign: a safer
 design or a more consistent API is never grounds to diverge. An original that
 looks wrong is reported, and changing it is the planner's call.
-check: none reader: the parity review
 
 ## The migration config
 
@@ -53,7 +52,6 @@ Where policy, the original and the new code diverge:
 Inherit before raising a product decision: where policy is silent and the
 original already does the thing, follow it and mark it decided, since only a
 rule in neither place needs a planner.
-check: none reader: the parity review
 
 ## What the original sends
 
@@ -62,7 +60,6 @@ original, its behavior is what it sends the client. Trace from the endpoint to
 the finished response; a mid-layer condition that never changes the response
 is reported as such and needs no reproduction. Read the original's history: a
 later fix is its intent, and cloning the version before it preserves nothing.
-check: none reader: the parity review
 
 ## The original's coordinates
 
@@ -70,7 +67,6 @@ A work item's design cites, in its Grounding, the original's coordinates for
 the clauses in scope. Start every comparison there instead of searching the
 original; the caller pins what it settles with a test. A suspect coordinate
 is opened at the baseline: `git show <baseline>:<path>`.
-check: none reader: the parity review
 
 ## Replacement annotation
 
@@ -81,7 +77,6 @@ divergence grounded in policy is listed right below it. A 1:N split names the
 branch each new handler took, an N:1 merge lists every original, a partial
 port states what it left behind, and an addition reads `none (new)` with its
 grounding clause.
-check: none reader: the parity review
 
 ## Parity review
 

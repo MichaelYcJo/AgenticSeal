@@ -271,7 +271,6 @@ check: tests/test_conftest.py
 **A test file that declares no `TARGET` stands by what its cases run.** It
 stands in `tests/behaviour/` where its cases load or run shipped code, and
 in `tests/text/` where they only read text.
-check: none reader: the proofer at review
 
 **A module's old cases get one verdict each when the module is rebuilt.**
 The contributor rebuilding a module reads its functions first and lists the
@@ -282,7 +281,6 @@ document's prose stays where it is, and so does a case whose rows pin how
 another module reads a shape, until the module it pins is rebuilt. A case is
 cut only where the mutation table shows that every mutation it kills is
 killed by another case, or where the behaviour it guarded has left the tree.
-check: none reader: the proofer at review
 
 **A module's tests are written anew from the code when its old files cost
 past the threshold.** The threshold is 60 seconds of the module's old files in
@@ -291,7 +289,6 @@ the module's classes. Every other module's old cases are placed and merged.
 A module written anew takes its accepting and refusing cases from reading
 the code, one class per function, and its old cases are read for their
 inputs.
-check: none reader: the proofer at review
 
 **A rewritten module builds its world once and reads a command without
 git.** Its fixture repositories are built once, in a module-scoped fixture.
@@ -303,7 +300,6 @@ ones showing that the reading and git agree. A case samples one input of
 each kind where the mutation table shows the sample kills what enumerating
 the whole input space killed. These bind the rewrite and nothing in CI: the
 seconds the record states are read by the release table, not by a gate.
-check: none reader: the proofer at review
 
 **A rebuilt module's record carries its move check or its mutation table,
 and one line per removed case.** The contributor writes it into the phase
@@ -344,8 +340,6 @@ record of the work item that rebuilt the module, in four parts:
   case or tree fact that holds it now; and the names of the cases left
   where they stand because they read prose, or because they wait for the
   module they pin, with that module named.
-
-check: none reader: the proofer at review
 
 ## What a change to a gate must carry
 

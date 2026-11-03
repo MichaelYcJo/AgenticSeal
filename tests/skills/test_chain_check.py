@@ -1787,7 +1787,9 @@ CHECK_LINE_SAYS = (
     "`.github/scripts/rules.py`, the reader `seal rules --check` uses, refuses "
     "this check line, which the settle writes into `{file}` as it stands: {why}"
 )
-COMMA = "check: none reader: a, b"
+COMMA = "check: f.txt, f.txt"
+# A line whose one target the branch's tree holds.
+HELD_LINE = "check: f.txt"
 
 
 def change_to(*lines, old="old words."):
@@ -1817,7 +1819,7 @@ class Test_check_lines_in:
     def test_refuses_a_line_the_reader_refuses_at_its_line_in_the_design(
         self, branch, ready, capsys
     ):
-        """S1: a `to` ending with `check: none reader: a, b` is refused at
+        """S1: a `to` ending with `check: f.txt, f.txt` is refused at
         that line of the design, exit 1, with `rules.py`'s reason for the
         comma. Seen red against the base, which passed it at exit 0."""
         root, _code = branch
@@ -1832,16 +1834,11 @@ class Test_check_lines_in:
     def test_accepts_a_line_the_reader_holds_and_prints_nothing(
         self, branch, ready, capsys
     ):
-        """S2: `check: none reader: the proofer at review` holds, and nothing
+        """S2: `check: f.txt`, a target the tree holds, holds, and nothing
         is printed for the design. Seen red under the mutation that refuses
         every check line the `to` holds."""
         root, _code = branch
-        put_spec(
-            root,
-            spec_with(
-                change_to("new words.", "check: none reader: the proofer at review")
-            ),
-        )
+        put_spec(root, spec_with(change_to("new words.", HELD_LINE)))
         code, out = check(root, capsys)
         assert code == 0, out
         assert spec_lines(out) == [], out
@@ -1923,9 +1920,7 @@ class Test_check_lines_in:
             f"  from: old words.\n    {COMMA}\n"
         )
         old = f"old words.\n    {COMMA}"
-        text = spec_with(
-            change_to("new words.", "check: none reader: review", old=old) + removed
-        )
+        text = spec_with(change_to("new words.", HELD_LINE, old=old) + removed)
         put_spec(root, text)
         code, out = check(root, capsys)
         assert code == 0, out
@@ -1938,7 +1933,7 @@ class Test_check_lines_in:
         reason on stderr; so does one that loads and cannot read the tree, a
         test file that does not parse where a `to` names a marker."""
         root, _code = branch
-        put_spec(root, spec_with(change_to("new words.", "check: none reader: review")))
+        put_spec(root, spec_with(change_to("new words.", HELD_LINE)))
         there = chain.CHECK_LINES_READER
         monkeypatch.setattr(chain, "_check_lines", None)
         monkeypatch.setattr(chain, "CHECK_LINES_READER", str(root / "no_rules.py"))

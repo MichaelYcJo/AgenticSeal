@@ -182,7 +182,6 @@ resolving.
 **The `target:` line in every `round-N.md` names a commit.** After a squash it
 resolves for nobody, which is why the check reads it only while the branch
 that holds the commit is open (`docs/forms/the-round-record.md` *The round record*).
-check: tests/text/test_a_rider_reaches_its_file.py
 
 **A third reader of those commits is outside this repository.** A marketplace
 file lists an external plugin by pinning a commit of its source repository,
@@ -197,7 +196,6 @@ reads what is pinned. This paragraph is a record rather than a rule: a
 marketplace file pins a commit of each outside plugin's source repository.
 The rule it supports, that anything reaching `main` is a merge commit, is held
 outside the tree by the `main` ruleset.
-check: none reader: the main ruleset on GitHub
 
 **The plugin's name is fixed, and that is not a style question.** Everybody
 already running it installed it under its slug, so renaming it breaks their

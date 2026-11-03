@@ -52,7 +52,6 @@ def test_settle_owns_the_grammar():
     section = " ".join(section.split())
     for phrase in (
         "starts with `check: `",
-        "`check: none reader: <who reads it>`",
         '`@pytest.mark.rule("<marker>")`',
         "It ships `seal rules --check`",
         "it is review's to find",

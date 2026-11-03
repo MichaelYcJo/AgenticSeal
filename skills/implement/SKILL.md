@@ -167,9 +167,8 @@ says: by the cases it already has, with no case written new. A rule the work
 states or changes ends with a `check:` line naming that case — in its home
 under `docs/`, or in the *Verifiable how* cell of the design's scenario table —
 so the case is the record that the rule holds, and CI running the suite is
-the check. A rule no case can hold says `check: none reader: <who reads it>`,
-and the reader is who holds it instead. The grammar is
-`skills/settle/rule-changes.md` *A rule has one shape*.
+the check. A rule no case can hold carries no check line, and review reads
+it. The grammar is `skills/settle/rule-changes.md` *A rule has one shape*.
 
 This is the input for the reviewer and the next ticket: a case somebody can
 run rather than a reading somebody did. A judgment settled by opening code
@@ -189,6 +188,19 @@ What committing *buys* is a separate matter, and that one holds everywhere. A
 review round records the commit it read, so work still sitting in the working
 tree is not visible to the reviewer at all — there is no spelling for *and
 also the four files that were not committed yet*.
+
+**A commit names its repository in the command that makes it.** Commit with
+the repository's absolute path written out after `git -C`, in a command of
+its own. Where a `cd` comes first, join it to the commit with `&&` and
+nothing else. A file edit is contract rule 9's.
+
+Your shell starts in the session's directory at every call, so a command
+reaches your worktree through a `cd`, and whatever follows a `;` or a new
+line after that `cd` also runs where a failed `cd` leaves the shell: the
+session's own directory. A commit written with its path out lands where it
+says whichever way the `cd` went, and a person reading the transcript can
+see where that is.
+check: tests/behaviour/test_a_commit_names_its_repository.py
 
 **Before each commit, lint, format and typecheck the files it changes**,
 with the tools the repository configures; the repository-wide run of each
@@ -300,11 +312,13 @@ checkbox can be ticked, and a **Status** column that is empty or holds the
 commit that closed the phase. A commit asserts a **past** state that someone
 can open, so a tick and the word `done` are refused where a hash is not. The
 party that builds a phase fills its cell as the phase closes, not at the end.
-Where feature branches squash, those commits stop resolving at the merge, and
-**a rebase during the work does the same earlier and more quietly**, because
-the orphaned object still answers `git cat-file` in the worktree that wrote
-it; **the party that rebases the branch re-reads the column after the
-rebase**. Nothing measures from the column, which is why that is tolerable.
+Where feature branches squash, those commits stop resolving at the merge.
+Nothing measures from the column, which is why that is tolerable. A rebase
+during the work would orphan them earlier and more quietly, because the
+orphaned object still answers `git cat-file` in the worktree that wrote it,
+and it would orphan the commits the round records name as well. So a work
+item's branch is never rebased (`skills/code-review/orchestration.md`
+*Orchestrator: the pull request opens once the sealer seals*).
 
 **`frame/design.md` ends with its frame's mark**, `Framed <date> by <who>, before the
 build.`, where `<who>` is the `Planning` row's answer in `routing.md`,

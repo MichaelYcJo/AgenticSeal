@@ -39,7 +39,6 @@ one definition each*.
 **A suite that is not mentioned reads as a suite that passed.** An agent's
 handover carries the suite labelled `unverified` with the orchestrator named
 as its answerer: labelled, never omitted.
-check: tests/text/test_broad_gate_rule.py tests/text/test_every_agent_reads_the_contract.py
 
 **A suite whose record says a pytest session at `HEAD` stopped
 part-way has not passed, whatever the row's exit.** An exit of 0 does
@@ -186,7 +185,6 @@ check and its own case that each hold their own copy of what the check looks
 for, such as a set of search phrases or a range, drift into checking
 different things. The thing the check is named for becomes a value both the
 check and its case read.
-check: none reader: review of each check
 
 **A document that its own work item's fixes disproved is corrected in the
 same work item.** A docstring naming a class the command does not refuse, and
@@ -195,4 +193,3 @@ acts on, and the run that disproved them is the only run that knows. A
 correction made later is made by somebody who has to rediscover why, and a
 correction never made is a false statement with a checker's authority behind
 it.
-check: none reader: review of the same pull request

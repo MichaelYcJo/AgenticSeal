@@ -66,7 +66,6 @@ cat > 'seal/threads/1790000015-rename/routing.md' <<'AGENTIC_EOF'
 | Planning | framer |
 | Implementation | crafter |
 | Automation | yes |
-| Answer pressed | automation |
 | Branch | refactor/exclaim |
 AGENTIC_EOF
 git add -A

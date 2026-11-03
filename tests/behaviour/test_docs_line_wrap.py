@@ -218,8 +218,8 @@ def prose_lines(text, rule_file=False):
     URL, which cannot be broken, and a check line.
 
     **A check line is not prose either.** Its reader reads one line, so a
-    wrapped one is a broken target or a reader cut short, and two test paths
-    already overflow the limit. The lines skipped are the check lines
+    wrapped one is a broken target, and two test paths already overflow the
+    limit. The lines skipped are the check lines
     `rules.py#check_lines` finds in a RULE_FILE and `rules.py#parse` reads,
     and no others, so a line it refuses, and every line outside a rule file,
     are still held here.
@@ -230,7 +230,7 @@ def prose_lines(text, rule_file=False):
         enforced = {
             number
             for number, _heading, line in rules.check_lines(text)
-            if not rules.parse(line)[2]
+            if not rules.parse(line)[1]
         }
     fenced = fenced_numbers(lines)
     in_frontmatter = lines[:1] == ["---"]
@@ -313,25 +313,23 @@ WIDE_TARGET = (
     "tests/text/test_a_document_has_room_for_the_next_fold.py "
     "tests/behaviour/test_the_rules_command_reads_each_rule_off_its_test.py"
 )
-WIDE_READER = "none reader: " + "the proofer at review " * 4
 
 
 def test_a_check_line_in_a_rule_file_is_skipped_wherever_it_stands():
     """A rule file's check line is not prose, inside a rule paragraph or not
-    (#957), with targets or with a reader.
+    (#957).
 
-    An agent definition closes each rule with one such line, and
+    An agent definition closes each rule a case holds with one such line, and
     `seal rules --check` reads every one in a rule file, so a wrapped line is a
     broken target. The skip is that reader's: `rules.py#check_lines` read by
     `rules.py#parse`, in a file `RULE_FILES` names. Outside a rule file the
     line is still held, which the case below keeps."""
     loose = f"check: {WIDE_TARGET}"
-    reader = f"check: {WIDE_READER}"
-    assert display_width(loose) > LIMIT and display_width(reader) > LIMIT
-    text = f"# D\n\n**Rule.** It holds.\n{loose}\n\n**Other.** It too.\n{reader}\n"
+    assert display_width(loose) > LIMIT
+    text = f"# D\n\n**Rule.** It holds.\n{loose}\n"
     numbers = [n for n, _ in prose_lines(text, rule_file=True)]
-    assert 4 not in numbers and 7 not in numbers, numbers
-    assert 3 in numbers and 6 in numbers, numbers
+    assert 4 not in numbers, numbers
+    assert 3 in numbers, numbers
     assert 4 in [n for n, _ in prose_lines(text)]
     assert is_rule_file("agents/proofer.md")
     assert is_rule_file("skills/code-review/SKILL.md")
@@ -341,6 +339,6 @@ def test_a_check_line_in_a_rule_file_is_skipped_wherever_it_stands():
 def test_a_line_the_reader_refuses_is_still_prose():
     """S8. The skip is no wider than the reader: a spelling `seal rules --check`
     refuses stays under the limit in a rule file."""
-    for label in ("Enforced by:", "Check:", "check: none"):
+    for label in ("Enforced by:", "Check:", "check: one.py,"):
         text = f"# D\n\n{label} {WIDE_TARGET}\n"
         assert 3 in [n for n, _ in prose_lines(text, rule_file=True)], text

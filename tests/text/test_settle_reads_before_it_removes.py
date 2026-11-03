@@ -5,7 +5,8 @@ documents, the READMEs, the checklist and the cheat sheets, which wait for
 #942's phase 6 placed the cases that run the command or call
 `skills/settle/scripts/settle.py`'s functions in `tests/skills/test_settle.py`, and
 the `tree` fixture in `tests/conftest.py`. `docs/checks/the-fold.md` names
-this file on the `check:` lines whose rules the skill cases here hold. Since
+this file on the `check:` line of *A settle is not a work item*, whose rule
+`test_the_skill_names_how_a_settle_edits_and_commits` holds. Since
 #1033 the skill states the settling session's procedure, and the cases that
 read it are its S11.
 """
@@ -42,25 +43,6 @@ LOCAL_MODE = os.path.join(ROOT, "skills", "settle", "local-mode.md")
 def skill(path=SKILL):
     with open(path, encoding="utf-8") as f:
         return f.read()
-
-
-def test_the_skill_names_the_floors_a_fold_has_to_answer():
-    """A11. `docs/layout/one-root-by-lifetime.md` *The dependency rule* names two
-    readers and the real list is longer — fourteen test modules read this
-    repository's own corpus and at least six carry a population floor. A
-    session that folds without answering them removes the population its own
-    suite was asserting over, and the commit under review is what broke it.
-
-    The three answers are named because the fourth — lowering the floor until
-    the run passes — is the one that turns a check into a comment."""
-    text = flat(skill())
-    # A phrase of the rule, not a fact: the last assert of this module that
-    # reads the rule `docs/checks/the-fold.md:84` closes, whose section
-    # *Answer every check that reads the corpus* gives these three answers.
-    # Kept unchanged until that line's change lands (#1233,
-    # `frame/design.md` Scope item 9).
-    for answer in ("retire the case", "re-point it at a fixture corpus", "decline"):
-        assert answer in text, f"the skill does not offer `{answer}`"
 
 
 def test_the_skill_states_the_settling_sessions_procedure():

@@ -66,7 +66,6 @@ cat > 'seal/threads/1790000022-keep-trailing-space/routing.md' <<'AGENTIC_EOF'
 | Planning | framer |
 | Implementation | crafter |
 | Automation | yes |
-| Answer pressed | automation |
 | Branch | feat/keep-trailing-space |
 AGENTIC_EOF
 git add -A

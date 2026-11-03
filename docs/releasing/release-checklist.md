@@ -17,9 +17,9 @@ running.
 - [ ] Merge the release branch into a work item's branch only when the
       branch needs something the release branch holds; the squash discards
       the merge commit either way.
-      **Never rebase a work item's branch, for any reason.** Every round
-      record names its branch's commits on its `target:` line, and a rebase
-      orphans them.
+      **Never rebase a work item's branch, for any reason.**
+      `skills/code-review/orchestration.md` *Orchestrator: the pull request
+      opens once the sealer seals* states the rule and its reason.
 - [ ] **The milestone `release: X.Y.Z` holds what this release is actually
       carrying, and nothing else.** Every open issue in it that is not
       shipping moves to another milestone now, a planning act that needs no
@@ -30,9 +30,8 @@ running.
 
 ## 2b. Settle what earlier releases left behind
 
-**`settle` runs when the owner calls it, not at every release.** A release
-whose owner has not called it skips this step, and the work items wait on
-disk for the settle the owner calls.
+`skills/settle/SKILL.md` *When it runs* says when the settle runs. A release
+whose owner has not called the settle skips this step.
 
 ```bash
 seal settle
@@ -111,7 +110,6 @@ deleted file that differs between the two branches, saying nothing about it. In 
 settle a switch to `main` and back restored 28 `gaps.md` files, the removal commit left
 them tracked, and the broad gate refused the tree. A comparison with another ref runs in
 a `git worktree` of that ref.
-check: none reader: the owner's settling session at this step
 
 **Before `seal settle --apply`, the settling session reads the dry
 run's *The judgments* and *The judgments earlier settles removed*, and
@@ -127,7 +125,6 @@ directories at `--apply`, and the history keeps them for the next settle,
 so nothing is kept beside the tree to carry them; `skills/core/SKILL.md` *A judgment
 stands on a source document, and is written down with both* says the
 guidance improves from that record and not from memory.
-check: none reader: the owner's settling session at this step
 
 ## 5. The release pull request
 
@@ -195,7 +192,6 @@ such module with one `bin/seal mutate` call carrying a mutant per class,
 for cases that kill nothing another case does not. The sweep's cuts land in
 a work item of the next release with one line per cut case, the shape
 `CONTRIBUTING.md` *The test layout* gives.
-check: none reader: the owner before the release pull request's merge
 
 ### What a release pull request is held to
 
@@ -363,4 +359,3 @@ Nothing else closes it: `.github/scripts/close_issues_on_release.py` closes each
 and leaves the milestone open with none in it, which reads as a release still in flight.
 `release: 0.20.0` stood open eleven days after its tag and `release: 0.21.0` five, each
 closed by hand.
-check: none reader: the orchestrator after the tag

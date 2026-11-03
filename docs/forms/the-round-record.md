@@ -46,7 +46,6 @@ missing, that nothing catches, calls or states it, names the search that
 found nothing, because no coordinate opened can show an absence. The check
 reads the line's shape and never whether a claim is one of absence; the
 proofer who writes the line and the round that reads it judge that.
-check: none reader: the proofer and the next round
 
 **A later round re-runs an `executed` line rather than re-deriving the
 claim.** Where it weighs an earlier finding, it runs the commands the line

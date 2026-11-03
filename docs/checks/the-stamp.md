@@ -86,7 +86,7 @@ only one drawn as the text block with no disc. A stamp can
 come out without its disc or a turn later, and a session that ends first
 leaves it for `seal stamp --from`. `seal stamp` is not budgeted, because it
 is no hook's message.
-check: tests/behaviour/test_the_stamp_reaches_the_person_it_is_drawn_for.py tests/hooks/test_sealer_stamp.py
+check: tests/hooks/test_sealer_stamp.py
 
 **What the person's screen shows is not checked, and neither is the order of
 the text above it.** The cases prove that the hook emits the right bytes for
@@ -129,4 +129,3 @@ the edit hook's message names `seal stamp --from <path>`, and a stamp that did n
 hand from it, once. Where none was, the pull request's check is what says the
 work item was sealed.
 No case, hook or workflow can observe a screen.
-check: none reader: the owner on the first real run after a change here

@@ -59,9 +59,11 @@ settle reads the row. Until the decision is folded, the orchestrator keeps
 one line of its own in `plan.md` naming the comments to fold, below the
 title, and deletes that line in the commit that folds them. Before the
 frame is committed, the orchestrator folds the decision into the issue body
-instead
-(`docs/releasing/issues-and-milestones.md` *An issue is its body and its comments
-together*). The orchestrator's prompt that spawns the framer hands it the
+instead, in place, and the comment that carried it records why. A body that
+contradicts a comment leaves the reader to work out which is current, and a
+block of updates written above the old text leaves two versions to choose
+between. GitHub keeps the body's edit history, so rewriting it loses
+nothing. The orchestrator's prompt that spawns the framer hands it the
 issue whole: the body as folded, and one line naming the comments the issue
 has, none or each comment's link, with the command that read them,
 `gh issue view <N> --json body,comments`, and the date it ran.
@@ -265,7 +267,7 @@ that hides the axes.
 ### What the answer writes
 
 Question 1's first two options and question 2's four boxes write the same
-rows; what differs is how many clicks it took and which row says so.
+rows; what differs is how many clicks it took.
 
 | Row | Answers |
 |---|---|
@@ -273,7 +275,6 @@ rows; what differs is how many clicks it took and which row says so.
 | Implementation | `crafter` or `the session`, OPTIONAL; absent reads as unanswered |
 | Review | `through the review chain` or `straight to the PR` |
 | Destination | `open the pull request` or `stop before the pull request` |
-| Answer pressed | `automation` or `per axis`, OPTIONAL; absent reads as unanswered |
 | Branch | the branch the work item is built on; two declarations naming one branch read as none |
 
 **Each answer is written without backticks**, and the file starts from
@@ -292,14 +293,8 @@ costs*). The file ends with `## Why this way`, one or two sentences nothing
 reads.
 
 **`automation` writes all four party rows at their checked values**, plus
-`Automation` = `yes`, plus `Answer pressed` = `automation`. Ticking all four
-boxes under `per axis` writes the same four rows and `Answer pressed` =
-`per axis`.
-
-**The `Answer pressed` row tells a pressed preset from four boxes ticked by
-hand**, and question 1's third option never reaches it
-(`docs/running/the-review-and-parity-arms.md` *The declaration, and where the check
-went*).
+`Automation` = `yes`. Ticking all four boxes under `per axis` writes the same
+rows.
 
 **`Automation` is held by a gate.** While the row reads `yes`,
 `hooks/question-gate.py` refuses every question on the declared branch but
@@ -361,7 +356,8 @@ The declaration is read from the working tree (`hooks/lib/routing.py`'s
 the write go through before the commit lands. The commit goes as every
 commit does: each work item's `routing.md` in a command of its own, the
 worktree's path written out after `git -C`, never a loop over a variable
-naming it (contract rule 16).
+naming it (`skills/implement/SKILL.md` *A commit names its repository in the
+command that makes it*).
 
 **What each combination of `Review` and `Destination` checks, and where**,
 is `docs/running/the-review-and-parity-arms.md` *The declaration, and where the

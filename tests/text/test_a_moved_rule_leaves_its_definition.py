@@ -43,15 +43,15 @@ counterfeit `CONTRIBUTING.md` refuses.
 `WINDOW` comes from the tree rather than from taste. Measured across all
 three definitions after phase 4, the longest run any KEPT application shares
 with any section is 10 words (`agents/crafter.md`'s `a bare word is a pathspec
-and git rejects it`, which contract rule 8 and the design gate's waiver
+and git rejects it`, which the retired probe rule and the design gate's waiver
 paragraph both spelled because both were about the same git fact; the
 proofer's 9-word echo of contract rule 6 was the next). Both left with their
 rewrites (#957, #967), and the widest kept run since is 8 words,
 `agents/sealer.md` with contract rule 2 (the framer's 8 with contract rule 5
 left with its rewrite, #968). The smallest run a REAL duplication produced,
 measured on the same files before phase 4 removed them, is 25 words
-(contract rule 10), then 31 (contract rule 9), 37 (the old rule 16, now part
-of contract rule 11), 59 (contract rule 11) and 66 (contract rule 3).
+(contract rule 10), then 31 (contract rule 9), 37 (a rule #957 folded into
+contract rule 11), 59 (contract rule 11) and 66 (contract rule 3).
 Fifteen sits between 10 and 25 with margin
 on both sides, and both ends of that margin are printed by
 `test_the_window_sits_between_what_was_measured`, so a later edit that
@@ -322,9 +322,9 @@ def test_a_citation_is_not_a_copy():
             "whether that label is honest",
             "a row of `## Not judged`",
         ),
-        # The crafter's waiver example, its RIDER and its pointer at rule 8 left
-        # with its rewrite (#967), and the one waiver sentence left with
-        # #1027, which removed what it waived.
+        # The crafter's waiver example, its RIDER and its pointer at the
+        # retired probe rule left with its rewrite (#967), and the one waiver
+        # sentence left with #1027, which removed what it waived.
         ("agents", "crafter.md"): ("hand-back",),
     }
     for parts, phrases in kept.items():

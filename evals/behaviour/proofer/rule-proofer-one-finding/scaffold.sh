@@ -66,7 +66,6 @@ cat > 'seal/threads/1790000001-shout-ends-with-one-exclamation-mark/routing.md' 
 | Planning | framer |
 | Implementation | crafter |
 | Automation | yes |
-| Answer pressed | automation |
 | Branch | feat/shout-exclaims |
 AGENTIC_EOF
 git add -A

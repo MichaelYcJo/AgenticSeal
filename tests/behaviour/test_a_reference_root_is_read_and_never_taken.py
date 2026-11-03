@@ -95,16 +95,18 @@ def test_every_shipped_command_is_classified():
 
 # --- C2: the readers read a reference root when relevant, and cite it --------
 #
-# Each party that reads the tree for a decision is told, in its own file, that
-# a reference root is history: read where the work touches what it describes,
-# cited where it was read, and never written. Each names the row by pointing
-# at `templates/setup/config.md` *Reference specs* rather than restating its
-# grammar, so the grammar has one home.
+# Each party that reads the tree for a decision is told, in a file it opens at
+# that step, that a reference root is history: read where the work touches
+# what it describes, cited where it was read, and never written. Each names
+# the row by pointing at `templates/setup/config.md` *Reference specs* rather
+# than restating its grammar, so the grammar has one home. The framer and the
+# crafter are told by `skills/implement/SKILL.md` *Document layout — two
+# roots, three lifetimes*, which the crafter's step 1 and the framer's *A
+# design states its rule changes* open, so their definitions keep only the
+# never-write line of `## Never` (#1313).
 
 POINTER = "`templates/setup/config.md` *Reference specs*"
 READERS = {
-    "agents/framer.md": ("cite", "frame/design.md"),
-    "agents/crafter.md": ("cite", "frame/design.md"),
     "agents/proofer.md": ("stage 1", "frame/design.md"),
     "skills/settle/SKILL.md": ("cite", "frame/design.md"),
     "skills/implement/SKILL.md": ("cite", "frame/design.md"),
@@ -135,8 +137,8 @@ def test_each_reader_says_when_it_reads_a_reference_root_and_where_it_cites_it()
         said = paragraph_naming(text, POINTER)
         assert "touches what" in said and "describes" in said, (rel, said)
         assert act in said and where in said, (rel, said)
-        if rel in NEVER_LINE:
-            never = text[text.index("\n## Never\n") :].split("\n## ", 2)[1]
-            assert NEVER_LINE[rel] in never, (rel, never)
-        else:
-            assert re.search(r"\bnever writ", said), (rel, said)
+        assert re.search(r"\bnever writ", said), (rel, said)
+    for rel, line in NEVER_LINE.items():
+        text = open(os.path.join(ROOT, rel), encoding="utf-8").read()
+        never = text[text.index("\n## Never\n") :].split("\n## ", 2)[1]
+        assert line in never, (rel, never)

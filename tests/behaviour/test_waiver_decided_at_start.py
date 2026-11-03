@@ -297,16 +297,15 @@ def offered(template, label):
     return m.groups() if m else None
 
 
-def test_the_template_PARSES_into_the_TWO_NEWEST_rows_it_ships():
-    """The fifth and sixth rows, on the terms the third and fourth have.
+def test_the_template_PARSES_into_the_NEWEST_row_it_ships():
+    """The fifth row, on the terms the third and fourth have.
 
-    `Automation` is a property of the run and `Answer pressed` is which of
-    question 1's options was pressed. Both are read out of the template and
+    `Automation` is a property of the run. It is read out of the template and
     parsed back, so a row labelled `Automated` or a vocabulary that moved in
     one file only is red here rather than silent in every work item that
     copies the file.
 
-    Shipped as placeholders, and for this pair the reason is sharper than for
+    Shipped as a placeholder, and for this row the reason is sharper than for
     the two above. An absent `Automation` row means nobody was ever asked; a
     pre-answered one means a question nobody put reads as a promise somebody
     made. That is #151's shape, which is the thing the row exists to end.
@@ -319,37 +318,30 @@ def test_the_template_PARSES_into_the_TWO_NEWEST_rows_it_ships():
     template = read("templates", "records", "sdd-routing.md")
     parsed = routing.parse(template)
     assert parsed is not None, "the template no longer parses as a declaration"
-    for key in ("automation", "pressed"):
-        assert parsed[key] is None, (
-            f"the template pre-answers `{key}`, which makes the commonest "
-            "mistake produce a WRONG record instead of no record"
+    assert parsed["automation"] is None, (
+        "the template pre-answers `automation`, which makes the commonest "
+        "mistake produce a WRONG record instead of no record"
+    )
+    label, answers = routing.AUTOMATION, routing.AUTOMATION_ANSWERS
+    rows = [ln for ln in template.splitlines() if ln.startswith(f"| {label} |")]
+    assert len(rows) == 1, f"the template has no single `{label}` row"
+    assert rows[0].split("|")[2].strip().startswith("<"), (
+        f"the `{label}` row stopped shipping a placeholder a person reads"
+    )
+    for answer in answers:
+        filled = template.replace(rows[0], f"| {label} | {answer} |")
+        assert routing.parse(filled)["automation"] == answer, (
+            f"the template's `{label}` row does not accept `{answer}`, so "
+            "a session filling it in as instructed still records nothing"
         )
-    for label, answers in (
-        (routing.AUTOMATION, routing.AUTOMATION_ANSWERS),
-        (routing.ANSWER_PRESSED, routing.ANSWER_PRESSED_ANSWERS),
-    ):
-        rows = [ln for ln in template.splitlines() if ln.startswith(f"| {label} |")]
-        assert len(rows) == 1, f"the template has no single `{label}` row"
-        assert rows[0].split("|")[2].strip().startswith("<"), (
-            f"the `{label}` row stopped shipping a placeholder a person reads"
-        )
-        key = "automation" if label == routing.AUTOMATION else "pressed"
-        for answer in answers:
-            filled = template.replace(rows[0], f"| {label} | {answer} |")
-            assert routing.parse(filled)[key] == answer, (
-                f"the template's `{label}` row does not accept `{answer}`, so "
-                "a session filling it in as instructed still records nothing"
-            )
-        # The vocabulary READ OUT of the placeholder, the direction that can
-        # see the two files drift. Substituting the constants is
-        # self-consistent by construction; what the person reads has to BE
-        # what the parser takes.
-        stated = offered(template, label)
-        assert stated, f"the placeholder no longer states `{label}`'s two answers"
-        assert stated == answers, (
-            f"the template offers {stated} for `{label}` and the "
-            f"parser accepts {answers}"
-        )
+    # The vocabulary READ OUT of the placeholder, the direction that can see
+    # the two files drift. Substituting the constants is self-consistent by
+    # construction; what the person reads has to BE what the parser takes.
+    stated = offered(template, label)
+    assert stated, f"the placeholder no longer states `{label}`'s two answers"
+    assert stated == answers, (
+        f"the template offers {stated} for `{label}` and the parser accepts {answers}"
+    )
 
 
 def cells(row):
@@ -502,25 +494,12 @@ def test_the_ceiling_is_stated_beside_the_shape():
     assert "at most four options per question" in skill, "the cap is unstated"
 
 
-def test_the_preset_and_the_boxes_write_the_answer_pressed_values():
-    """S2 and S3 at the document. Both write the same party rows; the row
-    that says which answer was pressed is the only difference, and the
-    section gives the value each writes into it and the `Automation` row's
-    two answers. Why the row exists is the policy's, which
+def test_the_section_gives_the_automation_row_its_two_answers():
+    """S2 at the document: the table of what the answer writes gives the
+    `Automation` row's two answers. Why the row exists is the policy's, which
     `test_the_policy_tables_the_review_answers_and_the_skill_cites_it` reads
     the skill citing, and the proofer's to read.
     """
-    skill = flat(read(*ORCH))
-    # The `Answer pressed` row and the two values the orchestrator writes in
-    # it, which `hooks/lib/routing.py#ANSWER_PRESSED_ANSWERS` accepts.
-    for derivation in (
-        "`Answer pressed` = `automation`",
-        "`Answer pressed` =\n`per axis`",
-    ):
-        assert flat(derivation) in skill, (
-            f"the section does not say the preset writes {flat(derivation)}, "
-            "so a session has the row and no rule for filling it"
-        )
     rows = [ln for ln in read(*ORCH).splitlines() if ln.startswith("| Automation |")]
     assert len(rows) == 1, (
         f"the section has {len(rows)} `Automation` rows; the declaration has one"

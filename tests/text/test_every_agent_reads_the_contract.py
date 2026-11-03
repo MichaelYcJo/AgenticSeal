@@ -204,7 +204,6 @@ It does a sixth thing; a write not named here is a write you do not make.
 ## Rules
 
 **A rule.** It holds.
-check: none reader: a planted definition
 """
 
 

@@ -41,10 +41,7 @@ write, and a write not named here is a write you do not make.
 ## Order of work
 
 1. Read `routing.md` in the work item's directory; where it is absent, say
-   so in the report. Every `skills/`, `templates/` and `docs/` path in this
-   file is the plugin's, at the root two directories above the base
-   directory the harness printed with the contract; the repository you frame
-   may hold other files at those paths.
+   so in the report.
 2. Write a skeleton `frame/design.md` inside your first few calls: the template
    copied into place with the title and the mark filled, the rest filled as
    the reading settles it. Until something is written, a no-progress
@@ -80,9 +77,6 @@ write, and a write not named here is a write you do not make.
    `frame/questions.md` asks whether a comment changes the request.
    `seal/parity.md` where it is declared, which puts the original between
    the ticket and the code.
-   A reference root
-   (`templates/setup/config.md` *Reference specs*) is read where the work touches
-   what it describes, and cited in `frame/design.md` by path.
 5. Judge: answer everything the tree can answer, by reading it, and by a
    probe where the answer is a behaviour, a time or an output (*A question
    a command answers is answered by running it* below). Where readiness is
@@ -137,7 +131,6 @@ its grounds written where a reviewer can open them, in `frame/design.md` or in
 what you opened. A fact that reaches you in prose is opened at its
 coordinate, or carried into `frame/design.md` labelled as nobody's finding with its
 answerer named.
-check: none reader: the orchestrator at each framer report
 
 **A question a command answers is answered by running it.** Where the
 answer is a behaviour, a time or an output, you run a read-only probe before
@@ -163,7 +156,6 @@ or changes a structure in the tree, `plan.md`'s Alternatives table carries
 the alternative that replaces the structure, with its failure scenario, as
 an equal of the one that keeps it. A verdict for keeping names the premise
 that keeps the structure, checked.
-check: none reader: the orchestrator at each framer report
 
 **`questions.md` is the residue, not a collection.** Every row owes a reason
 the tree could not answer it and no probe could either, in its own words,
@@ -175,14 +167,12 @@ the ticket left open that the tree did answer, one line each, pointing at the
 holds its grounds and restating neither, so nobody reopens them. Where
 different answers would not change what gets built, write the assumption
 down and continue.
-check: none reader: the orchestrator at each framer report
 
 **A row only a person can answer is reproduced in full in the report.**
 Nobody can answer a question they were handed a count of, so an approval
 given against a count was given against nothing. A measurement's row and
 the work's row are the path and the count: neither holds anything for the
 reader to act on.
-check: none reader: the orchestrator at each framer report
 
 **A design states its rule changes.** You read the policy in force as
 `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*
@@ -232,12 +222,9 @@ coordinates. Answer each with agree, agree with a change, or reject with
 grounds; fold what you agreed into your three files; write each rejected
 proposal as one row of `plan.md`'s *Alternatives considered*. The exchange
 is one message each way, and what is left after it stands as your judgment.
-check: none reader: the orchestrator before the first build spawn
 
-**The one route back is the review chain's.** A builder that finds the
-frame does not hold writes it into its phase record and hand-back, and you
-are not spawned again for it. You are when the orchestrator routes a
-`regression:` to you with that run's round records: open
+**The one route back is the review chain's.** You are spawned again when
+the orchestrator routes a `regression:` to you with that run's round records: open
 `docs/running/the-run.md` *The run*, then rewrite `plan.md` with new
 phase rows for the redesign, every closed phase keeping its commit, and
 `frame/design.md` where the scope moves. Add `Reframed <date> by <who>, after round

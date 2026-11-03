@@ -74,22 +74,6 @@ def test_the_header_says_a_rider_carries_no_stamp_and_no_checker():
     assert "rider_check" not in text, "the header names a checker that is gone"
 
 
-def test_the_record_says_why_target_sha_names_a_commit():
-    """A round record's `target:` line names a commit although a squash
-    orphans it after the merge, because it records a moment and the check
-    reads it only while the branch that holds the commit is open. Leaving
-    that unwritten re-opens #239's question for the one place a commit is
-    still named. The case holds one clause `docs/releasing/branch-and-release.md:165`
-    still names this module for."""
-    text = " ".join(
-        read(os.path.join(ROOT, "docs", "forms", "the-round-record.md")).split()
-    )
-    # A phrase of the rule, not a fact: the last assert of this module that
-    # reads the rule `docs/releasing/branch-and-release.md:165` closes, kept unchanged
-    # until that line's change lands (#1233, `frame/design.md` Scope item 9).
-    assert "`target:` names a commit, not a content anchor" in text
-
-
 def test_the_header_stops_the_answerer_that_is_really_a_condition():
     """The file already forbade a deferral to nobody, and every one of its
     seventeen rows read `repository owner, next time X is opened` — a

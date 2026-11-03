@@ -17,7 +17,8 @@ with a `seal/` root at either place (contract rule 11). Write
 `seal/threads/<work-item-id>/routing.md` into each one before that
 repository's first edit, each naming that repository's own branch, each in a
 command of its own, and commit each with that repository's absolute path
-written out after `git -C` (contract rule 16). A repository with no root is not
+written out after `git -C` (`skills/implement/SKILL.md` *A commit names its
+repository in the command that makes it*). A repository with no root is not
 opted in by this step: writing the file would create its root, and creating
 a root is the bootstrap's decision and the person's. Name such a repository
 in the handback and write nothing into it.

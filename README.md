@@ -12,7 +12,7 @@ open: a **hand-back** in which each agent labels every claim `executed`,
 `read` or `unverified` and names who answers what it did not run, a
 **routing declaration** (`seal/threads/<work-item-id>/routing.md`) that an edit
 hook looks for before the first edit, and a **`check:` line** under each rule
-a policy document states, naming the test that holds it.
+a policy document states that a test holds, naming that test.
 
 Edit a file on a branch no declaration names and the hook refuses the edit
 and names the ways on. Point a rule's `check:` line at a test that does not
@@ -148,15 +148,14 @@ pull request and the handoff to an agent are specified in
 [docs/checks/the-pull-request-check.md](./docs/checks/the-pull-request-check.md)
 and [docs/running/the-run.md](./docs/running/the-run.md).
 
-**A rule names the test that holds it.** A rule a policy document states ends
-with a `check:` line naming the test files that hold it, or a marker its
-tests carry, and CI running the suite is the check that the rule still
-holds. `seal rules --check` reads every such line and exits non-zero on a target
-that does not exist. A rule no test can hold says
-`check: none reader: <who reads it>`, which leaves the gap where a reviewer
-reads it. What this proves is narrow and worth
-stating: that a named test exists and passes, not that it asserts the whole
-rule. That half is the review's.
+**A rule names the test that holds it.** A rule a policy document states,
+where a test holds it, ends with a `check:` line naming the test files that
+hold it, or a marker its tests carry, and CI running the suite is the check
+that the rule still holds. `seal rules --check` reads every such line and
+exits non-zero on a target that does not exist. A rule no test can hold
+carries no `check:` line, and review reads it. What this proves is narrow and
+worth stating: that a named test exists and passes, not that it asserts the
+whole rule. That half is the review's.
 
 ## The gates
 
@@ -567,8 +566,7 @@ What this does not do is as load-bearing as what it does.
   never judged.
 - **`seal rules --check` proves a named test exists, not that it asserts the rule.**
   A target that resolves while the test checks something else reads clean,
-  and a rule written as `check: none reader: <who>` is held by its reader
-  alone.
+  and a rule with no `check:` line is held by review alone.
 - **"Broad and once" is a rule the agents follow, not a gate.** Nothing stops
   a session from running the full suite mid-round; what exists is the
   instruction, the proofer's audit of the crafter's labels, and `trail/gate.md`, which
