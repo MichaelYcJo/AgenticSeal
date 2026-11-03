@@ -45,4 +45,4 @@ The orchestrator owns these acts, after the seal:
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-04 | `frame/design.md` S5, S6 and S7 take the commands and the count the build bears out: S5 reads `agents/sealer.md` for `(rule 15)`, S6 runs outside `seal/`, and S7 counts seven files; the orchestrator folds them before round 1, with no framer spawn | `trail/phases/phase-1.md` names all three as departures with their grounds: a definition cites a contract rule as `rule <N>`, the frame's own quotations of the old sentence match the S6 search, and *Scope* items 1 to 6 are six files and item 7 is a test module | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |
