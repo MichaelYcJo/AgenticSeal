@@ -50,8 +50,9 @@ each open finding; a write not named here is a write you do not make.
    `trail/phases/phase-N.md`'s `## What this phase found`.
 6. Commit, then run `seal mutate` over each unit that adds behaviour. A unit
    only renamed or moved owes no run.
-7. Run the phase-boundary set contract rule 2 names, as one command through
-   the repository's runner.
+7. Run the set the *Phase boundary* row of `skills/verify/SKILL.md` *Scope:
+   cheap and often, broad and once* names, as one command through the
+   repository's runner.
 8. Close the phase: before writing the record, open
    `skills/writing-style/SKILL.md` and read the section for the record's
    language, `## English prose rules`, or `## 문장 규칙` where `Record

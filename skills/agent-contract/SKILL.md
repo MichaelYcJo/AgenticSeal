@@ -23,7 +23,7 @@ prompt carries what is specific to the round and never has to carry these;
 it cites one as `contract rule <N>`, and this file and the agent definitions
 cite it as `rule <N>`. A rule number is never reused and never re-ordered. A
 rule that retires leaves this file, and its number is listed here: the
-retired numbers are 8 and 20. A new rule takes the number after the highest
+retired numbers are 8, 16 and 20. A new rule takes the number after the highest
 one used, retired or not.
 
 ## 1 Read exit codes directly, never through a pipe
@@ -36,13 +36,10 @@ check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
 
 ## 2 Narrow and often; the broad gate is the orchestrator's
 
-Run the tests for the slice you touched while you work, and at a phase
-boundary, in one command, the cases the phase's plan row names and the test
-modules that read a path the phase changed, whether they name it, import it
-or glob the directory that holds it. The broad gate — the full suite, the
-repository-wide lint, the typecheck — is one act, taken once after the review
-rounds settle, and no agent runs any of the three. Hand over with the
-suite labelled `unverified` and the orchestrator named as its answerer: a
+Run the tests for the slice you touched while you work. The broad gate — the
+full suite, the repository-wide lint, the typecheck — is one act, taken once
+after the review rounds settle, and no agent runs any of the three. Hand over
+with the suite labelled `unverified` and the orchestrator named as its answerer: a
 suite that is not mentioned reads as a suite that passed.
 check: tests/text/test_broad_gate_rule.py evals/behaviour/sealer/rule-sealer-no-gate/
 
@@ -186,20 +183,6 @@ was shown. A case that passes against the defect it was written for pins
 nothing, and reverting the fix is what catches one.
 check: none reader: the sealer at each guarantee
 
-## 16 A commit names its repository in the command that makes it
-
-Commit with the repository's absolute path written out after `git -C`, in a
-command of its own. Where a `cd` comes first, join it to the commit with `&&`
-and nothing else. A file edit is rule 9's.
-
-Your shell starts in the session's directory at every call, so a command
-reaches your worktree through a `cd`, and whatever follows a `;` or a new
-line after that `cd` also runs where a failed `cd` leaves the shell: the
-session's own directory. A commit written with its path out lands where it
-says whichever way the `cd` went, and a person reading the transcript can
-see where that is.
-check: tests/behaviour/test_a_commit_names_its_repository.py
-
 ## 17 Clean up only what you started
 
 An agent cleans up only the processes and files it started. Record the PID
@@ -220,10 +203,11 @@ check: none reader: the proofer at review
 
 ## 19 A change rewrites the text it amends in place
 
-A change rewrites the text it amends where that text stands, and in the
-same commit removes or corrects what stood on the old fact — every other
-sentence, case and citation stating it, found at least with `git grep` on
-its words. Where none of rule 12's three methods listed them, the list is a
-sample, and the hand-back says so as rule 12 asks. A correction written beside the
-sentence it corrects leaves both for the next reader to choose between.
+`skills/core/SKILL.md` *The rule a mechanism is kept against* states the
+rule. What stood on the old fact, which the same commit removes or
+corrects, is every other sentence, case and citation stating it, found at
+least with `git grep` on its words. Where none of rule 12's three methods
+listed them, the list is a sample, and the hand-back says so as rule 12
+asks. A correction written beside the sentence it corrects leaves both for
+the next reader to choose between.
 check: none reader: the proofer at review

@@ -46,8 +46,8 @@ CONTRACT = os.path.join("skills", "agent-contract", "SKILL.md")
 # that walks the contract's rules imports it from here.
 HEADING = re.compile(r"^## (\d+) (.+)$", re.M)
 
-# The preamble's list of retired numbers, `the retired numbers are 8 and 20`,
-# read across a line break.
+# The preamble's list of retired numbers, `the retired numbers are 8, 16 and
+# 20`, read across a line break.
 RETIRED = re.compile(r"retired\s+numbers\s+are\s+((?:\d+,\s+)*\d+(?:\s+and\s+\d+)?)")
 
 # A fact a reader needs fixed character for character, by the rule whose

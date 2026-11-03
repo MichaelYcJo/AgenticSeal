@@ -644,9 +644,9 @@ def contract_dangling(files, numbers):
 
 def test_every_cited_section_exists():
     """T3: every contract section the tree cites is a section the contract
-    has. #957 moved two numbers (the old rule 16 into rule 11, the old rule 17 to rule 16),
-    and a citation left at an old number points a reader at a different rule
-    or at none."""
+    has. A rule that moves or retires leaves its number behind, and a
+    citation left at an old number points a reader at a different rule or at
+    none."""
     numbers = set(spans(read_at_root()))
     _, files = corpus(ROOT)
     assert len(files) > 100, "the corpus held almost nothing to read"

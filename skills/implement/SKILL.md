@@ -190,6 +190,19 @@ review round records the commit it read, so work still sitting in the working
 tree is not visible to the reviewer at all — there is no spelling for *and
 also the four files that were not committed yet*.
 
+**A commit names its repository in the command that makes it.** Commit with
+the repository's absolute path written out after `git -C`, in a command of
+its own. Where a `cd` comes first, join it to the commit with `&&` and
+nothing else. A file edit is contract rule 9's.
+
+Your shell starts in the session's directory at every call, so a command
+reaches your worktree through a `cd`, and whatever follows a `;` or a new
+line after that `cd` also runs where a failed `cd` leaves the shell: the
+session's own directory. A commit written with its path out lands where it
+says whichever way the `cd` went, and a person reading the transcript can
+see where that is.
+check: tests/behaviour/test_a_commit_names_its_repository.py
+
 **Before each commit, lint, format and typecheck the files it changes**,
 with the tools the repository configures; the repository-wide run of each
 is the broad gate's (contract rule 2). `hooks/lint-python.py` already runs
