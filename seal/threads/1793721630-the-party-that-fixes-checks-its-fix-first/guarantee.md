@@ -38,3 +38,36 @@ The audit is of `77878f68c`, HEAD of `fix/1318-the-party-that-fixes-checks-its-f
 target: 77878f68c against 6ca420572
 Verdict: withheld reason: the orchestrator's part of the pull request body, its "For the reviewer" paragraph, cites `frame/plan.md` "Judgments of the run" row 4 for round 2's routing and rows 1, 2 and 5 for the folds, where the table at `frame/plan.md:50-55` holds four rows, the routing at row 3 and the folds at rows 1, 2 and 4; and `frame/plan.md:10`, rewritten at 12e288e3d and read by no round, says no case pinned a sentence this work rewrites, where `6ca420572:tests/text/test_the_rules_have_one_owner.py:210` pinned "after its fix commits and those corrections", the clause `frame/design.md:47` (Scope item 6) rewrites
 ```
+
+## Re-audit at 1fcd7ba4e
+
+| Field | Value |
+|---|---|
+| Broad gate | `12e288e3d against 6ca420572` (read: `trail/gate.md`, unchanged). `git log --no-merges --name-only 12e288e3d..HEAD ^6ca420572` lists `77878f68c` (`trail/gate.md`), `6739ec9c0` (`guarantee.md`) and `1fcd7ba4e` (`frame/plan.md`), each touching only the work item's directory (executed) |
+
+Since the first block's `target:` `77878f68c`, the commits touch `guarantee.md` and `frame/plan.md` alone, so this run re-ran only the claims at those coordinates and read the parties again. Nothing outside `seal/` changed: `git diff --stat 6ca420572...HEAD -- ':!seal/'` still lists the six paths, 163 insertions and 46 deletions (executed). The claims of the first run above stand on a tree no commit since has touched. `seal pr-body seal/threads/1793721630-the-party-that-fixes-checks-its-fix-first --body <the prompt's pr-body.md> --check` exited 0 with the installed `seal` and the tree's `bin/seal` (executed). `6739ec9c0` holds the first run's file as written (`git status --short` was empty before this append, executed).
+
+### Claims re-run
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| The base's fix-pass case pinned "after its fix commits and those corrections", the clause *Scope* item 6 rewrites | `frame/plan.md:10` | `git show 6ca420572:tests/text/test_the_rules_have_one_owner.py \| sed -n 210p`; `frame/design.md:47` read | holds: line 210 is `"answered, after its fix commits and those corrections",`, and *Scope* item 6 rewrites "those corrections" to "the corrections its read made" (executed; read) |
+| No case pinned the sweep and fold sentences this work rewrites, at the base | `frame/plan.md:10` | `git show 6ca420572:tests/text/test_the_rules_have_one_owner.py \| sed -n 190,220p`; `git grep -n -e 'every other place stating it' -e 'reads that list against' -e 'which the fix pass does not edit' -e 'so the round and the next crafter read one rule' 6ca420572 -- tests evals` | holds: the case's clauses are the context, threshold, close-block and round-record sentences, and the grep printed nothing (executed) |
+| *Judgments of the run* row 3 is round 2's routing, rows 1, 2 and 4 the folds, row 5 the *Technical context* repair | the orchestrator's part of the pull request body, *For the reviewer* | `awk` over `frame/plan.md` *Judgments of the run*, numbering its data rows | holds: five rows; row 3 routes round 2's finding 1 to an ordinary fix pass, rows 1, 2 and 4 fold the frame after the build and after each fix pass, row 5 records `1fcd7ba4e`'s repair (executed) |
+| Row 5's document judged against exists | `frame/plan.md:56` | `grep -n 'Orchestrator: the pull request opens once the sealer seals' skills/code-review/orchestration.md` | holds: `:222` (executed) |
+| The broad run passed with 6349 passed and 12 skipped | the orchestrator's part of the pull request body, its last paragraph | none: the sealer runs nothing broad | `unverified` by the sealer, as in the first run; the orchestrator answers it |
+
+### The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | as in the first run; `frame/plan.md:10` now says no case pinned the sweep and fold sentences, and the base's fix-pass case pinned the close-block sentence with the clause *Scope* item 6 rewrites; row 5 records the repair | the base's test file at line 210, *Scope* item 6, `trail/phases/phase-1.md:43-47` | none |
+| the build | unchanged since the first run | the design, the claims re-run | none |
+| the last round | `trail/rounds/round-3.md`, unchanged | the tree at its target `9bc5519e5` | none |
+| the changelog | `changelog.md`, unchanged | the diff and the design | none |
+| the orchestrator's part of the pull request body | as in the first run, with *For the reviewer* citing row 3 for the routing, rows 1, 2 and 4 for the folds, and row 5 for the *Technical context* correction after round 3 and after the first verdict | `frame/plan.md` *Judgments of the run*, rounds 1 to 3, `trail/gate.md`, the issue | none. Row 5 records the second correction; the first, `12e288e3d`, has no row of its own, and the body's sentence does not say it has one |
+
+```seal
+target: 1fcd7ba4e against 6ca420572
+Verdict: sealed
+```
