@@ -5,6 +5,7 @@
 | Item | Who must answer |
 |---|---|
 | Phase 1 changed text that agents act on: `agents/framer.md` *A design states its rule changes*, `agents/sealer.md` *The guarantee covers HEAD, and a re-run audits what came after*, and two paragraphs of `skills/code-review/orchestration.md`. No behaviour eval was run for them, since `evals/README.md` *The behaviour suite* makes no later edit owe a run. Whether a framer, a sealer and an orchestrator still act the same is read, not measured | the proofer at review |
+| Phase 3 cut `skills/settle/SKILL.md` into it and four files beside it, each named at the step that opens it. Whether a framer opens `skills/settle/rule-changes.md` from its citation, and whether a settling session opens `local-mode.md`, `named-directories.md` and `draft.md` at the steps `SKILL.md` names, is read, not measured; no agent of this run receives the cut files, since agents read the installed 0.29.0 | the proofer at review; the live reading is `frame/questions.md` Q1's |
 
 ## Not done
 
