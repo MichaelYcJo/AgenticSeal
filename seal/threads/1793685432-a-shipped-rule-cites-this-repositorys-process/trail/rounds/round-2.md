@@ -56,6 +56,11 @@ For `gaps.md:9`, the words "not one of the five edited paths" become "not one of
 
 This snippet does not reach `frame/plan.md:32`, which says phase 1 delivers "the six rows of its `## Removes`". That cell is phase 1's, and phase 1 delivered those six at `8b14bdbb7`. The seventh row is the fix pass's, which the *Judgments of the run* row at `frame/plan.md:42` records, so the cell stays as it reads.
 
+```seal
+verdict: fixed 7867f45cf
+answer: The finding holds. The orchestrator folded the frame's part at 9fd639b5f: `frame/design.md` *Data & interfaces* names six files, `## Removes` has a seventh row for the removed instruction, and `frame/plan.md` *Technical context* says six files and lists `skills/implement/SKILL.md:303-307`. The fix pass did not edit the frame. At 7867f45cf the fix pass changed "not one of the five edited paths" in `gaps.md:9` to "not one of the six edited paths", word for word as this record gives it. The row is true at six: round 1's fix pass ran every `tests/*.py` that `git grep -l -F` lists for `skills/implement/SKILL.md`. The pass touched the work item's records alone, so it owes no verifying round.
+```
+
 ## Confirmations
 
 ```seal
