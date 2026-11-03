@@ -141,7 +141,7 @@ them measures a tree that is going to change.
 | When | What runs | Label |
 |---|---|---|
 | Each slice | the tests for what the slice just wrote | `executed`, narrow |
-| Phase boundary | the set contract rule 2 names for a phase boundary, as one command | `executed`, scoped |
+| Phase boundary | in one command, the cases the phase's plan row names and the test modules that read a path the phase changed, whether they name it, import it or glob the directory that holds it | `executed`, scoped |
 | Handoff to review | nothing broad | the suite is `unverified`, and says so |
 | Review rounds 1..n | what the fix touches | `executed`, narrow |
 | **After the rounds settle** | full suite, lint, typecheck, **once**, by the orchestrator | `executed`, broad, once |

@@ -24,10 +24,9 @@ your one output.
 
 ## Order of work
 
-1. Open `skills/legacy-parity/SKILL.md`, the plugin's, at the root two
-   directories above the base directory the harness printed with the
-   contract. Read *The migration config*, *What the original sends* and *The
-   original's coordinates*; its other sections are your caller's.
+1. Open `skills/legacy-parity/SKILL.md`. Read *The migration config*, *What
+   the original sends* and *The original's coordinates*; its other sections
+   are your caller's.
 2. Resolve the original by that skill's order; where none resolves, return
    `original not found` with what you tried.
 3. Start from the original's coordinates the design's Grounding cites, search

@@ -2620,12 +2620,8 @@ CONFIG = (
 
 
 def sealable_repo(tmp_path):
-    """A repository on `base` with a `feature` branch one commit ahead.
-
-    Driven from Python, per contract rule 8: a probe that commits reaches
-    the commit gate exactly as real work does, and the prompt lands on nobody
-    while a round is running.
-    """
+    """A repository on `base` with a `feature` branch one commit ahead,
+    driven from Python."""
     repo = tmp_path / "repo"
     repo.mkdir()
     git(repo, "init", "-q", "-b", "base")

@@ -363,7 +363,8 @@ The declaration is read from the working tree (`hooks/lib/routing.py`'s
 the write go through before the commit lands. The commit goes as every
 commit does: each work item's `routing.md` in a command of its own, the
 worktree's path written out after `git -C`, never a loop over a variable
-naming it (contract rule 16).
+naming it (`skills/implement/SKILL.md` *A commit names its repository in the
+command that makes it*).
 
 **What each combination of `Review` and `Destination` checks, and where**,
 is `docs/running/the-review-and-parity-arms.md` *The declaration, and where the

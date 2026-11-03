@@ -203,8 +203,9 @@ def test_the_fix_pass_reads_the_implementers_context_before_it_resumes():
         "the largest context a fresh, never-resumed crafter reached in the 0.22.0 run",
         # #1041, S1: the fix pass writes its closes last, after the sweep's
         # corrections, and commits none, since the orchestrator commits them
-        # (rule 20); a doubt goes to the next round rather than into a
-        # rewrite of the block. #1198 made the two lines one close block.
+        # (`agents/crafter.md` *A fix pass appends close blocks*); a doubt
+        # goes to the next round rather than into a rewrite of the block.
+        # #1198 made the two lines one close block.
         "Last, the fix pass appends the close block of every finding it "
         "answered, after its fix commits and those corrections",
         "and leaves the round record uncommitted",
