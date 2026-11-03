@@ -94,4 +94,5 @@ What breaks in six months with the chosen approach:
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-03 | `.claude-plugin/plugin.json` moves to 0.30.0 in phase 1's first commit (8a68b6c05), not in the changelog commit *Scope* named | this is the first work-item pull request into `release/v0.30.0`, whose tip was the settle #1310, so the branch's version moves with its first commit | `docs/branch-and-release.md` *The version is named at the cut* |
+| 2026-11-03 | `frame/design.md` *Grounding*'s transcript row names the project directory as `~/.claude/projects/<project>/` instead of the owner's real path | the real path failed `tests/test_censuses.py`'s `real_identifiers` census at phase 1 (the crafter's handback, executed); the row's counts are unchanged | `tests/test_censuses.py` *Test_real_identifiers* |
