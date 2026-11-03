@@ -57,7 +57,6 @@ ROUTING = f"""# Routing: {WORK}
 | Planning | the session |
 | Implementation | the session |
 | Automation | no |
-| Answer pressed | per axis |
 | Branch | feat/work |
 
 Answered 2026-01-01 by the owner, before the first edit.

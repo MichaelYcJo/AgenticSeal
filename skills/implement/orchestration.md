@@ -267,7 +267,7 @@ that hides the axes.
 ### What the answer writes
 
 Question 1's first two options and question 2's four boxes write the same
-rows; what differs is how many clicks it took and which row says so.
+rows; what differs is how many clicks it took.
 
 | Row | Answers |
 |---|---|
@@ -275,7 +275,6 @@ rows; what differs is how many clicks it took and which row says so.
 | Implementation | `crafter` or `the session`, OPTIONAL; absent reads as unanswered |
 | Review | `through the review chain` or `straight to the PR` |
 | Destination | `open the pull request` or `stop before the pull request` |
-| Answer pressed | `automation` or `per axis`, OPTIONAL; absent reads as unanswered |
 | Branch | the branch the work item is built on; two declarations naming one branch read as none |
 
 **Each answer is written without backticks**, and the file starts from
@@ -294,14 +293,8 @@ costs*). The file ends with `## Why this way`, one or two sentences nothing
 reads.
 
 **`automation` writes all four party rows at their checked values**, plus
-`Automation` = `yes`, plus `Answer pressed` = `automation`. Ticking all four
-boxes under `per axis` writes the same four rows and `Answer pressed` =
-`per axis`.
-
-**The `Answer pressed` row tells a pressed preset from four boxes ticked by
-hand**, and question 1's third option never reaches it
-(`docs/running/the-review-and-parity-arms.md` *The declaration, and where the check
-went*).
+`Automation` = `yes`. Ticking all four boxes under `per axis` writes the same
+rows.
 
 **`Automation` is held by a gate.** While the row reads `yes`,
 `hooks/question-gate.py` refuses every question on the declared branch but

@@ -165,7 +165,6 @@ def routing(branch, planning, implementation):
 | Planning | {planning} |
 | Implementation | {implementation} |
 | Automation | yes |
-| Answer pressed | automation |
 | Branch | {branch} |
 """
 

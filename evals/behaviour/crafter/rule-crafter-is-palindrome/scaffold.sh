@@ -66,7 +66,6 @@ cat > 'seal/threads/1790000014-is-palindrome/routing.md' <<'AGENTIC_EOF'
 | Planning | framer |
 | Implementation | crafter |
 | Automation | yes |
-| Answer pressed | automation |
 | Branch | feat/is-palindrome |
 AGENTIC_EOF
 git add -A

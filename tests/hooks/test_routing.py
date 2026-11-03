@@ -40,7 +40,6 @@ OPTIONAL_ROWS = (
     (routing.PLANNING, "planning"),
     (routing.IMPLEMENTATION, "implementation"),
     (routing.AUTOMATION, "automation"),
-    (routing.ANSWER_PRESSED, "pressed"),
 )
 
 
@@ -153,12 +152,6 @@ class Test_parse:
         for answer in routing.AUTOMATION_ANSWERS:
             parsed = routing.parse(with_row(routing.AUTOMATION, answer))
             assert parsed["automation"] == answer, answer
-
-    def test_accepts_the_answer_pressed_row_where_it_is_there(self):
-        """S3 at the parser: the two derivations are not byte-identical."""
-        for answer in routing.ANSWER_PRESSED_ANSWERS:
-            parsed = routing.parse(with_row(routing.ANSWER_PRESSED, answer))
-            assert parsed["pressed"] == answer, answer
 
     def test_accepts_a_declaration_below_a_comment_opener_nobody_closed(self):
         """#872 round 3, finding 10. `hooks/lib/routing.py#shown` keeps the reading
@@ -299,18 +292,23 @@ class Test_parse:
         `unattended` and `true` are in the list because they are what a session
         reaching for the idea rather than for the vocabulary would write, and both
         have to land on "nobody was asked" rather than on a confident yes.
+        `automation` is question 1's option label, the row's name in lower case,
+        and it is what a session that takes the label for the row's answer writes.
         """
-        for spelling in ("unattended", "true", "`yes`", "Yes", "YES", "maybe", ""):
+        for spelling in (
+            "unattended",
+            "true",
+            "`yes`",
+            "Yes",
+            "YES",
+            "maybe",
+            "automation",
+            "",
+        ):
             parsed = routing.parse(with_row(routing.AUTOMATION, spelling))
             assert parsed is not None, f"`{spelling}` rejected the whole declaration"
             assert parsed["automation"] is None, spelling
             assert parsed["review"] == CHAIN, spelling
-
-    def test_refuses_an_unreadable_answer_pressed_row(self):
-        for spelling in ("`automation`", "Automation", "everything", "option 1", ""):
-            parsed = routing.parse(with_row(routing.ANSWER_PRESSED, spelling))
-            assert parsed is not None, f"`{spelling}` rejected the whole declaration"
-            assert parsed["pressed"] is None, spelling
 
     def test_refuses_an_optional_label_written_twice_as_an_answer(self):
         """S5's second half. An optional label doubled is unanswered, on the
@@ -323,15 +321,10 @@ class Test_parse:
         parsed = routing.parse(text)
         assert parsed is not None and parsed["review"] == CHAIN
         assert parsed["planning"] is None
-        for label in (
-            routing.IMPLEMENTATION,
-            routing.AUTOMATION,
-            routing.ANSWER_PRESSED,
-        ):
+        for label in (routing.IMPLEMENTATION, routing.AUTOMATION):
             answers = {
                 routing.IMPLEMENTATION: routing.IMPLEMENTATION_ANSWERS,
                 routing.AUTOMATION: routing.AUTOMATION_ANSWERS,
-                routing.ANSWER_PRESSED: routing.ANSWER_PRESSED_ANSWERS,
             }[label]
             twice = with_row(label, answers[0]).replace(
                 "| Branch |", f"| {label} | {answers[0]} |\n| Branch |"
@@ -341,7 +334,6 @@ class Test_parse:
             assert {
                 routing.IMPLEMENTATION: parsed["implementation"],
                 routing.AUTOMATION: parsed["automation"],
-                routing.ANSWER_PRESSED: parsed["pressed"],
             }[label] is None, label
 
     def test_refuses_one_optional_axis_answering_for_the_other(self):
@@ -363,17 +355,16 @@ class Test_parse:
         assert parsed["planning"] is None
 
     def test_refuses_any_optional_row_answering_for_another(self, repo):
-        """Four optional rows read from one table is where a fold-together hides.
+        """Three optional rows read from one table is where a fold-together hides.
 
         The case above pins the pair that existed before; this is the same
-        property over all four, which is the class rather than the two instances
+        property over all three, which is the class rather than the two instances
         of it (contract rule 12).
         """
         keys = {
             routing.PLANNING: ("planning", routing.BY_FRAMER),
             routing.IMPLEMENTATION: ("implementation", routing.BY_CRAFTER),
             routing.AUTOMATION: ("automation", routing.AUTOMATION_YES),
-            routing.ANSWER_PRESSED: ("pressed", routing.PRESSED_AUTOMATION),
         }
         for label, (key, answer) in keys.items():
             parsed = routing.parse(with_row(label, answer))
@@ -384,28 +375,6 @@ class Test_parse:
                 assert parsed[other_key] is None, (
                     f"answering `{label}` also answered `{other_label}`"
                 )
-
-    def test_refuses_the_row_name_and_the_option_label_crossed(self):
-        """`Automation` is the row and `automation` is the label a person pressed.
-
-        Deliberately one word, and the vocabularies must not cross: the row takes
-        `yes`/`no` and the pressed row takes the label. Swapping them is the
-        mistake a reader who saw one word makes, and both directions read as
-        unanswered rather than as a confident wrong answer.
-        """
-        assert routing.AUTOMATION.lower() == routing.PRESSED_AUTOMATION
-        crossed = routing.parse(
-            with_row(routing.AUTOMATION, routing.PRESSED_AUTOMATION)
-        )
-        assert crossed["automation"] is None, (
-            "`| Automation | automation |` read as an answer; the row takes yes/no"
-        )
-        crossed = routing.parse(
-            with_row(routing.ANSWER_PRESSED, routing.AUTOMATION_YES)
-        )
-        assert crossed["pressed"] is None, (
-            "`| Answer pressed | yes |` read as an answer; the row takes a label"
-        )
 
     def test_an_absent_automation_row_is_not_the_same_fact_as_a_chosen_no(self):
         """#151's lesson on this row, asserted rather than only written down.
@@ -428,24 +397,6 @@ class Test_parse:
             "identically, which is the state the row exists to end"
         )
 
-    def test_pressing_the_preset_and_ticking_every_box_are_told_apart(self):
-        """S3. Both produce the same four party rows; only this row differs.
-
-        Without it the preset buys nothing, because a chosen answer goes back to
-        being indistinguishable from an unread question.
-        """
-        preset = routing.parse(
-            with_row(routing.ANSWER_PRESSED, routing.PRESSED_AUTOMATION)
-        )
-        by_hand = routing.parse(
-            with_row(routing.ANSWER_PRESSED, routing.PRESSED_PER_AXIS)
-        )
-        assert preset["review"] == by_hand["review"]
-        assert preset["destination"] == by_hand["destination"]
-        assert preset["pressed"] != by_hand["pressed"], (
-            "the row that says which answer was pressed does not distinguish them"
-        )
-
     def test_every_declaration_in_this_repository_still_parses(self):
         """Executed against the real files, not a fixture: the declarations
         committed here are the population the optional rows exist for.
@@ -462,12 +413,7 @@ class Test_parse:
         committed declaration answers `Implementation`, so a per-axis guard would
         be red the day it was written.
 
-        All FOUR optional rows are swept rather than the two that existed first.
-        The fifth and sixth are the direction this case is strongest in: no
-        committed declaration in this tree carries either, so the population is
-        every one of them, and taking the `.get` default off the new row in
-        `parse()` — which is what makes an absent row an absent row — is red here
-        and nowhere else.
+        All three optional rows are swept rather than the two that existed first.
 
         No count is written down here either. The docstring this replaced carried
         two -- `the twelve committed here` and `Seventy-two declarations` -- for a

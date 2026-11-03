@@ -66,7 +66,6 @@ cat > 'seal/threads/1790000012-count-words/routing.md' <<'AGENTIC_EOF'
 | Planning | framer |
 | Implementation | crafter |
 | Automation | yes |
-| Answer pressed | automation |
 | Branch | feat/count-words |
 AGENTIC_EOF
 git add -A
