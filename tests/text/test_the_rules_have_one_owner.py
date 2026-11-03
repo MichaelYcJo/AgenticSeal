@@ -201,17 +201,17 @@ def test_the_fix_pass_reads_the_implementers_context_before_it_resumes():
         "the largest value of its `context` column",
         "hands it the round record and the phase records",
         "the largest context a fresh, never-resumed crafter reached in the 0.22.0 run",
+        # Round 2 of #1318, finding 1: the fold takes each file that holds a
+        # named statement, read whole, never the one statement alone.
+        "the orchestrator folds each file that holds such a statement, read "
+        "whole, as `skills/implement/orchestration.md` *Orchestrator: the "
+        "order inside a ticket* states",
         # #1041, S1: the fix pass writes its closes last, after the
         # corrections its read of its range and the records made (#1318), and
         # commits none, since the orchestrator commits them
         # (`agents/crafter.md` *A fix pass appends close blocks*); a doubt
         # goes to the next round rather than into a rewrite of the block.
         # #1198 made the two lines one close block.
-        # Round 2 of #1318, finding 1: the fold takes each file that holds a
-        # named statement, read whole, never the one statement alone.
-        "the orchestrator folds each file that holds such a statement, read "
-        "whole, as `skills/implement/orchestration.md` *Orchestrator: the "
-        "order inside a ticket* states",
         "Last, the fix pass appends the close block of every finding it "
         "answered, after its fix commits and the corrections its read made",
         "and leaves the round record uncommitted",
