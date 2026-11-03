@@ -39,3 +39,36 @@ The base `release/v0.31.0` resolves to `5d89ba07a4e72a74a035a4fccaa44f74f21c17f5
 target: b98c6ddfa against 5d89ba07a
 Verdict: withheld reason: the framer's claim at frame/plan.md:20 (Alternatives considered, row 2) that the owner's candidate "fires in 11 work items over the two windows" does not hold; 12 work items carry a reopens: line, and #1237 (1793490088-each-kind-of-restatement-is-measured, round-2.md:49 reopens: round-1#5 and round-3.md:148 reopens: round-2#3 at refs/pull/1237/head) stands in neither the row's six nor its longer chains
 ```
+
+## Re-audit at 77266f6b4
+
+| Field | Value |
+|---|---|
+| Broad gate | `7996f1630 against 5d89ba07a`, still the last block of `trail/gate.md`. The commits after it are `b98c6ddfa` (`trail/gate.md`), `8e1ab3424` (`guarantee.md`) and `77266f6b4` (`frame/plan.md`), all under the work item's directory (executed: `git log --no-merges --name-only 7996f1630..HEAD ^5d89ba07a`; `git merge-base --is-ancestor 7996f1630 HEAD` exited 0) |
+
+The base resolves to `5d89ba07a4e72a74a035a4fccaa44f74f21c17f5` as before. `bin/seal pr-body <item> --body <file> --check` exited 0 on the rewritten body file (executed). After the earlier block's target, `git diff b98c6ddfa..HEAD` changes only `frame/plan.md` *Alternatives considered* row 2 and adds *Judgments of the run* row 3 (executed). Those two rows are the only claims this run re-runs. The others stand as the tables above give them.
+
+### Claims re-run
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| The owner's candidate "fires in 12 work items over the two windows" | `frame/plan.md:20` | the census of the earlier run, *Command C11*'s printed output for G8's window and the parse over G10's 34 pull requests, already executed at `b98c6ddfa`. The row's coordinates in those records did not change | holds: 12, the work items listed in the earlier row of this file (executed) |
+| "In 7 of them the reopened finding's chain ended at two findings", #1237 among them, and "#1237's two, `round-2#2` and `round-3#5`, stood in its records alone" | `frame/plan.md:20` | `gh api repos/MichaelYcJo/AgenticSeal/contents/seal/threads/1793490088-each-kind-of-restatement-is-measured/trail/rounds/round-<n>.md?ref=08ea31268` for rounds 1 to 4, at #1237's head, parsed for each finding's `regression:`, `reopens:` and `location:` lines | holds (executed). `round-2#2` reopens `round-1#5` and `round-3#5` reopens `round-2#3`. No finding of rounds 3 or 4 names `round-2#2` or `round-3#5`: round 4's two name `round-3#2` and `round-3#1`. Every `location:` path of `round-1#5`, `round-2#2`, `round-2#3` and `round-3#5` stands under that work item's directory. `round-2#1` also regresses `round-1#5`, so three findings sit under `round-1#5` within two rounds. "Chain" is read here as findings linked across rounds, as G10's five are read, and the reopening's chain is two findings long |
+| The repair's judgment row: its grounds and the act it records | `frame/plan.md:49`, *Judgments of the run* row 3 | the same reads | holds: the grounds the row gives match what the reads above printed (executed) |
+| No other copy of the count stands in the work item | the orchestrator's message | `git grep -n -e '11 work items' -e 'fires in' -- seal/threads/1793714292-one-kind-of-finding-recurs-across-review-rounds ':!*/guarantee.md'` | holds: only `frame/plan.md:20`, which reads 12 (executed) |
+| The *Broad run* line now quotes what `seal gate` printed | the orchestrator's part of the body | read the body file above `## From the records` | the line quotes the three printed lines, attributes them to the command, and says `trail/gate.md` records the run at `7996f1630`, which that file holds (read). The counts themselves stay unverified, and the orchestrator answers them, since rule 2 keeps the suite from the sealer |
+
+### The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | as the earlier table gives it, with row 2's count now 12 | the tree at `frame/plan.md:20` and the records of #1237 and the two windows; the row's `rejected` stands on the same grounds | none |
+| the build | unchanged since `b98c6ddfa` | as the earlier table gives it | none |
+| the last round | round 2 at `88aabb168`, unchanged | as the earlier table gives it. `77266f6b4` touched the work item's records alone, and no round's `fixed` finding is in question, so no round owes reading it | none |
+| the changelog | unchanged; it states no count of the exchange's firings | the design and the diff | none |
+| the orchestrator's part of the pull request body | as before, with the *Broad run* line quoting `seal gate`'s output | the design, the build, the rounds, the milestone and `trail/gate.md`. *For the reviewer* names *Judgments of the run* rows 1 and 2 for the two folds, and they still record them. Row 3 records the repair this message describes. #1020's retitle to `fix:` is still an act to come (unverified; the orchestrator answers it) | none |
+
+```seal
+target: 77266f6b4 against 5d89ba07a
+Verdict: sealed
+```
