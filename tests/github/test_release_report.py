@@ -154,14 +154,15 @@ class Test_module_rows:
             )
 
 
+INDEX = "| File | About |\n|---|---|\n| `docs/g/x.md` | x |\n"
+
+
 class Test_documents:
-    def test_reads_the_policy_documents_seal_fold_reads(self, tmp_path):
+    def test_accepts_the_top_level_and_each_group_the_index_names(self, tmp_path):
         """#1312 S6: the policy root's rows are the documents
         `skills/settle/scripts/fold_check.py#documents` lists, the top level
-        and each group the index names; a directory the index names nothing
-        of, such as `docs/experiments/`, gives no row."""
-        index = "| File | About |\n|---|---|\n| `docs/g/x.md` | x |\n"
-        docs = {"README": index, "g/x": "abc\n", "experiments/e": "e\n"}
+        and each group the index names."""
+        docs = {"README": INDEX, "g/x": "abc\n"}
         root = tree(tmp_path / "t", "", {"t::a": 1.0}, docs)
         assert sorted(report.documents(root)) == [
             "CLAUDE.md",
@@ -170,6 +171,13 @@ class Test_documents:
             "docs/g/x.md",
             "skills/core/SKILL.md",
         ]
+
+    def test_refuses_a_directory_the_index_names_nothing_of(self, tmp_path):
+        """#1312 S6: a directory the index names no document of, such as
+        `docs/experiments/`, gives no row."""
+        docs = {"README": INDEX, "g/x": "abc\n", "experiments/e": "e\n"}
+        root = tree(tmp_path / "t", "", {"t::a": 1.0}, docs)
+        assert "docs/experiments/e.md" not in report.documents(root)
 
 
 class Test_leg_minutes:
