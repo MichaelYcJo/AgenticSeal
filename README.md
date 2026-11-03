@@ -113,7 +113,7 @@ which has three answers:
 
 `skills/implement/orchestration.md` *Orchestrator: how the work is routed*
 gives each answer and the rows it writes into
-`seal/threads/<id>/routing.md`, the file each hook reads to learn how the
+`seal/threads/<id>/routing.md`, the file the hooks read to learn how the
 branch was routed. Under `automation`, a question the session would put to
 you is refused, and the session builds on the default the question states.
 The default is written into the work item's `frame/questions.md`, and the
@@ -123,10 +123,10 @@ Then the parties work in turn. The framer reads the repository and writes
 the design, the plan and the questions. The crafter builds each phase,
 commits it, and hands back what it ran and what it did not. The proofer
 reviews the committed diff and writes its findings into a round record, and
-the crafter answers each finding in a fix pass. Once the rounds settle, the session runs
-the broad gate, the full suite, lint and typecheck, once. The sealer then
-reads every party's account against the issue and the tree, and the pull
-request opens.
+the crafter answers each finding in a fix pass. Once the rounds settle, the
+session runs the broad gate, the full suite, lint and typecheck, once. The
+sealer then reads every party's account against the issue and the tree, and
+the pull request opens.
 
 When the sealer's verdict is `sealed`, the session draws the stamp in your
 terminal at the end of its turn. It names the commit, the branch, the base,
@@ -312,7 +312,9 @@ stays silent when the network is unavailable.
 
 ## Commands
 
-The hooks run by themselves. These you run:
+The hooks run by themselves. These you run. The `seal` commands are on the
+PATH of Claude Code's Bash tool while the plugin is enabled, so you type one
+after `!` in a session, or ask the session to run it.
 
 | Command | Does |
 |---|---|
