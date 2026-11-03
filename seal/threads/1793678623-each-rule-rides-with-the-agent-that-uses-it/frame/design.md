@@ -138,7 +138,7 @@ definition's steps. "All" is the five.
 | 13 (`:172`, 248) | crafter writing a defence's case; proofer at review | stays (Out, first item) |
 | 14 (`:178`, 364) | crafter at a change to a message; proofer at review (25 records) | stays |
 | 15 (`:186`, 390) | crafter planting a case; proofer (31 records) and sealer re-running `seen red` | stays; #1286 may extend it where it stands |
-| 16 (`:194`, 714) | crafter at each commit. No other definition names a commit: the proofer's and the sealer's leave it to the orchestrator, the tracer writes nothing, and the framer commits only where a spawn prompt asks, as this one did. The orchestrator cites it at `skills/implement/orchestration.md:364` and `skills/implement/multi-repository.md:20`. No record cites it | moves (D1) |
+| 16 (`:194`, 714) | crafter at each commit. No other definition names a commit: the proofer's and the sealer's leave it to the orchestrator, the tracer writes nothing, and the framer commits only where a spawn prompt asks, as this one did. The orchestrator cites it at `skills/implement/orchestration.md:364` and `skills/implement/multi-repository.md:20`. No record cites it | moves (D1); contract rule 6 keeps one sentence pointing every agent's commit, a probe's included, at its new home, because the framer and the probes of the proofer, sealer and tracer commit without opening implement *2.* (round 1) |
 | 17 (`:208`, 495) | all, at clean-up | stays |
 | 18 (`:218`, 351) | crafter at a refusing check; proofer at review (7 records) | stays |
 | 19 (`:226`, 548) | crafter at every change; proofer at review (60 records) | stays; its first clause copies the core's last paragraph, so it cites the core (D3) |
@@ -232,7 +232,7 @@ change.
 
 | Rule | New home | Why there |
 |---|---|---|
-| 16, whole, with its `check:` line | `skills/implement/SKILL.md` *2. Implement test-first, and let each rule name its test*, as a bold-lead rule after *Commit at the smallest step that stands on its own* | the parties that commit read that file: the crafter (87 of 88 spawns), the session where it builds, and the orchestrator that cites the rule. Every other agent stops paying 714 bytes per spawn |
+| 16, whole, with its `check:` line | `skills/implement/SKILL.md` *2. Implement test-first, and let each rule name its test*, as a bold-lead rule after *Commit at the smallest step that stands on its own* | the parties that build read that file: the crafter (87 of 88 spawns), the session where it builds, and the orchestrator that cites the rule. An agent that commits without opening it, the framer where a spawn prompt asks and any agent's probe, has contract rule 6's one sentence pointing at it, so every agent pays that sentence in place of the 714 bytes |
 | 2's first sentence, the phase-boundary set | the *Phase boundary* row of `skills/verify/SKILL.md` *Scope: cheap and often, broad and once*, which now says "the set contract rule 2 names" | the crafter's step 5 already sends it to the table beneath that one, and the session that builds reads `verify` too. Rule 2 keeps the slice tests, the broad gate and the `unverified` hand-over |
 
 Rule 16's text moves with its wording, apart from "A file edit is rule 9's",
