@@ -33,6 +33,11 @@ The fix is one case in `Test_parse` of `tests/hooks/test_routing.py`, beside `te
         assert routing.parse(legacy) == routing.parse(two_axis_text())
 ```
 
+```seal
+verdict: fixed c87f09304
+answer: The finding holds: no built declaration carried a row the reader does not read, and the four committed ones leave at the settle. The paste-ready case was added as written to `Test_parse` beside `test_accepts_a_two_axis_declaration_with_no_optional_row_answered`. Seen red after the commit: `seal mutate hooks/lib/routing.py --replace '    if not branch:' '    if not branch or set(found) - {"Axis", REVIEW, DESTINATION, BRANCH, IMPLEMENTATION, PLANNING, AUTOMATION}:'` over that one case read `red`, exit 0, with `parse` of the declaration with the row returning None, and the file was restored; `"Axis"` is in the set because `table_rows` returns the header row. Green at `82e9afa58` in one `bin/test -q` run of 89 modules, exit 0, 4909 passed, 12 skipped. `seal layout --pairs` (exit 0) reports the case with two others for calling `parse(two_axis_text())`; that argument is the baseline, and none of the others parses a row the reader does not read, so the case stays. `gaps.md` names its unpriced id in `.test_durations`.
+```
+
 ### 2. `skills/implement/acts.md` says "the two optional rows" are read by nothing that refuses, and the section it tables lists `Automation`, which a gate reads, among its optional rows
 
 ```seal
@@ -47,6 +52,11 @@ The fix names the two rows in the one sentence. `hooks/lib/routing.py:195` says 
 
 ```markdown
 | What the answer writes | `skills/implement/orchestration.md` | check: `skills/code-review/scripts/chain_check.py` | It refuses a `Review` or `Destination` value outside the vocabulary at the pull request, and `hooks/lib/routing.py` parses the same rows at every edit. The `Implementation` and `Planning` rows are read by nothing that refuses: `hooks/implementer-notice.py` says one line after a commit where a declared agent left no mark, and blocks nothing |
+```
+
+```seal
+verdict: fixed 82e9afa58
+answer: The finding holds: the section `acts.md:69` tables marks `Automation` OPTIONAL, and `hooks/question-gate.py` refuses on it, so "the two optional rows" read two ways. The sentence now names the `Implementation` and `Planning` rows, as the paste-ready row gives, and the row is otherwise unchanged. `trail/phases/phase-4.md` says `acts.md:69` reads "two optional rows" after `4be95d4ed` and that the two are `Implementation` and `Planning`; both are true of the commit it names and agree with the fix, so the record stands. `git grep -n -i 'optional rows'` outside `seal/` finds no other sentence on this act; `hooks/lib/routing.py:195` stays for the reason the finding gives.
 ```
 
 ## Confirmations
