@@ -207,6 +207,11 @@ def test_the_fix_pass_reads_the_implementers_context_before_it_resumes():
         # (`agents/crafter.md` *A fix pass appends close blocks*); a doubt
         # goes to the next round rather than into a rewrite of the block.
         # #1198 made the two lines one close block.
+        # Round 2 of #1318, finding 1: the fold takes each file that holds a
+        # named statement, read whole, never the one statement alone.
+        "the orchestrator folds each file that holds such a statement, read "
+        "whole, as `skills/implement/orchestration.md` *Orchestrator: the "
+        "order inside a ticket* states",
         "Last, the fix pass appends the close block of every finding it "
         "answered, after its fix commits and the corrections its read made",
         "and leaves the round record uncommitted",
