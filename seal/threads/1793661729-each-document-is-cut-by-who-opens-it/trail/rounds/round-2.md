@@ -66,6 +66,11 @@ frame/plan.md:99, the whole row:
 | 2026-11-03 | `trail/phases/phase-7.md` keeps counting each ranged read of the deleted `docs/the-review-record.md` at its base bytes, though phase 1 (4c4925bff) rewrote two passages of it: *The guarantee*'s opening (base lines 288-291) and *The run*'s question-gate paragraph (base lines 531-544, cut to three lines) | the round-1 fix pass's word diff found both (`trail/rounds/round-1.md` finding 3). Of phase 7's 33 ranged reads of a deleted file, 28 read this document, and 9 of those cover a changed line: 4 the guarantee's opening and 5 the question-gate paragraph (`trail/rounds/round-2.md` *Probes*). Both edits shortened the text, so counting at base charges HEAD more than it holds, which does not flatter the cut, and no reading in that record moves toward `worse`. The reading is kept with the gap named here rather than replayed | `docs/running/measuring-a-run.md` |
 ```
 
+```seal
+verdict: fixed 540cb8515
+answer: The row at frame/plan.md:99 is rewritten in other words than the paste-ready text, since that text holds only phase 1's two passages and says counting at base does not flatter the cut. A word diff of each deleted document at 2d38c75af against the files holding its text at b1880c1db, the replay's HEAD (executed), found that phase 5 and its group commits lengthened the review record's moved text by 149 bytes in seven places, and phases 3 and 5 the record layout's by 20 bytes in three re-pointed paths, so the base count also leaves bytes out. The row now names phase 1's two passages with their sizes (129 and 778 bytes shorter), the lengthened places, the 28 and 5 ranged reads of the two documents and the nine this round found over a shortened passage, and the bound: at most 149 bytes a read, so the proofer's +0 of 375,093 lies between 778 fewer and 265 more, and every other type falls by more than the gap can add. trail/phases/phase-7.md, gaps.md and changelog.md state no size for the gap, so none was changed.
+```
+
 ## Confirmations
 
 ```seal
