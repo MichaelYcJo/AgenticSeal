@@ -21,9 +21,10 @@ here is one agent's own. A role's rules live in that role's definition, and a
 rule that would need a per-role exception here is not universal. Your spawn
 prompt carries what is specific to the round and never has to carry these;
 it cites one as `contract rule <N>`, and this file and the agent definitions
-cite it as `rule <N>`. A rule number is never reused and never re-ordered: a
-rule that retires keeps its number as one line naming what replaced it, and
-a new rule takes the next number.
+cite it as `rule <N>`. A rule number is never reused and never re-ordered. A
+rule that retires leaves this file, and its number is listed here: the
+retired numbers are 8 and 20. A new rule takes the number after the highest
+one used, retired or not.
 
 ## 1 Read exit codes directly, never through a pipe
 
@@ -100,12 +101,6 @@ be reused, such as the one virtual environment a test runner keeps, stays
 even when your probe's run created it. The question is whose the thing is,
 never who happened to trigger it.
 check: evals/behaviour/crafter/rule-crafter-count-words/ evals/behaviour/crafter/rule-crafter-is-palindrome/ evals/behaviour/crafter/rule-crafter-slugify/ evals/behaviour/crafter/rule-crafter-truncate/
-
-## 8 Retired: no gate reads a probe's commit
-
-Retired by #1027, which removed every gate that read a commit; nothing
-replaced it, and a probe's leavings are rule 7's.
-check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
 
 ## 9 Edits go through the `Edit` tool
 
@@ -231,11 +226,4 @@ sentence, case and citation stating it, found at least with `git grep` on
 its words. Where none of rule 12's three methods listed them, the list is a
 sample, and the hand-back says so as rule 12 asks. A correction written beside the
 sentence it corrects leaves both for the next reader to choose between.
-check: none reader: the proofer at review
-
-## 20 Retired: do not avoid the change a problem calls for
-
-Retired by #1312: `skills/core/SKILL.md` *The rule a mechanism is kept
-against* states it, and a conclusion to keep a structure checks the premise
-that keeps it.
 check: none reader: the proofer at review
