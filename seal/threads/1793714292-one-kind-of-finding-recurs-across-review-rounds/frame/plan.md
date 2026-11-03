@@ -27,7 +27,7 @@ The decision rests on text the work leaves as it stands: the signals row at `ski
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1, 2 and 3, and the work item's `changelog.md` | `frame/design.md` S1 to S5 | |
+| 1 | `frame/design.md` *Scope* items 1, 2 and 3, and the work item's `changelog.md` | `frame/design.md` S1 to S5 | df433eee2 |
 
 ## Operational impact
 
