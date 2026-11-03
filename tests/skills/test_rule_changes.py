@@ -377,7 +377,12 @@ class Test_parse:
                 "item",
             ),
             ("- remove\n  file: src/a.md\n  section: S", "- remove", "docs/"),
-            ("- remove\n  file: docs/a/b/c.md\n  section: S", "- remove", "docs/"),
+            (
+                "- remove\n  file: docs/a/b/c.md\n  section: S",
+                "- remove",
+                "`docs/a/b/c.md` is not a `.md` of docs/ or of one group "
+                "directory in it",
+            ),
             ("- remove\n  file: docs/../a.md\n  section: S", "- remove", "docs/"),
             ("- remove\n  file: docs/./a.md\n  section: S", "- remove", "docs/"),
             ("- add\n  file: docs/..\\..\\evil.md\n  to: x", "- add", "docs/"),
