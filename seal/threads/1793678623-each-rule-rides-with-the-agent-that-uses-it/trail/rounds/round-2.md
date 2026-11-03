@@ -68,6 +68,11 @@ home, with `test_the_contract_points_every_agents_commit_at_the_rule` reading
 rule 6's sentence, and `tests/text/test_broad_gate_rule.py`, run narrow
 ```
 
+```seal
+verdict: fixed 6a0d36caf
+answer: The finding holds, and 6a0d36caf closes it in `frame/design.md`, the path the finding names. S2's Given/when/then cell now says that the contract no longer holds the phase-boundary set. It also says that of the commit rule the contract holds only rule 6's sentence, which states the `git -C` form and points at implement's rule. Its verification cell names `test_the_contract_points_every_agents_commit_at_the_rule`. The tree bears both cells out (read at HEAD). Rule 6's sentence stands at `skills/agent-contract/SKILL.md:83-86`. `git grep -n "phase boundary" -- skills/agent-contract/SKILL.md` lists nothing (executed). The case passes in the narrow run. The orchestrator wrote the fold in its own words, and they say what the snippet says.
+```
+
 ### 2. The changelog gives the census of the tree before the fix, and D6 sends the body to a preload table the fix made stale
 
 ```seal
@@ -116,6 +121,12 @@ The pull request body copies the preload figures from `changelog.md`, which
 gives them at HEAD.
 ```
 
+```seal
+verdict: fixed d90b20d83
+answer: The finding holds. In d90b20d83 the changelog's census figure reads "766 of 10,769". It was re-taken at HEAD, not worked out from the old figure. A new one-file probe written to D6's method ran over clones at 0c68b9933 and 6a0d36caf, whose tree outside `seal/` equals d544e722b's. It gave 934 of 11,209 at the base, the frame's reading in every cell, and 766 of 10,769 at HEAD, with the contract at 70 of 1,975 (executed; the probe and clones are removed). Every other figure in `changelog.md` and `gaps.md` was re-taken the same way, and each still holds. The five preloads came from `release_report.py --against v0.30.0 --at <base clone> --root <HEAD clone>`, exit 0, and from each agent's `wc -c` sum: 31,730, 34,836, 30,840, 30,556 and 23,970 (executed). `skills/implement/SKILL.md` +721 and `skills/verify/SKILL.md` +111 came from `git show <commit>:<path> | wc -c` (executed). The `.test_durations` entry `gaps.md` *Not done* names is still there (executed). The frame half, D6's sentence on the body's copy, is 6a0d36caf's, read at HEAD: the body now copies the figures from the changelog. The same commit also corrects two docstrings and a changelog clause. Each said that the agents that commit without opening implement's *2.* read part of that file, and each now says that no step of theirs opens *2.*.
+location: `seal/threads/1793678623-each-rule-rides-with-the-agent-that-uses-it/changelog.md:3`, `seal/threads/1793678623-each-rule-rides-with-the-agent-that-uses-it/changelog.md:6`, `tests/behaviour/test_a_commit_names_its_repository.py:10-18`, `tests/behaviour/test_a_probe_that_commits_says_so.py:9-14`
+```
+
 ### 3. The new gaps row hands the framer's and the probes' commits to a measurement that counts crafter transcripts only
 
 ```seal
@@ -154,6 +165,11 @@ In the same row's options cell, after "commits in the `git -C` form":
 
 ; and, over the first 0.30.1 framer, proofer, sealer and tracer transcripts,
 each commit and whether it is in that form
+```
+
+```seal
+verdict: fixed 6a0d36caf
+answer: The finding holds, and 6a0d36caf closes it in `frame/questions.md`, a path the finding names. The fix was written in the orchestrator's words, not the snippet's. Q1 now also asks whether "a framer or a probe of any agent that commits under it" writes the `git -C` form contract rule 6 states. Its measurement now counts "over the first 0.30.1 transcripts of every agent, of commits in the `git -C` form" (read at HEAD). `gaps.md:14` asks whether such an agent under 0.30.1 commits in the `git -C` form from that sentence. That is the same question, so the row stands as written and names Q1's measurement as its answerer. `gaps.md:10`, the crafter's commit form and phase-boundary runs, and `gaps.md:15`, the installed preload, also cite Q1 and match its first two parts. Every row of `gaps.md` was read whole against HEAD, and none was changed for this finding.
 ```
 
 ## Confirmations
