@@ -7,6 +7,8 @@
 | Phase 1 changed text that agents act on: `agents/framer.md` *A design states its rule changes*, `agents/sealer.md` *The guarantee covers HEAD, and a re-run audits what came after*, and two paragraphs of `skills/code-review/orchestration.md`. No behaviour eval was run for them, since `evals/README.md` *The behaviour suite* makes no later edit owe a run. Whether a framer, a sealer and an orchestrator still act the same is read, not measured | the proofer at review |
 | Phase 3 cut `skills/settle/SKILL.md` into it and four files beside it, each named at the step that opens it. Whether a framer opens `skills/settle/rule-changes.md` from its citation, and whether a settling session opens `local-mode.md`, `named-directories.md` and `draft.md` at the steps `SKILL.md` names, is read, not measured; no agent of this run receives the cut files, since agents read the installed 0.29.0 | the proofer at review; the live reading is `frame/questions.md` Q1's |
 | Phase 4 moved the batch, the ladder and the drain out of `skills/implement/SKILL.md` into `skills/implement/orchestration.md`, and the `seal arms` and `seal mutate` sections out of `skills/verify/SKILL.md` into a file each. Whether an orchestrator opens the three new sections at the steps `SKILL.md` names, and whether a crafter opens `skills/verify/seal-mutate.md` before it runs `seal mutate`, is read, not measured; no agent of this run receives the cut files, since agents read the installed 0.29.0 | the proofer at review; the live reading is `frame/questions.md` Q1's |
+| Phase 5 gave four path-less cross-references in the moved review-record sections the path of the document they now name, and left one that names a plan section (`trail/phases/phase-5.md`). The list came from a scan of italic spans; no case reads such a reference, so whether one was missed is read, not measured | the proofer at review (`frame/design.md` D7) |
+| Phase 5 moved every policy document into a group directory. Whether an agent opens the new path from the citation in its definition, the contract or a skill is read, not measured; no agent of this run receives the moved paths, since agents read the installed 0.29.0 | the proofer at review; the live reading is `frame/questions.md` Q1's |
 
 ## Not done
 
@@ -20,19 +22,14 @@ orchestrator's, and the design did not choose a side. `agents/proofer.md`
 states the regression line's rule that *The run* states, and the frame's
 *Scope* keeps an agent's own rules in its definition.
 
-Phase 2 left
-`tests/github/test_release_report.py::Test_module::test_the_table_reads_this_tree_against_the_last_tag`
-listing `docs/` with `os.listdir`. Today that lists every policy document,
-since the root is flat. Once phase 5 groups it, the case checks
-`docs/README.md` alone. Phase 2 left it because the root it reads changes
-in phase 5. `Test_documents` holds the report's reading of a group in
-the meantime.
+Phase 2's open item, the release report's table case listing `docs/` with
+`os.listdir`, is closed at 2e7a946c9. Phase 4's open item, `seal layout
+--check tests` refusing `tests/github/test_release_report.py`, is closed at
+ecaa65963. `trail/phases/phase-5.md` holds both, with the runs that saw each
+case red.
 
-Phase 4 left `seal layout --check tests` refusing
-`tests/github/test_release_report.py`: its class `Test_documents`, added at
-fd331c80b in phase 2, has no `test_accepts_` case and no `test_refuses_`
-case, so `tests/skills/test_test_layout.py::Test_main::test_accepts_this_repositorys_tests`
-fails. The refusal stands at b29c630cc, before phase 4's first commit
-(`trail/phases/phase-4.md`, executed). Phase 4 changed neither file and
-builds only its own row of the plan, so the orchestrator routes the repair
-before the broad run.
+Phase 5 left nine lines naming `docs/the-review-record.md`. Each names the
+file at an earlier commit, where it still stands: the 0.22.0 replay in
+`evals/scripts/replay_targets.py` and its two test modules, and two comments
+on the check before #1198. The list and the grounds are in
+`trail/phases/phase-5.md` *A departure from S8*.
