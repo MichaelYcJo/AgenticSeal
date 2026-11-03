@@ -34,6 +34,11 @@ not make.
 
 The new rule's wording then holds as it stands. No other statement of the crafter's writes needs to change: `docs/layout/the-record-layout.md` *A commit after the build brings its changelog fragment along* and `skills/implement/SKILL.md:416-420` already say the same. The fix pass also decides whether this fact goes into the work item's `changelog.md`, which describes the new rule at `seal/threads/1793721630-the-party-that-fixes-checks-its-fix-first/changelog.md:3`.
 
+```seal
+verdict: fixed ad41ec7a8
+answer: Holds. The *Job* at `agents/crafter.md:19-25` now names `changelog.md` "in the last phase and in every fix pass", the paste-ready text applied after reading it against `docs/layout/the-record-layout.md` *A commit after the build brings its changelog fragment along* and `skills/implement/SKILL.md` *5.*, which already give the fix pass that write. The new rule's wording stands. The fragment's *Changed* entry and first *Process changes* row now say so (`ad41ec7a8`, `f70ee91e4`). No case reads the clause, as none read the list before; `gaps.md` has the row (`908706952`).
+```
+
 ### 2. The fold paragraph's new sentences receive only frame statements and hand back only to "the crafter that made the fix", while the crafter's rule sends it `routing.md` lines and the paragraph also governs folds no fix made
 
 ```seal
@@ -71,6 +76,11 @@ This snippet does not reach every statement of the fact. The fix pass owes these
 
 Where the fix pass judges instead that `routing.md` states no present fact a fix can contradict, the other repair is to drop `routing.md` from the crafter's read set at `agents/crafter.md:166` and from its list of files it does not write at `:168-169`. Either way, it says which in its answer.
 
+```seal
+verdict: fixed ad41ec7a8
+answer: Holds, and `routing.md` stays in the crafter's read set: its `## Why this way` and `Branch` row state present facts a fix can contradict, and the orchestrator writes it. The fold sentences at `skills/implement/orchestration.md:58-71` take a statement "in a file the crafter does not write, a frame file or `routing.md`" and read each such file whole. The hand-over no longer names "the crafter that made the fix": I wrote it in my own words rather than the paste-ready "the implementer, the crafter that wrote ...", because `skills/code-review/orchestration.md` defines the implementer as the crafter of the last commit a round reviewed, which no fold after a phase or an issue comment has. The orchestrator now hands the statement to "a fix pass", which "is the crafter that wrote the work item's last build or fix commit, resumed or spawned fresh as" the review skill's section on that choice states, so its context threshold applies. `skills/code-review/orchestration.md:74-80` names "a frame or `routing.md` statement" in both places and folds "it". `agents/crafter.md` step 10 says "each statement named for the orchestrator". The pins at `tests/text/test_the_rules_have_one_owner.py:383-396` follow, each seen red with its clause reverted by `seal mutate` (2 of 2). `changelog.md`'s entry and second process row now name `routing.md` and the fix pass (`ad41ec7a8`). `frame/design.md` *Scope* items 4, 5 and 6 and S2 are named in the hand-back for the orchestrator to fold.
+```
+
 ### 3. Rule 12 no longer asks a hand-back to say where the open part of an open class is kept, so that part may be named nowhere
 
 ```seal
@@ -99,6 +109,11 @@ The wording keeps S1 true, since no line then holds "open part of a sample" (`fr
 - `seal/threads/1793721630-the-party-that-fixes-checks-its-fix-first/changelog.md:3`: "Rule 12 no longer lets a party hand on the rest of a list by saying where the open part of a sample stands" becomes a sentence saying that a closed list's rest is no longer handed on that way, and that an open class's hand-back still names where its open part is kept.
 - `agents/crafter.md:175`, "that list is a sample, and the hand-back calls it one": the fix pass judges whether the crafter's rule also names where the tree-wide sample's open part goes, a leftover for `seal/follow-up.md` named in the hand-back as step 10 already allows, or whether rule 12's sentence is enough. It says which in its answer.
 - `frame/design.md` *Scope* item 1 (`:42-44`) and the *Removes* row at `:98` state the old wording. They are the orchestrator's to fold, and the fix pass names them in its hand-back.
+
+```seal
+verdict: fixed ad41ec7a8
+answer: Holds. The issue's item 2 keeps a sample only for an open class, and contract rule 4 asks every deferral to name where it goes, so the open part's location goes back for the open class alone. I wrote rule 12's sentence in my own words: the paste-ready "names where that open part is kept, which is never the proofer's review" has no antecedent for "that open part" and reads "kept" as a record the old text did not ask for. `skills/agent-contract/SKILL.md:167-171` now says the hand-back "says where the part of the class its list did not reach stands", and "Neither the part a sample did not reach nor what you did not finish is the proofer's share". S1 still prints the "proofer's share" line alone. `agents/crafter.md:176-177` applies it to the tree-wide sample, "calls it one and says where the part it did not reach stands", pinned in `tests/text/test_a_moved_rule_leaves_its_definition.py` and seen red with that clause reverted. `changelog.md:3` and its first process row say a closed list's rest is no longer handed on and an open class's still says where it stands (`ad41ec7a8`, `f70ee91e4`); `gaps.md` row 1 follows (`908706952`). `frame/design.md` *Scope* items 1 and 2 and the *Removes* row are named in the hand-back for the orchestrator to fold.
+```
 
 ## Confirmations
 
