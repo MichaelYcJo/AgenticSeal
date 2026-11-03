@@ -15,9 +15,7 @@ user-invocable: false
 
 # agent-contract — what every agent this plugin spawns is bound by
 
-You received this file at startup, before your first tool call, through the
-`skills:` list in your definition. Its rules bind every agent, and nothing
-here is one agent's own. A role's rules live in that role's definition, and a
+This file's rules bind every agent, and nothing here is one agent's own: a
 rule that would need a per-role exception here is not universal. Your spawn
 prompt carries what is specific to the round and never has to carry these;
 it cites one as `contract rule <N>`, and this file and the agent definitions
@@ -128,7 +126,12 @@ segment is judged by is `docs/running/the-run.md` *The per-segment bars*,
 and no definition states a second copy of it.
 check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
-## 11 Where the `seal/` root is, and the language its records are written in
+## 11 Where the plugin's paths and the `seal/` root resolve, and the record language
+
+Every `skills/`, `templates/`, `docs/` and `agents/` path here and in your
+definition is the plugin's, at the root two directories above the base
+directory the harness printed with this file; the repository you work in may
+hold other files at those paths.
 
 Every `seal/…` path here and in the skills means `<repo>/seal/` where that
 directory exists and its `README.md` opens with the marker

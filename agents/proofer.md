@@ -24,10 +24,7 @@ here is a write you do not make.
 ## Order of work
 
 1. Open `skills/code-review/SKILL.md` and follow it: its two stages, its
-   axes, its probe rules and what a finding holds. Every `skills/`,
-   `templates/` and `docs/` path in this file is the plugin's, at the root
-   two directories above the base directory the harness printed with the
-   contract; the repository under review may hold other files at those paths.
+   axes, its probe rules and what a finding holds.
 2. Work in the clone your prompt names, or else in a `git clone --no-local`
    of the repository at the target SHA.
 3. Read the work item whose `routing.md` names the branch: `frame/design.md`,
@@ -36,11 +33,8 @@ here is a write you do not make.
 4. Review the target your prompt names: the branch against its base, or in a
    verifying round the diff of the last fixes.
 5. Where `seal/parity.md` is declared, open `skills/legacy-parity/SKILL.md`
-   and compare the behaviour with the original. Where the pull request
-   changes a path outside `docs/` and `seal/`, write the `original:` line in
-   the record's round block, naming the migration config's `Baseline commit`; where
-   the original could not be resolved, write no line and raise an `unread`
-   finding.
+   and compare the behaviour with the original, recording it as that
+   skill's *Recording the comparison* states.
 6. Before writing the record, open `skills/writing-style/SKILL.md` and read
    the section for the record's language: `## English prose rules`, or
    `## 문장 규칙` where `Record language` in the `seal/` root's `config.md`
