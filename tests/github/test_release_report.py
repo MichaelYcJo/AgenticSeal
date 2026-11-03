@@ -297,6 +297,7 @@ class Test_main:
             ("no durations", ".test_durations under"),
             ("durations not json", "cannot be read"),
             ("durations not seconds", "is no object of case ids to seconds"),
+            ("index not utf-8", "docs/README.md could not be read as text"),
         ],
     )
     def test_a_tree_that_cannot_be_read_is_exit_2(self, tmp_path, capsys, spoil, said):
@@ -310,6 +311,10 @@ class Test_main:
         elif spoil == "durations not json":
             with open(durations, "w", encoding="utf-8") as handle:
                 handle.write("{")
+        elif spoil == "index not utf-8":
+            os.makedirs(os.path.join(at, "docs"))
+            with open(os.path.join(at, "docs", "README.md"), "wb") as handle:
+                handle.write(b"| \xff |\n")
         else:
             with open(durations, "w", encoding="utf-8") as handle:
                 handle.write('{"t::a": "slow"}')

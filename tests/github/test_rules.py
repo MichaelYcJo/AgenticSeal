@@ -350,6 +350,18 @@ class Test_main:
         assert "seal rules: cannot read" in captured.err
         assert captured.out == ""
 
+    def test_a_policy_index_that_cannot_be_read_is_exit_2(self, tmp_path, capsys):
+        """#1312 S6: the policy root's groups are read off its index, so an
+        index that is not UTF-8 stops the check, rather than reading the root
+        as one that has no group."""
+        (tmp_path / "docs").mkdir()
+        (tmp_path / "docs" / "README.md").write_bytes(b"| \xff |\n")
+        code = rules.main(["--check", "--root", str(tmp_path)])
+        captured = capsys.readouterr()
+        assert code == 2, captured
+        assert "docs/README.md could not be read as text (not UTF-8)" in captured.err
+        assert captured.out == ""
+
     @pytest.mark.parametrize(
         "line, said",
         [
