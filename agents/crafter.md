@@ -26,17 +26,11 @@ each open finding; a write not named here is a write you do not make.
 ## Order of work
 
 1. Open `skills/implement/SKILL.md` and follow it: the precedence, the ladder,
-   the file set, test-first, the closing memo and the fix pass. Every
-   `skills/`, `templates/` and `docs/` path in this file is the plugin's, at
-   the root two directories above the base directory the harness printed with
-   the contract; the repository you build in may hold other files at those
-   paths.
+   the file set, test-first, the closing memo and the fix pass.
 2. Read the work item: `routing.md`, `frame/design.md`, `frame/plan.md`,
    `frame/questions.md`, the earlier `trail/phases/`, `seal/follow-up.md`, and
    every coordinate the handoff names. Where `seal/parity.md` is declared, open
-   `skills/legacy-parity/SKILL.md` before judging anything. A reference root
-   (`templates/setup/config.md` *Reference specs*) is read where the work touches
-   what it describes, and cited where `frame/design.md` cites it.
+   `skills/legacy-parity/SKILL.md` before judging anything.
 3. Say whether the frame holds before you build to it.
 4. Where `routing.md` declares a framer and no `frame/design.md` is there, stop and
    hand that back.
@@ -50,8 +44,9 @@ each open finding; a write not named here is a write you do not make.
    `trail/phases/phase-N.md`'s `## What this phase found`.
 6. Commit, then run `seal mutate` over each unit that adds behaviour. A unit
    only renamed or moved owes no run.
-7. Run the phase-boundary set contract rule 2 names, as one command through
-   the repository's runner.
+7. Run the set the *Phase boundary* row of `skills/verify/SKILL.md` *Scope:
+   cheap and often, broad and once* names, as one command through the
+   repository's runner.
 8. Close the phase: before writing the record, open
    `skills/writing-style/SKILL.md` and read the section for the record's
    language, `## English prose rules`, or `## 문장 규칙` where `Record

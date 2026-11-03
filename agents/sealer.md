@@ -40,9 +40,7 @@ pull request opens with that body after your verdict, or is given it where
 already open.
 Where the session has no tracker, it names a file holding the issue body too,
 and you read that file.
-Every `skills/`, `templates/` and `docs/` path in this file is the plugin's,
-at the root two directories above the base directory the harness printed with
-the contract. The base arrives as a plain branch name, which may be missing
+The base arrives as a plain branch name, which may be missing
 here or behind its remote, so resolve it once as `seal gate` does
 (`broad_gate.py#resolve_base`): take the first of `<name>@{upstream}`,
 `origin/<name>` and `<name>` that `git -C <root> rev-parse --verify --quiet`
@@ -111,10 +109,8 @@ return.
    `straight to the PR` and the diff changes a path outside `docs/` and
    `seal/`, no round record compares the change with the original, so you
    do: compare the audited commit with the original through
-   `skills/legacy-parity/SKILL.md`, then write one `original: <sha>` line in
-   your verdict block, `<sha>` being the migration config's
-   `Baseline commit`. A comparison you could not make is a `withheld`
-   verdict naming it, never a line.
+   `skills/legacy-parity/SKILL.md`, and record it as its *Recording the
+   comparison* states.
 6. **Return the file's text** as your report, every claim labelled
    `executed`, `read` or `unverified`.
 

@@ -15,15 +15,14 @@ user-invocable: false
 
 # agent-contract — what every agent this plugin spawns is bound by
 
-You received this file at startup, before your first tool call, through the
-`skills:` list in your definition. Its rules bind every agent, and nothing
-here is one agent's own. A role's rules live in that role's definition, and a
+This file's rules bind every agent, and nothing here is one agent's own: a
 rule that would need a per-role exception here is not universal. Your spawn
 prompt carries what is specific to the round and never has to carry these;
 it cites one as `contract rule <N>`, and this file and the agent definitions
-cite it as `rule <N>`. A rule number is never reused and never re-ordered: a
-rule that retires keeps its number as one line naming what replaced it, and
-a new rule takes the next number.
+cite it as `rule <N>`. A rule number is never reused and never re-ordered. A
+rule that retires leaves this file, and its number is listed here: the
+retired numbers are 8, 16 and 20. A new rule takes the number after the highest
+one used, retired or not.
 
 ## 1 Read exit codes directly, never through a pipe
 
@@ -35,13 +34,10 @@ check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
 
 ## 2 Narrow and often; the broad gate is the orchestrator's
 
-Run the tests for the slice you touched while you work, and at a phase
-boundary, in one command, the cases the phase's plan row names and the test
-modules that read a path the phase changed, whether they name it, import it
-or glob the directory that holds it. The broad gate — the full suite, the
-repository-wide lint, the typecheck — is one act, taken once after the review
-rounds settle, and no agent runs any of the three. Hand over with the
-suite labelled `unverified` and the orchestrator named as its answerer: a
+Run the tests for the slice you touched while you work. The broad gate — the
+full suite, the repository-wide lint, the typecheck — is one act, taken once
+after the review rounds settle, and no agent runs any of the three. Hand over
+with the suite labelled `unverified` and the orchestrator named as its answerer: a
 suite that is not mentioned reads as a suite that passed.
 check: tests/text/test_broad_gate_rule.py evals/behaviour/sealer/rule-sealer-no-gate/
 
@@ -84,7 +80,10 @@ record — a file that outlives the round, a cell inside one, a mark on the
 tree — is yours only where your own file names it, and a definition that
 names no write names none. Whatever a definition says, four acts are
 withheld from every agent: post nothing, push nothing, open no pull request,
-and spawn no agent. Your final output is the report, and what is done with
+and spawn no agent. A commit you do make, a probe's included, writes the
+repository's absolute path after `git -C` in a command of its own, as
+`skills/implement/SKILL.md` *A commit names its repository in the command
+that makes it* states. Your final output is the report, and what is done with
 it is the caller's act.
 check: tests/text/test_every_agent_reads_the_contract.py
 
@@ -100,12 +99,6 @@ be reused, such as the one virtual environment a test runner keeps, stays
 even when your probe's run created it. The question is whose the thing is,
 never who happened to trigger it.
 check: evals/behaviour/crafter/rule-crafter-count-words/ evals/behaviour/crafter/rule-crafter-is-palindrome/ evals/behaviour/crafter/rule-crafter-slugify/ evals/behaviour/crafter/rule-crafter-truncate/
-
-## 8 Retired: no gate reads a probe's commit
-
-Retired by #1027, which removed every gate that read a commit; nothing
-replaced it, and a probe's leavings are rule 7's.
-check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
 
 ## 9 Edits go through the `Edit` tool
 
@@ -136,7 +129,12 @@ segment is judged by is `docs/running/the-run.md` *The per-segment bars*,
 and no definition states a second copy of it.
 check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
-## 11 Where the `seal/` root is, and the language its records are written in
+## 11 Where the plugin's paths and the `seal/` root resolve, and the record language
+
+Every `skills/`, `templates/`, `docs/` and `agents/` path here and in your
+definition is the plugin's, at the root two directories above the base
+directory the harness printed with this file; the repository you work in may
+hold other files at those paths.
 
 Every `seal/…` path here and in the skills means `<repo>/seal/` where that
 directory exists and its `README.md` opens with the marker
@@ -191,20 +189,6 @@ was shown. A case that passes against the defect it was written for pins
 nothing, and reverting the fix is what catches one.
 check: none reader: the sealer at each guarantee
 
-## 16 A commit names its repository in the command that makes it
-
-Commit with the repository's absolute path written out after `git -C`, in a
-command of its own. Where a `cd` comes first, join it to the commit with `&&`
-and nothing else. A file edit is rule 9's.
-
-Your shell starts in the session's directory at every call, so a command
-reaches your worktree through a `cd`, and whatever follows a `;` or a new
-line after that `cd` also runs where a failed `cd` leaves the shell: the
-session's own directory. A commit written with its path out lands where it
-says whichever way the `cd` went, and a person reading the transcript can
-see where that is.
-check: tests/behaviour/test_a_commit_names_its_repository.py
-
 ## 17 Clean up only what you started
 
 An agent cleans up only the processes and files it started. Record the PID
@@ -225,17 +209,11 @@ check: none reader: the proofer at review
 
 ## 19 A change rewrites the text it amends in place
 
-A change rewrites the text it amends where that text stands, and in the
-same commit removes or corrects what stood on the old fact — every other
-sentence, case and citation stating it, found at least with `git grep` on
-its words. Where none of rule 12's three methods listed them, the list is a
-sample, and the hand-back says so as rule 12 asks. A correction written beside the
-sentence it corrects leaves both for the next reader to choose between.
-check: none reader: the proofer at review
-
-## 20 Retired: do not avoid the change a problem calls for
-
-Retired by #1312: `skills/core/SKILL.md` *The rule a mechanism is kept
-against* states it, and a conclusion to keep a structure checks the premise
-that keeps it.
+`skills/core/SKILL.md` *The rule a mechanism is kept against* states the
+rule. What stood on the old fact, which the same commit removes or
+corrects, is every other sentence, case and citation stating it, found at
+least with `git grep` on its words. Where none of rule 12's three methods
+listed them, the list is a sample, and the hand-back says so as rule 12
+asks. A correction written beside the sentence it corrects leaves both for
+the next reader to choose between.
 check: none reader: the proofer at review

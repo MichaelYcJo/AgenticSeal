@@ -3,46 +3,23 @@
 Issue #82. A review agent spawned to run round 1 wrote probes that committed
 with shell variables, two of them reached a user who was not driving the
 session as permission prompts inside five minutes, and the agent was stopped
-to end them. The shapes that avoided the prompt became contract rule 8, and
-#1027 retired that rule: no gate reads a commit any more, so a probe's commit
-reaches nobody. What stays is rule 7's: a probe leaves nothing behind, and
-its files are edits under rule 9. The cases below hold that each definition
-that once pointed at rule 8 points at what is left, and that the old shapes
-are gone with it.
+to end them. The shapes that avoided the prompt became a contract rule, and
+#1027 retired it: no gate reads a commit any more, so a probe's commit
+reaches nobody. Its number, 8, is one the contract's preamble lists as
+retired. What stays is rule 7's: a probe leaves nothing behind, and its
+files are edits under rule 9. A commit a probe makes in its clone writes the
+clone's path after `git -C`, as rule 6 states and
+`tests/behaviour/test_a_commit_names_its_repository.py` holds. The cases
+below hold that each definition that once pointed at rule 8 points at what
+is left.
 """
 
-import os
-
 from conftest import read
-from test_the_agent_contract_holds_the_universal_rules import HEADING
-
-CONTRACT = os.path.join("skills", "agent-contract", "SKILL.md")
-
-
-def section(number):
-    """Rule N's body, so a shape that drifts into another rule is not a pass."""
-    text = read(CONTRACT)
-    heads = list(HEADING.finditer(text))
-    for i, m in enumerate(heads):
-        if int(m.group(1)) != number:
-            continue
-        end = heads[i + 1].start() if i + 1 < len(heads) else len(text)
-        return " ".join(text[m.end() : end].split())
-    raise AssertionError(f"the contract has no rule {number}")
-
-
-def test_the_retired_rule_keeps_its_number_and_none_of_its_shapes():
-    """#1027. The numbering rule keeps rule 8 as one line; a shape left in it
-    would send a probe after a gate that is gone."""
-    body = section(8)
-    assert "Retired by #1027" in body
-    for gone in ("subprocess.run", "git -C /abs/path/r1", "[no-review]", "keyboard"):
-        assert gone not in body, f"rule 8 still carries {gone!r}"
 
 
 def test_no_definition_points_a_probe_at_the_retired_rule():
-    """A pointer at rule 8 now reaches one line that says nothing about how
-    to probe; each definition that had one points at rules 7 and 9."""
+    """A pointer at rule 8 now reaches a retired number and no section; each
+    definition that had one points at rules 7 and 9."""
     for name in ("proofer.md", "tracer.md", "crafter.md"):
         text = " ".join(read("agents", name).split())
         assert "rule 8" not in text, f"agents/{name} still points at rule 8"
