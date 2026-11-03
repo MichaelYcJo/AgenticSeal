@@ -57,6 +57,14 @@ they share is text, so every sentence an agent or a check reads has one
 reading, by the rules `skills/writing-style/SKILL.md` *에이전트와 검사가
 읽는 글은 한 가지로만 읽히게 쓴다* states.
 
+**A document is cut by who opens it and at which step, so a party opens
+only what its step needs.** A party pays for every byte of each file it
+opens, on every spawn that opens it. A form two parties exchange has one
+home that both cite. Text no agent acts on, such as a hook's edge cases,
+stands in the code's docstring or in a document only a person opens. A
+skill's `SKILL.md` holds what every invocation needs and names each
+supporting file with the step that opens it.
+
 **A rule is guidance for a judgment, not a sequence to execute.** The
 orchestrator and the agents it spawns read a rule for what to weigh, what
 each option costs, and which signals say a path is not converging. A rule
@@ -82,13 +90,7 @@ catch the same defect, the one that stops to ask a person costs more, and
 the design that asks argues why its question is worth that cost. Whatever
 needs a person is asked once, together, before the first edit, as
 `skills/implement/orchestration.md` *Orchestrator: what needs a person is
-asked in one batch, before the first edit* states with its reasoning. The
-routing question is one of that batch, and the orchestrating session puts
-the routing question as
-`skills/implement/orchestration.md` *Orchestrator: how the work is routed*
-states; in a repository opted in by its `seal/` root,
-`hooks/routing-edit-gate.py` refuses the first edit until the routing
-question is answered.
+asked in one batch, before the first edit* states with its reasoning.
 
 **Judgment is not licence to skip a party.** A few invariants hold the chain
 and are not open to judgment. Each names what it protects and is held by a
@@ -103,11 +105,11 @@ one of those protections, is guidance.
 | No seal without the broad run at HEAD | the sealer guarantees a tree the repository's `Broad gate` row in `seal/config.md` passed at HEAD | `agents/sealer.md` step 1 withholds without `trail/gate.md` at HEAD; the same check's broad gate arm |
 | No pull request without a seal | nothing reaches the base that the last independent party did not guarantee | the same check's guarantee arm: a ready pull request fails without `Verdict: sealed` at HEAD |
 
-The check refuses only a ready pull request, where first setup or `seal
-pr-checks install` put its workflow in the tree; before the pull request,
-and in local mode, the last four rows are held by `agents/sealer.md` step 1
-and by the orchestrator keeping `skills/code-review/orchestration.md`
-*Orchestrator: the pull request opens once the sealer seals*.
+The check refuses only a ready pull request, where its workflow is
+installed; before the pull request, and in local mode, the last four rows
+are held by `agents/sealer.md` step 1 and by the orchestrator keeping
+`skills/code-review/orchestration.md` *Orchestrator: the pull request opens
+once the sealer seals*.
 
 ## The rule a mechanism is kept against
 

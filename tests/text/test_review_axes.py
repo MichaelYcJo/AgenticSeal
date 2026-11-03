@@ -1,7 +1,6 @@
 """What a review round reads beside its diff: the comparison's record and
 the original's resolution order in `legacy-parity`, an earlier round's
-`executed` line, a record older than a line of the grammar, and where the
-routing question is asked.
+`executed` line, and a record older than a line of the grammar.
 
 The comparison axes themselves are the proofer's to walk and to read: a
 table of them pinned by its row labels turned red at a rewording and said
@@ -54,29 +53,6 @@ def test_the_resolution_order_ends_with_the_caller_asking():
         "A comparison against a guessed original proves nothing.",
     ):
         assert clause in body, f"the resolution order lost {clause!r}"
-
-
-def test_the_core_names_where_the_routing_question_is():
-    """#1177: the core reaches every session and every agent, so it is where
-    a session that has opened no skill learns which section states the
-    routing question and which hook holds it. The core's paragraph on asking
-    a person cites both by path; what it says of the batch is the proofer's
-    to read."""
-    core = " ".join(read("skills", "core", "SKILL.md").split())
-    asking = core.split("**Asking a person is the most expensive step.**", 1)
-    assert len(asking) == 2, "the core lost its paragraph on asking a person"
-    paragraph = asking[1].split("**", 1)[0]
-    # The citation a session resolves to the section that asks the routing
-    # question.
-    assert (
-        "`skills/implement/orchestration.md` *Orchestrator: how the work is routed*"
-        in paragraph
-    ), "the core does not name the routing section"
-    # The path of the hook that refuses the first edit, which a session
-    # opens when the refusal arrives.
-    assert "`hooks/routing-edit-gate.py`" in paragraph, (
-        "the core does not name the hook that refuses the first edit"
-    )
 
 
 def test_a_later_round_re_runs_an_executed_line():

@@ -6220,7 +6220,6 @@
     "tests/text/test_no_passage_is_pasted_into_a_second_file.py::test_the_corpus_is_found": 0.065044400000005,
     "tests/text/test_review_axes.py::test_a_later_round_re_runs_an_executed_line": 0.002899099999979171,
     "tests/text/test_review_axes.py::test_a_record_written_before_a_line_was_added_is_no_finding": 0.0021131000000025324,
-    "tests/text/test_review_axes.py::test_the_core_names_where_the_routing_question_is": 0.0012789999999824886,
     "tests/text/test_review_axes.py::test_the_record_of_a_comparison_names_its_writer": 0.0011068000000307165,
     "tests/text/test_review_axes.py::test_the_resolution_order_ends_with_the_caller_asking": 0.0010575000000017099,
     "tests/text/test_review_axes.py::test_the_routing_section_holds_the_answers_and_the_shape": 0.0015877999999815984,
