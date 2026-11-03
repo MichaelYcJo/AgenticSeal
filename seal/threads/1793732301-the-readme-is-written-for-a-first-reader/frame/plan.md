@@ -111,5 +111,4 @@ The arxiv study link (2602.11988) stays, in *How it works*, because `CONTRIBUTIN
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
 | 2026-11-04 | `frame/design.md` *Data & interfaces* names the edit phase 1 made to `assets/seals/README.md`'s opening sentence; the orchestrator folds it before phase 2, and the orchestrator viewed the committed `assets/seals/owl-social.png` (the whole seal centred on the field) | `trail/phases/phase-1.md` names the departure with its grounds (contract rule 19); the orchestrator read `frame/design.md` whole against HEAD and found no other statement phase 1 contradicts | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |
