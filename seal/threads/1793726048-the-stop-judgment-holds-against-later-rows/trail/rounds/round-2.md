@@ -44,6 +44,11 @@ The statements of the definition, listed by taking apart the files that state it
 
 The snippet replaces `:132-141`, whose last line ends "opens no finding for it. A comment and". The line after it, `:142`, opens "a name of such a case" and stays as written. `tests/behaviour/test_docs_line_wrap.py` reads the width, and the fix pass runs it.
 
+```seal
+verdict: fixed bffc022d6
+answer: The finding holds: round 1's paste-ready "is such a case" made the frame's example a rule beside the definition, and round 1's fix pass applied it as given. This pass read round 2's snippet against *Scope* item 3's first point and the bullet before it and did not apply it as given. Its "such as a test of a helper the work moved" still lists that test under the definition without its condition, so the moved helper whose behaviour an acceptance row states, the case this finding names, would read two ways again. The bullet now keeps the example and states its condition, in this pass's own words: "A test of a helper the work moved, or wrote beside its *Scope*, is such a case only where no *Scope* item, acceptance row or `check:` line states what the helper does." The next sentence opens "A parameter in such a case", because "it" would otherwise refer to the helper. The bullet's lines from there to "bullet above." are rewrapped, and `tests/behaviour/test_docs_line_wrap.py` with `tests/text/test_the_rules_have_one_owner.py` exited 0 (executed). The changelog fragment and `agents/proofer.md:139-141` state no example and needed no change.
+```
+
 ### 2. The fold added entries and points to the frame and left the counts and ordinals that name them, so two *Removes* rows point at the wrong `change`
 
 ```seal
@@ -100,6 +105,11 @@ becomes "must share no run of 15 words with any of those `to` values (S7)."
 ```
 
 Where the fix stops: `## Rule changes` itself is not touched, so `rule_changes.py` reads the same three entries. The fix touches only the work item's records, so the round that reads it is the sealer, by the table of `skills/core/SKILL.md` *Judgment is not licence to skip a party*.
+
+```seal
+verdict: fixed 71078b4cb
+answer: The finding holds; the miscount was the orchestrator's own fold at 679d00927, so the orchestrator answers it in the records. Each *Removes* row now names its `change` by the opening words of its `from`, which leaves no ordinal to drift as entries are added, and G13, S1, S7, the closing paragraph of *Removes* and `frame/plan.md` *Technical context* count three changes and seven points. `## Rule changes` itself is unchanged. `frame/plan.md` *Judgments of the run* row 3 records it.
+```
 
 ## Confirmations
 
