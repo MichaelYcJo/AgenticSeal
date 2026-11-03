@@ -130,7 +130,7 @@ seal mutate <file> --replace "<old>" "<new>" --tests "<the runner> <module> -k <
 Each run is bounded at 300 s unless `--timeout` says otherwise, and a
 timed-out run is a result to report. Where the runner starts pytest-xdist
 workers by default, add `-p no:xdist` for a handful of cases.
-`skills/verify/SKILL.md` carries the verdicts and their exit codes.
+`skills/verify/seal-mutate.md` carries the verdicts and their exit codes.
 check: tests/behaviour/test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py tests/skills/test_mutation_check.py
 
 **A stop at three failed fixes is handed back.** The rule is

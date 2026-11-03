@@ -73,10 +73,11 @@ def test_the_crafters_definition_names_the_command_and_its_flag():
 
 def test_the_verify_skill_says_what_each_verdict_means_and_what_the_bound_ends():
     """The section a reader opens to learn the command: its verdicts with
-    their exit codes, its bound, and what that bound ends on each platform."""
-    skill = flat("skills", "verify", "SKILL.md")
-    start = skill.index("#### `seal mutate`")
-    section = skill[start : skill.index("### 3. Bound to the tree")]
+    their exit codes, its bound, and what that bound ends on each platform.
+    The section is `skills/verify/seal-mutate.md`'s since #1312, and runs to
+    the end of that file."""
+    skill = flat("skills", "verify", "seal-mutate.md")
+    section = skill[skill.index("## `seal mutate`") :]
     for said in (
         "seal mutate <file> --replace",
         "`red`, exit 0",
@@ -112,4 +113,4 @@ def test_the_default_bound_is_the_one_both_documents_state(tmp_path, monkeypatch
     assert seen["timeout"] == mc.DEFAULT_TIMEOUT == 300.0
     bound = f"{mc.DEFAULT_TIMEOUT:g}"
     assert f"bounded at {bound} s unless `--timeout`" in flat("agents", "crafter.md")
-    assert f"{bound} seconds by default" in flat("skills", "verify", "SKILL.md")
+    assert f"{bound} seconds by default" in flat("skills", "verify", "seal-mutate.md")

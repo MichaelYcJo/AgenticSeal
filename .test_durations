@@ -66,7 +66,7 @@
     "tests/behaviour/test_a_document_that_names_a_script_says_how_to_reach_it.py::test_a_document_naming_a_script_with_a_command_says_how_to_reach_it[skills/implement/acts.md::pr_body.py]": 0.0018087999999920612,
     "tests/behaviour/test_a_document_that_names_a_script_says_how_to_reach_it.py::test_a_document_naming_a_script_with_a_command_says_how_to_reach_it[skills/implement/bootstrap.md::seal.py]": 0.0009739000000195119,
     "tests/behaviour/test_a_document_that_names_a_script_says_how_to_reach_it.py::test_a_document_naming_a_script_with_a_command_says_how_to_reach_it[skills/settle/SKILL.md::settle.py]": 0.001065799999992123,
-    "tests/behaviour/test_a_document_that_names_a_script_says_how_to_reach_it.py::test_a_document_naming_a_script_with_a_command_says_how_to_reach_it[skills/verify/SKILL.md::mutation_check.py]": 0.0011618999999711832,
+    "tests/behaviour/test_a_document_that_names_a_script_says_how_to_reach_it.py::test_a_document_naming_a_script_with_a_command_says_how_to_reach_it[skills/verify/seal-mutate.md::mutation_check.py]": 0.0011618999999711832,
     "tests/behaviour/test_a_document_that_names_a_script_says_how_to_reach_it.py::test_a_document_naming_a_script_with_a_command_says_how_to_reach_it[skills/verify/orchestration.md::broad_gate.py]": 0.0010678999999811367,
     "tests/behaviour/test_a_document_that_names_a_script_says_how_to_reach_it.py::test_a_document_naming_a_script_with_a_command_says_how_to_reach_it[skills/verify/orchestration.md::session_cost.py]": 0.0012935000000311447,
     "tests/behaviour/test_a_document_that_names_a_script_says_how_to_reach_it.py::test_a_document_naming_a_script_with_a_command_says_how_to_reach_it[skills/writing-style/outside-the-review.md::pr_body.py]": 0.0011752999999998792,
