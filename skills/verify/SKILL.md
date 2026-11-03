@@ -42,10 +42,10 @@ Show the check CAN go red. For a bug fix: the reproduction failed before the
 change (or fails when the change is reverted). For a new test: it was
 observed failing against the pre-change code, and a new test that passes
 there, such as one asserting that nothing is named, is shown red the way
-contract rule 15 states. A check that has never been
-seen red is a counterfeit seal. This is the condition generic gates skip,
-and the one that catches assertion-free tests, mocked-away behavior, and
-wrong-file test runs.
+contract rule 15 states. A check that has never been seen red is a
+counterfeit seal. This is the condition generic gates skip, and the one
+that catches assertion-free tests, mocked-away behavior, and wrong-file
+test runs.
 
 #### An absence claim is only as good as the search behind it
 

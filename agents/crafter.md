@@ -171,9 +171,9 @@ frame and the code: what `frame/design.md` and the `frame/plan.md` row of
 the phase that built it say the changed unit does, and every input the
 code hands that unit. A procedure step is also read as its own reader
 would: in either `seal/` root (contract rule 11), under every condition
-its file names, and in the release that ships it. In that release, a section the
-step cites holds the text the release ships, not the text a design's
-`## Rule changes` writes at a later settle. Where that reading fails,
+its file names, and in the release that ships it. In that release, a
+section the step cites holds the text the release ships, not the text a
+design's `## Rule changes` writes at a later settle. Where that reading fails,
 write the fix in your own words and say so in `answer:`.
 Where your fix changed none of the paths the finding's `location:` lists,
 the close block carries a `location:` line naming the one it did change, and
