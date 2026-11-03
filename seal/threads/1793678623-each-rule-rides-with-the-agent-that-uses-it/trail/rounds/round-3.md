@@ -110,6 +110,11 @@ row hands to this question, and whether it took the form the moved text
 states
 ```
 
+```seal
+verdict: fixed e896e0e33
+answer: The finding holds. My round 2 close named rows 10 and 15 from memory, and that was a sample. This time the rows were listed by command: `git grep -n Q1 -- seal/threads/1793678623-each-rule-rides-with-the-agent-that-uses-it/gaps.md` (executed). It lists five rows: 7, 10, 11, 14 and 15, and no other row of `gaps.md` names Q1. Each row was read whole against Q1 at HEAD, which 7f36b8d33 widened (read). 7f36b8d33 rewrote Q1 in the orchestrator's own words and did not use the snippet. Row 7 asks whether an agent that adds a rule takes the number after the highest used, which Q1 now asks. Its second question said "a session reading an old record's rule 8 or rule 20", while Q1 asks about an agent reading rule 8, 16 or 20. So e896e0e33 rewords the row to "an agent reading an old record's rule 8, 16 or 20". Q1's measurement reads agents' transcripts, so a session was a reader it never opens, and 16 is a number this work retired after phase 1 wrote the row. Row 10, the crafter's phase-boundary runs and its `git -C` commits, matches Q1's crafter set and its every-agent commit form. Row 11 names three acts, and Q1 now names each of them. They are paths resolved at the plugin's root through rule 11, the parity record written from `skills/legacy-parity/SKILL.md` *Recording the comparison*, and a reference root read from `skills/implement/SKILL.md` *Document layout*. Row 14, a framer's or a probe's `git -C` commit, matches Q1's every-agent commit. Row 15, what a spawn pays under 0.30.1, matches Q1's installed preload and the `preload` rows. One part of Q1 is the frame's, and I did not change it. Its options cell lists the measurements, but reading an old rule 8, 16 or 20 as retired is not among them, while its question asks that.
+```
+
 ## Confirmations
 
 ```seal
