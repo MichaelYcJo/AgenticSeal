@@ -161,9 +161,9 @@ class TestDefinition:
         assert "`trail/gate.md`" in step, step
         # The `git` arguments the sealer runs to list what followed the run.
         assert "log --no-merges --name-only <named>..HEAD ^<base>" in step, step
-        # The citation `chain_check.py#follows`, the reader the sealer
-        # resolves to judge those paths as the check does.
-        assert "`chain_check.py#follows`" in step, step
+        # The citation of `follows`, the reader the sealer resolves to judge
+        # those paths as the check does.
+        assert "`skills/code-review/scripts/chain_check.py#follows`" in step, step
         # The verdict line `hooks/lib/fields.py` parses, as the sealer writes it.
         assert "`Verdict: withheld reason: no broad run at HEAD`" in step, step
         # Round 2 of #969, finding 1: the base arrives as a plain branch name,

@@ -57,9 +57,9 @@ return.
 1. **Read the gate's record.** Open `trail/gate.md` in the work item's
    directory, take its newest run's commit, the first word of the `run:`
    line in its last `seal` block, and run
-   `git -C <root> log --no-merges --name-only <named>..HEAD ^<base>`;
-   `docs/checks/the-pull-request-check.md` *What the check reads at the pull
-   request* is the rule it applies, as `chain_check.py#follows` reads it.
+   `git -C <root> log --no-merges --name-only <named>..HEAD ^<base>`; the
+   rule it applies is the one
+   `skills/code-review/scripts/chain_check.py#follows` reads.
    - **At HEAD, or followed only by paths under `seal/threads/<item>/`**: go
      on.
    - **Absent, a commit that does not resolve or is not an ancestor of HEAD,
