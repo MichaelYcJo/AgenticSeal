@@ -201,13 +201,19 @@ def test_the_fix_pass_reads_the_implementers_context_before_it_resumes():
         "the largest value of its `context` column",
         "hands it the round record and the phase records",
         "the largest context a fresh, never-resumed crafter reached in the 0.22.0 run",
-        # #1041, S1: the fix pass writes its closes last, after the sweep's
-        # corrections, and commits none, since the orchestrator commits them
+        # Round 2 of #1318, finding 1: the fold takes each file that holds a
+        # named statement, read whole, never the one statement alone.
+        "the orchestrator folds each file that holds such a statement, read "
+        "whole, as `skills/implement/orchestration.md` *Orchestrator: the "
+        "order inside a ticket* states",
+        # #1041, S1: the fix pass writes its closes last, after the
+        # corrections its read of its range and the records made (#1318), and
+        # commits none, since the orchestrator commits them
         # (`agents/crafter.md` *A fix pass appends close blocks*); a doubt
         # goes to the next round rather than into a rewrite of the block.
         # #1198 made the two lines one close block.
         "Last, the fix pass appends the close block of every finding it "
-        "answered, after its fix commits and those corrections",
+        "answered, after its fix commits and the corrections its read made",
         "and leaves the round record uncommitted",
         "That commit holds `trail/rounds/round-N.md` alone.",
         "A close the orchestrator doubts goes into the verifying round's spawn prompt",
@@ -378,6 +384,21 @@ def test_a_decision_after_the_frame_is_folded_into_it():
         "the orchestrator keeps one line of its own in `plan.md`",
         "naming the comments to fold, below the title,",
         "folds the decision into the issue body",
+        # #1318, Scope item 5: #1234's fold widened only the *Scope* item a
+        # finding named, so a fold reads the file whole, and the records
+        # after its commit. Round 1 of #1318, finding 2: the files a crafter
+        # names are the frame's and `routing.md`, and the party a record's
+        # statement goes back to is found after a phase or an issue comment
+        # too, where no fix was made.
+        "in a file the crafter does not write, a frame file or `routing.md`, "
+        "the orchestrator reads each such file whole against HEAD, not only "
+        "the named line, and rewrites every statement HEAD contradicts",
+        "After the fold commit, the orchestrator reads that commit and each "
+        "file of the work item's directory that states the present whole "
+        "against HEAD",
+        "the orchestrator hands it to a fix pass before it spawns the next "
+        "round or phase. The fix pass is the crafter that wrote the work "
+        "item's last build or fix commit",
     ):
         assert said in order, f"the order no longer says {said!r}"
 
