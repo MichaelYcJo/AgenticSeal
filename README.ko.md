@@ -5,8 +5,8 @@
 
 # AgenticSeal
 
-아무에게도 묻지 않고 변경을 설계하고, 만들고, 검사한 뒤 seal 을 남기는 에이전트
-워크플로입니다. seal 은 커밋 하나에 묶입니다.
+아무에게도 묻지 않고 변경을 설계하고, 만들고, 검사한 뒤, 커밋 하나에 묶인
+seal 을 남기는 에이전트 워크플로입니다.
 
 [![tests](https://github.com/MichaelYcJo/AgenticSeal/actions/workflows/test.yml/badge.svg)](https://github.com/MichaelYcJo/AgenticSeal/actions/workflows/test.yml) · [English](./README.md) · **한국어**
 
