@@ -14,8 +14,11 @@ description: |
 
 # settle — write each section's latest decision
 
-A work item's design states the rules its work changes in its `## Rule
-changes` section, and the section is reviewed with the design. The
+Where its subject is the code, a work item's design states the rules the
+work changes in its `## Rule changes` section, and the section is reviewed
+with the design. A work item whose subject is the policy root edits the root
+in its own pull request (`skills/implement/SKILL.md` *Document layout — two roots, three
+lifetimes*). The
 section's grammar, the shape of a rule and the index are
 `skills/settle/rule-changes.md`, which the design's author opens to write
 the section and the settling session opens before step 4 of the procedure.

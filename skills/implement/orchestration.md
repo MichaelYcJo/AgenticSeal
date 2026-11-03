@@ -469,7 +469,7 @@ below:
 |---|---|
 | Doable within this pull request | done now, by the party that builds the work item, and reviewed by a verifying round before the broad run, unless every finding it closes is located in the work item's records and it touched nothing else |
 | Waiting on prerequisite work | `seal/follow-up.md` |
-| Needs a decision | An `add` in `frame/design.md`'s `## Rule changes` to the policy document's open-questions section |
+| Needs a decision | the policy document's open-questions section: written there directly where the work item's subject is the policy root, and otherwise an `add` in `frame/design.md`'s `## Rule changes` (`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*) |
 
 Each finding that moves out reads `deferred <home>` in its round record. The
 records themselves stay through the merge, and leave with their work item's
@@ -486,7 +486,7 @@ repository.
 | What the orchestrator has | Where the orchestrator writes it |
 |---|---|
 | a decision about the work item in progress or a file it changes, with its grounds | the work item's records, as `skills/core/SKILL.md` *A judgment stands on a source document, and is written down with both* states |
-| a lesson about how an act is done | the file the act is read from, through the work item in progress where that work item changes the file: a skill or an agent definition edited in place, or a policy document through the work item's `## Rule changes` (`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*) |
+| a lesson about how an act is done | the file the act is read from, through the work item in progress where that work item changes the file: a skill or an agent definition edited in place, or a policy document, edited in place where the work item's subject is the policy root and through its `## Rule changes` otherwise (`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*) |
 | a lesson or a decision whose home no work item in progress changes | an issue that names the home, in the tracker of the repository that holds the home. Where the home is a file the plugin ships and the run is in another repository, the orchestrator names the lesson and the file in its report to the person, who can take it to the tracker the plugin's `.claude-plugin/plugin.json` names under `repository`; it edits no installed copy, which stays on one machine and is replaced at the next update |
 | a reading of what a segment cost | the log `skills/verify/orchestration.md` *Measure the segment, and feed the flow log* names for that reading |
 

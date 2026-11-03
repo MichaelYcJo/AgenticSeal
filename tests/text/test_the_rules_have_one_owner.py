@@ -452,9 +452,8 @@ def test_the_orchestrators_run_judgments_are_rows_of_the_plan():
     weighs, and each goes to one row of the plan's table, which the
     settle's dry run reads. Each place the orchestrator acts from cites
     that table, and the citation is what this reads; the signals the cap
-    names are the proofer's to read. *The run* in the policy root changes
-    at the settle, so this reads the two skill files the orchestrator acts
-    from."""
+    names are the proofer's to read. This reads the two skill files the
+    orchestrator acts from, not `docs/running/the-run.md` *The run*."""
     text = flat(*ORCH)
     run = text[
         text.index("## Orchestrator: the run ends with a verifying round") : (

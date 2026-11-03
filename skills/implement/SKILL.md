@@ -143,8 +143,10 @@ it or dropping it.
   be that prerequisite.** If so, include the item in this change and delete its
   row; what remains in that file is the definition of remaining scope.
 - Verify clause numbers a ticket cites. Tickets are written before (or drift
-  from) the documents they cite; a missing clause is an `add` in the design's
-  `## Rule changes`, with a freshly allocated number.
+  from) the documents they cite; a missing clause gets a freshly allocated
+  number, as an `add` in the design's `## Rule changes`, or written in place
+  where the work item's subject is the policy root (*Document layout — two
+  roots, three lifetimes* above).
 - A spawn prompt's facts arrive under `docs/running/the-run.md`'s
   handoff: coordinates rather than prose, each fact labelled
   executed, read, or unverified. What a fact with neither is, and why an

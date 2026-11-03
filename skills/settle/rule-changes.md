@@ -8,9 +8,11 @@ and the index each `file:` is picked from.
 
 ## Rule changes
 
-A work item's design states the rules it changes in its `## Rule changes`
-section, one item per operation. The operation's line comes first, then one
-field per line, indented two spaces:
+A work item whose subject is the code states the rules it changes in its
+design's `## Rule changes` section, one item per operation; which work item
+edits the policy root directly instead is `skills/implement/SKILL.md`
+*Document layout — two roots, three lifetimes*'s. The operation's line
+comes first, then one field per line, indented two spaces:
 
 ```
 - change

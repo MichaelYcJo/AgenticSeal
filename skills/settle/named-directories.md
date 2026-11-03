@@ -48,8 +48,11 @@ reading the document whole with the code it bears on:
   settle's pull request body holds the document's row marked `skip`, and
   the document's last change is a commit that settle's merge commit reaches
   (`git merge-base --is-ancestor <last change> <merge commit>` exits 0). The
-  session finds the last settle's pull request from the last commit that
-  changed the policy root. Every other document is new, a document no
+  session finds the last settle's pull request from the latest settle's
+  commit among those that changed the policy root, since a work item whose
+  subject is the policy root changes it too (`skills/implement/SKILL.md`
+  *Document layout — two roots, three lifetimes*). Every other document is
+  new, a document no
   commit adds among them.
 
 **The second question puts the numbered table to the person once**, before
