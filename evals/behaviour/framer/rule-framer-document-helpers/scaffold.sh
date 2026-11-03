@@ -66,7 +66,6 @@ cat > 'seal/threads/1790000024-document-helpers/routing.md' <<'AGENTIC_EOF'
 | Planning | framer |
 | Implementation | crafter |
 | Automation | yes |
-| Answer pressed | automation |
 | Branch | feat/document-helpers |
 AGENTIC_EOF
 git add -A

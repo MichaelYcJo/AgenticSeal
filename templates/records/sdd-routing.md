@@ -7,7 +7,6 @@
 | Planning | <framer, or: the session> |
 | Implementation | <crafter, or: the session> |
 | Automation | <yes, or: no> |
-| Answer pressed | <automation, or: per axis> |
 | Branch | <the branch this work item is being built on> |
 
 Answered <date> by <who>, before the first edit.

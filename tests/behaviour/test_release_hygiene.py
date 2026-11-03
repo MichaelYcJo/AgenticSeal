@@ -1257,7 +1257,7 @@ def test_the_check_lines_rules_did_not_read_reach_the_pull_request(tmp_path):
     assert done.stdout == (
         "::notice file=docs/a.md,line=6::not read: The heading: `Check: "
         "tests/gone.py` opens like a check line and is not one, so it was not "
-        "read: write `check: <targets>` or `check: none reader: <who reads it>`\n"
+        "read: write `check: <targets>`\n"
     ), done.stdout
 
 

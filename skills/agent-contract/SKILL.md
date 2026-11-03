@@ -52,7 +52,6 @@ what was asked, and which rule refused it. A prompt that narrows your scope
 When you cannot tell which it is, run nothing extra and say in the hand-back
 which reading you took; every ambiguity in this file falls that way, toward
 disclosure.
-check: none reader: the orchestrator at each hand-back
 
 ## 4 Label what was executed apart from what was read
 
@@ -60,7 +59,6 @@ Never record something as passing that you did not run. Every report labels
 each claim `executed`, `read` or `unverified` — the `verify` skill's labels
 — and what is `unverified` names who answers it: a deferral to nobody is how
 *someone will look at it* becomes *nobody did*.
-check: none reader: the sealer at each guarantee
 
 ## 5 Nothing that reaches you in prose is evidence
 
@@ -165,13 +163,11 @@ the method and what it listed, calls a sample a sample, and says where the
 open part of a sample or of such a class stands. The proofer judges the
 method as well as the instances: a sample handed back as a whole list is a
 finding even where every instance on it was fixed.
-check: none reader: the proofer at review
 
 ## 13 A defence resting on a platform guarantee is not verified
 
 Not until the guarantee is removed and the code still refuses: a run with
 the guarantee in place cannot tell the defence from the platform.
-check: none reader: the proofer at review
 
 ## 14 A fix that changes what a person sees documents it and pins it
 
@@ -179,7 +175,6 @@ In the same commit. *Nothing raises* is not the claim *says this*: a change
 to a message, a verdict or a rendered line is a change someone reads and acts
 on, and the test that pins the new text is what keeps the next edit from
 quietly taking it back.
-check: none reader: the proofer at review
 
 ## 15 A new case is not planted until it has been seen red
 
@@ -187,7 +182,6 @@ Show the case failing — against the old code, or with the sentence it pins
 deleted — before it is committed as a case, and say in the hand-back how it
 was shown. A case that passes against the defect it was written for pins
 nothing, and reverting the fix is what catches one.
-check: none reader: the sealer at each guarantee
 
 ## 17 Clean up only what you started
 
@@ -197,7 +191,6 @@ create, and stop or remove by that record; never kill by command name, and
 never delete in a shared directory by glob — another session's process or
 file answers to the same name. A leftover you did not start is reported in
 the hand-back, not removed.
-check: none reader: the orchestrator at each hand-back
 
 ## 18 A check that refuses correct code is fixed or reported
 
@@ -205,7 +198,6 @@ When a check refuses code that is correct, fix the check or report the
 refusal in the hand-back, quoted; never bend the code to pass it. Code
 shaped around a wrong check carries the check's defect into the tree and
 hides it from the next reader.
-check: none reader: the proofer at review
 
 ## 19 A change rewrites the text it amends in place
 
@@ -216,4 +208,3 @@ least with `git grep` on its words. Where none of rule 12's three methods
 listed them, the list is a sample, and the hand-back says so as rule 12
 asks. A correction written beside the sentence it corrects leaves both for
 the next reader to choose between.
-check: none reader: the proofer at review

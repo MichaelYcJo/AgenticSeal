@@ -38,7 +38,8 @@ ALSO_APPLIES = (
 HEADING_SPAN = re.compile(r"`(## [^`]+)`")
 
 # The section that holds the three rules for text an agent or a check reads,
-# under `## 구성 규칙`, and the `check:` line each of the three ends with.
+# under `## 구성 규칙`, and its one `check:` line, which the first rule ends
+# with. The other two rules carry none.
 WRITING_RULES = "### 에이전트와 검사가 읽는 글은 한 가지로만 읽히게 쓴다"
 WRITING_RULE_CHECKS = (
     "check: tests/github/test_rules.py"
@@ -47,8 +48,6 @@ WRITING_RULE_CHECKS = (
     " tests/test_censuses.py"
     " tests/text/test_the_agent_contract_holds_the_universal_rules.py"
     " tests/behaviour/test_a_cited_section_stands_in_its_file.py",
-    "check: none reader: the proofer at review",
-    "check: none reader: the proofer at review",
 )
 
 
@@ -137,10 +136,10 @@ def section(lines, heading, level):
 
 
 def test_the_rules_for_text_an_agent_or_a_check_reads_reach_both_languages():
-    """The three writing rules for text an agent or a check reads each end
-    with its `check:` line, and a writer who opens either language section
-    alone, the orchestrator at its spawn step, and every session through the
-    core are pointed at their section.
+    """The section of the three writing rules for text an agent or a check
+    reads holds its one `check:` line, and a writer who opens either
+    language section alone, the orchestrator at its spawn step, and every
+    session through the core are pointed at the section.
 
     An agent opens one language section by range, so a rule under
     `## 구성 규칙` reaches it only through the line naming the section (S16
@@ -154,7 +153,7 @@ def test_the_rules_for_text_an_agent_or_a_check_reads_reach_both_languages():
     # modules each names, which a reader of the rules opens.
     assert checks == WRITING_RULE_CHECKS, (
         f"{SKILL} {WRITING_RULES}: its check lines read {checks}, and the "
-        f"three rules end with {WRITING_RULE_CHECKS}"
+        f"section holds {WRITING_RULE_CHECKS}"
     )
     title = WRITING_RULES[len("### ") :]
     for heading in LANGUAGE_SECTIONS:

@@ -54,8 +54,6 @@ check: tests/text/test_the_rules_have_one_owner.py
 | 3 | the finding names a party who agreed to act on it | a new issue labelled `from-review`, or a `seal/follow-up.md` row where there is no tracker; the verdict reads `deferred #N` |
 | 4 | it names nobody | the round record alone, and the pull request body |
 
-check: none reader: the sealer at every deferred verdict
-
 **On a branch whose `routing.md` reads `Automation` `yes`, the
 question tool is refused on every call.** The person who answered the
 routing question was promised that nothing stops to ask, and a
@@ -74,7 +72,6 @@ that question offers, and hands the stop back at the end of the run.
 check: tests/hooks/test_question_gate.py
 
 **The orchestrator's judgments of a run are rows of `frame/plan.md` *Judgments of the run*, each with its grounds and the document it stands on.** The decisions this section leaves to the orchestrator, to go on past the third round or to stop, a regression's route, a leftover's home, and a decision folded into the frame after the frame was committed, are judgments and not sequences, and `skills/core/SKILL.md` *A judgment stands on a source document, and is written down with both* asks that each be written where the next session reads it. The settle's dry run prints the judgment rows of the released work items and, beside them, those earlier settles removed, which the history still holds. The settling session rewrites the section where one kind of judgment keeps costing rounds, in one release or across several, and deciding that two rows are one kind is its own judgment. The framer's judgments stand in its *Alternatives considered* and the proofer's in its findings, and neither is copied here.
-check: none reader: the settling session at the dry run's judgments
 
 ## The handoff
 

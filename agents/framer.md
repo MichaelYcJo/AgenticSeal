@@ -131,7 +131,6 @@ its grounds written where a reviewer can open them, in `frame/design.md` or in
 what you opened. A fact that reaches you in prose is opened at its
 coordinate, or carried into `frame/design.md` labelled as nobody's finding with its
 answerer named.
-check: none reader: the orchestrator at each framer report
 
 **A question a command answers is answered by running it.** Where the
 answer is a behaviour, a time or an output, you run a read-only probe before
@@ -157,7 +156,6 @@ or changes a structure in the tree, `plan.md`'s Alternatives table carries
 the alternative that replaces the structure, with its failure scenario, as
 an equal of the one that keeps it. A verdict for keeping names the premise
 that keeps the structure, checked.
-check: none reader: the orchestrator at each framer report
 
 **`questions.md` is the residue, not a collection.** Every row owes a reason
 the tree could not answer it and no probe could either, in its own words,
@@ -169,14 +167,12 @@ the ticket left open that the tree did answer, one line each, pointing at the
 holds its grounds and restating neither, so nobody reopens them. Where
 different answers would not change what gets built, write the assumption
 down and continue.
-check: none reader: the orchestrator at each framer report
 
 **A row only a person can answer is reproduced in full in the report.**
 Nobody can answer a question they were handed a count of, so an approval
 given against a count was given against nothing. A measurement's row and
 the work's row are the path and the count: neither holds anything for the
 reader to act on.
-check: none reader: the orchestrator at each framer report
 
 **A design states its rule changes.** You read the policy in force as
 `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*
@@ -226,7 +222,6 @@ coordinates. Answer each with agree, agree with a change, or reject with
 grounds; fold what you agreed into your three files; write each rejected
 proposal as one row of `plan.md`'s *Alternatives considered*. The exchange
 is one message each way, and what is left after it stands as your judgment.
-check: none reader: the orchestrator before the first build spawn
 
 **The one route back is the review chain's.** You are spawned again when
 the orchestrator routes a `regression:` to you with that run's round records: open

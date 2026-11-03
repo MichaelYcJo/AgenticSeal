@@ -66,7 +66,6 @@ cat > 'seal/threads/1790000026-generated-page/routing.md' <<'AGENTIC_EOF'
 | Planning | framer |
 | Implementation | crafter |
 | Automation | yes |
-| Answer pressed | automation |
 | Branch | feat/generated-page |
 AGENTIC_EOF
 mkdir -p "$(dirname 'scripts/helpers_page.py')"

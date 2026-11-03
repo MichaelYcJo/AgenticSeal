@@ -66,7 +66,6 @@ cat > 'seal/threads/1790000030-guarantee-untrue-body/routing.md' <<'AGENTIC_EOF'
 | Planning | framer |
 | Implementation | crafter |
 | Automation | yes |
-| Answer pressed | automation |
 | Branch | feat/guarantee-untrue-body |
 AGENTIC_EOF
 git add -A

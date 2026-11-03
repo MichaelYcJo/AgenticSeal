@@ -66,7 +66,6 @@ cat > 'seal/threads/1790000021-loud-flag/routing.md' <<'AGENTIC_EOF'
 | Planning | framer |
 | Implementation | crafter |
 | Automation | yes |
-| Answer pressed | automation |
 | Branch | feat/loud-flag |
 AGENTIC_EOF
 git add -A

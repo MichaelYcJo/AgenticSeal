@@ -25,10 +25,10 @@ not an answer somebody gave, so the gate goes back to asking. Silence would
 make a corrupt file into the standing waiver
 `docs/running/the-review-and-parity-arms.md` refuses to build.
 
-Four of the rows are exceptions and none of them is a loophole. Nothing decides
-a commit on `Implementation`, `Planning`, `Automation` or `Answer pressed` --
-see `parse()` for why an absent or unreadable answer in any of them reads as
-unanswered instead of taking the whole declaration down with it.
+Three of the rows are exceptions and none of them is a loophole. Nothing decides
+a commit on `Implementation`, `Planning` or `Automation` -- see `parse()` for
+why an absent or unreadable answer in any of them reads as unanswered instead
+of taking the whole declaration down with it.
 """
 
 import os
@@ -94,25 +94,6 @@ AUTOMATION = "Automation"
 AUTOMATION_YES = "yes"
 AUTOMATION_NO = "no"
 AUTOMATION_ANSWERS = (AUTOMATION_YES, AUTOMATION_NO)
-
-# The sixth row: WHICH answer the person pressed, not what it derived to.
-# Without it a chosen preset and four boxes somebody ticked by hand produce
-# byte-identical files, which is #151's shape -- a `seal/` root somebody chose
-# and one that appeared because a session followed a preset were the same
-# bytes, and that is why `seal mode` writes a row saying a person was asked.
-#
-# `PRESSED_AUTOMATION` is the lower-case option LABEL a person pressed, where
-# `AUTOMATION` above is the row name. One word deliberately: the answer pressed
-# and the property recorded are the same idea seen from two sides, and a second
-# word for one of them is what makes a reader hunt for the difference.
-#
-# Only two of question 1's three options ever reach this row. The third,
-# `no work item`, opens no directory and writes no declaration at all, which is
-# the hole `frame/design.md` names as a ticket of its own rather than closing here.
-ANSWER_PRESSED = "Answer pressed"
-PRESSED_AUTOMATION = "automation"
-PRESSED_PER_AXIS = "per axis"
-ANSWER_PRESSED_ANSWERS = (PRESSED_AUTOMATION, PRESSED_PER_AXIS)
 
 # Repository-relative, `/`-joined, for the readers that classify paths as git
 # prints them — `chain_check.py` lists a tree under it. The hooks below never
@@ -215,11 +196,10 @@ def parse(text):
     and one absent is a common state -- a session that framed the work itself
     and spawned `crafter` to build it -- so neither may stand in for the other.
 
-    `Automation` and `Answer pressed` are the fifth and sixth rows and they are
-    read on the same looser terms, for the same reason one step further along:
-    nothing decides a commit on either, and the one reader of `Automation`,
-    `hooks/question-gate.py`, only refuses a question, so an absent or
-    unreadable row leaves the run attended. A required row would turn all 84
+    `Automation` is the fifth row and it is read on the same looser terms, for
+    the same reason one step further along: nothing decides a commit on it,
+    and its one reader, `hooks/question-gate.py`, only refuses a question, so
+    an absent or unreadable row leaves the run attended. A required row would turn all 84
     declarations already committed here into "not a declaration", which
     turns the edit gate's refusal back on for every branch that already
     answered.
@@ -251,7 +231,6 @@ def parse(text):
     implementation = found.get(IMPLEMENTATION)
     planning = found.get(PLANNING)
     automation = found.get(AUTOMATION)
-    pressed = found.get(ANSWER_PRESSED)
     if review not in REVIEW_ANSWERS:
         return None
     if destination not in DESTINATION_ANSWERS:
@@ -277,7 +256,6 @@ def parse(text):
         # nobody read are not the same fact, which is the whole reason the
         # unchecked half is a VALUE rather than an absence (#151).
         "automation": automation if automation in AUTOMATION_ANSWERS else None,
-        "pressed": pressed if pressed in ANSWER_PRESSED_ANSWERS else None,
     }
 
 

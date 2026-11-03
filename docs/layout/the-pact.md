@@ -38,7 +38,6 @@ another way. The reader is the proofer and not a case, because a case that
 refuses a word wherever it stands turns red where the meaning has not changed
 (`skills/core/SKILL.md` *Judgment is spent where meaning is the question, and a
 script answers the rest*).
-check: none reader: the proofer at review
 
 ## When there is a pact at all
 
@@ -140,7 +139,6 @@ anything about it.** There is no token for a pull request to read another
 repository with, so a signer's CI could see one side only; `seal pact` at the
 pact's repository is where the reconciliation runs.
 `skills/code-review/scripts/chain_check.py` holds no pact arm.
-check: none reader: review
 
 ## `seal pact` reconciles, locally
 

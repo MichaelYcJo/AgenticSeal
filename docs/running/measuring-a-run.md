@@ -67,7 +67,6 @@ check: tests/skills/test_session_cost.py
 Correcting a meter does not correct the readings it produced, and re-deriving
 them is its own work. What the correcting work item owes is to say which
 published numbers are affected, so nobody reasons from them in the meantime.
-check: none reader: review of the correcting work item
 
 **A refusal names the cut its row ends at, not the event it went looking
 for.** A head row's cut is the first spawn's *start*, so a head call can
@@ -101,7 +100,6 @@ the core now reaches every session from one source, and the owner
 closed it as not a defect. An issue a band files costs its reader a
 reading and a close, and the count of `worse` readings then says less
 than it seems to.
-check: none reader: the proofer at review and the owner before a release or settle pull request's merge
 
 ## Where a reading goes
 

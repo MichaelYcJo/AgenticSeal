@@ -77,7 +77,6 @@ calls no edit tool, which is why every agent edits through the `Edit` tool
 (`skills/agent-contract/SKILL.md` rule 9), and at a shared root the pull
 request's trailer arm, as *At the pull request* below states, is what
 remains for such a change.
-check: none reader: the orchestrator on the first live run after a change here
 
 **The `automation` press is the person's own click on the routing question,
 read from the session's main transcript, and nothing the model writes

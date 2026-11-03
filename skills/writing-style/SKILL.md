@@ -275,7 +275,6 @@ check: tests/github/test_rules.py tests/skills/test_chain_check.py tests/skills/
 낱말에 두 뜻을 실으면 어느 뜻인지 문장 밖에서 골라야 한다. 여럿이 가질 수 있는
 것은 위의 *여럿이 가질 수 있는 것은 누구 것인지 밝힌다* 를 따르고, 사례도 그
 절의 `seal` 이다.
-check: none reader: the proofer at review
 
 **무엇을 하라는 문장은 누가, 언제, 어느 파일에서 하고 무엇이 되면 끝인지를
 밝히고, 그중 하나가 빠질 만큼 줄이지 않는다.** 하는 쪽은 orchestrator, framer,
@@ -287,8 +286,6 @@ crafter, proofer, sealer 처럼 이름으로 적는다. 두 당사자가 함께 
 - "So is" 로 시작한 문장이 바로 앞이 아닌 다른 절에 붙어 읽혔다(#953 의 sealer).
 - "The one writer that does is `settle`" 이 `docs/` 를 누가 쓰는지 정하는 규칙으로 읽혔다(`0ed5dd3b:seal/specs/1792449518-settle-squashes-specs-into-docs-in-place/spec.md`).
 - orchestrator 와 구현자가 함께 읽는 파일에서 "the session" 이 둘 중 누구인지 정해지지 않았다.
-
-check: none reader: the proofer at review
 
 ### 이전 → 이후를 표로 보인다
 
