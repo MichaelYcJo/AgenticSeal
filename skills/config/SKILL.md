@@ -41,7 +41,7 @@ present hides exactly those.
 | `Record language` | English | the prose in `frame/design.md`, `frame/plan.md`, `gaps.md`, `frame/questions.md`, `changelog.md`, and a round record's cells |
 | `Mode` | *the folder decides* | which of the two places the root should live at |
 | `Broad gate` | *none: `seal gate` refuses without it* | the one shell command line `seal gate` runs once the review rounds settle: the full suite, the repository-wide lint, the typecheck |
-| `Document token ceiling` | *not declared: no length is checked* | the estimated tokens past which `seal fold` reports a top-level policy document as one to split |
+| `Document token ceiling` | *not declared: no length is checked* | the estimated tokens past which `seal fold` reports a document of the policy root or of one of its groups as one to split |
 | `Policy root` | `docs` | the directory of the ratified policy documents, which the settle writes |
 | `Reference specs` | *every directory named `specs` outside the root* | the directories this repository kept its own specifications in, which the plugin reads as history and never takes |
 | `Pact` | *none: no pact is held elsewhere* | the origin remote URL of the repository holding a pact this repository signs, several separated by `;` |

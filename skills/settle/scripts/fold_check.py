@@ -9,8 +9,10 @@ index. This is the reader of both, shipped (#566, #953).
   seal fold --root DIR           a repository other than this one
 
 The policy root is `seal/config.md`'s `Policy root` row, `docs` when absent,
-read through `hooks/lib/config.py#policy_root`, and every check reads its top
-level alone.
+read through `hooks/lib/config.py#policy_root`. Every check reads its top
+level and each of its groups: a directory directly in it that a row of the
+index names a document of (`groups`). A directory the index names nothing
+of, and anything below a group, is not read.
 
 **One read.** Each document whose estimate (`tokens`) is past the `Document
 token ceiling` row is named as one to split along its own headings. That is a
@@ -18,8 +20,8 @@ report and never a failure: the estimate is a guess from bytes, and a
 document past one tool's per-call cap is still read in more calls (the
 owner's answer of 2026-10-20).
 
-**One index.** Where `<policy root>/README.md` exists, each other top-level
-document is named on exactly one row of its tables, and every row names one.
+**One index.** Where `<policy root>/README.md` exists, each other document
+is named on exactly one row of its tables, and every row names one.
 
 **What it cannot read.** Size and naming are all it checks. Whether a
 document is true, or whether two contradict each other, stays review's.
@@ -125,14 +127,55 @@ def tokens(text):
 
 
 def documents(root, policy):
-    """Every top-level `.md` of the directory POLICY, repo-relative with `/`,
-    in name order."""
-    top = os.path.join(root, *policy.split("/"))
-    return [
-        f"{policy}/{name}"
-        for name in sorted(os.listdir(top))
-        if name.endswith(".md") and os.path.isfile(os.path.join(top, name))
-    ]
+    """Every `.md` directly in the directory POLICY or in one of its
+    `groups`, repo-relative with `/`: the top level first, then each group,
+    each in name order."""
+    out = []
+    for rel in [policy, *(f"{policy}/{group}" for group in groups(root, policy))]:
+        top = os.path.join(root, *rel.split("/"))
+        out += [
+            f"{rel}/{name}"
+            for name in sorted(os.listdir(top))
+            if name.endswith(".md") and os.path.isfile(os.path.join(top, name))
+        ]
+    return out
+
+
+def groups(root, policy):
+    """Each directory directly in POLICY that a row of `<policy>/README.md`
+    names a document of, as `<policy>/<group>/<name>.md`, in name order;
+    none where the index is absent. A directory the index names nothing of
+    is no group, and nothing below a group is one."""
+    index = f"{policy}/{INDEX}"
+    if not os.path.isfile(os.path.join(root, *index.split("/"))):
+        return []
+    one_deep = re.compile(re.escape(policy) + r"/([^/\\:]+)/[^/\\:]+\.md")
+    named = set()
+    for _number, paths in index_rows(root, index):
+        for path in paths:
+            found = one_deep.fullmatch(path)
+            if found and found.group(1) not in (".", ".."):
+                named.add(found.group(1))
+    return sorted(
+        group
+        for group in named
+        if os.path.isdir(os.path.join(root, *policy.split("/"), group))
+    )
+
+
+def index_rows(root, index):
+    """`[(line number, backticked texts)]` for each row of the tables of the
+    index at INDEX after the header and the separator."""
+    uc = reader()
+    rows, in_table = [], False
+    lines = uc.live_lines(uc.gfm_lines(read(root, index)))
+    for number, (line, live) in enumerate(lines, 1):
+        cells = uc.split_row(line) if live else None
+        if cells is None or not in_table or uc.is_separator(cells):
+            in_table = cells is not None
+            continue
+        rows.append((number, re.findall(r"`([^`]+)`", line)))
+    return rows
 
 
 def why(error):
@@ -156,7 +199,7 @@ def read(root, rel):
 
 
 def past_ceiling(root, policy, ceiling):
-    """`[(document, estimate)]` for each top-level document of POLICY whose
+    """`[(document, estimate)]` for each document `documents` lists whose
     estimate is past CEILING."""
     found = [(rel, tokens(read(root, rel))) for rel in documents(root, policy)]
     return [(rel, count) for rel, count in found if count > ceiling]
@@ -175,21 +218,15 @@ def index_problems(root, policy):
     """What is out of step in `<policy>/README.md`, or None where it is absent.
 
     Each row of its tables after the header names the documents it is about
-    as backticked paths, and each other top-level document of POLICY is named
+    as backticked paths, and each other document `documents` lists is named
     on exactly one row."""
     index = f"{policy}/{INDEX}"
     if not os.path.isfile(os.path.join(root, *index.split("/"))):
         return None
-    uc = reader()
     names = [rel for rel in documents(root, policy) if rel != index]
-    rows, problems, in_table = {}, [], False
-    lines = uc.live_lines(uc.gfm_lines(read(root, index)))
-    for number, (line, live) in enumerate(lines, 1):
-        cells = uc.split_row(line) if live else None
-        if cells is None or not in_table or uc.is_separator(cells):
-            in_table = cells is not None
-            continue
-        named = {t for t in re.findall(r"`([^`]+)`", line) if t in names}
+    rows, problems = {}, []
+    for number, paths in index_rows(root, index):
+        named = {t for t in paths if t in names}
         if not named:
             problems.append(f"{index}:{number} names no document of {policy}/")
         for rel in named:
@@ -367,7 +404,8 @@ def main(argv=None):
         "--ceiling",
         type=positive,
         metavar="N",
-        help=f"report each top-level document past N estimated tokens, for "
+        help=f"report each document of the policy root or of one of its "
+        f"groups past N estimated tokens, for "
         f"this run only, over the `{CEILING_ROW}` row",
     )
     args = ap.parse_args(argv)

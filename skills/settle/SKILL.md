@@ -166,10 +166,14 @@ that is review's, and it is review's to find.
 **`<policy root>/README.md` is the index: one table row per topic, naming
 its file.** A row names its documents as backticked paths, a `.ko.md`
 edition on its English edition's row. A framer picks each `file:` from it.
-Where it exists, `seal fold` refuses a top-level document no row names, one
-named on two rows, and a row that names none. A settling session that
-creates the policy root writes the index with it, and after the removals
-`--apply` names the row each new document is owed.
+A group of the policy root is a directory directly in it that a row names a
+document of, as `<policy root>/<group>/<name>.md`; a directory no row names a
+document of, and anything below a group, is not read. Where the index
+exists, `seal fold` refuses a document of the policy root or of one of its
+groups that no row names, one named on two rows, and a row that names none.
+A settling session that creates the policy root writes the index with it,
+and after the removals `--apply` names the row each new document is owed.
+check: tests/skills/test_fold_check.py
 
 ## When it runs
 

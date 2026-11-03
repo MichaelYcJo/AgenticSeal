@@ -1,7 +1,7 @@
 """`skills/settle/scripts/fold_check.py`, one class per function.
 
 A document fits one read, and the policy root has one index (#953).
-`seal fold` reports each top-level document of the policy root whose
+`seal fold` reports each document of the policy root or of one of its groups whose
 estimate is past the `Document token ceiling` row as one to split along its
 own headings, and exits 0 on it: the estimate is a guess from bytes, so it is
 a report and not a gate. Its index arm refuses a `<policy root>/README.md`
@@ -54,6 +54,7 @@ def command(*args):
 def tree(tmp_path, files, policy="docs"):
     (tmp_path / policy).mkdir()
     for name, text in files.items():
+        (tmp_path / policy / name).parent.mkdir(parents=True, exist_ok=True)
         (tmp_path / policy / name).write_text(text, encoding="utf-8")
     return str(tmp_path)
 
@@ -150,6 +151,33 @@ class Test_main:
         code, out, err = command("--root", root)
         assert code == 0, (code, out, err)
         assert "seal fold: the index docs/README.md names every document\n" in out
+
+    def test_a_group_the_index_names_is_read_and_no_other_directory_is(self, tmp_path):
+        """#1312 S6: a directory of the policy root that the index names a
+        document of is a group, and each `.md` directly in it is measured
+        against the ceiling and held to one index row. A directory the index
+        names nothing of, such as `docs/experiments/`, and a directory below
+        a group are not read, however large their documents."""
+        big = "x" * 50001
+        rows = "| `docs/a.md` | a |\n| `docs/g/x.md` | x |\n"
+        files = {
+            "a.md": "# A\n",
+            "g/x.md": big,
+            "g/y.md": "# Y\n",
+            "g/deep/z.md": big,
+            "experiments/e.md": big,
+            "README.md": INDEX + rows,
+        }
+        code, out, err = command("--root", tree(tmp_path, files), "--ceiling", "25000")
+        assert code == 1, (code, out, err)
+        assert (
+            "held 4 documents under docs/ to 25000 estimated tokens, 1 past it\n"
+        ) in out, out
+        assert "seal fold: docs/g/x.md is about 25001 tokens, past the ceiling" in out
+        assert "docs/README.md has no row naming docs/g/y.md\n" in out, out
+        assert "deep" not in out and "experiments" not in out, out
+        _, shown, _ = command("--help")
+        assert "of the policy root or of one of its groups" in " ".join(shown.split())
 
     def test_with_no_index_the_index_is_not_checked_and_the_run_says_so(self, tmp_path):
         root = tree(tmp_path, {"a.md": "# A\n"})

@@ -483,7 +483,7 @@ plugin sets no value; these rows are where a repository states its own.
 
 | Row | Value | Absent |
 |---|---|---|
-| `Document token ceiling` | a positive whole number of estimated tokens. A top-level document of the policy root past it is reported as one to split | no length is checked |
+| `Document token ceiling` | a positive whole number of estimated tokens. A document of the policy root or of one of its groups past it is reported as one to split | no length is checked |
 | `Policy root` | the repository-relative directory of the ratified policy documents, which the settle writes and every reader of them reads | `docs` |
 
 **The estimate is a document's UTF-8 bytes halved, rounded up.** Measured
