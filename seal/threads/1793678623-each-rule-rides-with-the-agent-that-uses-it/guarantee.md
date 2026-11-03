@@ -55,3 +55,31 @@ and their logs have been removed.
 target: b735d76dd against 0c68b9933
 Verdict: withheld reason: the orchestrator's part of the pull request body, line 19, says round 3 "confirmed those", round 2's three findings, where trail/rounds/round-3.md confirms only round-2#1 (:121) and round-2#2 (:139) and reopens round-2#3 because its close does not hold (:44, :47); every other claim sampled and every other party holds at b735d76dd
 ```
+
+## Re-audit at 880aa5da7
+
+The only commit since the block above names b735d76dd is 880aa5da7, and
+it adds `guarantee.md` alone (`git log --no-merges --name-only
+b735d76dd..HEAD`, `git diff --stat b735d76dd 880aa5da7`, executed). No
+claim above has a coordinate that commit touched, so none is re-run. The
+base still resolves to 0c68b9933 (executed). `trail/gate.md`'s last block
+still names `93f2ef9b1 against 0c68b9933`. Nothing outside this work item's
+directory follows 93f2ef9b1 (`git log --no-merges --name-only
+93f2ef9b1..HEAD ^0c68b9933`, executed). `seal pr-body … --check` on the
+repaired body file exited 0 (executed). The parties were read again, and the
+orchestrator's part of the pull request body was read whole.
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| round 1's finding is the quoted heading, round 2 confirmed round-1#1 and opened three findings each `regression: round-1#1`, and round 3 confirms round-2#1 and round-2#2 and reopens round-2#3, closed `fixed e896e0e33` | pull request body, *Rounds* item | `grep -n` for the heading in `trail/rounds/round-1.md`, `confirms: round-1#1` and `regression: round-1#1` in `round-2.md`, and `confirms:`, `reopens:` and `verdict:` in `round-3.md` | holds (executed): `round-1.md:21` is the heading word for word. `round-2.md:178` confirms round-1#1, and the round holds three `regression: round-1#1` lines. `round-3.md:44` reopens round-2#3, `:114` is `fixed e896e0e33`, and `:121` and `:139` confirm round-2#1 and round-2#2 |
+| the commits no crafter made touch only the work item's records | pull request body, *The commits no crafter made* item | `git show --name-only 880aa5da7` | holds (executed): 880aa5da7 is a `seal:` commit adding `guarantee.md` alone, so the item's rule covers it |
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design, the build, the last round, the changelog | unchanged since b735d76dd. No file of theirs changed | the rows of the first run's table, read again | none |
+| the orchestrator's part of the pull request body | as before. The *Rounds* item now gives round 1's finding by its heading, round 2's `confirms: round-1#1`, and round 3's two confirmations and its reopen of round-2#3 | `trail/rounds/round-1.md`, `round-2.md` and `round-3.md`, and every coordinate the first run's row checked | none |
+
+```seal
+target: 880aa5da7 against 0c68b9933
+Verdict: sealed
+```
