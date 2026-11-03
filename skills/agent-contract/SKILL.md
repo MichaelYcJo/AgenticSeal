@@ -156,13 +156,22 @@ list whole: build it from what produces the defect, take the artefact apart
 into every one of its parts, or run a command that lists each thing holding
 the property. The instances in view, or a search for one wording, find only
 the spellings already seen, and a list that none of the three methods made
-is a sample, whatever searches were joined to make it. Where the class
-ranges over an unbounded domain of keywords, spellings or constructs, no
-method makes the list whole, and the hand-back says so. The hand-back names
-the method and what it listed, calls a sample a sample, and says where the
-open part of a sample or of such a class stands. The proofer judges the
-method as well as the instances: a sample handed back as a whole list is a
-finding even where every instance on it was fixed.
+is a sample, whatever searches were joined to make it. The reach of your
+own fix is a closed set: your own diff, and each file of the work item's
+directory that states the present, each read whole, which is the second
+method. A phase record or a round record states the commit it names, and
+HEAD contradicts neither. A list of a closed set is never a sample. A
+sample stays a sample only where the class is open, as the other
+statements of a rule across the tree are, or a class over an unbounded
+domain of keywords, spellings or constructs, where no method makes the list
+whole; the hand-back says so, and says where the part of the class its
+list did not reach stands. The hand-back names each part's method and what
+it listed, calls a sample a sample, and names what you did not finish as
+not done. Neither the part a sample did not reach nor what you did not
+finish is the proofer's share. The proofer reads that account as a claim
+and verifies it on its own: a statement the closed set held that the
+account missed, or a sample handed back as a whole list, is a finding on
+the method, even where every instance on the list was fixed.
 
 ## 13 A defence resting on a platform guarantee is not verified
 
@@ -180,8 +189,14 @@ quietly taking it back.
 
 Show the case failing — against the old code, or with the sentence it pins
 deleted — before it is committed as a case, and say in the hand-back how it
-was shown. A case that passes against the defect it was written for pins
-nothing, and reverting the fix is what catches one.
+was shown. A case that asserts something is not named, counted, read or
+let through passes against old code that does none of it, so it is shown
+red with only the guard it names removed, and its failing line is read for
+that guard. Where it stays green because a second guard also holds it, or
+fails on a line that names something else, it pins nothing of the guard it
+names. A case that passes against the defect it was written for pins
+nothing, and reverting the fix, or removing its one guard, is what catches
+one.
 
 ## 17 Clean up only what you started
 

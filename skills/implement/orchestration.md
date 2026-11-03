@@ -55,9 +55,23 @@ because a crafter reads the frame and not the issue's comments. In the
 commit that folds it, the orchestrator writes the decision, its grounds and
 the document it judged against as one row of `frame/plan.md` *Judgments of
 the run*, because the rewritten sentence keeps no reason for itself and the
-settle reads the row. Until the decision is folded, the orchestrator keeps
-one line of its own in `plan.md` naming the comments to fold, below the
-title, and deletes that line in the commit that folds them. Before the
+settle reads the row. Where a crafter's hand-back names a statement its
+work contradicts in a file the crafter does not write, a frame file or
+`routing.md`, the orchestrator reads each such file whole against HEAD,
+not only the named line, and rewrites every statement HEAD contradicts:
+the crafter's list is its reading of a file it does not write. After the
+fold commit, the orchestrator reads that commit and each file of the work
+item's directory that states the present whole against HEAD, as contract
+rule 12 asks of the party that fixes. Where that reading finds a statement
+in a file the crafter writes, `gaps.md` or `changelog.md`, the
+orchestrator hands it to a fix pass before it spawns the next round or
+phase. The fix pass is the crafter that wrote the work item's last build
+or fix commit, resumed or spawned fresh as
+`skills/code-review/orchestration.md` *Orchestrator: a phase is a fresh
+crafter, and a fix pass resumes the implementer* states.
+Until the decision is folded, the orchestrator keeps one line of its own
+in `plan.md` naming the comments to fold, below the title, and deletes that
+line in the commit that folds them. Before the
 frame is committed, the orchestrator folds the decision into the issue body
 instead, in place, and the comment that carried it records why. A body that
 contradicts a comment leaves the reader to work out which is current, and a
@@ -463,7 +477,7 @@ below:
 
 | Remaining item | Destination |
 |---|---|
-| Doable within this pull request | done now, by the party that builds the work item, and reviewed by a verifying round before the broad run, unless every finding it closes is located in the work item's records and it touched nothing else |
+| Doable within this pull request | done now, by the party that builds the work item, and reviewed by a verifying round before the broad run, unless every finding it closes is located in the work item's records and it touched nothing else. Once a row of `frame/plan.md` *Judgments of the run* judges the run excessive, only a `must`, or an item whose fix is confined to the work item's records, is done now, and every other item takes a home that costs no round, as `skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round* states |
 | Waiting on prerequisite work | `seal/follow-up.md` |
 | Needs a decision | the policy document's open-questions section: written there directly where the work item's subject is the policy root, and otherwise an `add` in `frame/design.md`'s `## Rule changes` (`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*) |
 

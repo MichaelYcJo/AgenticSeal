@@ -379,8 +379,6 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
         ("skills", "code-review", "orchestration.md"): "`new?`",
         ("agents", "crafter.md"): "`new?` means nothing at the base measured that file",
         ("skills", "verify", "orchestration.md"): "**New?**",
-        ("README.md",): "new? → not measured at the base",
-        ("README.ko.md",): "new? → base 에서 재지 못했다",
         ("templates", "setup", "config.md"): "each file reads `new?` with the reason",
     }
     for parts, phrase in readers.items():

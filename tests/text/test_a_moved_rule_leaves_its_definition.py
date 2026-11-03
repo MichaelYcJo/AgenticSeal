@@ -372,7 +372,8 @@ def crafter_rule(lead):
     text = read(CRAFTER)
     rules = text[text.index("\n## Rules\n") :]
     for paragraph in rules.split("\n\n"):
-        if paragraph.startswith(f"**{lead}**"):
+        # A lead may wrap across lines, as #1318's does.
+        if " ".join(paragraph.split()).startswith(f"**{lead}**"):
             return paragraph
     return ""
 
@@ -451,13 +452,62 @@ def test_the_crafters_four_rules_stand_with_their_enforcers():
     )
 
 
+READ_WHOLE = (
+    "Before you hand back, your range and the work item's records are read "
+    "whole against HEAD."
+)
+
+
+def test_the_crafter_reads_its_range_and_the_records_whole_before_it_hands_back():
+    """#1318, Scope item 2. 35 of the 37 `regression:` findings of 0.27.0 to
+    0.30.1 stood in the fixing party's own diff or in its work item's
+    records (`frame/design.md` G9), a set closed enough to read whole. So
+    after its last commit, in a phase and in a fix pass, the crafter reads
+    its range hunk by hunk and the five files that state the present, fixes
+    what it writes, names the frame's statements for the orchestrator, and
+    calls only the tree-wide search a sample. Step 10 carries that account
+    by citing the rule, not by restating it."""
+    paragraph = crafter_rule(READ_WHOLE)
+    assert paragraph, "`agents/crafter.md` lost its rule on reading the range whole"
+    assert re.search(r"^check: \S", paragraph, re.M), (
+        "the rule has no `check:` line, so nothing names what holds it"
+    )
+    said = flat(paragraph)
+    for clause in (
+        "In a phase and in a fix pass, after your last commit,",
+        "read every hunk of your range's diff with the paragraph or unit around "
+        "it, a case's name, docstring and comments among them.",
+        "Read whole each file of `seal/threads/<work-item-id>/` that states the "
+        "present: `routing.md`, the three frame files, `gaps.md` and "
+        "`changelog.md`.",
+        "Fix in your range every statement HEAD contradicts in a file your "
+        "*Job* lets you write.",
+        "Name each one that stands in a file you do not write,",
+        "in the hand-back with its coordinate and the fact HEAD gives, for the "
+        "orchestrator to fold.",
+        "That set is closed (rule 12), so none of it is handed on as a sample.",
+        "by `git grep` on its words and by its `check:` target",
+        # Round 1 of #1318, finding 3: a sample's hand-back still says where
+        # the part it did not reach stands (contract rule 12).
+        "that list is a sample, and the hand-back calls it one and says where "
+        "the part it did not reach stands.",
+        "What you did not finish goes to `gaps.md` `## Not done` with why.",
+    ):
+        assert clause in said, f"the rule lost {clause!r}"
+    text = read(CRAFTER)
+    order = flat(text[text.index("\n## Order of work\n") : text.index("\n## Never\n")])
+    assert f"the account the rule *{READ_WHOLE[:-1]}* asks for" in order, (
+        "step 10 no longer carries the account the rule asks for"
+    )
+
+
 def test_the_crafters_fix_pass_appends_a_close_block_and_sweeps_what_its_range_reworded():
     """The crafter's half of the fix pass: the close block it appends, which
     edits nothing of the proofer's, the coordinate the block carries, and the
-    sweep for every other place stating a rule its range reworded (contract
-    rule 12). The block's grammar is `hooks/lib/fields.py`'s and is held
-    there; this holds the definition's paragraph, which no other case
-    reads."""
+    reading of its range and the work item's records it cites from the rule
+    before it (contract rule 12, #1318). The block's grammar is
+    `hooks/lib/fields.py`'s and is held there; this holds the definition's
+    paragraph, which no other case reads."""
     paragraph = flat(
         crafter_rule("A fix pass appends close blocks and writes no phase record.")
     )
@@ -471,8 +521,18 @@ def test_the_crafters_fix_pass_appends_a_close_block_and_sweeps_what_its_range_r
         # #1148, Scope item 13: two fix passes of its run applied a round
         # record's paste-ready text to a procedure step as given, and each
         # carried a new defect into shipped text.
-        "A paste-ready fix is the proofer's claim and not the fix.",
-        "Apply it only after reading it as its text's own reader would",
+        "A paste-ready fix is the proofer's claim and not the fix",
+        # #1286, Scope item 1: #1216's round 7 applied a paste-ready text as
+        # its judgment row said, and round 1 kept a proposal's collection
+        # against the frame's own rule, so an instruction to apply waives no
+        # reading, and the reading is against the frame and the code.
+        "a spawn prompt or a judgment row that tells you to apply it names "
+        "the fix without waiving the reading below.",
+        "Apply it only after reading it against the frame and the code: what "
+        "`frame/design.md` and the `frame/plan.md` row of the phase that built "
+        "it say the changed unit does, and every input the code hands that "
+        "unit.",
+        "A procedure step is also read as its own reader would",
         # Round 4 of #1148, finding 2: the release is the third axis, which
         # round 1's paste-ready fix failed by citing a section a later settle
         # writes.
@@ -483,7 +543,9 @@ def test_the_crafters_fix_pass_appends_a_close_block_and_sweeps_what_its_range_r
         "settle.",
         "Where that reading fails, write the fix in your own words and say so "
         "in `answer:`.",
-        "find every other place stating each rule your range reworded or removed",
+        # #1318, Scope item 3: the sweep's sentences gave way to the rule
+        # that reads the range and the records whole, which the pass cites.
+        f"Once the fixes are committed, make the reading *{READ_WHOLE[:-1]}* asks for.",
         # #1041, S3: the owner's answer of 2026-10-28 gives the commit of the
         # closes to the orchestrator, so the crafter writes them last and
         # leaves them uncommitted.

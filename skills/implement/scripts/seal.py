@@ -1057,8 +1057,10 @@ def destination_root(repo, home, shared, local, into):
             f"  {shared}   (shared mode — read first)\n"
             f"  {local}   (local mode)\n"
             "Importing into one would leave the other where nothing reads "
-            "it. Move or remove one first; the plugin README's *Shared or "
-            "local* section has both commands."
+            "it. Move or remove one first: keep the root that holds the "
+            "records you want, copy across by hand what only the other "
+            "holds, and delete the other. `seal mode` refuses while both "
+            "exist, too."
         )
     if into:
         wanted = shared if into == "shared" else local

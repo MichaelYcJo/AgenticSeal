@@ -17,7 +17,8 @@ covers the code. [`TRADEMARKS.md`](../../TRADEMARKS.md) states what they
 are under.
 
 Each entry is two files, and no code reads either of them. Each owl's entry
-holds a third, an `.svg`, the form a page shows, described in its entry.
+holds a third, an `.svg`, the form a page shows, and the little owl's holds
+the social preview's `.svg` and `.png` besides, each described in its entry.
 
 - **`<name>.ans`** — the stamp as a terminal prints it: half-block
   characters and ANSI colour codes, a code only where the colour changes.
@@ -194,6 +195,29 @@ it, so the commands of the placeholder S and of both owls write the tag's
   does not have on every operating system it runs on.
 
 ![The little owl as a vector seal: a round-headed owl with ringed eyes and a scalloped breast, perched on an olive branch inside a fret border, pressed into a red wax seal](../../.claude-plugin/icon.png)
+
+- **The social preview:** `owl-social.png`, the image a page shows beside
+  a shared link to the repository. It is 1280 × 640 pixels and under 1 MB,
+  on the solid background GitHub's guidance recommends. Its source is
+  `owl-social.svg`, which places `owl.svg` by `<image href="owl.svg">`,
+  480 pixels square and centred, on a solid `#f4ecdc` field, and copies
+  none of the owl's paths. GitHub reads no file in the tree for the
+  preview: the owner uploads the PNG in the repository's settings, under
+  General, Social preview. Draw it again from the repository's top
+  directory with the same `resvg_py` 0.5.0 (it drew the committed file):
+
+  ```
+  python3 -c 'import resvg_py; open("assets/seals/owl-social.png", "wb").write(bytes(resvg_py.svg_to_bytes(svg_path="assets/seals/owl-social.svg", resources_dir="assets/seals")))'
+  ```
+
+  `resources_dir` is the directory the `href` is read against. Without it,
+  resvg draws the field alone and still exits 0. Nothing checks that the
+  preview is still the SVG, for the reason nothing checks the icon. Nor
+  does anything check that the image the repository's settings hold is
+  the committed file: an edit to `owl.svg` is followed by this command and
+  by a new upload, or the shared link shows the old owl.
+
+![The social preview: the little owl's red wax seal, centred on a parchment-coloured field twice as wide as it is tall](owl-social.png)
 
 ## The next entry
 
