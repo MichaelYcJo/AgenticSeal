@@ -24,7 +24,6 @@ import os
 import re
 
 from conftest import ROOT, flat, read
-from test_the_agent_contract_holds_the_universal_rules import HEADING
 
 
 def read_at(path):
@@ -68,36 +67,16 @@ def test_the_crafter_puts_both_answers_in_the_hand_back():
     )
 
 
-def contract_section(number):
-    """The body of `## <N>` in the contract, heading excluded.
-
-    Scoped rather than whole-file, because the thing #120 has to keep out is
-    a WORD -- `orchestrator` -- that the contract says legitimately elsewhere
-    (its opening paragraph, about the prompt a round arrives in). A whole-file
-    absence check would either fail on that sentence or be dropped."""
-    text = read("skills", "agent-contract", "SKILL.md")
-    heads = list(HEADING.finditer(text))
-    for index, match in enumerate(heads):
-        if int(match.group(1)) != number:
-            continue
-        end = heads[index + 1].start() if index + 1 < len(heads) else len(text)
-        return " ".join(text[match.end() : end].split())
-    raise AssertionError(f"the contract has no rule {number}")
-
-
 RUN = "seal gate --base <base> --record <item>"
 
 
-def test_the_contract_and_the_orchestration_name_the_broad_run_command():
-    """S2 of #969. Contract rule 2 names the orchestrator's command for the
-    broad run, and the orchestration that spawns the sealer names the
+def test_the_orchestration_names_the_broad_run_command():
+    """S2 of #969. The orchestration that spawns the sealer names the
     preflight, the run and the run's log. Each is what the orchestrator
     types or opens, so each is held by its spelling; who may run the gate
-    and in what order the steps come are the proofer's to read."""
-    body = contract_section(2)
-    # The command the orchestrator types for the broad run, as contract
-    # rule 2 names it.
-    assert RUN in body, "contract rule 2 stopped naming the orchestrator's command"
+    and in what order the steps come are the proofer's to read. Contract
+    rule 2 named the run's command too until #1312, which took that copy out
+    of every agent's preload, since only the orchestrator types it."""
     order = joined(
         section(read("skills", "code-review", "orchestration.md"), SPAWN_SECTION)
     )

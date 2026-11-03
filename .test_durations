@@ -6148,7 +6148,7 @@
     "tests/text/test_broad_gate_rule.py::test_the_acts_table_row_names_the_preflight_and_stays_a_sentence": 0.0009570999999937158,
     "tests/text/test_broad_gate_rule.py::test_the_broad_gate_section_cites_the_owner_of_its_timing": 0.0011189000000229044,
     "tests/text/test_broad_gate_rule.py::test_the_broad_gate_state_survives_a_handoff": 0.0011031999999886466,
-    "tests/text/test_broad_gate_rule.py::test_the_contract_and_the_orchestration_name_the_broad_run_command": 0.0021930999999995038,
+    "tests/text/test_broad_gate_rule.py::test_the_orchestration_names_the_broad_run_command":0.0021930999999995038,
     "tests/text/test_broad_gate_rule.py::test_the_crafter_puts_both_answers_in_the_hand_back": 0.001293500000002723,
     "tests/text/test_broad_gate_rule.py::test_the_example_row_goes_lint_first_and_the_arms_are_not_listed_by_hand": 0.00226729999999975,
     "tests/text/test_broad_gate_rule.py::test_the_order_inside_a_ticket_puts_the_preflight_before_the_sealer": 0.0012991000000113218,
