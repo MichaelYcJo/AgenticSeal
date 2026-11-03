@@ -65,9 +65,9 @@ HEAD, as contract rule 12 asks of the party that fixes. Where that reading
 finds a statement in a file the crafter writes, `gaps.md` or
 `changelog.md`, the orchestrator hands it to the crafter that made the
 fix, resumed as a fix pass is, before it spawns the next round or phase.
-Until the decision is folded, the orchestrator keeps
-one line of its own in `plan.md` naming the comments to fold, below the
-title, and deletes that line in the commit that folds them. Before the
+Until the decision is folded, the orchestrator keeps one line of its own
+in `plan.md` naming the comments to fold, below the title, and deletes that
+line in the commit that folds them. Before the
 frame is committed, the orchestrator folds the decision into the issue body
 instead, in place, and the comment that carried it records why. A body that
 contradicts a comment leaves the reader to work out which is current, and a

@@ -166,14 +166,14 @@ each file of `seal/threads/<work-item-id>/` that states the present:
 `routing.md`, the three frame files, `gaps.md` and `changelog.md`. Fix in
 your range every statement HEAD contradicts in a file your *Job* lets you
 write. Name each one that stands in a file you do not write, `routing.md`
-or a frame file outside your Status cell, in the hand-back with its
-coordinate and the fact HEAD gives, for the orchestrator to fold. That set
-is closed (rule 12), so none of it is handed on as a sample. Then find the
-other places across the tree that state each rule your range reworded or
-removed, by `git grep` on its words and by its `check:` target, and
-correct each or say in the hand-back why it stands; that list is a sample,
-and the hand-back calls it one. What you did not finish goes to `gaps.md`
-`## Not done` with why.
+or any line of the frame but your Status cell in `frame/plan.md`, in the
+hand-back with its coordinate and the fact HEAD gives, for the
+orchestrator to fold. That set is closed (rule 12), so none of it is
+handed on as a sample. Then find the other places across the tree that
+state each rule your range reworded or removed, by `git grep` on its words
+and by its `check:` target, and correct each or say in the hand-back why it
+stands; that list is a sample, and the hand-back calls it one. What you did
+not finish goes to `gaps.md` `## Not done` with why.
 check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
 **A fix pass appends close blocks and writes no phase record.** It appends
