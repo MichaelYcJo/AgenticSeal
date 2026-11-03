@@ -49,3 +49,4 @@ The orchestrator owns these acts, after the seal:
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
+| 2026-11-04 | `frame/design.md` *Scope* item 6 and G13 take what the build bears out: the close-block sentence's back-reference is rewritten, and `docs/forms/the-round-record.md` names the corrections a sweep made, which stays true; the orchestrator folds both before round 1, having read `frame/design.md` whole against HEAD rather than the two named lines | the crafter's hand-back names both, and `trail/phases/phase-1.md` gives the grounds for the rewritten back-reference; the rest of `frame/design.md` read against HEAD showed no other statement the build contradicts (*Scope* item 7 allowed the new rule its own case, which the build took) | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |
