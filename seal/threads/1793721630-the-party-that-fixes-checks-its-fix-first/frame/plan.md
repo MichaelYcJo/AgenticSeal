@@ -34,7 +34,7 @@ Two cases read every shipped text these edits touch. `tests/text/test_no_passage
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1 to 8 | `frame/design.md` S1 to S7 | |
+| 1 | `frame/design.md` *Scope* items 1 to 8 | `frame/design.md` S1 to S7 | 94fef7e61 |
 
 ## Operational impact
 
