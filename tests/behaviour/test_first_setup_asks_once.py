@@ -390,7 +390,7 @@ def test_the_skill_names_the_workflow_paths_and_the_command_that_writes_it():
 # --- S8 and S1: the READMEs -----------------------------------------------
 
 READMES = {
-    "README.md": ("## First run", "### Shared or local"),
+    "README.md": ("## Your first work item", "### Shared or local"),
     "README.ko.md": ("## 처음 실행", "### shared 인가 local 인가"),
 }
 # A workflow left after a move to local stays, and which pin passes is the
@@ -411,15 +411,17 @@ LEFT_BEHIND = {
 
 
 @pytest.mark.parametrize("readme", sorted(READMES))
-def test_the_readme_gives_both_moves_under_first_run(readme):
+def test_the_readme_gives_the_switch_under_the_first_work_item(readme):
+    """The subsection stands under the section that walks a first reader
+    through a work item, and names the checks' command, the way back before
+    the commit to shared, the workflow a move to local leaves, and the pair
+    that works between two machines. The two by-hand moves left the English
+    edition in #1102 for the template every root's `seal/README.md` is, and
+    `switch_block` reads them there."""
     text = read(readme)
     first_run, subsection = READMES[readme]
     assert text.index(subsection) > text.index(first_run)
     body = section(text, subsection, 3)
-    assert f'mv "{COMMON}" "{TOP}"' in body
-    assert f'git add "{TOP}"' in body
-    assert f'git rm -r --cached "{TOP}"' in body
-    assert f'mv "{TOP}" "{COMMON}"' in body
     assert "seal pr-checks install" in body and "seal pr-checks remove" in body, (
         "the checks are their own command, and the section does not name it"
     )
@@ -435,9 +437,6 @@ def test_the_readme_gives_both_moves_under_first_run(readme):
         "It named the issue number while the pair was later work"
     )
 
-
-COMMON = "$(git rev-parse --git-common-dir)/seal"
-TOP = "$(git rev-parse --show-toplevel)/seal"
 
 # The one home of the way back before the commit to shared (#1055 S6), and
 # the citation of it each README carries.
@@ -460,38 +459,28 @@ def test_the_way_back_before_the_commit_to_shared_is_told_in_its_home():
         assert said in body, said
 
 
-def switch_block(readme):
-    """The BY-HAND `bash` block under the README's switch section, comments
-    off: two lines, local → shared and then shared → local.
+TO_SHARED, TO_LOCAL = "From local to shared:", "From shared to local:"
 
-    Bounded at the next `## ` heading and asserted to be there: the lines
-    are run under `bash -c`, so a block that left its section must fail
-    here rather than let a later block run in its place.
 
-    The section holds more than one block since #104, which made switching a
-    command (`seal mode`) and kept the by-hand pair below it. Taking "the
-    first block" would hand `seal mode local` to `bash -c` and fail on a
-    PATH this suite does not set up — so the block is chosen by what is IN
-    it, and every candidate is read rather than the search stopping at the
-    first that parses. A section that stopped carrying the by-hand pair
-    fails here, which is the point: those two lines are what the command's
-    move has to keep doing.
+def switch_block():
+    """The two by-hand moves `templates/setup/seal-README.md` gives, local →
+    shared and then shared → local, each as one command line.
+
+    Each move is the code spans after its lead, to the end of the paragraph,
+    joined with `&&`. The template is every root's own `seal/README.md`, and
+    the README links it for the moves rather than restating them (#1102). A
+    paragraph that stopped carrying two spans after each lead fails here,
+    which is the point: those lines are what `seal mode`'s move has to keep
+    doing, and this is where they are run from a subdirectory.
     """
-    text = read(readme)
-    _first_run, heading = READMES[readme]
-    body = section(text, heading, 3).split("\n## ", 1)[0]
-    assert "```bash\n" in body, f"{readme}: the switch block left its section"
-    for chunk in body.split("```bash\n")[1:]:
-        block = chunk.split("```", 1)[0]
-        lines = [ln.split("#", 1)[0].strip() for ln in block.splitlines()]
-        lines = [ln for ln in lines if ln]
-        if len(lines) == 2 and all("mv " in ln for ln in lines):
-            return lines
-    raise AssertionError(
-        f"{readme}: no bash block in the switch section holds the two by-hand "
-        "moves. `seal mode` does that move, and this is where the move itself "
-        "is checked against a subdirectory as the working directory"
-    )
+    text = read("templates", "setup", "seal-README.md")
+    assert TO_SHARED in text, f"no paragraph gives the move {TO_SHARED!r}"
+    paragraph = flat(text.split(TO_SHARED, 1)[1].split("\n\n", 1)[0])
+    assert TO_LOCAL in paragraph, f"the paragraph gives no move {TO_LOCAL!r}"
+    moves = [re.findall(r"`([^`]+)`", half) for half in paragraph.split(TO_LOCAL)]
+    for spans in moves:
+        assert len(spans) == 2, spans
+    return [" && ".join(spans) for spans in moves]
 
 
 def porcelain(repo):
@@ -504,21 +493,17 @@ def porcelain(repo):
     ).stdout.splitlines()
 
 
-@pytest.mark.parametrize("readme", sorted(READMES))
-def test_the_switch_block_lands_the_root_at_the_tree_root_from_a_subdirectory(
-    readme, repo
-):
+def test_the_switch_block_lands_the_root_at_the_tree_root_from_a_subdirectory(repo):
     """Round 1 of #80, 🟡 3. The two moves were spelled relative to the
     working directory: run from `src/`, `git rev-parse --git-common-dir`
     answers `../.git` and `mv … seal && git add seal` created and staged
     `src/seal/`, after which neither place held a root and the repository
-    was opted OUT. Both paths are asked of git now, so the block read out of
-    the document and run from a subdirectory lands the root at `<repo>/seal/`
-    one way and back under the common directory the other.
+    was opted OUT. Both paths are asked of git now, so the two moves read out
+    of the template and run from a subdirectory land the root at
+    `<repo>/seal/` one way and back under the common directory the other.
 
-    A bash block, run under `bash -c` line by line; the precondition is
-    executed, not assumed (`shell_probe`, for the reason its docstring
-    gives).
+    Each move is run under `bash -c`; the precondition is executed, not
+    assumed (`shell_probe`, for the reason its docstring gives).
     """
     why = shell_probe("bash")
     if why:
@@ -528,7 +513,7 @@ def test_the_switch_block_lands_the_root_at_the_tree_root_from_a_subdirectory(
     (home / "ledger" / "f.md").write_text("# rows\n", encoding="utf-8")
     sub = repo / "src"
     sub.mkdir()
-    to_shared, to_local = switch_block(readme)
+    to_shared, to_local = switch_block()
 
     r = subprocess.run(["bash", "-c", to_shared], cwd=str(sub), capture_output=True)
     assert r.returncode == 0, r.stderr

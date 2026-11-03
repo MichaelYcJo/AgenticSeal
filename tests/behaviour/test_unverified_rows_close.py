@@ -146,7 +146,6 @@ TIP_KO = "base 브랜치의 끝"
 @pytest.mark.parametrize(
     "doc, tip, false_sentence",
     [
-        ("README.md", TIP_EN, None),
         ("README.ko.md", TIP_KO, None),
         (os.path.join("skills", "verify", "SKILL.md"), TIP_EN, None),
         # The module's docstrings (#612). The phrase stands here three times,

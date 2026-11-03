@@ -25,7 +25,8 @@ are `skills/settle/scripts/passages.py`'s code (`in_corpus`, `words`,
 design's `to` through as well (#1216), and this module imports them.
 
 **What is counted.** For each unordered pair of files, the number of distinct
-runs of `WINDOW` consecutive words the two share. A pair of two agent
+runs of `WINDOW` consecutive words the two share, and a pair that shares
+one is named. A pair of two agent
 definitions, both under `agents/`, is not counted: a passage two definitions
 share states a fact about each file that holds it, and each agent reads only
 its own definition, so a link would cost every spawn a read and remove
@@ -44,18 +45,6 @@ paraphrase it also matches a heading against the sentence that links it.
 The paraphrase half was measured once, by hand, and its result is recorded in
 `67694cba:seal/specs/1791076836-every-rule-claude-md-restates-has-one-home/spec.md`
 *The method and its result* rather than checked.
-
-**Why a ratchet.** The tree still holds two copies, both in `README.md`,
-measured into `BASELINE` below. #1102 rewrites `README.md`, links them, and
-removes `BASELINE` and the ratchet with them, so that any shared run fails.
-Until then the check fails when a pair not in `BASELINE` shares any run, or
-when a pair's count goes above its baseline. It passes when a count goes
-down, and the baseline need not be lowered in the same change: otherwise
-every branch that edits a duplicated passage would edit this one table,
-which is the shared-file conflict `docs/layout/the-record-layout.md` *A change
-writes fragments, never a shared file* exists to stop. The cost is slack,
-stated: a pair that has drained can take a later copy up to its old count.
-The work that drains a pair lowers its entry on purpose.
 
 **What it does not catch.** A rule restated in fresh words. Measured against
 the three restatements #730 names, it finds one of three, the merge table,
@@ -130,18 +119,16 @@ def longest_run(a_text, b_text):
     return best
 
 
-def over_baseline(texts, baseline):
-    """A sentence per pair whose count exceeds its baseline, or that has none."""
+def shared_runs(texts):
+    """A sentence per pair that shares any run."""
     found = []
     for pair, count in sorted(shared_counts(texts).items()):
-        allowed = baseline.get(pair, 0)
-        if count > allowed:
-            length, run = longest_run(texts[pair[0]], texts[pair[1]])
-            found.append(
-                f"{pair[0]} and {pair[1]} share {count} runs of {WINDOW} words "
-                f"where {allowed} were measured; the longest is {length} words: "
-                f"{run[:240]!r}. {HOME_ACT[0].upper()}{HOME_ACT[1:]}"
-            )
+        length, run = longest_run(texts[pair[0]], texts[pair[1]])
+        found.append(
+            f"{pair[0]} and {pair[1]} share {count} runs of {WINDOW} words; "
+            f"the longest is {length} words: {run[:240]!r}. "
+            f"{HOME_ACT[0].upper()}{HOME_ACT[1:]}"
+        )
     return found
 
 
@@ -154,17 +141,6 @@ def tree():
     return texts
 
 
-# A stored count, which `skills/core/SKILL.md` *The rule a mechanism is kept
-# against* refuses, standing until #1102 links the two `README.md` passages
-# these entries count and removes them with `BASELINE` and the ratchet.
-BASELINE = {
-    ("README.md", "skills/implement/SKILL.md"): 2,
-    # The acts row of the verifying round, which moved with its table to
-    # `skills/implement/acts.md` in #1148.
-    ("README.md", "skills/implement/acts.md"): 1,
-}
-
-
 def test_the_corpus_is_found():
     """A glob that matches nothing passes every pair it would have judged."""
     found = corpus()
@@ -174,8 +150,8 @@ def test_the_corpus_is_found():
     assert not [rel for rel in found if rel.endswith(".ko.md")]
 
 
-def test_no_pair_shares_more_than_it_was_measured_at():
-    found = over_baseline(tree(), BASELINE)
+def test_no_pair_of_rule_documents_shares_a_run():
+    found = shared_runs(tree())
     assert not found, "\n".join(found)
 
 
@@ -206,60 +182,13 @@ def test_a_paste_is_named_with_the_pair_the_run_and_the_act(source, planted):
     texts = tree()
     paste = a_sentence_of(texts[source])
     texts[planted] = "Some words of its own.\n\n" + paste + "\n"
-    found = over_baseline(texts, BASELINE)
+    found = shared_runs(texts)
     named = [f for f in found if f"{source} and {planted}" in f]
     assert named, found
     assert f"share {20 - WINDOW + 1} runs" in named[0], named[0]
     assert "longest is 20 words" in named[0], named[0]
     assert paste in named[0]
     assert "link to the home instead of copying it" in named[0].lower()
-
-
-def planted_pair(length=40):
-    """Two rule documents sharing a passage of LENGTH placeholder words.
-
-    The ratchet's cases plant their pair rather than read the tree's
-    largest one, so they hold on a tree that shares no run at all."""
-    passage = " ".join(f"w{i}" for i in range(length))
-    return {
-        "docs/one.md": f"Words of the first file.\n\n{passage}\n",
-        "skills/two/SKILL.md": f"Other words, the second's.\n\n{passage}\n",
-    }
-
-
-def test_a_count_over_its_baseline_is_named_and_one_at_it_is_not():
-    """The ratchet's own edge: a pair at its entry passes, one above it is
-    named."""
-    texts = planted_pair()
-    counts = shared_counts(texts)
-    pair = ("docs/one.md", "skills/two/SKILL.md")
-    assert counts[pair] > 1, counts
-    assert not over_baseline(texts, {pair: counts[pair]})
-    found = over_baseline(texts, {pair: counts[pair] - 1})
-    assert [f for f in found if f.startswith(f"{pair[0]} and {pair[1]} share")]
-
-
-def test_a_removed_copy_passes_without_a_baseline_edit():
-    """S7: a pair whose count goes down passes, whatever the table says.
-
-    One shared run is broken in the second file, so the pair still shares
-    something and is still judged; a check that held counts exactly, rather
-    than at most, fails here."""
-    texts = planted_pair()
-    counts = shared_counts(texts)
-    a, b = "docs/one.md", "skills/two/SKILL.md"
-    mine = words(texts[b])
-    common = windows(words(texts[a])) & windows(mine)
-    first = next(
-        i
-        for i in range(len(mine) - WINDOW + 1)
-        if " ".join(mine[i : i + WINDOW]) in common
-    )
-    del mine[first + WINDOW // 2]
-    texts[b] = " ".join(mine)
-    after = shared_counts(texts)
-    assert 0 < after[(a, b)] < counts[(a, b)]
-    assert not over_baseline(texts, {(a, b): counts[(a, b)]})
 
 
 def test_a_run_two_definitions_share_is_not_counted_and_one_beside_a_skill_is():
