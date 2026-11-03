@@ -3,10 +3,9 @@
 
 Issue #400, work item 1790562543, #975 and work item 1792363231. A Bash
 call's stdout is a pipe into a tool result that reaches the person folded
-behind `ctrl+o`, so a stamp drawn there was never seen. The stamp means every
-party verified the work item, the sealer last, so since #975 it is drawn once
-per work item from the sealer's `guarantee.md` reading `sealed`, and never
-from the broad gate's run, which draws nothing. In either mode
+behind `ctrl+o`, so a stamp drawn there was never seen. When a stamp is
+drawn, and what it means, is `docs/checks/the-stamp.md` *The stamp*. In
+either mode
 `hooks/sealer-stamp-queue.py` writes the stamp's rows at the `Write` or
 `Edit` of the guarantee (`seal_stamp.queue_for_written_guarantee`) to a
 values file under `<git-common-dir>/agentic-stamp/<session>/`, keyed by the
@@ -56,7 +55,7 @@ a hook runs under whatever `python3` the harness finds, and no launcher
 stands in front of it — where this draws nothing and the edit gate's
 message, which names the file and `seal stamp --from`, is what remains. The same line
 is what remains where the main session's working directory is outside the
-clone the stamp was queued in, and where its plugin predates this hook; `docs/the-review-record.md` *The
+clone the stamp was queued in, and where its plugin predates this hook; `docs/checks/the-stamp.md` *The
 stamp* states these and the places no file is written at all.
 
 It draws; it never stops anything. `hooks/lib/implementer.py`'s stance holds: a

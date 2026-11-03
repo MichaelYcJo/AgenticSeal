@@ -31,7 +31,7 @@ STANDS = "the broad run's `trail/gate.md`"
 # R12: a whole-file substring pin is evidence only where the words occur
 # nowhere else).
 DIRECT_REQUIRES = {
-    ("docs", "the-review-and-parity-arms.md"): (
+    ("docs", "running", "the-review-and-parity-arms.md"): (
         "nothing required; the declaration is printed",
         "the broad run's `trail/gate.md`",
     ),
@@ -39,7 +39,9 @@ DIRECT_REQUIRES = {
 # The orchestration skill's four-combinations table and its closing paragraph
 # left for the policy root in #1148, which holds both; the skill keeps one
 # sentence on the direct answer and cites the section that holds the rest.
-WAIVER_SECTION = "`docs/the-review-and-parity-arms.md` *There is no standing waiver*"
+WAIVER_SECTION = (
+    "`docs/running/the-review-and-parity-arms.md` *There is no standing waiver*"
+)
 
 
 @pytest.mark.parametrize("parts", sorted(DIRECT_REQUIRES))
@@ -85,10 +87,10 @@ def test_the_release_checklist_names_the_waiver_as_the_no_work_item_answer():
     `Seal-Routing: no work item` trailer on each commit — rather than
     stepping around a gate. The checklist is read whole, because #1117's
     rule changes move the sentence from step 4 to step 2b at the settle."""
-    text = flat("docs", "release-checklist.md")
+    text = flat("docs", "releasing", "release-checklist.md")
     # The routing answer `no work item`, the code span, which a session
     # gives the routing question for such a commit.
     assert "`no work item` answer" in text, (
-        "`docs/release-checklist.md` does not name the waiver as the routing "
+        "`docs/releasing/release-checklist.md` does not name the waiver as the routing "
         "question's `no work item` answer"
     )

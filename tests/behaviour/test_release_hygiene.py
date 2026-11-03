@@ -95,7 +95,7 @@ LOADED = (
 VERSION_TOKEN = re.compile(r"(?<![\w.])[vV]?(\d+\.\d+\.\d+)(?!\.\d)")
 
 # The value the repository already tells an author to write where a real
-# version would be wrong. The paragraph of `docs/issues-and-milestones.md` that
+# version would be wrong. The paragraph of `docs/releasing/issues-and-milestones.md` that
 # opens **A rolling log is titled after the version it rolled from** is where
 # that decision was made and where the reason for it sits; the check's own
 # message points a reader there rather than restating it.
@@ -112,7 +112,7 @@ RECORDS_OF_A_MOMENT = (
     # build of a particular tool — the file name carries the date. Rewriting
     # the version an experiment ran against would falsify the record, and
     # every future file of the directory has the same argument. That is what makes a
-    # prefix defensible here where `docs/issues-and-milestones.md` — a
+    # prefix defensible here where `docs/releasing/issues-and-milestones.md` — a
     # standing document edited every release — is not (#179).
     "docs/experiments/",
 )
@@ -243,7 +243,7 @@ def timers_in(rel, text, running, shipped=frozenset()):
     ones `shipped` names.
 
     Answers `(line number, token)` pairs. Below `running` is history and is
-    kept: `docs/issues-and-milestones.md` says in so many words that *the
+    kept: `docs/releasing/issues-and-milestones.md` says in so many words that *the
     branch `release/v0.3.0` shipped as 0.2.0*, and a rule that cannot state
     that fact is refusing history rather than catching a timer. That case is
     what decides against widening to every version this repository has ever
@@ -292,7 +292,7 @@ def what_to_write_instead():
     return (
         f"Write the illustrative {ILLUSTRATIVE_VERSION} instead, and say "
         "beside it why the number is not real — the paragraph at "
-        "`docs/issues-and-milestones.md` that opens **A rolling log is titled "
+        "`docs/releasing/issues-and-milestones.md` that opens **A rolling log is titled "
         "after the version it rolled from** already does exactly that, and is the model "
         "to follow. If the number belongs to another product, declare it in "
         "`VERSIONS_OF_ANOTHER_PRODUCT` with the product it names. If the "
@@ -370,7 +370,7 @@ def test_the_message_has_a_route_for_every_token_the_check_refuses():
     # Contract rule 14: the two places the routes send a reader, by the
     # heading or the paragraph's bold lead a reader finds them under.
     assert (
-        "the paragraph at `docs/issues-and-milestones.md` that opens **A "
+        "the paragraph at `docs/releasing/issues-and-milestones.md` that opens **A "
         "rolling log is titled after the version it rolled from**"
     ) in routes, routes
     assert "`CONTRIBUTING.md` *What a change to a gate must carry*" in routes, routes
@@ -532,7 +532,7 @@ def test_the_illustrative_version_is_not_one_this_repository_could_ship():
         f"the illustrative version {ILLUSTRATIVE_VERSION} is now the running "
         "version, so the exemption in `timers_in` hides the defect it was "
         "written beside. Choose a value this repository will not reach and "
-        "rewrite the paragraph at `docs/issues-and-milestones.md` that opens "
+        "rewrite the paragraph at `docs/releasing/issues-and-milestones.md` that opens "
         "**A rolling log is titled after the version it rolled from** with it"
     )
     shipped = shipped_tags()
@@ -571,7 +571,7 @@ def test_no_loaded_file_names_a_version_at_or_above_the_running_one():
     so a document naming a version that has NOT shipped yet was green every
     day until the day it shipped, and red on the commit that moved the
     version to it, hours in, after the broad gate had already run. `0.9.0` sat in
-    `docs/issues-and-milestones.md` for three releases that way (#179).
+    `docs/releasing/issues-and-milestones.md` for three releases that way (#179).
 
     So the comparison is read rather than the equality: **at or above the
     running version is a timer and is refused; below it is history and is
@@ -606,7 +606,7 @@ RUNNING_IN_THE_FIXTURES = "0.8.3"
 def test_a_version_below_the_running_one_is_history_and_is_kept():
     """The case that decides against refusing every version ever shipped.
 
-    `docs/issues-and-milestones.md` explains how to tell which release an
+    `docs/releasing/issues-and-milestones.md` explains how to tell which release an
     issue shipped in by saying that *the branch `release/v0.3.0` shipped as
     0.2.0*. Both numbers are real, both are below the running version, and a
     rule that refuses them is refusing the repository's own history — which
@@ -614,7 +614,9 @@ def test_a_version_below_the_running_one_is_history_and_is_kept():
     """
     history = "the branch `release/v0.3.0` shipped as 0.2.0"
     assert (
-        timers_in("docs/issues-and-milestones.md", history, RUNNING_IN_THE_FIXTURES)
+        timers_in(
+            "docs/releasing/issues-and-milestones.md", history, RUNNING_IN_THE_FIXTURES
+        )
         == []
     )
 
@@ -721,7 +723,10 @@ def test_the_illustrative_version_is_allowed_in_any_loaded_file():
     """
     text = f"titled `chore: flow measurement — after {ILLUSTRATIVE_VERSION}`"
     assert (
-        timers_in("docs/issues-and-milestones.md", text, RUNNING_IN_THE_FIXTURES) == []
+        timers_in(
+            "docs/releasing/issues-and-milestones.md", text, RUNNING_IN_THE_FIXTURES
+        )
+        == []
     )
     assert timers_in("agents/proofer.md", text, RUNNING_IN_THE_FIXTURES) == []
 
@@ -793,7 +798,7 @@ def test_the_experiments_prefix_covers_only_a_dated_record():
 
     `docs/experiments/README.md` is the directory's conventions, edited
     whenever they change — the same standing-document shape #179 refused a
-    prefix for in `docs/issues-and-milestones.md`. Left uncovered by this
+    prefix for in `docs/releasing/issues-and-milestones.md`. Left uncovered by this
     case, the prefix is the one exemption a document joins by choosing its
     own path.
     """
@@ -1173,13 +1178,15 @@ def test_the_document_shows_the_forms_a_feature_pull_request_writes():
     issue closes, why, and where the rule sits in the release sequence are
     the proofer's to read.
     """
-    doc = " ".join(read_text("docs", "branch-and-release.md").split())
+    doc = " ".join(read_text("docs", "releasing", "branch-and-release.md").split())
     # The example block a person copies into a feature pull request body:
     # one keyword and one number, the form
     # `.github/workflows/close-issues-on-release.yml` reads. Round 1
     # rewrote it into the form the paragraph beneath warns against, and
     # every prose assertion stayed green, so the block itself is pinned.
-    assert "```\nCloses #88\n```" in read_text("docs", "branch-and-release.md"), (
+    assert "```\nCloses #88\n```" in read_text(
+        "docs", "releasing", "branch-and-release.md"
+    ), (
         "the example block went, or grew back into a list -- one keyword and "
         "one number is what a feature pull request writes, and it is the only "
         "form the workflow reads"
@@ -1198,7 +1205,7 @@ def test_the_pull_request_checks_the_chain_it_was_routed_to():
     Moving enforcement off the commit and onto the pull request is only
     honest while the pull request actually checks. A workflow with the
     declaration and no step is the standing waiver
-    `docs/the-review-and-parity-arms.md` refuses to build — quieter than the one it replaced, because a declaration
+    `docs/running/the-review-and-parity-arms.md` refuses to build — quieter than the one it replaced, because a declaration
     that nothing reads leaves no trace at all.
     """
     workflow = open(

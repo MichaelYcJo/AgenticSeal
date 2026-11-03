@@ -70,7 +70,8 @@ jobs:
       # record it claimed, and a commit with no `Seal-Routing` trailer, a
       # teammate's among them, is not judged. What the check refuses, and
       # when, is the plugin's
-      # `docs/the-review-record.md` *What the check reads at the pull request*.
+      # `docs/checks/the-pull-request-check.md` *What the check reads at the
+      # pull request*.
       - name: a declared review chain has the round record it claimed
         shell: bash
         run: |

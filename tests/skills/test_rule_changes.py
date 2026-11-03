@@ -1,6 +1,6 @@
 """`skills/settle/scripts/rule_changes.py`, one class per function.
 
-The grammar of a spec's `## Rule changes` is `skills/settle/SKILL.md` *Rule
+The grammar of a spec's `## Rule changes` is `skills/settle/rule-changes.md` *Rule
 changes*, and this module is its one reader (#953). `Test_parse` asks the
 reader directly; `Test_pattern`, `Test_section_lines` and `Test_group` read
 the texts and places a settle shows over one document in memory (#1033).
@@ -77,6 +77,15 @@ class Test_parse:
         assert [o.line for o in parsed.ops] == [
             i + 1 for i, line in enumerate(text.split("\n")) if line.startswith("- ")
         ]
+
+    def test_reads_a_file_in_one_group_directory_of_the_root(self):
+        """#1312 S5: a `file` names a document of the policy root or of one
+        group directory directly in it, so a grouped root parses; a deeper
+        path, `.` or `..` as the group, is refused with the others below."""
+        text = spec("- add\n  file: docs/forms/a.md\n  section: S\n  to: x")
+        parsed = parse(text)
+        assert parsed.errors == [], parsed
+        assert [o.file for o in parsed.ops] == ["docs/forms/a.md"], parsed
 
     @pytest.mark.parametrize(
         "to, lines",
@@ -368,7 +377,14 @@ class Test_parse:
                 "item",
             ),
             ("- remove\n  file: src/a.md\n  section: S", "- remove", "docs/"),
-            ("- remove\n  file: docs/sub/a.md\n  section: S", "- remove", "docs/"),
+            (
+                "- remove\n  file: docs/a/b/c.md\n  section: S",
+                "- remove",
+                "`docs/a/b/c.md` is not a `.md` of docs/ or of one group "
+                "directory in it",
+            ),
+            ("- remove\n  file: docs/../a.md\n  section: S", "- remove", "docs/"),
+            ("- remove\n  file: docs/./a.md\n  section: S", "- remove", "docs/"),
             ("- add\n  file: docs/..\\..\\evil.md\n  to: x", "- add", "docs/"),
             ("- add\n  file: docs/C:\\x\\evil.md\n  to: x", "- add", "docs/"),
             ("- add\n  file: docs/\\evil.md\n  to: x", "- add", "docs/"),
@@ -402,7 +418,9 @@ class Test_parse:
             "field-twice",
             "outside-an-item",
             "outside-the-root",
-            "below-the-top-level",
+            "below-one-group",
+            "the-parent-as-a-group",
+            "the-root-as-a-group",
             "windows-parent",
             "windows-drive",
             "windows-root",

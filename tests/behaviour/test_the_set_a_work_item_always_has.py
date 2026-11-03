@@ -45,7 +45,7 @@ from conftest import read
 # price of an allow-list over prose, and no shape was found that keeps the
 # property without it.
 #
-# Every count these four documents hold today, named line by line. A NEW one
+# Every count these five documents hold today, named line by line. A NEW one
 # is not in this set, so it raises — which is the whole property, and the one
 # a rule for choosing WHICH lines to look at cannot have.
 #
@@ -58,9 +58,16 @@ from conftest import read
 KNOWN_PROSE = {
     ("skills", "implement", "SKILL.md"): frozenset(
         {
-            "used to read *6+ files, a new module, or an architectural choice*, and two of",
             "beside the contract. Progress does the same thing one file up, in `plan.md`'s",
             "also the four files that were not committed yet*.",
+        }
+    ),
+    # The ladder, in the orchestrator's half since #1312, and the framer's
+    # three frame files in the same file, which count no rung.
+    ("skills", "implement", "orchestration.md"): frozenset(
+        {
+            "into its three files, and writes each rejected proposal as one row of",
+            "used to read *6+ files, a new module, or an architectural choice*, and two of",
             "- **One file, and it qualifies.** A change to an agent's persona is two files",
             "*six files* was a count, and two people can disagree about a borderline case.",
         }
@@ -69,17 +76,21 @@ KNOWN_PROSE = {
 
 
 def test_the_top_rung_names_behaviour_rather_than_a_count():
-    """S6. The rung itself, in the skill the builder opens.
+    """S6. The rung itself, in the orchestrator's half of the skill.
 
     A count is the thing being replaced, so `6+ files` may not survive as the
-    condition anywhere. The crafter's copy of the rung left with #967, and the
-    skill is the one place it is stated; the sweep below still reads the
-    crafter's definition, so a count written back into it is caught.
+    condition anywhere. The crafter's copy of the rung left with #967, and
+    `skills/implement/orchestration.md` is the one place it is stated since
+    #1312; the sweep below still reads `SKILL.md` and the crafter's
+    definition, so a count written back into either is caught.
     """
-    skill = read("skills", "implement", "SKILL.md")
-    assert "observable behaviour" in skill, "implement/SKILL.md lost the condition"
+    ladder = read("skills", "implement", "orchestration.md")
+    assert "observable behaviour" in ladder, (
+        "implement/orchestration.md lost the condition"
+    )
     for text, who in (
-        (skill, "implement/SKILL.md"),
+        (ladder, "implement/orchestration.md"),
+        (read("skills", "implement", "SKILL.md"), "implement/SKILL.md"),
         (read("agents", "crafter.md"), "agents/crafter.md"),
     ):
         assert "| 6+ files" not in text, f"{who} still has the count as a rung"
@@ -98,6 +109,7 @@ def test_the_top_rung_names_behaviour_rather_than_a_count():
     # later reader takes for an oversight.
     for parts in (
         ("skills", "implement", "SKILL.md"),
+        ("skills", "implement", "orchestration.md"),
         ("agents", "crafter.md"),
         ("templates", "records", "sdd-gaps.md"),
         ("templates", "records", "sdd-plan.md"),
@@ -130,10 +142,10 @@ def test_the_rung_cites_the_issue_that_measured_the_count():
     that measured the first direction is history since #967, kept in the
     issue rather than the skill.
     """
-    skill = read("skills", "implement", "SKILL.md")
+    ladder = read("skills", "implement", "orchestration.md")
     # The issue number `#35`, which a reader looks up for when a count would
     # have been taken.
-    assert "issue #35" in skill, (
+    assert "issue #35" in ladder, (
         "the count never said when it was taken, and that is the half a "
         "reader has to be able to look up"
     )
@@ -206,10 +218,11 @@ def test_the_skill_lists_the_second_rung_work_and_what_lifts_it():
     second-rung work and `agents/crafter.md` named three, so a change touching
     only tests was decidable by one and not the other. Since #967 the crafter
     opens the skill and keeps no copy, so the list has one home, held here.
+    The home is `skills/implement/orchestration.md` since #1312.
 
     Whitespace-normalised because the file is wrapped.
     """
-    skill = " ".join(read("skills", "implement", "SKILL.md").split())
+    skill = " ".join(read("skills", "implement", "orchestration.md").split())
     for example in (
         "a refactor",
         "a performance pass",

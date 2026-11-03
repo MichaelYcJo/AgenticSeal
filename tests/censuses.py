@@ -1000,7 +1000,7 @@ OLD_NAME = re.compile(
             # `graders/shape-writes-spec.md`, is not the record.
             r"(?<![\w-])(?:" + "sp" + "ec|over" + r"view)\.md\b",
             # The broad run's record, now `trail/gate.md`, and the command
-            # now `seal gate`; `docs/the-broad-gate.md` names the act.
+            # now `seal gate`; `docs/running/the-broad-gate.md` names the act.
             r"(?<!the-)broad" + "-gate",
             # The hand-offs, now under a thread's `trail/`.
             r"(?<!trail/)\b(?:pha" + "ses|rou" + "nds)/",
@@ -1023,7 +1023,7 @@ KEPT_OLD_NAMES = (
     # The `renames` entry of `.claude-plugin/marketplace.json`, which carries
     # the plugin's old name to its new one and is append-only.
     f'"{_OLD}": "agentic"',
-    # The 0.3.x directory, which `docs/one-root-by-lifetime.md` names as one
+    # The 0.3.x directory, which `docs/layout/one-root-by-lifetime.md` names as one
     # no code of the plugin opens, and which the cases pinning it as unread
     # spell.
     f".{_OLD}",
@@ -1095,21 +1095,24 @@ def old_names(rel, root=None):
 #
 # #1060 moves files one directory down: a module of `hooks/` into
 # `hooks/lib/`, a template into `templates/records/` or `templates/setup/`, a
-# test file into an area of `tests/`. The path the file stood at one level up
-# is then a path no file holds, and a living line that spells it sends its
+# test file into an area of `tests/`. #1312 moves the policy documents of
+# `docs/` into its groups the same way. The path the file stood at one level
+# up is then a path no file holds, and a living line that spells it sends its
 # reader to nothing. The census derives those spellings from the files that
 # stand in each subdirectory on disk, so it keeps no list of old paths and
 # refuses nothing until a file has moved.
 
 # Each subdirectory a move fills, with the directory one level up whose
 # spelling it vacates. `tests/e2e/` is not an area: its files never stood at
-# the top of `tests/`.
+# the top of `tests/`, and `docs/experiments/` is no group of the policy root.
 TEST_AREAS = ("hooks", "skills", "github", "evals", "behaviour", "text")
+POLICY_GROUPS = ("forms", "running", "releasing", "checks", "layout")
 VACATING = (
     ("hooks/lib/", "hooks/"),
     ("templates/records/", "templates/"),
     ("templates/setup/", "templates/"),
     *((f"tests/{area}/", "tests/") for area in TEST_AREAS),
+    *((f"docs/{group}/", "docs/") for group in POLICY_GROUPS),
 )
 # A path cited at a commit, `<commit>:<path>`, the form `git show` opens as
 # written; the old path is the one that commit holds. Taken out of a line

@@ -7,7 +7,7 @@ The signal is `seal/` — the root the plugin maintains, whose existence is the
 declaration — at the first of two places that has it with its `README.md`
 opening with `MARKER`: `<repo>/seal/`, which shared mode commits, then
 `<git-common-dir>/seal/`, where local mode keeps it (#80). One root, read one
-way, and no config key (`docs/one-root-by-lifetime.md`, "The opt-in signal
+way, and no config key (`docs/layout/one-root-by-lifetime.md`, "The opt-in signal
 is the root itself"). A `seal/` without the marker is a directory the project
 keeps for itself, as a package named `seal` does, and declares nothing.
 
@@ -42,7 +42,7 @@ WORK_ITEMS = "threads"
 # Where each record sits in a thread, `/`-joined and relative to the thread's
 # directory: `frame/` holds the design before the build, `trail/` what passed
 # between the parties, and the four files at the top speak for the whole
-# thread (`docs/the-record-layout.md`). Every reader of a thread's file joins
+# thread (`docs/layout/the-record-layout.md`). Every reader of a thread's file joins
 # one of these under the thread.
 FRAME = "frame"
 TRAIL = "trail"

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Create the labels this repository's documents specify but the tracker lacks.
 
-`docs/issues-and-milestones.md` has specified `size: now` since 0.11.1 -- two
+`docs/releasing/issues-and-milestones.md` has specified `size: now` since 0.11.1 -- two
 states, the prefix argument, what its absence means -- and **the label was
 never created**. Measured 2026-09-20 for #450 and again 2026-09-22:
 `gh label list` does not list it and no issue has ever carried it. So a
@@ -116,7 +116,7 @@ LABELS = (
             "removed when its release closes the issue"
         ),
         "specified_by": (
-            "docs/issues-and-milestones.md "
+            "docs/releasing/issues-and-milestones.md "
             "*A label answers what it is about, and survives the move*"
         ),
     },

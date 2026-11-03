@@ -11,8 +11,8 @@ every pending record once, at the end of the main session's turn, as a
 Most cases drive `dispatch.py` from a COPY of `hooks/` as a subprocess, which
 is what production spawns. A broken gate is one whose file is replaced by
 `def broken(:\\n`. The live `hooks/` is never touched. The cases come from
-`tests/hooks/test_dispatch.py`, `tests/text/test_a_gate_that_fails_says_so.py`
-and `tests/test_console_is_not_utf8.py` (#942's phase 6).
+`tests/hooks/test_dispatch.py` and `tests/test_console_is_not_utf8.py` (#942's
+phase 6).
 """
 
 import contextlib
@@ -1155,7 +1155,7 @@ class Test_module:
         The gates that wrote a clone's git hooks or carried a waiver to git
         stay out of every group and off disk, and `hooks/git/` stays gone:
         this plugin writes nothing into a clone's git hooks
-        (`docs/the-routing-check.md`)."""
+        (`docs/checks/the-routing-check.md`)."""
         d = dispatch_module()
         assert d.GROUPS["pre-bash"] == ("mode-gate.py",)
         assert d.GROUPS["pre-agent"] == ("implementer-mark.py",)

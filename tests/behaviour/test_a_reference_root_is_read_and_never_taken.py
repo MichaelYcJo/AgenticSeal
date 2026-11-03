@@ -60,7 +60,10 @@ SHIPPED = {
     ),
     "seal pact": (PINNED, "pact_check.py#anchor_files, under each signer's root"),
     "seal gate": (NO_WALK, "runs the row, chain_check.py and seal.py mode"),
-    "seal fold": (NO_WALK, "reads the top level of docs/ and seal/config.md"),
+    "seal fold": (
+        NO_WALK,
+        "reads the policy root, each group its index names, and seal/config.md",
+    ),
     "seal rules": (NO_WALK, "reads the one document it is named and its targets"),
     "seal arms": (NO_WALK, "reads the Python files it is named"),
     "seal mutate": (NO_WALK, "breaks and restores the one file it is named"),

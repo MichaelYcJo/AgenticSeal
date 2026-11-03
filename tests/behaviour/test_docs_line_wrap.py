@@ -57,8 +57,15 @@ rules = _rules()
 
 
 def is_rule_file(relative):
-    """Whether `seal rules --check` reads RELATIVE's check lines."""
-    return any(fnmatch.fnmatch(relative, p) for p in rules.RULE_FILES)
+    """Whether `seal rules --check` reads RELATIVE's check lines: a file a
+    `RULE_FILES` glob names, or a document of this tree's policy root
+    (`rules.py#policy_documents`)."""
+    return relative in POLICY_DOCUMENTS or any(
+        fnmatch.fnmatch(relative, p) for p in rules.RULE_FILES
+    )
+
+
+POLICY_DOCUMENTS = set(rules.policy_documents(ROOT))
 
 
 def _fence_reader():
@@ -151,7 +158,7 @@ COVERED = [
     "skills/commit-pr-convention/SKILL.md",
     # Wrapped from its first line, so it goes in at birth rather than waiting
     # for the sweep that would otherwise be needed to bring it under.
-    "docs/release-checklist.md",
+    "docs/releasing/release-checklist.md",
     # The same, and the first `templates/` entry. Its siblings are not here
     # because they hold tree drawings and placeholder rows wider than the
     # limit, and bringing those under is a sweep, not this work item.
@@ -171,9 +178,14 @@ COVERED = [
     # The twenty-fourth skill (#458), on the same terms: written wrapped, so
     # it has no sweep to owe and goes in with its first commit.
     "skills/settle/SKILL.md",
+    # Cut from it in #1312, wrapped as it was.
+    "skills/settle/rule-changes.md",
+    "skills/settle/draft.md",
+    "skills/settle/local-mode.md",
+    "skills/settle/named-directories.md",
     # The same, and the tracker's own authority: it was written wrapped, so it
     # never had a maximum to bring down.
-    "docs/issues-and-milestones.md",
+    "docs/releasing/issues-and-milestones.md",
     # Wrapped from its first line, so it goes in at birth. Nearly all of it is
     # HTML comments, which GitHub does not render and this file does not skip
     # — and the edit box a contributor reads them in wraps nothing for them,
@@ -181,15 +193,15 @@ COVERED = [
     ".github/PULL_REQUEST_TEMPLATE.md",
     # The policy documents the first fold wrote. Each was written wrapped,
     # so each goes in at birth with no sweep to owe.
-    "docs/the-broad-gate.md",
-    "docs/measuring-a-run.md",
-    "docs/the-agent-set.md",
+    "docs/running/the-broad-gate.md",
+    "docs/running/measuring-a-run.md",
+    "docs/running/the-agent-set.md",
     # The routing check's documents, each written wrapped and in at birth.
-    "docs/the-session-hooks.md",
-    "docs/the-routing-check.md",
-    "docs/the-review-and-parity-arms.md",
+    "docs/checks/the-session-hooks.md",
+    "docs/checks/the-routing-check.md",
+    "docs/running/the-review-and-parity-arms.md",
     # The pact's policy (#647), written wrapped and in at birth.
-    "docs/the-pact.md",
+    "docs/layout/the-pact.md",
 ]
 
 

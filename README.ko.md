@@ -109,9 +109,9 @@ proofer 는 그 기록을 다시 돌리는 대신 감사합니다. 명령이 실
 
 | 루트 | 수명 | 담는 것 |
 |---|---|---|
-| `seal/` | 영구 | 이 플러그인이 유지하는 전부(파일 하나하나는 `docs/the-record-layout.md` *seal/* 에 있다)와 그 아래의 작업 항목들. 이 디렉터리가 있고 그 안의 `README.md` 가 `templates/setup/seal-README.md` 의 첫 줄인 표시 줄로 시작한다는 것 자체가 옵트인이며, 이것을 보는 훅은 아래 「게이트」 표의 "어디서" 열에 `seal/` 이 적힌 훅이다 |
+| `seal/` | 영구 | 이 플러그인이 유지하는 전부(파일 하나하나는 `docs/layout/the-record-layout.md` *seal/* 에 있다)와 그 아래의 작업 항목들. 이 디렉터리가 있고 그 안의 `README.md` 가 `templates/setup/seal-README.md` 의 첫 줄인 표시 줄로 시작한다는 것 자체가 옵트인이며, 이것을 보는 훅은 아래 「게이트」 표의 "어디서" 열에 `seal/` 이 적힌 훅이다 |
 | `seal/threads/<id>/` | 작업 항목 하나 | `frame/`(design, plan, questions), `trail/`(phases, 리뷰 라운드, broad run), 그리고 맨 위의 `routing.md`, `changelog.md`, `guarantee.md`, diff 가 보여 주지 못하는 것만 적는 마무리 메모 `gaps.md`. `frame/plan.md` 는 사람이 승인하므로 도구 상태가 아니라 레포의 문서다 |
-| `docs/` | 영구 | 레포가 원래 갖고 있는 정책서. 문서 관례는 그 프로젝트의 것이다. 작업 항목은 이 문서를 고치지 않고 바꿀 규칙을 설계에 적으며, 릴리스 뒤의 settle 이 그 변경이 말하는 가장 나중 결정으로 절마다 써 넣는다(`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*) |
+| `docs/` | 영구 | 레포가 원래 갖고 있는 정책서. 문서 관례는 그 프로젝트의 것이다. 정책 루트 자체가 주제인 작업 항목은 그 pull request 에서 이 문서를 직접 고치고, 코드가 주제인 작업 항목은 이 문서를 고치지 않고 바꿀 규칙을 설계에 적으며, 릴리스 뒤의 settle 이 그 변경이 말하는 가장 나중 결정으로 절마다 써 넣는다(`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*) |
 
 ```
 seal/
@@ -137,7 +137,9 @@ seal/
 
 없는 파일은 `templates/` 에서 만들어집니다. 리뷰 회차가 트리에 무엇을 남기는지,
 PR 검사가 그중 무엇을 읽는지, 세션이 에이전트에게 일을 어떻게 넘기는지는
-[docs/the-review-record.md](./docs/the-review-record.md) 에 있습니다.
+[docs/forms/the-round-record.md](./docs/forms/the-round-record.md),
+[docs/checks/the-pull-request-check.md](./docs/checks/the-pull-request-check.md),
+[docs/running/the-run.md](./docs/running/the-run.md) 에 있습니다.
 
 **규칙은 자기를 지키는 테스트를 적어 둡니다.** 정책서가 적은 규칙은
 `check:` 줄로 끝나고, 그 줄에는 그 규칙을 지키는 테스트 파일이나 그 테스트들이
@@ -158,9 +160,9 @@ PR 검사가 그중 무엇을 읽는지, 세션이 에이전트에게 일을 어
 104ms, 후 323ms → 120ms). 게이트가 불러와지지 않거나 도중에 멈추면 그
 게이트만 건너뛰고 호출은 그대로 진행됩니다. 어느 게이트였는지는 세션마다 한
 번, 턴이 끝날 때 알려 줍니다. 판정표 전문은 다음 세 문서에 있습니다.
-[docs/the-routing-check.md](./docs/the-routing-check.md) ·
-[docs/the-review-and-parity-arms.md](./docs/the-review-and-parity-arms.md) ·
-[docs/the-review-record.md](./docs/the-review-record.md)
+[docs/checks/the-routing-check.md](./docs/checks/the-routing-check.md) ·
+[docs/running/the-review-and-parity-arms.md](docs/running/the-review-and-parity-arms.md)
+· [docs/checks/the-pull-request-check.md](./docs/checks/the-pull-request-check.md)
 
 | 게이트 | 언제 | 무엇을 | 어디서 |
 |---|---|---|---|
@@ -187,8 +189,8 @@ PR 검사가 그중 무엇을 읽는지, 세션이 에이전트에게 일을 어
 간다고 적힌 것에 대해서는 커밋된 라운드 기록을 요구합니다. 그 기록에 답하지
 않은 지적이 하나라도 남아 있으면 막습니다. 어느 쪽도 선언하지 않은 PR 은
 커밋의 `Seal-Routing` 트레일러로만 판정하고
-([docs/the-routing-check.md](./docs/the-routing-check.md)), 그 밖에는 아무것도
-검사하지 않았다는 알림을 남깁니다.
+([docs/checks/the-routing-check.md](./docs/checks/the-routing-check.md)), 그 밖에는
+아무것도 검사하지 않았다는 알림을 남깁니다.
 
 한 회차의 지적은 그 회차가 끝난 뒤에 수정으로 닫히고, 그 수정을 읽는 것은 다음
 회차입니다. 마지막 회차만 예외였습니다 — 아무도 읽지 않았습니다.
@@ -257,7 +259,7 @@ origin remote 를 키로 저장됩니다. 다른 기계에서는 틀린 값이�
 | `seal cost --latest` | 세션의 시간이 어디로 갔는지 — 명령 실행, 호출 사이 모델 대기, 이미 나온 결과를 다시 보려고 재실행한 검사, 한 턴에 나간 도구 수. 세션 안에서는 잴 수 없는 값입니다 |
 | `seal cost --segments <트랜스크립트>` | 그 실행이 스폰한 에이전트마다 한 행씩, 각자의 트랜스크립트에서 읽어 찍습니다 — 걸린 시간, 호출 수, 한 턴에 나간 도구 수, 평균 대기, 토큰, 그리고 가장 큰 턴 하나가 읽은 컨텍스트. 이 "걸린 시간"은 다른 어느 칸에도 없습니다. 스폰을 받아들인 시점에 결과를 적는 하네스에서는 `--spawns` 표의 값이 몇 초로 나오는데, 정작 그 에이전트는 이십 분을 돌았기 때문입니다. 중간에 코디네이터가 다시 말을 건 에이전트는 일한 구간마다 한 행으로 갈라서, 두 구간 사이의 대기가 어느 행에도 들어가지 않게 합니다. 실행 전체의 트랜스크립트를 주든 그 에이전트 자신의 트랜스크립트를 주든 똑같이 가릅니다. 에이전트가 또 다른 에이전트를 스폰했으면 그 사실도 한 줄로 찍습니다. 표 아래에는 한 턴에 나간 도구 수가 그 종류의 기준선에 못 미치는 행을 이름으로 찍습니다. 기준선은 proofer 와 framer 에만 있고, 편집과 테스트를 번갈아 하는 crafter 는 대상이 아닙니다. 기준선이 없어 판정하지 못한 행은 그 수를 함께 찍습니다 |
 | `seal settle [--apply]` | 플래그 없이 돌리면 미리 보기만 합니다. 릴리스된 설계들의 `## Rule changes` 를 가리키는 절별로 묶어 병합 순서대로 보여 주고, 각 `from` 과 `to` 가 지금 그 절에 있는지 함께 찍습니다. 통째로 읽어야 할 설계, 릴리스된 기록마다 열린 행 전부, 그 기록과 이름이 같지만 제자리가 아닌 곳에 있어 읽지 않은 파일, `--apply` 가 지울 것도 찍습니다. 아무것도 거부하지 않습니다. `--from <dir>` 을 주면(여러 번 줄 수 있습니다) 사람이 이름을 댄 디렉터리의 문서마다 그 문서를 추가한 커밋과 마지막으로 바꾼 커밋도 찍고, 그 디렉터리에는 아무것도 쓰지 않습니다. settle 을 돌리는 세션은 첫 편집 전에 어느 디렉터리를 넘길지와 그 문서 가운데 무엇을 정책에 올릴지(promote)를 사람에게 묻고, 그다음 절을 쓰고 열린 행을 판정합니다(`skills/settle/SKILL.md` *The settling session's procedure*). `--draft` 는 릴리스된 연산을 설계에 적힌 그대로 병합 순서대로, 뒤에 뒤집힌 연산까지 정책 루트에 써 넣고, 자리를 찾지 못한 연산은 이유와 함께 찍으며, 아무것도 판단하지 않습니다. 세션은 그 결과를 따로 커밋하고, 쓰인 절마다 코드와 대조해 읽습니다. `--apply` 는 `--from` 을 거부하고, 문서를 쓰지 않습니다. 기록에 열린 행이 없는 릴리스된 디렉터리를 `frame/design.md` 가 있든 없든 지웁니다. 다만 저장소가 릴리스 노트를 fragment 로 만드는데 그 버전의 GitHub Release 노트에 그 항목, 곧 `changelog.md` 를 추가한 pull request 로 가는 링크가 없으면 그 디렉터리는 남깁니다. 남긴 디렉터리마다 이름과 이유를 찍습니다(`skills/settle/SKILL.md` *What `--apply` does*) |
-| `seal fold [--ceiling <n>]` | 정책 루트 최상위에서 한 번에 읽히는 크기와 색인을 확인합니다. 무엇을 어떻게 보는지는 `skills/settle/scripts/fold_check.py` 와 그 행을 적은 `templates/setup/config.md` *The fold's values* 에 있습니다. 플래그는 그 실행에서만 행을 대신합니다 |
+| `seal fold [--ceiling <n>]` | 정책 루트와, 색인이 문서를 가리키는 그룹 디렉터리의 문서가 한 번에 읽히는 크기인지와 색인을 확인합니다. 무엇을 어떻게 보는지는 `skills/settle/scripts/fold_check.py` 와 그 행을 적은 `templates/setup/config.md` *The fold's values* 에 있습니다. 플래그는 그 실행에서만 행을 대신합니다 |
 | `seal rules <doc> [--root <dir>]` · `seal rules --check [--root <dir>]` | `seal rules <doc>` 는 문서의 제목마다 그 아래 `check:` 줄이 가리키는 테스트를 찍고, 테스트마다 docstring 의 첫 문장을 함께 보여 줍니다. 대상을 찾지 못하면 그 이유를 찍습니다. 규칙의 글은 그 docstring 한 곳에만 있으므로, 문서와 테스트를 나란히 읽을 때 이 명령을 씁니다. 무엇을 찾든 0 으로 끝납니다. `seal rules --check` 는 모든 규칙 파일의 check 줄을 전부 읽고, 문법을 벗어난 줄이나 사라진 대상이 하나라도 있으면 파일·줄·제목을 찍고 1 로 끝납니다. 그런 줄이 아직 settle 되지 않은 설계의 `from` 없는 `remove` 가 settle 때 들어낼 절 안에 있으면 그 work item 을 밝혀 excused 로 찍고, 실패로 치지 않습니다. 대기 중인 `change` 는 아무 줄도 봐주지 않고, `seal/` 루트가 local 이면 봐주는 줄이 없습니다. 테스트 하나가 저장소 전체에 대해 이 명령을 돌립니다. 대상은 명령을 친 저장소에서 찾고, 어느 쪽도 아무것도 쓰지 않습니다 |
 | `seal pact [ROOT]` | pact(여러 저장소가 함께 지키는 계약의 원본, `seal/pact.md`)를 가진 저장소에서 돌립니다. pact 가 적어 둔 signer(그 계약에 서명한 저장소)마다 `~/.claude/agentic/pact-paths.md` 나 옆 디렉터리에서 체크아웃을 찾고, 그 저장소의 `Pact` 행이 이 pact 를 가리키는지 확인한 뒤, 거기 적힌 pact 앵커를 하나씩 판정합니다. `SUPERSEDED` 는 signer 가 예전 조항을 보고 만들어졌다는 뜻이고, `NOT TAKEN` 은 pact 가 아직 받아들이지 않은 변경이 어느 브랜치에 있는지 알려 줍니다. `UNMATCHED` 와 `BROKEN` 은 양쪽을 읽거나 좌표를 다시 잡으라는 뜻입니다. 로컬에서만 돕니다. signer 의 CI 는 저장소 하나만 읽을 수 있으므로 pact 를 아무것도 읽지 않습니다 |
 | `seal core [--transcript <경로>]` | 이 세션의 컨텍스트에 코어(`skills/core/SKILL.md`)가 한 번, 온전히 들어 있는지를 세션의 트랜스크립트에서 읽습니다. 컨텍스트 안의 `SessionStart` 훅 항목 하나가 그 첫 줄이 가리키는 파일을 그대로 담고 있으면 0, 아니면 이유를 찍고 1 로 끝납니다. 코어는 `CLAUDE.md` 파일이 아니라 플러그인의 `SessionStart` 훅으로 들어오므로 `/memory` 에는 나오지 않습니다. 세션에 어느 코어가 들어 있는지는 `! seal core` 를 쳐서 봅니다. 에이전트의 Bash 에서 돌리면 그 에이전트를 스폰한 세션을 읽습니다 |
@@ -467,7 +469,7 @@ git rm -r --cached "$(git rev-parse --show-toplevel)/seal" && mv "$(git rev-pars
 그렇게 해도 `seal mode` 와 마찬가지로 `.github/` 에는 손대지 않습니다.
 local 로 옮긴 뒤에도 워크플로는 트리에 남고, 어느 고정이 그곳에서
 통과하는지와 실패하는 고정을 어떻게 옮기는지는
-`docs/one-root-by-lifetime.ko.md` *shared 인가 local 인가* 가 말합니다.
+`docs/layout/one-root-by-lifetime.ko.md` *shared 인가 local 인가* 가 말합니다.
 
 기계가 둘이면 이 방법을 쓸 수 없습니다. 다른 기계에는 옮길 폴더 자체가
 없기 때문입니다. 아래의 `seal export` 와 `seal import` 가 그것을 위한

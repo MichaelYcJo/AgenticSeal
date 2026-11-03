@@ -99,7 +99,7 @@ disagree, and do not guess which is true.
 check: none reader: the orchestrator at each hand-back
 
 **The handoff's facts are coordinates to open.** A fact your prompt carries
-arrives in the shape of `docs/the-review-record.md` *The handoff*; open its
+arrives in the shape of `docs/running/the-run.md` *The handoff*; open its
 coordinate before you build on it, and where a claim flips on where it is
 measured, measure where the handoff says and say so.
 check: tests/text/test_the_handoff_before_round_one.py
@@ -130,7 +130,7 @@ seal mutate <file> --replace "<old>" "<new>" --tests "<the runner> <module> -k <
 Each run is bounded at 300 s unless `--timeout` says otherwise, and a
 timed-out run is a result to report. Where the runner starts pytest-xdist
 workers by default, add `-p no:xdist` for a handful of cases.
-`skills/verify/SKILL.md` carries the verdicts and their exit codes.
+`skills/verify/seal-mutate.md` carries the verdicts and their exit codes.
 check: tests/behaviour/test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py tests/skills/test_mutation_check.py
 
 **A stop at three failed fixes is handed back.** The rule is
@@ -142,7 +142,7 @@ check: tests/text/test_a_moved_rule_leaves_its_definition.py
 **Find the runner, and type the narrow form.** A wrapper in `bin/`, or
 whatever the contribution guide names first, is cheap on the second call;
 type step 7's one command, never the whole suite
-(`docs/the-review-record.md` *The handoff*).
+(`docs/running/the-run.md` *The handoff*).
 Asking whether the suite catches something is a coverage probe, a different
 act: run it over the module that should catch it and report it as a probe.
 check: tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py
@@ -169,7 +169,7 @@ paste-ready fix, each line spelt as `hooks/lib/fields.py` reads it. Its
 with no commit on the branch is `deferred <where it was repaired>`), and its
 `answer:` says what was done.
 The pass edits nothing else in the record: the finding's own block is the
-proofer's (`docs/the-review-record.md` *The round record*).
+proofer's (`docs/forms/the-round-record.md` *The round record*).
 A paste-ready fix is the proofer's claim and not the fix. Apply it only
 after reading it as its text's own reader would: a procedure step is read
 in either `seal/` root (contract rule 11), under every condition its file
@@ -182,12 +182,15 @@ the close block carries a `location:` line naming the one it did change, and
 `answer:` names it. Once the fixes are committed, find every other place
 stating each rule your range reworded or removed, by `git grep` and its
 `check:` target, and correct each or say in the hand-back why it stands
-(rule 12). Last, after your last fix commit and its corrections, append the
-close block of every finding you answered, and do not commit them: the
+(rule 12). Read the statements beside each coordinate first, the rest of its
+paragraph and the name, docstring and comments of a case you changed: a
+search on the rule's words misses them, and each one left returns as a round.
+Last, after your last fix commit and its corrections, append the close block
+of every finding you answered, and do not commit them: the
 orchestrator commits the round record as you left it.
 check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
 **The chain ends at a pull request, never a merge.** Verification and review
 follow your hand-back without being asked, bounded as
-`docs/the-review-record.md` *The run* states; merging is the user's act.
+`docs/running/the-run.md` *The run* states; merging is the user's act.
 check: none reader: the orchestrator at each hand-back

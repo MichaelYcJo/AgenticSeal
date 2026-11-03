@@ -4,7 +4,7 @@
 Issue #647. A work item that commits in more than one repository, where those
 repositories keep a contract together, keeps the one copy of that contract in
 `seal/pact.md` in one of them -- the pact's repository -- and every repository
-of the work item is a signer (`docs/the-pact.md`). A signer cites each
+of the work item is a signer (`docs/layout/the-pact.md`). A signer cites each
 clause it was built against as a pact anchor, one row of the anchor table
 in a work item's `frame/design.md`:
 

@@ -169,6 +169,21 @@ which document would have to exist. A fix touching an OS boundary — path
 resolution, file modes, symlinks, a subprocess's working directory, encoding
 — states the precondition it assumes beside the line, or says it has none.
 
+**A paste-ready fix reaches every statement of the fact it repairs, or names
+where it stops.** A fix pass takes the snippet as the repair, so a snippet
+scoped to the one coordinate the finding names leaves the fact's other
+statements standing: the rest of the paragraph,
+a frame cell such as *Removes*, the name, docstring and comment of the case it
+changes, and every condition the sentence covers, such as a row that runs
+pytest once and one that runs it several times. Each of those returns as the
+next round's `regression:` or `reopens:` finding. Before writing the snippet,
+read the fact where it stands and list the statements it touches; where one
+snippet cannot cover them, say in the grounds which statements it leaves and
+that the fix pass owes them too. The judgment rows of 0.26.0 to 0.29.0 trace
+nine regressions in seven work items to a paste-ready fix applied as given
+whose reach was one coordinate.
+check: none reader: the fix pass and the round that reads it
+
 **A finding is not closed too early.**
 
 - An enumeration over an unbounded domain, of keywords, spellings or

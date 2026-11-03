@@ -3,7 +3,7 @@
 `sealed` guarantee, under either root (work item 1792363231, #1027).
 
 The stamp is queued where the verdict comes to read `sealed`: at the write,
-in shared mode as in local mode (`docs/the-review-record.md` *The stamp*).
+in shared mode as in local mode (`docs/checks/the-stamp.md` *The stamp*).
 After a `Write` or `Edit` whose file is `…/seal/threads/<id>/guarantee.md`, it
 hands the path and the payload's session to
 `seal_stamp.queue_for_written_guarantee`, which says whether the file is the

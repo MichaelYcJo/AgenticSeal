@@ -259,8 +259,8 @@ def test_parity_declaration_is_bootstrappable_not_hand_written():
     # procedure (#1046).
 
 
-def _folded(name):
-    with open(os.path.join(ROOT, "docs", name), encoding="utf-8") as f:
+def _folded(*parts):
+    with open(os.path.join(ROOT, "docs", *parts), encoding="utf-8") as f:
         return " ".join(f.read().split())
 
 
@@ -271,7 +271,7 @@ def test_the_policy_says_a_failed_diff_asks():
     sentence = (
         "A diff git could not take is not a change confined to the document roots"
     )
-    assert sentence in _folded("the-review-and-parity-arms.md"), sentence
+    assert sentence in _folded("running", "the-review-and-parity-arms.md"), sentence
 
 
 def test_user_invoked_skills_do_not_carry_trigger_scaffolding():
@@ -576,8 +576,8 @@ ASKING_WINDOW = 140
 #
 #   *go in **one batch** before the first edit*  -- verbatim from the
 #       sentence `CLAUDE.md`'s goal section carried until #730 left the rule
-#       to `skills/implement/SKILL.md` *1. Read the documents that outrank
-#       the code first*;
+#       to `skills/implement/orchestration.md` *Orchestrator: what needs a
+#       person is asked in one batch, before the first edit*;
 #       the emphasis markers break the
 #       literal;
 #   *in a single batch* and *as a single batch* -- ordinary synonyms.
@@ -778,8 +778,8 @@ def test_the_batch_phrase_is_found_by_its_claim_not_by_one_spelling():
 def test_no_agent_definition_tells_its_agent_to_collect_questions():
     """A question's cost is when it arrives, not how hard it is, so the
     questions are collected once, before the first edit, by the session that
-    spawns the work. How `skills/implement/SKILL.md` and the orchestration
-    say so is the proofer's to read; what is checked here is that no
+    spawns the work. How `skills/implement/orchestration.md` says so is the
+    proofer's to read; what is checked here is that no
     definition hands the batch to an agent."""
     # The batch belongs to the SESSION that spawns the work, and that is a
     # property of the harness rather than a preference: no agent this plugin
@@ -900,7 +900,7 @@ def test_the_run_names_its_default_round_count_and_the_follow_up_file():
     the chain ends, at a pull request and never a merge, is the orchestrator's
     to read in the crafter's hand-back."""
     with open(
-        os.path.join(ROOT, "docs", "the-review-record.md"), encoding="utf-8"
+        os.path.join(ROOT, "docs", "running", "the-run.md"), encoding="utf-8"
     ) as f:
         record = " ".join(f.read().split())
     # The value three, the finding rounds at which the orchestrator weighs

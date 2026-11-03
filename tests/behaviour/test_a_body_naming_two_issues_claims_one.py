@@ -1,10 +1,10 @@
 """What is left of the claims check's old file: the cases that read
-`docs/issues-and-milestones.md`, the hygiene workflow and its template, which
+`docs/releasing/issues-and-milestones.md`, the hygiene workflow and its template, which
 wait for #923.
 
 #942's phase 6 placed the cases of `.github/scripts/issue_claims_check.py`'s
 functions in `tests/github/test_issue_claims_check.py`. The document's case reads it
-through that file's `read`. `docs/issues-and-milestones.md` names this file
+through that file's `read`. `docs/releasing/issues-and-milestones.md` names this file
 on a `check:` line beside the new one.
 """
 
@@ -16,13 +16,14 @@ from test_issue_claims_check import read
 
 
 def test_the_document_that_teaches_the_rule_carries_no_instance_of_it():
-    """`docs/issues-and-milestones.md` says a body quoting the failing shape
+    """`docs/releasing/issues-and-milestones.md` says a body quoting the failing shape
     inside a fence or a code span is not an instance of it. This repository's
     bodies quote its documents routinely, so the section has to hold to that
     everywhere -- a narrative past-tense keyword is still a keyword, and
     `KEYWORDS` carries the past tense of all three verbs."""
     with open(
-        os.path.join(ROOT, "docs", "issues-and-milestones.md"), encoding="utf-8"
+        os.path.join(ROOT, "docs", "releasing", "issues-and-milestones.md"),
+        encoding="utf-8",
     ) as f:
         _, _, warnings = read(f.read())
     assert warnings == [], warnings[0][2] if warnings else ""

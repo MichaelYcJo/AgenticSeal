@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Publish the GitHub Release for the tag that was just pushed.
 
-Publishing a release note was a habit and nothing else. `docs/release-checklist.md`
+Publishing a release note was a habit and nothing else. `docs/releasing/release-checklist.md`
 walked to the tag and stopped, no workflow did it, and **three consecutive
 releases shipped without one** -- measured on 2026-09-13 while cutting a
 release, by the run that would have made it four (#386). The tag beside it
@@ -45,7 +45,7 @@ prose: every line is a milestone's sentence, a pull request title, a
 number, a handle or a fragment.
 
 **The title comes from the tagged commit's message**, which carries the
-`release: X.Y.Z symptoms: <symptoms>` line `docs/release-checklist.md`
+`release: X.Y.Z symptoms: <symptoms>` line `docs/releasing/release-checklist.md`
 *5. The release pull request* prescribes. Three other sources were measured and rejected: the merge
 commit's *subject* is GitHub's `Merge pull request #N from <owner>/...` line
 and not the title at all; the `## X.Y.Z -- <date>` heading the gathered
@@ -153,7 +153,7 @@ PURPOSE_LABEL = "Purpose:"
 TAG_RE = settle.VERSION_RE
 
 
-# The title line `docs/release-checklist.md` *5. The release pull request*
+# The title line `docs/releasing/release-checklist.md` *5. The release pull request*
 # prescribes for the release
 # pull request, which is what the merge commit's body carries: a whole line,
 # one space after each colon and after the version, read exactly so.

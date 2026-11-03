@@ -6,9 +6,9 @@ reached eight carriers, and rounds 7, 8 and 9 corrected them three at a time.
 The table below holds each rule's owner, the sentence the owner states, and
 the sentence each linking carrier names the owner with.
 
-0.22.0 (#923) replaced the three record documents with
-`docs/the-review-record.md`; the rules that left with their mechanism left
-this table, and the ones that stayed name their owner there.
+0.22.0 (#923) replaced the three record documents with one, which #1312 cut
+by reader; the rules that left with their mechanism left this table, and the
+ones that stayed name their owner in `docs/running/the-run.md`.
 """
 
 import re
@@ -16,7 +16,7 @@ import re
 import pytest
 from conftest import flat
 
-RECORD = ("docs", "the-review-record.md")
+RECORD = ("docs", "running", "the-run.md")
 SKILL = ("skills", "code-review", "SKILL.md")
 # The orchestrator's half of the review skill (#265).
 ORCH = ("skills", "code-review", "orchestration.md")
@@ -31,8 +31,8 @@ BOOTSTRAP = ("skills", "implement", "bootstrap.md")
 VERIFY = ("skills", "verify", "SKILL.md")
 SEALER = ("agents", "sealer.md")
 FRAMER = ("agents", "framer.md")
-TRACKER = ("docs", "issues-and-milestones.md")
-RECORD_LAYOUT = ("docs", "the-record-layout.md")
+TRACKER = ("docs", "releasing", "issues-and-milestones.md")
+RECORD_LAYOUT = ("docs", "layout", "the-record-layout.md")
 CONFIG_TEMPLATE = ("templates", "setup", "config.md")
 CONFIG_SKILL = ("skills", "config", "SKILL.md")
 
@@ -47,10 +47,10 @@ AFTER_THE_SEAL = (
 CONTRIBUTING = ("CONTRIBUTING.md",)
 CRITERION_OWNER = "`templates/setup/config.md` *The criterion for choosing a value* owns the criterion"
 FRAGMENT_OWNER = (
-    "`docs/the-record-layout.md` *A commit after the build brings its "
+    "`docs/layout/the-record-layout.md` *A commit after the build brings its "
     "changelog fragment along* owns that rule"
 )
-RUN_OWNS_THE_RULE = "`docs/the-review-record.md` *The run* owns that rule"
+RUN_OWNS_THE_RULE = "`docs/running/the-run.md` *The run* owns that rule"
 
 
 # rule → (owner, the sentence the owner states, {link carrier: how it names
@@ -104,7 +104,7 @@ RULES = {
         # orchestrator's act (the ladder's own `check:` line says so), and a
         # crafter hands a leftover back with its answerer (its step 10).
         {
-            TRACKER: "`docs/the-review-record.md` *The run* owns where a filed "
+            TRACKER: "`docs/running/the-run.md` *The run* owns where a filed "
             "finding goes",
         },
     ),
@@ -452,9 +452,8 @@ def test_the_orchestrators_run_judgments_are_rows_of_the_plan():
     weighs, and each goes to one row of the plan's table, which the
     settle's dry run reads. Each place the orchestrator acts from cites
     that table, and the citation is what this reads; the signals the cap
-    names are the proofer's to read. *The run* in the policy root changes
-    at the settle, so this reads the two skill files the orchestrator acts
-    from."""
+    names are the proofer's to read. This reads the two skill files the
+    orchestrator acts from, not `docs/running/the-run.md` *The run*."""
     text = flat(*ORCH)
     run = text[
         text.index("## Orchestrator: the run ends with a verifying round") : (

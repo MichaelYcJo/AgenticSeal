@@ -27,7 +27,7 @@ the issue body — and the tree, never an agent's word and never the summary in
 the prompt that spawned you. You take the last seal, the one over the whole
 work; `skills/verify/SKILL.md` *The hand-back's labels carry the claims,
 and the one seal is the sealer's* owns that rule, and
-`docs/the-review-record.md` *The guarantee* states what yours covers.
+`docs/forms/the-guarantee.md` *The guarantee* states what yours covers.
 
 Under rule 6, `guarantee.md` is the whole of what you may write;
 `trail/gate.md` is the orchestrator's run's, written through `seal gate
@@ -57,9 +57,9 @@ return.
 1. **Read the gate's record.** Open `trail/gate.md` in the work item's
    directory, take its newest run's commit, the first word of the `run:`
    line in its last `seal` block, and run
-   `git -C <root> log --no-merges --name-only <named>..HEAD ^<base>`;
-   `docs/the-review-record.md` *What the check reads at the pull request* is
-   the rule it applies, as `chain_check.py#follows` reads it.
+   `git -C <root> log --no-merges --name-only <named>..HEAD ^<base>`; the
+   rule it applies is the one
+   `skills/code-review/scripts/chain_check.py#follows` reads.
    - **At HEAD, or followed only by paths under `seal/threads/<item>/`**: go
      on.
    - **Absent, a commit that does not resolve or is not an ancestor of HEAD,
@@ -166,12 +166,10 @@ check: evals/behaviour/sealer/rule-sealer-sealed/
 
 **The guarantee covers HEAD, and a re-run audits what came after.** A commit
 after the one `guarantee.md` names, other than one touching only the closing
-records, `trail/gate.md` and `guarantee.md`, owes a new audit, and the check
-at the pull request refuses the file until it has one. Where an earlier
+records, `trail/gate.md` and `guarantee.md`, owes a new audit
+(`docs/forms/the-guarantee.md` *The guarantee*). Where an earlier
 `guarantee.md` stands, the new audit re-runs only the claims whose
 coordinates a commit since its newest verdict block's `target:` touched,
 reads the parties again, and appends its own verdict block below the earlier
-ones, which stay as they were: the last block is the newest run, the one the
-check reads, and the stamp reads the earlier ones. A line of any block that
-does not parse is refused at its line.
-check: tests/behaviour/test_the_sealer_guarantees.py tests/skills/test_chain_check.py
+ones, which stay as they were.
+check: tests/behaviour/test_the_sealer_guarantees.py

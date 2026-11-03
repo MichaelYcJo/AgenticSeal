@@ -37,17 +37,22 @@ for _directory, _subdirectories, _names in os.walk(_TESTS):
     ):
         sys.path.append(_directory)
 
-# The review run's documents: the record and the run, the hooks, the routing
-# check, and what each arm wants. A case that reads one of them for what is
-# THERE reads the one that holds the section; a case asserting what is NOT
-# there reads all four through `review_chain_text`, because a sentence
-# forbidden in one that returns in a sibling is the same sentence back, and
-# an absence that holds in one part of the text proves nothing about the rest.
+# The review run's documents: the round record, the guarantee, the run, the
+# pull request check, the stamp, the hooks, the routing check, and what each
+# arm wants. A case that reads one of them for what is THERE reads the one
+# that holds the section; a case asserting what is NOT there reads all of them
+# through `review_chain_text`, because a sentence forbidden in one that
+# returns in a sibling is the same sentence back, and an absence that holds in
+# one part of the text proves nothing about the rest.
 REVIEW_CHAIN_DOCS = (
-    ("docs", "the-review-record.md"),
-    ("docs", "the-session-hooks.md"),
-    ("docs", "the-routing-check.md"),
-    ("docs", "the-review-and-parity-arms.md"),
+    ("docs", "forms", "the-round-record.md"),
+    ("docs", "forms", "the-guarantee.md"),
+    ("docs", "running", "the-run.md"),
+    ("docs", "checks", "the-pull-request-check.md"),
+    ("docs", "checks", "the-stamp.md"),
+    ("docs", "checks", "the-session-hooks.md"),
+    ("docs", "checks", "the-routing-check.md"),
+    ("docs", "running", "the-review-and-parity-arms.md"),
 )
 
 
@@ -209,7 +214,7 @@ def build_tracked_tree(d, files, deleted=()):
     each entry of `deleted` is then unlinked WITHOUT staging the removal, so
     it stays in the index and leaves the working tree. That is the state the
     documented release sequence produces at step 3 of
-    `docs/release-checklist.md`, and the state `on_disk` below is about.
+    `docs/releasing/release-checklist.md`, and the state `on_disk` below is about.
 
     A real `git init` rather than a directory of files, for the reason
     `tests/behaviour/test_the_pull_request_language_is_the_repositorys.py#test_the_templates_check_reads_prose_only_and_descends`

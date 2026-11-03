@@ -4,7 +4,7 @@ The record's facts are its `seal` blocks; a mark the check does not read is
 a mark a reader has to sort, and sorting marks is what four rounds of this
 repository found read wrong. So no file an agent reads as instruction carries
 an emoji or a proof block: every definition, every skill's `SKILL.md` and
-every template (T6 of work item 1792251842, which wrote the crafter anew,
+the files beside it, and every template (T6 of work item 1792251842, which wrote the crafter anew,
 which took over T39's four files). Each verdict word means one thing, too: a
 repair with no commit on the branch closes `deferred <where it was
 repaired>`, one a commit made closes `fixed <commit>`, and `rejected` is a
@@ -36,7 +36,7 @@ PROOF_BLOCK = re.compile(
 )
 
 # The files an agent reads as instruction, every one of them read.
-CORPUS = ("agents/*.md", "skills/*/SKILL.md", "templates/*/*.md")
+CORPUS = ("agents/*.md", "skills/*/*.md", "templates/*/*.md")
 
 
 def corpus():
@@ -108,7 +108,7 @@ def sentences(lines):
 
 @pytest.mark.rule("fix-pass-two-lines")
 def test_a_repair_with_no_commit_closes_deferred_where_it_was_made():
-    rel = "docs/the-review-record.md"
+    rel = "docs/forms/the-round-record.md"
     lines, _ = section(read(rel), "## The round record")
     opener = "**The fix pass appends one close block per finding"
     start = next(i for i, line in enumerate(lines) if line.startswith(opener))

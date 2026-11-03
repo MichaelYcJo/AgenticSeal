@@ -433,10 +433,16 @@ class Test_module:
 def test_the_prose_points_to_the_gate_and_no_longer_says_nothing_holds_it():
     """S14: the orchestrator's two documents name the gate, and none of the
     sentences `frame/design.md` `## Removes` lists still stands."""
-    skill = flat("skills", "implement", "SKILL.md")
-    first = skill.split("### 1. Read the documents that outrank the code first", 1)[1]
-    assert f"`hooks/{GATE}`" in first.split("### 2.", 1)[0]
-    assert f"`hooks/{GATE}`" in flat("skills", "implement", "orchestration.md")
+    orchestration = flat("skills", "implement", "orchestration.md")
+    batch = orchestration.split(
+        "## Orchestrator: what needs a person is asked in one batch, before the first edit",
+        1,
+    )[1]
+    assert (
+        f"`hooks/{GATE}`"
+        in batch.split("## Orchestrator: how the work is routed", 1)[0]
+    )
+    assert f"`hooks/{GATE}`" in orchestration
     for parts, sentence in (
         (("skills", "implement", "orchestration.md"), "audit trail, not a gate"),
         (

@@ -5,11 +5,11 @@ convention (#155), read against the script's constants; these cases wait for
 #942's phase 6 placed the cases of
 `.github/scripts/roll_flow_measurement_issue.py`'s functions in
 `tests/github/test_roll_flow_measurement_issue.py`, and this file loads the script
-through that file's `_roller`. `docs/issues-and-milestones.md` names this
+through that file's `_roller`. `docs/releasing/issues-and-milestones.md` names this
 file on its `check:` lines.
 
 The rule lives in two places a person reads: the script's docstring, and
-`docs/issues-and-milestones.md`, which is the tracker's own authority. Of
+`docs/releasing/issues-and-milestones.md`, which is the tracker's own authority. Of
 the two only the document may carry the title format --
 `test_a_segment_feeds_the_flow_log.py::test_the_shipped_skill_names_no_repository_specific_tracker_state`
 keeps every tracker convention that exists in this repository alone out of
@@ -26,7 +26,7 @@ import re
 from conftest import ROOT
 from test_roll_flow_measurement_issue import _roller
 
-DOC = os.path.join(ROOT, "docs", "issues-and-milestones.md")
+DOC = os.path.join(ROOT, "docs", "releasing", "issues-and-milestones.md")
 DOC_SECTION = "**`flow-measurement` is a label that is not an index.**"
 
 

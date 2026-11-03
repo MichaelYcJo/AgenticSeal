@@ -20,7 +20,7 @@ from conftest import flat, read
 # --- the handoff before round 1 ---------------------------------------------
 
 
-PROTOCOL = ("docs", "the-review-record.md")
+PROTOCOL = ("docs", "running", "the-run.md")
 
 
 def test_the_protocol_carries_the_handoff_before_round_one():
@@ -47,7 +47,7 @@ def test_the_implementer_documents_point_at_the_section():
         text = flat(*parts)
         # The path the implementer resolves to the section its prompt's
         # facts arrive under.
-        assert "`docs/the-review-record.md`" in text and "handoff" in text, "/".join(
+        assert "`docs/running/the-run.md`" in text and "handoff" in text, "/".join(
             parts
         )
 
@@ -94,12 +94,12 @@ def test_the_protocol_names_the_meter():
 
 def test_the_contract_cites_the_per_segment_bars():
     """Contract rule 10 points each kind of segment at its bar, and the bar
-    has one home, `docs/the-review-record.md` *The per-segment bars*; no
+    has one home, `docs/running/the-run.md` *The per-segment bars*; no
     definition carries a copy since #957."""
     contract = flat("skills", "agent-contract", "SKILL.md")
     # The citation every agent resolves to find the bar its segment is
     # judged against.
-    assert "`docs/the-review-record.md` *The per-segment bars*" in contract, (
+    assert "`docs/running/the-run.md` *The per-segment bars*" in contract, (
         "the contract stopped pointing at the bars, and a figure with no home "
         "is one that measures the wrong agent"
     )
@@ -204,12 +204,8 @@ def test_the_bars_section_cites_the_run_level_tables_owner():
     bars cites the section that owns the run-level table, by its file and
     its heading. Which instrument judges what is the proofer's to read."""
     section = bars_section(read(*PROTOCOL))
-    # `docs/` is not edited by a pull request: #940 moved the table to
-    # `skills/verify/orchestration.md`, and its `## Rule changes` item moves
-    # this citation at the settle after its release. Until then the section
-    # names the old path, and either path names the owner. The path is the
-    # citation the orchestrator resolves for the table's rows.
-    assert any(path in section for path in OWNER_PATHS), (
+    # The path is the citation the orchestrator resolves for the table's rows.
+    assert OWNER_PATH in section, (
         "the section names no owner for the table, so a reader arriving for "
         "its rows leaves with neither them nor the path to them"
     )
@@ -221,9 +217,8 @@ def test_the_bars_section_cites_the_run_level_tables_owner():
     )
 
 
-# The table's owner, and the path `docs/the-review-record.md` named before
-# #940's rule change is applied.
-OWNER_PATHS = ("skills/verify/orchestration.md", "skills/verify/SKILL.md")
+# The table's owner.
+OWNER_PATH = "skills/verify/orchestration.md"
 
 
 def test_the_scripts_bars_are_the_protocols():

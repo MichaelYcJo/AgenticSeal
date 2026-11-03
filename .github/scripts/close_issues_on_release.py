@@ -19,7 +19,7 @@ that knew which issue it was answering.
 
 **It never reopens and never comments on an unrelated issue.** There are two
 writes and no others: the close, and taking `size: now` off the issue being
-closed -- the moment `docs/issues-and-milestones.md` had already named as
+closed -- the moment `docs/releasing/issues-and-milestones.md` had already named as
 where a spent sizing label comes off, with nothing acting on it until #450.
 Both are idempotent. A close of an issue already closed is skipped rather
 than repeated, and the removal happens only after a read says the label is
@@ -100,7 +100,7 @@ CLOSING = re.compile(r"\b(?:" + "|".join(KEYWORDS) + r")\s+#(\d+)\b", re.IGNOREC
 MERGED_PR = re.compile(r"\(#(\d+)\)\s*$")
 
 # GitHub creates no reference from a closing keyword inside a code fence or a
-# code span, and neither does this. `docs/branch-and-release.md` carries
+# code span, and neither does this. `docs/releasing/branch-and-release.md` carries
 # `Closes #88` in a fenced block as the example to copy, so a pull request
 # body quoting the document would otherwise close the issue the document
 # names -- and this repository's bodies quote its documents routinely.
@@ -119,7 +119,7 @@ MERGED_PR = re.compile(r"\(#(\d+)\)\s*$")
 # repository's pull request bodies continue a bullet onto the next line, so
 # masking it would drop real claims -- the wrong direction for a closer.
 # Whether GitHub acts on a keyword inside an HTML comment is unmeasured
-# (`docs/issues-and-milestones.md`
+# (`docs/releasing/issues-and-milestones.md`
 # *A keyword claims the one number after it*); until somebody measures it on a
 # scratch pull request the shape is read as it always was.
 #
@@ -210,7 +210,7 @@ def issue_labels(repo, number):
 
 
 # The sizing label, spent the moment the release that carried the ticket
-# closes it. `docs/issues-and-milestones.md` says that is the moment, and
+# closes it. `docs/releasing/issues-and-milestones.md` says that is the moment, and
 # until this line nothing acted on it -- the same shape as the closing
 # keyword this whole script exists for: an answer written down and nothing
 # reading it. The name is the document's, and the description of what it
@@ -275,7 +275,7 @@ def closing_comment(source):
         f"reached `main`.\n\nIts body carried the keyword; GitHub does not "
         f"read one on a pull request whose base is not the default branch, "
         f"so this workflow acts on it instead. "
-        f"`docs/branch-and-release.md` has the reasoning."
+        f"`docs/releasing/branch-and-release.md` has the reasoning."
     )
 
 

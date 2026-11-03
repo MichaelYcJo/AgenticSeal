@@ -23,7 +23,7 @@ half of them keep the old answer.
 Everything here fails toward "no declaration". A file that cannot be read is
 not an answer somebody gave, so the gate goes back to asking. Silence would
 make a corrupt file into the standing waiver
-`docs/the-review-and-parity-arms.md` refuses to build.
+`docs/running/the-review-and-parity-arms.md` refuses to build.
 
 Four of the rows are exceptions and none of them is a loophole. Nothing decides
 a commit on `Implementation`, `Planning`, `Automation` or `Answer pressed` --
@@ -89,7 +89,7 @@ PLANNING_ANSWERS = (BY_FRAMER, BY_SESSION)
 #
 # One gate reads it, and no commit is decided on it: `hooks/question-gate.py`
 # refuses a question on the declared branch while it reads `yes`
-# (`docs/the-review-record.md` *The run*).
+# (`docs/running/the-run.md` *The run*).
 AUTOMATION = "Automation"
 AUTOMATION_YES = "yes"
 AUTOMATION_NO = "no"
@@ -434,7 +434,7 @@ def declared(cwd, root):
 # UTF-8, each line ending in a newline. `seal no-work-item` adds the branch it
 # ran on, and `hooks/routing-edit-gate.py` lets the session's edits through on
 # a branch a line names and on no other. The rule is
-# `docs/the-routing-check.md` *The edit check*.
+# `docs/checks/the-routing-check.md` *The edit check*.
 NO_WORK_ITEM = "agentic-no-work-item"
 # A record older than this is pruned when one is written.
 NO_WORK_ITEM_AGE = 86400

@@ -398,13 +398,13 @@ READMES = {
 LEFT_BEHIND = {
     "README.md": (
         "A workflow left behind after a move to local stays in the tree, and "
-        "`docs/one-root-by-lifetime.md` *Shared or local* says which pin passes "
+        "`docs/layout/one-root-by-lifetime.md` *Shared or local* says which pin passes "
         "there and how to move one that fails.",
     ),
     "README.ko.md": (
         "local 로 옮긴 뒤에도 워크플로는 트리에 남고, 어느 고정이 그곳에서 "
         "통과하는지와 실패하는 고정을 어떻게 옮기는지는 "
-        "`docs/one-root-by-lifetime.ko.md` *shared 인가 local 인가* 가 "
+        "`docs/layout/one-root-by-lifetime.ko.md` *shared 인가 local 인가* 가 "
         "말합니다.",
     ),
 }
@@ -455,7 +455,7 @@ def test_the_way_back_before_the_commit_to_shared_is_told_in_its_home():
         "`git reset -- :/seal` and then `seal mode local` walk the whole thing back",
         "refuses a switch over a staged change",
         "a bare `git reset` unstages the whole index",
-        "`docs/one-root-by-lifetime.md` *Shared or local*",
+        "`docs/layout/one-root-by-lifetime.md` *Shared or local*",
     ):
         assert said in body, said
 
@@ -610,14 +610,16 @@ def test_the_seal_readme_cites_the_marker_constant():
 
 def test_the_seal_readme_points_at_the_drain_and_restates_none_of_it():
     """Round 2 of #940, finding 2. Who moves a work item's open rows, when
-    and where each goes is `skills/implement/SKILL.md` section 6's alone; a
-    second statement here drifted from it on all three. The README names the
-    section and carries no destination of its own."""
+    and where each goes is `skills/implement/orchestration.md`'s drain
+    section's alone; a second statement here drifted from it on all three.
+    The README names the section and carries no destination of its own."""
     text = read("templates", "setup", "seal-README.md")
     rules = flat(text.split("\n## Export rules\n", 1)[1].split("\n## ", 1)[0])
-    heading = "### 6. Drain the rows before the broad run, and keep the records"
-    assert heading in read("skills", "implement", "SKILL.md")
-    cited = "`skills/implement/SKILL.md` " + f"*{heading[4:]}*"
+    heading = (
+        "## Orchestrator: drain the rows before the broad run, and keep the records"
+    )
+    assert heading in read("skills", "implement", "orchestration.md")
+    cited = "`skills/implement/orchestration.md` " + f"*{heading[3:]}*"
     assert cited in rules, rules
     for copied in ("| Item still here |", "follow-up.md", "open-questions"):
         assert copied not in rules, (copied, rules)
@@ -630,11 +632,11 @@ def test_the_seal_readme_points_at_the_drain_and_restates_none_of_it():
     "parts, wrong",
     [
         (
-            ("docs", "one-root-by-lifetime.md"),
+            ("docs", "layout", "one-root-by-lifetime.md"),
             "would refuse a pull request with no round records",
         ),
         (
-            ("docs", "one-root-by-lifetime.ko.md"),
+            ("docs", "layout", "one-root-by-lifetime.ko.md"),
             "라운드 기록이 없는 PR 은 그 워크플로에서",
         ),
     ],
@@ -648,12 +650,12 @@ def test_the_record_no_longer_says_the_checks_would_refuse(parts, wrong):
     "parts, opt_in, setup",
     [
         (
-            ("docs", "one-root-by-lifetime.md"),
+            ("docs", "layout", "one-root-by-lifetime.md"),
             "## The opt-in signal is the root itself",
             "## What first setup asks",
         ),
         (
-            ("docs", "one-root-by-lifetime.ko.md"),
+            ("docs", "layout", "one-root-by-lifetime.ko.md"),
             "## 옵트인 신호는 루트 자체다",
             "## 처음 설정에서 무엇을 묻는가",
         ),

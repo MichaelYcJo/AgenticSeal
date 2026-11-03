@@ -24,7 +24,6 @@ import os
 import re
 
 from conftest import ROOT, flat, read
-from test_the_agent_contract_holds_the_universal_rules import HEADING
 
 
 def read_at(path):
@@ -52,7 +51,7 @@ def test_the_crafter_puts_both_answers_in_the_hand_back():
     """What stayed with the implementer when contract rule 2 and contract
     rule 3 moved: the crafter's definition cites both rules its hand-back
     answers. Where the two answers land is the proofer's to read, except the
-    one clause `docs/the-broad-gate.md:42` still names this module for."""
+    one clause `docs/running/the-broad-gate.md:42` still names this module for."""
     crafter = flat("agents", "crafter.md")
     # The two contract rule numbers the crafter resolves for what its
     # hand-back answers.
@@ -60,7 +59,7 @@ def test_the_crafter_puts_both_answers_in_the_hand_back():
         "the implementer can no longer reach the rules its hand-back answers"
     )
     # A phrase of the rule, not a fact: the last assert of this module that
-    # reads the rule `docs/the-broad-gate.md:42` closes, kept unchanged until
+    # reads the rule `docs/running/the-broad-gate.md:42` closes, kept unchanged until
     # that line's change lands (#1233, `frame/design.md` Scope item 9).
     assert "the suite labelled `unverified`" in crafter, (
         "the suite stopped going over labelled, and a suite that is simply "
@@ -68,36 +67,16 @@ def test_the_crafter_puts_both_answers_in_the_hand_back():
     )
 
 
-def contract_section(number):
-    """The body of `## <N>` in the contract, heading excluded.
-
-    Scoped rather than whole-file, because the thing #120 has to keep out is
-    a WORD -- `orchestrator` -- that the contract says legitimately elsewhere
-    (its opening paragraph, about the prompt a round arrives in). A whole-file
-    absence check would either fail on that sentence or be dropped."""
-    text = read("skills", "agent-contract", "SKILL.md")
-    heads = list(HEADING.finditer(text))
-    for index, match in enumerate(heads):
-        if int(match.group(1)) != number:
-            continue
-        end = heads[index + 1].start() if index + 1 < len(heads) else len(text)
-        return " ".join(text[match.end() : end].split())
-    raise AssertionError(f"the contract has no rule {number}")
-
-
 RUN = "seal gate --base <base> --record <item>"
 
 
-def test_the_contract_and_the_orchestration_name_the_broad_run_command():
-    """S2 of #969. Contract rule 2 names the orchestrator's command for the
-    broad run, and the orchestration that spawns the sealer names the
+def test_the_orchestration_names_the_broad_run_command():
+    """S2 of #969. The orchestration that spawns the sealer names the
     preflight, the run and the run's log. Each is what the orchestrator
     types or opens, so each is held by its spelling; who may run the gate
-    and in what order the steps come are the proofer's to read."""
-    body = contract_section(2)
-    # The command the orchestrator types for the broad run, as contract
-    # rule 2 names it.
-    assert RUN in body, "contract rule 2 stopped naming the orchestrator's command"
+    and in what order the steps come are the proofer's to read. Contract
+    rule 2 named the run's command too until #1312, which took that copy out
+    of every agent's preload, since only the orchestrator types it."""
     order = joined(
         section(read("skills", "code-review", "orchestration.md"), SPAWN_SECTION)
     )
@@ -165,7 +144,7 @@ def test_the_reviewer_has_a_field_for_the_question_the_default_produces():
 
 def test_the_broad_gate_state_survives_a_handoff():
     """A session joining at round 3 cannot see which commands were run."""
-    assert "`trail/gate.md`" in read("docs", "the-review-record.md"), (
+    assert "`trail/gate.md`" in read("docs", "checks", "the-pull-request-check.md"), (
         "the record lost the file that tells the next session whether the one "
         "broad run already happened"
     )

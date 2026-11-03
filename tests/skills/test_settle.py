@@ -1120,7 +1120,7 @@ class Test_main:
         each work item's round count and each row's line. The template's
         empty row is no judgment, and a plan with no such section prints
         nothing for its work item."""
-        run_doc = "`docs/the-review-record.md` *The run*"
+        run_doc = "`docs/running/the-run.md` *The run*"
         order = (
             "`skills/implement/orchestration.md` *Orchestrator: the order "
             "inside a ticket*"
@@ -1371,7 +1371,7 @@ class Test_main:
         `Judged against` cell as written, each work item with the release
         that holds its adding commit and the removing commit's `(#N)`, and
         each row at its coordinate in the history."""
-        run_doc = "`docs/the-review-record.md` *The run*"
+        run_doc = "`docs/running/the-run.md` *The run*"
         order = (
             "`skills/implement/orchestration.md` *Orchestrator: the order "
             "inside a ticket*"
@@ -1669,7 +1669,10 @@ class Test_main:
             "docs/a.md is about "
             in text.split("past the ceiling")[0].rsplit("\n", 1)[-1]
         ), text
-        assert "past the ceiling of 10: split it along its own headings" in text, text
+        assert (
+            "past the ceiling of 10: split it by who opens each section and at "
+            "which step" in text
+        ), text
         assert settle.AFTER_HEADING in text, text
 
     def test_local_mode_lists_a_released_and_an_unreleased_item(self, local, gh, capfd):

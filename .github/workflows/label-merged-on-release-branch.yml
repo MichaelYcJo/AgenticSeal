@@ -15,7 +15,7 @@ name: label merged on release branch
 #
 # Nothing here closes an issue. An issue closed at the release-branch merge is
 # closed for something nobody has received; the close stays where it is, on
-# `main`. `docs/issues-and-milestones.md` carries the rule and the reasoning.
+# `main`. `docs/releasing/issues-and-milestones.md` carries the rule and the reasoning.
 
 on:
   push:

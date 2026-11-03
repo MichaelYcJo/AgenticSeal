@@ -12,14 +12,14 @@ import os
 from conftest import ROOT
 from test_rules import rules
 
-SETTLE = os.path.join(ROOT, "skills", "settle", "SKILL.md")
+SETTLE = os.path.join(ROOT, "skills", "settle", "rule-changes.md")
 
 
 def test_the_slice_document_resolves_every_target():
-    """`docs/the-record-layout.md`, the document #944's phase 1 gave every
+    """`docs/layout/the-record-layout.md`, the document #944's phase 1 gave every
     rule its test, prints a section line for each of its targets and none
     that does not resolve."""
-    path = os.path.join(ROOT, "docs", "the-record-layout.md")
+    path = os.path.join(ROOT, "docs", "layout", "the-record-layout.md")
     with open(path, encoding="utf-8") as handle:
         text = handle.read()
     out = rules.render(ROOT, text)

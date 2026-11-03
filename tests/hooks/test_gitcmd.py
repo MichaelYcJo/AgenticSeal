@@ -5,7 +5,7 @@ One parameter per key of `gitcmd.KEYS`. Each builds a repository in which
 that key, set otherwise than git's default, changes what one command
 prints, and names what the command prints under git's default. The scripts'
 own readers build their `log` and `status` with `argv`, which the proofer
-reads in the diff (`docs/what-a-script-gates.md` *Which gate a script
+reads in the diff (`docs/running/what-a-script-gates.md` *Which gate a script
 holds*); the cases here hold each key once, over the helper.
 """
 

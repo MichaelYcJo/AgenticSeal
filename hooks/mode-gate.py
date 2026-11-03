@@ -37,8 +37,9 @@ not move the session's workspace.
 
 **When, and why not at the commit.** On any Bash call, which means the first
 one of the session. Scoping it to a commit was the first design here and the
-budget is what argued it down: `skills/implement/SKILL.md` *1. Read the
-documents that outrank the code first* says the cost of a question is not
+budget is what argued it down: `skills/implement/orchestration.md`
+*Orchestrator: what needs a person is asked in one batch, before the first
+edit* says the cost of a question is not
 its difficulty but WHEN it arrives, and at the commit this question lands
 beside the review arm's, at minute thirty, on a session that may have nobody
 at the keyboard. On the first Bash call it lands in the batch a
@@ -63,7 +64,7 @@ one folder is what it was measured doing.
 **No waiver token.** The commit gate's two arms each carried one until
 #1027, because each was about whether a CHANGE was checked, and a change can
 honestly be exempt. This is about setup, the way on takes one command, and a token would
-build exactly the standing exemption `docs/the-review-and-parity-arms.md`
+build exactly the standing exemption `docs/running/the-review-and-parity-arms.md`
 refuses. `ask` is the escape hatch, and it is one an unattended run can take.
 
 Everything here fails toward silence, the way `hooks/lib/optin.py` does: a

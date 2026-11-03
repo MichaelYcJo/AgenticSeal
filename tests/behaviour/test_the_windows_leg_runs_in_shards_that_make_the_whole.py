@@ -531,5 +531,5 @@ def test_the_recipe_names_the_artifact_and_the_checklist_has_no_box():
     # with no pull request gets its `tests` run that way (round 1's 🟡 2).
     for gone in ("restore the shards", "one job again", "for a single run"):
         assert gone not in flat, f"the recipe paragraph still says {gone!r}"
-    before = section("docs/release-checklist.md", "0. Before starting")
+    before = section("docs/releasing/release-checklist.md", "0. Before starting")
     assert ".test_durations" not in before, "the checklist still has a refresh box"

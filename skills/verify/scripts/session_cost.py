@@ -1876,7 +1876,7 @@ def token_totals(paths):
     A TURN here is an assistant message carrying a `usage` block, whether or
     not it carries a tool call. That is NOT `tools_per_turn`'s denominator,
     which counts only messages carrying a tool_use: the per-segment bars in
-    `docs/the-review-record.md` are calibrated against that ratio, and
+    `docs/running/the-run.md` are calibrated against that ratio, and
     widening it would move a published threshold without saying so. Two
     counters, on purpose — a turn that only thought spent tokens the run paid
     for, and a turn that sent no call is not a turn the batching advisory can
@@ -2437,7 +2437,7 @@ def report_spawns(spawns, path, total_calls, run_span=0.0):
 
 # #640. Each segment kind's bar on tools per turn, keyed by the basename of
 # the spawn's `subagent_type` after its last `:`, so `agentic:proofer` and
-# `proofer` are one kind. The values are `docs/the-review-record.md`
+# `proofer` are one kind. The values are `docs/running/the-run.md`
 # *The per-segment bars*: the protocol's name for the kind,
 # and its bar, or None where the protocol exempts the kind from this ratio.
 #
@@ -2590,7 +2590,7 @@ def report_grades(rows):
     """#640: each row against its kind's bar, under the table.
 
     **The bars were policy and nowhere on the page that prints the ratio
-    they judge.** `docs/the-review-record.md` holds one per segment
+    they judge.** `docs/running/the-run.md` holds one per segment
     kind, and the one advisory this script printed was the plain reading's
     blanket `< 1.2` — which reads 1.00 on every well-behaved implementer
     forever, so nobody acted on it (#197). A segment row knows its kind,

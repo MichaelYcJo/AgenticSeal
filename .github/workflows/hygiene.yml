@@ -117,7 +117,7 @@ jobs:
 
       # `docs/flow.md` used to ask *is everything in* as a checklist bullet a
       # person ticked, and #351 deleted the file. Nothing replaced it, and
-      # nothing had ever checked it: `docs/issues-and-milestones.md` says a
+      # nothing had ever checked it: `docs/releasing/issues-and-milestones.md` says a
       # milestone answers *what is in 1.2.3*, and until this step a wrong one
       # cost a person a wrong answer and cost no automation anything.
       #
@@ -131,7 +131,7 @@ jobs:
       #
       # Release only, like the version step. The head must ALSO be a
       # `release/v*` branch, and that half is the script's rather than this
-      # guard's: `docs/branch-and-release.md` lists a hotfix branch as the
+      # guard's: `docs/releasing/branch-and-release.md` lists a hotfix branch as the
       # other thing that reaches `main`, a hotfix carries no release
       # milestone, and what the script does about a shape it cannot judge is
       # a case (S7) where a shell condition would be untestable.

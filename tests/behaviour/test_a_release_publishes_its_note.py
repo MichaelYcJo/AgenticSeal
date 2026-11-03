@@ -1,7 +1,7 @@
 """#386: the release note publishes itself, or the job goes red saying why.
 
 The cases here read the workflow the push to `main` and a tag pushed by
-hand fire, and the release checklist's title command, and wait for #923. `docs/branch-and-release.md`
+hand fire, and the release checklist's title command, and wait for #923. `docs/releasing/branch-and-release.md`
 names this file on its `check:` line.
 
 #942's phase 6 placed the cases of `.github/scripts/publish_release_note.py`'s
@@ -27,12 +27,15 @@ SYMPTOMS = "two acts nobody wrote down"
 
 
 def test_the_line_the_checklist_copies_is_the_line_the_reader_reads():
-    """S17 of #1000. The command in `docs/release-checklist.md` *5*, filled
+    """S17 of #1000. The command in `docs/releasing/release-checklist.md` *5*, filled
     with a version and a symptom, is the merge commit's body line, and
     `title_from` reads it as S15 does. Protects: the document a release
     session copies and the reader moving apart, which loses the next
     release's title."""
-    doc = open(os.path.join(ROOT, "docs", "release-checklist.md"), encoding="utf-8")
+    doc = open(
+        os.path.join(ROOT, "docs", "releasing", "release-checklist.md"),
+        encoding="utf-8",
+    )
     text = doc.read()
     doc.close()
     step = text[text.index("## 5. The release pull request") :]

@@ -1,7 +1,7 @@
 """A `<commit>:<path>` citation names a commit that outlives the squash.
 
 A feature branch squashes into its release branch, and the squash discards
-every commit the branch wrote (`docs/branch-and-release.md` *Work accumulates
+every commit the branch wrote (`docs/releasing/branch-and-release.md` *Work accumulates
 on a release branch*). A citation of one of those commits opens in no clone
 after the merge, and a reader sent to it finds no source. Before #1270 no
 check read the form, and three work items reached a release with such a
@@ -34,7 +34,7 @@ from conftest import ROOT, on_disk
 from test_a_cited_section_stands_in_its_file import text_of
 
 # The refs whose commits outlive a squash: `main` and the release branches,
-# the patterns `docs/branch-and-release.md` names, local or remote-tracking.
+# the patterns `docs/releasing/branch-and-release.md` names, local or remote-tracking.
 REACHING = (
     "refs/remotes/*/main",
     "refs/remotes/*/release/*",

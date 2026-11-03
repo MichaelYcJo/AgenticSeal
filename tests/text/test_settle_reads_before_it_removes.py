@@ -4,7 +4,7 @@ documents, the READMEs, the checklist and the cheat sheets, which wait for
 
 #942's phase 6 placed the cases that run the command or call
 `skills/settle/scripts/settle.py`'s functions in `tests/skills/test_settle.py`, and
-the `tree` fixture in `tests/conftest.py`. `docs/the-record-layout.md` names
+the `tree` fixture in `tests/conftest.py`. `docs/checks/the-fold.md` names
 this file on the `check:` lines whose rules the skill cases here hold. Since
 #1033 the skill states the settling session's procedure, and the cases that
 read it are its S11.
@@ -36,15 +36,16 @@ def test_the_cheat_sheets_name_the_design_file_the_settle_reads():
 
 
 SKILL = os.path.join(ROOT, "skills", "settle", "SKILL.md")
+LOCAL_MODE = os.path.join(ROOT, "skills", "settle", "local-mode.md")
 
 
-def skill():
-    with open(SKILL, encoding="utf-8") as f:
+def skill(path=SKILL):
+    with open(path, encoding="utf-8") as f:
         return f.read()
 
 
 def test_the_skill_names_the_floors_a_fold_has_to_answer():
-    """A11. `docs/one-root-by-lifetime.md` *The dependency rule* names two
+    """A11. `docs/layout/one-root-by-lifetime.md` *The dependency rule* names two
     readers and the real list is longer — fourteen test modules read this
     repository's own corpus and at least six carry a population floor. A
     session that folds without answering them removes the population its own
@@ -54,7 +55,7 @@ def test_the_skill_names_the_floors_a_fold_has_to_answer():
     the run passes — is the one that turns a check into a comment."""
     text = flat(skill())
     # A phrase of the rule, not a fact: the last assert of this module that
-    # reads the rule `docs/the-record-layout.md:156` closes, whose section
+    # reads the rule `docs/checks/the-fold.md:84` closes, whose section
     # *Answer every check that reads the corpus* gives these three answers.
     # Kept unchanged until that line's change lands (#1233,
     # `frame/design.md` Scope item 9).
@@ -155,7 +156,7 @@ def test_the_release_checklist_carries_the_by_hand_step():
     """G5. `settle` is invoked and never triggered, so the only thing that
     makes it happen is a line in the list somebody works down on the day:
     the command, and the skill the step is read from."""
-    text = document("docs", "release-checklist.md")
+    text = document("docs", "releasing", "release-checklist.md")
     # The command the person working down the checklist types.
     assert "settle --apply" in text, "the checklist never names the step"
     # The path that person opens for the procedure.
@@ -207,7 +208,7 @@ def test_the_module_and_the_skill_both_say_how_local_mode_settles():
     assert "opted out" in exits, "exit 2 covers the opt-out and the list does not"
     assert "Local mode is refused" not in head, head
     assert "refuses to run in local mode" not in flat(skill())
-    section = flat(skill().split("\n## In local mode\n")[1].split("\n## ")[0])
+    section = flat(skill(LOCAL_MODE).split("\n## In local mode\n")[1].split("\n## ")[0])
     for said in (
         "under the common git directory",
         "so a work item's directory is `<git-common-dir>/seal/threads/<id>/`",

@@ -10,7 +10,7 @@ so they live only in a transcript the next phase's session never opens.
 
 `templates/records/sdd-phase.md` gives the build side the same committed,
 per-segment record the review chain already has in `templates/records/sdd-round.md`
-(`docs/the-review-record.md` *The round record*). This module pins:
+(`docs/forms/the-round-record.md` *The round record*). This module pins:
 
   one section        the title and `## What this phase found`, with a
                      placeholder rather than a filled claim. The field
@@ -114,7 +114,7 @@ def test_the_spec_template_carries_the_removes_section_above_the_mark():
     """S8 of #835. The section ships with the three-column table and a
     placeholder row, and the framer's mark is still the last line. What a
     work item removing nothing writes in its place is the proofer's to read
-    in `docs/the-reader-registry.md`."""
+    in `docs/forms/the-reader-registry.md`."""
     raw = read(SPEC_TEMPLATE)
     lines = reader_module().readable(raw)
     body = section_body(lines, "## Removes")
@@ -141,10 +141,10 @@ def test_the_spec_template_carries_the_rule_changes_section_above_removes():
     assert section_body(lines, "## Rule changes") == []
     assert raw.index("## Rule changes") < raw.index("## Removes")
     framer = " ".join(read(FRAMER_AGENT).split())
-    assert "`skills/settle/SKILL.md` *Rule changes*" in framer
+    assert "`skills/settle/rule-changes.md` *Rule changes*" in framer
     assert (
         "## Rule changes"
-        in read(os.path.join(ROOT, "skills", "settle", "SKILL.md")).splitlines()
+        in read(os.path.join(ROOT, "skills", "settle", "rule-changes.md")).splitlines()
     )
 
 
