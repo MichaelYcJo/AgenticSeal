@@ -53,10 +53,10 @@ method in `frame/design.md` *D4 The census* can be run again by anyone.
 orchestrator as the party that moves the version in the commit that adds
 the first fragment. Phase 3 writes the fragment, so the orchestrator's
 spawn of phase 3 hands the crafter that write, and the commit that adds
-`changelog.md` carries it. The orchestrator writes the `### Process changes`
-rows with the fragment (`docs/layout/the-record-layout.md` *A change to the
-way of working writes its process row in its own fragment*). Where the
-orchestrator writes the fragment itself, the version moves in that commit.
+`changelog.md` carries it. The same spawn hands the crafter the
+`### Process changes` rows, which it writes with the fragment
+(`docs/layout/the-record-layout.md` *A change to the way of working writes
+its process row in its own fragment*).
 
 Phases 1 and 2 hand the next phase their lists through their phase records.
 A copy whose home is in a later phase's files is removed on the copying
@@ -72,4 +72,4 @@ shorter text in the orchestration files and the skills.
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-04 | The orchestrator's spawn of phase 3 handed the crafter the `### Process changes` rows with the version move, and the paragraph under *Phases* now says so | One party writes the fragment whole in one commit, the version and the process rows with it; the crafter that writes the fragment has read the diff the rows describe | `docs/layout/the-record-layout.md` *A change to the way of working writes its process row in its own fragment*; `docs/releasing/branch-and-release.md` *Cutting a release* |
