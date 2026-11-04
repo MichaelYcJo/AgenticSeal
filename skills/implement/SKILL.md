@@ -354,11 +354,13 @@ short: the no-change block and `nothing`.
 
 **`## Not verified` is read by a machine, so it has one shape** — a
 `| Item | Who must answer |` table, or alone the no-change block
-`skills/settle/rule-changes.md` *Rule changes* states, `- nothing` with its one
-field `why:`. Any other spelling of the heading, the header row or the block
-fails the check rather than reporting zero, because zero reads as "everything
-has been closed". The template's placeholder row fails it too, until it is
-filled in or the block replaces the table.
+`skills/settle/rule-changes.md` *Rule changes* states, `- nothing` with the
+reason in its one field `why:`, which the block may leave out. Any other
+spelling of the heading, of the header row or of the `- nothing` line, a
+second item, a field other than `why:` or an empty `why:` fails the check
+rather than reporting zero, because zero reads as "everything has been
+closed". The template's placeholder row fails it too, until it is filled in
+or the block replaces the table.
 
 An item is closed by marking it, never by deleting it: the Item cell opens
 with the word `closed`, lower case, then the item.
