@@ -22,12 +22,7 @@ and nobody closed its milestone.
 
 **A release is sized by what has to be in effect before the next work item
 starts, and not by a count.** One change that decides how the next ticket runs
-is a release on its own. The release that shipped the framer carried a single
-work item, because the agent that writes a frame had to exist before anything
-was framed; the release that replaced the deleted checklist with a gate carried
-two, because the next work item had to start with the replacement in effect.
-Neither was cut short of a target. Both are named rather than numbered, so
-the description reads the same on every release.
+is a release on its own.
 
 **No number caps a release: whoever places an issue in a `release:`
 milestone judges whether the release has grown past what its description
@@ -118,10 +113,8 @@ at or above the running one and not yet tagged, whether that is the version
 being cut or one still ahead of it. **A version below the running one, or one
 this repository has tagged, is history and is kept**, which is what lets this
 document say which release an issue shipped in. The tag decides, never
-`plugin.json`: a release's first pull request moves the running version to
-one that has not shipped, and from the release's merge until the next
-release's first pull request the running version is one that has already
-shipped, and only its tag says so. The version in the title is a fact rather
+`plugin.json`, for the reason `docs/releasing/release-checklist.md` *What a
+release pull request is held to* gives. The version in the title is a fact rather
 than a prediction: the roll runs at the push to `main` that ships a release,
 when `plugin.json` names the version that push shipped.
 
@@ -344,14 +337,10 @@ bad    Round cap improvements
 **An issue takes the prefix the pull request that closes it will take, by the same
 table, and `chore:` is never its default.** A title read in the tracker, the milestone
 and the release note says what kind of change is coming, and a `chore:` on a change to
-what a party does makes a design change read as housekeeping. Where the frame or the
-build finds the change is of another kind, the orchestrator retitles the issue when it
-titles the pull request. A `feat:` filed into, or moved into, a milestone numbered as a
-patch moves at that moment to the planned minor whose goal it shares, and the milestones
-are renamed forward only where none shares it, or where the work that follows needs it
-sooner and the renamed milestone's description names that work and why the minor sharing
-its goal is too late (`docs/releasing/branch-and-release.md` *Work accumulates on a
-release branch*).
+what a party does makes a design change read as housekeeping. Who retitles an issue
+whose pull request takes another prefix is `skills/commit-pr-convention/SKILL.md`
+*Commit messages*, and where a `feat:` filed into a milestone numbered as a patch moves
+is `docs/releasing/branch-and-release.md` *Work accumulates on a release branch*.
 
 ## Reconstructing a missing milestone
 

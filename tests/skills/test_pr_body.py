@@ -67,9 +67,6 @@ answer: fixed in 2222222: the writer keeps the last line now.
 
 ## Confirmations
 
-```seal
-confirms: none
-```
 The reader holds.
 """
 
@@ -191,10 +188,6 @@ evidence: read `skills/x.py:1-3`
 ```seal
 verdict: fixed 2222222
 answer: fixed in 2222222: the writer keeps the last line now.
-```
-
-```seal
-confirms: none
 ```
 
 ### `trail/rounds/round-2.md`
@@ -858,7 +851,12 @@ class Test_main:
         [
             (RECORDS, "## What changed\n\nno heading here\n"),
             (
-                {**RECORDS, "trail/rounds/round-1.md": ROUND_1.replace("must", "high")},
+                {
+                    **RECORDS,
+                    "trail/rounds/round-1.md": ROUND_1.replace(
+                        "verdict: fixed 2222222", "verdict: done"
+                    ),
+                },
                 OWN + EXPECTED,
             ),
         ],

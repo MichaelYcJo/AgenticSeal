@@ -13,8 +13,7 @@ git's hooks run for every commit made in the clone, a person's own from a
 terminal included. The hooks slot is also where husky, the pre-commit
 framework and lefthook live, and a line or an entry in their committed
 configuration reaches every teammate. A check at git's level reaches people
-who do not use this plugin, with an experience they did not ask for (the
-owner, 2026-10-25).
+who do not use this plugin, with an experience they did not ask for.
 check: tests/hooks/test_routing_edit_gate.py tests/hooks/test_dispatch.py
 
 ## The edit check

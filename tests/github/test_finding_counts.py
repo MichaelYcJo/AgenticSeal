@@ -185,17 +185,17 @@ class Test_main:
         cells `not read`, the rounds cell holds the count, the line under the
         table names the record, the line and the refusal, and the exit is 0."""
         refused = record(finding(1, "`f.py:1`")).replace(
-            "severity: must", "severity: maybe"
+            "location: `f.py:1`", "location: f.py:1"
         )
         root = git_repo(tmp_path / "repo")
         item(root, rounds=[record(finding(1, "`f.py:1`")), refused])
         rows, under = table(root, capsys)
         assert rows == [f"| {ITEM} | not read | not read | not read | 2 |"]
-        line = refused.split("\n").index("severity: maybe") + 1
+        line = refused.split("\n").index("location: f.py:1") + 1
         path = f"seal/threads/{ITEM}/trail/rounds/round-2.md"
         assert len(under) == 1, under
         assert under[0].startswith(f"{path}:{line}: "), under
-        assert "a severity is `must` or `should`" in under[0], under
+        assert "a location is one or more of" in under[0], under
 
     @pytest.mark.parametrize("shape", ["not UTF-8", "a directory"])
     def test_a_record_that_cannot_be_opened_is_named_with_why(

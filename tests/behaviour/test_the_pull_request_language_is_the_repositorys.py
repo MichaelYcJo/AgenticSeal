@@ -934,11 +934,11 @@ def _chain():
     return _checker("chain_check", "skills", "code-review", "scripts", "chain_check.py")
 
 
-# The headings of a round record the parties and the eval graders read and
-# the check does not, so no grammar holds them. The confirmation blocks
-# stand under `## Confirmations`, and the check reads the blocks, not the
-# heading.
-GRADED_HEADINGS = ["## Confirmations", "## Not judged", "## Probes"]
+# The headings of a round record only the parties read: no script and no
+# eval grader reads them, so no grammar holds them and the exclusion list
+# does not name them (#1319). The confirmation blocks stand under
+# `## Confirmations`, and the check reads the blocks, not the heading.
+PROSE_HEADINGS = ["## Confirmations", "## Not judged", "## Probes"]
 
 
 def _round_record_grammar():
@@ -960,7 +960,7 @@ def _block_keys():
 
 
 def _round_record_fields():
-    """What a round record carries: its grammar and the graded headings.
+    """What a round record carries: its grammar and the prose headings.
     Two lines are owed only where their condition holds, `original:` in a
     repository that declares `seal/parity.md` and `reopens:` on a finding
     that raises an earlier close, so the template's one finding shows the
@@ -968,7 +968,7 @@ def _round_record_fields():
     fields = _chain().FIELDS
     left_out = (fields.ORIGINAL, fields.REOPENS)
     kept = [key for key in _round_record_grammar() if key not in left_out]
-    return kept + GRADED_HEADINGS
+    return kept + PROSE_HEADINGS
 
 
 ROUND_RECORD_FIELDS = _round_record_fields()
@@ -1087,15 +1087,27 @@ def _literal_strings():
     grammar_and_restates_none_of_it`), so a checker's constant here is one
     outside that module. The info string and the `## Findings` heading are,
     since the module's keys do not hold them.
+
+    The settle reads a plan's *Judgments of the run* under its exact heading
+    and header, the release note lifts a fragment's process section under
+    the first line of `templates/records/process.md`, and a design's `to`
+    holds `check:` lines that `.github/scripts/rules.py` reads (#1319).
     """
     unverified = _checker(
         "unverified_check", "skills", "verify", "scripts", "unverified_check.py"
     )
     rules = _checker("rule_changes", "skills", "settle", "scripts", "rule_changes.py")
     body = _checker("pr_body", "skills", "code-review", "scripts", "pr_body.py")
+    settle = _checker("settle", "skills", "settle", "scripts", "settle.py")
+    checks = _checker("rules", ".github", "scripts", "rules.py")
+    process = read("templates", "records", "process.md").splitlines()[0]
     chain = _chain()
     fields = {f"{f}:" for need, may in rules.GRAMMAR.values() for f in need + may}
     found = {
+        f"## {settle.JUDGMENTS}",
+        *settle.JUDGMENTS_HEADER,
+        process,
+        checks.LABEL.strip(),
         body.HEADING,
         body.PHASES,
         body.NOT_DONE,
@@ -1198,22 +1210,4 @@ def test_every_document_that_names_a_language_row_names_the_shipped_one(parts):
     ), (
         f"{'/'.join(parts)} still names the row `Pull request language`, "
         "which #106 renamed"
-    )
-
-
-@pytest.mark.parametrize("field", GRADED_HEADINGS)
-def test_the_exclusion_list_holds_every_field_a_pinned_case_reads(field):
-    """The list's grounds are *a checker OR a pinned case*, and this is the
-    pinned case: the headings a party or a grader reads that the grammar
-    table, which the list names, holds no row of.
-
-    `_literal_strings()` reaches only what a checker holds in a module
-    constant, so the second half of those grounds had nothing checking it —
-    and round 2 found the fix for round 1 removing `Needs a fix` from the list
-    while adding `Broad gate` on identical footing. Three section headings had
-    never been on it at all.
-    """
-    assert f"`{field}`" in _governs_nothing(), (
-        f"a pinned case reads `{field}` literally and the exclusion list does "
-        "not hold it, so a repository translating its records is told it may"
     )

@@ -96,7 +96,6 @@ UNDECIDED = "undecided"
 COMMIT = r"[0-9a-f]{7,40}"
 PATH = r"`[^`\s:/#][^`\s:#]*"
 SPAN = r"(?::[0-9]+(?:-[0-9]+)?)?"
-LINES = r":[0-9]+(?:-[0-9]+)?"
 
 
 class Spec:
@@ -126,6 +125,9 @@ class Kind:
 # The kinds. Each value's shape is the `Shape` cell the round record's
 # grammar table in `docs/the-review-record.md` gave its label before #1198,
 # and `verdict:` takes no `open`: a finding with no close block is open.
+# A finding's `severity:` and `evidence:` and a close's `answer:` take any
+# text, and the last two may be left out: no script decides on their values,
+# and `seal pr-body` copies each block whole (#1319).
 ORIGINAL_SPEC = Spec(
     rf"(?P<commit>{COMMIT})",
     AT_MOST_ONE,
@@ -146,20 +148,14 @@ ROUND_BLOCK = Kind(
 FINDING_BLOCK = Kind(
     "finding",
     {
-        SEVERITY: Spec(r"must|should", ONE, "a severity is `must` or `should`"),
+        SEVERITY: Spec(r".*", ONE, "a severity is words after the key"),
         LOCATION: Spec(
             rf"{PATH}{SPAN}`(?:, {PATH}{SPAN}`)*",
             ONE,
             "a location is one or more of `path`, `path:line` or "
             "`path:first-last`, each backticked, joined by `, `",
         ),
-        EVIDENCE: Spec(
-            rf"executed `[^`]+`(?:, `[^`]+`)*|read {PATH}{LINES}`(?:, {PATH}{LINES}`)*",
-            ONE,
-            "evidence is `executed` and each command run, or `read` and each "
-            "`path:line` or `path:first-last` opened, each backticked, joined "
-            "by `, `",
-        ),
+        EVIDENCE: Spec(r".*", AT_MOST_ONE, "evidence is words after the key"),
         REGRESSION: Spec(
             r"round-(?P<round>[1-9][0-9]*)(?:#(?P<finding>[1-9][0-9]*))?",
             AT_MOST_ONE,
@@ -181,7 +177,7 @@ CLOSE_BLOCK = Kind(
             ONE,
             "a verdict is `fixed <commit>`, `rejected` or `deferred <home>`",
         ),
-        ANSWER: Spec(r".*", ONE, "an answer is prose after the key"),
+        ANSWER: Spec(r".*", AT_MOST_ONE, "an answer is prose after the key"),
         LOCATION: Spec(
             rf"{PATH}{SPAN}`(?:, {PATH}{SPAN}`)*",
             AT_MOST_ONE,
@@ -190,13 +186,15 @@ CLOSE_BLOCK = Kind(
         ),
     },
 )
+# `none` reads for a record written before #1319, which took it out of the
+# template: a claim that matched with no earlier finding to name is prose.
 CONFIRMATION_BLOCK = Kind(
     "confirmation",
     {
         CONFIRMS: Spec(
             r"none|round-(?P<round>[1-9][0-9]*)#(?P<finding>[1-9][0-9]*)",
             ONE,
-            "it is `round-<N>#<n>` or `none`",
+            "it is `round-<N>#<n>`, the earlier finding it confirms",
         ),
     },
 )

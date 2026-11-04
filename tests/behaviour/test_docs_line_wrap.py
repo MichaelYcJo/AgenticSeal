@@ -148,7 +148,6 @@ COVERED = [
     # was cut from does not, so covering it here loses nothing and keeps it.
     "skills/implement/orchestration.md",
     # Cut from it in #1148, wrapped as it was.
-    "skills/implement/acts.md",
     "skills/implement/multi-repository.md",
     # The bootstrap, cut from that file in #1046, the same way: its prose
     # was covered there, so it goes in at birth and keeps that coverage.

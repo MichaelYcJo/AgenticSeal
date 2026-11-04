@@ -17,6 +17,11 @@ test the shared file applies to itself: what is true of every agent is
 shared, what is one agent's own is in that agent's definition, and an agent
 whose definition is silent about an act does not take it.
 
+**Contract rule 1 writes out the wrong command form beside the right one,
+because the failure is a habit.** The right form has to be as easy to copy
+as the wrong one.
+check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
+
 **The contract's rule numbers are stable.** A prompt saying *contract rule 3
 is narrowed this round*, and a round record compared with another months
 later, hold only while the number still means what it meant; how a retired
@@ -61,16 +66,9 @@ check: tests/skills/test_chain_check.py
 what it finds is settled with the framer in one exchange, the framer's judgment standing
 after it.** The framer judges what the work should be and the orchestrator holds the
 issue, so a frame weaker than the issue asks is found by the party that holds the issue
-and decided by the party that drew the frame: the orchestrator proposes, with grounds
-and coordinates and never as an instruction; the framer agrees, agrees with a change or
-rejects with grounds and folds what it agreed into its three files; a rejection is one
-row of the plan's *Alternatives considered*, and the orchestrator edits no frame file.
+and decided by the party that drew the frame, and the orchestrator edits no frame file.
 One exchange bounds it, so neither a loop nor the orchestrator overriding the framer can
-start, and a disagreement left stands as the framer's, named in the orchestrator's part
-of the pull request body. It is guidance and no check reads it; the counts of each run's
-proposals and answers go to the flow log with the framer segment's reading, where the
-settle weighs the exchange against its cost. Its first instance, #1148's frame, read
-four proposals: one agreed, two agreed with a change, one rejected. The procedure is
+start. It is guidance and no check reads it. The procedure is
 `skills/implement/orchestration.md` *The frame is read against the issue at the spawn*,
 and the framer's half is `agents/framer.md`.
 
@@ -134,8 +132,8 @@ framer's stand in `frame/design.md` *Grounding* and `frame/plan.md` *Alternative
 considered*; the crafter's in the phase record's *What this phase found*, each decision
 with its grounds and the document; the proofer's as a finding's grounds and `evidence:`
 line; the sealer's in `guarantee.md` *The parties*. The orchestrator has no record of
-its own, and a judgment it made in the run, to go on or stop, to route a regression, to
-file a leftover, to fold a decision into the frame, reached the next session only
+its own, and a judgment it makes in the run, to go on or stop, to route a regression, to
+file a leftover, to fold a decision into the frame, would reach the next session only
 through a spawn prompt or memory, so it writes each as one row of the plan's table,
 which the settle reads (`docs/running/the-run.md` *The run*).
 
@@ -153,21 +151,6 @@ orchestrator's procedure preloaded into every implementer spawn is procedure
 for asking a person a question, delivered to a party that cannot ask anybody
 anything, and paid once per spawn.
 check: tests/skills/test_payload_meter.py tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py
-
-**The orchestrator's acts are counted, each against what delivers it.** An agent's rules
-arrive by mechanism, while the orchestrator has no spawn for a preload to attach to, so
-each of its acts is a sentence until something refuses when the act did not happen.
-`skills/implement/acts.md` tables every `##` heading carrying the `Orchestrator:` marker
-in the files its opening names, `skills/implement/orchestration.md`,
-`skills/implement/bootstrap.md`, `skills/implement/multi-repository.md`,
-`skills/code-review/orchestration.md` and itself, and every `###` directly beneath one,
-against its delivery: a command, a check, part of its parent's act, or a sentence with
-its grounds. A test holds the table against those files from both sides. The table
-stands in a file of its own because a maintainer reads it when an act is added and an
-orchestrator never does, and every orchestrating session read its 1,783 words before
-#1148. It reads the marker and not the meaning, so an act written outside a marked
-section is counted by nobody.
-check: tests/behaviour/test_every_orchestrator_act_names_its_delivery.py
 
 **`Implementation` is answered by whether the work is finding out or writing down, on
 the axis of replaceability.** Finding out, what an unfamiliar codebase does or what an

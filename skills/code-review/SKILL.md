@@ -121,8 +121,8 @@ and the shape of each value. A line outside a block is prose and no field.
 The check also reads the `## Findings` heading and each finding's
 `### <n>. <symptom>` heading, as the template shows them. The prose follows
 `Record language` in the `seal/` root's `config.md`, English where the row
-is absent; field names, headings and vocabulary words stay English
-(`templates/setup/config.md` *What no row governs*).
+is absent; the field names, headings and vocabulary words a checker reads
+stay English (`templates/setup/config.md` *What no row governs*).
 
 - A finding is a defect. `must` is a compliance violation or a defect to fix
   before merge; `should` is a defect the release would ship, a tool doing
@@ -154,17 +154,18 @@ is absent; field names, headings and vocabulary words stay English
   close block: a finding with none is open, and the fix pass appends it with
   its `verdict:` and `answer:` lines. The check refuses a finding whose block
   is missing or lacks a line it holds one of.
-- `evidence:` names what the claim rests on, in the forms
-  `hooks/lib/fields.py` gives its value. A claim that something is absent
-  rests on a search, so its line is `executed`. The check cannot tell such
-  a claim from another; the round reading the record does.
+- `evidence:` names what the claim rests on: `executed` and each command
+  the round ran, or `read` and each `path:line` it opened. A claim that
+  something is absent rests on a search, so its line is `executed`. No
+  script decides on the line; the round reading the record does.
 - Each finding gives why it matters and its grounds, then the paste-ready
   fix in a fenced block, where the fix pass's close block will follow it.
   The grounds open with why the earlier close does not hold where
   `reopens:` stands.
 - What this round confirmed holds is a confirmation block under
   `## Confirmations`, its `confirms:` line followed by the prose that says
-  what holds, and what it could not judge a row of `## Not judged` naming
+  what holds, and what matched with nothing earlier to name stands there as
+  prose alone. What it could not judge is a row of `## Not judged` naming
   who answers it; neither is a finding.
 - The record is written in words: no emoji anywhere in it, and no summary
   block under it. A mark quoted from the code under review is written as its
@@ -195,9 +196,7 @@ pytest once and one that runs it several times. Each of those returns as the
 next round's `regression:` or `reopens:` finding. Before writing the snippet,
 read the fact where it stands and list the statements it touches; where one
 snippet cannot cover them, say in the grounds which statements it leaves and
-that the fix pass owes them too. The judgment rows of 0.26.0 to 0.29.0 trace
-nine regressions in seven work items to a paste-ready fix applied as given
-whose reach was one coordinate.
+that the fix pass owes them too.
 
 **A finding is not closed too early.**
 
