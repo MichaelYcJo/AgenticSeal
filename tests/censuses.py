@@ -739,9 +739,10 @@ def console_streams():
 
 
 def answer_problems(guard):
-    """`{line: what}` for the `__main__` block GUARD: the block holds no
-    answer, its first answer is not its first statement, or that answer is a
-    loop that does not give `STREAMS`' pairs in the second form."""
+    """`{line: what}` for the `__main__` block GUARD: the census reads no
+    answer among the block's own statements, its first answer is not its
+    first statement, or that answer is a loop it does not read as `STREAMS`'
+    pairs in the second form."""
     answer = next((s for s in guard.body if is_answer(s)), None)
     if answer is None:
         return {
@@ -785,8 +786,9 @@ def entry_point(rel, root=None):
     each one carries rather than relying on another having made it. The
     answer is the call `console.to_utf8()`, or a loop over `STREAMS`' pairs
     in the one shape `loop_pairs` reads. The census reads the block's first
-    answer statement: no answer is refused at the `if` line, an answer after
-    another statement at that statement, and a loop that is not that answer
+    answer statement among the block's own statements: a block where it
+    reads none is refused at the `if` line, an answer after another
+    statement at that statement, and a loop it does not read as that answer
     at its `for` line. A later `__main__` block runs after the first, so it
     is not read. Whether the call works is `tests/hooks/test_console.py`'s
     and, for the dispatcher's own loop, `tests/hooks/test_dispatch.py`'s."""
