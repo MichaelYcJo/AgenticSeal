@@ -9,6 +9,8 @@
 | How the agents under test behave on the 17 regenerated rule cases, whose fixture records now open with the templates' titles. Phase 2 ran no paid eval (`frame/plan.md` *Judgments of the run*, row 3). It showed only that the cases are the generator's output and that the suite's narrow cases read the change (`trail/phases/phase-2.md`) | the paid runs #1107, #1178 and #1266 wait on, which the pull request body names as the orchestrator's text |
 | Whether a session in a user's repository opens `templates/setup/config.md` from the README entry's citation, now that the entry lists no item. It is read, not measured: no agent of this run receives the new entry, since agents read the installed 0.31.1 | the proofer at review |
 | Phase 3's two censuses of #1344's class are whole only for the names they spell: a removed module's basename, matched by its first 28 characters, and a removed case's name. Two kinds of citation are outside them. One cites a moved module by its old path, whose basename still stands. The other describes a removed module or case without naming it (`trail/phases/phase-3.md`) | the proofer at review |
+| Phase 4's search for other statements of the six sentences it corrected is a sample. It matches the old wordings, so a sentence that states the same drifted fact in other words is outside it (`trail/phases/phase-4.md`) | the proofer at review |
+| Whether a contributor who reads the pull request template's gate comment opens `CONTRIBUTING.md` *What a change to a gate must carry*, now that the comment lists no item. It is read, not measured | the proofer at review |
 
 ## Not done
 
