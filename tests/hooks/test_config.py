@@ -1110,7 +1110,7 @@ class Test_declared_mode:
         """S3 of #867, the reader's half. No file declares nothing; a file that is
         there and will not read is refused with a sentence naming the path. The
         reader tells the two apart once, so no caller opens the file again to
-        find out -- `hooks/mode-gate.py#unreadable` did, and is gone."""
+        find out."""
         home = opt_in_shared(repo)
         assert config.config_text(str(home)) == (None, None)
         assert config.declared_value(str(home), "Mode") == (None, None)
