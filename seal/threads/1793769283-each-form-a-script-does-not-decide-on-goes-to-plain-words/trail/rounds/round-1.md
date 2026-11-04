@@ -48,6 +48,11 @@ Round 1 has no earlier record, so it writes no `confirms:`, `reopens:` or
 `regression:` line.
 ```
 
+```seal
+verdict: fixed 669d93cab
+answer: The message, the case's assertion and docstring, and the form's sentence now read as the paste-ready text gives them, and the paragraph's last lines are rewrapped. The changed assertion failed against the old message before the code changed, and `seal mutate` dropping `regression:` from the message gave red with the tree clean. The fragment says the reworded message in `590664858`.
+```
+
 ### 2. The implement skill still says a no-change block without `why:` fails the check
 
 ```seal
@@ -70,6 +75,11 @@ placeholder row fails it too, until it is filled in or the block replaces
 the table.
 ```
 
+```seal
+verdict: fixed b46133128
+answer: The paragraph now says the block may leave out `why:`. I read the paste-ready text against `unverified_check.py#nothing_block` and `#field_values`, and wrote it in my own words: the reader also refuses a second item and an empty `why:`, so the sentence names those beside the other spellings and an unknown field. The modules that read the implement skill, with the wrap, passage and `test_unverified_check.py` modules, gave 1021 passed.
+```
+
 ### 3. `gaps.md` keeps the process-rows item open after the orchestrator's judgment row accepted the rows
 
 ```seal
@@ -82,6 +92,11 @@ Why it matters: `gaps.md:14` holds an open `## Not verified` row: the `### Proce
 
 ```markdown
 | closed The `### Process changes` rows of `changelog.md`; the spawn said the orchestrator would hand them and the prompt carried none, so phase 4 derived them from the diff (`trail/phases/phase-4.md`). The orchestrator read both rows against the diff and accepts them (`frame/plan.md` *Judgments of the run*, the row on G8) | the orchestrator, before the broad run |
+```
+
+```seal
+verdict: fixed 590664858
+answer: The row now opens with `closed`. Its second cell says what closed it, the orchestrator's acceptance in the plan's last judgment row, and not the original answerer, which the implement skill's section 4 says leaves a closing unproven; that is where this differs from the paste-ready row. `seal unverified` on the work item exits 0.
 ```
 
 ## Confirmations
