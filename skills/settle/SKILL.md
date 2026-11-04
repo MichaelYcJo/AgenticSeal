@@ -349,8 +349,8 @@ document, the second question, and how a promoted row is written.
   - A directory with no note to read goes, in each of these cases: no
     `changelog.md` at `--released-at` or one with no text, an adding commit
     that names no pull request, no version tag, no published release, or
-    notes not built from the fragments. A `no note read:` line under its `removed` line
-    says which case held.
+    notes not built from the fragments. A `no note read:` line under its
+    `removed` line says which case held.
   - The list is asked once, before the first removal, and only where some
     directory gets as far as a version tag. A list `gh` cannot give, and a
     `git` that cannot read what a note is checked by, stop the run with

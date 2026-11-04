@@ -241,8 +241,9 @@ seal* 은 감사하는 쪽만 밝히고 감사받는 것은 밝히지 않는다.
 
 **이 문장은 보장이 아니다.** 주인이 익명으로 남은 문장은 리뷰에서 proofer
 가 읽어 찾는다. 아래 절 *에이전트와 검사가 읽는 글은 한 가지로만 읽히게
-쓴다* 의 두 번째 규칙이 읽는 쪽으로 적은 것도 그 proofer 다. 검사가 아니라 읽는 쪽이 맡는 까닭은 한 낱말이
-주인 하나를 가리키는지가 뜻의 문제이기 때문이다(`skills/core/SKILL.md`
+쓴다* 의 두 번째 규칙이 읽는 쪽으로 적은 것도 그 proofer 다. 검사가 아니라
+읽는 쪽이 맡는 까닭은 한 낱말이 주인 하나를 가리키는지가 뜻의 문제이기
+때문이다(`skills/core/SKILL.md`
 *Judgment is spent where meaning is the question, and a script answers the rest*).
 
 ### 에이전트와 검사가 읽는 글은 한 가지로만 읽히게 쓴다
