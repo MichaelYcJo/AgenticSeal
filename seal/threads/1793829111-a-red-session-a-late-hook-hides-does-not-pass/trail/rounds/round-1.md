@@ -53,6 +53,11 @@ The fix replaces the whole `to:` item. It touches no other statement: the `from:
     row's exit into 0, and says how the gate reads a run with that stop.
 ```
 
+```seal
+verdict: fixed c9a1b1bf
+answer: The orchestrator replaced the whole `to:` item of `frame/design.md` `## Rule changes` with the paste-ready text at c9a1b1bf, so the list of acts after the run loop and the reason the `end` line survives them now stand in rule 3 alone. The crafter read the claim the new `to:` sends a reader to against `templates/setup/config.md` rule 3 at HEAD, and it holds. Rule 3 names the four acts ("Such an act is a hook that sets the session's exit status, a later `pytest_sessionfinish` hook that raises `pytest.exit()`, a `pytest_unconfigure` hook that ends the process, or a part of the row after pytest, such as `; true` or a pipe"). It also says how the gate reads a run with the configure-time stop ("so the gate reads the run as though that session never started: it judges the run on the row's exit and on the records the row's other sessions left"). So rule 3 needs no change. The sweep read `gaps.md`, `changelog.md` and `trail/phases/phase-1.md` whole. The changelog fragment names G1's reproduced shapes as the defect's instances; it states what was measured, holds no rule, and stays.
+```
+
 ### 2. The plan and the questions name cases that cannot turn red on the scenario they are named for
 
 ```seal
@@ -81,6 +86,11 @@ A different answer on another build would turn the `early-exitstatus-0` shape of
 
 ```markdown
 Each case starts a pytest subprocess whose conftest holds a hook, or whose row joins pytest to the interpreter by an escaped `\|\|`, which reaches `cmd.exe` on Windows.
+```
+
+```seal
+verdict: fixed c9a1b1bf
+answer: The orchestrator applied the three paste-ready sentences at c9a1b1bf: `frame/plan.md`'s second failure scenario and `frame/questions.md`'s assumption sentence now name the `early-exitstatus-0` shape of S2, and Q1's question cell names the escaped `\|\|` row. The crafter read each against `tests/skills/test_broad_gate.py` `LATE_ACTS` at HEAD, and they hold. The sweep over the records the crafter writes found two more statements of the old frame state, and commit 9a5386d6 corrected both. `trail/phases/phase-1.md` said in the present tense that S2 names a row ending `; true` and that the frame's *Scope* 3 sentence reads as at e06313c5. It now names e06313c5 and the fold at b5d3d855, and records that CI run 41924200504 ran the case on every leg. `gaps.md`'s row on the ubuntu and Windows legs is closed with that run as its answer: every job ended `success`, and no new case is skipped in its log. Neither record names S1 or S5 as the cases a different pytest `exitstatus` turns red.
 ```
 
 ## Confirmations
