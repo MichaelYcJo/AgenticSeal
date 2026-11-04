@@ -51,3 +51,54 @@ the records` is the records' text" (executed).
 target: 592936753 against a9487d83e
 Verdict: withheld reason: (1) the changelog fragment, written at fb50fbeae, ends with the two lines `</content>` and `</invoke>` at seal/threads/1793795355-the-census-reads-every-entry-point/changelog.md:6-7, which the v0.32.0 release note copies as the fragment's text and the pull request body's copy carries at its lines 33-34, and trail/phases/phase-2.md:116-117 carries the same two lines; (2) the orchestrator's part of the pull request body says the build "repairs the seventeen that gave none", and five of the seventeen gave STREAMS' answer from main()'s first statement at the base (a9487d83e:.github/scripts/finding_counts.py:175, plugin_directory_check.py:289, publish_release_note.py:845, tag_release.py:183, tracker_labels.py:159), as the changelog's second bullet says
 ```
+
+## Re-audit at `a4ad23283`
+
+The sealer audited `a4ad23283` against `release/v0.32.0`, resolved as
+`release/v0.32.0@{upstream}` to `a9487d83e` (executed: `git rev-parse
+--verify --quiet`). Every run took place in a clone of the worktree at
+`a4ad23283` under the session scratchpad, removed after the runs. No
+`seal/parity.md` is tracked (executed: `git ls-files seal/parity.md` printed
+nothing), so no `original:` line is owed.
+
+`trail/gate.md`'s newest run is still `61db006cf against a9487d83e`.
+`61db006cf` is an ancestor of HEAD (executed: `git merge-base
+--is-ancestor`), and `git log --no-merges --name-only 61db006cf..HEAD
+^a9487d83e` lists `592936753` (`trail/gate.md`), `30c555733`
+(`guarantee.md`) and `a4ad23283` (`changelog.md`, `trail/phases/phase-2.md`),
+each under this work item's directory alone (executed). The command `bin/seal
+pr-body seal/threads/1793795355-the-census-reads-every-entry-point --body
+<scratchpad>/1793795355/pr-body.md --check` exited 0: "below `## From the
+records` is the records' text" (executed).
+
+Since the earlier block's target `592936753`, `git diff --stat 592936753
+HEAD` names `changelog.md` (2 lines removed), `trail/phases/phase-2.md`
+(2 lines removed) and `guarantee.md` (the earlier block) and nothing else
+(executed), and `git show a4ad23283` removes the lines `</content>` and
+`</invoke>` from the end of each of the two records and changes no other
+line (executed). The claims whose coordinates that touched are re-run below;
+every other row of the earlier tables rests on code, cases and records no
+commit since has changed, and stands as it was.
+
+### Claims re-run
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| The changelog fragment and the phase 2 record hold their prose and nothing else | `changelog.md`; `trail/phases/phase-2.md`; the orchestrator's statement that `a4ad23283` removes the two lines | `git show a4ad23283`; `git grep -n -e '^</content>$' -e '^</invoke>$' HEAD`; `tail -c` over each file | holds (executed): neither line stands anywhere in the tree at HEAD; the only `</content>` and `</invoke>` text under `seal/` is the earlier block's own quotation in `guarantee.md:38,45,47,52`, which the body's copy and the release note do not carry. The fragment now ends with its third bullet and the phase record with its last paragraph, each closed by one newline |
+| The pull request body's copy of the records carries no residue | the body file the prompt names | `grep -n -e '</content>' -e '</invoke>' <scratchpad>/1793795355/pr-body.md` | holds (executed): no line, exit 1 |
+| The build repairs seventeen entry points, "twelve that gave no answer and five that called `console.to_utf8()` inside `main()` rather than as their block's first statement" | the orchestrator's part of the pull request body, first paragraph | for each of the twelve the changelog's second bullet names, `git show a9487d83e:<f> \| grep -c -e to_utf8 -e reconfigure` and the same at HEAD; the five rows of the earlier table's `main()` claim | holds (executed): each of the twelve counts 0 at the base and 1 or 2 at HEAD; the five called it inside `main()` at the base (`a9487d83e:.github/scripts/finding_counts.py:175` and the four the earlier row names, executed in the earlier audit, on code no commit since touched) |
+
+### The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | unchanged since `592936753` (executed: `git diff --stat`) | as the earlier table states | none |
+| the build | phase 1 as before; phase 2 as before, less the two residue lines | the design, the tree, and every claim re-run in both audits | none: `trail/phases/phase-2.md` ends with its last paragraph (executed) |
+| the last round | unchanged since `592936753`, `trail/rounds/round-2.md` with round-2#1 closed `fixed 6e22d54f7`, read at HEAD in the earlier audit as its reader | as the earlier table states | none |
+| the changelog | the same three bullets, less the two residue lines | the design, the build, and the tree on every statement checked in both audits, including the twelve with no call and the five that called inside `main()` | none: the fragment ends with its third bullet (executed) |
+| the orchestrator's part of the pull request body | the census widens to every tracked `.py` with a `__main__` block and repairs seventeen entry points, twelve with no answer and five that called `console.to_utf8()` inside `main()`, and the five loops that left out `stdin`; Q1's default and the three exemptions; the rounds and fixes; the platform run; the merges; the broad run at `61db006cf` | the issue, `routing.md`, `frame/questions.md` Q1, the round records, `frame/plan.md` *Judgments of the run*, the changelog's second bullet, the tree (the count above), `trail/gate.md`, and the earlier audit's runs on each other paragraph, read again whole (read) | none |
+
+```seal
+target: a4ad23283 against a9487d83e
+Verdict: sealed
+```
