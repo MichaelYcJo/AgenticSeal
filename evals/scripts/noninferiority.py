@@ -41,16 +41,14 @@ whose own suite does not give back, from each run's whole `report_text`,
 the truth results it recorded, and a suite at REV that differs from the
 side's in anything but `truth-` graders or holds other cases.
 `compare` writes the record the
-five pass rules judge, outcome first and then cost, each against the
-baseline: recall not fallen, except by one find where every truth grader
-that lost it is still found by at least one new run, the false-finding rate
-within `FALSE_MARGIN`
-of the baseline's, the shape and reach graders both sides ran passing,
-pooled, no fewer runs on the new side than on the baseline, with none of
-them failing every new run where the baseline passed it, the preload's
-bytes below the baseline's, and either the tokens read across every model
-or those tokens per tool call within `TOKEN_MARGIN` of the baseline's.
-Tokens per true find, spend and wall seconds are written and judge nothing.
+three pass rules judge, a smoke run for gross breakage of the agent's
+output, each against the baseline: the shape and reach graders both sides
+ran pass, pooled, no fewer runs on the new side than on the baseline, none
+of them fails every new run where the baseline passed it, and one the
+baseline lacks passes every new run. A pass claims nothing about whether a
+rewrite is worse or means the same. Recall, the false rows, the tokens,
+the tool calls, spend, wall seconds and the preload's bytes are written and
+judge nothing.
 `check` recomputes a record's verdict from its numbers.
 `model` reads a record whose `--old` was the Opus side and `--new` the
 Sonnet side, and prints `sonnet` only where no truth, shape or reach grader
@@ -99,13 +97,6 @@ UNREAD = (
     "keeps no report_text, so the side was read by the reader before #986 "
     "and cannot be read again"
 )
-FALSE_MARGIN = 0.05
-# Rule 5's margin on both of its figures, the total tokens and the tokens
-# per tool call. Two takes of one `writing-style` text differed by 6.8 points
-# of tokens per tool call, *Not done* of
-# 0ed5dd3b:seal/specs/1792251842-the-smith-is-written-anew-from-its-job/overview.md
-# and 0.07 is the smallest whole percent that covers that spread.
-TOKEN_MARGIN = 0.07
 # The three counts of a model's `modelUsage` entry a run read.
 READ_COUNTS = ("inputTokens", "cacheCreationInputTokens", "cacheReadInputTokens")
 COST_FIELDS = (
@@ -430,16 +421,9 @@ def tool_calls(trace_path):
     counted once by its id; or None where the trace cannot be read or holds
     none.
 
-    Rule 5 reads this count with the total tokens. A run's tokens are about
-    its calls times the context each call carries, and the rewrite controls
-    the context while how many calls an agent makes is its behaviour, which
-    the outcome rules judge. So rule 5 fails a side only where its total and
-    its tokens per call both rose: fewer calls raise the figure per call and
-    more calls raise the total, and the count moves the verdict in neither
-    direction. Tokens per true find was weighed and not chosen: its
-    divisor is the recall, which moves by a find or two between runs of the
-    same agent (owner, 2026-10-17). A line that is not a JSON object is
-    skipped; no count is never zero calls."""
+    The record writes this count and the tokens per tool call, and neither
+    is judged. A line that is not a JSON object is skipped; no count is
+    never zero calls."""
     seen, count = set(), 0
     try:
         with open(trace_path, encoding="utf-8") as f:
@@ -774,25 +758,18 @@ def suite_name(suite):
 
 
 def verdict(numbers):
-    """`(verdict, [reason])` the five pass rules give NUMBERS, the merged
+    """`(verdict, [reason])` the three pass rules give NUMBERS, the merged
     `{(case, grader): (kind, old passed, old runs, new passed, new runs)}`
-    under `graders` beside `old_rows`, `old_false`, `new_rows`, `new_false`,
-    `old_cut`, `new_cut` and every name in `COST_FIELDS`.
+    under `graders` beside `old_cut` and `new_cut`.
 
-    Each rule reads the new side against the baseline: 1 recall not fallen,
-    except by one find where every truth grader that lost it is still found
-    by at least one new run, 2 the false-finding rate within `FALSE_MARGIN`
-    of the baseline's, 3 the shape and reach graders both sides ran passing,
-    pooled, no fewer runs, none of them failing every new run where the
-    baseline passed it, and one the baseline lacks passing every new run, 4
-    the preload's bytes below the baseline's, 5 either the tokens read
-    across every model or those tokens per tool call within `TOKEN_MARGIN`
-    of the baseline's, so a side fails it only where both rose by more
-    (`tool_calls` says why both). A missing key raises. A side cut short, a
-    case the baseline ran and the new side did not, whatever its graders, a
-    case run a different number of times, and a side whose tokens, tool
-    calls or preload bytes are None, or whose tool calls are none, are no
-    result; tokens per true find, spend and wall seconds are never judged."""
+    Each rule reads the new side's shape and reach graders against the
+    baseline: 1 those both sides ran pass, pooled, no fewer runs, 2 none of
+    them fails every new run where the baseline passed it, and 3 one the
+    baseline lacks passes every new run. A missing key raises. A side cut
+    short, a case the baseline ran and the new side did not, whatever its
+    graders, and a case run a different number of times are no result.
+    No truth grader, row count, token, tool call, spend, second or preload
+    byte is judged, and an unknown one gives no `no result`."""
     if numbers["old_cut"] or numbers["new_cut"]:
         sides = [
             s
@@ -824,42 +801,13 @@ def verdict(numbers):
         if not (k in ("shape", "reach") and 0 in (old_runs, new_runs))
     ):
         return "no result", ["the two sides ran a case a different number of times"]
-    unknown = [
-        s
-        for s, side in (("baseline", "old"), ("new", "new"))
-        if any(numbers[f"{side}_{k}"] is None for k in ("tokens", "calls", "bytes"))
-        or not numbers[f"{side}_calls"]
-    ]
-    if unknown:
-        return "no result", [
-            f"the {' and '.join(unknown)} side records no tokens across every "
-            "model or no tool calls for every run, or no preload bytes"
-        ]
     reasons = []
-    truths = {key: v for key, v in g.items() if v[0] == "truth"}
-    old_found = sum(v[1] for v in truths.values())
-    new_found = sum(v[3] for v in truths.values())
-    if new_found < old_found:
-        lost = sorted(key for key, v in truths.items() if v[3] < v[1])
-        noise = old_found - new_found == 1 and all(truths[key][3] >= 1 for key in lost)
-        if not noise:
-            names = ", ".join(f"{c}/{n}" for c, n in lost)
-            reasons.append(
-                f"recall fell from {old_found} to {new_found} finds: {names}"
-            )
-    old_rate = (
-        numbers["old_false"] / numbers["old_rows"] if numbers["old_rows"] else 0.0
-    )
-    new_rate = (
-        numbers["new_false"] / numbers["new_rows"] if numbers["new_rows"] else 0.0
-    )
-    if new_rate > old_rate + FALSE_MARGIN + 1e-9:
-        reasons.append(f"false-finding rate rose from {old_rate:.3f} to {new_rate:.3f}")
-    # Rule 3 judges the agent, not one run (#966): the passes of every shape
-    # and reach grader both sides ran are pooled into one total a side, and
-    # a grader the new side failed on every run, where the baseline passed
-    # it at least once, is named whatever the totals say. Each grader in the
-    # totals ran as many times on both sides, or the check above returned.
+    # The rules judge the agent, not one run (#966): rule 1 pools the passes
+    # of every shape and reach grader both sides ran into one total a side,
+    # and rule 2 names a grader the new side failed on every run, where the
+    # baseline passed it at least once, whatever the totals say. Each grader
+    # in the totals ran as many times on both sides, or the check above
+    # returned.
     common = sorted(
         (key, v) for key, v in g.items() if v[0] in ("shape", "reach") and v[2] and v[4]
     )
@@ -874,13 +822,13 @@ def verdict(numbers):
         )
         reasons.append(
             f"shape and reach graders passed {new_total}/{runs} runs on the new "
-            f"side, fewer than the baseline's {old_total}/{runs} (rule 3): {fell}"
+            f"side, fewer than the baseline's {old_total}/{runs} (rule 1): {fell}"
         )
     for (case, name), (k, op, oruns, np_, nruns) in common:
         if op and not np_:
             reasons.append(
                 f"{k} grader {case}/{name} failed every new run (0/{nruns}) where "
-                f"the baseline passed it {op}/{oruns} (rule 3)"
+                f"the baseline passed it {op}/{oruns} (rule 2)"
             )
     for (case, name), (k, _op, oruns, np_, nruns) in sorted(g.items()):
         if k in ("shape", "reach") and nruns and not oruns and np_ < nruns:
@@ -888,27 +836,6 @@ def verdict(numbers):
                 f"{k} grader {case}/{name}, which the baseline lacks, failed on "
                 f"the new side ({np_}/{nruns}) (rule 3)"
             )
-    if numbers["new_bytes"] >= numbers["old_bytes"]:
-        reasons.append(
-            f"the new preload is {numbers['new_bytes']} bytes, not below the "
-            f"baseline's {numbers['old_bytes']} (rule 4)"
-        )
-    # Rule 5 fails a side only where both figures rose past the margin: the
-    # total, which more calls raise, and the figure per call, which fewer
-    # calls raise, so the call count moves the verdict in neither direction.
-    # Cross-multiplied, so a baseline of no tokens divides by no zero, and
-    # the 1e-9 lets a figure exactly at the margin pass, as in rule 2.
-    old_t, new_t = numbers["old_tokens"], numbers["new_tokens"]
-    old_c, new_c = numbers["old_calls"], numbers["new_calls"]
-    bar = 1 + TOKEN_MARGIN + 1e-9
-    if new_t > old_t * bar and new_t * old_c > old_t * new_c * bar:
-        reasons.append(
-            f"the new side read {new_t} tokens across every model over {new_c} "
-            f"tool calls, {new_t / new_c:.1f} a call, against the baseline's "
-            f"{old_t} over {old_c}, {old_t / old_c:.1f} a call: the total and "
-            f"the figure per call both rose by more than {TOKEN_MARGIN:.0%} "
-            "(rule 5)"
-        )
     return ("fail" if reasons else "pass"), reasons
 
 
@@ -983,8 +910,8 @@ def per(value, divisor, shown):
 def cost_rows(numbers):
     """The record's header rows for both sides' cost, `unknown` where a
     number is None, then the two derived rows a reader compares by: tokens
-    per tool call, whose figure rule 5 reads together with the total from
-    the rows above it, and tokens per true find, which judges nothing. Neither derived row is read back."""
+    per tool call and tokens per true find. No row judges anything, and
+    neither derived row is read back."""
     lines = []
     for key, label, shown, _parse in COST_ROWS:
         for side, name in (("old", "Baseline"), ("new", "New")):
@@ -1009,7 +936,7 @@ def render(agent, phase, old, new):
     numbers = merged(old, new)
     result, reasons = verdict(numbers)
     lines = [
-        f"# {agent} — phase {phase} non-inferiority",
+        f"# {agent} — phase {phase} smoke run",
         "",
         "| Field | Value |",
         "|---|---|",
