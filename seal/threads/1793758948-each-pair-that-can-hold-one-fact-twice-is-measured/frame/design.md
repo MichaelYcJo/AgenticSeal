@@ -25,7 +25,7 @@
 
 In.
 
-1. **The measured commit.** Every count of the tree is taken at `94635718ea4a79569ac612bcb814114000028be3` (`94635718e`), and R18's count of the tracker, which has no commit, at the moment its reader ran, stated in its row; the tip of `origin/release/v0.31.1` this branch was cut from (executed: `git rev-parse 94635718e origin/release/v0.31.1`, both the same). Each command reads git objects at that commit or a `git archive 94635718e` copy under the phase's scratch directory. This work item's own directory is in no corpus.
+1. **The measured commit.** Every count of the tree is taken at `94635718ea4a79569ac612bcb814114000028be3` (`94635718e`), and R18's count of the tracker, which has no commit, at the moment its reader ran, stated in its row; the tip of `origin/release/v0.31.1` this branch was cut from (executed: `git rev-parse 94635718e origin/release/v0.31.1`, both the same). Each command that counts the tree reads git objects at that commit or a `git archive 94635718e` copy under the phase's scratch directory, and R18's reader reads the tracker through `gh`. This work item's own directory is in no corpus.
 2. **One row per pair R1 to R21** of *Data & interfaces*, *The pairs*, measured by the methods that table names. A row holds the columns of *The row*.
 3. **One row per file F1 to F11** of *The files*. Each file is read whole for a fact another place states. Each fact found is measured as a pair is, with its other holder named. A file that states no such fact is named as stating none, with the reason.
 4. **One row per edition pair E1 to E4** of *The editions*. Both editions are read section by section, and each section's facts are compared. This answers the row the first comment on #1236 re-homes.
@@ -49,7 +49,7 @@ Out.
 | Scenario | Given / When / Then | Verifiable how |
 |---|---|---|
 | S1 A count repeats | Given a row, when a reader runs its command at `94635718e`, or for R18 against the tracker, as the record writes it, then the command prints the row's count, R18's as of the moment its row states | executed: the proofer runs every row's command |
-| S2 A drift can be opened | Given a row whose drifted count is above 0, when a reader opens each instance's coordinates at `94635718e`, then the two holders state the fact differently | read: the proofer opens each instance, or a stated sample where a row names more than ten |
+| S2 A drift can be opened | Given a row whose drifted count is above 0, when a reader opens each instance's coordinates at `94635718e`, or for R18 in the tracker, then the two holders state the fact differently, R18's as of the moment its row states | read: the proofer opens each instance, or a stated sample where a row names more than ten |
 | S3 Every item is answered once | Given the phase records, then each label R1 to R21, F1 to F11 and E1 to E4 heads exactly one row, in one phase record, and each row is measured or closed as *The row* defines | executed: for each label, `cat trail/phases/*.md \| grep -c -F '\| <label> \|'` prints 1 |
 | S4 A drift has a home | Given a row whose drifted count is above 0, then each instance names an open issue that holds it or a draft id, and each draft has a title, a body and a proposed milestone with its reason | read |
 | S5 The tree changes only by the records | Given HEAD, when `git diff --name-only 94635718e..HEAD` runs, then every path it prints is under `seal/threads/1793758948-each-pair-that-can-hold-one-fact-twice-is-measured/` | executed |
@@ -60,7 +60,7 @@ Out.
 
 ### The methods
 
-Each method is a function of one probe script. The first phase writes the script whole in its record's *Command setup*, and a later phase adds its functions in its own *Command setup*, as #1147's phase 2 imported phase 1's. The script reads a `git archive 94635718e` copy only. Its prose normalisation is `skills/settle/scripts/passages.py#words`, `#windows` and `WINDOW`, loaded from that copy.
+Each method is a function of a probe script. The first phase writes the script whole in its record's *Command setup*, and a later phase adds its functions in its own *Command setup*, as #1147's phase 2 imported phase 1's, or writes a script of its own where it ports none of #1147's readers. Each script reads a `git archive 94635718e` copy, and R18's reader reads the tracker as `gh` returns it. Its prose normalisation is `skills/settle/scripts/passages.py#words`, `#windows` and `WINDOW`, loaded from that copy.
 
 - **M1 Passages.** Each maximal run of at least `WINDOW` words that a file of one part shares with a file of the other. It ports `runs` and `segments_of_code` from #1147's phase 2 *Command setup* (G6). A prose file is read through `words`. A code file (P8, P9, and a non-`.md` file of P10) is read two ways: as its prose segments, and as its whole text lowercased and stripped as `words` strips, so a heredoc or a string constant that carries a document's text is in reach.
 - **M2 Quotes and pins.** In a test, each assert whose test is a literal of at least four words `in` an expression: #1147's `pins` (phase 1 *Command setup*), with the other part as its corpus. In an eval grader or prompt, each backticked or double-quoted span of at least four words. Each one is listed as held where it stands whitespace-folded in the other part. Each grader or prompt quote is also listed as orphaned where it stands in no file of P1, P2, P3 or P5 (G12). An orphan is a drift candidate and is read before it counts.
@@ -70,7 +70,7 @@ Each method is a function of one probe script. The first phase writes the script
 - **M6 The tracker.** The open issues with their bodies and comments, and the open milestones with their descriptions, read through `gh`. Each backticked milestone title an open issue states is compared with the milestone it stands in. Each `#N` a milestone description names is compared with the issue's milestone. Each difference is read against the issue's comments before it counts (G14).
 - **M7 Reading whole.** The files are read whole, and every fact one states that another place states is listed with both coordinates.
 
-**The unit counted.** A passage is one maximal run, whatever the number of its holders. A fact-anchored unit is one quote, pin, heading, marker, item name, coordinate, list, figure, milestone statement, or, for an edition pair, a block of a section: a paragraph, a list item, a table row or a fenced block, read against its counterpart in the other edition. *Held twice* counts units. *Drifted* counts units whose holders state the fact differently at `94635718e`, judged by reading. A comparison that is exact, such as a list against its source, counts a difference as drifted without a reading.
+**The unit counted.** A passage is one maximal run, whatever the number of its holders. A fact-anchored unit is one quote, pin, heading, marker, item name, coordinate, list, figure, milestone statement, or, for an edition pair, a block of a section: a paragraph, a list item, a table row or a fenced block, read against its counterpart in the other edition. *Held twice* counts units. *Drifted* counts units whose holders state the fact differently at `94635718e`, or for R18 at the moment its row states, judged by reading. A comparison that is exact, such as a list against its source, counts a difference as drifted without a reading.
 
 ### The pairs
 
@@ -142,7 +142,7 @@ A row is **closed** in place of measured only where its commands cannot run in t
 
 ### A drafted issue
 
-Under its draft id, in the phase record whose row found the drift: the title in the shape G14 names; the body, with the measure, cited by the record's path and heading and the commit `94635718e`, the scope and a *Done when*; the proposed milestone, with one sentence of why it fits against `docs/releasing/issues-and-milestones.md` *A milestone answers when, and takes three shapes*; and the labels of the rows it answers. A draft proposes a `backlog:` milestone by its area (`frame/questions.md` Q1).
+Under its draft id, in the phase record whose row found the drift: the title in the shape G14 names; the body, with the measure, cited by the record's path and heading and the commit `94635718e`, or for R18 the moment its row states, the scope and a *Done when*; the proposed milestone, with one sentence of why it fits against `docs/releasing/issues-and-milestones.md` *A milestone answers when, and takes three shapes*; and the labels of the rows it answers. A draft proposes a `backlog:` milestone by its area (`frame/questions.md` Q1).
 
 ## Rule changes
 
