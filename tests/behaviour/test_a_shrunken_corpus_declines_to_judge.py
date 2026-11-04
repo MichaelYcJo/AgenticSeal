@@ -21,7 +21,6 @@ checks across files.
 
 import ast
 import os
-import warnings
 
 import pytest
 from conftest import (
@@ -35,9 +34,9 @@ from conftest import (
 #
 # The guard is per helper, so a sixth helper written without one is the defect
 # again. This is what stops that, and it is modelled on
-# `tests/test_a_corrected_sentence_survives_elsewhere.py#_derives_a_path_list`
-# — the machinery this repository already wrote for finding path-listing git
-# calls by scope. Two of its decisions are copied with it, and both were
+# `f975ea66a:tests/test_a_corrected_sentence_survives_elsewhere.py#_derives_a_path_list`,
+# the last commit that held it — the machinery this repository already wrote
+# for finding path-listing git calls by scope. Two of its decisions are copied with it, and both were
 # bought by that module's own round 1:
 #
 #   - **the unit is the CALL SITE, not the function name.** A second
@@ -192,24 +191,12 @@ def _derives_a_path_list(tree):
 
 
 def derivers(paths, root=ROOT):
-    """`{"<rel>#<scope>": calls}` over the modules at `paths`.
-
-    `ast.parse` raises a `SyntaxWarning` for a string literal carrying an
-    escape python does not know, and `tests/test_a_row_points_by_content.py`
-    has one at line 763. It predates this case --
-    `test_a_new_returnable_value_is_a_contract_change.py` already emits it by
-    parsing the same file -- and it is a fact about a docstring rather than
-    about the class, so this reader does not become a second source of it.
-    Caught at the one call that provokes it rather than filtered globally,
-    which would hide the next one.
-    """
+    """`{"<rel>#<scope>": calls}` over the modules at `paths`."""
     found = {}
     for rel in paths:
         with open(os.path.join(root, rel), encoding="utf-8") as f:
             source = f.read()
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", SyntaxWarning)
-            tree = ast.parse(source)
+        tree = ast.parse(source)
         for scope, calls in _derives_a_path_list(tree).items():
             found[f"{rel}#{scope}"] = calls
     return found

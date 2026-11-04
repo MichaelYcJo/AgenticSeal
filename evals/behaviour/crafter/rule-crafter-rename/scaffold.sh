@@ -57,7 +57,7 @@ cat > 'seal/config.md' <<'AGENTIC_EOF'
 AGENTIC_EOF
 mkdir -p "$(dirname 'seal/threads/1790000015-rename/routing.md')"
 cat > 'seal/threads/1790000015-rename/routing.md' <<'AGENTIC_EOF'
-# routing
+# Routing: 1790000015-rename
 
 | Axis | Answer |
 |---|---|
@@ -89,7 +89,7 @@ cat > 'seal/threads/1790000015-rename/frame/design.md' <<'AGENTIC_EOF'
 `src/textutil.py`, its case in `tests/test_textutil.py`, and `README.md`.
 What it returns does not change.
 
-## User scenarios & acceptance
+## User scenarios & acceptance *(mandatory)*
 
 | Scenario | Given / When / Then | Verifiable how |
 |---|---|---|

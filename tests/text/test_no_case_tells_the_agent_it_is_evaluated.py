@@ -29,11 +29,11 @@ REFUSED = re.compile(r"(?<![a-z])(?:" + "|".join(STEMS) + r")[a-z]*", re.I)
 
 # The record shapes a scaffold copies from this plugin's templates, as whole
 # lines. The first two are `templates/records/sdd-design.md`'s scenario
-# heading, without the ` *(mandatory)*` the template carries, and its table
-# header; the third is `templates/records/sdd-round.md`'s heading. A record
-# written in the plugin's shape is what the agent meets in production too.
+# heading and its table header; the third is `templates/records/sdd-round.md`'s
+# heading. A record written in the plugin's shape is what the agent meets in
+# production too.
 RECORD_LINES = (
-    "## User scenarios & acceptance",
+    "## User scenarios & acceptance *(mandatory)*",
     "| Scenario | Given / When / Then | Verifiable how |",
     "## Not judged",
 )

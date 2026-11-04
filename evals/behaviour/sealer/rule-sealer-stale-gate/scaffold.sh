@@ -57,7 +57,7 @@ cat > 'seal/config.md' <<'AGENTIC_EOF'
 AGENTIC_EOF
 mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-stale-gate/routing.md')"
 cat > 'seal/threads/1790000030-guarantee-stale-gate/routing.md' <<'AGENTIC_EOF'
-# routing
+# Routing: 1790000030-guarantee-stale-gate
 
 | Axis | Answer |
 |---|---|
@@ -73,14 +73,14 @@ git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'base:
 git checkout -q -b feat/guarantee-stale-gate
 mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-stale-gate/frame/design.md')"
 cat > 'seal/threads/1790000030-guarantee-stale-gate/frame/design.md' <<'AGENTIC_EOF'
-# Feature Specification: shout keeps empty text empty
+# Design: shout keeps empty text empty
 
 ## Scope
 
 `src/textutil.py#shout` returns `""` for empty text, and is unchanged
 otherwise (#101).
 
-## User scenarios & acceptance
+## User scenarios & acceptance *(mandatory)*
 
 | Scenario | Given / When / Then | Verifiable how |
 |---|---|---|
@@ -147,7 +147,7 @@ before the change (`python3 -m unittest tests.test_textutil -q` with
 AGENTIC_EOF
 mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-stale-gate/trail/rounds/round-1.md')"
 cat > 'seal/threads/1790000030-guarantee-stale-gate/trail/rounds/round-1.md' <<'AGENTIC_EOF'
-# 1790000030-guarantee-stale-gate — review round 1
+# Review round 1: 1790000030-guarantee-stale-gate
 
 ```seal
 target: b0b0b0b against main

@@ -1,10 +1,10 @@
 """`/agentic:config` — the door to `seal/config.md`.
 
-Issue #105. Three rows exist and the only way to see them was to open a file
-nobody has a reason to open. The skill is instructions rather than a program,
-so what is pinned here is what a reader of it acts on: the rows it names,
-the commands it routes a change to, the spelling of a cell's value, and the
-paths that resolve the root. Whether its sentences say the rest is the
+Issue #105. Three rows existed when this module was written (#113), and the
+only way to see them was to open a file nobody had a reason to open. The
+skill is instructions rather than a program, so what is pinned here is what
+a reader of it acts on: the rows it names, the commands it routes a change
+to, the spelling of a cell's value, and the paths that resolve the root. Whether its sentences say the rest is the
 proofer's to read.
 
 **The skill routes rather than reimplements.** A row that moves files is

@@ -201,9 +201,8 @@ outside the tree by the `main` ruleset.
 already running it installed it under its slug, so renaming it breaks their
 install, and a marketplace file keys its entry on the same name, so a rename
 reads there as the plugin having vanished rather than moved.
-`.claude-plugin/plugin.json` holds the one copy; nothing else in the tree
-spells it, which is why `plugin_directory_check.py` reads the name out of that
-file instead of carrying a literal.
+`plugin_directory_check.py` reads the name out of `.claude-plugin/plugin.json`
+instead of carrying a literal.
 
 **Two rulesets enforce the merge methods.** The repository-wide merge-method
 setting is one switch for every branch, so it cannot allow a squash into the

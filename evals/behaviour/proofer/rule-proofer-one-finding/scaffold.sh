@@ -57,7 +57,7 @@ cat > 'seal/config.md' <<'AGENTIC_EOF'
 AGENTIC_EOF
 mkdir -p "$(dirname 'seal/threads/1790000001-shout-ends-with-one-exclamation-mark/routing.md')"
 cat > 'seal/threads/1790000001-shout-ends-with-one-exclamation-mark/routing.md' <<'AGENTIC_EOF'
-# routing
+# Routing: 1790000001-shout-ends-with-one-exclamation-mark
 
 | Axis | Answer |
 |---|---|
@@ -73,14 +73,14 @@ git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'base:
 git checkout -q -b feat/shout-exclaims
 mkdir -p "$(dirname 'seal/threads/1790000001-shout-ends-with-one-exclamation-mark/frame/design.md')"
 cat > 'seal/threads/1790000001-shout-ends-with-one-exclamation-mark/frame/design.md' <<'AGENTIC_EOF'
-# Feature Specification: shout ends with one exclamation mark
+# Design: shout ends with one exclamation mark
 
 ## Scope
 
 `src/textutil.py#shout` returns its text upper-cased followed by exactly one
 `!`, and `shout_twice(text)` returns `shout(text)` twice, joined by a space.
 
-## User scenarios & acceptance
+## User scenarios & acceptance *(mandatory)*
 
 | Scenario | Given / When / Then | Verifiable how |
 |---|---|---|

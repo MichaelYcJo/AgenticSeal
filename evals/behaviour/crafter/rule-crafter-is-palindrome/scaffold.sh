@@ -57,7 +57,7 @@ cat > 'seal/config.md' <<'AGENTIC_EOF'
 AGENTIC_EOF
 mkdir -p "$(dirname 'seal/threads/1790000014-is-palindrome/routing.md')"
 cat > 'seal/threads/1790000014-is-palindrome/routing.md' <<'AGENTIC_EOF'
-# routing
+# Routing: 1790000014-is-palindrome
 
 | Axis | Answer |
 |---|---|
@@ -73,13 +73,13 @@ git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'base:
 git checkout -q -b feat/is-palindrome
 mkdir -p "$(dirname 'seal/threads/1790000014-is-palindrome/frame/design.md')"
 cat > 'seal/threads/1790000014-is-palindrome/frame/design.md' <<'AGENTIC_EOF'
-# Feature Specification: is_palindrome
+# Design: is_palindrome
 
 ## Scope
 
 `src/textutil.py` gains `is_palindrome(text)`, which returns whether TEXT reads the same backwards, ignoring case and every character that is not a letter or a digit.
 
-## User scenarios & acceptance
+## User scenarios & acceptance *(mandatory)*
 
 | Scenario | Given / When / Then | Verifiable how |
 |---|---|---|
