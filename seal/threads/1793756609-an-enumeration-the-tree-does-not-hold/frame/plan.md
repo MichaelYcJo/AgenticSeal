@@ -57,10 +57,11 @@ None for a deployer. The plugin ships one skill file fewer and one rule
 fewer in `docs/`. No hook, script, environment variable or dependency
 changes. The version stays `0.31.1`. The changelog fragment ends with a
 `### Process changes` table, because both `skills/*/orchestration.md` files
-change; the orchestrator writes it.
+change; the crafter writes it with the fragment, as the phase's spawn
+asked.
 
 ## Judgments of the run
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-04 | Phase 1 kept the `COVERED` comment that also heads the `multi-repository.md` entry, kept the first clause of "One parser, two readers" as the one-reader sentence A4 asks for, and wrote the `### Process changes` rows itself; D1 items 7 and 9, their `## Removes` rows, the *Grounding* process-row cell and *Operational impact* now say so | The crafter's hand-back named each statement HEAD contradicts, and each departure keeps what the frame's acceptance rows ask (`trail/phases/phase-1.md`) | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, the paragraph on a decision made after the frame |

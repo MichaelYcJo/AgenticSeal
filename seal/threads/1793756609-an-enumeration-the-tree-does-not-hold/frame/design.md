@@ -33,7 +33,7 @@ itself*, and the act outside the table lives in
 | `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes* (read) | A work item whose subject is the policy root's text edits it directly in its pull request. This item's subject is one rule of `docs/` and the mechanism under it, and the two check lines cannot wait for the settle. So it edits `docs/` directly and `## Rule changes` holds the no-change block. 1793688270 and 1793750411 judged the same way for their `docs/` text (read: their `## Rule changes`) |
 | Unsettled `## Rule changes` (executed: `awk` over every `frame/design.md` under `seal/threads/`, the `file:` and `section:` lines) | Two designs hold pending operations. They name `docs/running/the-run.md` *The run* and `docs/layout/the-record-layout.md` *The root records*. This work touches neither, and it moves no section, so it re-points nothing |
 | `tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py` module docstring, and `docs/running/the-agent-set.md` *What a spawn costs* (read) | The `Orchestrator:` marker keeps a section out of every agent's payload, and that test holds it. With the table gone the marker has this one meaning left, which settles #506 item 2's "the marker carries two meanings" without a split (D2) |
-| `docs/layout/the-record-layout.md` *A change to the way of working writes its process row in its own fragment* (read) | The diff changes `skills/implement/orchestration.md` and `skills/code-review/orchestration.md`, so `changelog.md` ends with a `### Process changes` table. The orchestrator writes it with the fragment |
+| `docs/layout/the-record-layout.md` *A change to the way of working writes its process row in its own fragment* (read) | The diff changes `skills/implement/orchestration.md` and `skills/code-review/orchestration.md`, so `changelog.md` ends with a `### Process changes` table. The phase's spawn hands its crafter the rows with the fragment |
 | `docs/releasing/branch-and-release.md` *Cutting a release*, through #1317's grounding (read: `1793750411-rule-text-carries-no-history/frame/design.md`), and `.claude-plugin/plugin.json` (executed: `grep version`) | The version moves in the first work item of a release. It reads `0.31.1` already, so this work item leaves it |
 | `1793750411-rule-text-carries-no-history/frame/design.md` *Scope* O2 and its phase records (read) | #1317 left `acts.md` and both sides of each census pair it belongs to for this item. The other sides in `skills/implement/orchestration.md` are heading citations, "Orchestrator: what needs a person…" and "a work item that commits in more than one repository". They name the sections they cite and stay. Deleting `acts.md` ends each pair |
 | `seal/follow-up.md` (read) | No row waits on this work |
@@ -68,14 +68,17 @@ In scope, each a row of `## Removes`:
    "Every `##` heading here opens with `Orchestrator:`." and loses the clause
    that cites `acts.md`.
 7. `tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py#headings`
-   docstring: the paragraph "**One parser, two readers.**" goes, because one
-   reader is left.
+   docstring: the paragraph "**One parser, two readers.**" goes but for its
+   first clause, kept as one sentence naming `marked_headings` as the one
+   reader left, which A4 asks the docstring to name.
 8. `tests/text/test_broad_gate_rule.py#test_the_acts_table_row_names_the_preflight_and_stays_a_sentence`,
    the case. The fact it pinned beyond the row, that a session skipping the
    preflight loses only time, stands at
    `skills/code-review/orchestration.md:487`.
 9. `tests/behaviour/test_docs_line_wrap.py`, the `COVERED` entry for
-   `skills/implement/acts.md` and the comment line above it.
+   `skills/implement/acts.md`. The comment line above it stays, as the
+   comment of the `skills/implement/multi-repository.md` entry it also
+   heads: both files were cut from the same file in one commit.
 10. `.test_durations`: the 22 entries naming the deleted module, the deleted
     case, or a parameter on `skills/implement/acts.md` (executed: `grep -c`).
 
@@ -150,9 +153,9 @@ module name lists docstrings and comments only). The marker test's
 | the check line's target `tests/behaviour/test_every_orchestrator_act_names_its_delivery.py` | `docs/layout/the-pact.md` *One routing answer, one id, every gated repository* | nowhere: the test held the table's row for the multi-repository act, not this rule. The line keeps `tests/behaviour/test_a_signer_declares_its_pact.py` |
 | the sentence citing `acts.md` | `skills/implement/orchestration.md`, the opening above *Orchestrator: the order inside a ticket* | nowhere: an orchestrating session did not open the file it cited |
 | the clause citing `acts.md` *Orchestrator: which of these acts runs itself* | `skills/code-review/orchestration.md`, the opening above *Orchestrator: a phase is a fresh crafter, and a fix pass resumes the implementer* | nowhere: the clause before it, that every `##` heading opens with `Orchestrator:`, stays |
-| the paragraph "One parser, two readers" | `tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py#headings` | nowhere: one reader is left |
+| the paragraph "One parser, two readers", but its first clause, kept as one sentence naming the one reader left | `tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py#headings` | nowhere: one reader is left |
 | the case pinning the acts row for the pull-request section | `tests/text/test_broad_gate_rule.py#test_the_acts_table_row_names_the_preflight_and_stays_a_sentence` | the preflight fact it read stays at `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals*, which the module's other cases read |
-| the `COVERED` entry for `acts.md` and its comment | `tests/behaviour/test_docs_line_wrap.py#COVERED` | nowhere: the file is gone |
+| the `COVERED` entry for `acts.md`; its comment stays, heading the `multi-repository.md` entry | `tests/behaviour/test_docs_line_wrap.py#COVERED` | nowhere: the file is gone |
 | the 22 entries for the removed cases and the `acts.md` parameters | `.test_durations` | nowhere: they price cases nothing collects |
 
 Framed 2026-11-04 by framer, before the build.
