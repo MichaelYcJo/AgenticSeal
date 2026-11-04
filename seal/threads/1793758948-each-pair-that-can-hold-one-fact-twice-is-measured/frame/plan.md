@@ -2,7 +2,7 @@
 
 ## Technical context
 
-The work builds nothing in the tree. Each phase measures a group of the design's rows at `94635718e`, drafts an issue for each drift its rows find, and writes all of it into its own `trail/phases/phase-N.md` under `## What this phase found`. The design's *Data & interfaces* holds the methods, the pairs, the files, the editions, the row's columns and a draft's shape.
+The work builds nothing in the tree. Each phase measures a group of the design's rows at `94635718e`, R18 at the moment its reader reads the tracker, drafts an issue for each drift its rows find, and writes all of it into its own `trail/phases/phase-N.md` under `## What this phase found`. The design's *Data & interfaces* holds the methods, the pairs, the files, the editions, the row's columns and a draft's shape.
 
 What the phases build on, by coordinate:
 
@@ -11,9 +11,9 @@ What the phases build on, by coordinate:
 - The mechanisms a row names, read for what they compare and not run: `tests/text/test_the_rules_claude_md_names_have_one_home.py` (R9), `.github/scripts/plugin_directory_check.py` (F1, F2), the readers of `.test_durations`, `pytest-split` and `test_the_durations_file_prices_the_suite` (F8) and `tests/behaviour/test_both_editions_carry_the_same_folds.py` (E1 to E4).
 - The tracker through `gh`, read-only, for R18 and for each phase's search before a draft.
 
-How the review chain reads the records. The proofer reads each phase record against the design. Every label of the phase has one row (design S3). The proofer runs each row's command at `94635718e` and compares the printed count (S1), opens the drifted instances (S2), reads each draft (S4) and runs S5's `git diff --name-only`. A finding on a row is a finding on a record, and its fix rewrites the row in its one record. The sealer reads the records against the issue's *Done when* and the tree.
+How the review chain reads the records. The proofer reads each phase record against the design. Every label of the phase has one row (design S3). The proofer runs each row's command at `94635718e`, or R18's against the tracker, and compares the printed count (S1), opens the drifted instances (S2), reads each draft (S4) and runs S5's `git diff --name-only`. A finding on a row is a finding on a record, and its fix rewrites the row in its one record. The sealer reads the records against the issue's *Done when* and the tree.
 
-Failure scenario of the chosen approach, six months on. The drafts are filed, and the records have left with this directory at the settle after 0.31.1. A later audit wants to repeat a count. The commands stand in the records at the release tag (`git show v0.31.1:<path>`), and they read `94635718e` by name, so they print the same counts. What a later run cannot repeat is the reading: whether two holders state one fact, and whether it drifted. The instance lists keep each verdict at its coordinate, so the later run reads what changed and does not judge the rest again.
+Failure scenario of the chosen approach, six months on. The drafts are filed, and the records have left with this directory at the settle after 0.31.1. A later audit wants to repeat a count. The commands stand in the records at the release tag (`git show v0.31.1:<path>`), and they read `94635718e` by name, so they print the same counts, except R18's reader, which reads the tracker as it then stands. What a later run cannot repeat is the reading: whether two holders state one fact, and whether it drifted. The instance lists keep each verdict at its coordinate, so the later run reads what changed and does not judge the rest again.
 
 ## Alternatives considered
 
@@ -44,7 +44,7 @@ Failure scenario of the chosen approach, six months on. The drafts are filed, an
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | *Scope* items 1 and 2 for R1, R2, R3, R7 to R11 and R13 to R17; item 5 for those rows; item 6, `gaps.md` from its template | each row's command, run at `94635718e`, prints its count; design S3 for the phase's labels; design S5; `tests/behaviour/test_chain_hooks_hardening.py::test_every_spec_directory_that_reached_the_ladder_has_an_overview` | a53d00337 |
+| 1 | *Scope* items 1 and 2 for R1, R2, R3, R7 to R11 and R13 to R17; item 5 for those rows; item 6, `gaps.md` from its template | each row's command, run at `94635718e`, or for R18 against the tracker, prints its count; design S3 for the phase's labels; design S5; `tests/behaviour/test_chain_hooks_hardening.py::test_every_spec_directory_that_reached_the_ladder_has_an_overview` | a53d00337 |
 | 2 | *Scope* items 1 and 2 for R4, R5, R6 and R12; item 3; items 5 and 6 for those rows | the same, for its rows | 1a35c6ae5 |
 | 3 | *Scope* items 1 and 2 for R18 to R21; items 5 and 6 for those rows | the same, for its rows | 39bbaa6c4 |
 | 4 | *Scope* item 4; items 5 and 6 for E1 to E4 | the same, for its rows; design S3 over every label; design S7 | 5b7098e21 |
@@ -61,7 +61,6 @@ For the orchestrator, after the run's last round and before the broad gate (plan
 
 ## Judgments of the run
 
-<the orchestrator's row for each judgment it makes in the run: a round spawned past the default or the run ended, a regression's route, a leftover's home, a decision folded into the frame; the grounds in one or two sentences, and the document judged against as its backticked path and italic heading>
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
@@ -70,3 +69,4 @@ For the orchestrator, after the run's last round and before the broad gate (plan
 | 2026-11-04 | *Scope* item 1, S1, *The row* and M5 now say R18 counts the tracker at the moment its reader ran rather than at `94635718e`, and that R19 read every docstring and comment under `tests/`; G11 says #390's third item no longer stands at `94635718e` | Phase 3's hand-back named each statement as contradicted by its build (`trail/phases/phase-3.md` *Whether the frame holds*); a tracker has no commit, and reading every docstring and comment is a superset of the module docstrings the frame named | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, the paragraph on a decision made after the frame |
 | 2026-11-04 | *The unit counted* and G13 now say an edition pair is counted by block, a paragraph, list item, table row or fenced block, and read under the headings tables and fences alike, where they said section fact and prose only | Phase 4 counted blocks because a command can list them and cannot list facts, and read tables and fences as part of what stands under the headings (`trail/phases/phase-4.md` *Whether the frame holds*); `test_both_editions_carry_the_same_folds.py` still holds the outline | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, the paragraph on a decision made after the frame |
 | 2026-11-04 | *Scope* item 1's second sentence, S2, *The methods* and *The unit counted* now say R18's reader reads the tracker through `gh` at the moment its row states, and *The methods* that a phase may write a script of its own, as phase 4 did | Round 1's finding 2: the fold at a433b5b55 rewrote three of the seven frame sentences that state the measured moment. The orchestrator's earlier folds read only the sentences a hand-back named; `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* already asks the orchestrator to read each file it folds whole against HEAD, and from this fold on the orchestrator reads `frame/design.md` and `frame/plan.md` whole after each fold. The same lapse sent #506's first seal back (`seal/threads/1793756609-an-enumeration-the-tree-does-not-hold/guarantee.md`, its first block), so this is its second instance in the run, and its home is that existing rule, which needs no new text | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*; *A problem that recurs within a run gets a prevention home at once* |
+| 2026-11-04 | *Technical context*, the review-chain paragraph, the failure scenario and phase 1's *Verified by* cell, which phases 2 to 4 inherit, now say R18 is counted against the tracker | The fix pass of round 1 named the four plan sentences that finding 2's list left out; the fold at d2cae5644 had read `frame/design.md` whole but not `frame/plan.md`, which this fold now did (read, the whole file against HEAD) | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |
