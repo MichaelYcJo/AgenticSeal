@@ -106,14 +106,14 @@ The files G7 lists, each read whole by M7. Each row names the facts it is read f
 
 | Label | File | Read first for |
 |---|---|---|
-| F1 | `.claude-plugin/marketplace.json` | name, description and version, against `plugin.json` and the README editions; `.github/scripts/plugin_directory_check.py` reads the two manifests, and the row names what it compares |
+| F1 | `.claude-plugin/marketplace.json` | name, description and version, against `plugin.json` and the README editions; `.github/scripts/plugin_directory_check.py` reads `plugin.json`'s name and the `marketplace.json` of the two outside catalogs, never this repository's, and the row names what it compares |
 | F2 | `.claude-plugin/plugin.json` | the same, and the icon `.github/scripts/release_seal.py` reads |
 | F3 | `.gitattributes` | a rule a document states about line endings or diffs |
 | F4 | `.github/ISSUE_TEMPLATE/config.yml` | where an issue is opened, against `SECURITY.md` and `CONTRIBUTING.md` |
 | F5 | `.github/ISSUE_TEMPLATE/gate-misfired.md` | the form, against what `CONTRIBUTING.md` and `docs/` say a misfire report holds |
 | F6 | `.github/PULL_REQUEST_TEMPLATE.md` | the form, against `skills/commit-pr-convention/SKILL.md` and `CONTRIBUTING.md` *What a change to a gate must carry* |
 | F7 | `.gitignore` | a path a document says is ignored, or is committed |
-| F8 | `.test_durations` | its case ids against the suite's functions, read from the modules' AST and not by running the suite; `tests/conftest.py` reads the file, and the row names what that reader does with an id that names no case |
+| F8 | `.test_durations` | its case ids against the suite's functions, read from the modules' AST and not by running the suite; `pytest-split` and `test_the_durations_file_prices_the_suite` read the file (`tests/conftest.py` records collected ids and gives `posix_id`), and the row names what each reader does with an id that names no case |
 | F9 | `LICENSE` | the license name, against the manifests, the README editions and `TRADEMARKS.md` |
 | F10 | `assets/seals/README.md` | the seal art's facts, against `.github/scripts/release_seal.py`'s docstring and the README editions |
 | F11 | `ruff.toml` | each rule a document states about the lint, such as the `seal/follow-up.md` row on comment width, which says `E501` is not selected |
