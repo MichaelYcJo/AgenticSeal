@@ -66,11 +66,11 @@ GRAMMAR = {
 # with its line in the design: `[(line number, text)]`, whose texts joined
 # with `\n` are the value `old`, `new`, `file` or `section` holds.
 Op = collections.namedtuple("Op", "kind file section old new line lines")
-# `ops` is None where the design has no section; `nothing` is the `why` of a
-# section holding the no-change block; `errors` is `[(line, reason)]`;
+# `ops` is None where the design has no section, and `[]` with no error
+# where it holds the no-change block; `errors` is `[(line, reason)]`;
 # `unread` is `[(line, why)]` for each line that opens like one of the
 # section's forms and is not it, which decides nothing (`parse`).
-Parsed = collections.namedtuple("Parsed", "ops nothing errors unread")
+Parsed = collections.namedtuple("Parsed", "ops errors unread")
 # What `parse` says of a heading near `## Rule changes`, at its line.
 NEAR_HEADING = (
     "`{written}` opens like `## {heading}` and is not it, so it is another "
@@ -183,13 +183,13 @@ def parse(text, policy_root):
         if letters(t) == letters(HEADING) and (n, lv) not in found and n not in inside
     ]
 
-    def done(ops, nothing, errors):
-        return Parsed(ops, nothing, errors, unread)
+    def done(ops, errors):
+        return Parsed(ops, errors, unread)
 
     if not found:
-        return done(None, None, [])
+        return done(None, [])
     if len(found) > 1:
-        return done([], None, [(found[1][0] + 1, "a second `## Rule changes`")])
+        return done([], [(found[1][0] + 1, "a second `## Rule changes`")])
     start = found[0][0]
     end = next((n for n, lv, _ in marks if n > start and lv <= 2), len(lines))
     live = [flag for _, flag in r.live_lines(lines, comments=False)]
@@ -212,9 +212,9 @@ def parse(text, policy_root):
                 "and settle would drop it: close each span on the line that "
                 "opens it"
             )
-            return done([], None, [(n + 1, why)])
+            return done([], [(n + 1, why)])
         if n in commented:
-            return done([], None, [(n + 1, r.COMMENT_LINE)])
+            return done([], [(n + 1, r.COMMENT_LINE)])
         if not literal[n]:
             continue
         body.append((n + 1, line))
@@ -223,12 +223,11 @@ def parse(text, policy_root):
     while body and not body[0][1].strip():
         body.pop(0)
     if not body:
-        return done([], None, [(start + 1, "the section is empty")])
+        return done([], [(start + 1, "the section is empty")])
 
     block = r.nothing_block(body)
     if block is not None:
-        why, error = block
-        return done([], None, [error]) if error else done([], why, [])
+        return done([], block)
     # A first line that opens like the block and is not it is read as the
     # items read it, and named.
     near = r.unread_block(body)
@@ -247,7 +246,7 @@ def parse(text, policy_root):
             continue
         break
     if error:
-        return done([], None, [error])
+        return done([], [error])
 
     out = []
     numbers = [no for no, _ in body]
@@ -267,7 +266,7 @@ def parse(text, policy_root):
                 "directory in it",
             )
         if error:
-            return done([], None, [error])
+            return done([], [error])
         out.append(
             Op(
                 item["kind"],
@@ -282,7 +281,7 @@ def parse(text, policy_root):
                 },
             )
         )
-    return done(out, None, [])
+    return done(out, [])
 
 
 def value_lines(numbers, first, parts):
