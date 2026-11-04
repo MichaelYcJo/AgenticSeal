@@ -93,6 +93,11 @@ In the *Grounding* row at `:24`, the third cell's third sentence becomes:
 It edits `docs/releasing/branch-and-release.md`, the experiment document under `docs/experiments/` and, from round 1's fix pass, `docs/layout/one-root-by-lifetime.md` directly in its pull request, as 1793750411 and 1793756609 did for their `docs/` text (read: their `## Rule changes`).
 ```
 
+```seal
+verdict: fixed baebc9ef8
+answer: The finding is located in `frame/design.md`, which the crafter does not write, so the orchestrator folded it, as `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* gives the frame's statements to the orchestrator. Both statements take the round's paste-ready text: the `why:` line of `## Rule changes` and the third sentence of the *Grounding* row now count three `docs/` sentences. The commit touches the work item's records alone, so the sealer is this fix's reader.
+```
+
 ## Confirmations
 
 ```seal
