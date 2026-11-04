@@ -65,7 +65,7 @@ root, which is the bootstrap's decision and the person's. Nothing checks that ev
 share carries one id: an id minted twice cannot be told from a signer's own work item
 that cites the pact without changing it. `skills/implement/multi-repository.md`
 *Orchestrator: a work item that commits in more than one repository* is the procedure.
-check: tests/behaviour/test_a_signer_declares_its_pact.py tests/behaviour/test_every_orchestrator_act_names_its_delivery.py
+check: tests/behaviour/test_a_signer_declares_its_pact.py
 
 ## How a signer names the pact
 

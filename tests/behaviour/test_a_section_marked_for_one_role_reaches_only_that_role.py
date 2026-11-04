@@ -79,14 +79,8 @@ def headings(text):
     indentation, no backtick in a backtick opener's info string, and a close
     only on a run of the same character at least as long with nothing after
     it, so a ``` inside a ```` block, or a ~~~ inside a ``` block, does not
-    end the outer one (#292 round 2).
-
-    **One parser, two readers.** `marked_headings` below filters it for this
-    module's own question, and
-    `tests/behaviour/test_every_orchestrator_act_names_its_delivery.py` reads it for
-    the row set of the orchestrator's own table (#330). Two parsers of one
-    marker is how half of them come to keep the old answer, which is
-    `hooks/lib/routing.py`'s own reason for being a module.
+    end the outer one (#292 round 2). `marked_headings` below filters it for
+    this module's own question.
     """
     found, fence = [], None
     for line in text.splitlines():

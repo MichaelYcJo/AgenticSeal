@@ -147,20 +147,6 @@ for asking a person a question, delivered to a party that cannot ask anybody
 anything, and paid once per spawn.
 check: tests/skills/test_payload_meter.py tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py
 
-**The orchestrator's acts are counted, each against what delivers it.** An agent's rules
-arrive by mechanism, while the orchestrator has no spawn for a preload to attach to, so
-each of its acts is a sentence until something refuses when the act did not happen.
-`skills/implement/acts.md` tables every `##` heading carrying the `Orchestrator:` marker
-in the files its opening names, `skills/implement/orchestration.md`,
-`skills/implement/bootstrap.md`, `skills/implement/multi-repository.md`,
-`skills/code-review/orchestration.md` and itself, and every `###` directly beneath one,
-against its delivery: a command, a check, part of its parent's act, or a sentence with
-its grounds. A test holds the table against those files from both sides. The table
-stands in a file of its own because a maintainer reads it when an act is added and an
-orchestrator never does. It reads the marker and not the meaning, so an act written
-outside a marked section is counted by nobody.
-check: tests/behaviour/test_every_orchestrator_act_names_its_delivery.py
-
 **`Implementation` is answered by whether the work is finding out or writing down, on
 the axis of replaceability.** Finding out, what an unfamiliar codebase does or what an
 original did, goes to `tracer`: a large input and a small output is what a subagent
