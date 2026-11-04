@@ -2,6 +2,8 @@
 
 ## Grounding
 
+Every line coordinate and every statement of what the tree holds in this frame is the tree's at 475d018c, before the build.
+
 | Policy clause | What it fixes for this work |
 |---|---|
 | G1 The paths `skills/update/SKILL.md` fixes at `~/.claude` (executed: `git grep -n -E '~/\.claude\|HOME/\.claude\|expanduser' -- skills/update`) | Four coordinates name the directory as a fixed path: `:46` (step 2b reads `~/.claude/plugins/installed_plugins.json` through `os.path.expanduser`), `:61` (step 2b's repair copies from `~/.claude/plugins/marketplaces/agenticseal/`), `:81` (step 3 reads the clone's `origin` with `git -C ~/.claude/plugins/marketplaces/agenticseal`) and `:223` (step 5's sentinel method names `~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/`). Step 4 already resolves the directory: its command is given `"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/CLAUDE.md"` at `:190`. The issue's `:135-136` is that command, and it stood at `:135` before #1177's phase 7 rewrote step 4. |

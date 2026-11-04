@@ -2,6 +2,8 @@
 
 ## Technical context
 
+Every line coordinate and every statement of what the tree holds in this plan is the tree's at 475d018c, before the build.
+
 `skills/update/SKILL.md` is a procedure a session follows. Each bash fence is a command the session runs, or a repair it prints for the user to type. Step 2b's two commands read `installed_plugins.json` (`:46`) and then the installed copy's `plugin.json` (`:47`). Its repair (`:60-62`) moves the stale copy aside and copies the marketplace clone over it. Step 3 (`:81`) takes the repository from the clone's `origin`. Step 4 (`:137-191`) already works on `"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/CLAUDE.md"`. Step 5's method for settling the reload question (`:221-225`) names the version cache in prose. `frame/design.md` G1 lists the four fixed coordinates.
 
 The cases stand on two modules. `tests/behaviour/test_the_old_block_leaves_through_update.py` cuts step 4 out of the skill (`step_4`, `command`) and runs its program (`take_out`). `tests/behaviour/test_release_hygiene.py` pins the words of steps 2b and 3 (`frame/design.md` G8). A case that runs a bash line skips through `tests/conftest.py#shell_probe` where `bash` is no usable shell (`frame/design.md` G11).
@@ -35,4 +37,5 @@ None for a deployer. `CLAUDE_CONFIG_DIR` is Claude Code's variable, not a new on
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-05 | The frame's line coordinates and its present-tense statements of the skill, which the phase 1 crafter listed as contradicted by HEAD, are dated to 475d018c by one sentence at the head of `frame/design.md` *Grounding* and `frame/plan.md` *Technical context*, and are not rewritten to HEAD's lines. | They state the tree the work changes: the four fixed `~/.claude` coordinates are the grounds of the change, and rewriting them to HEAD would erase them. Dating them makes each a past-state claim, as a round record's `target:` line and a Status cell's commit are. | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*; `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes* |
+| 2026-11-05 | On `frame/questions.md` Q1's default, the orchestrator filed #1367 for the other readers of a fixed `~/.claude` that design *Scope*'s first *Out* item lists, and this pull request stays on `update`. Q1's Status stays open: it is a person's question, and the owner can overturn the default. | The leftover names a party who acts on it, the owner's triage of the tracker, so it takes rung 3 of the homes. | `docs/running/the-run.md` *The run*, the homes of a leftover |
