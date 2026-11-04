@@ -2,7 +2,7 @@
 
 ## Technical context
 
-The work builds on four places in the code.
+The work builds on four places in the code, as they stood at the base, 3b2190c4; the build's own names are in `trail/phases/phase-1.md`.
 
 - `skills/verify/scripts/broad_gate.py#read_record` reads every keyed record once per run. It already reads each `end` line's `exitstatus` and `stopped` to count `unended`, and its `exitstatus` to count `unplaced_red`.
 - `broad_gate.py#gate`'s failures loop fails a check on its exit, and the suite also on `head.unended`.
