@@ -16,9 +16,10 @@ tree's `bin/` first.
 
 ## The behaviour suite — `behaviour/<agent>/`
 
-**A rewrite of an agent's preload is proved not worse by running this suite
-on the old tree and on the new one, judged on outcome first and then on
-cost, each against the baseline and none against an absolute.**
+**The suite is a smoke run for gross breakage of an agent's output: `compare`
+reads the new side's shape and reach graders against a recorded baseline
+side.** A pass claims nothing about whether a rewrite is worse or means the
+same, which the proofer's reading of the diff judges.
 `scripts/noninferiority.py run` runs one agent's cases on one side and
 records, per run, the graders, the round record the session printed and the
 cost its trace's `result` event carries (spend, seconds and `modelUsage`,
@@ -33,38 +34,29 @@ Whenever `compare` or `regrade` reads a side, a run's findings are the
 `location:` line in a fence or a comment is no finding, and a finding in a
 shape the check refuses still counts. A `truth-` grader over the round
 record is graded on those findings, so recall and the false-finding rate
-are read by one reader. `compare` writes the record the five pass rules of
+are read by one reader. `compare` writes the record the three pass rules of
 `noninferiority.py#verdict` judge:
 
-1. recall has not fallen, except by one find where every truth grader that
-   lost it is still found by at least one new run;
-2. the false-finding rate is within `FALSE_MARGIN` of the baseline's;
-3. the shape and reach graders both sides ran, pooled, pass no fewer runs
-   on the new side than on the baseline; one of them the new side failed on
-   every run, where the baseline passed it at least once, fails the side by
-   name; and one the baseline lacks passes every new run;
-4. the preload is fewer bytes than the baseline's;
-5. either the tokens read across every model, the spawned agent's
-   included, or those tokens per tool call are within `TOKEN_MARGIN` of the
-   baseline's; a side fails only where both rose by more. The rewrite
-   controls the context each call carries, and how many calls an agent
-   makes is its behaviour, which rules 1 to 3 judge: fewer calls raise the
-   figure per call and more calls raise the total, so the count moves the
-   verdict in neither direction (`noninferiority.py#tool_calls`).
+1. the shape and reach graders both sides ran, pooled, pass no fewer runs
+   on the new side than on the baseline;
+2. none of them fails every new run where the baseline passed it at least
+   once, and one that does fails the side by name;
+3. a shape or reach grader the baseline lacks passes every new run.
 
-Tokens per true find, spend and wall seconds are written in the record and
-judge nothing. A side cut short, a case the baseline ran and
-the new side did not, whatever its graders, a case run a different number
-of times, a run whose `modelUsage` is missing or short of a count, or
-one whose trace cannot be read or holds no tool call is no result, never a
-pass.
+Recall, the false-finding rate, the tokens read across every model, the
+spawned agent's included, and those tokens per tool call are written in
+the record and judge nothing, beside tokens per true find, spend, wall
+seconds and the preload's bytes. The preload's bytes are read with no run:
+`.github/scripts/release_report.py` prints each agent's preload bytes
+against the last tag on every pull request into `main`. A side cut short, a
+case the baseline ran and the new side did not, whatever its graders, and
+a case run a different number of times each give no result, never a pass.
 `tests/evals/test_noninferiority.py` recomputes the record. Nothing in the tree
 makes a later edit owe a run. `check` finds each of the record's four row
 counts only on a line spelt `| <name> | <value> |`, with nothing before the
 first pipe or after the last, one space on each side of the name, and at
 least one on each side of the value. A row spelt otherwise is not found and
-its count reads as 0, so a record edited by hand can pass `check` on a count
-it never read.
+its count reads as 0, which no pass rule reads.
 
 **A side already paid for is read again under another suite's truths
 without a run.** `noninferiority.py regrade --side IN.json --suite-rev REV
