@@ -51,6 +51,11 @@ The fix adds one entry to each S9 table. Both were red against the end-only vers
 
 The snippet reaches every statement of the fact this round found. The `holds` docstring already states both directions. The changelog sentence at `seal/threads/1793795356-a-cited-name-stands-in-its-file/changelog.md:3` gives only the rename example and stays true. A third input changed with the fix as well: a `to` that rewrites the citation as `abc1234:manual/b.py#gone` is now excused, where the substring test refused it (executed). No entry is proposed for it, since `frame/design.md` *Out* leaves every `<commit>:<path>` to #1355.
 
+```seal
+verdict: fixed f9a92629c
+answer: The finding holds. `holds` read the token whole, but no case held the path side, which `frame/design.md` *Data & interfaces* ("`excuser` takes the cited text as written") asks for as part of the whole token. I added the round's two entries as given. "a change that moves the name's file under a longer path" goes in `EXCUSING`, and "a from that holds the name under a longer path" goes in `REFUSING`. Against `f9a92629c`, `bin/seal mutate` replaced the last line of `holds` with each of the two alternatives, and both runs came back `red` with the tree clean after the restore (executed). With the substring test, all four entries that bound a name failed. With the end-only `re.search(re.escape(cited) + r"(?!\w)", flat)`, exactly the two new path-side entries failed. The citation module passed 55 cases, and the plan row's six modules passed with two record readers (executed). The `<commit>:<path>` input the round names stays unpinned, as `frame/design.md` *Out* leaves it to #1355.
+```
+
 ### 2. The release note says no tracked file binds the five cited names, and two of them are bound in the tree
 
 ```seal
@@ -71,6 +76,11 @@ Five places in the tree cited a name their cited file does not bind: three files
 ```
 
 The sentence after it, "Four sentences about a name the past held are rewritten without it, and one keeps the issue number its value's grounds hang on", stays true, and the snippet leaves it. No other statement of the five's reasons changed in the fix diff.
+
+```seal
+verdict: fixed f9a92629c
+answer: The finding holds. `PANEL_VALUE_WIDTH` and `load` are bound in tracked files, so "a name that no tracked file binds" was false for two of the five. `git ls-files --error-unmatch` shows `broad_gate.py`, `test_unverified_rows_close.py` and `mode-gate.py` tracked, and `round_record.py` and `tests/test_tmp_seventh.py` not (executed). That matches the round's sentence and `frame/design.md` *Data & interfaces*. I replaced the sentence with the round's text. The sentence after it stays. In the same commit `gaps.md` closes its search-sample row, which round 1 *Confirmations* answered by listing every file that names the module.
+```
 
 ## Confirmations
 
