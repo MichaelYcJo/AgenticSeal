@@ -49,3 +49,39 @@ Not re-run here: *Command R18*, because filing #1334 to #1345 changed the tracke
 target: 8ca92d966b260e0c75c30c114e5605fc59f19382 against 94635718ea4a79569ac612bcb814114000028be3
 Verdict: sealed
 ```
+
+## Re-audit at e44456f8c
+
+| Field | Value |
+|---|---|
+| Broad gate | 4df5976b1 against 94635718e |
+
+Since the block above, two commits landed. f89408963 adds this file, and its text equals the block above's run (executed: `git show f89408963:<item>/guarantee.md \| diff -`). e44456f8c touches only `frame/plan.md`, where it adds the row at `:74`. `trail/gate.md` still names `4df5976b1`, which is an ancestor of HEAD. Only `trail/gate.md`, `guarantee.md` and `frame/plan.md` follow it, all under the work item's directory (executed: `git log --no-merges --name-only 4df5976b1..HEAD ^94635718e`). `seal pr-body <item> --body <file> --check` exited 0 with the installed `seal` and with `bin/seal` (executed).
+
+### Claims re-run
+
+Only `frame/plan.md` changed, so this run re-runs the claims at that file's coordinates and reads the parties again. The claims of the block above stand at coordinates no commit since 8ca92d966 touched.
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| Ten issues were folded into #1346 and closed pointing at it, and #1338 and #1343 stay open | `frame/plan.md:74` | `gh issue view <N> --json number,state,stateReason,milestone,comments` for 1334 to 1346; `gh issue view 1346 --json title,body` | holds (executed): #1334 to #1337, #1339 to #1342, #1344 and #1345 are `CLOSED NOT_PLANNED`. Each one's last comment opens "Folded into #1346 on 2026-11-04 at the owner's request". #1346's *Items* lists those ten. #1338, #1343 and #1346 are open |
+| #1338, #1343 and #1346 are in `release: 0.31.2`, created for them | `frame/plan.md:74` | `gh api repos/:owner/:repo/milestones/85` | holds (executed): milestone 85 is `release: 0.31.2`, open, with 3 open issues. Its description names #1346, #1338 and #1343, and says it was created on 2026-11-04 by the owner |
+| `release: 0.31.1`'s description names a different purpose | `frame/plan.md:74` | `gh api …/milestones?state=open` | holds (executed): its *Purpose* is removing history and copied passages from the rule text |
+| D1 to D12 were filed as #1334 to #1345 | `frame/plan.md:73` | the row is unchanged since the block above; the same `gh issue view` | holds (executed): all twelve exist with the titles the block above compared. Ten are now closed, as the row at `:74` says |
+
+### The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | unchanged since the block above | the issue and the tree, as above | none |
+| the build | unchanged since the block above | as above | none |
+| the last round | unchanged since the block above | as above | no new disagreement. The "three" that the block above names is still the round's own count |
+| the changelog | none is written | design G10; the new commit changes only a record | none |
+| the plan, *Judgments of the run* (`frame/plan.md:74`) | The owner asked for the fold and for the milestone, and the orchestrator carried both out | the tracker (executed above) | none |
+| the questions (`frame/questions.md:19`) | Q1 is `open`. Its default is that each draft proposes the `backlog:` milestone of its area and is filed there | the tracker as it stood at the filing, and `frame/plan.md:73` | the tracker now: #1338, #1343 and #1346 are in `release: 0.31.2`. `frame/plan.md:74` records the owner's answer, and the body says the owner answered Q1. `docs/layout/the-record-layout.md:152` makes "What only a person could decide, and what was assumed in its place" `frame/questions.md`'s fact, so the record that holds the answer still says it is unanswered, with the default the owner replaced. A settle that decides every open row would put Q1 to the owner again |
+| the orchestrator's part of the pull request body | The twelve issues were filed, the ten folded into #1346, and the three are in `release: 0.31.2`. *A decision left to the owner* says Q1 "is open for the owner" and then that "The owner has since answered it". Round 1 skipped "the four *Command tracker* keyword searches". *Left for the owner* says "#1337 edits the same file, so it can take the line with its row" | the tracker on the fold and the milestone (executed above); the round's four tracker blocks | its own Q1 paragraph, which calls Q1 both open and answered. Its *Left for the owner* names #1337 as the issue that edits `seal/follow-up.md`, but #1337 is closed `NOT_PLANNED` and its item now stands in #1346's checklist (executed above) |
+
+```seal
+target: e44456f8c9761eb56065d29f04db62a67103e41e against 94635718ea4a79569ac612bcb814114000028be3
+Verdict: withheld reason: frame/questions.md:19 (the framer's row, closed by the orchestrator on the owner's answer) still reads Q1 `open` with the default that every draft goes to its backlog: milestone, which the tracker (milestone 85, release: 0.31.2, holding #1338, #1343 and #1346) and frame/plan.md:74 contradict; and the orchestrator's part of the pull request body calls Q1 both open and answered in *A decision left to the owner*, and in *Left for the owner* names #1337, now closed into #1346, as the issue that edits seal/follow-up.md
+```
