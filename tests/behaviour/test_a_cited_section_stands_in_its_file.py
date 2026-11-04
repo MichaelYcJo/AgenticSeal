@@ -181,18 +181,28 @@ def corrections(root):
     return rules.pending(root, config.policy_root(os.path.join(root, "seal")))
 
 
+def holds(field, cited):
+    """FIELD, an item's `from` or `to`, holds the citation CITED whole, its
+    whitespace collapsed: a `*section*` as written, which its asterisks
+    bound, or a `path#name` token as `NAME_TOKEN` reads one, so neither
+    `manual/b.py#gone_all` nor `lib/manual/b.py#gone` holds
+    `manual/b.py#gone`."""
+    flat = " ".join((field or "").split())
+    if cited.startswith("*"):
+        return cited in flat
+    return cited in {m.group(0) for m in NAME_TOKEN.finditer(flat)}
+
+
 def excuser(rel, line, cited, text, pending):
     """The work item directory of the PENDING item that corrects the citation
     CITED, as written, at LINE of REL, whose text is TEXT, or None. An item
-    whose `from` holds the citation and whose `to` does not corrects it, and
-    so does a `remove` with no `from` whose section holds the line
-    (`rule_changes.removed_by`). `parse` reads an item's `file` only as a
-    file of the policy root or of one of its groups."""
+    whose `from` holds the citation whole (`holds`) and whose `to` does not
+    corrects it, and so does a `remove` with no `from` whose section holds
+    the line (`rule_changes.removed_by`). `parse` reads an item's `file` only
+    as a file of the policy root or of one of its groups."""
     for o, item in pending:
         if o.file == rel and o.old is not None:
-            if cited in " ".join(o.old.split()) and cited not in " ".join(
-                (o.new or "").split()
-            ):
+            if holds(o.old, cited) and not holds(o.new, cited):
                 return item
     return rules.removed_by(pending, rel, text, line)
 
@@ -843,6 +853,12 @@ EXCUSING = {
         None,
         "name",
     ),
+    "a change that renames the name to a longer one": (
+        "docs/a.md",
+        op("change", "Old section", NAME_OLD, "See `manual/b.py#gone_all`."),
+        None,
+        "name",
+    ),
 }
 
 
@@ -908,6 +924,11 @@ REFUSING = {
     "a to that keeps the name": (
         "docs/a.md",
         op("change", "Old section", NAME_OLD, NAME_OLD + " Still."),
+        "name",
+    ),
+    "a from that holds a longer name": (
+        "docs/a.md",
+        op("change", "Old section", "See `manual/b.py#gone_more`.", NAME_NEW),
         "name",
     ),
 }

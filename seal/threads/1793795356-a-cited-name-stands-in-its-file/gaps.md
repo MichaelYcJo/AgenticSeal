@@ -11,8 +11,4 @@
 
 ## Not done
 
-`excuser` matches a name token as a substring of a pending `from`, as it
-matches a `*section*`. A `from` holding `path#gone_more` and a `to`
-lacking it would excuse a citation of `path#gone`. I left it as the design
-states `excuser`, because bounding the token's end adds a rule for one
-shape only, and no record shows the case.
+nothing
