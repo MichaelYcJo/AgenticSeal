@@ -31,7 +31,7 @@ The recorder, `skills/verify/scripts/pytest_record/agentic_pytest_record.py#Reco
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* 1, 2, 3 and 4, test-first. | `frame/design.md` S1, S2 and S5 as new cases in `tests/skills/test_broad_gate.py`, each seen red at e44c9b07, with how in the phase record. S3 as a case that is green before and after. S4 through #883's cases with the line rewritten. S6 through `tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py` with its pins moved, seen red against the old sentence. The narrow run of the modules the phase touched. The suite stays `unverified` until the orchestrator's broad run. | |
+| 1 | `frame/design.md` *Scope* 1, 2, 3 and 4, test-first. | `frame/design.md` S1, S2 and S5 as new cases in `tests/skills/test_broad_gate.py`, each seen red at e44c9b07, with how in the phase record. S3 as a case that is green before and after. S4 through #883's cases with the line rewritten. S6 through `tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py` with its pins moved, seen red against the old sentence. The narrow run of the modules the phase touched. The suite stays `unverified` until the orchestrator's broad run. | b6775862 |
 
 ## Operational impact
 
