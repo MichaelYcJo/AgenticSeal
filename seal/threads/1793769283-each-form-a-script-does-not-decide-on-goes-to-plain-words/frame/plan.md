@@ -4,7 +4,7 @@
 
 The work has two parts.
 
-- **The reasons.** The framer has already decided the reason census (design *The reason census*), so phase 1 builds it. The edits fall in `skills/core/SKILL.md`, `skills/agent-contract/SKILL.md` and `docs/running/the-agent-set.md` *One contract every agent receives, and one definition each*, and in the cases that pin a sentence that moves or is cut.
+- **The reasons.** The framer has already decided the reason census (design *The reason census*), so phase 1 builds it. The edits fall in `skills/core/SKILL.md`, `skills/agent-contract/SKILL.md` and `docs/running/the-agent-set.md` *One contract every agent receives, and one definition each*, and in any case that pins a sentence that moves or is cut; phase 1 found none, and corrected one docstring that stated a moved reason (`trail/phases/phase-1.md`).
 - **The forms.** The form census cannot be decided before it is taken. Its readers alone run to about 11,000 lines: `skills/code-review/scripts/chain_check.py` 2050, `skills/verify/scripts/unverified_check.py` 1938, `skills/settle/scripts/settle.py` 1992, `skills/code-review/scripts/pr_body.py` 785, `skills/settle/scripts/rule_changes.py` 767, `hooks/lib/routing.py` 640, `.github/scripts/rules.py` 550, `hooks/lib/blocks.py` 453 and `hooks/lib/fields.py` 389 (executed: `wc -l`). The broad gate's and the stamp's readers and `evals/scripts/` come on top. So the form census runs in three phases, one per family of readers (design *Scope* items 3 to 5). Each phase takes its family's census and builds what it decides, so one crafter reads a family's readers once.
 
 What the phases build on, by coordinate:
@@ -75,4 +75,4 @@ The failure scenario six months on. The census rows stand in phase records, whic
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-04 | R17's grounds name R19, the row that moves rule 9's second reason, where they named R18, and *Technical context* says phase 1 found no case pinning a moved or cut sentence | Phase 1's hand-back named both against the design's own table and `git grep` over `tests/` (`trail/phases/phase-1.md`); the orchestrator read the design's rows R11 to R19 and every section of `frame/plan.md` against HEAD after the fold, and `git grep -n R18` over both files finds R18's own row and R11's mention of it, neither stating the moved reason | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |
