@@ -16,9 +16,8 @@ test-first cadence, the SDD file set, the closing memo and the review
 incorporation. The orchestrator reads both. The crafter opens that one at
 its first step and never this one, because asking a person and writing
 `routing.md` are acts `agents/crafter.md` leaves to the orchestrator. Every
-`seal/…` path here means `<repo>/seal/` where that directory exists with
-the marker, and
-`$(git rev-parse --git-common-dir)/seal/` otherwise (contract rule 11).
+`seal/…` path here resolves as `skills/implement/SKILL.md` *Document layout
+— two roots, three lifetimes* states (contract rule 11).
 `skills/implement/acts.md` tables each act addressed to the orchestrator in
 this file and the files beside it, with what notices when the act is
 skipped; a maintainer reads it, and an orchestrating session does not need
@@ -113,17 +112,15 @@ framer's judgment, which the orchestrator names in its part of the pull
 request body, because each party judges its own target
 (`skills/core/SKILL.md` *Each agent judges its own target, independently of
 the others*) and a second round would be the orchestrator overriding the
-framer. Reading the plan and spawning the build is the approval, and no line
-records it: a frame spawned as committed, with no proposal, takes no row of
-`frame/plan.md` *Judgments of the run*, and a question built on its default
-stands in `frame/questions.md` alone. Six of 0.27.x's fourteen work items
-wrote such a row, and each restated the spawn. The counts of the run's
+framer. The spawn is the approval (`skills/implement/SKILL.md` *3. The SDD
+file set*), so a frame spawned as committed, with no proposal, takes no row
+of `frame/plan.md` *Judgments of the run*, and a question built on its
+default stands in `frame/questions.md` alone. The counts of the run's
 proposals, agreements, agreements with a change and rejections go with the
 framer segment's reading to the flow log
 (`skills/verify/orchestration.md` *Measure the segment, and feed the flow
 log*), and the settle weighs the exchange against what it cost under the
-core's mechanism rule. Its first instance, #1148's frame: four proposals,
-one agreed, two agreed with a change, one rejected.
+core's mechanism rule.
 
 **The spawn prompt is text an agent reads.** The orchestrator writes it to
 the rules of `skills/writing-style/SKILL.md` *에이전트와 검사가 읽는 글은 한
@@ -222,7 +219,7 @@ A single-select question, put alone:
 | 3 | **no work item** | No work item is opened: no frame, no review, no seal, no `routing.md`, and this session writes the change itself. The session runs `seal no-work-item` before its first edit; where the root is shared, every commit ends with the trailer `Seal-Routing: no work item`, and the pull request's check only lists those commits. |
 
 **A label names what it turns off, not where it ends.** A label that names a
-destination is read as what runs: `straight to the PR` was read as *call no
+destination is read as what runs: `straight to the PR` reads as *call no
 agents at all*, where that answer turns off `proofer` alone. So the exit
 names no destination, and its description names the five things that do not
 happen.
@@ -273,8 +270,7 @@ misread: `no` says this run may stop to ask, never that a person did the work
 by hand.
 
 **The ceiling.** `AskUserQuestion` allows at most four options per question.
-Question 2 sits at exactly four, and the room was made by taking the framer
-and the sealer out of the question. **It is fully spent: a fifth box breaks this
+Question 2 sits at exactly four. **It is fully spent: a fifth box breaks this
 shape**, and whoever adds one needs a third question of boxes or a preset
 that hides the axes.
 
@@ -354,15 +350,10 @@ commits it, because the check happens at the pull request and CI sees only
 what is in the tree. Below the SDD ladder this may be the only file a work
 item gets.
 
-**The first edit is held by a gate.** `hooks/routing-edit-gate.py` refuses a
-`Write`, `Edit` or `NotebookEdit` of a file in the repository while no
-`routing.md` names the branch checked out where the file is. A file under the
-`seal/` root is never refused, so the declaration can always be written
-first. Under `no work item` the session runs `seal no-work-item` once on the
-branch it edits, before its first edit: it records, for this session on that
-branch, that the change belongs to no work item, and the gate then lets its
-edits on that branch through. A session that moves to another branch runs it
-there again.
+**The first edit is held by a gate**, the one the paragraph opening **The
+first edit waits for the routing answer, and a gate holds that** names.
+Under `no work item` the session runs `seal no-work-item` once on each
+branch it edits, before its first edit there.
 
 **The orchestrator writes the file with the `Write` tool, then commits it.**
 The declaration is read from the working tree (`hooks/lib/routing.py`'s
@@ -440,15 +431,13 @@ stops being written.
 | It alters none of that and is more than one line — a refactor, a performance pass, a formatting sweep, a test that pins what already holds. These four are DEFAULTS, not a closed list: a performance pass that moves a timeout a person waits on belongs on the rung above, and the value's name is what moves it | the closing memo. A one-line scope confirmation replaces the plan |
 | A typo, a config value, a one-line fix | nothing |
 
-**Behaviour, not file count, and the difference runs both ways.** The top rung
-used to read *6+ files, a new module, or an architectural choice*, and two of
-those three conditions measured size.
+**Behaviour, not file count, and the difference runs both ways.**
 
 - **One file, and it qualifies.** A change to an agent's persona is two files
   of wording, and wording is what a session reads and acts on, so it needs a
   plan at file one.
 - **Many files, and it does not.** Copying test repositories instead of
-  running `git init` for each touched more files than that and altered nothing
+  running `git init` for each touched many files and altered nothing
   anyone can observe — no verdict, no output, no instruction. The suite runs
   faster and says the same things.
 
@@ -456,8 +445,8 @@ A count also has to say **when** it is taken, and the gate it guards — plan
 approval — exists only before the first edit (issue #35); a test with no
 number has no such moment, so the question stops needing an answer.
 
-What it costs: *does this alter observable behaviour* is a judgment where
-*six files* was a count, and two people can disagree about a borderline case.
+What it costs: *does this alter observable behaviour* is a judgment, not a
+count, and two people can disagree about a borderline case.
 That is the trade — a judgment that is about the right thing beats a
 measurement of the wrong one, and the list in the rung is what keeps the
 judgment from being free-form. The way out of a default is to NAME the value a

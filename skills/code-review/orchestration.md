@@ -95,10 +95,8 @@ through the `skills:` list in its definition, and each agent's own half is in
 `agents/<name>.md`. So the prompt holds what is specific to this round and
 nothing else.
 
-**That contract binds you too, and reaches you only if you open it.** An
-orchestrator reads this skill and never `agents/*.md`, so the contract
-reaches it by being opened rather than by arriving: `user-invocable: false`
-permits the load and does not oblige it.
+**That contract binds you too, and reaches you only if you open it**, as
+the opening of `skills/implement/SKILL.md` states.
 
 ## Orchestrator: the run ends with a verifying round
 
@@ -196,11 +194,7 @@ the fix, and every sentence about it, states the rule and lists no kinds.
 Where deciding it is a rebuild the issue did not ask for, the mechanism leaves
 as its own issue and the branch keeps the release's reading of it, so the run
 reads no edge the release did not have. The row that decides either names the
-next verifying round as the run's last. The judgment rows of 0.27.x to 0.29.0
-read this signal in seven work items. Where the inputs were closed and the fix
-pinned each, no later round found an input it left out; where a fix listed
-the kinds of an open input, the next two rounds each reopened the list by a
-kind it left out, and the run ended once the sentence stated the rule.
+next verifying round as the run's last.
 
 The condition is not *this round found nothing*, which would be unbounded. A
 verifying round that raises a `should` finding the crafter closes `rejected`,
@@ -286,9 +280,8 @@ the wait only once the commit it pushed last has a check of a `pull_request`
 run.** The wait reads the checks of every workflow on the pull request; a
 single workflow's run, watched alone, can pass while another workflow's
 check fails. Run before any
-check has reported on the pull request's head commit, the wait does not
-wait. With gh 2.100.0 it prints `no checks reported on the '<branch>'
-branch` and exits 1 without waiting. A failed check also exits 1, so right
+check has reported on the pull request's head commit, the wait exits 1
+without waiting. A failed check also exits 1, so right
 after a push the orchestrator reads that exit neither as a failure nor as
 nothing to wait for. The wait follows a short poll. Every ten seconds the
 orchestrator runs

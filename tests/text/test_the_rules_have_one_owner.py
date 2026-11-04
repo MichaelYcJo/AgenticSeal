@@ -315,7 +315,6 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
         "opens, before each push to its branch and after each push",
         "`MERGED` or `CLOSED` stops the push",
         "`gh pr checks <N> --watch`",
-        "`no checks reported on the '<branch>' branch`",
         "exits 1 without waiting",
         "starts the wait only once the commit it pushed last has a check of a "
         "`pull_request` run.**",
