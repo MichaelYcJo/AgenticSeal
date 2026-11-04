@@ -32,7 +32,7 @@ Constraints:
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Scope 2 and 3 | The crafter reads the diff against design S3 and S4 and *Data & interfaces*. It runs, one module per command, the test modules `git grep -l -E 'branch-and-release\|release-checklist' -- tests/` lists (S6). `git diff --name-only` against the base lists the two documents and the work item's records only | |
+| 1 | Scope 2 and 3 | The crafter reads the diff against design S3 and S4 and *Data & interfaces*. It runs, one module per command, the test modules `git grep -l -E 'branch-and-release\|release-checklist' -- tests/` lists (S6). `git diff --name-only` against the base lists the two documents and the work item's records only | 807708a1 |
 
 ## Operational impact
 
