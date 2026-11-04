@@ -534,10 +534,8 @@ def test_auto_firing_skills_declare_when_not_to_fire():
 
 # The stems that mark a person answering, and the window the sweep below
 # reads them in. AT MODULE LEVEL so a case can assert what they do: the
-# pattern IS the behaviour this repair changes, and a pattern nothing opens is
-# the shape this whole release keeps finding
-# (`aa687d35:seal/specs/1789455558-the-record-chain-disagrees-with-itself-in-five-places/overview.md`
-# — pin the thing the production path calls, never a copy beside it).
+# pattern IS the behaviour this repair changes, and a case pins the thing the
+# production path calls, never a copy beside it.
 #
 # Matched at a WORD BOUNDARY, and the first draft of this guard was not. A
 # bare `"ask" in window` fires on `task`, so the probe that was supposed to
@@ -628,10 +626,8 @@ def batch_instructions(body):
 
     That is this work item's own subject one layer down, and the fifth
     instance of the class in this release: the cases pinned the pieces and the
-    production path was a copy of them.
-    `aa687d35:seal/specs/1789455558-the-record-chain-disagrees-with-itself-in-five-places/overview.md`
-    states the rule — pin the function the production path calls, never the
-    helper beside it.
+    production path was a copy of them. Pin the function the production path
+    calls, never the helper beside it.
     """
     flat_body = EMPHASIS.sub("", " ".join(body.split()))
     for hit in BATCH_PHRASE.finditer(flat_body):
@@ -722,9 +718,9 @@ def test_the_asking_stems_are_anchored_at_both_ends():
     # used to sit in the one above, whose message calls its words ordinary
     # *for a question nobody is asking*, which is false of these three.
     #
-    # Widening the stem set is refused with grounds in
-    # `aa687d35:seal/specs/1789540097-three-checks-that-do-not-see-what-they-are-named-for/spec.md`
-    # *Out*, so this is residue and not a defect. It is residue, not correctness.
+    # Widening the stem set is refused, because refusing more words makes a
+    # legitimate definition unwritable (#422), so this is residue and not a
+    # defect. It is residue, not correctness.
     for word in ("asker", "answerer", "questioner"):
         assert not ASKING.search(word), (
             f"{word} is an agent noun the back anchor stops. If this line is "
@@ -838,9 +834,7 @@ def test_no_agent_definition_tells_its_agent_to_collect_questions():
     #     `agents/framer.md` and 60 % of `agents/crafter.md` as positions where
     #     a new occurrence would fire. Bounding it at a heading is a change
     #     with its own failure direction — an instruction whose sentence
-    #     straddles a heading would pass — and it is ruled out with grounds in
-    #     `aa687d35:seal/specs/1789540097-three-checks-that-do-not-see-what-they-are-named-for/spec.md`
-    #     *Out*.
+    #     straddles a heading would pass — and it is ruled out.
     #   · It refuses by the WORDS in the window, so a definition that names a
     #     person answering for some other reason within 140 characters of a
     #     legitimate batch phrase is refused and has to be reworded. That is

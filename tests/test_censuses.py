@@ -1052,11 +1052,12 @@ class Test_vacated_paths:
     def test_accepts_the_new_path_a_longer_path_a_file_still_there_and_a_commit(
         self, tmp_path
     ):
+        commit = "5f11923f"
         text = (
             "`hooks/lib/moved.py`, `templates/records/sdd-x.md`\n"
             "`other/hooks/moved.py`, `myhooks/moved.py`, `hooks/moved.pyc`\n"
             "`hooks/kept.py` and `tests/test_deep.py`, which `tests/e2e/` holds\n"
-            "measured in `5f11923f:hooks/moved.py`\n"
+            f"measured in `{commit}:hooks/moved.py`\n"
             "# exempt from vacated_paths: the layout a release before the move had\n"
             "`templates/y.md`\n"
         )

@@ -1,18 +1,16 @@
-"""The sixteen config shapes
-`0ed5dd3b:seal/specs/1791852616-the-config-table-has-its-own-grammar-beside-the-gfm-walker/spec.md`
-*Data & interfaces* measured, as texts (#871).
+"""The sixteen config shapes, as texts (#871).
 
-Data and nothing else. Each shape is the document one row of that table is
-about, keyed by the row's number, and each is a place where the config
-table's own grammar and `hooks/lib/config.py#gfm_table` answered differently
-before #871 moved the table onto the walker. The texts that hold an HTML
+Data and nothing else. `SHAPES` holds each shape as a config document, keyed
+by its number, and each is a place where the config table's own grammar and
+`hooks/lib/config.py#gfm_table` answered differently before #871 moved the
+table onto the walker. The texts that hold an HTML
 comment opener build it by concatenation, so that no line of this file
 begins with one.
 
 `READ` is what the walker reads of each, as `(item, value)` pairs, and
 `STOPS` the words its refusal names the stopping place by, or None where it
 refuses nothing. Both were read off the walker the day the shapes were
-written, against the frame's measurement of what cmark-gfm renders: a row
+written, against a measurement of what cmark-gfm renders: a row
 here is one the renderer shows, and a shape the renderer shows differently
 from the walker is refused.
 """

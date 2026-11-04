@@ -30,9 +30,7 @@ one is named. A pair of two agent
 definitions, both under `agents/`, is not counted: a passage two definitions
 share states a fact about each file that holds it, and each agent reads only
 its own definition, so a link would cost every spawn a read and remove
-nothing said twice
-(`48d035aa:seal/threads/1793490088-each-kind-of-restatement-is-measured/trail/phases/phase-1.md`
-*The table*, row K2). A definition paired with any other file is counted,
+nothing said twice. A definition paired with any other file is counted,
 since a skill or a document restating a definition is a copy. `WINDOW` is
 `skills/settle/scripts/passages.py`'s, never typed here:
 `tests/text/test_a_moved_rule_leaves_its_definition.py` measured it between the longest kept application (10 words) and the
@@ -42,9 +40,7 @@ smallest real copy (25), and this is the same question asked of more files.
 catch a paraphrase would have to decide when two sentences say the same
 thing, which no constant can hold: at any similarity that catches a
 paraphrase it also matches a heading against the sentence that links it.
-The paraphrase half was measured once, by hand, and its result is recorded in
-`67694cba:seal/specs/1791076836-every-rule-claude-md-restates-has-one-home/spec.md`
-*The method and its result* rather than checked.
+The paraphrase half was measured once, by hand, and is not checked.
 
 **What it does not catch.** A rule restated in fresh words. Measured against
 the three restatements #730 names, it finds one of three, the merge table,
