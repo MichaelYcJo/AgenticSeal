@@ -1,0 +1,53 @@
+# Implementation Plan: 1793795356-a-cited-name-stands-in-its-file
+
+## Technical context
+
+The work builds on `tests/behaviour/test_a_cited_section_stands_in_its_file.py` at HEAD `31554e36a` (read whole). The section reader is `cited_in` (line 105), `sections` (126), `resolves` (152) and `citations` (201), and `assert_resolved` (228) warns for each excused citation and fails on a dangling one. `corpus` (185) lists `git ls-files`, leaves out `tests/censuses.py#RECORDS`, and keeps what is on disk and decodes as UTF-8. `flowing` (94) joins adjacent `.py` literals and drops `#` comment markers. `excuser` (168) builds `*<said>*` itself and matches it in a pending `change`'s `from`, then asks `rules.removed_by`. `Found` (64) is `read dangling excused`. S8 (`test_a_record_is_not_read`, 472) and S9 (`EXCUSING` 523, `REFUSING` 564) are the tables a name entry joins. The contract rule reader (622 onward) is untouched.
+
+The name reader is a third reader over the same corpus, and `excuser` takes the cited text from its caller so both readers share it. Each name is resolved against a set of names drawn from `ast.parse` of the cited file, cached per file as `held` caches sections.
+
+Constraints. `tests/text/test_a_cited_commit_outlives_the_squash.py` reads every `<commit>:<path>` outside a work item's `trail/`, its `guarantee.md` and `evals/behaviour/`, so the commit each rewritten sentence cites is one `origin/main` reaches (`frame/design.md` *Grounding*, the `COMMIT_PATH` row, gives four executed candidates). This module's fixtures cite under `manual/`, which the repository lacks, so the tree case does not read them; a fixture that has to name a top-level path builds it when the case runs, as the contract rule fixtures build their numbers.
+
+Failure scenario of the chosen approach, six months on. A module that binds a name at runtime, through `globals()` or `setattr`, defines a name `ast` does not see, and a correct citation of it is refused; contract rule 18 has the refusal reported and the check fixed, not the citation bent. A name a writer wraps across a docstring line is read up to the break and refused; the writer rejoins it. A citation written with a bare file name, such as `settle.py#VERSION_RE`, still drifts unread, which the issue leaves out of scope for want of a failure in the record.
+
+## Alternatives considered
+
+| Approach | Failure scenario | Verdict |
+|---|---|---|
+| A1. Resolve the name with a regular expression over the cited source, as C10's command did (`def`, `class`, `NAME =` at a line's start) | A name bound by tuple unpacking, an annotated assignment, an import alias or a decorator-wrapped definition the pattern misses is refused; a `def name` inside a string or comment is accepted. The core holds a script to "what a real parser returns" | rejected: `ast`, as the issue says (`skills/core/SKILL.md` *The first value*) |
+| A2. A new module, `tests/behaviour/test_a_cited_name_stands_in_its_file.py`, beside the section module, importing `corpus`, `flowing`, `excuser` and `Found` from it, as `tests/text/test_a_cited_commit_outlives_the_squash.py` imports `text_of` | Five helpers cross a module boundary, and a change to `corpus` or `excuser` in one module breaks the other with nothing in the first naming it; the check line under *The dependency rule* names a module that holds only half of what the corpus decisions mean. In its favour, each module states one claim | rejected: the issue names the existing module, and the premise that keeps it holds: its docstring already states that its readers share one corpus, and the third reader shares `corpus`, `flowing`, `excuser` and the S8 and S9 tables (read, lines 15 to 30 and 466 to 615) |
+| A3. Read only a `path#name` whose path is a tracked `.py` file, as the issue's words and C10's command (`if path not in exists: continue`) read; an untracked path is skipped | A `.py` file renamed or deleted leaves every `path#name` naming it unread and the case green: renaming `hooks/lib/optin.py` would pass with `hooks/lib/optin.py#MARKER` cited across the tree. The section reader refuses the same shape for a `.md` file (S7), so the module would read the two shapes by two rules | rejected: an untracked path under a tracked top-level entry is dangling, as S7 has it. The cost is two repairs at HEAD, a past sentence and a planted fixture (`frame/design.md` *Data & interfaces*) |
+| A4. Resolve against module-level bindings only | The four method names `tests/behaviour/test_a_shrunken_corpus_declines_to_judge.py` cites as scopes, and the nested function `skills/verify/scripts/unverified_check.py:491` cites, are refused though they stand in their files (executed, the probe) | rejected |
+| A5. Resolve against every name bound anywhere in the file, locals and parameters included | A function removed while a local variable of the same name stands elsewhere in the file lets its citation pass, and a citation names a unit a reader can open, which a local is not | rejected: a `def` or `class` at any depth, or a binding at module scope |
+| A6. Read only a backticked `path#name` | The quoted keys of `tests/behaviour/test_a_shrunken_corpus_declines_to_judge.py`'s scope tables and every unbackticked mention go unread; C10's 113 were counted with no backticks | rejected: every occurrence on a line is read |
+| A7. Exempt a sentence about the past by a list, a marker or a word such as "was" | A list of exempt citations is a list of spellings a script keeps, and a marker added at a blocked step catches nothing (`skills/core/SKILL.md` *The rule a mechanism is kept against*; the framer's *A mark is not the answer to a blocked step*) | rejected: the sentence cites the name at its commit, as the issue says |
+| A8. Read the records under `seal/threads/` and `evals/behaviour/` as well | Every record citing a name a later release renames turns the suite red, though the record states what was true when it was written; the corpus leaves them out for that reason (module docstring) | rejected |
+| A9. No excuse for a policy-root name citation a pending rule change corrects | A work item whose subject is the code and that removes a function `docs/` cites cannot pass its own suite until the settle, so it edits the policy root directly, which `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes* gives to the other kind of work item. `docs/` holds 15 such tokens at HEAD (executed, the probe) | rejected: S9's excuse, with the token as the cited text |
+| A10. A cited file that does not parse makes its citations dangling | A tracked `.py` that does not parse under the running interpreter fails the case on a line that names a citation, and the defect it reports is the parse, which the case did not read; the core has a check name what it did not read and decide nothing on it | rejected: named in a warning as not read |
+| A11. Two phases: the five repairs first, then the reader | The first phase's suite is green with nothing new to hold it, and the tree case cannot be seen red against the instances the second phase meets already repaired; showing it red then needs a repair reverted by hand | rejected: one phase, whose tree case is seen red against HEAD's five instances before they are repaired |
+
+## Phases
+
+| Phase | Delivers | Verified by | Status |
+|---|---|---|---|
+| 1 | `frame/design.md` *Scope* items 1 to 5 | Each case of *Scope* item 3 shown red with only its named guard removed, its failing line read for that guard (contract rule 15); the tree case shown red at the phase's start against HEAD's five instances, then green; `tests/behaviour/test_a_cited_section_stands_in_its_file.py`, `tests/text/test_a_cited_commit_outlives_the_squash.py`, `tests/behaviour/test_a_shrunken_corpus_declines_to_judge.py`, `tests/behaviour/test_the_hooks_hide_what_a_renderer_hides.py`, `tests/hooks/test_config.py` and `tests/skills/test_settle.py` run narrow by the crafter; the broad gate by the orchestrator | |
+
+*Scope* item 6, the rule change, is the frame's own section and goes to the settle.
+
+## Operational impact
+
+No migration, environment variable or dependency. The case runs in the suite, so every later branch whose text cites a `path#name` it does not resolve fails there.
+
+Files this work shares with the release's other work items, each built on its own branch at the same time:
+
+- `.github/scripts/release_seal.py`: this work rewrites the comment at line 126; #1255 reads every `__main__` of shipped code and may change this file's entry point at line 623 or carry its reason there. The hunks stand about 500 lines apart. #1255's branch holds only its routing at `215ad6020` (executed: `git diff --stat origin/main...feat/1255-the-census-reads-every-entry-point`), so whether it edits this file is unknown at framing.
+- `tests/censuses.py`: this work imports `RECORDS` and edits nothing there; #1255 edits the file. A rename of `RECORDS` there breaks this module's import.
+- The case reads every `path#name` the other two branches write, in `CONTRIBUTING.md`, `evals/README.md`, `evals/scripts/noninferiority.py`, `tests/evals/test_noninferiority.py` and `tests/censuses.py`, once they merge beside this one. #1255's issue cites `tests/censuses.py#entry_point` and `hooks/lib/console.py#STREAMS`, both defined at HEAD (executed: `grep -n`). A token one of them leaves dangling shows at the broad gate the orchestrator runs on the release branch after the merges, and no branch's own suite sees it before.
+
+`.claude-plugin/plugin.json`'s version is not this work item's: it is not the release's first.
+
+## Judgments of the run
+
+| Date | Judgment | Grounds | Judged against |
+|---|---|---|---|
+| | | | |
