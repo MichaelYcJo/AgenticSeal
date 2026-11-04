@@ -133,8 +133,7 @@ nothing:
   row here sharing a cell with a row above is not a recurrence, and two
   cells spelt apart are not two kinds: whether two rows are one kind is the
   settling session's judgment (step 5). The section is printed only where
-  it holds a row or a line not read, so a run with no earlier settle
-  prints what it printed before. Two limits no guard covers: a shallow
+  it holds a row or a line not read. Two limits no guard covers: a shallow
   clone lists no plan deleted past its boundary, and a plan only a merge
   commit's own resolution deleted is not listed, because the query reads
   non-merge diffs.
@@ -347,11 +346,11 @@ document, the second question, and how a promoted row is written.
     its fragment's text. So is one whose version has no published release,
     where the list holds at least one; where it holds none, the repository
     publishes no Releases, and the directory goes.
-  - A directory with no note to read goes as before: no `changelog.md` at
-    `--released-at` or one with no text, an adding commit that names no
-    pull request, no version tag, no published release, or notes not built
-    from the fragments. A `no note read:` line under its `removed` line
-    says which case held.
+  - A directory with no note to read goes, in each of these cases: no
+    `changelog.md` at `--released-at` or one with no text, an adding commit
+    that names no pull request, no version tag, no published release, or
+    notes not built from the fragments. A `no note read:` line under its
+    `removed` line says which case held.
   - The list is asked once, before the first removal, and only where some
     directory gets as far as a version tag. A list `gh` cannot give, and a
     `git` that cannot read what a note is checked by, stop the run with

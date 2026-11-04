@@ -339,9 +339,7 @@ segment that just finished, not as a follow-up someone might do later:
    running at once, never as a broken number. Batching is the ordinary way
    in and a background command is the rarer one: every tool call in one
    assistant message carries that message's timestamp as its start, so a
-   batch of three overlaps by construction. Measured over the transcripts on
-   one machine, every second of overlap above a second came from calls
-   batched into one message and none of it from a call that crossed a turn.
+   batch of three overlaps by construction.
 
    **A `git` call counts as `git` wherever it runs on the line.** The family
    is read by command word: the first word after any separator, newline or

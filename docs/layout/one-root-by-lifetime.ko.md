@@ -232,7 +232,7 @@ check: tests/behaviour/test_the_pull_request_language_is_the_repositorys.py
 **셀에는 이스케이프한 파이프가 들어갈 수 있고, 해석되지 않는 줄 하나는 표의
 끝으로 취급하지 않고 이름을 붙여 알립니다.** 파이프가 들어간 셸 명령 같은 값은
 평범한 내용이고, 거기서 멈추는 읽기는 그 아래의 모든 행을 설정에서 조용히
-빼 버렸습니다. 읽는 쪽과 쓰는 쪽은 행을 설명하는 상수를 함께 씁니다. 어느 줄이
+빼 버립니다. 읽는 쪽과 쓰는 쪽은 행을 설명하는 상수를 함께 씁니다. 어느 줄이
 그 행인지를 두고 둘이 엇갈리면 편집 한 번이 사람의 파일에 중복 행을 만들기
 때문입니다.
 check: tests/hooks/test_config.py tests/skills/test_seal.py

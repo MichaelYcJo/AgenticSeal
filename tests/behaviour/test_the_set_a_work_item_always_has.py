@@ -67,9 +67,7 @@ KNOWN_PROSE = {
     ("skills", "implement", "orchestration.md"): frozenset(
         {
             "into its three files, and writes each rejected proposal as one row of",
-            "used to read *6+ files, a new module, or an architectural choice*, and two of",
             "- **One file, and it qualifies.** A change to an agent's persona is two files",
-            "*six files* was a count, and two people can disagree about a borderline case.",
         }
     ),
 }
@@ -99,8 +97,7 @@ def test_the_top_rung_names_behaviour_rather_than_a_count():
     # spelling of the count rather than the one the rung happened to use.
     # `| 6+ files` alone left `6-file line` standing in the same file and
     # the en-dash spelling in the template a session actually types into.
-    # Round 1 found both. A past-tense sentence explaining what the rung
-    # USED to say is allowed, and is what `used to read` marks.
+    # Round 1 found both.
     #
     # `feature-planner` is deliberately NOT here: its `Use when:` counts
     # files, and that was left standing because it decides when to CALL a

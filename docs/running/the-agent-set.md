@@ -61,16 +61,9 @@ check: tests/skills/test_chain_check.py
 what it finds is settled with the framer in one exchange, the framer's judgment standing
 after it.** The framer judges what the work should be and the orchestrator holds the
 issue, so a frame weaker than the issue asks is found by the party that holds the issue
-and decided by the party that drew the frame: the orchestrator proposes, with grounds
-and coordinates and never as an instruction; the framer agrees, agrees with a change or
-rejects with grounds and folds what it agreed into its three files; a rejection is one
-row of the plan's *Alternatives considered*, and the orchestrator edits no frame file.
+and decided by the party that drew the frame, and the orchestrator edits no frame file.
 One exchange bounds it, so neither a loop nor the orchestrator overriding the framer can
-start, and a disagreement left stands as the framer's, named in the orchestrator's part
-of the pull request body. It is guidance and no check reads it; the counts of each run's
-proposals and answers go to the flow log with the framer segment's reading, where the
-settle weighs the exchange against its cost. Its first instance, #1148's frame, read
-four proposals: one agreed, two agreed with a change, one rejected. The procedure is
+start. It is guidance and no check reads it. The procedure is
 `skills/implement/orchestration.md` *The frame is read against the issue at the spawn*,
 and the framer's half is `agents/framer.md`.
 
@@ -134,8 +127,8 @@ framer's stand in `frame/design.md` *Grounding* and `frame/plan.md` *Alternative
 considered*; the crafter's in the phase record's *What this phase found*, each decision
 with its grounds and the document; the proofer's as a finding's grounds and `evidence:`
 line; the sealer's in `guarantee.md` *The parties*. The orchestrator has no record of
-its own, and a judgment it made in the run, to go on or stop, to route a regression, to
-file a leftover, to fold a decision into the frame, reached the next session only
+its own, and a judgment it makes in the run, to go on or stop, to route a regression, to
+file a leftover, to fold a decision into the frame, would reach the next session only
 through a spawn prompt or memory, so it writes each as one row of the plan's table,
 which the settle reads (`docs/running/the-run.md` *The run*).
 
@@ -164,9 +157,8 @@ in the files its opening names, `skills/implement/orchestration.md`,
 against its delivery: a command, a check, part of its parent's act, or a sentence with
 its grounds. A test holds the table against those files from both sides. The table
 stands in a file of its own because a maintainer reads it when an act is added and an
-orchestrator never does, and every orchestrating session read its 1,783 words before
-#1148. It reads the marker and not the meaning, so an act written outside a marked
-section is counted by nobody.
+orchestrator never does. It reads the marker and not the meaning, so an act written
+outside a marked section is counted by nobody.
 check: tests/behaviour/test_every_orchestrator_act_names_its_delivery.py
 
 **`Implementation` is answered by whether the work is finding out or writing down, on

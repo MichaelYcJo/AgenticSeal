@@ -22,8 +22,7 @@ its first step; usable directly.
 load it.** A session driving the work directly reads this skill and never
 `agents/*.md`, so the contract every agent it spawns receives at startup
 reaches it by being opened rather than by arriving — `user-invocable: false`
-permits the load and does not oblige it. #107's headline failure is an
-orchestrator breaking a rule it had put into every prompt it sent.
+permits the load and does not oblige it.
 
 **If you are orchestrating a work item rather than building it, read
 `skills/implement/orchestration.md` before the first edit**; an implementer
@@ -287,12 +286,11 @@ scratch.
 split it records is what `agents/framer.md` exists for, and
 `docs/running/the-agent-set.md` *One contract every agent receives, and one
 definition each* says why the party that draws a contract is not the party
-that executes it. A table that lists the set without naming
-an author reads as a list one session works through — which is what every work
-item here did before the framer shipped, and what nothing in the set could say
-was wrong. Below the ladder's top rung there is no framer and no `frame/design.md`;
-the session that builds writes whatever that rung asks for, and the column is
-about who holds the pen when both parties exist.
+that executes it. A table that lists the set without naming an author reads
+as a list one session works through. Below the ladder's top rung there is no
+framer and no `frame/design.md`; the session that builds writes whatever that
+rung asks for, and the column is about who holds the pen when both parties
+exist.
 
 Reading `plan.md` and spawning the build is the approval, and no line
 records it: the phase's Status cell is the trace that the build happened.
