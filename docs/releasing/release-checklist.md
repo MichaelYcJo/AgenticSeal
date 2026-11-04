@@ -92,14 +92,14 @@ decides whether it is worse* asks, because a release's mix of work moves the cou
 well as stale copies do. A stale copy is a record that restates a fact another record
 holds and was left as it stood when that source changed. The settling session's
 comment names the work items whose records-alone findings kept the count up, and
-says of each such finding whether it found a stale copy. The count is `worse` only where stale copies are what kept it up. Where it
-is, the session files one issue that names each such stale copy, the record it
-stood in, and the file the lesson belongs in. An issue naming that file is where
-`skills/implement/orchestration.md` *Orchestrator: where a decision or a lesson is
-written* writes a lesson whose home no work item in progress changes. The step is
-this repository's and ships to no user: the plugin's settle procedure
-(`skills/settle/SKILL.md` *The settling session's procedure*) does not take it,
-because the reader of the four numbers is this repository's owner and most
+says of each such finding whether it found a stale copy. The count is `worse` only
+where stale copies are what kept it up. Where it is, the session files one issue that
+names each such stale copy, the record it stood in, and the file the lesson belongs in.
+An issue naming that file is where `skills/implement/orchestration.md` *Orchestrator:
+where a decision or a lesson is written* writes a lesson whose home no work item in
+progress changes. The step is this repository's and ships to no user: the plugin's
+settle procedure (`skills/settle/SKILL.md` *The settling session's procedure*) does not
+take it, because the reader of the four numbers is this repository's owner and most
 installed repositories keep no `flow-baseline` log.
 check: tests/github/test_finding_counts.py
 
@@ -292,19 +292,20 @@ python3 .github/scripts/plugin_directory_check.py   # what the marketplace files
       development through the workflow* is against. Those files are not the directory,
       the catalog people browse inside Claude, and the directory is readable from
       nowhere a script can reach, so the command ends by saying it was not read and
-      printing the address of the page that answers. A portal listing is answered on the portal's Submissions page, with
-      its status and the version that is live. It picks up each new version from its
-      tracked branch without a resubmission, and a version that passes goes live by the
-      listing's publish setting, which by default waits for somebody to select Publish
-      (`claude.com/docs/plugins/submit`, *Publish a passing version*). A Console listing
-      is answered on the Console page. The plugin's listing is a Console listing, by the
-      repository owner's reading of the Console page on 2026-10-07, and a Console
-      listing takes no new version until a person moves it to the portal
-      (`claude.com/docs/directory/publish`, *Move an earlier submission to the developer
-      portal*), so no release reaches the directory through it until then. Whether it
-      shows up at all is what a search for the plugin inside Claude answers. Neither
-      that search nor the Console page, which sits behind the owner's login, is open to
-      a script or a case here: both answers are the owner's reading.
+      printing the address of the page that answers. A portal listing is answered on
+      the portal's Submissions page, with its status and the version that is live. It
+      picks up each new version from its tracked branch without a resubmission, and a
+      version that passes goes live by the listing's publish setting, which by default
+      waits for somebody to select Publish (`claude.com/docs/plugins/submit`, *Publish a
+      passing version*). A Console listing is answered on the Console page. The
+      plugin's listing is a Console listing, by the repository owner's reading of the
+      Console page on 2026-10-07, and a Console listing takes no new version until a
+      person moves it to the portal (`claude.com/docs/directory/publish`, *Move an
+      earlier submission to the developer portal*), so no release reaches the directory
+      through it until then. Whether it shows up at all is what a search for the plugin
+      inside Claude answers. Neither that search nor the Console page, which sits
+      behind the owner's login, is open to a script or a case here: both answers are the
+      owner's reading.
 
 **A notice telling somebody an update landed names the move it costs them.**
 An installed copy is what a session loads, so an update that has landed on
