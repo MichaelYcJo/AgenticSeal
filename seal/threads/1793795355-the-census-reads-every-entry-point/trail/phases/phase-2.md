@@ -25,11 +25,17 @@ line 54 alone.** Phase 2's row names `hooks/lib/console.py:54`. Phase 1's
 record said the paragraph at lines 46 to 53 should account for the ten
 loops phase 1 added. Line 54's answer, that every entry point owes the
 answer, now opens the paragraph. The paragraph then says that an entry
-point whose own imports put `hooks/lib/` on `sys.path` calls `to_utf8()`.
-A script that loads nothing from `hooks/lib/` at import spells the loop,
-because a load of the module would be one more load that can fail before
-the answer. That is plan A10's reason. The sentence "None of the others
-says why it copies the loop" now covers the scripts that reach
+point gives it by the call or by the loop. A script that loads nothing from
+`hooks/lib/` at import spells the loop, because a load of the module would
+be one more load that can fail before the answer. That is plan A10's
+reason. The paragraph does not state A10's other half, that a script whose
+own imports put `hooks/lib/` on `sys.path` calls `to_utf8()`.
+`skills/implement/scripts/seal.py:241` does that and spells the loop
+(executed: an `ast` walk of every loop site's module-level statements for a
+`sys.path` insertion), so the sentence would be false of the tree. The
+first rewrite, at 64703abb7, stated it, and a later commit of this phase
+took it out. The sentence "None of the others says why it copies the loop"
+now covers the scripts that reach
 `hooks/lib/` at import, under `skills/*/scripts/` and under
 `.github/scripts/`, other than `chain_check.py`, which does say why.
 Judged against `skills/core/SKILL.md` *The rule a mechanism is kept
@@ -90,7 +96,15 @@ other words.
 `bin/test -q` over 31 test modules (executed): each module under `tests/`
 that names `CONTRIBUTING`, plus the pin, `tests/hooks/test_console.py` and
 `tests/test_censuses.py`, the three the plan row's *Verified by* cell
-names. 1211 passed and 2 were skipped. Tests that read every tracked file
+names. 1211 passed and 2 were skipped. The commits after 64703abb7 change
+the console module's docstring and this work item's records. At the
+commit phase 2's Status cell names, one `bin/test -q` ran the three
+modules of the *Verified by* cell with the modules that read a work item's
+records from the tree: `tests/behaviour/test_chain_hooks_hardening.py`,
+`test_a_phase_hands_the_next_one_a_record.py`,
+`test_the_set_a_work_item_always_has.py`, `test_unverified_rows_close.py`,
+`tests/text/test_a_cited_commit_outlives_the_squash.py` and
+`tests/github/test_publish_release_note.py` (executed). Tests that read every tracked file
 were not counted as reading a path this phase changed, apart from
 `tests/test_censuses.py`. Running all of them would be the suite, which is
 the broad gate's.
