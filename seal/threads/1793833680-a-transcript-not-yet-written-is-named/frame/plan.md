@@ -2,6 +2,8 @@
 
 ## Technical context
 
+Every line coordinate and every quoted text of the tree in this plan is the tree's at 920a9584, before the build.
+
 `skills/verify/scripts/core_check.py#find` (`:104-123`) looks for the session's transcript in two ways. It takes the path `--transcript` names, or else it globs `<config>/projects/*/<id>.jsonl`, where `<config>` is `CLAUDE_CONFIG_DIR` or `~/.claude` (`:117`) and `<id>` is `CLAUDE_CODE_SESSION_ID`. Where nothing matches, it returns `no transcript for session {session} under {projects}.` (`:122`). `main` prints that reason after `seal core: ` and returns 1 (`:263-266`). The module docstring lists the failure reasons at `:45-51`. The cases are in `tests/skills/test_core_check.py`: `Test_find::test_refuses_with_a_reason_where_no_transcript_can_be_named` at `:127-140` and `Test_main::test_refuses_with_exit_1_and_names_the_plugins_core_to_open` at `:419-445`. The reason's text is pinned at `:138` and `:432` and nowhere else (`frame/design.md` *Grounding*, the `git grep` row).
 
 The constraint is that `find` has no fact that separates "this session has sent no message yet" from "this id names no transcript". Both look like an empty glob. So the added sentence is a condition the person recognises: they know whether `seal core` was their first input. The script does not decide which case it is in.
@@ -36,4 +38,4 @@ None. No migration, environment variable, dependency or compatibility break. A p
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-05 | The frame's line coordinates and quoted tree text, which the phase 1 crafter listed as contradicted by HEAD, are dated to 920a9584 by one sentence at the head of `frame/design.md` *Grounding* and `frame/plan.md` *Technical context*, and are not rewritten to HEAD's lines. | They state the tree the work changes: the old reason and the docstring that named it only as "no transcript" are the grounds of the change, and rewriting them to HEAD would erase them. Dating them makes each a past-state claim, as a round record's `target:` line and a Status cell's commit are. | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*; `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes* (the past-state trick) |

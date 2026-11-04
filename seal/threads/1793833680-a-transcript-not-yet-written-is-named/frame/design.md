@@ -2,6 +2,8 @@
 
 ## Grounding
 
+Every line coordinate and every quoted text of the tree in this frame is the tree's at 920a9584, before the build.
+
 | Policy clause | What it fixes for this work |
 |---|---|
 | `routing.md` (read, committed at 26095393) | Planning framer, Implementation crafter, Review through the review chain, Destination open the pull request, Automation yes. So nothing in this frame waits on a person, and a measurement no agent can run stays a row with a default. |
