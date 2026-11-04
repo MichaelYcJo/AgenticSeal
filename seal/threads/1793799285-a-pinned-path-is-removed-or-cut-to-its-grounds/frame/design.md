@@ -30,8 +30,8 @@
 
 | # | Line at `f93d70ea4` | Disposition | What the rewrite leaves |
 |---|---|---|---|
-| 1 | `.github/workflows/test.yml:85` | G | Windows count four. The figures in the sentence above stay, and the clause naming the arithmetic's record goes, since #841 holds no shard arithmetic (phase record, Q1) |
-| 2 | `.github/workflows/test.yml:90` | G | macOS count three. The same; #864 holds none either |
+| 1 | `.github/workflows/test.yml:85` | G | Windows count four. The clause naming the arithmetic's record goes, and the arithmetic itself moves into the comment: the fixed cost, the second, slower run, and the minutes three and four shards take, since #841 holds none of it (round-1#1) |
+| 2 | `.github/workflows/test.yml:90` | G | macOS count three. The same, with the macOS fixed cost, so "the same arithmetic" points at the Windows sentence above it; #864 holds none either (round-1#1) |
 | 3 | `.github/workflows/test.yml:135` | P | The sentence ends at each leg's own `--durations` table, and the record of the run ids goes |
 | 4 | `tests/behaviour/test_a_cited_section_stands_in_its_file.py:445`, `:590` once #1256 lands | F | `ELSEWHERE`'s commit-pinned line, built when the module loads, from `AT`. The S7 case's expected lines 9 and 11 stay |
 | 5 | `tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py:33` | P | The clause from "the real-tree case was seen red" to "names it" goes. A real-tree red is contract rule 15's evidence, which a phase record holds. The sentence on the planted cases stays |
@@ -107,7 +107,7 @@ No interface changes. Two fixtures change their source spelling and keep their v
 
 | Removes | Coordinate | Where it lands, or why it can go |
 |---|---|---|
-| two clauses naming the shard counts' records, and one naming the run ids' record | `.github/workflows/test.yml`, the `pytest` job's comments on its checkout and on `-n auto` | the figures stay in the comment, and no issue is cited, since #841 and #864 hold no record of the arithmetic |
+| two clauses naming the shard counts' records, and one naming the run ids' record | `.github/workflows/test.yml`, the `pytest` job's comments on its checkout and on `-n auto` | the arithmetic moves into the comment, and no issue is cited, since #841 and #864 hold no record of it |
 | a fixture's literal token | `tests/behaviour/test_a_cited_section_stands_in_its_file.py#ELSEWHERE` | the same text, built when the module loads |
 | the clause naming where the real-tree red was seen | `tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py`, the module docstring | contract rule 15's evidence is a phase record's; git holds the record |
 | the clause naming the module the guard was modelled on | `tests/behaviour/test_a_shrunken_corpus_declines_to_judge.py`, the comment above the class's re-enumeration | git; the two decisions stay as the guard's own |
