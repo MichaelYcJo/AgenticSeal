@@ -420,12 +420,14 @@ question is not its difficulty, it is when it arrives.
   `read_text`, `write_text` or text-mode `subprocess` call with no
   `encoding=` takes the locale's, which is cp1252 on the Windows leg and
   UTF-8 everywhere else, so that leg is the only one that sees it. The call
-  names `encoding="utf-8"`. Every hook entry point also opens its `__main__`
-  with `console.to_utf8()`. The `encoding` and `entry_point` censuses in
-  `tests/censuses.py` enforce the first over every tracked `.py` and the
-  second over `hooks/`, and a contributor exempts a line deliberately, never
-  to make a test pass. A `python3 -c` line in a skill or a workflow is outside
-  their reach, so its writer names the encoding there.
+  names `encoding="utf-8"`. Every entry point, a tracked `.py` with a
+  `__main__` block, also opens its first such block with the answer
+  `hooks/lib/console.py#STREAMS` holds, as the call `console.to_utf8()` or
+  as a loop over the same pairs. The `encoding` and `entry_point` censuses in
+  `tests/censuses.py` enforce both over every tracked `.py`, and a
+  contributor exempts a line deliberately, never to make a test pass. A
+  `python3 -c` line in a skill or a workflow is outside their reach, so its
+  writer names the encoding there.
 - **Functional files are English-only.** Skills, agents, hooks, and commands
   load into model context, where a translated mirror would drift. Korean
   belongs in human-facing docs (`README.ko.md`). The `writing-style` skill

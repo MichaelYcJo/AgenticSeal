@@ -1,6 +1,6 @@
 """Every file the plugin reads or writes names its encoding (#741).
 
-The census itself, and the hook entry points' `console.to_utf8()`, are the
+The census itself, and every entry point's answer to the streams, are the
 `encoding` and `entry_point` censuses in `tests/censuses.py` since #942,
 with their cases in `tests/test_censuses.py`. What stays here reads
 `CONTRIBUTING.md`'s prose, which is #923's.
@@ -21,4 +21,9 @@ def test_the_rule_is_where_a_contributor_reads_it():
     assert "**Every file read or written names its encoding.**" in flat, flat
     assert 'The call names `encoding="utf-8"`.' in flat
     assert "The `encoding` and `entry_point` censuses in `tests/censuses.py`" in flat
-    assert "opens its `__main__` with `console.to_utf8()`" in flat
+    assert (
+        "Every entry point, a tracked `.py` with a `__main__` block, also opens "
+        "its first such block with the answer `hooks/lib/console.py#STREAMS` "
+        "holds, as the call `console.to_utf8()` or as a loop over the same pairs."
+    ) in flat
+    assert "enforce both over every tracked `.py`" in flat
