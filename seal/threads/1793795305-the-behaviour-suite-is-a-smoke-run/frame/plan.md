@@ -17,7 +17,7 @@ is read at `bac426446`.
   building, writing and reading every figure. Only `render`'s title line
   changes (design *Scope* S3).
 - `tests/evals/test_noninferiority.py#VERDICTS` drives
-  `test_accepts_a_new_side_no_worse_than_the_baseline` (rows that expect
+  `test_accepts_a_side_no_rule_fails` (rows that expect
   `pass`) and `test_refuses_a_side_a_rule_fails_or_numbers_that_give_no_result`
   (the rest). A row moved from `fail` or `no result` to `pass` moves from
   the second test to the first, so the red to show for each is the first
@@ -82,7 +82,7 @@ that reopens rule 1.
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* S1, S2, S3, S4 and S5 | Each changed case of S4 is shown red against `verdict` before S2, and the phase record says how (contract rule 15). Then `bin/test -q tests/evals/test_noninferiority.py tests/evals/test_replay_targets.py tests/evals/test_rule_cases.py tests/evals/test_seed_defects.py tests/behaviour/<renamed module> tests/behaviour/test_evals_layout.py tests/behaviour/test_both_editions_carry_the_same_folds.py tests/behaviour/test_docs_line_wrap.py tests/text/test_no_case_tells_the_agent_it_is_evaluated.py` exits 0. The three commands of *Technical context* are run at the phase's commit, and the hits are read against acceptance A7 | eb4d31b60 |
+| 1 | `frame/design.md` *Scope* S1, S2, S3, S4 and S5 | Each changed case of S4 is shown red against `verdict` before S2, and the phase record says how (contract rule 15). Then `bin/test -q tests/evals/test_noninferiority.py tests/evals/test_replay_targets.py tests/evals/test_rule_cases.py tests/evals/test_seed_defects.py tests/behaviour/test_no_two_truths_of_a_proofer_case_accept_one_location.py tests/behaviour/test_evals_layout.py tests/behaviour/test_both_editions_carry_the_same_folds.py tests/behaviour/test_docs_line_wrap.py tests/text/test_no_case_tells_the_agent_it_is_evaluated.py` exits 0. The three commands of *Technical context* are run at the phase's commit, and the hits are read against acceptance A7 | eb4d31b60 |
 
 ## Operational impact
 
@@ -104,4 +104,4 @@ that reopens rule 1.
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-04 | The frame is folded to phase 1 as built: S1 gains the row-count paragraph, S4 and `## Removes` state the `VERDICTS` rows and the cases phase 1 reworked, A2 and the plan name the tests and the module as renamed, and the measure is cited at `569780eff` | The crafter's hand-back named each statement HEAD contradicts (phase record gaps 1 and 2, D1, D3 to D5); the measure's commit `3937d861` is reached by no `main` or release ref, so `tests/text/test_a_cited_commit_outlives_the_squash.py` refuses it, and `569780eff` (#1257's squash onto `main`) holds the same file byte for byte (executed: `git diff --quiet`). The same unreached citation stood in all three frames of the release, carried from the issue bodies, so the issue bodies of #1254, #1255 and #1256 are corrected in place as its prevention home | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |

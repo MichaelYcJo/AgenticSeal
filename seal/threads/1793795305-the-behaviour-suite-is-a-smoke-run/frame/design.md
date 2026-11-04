@@ -12,7 +12,7 @@ comment (executed, 2026-11-04). Every coordinate below is read at
 |---|---|
 | `routing.md` (read) | Planning `framer`, Implementation `crafter`, through the review chain, open the pull request, Automation `yes`. Nobody is asked anything after routing, so every open point below is decided here or left to the work |
 | The orchestrator's spawn (the orchestrator's finding; the framer opened the coordinates it names) | #1255 and #1256 are built after this work item, on their own branches, and own `tests/censuses.py`, `CONTRIBUTING.md` *House rules*, the entry-point `__main__` files, `tests/behaviour/test_a_cited_section_stands_in_its_file.py` and `docs/` *The dependency rule*. This work item edits none of them. It is the release's first work item, so it carries the version move (plan *Operational impact*) |
-| The measure, `seal/threads/1793521558-the-record-decides-each-proposed-verifier/trail/phases/phase-1.md` at `3937d861`, *The decisions* row C8, *Command C8* and *Instances C8* (executed: `git show 3937d861:<path>`) | 28 compare records over 32 sides, 544.17 USD and 24.4 hours. 15 read `fail`. The one fail later confirmed as a defect was the rewritten warden leaving a finding's `verdict:` line out of its records, and the shape graders of rule 3 read it (instances 4 and 5). One fail was acted on for bytes, which a byte count answers with no run (instance 12). The fails on rule 5 alone, or on rules 1 and 2, were carried, recorded as noise, or diagnosed as variation, and shipped (instances 2, 6, 7, 13, 14 and 15). The other fails that name rule 3 are a definition the contract contradicted (instance 3) and a model comparison (instance 8), and instances 9 to 11 regrade earlier sides with no new run. The decision is `narrow`: the shape and reach graders stay as a smoke run, and the rest judges nothing. Removal was weighed as an equal there and rejected (plan *Alternatives* row A1 here) |
+| The measure, `seal/threads/1793521558-the-record-decides-each-proposed-verifier/trail/phases/phase-1.md` at `569780eff`, *The decisions* row C8, *Command C8* and *Instances C8* (executed: `git show 569780eff:<path>`) | 28 compare records over 32 sides, 544.17 USD and 24.4 hours. 15 read `fail`. The one fail later confirmed as a defect was the rewritten warden leaving a finding's `verdict:` line out of its records, and the shape graders of rule 3 read it (instances 4 and 5). One fail was acted on for bytes, which a byte count answers with no run (instance 12). The fails on rule 5 alone, or on rules 1 and 2, were carried, recorded as noise, or diagnosed as variation, and shipped (instances 2, 6, 7, 13, 14 and 15). The other fails that name rule 3 are a definition the contract contradicted (instance 3) and a model comparison (instance 8), and instances 9 to 11 regrade earlier sides with no new run. The decision is `narrow`: the shape and reach graders stay as a smoke run, and the rest judges nothing. Removal was weighed as an equal there and rejected (plan *Alternatives* row A1 here) |
 | `skills/core/SKILL.md` *The rule a mechanism is kept against* (read) | "A mechanism stays only while its record of what it caught outweighs what it costs." Rules 1, 2, 4 and 5 of the verdict caught nothing on the measure's record, so they leave the verdict, and their constants and their cases leave with them. "A change rewrites the text it amends in place, and in the same commit removes what stood on the old fact." That is why *Scope* S3 to S5 exist |
 | `skills/core/SKILL.md` *The first value* (read) | "Whether two things mean the same or give the same result is the judgment the workflow delegates", and the proofer gates it. A pass of the smoke run therefore claims nothing about meaning. The measure's row C8 says so in its grounds: "A pass does not judge a shift in meaning, which the proofer's reading of the diff judges" |
 | `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes* (read) | This work item's subject is the code: a verdict, its statement in `evals/README.md`, and sentences that cite it. So the one sentence of `docs/` it corrects goes through `## Rule changes` and is not edited in the pull request |
@@ -55,8 +55,11 @@ In:
    prints each agent's preload bytes against the last tag on every pull
    request into `main`. Its list of what gives `no result` loses the run
    whose `modelUsage` is missing or short of a count and the trace that
-   cannot be read or holds no tool call. The sentence "Nothing in the tree
-   makes a later edit owe a run" stays.
+   cannot be read or holds no tool call. The section's last paragraph, which
+   said a row count spelt otherwise lets a record edited by hand pass
+   `check`, says what `parse_record` reads the count as, which judges
+   nothing. The sentence "Nothing in the tree makes a later edit owe a run"
+   stays.
 2. **S2 `evals/scripts/noninferiority.py#verdict` judges what S1 states.** It
    gives `no result` for a side cut short, a case the baseline ran and the
    new side did not, and a case run a different number of times, as today.
@@ -74,10 +77,17 @@ In:
    `Verdict: pass`. This is rule 14 of the contract: the changed title is
    pinned by `Test_render` in the same commit.
 4. **S4 `tests/evals/test_noninferiority.py` pins S2 and S3, each changed
-   case seen red first.** The `VERDICTS` rows for rules 1, 2, 4 and 5, and
-   the `no result` rows for unknown tokens, unknown tool calls, no tool calls
-   and unknown preload bytes, become rows that expect `pass`. Each is shown
-   red against the verdict before S2. The test names and the module
+   case seen red first.** Each of the four figures rules 1, 2, 4 and 5
+   judged keeps one `VERDICTS` row, which expects `pass`, and the
+   `no result` rows for unknown tokens, unknown tool calls, no tool calls
+   and unknown preload bytes become rows that expect `pass`. The other rows
+   of those rules go, two that failed rule 1 and eight that pinned a margin
+   or a noise boundary S2 removes (phase record D1). Each changed row is
+   shown red against the verdict before S2. The cases that failed a record
+   through rule 1, 2 or 5, in `Test_render`, `Test_read_record`,
+   `Test_check_record`, `Test_check` and `Test_model`, fail it through S1's
+   rule 1, and the two row-count cases move to `Test_parse_record`, which
+   reads the count (phase record D3 and D4). The test names and the module
    docstring that say "no worse" or "five pass rules" are renamed or
    rewritten. `test_passes_a_figure_exactly_at_a_margin_whose_float_falls_short`
    goes with `TOKEN_MARGIN`. `test_refuses_with_a_line_for_each_other_rule`
@@ -120,7 +130,7 @@ Out:
 | Scenario | Given / When / Then | Verifiable how |
 |---|---|---|
 | A1 A rewrite worse only on figures that judge nothing | Given numbers where recall fell by two finds, the false-finding rate rose past 0.05, the preload is no smaller and both token figures rose past 7%, when `verdict` reads them, then it gives `("pass", [])` | The S4 rows, red against `verdict` at `bac426446` and green after S2: `bin/test -q tests/evals/test_noninferiority.py -k Test_verdict` |
-| A2 A rewrite that breaks an agent's output | Given a shape or reach grader whose pooled passes fell, or one failing every new run where the baseline passed it, or one the baseline lacks failing a new run, when `verdict` reads them, then it gives `fail`, each reason line ending in its new rule number, in S1's order | `test_refuses_with_rule_3s_lines_in_their_order` (renamed as the work sees fit), with the new literals |
+| A2 A rewrite that breaks an agent's output | Given a shape or reach grader whose pooled passes fell, or one failing every new run where the baseline passed it, or one the baseline lacks failing a new run, when `verdict` reads them, then it gives `fail`, each reason line ending in its new rule number, in S1's order | `test_refuses_with_each_rules_line_in_its_order`, with the new literals |
 | A3 Figures that are unknown | Given a side with unknown tokens, unknown or no tool calls, or unknown preload bytes, when `verdict` reads it, then it gives `pass`, and `render` writes `unknown` in those cells | The four converted `VERDICTS` rows, red first; `Test_cost_rows` unchanged and green |
 | A4 What is still no result | Given a side cut short, a case the new side did not run, or a case run a different number of times, when `verdict` reads it, then it gives `no result` | The `no result` rows of `VERDICTS` that S4 keeps, green before and after |
 | A5 The record a person reads | Given two sides, when `compare` writes the record, then it opens `# proofer — phase 3 smoke run` and reads back to the verdict it states | `Test_render`, its title assertion red first; `Test_read_record` and `Test_check_record` green |
@@ -169,7 +179,7 @@ Out:
 | `FALSE_MARGIN`, and `TOKEN_MARGIN` with its comment | `evals/scripts/noninferiority.py#FALSE_MARGIN`, `evals/scripts/noninferiority.py#TOKEN_MARGIN` | Rules 2 and 5 were their only readers (executed: `git grep` finds them only in the script, its README and its tests) |
 | The reasoning for rule 5's two figures | `evals/scripts/noninferiority.py#tool_calls` docstring, and the rule 5 comment inside `verdict` | No rule weighs a token figure, so the reason why one is chosen over another has nothing to govern. The function stays, because the record still writes the tool-call count |
 | Pass rules 1, 2, 4 and 5, the tool-call sentence of rule 5, and two items of the `no result` list | `evals/README.md` *The behaviour suite* | S1's three rules and its paragraph on what is recorded |
-| The `VERDICTS` rows that expect `fail` on rules 1, 2, 4 and 5 or `no result` on an unknown figure | `tests/evals/test_noninferiority.py#VERDICTS` | Each becomes a row that expects `pass` (S4), so the figures stay exercised |
+| The `VERDICTS` rows that expect `fail` on rules 1, 2, 4 and 5 or `no result` on an unknown figure | `tests/evals/test_noninferiority.py#VERDICTS` | Each figure keeps one row that expects `pass` (S4), and the ten rows that failed rule 1 or pinned a boundary S2 removes go (phase record D1) |
 | The margin case and the line-per-other-rule case | `tests/evals/test_noninferiority.py#Test_verdict` | `TOKEN_MARGIN` is gone, and the second becomes A1's no-reason case |
 | The module name that says a rewritten definition is proved non-inferior | `tests/behaviour/test_a_rewritten_definition_proved_non_inferior.py` | The same case under a name for what it holds (S5) |
 
