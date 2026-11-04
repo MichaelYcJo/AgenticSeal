@@ -72,13 +72,14 @@ class TestTemplate:
         assert hits == [], hits
 
     def test_the_template_carries_the_tables_sections_and_verdict_block(self):
-        """#1198, *Scope* item 3: the run, the claims and the parties are
-        tables for people, and the template's one verdict block holds
-        `target:`, the `original:` line and `Verdict:`, in that order."""
+        """#1198, *Scope* item 3: the claims and the parties are tables for
+        people, and the template's one verdict block holds `target:`, the
+        `original:` line and `Verdict:`, in that order. The run the sealer
+        read is `trail/gate.md`'s, which the template no longer copies
+        (#1319, D5)."""
         text = TEMPLATE.read_text(encoding="utf-8")
         lines = reader.readable(text)
         rows = chain.table_rows(reader, lines)
-        assert [c[0].strip() for c in rows[:3]] == ["Field", "---", "Broad gate"]
         raw = text.split("\n")
         opener = raw.index(fields.OPENER)
         assert raw.count(fields.OPENER) == 1
@@ -93,12 +94,6 @@ class TestTemplate:
         assert ["Party", "Says", "Agrees with", "Disagrees with"] in [
             [c.strip() for c in r] for r in rows
         ]
-        # T4, S9 of #969: `sealed` has one meaning in this file. The cell
-        # quotes the run `trail/gate.md` names; it never says `sealed`, which
-        # a reader would take for the sealer's verdict.
-        cell = next(c[1] for c in rows if c[0].strip() == "Broad gate")
-        assert "sealed" not in cell, cell
-        assert "`trail/gate.md` names" in cell, cell
 
     def test_the_unfilled_template_is_no_guarantee(self):
         found = fields.read(TEMPLATE.read_text(encoding="utf-8"), fields.GUARANTEE)

@@ -2688,8 +2688,6 @@ def guarantee(sha, verdict, original=None, earlier=()):
     runs.append(verdict_block(sha, verdict, original))
     return (
         "# 1791999990-a-guaranteed-item — guarantee\n\n"
-        "| Field | Value |\n|---|---|\n"
-        f"| Broad gate | {sha} against main, as `trail/gate.md` names it |\n\n"
         "## Claims re-run\n\n"
         "| Claim | Source | Command | Result |\n|---|---|---|---|\n\n"
         "## The parties\n\n"
