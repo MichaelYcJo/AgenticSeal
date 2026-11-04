@@ -49,7 +49,7 @@ wrong, and the issue that says so cites this row.
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* D1 items 1 to 10, in one commit | `frame/design.md` acceptance A1 to A7: the A1 `git grep` commands, `seal rules --check`, and the narrow `bin/test` runs A4 and A5 name. The full suite is the orchestrator's broad run | |
+| 1 | `frame/design.md` *Scope* D1 items 1 to 10, in one commit | `frame/design.md` acceptance A1 to A7: the A1 `git grep` commands, `seal rules --check`, and the narrow `bin/test` runs A4 and A5 name. The full suite is the orchestrator's broad run | e24c3b31b |
 
 ## Operational impact
 
