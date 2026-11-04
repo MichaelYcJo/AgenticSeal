@@ -195,9 +195,7 @@ pytest once and one that runs it several times. Each of those returns as the
 next round's `regression:` or `reopens:` finding. Before writing the snippet,
 read the fact where it stands and list the statements it touches; where one
 snippet cannot cover them, say in the grounds which statements it leaves and
-that the fix pass owes them too. The judgment rows of 0.26.0 to 0.29.0 trace
-nine regressions in seven work items to a paste-ready fix applied as given
-whose reach was one coordinate.
+that the fix pass owes them too.
 
 **A finding is not closed too early.**
 

@@ -239,13 +239,9 @@ PR 본문의 기준은 이것이다 — **파일을 하나도 열지 않고 읽�
 쪽만 이름을 갖고 나머지가 익명으로 남은 문장이다 — *the proofer's audit of the
 seal* 은 감사하는 쪽만 밝히고 감사받는 것은 밝히지 않는다.
 
-실제로 `seal` 은 세 가지를 동시에 가리켰다. proofer 가 남기는 리뷰 표시, sealer
-가 찍는 도장, crafter 의 증명 블록이고, 앞의 둘은 나란히 열리는 두 파일에 있었다.
-
-**이 문장은 보장이 아니다.** 규칙을 적어 두고도 다시 깨진 사례가 일곱 건이다.
-주인이 익명으로 남은 문장은 리뷰에서 proofer 가 읽어 찾는다. 아래 절
-*에이전트와 검사가 읽는 글은 한 가지로만 읽히게 쓴다* 의 두 번째 규칙이 읽는
-쪽으로 적은 것도 그 proofer 다. 검사가 아니라 읽는 쪽이 맡는 까닭은 한 낱말이
+**이 문장은 보장이 아니다.** 주인이 익명으로 남은 문장은 리뷰에서 proofer
+가 읽어 찾는다. 아래 절 *에이전트와 검사가 읽는 글은 한 가지로만 읽히게
+쓴다* 의 두 번째 규칙이 읽는 쪽으로 적은 것도 그 proofer 다. 검사가 아니라 읽는 쪽이 맡는 까닭은 한 낱말이
 주인 하나를 가리키는지가 뜻의 문제이기 때문이다(`skills/core/SKILL.md`
 *Judgment is spent where meaning is the question, and a script answers the rest*).
 
@@ -266,8 +262,7 @@ seal* 은 감사하는 쪽만 밝히고 감사받는 것은 밝히지 않는다.
 골라야 한다. 회차 기록, `guarantee.md`, `trail/gate.md` 에서 검사가 읽는
 필드는 `seal` 블록 안에만 쓴다. 블록 안의 줄이 필드로 해석되지 않으면 검사는
 그 줄을 짚어 거절한다. 블록 밖의 줄은 필드처럼 보여도 산문이고, 검사는 그
-줄을 필드로 읽지 않는다. 사례는 `plan.md` 의 승인 줄이다. 그 줄 뒤에 문장 하나를
-덧붙이자, 그 줄을 읽던 검사는 승인이 없다고 읽었다.
+줄을 필드로 읽지 않는다.
 check: tests/github/test_rules.py tests/skills/test_chain_check.py tests/skills/test_rule_changes.py tests/test_censuses.py tests/text/test_the_agent_contract_holds_the_universal_rules.py tests/behaviour/test_a_cited_section_stands_in_its_file.py
 
 **저장소가 정의한 용어는 정의한 뜻으로만 쓰고, 같은 것을 다른 말로 바꿔 부르지
@@ -281,11 +276,6 @@ check: tests/github/test_rules.py tests/skills/test_chain_check.py tests/skills/
 crafter, proofer, sealer 처럼 이름으로 적는다. 두 당사자가 함께 여는 파일에서는
 "you" 나 "the session" 이라고 쓰지 않는다. 그 파일에서 "the session" 은 둘 중
 누구로도 읽힌다. 줄이다가 하는 쪽이나 조건이 빠진 문장은 절약이 아니라 결함이다.
-사례는 셋이다.
-
-- "So is" 로 시작한 문장이 바로 앞이 아닌 다른 절에 붙어 읽혔다(#953 의 sealer).
-- "The one writer that does is `settle`" 이 `docs/` 를 누가 쓰는지 정하는 규칙으로 읽혔다(`0ed5dd3b:seal/specs/1792449518-settle-squashes-specs-into-docs-in-place/spec.md`).
-- orchestrator 와 구현자가 함께 읽는 파일에서 "the session" 이 둘 중 누구인지 정해지지 않았다.
 
 ### 이전 → 이후를 표로 보인다
 
@@ -299,8 +289,8 @@ crafter, proofer, sealer 처럼 이름으로 적는다. 두 당사자가 함께 
 
 <!-- 이 절과 `outside-the-review.md` 의 세 절은 각 글에만 더해지는 규칙이다.
 앞의 「문장 규칙」·「구성 규칙」을 대체하지 않는다 — 그 사실을 각 절 머리에 다시
-적는 이유는, 이 파일을 PR 본문 쓰려고 연 사람이 여기서부터 읽기 시작해 표가
-전부인 줄 알았기 때문이다. -->
+적는 이유는, 이 파일을 PR 본문 쓰려고 연 사람이 여기서부터 읽기 시작하면 표가
+전부인 줄 알기 때문이다. -->
 
 **여기에 오기 전에**: 출력 언어의 문장 규칙이 먼저 적용된다 — 한국어면
 「문장 규칙」, 영어면 「English prose rules」. 아래는 그 위에 **더해지는** 것이지
@@ -318,7 +308,7 @@ PR 본문·다른 팀에 답하는 코멘트·사용자와의 대화, 이 셋의
 위에 함께 적용한다.
 
 리뷰어에게는 이 파일만 필요하다 — 리뷰 코멘트가 리뷰어가 쓰는 글의 전부이고,
-나머지 셋은 스폰마다 함께 도착할 이유가 없었다 (#265).
+나머지 셋은 스폰마다 함께 도착할 이유가 없다.
 
 ## English prose rules
 
