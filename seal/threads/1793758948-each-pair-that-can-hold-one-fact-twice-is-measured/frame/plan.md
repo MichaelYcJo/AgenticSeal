@@ -44,7 +44,7 @@ Failure scenario of the chosen approach, six months on. The drafts are filed, an
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | *Scope* items 1 and 2 for R1, R2, R3, R7 to R11 and R13 to R17; item 5 for those rows; item 6, `gaps.md` from its template | each row's command, run at `94635718e`, prints its count; design S3 for the phase's labels; design S5; `tests/behaviour/test_chain_hooks_hardening.py::test_every_spec_directory_that_reached_the_ladder_has_an_overview` | |
+| 1 | *Scope* items 1 and 2 for R1, R2, R3, R7 to R11 and R13 to R17; item 5 for those rows; item 6, `gaps.md` from its template | each row's command, run at `94635718e`, prints its count; design S3 for the phase's labels; design S5; `tests/behaviour/test_chain_hooks_hardening.py::test_every_spec_directory_that_reached_the_ladder_has_an_overview` | 46c19092f |
 | 2 | *Scope* items 1 and 2 for R4, R5, R6 and R12; item 3; items 5 and 6 for those rows | the same, for its rows | |
 | 3 | *Scope* items 1 and 2 for R18 to R21; items 5 and 6 for those rows | the same, for its rows | |
 | 4 | *Scope* item 4; items 5 and 6 for E1 to E4 | the same, for its rows; design S3 over every label; design S7 | |
