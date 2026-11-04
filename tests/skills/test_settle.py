@@ -3233,10 +3233,9 @@ class Test_module:
     ):
         """`spec_from_file_location` hands back a spec for any path ending in
         `.py`, present or not, so a missing sibling reaches `exec_module` and dies
-        with `FileNotFoundError`. `skills/code-review/scripts/round_record.py#load`
-        had that shape until #590; this copy arrived repaired, and this is the
-        case that keeps it repaired. Since #590 the refusal is exit 2 on stderr,
-        and it names what the missing file is for, per file."""
+        with `FileNotFoundError`. This case keeps `settle.load` from that shape:
+        the refusal is exit 2 on stderr, and it names what the missing file is
+        for, per file."""
         missing = str(tmp_path / "not-here.py")
         monkeypatch.setitem(
             settle.PURPOSES, missing, "it is where the fold record is read from"

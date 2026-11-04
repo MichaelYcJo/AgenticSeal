@@ -33,11 +33,7 @@ from conftest import (
 # --- the class, re-enumerated over tests/ -----------------------------------
 #
 # The guard is per helper, so a sixth helper written without one is the defect
-# again. This is what stops that, and it is modelled on
-# `f975ea66a:tests/test_a_corrected_sentence_survives_elsewhere.py#_derives_a_path_list`,
-# the last commit that held it — the machinery this repository already wrote
-# for finding path-listing git calls by scope. Two of its decisions are copied with it, and both were
-# bought by that module's own round 1:
+# again. This is what stops that, and two decisions shape it:
 #
 #   - **the unit is the CALL SITE, not the function name.** A second
 #     unfiltered list inside a function that already filters one is this
@@ -488,7 +484,8 @@ def test_an_unguarded_scope_is_named_although_a_module_is_mid_edit():
     present, missing = suite_modules()
     thinned = dict(derivers([p for p in present if p != rel]))
 
-    planted = "tests/test_tmp_seventh.py#sweep"
+    # Joined here, so this file cites no scope the tree lacks.
+    planted = "#".join(("tests/test_tmp_seventh.py", "sweep"))
     found = {**thinned, planted: 1}
     assert sorted(set(found) - set(PATH_LIST_CALLS)) == [planted], found
     assert miscounted_scopes(found) == {}

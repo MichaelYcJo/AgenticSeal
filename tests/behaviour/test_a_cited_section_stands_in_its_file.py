@@ -1,18 +1,24 @@
-"""A cited section stands in its file, and a cited contract rule in the contract.
+"""A cited section stands in its file, a cited contract rule in the contract,
+and a cited name in its file.
 
-This module reads two shapes of citation, the two that
-`skills/writing-style/SKILL.md` states. A file cites another file's section
-as the backticked path followed by the section's text in italics, and the
-section has to be a heading or a bold rule lead that file has. Before #1043
-one case read such citations, and only those of `skills/implement/SKILL.md`,
-so a heading renamed in any other file left its citations pointing at
-nothing with the suite green. A file cites a rule of
+This module reads three shapes of citation: the two that
+`skills/writing-style/SKILL.md` states, and a name. A file cites another
+file's section as the backticked path followed by the section's text in
+italics, and the section has to be a heading or a bold rule lead that file
+has. Before #1043 one case read such citations, and only those of
+`skills/implement/SKILL.md`, so a heading renamed in any other file left its
+citations pointing at nothing with the suite green. A file cites a rule of
 `skills/agent-contract/SKILL.md` as `contract rule <N>`, and the contract and
 `agents/` cite it as `rule <N>`. The rule has to be a section the contract
 has. Before #1127 the case that reads these read six trees and five file
-extensions, and missed a citation wrapped across a `#` comment marker.
+extensions, and missed a citation wrapped across a `#` comment marker. A
+file cites a name another file binds as `path#name`, the path ending in
+`.py`, and the name has to be one that file, parsed with `ast`, binds: a
+`def` or `class` at any depth, or a name bound at module scope. Before #1256
+nothing read these, and a comment citing a function removed before the
+comment was written stood through 25 release tags.
 
-Both readers read one corpus, `corpus(root)`: every path `git ls-files`
+The three readers read one corpus, `corpus(root)`: every path `git ls-files`
 lists, outside the prefixes of `tests/censuses.py#RECORDS`, that is on disk
 and decodes as UTF-8. Three kinds of tracked file are left out, each for its
 reason. A record keeps what it said when it was written, so its citations
@@ -23,6 +29,14 @@ extension. Each file is read through `flowing`, so a citation wrapped across
 `#` comment lines or across adjacent `.py` string literals reads as one. A
 `#` that opens a line of a `.md` file is a heading and is kept.
 
+A name token preceded by a word character, `.`, `/`, `:` or `-` is not
+read, so a `<commit>:<path>#<name>` is left unread and no commit is opened.
+As for a section, a token is read only where its path's first segment is a
+tracked top-level entry, so a bare file name with no directory is read only
+where the top level holds that file. A tracked cited file that is not on
+disk, does not decode as UTF-8 or does not parse is named in a warning and
+decides nothing.
+
 The fixtures below cite files under `manual/`, a top-level entry this
 repository does not have, so the case that reads this repository does not
 read the fixtures' own citations. A fixture's contract rule number is one
@@ -30,6 +44,7 @@ above the contract's last section, computed when the case runs, so this
 file holds no dangling contract citation of its own.
 """
 
+import ast
 import collections
 import os
 import pathlib
@@ -59,8 +74,9 @@ rules = load_module(
 config = load_hook_module("lib/config.py", "agentic_config_for_citations")
 
 # `read` is how many citations of a repository file were read, `dangling` is
-# `[(citing file, line, cited file, *cited text*)]`, and `excused` is the
-# same with the work item directory whose pending rule change corrects it.
+# `[(citing file, line, cited file, cited text)]`, the cited text being the
+# `*section*` or the `path#name` token, and `excused` is the same with the
+# work item directory whose pending rule change corrects it.
 Found = collections.namedtuple("Found", "read dangling excused")
 
 
@@ -165,19 +181,28 @@ def corrections(root):
     return rules.pending(root, config.policy_root(os.path.join(root, "seal")))
 
 
-def excuser(rel, line, said, text, pending):
+def holds(field, cited):
+    """FIELD, an item's `from` or `to`, holds the citation CITED whole, its
+    whitespace collapsed: a `*section*` as written, which its asterisks
+    bound, or a `path#name` token as `NAME_TOKEN` reads one, so neither
+    `manual/b.py#gone_all` nor `lib/manual/b.py#gone` holds
+    `manual/b.py#gone`."""
+    flat = " ".join((field or "").split())
+    if cited.startswith("*"):
+        return cited in flat
+    return cited in {m.group(0) for m in NAME_TOKEN.finditer(flat)}
+
+
+def excuser(rel, line, cited, text, pending):
     """The work item directory of the PENDING item that corrects the citation
-    of *SAID* at LINE of REL, whose text is TEXT, or None. An item whose
-    `from` holds the citation and whose `to` does not corrects it, and so
-    does a `remove` with no `from` whose section holds the line
-    (`rule_changes.removed_by`). `parse` reads an item's `file` only as a
-    file of the policy root or of one of its groups."""
-    cited = f"*{said}*"
+    CITED, as written, at LINE of REL, whose text is TEXT, or None. An item
+    whose `from` holds the citation whole (`holds`) and whose `to` does not
+    corrects it, and so does a `remove` with no `from` whose section holds
+    the line (`rule_changes.removed_by`). `parse` reads an item's `file` only
+    as a file of the policy root or of one of its groups."""
     for o, item in pending:
         if o.file == rel and o.old is not None:
-            if cited in " ".join(o.old.split()) and cited not in " ".join(
-                (o.new or "").split()
-            ):
+            if holds(o.old, cited) and not holds(o.new, cited):
                 return item
     return rules.removed_by(pending, rel, text, line)
 
@@ -217,28 +242,138 @@ def citations(root):
                 held[target] = sections(text_of(where) if target in tracked else None)
             if resolves(said, held[target]):
                 continue
-            item = excuser(rel, line, said, text, pending)
+            cited = f"*{said}*"
+            item = excuser(rel, line, cited, text, pending)
             if item:
-                excused.append((rel, line, target, f"*{said}*", item))
+                excused.append((rel, line, target, cited, item))
             else:
-                dangling.append((rel, line, target, f"*{said}*"))
+                dangling.append((rel, line, target, cited))
     return Found(read, dangling, excused)
 
 
-def assert_resolved(root):
-    """Warn once for each excused citation under ROOT, fail on any dangling
-    one, and return the `Found`."""
-    found = citations(root)
+# A citation of a name: a path ending in `.py`, then `#` and the name. A
+# token preceded by a word character, `.`, `/`, `:` or `-` stands inside a
+# longer path, a URL or a `<commit>:<path>`, and is not read.
+NAME_TOKEN = re.compile(r"(?<![\w./:-])((?:[\w.-]+/)*[\w.-]+\.py)#(\w+)")
+# A statement at module scope whose own bodies still bind at module scope.
+OPENS = (ast.If, ast.Try, ast.With, ast.AsyncWith, getattr(ast, "TryStar", ast.Try))
+
+
+def named_in(rel, text):
+    """`[(line, cited file, name, token)]` for each `path#name` TEXT, the text
+    of file REL, holds, read through `flowing`, at the line it starts on."""
+    flow = flowing(rel, text)
+    return [
+        (flow.count("\n", 0, m.start()) + 1, m.group(1), m.group(2), m.group(0))
+        for m in NAME_TOKEN.finditer(flow)
+    ]
+
+
+def targets(node):
+    """The names an assignment target NODE binds: a name, or the names of
+    a tuple, a list or a starred target; an attribute or a subscript binds
+    none."""
+    if isinstance(node, ast.Name):
+        return [node.id]
+    if isinstance(node, ast.Starred):
+        return targets(node.value)
+    if isinstance(node, (ast.Tuple, ast.List)):
+        return [name for element in node.elts for name in targets(element)]
+    return []
+
+
+def bound(text):
+    """The names a citation of the `.py` file holding TEXT can name, or None
+    where TEXT is None or `ast` cannot parse it: each `def`, `async def` and
+    `class` at any depth, and each name bound at module scope by an
+    assignment or an import, also inside a module-level `if`, `try` or
+    `with`. A name bound only inside a function body is none of them."""
+    if text is None:
+        return None
+    with warnings.catch_warnings():
+        # An invalid escape in a string is the parsed file's to fix.
+        warnings.simplefilter("ignore", SyntaxWarning)
+        try:
+            tree = ast.parse(text)
+        except (SyntaxError, ValueError):
+            return None
+    defined = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
+    names = {node.name for node in ast.walk(tree) if isinstance(node, defined)}
+    body = list(tree.body)
+    while body:
+        node = body.pop()
+        if isinstance(node, ast.Assign):
+            names.update(name for t in node.targets for name in targets(t))
+        elif isinstance(node, (ast.AnnAssign, ast.AugAssign)):
+            names.update(targets(node.target))
+        elif isinstance(node, (ast.Import, ast.ImportFrom)):
+            names.update((a.asname or a.name).split(".")[0] for a in node.names)
+        elif isinstance(node, OPENS):
+            body += node.body + getattr(node, "orelse", [])
+            body += getattr(node, "finalbody", [])
+            body += [s for h in getattr(node, "handlers", []) for s in h.body]
+    return names
+
+
+def names(root):
+    """Every citation of a name in `corpus(root)`, as a `Found` whose cited
+    text is the `path#name` token. A token whose path's first segment is no
+    tracked top-level entry is not read. A cited path that names no tracked
+    file binds no name. A tracked cited file that is not on disk, does not
+    decode as UTF-8 or does not parse is named in one warning as not read,
+    and its citations are neither read nor dangling."""
+    tracked, files = corpus(root)
+    top = {rel.split("/")[0] for rel in tracked}
+    listed = set(tracked)
+    pending = corrections(root)
+    held, read, dangling, excused = {}, 0, [], []
+    for rel, text in files:
+        for line, target, name, token in named_in(rel, text):
+            if target.split("/")[0] not in top:
+                continue
+            if target not in held:
+                where = os.path.join(root, *target.split("/"))
+                held[target] = bound(text_of(where)) if target in listed else set()
+            if held[target] is None:
+                continue
+            read += 1
+            if name in held[target]:
+                continue
+            item = excuser(rel, line, token, text, pending)
+            if item:
+                excused.append((rel, line, target, token, item))
+            else:
+                dangling.append((rel, line, target, token))
+    for target in sorted(t for t, held_names in held.items() if held_names is None):
+        warnings.warn(
+            f"`{target}` is cited by name and was not read: it is not on disk, "
+            "does not decode as UTF-8 or does not parse, so its citations "
+            "decide nothing",
+            stacklevel=2,
+        )
+    return Found(read, dangling, excused)
+
+
+def shown(target, cited):
+    """A citation as a message names it: the `path#name` token, which holds
+    its path, or the cited file and the italic section."""
+    return f"`{cited}`" if cited.startswith(f"{target}#") else f"`{target}` {cited}"
+
+
+def assert_resolved(root, reader=citations):
+    """Warn once for each citation under ROOT that READER excuses, fail on
+    any dangling one, and return the `Found`."""
+    found = reader(root)
     for rel, line, target, cited, item in found.excused:
         warnings.warn(
-            f"{rel}:{line} cites `{target}` {cited}, which a pending rule "
+            f"{rel}:{line} cites {shown(target, cited)}, which a pending rule "
             f"change in {item} corrects; it stands until the settle writes "
             "that correction",
             stacklevel=2,
         )
-    assert not found.dangling, "a citation names a section its file lacks:\n" + (
+    assert not found.dangling, "a citation names what its file lacks:\n" + (
         "\n".join(
-            f"{rel}:{line} cites `{target}` {cited}"
+            f"{rel}:{line} cites {shown(target, cited)}"
             for rel, line, target, cited in found.dangling
         )
     )
@@ -255,6 +390,16 @@ def test_every_cited_section_stands_in_its_file():
     found = assert_resolved(ROOT)
     assert found.read >= 100, (
         f"only {found.read} citations recognised, so a pass means nothing"
+    )
+
+
+def test_every_cited_name_stands_in_its_file():
+    """N1: every `path#name` in this repository names a name its file binds,
+    or one a pending rule change corrects (S9). The floor keeps a reader that
+    stops matching from passing on nothing read."""
+    found = assert_resolved(ROOT, names)
+    assert found.read >= 100, (
+        f"only {found.read} names recognised, so a pass means nothing"
     )
 
 
@@ -436,13 +581,16 @@ def test_a_citation_in_python_is_read_across_comments_and_literals(tmp_path):
     ]
 
 
-ELSEWHERE = """`frame/design.md` *Scope*
+# The commit is joined to its path here, so this file holds no citation at
+# a commit for the tree's readers to take as its own.
+AT = "f6ae6db6"
+ELSEWHERE = f"""`frame/design.md` *Scope*
 
 `plan.md` *Alternatives considered*
 
 `code.claude.com/docs/hooks.md` *Hook input*
 
-`f6ae6db6:manual/b.md` *Gone*
+`{AT}:manual/b.md` *Gone*
 
 `manual/none.md` *Anything*
 
@@ -468,40 +616,196 @@ def test_a_path_outside_the_repository_is_not_read_and_a_missing_file_is(
     )
 
 
+# --- name citations (N) ------------------------------------------------------
+
+# A module binding a name in each way a citation can name it.
+BINDS = """import os.path
+import json as decoder
+from collections import OrderedDict as Ordered
+
+LIMIT = 3
+FIRST, *REST = (1, 2, 3)
+LIMIT += 1
+if LIMIT:
+    try:
+        WIDE: int = 4
+    except ImportError:
+        NARROW = 1
+    finally:
+        DONE = True
+
+
+def helper(argument):
+    local = argument
+    return local
+
+
+async def fetch():
+    pass
+
+
+class Box:
+    def method(self):
+        def inner():
+            pass
+
+        return inner
+"""
+
+RESOLVING = [
+    "os",
+    "decoder",
+    "Ordered",
+    "LIMIT",
+    "FIRST",
+    "REST",
+    "WIDE",
+    "NARROW",
+    "DONE",
+    "helper",
+    "fetch",
+    "Box",
+    "method",
+    "inner",
+]
+
+
+def test_a_renamed_name_leaves_its_citation_dangling(tmp_path):
+    """N2: a name resolves while its file binds it, at module scope or as a
+    `def` or `class` at any depth, and is named with its file and line once
+    the definition is renamed."""
+    cites = "".join(f"See `manual/b.py#{n}`.\n" for n in RESOLVING)
+    root = repo(tmp_path, {"a.md": cites, "manual/b.py": BINDS})
+    assert names(root) == Found(len(RESOLVING), [], [])
+    pathlib.Path(root, "manual", "b.py").write_text(
+        BINDS.replace("def helper", "def renamed"), encoding="utf-8"
+    )
+    assert names(root).dangling == [
+        ("a.md", RESOLVING.index("helper") + 1, "manual/b.py", "manual/b.py#helper")
+    ]
+
+
+def test_a_name_bound_only_in_a_function_does_not_resolve(tmp_path):
+    """N3: a local variable is not a unit a reader can open, so a citation
+    of one does not resolve, though the file binds the name."""
+    root = repo(tmp_path, {"a.md": "`manual/b.py#local`\n", "manual/b.py": BINDS})
+    assert names(root) == Found(
+        1, [("a.md", 1, "manual/b.py", "manual/b.py#local")], []
+    )
+
+
+def test_a_cited_path_no_tracked_file_has_is_dangling(tmp_path):
+    """N4: a path under a tracked entry that names no tracked file binds no
+    name, though the file stands on disk untracked, as S7 has it for a
+    section."""
+    root = repo(
+        tmp_path,
+        {
+            "a.md": "`manual/none.py#helper`\n\n`manual/loose.py#helper`\n",
+            "manual/b.py": BINDS,
+        },
+    )
+    pathlib.Path(root, "manual", "loose.py").write_text(BINDS, encoding="utf-8")
+    assert names(root).dangling == [
+        ("a.md", 1, "manual/none.py", "manual/none.py#helper"),
+        ("a.md", 3, "manual/loose.py", "manual/loose.py#helper"),
+    ]
+
+
+def test_a_name_outside_the_repository_or_at_a_commit_is_not_read(tmp_path):
+    """N5: a `<commit>:<path>#<name>`, a path whose first segment no tracked
+    entry has, and a path that a `/` opens are not read, and nothing opens
+    the commit. The token at a commit is built here from the fixture's own
+    commit, so this file holds none."""
+    root = repo(tmp_path, {"manual/b.py": BINDS})
+    commit = subprocess.run(
+        ["git", "-C", root, "rev-parse", "--short", "HEAD"],
+        capture_output=True,
+        check=True,
+        encoding="utf-8",
+    ).stdout.strip()
+    pathlib.Path(root, "a.md").write_text(
+        f"`{commit}:manual/b.py#gone`\n\n`elsewhere/b.py#gone`\n\n"
+        "`/manual/b.py#gone`\n\n`manual/b.py#helper`\n",
+        encoding="utf-8",
+    )
+    subprocess.run(["git", "-C", root, "add", "a.md"], check=True)
+    assert names(root) == Found(1, [], [])
+
+
+def test_a_cited_file_that_does_not_parse_is_named_and_decides_nothing(tmp_path):
+    """N6: a tracked cited file that `ast` cannot parse, or that does not
+    decode as UTF-8, is named in one warning as not read, and its citations
+    are neither read nor dangling."""
+    root = repo(
+        tmp_path,
+        {
+            "a.md": "`manual/broken.py#helper`\n`manual/broken.py#other`\n"
+            "`manual/latin.py#helper`\n",
+            "manual/broken.py": "def helper(:\n",
+        },
+    )
+    pathlib.Path(root, "manual", "latin.py").write_bytes(b"NAME = '\xe9'\n")
+    subprocess.run(["git", "-C", root, "add", "manual/latin.py"], check=True)
+    with pytest.warns(UserWarning) as caught:
+        assert names(root) == Found(0, [], [])
+    assert [str(w.message) for w in caught] == [
+        f"`{rel}` is cited by name and was not read: it is not on disk, does "
+        "not decode as UTF-8 or does not parse, so its citations decide nothing"
+        for rel in ("manual/broken.py", "manual/latin.py")
+    ]
+
+
 @pytest.mark.parametrize("record", RECORDS)
 def test_a_record_is_not_read(tmp_path, record):
     """S8: a file under a prefix of `tests/censuses.py#RECORDS` keeps what it
     said when it was written, so its citations are not read, a contract
-    rule's among them (#1127 S4)."""
+    rule's and a name's among them (#1127 S4)."""
     numbers = set(spans(read_at_root()))
     cited = f"contract rule {max(numbers) + 1}\n"
     rel = record if record.endswith(".md") else record + "x.md"
     root = repo(
         tmp_path,
         {
-            rel: "`manual/b.md` *Gone*\n" + cited,
-            "a.md": "`manual/b.md` *Here*\n" + cited,
+            rel: "`manual/b.md` *Gone*\n`manual/b.py#gone`\n" + cited,
+            "a.md": "`manual/b.md` *Here*\n`manual/b.py#here`\n" + cited,
             "manual/b.md": "## Here\n",
+            "manual/b.py": "here = 1\n",
         },
     )
+    assert names(root) == Found(1, [], [])
     assert citations(root) == Found(1, [], [])
     assert contract_dangling(corpus(root)[1], numbers) == [
-        ("a.md:2", f"rule {max(numbers) + 1}")
+        ("a.md:3", f"rule {max(numbers) + 1}")
     ]
 
 
 # --- a pending correction in the policy root (S9) ----------------------------
 
 # A file of the policy root whose citation at line 9 names a section
-# `manual/b.md` no longer has.
+# `manual/b.md` no longer has, and whose citation at line 11 names a name
+# `manual/b.py` no longer binds.
 POLICY_CITING = (
     "# A\n\n## Intro\n\nText.\n\n## Old section\n\nSee `manual/b.md` *Old name*.\n"
+    "\nSee `manual/b.py#gone`.\n"
 )
 OLD = "See `manual/b.md` *Old name*."
 # The same sentence with the cited text wrapped onto a continuation line of
 # the item's field.
 WRAPPED = "See `manual/b.md` *Old\n    name*."
 NEW = "See `manual/b.md` *New name*."
+NAME_OLD = "See `manual/b.py#gone`."
+NAME_NEW = "See `manual/b.py#kept`."
+# Each shape's reader, and the citation it names: its line, its file, its
+# cited text, and the citation as a message names it.
+SHAPES = {
+    "section": (
+        citations,
+        (9, "manual/b.md", "*Old name*"),
+        "`manual/b.md` *Old name*",
+    ),
+    "name": (names, (11, "manual/b.py", "manual/b.py#gone"), "`manual/b.py#gone`"),
+}
 
 
 def pending(tmp_path, changes, citing="docs/a.md", policy=None):
@@ -513,6 +817,7 @@ def pending(tmp_path, changes, citing="docs/a.md", policy=None):
     files = {
         citing: POLICY_CITING,
         "manual/b.md": "## New name\n",
+        "manual/b.py": "kept = 1\n",
         "seal/threads/1-x/frame/design.md": design,
     }
     if policy:
@@ -525,84 +830,139 @@ EXCUSING = {
         "docs/a.md",
         op("change", "Old section", OLD, NEW),
         None,
+        "section",
     ),
     "a change whose from wraps it": (
         "docs/a.md",
         op("change", "Old section", WRAPPED, NEW),
         None,
+        "section",
     ),
-    "a removal of its section": ("docs/a.md", op("remove", "Old section"), None),
+    "a removal of its section": (
+        "docs/a.md",
+        op("remove", "Old section"),
+        None,
+        "section",
+    ),
     "a policy root the config names": (
         "policy/a.md",
         op("change", "Old section", OLD, NEW, file="policy/a.md"),
         "policy",
+        "section",
+    ),
+    "a change whose from holds a name": (
+        "docs/a.md",
+        op("change", "Old section", NAME_OLD, NAME_NEW),
+        None,
+        "name",
+    ),
+    "a change that renames the name to a longer one": (
+        "docs/a.md",
+        op("change", "Old section", NAME_OLD, "See `manual/b.py#gone_all`."),
+        None,
+        "name",
+    ),
+    "a change that moves the name's file under a longer path": (
+        "docs/a.md",
+        op("change", "Old section", NAME_OLD, "See `lib/manual/b.py#gone`."),
+        None,
+        "name",
     ),
 }
 
 
 @pytest.mark.parametrize(
-    ("citing", "changes", "policy"), EXCUSING.values(), ids=EXCUSING
+    ("citing", "changes", "policy", "shape"), EXCUSING.values(), ids=EXCUSING
 )
 def test_a_pending_correction_excuses_a_policy_citation_and_warns(
-    tmp_path, citing, changes, policy
+    tmp_path, citing, changes, policy, shape
 ):
     """S9: a citation in a file of the policy root that a pending rule
     change corrects passes until the settle, and is reported once."""
+    reader, (line, target, cited), message = SHAPES[shape]
     root = pending(tmp_path, changes, citing, policy)
     with pytest.warns(UserWarning) as caught:
-        found = assert_resolved(root)
-    assert found.excused == [
-        (citing, 9, "manual/b.md", "*Old name*", "seal/threads/1-x/")
-    ]
+        found = assert_resolved(root, reader)
+    assert found.excused == [(citing, line, target, cited, "seal/threads/1-x/")]
     assert [str(w.message) for w in caught] == [
-        f"{citing}:9 cites `manual/b.md` *Old name*, which a pending rule change "
+        f"{citing}:{line} cites {message}, which a pending rule change "
         "in seal/threads/1-x/ corrects; it stands until the settle writes that "
         "correction"
     ]
 
 
 REFUSING = {
-    "no section": ("docs/a.md", None),
-    "no item": ("docs/a.md", "- nothing\n  why: no rule changes"),
+    "no section": ("docs/a.md", None, "section"),
+    "no item": ("docs/a.md", "- nothing\n  why: no rule changes", "section"),
     "an item naming another file": (
         "docs/a.md",
         op("change", "Old section", OLD, NEW, file="docs/other.md"),
+        "section",
     ),
     "a change whose from lacks it": (
         "docs/a.md",
         op("change", "Intro", "Text.", "Other text."),
+        "section",
     ),
     "a to that keeps the citation": (
         "docs/a.md",
         op("change", "Old section", OLD, WRAPPED + " Still."),
+        "section",
     ),
-    "a removal of another section": ("docs/a.md", op("remove", "Intro")),
+    "a removal of another section": ("docs/a.md", op("remove", "Intro"), "section"),
     "a removal of a section the file lacks": (
         "docs/a.md",
         op("remove", "No such section"),
+        "section",
     ),
     "an addition to its section": (
         "docs/a.md",
         op("add", "Old section", new="A sentence added."),
+        "section",
     ),
-    "a section parse refuses": ("docs/a.md", op("change", "Old section", OLD)),
+    "a section parse refuses": (
+        "docs/a.md",
+        op("change", "Old section", OLD),
+        "section",
+    ),
     "a file outside the policy root": (
         "manual/a.md",
         op("change", "Old section", OLD, NEW, file="manual/a.md"),
+        "section",
+    ),
+    "a to that keeps the name": (
+        "docs/a.md",
+        op("change", "Old section", NAME_OLD, NAME_OLD + " Still."),
+        "name",
+    ),
+    "a from that holds a longer name": (
+        "docs/a.md",
+        op("change", "Old section", "See `manual/b.py#gone_more`.", NAME_NEW),
+        "name",
+    ),
+    "a from that holds the name under a longer path": (
+        "docs/a.md",
+        op("change", "Old section", "See `lib/manual/b.py#gone`.", NAME_NEW),
+        "name",
     ),
 }
 
 
-@pytest.mark.parametrize(("citing", "changes"), REFUSING.values(), ids=REFUSING)
-def test_a_citation_no_pending_correction_excuses_fails(tmp_path, citing, changes):
+@pytest.mark.parametrize(
+    ("citing", "changes", "shape"), REFUSING.values(), ids=REFUSING
+)
+def test_a_citation_no_pending_correction_excuses_fails(
+    tmp_path, citing, changes, shape
+):
     """S9: without an item that corrects that file's citation, or with a
     section `rule_changes.parse` refuses, the citation fails and nothing
     is reported as excused."""
+    reader, _, message = SHAPES[shape]
     root = pending(tmp_path, changes, citing)
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
-        with pytest.raises(AssertionError, match=r"cites `manual/b\.md` \*Old name\*"):
-            assert_resolved(root)
+        with pytest.raises(AssertionError, match=re.escape(f"cites {message}")):
+            assert_resolved(root, reader)
     assert caught == []
 
 

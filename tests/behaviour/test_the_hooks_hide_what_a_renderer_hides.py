@@ -1,23 +1,23 @@
 """The hook readers hide what a CommonMark renderer hides, and nothing else (#667).
 
-`0ed5dd3b:seal/specs/1790645290-the-hooks-and-the-rider-check-read-fences-and-comments-by-one-rule/spec.md`
-*The acceptance property* is what this module holds.
+This module holds the acceptance property below.
 For every line L of a document, with `base(L)` a reader's reading at
 `release/v0.16.0` and `renderer(L)` the oracle's:
 
   1. the reader never leaves both -- `new(L)` is `base(L)` or `renderer(L)`;
   2. where the walk claims to be exact, it is -- every line it does not call
      uncertain is classed as the oracle classes it;
-  3. on every shape the frame names, the reader gives its expected answer.
+  3. on every shape `tests/block_shapes.py` holds, the reader gives its
+     expected answer.
 
-Halves 1 and 2 run here, over the frame's shapes and a seeded generated
-corpus. Half 3 is each reader's own case table, in the module that holds that
+Halves 1 and 2 run here, over those shapes and a seeded generated corpus.
+Half 3 is each reader's own case table, in the module that holds that
 reader's cases: the walk's own answers are `tests/hooks/test_blocks.py`'s (#942's
 phase 6).
 
 The oracle comes first, and it is the first thing held: before any reader
-moved, it had to give the frame's *Renderer* column on every shape, which the
-frame derived by reading the specification and could not execute (its Q2).
+moved, it had to give `RENDERER` on every shape, which was derived by
+reading the specification and could not be executed.
 """
 
 import os
@@ -634,8 +634,7 @@ uc = shared_rule()
 def config_base(lines):
     """What `hooks/lib/config.py` hid at `release/v0.16.0`: every line inside a
     fenced block by the shared delimiter rule, a block nobody closed running
-    to the end. `tests/behaviour/test_unverified_rows_close.py#test_the_fence_rule_
-    agrees_with_the_config_reader` held that reader to exactly this."""
+    to the end."""
     out = set()
     for first, last in uc.fence_spans(lines):
         out.update(range(first, len(lines) if last is None else last + 1))

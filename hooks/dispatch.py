@@ -610,7 +610,6 @@ def main():
         print(merged)
 
 
-# exempt from entry_point: its own reconfigure loop, held by test_dispatch
 if __name__ == "__main__":
     # THE entry point, and the only one that matters in production: `hooks.json`
     # spawns this file and nothing else, and it loads each gate with

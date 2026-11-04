@@ -831,7 +831,11 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    for _name, _errors in (("stdout", "replace"), ("stderr", "backslashreplace")):
+    for _name, _errors in (
+        ("stdin", "replace"),
+        ("stdout", "replace"),
+        ("stderr", "backslashreplace"),
+    ):
         _stream = getattr(sys, _name, None)
         if hasattr(_stream, "reconfigure"):
             _stream.reconfigure(encoding="utf-8", errors=_errors)

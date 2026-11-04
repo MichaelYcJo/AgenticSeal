@@ -9,8 +9,9 @@ the line window a truth accepts.
 `test_a_named_case_is_read_at_every_release_tag` holds the seeded
 generator too, because both read the release tags through this module.
 
-#942's phase 6 placed these cases from
-`tests/behaviour/test_a_rewritten_definition_proved_non_inferior.py`.
+#942's phase 6 placed these cases from one behaviour module, whose
+remaining case stands in
+`tests/behaviour/test_no_two_truths_of_a_proofer_case_accept_one_location.py`.
 """
 
 import importlib.util

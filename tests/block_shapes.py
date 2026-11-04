@@ -1,13 +1,12 @@
-"""The shapes
-`0ed5dd3b:seal/specs/1790645290-the-hooks-and-the-rider-check-read-fences-and-comments-by-one-rule/spec.md`
-*The shapes* names, as lines (#667).
+"""The shapes the readers of fences and HTML comments are held to, as lines
+(#667).
 
-Data and nothing else. Each shape is the document one row of that table is
-about, and `RENDERER` is the frame's *Renderer* column turned into the lines
-a CommonMark renderer hides, derived by reading the specification when the
-frame was drawn. `tests/behaviour/test_the_hooks_hide_what_a_renderer_hides.py` holds
-the oracle to that column (the frame's Q2) and then holds every reader to the
-oracle over these shapes and a generated corpus.
+Data and nothing else. `SHAPES` holds each shape as a document's lines, keyed
+by its id, and `RENDERER` holds, for each id, the lines a CommonMark
+renderer hides, derived by reading the specification.
+`tests/behaviour/test_the_hooks_hide_what_a_renderer_hides.py` holds the
+oracle to `RENDERER` and then holds every reader to the oracle over these
+shapes and a generated corpus.
 
 Most shapes are work item 1790635413's own test strings, taken verbatim at
 `4edc5de6`, because each is a place a previous attempt at these readers was
