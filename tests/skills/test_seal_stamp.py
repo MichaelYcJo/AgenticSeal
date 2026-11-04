@@ -1267,12 +1267,13 @@ def verdict_block(target, base, verdict="sealed"):
 
 def guarantee_text(target, base, verdict="sealed", earlier=()):
     """A `guarantee.md` in `templates/records/sdd-guarantee.md`'s shape: a
-    block per earlier run, each `(sha, verdict)`, then the newest run's."""
+    table for people, then a block per earlier run, each `(sha, verdict)`,
+    then the newest run's."""
     runs = [verdict_block(sha, base, said) for sha, said in earlier]
     runs.append(verdict_block(target, base, verdict))
     return (
-        "# an item — guarantee\n\n| Field | Value |\n|---|---|\n"
-        f"| Broad gate | {target} against {base} |\n\n" + "\n".join(runs)
+        "# an item — guarantee\n\n## Claims re-run\n\n"
+        "| Claim | Source | Command | Result |\n|---|---|---|---|\n\n" + "\n".join(runs)
     )
 
 

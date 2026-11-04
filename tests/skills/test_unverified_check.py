@@ -955,24 +955,23 @@ class Test_nothing_block:
     @pytest.mark.parametrize(
         "body, answer",
         [
-            ([(3, "- nothing"), (4, "  why: all run.")], ("all run.", None)),
+            ([(3, "- nothing"), (4, "  why: all run.")], []),
+            ([(3, "- nothing")], []),
             ([(3, "| Item | Who must answer |")], None),
             ([(3, "none - x")], None),
         ],
-        ids=["the block", "a table", "the old line"],
+        ids=["the block", "the block with no why", "a table", "the old line"],
     )
     def test_accepts_the_block_and_passes_anything_else_on(self, body, answer):
         """#1167, *Scope* item 9: a line that opens like the block and is not
         it is passed on as any other line is, and its reader names it
-        (`unread_block`). Seen red against its refusal here."""
+        (`unread_block`). Seen red against its refusal here. The block
+        answers with its errors alone: no reader uses its reason (#1319)."""
         assert UC.nothing_block(body) == answer
 
     def test_refuses_a_second_item(self):
         body = [(3, "- nothing"), (4, "  why: x"), (5, "- nothing"), (6, "  why: y")]
-        assert UC.nothing_block(body) == (
-            None,
-            (5, "`- nothing` is the section's one item"),
-        )
+        assert UC.nothing_block(body) == [(5, "`- nothing` is the section's one item")]
 
 
 class Test_unread_block:
@@ -1060,12 +1059,15 @@ class Test_parse_section:
         [
             "- nothing\n  why: every claim in this item was executed.\n",
             "- nothing\n  why: every claim in this item\n    was executed.\n",
+            "- nothing\n",
         ],
-        ids=["one line", "continued four spaces in"],
+        ids=["one line", "continued four spaces in", "no why"],
     )
     def test_accepts_the_no_change_block_as_nothing_open(self, block):
         """S1 of #1000: silence and "nothing open" look different in the
-        file, not only in the tally."""
+        file, not only in the tally. The reason under `why:` is the agents'
+        to read and no script's to use, so a block without it reads too
+        (#1319)."""
         assert parse(f"## Not verified\n\n{block}") == ([], [], [])
 
     @pytest.mark.parametrize(
@@ -1227,7 +1229,6 @@ class Test_parse_section:
     @pytest.mark.parametrize(
         "body, bad, says",
         [
-            ("- nothing\n", "- nothing", "`nothing` needs `why`"),
             ("- nothing\n  why:\n", "  why:", "`why` is empty"),
             ("- Nothing\n  why: x\n", "- Nothing", BLOCK),
             ("-nothing\n  why: x\n", "-nothing", BLOCK),
@@ -1240,7 +1241,6 @@ class Test_parse_section:
             ),
         ],
         ids=[
-            "no why",
             "an empty why",
             "capitalised",
             "no space after the dash",

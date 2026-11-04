@@ -27,7 +27,7 @@ comes first, then one field per line, indented two spaces:
 | `add` | `file`, `to`; `section` optional | `to` belongs at the end of the section's own text, before its first sub-heading. A `to` that is one table row belongs as the last row of the last table in that text. With no `section`, `to` is a new document, `file` |
 | `change` | `file`, `section`, `from`, `to` | the text `from` quotes becomes `to` |
 | `remove` | `file`, `section`; `from` optional | the text `from` quotes goes, or with no `from` the whole section, up to the next heading of its level or higher |
-| `nothing` | `why` | changes no rule, and stands alone in the section |
+| `nothing` | `why` optional | changes no rule, and stands alone in the section |
 
 - `file` is a `.md` file of the policy root, `seal/config.md`'s
   `Policy root` row (`docs` when absent), or of one of its groups:
@@ -45,12 +45,13 @@ comes first, then one field per line, indented two spaces:
   line that begins inside a span an earlier line opened is refused at its
   line.
 - A design that changes no rule writes the no-change block in place of the
-  items, `- nothing` with its one field `why:`, and the block is read in
-  that one spelling. A first line that opens like it and is not it, such as
-  `nothing — <why>` or `- none`, is no block: the section is refused at that
-  line as the items refuse any line outside them, and the reader names the
-  line as one it did not read. `## Not verified` reads the block the same
-  way.
+  items, `- nothing` with the reason in its one field `why:`, and the block
+  is read in that one spelling. The reason is the proofer's to read: no
+  script uses it, so none refuses a block that lacks it. A first line that
+  opens like it and is not it, such as `nothing — <why>` or `- none`, is no
+  block: the section is refused at that line as the items refuse any line
+  outside them, and the reader names the line as one it did not read.
+  `## Not verified` reads the block the same way.
 - A block that does not match whole is refused at its line, and its design
   joins no group: the settling session reads it whole.
 - The section's heading is `## Rule changes`, spelt exactly so, and no

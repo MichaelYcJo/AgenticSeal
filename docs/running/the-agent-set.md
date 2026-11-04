@@ -17,6 +17,11 @@ test the shared file applies to itself: what is true of every agent is
 shared, what is one agent's own is in that agent's definition, and an agent
 whose definition is silent about an act does not take it.
 
+**Contract rule 1 writes out the wrong command form beside the right one,
+because the failure is a habit.** The right form has to be as easy to copy
+as the wrong one.
+check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
+
 **The contract's rule numbers are stable.** A prompt saying *contract rule 3
 is narrowed this round*, and a round record compared with another months
 later, hold only while the number still means what it meant; how a retired

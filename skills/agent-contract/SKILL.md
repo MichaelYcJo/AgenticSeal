@@ -15,21 +15,20 @@ user-invocable: false
 
 # agent-contract — what every agent this plugin spawns is bound by
 
-This file's rules bind every agent, and nothing here is one agent's own: a
-rule that would need a per-role exception here is not universal. Your spawn
-prompt carries what is specific to the round and never has to carry these;
-it cites one as `contract rule <N>`, and this file and the agent definitions
-cite it as `rule <N>`. A rule number is never reused and never re-ordered. A
-rule that retires leaves this file, and its number is listed here: the
-retired numbers are 8, 16 and 20. A new rule takes the number after the highest
-one used, retired or not.
+This file's rules bind every agent, and nothing here is one agent's own. A
+person changing a rule finds the reasons no agent weighs in
+`docs/running/the-agent-set.md` *One contract every agent receives, and one
+definition each*. Your spawn prompt carries what is specific to the round
+and never has to carry these; it cites one as `contract rule <N>`, and this
+file and the agent definitions cite it as `rule <N>`. A rule number is
+never reused and never re-ordered. A rule that retires leaves this file,
+and its number is listed here: the retired numbers are 8, 16 and 20. A new
+rule takes the number after the highest one used, retired or not.
 
 ## 1 Read exit codes directly, never through a pipe
 
 `cmd >/dev/null 2>&1; echo $?` — never `cmd | tail; echo $?`, which reports
-the pipe's status and is always 0. Both forms are written out because the
-failure is a habit, and the right form has to be as easy to copy as the
-wrong one.
+the pipe's status and is always 0.
 check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
 
 ## 2 Narrow and often; the broad gate is the orchestrator's
@@ -100,18 +99,12 @@ check: evals/behaviour/crafter/rule-crafter-count-words/ evals/behaviour/crafter
 
 ## 9 Edits go through the `Edit` tool
 
-Two reasons point the same way. An edit must be able to fail: a substitution
-routed through the shell does nothing, says nothing, and exits zero when its
-pattern misses, and the miss surfaces at the next check as another edit and
-another run. Where the environment leaves no choice, assert that every
-substitution matched.
-
-And the routing check sees only the edit tools. `hooks/routing-edit-gate.py`
-refuses a `Write`, `Edit` or `NotebookEdit` on a branch no routing
-declaration names, before the edit lands; a `sed -i`, a redirection or a
-script writes a file with no edit tool, so an edit through the shell is
-invisible to it, and only the pull request's trailer arm is left to catch
-the change (`docs/checks/the-routing-check.md` *The edit check*).
+An edit must be able to fail: a substitution routed through the shell does
+nothing, says nothing, and exits zero when its pattern misses, and the miss
+surfaces at the next check as another edit and another run. Where the
+environment leaves no choice, assert that every substitution matched. The
+routing check sees only the edit tools (`docs/checks/the-routing-check.md`
+*The edit check*).
 check: tests/text/test_edits_go_through_the_edit_tool.py
 
 ## 10 Batch independent reads and runs

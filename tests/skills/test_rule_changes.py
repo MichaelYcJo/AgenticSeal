@@ -138,26 +138,21 @@ class Test_parse:
         }
 
     @pytest.mark.parametrize(
-        "body, why",
+        "body",
         [
-            (
-                "- nothing\n  why: this item changes no rule.",
-                "this item changes no rule.",
-            ),
-            (
-                "- nothing\n  why: this item changes\n    no rule.",
-                "this item changes\nno rule.",
-            ),
+            "- nothing\n  why: this item changes no rule.",
+            "- nothing\n  why: this item changes\n    no rule.",
+            "- nothing",
         ],
-        ids=["one line", "continued"],
+        ids=["one line", "continued", "no why"],
     )
-    def test_the_no_change_block_is_a_section_with_no_operation(self, body, why):
-        """S10. `- nothing` with its one field, `why`, is a section that changes
-        no rule: no operation and no error, and the reason read as any field's
-        value is."""
+    def test_the_no_change_block_is_a_section_with_no_operation(self, body):
+        """S10. `- nothing` is a section that changes no rule: no operation
+        and no error. Its field `why` is optional and its reason is returned
+        to no caller, since the settle and the check use only the absence of
+        operations, and the proofer reads the reason (#1319)."""
         parsed = parse(spec(body))
-        assert (parsed.ops, parsed.errors) == ([], [])
-        assert parsed.nothing == why
+        assert parsed == rules.Parsed([], [], []), parsed
 
     def test_a_spec_with_no_section_is_told_apart_from_an_empty_one(self):
         """A spec written before the section existed joins no group and is
@@ -204,7 +199,7 @@ class Test_parse:
         if beside:
             assert parsed.ops is not None, parsed
         else:
-            assert parsed == rules.Parsed(None, None, [], [(line, why)]), parsed
+            assert parsed == rules.Parsed(None, [], [(line, why)]), parsed
 
     @pytest.mark.parametrize("heading", ["### rule changes", "#### Rule Changes"])
     def test_a_near_heading_inside_the_section_is_a_line_of_it_and_not_named(
@@ -234,16 +229,14 @@ class Test_parse:
         letters is another section, and a spec holding only it has none and
         names nothing."""
         for heading in ("## Rules changes", "## Rule changes made", "## Changes"):
-            assert parse(f"# x\n\n{heading}\n\nText.\n") == rules.Parsed(
-                None, None, [], []
-            )
+            assert parse(f"# x\n\n{heading}\n\nText.\n") == rules.Parsed(None, [], [])
 
     def test_a_section_quoted_in_a_fence_is_not_read(self):
         """A heading inside a fence is no heading, so neither the section nor
         a near miss of its heading is read, and nothing is named."""
         for heading in ("## Rule changes", "## Rule Changes"):
             fenced = f"# x\n\n```\n{heading}\n\n- remove\n  file: docs/a.md\n```\n"
-            assert parse(fenced) == rules.Parsed(None, None, [], []), heading
+            assert parse(fenced) == rules.Parsed(None, [], []), heading
 
     @pytest.mark.rule("record-comment-line-refused")
     def test_a_comment_line_in_the_section_is_refused_at_its_line(self):
@@ -258,7 +251,7 @@ class Test_parse:
         parsed = parse(commented)
         said = rules.reader().COMMENT_LINE
         assert parsed.errors == [(line_of(commented, opener), said)]
-        assert parsed.ops == [] and parsed.nothing is None
+        assert parsed.ops == []
 
     def test_an_opener_nobody_closes_above_the_section_hides_no_operation(self):
         """S7 of #1012: a `<!--` later in a line above the section is text,
@@ -393,7 +386,6 @@ class Test_parse:
             ("nothing — a reason.", "nothing — a reason.", "a line outside an item"),
             ("nothing - a reason.", "nothing - a reason.", "a line outside an item"),
             ("Nothing — a reason.", "Nothing — a reason.", "a line outside an item"),
-            ("- nothing", "- nothing", "`nothing` needs `why`"),
             ("- nothing\n  why:", "  why:", "`why` is empty"),
             (
                 "- nothing\n  why: a reason.\n  file: docs/a.md",
@@ -429,7 +421,6 @@ class Test_parse:
             "the em-dash form",
             "the em-dash form with a hyphen",
             "the em-dash form capitalised",
-            "the block without why",
             "the block with an empty why",
             "the block with another field",
             "the block beside an operation",
@@ -474,7 +465,7 @@ class Test_parse:
         assert parsed.errors, parsed
         assert parsed.errors[0][0] == second, parsed.errors
         assert "`- nothing` is the section's one item" in parsed.errors[0][1]
-        assert parsed.nothing is None and parsed.ops == []
+        assert parsed.ops == []
 
     def test_refuses_a_second_section_at_its_heading(self):
         """Guards r4 of #1017: a spec holds one `## Rule changes`, so a second
@@ -487,7 +478,7 @@ class Test_parse:
         lines = text.split("\n")
         second = lines.index("## Rule changes", lines.index("## Rule changes") + 1)
         assert parse(text) == rules.Parsed(
-            [], None, [(second + 1, "a second `## Rule changes`")], []
+            [], [(second + 1, "a second `## Rule changes`")], []
         )
 
 

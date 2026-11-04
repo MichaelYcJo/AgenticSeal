@@ -699,18 +699,21 @@ def unread_block(body):
 
 def nothing_block(body):
     """None where BODY, a section's non-blank `[(line number, line)]`, does
-    not open with the no-change block; else `(why, error)`, WHY the block's
-    reason or ERROR `(line number, reason)`. The block is read in its one
-    spelling, and a line that opens like it is passed on (`unread_block`)."""
+    not open with the no-change block; else its errors, `[(line number,
+    reason)]`, empty where the block reads. The block is read in its one
+    spelling, and a line that opens like it is passed on (`unread_block`).
+    Its field `why` is optional and its value is returned to nobody: the
+    readers use only that the section holds no row or no operation, and the
+    reason is the agents' to read (#1319)."""
     if not opens_the_block(body[0][1]):
         return None
     found, error = items(body)
     if error:
-        return None, error
+        return [error]
     if len(found) > 1:
-        return None, (found[1]["line"], f"`- {NOTHING}` is the section's one item")
-    values, error = field_values(found[0], (WHY,), ())
-    return (None, error) if error else (values[WHY], None)
+        return [(found[1]["line"], f"`- {NOTHING}` is the section's one item")]
+    _, error = field_values(found[0], (), (WHY,))
+    return [error] if error else []
 
 
 def parse_section(body, offset, strict_header=True):
@@ -733,7 +736,7 @@ def parse_section(body, offset, strict_header=True):
         return open_rows, closed_rows, errors
     block = nothing_block(content)
     if block is not None:
-        errors.extend([block[1]] if block[1] else [])
+        errors.extend(block)
         return open_rows, closed_rows, errors
 
     cells = split_row(first)

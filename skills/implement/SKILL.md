@@ -57,8 +57,8 @@ decides for itself, and how it is read* gives the reasons.
 rather than by a person: every field name, section heading and vocabulary
 word the checkers match, listed in `templates/setup/config.md` under *What no row
 governs* — that list is derived from the checkers' own constants, so it
-cannot drift from them; the `<!-- -->` markers; a `drained` line and the
-`closed` that opens a closed row; and all code — identifiers, comments,
+cannot drift from them; the `<!-- -->` markers; the `closed` that opens a
+closed row; and all code — identifiers, comments,
 docstrings, file names, test function names. A translated field name is
 not a translation, it is a checker that stops reading.
 
@@ -324,9 +324,7 @@ item's branch is never rebased (`skills/code-review/orchestration.md`
 **`frame/design.md` ends with its frame's mark**, `Framed <date> by <who>, before the
 build.`, where `<who>` is the `Planning` row's answer in `routing.md`,
 `framer` or `the session`; `chain_check.py` refuses a `Planning | framer`
-work item whose mark names anyone else. The mark and `routing.md`'s
-`Answered` line share one shape, the verb, the date, who and the moment, so
-the two stay one convention.
+work item whose mark names anyone else.
 
 ### 4. The closing memo — only what the diff cannot show
 
@@ -356,11 +354,13 @@ short: the no-change block and `nothing`.
 
 **`## Not verified` is read by a machine, so it has one shape** — a
 `| Item | Who must answer |` table, or alone the no-change block
-`skills/settle/rule-changes.md` *Rule changes* states, `- nothing` with its one
-field `why:`. Any other spelling of the heading, the header row or the block
-fails the check rather than reporting zero, because zero reads as "everything
-has been closed". The template's placeholder row fails it too, until it is
-filled in or the block replaces the table.
+`skills/settle/rule-changes.md` *Rule changes* states, `- nothing` with the
+reason in its one field `why:`, which the block may leave out. Any other
+spelling of the heading, of the header row or of the `- nothing` line, a
+second item, a field other than `why:` or an empty `why:` fails the check
+rather than reporting zero, because zero reads as "everything has been
+closed". The template's placeholder row fails it too, until it is filled in
+or the block replaces the table.
 
 An item is closed by marking it, never by deleting it: the Item cell opens
 with the word `closed`, lower case, then the item.

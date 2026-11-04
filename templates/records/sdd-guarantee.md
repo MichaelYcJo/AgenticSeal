@@ -1,9 +1,5 @@
 # Guarantee: <work-item-id>
 
-| Field | Value |
-|---|---|
-| Broad gate | <the run the last block of `trail/gate.md` names, `<sha> against <base>`> |
-
 ## Claims re-run
 
 | Claim | Source | Command | Result |

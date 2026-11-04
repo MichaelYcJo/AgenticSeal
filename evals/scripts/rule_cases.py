@@ -802,9 +802,6 @@ target: {build} against main
 
 ## Confirmations
 
-```seal
-confirms: none
-```
 `shout` keeps empty text empty and its mark otherwise, at `src/textutil.py:4`.
 read against S1.
 

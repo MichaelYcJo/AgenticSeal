@@ -126,21 +126,26 @@ every repository, whatever either row says:
 - **Branch names.** ASCII, in the shapes `skills/commit-pr-convention/SKILL.md`
   *Branch names* states: a branch name is typed into a shell and pasted into
   a URL.
-- **The field names, section headings and vocabulary a checker or a pinned
-  case reads literally**: the info string `seal` that opens each block of a
-  round record, a `guarantee.md` and a `trail/gate.md`, and every key of
-  those blocks and every fixed word of their values, whose one spelling is
+- **The field names, section headings and vocabulary a checker reads
+  literally**: the info string `seal` that opens each block of a round
+  record, a `guarantee.md` and a `trail/gate.md`, and every key of those
+  blocks and every fixed word of their values, whose one spelling is
   `hooks/lib/fields.py`, which `chain_check.py` and the stamp read them
   through; a round record's `## Findings` heading, which `chain_check.py`
-  reads, and its `## Confirmations`, `## Not judged` and `## Probes`
-  headings, which the parties and the eval graders read; a
-  `gaps.md`'s `## Not verified` heading with its `Item` and
+  reads; a `gaps.md`'s `## Not verified` heading with its `Item` and
   `Who must answer` columns, or its no-change block `- nothing` with
   `why:`, and its `## Not done` heading; a `frame/plan.md`'s `## Phases`
   heading, which `seal pr-body` copies a section under, as it does those
-  two of `gaps.md`; a `frame/design.md`'s `## Removes` heading; its
-  `## Rule changes` heading, the items `add`, `change`, `remove` and
-  `nothing`, and the fields `file:`, `section:`, `from:`, `to:` and `why:`.
+  two of `gaps.md`; a `frame/design.md`'s `## Rule changes` heading, the
+  items `add`, `change`, `remove` and `nothing` and the fields `file:`,
+  `section:`, `from:`, `to:` and `why:`, which
+  `skills/settle/scripts/rule_changes.py` reads, and the label `check:` of
+  a check line inside a `to`, which `.github/scripts/rules.py` reads; a
+  `frame/plan.md`'s `## Judgments of the run` heading with its `Date`,
+  `Judgment`, `Grounds` and `Judged against` columns, which `seal settle`
+  groups the run's judgments by; and a `changelog.md`'s
+  `### Process changes` heading, under which the release note lifts each
+  fragment's rows into one table.
   A translated field name is not a translation, it is a broken gate.
 - **The markers and anchors.** The word `closed` that opens a closed
   `## Not verified` row, the line `## From the records` that opens the
