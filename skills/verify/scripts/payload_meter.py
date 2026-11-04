@@ -404,10 +404,11 @@ def imports_of(path, home, depth=HOPS, seen=None):
     no fence. Where that fence's closing line stands within three spaces of
     the margin, the rule reads it as an opener, and the lines below it are
     hidden up to the next fence line or the end of the file. A next fence
-    line then closes that fence, so what the next fence quotes is read. A `<!--` with no `-->` after it hides the
-    rest of the file wherever it stands in live text. CommonMark reads such
-    an opener inside a paragraph, or after a comment that closed on its
-    line, as text, and the harness reads the imports below it. And the
+    line then closes that fence, so what the next fence quotes is read. A
+    `<!--` with no `-->` after it hides the rest of the file wherever it
+    stands in live text. CommonMark reads such an opener inside a
+    paragraph, or after a comment that closed on its line, as text, and the
+    harness reads the imports below it. And the
     meter reads no import whose `@` follows a code span, a comment, emphasis
     or a link with no whitespace between them, where the harness can begin
     a text token with the `@`."""
