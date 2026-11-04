@@ -559,14 +559,15 @@ class Test_unnamed_sites:
 GUARD = 'if __name__ == "__main__":\n'
 PAIRS = '(("stdin", "replace"), ("stdout", "replace"), ("stderr", "backslashreplace"))'
 RECONFIGURE = '_stream.reconfigure(encoding="utf-8", errors=_errors)'
+BIND = "getattr(sys, _name, None)"
 
 
-def loop(pairs=PAIRS, call=RECONFIGURE):
+def loop(pairs=PAIRS, call=RECONFIGURE, bind=BIND):
     """The inline loop an entry point spells under its `__main__`, four lines
     indented into the block."""
     return (
         f"    for _name, _errors in {pairs}:\n"
-        "        _stream = getattr(sys, _name, None)\n"
+        f"        _stream = {bind}\n"
         '        if hasattr(_stream, "reconfigure"):\n'
         f"            {call}\n"
     )
@@ -642,17 +643,21 @@ class Test_entry_point:
         ]
 
     @pytest.mark.parametrize(
-        ("pairs", "call"),
+        ("pairs", "call", "bind"),
         [
-            ("console.STREAMS", RECONFIGURE),
-            (PAIRS, '_stream.reconfigure(encoding="latin-1", errors=_errors)'),
-            (PAIRS, '_stream.reconfigure(encoding="utf-8", errors="replace")'),
+            ("console.STREAMS", RECONFIGURE, BIND),
+            (PAIRS, '_stream.reconfigure(encoding="latin-1", errors=_errors)', BIND),
+            (PAIRS, '_stream.reconfigure(encoding="utf-8", errors="replace")', BIND),
+            (PAIRS, 'sys.stdout.reconfigure(encoding="utf-8", errors=_errors)', BIND),
+            (PAIRS, RECONFIGURE, 'getattr(sys, "stdout", None)'),
         ],
     )
     def test_refuses_a_loop_of_another_shape_at_its_for_line(
-        self, tmp_path, pairs, call
+        self, tmp_path, pairs, call, bind
     ):
-        root = plant(tmp_path, "hooks/x.py", GUARD + loop(pairs, call) + "    main()\n")
+        root = plant(
+            tmp_path, "hooks/x.py", GUARD + loop(pairs, call, bind) + "    main()\n"
+        )
         assert lines_of(censuses.entry_point("hooks/x.py", root)) == ["hooks/x.py:2"]
 
     def test_refuses_a_loop_after_a_statement_there_and_reads_its_pairs_exempted(
