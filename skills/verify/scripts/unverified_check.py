@@ -352,7 +352,7 @@ def live_pieces(lines, spans_cross_lines, comments=True):
     """For each line, the `(start, end)` offsets into it of every piece of
     live text: text outside a fenced block, an HTML comment and a code span,
     under the span reading `spans_cross_lines` names, as `liveness` takes
-    it. A piece is never empty, and the pieces of a line are in order.
+    it. The pieces of a line are in order, and a piece may be empty.
 
     A fence's lines, its opener and its closer among them, hold no piece. A
     backtick run that opens no span is live text and stays inside its
@@ -444,8 +444,6 @@ def _scan(lines, spans_cross_lines, comments):
                         pos = run.end()
         if start is not None:
             pieces.append((start, len(line)))
-        # The list `out` already holds, so filtered in place.
-        pieces[:] = [(begin, end) for begin, end in pieces if begin < end]
     return out
 
 

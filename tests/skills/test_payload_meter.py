@@ -1322,7 +1322,7 @@ class Test_imports_of:
         [
             "Run `cat @a.md` then @b.md\n",
             "Run `` @a.md `` then @b.md\n",
-            "Run `cat\n@a.md` then @b.md\n",
+            "Run `cat @a.md\n@a.md` then @b.md\n",
         ],
         ids=[
             "a span on its own line",
@@ -1353,12 +1353,12 @@ class Test_imports_of:
     @pytest.mark.parametrize(
         "text",
         [
-            "<!-- @a.md -->\n@b.md\n",
+            "<!-- @a.md --> then @b.md\n",
             "<!--\n@a.md\n-->\n@b.md\n",
             "@b.md\n<!-- open\n\n@a.md\n",
         ],
         ids=[
-            "a comment on its own line",
+            "a comment before an import on its line",
             "a comment over three lines",
             "a comment nobody closed",
         ],
