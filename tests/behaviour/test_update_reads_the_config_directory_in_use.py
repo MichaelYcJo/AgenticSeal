@@ -1,0 +1,113 @@
+"""`/agentic:update` reads the plugins of the config directory in use (#1184).
+
+Claude Code keeps its plugins under the directory `CLAUDE_CONFIG_DIR`
+names, and under `~/.claude` where the variable is unset. A command of
+`skills/update/SKILL.md` that names `~/.claude` reads, under a set
+variable, an install record, a marketplace clone and a version cache that
+are not the ones the session loaded.
+
+Each case runs a command as the skill's bash fence spells it, under
+`bash -c`, with `HOME` and `CLAUDE_CONFIG_DIR` naming two scratch
+directories that hold different answers, so a command that reads the
+fixed path prints the other directory's. Each skips where `bash` is no
+usable shell (`shell_probe`, for the reason its docstring gives).
+"""
+
+import json
+import os
+import re
+import subprocess
+import sys
+
+import pytest
+from conftest import ROOT, git, read, shell_probe
+
+UPDATE = os.path.join(ROOT, "skills", "update", "SKILL.md")
+# The config directory in use, as every command of the skill spells it.
+SPELLING = "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
+FENCE = re.compile(r"```bash\n(.*?)\n```", re.S)
+
+
+def step(number, following):
+    """The text of update step NUMBER, from its number to FOLLOWING's."""
+    text = read(UPDATE)
+    return text[text.index(f"**{number}.") : text.index(f"**{following}.")]
+
+
+def run_bash(script, home, config, cwd):
+    """SCRIPT under `bash -c` from CWD, with HOME and CLAUDE_CONFIG_DIR set
+    to the two scratch directories, and this interpreter for `python3`."""
+    why = shell_probe("bash")
+    if why:
+        pytest.skip(f"bash: {why} -- the update skill's commands are bash")
+    script = script.replace("python3 -c", f'"{sys.executable}" -c')
+    env = dict(os.environ, HOME=str(home), CLAUDE_CONFIG_DIR=str(config))
+    return subprocess.run(
+        ["bash", "-c", script],
+        cwd=cwd,
+        env=env,
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+
+
+def install(claude_dir, copy, version):
+    """An `installed_plugins.json` under CLAUDE_DIR whose one `installPath`
+    is COPY, and a `plugin.json` in COPY at VERSION."""
+    (copy / ".claude-plugin").mkdir(parents=True)
+    (copy / ".claude-plugin" / "plugin.json").write_text(
+        json.dumps({"name": "agentic", "version": version}), encoding="utf-8"
+    )
+    record = claude_dir / "plugins" / "installed_plugins.json"
+    record.parent.mkdir(parents=True)
+    record.write_text(
+        json.dumps({"plugins": {"agentic@agenticseal": [{"installPath": str(copy)}]}}),
+        encoding="utf-8",
+    )
+
+
+def test_step_2b_reads_the_copy_the_config_directory_installed(tmp_path):
+    """S3. The install record and the copy it names are the config
+    directory's, so step 2b's two commands print the version of that copy
+    and not of the one `~/.claude` names."""
+    home, config = tmp_path / "home", tmp_path / "config"
+    install(home / ".claude", tmp_path / "copy-home", "9.9.0")
+    install(config, tmp_path / "copy-in-use", "9.9.1")
+    block = FENCE.findall(step("2b", "3"))[0]
+    assert block.count("python3 -c") == 2, block
+    out = run_bash(block, home, config, tmp_path)
+    assert out.returncode == 0, out.stdout + out.stderr
+    assert out.stdout.strip() == "9.9.1", out.stdout + out.stderr
+
+
+def test_step_3_takes_the_repository_from_the_config_directorys_clone(tmp_path):
+    """S4. The marketplace clone is the config directory's, so step 3's
+    `repo=` line yields that clone's `owner/repo`. Nothing reaches the
+    network: the line reads a remote's URL and no more."""
+    home, config = tmp_path / "home", tmp_path / "config"
+    for claude_dir, url in (
+        (home / ".claude", "git@github.com:owner-home/repo-home.git"),
+        (config, "https://github.com/owner-in-use/repo-in-use.git"),
+    ):
+        clone = claude_dir / "plugins" / "marketplaces" / "agenticseal"
+        clone.mkdir(parents=True)
+        git(clone, "init", "-q")
+        git(clone, "remote", "add", "origin", url)
+    lines = FENCE.findall(step("3", "4"))[0].splitlines()
+    repo = [line for line in lines if line.startswith("repo=$(")]
+    assert len(repo) == 1, lines
+    out = run_bash(repo[0] + '\nprintf "%s" "$repo"', home, config, tmp_path)
+    assert out.returncode == 0, out.stdout + out.stderr
+    assert out.stdout == "owner-in-use/repo-in-use", out.stdout + out.stderr
+
+
+def test_the_skill_names_no_fixed_claude_directory():
+    """S5. Every path to Claude Code's own files is spelled as the config
+    directory in use, so the repair's `rsync` and step 5's sentinel method,
+    which no case runs, read the directory the session loaded."""
+    rest = read(UPDATE).replace(SPELLING, "")
+    for fixed in ("~/.claude", "$HOME/.claude"):
+        assert fixed not in rest, (
+            f"skills/update/SKILL.md names {fixed!r} outside {SPELLING!r}"
+        )

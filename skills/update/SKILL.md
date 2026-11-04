@@ -13,6 +13,13 @@ on <version>", which is a number, not a reason to reload or restart.
 
 ## Procedure
 
+The plugins Claude Code installs, and the `CLAUDE.md` it reads as the
+user's, stand in the directory Claude Code is configured to use, which the
+shell spells `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`. Each command below
+carries that spelling on its own, because no two of them share a shell: a
+session runs each block as a call of its own, and the user types the repair
+in a terminal of their own.
+
 **1. Record what is running.** Read the `version` from
 `$CLAUDE_PLUGIN_ROOT/.claude-plugin/plugin.json`. This is the version this
 session actually loaded, which is the one the user is comparing against.
@@ -43,7 +50,7 @@ one path the installer records, then the `version` of the
 `.claude-plugin/plugin.json` in it, and compare:
 
 ```bash
-p=$(python3 -c "import json,os;d=json.load(open(os.path.expanduser('~/.claude/plugins/installed_plugins.json'),encoding='utf-8'));print(d['plugins']['agentic@agenticseal'][0]['installPath'])")
+p=$(python3 -c "import json,sys;d=json.load(open(sys.argv[1],encoding='utf-8'));print(d['plugins']['agentic@agenticseal'][0]['installPath'])" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/installed_plugins.json")
 python3 -c "import json,sys;print(json.load(open(sys.argv[1]+'/.claude-plugin/plugin.json',encoding='utf-8'))['version'])" "$p"   # must be the version step 2 reported
 ```
 
@@ -58,7 +65,7 @@ directory a session may be holding:
 
 ```bash
 mv "$p" "$p.stale.bak"
-rsync -a --exclude '.git' ~/.claude/plugins/marketplaces/agenticseal/ "$p/"
+rsync -a --exclude '.git' "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/marketplaces/agenticseal/" "$p/"
 mkdir -p "$p/.in_use"
 ```
 
@@ -78,7 +85,7 @@ and only the span is printed. Set `old` to the version step 1 recorded and
 `new` to the one step 2 reported, then run:
 
 ```bash
-repo=$(git -C ~/.claude/plugins/marketplaces/agenticseal remote get-url origin | sed -E 's#^.*github\.com[:/]##; s#\.git$##')
+repo=$(git -C "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/marketplaces/agenticseal" remote get-url origin | sed -E 's#^.*github\.com[:/]##; s#\.git$##')
 f=$(mktemp)
 curl -fsS "https://api.github.com/repos/$repo/releases?per_page=100" -o "$f"; echo "curl exit $?"
 python3 -c '
@@ -219,10 +226,11 @@ a user told it covers everything gets a half-loaded plugin with no way to
 tell.
 
 What would settle the middle row, for whoever wants it settled: plant a
-sentinel in a hook and in an `agents/*.md` under the newly installed version
-in `~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/`, type
-`/reload-plugins` without restarting, then trigger the hook's event and spawn
-the agent. That is run 6's own method, one artifact over.
+sentinel in a hook and in an `agents/*.md` of the newly installed version,
+whose directory is
+`${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/cache/<marketplace>/<plugin>/<version>/`.
+Then type `/reload-plugins` without restarting, trigger the hook's event and
+spawn the agent. That is run 6's own method, one artifact over.
 
 ## What this does not do
 

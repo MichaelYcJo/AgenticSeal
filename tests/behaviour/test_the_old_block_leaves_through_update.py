@@ -22,17 +22,16 @@ import re
 import subprocess
 import sys
 
-from conftest import ROOT, flattened, git, read
+import pytest
+from conftest import ROOT, flattened, git, read, shell_probe
 
 TEMPLATE = os.path.join(ROOT, "templates", "setup", "claude-md-block.md")
 UPDATE = os.path.join(ROOT, "skills", "update", "SKILL.md")
 START, END = "<!-- agentic:start -->", "<!-- agentic:end -->"
-# The file the step works on, as the shell expands it.
-USER_FILE = '"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/CLAUDE.md"'
 # Step 4's one command: a `python3 -c` program in step 3's shape, then the
 # file it is given.
 COMMAND = re.compile(
-    r"```bash\npython3 -c '\n(?P<code>.*?)\n' (?P<args>[^\n]*)\n```", re.S
+    r"```bash\n(?P<line>python3 -c '\n(?P<code>.*?)\n' [^\n]*)\n```", re.S
 )
 
 
@@ -43,16 +42,17 @@ def step_4():
 
 
 def command():
-    """Step 4's program and the arguments the shell line passes it."""
+    """Step 4's command: the match whose `line` is the whole shell line and
+    whose `code` is the program it runs."""
     found = COMMAND.search(step_4())
     assert found, "update step 4 holds no `python3 -c` command in a bash fence"
-    return found.group("code"), found.group("args")
+    return found
 
 
 def take_out(target, cwd):
     """Step 4's program run over TARGET from CWD, as the step's shell line
     runs it, with this interpreter standing in for `python3`."""
-    code, _ = command()
+    code = command().group("code")
     return subprocess.run(
         [sys.executable, "-c", code, str(target)],
         cwd=cwd,
@@ -146,13 +146,54 @@ def test_step_4_names_a_projects_block_and_does_not_edit_it(tmp_path):
     ), named[0]
 
 
+def test_step_4_takes_the_block_out_of_the_config_directory_in_use(tmp_path):
+    """S1 and S2 of #1184. The shell line works on the `CLAUDE.md` of the
+    directory `CLAUDE_CONFIG_DIR` names and leaves `~/.claude/CLAUDE.md` as
+    it was; with the variable unset, or set empty, it works on
+    `~/.claude/CLAUDE.md`. The line runs under `bash -c` with `HOME` and the
+    variable naming scratch directories, each holding a file with a block."""
+    why = shell_probe("bash")
+    if why:
+        pytest.skip(f"bash: {why} -- step 4's command is a bash command")
+    line = command().group("line")
+    assert line.startswith("python3 -c"), line
+    line = f'"{sys.executable}"' + line[len("python3") :]
+    before = f"# mine\n{START}\n- an old rule\n{END}\n# mine, last\n"
+    for name in ("set", "unset", "empty"):
+        home, config = tmp_path / name / "home", tmp_path / name / "config"
+        for directory in (home / ".claude", config):
+            directory.mkdir(parents=True)
+            (directory / "CLAUDE.md").write_text(before, encoding="utf-8")
+        env = dict(os.environ, HOME=str(home))
+        env.pop("CLAUDE_CONFIG_DIR", None)
+        if name == "set":
+            env["CLAUDE_CONFIG_DIR"] = str(config)
+        elif name == "empty":
+            env["CLAUDE_CONFIG_DIR"] = ""
+        out = subprocess.run(
+            ["bash", "-c", line],
+            cwd=tmp_path,
+            env=env,
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        assert out.returncode == 0, (name, out.stdout + out.stderr)
+        worked, left = config, home / ".claude"
+        if name != "set":
+            worked, left = left, worked
+        assert (worked / "CLAUDE.md").read_text(encoding="utf-8") == (
+            "# mine\n# mine, last\n"
+        ), name
+        assert (worked / "CLAUDE.md.bak").read_text(encoding="utf-8") == before, name
+        assert (left / "CLAUDE.md").read_text(encoding="utf-8") == before, name
+        assert not (left / "CLAUDE.md.bak").exists(), name
+
+
 def test_step_4_works_on_the_config_directorys_file_and_writes_no_block():
-    """S6. The step reads the `CLAUDE.md` the harness reads as the user's,
-    says where the core now comes from, names a project's file under *Needs
-    action*, asks nothing, and reads no template, so no step writes an `@`
-    line."""
-    _, args = command()
-    assert args == USER_FILE, args
+    """S6. The step says where the core now comes from, names a project's
+    file under *Needs action*, asks nothing, and reads no template, so no
+    step writes an `@` line. Which file it works on is the case above's."""
     step = flattened(step_4())
     for said in (
         "**4. Take out the preset block.**",
