@@ -85,3 +85,35 @@ Only `frame/plan.md` changed, so this run re-runs the claims at that file's coor
 target: e44456f8c9761eb56065d29f04db62a67103e41e against 94635718ea4a79569ac612bcb814114000028be3
 Verdict: withheld reason: frame/questions.md:19 (the framer's row, closed by the orchestrator on the owner's answer) still reads Q1 `open` with the default that every draft goes to its backlog: milestone, which the tracker (milestone 85, release: 0.31.2, holding #1338, #1343 and #1346) and frame/plan.md:74 contradict; and the orchestrator's part of the pull request body calls Q1 both open and answered in *A decision left to the owner*, and in *Left for the owner* names #1337, now closed into #1346, as the issue that edits seal/follow-up.md
 ```
+
+## Re-audit at de19e0f3c
+
+| Field | Value |
+|---|---|
+| Broad gate | 4df5976b1 against 94635718e |
+
+Two commits landed since the block above. 16a937b7e adds that block, and the committed file equals this run's text up to it (executed: `git show HEAD~1:<item>/guarantee.md \| diff -`). de19e0f3c touches only `frame/questions.md` (executed: `git log --no-merges --name-only e44456f8c..HEAD`). `trail/gate.md` still names `4df5976b1`, an ancestor of HEAD, and every path after it lies under the work item's directory (executed). `git diff --name-only 94635718e..HEAD` prints nothing outside that directory (executed: `0`). `seal pr-body <item> --body <file> --check` exited 0 with the installed `seal` and with `bin/seal` (executed).
+
+### Claims re-run
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| Q1's Status cell holds the owner's answer, and nothing else in the file changed | `frame/questions.md:19` | the file at HEAD compared with `e44456f8c:` line by line, and Q1's row cell by cell | holds (executed): only line 19 differs, and on it only the sixth cell. The cell reads "answered 2026-11-04 by the owner, after the filing", names the fold into #1346 and the three issues in `release: 0.31.2`, and cites `frame/plan.md` *Judgments of the run*, the last row. The tracker holds that state (executed in the block above; the issues and milestone 85 were read for this run as well) |
+| #1346's item for `seal/follow-up.md` names the blank line | the body's *Left for the owner* | `gh issue view 1346 --json body` | holds (executed): its #1337 item ends "the same file's table *Schedulable items with nowhere else to go* holds a blank line that renders its last rows as a paragraph" |
+
+### The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | unchanged | the issue and the tree, as the first block found | none |
+| the build | unchanged | as the first block found | none |
+| the last round | unchanged | as the first block found | none new; the round's "three" stays its own count, as the first block names |
+| the changelog | none is written | design G10; the new commit changes only a record | none |
+| the plan (`frame/plan.md:73`, `:74`) | The drafts were filed on Q1's default, and the owner then had them folded and placed in `release: 0.31.2` | the tracker; `frame/questions.md:19` | none |
+| the questions (`frame/questions.md:19`) | The owner answered Q1 on 2026-11-04, after the filing, with the fold and `release: 0.31.2` | the plan's last row; the tracker | none |
+| the orchestrator's part of the pull request body | *A decision left to the owner* says Q1 asked, the run filed on its default, and the owner answered after the filing, as Q1's Status cell holds. *Left for the owner* sends the blank line of `seal/follow-up.md:45` to #1346's item for that file. The rest is as the block above read it | `frame/questions.md:19`; #1346's body; the tracker; the records | none |
+
+```seal
+target: de19e0f3c21dfc1f2497094e2a1ec0c8504d01fd against 94635718ea4a79569ac612bcb814114000028be3
+Verdict: sealed
+```
