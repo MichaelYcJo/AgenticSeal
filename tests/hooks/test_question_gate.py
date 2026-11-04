@@ -360,11 +360,10 @@ class Test_reason:
     def test_refuses_to_fail_open_where_the_root_has_no_relative_spelling(
         self, tmp_path, monkeypatch, capsys
     ):
-        """The same induced raise as `tests/test_commit_review_gate.py`'s
-        `test_the_commit_gates_hint_survives_a_root_with_no_relative_spelling`
-        holds for the other gates: the refusal names the work item's directory
-        relative to the repository, and where no relative spelling exists it
-        still refuses, naming the absolute path."""
+        """An induced raise from `os.path.relpath`, the one a root on another
+        drive gives, leaves the gate refusing: the refusal names the work
+        item's directory relative to the repository, and where no relative
+        spelling exists it still refuses, naming the absolute path."""
         from conftest import declare_routing
 
         gate = load("hooks/question-gate.py", "agentic_question_gate_failopen")

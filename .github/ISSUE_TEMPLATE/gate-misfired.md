@@ -1,7 +1,7 @@
 ---
 name: A gate blocked or allowed the wrong thing
 about: The routing edit gate, the question gate, or another gate made a wrong call
-labels: gate
+labels: hooks-gates
 ---
 
 **Which gate, and which direction was it wrong?**

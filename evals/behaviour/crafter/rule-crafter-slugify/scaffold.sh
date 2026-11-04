@@ -57,7 +57,7 @@ cat > 'seal/config.md' <<'AGENTIC_EOF'
 AGENTIC_EOF
 mkdir -p "$(dirname 'seal/threads/1790000011-slugify/routing.md')"
 cat > 'seal/threads/1790000011-slugify/routing.md' <<'AGENTIC_EOF'
-# routing
+# Routing: 1790000011-slugify
 
 | Axis | Answer |
 |---|---|
@@ -73,13 +73,13 @@ git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'base:
 git checkout -q -b feat/slugify
 mkdir -p "$(dirname 'seal/threads/1790000011-slugify/frame/design.md')"
 cat > 'seal/threads/1790000011-slugify/frame/design.md' <<'AGENTIC_EOF'
-# Feature Specification: slugify
+# Design: slugify
 
 ## Scope
 
 `src/textutil.py` gains `slugify(text)`, which lower-cases TEXT, turns every run of characters that are not letters or digits into one `-`, and strips `-` from both ends.
 
-## User scenarios & acceptance
+## User scenarios & acceptance *(mandatory)*
 
 | Scenario | Given / When / Then | Verifiable how |
 |---|---|---|

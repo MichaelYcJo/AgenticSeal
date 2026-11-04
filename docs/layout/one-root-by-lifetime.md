@@ -203,8 +203,8 @@ are written in is that repository's answer, below.
 
 `seal/config.md` is the one file a repository writes about itself, one row
 per item, read by the checkers and editable by hand. The rows that exist are
-documented in `templates/setup/config.md`, and an absent row has a default that is
-stated there rather than left to whoever reads the code.
+documented in `templates/setup/config.md`, which also states what an absent
+row means, rather than leaving it to whoever reads the code.
 
 **A setting nobody can find is a setting nobody has.** Every row is reachable
 from a command that shows the whole file and routes a change, because first

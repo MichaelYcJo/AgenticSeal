@@ -28,7 +28,5 @@ things you read rather than ran. -->
 
 <!-- CHANGING A GATE? Anything under hooks/ or .github/workflows/ carries a
 higher bar, because a gate decides whether somebody else's commit proceeds.
-Add: the test seen failing before the fix, which way the change leans
-(refusing more, or letting more through), whether it puts a new question in
-front of a person, and the platforms you could not test. CONTRIBUTING.md,
-"What a change to a gate must carry", is the whole of it. -->
+CONTRIBUTING.md, "What a change to a gate must carry", lists what this body
+answers for it. -->

@@ -57,7 +57,7 @@ cat > 'seal/config.md' <<'AGENTIC_EOF'
 AGENTIC_EOF
 mkdir -p "$(dirname 'seal/threads/1790000022-keep-trailing-space/routing.md')"
 cat > 'seal/threads/1790000022-keep-trailing-space/routing.md' <<'AGENTIC_EOF'
-# routing
+# Routing: 1790000022-keep-trailing-space
 
 | Axis | Answer |
 |---|---|

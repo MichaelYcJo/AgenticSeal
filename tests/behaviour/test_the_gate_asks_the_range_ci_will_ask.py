@@ -35,9 +35,11 @@ def gate_module():
 #
 # The defect was not a bug inside either file. It was two files answering one
 # question differently, each correct on its own, with nothing in the tree
-# comparing them. `tests/test_the_lenient_run_says_what_the_broad_gate_will_
-# say.py` was written for #354's identical shape — three readers grading one
-# tree — and its structural half is the precedent this follows.
+# comparing them.
+# `f975ea66a:tests/test_the_lenient_run_says_what_the_broad_gate_will_say.py`,
+# the last commit that held it, was written for #354's identical shape — three
+# readers grading one tree — and its structural half is the precedent this
+# follows.
 
 # Every place the workflow names a base, not only the ones spelled as a
 # quoted argument at the start of a line. The value may be quoted or bare,
@@ -171,7 +173,7 @@ VERIFY = os.path.join(ROOT, "skills", "verify", "orchestration.md")
 # Each document needs ONE block carrying both halves — that the base is
 # resolved, and what it is resolved TO. A mention of `origin/` in a table
 # three hundred lines from the sentence about the base is not the fact stated;
-# `tests/test_the_lenient_run_says_what_the_broad_gate_will_say.py`'s
+# `f975ea66a:tests/test_the_lenient_run_says_what_the_broad_gate_will_say.py`'s
 # *no document describes the lenient reader alone* is the precedent.
 #
 # `broad_gate.py` is NOT in this list and is checked below instead. Its

@@ -83,11 +83,8 @@ work item's directory out of it, when, and where each one goes.
 seal/
 ├── README.md            this file
 ├── config.md            what this repository says about itself, one row per
-│                        item: `Commit and pull request language`,
-│                        `Record language`, and `Mode`, which `seal mode`
-│                        reads and writes. Optional: no file and no row both
-│                        mean the default, and `Mode` has none; an absent
-│                        one is filled in from where the root is
+│                        item. `templates/setup/config.md` in the plugin
+│                        documents every item and what an absent row means
 ├── parity.md            migration config, only where one is declared
 ├── pact.md              the pact, only in the repository that holds one
 ├── follow-up.md         schedulable items in a repository with no tracker

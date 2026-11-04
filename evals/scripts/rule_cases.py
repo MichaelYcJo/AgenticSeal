@@ -154,9 +154,9 @@ def one_phase_plan(name, delivers):
 """
 
 
-def routing(branch, planning, implementation):
-    """A routing declaration under automation for BRANCH."""
-    return f"""# routing
+def routing(item, branch, planning, implementation):
+    """Work item ITEM's routing declaration under automation for BRANCH."""
+    return f"""# Routing: {item}
 
 | Axis | Answer |
 |---|---|
@@ -200,7 +200,9 @@ def base_project(item, branch, planning, implementation, extra_files=None):
         # The marker is what makes `seal/` the plugin's root to every gate.
         "seal/README.md": optin.MARKER + "\n",
         "seal/config.md": CONFIG,
-        f"seal/threads/{item}/routing.md": routing(branch, planning, implementation),
+        f"seal/threads/{item}/routing.md": routing(
+            item, branch, planning, implementation
+        ),
         **(extra_files or {}),
     }
     lines = ["git init -q -b main ."]
@@ -260,14 +262,14 @@ PROOFER_CASE = "rule-proofer-one-finding"
 def proofer_case():
     """One review of a diff that drops the spec's exclamation mark."""
     item, branch = PROOFER_ITEM, "feat/shout-exclaims"
-    spec = """# Feature Specification: shout ends with one exclamation mark
+    spec = """# Design: shout ends with one exclamation mark
 
 ## Scope
 
 `src/textutil.py#shout` returns its text upper-cased followed by exactly one
 `!`, and `shout_twice(text)` returns `shout(text)` twice, joined by a space.
 
-## User scenarios & acceptance
+## User scenarios & acceptance *(mandatory)*
 
 | Scenario | Given / When / Then | Verifiable how |
 |---|---|---|
@@ -354,13 +356,13 @@ def crafter_case(index, slug, signature, rule, example):
     item = f"179000001{index}-{slug}"
     branch = f"feat/{slug}"
     name = signature.split("(")[0]
-    spec = f"""# Feature Specification: {name}
+    spec = f"""# Design: {name}
 
 ## Scope
 
 `src/textutil.py` gains `{signature}`, which {rule}.
 
-## User scenarios & acceptance
+## User scenarios & acceptance *(mandatory)*
 
 | Scenario | Given / When / Then | Verifiable how |
 |---|---|---|
@@ -463,7 +465,7 @@ def crafter_rename_case():
 `src/textutil.py`, its case in `tests/test_textutil.py`, and `README.md`.
 What it returns does not change.
 
-## User scenarios & acceptance
+## User scenarios & acceptance *(mandatory)*
 
 | Scenario | Given / When / Then | Verifiable how |
 |---|---|---|
@@ -761,14 +763,14 @@ ISSUE = """# #101 shout turns empty text into a lone mark
 
 `shout("")` returns `"!"`. Empty text should stay empty: `shout("")` is `""`.
 """
-SEALER_SPEC = """# Feature Specification: shout keeps empty text empty
+SEALER_SPEC = """# Design: shout keeps empty text empty
 
 ## Scope
 
 `src/textutil.py#shout` returns `""` for empty text, and is unchanged
 otherwise (#101).
 
-## User scenarios & acceptance
+## User scenarios & acceptance *(mandatory)*
 
 | Scenario | Given / When / Then | Verifiable how |
 |---|---|---|
@@ -792,7 +794,7 @@ before the change (`python3 -m unittest tests.test_textutil -q` with
 `src/textutil.py` as it stands on `main`: 1 failure), and green after it
 (`executed`).
 """
-SEALER_ROUND = """# {item} — review round 1
+SEALER_ROUND = """# Review round 1: {item}
 
 ```seal
 target: {build} against main

@@ -6,8 +6,9 @@ disable-model-invocation: true
 
 # /agentic:config, what this repository decided and how to decide otherwise
 
-`seal/config.md` holds what a repository says about itself. Every row has a
-default, and an absent row is not an error. A person runs this command to see
+`seal/config.md` holds what a repository says about itself. Every row but
+`Mode` and `Broad gate` has a default, and the table below says what each
+absent row means. A person runs this command to see
 every row and to change one; the session running it follows the procedure
 below. First setup asks its questions once and never again, and this command
 is how a person answers them again later.

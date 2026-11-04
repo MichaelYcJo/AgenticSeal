@@ -13,8 +13,7 @@ shrink with the diff. The diff target bounds the round; it does not make it
 cheap.
 
 Each carrier is held to a phrase only the corrected wording uses, and to the
-absence of the sentence it used to carry: the gone/stands pair of
-`test_the_broad_gate_cell_keeps_every_run.py`. The tree-wide case turns
+absence of the sentence it used to carry. The tree-wide case turns
 #639's acceptance grep into a pin, so a new carrier that repeats the exact
 phrase is red here. A new carrier that says the same thing in other words
 ("the least expensive round") is not: the meaning is guarded by the five

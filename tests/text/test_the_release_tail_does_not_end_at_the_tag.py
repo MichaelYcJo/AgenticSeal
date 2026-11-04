@@ -4,8 +4,8 @@ rule names the reader that arrived from outside.
   A5  a reader working down `docs/releasing/release-checklist.md` passes the tag and
       meets two boxes, each carrying the command that answers it
   A8  `docs/releasing/branch-and-release.md`'s squash rule cites the checklist section
-      whose box reads what an outside directory pins, and names the file that
-      holds the plugin's one name
+      whose box reads what an outside directory pins, and names the file the
+      plugin's name is read from
 
 **A box carrying no command is the defect this work item is about**, one layer
 up: #386's measurement is that a step written as a sentence beside a step with
@@ -225,11 +225,14 @@ def test_the_squash_rule_cites_the_box_that_reads_what_is_pinned():
 
 def test_the_fixed_name_sentence_names_the_file_that_holds_the_name():
     """A8's second half: the plugin's name is fixed, and the sentence says
-    which file holds its one copy."""
+    which file the check reads it from."""
     rule = squash_rule()
-    # The path `.claude-plugin/plugin.json`, the file a reader opens for the
-    # one spelling of the plugin's name.
-    assert ".claude-plugin/plugin.json` holds the one copy" in rule, (
-        "the sentence says the name is fixed without saying where the one "
-        "copy of it lives, so a reader cannot tell which spelling is the name"
+    # The copy `plugin_directory_check.py` reads, `.claude-plugin/plugin.json`.
+    # The sentence claims nothing about the other files that spell the name.
+    assert (
+        "`plugin_directory_check.py` reads the name out of "
+        "`.claude-plugin/plugin.json`" in rule
+    ), (
+        "the sentence says the name is fixed without saying which file the "
+        "check reads it from, so a reader cannot tell which spelling is the name"
     )
