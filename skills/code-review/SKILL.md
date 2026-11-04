@@ -154,18 +154,20 @@ is absent; field names, headings and vocabulary words stay English
   close block: a finding with none is open, and the fix pass appends it with
   its `verdict:` and `answer:` lines. The check refuses a finding whose block
   is missing or lacks a line it holds one of.
-- `evidence:` names what the claim rests on, in the forms
-  `hooks/lib/fields.py` gives its value. A claim that something is absent
-  rests on a search, so its line is `executed`. The check cannot tell such
-  a claim from another; the round reading the record does.
+- `evidence:` names what the claim rests on: `executed` and each command
+  the round ran, or `read` and each `path:line` it opened. A claim that
+  something is absent rests on a search, so its line is `executed`. No
+  script reads the line; the round reading the record does.
 - Each finding gives why it matters and its grounds, then the paste-ready
   fix in a fenced block, where the fix pass's close block will follow it.
   The grounds open with why the earlier close does not hold where
   `reopens:` stands.
 - What this round confirmed holds is a confirmation block under
   `## Confirmations`, its `confirms:` line followed by the prose that says
-  what holds, and what it could not judge a row of `## Not judged` naming
-  who answers it; neither is a finding.
+  what holds; a claim of the frame or the build that matched, with no
+  earlier finding to name, is prose there with no block. What it could not
+  judge is a row of `## Not judged` naming who answers it; neither is a
+  finding.
 - The record is written in words: no emoji anywhere in it, and no summary
   block under it. A mark quoted from the code under review is written as its
   code point (`U+1F7E1`) or in words, never as the character.

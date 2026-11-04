@@ -451,7 +451,6 @@ class Test_read:
             read(guarantee(block(f"target: {SHA} against main", line)))
         for line in (
             "location: `" + "a:1" * 30000 + "`",
-            "evidence: read `" + "a:1-" * 30000,
             "verdict: deferred " + "x " * 50000,
         ):
             read(block("severity: must", line), fields.ROUND_RECORD)

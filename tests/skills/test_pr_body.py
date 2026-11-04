@@ -851,7 +851,12 @@ class Test_main:
         [
             (RECORDS, "## What changed\n\nno heading here\n"),
             (
-                {**RECORDS, "trail/rounds/round-1.md": ROUND_1.replace("must", "high")},
+                {
+                    **RECORDS,
+                    "trail/rounds/round-1.md": ROUND_1.replace(
+                        "verdict: fixed 2222222", "verdict: done"
+                    ),
+                },
                 OWN + EXPECTED,
             ),
         ],
