@@ -103,7 +103,11 @@ In scope:
    - The 13 that make no call give one, except `hooks/lib/launch.py`, whose
      exemption stays. A file that puts `hooks/lib/` on `sys.path` at import,
      as `close_issues_on_release.py:76` and `rule_cases.py:52` do, imports
-     `console` and calls `console.to_utf8()`. Any other file spells the loop
+     `console` and calls `console.to_utf8()`; a file that reaches
+     `hooks/lib/` only through a sibling script it loads, as
+     `label_merged_on_release_branch.py` and
+     `release_completeness_check.py` do, spells the loop (phase 2 record,
+     `gaps.md` *Not done*). Any other file spells the loop
      in the form of item 2, as the files under `skills/*/scripts/` do.
    - The five that call `console.to_utf8()` inside `main()` move the call to
      the first statement of their `__main__` block, with the comment above it
@@ -125,8 +129,10 @@ In scope:
    `tests/text/test_every_file_the_plugin_reads_or_writes_names_its_encoding.py`
    pins the new sentence in the same commit, and its docstring stops saying
    "the hook entry points'".
-7. **`hooks/lib/console.py:54`**, "Which entry points owe the answer is
-   #1255's.", becomes the answer: every entry point owes it, and an entry
+7. **`hooks/lib/console.py`'s docstring**: its open question, "Which entry
+   points owe the answer is #1255's.", becomes the answer, which opens the
+   paragraph on the call sites, and that paragraph is rewritten whole
+   (phase 2 record): every entry point owes it, and an entry
    point that cannot give it carries its reason at its line, read by
    `tests/censuses.py#entry_point`. `tests/censuses.py#entry_point`'s
    docstring says what the census now reads; phase 1 rewrote it with the
@@ -185,8 +191,8 @@ Out of scope:
 | The exemption "its own reconfigure loop, held by test_dispatch" | `hooks/dispatch.py:613` | The census reads the loop as an answer, so the exemption excuses nothing and `tests/censuses.py#_held` would refuse it |
 | The run-time case for three release scripts' loops | `tests/hooks/test_console.py#Test_module.test_a_release_script_run_on_its_own_gives_the_answer_streams_holds` | The census reads each loop's pairs against `STREAMS`, for these three and for every other loop. The case's own reason was that no check read `.github/scripts/` (`frame/plan.md` A8) |
 | The arm that accepts a `__main__` block outside `hooks/` without an answer | `tests/test_censuses.py#Test_entry_point.test_accepts_the_call_first_a_module_and_a_file_outside_hooks`, the `tests/x.py` plant | Its behaviour is reversed. Scope 4's first case refuses that file, and the case's other two arms stay |
-| `console.to_utf8()` called inside `main()` | `.github/scripts/finding_counts.py:175`, `plugin_directory_check.py:289`, `publish_release_note.py:845`, `tag_release.py:183`, `tracker_labels.py:159` | The first statement of each file's `__main__` block, where `hooks/lib/console.py:40` puts the call and the census reads it |
-| The open question "Which entry points owe the answer is #1255's." | `hooks/lib/console.py:54` | The answer, written in its place (Scope 7) |
+| `console.to_utf8()` called inside `main()` | `.github/scripts/finding_counts.py:175`, `plugin_directory_check.py:289`, `publish_release_note.py:845`, `tag_release.py:183`, `tracker_labels.py:159` | The first statement of each file's `__main__` block, where `hooks/lib/console.py`'s docstring puts the call and the census reads it |
+| The open question "Which entry points owe the answer is #1255's." | `hooks/lib/console.py`'s docstring | The answer, written in its place (Scope 7) |
 | The clauses "Every hook entry point" and "the second over `hooks/`", and the pin "opens its `__main__` with `console.to_utf8()`" | `CONTRIBUTING.md` *House rules*, lines 423 to 426; `tests/text/test_every_file_the_plugin_reads_or_writes_names_its_encoding.py:24` | The rewritten sentence and its pin (Scope 6) |
 
 This work widens a check and adds no new mechanism. It adds two exemption
