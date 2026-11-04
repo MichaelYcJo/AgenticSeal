@@ -149,14 +149,6 @@ def create(repo, label):
 
 
 def main(argv=None):
-    # Every entry point carries this, because a hook or a script that raises
-    # while printing dies with stdout empty and an empty stdout is how a gate
-    # says "nothing to see here" (`hooks/lib/console.py`). The arm at risk is
-    # `--check`, which is the one a person types: under cp949, cp932, cp936
-    # or a bare `LC_ALL=C` the em dash below raises `UnicodeEncodeError` and
-    # the process dies. The workflow's runner is UTF-8, so `--apply` was
-    # never the exposed one. Round 1, finding 3.
-    console.to_utf8()
     parser = argparse.ArgumentParser(
         description="Reconcile the tracker's labels with what the documents specify."
     )
@@ -192,4 +184,12 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
+    # Every entry point carries this, because a hook or a script that raises
+    # while printing dies with stdout empty and an empty stdout is how a gate
+    # says "nothing to see here" (`hooks/lib/console.py`). The arm at risk is
+    # `--check`, which is the one a person types: under cp949, cp932, cp936
+    # or a bare `LC_ALL=C` the em dash `main` prints raises
+    # `UnicodeEncodeError` and the process dies. The workflow's runner is
+    # UTF-8, so `--apply` was never the exposed one. Round 1, finding 3.
+    console.to_utf8()
     sys.exit(main())

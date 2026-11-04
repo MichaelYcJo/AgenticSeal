@@ -1132,6 +1132,7 @@ def main():
 
 if __name__ == "__main__":
     for _name, _errors in (
+        ("stdin", "replace"),
         ("stdout", "replace"),
         ("stderr", "backslashreplace"),
     ):

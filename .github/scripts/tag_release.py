@@ -180,7 +180,6 @@ def create(repo, tag, commit):
 
 
 def main():
-    console.to_utf8()
     ref = os.environ.get("REF", "").strip()
     after = os.environ.get("AFTER", "").strip()
     repo = os.environ.get("REPO", "").strip()
@@ -213,4 +212,5 @@ def main():
 
 
 if __name__ == "__main__":
+    console.to_utf8()
     sys.exit(main())

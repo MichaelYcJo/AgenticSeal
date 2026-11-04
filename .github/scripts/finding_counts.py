@@ -169,10 +169,6 @@ def item_counts(root, where, routing, chain, reader, records_at):
 
 
 def main(argv=None):
-    # Every entry point carries this (`hooks/lib/console.py`): a refusal
-    # printed below is led by `chain_check.DASH`, an em dash, which a console
-    # that cannot encode it would die on with stdout empty.
-    console.to_utf8()
     parser = argparse.ArgumentParser(
         description="Print step 2b's four numbers per released work item."
     )
@@ -223,4 +219,8 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
+    # Every entry point carries this (`hooks/lib/console.py`): a refusal
+    # `main` prints is led by `chain_check.DASH`, an em dash, which a console
+    # that cannot encode it would die on with stdout empty.
+    console.to_utf8()
     sys.exit(main())
