@@ -75,8 +75,9 @@ finding to name, is prose under `## Confirmations` and holds no block.
 Every finding of round N at `fixed <commit>` or `rejected` is named by a
 `confirms:`, a `reopens:` or a `regression:` line of round N+1, and one
 left unnamed is refused at its own heading in round N's record; a
-`deferred <home>` finding owes nothing. Round 1 has no earlier record, so it writes no
-`confirms:` line. A round with nothing to confirm leaves `## Confirmations` out.
+`deferred <home>` finding owes nothing. Round 1 has no earlier record, so
+it writes no `confirms:`, `reopens:` or `regression:` line. A round with
+nothing to confirm leaves `## Confirmations` out.
 check: tests/skills/test_chain_check.py
 
 **Every round file stays, so a finding can be followed from the round that

@@ -870,8 +870,9 @@ def channel(rounds, read_at_head=lambda finding: False):
             if k == 0:
                 why = (
                     f"names `{said}` in the first record: there is no earlier "
-                    "round to name, so what it confirms is prose with no "
-                    f"`{FIELDS.CONFIRMS}` line"
+                    f"round to name, so it holds no `{FIELDS.CONFIRMS}`, "
+                    f"`{FIELDS.REOPENS}` or `{FIELDS.REGRESSION}` line, and what "
+                    "it confirms is prose"
                 )
             elif n >= here.number or n not in by_number:
                 why = (

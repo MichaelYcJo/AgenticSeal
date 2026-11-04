@@ -1249,7 +1249,8 @@ class Test_channel:
         """S23 (T36, T43): a reference in the first record, to a record the
         item has not got or no earlier one, or to a finding that record does
         not hold, is refused by its line, and the refusal in the first record
-        says its confirmations are prose; `none` in the first record, which a
+        says the first record holds no reference line and that what it
+        confirms is prose; `none` in the first record, which a
         record written before #1319 carries, passes (#1319's C1)."""
         one = record(
             "abc1234",
@@ -1280,7 +1281,7 @@ class Test_channel:
         said = [why for _rel, _line, why in problems]
         assert all("the first record" in why for why in said[:2]), said
         assert all(
-            "what it confirms is prose with no `confirms:` line" in why
+            "so it holds no `confirms:`, `reopens:` or `regression:` line" in why
             for why in said[:2]
         ), said
         assert "`round-3#1`" in said[2] and "not an earlier record" in said[2]
