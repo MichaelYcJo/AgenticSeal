@@ -761,7 +761,7 @@ The 3 passages *Command R17* prints, read through *Command context*:
 
 ### Drafts
 
-Each draft below rests on this record's measure at `94635718e` and changes no rule of the policy root. *Command tracker* searched the open issues before each was drafted, and no open issue holds either drift.
+Each draft below rests on this record's measure at `94635718e`, and D2 also on `trail/phases/phase-3.md` *Instances R19*, and changes no rule of the policy root. *Command tracker* searched the open issues before each was drafted, and no open issue holds either drift.
 
 #### D1
 
@@ -787,17 +787,17 @@ The measure is `seal/threads/1793758948-each-pair-that-can-hold-one-fact-twice-i
 
 **Body.**
 
-The measure is `seal/threads/1793758948-each-pair-that-can-hold-one-fact-twice-is-measured/trail/phases/phase-1.md` at `94635718e`, *Instances R9*.
+The measure is `seal/threads/1793758948-each-pair-that-can-hold-one-fact-twice-is-measured/trail/phases/phase-1.md` at `94635718e`, *Instances R9*, and `seal/threads/1793758948-each-pair-that-can-hold-one-fact-twice-is-measured/trail/phases/phase-3.md` at `94635718e`, *Instances R19*.
 
-**What is wrong.** The module docstring of `tests/text/test_the_rules_claude_md_names_have_one_home.py` says at its first line that "`CLAUDE.md` links", at lines 11 to 13 that "`CLAUDE.md` keeps a row that names the home's path and section" for each of four rules, and at lines 41 to 46 what "the act sentence in a `CLAUDE.md` row" cannot hold. At `94635718e` `CLAUDE.md` names none of the four homes. The module's own comment above `LINKED` says the rows left with #940, #1169 and #1177, and `LINKED` holds no `CLAUDE.md`. The cases hold what the module does now: each home states its needles, no carrier repeats one, and each linked file names its home. Only the prose says otherwise, and a reader of it believes `CLAUDE.md` still carries the rows.
+**What is wrong.** The module docstring of `tests/text/test_the_rules_claude_md_names_have_one_home.py` says at its first line that "`CLAUDE.md` links", at lines 11 to 13 that "`CLAUDE.md` keeps a row that names the home's path and section" for each of four rules, and at lines 41 to 46 what "the act sentence in a `CLAUDE.md` row" cannot hold. At `94635718e` `CLAUDE.md` names none of the four homes. The module's own comment above `LINKED` says the rows left with #940, #1169 and #1177, and `LINKED` holds no `CLAUDE.md`. The cases hold what the module does now: each home states its needles, no carrier repeats one, and each linked file names its home. Only the prose says otherwise, and a reader of it believes `CLAUDE.md` still carries the rows. The same docstring's last paragraph, at lines 48 and 49, says "This is the shape `tests/test_the_ledger_rules_have_one_home.py` set", and that module left the tree at 5b1f6faea (#944), so a reader who opens it for the shape finds nothing (`seal/threads/1793758948-each-pair-that-can-hold-one-fact-twice-is-measured/trail/phases/phase-3.md` *Instances R19*).
 
 **Scope.** That module's docstring, and its name where the docstring's new first line no longer fits it. The cases, `RULES`, `LINKED` and `CARRIERS` stay. Out: `CLAUDE.md`, and every home's text.
 
-**Done when.** The docstring states what the module's cases hold at the commit that changes it and no row of `CLAUDE.md` it does not hold. A rename, if made, moves every citation of the old name in the same commit, by the census `skills/verify/SKILL.md` *The narrow command still has to be able to fail* asks for.
+**Done when.** The docstring states what the module's cases hold at the commit that changes it, no row of `CLAUDE.md` it does not hold, and no module the tree does not hold offered as standing. A rename, if made, moves every citation of the old name in the same commit, by the census `skills/verify/SKILL.md` *The narrow command still has to be able to fail* asks for.
 
 **Proposed milestone.** `backlog: docs drift`. A test docstring is none of the four kinds its description names, and it is the area whose claim, a text stating what the tree does not hold, this drift is. No `release:` milestone's description names it (`frame/questions.md` Q1's default, against `docs/releasing/issues-and-milestones.md` *A milestone answers when, and takes three shapes*).
 
-**Answers.** R9. Phase 3's R19, P12 with P9, reads test docstrings that state the tree, and cites D2 where it meets this one.
+**Answers.** R9, and R19's instance in this docstring (`trail/phases/phase-3.md` *Instances R19*).
 
 ### Phase-boundary run
 
