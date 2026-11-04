@@ -16,6 +16,7 @@ usable shell (`shell_probe`, for the reason its docstring gives).
 import json
 import os
 import re
+import shlex
 import subprocess
 import sys
 
@@ -81,6 +82,39 @@ def test_step_2b_reads_the_copy_the_config_directory_installed(tmp_path):
     assert out.stdout.strip() == "9.9.1", out.stdout + out.stderr
 
 
+def test_step_2b_prints_the_repair_with_this_sessions_paths(tmp_path):
+    """Round 1 of #1184, finding 1. The user types the repair in a terminal
+    of their own, which holds neither `$p` nor, unless it is exported there,
+    `CLAUDE_CONFIG_DIR`. So the block the session runs reads the copy and
+    prints the repair, and runs nothing else. The repair names the copy the
+    config directory's record names and that directory's clone, written out
+    and quoted, so a path holding a space stays one word when it is typed."""
+    home, config = tmp_path / "home", tmp_path / "con fig"
+    copy = tmp_path / "copy in use"
+    install(home / ".claude", tmp_path / "copy-home", "9.9.0")
+    install(config, copy, "9.9.1")
+    block = FENCE.findall(step("2b", "3"))[1]
+    lines = block.splitlines()
+    assert len(lines) == 2, block
+    assert lines[0].startswith("p=$(") and lines[1].startswith("printf "), (
+        "the repair block runs more than its read and its print"
+    )
+    out = run_bash(block, home, config, tmp_path)
+    assert out.returncode == 0, out.stdout + out.stderr
+    assert [shlex.split(line) for line in out.stdout.splitlines()] == [
+        ["mv", str(copy), f"{copy}.stale.bak"],
+        [
+            "rsync",
+            "-a",
+            "--exclude",
+            ".git",
+            f"{config}/plugins/marketplaces/agenticseal/",
+            f"{copy}/",
+        ],
+        ["mkdir", "-p", f"{copy}/.in_use"],
+    ], out.stdout
+
+
 def test_step_3_takes_the_repository_from_the_config_directorys_clone(tmp_path):
     """S4. The marketplace clone is the config directory's, so step 3's
     `repo=` line yields that clone's `owner/repo`. Nothing reaches the
@@ -103,11 +137,11 @@ def test_step_3_takes_the_repository_from_the_config_directorys_clone(tmp_path):
 
 
 def test_the_skill_names_no_fixed_claude_directory():
-    """S5. Every path to Claude Code's own files is spelled as the config
-    directory in use, so the repair's `rsync` and step 5's sentinel method,
-    which no case runs, read the directory the session loaded."""
+    """S5. Every path into Claude Code's directory is spelled as the config
+    directory in use, so step 5's sentinel method, which no case runs, names
+    the directory the session loaded. The search is for the path segment
+    `/.claude`, however the part before it is spelled; `.claude-plugin` is
+    another name and does not count."""
     rest = read(UPDATE).replace(SPELLING, "")
-    for fixed in ("~/.claude", "$HOME/.claude"):
-        assert fixed not in rest, (
-            f"skills/update/SKILL.md names {fixed!r} outside {SPELLING!r}"
-        )
+    fixed = re.findall(r"\S*/\.claude(?![-\w])\S*", rest)
+    assert not fixed, f"skills/update/SKILL.md names {fixed!r} outside {SPELLING!r}"
