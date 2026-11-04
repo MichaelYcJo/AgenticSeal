@@ -324,9 +324,7 @@ item's branch is never rebased (`skills/code-review/orchestration.md`
 **`frame/design.md` ends with its frame's mark**, `Framed <date> by <who>, before the
 build.`, where `<who>` is the `Planning` row's answer in `routing.md`,
 `framer` or `the session`; `chain_check.py` refuses a `Planning | framer`
-work item whose mark names anyone else. The mark and `routing.md`'s
-`Answered` line share one shape, the verb, the date, who and the moment, so
-the two stay one convention.
+work item whose mark names anyone else.
 
 ### 4. The closing memo — only what the diff cannot show
 
