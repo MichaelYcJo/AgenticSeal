@@ -64,6 +64,11 @@ The module left at 5b1f6faea (#944). This sentence stands in the docstring D2 re
 
 `gaps.md:26`: delete the paragraph that begins "One of R19's drifted sentences stands in the docstring D2 rewrites". After the fix no item of it stays not done.
 
+```seal
+verdict: fixed 8caff5e2c
+answer: Read against design S4 and *Scope* item 5, plan *Operational impact* and the docstring at `94635718e` (lines 48 and 49 hold the sentence, and `tests/test_the_ledger_rules_have_one_home.py` left at 5b1f6faea), the finding holds. D2 in `trail/phases/phase-1.md` now names the sentence in *What is wrong*, in the round's words except that it quotes the docstring's own "This is the shape ... set" and says what a reader finds, and its *Done when* and *Answers* are the round's text. Two statements of the same record were corrected with it, which the finding did not list: D2's measure line now cites `trail/phases/phase-3.md` *Instances R19* beside *Instances R9*, and the *Drafts* opening sentence says D2 rests on that section too. `trail/phases/phase-3.md` *Instances R19* now ends "whose body names it", and the `gaps.md` paragraph is deleted. `bin/test` over the plan's named case and `tests/text/test_a_cited_commit_outlives_the_squash.py` passed at 8caff5e2c (executed: 13 passed). Read whole against HEAD after the commit: `routing.md`, the three frame files, `gaps.md` and the four phase records hold no other sentence that leaves D2's sentence to the filing (`grep` on "does not name it", "adds the sentence" and "not this phase's to rewrite" prints only this round's own lines).
+```
+
 ### 2. The R18 fold left four frame sentences saying every drift and every command is read at `94635718e`
 
 ```seal
@@ -108,6 +113,11 @@ Each method is a function of a probe script. The first phase writes the script w
 ```
 
 The snippets leave `frame/plan.md` *Judgments of the run* unchanged. The fix pass writes the row for this fold there, as it did for the four folds before it.
+
+```seal
+verdict: fixed d2cae5644
+answer: The orchestrator applied the fix, since `frame/design.md` is not a file the fix pass writes. Read at d2cae5644 against the finding: *Scope* item 1's second sentence, S2's cell, *The methods*' opening sentences and *The unit counted*'s *Drifted* sentence are the round's text, *The methods* allows a phase a script of its own as phase 4 wrote, the drafted-issue paragraph's commit clause now names R18's moment, and `frame/plan.md` *Judgments of the run* has the row. Those sentences hold. The finding's list is not whole for the R18 fact, though: `frame/plan.md` still says it in four places. *Technical context*'s first paragraph says "Each phase measures a group of the design's rows at `94635718e`". The paragraph on the review chain says "The proofer runs each row's command at `94635718e`". The failure scenario says the commands "read `94635718e` by name, so they print the same counts", which R18's reader cannot do. Phase 3's Verified by cell, "the same, for its rows", carries row 1's "each row's command, run at `94635718e`" to R18. These are plan sentences, which the fix pass does not write, and they are named for the orchestrator to fold.
+```
 
 ## Confirmations
 
