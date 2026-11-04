@@ -100,7 +100,6 @@ class Test_read:
                 block(f"verdict: fixed {SHA}", "answer: done"),
                 "## Confirmations\n",
                 block("confirms: round-1#3"),
-                block("confirms: none"),
             ]
         )
         found = read(text, fields.ROUND_RECORD)
@@ -112,12 +111,19 @@ class Test_read:
             "finding",
             "close",
             "confirmation",
-            "confirmation",
         ]
         close = found.blocks[2].fields
         assert close[fields.VERDICT].match["home"] == "#12"
         assert close[fields.ANSWER].value == ""
         assert found.blocks[4].fields[fields.VERDICT].match["commit"] == SHA
+
+    def test_reads_confirms_none_in_a_record_written_before_1319(self):
+        """#1319's C1: the template writes no `confirms: none` since #1319,
+        and a committed record that carries one still reads, naming no
+        finding."""
+        found = read(block("confirms: none"), fields.ROUND_RECORD)
+        assert (found.refusals, len(found.blocks)) == ([], 1)
+        assert found.blocks[0].fields[fields.CONFIRMS].match["round"] is None
 
     def test_accepts_run_blocks_of_a_gate_record(self):
         text = "# gate\n\n" + block(f"run: {SHA} against {BASE}") + "\n"
@@ -488,7 +494,7 @@ class Test_module:
     def test_the_round_template_opens_each_block_with_its_kind_and_reads(self):
         """#1198's scenario *The templates parse*, for the round record: the
         template holds a round block, a finding block and its close block,
-        and two confirmation blocks, each opening with its kind's key, and
+        and one confirmation block, each opening with its kind's key, and
         the reader refuses no line of it, since every value the template
         writes is one its key's shape reads or prose after `answer:`. Seen
         red against the template in labelled lines, which held no block."""
@@ -501,7 +507,6 @@ class Test_module:
             fields.ROUND_BLOCK,
             fields.FINDING_BLOCK,
             fields.CLOSE_BLOCK,
-            fields.CONFIRMATION_BLOCK,
             fields.CONFIRMATION_BLOCK,
         ]
         lines = text.split("\n")

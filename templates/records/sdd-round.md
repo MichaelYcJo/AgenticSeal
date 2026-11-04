@@ -33,9 +33,6 @@ confirms: round-1#2
 ```
 What holds: <what, at `path:line`, and how this round confirmed it, executed or read>
 
-```seal
-confirms: none
-```
 What matched: <a claim of the frame or the build, at `path:line`, executed or read>
 
 ## Not judged

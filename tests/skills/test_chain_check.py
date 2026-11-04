@@ -572,8 +572,9 @@ class Test_round_of:
 
     def test_accepts_each_confirmation_block_as_a_reference_or_none(self):
         """S23: each entry is a confirmation block reading `round-<N>#<n>`,
-        read with its line, or `none`; a record with nothing to confirm may
-        leave the section out."""
+        read with its line; a `none` block, which a record written before
+        #1319 carries, reads and names nothing (#1319's C1); a record with
+        nothing to confirm may leave the section out."""
         text = record(
             "abc1234",
             confirmations=confirm("round-1#2") + confirm("none") + confirm("round-3#1"),
@@ -606,7 +607,7 @@ class Test_round_of:
         )
         text = record(
             "abc1234",
-            confirmations="".join(confirm(cell) for cell in bad) + confirm("none"),
+            confirmations="".join(confirm(cell) for cell in bad),
             n=2,
         )
         read, errors = chain.round_of(reader, text, "r.md", 2)
@@ -616,7 +617,7 @@ class Test_round_of:
         ], errors
         for (_rel, _line, why), cell in zip(errors, bad, strict=True):
             assert f"`confirms: {cell}`" in why, why
-            assert "`round-<N>#<n>` or `none`" in why, why
+            assert "`round-<N>#<n>`, the earlier finding it confirms" in why, why
         prose = record(
             "abc1234",
             confirmations="| Confirms | What holds |\n|---|---|\n| round-1#2 | x |\n\n"
@@ -943,7 +944,7 @@ class Test_record_findings:
                 + "\n"
                 + block("target: abc1234 against main")
                 + "\n"
-                + block("confirms: none"),
+                + block("confirms: round-1#1"),
                 finding(2, "rejected"),
             ],
         ).replace(
@@ -959,7 +960,7 @@ class Test_record_findings:
             ),
             (
                 "r.md",
-                opener_at(text, "confirms: none"),
+                opener_at(text, "confirms: round-1#1"),
                 led(text, 1, chain.INSIDE.format(kind="confirmation")),
             ),
             (
@@ -1222,7 +1223,7 @@ class Test_channel:
                 finding(1, "deferred the frame", regression="round-1#2"),
                 finding(2, "open", reopens="round-1#4"),
             ],
-            confirmations=confirm("round-1#1") + confirm("none"),
+            confirmations=confirm("round-1#1"),
             n=2,
         )
         rounds, errors = rounds_of(one, two)
@@ -1246,7 +1247,7 @@ class Test_channel:
         two = record(
             "abc1234",
             [finding(1, "deferred the frame", regression="round-1")],
-            confirmations=confirm("round-1#1") + confirm("none"),
+            confirmations=confirm("round-1#1"),
             n=2,
         )
         rounds, errors = rounds_of(one, two)
@@ -1288,7 +1289,9 @@ class Test_channel:
     def test_refuses_a_reference_naming_no_earlier_record_or_finding(self):
         """S23 (T36, T43): a reference in the first record, to a record the
         item has not got or no earlier one, or to a finding that record does
-        not hold, is refused by its line; `none` in the first record passes."""
+        not hold, is refused by its line, and the refusal in the first record
+        says its confirmations are prose; `none` in the first record, which a
+        record written before #1319 carries, passes (#1319's C1)."""
         one = record(
             "abc1234",
             [finding(1, "deferred #9", regression="round-1#1", reopens=None)],
@@ -1317,6 +1320,10 @@ class Test_channel:
         ], problems
         said = [why for _rel, _line, why in problems]
         assert all("the first record" in why for why in said[:2]), said
+        assert all(
+            "what it confirms is prose with no `confirms:` line" in why
+            for why in said[:2]
+        ), said
         assert "`round-3#1`" in said[2] and "not an earlier record" in said[2]
         assert "`round-2`" in said[3] and "not an earlier record" in said[3]
         assert "`round-1#7`" in said[4] and "holds no finding 7" in said[4]
@@ -4294,8 +4301,8 @@ def test_the_template_is_the_record_the_check_reads():
     whose block locates it at one coordinate, rests on one `evidence:` line
     and names the regression `round-1#1`, with its close block after the fix
     fence, `fixed` at a commit the fix pass names; a close written inside
-    the fix block not read as one; `## Confirmations` holding its two
-    example blocks; no `reopens:` line and no `original:` line, with the
+    the fix block not read as one; `## Confirmations` holding one example
+    block and, since #1319, no `confirms: none`; no `reopens:` line and no `original:` line, with the
     review skill saying where a `reopens:` finding's grounds open; the
     record document naming the stand-in for a backtick; and no emoji
     anywhere."""
@@ -4314,7 +4321,7 @@ def test_the_template_is_the_record_the_check_reads():
     assert read.findings[0].heading.startswith("### 1. ")
     assert read.findings[0].number == 1
     assert [ref for _line, ref in read.confirms] == [(1, 2)]
-    assert text.count("\nconfirms: ") == 2 and "\nconfirms: none\n" in text
+    assert text.count("\nconfirms: ") == 1 and "\nconfirms: none\n" not in text
     head = text.split(chain.FINDINGS_HEADING)[0]
     assert chain.table_rows(reader, reader.readable(head)) == []
     assert read.target == "1a2b3c4"

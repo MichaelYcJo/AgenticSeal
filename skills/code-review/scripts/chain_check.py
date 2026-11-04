@@ -868,7 +868,8 @@ def channel(rounds, read_at_head=lambda finding: False):
             if k == 0:
                 why = (
                     f"names `{said}` in the first record: there is no earlier "
-                    f"round to name, so its `{FIELDS.CONFIRMS}` lines read `none`"
+                    "round to name, so what it confirms is prose with no "
+                    f"`{FIELDS.CONFIRMS}` line"
                 )
             elif n >= here.number or n not in by_number:
                 why = (
