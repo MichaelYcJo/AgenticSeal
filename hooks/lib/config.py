@@ -1,11 +1,12 @@
 """Shared reader: what does this repository say about itself?
 
 `config.md` sits in the root `hooks/lib/optin.py` resolves, in the same shape as
-`parity.md` -- a markdown table of `| Item | Value |`. Every row in it is
-optional and every absent row has a default, which is what every repository
-got before that row existed.
+`parity.md` -- a markdown table of `| Item | Value |`. The file is optional,
+and every absent row but two has a default, which is what every repository
+got before that row existed. An absent `Broad gate` is one exception:
+`seal gate` names the row and exits 2 with nothing run.
 
-`Mode` is the exception that proves it, and it is why this module exists. What
+`Mode` is the other, and it is why this module exists. What
 every repository got before that row was *the folder decides*, which is not a
 value, so an absent one has no default at all -- it is filled in from where the
 folder actually is, by `seal mode`. Until somebody runs that command, a root

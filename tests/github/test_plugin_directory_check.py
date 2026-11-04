@@ -392,7 +392,7 @@ class Test_module:
         assert "unknown here" in unknown and "NOT reachable" not in unknown
 
     def test_the_name_comes_from_the_manifest_rather_than_a_literal(self):
-        """A literal would be a second place the name is written down, and the
+        """A literal would be one more place the name is written down, and the
         name is the one thing that cannot change any more — users have the plugin
         installed under it. A rename then shows up as *not an entry* rather than
         as a check grading a name nobody uses."""

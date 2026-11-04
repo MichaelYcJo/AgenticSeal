@@ -1,5 +1,5 @@
-"""The rules `CLAUDE.md` once named have one home each, and no other file
-restates them (#730).
+"""The rules `CLAUDE.md` once named have one home each, and no carrier this
+module lists restates a home's own sentences (#730).
 
 #715 gave the ledger and fragment rules one home each and left the rest of
 `CLAUDE.md` alone. Three more of its rows restated a rule another file held,

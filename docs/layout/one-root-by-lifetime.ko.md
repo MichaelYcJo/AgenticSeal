@@ -195,8 +195,8 @@ check: tests/behaviour/test_first_setup_asks_once.py tests/hooks/test_optin.py t
 
 `seal/config.md` 는 저장소가 자기에 대해 적는 유일한 파일입니다. 항목마다 한
 행이고, 검사기가 읽으며, 손으로 고칠 수 있습니다. 있는 행은
-`templates/setup/config.md` 에 적혀 있고, 행이 없을 때의 기본값도 코드를 읽는
-사람에게 맡기지 않고 거기에 적혀 있습니다.
+`templates/setup/config.md` 에 적혀 있고, 행이 없을 때 무엇을 뜻하는지도
+코드를 읽는 사람에게 맡기지 않고 거기에 적혀 있습니다.
 
 **아무도 찾을 수 없는 설정은 아무도 가진 적 없는 설정입니다.** 모든 행은 파일
 전체를 보여 주고 변경을 연결해 주는 명령 하나로 닿을 수 있습니다. 처음 설정은

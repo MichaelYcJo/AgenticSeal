@@ -140,7 +140,7 @@ def fetch(url):
 def plugin_name(root):
     """This plugin's name, from its own manifest rather than a literal.
 
-    A literal here would be a second place the name is written down, and the
+    A literal here would be one more place the name is written down, and the
     name is the thing that cannot change any more -- users have the plugin
     installed under it. Reading it means a rename shows up as *not an entry*
     rather than as a check quietly grading the wrong name.

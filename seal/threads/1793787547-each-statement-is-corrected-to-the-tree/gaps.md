@@ -14,17 +14,6 @@
 
 ## Not done
 
-Phase 1 left the module docstring of
-`tests/text/test_the_settings_have_a_front_door.py`, whose first paragraph
-reads "Issue #105. Three rows exist and the only way to see them was to open
-a file nobody has a reason to open." The tree's template documents ten
-items, and the module's own `ROWS` lists all ten. The sentence opens with
-the issue it describes and tells the rest in the past tense, so it names
-its moment, the kind of sentence `frame/design.md` *Out of scope* O2 keeps
-out for #1344. It is outside #1334's scope, which is the README entry, and
-the frame's census did not list it. The proofer reads whether it states the
-present.
-
 Phase 3 left the sentences under `tests/` that speak of the commit gate as
 standing, such as `tests/hooks/test_routing.py:4` and `:7`, which say a
 declaration "is what the commit gate reads". The gate left with #1027.
