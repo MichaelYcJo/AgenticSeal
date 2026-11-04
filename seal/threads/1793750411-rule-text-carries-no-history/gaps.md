@@ -8,6 +8,9 @@
 | The paraphrase copies phase 1 met are a sample (`frame/questions.md` Q2). A restatement in other words shares no ten-word run, so no probe lists one | the proofer at review |
 | Phase 2 removed history from `skills/implement/SKILL.md`, `skills/code-review/SKILL.md`, `skills/settle/SKILL.md` and `skills/writing-style/SKILL.md`, and restated two reasons of `skills/writing-style/SKILL.md` in the present tense (`trail/phases/phase-2.md`, the removals table). That each rule there reads as it did is read, not measured, and no session of this run reads the new text, since it reads the installed 0.31.0 | the proofer at review, for the reading |
 | The paraphrases phase 2 met in its 21 files are a sample (`frame/questions.md` Q2), for the same reason as phase 1's | the proofer at review |
+| Phase 3 removed history from ten documents under `docs/`, replaced nine restatements with citations of their homes, and restated four reasons in the present tense (`trail/phases/phase-3.md`, the removals table). That each rule there says what it said before, and that each cited section states what the citation sends its reader for, is read, not measured | the proofer at review, for the reading |
+| The paraphrases phase 3 met in its 23 files are a sample (`frame/questions.md` Q2), for the same reason as phase 1's | the proofer at review |
+| The census reading at HEAD in `changelog.md` was taken at cc4d9902a. A fix pass that edits a file under `skills/` or `docs/` changes it, and only a run of the probe in `trail/phases/phase-3.md` *Census readings* measures it again | the crafter of any fix pass that edits those files, and the proofer at review |
 
 ## Not done
 
@@ -44,3 +47,22 @@ one #1313's D3 used: a session that invokes these skills directly is not
 preloaded with the contract, and `frame/design.md` D3 keeps a copy whose
 reader does not open the home at that step. Removing the pinned two would
 also drop the text their cases hold as what a reader is told.
+
+Phase 3 kept four restatements under `docs/` whose reader does not open the
+home at that step (`frame/design.md` D3). `docs/releasing/release-checklist.md`
+step 2b restates what each settle command does and that a settle is not a
+work item, which `skills/settle/SKILL.md` and `docs/checks/the-fold.md` state;
+the person who works down the checklist types those commands and runs no
+skill procedure. Its step 0 and step 6 boxes keep the reasons
+`docs/releasing/issues-and-milestones.md` states for the milestone and the
+`merged:` labels. `docs/checks/the-pull-request-check.md` keeps what a round
+that could not resolve the original writes, which
+`skills/legacy-parity/SKILL.md` *Recording the comparison* states, as the
+reason its refusal stands. `trail/phases/phase-3.md` lists each with its
+ground.
+
+`docs/checks/the-pull-request-check.md` carries the line
+`check: last-record-at-head` twice, under the paragraph opening **The last
+record is at HEAD**. That is no history and no copy of another file, so it
+is outside the class `frame/design.md` *Scope* gives this work, and the
+phase did not take it. It is left for whoever next edits that section.
