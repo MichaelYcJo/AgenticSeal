@@ -57,6 +57,11 @@ The fix adds one case to `Test_module`, after `test_a_script_copied_alone_exits_
 
 The snippet leaves the frame's statements of this path to the orchestrator's fold. `frame/plan.md:34` says "A run with no `CLAUDE.md` that holds an `@` behaves as it does today", which a partial copy with a `CLAUDE.md` that holds no `@` now contradicts. `frame/design.md:58` says no exit code changes. The set of codes is unchanged, but where exit 2 is reached has changed.
 
+```seal
+verdict: fixed 18806108
+answer: The finding holds: the copy-alone rows reach the import scan only under --sections, and the no-flag row stops at hooks/lib/core.py first. The pass added the paste-ready case to Test_module after the copy-alone case, as given apart from the subprocess argument list wrapped by ruff format and a docstring that says why the copy carries core.py and optin.py. hooks/lib/core.py loads optin alone (read, core.py:31). The case passed at 18806108, where the code is 6137faf8's (executed, bin/test -k copy_without_the_scan, 3 passed with finding 2's cases). It is a pin of a path that already existed, so it took its red from contract rule 15. Under bin/seal mutate, a guard added at the head of imports_of returning [] where unverified_check.py is missing turned it red on assert 1 == 2 (executed, exit 1 from the cases; the copy measured and exited 1). The frame statements this path contradicts, frame/plan.md Operational impact and frame/design.md Data & interfaces, are named in the hand-back for the orchestrator.
+```
+
 ### 2. `live_pieces` is a new public function of `unverified_check.py` with no `Test_live_pieces` class in that module's test file
 
 ```seal
@@ -93,6 +98,11 @@ class Test_live_pieces:
         assert UC.live_pieces(comment, spans_cross_lines=True) == [[(0, 2)], []]
 ```
 
+```seal
+verdict: fixed 18806108
+answer: The finding holds: CONTRIBUTING.md The test layout asks for one class per public function, and bin/seal layout --check reported live_pieces alone for the module. The pass added Test_live_pieces with the two paste-ready cases, their lines and offsets unchanged. It placed the class after Test_liveness and not before Test_live_lines, so the classes keep the module's order, where live_pieces follows liveness. Its docstring says how each case was shown red. The offsets the round worked out by reading were run: both cases passed (executed, exit 0). Each is a pin of 6137faf8's scan, so each took its red from contract rule 15, with bin/seal mutate on skills/verify/scripts/unverified_check.py run once per case (executed). Under the accepting case, the piece before a comment opener running past the opener was red. Under the refusing case, a span opened across lines keeping its line's piece open, and a comment opener keeping the piece open, were each red (2 mutants, 2 red). After the commit, bin/seal layout --check printed no report line for unverified_check.py (executed, exit 0).
+```
+
 ### 3. A comment opener that CommonMark reads as text hides every later import, and `imports_of`'s list of what it does not model leaves the shape out
 
 ```seal
@@ -123,6 +133,11 @@ The fix rewrites the docstring's last sentences in place. `frame/design.md` *Out
     import whose `@` follows a code span, a comment, emphasis or a link with
     no whitespace between them, where the harness can begin a text token
     with the `@`."""
+```
+
+```seal
+verdict: fixed b4146073
+answer: The finding holds, and the shared scan stays as it is (S7). The docstring sentence went in at 18806108, and b4146073 rewrapped one line of it to the block's width. A one-time probe, tests/skills/test_tmp_round1_shapes.py, ran once and was deleted. Its results were: an inline `<!--` returned [] where `@b.md` follows; a second opener after a comment closed on its line returned only b.md and hid d.md; the list item's fence returned a.md and hid b.md and d.md below its closing line. That last shape was not run by the round. The probe also found what the paste-ready sentence leaves out: a later real fence line closes the meter's fence instead of opening one, so the import that fence quotes is read (it returned a.md and c.md). So the docstring of imports_of is rewritten in place, in the pass's own words. Where a fence closing line behind a list marker stands within three spaces of the margin, the rule reads it as an opener, hides the lines below it up to the next fence line or the end of the file, and that next fence line then closes it. A `<!--` with no `-->` after it hides the rest of the file wherever it stands in live text, which CommonMark reads as text inside a paragraph or after a comment closed on its line. A docstring is read by no check and printed nowhere, so it takes no pin (contract rule 14). The narrow run after the commit passed (executed, bin/test over test_payload_meter, test_unverified_check and test_release_hygiene, 485 passed, exit 0). frame/design.md Out, the first bullet, is named in the hand-back for the orchestrator.
 ```
 
 ## Confirmations
