@@ -91,6 +91,8 @@ In scope:
      pairs is still refused at its `for` line under the same exemption;
    - a second module-level `__main__` block without an answer is not read
      where the first block gives one;
+   - a loop whose target is not two names (one name, three names, a nested
+     tuple) is refused at the `for` line;
    - the census's pairs are those `hooks/lib/console.py#STREAMS` holds,
      loaded from the file.
    The case `test_refuses_a_block_without_the_call_and_one_with_it_after_main`
@@ -124,10 +126,11 @@ In scope:
    **Every file read or written names its encoding.** It says that every
    entry point, each tracked `.py` with a `__main__` block, opens its first
    such block with the answer `hooks/lib/console.py#STREAMS` gives, as the
-   call or as a loop over the same pairs. It says that the `encoding` and
+   call or as a loop over its literal pairs in the one form
+   `tests/censuses.py#loop_pairs` reads. It says that the `encoding` and
    `entry_point` censuses enforce both over every tracked `.py`.
    `tests/text/test_every_file_the_plugin_reads_or_writes_names_its_encoding.py`
-   pins the new sentence in the same commit, and its docstring stops saying
+   pins three facts of the bullet in the same commit, and its docstring stops saying
    "the hook entry points'".
 7. **`hooks/lib/console.py`'s docstring**: its open question, "Which entry
    points owe the answer is #1255's.", becomes the answer, which opens the
