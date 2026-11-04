@@ -54,4 +54,4 @@ Files this work shares with the release's other work items, each built on its ow
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-04 | The measures are cited at `569780eff` and `48d035aa6`, the squashes `main` holds | The commits the issue gave are reached by no `main` or release ref, so `tests/text/test_a_cited_commit_outlives_the_squash.py` would refuse the frame's citations had they been written as `<commit>:<path>`, and a reader sent to them after the release finds nothing; `569780eff` (#1257) and `48d035aa6` (#1237) hold the same files byte for byte (executed: `git diff --quiet`). The same unreached citation stood in all three frames of the release, carried from the issue bodies, so the issue bodies of #1254, #1255 and #1256 are corrected in place as its prevention home | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |
