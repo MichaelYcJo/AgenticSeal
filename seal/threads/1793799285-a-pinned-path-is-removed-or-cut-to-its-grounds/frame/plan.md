@@ -31,7 +31,7 @@ Two existing structures constrain the rewrites. `tests/censuses.py#old_names` re
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | *Scope* items 1, 2 and 3, built on `release/v0.32.0` after #1255 and #1256 have landed | S1 to S6 of `frame/design.md` *User scenarios & acceptance*, each with its command and output in the phase record. The narrow runs of the touched modules, `tests/test_censuses.py` and `tests/text/test_a_cited_commit_outlives_the_squash.py` pass. The full suite is `unverified`, and the orchestrator's broad gate answers it | 024f7d999 |
+| 1 | *Scope* items 1, 2 and 3, built on `release/v0.32.0` after #1255 and #1256 have landed | S1 to S6 of `frame/design.md` *User scenarios & acceptance*, each with its command and output in the phase record. The narrow runs of the touched modules, `tests/test_censuses.py` and `tests/text/test_a_cited_commit_outlives_the_squash.py` pass. The full suite is `unverified`, and the orchestrator's broad gate answers it | 98920cf80 |
 
 ## Operational impact
 
