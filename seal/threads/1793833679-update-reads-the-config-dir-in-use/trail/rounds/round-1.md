@@ -103,6 +103,11 @@ The pins of `tests/behaviour/test_release_hygiene.py` that
 snippet (read). The snippet names
 no `~/.claude` outside the spelling, so finding 2's search holds it too.
 
+```seal
+verdict: fixed c2a1f208
+answer: The finding holds at `skills/update/SKILL.md:16-21` and the repair at `:62-70` of e2bb58bc: the procedure sentence says the user types the repair in a terminal of their own, and the repair read `$p`, which only the session's shell had set. The paste-ready block was read against the frame before it was applied. `frame/plan.md` *Technical context* says no variable carries from one command to the next, and its fourth alternative rejects a variable the user's repair would lack. `frame/design.md` *Scope* 2 asks only that the `rsync` source be the config directory's. The block keeps the repair the user's to type, since it only prints, and it reads the install record again because it runs in a shell of its own. The block itself is applied as given. The introducing sentence is in my words: it says the terminal holds neither `$p` nor, unless exported there, `CLAUDE_CONFIG_DIR`, and that the block reads the copy again and only prints. The mismatch row and the cautions' `mv` take the wording the finding gives, and the cautions paragraph is reflowed. The fragment's step 2b sentences now say that the repair used `$p` and copied into `/` typed as printed, and that it is now printed with the paths written out and quoted. The new case `test_step_2b_prints_the_repair_with_this_sessions_paths` first asserts that the block holds only its `p=$(` read and its `printf` line, so it never runs a repair that moves or copies. It then runs the block under `bash -c` with the config directory and the copy each at a path holding a space, and reads the three printed lines back with `shlex.split`. Seen red against e4db4f10's skill: it failed at that assertion, `3 == 2`, and ran nothing (executed, exit 1). After the fix it passed, with the two modules, the hygiene module and the line-wrap module green (executed, exit 0). Three `bin/seal mutate` breaks of the new block were each red, exit 0: the printed `rsync` source rewritten to `${HOME}/.claude/...`, the block's record read rewritten to `${HOME}/.claude/...`, and `%q` rewritten to `%s` for the `mv` and `rsync` lines. The other statements of the repair were listed by `git grep` on `stale.bak`, `"$p/"`, `print the repair`, `repair below` and the `mv` above, a sample by wording; outside this record, only `frame/design.md:64-67` *Data & interfaces* still shows the old repair line, and that is left for the orchestrator to fold.
+```
+
 ### 2. The search that alone holds the repair's `rsync` source and step 5's path lets `${HOME}/.claude` through, and `gaps.md` cites the core for not widening it
 
 ```seal
@@ -159,6 +164,11 @@ def test_the_skill_names_no_fixed_claude_directory():
     rest = read(UPDATE).replace(SPELLING, "")
     fixed = re.findall(r"\S*/\.claude(?![-\w])\S*", rest)
     assert not fixed, f"skills/update/SKILL.md names {fixed!r} outside {SPELLING!r}"
+```
+
+```seal
+verdict: fixed c2a1f208
+answer: The finding holds. The grounds in `gaps.md` *Not done* were wrong: the core's sentence is about a script that decides whether a line of a form meant a label, and the case already carried a list of two spellings. The `/.claude` segment is one construct, and it covers every spelling of the part before the slash. The paste-ready case was read against `frame/design.md` *Scope* 6d and S5, and against the skill at e4db4f10, where the pattern finds nothing. It finds both of the frame's spellings, so it still meets them, and the lookahead keeps `$CLAUDE_PLUGIN_ROOT/.claude-plugin/plugin.json` and the cases' `.claude-plugin` out. It is applied as given, except for the docstring's first clause. Since finding 1's fix, the repair's `rsync` source is held by the run case, so the docstring names step 5's sentinel method alone as the path no case runs. Seen red with the proofer's two survivors, against e4db4f10's skill, before the fix was committed: `bin/seal mutate skills/update/SKILL.md` with the `rsync` source rewritten to `"${HOME}/.claude/..."`, and again with step 5's path rewritten to `` `${HOME}/.claude/plugins/cache/ ``, each over `-k no_fixed`. Each read `red`, exit 0, and each failing line named the mutated path (executed). Unmutated, the case passed against e4db4f10's skill (executed, exit 0). `gaps.md` *Not done* now reads `nothing`. The frame's *Scope* 6d at `frame/design.md:34` and S5 at `:53` still say the search is for `~/.claude` and `$HOME/.claude`, and these are left for the orchestrator to fold to the segment.
 ```
 
 ## Confirmations
