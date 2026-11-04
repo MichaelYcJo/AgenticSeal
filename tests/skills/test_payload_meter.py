@@ -1477,6 +1477,46 @@ class Test_module:
         if absent:
             assert absent not in done.stderr, done.stderr
 
+    def test_a_copy_without_the_scan_exits_2_on_a_run_that_reads_a_claude_md(
+        self, tmp_path
+    ):
+        """#1185. Every read of a `CLAUDE.md` that exists asks
+        `unverified_check.py` where its live text is, so a copy that holds
+        the core hook's module and not that sibling exits 2 with no flag at
+        all, and its sentence names the import reading. The row above with
+        no flag stops at `hooks/lib/core.py` first, so this copy carries it
+        and `hooks/lib/optin.py`, the one module it loads. Green at 6137faf8;
+        seen red with `imports_of` returning nothing where the sibling is
+        missing, the reading that fails open."""
+        alone = tmp_path / "alone"
+        for rel in (TARGET, "hooks/lib/core.py", "hooks/lib/optin.py"):
+            copy = alone.joinpath(*rel.split("/"))
+            copy.parent.mkdir(parents=True, exist_ok=True)
+            with open(os.path.join(ROOT, *rel.split("/")), encoding="utf-8") as f:
+                copy.write_text(f.read(), encoding="utf-8")
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        (repo / "CLAUDE.md").write_text("# rules\n", encoding="utf-8")
+        home = tmp_path / "home"
+        home.mkdir()
+        done = subprocess.run(
+            [
+                sys.executable,
+                str(alone.joinpath(*TARGET.split("/"))),
+                "--root",
+                str(repo),
+            ],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            env=dict(os.environ, HOME=str(home), USERPROFILE=str(home)),
+            cwd=str(repo),
+        )
+        assert done.returncode == 2, (done.returncode, done.stderr)
+        assert "Traceback" not in done.stderr, done.stderr
+        assert names_path(str(alone), done.stderr), done.stderr
+        assert "no import of a `CLAUDE.md` can be read" in done.stderr, done.stderr
+
     def test_json_carries_the_same_numbers_as_the_text_and_no_machine_path(
         self, tmp_path
     ):
