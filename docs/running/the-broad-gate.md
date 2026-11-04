@@ -34,11 +34,8 @@ check: tests/skills/test_broad_gate.py tests/behaviour/test_the_seal_is_taken_on
 
 Where a rule every agent is bound by lives, and where one agent's own rule
 lives, is `docs/running/the-agent-set.md` *One contract every agent receives, and
-one definition each*.
-
-**A suite that is not mentioned reads as a suite that passed.** An agent's
-handover carries the suite labelled `unverified` with the orchestrator named
-as its answerer: labelled, never omitted.
+one definition each*. How an agent's handover labels the suite it did not run is
+`skills/agent-contract/SKILL.md` rule 2.
 
 **A suite whose record says a pytest session at `HEAD` stopped
 part-way has not passed, whatever the row's exit.** An exit of 0 does

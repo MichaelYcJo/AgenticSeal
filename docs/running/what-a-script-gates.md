@@ -1,26 +1,22 @@
 # What a script gates, and what an agent judges
 
-A script holds a gate only on a fact it reads exactly, an agent holds the
-gates on meaning, and every check that gates is listed here with what it
-reads and what it does with what it did not read. The rule is
+Every check that gates is listed here with what it reads, what it does with
+what it did not read, and the agent that judges the meaning of the same
+text. The rule is
 `skills/core/SKILL.md` *Judgment is spent where meaning is the question,
 and a script answers the rest* and *The rule a mechanism is kept against*;
 this document is the standing account of its application.
 
 ## Which gate a script holds
 
-**A script gates a closed form, in one spelling, and names as not read a
-line or a file that looks like one of the form's and is not one; a
-judgment of meaning belongs to the agent that already reads the text, at
-a named step.** A closed form is an exit code, a real parser's
-result, a structure a command wrote, or a line of a form the plugin defines, spelt as that form spells it, such as a field inside a `seal` block or the header `| Pact | Clause | Hash |`. A line spelt otherwise is
+**A script gates a closed form, in one spelling; a judgment of meaning
+belongs to the agent that already reads the text, at a named step.** A
+closed form is an exit code, a real parser's result, a structure a command
+wrote, or a line of a form the plugin defines, spelt as that form spells it, such as a field inside a `seal` block or the header `| Pact | Clause | Hash |`. A line spelt otherwise is
 prose to the script: where the form requires the line, its absence is
 refused; where it does not, the line is named as one the script did not
-read, and whether it meant the label is the reading agent's judgment. No
-script carries a list of the spellings a label is written in, because such
-a list grows by one row for each near miss a review round finds and never
-converges. What a script answers exactly stays a script and the session
-waits on its exit code. A check added or changed names, in its pull
+read, and whether it meant the label is the reading agent's judgment, by
+the core's sections cited above. A check added or changed names, in its pull
 request, the form it reads, what it names as unread, and the agent and
 step that judge the meaning of the same text.
 check: tests/skills/test_chain_check.py tests/skills/test_pact_check.py tests/github/test_rules.py tests/skills/test_rule_changes.py

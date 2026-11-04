@@ -94,12 +94,9 @@ request's body, the settling session in its comment on the
 `flow-baseline` issue, and the crafter in the phase record of a work
 item that measures the process. An issue follows a reading judged
 `worse` so, filed by the orchestrator or the settling session, and
-none follows a reading whose only ground is its band. A band read as a
-verdict filed #1259, for a session start that grew by 397 B because
-the core now reaches every session from one source, and the owner
-closed it as not a defect. An issue a band files costs its reader a
-reading and a close, and the count of `worse` readings then says less
-than it seems to.
+none follows a reading whose only ground is its band. An issue a band
+files costs its reader a reading and a close, and the count of `worse`
+readings then says less than it seems to.
 
 ## Where a reading goes
 

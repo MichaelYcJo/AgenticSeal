@@ -32,9 +32,9 @@ git describe --tags origin/main   # must name the release, not "<tag>-N-g<sha>"
 into `release/vX.Y.Z`.** The branch is cut with its version already named,
 the version of its milestone `release: X.Y.Z`, and nobody installs from a
 release branch, because the marketplace clone tracks `main`. Moved at the
-end, the version needed a pull request of its own, because the `release`
+end, the version would need a pull request of its own, because the `release`
 ruleset takes no direct push and has no bypass actor, and that pull request
-was one more wait at the end of every release. The orchestrator moves it in
+would be one more wait at the end of every release. The orchestrator moves it in
 the commit that adds the changelog fragment of the release's first work
 item, and every later pull request into the branch leaves it. What holds a
 release whose first pull request did not move it is the `hygiene` workflow,
@@ -302,13 +302,12 @@ which issue it was answering wrote the answer down, and this is what acts on
 it.
 
 **A second workflow reads the same keywords earlier, and writes no close.**
-`.github/workflows/label-merged-on-release-branch.yml` runs on a push to
-`release/*` and puts `merged: X.Y.Z` on the issues those same bodies name, so
-that a ticket already in the release stops looking like one nobody has
-started. It answers *is this in yet*, which the paragraph above leaves open
-for the length of a release; *is this done* is still the close, still when
-`main` moves. `docs/releasing/issues-and-milestones.md` owns both mechanisms and the
-reason the two moments are different.
+It labels the issues those same bodies name at the squash onto the release
+branch, which answers *is this in yet*, a question the paragraph above leaves
+open for the length of a release; *is this done* is still the close, still when
+`main` moves. `docs/releasing/issues-and-milestones.md` *A label says a ticket is
+already in, before the release ships* owns that mechanism and the reason the two
+moments are different.
 
 Collecting the numbers into the release pull request's own body would be a
 step somebody has to remember. The workflow is the same act with nobody to
@@ -348,7 +347,7 @@ read it as two either.
 `Part of #N` remains the form for a pull request that advances an issue without
 finishing it. It links for a reader and asks nothing to close.
 
-**The version is named at the cut, a `feat:` ships in the planned minor whose goal it shares, and the prefix is never lowered to fit the number.** A release's milestone, `release: X.Y.Z`, names the version before its first work item starts, and the branch is cut as `release/vX.Y.Z` for it. A release that carries a `feat:` is a minor, and every other prefix fits a patch; `skills/commit-pr-convention/SKILL.md` *Commit messages* says which change takes which prefix. A planned minor is a category with one goal, which its milestone's description states (`docs/releasing/issues-and-milestones.md` *A milestone answers when, and takes three shapes*), and the `feat:`s that share that goal ship together in it, so one minor is not made for each `feat:`. A `feat:` lands in a milestone when an issue titled `feat:` is filed into it or moved into it, or when a pull request takes `feat:` where its issue had another prefix. When it lands in a milestone numbered as a patch, its issue moves to the planned minor whose goal it shares. Where no planned minor shares its goal, or the work that follows needs it in effect before that minor ships, that milestone and every later planned `release:` milestone are renamed one step forward in one act instead, each keeping the step it had from the milestone before it, and every description is rewritten for the new numbers. A rename made because the work that follows needs the `feat:` sooner states its grounds in the renamed milestone's description: the work item that needs it, and why the minor that shares its goal ships too late. A `feat:` already squashed onto a patch's branch stays in that release's range, because the release pull request's reading counts it after a revert as well, so its repair is the same rename. A release branch already cut is cut again under the new name from the old one, and the new branch's first pull request moves `plugin.json` to the new version. Until a branch is cut under a name, the planned milestones' names follow their goals, and a regrouping renames them in one act, back as well as forward, with every description rewritten. Once a branch is cut, its name is never pulled back: a minor that carries no `feat:` ships as the minor it was named, because the branch, the `merged:` labels and `plugin.json` already carry that name. The release pull request refuses a patch-numbered release whose own commit subjects carry a `feat:`, and names each one. The reading is exact, and the rule it holds was approved on 2026-09-02, held by nothing, and broken by 14 of the 37 patch releases from v0.8.1 to v0.25.1.
+**The version is named at the cut, a `feat:` ships in the planned minor whose goal it shares, and the prefix is never lowered to fit the number.** A release's milestone, `release: X.Y.Z`, names the version before its first work item starts, and the branch is cut as `release/vX.Y.Z` for it. A release that carries a `feat:` is a minor, and every other prefix fits a patch; `skills/commit-pr-convention/SKILL.md` *Commit messages* says which change takes which prefix. A planned minor is a category with one goal, which its milestone's description states (`docs/releasing/issues-and-milestones.md` *A milestone answers when, and takes three shapes*), and the `feat:`s that share that goal ship together in it, so one minor is not made for each `feat:`. A `feat:` lands in a milestone when an issue titled `feat:` is filed into it or moved into it, or when a pull request takes `feat:` where its issue had another prefix. When it lands in a milestone numbered as a patch, its issue moves to the planned minor whose goal it shares. Where no planned minor shares its goal, or the work that follows needs it in effect before that minor ships, that milestone and every later planned `release:` milestone are renamed one step forward in one act instead, each keeping the step it had from the milestone before it, and every description is rewritten for the new numbers. A rename made because the work that follows needs the `feat:` sooner states its grounds in the renamed milestone's description: the work item that needs it, and why the minor that shares its goal ships too late. A `feat:` already squashed onto a patch's branch stays in that release's range, because the release pull request's reading counts it after a revert as well, so its repair is the same rename. A release branch already cut is cut again under the new name from the old one, and the new branch's first pull request moves `plugin.json` to the new version. Until a branch is cut under a name, the planned milestones' names follow their goals, and a regrouping renames them in one act, back as well as forward, with every description rewritten. Once a branch is cut, its name is never pulled back: a minor that carries no `feat:` ships as the minor it was named, because the branch, the `merged:` labels and `plugin.json` already carry that name. The release pull request refuses a patch-numbered release whose own commit subjects carry a `feat:`, and names each one. The reading is exact.
 check: a-patch-carries-no-feat
 
 **`main` stays the default branch.** A fresh marketplace clone lands on the

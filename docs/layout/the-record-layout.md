@@ -137,8 +137,7 @@ check: tests/skills/test_chain_check.py
 **A reader of a record keeps no comment state: it reads `<!--` as text, and
 refuses at its line a line outside every fence that begins with `<!--`.** A
 record carries no comment, so a comment state in its reader models nothing
-the record holds, and that state is where three reader defects of one
-release came from. The refusal stands where the reader reads:
+the record holds. The refusal stands where the reader reads:
 `chain_check.py` in a round record, a `guarantee.md` and a `trail/gate.md`,
 `unverified_check.py` in a `gaps.md`, and `rule_changes.py` in a
 `frame/design.md`'s `## Rule changes`. A base revision that holds such a line is not compared,
@@ -150,7 +149,7 @@ framed before its template lost its comments, so that reader keeps the
 comment walk of `hooks/lib/blocks.py`.
 check: record-comment-line-refused
 
-**A fact of a work item has one record, and every other record cites it by path and heading.** What changed, for a user, is `changelog.md`'s. What is built, its grounds, its rule changes and its removals are `frame/design.md`'s. In which phases, by which approach and with which commit each closed is `frame/plan.md`'s. What only a person could decide, and what was assumed in its place, is `frame/questions.md`'s. What building one phase found, each departure from the frame among it, is that phase's `trail/phases/phase-N.md`. What one round found is its `trail/rounds/round-N.md`. The one broad run is `trail/gate.md`. What went out unproved and what was within reach and not taken is `gaps.md`. The sealer's audit is `guarantee.md`. A record cites another's fact by its path and heading and does not restate it, so a template holds no section or cell that could hold only a copy. In 0.24.0, 12 of 17 recurring review findings stood only in a work item's own records, one restating another (#1148).
+**A fact of a work item has one record, and every other record cites it by path and heading.** What changed, for a user, is `changelog.md`'s. What is built, its grounds, its rule changes and its removals are `frame/design.md`'s. In which phases, by which approach and with which commit each closed is `frame/plan.md`'s. What only a person could decide, and what was assumed in its place, is `frame/questions.md`'s. What building one phase found, each departure from the frame among it, is that phase's `trail/phases/phase-N.md`. What one round found is its `trail/rounds/round-N.md`. The one broad run is `trail/gate.md`. What went out unproved and what was within reach and not taken is `gaps.md`. The sealer's audit is `guarantee.md`. A record cites another's fact by its path and heading and does not restate it, so a template holds no section or cell that could hold only a copy.
 check: tests/behaviour/test_a_phase_hands_the_next_one_a_record.py tests/behaviour/test_unverified_rows_close.py
 
 **A `<commit>:<path>` citation names a commit that `main` or a release

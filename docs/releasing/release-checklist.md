@@ -84,18 +84,15 @@ block's `location:` names where the fix went, not where the defect shows, and th
 does not read it. A work item whose record the reader refuses a line of reads `not read`
 in its finding cells, and the refusal is printed under the table, because a count that
 skipped a refused finding is a wrong number. They are this repository's measure
-of #1148, which removed the records' copies of one another: 0.24.0's four work items
-read 17 recurring of 36 findings, 12 in records alone, and 0.25.0's one read 3 of 10, 1
-in a record alone. A records-alone count that does not fall is no verdict. #1148 is
-measured by this count falling, so a count that holds level is read as one that
-rose: it is a row for the judgment `docs/running/measuring-a-run.md` *A band flags a
-reading for judgment, and a judgment decides whether it is worse* asks, because a
-release's mix of work moves the count as well as stale copies do. A stale copy is a
-record that restates a fact another record holds and was left as it stood when that
-source changed; #1148 removed the records' copies of one another so that none could
-go stale. The settling session's comment names the work items whose records-alone
-findings kept the count up, and says of each such finding whether it found a stale
-copy. The count is `worse` only where stale copies are what kept it up. Where it
+of #1148, which removed the records' copies of one another. A records-alone count
+that does not fall is no verdict. #1148 is measured by this count falling, so a count
+that holds level is read as one that rose: it is a row for the judgment
+`docs/running/measuring-a-run.md` *A band flags a reading for judgment, and a judgment
+decides whether it is worse* asks, because a release's mix of work moves the count as
+well as stale copies do. A stale copy is a record that restates a fact another record
+holds and was left as it stood when that source changed. The settling session's
+comment names the work items whose records-alone findings kept the count up, and
+says of each such finding whether it found a stale copy. The count is `worse` only where stale copies are what kept it up. Where it
 is, the session files one issue that names each such stale copy, the record it
 stood in, and the file the lesson belongs in. An issue naming that file is where
 `skills/implement/orchestration.md` *Orchestrator: where a decision or a lesson is
@@ -109,10 +106,8 @@ check: tests/github/test_finding_counts.py
 **What `seal settle --apply` removed is committed before anything switches that checkout
 to another branch.** `--apply` deletes each directory from the working tree and stages
 nothing, and `git switch` exits 0 over an unstaged deletion while it restores every
-deleted file that differs between the two branches, saying nothing about it. In the 0.24
-settle a switch to `main` and back restored 28 `gaps.md` files, the removal commit left
-them tracked, and the broad gate refused the tree. A comparison with another ref runs in
-a `git worktree` of that ref.
+deleted file that differs between the two branches, saying nothing about it. A
+comparison with another ref runs in a `git worktree` of that ref.
 
 **Before `seal settle --apply`, the settling session reads the dry
 run's *The judgments* and *The judgments earlier settles removed*, and
@@ -226,8 +221,8 @@ git fetch origin --tags
 git describe --tags origin/main   # names the release, not "<tag>-N-g<sha>"
 ```
 
-The version hook reads tags and nothing else; an untagged release is one no
-installed session is ever told about.
+`docs/releasing/branch-and-release.md` *Cutting a release* says why the tag has to
+name the release.
 
 Two acts come after the tag: publishing the release note, and telling the
 plugin directory. The first box carries the command that answers it; the
@@ -292,13 +287,12 @@ python3 .github/scripts/plugin_directory_check.py   # what the marketplace files
       `python3 .github/scripts/plugin_directory_check.py`. It reads the two marketplace
       files on GitHub and says, per file, whether this plugin has an entry, which commit
       the entry pins, and whether that commit is an ancestor of `main`. **It reports and
-      never fails**, deliberately: the files sync on somebody else's schedule, one of
-      the two once went twenty-eight days without a commit, and a red nobody can act on
-      is what `skills/core/SKILL.md` *The first value: efficient development through the
-      workflow* is against. Those files are not the directory, the catalog people browse
-      inside Claude, and the directory is readable from nowhere a script can reach, so
-      the command ends by saying it was not read and printing the address of the page
-      that answers. A portal listing is answered on the portal's Submissions page, with
+      never fails**, deliberately: the files sync on somebody else's schedule, and a red
+      nobody can act on is what `skills/core/SKILL.md` *The first value: efficient
+      development through the workflow* is against. Those files are not the directory,
+      the catalog people browse inside Claude, and the directory is readable from
+      nowhere a script can reach, so the command ends by saying it was not read and
+      printing the address of the page that answers. A portal listing is answered on the portal's Submissions page, with
       its status and the version that is live. It picks up each new version from its
       tracked branch without a resubmission, and a version that passes goes live by the
       listing's publish setting, which by default waits for somebody to select Publish
@@ -360,5 +354,3 @@ check: tests/hooks/test_version_check.py
 issues, by `gh api -X PATCH repos/<owner>/<repo>/milestones/<number> -f state=closed`.**
 Nothing else closes it: `.github/scripts/close_issues_on_release.py` closes each issue
 and leaves the milestone open with none in it, which reads as a release still in flight.
-`release: 0.20.0` stood open eleven days after its tag and `release: 0.21.0` five, each
-closed by hand.

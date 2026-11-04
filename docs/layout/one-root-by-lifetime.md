@@ -243,8 +243,8 @@ check: tests/behaviour/test_the_pull_request_language_is_the_repositorys.py
 
 **A cell may carry an escaped pipe, and one line that will not parse is named
 rather than treated as the end of the table.** A value like a shell command
-with a pipe in it is ordinary content, and a reader that stopped at it
-silently took every row below it out of the config. The reader and the writer
+with a pipe in it is ordinary content, and a reader that stops at it
+silently takes every row below it out of the config. The reader and the writer
 share the constant that describes a row, because their disagreement about
 which line is a given row is what turns one edit into a duplicate row in a
 person's file.
