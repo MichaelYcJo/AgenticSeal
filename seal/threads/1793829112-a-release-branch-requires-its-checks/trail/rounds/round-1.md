@@ -74,6 +74,11 @@ For plan row 5 (`frame/plan.md:24`), the failure-scenario cell becomes:
 Design G8: the second of two work items running side by side has to merge the release branch in once the first lands, and that merge costs it a second broad run and a second seal.
 ```
 
+```seal
+verdict: fixed 200fc280
+answer: The finding holds: `chain_check.py#follows` lists commits with `--no-merges` and excludes the base's, and `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals* says the base merge moves HEAD past `trail/gate.md` and `guarantee.md` and the orchestrator runs the broad gate and the sealer again. In 200fc280 the paragraph of `docs/releasing/branch-and-release.md` *Work accumulates on a release branch* gives that reason in the crafter's own words, not the paste-ready text as given: the paste-ready "which is often after its own seal" could read as the first item's seal, so the paragraph says the merge comes once the first item lands, often after the second's broad run and seal, that the chain check passes the merge, citing `chain_check.py#follows`, and that the merge moves HEAD past the work item's broad run and seal so the orchestrator runs both again. G8 in `frame/design.md` and plan row 5 in `frame/plan.md`, the frame half, were fixed by the orchestrator in 09792bf1; both paths stand in this finding's `location:`, so no `location:` line is added here.
+```
+
 ### 2. The checklist box names `pytest` and `arms-grammar` as the jobs left, and `durations` also runs on every pull request into a release branch with no ruleset requiring it
 
 ```seal
@@ -125,6 +130,11 @@ The changelog's last sentence then reads: "The first box of
 `docs/releasing/release-checklist.md` *0. Before starting* asks a person about
 the checks no ruleset requires."
 
+```seal
+verdict: fixed 200fc280
+answer: The finding holds: `durations` in `.github/workflows/test.yml` runs on every pull request and no ruleset requires it, so a box naming `pytest` and `arms-grammar` asked about less than the old box did. In 200fc280 the first box of `docs/releasing/release-checklist.md` *0. Before starting* asks that no check of the pull request was red at the commit that merged, says the rulesets hold `lint` and `release` there, and names no job list. It follows the paste-ready text except that it says "the checks no ruleset requires" where the paste-ready says "the jobs", so the box and the changelog say the same. The last sentence of `changelog.md` reads as the finding gives it. The sentence of `docs/releasing/branch-and-release.md` saying the `pytest` and `arms-grammar` jobs are not required stays, as the finding says. G12, Scope 3, S4 and the first *Removes* row of `frame/design.md`, the frame half, were fixed by the orchestrator in 09792bf1; that path stands in this finding's `location:`, so no `location:` line is added here.
+```
+
 ### 3. The plan says a reading committed after the broad run leaves `trail/gate.md` behind HEAD, and the gate arm passes a commit that touches only the work item's records
 
 ```seal
@@ -160,6 +170,11 @@ The grounds cell of row 2 (`plan.md:56`) becomes:
 
 ```markdown
 The owner's batch answer puts the act with the orchestrator after the work item is sealed (`routing.md` *Why this way*); a reading committed after the seal leaves `guarantee.md` behind HEAD, so the act moves to the step before the preflight, where its record costs no second seal and the sealer reads the setting the documents state
+```
+
+```seal
+verdict: fixed 09792bf1
+answer: The finding holds, and the orchestrator fixed it in 09792bf1: `frame/plan.md` *Operational impact* and the grounds cell of *Judgments of the run* row 2 now name only the cost after the seal, `guarantee.md` behind HEAD, and no longer say a reading committed after the broad run leaves `trail/gate.md` behind it. The fix pass made no change of its own for this finding.
 ```
 
 ## Confirmations
