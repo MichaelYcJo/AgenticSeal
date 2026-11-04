@@ -2,6 +2,8 @@
 
 ## Grounding
 
+Every line coordinate and every statement of what the tree holds in this frame is the tree's at 0611019b, before the build.
+
 | Policy clause | What it fixes for this work |
 |---|---|
 | G1 Issue #1185 (executed: `gh issue view 1185 --json body,comments,title` on 2026-11-05, one body and no comments). `routing.md` (read): Planning framer, Implementation crafter, Review through the review chain, Automation yes | The ticket asks that `imports_of` skip `@` lines inside fenced code blocks, with a case seen red first. It reports no wrong reading today. |
@@ -27,22 +29,23 @@ In:
    - `imports_of`'s docstring and the comment above `IMPORT`. They say what is read, cite G2's two sentences, and name the limits of *Out* below.
    - The module docstring's exit-code paragraph. `unverified_check.py` is now needed by any run that reads a `CLAUDE.md`, not only by `--sections`.
    - `_fence_rule`'s docstring and its stderr sentence. Both name the two uses, splitting a skill at headings and reading the imports of a `CLAUDE.md`. The purpose string and the comment in `Test_module.test_a_script_copied_alone_exits_2_and_names_what_it_misses` move with them.
+   - `tests/behaviour/test_release_hygiene.py`'s `VERSIONS_OF_ANOTHER_PRODUCT` gains a row for `skills/verify/scripts/payload_meter.py`, because the rewritten docstring names Claude Code 2.1.318.
 
 Out:
 
-- **The shapes where Claude Code's reader goes past its documentation** (G3). These are an indented code block, an HTML block other than a comment, a path cut at `#`, the rule on a path's first character, an imported file whose extension is not text, a YAML frontmatter block, an import inside a fence behind `>` or a list marker, and an `@` that `marked` starts a text token with after emphasis or a link. The meter keeps its reading there, and `imports_of`'s docstring names them as what it does not model. A version-specific reading of the binary is a source the next release can change without notice (`questions.md` Q1).
-- **The bytes of an HTML comment in a `CLAUDE.md`.** The docs say block-level comments never reach the context, and `file_row` still counts their bytes. This machine's `~/.claude/CLAUDE.md` holds six lines with `<!--` (executed: `grep -c`). The fix would change what a harness row's bytes mean, which the baseline and the delta read. That is a different question from which files are imported, so it goes to the orchestrator for an issue of its own.
+- **The shapes where Claude Code's reader goes past its documentation** (G3). These are an indented code block, an HTML block other than a comment, a path cut at `#`, the rule on a path's first character, an imported file whose extension is not text, a YAML frontmatter block, an import inside a fence behind `>` or a list marker, and an `@` that follows a code span, a comment, emphasis or a link with no whitespace between, which `marked` starts a text token with. The meter keeps its reading there, and `imports_of`'s docstring names them as what it does not model. A version-specific reading of the binary is a source the next release can change without notice (`questions.md` Q1).
+- **The bytes of an HTML comment in a `CLAUDE.md`.** The docs say block-level comments never reach the context, and `file_row` still counts their bytes. This machine's `~/.claude/CLAUDE.md` holds six lines with `<!--` (executed: `grep -c`). The fix would change what a harness row's bytes mean, which the baseline and the delta read. That is a different question from which files are imported, so this work leaves it, and the pull request body names it for the owner.
 - **`tests/behaviour/test_the_old_block_leaves_through_update.py#IMPORT`.** This is a second spelling of the import pattern, in a test. It reads more as an import than the meter does, which is the safe direction for its claim that `CLAUDE.md` imports nothing. It reads a file of the `/agentic:update` area, where #1184 works in this release (`plan.md` *Alternatives considered*, the fourth row).
-- The version and the changelog fragment. The version move to 0.32.2 is #1184's.
+- The version. The version move to 0.32.2 is #1184's.
 
 ## User scenarios & acceptance *(mandatory)*
 
 | Scenario | Given / When / Then | Verifiable how |
 |---|---|---|
 | S1 A fenced import is not charged | Given a `CLAUDE.md` with `@a.md` inside a backtick fence and `@b.md` after the fence closes, when `imports_of` reads it, then `b.md` is returned and `a.md` is not | A new `Test_imports_of` case, seen red at 0830987a |
-| S2 What a fence is | Given `@a.md` inside a tilde fence, and inside a four-backtick fence after a three-backtick line, and below a fence nobody closed, when `imports_of` reads each file, then no import is returned | New cases, each seen red at 0830987a |
-| S3 A code span is not an import | Given `` `cat @a.md` ``, ``` `` @a.md `` ```, and a span that opens on one line and closes on the next inside one paragraph, with `@c.md` after the span on the first line, when `imports_of` reads it, then `c.md` is returned and `a.md` is not | New cases, seen red at 0830987a |
-| S4 A commented import is not charged | Given `<!-- @a.md -->` and a comment over three lines holding `@b.md`, when `imports_of` reads it, then no import is returned | A new case, seen red at 0830987a |
+| S2 What a fence is | Given `@a.md` inside a tilde fence, and inside a four-backtick fence after a three-backtick line, and below a fence nobody closed, each beside `@b.md` in live text, when `imports_of` reads each file, then `b.md` is returned and `a.md` is not | New cases, each seen red at 0830987a |
+| S3 A code span is not an import | Given `` `cat @a.md` ``, ``` `` @a.md `` ```, and a span that opens on one line and closes on the next inside one paragraph, with `@b.md` after the span on the first line, when `imports_of` reads it, then `b.md` is returned and `a.md` is not. A lone backtick whose paragraph ends before any closing run opens no span, so an `@b.md` after it is read | New cases, seen red at 0830987a; the lone-backtick case is a guard, green at 0830987a and red under a mutant |
+| S4 A commented import is not charged | Given `<!-- @a.md -->` and a comment over three lines holding `@a.md`, each beside `@b.md` in live text, when `imports_of` reads it, then `b.md` is returned and `a.md` is not | A new case, seen red at 0830987a |
 | S5 A deeper hop is read the same way | Given a pair file that imports `x.md`, where `x.md` holds `@y.md` inside a fence, when `measure` runs, then `x.md` is a harness row and `y.md` is no row | A new case, seen red at 0830987a |
 | S6 A path holds an escaped space | Given `@Design\ Docs/api.md` and the file `Design Docs/api.md` beside it, when `imports_of` reads it, then the entry's chain is `("Design\ Docs/api.md",)` and its real path is that file | A new case, seen red at 0830987a |
 | S7 The readers of the shared scan are unchanged | Given the scan of *Scope* 2, when the existing cases of `liveness`, `live_lines` and `heading_starts` run, then each passes unchanged | `tests/skills/test_unverified_check.py` and `tests/skills/test_payload_meter.py` in the phase's narrow run, with no assertion edited |
@@ -50,7 +53,7 @@ Out:
 
 ## Data & interfaces
 
-- `skills/verify/scripts/unverified_check.py`: one new function returning, for each line, the `(start, end)` offsets of its live pieces. The crafter names it and states its contract in its docstring. `liveness(lines, spans_cross_lines, comments=True)` keeps its signature and output, read from the same scan.
+- `skills/verify/scripts/unverified_check.py`: a public function, `live_pieces`, returning for each line the `(start, end)` offsets of its live pieces, and a private `_scan` that both it and `liveness` read. Two functions are needed because whether a line begins live cannot be read off its pieces: a fence's opening line and an empty line both begin live and hold no text. `live_pieces` states its contract in its docstring. `liveness(lines, spans_cross_lines, comments=True)` keeps its signature and output, read from the same scan.
 - `skills/verify/scripts/payload_meter.py`: `IMPORT`'s path group becomes `((?:[^\s\\]|\\ )+)` behind the existing opener rule. `imports_of(path, home, depth=HOPS, seen=None)` keeps its signature and its `[(chain, real_path)]` return. It reads the file through `gfm_lines` and the new function, and it asks `_fence_rule()` only for a file that exists.
 - No JSON field, row name, exit code or command line changes.
 
@@ -68,6 +71,7 @@ Out:
 | The sentence "An import is `@` at the start of a line or after whitespace, then a path that runs to the next whitespace" | `skills/verify/scripts/payload_meter.py#imports_of`, docstring | The rewritten docstring, *Scope* 4 |
 | The clause that `unverified_check.py` is needed only where `--sections` is given | `skills/verify/scripts/payload_meter.py`, the module docstring's exit codes and `#_fence_rule`'s docstring and stderr sentence | The rewritten sentences, *Scope* 4 |
 | The comment "#584: it loads `unverified_check.py` only under `--sections`", and its purpose string | `tests/skills/test_payload_meter.py#Test_module.test_a_script_copied_alone_exits_2_and_names_what_it_misses` | The same case, with the sentence of *Scope* 4 |
+| `IMPORT`'s `re.MULTILINE` flag | `skills/verify/scripts/payload_meter.py#IMPORT` | The pattern runs over one live piece at a time, so no `^` has a line to anchor to inside the text |
 | `liveness`'s own scan loop | `skills/verify/scripts/unverified_check.py#liveness` | The shared scan of *Scope* 2, which `liveness` reads |
 
 Framed 2026-11-05 by framer, before the build.

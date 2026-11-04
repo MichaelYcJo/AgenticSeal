@@ -2,6 +2,8 @@
 
 ## Technical context
 
+Every line coordinate and every statement of what the tree holds in this plan is the tree's at 0611019b, before the build.
+
 `skills/verify/scripts/payload_meter.py#imports_of` (`:360-392`) runs `IMPORT` (`:117`) over the decoded text of each file, at every hop. `pair_rows` (`:415-447`) calls it for the two `CLAUDE.md` files. `heading_starts` (`:283-319`) is the one reader in the meter that already walks a fence state, through `_fence_rule()` (`:160-181`). That loader brings in `unverified_check.py`, which re-exports `hooks/lib/blocks.py#fence_opener`, `fence_closes` and `gfm_lines` (`unverified_check.py:118-127`).
 
 `unverified_check.py#liveness` (`:326-407`) holds the one scan of fences, comments and code spans. Its loop moves `pos` through each line and already knows every live piece. It keeps only the flag of whether the line begins live. `_partner_ahead` (`:512-530`) and `_paragraph_ends_at` (`:453`) decide whether a backtick run with no partner on its own line opens a span across lines. `live_lines` calls the scan twice, once with spans across lines and once without, and ANDs the two flags. The meter needs one reading, so it asks the scan with `spans_cross_lines=True`, the CommonMark reading wherever `_paragraph_ends_at` is right.
@@ -35,4 +37,6 @@ None. No new dependency, environment variable or exit code. A run with no `CLAUD
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-05 | The frame's line coordinates and present-tense statements of the tree are dated to 0611019b by one sentence at the head of `frame/design.md` *Grounding* and `frame/plan.md` *Technical context*. | They state the tree the work changes, and rewriting them to HEAD would erase the grounds. The same judgment was made on #1190 and #1184 in this release, and its prevention home is #1368. | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |
+| 2026-11-05 | The statements the phase 1 crafter's hand-back named as contradicted in substance are rewritten in place in `frame/design.md`: *Data & interfaces* names `live_pieces` and `_scan`; *Out* names an `@` straight after a code span or a comment, and no longer puts the changelog fragment out; S2, S3 and S4 state the live `@b.md` beside each hidden import and the lone-backtick guard; *Scope* 4 names the `test_release_hygiene.py` row; *Removes* names `re.MULTILINE`. | Each was a departure the build made with its grounds in `trail/phases/phase-1.md`, and a crafter or a round reads the frame, not the hand-back. | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |
+| 2026-11-05 | The bytes of an HTML comment in a `CLAUDE.md`, which `frame/design.md` *Out* leaves, take no issue and are named in the pull request body. | The miscount over-reads a measurement that blocks nothing, and changing it moves what the baseline's rows mean; no party has agreed to act on it, so it takes rung 4 of the homes. | `docs/running/the-run.md` *The run*, the homes of a leftover; `skills/core/SKILL.md` *The rule a mechanism is kept against* |
