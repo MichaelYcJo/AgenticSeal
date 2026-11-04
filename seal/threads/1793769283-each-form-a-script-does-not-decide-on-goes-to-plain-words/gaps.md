@@ -11,7 +11,7 @@
 | What the frame arm's comparison of who drew the frame, the trailer arm and the `original:` arm caught in CI runs; phase 2 kept them under D6 because the records hold no catch of theirs and CI's runs were not measured (`trail/phases/phase-2.md`) | the repository owner, by a measurement over the hygiene workflow's runs |
 | Whether the sealer still names the broad run it read now that the guarantee template has no `\| Broad gate \|` row, and whether a sealer comparison against a baseline side that wrote the row reads the same; no behaviour run is part of the work (`frame/plan.md` row A9, `trail/phases/phase-4.md`) | the repository owner, at the next sealer comparison |
 | Whether a proofer in a repository whose records are written in another language translates `## Confirmations`, `## Not judged` and `## Probes`, and whether any reader then misses them; no such repository's records were read (`trail/phases/phase-4.md`) | the repository owner |
-| The `### Process changes` rows of `changelog.md`; the spawn said the orchestrator would hand them and the prompt carried none, so phase 4 derived them from the diff (`trail/phases/phase-4.md`) | the orchestrator, before the broad run |
+| closed The `### Process changes` rows of `changelog.md`; the spawn said the orchestrator would hand them and the prompt carried none, so phase 4 derived them from the diff (`trail/phases/phase-4.md`) | the orchestrator read both rows against the diff and accepts them (`frame/plan.md` *Judgments of the run*, its last row) |
 
 ## Not done
 
