@@ -232,13 +232,18 @@ because a release branch is cut at a commit of `main` that no pull
 request's `hygiene` run reported on. Neither ruleset requires a branch to
 be up to date with its base before it merges. Requiring it would make the
 second of two work items running side by side merge the release branch in
-after its last review round, and the chain check refuses that merge commit
-as a change no round read. There are no bypass actors and no override, so
-the rule applies to the owner too. A required check that is red is
-answered by the commit that turns it green. Where the check refused correct
-work, it is answered by fixing the check, never by passing it. The settings
-are outside the tree: `gh api repos/<owner>/<repo>/rulesets/<id>` reads
-them, and no case reads them.
+once the first lands, which is often after the second's broad run and
+seal. The chain check reads no merge commit, so it passes that merge
+(`skills/code-review/scripts/chain_check.py#follows`). The merge still
+moves HEAD past the work item's broad run and seal, and the orchestrator
+then runs both again (`skills/code-review/orchestration.md` *Orchestrator:
+the pull request opens once the sealer seals*). There are no bypass actors
+and no override, so the rule applies to the owner too. A required check
+that is red is answered by the commit that turns it green. Where the check
+refused correct work, it is answered by fixing the check, never by passing
+it. The settings are outside the tree:
+`gh api repos/<owner>/<repo>/rulesets/<id>` reads them, and no case reads
+them.
 
 - **`release/vX.Y.Z` is cut from `main`.** Not from the previous release
   branch, and not from a long-lived branch that outlives its release. An
