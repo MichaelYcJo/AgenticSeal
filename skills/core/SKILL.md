@@ -49,12 +49,12 @@ framer judges what the work should be, the crafter whether the build holds
 to the frame, the proofer whether the diff holds, and the sealer whether
 every party's account agrees with the issue and the tree. Each reaches its
 result without leaning on another's verdict, so one agent's mistake does
-not pass through the next unread. Each reads the records the others hand it as claims and
-reaches its own result. An agent's own rules live in its definition or in
-the document it reads at that step; this file holds what they share. What
-they share is text, so every sentence an agent or a check reads has one
-reading, by the rules `skills/writing-style/SKILL.md` *에이전트와 검사가
-읽는 글은 한 가지로만 읽히게 쓴다* states.
+not pass through the next unread. Each reads the records the others hand
+it as claims and reaches its own result. An agent's own rules live in its
+definition or in the document it reads at that step; this file holds what
+they share. What they share is text, so every sentence an agent or a check
+reads has one reading, by the rules `skills/writing-style/SKILL.md`
+*에이전트와 검사가 읽는 글은 한 가지로만 읽히게 쓴다* states.
 
 **A document is cut by who opens it and at which step, so a party opens
 only what its step needs.** A party pays for every byte of each file it

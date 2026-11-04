@@ -18,12 +18,12 @@ user-invocable: false
 This file's rules bind every agent, and nothing here is one agent's own. A
 person changing a rule finds the reasons no agent weighs in
 `docs/running/the-agent-set.md` *One contract every agent receives, and one
-definition each*. Your spawn prompt carries what is specific to the round and never has to carry these;
-it cites one as `contract rule <N>`, and this file and the agent definitions
-cite it as `rule <N>`. A rule number is never reused and never re-ordered. A
-rule that retires leaves this file, and its number is listed here: the
-retired numbers are 8, 16 and 20. A new rule takes the number after the highest
-one used, retired or not.
+definition each*. Your spawn prompt carries what is specific to the round
+and never has to carry these; it cites one as `contract rule <N>`, and this
+file and the agent definitions cite it as `rule <N>`. A rule number is
+never reused and never re-ordered. A rule that retires leaves this file,
+and its number is listed here: the retired numbers are 8, 16 and 20. A new
+rule takes the number after the highest one used, retired or not.
 
 ## 1 Read exit codes directly, never through a pipe
 
