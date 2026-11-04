@@ -11,9 +11,12 @@ running.
 ## 0. Before starting
 
 - [ ] Every work item of the release is squash-merged into `release/vX.Y.Z`
-      and its pull request's CI was green **at the commit that merged**. A
-      merge pressed while a later push was still on its way takes the earlier
-      commit; the corrections then need a pull request of their own.
+      and its pull request's `pytest` and `arms-grammar` jobs were green
+      **at the commit that merged**. The rulesets hold the `lint` and
+      `release` jobs there (`docs/releasing/branch-and-release.md` *Work
+      accumulates on a release branch*). A merge pressed while a later push
+      was still on its way takes the earlier commit; the corrections then
+      need a pull request of their own.
 - [ ] Merge the release branch into a work item's branch only when the
       branch needs something the release branch holds; the squash discards
       the merge commit either way.
