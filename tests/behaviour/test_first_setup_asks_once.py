@@ -25,8 +25,8 @@ import pytest
 from conftest import ROOT, local_home, read, shell_probe
 
 COMMON_DIR = "$(git rev-parse --git-common-dir)/seal/"
-# The sentence a session reads (Q1 of the work item's `questions.md`): the
-# same rule `hooks/lib/optin.py` states, moved to where a session looks.
+# The sentence a session reads, which the Q1 cases below hold in each place:
+# the same rule `hooks/lib/optin.py` states, moved to where a session looks.
 SESSION_RULE = "`$(git rev-parse --git-common-dir)/seal/` otherwise"
 
 
