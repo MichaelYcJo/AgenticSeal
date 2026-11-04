@@ -467,7 +467,10 @@ def test_the_measurement_its_cost_and_its_limits_are_told_where_the_row_is_writt
     """S15 of #789 and S19 of #825 (contract rule 14). Rule 3 is the one home of
     how the gate measures a row at the base, what that costs, and which rows
     it cannot measure, so each sentence a reader acts on is pinned there, and
-    every sentence of the mechanism #825 retired is asserted gone."""
+    every sentence of the mechanism #825 retired is asserted gone. S6 of
+    #1301: the two rows of *Everything else stays legal* that let a row
+    compose after pytest say that a red session still fails the suite, and
+    cite rule 3."""
     with open(
         os.path.join(ROOT, "templates", "setup", "config.md"), encoding="utf-8"
     ) as handle:
@@ -531,15 +534,23 @@ def test_the_measurement_its_cost_and_its_limits_are_told_where_the_row_is_writt
         "does when a test calls `pytest.exit()` with a return code of 0 or "
         "`os._exit(0)`, because a stop that chooses the exit code says neither "
         "that the session ran every test it collected nor that nothing it ran "
-        "failed; the failure form says so, and no `trail/gate.md` is written.",
-        # #883 rounds 1 and 2: the two stops no record shows, each with what
-        # the gate reads per session, so the sentences hold for a row that
-        # runs pytest once or several times.
-        "Two stops are out of the record's reach. A `pytest.exit()` raised by "
-        "a `pytest_sessionfinish` hook that runs after the recorder's comes "
-        "after the session's `end` line, so that session reads as one that ran "
-        "to its end, and its pytest exits with the code that hook chose.",
-        "A stop raised before the recorder writes a session's first line, such "
+        "failed.",
+        # #1301: so does a red session, whatever acted after the run loop.
+        "So does a session whose `end` line shows exit 1 with nothing stopping "
+        "it, whatever the row exited: that exit is the one pytest's run loop "
+        "gave, which pytest hands every `pytest_sessionfinish` hook alike, so "
+        "an act after the loop that turns the row's exit into 0 does not "
+        "change it.",
+        "Such an act is a hook that sets the session's exit status, a later "
+        "`pytest_sessionfinish` hook that raises `pytest.exit()`, a "
+        "`pytest_unconfigure` hook that ends the process, or a part of the row "
+        "after pytest, such as `; true` or a pipe.",
+        "In either case the failure form says so, and no `trail/gate.md` is written.",
+        # #883 rounds 1 and 2: the stop no record shows, with what the gate
+        # reads per session, so the sentence holds for a row that runs pytest
+        # once or several times.
+        "One stop is out of the record's reach. A stop raised before the "
+        "recorder writes a session's first line, such "
         "as a `pytest.exit()` in a conftest's `pytest_configure`, leaves no "
         "record of that session, so the gate reads the run as though that "
         "session never started: it judges the run on the row's exit and on the "
@@ -646,8 +657,28 @@ def test_the_measurement_its_cost_and_its_limits_are_told_where_the_row_is_writt
         "a failed collection without `-x` and xdist under `-x` give",
         "Two stops are named rather than closed",
         "which leaves no file partly run only while each file's tests run together",
+        # #1301: the late hook named as a stop out of the record's reach, and
+        # a piped row called green on its last part's exit.
+        "Two stops are out of the record's reach",
+        "comes after the session's `end` line, so that session reads as one "
+        "that ran to its end",
+        "is green whenever `tee` is",
     ):
         assert gone not in text, f"rule 3 still carries: {gone}"
+    # #1301: the two rows of *Everything else stays legal* that a red pytest
+    # under a composition reaches cite rule 3, whose sentences are above.
+    for sentence in (
+        "That is the repository's own claim about itself, which is what this "
+        "row already is. A pytest session the row runs that did not pass by "
+        "its own record still fails the suite, whatever the composition exits "
+        "(rule 3 of *The criterion for choosing a value* below) |",
+        "so `bin/test -q \\| tee out.txt` exits 0 whenever `tee` does. That "
+        "exit is the repository's own claim about itself, and the gate still "
+        "fails the suite where a pytest session under the pipe did not pass by "
+        "its own record (rule 3 of *The criterion for choosing a value* "
+        "below).",
+    ):
+        assert sentence in text, f"the allowed list does not carry: {sentence}"
 
 
 def test_what_a_line_names_a_file_by_is_told_where_each_reader_meets_it():

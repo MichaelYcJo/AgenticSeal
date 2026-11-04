@@ -1554,7 +1554,23 @@ class Test_read_record:
         self, tmp_path, ending
     ):
         jsonl(tmp_path, "a.jsonl", session("k"), a_test("/w/a.py"), *ending)
-        assert gate.read_record(str(tmp_path), "k", "/w").unended == 1
+        record = gate.read_record(str(tmp_path), "k", "/w")
+        # A session that stopped part-way did not pass either (#1301).
+        assert (record.unended, record.unpassed) == (1, 1)
+
+    def test_refuses_to_call_a_session_that_ended_with_exit_1_passed(self, tmp_path):
+        """S5 of #1301. An `end` line with `stopped` `[]` passed at exit 0 or
+        5 alone: exit 1 adds one to `unpassed` and nothing to `unended`, and a
+        stopped session adds one to each."""
+        for name, ending in (
+            ("a", end(0)),
+            ("b", end(5)),
+            ("c", end(1)),
+            ("d", end(0, stopped=["exit"])),
+        ):
+            jsonl(tmp_path, f"{name}.jsonl", session("k"), a_test("/w/a.py"), ending)
+        record = gate.read_record(str(tmp_path), "k", "/w")
+        assert (record.sessions, record.unpassed, record.unended) == (4, 2, 1)
 
     def test_refuses_to_count_unplaced_reports_of_a_session_that_passed_as_red(
         self, tmp_path
@@ -2198,13 +2214,14 @@ NO_RECORD_HERE = (
 )
 
 # Pinned verbatim for the same reason (contract rule 14): it is the one line
-# that says why a suite whose row exited 0 failed (#883).
-STOPPED_AT_EXIT_0 = (
+# that says why a suite whose row exited 0 failed (#883, #1301).
+NOT_PASSED_AT_EXIT_0 = (
     "the row exited 0, and the gate fails the suite all the same because a "
-    "pytest session it ran stopped part-way: a stop such as pytest.exit() or "
-    "os._exit() chooses the exit code itself, so an exit of 0 says neither "
-    "that the session ran every test it collected nor that nothing it ran "
-    "failed"
+    "pytest session it ran did not pass by its own record: either it stopped "
+    "part-way, and a stop such as pytest.exit() or os._exit() chooses the exit "
+    "code itself, or it ended with exit 1, and a later hook or a part of the "
+    "row after pytest chose the row's exit; so an exit of 0 says neither that "
+    "the session ran every test it collected nor that nothing it ran failed"
 )
 
 
@@ -2257,49 +2274,60 @@ class Test_failure_lines:
 
     def test_accepts_a_failing_suite_compared_at_the_base_with_its_counts(self):
         check = gate.Check(gate.SUITE, 1, "first\nsecond\n", "/k/suite.txt")
-        record = a_record(sessions=1, counts={"failed": 1}, unended=2)
+        record = a_record(sessions=1, counts={"failed": 1}, unended=2, unpassed=2)
         lines = gate.failure_lines(check, {"t/a.py": gate.NEW}, record)
         assert lines[:4] == ["exit 1", "first", "second", gate.COMPARED_AT_BASE]
         assert lines[4] == "  t/a.py  new"
         assert lines[5] == gate.UNENDED_HERE.format(count=2)
         assert lines[-2:] == ["1 failed", "full output: /k/suite.txt"]
-        assert STOPPED_AT_EXIT_0 not in lines
+        assert NOT_PASSED_AT_EXIT_0 not in lines
 
     def test_accepts_a_suite_that_exited_0_and_says_why_it_failed(self):
-        """S4 of #883: the line comes for an exit of 0 alone, after the
-        check's first lines and ahead of the count of stopped sessions."""
+        """S4 of #883 and #1301: the line comes for an exit of 0 alone, after
+        the check's first lines and ahead of the count of stopped sessions,
+        and a red session that stopped nothing gets it with no such count."""
         check = gate.Check(gate.SUITE, 0, "first\n", "/k/suite.txt")
-        record = a_record(sessions=1, counts={"passed": 1}, unended=1)
+        record = a_record(sessions=1, counts={"passed": 1}, unended=1, unpassed=1)
         lines = gate.failure_lines(check, None, record)
         assert lines == [
             "exit 0",
             "first",
-            STOPPED_AT_EXIT_0,
+            NOT_PASSED_AT_EXIT_0,
             gate.UNENDED_HERE.format(count=1),
             "1 passed",
             "full output: /k/suite.txt",
         ]
+        red = a_record(sessions=1, counts={"failed": 1}, unpassed=1)
+        assert gate.failure_lines(check, None, red) == [
+            "exit 0",
+            "first",
+            NOT_PASSED_AT_EXIT_0,
+            "1 failed",
+            "full output: /k/suite.txt",
+        ]
         finished = a_record(sessions=1, counts={"passed": 1})
-        assert STOPPED_AT_EXIT_0 not in gate.failure_lines(check, None, finished)
+        assert NOT_PASSED_AT_EXIT_0 not in gate.failure_lines(check, None, finished)
 
     def test_accepts_the_exit_0_line_above_the_files_and_at_no_other_exit(self):
         """#883 round 1: a test failed before the stop, so the suite at exit 0
         lists a file, and the line still comes directly under the check's
         first lines. An interrupt, an internal error or a usage error with a
         stopped session exits 2, 3 or 4, and the line is never said there."""
-        record = a_record(sessions=1, counts={"failed": 1, "passed": 1}, unended=1)
+        record = a_record(
+            sessions=1, counts={"failed": 1, "passed": 1}, unended=1, unpassed=1
+        )
         check = gate.Check(gate.SUITE, 0, "first\n", "/k/suite.txt")
         lines = gate.failure_lines(check, {"t/a.py": gate.NEW}, record)
         assert lines[:5] == [
             "exit 0",
             "first",
-            STOPPED_AT_EXIT_0,
+            NOT_PASSED_AT_EXIT_0,
             gate.COMPARED_AT_BASE,
             "  t/a.py  new",
         ]
         for code in (2, 3, 4):
             check = gate.Check(gate.SUITE, code, "first\n", "/k/suite.txt")
-            assert STOPPED_AT_EXIT_0 not in gate.failure_lines(check, None, record)
+            assert NOT_PASSED_AT_EXIT_0 not in gate.failure_lines(check, None, record)
 
     def test_refuses_to_call_files_compared_where_no_record_was_left(self):
         check = gate.Check(gate.SUITE, 1, "", "/k/suite.txt")
@@ -2459,6 +2487,30 @@ class Test_uncommitted_line:
         assert gate.uncommitted_line(str(repo), None) is None
 
 
+# The acts after pytest's run loop that turn a red session's row exit into 0
+# (#1301, G1 of its frame), each a `tests/conftest.py` and the row it runs
+# under, or None and the row alone where the row's own composition does it.
+LATE_ACTS = {
+    "late-pytest-exit-0": (
+        "import pytest\n\n\n@pytest.hookimpl(trylast=True)\n"
+        "def pytest_sessionfinish(session):\n"
+        "    pytest.exit('late', returncode=0)\n",
+        SUITE_ROW,
+    ),
+    "early-exitstatus-0": (
+        "import pytest\n\n\n@pytest.hookimpl(tryfirst=True)\n"
+        "def pytest_sessionfinish(session):\n"
+        "    session.exitstatus = 0\n",
+        SUITE_ROW,
+    ),
+    "unconfigure-os-exit-0": (
+        "import os\n\n\ndef pytest_unconfigure(config):\n    os._exit(0)\n",
+        SUITE_ROW,
+    ),
+    "row-or-interpreter": (None, f"{SUITE_ROW} \\|\\| {sys.executable} -c pass"),
+}
+
+
 @pytest.fixture(scope="module")
 def a_recorded_run(tmp_path_factory, _repo_template):
     """One green run through `--record`, started as a person starts it, read
@@ -2553,10 +2605,56 @@ class Test_gate:
         out = capsys.readouterr().out
         assert out.startswith("BROAD GATE FAILED   feature @ ")
         assert re.search(r"^  suite +exit 0$", out, re.M), out
-        assert f"  {STOPPED_AT_EXIT_0}\n" in out
+        assert f"  {NOT_PASSED_AT_EXIT_0}\n" in out
         assert f"  {gate.UNENDED_HERE.format(count=1)}\n" in out
         assert not (repo / ITEM / "trail" / "gate.md").exists()
         assert not (keep / "suite-at-base.txt").exists()
+
+    @pytest.mark.parametrize("act", list(LATE_ACTS), ids=list(LATE_ACTS))
+    def test_refuses_a_red_suite_an_act_after_the_run_loop_turned_to_exit_0(
+        self, repo, tmp_path, capsys, act
+    ):
+        """S1 and S2 of #1301. A test fails, and something after pytest's run
+        loop turns the row's exit into 0: a hook after the recorder's that
+        raises `pytest.exit(returncode=0)`, a hook before it that sets the
+        session's exit status, a `pytest_unconfigure` that ends the process,
+        or a part of the row after pytest. The `end` line still reads exit 1,
+        so the suite fails, its failing file is compared at the base, and no
+        `trail/gate.md` is written. The row's part is `||` and the
+        interpreter, which `/bin/sh` and `cmd.exe` both read as "run this
+        where the first part failed", so every leg runs every shape."""
+        conftest_text, row = LATE_ACTS[act]
+        failing_on_feature(repo)
+        if conftest_text is not None:
+            write(repo, "tests/conftest.py", conftest_text)
+        write(repo, "seal/config.md", config_of(row))
+        commit(repo, f"a failure, and {act} after the run loop")
+        keep = tmp_path / "out"
+        assert gate.gate(namespace(repo, keep, record=str(repo / ITEM))) == 1
+        out = capsys.readouterr().out
+        assert out.startswith("BROAD GATE FAILED   feature @ "), out
+        assert re.search(r"^  suite +exit 0$", out, re.M), out
+        assert f"  {NOT_PASSED_AT_EXIT_0}\n" in out
+        assert "  tests/test_two.py  new\n" in out
+        assert "1 failed, 1 passed" in out
+        assert gate.UNENDED_HERE.format(count=1) not in out
+        assert not (repo / ITEM / "trail" / "gate.md").exists()
+        assert (keep / "suite-at-base.txt").is_file()
+
+    def test_accepts_a_green_suite_a_late_hook_exits_with_0(
+        self, repo, tmp_path, capsys
+    ):
+        """S3 of #1301. A late `pytest_sessionfinish` hook runs after the run
+        loop and cannot skip a test, so over a green session it is no stop
+        and the gate passes and writes `trail/gate.md`."""
+        write(repo, "tests/conftest.py", LATE_ACTS["late-pytest-exit-0"][0])
+        commit(repo, "a late hook over a green suite")
+        assert (
+            gate.gate(namespace(repo, tmp_path / "out", record=str(repo / ITEM))) == 0
+        )
+        out = capsys.readouterr().out
+        assert out.startswith("BROAD GATE PASSED   feature @ "), out
+        assert (repo / ITEM / "trail" / "gate.md").is_file()
 
     def test_accepts_a_preflight_that_runs_no_row_and_writes_nothing(
         self, repo, tmp_path, capsys
