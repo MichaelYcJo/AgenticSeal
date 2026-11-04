@@ -58,6 +58,11 @@ the fragment needs no change.
 module lists restates a home's own sentences (#730).
 ```
 
+```seal
+verdict: fixed cc3c83283
+answer: The first line now reads "no carrier this module lists restates a home's own sentences", the paste-ready text, applied after reading it against `restated` and `CARRIERS`, which hold only that. The changelog bullet for #1335 already says "no carrier repeats it" and stays.
+```
+
 ### 2. Three other places still say an absent `config.md` row has a default, the claim S1 removed from the README
 
 ```seal
@@ -120,6 +125,11 @@ The last line of the Python snippet joins the paragraph that already
 continues at `hooks/lib/config.py:8` ("every repository got before that row
 was *the folder decides*").
 
+```seal
+verdict: fixed cc3c83283
+answer: Both editions of `docs/layout/one-root-by-lifetime.md` take the paste-ready text. `hooks/lib/config.py`'s docstring is in my own words: "The file is optional, and every absent row but two has a default", then "An absent `Broad gate` is one exception: `seal gate` names the row and exits 2 with nothing run", which is `templates/setup/config.md:27-29` and `broad_gate.py#missing_row` raised as `Refused`; the paste-ready "Every row in it is optional" would contradict the template's two exceptions, and "runs nothing" left out the exit. The class search by wording found a fourth instance the finding does not list, `skills/config/SKILL.md:9-10`, "Every row has a default", which now names `Mode` and `Broad gate` as the two rows with no default and the table below as what each absent row means. The `changelog.md` bullet for #1334 names all four. `frame/design.md` *Out of scope* O2 lists `hooks/lib/config.py` as out for #1342; this edit is #1334's class and changes the docstring alone, which the hand-back names for the orchestrator.
+```
+
 ### 3. The plugin-name check and its case still say a literal would be the second place the name is written
 
 ```seal
@@ -153,6 +163,11 @@ without the count.
         """A literal would be one more place the name is written down, and the
 ```
 
+```seal
+verdict: fixed cc3c83283
+answer: Both docstrings now say "one more place", the paste-ready text, applied after reading `plugin_name` and its case; the reason each gives, that a literal is a copy that can drift, stands without the count. The `changelog.md` bullet for #1341 names both.
+```
+
 ### 4. The front-door module's docstring says three `config.md` rows exist, and `gaps.md` keeps it on the grounds that it names its moment
 
 ```seal
@@ -184,6 +199,11 @@ the module.
 ```python
 Issue #105. Three rows existed then, and the only way to see them was to open
 a file nobody had a reason to open. The skill is instructions rather than a
+```
+
+```seal
+verdict: fixed cc3c83283
+answer: The sentence now reads "Three rows existed when this module was written (#113), and the only way to see them was to open a file nobody had a reason to open", in my own words. #105's body counts two rows "exist or are arriving", and the commit that added the module, b644a6c00 (#113), says three, so "then" after "Issue #105" would date the count to the wrong issue. The paragraph of `gaps.md` *Not done* that kept the sentence is gone, and the `changelog.md` bullet for #1334 names the module.
 ```
 
 ## Confirmations
