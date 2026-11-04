@@ -32,7 +32,7 @@ import os
 
 import censuses
 import pytest
-from conftest import ROOT, census_case, git_listing, on_disk
+from conftest import ROOT, census_case, git_listing, load_hook_module, on_disk
 
 TARGET = "tests/censuses.py"
 
@@ -557,14 +557,32 @@ class Test_unnamed_sites:
 
 
 GUARD = 'if __name__ == "__main__":\n'
+PAIRS = '(("stdin", "replace"), ("stdout", "replace"), ("stderr", "backslashreplace"))'
+RECONFIGURE = '_stream.reconfigure(encoding="utf-8", errors=_errors)'
+BIND = "getattr(sys, _name, None)"
+
+
+def loop(pairs=PAIRS, call=RECONFIGURE, bind=BIND):
+    """The inline loop an entry point spells under its `__main__`, four lines
+    indented into the block."""
+    return (
+        f"    for _name, _errors in {pairs}:\n"
+        f"        _stream = {bind}\n"
+        '        if hasattr(_stream, "reconfigure"):\n'
+        f"            {call}\n"
+    )
+
+
+def lines_of(problems):
+    """Each problem line cut to its `<rel>:<line>`."""
+    return [p.split(": ")[0] for p in problems]
 
 
 class Test_entry_point:
-    def test_accepts_the_call_first_a_module_and_a_file_outside_hooks(self, tmp_path):
+    def test_accepts_the_call_first_and_a_module(self, tmp_path):
         plant(tmp_path, "hooks/fixed.py", GUARD + "    console.to_utf8()\n    main()\n")
-        plant(tmp_path, "hooks/module.py", "x = 1\n")
-        root = plant(tmp_path, "tests/x.py", GUARD + "    main()\n")
-        for rel in ("hooks/fixed.py", "hooks/module.py", "tests/x.py"):
+        root = plant(tmp_path, "hooks/module.py", "x = 1\n")
+        for rel in ("hooks/fixed.py", "hooks/module.py"):
             assert censuses.entry_point(rel, root) == [], rel
 
     def test_refuses_a_block_without_the_call_and_one_with_it_after_main(
@@ -575,14 +593,121 @@ class Test_entry_point:
             tmp_path, "hooks/after.py", GUARD + "    main()\n    console.to_utf8()\n"
         )
         assert censuses.entry_point("hooks/sub/deep.py", root) == [
-            "hooks/sub/deep.py:3: entry_point: the `__main__` block does not open "
-            "with `console.to_utf8()`, so a hook that raises while printing dies "
-            "with stdout empty; make the call the block's first statement, or "
-            "put `# exempt from entry_point: <why>` on its own line above it"
+            "hooks/sub/deep.py:3: entry_point: the census reads no answer among "
+            "the `__main__` block's own statements, and an entry point that gives "
+            "none dies with stdout empty when it raises while printing; open the "
+            "block with `console.to_utf8()`, or with a loop over "
+            "`hooks/lib/console.py#STREAMS`' literal pairs in the one form "
+            "`tests/censuses.py#loop_pairs` reads, or put "
+            "`# exempt from entry_point: <why>` on its own line above it"
         ]
-        assert [
-            p.split(": ")[0] for p in censuses.entry_point("hooks/after.py", root)
-        ] == ["hooks/after.py:1"]
+        assert lines_of(censuses.entry_point("hooks/after.py", root)) == [
+            "hooks/after.py:2"
+        ]
+
+    @pytest.mark.parametrize(
+        "rel", [".github/scripts/x.py", "evals/scripts/x.py", "tests/x.py"]
+    )
+    def test_refuses_a_block_without_an_answer_outside_hooks(self, tmp_path, rel):
+        root = plant(tmp_path, rel, "import sys\n\n" + GUARD + "    main()\n")
+        assert lines_of(censuses.entry_point(rel, root)) == [f"{rel}:3"]
+
+    @pytest.mark.parametrize("rel", ["hooks/x.py", "skills/verify/scripts/x.py"])
+    def test_accepts_a_loop_over_the_streams_pairs_as_the_first_statement(
+        self, tmp_path, rel
+    ):
+        root = plant(
+            tmp_path,
+            rel,
+            GUARD + "    # A console's code page.\n" + loop() + "    main()\n",
+        )
+        assert censuses.entry_point(rel, root) == []
+
+    @pytest.mark.parametrize(
+        "pairs",
+        [
+            '(("stdout", "replace"), ("stderr", "backslashreplace"))',
+            '(("stdin", "replace"), ("stdout", "replace"), ("stderr", "replace"))',
+        ],
+    )
+    def test_refuses_a_loop_whose_pairs_are_not_the_streams_pairs_at_its_for_line(
+        self, tmp_path, pairs
+    ):
+        root = plant(tmp_path, "skills/x.py", GUARD + loop(pairs) + "    main()\n")
+        assert censuses.entry_point("skills/x.py", root) == [
+            "skills/x.py:2: entry_point: the census does not read this loop as "
+            "the answer `hooks/lib/console.py#STREAMS` holds; it reads a `for` over "
+            "the literal pairs (('stdin', 'replace'), ('stdout', 'replace'), "
+            "('stderr', 'backslashreplace')) that calls "
+            '`.reconfigure(encoding="utf-8", errors=<errors>)` on the stream it '
+            "binds from `getattr(sys, <name>, None)`; name those pairs in that "
+            "form, or make the call `console.to_utf8()`"
+        ]
+
+    @pytest.mark.parametrize(
+        ("pairs", "call", "bind"),
+        [
+            ("console.STREAMS", RECONFIGURE, BIND),
+            (PAIRS, '_stream.reconfigure(encoding="latin-1", errors=_errors)', BIND),
+            (PAIRS, '_stream.reconfigure(encoding="utf-8", errors="replace")', BIND),
+            (PAIRS, 'sys.stdout.reconfigure(encoding="utf-8", errors=_errors)', BIND),
+            (PAIRS, RECONFIGURE, 'getattr(sys, "stdout", None)'),
+        ],
+    )
+    def test_refuses_a_loop_of_another_shape_at_its_for_line(
+        self, tmp_path, pairs, call, bind
+    ):
+        root = plant(
+            tmp_path, "hooks/x.py", GUARD + loop(pairs, call, bind) + "    main()\n"
+        )
+        assert lines_of(censuses.entry_point("hooks/x.py", root)) == ["hooks/x.py:2"]
+
+    @pytest.mark.parametrize(
+        "target",
+        ["_pair", "_name, _errors, _extra", "_name, (_errors, _extra)"],
+        ids=["one-name", "three-names", "nested"],
+    )
+    def test_refuses_a_loop_whose_target_is_not_two_names_at_its_for_line(
+        self, tmp_path, target
+    ):
+        text = loop().replace("for _name, _errors in", f"for {target} in", 1)
+        root = plant(tmp_path, "hooks/x.py", GUARD + text + "    main()\n")
+        assert lines_of(censuses.entry_point("hooks/x.py", root)) == ["hooks/x.py:2"]
+
+    def test_refuses_a_loop_after_a_statement_there_and_reads_its_pairs_exempted(
+        self, tmp_path
+    ):
+        ask = "    _ascii = ask(sys.stdout)\n"
+        exempt = "    # exempt from entry_point: asks stdout as the process found it\n"
+        drifted = '(("stdout", "replace"), ("stderr", "backslashreplace"))'
+        plant(tmp_path, "skills/late.py", GUARD + ask + loop() + "    main()\n")
+        plant(
+            tmp_path, "skills/asks.py", GUARD + exempt + ask + loop() + "    main()\n"
+        )
+        root = plant(
+            tmp_path,
+            "skills/drifts.py",
+            GUARD + exempt + ask + loop(drifted) + "    main()\n",
+        )
+        assert censuses.entry_point("skills/late.py", root) == [
+            "skills/late.py:2: entry_point: the `__main__` block's answer, at "
+            "line 3, is not its first statement, so what runs before it meets the "
+            "console's code page; make the answer the block's first statement, or "
+            "put `# exempt from entry_point: <why>` on its own line above this one"
+        ]
+        assert censuses.entry_point("skills/asks.py", root) == []
+        assert lines_of(censuses.entry_point("skills/drifts.py", root)) == [
+            "skills/drifts.py:4"
+        ]
+
+    def test_reads_the_first_main_block_and_no_later_one(self, tmp_path):
+        text = GUARD + "    console.to_utf8()\n\nx = 1\n\n" + GUARD + "    main()\n"
+        root = plant(tmp_path, "hooks/two.py", text)
+        assert censuses.entry_point("hooks/two.py", root) == []
+
+    def test_reads_the_pairs_hooks_lib_console_holds_from_the_file(self):
+        console = load_hook_module("lib/console.py", "console_for_entry_point")
+        assert censuses.console_streams() == console.STREAMS
 
 
 class Test_splitlines:

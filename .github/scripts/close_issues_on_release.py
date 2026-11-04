@@ -79,6 +79,7 @@ sys.path.insert(
         os.path.dirname(os.path.abspath(__file__)), "..", "..", "hooks", "lib"
     ),
 )
+import console
 import gitcmd
 
 # GitHub's own set. Each has to appear immediately before its number -- the
@@ -474,4 +475,5 @@ def main():
 
 
 if __name__ == "__main__":
+    console.to_utf8()
     main()

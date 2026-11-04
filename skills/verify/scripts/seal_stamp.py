@@ -1505,6 +1505,7 @@ if __name__ == "__main__":
     # Which form, asked of stdout as the process found it. It has to come
     # before the loop below: `reconfigure` puts the stream into UTF-8, and a
     # cp949 console asked afterwards would be handed the blocks it cannot draw.
+    # exempt from entry_point: stdout is asked how the process found it before the loop moves it to UTF-8
     _letters = pick_shape(sys.stdout)
     # A console that cannot encode what this prints kills it with stdout
     # empty. `hooks/lib/console.py` owns the reasoning and the three decisions

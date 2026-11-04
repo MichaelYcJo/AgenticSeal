@@ -286,7 +286,6 @@ def closing():
 
 
 def main(argv=None):
-    console.to_utf8()
     parser = argparse.ArgumentParser(
         description="Report what the two marketplace files hold for this plugin."
     )
@@ -313,4 +312,5 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
+    console.to_utf8()
     sys.exit(main())
