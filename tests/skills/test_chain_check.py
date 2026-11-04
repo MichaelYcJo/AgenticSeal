@@ -1031,7 +1031,7 @@ class Test_record_findings:
         assert "`round-<N>#<n>`" in shape
 
     def test_reads_the_lines_only_agents_read_whatever_they_say(self):
-        """#1319: no script reads a finding's `severity:` or `evidence:`
+        """#1319: no script decides on a finding's `severity:` or `evidence:`
         value or a close's `answer:`, so a finding block with any severity
         word, one with no `evidence:` line or with one in any words, and a
         close block with no `answer:` line all read, and the agents judge

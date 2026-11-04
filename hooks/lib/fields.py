@@ -126,8 +126,8 @@ class Kind:
 # grammar table in `docs/the-review-record.md` gave its label before #1198,
 # and `verdict:` takes no `open`: a finding with no close block is open.
 # A finding's `severity:` and `evidence:` and a close's `answer:` take any
-# text, and the last two may be left out: no script reads their values, and
-# `seal pr-body` copies each block whole (#1319).
+# text, and the last two may be left out: no script decides on their values,
+# and `seal pr-body` copies each block whole (#1319).
 ORIGINAL_SPEC = Spec(
     rf"(?P<commit>{COMMIT})",
     AT_MOST_ONE,

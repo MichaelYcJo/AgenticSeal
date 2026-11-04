@@ -157,7 +157,7 @@ is absent; field names, headings and vocabulary words stay English
 - `evidence:` names what the claim rests on: `executed` and each command
   the round ran, or `read` and each `path:line` it opened. A claim that
   something is absent rests on a search, so its line is `executed`. No
-  script reads the line; the round reading the record does.
+  script decides on the line; the round reading the record does.
 - Each finding gives why it matters and its grounds, then the paste-ready
   fix in a fenced block, where the fix pass's close block will follow it.
   The grounds open with why the earlier close does not hold where
