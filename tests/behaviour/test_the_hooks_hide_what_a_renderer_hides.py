@@ -10,7 +10,8 @@ For every line L of a document, with `base(L)` a reader's reading at
   3. on every shape `tests/block_shapes.py` holds, the reader gives its
      expected answer.
 
-Halves 1 and 2 run here, over those shapes and a seeded generated corpus. Half 3 is each reader's own case table, in the module that holds that
+Halves 1 and 2 run here, over those shapes and a seeded generated corpus.
+Half 3 is each reader's own case table, in the module that holds that
 reader's cases: the walk's own answers are `tests/hooks/test_blocks.py`'s (#942's
 phase 6).
 

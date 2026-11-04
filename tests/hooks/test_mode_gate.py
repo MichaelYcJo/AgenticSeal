@@ -5,8 +5,8 @@ about shared or local mode. The gate asks on the session's first command in
 a repository whose root records no `Mode`, once as a deny and once as an
 ask, and then says nothing. Each case states the scenario it holds and
 names it by its id, and an id another work item gave carries that item's
-issue, as `S7 of #952` does. The cases come from `tests/test_the_mode_question_is_asked_once.py` (#942's
-phase 6).
+issue, as `S7 of #952` does. The cases come from
+`tests/test_the_mode_question_is_asked_once.py` (#942's phase 6).
 """
 
 import os

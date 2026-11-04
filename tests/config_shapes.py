@@ -3,9 +3,8 @@
 Data and nothing else. `SHAPES` holds each shape as a config document, keyed
 by its number, and each is a place where the config table's own grammar and
 `hooks/lib/config.py#gfm_table` answered differently before #871 moved the
-table onto the walker. The texts that hold an HTML
-comment opener build it by concatenation, so that no line of this file
-begins with one.
+table onto the walker. The texts that hold an HTML comment opener build it
+by concatenation, so that no line of this file begins with one.
 
 `READ` is what the walker reads of each, as `(item, value)` pairs, and
 `STOPS` the words its refusal names the stopping place by, or None where it

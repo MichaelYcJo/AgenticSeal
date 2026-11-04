@@ -35,8 +35,8 @@ that applies each, pinned here the same way:
 The cases hold three things. Each home states its rule under its section:
 `RULES` gives the home, the section, and the needles, sentences only the home
 writes. No carrier contains a needle, the home aside: `CARRIERS` lists the
-carriers, `CLAUDE.md` first. Each file in `LINKED` names the home's path and its section for each rule it
-carries.
+carriers, `CLAUDE.md` first. Each file in `LINKED` names the home's path
+and its section for each rule it carries.
 
 What this does not hold: a carrier can state a rule in its own words, with
 none of the home's needles, and a later change to the rule's values (a seventh
