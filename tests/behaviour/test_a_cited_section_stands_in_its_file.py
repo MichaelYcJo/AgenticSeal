@@ -859,6 +859,12 @@ EXCUSING = {
         None,
         "name",
     ),
+    "a change that moves the name's file under a longer path": (
+        "docs/a.md",
+        op("change", "Old section", NAME_OLD, "See `lib/manual/b.py#gone`."),
+        None,
+        "name",
+    ),
 }
 
 
@@ -929,6 +935,11 @@ REFUSING = {
     "a from that holds a longer name": (
         "docs/a.md",
         op("change", "Old section", "See `manual/b.py#gone_more`.", NAME_NEW),
+        "name",
+    ),
+    "a from that holds the name under a longer path": (
+        "docs/a.md",
+        op("change", "Old section", "See `lib/manual/b.py#gone`.", NAME_NEW),
         "name",
     ),
 }
