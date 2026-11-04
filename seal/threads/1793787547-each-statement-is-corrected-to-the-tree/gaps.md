@@ -6,6 +6,7 @@
 |---|---|
 | The full suite, the repository-wide lint and the typecheck at HEAD. Phase 1 ran the plan row's seven modules and the modules that walk the tree's markdown or `templates/`, in one scoped run (`trail/phases/phase-1.md`) | the orchestrator, at the broad gate |
 | Phase 1's census of `config.md`'s items is a sample of #1334's class. It lists each paragraph that names three or more of the ten items in backticks. Two `git grep` searches added to it: the Python files that spell `Commit and pull request language`, and phrases that count rows. A sentence that states the set by a description, with fewer than three items named in backticks, no item spelt in Python and no count of rows, is outside all three | the proofer at review |
+| How the agents under test behave on the 17 regenerated rule cases, whose fixture records now open with the templates' titles. Phase 2 ran no paid eval (`frame/plan.md` *Judgments of the run*, row 3). It showed only that the cases are the generator's output and that the suite's narrow cases read the change (`trail/phases/phase-2.md`) | the paid runs #1107, #1178 and #1266 wait on, which the pull request body names as the orchestrator's text |
 | Whether a session in a user's repository opens `templates/setup/config.md` from the README entry's citation, now that the entry lists no item. It is read, not measured: no agent of this run receives the new entry, since agents read the installed 0.31.1 | the proofer at review |
 
 ## Not done
