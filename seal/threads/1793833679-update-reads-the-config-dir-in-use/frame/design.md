@@ -33,6 +33,7 @@ In:
    - c. **Step 3's `repo=` line** (same module): the config directory holds a git repository at `plugins/marketplaces/agenticseal` whose `origin` is a GitHub URL, and `HOME` holds one with another `origin`. The line yields the config directory's `owner/repo`. Nothing reaches the network.
    - d. **No fixed path is left** (same module): `skills/update/SKILL.md` holds no `/.claude` path segment outside the spelling `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`, so `~/.claude`, `$HOME/.claude` and `${HOME}/.claude` all fail it with no list of spellings. This covers step 5's prose, which no case runs.
    - e. **The printed repair names this session's paths** (same module; built by round 1's fix pass, not by phase 1): the repair block holds only its read and its `printf`, so the case runs nothing that moves or copies; run with the config directory and the copy each at a path holding a space, its printed lines read back with `shlex.split` name those paths.
+   - f. **No repair is printed from a record that cannot be read** (same module; built by round 2's fix pass): with no install record, the repair block prints nothing and exits non-zero.
 
 Out:
 
@@ -54,6 +55,7 @@ Out:
 | S5 No fixed `~/.claude` stays in the skill | Given the skill after the build. When it is searched for a `/.claude` path segment. Then each hit lies inside `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`. | *Scope* 6d, seen red against the skill as it stands, which holds four hits |
 | S6 The pins on steps 2b and 3 hold | Given the edited skill. When `tests/behaviour/test_release_hygiene.py`'s two update cases run. Then both pass with no needle changed. | The narrow run of those two cases (G8) |
 | S7 The printed repair is one the user can type | Given the config directory and the installed copy each at a path holding a space. When step 2b's repair block runs. Then it prints `mv`, `rsync` and `mkdir` naming those paths, quoted, and it moves and copies nothing itself. | *Scope* 6e, seen red against e4db4f10 |
+| S8 A failed read prints no repair | Given no install record under the config directory. When step 2b's repair block runs. Then it prints nothing and exits non-zero, and step 2b's table says to stop before step 3 with no repair and no summary. | *Scope* 6f, seen red against 7ab6c849 |
 
 ## Data & interfaces
 
@@ -63,10 +65,10 @@ The command lines after the build, in the skill's bash fences. Step 2b, first co
 p=$(python3 -c "import json,sys;d=json.load(open(sys.argv[1],encoding='utf-8'));print(d['plugins']['agentic@agenticseal'][0]['installPath'])" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/installed_plugins.json")
 ```
 
-Step 2b's repair is printed by a block the session runs, because the user's terminal holds neither `$p` nor, unless exported, `CLAUDE_CONFIG_DIR`. The block reads the install record again and prints `mv`, `rsync` and `mkdir` with this session's paths written out and quoted by `printf %q`:
+Step 2b's repair is printed by a block the session runs, because the user's terminal holds neither `$p` nor, unless exported, `CLAUDE_CONFIG_DIR`. The block reads the install record again and prints `mv`, `rsync` and `mkdir` with this session's paths written out and quoted by `printf %q`. The read ends with `&&`, so where the record cannot be read the block prints nothing and exits non-zero, and step 2b's table has a row that stops there with no repair:
 
 ```bash
-p=$(python3 -c "import json,sys;d=json.load(open(sys.argv[1],encoding='utf-8'));print(d['plugins']['agentic@agenticseal'][0]['installPath'])" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/installed_plugins.json")
+p=$(python3 -c "import json,sys;d=json.load(open(sys.argv[1],encoding='utf-8'));print(d['plugins']['agentic@agenticseal'][0]['installPath'])" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/installed_plugins.json") &&
 printf 'mv %q %q\nrsync -a --exclude .git %q %q\nmkdir -p %q\n' "$p" "$p.stale.bak" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/marketplaces/agenticseal/" "$p/" "$p/.in_use"
 ```
 
