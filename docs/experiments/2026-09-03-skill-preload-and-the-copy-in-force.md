@@ -25,7 +25,7 @@ fact.
    `~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/`. Not the
    working tree, and not the marketplace clone under
    `~/.claude/plugins/marketplaces/`, which is only the source the cache is
-   copied from at install. Three runs edited the clone and nothing read
+   copied from at install. Four runs edited the clone and nothing read
    them. A rule edited in this repository binds no session until the
    release is tagged, the plugin updated, and the cache refreshed.
 3. **Preloaded skill bodies are read at session start and at
