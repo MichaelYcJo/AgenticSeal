@@ -82,7 +82,7 @@ that reopens rule 1.
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* S1, S2, S3, S4 and S5 | Each changed case of S4 is shown red against `verdict` before S2, and the phase record says how (contract rule 15). Then `bin/test -q tests/evals/test_noninferiority.py tests/evals/test_replay_targets.py tests/evals/test_rule_cases.py tests/evals/test_seed_defects.py tests/behaviour/<renamed module> tests/behaviour/test_evals_layout.py tests/behaviour/test_both_editions_carry_the_same_folds.py tests/behaviour/test_docs_line_wrap.py tests/text/test_no_case_tells_the_agent_it_is_evaluated.py` exits 0. The three commands of *Technical context* are run at the phase's commit, and the hits are read against acceptance A7 | |
+| 1 | `frame/design.md` *Scope* S1, S2, S3, S4 and S5 | Each changed case of S4 is shown red against `verdict` before S2, and the phase record says how (contract rule 15). Then `bin/test -q tests/evals/test_noninferiority.py tests/evals/test_replay_targets.py tests/evals/test_rule_cases.py tests/evals/test_seed_defects.py tests/behaviour/<renamed module> tests/behaviour/test_evals_layout.py tests/behaviour/test_both_editions_carry_the_same_folds.py tests/behaviour/test_docs_line_wrap.py tests/text/test_no_case_tells_the_agent_it_is_evaluated.py` exits 0. The three commands of *Technical context* are run at the phase's commit, and the hits are read against acceptance A7 | eb4d31b60 |
 
 ## Operational impact
 
