@@ -59,7 +59,7 @@ The answer's pairs and its presence are still read (design *Scope* item 3).
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
 | 1 | design *Scope* items 1, 2, 3, 4 and 5, and the `## Removes` rows on the census's restriction, `dispatch.py`'s exemption, the run-time case, the `tests/x.py` arm and the calls inside `main()` | Each case of *Scope* item 4 seen red at `215ad6020` and with only its own guard removed, as the phase record states. The widened census run over the tree before *Scope* item 5's repairs prints the 25 lines of design *User scenarios & acceptance*, and after them it prints none. `bin/test -q tests/test_censuses.py tests/hooks/test_console.py tests/hooks/test_dispatch.py`, and the module file of each script the phase edits | 6b4471be6 |
-| 2 | design *Scope* item 6, item 7's `hooks/lib/console.py:54` (its census docstring closed in phase 1), and the `## Removes` rows on `hooks/lib/console.py:54` and the `CONTRIBUTING.md` clauses and pin | The text pin seen red against the old sentence. `bin/test -q tests/text/test_every_file_the_plugin_reads_or_writes_names_its_encoding.py tests/hooks/test_console.py tests/test_censuses.py` | |
+| 2 | design *Scope* item 6, item 7's `hooks/lib/console.py:54` (its census docstring closed in phase 1), and the `## Removes` rows on `hooks/lib/console.py:54` and the `CONTRIBUTING.md` clauses and pin | The text pin seen red against the old sentence. `bin/test -q tests/text/test_every_file_the_plugin_reads_or_writes_names_its_encoding.py tests/hooks/test_console.py tests/test_censuses.py` | fb50fbeae |
 
 ## Operational impact
 
