@@ -45,7 +45,7 @@ each carries the call rather than relying on `dispatch.py` having made it.
 
 Every entry point owes the answer: each tracked `.py` with a module-level
 `__main__` block opens its first such block with it, and one that cannot
-carries `# exempt from entry_point: <why>` above the line
+carries its reason in an exemption above the line
 `tests/censuses.py#entry_point` names, as `hooks/lib/launch.py` does. An entry
 point whose own imports put `hooks/lib/` on `sys.path` imports this module and
 calls `to_utf8()`. Some spell the loop inline instead. A script that loads
