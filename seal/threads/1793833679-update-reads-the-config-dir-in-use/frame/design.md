@@ -31,7 +31,8 @@ In:
    - a. **Step 4** (in `tests/behaviour/test_the_old_block_leaves_through_update.py`, which owns step 4): each of the two directories holds a `CLAUDE.md` with a block. With `CLAUDE_CONFIG_DIR` set, the config directory's block is taken out after a backup, and the file under `HOME` is byte for byte as it was. With the variable unset, and again set empty, the file under `HOME` is the one taken out.
    - b. **Step 2b's first two commands** (in a new module, `tests/behaviour/test_update_reads_the_config_directory_in_use.py`): the config directory holds an `installed_plugins.json` whose `installPath` names a scratch copy with a `.claude-plugin/plugin.json`, and `HOME` holds a second set naming a different version. The block prints the config directory's version.
    - c. **Step 3's `repo=` line** (same module): the config directory holds a git repository at `plugins/marketplaces/agenticseal` whose `origin` is a GitHub URL, and `HOME` holds one with another `origin`. The line yields the config directory's `owner/repo`. Nothing reaches the network.
-   - d. **No fixed path is left** (same module): `skills/update/SKILL.md` names `~/.claude` or `$HOME/.claude` nowhere except inside the spelling `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`. This covers the repair's `rsync` and step 5's prose, which no case runs.
+   - d. **No fixed path is left** (same module): `skills/update/SKILL.md` holds no `/.claude` path segment outside the spelling `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`, so `~/.claude`, `$HOME/.claude` and `${HOME}/.claude` all fail it with no list of spellings. This covers step 5's prose, which no case runs.
+   - e. **The printed repair names this session's paths** (same module): the repair block holds only its read and its `printf`, so the case runs nothing that moves or copies; run with the config directory and the copy each at a path holding a space, its printed lines read back with `shlex.split` name those paths.
 
 Out:
 
@@ -50,7 +51,7 @@ Out:
 | S2 Step 4 with the variable unset or empty | Given the same two files. When step 4's shell line runs with `CLAUDE_CONFIG_DIR` unset, and again set empty. Then `~/.claude/CLAUDE.md` is the file taken out. | *Scope* 6a |
 | S3 Step 2b reads the copy installed in the config directory | Given the config directory and `~/.claude` each hold an `installed_plugins.json` naming a copy of a different version. When step 2b's two commands run. Then they print the version of the copy the config directory names. | *Scope* 6b, seen red against `:46` as it stands |
 | S4 Step 3 reads the clone in the config directory | Given each directory holds a marketplace clone with a different `origin`. When step 3's `repo=` line runs. Then `repo` is the config directory's `owner/repo`. | *Scope* 6c, seen red against `:81` as it stands |
-| S5 No fixed `~/.claude` stays in the skill | Given the skill after the build. When it is searched for `~/.claude` and `$HOME/.claude`. Then each hit lies inside `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`. | *Scope* 6d, seen red against the skill as it stands, which holds four hits |
+| S5 No fixed `~/.claude` stays in the skill | Given the skill after the build. When it is searched for a `/.claude` path segment. Then each hit lies inside `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`. | *Scope* 6d, seen red against the skill as it stands, which holds four hits |
 | S6 The pins on steps 2b and 3 hold | Given the edited skill. When `tests/behaviour/test_release_hygiene.py`'s two update cases run. Then both pass with no needle changed. | The narrow run of those two cases (G8) |
 
 ## Data & interfaces
@@ -61,10 +62,11 @@ The command lines after the build, in the skill's bash fences. Step 2b, first co
 p=$(python3 -c "import json,sys;d=json.load(open(sys.argv[1],encoding='utf-8'));print(d['plugins']['agentic@agenticseal'][0]['installPath'])" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/installed_plugins.json")
 ```
 
-Step 2b's repair, second line:
+Step 2b's repair is printed by a block the session runs, because the user's terminal holds neither `$p` nor, unless exported, `CLAUDE_CONFIG_DIR`. The block reads the install record again and prints `mv`, `rsync` and `mkdir` with this session's paths written out and quoted by `printf %q`:
 
 ```bash
-rsync -a --exclude '.git' "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/marketplaces/agenticseal/" "$p/"
+p=$(python3 -c "import json,sys;d=json.load(open(sys.argv[1],encoding='utf-8'));print(d['plugins']['agentic@agenticseal'][0]['installPath'])" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/installed_plugins.json")
+printf 'mv %q %q\nrsync -a --exclude .git %q %q\nmkdir -p %q\n' "$p" "$p.stale.bak" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/marketplaces/agenticseal/" "$p/" "$p/.in_use"
 ```
 
 Step 3, first line:
