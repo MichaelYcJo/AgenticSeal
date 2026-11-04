@@ -32,7 +32,7 @@ In:
    - b. **Step 2b's first two commands** (in a new module, `tests/behaviour/test_update_reads_the_config_directory_in_use.py`): the config directory holds an `installed_plugins.json` whose `installPath` names a scratch copy with a `.claude-plugin/plugin.json`, and `HOME` holds a second set naming a different version. The block prints the config directory's version.
    - c. **Step 3's `repo=` line** (same module): the config directory holds a git repository at `plugins/marketplaces/agenticseal` whose `origin` is a GitHub URL, and `HOME` holds one with another `origin`. The line yields the config directory's `owner/repo`. Nothing reaches the network.
    - d. **No fixed path is left** (same module): `skills/update/SKILL.md` holds no `/.claude` path segment outside the spelling `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`, so `~/.claude`, `$HOME/.claude` and `${HOME}/.claude` all fail it with no list of spellings. This covers step 5's prose, which no case runs.
-   - e. **The printed repair names this session's paths** (same module): the repair block holds only its read and its `printf`, so the case runs nothing that moves or copies; run with the config directory and the copy each at a path holding a space, its printed lines read back with `shlex.split` name those paths.
+   - e. **The printed repair names this session's paths** (same module; built by round 1's fix pass, not by phase 1): the repair block holds only its read and its `printf`, so the case runs nothing that moves or copies; run with the config directory and the copy each at a path holding a space, its printed lines read back with `shlex.split` name those paths.
 
 Out:
 
@@ -53,6 +53,7 @@ Out:
 | S4 Step 3 reads the clone in the config directory | Given each directory holds a marketplace clone with a different `origin`. When step 3's `repo=` line runs. Then `repo` is the config directory's `owner/repo`. | *Scope* 6c, seen red against `:81` as it stands |
 | S5 No fixed `~/.claude` stays in the skill | Given the skill after the build. When it is searched for a `/.claude` path segment. Then each hit lies inside `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`. | *Scope* 6d, seen red against the skill as it stands, which holds four hits |
 | S6 The pins on steps 2b and 3 hold | Given the edited skill. When `tests/behaviour/test_release_hygiene.py`'s two update cases run. Then both pass with no needle changed. | The narrow run of those two cases (G8) |
+| S7 The printed repair is one the user can type | Given the config directory and the installed copy each at a path holding a space. When step 2b's repair block runs. Then it prints `mv`, `rsync` and `mkdir` naming those paths, quoted, and it moves and copies nothing itself. | *Scope* 6e, seen red against e4db4f10 |
 
 ## Data & interfaces
 
