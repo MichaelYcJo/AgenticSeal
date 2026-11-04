@@ -140,7 +140,13 @@ every repository, whatever either row says:
   heading, which `seal pr-body` copies a section under, as it does those
   two of `gaps.md`; a `frame/design.md`'s `## Removes` heading; its
   `## Rule changes` heading, the items `add`, `change`, `remove` and
-  `nothing`, and the fields `file:`, `section:`, `from:`, `to:` and `why:`.
+  `nothing`, the fields `file:`, `section:`, `from:`, `to:` and `why:`, and
+  the label `check:` of a check line inside a `to`, which
+  `.github/scripts/rules.py` reads; a `frame/plan.md`'s
+  `## Judgments of the run` heading with its `Date`, `Judgment`, `Grounds`
+  and `Judged against` columns, which `seal settle` groups the run's
+  judgments by; and a `changelog.md`'s `### Process changes` heading, under
+  which the release note lifts each fragment's rows into one table.
   A translated field name is not a translation, it is a broken gate.
 - **The markers and anchors.** The word `closed` that opens a closed
   `## Not verified` row, the line `## From the records` that opens the

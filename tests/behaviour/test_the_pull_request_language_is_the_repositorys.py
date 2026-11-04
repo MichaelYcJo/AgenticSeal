@@ -1087,15 +1087,27 @@ def _literal_strings():
     grammar_and_restates_none_of_it`), so a checker's constant here is one
     outside that module. The info string and the `## Findings` heading are,
     since the module's keys do not hold them.
+
+    The settle reads a plan's *Judgments of the run* under its exact heading
+    and header, the release note lifts a fragment's process section under
+    the first line of `templates/records/process.md`, and a design's `to`
+    holds `check:` lines that `.github/scripts/rules.py` reads (#1319).
     """
     unverified = _checker(
         "unverified_check", "skills", "verify", "scripts", "unverified_check.py"
     )
     rules = _checker("rule_changes", "skills", "settle", "scripts", "rule_changes.py")
     body = _checker("pr_body", "skills", "code-review", "scripts", "pr_body.py")
+    settle = _checker("settle", "skills", "settle", "scripts", "settle.py")
+    checks = _checker("rules", ".github", "scripts", "rules.py")
+    process = read("templates", "records", "process.md").splitlines()[0]
     chain = _chain()
     fields = {f"{f}:" for need, may in rules.GRAMMAR.values() for f in need + may}
     found = {
+        f"## {settle.JUDGMENTS}",
+        *settle.JUDGMENTS_HEADER,
+        process,
+        checks.LABEL.strip(),
         body.HEADING,
         body.PHASES,
         body.NOT_DONE,
