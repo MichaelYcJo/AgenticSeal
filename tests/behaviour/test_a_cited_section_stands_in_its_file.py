@@ -581,13 +581,16 @@ def test_a_citation_in_python_is_read_across_comments_and_literals(tmp_path):
     ]
 
 
-ELSEWHERE = """`frame/design.md` *Scope*
+# The commit is joined to its path here, so this file holds no citation at
+# a commit for the tree's readers to take as its own.
+AT = "f6ae6db6"
+ELSEWHERE = f"""`frame/design.md` *Scope*
 
 `plan.md` *Alternatives considered*
 
 `code.claude.com/docs/hooks.md` *Hook input*
 
-`f6ae6db6:manual/b.md` *Gone*
+`{AT}:manual/b.md` *Gone*
 
 `manual/none.md` *Anything*
 

@@ -33,11 +33,7 @@ from conftest import (
 # --- the class, re-enumerated over tests/ -----------------------------------
 #
 # The guard is per helper, so a sixth helper written without one is the defect
-# again. This is what stops that, and it is modelled on
-# `f975ea66a:tests/test_a_corrected_sentence_survives_elsewhere.py#_derives_a_path_list`,
-# the last commit that held it — the machinery this repository already wrote
-# for finding path-listing git calls by scope. Two of its decisions are copied with it, and both were
-# bought by that module's own round 1:
+# again. This is what stops that, and two decisions shape it:
 #
 #   - **the unit is the CALL SITE, not the function name.** A second
 #     unfiltered list inside a function that already filters one is this
