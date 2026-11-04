@@ -6,6 +6,8 @@
 |---|---|
 | Phase 1 changed text the orchestrator reads in `skills/implement/orchestration.md`, `skills/code-review/orchestration.md` and `skills/verify/orchestration.md`. Four passages there now cite another file or another paragraph in place of restating it (`trail/phases/phase-1.md`, the D3 rows). Whether an orchestrator still resolves the `seal/` root, skips the *Judgments of the run* row for a frame spawned with no proposal, opens the contract, and runs `seal no-work-item` on each branch it edits, is read, not measured. No session of this run reads the new text, since it reads the installed 0.31.0 | the proofer at review, for the reading |
 | The paraphrase copies phase 1 met are a sample (`frame/questions.md` Q2). A restatement in other words shares no ten-word run, so no probe lists one | the proofer at review |
+| Phase 2 removed history from `skills/implement/SKILL.md`, `skills/code-review/SKILL.md`, `skills/settle/SKILL.md` and `skills/writing-style/SKILL.md`, and restated two reasons of `skills/writing-style/SKILL.md` in the present tense (`trail/phases/phase-2.md`, the removals table). That each rule there reads as it did is read, not measured, and no session of this run reads the new text, since it reads the installed 0.31.0 | the proofer at review, for the reading |
+| The paraphrases phase 2 met in its 21 files are a sample (`frame/questions.md` Q2), for the same reason as phase 1's | the proofer at review |
 
 ## Not done
 
@@ -27,3 +29,18 @@ these sentences are text no orchestrator acts on is a question for
 `skills/core/SKILL.md` *A document is cut by who opens it and at which
 step*. It is not this item's class of history and copies, and `frame/design.md`
 O7 rules out changing what a rule says.
+
+Phase 2 kept two restatements that a case pins as text their reader acts
+on (contract rule 14). The first is `skills/code-review/SKILL.md`'s gloss
+of contract rule 7, pinned by
+`tests/behaviour/test_a_probe_that_commits_says_so.py`. The second is
+`skills/verify/SKILL.md`'s account of which hook writes the stamp's values
+and which draws them, pinned by
+`tests/behaviour/test_the_stamp_reaches_the_person_it_is_drawn_for.py`.
+It also kept the statements of where the `seal/` root resolves in
+`skills/commit-pr-convention/SKILL.md` and `skills/config/SKILL.md`, and
+`skills/implement/SKILL.md`'s copy of contract rule 4. The ground is the
+one #1313's D3 used: a session that invokes these skills directly is not
+preloaded with the contract, and `frame/design.md` D3 keeps a copy whose
+reader does not open the home at that step. Removing the pinned two would
+also drop the text their cases hold as what a reader is told.

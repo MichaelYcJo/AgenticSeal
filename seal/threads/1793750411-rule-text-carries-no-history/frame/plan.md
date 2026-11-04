@@ -46,7 +46,7 @@ method in `frame/design.md` *D4 The census* can be run again by anyone.
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
 | 1 | *Scope* items 1, 2, 3 and 5 for `skills/implement/orchestration.md`, `skills/code-review/orchestration.md` and `skills/verify/orchestration.md`; item 4's base reading of both D4 probes, which must equal `frame/design.md` *Grounding* | each `## Removes` row for these files against the diff; the narrow tests of each touched file and of each pin; `tests/text/test_no_passage_is_pasted_into_a_second_file.py`; the phase record's lists | 19f0ceafe |
-| 2 | *Scope* items 1, 2, 3 and 5 for every other in-scope file under `skills/`, without `skills/implement/acts.md` (O2) | the same checks, for these files | |
+| 2 | *Scope* items 1, 2, 3 and 5 for every other in-scope file under `skills/`, without `skills/implement/acts.md` (O2) | the same checks, for these files | 1392479e2 |
 | 3 | *Scope* items 1, 2, 3 and 5 for the in-scope files under `docs/`, with `docs/layout/one-root-by-lifetime.ko.md` following its English edition; item 4's HEAD reading of both probes; `changelog.md`, ending with its `### Process changes` table; item 6's version move to `0.31.1`, in the commit that adds `changelog.md` | the same checks, for these files, and `tests/behaviour/test_both_editions_carry_the_same_folds.py` and `tests/behaviour/test_docs_line_wrap.py`; *User scenarios* A1, A5, A6 and A8 | |
 
 `docs/releasing/branch-and-release.md` *Cutting a release* names the
