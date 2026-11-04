@@ -120,3 +120,11 @@ edited modules or their paths, and every module under `tests/text/`, 58
 modules in all. It printed 2479 passed and 9 skipped. The skips are
 `tests/behaviour/test_a_document_that_names_a_script_says_how_to_reach_it.py:242`,
 "no shipped document names it", which this phase does not touch.
+
+**The phase closes at `6b04007c1`**, which rewraps the first paragraph of
+the module docstring and changes nothing else. A docstring change can break
+only the module's import, so the six modules of the Verified by cell ran
+again there (executed: one command, 596 passed). The 25 test modules that
+name `gaps.md`, `changelog.md` or `trail/phases`, with
+`tests/behaviour/test_docs_line_wrap.py`, ran over this record set at
+`77e5261e5` (executed: 2190 passed, 1 skipped).

@@ -32,7 +32,7 @@ Failure scenario of the chosen approach, six months on. A module that binds a na
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1 to 5 | Each case of *Scope* item 3 shown red with only its named guard removed, its failing line read for that guard (contract rule 15); the tree case shown red at the phase's start against HEAD's five instances, then green; `tests/behaviour/test_a_cited_section_stands_in_its_file.py`, `tests/text/test_a_cited_commit_outlives_the_squash.py`, `tests/behaviour/test_a_shrunken_corpus_declines_to_judge.py`, `tests/behaviour/test_the_hooks_hide_what_a_renderer_hides.py`, `tests/hooks/test_config.py` and `tests/skills/test_settle.py` run narrow by the crafter; the broad gate by the orchestrator | 934e41a6d |
+| 1 | `frame/design.md` *Scope* items 1 to 5 | Each case of *Scope* item 3 shown red with only its named guard removed, its failing line read for that guard (contract rule 15); the tree case shown red at the phase's start against HEAD's five instances, then green; `tests/behaviour/test_a_cited_section_stands_in_its_file.py`, `tests/text/test_a_cited_commit_outlives_the_squash.py`, `tests/behaviour/test_a_shrunken_corpus_declines_to_judge.py`, `tests/behaviour/test_the_hooks_hide_what_a_renderer_hides.py`, `tests/hooks/test_config.py` and `tests/skills/test_settle.py` run narrow by the crafter; the broad gate by the orchestrator | 6b04007c1 |
 
 *Scope* item 6, the rule change, is the frame's own section and goes to the settle.
 
