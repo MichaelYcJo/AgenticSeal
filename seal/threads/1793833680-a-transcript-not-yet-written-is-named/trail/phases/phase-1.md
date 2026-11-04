@@ -14,6 +14,6 @@
 
 **The pins that stand.** The assertions on the session id, the directory and the `--transcript` reason are unchanged and green. `Test_main`'s pin at `:432`, `"no transcript for session abc"`, still holds, because the reason's first sentence is kept.
 
-**The phase boundary** (executed): `bin/test tests/skills/test_core_check.py -q`, 27 passed, exit 0. It ran on the working tree just before commit 57265336, and no edit came between the run and the commit. The spawn named this one command. `tests/skills/test_seal.py` names `core_check.py` in its table of subcommands (`:3798`), and other modules glob `skills/verify/scripts/`. Neither was run here (`gaps.md` *Not verified*).
+**The phase boundary** (executed): `bin/test tests/skills/test_core_check.py -q`, 27 passed, exit 0. It ran on the working tree just before commit 57265336, and again just before commit 5dee05dc, with no edit between each run and its commit. 5dee05dc reflows the docstring paragraph the build had left with one line past the width, and the case's docstring, and changes no code. The spawn named this one command. `tests/skills/test_seal.py` names `core_check.py` in its table of subcommands (`:3798`), and other modules glob `skills/verify/scripts/`. Neither was run here (`gaps.md` *Not verified*).
 
 **Departures from the frame:** none. **A removal the frame's `## Removes` did not name:** none. The old reason's text is kept as the first sentence, so no copy of it was left to remove.

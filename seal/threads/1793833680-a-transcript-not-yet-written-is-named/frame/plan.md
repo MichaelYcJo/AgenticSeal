@@ -24,7 +24,7 @@ Failure scenario of the chosen approach, six months on: a Claude Code release st
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Scope 1, 2 and 3 | `tests/skills/test_core_check.py`, run narrow; the new assertion shown red against `find` without the added sentence, and its failing line read for that sentence (contract rule 15) | 57265336 |
+| 1 | Scope 1, 2 and 3 | `tests/skills/test_core_check.py`, run narrow; the new assertion shown red against `find` without the added sentence, and its failing line read for that sentence (contract rule 15) | 5dee05dc |
 
 Scope 4 needs no phase: its answer is probe B2 in `frame/design.md` *Grounding*. No phase re-runs it.
 
