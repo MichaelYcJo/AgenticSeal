@@ -59,7 +59,7 @@ The answer's pairs and its presence are still read (design *Scope* item 3).
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
 | 1 | design *Scope* items 1, 2, 3, 4 and 5, and the `## Removes` rows on the census's restriction, `dispatch.py`'s exemption, the run-time case, the `tests/x.py` arm and the calls inside `main()` | Each case of *Scope* item 4 seen red at `215ad6020` and with only its own guard removed, as the phase record states. The widened census run over the tree before *Scope* item 5's repairs prints the 25 lines of design *User scenarios & acceptance*, and after them it prints none. `bin/test -q tests/test_censuses.py tests/hooks/test_console.py tests/hooks/test_dispatch.py`, and the module file of each script the phase edits | 6b4471be6 |
-| 2 | design *Scope* items 6 and 7, and the `## Removes` rows on `hooks/lib/console.py:54` and the `CONTRIBUTING.md` clauses and pin | The text pin seen red against the old sentence. `bin/test -q tests/text/test_every_file_the_plugin_reads_or_writes_names_its_encoding.py tests/hooks/test_console.py tests/test_censuses.py` | |
+| 2 | design *Scope* item 6, item 7's `hooks/lib/console.py:54` (its census docstring closed in phase 1), and the `## Removes` rows on `hooks/lib/console.py:54` and the `CONTRIBUTING.md` clauses and pin | The text pin seen red against the old sentence. `bin/test -q tests/text/test_every_file_the_plugin_reads_or_writes_names_its_encoding.py tests/hooks/test_console.py tests/test_censuses.py` | |
 
 ## Operational impact
 
@@ -99,4 +99,4 @@ The answer's pairs and its presence are still read (design *Scope* item 3).
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-04 | The frame is folded to phase 1 as built: *Scope* items 2, 4 and 7, *Data & interfaces* and phase 2's row state what phase 1 did, Q2 records the crafter's answer, and the measures are cited at `569780eff` and `48d035aa6` | The crafter's hand-back named each statement HEAD contradicts, read whole against HEAD by the orchestrator; the measures' commits are reached by no `main` or release ref, so `tests/text/test_a_cited_commit_outlives_the_squash.py` refuses them, and `569780eff` (#1257) and `48d035aa6` (#1237), their squashes onto `main`, hold the same files byte for byte (executed: `git diff --quiet`). The same unreached citation stood in all three frames of the release, carried from the issue bodies, so the issue bodies of #1254, #1255 and #1256 are corrected in place as its prevention home | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |

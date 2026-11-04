@@ -24,7 +24,7 @@ holds an `if __name__ == "__main__":` block, the shape
 | `skills/core/SKILL.md` *The rule a mechanism is kept against*, "A change rewrites the text it amends in place, and in the same commit removes what stood on the old fact" (read) | The `CONTRIBUTING.md` sentence, its pin, `hooks/lib/console.py`'s open-question sentence, the stale exemption in `hooks/dispatch.py` and the run-time case for three release scripts each change or go in this work item (`## Removes`) |
 | `hooks/lib/console.py` docstring, lines 40 to 64 (read) | "The call sites are each entry point's `__main__`, not this module's import", and each entry point "carries the call rather than relying on `dispatch.py` having made it". Some entry points spell the loop inline, and the docstring gives the reasons for `chain_check.py`, the three release scripts and `dispatch.py`. "What must not diverge is the ANSWER". Line 54 says "Which entry points owe the answer is #1255's". So the census reads a loop as an answer, as it reads the call, and this work item writes the answer at line 54 |
 | `.github/scripts/run_tests.py` docstring, lines 14 to 18 (read) | "The plugin ships from the repository root, so a user's cache holds `.github/scripts/` and `tests/` beside `bin/`". Shipped code is therefore every tracked file. The issue's "each `__main__` of shipped code" is every entry point the tree holds |
-| The measure: `3937d861:seal/threads/1793521558-the-record-decides-each-proposed-verifier/trail/phases/phase-3.md` *The decisions* row C9, *Command C9* and *Instances C9*, and `79252e48:seal/threads/1793490088-each-kind-of-restatement-is-measured/trail/phases/phase-2.md` *The table* row K12, *Command entry* and *Instances K12* (read, with `git show`) | At `813665f0`, 47 entry points: 26 gave `STREAMS`' answer, 3 gave `stderr` `replace`, 5 left out `stdin`, and 13 gave none. The 3 drifted answers each stood in 15 to 23 release tags. That is the catch record the widened census is kept against. K12 counted the 5 that leave out `stdin` as not drifted because none of them reads `stdin` |
+| The measure: `569780eff:seal/threads/1793521558-the-record-decides-each-proposed-verifier/trail/phases/phase-3.md` *The decisions* row C9, *Command C9* and *Instances C9*, and `48d035aa6:seal/threads/1793490088-each-kind-of-restatement-is-measured/trail/phases/phase-2.md` *The table* row K12, *Command entry* and *Instances K12* (read, with `git show`) | At `813665f0`, 47 entry points: 26 gave `STREAMS`' answer, 3 gave `stderr` `replace`, 5 left out `stdin`, and 13 gave none. The 3 drifted answers each stood in 15 to 23 release tags. That is the catch record the widened census is kept against. K12 counted the 5 that leave out `stdin` as not drifted because none of them reads `stdin` |
 | *Command C9* re-run at HEAD (executed: the command's script, saved under the scratch directory, with `python3 -I c9.py <worktree> HEAD`) | 48 entry points. 17 hold the text `console.to_utf8()`, 13 have a loop giving `STREAMS`' pairs, 5 have a loop without `stdin`, and 13 give none. `.github/scripts/release_report.py`, `release_seal.py` and `rules.py` give `STREAMS`' pairs at HEAD, so #1235 (closed, `release: 0.27.3`, executed: `gh issue view 1235`) repaired the issue's out-of-scope item before this branch was cut |
 | An `ast` probe over every tracked `.py` at HEAD (executed: a script under the scratch directory that parses each file, finds its module-level `__main__` blocks, and reads the first block's statements) | 221 tracked `.py` files, and 48 have a module-level `__main__` block. No file under `tests/` or `evals/behaviour/` has one. In the first block: 12 open with `console.to_utf8()`, 11 open with a loop over `STREAMS`' pairs, 5 open with a loop over `stdout` and `stderr` alone (`skills/code-review/scripts/pr_body.py:90`, `skills/verify/scripts/arm_check.py:1300`, `core_check.py:274`, `pact_check.py:834`, `payload_meter.py:1134`), 2 have the loop after other statements (`skills/verify/scripts/broad_gate.py:3252`, after 2; `skills/verify/scripts/seal_stamp.py:1512`, after 1), and 18 hold no answer |
 | The 18 with no answer in the first block (executed: the same probe, and `grep -n 'to_utf8'`) | Five call `console.to_utf8()` inside `main()` and not in the block: `.github/scripts/finding_counts.py:175`, `plugin_directory_check.py:289`, `publish_release_note.py:845`, `tag_release.py:183` and `tracker_labels.py:159`. `.github/scripts/issue_claims_check.py` makes the call once, as its block's first statement (`:324`), and is among the 12 that open with it. The other 13 make no call anywhere: `.github/scripts/close_issues_on_release.py`, `durations_union.py`, `label_merged_on_release_branch.py`, `release_completeness_check.py`, `roll_flow_measurement_issue.py`, `run_tests.py`; `evals/scripts/noninferiority.py`, `replay_targets.py`, `rule_cases.py`, `seed_defects.py`; `hooks/lib/launch.py`, exempted at `:105`; `skills/verify/scripts/mutation_check.py` and `test_layout.py` |
@@ -50,8 +50,7 @@ In scope:
    first module-level `__main__` block and no later one.
 2. **What it accepts.** The block's first statement gives `STREAMS`'
    answer in one of two forms. The first form is the call
-   `console.to_utf8()`, read as the census reads it at HEAD
-   (`tests/censuses.py#opens_with_to_utf8`). The second form is a `for` loop
+   `console.to_utf8()`, read by `tests/censuses.py#calls_to_utf8`. The second form is a `for` loop
    whose target is two names, whose iterable is a literal tuple of pairs
    equal to `STREAMS`, and whose body calls `.reconfigure(encoding="utf-8",
    errors=<the target's second name>)` on the stream `getattr(sys, <the
@@ -95,7 +94,10 @@ In scope:
    - the census's pairs are those `hooks/lib/console.py#STREAMS` holds,
      loaded from the file.
    The case `test_refuses_a_block_without_the_call_and_one_with_it_after_main`
-   keeps its assertions, with its message rewritten to the new one.
+   keeps its point. Its `hooks/after.py` arm is refused at the block's
+   first statement, the second of the three lines item 3 names, in place
+   of the `if` line, because the block now gives an answer after `main()`
+   (phase record).
 5. **Every entry point gives the answer or carries its reason** (Q1's
    default, `frame/questions.md`):
    - The 13 that make no call give one, except `hooks/lib/launch.py`, whose
@@ -127,7 +129,8 @@ In scope:
    #1255's.", becomes the answer: every entry point owes it, and an entry
    point that cannot give it carries its reason at its line, read by
    `tests/censuses.py#entry_point`. `tests/censuses.py#entry_point`'s
-   docstring says what the census now reads.
+   docstring says what the census now reads; phase 1 rewrote it with the
+   code it describes.
 
 Out of scope:
 
@@ -159,8 +162,8 @@ Out of scope:
 - `tests/censuses.py#entry_point(rel, root=None)` keeps its signature and
   its place in `CENSUSES`. It drops `under=("hooks/",)` from its `_python`
   call.
-- `tests/censuses.py#opens_with_to_utf8` stays as the reader of the first
-  form. One helper reads the loop form and returns its pairs, or `None`
+- `tests/censuses.py#calls_to_utf8(statement)` reads the first form in
+  one statement, in place of `opens_with_to_utf8`. One helper reads the loop form and returns its pairs, or `None`
   where the statement is not of that shape. Its name and the reader of
   `STREAMS` are the crafter's to choose.
 - The census reads `hooks/lib/console.py` under `ROOT`, the repository it
