@@ -164,10 +164,9 @@ is absent; field names, headings and vocabulary words stay English
   `reopens:` stands.
 - What this round confirmed holds is a confirmation block under
   `## Confirmations`, its `confirms:` line followed by the prose that says
-  what holds; a claim of the frame or the build that matched, with no
-  earlier finding to name, is prose there with no block. What it could not
-  judge is a row of `## Not judged` naming who answers it; neither is a
-  finding.
+  what holds, and what matched with nothing earlier to name stands there as
+  prose alone. What it could not judge is a row of `## Not judged` naming
+  who answers it; neither is a finding.
 - The record is written in words: no emoji anywhere in it, and no summary
   block under it. A mark quoted from the code under review is written as its
   code point (`U+1F7E1`) or in words, never as the character.
