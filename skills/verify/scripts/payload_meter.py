@@ -57,8 +57,9 @@ agent's own files.
 Exit codes: 0 measured · 1 the input could not be measured -- a transcript
 the calibration refuses, or no `agents/*.md` under the root · 2 nothing ran:
 `--calibrate` was given and `session_cost.py`, the sibling it loads, is not
-beside this script, `--sections` was given and `unverified_check.py`, the
-fence rule it splits by, is not beside it, `hooks/lib/core.py`, which says
+beside this script, `unverified_check.py`, which says where a fence, a
+comment or a code span stands, is not beside it where `--sections` was
+given or a `CLAUDE.md` the meter reads exists, `hooks/lib/core.py`, which says
 what the core hook prints, is not in the plugin around it, or the arguments
 were unusable
 (argparse's usage error). An interpreter below the floor never reaches this
@@ -111,10 +112,15 @@ BASELINE_AGENT = "general-purpose"
 SECTION_LEVELS = (2, 3)
 AGENT_ID = re.compile(r"\bagentId:\s*([0-9a-f]+)")
 
-# A `CLAUDE.md` import, `imports_of`'s reading of it; the hops the harness
-# follows (code.claude.com/docs/en/memory.md, read for #1177); and what joins
-# an imported row's name to its importer's.
-IMPORT = re.compile(r"(?:^|(?<=\s))@([^\s\"'`]\S*)", re.MULTILINE)
+# A `CLAUDE.md` import, `imports_of`'s reading of it: `@` at the start of a
+# line or after whitespace, then a path a quote or a backtick does not open,
+# which runs to the next whitespace except a space with a backslash before
+# it. That path group is Claude Code's own (#1185). `imports_of` runs it over
+# each live piece of a line, with the line's offsets, so the lookbehind still
+# sees the character before the piece. Then the hops the harness follows
+# (code.claude.com/docs/en/memory.md, read for #1177 and #1185); and what
+# joins an imported row's name to its importer's.
+IMPORT = re.compile(r"(?:^|(?<=\s))@(?![\"'`])((?:[^\s\\]|\\ )+)")
 HOPS = 4
 ARROW = " → "
 
@@ -158,20 +164,23 @@ _reader = None
 
 
 def _fence_rule():
-    """`unverified_check.py`, the module that holds the fence delimiter rule
-    `heading_starts` asks (#584), loaded once and only where `--sections`
-    splits a file. A missing file is `_session_cost`'s shape: a sentence to
+    """`unverified_check.py`, loaded once, for its two uses here: the fence
+    delimiter rule `heading_starts` asks where `--sections` splits a skill
+    at its headings (#584), and the scan of fences, HTML comments and code
+    spans `imports_of` asks for each `CLAUDE.md` and imported file that
+    exists (#1185). A missing file is `_session_cost`'s shape: a sentence to
     stderr, then exit 2."""
     global _reader
     if _reader is None:
         path = os.path.join(HERE, "unverified_check.py")
         if not os.path.isfile(path):
             sys.stderr.write(
-                f"seal payload: cannot read {path}, and it is what says which "
-                "lines of a skill stand inside a fenced example, so --sections "
-                "cannot split one. This command ships beside it under "
-                "`skills/`; a copy of one script taken on its own is not a "
-                "plugin. Nothing was measured.\n"
+                f"seal payload: cannot read {path}, and it is what says where "
+                "a fenced example, an HTML comment or a code span stands in a "
+                "file, so --sections cannot split a skill at its headings and "
+                "no import of a `CLAUDE.md` can be read. This command ships "
+                "beside it under `skills/`; a copy of one script taken on its "
+                "own is not a plugin. Nothing was measured.\n"
             )
             raise SystemExit(2)
         spec = importlib.util.spec_from_file_location("agentic_unverified_reader", path)
@@ -358,28 +367,59 @@ def file_row(root, rel, display, share, sections):
 
 
 def imports_of(path, home, depth=HOPS, seen=None):
-    """`[(chain, real_path)]`: every file the `@` lines of the file at `path`
-    import, depth first, as code.claude.com/docs/en/memory.md resolves them
-    (#1177, `frame/design.md` *Scope* item 5).
+    """`[(chain, real_path)]`: every file the file at `path` imports, depth
+    first, as code.claude.com/docs/en/memory.md resolves them (#1177,
+    `frame/design.md` *Scope* item 5).
 
-    An import is `@` at the start of a line or after whitespace, then a
-    path that runs to the next whitespace; a path that opens with a quote or
-    a backtick is not one. A leading `~` is `home`, the home the meter was
-    given, never the process's. Any other relative path resolves against the
-    directory of the file that holds the line, at every hop. `chain` is the
-    path of each hop as written, so the last entry is this import's own.
+    An import is read in the file's live text alone (#1185), the docs'
+    "Import parsing skips Markdown code spans and fenced code blocks". Live
+    text is text outside a fenced code block, an HTML comment and a code
+    span, as `unverified_check.py#live_pieces` places them with spans read
+    across the lines of a paragraph; a fence or a comment nobody closed
+    hides the rest of the file. There an import is `@` at the start of a
+    line or after whitespace, then a path (`IMPORT`). The path runs to the
+    next whitespace or the end of its live piece, and a backslash before a
+    space keeps it going, the docs' "put a backslash before each space". The
+    target is the path with each `\\ ` read as a space, and `chain` keeps
+    the backslash. A path that opens with a quote or a backtick is not one.
+    A leading `~` is `home`, the home the meter was given, never the
+    process's. Any other relative path resolves against the directory of
+    the file that holds the line, at every hop. `chain` is the path of each
+    hop as written, so the last entry is this import's own.
 
     At most `depth` hops, four by the docs. A real path in `seen` is skipped,
     and each one found is added to it, so one file imported twice, or a cycle,
     is read once. A target that is not a file is returned, for its row to say
-    `missing`, and is not followed."""
+    `missing`, and is not followed.
+
+    **What this does not model.** Claude Code 2.1.318's reader goes past
+    its docs, and the meter follows the docs (#1185, `frame/questions.md`
+    Q1). The harness also reads no import in an indented code block, in an
+    HTML block other than a comment or in a YAML frontmatter block, and the
+    meter reads one in each. The harness cuts a path at its first `#`, and
+    the meter keeps the `#` and what follows it. The harness refuses a path
+    by its first character and skips an imported file whose extension is
+    not text, and the meter follows either. The meter reads an import inside
+    a fence behind `>` or a list marker, where the shared fence rule opens
+    no fence. And it reads no import whose `@` follows a code span, a
+    comment, emphasis or a link with no whitespace between them, where the
+    harness can begin a text token with the `@`."""
     seen = set() if seen is None else seen
     if depth <= 0 or not os.path.isfile(path):
         return []
+    rule = _fence_rule()
+    lines = rule.gfm_lines(read(path)[1])
+    found = (
+        match.group(1)
+        for line, pieces in zip(
+            lines, rule.live_pieces(lines, spans_cross_lines=True), strict=True
+        )
+        for start, end in pieces
+        for match in IMPORT.finditer(line, start, end)
+    )
     out = []
-    for match in IMPORT.finditer(read(path)[1]):
-        written = match.group(1)
-        target = written
+    for written in found:
+        target = written.replace("\\ ", " ")
         if target == "~" or target.startswith("~/"):
             target = os.path.join(home, target[2:])
         real = os.path.realpath(os.path.join(os.path.dirname(path), target))
