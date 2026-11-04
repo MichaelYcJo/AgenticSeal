@@ -115,6 +115,19 @@ def test_step_2b_prints_the_repair_with_this_sessions_paths(tmp_path):
     ], out.stdout
 
 
+def test_step_2b_prints_no_repair_where_the_record_cannot_be_read(tmp_path):
+    """Round 2 of #1184, finding 1. Where the install record cannot be read,
+    `p` is empty, and a repair printed from it would copy the clone into
+    `/`. So the repair block prints nothing and fails."""
+    home, config = tmp_path / "home", tmp_path / "config"
+    home.mkdir()
+    config.mkdir()
+    block = FENCE.findall(step("2b", "3"))[1]
+    out = run_bash(block, home, config, tmp_path)
+    assert out.returncode != 0, out.stdout
+    assert out.stdout == "", out.stdout
+
+
 def test_step_3_takes_the_repository_from_the_config_directorys_clone(tmp_path):
     """S4. The marketplace clone is the config directory's, so step 3's
     `repo=` line yields that clone's `owner/repo`. Nothing reaches the

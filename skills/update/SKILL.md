@@ -58,16 +58,19 @@ python3 -c "import json,sys;print(json.load(open(sys.argv[1]+'/.claude-plugin/pl
 |---|---|
 | the `version` is the one the installer reported | go on to step 3 |
 | a mismatch | **stop before step 3.** The update did not land. Say so, name both versions (the one the installer reported and the one the installed `plugin.json` names), and run the block below and give the repair it prints to the user to type. Give no summary: a summary of what the user should be getting is exactly what makes this failure invisible |
+| no `version`: a command raised, because the install record or the copy it names could not be read | **stop before step 3.** Say that the installed copy could not be found under `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`, with the error. Give no repair and no summary: the repair is built from the path this read could not give |
 
 The repair replaces the stale directory from the marketplace clone, and it is
 the user's to type rather than this procedure's to run, because it deletes a
 directory a session may be holding. The user's terminal holds neither `$p`
 nor, unless it is exported there, `CLAUDE_CONFIG_DIR`. So the block below
 reads the copy again and only prints the repair, with this session's paths
-written out and quoted; give its output to the user to type:
+written out and quoted; give its output to the user to type. Where its read
+fails, the block prints nothing and exits non-zero, which is the table's
+last row:
 
 ```bash
-p=$(python3 -c "import json,sys;d=json.load(open(sys.argv[1],encoding='utf-8'));print(d['plugins']['agentic@agenticseal'][0]['installPath'])" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/installed_plugins.json")
+p=$(python3 -c "import json,sys;d=json.load(open(sys.argv[1],encoding='utf-8'));print(d['plugins']['agentic@agenticseal'][0]['installPath'])" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/installed_plugins.json") &&
 printf 'mv %q %q\nrsync -a --exclude .git %q %q\nmkdir -p %q\n' "$p" "$p.stale.bak" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/marketplaces/agenticseal/" "$p/" "$p/.in_use"
 ```
 
