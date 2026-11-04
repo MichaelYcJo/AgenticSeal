@@ -83,6 +83,11 @@ fold's row of *Judgments of the run* at `frame/plan.md:105`, which says
 the third, and round 1's close at `round-1.md:137`, which describes the two
 messages alone (executed).
 
+```seal
+verdict: fixed 6e22d54f7
+answer: The finding holds. The order refusal at `tests/censuses.py:762-767` names the answer the census read and that answer's line, so neither sentence was true of it. The plan half is the orchestrator's fold at `a483cbb43`. In the fragment, f4ac057ae replaces the sentence that opened "A refusal says what the census did not read". The new sentence says this of the refusals at the `if` line and at the `for` line alone, and it adds that the refusal at the block's first statement names the line of the answer the census read there. Reading the bullet again, the next sentence, "Each refusal names the forms it accepts", made the same overreach: the order refusal names no form. 6e22d54f7 makes it "The refusals at the `if` line and at the `for` line name the forms the census reads, and each refused line can be exempted". Both commits touch `changelog.md` alone. `grep -n -i 'each refusal\|every refusal'` over `changelog.md` and `gaps.md` then listed nothing (executed). `tests/github/test_publish_release_note.py` and `tests/behaviour/test_chain_hooks_hardening.py` passed at 6e22d54f7, 80 cases (executed).
+```
+
 ## Confirmations
 
 ```seal
