@@ -94,6 +94,11 @@ The text it replaces, at `changelog.md:3`: "Every message the test could
 report was about the table itself, and a search of the issues since the
 table shipped found none, #506 aside, that took its subject from it."
 
+```seal
+verdict: fixed 23ce57c18
+answer: The finding holds: #1163 takes its subject from the cost of reading the table and #1109 from a rename defect in its Question 1 row (executed: `gh issue view 1163`, `gh issue view 1109`), so "found none that took its subject from it" was false. The paste-ready text was not applied as written, and `changelog.md:3` now says it in my own words: the search found several issues that name the table, such as #1109, #1163 and #506, and each names a defect in a row, a cost to its readers or a limit of the table, and none came from an act the table listed as one nothing notices when skipped. The proposed "#506 aside, that a row of it led to" leaves unclear what "led to" means, and it sets #506 apart even though #506 is itself an issue about the table's limits. "A stale row" was narrowed to "a defect in one of its rows", because #1109's row was garbled by a substitution and was not out of date. `tests/github/test_publish_release_note.py` and `tests/behaviour/test_chain_hooks_hardening.py` pass at 23ce57c18 (executed: `bin/test -q`, exit 0).
+```
+
 ## Confirmations
 
 ```seal
