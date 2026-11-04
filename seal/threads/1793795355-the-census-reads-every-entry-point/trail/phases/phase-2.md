@@ -113,5 +113,3 @@ the broad gate's.
 work item changes none of the files `docs/layout/the-record-layout.md` *A
 change to the way of working writes its process row in its own fragment*
 names (executed: `git diff --name-only 215ad6020`).
-</content>
-</invoke>
