@@ -141,11 +141,11 @@ every repository, whatever either row says:
   `section:`, `from:`, `to:` and `why:`, which
   `skills/settle/scripts/rule_changes.py` reads, and the label `check:` of
   a check line inside a `to`, which `.github/scripts/rules.py` reads; a
-  `frame/plan.md`'s
-  `## Judgments of the run` heading with its `Date`, `Judgment`, `Grounds`
-  and `Judged against` columns, which `seal settle` groups the run's
-  judgments by; and a `changelog.md`'s `### Process changes` heading, under
-  which the release note lifts each fragment's rows into one table.
+  `frame/plan.md`'s `## Judgments of the run` heading with its `Date`,
+  `Judgment`, `Grounds` and `Judged against` columns, which `seal settle`
+  groups the run's judgments by; and a `changelog.md`'s
+  `### Process changes` heading, under which the release note lifts each
+  fragment's rows into one table.
   A translated field name is not a translation, it is a broken gate.
 - **The markers and anchors.** The word `closed` that opens a closed
   `## Not verified` row, the line `## From the records` that opens the
