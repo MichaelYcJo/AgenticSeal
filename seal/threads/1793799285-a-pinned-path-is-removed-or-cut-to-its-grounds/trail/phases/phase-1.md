@@ -8,8 +8,8 @@
 
 | # | Line | Disposition | What replaced it |
 |---|---|---|---|
-| 1 | `.github/workflows/test.yml:85` | G | removed: the sentence ends "on the figures of run 37458654434 (7,530 s of cases, 1,974 s unsharded)." |
-| 2 | `.github/workflows/test.yml:90` | G | removed: the sentence ends "(the file gives three groups of 2,513 s, 2,517 s and 2,505 s)." |
+| 1 | `.github/workflows/test.yml:85` | G | the arithmetic the record held, in the comment: a shard's job is a fixed cost, about 62 s on Windows, plus the leg's case time over the count, and four is the smallest count under 12 minutes on both run 37458654434 and run 37457228586, 1.08 times slower, where three gives 11.9 and 12.8 minutes and four 9.2 and 9.8 (round 1, finding 1) |
+| 2 | `.github/workflows/test.yml:90` | G | the record's clause removed, and the sentence gains the macOS fixed cost, "about 45 s", beside its factor of 1.45 (round 1, finding 1) |
 | 3 | `.github/workflows/test.yml:135` | P | removed: the sentence ends "each leg's own `--durations` table below." |
 | 4 | `tests/behaviour/test_a_cited_section_stands_in_its_file.py:590` | F | `AT = "f6ae6db6"` above `ELSEWHERE`, which is now an f-string whose line reads `` `{AT}:manual/b.md` *Gone* ``, with a two-line comment saying why |
 | 5 | `tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py:33` | P | removed: the paragraph is "Red-first, per contract rule 15: the planted cases build a temp tree with the defect in it." |
@@ -36,7 +36,7 @@
 
 **`frame/questions.md` Q1, answered by the work.** For each G and N line, the phase read the page D1 names with `gh issue view` or `gh pr view` (executed), and kept the number only where the page holds what the sentence sends its reader there for, as Q1's default says.
 
-- Rows 1 and 2, option (c). Neither #841 nor #864 holds the shard-count arithmetic. #841's body proposes the split and holds no count. PR #845, which closed it, holds the four shards and their measured times. #864's body says it will use "the same arithmetic #841 recorded". The figures already stand in each sentence, and the comment's first line names both issues: "macOS in three shards (#864) and Windows in four (#841)". A third citation of each would send the reader to a page that does not hold the arithmetic.
+- Rows 1 and 2, option (c). Neither #841 nor #864 holds the shard-count arithmetic. #841's body proposes the split and holds no count. PR #845, which closed it, holds the four shards and their measured times. #864's body says it will use "the same arithmetic #841 recorded". So the arithmetic goes into the sentences, with the fixed cost and the second, slower run that decide the Windows count (round 1, finding 1), and the comment's first line names both issues: "macOS in three shards (#864) and Windows in four (#841)". A third citation of each would send the reader to a page that does not hold the arithmetic.
 - Row 9, option (a), `#422`. Its body says "Refusing more words makes legitimate definitions unwritable", which is the grounds the sentence now states.
 - Row 10, option (c). The grounds stand in the sentence before the citation.
 - Row 11, option (a), `#664`, which the title line already names. The case numbers S17 and S19 are #664's work's, and each scenario is stated at its case or, for S19, at the comment naming the census.

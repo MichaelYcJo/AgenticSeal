@@ -78,13 +78,18 @@ jobs:
           # same cases -- 12,819 on each at 5623d728, in run 37580460950 -- so
           # group k of a count holds the same cases on both. Only each case's
           # price differs by system, and that is read off each leg's own jobs,
-          # never off the file. Four is the smallest Windows count whose
-          # slowest shard stays under 12 minutes on the figures of run
-          # 37458654434 (7,530 s of cases, 1,974 s unsharded).
+          # never off the file. A shard's job is a fixed cost plus the leg's
+          # case time over the count. On Windows the fixed cost is about
+          # 62 s: 37 s of checkout and install, and 25 s from the step's
+          # start to the first case. Four is the smallest Windows count whose
+          # slowest shard stays under 12 minutes on both run 37458654434
+          # (7,530 s of cases, 1,974 s unsharded, 1,949 s of it after the
+          # first case) and run 37457228586, which was 1.08 times slower:
+          # three gives 11.9 and 12.8 minutes, four 9.2 and 9.8.
           # Three is the smallest macOS count the same arithmetic puts under
-          # 12 minutes on run 37577753583's 1,185 s of cases, with a factor
-          # of 1.45 for the slowest group (the file gives three groups of
-          # 2,513 s, 2,517 s and 2,505 s).
+          # 12 minutes on run 37577753583's 1,185 s of cases, with a fixed
+          # cost of about 45 s and a factor of 1.45 for the slowest group
+          # (the file gives three groups of 2,513 s, 2,517 s and 2,505 s).
           # Measured in run 37700567455: the slowest macOS shard took 6 m 56 s,
           # and the three ran 12,827 cases between them, ubuntu's count at
           # the same SHA. ubuntu stays one job.
