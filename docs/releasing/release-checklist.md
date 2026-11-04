@@ -287,9 +287,8 @@ python3 .github/scripts/plugin_directory_check.py   # what the marketplace files
       `python3 .github/scripts/plugin_directory_check.py`. It reads the two marketplace
       files on GitHub and says, per file, whether this plugin has an entry, which commit
       the entry pins, and whether that commit is an ancestor of `main`. **It reports and
-      never fails**, deliberately: the files sync on somebody else's schedule, and a red
-      nobody can act on is what `skills/core/SKILL.md` *The first value: efficient
-      development through the workflow* is against. Those files are not the directory,
+      never fails**, for the reason `docs/releasing/branch-and-release.md` *Cutting a
+      release* gives. Those files are not the directory,
       the catalog people browse inside Claude, and the directory is readable from
       nowhere a script can reach, so the command ends by saying it was not read and
       printing the address of the page that answers. A portal listing is answered on
