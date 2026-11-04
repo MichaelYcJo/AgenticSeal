@@ -3243,6 +3243,7 @@ if __name__ == "__main__":
     # Whether the report's marks go out in ASCII, asked of stdout as the
     # process found it — before the loop below moves every stream to UTF-8
     # (`seal_stamp.py` measured why).
+    # exempt from entry_point: stdout is asked how the process found it before the loop moves it to UTF-8
     try:
         _stamp = load(STAMP, "agentic_seal_stamp_for_broad_gate")
     except Refused as _exc:

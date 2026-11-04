@@ -1296,8 +1296,12 @@ if __name__ == "__main__":
     # dashes, or the U+FFFD `_text` leaves where a suite printed a byte that
     # is not UTF-8 -- ended a refusal in a traceback at exit 1, after its
     # verdict line (round 1, 🟡 2). `hooks/lib/console.py` owns the reasoning
-    # behind these lines; this script reads no stdin.
-    for _name, _errors in (("stdout", "replace"), ("stderr", "backslashreplace")):
+    # behind these lines.
+    for _name, _errors in (
+        ("stdin", "replace"),
+        ("stdout", "replace"),
+        ("stderr", "backslashreplace"),
+    ):
         _stream = getattr(sys, _name, None)
         if hasattr(_stream, "reconfigure"):
             _stream.reconfigure(encoding="utf-8", errors=_errors)

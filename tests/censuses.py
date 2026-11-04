@@ -627,40 +627,176 @@ def is_main_guard(node):
     )
 
 
-def opens_with_to_utf8(guard):
-    first = guard.body[0]
+def calls_to_utf8(statement):
+    """Whether STATEMENT is the call `console.to_utf8()`, the answer's first
+    form."""
     return (
-        isinstance(first, ast.Expr)
-        and isinstance(first.value, ast.Call)
-        and isinstance(first.value.func, ast.Attribute)
-        and first.value.func.attr == "to_utf8"
-        and isinstance(first.value.func.value, ast.Name)
-        and first.value.func.value.id == "console"
-        and not first.value.args
-        and not first.value.keywords
+        isinstance(statement, ast.Expr)
+        and isinstance(statement.value, ast.Call)
+        and isinstance(statement.value.func, ast.Attribute)
+        and statement.value.func.attr == "to_utf8"
+        and isinstance(statement.value.func.value, ast.Name)
+        and statement.value.func.value.id == "console"
+        and not statement.value.args
+        and not statement.value.keywords
     )
 
 
+def reconfigure_calls(node):
+    """Every call of a `.reconfigure` method under NODE."""
+    return [
+        call
+        for call in ast.walk(node)
+        if isinstance(call, ast.Call)
+        and isinstance(call.func, ast.Attribute)
+        and call.func.attr == "reconfigure"
+    ]
+
+
+def is_answer(statement):
+    """Whether STATEMENT answers the streams: the call of the first form, or
+    a `for` statement whose body calls `.reconfigure`, whatever its shape."""
+    return calls_to_utf8(statement) or (
+        isinstance(statement, ast.For) and bool(reconfigure_calls(statement))
+    )
+
+
+def loop_pairs(statement):
+    """The pairs a loop of the answer's second form names, or None where
+    STATEMENT is not of that form: a `for` over a literal, its target two
+    names `<name>, <errors>`, whose every `.reconfigure` call is
+    `<stream>.reconfigure(encoding="utf-8", errors=<errors>)` on a name the
+    loop binds from `getattr(sys, <name>, ...)`."""
+    if not isinstance(statement, ast.For) or statement.orelse:
+        return None
+    target = statement.target
+    if not (
+        isinstance(target, ast.Tuple)
+        and len(target.elts) == 2
+        and all(isinstance(e, ast.Name) for e in target.elts)
+    ):
+        return None
+    name, errors = (e.id for e in target.elts)
+    try:
+        pairs = ast.literal_eval(statement.iter)
+    except (ValueError, TypeError, SyntaxError):
+        return None
+    streams = {
+        node.targets[0].id
+        for node in ast.walk(statement)
+        if isinstance(node, ast.Assign)
+        and len(node.targets) == 1
+        and isinstance(node.targets[0], ast.Name)
+        and isinstance(node.value, ast.Call)
+        and isinstance(node.value.func, ast.Name)
+        and node.value.func.id == "getattr"
+        and len(node.value.args) in (2, 3)
+        and isinstance(node.value.args[0], ast.Name)
+        and node.value.args[0].id == "sys"
+        and isinstance(node.value.args[1], ast.Name)
+        and node.value.args[1].id == name
+    }
+    calls = reconfigure_calls(statement)
+    if not calls or not all(
+        reconfigures_to_utf8(call, streams, errors) for call in calls
+    ):
+        return None
+    return pairs
+
+
+def reconfigures_to_utf8(call, streams, errors):
+    """Whether CALL is `<stream>.reconfigure(encoding="utf-8",
+    errors=<errors>)`, its receiver one of the names STREAMS."""
+    named = {k.arg: k.value for k in call.keywords}
+    encoding, given = named.get("encoding"), named.get("errors")
+    return (
+        isinstance(call.func.value, ast.Name)
+        and call.func.value.id in streams
+        and not call.args
+        and set(named) == {"encoding", "errors"}
+        and isinstance(encoding, ast.Constant)
+        and encoding.value == "utf-8"
+        and isinstance(given, ast.Name)
+        and given.id == errors
+    )
+
+
+def console_streams():
+    """`hooks/lib/console.py#STREAMS`, read out of that file in this
+    repository, so the census keeps no copy of the answer it compares."""
+    path = os.path.join(ROOT, "hooks", "lib", "console.py")
+    with open(path, encoding="utf-8") as handle:
+        tree = ast.parse(handle.read(), path)
+    for node in tree.body:
+        if (
+            isinstance(node, ast.Assign)
+            and len(node.targets) == 1
+            and isinstance(node.targets[0], ast.Name)
+            and node.targets[0].id == "STREAMS"
+        ):
+            return ast.literal_eval(node.value)
+    raise LookupError(f"{path} assigns no STREAMS")
+
+
+def answer_problems(guard):
+    """`{line: what}` for the `__main__` block GUARD: the census reads no
+    answer among the block's own statements, its first answer is not its
+    first statement, or that answer is a loop it does not read as `STREAMS`'
+    pairs in the second form."""
+    answer = next((s for s in guard.body if is_answer(s)), None)
+    if answer is None:
+        return {
+            guard.lineno: (
+                "the census reads no answer among the `__main__` block's own "
+                "statements, and an entry point that gives none dies with stdout "
+                "empty when it raises while printing; open the block with "
+                "`console.to_utf8()`, or with a loop over "
+                "`hooks/lib/console.py#STREAMS`' literal pairs in the one form "
+                "`tests/censuses.py#loop_pairs` reads, or put "
+                "`# exempt from entry_point: <why>` on its own line above it"
+            )
+        }
+    problems = {}
+    first = guard.body[0]
+    if answer is not first:
+        problems[first.lineno] = (
+            f"the `__main__` block's answer, at line {answer.lineno}, is not its "
+            "first statement, so what runs before it meets the console's code "
+            "page; make the answer the block's first statement, or put "
+            "`# exempt from entry_point: <why>` on its own line above this one"
+        )
+    if isinstance(answer, ast.For):
+        streams = console_streams()
+        if loop_pairs(answer) != streams:
+            problems[answer.lineno] = (
+                "the census does not read this loop as the answer "
+                "`hooks/lib/console.py#STREAMS` holds; it reads a `for` over the "
+                f"literal pairs {streams!r} "
+                'that calls `.reconfigure(encoding="utf-8", errors=<errors>)` on '
+                "the stream it binds from `getattr(sys, <name>, None)`; name those "
+                "pairs in that form, or make the call `console.to_utf8()`"
+            )
+    return problems
+
+
 def entry_point(rel, root=None):
-    """Every hook entry point opens its `__main__` block with
-    `console.to_utf8()`, which `hooks/lib/console.py` says each one carries
-    rather than relying on `dispatch.py` having made the call. The census
-    reads the order: the call after `main()` is refused as its absence is.
-    Whether the call works is `tests/hooks/test_console.py`'s and, for the
-    dispatcher's own loop, `tests/hooks/test_dispatch.py`'s."""
-    text = _python(rel, root, ("hooks/",))
+    """Every entry point, a tracked `.py` with a module-level `__main__`
+    block, opens its first such block with the answer
+    `hooks/lib/console.py#STREAMS` holds, which `hooks/lib/console.py` says
+    each one carries rather than relying on another having made it. The
+    answer is the call `console.to_utf8()`, or a loop over `STREAMS`' pairs
+    in the one shape `loop_pairs` reads. The census reads the block's first
+    answer statement among the block's own statements: a block where it
+    reads none is refused at the `if` line, an answer after another
+    statement at that statement, and a loop it does not read as that answer
+    at its `for` line. A later `__main__` block runs after the first, so it
+    is not read. Whether the call works is `tests/hooks/test_console.py`'s
+    and, for the dispatcher's own loop, `tests/hooks/test_dispatch.py`'s."""
+    text = _python(rel, root)
     if text is None:
         return []
-    flagged = {
-        node.lineno: (
-            "the `__main__` block does not open with `console.to_utf8()`, so "
-            "a hook that raises while printing dies with stdout empty; make "
-            "the call the block's first statement, or put "
-            "`# exempt from entry_point: <why>` on its own line above it"
-        )
-        for node in ast.parse(text, rel).body
-        if is_main_guard(node) and not opens_with_to_utf8(node)
-    }
+    guard = next((n for n in ast.parse(text, rel).body if is_main_guard(n)), None)
+    flagged = {} if guard is None else answer_problems(guard)
     return _held("entry_point", rel, text, flagged)
 
 

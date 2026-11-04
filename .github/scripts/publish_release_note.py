@@ -842,7 +842,6 @@ def create(repo, tag, title, body):
 
 
 def main(argv=None):
-    console.to_utf8()
     tag = os.environ["TAG"].strip()
     repo = os.environ["REPO"]
     dry = os.environ.get("DRY_RUN", "").strip() not in ("", "0", "false", "no")
@@ -902,4 +901,5 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
+    console.to_utf8()
     sys.exit(main())

@@ -488,7 +488,8 @@ def test_an_unguarded_scope_is_named_although_a_module_is_mid_edit():
     present, missing = suite_modules()
     thinned = dict(derivers([p for p in present if p != rel]))
 
-    planted = "tests/test_tmp_seventh.py#sweep"
+    # Joined here, so this file cites no scope the tree lacks.
+    planted = "#".join(("tests/test_tmp_seventh.py", "sweep"))
     found = {**thinned, planted: 1}
     assert sorted(set(found) - set(PATH_LIST_CALLS)) == [planted], found
     assert miscounted_scopes(found) == {}

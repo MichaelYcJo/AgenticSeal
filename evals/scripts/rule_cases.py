@@ -56,6 +56,7 @@ sys.path.insert(
     ),
 )
 import behaviour
+import console
 import optin
 import replay_targets as rt
 
@@ -1064,4 +1065,5 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
+    console.to_utf8()
     sys.exit(main())

@@ -260,4 +260,14 @@ def main():
 
 
 if __name__ == "__main__":
+    # A console that cannot encode what this prints kills it with stdout
+    # empty; `hooks/lib/console.py` owns the reasoning behind these lines.
+    for _name, _errors in (
+        ("stdin", "replace"),
+        ("stdout", "replace"),
+        ("stderr", "backslashreplace"),
+    ):
+        _stream = getattr(sys, _name, None)
+        if hasattr(_stream, "reconfigure"):
+            _stream.reconfigure(encoding="utf-8", errors=_errors)
     sys.exit(main())

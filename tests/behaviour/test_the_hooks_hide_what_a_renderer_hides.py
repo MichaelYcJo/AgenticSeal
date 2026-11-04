@@ -634,8 +634,7 @@ uc = shared_rule()
 def config_base(lines):
     """What `hooks/lib/config.py` hid at `release/v0.16.0`: every line inside a
     fenced block by the shared delimiter rule, a block nobody closed running
-    to the end. `tests/behaviour/test_unverified_rows_close.py#test_the_fence_rule_
-    agrees_with_the_config_reader` held that reader to exactly this."""
+    to the end."""
     out = set()
     for first, last in uc.fence_spans(lines):
         out.update(range(first, len(lines) if last is None else last + 1))
