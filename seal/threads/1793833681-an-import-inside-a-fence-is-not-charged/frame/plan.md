@@ -25,7 +25,7 @@
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* 1, 2, 3 and 4, test-first. | S1 to S6 as new cases in `tests/skills/test_payload_meter.py`, each seen red at 0830987a, with how in the phase record. S7 through the existing cases of `tests/skills/test_unverified_check.py` and `tests/skills/test_payload_meter.py`, with no assertion edited. S8 through the copy-alone case with its purpose string moved, seen red against the old sentence. The narrow run of the modules the phase touched and the test modules of every caller of `liveness` and `live_lines` named in *Technical context*. The suite stays `unverified` until the orchestrator's broad run. | |
+| 1 | `frame/design.md` *Scope* 1, 2, 3 and 4, test-first. | S1 to S6 as new cases in `tests/skills/test_payload_meter.py`, each seen red at 0830987a, with how in the phase record. S7 through the existing cases of `tests/skills/test_unverified_check.py` and `tests/skills/test_payload_meter.py`, with no assertion edited. S8 through the copy-alone case with its purpose string moved, seen red against the old sentence. The narrow run of the modules the phase touched and the test modules of every caller of `liveness` and `live_lines` named in *Technical context*. The suite stays `unverified` until the orchestrator's broad run. | 9d987d43 |
 
 ## Operational impact
 
