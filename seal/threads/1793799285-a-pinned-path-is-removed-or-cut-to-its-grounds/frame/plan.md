@@ -6,7 +6,7 @@ The work rewrites 23 comment and docstring lines and two fixture lines in 17 fil
 
 The build waits for #1255 and #1256 to land on `release/v0.32.0` (#1355 *Order*). Their diffs change the text of none of the 25 lines, and each moves one of them (executed: the measure run on each branch, and each branch's three-dot diff against `origin/release/v0.32.0`):
 
-- #1255 moves `tests/test_censuses.py:934`, D1 row 22, to `:1057`. Its merge base, `479a79d15`, still holds `evals/scripts/noninferiority.py`'s cited line, which #1254 rewrote at `f93d70ea4`. #1255's diff touches that file only in its `__main__` block, so the merge leaves the line removed.
+- #1255 moves `tests/test_censuses.py:934`, D1 row 22, further down the file. Its merge base, `479a79d15`, still holds `evals/scripts/noninferiority.py`'s cited line, which #1254 rewrote at `f93d70ea4`. #1255's diff touches that file only in its `__main__` block, so the merge leaves the line removed.
 - #1256 moves `tests/behaviour/test_a_cited_section_stands_in_its_file.py:445`, D1 row 4, to `:590`. It edits `tests/behaviour/test_a_shrunken_corpus_declines_to_judge.py` at line 488 and `tests/behaviour/test_the_hooks_hide_what_a_renderer_hides.py` at line 634, neither of them D1 rows 6 or 15.
 
 So the phase runs the measure again on the release branch after both land, and builds against the lines it prints. A line the measure prints that D1 does not list is read by D1's four dispositions and recorded in the phase record as a departure.
@@ -41,4 +41,4 @@ None. The work changes comments, docstrings and two fixtures' spelling. It adds 
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-04 | The frame is folded to phase 1 as built: D1 rows 1, 2, 4, 12, 19, 21, 22 and 24, the fixture rule, the `## Removes` rows on `test.yml` and the two docstrings, and the plan's line on #1255 state what phase 1 did; Q1 records the work's answer; the line numbers #1255's move left stale give way to the place they name | The crafter's hand-back named each statement HEAD contradicts, read whole against HEAD by the orchestrator: no issue page holds what rows 1, 2, 12, 19 and 24 were to cite, row 21's path moved, and row 4's token is built at load. A line number kept beside the tree drifts at the next edit with nothing to catch it | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*; `skills/core/SKILL.md` *The rule a mechanism is kept against* |
