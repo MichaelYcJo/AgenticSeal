@@ -7,8 +7,9 @@ that leaves round 1's tree and no copy of it, and that a seed lands on a
 code token. `test_the_replay_and_seeded_generators_read_the_entries_too`
 holds the replay generator too, because both read the recurred entries.
 
-#942's phase 6 placed these cases from
-`tests/behaviour/test_a_rewritten_definition_proved_non_inferior.py`.
+#942's phase 6 placed these cases from one behaviour module, whose
+remaining case stands in
+`tests/behaviour/test_no_two_truths_of_a_proofer_case_accept_one_location.py`.
 """
 
 import os

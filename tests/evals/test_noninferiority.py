@@ -1,9 +1,11 @@
 """`evals/scripts/noninferiority.py`, one class per function.
 
-Rebuilt by #942's phase 5 from the `noninferiority.py` half of
-`tests/behaviour/test_a_rewritten_definition_proved_non_inferior.py`. The script runs
-one side of the behaviour suite, judges a new side against a baseline by
-five pass rules, and reads a side again under another suite's truths.
+Rebuilt by #942's phase 5 from the `noninferiority.py` half of one
+behaviour module, whose remaining case stands in
+`tests/behaviour/test_no_two_truths_of_a_proofer_case_accept_one_location.py`.
+The script runs one side of the behaviour suite, judges a new side against a
+baseline by five pass rules, and reads a side again under another suite's
+truths.
 
 The pure units, the pass rules, the record's writer and reader, the trace
 readers and the grader reader, run in the process on numbers, texts and
