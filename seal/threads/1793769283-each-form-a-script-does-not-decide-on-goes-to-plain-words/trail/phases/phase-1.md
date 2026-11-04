@@ -23,7 +23,9 @@
 - R18: kept, rewrapped only.
 - R19: the paragraph leaves rule 9. Rule 9 keeps the one clause "The routing check sees only the edit tools (`docs/checks/the-routing-check.md` *The edit check*)." Decision: the clause states the reason and its citation together, so an agent with no edit tool still learns that a shell write escapes a gate, and the section it cites holds the mechanism. Grounds: R19's row ("Rule 9 keeps one clause that cites that section").
 
-**The S5 check at `4d06f7760`.** `git grep -n -F HEAD` outside `seal/threads/` gives these results (executed):
+**The cuts left two lines past the wrap limit, and the boundary run found them.** `tests/behaviour/test_docs_line_wrap.py` named `skills/core/SKILL.md:52` (89 columns) and `skills/agent-contract/SKILL.md:21` (103 columns) at `4d06f7760`, where the limit is 88 (executed). Neither module is in the plan row's Verified by cell, so the six-module narrow run passed over them. `2cac08a35` reflows the two paragraphs. `git diff 4d06f7760 2cac08a35 --word-diff=porcelain -- skills` lists no changed word (executed).
+
+**The S5 check at `2cac08a35`.** `git grep -n -F HEAD` outside `seal/threads/` gives these results (executed):
 
 - "sits above them", "separate agents because", "Two reasons point" and "only the pull request's trailer arm is left" print nothing.
 - "would need a per-role exception" and "failure is a habit" print only their line in `docs/running/the-agent-set.md`.
@@ -42,7 +44,9 @@ The other citations of rules 1 and 9 under `tests/` name the rule and not the re
 
 **Narrow run.** I ran the six modules of the plan row's Verified by cell in one `bin/test ... -q -p no:xdist` after the edits: 242 passed (executed, exit 0). `uvx ruff check` and `uvx ruff format --check` on `tests/text/test_edits_go_through_the_edit_tool.py` exited 0 (executed).
 
-**The base measurement, design *Scope* item 2 at `c186a59ac`.** Each figure comes from `git -C /Users/yc/Documents/GitHub/SpecSeal show c186a59ac:<path> | LC_ALL=en_US.UTF-8 wc -lm` (executed). The measured files are each agent's definition, and the two files every agent's `skills:` list names (`core`, `agent-contract` for all five, read at the base). The session's preload is `skills/core/SKILL.md` alone.
+**Phase boundary run.** This is the *Phase boundary* row of `skills/verify/SKILL.md` *Scope: cheap and often, broad and once*, run as one `bin/test ... -q` over 43 modules. It took the plan row's six, and every module under `tests/` that names `agent-contract`, `core` or the agent-set document (executed: `git grep -l`). It also took the modules that read the tree's own `docs/`, `skills/` and `seal/threads/` markdown: the wrap, cited-section, heading, check-line (`tests/github/test_rules.py`), record-word, cited-commit, release-hygiene, line-liveness, reference-root, unverified-row, chain-check and census modules. The first run at `835b3ad83` had three failures. Two were the wrap lines above. The third was `tests/test_censuses.py`, on a real user path in this record's measurement command, which now writes `<repo>`. The second run, over the tree at `2cac08a35` with this record's edits, gave 2225 passed and 9 skipped (executed, exit 0). The selection is my reading of "a module that reads a path the phase changed". A module that reads those files through a helper none of these searches name is not in it, and the broad run covers that.
+
+**The base measurement, design *Scope* item 2 at `c186a59ac`.** Each figure comes from `git -C <repo> show c186a59ac:<path> | LC_ALL=en_US.UTF-8 wc -lm`, with `<repo>` the clone's absolute path (executed). The measured files are each agent's definition, and the two files every agent's `skills:` list names (`core`, `agent-contract` for all five, read at the base). The session's preload is `skills/core/SKILL.md` alone.
 
 | File | Lines | Characters |
 |---|---|---|
@@ -72,7 +76,7 @@ The other citations of rules 1 and 9 under `tests/` name the rule and not the re
 | tracer | 433 | 24316 |
 | session (core) | 140 | 9177 |
 
-The table lists every file under `templates/records/` at the base (executed: `git ls-tree --name-only c186a59ac templates/records/`). For phase 4, as context and not as its figure: at `4d06f7760` the same command gives 139 lines and 9085 characters for the core, and 218 lines and 12072 characters for the contract (executed).
+The table lists every file under `templates/records/` at the base (executed: `git ls-tree --name-only c186a59ac templates/records/`). For phase 4, as context and not as its figure: at `2cac08a35` the same command gives 139 lines and 9085 characters for the core, and 218 lines and 12072 characters for the contract (executed).
 
 **What phase 2 needs.**
 
