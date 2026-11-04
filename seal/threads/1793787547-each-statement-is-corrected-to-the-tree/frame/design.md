@@ -206,7 +206,7 @@ label is created (`frame/plan.md` *Judgments of the run*).
   every reader of records and the templates (#1336); the question in
   #1337's row and `chain_check.py`; `CONTRIBUTING.md` *What a contribution
   is asked for* (#1339); the tests' code (#1340); the manifests and the
-  READMEs (#1341); the assert and `hooks/lib/config.py` (#1342); the
+  READMEs (#1341); the assert, and `hooks/lib/config.py`'s code (#1342), whose module docstring round 1's fix pass corrected to `templates/setup/config.md` as #1334's class; the
   sentences that name their moment, and any check (#1344); the Results
   table and *Method* (#1345); the form's fields (#1338).
 - O3. `tests/e2e/teammate/test_teammate_flow.py:64` and the other test
