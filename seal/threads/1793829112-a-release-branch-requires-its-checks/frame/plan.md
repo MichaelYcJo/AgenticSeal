@@ -2,7 +2,7 @@
 
 ## Technical context
 
-The tree's part is two documents. `docs/releasing/branch-and-release.md:207-221` holds the paragraph **Two rulesets enforce the merge methods.**, its two-row table and the no-bypass sentence. `docs/releasing/release-checklist.md:13-16` holds the first box of *0. Before starting*. The setting is outside the tree. The `release` ruleset is id 23856929 and the `main` ruleset id 23858898 (executed: `gh api repos/MichaelYcJo/SpecSeal/rulesets`). `frame/design.md` *Data & interfaces* holds the `release` ruleset's JSON before the change and the `rules` body after it.
+The tree's part is two documents. `docs/releasing/branch-and-release.md` *Work accumulates on a release branch* holds the paragraph **Two rulesets enforce the merge methods.**, its table, the sentence after it, and the new paragraph on the required checks after that. `docs/releasing/release-checklist.md:13-16` holds the first box of *0. Before starting*. The setting is outside the tree. The `release` ruleset is id 23856929 and the `main` ruleset id 23858898 (executed: `gh api repos/MichaelYcJo/SpecSeal/rulesets`). `frame/design.md` *Data & interfaces* holds the `release` ruleset's JSON before the change and the `rules` body after it.
 
 Constraints:
 
@@ -32,11 +32,11 @@ Constraints:
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Scope 2 and 3 | The crafter reads the diff against design S3 and S4 and *Data & interfaces*. It runs, one module per command, the test modules `git grep -l -E 'branch-and-release\|release-checklist' -- tests/` lists (S6). `git diff --name-only` against the base lists the two documents and the work item's records only | 807708a1 |
+| 1 | Scope 2 and 3 | The crafter reads the diff against design S3 and S4 and *Data & interfaces*. It runs, one module per command, the test modules `git grep -l -E 'branch-and-release\|release-checklist' -- tests/` lists (S6). `git diff --name-only` against the base lists the two documents, `.claude-plugin/plugin.json` and the work item's records only | 807708a1 |
 
 ## Operational impact
 
-**A repository setting changes, outside the tree.** The orchestrator applies Scope 1 after the sealer seals and before the pull request opens, so this pull request is the first to merge under it (design S5).
+**A repository setting changes, outside the tree.** The orchestrator applies Scope 1 once the last round record has no finding open and before it runs `seal gate --preflight`, so the reading of step 3 is committed before the broad run, the sealer reads S1 and S2 against the live setting, and this pull request is the first to merge under it (design S5). A commit of the reading after the broad run or after the seal would leave `trail/gate.md` or `guarantee.md` behind HEAD.
 
 1. Read the `release` ruleset and compare it with the JSON in design *Data & interfaces*. Where it differs, the `rules` body there is stale. Rebuild the body from the live `pull_request` rule before sending it.
 2. Send `gh api -X PUT repos/MichaelYcJo/SpecSeal/rulesets/23856929 --input <file>` with the `rules` body.
@@ -52,4 +52,5 @@ No migration, environment variable or dependency changes.
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-05 | This item is the release's first work item, so `.claude-plugin/plugin.json` moves to 0.32.1 in its changelog commit (fc538c70), and #1301 leaves the version alone | Both items of 0.32.1 run side by side, and this one is the smaller and reaches its pull request first; one item carrying the move keeps the second pull request's diff free of it | `skills/implement/orchestration.md` *Orchestrator: how the work is routed* |
+| 2026-11-05 | The ruleset change of Scope 1 is applied before the broad run, not after the seal, and its reading is a row here | The owner's batch answer puts the act with the orchestrator after the work item is sealed (`routing.md` *Why this way*); a reading committed after the seal leaves `guarantee.md` behind HEAD, and one committed after the broad run leaves `trail/gate.md` behind it, so the act moves to the step before the preflight, where its record costs no second gate or seal and the sealer reads the setting the documents state | `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals* |
