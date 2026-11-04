@@ -49,10 +49,9 @@ comes first, then one field per line, indented two spaces:
   is read in that one spelling. The reason is the proofer's to read: no
   script uses it, so none refuses a block that lacks it. A first line that
   opens like it and is not it, such as `nothing — <why>` or `- none`, is no
-  block: the section is refused at that
-  line as the items refuse any line outside them, and the reader names the
-  line as one it did not read. `## Not verified` reads the block the same
-  way.
+  block: the section is refused at that line as the items refuse any line
+  outside them, and the reader names the line as one it did not read.
+  `## Not verified` reads the block the same way.
 - A block that does not match whole is refused at its line, and its design
   joins no group: the settling session reads it whole.
 - The section's heading is `## Rule changes`, spelt exactly so, and no
