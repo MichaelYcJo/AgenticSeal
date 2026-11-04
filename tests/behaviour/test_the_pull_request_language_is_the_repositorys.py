@@ -41,8 +41,8 @@ def test_the_skill_names_the_file_and_the_row():
     text = flat(*SKILL)
     # The file name a session opens for the row.
     assert "config.md" in text, "the skill does not name the file it reads"
-    # The row's item, which `hooks/lib/config.py` reads and a session looks
-    # for in the file.
+    # The row's item, which a session looks for in the file because the skill
+    # tells it to. No script reads this row.
     assert "Commit and pull request language" in text, "the skill does not name the row"
 
 
@@ -1179,7 +1179,6 @@ def test_the_exclusion_list_holds_every_string_a_checker_matches(literal):
 # round 1 found two that had drifted with nothing red.
 ROW_READERS = [
     ("templates", "setup", "config.md"),
-    ("templates", "setup", "seal-README.md"),
     ("skills", "config", "SKILL.md"),
     ("skills", "implement", "SKILL.md"),
     ("skills", "commit-pr-convention", "SKILL.md"),
