@@ -57,7 +57,7 @@ cat > 'seal/config.md' <<'AGENTIC_EOF'
 AGENTIC_EOF
 mkdir -p "$(dirname 'seal/threads/1790000012-count-words/routing.md')"
 cat > 'seal/threads/1790000012-count-words/routing.md' <<'AGENTIC_EOF'
-# routing
+# Routing: 1790000012-count-words
 
 | Axis | Answer |
 |---|---|
@@ -73,13 +73,13 @@ git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'base:
 git checkout -q -b feat/count-words
 mkdir -p "$(dirname 'seal/threads/1790000012-count-words/frame/design.md')"
 cat > 'seal/threads/1790000012-count-words/frame/design.md' <<'AGENTIC_EOF'
-# Feature Specification: count_words
+# Design: count_words
 
 ## Scope
 
 `src/textutil.py` gains `count_words(text)`, which returns the number of whitespace-separated words in TEXT.
 
-## User scenarios & acceptance
+## User scenarios & acceptance *(mandatory)*
 
 | Scenario | Given / When / Then | Verifiable how |
 |---|---|---|

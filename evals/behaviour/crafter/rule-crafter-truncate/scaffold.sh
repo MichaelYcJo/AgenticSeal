@@ -57,7 +57,7 @@ cat > 'seal/config.md' <<'AGENTIC_EOF'
 AGENTIC_EOF
 mkdir -p "$(dirname 'seal/threads/1790000013-truncate/routing.md')"
 cat > 'seal/threads/1790000013-truncate/routing.md' <<'AGENTIC_EOF'
-# routing
+# Routing: 1790000013-truncate
 
 | Axis | Answer |
 |---|---|
@@ -73,13 +73,13 @@ git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'base:
 git checkout -q -b feat/truncate
 mkdir -p "$(dirname 'seal/threads/1790000013-truncate/frame/design.md')"
 cat > 'seal/threads/1790000013-truncate/frame/design.md' <<'AGENTIC_EOF'
-# Feature Specification: truncate
+# Design: truncate
 
 ## Scope
 
 `src/textutil.py` gains `truncate(text, width)`, which returns TEXT unchanged when it is at most WIDTH characters, and otherwise its first WIDTH - 3 characters followed by `...`.
 
-## User scenarios & acceptance
+## User scenarios & acceptance *(mandatory)*
 
 | Scenario | Given / When / Then | Verifiable how |
 |---|---|---|
