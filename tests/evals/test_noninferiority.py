@@ -3,9 +3,9 @@
 Rebuilt by #942's phase 5 from the `noninferiority.py` half of one
 behaviour module, whose remaining case stands in
 `tests/behaviour/test_no_two_truths_of_a_proofer_case_accept_one_location.py`.
-The script runs one side of the behaviour suite, judges a new side against a
-baseline by five pass rules, and reads a side again under another suite's
-truths.
+The script runs one side of the behaviour suite, judges a new side's shape
+and reach graders against a baseline by three pass rules, and reads a side
+again under another suite's truths.
 
 The pure units, the pass rules, the record's writer and reader, the trace
 readers and the grader reader, run in the process on numbers, texts and
@@ -165,6 +165,8 @@ def side(graders, **over):
 
 
 GRADED = {("c1", "truth-1"): ("truth", 2, 2), ("c1", "shape-x"): ("shape", 2, 2)}
+# GRADED with its shape grader passing one run fewer, which fails rule 1.
+SHAPE_FELL = {**GRADED, ("c1", "shape-x"): ("shape", 1, 2)}
 
 
 def written(old_graders=GRADED, new_graders=GRADED, **new):
@@ -1041,8 +1043,8 @@ class Test_tokens_read:
         ],
     )
     def test_refuses_a_short_model_usage_as_no_figure(self, usage):
-        """A count read as zero makes a broken run look cheaper, and rule 5
-        then passes the rewrite on it."""
+        """A count read as zero makes a broken run look cheaper in the record
+        a person reads."""
         assert NI.tokens_read(usage) is None
 
 
@@ -1479,46 +1481,19 @@ class Test_suite_name:
 
 VERDICTS = {
     "every rule holds": (numbers(), "pass"),
-    "rule 1: two finds fewer": (
-        numbers(graders={("c1", "truth-1"): ("truth", 2, 2, 0, 2)}),
-        "fail",
-    ),
-    "rule 1: one find fewer, still found by a new run, is noise": (
-        numbers(graders={("c1", "truth-1"): ("truth", 2, 2, 1, 2)}),
-        "pass",
-    ),
-    "rule 1: one find fewer, found by no new run": (
-        numbers(graders={("c1", "truth-1"): ("truth", 1, 2, 0, 2)}),
-        "fail",
-    ),
-    "rule 1: two truths one find fewer each is no longer noise": (
-        numbers(
-            graders={
-                ("c1", "truth-1"): ("truth", 2, 2, 1, 2),
-                ("c1", "truth-2"): ("truth", 2, 2, 1, 2),
-            }
-        ),
-        "fail",
-    ),
-    "rule 2: false rate up by exactly the margin": (numbers(new_false=3), "pass"),
-    "rule 2: exactly the margin, where 0.35 + 0.05 falls short of 0.40": (
-        numbers(old_false=7, new_false=8),
-        "pass",
-    ),
-    "rule 2: false rate up past the margin": (numbers(new_false=4), "fail"),
-    "rule 3: the total falling by one shape run": (
+    "rule 1: the total falling by one shape run": (
         numbers(graders={("c1", "shape-report-exists"): ("shape", 2, 2, 1, 2)}),
         "fail",
     ),
-    "rule 3: the total falling by one reach run": (
+    "rule 1: the total falling by one reach run": (
         numbers(graders={("c1", "reach-proofer"): ("reach", 2, 2, 1, 2)}),
         "fail",
     ),
-    "rule 3: a new side passing more often": (
+    "rule 1: a new side passing more often": (
         numbers(graders={("c1", "shape-report-exists"): ("shape", 1, 2, 2, 2)}),
         "pass",
     ),
-    "rule 3: a reach run lost and a shape run gained share one total": (
+    "rule 1: a reach run lost and a shape run gained share one total": (
         numbers(
             graders={
                 ("c1", "reach-proofer"): ("reach", 2, 2, 1, 2),
@@ -1527,7 +1502,7 @@ VERDICTS = {
         ),
         "pass",
     ),
-    "rule 3: a grader failing every new run where the baseline passed it, the total held": (
+    "rule 2: a grader failing every new run where the baseline passed it, the total held": (
         numbers(
             graders={
                 ("c1", "shape-report-exists"): ("shape", 2, 2, 0, 2),
@@ -1536,11 +1511,11 @@ VERDICTS = {
         ),
         "fail",
     ),
-    "rule 3: a grader the baseline never passed, failing every new run, is not named": (
+    "rule 2: a grader the baseline never passed, failing every new run, is not named": (
         numbers(graders={("c1", "shape-report-exists"): ("shape", 0, 2, 0, 2)}),
         "pass",
     ),
-    "rule 3: a grader the baseline lacks does not offset a lost run": (
+    "rule 1: a grader the baseline lacks does not offset a lost run": (
         numbers(
             graders={
                 ("c1", "shape-report-exists"): ("shape", 2, 2, 1, 2),
@@ -1549,7 +1524,7 @@ VERDICTS = {
         ),
         "fail",
     ),
-    "rule 3: a shape grader failing as often as on the baseline": (
+    "rule 1: a shape grader failing as often as on the baseline": (
         numbers(graders={("c1", "shape-report-exists"): ("shape", 1, 2, 1, 2)}),
         "pass",
     ),
@@ -1557,37 +1532,35 @@ VERDICTS = {
         numbers(graders={("c1", "reach-sealer"): ("reach", 0, 0, 1, 2)}),
         "fail",
     ),
-    "rule 3: a shape grader only the baseline carried, in a case both sides ran": (
+    "rule 1: a shape grader only the baseline carried, in a case both sides ran": (
         numbers(graders={("c1", "shape-needs-a-fix"): ("shape", 2, 2, 0, 0)}),
         "pass",
     ),
-    "rule 4: a preload no smaller than the baseline's": (
+    "recall fallen by two finds is written and not judged": (
+        numbers(graders={("c1", "truth-1"): ("truth", 2, 2, 0, 2)}),
+        "pass",
+    ),
+    "a false-finding rate risen by a tenth is written and not judged": (
+        numbers(new_false=4),
+        "pass",
+    ),
+    "a preload no smaller than the baseline's is written and not judged": (
         numbers(new_bytes=100000),
-        "fail",
-    ),
-    "rule 5: the total and tokens per tool call both within the margin": (
-        numbers(new_tokens=1050000),
         "pass",
     ),
-    "rule 5: tokens per tool call falling while the total rises": (
-        numbers(new_tokens=1200000, new_calls=150),
+    "the tokens and the tokens per tool call both up are written and not judged": (
+        numbers(new_tokens=1100000),
         "pass",
     ),
-    "rule 5: fewer calls and a smaller total, though each call read more": (
-        numbers(new_tokens=900000, new_calls=80),
+    "tokens unknown are written and not judged": (numbers(new_tokens=None), "pass"),
+    "tool calls unknown are written and not judged": (
+        numbers(new_calls=None),
         "pass",
     ),
-    "rule 5: tokens per tool call equal to the baseline's": (
-        numbers(new_tokens=1200000, new_calls=120),
+    "no tool calls are written and not judged": (numbers(old_calls=0), "pass"),
+    "preload bytes unknown are written and not judged": (
+        numbers(old_bytes=None),
         "pass",
-    ),
-    "rule 5: both figures exactly at the margin": (
-        numbers(new_tokens=round(1000000 * (1 + NI.TOKEN_MARGIN))),
-        "pass",
-    ),
-    "rule 5: both figures past the margin": (
-        numbers(new_tokens=round(1000000 * (1 + NI.TOKEN_MARGIN)) + 1000),
-        "fail",
     ),
     "spend and seconds up are written and not judged": (
         numbers(new_spend=12.0, new_seconds=1200.0),
@@ -1603,10 +1576,6 @@ VERDICTS = {
     ),
     "no result: the new side cut short": (numbers(new_cut=True), "no result"),
     "no result: the baseline cut short": (numbers(old_cut=True), "no result"),
-    "no result: tokens unknown": (numbers(new_tokens=None), "no result"),
-    "no result: tool calls unknown": (numbers(new_calls=None), "no result"),
-    "no result: no tool calls": (numbers(old_calls=0), "no result"),
-    "no result: preload bytes unknown": (numbers(old_bytes=None), "no result"),
     "no result: a case run a different number of times": (
         numbers(graders={("c1", "truth-1"): ("truth", 2, 2, 1, 1)}),
         "no result",
@@ -1618,18 +1587,9 @@ FAILING = sorted(k for k, (_n, v) in VERDICTS.items() if v != "pass")
 
 class Test_verdict:
     @pytest.mark.parametrize("name", PASSING)
-    def test_accepts_a_new_side_no_worse_than_the_baseline(self, name):
+    def test_accepts_a_side_no_rule_fails(self, name):
         given, _ = VERDICTS[name]
         assert NI.verdict(given) == ("pass", [])
-
-    def test_passes_a_figure_exactly_at_a_margin_whose_float_falls_short(
-        self, monkeypatch
-    ):
-        """1 + 0.13 comes out just below 1.13 in binary floating point, so a
-        baseline of 100 tokens times it falls under 113; the 1e-9 in rule 5's
-        bar is what passes a side exactly at that margin."""
-        monkeypatch.setattr(NI, "TOKEN_MARGIN", 0.13)
-        assert NI.verdict(numbers(old_tokens=100, new_tokens=113)) == ("pass", [])
 
     @pytest.mark.parametrize("name", FAILING)
     def test_refuses_a_side_a_rule_fails_or_numbers_that_give_no_result(self, name):
@@ -1643,7 +1603,7 @@ class Test_verdict:
                 {("c1", "shape-report-exists"): ("shape", 2, 2, 1, 2)},
                 [
                     "shape and reach graders passed 3/4 runs on the new side, fewer than "
-                    "the baseline's 4/4 (rule 3): c1/shape-report-exists 1/2 against 2/2"
+                    "the baseline's 4/4 (rule 1): c1/shape-report-exists 1/2 against 2/2"
                 ],
             ),
             (
@@ -1654,10 +1614,10 @@ class Test_verdict:
                 },
                 [
                     "shape and reach graders passed 1/4 runs on the new side, fewer than "
-                    "the baseline's 4/4 (rule 3): c1/reach-proofer 1/2 against 2/2, "
+                    "the baseline's 4/4 (rule 1): c1/reach-proofer 1/2 against 2/2, "
                     "c1/shape-report-exists 0/2 against 2/2",
                     "shape grader c1/shape-report-exists failed every new run (0/2) "
-                    "where the baseline passed it 2/2 (rule 3)",
+                    "where the baseline passed it 2/2 (rule 2)",
                     "reach grader c1/reach-sealer, which the baseline lacks, failed on "
                     "the new side (1/2) (rule 3)",
                 ],
@@ -1668,27 +1628,20 @@ class Test_verdict:
             "the total, then the named grader, then the one the baseline lacks",
         ],
     )
-    def test_refuses_with_rule_3s_lines_in_their_order(self, graders, reasons):
+    def test_refuses_with_each_rules_line_in_its_order(self, graders, reasons):
         assert NI.verdict(numbers(graders=graders)) == ("fail", reasons)
 
-    def test_refuses_with_a_line_for_each_other_rule(self):
-        _v, reasons = NI.verdict(
+    def test_accepts_a_side_worse_on_every_figure_no_rule_reads(self):
+        """Recall, the false-finding rate, the preload's bytes and both token
+        figures are written in the record and judge nothing."""
+        assert NI.verdict(
             numbers(
                 graders={("c1", "truth-1"): ("truth", 2, 2, 0, 2)},
                 new_false=5,
                 new_bytes=100000,
                 new_tokens=1100000,
             )
-        )
-        assert reasons == [
-            "recall fell from 4 to 2 finds: c1/truth-1",
-            "false-finding rate rose from 0.100 to 0.250",
-            "the new preload is 100000 bytes, not below the baseline's 100000 (rule 4)",
-            "the new side read 1100000 tokens across every model over 100 tool "
-            "calls, 11000.0 a call, against the baseline's 1000000 over 100, "
-            "10000.0 a call: the total and the figure per call both rose by more "
-            "than 7% (rule 5)",
-        ]
+        ) == ("pass", [])
 
 
 class Test_merged:
@@ -1783,15 +1736,14 @@ class Test_render:
             "old_bytes": 100000,
             "new_bytes": 50000,
         }
-        assert text.startswith("# proofer — phase 3 non-inferiority\n")
+        assert text.startswith("# proofer — phase 3 smoke run\n")
         assert text.endswith("\nVerdict: pass\n\n- every pass rule holds\n")
 
     def test_refuses_a_failing_side_with_its_reasons_and_a_cut_one_as_no_result(self):
-        old = {("c1", "truth-1"): ("truth", 2, 2), ("c1", "truth-2"): ("truth", 2, 2)}
-        new = {("c1", "truth-1"): ("truth", 0, 2), ("c1", "truth-2"): ("truth", 0, 2)}
-        text = written(old, new)
+        text = written(GRADED, SHAPE_FELL)
         assert (
-            "\nVerdict: fail\n\n- recall fell from 4 to 0 finds: c1/truth-1, c1/truth-2\n"
+            "\nVerdict: fail\n\n- shape and reach graders passed 1/2 runs on the new "
+            "side, fewer than the baseline's 2/2 (rule 1): c1/shape-x 1/2 against 2/2\n"
             in text
         )
         assert "| New cut short | yes |" in written(cut=True)
@@ -1840,6 +1792,41 @@ class Test_parse_record:
         back, _stated, _preload = NI.parse_record(bare)
         assert back["old_cut"] is True and back["new_cut"] is True
 
+    @pytest.mark.parametrize(
+        "row",
+        [
+            "|  New false rows | 15 |",
+            "| New false rows |15 |",
+            "| New false rows | 15|",
+            "| New false rows | 15 | ",
+        ],
+        ids=[
+            "the name spaced otherwise",
+            "no space before the value",
+            "no space after the value",
+            "a space after the last pipe",
+        ],
+    )
+    def test_a_count_row_spelt_otherwise_is_read_as_naught(self, row):
+        """A row count is found only on a line spelt `| <name> | <value> |`
+        with nothing outside the pipes, one space on each side of the name and
+        at least one on each side of the value, so a hand-edited record whose
+        `New false rows` row is spelt otherwise reads a count of 0, as
+        `evals/README.md` says."""
+        text = written(false=15)
+        assert NI.parse_record(text)[0]["new_false"] == 15
+        edited = text.replace("| New false rows | 15 |", row)
+        assert edited.count(row) == 1
+        assert NI.parse_record(edited)[0]["new_false"] == 0
+
+    def test_a_count_padded_with_more_spaces_is_read(self):
+        """The other half of the same `evals/README.md` sentence: a value cell
+        with more than one space on either side is found, and its count read."""
+        text = written(false=15)
+        edited = text.replace("| New false rows | 15 |", "| New false rows |  15   |")
+        assert edited.count("| New false rows |  15   |") == 1
+        assert NI.parse_record(edited)[0]["new_false"] == 15
+
 
 class Test_differ:
     def test_accepts_two_suites_and_names_both(self):
@@ -1878,7 +1865,7 @@ class Test_read_record:
         assert NI.read_record("| Baseline report rows | x |\n")[3][0].startswith(
             "the record does not parse: "
         )
-        edited = written(tokens=1100000).replace("Verdict: fail", "Verdict: pass")
+        edited = written(GRADED, SHAPE_FELL).replace("Verdict: fail", "Verdict: pass")
         assert "it says `pass` and its numbers give `fail`" in NI.read_record(edited)[3]
 
 
@@ -1887,7 +1874,9 @@ class Test_check_record:
         assert NI.check_record(written()) == []
 
     @pytest.mark.parametrize(
-        "over", [{"cut": True}, {"tokens": 1100000}], ids=["no result", "fail"]
+        "over",
+        [{"cut": True}, {"new_graders": SHAPE_FELL}],
+        ids=["no result", "fail"],
     )
     def test_refuses_anything_but_pass(self, over):
         problems = NI.check_record(written(**over))
@@ -1895,74 +1884,41 @@ class Test_check_record:
 
     def test_refuses_an_edited_cell_the_verdict_does_not_follow(self):
         text = written()
-        hungrier = text.replace(
-            "| New tokens read, every model | 900000 |",
-            "| New tokens read, every model | 1100000 |",
+        fewer = text.replace(
+            "| shape | c1 | shape-x | 2 | 2 | 2 | 2 |",
+            "| shape | c1 | shape-x | 2 | 2 | 1 | 2 |",
         )
-        assert hungrier != text
-        problems = NI.check_record(hungrier)
+        assert fewer != text
+        problems = NI.check_record(fewer)
         assert any("says `pass` and its numbers give `fail`" in p for p in problems)
-        assert any("rule 5" in p for p in problems)
-
-    @pytest.mark.parametrize(
-        "row",
-        [
-            "|  New false rows | 15 |",
-            "| New false rows |15 |",
-            "| New false rows | 15|",
-            "| New false rows | 15 | ",
-        ],
-        ids=[
-            "the name spaced otherwise",
-            "no space before the value",
-            "no space after the value",
-            "a space after the last pipe",
-        ],
-    )
-    def test_a_count_row_spelt_otherwise_is_read_as_naught(self, row):
-        """`check` finds a row count only on a line spelt `| <name> | <value> |`
-        with nothing outside the pipes, one space on each side of the name and
-        at least one on each side of the value, so a hand-edited record whose
-        `New false rows` row is spelt otherwise and whose verdict line says
-        `pass` passes on a count it never read, as `evals/README.md` says."""
-        text = written(false=15)
-        assert any("false-finding rate rose" in p for p in NI.check_record(text))
-        edited = text.replace("| New false rows | 15 |", row)
-        edited = edited.replace("Verdict: fail", "Verdict: pass")
-        assert edited.count(row) == 1
-        assert "Verdict: pass" in edited
-        assert NI.check_record(edited) == []
-
-    def test_a_count_padded_with_more_spaces_is_read(self):
-        """The other half of the same `evals/README.md` sentence: a value cell
-        with more than one space on either side is found, so the record's
-        edited verdict is refused on the count it carries."""
-        text = written(false=15)
-        edited = text.replace("| New false rows | 15 |", "| New false rows |  15   |")
-        edited = edited.replace("Verdict: fail", "Verdict: pass")
-        assert edited.count("| New false rows |  15   |") == 1
-        problems = NI.check_record(edited)
-        assert any("says `pass` and its numbers give `fail`" in p for p in problems)
+        assert any("(rule 1)" in p for p in problems)
 
 
 MODEL_GRADERS = {
     ("c1", "truth-1"): ("truth", 2, 2, 2, 2),
     ("c1", "shape-commits-nothing"): ("shape", 2, 2, 2, 2),
     ("c1", "reach-sealer"): ("reach", 2, 2, 2, 2),
+    ("c1", "reach-framer"): ("reach", 0, 0, 1, 2),
 }
 
 
 def model_numbers(graders=MODEL_GRADERS, **over):
-    """A model record's numbers: the Sonnet side half the spend and two
-    bytes larger, so its own verdict fails rule 4, which `model` reads past."""
+    """A model record's numbers: the Sonnet side half the spend, and short on
+    one run of a reach grader the Opus side lacks, so its own verdict fails
+    rule 3, which `model` reads past."""
     over.setdefault("new_spend", 5.0)
-    over.setdefault("new_bytes", 100002)
     return {**numbers(**over), "graders": dict(graders)}
 
 
 class Test_cheaper_model:
     def test_accepts_sonnet_where_every_grader_holds_and_it_spent_less(self):
-        assert NI.verdict(model_numbers())[0] == "fail"
+        assert NI.verdict(model_numbers()) == (
+            "fail",
+            [
+                "reach grader c1/reach-framer, which the baseline lacks, failed on "
+                "the new side (1/2) (rule 3)"
+            ],
+        )
         assert NI.cheaper_model(model_numbers()) == (
             "sonnet",
             "every grader holds and Sonnet spent 5.0 USD, below 10.0",
@@ -2091,10 +2047,8 @@ class Test_check:
 
     def test_refuses_a_failing_record_and_one_over_two_suites(self, tmp_path, capsys):
         path = tmp_path / "r.md"
-        old = {("c1", "truth-1"): ("truth", 2, 2), ("c1", "truth-2"): ("truth", 2, 2)}
-        new = {("c1", "truth-1"): ("truth", 0, 2), ("c1", "truth-2"): ("truth", 0, 2)}
         path.write_text(
-            written(old, new).replace("Verdict: fail", "Verdict: pass"),
+            written(GRADED, SHAPE_FELL).replace("Verdict: fail", "Verdict: pass"),
             encoding="utf-8",
         )
         assert NI.main(["check", str(path)]) == 1
@@ -2123,9 +2077,7 @@ class Test_model:
     def test_refuses_a_record_it_cannot_read_or_trust(self, tmp_path, capsys, shape):
         path = tmp_path / "m.md"
         if shape == "edited":
-            text = NI.render(
-                "sealer", 4, side(GRADED), side(GRADED, spend=5.0, tokens=1100000)
-            )
+            text = NI.render("sealer", 4, side(GRADED), side(SHAPE_FELL, spend=5.0))
             path.write_text(
                 text.replace("Verdict: fail", "Verdict: pass"), encoding="utf-8"
             )
