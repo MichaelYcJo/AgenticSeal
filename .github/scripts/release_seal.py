@@ -123,10 +123,9 @@ DENSITY = 2
 # the note as the badges in the header's results cell (`results`, #1299).
 LABELS = ("SEALED", "tag", "PRs", "issues", "suite", "items", "capped", "deferred")
 # The widest value a release's panel carries before the frame would cut it.
-# It was `skills/verify/scripts/broad_gate.py#PANEL_VALUE_WIDTH` until #832
-# widened the gate's to 41 for the open layout's 80 columns; a release's rows
-# were out of that work item's scope, so this one stays 23, and the case that
-# held the two to one number holds this one apart from the gate's.
+# #832 widened the gate's panel value to 41 for the open layout's 80 columns
+# and left a release's rows out of its scope, so this one stays 23, and the
+# case that held the two to one number holds this one apart from the gate's.
 PANEL_VALUE_WIDTH = 23
 # What a row says when the source it is read from could not be read: the row
 # stays, because a dropped row reads as none and a 0 reads as a count
