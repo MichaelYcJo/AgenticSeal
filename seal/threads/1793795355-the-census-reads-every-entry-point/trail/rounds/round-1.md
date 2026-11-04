@@ -132,6 +132,11 @@ owes each of them:
 docstring already say "in the one shape `loop_pairs` reads" and "in the
 second form", and they stand.
 
+```seal
+verdict: fixed bc6d3387a
+answer: The finding holds, and the paste-ready text was not applied as given. Its no-answer message kept "a loop over the pairs `hooks/lib/console.py#STREAMS` holds", which admits the `console.STREAMS` loop that the CONTRIBUTING.md sentence was faulted for. In bc6d3387a the no-answer refusal says the census reads no answer among the block's own statements, and that an entry point that gives none dies with stdout empty when it raises while printing. It names the loop as one over `hooks/lib/console.py#STREAMS`' literal pairs in the one form `tests/censuses.py#loop_pairs` reads. The loop refusal says the census does not read this loop as the answer `STREAMS` holds. CONTRIBUTING.md's "a loop over the same pairs" now reads "a loop over its literal pairs in the one form `tests/censuses.py#loop_pairs` reads". The text pin now holds three facts: what the block opens with, the one form, and what the censuses enforce over. The two message pins in `tests/test_censuses.py` were changed first, together with the text pin, and all four cases failed against the old messages and the old bullet, each at the new wording (executed). They passed after the change. The same claim stood in `answer_problems`' docstring ("the block holds no answer"), in `entry_point`'s docstring ("no answer is refused", "a loop that is not that answer") and in the fragment's first and third bullets. fdd342bb8 corrects them. The rule's other statements are named in the hand-back. `frame/design.md` *Scope* item 6 is among them, for the orchestrator to fold.
+```
+
 ### 2. No case holds the refusal of a loop whose target is not two names, which design Scope item 2 states
 
 ```seal
@@ -171,6 +176,11 @@ Contract rule 15 asks that each arm be shown red with only its guard
 removed. The `_pair` arm goes red against the `ast.Tuple` check, the
 three-name arm against the length check, and the nested arm against the
 `ast.Name` check. The fix pass states how it showed each one red.
+
+```seal
+verdict: fixed 6c77082d6
+answer: The finding holds. 705109345 adds `test_refuses_a_loop_whose_target_is_not_two_names_at_its_for_line` to *Test_entry_point*, beside the shape case, with one-name, three-name and nested targets. 6c77082d6 gives the arms the ids `one-name`, `three-names` and `nested`, so a run can name each one. Each arm was shown red with only its own guard removed, by one `bin/seal mutate tests/censuses.py` run each against that arm's node id (executed). `isinstance(target, ast.Tuple)` made `True` turned the `one-name` arm red, with `AttributeError` at `tests/censuses.py:675`. `len(target.elts) == 2` made `>= 2` turned `three-names` red, with `ValueError` at `:679`. The `ast.Name` check made `True` turned `nested` red, with `AttributeError` at `:679`. Each run ended `red: the cases failed against the mutation`, and the command restored the file. Each failure is the census raising where its guard would have refused, so each arm pins its own guard.
+```
 
 ## Confirmations
 
