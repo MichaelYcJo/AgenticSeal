@@ -39,9 +39,17 @@ Grounds: `skills/core/SKILL.md` *The rule a mechanism is kept against*, "A
 fact has one source, and every other place links to it", and
 `frame/plan.md` *Alternatives considered* A1.
 
-**The comment's words.** The comment now reads "The row's item, which a
-session looks for in the file because the skill tells it to. No script
-reads this row." The assert below it is unchanged.
+**The comment's words.** At `707d356d5` the comment read "The row's item,
+which a session looks for in the file because the skill tells it to. No
+script reads this row." Reading the range whole, I found that "No script"
+can be read against this module's own cases. `#configured_language`'s loop
+parses the row through `hooks/lib/config.py#config_rows`, which the module
+loads as `items`. `8c8c8a24f` rewrites the comment: "The row's item. A session
+looks for it in the file because the skill tells it to. No hook or command
+of the plugin asks for this row; the cases of this file parse it through
+`hooks/lib/config.py#config_rows`." The assert below it is unchanged, and
+the module passes, 93 cases (executed: `bin/test ... -q -p no:xdist`, exit
+0, with `uvx ruff check` and `uvx ruff format --check` exit 0).
 
 **The `ROW_READERS` entry went in the same commit as the README edit.** The
 README no longer names a language row, so the parametrised case
@@ -98,21 +106,25 @@ found no other sentence that says `hooks/lib/config.py` reads a language
 row (executed). Neither corrected statement carries a `check:` line.
 
 **Narrow run.** I ran the seven modules of the plan row's *Verified by*
-cell in one `bin/test ... -q` at `707d356d5`'s tree, before the commit:
-269 passed (executed, exit 0). `uvx ruff check` and `uvx ruff format
+cell in one `bin/test ... -q` over the tree `707d356d5` commits, before
+the commit: 269 passed (executed, exit 0). `uvx ruff check` and `uvx ruff format
 --check` on the changed test module exited 0 (executed).
 
 **Phase boundary run.** This is the *Phase boundary* row of
 `skills/verify/SKILL.md` *Scope: cheap and often, broad and once*, run as
-one `bin/test ... -q` over 42 modules. They are the plan row's seven and
-every module under `tests/` that walks files (`ls-files`, `glob`, `rglob`,
-`os.walk`) and names `.md` or `templates` (executed: `git grep -l` and
-`grep`). The first run at `707d356d5` had one failure:
+one `bin/test ... -q`. The first two runs were over 42 modules: the plan
+row's seven and every module under `tests/` that walks files (`ls-files`,
+`glob`, `rglob`, `os.walk`) and names `.md` or `templates` (executed: `git
+grep -l` and `grep`). The first run at `707d356d5` had one failure:
 `tests/behaviour/test_chain_hooks_hardening.py::test_every_spec_directory_that_reached_the_ladder_has_an_overview`,
 because this work item had a frame and no `gaps.md` yet. The second run,
 over `707d356d5` with this record, `gaps.md` and the Status cell in the
-working tree, gave 2489 passed and 9 skipped (executed, exit 0). The
-selection is my reading of "a module that reads a path the phase changed".
+working tree, gave 2489 passed and 9 skipped (executed, exit 0). The third
+run added `tests/behaviour/test_a_phase_hands_the_next_one_a_record.py`,
+which reads the phase records, for 43 modules. It ran over `8c8c8a24f`
+with this record's last edits in the working tree, and gave 2499 passed
+and 9 skipped (executed, exit 0). The selection is my reading of "a
+module that reads a path the phase changed".
 A module that reads those files through a helper these searches do not
 name is outside it, and the broad run covers that.
 
