@@ -42,6 +42,7 @@ Out:
 - **`skills/verify/scripts/core_check.py`**: #1190's file, and it already resolves the directory (G4).
 - **`docs/experiments/2026-09-03-skill-preload-and-the-copy-in-force.md` and its Korean copy**: a dated record of what was measured on one machine, which names that machine's paths.
 - **A `CLAUDE_CONFIG_DIR` set to the empty string** (G5): the spelling falls back to `~/.claude`, where Claude Code does not. This is a limit, and nothing is built for it.
+- **An install record whose `installPath` is the empty string** (round 3's prose): the read exits 0 with an empty `p`, and the repair block would print paths under `/`. Claude Code records an absolute path (G3), so no install the installer leaves produces it. This is a limit, and nothing is built for it. The same holds for a record that reads while the copy's `plugin.json` does not: step 2b's last table row stops with no repair, which tells the user nothing wrong.
 - **Windows**: the skill's commands are bash, and the cases skip where `shell_probe` finds no usable `bash`.
 
 ## User scenarios & acceptance *(mandatory)*
@@ -55,7 +56,7 @@ Out:
 | S5 No fixed `~/.claude` stays in the skill | Given the skill after the build. When it is searched for a `/.claude` path segment. Then each hit lies inside `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`. | *Scope* 6d, seen red against the skill as it stands, which holds four hits |
 | S6 The pins on steps 2b and 3 hold | Given the edited skill. When `tests/behaviour/test_release_hygiene.py`'s two update cases run. Then both pass with no needle changed. | The narrow run of those two cases (G8) |
 | S7 The printed repair is one the user can type | Given the config directory and the installed copy each at a path holding a space. When step 2b's repair block runs. Then it prints `mv`, `rsync` and `mkdir` naming those paths, quoted, and it moves and copies nothing itself. | *Scope* 6e, seen red against e4db4f10 |
-| S8 A failed read prints no repair | Given no install record under the config directory. When step 2b's repair block runs. Then it prints nothing and exits non-zero, and step 2b's table says to stop before step 3 with no repair and no summary. | *Scope* 6f, seen red against 7ab6c849 |
+| S8 A failed read prints no repair | Given no install record under the config directory. When step 2b's repair block runs. Then it prints nothing and exits non-zero, and step 2b's table says to stop before step 3 with no repair and no summary. | *Scope* 6f, seen red against 7ab6c849, holds the block's half; the table row's half is prose a session reads, which no case holds and review reads (round 3) |
 
 ## Data & interfaces
 
