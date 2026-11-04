@@ -360,8 +360,9 @@ version-check 는 `seal/` 이 있는 곳에서 하루에 한 번 이 저장소�
   Windows 에서 돈 적이 없습니다. POSIX 에서 PATH 의 `python3` 을 없애고
   확인했을 뿐입니다.
 - **행동 eval 은 CI 가 아니라 소유자의 계정에서 돕니다.** `evals/behaviour/`
-  에는 에이전트 정의를 다시 쓸 때 그 정의를 증명하는 케이스가 있고,
-  `claude plugin eval` 로 돌립니다. CI 는 그 케이스의 형식만 봅니다.
+  에는 에이전트 정의를 다시 쓴 것이 출력의 형식을 깨뜨렸는지 잡아내는 스모크
+  런의 케이스가 있고, `claude plugin eval` 로 돌립니다. CI 는 그 케이스의
+  형식만 봅니다.
 
 ## 기여
 

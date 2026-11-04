@@ -6,9 +6,9 @@ already has, or stops the generator where the case cannot take it. A
 generated truth is read back through `noninferiority.py#grader_from`, the
 one reader of a grader file.
 
-#942's phase 6 placed these cases from
-`tests/behaviour/test_a_rewritten_definition_proved_non_inferior.py`, which keeps
-the case that reads the committed proofer cases.
+#942's phase 6 placed these cases from one behaviour module, whose
+remaining case, the one that reads the committed proofer cases, stands in
+`tests/behaviour/test_no_two_truths_of_a_proofer_case_accept_one_location.py`.
 """
 
 import json
