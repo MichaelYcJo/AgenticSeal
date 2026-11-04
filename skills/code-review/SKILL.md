@@ -121,8 +121,8 @@ and the shape of each value. A line outside a block is prose and no field.
 The check also reads the `## Findings` heading and each finding's
 `### <n>. <symptom>` heading, as the template shows them. The prose follows
 `Record language` in the `seal/` root's `config.md`, English where the row
-is absent; field names, headings and vocabulary words stay English
-(`templates/setup/config.md` *What no row governs*).
+is absent; the field names, headings and vocabulary words a checker reads
+stay English (`templates/setup/config.md` *What no row governs*).
 
 - A finding is a defect. `must` is a compliance violation or a defect to fix
   before merge; `should` is a defect the release would ship, a tool doing
