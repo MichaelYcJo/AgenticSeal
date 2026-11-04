@@ -50,6 +50,11 @@ These lines replace `.github/workflows/test.yml:81-84` up to and including "Thre
 - rows 1 and 2 of `trail/phases/phase-1.md` and its Q1 bullet on rows 1 and 2 ("The figures already stand in each sentence");
 - the changelog fragment's "the grounds now stand in the sentence", which is true of rows 1 and 2 only after this fix.
 
+```seal
+verdict: fixed a43c13166
+answer: The finding holds: on run 37458654434's figures alone three shards fit under 12 minutes, and the record's fixed cost and second run are what set four (read: the phase-3 record's `K` table and the macOS plan's arithmetic, at the commits the evidence line names). The comment at `.github/workflows/test.yml:81-92` now states the arithmetic in my own wording, not the proposal's. The proposal priced a shard as the fixed cost "plus the leg's pytest time over the count", and with 1,974 s of pytest time that gives three shards 720 s, 12.0 minutes, not the record's 11.9; the record divides 1,949 s, the time after the first case, and counts the 25 s before it in the 62 s. So the sentence says "case time", names the 37 s and 25 s that make the fixed cost, and gives 1,949 s beside 1,974 s. The macOS sentence names its fixed cost of about 45 s beside its factor, so "the same arithmetic" now points at the Windows sentence above it. The diff is comment lines only (executed: `git diff -U0` on the file). `trail/phases/phase-1.md` rows 1 and 2 and its Q1 bullet now say the arithmetic went into the sentences. The changelog's "the grounds now stand in the sentence" is true at this commit and is left as it reads. D1 rows 1 and 2 and the `## Removes` row on `.github/workflows/test.yml` in `frame/design.md` still say only that the figures stay; they are the orchestrator's to fold.
+```
+
 ### 2. A comment still cites "the work item's `questions.md`" after the docstring stopped naming the work item, and `gaps.md` lists the leftovers by one wording
 
 ```seal
@@ -70,6 +75,11 @@ The phase's second departure reaches past the paragraph for rows 15 and 18 on th
 ```
 
 These two lines replace `tests/behaviour/test_first_setup_asks_once.py:28-29`. The fix pass also owes `gaps.md` *Not done* one change: name the class by its cause rather than by the phrase, and limit the renaming reason to the case names.
+
+```seal
+verdict: fixed d15fad64a
+answer: The finding holds. The comment above `SESSION_RULE` now reads as the round proposes, after I checked it against the module: `SESSION_RULE` is what the cases under the `Q1: the sentence a session reads, once in each place` heading assert (read: its uses at lines 303, 312 and 325). `gaps.md` *Not done* now names the class by its cause, a sentence in a touched file that leaned on its file's removed citation for its referent. It says which were rewritten and lists the seven that stand, each naming #667's frame in a module whose title names #667. It gives the renaming reason for the case name alone. I built the list by searching each of the 17 touched files for the words that name a record's parts (work item, spec, frame, Q-, D- and O-numbers, Scope, overview, precedent, that table or module, this release) and reading each hit for the citation the build removed in that file. That is a sample over wordings, and `gaps.md` says so. Three hits were read and kept as outside the class. `questions.md` Q1 at `tests/behaviour/test_chain_hooks_hardening.py:569` and "this work item's `gaps.md`" at `:866` mean #422's work item, which their comment block and function still name. `tests/hooks/test_mode_gate.py:271`'s "the chain spec" never leaned on the scenario-id citation the build removed.
+```
 
 ## Confirmations
 
