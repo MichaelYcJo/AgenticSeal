@@ -41,8 +41,9 @@ def test_the_skill_names_the_file_and_the_row():
     text = flat(*SKILL)
     # The file name a session opens for the row.
     assert "config.md" in text, "the skill does not name the file it reads"
-    # The row's item, which a session looks for in the file because the skill
-    # tells it to. No script reads this row.
+    # The row's item. A session looks for it in the file because the skill
+    # tells it to. No hook or command of the plugin asks for this row; the
+    # cases of this file parse it through `hooks/lib/config.py#config_rows`.
     assert "Commit and pull request language" in text, "the skill does not name the row"
 
 
