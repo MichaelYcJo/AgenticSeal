@@ -21,9 +21,6 @@ def test_the_rule_is_where_a_contributor_reads_it():
     assert "**Every file read or written names its encoding.**" in flat, flat
     assert 'The call names `encoding="utf-8"`.' in flat
     assert "The `encoding` and `entry_point` censuses in `tests/censuses.py`" in flat
-    assert (
-        "Every entry point, a tracked `.py` with a `__main__` block, also opens "
-        "its first such block with the answer `hooks/lib/console.py#STREAMS` "
-        "holds, as the call `console.to_utf8()` or as a loop over the same pairs."
-    ) in flat
+    assert "opens its first such block with the answer" in flat
+    assert "the one form `tests/censuses.py#loop_pairs` reads" in flat
     assert "enforce both over every tracked `.py`" in flat

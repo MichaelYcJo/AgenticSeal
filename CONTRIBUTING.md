@@ -423,8 +423,9 @@ question is not its difficulty, it is when it arrives.
   names `encoding="utf-8"`. Every entry point, a tracked `.py` with a
   `__main__` block, also opens its first such block with the answer
   `hooks/lib/console.py#STREAMS` holds, as the call `console.to_utf8()` or
-  as a loop over the same pairs. The `encoding` and `entry_point` censuses in
-  `tests/censuses.py` enforce both over every tracked `.py`, and a
+  as a loop over its literal pairs in the one form
+  `tests/censuses.py#loop_pairs` reads. The `encoding` and `entry_point`
+  censuses in `tests/censuses.py` enforce both over every tracked `.py`, and a
   contributor exempts a line deliberately, never to make a test pass. A
   `python3 -c` line in a skill or a workflow is outside their reach, so its
   writer names the encoding there.

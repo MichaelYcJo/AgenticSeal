@@ -746,10 +746,12 @@ def answer_problems(guard):
     if answer is None:
         return {
             guard.lineno: (
-                "the `__main__` block gives the streams no answer, so an entry "
-                "point that raises while printing dies with stdout empty; open "
-                "the block with `console.to_utf8()`, or with a loop over the "
-                "pairs `hooks/lib/console.py#STREAMS` holds, or put "
+                "the census reads no answer among the `__main__` block's own "
+                "statements, and an entry point that gives none dies with stdout "
+                "empty when it raises while printing; open the block with "
+                "`console.to_utf8()`, or with a loop over "
+                "`hooks/lib/console.py#STREAMS`' literal pairs in the one form "
+                "`tests/censuses.py#loop_pairs` reads, or put "
                 "`# exempt from entry_point: <why>` on its own line above it"
             )
         }
@@ -766,8 +768,9 @@ def answer_problems(guard):
         streams = console_streams()
         if loop_pairs(answer) != streams:
             problems[answer.lineno] = (
-                "the loop does not give the answer `hooks/lib/console.py#STREAMS` "
-                f"holds; the census reads a `for` over the literal pairs {streams!r} "
+                "the census does not read this loop as the answer "
+                "`hooks/lib/console.py#STREAMS` holds; it reads a `for` over the "
+                f"literal pairs {streams!r} "
                 'that calls `.reconfigure(encoding="utf-8", errors=<errors>)` on '
                 "the stream it binds from `getattr(sys, <name>, None)`; name those "
                 "pairs in that form, or make the call `console.to_utf8()`"
