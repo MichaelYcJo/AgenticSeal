@@ -126,9 +126,9 @@ class Test_find:
 
     def test_refuses_with_a_reason_where_no_transcript_can_be_named(self, tmp_path):
         """S5: no session id fails, and so does a session or a path with no
-        file. A session with no file may be one whose first input was `seal
-        core`, so its reason says when the transcript is written and what to
-        do (#1190)."""
+        file. A session with no file may be one whose first input was
+        `seal core`, so its reason says when the transcript is written and
+        what to do (#1190)."""
         check_ = check()
         path, reason = check_.find({}, None)
         assert path is None

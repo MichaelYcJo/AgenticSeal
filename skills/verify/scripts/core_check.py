@@ -49,9 +49,9 @@ once a message has been sent in it, so where `seal core` was the session's
 first input, the person sends one message and runs it again; no core entry
 in context, which names `--bare` where `CLAUDE_CODE_SIMPLE` is `1`, and
 names the core this plugin's hook prints for the working directory, which
-the session opens once instead; more than one core entry; `content` that is not `stdout`, which is the
-harness's preview past `core.CAP`; a named file that is not there; a digest or
-a body that differs from the file.
+the session opens once instead; more than one core entry; `content` that is
+not `stdout`, which is the harness's preview past `core.CAP`; a named file
+that is not there; a digest or a body that differs from the file.
 
 Exit 2 is an unusable argument, or `hooks/lib/core.py` or
 `hooks/lib/hooksession.py` absent from the plugin around this script, so
