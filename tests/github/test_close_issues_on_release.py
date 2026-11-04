@@ -44,8 +44,8 @@ quotes both outputs.
 #942's phase 6 placed these cases from
 `tests/behaviour/test_a_declared_label_reaches_the_tracker.py`,
 `tests/test_the_closer_carries_on_past_a_refusal.py` and
-`tests/behaviour/test_release_hygiene.py`, which keep the cases that read the
-workflow, the documents and the records.
+`tests/behaviour/test_release_hygiene.py`. The first and the last keep the
+cases that read the workflow, the documents and the records.
 """
 
 import ast

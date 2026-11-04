@@ -151,7 +151,9 @@ def test_the_rung_cites_the_issue_that_measured_the_count():
 # --- the home that never existed --------------------------------------------
 
 # Everything a session installing this plugin reads to learn the layout. The
-# precedent is `test_the_documents_that_instruct_never_name_the_old_directory`:
+# precedent is `test_the_documents_that_instruct_never_name_the_old_directory`
+# in `cdfdfedd8:tests/test_handoff_outlives_the_merge.py`, the last commit that
+# held it:
 # a path may not appear in an instructing document at all, not even hedged,
 # because a reader following instructions stops at the first path it sees. The
 # reason `tasks/` is gone lives in the changelog and in the work item's memo,

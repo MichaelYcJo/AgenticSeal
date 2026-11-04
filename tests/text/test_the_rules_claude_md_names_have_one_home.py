@@ -1,16 +1,15 @@
-"""The rules `CLAUDE.md` names have one home each, and `CLAUDE.md` links (#730).
+"""The rules `CLAUDE.md` once named have one home each, and no other file
+restates them (#730).
 
 #715 gave the ledger and fragment rules one home each and left the rest of
-`CLAUDE.md` alone. Three more of its rows restated a rule another file holds,
+`CLAUDE.md` alone. Three more of its rows restated a rule another file held,
 and one of those copies had already gone false: the merge table there said a
 `# RIDER:` stamp names a commit, where its home had said the reverse since
 work item `1788826000`, and it had lost two of the home's six rows. Nothing
 pinned that copy, so nothing went red. A fourth restatement sat at the foot of
 the goal section, beside the link to the rule it restated.
 
-So each rule now has one home, which states it, and `CLAUDE.md` keeps a row
-that names the home's path and section, says when the rule applies, and gives
-the act in one sentence of its own words:
+So each rule was given one home, which states it:
 
   the merge method per direction   docs/releasing/branch-and-release.md
   no real identifiers              CONTRIBUTING.md
@@ -20,9 +19,9 @@ the act in one sentence of its own words:
                                    asked in one batch, before the first
                                    edit*, since #1312
 
-The commit cadence's row left `CLAUDE.md` with #940, whose rule keeps a row
-only where the owning file cannot reach a session in time; its home stays
-pinned here so no carrier restates it.
+`CLAUDE.md` kept a row for each that linked the home, until #940, #1169 and
+#1177 took the rows out, as the comment above `LINKED` says. It keeps none of
+them now, and each home stays pinned here so no carrier restates it.
 
 #1177 retired the preset block, and the core now reaches a session from the
 plugin's `SessionStart` hook. Three of the block's bullets moved to the file
@@ -33,20 +32,21 @@ that applies each, pinned here the same way:
   a worktree only when concurrent  skills/implement/orchestration.md,
                                    *Orchestrator: the order inside a ticket*
 
-A needle is a sentence only the home writes and the link row does not need.
-No carrier may contain one, the home aside. The carriers are the files
+The cases hold three things. Each home states its rule under its section:
+`RULES` gives the home, the section, and the needles, sentences only the home
+writes. No carrier contains a needle, the home aside: `CARRIERS` lists the
+carriers, `CLAUDE.md` first. They started as the files
 `67694cba:seal/specs/1791076836-every-rule-claude-md-restates-has-one-home/spec.md`
-names in its Scope 1-4 and D1, and the release checklist its O3 names.
+names in its Scope 1-4 and D1, and the release checklist its O3 names. Each
+file in `LINKED` names the home's path and its section for each rule it
+carries.
 
-What this does not hold: the act sentence in a `CLAUDE.md` row is the rule in
-other words, and a later change to the rule's values (a seventh merge
-direction, a second fixture domain) has to reach the row as well. Only the
-home's sentences are pinned here, so a stale value in a row is a reviewer's
-finding. That is spec D2's stated cost, and it is narrower than a whole table
+What this does not hold: a carrier can state a rule in its own words, with
+none of the home's needles, and a later change to the rule's values (a seventh
+merge direction, a second fixture domain) has to reach those words as well.
+Only the home's sentences are pinned here, so a stale value in a carrier's own
+words is a reviewer's finding. That cost is narrower than a whole table
 drifting unseen.
-
-This is the shape `tests/test_the_ledger_rules_have_one_home.py` set, in a
-module of its own because that one is named for the ledger rules.
 """
 
 import os

@@ -27,11 +27,9 @@ per-segment record the review chain already has in `templates/records/sdd-round.
                      path and its template; why each section exists is the
                      proofer's to read (#1005 took the template's comments)
 
-The placeholder check mirrors
-`test_the_fixes_name_their_surface.py::test_the_template_rows_are_rows_a_session_can_copy`,
-reading through the same `readable` `chain_check.py` itself loads, which
-blanks fenced lines and keeps no comment state, because a record carries no
-comment (#1012).
+The placeholder check reads through the same `readable` `chain_check.py`
+itself loads, which blanks fenced lines and keeps no comment state, because a
+record carries no comment (#1012).
 """
 
 import importlib.util
