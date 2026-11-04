@@ -1374,6 +1374,33 @@ class Test_frame:
         assert any("plan.md" in p for p in problems)
         assert any("Reframed 2026-10-16 by the session" in p for p in problems)
 
+    def test_reads_who_alone_of_the_mark_and_each_reframe(self, branch):
+        """#1319: the arm compares who drew the frame with `Planning`, and
+        reads neither the date nor the round number, so a date or a round
+        left as the template's placeholder passes, and the template's
+        unfilled who is refused as a who other than `framer`. Seen red
+        against the placeholder checks and the digits the round took."""
+        root, _code = branch
+        write(root, f"{ITEM}/frame/plan.md", "# plan\n")
+        for foot, said in (
+            (
+                "Framed <date> by framer, before the build.\n"
+                "Reframed <date> by framer, after round <N>.\n",
+                [],
+            ),
+            (
+                "Framed <date> by <who>, before the build.\n",
+                [
+                    f"{ITEM}/routing.md says `Planning | framer` and "
+                    f"{ITEM}/frame/design.md's mark says `<who>`"
+                ],
+            ),
+        ):
+            write(root, f"{ITEM}/frame/design.md", "# spec\n\nbody\n\n" + foot)
+            commit(root, "frame")
+            problems = chain.frame(reader, self.routing(), str(root), ITEM, FRAMED)
+            assert problems == said, foot
+
 
 # --- rule_changes_read, at the pull request --------------------------------------
 

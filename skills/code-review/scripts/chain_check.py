@@ -209,7 +209,9 @@ DASH = chr(0x2014)
 ISSUE_RE = re.compile(r"#(\d+)")
 
 MARK_RE = re.compile(r"^Framed\s+(.+?)\s+by\s+(.+?),\s+before the build\.$")
-REFRAME_RE = re.compile(r"^Reframed\s+(.+?)\s+by\s+(.+?),\s+after round\s+(\d+)\.$")
+# Of the mark and each `Reframed` line the frame arm compares who alone with
+# `Planning`, and reads neither the date nor the round (#1319).
+REFRAME_RE = re.compile(r"^Reframed\s+(.+?)\s+by\s+(.+?),\s+after round\s+(.+?)\.$")
 
 VERIFYING_ROUND = "a verifying round is owed"
 SEALING = "--sealing"
@@ -1014,7 +1016,7 @@ def frame_foot(reader, text):
             continue
         r = REFRAME_RE.match(line)
         if r:
-            reframes.append((r.group(1).strip(), r.group(2).strip(), int(r.group(3))))
+            reframes.append(tuple(group.strip() for group in r.groups()))
             continue
         m = MARK_RE.match(line)
         mark = (m.group(1).strip(), m.group(2).strip()) if m else None
@@ -1042,19 +1044,13 @@ def frame(reader, routing, root, item, declared):
             "the build.`, with any `Reframed <date> by <who>, after round <N>.` "
             "lines under it"
         )
-    elif mark[0].startswith("<") or mark[1].startswith("<"):
-        problems.append(f"{item}/{SPEC_FILE} ends with the template's unfilled mark")
     elif mark[1] != routing.BY_FRAMER:
         problems.append(
             f"{item}/routing.md says {who} and {item}/{SPEC_FILE}'s mark says `{mark[1]}`"
         )
     for when, by, n in reframes:
         line = f"`Reframed {when} by {by}, after round {n}.`"
-        if when.startswith("<") or by.startswith("<"):
-            problems.append(
-                f"{item}/{SPEC_FILE}'s foot carries the unfilled line {line}"
-            )
-        elif by != routing.BY_FRAMER:
+        if by != routing.BY_FRAMER:
             problems.append(
                 f"{item}/routing.md says {who} and {item}/{SPEC_FILE}'s foot says {line}"
             )
