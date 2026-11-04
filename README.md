@@ -354,8 +354,9 @@ after `!` in a session, or ask the session to run it.
   `py -3` fallback has not run on Windows: it was checked on POSIX by taking
   `python3` off the PATH.
 - **The behaviour evals run on the owner's account, not in CI.**
-  `evals/behaviour/` holds the cases each agent's rewrite is proved on with
-  `claude plugin eval`. CI checks their shape.
+  `evals/behaviour/` holds the cases of a smoke run, through
+  `claude plugin eval`, that catches a rewrite of an agent's definition
+  breaking the shape of its output. CI checks their shape.
 
 ## Contributing
 
