@@ -50,10 +50,10 @@ the diff holds no Python file, and `ruff` opens no Markdown file.
 
 **The first commit of the paragraph held a 96-column line**, left by an
 edit that joined two lines. `tests/behaviour/test_docs_line_wrap.py`
-passed over it, since `docs/releasing/` is not among the files its
-`COVERED` list names. It was rewrapped in 807708a1, and every added line of
-the range is at most 76 columns (executed: an `awk` length read over the
-range's added lines).
+passed over it, since `docs/releasing/branch-and-release.md` is not among
+the files its `COVERED` list names, while `release-checklist.md` is (read). It was rewrapped in 807708a1, and every line the
+range adds under `docs/` is at most 76 columns (executed: an `awk` length
+read over those added lines).
 
 **The narrow modules pass at HEAD.** Each of the 18 modules
 `git grep -l -E 'branch-and-release|release-checklist' -- tests/` lists,
