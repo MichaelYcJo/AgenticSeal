@@ -31,7 +31,7 @@ judges everything spends more tokens than the work is worth and drifts from
 what the source documents decided; one that only runs scripts and sequences
 adds nothing a script would not. Verification through the workflow serves
 this value by buying time and stability. The value decides between two
-designs that break no rule below, which is why it sits above them.
+designs that break no rule below.
 
 **Judgment is spent where meaning is the question, and a script answers the
 rest.** Whether two things mean the same or give the same result is the
@@ -47,10 +47,9 @@ reasoning about what it would print.
 **Each agent judges its own target, independently of the others.** The
 framer judges what the work should be, the crafter whether the build holds
 to the frame, the proofer whether the diff holds, and the sealer whether
-every party's account agrees with the issue and the tree. They are separate
-agents because their targets differ, and each reaches its result without
-leaning on another's verdict, so one agent's mistake does not pass through
-the next unread. Each reads the records the others hand it as claims and
+every party's account agrees with the issue and the tree. Each reaches its
+result without leaning on another's verdict, so one agent's mistake does
+not pass through the next unread. Each reads the records the others hand it as claims and
 reaches its own result. An agent's own rules live in its definition or in
 the document it reads at that step; this file holds what they share. What
 they share is text, so every sentence an agent or a check reads has one
