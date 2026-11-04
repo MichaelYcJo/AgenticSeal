@@ -660,6 +660,16 @@ class Test_entry_point:
         )
         assert lines_of(censuses.entry_point("hooks/x.py", root)) == ["hooks/x.py:2"]
 
+    @pytest.mark.parametrize(
+        "target", ["_pair", "_name, _errors, _extra", "_name, (_errors, _extra)"]
+    )
+    def test_refuses_a_loop_whose_target_is_not_two_names_at_its_for_line(
+        self, tmp_path, target
+    ):
+        text = loop().replace("for _name, _errors in", f"for {target} in", 1)
+        root = plant(tmp_path, "hooks/x.py", GUARD + text + "    main()\n")
+        assert lines_of(censuses.entry_point("hooks/x.py", root)) == ["hooks/x.py:2"]
+
     def test_refuses_a_loop_after_a_statement_there_and_reads_its_pairs_exempted(
         self, tmp_path
     ):
