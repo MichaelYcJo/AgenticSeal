@@ -52,3 +52,32 @@ orchestrator's broad run, which `trail/gate.md` records (contract rule 2).
 target: 800a9263a against 347853106
 Verdict: withheld reason: the orchestrator's part of the pull request body, *For the reviewer* (pr-body.md:12), says round 1's four findings were each "a further statement of an item's fact in another file", where `trail/rounds/round-1.md:37` locates finding 1 at `tests/text/test_the_rules_claude_md_names_have_one_home.py:1-2`, the docstring S4 rewrote; and it says "Each phase's hand-back named frame statements its build contradicted", where `trail/phases/phase-1.md:5` and `trail/phases/phase-2.md:5` say the frame holds and `frame/plan.md` *Judgments of the run* folds phases 3 and 4 alone (`:105`, `:106`)
 ```
+
+## Run 2: 65d93eed3 against 347853106
+
+Since the earlier block's `target:`, 800a9263a, one commit follows,
+65d93eed3, and it touches `guarantee.md` alone (executed:
+`git diff --quiet 800a9263a HEAD -- . ':!seal/threads/1793787547-each-statement-is-corrected-to-the-tree/guarantee.md'`,
+exit 0). No claim's coordinate changed, so no claim of the first run is
+re-run. The first run's rows stand at this HEAD. The orchestrator corrected
+its part of the pull request body, which is outside the tree, so this run
+reads the parties again.
+
+| Claim or party | Source | Command | Result |
+|---|---|---|---|
+| The broad run stands at HEAD | `trail/gate.md`, `run: fd9cfc7a3 against 347853106` | `git log --no-merges --name-only fd9cfc7a3..HEAD ^347853106`; `git merge-base --is-ancestor fd9cfc7a3 HEAD`; `git rev-parse --verify --quiet 'release/v0.31.2@{upstream}'` | holds (executed): 800a9263a touches `trail/gate.md` and 65d93eed3 touches `guarantee.md`, both under the work item's directory. The ancestor check exits 0, and the base resolves to 347853106 |
+| The body's part below `## From the records` is the records' text | `pr-body.md`, which `seal pr-body` rewrote at 65d93eed3 | `seal pr-body seal/threads/1793787547-each-statement-is-corrected-to-the-tree --body <scratchpad>/…/pr-body.md --check` | holds (executed): exit 0 |
+| the orchestrator's part of the pull request body, *For the reviewer* (a) | "Round 1 opened four `should`s: one in the docstring S4 rewrote, whose first line claimed more than the cases hold, and three further statements of an item's fact in other files" | read against `trail/rounds/round-1.md` findings 1 to 4 | agrees (read): finding 1 is at `tests/text/test_the_rules_claude_md_names_have_one_home.py:1-2`. Findings 2, 3 and 4 are in `docs/layout/one-root-by-lifetime.md`, its Korean edition and `hooks/lib/config.py`; in `.github/scripts/plugin_directory_check.py` and its test; and in `tests/text/test_the_settings_have_a_front_door.py` |
+| the orchestrator's part of the pull request body, *For the reviewer* (b) | "Phases 3 and 4 named frame statements their builds contradicted …; phases 1 and 2 found the frame held" | read against `trail/phases/phase-1.md:5`, `phase-2.md:5`, `phase-3.md:5` and `phase-4.md`, and `frame/plan.md:105-106` | agrees (read): phase 3 names two counts that differ, and phase 4 names the citation form and the version move. Both are folded at `frame/plan.md:105` and `:106`. Phases 1 and 2 say the frame holds |
+| the orchestrator's part of the pull request body, the rest | the other paragraphs above `## From the records` | read against the first run's rows | unchanged from the first run's reading, and it agrees |
+| the design, the build, the last round, the changelog | the records at 65d93eed3 | `git diff --quiet` above | unchanged since 800a9263a, and the first run's rows stand: each agrees, none disagrees |
+
+Still `unverified` by me: the full suite, the lint and the typecheck, which
+the orchestrator answers through `trail/gate.md`. Also the ticking of
+#1346's checklist, a tracker act for the orchestrator, and the paid evals,
+which the runs that #1107, #1178 and #1266 wait on answer.
+
+```seal
+target: 65d93eed3 against 347853106
+Verdict: sealed
+```
