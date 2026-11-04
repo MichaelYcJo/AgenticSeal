@@ -5,10 +5,9 @@ This module reads three shapes of citation: the two that
 `skills/writing-style/SKILL.md` states, and a name. A file cites another
 file's section as the backticked path followed by the section's text in
 italics, and the section has to be a heading or a bold rule lead that file
-has. Before #1043
-one case read such citations, and only those of `skills/implement/SKILL.md`,
-so a heading renamed in any other file left its citations pointing at
-nothing with the suite green. A file cites a rule of
+has. Before #1043 one case read such citations, and only those of
+`skills/implement/SKILL.md`, so a heading renamed in any other file left its
+citations pointing at nothing with the suite green. A file cites a rule of
 `skills/agent-contract/SKILL.md` as `contract rule <N>`, and the contract and
 `agents/` cite it as `rule <N>`. The rule has to be a section the contract
 has. Before #1127 the case that reads these read six trees and five file
