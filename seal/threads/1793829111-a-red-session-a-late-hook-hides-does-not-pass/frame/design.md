@@ -93,30 +93,27 @@ No schema change. The recorder's lines are unchanged. `RunRecord` gains one inte
   to: **A suite whose record says a pytest session at `HEAD` did not pass
     has not passed, whatever the row's exit.** A session passed where its
     record holds an `end` line whose `stopped` is an empty list and whose
-    exit is 0 or 5. That exit is the one pytest's run loop gave, and pytest
-    hands it to every `pytest_sessionfinish` hook alike, so nothing that
-    runs after the loop changes it. The row's exit can still change after
-    the loop. A later `pytest_sessionfinish` hook can raise `pytest.exit()`
-    or set the session's exit status, a `pytest_unconfigure` hook can end
-    the process, and a part of the row after pytest, such as `; true` or a
-    pipe, can exit for it. So an exit of 0 from the row does not say that
-    nothing the session ran failed. Where a stop chose that code, as a test
-    that calls `pytest.exit()` with a return code of 0 or `os._exit(0)`
-    does, it does not say that the session ran every test it collected
-    either. A run passed on that exit would write `trail/gate.md`, and the
-    sealer would guarantee a suite that failed or that nobody finished. So
-    the gate reads the pass off its own recorder's record. It counts a
-    session as stopped part-way where its record holds no `end` line, where
-    that line's `stopped` is not an empty list, or where its exit is not 0,
-    1 or 5, as it does at the base. It counts a session as red where that
+    exit is 0 or 5. That exit is the one pytest's run loop gave, and what
+    runs after the loop can change the row's exit and not that one. So an
+    exit of 0 from the row does not say that nothing the session ran
+    failed. Where a stop chose that code, as a test that calls
+    `pytest.exit()` with a return code of 0 or `os._exit(0)` does, it does
+    not say that the session ran every test it collected either. A run
+    passed on that exit would write `trail/gate.md`, and the sealer would
+    guarantee a suite that failed or that nobody finished. So the gate
+    reads the pass off its own recorder's record. It counts a session as
+    stopped part-way where its record holds no `end` line, where that
+    line's `stopped` is not an empty list, or where its exit is not 0, 1
+    or 5, as it does at the base. It counts a session as red where that
     line's `stopped` is an empty list and its exit is 1. Where any session
     at `HEAD` reads either way, the run fails and writes no
-    `trail/gate.md`. Where the row exited 0, its failure form says so first,
-    and the failing files and the count of sessions that stopped follow as
-    on any failing suite. One kind of stop stays out of the record's reach:
-    a stop raised before the recorder writes a session's first line.
-    `templates/setup/config.md` *The criterion for choosing a value*, rule
-    3, says how the gate reads a run with it.
+    `trail/gate.md`. Where the row exited 0, its failure form says so
+    first, and the failing files and the count of sessions that stopped
+    follow as on any failing suite. One kind of stop stays out of the
+    record's reach: a stop raised before the recorder writes a session's
+    first line. `templates/setup/config.md` *The criterion for choosing a
+    value*, rule 3, names the acts after the run loop that can turn the
+    row's exit into 0, and says how the gate reads a run with that stop.
 
 ## Removes
 
