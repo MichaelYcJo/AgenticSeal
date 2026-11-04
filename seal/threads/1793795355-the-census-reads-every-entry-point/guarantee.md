@@ -67,8 +67,8 @@ nothing), so no `original:` line is owed.
 ^a9487d83e` lists `592936753` (`trail/gate.md`), `30c555733`
 (`guarantee.md`) and `a4ad23283` (`changelog.md`, `trail/phases/phase-2.md`),
 each under this work item's directory alone (executed). The command `bin/seal
-pr-body seal/threads/1793795355-the-census-reads-every-entry-point --body
-<scratchpad>/1793795355/pr-body.md --check` exited 0: "below `## From the
+pr-body seal/threads/1793795355-the-census-reads-every-entry-point --body <scratchpad>/1793795355/pr-body.md
+--check` exited 0: "below `## From the
 records` is the records' text" (executed).
 
 Since the earlier block's target `592936753`, `git diff --stat 592936753
