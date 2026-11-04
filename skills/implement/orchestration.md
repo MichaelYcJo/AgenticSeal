@@ -18,10 +18,6 @@ its first step and never this one, because asking a person and writing
 `routing.md` are acts `agents/crafter.md` leaves to the orchestrator. Every
 `seal/…` path here resolves as `skills/implement/SKILL.md` *Document layout
 — two roots, three lifetimes* states (contract rule 11).
-`skills/implement/acts.md` tables each act addressed to the orchestrator in
-this file and the files beside it, with what notices when the act is
-skipped; a maintainer reads it, and an orchestrating session does not need
-to.
 
 ## Orchestrator: the order inside a ticket
 

@@ -11,9 +11,7 @@ the two stages, the comparison axes, the probe rules, the cross-session
 records and the findings format. The orchestrator reads both. The proofer
 preloads that one and never opens this one.
 
-Every `##` heading here opens with `Orchestrator:`, and
-`skills/implement/acts.md` *Orchestrator: which of these acts runs itself*
-lists each act with what notices when it is skipped.
+Every `##` heading here opens with `Orchestrator:`.
 
 ## Orchestrator: a phase is a fresh crafter, and a fix pass resumes the implementer
 

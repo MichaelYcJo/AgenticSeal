@@ -164,24 +164,6 @@ def joined(lines):
     return " ".join(" ".join(lines).split())
 
 
-def test_the_acts_table_row_names_the_preflight_and_stays_a_sentence():
-    """S8's other half. The row for that section keeps `still a sentence` —
-    a session that skips the preflight loses time and nothing else, because
-    the broad run asks the same arms — and its grounds name the step."""
-    rows = [
-        line
-        for line in read("skills", "implement", "acts.md").splitlines()
-        if line.startswith(f"| {SPAWN_SECTION} |")
-    ]
-    assert len(rows) == 1, f"{len(rows)} acts-table rows name the section"
-    # The `Delivered by` value `still a sentence`, which
-    # `tests/behaviour/test_every_orchestrator_act_names_its_delivery.py`
-    # parses and a maintainer reads when an act moves.
-    assert "| still a sentence |" in rows[0], rows[0]
-    # The command the row's grounds name, which the orchestrator types.
-    assert PREFLIGHT in rows[0], "the row's grounds do not name the preflight"
-
-
 def test_the_order_inside_a_ticket_puts_the_preflight_before_the_sealer():
     """The order section sequences the sealer's spawn, so the step before it
     is written in where the spawn is."""
