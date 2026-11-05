@@ -8,10 +8,10 @@ renderer hides, derived by reading the specification.
 oracle to `RENDERER` and then holds every reader to the oracle over these
 shapes and a generated corpus.
 
-Most shapes are work item 1790635413's own test strings, taken verbatim at
-`4edc5de6`, because each is a place a previous attempt at these readers was
-wrong. The texts that hold an HTML comment opener build it by concatenation,
-so that no line of this file begins with one.
+Most shapes are an earlier reader's test strings, taken verbatim, because
+each is a place an earlier attempt at these readers was wrong. The texts
+that hold an HTML comment opener build it by concatenation, so that no line
+of this file begins with one.
 """
 
 OPEN = "<" + "!--"

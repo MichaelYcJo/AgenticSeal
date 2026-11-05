@@ -32,14 +32,6 @@ well as one that did. The milestone list is answered by `Milestones`, which
 stands in for `subprocess.run`. The cases that read the history drive a real
 `git` repository in `tmp_path`.
 
-**Shown red before it was committed (contract rule 15).** Each case was run
-against the script with the one behaviour it pins removed, in phase 1 of
-work item `1790076050-the-release-tail-is-three-acts-no-document-names`, and
-S1 to S6 against the script at `8a1173c8`, in phase 1 of work item
-`1793188384-the-release-notes-are-kept-twice`, and the link cases against
-the script at `c55c3083b`, in phase 1 of work item
-`1793582903-each-entry-links-its-pull-request`.
-
 #942's phase 6 placed these cases from
 `tests/behaviour/test_a_release_publishes_its_note.py`, which keeps the cases that
 read the workflow and the release checklist.
@@ -1181,8 +1173,7 @@ class Test_section:
         order, and each fragment follows without its section, so a row is
         shown once. A fragment that is the section alone keeps its link line
         with nothing under it, and gives no entry where its adding commit
-        names no pull request (#1139). Seen red against `section` at
-        `4134055a`, which folded each table into its fragment."""
+        names no pull request (#1139)."""
         header = "| Date | Change | Why | Source |\n|---|---|---|---|\n"
         first = (
             "- **A change.** What it does.\n\n### Process changes\n\n"

@@ -611,8 +611,7 @@ class Test_chain_counts:
         """S10, `questions.md` Q1 (round 1's finding 1). A root with no
         declaration -- the records moved by #715, or retired before the tag --
         leaves the three tree rows None, and the log says why; capped is read
-        from the labels alone. Seen red at `e01e1b12`, which drew
-        `(0, 0, 1, 0)` and said nothing."""
+        from the labels alone."""
         counts = seal().chain_counts(
             str(tmp_path), [pr(20, "feat/12-an-item", "chain: capped")]
         )
@@ -636,8 +635,7 @@ class Test_chain_counts:
 
     def test_an_unlistable_rounds_leaves_rounds_unread_not_zero(self, tmp_path, capsys):
         """S10 (round 1's finding 2). A `rounds` that is a file holds records
-        nobody can count: the rounds row is not read, and the log names it.
-        Seen red at `7966a9f9`, which drew `(1, 0, 0, None)`."""
+        nobody can count: the rounds row is not read, and the log names it."""
         root = tree(tmp_path)
         item = tmp_path / "seal" / "threads" / "1700000000-an-item"
         (item / "trail" / "rounds").rmdir()
@@ -656,8 +654,7 @@ class Test_chain_counts:
     ):
         """S10 (round 1's finding 2). A finding the check's reader refuses —
         here a `deferred` with no home — is a count nobody made, so deferred is
-        not read and the log names the record. Seen red at `7966a9f9`, which
-        counted 1."""
+        not read and the log names the record."""
         root = tree(tmp_path, verdicts=[["deferred #12", "deferred"]])
         assert seal().chain_counts(root, [pr(20, "feat/12-an-item")]) == (1, 1, 0, None)
         assert "round-1.md" in capsys.readouterr().out

@@ -88,8 +88,7 @@ def test_the_gate_table_has_one_row_for_each_script_groups_registers():
     plugin registers, and the gate table is what a person reads to learn what
     runs on their machine. Each script `GROUPS` names has exactly one row in
     each edition, its first cell the file name without `.py`, and no row
-    names anything else. Seen red at `5287dd42`, whose tables lacked a row
-    for two registered scripts, `root-migrate` one of them."""
+    names anything else."""
     from conftest import load_module
 
     dispatch = load_module(
@@ -278,8 +277,7 @@ def _folded(*parts):
 
 def test_the_policy_says_a_failed_diff_asks():
     """Contract rule 14, for S10 of work item 1791384157 (#868):
-    *Parity arm* says a diff git could not take is asked about. Red against
-    `5623d728`'s texts."""
+    *Parity arm* says a diff git could not take is asked about."""
     sentence = (
         "A diff git could not take is not a change confined to the document roots"
     )
@@ -442,8 +440,7 @@ def test_the_hooks_that_reach_the_network_are_named_without_a_count():
     of the three counts them. The READMEs named those two hooks and no other
     place the plugin reaches the network, so each edition's passage, from
     the pinned sentence to the next heading, also names every place in
-    `NETWORK_PLACES`. Seen red at `3538fd59`, whose passages named none of
-    them, and with one row deleted from one edition."""
+    `NETWORK_PLACES`."""
     from conftest import flat
 
     for path, said, gone, places in (

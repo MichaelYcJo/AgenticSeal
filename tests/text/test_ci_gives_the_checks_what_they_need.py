@@ -670,8 +670,7 @@ def test_the_shipped_workflow_states_its_token_scope_and_reads_the_whole_history
     defaulted to, which nobody installing it reads, and its steps write
     nothing and call no `gh`, so `contents: read` is the whole of what it
     needs. The chain check diffs against the base branch, so the checkout
-    carries the whole history. Seen red against the template at `5287dd42`,
-    which declared neither `permissions` nor `concurrency`."""
+    carries the whole history."""
     text = workflow_texts()[TEMPLATE]
     block = top_level(text, "permissions")
     assert block is not None, f"{TEMPLATE} declares no `permissions:`"
@@ -698,8 +697,7 @@ def test_the_steps_the_template_shares_have_one_source():
     runs the checker from its own tree, so a change to it is checked by
     itself. The repository's copy carries the one-line pointer and no other
     comment, and the template's comment on the chain step names the review
-    record's section rather than listing the refusals. Seen red at
-    `5287dd42`, whose repository comments told each step's history again."""
+    record's section rather than listing the refusals."""
     template = steps(raw(TEMPLATE))
     ours = steps(raw(".github/workflows/hygiene.yml"))
     shared = [name for name, (run, _) in template.items() if CLONE in " ".join(run)]

@@ -302,8 +302,7 @@ class Test_path_map:
         self, world, text, read, said
     ):
         """S2 and S3. The rows the walk read are used, and every line it did
-        not is a sentence. Seen red against `977b6613`, whose loop ended the
-        map at the first line it did not read and said nothing."""
+        not is a sentence."""
         write(world.home, ".claude/agentic/pact-paths.md", text)
         found, refusals = pc.path_map(config, str(world.home))
         assert list(found) == read
@@ -815,12 +814,10 @@ class Test_check:
         ],
     )
     def test_refuses_a_row_it_cannot_grade_at_its_line(self, world, row, said):
-        """S8: each shape is refused at the row's line, at exit 2. Seen red
-        against `977b6613`, which read no anchor table and exited 0. A
+        """S8: each shape is refused at the row's line, at exit 2. A
         remote the signer's `Pact` row does not declare is graded by no
         `seal pact`, since another pact's reports the signer `ONE-SIDED`
-        (#1132, S1); those two were seen red against `28edee12`, which
-        passed the row over and exited 0."""
+        (#1132, S1)."""
         write(world.web, SPEC, anchor_table(row))
         code, out = world.run()
         assert code == 2, out
@@ -885,10 +882,9 @@ class Test_check:
     )
     def test_refuses_the_inline_anchor_naming_the_row_to_write(self, world, text, line):
         """S9 and `questions.md` Q1's default: the inline anchor is refused
-        at its line, at exit 2, and the line names the row to write. Seen
-        red against `977b6613`, which graded the token. The token is read in
-        any case (#1132, S6); the six ids that spell it otherwise were seen
-        red against `28edee12`, which read `pact:` alone and exited 0."""
+        at its line, at exit 2, and the line names the row to write. The
+        token is read in any case (#1132, S6), so each of the six ids that
+        spell it otherwise is refused too."""
         write(world.web, SPEC, text)
         code, out = world.run()
         assert code == 2, out
@@ -995,9 +991,7 @@ class Test_check:
         the anchor table stands above the policy table
         `templates/records/sdd-design.md` writes, and GitHub renders two
         tables whatever stands between them. The anchor row is graded and
-        nothing is refused. The blank-line shape was seen red at `29e1b040`;
-        the sentence and the thematic break were seen red at `49bb6ba5`,
-        which asked for a blank line above the other table's header."""
+        nothing is refused."""
         write(
             world.web,
             SPEC,
@@ -1050,8 +1044,7 @@ class Test_check:
 
     def test_refuses_a_map_row_past_the_tables_end_and_reads_the_row_above(self, world):
         """S2. The signer the row above names is found and read, and the row
-        below the paragraph is named at exit 2. Seen red against `977b6613`,
-        which dropped that row with nothing printed and exited 0."""
+        below the paragraph is named at exit 2."""
         moved = world.tmp / "elsewhere" / "orders-web"
         moved.parent.mkdir()
         world.web.rename(moved)

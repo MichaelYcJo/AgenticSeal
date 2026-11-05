@@ -1673,9 +1673,8 @@ class Test_queue_for_written_guarantee:
         """#1122, and #1198's scenario of that name: a `sealed` verdict, then
         a fence nobody closed, then a `withheld` one. A renderer hides all
         below the fence and the pull request's check refuses it, so the
-        stamp queues nothing. As filed, in the shape before #1198, the case
-        is red at 15a5ce66, whose stamp read the one `Verdict:` line outside
-        a fence and never asked for a fence nobody closed. In blocks, the
+        stamp queues nothing. The `as filed` shape is the guarantee's shape
+        before #1198. In blocks, the
         `withheld` block below is the newest and queues nothing on its own;
         so the third shape puts the fence under the newest block, `sealed`,
         where only the reader's refusal of the fence keeps the stamp from

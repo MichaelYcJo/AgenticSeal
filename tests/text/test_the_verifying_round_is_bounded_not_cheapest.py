@@ -27,8 +27,7 @@ import os
 from conftest import ROOT
 
 # (carrier, the phrase only the corrected wording uses, the sentences it used
-# to carry). A gone phrase is the carrier's own old wording at `1fa25931`,
-# the base #639 was cut from.
+# to carry). A gone phrase is the carrier's own wording before #639.
 CARRIERS = (
     (
         ("skills", "code-review", "orchestration.md"),
@@ -44,8 +43,8 @@ CARRIERS = (
         ),
     ),
     # The paragraph above the verifying-round bullet, which scoped a re-check
-    # round on price too (round 1's 🟡 2). Its gone half is the wording at
-    # `5a66666d`, which is also the wording at `1fa25931`.
+    # round on price too (round 1's 🟡 2). Its gone half is also the wording
+    # before #639.
     (
         ("agents", "proofer.md"),
         "instead of answering the finding that came back",

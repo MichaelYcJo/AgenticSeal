@@ -866,8 +866,7 @@ class Test_config_rows:
         """#871 round 2, yellow 7. A header after a character only
         `str.splitlines` ends a line at, or a delimiter row after one on the
         header's line, is no table to cmark-gfm (measured for FF, U+2028, NEL
-        and VT by the round's reviewer). The walk reads no row and refuses. Seen
-        red against 4dfb3d0d: `Mode` was read as `shared`."""
+        and VT by the round's reviewer). The walk reads no row and refuses."""
         from block_shapes import BREAKS
 
         brk = BREAKS[name]
@@ -1024,7 +1023,7 @@ class Test_config_value:
     def test_an_item_named_under_the_next_heading_is_another_tables(self, config):
         """#871 round 2, yellow 10. A table under the next heading is not below
         the line the walk stopped at, so a `Mode` cell in it does not double the
-        config's `Mode` row. Seen red against 4dfb3d0d: "appears 2 times"."""
+        config's `Mode` row."""
         text = TABLE.format(
             rows="| Mode | shared |\n| a | b | c |\n\n## Notes\n\n"
             "| Mode | what it means |\n|---|---|\n| local | x |\n"
@@ -1036,8 +1035,7 @@ class Test_config_value:
         """#871 round 2, yellow 7's class in yellow 10's count. A `| Mode | … |`
         piece after a character only `str.splitlines` ends a line at is more of
         the line above to GFM, so it names nothing and doubles nothing; and a
-        heading piece after one is no heading, so the count goes on past it.
-        Seen red against 4dfb3d0d on the first: "appears 2 times"."""
+        heading piece after one is no heading, so the count goes on past it."""
         from block_shapes import BREAKS
 
         brk = BREAKS[name]
@@ -1364,8 +1362,7 @@ class Test_pact_declaration:
 
     def test_accepts_two_pacts_whose_urls_end_in_one_segment(self):
         """S10 of #913: an anchor names the pact by its URL, so two pacts
-        ending in one segment are two pacts and nothing is refused. Seen red
-        against `977b6613`, which refused them as ambiguous to a name."""
+        ending in one segment are two pacts and nothing is refused."""
         value = "git@example.com:org/api.git;https://example.com/other/api"
         assert config.pact_declaration(table(("Pact", value))) == (
             [
@@ -1856,7 +1853,7 @@ class Test_gfm_table:
         it to cmark-gfm, which shows one signer (measured for FF and U+2028 by
         the round's reviewer). The walk reads the first and refuses the second,
         for every table it walks, so `pact_signers` names one signer and the
-        refusal. Seen red against 4dfb3d0d: two signers, no refusal."""
+        refusal."""
         from block_shapes import BREAKS
 
         a, b = "https://example.com/org/a", "https://example.com/org/b"
@@ -1875,8 +1872,7 @@ class Test_gfm_table:
         """#871 round 2, yellow 7's class after the table's end. A heading piece
         after a character only `str.splitlines` ends a line at is more of the
         line above to GFM, not a heading, so a line written `| … |` under it is
-        still a row nobody reads, and is refused. Seen red against 4dfb3d0d,
-        where the piece ended the walk's look for such rows."""
+        still a row nobody reads, and is refused."""
         from block_shapes import BREAKS
 
         text = (

@@ -399,8 +399,7 @@ class Test_measure:
     ):
         """#1185, S5. Every hop is read the same way: `x.md`, which the pair
         imports, quotes `@y.md` inside a fence, so the harness loads `x.md`
-        and not `y.md`, and `y.md` is no row. Seen red at 0830987a, which
-        read the whole text of each hop and made `y.md` a row."""
+        and not `y.md`, and `y.md` is no row."""
         root, home = a_tree(tmp_path)
         write(str(root / "CLAUDE.md"), f"## Repo rules {ACCENT}\n@x.md\n")
         write(str(root / "x.md"), "An example:\n\n```\n@y.md\n```\n")
@@ -419,9 +418,8 @@ class Test_measure:
 
     def test_an_import_that_is_not_a_file_is_a_missing_row(self, meter, tmp_path):
         """#1177, S5. A dangling import loads nothing and says nothing in a
-        session (#1177's first frame, `frame/design.md` at `346cd01d`, probe
-        e), so the meter says it: a path that is no file, or a directory, is a
-        row of 0 bytes marked `missing`."""
+        session, so the meter says it: a path that is no file, or a directory,
+        is a row of 0 bytes marked `missing`."""
         root, home = a_tree(tmp_path)
         write(
             str(home / ".claude" / "CLAUDE.md"),
@@ -444,10 +442,9 @@ class Test_measure:
 
     def test_one_real_path_imported_twice_is_one_row(self, meter, tmp_path):
         """#1177, S5. Claude Code reads a file once when two memory files
-        import it by one path (#1177's first frame, `frame/design.md` at
-        `346cd01d`, probe c), so one real path is
-        one row across the pair, under the first importer, however each file
-        spells it; an import back to a file of the pair is no row either."""
+        import it by one path, so one real path is one row across the pair,
+        under the first importer, however each file spells it; an import back
+        to a file of the pair is no row either."""
         root, home = a_tree(tmp_path)
         shared = home / "shared.md"
         write(str(shared), f"shared {ACCENT}\n@.claude/CLAUDE.md\n@shared.md\n")
@@ -1242,9 +1239,8 @@ class Test_imports_of:
         ], found
 
     def test_accepts_a_symlink_as_its_target(self, meter, tmp_path):
-        """#1177's first frame, `frame/design.md` at `346cd01d`, probe b: an
-        import through a symlink loads the target, so the row is the target's,
-        by its real path and its bytes."""
+        """#1177. An import through a symlink loads the target, so the row is
+        the target's, by its real path and its bytes."""
         target = tmp_path / "clone" / "core.md"
         write(str(target), f"# core {ACCENT}\n" + "x" * 300 + "\n")
         home = tmp_path / "home"
@@ -1290,8 +1286,7 @@ class Test_imports_of:
         """#1185, S1. "Import parsing skips Markdown code spans and fenced
         code blocks" (code.claude.com/docs/en/memory.md): an `@` line a fence
         quotes is an example, and the harness loads nothing for it. The
-        import after the fence closes is read. Seen red at 0830987a, which
-        read the whole text and returned `a.md` first."""
+        import after the fence closes is read."""
         text = "An example:\n\n```\n@a.md\n```\n@b.md\n"
         assert self.written(meter, tmp_path, text) == [("b.md",)]
 
@@ -1313,8 +1308,7 @@ class Test_imports_of:
         `fence_closes` (#584): a tilde fence is one, a shorter run does not
         close a longer fence, and a fence nobody closed runs to the end of
         the file, as CommonMark 4.5 says and Claude Code's lexer reads it
-        (`frame/design.md` G3 of #1185). Each shape was seen red at 0830987a,
-        which returned `a.md` beside `b.md`."""
+        (`frame/design.md` G3 of #1185)."""
         assert self.written(meter, tmp_path, text) == [("b.md",)]
 
     @pytest.mark.parametrize(
@@ -1335,8 +1329,7 @@ class Test_imports_of:
         fence. A span runs from a backtick run to the next run of the same
         length, on its line or, before its paragraph ends, on a later one
         (`unverified_check.py#_partner_ahead`), and the import after it is
-        read. Each shape was seen red at 0830987a, which returned the span's
-        `@a.md` with its closing backtick as a path, or `a.md` itself."""
+        read."""
         assert self.written(meter, tmp_path, text) == [("b.md",)]
 
     def test_accepts_an_import_after_a_backtick_its_paragraph_never_closes(
@@ -1344,9 +1337,7 @@ class Test_imports_of:
     ):
         """#1185, S3. A backtick run whose partner does not arrive before
         the paragraph ends opens no span, so the import in the next
-        paragraph is read. Green at 0830987a, which read every `@`; seen red
-        with `_partner_ahead`'s answer replaced by True, the reading where an
-        unclosed run reaches any later run of its width."""
+        paragraph is read."""
         text = "A lone ` here\n\n@b.md and a ` there\n"
         assert self.written(meter, tmp_path, text) == [("b.md",)]
 
@@ -1368,8 +1359,7 @@ class Test_imports_of:
         reaches the context (code.claude.com/docs/en/memory.md *How CLAUDE.md
         files load*), and Claude Code scans what is left of the comment's
         token (`frame/design.md` G3 of #1185). A comment runs from `<!--` to
-        the next `-->`, and one nobody closed hides the rest of the file.
-        Each shape was seen red at 0830987a, which returned `a.md`."""
+        the next `-->`, and one nobody closed hides the rest of the file."""
         assert self.written(meter, tmp_path, text) == [("b.md",)]
 
     def test_accepts_a_backslash_before_a_space_as_part_of_the_path(
@@ -1379,8 +1369,7 @@ class Test_imports_of:
         backslash before each space. Without the backslashes, the path ends
         at the first space" (code.claude.com/docs/en/memory.md). The target
         is the path with each `\\ ` read as a space, and the chain keeps the
-        path as written. Seen red at 0830987a, which ended the path at the
-        backslash and returned `Design\\`."""
+        path as written."""
         importer = tmp_path / "CLAUDE.md"
         write(str(importer), "@Design\\ Docs/api.md\n")
         target = tmp_path / "Design Docs" / "api.md"
@@ -1485,9 +1474,7 @@ class Test_module:
         the core hook's module and not that sibling exits 2 with no flag at
         all, and its sentence names the import reading. The row above with
         no flag stops at `hooks/lib/core.py` first, so this copy carries it
-        and `hooks/lib/optin.py`, the one module it loads. Green at 6137faf8;
-        seen red with `imports_of` returning nothing where the sibling is
-        missing, the reading that fails open."""
+        and `hooks/lib/optin.py`, the one module it loads."""
         alone = tmp_path / "alone"
         for rel in (TARGET, "hooks/lib/core.py", "hooks/lib/optin.py"):
             copy = alone.joinpath(*rel.split("/"))

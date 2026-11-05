@@ -21,12 +21,6 @@ can be dropped without a case going red.
 What it cannot pin is obedience: a spawn prompt that names a different
 directory still wins in the moment, and nothing in the tree reads a prompt.
 `plan.md` *Failure scenario* of the work item says so.
-
-Shown red before the sentences were written (contract rule 15): against the tree at
-`5d51b319`, all three cases failed — no `<work-item-id>` in either
-definition's section, and `/tmp/run.txt` standing in the skill. The
-framer's case failed against `agents/framer.md` at `c48cd5e3`, whose
-*Rules* named no scratch directory.
 """
 
 import os

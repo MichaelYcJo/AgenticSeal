@@ -278,8 +278,9 @@ def pending_record(repo):
     (directory / "mode-gate.py.pending").write_text("{}", encoding="utf-8")
 
 
-# Every shape found to raise in `classify` or `merge` at `551c7967`, after the
-# gates had run and outside `run_gate`'s isolation, so the group exited 1.
+# Shapes a gate can print that `classify` and `merge` read without raising.
+# Both read them after the gates have run and outside `run_gate`'s isolation,
+# where a raise would end the whole group with exit 1.
 UNREADABLE = (
     "null",
     "0",
@@ -420,8 +421,7 @@ class Test_classify:
     def test_accepts_a_deny_beside_a_message_that_is_not_text(self):
         """Round 2's 🟡 3. #661 must not drop output the merge read before. Its
         decision path reads the decision and its reason and never the
-        `systemMessage`, and a falsy `hookSpecificOutput` was read as absent.
-        Seen red at `02e47435`, where the merge printed nothing for either."""
+        `systemMessage`, and a falsy `hookSpecificOutput` was read as absent."""
         d = load(os.path.join(HOOKS, "dispatch.py"), "dispatch_for_a_deny")
         deny = {
             "hookSpecificOutput": {"permissionDecision": "deny"},

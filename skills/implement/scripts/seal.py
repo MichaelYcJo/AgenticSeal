@@ -1212,11 +1212,11 @@ def import_(args, cwd):
             # returns. Every other non-string reduces to "" in
             # `normalise_remote`, which is the empty ANSWER this check exists
             # to tell apart from silence, so presence alone let `null`, `42`,
-            # `[]`, `{}` and `true` through at exit 0 with both guards off
-            # (measured at `8fb1fb5`). An older build always wrote a string
-            # here, so a zip carrying anything else either comes from a build
-            # that could not look or was not written by `seal export` at all,
-            # and neither answers the question.
+            # `[]`, `{}` and `true` through at exit 0 with both guards off.
+            # An older build always wrote a string here, so a zip carrying
+            # anything else either comes from a build that could not look or
+            # was not written by `seal export` at all, and neither answers the
+            # question.
             unreadable.append(
                 "the zip records no remote this command can read, so the "
                 "machine that exported it could not read one either"
@@ -2187,10 +2187,10 @@ def remove_workflow(repo):
     if not committed(repo, WORKFLOW):
         # Staged and never committed, which is how `install` leaves it: git
         # keeps no committed copy, so this is the untracked case above, and
-        # git's own `rm` refuses it with "has changes staged in the index"
-        # (the sealer, at `55aea15d`). Forced only where the index AND the
-        # working file are what this plugin writes now, so the force takes
-        # nothing `install` cannot write back.
+        # git's own `rm` refuses it with "has changes staged in the index".
+        # Forced only where the index AND the working file are what this
+        # plugin writes now, so the force takes nothing `install` cannot
+        # write back.
         if not (text == plugin_workflow() == staged_text(repo, WORKFLOW)):
             return "kept", (
                 f"{WORKFLOW} is staged and never committed, and its staged "

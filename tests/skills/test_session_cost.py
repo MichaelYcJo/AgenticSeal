@@ -4494,9 +4494,7 @@ class Test_main:
     ):
         """The acceptance row. Given the agent's own file rather than the run's,
         the mode prints the same two stretches of work it prints when it walks
-        the run, and their spans sum to well under the file's own.
-
-        Red at `ab116d1e`: no row at all, and the page reads `0 segments found`."""
+        the run, and their spans sum to well under the file's own."""
         path = own_file(resumed_segment)
         rows = segments_of(path)["rows"]
         assert [(row["slice"], row["slices"]) for row in rows] == [(1, 2), (2, 2)], rows
@@ -4767,7 +4765,7 @@ class Test_main:
         no wait, and `--segments` prints one slice with the same span. A line
         saying the span covers the waits between stretches is false there.
 
-        Round 1's 🟡 1. Red at 7b4162fd: the hint printed, then `span 0.3m`."""
+        Round 1's 🟡 1."""
         path = write_run(
             tmp_path,
             call("a", 0, 10, "git status --short"),

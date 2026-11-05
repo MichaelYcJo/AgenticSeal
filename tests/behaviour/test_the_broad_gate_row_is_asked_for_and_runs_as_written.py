@@ -17,10 +17,6 @@ for choosing a value and its one owner, the refusal the gate prints, and the
 command that answers the row. The sentence that sends a session which meets
 the refusal to a person instead of letting it choose is the proofer's to
 read.
-
-Every case was executed against the documents as they stood at 0e676e6,
-before any of them was edited, and every case failed; the output is in the
-body of the commit that added it.
 """
 
 import os
