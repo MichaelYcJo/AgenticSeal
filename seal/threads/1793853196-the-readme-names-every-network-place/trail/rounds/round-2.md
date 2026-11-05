@@ -123,6 +123,11 @@ uv can also download a managed Python because of its own settings, such as
 probe them, and they are a user's configuration of uv rather than what the
 project asks for. They stand under `## Not judged`.
 
+```seal
+verdict: fixed 8e605e8c
+answer: Holds. A re-run of the round's second shape, a `pyproject.toml` with `[tool.ruff]` alone and `.python-version` at `3.10`, uv 0.9.18 `--offline`, exited 2 with "A managed Python download is available for Python 3.10" (executed). The sentence is written in my own words rather than the paste-ready text, following the orchestrator's judgment at c9f27afb (`frame/plan.md` *Judgments of the run*): `README.md` now reads "Where a project asks for a Python version the machine does not have, such as through a `.python-version` file or `requires-python`, uv first downloads that version from GitHub", so it names the condition by what the person sees and stays true under uv settings no round probed, and "a project" no longer ties it to the `[project]` clause before it. `README.ko.md` says the same, and `changelog.md:3` ends with the same condition, "with or without a `[project]` table". The paragraphs are rewrapped, and the narrow modules, `tests/behaviour/test_docs_line_wrap.py` among them, passed (executed). `trail/phases/phase-1.md` now states round 2's condition and 8e605e8c (0c820872).
+```
+
 ## Confirmations
 
 ```seal
