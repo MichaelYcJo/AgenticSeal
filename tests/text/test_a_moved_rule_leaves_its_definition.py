@@ -22,9 +22,8 @@ A definition MAY cite a rule by its number and say what the rule means
 for its own role, in its own words -- that is the application form, and
 phases 3 and 4 kept several deliberately: the proofer's audit of the
 `unverified` label, its `## Not judged` row, the #36 cost of a
-prompt landing during a round; the crafter's 1.08-1.17, its
-hand-back as the place both answers land, its own waiver example as the
-patch contract rule 9's gate reads a commit out of. Every one of those is about one
+prompt landing during a round; the crafter's 1.08-1.17 and its
+hand-back as the place both answers land. Every one of those is about one
 agent, and none of them is the rule.
 
 What a definition may NOT do is carry the contract's own sentences. So the

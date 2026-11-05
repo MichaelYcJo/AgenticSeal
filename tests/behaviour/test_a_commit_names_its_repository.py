@@ -1,11 +1,6 @@
 """An agent commits with its repository written out, in the form the rule names.
 
-The rule is the written half of work item `1790644505` (#662, #665). The
-gate half refuses, in an `automation` run, every commit it stops; this half is
-what makes the refusal rare. Both were measured to be needed: in the
-milestone-49 run three of the four stops that reached the person began
-`cd <worktree> &&` and committed after a `;` or a new line, and the
-orchestrator's loop over a variable met the gate in all three milestone runs.
+The rule came with work item `1790644505` (#662, #665).
 
 The rule stands in `skills/implement/SKILL.md` *2. Implement test-first, and
 let each rule name its test*, which the crafter, the session that builds and
