@@ -49,3 +49,43 @@ was removed after its runs.
 target: 8d6e9957 against 2ecb8d4b
 Verdict: withheld reason: the orchestrator's part of the pull request body states two things the tracker contradicts. Line 9 says this pull request moves the version "as the first pull request into release/v0.32.2", where gh pr list --base release/v0.32.2 shows #1369 already open into that branch, created 2026-11-04T23:39:07Z, without .claude-plugin/plugin.json, and frame/plan.md Phases, the line's own citation, says only that this work item carries the move. Line 15 says "its prevention home in this release is #1368", where #1368 has no milestone and the release: 0.32.2 milestone holds #1184, #1185 and #1190 alone. Every other claim sampled and every other party holds at 8d6e9957
 ```
+
+## Re-audit at 530928d9
+
+This audit read the branch at 530928d9 against `release/v0.32.2`, which
+resolves to 2ecb8d4b through `release/v0.32.2@{upstream}` (executed).
+`trail/gate.md` still names the run at c438e454, an ancestor of HEAD, and
+`git log --no-merges --name-only c438e454..HEAD ^2ecb8d4b` lists only
+`trail/gate.md` at 8d6e9957 and `guarantee.md` at 530928d9, both of this
+work item (executed). `seal pr-body <item> --body <file> --check` exited 0
+on the repaired body (executed). `git diff --stat 8d6e9957 530928d9` lists
+`guarantee.md` alone (executed), so no coordinate of the earlier run's
+claims changed, and those claims stand as the block above records them
+without a re-run. The repair touched the body file, so this run re-runs the
+body's two corrected sentences and reads every party again.
+
+### Claims re-run
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| This work item carries the release's version move, cited to `frame/design.md` G10 | pull request body, line 9 | read of `frame/design.md:18` (G10) and `routing.md` *Why this way* | holds (read): G10 says "This work item carries the version move to 0.32.2", and `routing.md` says the same. The body no longer says this is the first pull request into the branch |
+| #1190 and #1185 leave the version alone | pull request body, line 9 | `gh pr view 1369 --json files`; `git diff --name-only 2ecb8d4b...fix/1190-a-first-input-seal-core-reads-as-no-such-session -- .claude-plugin` (local and `origin` both at 2bc9d32f); the same over `fix/1185-payload-charges-an-import-inside-a-fence` (local at 9696913a, no remote branch) | holds (executed): #1369's files are `core_check.py`, its test and #1190's records, and neither branch's diff touches `.claude-plugin/`. G10 states the half of this that the frame read: #1190 holds `core_check.py` and #1185 holds `payload_meter.py` |
+| The dating of the frame's pre-build coordinates is a row of `frame/plan.md` *Judgments of the run* | pull request body, line 15 | read of `frame/plan.md:40` | holds (read): the row of 2026-11-05 dates the coordinates to 475d018c and states its grounds |
+| The same fold recurred on #1190 in this run | pull request body, line 15 | `git show fix/1190-a-first-input-seal-core-reads-as-no-such-session:seal/threads/1793833680-a-transcript-not-yet-written-is-named/frame/plan.md` | holds (executed): its *Judgments of the run* row of 2026-11-05, at line 41, dates that frame's coordinates to 920a9584 on the same grounds |
+| The orchestrator filed #1368 as that fold's prevention home, and the issue's body names both work items | pull request body, line 15 | `gh issue view 1368 --json number,title,state,milestone,body,author,createdAt` | holds (executed): #1368 is open, created 2026-11-04T23:29:59Z, and its body names #1190 and #1184 and both work items' `frame/plan.md`, and asks where the prevention belongs. It is filed under the account the run works under, so who typed it is not read from the tracker. The body no longer says "in this release", and #1368 still has no milestone |
+| The orchestrator's attempt under `CLAUDE_CONFIG_DIR="$HOME/.claude" claude -p` printed `Not logged in` | pull request body, line 17 | none | unverified: the spawn prompt says the orchestrator ran it in this session, and no record holds the run. This audit did not repeat it, since `claude -p` starts a session and contract rule 6 withholds spawning one. The orchestrator answers it. The sentence reports a measurement not made, and `gaps.md` keeps the inheritance question open for the orchestrator |
+
+### The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | as the earlier block's row: `frame/design.md` is unchanged since 8d6e9957 (executed, `git diff --stat 8d6e9957 530928d9`) | as the earlier block's row, and G10 now with the body's line 9 | none |
+| the build | as the earlier block's row: no file of the diff outside `guarantee.md` changed since 8d6e9957 (executed, the same command) | as the earlier block's row | none |
+| the last round | `trail/rounds/round-3.md` at fbcd2f26, unchanged | as the earlier block's row | none |
+| the changelog | `changelog.md`, unchanged: one `### Fixed` entry, read again in full | the diff and the design, as the earlier block's row; the body's line 1 and line 5, which copy its sentences | none |
+| the orchestrator's part of the pull request body | Body lines 1-21, with line 9 and line 15 rewritten. Read again in full against the records | the changelog (lines 1, 5), `frame/design.md` *Out* and #1367 (line 7), G10, `routing.md` and the two sibling branches (line 9), `frame/plan.md` *Alternatives considered* and *Judgments of the run* and the three rounds (lines 12-15), `gaps.md` (line 17), run 41935909883 and the broad run's log as the earlier block records them (lines 19, 21) | none. Line 17's attempt is unverified, as the row above says, and no record or fact contradicts it |
+
+```seal
+target: 530928d9 against 2ecb8d4b
+Verdict: sealed
+```
