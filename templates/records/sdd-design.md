@@ -2,6 +2,8 @@
 
 ## Grounding
 
+The tree as read at `<commit>`.
+
 | Policy clause | What it fixes for this work |
 |---|---|
 | | |

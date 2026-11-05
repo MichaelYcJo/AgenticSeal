@@ -159,13 +159,13 @@ def test_the_directory_box_names_the_page_a_person_opens():
 
 
 def test_the_directory_box_records_which_kind_of_listing_it_is_with_a_date():
-    """#858 A6. Nothing in the tree can see the plugin's listing move from the
-    Console to the portal, so the sentence saying which kind it is carries
-    whose reading it is and when — a reader can then tell it has aged — and
-    says what that kind means for a release and where the move is
-    documented."""
+    """#858 A6. Nothing in the tree can see which kind of listing the plugin
+    has, so the sentence saying which kind it is carries whose reading it is
+    and when, so that a reader can tell it has aged, and names the branch the
+    listing reads. The owner submitted `@dist` at the portal on 2026-11-05
+    (#1383)."""
     sentences = re.split(r"(?<=\.) ", directory_box())
-    kind = [s for s in sentences if "The plugin's listing is a Console listing" in s]
+    kind = [s for s in sentences if "The plugin's listing is a portal listing" in s]
     assert kind, "the box does not say which kind of listing the plugin's is"
     assert re.search(r"\b\d{4}-\d{2}-\d{2}\b", kind[0]), (
         f"the kind sentence carries no date: {kind[0]!r}"
@@ -173,12 +173,8 @@ def test_the_directory_box_records_which_kind_of_listing_it_is_with_a_date():
     assert "reading" in kind[0], (
         f"the kind sentence does not say it is somebody's reading: {kind[0]!r}"
     )
-    assert "no new version" in kind[0], (
-        "the kind sentence does not say what a Console listing means for a "
-        f"release: {kind[0]!r}"
-    )
-    assert "claude.com/docs/directory/publish" in kind[0], (
-        f"the kind sentence does not say where the move is documented: {kind[0]!r}"
+    assert "`dist`" in kind[0], (
+        f"the kind sentence does not name the branch the listing reads: {kind[0]!r}"
     )
 
 

@@ -10,8 +10,7 @@ code together.
 `hooks/hooks.json` registers `hooks/dispatch.py <group>` per event, and the
 dispatcher runs every gate of the group in one interpreter. A gate stays a
 standalone script, and adding one means adding it to `GROUPS` in
-`dispatch.py`. Where several gates of a group decide, the strictest wins
-(deny, then ask, then silence) and every reason is kept in the merged text.
+`dispatch.py`.
 A gate that raises is skipped, and the rest of the group decides without
 it.
 
@@ -51,6 +50,19 @@ and 10,010 characters, past which the context holds a preview and not the file.
 `seal core` reads the entry back from the session's transcript and exits 1 unless the
 context holds it once and whole.
 check: tests/hooks/test_core.py tests/hooks/test_core_start.py tests/skills/test_core_check.py
+
+**A `PreToolUse` group passes on `deny` and `ask` alone, so no gate's
+output can approve a call or change its input.** Where several gates
+decide, the stricter of the two wins, and every reason is kept in the
+merged text. A gate's `allow`, or any other decision, counts as no
+decision, and its reason is kept as the gate's text. A gate's JSON
+without a decision reaches Claude Code without its `updatedInput`, and
+without a top-level `decision` other than `block`, which are the two
+fields of it Claude Code reads as an input change or an approval. The plugin
+directory holds back a plugin whose hook can approve a call or change its
+input, and no gate here needs to do either: a gate that has nothing to
+refuse prints nothing, and Claude Code's own permission flow decides.
+check: tests/hooks/test_dispatch.py
 
 ## The implementer mark and notice
 
