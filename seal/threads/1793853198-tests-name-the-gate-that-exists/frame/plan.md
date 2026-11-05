@@ -26,7 +26,7 @@ The constraints:
 
 | Approach | Failure scenario | Verdict |
 |---|---|---|
-| A1. Per-sentence dispositions, as *D1* lists them: name the present mechanism, drop the clause, or remove the dead text | A rewrite that names the edit check can be wrong about what the edit check does for one shape. Rows 7, 8, 10, 13 and 14 claim the edit check refuses the next edit when a declaration does not parse. `hooks/routing-edit-gate.py`'s docstring states this for every way the declaration cannot be read (read) | **Chosen.** It is the issue's own three options, applied with #1355's precedent |
+| A1. Per-sentence dispositions, as *D1* lists them: name the present mechanism, drop the clause, or remove the dead text | A rewrite that names the edit check can be wrong about what the edit check does for one shape. Rows 8, 10, 13 and 14 claim the edit check refuses the next edit when a declaration does not parse. `hooks/routing-edit-gate.py`'s docstring states this for every way the declaration cannot be read (read) | **Chosen.** It is the issue's own three options, applied with #1355's precedent |
 | A2. Add a case or census that refuses "commit gate" under `tests/` | It would refuse the nine correct lines that say the gate is gone or tell its past, unless it grew an exemption list. A writer it refuses would move to "the gate", which it does not read. On the day it lands it has caught nothing | Rejected. `skills/core/SKILL.md` *The rule a mechanism is kept against* rules it out: a script does not re-encode a judgment of meaning as a grammar rule, and the mechanism has no catch to set against its cost. #1317's A2 and #1355's D2 rejected the same kind of check |
 | A3. Replace the structure: cut `tests/hooks/test_routing.py`'s module docstring to one line and send the reader to `hooks/lib/routing.py`'s docstring | That docstring still speaks of "the gate" in the present (design *Scope*, out). The reader would be sent from one stale text to another. The test docstring's failure-direction sentences are the grounds the cases pin | Rejected. The premise that keeps the structure was checked by reading `hooks/lib/routing.py:1-25`: the module's own docstring does not yet say what the test docstring would defer to |
 | A4. Widen to `hooks/` and every other shipped file that speaks of the commit gate | It edits shipped hook code docstrings under a `test:` patch whose issue and milestone name `tests/` and `.github/scripts/`. It also brushes #1381's ground in `hooks/` | Rejected for this item. Q1 asks whether `hooks/lib/routing.py` joins, and its default is no |
@@ -39,7 +39,7 @@ The constraints:
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Design *Scope* items 1 and 2: the 19 rows of D1, and the phase record that lists each row with the three methods rerun at the phase's commit | acceptance S1 to S6: the three `git grep` commands at the phase's commit, the `ast` comparison probe in a scratch clone, the touched modules run narrow, and the phase record read against D1 | cebd347f |
+| 1 | Design *Scope* items 1 and 2: the 19 rows of D1, and the phase record that lists each row with the three methods rerun at the phase's commit | acceptance S1 to S6: the three `git grep` commands at the phase's commit, the `ast` comparison probe over each file's blob at both commits, the touched modules run narrow, and the phase record read against D1 | cebd347f |
 
 ## Operational impact
 
