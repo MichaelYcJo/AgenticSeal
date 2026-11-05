@@ -867,8 +867,9 @@ def check_file(path):
 
 
 def sections(lines, heading):
-    """The index of each heading in LINES, already `readable`, spelt exactly
-    HEADING."""
+    """The index of each heading in LINES, already `readable`, whose text is
+    the string `heading` exactly. `check_text` asks it for `HEADING`, and
+    `pr_body.py` for the section of a record it copies."""
     return [i for i, text in headings(lines) if text.strip() == heading]
 
 
