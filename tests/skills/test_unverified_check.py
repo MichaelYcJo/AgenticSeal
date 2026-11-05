@@ -1468,6 +1468,18 @@ class Test_overviews:
             "1788000001-team-thing"
         ]
 
+    def test_refuses_a_reference_root_on_a_walk_reached_through_a_link(
+        self, joined, tmp_path
+    ):
+        """`reference_rule` measures the walk against the top git names with
+        its links resolved, so an argument reached through a link is read at
+        its real path, and a team's `specs/` stays out of that walk too."""
+        symlink_or_skip(str(joined), str(tmp_path / "link"), directory=True)
+        walked = UC.overviews([str(tmp_path / "link")])
+        assert [os.path.basename(os.path.dirname(p)) for p in walked] == [
+            "1790000000-ours"
+        ]
+
 
 class Test_config_at:
     def test_accepts_the_config_reader_and_the_root(self, joined):
