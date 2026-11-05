@@ -98,9 +98,10 @@ _BLOCKS = _load_hook("blocks.py", "agentic_blocks_for_unverified")
 # The fence delimiter rule, CommonMark 4.5 (#491, #444, #584): `fence_opener`
 # says which fence a line opens and `fence_closes` whether a line closes it.
 # The readers of this module ask them, `fence_spans` and through it
-# `blank_fences` and `closed_fence_lines`, and `liveness` and
-# `_paragraph_ends_at`; so do `coordinates.py#quoted_lines`,
-# `payload_meter.py#heading_starts`
+# `blank_fences` and `closed_fence_lines`, `_scan` and through it `liveness`
+# and `live_pieces`, and `_paragraph_ends_at`; so do
+# `coordinates.py#quoted_lines`, `payload_meter.py#heading_starts`,
+# `payload_meter.py#imports_of` through `live_pieces`
 # and `tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py`;
 # and `hooks/lib/blocks.py#walk` adds a line-start HTML comment block to it for
 # `hooks/lib/config.py`, `hooks/lib/routing.py` and `hooks/lib/fields.py`, apart
@@ -254,8 +255,9 @@ def fence_spans(lines):
     module `closed_fence_lines` and `blank_fences` walk it, and `readable`
     through `blank_fences`. Callers in other scripts are found with
     `git grep`, and no list of them is kept here to go stale. A walk that
-    keeps a comment or a code-span state, `liveness`, asks `fence_opener`
-    and `fence_closes` directly instead, because there whether a line can
+    keeps a comment or a code-span state, `_scan`, which `liveness` and
+    `live_pieces` read, asks `fence_opener` and `fence_closes` directly
+    instead, because there whether a line can
     open a fence at all depends on the state it began in.
 
     **An unclosed block is reported, not decided.** `blank_fences` blanks it
@@ -340,17 +342,46 @@ def liveness(lines, spans_cross_lines, comments=True):
     `rule_changes.py#parse` (#1012). Every caller that reads a file other
     than a record keeps the default.
 
-    Everything else is shared and is not a guess. Inside a fence nothing is
-    read but the closing fence; inside a comment nothing is markdown, so
-    backticks there are ordinary characters; inside a code span no comment
-    delimiter is a delimiter. A fence is decided before the rest of its line
-    because a fence opener owns the whole line, and after that whichever of a
-    comment opener and a backtick run comes first in the text wins.
+    The flags are read from `_scan`, the one walk of fences, comments and
+    code spans, which `live_pieces` reads too (#1185).
+    """
+    return [begins for begins, _pieces in _scan(lines, spans_cross_lines, comments)]
+
+
+def live_pieces(lines, spans_cross_lines, comments=True):
+    """For each line, the `(start, end)` offsets into it of every piece of
+    live text: text outside a fenced block, an HTML comment and a code span,
+    under the span reading `spans_cross_lines` names, as `liveness` takes
+    it. The pieces of a line are in order, and a piece may be empty.
+
+    A fence's lines, its opener and its closer among them, hold no piece. A
+    backtick run that opens no span is live text and stays inside its
+    piece; a span's backticks and a comment's delimiters stand in none.
+    `payload_meter.py#imports_of` reads a `CLAUDE.md`'s imports here, with
+    `spans_cross_lines=True` (#1185). It reads from `_scan`, the walk
+    `liveness` reads, so the two never disagree about where a line stands.
+    """
+    return [pieces for _begins, pieces in _scan(lines, spans_cross_lines, comments)]
+
+
+def _scan(lines, spans_cross_lines, comments):
+    """`[(begins_live, pieces)]` for each line: whether the line begins
+    live, `liveness`'s answer, and its live pieces, `live_pieces`'s. The
+    arguments are theirs.
+
+    Everything but `spans_cross_lines` is shared and is not a guess. Inside
+    a fence nothing is read but the closing fence; inside a comment nothing
+    is markdown, so backticks there are ordinary characters; inside a code
+    span no comment delimiter is a delimiter. A fence is decided before the
+    rest of its line because a fence opener owns the whole line, and after
+    that whichever of a comment opener and a backtick run comes first in the
+    text wins.
     """
     fence, comment, span = None, False, None
     out = []
     for n, line in enumerate(lines):
-        out.append(fence is None and not comment and span is None)
+        pieces = []
+        out.append((fence is None and not comment and span is None, pieces))
 
         if fence is not None:
             if fence_closes(line, fence):
@@ -361,6 +392,8 @@ def liveness(lines, spans_cross_lines, comments=True):
             if fence is not None:
                 continue
 
+        # Where the live piece being read began, or None outside live text.
+        start = None if comment or span is not None else 0
         pos = 0
         while pos < len(line):
             if comment:
@@ -368,6 +401,7 @@ def liveness(lines, spans_cross_lines, comments=True):
                 if at == -1:
                     break
                 pos, comment = at + len(CLOSER), False
+                start = pos
             elif span is not None:
                 closer = next(
                     (
@@ -380,11 +414,13 @@ def liveness(lines, spans_cross_lines, comments=True):
                 if closer is None:
                     break
                 pos, span = closer.end(), None
+                start = pos
             else:
                 opener = line.find(OPENER, pos) if comments else -1
                 run = BACKTICKS.search(line, pos)
                 if opener != -1 and (run is None or opener < run.start()):
-                    pos, comment = opener + len(OPENER), True
+                    pieces.append((start, opener))
+                    pos, comment, start = opener + len(OPENER), True, None
                 elif run is None:
                     break
                 else:
@@ -398,12 +434,16 @@ def liveness(lines, spans_cross_lines, comments=True):
                         None,
                     )
                     if closer is not None:
-                        pos = closer.end()
+                        pieces.append((start, run.start()))
+                        pos = start = closer.end()
                     elif spans_cross_lines and _partner_ahead(lines, n + 1, width):
-                        span = width
+                        pieces.append((start, run.start()))
+                        span, start = width, None
                         break
                     else:
                         pos = run.end()
+        if start is not None:
+            pieces.append((start, len(line)))
     return out
 
 

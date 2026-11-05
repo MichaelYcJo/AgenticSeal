@@ -498,6 +498,32 @@ class Test_liveness:
         ]
 
 
+class Test_live_pieces:
+    """#1185. The offsets of each line's live text, from `_scan`, the walk
+    `liveness` reads: a fence's lines hold no piece, a lone backtick run
+    stays inside its piece, and a span's backticks and a comment's
+    delimiters stand in none. Each case is green at 6137faf8, and each was
+    seen red with one boundary of `_scan` mutated: where the piece before a
+    comment opener ends, and whether a span or a comment that a line opens
+    ends that line's piece."""
+
+    def test_accepts_the_text_around_a_span_and_a_comment_as_pieces(self):
+        lines = ["a `x` b <!-- c --> d", "```", "@a.md", "```", "lone ` run"]
+        assert UC.live_pieces(lines, spans_cross_lines=True) == [
+            [(0, 2), (5, 8), (18, 20)],
+            [],
+            [],
+            [],
+            [(0, 10)],
+        ]
+
+    def test_refuses_the_text_a_span_or_a_comment_reaches_across_lines(self):
+        span = ["Run `cat @a.md", "@a.md` then @b.md"]
+        assert UC.live_pieces(span, spans_cross_lines=True) == [[(0, 4)], [(6, 17)]]
+        comment = ["x <!-- open", "@a.md"]
+        assert UC.live_pieces(comment, spans_cross_lines=True) == [[(0, 2)], []]
+
+
 # The heading rule held to `tests/commonmark_oracle.py`, which reads
 # markdown-it and nothing of this repository's (#867): on every line a
 # renderer shows, `heading_level` answers what the parser's top-level ATX

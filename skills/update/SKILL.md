@@ -13,6 +13,13 @@ on <version>", which is a number, not a reason to reload or restart.
 
 ## Procedure
 
+The plugins Claude Code installs, and the `CLAUDE.md` it reads as the
+user's, stand in the directory Claude Code is configured to use, which the
+shell spells `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`. Each command below
+carries that spelling on its own, because no two of them share a shell: a
+session runs each block as a call of its own, and the user types the repair
+in a terminal of their own.
+
 **1. Record what is running.** Read the `version` from
 `$CLAUDE_PLUGIN_ROOT/.claude-plugin/plugin.json`. This is the version this
 session actually loaded, which is the one the user is comparing against.
@@ -43,31 +50,36 @@ one path the installer records, then the `version` of the
 `.claude-plugin/plugin.json` in it, and compare:
 
 ```bash
-p=$(python3 -c "import json,os;d=json.load(open(os.path.expanduser('~/.claude/plugins/installed_plugins.json'),encoding='utf-8'));print(d['plugins']['agentic@agenticseal'][0]['installPath'])")
+p=$(python3 -c "import json,sys;d=json.load(open(sys.argv[1],encoding='utf-8'));print(d['plugins']['agentic@agenticseal'][0]['installPath'])" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/installed_plugins.json")
 python3 -c "import json,sys;print(json.load(open(sys.argv[1]+'/.claude-plugin/plugin.json',encoding='utf-8'))['version'])" "$p"   # must be the version step 2 reported
 ```
 
 | Result | What happens |
 |---|---|
 | the `version` is the one the installer reported | go on to step 3 |
-| a mismatch | **stop before step 3.** The update did not land. Say so, name both versions (the one the installer reported and the one the installed `plugin.json` names), and print the repair below for the user to type. Give no summary: a summary of what the user should be getting is exactly what makes this failure invisible |
+| a mismatch | **stop before step 3.** The update did not land. Say so, name both versions (the one the installer reported and the one the installed `plugin.json` names), and run the block below and give the repair it prints to the user to type. Give no summary: a summary of what the user should be getting is exactly what makes this failure invisible |
+| no `version`: a command raised, because the install record or the copy it names could not be read | **stop before step 3.** Say that the installed copy could not be found under `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`, with the error. Give no repair and no summary: the repair is built from the path this read could not give |
 
 The repair replaces the stale directory from the marketplace clone, and it is
 the user's to type rather than this procedure's to run, because it deletes a
-directory a session may be holding:
+directory a session may be holding. The user's terminal holds neither `$p`
+nor, unless it is exported there, `CLAUDE_CONFIG_DIR`. So the block below
+reads the copy again and only prints the repair, with this session's paths
+written out and quoted; give its output to the user to type. Where its read
+fails, the block prints nothing and exits non-zero, which is the table's
+last row:
 
 ```bash
-mv "$p" "$p.stale.bak"
-rsync -a --exclude '.git' ~/.claude/plugins/marketplaces/agenticseal/ "$p/"
-mkdir -p "$p/.in_use"
+p=$(python3 -c "import json,sys;d=json.load(open(sys.argv[1],encoding='utf-8'));print(d['plugins']['agentic@agenticseal'][0]['installPath'])" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/installed_plugins.json") &&
+printf 'mv %q %q\nrsync -a --exclude .git %q %q\nmkdir -p %q\n' "$p" "$p.stale.bak" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/marketplaces/agenticseal/" "$p/" "$p/.in_use"
 ```
 
 Two cautions. `.in_use/` under a version directory holds PID files, because a
 running session pins its own version, so a directory whose `.in_use/` names a
-live PID is never deleted; the `mv` above leaves the stale copy in place under
-another name for that reason. And `installed_plugins.json` names exactly one
-`installPath`: deleting that directory breaks the install, while any other
-version directory is free to remove.
+live PID is never deleted; the `mv` the repair prints leaves the stale copy
+in place under another name for that reason. And `installed_plugins.json`
+names exactly one `installPath`: deleting that directory breaks the install,
+while any other version directory is free to remove.
 
 **3. Name what changed.** Each release's notes are its GitHub Release, the
 note published at its `vX.Y.Z` tag. Read them from GitHub's public API, with
@@ -78,7 +90,7 @@ and only the span is printed. Set `old` to the version step 1 recorded and
 `new` to the one step 2 reported, then run:
 
 ```bash
-repo=$(git -C ~/.claude/plugins/marketplaces/agenticseal remote get-url origin | sed -E 's#^.*github\.com[:/]##; s#\.git$##')
+repo=$(git -C "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/marketplaces/agenticseal" remote get-url origin | sed -E 's#^.*github\.com[:/]##; s#\.git$##')
 f=$(mktemp)
 curl -fsS "https://api.github.com/repos/$repo/releases?per_page=100" -o "$f"; echo "curl exit $?"
 python3 -c '
@@ -219,10 +231,11 @@ a user told it covers everything gets a half-loaded plugin with no way to
 tell.
 
 What would settle the middle row, for whoever wants it settled: plant a
-sentinel in a hook and in an `agents/*.md` under the newly installed version
-in `~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/`, type
-`/reload-plugins` without restarting, then trigger the hook's event and spawn
-the agent. That is run 6's own method, one artifact over.
+sentinel in a hook and in an `agents/*.md` of the newly installed version,
+whose directory is
+`${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/cache/<marketplace>/<plugin>/<version>/`.
+Then type `/reload-plugins` without restarting, trigger the hook's event and
+spawn the agent. That is run 6's own method, one artifact over.
 
 ## What this does not do
 
