@@ -53,7 +53,7 @@ from what produces a network call, in three parts.
 | # | Place | Reaches | What is sent | When | In the README at `d7f4d9bf` | Label |
 |---|---|---|---|---|---|---|
 | 1 | version-check hook, `hooks/version-check.py:129` | GitHub | one `git ls-remote --tags` against the plugin's own repository | at session start, once a day, where `seal/` exists | yes | read |
-| 2 | lint-python hook, `hooks/lint-python.py:77` | PyPI, and GitHub for a managed Python | `uv run ruff --version`, the first runner, installs the project's dependencies where `pyproject.toml` has a `[project]` table, and downloads a Python build from GitHub where no installed interpreter satisfies `requires-python`; uv fetches ruff on first use when the hook falls back to `uvx ruff` | after a `.py` edit, in a project that configures ruff | yes | read |
+| 2 | lint-python hook, `hooks/lint-python.py:77` | PyPI, and GitHub for a managed Python | `uv run ruff --version`, the first runner, installs the project's dependencies where `pyproject.toml` has a `[project]` table, and downloads a Python build from GitHub where the project asks, through `requires-python` or `.python-version`, for a Python version the machine does not have; uv fetches ruff on first use when the hook falls back to `uvx ruff` | after a `.py` edit, in a project that configures ruff | yes | read |
 | 3 | `/agentic:update`, `skills/update/SKILL.md` *Procedure* steps 2 and 3 | GitHub | `claude plugin marketplace update` pulls the marketplace clone and `claude plugin update` installs from it. Then one `curl` with no token to `https://api.github.com/repos/<repo>/releases?per_page=100`, where `<repo>` is the marketplace clone's `origin` | when the user runs the command | no | read |
 | 4 | `seal cost --post`, `skills/verify/scripts/session_cost.py#run_gh`, `#open_log`, `#post` | GitHub, through the user's `gh` login | `gh issue list --label flow-measurement --state all`, then `gh issue comment` on the one open issue carrying that label. The body is the orchestrator's sentence and the segment's reading. The transcript is named by its file name and never by its path (`#emit` docstring). It never opens an issue | after every crafter or proofer segment, run by the orchestrator, and by a person who types it. Nothing is posted where no issue of the repository has ever carried the label, or where `gh` is missing | no | read |
 | 5 | `seal gate`'s chain arm, and `chain_check.py` run outside GitHub Actions, `skills/code-review/scripts/chain_check.py#pull_request_from_gh` | GitHub, through the user's `gh` | `gh pr view --json isDraft`, run in the repository | each run where `GITHUB_EVENT_PATH` names no file and `gh` is on the PATH. `skills/verify/scripts/broad_gate.py` docstring item 2 runs this check as its second arm | no | executed: in a `git clone --no-local` of this branch, `chain_check.py --baseline HEAD~1` was run with a `gh` on the PATH that logs its arguments and with `GITHUB_EVENT_PATH` unset. Exit 0, and the log held `gh pr view --json isDraft` |
@@ -96,9 +96,10 @@ In:
    sentence on lint-python's first runner, `uv run`, which installs the
    project's dependencies where `pyproject.toml` has a `[project]` table
    (phase 1 found it; `trail/phases/phase-1.md`), and which downloads a
-   Python build from GitHub where no interpreter on the machine satisfies
-   the project's `requires-python` (round 1 found it;
-   `trail/rounds/round-1.md` finding 1).
+   Python build from GitHub where the project asks for a Python version
+   the machine does not have, through `requires-python` or a
+   `.python-version` file, with or without a `[project]` table (round 1
+   found it, round 2 widened the condition; `trail/rounds/`).
    A lead sentence and a table follow it for rows 3 to 8, with one row per
    place and four columns: what, where it reaches, what it sends, and when.
    The table's header does not open with `| Gate |`. A blank line or a
