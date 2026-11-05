@@ -27,7 +27,7 @@ Failure scenario of the chosen approach, six months from now:
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Design *Scope* items 1-8 | A1 seen red against `a0303ee9` and then green. The narrow run of `tests/skills/test_unverified_check.py`, `tests/skills/test_chain_check.py`, `tests/skills/test_settle.py`, `tests/behaviour/test_unverified_rows_close.py`, `tests/behaviour/test_a_reference_root_is_read_and_never_taken.py` and `tests/github/test_rules.py`, which shows the `one-merge-base` check line as excused and nothing refused. `git grep -n 'a-settle-is-no-deletion' -- tests` names the chain_check case. `ruff check` and `ruff format --check` on the changed files. | |
+| 1 | Design *Scope* items 1-8 | A1 seen red against `a0303ee9` and then green. The narrow run of `tests/skills/test_unverified_check.py`, `tests/skills/test_chain_check.py`, `tests/skills/test_settle.py`, `tests/behaviour/test_unverified_rows_close.py`, `tests/behaviour/test_a_reference_root_is_read_and_never_taken.py` and `tests/github/test_rules.py`, which shows the `one-merge-base` check line as excused and nothing refused. `git grep -n 'a-settle-is-no-deletion' -- tests` names the chain_check case. `ruff check` and `ruff format --check` on the changed files. | `988a9afb5` |
 | 2 | Design *Scope* items 9-11 | A5's command names nothing. The narrow run of the cases that read the four changed files, which `git grep -l -e SKILL.md -e README -- tests/behaviour tests/text` lists for the phase to choose from. A6 is read by review. | |
 
 ## Operational impact
