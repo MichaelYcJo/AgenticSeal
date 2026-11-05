@@ -39,7 +39,7 @@ The constraints:
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Design *Scope* items 1 and 2: the 19 rows of D1, and the phase record that lists each row with the three methods rerun at the phase's commit | acceptance S1 to S6: the three `git grep` commands at the phase's commit, the `ast` comparison probe in a scratch clone, the touched modules run narrow, and the phase record read against D1 | |
+| 1 | Design *Scope* items 1 and 2: the 19 rows of D1, and the phase record that lists each row with the three methods rerun at the phase's commit | acceptance S1 to S6: the three `git grep` commands at the phase's commit, the `ast` comparison probe in a scratch clone, the touched modules run narrow, and the phase record read against D1 | cebd347f |
 
 ## Operational impact
 
