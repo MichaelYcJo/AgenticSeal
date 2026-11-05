@@ -22,7 +22,7 @@ The failure scenario of the chosen approach: in six months someone rewords the n
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Scope 1, Scope 2 | S1 and S2, the diff read line by line; S3, `bin/test tests/hooks/test_version_check.py` narrow, its exit code; S4, the phase record against design D2 | |
+| 1 | Scope 1, Scope 2 | S1 and S2, the diff read line by line; S3, `bin/test tests/hooks/test_version_check.py` narrow, its exit code; S4, the phase record against design D2 | 333a2cfe |
 
 ## Operational impact
 
