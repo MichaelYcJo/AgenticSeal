@@ -28,6 +28,11 @@ The paragraph that replaces line 17 of the phase record, whole:
 
 The paragraph is the only statement of this list in the work item. `changelog.md` and `gaps.md` name no line of the class, so the snippet reaches every statement of the fact.
 
+```seal
+verdict: fixed c8f227da
+answer: The finding holds: the grep re-run at 5f5d7471 prints 39 hits, and the old paragraph omitted 305, 527, 571 and 980, listed 721 as staying inside the comment D2 rewrote, and left 1730 out of the changed. The paragraph at trail/phases/phase-1.md line 17 now names all 39, 10 changed and 29 staying. It is written in the crafter's words, not the paste-ready text, because two points of that text read against the tree differ: the grep's seal-mutate.md hit is line 60, whose text changed at lines 61 and 62, and line 210 sits in restore's docstring hunk that 4aa0aa4c rewrapped, so both are among the changed and 210 no longer among those that stay. The paragraph also says the list is every hit the grep prints. No code changed.
+```
+
 ## Confirmations
 
 The implementer's account was read whole, and each claim it makes about the code was checked as follows.
