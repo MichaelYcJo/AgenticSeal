@@ -68,7 +68,6 @@ import copy
 import functools
 import hashlib
 import importlib.util
-import io
 import json
 import os
 import re
@@ -76,7 +75,6 @@ import shutil
 import stat
 import subprocess
 import sys
-import tarfile
 import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -158,11 +156,15 @@ def preload_bytes(tree, agent):
 # --- run --------------------------------------------------------------------
 
 
-def git_bytes(*args):
-    """`git -C ROOT <args>`'s stdout as bytes.
+def git_bytes(*args, index=None, stdin=None):
+    """`git -C ROOT <args>`'s stdout as bytes, reading INDEX as its index
+    where given and STDIN on its standard input.
 
     A non-zero exit stops the run."""
-    run = subprocess.run(["git", "-C", ROOT, *args], capture_output=True)
+    env = None if index is None else {**os.environ, "GIT_INDEX_FILE": index}
+    run = subprocess.run(
+        ["git", "-C", ROOT, *args], capture_output=True, env=env, input=stdin
+    )
     if run.returncode != 0:
         raise SystemExit(
             f"git {' '.join(args)}: {run.stderr.decode('utf-8', 'replace')}"
@@ -171,12 +173,30 @@ def git_bytes(*args):
 
 
 def extract(rev, paths, into):
-    """Write REV's PATHS (the whole tree when empty) under INTO.
+    """Write REV's PATHS (the whole tree when empty) under INTO, every file,
+    whatever `.gitattributes` marks `export-ignore`: `git archive` leaves a
+    marked path out and exits 0, so REV is read into an index of its own and
+    checked out from there.
 
-    A member that would land outside INTO stops the run."""
-    data = git_bytes("archive", "--format=tar", rev, *paths)
-    with tarfile.open(fileobj=io.BytesIO(data)) as tar:
-        tar.extractall(into, filter="data")
+    A REV git does not resolve, a PATH REV does not hold, and a file already
+    standing where one is written stop the run. So does a member that would
+    land outside INTO, since `read-tree` refuses a tree entry that leaves
+    it.
+
+    INTO reaches git spelt with `/`: `checkout-index` creates each missing
+    directory of a path at its `/` and at no other separator, so a Windows
+    INTO spelt with `\\` that does not yet exist is never created."""
+    with tempfile.TemporaryDirectory() as work:
+        index = os.path.join(work, "index")
+        git_bytes("read-tree", rev, index=index)
+        names = git_bytes(
+            "ls-files", "-z", "--error-unmatch", "--", *paths, index=index
+        )
+        prefix = os.path.join(os.path.abspath(into), "").replace(os.sep, "/")
+        git_bytes(
+            "checkout-index", "-z", "--stdin", f"--prefix={prefix}",
+            index=index, stdin=names,
+        )  # fmt: skip
 
 
 def side_path(tree, base_path):

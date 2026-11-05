@@ -32,13 +32,14 @@ the social preview's `.svg` and `.png` besides, each described in its entry.
   three styles: bold is Menlo Bold, dim is drawn at half opacity (alpha
   128), and the terminal's green is xterm's (0, 205, 0). No script in the
   tree draws a preview, and the tree installs no imaging library. Redrawn
-  by this rule with Pillow 12.3.0 from a throwaway environment, every
-  preview of a `.ans` in this directory and in `candidates/` matched its
-  file pixel for pixel, and `horned-owl.png` was drawn the same way.
-  `owl.png` was drawn by this rule with Pillow 13.0.0, which redraws
-  `horned-owl.png` and `placeholder-s.png` pixel for pixel. Each glyph is
-  drawn on the whole image, anchored at its cell's centre, so a glyph wider
-  than its cell, such as `─`, overlaps the next cell where the two meet.
+  by this rule with Pillow 12.3.0 from a throwaway environment, the
+  previews of the gold lily, the red lily and the placeholder S each
+  matched its `.ans` pixel for pixel, and `horned-owl.png` was drawn the
+  same way. `owl.png` was drawn by this rule with Pillow 13.0.0, which
+  redraws `horned-owl.png` and `placeholder-s.png` pixel for pixel. Each
+  glyph is drawn on the whole image, anchored at its cell's centre, so a
+  glyph wider than its cell, such as `─`, overlaps the next cell where the
+  two meet.
 
 The source of each entry is its tag, not a copy of the old code. The
 command under each entry draws it again from the tag. It loads that tag's
@@ -118,10 +119,10 @@ it, so the commands of the placeholder S and of both owls write the tag's
   S's; only the mark changed. The files were drawn from the commit that
   wrote this entry, before v0.23.1 was tagged, and were renamed from
   `owl.*` when the little owl took that name.
-- **Issue:** #857. The owner chose the owl on 2026-10-28, over the bee
-  below, in two forms that read as one design: a sprite for the terminal's
-  grid and a vector for a page, and chose the stamp's reds for the sprite
-  over a colour sprite and over a one-colour relief. The owl stands for the
+- **Issue:** #857. The owner chose the owl on 2026-10-28, over the bee,
+  in two forms that read as one design: a sprite for the terminal's grid
+  and a vector for a page, and chose the stamp's reds for the sprite over
+  a colour sprite and over a one-colour relief. The owl stands for the
   guarantee, as on an Athenian coin.
 - **The terminal's form:** `skills/verify/scripts/seal-mark.txt` at the
   tag, a 16 × 16 sprite drawn one cell at a time, one letter per cell,
@@ -227,93 +228,3 @@ preview rule above, and the entry's section. The command names the first
 tag that carries the mark. That tag does not exist while the entry is
 written, so the files are drawn from the commit that writes them, with the
 command's tag replaced by that commit.
-
-## Candidates
-
-The candidates below were drawn on the disc whose frame the owner settled
-on 2026-10-07: 28 cells across, a wax edge, a rim lit from the upper left, a
-groove and the field. The placeholder S and the horned owl stood on it. The
-owner looked at the two section signs the same day and shipped neither, and
-on 2026-10-28 kept the horned owl and the bee, then chose the horned owl
-(#857). The section signs and the bee stay here. From 0.25.1 the disc is
-the red wax seal of #1174, so a candidate taken now would be pressed into
-that seal, not into the frame it was drawn on.
-
-Each candidate is three files, and no code reads any of them:
-
-- **`<name>.txt`** — the mark as a chart: `M` where the mark is pressed,
-  `.` where the field shows. The bee's is a 16 × 16 sprite instead, one
-  letter per cell, read as each owl's is.
-- **`<name>.ans`** — the stamp the owner looked at, its caption line
-  dropped and its colour codes written only where something changes, so a
-  terminal prints it whole. Every cell is the one the owner saw.
-- **`<name>.png`** — a preview of the `.ans`, drawn by the rule above.
-
-**The two section signs stand on the parchment sheet, which the owner
-retired the same day.** The stamp that ships has no sheet: the disc stands
-at the left and the text beside it in the terminal's own colours. So only a
-candidate's mark is a candidate; its sheet, its disc and the shape of its
-rows are history.
-
-**A sprite becomes the mark by replacing `seal-mark.txt` with it.**
-`seal_stamp.py#read_sprite` reads that file when the stamp module loads.
-It refuses a file that is not 16 lines of 16 characters over `.` and the
-letters of `SPRITE_COLOURS`, or that draws a cell, or casts a shadow,
-outside the disc's field, with a sentence naming the first fault. A `.M`
-chart is not a sprite, so a section sign would be redrawn as one before it
-could become the mark.
-
-### The section sign at 28 cells — `section-28`
-
-![The section sign at 28 cells: Georgia Bold's section sign in three red tones with a drop shadow on a 28-cell disc, at the right of a parchment sheet carrying a sample panel](candidates/section-28.png)
-
-- **What it is:** Georgia Bold's section sign, fitted to the 28-cell frame, in the
-  red lily's three tones with a drop shadow.
-- **Drawn by:** the orchestrating session's reference renderer over a
-  sample panel, not by `seal_stamp.py`. No tag draws it again.
-- **Its chart had three cells in the groove.** Three `M` cells of its
-  first marked line, line 5 at columns 12, 17 and 18, lie in the disc's
-  groove. The reference renderer painted the groove over them, so the
-  `.ans` shows the mark without them.
-
-### The bee in the stamp's reds — `bee-28-pixel`
-
-![The bee in the stamp's reds: a bee seen from above, wings spread, drawn as 16-cell pixel art on the 28-cell disc, in the stamp's own reds](candidates/bee-28-pixel.png)
-
-- **What it is:** a mark drawn on 2026-10-28 as pixel art, one cell at a
-  time, beside the horned owl and the same way: a 16 × 16 sprite at the centre of
-  the 28-cell disc, its letters read by `seal_stamp.py#SPRITE_COLOURS`, so
-  every colour is one of the stamp's own reds.
-- **Why it was kept:** the bee stands for workers who need no one to tell
-  them what to do, and for the wax a seal is pressed in. The owner chose
-  the horned owl over it in #857.
-- **What it would take:** `bee-28-pixel.txt` replacing `seal-mark.txt`.
-  `read_sprite` accepts it as it stands.
-- **What a page shows:** `bee-web.svg`, a faceted bee inside a hexagonal
-  wax cell, the honeycomb its sprite has no room for, with a `.png` preview
-  beside it.
-
-![The bee as a vector seal: a faceted bee with banded body and kite-shaped wings inside a raised hexagonal wax cell, on a red disc](candidates/bee-web.png)
-
-### The light-red section sign at 14 cells — `section-14-light-red`
-
-![The light-red section sign at 14 cells: a hand-drawn section sign in one light red with a one-cell shadow on a 14-cell disc, inside a parchment sheet against its right edge](candidates/section-14-light-red.png)
-
-- **What it is:** a hand-drawn 7 × 10 chart of the section sign in one light red,
-  (240, 130, 118), with a one-cell shadow, on a 14-cell disc of four flat
-  colours, standing inside the sheet against its right edge. The owner
-  printed it and accepted it, then chose the 28-cell frame the same day.
-- **Where it was:** the stamp this work item drew from 35277597 until
-  32e257f7 replaced it. No release carried it.
-- **Its chart** is the 14 × 14 grid the 7 × 10 chart filled at 35277597,
-  two lines down and four columns in. #857's own lesson is that a mark
-  scaled by ratio smears: it would be redrawn as a 16-cell sprite, not
-  enlarged.
-- **Draw it again:** the `.ans` is that commit's stamp over the hook test
-  module's `FULL_ROWS`, the real `fitted` panel the owner printed. The
-  command writes 3,002 bytes where the file holds 2,954, because the file
-  writes a code only where something changes; every cell is the same.
-
-  ```
-  python3 -c 'import ast, subprocess, types; show = lambda p: subprocess.run(["git", "show", "35277597:" + p], capture_output=True, encoding="utf-8").stdout; m = types.ModuleType("seal_stamp"); exec(show("skills/verify/scripts/seal_stamp.py"), m.__dict__); rows = next(ast.literal_eval(n.value) for n in ast.parse(show("tests/behaviour/test_the_stamp_reaches_the_person_it_is_drawn_for.py")).body if isinstance(n, ast.Assign) and getattr(n.targets[0], "id", "") == "FULL_ROWS"); print("\n".join(m.stamp(rows, m.DEFAULT_SCALE)))' > section-14-light-red.ans
-  ```

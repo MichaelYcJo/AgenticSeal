@@ -126,13 +126,18 @@ def test_the_pattern_names_nothing_this_file_has_not_classified():
 
 def test_every_top_level_entry_is_classified():
     """A directory nobody has classified is the state `bin/` was in: it ships
-    or it does not, and neither answer is safe to leave to whoever notices."""
+    or it does not, and neither answer is safe to leave to whoever notices.
+    Whoever classifies it also decides whether `dist` holds it, since the
+    list of what leaves `dist` is a different list, in `.gitattributes`."""
     unclassified = tracked_top_level_entries() - SHIPS - STAYS_HOME
     assert not unclassified, (
         f"{sorted(unclassified)} is tracked at the top level and classified "
         "neither as shipping nor as staying home. Decide — does the plugin "
         "loader read it, or does a user run it while the plugin is enabled? — "
-        f"and add it to SHIPS or STAYS_HOME in {os.path.basename(__file__)}"
+        f"and add it to SHIPS or STAYS_HOME in {os.path.basename(__file__)}. "
+        "Then decide whether `dist`, the branch the plugin directory reads, "
+        "holds it: an entry only this repository's development reads gets an "
+        "`export-ignore` line in `.gitattributes`."
     )
 
 

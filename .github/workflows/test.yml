@@ -276,8 +276,7 @@ jobs:
         shell: bash
         run: |
           tag=$(git describe --tags --abbrev=0 origin/main)
-          mkdir "$RUNNER_TEMP/at"
-          git archive "$tag" | tar -x -C "$RUNNER_TEMP/at"
+          git worktree add --detach "$RUNNER_TEMP/at" "$tag"
           gh api "repos/$REPO/actions/runs/${{ github.run_id }}/jobs" \
             --paginate --jq '.jobs[]' > "$RUNNER_TEMP/jobs.jsonl" || true
           sha=$(git rev-list -n 1 "$tag")
