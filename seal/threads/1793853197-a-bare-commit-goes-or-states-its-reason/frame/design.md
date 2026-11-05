@@ -72,7 +72,7 @@
 | 33 | `tests/skills/test_session_cost.py:4499`, `:4770` | `ab116d1e`, `7b4162fd` | P | Each red-at sentence goes |
 | 34 | `tests/skills/test_unverified_check.py:505` | `6137faf8` | P | "Each case is green at 6137faf8, and each was seen red with one boundary of `_scan` mutated" goes, with the mutation list after it |
 | 35 | `tests/test_conftest.py:533` | `977b6613` | P | The seen-red sentence goes |
-| 36 | `tests/text/test_a_moved_rule_leaves_its_definition.py:8` | `e51fd0b` | G | The defect the module exists for stays in the present: a rule's body pasted back under a new heading left the four named cases green. "Measured 2026-09-03 by the orchestrator, at `e51fd0b`" goes |
+| 36 | `tests/text/test_a_moved_rule_leaves_its_definition.py:8` | `e51fd0b` | G | The defect the module exists for stays in the present, as what holds at HEAD: a rule's body pasted back as a paragraph or under a `###` heading leaves the four named cases green, while a new `##` heading is caught by `test_every_agent_reads_the_contract`'s heading list, which #957 added after the 2026-09-03 measurement (the sealer's withheld `guarantee.md` at 7b03f3aa). "Measured 2026-09-03 by the orchestrator, at `e51fd0b`" goes |
 | 37 | `tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py:26`, `:28` | `5d51b319`, `c48cd5e3` | P | The paragraph at lines 25 to 29 goes whole. It is rule 15's evidence |
 | 38 | `tests/text/test_a_rider_reaches_its_file.py:70` | `74c7963a` | P | The seen-red sentence at lines 69 and 70 goes |
 | 39 | `tests/text/test_ci_gives_the_checks_what_they_need.py:673`, `:702` | `5287dd42` | P | Each seen-red sentence goes |
