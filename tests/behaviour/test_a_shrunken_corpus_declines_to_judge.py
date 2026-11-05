@@ -134,6 +134,13 @@ LISTS_A_FIXTURE = {
     # the repository it took, and counts that path's unmerged entries before
     # and after `seal pr-checks remove`, once each; it opens no listed path.
     "tests/skills/test_seal.py#test_refuses_an_index_entry_it_cannot_read_deleted_by_hand": 2,
+    # #1374's case of `noninferiority.py#extract` stages one file in its own
+    # fixture repository and compares the staged names after `extract`; it
+    # opens no listed path.
+    "tests/evals/test_noninferiority.py#test_leaves_the_repository_s_own_index_as_it_was": 1,
+    # #1374's reader of a fixture commit's tree, which `dist_branch.py`'s
+    # cases compare to the tag's; it opens no listed path.
+    "tests/github/test_dist_branch.py#entries": 1,
 }
 
 # Spelled as a map of call counts rather than as "one each" so a further call

@@ -48,7 +48,8 @@ for:
 
   entry       is there an entry under this plugin's name, and over how many
   pinned      which commit that entry names, where it names one
-  reachable   whether that commit is an ancestor of `main` in this clone
+  reachable   whether that commit is an ancestor of `main` or of
+              `origin/dist` in this clone, and which one holds it
 
 **Four entry shapes, not one.** Measured 2026-09-22 over both files: of
 official's 310 entries, 157 carry `source` as an object with `url` and `sha`,
@@ -74,6 +75,7 @@ repositories.
 
   plugin_directory_check.py             read both, report
   plugin_directory_check.py --root DIR  read the plugin name and git from DIR
+  plugin_directory_check.py --ref REF   compare a pin to REF alone
 """
 
 import argparse
@@ -111,6 +113,10 @@ SUBMISSIONS_PAGE = "https://claude.ai/directory/manage"
 CONSOLE_PAGE = "https://platform.claude.com/plugins/submissions"
 
 TIMEOUT = 20
+
+# The refs a pin is read against where `--ref` names none: `main`, and
+# `dist`'s remote-tracking ref, since the directory reads `dist` (#1374).
+REFS = ("main", "origin/dist")
 
 
 def manifest_url(repo):
@@ -213,13 +219,17 @@ def is_ancestor(root, sha, ref):
     return out.returncode == 0
 
 
-def line(label, repo, text, error, name, root, ref):
+def line(label, repo, text, error, name, root, *refs):
     """One marketplace file's answer, as the lines the checklist box is read
     with.
 
     An absent entry is one line and the whole answer: which file, over how
     many entries. It names no act, because the file is not the directory and
     nothing here read the directory (#858).
+
+    A pin is read against each of `refs` and the line names the ones that
+    hold it. It is "NOT reachable" only where every ref answered, and none
+    holds it; a ref that cannot answer keeps the answer unknown.
     """
     head = f"{label} ({repo}):"
     if error:
@@ -239,25 +249,28 @@ def line(label, repo, text, error, name, root, ref):
             f"{head} an entry, pinning no commit (source: {url or 'none'}).",
             "    Nothing to compare a release against.",
         ]
-    reachable = is_ancestor(root, sha, ref)
+    answers = {ref: is_ancestor(root, sha, ref) for ref in refs}
+    holders = [ref for ref, held in answers.items() if held]
+    unknown = [ref for ref, held in answers.items() if held is None]
     out = [f"{head} an entry, pinning {sha[:12]} of {url or 'its own repository'}."]
-    if reachable is None:
+    if holders:
         out.append(
-            f"    Whether {sha[:12]} is an ancestor of {ref} is unknown here — "
-            f"this clone does not have that commit, or no {ref}. "
-            "`git fetch origin` and run this again."
+            f"    Reachable from {' and '.join(holders)}. Compare it against the "
+            "commit this release tagged; where it is behind, this file has not "
+            "caught up yet, and nothing here moves it."
         )
-    elif reachable:
+    elif unknown:
+        named = " or ".join(unknown)
         out.append(
-            f"    Reachable from {ref}. Compare it against the commit this "
-            "release tagged; where it is behind, this file has not caught up "
-            "yet, and nothing here moves it."
+            f"    Whether {sha[:12]} is an ancestor of {named} is unknown here — "
+            f"this clone does not have that commit, or no {named}. "
+            "`git fetch origin` and run this again."
         )
     else:
         out.append(
-            f"    NOT reachable from {ref}. This file pins a commit this "
-            "repository's history does not contain, which is what a rewritten "
-            "or squashed release branch leaves behind."
+            f"    NOT reachable from {' or '.join(refs)}. This file pins a commit "
+            "this repository's history does not contain, which is what a "
+            "rewritten `dist` or a squashed release branch leaves behind."
         )
     return out
 
@@ -290,9 +303,12 @@ def main(argv=None):
         description="Report what the two marketplace files hold for this plugin."
     )
     parser.add_argument("--root", default=ROOT, help="repository root (default: this)")
-    parser.add_argument("--ref", default="main", help="the ref a pin is compared to")
+    parser.add_argument(
+        "--ref", help="the one ref a pin is compared to (default: main and origin/dist)"
+    )
     args = parser.parse_args(argv)
 
+    refs = (args.ref,) if args.ref else REFS
     root = os.path.abspath(args.root)
     try:
         name = plugin_name(root)
@@ -300,10 +316,10 @@ def main(argv=None):
         parser.error(
             f"--root {root} has no readable .claude-plugin/plugin.json: {error}"
         )
-    print(f"plugin {name!r}, against {args.ref}\n")
+    print(f"plugin {name!r}, against {' and '.join(refs)}\n")
     for label, repo in MARKETPLACES:
         text, error = fetch(manifest_url(repo))
-        for out in line(label, repo, text, error, name, root, args.ref):
+        for out in line(label, repo, text, error, name, root, *refs):
             print(out)
         print()
     for out in closing():

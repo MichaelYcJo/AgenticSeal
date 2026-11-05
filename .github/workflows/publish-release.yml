@@ -40,6 +40,16 @@ name: publish the release note
 # and a seal that cannot be drawn costs the image and never the counts. So
 # nothing in that job can turn the workflow red or touch a note this run did
 # not write.
+#
+# Then `dist` (#1374). The plugin directory reads `dist`, a branch whose tree
+# at each release is `git archive` of the release's tag, so it holds what
+# the installed plugin runs and leaves out what `.gitattributes` marks
+# `export-ignore`. A third job, `dist`, runs wherever `publish` passed on a
+# tag, a re-run included, and `.github/scripts/dist_branch.py` adds one
+# commit to `dist` on its previous commit, or none where that commit already
+# holds the tag's archive, and pushes without force. It has no
+# `continue-on-error`: a release that did not reach `dist` is a release the
+# directory did not get, so the run goes red, and a re-run adds the commit.
 
 on:
   push:
@@ -48,8 +58,9 @@ on:
 
 # The first write of this scope in the repository, and the minimum
 # `gh release create` and a tag created through the API need. The workflow
-# writes four things under it: one tag and one release (`publish`), one asset
-# on that release and one edit of its note (`seal`). `gh pr list` reads the pull requests' labels and head branches
+# writes five things under it: one tag and one release (`publish`), one asset
+# on that release and one edit of its note (`seal`), and one commit pushed to
+# `dist` (`dist`). `gh pr list` reads the pull requests' labels and head branches
 # under the same block, which is a read.
 permissions:
   contents: write
@@ -161,3 +172,26 @@ jobs:
           SUITE_OUTCOME: ${{ steps.suite.outcome }}
         shell: bash
         run: python3 .github/scripts/release_seal.py
+
+  dist:
+    needs: publish
+    if: needs.publish.outputs.tag != ''
+    runs-on: ubuntu-latest
+    steps:
+      # The whole history and every tag: the script archives the tag
+      # `publish` passed on. The checkout keeps its credentials, because the
+      # script pushes `dist` with them.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # The commit is the GitHub Actions bot's, as the tag `publish`
+      # creates through the API is.
+      - name: add the release's commit to dist
+        env:
+          TAG: ${{ needs.publish.outputs.tag }}
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        shell: bash
+        run: python3 .github/scripts/dist_branch.py

@@ -103,9 +103,10 @@ def test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit
     which creates the tag where the push moved the version and passes it on;
     the note step runs only on a tag passed on and reads `TAG` from it, since
     `github.ref_name` is `main` on the push to `main`. Under
-    `contents: write` it writes four things now -- one tag and one release
-    (`publish`), one asset on it and one edit of its note (`seal`) -- and
-    still declares no other scope. `publish` has no `needs` and says which
+    `contents: write` it writes five things now -- one tag and one release
+    (`publish`), one asset on it and one edit of its note (`seal`), one
+    commit on `dist` (`dist`, the next case) -- and still declares no other
+    scope. `publish` has no `needs` and says which
     tag it published for and whether it created the release; `seal` needs
     it, runs only on `created == 'true'`, checks out that tag and reads `TAG`
     from it, and every one of its steps is `continue-on-error`, so nothing
@@ -186,6 +187,39 @@ def test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit
     assert not any(
         "junitxml" in line or "SUITE_XML" in line for line in text.splitlines()
     )
+
+
+def test_the_dist_job_adds_the_release_to_dist_and_goes_red_where_it_cannot():
+    """#1374. The `dist` job needs `publish` and runs wherever `publish`
+    passed on a tag, so a re-run of a release whose note already exists
+    still fills `dist`. Its checkout has the whole history and every tag,
+    and keeps the credentials its push uses. Its second step runs
+    `dist_branch.py` with the tag, as the GitHub Actions bot
+    (`frame/questions.md` Q1's default). No `continue-on-error` stands
+    anywhere in it, so a release that did not reach `dist` is a red run.
+    Seen red against the workflow with no `dist` job."""
+    dist = job(workflow(), "dist")
+    assert "    needs: publish" in dist, dist
+    assert "    if: needs.publish.outputs.tag != ''" in dist, dist
+    assert not any("continue-on-error" in line for line in dist), dist
+    held = steps(dist)
+    assert len(held) == 2, held
+    checkout, run = held
+    assert checkout[0] == "      - uses: actions/checkout@v4", checkout
+    assert any(line.strip() == "fetch-depth: 0" for line in checkout), checkout
+    assert not any("persist-credentials" in line for line in checkout), checkout
+    assert "        run: python3 .github/scripts/dist_branch.py" in run, run
+    said = {
+        line.strip().split(":", 1)[0]: line.strip().split(":", 1)[1].strip()
+        for line in run
+        if line.strip().split(":", 1)[0].isupper()
+    }
+    assert said["TAG"] == "${{ needs.publish.outputs.tag }}", said
+    assert (
+        said["GIT_AUTHOR_NAME"] == said["GIT_COMMITTER_NAME"] == ("github-actions[bot]")
+    ), said
+    assert said["GIT_AUTHOR_EMAIL"] == said["GIT_COMMITTER_EMAIL"], said
+    assert "+github-actions[bot]@" in said["GIT_AUTHOR_EMAIL"], said
 
 
 def test_the_workflow_is_not_a_step_of_the_release_job():
