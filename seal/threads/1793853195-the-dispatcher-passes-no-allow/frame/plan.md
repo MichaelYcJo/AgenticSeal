@@ -30,7 +30,7 @@ Failure scenario of the chosen approach, six months on: Claude Code adds a new `
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | *Scope* 1, 2, 3 and 4 | The new `tests/hooks/test_dispatch.py#Test_merge` cases, each shown red as *Scope* 4 says, with how it was shown written in the phase record. `tests/hooks/test_dispatch.py` passes whole in the crafter's narrow run, and the existing cases in it are unedited (S3, S5). | |
+| 1 | *Scope* 1, 2, 3 and 4 | The new `tests/hooks/test_dispatch.py#Test_merge` cases, each shown red as *Scope* 4 says, with how it was shown written in the phase record. `tests/hooks/test_dispatch.py` passes whole in the crafter's narrow run, and the existing cases in it are unedited (S3, S5). | ecfb7b58 |
 
 *Scope* 5 is the rule change, and it is already written in `frame/design.md` *Rule changes*. The settle writes it into `docs/checks/the-session-hooks.md`. No phase builds it.
 
