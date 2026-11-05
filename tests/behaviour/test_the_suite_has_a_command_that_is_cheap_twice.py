@@ -276,17 +276,19 @@ def test_the_section_states_the_floor_once():
 
 
 def test_ci_runs_the_suite_at_the_floor_the_runner_holds():
-    """`FLOOR`'s comment says the number is also the version CI runs the suite
-    at. Nothing read the workflow, so that half was a claim about another file
-    which could go stale in silence -- and a floor CI does not run at is a
+    """`CONTRIBUTING.md` *Running the checks* says CI runs the suite "on
+    ubuntu, macOS and Windows at the floor stated above". So every operating
+    system the matrix names holds at least one entry at `FLOOR`, whatever
+    other Python it also runs (#1065) -- a floor CI does not run at is a
     floor nothing measures."""
-    versions = [
-        e.get("python") for e in matrix_include_entries(read_workflow("test.yml"))
-    ]
-    assert versions, "the pytest job names no python version to compare"
-    assert set(versions) == {rt.FLOOR_TEXT}, (
-        f"CI runs the suite at {sorted(set(versions))} and the runner's FLOOR "
-        f"comment claims {rt.FLOOR_TEXT}"
+    entries = matrix_include_entries(read_workflow("test.yml"))
+    systems = {e.get("os") for e in entries}
+    assert systems, "the pytest job names no operating system to compare"
+    at_floor = {e.get("os") for e in entries if e.get("python") == rt.FLOOR_TEXT}
+    missing = sorted(systems - at_floor)
+    assert not missing, (
+        f"CI runs the suite on {missing} with no entry at the floor "
+        f"{rt.FLOOR_TEXT} that `CONTRIBUTING.md` says every platform runs at"
     )
 
 

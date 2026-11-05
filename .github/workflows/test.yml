@@ -36,9 +36,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # The whole suite, at the stated floor on every platform, and at no
-        # newer Python. Whether a module's result depends on the interpreter
-        # has not been measured.
+        # The whole suite, at the stated floor on every platform, and on
+        # ubuntu at Python 3.14 as well, in the place of the `arms-grammar`
+        # job, which ran one module on 3.13 and 3.14 (#1065).
         #
         # `timeout`: each leg's budget in minutes, by `questions.md` Q6's rule
         # (a) of work item 1791270165 -- 1.5 times the leg's slowest measured
@@ -51,6 +51,8 @@ jobs:
         #   ubuntu  9 m 43 s, run 38332345615 (6 m 20 s in 38335775781,
         #           9 m 03 s in 37469595104, 8 m 24 s in 37700567455,
         #           5 m 40 s to 7 m 58 s in three runs before them)   -> 15
+        #   ubuntu at 3.14: ubuntu's base, because it runs the same suite
+        #          on the same system; no 3.14 job is measured yet    -> 15
         #   macOS, per shard: 8 m 29 s, group 3 of run 38332345615, on the
         #          durations file before #874 refreshed it (7 m 11 s to
         #          7 m 29 s on the refreshed file in 38335775781; 6 m 56 s
@@ -64,6 +66,7 @@ jobs:
         #          10 m 03 s in the sharded run 37465328899)          -> 20
         include:
           - { os: ubuntu-latest, python: "3.12", timeout: 15 }
+          - { os: ubuntu-latest, python: "3.14", timeout: 15 }
           # macOS in three shards (#864) and Windows in four (#841).
           # `pytest-split` divides the suite by each case's duration, read
           # from the committed `.test_durations`, so every shard collects the
@@ -157,8 +160,8 @@ jobs:
       # `--no-fold-skipped`, the cases one helper skips, such as every case
       # `tests/conftest.py#symlink_or_skip` skips, fold under the helper's
       # line and no case is named. The option needs pytest 8.3.0 or later.
-      # `split` is empty on ubuntu, so that leg runs the whole suite as
-      # before. `store` is empty everywhere but Windows, and it follows the
+      # `split` is empty on ubuntu, so each ubuntu leg runs the whole suite
+      # as one job. `store` is empty everywhere but Windows, and it follows the
       # split because it is about the session the split leaves.
       - run: pytest tests/ -q -n auto --durations=50 -rfEs --no-fold-skipped ${{ matrix.split }} ${{ matrix.store }}
       # A shard's part, uploaded whether its cases passed or failed: a red
