@@ -41,4 +41,4 @@ Failure scenario of the chosen approach, six months from now:
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-05 | Sent phase 1's four contradicted statements to the framer, which folded them in 1fd6b8d2 and added phase 3: the relaxed reading at a ref leaves with this work item | No shipped caller reaches the reading once `compare_at` left (framer's design *Grounding*, the relaxed-reading row); the milestone removes a check's arm that its record does not keep. A frame change is the framer's to write | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*; `skills/core/SKILL.md` *The rule a mechanism is kept against* |
