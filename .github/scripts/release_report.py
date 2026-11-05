@@ -23,7 +23,9 @@ into `main` and appends what it prints to the job's summary.
                       file is absent, empty or holds no such job
   `<leg> <python>` leg
                       the same, for the jobs at another Python: one row for
-                      each, after the three, where either job list holds it
+                      each, after the three, where either job list holds it.
+                      A system other than the three gets a row at the floor
+                      too, as `<leg>` leg
   `<document>`        the bytes of the core (`skills/core/SKILL.md`),
                       `CLAUDE.md`, `CONTRIBUTING.md` and each document of
                       the policy root that `seal fold` reads
