@@ -16,7 +16,3 @@
   machine, not a network place, so it is outside #1382, which names the
   places the plugin reaches the network. It was left for the orchestrator
   to raise as an issue.
-- **`CONTRIBUTING.md:449`**, "`lint-python` fetches ruff through `uvx` when
-  no local copy exists", is still true and no longer names lint-python's
-  whole network reach. `frame/design.md` *Scope* keeps `CONTRIBUTING.md` out
-  of this work, so it was left for the orchestrator to fold.
