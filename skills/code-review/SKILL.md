@@ -36,13 +36,17 @@ stays a question. Do not edit them.
 script.** A row of `## Not verified` is ended by marking it `closed`, not by
 taking it out (`skills/implement/SKILL.md` *4. The closing memo — only what
 the diff cannot show*). So stage 1 reads the diff of each `gaps.md` the
-range changes. A row the diff removes is a finding unless a row the diff
-adds carries the same item opening with the word `closed`, and so is a
-`gaps.md` removed from a work item directory that stays. A directory the
-diff removes whole is a settle, not a deletion (`docs/checks/the-fold.md`
-*The fold, and what tells it from a deletion*). In local mode the records
-are never committed, so no diff holds them, and nothing reads a row taken
-out there.
+range changes for a row or a memo that left without the word `closed`, and
+each one is a finding. A row closed or reworded in place shows in a line
+diff as one line removed and one added, so a row has left only where no
+line the diff adds carries the same item. A `gaps.md` the diff removes has
+left too, alone or with its whole directory. The one exception is a settle:
+a directory the settle under review removes whole, where it stood at the
+merge base, is a settle and not a deletion (`docs/checks/the-fold.md` *The
+fold, and what tells it from a deletion*). The scripts read every whole
+removal as a settle, so outside a settle only this reading sees one. In
+local mode the records are never committed, so no diff holds them, and
+nothing reads a row taken out there.
 
 Where `seal/config.md` has a `Pact` row, the proofer reads the work item's
 `frame/design.md` at stage 1 against the shape
