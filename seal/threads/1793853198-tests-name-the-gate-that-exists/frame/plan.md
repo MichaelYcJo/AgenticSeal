@@ -7,11 +7,11 @@ The work edits text in eight files under `tests/` and removes one unit of code. 
 - `tests/conftest.py`: rows 1 and 2
 - `tests/hooks/test_question_gate.py`: row 3
 - `tests/hooks/test_routing.py`: rows 4 to 12
-- `tests/behaviour/test_waiver_decided_at_start.py`: rows 13 and 14
+- `tests/behaviour/test_waiver_decided_at_start.py`: rows 13, 14 and 20
 - `tests/behaviour/test_a_commit_names_its_repository.py`: row 15
 - `tests/censuses.py`: rows 16 and 17
 - `tests/hooks/test_launch.py`: row 18
-- `tests/text/test_a_moved_rule_leaves_its_definition.py`: row 19
+- `tests/text/test_a_moved_rule_leaves_its_definition.py`: rows 19 and 21
 
 The constraints:
 
@@ -39,7 +39,7 @@ The constraints:
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Design *Scope* items 1 and 2: the 20 rows of D1, and the phase record that lists each row with the three methods rerun at the phase's commit | acceptance S1 to S6: the three `git grep` commands at the phase's commit, the `ast` comparison probe over each file's blob at both commits, the touched modules run narrow, and the phase record read against D1 | cebd347f |
+| 1 | Design *Scope* items 1 and 2: the 21 rows of D1, and the phase record that lists each row with the three methods rerun at the phase's commit | acceptance S1 to S6: the three `git grep` commands at the phase's commit, the `ast` comparison probe over each file's blob at both commits, the touched modules run narrow, and the phase record read against D1 | cebd347f |
 
 ## Operational impact
 
@@ -50,3 +50,4 @@ None. No migration, environment variable, dependency or compatibility break. `te
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
 | 2026-11-05 | Round 1's finding 1 joins the frame as D1 row 20, built by round 1's fix pass rather than a new phase | The sentence is the same class as rows 13 and 14 in a file the phase already edited, found by the proofer reading the diff's files, which the frame named as its method for spellings M3 did not cover | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, a decision after the frame is folded before the next crafter spawns |
+| 2026-11-05 | The docstring round 1's fix pass rewrote at `cf0d7b50` joins the frame as D1 row 21, with two `## Removes` rows for it and row 20 | The crafter found it reading finding 1's class across `tests/`; it is the same stale statement of #1027's retired waiver, in a file row 19 already edits, and it adds no mechanism | `skills/core/SKILL.md` *The rule a mechanism is kept against*, "in the same commit removes what stood on the old fact" |

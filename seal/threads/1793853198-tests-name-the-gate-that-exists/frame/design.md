@@ -57,6 +57,7 @@
 | 18 | `tests/hooks/test_launch.py:204` | D | "a git hook" leaves the list, as in row 16 |
 | 19 | `tests/text/test_a_moved_rule_leaves_its_definition.py:26-27` | D | The item "its own waiver example as the patch contract rule 9's gate reads a commit out of" leaves the crafter's list. The list's other items and its closing sentence stay |
 | 20 | `tests/behaviour/test_waiver_decided_at_start.py:44-46`, the comment above `ORCH` | D | The sentence "The per-command waiver stays in `SKILL.md`, because the implementer is who types the command." leaves: #1027 removed that waiver, and the module's own case at `:749-756` holds that it is gone. Round 1 found it (`trail/rounds/round-1.md` finding 1); M3's words did not include `waiver` |
+| 21 | `tests/text/test_a_moved_rule_leaves_its_definition.py:435-436`, the docstring of `test_the_crafters_four_rules_stand_with_their_enforcers` | N | "S4's four rules each keep their paragraph, their clauses and a `check:` line, and the waiver stays one sentence" becomes a statement that #1027 retired the fourth rule, the waiver, and that the case holds it gone, and "These four" becomes "These three". The case asserts the waiver is absent. Round 1's fix pass found it reading finding 1's class (`git grep -n -i "waiv" -- tests`). The case's name keeps "four", outside *Scope* |
 
 **Left as they stand.** These lines were read and are outside the class:
 
@@ -76,8 +77,8 @@
 
 In scope:
 
-1. **The 20 rows of D1.** Each row is rewritten, dropped or removed as its row says. Any other sentence in the same docstring paragraph or comment block that leans on the rewritten clause changes with it.
-2. **The record of each row.** The phase record lists each of the 20 rows with its path, its line at the base the phase was built on, its disposition, and the text that replaced it or `removed`. The record also names the three methods and the commands they ran at the phase's commit, as *Done when* asks.
+1. **The 21 rows of D1.** Each row is rewritten, dropped or removed as its row says. Any other sentence in the same docstring paragraph or comment block that leans on the rewritten clause changes with it.
+2. **The record of each row.** The phase record lists each of the 21 rows with its path, its line at the base the phase was built on, its disposition, and the text that replaced it or `removed`. The record also names the three methods and the commands they ran at the phase's commit, as *Done when* asks.
 
 Out of scope:
 
@@ -98,7 +99,7 @@ Out of scope:
 | S3. The dead helper is gone | Given the phase's commit, when `git grep -n -P "\bfired\(" -- .` runs outside `seal/threads/`, then it prints nothing | the command at the phase's commit |
 | S4. No assertion changed | Given each touched module at the base and at the phase's commit, when each is parsed with `ast` and every docstring is removed, then the two dumps are equal. The two exceptions are `tests/conftest.py`, which loses `fired`, and `tests/hooks/test_routing.py`, whose one assertion message (D1 row 7) differs | a probe that compares `ast.dump` of each file's blob at both commits, read with `git show`; its output in the phase record |
 | S5. The touched modules still pass | Given the phase's commit, when each touched test module runs narrow, then it passes. Its `test_census` and `tests/test_censuses.py` pass for the touched files too | the crafter's narrow runs, labelled in the phase record. The broad gate is the orchestrator's |
-| S6. Each row is accounted for | Given the phase record, when it is read against D1, then each of the 20 rows appears with its disposition and its replacement text or `removed` | the phase record against D1 |
+| S6. Each row is accounted for | Given the phase record, when it is read against D1, then each of the 21 rows appears with its disposition and its replacement text or `removed` | the phase record against D1 |
 
 ## Data & interfaces
 
@@ -118,6 +119,8 @@ There are no interface changes. The only code removed is `tests/conftest.py#fire
 | two pointers to a hook-level case that does not exist | `tests/hooks/test_routing.py#Test_parse.test_refuses_a_review_answer_outside_the_vocabulary` and `#Test_module.test_a_routing_md_that_does_not_parse_is_left_out`, their docstrings | nothing. The cases name what they ask, which is the parser and the reader |
 | "a git hook" in two lists of what runs before any floor | `tests/censuses.py`, the `floor_syntax` comment; `tests/hooks/test_launch.py#Test_module.test_what_runs_before_any_floor_is_linted_at_the_floor`'s docstring | nothing. `docs/checks/the-routing-check.md` says the plugin writes nothing into a clone's git hooks |
 | the crafter's waiver example in the list of what a definition may keep | `tests/text/test_a_moved_rule_leaves_its_definition.py`, the module docstring *Where this draws the line* | nothing. `agents/crafter.md` carries no waiver, and the waiver left with #1027 |
+| the sentence that the per-command waiver stays in the implement skill, because the implementer types the command | `tests/behaviour/test_waiver_decided_at_start.py`, the comment above `ORCH` | nothing. #1027 removed that waiver, and the module's case holds it gone |
+| "the waiver stays one sentence" | `tests/text/test_a_moved_rule_leaves_its_definition.py#test_the_crafters_four_rules_stand_with_their_enforcers`, its docstring | the same docstring's sentence that #1027 retired the waiver and the case holds it gone |
 | (the mechanism check) | this design | It adds no mechanism: no case, census, mark or rule (D2). So nothing has to be taken out in return |
 
 Framed 2026-11-05 by framer, before the build.
