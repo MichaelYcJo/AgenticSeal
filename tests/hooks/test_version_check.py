@@ -99,10 +99,10 @@ class Test_main:
 
         What this does NOT do is check a REWORDING. An author who changes the
         notice and pastes the new text in here passes this case (#238). A
-        reworded notice is still refused only where it breaks an assertion
-        that another case in this module makes on the notice. Everything else
-        is carried by the message below, which is an instruction to a person
-        rather than a check.
+        reworded notice is still refused where it breaks an assertion that
+        another case makes on its text, as the other cases in this module that
+        read the notice do. Everything else is carried by the message below,
+        which is an instruction to a person rather than a check.
         """
         opt_in(repo)
         out, _ = drive(hook, repo)
