@@ -20,9 +20,9 @@ of that same copy, which is measured; what it does for hooks, for agent
 definitions, and for moving a session onto a newly installed version is not,
 and a restart is the move with no open question.)
 
-This is the plugin's second network touch, after lint-python's `uvx ruff`
-fetch, and `CONTRIBUTING.md` names it as an allowed exception. What leaves the
-machine is one `git ls-remote --tags` to the plugin's own repository: no
+This is one of the network touches `README.md` *What runs on your machine*
+lists, and `CONTRIBUTING.md` names it as an allowed exception. What leaves
+the machine is one `git ls-remote --tags` to the plugin's own repository: no
 repository contents, no paths, no prompts. Three limits keep it honest:
 
   - only in repos that opted in with `seal/`, like the other gates

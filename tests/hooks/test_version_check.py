@@ -1,4 +1,4 @@
-"""version-check — the one hook that reaches the network, and its three limits.
+"""version-check — one of the network touches `README.md` lists, and its three limits.
 
 Plugin updates are keyed to plugin.json's version and nothing checks for them,
 so a release reaches a user only if that user remembers to run two commands.
