@@ -19,9 +19,9 @@ under it, which `git check-attr` asked of one file does not answer.
 scanned commit of the branch it tracks, and a rewritten branch would orphan
 it. The tip of `dist` is read from `origin` with `git ls-remote` and fetched,
 and the new commit names it as its one parent; where `origin` has no `dist`,
-the commit has no parent. The message's first line is `dist: <tag>`, and its
-body names the tag's commit, so `dist`'s history does not carry `main`'s. It
-is pushed as `<commit>:refs/heads/dist` without force, so where `dist` moved
+the commit has no parent. The tag's commit is not a parent, so `dist`'s
+history does not carry `main`'s: the message's first line is `dist: <tag>`,
+and its body names the tag's commit instead. It is pushed as `<commit>:refs/heads/dist` without force, so where `dist` moved
 after its tip was read, git refuses the push and the run is red.
 
 **A re-run makes nothing.** Where the tip's tree is already the tree built
@@ -36,14 +36,16 @@ an older version adds a commit whose tree is that older release, and the
 directory picks it up as the newest. The hand-pushed tag is the repair path
 for a failed tag step, which names the newest release there.
 
-The commit's author and committer are whatever git reads from the
-environment; the workflow's `dist` job names the GitHub Actions bot.
+The commit's author and committer are the identity git is given, by its
+config or its environment; the workflow's `dist` job names the GitHub
+Actions bot in the step's environment.
 
 Environment: `TAG`, the tag the `publish` job passed on, and `DRY_RUN`.
 
 Exit codes: 0 where a commit was pushed, none was needed, or the run was
 dry -- 1 where a git command failed, the push refused among them, with git's
-error printed -- 2 where `TAG` names no tag.
+error printed, a tag the checkout cannot resolve among them -- 2 where `TAG`
+is unset or empty.
 """
 
 import io
@@ -125,7 +127,7 @@ def main():
     tag = os.environ.get("TAG", "").strip()
     dry = os.environ.get("DRY_RUN", "").strip() not in ("", "0", "false", "no")
     if not tag:
-        print("TAG names no tag, so there is no release to add to dist")
+        print("TAG is empty, so there is no release to add to dist")
         return 2
     if dry:
         print("DRY_RUN — nothing will be pushed")

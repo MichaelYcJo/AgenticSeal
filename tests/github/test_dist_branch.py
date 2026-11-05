@@ -1,4 +1,4 @@
-"""`.github/scripts/dist_branch.py`, one class per function.
+"""`.github/scripts/dist_branch.py`, through its `main`.
 
 #1374: the plugin directory reads `dist`, and the publish workflow's `dist`
 job adds one commit to it at each release, whose tree is `git archive` of
@@ -14,7 +14,8 @@ the release's tag:
   D4  the remote's `dist` moved past the tip the run built on: the push is
       refused as a non-fast-forward, the run exits 1 with git's refusal,
       and no push or fetch it ran forces
-  D5  a dry run prints what it would push and pushes nothing
+  D5  a dry run prints what it would push and pushes nothing, and the
+      checkout's own index is left as it was
   D6  a tag the checkout cannot resolve, or no tag named, pushes nothing
       and exits non-zero
 
@@ -23,7 +24,9 @@ the release's tag:
 
 **Shown red before it was committed (contract rule 15).** Every case was
 run against no script, in phase 3 of work item
-`1793843890-the-directory-tracks-a-dist-branch`.
+`1793843890-the-directory-tracks-a-dist-branch`. D5's index assertion,
+added after that run, was shown red by a mutant whose `git` set no index
+of the run's own.
 """
 
 import importlib.util

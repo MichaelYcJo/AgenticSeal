@@ -194,8 +194,8 @@ def test_the_dist_job_adds_the_release_to_dist_and_goes_red_where_it_cannot():
     passed on a tag, so a re-run of a release whose note already exists
     still fills `dist`. Its checkout has the whole history and every tag,
     and keeps the credentials its push uses. Its second step runs
-    `dist_branch.py` with the tag, as the GitHub Actions bot
-    (`frame/questions.md` Q1's default). No `continue-on-error` stands
+    `dist_branch.py` with the tag, as the GitHub Actions bot, author and
+    committer alike. No `continue-on-error` stands
     anywhere in it, so a release that did not reach `dist` is a red run.
     Seen red against the workflow with no `dist` job."""
     dist = job(workflow(), "dist")
@@ -215,9 +215,8 @@ def test_the_dist_job_adds_the_release_to_dist_and_goes_red_where_it_cannot():
         if line.strip().split(":", 1)[0].isupper()
     }
     assert said["TAG"] == "${{ needs.publish.outputs.tag }}", said
-    assert (
-        said["GIT_AUTHOR_NAME"] == said["GIT_COMMITTER_NAME"] == ("github-actions[bot]")
-    ), said
+    bot = "github-actions[bot]"
+    assert said["GIT_AUTHOR_NAME"] == said["GIT_COMMITTER_NAME"] == bot, said
     assert said["GIT_AUTHOR_EMAIL"] == said["GIT_COMMITTER_EMAIL"], said
     assert "+github-actions[bot]@" in said["GIT_AUTHOR_EMAIL"], said
 
