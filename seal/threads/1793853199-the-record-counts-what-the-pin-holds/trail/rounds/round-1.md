@@ -95,6 +95,11 @@ that a reworded notice is still refused where it breaks an assertion another cas
 `trail/phases/phase-1.md` states commit 333a2cfe and stays as written; the
 fix pass's own record says what changed.
 
+```seal
+verdict: fixed 8131251f
+answer: The finding holds. tests/behaviour/test_no_document_names_the_old_roots.py:94-104 opens every .py file under hooks/ and asserts on its text (read), so a case outside the module refuses some reworded notices, and the phase's search, which looked for the notice's spellings, could not list a reader that names no file. Both paste-ready texts were applied as given after reading them against the frame: frame/design.md D1's second bullet, plan A3 and S1 name the module's other cases and none of them says only, and the new sentence keeps those cases as the named example with no count; the fix is a docstring and a changelog clause, so no code hands it an input. The exclusive claim's instances in this range were listed by reading the range's diff and each file of the work item's directory whole: the docstring at tests/hooks/test_version_check.py:101-104 and changelog.md:3, both fixed in 8131251f; trail/phases/phase-1.md quotes the text at 333a2cfe, the commit it names, and stays. Outside the work item, git grep for "only where" and "in this module makes" found no other statement of it; that search is a sample over wordings. bin/test tests/hooks/test_version_check.py -q -p no:xdist exited 0 with 22 passed, and uvx ruff check and uvx ruff format --check on the file each exited 0 (executed, at 8131251f's tree).
+```
+
 ## Confirmations
 
 What matched: S2 holds. `git diff release/v0.32.4..HEAD -- tests hooks`
