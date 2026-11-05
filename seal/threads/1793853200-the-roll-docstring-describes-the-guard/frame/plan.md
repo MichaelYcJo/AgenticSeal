@@ -23,7 +23,7 @@ The work changes docstring text only, so it has one failure scenario worth namin
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | *Scope* item 5, and *Scope* items 1, 2, 3 and 4, as `frame/design.md` D1 items 1 to 6 state them | S1, S2, S3 and S4 of `frame/design.md`; the phase record holds S1's and S3's output | |
+| 1 | *Scope* item 5, and *Scope* items 1, 2, 3 and 4, as `frame/design.md` D1 items 1 to 6 state them | S1, S2, S3 and S4 of `frame/design.md`; the phase record holds S1's and S3's output | d21323cc |
 
 ## Operational impact
 
