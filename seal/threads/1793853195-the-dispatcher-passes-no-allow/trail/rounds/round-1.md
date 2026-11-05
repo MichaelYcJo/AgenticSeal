@@ -42,6 +42,11 @@ The case belongs beside the other dropped values in the first new case. Each new
 
 The snippet covers the case and its docstring. The fix pass also owes the phase record's *Seen red* and *Mutation* accounts a line for how the new assertions were shown red. `frame/design.md` *Data & interfaces* has no row for a reasonless `allow`, and the case holds without one.
 
+```seal
+verdict: fixed 6b749ea1
+answer: The finding holds, and the fix is the case, not the code. `test_refuses_to_pass_on_a_decision_other_than_deny_or_ask` now also asserts that an `allow` with no reason and one with a null reason each print "". The assertions are the paste-ready ones, read against *Scope* 1's "where it has one" and against `readable`, which lets a null reason through. The docstring's addition is written in my own words, and it keeps the existing docstring's line breaks. Both assertions are green at the build, because the guard at `hooks/dispatch.py:225` already holds them. Two `seal mutate` runs over the whole module showed them red, each failing on the new assertion's line: the guard replaced by `else:` raised `KeyError`, and the guard replaced by `elif "permissionDecisionReason" in hook_out:` raised `TypeError` at the join on the null reason. Each run ended 1 failed and 53 passed, with exit 0 (executed). `bin/test tests/hooks/test_dispatch.py -q` passed and ruff exited 0 on the file (executed). `e359beb3` adds the red and the two mutants to `trail/phases/phase-1.md` *Seen red* and *Mutation*, and adds the fix pass's run to `gaps.md`. `changelog.md` is unchanged, because what ships does not change.
+```
+
 ## Confirmations
 
 What matched: *Scope* 1 at `hooks/dispatch.py:221-228` and `:234-238`. A decision passes only where its lowercased value is in `RANK`, which holds `deny` and `ask` alone (`:119`), and the passed word is printed lowercased. Any other value adds its reason, where one exists, to the texts. The crafter claimed the new cases were red at 6466441c, 3 failed and 5 passed. This round checked out 6466441c's `hooks/dispatch.py` under HEAD's tests in a scratch clone and got 3 failed and 5 passed: the `allow` case on `assert '{...}' == 'ra'`, the lowercase case on `'Deny' == 'deny'`, and the input-change case on the printed `updatedInput` (executed).
