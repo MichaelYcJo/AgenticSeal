@@ -56,7 +56,7 @@ Scope 8, the rule changes, is written in `frame/design.md` and the settle applie
 
 - No new dependency and no new environment variable. The `dist` job uses the workflow's existing `contents: write` token, and the commit's author and committer follow `frame/questions.md` Q1.
 - The first release after the merge, v0.32.3, creates `dist` as a root commit. Each later release adds one commit to it.
-- GitHub's "Source code" zip and tarball of each release from v0.32.3 on lose `tests/`, `evals/`, `seal/`, `.test_durations` and `CLAUDE.md`. `/plugin marketplace add` and a user's CI clone are unchanged, since both read `main` or the tag through git, not an archive.
+- GitHub's "Source code" zip and tarball of each release from v0.32.3 on lose `tests/`, `evals/`, `seal/`, `.test_durations`, `CLAUDE.md` and `.github/workflows/`. `/plugin marketplace add` and a user's CI clone are unchanged, since both read `main` or the tag through git, not an archive.
 - `bin/test` in `dist` prints that it runs AgenticSeal's own suite and exits 2, because `dist` has no `tests/`.
 - The owner's acts after the release, none of which the run waits on:
   - Enter `MichaelYcJo/AgenticSeal@dist` in the portal's form and read whether it answers, which is #1374's first *Done when* item. Submitting it there may also be the move of the Console listing to the portal, which the owner reads on the Console page (`docs/releasing/release-checklist.md` *6. After the merge*).
