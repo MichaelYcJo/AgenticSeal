@@ -98,17 +98,11 @@ class Test_main:
         instead of satisfying a checker.
 
         What this does NOT do is check a REWORDING. An author who changes the
-        notice and pastes the new text in here passes both cases — measured,
-        with the golden brought along each time: an overclaim added to the
-        reload's claim, the gap flipped to `unmeasured, yet it is picked up`,
-        the restart named before the reload, and the `measured` and `skill
-        bodies` labels dropped. Every one left the module at `18 passed`.
-
-        The one property the pair still holds across a rewording is the scope
-        qualifier, because
-        `test_the_notice_agrees_with_the_docstring_about_what_a_reload_re_reads`
-        looks for it independently. Everything else is carried by the message
-        below, which is an instruction to a person rather than a check.
+        notice and pastes the new text in here passes this case (#238). A
+        reworded notice is still refused where it breaks an assertion that
+        another case makes on its text, as the other cases in this module that
+        read the notice do. Everything else is carried by the message below,
+        which is an instruction to a person rather than a check.
         """
         opt_in(repo)
         out, _ = drive(hook, repo)
