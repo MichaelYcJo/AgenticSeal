@@ -39,4 +39,4 @@ Failure scenario of the chosen approach, six months out: `seal mutate` is the on
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-05 | Folded phase 1's two contradicted statements into the frame: `HERE` joins the loader row of `## Removes`, and Q1's Status records the crafter's answer | Phase 1 removed `HERE`, whose only reader was `ARM_CHECK`, and decided Q1 in its phase record; the crafter does not write frame files | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |

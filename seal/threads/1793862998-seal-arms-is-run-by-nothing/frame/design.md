@@ -80,7 +80,7 @@ This note is for the crafter's `gaps.md` and is not scope. The `arms-grammar` jo
 | The command's document | `skills/verify/seal-arms.md` | The command is gone, and no other file opens it after *Scope* item 6. |
 | The subcommand entry | `skills/implement/scripts/seal.py#TOOLS`, key `arms`; `tests/skills/test_seal.py`, the `arms` parameter | The script it ran is gone. |
 | The CI job | `.github/workflows/test.yml`, job `arms-grammar` | It ran only `tests/skills/test_arm_check.py`, at 3.13 and 3.14 (G11). What leaves without cover until #1065 is in *Not covered until #1065* below. |
-| The loader of a sibling script | `skills/verify/scripts/mutation_check.py#_sibling`, `ARM_CHECK`, `_ARM_CHECK` | The functions it loaded are `mutation_check.py`'s own. |
+| The loader of a sibling script | `skills/verify/scripts/mutation_check.py#_sibling`, `ARM_CHECK`, `_ARM_CHECK`, `HERE` | The functions it loaded are `mutation_check.py`'s own. |
 | The rule that a module's arms are enumerated and reported | `docs/running/the-broad-gate.md` *A check that cannot fail is not a check*, its first bold sentence through its check line | The mechanism it states is gone (G1, G7). The section's other rules stay. |
 | `seal arms` in a check row | `docs/running/what-a-script-gates.md` *The checks*, the row opening `` `seal layout --check`, `seal arms` `` | The row keeps `seal layout --check`. |
 | `arms-grammar` among the jobs a ruleset does not require | `docs/releasing/branch-and-release.md` *Work accumulates on a release branch* | The job is gone; the sentence names the `pytest` job. |
