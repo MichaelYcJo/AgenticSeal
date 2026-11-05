@@ -50,7 +50,7 @@ tests/text/test_the_direct_answer_owes_the_sealers_record.py:9
 tests/text/test_the_direct_answer_owes_the_sealers_record.py:20
 ```
 
-`tests/hooks/test_routing.py:535` is the past narration D1 calls `:533`. The two lines the rewritten module docstring added moved it.
+`tests/hooks/test_routing.py:535` is the past narration D1 calls `:533`. The rewrites of rows 4 to 6 and of row 10 each added one line above it.
 
 **S2, at `cebd347f`** (executed: `git grep -n -i -E "git hook|hooks/git/" -- tests`). Eight lines. `tests/behaviour/test_the_stamp_reaches_the_person_it_is_drawn_for.py:287` and `tests/hooks/test_dispatch.py:1155`, `:1156`, `:1157` and `:1169` say the git hooks are gone. `tests/skills/test_test_layout.py:85` and `:86` and `tests/test_censuses.py:788` are a case's input.
 
