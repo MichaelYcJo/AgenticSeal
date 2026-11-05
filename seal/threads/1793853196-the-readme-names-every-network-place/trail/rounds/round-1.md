@@ -85,6 +85,11 @@ also says" ends instead:
 The lint-python sentence now also says that its first runner, `uv run ruff`, installs the dependencies of a project whose `pyproject.toml` has a `[project]` table, from PyPI where uv's cache lacks them, and first downloads a Python from GitHub where none on the machine satisfies the project's `requires-python`.
 ```
 
+```seal
+verdict: fixed fea52aea
+answer: Holds. `hooks/lint-python.py:71-76` runs `uv run ruff --version` in the session's directory, and a re-run of the round's probe (uv 0.9.18, `requires-python = "==3.10.*"`, scratch cache and interpreter directories, `--offline`) exited 2 with "A managed Python download is available for Python ==3.10.*, but uv is set to offline mode" (executed). The sentence the round proposed went into `README.md` and `README.ko.md` after the dependency sentence, as folded *Scope* 1 says, with the paragraph rewrapped to the current text; the pinned first sentence stands. `changelog.md` takes the proposed clause. The narrow modules, `tests/behaviour/test_docs_line_wrap.py` among them, passed at fea52aea (executed).
+```
+
 ### 2. `CONTRIBUTING.md` still describes lint-python's network reach as the `uvx` fetch alone
 
 ```seal
@@ -138,6 +143,11 @@ that reach the network") stays true after this edit.
 
 The remaining lines of the bullet, from "condition so unrelated repos are
 untouched" on, stay as they are.
+
+```seal
+verdict: fixed fea52aea
+answer: Holds, and the fix is written in my own words rather than the paste-ready text. Folded *Scope* 6 asks that the two per-hook sentences become one sentence that names both hooks and points to `README.md` *What runs on your machine*, and `hooks/version-check.py`'s docstring says "`CONTRIBUTING.md` names it as an allowed exception", which the proposed text would have made untrue by dropping version-check's name. `CONTRIBUTING.md:449-450` now reads "`lint-python` and `version-check` are those hooks, and `README.md` *What runs on your machine* says what each one reaches, what it sends and when." The #1055-pinned rule sentence, the limits after it, "privacy section" and Q1's default stand, and no sentence counts the hooks. `gaps.md` *Not done* no longer lists the line, and `changelog.md` names the change. `tests/behaviour/test_chain_hooks_hardening.py` passed at fea52aea (executed).
+```
 
 ## Confirmations
 
