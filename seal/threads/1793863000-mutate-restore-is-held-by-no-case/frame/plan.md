@@ -31,7 +31,7 @@ The chosen approach adds cases that drive `main` with stand-ins that write the t
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | *Scope* 1 to 7, starting from the merge of `release/v0.32.5` after #1393 lands | S1 to S9; each new parameter's red under its own mutant and green under the other four, and D4's case red with the old sentence back, written in `trail/phases/phase-1.md` with the command that showed it | |
+| 1 | *Scope* 1 to 7, starting from the merge of `release/v0.32.5` after #1393 lands | S1 to S9; each new parameter's red under its own mutant and green under the other four, and D4's case red with the old sentence back, written in `trail/phases/phase-1.md` with the command that showed it | 4aa0aa4c |
 
 Assumptions the phase builds on, where any answer gives the same work: the batch interrupt may extend the existing interrupt case's parametrization or sit in the new case, whichever reads more plainly beside its neighbours. A `no baseline` stand-in may exit 1 or 5, since `no baseline` reads both the same way. Each mutant may be applied with `seal mutate` on `mutation_check.py` selecting the new cases, or by hand in a scratch clone, as long as the phase record names the replacement and the run.
 
