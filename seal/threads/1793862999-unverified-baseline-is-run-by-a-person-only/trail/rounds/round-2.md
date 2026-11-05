@@ -92,6 +92,11 @@ finding, and so is a `gaps.md` removed from a work item directory that
 stays.
 ```
 
+```seal
+verdict: fixed b250e66a
+answer: The finding holds. A line diff shows a row closed or reworded in place as one line removed and one added, and the paragraph read that removed line as a row that left. Design *Scope* item 9 at f2298696 asks only for a row or a memo that left without `closed`. I wrote the fix in my own words, to that frame line. The paragraph now says stage 1 reads each changed `gaps.md` for a row or a memo that left without `closed`, and raises a finding for each one. It adds that a row closed or reworded in place shows as one line removed and one added, so a row has left only where no added line carries the same item. The paste-ready text listed which edits count as the same item; I left that to the proofer's reading. The changelog fragment's first item says the same in the same commit.
+```
+
 ### 2. The new stage-1 paragraph reads every whole-directory removal as a settle, and the rule it cites leaves that removal to the review
 
 ```seal
@@ -139,6 +144,11 @@ merge base (`docs/checks/the-fold.md` *The fold, and what tells it from a
 deletion*). The scripts read every whole removal as a settle, and no other
 step removes another work item's directory, so outside a settle that
 removal is a finding only this reading sees.
+```
+
+```seal
+verdict: fixed b250e66a
+answer: The finding holds. `docs/checks/the-fold.md:11-12` treats a whole removal as a settle only where the directory stood at the merge base, and `:21-23` leaves a whole removal outside a settle to the review alone. The paragraph had dropped both conditions. The fix keeps the frame's one reading: a `gaps.md` removed has left, alone or with its whole directory. Its one exception is a directory that the settle under review removes whole, where that directory stood at the merge base, with the cited section as the source. The paragraph also says the scripts read every whole removal as a settle, so outside a settle only this reading sees one. I did not take the paste's "no other step removes another work item's directory", which restates the fold section's own text. The changelog fragment's first item now says a memo removed with its whole directory has left, except in a settle's own pull request.
 ```
 
 ## Confirmations
