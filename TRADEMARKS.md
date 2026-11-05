@@ -9,7 +9,8 @@ under the MIT License. All rights reserved. The drawings are:
 
 - every `.svg`, `.png` and `.ans` file under
   [`assets/seals/`](assets/seals/). These are the emblem each release
-  carried;
+  carried, and the owl drawn for the social preview and for the plugin
+  directory's icon;
 - the plugin's icon, `.claude-plugin/icon.png`;
 - the drawing in `skills/verify/scripts/seal-mark.txt`, the sprite the
   stamp presses into its disc;
