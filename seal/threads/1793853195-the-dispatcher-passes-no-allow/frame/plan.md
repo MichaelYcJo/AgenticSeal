@@ -2,6 +2,8 @@
 
 ## Technical context
 
+The bullets below describe `hooks/dispatch.py` at `71cfd170`, before the build; *Grounding*'s line numbers in `frame/design.md` are at the same commit.
+
 - `hooks/dispatch.py:111` holds `RANK = {"deny": 3, "ask": 2, "allow": 1}`.
 - `hooks/dispatch.py#merge` (from line 208) sorts each gate's output by `classify` into decisions, JSON objects and plain text. On the decision path (lines 220 to 252) it takes the highest-ranked decision, scoring an unranked value 0, and prints the winner's own spelling. The reason is the gates' reasons and texts joined, and a JSON neighbour's `systemMessage` is kept beside it. On the JSON path, after line 252, it prints `dict(jsons[0])` whole and joins the later objects' `systemMessage`s into it. Where neither applies, it prints the texts joined.
 - `hooks/dispatch.py#readable` and `#classify` (lines 161 to 205) decide the path. Any truthy `permissionDecision` goes down the decision path. A falsy one, or none, goes down the JSON path.

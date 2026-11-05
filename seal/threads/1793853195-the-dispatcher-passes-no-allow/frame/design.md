@@ -2,6 +2,8 @@
 
 ## Grounding
 
+Line numbers of `hooks/dispatch.py` in this file are at `71cfd170`, before the build.
+
 | Policy clause | What it fixes for this work |
 |---|---|
 | Issue #1381's body (executed: `gh issue view 1381 --repo MichaelYcJo/AgenticSeal --json body,comments`, 2026-11-05; the comments are `[]`) | The plugin directory holds `MichaelYcJo/AgenticSeal@dist` (v0.32.3) under `HOOK_GRANTS_PERMISSION` on the five `PreToolUse` entries of `hooks/hooks.json`. The finding names two things a hook must not do: approve a tool call, or change a call's input before it runs. Done when `hooks/dispatch.py` passes on no `allow` and a case holds that a group whose only decision is a gate's `allow` prints no `permissionDecision`. |
@@ -21,7 +23,7 @@
 
 In:
 
-1. `hooks/dispatch.py#merge` passes on a gate's decision only where its value, lowercased, is `deny` or `ask`, and it prints that lowercase word. Any other value is treated as if the gate printed no decision: `allow`, `defer`, a capitalised `Allow`, or an unknown string. Its reason, where it has one, joins the gate's text, so it is kept beside a neighbour's decision as plain text is and is printed as plain text where no decision passes. `RANK` holds `deny` and `ask` alone.
+1. `hooks/dispatch.py#merge` passes on a gate's decision only where its value, lowercased, is `deny` or `ask`, and it prints that lowercase word. Any other value is treated as if the gate printed no decision: `allow`, `defer`, a capitalised `Allow`, or an unknown string. Its reason, where it has one, joins the gate's text, so it is kept beside a neighbour's decision as plain text is, and is printed as plain text where no decision passes and no decision-less JSON object stands beside it; beside such an object the JSON path prints the object and drops the texts, as it drops plain text there. `RANK` holds `deny` and `ask` alone.
 2. On a `PreToolUse` event, the path for gate JSON with no decision removes two fields before it prints, and prints as it does now otherwise. It removes `hookSpecificOutput.updatedInput`, and a top-level `decision` whose value, lowercased, is not `block`. Those are the fields of such an object that Claude Code reads as an input change or an approval (`approve` maps to `allow`). A top-level `block` maps to `deny` and stays, together with its `reason`. Every other field stays, `continue: false` and `stopReason` among them, so the change removes only what approves a call or changes its input. For every other event, the path prints the first object whole, as it does now.
 3. The module docstring's *Merging* paragraph says what passes and what does not, in place of "the strictest wins — deny over ask over silence". The comment above `RANK`, if one is added, says why `allow` is absent.
 4. Cases in `tests/hooks/test_dispatch.py#Test_merge`, each shown red as contract rule 15 asks:
@@ -98,7 +100,7 @@ What the change removes is `## Removes` below. What it reads is the gates' print
     without a decision reaches Claude Code without its `updatedInput`, and
     without a top-level `decision` other than `block`, which are the two
     fields of it Claude Code reads as an input change or an approval. The plugin
-    directory holds a plugin whose hook can approve a call or change its
+    directory holds back a plugin whose hook can approve a call or change its
     input, and no gate here needs to do either: a gate that has nothing to
     refuse prints nothing, and Claude Code's own permission flow decides.
     check: tests/hooks/test_dispatch.py
