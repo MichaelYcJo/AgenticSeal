@@ -337,11 +337,11 @@ def test_a_script_with_no_subcommand_is_shown_in_no_command_form(pair):
 def test_a_document_with_no_locator_is_caught():
     """`reachable` is the whole of the document rule, so a reader that
     answered yes to any mention would make every case above vacuous."""
-    arms = "skills/x/scripts/arm_check.py"
-    assert not reachable("`arm_check.py` lists the arms.", arms)
-    assert reachable("Run `seal arms hooks/x.py`.", arms)
-    assert reachable("```\nseal arms hooks/x.py\n```\n", arms)
-    assert reachable("It lives at `skills/x/scripts/arm_check.py`.", arms)
+    mutate = "skills/x/scripts/mutation_check.py"
+    assert not reachable("`mutation_check.py` breaks one unit.", mutate)
+    assert reachable("Run `seal mutate hooks/x.py`.", mutate)
+    assert reachable("```\nseal mutate hooks/x.py\n```\n", mutate)
+    assert reachable("It lives at `skills/x/scripts/mutation_check.py`.", mutate)
 
 
 def test_the_failure_message_offers_a_repair_that_actually_works():
@@ -370,12 +370,12 @@ def test_the_failure_message_offers_a_repair_that_actually_works():
         f"the message does not name the form that works, or why -- {message}"
     )
 
-    arms = "skills/verify/scripts/arm_check.py"
+    mutate = "skills/verify/scripts/mutation_check.py"
     with pytest.raises(AssertionError) as raised:
         test_a_document_naming_a_script_with_a_command_says_how_to_reach_it(
-            ("templates/records/sdd-plan.md", arms)
+            ("templates/records/sdd-plan.md", mutate)
         )
-    assert "the command `seal arms`" in str(raised.value), (
+    assert "the command `seal mutate`" in str(raised.value), (
         "a subcommand still has both accepted forms offered"
     )
 
@@ -412,14 +412,14 @@ def test_the_bare_command_is_not_a_locator():
 
 
 def test_a_subcommand_in_prose_or_inside_a_longer_word_does_not_count():
-    """`seal stamp` in a sentence is two words of prose, and `seal arms`
-    inside `seal arms-length` is a different name; a substring test would
+    """`seal stamp` in a sentence is two words of prose, and `seal mutate`
+    inside `seal mutate-length` is a different name; a substring test would
     let either satisfy the rule."""
     stamp = "skills/x/scripts/seal_stamp.py"
     assert not reachable("A seal stamp is drawn once.", stamp)
-    arms = "skills/x/scripts/arm_check.py"
-    assert not reachable("`seal arms-length` is not a command", arms)
-    assert not reachable("`unseal arms` is not a command", arms)
+    mutate = "skills/x/scripts/mutation_check.py"
+    assert not reachable("`seal mutate-length` is not a command", mutate)
+    assert not reachable("`unseal mutate` is not a command", mutate)
 
 
 def test_a_test_file_named_for_a_script_does_not_name_it():

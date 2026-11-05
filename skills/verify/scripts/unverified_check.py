@@ -17,32 +17,14 @@ people to write none, which voids the condition it is defending. Counting them
 is what `seal unverified seal/threads/` is for; no number is repeated in prose here,
 because a number in a comment is right for one commit and nobody recounts it.
 
-It fails for what the author can always fix:
+It fails for what the author can always fix: a section that cannot be read.
+A tolerant parser reports zero there, and zero reads as "everything has been
+closed", the worst available failure, because it is indistinguishable from
+success.
 
-  malformed   a section that cannot be read. A tolerant parser reports zero
-              here, and zero reads as "everything has been closed" — the worst
-              available failure, because it is indistinguishable from success
-  fewer rows  a table that lost rows against the base, or an `gaps.md`
-              that was there and is not (`--baseline REF`) — unless its whole
-              directory stood at the base and is gone, which reads as a
-              settle and which `settled` answers for every reader. Such a
-              directory is named as settled and counted apart
-  no baseline the ref itself does not resolve, or it shares no history with
-              HEAD. That is exit 2, not a pass: a comparison against nothing
-              is not a comparison
-
-**The base is the merge base, not the ref.** `--baseline REF` names the
-branch a pull request merges into, and that branch moves: the moment one work
-item squashes into it, every sibling branch cut before that squash has the
-squashed item's `gaps.md` at the base and never had it at all. So the ref
-is resolved once, to `git merge-base REF HEAD`, and every read below uses that
-commit. On a branch checkout -- a local run, the broad gate's -- that is the
-fork point. In CI it is the base's tip, because a pull request is checked out
-as its head already merged into the base. Either way a row present at that
-commit and absent here was removed by THIS branch, which is the only claim
-this makes, and a row that arrived on the base after the branch was cut is not
-this branch's business: the fork point never had it, and the merge holds it
-too. `merge_base` carries what the old footing cost (#272).
+A row or a closing memo deleted rather than closed is read by nobody here:
+the proofer reads it in the closing memo's diff (`skills/implement/SKILL.md`
+*4. The closing memo*).
 
 An item is closed by marking it, never by deleting it: the Item cell opens
 with the word `closed`, and the second cell says what closed it. Anything
@@ -55,22 +37,19 @@ stdlib-only, and the format it accepts is one line long. That format is strict
 on purpose — see `check_file`.
 
 Exit codes: 0 the record is readable (open items are reported, not punished) ·
-1 a section could not be read, or rows were deleted · 2 the path or arguments
-were unusable, which includes a scan that found no closing memo at all. Three
-states of a `seal/` root's own `threads` path are exit 0 instead, each saying
-which it is, because a pull request in any of them declares nothing and owes
-nothing: the path holding no work item, empty or absent, which is the state a
-complete settle ends in (`settled_root`); no `seal/` directory at the working
-tree's top level, read before any base is (`absent_root`); and work items none
-of which carries an `gaps.md`, where the base comparison found nothing
-deleted (`unwritten_root`).
+1 a section could not be read · 2 the path or arguments were unusable, which
+includes a scan that found no closing memo at all. Three states of a `seal/`
+root's own `threads` path are exit 0 instead, each saying which it is,
+because a pull request in any of them declares nothing and owes nothing: the
+path holding no work item, empty or absent, which is the state a complete
+settle ends in (`settled_root`); no `seal/` directory at the working tree's
+top level (`absent_root`); and work items none of which carries a `gaps.md`
+(`unwritten_root`).
 """
 
 import argparse
-import errno
 import importlib.util
 import os
-import pathlib
 import re
 import subprocess
 import sys
@@ -136,9 +115,8 @@ HEADING = "## Not verified"
 HEADER = ("Item", "Who must answer")
 CLOSED = "closed"
 # The emoji a closed row opened with before the word, U+2705, spelt by its code
-# point so no emoji stands in this file. The working tree's reading refuses it
-# naming the edit; a base revision's reads it as the word, because nobody can
-# edit a commit that already happened.
+# point so no emoji stands in this file. `parse_section` refuses a row opening
+# with it, naming the edit.
 OLD_MARK = chr(0x2705)
 # A design section's items, `skills/settle/rule-changes.md` *Rule changes*: the
 # item's line, then one field per line indented two spaces, a value continuing
@@ -195,18 +173,16 @@ SKIP_DIRS = {
 
 
 class _LooseHeading:
-    """The heading matcher for a base revision. There is one reader; only how
-    it finds the section is an argument, because a base commit may spell the
-    heading the way this corpus did before it was normalized. Everything
-    else — how a cell is read, where a fence ends, how a path resolves — is
-    shared, and that sharing is what stopped one fix from opening the next
-    gap.
+    """The matcher behind the one hint `check_text` gives where a memo holds
+    no `## Not verified` section: the first heading near it, named in the
+    refusal so the author finds the spelling to fix. It decides nothing, and
+    no section is read under it.
 
     **Whether the line is a heading is the one rule's**, `heading_level`, at
     level 2 or 3; this decides the wording alone, a heading that mentions
     `not verified` in any case. It was a pattern of its own, a sixth
     spelling of the heading rule beside the one in this file (#867 round 1,
-    🟡 6). `.match` is the name `sections` and `check_text` call."""
+    🟡 6). `.match` is the name `check_text` calls."""
 
     def match(self, text):
         return heading_level(text) in (2, 3) and "not verified" in text.lower()
@@ -297,11 +273,9 @@ def blank_fences(lines):
     """The same lines with fenced blocks blanked out, indices intact.
 
     A skill or a closing memo quoting this very format must not read as rows or
-    as a second section. Blanking rather than truncating matters: the working
-    tree and the base revision have to agree about where the table is, or
-    adding an example reads as a deletion and rows after an example read as
-    absent. A block that is never closed is blanked to the end, and the
-    delimiter rule is `fence_opener`'s."""
+    as a second section. Blanking rather than truncating matters: truncated,
+    the rows after an example would read as absent. A block that is never
+    closed is blanked to the end, and the delimiter rule is `fence_opener`'s."""
     lines = list(lines)
     out = list(lines)
     for first, last in fence_spans(lines):
@@ -643,9 +617,8 @@ def live_lines(lines, comments=True):
 def readable(text):
     """The lines a reader of a record should judge: no fenced blocks.
 
-    A line a record's rows are counted on is blanked the same way on both
-    sides of a comparison, the third of the three answers
-    `docs/checks/the-fold.md` *The fold, and what tells it from a
+    A line a record's rows are counted on is blanked, the third of the three
+    answers `docs/checks/the-fold.md` *The fold, and what tells it from a
     deletion* gives: a fence nobody closed is blanked to the end, and the
     readers that judge a record refuse the table it hid as absent, while
     `broad_gate.py`'s label, which never stops a run that passed, is
@@ -655,10 +628,10 @@ def readable(text):
     keeps no comment state, and the reader of a record refuses a line that
     begins with `OPENER` at its line (`comment_lines`, #1012).
 
-    Every read starts here — the working tree and the base revision alike —
-    which is what keeps the two sides of the comparison counting the same
-    table. Its lines are `gfm_lines(text)`, so an index into what this
-    returns is an index into `gfm_lines(text)` and into no other split."""
+    Every read of a record starts here, on disk and at a ref alike, so every
+    reader counts the same table. Its lines are `gfm_lines(text)`, so an
+    index into what this returns is an index into `gfm_lines(text)` and into
+    no other split."""
     return blank_fences(gfm_lines(text))
 
 
@@ -756,11 +729,14 @@ def nothing_block(body):
     return [error] if error else []
 
 
-def parse_section(body, offset, strict_header=True):
+def parse_section(body, offset):
     """(open, closed, errors) for the body lines of one section.
 
     `offset` is the file line number of body[0], so every error carries a
-    coordinate the author can open."""
+    coordinate the author can open. The header is exactly `HEADER`, a row
+    opening with `OLD_MARK` is refused naming the edit, and a first line
+    that opens like the no-change block and is not it is prose, which
+    `unread_block` names."""
     errors, open_rows, closed_rows = [], [], []
     content = [(offset + i, ln) for i, ln in enumerate(body) if ln.strip()]
 
@@ -771,9 +747,6 @@ def parse_section(body, offset, strict_header=True):
         return open_rows, closed_rows, errors
 
     first_no, first = content[0]
-    if not strict_header and not opens_the_block(first) and NEAR_NOTHING.match(first):
-        # A base revision's old `none — <why>` line, read as no rows.
-        return open_rows, closed_rows, errors
     block = nothing_block(content)
     if block is not None:
         errors.extend(block)
@@ -789,7 +762,7 @@ def parse_section(body, offset, strict_header=True):
             )
         )
         return open_rows, closed_rows, errors
-    if (tuple(cells) != HEADER) if strict_header else not is_header(cells):
+    if tuple(cells) != HEADER:
         errors.append(
             (
                 first_no,
@@ -840,7 +813,7 @@ def parse_section(body, offset, strict_header=True):
             errors.append((line_no, "the template's placeholder is still in the row"))
             continue
         word, rest = closing_word(seen[0])
-        if word == OLD_MARK and strict_header:
+        if word == OLD_MARK:
             errors.append(
                 (
                     line_no,
@@ -850,7 +823,7 @@ def parse_section(body, offset, strict_header=True):
                 )
             )
             continue
-        if word in (CLOSED, OLD_MARK):
+        if word == CLOSED:
             if not rest:
                 errors.append(
                     (
@@ -894,59 +867,33 @@ def check_file(path):
 
 
 def sections(lines, heading):
-    """Where the section starts, under the matcher this read was given.
-
-    The canonical heading always wins when the file has one. Without that, a
-    base revision holding both `## Not verified` and a heading that merely
-    mentions the phrase would be counted differently from the working tree,
-    and the file would be reported as having lost rows nobody removed."""
-    if isinstance(heading, str):
-        return [i for i, text in headings(lines) if text.strip() == heading]
-    exact = [i for i, text in headings(lines) if text.strip() == HEADING]
-    return exact or [i for i, text in headings(lines) if heading.match(text)]
+    """The index of each heading in LINES, already `readable`, whose text is
+    the string `heading` exactly. `check_text` asks it for `HEADING`, and
+    `pr_body.py` for the section of a record it copies."""
+    return [i for i, text in headings(lines) if text.strip() == heading]
 
 
-def check_text(text, heading=HEADING, strict_header=True):
-    """The reader. One of it, for the working tree and for a base revision.
+def check_text(text):
+    """The reader of one closing memo's text: `(open, closed, errors)`.
 
-    There used to be two, and while both existed every property added to one
-    had to be added to the other by hand. Four pairs drifted apart across
-    three review rounds — which section is counted, how a cell is normalized,
-    where a fence ends, how a path resolves — and each fix on one side opened
-    a gap on the other.
+    There is one reading, whoever asks: `main` through `check_file`, and
+    `settle.py` through `open_record_rows` and for the closed rows it lists.
+    The section is the one headed exactly `HEADING`, and `parse_section`
+    reads its body. Where no such heading stands, the refusal names the
+    first heading near it (`LOOSE_HEADING`), so the author finds the
+    spelling to fix.
 
-    Three of those four are now shared outright. The fourth is these two
-    arguments, and they say the same thing twice: a base revision may be
-    written the way the corpus was before this normalization. Measured here,
-    the files that changed did not only change the heading — they renamed the
-    second column from `Who` to `Who must answer` — so relaxing the heading
-    alone would still have stopped comparing them.
-
-    One more thing relaxes with `strict_header`, for the same reason: a row
-    opening with the old mark, U+2705, is read at a base as the word
-    `closed`, where the working tree refuses it naming the edit. Read as a
-    refusal there, every base written before the word would go uncompared,
-    and a row deleted against it would pass. The old `none — <why>` line
-    relaxes the same way: a base reads it as no rows, where the working tree
-    reads it as prose, refuses the section as holding neither the table nor
-    the no-change block, and names the line (`unread_block`). Nothing else
-    relaxes. A legacy
-    header still has to be a two-cell row whose first column is `Item`, and
-    every other row below it is read exactly as the working tree's rows are.
-    The relaxation ends when every base carries the canonical wording.
-
-    **A comment line is refused on both sides, and nothing relaxes it.**
-    The first line that begins with `OPENER` is refused at its line before
-    any section is looked for (`comment_lines`, #1012). At a base revision
-    that refusal is the `--baseline` loop's `not compared` notice, because
-    nobody can edit a commit that already happened."""
+    **A comment line is refused before any section is looked for.** The
+    first line that begins with `OPENER` is refused at its line
+    (`comment_lines`, #1012). `open_record_rows` hands any refusal on as one
+    entry saying the record cannot be read, never as zero open rows."""
     lines = readable(text)
 
     commented = comment_lines(lines)
     if commented:
         return [], [], [(commented[0] + 1, COMMENT_LINE)]
 
-    found = sections(lines, heading)
+    found = sections(lines, HEADING)
     if not found:
         near = [(i, text) for i, text in headings(lines) if LOOSE_HEADING.match(text)]
         hint = (
@@ -967,7 +914,7 @@ def check_text(text, heading=HEADING, strict_header=True):
         if i > start:
             end = i
             break
-    return parse_section(lines[start + 1 : end], start + 2, strict_header)
+    return parse_section(lines[start + 1 : end], start + 2)
 
 
 def overviews(paths):
@@ -977,19 +924,14 @@ def overviews(paths):
     `specs/` is a team's document, read as history and never as this
     plugin's record, so a malformed `## Not verified` there is not a finding.
     A path NAMED, a file or a directory inside a reference root, is read as
-    named — the person asked for it — and `overviews_at` reads a base by the
-    same rule, so a closing memo the walk leaves out is never reported deleted."""
+    named — the person asked for it."""
     found = []
     for p in paths:
-        # The argument is read through `as_named`, which resolves the way to
-        # the repository's top and keeps every component inside it as named,
-        # except in a path that holds a `..` or runs through a link loop,
-        # which is its real path.
-        # `ls-tree` lists a tracked symbolic link under its own path, so
-        # resolving each file made a link that is right there read as deleted,
-        # and resolving the argument whole left a named link's own path
-        # uncompared (#1225).
-        p = as_named(p)
+        # Each argument is read at its real path. `reference_rule` measures
+        # the path against the top `git rev-parse --show-toplevel` gives,
+        # which has its links resolved, so a tree reached through a link and
+        # read as named would leave no team's `specs/` out of the walk.
+        p = os.path.realpath(p)
         if os.path.isfile(p):
             found.append(p)
             continue
@@ -1030,7 +972,7 @@ def references_at(top):
     None prunes nothing, which reads more and never less: a copy taken alone
     keeps the walk it had before reference roots existed, rather than
     refusing a run that needed none of this. Read once per path a run is
-    handed, and once more for the base, so nothing is cached."""
+    handed, so nothing is cached."""
     try:
         config, home = config_at(top)
         return config, config.reference_roots(home)
@@ -1068,137 +1010,16 @@ def reference_rule(start):
     return skip
 
 
-def real(path):
-    """`path` with symbolic links resolved.
-
-    `as_named` reads the part of an argument that leads to its repository's
-    top through here. `git rev-parse --show-toplevel` answers with links
-    already resolved, so a caller who reaches the tree through one — `/tmp`
-    on macOS is a link to `/private/tmp`, and a code directory linked from
-    home is the same shape — produced a repo-relative path like
-    `../link/specs`, which matches no line of `ls-tree`. Both comparisons
-    then found nothing to do and the run passed: the state the ref check
-    above exists to prevent, reached by another door."""
-    return os.path.realpath(path)
-
-
-def repository_of(path):
-    """The top of the repository `path` is compared in, or None where there
-    is none.
-
-    The repository the real path of `path`'s nearest existing ancestor is in,
-    as before #1225, because a checkout reached through a link from a
-    directory that is itself a repository, such as a home directory, is
-    compared in the checkout. Only where the real path is in no repository
-    is it the repository holding the deepest link on the path: a closing
-    memo linked to a file outside every repository still stands in one, and
-    its own path there is what the base holds."""
-    start = nearest_existing(_absolute(path))
-    top = repo_root(real(start))
-    p = start
-    while top is None and os.path.dirname(p) != p:
-        if os.path.islink(p):
-            top = repo_root(real(os.path.dirname(p)))
-        p = os.path.dirname(p)
-    return top
-
-
-def as_named(path):
-    """`path` as this check compares it: the way to its repository's top
-    resolved through `real`, and every component inside the repository kept
-    as the person named it. A path in no repository is its real path.
-
-    The top is the shortest prefix of the absolute path that is the
-    repository's top. Resolving the whole path read a named link as its
-    target, so the rows the link's own path held at the base were never
-    compared and left with exit 0 (#1225). git cannot give the path back as
-    named: `rev-parse --show-prefix` answers with links resolved too. A path
-    that holds a `..`, or that runs through a link loop, is its real path,
-    which `_absolute` gives."""
-    full = _absolute(path)
-    top = repository_of(full)
-    if top is None:
-        return real(full)
-    chain = [full]
-    while os.path.dirname(chain[-1]) != chain[-1]:
-        chain.append(os.path.dirname(chain[-1]))
-    for prefix in reversed(chain):
-        try:
-            if os.path.samefile(prefix, top):
-                inside = os.path.relpath(full, prefix)
-                if inside == os.curdir:
-                    return real(prefix)
-                return os.path.join(real(prefix), inside)
-        except OSError:
-            continue
-    return real(full)
-
-
-def _absolute(path):
-    """`path` made absolute, and resolved through `real` where it holds a `..`
-    or runs through a link loop.
-
-    `os.path.abspath` drops `a/..` by its text, so where `a` is a link it
-    names a directory the file system does not reach through that path, and
-    the check compared a path nobody named. A path that holds a `..` is
-    therefore read as `real` reads it, as every argument was read before
-    #1225, so a link the person named on it is read as its target and the
-    rows its own path held are not compared (#1240). A path through a link
-    loop, such as `loop -> loop/..`, leads nowhere the scan can enter, so it
-    is read as `real` reads it too: kept as named, the scan read nothing
-    under it, and the base's memo under its real spelling was reported
-    deleted though it is there. POSIX names the loop `ELOOP`; Windows
-    answers an unfollowable link with `ERROR_CANT_RESOLVE_FILENAME`, 1921,
-    as `ntpath.realpath` reads it. Every other path is made absolute by its
-    text, and `as_named` keeps its components."""
-    if os.pardir in pathlib.PurePath(path).parts:
-        return real(path)
-    try:
-        os.stat(path)
-    except OSError as error:
-        if error.errno == errno.ELOOP or getattr(error, "winerror", None) == 1921:
-            return real(path)
-    return os.path.abspath(path)
-
-
-def spellings(path, root):
-    """Each repo-relative spelling the base may list `path` under, `path` in
-    `as_named`'s form: as named, then with the components through each one
-    resolved, ending at the real path.
-
-    `ls-tree` lists a path through directories only, never through a link.
-    Where a component inside the repository is a link, the base spells the
-    path as named if that link was a directory at the base (#1225), and
-    resolved if it was a link there too. Asking the base under one spelling
-    passed a memo deleted behind a link with exit 0. Resolving a component
-    resolves every link before it, so these are each spelling `real` can
-    give; one that keeps a link above a link it resolves is not among them.
-    On Windows `real` also gives the case the disk holds, so a component
-    typed in another case is read in the disk's case by the last of them."""
-    rel = repo_relative(path, root)
-    if rel is None:
-        return []
-    parts = [] if rel == os.curdir else rel.split("/")
-    found = [rel]
-    for i in range(1, len(parts) + 1):
-        head = real(os.path.join(root, *parts[:i]))
-        at = repo_relative(os.path.join(head, *parts[i:]), root)
-        # None on another volume, where no commit of this repository holds it.
-        if at is not None and at not in found:
-            found.append(at)
-    return found
-
-
 def git_path(path):
     r"""`path` as git spells it: forward slashes, whatever `os.sep` is here.
 
     Every repo-relative path in this file is built by `os.path.relpath` and
-    then handed to git — as a `show` argument, or compared against what
-    `ls-tree` printed. git answers and accepts `/` on every platform, so on
-    Windows the two sides were built by two rules: `threads\x\gaps.md`
-    against `threads/x/gaps.md`. `show` returned None and the row check
-    quietly compared nothing; the presence check matched no path and reported
-    every tracked closing memo as deleted.
+    then read beside what git prints or handed to a reader of git's paths:
+    `repo_relative`'s answer is matched against the `Reference specs` row,
+    `tree_at` lists a directory on disk in the form `ls-tree` lists it at a
+    ref, and `annotate` names a file to GitHub. git answers and accepts `/`
+    on every platform, so on Windows a path built by `os.sep` would match
+    none of them: `threads\x\gaps.md` against `threads/x/gaps.md`.
 
     A no-op where `os.sep` already is `/`, rather than branching on `os.name`:
     the substitution has to be on the path Linux CI runs, or the Windows half
@@ -1212,17 +1033,15 @@ def repo_relative(path, root):
     r"""`path` as a repo-relative git path, or None when it has no relative form.
 
     The composition `git_path(os.path.relpath(...))` is not safe on its own:
-    `relpath` raises across drives, and the four sites that hand a path to git
-    were left holding that raise while the two reporting sites got
-    `display_path`. Measured: the run printed one row and then died mid-report
-    with the very `ValueError` the helper beside this one exists to prevent.
+    `relpath` raises across drives, and a `ValueError` raised mid-report
+    kills a run that has already printed part of its rows, which
+    `display_path` beside this one exists to prevent.
 
-    None rather than a fallback, because these four are asking git a question
-    about a path INSIDE a repository. A path on another volume is not inside
-    this one -- a working tree cannot span drives -- so there is no answer to
-    degrade to, and inventing one is the quiet zero this tool refuses.
-    `main` rejects that case up front; this is what makes the rejection
-    total rather than a promise.
+    None rather than a fallback, because the question is about a path INSIDE
+    a repository. A path on another volume is not inside this one -- a
+    working tree cannot span drives -- so there is no answer to degrade to,
+    and inventing one is the quiet zero this tool refuses. `reference_rule`
+    asks it only of paths under the top `repo_root` found for them.
     """
     try:
         return git_path(os.path.relpath(path, root))
@@ -1246,32 +1065,13 @@ def display_path(path, start):
         return os.path.abspath(path)
 
 
-def nearest_existing(path):
-    """`path`, or the closest ancestor of it that exists.
-
-    A deleted directory still has to name the repository it was in."""
-    p = os.path.abspath(path)
-    while not os.path.exists(p) and os.path.dirname(p) != p:
-        p = os.path.dirname(p)
-    return p
-
-
 def unique_by_target(paths):
     """One path per real file, the real file's own, in sort order.
 
     A tracked symbolic link and the file it points at are one record and two
     paths. Counting both doubles its open items. The path kept is the one
     `os.path.realpath` answers, whichever path the scan reached the file by,
-    because the row comparison reads the tree side through it and the base
-    side at it: a link kept in its target's place had its own blob read at
-    the base, which holds no section, and a deleted row passed (#19). The
-    real path may lie outside the scanned path, or outside the repository,
-    which `main` names as not compared. A path reached through a link is
-    read by `main` as well, at each of its `spellings` that held a file at
-    the base, since this list leaves those paths out and those rows were the
-    files' own. Presence is a different question and keeps every path —
-    `ls-tree` lists the link under its own name, so dropping it here would
-    report a file that is right there as deleted."""
+    and it may lie outside the scanned path, or outside the repository."""
     return sorted({os.path.realpath(p) for p in paths})
 
 
@@ -1287,13 +1087,8 @@ def repo_root(path):
 
 
 def commit_of(root, ref):
-    """The commit `ref` names in `root`, or None.
-
-    One reader for two questions — whether a ref resolves at all, and which
-    commit it is. `resolves` below used to ask rev-parse itself and answer only
-    the first; the second is what `base_label` needs, and asking twice is the
-    duplicated-reader shape `check_text` above spent three review rounds
-    closing."""
+    """The commit `ref` names in `root`, or None. `resolves` asks it for
+    `chain_check.py`."""
     r = subprocess.run(
         ["git", "-C", root, "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}"],
         capture_output=True,
@@ -1308,38 +1103,33 @@ def commit_of(root, ref):
 def resolves(root, ref):
     """Whether `ref` names a commit in `root`.
 
-    Asked before anything is compared. An unresolvable ref used to make every
-    comparison return "no base version", which is the same silence as a file
-    that is genuinely new — so a CI checkout too shallow to hold the base
-    branch turned the deletion check off and reported success.
-
-    `chain_check.py` loads this module and calls this by name, which is why it
-    stays a predicate rather than becoming `commit_of` at its call sites."""
+    `chain_check.py` loads this module and asks this of its `--baseline`
+    before it reads anything at that ref, so a CI checkout too shallow to
+    hold the base branch is exit 2 there rather than a diff read against
+    nothing. It calls this by name, which is why it stays a predicate rather
+    than becoming `commit_of` at its call sites."""
     return commit_of(root, ref) is not None
 
 
 def merge_base(root, ref):
     """The last commit `ref` and `HEAD` agreed on, or None.
 
-    This is the revision every comparison below reads, and `ref` is not. The
-    baseline a caller passes is the branch the pull request merges into, and
-    that branch MOVES: the moment one work item squashes into it, every
-    sibling branch cut before that squash has the squashed item's `gaps.md`
-    at the base and never had it at all. On the release that found this, three
-    of four branches were refused for exactly that, and the refusal was right
-    about what it measured and wrong about what happened (#272).
+    `chain_check.py` asks `settled` at this commit, and not at `ref`. The ref
+    it passes is the branch the pull request merges into, and that branch
+    MOVES: the moment one work item squashes into it, every sibling branch
+    cut before that squash has the squashed item's files at the ref and never
+    had them at all (#272).
 
     On a branch checkout the merge base is the fork point. In CI, whose
     checkout of a pull request is the head already merged into the base, it is
-    the base's tip, and `base_label` names it by the ref there. Either way a
-    file present there and absent here was removed by THIS branch — which is
-    the only claim this tool makes — and a file that arrived on the base after
-    the branch was cut is not this branch's business.
+    the base's tip. Either way a directory present there and absent here was
+    removed by THIS branch, and one that arrived on the base after the branch
+    was cut is not this branch's business.
 
-    None for two states, and both are exit 2 rather than a degraded pass:
-    unrelated histories (exit 1, empty output) and a `HEAD` that names no
-    commit (exit 128). A shallow clone whose base ref resolves while their
-    common ancestor sits beyond the graft lands in the first."""
+    None for two states: unrelated histories (exit 1, empty output) and a
+    `HEAD` that names no commit (exit 128). A shallow clone whose base ref
+    resolves while their common ancestor sits beyond the graft lands in the
+    first."""
     r = subprocess.run(
         ["git", "-C", root, "merge-base", ref, "HEAD"],
         capture_output=True,
@@ -1349,68 +1139,6 @@ def merge_base(root, ref):
     if r.returncode != 0:
         return None
     return r.stdout.strip() or None
-
-
-def base_label(ref, ref_commit, base):
-    """How a report names the revision it compared against.
-
-    The shortest form that is TRUE, which is one rule and not a special case.
-    Where the merge base IS the ref's own commit the ref names it exactly, and
-    that is the ordinary run: `--baseline HEAD` locally, and CI, whose checkout
-    on a `pull_request` event is the merge of the head into the base. Where the
-    base has moved past the fork, naming the ref alone would send a reader to a
-    commit this run never opened."""
-    if base == ref_commit:
-        return ref
-    return f"the merge-base of {ref} and HEAD ({base[:7]})"
-
-
-def overviews_at(root, ref, prefixes):
-    """Repo-relative `gaps.md` paths present at `ref` under `prefixes`.
-
-    The scan walks the tree as it is now, so a file deleted wholesale never
-    enters it and its rows leave without a word. Deleting the file was
-    therefore cheaper and quieter than deleting one row from it, which is the
-    behaviour the row check exists to make expensive. `-z` ends each path
-    with a NUL and quotes none, whatever `core.quotePath` says, so a path
-    that is not ASCII is read as it is."""
-    r = subprocess.run(
-        ["git", "-C", root, "ls-tree", "-r", "-z", "--name-only", ref],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
-    if r.returncode != 0:
-        return []
-    loaded = references_at(root)
-    config, roots = loaded if loaded else (None, ())
-    named = [
-        p
-        for p in prefixes
-        if loaded and p != "." and config.under_reference_root(p, roots)
-    ]
-    out = []
-    for rel in r.stdout.split("\0"):
-        if os.path.basename(rel) != OVERVIEW:
-            continue
-        # The same skip list the scan walks with. Built by a different rule,
-        # a tracked gaps.md under build/ or node_modules/ would be absent
-        # from every scan and so reported as deleted on every run — a red
-        # build the author can only clear by renaming the directory.
-        if set(os.path.dirname(rel).split("/")) & SKIP_DIRS:
-            continue
-        # The reference roots by the scan's rule too (#688), or a closing memo
-        # the walk leaves out would be reported deleted on every run: out,
-        # unless a prefix the person named sits inside one.
-        if (
-            loaded
-            and config.under_reference_root(rel, roots)
-            and not any(rel == p or rel.startswith(p + "/") for p in named)
-        ):
-            continue
-        if any(p == "." or rel == p or rel.startswith(p + "/") for p in prefixes):
-            out.append(rel)
-    return out
 
 
 _rules = None
@@ -1432,16 +1160,17 @@ def rule_changes():
 def settled(root, ref, directories):
     """The DIRECTORIES that stood at REF, each a settle where it is gone whole.
 
-    **The one predicate, and every reader of a removal asks it**:
-    `--baseline` below and `chain_check.py`, each of the merge base it
-    already computes, and each handing it only directories absent on its
-    head side. Its rule is `docs/checks/the-fold.md` *The fold, and what
-    tells it from a deletion*. A directory is settled when it held a file at
-    REF. What its record held there and what the policy root holds of its
-    design are not read: the settling session writes each section in its own
-    words, and the settle's pull request states each decision for review.
-    A directory a pull request empties only in part never reaches here,
-    since its callers pass only the directories that are gone."""
+    **The one predicate, and its one reader, `chain_check.py`, asks it**, of
+    the merge base it already computes, handing it only directories absent
+    on its head side. It stands here rather than in `chain_check.py`, where
+    `tests/skills/test_chain_check.py`'s `Test_module` keeps a second one
+    from being defined. Its rule is `docs/checks/the-fold.md` *The fold, and
+    what tells it from a deletion*. A directory is settled when it held a
+    file at REF. What its record held there and what the policy root holds
+    of its design are not read: the settling session writes each section in
+    its own words, and the settle's pull request states each decision for
+    review. A directory a pull request empties only in part never reaches
+    here, since its caller passes only the directories that are gone."""
     return {d for d in directories if tree_at(root, ref, d)}
 
 
@@ -1468,19 +1197,9 @@ def tree_at(root, ref, directory):
     return [rel for rel in r.stdout.split("\0") if rel] if r.returncode == 0 else []
 
 
-def _text_at(root, ref, rel):
-    """What `rel` held at `ref`, or on disk when `ref` is None; None if absent."""
-    if ref is not None:
-        return show(root, ref, rel)
-    try:
-        with open(under_root(root, rel), encoding="utf-8", errors="replace") as f:
-            return f.read()
-    except OSError:
-        return None
-
-
-def open_record_rows(root, ref, directory):
-    """`[(file, what is open)]` for a work item's record at `ref`.
+def open_record_rows(root, directory):
+    """`[(file, what is open)]` for a work item's record on disk, DIRECTORY
+    `/`-joined under ROOT.
 
     The rows `seal settle --apply` refuses to take with a directory, and its dry
     run lists: every open item in `gaps.md`'s `## Not verified`. Each is a claim with an answerer rather
@@ -1488,23 +1207,26 @@ def open_record_rows(root, ref, directory):
     record that a production workflow was red sat in a retiring closing memo (its
     L2).
 
-    A closing memo whose section cannot be read is one entry saying so, never
+    The record is read by `check_text`, as `seal unverified` reads it. A
+    closing memo whose section cannot be read is one entry saying so, never
     zero rows: a count this cannot read is not a count of nothing, which is
-    the rule `check_text` above is written to. A base revision is read with
-    the same relaxations the `--baseline` comparison gives it."""
+    the rule `check_text` above is written to. A directory with no `gaps.md`
+    holds no row."""
+    try:
+        with open(
+            under_root(root, f"{directory}/{OVERVIEW}"),
+            encoding="utf-8",
+            errors="replace",
+        ) as f:
+            overview = f.read()
+    except OSError:
+        return []
+    rows, _, errors = check_text(overview)
     found = []
-    overview = _text_at(root, ref, f"{directory}/{OVERVIEW}")
-    if overview is not None:
-        if ref is None:
-            rows, _, errors = check_text(overview)
-        else:
-            rows, _, errors = check_text(
-                overview, heading=LOOSE_HEADING, strict_header=False
-            )
-        if errors:
-            found.append((OVERVIEW, f"cannot be read ({errors[0][1]})"))
-        for _, item, _who in rows:
-            found.append((OVERVIEW, item))
+    if errors:
+        found.append((OVERVIEW, f"cannot be read ({errors[0][1]})"))
+    for _, item, _who in rows:
+        found.append((OVERVIEW, item))
     return found
 
 
@@ -1515,11 +1237,11 @@ def settled_root(path):
     That is the state a complete settle reaches (#517, `frame/design.md` G7), and it
     is two states: the tree that ran `seal settle --apply` holds an empty
     `seal/threads/`, and a fresh checkout of the commit holds none, because git
-    keeps no empty directory. A person who runs `seal unverified --baseline
-    origin/<base> seal/threads/` after the settle hands this tool that path, and
-    reading it as a typo would refuse a finished settle. Only this one path is settled: any other path that is
-    missing is still refused, which is what keeps `threads/ thraeds/` from
-    passing in silence.
+    keeps no empty directory. A person who runs `seal unverified seal/threads/`
+    after the settle hands this tool that path, and reading it as a typo would
+    refuse a finished settle. Only this one path is settled: any other path
+    that is missing is still refused, which is what keeps `threads/ thraeds/`
+    from passing in silence.
     """
     p = os.path.abspath(path)
     parent = os.path.dirname(p)
@@ -1534,8 +1256,7 @@ def settled_root(path):
 
 SETTLED = (
     "seal unverified: {path} holds no work item and its `seal/` root is "
-    "there — the state a complete settle ends in, so there is nothing to read "
-    "and nothing left the record without being closed"
+    "there — the state a complete settle ends in, so there is nothing to read"
 )
 
 
@@ -1562,9 +1283,8 @@ def absent_root(path):
 
 ABSENT = (
     "seal unverified: {path} has no `seal/` root in this tree, so nothing "
-    "here is declared: there is no record to read and nothing to compare "
-    "against the base. A root in local mode sits under the git directory and "
-    "is never committed"
+    "here is declared: there is no record to read. A root in local mode sits "
+    "under the git directory and is never committed"
 )
 
 
@@ -1574,7 +1294,7 @@ def unwritten_root(path):
 
     Every work item that never opened a closing memo is in this state, and a
     pull request against it has no row to read (#952). `main` asks it only
-    once the base comparison found nothing deleted and nothing settled.
+    once the scan found no closing memo.
     """
     p = os.path.abspath(path)
     parent = os.path.dirname(p)
@@ -1606,58 +1326,6 @@ def show(root, ref, rel):
     return r.stdout if r.returncode == 0 else None
 
 
-LINK_MODE = "120000"
-
-
-def mode_at(root, ref, rel):
-    """The mode `ref` records for `rel`, `LINK_MODE` for a symbolic link, or
-    None where `ref` holds no such path."""
-    r = subprocess.run(
-        ["git", "-C", root, "ls-tree", ref, "--", rel],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
-    head = r.stdout.split(" ", 1)[0] if r.returncode == 0 else ""
-    return head or None
-
-
-def compare_at(root, base, at, rel, now, named):
-    """What a run says of the record reported as `rel`, which holds `now`
-    rows here, against the section `at` held at `base`: `("notice", line)`
-    where that section cannot be read, `("error", line)` where it held more
-    rows, and None where it held no more or `base` holds no `at`."""
-    base_text = show(root, base, at)
-    if base_text is None:
-        return None
-    base_open, base_closed, base_errors = check_text(
-        base_text, heading=LOOSE_HEADING, strict_header=False
-    )
-    if base_errors:
-        # Never a silent zero: a base this cannot read is a file whose
-        # count is unknown, and saying so is the whole point of the
-        # tool. It is not an error either — the author cannot edit a
-        # commit that already happened.
-        return "notice", annotate(
-            "notice",
-            rel,
-            1,
-            f"not compared: the section at {named} could "
-            f"not be read ({base_errors[0][1]})",
-        )
-    was = len(base_open) + len(base_closed)
-    if now < was:
-        return "error", annotate(
-            "error",
-            rel,
-            1,
-            f"{was} rows at {named}, {now} here. An item leaves "
-            f"this table by opening with the word `{CLOSED}` and "
-            "saying what closed it, never by being deleted",
-        )
-    return None
-
-
 def annotate(kind, path, line, message):
     """A GitHub annotation in CI, a plain line anywhere else."""
     if os.environ.get("GITHUB_ACTIONS"):
@@ -1678,115 +1346,24 @@ def main(argv=None):
         "that cannot be read.",
     )
     ap.add_argument("path", nargs="*", default=["."])
-    ap.add_argument(
-        "--baseline",
-        metavar="REF",
-        help="the branch this pull request merges into. Also fail when a "
-        "table holds fewer rows than it did at `git merge-base REF HEAD`, or "
-        "when a gaps.md that existed there is gone — an item leaves by "
-        "being marked closed, not by the row or the file being deleted. That "
-        "commit is the fork point on a branch checkout and the base's tip in "
-        "CI, whose checkout of a pull request is the head already merged into "
-        "REF; either way a work item squashed into REF after this branch was "
-        "cut is not this branch's removal. Nor is a work item directory "
-        "that stood at the merge base and is gone whole, which reads as a "
-        "settle. It is named as settled rather than reported as a deletion",
-    )
     args = ap.parse_args(argv)
 
-    # Before the base is resolved: the pull request that moves a root to
-    # local mode takes every closing memo out of the tree, and with no root in it
-    # nothing is declared, so that move is not this branch's deletion.
+    # The pull request that moves a root to local mode takes every closing
+    # memo out of the tree, and with no root in it nothing is declared.
     if all(absent_root(p) for p in args.path):
         for p in args.path:
             print(ABSENT.format(path=p))
         return 0
 
     missing = [p for p in args.path if not os.path.exists(p) and not settled_root(p)]
-    if missing and not args.baseline:
+    if missing:
         print(f"seal unverified: no such path: {missing[0]}", file=sys.stderr)
         return 2
-    # With a baseline, a path that is gone may be the thing being asked about:
-    # a person runs `--baseline origin/<base> seal/threads/`, and a change that
-    # deletes threads/ used to be told it had mistyped an argument. A path that
-    # held nothing at the base either is still a typo, and saying so is what
-    # keeps `threads/ thraeds/` from passing in silence. That check needs the
-    # repository, so it waits until the baseline block below has resolved one.
-
-    # Resolved before the scan, because deleting every gaps.md is the one
-    # case where the scan finds nothing AND something has to be reported. It
-    # used to exit 2 saying "nothing was checked", which reads as a bad
-    # argument — and in a repository with one work item, deleting a single
-    # file is that case.
-    # `base` is the commit every comparison below reads and `named` is how a
-    # report spells it. Resolved ONCE, here, because all three of the reads
-    # below used to take `args.baseline` and a repair applied at any one of
-    # them would leave two arms of one refusal reading two revisions.
-    root = base = named = None
-    if args.baseline:
-        root = repository_of(args.path[0])
-        if root is None:
-            print(
-                f"seal unverified: --baseline {args.baseline} needs a git "
-                f"repository, and {args.path[0]} is not in one — nothing was "
-                "compared",
-                file=sys.stderr,
-            )
-            return 2
-        ref_commit = commit_of(root, args.baseline)
-        if ref_commit is None:
-            print(
-                f"seal unverified: --baseline {args.baseline} does not resolve "
-                f"in {root} — nothing was compared. A shallow checkout or a "
-                "renamed base branch lands here, and passing it would report "
-                "a deletion check that never ran",
-                file=sys.stderr,
-            )
-            return 2
-        base = merge_base(root, args.baseline)
-        if base is None:
-            print(
-                f"seal unverified: --baseline {args.baseline} and HEAD "
-                f"share no history in {root} — nothing was compared. What "
-                "this asks is what THIS branch removed, and without a commit "
-                "they agree on there is no such question to answer",
-                file=sys.stderr,
-            )
-            return 2
-        named = base_label(args.baseline, ref_commit, base)
-        # Every argument is compared against ONE repository, the one the FIRST
-        # argument is in. That was always the rule and nothing stated it, so on
-        # Windows a second argument on another drive reached `os.path.relpath`
-        # and aborted the run mid-report. Said here instead: a path with no
-        # relative form to `root` is not in `root`, because a working tree
-        # cannot span volumes.
-        compared = {p: as_named(p) for p in args.path}
-        outside = [p for p in args.path if repo_relative(compared[p], root) is None]
-        if outside:
-            print(
-                f"seal unverified: {outside[0]} is not in {root} — nothing "
-                "was compared. Every path is read against the repository the "
-                "first one is in, and this one is on another volume",
-                file=sys.stderr,
-            )
-            return 2
-        spelt = {p: spellings(compared[p], root) for p in args.path}
-
-    if missing and args.baseline:
-        typos = [p for p in missing if not overviews_at(root, base, spelt[p])]
-        if typos:
-            print(
-                f"seal unverified: no such path: {typos[0]} — and nothing "
-                f"under it at {named} either, so there is nothing to "
-                "compare it against",
-                file=sys.stderr,
-            )
-            return 2
 
     files = overviews(args.path)
     cwd = os.getcwd()
     total_open = total_closed = 0
-    bad, deleted, uncompared, settles = [], [], [], []
+    bad = []
     for path in unique_by_target(files):
         rel = display_path(path, cwd)
         open_rows, closed_rows, errors = check_file(path)
@@ -1799,113 +1376,7 @@ def main(argv=None):
             for _, item, who in open_rows:
                 print(f"      open  {item}  —  {who}")
 
-        if args.baseline and not errors:
-            # A kept path is a real path, and a link's target can lie outside
-            # the repository, where no commit holds it: `show` answers None
-            # there, and the file would leave the report in silence. With no
-            # relative form at all it is on another volume, outside as well.
-            at = repo_relative(path, root)
-            if at is None or at.split("/")[0] == "..":
-                uncompared.append(
-                    annotate(
-                        "notice",
-                        rel,
-                        1,
-                        "not compared: the file lies outside the repository, "
-                        "so no commit of the repository holds it",
-                    )
-                )
-                continue
-            # An unreadable section returns zero rows, and comparing that zero
-            # told the author to restore rows that never left.
-            found = compare_at(
-                root, base, at, rel, len(open_rows) + len(closed_rows), named
-            )
-            if found:
-                kind, line = found
-                (uncompared if kind == "notice" else deleted).append(line)
-
-    if args.baseline:
-        # The loop above reads the base at each real path. A path reached
-        # through a link here, the file itself a link or a directory on its
-        # way, is spelt at the base as named or with some of its links
-        # resolved (`spellings`). Each such spelling that was a file at the
-        # base held its own rows there, and nothing else reads them: they are
-        # compared with what the path reads now, under that spelling, once
-        # however many scanned paths reach it. A spelling that was a link at
-        # the base held no rows of its own there.
-        spelt_here = {path: spellings(path, root) for path in files}
-        owed = {}
-        for path, ats in spelt_here.items():
-            real_at = repo_relative(os.path.realpath(path), root)
-            for at in ats:
-                if at != real_at:
-                    owed.setdefault(at, path)
-        for at, path in owed.items():
-            if mode_at(root, base, at) == LINK_MODE:
-                continue
-            open_rows, closed_rows, errors = check_file(path)
-            if errors:
-                continue
-            found = compare_at(
-                root,
-                base,
-                at,
-                display_path(under_root(root, at), cwd),
-                len(open_rows) + len(closed_rows),
-                named,
-            )
-            if found:
-                kind, line = found
-                (uncompared if kind == "notice" else deleted).append(line)
-
-        # The base lists each memo under one spelling of its path, so the
-        # prefixes carry each spelling of every argument, and a memo the
-        # scan reads is here under each spelling of its own path.
-        prefixes = sorted({at for p in args.path for at in spelt[p]})
-        here = {at for ats in spelt_here.values() for at in ats}
-        gone = [r for r in overviews_at(root, base, prefixes) if r not in here]
-        # A settle takes the whole directory, so a memo removed from one that
-        # stays is a deletion whatever the predicate would say.
-        removed = sorted(
-            {
-                os.path.dirname(r)
-                for r in gone
-                if not os.path.isdir(under_root(root, os.path.dirname(r)))
-            }
-        )
-        by_settle = settled(root, base, removed)
-        for rel in gone:
-            if os.path.dirname(rel) in by_settle:
-                # Named rather than passed over in silence: a removal this arm
-                # stops reporting is one the reader has to see it decided about.
-                settles.append(
-                    annotate(
-                        "notice",
-                        display_path(os.path.join(root, rel), cwd),
-                        1,
-                        f"settled: the directory stood at {named} and is gone "
-                        "whole, which reads as a settle",
-                    )
-                )
-                continue
-            if rel not in here:
-                # Relative to the caller's directory, like every other line
-                # this prints. The two deletion reports used to answer on
-                # different footings, which only agreed when the command ran
-                # from the repository root.
-                deleted.append(
-                    annotate(
-                        "error",
-                        display_path(os.path.join(root, rel), cwd),
-                        1,
-                        f"present at {named} and not here. Whatever it "
-                        "recorded as unverified left with it, and its "
-                        "directory still stands, so this is no settle",
-                    )
-                )
-
-    if not files and not deleted and not settles:
+    if not files:
         if all(settled_root(p) for p in args.path):
             print(SETTLED.format(path=", ".join(args.path)))
             return 0
@@ -1924,19 +1395,7 @@ def main(argv=None):
         f"\n{len(unique_by_target(files))} closing memos · {total_open} open"
         f" · {total_closed} closed"
         f" · {len(bad)} unreadable"
-        + (f" · {len(uncompared)} not compared" if uncompared else "")
-        + (f" · {len(settles)} settled" if settles else "")
     )
-
-    if settles:
-        print("\nsettled — removed whole, not deleted from the record:")
-        for line in settles:
-            print(line)
-
-    if uncompared:
-        print(f"\nnot compared against {named}:")
-        for line in uncompared:
-            print(line)
 
     if bad:
         print("\nthe record could not be read as it stands:")
@@ -1946,16 +1405,6 @@ def main(argv=None):
             "\nThis is not a report of zero open items. A section this cannot "
             "read is a section whose count is unknown."
         )
-    if deleted:
-        print("\nrows left the record without being closed:")
-        for line in deleted:
-            print(line)
-        print(
-            f"\nRe-add the row, its Item cell opening with the word `{CLOSED}` "
-            "and the second cell saying what closed it. Deleting and verifying "
-            "have to look different, or they are the same edit."
-        )
-    if bad or deleted:
         return 1
 
     if total_open == 0:
