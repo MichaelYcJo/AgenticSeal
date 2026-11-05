@@ -666,8 +666,8 @@ class Test_module:
         module on more than one (#684).
 
         Red how: deleting `"IfExp"` from `ARM_SHAPES` leaves it in neither table
-        and this case names it. Executed. On Python 3.14 at `346b4af7` it named
-        `Interpolation` and `TemplateStr`. Executed.
+        and this case names it. Executed. On Python 3.14, before the tables
+        held them, it named `Interpolation` and `TemplateStr`. Executed.
         """
         missing = grammar() - ARM.CLASSIFIED
         assert not missing, (
@@ -698,8 +698,9 @@ class Test_module:
         red on the Python it misdescribes, and CI runs this module at every bound
         (`test_every_bound_of_the_range_table_is_a_python_ci_runs_this_module_at`).
 
-        Red how: on Python 3.14 at `346b4af7`, naming the five aliases. With
-        `TemplateStr`'s range deleted, red on 3.12 (declared present, absent).
+        Red how: on Python 3.14 with no `ONLY_ON_SOME_PYTHONS`, naming the five
+        aliases. With `TemplateStr`'s range deleted, red on 3.12 (declared
+        present, absent).
         With `Num`'s upper bound at 3.13, red on 3.13 (declared absent, present).
         Executed."""
         here = grammar()
@@ -995,8 +996,8 @@ class Test_arms:
         neither table, so on a 3.14 `python3` `seal arms` refused any file with a
         t-string in it. The arms around and inside one are counted now.
 
-        Red how: on Python 3.14 at `346b4af7`, `UnknownNodeType` naming
-        `TemplateStr`. Executed."""
+        Red how: on Python 3.14 with both in neither table, `UnknownNodeType`
+        naming `TemplateStr`. Executed."""
         found = ARM.arms(T_STRING_BRANCH, filename="fixture.py")
         assert [(a.shape, a.source) for a in found] == [("If", "a"), ("IfExp", "a")]
 
@@ -1007,9 +1008,9 @@ class Test_arms:
         spec, so an arm inside one is counted where it stands. Held against the
         same text read as f-strings, which the rest of this module already pins.
 
-        Red how: on Python 3.14 at `346b4af7`, refused. With `Interpolation`
-        moved into `ARM_SHAPES`, the dispatch in `_node_arms` refuses it.
-        Executed."""
+        Red how: on Python 3.14 with `Interpolation` in neither table,
+        refused. With `Interpolation` moved into `ARM_SHAPES`, the dispatch
+        in `_node_arms` refuses it. Executed."""
         as_f = T_STRING_FEATURES.replace('t"', 'f"')
         assert as_f != T_STRING_FEATURES
 
@@ -1412,9 +1413,8 @@ class Test_run_arms:
         The absolute parameter pins what the relative one is joined to: there,
         `cwd` changes nothing.
 
-        Red how: against the script at `a340221b` the relative parameter's runs
-        see the planted cache, and `clear_bytecode_cache` does not take `cwd`.
-        Executed."""
+        Red how: against a script whose `clear_bytecode_cache` does not take
+        `cwd`, the relative parameter's runs see the planted cache. Executed."""
         module_path, _ = two_arms
         other = tmp_path / "other"
         other.mkdir()
@@ -1612,10 +1612,10 @@ class Test_run_arms:
         found its sibling's baseline bound pinned by no case and survived a
         mutation to `None`.
 
-        Red how: against the script at `a340221b` both arms are filed as no
-        verdict after four 0.3s waits and nothing is raised; with the baseline's
-        `timeout=timeout` removed this waits the whole 30 seconds and then the
-        arms time out one by one. Executed."""
+        Red how: against the script without the first run, both arms are filed
+        as no verdict after four 0.3s waits and nothing is raised; with the
+        baseline's `timeout=timeout` removed this waits the whole 30 seconds
+        and then the arms time out one by one. Executed."""
         module_path, _ = two_arms
         before = module_path.read_bytes()
         os.utime(module_path, ns=(LONG_AGO_NS, LONG_AGO_NS))
@@ -1691,9 +1691,9 @@ class Test_run_arms:
         Watched by what the module held at each call: the first call has to see
         the unmutated bytes and every later one a mutation.
 
-        Red how: against the script at `a340221b` there are four calls and the
-        first sees a mutation; with the baseline moved after the first write the
-        first call sees a mutation. Executed."""
+        Red how: against the script without the first run there are four calls
+        and the first sees a mutation; with the baseline moved after the first
+        write the first call sees a mutation. Executed."""
         module_path, tests = two_arms
         original = module_path.read_bytes()
         real_run = ARM.subprocess.run
@@ -1727,7 +1727,8 @@ class Test_run_arms:
         measured before it went with it. The same class as the first run's
         decode, in the same function.
 
-        Red how: at `6bbaa4d1` `UnicodeDecodeError` leaves `run_arms`. Executed."""
+        Red how: with the pair's output decoded strictly, `UnicodeDecodeError`
+        leaves `run_arms`. Executed."""
         module_path, _ = two_arms
         copy = tmp_path / "as_it_was.txt"
         copy.write_bytes(module_path.read_bytes())
@@ -2313,8 +2314,8 @@ class Test_main:
         run whose cause a person has to read to act on it — pytest's *no tests
         ran* is what tells a mistyped `-k` from a failing case.
 
-        Red how: against the script at `a340221b` every shape prints `killed`
-        beside both arms and exits 0. Executed."""
+        Red how: against the script without the first run, every shape prints
+        `killed` beside both arms and exits 0. Executed."""
         module_path, _ = two_arms
         probe = tmp_path / "not_green.py"
         if code is None:
@@ -2387,8 +2388,8 @@ class Test_main:
         """#703, S5. A command that cannot start against the unmutated module
         cannot start against a mutation either, so nothing is measured.
 
-        Red how: against the script at `a340221b` both arms land in the no-verdict
-        list at exit 0. Executed."""
+        Red how: against the script without the first run, both arms land in
+        the no-verdict list at exit 0. Executed."""
         module_path, _ = two_arms
         before = module_path.read_bytes()
         os.utime(module_path, ns=(LONG_AGO_NS, LONG_AGO_NS))
@@ -2421,21 +2422,23 @@ class Test_main:
         """Round 1's 🟡 1. The first run sits outside the `try` whose `finally`
         restores, so nothing `seal arms` does there writes the module. The cases
         can, though: a formatter's round-trip test or a generator that rewrites a
-        file in place. At `a340221b` every run ended with the module put back
-        from the bytes held, and a refusal must not be the one path that keeps
-        the cases' version instead, while it says *Nothing was written*.
+        file in place. Every other run ends with the module put back from the
+        bytes held, and a refusal must not be the one path that keeps the
+        cases' version instead, while it says *Nothing was written*.
 
         Removed is the same fact as rewritten: what is on disk is not what was
         read, and a file that cannot be read differs.
 
         **Locked is the one shape that cannot be put back** (round 2, 🟡 1).
         The put-back's own `open` fails, and raised out of the `finally` it took
-        the refusal's line and the command's output with it, at exit 1, where
-        `6bbaa4d1` refused at exit 2. The line names the error instead.
+        the refusal's line and the command's output with it, at exit 1, where a
+        refusal exits 2. The line names the error instead.
 
-        Red how: at `6bbaa4d1` the module is left as the command changed it, and
-        the line says *Nothing was written*; at `dc1b0d14` the locked module is
-        a `PermissionError` traceback and no line. Executed on every parameter."""
+        Red how: with the refusal leaving the module unrestored, the module is
+        left as the command changed it, and the line says *Nothing was
+        written*; with the put-back's error raised out of the `finally`, the
+        locked module is a `PermissionError` traceback and no line. Executed on
+        every parameter."""
         module_path, _ = two_arms
         before = module_path.read_bytes()
         probe = tmp_path / "changes_the_module.py"
@@ -2539,8 +2542,8 @@ class Test_main:
         entry block every other skill script carries is what fixes it, so the
         script is run as a process, the way that block is reached.
 
-        Red how: at `6bbaa4d1` the refusal line is followed by a traceback and
-        exit 1. Executed."""
+        Red how: without the entry block, the refusal line is followed by a
+        traceback and exit 1. Executed."""
         module_path, _ = two_arms
         probe = tmp_path / "prints_a_byte.py"
         probe.write_text(

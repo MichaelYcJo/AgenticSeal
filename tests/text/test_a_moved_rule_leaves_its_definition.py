@@ -5,11 +5,14 @@ home for every universal rule, and each `agents/*.md` keeps only its own
 application. Phases 3 and 4 did the moving. Nothing checked that it was a
 move.
 
-Measured 2026-09-03 by the orchestrator, at `e51fd0b`: contract rule 9's body was pasted
-back into `agents/proofer.md` under a new heading, and `test_broad_gate_rule`,
-`test_edits_go_through_the_edit_tool`, `test_every_agent_reads_the_contract`
-and `test_the_agent_contract_holds_the_universal_rules` were all green -- 81
-passed, exit 0. Every assertion in the two modules phases 1 and 2 wrote is a
+Without this module, contract rule 9's body pasted back into
+`agents/proofer.md` as a paragraph, or under a `###` heading, leaves
+`test_broad_gate_rule`, `test_edits_go_through_the_edit_tool`,
+`test_every_agent_reads_the_contract` and
+`test_the_agent_contract_holds_the_universal_rules` all green. Only a paste
+under a new `##` heading is caught there, by the list of `## ` headings
+`test_every_agent_reads_the_contract` holds each definition to (#957). When
+phases 1 and 2 wrote their two modules, every assertion in them was a
 presence check, and the only absence checks in the tree were about the
 contract's own frontmatter. So the half of Q2 that says *the definition
 keeps only its own application* had nothing behind it at all, and the tree
@@ -22,9 +25,8 @@ A definition MAY cite a rule by its number and say what the rule means
 for its own role, in its own words -- that is the application form, and
 phases 3 and 4 kept several deliberately: the proofer's audit of the
 `unverified` label, its `## Not judged` row, the #36 cost of a
-prompt landing during a round; the crafter's 1.08-1.17, its
-hand-back as the place both answers land, its own waiver example as the
-patch contract rule 9's gate reads a commit out of. Every one of those is about one
+prompt landing during a round; the crafter's 1.08-1.17 and its
+hand-back as the place both answers land. Every one of those is about one
 agent, and none of them is the rule.
 
 What a definition may NOT do is carry the contract's own sentences. So the
@@ -259,8 +261,8 @@ def test_pasting_a_section_body_back_into_a_definition_is_caught(path, number):
 # failure this module opens with.
 #
 # Named by CONTENT, never by the line range the frame measured them at. The
-# waiver example sits inside that range and is one of the kept applications
-# this module's docstring names, so a removal keyed on lines takes it too.
+# waiver example, then a kept application, sat inside that range, so a
+# removal keyed on lines would have taken it too.
 CRAFTER = os.path.join(ROOT, "agents", "crafter.md")
 
 MOVED_OUT_OF_CRAFTER = {
@@ -432,10 +434,11 @@ def test_the_three_fix_rule_stands_in_the_skill_a_builder_opens():
 
 
 def test_the_crafters_four_rules_stand_with_their_enforcers():
-    """T3 of #967: S4's four rules each keep their paragraph, their clauses
-    and a `check:` line, and the waiver stays one sentence.
+    """T3 of #967: S4's rules each keep their paragraph, their clauses and a
+    `check:` line. #1027 retired the fourth, the waiver, and the case holds
+    that it stays gone.
 
-    These four have no eval case that plants their breach, so a later trim
+    These three have no eval case that plants their breach, so a later trim
     could drop any of them with every grader green — #107's failure, a rule
     that left the repository while the suite passed."""
     for lead, clauses in CRAFTERS_FOUR_RULES.items():

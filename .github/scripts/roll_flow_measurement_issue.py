@@ -65,19 +65,24 @@ something else wrote to this label outside this mechanism. Either way this
 fails loudly rather than guessing which issue is current -- silently picking
 one would make a wrong guess indistinguishable from a right one.
 
-**One retry on a zero-open reading, not on a two-or-more reading.** Phase 1
-of this work item measured `gh issue list --label flow-measurement --state
-open` returning `[]` immediately after `gh issue edit ... --add-label
-flow-measurement` on the very same issue, even though `gh issue view` in the
-same breath showed the label applied and the issue open -- GitHub's search
-index lagging the write, not a bug in either command. A release does not
-write the label it is about to look for (the issue this script closes was
-opened by the *previous* release, not by this run), so the race is unlikely
-to reach this script in practice -- but a search-index lag can only ever
-produce a reading that is short a result, never one with an extra issue in
-it. So a zero reading gets one retry after a short sleep before it is trusted
-as the real invariant violation; a two-or-more reading is never a lag
-artifact and is never retried.
+**One retry on a zero-open reading, not on a two-or-more reading.** `gh
+issue list` reads GitHub's search index, and the index lags the writes it
+reflects. Which way a lag moves a reading depends on the kind of write. A
+lag behind a write that adds an issue to the reading, a create or a label
+added, gives a reading short a result. A lag behind a close gives a reading
+with an extra issue in it, the closed issue still listed as open. #109
+measured the first kind: `gh issue list --label flow-measurement --state
+open` returned `[]` right after `gh issue edit ... --add-label
+flow-measurement` on the same issue, while `gh issue view` showed the label
+applied and the issue open. A release does not write the label it is about
+to look for (the issue this script closes was opened by the *previous*
+release, not by this run), so the race is unlikely to reach `main`'s lookup
+in practice. So a zero reading in `main`'s lookup gets one retry after
+`RETRY_DELAY_SECONDS` before it is trusted as the real invariant violation.
+A reading of two or more is not retried and fails loudly. That is not
+because a lag cannot produce one. It is the invariant above, which fails
+loudly rather than guessing which issue is current, and the lag measured
+here was an undercount.
 
   roll_flow_measurement_issue.py     read REPO, GH_TOKEN from the
                                       environment (same as
@@ -111,10 +116,11 @@ a person opens; a line in a workflow log is not read (#136).
 **A failed attempt re-reads the open-issue list before it retries.** A `gh
 issue create` that fails after the mutation lands would, on retry, open a
 second issue -- the exactly-one-open invariant broken from the other side, by
-the script that exists to keep it. So a failure is followed by the lookup, and
-a reading that is no longer empty ends the ladder with the issue that landed.
-The last rung uses `run` rather than `try_run`, so a create that fails all the
-way down still exits loudly into the recovery message below.
+the script that exists to keep it. So a failed create is followed by
+`landed_create`'s lookup, and the ladder ends where that lookup finds the
+create landed. The last rung uses `run` rather than `try_run`, so a create
+that fails all the way down still exits loudly into the recovery message
+below.
 
 **The index label and the milestone are this repository's own names, and they
 belong here rather than in the skill.** `skills/verify/orchestration.md` ships to
@@ -133,10 +139,10 @@ title a human should open by hand to restore the invariant before the next
 release runs. Ordering the close first is a stated trade-off, not an
 oversight it would be better to fix by making the open ordered first: opening
 before closing would leave two open issues rather than zero on any of this
-script's own failures after the create, which is the exact reading the
-retry-once hardening above treats as never a lag artifact and always the
-invariant broken -- closing first turns every failure mode into a state the
-existing zero-issue recovery already tells the operator how to fix by hand.
+script's own failures after the create, which is the exact reading `main`
+fails on without a retry -- closing first turns every failure mode into a
+state the existing zero-issue recovery already tells the operator how to fix
+by hand.
 
 Exit codes: 0 rolled, and 0 for a run where nothing was due -- the printed
 line is what tells those apart, because both leave the job green. Non-zero:
@@ -315,10 +321,10 @@ def empty_log_note(number):
 def open_flow_measurement_issues(repo):
     """`list_open_issues`, with one retry when the first reading is empty.
 
-    See the module docstring: an empty reading right after a label write can
-    be the search index lagging rather than the true state, and a lag can
-    only ever undercount. A reading of two or more is never retried -- it is
-    never what a lag produces.
+    The module docstring states which way a search-index lag moves a reading,
+    by the kind of write it lags. This lookup's own decision: an empty
+    reading gets one retry after `RETRY_DELAY_SECONDS`, and a reading of two
+    or more gets none, so `main` fails on it loudly.
     """
     issues = list_open_issues(repo)
     if not issues:
@@ -448,11 +454,10 @@ def landed_create(repo, closed_number):
     """An open `flow-measurement` issue that is not the one `main` just closed.
 
     The ladder's guard. `closed_number` is excluded because the reading can
-    still carry it: `gh issue list` lagging a write is what this module's
-    docstring records, and a lag behind a *close* is a reading with an extra
-    issue in it rather than one short a result. The empty reading gets the
-    same one retry `open_flow_measurement_issues` gives it, and for the same
-    reason -- a lag behind the create sends the ladder on to open a second.
+    still carry it, by the module docstring's rule for a lag behind a close.
+    The empty reading gets the same one retry `open_flow_measurement_issues`
+    gives it, and for the same reason -- a lag behind the create sends the
+    ladder on to open a second.
     """
     for attempt in (0, 1):
         if attempt:

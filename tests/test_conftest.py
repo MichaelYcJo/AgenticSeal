@@ -529,8 +529,7 @@ class Test_module:
         `GITHUB_`, so a case and every child it starts see no workflow
         variable, under every event. A case that needs one
         of these variables sets it with `monkeypatch.setenv`. The `gh` login
-        is taken away as before. Seen red against `tests/conftest.py` at
-        `977b6613`, which left all six names in place."""
+        is taken away as before."""
         seen = run_probe({**os.environ, **PULL_REQUEST_RUN})
         assert seen["given"] == sorted(PULL_REQUEST_RUN), seen["given"]
         assert seen["github"] == [], f"left by the conftest: {seen['github']}"

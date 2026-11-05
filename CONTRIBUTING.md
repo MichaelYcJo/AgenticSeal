@@ -446,8 +446,8 @@ question is not its difficulty, it is when it arrives.
 
   Every hook that reaches the network is named in the README's privacy
   section, because a rule with undisclosed exceptions is not a rule.
-  `lint-python` fetches ruff through `uvx` when no local copy exists.
-  `version-check` asks the plugin's own repository for its newest release tag.
+  `lint-python` and `version-check` are those hooks, and `README.md` *What
+  runs on your machine* says what each one reaches, what it sends and when.
   A new one needs the same limits `version-check` carries (an opt-in
   condition so unrelated repos are untouched, a throttle so it is not
   per-session, and silence on every failure), plus a line in the README

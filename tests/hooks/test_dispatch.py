@@ -278,8 +278,9 @@ def pending_record(repo):
     (directory / "mode-gate.py.pending").write_text("{}", encoding="utf-8")
 
 
-# Every shape found to raise in `classify` or `merge` at `551c7967`, after the
-# gates had run and outside `run_gate`'s isolation, so the group exited 1.
+# Shapes a gate can print that `classify` and `merge` read without raising.
+# Both read them after the gates have run and outside `run_gate`'s isolation,
+# where a raise would end the whole group with exit 1.
 UNREADABLE = (
     "null",
     "0",
@@ -420,8 +421,7 @@ class Test_classify:
     def test_accepts_a_deny_beside_a_message_that_is_not_text(self):
         """Round 2's 🟡 3. #661 must not drop output the merge read before. Its
         decision path reads the decision and its reason and never the
-        `systemMessage`, and a falsy `hookSpecificOutput` was read as absent.
-        Seen red at `02e47435`, where the merge printed nothing for either."""
+        `systemMessage`, and a falsy `hookSpecificOutput` was read as absent."""
         d = load(os.path.join(HOOKS, "dispatch.py"), "dispatch_for_a_deny")
         deny = {
             "hookSpecificOutput": {"permissionDecision": "deny"},
@@ -521,6 +521,75 @@ class Test_merge:
         )
         assert out["systemMessage"] == "installed"
         assert out["hookSpecificOutput"]["permissionDecision"] == "deny"
+
+    def test_refuses_to_pass_on_a_decision_other_than_deny_or_ask(self):
+        """#1381. A group whose only decision was a gate's `allow` printed it,
+        and the plugin directory's validation holds back a plugin whose hook
+        can approve a call.
+        `Allow` and `defer` count as no decision too, and the gate's reason is
+        kept as its text. An `allow` with no reason, or a null one, prints
+        nothing and ends nothing."""
+        d = dispatch_module()
+        for kind in ("allow", "Allow", "defer"):
+            out = d.merge([decision(kind, "ra")], "PreToolUse")
+            assert out == "ra", (kind, out)
+        bare = {"hookEventName": "PreToolUse", "permissionDecision": "allow"}
+        for reason in ({}, {"permissionDecisionReason": None}):
+            body = json.dumps({"hookSpecificOutput": {**bare, **reason}})
+            assert d.merge([body], "PreToolUse") == "", reason
+
+    def test_accepts_an_ask_beside_an_allow_and_keeps_both_reasons(self):
+        """#1381. The `allow` that no longer passes still has its reason read
+        beside the neighbour's `ask`, as a gate's plain text is."""
+        d = dispatch_module()
+        out = json.loads(
+            d.merge([decision("allow", "ra"), decision("ask", "rk")], "PreToolUse")
+        )
+        assert out["hookSpecificOutput"]["permissionDecision"] == "ask"
+        reason = out["hookSpecificOutput"]["permissionDecisionReason"]
+        assert "ra" in reason and "rk" in reason, reason
+
+    def test_accepts_a_deny_or_an_ask_in_any_case_and_prints_it_lower_case(self):
+        """#1381. The word passed on is one the hooks reference lists, not the
+        gate's own spelling of it."""
+        d = dispatch_module()
+        for kind, word in (("Deny", "deny"), ("ASK", "ask")):
+            assert decision_of(d.merge([decision(kind, "r")], "PreToolUse")) == word
+
+    def test_refuses_to_pass_on_an_input_change_or_an_approval_without_a_decision(
+        self,
+    ):
+        """#1381. A `PreToolUse` gate's JSON without a decision was printed
+        whole, and Claude Code reads its `updatedInput` as the call's new input
+        and a top-level `decision: "approve"` as an `allow`. Both leave, and
+        every other field is printed. Another event's object is printed whole."""
+        d = dispatch_module()
+        changed = {
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "updatedInput": {"command": "echo changed"},
+            },
+            "systemMessage": "m",
+        }
+        approved = {"decision": "approve", "reason": "r", "systemMessage": "m"}
+        assert json.loads(d.merge([json.dumps(changed)], "PreToolUse")) == {
+            "hookSpecificOutput": {"hookEventName": "PreToolUse"},
+            "systemMessage": "m",
+        }
+        assert json.loads(d.merge([json.dumps(approved)], "PreToolUse")) == {
+            "reason": "r",
+            "systemMessage": "m",
+        }
+        for body in (changed, approved):
+            assert json.loads(d.merge([json.dumps(body)], "PostToolUse")) == body
+
+    def test_accepts_a_block_without_a_decision_as_the_gate_printed_it(self):
+        """#1381. Claude Code reads a top-level `decision: "block"` as a
+        `deny`, so it stays with its reason in any case."""
+        d = dispatch_module()
+        for word in ("block", "Block"):
+            body = {"decision": word, "reason": "r"}
+            assert json.loads(d.merge([json.dumps(body)], "PreToolUse")) == body
 
 
 class Test_opted_in:

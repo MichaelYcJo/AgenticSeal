@@ -66,8 +66,8 @@ def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
     stamp appeared, it names the values file and leaves the command to the
     person. 1792363231 S11: a commit of the guarantee refused for a row
     naming a commit the branch does not hold is answered by the sealer again
-    at HEAD, never by an edit of the row; red against 2759a60d's sealer
-    step. #1198 made the row the newest verdict block."""
+    at HEAD, never by an edit of the row. #1198 made the row the newest
+    verdict block."""
     text = flat("skills", "code-review", "orchestration.md")
     section = text.split(
         "## Orchestrator: the pull request opens once the sealer seals", 1
@@ -175,8 +175,7 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
     the edit hook under either root, the matcher's floor, and that
     `sealed_before` skips a recorded refusal as the chain does; it names
     none of the guards the removed `post-commit` record had; and its
-    `check:` line names the marker the cases that hold each carry. Red at
-    1e956838, whose paragraph described that record and its four facts."""
+    `check:` line names the marker the cases that hold each carry."""
     text = stamp_section()
     rule = text.split(
         "**A `sealed` refused because its audited commit is not on the branch "

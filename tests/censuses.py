@@ -889,8 +889,8 @@ def heading_rule(rel, root=None):
 
 # --- floor_syntax ---------------------------------------------------------------
 #
-# What runs before any floor is checked (a hook, a git hook, the launcher,
-# `bin/test`'s runner, and every module one of them loads) runs on whatever
+# What runs before any floor is checked (a hook, the launcher, `bin/test`'s
+# runner, and every module one of them loads) runs on whatever
 # `python3` starts it, 3.9 on a stock macOS. `ruff.toml` lints that set at
 # the version its `per-file-target-version` names, so B905 and UP017 do not
 # ask it for `zip`'s `strict=` or `datetime.UTC`.
@@ -949,7 +949,7 @@ def ruff_targets(path):
 
 def matches(pattern, rel):
     """Whether ruff's glob `pattern` names `rel`. Its `*` crosses a `/`, as
-    ruff's does: `"hooks/*.py"` lints `hooks/git/pre-commit.py` too. Ruff
+    ruff's does: `"hooks/*.py"` lints `hooks/lib/routing.py` too. Ruff
     also matches the pattern against the file's name, so one with no `/`,
     `"seal_stamp.py"`, names that file in any directory; a name holds no `/`
     for a pattern's `/` to match."""

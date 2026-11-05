@@ -332,10 +332,10 @@ def test_the_oracle_reads_the_text_not_a_readers_split(name):
     assert oracle.hidden_text(f'![x <span title="a{brk}b">](u)\n') == {1: "inline html"}
 
 
-# --- the corpus: the frame's shapes, the old cases, and a generated set -----
+# --- the corpus: the comment shapes, the old cases, and a generated set -----
 
-# 1790635413's `COMMENT_SHAPES` at `4edc5de6`: every line of each is a place a
-# reading of fences or comments has had to be right.
+# Every line of each shape in `COMMENT_SHAPES` is a place a reading of fences
+# or comments has had to be right.
 COMMENT_SHAPES = [
     [OPEN, "| a | b |", CLOSE, "| c | d |"],
     [OPEN + " x", "| a | b |"],

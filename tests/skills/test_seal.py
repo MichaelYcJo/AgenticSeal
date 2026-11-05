@@ -3327,8 +3327,8 @@ class Test_pr_checks:
         assert "there is no .github/workflows/hygiene.yml" in out
 
     def test_accepts_remove_straight_after_install_before_a_commit(self, take, capsys):
-        """The sealer at `55aea15d`: `install` stages the file, and git
-        refuses a plain `git rm` of a file staged and never committed."""
+        """`install` stages the file, and git refuses a plain `git rm` of a
+        file staged and never committed."""
         repo = take("shared")
         before = status(repo)
         code, out = said(capsys, repo, "pr-checks", "install")

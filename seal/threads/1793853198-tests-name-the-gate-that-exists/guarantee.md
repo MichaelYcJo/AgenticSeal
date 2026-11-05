@@ -1,0 +1,43 @@
+# Guarantee: 1793853198-tests-name-the-gate-that-exists
+
+The base `release/v0.32.4` resolves through `release/v0.32.4@{upstream}` to `a909d25c` (executed: `git rev-parse --verify --quiet`). The merge base with HEAD is `31558c76`, and the comparisons below that read "the base" read it there.
+
+## Claims re-run
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| The broad run stands at HEAD | `trail/gate.md:4`, `run: c1093acc against a909d25c` | `git -C <root> log --no-merges --name-only c1093acc..HEAD ^a909d25c` | holds: `c1093acc` resolves and is an ancestor of HEAD, and the one commit after it, `d36f5881`, touches only `seal/threads/1793853198-tests-name-the-gate-that-exists/trail/gate.md` (executed) |
+| The body below `## From the records` is the records' own text | the pull request body file the prompt names | `seal pr-body seal/threads/1793853198-tests-name-the-gate-that-exists --body <file> --check`, with the installed 0.32.3 `seal` and with the tree's `bin/seal` | holds: exit 0 from both (executed) |
+| The records' chain agrees with HEAD | the gate's output quoted in the body, `chain ✓ exit 0` | `python3 skills/code-review/scripts/chain_check.py --baseline a909d25c --root <root> --worktree` | holds: exit 0. Its one line names the guarantee file this audit writes (executed) |
+| S1: `git grep -n -i "commit gate" -- tests` prints nine lines, each in *Left as they stand* | `trail/phases/phase-1.md:41-53`, `frame/design.md:97` | `git grep -n -i "commit gate" HEAD -- tests` | holds: the same nine lines at HEAD, and each one says the gate is gone, tells its past, or is a case's asserted string. At `a909d25c` the same command prints these nine and the ten D1 rewrote, so the base's own commits since `31558c76` add none (executed) |
+| S2: every `git hook` or `hooks/git/` line under `tests/` says the hooks are gone or is a case's data | `trail/phases/phase-1.md:57` | `git grep -n -i -E "git hook\|hooks/git/" HEAD -- tests` | holds: eight lines, the five that say the hooks are gone and the three that are a case's input (executed) |
+| S3: `tests/conftest.py#fired` is gone and nothing calls it | `trail/phases/phase-1.md:59`, `frame/design.md` *Removes* row 1 | `git grep -n -P "\bfired\(" <rev> -- . ':!seal/threads'` at `31558c76` and at HEAD | holds: one line, `tests/conftest.py:577:def fired(stdout):`, at the base; nothing at HEAD, exit 1 (executed) |
+| S4: no assertion's predicate changes; the eight touched files parse equal once docstrings are removed, `fired` is taken out of the base, and row 7's message is swapped | `trail/phases/phase-1.md:37`, `changelog.md`, the body's first paragraph | a probe, `test_tmp_ast_compare.py` in the scratchpad, comparing `ast.dump` of each file's blob at `31558c76` and HEAD, run once and deleted | holds: all eight equal, one constant swapped. The same probe with the swap disabled reports `tests/hooks/test_routing.py` DIFFERENT, so it can fail (executed) |
+| S5: the touched test modules pass at HEAD | `trail/phases/phase-1.md` S5, and the fix-pass paragraphs for `0149c852` and `cf0d7b50` | `bin/test tests/hooks/test_question_gate.py tests/hooks/test_routing.py tests/behaviour/test_waiver_decided_at_start.py tests/behaviour/test_a_commit_names_its_repository.py tests/hooks/test_launch.py tests/text/test_a_moved_rule_leaves_its_definition.py tests/test_censuses.py -q` | holds: 497 passed, exit 0 (executed). The whole suite is the broad run's, which I did not run (contract rule 2) |
+| The eight touched files pass ruff's check and format check | `trail/phases/phase-1.md` S5 | `uvx ruff check <the eight files>`; `uvx ruff format --check <the eight files>` | holds: exit 0 and exit 0 (executed) |
+| The edit check refuses an edit when `routing.for_branch` reads no declaration, as rows 5, 8, 9, 10, 11, 13 and 14 say | `trail/phases/phase-1.md:34`, `gaps.md` *Not verified* row 3 | read `hooks/routing-edit-gate.py:1-40` and `:245-262` | holds: the docstring says every way a declaration cannot be read is no declaration and the edit is refused, and `:257` returns early only where `for_branch` returns one (read). No case runs a malformed declaration through the hook, as the records say (read: `tests/hooks/test_routing_edit_gate.py`'s case list) |
+| Row 21: the case asserts the waiver gone and walks three rules | `trail/phases/phase-1.md:66` | read `tests/text/test_a_moved_rule_leaves_its_definition.py:383-451` | holds: `CRAFTERS_FOUR_RULES` holds three keys, and `:450-451` asserts `crafter_rule("The waiver is one command's.") == ""` (read) |
+| `agents/crafter.md` holds no waiver | `frame/design.md:18` | `grep -n -i waive agents/crafter.md` | holds: no line, exit 1 (executed) |
+| Every `## Removes` row and every removal the changelog names is gone | `frame/design.md:117-123`, `changelog.md` | `git grep -n -F <phrase> HEAD -- tests` for "milestone-49", "The gate's own", "The commit gate's case", "a git hook", "its own waiver example", "per-command waiver stays", "waiver stays one sentence", "def fired" and "gate half" | holds: none of them prints a line under `tests/`, except "gate half", whose one line is `tests/github/test_release_completeness_check.py:3`, #359's release gate and not the commit gate (executed) |
+| `hooks/lib/routing.py`'s module docstring still speaks of "the gate" in the present | the body's *Left out*, `gaps.md` *Not done*, `frame/questions.md` Q1 | read `hooks/lib/routing.py:1-30` | holds: "Imported by the gate and by the hygiene check", "so the gate goes back to asking" (read) |
+| The base merges with HEAD | not claimed by a party; read for the sibling ground on `tests/conftest.py` the plan names | `git merge-tree --write-tree a909d25c HEAD` | holds: exit 0, no conflict (executed) |
+| The phase records claim no `seen red` and no case was added | `trail/phases/phase-1.md` closing paragraph, `frame/design.md` D2 | `grep -n -i "seen red" trail/phases/*.md`; read the diff | holds: no line, and the diff adds no case (executed, read). No red-first clone was owed |
+
+## The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | 21 sentences under `tests/` that describe the commit gate or its git hooks as present are rewritten, dropped or removed; `fired` goes; no assertion changes; no case is added; `hooks/lib/routing.py` is Q1's, out by default | the issue's *Scope* and *Out*, the diff, the phase record's 21 rows, the changelog | none |
+| the build | phase 1 built rows 1 to 19 and the `CRAFTER` comment, and round 1's fix pass built rows 20 and 21; each row's replacement stands in the record; S1 to S6 hold | the diff at `31558c76...HEAD` (read, row by row), S1 to S5 re-run above, the design | none |
+| the last round | round 3 at `85268bdb` opens no finding and confirms round 2's finding, which `d6008c3a` closed by recording 21 rows with row 21 as N | `trail/phases/phase-1.md:7-31` at HEAD (read), `gaps.md:8` naming `git grep -n -i "waiv"` and row 21 (read) | none |
+| the changelog | twenty-one places named the gate, its waiver or a git hook as standing; each names today's mechanism, drops the clause or goes; `fired` is removed; one failure message changes and no predicate; no check is added | the diff, the probe's result, the design | none |
+| the orchestrator's part of the pull request body | the same twenty-one places and the helper; `Closes #1352`; `hooks/lib/routing.py` left out on Q1's default; round 1's two findings, round 2's count, round 3's confirmation; the broad run at `c1093acc` against `a909d25c` | `trail/rounds/round-1.md` to `round-3.md`, `trail/gate.md`, `frame/questions.md` Q1, `hooks/lib/routing.py:1-30` | none. The suite's counts it quotes from `seal gate`, `6393 passed · 12 skipped`, are not in `trail/gate.md` and were not re-run here (unverified; the orchestrator's broad run answers them) |
+
+The issue's *Done when* asks for no docstring or comment under `tests/` that describes the commit gate as present at the changing commit, found by a method the pull request names. The body names the methods by their record (`trail/phases/phase-1.md` *The three methods*) and names the fix pass's `git grep -n -i "waiv"` outright, and S1's search, the issue's own, prints only lines that say the gate is gone or tell its past at HEAD (executed). The class over spellings stays a sample, as `gaps.md` says; the lines in the touched files that still say "the gate" stand in `frame/design.md` *Left as they stand* as true of the edit check, and which reading is right there is the frame's and the proofer's judgment, which three rounds read.
+
+`frame/questions.md` Q1 stays open for the owner, on its default (b), and the pull request says so.
+
+```seal
+target: d36f58811 against a909d25c
+Verdict: sealed
+```

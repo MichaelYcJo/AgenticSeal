@@ -1,4 +1,5 @@
-"""A `<commit>:<path>` citation names a commit that outlives the squash.
+"""A `<commit>:<path>` citation, and a commit named bare outside `seal/`,
+name a commit that outlives the squash.
 
 A feature branch squashes into its release branch, and the squash discards
 every commit the branch wrote (`docs/releasing/branch-and-release.md` *Work accumulates
@@ -13,7 +14,15 @@ every tracked file that is on disk and decodes as UTF-8, read as
 files. Three kinds of file are left out: anything under `evals/behaviour/`, a
 work item's `trail/` and its `guarantee.md`. Those record what a party ran at
 the branch's own commits, which the squash orphans as it orphans a round's
-`target:` line, and they leave with the work item. A bare commit is not read.
+`target:` line, and they leave with the work item.
+
+`cited(root)` also reads each `BARE` token outside `seal/` and outside a
+`COMMIT_PATH` token, and keeps each that names a commit, as one `git
+cat-file --batch-check` answers for all of them. Outside `seal/` no file
+has a reason to name a commit that no clone will hold. A token that names no
+commit, such as a fixture's synthetic value, is not read. Under `seal/` a
+bare commit is not read, since a plan's Status cell and a round's `fixed`
+line name the branch's own commits by rule.
 
 `unreached(root)` refuses a commit that no ref matching `REACHING` contains,
 and a commit the object store lacks, since a fresh clone lacks every commit
@@ -22,10 +31,11 @@ feature branch can be deleted. Where no such ref stands in the checkout,
 nothing is judged.
 
 Every token in the cases below is built when the case runs, from a commit
-the case makes, so this file holds no `<commit>:<path>` of its own.
+or a blob the case makes, so this file cites no commit of its own.
 """
 
 import os
+import re
 import subprocess
 
 import pytest
@@ -41,13 +51,17 @@ REACHING = (
     "refs/heads/main",
     "refs/heads/release/*",
 )
+# A bare hex token: seven to forty lower-case hex digits standing as a word.
+BARE = re.compile(r"\b[0-9a-f]{7,40}\b")
 NO_REF = (
     "no ref matching " + ", ".join(REACHING) + " stands in this checkout, so no "
-    "`<commit>:<path>` citation was judged"
+    "`<commit>:<path>` citation and no commit named bare was judged"
 )
 REPAIR = (
-    "Cite the squash commit on a release branch or on `main` that holds the "
-    "same file, or the path at HEAD where the file is this branch's own."
+    "Where the commit is cited with a path, cite the squash commit on a "
+    "release branch or on `main` that holds the same file, or the path at "
+    "HEAD where the file is this branch's own. Where it is named bare, state "
+    "in the sentence what its reader needs, or cite the issue that holds it."
 )
 FETCH = (
     "Where this checkout's `main` or release refs are older than the cited "
@@ -79,8 +93,10 @@ def read_here(rel):
 
 
 def cited(root):
-    """`[(rel, line, commit)]` for each `COMMIT_PATH` token in the files
-    `read_here` admits that are on disk and decode as UTF-8."""
+    """`[(rel, line, commit)]` for each commit the files `read_here` admits
+    cite, where they are on disk and decode as UTF-8: each `COMMIT_PATH`
+    token, then each `BARE` token outside `seal/` and outside a
+    `COMMIT_PATH` token that `resolving` names a commit."""
     listed = subprocess.run(
         ["git", "-C", str(root), "ls-files", "-z"], capture_output=True, check=True
     ).stdout.decode("utf-8")
@@ -88,15 +104,61 @@ def cited(root):
     present, _missing = on_disk(
         root, [rel for rel in listed.split("\0") if rel and read_here(rel)]
     )
-    found = []
+    found, loose = [], []
     for rel in present:
         text = text_of(os.path.join(root, rel))
         if text is None:
             continue
+        spans = []
         for m in COMMIT_PATH.finditer(text):
+            spans.append(m.span())
             line = text.count("\n", 0, m.start()) + 1
             found.append((rel, line, m.group().split(":", 1)[0]))
+        if not rel.startswith("seal/"):
+            loose.extend((rel, text, at, token) for at, token in bare(text, spans))
+    commits = resolving(root, {token for *_, token in loose})
+    found.extend(
+        (rel, text.count("\n", 0, at) + 1, token)
+        for rel, text, at, token in loose
+        if token in commits
+    )
     return found
+
+
+def bare(text, spans):
+    """`[(offset, token)]` for each `BARE` token in TEXT that starts in none
+    of SPANS, the `COMMIT_PATH` tokens' `(start, end)`."""
+    return [
+        (m.start(), m.group())
+        for m in BARE.finditer(text)
+        if not any(start <= m.start() < end for start, end in spans)
+    ]
+
+
+def resolving(root, tokens):
+    """The TOKENS that name a commit in ROOT, from one `git cat-file
+    --batch-check` fed each as `<token>^{commit}`. It answers one line per
+    token in order, `<sha> commit <size>`, or the token with `missing` where
+    it names no object, or one that is not a commit, or `ambiguous`."""
+    ordered = sorted(tokens)
+    if not ordered:
+        return set()
+    # Bytes, so no platform writes each newline as CRLF on the way in.
+    answers = (
+        subprocess.run(
+            ["git", "-C", str(root), "cat-file", "--batch-check"],
+            input="".join(f"{token}^{{commit}}\n" for token in ordered).encode(),
+            capture_output=True,
+            check=True,
+        )
+        .stdout.decode("utf-8")
+        .splitlines()
+    )
+    return {
+        token
+        for token, answer in zip(ordered, answers, strict=True)
+        if answer.split()[1:2] == ["commit"]
+    }
 
 
 def reaching(root):
@@ -131,9 +193,9 @@ def refusal(found):
     with the repair."""
     return "\n".join(
         [
-            "a `<commit>:<path>` citation names a commit that no `main` or "
-            "release ref contains, so it opens in no clone once its branch "
-            "is squashed:",
+            "each commit below, cited as `<commit>:<path>` or named bare "
+            "outside `seal/`, is one that no `main` or release ref contains, "
+            "so it opens in no clone once its branch is squashed:",
             *(f"  {rel}:{line} cites {commit}" for rel, line, commit in found),
             REPAIR,
             FETCH,
@@ -170,9 +232,9 @@ def verdict(root):
 
 
 def test_every_cited_commit_outlives_the_squash():
-    """S1: every `<commit>:<path>` this tree reads names a commit `main` or a
-    release branch contains. A checkout with no such ref is not judged
-    (S6)."""
+    """S1: every `<commit>:<path>` this tree reads, and every commit it
+    names bare outside `seal/`, is one `main` or a release branch contains.
+    A checkout with no such ref is not judged (S6)."""
     assert_outlives(ROOT)
 
 
@@ -282,8 +344,8 @@ def test_the_rest_of_a_work_item_is_read(tmp_path):
 
 
 def test_a_commit_no_clone_holds_is_refused(tmp_path):
-    """S5: a token whose hex names no object is refused as an unreached
-    commit is."""
+    """S5: a `<commit>:<path>` token whose hex names no object is refused as
+    an unreached commit is."""
     root, commit = planted(tmp_path, reach=BASES)
     missing = commit[::-1][:12]
     cite(root, {"docs/a.md": citing(missing), "docs/b.md": citing(commit)})
@@ -293,7 +355,7 @@ def test_a_commit_no_clone_holds_is_refused(tmp_path):
 def test_no_reaching_ref_judges_nothing(tmp_path):
     """S6: with no `main` and no release ref, local or remote, a tag and a
     trunk branch notwithstanding, nothing is judged, and the tree case's
-    skip names the four patterns."""
+    skip names the four patterns and both forms it did not judge."""
     root, commit = planted(
         tmp_path, bases=("refs/tags/v9.9.9", "refs/heads/trunk"), reach=()
     )
@@ -302,6 +364,7 @@ def test_no_reaching_ref_judges_nothing(tmp_path):
     outcome, reason = verdict(root)
     assert outcome == "skipped"
     assert all(pattern in reason for pattern in REACHING)
+    assert "`<commit>:<path>`" in reason and "named bare" in reason
 
 
 def test_the_refusal_says_where_and_the_repair(tmp_path):
@@ -312,4 +375,68 @@ def test_the_refusal_says_where_and_the_repair(tmp_path):
     outcome, message = verdict(root)
     assert outcome == "failed"
     for part in ("docs/a.md:2", "hooks/a.py:2", commit[:8], REPAIR, FETCH):
+        assert part in message
+
+
+# --- bare commits ---------------------------------------------------------------
+
+
+def naming(commit):
+    """A text whose second line names COMMIT's first eight characters bare."""
+    return f"Intro.\nSeen red at {commit[:8]}, before the fix.\n"
+
+
+@pytest.mark.parametrize("rel", ["docs/a.md", "hooks/a.py"])
+def test_a_bare_commit_of_a_feature_branch_is_refused(tmp_path, rel):
+    """A commit only the feature branch and a remote feature ref contain,
+    named bare outside `seal/`, is named with its file, line and token, in
+    a `.md` and a `.py` alike."""
+    root, commit = planted(tmp_path, reach=("refs/remotes/origin/feature/x",))
+    cite(root, {rel: naming(commit)})
+    assert unreached(root) == [(rel, 2, commit[:8])]
+
+
+def test_a_bare_commit_under_seal_is_not_read(tmp_path):
+    """An unreached commit named bare in a work item's plan, as a Status
+    cell names a phase's commit, and in `seal/follow-up.md` is not read,
+    while the same commit named bare outside `seal/` is."""
+    root, commit = planted(tmp_path)
+    cite(
+        root,
+        {
+            "seal/threads/1-x/frame/plan.md": f"| Phase | Status |\n| 1 | {commit[:8]} |\n",
+            "seal/follow-up.md": naming(commit),
+            "docs/a.md": naming(commit),
+        },
+    )
+    assert unreached(root) == [("docs/a.md", 2, commit[:8])]
+
+
+def test_a_token_that_names_no_commit_or_a_reached_one_passes(tmp_path):
+    """A bare token that names no object, one that names a blob, and one
+    that names a commit a `REACHING` ref contains are named nowhere, and
+    the tree case's verdict passes rather than skipping."""
+    root, commit = planted(tmp_path, reach=BASES)
+    blob = git(root, "rev-parse", "HEAD:work.txt")
+    cite(root, {"docs/a.md": f"{commit[::-1][:12]} {blob[:8]} {commit[:8]}\n"})
+    assert unreached(root) == []
+    assert verdict(root) == ("passed", "")
+
+
+def test_the_refusal_of_a_bare_commit_says_where_and_the_repair(tmp_path):
+    """The tree case's failure on a bare commit names the bare form, its
+    file and line and the token, and a repair that names no commit: state
+    what the sentence's reader needs, or cite the issue that holds it."""
+    root, commit = planted(tmp_path)
+    cite(root, {"docs/a.md": naming(commit)})
+    outcome, message = verdict(root)
+    assert outcome == "failed"
+    for part in (
+        "named bare outside `seal/`",
+        "docs/a.md:2",
+        commit[:8],
+        "state in the sentence what its reader needs",
+        "cite the issue that holds it",
+        FETCH,
+    ):
         assert part in message

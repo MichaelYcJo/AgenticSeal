@@ -200,7 +200,7 @@ class Test_main:
                 out = run(repo, questions=(question,))
                 assert decision_of(out) == "deny", (answer, question)
 
-    # --- S6, S7: the branch and the root resolve as the commit gate's do ----
+    # --- S6, S7: the branch and the root resolve as the edit gate's do ------
 
     def test_refuses_in_a_linked_worktree_by_its_own_branch(self, repo, tmp_path):
         wt = tmp_path / "wt"

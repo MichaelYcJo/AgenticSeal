@@ -201,7 +201,7 @@ class Test_module:
 
     def test_what_runs_before_any_floor_is_linted_at_the_floor(self):
         """The launcher holds the floor for `bin/`, and nothing holds it for a
-        hook, a git hook, the launcher itself or `bin/test`'s runner: each runs on
+        hook, the launcher itself or `bin/test`'s runner: each runs on
         whatever `python3` starts it, 3.9 on a stock macOS, and so does every
         module it loads in its own process. A hook that raises there fails open,
         and the Stop hook loses the stamp it claimed. `ruff.toml` lints that set

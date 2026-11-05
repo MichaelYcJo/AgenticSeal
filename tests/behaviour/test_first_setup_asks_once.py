@@ -11,10 +11,6 @@ is the text: the one question the `implement`
 skill asks, the sentence a session needs, the workflow template
 `seal pr-checks install` writes and the commands its header names, and the
 switch the READMEs give.
-
-Every case was executed against the documents as they stood at 7e44106,
-before any of them was edited, and every case failed; the output is in the
-body of the commit that added this file.
 """
 
 import os
@@ -137,10 +133,6 @@ def test_the_parity_question_follows_the_mode_question():
 # rounds had settled, which is the last moment available and the one where
 # whoever is there has every reason to answer it themselves. That is what
 # happened, and it is what #401 reported.
-#
-# Each case below was executed against `orchestration.md` as it stood at
-# 81888e2, before the Bootstrap was edited, and each failed; the output is in
-# the body of the commit that added them.
 
 BROAD_ROW = "**The second question is the `Broad gate` row"
 
@@ -664,9 +656,8 @@ def test_the_design_record_states_the_setup_rules_where_they_rule(parts, opt_in,
 # there. A session is told to write `seal/threads/<id>/routing.md` before the
 # first edit, and that write creates `seal/`, which opts the repository in.
 # Until #1177 the preset block in `~/.claude/CLAUDE.md` said so in every
-# project on the machine, and the cases that read it were written against the
-# block as it stood at 589cf25, each failing first. The block is retired; the
-# core, which the plugin's `SessionStart` hook prints into every session,
+# project on the machine. The block is retired; the core, which the
+# plugin's `SessionStart` hook prints into every session,
 # names the routing section (`tests/text/test_review_axes.py`), and the cases
 # below read the orchestrator's half and the Bootstrap, the files that hold
 # the rule.

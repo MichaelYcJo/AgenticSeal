@@ -2130,8 +2130,7 @@ class Test_pins_and_copies_in:
         """Round 2, finding 1: a `change` that shortens a passage of
         `docs/policy.md` and keeps a run of 15 of its words, beside an `add`
         of the whole passage to `docs/other.md`: `docs/policy.md` keeps a copy
-        after the settle, named at the `add`'s `to`. Seen red against
-        `c783f18f4`, which read the `change` as a `remove`."""
+        after the settle, named at the `add`'s `to`."""
         root, _code = branch
         passage = f"Then {words_of(15)} and on."
         kept = f"Then {words_of(15)} and see the other file."
@@ -2159,8 +2158,7 @@ class Test_pins_and_copies_in:
     ):
         """Round 3, finding 1: two `add`s of one passage into two documents
         that do not hold it. Each document holds it after the settle, so each
-        `to` names the other document. Seen red against `a10750aea`, which
-        printed nothing for the design."""
+        `to` names the other document."""
         root, _code = branch
         passage = f"Then {words_of(15)} and on."
         write(root, "docs/a.md", "# A\n\n## One\n\nOther words here.\n")
@@ -2188,8 +2186,7 @@ class Test_pins_and_copies_in:
     ):
         """Round 1, finding 1: a design that removes a section of
         `docs/policy.md` and adds its passage to `docs/other.md` moves it, so
-        `docs/policy.md` holds no copy after the settle and none is named.
-        Seen red against `4105fd13c`, which named `docs/policy.md`."""
+        `docs/policy.md` holds no copy after the settle and none is named."""
         root, _code = branch
         passage = f"Then {words_of(15)} and on."
         write(
@@ -2221,8 +2218,7 @@ class Test_pins_and_copies_in:
     ):
         """Round 1, finding 2: a `remove` with no `from` whose document or
         section the working tree lacks is named as not read at the
-        operation's line, with the section reader's reason. Seen red against
-        `4105fd13c`, which printed nothing."""
+        operation's line, with the section reader's reason."""
         root, _code = branch
         if policy is not None:
             write(root, "docs/policy.md", policy)
@@ -2244,8 +2240,7 @@ class Test_pins_and_copies_in:
     ):
         """Round 1, finding 2: a tracked test file and a tracked rule document
         that the working tree holds as a directory cannot be opened, and each
-        is named as not read; the error's name is the platform's. Seen red
-        against `4105fd13c`, which skipped both."""
+        is named as not read; the error's name is the platform's."""
         root, _code = branch
         write(root, "tests/test_gone.py", "x = 1\n")
         write(root, "skills/gone/SKILL.md", "Words.\n")
@@ -2267,8 +2262,7 @@ class Test_pins_and_copies_in:
     ):
         """Round 1, finding 2: `ast.parse` raises `RecursionError` or
         `MemoryError` on a source nested past its limit, and such a test file
-        is named as not read rather than ending the check. Seen red against
-        `4105fd13c`, where the error ended the run."""
+        is named as not read rather than ending the check."""
         root, _code = branch
         write(root, "tests/test_deep.py", "x = 1  # deep\n")
         planted_spec(root, spec_with(change_to("a new rule.")))
@@ -2293,8 +2287,7 @@ class Test_pins_and_copies_in:
         self, branch, ready, capsys, monkeypatch
     ):
         """Round 1, finding 2: where git cannot list the tracked tests, none
-        is read, and the run says so rather than reading as no pin. Seen red
-        against `4105fd13c`, which printed nothing."""
+        is read, and the run says so rather than reading as no pin."""
         root, _code = branch
         planted_spec(root, spec_with(change_to("a new rule.")))
         git_of = chain.git
