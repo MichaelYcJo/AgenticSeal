@@ -9,8 +9,8 @@ Five sibling work items run on other branches of the same release. None holds a 
 Three existing structures constrain the work.
 
 - `tests/censuses.py#vacated_paths` refuses a path the tree no longer holds, outside a `<commit>:<path>` token. A rewrite that drops a commit and names the path it stood beside is refused, as #1355's phase found for `hooks/routing.py` (its `trail/phases/phase-1.md`, *Departures from the frame*). A rewrite names the issue, or the present path, or no path.
-- `tests/text/test_a_cited_commit_outlives_the_squash.py#unreached` takes a list of `(rel, line, commit)` from `cited` and refuses each commit no `REACHING` ref contains, one `git for-each-ref --contains` per distinct commit (`:107-126`). D2's bare reader feeds it the same shape, so the refusal path stays one.
-- `#read_here` (`:67-78`) leaves out `evals/behaviour/`, a work item's `trail/` and its `guarantee.md`. The bare reader adds one more condition, that the file is not under `seal/`, and keeps the rest.
+- `tests/text/test_a_cited_commit_outlives_the_squash.py#unreached` takes a list of `(rel, line, commit)` from `cited` and refuses each commit no `REACHING` ref contains, one `git for-each-ref --contains` per distinct commit (`:107-126` at the base; `:169` after phase 2). D2's bare reader feeds it the same shape, so the refusal path stays one.
+- `#read_here` (`:67-78` at the base; `:82` after phase 2) leaves out `evals/behaviour/`, a work item's `trail/` and its `guarantee.md`. The bare reader adds one more condition, that the file is not under `seal/`, and keeps the rest.
 
 The phases run in this order because phase 2's tree case reads the tree. After phase 1, every bare token outside `seal/` that resolves in this clone is reached by `origin/main` (`frame/design.md` *Grounding*, the reachability row), so the tree case passes. Built before phase 1, it would refuse 22 tokens in a clone that holds their commits and none in CI.
 
@@ -43,4 +43,4 @@ None for a deployer. The suite's run of `tests/text/test_a_cited_commit_outlives
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-05 | Phase 2's six frame statements HEAD contradicts are folded: the reader sits inside `cited`, containment is asked per token spelling, S8 carries a control, the base coordinates are marked as the base's, and Q1 and Q2 are answered by the phase records | Phase 2's hand-back named each with its coordinate; each is the build's account of a choice the frame left to the work or a fact the build changed, and none changes what the case refuses | `skills/implement/SKILL.md` *1. Read the documents that outrank the code first*, the frame stating what HEAD holds |
