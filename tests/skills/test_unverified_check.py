@@ -1473,8 +1473,17 @@ class Test_overviews:
     ):
         """`reference_rule` measures the walk against the top git names with
         its links resolved, so an argument reached through a link is read at
-        its real path, and a team's `specs/` stays out of that walk too."""
-        symlink_or_skip(str(joined), str(tmp_path / "link"), directory=True)
+        its real path, and a team's `specs/` that a `Reference specs` row
+        names by its prefix stays out of that walk too. The default row
+        matches a `specs` part wherever it stands, so only a prefix reads
+        where the path begins."""
+        d = copy_of(joined, tmp_path)
+        write(
+            d,
+            "seal/config.md",
+            "| Item | Value |\n|---|---|\n| Reference specs | specs |\n",
+        )
+        symlink_or_skip(str(d), str(tmp_path / "link"), directory=True)
         walked = UC.overviews([str(tmp_path / "link")])
         assert [os.path.basename(os.path.dirname(p)) for p in walked] == [
             "1790000000-ours"
