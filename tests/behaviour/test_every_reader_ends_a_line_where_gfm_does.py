@@ -19,7 +19,7 @@ typed into an editing tool can come back as the character itself, and a file
 holding one is exactly what these cases are about.
 
 The splitter's own cases are `tests/hooks/test_blocks.py`'s `Test_gfm_lines`
-(#942's phase 6). What stays here holds every copy of it to it, three
+(#942's phase 6). What stays here holds every copy of it to it, two
 modules on one corpus. Each other reader's case judges that reader alone,
 so #942's round 9 fix pass placed it in that reader's file:
 `tests/skills/test_fold_check.py`, `tests/skills/test_chain_check.py`, `tests/skills/test_payload_meter.py`
@@ -35,12 +35,10 @@ from conftest import ROOT, texts
 
 READER = os.path.join(ROOT, "skills", "verify", "scripts", "unverified_check.py")
 CHECKER = os.path.join(ROOT, "skills", "verify", "scripts", "coordinates.py")
-ARM_CHECK = os.path.join(ROOT, "skills", "verify", "scripts", "arm_check.py")
 
 
 def _load(name, path):
-    """A script by path, registered under NAME first: `arm_check.py` defines
-    dataclasses, which look their own module up in `sys.modules`."""
+    """A script by path, registered under NAME first."""
     spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)
     sys.modules[name] = module
@@ -56,17 +54,14 @@ reader = _load("agentic_reader_for_gfm_lines", READER)
 
 def test_every_copy_of_the_splitter_is_the_readers():
     """S17. The reader's split is `hooks/lib/blocks.py`'s, which it imports since
-    #1005; `arm_check._lines` splits Python source where `ast` does, ends
-    kept, and the coordinate kernel asks the reader itself. All are one rule,
-    held equal here."""
+    #1005, and the coordinate kernel asks the reader itself. Both are one
+    rule, held equal here."""
     checker = _load("agentic_checker_for_gfm_lines", CHECKER)
-    arm_check = _load("agentic_arm_check_for_gfm_lines", ARM_CHECK)
     for text in texts():
         want = reader.gfm_lines(text)
         assert checker.gfm_lines(text) == want, repr(text)
         kept = reader.gfm_lines(text, keepends=True)
         assert checker.gfm_lines(text, keepends=True) == kept, repr(text)
-        assert arm_check._lines(text) == kept, repr(text)
 
 
 # S19, that no shipped reader of a document splits with `.splitlines(`, is

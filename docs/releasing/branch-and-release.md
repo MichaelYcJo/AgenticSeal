@@ -223,9 +223,9 @@ branch, which is why the version moves in the release's first pull request.
 the `release` job of `.github/workflows/hygiene.yml` to pass at the commit
 that merges.** A ruleset with no bypass actor still merges a pull request
 whose checks are red, unless the ruleset requires those checks. The `pytest`
-and `arms-grammar` jobs are not required. Their check names carry the
-matrix values, so a required name is a copy of `test.yml` that stops
-matching when the matrix changes, and the chain check already refuses a
+job is not required. Its check names carry the matrix values, so a
+required name is a copy of `test.yml` that stops matching when the matrix
+changes, and the chain check already refuses a
 work item's ready pull request whose broad run is not at HEAD. The
 `release` ruleset does not hold the checks where a branch is created,
 because a release branch is cut at a commit of `main` that no pull

@@ -65,14 +65,12 @@ found", which is a different sentence from "not there". Never promote one to
 a document: a policy or a rule built on a search nobody could repeat is the
 same defect as a `read` reported as passing, with a longer fuse.
 
-#### A module or a unit: `seal arms` and `seal mutate`
+#### A unit: `seal mutate`
 
-`seal arms` asks condition 2 of a whole module, one arm at a time, and
-`skills/verify/seal-arms.md` holds the command. `seal mutate` asks it of one
-unit, one break at a time, and `skills/verify/seal-mutate.md` holds the
-command, its verdicts and their exit codes. A party that proves condition 2
-of a module or of a unit opens the file of the command it runs, before it
-runs it.
+`seal mutate` asks condition 2 of one unit, one break at a time, and
+`skills/verify/seal-mutate.md` holds the command, its verdicts and their
+exit codes. A party that proves condition 2 of a unit opens that file
+before it runs the command.
 
 ### 3. Bound to the tree
 
