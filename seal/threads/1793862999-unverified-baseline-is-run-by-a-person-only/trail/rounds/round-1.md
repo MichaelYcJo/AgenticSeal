@@ -64,6 +64,11 @@ Leaving the original answerer in place beside the word is how a closing goes
 out unproven, and only a reader catches it.
 ```
 
+```seal
+verdict: fixed fb1f126e
+answer: The finding holds: `unverified_check.py:807-813` refuses an empty or placeholder second cell, and `settle.py:1833` prints it, pinned by `tests/skills/test_settle.py:877`. I wrote the fix in my own words, not the paste-ready text. The paste kept "So the second cell saying what closed the item is a convention no check enforces", which repeats the sentence before it. The paragraph now opens "No check judges whether the second cell of a closed row says what closed the item", names the two readers and what each does, and keeps the closing sentence. Design *Scope* item 9 (`frame/design.md:37`) still asks for "no script reads what the second cell of a closed row says". That is a frame line, so it goes to the orchestrator.
+```
+
 ### 2. The proofer is made the one reader of a deleted row, and the proofer's own procedure never asks it to read one
 
 ```seal
@@ -104,6 +109,11 @@ that left without opening with the word `closed`, or a `gaps.md` deleted
 from a work item directory that stays, is a `must` finding. A work item
 directory that the diff removes whole is a settle and not a deletion
 (`docs/checks/the-fold.md` *The fold, and what tells it from a deletion*).
+```
+
+```seal
+verdict: fixed 96ce5e6f
+answer: The finding holds: `agents/proofer.md` and `skills/code-review/SKILL.md` named no reading of what the diff removes from a `gaps.md`. I wrote the paragraph in my own words, placed after stage 1's paragraph on `gaps.md`, for three reasons. First, closing a row also takes its old line out of the diff, so the paragraph names the exception: a row the diff adds carries the same item opening with `closed`. Second, it leaves severity to the proofer, because `docs/forms/the-round-record.md` *The round record* says the agents judge severity. Third, read under each condition its file names, a root in local mode commits no record, so no diff holds the memo; the paragraph says nothing reads a row taken out there. The changelog fragment's first item now names this step and the limit, in the same commit.
 ```
 
 ## Confirmations
