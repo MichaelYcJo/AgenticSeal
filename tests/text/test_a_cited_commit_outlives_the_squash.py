@@ -428,7 +428,7 @@ def test_the_refusal_of_a_bare_commit_says_where_and_the_repair(tmp_path):
     outcome, message = verdict(root)
     assert outcome == "failed"
     for part in (
-        "named bare",
+        "named bare outside `seal/`",
         "docs/a.md:2",
         commit[:8],
         "state in the sentence what its reader needs",
