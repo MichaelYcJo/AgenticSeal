@@ -2,6 +2,8 @@
 
 ## Grounding
 
+Each row states the tree at a0303ee9, the base the frame was drawn on, unless it names another commit; the phases change several of the facts the rows cite.
+
 | Policy clause | What it fixes for this work |
 |---|---|
 | Issue #1240, body rewritten 2026-11-05, and its two comments (executed: `gh issue view 1240 --json body,comments`) | The owner's decision is not reopened here. The `--baseline` mode of `seal unverified` leaves, and so does the code that compared a base listing with the scan's memos. `seal unverified` without `--baseline` stays. Every document, test and comment that named the mode says what stands now: the proofer reads a deleted row or memo in the closing memo's diff. #1238 and #1264 need nothing more. |
@@ -60,7 +62,7 @@ Out:
 | A2 the plain run is unchanged | Given open rows, an unreadable section, a missing path, a settled, absent or unwritten root, or a tracked link to a memo, when `seal unverified <path>` runs, then it exits 0, 1, 2, 0 and 0 as today, and counts the linked memo once | The kept plain cases of `Test_main`, unchanged in what they assert |
 | A3 the settle reading at the pull request is unchanged | Given a declaration whose directory stood at the merge base and is gone whole, when `chain_check.py` runs, then it prints `retired: a settle` through `unverified_check.py#settled`, and `a-settle-is-no-deletion` is carried by that case | `tests/skills/test_chain_check.py`; the marker carried there, read with `git grep -n 'a-settle-is-no-deletion' -- tests` |
 | A4 the settle reads a record as the plain run does | Given a released work item's `gaps.md` in the working tree, when `seal settle` lists its open rows, then `open_record_rows` reads it with the plain run's strict reader. A section that reader cannot read becomes one entry saying so, never zero rows | `tests/skills/test_unverified_check.py`, `Test_open_record_rows` (line 1743 at `7d8674e5`), and `tests/skills/test_settle.py` |
-| A5 no text states the mode | Given the built tree, when `git grep -n -e "seal unverified --baseline" -e "\[--baseline <ref>\]" -- ':!seal/threads'` runs, then it names nothing. The pending `from` values stand under `seal/threads`, which the command leaves out | That command, run by the proofer |
+| A5 no text states the mode | Given the built tree, when `git grep -n -e "seal unverified --baseline" -e "\[--baseline <ref>\]" -- ':!seal/threads'` runs, then it names nothing outside the policy root. Under `docs/` it names `docs/checks/the-fold.md:21`, the `from` of a pending `## Rule changes` operation that the settle rewrites (plan *Alternatives considered* row 7); the design's own copies of the `from` values stand under `seal/threads`, which the command leaves out | That command, run by the proofer |
 | A6 a deleted row is the proofer's to read | Given `skills/implement/SKILL.md` *4. The closing memo*, then it says the proofer reads the memo's diff and names no command that lists a deleted row | Read by review |
 
 ## Data & interfaces
