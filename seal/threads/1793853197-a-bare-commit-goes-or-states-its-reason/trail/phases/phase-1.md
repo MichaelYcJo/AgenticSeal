@@ -158,3 +158,13 @@ Row 58 keeps that the case's six other ids are refused. The case's parameter lis
 **S6, a cited issue holds what it is cited for (executed).** `gh issue view 639` for rows 84 and 85; `gh issue view 1177` and `gh pr view 1186` for rows 63 to 65, whose answer is the departure above. No other rewrite names an issue where the base named a commit.
 
 **No mutation run.** The phase changes comments and docstrings alone and adds no behaviour, so `skills/verify/SKILL.md` *The narrow command still has to be able to fail* asks only that each module imports, which S4's run holds.
+
+**Addendum: one line the moved base added (second fix pass, after the sealer withheld `34f93a4a`).** The branch merged `release/v0.32.4` at `703ab88c` (#1382's squash) at `a9d9f64a`. That squash added a docstring line this work's class holds, so the table gains row 116. It is a P line, disposed of as rows 1 to 85 are, and it brings the rewritten lines to 86, 73 of them P, in the same 29 files.
+
+| # | Line | Token | Disposition | What replaced it |
+|---|---|---|---|---|
+| 116 | `tests/behaviour/test_chain_hooks_hardening.py:443` at `a9d9f64a`, `:445` at `703ab88c` | `3538fd59` | P | removed: "Seen red at `3538fd59`, whose passages named none of them, and with one row deleted from one edition." The docstring of `test_the_hooks_that_reach_the_network_are_named_without_a_count` ends "also names every place in `NETWORK_PLACES`." Both halves of the sentence are the case's red evidence, so the whole sentence went |
+
+- `3538fd59` resolves in this clone, and `git for-each-ref --contains 3538fd59` lists only `refs/heads/docs/1382-the-readme-names-two-of-four-network-places`, a local feature branch (executed). Once that branch is gone, no clone holds the commit.
+- `bin/test -q tests/text/test_a_cited_commit_outlives_the_squash.py` gave 17 passed at exit 0 after the edit, and `bin/test -q tests/behaviour/test_chain_hooks_hardening.py` gave 28 passed at exit 0 (executed). The orchestrator's run of the first module on the merged tree before the edit refused this line alone, so that run is the whole list of refused tokens the base added.
+- M1 and M2, rerun on the merged tree after the edit, list the same 18 and 33 tokens as at `43b9b1be` (executed). The `+` lines of `git diff -U0 a9d9f64a^1 a9d9f64a -- . ':(exclude)seal/'` hold two hex tokens, `3538fd59` and the work item id `1790644505`, which is digits and names no commit (executed).

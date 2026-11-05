@@ -440,8 +440,7 @@ def test_the_hooks_that_reach_the_network_are_named_without_a_count():
     of the three counts them. The READMEs named those two hooks and no other
     place the plugin reaches the network, so each edition's passage, from
     the pinned sentence to the next heading, also names every place in
-    `NETWORK_PLACES`. Seen red at `3538fd59`, whose passages named none of
-    them, and with one row deleted from one edition."""
+    `NETWORK_PLACES`."""
     from conftest import flat
 
     for path, said, gone, places in (
