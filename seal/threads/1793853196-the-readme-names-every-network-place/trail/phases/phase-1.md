@@ -81,8 +81,17 @@ runs on your machine* lists". The rewrap kept the change on those three
 lines, because #238 works in the same area. The module still imports
 (executed: `tests/hooks/test_version_check.py` passed).
 
-**S7.** `git grep -n "second network touch" -- ':!seal/'` at `b7e392d8`
-found nothing, exit 1 (executed).
+**S7.** `git grep -n "second network touch" -- ':!seal/'` found nothing,
+exit 1, at `b7e392d8` and again at `4569798a` (executed).
+
+**The phase closes at `4569798a`.** After the records were first written,
+the read of the range found a short line left in each edition's hook
+paragraph by the `uv run` sentence, and a Korean *When* cell for `seal gate`
+that read awkwardly. `4569798a` rewraps the paragraph in both editions and
+rewrites that one cell. It adds and removes no place, marker or fact, so the
+census above, taken at `b7e392d8`, stands for it. At `4569798a` the two
+six-row `seal mutate` calls were run again, 12 mutants and 12 red, and the
+narrow modules the plan names passed (executed).
 
 **S1, the census re-run.** `git archive` of HEAD at `b7e392d8` was
 extracted under the scratch directory: 171 files (executed). Two parts were
