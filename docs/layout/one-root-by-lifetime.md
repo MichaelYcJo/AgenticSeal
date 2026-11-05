@@ -56,6 +56,8 @@ with the record. Every other `<commit>:<path>` names a commit `main` or a
 release branch reaches (`docs/layout/the-record-layout.md`
 *seal/threads/<work-item-id>/*).
 
+check: tests/behaviour/test_a_cited_section_stands_in_its_file.py
+
 ## The opt-in signal is the root itself
 
 **A repository is opted in when `seal/` exists at its mode's location and

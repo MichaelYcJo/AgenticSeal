@@ -17,8 +17,7 @@ session writes each section in its own words, a reader could only guess at
 that from words, and the settle's pull request states each decision for the
 owner to review. A pull request that removes part of a directory, a
 `gaps.md` from a directory that stays, or a row from a table is still a
-deletion. One predicate, `unverified_check.py#settled`, answers
-`seal unverified --baseline` and `chain-check`. A pull request outside a
+deletion. `chain-check` asks one predicate, `unverified_check.py#settled`. A pull request outside a
 settle that removes a whole work item directory reads as a settle too; its
 diff shows the removal to its review.
 check: a-settle-is-no-deletion
@@ -136,14 +135,13 @@ check: tests/behaviour/test_whether_a_line_is_live_is_asked_by_what_the_line_doe
   nobody wrote live. The wrong answer is a statement left unbound, a hook
   that says nothing, or a gate that asks.
   check: tests/behaviour/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py
-- **A line a record's rows are COUNTED on is blanked the same way on both
-  sides of a comparison.** `unverified_check.py#readable` blanks fenced lines
-  with the indices intact, and a fence nobody closed to the end of the file.
-  It reads a comment as text, because a record carries none, and the reader
-  that judges a record refuses a line that begins with `<!--`. So the working
-  tree and the base revision count the same
-  table, and the readers that judge a record refuse a hidden table as absent
-  rather than read it as empty.
+- **A line a record's rows are COUNTED on is blanked where a fence holds
+it.** `unverified_check.py#readable` blanks fenced lines with the indices
+intact, and a fence nobody closed to the end of the file. It reads a
+comment as text, because a record carries none, and the reader that
+judges a record refuses a line that begins with `<!--`. So the readers
+that judge a record refuse a hidden table as absent rather than read it
+as empty.
   check: tests/behaviour/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py
 
 No one rule serves all three kinds. The holding bias would let a
@@ -155,9 +153,8 @@ fourth answer, and it is argued against these three.
 in, and it reads as settled, never as unusable.** Git keeps no empty
 directory, so the state is two: the tree that ran `seal settle --apply` holds an
 empty `seal/threads/`, and a fresh checkout of that commit holds none. Read as
-unusable, `settle` would exit 2 on its own finished work, and `seal unverified
---baseline` would read the root's own `threads` path as a typo when a person
-runs it after the fold, and refuse a finished settle. Only that one path is
+unusable, `settle` would exit 2 on its own finished work, and `seal unverified` would read the root's own `threads` path as a
+typo when a person runs it after the fold, and refuse a finished settle. Only that one path is
 settled; any other missing path is still refused, which keeps a misspelt
 path from passing in silence.
 check: an-empty-root-is-settled

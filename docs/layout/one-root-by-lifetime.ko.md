@@ -53,6 +53,8 @@ corpus*). 병합 뒤에 `seal/threads/<id>/` 를 새로 읽는 코드는 그것�
 밖의 `<commit>:<path>` 는 `main` 이나 릴리스 브랜치가 닿는 커밋을 가리킵니다
 (`docs/layout/the-record-layout.md` *seal/threads/<work-item-id>/*).
 
+check: tests/behaviour/test_a_cited_section_stands_in_its_file.py
+
 ## 옵트인 신호는 루트 자체다
 
 **저장소가 옵트인한 것은 그 모드의 자리에 `seal/` 이 있고 그 `README.md` 가

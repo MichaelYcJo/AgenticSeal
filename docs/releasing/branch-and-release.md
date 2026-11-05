@@ -114,7 +114,7 @@ hand fires the publish workflow too.
   reads the two marketplace files on GitHub, a curated catalog that takes
   outside plugins through the directory's submission and a nightly mirror of
   its review pipeline, and says per file whether the plugin has an entry, which
-  commit it pins and whether that commit is on `main`. It exits 0 whatever it
+commit it pins, and which of `main` and `dist` holds that commit. It exits 0 whatever it
   finds: those files sync on somebody else's schedule, and a red nobody here can act on is what `skills/core/SKILL.md` *The first value: efficient development through the workflow* is against. The directory's own
   state, whether the plugin is published there and at which version, is not
   among its answers, because no script can reach the directory; the command
@@ -136,6 +136,30 @@ check: tests/behaviour/test_a_release_publishes_its_note.py tests/github/test_pu
 Which workflows GitHub starts on which event, and which run a newer push
 cancels, is GitHub's behaviour. No case here can start a run, so
 `gh run list --branch <branch>` on a pull request is what reads it.
+
+**The plugin directory reads `dist`, a branch that holds what the
+installed plugin runs, and the publish workflow adds one commit to it at
+each release.** The directory's form does not answer in time for this
+repository's whole tree, and answers for the tree without its suites and
+records (#1374). The paths that leave are marked `export-ignore` in
+`.gitattributes`, and the tree of each commit of `dist` is `git archive`
+of the release's tag. So the list lives in that one file and the workflow
+holds none. It lists what leaves and not what stays: a path forgotten
+there reaches `dist` and costs size or a finding, where a path forgotten
+in a list of what stays would be missing from every listed copy with
+nothing here to see it. The workflow's `dist` job builds the commit with
+`.github/scripts/dist_branch.py` on the previous commit of `dist`, makes
+none where that commit's tree is already the tag's archive, and pushes
+without force, because the directory serves a scanned commit of the
+branch it tracks and a rewritten branch would orphan it. The census that
+reads cited sections and names reads the files `dist` holds against
+`dist`'s files too, so a cited file marked `export-ignore` fails CI. A
+reader here that needs a tag's whole tree checks the tree out rather than
+archiving it, since an archive leaves the marked paths out. GitHub's
+source archives of a release leave them out too. `marketplace.json`'s
+`source` is `./`, so `/plugin marketplace add` installs the whole tree from
+the default branch, `main`.
+check: tests/github/test_dist_branch.py tests/behaviour/test_a_cited_section_stands_in_its_file.py
 
 ### Work accumulates on a release branch
 
@@ -186,12 +210,15 @@ that holds the commit is open (`docs/forms/the-round-record.md` *The round recor
 **A third reader of those commits is outside this repository.** A marketplace
 file lists an external plugin by pinning a commit of its source repository,
 and an entry that also carries a `ref` usually names `main` or `master`, so
-the `sha` is what a reader resolves. The plugin directory, the catalog people
-browse inside Claude, holds a commit too: a plugin submitted at its developer
-portal is served from a scanned commit of the branch or tag the submission
-tracks (`claude.com/docs/plugins/submit`). Breaking the rule above therefore
-also breaks a consumer nobody here can reach, for people the owner cannot
-name. `docs/releasing/release-checklist.md` *6. After the merge* carries the box that
+the `sha` is what a reader resolves. The plugin directory, the catalog people browse inside Claude, holds a
+commit too: a plugin submitted at its developer portal is served from a
+scanned commit of the branch or tag the submission tracks
+(`claude.com/docs/plugins/submit`), and this plugin's submission tracks
+`dist`. The publish workflow adds each commit of `dist` and rewrites none
+(*Cutting a release* above), so the rule above does not reach the
+directory's commit. A marketplace file's pin can still name a commit of
+`main`, and breaking the rule above breaks that pin, a consumer nobody
+here can reach, for people the owner cannot name. `docs/releasing/release-checklist.md` *6. After the merge* carries the box that
 reads what is pinned. This paragraph is a record rather than a rule: a
 marketplace file pins a commit of each outside plugin's source repository.
 The rule it supports, that anything reaching `main` is a merge commit, is held
