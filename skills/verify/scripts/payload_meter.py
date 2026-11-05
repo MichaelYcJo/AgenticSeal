@@ -399,19 +399,27 @@ def imports_of(path, home, depth=HOPS, seen=None):
     meter reads one in each. The harness cuts a path at its first `#`, and
     the meter keeps the `#` and what follows it. The harness refuses a path
     by its first character and skips an imported file whose extension is
-    not text, and the meter follows either. The meter reads an import inside
-    a fence behind `>` or a list marker, where the shared fence rule opens
-    no fence. Where that fence's closing line stands within three spaces of
-    the margin, the rule reads it as an opener, and the lines below it are
-    hidden up to the next fence line or the end of the file. A next fence
-    line then closes that fence, so what the next fence quotes is read. A
-    `<!--` with no `-->` after it hides the rest of the file wherever it
-    stands in live text. CommonMark reads such an opener inside a
-    paragraph, or after a comment that closed on its line, as text, and the
-    harness reads the imports below it. And the
-    meter reads no import whose `@` follows a code span, a comment, emphasis
-    or a link with no whitespace between them, where the harness can begin
-    a text token with the `@`."""
+    not text, and the meter follows either.
+
+    Two differences come from the shared scan, `unverified_check.py#_scan`,
+    which keeps no model of markdown's blocks. Its fence rule reads each
+    line with no list item or block quote around it. So it opens no fence
+    behind `>` or a list marker, and the meter reads an import inside such
+    a fence. And it reads that fence's closing line as an opener where the
+    line stands within three spaces of the margin. From there the meter's
+    fences stand out of step with the file's, until a later fence line
+    happens to bring them back or the file ends. Live text can be hidden,
+    and what a later fence quotes can be read. The scan also opens a
+    comment at every `<!--` in live text and closes it at the next `-->`,
+    however far below. CommonMark reads a `<!--` as text where it neither
+    opens a line nor has its `-->` in the same paragraph: inside a
+    paragraph without that `-->`, or after a comment that closed on its
+    line. There the meter hides the imports up to the next `-->`, or to the
+    end of the file where none follows, and the harness reads them.
+
+    And the meter reads no import whose `@` follows a code span, a comment,
+    emphasis or a link with no whitespace between them, where the harness
+    can begin a text token with the `@`."""
     seen = set() if seen is None else seen
     if depth <= 0 or not os.path.isfile(path):
         return []
