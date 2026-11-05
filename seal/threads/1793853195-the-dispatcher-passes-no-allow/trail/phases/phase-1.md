@@ -6,7 +6,7 @@
 
 **A dropped decision's reason joins the texts after the decisions' own reasons.** `allow` `ra` beside `ask` `rk` prints the reason `rk\n\nra` (executed under `/usr/bin/python3` 3.9.6). The merged reason was already the decisions' reasons followed by the texts, and a dropped decision's reason is now one of the texts, in gate order. Judged against `frame/design.md` *Scope* 1, which asks that the reason be kept as plain text is.
 
-**Where a dropped decision stands beside a decision-less JSON object, its reason is not printed.** The JSON path prints the first object, and plain text beside it was not printed at `71cfd170` either. This is the reading taken of *Scope* 1's "printed as plain text where no decision passes": the reason is treated as plain text is, and that sentence holds where no such object stands beside it. No gate prints a dropped decision or decision-less JSON on `PreToolUse`, so no output changes. A dropped decision object's own `systemMessage` is not kept either, as the decision path did not keep it at `71cfd170`. Judged against `frame/design.md` *Scope* 1 and *Data & interfaces*.
+**Where a dropped decision stands beside a decision-less JSON object, its reason is not printed.** The JSON path prints the first object, and plain text beside it was not printed at `71cfd170` either. The reason is treated as plain text is, and *Scope* 1 says so since the orchestrator's fold at `93662643`. No gate prints a dropped decision or decision-less JSON on `PreToolUse`, so no output changes. A dropped decision object's own `systemMessage` is not kept either, as the decision path did not keep it at `71cfd170`. Judged against `frame/design.md` *Scope* 1 and *Data & interfaces*.
 
 **A lone `{"decision": "approve"}` is printed as `{}`.** The JSON path removes the field and prints what is left, as *Scope* 2 says. Claude Code reads an empty object as no decision. *Data & interfaces* lists the shape with a `reason`, which prints `{"reason": "r"}` (executed under 3.9.6).
 
@@ -24,6 +24,7 @@
 - `test_accepts_a_deny_or_an_ask_in_any_case_and_prints_it_lower_case` failed on `'Deny' == 'deny'`.
 - `test_refuses_to_pass_on_an_input_change_or_an_approval_without_a_decision` failed on its first assertion, with `updatedInput` printed.
 - `test_accepts_an_ask_beside_an_allow_and_keeps_both_reasons` and `test_accepts_a_block_without_a_decision_as_the_gate_printed_it` passed there, as *Scope* 4 expects. Each was shown red by the mutation *Scope* 4 names, below. Their failing lines were read: `assert "ra" in reason and "rk" in reason` with the reason `rk`, and `{'reason': 'r'} == {'decision': ..., 'reason': 'r'}`.
+- Round 1's fix, `6b749ea1`, adds to `test_refuses_to_pass_on_a_decision_other_than_deny_or_ask` an `allow` with no reason and one with a null reason, each expected to print `""`. Both are green at `ecfb7b58`, because the guard `elif hook_out.get("permissionDecisionReason"):` already holds them, and no case reached that guard before. Each was shown red by a mutant of the guard, below, and failed on its own line, `assert d.merge([body], "PreToolUse") == "", reason`.
 
 **Mutation** (executed, after commit `ecfb7b58`). One `seal mutate hooks/dispatch.py` per break, each over `bin/test tests/hooks/test_dispatch.py -q -p no:xdist -k Test_merge`. Each baseline passed, and each verdict was `red`, exit 0.
 - The filter `if hook_out["permissionDecision"].lower() in RANK:` replaced by `if True:`. The `allow` case and the `ask` beside `allow` case went red.
@@ -35,6 +36,7 @@
 - `verdict.lower() == "block"` replaced by `verdict == "block"`. The `block` case went red on `Block`.
 - `if event_name == "PreToolUse":` replaced by `if True:`. The input-change case went red on its `PostToolUse` assertion.
 - Result: 8 mutants, 8 red, 0 survived. `git status --short` was empty after the runs.
+- Round 1's fix, after commit `6b749ea1`: two more `seal mutate hooks/dispatch.py` runs, each over the whole module, `bin/test tests/hooks/test_dispatch.py -q -p no:xdist`. Each baseline passed, and each verdict was `red`, exit 0, with 1 failed and 53 passed. The guard replaced by `else:` raised `KeyError: 'permissionDecisionReason'` on the reasonless `allow`. The guard replaced by `elif "permissionDecisionReason" in hook_out:` let the reasonless `allow` through and raised `TypeError` at the join on the null reason. Result: 2 mutants, 2 red, 0 survived. `git status --short` was empty after the runs.
 
 **S3 and S5** (executed). `git diff 6466441c ecfb7b58 -- tests/hooks/test_dispatch.py` removes no line, so the existing `Test_merge`, `Test_classify` and `Test_report` cases are unedited. `bin/test tests/hooks/test_dispatch.py -q` ended 54 passed, exit 0.
 
