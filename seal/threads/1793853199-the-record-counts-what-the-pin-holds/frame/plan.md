@@ -2,6 +2,8 @@
 
 ## Technical context
 
+Line coordinates in this file are at `a5bad40fd`, before the build.
+
 The notice is `hooks/version-check.py#notice` (`:148-161`). Two cases read it in `tests/hooks/test_version_check.py`. `Test_main.test_accepts_a_warning_that_names_the_cheap_move_before_the_expensive_one` (`:68-133`) compares the whole message with a golden string. `test_the_notice_agrees_with_the_docstring_about_what_a_reload_re_reads` (`:273-304`) finds the first sentence naming `/reload` and looks for a scope qualifier in it. Two more cases read the notice: `test_accepts_a_newer_release_and_warns` (`:53-57`) and `test_accepts_a_warning_that_names_both_commands_in_order` (`:59-66`). The paragraph this work rewrites is `:100-111`, inside the first case's docstring. Nothing reads a docstring of this module, apart from `test_census`, which reads the whole file for old names and vacated paths.
 
 The failure scenario of the chosen approach: in six months someone rewords the notice, brings the golden string along, and adds an overclaim. The pin passes, as the rewritten paragraph says it will. The defence is the person and the review that read the assertion message, and no checker. That is the state today, and this work only stops the docstring from understating or misstating it.

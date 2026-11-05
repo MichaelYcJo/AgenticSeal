@@ -1,5 +1,7 @@
 # Design: 1793853199-the-record-counts-what-the-pin-holds
 
+Line coordinates in this file are at `a5bad40fd`, before the build. `trail/phases/phase-1.md` maps each D2 row to its line after the build.
+
 ## Grounding
 
 | Policy clause | What it fixes for this work |
