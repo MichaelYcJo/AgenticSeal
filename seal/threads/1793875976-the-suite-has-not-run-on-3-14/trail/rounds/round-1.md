@@ -42,6 +42,11 @@ In `frame/plan.md:53`, the Grounds cell's last clause:
 changing the version later is the matrix entry, the comment above it and `CONTRIBUTING.md` *Running the checks*, which `frame/questions.md` Q1 names
 ```
 
+```seal
+verdict: fixed 2fba6eb5
+answer: The orchestrator folded this into the frame at 2fba6eb5, and the fix pass read that commit against the finding. Q1's options cell now ends "and with it the two `test.yml` comments and `CONTRIBUTING.md`'s sentence that name the version". Its default cell says changing the version "is the matrix entry, the two `test.yml` comments and `CONTRIBUTING.md`'s sentence that name the version". The plan's judgment row says the same in its Grounds cell. Both now name the four places HEAD holds: `.github/workflows/test.yml:70`, the comment lines at `test.yml:40` and `test.yml:54`, and `CONTRIBUTING.md:147`. The fold calls the two comment lines "two comments" where the paste-ready text said "the comment above `include:`, which names the version twice". Both point at the same two lines. The fold also leaves out the clause that no case holds the `CONTRIBUTING.md` sentence to the entry. The statement is true without it, because it lists the sentence among the places to change. The finding's search, `git grep -n -E "one matrix|matrix line|one line|by itself"` over the work item's directory at HEAD, now matches only `frame/design.md:13`, which describes the matrix's shape, the fold's own judgment row at `frame/plan.md:56`, and this record. No file of the directory still says a version change is one line.
+```
+
 ### 2. A pytest job on a system outside the three now prints as a row of its own, and no case holds it
 
 ```seal
@@ -69,6 +74,11 @@ The fix extends the order case, which already reads the rows past the three by s
             "macos 3.13",
             "freebsd",
         ]
+```
+
+```seal
+verdict: fixed e5eea9b4
+answer: e5eea9b4 applies the paste-ready edit to `Test_other_legs::test_accepts_the_legs_past_the_three_by_system_then_version`, with its name kept and its docstring extended. The edit was read against `other_legs` first. `"freebsd".partition(" ")` gives the system `freebsd` and an empty Python, so `order` ranks it `len(LEGS)` and it sorts after `macos 3.13`, as the list expects. `release_report.py:24-28` and `frame/design.md` *Data & interfaces*, "one row for each other key either job list holds", both state this row. Seen red: `bin/seal mutate .github/scripts/release_report.py --replace 'rank = LEGS.index(system) if system in LEGS else len(LEGS)' 'rank = LEGS.index(system)'`, run over `tests/github/test_release_report.py` and `tests/text/test_the_release_table_reads_two_trees_and_fails_nothing.py` at e5eea9b4, gave 1 failed and 28 passed. The failure was this case, with `ValueError: tuple.index(x): x not in tuple` raised from `order`. At e5eea9b4 the same two modules gave 29 passed. Ruff's check and format check on the test file exit 0.
 ```
 
 The fix pass shows it red with `release_report.py:270` reduced to `rank = LEGS.index(system)`. Its failing line should be the `ValueError` raised from `order`.
