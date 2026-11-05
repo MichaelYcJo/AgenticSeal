@@ -70,4 +70,4 @@ considered* is why no script holds it.
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-05 | `tests/hooks/test_version_check.py:1`, "the one hook that reaches the network", joins *Scope* 4, built after phase 1 closed, before round 1 | Phase 1's hand-back found it as another statement of the fact the README now states (contract rule 12) and left it because #238 edits the same module; #238's diff touches its lines 100 to 105 alone, so the line has no other owner and the merge does not conflict | `skills/core/SKILL.md` *The rule a mechanism is kept against*, "in the same commit removes what stood on the old fact" |
