@@ -43,6 +43,7 @@ In scope:
 2. The three other sentences of the script that state or lean on the absolute, D1 items 3, 4 and 5. They are the same class (contract rule 12). The script was read whole, so the list is closed.
 3. The one test docstring sentence that states the absolute, D1 item 6. It is the same class in the file that tests the script. The milestone's purpose covers docstrings under `tests/`.
 4. No code line of either file changes. The diff touches docstring text alone.
+5. `.claude-plugin/plugin.json`'s version moves to `0.32.4`, in the commit that adds this work item's `changelog.md`. This work item is the release's first, as `docs/releasing/branch-and-release.md` *Cutting a release* places the version move.
 
 Out of scope:
 
@@ -52,7 +53,6 @@ Out of scope:
 - **`tests/github/test_roll_flow_measurement_issue.py:174-178`**, "Phase 1 measured the lookup returning `[]`". It states the measured undercount, which stays true. It does not state the absolute.
 - **The sleep assertions at `:201` and `:483`** and the `_ladder_harness` docstring at `:62-66`. They belong to the mutation-pin request.
 - **`landed_create` tolerating its own lookup failing.** Round 2 at `v0.8.0` handed that to #146's context and declined to call it a defect. #146's body does not ask for it.
-- **`.claude-plugin/plugin.json`'s version.** This is not the release's first work item.
 
 ## User scenarios & acceptance *(mandatory)*
 

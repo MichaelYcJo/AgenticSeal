@@ -23,7 +23,7 @@ The work changes docstring text only, so it has one failure scenario worth namin
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | *Scope* items 1, 2, 3 and 4, as `frame/design.md` D1 items 1 to 6 state them | S1, S2, S3 and S4 of `frame/design.md`; the phase record holds S1's and S3's output | |
+| 1 | *Scope* item 5, and *Scope* items 1, 2, 3 and 4, as `frame/design.md` D1 items 1 to 6 state them | S1, S2, S3 and S4 of `frame/design.md`; the phase record holds S1's and S3's output | |
 
 ## Operational impact
 
@@ -33,4 +33,4 @@ None. No behaviour, dependency, environment variable or workflow step changes.
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-05 | This work item moves `.claude-plugin/plugin.json` to `0.32.4` and is merged into `release/v0.32.4` first | Six work items of 0.32.4 are built in parallel from one release branch, and exactly one pull request into it moves the version; this one has the smallest diff, so it is the likeliest to be sealed first, and the orchestrator merges it before the others | `docs/releasing/branch-and-release.md` *Cutting a release* |
