@@ -527,11 +527,16 @@ class Test_merge:
         and the plugin directory's validation holds back a plugin whose hook
         can approve a call.
         `Allow` and `defer` count as no decision too, and the gate's reason is
-        kept as its text."""
+        kept as its text. An `allow` with no reason, or a null one, prints
+        nothing and ends nothing."""
         d = dispatch_module()
         for kind in ("allow", "Allow", "defer"):
             out = d.merge([decision(kind, "ra")], "PreToolUse")
             assert out == "ra", (kind, out)
+        bare = {"hookEventName": "PreToolUse", "permissionDecision": "allow"}
+        for reason in ({}, {"permissionDecisionReason": None}):
+            body = json.dumps({"hookSpecificOutput": {**bare, **reason}})
+            assert d.merge([body], "PreToolUse") == "", reason
 
     def test_accepts_an_ask_beside_an_allow_and_keeps_both_reasons(self):
         """#1381. The `allow` that no longer passes still has its reason read
