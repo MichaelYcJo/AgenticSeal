@@ -490,9 +490,9 @@ class Test_record_no_work_item:
     def test_accepts_a_branch_into_the_empty_record_an_earlier_build_left(
         self, tmp_path
     ):
-        """The record the build at `126ee7b5` wrote is an empty file. It names
-        no branch, so it lets nothing through, and a run on a branch adds
-        that branch as its first line."""
+        """A record that is an empty file names no branch, so it lets
+        nothing through, and a run on a branch adds that branch as its
+        first line."""
         common = str(tmp_path)
         path = os.path.join(common, routing.NO_WORK_ITEM, "s1")
         os.makedirs(os.path.dirname(path))

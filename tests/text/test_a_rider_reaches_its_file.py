@@ -66,8 +66,7 @@ def test_the_header_says_a_rider_carries_no_stamp_and_no_checker():
     in step with it is the class `skills/core/SKILL.md` *The rule a mechanism
     is kept against* removes. Nothing else reads this header, so a sentence putting
     the stamp back, or naming the checker as though it ran, would be the one
-    place the old convention survived. Seen red against the header as it
-    stood at 74c7963a, which named both."""
+    place the old convention survived."""
     text = read(FOLLOW_UP)
     assert "A rider outliving its fix is the reader's finding" in " ".join(text.split())
     assert "Verified <date>" not in text, "the header describes a stamp again"

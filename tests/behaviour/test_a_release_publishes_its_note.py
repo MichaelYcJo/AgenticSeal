@@ -119,8 +119,7 @@ def test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit
     needs no renderer from the runner. Seen red against the workflow with no
     `seal` job, the two round-1 halves against the workflow without them,
     #1009's against the job with the SVG renderer's install step, and
-    #1117's against the workflow at `4134055a`, which fired on the tag
-    alone."""
+    #1117's against the workflow that fired on the tag alone."""
     text = workflow()
     assert "    branches: [main]" in text, "the workflow does not fire on `main`"
     assert "    tags: ['v*']" in text, "a tag pushed by hand no longer publishes"

@@ -5,13 +5,13 @@ home for every universal rule, and each `agents/*.md` keeps only its own
 application. Phases 3 and 4 did the moving. Nothing checked that it was a
 move.
 
-Measured 2026-09-03 by the orchestrator, at `e51fd0b`: contract rule 9's body was pasted
-back into `agents/proofer.md` under a new heading, and `test_broad_gate_rule`,
+Without this module, contract rule 9's body pasted back into
+`agents/proofer.md` under a new heading leaves `test_broad_gate_rule`,
 `test_edits_go_through_the_edit_tool`, `test_every_agent_reads_the_contract`
-and `test_the_agent_contract_holds_the_universal_rules` were all green -- 81
-passed, exit 0. Every assertion in the two modules phases 1 and 2 wrote is a
-presence check, and the only absence checks in the tree were about the
-contract's own frontmatter. So the half of Q2 that says *the definition
+and `test_the_agent_contract_holds_the_universal_rules` all green. Every
+assertion in the two modules phases 1 and 2 wrote is a presence check, and
+the only absence checks in the tree were about the contract's own
+frontmatter. So the half of Q2 that says *the definition
 keeps only its own application* had nothing behind it at all, and the tree
 could drift straight back to the state #107 opens with, one paste at a time,
 with a green suite the whole way.
