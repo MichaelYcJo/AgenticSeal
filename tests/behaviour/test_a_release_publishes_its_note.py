@@ -195,8 +195,8 @@ def test_the_dist_job_adds_the_release_to_dist_and_goes_red_where_it_cannot():
     still fills `dist`. Its `if:` holds `!cancelled()`, which lifts the
     default `success()`, so a note step that fails after the tag step
     passed one on does not skip it (round 1's finding 2, seen red against
-    the condition on the tag alone). Its checkout has the whole history and every tag,
-    and keeps the credentials its push uses. Its second step runs
+    the condition on the tag alone). Its checkout has the whole history and
+    every tag, and keeps the credentials its push uses. Its second step runs
     `dist_branch.py` with the tag, as the GitHub Actions bot, author and
     committer alike. No `continue-on-error` stands
     anywhere in it, so a release that did not reach `dist` is a red run.
