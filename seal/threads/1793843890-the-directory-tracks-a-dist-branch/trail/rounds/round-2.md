@@ -31,6 +31,11 @@ The sealer reads the frame against the tree. A count of five against a file of s
 This work adds a job, a script, a census reading and six attribute lines.
 ```
 
+```seal
+verdict: fixed 20d32144
+answer: The finding holds, and the orchestrator repaired it in the work item's records: `frame/design.md`'s *Removes* paragraph now reads "six attribute lines", the round's snippet as given. `git grep -n "five attribute\|five lines\|Five lines"` over the worktree after the commit finds no statement of the count outside the dated *Grounding* row and the phase records (executed). The same commit hedges `changelog.md`'s sentence on the `dist` job's run after a failed note step, which `## Not judged` left to the orchestrator: it now says the job runs there provided GitHub hands a failed job's outputs to the jobs that need it, which its documentation does not say. The workflow's header comment and the case's docstring are code, and the `gaps.md` row carries the open premise for them; no code changed for this finding, so it owes no verifying round.
+```
+
 ## Confirmations
 
 ```seal
