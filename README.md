@@ -305,11 +305,35 @@ file under `<git-common-dir>/agentic-stamp-refused/`, written by the edit
 hook in either mode, which nothing prunes either. lint-python rewrites the
 `.py` file you just saved, in ruff-configured projects only.
 
-lint-python and version-check reach the network. lint-python falls back to
-`uvx ruff`, and uv fetches ruff from PyPI on first use. version-check runs
-one `git ls-remote --tags` against this repository, once a day where `seal/`
+lint-python and version-check reach the network. lint-python first tries
+`uv run ruff`, and in a project whose `pyproject.toml` has a `[project]`
+table, uv then installs the project's dependencies, from PyPI where its cache
+lacks them. Where a project asks for a Python version the machine does not
+have, such as through a `.python-version` file or `requires-python`, uv first
+downloads that version from GitHub. lint-python falls back to `uvx ruff`, and
+uv fetches ruff from PyPI on first use. version-check runs one
+`git ls-remote --tags` against this repository, once a day where `seal/`
 exists, which tells GitHub that a machine somewhere runs AgenticSeal. Each
 stays silent when the network is unavailable.
+
+The places below reach the network as well. None of them is a hook: each is a
+command or a step of the workflow, so it runs when you or the session starts
+it, or, in the last row, in your CI on a pull request.
+
+| What | Reaches | Sends | When |
+|---|---|---|---|
+| `/agentic:update` ([`skills/update/SKILL.md`](skills/update/SKILL.md)) | GitHub | `claude plugin marketplace update` pulls the marketplace's clone of this repository, and `claude plugin update` installs from that clone. Then one `curl`, with no token, reads the list of releases from GitHub's public API for the repository the clone came from | when you run the command |
+| `seal cost --post` ([`docs/running/measuring-a-run.md`](docs/running/measuring-a-run.md)) | your repository's issues, through your `gh` login | `gh issue list` for the issues labelled `flow-measurement`, then one `gh issue comment` on the one open issue with that label. The comment holds the orchestrator's sentence and the agent's numbers, and names the transcript by its file name, never by its path. It never opens an issue | each time the crafter or the proofer hands back, where the orchestrator runs it, and whenever you type it. Nothing is posted where no issue of your repository has ever carried the label, or where `gh` is missing |
+| `seal gate`, the broad gate ([`skills/verify/scripts/broad_gate.py`](skills/verify/scripts/broad_gate.py)) | your repository's pull request, through your `gh` login | `gh pr view --json isDraft`, asked by its `chain_check.py` step to learn whether the branch's pull request is a draft. `chain_check.py` run on its own asks the same | each run outside GitHub Actions, where `gh` is on the PATH |
+| `seal settle` ([`skills/settle/SKILL.md`](skills/settle/SKILL.md)) | your repository's releases and pull requests, through your `gh` login | `gh api --paginate` of the repository's releases. In local mode, also `gh pr list --head <branch> --state merged`, once per branch | the releases, when a released work item's directory holds a changelog and is about to be removed, to find its release note. The pull requests in local mode, to learn which branches merged |
+| the workflow's own steps ([`skills/code-review/orchestration.md`](skills/code-review/orchestration.md)) | your repository, through your `git` and your `gh` login | reads the issue with its comments, and the latest release note. Pushes the work item's branch, opens the pull request with `gh pr create`, rewrites its body, reads its state and checks, and may start a workflow run. Lists recent pull requests before a commit. At a settle, may open an issue for a measurement | the issue is read in every run. The push and the pull request happen only where the routing answers that a pull request opens |
+| the pull-request checks `seal pr-checks install` writes (`.github/workflows/hygiene.yml`) | GitHub, from your CI runner | `git clone --depth 1` of this plugin's repository, at the release the file was written against | on each pull request, in a repository that installed the checks |
+
+The sentence above that no hook sends your code, your paths or your prompts
+anywhere is about hooks. Each row above that goes through your own `gh` login
+reaches the repository you work in and no other. The workflow's steps push
+your branch, with its code, and the pull request's text there, because that
+is what they are for.
 
 ## Commands
 

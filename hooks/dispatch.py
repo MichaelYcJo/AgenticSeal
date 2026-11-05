@@ -14,9 +14,13 @@ drive them, and how anyone debugging one reaches it).
 
 Usage: dispatch.py <group>, payload on stdin.
 
-Merging: a PreToolUse group can produce more than one decision, and the
-strictest wins — deny over ask over silence — with every reason kept, because
-a gate that was overruled still has something the user needs to read.
+Merging: a PreToolUse group passes on `deny` and `ask` alone, printed lower
+case, so no gate's output approves a call or changes its input (#1381). Where
+several gates decide, deny wins over ask, with every reason kept, because a
+gate that was overruled still has something the user needs to read. Any other
+decision, `allow` among them, counts as none, and its reason is kept as the
+gate's text. A PreToolUse gate's JSON without a decision is printed without
+its `updatedInput` and without a top-level `decision` other than `block`.
 
 Failure is isolated and open: a gate that raises is skipped, and the others
 still decide. A crashing gate must not block a tool call, and must not take
@@ -103,12 +107,16 @@ GROUPS = {
     "stop": ("sealer-stamp.py",),
 }
 
-# The event a group answers where its prefix does not say it. Read only on
-# the decision path, which a `Stop` hook never takes, but the group added for
+# The event a group answers where its prefix does not say it. `merge` reads
+# it on the decision path, which a `Stop` hook never takes, and on the JSON
+# path, which removes two fields on `PreToolUse` alone; the group added for
 # one event must not report another.
 EVENTS = {"stop": "Stop"}
 
-RANK = {"deny": 3, "ask": 2, "allow": 1}
+# The decisions a group passes on, the stronger first. `allow` is not one: a
+# hook that approves a call skips the person's own permission flow, and the
+# plugin directory's validation holds back a plugin whose hook can (#1381).
+RANK = {"deny": 2, "ask": 1}
 
 
 def run_gate(filename, payload):
@@ -211,18 +219,22 @@ def merge(outputs, event_name):
     for text in outputs:
         kind, value = classify(text)
         if kind == "decision":
-            decisions.append(value)
+            hook_out = value["hookSpecificOutput"]
+            if hook_out["permissionDecision"].lower() in RANK:
+                decisions.append(value)
+            elif hook_out.get("permissionDecisionReason"):
+                # A decision not passed on is no decision, and what the gate
+                # said is kept as its text.
+                texts.append(hook_out["permissionDecisionReason"])
         elif kind == "json":
             jsons.append(value)
         elif kind == "text":
             texts.append(value)
 
     if decisions:
-        winner = max(
-            decisions,
-            key=lambda d: RANK.get(
-                d["hookSpecificOutput"]["permissionDecision"].lower(), 0
-            ),
+        word = max(
+            (d["hookSpecificOutput"]["permissionDecision"].lower() for d in decisions),
+            key=RANK.get,
         )
         reasons = [
             d["hookSpecificOutput"].get("permissionDecisionReason", "")
@@ -231,9 +243,7 @@ def merge(outputs, event_name):
         out = {
             "hookSpecificOutput": {
                 "hookEventName": event_name,
-                "permissionDecision": winner["hookSpecificOutput"][
-                    "permissionDecision"
-                ],
+                "permissionDecision": word,
                 "permissionDecisionReason": "\n\n".join(
                     r for r in reasons + texts if r
                 ),
@@ -252,6 +262,19 @@ def merge(outputs, event_name):
         return json.dumps(out)
     if jsons:
         merged = dict(jsons[0])
+        if event_name == "PreToolUse":
+            # The two fields of it Claude Code reads as the call's new input
+            # and as an approval. A `block` is read as a deny, and stays.
+            hook_out = merged.get("hookSpecificOutput")
+            if isinstance(hook_out, dict) and "updatedInput" in hook_out:
+                merged["hookSpecificOutput"] = {
+                    k: v for k, v in hook_out.items() if k != "updatedInput"
+                }
+            verdict = merged.get("decision")
+            if "decision" in merged and not (
+                isinstance(verdict, str) and verdict.lower() == "block"
+            ):
+                del merged["decision"]
         extra = [j.get("systemMessage") for j in jsons[1:] if j.get("systemMessage")]
         if extra and merged.get("systemMessage"):
             merged["systemMessage"] = "\n\n".join([merged["systemMessage"], *extra])

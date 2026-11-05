@@ -403,36 +403,75 @@ def test_the_always_on_core_is_described_without_counts():
         assert "`skills/core/SKILL.md`" in rows[0], edition
 
 
+# The name each place past the hooks carries in the READMEs' network passage,
+# spelt alike in both editions: `/agentic:update`, `seal cost --post`, the
+# chain arm of `seal gate`, `seal settle`, the workflow's own steps (which
+# open the pull request with `gh pr create`), and the checks
+# `seal pr-checks install` writes.
+NETWORK_PLACES = (
+    "/agentic:update",
+    "--post",
+    "seal gate",
+    "seal settle",
+    "gh pr create",
+    "seal pr-checks install",
+)
+
+
+def network_passage(path, said):
+    """PATH's text from the sentence SAID to the next heading, as one line.
+    The commands table elsewhere in each README names `/agentic:update` and
+    `seal settle` too, so a search over the whole file would pass with the
+    passage's row gone."""
+    from conftest import flattened, read
+
+    text = read(path)
+    at = re.search(r"\s+".join(re.escape(word) for word in said.split()), text)
+    assert at, (path, said)
+    end = text.find("\n#", at.start())
+    return flattened(text[at.start() : end if end != -1 else len(text)])
+
+
 def test_the_hooks_that_reach_the_network_are_named_without_a_count():
-    """#1055 S4. Both READMEs and `CONTRIBUTING.md` said how many hooks reach
-    the network, and the guide's rule for a new one counted on from there.
-    The READMEs' privacy paragraph names `lint-python` and `version-check`,
-    the guide says every such hook is named there, and none of the three
-    counts them."""
+    """#1055 S4 and #1382. Both READMEs and `CONTRIBUTING.md` said how many
+    hooks reach the network, and the guide's rule for a new one counted on
+    from there. The READMEs' network passage names `lint-python` and
+    `version-check`, the guide says every such hook is named there, and none
+    of the three counts them. The READMEs named those two hooks and no other
+    place the plugin reaches the network, so each edition's passage, from
+    the pinned sentence to the next heading, also names every place in
+    `NETWORK_PLACES`. Seen red at `3538fd59`, whose passages named none of
+    them, and with one row deleted from one edition."""
     from conftest import flat
 
-    for path, said, gone in (
+    for path, said, gone, places in (
         (
             "README.md",
             "lint-python and version-check reach the network.",
             ("Two hooks reach the network", "Both stay silent"),
+            NETWORK_PLACES,
         ),
         (
             "README.ko.md",
             "네트워크를 타는 훅은 lint-python 과 version-check 입니다.",
             ("네트워크를 타는 훅은 둘", "둘 다 네트워크가"),
+            NETWORK_PLACES,
         ),
         (
             "CONTRIBUTING.md",
             "Every hook that reaches the network is named in the README's privacy "
             "section",
             ("Two hooks reach the network", "A third needs", "the second carries"),
+            (),
         ),
     ):
         text = flat(path)
         assert said in text, (path, said)
         for phrase in gone:
             assert phrase not in text, (path, phrase)
+        passage = network_passage(path, said) if places else ""
+        for place in places:
+            assert place in passage, (path, place)
 
 
 def test_every_shipped_skill_is_named_in_both_readmes():

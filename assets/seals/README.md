@@ -18,7 +18,8 @@ are under.
 
 Each entry is two files, and no code reads either of them. Each owl's entry
 holds a third, an `.svg`, the form a page shows, and the little owl's holds
-the social preview's `.svg` and `.png` besides, each described in its entry.
+the social preview's `.svg` and `.png` and two drawings of the directory
+icon besides, each described in its entry.
 
 - **`<name>.ans`** — the stamp as a terminal prints it: half-block
   characters and ANSI colour codes, a code only where the colour changes.
@@ -219,6 +220,31 @@ it, so the commands of the placeholder S and of both owls write the tag's
   by a new upload, or the shared link shows the old owl.
 
 ![The social preview: the little owl's red wax seal, centred on a parchment-coloured field twice as wide as it is tall](owl-social.png)
+
+- **The directory icon:** `owl-icon-cream.svg` and `owl-icon-coral.svg`,
+  each with the `.png` drawn from it at 512 × 512 pixels. The plugin
+  directory lists each plugin in a small tile, where the fret border, the
+  scallops and the thin lines of `owl.svg` blur together. These two keep the
+  seal's wax outline, copied from `owl.svg`'s outer path, and its darker
+  pressed disc, and draw the owl again in flat shapes with fewer, thicker
+  lines: the ringed eyes, the beak, one wing line on each side, two rows of
+  breast scallops and the branch. The fret border is one plain ring. The two
+  differ only in the owl's colour, cream or a light red. The directory reads
+  no file in the tree for this tile: the owner uploads the PNG in the
+  directory's form, and the cream one is the one uploaded. The plugin's
+  icon, `.claude-plugin/icon.png`, stays the drawing of `owl.svg`, because
+  every release seal is a copy of it. Draw each PNG again from the
+  repository's top directory with `rsvg-convert` (librsvg 2.58.4 drew the
+  committed files):
+
+  ```
+  rsvg-convert -w 512 -h 512 assets/seals/owl-icon-cream.svg -o assets/seals/owl-icon-cream.png
+  ```
+
+  Nothing checks that the image the directory holds is the committed file,
+  for the reason given for the social preview.
+
+![The directory icon, cream: a flat cream owl with ringed eyes on a branch, inside a plain ring on a red wax seal](owl-icon-cream.png)
 
 ## The next entry
 
