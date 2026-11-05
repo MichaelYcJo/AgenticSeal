@@ -16,7 +16,7 @@ import importlib.util
 import os
 
 import pytest
-from conftest import ROOT, posix_id
+from conftest import ROOT
 
 SCRIPT = os.path.join(ROOT, "skills", "verify", "scripts", "unverified_check.py")
 
@@ -75,13 +75,6 @@ def test_the_skill_shows_the_word(tmp_path):
     assert not err and not op and len(closed) == 1, (op, closed, err)
 
 
-def collapsed(*parts):
-    """File text with newlines flattened, so a match is not asserting where
-    the author happened to wrap a line."""
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-        return " ".join(f.read().split())
-
-
 def test_the_template_is_the_shape_the_checker_reads(tmp_path):
     """Template and checker drift apart silently otherwise: every new work
     item would copy a section the release check then refuses."""
@@ -124,72 +117,6 @@ def test_the_memo_holds_what_went_out_unproved_and_what_was_not_taken():
     assert headings == ["## Scope confirmation", "## Not verified", "## Not done"], (
         headings
     )
-
-
-def test_the_skill_names_the_command_that_lists_a_deleted_row():
-    """The writer of a row is the one who has to know how it closes. Since
-    #945 a deleted row is the proofer's to read in the overview's diff, and
-    no check at the pull request refuses it; how the skill states the
-    closing convention is the proofer's to read too."""
-    skill = collapsed("skills", "implement", "SKILL.md")
-    # The command `seal unverified --baseline`, which a person runs to name
-    # each row that left without the word `closed`.
-    assert "seal unverified --baseline" in skill
-
-
-# The phrase the files use for the base's tip, where CI's comparison lands
-# (#612). Since #1102 neither README edition states the footing, which the
-# rows below keep.
-TIP_EN = "the base's tip"
-
-
-@pytest.mark.parametrize(
-    "doc, tip, false_sentence",
-    [
-        (os.path.join("skills", "verify", "SKILL.md"), TIP_EN, None),
-        # The module's docstrings (#612). The phrase stands here three times,
-        # so this row cannot see the `--baseline` help alone go back to the
-        # fork point; `tests/skills/test_unverified_check.py::Test_main::
-        # test_accepts_the_baseline_help_naming_both_places` renders it.
-        (
-            os.path.join("skills", "verify", "scripts", "unverified_check.py"),
-            TIP_EN,
-            None,
-        ),
-    ],
-    ids=posix_id,
-)
-def test_the_documents_state_the_merge_base_footing(doc, tip, false_sentence):
-    """Eight files told a reader that `--baseline` compares against the base
-    revision; #272 made it compare against `git merge-base REF HEAD`. A
-    corrected behaviour whose old sentence survives somewhere else is #180's
-    class, and these files are where this one could survive.
-
-    That commit is the fork point on a branch checkout -- a local run, the
-    broad gate's -- and the base's tip in CI, whose checkout of a pull request
-    is the head already merged into the base. The files said only the first
-    and placed it in CI (#612), and two of them said CI never compares at the
-    tip, which is false. So each file that places the comparison names the
-    base's tip too, in one phrase, and the false sentence is
-    asserted gone where it stood.
-
-    Positive assertions: the sentence has to be there, rather than one old
-    wording having to be absent, because the old wording had several
-    phrasings. Nothing else in these files had reason to name a merge base."""
-    text = open(os.path.join(ROOT, doc), encoding="utf-8").read()
-    assert "merge-base" in text or "merge base" in text, (
-        f"{doc} describes `seal unverified --baseline` and does not say the "
-        "comparison is against the merge base"
-    )
-    flat_text = " ".join(text.replace("#", " ").split())
-    if tip:
-        assert tip in flat_text, (
-            f"{doc} does not say that in CI the merge base is the base's tip"
-        )
-    if false_sentence:
-        assert false_sentence not in flat_text, (
-            f"{doc} still says CI never compares at the base's tip"
-        )
 
 
 FENCE_SHAPES = [

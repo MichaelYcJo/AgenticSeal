@@ -941,7 +941,7 @@ def open_rows(root, records, ids, reader):
     (`unverified_check.py#open_record_rows`)."""
     out, names = [], None
     for work_item_id in ids:
-        rows = reader.open_record_rows(records, None, f"{SPECS}/{work_item_id}")
+        rows = reader.open_record_rows(records, f"{SPECS}/{work_item_id}")
         if not rows:
             continue
         names = tracked_names(root) if names is None else names
@@ -1792,7 +1792,7 @@ def apply(found, root, out):
     reader = load(READER, "agentic_unverified_reader")
     records = found["records"]
     ids = sorted(set(work_items(records)) & set(found["released"]))
-    held = {i: reader.open_record_rows(records, None, f"{SPECS}/{i}") for i in ids}
+    held = {i: reader.open_record_rows(records, f"{SPECS}/{i}") for i in ids}
     noted = {}
     if not found["local"]:
         noted = notes(root, found["ref"], [i for i in ids if not held[i]])

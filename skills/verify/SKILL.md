@@ -225,8 +225,7 @@ not permission to keep the row.
 An answerer that exists still answers nothing if nobody returns to the row.
 
 ```
-seal unverified .                                   # what is still open, and where
-seal unverified --baseline origin/main seal/threads/  # and nothing was deleted from it
+seal unverified .    # what is still open, and where
 ```
 
 It never fails for an open item: punishing an honest row is how sessions learn
@@ -235,11 +234,9 @@ reports zero there and zero reads as "everything has been closed". Close an
 item by opening its row with the word `closed` and saying what closed it; the
 row stays.
 
-**`--baseline` names the branch the work merges into, and what it reads is
-`git merge-base <ref> HEAD`**: the fork point on a branch checkout, and the
-base's tip in CI, whose checkout of a pull request is the branch's head
-already merged into the base. Either way a work item squashed into that
-branch after this branch was cut is not this branch's removal.
+A row or a memo deleted rather than closed is the proofer's to read, in the
+closing memo's diff (`skills/implement/SKILL.md` *4. The closing memo — only
+what the diff cannot show*).
 
 ## The cost of a run that repeats
 
