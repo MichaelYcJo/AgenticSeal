@@ -122,6 +122,11 @@ becomes
 The stale-cache case, lines 1736 to 1770, is deleted. `import hashlib`
 (line 23) stays, because the moved restore case still reads it.
 
+```seal
+verdict: fixed af0f2245
+answer: The finding holds. The stale-cache case is deleted, and the prefix case keeps its absolute half alone, with a docstring that names the Test_main case holding the relative prefix. changelog.md now names the three cases that moved and what each holds, and gaps.md row 2 names the three moved cases. Shown after the fix by seal mutate over mutation_check.py against the whole module, 3 red of 3 (executed): os.remove to pass, red alone against test_no_bytecode_for_the_mutated_file_exists_while_the_cases_run; the relative prefix's cwd join dropped, red alone against test_a_relative_pycache_prefix_is_cleared_where_the_cases_run; return removed to return [], red alone against the narrowed prefix case. The three holdings kept rest on this round's survived mutants (read, not re-run). Left for the orchestrator to fold: frame/design.md lines 17, 33, 54, 67 and 79, and frame/plan.md line 7, which still say four cases or four behaviours.
+```
+
 ### 2. A docstring the diff rewrote counts one other reader of `test.yml`, and the tree has two
 
 ```seal
@@ -160,6 +165,11 @@ departure row (`phase-2.md:12`) states the same count as what HEAD gives.
 The `phase-2.md:12` row's second cell becomes: "two other readings,
 `tests/behaviour/test_release_hygiene.py` and
 `tests/text/test_the_release_table_reads_two_trees_and_fails_nothing.py`".
+
+```seal
+verdict: fixed af0f2245
+answer: The finding holds. git grep -n "test\.yml" -- tests confirms it (executed): test_the_release_table_reads_two_trees_and_fails_nothing.py reads test.yml at line 17 through its own job_block, and the windows-leg and cheap-twice modules read it through the shared functions. The docstring now names both other readings, as the fix gives. phase-2.md's row now says two, and the sentence under the table says that phase 2 wrote one without a survey and that this pass corrected it.
+```
 
 ### 3. Phase 2's record says the amend rewrapped a paragraph that it left one line wider
 
@@ -201,6 +211,11 @@ became `11c848ed`, which moved the 94-column line's break one line down and
 left line 105 at 99 columns (executed: `git diff 279c2c02 11c848ed`); round
 1's fix pass rewrapped the paragraph."
 
+```seal
+verdict: fixed af0f2245
+answer: The finding holds. The cause: phase 2's rewrap Edit matched only the start of the line holding "holds it back. A process that put itself in yet another session is outside", so the rest of that line stayed joined. The paragraph is rewrapped as the fix gives, and awk 'length>80' over seal-mutate.md now lists only lines 16, 38 and 78, which are at the base too (executed). phase-2.md's amend sentence now says what the amend did and that this pass rewrapped the paragraph. Its decision sentence on seal-mutate.md now names the paragraph that was rewrapped (e4912226). Over the whole range, git diff 4526dc6c af0f2245 -- '*.md' ':!seal/threads' adds no prose line wider than 80 columns. Its one wide line is the table row of what-a-script-gates.md (executed).
+```
+
 ### 4. Phase 1's record places three of phase 2's coordinates where its own commit does not have them
 
 ```seal
@@ -233,6 +248,11 @@ reads `skills/verify/seal-mutate.md`'s section; and `test_mutation_check.py`'s
 lines that name `test_arm_check.py` (543), `arm_check.run_arms` (738) and
 `seal arms` (1386). Each of the three still states a true fact while
 `arm_check.py` stands.
+```
+
+```seal
+verdict: fixed af0f2245
+answer: The finding holds. All three coordinates match 8eb4b2d5 (executed: git show 8eb4b2d5 with grep -n over seal-mutate.md and the mutation test module), and phase-1.md line 27 now carries them. The sweep of phase-1.md's other coordinates against 8eb4b2d5 found one more: line 37 placed the three functions at lines 151 to 243, where the block ends at 245 with return list(lexer). That is corrected in e4912226. Its other line numbers hold at 8eb4b2d5 (executed: sed -n over each): 48, 253, 484 to 485, 520 to 523 and 719 to 723. phase-2.md's closing paragraph, which handed this line to the orchestrator, is removed.
 ```
 
 ## Confirmations
