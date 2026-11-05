@@ -47,4 +47,6 @@
 - `.test_durations` names `test_accepts_the_strictest_decision_and_keeps_every_reason`. That case still exists and still holds: `deny` over `ask` is the stricter of the two.
 - The docstring's "A skipped gate used to read exactly like an allow" and `run_gate`'s comment on reading like an allow. Both say that a failed gate prints nothing, and that is unchanged.
 
+**A wording fix after the mutation runs.** `31638309` changes only the comment above `RANK` and the first new case's docstring, from "does not hold" and "holds" to "holds back". The plugin directory's finding is that its validation holds the plugin back, and "holds" also read as the directory listing it. No logic changed, so the mutation runs at `ecfb7b58` stand. `bin/test tests/hooks/test_dispatch.py -q` and ruff's check and format check on the two files exited 0 at `31638309` (executed).
+
 **Removals.** Each row of `## Removes` went as it says. The `0` default of `RANK.get` and the `winner` variable went with the second row's winner. No removal falls outside `## Removes`.
