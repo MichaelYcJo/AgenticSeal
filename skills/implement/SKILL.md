@@ -379,10 +379,11 @@ without the word `closed` shows, and so does a memo that left whole. That
 reading is what keeps "I verified it" and "I tidied it away" from being the
 same edit.
 
-No script reads what the second cell of a closed row says. So the second
-cell saying what closed the item is a convention no check enforces. Leaving
-the original answerer in place beside the word is how a closing goes out
-unproven, and only a reader catches it.
+No check judges whether the second cell of a closed row says what closed
+the item. `seal unverified` refuses that cell only where it is empty or
+still the template's placeholder, and `seal settle` prints it as it stands.
+Leaving the original answerer in place beside the word is how a closing goes
+out unproven, and only a reader catches it.
 
 Never record something as passing that you did not run. Findings from reading
 and findings from execution are labeled separately.
