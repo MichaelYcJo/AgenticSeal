@@ -5,7 +5,8 @@ directory has a command behind it, that command never fails a release, and it
 says nothing about a directory it did not read.
 
   A6  per marketplace file: an entry or not, which commit is pinned, and
-      whether that commit is an ancestor of `main`
+      whether that commit is an ancestor of `main` or of `origin/dist`, and
+      which (#1374)
   A7  absence and a failed fetch are reports, and both exit 0. The only
       non-zero exit is a malformed argument, which is the author's
   #858 A1  the run claims nothing about the directory -- the catalog people
@@ -83,6 +84,34 @@ def pinning(sha=SHA, **source):
 
 def other(name):
     return {"name": name, "description": "someone else", "source": f"./plugins/{name}"}
+
+
+def two_refs(tmp_path):
+    """A repository whose `main` and `origin/dist` share no commit, and a
+    third commit neither holds; `(repo, on_main, on_dist, on_neither)`."""
+    repo = tmp_path / "r"
+    repo.mkdir()
+
+    def git(*args):
+        return subprocess.run(
+            ["git", "-C", str(repo), *args],
+            check=True,
+            capture_output=True,
+            encoding="utf-8",
+        ).stdout.strip()
+
+    git("init", "-q", "-b", "main")
+    git("config", "user.email", "t@t")
+    git("config", "user.name", "t")
+    (repo / "f.txt").write_text("one\n", encoding="utf-8")
+    git("add", "-A")
+    git("commit", "-qm", "base")
+    on_main = git("rev-parse", "HEAD")
+    tree = git("rev-parse", "HEAD^{tree}")
+    on_dist = git("commit-tree", tree, "-m", "dist: v1.2.3")
+    git("update-ref", "refs/remotes/origin/dist", on_dist)
+    on_neither = git("commit-tree", tree, "-m", "a rewritten dist")
+    return repo, on_main, on_dist, on_neither
 
 
 class Test_line:
@@ -390,6 +419,59 @@ class Test_module:
             )
         )
         assert "unknown here" in unknown and "NOT reachable" not in unknown
+
+    def test_a_pin_is_read_against_main_and_dist_and_names_its_holder(self, tmp_path):
+        """#1374. The directory reads `dist`, whose commits are not on
+        `main`, so a pin is read against both refs. The line names the ref
+        that holds the pin, "NOT reachable" is said only where neither does
+        and names a rewritten `dist`, and a ref this clone lacks keeps the
+        answer unknown rather than not reachable."""
+        mod = checker()
+        repo, on_main, on_dist, on_neither = two_refs(tmp_path)
+
+        def said(sha, *refs):
+            return "\n".join(
+                mod.line(
+                    "official",
+                    "example-org/marketplace",
+                    marketplace(pinning(sha=sha)),
+                    None,
+                    NAME,
+                    str(repo),
+                    *refs,
+                )
+            )
+
+        both = ("main", "origin/dist")
+        assert "Reachable from origin/dist." in said(on_dist, *both)
+        assert "Reachable from main." in said(on_main, *both)
+        neither = said(on_neither, *both)
+        assert "NOT reachable from main or origin/dist." in neither, neither
+        assert "rewritten `dist`" in neither, neither
+        lacking = said(on_dist, "main", "origin/no-such-branch")
+        assert "unknown here" in lacking and "NOT reachable" not in lacking, lacking
+
+    def test_the_run_reads_both_refs_unless_one_is_named(
+        self, monkeypatch, capsys, tmp_path
+    ):
+        """#1374. With no `--ref`, a pin of a `dist` commit reads as
+        reachable from `origin/dist`; `--ref main` compares `main` alone."""
+        mod = checker()
+        repo, _, on_dist, _ = two_refs(tmp_path)
+        manifest = repo / ".claude-plugin" / "plugin.json"
+        manifest.parent.mkdir()
+        manifest.write_text(json.dumps({"name": NAME}), encoding="utf-8")
+        monkeypatch.setattr(
+            mod, "fetch", lambda url: (marketplace(pinning(sha=on_dist)), None)
+        )
+        assert mod.main(["--root", str(repo)]) == 0
+        out = capsys.readouterr().out
+        assert "against main and origin/dist" in out, out
+        assert "Reachable from origin/dist." in out, out
+        assert mod.main(["--root", str(repo), "--ref", "main"]) == 0
+        out = capsys.readouterr().out
+        assert "against main\n" in out, out
+        assert "NOT reachable from main." in out, out
 
     def test_the_name_comes_from_the_manifest_rather_than_a_literal(self):
         """A literal would be one more place the name is written down, and the

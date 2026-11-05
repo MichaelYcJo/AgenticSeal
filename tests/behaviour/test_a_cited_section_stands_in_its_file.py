@@ -18,7 +18,7 @@ file cites a name another file binds as `path#name`, the path ending in
 nothing read these, and a comment citing a function removed before the
 comment was written stood through 25 release tags.
 
-The three readers read one corpus, `corpus(root)`: every path `git ls-files`
+The three readers read `corpus(root)`: every path `git ls-files`
 lists, outside the prefixes of `tests/censuses.py#RECORDS`, that is on disk
 and decodes as UTF-8. Three kinds of tracked file are left out, each for its
 reason. A record keeps what it said when it was written, so its citations
@@ -29,16 +29,37 @@ extension. Each file is read through `flowing`, so a citation wrapped across
 `#` comment lines or across adjacent `.py` string literals reads as one. A
 `#` that opens a line of a `.md` file is a heading and is kept.
 
+The readers of a section and of a name also read a second corpus,
+`corpus(root, archive=True)`, whose paths are those of the archive git
+builds from the tree, because `dist`, the branch the plugin directory
+reads, is the archive of each release's tag (#1374). `archived` lists them
+with two commands: `git write-tree` under a copy of the index, then `git
+archive --worktree-attributes` of that tree. So a file staged and not
+committed, or a `.gitattributes` line not committed, is read as CI reads it
+once committed. Its texts come from disk, as the tree reading's do. A
+citation in a file the archive holds dangles where the archive lacks its
+target, so a cited file a line of `.gitattributes` marks `export-ignore`
+fails here though the tree holds it. The top-level rule below applies with
+the archive as the repository read, so a citation into an entry the
+archive drops whole, such as `tests/`, is not read there. That is the limit
+of this reading: a pull request that marks a whole entry a shipped file
+cites, say `/templates/`, leaves the citation unread and this module green,
+and review of the `.gitattributes` line is what reads it. An index with
+unmerged entries stops `git write-tree`, and the archive reading with it.
+The same reading of this repository holds that the archive carries no file
+under `.github/workflows/`, which the publish workflow's token may not push
+to `dist`.
+
 A name token preceded by a word character, `.`, `/`, `:` or `-` is not
 read, so a `<commit>:<path>#<name>` is left unread and no commit is opened.
 As for a section, a token is read only where its path's first segment is a
-tracked top-level entry, so a bare file name with no directory is read only
-where the top level holds that file. A tracked cited file that is not on
-disk, does not decode as UTF-8 or does not parse is named in a warning and
-decides nothing.
+top-level entry of the corpus read, so a bare file name with no directory is
+read only where the top level holds that file. A cited file of the corpus
+that is not on disk, does not decode as UTF-8 or does not parse is named in
+a warning and decides nothing.
 
 The fixtures below cite files under `manual/`, a top-level entry this
-repository does not have, so the case that reads this repository does not
+repository does not have, so the cases that read this repository do not
 read the fixtures' own citations. A fixture's contract rule number is one
 above the contract's last section, computed when the case runs, so this
 file holds no dangling contract citation of its own.
@@ -46,10 +67,15 @@ file holds no dangling contract citation of its own.
 
 import ast
 import collections
+import functools
+import io
 import os
 import pathlib
 import re
+import shutil
 import subprocess
+import tarfile
+import tempfile
 import warnings
 
 import pytest
@@ -207,14 +233,49 @@ def excuser(rel, line, cited, text, pending):
     return rules.removed_by(pending, rel, text, line)
 
 
-def corpus(root):
+def archived(root):
+    """Every path the archive git builds from the index of the repository at
+    ROOT writes, with the working tree's attributes, a directory's among
+    them. The index's tree is written from a copy of the index, so a git
+    process holding the index's lock, a case running beside this one among
+    them, is left to finish."""
+    index = subprocess.run(
+        ["git", "-C", root, "rev-parse", "--git-path", "index"],
+        capture_output=True,
+        check=True,
+        encoding="utf-8",
+    ).stdout.strip()
+    with tempfile.TemporaryDirectory() as scratch:
+        copy = os.path.join(scratch, "index")
+        shutil.copyfile(os.path.join(root, index), copy)
+        tree = subprocess.run(
+            ["git", "-C", root, "write-tree"],
+            capture_output=True,
+            check=True,
+            encoding="utf-8",
+            env={**os.environ, "GIT_INDEX_FILE": copy},
+        ).stdout.strip()
+    tar = subprocess.run(
+        ["git", "-C", root, "archive", "--worktree-attributes", "--format=tar", tree],
+        capture_output=True,
+        check=True,
+    ).stdout
+    with tarfile.open(fileobj=io.BytesIO(tar)) as members:
+        return members.getnames()
+
+
+def corpus(root, archive=False):
     """`(tracked, files)` for the repository at ROOT: `tracked` is every
-    path `git ls-files` lists, and `files` is `[(rel, text)]` for each of
-    them outside the records that is on disk and decodes as UTF-8."""
-    listed = subprocess.run(
-        ["git", "-C", root, "ls-files", "-z"], capture_output=True, check=True
-    ).stdout.decode("utf-8")
-    tracked = [rel for rel in listed.split("\0") if rel]
+    path `git ls-files` lists, or every path `archived` names where ARCHIVE
+    is true, and `files` is `[(rel, text)]` for each of them outside the
+    records that is on disk and decodes as UTF-8."""
+    if archive:
+        tracked = archived(root)
+    else:
+        listed = subprocess.run(
+            ["git", "-C", root, "ls-files", "-z"], capture_output=True, check=True
+        ).stdout.decode("utf-8")
+        tracked = [rel for rel in listed.split("\0") if rel]
     # A positive sweep: a file the working tree deleted cites nothing.
     present, _missing = on_disk(
         root, [rel for rel in tracked if not rel.startswith(RECORDS)]
@@ -223,11 +284,11 @@ def corpus(root):
     return tracked, [(rel, text) for rel, text in texts if text is not None]
 
 
-def citations(root):
-    """Every citation of another file's section in `corpus(root)`, as a
-    `Found`. A citation whose path's first segment is no tracked top-level
-    entry is not a repository file's, and is not read."""
-    tracked, files = corpus(root)
+def citations(root, archive=False):
+    """Every citation of another file's section in `corpus(root, archive)`,
+    as a `Found`. A citation whose path's first segment is no top-level
+    entry of that corpus is not a repository file's, and is not read."""
+    tracked, files = corpus(root, archive)
     top = {rel.split("/")[0] for rel in tracked}
     skills = {m.group(1) for m in map(SKILL_FILE.fullmatch, tracked) if m}
     pending = corrections(root)
@@ -315,14 +376,15 @@ def bound(text):
     return names
 
 
-def names(root):
-    """Every citation of a name in `corpus(root)`, as a `Found` whose cited
-    text is the `path#name` token. A token whose path's first segment is no
-    tracked top-level entry is not read. A cited path that names no tracked
-    file binds no name. A tracked cited file that is not on disk, does not
-    decode as UTF-8 or does not parse is named in one warning as not read,
-    and its citations are neither read nor dangling."""
-    tracked, files = corpus(root)
+def names(root, archive=False):
+    """Every citation of a name in `corpus(root, archive)`, as a `Found`
+    whose cited text is the `path#name` token. A token whose path's first
+    segment is no top-level entry of that corpus is not read. A cited path
+    that names no file of the corpus binds no name. A cited file of the
+    corpus that is not on disk, does not decode as UTF-8 or does not parse
+    is named in one warning as not read, and its citations are neither read
+    nor dangling."""
+    tracked, files = corpus(root, archive)
     top = {rel.split("/")[0] for rel in tracked}
     listed = set(tracked)
     pending = corrections(root)
@@ -398,6 +460,26 @@ def test_every_cited_name_stands_in_its_file():
     or one a pending rule change corrects (S9). The floor keeps a reader that
     stops matching from passing on nothing read."""
     found = assert_resolved(ROOT, names)
+    assert found.read >= 100, (
+        f"only {found.read} names recognised, so a pass means nothing"
+    )
+
+
+def test_every_cited_section_stands_in_what_the_archive_holds():
+    """A1: every citation in a file this repository's archive holds names a
+    heading or a bold rule lead of a file the archive holds, so `dist`,
+    whose tree is the archive of a tag, resolves what it cites. The floor is
+    the tree reading's."""
+    found = assert_resolved(ROOT, functools.partial(citations, archive=True))
+    assert found.read >= 100, (
+        f"only {found.read} citations recognised, so a pass means nothing"
+    )
+
+
+def test_every_cited_name_stands_in_what_the_archive_holds():
+    """A2: every `path#name` in a file this repository's archive holds names
+    a name a file the archive holds binds. The floor is the tree reading's."""
+    found = assert_resolved(ROOT, functools.partial(names, archive=True))
     assert found.read >= 100, (
         f"only {found.read} names recognised, so a pass means nothing"
     )
@@ -754,6 +836,83 @@ def test_a_cited_file_that_does_not_parse_is_named_and_decides_nothing(tmp_path)
         "not decode as UTF-8 or does not parse, so its citations decide nothing"
         for rel in ("manual/broken.py", "manual/latin.py")
     ]
+
+
+# --- what the archive holds (A) ----------------------------------------------
+
+# A file under `manual/` citing a section and a name of two files beside it,
+# which a `.gitattributes` line can drop from the archive while `manual/`
+# stays in it.
+MARKED = {
+    "manual/a.md": "`manual/b.md` *Here*\n\n`manual/b.py#here`\n",
+    "manual/b.md": "## Here\n",
+    "manual/b.py": "here = 1\n",
+}
+DROPS_B = "/manual/b.md export-ignore\n/manual/b.py export-ignore\n"
+
+
+def test_a_cited_file_marked_export_ignore_dangles_in_the_archive(tmp_path):
+    """A3: a citation in a file the archive holds dangles where a line of
+    `.gitattributes` drops its target from the archive, though the tree
+    holds the target and the tree reading passes it."""
+    root = repo(tmp_path, {**MARKED, ".gitattributes": DROPS_B})
+    assert citations(root) == Found(1, [], [])
+    assert names(root) == Found(1, [], [])
+    assert citations(root, archive=True).dangling == [
+        ("manual/a.md", 1, "manual/b.md", "*Here*")
+    ]
+    assert names(root, archive=True).dangling == [
+        ("manual/a.md", 3, "manual/b.py", "manual/b.py#here")
+    ]
+
+
+def test_the_archive_holds_a_file_staged_and_not_committed(tmp_path):
+    """A4: the archive is built from the index's tree, so a cited file that
+    is staged and not yet committed resolves, as CI reads it once the commit
+    is made."""
+    root = repo(tmp_path, {"manual/a.md": "`manual/c.md` *Here*\n"})
+    pathlib.Path(root, "manual", "c.md").write_text("## Here\n", encoding="utf-8")
+    subprocess.run(["git", "-C", root, "add", "manual/c.md"], check=True)
+    assert citations(root, archive=True) == Found(1, [], [])
+
+
+def test_the_archive_reads_an_attribute_line_not_yet_committed(tmp_path):
+    """A5: the archive reads the working tree's `.gitattributes`, so a line
+    written there and not committed drops its path, as CI reads it once the
+    commit is made."""
+    root = repo(tmp_path, MARKED)
+    pathlib.Path(root, ".gitattributes").write_text(DROPS_B, encoding="utf-8")
+    assert citations(root, archive=True).dangling == [
+        ("manual/a.md", 1, "manual/b.md", "*Here*")
+    ]
+
+
+def test_the_archive_is_read_while_another_process_holds_the_index(tmp_path):
+    """A6: the index's tree is written from a copy of the index, so a git
+    process holding the index's lock, such as the tree case for names run
+    beside the tree case for sections, does not stop the reading, and its
+    lock is left where it stands."""
+    root = repo(tmp_path, MARKED)
+    lock = pathlib.Path(root, ".git", "index.lock")
+    lock.write_bytes(b"")
+    assert citations(root, archive=True) == Found(1, [], [])
+    assert lock.exists()
+
+
+def test_this_repository_s_archive_holds_no_workflow_file():
+    """A7: GitHub refuses a push made with a workflow's own token that
+    creates or changes a file under `.github/workflows/`, and that token
+    cannot be granted the `workflows` permission. So `dist`, whose commits
+    the publish workflow pushes with it, holds none, and this repository's
+    archive is read for one (#1374, round 1's finding 1)."""
+    held = archived(ROOT)
+    assert ".claude-plugin/plugin.json" in held, sorted(held)[:20]
+    workflows = sorted(p for p in held if p.startswith(".github/workflows/"))
+    assert not workflows, (
+        f"the archive holds {workflows}, which the `dist` job's push may not "
+        "carry; `.gitattributes` marks `/.github/workflows/` `export-ignore` "
+        "so that it does not"
+    )
 
 
 @pytest.mark.parametrize("record", RECORDS)

@@ -1,11 +1,12 @@
-"""The release table's job runs after the suite, into `main` alone.
+"""The release table's job runs after the suite, into `main` alone, over the
+last release tag's whole tree.
 
 #923 item 3: what a release reads release to release is one table on the
 release pull request, printed by `.github/scripts/release_report.py`; the
 tests workflow's `release-report` job runs it after the suite, on a pull
 request into `main` only. #942's phase 6 placed the script's cases in
-`tests/github/test_release_report.py`; the case that reads the workflow stays here
-for #923.
+`tests/github/test_release_report.py`; the cases that read the workflow stay
+here.
 """
 
 import os
@@ -38,3 +39,17 @@ def test_the_tests_workflow_prints_the_table_only_into_main_after_the_suite():
     assert "fetch-depth: 0" in block, block
     assert "python .github/scripts/release_report.py" in block, block
     assert '>> "$GITHUB_STEP_SUMMARY"' in block, block
+
+
+def test_the_table_reads_the_last_tag_s_whole_tree():
+    """`--at` is the tag's tree checked out whole: `release_report.py` reads
+    `.test_durations` and `CLAUDE.md` there, and an archive of the tag leaves
+    out every path `.gitattributes` marks `export-ignore`."""
+    with open(WORKFLOW, encoding="utf-8") as handle:
+        text = handle.read()
+    code = "\n".join(
+        line for line in text.splitlines() if not line.lstrip().startswith("#")
+    )
+    block = job_block(code, "release-report")
+    assert 'git worktree add --detach "$RUNNER_TEMP/at" "$tag"' in block, block
+    assert "git archive" not in block, block
