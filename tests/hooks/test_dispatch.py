@@ -524,7 +524,8 @@ class Test_merge:
 
     def test_refuses_to_pass_on_a_decision_other_than_deny_or_ask(self):
         """#1381. A group whose only decision was a gate's `allow` printed it,
-        and the plugin directory holds a plugin whose hook can approve a call.
+        and the plugin directory's validation holds back a plugin whose hook
+        can approve a call.
         `Allow` and `defer` count as no decision too, and the gate's reason is
         kept as its text."""
         d = dispatch_module()

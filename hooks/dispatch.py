@@ -115,7 +115,7 @@ EVENTS = {"stop": "Stop"}
 
 # The decisions a group passes on, the stronger first. `allow` is not one: a
 # hook that approves a call skips the person's own permission flow, and the
-# plugin directory does not hold a plugin whose hook can (#1381).
+# plugin directory's validation holds back a plugin whose hook can (#1381).
 RANK = {"deny": 2, "ask": 1}
 
 
