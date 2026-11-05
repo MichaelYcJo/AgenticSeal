@@ -431,10 +431,11 @@ def test_the_three_fix_rule_stands_in_the_skill_a_builder_opens():
 
 
 def test_the_crafters_four_rules_stand_with_their_enforcers():
-    """T3 of #967: S4's four rules each keep their paragraph, their clauses
-    and a `check:` line, and the waiver stays one sentence.
+    """T3 of #967: S4's rules each keep their paragraph, their clauses and a
+    `check:` line. #1027 retired the fourth, the waiver, and the case holds
+    that it stays gone.
 
-    These four have no eval case that plants their breach, so a later trim
+    These three have no eval case that plants their breach, so a later trim
     could drop any of them with every grader green — #107's failure, a rule
     that left the repository while the suite passed."""
     for lead, clauses in CRAFTERS_FOUR_RULES.items():
