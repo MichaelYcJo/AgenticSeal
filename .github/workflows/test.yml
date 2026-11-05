@@ -52,7 +52,8 @@ jobs:
         #           9 m 03 s in 37469595104, 8 m 24 s in 37700567455,
         #           5 m 40 s to 7 m 58 s in three runs before them)   -> 15
         #   ubuntu at 3.14: ubuntu's base, because it runs the same suite
-        #          on the same system; no 3.14 job is measured yet    -> 15
+        #          on the same system; its first job ran 1 m 44 s in
+        #          run 42019408766                                    -> 15
         #   macOS, per shard: 8 m 29 s, group 3 of run 38332345615, on the
         #          durations file before #874 refreshed it (7 m 11 s to
         #          7 m 29 s on the refreshed file in 38335775781; 6 m 56 s
