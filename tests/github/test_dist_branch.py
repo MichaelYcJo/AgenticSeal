@@ -1,4 +1,4 @@
-"""`.github/scripts/dist_branch.py`, through its `main` and its `archived`.
+"""`.github/scripts/dist_branch.py`, through its `main`.
 
 #1374: the plugin directory reads `dist`, and the publish workflow's `dist`
 job adds one commit to it at each release, whose tree is `git archive` of
@@ -18,19 +18,19 @@ the release's tag:
       checkout's own index is left as it was
   D6  a tag the checkout cannot resolve, or no tag named, pushes nothing
       and exits non-zero
-  D7  this repository's archive at HEAD holds no file under
-      `.github/workflows/`, which the job's token may not push
 
-**Nothing here reaches GitHub.** Each case of D1 to D6 drives a real
-repository in `tmp_path` whose `origin` is a bare repository beside it, and
-D7 reads this repository and pushes nothing.
+What the archive of this repository holds, `.github/workflows/` left out
+among it, is held by the census's archive cases in
+`tests/behaviour/test_a_cited_section_stands_in_its_file.py`.
+
+**Nothing here reaches GitHub.** Each case drives a real repository in
+`tmp_path` whose `origin` is a bare repository beside it.
 
 **Shown red before it was committed (contract rule 15).** Every case was
 run against no script, in phase 3 of work item
 `1793843890-the-directory-tracks-a-dist-branch`. D5's index assertion,
 added after that run, was shown red by a mutant whose `git` set no index
-of the run's own. D7, from the fix pass of round 1, was shown red at a
-HEAD whose `.gitattributes` did not mark the directory.
+of the run's own.
 """
 
 import importlib.util
@@ -233,23 +233,6 @@ class Test_main:
         repo, remote = released(tmp_path)
         assert wire(monkeypatch, repo, TAG="").main() == 2
         assert tip_of(remote) == ""
-
-
-class Test_archived:
-    def test_this_repository_s_archive_holds_no_workflow_file(self):
-        """D7. GitHub refuses a push made with the workflow's own token that
-        creates or changes a file under `.github/workflows/`, and that token
-        cannot be granted the `workflows` permission, so a `dist` commit
-        holding one never reaches `dist`. Read at HEAD, as a tag cut from it
-        would be: the archive holds the plugin and no workflow file."""
-        held = brancher().archived("HEAD")
-        assert ".claude-plugin/plugin.json" in held, sorted(held)[:20]
-        workflows = sorted(p for p in held if p.startswith(".github/workflows/"))
-        assert not workflows, (
-            f"the archive holds {workflows}, which the `dist` job's push may "
-            "not carry; `.gitattributes` marks `/.github/workflows/` "
-            "`export-ignore` so that it does not"
-        )
 
 
 test_census = census_case(TARGET)

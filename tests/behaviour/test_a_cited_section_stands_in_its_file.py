@@ -46,6 +46,9 @@ of this reading: a pull request that marks a whole entry a shipped file
 cites, say `/templates/`, leaves the citation unread and this module green,
 and review of the `.gitattributes` line is what reads it. An index with
 unmerged entries stops `git write-tree`, and the archive reading with it.
+The same reading of this repository holds that the archive carries no file
+under `.github/workflows/`, which the publish workflow's token may not push
+to `dist`.
 
 A name token preceded by a word character, `.`, `/`, `:` or `-` is not
 read, so a `<commit>:<path>#<name>` is left unread and no commit is opened.
@@ -894,6 +897,22 @@ def test_the_archive_is_read_while_another_process_holds_the_index(tmp_path):
     lock.write_bytes(b"")
     assert citations(root, archive=True) == Found(1, [], [])
     assert lock.exists()
+
+
+def test_this_repository_s_archive_holds_no_workflow_file():
+    """A7: GitHub refuses a push made with a workflow's own token that
+    creates or changes a file under `.github/workflows/`, and that token
+    cannot be granted the `workflows` permission. So `dist`, whose commits
+    the publish workflow pushes with it, holds none, and this repository's
+    archive is read for one (#1374, round 1's finding 1)."""
+    held = archived(ROOT)
+    assert ".claude-plugin/plugin.json" in held, sorted(held)[:20]
+    workflows = sorted(p for p in held if p.startswith(".github/workflows/"))
+    assert not workflows, (
+        f"the archive holds {workflows}, which the `dist` job's push may not "
+        "carry; `.gitattributes` marks `/.github/workflows/` `export-ignore` "
+        "so that it does not"
+    )
 
 
 @pytest.mark.parametrize("record", RECORDS)
