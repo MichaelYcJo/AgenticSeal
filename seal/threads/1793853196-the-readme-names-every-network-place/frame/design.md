@@ -11,7 +11,7 @@ reading a later HEAD reads them as of that commit.
 |---|---|
 | `skills/core/SKILL.md` *The rule a mechanism is kept against*, "A fact has one source, and every other place links to it" and "in the same commit removes what stood on the old fact" | The README is the one place that lists where the plugin reaches the network, because the owner's directory answer points there. Two shipped sentences state the old, shorter list: `hooks/version-check.py`'s module docstring calls version-check "the plugin's second network touch", and `docs/running/measuring-a-run.md` *Where a reading goes* says `--post` writes only when a person types it. Both are corrected in this work (*Scope* 4 and `## Rule changes`), as contract rule 19 asks. |
 | `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes* | This work item's subject is the two README editions, not the policy root. So the one policy paragraph this work makes untrue, in `docs/running/measuring-a-run.md`, changes through `## Rule changes` for the settle, and the crafter does not edit `docs/` directly. `docs/README.md` indexes that file under `docs/running/`. |
-| `CONTRIBUTING.md` *House rules*, the bullet **Hooks stay local and quiet**, "Every hook that reaches the network is named in the README's privacy section" | The rule covers hooks only, and its conditions (an opt-in, a throttle, silence on failure) are shaped for a hook. lint-python and version-check stay named, so the rule stays true. The new rows are commands and workflow steps, which the rule does not reach, and `docs/running/measuring-a-run.md` *Where a reading goes* gives that reason for `--post`. This work leaves `CONTRIBUTING.md` alone (`plan.md` *Alternatives considered*, row 5). |
+| `CONTRIBUTING.md` *House rules*, the bullet **Hooks stay local and quiet**, "Every hook that reaches the network is named in the README's privacy section" | The rule covers hooks only, and its conditions (an opt-in, a throttle, silence on failure) are shaped for a hook. lint-python and version-check stay named, so the rule stays true. The new rows are commands and workflow steps, which the rule does not reach, and `docs/running/measuring-a-run.md` *Where a reading goes* gives that reason for `--post`. This work leaves the rule and its reach alone (`plan.md` *Alternatives considered*, row 5); the bullet's two sentences on what each hook reaches point to the README instead (*Scope* 6). |
 | `CONTRIBUTING.md` *House rules*, "Both READMEs move together" | `README.md` and `README.ko.md` change in the same commit. They tell the same story and keep the same sequence of heading levels (`tests/behaviour/test_both_editions_carry_the_same_folds.py`). |
 | Prior decision #1102, `seal/threads/1793732301-the-readme-is-written-for-a-first-reader/frame/design.md` *Scope* item 2 | The README keeps a fact only where no other shipped file states it or the issue requires it, and "the hooks that reach the network" is named as one it keeps. This work follows that decision: the network list stays on the page as one passage, and a row may link the shipped file that holds its detail rather than restate it. |
 | Prior decision #1055 S4, `tests/behaviour/test_chain_hooks_hardening.py#test_the_hooks_that_reach_the_network_are_named_without_a_count` | Both editions and `CONTRIBUTING.md` name the network places without counting them. The new text states no count, such as "four places" or "two hooks". The pinned sentences "lint-python and version-check reach the network." and "네트워크를 타는 훅은 lint-python 과 version-check 입니다." stay verbatim. |
@@ -181,11 +181,15 @@ Out:
 ## Data & interfaces
 
 - `README.md` *What runs on your machine* and `README.ko.md` *내 컴퓨터에서
-  도는 것*: the network passage in each grows by one sentence in the hook
-  paragraph, a lead sentence, one table of six rows and a closing sentence. No heading is added, moved or renamed.
+  도는 것*: the network passage in each grows by two sentences in the hook
+  paragraph (the dependencies `uv run` installs and the Python it downloads), a lead sentence, one table of six rows and a closing sentence. No heading is added, moved or renamed.
 - `tests/behaviour/test_chain_hooks_hardening.py`: one case gains
   assertions (*Scope* 3). No new module or fixture is added.
 - `hooks/version-check.py`: the module docstring changes. No code changes.
+- `tests/hooks/test_version_check.py`: the module docstring's first line
+  changes (*Scope* 4).
+- `CONTRIBUTING.md` *House rules*, the bullet *Hooks stay local and
+  quiet*: two sentences become one (*Scope* 6).
 - No interface, schema, command or exit code changes.
 
 ## Rule changes
@@ -217,6 +221,7 @@ Out:
 | Removes | Coordinate | Where it lands, or why it can go |
 |---|---|---|
 | The sentence that calls version-check "the plugin's second network touch, after lint-python's `uvx ruff` fetch" | `hooks/version-check.py`, module docstring | `README.md` *What runs on your machine* lists every place (*Scope* 1). The docstring points there (*Scope* 4) |
+| The sentences that `lint-python` fetches ruff through `uvx` and that `version-check` asks the plugin's repository for its newest tag | `CONTRIBUTING.md` *House rules*, the bullet *Hooks stay local and quiet* | `README.md` *What runs on your machine* states what each hook reaches; one sentence names both hooks and points there (*Scope* 6) |
 | The claims that `--post` writes only when a person types it, and that `CONTRIBUTING.md` counts the plugin's network touches | `docs/running/measuring-a-run.md` *Where a reading goes* | The three operations of `## Rule changes`, for the settle |
 
 This work adds no mechanism. *Scope* 3 adds assertions to a case that
