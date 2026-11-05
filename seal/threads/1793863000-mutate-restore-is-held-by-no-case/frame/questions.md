@@ -8,6 +8,7 @@ The issue left these open, and the tree answered each. Nobody reopens them witho
 - Whether `batch_run`'s restore after its baseline is in scope: `frame/design.md` *Grounding*, the probe row and the rules 12 and 19 row.
 - Which statements of `not restored` are behind the code: `frame/design.md` *Grounding*, the `not restored` class row.
 - Whether the timed-out and interrupt cases run on Windows: `frame/plan.md` *Alternatives considered*, the Windows row.
+- Whether the message `restore` raises is this work's, and where the build starts: `frame/design.md` *Grounding*, the #1393 row and the orchestrator's row, and `frame/plan.md` *Alternatives considered*, the two rows on the message.
 - Whether the new descriptions get a text case: `frame/plan.md` *Alternatives considered*, the text-case row.
 
 | # | Question | Who can answer | Options & what each implies | Default until answered | Status |
