@@ -650,9 +650,37 @@ class Test_extract:
             "truth-1.md",
         ]
 
+    def test_accepts_what_export_ignore_marks(self, tmp_path, monkeypatch):
+        """A revision whose `.gitattributes` marks `/evals/` `export-ignore`
+        still gives its suite, and its whole tree, every file: `git archive`
+        of a marked path exits 0 with nothing in it."""
+        repo = tmp_path / "repo"
+        git(repo.parent, "init", "-q", repo.name)
+        write(repo, ".gitattributes", "/evals/ export-ignore\n")
+        write(repo, f"{CASE}/case.yaml", "name: c1\n")
+        write(repo, "skills/a/SKILL.md", "a\n")
+        git(repo, "add", "-A")
+        identity = ["-c", "user.email=t@example.com", "-c", "user.name=t"]
+        git(repo, *identity, "commit", "-qm", "marked")
+        monkeypatch.setattr(NI, "ROOT", str(repo))
+        NI.extract("HEAD", [NI.SUITE], str(tmp_path / "suite"))
+        assert (tmp_path / "suite" / CASE / "case.yaml").read_text(
+            encoding="utf-8"
+        ) == "name: c1\n"
+        NI.extract("HEAD", [], str(tmp_path / "all"))
+        assert sorted(
+            p.relative_to(tmp_path / "all").as_posix()
+            for p in (tmp_path / "all").rglob("*")
+            if p.is_file()
+        ) == [".gitattributes", f"{CASE}/case.yaml", "skills/a/SKILL.md"]
+
     def test_refuses_a_rev_git_does_not_resolve(self, suites, tmp_path):
-        with pytest.raises(SystemExit, match=r"^git archive"):
+        with pytest.raises(SystemExit, match=r"^git read-tree"):
             NI.extract("nowhere", [], str(tmp_path))
+
+    def test_refuses_a_path_the_rev_does_not_hold(self, suites, tmp_path):
+        with pytest.raises(SystemExit, match=r"^git ls-files"):
+            NI.extract(suites["own"], ["evals/nowhere"], str(tmp_path))
 
 
 class Test_side_path:

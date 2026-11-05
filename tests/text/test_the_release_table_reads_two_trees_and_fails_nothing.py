@@ -38,3 +38,17 @@ def test_the_tests_workflow_prints_the_table_only_into_main_after_the_suite():
     assert "fetch-depth: 0" in block, block
     assert "python .github/scripts/release_report.py" in block, block
     assert '>> "$GITHUB_STEP_SUMMARY"' in block, block
+
+
+def test_the_table_reads_the_last_tag_s_whole_tree():
+    """`--at` is the tag's tree checked out whole: `release_report.py` reads
+    `.test_durations` and `CLAUDE.md` there, and an archive of the tag leaves
+    out every path `.gitattributes` marks `export-ignore`."""
+    with open(WORKFLOW, encoding="utf-8") as handle:
+        text = handle.read()
+    code = "\n".join(
+        line for line in text.splitlines() if not line.lstrip().startswith("#")
+    )
+    block = job_block(code, "release-report")
+    assert 'git worktree add --detach "$RUNNER_TEMP/at" "$tag"' in block, block
+    assert "git archive" not in block, block
