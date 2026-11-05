@@ -56,6 +56,7 @@
 | 17 | `tests/censuses.py:952`, `matches`'s docstring | N | The example of `*` crossing a `/` names a file under `hooks/lib/` that the tree holds, as `ruff.toml:45`'s comment does |
 | 18 | `tests/hooks/test_launch.py:204` | D | "a git hook" leaves the list, as in row 16 |
 | 19 | `tests/text/test_a_moved_rule_leaves_its_definition.py:26-27` | D | The item "its own waiver example as the patch contract rule 9's gate reads a commit out of" leaves the crafter's list. The list's other items and its closing sentence stay |
+| 20 | `tests/behaviour/test_waiver_decided_at_start.py:44-46`, the comment above `ORCH` | D | The sentence "The per-command waiver stays in `SKILL.md`, because the implementer is who types the command." leaves: #1027 removed that waiver, and the module's own case at `:749-756` holds that it is gone. Round 1 found it (`trail/rounds/round-1.md` finding 1); M3's words did not include `waiver` |
 
 **Left as they stand.** These lines were read and are outside the class:
 
@@ -75,8 +76,8 @@
 
 In scope:
 
-1. **The 19 rows of D1.** Each row is rewritten, dropped or removed as its row says. Any other sentence in the same docstring paragraph or comment block that leans on the rewritten clause changes with it.
-2. **The record of each row.** The phase record lists each of the 19 rows with its path, its line at the base the phase was built on, its disposition, and the text that replaced it or `removed`. The record also names the three methods and the commands they ran at the phase's commit, as *Done when* asks.
+1. **The 20 rows of D1.** Each row is rewritten, dropped or removed as its row says. Any other sentence in the same docstring paragraph or comment block that leans on the rewritten clause changes with it.
+2. **The record of each row.** The phase record lists each of the 20 rows with its path, its line at the base the phase was built on, its disposition, and the text that replaced it or `removed`. The record also names the three methods and the commands they ran at the phase's commit, as *Done when* asks.
 
 Out of scope:
 
@@ -97,7 +98,7 @@ Out of scope:
 | S3. The dead helper is gone | Given the phase's commit, when `git grep -n -P "\bfired\(" -- .` runs outside `seal/threads/`, then it prints nothing | the command at the phase's commit |
 | S4. No assertion changed | Given each touched module at the base and at the phase's commit, when each is parsed with `ast` and every docstring is removed, then the two dumps are equal. The two exceptions are `tests/conftest.py`, which loses `fired`, and `tests/hooks/test_routing.py`, whose one assertion message (D1 row 7) differs | a probe that compares `ast.dump` of each file's blob at both commits, read with `git show`; its output in the phase record |
 | S5. The touched modules still pass | Given the phase's commit, when each touched test module runs narrow, then it passes. Its `test_census` and `tests/test_censuses.py` pass for the touched files too | the crafter's narrow runs, labelled in the phase record. The broad gate is the orchestrator's |
-| S6. Each row is accounted for | Given the phase record, when it is read against D1, then each of the 19 rows appears with its disposition and its replacement text or `removed` | the phase record against D1 |
+| S6. Each row is accounted for | Given the phase record, when it is read against D1, then each of the 20 rows appears with its disposition and its replacement text or `removed` | the phase record against D1 |
 
 ## Data & interfaces
 

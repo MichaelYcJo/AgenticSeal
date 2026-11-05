@@ -2,7 +2,7 @@
 
 ## Technical context
 
-The work edits text in nine files under `tests/` and removes one unit of code. The coordinates are `frame/design.md` *D1*, at `c54f0040`:
+The work edits text in eight files under `tests/` and removes one unit of code. The coordinates are `frame/design.md` *D1*, at `c54f0040`:
 
 - `tests/conftest.py`: rows 1 and 2
 - `tests/hooks/test_question_gate.py`: row 3
@@ -39,7 +39,7 @@ The constraints:
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Design *Scope* items 1 and 2: the 19 rows of D1, and the phase record that lists each row with the three methods rerun at the phase's commit | acceptance S1 to S6: the three `git grep` commands at the phase's commit, the `ast` comparison probe over each file's blob at both commits, the touched modules run narrow, and the phase record read against D1 | cebd347f |
+| 1 | Design *Scope* items 1 and 2: the 20 rows of D1, and the phase record that lists each row with the three methods rerun at the phase's commit | acceptance S1 to S6: the three `git grep` commands at the phase's commit, the `ast` comparison probe over each file's blob at both commits, the touched modules run narrow, and the phase record read against D1 | cebd347f |
 
 ## Operational impact
 
@@ -49,4 +49,4 @@ None. No migration, environment variable, dependency or compatibility break. `te
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-05 | Round 1's finding 1 joins the frame as D1 row 20, built by round 1's fix pass rather than a new phase | The sentence is the same class as rows 13 and 14 in a file the phase already edited, found by the proofer reading the diff's files, which the frame named as its method for spellings M3 did not cover | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, a decision after the frame is folded before the next crafter spawns |
