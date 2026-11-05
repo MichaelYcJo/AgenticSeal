@@ -43,7 +43,7 @@ crafter reading a later HEAD reads them as of that commit.
 
 In:
 
-1. `.gitattributes` marks `/tests/`, `/evals/`, `/seal/`, `/.test_durations` and `/CLAUDE.md` `export-ignore`, with a comment that says what the lines decide and that a pull request adding a development-only path adds its line here.
+1. `.gitattributes` marks `/tests/`, `/evals/`, `/seal/`, `/.test_durations`, `/CLAUDE.md` and `/.github/workflows/` `export-ignore`, with a comment that says what the lines decide and that a pull request adding a development-only path adds its line here.
 2. The census in `tests/behaviour/test_a_cited_section_stands_in_its_file.py` reads a second corpus, the archive git builds from the tree, with both of its readers, `citations` and `names`. A citation in a file the archive holds dangles where the archive lacks its target, and the module's top-level rule applies with the archive as the repository read. A fixture case holds that a cited file marked `export-ignore` fails, and that the same citation passes the tree reading.
 3. `tests/behaviour/test_the_release_check_watches_what_ships.py#test_every_top_level_entry_is_classified`'s message also names `.gitattributes`, so whoever classifies a new top-level entry decides whether `dist` holds it.
 4. The two readers that build a tag's whole tree stop using `git archive`: the `release-report` job of `.github/workflows/test.yml`, and `evals/scripts/noninferiority.py#extract`. Each reads the whole tree, a probed spelling or an equivalent the crafter names in the phase record.
@@ -56,7 +56,7 @@ Out:
 
 - Preparing for command hooks that need a Verified organization. The owner put it in #1376 (backlog) on 2026-11-05.
 - `assets/seals/candidates/` and the version move to 0.32.3. Both are #1375's, in the same release, and this work leaves `.claude-plugin/plugin.json` alone.
-- Leaving more paths out of `dist`, such as `bin/test`, `.github/workflows/` or `ruff.toml`. None raised a finding in the form, and a later pull request adds its line to `.gitattributes`.
+- Leaving more paths out of `dist`, such as `bin/test` or `ruff.toml`. Neither raised a finding in the form, and a later pull request adds its line to `.gitattributes`. `.github/workflows/` leaves, because GitHub refuses a push made with the workflow's token that creates or changes a workflow file (round 1, finding 1), and no installed copy reads this repository's own workflows.
 - The replies to the directory's reviewer on the 18 holds. The owner sends them after submitting.
 - A ruleset on `dist`, submitting `MichaelYcJo/AgenticSeal@dist` at the portal, installing from it, and deleting `MichaelYcJo/agenticseal-dir-test`. Each is the owner's act outside the tree, and `plan.md` *Operational impact* lists them.
 
