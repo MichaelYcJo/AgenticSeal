@@ -192,7 +192,10 @@ def test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit
 def test_the_dist_job_adds_the_release_to_dist_and_goes_red_where_it_cannot():
     """#1374. The `dist` job needs `publish` and runs wherever `publish`
     passed on a tag, so a re-run of a release whose note already exists
-    still fills `dist`. Its checkout has the whole history and every tag,
+    still fills `dist`. Its `if:` holds `!cancelled()`, which lifts the
+    default `success()`, so a note step that fails after the tag step
+    passed one on does not skip it (round 1's finding 2, seen red against
+    the condition on the tag alone). Its checkout has the whole history and every tag,
     and keeps the credentials its push uses. Its second step runs
     `dist_branch.py` with the tag, as the GitHub Actions bot, author and
     committer alike. No `continue-on-error` stands
@@ -200,7 +203,9 @@ def test_the_dist_job_adds_the_release_to_dist_and_goes_red_where_it_cannot():
     Seen red against the workflow with no `dist` job."""
     dist = job(workflow(), "dist")
     assert "    needs: publish" in dist, dist
-    assert "    if: needs.publish.outputs.tag != ''" in dist, dist
+    assert "    if: ${{ !cancelled() && needs.publish.outputs.tag != '' }}" in dist, (
+        dist
+    )
     assert not any("continue-on-error" in line for line in dist), dist
     held = steps(dist)
     assert len(held) == 2, held

@@ -45,7 +45,8 @@ name: publish the release note
 # at each release is `git archive` of the release's tag, so it holds what
 # the installed plugin runs and leaves out what `.gitattributes` marks
 # `export-ignore`. A third job, `dist`, runs wherever `publish` passed on a
-# tag, a re-run included, and `.github/scripts/dist_branch.py` adds one
+# tag, a re-run included, and where the note step failed after the tag step
+# passed one on; `.github/scripts/dist_branch.py` adds one
 # commit to `dist` on its previous commit, or none where that commit already
 # holds the tag's archive, and pushes without force. It has no
 # `continue-on-error`: a release that did not reach `dist` is a release the
@@ -175,7 +176,11 @@ jobs:
 
   dist:
     needs: publish
-    if: needs.publish.outputs.tag != ''
+    # `!cancelled()` lifts the default `success()`, under which a failed
+    # note step, which fails `publish` after the tag exists, would skip this
+    # job. The tag output then decides alone; where the tag step set none,
+    # the job is skipped as before.
+    if: ${{ !cancelled() && needs.publish.outputs.tag != '' }}
     runs-on: ubuntu-latest
     steps:
       # The whole history and every tag: the script archives the tag
