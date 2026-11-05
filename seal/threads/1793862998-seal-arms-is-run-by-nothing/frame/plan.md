@@ -27,7 +27,7 @@ Failure scenario of the chosen approach, six months out: `seal mutate` is the on
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
 | 1 | *Scope* items 1 and 2. `arm_check.py` still exists and `seal arms` still runs, so this phase stands alone. | The four moved cases and every case of `tests/skills/test_mutation_check.py` pass at the new path, with no case written new (`skills/verify/SKILL.md` *The narrow command still has to be able to fail*); `grep -n "arm_check" skills/verify/scripts/mutation_check.py` prints nothing | 8eb4b2d5 |
-| 2 | *Scope* items 3 to 8, in one commit, because the check line of *Scope* item 5 names files *Scope* item 3 deletes | The modules *Scope* item 7 names, `tests/skills/test_seal.py`, `tests/github/test_rules.py`, `tests/behaviour/test_release_hygiene.py` and `tests/text/test_ci_gives_the_checks_what_they_need.py` pass; the command of design G14 prints nothing outside `seal/threads/` and exits 1; `bin/seal arms` exits non-zero | |
+| 2 | *Scope* items 3 to 8, in one commit, because the check line of *Scope* item 5 names files *Scope* item 3 deletes | The modules *Scope* item 7 names, `tests/skills/test_seal.py`, `tests/github/test_rules.py`, `tests/behaviour/test_release_hygiene.py` and `tests/text/test_ci_gives_the_checks_what_they_need.py` pass; the command of design G14 prints nothing outside `seal/threads/` and exits 1; `bin/seal arms` exits non-zero | 11c848ed |
 
 ## Operational impact
 
