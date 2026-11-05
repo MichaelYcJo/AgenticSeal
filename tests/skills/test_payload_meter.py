@@ -394,6 +394,29 @@ class Test_measure:
         assert imported[1] == f"{harness[3]['bytes']:,}", imported
         assert "imported by `~/.claude/CLAUDE.md`" in imported[4], imported
 
+    def test_an_import_a_fence_of_an_imported_file_quotes_is_no_row(
+        self, meter, tmp_path
+    ):
+        """#1185, S5. Every hop is read the same way: `x.md`, which the pair
+        imports, quotes `@y.md` inside a fence, so the harness loads `x.md`
+        and not `y.md`, and `y.md` is no row. Seen red at 0830987a, which
+        read the whole text of each hop and made `y.md` a row."""
+        root, home = a_tree(tmp_path)
+        write(str(root / "CLAUDE.md"), f"## Repo rules {ACCENT}\n@x.md\n")
+        write(str(root / "x.md"), "An example:\n\n```\n@y.md\n```\n")
+        write(str(root / "y.md"), "y\n")
+        data = meter.measure(str(root), str(home))
+        harness = [
+            f["path"]
+            for f in data["agents"]["probe"]["files"]
+            if f["share"] == "harness"
+        ]
+        assert harness == [
+            "CLAUDE.md",
+            "CLAUDE.md → x.md",
+            "~/.claude/CLAUDE.md",
+        ], harness
+
     def test_an_import_that_is_not_a_file_is_a_missing_row(self, meter, tmp_path):
         """#1177, S5. A dangling import loads nothing and says nothing in a
         session (#1177's first frame, `frame/design.md` at `346cd01d`, probe
@@ -1175,7 +1198,9 @@ class Test_sections_of:
 class Test_imports_of:
     """#1177, `frame/design.md` *Scope* item 5: how an `@` line resolves, as
     code.claude.com/docs/en/memory.md states it -- relative to the file that
-    holds it, `~` as the home, at most four hops."""
+    holds it, `~` as the home, at most four hops. #1185: where an import is
+    read, as the same page states it -- in the file's live text alone, with
+    a backslash carrying a path past a space."""
 
     def test_accepts_a_tilde_path_as_the_home_it_was_given(
         self, meter, monkeypatch, tmp_path
@@ -1249,6 +1274,120 @@ class Test_imports_of:
         ], found
         assert found[-1][0] == ("h1.md", "h2.md", "h3.md", "h4.md")
 
+    @staticmethod
+    def written(meter, tmp_path, text):
+        """The chains `imports_of` returns for a `CLAUDE.md` holding TEXT,
+        with `a.md` and `b.md` beside it, so a wrong reading names a file
+        that exists."""
+        importer = tmp_path / "CLAUDE.md"
+        write(str(importer), text)
+        for name in ("a.md", "b.md"):
+            write(str(tmp_path / name), f"{name}\n")
+        found = meter.imports_of(str(importer), str(tmp_path / "home"))
+        return [chain for chain, _real in found]
+
+    def test_refuses_an_import_a_fenced_code_block_quotes(self, meter, tmp_path):
+        """#1185, S1. "Import parsing skips Markdown code spans and fenced
+        code blocks" (code.claude.com/docs/en/memory.md): an `@` line a fence
+        quotes is an example, and the harness loads nothing for it. The
+        import after the fence closes is read. Seen red at 0830987a, which
+        read the whole text and returned `a.md` first."""
+        text = "An example:\n\n```\n@a.md\n```\n@b.md\n"
+        assert self.written(meter, tmp_path, text) == [("b.md",)]
+
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "~~~\n@a.md\n~~~\n@b.md\n",
+            "````\n```\n@a.md\n```\n````\n@b.md\n",
+            "@b.md\n\n```\n@a.md\n\n## Later\n@a.md\n",
+        ],
+        ids=[
+            "a tilde fence",
+            "a three-backtick line inside a four-backtick fence",
+            "a fence nobody closed",
+        ],
+    )
+    def test_refuses_an_import_in_each_shape_of_a_fence(self, meter, tmp_path, text):
+        """#1185, S2. A fence is the shared rule's, `fence_opener` and
+        `fence_closes` (#584): a tilde fence is one, a shorter run does not
+        close a longer fence, and a fence nobody closed runs to the end of
+        the file, as CommonMark 4.5 says and Claude Code's lexer reads it
+        (`frame/design.md` G3 of #1185). Each shape was seen red at 0830987a,
+        which returned `a.md` beside `b.md`."""
+        assert self.written(meter, tmp_path, text) == [("b.md",)]
+
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "Run `cat @a.md` then @b.md\n",
+            "Run `` @a.md `` then @b.md\n",
+            "Run `cat @a.md\n@a.md` then @b.md\n",
+        ],
+        ids=[
+            "a span on its own line",
+            "a span of two backticks",
+            "a span closed on the next line of its paragraph",
+        ],
+    )
+    def test_refuses_an_import_a_code_span_holds(self, meter, tmp_path, text):
+        """#1185, S3. The docs skip a code span in the same sentence as a
+        fence. A span runs from a backtick run to the next run of the same
+        length, on its line or, before its paragraph ends, on a later one
+        (`unverified_check.py#_partner_ahead`), and the import after it is
+        read. Each shape was seen red at 0830987a, which returned the span's
+        `@a.md` with its closing backtick as a path, or `a.md` itself."""
+        assert self.written(meter, tmp_path, text) == [("b.md",)]
+
+    def test_accepts_an_import_after_a_backtick_its_paragraph_never_closes(
+        self, meter, tmp_path
+    ):
+        """#1185, S3. A backtick run whose partner does not arrive before
+        the paragraph ends opens no span, so the import in the next
+        paragraph is read. Green at 0830987a, which read every `@`; seen red
+        with `_partner_ahead`'s answer replaced by True, the reading where an
+        unclosed run reaches any later run of its width."""
+        text = "A lone ` here\n\n@b.md and a ` there\n"
+        assert self.written(meter, tmp_path, text) == [("b.md",)]
+
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "<!-- @a.md --> then @b.md\n",
+            "<!--\n@a.md\n-->\n@b.md\n",
+            "@b.md\n<!-- open\n\n@a.md\n",
+        ],
+        ids=[
+            "a comment before an import on its line",
+            "a comment over three lines",
+            "a comment nobody closed",
+        ],
+    )
+    def test_refuses_an_import_an_html_comment_holds(self, meter, tmp_path, text):
+        """#1185, S4. A block-level HTML comment is stripped before the file
+        reaches the context (code.claude.com/docs/en/memory.md *How CLAUDE.md
+        files load*), and Claude Code scans what is left of the comment's
+        token (`frame/design.md` G3 of #1185). A comment runs from `<!--` to
+        the next `-->`, and one nobody closed hides the rest of the file.
+        Each shape was seen red at 0830987a, which returned `a.md`."""
+        assert self.written(meter, tmp_path, text) == [("b.md",)]
+
+    def test_accepts_a_backslash_before_a_space_as_part_of_the_path(
+        self, meter, tmp_path
+    ):
+        """#1185, S6. "To import a file whose path contains spaces, put a
+        backslash before each space. Without the backslashes, the path ends
+        at the first space" (code.claude.com/docs/en/memory.md). The target
+        is the path with each `\\ ` read as a space, and the chain keeps the
+        path as written. Seen red at 0830987a, which ended the path at the
+        backslash and returned `Design\\`."""
+        importer = tmp_path / "CLAUDE.md"
+        write(str(importer), "@Design\\ Docs/api.md\n")
+        target = tmp_path / "Design Docs" / "api.md"
+        write(str(target), "api\n")
+        found = meter.imports_of(str(importer), str(tmp_path / "home"))
+        assert found == [(("Design\\ Docs/api.md",), os.path.realpath(target))], found
+
 
 class Test_module:
     def test_a_section_heading_is_read_by_the_one_heading_rule(self, meter):
@@ -1277,11 +1416,15 @@ class Test_module:
                 "it is what reads a transcript's spawns",
                 None,
             ),
-            # #584: it loads `unverified_check.py` only under `--sections`, and
-            # its purpose must not be the transcript sibling's.
+            # #584 and #1185: `--sections` loads `unverified_check.py` before
+            # it reads the root, and so does every read of a `CLAUDE.md` that
+            # exists. The sentence names both uses, and its purpose must not
+            # be the transcript sibling's.
             (
                 ["--root", "{root}", "--sections"],
-                "it is what says which lines of a skill stand inside a fenced example",
+                "it is what says where a fenced example, an HTML comment or a "
+                "code span stands in a file, so --sections cannot split a skill "
+                "at its headings and no import of a `CLAUDE.md` can be read",
                 "transcript",
             ),
             # #1177: every run counts the core hook's output, which
@@ -1333,6 +1476,46 @@ class Test_module:
         )
         if absent:
             assert absent not in done.stderr, done.stderr
+
+    def test_a_copy_without_the_scan_exits_2_on_a_run_that_reads_a_claude_md(
+        self, tmp_path
+    ):
+        """#1185. Every read of a `CLAUDE.md` that exists asks
+        `unverified_check.py` where its live text is, so a copy that holds
+        the core hook's module and not that sibling exits 2 with no flag at
+        all, and its sentence names the import reading. The row above with
+        no flag stops at `hooks/lib/core.py` first, so this copy carries it
+        and `hooks/lib/optin.py`, the one module it loads. Green at 6137faf8;
+        seen red with `imports_of` returning nothing where the sibling is
+        missing, the reading that fails open."""
+        alone = tmp_path / "alone"
+        for rel in (TARGET, "hooks/lib/core.py", "hooks/lib/optin.py"):
+            copy = alone.joinpath(*rel.split("/"))
+            copy.parent.mkdir(parents=True, exist_ok=True)
+            with open(os.path.join(ROOT, *rel.split("/")), encoding="utf-8") as f:
+                copy.write_text(f.read(), encoding="utf-8")
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        (repo / "CLAUDE.md").write_text("# rules\n", encoding="utf-8")
+        home = tmp_path / "home"
+        home.mkdir()
+        done = subprocess.run(
+            [
+                sys.executable,
+                str(alone.joinpath(*TARGET.split("/"))),
+                "--root",
+                str(repo),
+            ],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            env=dict(os.environ, HOME=str(home), USERPROFILE=str(home)),
+            cwd=str(repo),
+        )
+        assert done.returncode == 2, (done.returncode, done.stderr)
+        assert "Traceback" not in done.stderr, done.stderr
+        assert names_path(str(alone), done.stderr), done.stderr
+        assert "no import of a `CLAUDE.md` can be read" in done.stderr, done.stderr
 
     def test_json_carries_the_same_numbers_as_the_text_and_no_machine_path(
         self, tmp_path
