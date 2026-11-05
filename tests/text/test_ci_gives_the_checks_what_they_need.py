@@ -263,11 +263,10 @@ def matrix_include_entries(text):
     `.github/workflows/test.yml`, beside `jobs`, which finds the job. Four
     cases used to slice the job out of the raw text by its neighbour's name,
     and the one that read entries took every line starting `- { os:`: an
-    entry written another way was not an entry, and nothing said so. Two
-    other readings of the file remain, each asking something else:
-    `tests/behaviour/test_release_hygiene.py` takes the floor from every `python:` in
-    it, and `tests/skills/test_arm_check.py` reads the Pythons of the jobs that run
-    its own module.
+    entry written another way was not an entry, and nothing said so. One
+    other reading of the file remains, asking something else:
+    `tests/behaviour/test_release_hygiene.py` takes the floor from every
+    `python:` in it.
 
     The name carries no `pytest_` prefix: in a `conftest.py`, pytest reads a
     function so named as a hook and stops the run at an unknown one.

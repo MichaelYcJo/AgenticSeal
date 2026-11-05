@@ -84,7 +84,6 @@ def test_the_verify_skill_says_what_each_verdict_means_and_what_the_bound_ends()
         "process group",
         "Windows",
         "PYTHONDONTWRITEBYTECODE",
-        "seal arms",
         # Round 1, 🔴 1: the baseline, and the verdict it gives.
         "first runs `--tests` against the file as it is",
         "`no baseline`",

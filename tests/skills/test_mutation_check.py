@@ -539,9 +539,8 @@ class Test_main:
         hand, since no second interpreter is guaranteed on a CI runner.
 
         Reproducing a stale read by timing is not attempted -- whether two writes
-        land in one mtime second is the machine's, not the case's, which is what
-        `tests/skills/test_arm_check.py` measured and says. S2 below makes the stale
-        read deterministic instead.
+        land in one mtime second is the machine's, not the case's. S2 below makes
+        the stale read deterministic instead.
 
         The variable is taken out of this process's environment first, so the
         flag the cases report is the one the command set and not one inherited
@@ -734,9 +733,8 @@ class Test_main:
     ):
         """Contract rule 9: an edit must be able to fail. A pattern that misses writes
         nothing and exits zero when the shell does it, so the loop records a
-        verdict for a mutation that never happened -- the two-spaces incident
-        `arm_check.run_arms`'s docstring records. One that lands twice breaks two
-        units at once, and the verdict cannot say which one a case caught."""
+        verdict for a mutation that never happened. One that lands twice breaks
+        two units at once, and the verdict cannot say which one a case caught."""
         target = tmp_path / "target.py"
         target.write_text(source, encoding="utf-8")
         log = tmp_path / "ran.txt"
@@ -1383,8 +1381,8 @@ class Test_main:
     def test_a_negative_bound_is_refused_rather_than_timing_every_run_out(
         self, tmp_path, capsys
     ):
-        """`seal arms` refuses it for the same reason: a bound below zero ends
-        every run before it starts, and a verdict nobody measured follows."""
+        """A bound below zero ends every run before it starts, and a verdict
+        nobody measured follows."""
         target = tmp_path / "target.py"
         target.write_text("VALUE = 1\n", encoding="utf-8")
         with pytest.raises(SystemExit) as raised:

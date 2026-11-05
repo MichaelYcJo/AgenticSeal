@@ -8,9 +8,8 @@ bound.
 
 ## `seal mutate` asks condition 2 of one unit, one break at a time
 
-`seal arms` breaks a module's arms under two fixed operators. The unit an
-implementer has just added is usually something else: a constant, a flipped
-comparison, a sentence a case pins. The break is whatever makes that unit
+The unit an implementer has just added can be a constant, a flipped
+comparison or a sentence a case pins. The break is whatever makes that unit
 wrong, so the loop is one command per break:
 
 ```
@@ -101,10 +100,9 @@ break was.
 300 seconds by default for each of the two runs, and `0` removes it. On
 POSIX the command runs in a session of its own and a timed-out run's whole
 process group is killed, so a wrapper's pytest does not outlive the verdict.
-That is the hole `seal arms`'s bound still has. The group of a run
-that exited is ended too, and the wait is on the process rather than on its
-output, so a child the cases leave behind neither outlives the verdict nor
-holds it back. A process that put itself in yet another session is outside
+The group of a run that exited is ended too, and the wait is on the process
+rather than on its output, so a child the cases leave behind neither
+outlives the verdict nor holds it back. A process that put itself in yet another session is outside
 the group and outlives the kill; the verdict names that as the bound's
 limit, and cannot tell whether one did. Ctrl-C
 reaches this command rather than the cases, and it ends the group before the
@@ -112,5 +110,4 @@ restore. On Windows only the direct child is ended, and the verdict says that
 anything it started was not.
 
 `-p no:xdist` belongs on a handful of cases: starting the workers takes
-longer than the cases do. For a module's arms rather than one unit,
-`seal arms` (`skills/verify/seal-arms.md`) is the command.
+longer than the cases do.
