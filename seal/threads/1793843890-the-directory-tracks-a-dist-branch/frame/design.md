@@ -111,9 +111,17 @@ Out:
     `dist`'s files too, so a cited file marked `export-ignore` fails CI. A
     reader here that needs a tag's whole tree checks the tree out rather than
     archiving it, since an archive leaves the marked paths out. GitHub's
-    source archives of a release leave them out too. `marketplace.json` still
-    names `main`, so `/plugin marketplace add` installs the whole tree.
+    source archives of a release leave them out too. `marketplace.json`'s
+    `source` is `./`, so `/plugin marketplace add` installs the whole tree from
+    the default branch, `main`.
     check: tests/github/test_dist_branch.py tests/behaviour/test_a_cited_section_stands_in_its_file.py
+- change
+  file: docs/releasing/branch-and-release.md
+  section: Cutting a release
+  from: says per file whether the plugin has an entry, which
+    commit it pins and whether that commit is on `main`.
+  to: says per file whether the plugin has an entry, which
+    commit it pins, and which of `main` and `dist` holds that commit.
 - change
   file: docs/releasing/branch-and-release.md
   section: Work accumulates on a release branch

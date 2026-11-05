@@ -22,7 +22,7 @@ What this builds on:
 The failure scenario of the chosen approach, six months on:
 
 - A pull request marks a whole top-level entry `export-ignore`, say `/templates/`. The census reads the archive with the module's rule that a path under an entry the repository lacks is not read, so a skill's citation into `templates/` goes unread there, and CI stays green while `dist` lacks what the implement skill bootstraps from. Review of the `.gitattributes` line is what reads it, and the release's smoke run from the archive is what would show it. The module's docstring states this as a limit.
-- Somebody pushes to `dist` by hand. The next release's push is refused as a non-fast-forward, the `dist` job goes red, and the directory does not get that release until a person reconciles `dist` without rewriting it.
+- Somebody pushes to `dist` by hand. The job reads `dist`'s tip at each run, so the next release's commit stands on the hand-made one and the directory gets a branch whose history holds a commit no tag made. A push is refused only where `dist` moves between the job's read of its tip and its push, and the job then goes red without rewriting anything.
 - A tag is pushed by hand for an older version. The job adds a commit whose tree is the older release's, and the directory picks it up as the newest version. `dist_branch.py`'s docstring states this as a limit, since the hand-pushed tag is the repair path for a failed tag step and names the newest release there.
 
 ## Alternatives considered
