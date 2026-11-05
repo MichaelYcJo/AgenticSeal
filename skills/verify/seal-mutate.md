@@ -102,9 +102,9 @@ POSIX the command runs in a session of its own and a timed-out run's whole
 process group is killed, so a wrapper's pytest does not outlive the verdict.
 The group of a run that exited is ended too, and the wait is on the process
 rather than on its output, so a child the cases leave behind neither
-outlives the verdict nor holds it back. A process that put itself in yet another session is outside
-the group and outlives the kill; the verdict names that as the bound's
-limit, and cannot tell whether one did. Ctrl-C
+outlives the verdict nor holds it back. A process that put itself in yet
+another session is outside the group and outlives the kill; the verdict
+names that as the bound's limit, and cannot tell whether one did. Ctrl-C
 reaches this command rather than the cases, and it ends the group before the
 restore. On Windows only the direct child is ended, and the verdict says that
 anything it started was not.

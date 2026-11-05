@@ -1733,65 +1733,26 @@ class Test_module:
         # comparison, it does not leave the file mutated.
         assert path.read_bytes() == original
 
-    def test_a_stale_bytecode_cache_cannot_decide_a_mutants_verdict(
+    def test_a_cache_under_a_pycache_prefix_is_cleared_where_the_cases_read_it(
         self, tmp_path, monkeypatch
     ):
-        """CPython validates a `.pyc` against the source's mtime and SIZE. Two
-        mutations of one file are routinely the same length, so written
-        inside one mtime tick the second loads the first one's bytecode, and
-        its verdict is the first one's.
-
-        No hash catches it. `restore` compares the bytes on disk and the bytes
-        on disk were right; the interpreter never read them. So the cache an
-        import wrote is cleared, and the function says what it removed."""
-        mc = module()
-        module_path = tmp_path / "cached.py"
-        module_path.write_text("VALUE = 1\n", encoding="utf-8")
-
-        # A real cache entry, made the way an import makes one. Writing is
-        # switched on for it, because this suite runs under
-        # `PYTHONDONTWRITEBYTECODE=1` whenever `seal mutate` mutates this
-        # module, and the import would then write nothing.
-        monkeypatch.setattr(sys, "dont_write_bytecode", False)
-        spec = importlib.util.spec_from_file_location(
-            "agentic_cached_probe", module_path
-        )
-        loaded = importlib.util.module_from_spec(spec)
-        sys.modules[spec.name] = loaded
-        spec.loader.exec_module(loaded)
-        cache = tmp_path / "__pycache__"
-        assert cache.is_dir() and list(cache.glob("cached.*.pyc")), (
-            "this case needs a real .pyc to remove; the interpreter wrote none"
-        )
-
-        removed = mc.clear_bytecode_cache(str(module_path))
-        assert removed, "a cached .pyc for the module under test was left in place"
-        assert not list(cache.glob("cached.*.pyc"))
-        del sys.modules[spec.name]
-
-    @pytest.mark.parametrize("relative", [True, False], ids=["relative", "absolute"])
-    def test_a_cache_under_a_pycache_prefix_is_cleared_where_the_cases_read_it(
-        self, tmp_path, monkeypatch, relative
-    ):
         """#703. Under `PYTHONPYCACHEPREFIX` the cache is a mirror of the
-        source tree under the prefix, and CPython joins the prefix as given
-        (`importlib._bootstrap_external.cache_from_source`). So a RELATIVE
-        prefix is read against the directory of the process that imports:
-        the cases' `--cwd`, not `seal mutate`'s. The function is called here
-        on its own, with the `cwd` every call in the command hands it.
+        source tree under the prefix. An absolute prefix is read the same from
+        anywhere, so the clear finds it with the `cwd` every call in the
+        command hands it, and with no `cwd` at all, and says what it removed.
+        A relative prefix, read against the cases' `--cwd`, is held by
+        `Test_main`'s `test_a_relative_pycache_prefix_is_cleared_where_the_cases_run`.
 
-        The path the cases read is taken from `cache_from_source` itself, with
-        the prefix as a process in `other/` resolves it, so this case asks
-        CPython where the file is rather than repeating the clear's own join.
-        The absolute parameter pins what the relative one is joined to: there,
-        `cwd` changes nothing, and a call with no `cwd` clears it too."""
+        The path the cases read is taken from `cache_from_source` itself, so
+        this case asks CPython where the file is rather than repeating the
+        clear's own join."""
         mc = module()
         module_path = tmp_path / "under_test.py"
         module_path.write_text("VALUE = 1\n", encoding="utf-8")
         other = tmp_path / "other"
         other.mkdir()
-        prefix = "agentic-prefix-703" if relative else str(tmp_path / "absolute-prefix")
-        monkeypatch.setattr(sys, "pycache_prefix", os.path.join(str(other), prefix))
+        prefix = str(tmp_path / "absolute-prefix")
+        monkeypatch.setattr(sys, "pycache_prefix", prefix)
         planted = importlib.util.cache_from_source(str(module_path))
         # The prefix the clear reads is the environment's, as a session's would be.
         monkeypatch.setattr(sys, "pycache_prefix", None)
@@ -1808,13 +1769,8 @@ class Test_module:
         assert [os.path.normcase(os.path.abspath(p)) for p in removed] == [
             os.path.normcase(os.path.abspath(planted))
         ]
-        if not relative:
-            # An absolute prefix is read the same from anywhere, so a caller that
-            # passes no `cwd` clears it too.
-            plant()
-            assert mc.clear_bytecode_cache(str(module_path)) and not os.path.exists(
-                planted
-            )
+        plant()
+        assert mc.clear_bytecode_cache(str(module_path)) and not os.path.exists(planted)
 
     def test_a_windows_command_line_keeps_the_backslashes_of_its_paths(self):
         """`seal mutate`'s `--tests` command line is split by the platform's

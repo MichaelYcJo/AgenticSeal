@@ -24,7 +24,7 @@
 | `skills/verify/scripts/arm_check.py#command_words`, "`seal mutate`'s and `seal arms`'s `--tests` are split here" | only `seal arms`'s is | none; the file leaves in phase 2 |
 | `tests/skills/test_arm_check.py` line 1451, "as `mutation_check.py` calls it" | now "handed the cases' `cwd`" | none; the file leaves in phase 2 |
 
-Phase 2 still owns the rest of those items: `seal-mutate.md` lines 11, 105 and 116 to 117; the `"seal arms"` pin at line 90 of `test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py`, which reads `skills/verify/SKILL.md`'s section; and `test_mutation_check.py`'s lines that name `test_arm_check.py` (543), `arm_check.run_arms` (738) and `seal arms` (1386). Each of the three still states a true fact while `arm_check.py` stands.
+Phase 2 still owns the rest of those items: `seal-mutate.md` lines 11, 104 and 115 to 116; the `"seal arms"` pin at line 87 of `test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py`, which reads `skills/verify/seal-mutate.md`'s section; and `test_mutation_check.py`'s lines that name `test_arm_check.py` (543), `arm_check.run_arms` (738) and `seal arms` (1386). Each of the three still states a true fact while `arm_check.py` stands.
 
 **The move is proved by the existing cases and the census of the old spelling, with no case written new and no `seal mutate` run** (`skills/verify/SKILL.md` *The narrow command still has to be able to fail*, the *Names or places only* row).
 
