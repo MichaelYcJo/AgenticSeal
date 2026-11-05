@@ -47,7 +47,7 @@ The failure scenario of the chosen approach, six months on:
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
 | 1 | Scope 4 | `tests/evals/test_noninferiority.py` and `tests/text/test_the_release_table_reads_two_trees_and_fails_nothing.py`, run narrow. The new `extract` case is shown red against the archive-based `extract`. The `release-report` command is run against a fixture tag marking paths `export-ignore`, and the phase record shows `.test_durations` there. | ec580f88 |
-| 2 | Scope 1, 2 and 3 | `tests/behaviour/test_a_cited_section_stands_in_its_file.py` and `tests/behaviour/test_the_release_check_watches_what_ships.py`, run narrow. The fixture case for a cited file marked `export-ignore` is shown red with the archive reading removed. The phase record names the git commands the archive reading runs and what an uncommitted change does to them. | |
+| 2 | Scope 1, 2 and 3 | `tests/behaviour/test_a_cited_section_stands_in_its_file.py` and `tests/behaviour/test_the_release_check_watches_what_ships.py`, run narrow. The fixture case for a cited file marked `export-ignore` is shown red with the archive reading removed. The phase record names the git commands the archive reading runs and what an uncommitted change does to them. | c4ffaa78 |
 | 3 | Scope 5, 6 and 7 | `tests/github/test_dist_branch.py`, the workflow-text case, and `tests/github/test_plugin_directory_check.py`, run narrow. Each new case is shown red against the code without its guard; the no-force case is shown red with a `--force` push in its place. The phase record holds the smoke run of Scope 7 from the extracted archive of HEAD, `executed`. | |
 
 Scope 8, the rule changes, is written in `frame/design.md` and the settle applies it, so no phase builds it.
