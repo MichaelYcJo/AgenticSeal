@@ -46,6 +46,11 @@ Either disposition describes the edit. The rewrite drops "the waiver stays one s
 
 The table row goes after row 20 at `:30`. The snippet covers every statement of the row count and of row 21's disposition in the phase record. `gaps.md:8` says round 1's read found D1 row 20 and does not name the fix pass's search or row 21. That is incomplete, not false, so the fix pass may leave it.
 
+```seal
+verdict: fixed d6008c3a
+answer: The finding holds: at 68a1b48e `frame/design.md:60` gives row 21 as N, and the phase record counted 20 rows and called the docstring a drop outside D1. N is the right reading, because the rewrite states what the case holds today besides dropping the clause, so no departure is recorded and `frame/design.md:60` stands. d6008c3a applies the paste-ready text, with the paragraph's middle kept as it was: the lead at `:7` counts 21 rows built in `0149c852` and `cf0d7b50`, the table gains row 21 as N, the paragraph at `:65` names the fold and judges against D1 *N, present*, and S6 counts 21 rows. `gaps.md:8` now also names the fix pass's `git grep -n -i "waiv" -- tests` and row 21. Reading the work item's records against HEAD found no other sentence the fold made stale; `:35`'s "outside D1's lines" names the `cebd347f` comment, which D1 still holds no row for.
+```
+
 ## Confirmations
 
 ```seal
