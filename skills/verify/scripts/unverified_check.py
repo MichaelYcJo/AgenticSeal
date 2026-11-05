@@ -115,9 +115,8 @@ HEADING = "## Not verified"
 HEADER = ("Item", "Who must answer")
 CLOSED = "closed"
 # The emoji a closed row opened with before the word, U+2705, spelt by its code
-# point so no emoji stands in this file. The working tree's reading refuses it
-# naming the edit; the reading of a revision at a ref reads it as the word,
-# because nobody can edit a commit that already happened.
+# point so no emoji stands in this file. `parse_section` refuses a row opening
+# with it, naming the edit.
 OLD_MARK = chr(0x2705)
 # A design section's items, `skills/settle/rule-changes.md` *Rule changes*: the
 # item's line, then one field per line indented two spaces, a value continuing
@@ -174,18 +173,16 @@ SKIP_DIRS = {
 
 
 class _LooseHeading:
-    """The heading matcher for a revision read at a ref. There is one reader;
-    only how it finds the section is an argument, because an older commit may
-    spell the heading the way this corpus did before it was normalized. Everything
-    else — how a cell is read, where a fence ends, how a path resolves — is
-    shared, and that sharing is what stopped one fix from opening the next
-    gap.
+    """The matcher behind the one hint `check_text` gives where a memo holds
+    no `## Not verified` section: the first heading near it, named in the
+    refusal so the author finds the spelling to fix. It decides nothing, and
+    no section is read under it.
 
     **Whether the line is a heading is the one rule's**, `heading_level`, at
     level 2 or 3; this decides the wording alone, a heading that mentions
     `not verified` in any case. It was a pattern of its own, a sixth
     spelling of the heading rule beside the one in this file (#867 round 1,
-    🟡 6). `.match` is the name `sections` and `check_text` call."""
+    🟡 6). `.match` is the name `check_text` calls."""
 
     def match(self, text):
         return heading_level(text) in (2, 3) and "not verified" in text.lower()
@@ -732,11 +729,14 @@ def nothing_block(body):
     return [error] if error else []
 
 
-def parse_section(body, offset, strict_header=True):
+def parse_section(body, offset):
     """(open, closed, errors) for the body lines of one section.
 
     `offset` is the file line number of body[0], so every error carries a
-    coordinate the author can open."""
+    coordinate the author can open. The header is exactly `HEADER`, a row
+    opening with `OLD_MARK` is refused naming the edit, and a first line
+    that opens like the no-change block and is not it is prose, which
+    `unread_block` names."""
     errors, open_rows, closed_rows = [], [], []
     content = [(offset + i, ln) for i, ln in enumerate(body) if ln.strip()]
 
@@ -747,9 +747,6 @@ def parse_section(body, offset, strict_header=True):
         return open_rows, closed_rows, errors
 
     first_no, first = content[0]
-    if not strict_header and not opens_the_block(first) and NEAR_NOTHING.match(first):
-        # An older revision's `none — <why>` line, read at a ref as no rows.
-        return open_rows, closed_rows, errors
     block = nothing_block(content)
     if block is not None:
         errors.extend(block)
@@ -765,7 +762,7 @@ def parse_section(body, offset, strict_header=True):
             )
         )
         return open_rows, closed_rows, errors
-    if (tuple(cells) != HEADER) if strict_header else not is_header(cells):
+    if tuple(cells) != HEADER:
         errors.append(
             (
                 first_no,
@@ -816,7 +813,7 @@ def parse_section(body, offset, strict_header=True):
             errors.append((line_no, "the template's placeholder is still in the row"))
             continue
         word, rest = closing_word(seen[0])
-        if word == OLD_MARK and strict_header:
+        if word == OLD_MARK:
             errors.append(
                 (
                     line_no,
@@ -826,7 +823,7 @@ def parse_section(body, offset, strict_header=True):
                 )
             )
             continue
-        if word in (CLOSED, OLD_MARK):
+        if word == CLOSED:
             if not rest:
                 errors.append(
                     (
@@ -870,59 +867,32 @@ def check_file(path):
 
 
 def sections(lines, heading):
-    """Where the section starts, under the matcher this read was given.
-
-    The canonical heading always wins when the file has one. Without that, a
-    revision read at a ref holding both `## Not verified` and a heading that
-    merely mentions the phrase would be refused as holding two sections,
-    though its canonical one reads."""
-    if isinstance(heading, str):
-        return [i for i, text in headings(lines) if text.strip() == heading]
-    exact = [i for i, text in headings(lines) if text.strip() == HEADING]
-    return exact or [i for i, text in headings(lines) if heading.match(text)]
+    """The index of each heading in LINES, already `readable`, spelt exactly
+    HEADING."""
+    return [i for i, text in headings(lines) if text.strip() == heading]
 
 
-def check_text(text, heading=HEADING, strict_header=True):
-    """The reader. One of it, for the working tree and for a revision read
-    at a ref.
+def check_text(text):
+    """The reader of one closing memo's text: `(open, closed, errors)`.
 
-    There used to be two, and while both existed every property added to one
-    had to be added to the other by hand. Four pairs drifted apart across
-    three review rounds — which section is counted, how a cell is normalized,
-    where a fence ends, how a path resolves — and each fix on one side opened
-    a gap on the other.
+    There is one reading, whoever asks: `main` through `check_file`, and
+    `settle.py` through `open_record_rows` and for the closed rows it lists.
+    The section is the one headed exactly `HEADING`, and `parse_section`
+    reads its body. Where no such heading stands, the refusal names the
+    first heading near it (`LOOSE_HEADING`), so the author finds the
+    spelling to fix.
 
-    Three of those four are now shared outright. The fourth is these two
-    arguments, and they say the same thing twice: a revision read at a ref
-    may be written the way the corpus was before this normalization. Measured
-    here, the files that changed did not only change the heading — they
-    renamed the second column from `Who` to `Who must answer` — so relaxing
-    the heading alone would still have refused them.
-
-    One more thing relaxes with `strict_header`, for the same reason: a row
-    opening with the old mark, U+2705, is read at a ref as the word
-    `closed`, where the working tree refuses it naming the edit, because
-    nobody can edit a commit that already happened. The old `none — <why>`
-    line relaxes the same way: a ref reads it as no rows, where the working
-    tree reads it as prose, refuses the section as holding neither the table
-    nor the no-change block, and names the line (`unread_block`). Nothing
-    else relaxes. A legacy
-    header still has to be a two-cell row whose first column is `Item`, and
-    every other row below it is read exactly as the working tree's rows are.
-    `open_record_rows` reads a ref this way.
-
-    **A comment line is refused on both sides, and nothing relaxes it.**
-    The first line that begins with `OPENER` is refused at its line before
-    any section is looked for (`comment_lines`, #1012). At a ref,
-    `open_record_rows` hands that refusal on as one entry saying the record
-    cannot be read, never as zero open rows."""
+    **A comment line is refused before any section is looked for.** The
+    first line that begins with `OPENER` is refused at its line
+    (`comment_lines`, #1012). `open_record_rows` hands any refusal on as one
+    entry saying the record cannot be read, never as zero open rows."""
     lines = readable(text)
 
     commented = comment_lines(lines)
     if commented:
         return [], [], [(commented[0] + 1, COMMENT_LINE)]
 
-    found = sections(lines, heading)
+    found = sections(lines, HEADING)
     if not found:
         near = [(i, text) for i, text in headings(lines) if LOOSE_HEADING.match(text)]
         hint = (
@@ -943,7 +913,7 @@ def check_text(text, heading=HEADING, strict_header=True):
         if i > start:
             end = i
             break
-    return parse_section(lines[start + 1 : end], start + 2, strict_header)
+    return parse_section(lines[start + 1 : end], start + 2)
 
 
 def overviews(paths):
@@ -1226,19 +1196,9 @@ def tree_at(root, ref, directory):
     return [rel for rel in r.stdout.split("\0") if rel] if r.returncode == 0 else []
 
 
-def _text_at(root, ref, rel):
-    """What `rel` held at `ref`, or on disk when `ref` is None; None if absent."""
-    if ref is not None:
-        return show(root, ref, rel)
-    try:
-        with open(under_root(root, rel), encoding="utf-8", errors="replace") as f:
-            return f.read()
-    except OSError:
-        return None
-
-
-def open_record_rows(root, ref, directory):
-    """`[(file, what is open)]` for a work item's record at `ref`.
+def open_record_rows(root, directory):
+    """`[(file, what is open)]` for a work item's record on disk, DIRECTORY
+    `/`-joined under ROOT.
 
     The rows `seal settle --apply` refuses to take with a directory, and its dry
     run lists: every open item in `gaps.md`'s `## Not verified`. Each is a claim with an answerer rather
@@ -1246,24 +1206,26 @@ def open_record_rows(root, ref, directory):
     record that a production workflow was red sat in a retiring closing memo (its
     L2).
 
-    A closing memo whose section cannot be read is one entry saying so, never
+    The record is read by `check_text`, as `seal unverified` reads it. A
+    closing memo whose section cannot be read is one entry saying so, never
     zero rows: a count this cannot read is not a count of nothing, which is
-    the rule `check_text` above is written to. At a ref the record is read
-    with `check_text`'s relaxations for a revision written before the corpus
-    was normalised; `settle.py` asks it of the disk, `ref` None."""
+    the rule `check_text` above is written to. A directory with no `gaps.md`
+    holds no row."""
+    try:
+        with open(
+            under_root(root, f"{directory}/{OVERVIEW}"),
+            encoding="utf-8",
+            errors="replace",
+        ) as f:
+            overview = f.read()
+    except OSError:
+        return []
+    rows, _, errors = check_text(overview)
     found = []
-    overview = _text_at(root, ref, f"{directory}/{OVERVIEW}")
-    if overview is not None:
-        if ref is None:
-            rows, _, errors = check_text(overview)
-        else:
-            rows, _, errors = check_text(
-                overview, heading=LOOSE_HEADING, strict_header=False
-            )
-        if errors:
-            found.append((OVERVIEW, f"cannot be read ({errors[0][1]})"))
-        for _, item, _who in rows:
-            found.append((OVERVIEW, item))
+    if errors:
+        found.append((OVERVIEW, f"cannot be read ({errors[0][1]})"))
+    for _, item, _who in rows:
+        found.append((OVERVIEW, item))
     return found
 
 

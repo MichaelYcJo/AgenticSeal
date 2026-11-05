@@ -10,8 +10,7 @@ lines and texts, with no git. The units that ask git, and `main`, read
 repositories built once for the module: a clone of two work items and a
 tracked overview under `build/`, a clone whose second overview is a tracked
 link to the first, built once with the link sorting after its target and
-once before it, a clone whose revisions are written the way the corpus was
-before it was normalised, a clone with a moved base branch beside its work
+once before it, a clone with a moved base branch beside its work
 branch, a clone of work items a settle can remove, a clone with a `seal/`
 root beside a team's own `specs/`, a `seal/` root with no `specs/`, and a
 `seal/` root whose one work item holds no overview. A case that writes into
@@ -91,10 +90,10 @@ def memo_at(root, section, name=WORK):
     return os.path.join(str(root), "specs", name, "gaps.md")
 
 
-def parse(section, strict_header=True):
+def parse(section):
     """`parse_section` over SECTION's lines after its heading, each line
     numbered as SECTION numbers it."""
-    return UC.parse_section(UC.gfm_lines(section)[1:], 2, strict_header)
+    return UC.parse_section(UC.gfm_lines(section)[1:], 2)
 
 
 def same_path(a, b):
@@ -159,33 +158,6 @@ def linked(tmp_path_factory, request):
     )
     commit_everything_as_e(d, "a link")
     return d
-
-
-# Revisions written before the corpus was normalised, one work item each,
-# which `open_record_rows` reads at a ref.
-LEGACY = {
-    "1780000020-old-heading": CANONICAL.replace(
-        "## Not verified", "## Not verified (who must answer)"
-    ).replace("| Item | Who must answer |", "| Item | Who |"),
-    "1780000021-old-mark": CANONICAL.replace(
-        "| whether Windows", f"| {OLD_MARK} whether Windows"
-    ),
-    "1780000022-prose": "## Not verified\n\n- the TUI rendering, as prose\n",
-    "1780000023-both": CANONICAL
-    + "\n### Not verified on Windows\n\n| a | b |\n|---|---|\n| x | y |\n",
-    "1780000024-hidden-separator": CANONICAL.replace(
-        "|---|---|", f"|-{ZERO_WIDTH_SPACE}--|---|"
-    ),
-    "1780000025-none-line": "## Not verified\n\nnone - nothing was left open\n",
-}
-
-
-@pytest.fixture(scope="module")
-def legacy(tmp_path_factory):
-    return _committed(
-        tmp_path_factory.mktemp("legacy"),
-        {f"specs/{name}/gaps.md": memo(s, name) for name, s in LEGACY.items()},
-    )
 
 
 SIBLING = "1780000001-squashed-sibling"
@@ -306,8 +278,9 @@ def run(argv):
 
 
 class Test__LooseHeading:
-    """The matcher for a revision read at a ref: a level 2 or 3 heading by the one rule,
-    mentioning `not verified` in any case (#867 round 1, finding 6)."""
+    """The matcher behind `check_text`'s near-heading hint: a level 2 or 3
+    heading by the one rule, mentioning `not verified` in any case (#867
+    round 1, finding 6)."""
 
     @pytest.mark.parametrize(
         "line",
@@ -1060,26 +1033,6 @@ class Test_parse_section:
         assert parse(f"## Not verified\n\n{block}") == ([], [], [])
 
     @pytest.mark.parametrize(
-        "section, rows",
-        [
-            (
-                CANONICAL.replace("| whether Windows", f"| {OLD_MARK} whether Windows"),
-                (1, 1),
-            ),
-            ("## Not verified\n\nnone - x\n", (0, 0)),
-            (CANONICAL.replace("| Item | Who must answer |", "| Item | Who |"), (2, 0)),
-        ],
-        ids=["the old mark", "the old line", "the old column"],
-    )
-    def test_accepts_what_a_base_revision_wrote_before_the_word(self, section, rows):
-        """A revision read at a ref cannot be edited, so it is read the way it was
-        written: the old mark closes a row, the old `none` line holds no
-        rows, and a header needs only `Item` first."""
-        open_rows, closed_rows, errors = parse(section, strict_header=False)
-        assert not errors, errors
-        assert (len(open_rows), len(closed_rows)) == rows
-
-    @pytest.mark.parametrize(
         "section, at, says",
         [
             ("## Not verified\n\n", 2, "the section is empty"),
@@ -1247,13 +1200,6 @@ class Test_parse_section:
         assert says in errors[0][1], errors
         assert not open_rows and not closed_rows
 
-    def test_refuses_a_header_without_item_first_even_at_a_base(self):
-        """A relaxation with no floor reads any two-column table as the
-        record."""
-        section = CANONICAL.replace("| Item | Who must answer |", "| Thing | Who |")
-        _, _, errors = parse(section, strict_header=False)
-        assert errors and "header is" in errors[0][1]
-
     def test_the_near_miss_reading_is_linear_in_the_line(self):
         """#941's round 3 met a pattern that backtracked exponentially; a
         long line of the near-miss pattern's repeated characters is read
@@ -1308,11 +1254,8 @@ class Test_sections:
         "### Not verified on Windows",
     )
 
-    def test_accepts_the_canonical_heading_over_a_looser_match(self):
-        """A revision holding both the heading and one that mentions it would
-        otherwise be refused as holding two sections."""
-        assert UC.sections(self.LINES, UC.LOOSE_HEADING) == [0]
-        assert UC.sections(self.LINES[1:], UC.LOOSE_HEADING) == [1, 2]
+    def test_accepts_the_heading_spelt_exactly_and_no_heading_near_it(self):
+        assert UC.sections(self.LINES, UC.HEADING) == [0]
 
     def test_refuses_another_spelling_of_the_heading(self):
         assert UC.sections(self.LINES[1:], UC.HEADING) == []
@@ -1698,16 +1641,6 @@ class Test_tree_at:
         assert UC.tree_at(str(settle), ref, directory) == []
 
 
-class Test__text_at:
-    def test_accepts_a_file_at_a_ref_and_on_disk(self, settle):
-        assert UC._text_at(str(settle), "HEAD", "docs/a.md") == DOC
-        assert UC._text_at(str(settle), None, "docs/a.md") == DOC
-
-    @pytest.mark.parametrize("ref", ["HEAD", None])
-    def test_refuses_a_file_that_is_not_there(self, settle, ref):
-        assert UC._text_at(str(settle), ref, "docs/none.md") is None
-
-
 class Test_show:
     def test_accepts_a_path_at_a_ref(self, plain):
         assert UC.show(str(plain), "HEAD", f"specs/{WORK}/gaps.md") == memo(CANONICAL)
@@ -1742,22 +1675,17 @@ class Test_rule_changes:
 
 class Test_open_record_rows:
     def test_accepts_every_open_item_of_the_record(self, settle):
-        assert UC.open_record_rows(str(settle), "HEAD", f"specs/{OPEN_ITEM}") == [
+        assert UC.open_record_rows(str(settle), f"specs/{OPEN_ITEM}") == [
             ("gaps.md", "how the gate renders in a TUI"),
             ("gaps.md", "whether Windows hooks fire"),
         ]
-        assert UC.open_record_rows(str(settle), None, f"specs/{CLOSED_ITEM}") == []
+        assert UC.open_record_rows(str(settle), f"specs/{CLOSED_ITEM}") == []
+        assert UC.open_record_rows(str(settle), "specs/1780000099-none") == []
 
-    def test_accepts_a_base_written_before_the_normalisation(self, legacy):
-        rows = UC.open_record_rows(str(legacy), "HEAD", "specs/1780000020-old-heading")
-        assert [item for _, item in rows] == [
-            "how the gate renders in a TUI",
-            "whether Windows hooks fire",
-        ]
-
-    def test_refuses_to_read_a_section_it_cannot_read_as_nothing_open(self, legacy):
+    def test_refuses_to_read_a_section_it_cannot_read_as_nothing_open(self, tmp_path):
         """A count this cannot read is not a count of nothing."""
-        rows = UC.open_record_rows(str(legacy), "HEAD", "specs/1780000022-prose")
+        memo_at(tmp_path, "## Not verified\n\n- the TUI rendering, as prose\n")
+        rows = UC.open_record_rows(str(tmp_path), f"specs/{WORK}")
         assert len(rows) == 1 and rows[0][1].startswith("cannot be read (expected"), (
             rows
         )
