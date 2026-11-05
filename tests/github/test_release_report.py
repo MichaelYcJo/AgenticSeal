@@ -5,7 +5,7 @@ seconds in `.test_durations` at the last release tag and now, slowest now
 first. The rows are a report and never a ceiling. #942's phase 6 placed here
 the script's other cases from
 `tests/text/test_the_release_table_reads_two_trees_and_fails_nothing.py`, which
-keeps the case that reads the tests workflow's job.
+keeps the cases that read the tests workflow's job.
 
 Seen red before they were committed (contract rule 15): three cases failed
 against the script that printed no test-file rows, and `seal mutate`
