@@ -343,6 +343,31 @@ with open(sys.argv[1], "w", encoding="utf-8") as f:
 """
 
 
+# Writes the file it is handed, then logs that it did, then ends the way its
+# third argument names: `fail` exits 1, `hang` outlasts any bound a case
+# gives, and anything else exits 0. A run that ended before the write leaves
+# no log line, so a case can tell a restore it reached from one it never did.
+WRITES_THEN_ENDS = """\
+import sys, time
+target, log, end = sys.argv[1:4]
+with open(target, "w", encoding="utf-8") as f:
+    f.write("VALUE = 99\\n")
+with open(log, "a", encoding="utf-8") as f:
+    f.write("wrote\\n")
+if end == "fail":
+    sys.exit(1)
+if end == "hang":
+    time.sleep(30)
+"""
+
+# How a run ends at the bound or at Ctrl-C is held on POSIX alone, by the
+# cases that assert the process group ended. The restore after it has no
+# platform branch.
+POSIX_ENDING = pytest.mark.skipif(
+    os.name == "nt", reason="how the bound and Ctrl-C end a run is held on POSIX"
+)
+
+
 # Makes the file it is handed read-only once it holds the mutant, so the
 # restore's own write raises rather than its hash differing.
 LOCKS_THE_MUTANT = """\
@@ -1108,8 +1133,8 @@ class Test_main:
     ):
         """Round 1, 🟡 2. A restore can fail by raising as well as by landing the
         wrong bytes: the cases made the file read-only, or removed its directory,
-        or a second Ctrl-C arrived inside the write. Each leaves the mutant on
-        disk, which is the one outcome `not restored` exists to say."""
+        or a second Ctrl-C arrived inside the write. Here the cases lock the
+        mutant, so the restore's write raises with the mutant on disk."""
         target = tmp_path / "target.py"
         target.write_text("VALUE = 1\n", encoding="utf-8")
         try:
@@ -1649,6 +1674,82 @@ class Test_main:
         assert "holds the bytes it held before the command started" in out, out
         assert target.read_bytes() == original
 
+    # --- the restore after a baseline that measured nothing ------------------
+
+    @pytest.mark.parametrize(
+        ("pairs", "end", "verdict"),
+        [
+            pytest.param(1, "fail", "no baseline", id="one-pair-no-baseline"),
+            pytest.param(
+                1,
+                "hang",
+                "timed out after 1s",
+                id="one-pair-timed-out",
+                marks=POSIX_ENDING,
+            ),
+            pytest.param(2, "fail", "no baseline", id="batch-no-baseline"),
+            pytest.param(
+                2,
+                "hang",
+                "timed out after 1s",
+                id="batch-timed-out",
+                marks=POSIX_ENDING,
+            ),
+            pytest.param(
+                2, "interrupt", "interrupted", id="batch-interrupt", marks=POSIX_ENDING
+            ),
+        ],
+    )
+    def test_what_the_cases_wrote_in_a_baseline_with_no_verdict_is_put_back(
+        self, tmp_path, capsys, monkeypatch, pairs, end, verdict
+    ):
+        """#706. The restore's reach starts at the baseline, because the cases
+        can write the file they test. A baseline that measured nothing ends the
+        run before any break is written: the cases failed, the bound was
+        reached, or Ctrl-C landed. On each of those exits, for one pair and for
+        a batch, the file holds the bytes it held before the command started.
+        The one-pair interrupt is held by
+        `test_an_interrupt_ends_the_run_it_started_and_restores_the_file[baseline]`."""
+        target = tmp_path / "under_test.py"
+        original = b"VALUE = 1\nOTHER = 1\n"
+        target.write_bytes(original)
+        log = tmp_path / "wrote.log"
+        mc = module()
+        if end == "interrupt":
+
+            def interrupted(proc, timeout):
+                # The cases finish their write, then the Ctrl-C lands in the
+                # baseline's wait, the first wait the run makes.
+                proc.wait()
+                raise KeyboardInterrupt
+
+            monkeypatch.setattr(mc, "_wait", interrupted)
+        both = [("VALUE = 1", "VALUE = 2"), ("OTHER = 1", "OTHER = 2")]
+        argv = [
+            str(target),
+            *replaces(both[:pairs]),
+            "--tests",
+            cases_command(probe(tmp_path, WRITES_THEN_ENDS), target, log, end),
+        ]
+        if end == "hang":
+            argv += ["--timeout", "1"]
+        code = mc.main(argv)
+        out = capsys.readouterr().out
+        assert log.exists() and log.read_text(encoding="utf-8") == "wrote\n", (
+            f"the cases ended before they wrote the file, so no restore was "
+            f"asked of the run: {out}"
+        )
+        assert code == 2, out
+        assert out.startswith(verdict), out
+        if pairs > 1:
+            assert "mutant " not in out, out
+        if end == "interrupt":
+            assert "holds the bytes it held before the command started" in out, out
+        assert target.read_bytes() == original, (
+            f"after `{verdict}` the file holds what the cases wrote: "
+            f"{target.read_bytes()!r}"
+        )
+
 
 class Test_module:
     @pytest.mark.skipif(
@@ -1721,14 +1822,25 @@ class Test_module:
         `Test_main`'s restore cases hand `main` a fake `restore`; this one
         drives the real one. Handed bytes that are not what the file ends up
         holding, it raises rather than letting a verdict be measured against
-        a mutated file."""
+        a file that does not hold the bytes it held before the command.
+
+        `main` prints the message inside the `not restored` line, after a
+        baseline as well as after a break. A file the baseline's cases wrote
+        holds no mutated module, so the reason the message gives names none."""
         mc = module()
         path = tmp_path / "m.py"
         path.write_text("x = 1\n", encoding="utf-8")
         original = b"x = 1\n"
         wrong_sha = hashlib.sha256(b"something else\n").hexdigest()
-        with pytest.raises(RuntimeError, match="was not restored"):
+        with pytest.raises(RuntimeError, match="was not restored") as raised:
             mc.restore(str(path), original, wrong_sha)
+        message = str(raised.value)
+        assert f"{hashlib.sha256(original).hexdigest()} != {wrong_sha}" in message
+        assert (
+            "measured against a file that does not hold the bytes it held "
+            "before the command started" in message
+        ), message
+        assert "mutated module" not in message, message
         # The bytes it was given are on disk regardless -- it raises about the
         # comparison, it does not leave the file mutated.
         assert path.read_bytes() == original

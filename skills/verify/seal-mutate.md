@@ -58,8 +58,8 @@ The first line printed is the verdict, then the command's own output:
   without the break, so the break was never written), `timed out`, `could not
   start`, `could not run`, `refused` (nothing was written: `<old>` does not
   land once, or a `.py` mutant does not compile), `not restored`
-  (the file may still hold the break; restore it from the commit made
-  before the run), and
+  (the restore did not land, so the file may hold the break or what the
+  cases wrote; restore it from the commit made before the run), and
   `interrupted`.
 
 So `seal mutate … && seal mutate …` stops at the first unit nothing
