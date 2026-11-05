@@ -200,8 +200,9 @@ class Test_leg_minutes:
 class Test_other_legs:
     def test_accepts_the_legs_past_the_three_by_system_then_version(self):
         """#1065: the legs at another Python follow `LEGS`' order, 3.9 before
-        3.14 and a version with a letter after its number."""
-        at = {"macos 3.13": 1.0, "windows 3.13": 4.0}
+        3.14 and a version with a letter after its number, and a system
+        outside `LEGS`, at the floor, comes after every system of it."""
+        at = {"macos 3.13": 1.0, "windows 3.13": 4.0, "freebsd": 2.0}
         now = {"ubuntu 3.14": 3.0, "ubuntu 3.14t": 1.0, "ubuntu 3.9": 3.0}
         assert report.other_legs(at, now) == [
             "ubuntu 3.9",
@@ -209,6 +210,7 @@ class Test_other_legs:
             "ubuntu 3.14t",
             "windows 3.13",
             "macos 3.13",
+            "freebsd",
         ]
 
     def test_refuses_a_floor_leg_the_three_rows_already_print(self):
