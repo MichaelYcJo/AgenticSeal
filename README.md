@@ -305,8 +305,11 @@ file under `<git-common-dir>/agentic-stamp-refused/`, written by the edit
 hook in either mode, which nothing prunes either. lint-python rewrites the
 `.py` file you just saved, in ruff-configured projects only.
 
-lint-python and version-check reach the network. lint-python falls back to
-`uvx ruff`, and uv fetches ruff from PyPI on first use. version-check runs
+lint-python and version-check reach the network. lint-python first tries
+`uv run ruff`, and in a project whose `pyproject.toml` has a `[project]`
+table, uv then installs the project's dependencies, from PyPI where its cache
+lacks them. lint-python falls back to `uvx ruff`, and uv fetches ruff from
+PyPI on first use. version-check runs
 one `git ls-remote --tags` against this repository, once a day where `seal/`
 exists, which tells GitHub that a machine somewhere runs AgenticSeal. Each
 stays silent when the network is unavailable.
