@@ -253,9 +253,8 @@ class Test_main:
         )
 
     def test_refuses_two_open_issues_loudly_without_retrying(self, monkeypatch):
-        """A reading of two or more is never what a search-index lag produces --
-        a lag can only undercount -- so it must not get the retry's benefit of
-        the doubt."""
+        """A reading of two or more fails loudly without the retry: the one
+        retry is for an empty reading alone."""
         m = _roller()
         calls = []
         monkeypatch.setattr(
