@@ -325,10 +325,10 @@ it, or, in the last row, in your CI on a pull request.
 | the pull-request checks `seal pr-checks install` writes (`.github/workflows/hygiene.yml`) | GitHub, from your CI runner | `git clone --depth 1` of this plugin's repository, at the release the file was written against | on each pull request, in a repository that installed the checks |
 
 The sentence above that no hook sends your code, your paths or your prompts
-anywhere is about hooks. `seal cost --post`, `seal gate`, `seal settle` and
-the workflow's steps go through your own `gh` login to the repository you work
-in. The workflow's steps push your branch, with its code, and the pull
-request's text there, because that is what they are for.
+anywhere is about hooks. Each row above that goes through your own `gh` login
+reaches the repository you work in and no other. The workflow's steps push
+your branch, with its code, and the pull request's text there, because that
+is what they are for.
 
 ## Commands
 

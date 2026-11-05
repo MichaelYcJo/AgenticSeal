@@ -325,14 +325,14 @@ version-check 는 `seal/` 이 있는 곳에서 하루에 한 번 이 저장소�
 | `seal cost --post` ([`docs/running/measuring-a-run.md`](docs/running/measuring-a-run.md)) | 사용자 저장소의 이슈. 사용자의 `gh` 로그인으로 닿는다 | `gh issue list` 로 `flow-measurement` 라벨이 붙은 이슈를 찾고, 그 라벨이 붙은 열린 이슈 하나에 `gh issue comment` 로 댓글을 하나 단다. 댓글에는 orchestrator 가 쓴 문장과 에이전트의 수치가 들어가고, 트랜스크립트는 경로가 아니라 파일 이름으로만 적힌다. 이슈를 새로 열지는 않는다 | crafter 나 proofer 가 보고를 돌려줄 때마다 orchestrator 가 돌리고, 사용자가 직접 쳐도 돈다. 그 라벨이 붙었던 이슈가 저장소에 한 번도 없었거나 `gh` 가 없으면 아무것도 올리지 않는다 |
 | `seal gate`, 곧 broad gate ([`skills/verify/scripts/broad_gate.py`](skills/verify/scripts/broad_gate.py)) | 사용자 저장소의 pull request. 사용자의 `gh` 로그인으로 닿는다 | `chain_check.py` 를 돌리는 단계가 `gh pr view --json isDraft` 로 브랜치의 pull request 가 draft 인지 묻는다. `chain_check.py` 를 따로 돌려도 똑같이 묻는다 | GitHub Actions 밖에서 `gh` 가 PATH 에 있을 때, 돌 때마다 |
 | `seal settle` ([`skills/settle/SKILL.md`](skills/settle/SKILL.md)) | 사용자 저장소의 릴리스와 pull request. 사용자의 `gh` 로그인으로 닿는다 | 저장소의 릴리스를 `gh api --paginate` 로 읽는다. local 모드에서는 브랜치마다 한 번씩 `gh pr list --head <branch> --state merged` 도 보낸다 | 릴리스는, 릴리스된 작업 항목의 디렉터리에 changelog 가 있고 그 디렉터리를 지우려 할 때 릴리스 노트를 찾으려고 읽는다. pull request 는 local 모드에서 어느 브랜치가 머지되었는지 알려고 읽는다 |
-| 워크플로 자체의 단계 ([`skills/code-review/orchestration.md`](skills/code-review/orchestration.md)) | 사용자 저장소. 사용자의 `git` 과 `gh` 로그인으로 닿는다 | 이슈와 그 댓글, 최신 릴리스 노트를 읽는다. 작업 항목의 브랜치를 push 하고, `gh pr create` 로 pull request 를 열고, 그 본문을 고쳐 쓰고, 상태와 검사 결과를 읽고, 워크플로 실행을 시작하기도 한다. 커밋하기 전에 최근 pull request 목록을 본다. 정리(`seal settle`)할 때 측정이 필요한 것이 있으면 이슈를 열기도 한다 | 이슈는 실행마다 읽는다. push 와 pull request 는 라우팅이 pull request 를 연다고 답한 곳에서만 일어난다 |
+| 워크플로 자체의 단계 ([`skills/code-review/orchestration.md`](skills/code-review/orchestration.md)) | 사용자 저장소. 사용자의 `git` 과 `gh` 로그인으로 닿는다 | 이슈와 그 댓글, 최신 릴리스 노트를 읽는다. 작업 항목의 브랜치를 push 하고, `gh pr create` 로 pull request 를 열고, 그 본문을 고쳐 쓰고, 상태와 검사 결과를 읽고, 워크플로 실행을 시작하기도 한다. 커밋하기 전에 최근 pull request 목록을 본다. 릴리스 뒤에 작업 항목을 정리(settle)할 때 측정이 필요한 것이 있으면 이슈를 열기도 한다 | 이슈는 실행마다 읽는다. push 와 pull request 는 라우팅이 pull request 를 연다고 답한 곳에서만 일어난다 |
 | `seal pr-checks install` 이 쓰는 pull request 검사 (`.github/workflows/hygiene.yml`) | GitHub. 사용자의 CI 러너에서 닿는다 | 이 플러그인의 저장소를, 그 파일을 쓴 릴리스에서 `git clone --depth 1` 로 받는다 | 검사를 설치한 저장소에서 pull request 마다 |
 
 앞에서 어떤 훅도 사용자의 코드나 경로, 프롬프트를 바깥으로 보내지 않는다고 한
-것은 훅에 대한 말입니다. `seal cost --post`, `seal gate`, `seal settle` 과
-워크플로의 단계는 사용자 자신의 `gh` 로그인으로, 사용자가 일하는 저장소에
-닿습니다. 워크플로의 단계는 그 저장소에 브랜치를 코드째 push 하고 pull request
-의 글을 올립니다. 그 일을 하려고 있는 단계입니다.
+것은 훅에 대한 말입니다. 위 표에서 사용자 자신의 `gh` 로그인으로 닿는 행은
+모두 사용자가 일하는 저장소에만 닿습니다. 워크플로의 단계는 그 저장소에
+브랜치를 코드째 push 하고 pull request 의 글을 올립니다. 그 일을 하려고 있는
+단계입니다.
 
 ## 명령
 
