@@ -15,11 +15,8 @@ crafter's definition, the verify skill's section, and the bound both of them
 state.
 
 **How the script is loaded here.** By path, with an `importlib` spec,
-registered in `sys.modules` before it executes -- the way
-`tests/skills/test_arm_check.py` loads `arm_check.py`. The script reaches
-`arm_check.py` the same way rather than through `sys.path`, so nothing has to
-be put on the path first: a bare `from arm_check import ...` resolves only
-when the script is run by its path and `PYTHONSAFEPATH` is unset.
+registered in `sys.modules` before it executes, so nothing has to be put on
+the path first.
 """
 
 import importlib.util

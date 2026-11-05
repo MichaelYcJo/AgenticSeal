@@ -1448,7 +1448,7 @@ class Test_run_arms:
         left = glob.glob(os.path.join(os.path.dirname(planted), "under_test.*.pyc"))
         assert left == [], f"{left} — the last run's cache outlived the run"
 
-        # And the function on its own, as `mutation_check.py` calls it.
+        # And the function on its own, handed the cases' `cwd`.
         plant()
         removed = ARM.clear_bytecode_cache(str(module_path), cwd=str(other))
         assert not os.path.exists(planted)

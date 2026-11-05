@@ -49,8 +49,7 @@ removes that file's cached bytecode
 for every interpreter tag, runs `--tests` with `PYTHONDONTWRITEBYTECODE=1`,
 puts the file back from the bytes it read first and compares their sha256,
 and removes the bytecode again. Nothing is read from git. The script is
-`skills/verify/scripts/mutation_check.py`, and it uses `seal arms`'s own two
-functions for the bytecode and the restore.
+`skills/verify/scripts/mutation_check.py`.
 
 The first line printed is the verdict, then the command's own output:
 

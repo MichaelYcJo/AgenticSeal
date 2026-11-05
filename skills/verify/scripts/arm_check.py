@@ -1168,8 +1168,7 @@ def command_words(text, windows=None):
     back `C:pypython.exe`, and nothing could start it (PR #939's
     `windows-latest` leg). There a backslash is the path separator, so it is
     kept, and a quote still groups a word. How it errs: on Windows a `\\"`
-    is not an escaped quote. `seal mutate`'s and `seal arms`'s `--tests`
-    are split here.
+    is not an escaped quote. `seal arms`'s `--tests` is split here.
 
     `windows` defaults to this machine's, and is an argument so both
     readings can be driven from either platform.

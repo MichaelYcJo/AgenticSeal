@@ -20,6 +20,7 @@ skill.
 
 import __future__
 
+import hashlib
 import importlib.util
 import os
 import pathlib
@@ -637,7 +638,7 @@ class Test_main:
         """#703's S11, and this item's round 1 ⬜ 7. CPython joins
         `PYTHONPYCACHEPREFIX` as given, so a relative prefix names a mirror under
         the directory of the process that imports, which is the cases' `--cwd`.
-        `arm_check.clear_bytecode_cache` reads it against the `cwd` it is handed,
+        `clear_bytecode_cache` reads it against the `cwd` it is handed,
         and this command used to hand it none, so with a `--cwd` other than the
         shell's the stale `.pyc` stayed exactly where the cases read it.
 
@@ -1713,6 +1714,134 @@ class Test_module:
         )
         posix = mc.timed_out_detail(5.0, mc.GROUP)
         assert "not ended" not in posix and "process group" in posix, posix
+
+    # --- the restore, the bytecode clear and the command line's words -------
+
+    def test_a_restore_whose_bytes_do_not_hash_to_the_original_raises(self, tmp_path):
+        """The check that catches a mutation recorded as caught and never
+        applied, where the pattern missed by two spaces of indentation.
+        `Test_main`'s restore cases hand `main` a fake `restore`; this one
+        drives the real one. Handed bytes that are not what the file ends up
+        holding, it raises rather than letting a verdict be measured against
+        a mutated file."""
+        mc = module()
+        path = tmp_path / "m.py"
+        path.write_text("x = 1\n", encoding="utf-8")
+        original = b"x = 1\n"
+        wrong_sha = hashlib.sha256(b"something else\n").hexdigest()
+        with pytest.raises(RuntimeError, match="was not restored"):
+            mc.restore(str(path), original, wrong_sha)
+        # The bytes it was given are on disk regardless -- it raises about the
+        # comparison, it does not leave the file mutated.
+        assert path.read_bytes() == original
+
+    def test_a_stale_bytecode_cache_cannot_decide_a_mutants_verdict(
+        self, tmp_path, monkeypatch
+    ):
+        """CPython validates a `.pyc` against the source's mtime and SIZE. Two
+        mutations of one file are routinely the same length, so written
+        inside one mtime tick the second loads the first one's bytecode, and
+        its verdict is the first one's.
+
+        No hash catches it. `restore` compares the bytes on disk and the bytes
+        on disk were right; the interpreter never read them. So the cache an
+        import wrote is cleared, and the function says what it removed."""
+        mc = module()
+        module_path = tmp_path / "cached.py"
+        module_path.write_text("VALUE = 1\n", encoding="utf-8")
+
+        # A real cache entry, made the way an import makes one. Writing is
+        # switched on for it, because this suite runs under
+        # `PYTHONDONTWRITEBYTECODE=1` whenever `seal mutate` mutates this
+        # module, and the import would then write nothing.
+        monkeypatch.setattr(sys, "dont_write_bytecode", False)
+        spec = importlib.util.spec_from_file_location(
+            "agentic_cached_probe", module_path
+        )
+        loaded = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = loaded
+        spec.loader.exec_module(loaded)
+        cache = tmp_path / "__pycache__"
+        assert cache.is_dir() and list(cache.glob("cached.*.pyc")), (
+            "this case needs a real .pyc to remove; the interpreter wrote none"
+        )
+
+        removed = mc.clear_bytecode_cache(str(module_path))
+        assert removed, "a cached .pyc for the module under test was left in place"
+        assert not list(cache.glob("cached.*.pyc"))
+        del sys.modules[spec.name]
+
+    @pytest.mark.parametrize("relative", [True, False], ids=["relative", "absolute"])
+    def test_a_cache_under_a_pycache_prefix_is_cleared_where_the_cases_read_it(
+        self, tmp_path, monkeypatch, relative
+    ):
+        """#703. Under `PYTHONPYCACHEPREFIX` the cache is a mirror of the
+        source tree under the prefix, and CPython joins the prefix as given
+        (`importlib._bootstrap_external.cache_from_source`). So a RELATIVE
+        prefix is read against the directory of the process that imports:
+        the cases' `--cwd`, not `seal mutate`'s. The function is called here
+        on its own, with the `cwd` every call in the command hands it.
+
+        The path the cases read is taken from `cache_from_source` itself, with
+        the prefix as a process in `other/` resolves it, so this case asks
+        CPython where the file is rather than repeating the clear's own join.
+        The absolute parameter pins what the relative one is joined to: there,
+        `cwd` changes nothing, and a call with no `cwd` clears it too."""
+        mc = module()
+        module_path = tmp_path / "under_test.py"
+        module_path.write_text("VALUE = 1\n", encoding="utf-8")
+        other = tmp_path / "other"
+        other.mkdir()
+        prefix = "agentic-prefix-703" if relative else str(tmp_path / "absolute-prefix")
+        monkeypatch.setattr(sys, "pycache_prefix", os.path.join(str(other), prefix))
+        planted = importlib.util.cache_from_source(str(module_path))
+        # The prefix the clear reads is the environment's, as a session's would be.
+        monkeypatch.setattr(sys, "pycache_prefix", None)
+        monkeypatch.setenv("PYTHONPYCACHEPREFIX", prefix)
+
+        def plant():
+            os.makedirs(os.path.dirname(planted), exist_ok=True)
+            with open(planted, "wb") as f:
+                f.write(b"stale")
+
+        plant()
+        removed = mc.clear_bytecode_cache(str(module_path), cwd=str(other))
+        assert not os.path.exists(planted)
+        assert [os.path.normcase(os.path.abspath(p)) for p in removed] == [
+            os.path.normcase(os.path.abspath(planted))
+        ]
+        if not relative:
+            # An absolute prefix is read the same from anywhere, so a caller that
+            # passes no `cwd` clears it too.
+            plant()
+            assert mc.clear_bytecode_cache(str(module_path)) and not os.path.exists(
+                planted
+            )
+
+    def test_a_windows_command_line_keeps_the_backslashes_of_its_paths(self):
+        """`seal mutate`'s `--tests` command line is split by the platform's
+        rule for a backslash. On Windows it is the path separator and stays,
+        so an interpreter's path reaches the process whole; PR #939's
+        `windows-latest` leg started `C:hostedtoolcache…python.exe` and found
+        nothing. On POSIX it escapes, as `shlex.split` reads it."""
+        mc = module()
+        line = r'C:\py\python.exe -c "raise SystemExit(1)" a\ b #c'
+        assert mc.command_words(line, windows=True) == [
+            r"C:\py\python.exe",
+            "-c",
+            "raise SystemExit(1)",
+            "a\\",
+            "b",
+            "#c",
+        ]
+        assert mc.command_words(line, windows=False) == [
+            "C:pypython.exe",
+            "-c",
+            "raise SystemExit(1)",
+            "a b",
+            "#c",
+        ]
+        assert mc.command_words(line) == mc.command_words(line, windows=os.name == "nt")
 
 
 test_census = census_case(TARGET)
