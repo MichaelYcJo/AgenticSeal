@@ -45,7 +45,9 @@ own output. The bound applies to each of the two runs.
   could not run    exit 2   anything else went wrong; no verdict
   refused          exit 2   nothing was written: OLD does not land once, or
                             a .py mutant does not compile
-  not restored     exit 2   the file on disk may still hold the mutation
+  not restored     exit 2   the restore did not land, so the file may hold
+                            the break or what the cases wrote; restore it
+                            from the commit made before the run
   interrupted      exit 2   Ctrl-C; the run was ended and the file restored
 
 Exit 2 is everything that measured nothing, so `seal mutate ... &&
@@ -206,8 +208,9 @@ def restore(path: str, original: bytes, original_sha: str) -> None:
     mutation recorded as caught that had never been applied, because the
     pattern missed by two spaces of indentation and nothing compared the
     bytes afterwards. Every verdict taken after a failed restore is measured
-    against a mutated file, so this raises rather than warning, and
-    `_put_back` reports the raise as `NotRestored`.
+    against a file that does not hold the bytes it held before the command
+    started: the break, or what the cases wrote. So this raises rather than
+    warning, and `_put_back` reports the raise as `NotRestored`.
     """
     with open(path, "wb") as f:
         f.write(original)
@@ -216,8 +219,9 @@ def restore(path: str, original: bytes, original_sha: str) -> None:
     if back != original_sha:
         raise RuntimeError(
             f"{path} was not restored: {back} != {original_sha}. Every "
-            f"verdict after this point would be measured against a mutated "
-            f"module, so the run stops here."
+            f"verdict after this point would be measured against a file that "
+            f"does not hold the bytes it held before the command started, so "
+            f"the run stops here."
         )
 
 
@@ -250,7 +254,8 @@ class Refused(Exception):
 
 
 class NotRestored(Exception):
-    """The restore did not land, so the file may still hold the mutation."""
+    """The restore did not land, so the file may hold the break or what the
+    cases wrote, and is restored from the commit made before the run."""
 
 
 def mutated(text: str, old: str, new: str, path: str) -> str:
@@ -716,11 +721,12 @@ def main(argv=None) -> int:
         )
         return 2
     except KeyboardInterrupt:
-        # Reached only after `run_cases` ended what it started and, when the
-        # break had been written, `mutation_run`'s `finally` restored the file
-        # -- a failed restore raises `NotRestored` instead, and is reported
-        # above. An interrupt during the baseline wrote nothing, so the
-        # sentence says what holds in both cases (round 2, ⬜ 12).
+        # Reached after `run_cases` ended what it started, and after the
+        # `finally` of `mutation_run` or `batch_run` put back any bytes that
+        # differ from the ones held: the break, or what the cases wrote, in
+        # the baseline as well as in a mutant's run. A restore that fails
+        # raises `NotRestored` instead, which is reported above. So the
+        # sentence below is true wherever the interrupt lands.
         print(
             f"{INTERRUPTED}: no verdict. What the run started was ended, and "
             f"{args.path} holds the bytes it held before the command started.",
