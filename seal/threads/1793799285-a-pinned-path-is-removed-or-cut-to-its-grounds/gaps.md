@@ -4,8 +4,8 @@
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck at HEAD. Phase 1 ran the touched modules, every test module that names a changed path, and `tests/text/`, in one scoped run (`trail/phases/phase-1.md`) | the orchestrator, at the broad gate |
-| Whether each issue a rewrite cites holds what its sentence sends the reader there for. The phase read each page with `gh` and cited it only where it did (`trail/phases/phase-1.md`, the Q1 answers), and that reading is a judgment of meaning | the proofer, reading each rewrite against its page |
+| closed The full suite, the repository-wide lint and the typecheck at HEAD. Phase 1 ran the touched modules, every test module that names a changed path, and `tests/text/`, in one scoped run (`trail/phases/phase-1.md`) | answered: the orchestrator's broad run at `e745bd72a` against `c8f235df2` passed the `Broad gate` row of `seal/config.md`, the whole suite, lint and format check (`trail/gate.md`), and `guarantee.md` sealed on it |
+| closed Whether each issue a rewrite cites holds what its sentence sends the reader there for. The phase read each page with `gh` and cited it only where it did (`trail/phases/phase-1.md`, the Q1 answers), and that reading is a judgment of meaning | answered: the proofer's 2 rounds in `trail/rounds/` read it, and `guarantee.md` sealed |
 
 ## Not done
 

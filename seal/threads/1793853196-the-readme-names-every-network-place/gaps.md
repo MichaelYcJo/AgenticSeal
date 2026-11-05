@@ -4,7 +4,7 @@
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the format check at the branch's HEAD | the orchestrator's broad run of the `Broad gate` row in `seal/config.md` |
+| closed The full suite, the repository-wide lint and the format check at the branch's HEAD | answered: the orchestrator's broad run at `4b7dd432` against `12d48178` passed the `Broad gate` row of `seal/config.md`, the whole suite, lint and format check (`trail/gate.md`), and `guarantee.md` sealed on it |
 
 ## Not done
 

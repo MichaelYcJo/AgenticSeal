@@ -4,7 +4,7 @@
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the format check at the branch's HEAD, the modules that read `.claude-plugin/plugin.json` and the modules that read the records under `seal/threads/` among them | the orchestrator's broad run of the `Broad gate` row in `seal/config.md` |
+| closed The full suite, the repository-wide lint and the format check at the branch's HEAD, the modules that read `.claude-plugin/plugin.json` and the modules that read the records under `seal/threads/` among them | answered: the orchestrator's broad run at `58829a10` against `31558c76` passed the `Broad gate` row of `seal/config.md`, the whole suite, lint and format check (`trail/gate.md`), and `guarantee.md` sealed on it |
 
 ## Not done
 

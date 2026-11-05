@@ -4,7 +4,7 @@
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the format check at the branch's HEAD; phase 1 ran 38 modules in one command, and every other module of the suite is unrun | the orchestrator's broad run |
+| closed The full suite, the repository-wide lint and the format check at the branch's HEAD; phase 1 ran 38 modules in one command, and every other module of the suite is unrun | answered: the orchestrator's broad run at `8b87cb7f` against `32bf3e98` passed the `Broad gate` row of `seal/config.md`, the whole suite, lint and format check (`trail/gate.md`), and `guarantee.md` sealed on it |
 
 ## Not done
 

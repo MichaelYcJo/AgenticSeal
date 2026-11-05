@@ -4,8 +4,8 @@
 
 | Item | Who must answer |
 |---|---|
-| the full suite, the repository-wide lint and the typecheck at the work item's HEAD | the orchestrator, at the broad run after the review rounds settle |
-| the seven test modules the phase-boundary command left out, `tests/skills/test_chain_check.py`, `tests/skills/test_settle.py`, `tests/skills/test_seal.py`, `tests/skills/test_unverified_check.py`, `tests/evals/test_seed_defects.py`, `tests/skills/test_agentic_pytest_record.py` and `tests/skills/test_session_cost.py`, which were read as reading no changed path | the orchestrator, at the broad run |
+| closed the full suite, the repository-wide lint and the typecheck at the work item's HEAD | answered: the orchestrator's broad run at `6fa52a5d2` against `0cb6014d1` passed the `Broad gate` row of `seal/config.md`, the whole suite, lint and format check (`trail/gate.md`), and `guarantee.md` sealed on it |
+| closed the seven test modules the phase-boundary command left out, `tests/skills/test_chain_check.py`, `tests/skills/test_settle.py`, `tests/skills/test_seal.py`, `tests/skills/test_unverified_check.py`, `tests/evals/test_seed_defects.py`, `tests/skills/test_agentic_pytest_record.py` and `tests/skills/test_session_cost.py`, which were read as reading no changed path | answered: the orchestrator's broad run at `6fa52a5d2` against `0cb6014d1` passed the `Broad gate` row of `seal/config.md`, the whole suite, lint and format check (`trail/gate.md`), and `guarantee.md` sealed on it, every test module among it |
 
 ## Not done
 

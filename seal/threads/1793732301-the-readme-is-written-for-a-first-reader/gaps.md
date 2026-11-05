@@ -4,9 +4,9 @@
 
 | Item | Who must answer |
 |---|---|
-| How GitHub's card shows `assets/seals/owl-social.png` once it is uploaded under Settings, General, Social preview. No subagent can upload it or open the card | the repository owner, who uploads it |
-| How GitHub renders the new `README.md`: the owl at `assets/seals/owl.svg`, the `mermaid` workflow and the stamp at `assets/seals/owl.png`. No subagent opened a rendering of the page (S1 is read at review from the text) | the repository owner, on the branch's page on GitHub |
-| How GitHub renders the new `README.ko.md`: the same owl and stamp, and a `mermaid` workflow whose node labels are Korean. No subagent opened a rendering of the page | the repository owner, on the branch's page on GitHub |
+| closed How GitHub's card shows `assets/seals/owl-social.png` once it is uploaded under Settings, General, Social preview. No subagent can upload it or open the card | answered: GitHub's GraphQL `usesCustomOpenGraphImage` reads `true` for the repository (read 2026-11-06) |
+| closed How GitHub renders the new `README.md`: the owl at `assets/seals/owl.svg`, the `mermaid` workflow and the stamp at `assets/seals/owl.png`. No subagent opened a rendering of the page (S1 is read at review from the text) | a measurement no record asks for: it would decide whether the page needs a layout fix; no issue, report or failure on record names a broken rendering, and both editions were edited again since (#1389) |
+| closed How GitHub renders the new `README.ko.md`: the same owl and stamp, and a `mermaid` workflow whose node labels are Korean. No subagent opened a rendering of the page | a measurement no record asks for: it would decide whether the page needs a layout fix; no issue, report or failure on record names a broken rendering, and both editions were edited again since (#1389) |
 
 ## Not done
 

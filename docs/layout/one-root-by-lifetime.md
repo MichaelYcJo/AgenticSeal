@@ -54,8 +54,9 @@ line, and a `<commit>:<path>` that a work item's `trail/` or `guarantee.md`
 cites at such a commit. Both are read while the pull request is open and go
 with the record. Every other `<commit>:<path>` names a commit `main` or a
 release branch reaches (`docs/layout/the-record-layout.md`
-*seal/threads/<work-item-id>/*).
-
+*seal/threads/<work-item-id>/*). A citation that names its unit by path and
+heading, or by `path#name`, outlives the edits that move a line, and every
+cited heading and name stands in its file.
 check: tests/behaviour/test_a_cited_section_stands_in_its_file.py
 
 ## The opt-in signal is the root itself

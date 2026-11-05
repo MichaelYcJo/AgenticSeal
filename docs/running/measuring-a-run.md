@@ -131,12 +131,13 @@ the command cannot do is make a session remember to run it.
 check: tests/skills/test_session_cost.py
 
 **A network write a person or a session starts is not a hook, and the
-list of hook network touches does not reach it.** `CONTRIBUTING.md` names the hooks that reach the network under *Hooks
-stay local and quiet*, and every
+list of hook network touches does not reach it.** `CONTRIBUTING.md` names
+the hooks that reach the network under *Hooks stay local and quiet*, and every
 condition that list sets for another entry is shaped for a hook: an opt-in so
 unrelated repositories are untouched, a throttle so it is not per session,
-silence on every failure. `--post` fires on no hook, and writes only when a person or a session
-runs it, only through `gh`, and only what it was handed. What the same bullet
+silence on every failure. `--post` fires on no hook, and writes only when a
+person or a session runs it, only through `gh`, and only what it was handed.
+What the same bullet
 forbids still binds it: nothing sent may carry repository contents, paths or
 prompts, so the posted body names the transcript by its file name and never
 by its path. The repository owner owns that list and can overturn this. No

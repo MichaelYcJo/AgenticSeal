@@ -5,8 +5,8 @@
 | Item | Who must answer |
 |---|---|
 | closed whether the whole suite passes on Python 3.14: phase 1 ran nothing on 3.14, and no case requires the 3.14 entry to exist | run 42019408766 at `b1669859`: its `pytest (ubuntu-latest, 3.14, 15)` job concluded `success`, 6208 passed and 10 skipped, read by the crafter of phase 3 (`trail/phases/phase-3.md`) |
-| The 3.14 job at `af153874` and later: run 42019408766 measured `b1669859`, and `af153874` changes `test.yml` only in a comment | the orchestrator, through a dispatched run at the branch's head or the pull request's own `tests` run |
-| The release table's `` `ubuntu 3.14` leg (minutes) `` row over a real run's job list: phase 2's cases read job lists written by hand, and the `release-report` job runs only on a pull request into `main` | the 0.32.5 release pull request's `release-report` summary, read by whoever prepares the release (`docs/releasing/release-checklist.md` *5. The release pull request*) |
+| closed The 3.14 job at `af153874` and later: run 42019408766 measured `b1669859`, and `af153874` changes `test.yml` only in a comment | answered: #1397's `tests` run 42024868242 ran `pytest (ubuntu-latest, 3.14)` at `40fc3d61`, after `af153874`, and it passed; so did #1398's run 42116087219 at `c475b894` |
+| closed The release table's `` `ubuntu 3.14` leg (minutes) `` row over a real run's job list: phase 2's cases read job lists written by hand, and the `release-report` job runs only on a pull request into `main` | answered: #1398's body reads the release table's `ubuntu 3.14` row at 1.9 minutes, from run 42116087219's job list |
 
 ## Not done
 

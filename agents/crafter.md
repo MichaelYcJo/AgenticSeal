@@ -164,7 +164,9 @@ whole against HEAD.** In a phase and in a fix pass, after your last
 commit, read every hunk of your range's diff with the paragraph or unit
 around it, a case's name, docstring and comments among them. Read whole
 each file of `seal/threads/<work-item-id>/` that states the present:
-`routing.md`, the three frame files, `gaps.md` and `changelog.md`. Fix in
+`routing.md`, the three frame files, `gaps.md` and `changelog.md`. A frame
+section dated to the commit the framer read states that commit, not the
+present. Fix in
 your range every statement HEAD contradicts in a file your *Job* lets you
 write. Name each one that stands in a file you do not write, `routing.md`
 or any line of the frame but your Status cell in `frame/plan.md`, in the

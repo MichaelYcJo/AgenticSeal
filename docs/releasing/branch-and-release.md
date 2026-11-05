@@ -114,13 +114,13 @@ hand fires the publish workflow too.
   reads the two marketplace files on GitHub, a curated catalog that takes
   outside plugins through the directory's submission and a nightly mirror of
   its review pipeline, and says per file whether the plugin has an entry, which
-commit it pins, and which of `main` and `dist` holds that commit. It exits 0 whatever it
-  finds: those files sync on somebody else's schedule, and a red nobody here can act on is what `skills/core/SKILL.md` *The first value: efficient development through the workflow* is against. The directory's own
+  commit it pins, and which of `main` and `dist` holds that commit. It exits 0
+  whatever it finds: those files sync on somebody else's schedule, and a red nobody here can act on is what `skills/core/SKILL.md` *The first value: efficient development through the workflow* is against. The directory's own
   state, whether the plugin is published there and at which version, is not
   among its answers, because no script can reach the directory; the command
   says so and prints the page a person opens. Nothing fires it; a person runs
-  it at the checklist's box. Submitting a plugin, or moving a Console listing
-  to the developer portal, is a person's act.
+  it at the checklist's box. Submitting a plugin at the developer portal is a
+  person's act.
 - **A label a document specifies is created and spent by a workflow.** When
   the release reaches `main`, the close-issues workflow runs
   `.github/scripts/tracker_labels.py --apply`, which creates every declared
@@ -210,16 +210,16 @@ that holds the commit is open (`docs/forms/the-round-record.md` *The round recor
 **A third reader of those commits is outside this repository.** A marketplace
 file lists an external plugin by pinning a commit of its source repository,
 and an entry that also carries a `ref` usually names `main` or `master`, so
-the `sha` is what a reader resolves. The plugin directory, the catalog people browse inside Claude, holds a
-commit too: a plugin submitted at its developer portal is served from a
-scanned commit of the branch or tag the submission tracks
-(`claude.com/docs/plugins/submit`), and this plugin's submission tracks
+the `sha` is what a reader resolves. The plugin directory, the catalog people
+browse inside Claude, holds a commit too: a plugin submitted at its developer
+portal is served from a scanned commit of the branch or tag the submission
+tracks (`claude.com/docs/plugins/submit`), and this plugin's submission tracks
 `dist`. The publish workflow adds each commit of `dist` and rewrites none
-(*Cutting a release* above), so the rule above does not reach the
-directory's commit. A marketplace file's pin can still name a commit of
-`main`, and breaking the rule above breaks that pin, a consumer nobody
-here can reach, for people the owner cannot name. `docs/releasing/release-checklist.md` *6. After the merge* carries the box that
-reads what is pinned. This paragraph is a record rather than a rule: a
+(*Cutting a release* above), so the rule above does not reach the directory's
+commit. A marketplace file's pin can still name a commit of `main`,
+and breaking the rule above breaks that pin, a consumer nobody here can reach,
+for people the owner cannot name. `docs/releasing/release-checklist.md` *6.
+After the merge* carries the box that reads what is pinned. This paragraph is a record rather than a rule: a
 marketplace file pins a commit of each outside plugin's source repository.
 The rule it supports, that anything reaching `main` is a merge commit, is held
 outside the tree by the `main` ruleset.

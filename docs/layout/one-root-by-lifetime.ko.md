@@ -51,8 +51,9 @@ corpus*). 병합 뒤에 `seal/threads/<id>/` 를 새로 읽는 코드는 그것�
 `trail/` 이나 `guarantee.md` 가 그런 커밋에서 인용한 `<commit>:<path>` 가
 그것입니다. 둘 다 PR 이 열려 있는 동안 읽히고 기록과 함께 사라집니다. 그
 밖의 `<commit>:<path>` 는 `main` 이나 릴리스 브랜치가 닿는 커밋을 가리킵니다
-(`docs/layout/the-record-layout.md` *seal/threads/<work-item-id>/*).
-
+(`docs/layout/the-record-layout.md` *seal/threads/<work-item-id>/*). 경로와
+제목으로, 또는 `path#name` 으로 단위를 가리키는 인용은 줄을 옮기는 편집에도
+살아남고, 인용된 제목과 이름은 모두 그 파일에 있습니다.
 check: tests/behaviour/test_a_cited_section_stands_in_its_file.py
 
 ## 옵트인 신호는 루트 자체다

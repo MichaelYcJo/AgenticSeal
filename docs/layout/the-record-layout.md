@@ -151,24 +151,23 @@ check: record-comment-line-refused
 **A fact of a work item has one record, and every other record cites it by path and heading.** What changed, for a user, is `changelog.md`'s. What is built, its grounds, its rule changes and its removals are `frame/design.md`'s. In which phases, by which approach and with which commit each closed is `frame/plan.md`'s. What only a person could decide, and what was assumed in its place, is `frame/questions.md`'s. What building one phase found, each departure from the frame among it, is that phase's `trail/phases/phase-N.md`. What one round found is its `trail/rounds/round-N.md`. The one broad run is `trail/gate.md`. What went out unproved and what was within reach and not taken is `gaps.md`. The sealer's audit is `guarantee.md`. A record cites another's fact by its path and heading and does not restate it, so a template holds no section or cell that could hold only a copy.
 check: tests/behaviour/test_a_phase_hands_the_next_one_a_record.py tests/behaviour/test_unverified_rows_close.py
 
-**A cited commit is one that `main` or a release branch reaches:
-a `<commit>:<path>` citation anywhere except a work item's `trail/`
-and its `guarantee.md`, and a bare commit in a file outside `seal/`.** A feature branch squashes into its release branch, and
-the squash discards every commit the branch wrote, so a citation of one
-opens in no clone after the merge, and a reader sent to it finds no
-source. The commit to cite is the squash that holds the same file, or
-the path at HEAD where the file is the branch's own. A round record, a
-phase record and a guarantee cite what a party ran at the branch's own
-commits, which the squash orphans as it orphans the round's `target:`
-line, and they leave with the work item; a file under
-`evals/behaviour/` is not read either. Outside `seal/` no file has a reason to name a commit that no clone
-will hold, so a bare hex token that resolves as a commit is read
-there, and one that resolves to no commit is not. Under `seal/` a bare
-commit is not read: a plan's Status cell and a round's `fixed` line
-name the branch's own commits by rule, and whether a sentence there
-cites a bare commit as where a file was read is the reviewer's
-reading. Where the checkout holds no
-`main` or release branch ref, nothing is judged.
+**A cited commit is one that `main` or a release branch reaches: a
+`<commit>:<path>` citation anywhere except a work item's `trail/` and its
+`guarantee.md`, and a bare commit in a file outside `seal/`.** A feature
+branch squashes into its release branch, and the squash discards every commit
+the branch wrote, so a citation of one opens in no clone after the merge, and
+a reader sent to it finds no source. The commit to cite is the squash that
+holds the same file, or the path at HEAD where the file is the branch's own. A
+round record, a phase record and a guarantee cite what a party ran at the
+branch's own commits, which the squash orphans as it orphans the round's
+`target:` line, and they leave with the work item; a file under
+`evals/behaviour/` is not read either. Outside `seal/` no file has a reason to
+name a commit that no clone will hold, so a bare hex token that resolves as a
+commit is read there, and one that resolves to no commit is not. Under `seal/`
+a bare commit is not read: a plan's Status cell and a round's `fixed` line
+name the branch's own commits by rule, and whether a sentence there cites a
+bare commit as where a file was read is the reviewer's reading. Where the
+checkout holds no `main` or release branch ref, nothing is judged.
 check: tests/text/test_a_cited_commit_outlives_the_squash.py
 
 ## The root records

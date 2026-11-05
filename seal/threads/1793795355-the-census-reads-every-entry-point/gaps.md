@@ -4,7 +4,7 @@
 
 | Item | Who must answer |
 |---|---|
-| The seventeen repaired entry points, run under a cp949, cp932 or cp936 console on Windows. The census reads each answer from source, and no case runs these scripts under a console that cannot encode what they print | the repository owner, on a Windows console |
+| closed The seventeen repaired entry points, run under a cp949, cp932 or cp936 console on Windows. The census reads each answer from source, and no case runs these scripts under a console that cannot encode what they print | a measurement no record asks for: it would decide whether the console repair needs a case on a legacy code page; no report or failure on record names one |
 
 ## Not done
 

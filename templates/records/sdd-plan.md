@@ -2,6 +2,8 @@
 
 ## Technical context
 
+The tree as read at `<commit>`.
+
 <the existing code this builds on, by file:line, its constraints, and the failure scenario of the chosen approach: what breaks in six months>
 
 ## Alternatives considered

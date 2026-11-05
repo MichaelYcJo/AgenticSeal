@@ -4,7 +4,7 @@
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck at HEAD, the test modules that read `tests/hooks/test_version_check.py` by a glob over a directory that holds it among them. Phase 1 ran the module and ruff on the one file, as the spawn narrowed it (`trail/phases/phase-1.md`) | the orchestrator, at the broad gate |
+| closed The full suite, the repository-wide lint and the typecheck at HEAD, the test modules that read `tests/hooks/test_version_check.py` by a glob over a directory that holds it among them. Phase 1 ran the module and ruff on the one file, as the spawn narrowed it (`trail/phases/phase-1.md`) | answered: the orchestrator's broad run at `8277a1cc` against `31558c76` passed the `Broad gate` row of `seal/config.md`, the whole suite, lint and format check (`trail/gate.md`), and `guarantee.md` sealed on it |
 
 ## Not done
 

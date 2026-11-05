@@ -290,29 +290,30 @@ python3 .github/scripts/plugin_directory_check.py   # what the marketplace files
 - [ ] **The marketplace files and the directory's page have been read**, by
       `python3 .github/scripts/plugin_directory_check.py`. It reads the two marketplace
       files on GitHub and says, per file, whether this plugin has an entry, which commit
-      the entry pins, and whether that commit is an ancestor of `main` or of
-`dist`, naming the one that holds it. **It reports and
-      never fails**, for the reason `docs/releasing/branch-and-release.md` *Cutting a
-      release* gives. Those files are not the directory,
+      the entry pins, and whether that commit is an ancestor of `main` or of `dist`,
+      naming the one that holds it. **It reports and never fails**, for the reason
+      `docs/releasing/branch-and-release.md` *Cutting a release* gives. Those files
+      are not the directory,
       the catalog people browse inside Claude, and the directory is readable from
       nowhere a script can reach, so the command ends by saying it was not read and
       printing the address of the page that answers. A portal listing is answered on
-      the portal's Submissions page, with its status and the version that is live. It picks up each new version from its tracked branch, `dist`, without a
-resubmission, and a
-      version that passes goes live by the listing's publish setting, which by default
-      waits for somebody to select Publish (`claude.com/docs/plugins/submit`, *Publish a
-      passing version*). A Console listing is answered on the Console page. The
-      plugin's listing is a Console listing, by the repository owner's reading of the
-      Console page on 2026-10-07, and a Console listing takes no new version until a
+      the portal's Submissions page, with its status and the version that is live. It
+      picks up each new version from its tracked branch, `dist`, without a
+      resubmission, and a version that passes goes live by the listing's publish
+      setting, which by default waits for somebody to select Publish
+      (`claude.com/docs/plugins/submit`, *Publish a passing version*). A Console
+      listing is answered on the Console page, and takes no new version until a
       person moves it to the portal (`claude.com/docs/directory/publish`, *Move an
-      earlier submission to the developer portal*), so no release reaches the directory
-      through it until then. Once the publish workflow's `dist` job has run,
-`git log -1 --format=%s origin/dist` names the release as `dist: vX.Y.Z`.
-A red `dist` job is a release the directory did not get, and a re-run of
-the workflow adds the commit. Whether it shows up at all is what a search
-for the plugin inside Claude answers. Neither that search nor the Console page, which sits
-      behind the owner's login, is open to a script or a case here: both answers are the
-      owner's reading.
+      earlier submission to the developer portal*). The plugin's listing is a portal
+      listing, by the owner's reading of the submission of the repository's `@dist`
+      on 2026-11-05, and the portal reads `dist` on a schedule, about every six
+      hours (#1383). Once
+      the publish workflow's `dist` job has run, `git log -1 --format=%s origin/dist`
+      names the release as `dist: vX.Y.Z`. A red `dist` job is a release the
+      directory did not get, and a re-run of the workflow adds the commit. Whether it
+      shows up at all is what a search for the plugin inside Claude answers. Neither
+      that search nor the Submissions page, which sits behind the owner's login, is
+      open to a script or a case here: both answers are the owner's reading.
 
 **A notice telling somebody an update landed names the move it costs them.**
 An installed copy is what a session loads, so an update that has landed on
