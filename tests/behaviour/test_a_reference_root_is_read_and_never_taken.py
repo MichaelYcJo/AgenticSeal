@@ -52,7 +52,7 @@ NO_WALK = "walks no specs/ directory"
 NOT_A_CHECK = "is not a check of the tree"
 
 SHIPPED = {
-    "seal unverified": (PREDICATE, "the walk and the base, by one rule"),
+    "seal unverified": (PREDICATE, "the walk, by one rule"),
     "seal settle": (
         PINNED,
         "settle.py#SPECS; its citation scan reads as a citer, and --from reads "

@@ -2,20 +2,20 @@
 
 Rebuilt by #942's phase 5 from `tests/behaviour/test_unverified_rows_close.py`. The
 script reads every `## Not verified` section, reports what is still open,
-fails on a section it cannot read, and under `--baseline` fails on a row or
-a record that left since the merge base, unless a settle removed it.
+and fails on a section it cannot read. The units `chain_check.py` and
+`settle.py` load from it are held here too.
 
 The readers of markdown, of a section and of a row run in the process on
-lines and texts, with no git. The units that ask git, and `main` under
-`--baseline`, read repositories built once for the module: a clone of two
-work items and a tracked overview under `build/`, a clone whose second
-overview is a tracked link to the first, built once with the link sorting
-after its target and once before it, a clone whose base
-revisions are written the way the corpus was before it was normalised, a
-clone with a moved base branch beside its work branch, a clone of work items
-a settle can remove, a clone with a `seal/` root beside a team's own `specs/`, a
-`seal/` root with no `specs/`, and a `seal/` root whose one work item holds
-no overview. A case that writes into a world takes a copy,
+lines and texts, with no git. The units that ask git, and `main`, read
+repositories built once for the module: a clone of two work items and a
+tracked overview under `build/`, a clone whose second overview is a tracked
+link to the first, built once with the link sorting after its target and
+once before it, a clone whose revisions are written the way the corpus was
+before it was normalised, a clone with a moved base branch beside its work
+branch, a clone of work items a settle can remove, a clone with a `seal/`
+root beside a team's own `specs/`, a `seal/` root with no `specs/`, and a
+`seal/` root whose one work item holds no overview. A case that writes into
+a world takes a copy,
 and the copy is the reset. No world holds a file a case runs, so the copies
 are plain copies.
 """
@@ -111,24 +111,6 @@ def copy_of(world, tmp_path):
     return dst
 
 
-def drop_line(path, line):
-    """The file at PATH without its line LINE."""
-    with open(path, encoding="utf-8") as handle:
-        text = handle.read()
-    assert line + "\n" in text, line
-    with open(path, "w", encoding="utf-8") as handle:
-        handle.write(text.replace(line + "\n", ""))
-
-
-def replace_in(path, old, new):
-    """The file at PATH with OLD, which it holds, replaced by NEW."""
-    with open(path, encoding="utf-8") as handle:
-        text = handle.read()
-    assert old in text, old
-    with open(path, "w", encoding="utf-8") as handle:
-        handle.write(text.replace(old, new))
-
-
 def _committed(base, files):
     """A repository at BASE/repo holding FILES, `{rel: text}`, in one
     commit; a `seal/` among them is made a root."""
@@ -179,15 +161,8 @@ def linked(tmp_path_factory, request):
     return d
 
 
-def link_of(world):
-    """The work item of WORLD, a `linked` repository, whose overview is the
-    link."""
-    (name,) = [n for n in os.listdir(world / "specs") if n != WORK]
-    return name
-
-
-# Base revisions written before the corpus was normalised, one work item
-# each, and what the working tree writes over each before a case compares.
+# Revisions written before the corpus was normalised, one work item each,
+# which `open_record_rows` reads at a ref.
 LEGACY = {
     "1780000020-old-heading": CANONICAL.replace(
         "## Not verified", "## Not verified (who must answer)"
@@ -218,11 +193,10 @@ SIBLING = "1780000001-squashed-sibling"
 
 @pytest.fixture(scope="module")
 def forked(tmp_path_factory):
-    """A work branch at the fork point, checked out, beside four refs: `fork`
-    at the fork point itself; `base`, which moved past it when a sibling
-    work item was squashed into it; `gained`, which gained a row in this
-    branch's overview after the fork; and `unrelated`, a history of its
-    own."""
+    """A work branch at the fork point, checked out, beside three refs:
+    `fork` at the fork point itself; `base`, which moved past it when a
+    sibling work item was squashed into it; and `unrelated`, a history of
+    its own."""
     d = _committed(
         tmp_path_factory.mktemp("forked"),
         {f"specs/{WORK}/gaps.md": memo(CANONICAL)},
@@ -231,14 +205,6 @@ def forked(tmp_path_factory):
     git(d, "switch", "-qc", "base")
     write(d, f"specs/{SIBLING}/gaps.md", memo(CANONICAL, SIBLING))
     commit_everything_as_e(d, "another work item, squashed into the base")
-    git(d, "switch", "-qc", "gained", "fork")
-    write(
-        d,
-        f"specs/{WORK}/gaps.md",
-        memo(CANONICAL)
-        + "| whether the hooks fire on Windows | the same maintainer |\n",
-    )
-    commit_everything_as_e(d, "a third row, on the base")
     git(d, "switch", "-q", "--orphan", "unrelated")
     write(d, "readme.md", "no commit in common\n")
     commit_everything_as_e(d, "an unrelated root")
@@ -340,7 +306,7 @@ def run(argv):
 
 
 class Test__LooseHeading:
-    """The base revision's matcher: a level 2 or 3 heading by the one rule,
+    """The matcher for a revision read at a ref: a level 2 or 3 heading by the one rule,
     mentioning `not verified` in any case (#867 round 1, finding 6)."""
 
     @pytest.mark.parametrize(
@@ -1106,7 +1072,7 @@ class Test_parse_section:
         ids=["the old mark", "the old line", "the old column"],
     )
     def test_accepts_what_a_base_revision_wrote_before_the_word(self, section, rows):
-        """A base revision cannot be edited, so it is read the way it was
+        """A revision read at a ref cannot be edited, so it is read the way it was
         written: the old mark closes a row, the old `none` line holds no
         rows, and a header needs only `Item` first."""
         open_rows, closed_rows, errors = parse(section, strict_header=False)
@@ -1343,8 +1309,8 @@ class Test_sections:
     )
 
     def test_accepts_the_canonical_heading_over_a_looser_match(self):
-        """A base holding both the heading and one that mentions it would
-        otherwise count differently from the working tree."""
+        """A revision holding both the heading and one that mentions it would
+        otherwise be refused as holding two sections."""
         assert UC.sections(self.LINES, UC.LOOSE_HEADING) == [0]
         assert UC.sections(self.LINES[1:], UC.LOOSE_HEADING) == [1, 2]
 
@@ -1473,7 +1439,7 @@ class Test_check_text:
         assert UC.check_text(text) == ([], [], [(line, said)])
 
 
-# --- the walk and the paths it compares ---------------------------------------
+# --- the walk and the paths it reads ------------------------------------------
 
 
 class Test_overviews:
@@ -1554,133 +1520,6 @@ class Test_reference_rule:
         assert UC.reference_rule(str(start)) is None
 
 
-class Test_real:
-    def test_accepts_a_path_through_a_link_as_its_target(self, tmp_path):
-        (tmp_path / "target").mkdir()
-        symlink_or_skip(str(tmp_path / "target"), str(tmp_path / "link"))
-        assert UC.real(str(tmp_path / "link")) == os.path.realpath(
-            str(tmp_path / "target")
-        )
-
-    def test_refuses_to_move_a_path_with_no_link(self, tmp_path):
-        assert UC.real(str(tmp_path)) == os.path.realpath(str(tmp_path))
-
-
-class Test_repository_of:
-    def test_accepts_the_repository_the_real_path_is_in_over_the_links(
-        self, plain, tmp_path
-    ):
-        """A checkout linked from a directory that is itself a repository,
-        such as a home directory, is compared in the checkout."""
-        outer = tmp_path / "outer"
-        outer.mkdir()
-        git(outer, "init", "-q", "-b", "main")
-        symlink_or_skip(str(plain), str(outer / "checkout"), directory=True)
-        assert same_path(UC.repository_of(str(outer / "checkout" / "specs")), plain)
-
-    def test_accepts_the_repository_holding_a_link_out_of_every_repository(
-        self, plain, tmp_path
-    ):
-        """#1225: the real path is in no repository, and the link stands in
-        one, so that one is where its own path is compared."""
-        d = copy_of(plain, tmp_path)
-        write(tmp_path, "beyond/gaps.md", memo(CANONICAL))
-        symlink_or_skip(
-            str(tmp_path / "beyond" / "gaps.md"), str(d / "specs" / WORK / "out.md")
-        )
-        assert same_path(UC.repository_of(str(d / "specs" / WORK / "out.md")), d)
-
-    def test_accepts_a_parent_as_real_reads_it(self, plain, tmp_path):
-        """A path that holds a `..` is compared in the repository `real`
-        reads it in, on every platform. `ext` links into a second
-        repository, so `ext/..` is the top of one of the two, whichever way
-        the platform's `realpath` reads it; its text names the first."""
-        d = copy_of(plain, tmp_path)
-        second = tmp_path / "second"
-        (second / "inner").mkdir(parents=True)
-        git(second, "init", "-q", "-b", "main")
-        symlink_or_skip(str(second / "inner"), str(d / "ext"), directory=True)
-        given = str(d / "ext" / "..")
-        assert same_path(UC.repository_of(given), os.path.realpath(given))
-
-    def test_refuses_a_link_that_stands_in_no_repository(self, tmp_path):
-        """A link names a repository only where git finds one at the link's
-        own directory. Here neither the real path nor the link is in one, so
-        there is no repository to compare the path in."""
-        (tmp_path / "target").mkdir()
-        symlink_or_skip(str(tmp_path / "target"), str(tmp_path / "link"), True)
-        assert UC.repository_of(str(tmp_path / "link" / "gaps.md")) is None
-
-
-class Test_as_named:
-    def test_accepts_a_link_inside_the_repository_under_its_own_name(
-        self, plain, tmp_path
-    ):
-        """#1225: the components inside the repository are kept as the person
-        named them, so a link among them is compared at its own path."""
-        d = copy_of(plain, tmp_path)
-        symlink_or_skip(WORK, str(d / "specs" / "named"), directory=True)
-        given = os.path.join(str(d), "specs", "named", "gaps.md")
-        assert UC.as_named(given) == os.path.join(
-            os.path.realpath(str(d)), "specs", "named", "gaps.md"
-        )
-
-    def test_accepts_a_link_to_the_repositorys_top_resolved(self, plain, tmp_path):
-        """git names the top with its links resolved, so the way to it is
-        resolved too, or the path matches no line of `ls-tree`."""
-        symlink_or_skip(str(plain), str(tmp_path / "link"), directory=True)
-        assert UC.as_named(str(tmp_path / "link" / "specs")) == os.path.join(
-            os.path.realpath(str(plain)), "specs"
-        )
-
-    def test_refuses_to_keep_a_name_outside_every_repository(self, tmp_path):
-        (tmp_path / "target").mkdir()
-        symlink_or_skip(str(tmp_path / "target"), str(tmp_path / "link"), True)
-        assert UC.as_named(str(tmp_path / "link")) == os.path.realpath(
-            str(tmp_path / "target")
-        )
-
-    def test_accepts_a_path_holding_a_parent_as_real_reads_it(self, plain, tmp_path):
-        """A path that holds a `..` is its real path, on every platform, so
-        `hop`, a link the `..` does not step out of, is resolved as well. By
-        its text the path names `specs/hop/gaps.md`, and following only
-        `jump`, the link the `..` steps out of, names `specs/hop/a/gaps.md`;
-        a link the person named on such a path is #1240's."""
-        d = copy_of(plain, tmp_path)
-        (d / "specs" / WORK / "a" / "b").mkdir(parents=True)
-        symlink_or_skip(WORK, str(d / "specs" / "hop"), True)
-        symlink_or_skip(os.path.join("a", "b"), str(d / "specs" / WORK / "jump"), True)
-        given = os.path.join(str(d), "specs", "hop", "jump", os.pardir, "gaps.md")
-        assert UC.as_named(given) == os.path.realpath(given)
-
-
-class Test_spellings:
-    def test_accepts_each_spelling_from_as_named_to_the_real_path(
-        self, plain, tmp_path
-    ):
-        """`view` is a link of this checkout to `specs`, and OTHER's memo a
-        link to WORK's: the base may list the memo as named, with `view`
-        resolved, or at its real path."""
-        d = copy_of(plain, tmp_path)
-        os.remove(d / "specs" / OTHER / "gaps.md")
-        symlink_or_skip(
-            os.path.join("..", WORK, "gaps.md"), str(d / "specs" / OTHER / "gaps.md")
-        )
-        symlink_or_skip("specs", str(d / "view"), directory=True)
-        top = os.path.realpath(str(d))
-        given = os.path.join(top, "view", OTHER, "gaps.md")
-        assert UC.spellings(given, top) == [
-            f"view/{OTHER}/gaps.md",
-            f"specs/{OTHER}/gaps.md",
-            f"specs/{WORK}/gaps.md",
-        ]
-
-    def test_refuses_a_second_spelling_where_no_link_stands(self, plain):
-        top = os.path.realpath(str(plain))
-        given = os.path.join(top, "specs", WORK, "gaps.md")
-        assert UC.spellings(given, top) == [f"specs/{WORK}/gaps.md"]
-
-
 class Test_git_path:
     def test_accepts_a_windows_path_as_git_spells_it(self, monkeypatch):
         r"""git answers and accepts `/` on every platform; `os.sep` is
@@ -1729,15 +1568,6 @@ class Test_display_path:
         assert UC.display_path(where, os.path.abspath("y")) == os.path.abspath(where)
 
 
-class Test_nearest_existing:
-    def test_accepts_a_path_that_exists(self, tmp_path):
-        assert UC.nearest_existing(str(tmp_path)) == os.path.abspath(str(tmp_path))
-
-    def test_refuses_a_path_two_levels_gone_for_its_nearest_ancestor(self, tmp_path):
-        gone = os.path.join(str(tmp_path), "a", "b", "gaps.md")
-        assert UC.nearest_existing(gone) == os.path.abspath(str(tmp_path))
-
-
 class Test_unique_by_target:
     def test_accepts_every_path_to_a_file_of_its_own(self, tmp_path):
         paths = [str(tmp_path / "a"), str(tmp_path / "b")]
@@ -1755,9 +1585,8 @@ class Test_unique_by_target:
     def test_accepts_the_real_files_own_path_wherever_the_link_sorts(
         self, tmp_path, paths
     ):
-        """#19: the first path in sort order was kept, so a link sorting
-        before its target had its own blob read at the base, and two deleted
-        rows passed."""
+        """#19: the path kept is the real file's own wherever the link sorts,
+        so the report names the file the rows stand in."""
         (tmp_path / "b").write_text("x", encoding="utf-8")
         symlink_or_skip("b", str(tmp_path / "a"))
         given = [str(tmp_path / p) for p in paths]
@@ -1826,51 +1655,6 @@ class Test_merge_base:
         assert UC.merge_base(str(forked), "base") is None
 
 
-class Test_base_label:
-    def test_accepts_the_ref_where_it_is_the_merge_base(self):
-        assert UC.base_label("HEAD", "a" * 40, "a" * 40) == "HEAD"
-
-    def test_refuses_the_ref_alone_where_the_base_moved(self):
-        assert UC.base_label("base", "a" * 40, "b" * 40) == (
-            "the merge-base of base and HEAD (bbbbbbb)"
-        )
-        assert UC.base_label("HEAD", None, "c" * 40).endswith("(ccccccc)")
-
-
-class Test_overviews_at:
-    def test_accepts_the_overviews_under_each_prefix(self, plain):
-        work, other = (f"specs/{n}/gaps.md" for n in (WORK, OTHER))
-        assert UC.overviews_at(str(plain), "HEAD", ["."]) == [work, other]
-        assert UC.overviews_at(str(plain), "HEAD", [f"specs/{WORK}"]) == [work]
-
-    def test_accepts_a_reference_root_a_prefix_names(self, joined):
-        assert UC.overviews_at(str(joined), "HEAD", ["."]) == [f"{OURS}/gaps.md"]
-        assert UC.overviews_at(str(joined), "HEAD", ["specs"]) == [f"{TEAM}/gaps.md"]
-
-    def test_accepts_the_overview_of_an_id_that_is_not_ascii(self, tmp_path):
-        """#1283. The ref's tree is read with `-z`, so a work item whose id
-        git quotes under the default `core.quotePath` has its `gaps.md`
-        listed as it is. Seen red against the listing without `-z`, which
-        listed nothing."""
-        rel = f"specs/{NON_ASCII}/gaps.md"
-        d = _committed(tmp_path, {rel: memo(CANONICAL, NON_ASCII)})
-        assert UC.overviews_at(str(d), "HEAD", ["."]) == [rel]
-
-    @pytest.mark.parametrize(
-        "ref, prefix",
-        [("HEAD", "specs/1780000000-wor"), ("HEAD", "build"), ("nosuch", ".")],
-        ids=[
-            "a prefix of a name",
-            "a skipped directory",
-            "a ref that does not resolve",
-        ],
-    )
-    def test_refuses_a_partial_name_a_skipped_directory_and_an_unknown_ref(
-        self, plain, ref, prefix
-    ):
-        assert UC.overviews_at(str(plain), ref, [prefix]) == []
-
-
 class Test_tree_at:
     def test_accepts_a_directory_at_a_ref_and_on_disk(self, settle):
         listed = [f"specs/{SETTLE_A}/design.md", f"specs/{SETTLE_A}/gaps.md"]
@@ -1911,9 +1695,9 @@ class Test_show:
         assert UC.show(str(plain), "HEAD", "specs/none/gaps.md") is None
 
     def test_refuses_to_raise_on_a_byte_that_is_not_utf8(self, tmp_path):
-        """#19: the base side decodes as `check_file` decodes the tree side,
-        U+FFFD for a byte UTF-8 cannot read, or one such byte aborted the
-        whole comparison."""
+        """#19: a revision read at a ref decodes as `check_file` decodes the
+        disk, U+FFFD for a byte UTF-8 cannot read, or one such byte aborts
+        the whole read."""
         d = _committed(tmp_path, {"gaps.md": memo(CANONICAL)})
         path = d / "gaps.md"
         path.write_bytes(memo(CANONICAL).encode("utf-8") + b"| a \xff b | c |\n")
@@ -1922,43 +1706,6 @@ class Test_show:
             on_disk = handle.read()
         assert "�" in on_disk
         assert UC.show(str(d), "HEAD", "gaps.md") == on_disk
-
-
-class Test_mode_at:
-    def test_accepts_a_tracked_link_as_a_link(self, linked):
-        at = f"specs/{link_of(linked)}/gaps.md"
-        assert UC.mode_at(str(linked), "HEAD", at) == UC.LINK_MODE
-
-    @pytest.mark.parametrize(
-        "at, mode",
-        [(f"specs/{WORK}/gaps.md", "100644"), ("specs/none/gaps.md", None)],
-        ids=["a file", "a path the ref does not hold"],
-    )
-    def test_refuses_a_file_or_an_absent_path_as_a_link(self, linked, at, mode):
-        assert UC.mode_at(str(linked), "HEAD", at) == mode
-
-
-class Test_compare_at:
-    @pytest.mark.parametrize(
-        "now, kind", [(1, "error"), (2, None)], ids=["fewer here", "as many"]
-    )
-    def test_refuses_fewer_rows_than_the_base_held_and_no_fewer(self, plain, now, kind):
-        at = f"specs/{WORK}/gaps.md"
-        found = UC.compare_at(str(plain), "HEAD", at, at, now, "HEAD")
-        assert (found and found[0]) == kind, found
-        if kind:
-            assert "2 rows at HEAD, 1 here" in found[1], found
-
-    def test_accepts_a_path_the_base_does_not_hold_as_nothing_to_compare(self, plain):
-        at = "specs/none/gaps.md"
-        assert UC.compare_at(str(plain), "HEAD", at, at, 0, "HEAD") is None
-
-    def test_refuses_to_count_a_base_section_it_cannot_read(self, tmp_path):
-        d = _committed(tmp_path, {"gaps.md": "# nothing here\n"})
-        found = UC.compare_at(str(d), "HEAD", "gaps.md", "gaps.md", 0, "HEAD")
-        # The notice `seal unverified --baseline` prints for a base section it
-        # cannot read, which the person running it reads as no count.
-        assert found[0] == "notice" and "could not be read" in found[1], found
 
 
 # --- what a settle removed ----------------------------------------------------
@@ -2113,61 +1860,6 @@ class Test_annotate:
 # --- the command ---------------------------------------------------------------
 
 
-def reported_paths(out):
-    """The path each report line names, in either output shape: `annotate`
-    emits `::error file=<path>,line=<n>::...` in CI and `<path>:<line>  ...`
-    anywhere else."""
-    found = []
-    for ln in out.split("\n"):
-        if ln.startswith("::"):
-            _, _, rest = ln.partition(" file=")
-            path, _, _ = rest.partition(",line=")
-            if path:
-                found.append(path)
-        elif "gaps.md:" in ln:
-            found.append(ln.split(":")[0])
-    return found
-
-
-# How a person names a closing memo through a link, each shape the path as
-# named and the path the base held the memo at.
-NAMED_LINK = (
-    "a file link",
-    "a directory link",
-    "a file under a linked directory",
-    "a linked tree holding a file link",
-)
-
-
-def a_named_link(tmp_path, shape, lost):
-    """`(repository, path as named)`: `specs/OTHER/gaps.md` held two rows at
-    HEAD, and now the memo is a link to `specs/WORK/gaps.md`, or its
-    directory a link to `specs/WORK`, by SHAPE. WORK's memo holds one row
-    where LOST, and two otherwise. The linked tree is the file link reached
-    through `view`, a link of this checkout to `specs`, so the base spells
-    the memo neither as named nor as its real path."""
-    target = CANONICAL.replace(WINDOWS + "\n", "") if lost else CANONICAL
-    d = _committed(
-        tmp_path,
-        {
-            f"specs/{WORK}/gaps.md": memo(target),
-            f"specs/{OTHER}/gaps.md": memo(CANONICAL, OTHER),
-        },
-    )
-    if shape in ("a file link", "a linked tree holding a file link"):
-        named = d / "specs" / OTHER / "gaps.md"
-        os.remove(named)
-        symlink_or_skip(os.path.join("..", WORK, "gaps.md"), str(named))
-        if shape == "a file link":
-            return d, named
-        symlink_or_skip("specs", str(d / "view"), directory=True)
-        return d, d / "view"
-    shutil.rmtree(d / "specs" / OTHER)
-    symlink_or_skip(WORK, str(d / "specs" / OTHER), directory=True)
-    named = d / "specs" / OTHER
-    return d, named if shape == "a directory link" else named / "gaps.md"
-
-
 class Test_main:
     # The plain run: what is open is reported, and a record that cannot be
     # read fails.
@@ -2228,756 +1920,113 @@ class Test_main:
         memo_at(tmp_path, CANONICAL)
         assert run([str(tmp_path)]) == 0
 
-    def test_accepts_the_baseline_help_naming_both_places(self, capsys):
-        """#612: the `--baseline` help is a rendered line (contract rule
-        14), and it names the fork point and the base's tip. Since #1033 it
-        and the module's docstring say what reads as a settle, and nothing
-        about the records or `docs/`."""
+    def test_refuses_the_baseline_option_it_no_longer_has(self, plain, capsys):
+        """A1 of #1240: the mode that compared the record with a base left,
+        so `--baseline` is an argument argparse does not know, exit 2, and
+        the help a person reads names no such option (contract rule 14)."""
+        with pytest.raises(SystemExit) as refused:
+            UC.main(["--baseline", "HEAD", str(plain)])
+        assert refused.value.code == 2
+        assert "unrecognized arguments: --baseline" in capsys.readouterr().err
         with pytest.raises(SystemExit):
             UC.main(["--help"])
-        rendered = " ".join(capsys.readouterr().out.split())
-        assert (
-            "the fork point on a branch checkout and the base's tip in CI" in rendered
-        )
-        said = "stood at the merge base and is gone whole, which reads as a settle"
-        assert said in rendered, rendered
-        assert "holding every rule change" not in rendered, rendered
-        doc = " ".join(UC.__doc__.split())
-        assert "unless its whole directory stood at the base and is gone" in doc
-        assert "unless a settle removed its directory whole" not in doc
+        assert "--baseline" not in capsys.readouterr().out
 
-    # `--baseline`: a row and a record leave by being closed.
-
-    def test_accepts_a_closed_row_and_a_fenced_example_against_the_baseline(
-        self, plain, tmp_path, capsys
-    ):
-        """Marking keeps the row, so the count does not fall; and the strict
-        reader and the base reader agree about an example added."""
-        d = copy_of(plain, tmp_path)
-        path = d / "specs" / WORK / "gaps.md"
-        replace_in(path, "| whether Windows", "| closed whether Windows")
-        replace_in(path, TUI + "\n", TUI + "\n\n```\nan example\n```\n\n")
-        assert run([str(d), "--baseline", "HEAD"]) == 0
-        out = capsys.readouterr().out
-        assert "left the record" not in out and "not compared" not in out
-
-    def test_accepts_an_overview_tracked_under_a_skipped_directory(self, plain):
-        """The scan skips `build/`, and so does the base listing, or a
-        tracked overview there reads as deleted on every run."""
-        assert run([str(plain), "--baseline", "HEAD"]) == 0
-
-    def test_refuses_a_deleted_row(self, plain, tmp_path, capsys):
-        """Without it the cheapest way to lower the count stays "delete the
-        line", and a closed item and a tidied-up one become one edit."""
-        d = copy_of(plain, tmp_path)
-        drop_line(d / "specs" / WORK / "gaps.md", WINDOWS)
-        assert run([str(d), "--baseline", "HEAD"]) == 1
-        out = capsys.readouterr().out
-        assert "2 rows at HEAD, 1 here" in out
-        assert "Re-add the row, its Item cell opening with the word `closed`" in out
-
-    @pytest.mark.rule("record-comment-line-refused")
-    def test_accepts_a_base_holding_a_comment_line_as_not_compared(
-        self, plain, tmp_path, capsys
-    ):
-        """S6 of #1012: a base overview holding a line that begins `<!--` is
-        named as not compared, never counted as zero rows, and the exit code
-        is the working tree's, because nobody can edit a commit that already
-        happened. A row deleted in the stripping commit goes uncompared once."""
-        d = copy_of(plain, tmp_path)
-        path = d / "specs" / WORK / "gaps.md"
-        replace_in(path, "## Not verified\n", "## Not verified\n\n<!-- guidance -->\n")
-        commit_everything_as_e(d, "an overview from an old template")
-        replace_in(path, "\n<!-- guidance -->\n", "")
-        drop_line(path, WINDOWS)
-        assert run([str(d), "--baseline", "HEAD"]) == 0
-        out = capsys.readouterr().out
-        named = out.split("not compared against HEAD:")[1]
-        assert WORK in named and UC.COMMENT_LINE in named, out
-
-    @pytest.mark.parametrize(
-        "change, gone, settled",
-        [("delete one and rename the other", 1, 1), ("delete both", 2, 0)],
-        ids=["a file and a rename", "every overview"],
-    )
-    def test_refuses_a_record_that_left_whole(
-        self, plain, tmp_path, capsys, change, gone, settled
-    ):
-        """Deleting the file was cheaper and quieter than deleting a row, said
-        out loud. A scan that finds nothing because every overview left
-        reports the deletion rather than an empty scan. Since #1033 a
-        directory gone whole reads as a settle, so a renamed one is named
-        settled at its old path; its rows are listed where it went and are
-        counted against nothing at the old one."""
-        d = copy_of(plain, tmp_path)
-        item = d / "specs" / WORK
-        if change == "delete one and rename the other":
-            os.remove(item / "gaps.md")
-            os.rename(d / "specs" / OTHER, d / "specs" / "1780000001-renamed")
-        if change == "delete both":
-            os.remove(item / "gaps.md")
-            os.remove(d / "specs" / OTHER / "gaps.md")
-        assert run([str(d), "--baseline", "HEAD"]) == 1
-        out = capsys.readouterr().out
-        assert out.count("present at HEAD and not here") == gone, out
-        assert out.count("settled: the directory stood at HEAD") == settled, out
-
-    @pytest.mark.parametrize(
-        "change, argv",
-        [
-            ("delete specs", ["specs"]),
-            ("delete the item", [f"specs/{WORK}/gaps.md"]),
-        ],
-        ids=["the scan path", "two levels"],
-    )
-    def test_accepts_a_scan_path_gone_whole_as_a_settle(
-        self, plain, tmp_path, capsys, change, argv
-    ):
-        """A scan path deleted wholesale is compared rather than called a bad
-        argument, two levels gone too. Each directory under it stood at the
-        base and is gone whole, which reads as a settle since #1033: the
-        limit that work item states for a whole removal outside a settle,
-        whose diff shows it to its review."""
-        d = copy_of(plain, tmp_path)
-        shutil.rmtree(d / "specs" if change == "delete specs" else d / "specs" / WORK)
-        paths = [os.path.join(str(d), *a.split("/")) for a in argv]
-        assert run([*paths, "--baseline", "HEAD"]) == 0
-        out = capsys.readouterr().out
-        assert "present at HEAD and not here" not in out, out
-        assert "settled: the directory stood at HEAD" in out, out
-
-    def test_refuses_an_unreadable_section_without_reporting_a_deletion(
-        self, plain, tmp_path, capsys
-    ):
-        """A misspelt heading returns zero rows, and comparing that zero told
-        the author to restore rows still in the file."""
-        d = copy_of(plain, tmp_path)
-        replace_in(
-            d / "specs" / WORK / "gaps.md",
-            "## Not verified",
-            "## Not verified (who must answer)",
-        )
-        assert run([str(d), "--baseline", "HEAD"]) == 1
-        out = capsys.readouterr().out
-        assert "no `## Not verified` section" in out and "rows at HEAD" not in out
-
-    @pytest.mark.parametrize("in_ci", [False, True])
-    def test_refuses_both_deletions_naming_paths_on_one_footing(
-        self, plain, tmp_path, capsys, monkeypatch, in_ci
-    ):
-        """One line came from `relpath(path, cwd)` and the other from
-        `ls-tree`'s path; they agreed only at the repository root. Run in
-        both output shapes, because pinning one is what let this pass
-        everywhere except CI."""
-        if in_ci:
-            monkeypatch.setenv("GITHUB_ACTIONS", "true")
-        d = copy_of(plain, tmp_path)
-        os.remove(d / "specs" / WORK / "gaps.md")
-        drop_line(d / "specs" / OTHER / "gaps.md", WINDOWS)
-        monkeypatch.chdir(d / "specs")
-        assert run([".", "--baseline", "HEAD"]) == 1
-        paths = reported_paths(capsys.readouterr().out)
-        assert len(paths) == 2 and all(q.startswith("1780000") for q in paths), paths
-
-    @pytest.mark.parametrize(
-        "argv, says",
-        [
-            (["specs", "spces"], "nothing under it at HEAD either"),
-            (["spces"], "nothing under it at HEAD either"),
-        ],
-        ids=["beside a real path", "alone"],
-    )
-    def test_refuses_a_mistyped_path_under_the_baseline(
-        self, plain, capsys, argv, says
-    ):
-        """A path with nothing under it at the base is a typo, not a
-        question, which keeps `specs/ spces/` from passing in silence."""
-        paths = [os.path.join(str(plain), a) for a in argv]
-        assert run([*paths, "--baseline", "HEAD"]) == 2
-        assert says in capsys.readouterr().err
-
-    def test_refuses_a_ref_that_does_not_resolve(self, plain, capsys):
-        """In CI the base branch is one shallow checkout away, and every file
-        then reads as new."""
-        assert run([str(plain), "--baseline", "origin/nosuchbranch"]) == 2
-        assert "does not resolve" in capsys.readouterr().err
-
-    def test_refuses_a_baseline_outside_a_repository(self, tmp_path, capsys):
-        memo_at(tmp_path, CANONICAL)
-        assert run([str(tmp_path), "--baseline", "HEAD"]) == 2
-        assert "needs a git repository" in capsys.readouterr().err
-
-    def test_refuses_a_path_on_another_volume_instead_of_aborting(
-        self, plain, tmp_path, monkeypatch, capsys
-    ):
-        """Every argument is read against the repository the first is in,
-        and a path with no relative form to it is exit 2, named. The raise is
-        induced, so every leg runs this."""
-        elsewhere = tmp_path / "elsewhere"
-        (elsewhere / "specs").mkdir(parents=True)
-        real_relpath = os.path.relpath
-
-        def refuses_for_elsewhere(path, start=None):
-            if "elsewhere" in str(path):
-                raise ValueError("path is on mount 'D:', start on mount 'C:'")
-            return real_relpath(path, start)
-
-        monkeypatch.setattr(os.path, "relpath", refuses_for_elsewhere)
-        assert run([str(plain), str(elsewhere), "--baseline", "HEAD"]) == 2
-        err = capsys.readouterr().err
-        assert "is not in" in err and "another volume" in err, err
-
-    def test_accepts_a_tracked_link_counted_once_and_not_deleted(self, linked, capsys):
-        """One record, two paths: counting both doubles its open items,
-        dropping one from the presence check reports it deleted, and reading
-        the link's own blob at the base leaves the record uncompared (#19)."""
-        assert run([str(linked), "--baseline", "HEAD"]) == 0
+    def test_accepts_a_tracked_link_counted_once(self, linked, capsys):
+        """One record, two paths: counting both doubles its open items
+        (#19)."""
+        assert run([str(linked)]) == 0
         out = capsys.readouterr().out
         tally = [ln for ln in out.split("\n") if ln.startswith("1 closing memos")]
         assert len(tally) == 1 and " 2 open " in tally[0], out
-        assert "not compared" not in out and "left the record" not in out, out
-
-    @pytest.mark.parametrize("scanned", ["the tree", "the link's directory alone"])
-    def test_refuses_a_row_deleted_through_a_tracked_link_naming_the_real_file(
-        self, linked, tmp_path, monkeypatch, capsys, scanned
-    ):
-        """#19: the path kept was the first in sort order, so a link sorting
-        before its target, or standing alone under the scanned path, had its
-        own blob read at the base, and a deleted row passed with exit 0. Both
-        sides read the real file now, and the line names it."""
-        d = copy_of(linked, tmp_path)
-        drop_line(d / "specs" / WORK / "gaps.md", WINDOWS)
-        where = d if scanned == "the tree" else d / "specs" / link_of(d)
-        monkeypatch.chdir(d)
-        assert run([str(where), "--baseline", "HEAD"]) == 1
-        out = capsys.readouterr().out
-        assert "2 rows at HEAD, 1 here" in out, out
-        named = [os.path.basename(os.path.dirname(p)) for p in reported_paths(out)]
-        assert named == [WORK], out
-
-    @pytest.mark.parametrize(
-        "name",
-        [OTHER, "1779999999-link"],
-        ids=["the link sorts after its target", "the link sorts before its target"],
-    )
-    def test_refuses_a_memo_replaced_by_a_link_to_one_holding_fewer_rows(
-        self, tmp_path, monkeypatch, capsys, name
-    ):
-        """A memo that was a file at the base and is a link here held its own
-        rows there. With only the real path kept, nothing read the base at the
-        link's path, and its rows left with exit 0 in either order; before
-        #19's change they were compared only where the link sorted first.
-        They are compared with what the link reads now, under its own path."""
-        one_row = CANONICAL.replace(WINDOWS + "\n", "")
-        d = _committed(
-            tmp_path,
-            {
-                f"specs/{WORK}/gaps.md": memo(one_row),
-                f"specs/{name}/gaps.md": memo(CANONICAL, name),
-            },
-        )
-        os.remove(d / "specs" / name / "gaps.md")
-        symlink_or_skip(
-            os.path.join("..", WORK, "gaps.md"), str(d / "specs" / name / "gaps.md")
-        )
-        monkeypatch.chdir(d)
-        assert run([str(d), "--baseline", "HEAD"]) == 1
-        out = capsys.readouterr().out
-        assert "2 rows at HEAD, 1 here" in out, out
-        named = [os.path.basename(os.path.dirname(p)) for p in reported_paths(out)]
-        assert named == [name], out
-
-    @pytest.mark.parametrize("named", ["the tree", "the link"])
-    @pytest.mark.parametrize("volume", ["this volume", "another volume"])
-    def test_accepts_a_link_to_a_file_beyond_the_repository_as_not_compared(
-        self, tmp_path, monkeypatch, capsys, volume, named
-    ):
-        """#19: with the real path kept, a link's target outside the
-        repository is a path no commit holds; `show` answered None and the
-        file left the report in silence. Its open rows are read, and it is
-        named with the reason that is true. On another volume it has no
-        relative form at all, induced so every leg runs it. The link named
-        itself has no real spelling in the repository there either, and the
-        base is asked under the spellings it has."""
-        d = _committed(tmp_path, {f"specs/{WORK}/gaps.md": memo(CANONICAL)})
-        write(tmp_path, "beyond/gaps.md", memo(CANONICAL, OTHER))
-        (d / "specs" / OTHER).mkdir()
-        symlink_or_skip(
-            str(tmp_path / "beyond" / "gaps.md"), str(d / "specs" / OTHER / "gaps.md")
-        )
-        commit_everything_as_e(d, "a link out of the repository")
-        if volume == "another volume":
-            real_relpath = os.path.relpath
-
-            def refuses_beyond(path, start=None):
-                if os.path.basename(os.path.dirname(str(path))) == "beyond":
-                    raise ValueError("path is on mount 'D:', start on mount 'C:'")
-                return real_relpath(path, start)
-
-            monkeypatch.setattr(os.path, "relpath", refuses_beyond)
-        monkeypatch.chdir(d)
-        given = d if named == "the tree" else d / "specs" / OTHER / "gaps.md"
-        assert run([str(given), "--baseline", "HEAD"]) == 0
-        out = capsys.readouterr().out
-        memos = "2 closing memos · 4" if named == "the tree" else "1 closing memos · 2"
-        assert f"{memos} open" in out, out
-        named = out.split("not compared against HEAD:")[1]
-        said = (
-            "not compared: the file lies outside the repository, so no commit "
-            "of the repository holds it"
-        )
-        assert "beyond" in named and said in named, out
-
-    @pytest.mark.parametrize("change", ["a row", "a file"])
-    def test_refuses_a_deletion_reached_through_a_linked_path(
-        self, plain, tmp_path, change
-    ):
-        """`git rev-parse --show-toplevel` answers with links resolved, so a
-        tree reached through one matched no line of the listing and both
-        comparisons passed."""
-        d = copy_of(plain, tmp_path)
-        symlink_or_skip(str(d), str(tmp_path / "link"))
-        if change == "a row":
-            drop_line(d / "specs" / WORK / "gaps.md", WINDOWS)
-        else:
-            os.remove(d / "specs" / WORK / "gaps.md")
-        assert run([str(tmp_path / "link"), "--baseline", "HEAD"]) == 1
-
-    @pytest.mark.parametrize(
-        "tracked, named",
-        [(True, "view"), (False, "view"), (False, f"view/{WORK}/gaps.md")],
-        ids=[
-            "a tracked link",
-            "a link of this checkout",
-            "the deleted memo named through the link",
-        ],
-    )
-    def test_refuses_a_memo_deleted_behind_a_link_inside_the_repository(
-        self, tmp_path, monkeypatch, capsys, tracked, named
-    ):
-        """`ls-tree` lists nothing through a link, so the base is read under
-        each spelling of the path, the real one among them, and a memo
-        deleted behind a link inside the repository is reported as it was
-        before #1225. Named itself, the memo was a mistyped path with nothing
-        under it at the base, though the base held it."""
-        d = _committed(
-            tmp_path,
-            {
-                f"specs/{WORK}/gaps.md": memo(CANONICAL),
-                f"specs/{WORK}/keep.txt": "kept\n",
-                f"specs/{OTHER}/gaps.md": memo(CANONICAL, OTHER),
-            },
-        )
-        symlink_or_skip("specs", str(d / "view"), directory=True)
-        if tracked:
-            commit_everything_as_e(d, "the link")
-        os.remove(d / "specs" / WORK / "gaps.md")
-        monkeypatch.chdir(d)
-        assert run([named, "--baseline", "HEAD"]) == 1
-        out = capsys.readouterr().out
-        assert "present at HEAD and not here" in out, out
-        reported = [UC.git_path(p) for p in reported_paths(out)]
-        assert reported == [f"specs/{WORK}/gaps.md"], out
-
-    @pytest.mark.parametrize("shape", list(NAMED_LINK))
-    def test_refuses_a_row_lost_through_a_link_the_person_names(
-        self, tmp_path, monkeypatch, capsys, shape
-    ):
-        """#1225: the argument was read through `real()`, so a named link
-        reached the scan as its target's path. Nothing read the base at the
-        path as named, and the rows it held there left with exit 0. They are
-        compared with what that path reads now, and the line names it."""
-        d, named = a_named_link(tmp_path, shape, lost=True)
-        monkeypatch.chdir(d)
-        assert run([str(named), "--baseline", "HEAD"]) == 1
-        out = capsys.readouterr().out
-        assert "2 rows at HEAD, 1 here" in out, out
-        reported = [UC.git_path(p) for p in reported_paths(out)]
-        assert reported == [f"specs/{OTHER}/gaps.md"], out
-
-    def test_refuses_a_row_lost_under_a_named_link_loop_as_real_reads_it(
-        self, tmp_path, monkeypatch, capsys
-    ):
-        """`loop -> loop/..` leads nowhere the walk can enter, so a named loop
-        is read as `real` reads it, as before #1225. Kept as named, the scan
-        read nothing under it, and the base's memo under its real spelling
-        was reported deleted though it is there."""
-        d = _committed(tmp_path, {f"specs/{WORK}/gaps.md": memo(CANONICAL)})
-        write(d, f"specs/{WORK}/gaps.md", memo(CANONICAL.replace(WINDOWS + "\n", "")))
-        symlink_or_skip(os.path.join("loop", os.pardir), str(d / "specs" / "loop"))
-        monkeypatch.chdir(d)
-        assert run([os.path.join("specs", "loop"), "--baseline", "HEAD"]) == 1
-        out = capsys.readouterr().out
-        assert "2 rows at HEAD, 1 here" in out and "not here" not in out, out
-
-    def test_refuses_a_row_lost_through_a_named_link_out_of_every_repository(
-        self, tmp_path, monkeypatch, capsys
-    ):
-        """#1225: the repository was looked up from the link's target, which
-        is in none, so the run exited 2 saying the path was in no repository,
-        though the link stands in one. The link's own path is compared there,
-        and the target, which no commit holds, is named as not compared."""
-        d = _committed(tmp_path, {f"specs/{OTHER}/gaps.md": memo(CANONICAL, OTHER)})
-        write(tmp_path, "beyond/gaps.md", memo(CANONICAL.replace(WINDOWS + "\n", "")))
-        named = d / "specs" / OTHER / "gaps.md"
-        os.remove(named)
-        symlink_or_skip(str(tmp_path / "beyond" / "gaps.md"), str(named))
-        monkeypatch.chdir(d)
-        assert run([str(named), "--baseline", "HEAD"]) == 1
-        out = capsys.readouterr().out
-        left = out.split("rows left the record without being closed:")[1]
-        assert "2 rows at HEAD, 1 here" in left, out
-        reported = [UC.git_path(p) for p in reported_paths(left)]
-        assert reported == [f"specs/{OTHER}/gaps.md"], out
-        uncompared = out.split("not compared against HEAD:")[1].split("rows left")[0]
-        said = (
-            "not compared: the file lies outside the repository, so no commit "
-            "of the repository holds it"
-        )
-        assert "beyond" in uncompared and said in uncompared, out
-
-    @pytest.mark.parametrize(
-        "shape",
-        ["a file link", "a directory link", "a linked tree holding a file link"],
-    )
-    def test_accepts_a_link_the_person_names_that_lost_no_row(
-        self, tmp_path, capsys, shape
-    ):
-        """The base lists the memo under one spelling of the path, and the
-        scan counts it under each, so nothing reads as deleted; the target
-        holds the two rows the base held there."""
-        _repo, named = a_named_link(tmp_path, shape, lost=False)
-        assert run([str(named), "--baseline", "HEAD"]) == 0
-        out = capsys.readouterr().out
-        assert "left the record" not in out and "not compared" not in out, out
-
-    # `--baseline` at a base written before the corpus was normalised.
-
-    def test_accepts_a_base_written_before_the_word_and_names_one_it_cannot_read(
-        self, legacy, tmp_path, capsys
-    ):
-        """A base revision written before this normalisation is still a
-        countable record: the old heading and column, the old mark, the old
-        `none` line, and a looser heading beside the canonical one, which
-        wins. Read as a refusal, every base before the word would go
-        uncompared, and a row deleted against it would pass. A base no reader
-        can read is not counted as zero and is no error either, since nobody
-        can edit a commit: it is named, and the tally counts it."""
-        d = copy_of(legacy, tmp_path)
-        trees = {
-            "1780000020-old-heading": CANONICAL,
-            "1780000021-old-mark": CANONICAL.replace("| whether", "| closed whether"),
-            "1780000022-prose": CANONICAL,
-            "1780000024-hidden-separator": CANONICAL,
-            "1780000025-none-line": "## Not verified\n\n- nothing\n  why: x\n",
-        }
-        for name, tree in trees.items():
-            write(d, f"specs/{name}/gaps.md", memo(tree, name))
-        assert run([str(d / "specs"), "--baseline", "HEAD"]) == 0
-        out = capsys.readouterr().out
-        named = out.split("not compared against HEAD:")[1]
-        assert [n for n in LEGACY if n in named] == [
-            "1780000022-prose",
-            "1780000024-hidden-separator",
-        ], out
-        assert "found prose" in named and "2 not compared" in out
-
-    def test_refuses_a_row_deleted_against_a_base_written_before_the_word(
-        self, legacy, tmp_path, capsys
-    ):
-        """The base is compared, so a row deleted against it fails, and the
-        working tree is held to the exact header and the word."""
-        d = copy_of(legacy, tmp_path)
-        names = ["1780000020-old-heading", "1780000021-old-mark"]
-        for name in names:
-            tree = memo(CANONICAL.replace(WINDOWS + "\n", ""), name)
-            write(d, f"specs/{name}/gaps.md", tree)
-        assert run([str(d / "specs" / n) for n in names] + ["--baseline", "HEAD"]) == 1
-        assert capsys.readouterr().out.count("2 rows at HEAD, 1 here") == 2
-        for name in names:
-            tree = memo(LEGACY[name].replace(" (who must answer)", ""))
-            assert UC.check_text(tree)[2], name
-
-    # `--baseline` against a base that moved after the fork (#272).
-
-    @pytest.mark.parametrize("ref", ["base", "gained"])
-    @pytest.mark.rule("one-merge-base")
-    def test_a_work_item_squashed_after_the_fork_is_not_this_branchs_removal(
-        self, forked, capsys, ref
-    ):
-        """A file or a row that arrived on the base after the fork is not
-        this branch's business. The merge base is the last commit this
-        branch and the base agreed on, so a file present there and absent
-        here was removed by this branch; on 0.9.2 three of four branches read
-        a squashed sibling's overview as rows that left the record."""
-        assert run([str(forked), "--baseline", ref]) == 0
-        out = capsys.readouterr().out
-        assert "left the record" not in out and "squashed-sibling" not in out, out
-
-    def test_refuses_this_branchs_own_deletion_under_a_moved_base(
-        self, forked, tmp_path, capsys
-    ):
-        """The control: a moved base excuses nothing this branch did, and
-        the refusal names the merge base it compared, not the ref."""
-        d = copy_of(forked, tmp_path)
-        os.remove(d / "specs" / WORK / "gaps.md")
-        assert run([str(d), "--baseline", "base"]) == 1
-        out = capsys.readouterr().out
-        short = git_out(d, "rev-parse", "HEAD")[:7]
-        assert (
-            f"present at the merge-base of base and HEAD ({short}) and not here" in out
-        )
-        assert "squashed-sibling" not in out, out
-
-    def test_refuses_a_deleted_row_under_a_moved_base(self, forked, tmp_path, capsys):
-        d = copy_of(forked, tmp_path)
-        drop_line(d / "specs" / WORK / "gaps.md", WINDOWS)
-        assert run([str(d), "--baseline", "base"]) == 1
-        assert "2 rows at the merge-base of base and HEAD" in capsys.readouterr().out
-
-    def test_refuses_a_deletion_naming_a_ref_that_is_the_merge_base_alone(
-        self, forked, tmp_path, capsys
-    ):
-        d = copy_of(forked, tmp_path)
-        os.remove(d / "specs" / WORK / "gaps.md")
-        assert run([str(d), "--baseline", "fork"]) == 1
-        out = capsys.readouterr().out
-        assert "present at fork and not here" in out and "merge-base" not in out
-
-    def test_refuses_a_base_with_no_history_and_a_path_only_its_tip_holds(
-        self, forked, capsys
-    ):
-        """A comparison against nothing is not a comparison, and a path the
-        fork point never held is a mistyped argument from this branch,
-        whatever the base's tip carries now."""
-        assert run([str(forked), "--baseline", "unrelated"]) == 2
-        err = capsys.readouterr().err
-        assert "share no history" in err and "nothing was compared" in err, err
-        assert run([str(forked / "specs" / SIBLING), "--baseline", "base"]) == 2
-        assert "no such path" in capsys.readouterr().err
-
-    @pytest.mark.parametrize(
-        "word, says",
-        [("merge-base", "share no history"), ("--verify", "does not resolve")],
-    )
-    def test_refuses_a_git_that_answers_with_nothing(
-        self, forked, monkeypatch, capsys, word, says
-    ):
-        """An empty answer is no revision, and an empty string reaching the
-        listing lists nothing: the silent zero, reached through the one path
-        no fixture drives."""
-        answering(monkeypatch, word, "\n")
-        assert run([str(forked), "--baseline", "base"]) == 2
-        assert says in capsys.readouterr().err
-
-    # `--baseline` and a settle, which removes a directory whole.
-
-    @pytest.mark.rule("a-settle-is-no-deletion")
-    def test_a_settled_work_item_is_not_read_as_this_branchs_deletion(
-        self, settle, tmp_path, capsys
-    ):
-        """S6 of #1033: a directory that stood at the merge base and is gone
-        whole is a settle and not this branch's deletion, whatever its record
-        held there and whatever `docs/` holds of its spec: an open row, a rule
-        `docs/` does not hold, a spec an earlier commit dropped, a section
-        that does not parse, a spec with no section, and no spec. It is named
-        rather than passed over in silence, in the line a person reads in the
-        hygiene workflow's output."""
-        d = copy_of(settle, tmp_path)
-        removed = [OPEN_ITEM, SETTLE_A, DROPPED, SETTLE_BAD, SETTLE_C, CLOSED_ITEM]
-        for name in removed:
-            shutil.rmtree(d / "specs" / name)
-        assert run([str(d), "--baseline", "HEAD"]) == 0
-        out = capsys.readouterr().out
-        assert "present at HEAD and not here" not in out, out
-        named = out.split("not deleted from the record:")[1]
-        assert "6 settled" in out and all(n in named for n in removed), out
-        assert (
-            "settled: the directory stood at HEAD and is gone whole, which "
-            "reads as a settle"
-        ) in " ".join(out.split())
-        # A path whose every overview a settle removed reads no overview and
-        # is still no empty scan.
-        assert run([str(d / "specs" / SETTLE_C), "--baseline", "HEAD"]) == 0
-
-    @pytest.mark.rule("a-settle-is-no-deletion")
-    def test_a_squash_that_closes_and_removes_a_directory_is_a_settle(
-        self, settle, tmp_path, capsys
-    ):
-        """S7 of #1033, the release pull request: the base holds the
-        directory with its rows open, and one squash commit on the head
-        removed it whole. Asked at that base, the directory is settled."""
-        d = copy_of(settle, tmp_path)
-        git(d, "branch", "release-base")
-        git(d, "rm", "-rq", f"specs/{OPEN_ITEM}")
-        commit_everything_as_e(d, "the settle, squashed")
-        assert run([str(d), "--baseline", "release-base"]) == 0
-        out = " ".join(capsys.readouterr().out.split())
-        assert "1 settled" in out and OPEN_ITEM in out, out
-        assert "and not here" not in out, out
-
-    def test_refuses_a_removal_no_settle_explains(self, settle, tmp_path, capsys):
-        """S8: a memo deleted from a directory that stays is a deletion
-        whatever the predicate would say, open rows or closed, and each is
-        named. Since #1033 a directory removed whole is a settle, so an open
-        row and a dropped spec no longer make one a deletion, and the message
-        names the one shape left: the directory still stands. A renamed
-        directory is gone whole from its old path, so the message says nothing
-        of a rename."""
-        d = copy_of(settle, tmp_path)
-        os.remove(d / "specs" / OPEN_ITEM / "gaps.md")
-        os.remove(d / "specs" / CLOSED_ITEM / "gaps.md")
-        assert run([str(d), "--baseline", "HEAD"]) == 1
-        out = capsys.readouterr().out
-        lines = [ln for ln in out.split("\n") if "present at HEAD and not here" in ln]
-        for name in (OPEN_ITEM, CLOSED_ITEM):
-            assert sum(name in ln for ln in lines) == 1, (name, out)
-        for ln in lines:
-            assert "its directory still stands, so this is no settle" in ln, out
-        assert "settled" not in out and "renamed" not in out, out
-
-    def test_refuses_to_decide_a_removal_without_the_one_predicate(
-        self, settle, tmp_path, monkeypatch
-    ):
-        """The reader calls `settled` rather than re-deriving it, so the next
-        condition added to the predicate reaches this reader too."""
-        d = copy_of(settle, tmp_path)
-        shutil.rmtree(d / "specs" / CLOSED_ITEM)
-        asked = []
-        monkeypatch.setattr(
-            UC,
-            "settled",
-            lambda root, ref, dirs: asked.extend(dirs) or set(),
-        )
-        assert run([str(d), "--baseline", "HEAD"]) == 1
-        assert asked == [f"specs/{CLOSED_ITEM}"], asked
 
     @pytest.mark.rule("an-empty-root-is-settled")
     @pytest.mark.parametrize("keep_empty_dir", [True, False], ids=["empty", "absent"])
-    @pytest.mark.parametrize("baseline", [True, False], ids=["baseline", "plain"])
     def test_the_roots_own_specs_path_is_settled_when_nothing_is_under_it(
-        self, sealed, tmp_path, capsys, keep_empty_dir, baseline
+        self, sealed, tmp_path, capsys, keep_empty_dir
     ):
-        """G7: every pull request after a complete fold runs
-        `--baseline origin/<base> seal/threads/`, and the path holds nothing at
-        HEAD and held no overview at the merge base. That was a typo, exit 2,
-        so every such pull request went red."""
+        """G7: after a complete settle the root's own `seal/threads/` holds
+        nothing, or is gone because git keeps no empty directory, and a run
+        handed that path reads it as settled, not as a typo. The line says
+        there is nothing to read and claims nothing about what left."""
         d = sealed
         if keep_empty_dir:
             d = copy_of(sealed, tmp_path)
             (d / "seal" / "threads").mkdir()
-        argv = [str(d / "seal" / "threads")] + (
-            ["--baseline", "HEAD"] if baseline else []
-        )
-        assert run(argv) == 0
+        assert run([str(d / "seal" / "threads")]) == 0
         out = capsys.readouterr()
-        assert "holds no work item" in out.out + out.err, out
+        said = " ".join((out.out + out.err).split())
+        assert (
+            "holds no work item and its `seal/` root is there — the state a "
+            "complete settle ends in, so there is nothing to read"
+        ) in said, said
+        assert "left the record" not in said, said
 
-    @pytest.mark.parametrize("baseline", [True, False], ids=["baseline", "plain"])
-    def test_refuses_any_other_missing_path_as_a_typo(self, sealed, capsys, baseline):
-        argv = [str(sealed / "seal" / "spces")] + (
-            ["--baseline", "HEAD"] if baseline else []
-        )
-        assert run(argv) == 2
+    def test_refuses_any_other_missing_path_as_a_typo(self, sealed, capsys):
+        assert run([str(sealed / "seal" / "spces")]) == 2
         assert "no such path" in capsys.readouterr().err
 
     # A pull request that declares nothing owes nothing (#952).
 
     @pytest.mark.rule("nothing-declared-nothing-owed")
-    @pytest.mark.parametrize("baseline", [True, False], ids=["baseline", "plain"])
-    def test_accepts_no_root_in_the_tree_and_compares_nothing_against_the_base(
-        self, joined, tmp_path, capsys, baseline
-    ):
+    def test_accepts_no_root_in_the_tree(self, joined, tmp_path, capsys):
         """S6: the pull request that moves a root to local mode with the
         workflow kept takes every overview out of the tree. With no root
-        there nothing is declared, so the base is not read and the move is
-        not this branch's deletion."""
+        there nothing is declared, and the line says there is no record to
+        read."""
         d = copy_of(joined, tmp_path)
         shutil.rmtree(d / "seal")
-        argv = [str(d / "seal" / "threads")] + (
-            ["--baseline", "HEAD"] if baseline else []
-        )
-        assert run(argv) == 0
+        assert run([str(d / "seal" / "threads")]) == 0
         out = capsys.readouterr()
         said = " ".join((out.out + out.err).split())
-        assert "has no `seal/` root in this tree" in said, said
-        assert "present at HEAD" not in said and "open: 0" not in said, said
+        assert (
+            "has no `seal/` root in this tree, so nothing here is declared: "
+            "there is no record to read. A root in local mode"
+        ) in said, said
+        assert "open: 0" not in said, said
 
     @pytest.mark.rule("nothing-declared-nothing-owed")
-    @pytest.mark.parametrize("baseline", [True, False], ids=["baseline", "plain"])
     def test_accepts_work_items_none_of_which_opened_a_closing_memo(
-        self, unwritten, capsys, baseline
+        self, unwritten, capsys
     ):
         """S6: every work item that never opened an `gaps.md` holds no
         row to read, and that was exit 2, `nothing was checked`."""
-        argv = [str(unwritten / "seal" / "threads")] + (
-            ["--baseline", "HEAD"] if baseline else []
-        )
-        assert run(argv) == 0
+        assert run([str(unwritten / "seal" / "threads")]) == 0
         out = capsys.readouterr()
         said = " ".join((out.out + out.err).split())
         assert "none of them carries an `gaps.md`" in said, said
         assert "open: 0" not in said, said
 
     @pytest.mark.rule("nothing-declared-nothing-owed")
-    def test_refuses_a_memo_deleted_from_a_work_item_that_stays(
-        self, joined, tmp_path, capsys
-    ):
-        """The second state holds only where the base comparison found
-        nothing deleted: a root whose last overview left is still a
-        deletion."""
-        d = copy_of(joined, tmp_path)
-        os.remove(d / OURS / "gaps.md")
-        write(d, f"{OURS}/frame/design.md", "# a spec\n")
-        assert run([str(d / "seal" / "threads"), "--baseline", "HEAD"]) == 1
-        assert "present at HEAD and not here" in capsys.readouterr().out
-
-    @pytest.mark.rule("nothing-declared-nothing-owed")
-    @pytest.mark.parametrize("baseline", [True, False], ids=["baseline", "plain"])
-    def test_refuses_a_missing_root_below_the_top_level_as_a_typo(
-        self, sealed, capsys, baseline
-    ):
+    def test_refuses_a_missing_root_below_the_top_level_as_a_typo(self, sealed, capsys):
         """Absence is read at the working tree's top level only, so a
         `seal/threads` typed from the wrong directory still names nothing."""
-        argv = [str(sealed / "seal" / "seal" / "threads")] + (
-            ["--baseline", "HEAD"] if baseline else []
-        )
-        assert run(argv) == 2
+        assert run([str(sealed / "seal" / "seal" / "threads")]) == 2
         assert "no such path" in capsys.readouterr().err
 
     # A team's own `specs/` is read as history and never checked (#688).
 
     def test_accepts_a_walk_from_the_root_leaving_a_team_specs_out(
-        self, joined, tmp_path, capsys
+        self, joined, capsys
     ):
-        """D2: the team's unreadable overview fails nothing, and a team
-        removing its own overview is not a record this branch deleted."""
+        """D2: the team's unreadable overview fails nothing."""
         assert run([str(joined)]) == 0
         out = capsys.readouterr().out
         assert "1790000000-ours" in out and "team-thing" not in out, out
-        d = copy_of(joined, tmp_path)
-        os.remove(d / TEAM / "gaps.md")
-        assert run([str(d), "--baseline", "HEAD"]) == 0
 
-    def test_refuses_a_team_overview_the_person_names(self, joined, tmp_path, capsys):
+    def test_refuses_a_team_overview_the_person_names(self, joined):
         """A person who names the file, or the directory it sits in, has
-        asked for it, on both sides of the comparison."""
+        asked for it."""
         assert run([str(joined / TEAM / "gaps.md")]) == 1
         assert run([str(joined / "specs")]) == 1
-        d = copy_of(joined, tmp_path)
-        os.remove(d / TEAM / "gaps.md")
-        capsys.readouterr()
-        assert run([str(d / "specs"), "--baseline", "HEAD"]) == 1
-        assert "team-thing" in capsys.readouterr().out
 
     def test_refuses_nothing_less_in_a_copy_with_no_hooks_beside_it(
         self, joined, tmp_path, monkeypatch
     ):
         """A copy taken alone reads every overview, as it did before
-        reference roots existed, the walk and the base alike."""
+        reference roots existed."""
         monkeypatch.setattr(UC, "HOOKS", str(tmp_path / "no-hooks-here"))
         assert run([str(joined)]) == 1
-        assert run([str(joined), "--baseline", "HEAD"]) == 1
 
 
 class Test_module:
