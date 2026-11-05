@@ -181,14 +181,18 @@ def extract(rev, paths, into):
     A REV git does not resolve, a PATH REV does not hold, and a file already
     standing where one is written stop the run. So does a member that would
     land outside INTO, since `read-tree` refuses a tree entry that leaves
-    it."""
+    it.
+
+    INTO reaches git spelt with `/`: `checkout-index` creates each missing
+    directory of a path at its `/` and at no other separator, so a Windows
+    INTO spelt with `\\` that does not yet exist is never created."""
     with tempfile.TemporaryDirectory() as work:
         index = os.path.join(work, "index")
         git_bytes("read-tree", rev, index=index)
         names = git_bytes(
             "ls-files", "-z", "--error-unmatch", "--", *paths, index=index
         )
-        prefix = os.path.join(os.path.abspath(into), "")
+        prefix = os.path.join(os.path.abspath(into), "").replace(os.sep, "/")
         git_bytes(
             "checkout-index", "-z", "--stdin", f"--prefix={prefix}",
             index=index, stdin=names,
