@@ -258,8 +258,8 @@ def test_pasting_a_section_body_back_into_a_definition_is_caught(path, number):
 # failure this module opens with.
 #
 # Named by CONTENT, never by the line range the frame measured them at. The
-# waiver example sits inside that range and is one of the kept applications
-# this module's docstring names, so a removal keyed on lines takes it too.
+# waiver example, then a kept application, sat inside that range, so a
+# removal keyed on lines would have taken it too.
 CRAFTER = os.path.join(ROOT, "agents", "crafter.md")
 
 MOVED_OUT_OF_CRAFTER = {
