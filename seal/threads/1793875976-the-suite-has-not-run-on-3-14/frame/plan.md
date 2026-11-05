@@ -4,9 +4,9 @@
 
 The base tree is `release/v0.32.5` at `a73e0b8c`, with `routing.md` on top at `e925d585` (the spawn's fact, executed by the orchestrator; `git log --oneline -3` here shows the same). A G-number is a row of `frame/design.md` *Grounding*, and a Scope number an item of its *Scope*.
 
-- `.github/workflows/test.yml#pytest` holds eight `include:` entries at 3.12 that share one set of steps. `durations` and `release-report` need the job, and `fail-fast` is `false` (`frame/design.md` G5).
+- At that base, `.github/workflows/test.yml#pytest` holds eight `include:` entries at 3.12 that share one set of steps. `durations` and `release-report` need the job, and `fail-fast` is `false` (`frame/design.md` G5).
 - `tests/text/test_ci_gives_the_checks_what_they_need.py#matrix_include_entries` is the suite's one reader of the entries. It requires `include:` to be the matrix's only key and each entry to be a one-line flow mapping. So a leg is added as one more entry, and a per-entry condition such as `if:` or `exclude:` is not available to it.
-- `tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py#test_ci_runs_the_suite_at_the_floor_the_runner_holds` turns red on any entry above the floor, and is rewritten (Scope 2).
+- `tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py#test_ci_runs_the_suite_at_the_floor_the_runner_holds` turned red at that base on any entry above the floor, and Scope 2 rewrites it.
 - `.github/scripts/release_report.py#leg_minutes` keys a leg by operating system alone (`frame/design.md` G9).
 - The leg runs where every other `pytest` leg runs: on each `pull_request`, on a push to `main`, and on `workflow_dispatch`, which the orchestrator uses before the pull request opens (G10).
 
@@ -49,4 +49,5 @@ The base tree is `release/v0.32.5` at `a73e0b8c`, with `routing.md` on top at `e
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-05 | Folded phase 1's contradicted statements: design *Grounding* is labelled as the tree at `a73e0b8c`, *Technical context*'s two bullets on the matrix and the floor case say "at that base", and G12's package-index URL is written in words | At HEAD the matrix holds a 3.14 entry and the floor case reads each operating system, so the base's description needs its label; the URL's domain failed `tests/test_censuses.py`'s real-identifier census. A frame change is the orchestrator's to fold from the crafter's account | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |
+| 2026-11-05 | Phase 1 builds on `frame/questions.md` Q1's default, 3.14; the owner was told the question and the default after routing | Routing is Automation yes, so no question to a person follows the routing answer; changing the version later is one matrix line | `skills/core/SKILL.md` *The first value: efficient development through the workflow*, the invariants table's routing row |
