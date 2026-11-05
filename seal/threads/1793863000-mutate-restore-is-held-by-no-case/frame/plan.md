@@ -43,4 +43,4 @@ None for a deployer. No interface, dependency or environment variable changes. O
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-05 | Folded phase 1's one contradicted statement: design *Grounding*'s #1393 row now cites #1393's frame at `4a3ed47c`, the squash on `release/v0.32.5`, instead of the branch commit `868dc7bf` | #1394's squash left `868dc7bf` on no main or release ref, so `test_every_cited_commit_outlives_the_squash` refused the row; I read the frame at `4a3ed47c` and its *Scope* items 1 and 2 and its out-of-scope line on #706 still say what the row quotes | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |
