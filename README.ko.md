@@ -311,13 +311,13 @@ lint-python 은 방금 저장한 `.py` 파일을 고쳐 쓰며, ruff 를 설정�
 네트워크를 타는 훅은 lint-python 과 version-check 입니다. lint-python 은 먼저
 `uv run ruff` 를 시도합니다. `pyproject.toml` 에 `[project]` 테이블이 있는
 프로젝트라면 이때 uv 가 그 프로젝트의 의존성을 설치하고, 캐시에 없는 것은
-PyPI 에서 내려받습니다. 그 프로젝트의 `requires-python` 을 만족하는 Python 이
-컴퓨터에 없으면 uv 가 먼저 GitHub 에서 Python 을 내려받습니다. lint-python 이
-`uvx ruff` 로 넘어가면 uv 가 처음 한 번 PyPI 에서 ruff 를 내려받습니다.
-version-check 는 `seal/` 이 있는 곳에서 하루에 한 번 이 저장소에
-`git ls-remote --tags` 를 보내고, 이때 GitHub 은 어딘가의 기계가 AgenticSeal 을
-쓴다는 것을 알게 됩니다. 어느 훅이든 네트워크가 없으면 아무 말 없이
-넘어갑니다.
+PyPI 에서 내려받습니다. 프로젝트가 `.python-version` 파일이나
+`requires-python` 등으로 요구하는 Python 버전이 컴퓨터에 없으면 uv 가 먼저
+GitHub 에서 그 버전을 내려받습니다. lint-python 이 `uvx ruff` 로 넘어가면
+uv 가 처음 한 번 PyPI 에서 ruff 를 내려받습니다. version-check 는 `seal/` 이
+있는 곳에서 하루에 한 번 이 저장소에 `git ls-remote --tags` 를 보내고, 이때
+GitHub 은 어딘가의 기계가 AgenticSeal 을 쓴다는 것을 알게 됩니다. 어느
+훅이든 네트워크가 없으면 아무 말 없이 넘어갑니다.
 
 아래 자리도 네트워크를 탑니다. 이것들은 훅이 아니라 명령이나 워크플로의
 단계입니다. 그래서 사용자나 세션이 시작할 때 돌고, 마지막 행만은 pull request

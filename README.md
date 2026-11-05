@@ -308,10 +308,11 @@ hook in either mode, which nothing prunes either. lint-python rewrites the
 lint-python and version-check reach the network. lint-python first tries
 `uv run ruff`, and in a project whose `pyproject.toml` has a `[project]`
 table, uv then installs the project's dependencies, from PyPI where its cache
-lacks them. Where no Python on the machine satisfies that project's
-`requires-python`, uv first downloads one from GitHub. lint-python falls back
-to `uvx ruff`, and uv fetches ruff from PyPI on first use. version-check runs
-one `git ls-remote --tags` against this repository, once a day where `seal/`
+lacks them. Where a project asks for a Python version the machine does not
+have, such as through a `.python-version` file or `requires-python`, uv first
+downloads that version from GitHub. lint-python falls back to `uvx ruff`, and
+uv fetches ruff from PyPI on first use. version-check runs one
+`git ls-remote --tags` against this repository, once a day where `seal/`
 exists, which tells GitHub that a machine somewhere runs AgenticSeal. Each
 stays silent when the network is unavailable.
 
