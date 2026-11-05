@@ -20,7 +20,3 @@
   no local copy exists", is still true and no longer names lint-python's
   whole network reach. `frame/design.md` *Scope* keeps `CONTRIBUTING.md` out
   of this work, so it was left for the orchestrator to fold.
-- **`tests/hooks/test_version_check.py:1`** calls version-check "the one
-  hook that reaches the network", which the README contradicts. #238 edits
-  that file's docstring on another branch, so it was left for the
-  orchestrator to fold where the two branches meet.

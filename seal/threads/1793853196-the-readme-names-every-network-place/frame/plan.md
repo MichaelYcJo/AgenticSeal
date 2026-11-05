@@ -52,7 +52,7 @@ considered* is why no script holds it.
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | *Scope* 1, 2, 3 and 4 of `frame/design.md` | S1 to S7. Narrow runs of `tests/behaviour/test_chain_hooks_hardening.py`, `tests/behaviour/test_both_editions_carry_the_same_folds.py`, `tests/behaviour/test_docs_line_wrap.py`, `tests/text/test_no_passage_is_pasted_into_a_second_file.py` and `tests/behaviour/test_release_hygiene.py`. The widened case is seen red with one row deleted. The census re-run over `git archive HEAD` and the `git grep` of S7 are recorded in the phase record | 4569798a |
+| 1 | *Scope* 1, 2, 3 and 4 of `frame/design.md` | S1 to S7. Narrow runs of `tests/behaviour/test_chain_hooks_hardening.py`, `tests/behaviour/test_both_editions_carry_the_same_folds.py`, `tests/behaviour/test_docs_line_wrap.py`, `tests/text/test_no_passage_is_pasted_into_a_second_file.py` and `tests/behaviour/test_release_hygiene.py`. The widened case is seen red with one row deleted. The census re-run over `git archive HEAD` and the `git grep` of S7 are recorded in the phase record | 30961559 |
 
 ## Operational impact
 

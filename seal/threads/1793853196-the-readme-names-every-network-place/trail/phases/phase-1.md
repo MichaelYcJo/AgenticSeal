@@ -126,6 +126,16 @@ The only place the passage lacked was the `uv run` touch above.
 fetches ruff through `uvx` when no local copy exists". It is still true, and
 it no longer names lint-python's whole network reach. The frame keeps
 `CONTRIBUTING.md` out of this work (*Scope*, Out), so the hand-back names
-it. `tests/hooks/test_version_check.py:1` calls version-check "the one hook
-that reaches the network", which the README contradicts. #238 edits that
-file's docstring on another branch, so the hand-back names it too.
+it.
+
+**A commit after the phase closed: `30961559`.** The hand-back also named
+`tests/hooks/test_version_check.py:1`, "version-check — the one hook that
+reaches the network", which the README contradicts. The orchestrator folded
+it into *Scope* 4 at `9dc97c37` (`frame/plan.md` *Judgments of the run*),
+with #238 rewriting only lines 100 to 105 of that module. `30961559` changes
+line 1's sentence alone, the same way the hook's docstring changed: it now
+calls version-check "one of the network touches `README.md` lists".
+`bin/test tests/hooks/test_version_check.py -q` exited 0, and `ruff check`
+and `ruff format --check` on the file both exited 0 (executed). The change
+is to a test's docstring, which no release note states, so `changelog.md`
+is unchanged.
