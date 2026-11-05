@@ -633,6 +633,19 @@ class Test_git_bytes:
             NI.git_bytes("rev-parse", "--verify", "nowhere")
 
 
+def marked_repo(repo):
+    """A repository at REPO with one commit, whose `.gitattributes` marks
+    `/evals/` `export-ignore`, holding case c1 and one skill file."""
+    git(repo.parent, "init", "-q", repo.name)
+    write(repo, ".gitattributes", "/evals/ export-ignore\n")
+    write(repo, f"{CASE}/case.yaml", "name: c1\n")
+    write(repo, "skills/a/SKILL.md", "a\n")
+    git(repo, "add", "-A")
+    identity = ["-c", "user.email=t@example.com", "-c", "user.name=t"]
+    git(repo, *identity, "commit", "-qm", "marked")
+    return repo
+
+
 class Test_extract:
     def test_accepts_the_paths_named_and_the_whole_tree_for_none(
         self, suites, tmp_path
@@ -654,15 +667,7 @@ class Test_extract:
         """A revision whose `.gitattributes` marks `/evals/` `export-ignore`
         still gives its suite, and its whole tree, every file: `git archive`
         of a marked path exits 0 with nothing in it."""
-        repo = tmp_path / "repo"
-        git(repo.parent, "init", "-q", repo.name)
-        write(repo, ".gitattributes", "/evals/ export-ignore\n")
-        write(repo, f"{CASE}/case.yaml", "name: c1\n")
-        write(repo, "skills/a/SKILL.md", "a\n")
-        git(repo, "add", "-A")
-        identity = ["-c", "user.email=t@example.com", "-c", "user.name=t"]
-        git(repo, *identity, "commit", "-qm", "marked")
-        monkeypatch.setattr(NI, "ROOT", str(repo))
+        monkeypatch.setattr(NI, "ROOT", str(marked_repo(tmp_path / "repo")))
         NI.extract("HEAD", [NI.SUITE], str(tmp_path / "suite"))
         assert (tmp_path / "suite" / CASE / "case.yaml").read_text(
             encoding="utf-8"
@@ -673,6 +678,25 @@ class Test_extract:
             for p in (tmp_path / "all").rglob("*")
             if p.is_file()
         ) == [".gitattributes", f"{CASE}/case.yaml", "skills/a/SKILL.md"]
+
+    def test_leaves_the_repository_s_own_index_as_it_was(self, tmp_path, monkeypatch):
+        """REV is read into an index of the call's own, so a change staged
+        in ROOT is still staged after it."""
+        repo = marked_repo(tmp_path / "repo")
+        write(repo, "staged.md", "s\n")
+        git(repo, "add", "staged.md")
+        monkeypatch.setattr(NI, "ROOT", str(repo))
+        NI.extract("HEAD", [], str(tmp_path / "all"))
+        assert git(repo, "diff", "--cached", "--name-only").stdout == "staged.md\n"
+
+    def test_accepts_an_into_relative_to_the_caller(
+        self, suites, tmp_path, monkeypatch
+    ):
+        """git runs in ROOT, so a relative INTO is read from the caller's
+        directory before git is handed it."""
+        monkeypatch.chdir(tmp_path)
+        NI.extract(suites["own"], [], "rel")
+        assert (tmp_path / "rel" / CASE / "case.yaml").is_file()
 
     def test_refuses_a_rev_git_does_not_resolve(self, suites, tmp_path):
         with pytest.raises(SystemExit, match=r"^git read-tree"):
