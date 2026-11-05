@@ -375,15 +375,14 @@ closed and which only a reader catches: word such an item to open with
 another word. A bare `closed` with nothing after it is refused the same way a
 ticked checkbox is. No check at the pull request refuses a deleted row, or a
 deleted file: the proofer reads the closing memo's diff, where a row that left
-without the word `closed` shows, and `seal unverified --baseline
-origin/<base>`, run by a person, names each one. That reading is what keeps
-"I verified it" and "I tidied it away" from being the same edit.
+without the word `closed` shows, and so does a memo that left whole. That
+reading is what keeps "I verified it" and "I tidied it away" from being the
+same edit.
 
-What the command reads is the **number** of rows, not their text. So the second
-cell saying what closed the item is a convention it cannot enforce: swapping
-one row for another keeps the count and passes. Leaving the original answerer
-in place beside the word is how a closing goes out unproven, and only a
-reader catches it.
+No script reads what the second cell of a closed row says. So the second
+cell saying what closed the item is a convention no check enforces. Leaving
+the original answerer in place beside the word is how a closing goes out
+unproven, and only a reader catches it.
 
 Never record something as passing that you did not run. Findings from reading
 and findings from execution are labeled separately.
