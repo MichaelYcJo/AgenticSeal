@@ -6,12 +6,15 @@ application. Phases 3 and 4 did the moving. Nothing checked that it was a
 move.
 
 Without this module, contract rule 9's body pasted back into
-`agents/proofer.md` under a new heading leaves `test_broad_gate_rule`,
-`test_edits_go_through_the_edit_tool`, `test_every_agent_reads_the_contract`
-and `test_the_agent_contract_holds_the_universal_rules` all green. Every
-assertion in the two modules phases 1 and 2 wrote is a presence check, and
-the only absence checks in the tree were about the contract's own
-frontmatter. So the half of Q2 that says *the definition
+`agents/proofer.md` as a paragraph, or under a `###` heading, leaves
+`test_broad_gate_rule`, `test_edits_go_through_the_edit_tool`,
+`test_every_agent_reads_the_contract` and
+`test_the_agent_contract_holds_the_universal_rules` all green. Only a paste
+under a new `##` heading is caught there, by the list of `## ` headings
+`test_every_agent_reads_the_contract` holds each definition to (#957). When
+phases 1 and 2 wrote their two modules, every assertion in them was a
+presence check, and the only absence checks in the tree were about the
+contract's own frontmatter. So the half of Q2 that says *the definition
 keeps only its own application* had nothing behind it at all, and the tree
 could drift straight back to the state #107 opens with, one paste at a time,
 with a green suite the whole way.
