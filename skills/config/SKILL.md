@@ -1,0 +1,188 @@
+---
+name: config
+description: Show what this repository decided for itself and change any of it, such as the languages it writes in, where its records live, and the command its broad gate runs. Reads seal/config.md, and routes a change to whatever owns that row.
+disable-model-invocation: true
+---
+
+# /agentic:config, what this repository decided and how to decide otherwise
+
+`seal/config.md` holds what a repository says about itself. Every row but
+`Mode` and `Broad gate` has a default, and the table below says what each
+absent row means. A person runs this command to see
+every row and to change one; the session running it follows the procedure
+below. First setup asks its questions once and never again, and this command
+is how a person answers them again later.
+
+## Where the file is
+
+`<repo>/seal/config.md` where that directory exists with the marker
+(contract rule 11), and
+`$(git rev-parse --git-common-dir)/seal/config.md` otherwise: local mode,
+where the root sits under the common git directory. Resolve it that way rather
+than spelling the first place and stopping.
+
+**No root at either place** means this repository has not been set up. Say so,
+name the `implement` skill's bootstrap as what does it, and stop. Do not
+create the file: the root at one of those two places, with the README first
+setup copies from `templates/setup/seal-README.md`, is what opts a repository in, so
+a root is the bootstrap's to create, and a `seal/` made here without that
+README would read as the project's own directory.
+
+## Procedure
+
+**1. Show every row, present or not.** Read the file, and print every row of
+the table below with its current value, including the ones the file does not
+carry, with the default and where it comes from. A row a repository never set
+is the most likely one somebody wants to change, and showing only what is
+present hides exactly those.
+
+| Row | Default | What it governs |
+|---|---|---|
+| `Commit and pull request language` | English | the commit subject and body, the pull request title and body, and a review report posted as a pull-request comment |
+| `Record language` | English | the prose in `frame/design.md`, `frame/plan.md`, `gaps.md`, `frame/questions.md`, `changelog.md`, and a round record's cells |
+| `Mode` | *the folder decides* | which of the two places the root should live at |
+| `Broad gate` | *none: `seal gate` refuses without it* | the one shell command line `seal gate` runs once the review rounds settle: the full suite, the repository-wide lint, the typecheck |
+| `Document token ceiling` | *not declared: no length is checked* | the estimated tokens past which `seal fold` reports a document of the policy root or of one of its groups as one to split |
+| `Policy root` | `docs` | the directory of the ratified policy documents, which the settle writes |
+| `Reference specs` | *every directory named `specs` outside the root* | the directories this repository kept its own specifications in, which the plugin reads as history and never takes |
+| `Pact` | *none: no pact is held elsewhere* | the origin remote URL of the repository holding a pact this repository signs, several separated by `;` |
+| `Pull request seal mark` | *off: no mark* | whether `seal pr-body` writes the plugin's seal mark under the pull request body's `## From the records` heading once the work item is sealed at HEAD; `yes` turns it on |
+| `Release note seal mark` | *off: no image* | whether the release's `seal` job attaches the seal image and shows it beside the results in the release note's header; `yes` turns it on. Read only by this plugin's own release workflow, so a row in any other repository changes nothing |
+
+**Every way of not naming a language lands on English**: no file, no such
+row, an empty value, a file that does not parse. Say the default and the
+reason rather than showing a blank. **The `Broad gate` row has no default
+at all**: absent, `seal gate` names the row and exits 2 with nothing run,
+because what a command nobody chose reports proves nothing. Show it as absent
+and say what happens without it.
+
+**2. For the mode, show what is true as well as what is written.** That row is
+what the repository *wants*; the folder's location is what it *has*, and the
+two are separate on purpose. Run `seal mode` and report what it says: the
+folder, the row, and whether they agree. Do not read the row directly for
+this one: `seal mode` is what the pull-request checks run, and a second
+reader is a second answer. Then run `seal pr-checks` and report its line:
+whether `.github/workflows/hygiene.yml` is this plugin's, and the release it
+pins. No row records that; the file is the record.
+
+**3. Take a change, and route it.**
+
+- **A language row, or the `Broad gate` row,** is only a row. Edit the value
+  in place, leaving the rest of the file as it is. Where the file carries no
+  such row at all (the stub `seal mode` writes has only `Mode`, and that is
+  every repository that has set its mode), copy from
+  `$CLAUDE_PLUGIN_ROOT/templates/setup/config.md` the row **with its `## Broad
+  gate` section, stopping where its `### What is refused, and what stays
+  allowed` subsection starts**, rather than writing a bare row. The documentation beside it is the half a
+  person reads, and a repository that reached this file through `seal mode`
+  has none of it.
+
+  **The copied block lands BELOW the live table, and its fenced example row
+  is not a row.** That block carries a fenced `| Broad gate | … |` line as an
+  illustration of the format, and a table inside a code fence is read by no
+  walk of that table: not the gates' reader, not the mode gate's, and not
+  `seal mode`'s writer. Pasted above the live table, or above a table that
+  has no parseable row yet, that example would be the table every gate
+  reads, and the broad run would run its command. Put the prose under the
+  table the repository actually answers in; where the `Broad gate` row exists
+  only inside a fence, `seal gate` quotes that line and says to move it.
+
+  **The two lists and the criterion are pointed at, never copied down.** They
+  are the plugin's, they change when the plugin changes, and a frozen copy in
+  somebody's `seal/config.md` is a copy that says something false about the
+  tool at the next release, which is what the criterion's one-home rule is
+  for. Point at `$CLAUDE_PLUGIN_ROOT/templates/setup/config.md` for both. The
+  `Broad gate` value is one shell command line, run from the repository
+  root.
+
+  **How to choose that value is written down, and not here.**
+  `templates/setup/config.md` *The criterion for choosing a value* owns the
+  criterion: three rules, with the reason for each. Read it to the person
+  before they answer, rather than summarising it back to them.
+
+  **A value carrying a `|` is written `\|`.** The file is markdown and a
+  cell of that table ends at a bare pipe, so `bin/test -q \| tee out.txt` is
+  the row that runs that command. `templates/setup/config.md` *What is refused, and
+  what stays allowed* says how the reader turns the escape back into a pipe
+  and why a Windows path keeps its backslashes.
+
+  **The table is read the way GitHub shows it, or refused.** Each
+  refusal names its line and the fix; rows above that line still count, and
+  rows below it are refused with it, never treated as missing. Read these to
+  the person in plain words:
+
+  - a bare pipe in a value (GitHub shows the row cut off at the pipe):
+    write it `\|`;
+  - a comment or prose sitting on the header's own top edge: leave a blank
+    line above the header;
+  - an extra cell, a stray separator or prose among the rows: write it as
+    `| … | … |`, or delete it;
+  - no separator under the header, or one of the wrong width: put
+    `|---|---|` under the header;
+  - a row stranded after a comment, a fence or an empty line: move it into
+    the table; if it belongs to another table, put a heading between the two;
+  - a row, the header or the delimiter row sharing a line with the line
+    above, after a form feed or U+2028: give it a line of its own.
+
+  `templates/setup/config.md` says the same at its head. `seal gate` and
+  `seal mode` print the refusal and run or write nothing, and a hook stays
+  silent.
+
+  **The `Broad gate` row is looked at before it is run**, and a value that
+  would not run as the command it reads as is refused with nothing run:
+  the whole command wrapped in backticks or in `$(…)`, or a trailing `&`.
+  Nothing is stripped or repaired: rewriting the row is the person's act,
+  which is what brings them here. `templates/setup/config.md` *What is refused,
+  and what stays allowed* lists the three forms and the ones that stay
+  legal, each with its reason, and it is where this is decided.
+- **A fold row**, `Document token ceiling` or `Policy root`, is only a row
+  too. Edit or add it in place, and point at
+  `$CLAUDE_PLUGIN_ROOT/templates/setup/config.md` *The fold's values* for what
+  each accepts and what an absent one means, rather than restating it. A
+  value `seal fold` will not parse makes it exit 2 naming the row, so run it
+  once after the edit.
+- **`Reference specs` or `Pact`** is only a row too. Edit or add it in
+  place, and point at `$CLAUDE_PLUGIN_ROOT/templates/setup/config.md`
+  *Reference specs* or *Pact* for what each accepts and what an absent one
+  means. A `Pact` row is read strictly by `seal pact` at the pact's
+  repository, so a value it will not parse is named there.
+- **The mode row moves files.** Run `seal mode local` or `seal mode shared`.
+  It moves the root, stages the change and writes the row, so the file and
+  the folder agree afterwards, and it leaves `.github/` alone. Do not do any
+  of that by hand. A person who wants the pull-request checks added or taken
+  out is sent to `seal pr-checks install` or `seal pr-checks remove`.
+
+**4. Say what happened beyond the row.** A language row changes a row. The
+mode row moves a directory and stages a commit, and the line the switch
+prints about the pull-request checks says what it left under `.github/`.
+The person needs to see that list rather than *done*.
+
+## Before switching to shared, say what cannot be undone
+
+Going to shared puts the records in the tree. **The commit is the point of no
+return, not the move**: once it lands, the records stay in the history
+whatever later leaves the tree. `docs/layout/one-root-by-lifetime.md` *Shared or
+local* holds that rule. Until that commit, `git reset -- :/seal` and then
+`seal mode local` walk the whole thing back. The reset comes first because
+the switch stages the move, and `seal mode` refuses a switch over a staged
+change under the root. The pathspec is there because a bare `git reset`
+unstages the whole index, and the guard has never looked outside the root.
+
+Say it before running the command, not after. Local mode exists for the
+repository whose tree must not carry this plugin's files, and shared is the
+direction that cannot be walked back.
+
+Going the other way costs something different and it is not a secret either:
+every other clone loses the records at the next pull. `seal export` here and
+`seal import` there is how a teammate gets a copy.
+
+## What this does not do
+
+- **It does not define a schema.** It reads the rows that are there and routes
+  them. A generic setter would be a parser for a file people edit by hand, and
+  would invite a short document to drift into key-value settings.
+- **It does not start over.** Discarding the records means discarding the
+  evidence chain every gate here reads. That stays a deliberate act done by
+  hand, and `seal export` first is the order.
+- **It does not replace the file.** A person can still open `config.md` and
+  edit it. This is a door to the room, not a gate in front of it.

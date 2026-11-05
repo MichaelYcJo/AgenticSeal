@@ -1,0 +1,21 @@
+{
+  "name": "agentic",
+  "displayName": "AgenticSeal",
+  "version": "0.32.3",
+  "description": "A workflow of agents that frames, builds, inspects and seals a change without asking anyone, and ends in a seal bound to a commit.",
+  "author": {
+    "name": "MichaelYcJo"
+  },
+  "homepage": "https://github.com/MichaelYcJo/AgenticSeal",
+  "repository": "https://github.com/MichaelYcJo/AgenticSeal",
+  "license": "MIT",
+  "icon": "./.claude-plugin/icon.png",
+  "keywords": [
+    "spec-driven-development",
+    "code-review",
+    "agents",
+    "hooks",
+    "legacy-migration",
+    "verification"
+  ]
+}

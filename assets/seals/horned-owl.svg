@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200">
+<defs>
+<mask id="owl" maskUnits="userSpaceOnUse" x="0" y="0" width="1200" height="1200"><rect width="1200" height="1200" fill="black"/><ellipse cx="600" cy="650" rx="230" ry="290" fill="white"/><polygon points="395,470 430,300 520,400" fill="white"/><polygon points="805,470 770,300 680,400" fill="white"/><ellipse cx="512" cy="520" rx="112" ry="112" fill="black"/><ellipse cx="688" cy="520" rx="112" ry="112" fill="black"/><ellipse cx="512" cy="520" rx="74" ry="74" fill="white"/><ellipse cx="512" cy="520" rx="46" ry="46" fill="black"/><ellipse cx="518" cy="528" rx="26" ry="26" fill="white"/><ellipse cx="688" cy="520" rx="74" ry="74" fill="white"/><ellipse cx="688" cy="520" rx="46" ry="46" fill="black"/><ellipse cx="694" cy="528" rx="26" ry="26" fill="white"/><polygon points="568,590 632,590 600,680" fill="white"/><polygon points="471,760 519,760 495,794" fill="black"/><polygon points="541,760 589,760 565,794" fill="black"/><polygon points="611,760 659,760 635,794" fill="black"/><polygon points="681,760 729,760 705,794" fill="black"/><polygon points="471,830 519,830 495,864" fill="black"/><polygon points="541,830 589,830 565,864" fill="black"/><polygon points="611,830 659,830 635,864" fill="black"/><polygon points="681,830 729,830 705,864" fill="black"/><polygon points="506,900 554,900 530,934" fill="black"/><polygon points="576,900 624,900 600,934" fill="black"/><polygon points="646,900 694,900 670,934" fill="black"/><line x1="420" y1="640" x2="390" y2="880" stroke="black" stroke-width="16"/><line x1="780" y1="640" x2="810" y2="880" stroke="black" stroke-width="16"/><ellipse cx="540" cy="940" rx="36" ry="18" fill="white"/><ellipse cx="660" cy="940" rx="36" ry="18" fill="white"/></mask>
+<filter id="blur" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="7.69"/></filter>
+</defs>
+<circle cx="600.0" cy="600.0" r="592.0" fill="#961c20"/>
+<circle cx="600.0" cy="600.0" r="550.6" fill="#c43434"/>
+<circle cx="600.0" cy="600.0" r="491.4" fill="#78141a"/>
+<circle cx="600.0" cy="600.0" r="473.6" fill="#8a181e"/>
+<g transform="translate(53.26 26.86) scale(0.91047)">
+<g transform="translate(7.69 7.69)" filter="url(#blur)"><rect width="1200" height="1200" fill="#46080c" mask="url(#owl)"/></g>
+<g transform="translate(-7.69 -7.69)"><rect width="1200" height="1200" fill="#ec6e68" mask="url(#owl)"/></g>
+<rect width="1200" height="1200" fill="#ce3e3c" mask="url(#owl)"/>
+</g>
+</svg>

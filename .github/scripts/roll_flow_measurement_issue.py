@@ -1,0 +1,574 @@
+#!/usr/bin/env python3
+"""Close the current flow-measurement issue and open the next one.
+
+Issue #109 part 3: the flow log's destination is a `flow-measurement`-labelled
+GitHub issue (`skills/verify/orchestration.md`'s "Measure the segment, and
+feed the flow log" section, phase 1 of this work item). Nothing closes that issue and
+opens the next one on its own -- without this, the log silently stops growing
+the day someone finally closes it by hand, and no session notices because the
+skill's own lookup treats "no open issue" as a no-op rather than a failure.
+
+This runs from the same workflow, the same trigger, and the same checkout as
+`close_issues_on_release.py` (a push to `main` -- a release reaching the
+default branch). The release's first pull request moved
+`.claude-plugin/plugin.json`'s version, and it reaches `main` in the same
+push as the rest of the release, so the checked-out tree carries the
+just-shipped version -- the fact everything below depends on
+(`docs/releasing/branch-and-release.md` "Cutting a release").
+
+**The log is named after the version it rolls FROM, and it rolls only when a
+new version has shipped since.** At the moment this runs, the tree names the
+version that push shipped, which is the one version that is certain; the
+next one is named only when the next release branch is cut, after this
+push.
+
+  chore: flow measurement — after 0.8.1     opened by the 0.8.1 release,
+                                            closed by whatever ships next
+
+Naming the log by a guess instead cost two things at the 0.8.1 release
+(#155). The arithmetic here was `"0.8.1" -> "0.9.0"`, so the roll closed
+#166 -- opened at the 0.8.0 release, titled for 0.9.0, and holding the
+measurements 0.8.1 had just been written with -- and opened #172 under the
+identical title. A patch release ended a log the next release still needed,
+and the 0.9.0 log became two issues told apart only by creation date.
+
+So the title states a fact and the condition reads it back: `rolled_from` of
+the open log's title, against the version in the tree. Equal means this push
+shipped nothing new -- a workflow re-run, or a push to `main` that is not a
+release, since this workflow fires on every push to the default branch -- and
+the roll says nothing was due, closes nothing, opens nothing, and exits 0.
+
+**A title this script cannot read as its own is due, never silent.** Its own
+means the whole of what `log_title` writes, from the first character: the
+`chore: ` prefix and the marker, and only then a version. Anything else --
+a different prefix, the marker buried mid-sentence, an older title -- names
+no version this script can act on. That covers the logs opened before this
+change, whose `chore: flow measurement — 0.9.0` names a version that had not
+shipped and so cannot answer "has anything shipped since this log opened";
+the ` — after ` marker appears in no title written before this change, so the
+first release after it rolls them and the old convention retires itself. It
+covers a title somebody tidied by hand just as well, and one written for
+something else entirely that happens to carry the marker inside it. The
+direction is chosen rather than incidental: an
+unreadable title read as *not due* stops the log forever with the workflow
+green, which is the same class of failure as the bug above one step over,
+while read as *due* it costs at most one roll that was not owed.
+
+**The lookup is still by label and open state, never by the title.** What
+changed is that the title, once the lookup has found the issue, is read for
+the version it names. An edited title can neither hide the issue nor stop the
+roll; the most it can do is cause one roll that was not due.
+
+**The invariant is exactly one open `flow-measurement` issue at a time.**
+Zero means the log already stopped and nobody reopened it; two or more means
+something else wrote to this label outside this mechanism. Either way this
+fails loudly rather than guessing which issue is current -- silently picking
+one would make a wrong guess indistinguishable from a right one.
+
+**One retry on a zero-open reading, not on a two-or-more reading.** Phase 1
+of this work item measured `gh issue list --label flow-measurement --state
+open` returning `[]` immediately after `gh issue edit ... --add-label
+flow-measurement` on the very same issue, even though `gh issue view` in the
+same breath showed the label applied and the issue open -- GitHub's search
+index lagging the write, not a bug in either command. A release does not
+write the label it is about to look for (the issue this script closes was
+opened by the *previous* release, not by this run), so the race is unlikely
+to reach this script in practice -- but a search-index lag can only ever
+produce a reading that is short a result, never one with an extra issue in
+it. So a zero reading gets one retry after a short sleep before it is trusted
+as the real invariant violation; a two-or-more reading is never a lag
+artifact and is never retried.
+
+  roll_flow_measurement_issue.py     read REPO, GH_TOKEN from the
+                                      environment (same as
+                                      close_issues_on_release.py); where a
+                                      new version has shipped since the one
+                                      open flow-measurement issue opened,
+                                      close it and open the next
+
+**The issue this opens carries a body, and finds the durable log by label.**
+A rolling log opened with `--body ""` is born with no path back to the one it
+replaced and no statement of what it is for, which is the state every log
+before this change was in (#136). The body names the issue just closed, says
+which version it covers the work since and that the next release closes it,
+and points at the durable log --
+the issue carrying `flow-baseline`, looked up the same way the rolling one is
+and never by number. Where a repository has no such issue that clause is left
+out rather than the roll failing: a durable log is a thing a repository may
+not have, and a release is not the place to insist on one.
+
+**The index label and the milestone are best-effort, and a failure to set
+either is written into the body of the issue this just created.** `gh issue
+create` resolves labels and milestones before it creates anything, so a
+milestone somebody renamed or deleted fails the whole call -- and a milestone
+is repository state, not code. The invariant this script protects is the
+one-open rule, which neither argument touches, so a release does not stop for
+them. The create is attempted with both, then with the index label alone, then
+with neither, and each fallback carries into the body what the attempt above
+it could not set. The body is where that goes because it is the one artifact
+a person opens; a line in a workflow log is not read (#136).
+
+**A failed attempt re-reads the open-issue list before it retries.** A `gh
+issue create` that fails after the mutation lands would, on retry, open a
+second issue -- the exactly-one-open invariant broken from the other side, by
+the script that exists to keep it. So a failure is followed by the lookup, and
+a reading that is no longer empty ends the ladder with the issue that landed.
+The last rung uses `run` rather than `try_run`, so a create that fails all the
+way down still exits loudly into the recovery message below.
+
+**The index label and the milestone are this repository's own names, and they
+belong here rather than in the skill.** `skills/verify/orchestration.md` ships to
+repositories that have neither, so it names `flow-measurement` and
+`flow-baseline` and stops there. `.github/` stays home
+(`tests/behaviour/test_the_release_check_watches_what_ships.py`), which is what lets
+this file name `measurement` and `log: measurement`.
+
+**The close and the open are not one transaction.** `main` closes the old
+issue first and only then opens the next one, so a `gh issue create` failure
+after a successful close leaves the flow-measurement log with zero open
+issues -- the same state the exactly-one-open invariant above exists to
+catch, except now self-inflicted rather than found on the next run. The
+failure message names both facts: which issue was already closed, and the
+title a human should open by hand to restore the invariant before the next
+release runs. Ordering the close first is a stated trade-off, not an
+oversight it would be better to fix by making the open ordered first: opening
+before closing would leave two open issues rather than zero on any of this
+script's own failures after the create, which is the exact reading the
+retry-once hardening above treats as never a lag artifact and always the
+invariant broken -- closing first turns every failure mode into a state the
+existing zero-issue recovery already tells the operator how to fix by hand.
+
+Exit codes: 0 rolled, and 0 for a run where nothing was due -- the printed
+line is what tells those apart, because both leave the job green. Non-zero:
+the open-issue count was not exactly 1 (after the retry), a `gh` call failed,
+or the close succeeded and the open then failed (message names the closed
+issue and the recovery title).
+"""
+
+import json
+import os
+import subprocess
+import sys
+import time
+
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+LABEL = "flow-measurement"
+BASELINE_LABEL = "flow-baseline"
+INDEX_LABEL = "measurement"
+INDEX_MILESTONE = "log: measurement"
+RETRY_DELAY_SECONDS = 5
+
+# `after` is the whole point: what follows it is the version this log rolled
+# FROM, which has shipped, rather than the version it is for, which at this
+# moment is not knowable (see the module docstring).
+TITLE_MARKER = "flow measurement — after "
+
+# The whole of what `log_title` writes, and the whole of what `rolled_from`
+# requires. A reader wider than the writer is a gap in itself: a title
+# carrying the marker somewhere inside it -- `docs: explain flow measurement —
+# after 0.8.2` -- is not a title this script wrote, and answering it with a
+# version makes that log not due and stalls it with the workflow green, which
+# is the one direction the docstring above says must be unreachable.
+#
+# `TITLE_MARKER` is built into this rather than spelled out again, because
+# `docs/releasing/issues-and-milestones.md` is read against the marker by name and two
+# constants drifting apart is the same fault one level up.
+TITLE_PREFIX = f"chore: {TITLE_MARKER}"
+
+MILESTONE_NOTE = (
+    f"The `{INDEX_MILESTONE}` milestone could not be set on this issue -- it "
+    f"has been renamed, deleted, or is not resolvable from the release "
+    f"workflow. Set it by hand if it still exists. Nothing automated reads a "
+    f"milestone (`docs/releasing/issues-and-milestones.md`), so this costs a person a "
+    f'wrong answer to "what is in this version" and costs no check anything.'
+)
+
+BASELINE_AMBIGUOUS_NOTE = (
+    f"More than one open `{BASELINE_LABEL}` issue, so this one points at no "
+    f"durable log. That label carries the same exactly-one-open invariant "
+    f"the rolling log does, and naming a broken invariant is what this does "
+    f"instead of picking whichever the search listed first."
+)
+
+INDEX_NOTE = (
+    f"The `{INDEX_LABEL}` index label could not be applied either. Add it by "
+    f"hand so this issue turns up beside the durable log when the whole "
+    f"concern is queried by label."
+)
+
+
+def run(*args):
+    out = subprocess.run(args, capture_output=True, encoding="utf-8")
+    if out.returncode:
+        sys.exit(f"{' '.join(args)} failed: {out.stderr.strip()}")
+    return out.stdout
+
+
+def try_run(*args):
+    """`run` without the exit -- `None` where the call failed.
+
+    For the parts of this script whose failure must not stop a release: the
+    durable log's lookup, and the best-effort arguments to the create. None
+    of them touches the exactly-one-open invariant, which is the thing worth
+    failing a release over.
+    """
+    out = subprocess.run(args, capture_output=True, encoding="utf-8")
+    return None if out.returncode else out.stdout
+
+
+def log_title(version):
+    """The title of the log opened by the release that shipped `version`.
+
+    Pure. Written through `TITLE_PREFIX` rather than spelled out, because
+    `rolled_from` requires the same constant back, in full and from the start:
+    the writer and the reader drifting apart is a wording change that leaves
+    the roll firing on every release forever, which is the invariant broken
+    from the other side, and a reader that asks for less than the writer
+    writes is the same fault pointed at silence instead.
+    """
+    return f"{TITLE_PREFIX}{version}"
+
+
+def rolled_from(title):
+    """The version the open log rolled from, or `None` where it does not say.
+
+    `None` is not an error and is not the same fact as a version: it is a
+    title this script did not write in its current form, which cannot answer
+    "has anything shipped since this log opened". Every caller treats that as
+    due -- see the module docstring for why the unreadable case falls that
+    way rather than toward silence. Pure.
+
+    The whole prefix is required, from the start of the title. A title is
+    three segments -- what comes before the marker, the marker, and what comes
+    after it -- and a version may be read out of only the third, and only when
+    the first two are exactly what `log_title` wrote. Matching the marker
+    anywhere instead accepted a title this script never wrote (`docs: explain
+    flow measurement — after 0.8.2`) as the log for 0.8.2, which is *not due*
+    and a log stalled with the workflow green.
+    """
+    if not title.startswith(TITLE_PREFIX):
+        return None
+    return title[len(TITLE_PREFIX) :].strip() or None
+
+
+def roll_is_due(title, shipped):
+    """Whether `shipped` is a version that arrived after the open log opened.
+
+    One comparison, two facts. A title naming the version in the tree is the
+    log this push has not finished -- a re-run, or a push to `main` that
+    shipped nothing -- and nothing rolls. Anything else, `None` included, is
+    due. Pure.
+    """
+    return rolled_from(title) != shipped
+
+
+def read_version(root=ROOT):
+    with open(
+        os.path.join(root, ".claude-plugin", "plugin.json"), encoding="utf-8"
+    ) as f:
+        return json.load(f)["version"]
+
+
+def list_open_issues(repo):
+    """The open `flow-measurement` issues, right now, as `gh` reports them."""
+    out = run(
+        "gh",
+        "issue",
+        "list",
+        "--repo",
+        repo,
+        "--label",
+        LABEL,
+        "--state",
+        "open",
+        "--json",
+        "number,title,comments",
+    )
+    return json.loads(out)
+
+
+def comment_count(issue):
+    """How many comments the open log carries, or `None` where the listing
+    did not say.
+
+    #198: a release opened a log, carried it through a whole cycle and closed
+    it with nothing written in it, and nothing read what was in the log it
+    was closing. The count is read off the one list call `main` already
+    makes rather than a second read, so the check costs no call and no
+    write; a listing without the field answers `None`, and `main` says so
+    and rolls exactly as before -- the count is never allowed to touch the
+    exactly-one-open invariant, and never a reason to refuse a release.
+    """
+    comments = issue.get("comments")
+    return len(comments) if isinstance(comments, list) else None
+
+
+def empty_log_note(number):
+    """The sentence the three places share when a log closes empty."""
+    return (
+        f"#{number} closed with no measurement written in it: not one comment "
+        f"over the whole cycle, so the readings that span versions have nothing "
+        f"from it (#198)."
+    )
+
+
+def open_flow_measurement_issues(repo):
+    """`list_open_issues`, with one retry when the first reading is empty.
+
+    See the module docstring: an empty reading right after a label write can
+    be the search index lagging rather than the true state, and a lag can
+    only ever undercount. A reading of two or more is never retried -- it is
+    never what a lag produces.
+    """
+    issues = list_open_issues(repo)
+    if not issues:
+        time.sleep(RETRY_DELAY_SECONDS)
+        issues = list_open_issues(repo)
+    return issues
+
+
+def close_issue(repo, number, shipped, comments=None):
+    """Close the old log, saying on it what replaces it and how it is named.
+
+    The comment is the last thing written on an issue people go on reading,
+    so it states the convention in force rather than the one it replaced. It
+    used to promise a log "for the version this release ships next", which is
+    the prediction #155 removed: the new log is named after the version this
+    release just shipped, and that version is the one thing knowable here.
+
+    `comments` is the count `comment_count` read, and zero adds one sentence:
+    this is the first of the three places a person reads that says the cycle
+    measured nothing (#198). `None` -- the count could not be read -- adds
+    nothing, because a sentence about emptiness on a log that may not be
+    empty is a false record.
+    """
+    empty = f" {empty_log_note(number)}" if comments == 0 else ""
+    run(
+        "gh",
+        "issue",
+        "close",
+        str(number),
+        "--repo",
+        repo,
+        "--comment",
+        f"Closed by the release that just shipped {shipped}. The next "
+        f"flow-measurement issue opens as `{log_title(shipped)}` -- named "
+        f"after the version this release shipped, and closed by whatever "
+        f"ships after it. `skills/verify/orchestration.md`'s \"Measure the segment, "
+        f'and feed the flow log" section has the reasoning.{empty}',
+    )
+
+
+def find_baseline_issue(repo):
+    """The durable measurement log, by label: `(number, note)`.
+
+    Best-effort in every direction: a repository that never created
+    `flow-baseline` has no durable log, a `gh` failure here is not worth a
+    release, and either way the body simply leaves the clause out. The lookup
+    is the rolling log's own shape -- a label, never a number -- because a
+    number goes stale the moment its issue closes, which is what `#109`
+    removed from the rolling log's lookup for the same reason.
+
+    **The note separates two silences.** No durable log is the ordinary
+    case and says nothing, because a note about it would appear on every
+    rolling log every repository ever opens. Two or more open is that label's
+    invariant broken, and it answers `None` with a note rather than taking
+    the first: `skills/verify/orchestration.md` gives both labels the same
+    exactly-one-open rule and says a broken invariant is named rather than
+    guessed at, and a body carrying one of two numbers looks exactly like a
+    body carrying the only one.
+    """
+    out = try_run(
+        "gh",
+        "issue",
+        "list",
+        "--repo",
+        repo,
+        "--label",
+        BASELINE_LABEL,
+        "--state",
+        "open",
+        "--json",
+        "number",
+    )
+    if not out:
+        return None, None
+    try:
+        issues = json.loads(out)
+    except ValueError:
+        return None, None
+    if len(issues) > 1:
+        return None, BASELINE_AMBIGUOUS_NOTE
+    return (issues[0]["number"], None) if issues else (None, None)
+
+
+def issue_body(shipped, closed_number, baseline_number, notes=(), comments=None):
+    """What the rolling log says about itself on the day it is opened.
+
+    `notes` are what the create could not set -- see the module docstring.
+    They go in the body rather than in the workflow log because the issue is
+    the artifact a person opens. `comments` at zero adds the second of the
+    three places that say the predecessor closed empty (#198): the new log is
+    the one the next session opens to write in, and a reader there is the
+    one who can still do something about a cycle that measured nothing.
+    """
+    baseline = (
+        f"Baselines and the observations that span versions live in "
+        f"#{baseline_number}; this"
+        if baseline_number is not None
+        else "This"
+    )
+    opening = (
+        f"Rolls from #{closed_number}. {baseline} issue takes one comment per "
+        f"segment, covers the work done since {shipped} shipped, and is "
+        f"closed by the release that ships the next version."
+    )
+    empty = (empty_log_note(closed_number),) if comments == 0 else ()
+    return "\n\n".join([opening, *empty, *notes])
+
+
+def create_args(repo, title, body, extras):
+    return (
+        "gh",
+        "issue",
+        "create",
+        "--repo",
+        repo,
+        "--title",
+        title,
+        "--label",
+        LABEL,
+        *extras,
+        "--body",
+        body,
+    )
+
+
+def landed_create(repo, closed_number):
+    """An open `flow-measurement` issue that is not the one `main` just closed.
+
+    The ladder's guard. `closed_number` is excluded because the reading can
+    still carry it: `gh issue list` lagging a write is what this module's
+    docstring records, and a lag behind a *close* is a reading with an extra
+    issue in it rather than one short a result. The empty reading gets the
+    same one retry `open_flow_measurement_issues` gives it, and for the same
+    reason -- a lag behind the create sends the ladder on to open a second.
+    """
+    for attempt in (0, 1):
+        if attempt:
+            time.sleep(RETRY_DELAY_SECONDS)
+        landed = [i for i in list_open_issues(repo) if i["number"] != closed_number]
+        if landed:
+            return True
+    return False
+
+
+def open_issue(repo, shipped, closed_number, comments=None):
+    """Open the next log, dropping on each rung what the rung above could not set."""
+    title = log_title(shipped)
+    baseline, baseline_note = find_baseline_issue(repo)
+    baseline_notes = (baseline_note,) if baseline_note else ()
+
+    # Most to least. Each rung drops the argument the rung above it could not
+    # set and says so in the body; only `LABEL` is on every rung, because that
+    # is the one the exactly-one-open invariant is read through.
+    for extras, notes in (
+        (("--label", INDEX_LABEL, "--milestone", INDEX_MILESTONE), ()),
+        (("--label", INDEX_LABEL), (MILESTONE_NOTE,)),
+    ):
+        body = issue_body(
+            shipped, closed_number, baseline, (*notes, *baseline_notes), comments
+        )
+        if try_run(*create_args(repo, title, body, extras)) is not None:
+            return title
+        if landed_create(repo, closed_number):
+            # The call reported failure and an issue that is not the one just
+            # closed is open, so the create landed and the failure arrived
+            # after it. Retrying here opens a second one.
+            return title
+
+    body = issue_body(
+        shipped,
+        closed_number,
+        baseline,
+        (MILESTONE_NOTE, INDEX_NOTE, *baseline_notes),
+        comments,
+    )
+    run(*create_args(repo, title, body, ()))
+    return title
+
+
+def main():
+    repo = os.environ["REPO"]
+    shipped = read_version()
+
+    issues = open_flow_measurement_issues(repo)
+    if len(issues) != 1:
+        sys.exit(
+            f"expected exactly one open `{LABEL}` issue, found "
+            f"{len(issues)}: {issues}. That invariant is what this script "
+            "relies on to know which issue is current -- fix it by hand "
+            "rather than let this guess."
+        )
+
+    number = issues[0]["number"]
+    title = issues[0]["title"]
+
+    # Both outcomes leave the job green, so the two lines below are the only
+    # thing separating a release that rolled from a mechanism that stopped.
+    # They are printed rather than logged for the same reason the issue body
+    # carries the best-effort notes: a workflow log is what a person reads
+    # when they are already looking, and this is the state they came for.
+    #
+    # The not-due line quotes the title because the title is the whole input
+    # to the decision. A conclusion without it cannot be checked: a log left
+    # alone on a title nobody meant to write reads exactly like a log left
+    # alone correctly.
+    if not roll_is_due(title, shipped):
+        print(
+            f"nothing due: #{number} is titled {title!r}, which reads as the "
+            f"log for the work since {shipped} shipped, and {shipped} is "
+            f"still what this tree ships. Nothing closed, nothing opened."
+        )
+        return
+
+    # The third of the three places that say a cycle measured nothing (#198):
+    # the job's own output, beside the `rolled:` line below. Read before the
+    # close so the count is the log's as it stood, and never a reason not
+    # to roll -- a release does not stop for bookkeeping about a release.
+    comments = comment_count(issues[0])
+    if comments is None:
+        print(
+            f"could not read #{number}'s comment count from the listing — "
+            f"rolling as before, and saying nothing about whether the log "
+            f"was written in"
+        )
+    elif comments == 0:
+        print(empty_log_note(number))
+
+    close_issue(repo, number, shipped, comments)
+    try:
+        opened = open_issue(repo, shipped, number, comments)
+    except SystemExit as exc:
+        sys.exit(
+            f"closed #{number}, but opening the next issue failed: {exc}. "
+            f"Check the `{LABEL}` label before opening anything: a create "
+            f"that failed may still have landed. Where none is open, open "
+            f"one by hand (label `{LABEL}`, title `{log_title(shipped)}`) "
+            f"before the next release runs."
+        )
+    print(f"rolled: closed #{number}, opened {opened!r}")
+
+
+if __name__ == "__main__":
+    # A console that cannot encode what this prints kills it with stdout
+    # empty; `hooks/lib/console.py` owns the reasoning behind these lines.
+    for _name, _errors in (
+        ("stdin", "replace"),
+        ("stdout", "replace"),
+        ("stderr", "backslashreplace"),
+    ):
+        _stream = getattr(sys, _name, None)
+        if hasattr(_stream, "reconfigure"):
+            _stream.reconfigure(encoding="utf-8", errors=_errors)
+    main()

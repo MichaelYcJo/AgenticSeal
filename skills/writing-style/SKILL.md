@@ -1,0 +1,374 @@
+---
+name: writing-style
+description: |
+  Prose and structure rules for review comments, PR bodies, reports, and
+  replies to the user. Structure rules are language-agnostic; sentence rules
+  are per-language (Korean and English sections — they are independent norms,
+  not mirrors). The per-document sections ADD to the sentence rules and never
+  replace them.
+  Use when: writing a review comment, PR body, investigation report, a reply
+  to another team, an answer to the user in conversation, or text an agent or
+  a check reads (a skill, an agent definition, a template, a frame).
+  NOT for: code comments/docstrings; commit, PR-title and branch format
+  (commit-pr-convention).
+---
+
+# writing-style — 리뷰·PR·리포트·대화
+
+리뷰 코멘트·PR 본문·조사 리포트·사용자와의 대화를 쓰는 문체와 구성 규칙이다.
+
+**적용 방법**: 「먼저」·「구성 규칙」·각 문서 유형 절은 **언어 무관** — 어느 언어로
+쓰든 적용한다. 문장 단위 규칙은 출력 언어의 절을 따른다 — 한국어면 「문장 규칙」,
+영어면 맨 아래 「English prose rules」. 두 절은 번역본이 아니라 **각 언어의 독립
+규범**이다.
+
+## 먼저 — 무엇을 쓰는 글인가
+
+**대상에 따라 파일명 규칙이 정반대다.** 이것을 먼저 정하지 않으면 반대로 쓴다.
+
+| 글 | 파일명·행번호 | 이유 |
+|---|---|---|
+| **리뷰 코멘트** | **반드시 병기** | 읽는 사람이 그 자리를 열어야 한다 |
+| **조사·분석 리포트** | **반드시 병기** | 주장의 근거이고, 검증할 수 있어야 한다 |
+| **PR 본문** | **쓰지 않는다** | 변경 목록은 diff 가 이미 보여준다. 여기서 할 일은 **무엇이 달라지는가**다 |
+| **다른 팀에 답하는 코멘트** | 쓰지 않는다 | 상대는 내 코드를 열지 않는다. 좌표 대신 **어떤 조건에서 그렇게 되는지**를 적는다 |
+| **커밋 메시지 본문** | 쓰지 않는다 | PR 본문과 같다 — squash 되면 그대로 커밋 본문이 된다 |
+| **사용자와의 대화** | 사용자가 열어 볼 자리일 때만 | 터미널에서 오가는 답변이다. 대부분은 열어 볼 일이 없고, 좌표를 적으면 읽는 속도만 늦춘다 |
+
+PR 본문의 기준은 이것이다 — **파일을 하나도 열지 않고 읽어도 무엇이 어떻게 바뀌는지 알 수 있는가.**
+
+**대화는 이 표에서 가장 자주 쓰는 글이고, 문체가 가장 다르다.** 다른 넷의
+문체를 대화로 가져오면 읽히지 않는다 — `outside-the-review.md` 의
+「사용자와의 대화에만 해당하는 것」이 그 절이다.
+
+## 문장 규칙
+
+**이 절만 열었다면**: 어느 언어로 쓰든 위의 `## 먼저` 표와 아래의 `## 구성 규칙` 이
+함께 적용되고, 쓰는 글의 절이 그 위에 더해진다. 리뷰 코멘트면
+`## 리뷰 코멘트에만 해당하는 것` 이고, PR 본문·다른 팀에 답하는 코멘트·사용자와의
+대화면 `outside-the-review.md` 의 절이다.
+
+에이전트나 검사가 읽는 글(스킬, 에이전트 정의, 템플릿, 프레임)을 쓴다면
+`## 구성 규칙` 아래 *에이전트와 검사가 읽는 글은 한 가지로만 읽히게 쓴다* 의 세
+규칙도 따른다.
+
+### 완전한 문장으로 쓴다
+
+**압축체·명사 나열·전보문을 쓰지 않는다.** 무엇이 문제고, 왜 문제고, 어떻게 고치는지가 문장으로 드러나야 한다.
+
+```
+나쁨   설정값 해석 실패 시 500 발생. 반경 과다.
+좋음   설정값을 지역 id 로 해석하지 못하면 500 이 납니다. 그런데 그 설정값과 아무 관계 없는
+       다른 지역 사용자의 요청까지 함께 실패하므로, 영향 범위가 실제 원인보다 훨씬 넓습니다.
+```
+
+### 완전한 문장이지 긴 문장이 아니다
+
+위 규칙은 **전보문을 막으려는 것**이지 길게 쓰라는 뜻이 아니다. 둘을 헷갈리면 문장은 완전한데 아무도 안 읽는 글이 된다.
+
+```
+나쁨   왜 경로를 옮기지 않았나 — 그 경로는 두 가지를 함께 따릅니다. 기존 클라이언트가
+       POST /orders/{id}/refund 를 호출하고 있고(하위 호환 유지가 전제), 부모 리소스
+       아래 하위 리소스를 두는 것이 이 저장소의 URL 규약입니다. 경로를 밖으로 빼면
+       호환이 깨져 공지가 필요한 사안이 됩니다. 테스트 한 줄을 지키려고 클라이언트
+       계약을 바꾸는 셈이고, 저는 이쪽이 더 비싸다고 봅니다.
+
+좋음   경로를 옮기는 대신 테스트가 보는 범위를 /refund 아래로 좁혔습니다. 이 경로는
+       기존 클라이언트가 쓰는 그대로이고 URL 규약에도 맞아서, 테스트에 맞추려고
+       경로를 바꾸는 것은 순서가 뒤바뀐다고 봤습니다.
+```
+
+**세 가지가 달라졌다.**
+
+- **한 문단에 한 가지만 담는다.** 나쁜 쪽은 무엇을 했는지·왜 그랬는지·안 하면 뭐가 드는지를 한 문단에 밀어 넣었다.
+- **줄표로 절을 잇지 않는다.** `—` 가 한 문단에 두 번 넘게 나오면 문장이 끊기지 않는다는 신호다. 마침표로 끊는다.
+- **판단 근거는 한 문장이면 된다.** *"저는 이쪽이 더 비싸다고 봅니다"* 처럼 자기 변론을 덧붙이면 길이만 늘고 설득력은 줄어든다.
+
+### 잃은 것은 라벨을 붙여 세운다
+
+무엇을 얻고 무엇을 잃었는지는 **산문으로 풀지 말고 짧은 항목으로 갈라 적는다.** 산문에 섞으면 읽는 사람이 "그래서 뭐가 없어진 거지"를 스스로 조립해야 한다.
+
+```
+좋음   - 남는 검증 — 댓글 경로가 하나뿐인지. 댓글 수정·신고·삭제가 생기면 그대로 깨집니다.
+       - 없어지는 검증 — 게시글 단건 아래에 다른 경로가 있는지.
+       - 되돌리려면 — 기대 목록에 신고 경로를 추가하면 둘 다 유지됩니다.
+```
+
+라벨은 **읽는 사람이 궁금할 순서**로 붙인다 — 무엇이 남나, 무엇이 없어지나, 되돌리려면 어떻게 하나.
+
+### 구어체를 쓰지 않는다
+
+`~네요` · `~예요` 를 쓰지 않는다. 문서는 대화가 아니다.
+
+### 규모를 줄여 말하지 않는다
+
+"간단합니다" · "몇 줄이면 됩니다" · "쉽게 고칠 수 있습니다" 는 **읽는 사람이 판단할 몫을 미리 가져가는 표현**이다. 대신 실제 코드 스니펫을 제시하고 크기는 보는 사람이 판단하게 한다.
+
+### 실행한 것과 읽은 것을 가른다
+
+읽어서 얻은 판정과 실제로 돌려 본 결과는 **한 문서 안에서 구분해 적는다.** 실행하지 않은 것을 통과라고 쓰지 않는다. 확인하지 못한 것은 "확인하지 못한 것" 절에 남기고 **누가 답해야 하는지**를 적는다.
+
+### 확신의 정도를 문장에 담는다
+
+- 코드에서 확인한 것 → 단정한다
+- 실행으로 확인하지 않은 런타임 동작 → "~일 것 같습니다"
+- 판정하지 못한 것 → 통과가 아니라 **질문**으로 적는다
+
+### 은어와 압축 한자어를 풀어쓴다
+
+첫 등장에서 풀이하거나 아예 쉬운 말로 바꾼다. 예: "소비처" → 그 값을 실제로 쓰는 곳 · "계약" → docstring 에 적힌 사용 규칙 · "굳힘" → 그 시점 값으로 고정 · "~소관" → X 에서 처리하므로 여기서는 제외.
+
+**약어와 내부 용어도 같다.** 읽는 사람이 그 시스템을 모른다고 가정하고, 처음 나올 때 한 문장으로 설명한다.
+
+**자기 은어는 은어로 안 느껴진다.** 위 예들은 전부 남의 도메인 말이라 남의
+어휘로 읽힌다. 한 시간 전에 코드에서 배운 단어는 이미 평범한 말처럼 느껴져서,
+규칙을 읽고도 그대로 쓴다. 그래서 기계적인 판별법이 하나 필요하다.
+
+> **이 저장소에서 처음 배운 단어면 — 코드에서든 정책 문서에서든 — 은어다.**
+
+이미 적힌 예외는 그대로다. 클라이언트가 실제로 쓰는 이름(필드명·엔드포인트·
+에러 코드)은 정확해야 하므로 그대로 쓴다.
+
+**새는 것은 낱말이 아니라 한 부류다 — 추상 한자어 명사화.** 승계·원천·구간·
+격자·굳음·창구 같은 말이다. 목록으로는 다 못 잡으니 부류를 기억한다. 쓰려는
+말이 `-승/-원/-간/-자/-음/-구` 로 끝나는 두세 글자 한자어인데 그 뜻을 이
+저장소 밖에서 설명해 본 적이 없으면, 풀어 쓴다.
+
+### 영어를 옮길 때는 구조를 버리고 뜻만 가져온다
+
+영어 문서를 한국어로 옮기는 일은 **번역이 아니라 한국어로 다시 쓰는 일**이다. 원문 구조를 남겨 두면 아래 넷이 반드시 따라온다.
+
+**① 줄표 삽입구가 목적어와 조사를 갈라놓는다.** 영어는 동격구를 `—` 로 끼워 넣어도 어순이 유지되지만, 한국어는 조사가 뒤에 붙으므로 삽입구가 길면 조사를 만나기 전에 문장이 끊긴다.
+
+```
+나쁨   `seal/parity.md` 를 선언한 레포는 3자 판정 — 정책서 ↔ 원본 ↔ 신규,
+       기본값은 원본 보존 — 을 얻고, tracer 가 사실을 가져옵니다.
+좋음   `seal/parity.md` 에 원본 저장소와 기준 커밋을 적어 두면 3자 판정을 쓸 수
+       있습니다. 정책서와 원본, 신규 코드를 나란히 놓고 판정하며, 판단이 갈리면
+       원본을 보존하는 쪽이 기본값입니다.
+```
+
+**② 명사구 나열이 서술어 없이 끝난다.** 영어는 동격 나열이 명사로 끝나도 문장이지만, 한국어는 서술어가 없으면 문장이 아니다. `~입니다` 로 닫거나 문장을 나눈다.
+
+**③ 무생물 주어가 남는다.** "플러그인은 조용히 도착합니다" · "겹침은 경고만 합니다" · "판정을 출력합니다" 는 각각 영어의 주어와 수동태를 그대로 옮긴 것이다. 사람이 무엇을 겪는지, 무엇이 어떻게 되는지로 바꾼다.
+
+```
+나쁨   플러그인은 조용히 도착합니다.        좋음   설치해도 당장은 아무 일도 일어나지 않습니다.
+나쁨   판정을 Claude Code 에 출력합니다.    좋음   판정 결과를 Claude Code 에 알려 줍니다.
+```
+
+**④ 콜론으로 설명절을 잇는다.** `X 는 Y 됩니다: 그 이유는...` 은 영어 문장부호 관습이다. 마침표로 끊고 다음 문장에서 설명한다.
+
+### 용어는 실물을 확인하고 고른다
+
+번역어를 사전에서 고르면 안 된다. **그 단어가 가리키는 파일·화면·자료구조를 먼저 열어 보고**, 무엇인지 확인한 뒤 이름을 정한다.
+
+```
+나쁨   overview → 개요 (사전적 대응) → 작업 전체를 요약한 글로 읽힌다
+       → 실제로는 요약을 쓰지 말라고 적혀 있다
+좋음   `skills/implement/SKILL.md` *4. The closing memo — only what the diff cannot show*
+       를 열어 보니 diff 가 보여 주지 못하는 것만 적는 마무리 메모였다 → 마무리 메모
+```
+
+세 가지를 판별한다.
+
+- **고유 용어인가** — 그 제품이 만들어 낸 말(`mark`, `seal`, `crafter`)이면 영어를 그대로 쓰고 첫 등장에서 실체를 괄호로 푼다. 억지 번역어를 만들면 원문 문서·코드와 대조가 끊긴다.
+- **일반 명사인가** — 영어에서도 평범한 단어면 한국어도 평범한 말로 옮긴다.
+- **동음이의어가 있는가** — 그 분야 밖에서 다른 뜻이 먼저 떠오르는 말은 피한다.
+
+### 직역한 관용구를 걸러낸다
+
+영어 관용구를 단어 단위로 옮기면 한국어에서는 그림이 그려지지 않거나 뜻이 어긋난다.
+
+| 직역 | 무엇이 문제인가 | 고침 |
+|---|---|---|
+| 빌드가 빨개집니다 | `turns red` 의 직역. 한국어 빌드는 깨지거나 실패한다 | 빌드가 깨집니다 (색을 살릴 자리면 "빨간불이 켜집니다") |
+| 벽 대신 질문 | `a question, not a wall` — "벽"이 아무 그림도 만들지 않는다 | 막지 않고 물어본다 |
+| 배출 후 삭제 | `drained` 의 직역. 폐기물 어감이라 뜻이 반대로 읽힌다 | 다 옮기고 나면 지운다 |
+| 기록을 정직하게 지킨다 | `keeps the record honest` — 태도를 말하는 문장이 되어 버렸다 | 기록이 사실과 어긋나지 않게 한다 |
+| 것이 둘 있습니다 | `Two things` 의 직역 | 두 가지가 있습니다 |
+
+## 구성 규칙 — 문장보다 이쪽이 더 크게 작용한다
+
+문장을 아무리 다듬어도 **배열이 틀리면 읽히지 않는다.**
+
+### 인과 순서로 배열한다
+
+항목이 여럿이면 **원인 → 결과** 순서로 놓는다. 심각도순이나 발견순으로 나열하면, 읽는 사람은 그것들이 왜 한 문서에 있는지 모른다.
+
+```
+나쁜 배열 (심각도순)          좋은 배열 (인과순)
+1. 훅 미등록                  ① 원래 문제 — 커밋마다 검사 봇이 다시 돌았다
+2. 알림이 전달 안 됨                ↓ 고침
+3. 담당자 오인식               ② 부작용 A — 그 뒤로는 알림조차 안 왔다
+                              ③ 부작용 B — 예외 승인을 아무나 열 수 있었다
+                              ④ 별건 — 서브 디렉터리에서 훅이 안 걸렸다
+```
+
+오른쪽은 **②③이 왜 존재하는지**가 배열만으로 드러난다.
+
+### 관계를 맨 앞에 요약한다
+
+본문에 들어가기 전에 전체 구조를 서너 줄로 보인다. 항목이 서로 얽혀 있을수록 필요하다.
+
+### 제목을 증상으로 쓴다
+
+제목만 훑어도 무슨 일이 있었는지 알 수 있어야 한다.
+
+| 나쁨 (분류·기법) | 좋음 (증상) |
+|---|---|
+| 알림 채널 이관 | 예외 승인 뒤로는 알림조차 오지 않았습니다 |
+| 승인 권한 분리 | 그 승인을 아무 계정이나 열 수 있었습니다 |
+| 부트스트랩 추가 | 서브 디렉터리에서는 훅이 하나도 걸리지 않았습니다 |
+
+### 왜 문제인지를 밝힌다
+
+**결함을 적는 것만으로는 부족하다.** 읽는 사람이 "그게 왜 문제인가", "누가 그런 일을 하나" 라고 생각하면 그 항목은 전달되지 않은 것이다. "이 검증을 우회할 주체가 실제로 존재하는가"까지 한 문장으로 잇는다.
+
+### 여럿이 가질 수 있는 것은 누구 것인지 밝힌다
+
+한 문서가 **둘 이상이 가질 수 있는 것**을 가리킬 때는 누구 것인지 함께 적는다.
+개념과 형식 이름은 그대로 두고, **실물 하나**를 가리킬 때만 붙인다.
+
+| 나쁨 | 좋음 |
+|---|---|
+| the seal | the sealer's seal · the proofer's round record · the crafter's labels |
+| 회차 기록 | proofer 가 쓰는 회차 기록 |
+
+판단 기준은 **그 문장에서 주인이 둘 이상일 수 있는가**다. 찾아야 할 모양은 한
+쪽만 이름을 갖고 나머지가 익명으로 남은 문장이다 — *the proofer's audit of the
+seal* 은 감사하는 쪽만 밝히고 감사받는 것은 밝히지 않는다.
+
+**이 문장은 보장이 아니다.** 주인이 익명으로 남은 문장은 리뷰에서 proofer
+가 읽어 찾는다. 아래 절 *에이전트와 검사가 읽는 글은 한 가지로만 읽히게
+쓴다* 의 두 번째 규칙이 읽는 쪽으로 적은 것도 그 proofer 다. 검사가 아니라
+읽는 쪽이 맡는 까닭은 한 낱말이 주인 하나를 가리키는지가 뜻의 문제이기
+때문이다(`skills/core/SKILL.md`
+*Judgment is spent where meaning is the question, and a script answers the rest*).
+
+### 에이전트와 검사가 읽는 글은 한 가지로만 읽히게 쓴다
+
+스킬, 에이전트 정의, 템플릿, 프레임(`frame/design.md`, `frame/plan.md`, `frame/questions.md`)처럼
+에이전트가 읽고 따르거나 검사가 읽는 글에는 아래 세 규칙이 더해진다. 이 글을
+읽는 쪽은 쓴 사람에게 되물을 수 없다. 그래서 두 번 읽어야 뜻이 정해지는 문장은
+짧아도 비싸다.
+
+**읽는 쪽이 문법으로 받아들일 수 있는 기호를 쓰지 않고, 같은 값을 두 곳에
+적지 않고, 검사가 읽는 줄은 검사가 읽는 철자 하나로 쓴다.** 줄표,
+화살표, 가운뎃점, 파이프, 절 기호를 제목이나 문장 안에서 구분자처럼 쓰면 읽는
+쪽이 그것을 문법으로 읽을 수 있으므로, 그 자리는 낱말로 쓴다. 인용도 낱말로
+쓴다. 계약의 규칙은 `contract rule <N>` 으로, 계약 안과 `agents/` 에서는
+`rule <N>` 으로 하나씩 인용하고, 다른 파일의 절은 백틱으로 감싼 경로 뒤에
+그 파일의 제목이나 규칙을 여는 굵은 문장을 기울인 글자로 옮겨 인용한다. 같은 값이 두 곳에 있으면 한쪽만 고쳐지고, 읽는 쪽은 어느 것이 맞는지
+골라야 한다. 회차 기록, `guarantee.md`, `trail/gate.md` 에서 검사가 읽는
+필드는 `seal` 블록 안에만 쓴다. 블록 안의 줄이 필드로 해석되지 않으면 검사는
+그 줄을 짚어 거절한다. 블록 밖의 줄은 필드처럼 보여도 산문이고, 검사는 그
+줄을 필드로 읽지 않는다.
+check: tests/github/test_rules.py tests/skills/test_chain_check.py tests/skills/test_rule_changes.py tests/test_censuses.py tests/text/test_the_agent_contract_holds_the_universal_rules.py tests/behaviour/test_a_cited_section_stands_in_its_file.py
+
+**저장소가 정의한 용어는 정의한 뜻으로만 쓰고, 같은 것을 다른 말로 바꿔 부르지
+않는다.** 한 대상을 두 낱말로 부르면 읽는 쪽은 둘을 다른 것으로 읽는다. 한
+낱말에 두 뜻을 실으면 어느 뜻인지 문장 밖에서 골라야 한다. 여럿이 가질 수 있는
+것은 위의 *여럿이 가질 수 있는 것은 누구 것인지 밝힌다* 를 따르고, 사례도 그
+절의 `seal` 이다.
+
+**무엇을 하라는 문장은 누가, 언제, 어느 파일에서 하고 무엇이 되면 끝인지를
+밝히고, 그중 하나가 빠질 만큼 줄이지 않는다.** 하는 쪽은 orchestrator, framer,
+crafter, proofer, sealer 처럼 이름으로 적는다. 두 당사자가 함께 여는 파일에서는
+"you" 나 "the session" 이라고 쓰지 않는다. 그 파일에서 "the session" 은 둘 중
+누구로도 읽힌다. 줄이다가 하는 쪽이나 조건이 빠진 문장은 절약이 아니라 결함이다.
+
+### 이전 → 이후를 표로 보인다
+
+동작이 바뀌는 것은 표가 가장 빠르다. 무엇을 하는지가 아니라 **무엇이 달라지는지**를 적는다.
+
+### 판단이 필요한 것은 따로 모은다
+
+문서 끝에 **"결정을 남겨 둔 것"** 절을 두고, 각 항목에 **선택지와 판단 기준**을 적는다. 본문에 섞으면 읽는 사람이 무엇을 결정해야 하는지 모른 채 지나간다.
+
+## 리뷰 코멘트에만 해당하는 것
+
+<!-- 이 절과 `outside-the-review.md` 의 세 절은 각 글에만 더해지는 규칙이다.
+앞의 「문장 규칙」·「구성 규칙」을 대체하지 않는다 — 그 사실을 각 절 머리에 다시
+적는 이유는, 이 파일을 PR 본문 쓰려고 연 사람이 여기서부터 읽기 시작하면 표가
+전부인 줄 알기 때문이다. -->
+
+**여기에 오기 전에**: 출력 언어의 문장 규칙이 먼저 적용된다 — 한국어면
+「문장 규칙」, 영어면 「English prose rules」. 아래는 그 위에 **더해지는** 것이지
+대신하는 것이 아니다.
+
+- **통과를 먼저 증명하려 하지 않는다.** "이 코드에는 결함이 있다"를 기본 가정으로 시작한다. 근거 없는 통과(LGTM)는 금지 — 확신이 없으면 통과가 아니라 질문이다.
+- **심각도 이름에 행동을 담는다.** `CRITICAL` 같은 일반 등급보다 "무엇을 해야 하는지"가 이름에 있는 것이 낫다 (`code-review` 스킬의 등급 체계를 따른다).
+- **수정 제안은 붙여 넣을 수 있게** 쓴다. 왜 그렇게 고치는지는 코드 옆 주석이 아니라 본문 문장으로 설명한다.
+
+## 리뷰 코멘트가 아닌 글은 `outside-the-review.md` 에 있다
+
+PR 본문·다른 팀에 답하는 코멘트·사용자와의 대화, 이 셋의 절은
+`skills/writing-style/outside-the-review.md` 에 있다. 위 표에서 그 셋 중
+하나를 쓰고 있다면 그 파일을 열고, 이 파일의 문장 규칙과 구성 규칙을 그
+위에 함께 적용한다.
+
+리뷰어에게는 이 파일만 필요하다 — 리뷰 코멘트가 리뷰어가 쓰는 글의 전부이고,
+나머지 셋은 스폰마다 함께 도착할 이유가 없다.
+
+## English prose rules
+
+**If you opened this section alone**: the table under `## 먼저` and the
+structure rules under `## 구성 규칙` apply in every language, and the section
+for the text being written adds to them. That is
+`## 리뷰 코멘트에만 해당하는 것` for a review comment, and
+`outside-the-review.md` for a PR body, a reply to another team or a
+conversation.
+
+Text an agent or a check reads (a skill, an agent definition, a template, a
+frame) also follows the three rules of *에이전트와 검사가 읽는 글은 한 가지로만
+읽히게 쓴다*, under `## 구성 규칙`.
+
+Independent norms for English output (PR bodies and commit messages are often
+English even when reviews are Korean). The structure rules above apply as-is.
+
+- **Complete sentences, not fragments.** "Fix race in retry path. Scope
+  wide." tells the reader nothing they can act on. Say what breaks, why it
+  matters, and what the fix changes.
+- **Short sentences over connector chains.** If a sentence needs two dashes
+  or three commas, split it. One paragraph, one point.
+- **No self-advocacy.** Drop "I believe this is the right trade-off" — give
+  the one-sentence consequence of the alternative instead.
+- **Hedge only what you did not verify.** Verified in code → state it
+  plainly. Unverified runtime behavior → "should", "likely". Unjudged →
+  a question, never a pass.
+- **No minimizers.** "Simple", "trivial", "just a few lines" pre-empts the
+  reader's judgment; show the snippet and let size speak.
+- **Expand jargon on first use** — assume the reader does not know this
+  system. Keep exact identifiers (field names, endpoints, error codes) exact.
+- **How to notice the jargon is yours.** The rule above says to expand it and
+  not how to recognise it — a word learned from this codebase an hour ago
+  reads as ordinary English to the person who learned it. The test:
+  **if you first met the word here — in the code or in a policy document —
+  it is jargon.** The exception stands: identifiers a caller actually types
+  stay exact.
+- **Talking to the user**: conclusion first, short sentences, no term this
+  repository coined. A table only when comparing numbers. `file:line` only
+  where they will open it. This is the most frequently written of these and
+  the least like the others — the density that makes a PR body precise makes
+  a conversation unreadable.
+- **Cross-team replies**: open with the addressee and one correction-request
+  line; state the source before the claim ("Checking the server code, …");
+  close each item with what *we* will do ("we'll keep returning null").
+  Don't interrogate the other team's premises or argue their option down —
+  state your facts and your conclusion.
+
+## 스스로 점검하는 법
+
+0. **무슨 글인지 먼저 정했는가**, 그리고 그 글의 절만 읽지 않았는가 — 문서 유형별 절은 문장 규칙에 **더해지는** 것이지 대신하지 않는다
+1. **PR 본문이라면** — 파일을 하나도 열지 않고, 이 코드를 모르는 사람이 읽어도 무엇이 달라지는지 아는가
+1-b. **대화라면** — 이 저장소가 만든 말이 하나도 없는가. 결론이 첫 줄에 있는가. 표에 설명을 밀어 넣지 않았는가
+2. **리뷰라면** — 지적마다 그 자리를 열 수 있는 좌표가 있는가
+3. 제목만 훑어도 무슨 일이 있었는지 알 수 있는가
+4. 항목이 여럿이면, 왜 그것들이 한 문서에 있는지 드러나는가
+5. **같은 내용을 절반 길이로 쓸 수 있는가.** 쓸 수 있으면 지금 것은 너무 빽빽하다. 한 문단이 한 가지만 말하는가
+6. 실행한 것과 읽은 것이 구분되어 있는가
+7. 결정이 필요한 것이 본문에 섞여 있지 않은가
+8. **다른 팀에 답하는 글이라면** — 수신자·정정 요청이 머리에 있는가, 관측 종결어미를 썼는가, 상대를 되묻거나 깎는 문장이 없는가, 각 항목이 우리 행동으로 닫히는가, 내부 문서 참조가 없는가
+9. **영어에서 옮긴 글이라면** — 소리 내어 읽었을 때 한 번에 끝나는 문장인가. 줄표 삽입구가 조사를 갈라놓지 않는가, 명사로 끝난 문장이 없는가, 무생물이 주어로 앉아 있지 않은가
+10. **새 용어를 썼다면** — 그 단어가 가리키는 실물을 실제로 열어 보고 이름을 정했는가. 사전적 대응어를 그대로 쓰지 않았는가
