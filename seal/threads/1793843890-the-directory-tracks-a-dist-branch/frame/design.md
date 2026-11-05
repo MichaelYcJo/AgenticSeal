@@ -172,6 +172,6 @@ Out:
 | The single-ref ancestry reading of a marketplace pin, against `main` by default | `.github/scripts/plugin_directory_check.py#main`, its `--ref` default, and `#line`'s "NOT reachable" sentence | A reading against `main` and `dist`. A pin of a `dist` commit would otherwise read as what a squashed release branch leaves behind. |
 | The sentence saying the merge-commit rule on `main` protects the directory's commit | `docs/releasing/branch-and-release.md` *Work accumulates on a release branch* | `## Rule changes` above, written at the settle. |
 
-This work adds a job, a script, a census reading and five attribute lines. Nothing existing can go in return. No mechanism here built a tree for the directory before, the census reading reuses the module's two readers and adds no third, and the list of what leaves lives in `.gitattributes` and nowhere else.
+This work adds a job, a script, a census reading and six attribute lines. Nothing existing can go in return. No mechanism here built a tree for the directory before, the census reading reuses the module's two readers and adds no third, and the list of what leaves lives in `.gitattributes` and nowhere else.
 
 Framed 2026-11-05 by framer, before the build.
