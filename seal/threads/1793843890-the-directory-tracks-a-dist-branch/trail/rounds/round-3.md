@@ -32,6 +32,11 @@ The green now exists too. Run 41964657990 at `48cc56ce` passed every Windows leg
 | closed `noninferiority.py#extract` on Windows. Run 41963550875 at `e657142d` failed the four `Test_extract` cases that write under an INTO not yet made, each with `fatal: cannot create directory at '<INTO>\evals'`. The cause is in git's `entry.c#create_directories` (v2.50.1, read): `checkout-index` creates a missing leading directory at a `/` and at no other separator. A prefix spelt with `\` therefore reaches `mkdir` as one long component whose parent does not exist. The repair at `0ccb500f` hands git the prefix spelt with `/`. On POSIX the prefix is the same string as before, so macOS can show the repair neither red nor green | answered by the `tests` workflow on the pull request. Run 41963550875 at `e657142d` is the four cases' red on Windows against the code before the repair. Run 41964657990 at `48cc56ce` is their green: its Windows group 1 leg lists `tests/evals/test_noninferiority.py` among its timings and ends 3097 passed with none failed, so Git for Windows read the drive component `C:` as a directory |
 ```
 
+```seal
+verdict: fixed 7955e883
+answer: The finding holds, and the orchestrator repaired it in the work item's records: `gaps.md`'s extract row is the round's snippet as given, so it names run 41963550875 as the red and run 41964657990 as the green and opens with `closed`. The commit touches `gaps.md` alone, so it owes no verifying round.
+```
+
 ## Confirmations
 
 ```seal
