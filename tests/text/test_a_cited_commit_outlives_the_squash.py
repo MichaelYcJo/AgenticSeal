@@ -143,13 +143,17 @@ def resolving(root, tokens):
     ordered = sorted(tokens)
     if not ordered:
         return set()
-    answers = subprocess.run(
-        ["git", "-C", str(root), "cat-file", "--batch-check"],
-        input="".join(f"{token}^{{commit}}\n" for token in ordered),
-        capture_output=True,
-        encoding="utf-8",
-        check=True,
-    ).stdout.splitlines()
+    # Bytes, so no platform writes each newline as CRLF on the way in.
+    answers = (
+        subprocess.run(
+            ["git", "-C", str(root), "cat-file", "--batch-check"],
+            input="".join(f"{token}^{{commit}}\n" for token in ordered).encode(),
+            capture_output=True,
+            check=True,
+        )
+        .stdout.decode("utf-8")
+        .splitlines()
+    )
     return {
         token
         for token, answer in zip(ordered, answers, strict=True)
