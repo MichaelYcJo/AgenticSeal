@@ -9,4 +9,4 @@ Judgments the ticket left open that the tree answered:
 
 | # | Question | Who can answer | Options & what each implies | Default until answered | Status |
 |---|---|---|---|---|---|
-| Q1 | The words of the rewritten paragraph at `tests/hooks/test_version_check.py:100-111` | the work | Any text that meets design D1's four points and S1. The tree cannot fix the words before they are written, and different words build the same thing | the phase writes it to D1 and records it in its phase record | answered 2026-11-05 by the work (phase 1, 333a2cfe; the words stand in `trail/phases/phase-1.md`) |
+| Q1 | The words of the rewritten paragraph at `tests/hooks/test_version_check.py:100-111` | the work | Any text that meets design D1's four points and S1. The tree cannot fix the words before they are written, and different words build the same thing | the phase writes it to D1 and records it in its phase record | answered 2026-11-05 by the work (phase 1, 333a2cfe; the words stand in `trail/phases/phase-1.md`, and round 1's fix pass rewrote the third sentence at 8131251f, as its close block in `trail/rounds/round-1.md` records) |
