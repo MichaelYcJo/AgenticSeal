@@ -124,6 +124,11 @@ frame/plan.md:24 (the failure scenario cell's second sentence)
 That is how the 35 unreached tokens in D1 accumulated, row 47's among them after this frame was written, while the form the case reads had none among 25 (`frame/design.md` *Grounding*, the comparison row)
 ```
 
+```seal
+verdict: fixed 38cd9881
+answer: Holds; the frame is the orchestrator's fold, so the orchestrator applied the paste-ready text at each of the eight statements, word for word. D1's heading, D2's catch figures (35 of 45, and the catch record with row 47 as the token the case itself refused), *Scope* item 1 (86 lines, rows 1 to 40 and row 47), *Removes* (73 lines), the plan's technical context (116 lines, 86 rewritten, and "no sibling removes") and A2 (35) now count row 47. The dated *Grounding* rows, *Scope* item 3, S1 and S5 stay, as the finding says.
+```
+
 ## Confirmations
 
 What matched, the docstring reads whole after the drop: at HEAD,
