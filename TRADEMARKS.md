@@ -8,9 +8,7 @@ The AgenticSeal name, the owl emblem and its seal drawings are not licensed
 under the MIT License. All rights reserved. The drawings are:
 
 - every `.svg`, `.png` and `.ans` file under
-  [`assets/seals/`](assets/seals/), its `candidates/` included, and each
-  `.txt` file there, the sprite or chart of a mark. These are the emblem
-  each release carried and the candidates kept beside it, which no release
+  [`assets/seals/`](assets/seals/). These are the emblem each release
   carried;
 - the plugin's icon, `.claude-plugin/icon.png`;
 - the drawing in `skills/verify/scripts/seal-mark.txt`, the sprite the
