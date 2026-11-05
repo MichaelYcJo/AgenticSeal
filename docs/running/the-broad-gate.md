@@ -169,14 +169,6 @@ check: tests/behaviour/test_a_shrunken_corpus_declines_to_judge.py tests/test_co
 
 ## A check that cannot fail is not a check
 
-**A module's arms are enumerated from its own source and each one mutated,
-and the arms no case kills are reported.** Counting a module's arms by hand
-produces a number that rots, and an arm nothing kills is an arm that can be
-deleted with the suite staying green. That is the same rule new cases are
-held to, seen red before it is committed, applied to the arms that are
-already there.
-check: skills/verify/scripts/arm_check.py tests/skills/test_arm_check.py
-
 **A check named for a property has to be able to observe that property.** A
 check and its own case that each hold their own copy of what the check looks
 for, such as a set of search phrases or a range, drift into checking

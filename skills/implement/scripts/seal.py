@@ -146,10 +146,6 @@ TOOLS = {
         "skills/verify/scripts/unverified_check.py",
         "read what the work items recorded as not verified",
     ),
-    "arms": (
-        "skills/verify/scripts/arm_check.py",
-        "list a module's arms, and report the ones no case kills",
-    ),
     "deferrals": (
         "skills/verify/scripts/deferral_check.py",
         "resolve the answerer named in an `unverified` row",

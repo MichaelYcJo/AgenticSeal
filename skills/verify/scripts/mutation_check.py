@@ -45,7 +45,9 @@ own output. The bound applies to each of the two runs.
   could not run    exit 2   anything else went wrong; no verdict
   refused          exit 2   nothing was written: OLD does not land once, or
                             a .py mutant does not compile
-  not restored     exit 2   the file on disk may still hold the mutation
+  not restored     exit 2   the restore did not land, so the file may hold
+                            the break or what the cases wrote; restore it
+                            from the commit made before the run
   interrupted      exit 2   Ctrl-C; the run was ended and the file restored
 
 Exit 2 is everything that measured nothing, so `seal mutate ... &&
@@ -76,8 +78,8 @@ that notices it. One pair is the single run above, printed as it always was.
 **The bound ends what the run started, not only the process it spawned.**
 `subprocess.run`'s timeout kills the direct child, and `bin/test` execs a
 runner that starts pytest as a child of its own, so a run bounded that way
-leaves the suite running past the verdict -- #313 measured it on `seal arms`,
-and the case for S5 re-measures it here. On POSIX the command runs in a
+leaves the suite running past the verdict -- #313 measured it, and the case
+for S5 re-measures it here. On POSIX the command runs in a
 session of its own and a timed-out run's whole process group is killed; so
 is the group of a run that exited, which ends whatever the cases left
 behind. The wait is on the process and the output goes to a temporary file,
@@ -97,17 +99,10 @@ mtime it recorded still match, and a same-length mutation written inside one
 second is that match. An importer's bytecode is valid for its unchanged
 source and is never stale, so clearing `tests/__pycache__` removed caches
 that were right and missed the one that was not. The removal is
-`arm_check.clear_bytecode_cache`, which takes `<stem>.*.pyc` rather than the
-one name `importlib.util.cache_from_source` gives: that name is the calling
+`clear_bytecode_cache`, which takes `<stem>.*.pyc` rather than the one name
+`importlib.util.cache_from_source` gives: that name is the calling
 interpreter's tag, and on the machine this was built on `python3` is 3.14
 while `bin/test`'s virtualenv reads 3.13.
-
-**`arm_check.py` is reached by path, not through `sys.path`.** Both
-functions this uses are its own, and a second copy is how two
-loops come to disagree. A bare `from arm_check import ...` would resolve only
-while this file is run by its path with `PYTHONSAFEPATH` unset, and a case
-loading this file by an `importlib` spec meets neither condition. Every other
-shipped script that reaches another file does it this way.
 
 **What it does not protect.** The original is held in this process's memory
 for the length of one run and nowhere else, so a `SIGKILL` delivered between
@@ -121,18 +116,15 @@ from __future__ import annotations
 
 import argparse
 import hashlib
-import importlib.util
 import os
 import platform
+import shlex
 import signal
 import subprocess
 import sys
 import tempfile
 import time
 import warnings
-
-HERE = os.path.dirname(os.path.abspath(__file__))
-ARM_CHECK = os.path.join(HERE, "arm_check.py")
 
 # Seconds the command is waited for. `questions.md` Q4 of work item
 # 1790815610 holds the grounds: about twice the slowest legitimate mutated run
@@ -158,23 +150,103 @@ GROUP = "process group"
 CHILD = "direct child"
 
 
-def _sibling(name: str, path: str):
-    """A script beside this one, loaded by path and registered first.
+def clear_bytecode_cache(path: str, cwd: str | None = None) -> list[str]:
+    """Remove any cached bytecode for `path`. Returns what it removed.
 
-    Registered before it executes because `arm_check.py` uses `from
-    __future__ import annotations` with dataclasses, and `dataclasses`
-    resolves a string annotation through `sys.modules[cls.__module__]`."""
-    spec = importlib.util.spec_from_file_location(name, path)
-    loaded = importlib.util.module_from_spec(spec)
-    sys.modules[name] = loaded
-    spec.loader.exec_module(loaded)
-    return loaded
+    `cwd` is the directory the cases run in. A relative `PYTHONPYCACHEPREFIX`
+    is read against it, because CPython joins the prefix as given
+    (`importlib._bootstrap_external.cache_from_source`), so the importing
+    process resolves it against its own working directory -- the cases', not
+    this process's. Cleared from here, a relative prefix names a different
+    mirror and the stale `.pyc` stays where the cases read it (#703). `None`
+    reads it against this process's directory; an absolute prefix is the
+    same from anywhere.
+
+    **This is not housekeeping; without it the run reports a verdict for the
+    wrong mutation.** CPython validates a `.pyc` against the source's mtime
+    and SIZE, and two mutations of one file are routinely the same number of
+    bytes -- `not (host == "example.com")` and `not (flag)` both add six
+    characters. Written inside the same mtime granularity, the second one
+    loads the first one's bytecode. No hash catches it: the compare in
+    `restore` reads the file on disk, which was right, and the interpreter
+    did not read it.
+
+    The cases also run with `PYTHONDONTWRITEBYTECODE` (`_environment`). Both
+    halves are needed: this one clears what was there before the run, that
+    one stops the run creating more.
+    """
+    stem = os.path.splitext(os.path.basename(path))[0]
+    absolute = os.path.abspath(path)
+    roots = [os.path.join(os.path.dirname(absolute), "__pycache__")]
+    prefix = getattr(sys, "pycache_prefix", None) or os.environ.get(
+        "PYTHONPYCACHEPREFIX"
+    )
+    if prefix:
+        if cwd:
+            # `os.path.join` keeps an absolute prefix as given, so only a
+            # relative one moves.
+            prefix = os.path.join(cwd, prefix)
+        # `sys.pycache_prefix` mirrors the absolute source tree under itself.
+        _drive, tail = os.path.splitdrive(os.path.dirname(absolute))
+        roots.append(os.path.join(prefix, tail.lstrip(os.sep).lstrip("/")))
+    removed = []
+    for root in roots:
+        if not os.path.isdir(root):
+            continue
+        for name in os.listdir(root):
+            if name.startswith(stem + ".") and name.endswith(".pyc"):
+                os.remove(os.path.join(root, name))
+                removed.append(os.path.join(root, name))
+    return removed
 
 
-_ARM_CHECK = _sibling("agentic_arm_check_for_mutation_check", ARM_CHECK)
-clear_bytecode_cache = _ARM_CHECK.clear_bytecode_cache
-restore = _ARM_CHECK.restore
-command_words = _ARM_CHECK.command_words
+def restore(path: str, original: bytes, original_sha: str) -> None:
+    """Put `original` back and prove it landed, or raise `RuntimeError`.
+
+    A function of its own so the failure path is reachable by a case. The
+    defect it exists for is the one four fix passes met by hand in a day: a
+    mutation recorded as caught that had never been applied, because the
+    pattern missed by two spaces of indentation and nothing compared the
+    bytes afterwards. Every verdict taken after a failed restore is measured
+    against a file that does not hold the bytes it held before the command
+    started: the break, or what the cases wrote. So this raises rather than
+    warning, and `_put_back` reports the raise as `NotRestored`.
+    """
+    with open(path, "wb") as f:
+        f.write(original)
+    with open(path, "rb") as f:
+        back = hashlib.sha256(f.read()).hexdigest()
+    if back != original_sha:
+        raise RuntimeError(
+            f"{path} was not restored: {back} != {original_sha}. Every "
+            f"verdict after this point would be measured against a file that "
+            f"does not hold the bytes it held before the command started, so "
+            f"the run stops here."
+        )
+
+
+def command_words(text, windows=None):
+    """The words of the command line `text`: `shlex.split`'s reading, save
+    that on Windows a backslash is a character of the word it is in.
+
+    `shlex.split` reads `\\` as an escape, which is a POSIX shell's rule and
+    takes every separator out of a Windows path: `C:\\py\\python.exe` came
+    back `C:pypython.exe`, and nothing could start it (PR #939's
+    `windows-latest` leg). There a backslash is the path separator, so it is
+    kept, and a quote still groups a word. How it errs: on Windows a `\\"`
+    is not an escaped quote. `--tests` is split here.
+
+    `windows` defaults to this machine's, and is an argument so both
+    readings can be driven from either platform.
+    """
+    if windows is None:
+        windows = os.name == "nt"
+    lexer = shlex.shlex(text, posix=True)
+    lexer.whitespace_split = True
+    lexer.commenters = ""
+    if windows:
+        lexer.escape = ""
+    return list(lexer)
 
 
 class Refused(Exception):
@@ -182,7 +254,8 @@ class Refused(Exception):
 
 
 class NotRestored(Exception):
-    """The restore did not land, so the file may still hold the mutation."""
+    """The restore did not land, so the file may hold the break or what the
+    cases wrote, and is restored from the commit made before the run."""
 
 
 def mutated(text: str, old: str, new: str, path: str) -> str:
@@ -489,11 +562,10 @@ def _held(path: str):
 def _environment() -> dict:
     """The cases' environment.
 
-    Both halves of the bytecode step, as `arm_check.run_arms` has them: the
-    removal takes what was there before the run, and the variable stops the
-    run writing more. The removal is repeated after the restore for a
-    command that builds its own environment and writes the mutant's `.pyc`
-    anyway."""
+    Both halves of the bytecode step: the removal takes what was there
+    before the run, and the variable stops the run writing more. The removal
+    is repeated after the restore for a command that builds its own
+    environment and writes the mutant's `.pyc` anyway."""
     env = dict(os.environ)
     env["PYTHONDONTWRITEBYTECODE"] = "1"
     return env
@@ -649,11 +721,12 @@ def main(argv=None) -> int:
         )
         return 2
     except KeyboardInterrupt:
-        # Reached only after `run_cases` ended what it started and, when the
-        # break had been written, `mutation_run`'s `finally` restored the file
-        # -- a failed restore raises `NotRestored` instead, and is reported
-        # above. An interrupt during the baseline wrote nothing, so the
-        # sentence says what holds in both cases (round 2, ⬜ 12).
+        # Reached after `run_cases` ended what it started, and after the
+        # `finally` of `mutation_run` or `batch_run` put back any bytes that
+        # differ from the ones held: the break, or what the cases wrote, in
+        # the baseline as well as in a mutant's run. A restore that fails
+        # raises `NotRestored` instead, which is reported above. So the
+        # sentence below is true wherever the interrupt lands.
         print(
             f"{INTERRUPTED}: no verdict. What the run started was ended, and "
             f"{args.path} holds the bytes it held before the command started.",
