@@ -38,6 +38,11 @@ The repair that stays inside the frame's mechanism is a sixth `export-ignore` li
 
 The snippet does not reach every statement of the five paths. The fix pass or the orchestrator also owes these changes. The design's `.gitattributes` item (`frame/design.md:82`, "Five lines follow") becomes six lines. The *Out* bullet at `frame/design.md:59` drops `.github/workflows/`. The changelog fragment's list of marked paths (`changelog.md:3`) gains the new path. So does the plan's *Operational impact* line on GitHub's source archives (`frame/plan.md:59`). The frame's *Grounding* row that lists the archive's top-level entries stays as it is, since its coordinates are dated to `efd8edec`.
 
+```seal
+verdict: fixed 60b917be
+answer: `.gitattributes` marks `/.github/workflows/ export-ignore` as its sixth line, and its comment says why the workflows leave. The paste-ready snippet was read against `frame/design.md` *Scope* 1 and *Out* as folded at 5e0fa2c5 and taken with the comment worded into the file's existing paragraph. `tests/behaviour/test_a_cited_section_stands_in_its_file.py#test_this_repository_s_archive_holds_no_workflow_file` (A7, moved there at 5124a6d9) reads this repository's archive with the census's `archived`, the index's tree under the working tree's attributes, and asserts that no path under `.github/workflows/` is in it. A first form at 60b917be read HEAD through `dist_branch.py#archived`, and `seal mutate` showed it SURVIVED a removal of the line from the working tree. A7 was red against the tree without the line, and red under two `seal mutate` breaks of the line, removed and misspelt (executed). A dry run of `dist_branch.py` over HEAD in a scratch clone built a tree of 182 files with none under `.github/workflows/` (executed). The changelog fragment lists the six paths and why the workflows leave. `frame/design.md` *Data & interfaces*, the `.gitattributes` item ("Five lines follow"), and `frame/plan.md` *Operational impact*, the line on GitHub's source archives, still name five and are the orchestrator's to fold. Whether GitHub would have refused a first commit whose workflow blobs `main` already holds is moot with the directory left out.
+```
+
 ### 2. A failure of the note step still skips `dist`, which is the reason the plan gives for putting `dist` in a job of its own
 
 ```seal
@@ -63,6 +68,11 @@ The repair that matches the plan's reason makes the job's condition independent 
 ```
 
 The snippet does not reach `frame/design.md` *Data & interfaces*, the `publish-release.yml` item, which spells the `if:` as built. The orchestrator owes that frame cell, and the fix pass owes a red run of the changed assertion against the old line.
+
+```seal
+verdict: fixed 60b917be
+answer: The `dist` job's `if:` reads `${{ !cancelled() && needs.publish.outputs.tag != '' }}`, with a comment saying `!cancelled()` lifts the default `success()`. GitHub's documentation was read on 2026-11-05 (read, WebFetch of the workflow syntax, contexts and expressions references). `jobs.<job_id>.needs` says "If a job fails or is skipped, all jobs that need it are skipped unless the jobs use a conditional expression". `jobs.<job_id>.outputs` says "Job outputs are available to all downstream jobs that depend on this job". The expressions page says "A default status check of `success()` is applied unless you include one of these functions" and recommends `if: ${{ !cancelled() }}` to run "regardless of its success or failure". No page says whether a failed job's outputs reach a dependent job, so the round's precondition is neither confirmed nor refuted. The form was taken because it cannot do worse than the old line: where the output does not arrive, the tag reads empty and the job is skipped as before. `gaps.md` *Not verified* names that question and who answers it. The changed assertion in `tests/behaviour/test_a_release_publishes_its_note.py` was red against the old line before the edit, and `seal mutate` putting the old condition back was red at 60b917be (executed). The workflow's header comment, the case's docstring and the changelog fragment now say the job also runs where the note step failed after the tag step passed a tag on. `frame/plan.md`'s row for the `dist` step inside `publish` holds as written. `frame/design.md` *Data & interfaces*, the `publish-release.yml` item, still spells the old `if:` and is the orchestrator's to fold.
+```
 
 ## Confirmations
 
