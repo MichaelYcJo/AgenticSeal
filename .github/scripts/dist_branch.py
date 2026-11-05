@@ -88,27 +88,27 @@ def text(*args, **kwargs):
 def archived(tag):
     """Every file path `git archive` of `tag` writes."""
     with tarfile.open(fileobj=io.BytesIO(git("archive", "--format=tar", tag))) as tar:
-        return {member.name for member in tar.getmembers() if not member.isdir()}
+        return {member.name for member in tar.getmembers()}
 
 
 def archive_tree(tag):
-    """The tree of `tag` less every path its archive does not hold."""
+    """The tree of `tag` less every path its archive does not hold, written
+    from an index of this call's own, so the checkout's index is left as it
+    was."""
     kept = archived(tag)
     with tempfile.TemporaryDirectory() as scratch:
         index = os.path.join(scratch, "index")
         git("read-tree", tag, index=index)
         listed = git("ls-files", "-z", index=index).decode("utf-8").split("\0")
-        gone = [path for path in listed if path and path not in kept]
-        if gone:
-            stdin = "".join(f"{path}\0" for path in gone).encode("utf-8")
-            git(
-                "update-index",
-                "--force-remove",
-                "-z",
-                "--stdin",
-                index=index,
-                stdin=stdin,
-            )
+        gone = "".join(f"{path}\0" for path in listed if path and path not in kept)
+        git(
+            "update-index",
+            "--force-remove",
+            "-z",
+            "--stdin",
+            index=index,
+            stdin=gone.encode("utf-8"),
+        )
         return text("write-tree", index=index)
 
 
@@ -117,9 +117,8 @@ def remote_tip():
     heads = text("ls-remote", "--heads", REMOTE, BRANCH)
     if not heads:
         return ""
-    tip = heads.split()[0]
-    git("fetch", "-q", "--no-tags", REMOTE, BRANCH)
-    return tip
+    git("fetch", "-q", REMOTE, BRANCH)
+    return heads.split()[0]
 
 
 def main():
@@ -131,11 +130,7 @@ def main():
     if dry:
         print("DRY_RUN — nothing will be pushed")
     try:
-        commit = text("rev-parse", "--verify", "--quiet", f"refs/tags/{tag}^{{commit}}")
-    except GitFailed:
-        print(f"{tag} is not a tag this checkout holds, so nothing was pushed")
-        return 1
-    try:
+        commit = text("rev-parse", "--verify", f"{tag}^{{commit}}")
         tree = archive_tree(tag)
         tip = remote_tip()
         if tip and text("rev-parse", f"{tip}^{{tree}}") == tree:

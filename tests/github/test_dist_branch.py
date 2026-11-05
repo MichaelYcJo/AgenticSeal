@@ -201,11 +201,16 @@ class Test_main:
         assert not forced, ran
 
     def test_refuses_to_push_in_a_dry_run(self, monkeypatch, tmp_path, capsys):
-        """D5."""
+        """D5. The checkout's own index is left as it was, a file staged in
+        it among it: the tree is written from an index of the run's own."""
         repo, remote = released(tmp_path)
+        write(repo, "staged.md", "s\n")
+        git_out(repo, "add", "staged.md")
+        staged = git_out(repo, "write-tree")
         assert wire(monkeypatch, repo, DRY_RUN="1").main() == 0
         assert tip_of(remote) == ""
         assert "would push" in capsys.readouterr().out
+        assert git_out(repo, "write-tree") == staged
 
     def test_refuses_a_tag_the_checkout_cannot_resolve(
         self, monkeypatch, tmp_path, capsys
