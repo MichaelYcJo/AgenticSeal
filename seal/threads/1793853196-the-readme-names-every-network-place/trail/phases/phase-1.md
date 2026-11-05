@@ -40,7 +40,13 @@ build from GitHub where no interpreter on the machine satisfies the
 project's `requires-python`, and `fea52aea` added that sentence to both
 editions and the clause to `changelog.md`; the fix pass re-ran the round's
 offline probe, which exited 2 with "A managed Python download is available"
-(executed).
+(executed). Round 2 reopened that finding: uv also downloads where a
+`.python-version` file pins a version the machine lacks, with or without a
+`[project]` table. `8e605e8c` restated the condition in both editions and in
+`changelog.md` as a project asking for a Python version the machine does not
+have, such as through a `.python-version` file or `requires-python`; its fix
+pass re-ran a `.python-version` probe with no `[project]` table, which
+exited 2 with the same hint (executed).
 
 **Row 7's marker is `gh pr create`, not `gh`.** *Scope* 3 let the crafter
 pick a stronger marker. `gh` stands in the rows for `seal cost --post`,
