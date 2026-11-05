@@ -27,14 +27,20 @@ empty `UV_CACHE_DIR`, showed it (executed). With `--offline` the run exited 1:
 "Because six was not found in the cache and your project depends on six".
 Online it exited 2 after "Installed 1 package", and left `.venv` and
 `uv.lock` in the project. The README said lint-python reaches the network
-only through `uvx ruff`. *Scope* 1 says the paragraph "stays as it is", but
-S1 asks that the census find no place the passage lacks, and
+only through `uvx ruff`. *Scope* 1 then said the paragraph "stays as it
+is", but S1 asks that the census find no place the passage lacks, and
 `CONTRIBUTING.md` *House rules*, **Hooks stay local and quiet**, asks that
 every hook network touch be named in the README. So both editions gained
 one sentence after the pinned one, saying that lint-python first tries
 `uv run ruff` and that uv then installs a `[project]`'s dependencies, from
 PyPI where its cache lacks them (`b7e392d8`). The pinned sentence and the
-rest of the paragraph stand.
+rest of the paragraph stand. These probes measured the dependency install
+alone. Round 1 finding 1 found that the same runner also downloads a Python
+build from GitHub where no interpreter on the machine satisfies the
+project's `requires-python`, and `fea52aea` added that sentence to both
+editions and the clause to `changelog.md`; the fix pass re-ran the round's
+offline probe, which exited 2 with "A managed Python download is available"
+(executed).
 
 **Row 7's marker is `gh pr create`, not `gh`.** *Scope* 3 let the crafter
 pick a stronger marker. `gh` stands in the rows for `seal cost --post`,
@@ -122,11 +128,14 @@ re-run.
 
 The only place the passage lacked was the `uv run` touch above.
 
-**Left as it stands, and why.** `CONTRIBUTING.md:449` says "`lint-python`
-fetches ruff through `uvx` when no local copy exists". It is still true, and
-it no longer names lint-python's whole network reach. The frame keeps
-`CONTRIBUTING.md` out of this work (*Scope*, Out), so the hand-back names
-it.
+**Left by the phase, and changed by round 1's fix pass.** `CONTRIBUTING.md:449`
+said "`lint-python` fetches ruff through `uvx` when no local copy exists".
+It was still true and no longer named lint-python's whole network reach.
+The frame then kept `CONTRIBUTING.md` out of this work, so the phase left
+it and the hand-back named it. Round 1 finding 2 raised it, the
+orchestrator folded it as *Scope* 6, and `fea52aea` replaced that sentence
+and the version-check sentence after it with one sentence that names both
+hooks and points to `README.md` *What runs on your machine*.
 
 **A commit after the phase closed: `30961559`.** The hand-back also named
 `tests/hooks/test_version_check.py:1`, "version-check — the one hook that
