@@ -574,17 +574,6 @@ def decision_of(stdout):
     return json.loads(stdout)["hookSpecificOutput"]["permissionDecision"]
 
 
-def fired(stdout):
-    """True when a gate stopped the call at all.
-
-    A gate with two ways on denies the FIRST time a session meets it in a
-    repository — spending the reason on the question — and asks on every
-    attempt after that. Detection tests care that the gate saw the command,
-    not which of the two prompts it produced; the shape has tests of its own.
-    """
-    return decision_of(stdout) in ("deny", "ask")
-
-
 # Told apart by `shell_probe` below, and the caller is expected to act on the
 # difference: one is a name that was never a shell, the other is a shell whose
 # environment ate the answer.
@@ -1713,7 +1702,7 @@ def _console_repo_template():
 
 
 def opted_in_repo(where):
-    """A repository the commit gate fires in, at a path holding non-ASCII."""
+    """An opted-in repository, at a path holding non-ASCII."""
     shutil.copytree(_console_repo_template(), where)
     mark_root(where / "seal")
     return where

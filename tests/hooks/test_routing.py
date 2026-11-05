@@ -1,10 +1,11 @@
-"""`hooks/lib/routing.py`: the routing answer is recorded, so the gate stops
-re-deriving it.
+"""`hooks/lib/routing.py`: the routing answer is recorded where the hooks read
+it, so nothing re-derives it.
 
-A declaration at `seal/threads/<work-item-id>/routing.md` is what the commit gate
-reads. Failure direction: a declaration that cannot be read is not a
-declaration, and an optional row that cannot be read is unanswered while the
-declaration stands. What the commit gate does with an answer is its own file's.
+A declaration at `seal/threads/<work-item-id>/routing.md` is what the edit
+check reads, through `routing.for_branch`. Failure direction: a declaration
+that cannot be read is not a declaration, and an optional row that cannot be
+read is unanswered while the declaration stands. What a hook does with an
+answer is that hook's own file's.
 The cases come from `tests/test_routing_is_recorded.py` and
 `tests/test_console_is_not_utf8.py` (#942's phase 6). Two cases of
 `Test_module` came in #942's round 9 fix pass, each a case of this module
@@ -59,7 +60,7 @@ def _absent_optional_rows_read_as_nothing(paths):
             assert parsed[key] is None, (
                 f"{path} has no `{row}` row and did not read as unanswered on "
                 f"that axis -- an absent optional row has to read as nothing, "
-                f"or the commit gate un-silences on every declaration like it"
+                f"or every declaration like it carries an answer its author never gave"
             )
     return omitted
 
@@ -106,8 +107,8 @@ class Test_parse:
     def test_accepts_a_two_axis_declaration_with_no_optional_row_answered(self):
         """S1, and S8 at the parser. Twelve of these are committed in this
         repository at the base of this work, thirteen at its head. A third or
-        a fourth axis that invalidated them would un-silence the commit gate on
-        every one."""
+        a fourth axis that invalidated them would make each one no declaration,
+        and the edit check would refuse the branch it names."""
         parsed = routing.parse(two_axis_text())
         assert parsed is not None
         assert parsed["review"] == CHAIN
@@ -260,8 +261,8 @@ class Test_parse:
 
     def test_refuses_a_review_answer_outside_the_vocabulary(self):
         """The vocabulary is fixed: `maybe later` is not one of the two ways on,
-        so the file is no declaration and the commit gate asks. The gate's own
-        case runs the same answer through the hook; this one asks the parser."""
+        so the file is no declaration and the edit check refuses the next edit.
+        This case asks the parser."""
         text = two_axis_text().replace(
             f"| Review | {CHAIN} |", "| Review | maybe later |"
         )
@@ -411,7 +412,8 @@ class Test_parse:
         S8 of #84 extends it rather than opening a second case beside it. What an
         optional row has to survive is a declaration that does not carry it -- a
         required row, or a row whose absence took the declaration down, would
-        un-silence the commit gate on every one of those. So the assertion is over
+        make every one of those no declaration, and the edit check would refuse
+        the branch each names. So the assertion is over
         the declarations that OMIT each row, and never over how many answer it:
         #351 wrote the first `Planning` answer, and a case premised on nobody
         answering goes red on the commit that writes one rather than on a defect.
@@ -533,9 +535,9 @@ class Test_module:
         through the commit gate, into `dispatch.py`'s `except Exception: return ""`
         — no output, which is an allow.
 
-        The direction the module states is "no declaration", which means the gate
-        goes back to asking. Not silence: silence would make a corrupt file into a
-        standing waiver.
+        The direction the module states is "no declaration", which means the edit
+        check refuses the edit. Not silence: silence would make a corrupt file
+        into a standing waiver.
         """
         sys.path.insert(0, os.path.join(ROOT, "hooks", "lib"))
         import routing
@@ -552,8 +554,7 @@ class Test_module:
     def test_a_routing_md_that_does_not_parse_is_left_out(self, tmp_path):
         """A file under a work item that is no declaration is skipped, so the
         list holds only what `parse` read; the readable one beside it stays.
-        The commit gate's case for a malformed declaration runs the hook; this
-        one asks the reader."""
+        This case asks the reader."""
         repo = opted_in_repo(tmp_path / "declared" / "repo")
         specs = repo / "seal" / "threads"
         (specs / "1780000000-prose").mkdir(parents=True)

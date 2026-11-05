@@ -42,8 +42,7 @@ AXES = (
 # The routing section — the axes, the checkbox, the file, the four
 # combinations, the wake/quiet table — is `implement`'s orchestrator half
 # since #292: the session that asks reads `orchestration.md`, and no crafter
-# spawn preloads it. The per-command waiver stays in `SKILL.md`, because
-# the implementer is who types the command.
+# spawn preloads it.
 ORCH = ("skills", "implement", "orchestration.md")
 
 # The shape of the asking, in the ONE spelling the orchestrator's section
@@ -193,9 +192,9 @@ def test_the_template_PARSES_into_the_three_answers_it_ships():
     assert parsed["destination"] == routing.OPEN_PR
 
     # Shipped as a PLACEHOLDER, unlike the other two, and that is the whole
-    # point: a wrong answer in the first two is caught at the next commit
-    # because the gate stops recognising the file, and a wrong answer here is
-    # never contradicted by anything. So copy-and-never-revisit has to land on
+    # point: a wrong answer in the first two makes the file no declaration, so
+    # the edit check refuses the next edit on the branch, and a wrong answer
+    # here is never contradicted by anything. So copy-and-never-revisit has to land on
     # "not answered" rather than on a confident `crafter` nobody performed.
     assert parsed["implementation"] is None, (
         "the template pre-answers the one axis nothing checks, which makes "
@@ -702,8 +701,8 @@ def test_no_committed_declaration_still_carries_a_template_placeholder():
 
     The `Branch` row is the contrast that shows this is a real gap rather
     than a tidy one: leaving ITS placeholder produces a branch name nothing
-    matches, `for_branch` finds no declaration, and the gate asks again at
-    the next commit. The third axis has no such reader, so the placeholder
+    matches, `for_branch` finds no declaration, and the edit check refuses
+    the next edit on that branch. The third axis has no such reader, so the placeholder
     would sit in the record forever, reading to a person as an answer."""
     import glob
 
