@@ -32,6 +32,18 @@ frame each `trail/phases/phase-N.md` names and `gaps.md`'s `## Not verified`
 rows are claims to check. Settle what you can; what only a person can answer
 stays a question. Do not edit them.
 
+**What the diff removes from a closing memo is read here and by no
+script.** A row of `## Not verified` is ended by marking it `closed`, not by
+taking it out (`skills/implement/SKILL.md` *4. The closing memo — only what
+the diff cannot show*). So stage 1 reads the diff of each `gaps.md` the
+range changes. A row the diff removes is a finding unless a row the diff
+adds carries the same item opening with the word `closed`, and so is a
+`gaps.md` removed from a work item directory that stays. A directory the
+diff removes whole is a settle, not a deletion (`docs/checks/the-fold.md`
+*The fold, and what tells it from a deletion*). In local mode the records
+are never committed, so no diff holds them, and nothing reads a row taken
+out there.
+
 Where `seal/config.md` has a `Pact` row, the proofer reads the work item's
 `frame/design.md` at stage 1 against the shape
 `skills/verify/scripts/pact_check.py` states under *What each frame is read
