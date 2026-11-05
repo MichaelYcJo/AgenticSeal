@@ -144,9 +144,10 @@ uvx --with pytest --with markdown-it-py==4.2.0 --with cmarkgfm==2025.10.22 pytho
 CI runs these jobs: lint (`ruff check` and `ruff format --check`); the suite
 on ubuntu, macOS and Windows at the floor stated above, macOS and Windows in
 shards that `pytest-split` divides from the one committed `.test_durations`,
-and ubuntu as one job; `durations`, which unions what the Windows shards
-measured; `release-report`, which on a pull request into `main` only prints
-the release table against the last release tag and fails nothing; and the
+and ubuntu as one job; the suite once more on ubuntu at Python 3.14, as one
+job; `durations`, which unions what the Windows shards measured;
+`release-report`, which on a pull request into `main` only prints the
+release table against the last release tag and fails nothing; and the
 hygiene workflow that guards releases. A change to any hook needs a test
 that fails without it, as the counterfeit rule below says.
 

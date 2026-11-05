@@ -197,6 +197,29 @@ class Test_leg_minutes:
         assert report.leg_minutes(jobs) == {}
 
 
+class Test_other_legs:
+    def test_accepts_the_legs_past_the_three_by_system_then_version(self):
+        """#1065: the legs at another Python follow `LEGS`' order, 3.9 before
+        3.14 and a version with a letter after its number, and a system
+        outside `LEGS`, at the floor, comes after every system of it."""
+        at = {"macos 3.13": 1.0, "windows 3.13": 4.0, "freebsd": 2.0}
+        now = {"ubuntu 3.14": 3.0, "ubuntu 3.14t": 1.0, "ubuntu 3.9": 3.0}
+        assert report.other_legs(at, now) == [
+            "ubuntu 3.9",
+            "ubuntu 3.14",
+            "ubuntu 3.14t",
+            "windows 3.13",
+            "macos 3.13",
+            "freebsd",
+        ]
+
+    def test_refuses_a_floor_leg_the_three_rows_already_print(self):
+        """#1065: a leg at the floor is one of the three rows, never a row
+        past them."""
+        legs = {"ubuntu": 2.0, "windows": 4.0, "macos": 1.0}
+        assert report.other_legs(legs, {"ubuntu": 2.0}) == []
+
+
 class Test_main:
     def test_accepts_the_file_rows_printed_under_the_release_table(
         self, tmp_path, monkeypatch, capsys
@@ -214,6 +237,28 @@ class Test_main:
             "|---|---|---|---|---|\n"
             "| `tests/test_new.py` | — | — | 1 | 9.0 |\n"
         ) in out
+
+    def test_a_job_at_another_python_is_a_leg_of_its_own(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """#1065 S4: the `ubuntu` row reads the floor's job alone, and the
+        3.14 job is a row of its own after the three, `no run found` at a tag
+        whose run had none."""
+        monkeypatch.setattr(report, "meter", lambda: None)
+        monkeypatch.setattr(report, "reading", lambda root, kernel: ({}, 1.0, {}))
+        at, now = priced(tmp_path / "at", AT), priced(tmp_path / "now", NOW)
+        floor = job("pytest (ubuntu-latest, 3.12, 15)", 2)
+        jobs_at = jobs_file(tmp_path / "at.jsonl", [floor])
+        jobs = jobs_file(
+            tmp_path / "now.jsonl", [floor, job("pytest (ubuntu-latest, 3.14, 15)", 3)]
+        )
+        argv = ["--against", "v1", "--at", at, "--root", now, "--ci-jobs", jobs]
+        assert report.main([*argv, "--ci-jobs-at", jobs_at]) == 0
+        out = capsys.readouterr().out
+        rows = rows_of(out)
+        assert rows["`ubuntu` leg (minutes)"] == ("2.0", "2.0", "+0.0 (+0.0%)"), rows
+        assert rows["`ubuntu 3.14` leg (minutes)"] == ("no run found", "3.0", "—")
+        assert out.index("`macos` leg") < out.index("`ubuntu 3.14` leg"), out
 
     def test_refuses_to_print_rows_for_a_tree_it_cannot_read(self, tmp_path, capsys):
         now = priced(tmp_path / "now", NOW)
