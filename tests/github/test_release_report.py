@@ -215,6 +215,28 @@ class Test_main:
             "| `tests/test_new.py` | — | — | 1 | 9.0 |\n"
         ) in out
 
+    def test_a_job_at_another_python_is_a_leg_of_its_own(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """#1065 S4: the `ubuntu` row reads the floor's job alone, and the
+        3.14 job is a row of its own after the three, `no run found` at a tag
+        whose run had none."""
+        monkeypatch.setattr(report, "meter", lambda: None)
+        monkeypatch.setattr(report, "reading", lambda root, kernel: ({}, 1.0, {}))
+        at, now = priced(tmp_path / "at", AT), priced(tmp_path / "now", NOW)
+        floor = job("pytest (ubuntu-latest, 3.12, 15)", 2)
+        jobs_at = jobs_file(tmp_path / "at.jsonl", [floor])
+        jobs = jobs_file(
+            tmp_path / "now.jsonl", [floor, job("pytest (ubuntu-latest, 3.14, 15)", 3)]
+        )
+        argv = ["--against", "v1", "--at", at, "--root", now, "--ci-jobs", jobs]
+        assert report.main([*argv, "--ci-jobs-at", jobs_at]) == 0
+        out = capsys.readouterr().out
+        rows = rows_of(out)
+        assert rows["`ubuntu` leg (minutes)"] == ("2.0", "2.0", "+0.0 (+0.0%)"), rows
+        assert rows["`ubuntu 3.14` leg (minutes)"] == ("no run found", "3.0", "—")
+        assert out.index("`macos` leg") < out.index("`ubuntu 3.14` leg"), out
+
     def test_refuses_to_print_rows_for_a_tree_it_cannot_read(self, tmp_path, capsys):
         now = priced(tmp_path / "now", NOW)
         missing = str(tmp_path / "missing")
