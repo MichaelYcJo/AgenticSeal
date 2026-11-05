@@ -32,6 +32,11 @@ ORCH = ("skills", "implement", "orchestration.md")
 
 The snippet covers the one sentence in the code. The fix pass also owes the records that count the class. `trail/phases/phase-1.md` lists 19 rows and needs a row for this line. `changelog.md` says "nineteen places under `tests/`" and needs the new count. The frame's D1 table and *Scope* item 1 are the orchestrator's fold.
 
+```seal
+verdict: fixed 0149c852
+answer: The finding holds: at 31044e32 the comment said the per-command waiver stays in `SKILL.md`, neither `skills/implement/SKILL.md` nor `orchestration.md` holds one (grep prints only `orchestration.md:410` and `:412`), and the module's own case at `:749-756` asserts it gone. Read against D1 row 20 (disposition D) and the code, the paste-ready comment was applied as given: the sentence goes and the comment ends "and no crafter spawn preloads it." The module runs 24 passed, exit 0, and ruff's check and format check exit 0 (executed, at 0149c852). The phase record adds row 20 and the fragment counts the class again in 09212a1b. Reading the class whole with `git grep -n -i "waiv" -- tests` found one more present-tense instance the round's search missed: the docstring of `test_the_crafters_four_rules_stand_with_their_enforcers` in `tests/text/test_a_moved_rule_leaves_its_definition.py` said "the waiver stays one sentence" while the case asserts the waiver gone; cf0d7b50 rewrites it, `trail/phases/phase-1.md` records it, and D1 holds no row for it, which is the orchestrator's to fold.
+```
+
 ### 2. The plan and the phase record count nine touched files where the diff touches eight
 
 ```seal
@@ -45,6 +50,11 @@ Why it matters: `frame/plan.md:5` says "The work edits text in nine files under 
 ```text
 frame/plan.md:5            The work edits text in eight files under `tests/` and removes one unit of code.
 trail/phases/phase-1.md:59 ... `uvx ruff check` and `uvx ruff format --check` over the eight touched files exit 0 (executed).
+```
+
+```seal
+verdict: fixed 09212a1b
+answer: The finding holds for the phase record: the ruff run of phase 1 covered the eight files under `tests/` the diff touches, and "nine" was wrong. 09212a1b says "the eight touched files". The same paragraph's "the eight touched modules but `tests/conftest.py`" was also wrong, since `tests/censuses.py` is no test module and was not passed to the runner, so it now reads "the six touched test modules" and says how the run reaches `tests/censuses.py` and `tests/conftest.py`. The `frame/plan.md:5` half is the orchestrator's and reads "eight files" at 31044e32. The fixes of finding 1 edit files phase 1 already touched, so the count stays eight (executed: `git diff --name-only 31558c76 HEAD -- tests`).
 ```
 
 ## Confirmations
