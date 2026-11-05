@@ -1,0 +1,46 @@
+# Implementation Plan: 1793853197-a-bare-commit-goes-or-states-its-reason
+
+## Technical context
+
+The work is built on `refactor/1359-bare-commit-hashes-in-shipped-text`, cut from `release/v0.32.4` at `31558c76` (v0.32.3). `frame/design.md` D1 lists the 115 lines that hold a bare commit, at `31558c76`'s line numbers, with each line's disposition. 85 are rewritten in 29 files, and 30 stay as data.
+
+Five sibling work items run on other branches of the same release. None holds a token, and none removes a sentence D1 rewrites (`frame/design.md` *Grounding*, the siblings row). Two share a file with this work: #1352 edits `tests/hooks/test_routing.py` at its "commit gate" sentences, and #1381 may add a case to `tests/hooks/test_dispatch.py`. Where a sibling lands on `release/v0.32.4` first, the line numbers in D1 move. The phase finds each line by D1's token, which no sibling adds or removes, and records the line it built at.
+
+Three existing structures constrain the work.
+
+- `tests/censuses.py#vacated_paths` refuses a path the tree no longer holds, outside a `<commit>:<path>` token. A rewrite that drops a commit and names the path it stood beside is refused, as #1355's phase found for `hooks/routing.py` (its `trail/phases/phase-1.md`, *Departures from the frame*). A rewrite names the issue, or the present path, or no path.
+- `tests/text/test_a_cited_commit_outlives_the_squash.py#unreached` takes a list of `(rel, line, commit)` from `cited` and refuses each commit no `REACHING` ref contains, one `git for-each-ref --contains` per distinct commit (`:107-126`). D2's bare reader feeds it the same shape, so the refusal path stays one.
+- `#read_here` (`:67-78`) leaves out `evals/behaviour/`, a work item's `trail/` and its `guarantee.md`. The bare reader adds one more condition, that the file is not under `seal/`, and keeps the rest.
+
+The phases run in this order because phase 2's tree case reads the tree. After phase 1, every bare token outside `seal/` that resolves in this clone is reached by `origin/main` (`frame/design.md` *Grounding*, the reachability row), so the tree case passes. Built before phase 1, it would refuse 22 tokens in a clone that holds their commits and none in CI.
+
+**The failure scenario of the chosen approach, six months on.** Two things can go wrong. First, a later docstring names a commit `main` reaches as where a case was seen red. The bare reader passes it, because the commit is reached, so only the proofer's reading of that diff catches the cost, and the measures in `frame/design.md` *Grounding* find it when someone runs them again. Second, a synthetic hex value in a fixture happens to be the prefix of a commit on an unmerged branch in some clone. The case then refuses a correct fixture in that clone. The refusal names the token and its file. A given seven-hex value is the prefix of a given commit once in about 2.7 × 10^8, so the collision is rare, and what the case reads, git's answer, is exact. A fork's pull request is not caught at all, because CI does not fetch the fork's branch, so its commits resolve nowhere.
+
+## Alternatives considered
+
+| Approach | Failure scenario | Verdict |
+|---|---|---|
+| A1. Rewrite each line by D1, and widen the squash case to read bare commits outside `seal/` and refuse the unreached (D2) | A synthetic fixture value collides with an unmerged branch's commit, and the case refuses a correct fixture in that clone (*Technical context*) | **chosen.** It stops the one harm a reader cannot recover from, a commit no clone holds, at the pull request that writes it. It reads only what git resolves and which refs contain, so it needs no mark. The cost a reached commit carries stays the proofer's (`frame/design.md` D2) |
+| A2. Rewrite each line by D1 and add no case, as #1355's D2 did for `<commit>:<path>` | The next "Seen red at `<the branch's commit>`" ships, and the squash orphans it. That is how the 34 unreached tokens in D1 accumulated, while the form the case reads had none among 25 (`frame/design.md` *Grounding*, the comparison row) | rejected. #1355's D2 rested on the existing case already refusing the form's misdirection, and for a bare commit nothing refuses it. The premise that would keep the layout's "A bare commit is not read" for shipped text was checked: its two grounds, Status cells and `fixed` lines, stand only under `seal/` |
+| A3. Refuse every bare hex token outside `seal/` by its spelling, reached or not | The case refuses 6,500 tokens' worth of fixtures and data. M2 reads 33 of the 45 short mixed ones as naming no commit, and D1's 30 data lines are deliberate. Each needs an exemption mark, and a writer refused moves the provenance into prose the case does not read | rejected. A spelling is not the fact. `skills/core/SKILL.md` *The rule a mechanism is kept against* keeps a gate only on a fact read exactly, and `agents/framer.md` *A mark is not the answer to a blocked step* refuses the mark |
+| A4. Keep the squash case reading one form, and put the bare reading in a new module | Two modules hold one rule. They carry two `REACHING` lists, two skips and two refusals, which drift apart at the next edit of either | rejected. `skills/core/SKILL.md` says a fact has one source. The replacement, one case reading both forms through one `unreached`, keeps every structure the case has and changes only what `cited` feeds it |
+| A5. Read bare commits under `seal/` too | Every open work item's `frame/plan.md` Status cell names the branch's own commit by rule (`skills/implement/SKILL.md` *3. The SDD file set*, read), so the tree case refuses each one until its branch merges | rejected. The layout's grounds for not reading bare commits hold under `seal/` and stay there (`frame/design.md` `## Rule changes`) |
+| A6. Keep the fixture literals of D1 rows 44 to 46 by building them from parts, or change them to values that name no commit | No case reads a different value either way. The squash case passes them, since `origin/main` reaches each, and the module text around each says what it is | rejected. Each is a case's input, the reason is plain at its line, and the measure names them as data in the phase record |
+| A7. Replace each unreached commit with the squash commit or the release tag that holds the same file | The squash holds the fixed code, not the code a case was red against, so "seen red at" the squash is false. A tag citation keeps the provenance's bytes and opens only through `git show` | rejected. #1359's *What changes* sends provenance nobody acts on to git, and the grounds into one sentence or `#N` |
+
+## Phases
+
+| Phase | Delivers | Verified by | Status |
+|---|---|---|---|
+| 1 | *Scope* items 1, 2 and 3 | S1 to S6 of `frame/design.md` *User scenarios & acceptance*, each with its command and output in the phase record. The narrow runs of each touched test module, of `tests/skills/test_seal.py` for `skills/implement/scripts/seal.py`, and of `tests/test_censuses.py` pass. The full suite is `unverified`, and the orchestrator's broad gate answers it | |
+| 2 | *Scope* item 4, test-first, on phase 1's commit | S7 to S11, each case seen red as its row says, with the failing line read. The diff read for the resolution: one `git cat-file --batch-check` process for every token, with containment asked only for resolved commits (`frame/design.md` *Data & interfaces*). The module's narrow run time, before and after, is in the phase record. The narrow run of `tests/text/test_a_cited_commit_outlives_the_squash.py` passes in the repository's clone, which holds `main` and the release refs. The full suite is `unverified`, and the orchestrator's broad gate answers it | |
+
+## Operational impact
+
+None for a deployer. The suite's run of `tests/text/test_a_cited_commit_outlives_the_squash.py` adds one `git cat-file --batch-check` process fed every hex token outside `seal/`, and one `git for-each-ref --contains` per distinct resolved commit. On this macOS machine that measured 0.40 s and 0.09 s (`frame/design.md` *Data & interfaces*, executed). The CI legs' cost is `unverified`, and phase 2's CI `--durations` tables answer it. A reader that started one process per token would pay 6,500 process starts per run, and the Windows legs the most, so phase 2's Verified-by cell holds the reader to one resolving process. A contributor whose docstring names a commit of their own branch is refused at the narrow run and in CI, with the repair in the message. `.claude-plugin/plugin.json`'s version stays, because this work item is not the release's first.
+
+## Judgments of the run
+
+| Date | Judgment | Grounds | Judged against |
+|---|---|---|---|
+| | | | |
