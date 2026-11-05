@@ -35,3 +35,27 @@ Every re-run below ran in a `git clone --no-local` of the worktree at 139dd4d5, 
 target: 139dd4d5 against a0303ee9
 Verdict: withheld reason: the orchestrator's part of the pull request body, under Review, says the fix pass removed two of the four moved cases; the tree at tests/skills/test_mutation_check.py:1718, :1736 and :1775 holds three of them, and the fix pass removed one case and the relative parameter of test_a_cache_under_a_pycache_prefix_is_cleared_where_the_cases_read_it (trail/rounds/round-1.md:127)
 ```
+
+## Re-audit at 3b1b050e
+
+The one commit since the earlier block's target, 3b1b050e, touches only `seal/threads/1793862998-seal-arms-is-run-by-nothing/guarantee.md` (executed: `git log --no-merges --name-only 139dd4d5..HEAD ^a0303ee9`). No coordinate of a claim re-run above changed, so none is re-run; the parties are read again.
+
+### Claims re-run
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| The broad run is at HEAD | `trail/gate.md` | `git log --no-merges --name-only b941c57f..HEAD ^a0303ee9`; `git rev-parse origin/release/v0.32.5` | holds: b941c57f is followed only by 139dd4d5 and 3b1b050e, each touching only paths under `seal/threads/1793862998-seal-arms-is-run-by-nothing/`; the base still resolves to a0303ee9 (executed) |
+| The body below `## From the records` is the records' text | the body file the orchestrator re-wrote | `bin/seal pr-body seal/threads/1793862998-seal-arms-is-run-by-nothing --body <scratchpad>/1793862998-seal-arms-is-run-by-nothing/pr-body.md --check` | holds: exit 0 (executed) |
+| The body's broad run figures are the gate's printed lines | the body's *Broad run* paragraph | `grep -n` over `<scratchpad>/1793862998-seal-arms-is-run-by-nothing/gate.log` | holds: line 6 `BROAD GATE PASSED   chore/1393-seal-arms-is-run-by-nothing @ b941c57f against origin/release/v0.32.5 @ a0303ee9`, line 13 `suite   ✓ 6309 passed · 9 skipped`, line 14 `chain   ✓ exit 0` (read; the log is the orchestrator's capture of its run, not a run of mine) |
+
+### The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the orchestrator's part of the pull request body | under **Review**: the stale-cache case and the `relative` parameter of the prefix case caught nothing `Test_main` did not, and the fix "The stale-cache case is deleted, and the prefix case keeps its absolute half alone" | the tree (`tests/skills/test_mutation_check.py:1718`, `:1736`, `:1775` hold the three moved cases), `trail/rounds/round-1.md:127`, whose close block it quotes word for word, the changelog, and its own first paragraph's three moved cases | none |
+| the design, the build, the last round, the changelog | as in the earlier block's table; none of their files changed since 139dd4d5 | each other, the issue and the tree | none |
+
+```seal
+target: 3b1b050e against a0303ee9
+Verdict: sealed
+```
