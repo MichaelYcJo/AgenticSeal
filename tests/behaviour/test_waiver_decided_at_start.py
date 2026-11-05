@@ -42,8 +42,7 @@ AXES = (
 # The routing section — the axes, the checkbox, the file, the four
 # combinations, the wake/quiet table — is `implement`'s orchestrator half
 # since #292: the session that asks reads `orchestration.md`, and no crafter
-# spawn preloads it. The per-command waiver stays in `SKILL.md`, because
-# the implementer is who types the command.
+# spawn preloads it.
 ORCH = ("skills", "implement", "orchestration.md")
 
 # The shape of the asking, in the ONE spelling the orchestrator's section
