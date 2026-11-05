@@ -15,11 +15,17 @@ into `main` and appends what it prints to the job's summary.
                       `skills:` list names, the agent's own share of
                       `skills/verify/scripts/payload_meter.py#composition`
   the suite           the seconds `.test_durations` prices every case at
-  `<leg>` leg         the minutes of one run's `pytest (<leg>-latest, …)`
-                      jobs, summed, each `completed_at` less `started_at`,
+  `<leg>` leg         the minutes of one run's `pytest (<leg>-latest, <python>,
+                      …)` jobs at the floor `hooks/lib/launch.py#FLOOR`
+                      holds, summed, each `completed_at` less `started_at`,
                       read from a job list as `gh api …/jobs --paginate
                       --jq '.jobs[]'` prints it; `no run found` where the
                       file is absent, empty or holds no such job
+  `<leg> <python>` leg
+                      the same, for the jobs at another Python: one row for
+                      each, after the three, where either job list holds it.
+                      A system other than the three gets a row at the floor
+                      too, as `<leg>` leg
   `<document>`        the bytes of the core (`skills/core/SKILL.md`),
                       `CLAUDE.md`, `CONTRIBUTING.md` and each document of
                       the policy root that `seal fold` reads
@@ -53,13 +59,15 @@ ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 METER = "skills/verify/scripts/payload_meter.py"
 FOLD = "skills/settle/scripts/fold_check.py"
 CONFIG = "hooks/lib/config.py"
+LAUNCH = "hooks/lib/launch.py"
 DURATIONS = ".test_durations"
 # Beside these, each document of the policy root `FOLD`'s `documents` lists.
 DOCUMENTS = ("skills/core/SKILL.md", "CLAUDE.md", "CONTRIBUTING.md")
-# The legs of the tests workflow, in the order a reader compares them, and
-# the name of a pytest job, whose leg is the operating system it opens with.
+# The legs of the tests workflow at the floor, in the order a reader compares
+# them, and the name of a pytest job, which opens with its operating system
+# and its Python.
 LEGS = ("ubuntu", "windows", "macos")
-PYTEST_JOB = re.compile(r"pytest \(([a-z]+)-[^,)]*(?:,.*)?\)")
+PYTEST_JOB = re.compile(r"pytest \(([a-z]+)-[^,)]*, ([^,)]+)(?:,.*)?\)")
 NO_RUN = "no run found"
 ABSENT = "—"
 HEADER = (
@@ -95,6 +103,13 @@ def script(rel, name, purpose):
 def meter():
     """`payload_meter.py`, loaded by path, or Unreadable."""
     return script(METER, "agentic_release_meter", "measures an agent's preload")
+
+
+def floor():
+    """The plugin's floor as a job name writes it, `3.12`, from `LAUNCH`'s
+    `FLOOR`, loaded by path, or Unreadable."""
+    launch = script(LAUNCH, "agentic_release_launch", "holds the Python floor")
+    return ".".join(str(part) for part in launch.FLOOR)
 
 
 def lf_bytes(path):
@@ -210,13 +225,16 @@ def documents(root):
     return out
 
 
-def leg_minutes(path):
+def leg_minutes(path, at_floor=None):
     """`{leg: minutes}` for one run's job list at `path`, the minutes of a
     leg summed over its pytest jobs; `{}` where there is no such file, it is
-    empty, or a line of it is no job. A job with no start or end time is not
-    counted, and a leg none of whose jobs has both is no reading."""
+    empty, or a line of it is no job. A job at `at_floor`, `floor()` where
+    none is given, is its operating system's leg, and a job at another
+    Python is the leg `<os> <python>`. A job with no start or end time is
+    not counted, and a leg none of whose jobs has both is no reading."""
     if not path or not os.path.isfile(path):
         return {}
+    at_floor = at_floor or floor()
     legs = {}
     with open(path, encoding="utf-8", errors="replace") as handle:
         for line in handle:
@@ -237,8 +255,25 @@ def leg_minutes(path):
             except (KeyError, TypeError, ValueError):
                 continue
             minutes = (completed - started).total_seconds() / 60
-            legs[match.group(1)] = legs.get(match.group(1), 0) + minutes
+            system, python = match.groups()
+            leg = system if python == at_floor else f"{system} {python}"
+            legs[leg] = legs.get(leg, 0) + minutes
     return legs
+
+
+def other_legs(jobs_at, jobs_now):
+    """The legs either job list holds beyond `LEGS`, by `LEGS`' order of
+    their operating system and then by Python version."""
+
+    def order(leg):
+        system, _, python = leg.partition(" ")
+        rank = LEGS.index(system) if system in LEGS else len(LEGS)
+        version = [
+            (0, int(p), "") if p.isdigit() else (1, 0, p) for p in python.split(".")
+        ]
+        return rank, system, version
+
+    return sorted((set(jobs_at) | set(jobs_now)) - set(LEGS), key=order)
 
 
 def change(old, new, digits=0):
@@ -277,7 +312,7 @@ def table(tag, at, now, jobs_at, jobs_now):
             change(round(at[1]), round(now[1])),
         )
     )
-    for leg in LEGS:
+    for leg in (*LEGS, *other_legs(jobs_at, jobs_now)):
         old, new = jobs_at.get(leg), jobs_now.get(leg)
         rows.append(
             (
@@ -323,10 +358,12 @@ def main(argv=None):
         kernel = meter()
         at = reading(os.path.abspath(args.at), kernel)
         now = reading(os.path.abspath(args.root), kernel)
+        at_floor = floor()
     except Unreadable as error:
         sys.stderr.write(f"release-report: {error}. Nothing was compared.\n")
         return 2
-    jobs_at, jobs_now = leg_minutes(args.ci_jobs_at), leg_minutes(args.ci_jobs)
+    jobs_at = leg_minutes(args.ci_jobs_at, at_floor)
+    jobs_now = leg_minutes(args.ci_jobs, at_floor)
     rows = module_rows(os.path.abspath(args.at), os.path.abspath(args.root))
     sys.stdout.write(table(args.against, at, now, jobs_at, jobs_now))
     sys.stdout.write("\n" + files_table(args.against, rows))

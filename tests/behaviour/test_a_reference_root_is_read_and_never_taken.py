@@ -52,7 +52,7 @@ NO_WALK = "walks no specs/ directory"
 NOT_A_CHECK = "is not a check of the tree"
 
 SHIPPED = {
-    "seal unverified": (PREDICATE, "the walk and the base, by one rule"),
+    "seal unverified": (PREDICATE, "the walk, by one rule"),
     "seal settle": (
         PINNED,
         "settle.py#SPECS; its citation scan reads as a citer, and --from reads "
@@ -65,7 +65,6 @@ SHIPPED = {
         "reads the policy root, each group its index names, and seal/config.md",
     ),
     "seal rules": (NO_WALK, "reads the one document it is named and its targets"),
-    "seal arms": (NO_WALK, "reads the Python files it is named"),
     "seal mutate": (NO_WALK, "breaks and restores the one file it is named"),
     "seal layout": (NO_WALK, "reads tests/ and the modules its files name"),
     "seal deferrals": (NO_WALK, "reads the pull request body and round records"),

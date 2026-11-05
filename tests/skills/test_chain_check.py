@@ -4023,6 +4023,7 @@ class Test_retired:
         [(False, True), (True, False)],
         ids=["an-open-row-and-no-rule-in-docs", "a-closed-record-and-its-rule-in-docs"],
     )
+    @pytest.mark.rule("a-settle-is-no-deletion")
     def test_accepts_a_declaration_a_settle_removed(
         self, branch, draft, capsys, applied, open_row
     ):
@@ -4130,14 +4131,12 @@ class Test_retired:
 
 class Test_module:
     def test_every_reader_of_a_retirement_calls_the_one_predicate(self):
-        """Two parties ask whether a removed directory was settled,
-        `seal unverified --baseline` and this one, and a predicate spelled in
-        each would take the next condition in one and not the other. The
-        behaviour is pinned per reader in its own module; this pins that this
-        one reaches the answer by calling `settled` on the module that owns
-        it, so a reader that re-derives the rule inline goes red here even
-        while it agrees today. `settle` asks no predicate since #1033: it
-        reads the open rows of the working tree."""
+        """One reader asks whether a removed directory was settled, this one,
+        and it reaches the answer by calling `settled` on the module that
+        owns it rather than spelling the rule inline, so the next condition
+        added to the predicate reaches it, and a second `settled` defined
+        here goes red even while it agrees today. `settle` asks no predicate
+        since #1033: it reads the open rows of the working tree."""
         import ast
 
         script = TARGET.split("/")

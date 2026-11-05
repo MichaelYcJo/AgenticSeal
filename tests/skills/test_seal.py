@@ -3786,7 +3786,6 @@ class Test_main:
             ("cost", "skills/verify/scripts/session_cost.py"),
             ("mutate", "skills/verify/scripts/mutation_check.py"),
             ("unverified", "skills/verify/scripts/unverified_check.py"),
-            ("arms", "skills/verify/scripts/arm_check.py"),
             ("deferrals", "skills/verify/scripts/deferral_check.py"),
             ("fold", "skills/settle/scripts/fold_check.py"),
             ("pact", "skills/verify/scripts/pact_check.py"),

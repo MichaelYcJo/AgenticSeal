@@ -265,9 +265,10 @@ def matrix_include_entries(text):
     and the one that read entries took every line starting `- { os:`: an
     entry written another way was not an entry, and nothing said so. Two
     other readings of the file remain, each asking something else:
-    `tests/behaviour/test_release_hygiene.py` takes the floor from every `python:` in
-    it, and `tests/skills/test_arm_check.py` reads the Pythons of the jobs that run
-    its own module.
+    `tests/behaviour/test_release_hygiene.py` takes the floor from every
+    `python:` in it, and
+    `tests/text/test_the_release_table_reads_two_trees_and_fails_nothing.py`
+    slices the `release-report` job out with its own `job_block`.
 
     The name carries no `pytest_` prefix: in a `conftest.py`, pytest reads a
     function so named as a hook and stops the run at an unknown one.

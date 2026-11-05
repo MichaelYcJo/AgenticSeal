@@ -347,7 +347,7 @@ GitHub 은 어딘가의 기계가 AgenticSeal 을 쓴다는 것을 알게 됩니
 | 명령 | 하는 일 |
 |---|---|
 | `seal deferrals . [--kind all]` | `unverified` 행이 미뤄 둔 검사를 이곳에서 돌리는 것이 있는지 말하고, 그 검사를 돌리는 CI 파일을 하나씩 짚는다 (`skills/verify/SKILL.md` *The answerer has to exist*) |
-| `seal unverified . [--baseline <ref>]` | `unverified` 라벨이 열어 둔 행을, 어느 작업 항목에 있고 누가 답하기로 했는지와 함께 나열한다 (`docs/checks/the-unverified-record.md`) |
+| `seal unverified .` | `unverified` 라벨이 열어 둔 행을, 어느 작업 항목에 있고 누가 답하기로 했는지와 함께 나열한다 (`docs/checks/the-unverified-record.md`) |
 | `seal cost --latest` | 세션의 시간이 어디에 쓰였는지 트랜스크립트에서 읽어 알려 준다 (`skills/verify/SKILL.md` *The cost of a run that repeats*) |
 | `seal cost --segments <트랜스크립트>` | 실행이 띄운 에이전트마다, 그 에이전트 자신의 트랜스크립트에서 읽은 행을 하나씩 찍는다 (`docs/running/measuring-a-run.md`) |
 | `seal settle [--apply]` | 릴리스된 작업 항목의 `frame/design.md` 가 적은 `## Rule changes` 를 절마다 보여 주고, `--apply` 를 주면 정리가 끝난 디렉터리를 지운다 (`skills/settle/SKILL.md` *The settling session's procedure*) |
