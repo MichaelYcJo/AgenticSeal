@@ -16,7 +16,7 @@ into `main` and appends what it prints to the job's summary.
                       `skills/verify/scripts/payload_meter.py#composition`
   the suite           the seconds `.test_durations` prices every case at
   `<leg>` leg         the minutes of one run's `pytest (<leg>-latest, <python>,
-                      …)` jobs at the floor `hooks/lib/launch.py#FLOOR`
+                      …)` jobs at the floor `lib/launch.py#FLOOR`
                       holds, summed, each `completed_at` less `started_at`,
                       read from a job list as `gh api …/jobs --paginate
                       --jq '.jobs[]'` prints it; `no run found` where the
@@ -58,8 +58,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 METER = "skills/verify/scripts/payload_meter.py"
 FOLD = "skills/settle/scripts/fold_check.py"
-CONFIG = "hooks/lib/config.py"
-LAUNCH = "hooks/lib/launch.py"
+CONFIG = "lib/config.py"
+LAUNCH = "lib/launch.py"
 DURATIONS = ".test_durations"
 # Beside these, each document of the policy root `FOLD`'s `documents` lists.
 DOCUMENTS = ("skills/core/SKILL.md", "CLAUDE.md", "CONTRIBUTING.md")
@@ -371,7 +371,7 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    # `hooks/lib/console.py#STREAMS` owns this answer. The loop is spelt here
+    # `lib/console.py#STREAMS` owns this answer. The loop is spelt here
     # rather than imported because this script loads the tree's modules only
     # when first asked (`meter`), so a module that will not load ends in the
     # script's own `Unreadable` and exit 2.

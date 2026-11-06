@@ -71,7 +71,7 @@ file that keeps cases for a later group. It prints a line opening with
   body     each old case is a case of the NEW files unchanged apart from its
            name, its place, the class around it, a `self` parameter and its
            docstrings, its own and those of every function and class it
-           defines at any depth, which the formatter the edit hook runs
+           defines at any depth, which `ruff format`
            re-indents to the depth a move puts them at; each new case
            stands for one old case, and a new case that stands for none is
            named, so an old case that lands twice is named by its second
@@ -546,8 +546,8 @@ def _moved_form(definition):
     """DEFINITION, a case, a fixture, or a function or class a case reads,
     as an AST dump that keeps its decorators, its parameters and its body,
     and drops its name, a first `self`, and the docstring of DEFINITION and
-    of every function and class it defines, at any depth. The formatter the
-    edit hook runs re-indents a nested docstring's continuation lines to the
+    of every function and class it defines, at any depth. `ruff format`
+    re-indents a nested docstring's continuation lines to the
     depth a move puts it at, so a docstring compared would fail a case whose
     code did not change."""
     node = copy.deepcopy(definition)
@@ -1303,7 +1303,7 @@ def main(argv=None):
 
 if __name__ == "__main__":
     # A console that cannot encode what this prints kills it with stdout
-    # empty; `hooks/lib/console.py` owns the reasoning behind these lines.
+    # empty; `lib/console.py` owns the reasoning behind these lines.
     for _name, _errors in (
         ("stdin", "replace"),
         ("stdout", "replace"),

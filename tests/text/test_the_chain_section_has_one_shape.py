@@ -58,7 +58,7 @@ def test_the_section_names_the_routing_answer_it_holds_for():
     rule for them too."""
     section = body_section()
     # The `Review` routing answer `through the review chain`, which
-    # `hooks/lib/routing.py#parse` reads from `routing.md`.
+    # `lib/routing.py#parse` reads from `routing.md`.
     assert "through the review chain" in section, (
         "the section states a shape without saying which work items it holds for"
     )

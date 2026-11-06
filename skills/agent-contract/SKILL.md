@@ -102,9 +102,7 @@ check: evals/behaviour/crafter/rule-crafter-count-words/ evals/behaviour/crafter
 An edit must be able to fail: a substitution routed through the shell does
 nothing, says nothing, and exits zero when its pattern misses, and the miss
 surfaces at the next check as another edit and another run. Where the
-environment leaves no choice, assert that every substitution matched. The
-routing check sees only the edit tools (`docs/checks/the-routing-check.md`
-*The edit check*).
+environment leaves no choice, assert that every substitution matched.
 check: tests/text/test_edits_go_through_the_edit_tool.py
 
 ## 10 Batch independent reads and runs
@@ -129,7 +127,7 @@ hold other files at those paths.
 
 Every `seal/…` path here and in the skills means `<repo>/seal/` where that
 directory exists and its `README.md` opens with the marker
-`hooks/lib/optin.py#MARKER` holds, and
+`lib/optin.py#MARKER` holds, and
 `$(git rev-parse --git-common-dir)/seal/` otherwise —
 local mode, where the root sits under the common git directory and nothing
 under it is committed. A repository with both is shared, and no config key

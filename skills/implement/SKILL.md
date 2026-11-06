@@ -6,10 +6,11 @@ description: |
   Use when: implementing a feature, starting a ticket — including deciding how to
   start one, incorporating review feedback, or when a repo needs its document
   layout bootstrapped.
-  NOT for: reviewing someone else's code (use `code-review`), or explaining how
-  something already works. The line is whether the question names a work item to
-  be built: "how should I approach TICKET-4" is this skill, "how does the review
-  chain work" is not.
+  NOT for: a plain request to change code that no work item has started yet,
+  which `start` takes first; reviewing someone else's code (use `code-review`),
+  or explaining how something already works. The line is whether the question
+  names a work item to be built: "how should I approach TICKET-4" is this skill,
+  "how does the review chain work" is not.
 ---
 
 # implement — spec-driven implementation
@@ -86,7 +87,7 @@ Inside the policy root, documents are grouped by who opens them and at which
 step, and any party may open any group.
 
 `seal/` lives at one of two places, and its presence at either, with a
-`README.md` that opens with the marker `hooks/lib/optin.py#MARKER` holds, is what
+`README.md` that opens with the marker `lib/optin.py#MARKER` holds, is what
 tells the gates this repository runs the workflow. **Every `seal/…` path in
 this plugin's skills and agents means `<repo>/seal/` where that directory
 exists with the marker, and
@@ -183,7 +184,7 @@ and leaving no case behind gets redone by every session that follows — the
 single largest avoidable cost in multi-session work.
 
 **Commit at the smallest step that stands on its own.** No gate stops a
-commit: the routing is checked at the edit tools and at the pull request
+commit: the routing is checked at the pull request
 (`docs/checks/the-routing-check.md`). What an intermediate commit costs is a
 property of the repository rather than a fact about committing: where
 feature branches **squash** into their base, every commit the branch wrote
@@ -211,10 +212,10 @@ check: tests/behaviour/test_a_commit_names_its_repository.py
 
 **Before each commit, lint, format and typecheck the files it changes**,
 with the tools the repository configures; the repository-wide run of each
-is the broad gate's (contract rule 2). `hooks/lint-python.py` already runs
-`ruff` on each Python file an edit tool saves, where the project configures
-ruff. The project's own package manager wins; where it names none, Python
-runs through `uv` and Node.js through `pnpm`.
+is the broad gate's (contract rule 2). Nothing runs them when a file is
+saved, so the party that commits runs them. The project's own package
+manager wins; where it names none, Python runs through `uv` and Node.js
+through `pnpm`.
 
 **An edit must be able to fail.** Prefer the `Edit` tool: a pattern that does
 not match is an error you see immediately. When the environment routes edits
@@ -412,7 +413,7 @@ rebuilt — only re-checked for whether the finding is now fixed.
 **A fix pass appends one close block to each open finding in
 `trail/rounds/round-N.md`, edits nothing else in it, and writes no phase
 record** — `docs/forms/the-round-record.md` *The round record* names the three
-closing verdicts, and `hooks/lib/fields.py` spells the block's lines. A
+closing verdicts, and `lib/fields.py` spells the block's lines. A
 `fixed` commit must touch a path the finding's `location:` names; where the
 fix went somewhere else, the close block carries a `location:` line naming
 that coordinate, and its `answer:` says so. The build's phases keep theirs.

@@ -8,10 +8,10 @@ own `seal/config.md`:
 
     | Pact | git@example.com:org/orders-api.git |
 
-The row has one reader, `hooks/lib/config.py#pact_declaration`, which
+The row has one reader, `lib/config.py#pact_declaration`, which
 `pact_check.py` asks, run as `seal pact`, and refuses on. That reader's
 cases (S1-S3 of the work item's `frame/design.md`) and the `Signer` table's are in
-`tests/hooks/test_config.py` since #942's phase 6, and `seal.py`'s re-export of
+`tests/lib/test_config.py` since #942's phase 6, and `seal.py`'s re-export of
 its normaliser is in `tests/skills/test_seal.py`. What stays here reads the configs
 and templates this plugin ships through the reader, and the routing step's
 pinned sentences (S4).
@@ -19,9 +19,9 @@ pinned sentences (S4).
 
 import os
 
-from conftest import ORDERS, ROOT, URL, flat, load_hook_module
+from conftest import ORDERS, ROOT, URL, flat, load_lib_module, load_module
 
-config = load_hook_module("lib/config.py", "config_for_the_pact")
+config = load_lib_module("config.py", "config_for_the_pact")
 
 
 def _broad_gate_block():
@@ -44,8 +44,8 @@ def test_s4_the_configs_this_plugin_writes_or_copies_are_silent():
     `skills/commit-pr-convention/SKILL.md` tells a session to do, give no
     refusal to the reader `seal pact` reads strictly. Each is read from the
     tree, not retyped."""
-    seal = load_hook_module(
-        os.path.join("..", "skills", "implement", "scripts", "seal.py"),
+    seal = load_module(
+        os.path.join(ROOT, "skills", "implement", "scripts", "seal.py"),
         "seal_for_the_silent_set",
     )
     with open(os.path.join(ROOT, "seal", "config.md"), encoding="utf-8") as f:

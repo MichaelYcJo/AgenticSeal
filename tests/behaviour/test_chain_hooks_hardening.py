@@ -1,8 +1,9 @@
-"""Hardening cases: prose-mention false positives, cycle edges, lease isolation.
+"""Hardening cases over what the plugin ships: its packaging, the READMEs'
+account of it, and the agent definitions' wording.
 
-The backstop's path reader's case is in `tests/hooks/test_gate.py`. The commit
-gate's text reading and its cases left with #1027's phase 5, and the commit
-gate inside git, its parity arm with it, left with phase 6.
+The module keeps its name since #1376, which removed the hooks it was named
+for. The stamp's `Stop` hook, the one a person installs, is held in
+`tests/skills/test_seal_stamp.py`.
 """
 
 import json
@@ -16,89 +17,29 @@ from conftest import ROOT
 # --- packaging sanity ------------------------------------------------------
 
 
-def _hook_commands():
-    with open(os.path.join(ROOT, "hooks", "hooks.json"), encoding="utf-8") as f:
-        cfg = json.load(f)
-    return [
-        h["command"]
-        for groups in cfg["hooks"].values()
-        for group in groups
-        for h in group["hooks"]
-    ]
-
-
-def test_hooks_json_points_at_existing_python_scripts():
-    # Every hook runs through an explicit interpreter -- shebang and exec bit
-    # do not exist on Windows -- and every script it names must be in the
-    # plugin, on either side of the fallback.
-    for cmd in _hook_commands():
-        for alt in cmd.split(" || "):
-            rel = alt.split('"')[1].replace("${CLAUDE_PLUGIN_ROOT}/", "")
-            assert rel.endswith(".py"), f"non-python hook: {rel}"
-            assert os.path.isfile(os.path.join(ROOT, rel)), rel
-
-
-def test_every_hook_names_a_windows_interpreter_after_the_posix_one():
-    # `python3` is the documented requirement and stays first, so a POSIX
-    # machine never pays for a second attempt. It is also the one name the
-    # official Windows installer does not create -- that installer ships the
-    # `py` launcher instead -- so a command knowing only `python3` leaves
-    # every gate silent there, which is the failure direction that allows.
-    #
-    # The fallback runs only when the first alternative could not start:
-    # dispatch exits 0 for every decision it makes, deny included, so `||`
-    # is never a second run of a gate that already decided.
-    for cmd in _hook_commands():
-        alts = cmd.split(" || ")
-        assert len(alts) == 2, f"expected exactly one fallback: {cmd}"
-        assert alts[0].startswith('python3 "${CLAUDE_PLUGIN_ROOT}/'), cmd
-        assert alts[1].startswith('py -3 "${CLAUDE_PLUGIN_ROOT}/'), cmd
-
-
-def test_the_fallback_runs_the_same_script_with_the_same_arguments():
-    # A fallback naming another group is worse than no fallback: the gates
-    # that fired would be the wrong ones, and only on the platform nobody
-    # runs by hand.
-    for cmd in _hook_commands():
-        first, second = cmd.split(" || ")
-        assert first.split('"')[1:] == second.split('"')[1:], cmd
-
-
-# The header row each edition's gate table opens with.
-GATE_TABLE = {"README.md": "| Gate |", "README.ko.md": "| 게이트 |"}
-
-
-def gate_table_names(edition):
-    """The first cell of each body row of EDITION's gate table: the rows
-    after the header and its separator, up to the first line that is not a
-    table row."""
-    with open(os.path.join(ROOT, edition), encoding="utf-8") as f:
-        lines = f.read().splitlines()
-    start = next(i for i, ln in enumerate(lines) if ln.startswith(GATE_TABLE[edition]))
-    names = []
-    for line in lines[start + 2 :]:
-        if not line.startswith("|"):
-            break
-        names.append(line.split("|")[1].strip())
-    return names
-
-
-def test_the_gate_table_has_one_row_for_each_script_groups_registers():
-    """#1055 S1. `hooks/dispatch.py#GROUPS` is the one list of the hooks the
-    plugin registers, and the gate table is what a person reads to learn what
-    runs on their machine. Each script `GROUPS` names has exactly one row in
-    each edition, its first cell the file name without `.py`, and no row
-    names anything else."""
-    from conftest import load_module
-
-    dispatch = load_module(
-        os.path.join(ROOT, "hooks", "dispatch.py"), "agentic_dispatch_for_the_table"
+def test_the_plugin_registers_no_hook_and_writes_none_into_git():
+    """#1376 phases 5 and 7. The plugin directory refuses a plugin that
+    registers a command hook, so the plugin ships no `hooks/hooks.json`, its
+    manifest declares no `hooks`, and no file stands under `hooks/`: the
+    library the commands import stands at `lib/`. The stamp's `Stop` hook is
+    the person's, which `seal stamp --install` writes into their own settings
+    (`tests/skills/test_seal_stamp.py`). Nothing writes into a clone's git
+    hooks either (`docs/checks/the-routing-check.md`)."""
+    with open(
+        os.path.join(ROOT, ".claude-plugin", "plugin.json"), encoding="utf-8"
+    ) as f:
+        manifest = json.load(f)
+    assert "hooks" not in manifest, manifest.get("hooks")
+    # Every file under `hooks/` on disk, with the bytecode Python wrote beside
+    # a module it loaded before the move left out.
+    left = sorted(
+        os.path.relpath(os.path.join(here, name), ROOT)
+        for here, dirs, names in os.walk(os.path.join(ROOT, "hooks"))
+        if os.path.basename(here) != "__pycache__"
+        for name in names
     )
-    registered = sorted(
-        {g[: -len(".py")] for gates in dispatch.GROUPS.values() for g in gates}
-    )
-    for edition in GATE_TABLE:
-        assert sorted(gate_table_names(edition)) == registered, edition
+    assert left == [], left
+    assert os.path.isfile(os.path.join(ROOT, "lib", "optin.py"))
 
 
 def test_the_plugin_icon_is_a_png_the_directory_accepts():
@@ -145,6 +86,10 @@ def test_the_marketplace_describes_the_plugin_in_the_manifests_words():
         marketplace = json.load(f)
     source = manifest["description"]
     assert source, "plugin.json has no description"
+    # #1376 phase 4: a run stops for what only the owner can decide
+    # (`docs/running/the-run.md` *The run*), so the published sentence makes
+    # no promise that nobody is asked.
+    assert "without asking anyone" not in source, source
     assert marketplace.get("description") == source, "marketplace.json, top level"
     entries = [p for p in marketplace["plugins"] if p.get("name") == manifest["name"]]
     assert len(entries) == 1, entries
@@ -155,28 +100,6 @@ def test_the_marketplace_describes_the_plugin_in_the_manifests_words():
     assert under[:1] == [""], "README.md: a line other than a blank follows the title"
     paragraph = under[1 : under.index("", 1)]
     assert " ".join(paragraph) == source, "README.md, the paragraph under the title"
-
-
-def test_every_option_the_manifest_declares_is_one_a_hook_reads():
-    """#1096 S5. Claude Code hands each option `.claude-plugin/plugin.json`
-    declares under `userConfig` to a hook as `CLAUDE_PLUGIN_OPTION_` and the
-    key uppercased, so every option the manifest declares is read by that
-    name in a script under `hooks/`, and no script there reads one it does
-    not declare."""
-    with open(
-        os.path.join(ROOT, ".claude-plugin", "plugin.json"), encoding="utf-8"
-    ) as f:
-        declared = json.load(f).get("userConfig", {})
-    read = {}
-    for directory, _dirs, names in os.walk(os.path.join(ROOT, "hooks")):
-        for name in sorted(names):
-            if not name.endswith(".py"):
-                continue
-            path = os.path.join(directory, name)
-            with open(path, encoding="utf-8") as f:
-                for key in re.findall(r"CLAUDE_PLUGIN_OPTION_([A-Z0-9_]+)", f.read()):
-                    read.setdefault(key, []).append(os.path.relpath(path, ROOT))
-    assert set(read) == {key.upper() for key in declared}, (read, sorted(declared))
 
 
 def test_bin_wrapper_resolves_the_checker_from_any_cwd():
@@ -222,7 +145,7 @@ def test_parity_declaration_is_bootstrappable_not_hand_written():
     assert os.path.isfile(tpl), "templates/setup/parity.md missing"
     body = open(tpl, encoding="utf-8").read()
     # The four field names of the declaration, which the person declaring
-    # parity fills in and `hooks/lib/config.py` and `chain_check.py` read off
+    # parity fills in and `lib/config.py` and `chain_check.py` read off
     # `seal/parity.md`.
     for field in (
         "Original repo",
@@ -302,6 +225,52 @@ def test_user_invoked_skills_do_not_carry_trigger_scaffolding():
     assert not offenders, (
         f"user-invoked skills carrying auto-trigger scaffolding: {offenders}"
     )
+
+
+def test_a_plain_review_request_is_the_review_skills_and_the_typed_command_is_not():
+    """Contract rule 14, for #1376 phase 3. The review-skill gate asked the
+    person which review a plain request meant, and it went with the hooks the
+    plugin directory will not register. The owner's rule replaces it: a plain
+    request runs this plugin's review, and Claude Code's built-in
+    `/code-review` runs when the person types that command by name. The
+    skill's description is the one place the model reads that rule."""
+    with open(
+        os.path.join(ROOT, "skills", "code-review", "SKILL.md"), encoding="utf-8"
+    ) as f:
+        head = " ".join(f.read().split("\n---\n", 1)[0].split())
+    assert "in plain words and naming no skill" in head
+    assert '"review this PR <url>"' in head and '"검토해봐 <url>"' in head
+    assert (
+        "a person typing `/code-review` by name, which runs Claude Code's"
+        " built-in command and not this skill" in head
+    )
+
+
+def test_a_plain_request_to_change_code_is_the_entrys():
+    """Contract rule 14, for #1376 phase 4. The owner's rule of 2026-11-06:
+    where this plugin is installed, the entry takes a plain request to change
+    code first, and the routing question is where the person chooses the
+    route. So the entry is no longer user-invoked, and its description is
+    the one place the model reads that rule."""
+    with open(os.path.join(ROOT, "skills", "start", "SKILL.md"), encoding="utf-8") as f:
+        head = " ".join(f.read().split("\n---\n", 1)[0].split())
+    assert "disable-model-invocation" not in head
+    assert "Use when: a person asks, in plain words, to change code" in head
+    assert "or types `/agentic:start <issue or request>`" in head
+    assert "NOT for: a question about how code works" in head
+
+
+def test_the_review_skill_opens_the_core_once_where_it_orchestrates():
+    """#1376 phase 4. A plain review request reaches `code-review` and not
+    the entry, so where it orchestrates a review it opens the core itself,
+    by the entry's first step rather than a copy of it."""
+    from conftest import flat
+
+    text = flat("skills", "code-review", "SKILL.md")
+    assert (
+        "A session orchestrating a review run first opens the core once, as "
+        "`skills/start/SKILL.md` *1. Open the core once* says"
+    ) in text
 
 
 # The row each edition lists the skills in. Scoping to the row is not
@@ -403,7 +372,7 @@ def test_the_always_on_core_is_described_without_counts():
         assert "`skills/core/SKILL.md`" in rows[0], edition
 
 
-# The name each place past the hooks carries in the READMEs' network passage,
+# The name each place that reaches the network carries in the READMEs' passage,
 # spelt alike in both editions: `/agentic:update`, `seal cost --post`, the
 # chain arm of `seal gate`, `seal settle`, the workflow's own steps (which
 # open the pull request with `gh pr create`), and the checks
@@ -432,34 +401,33 @@ def network_passage(path, said):
     return flattened(text[at.start() : end if end != -1 else len(text)])
 
 
-def test_the_hooks_that_reach_the_network_are_named_without_a_count():
+def test_the_places_that_reach_the_network_are_named_without_a_count():
     """#1055 S4 and #1382. Both READMEs and `CONTRIBUTING.md` said how many
     hooks reach the network, and the guide's rule for a new one counted on
-    from there. The READMEs' network passage names `lint-python` and
-    `version-check`, the guide says every such hook is named there, and none
-    of the three counts them. The READMEs named those two hooks and no other
-    place the plugin reaches the network, so each edition's passage, from
-    the pinned sentence to the next heading, also names every place in
-    `NETWORK_PLACES`."""
+    from there. Since #1376 the plugin registers no hook, and the one hook a
+    person may install, the stamp's, reaches no network. The READMEs'
+    network passage says so, the guide points at it, and none of the three
+    counts anything. Each edition's passage, from the pinned sentence to the
+    next heading, names every place in `NETWORK_PLACES`."""
     from conftest import flat
 
     for path, said, gone, places in (
         (
             "README.md",
-            "lint-python and version-check reach the network.",
+            "The stamp's hook reaches no network.",
             ("Two hooks reach the network", "Both stay silent"),
             NETWORK_PLACES,
         ),
         (
             "README.ko.md",
-            "네트워크를 타는 훅은 lint-python 과 version-check 입니다.",
+            "도장 훅은 네트워크를 타지 않습니다.",
             ("네트워크를 타는 훅은 둘", "둘 다 네트워크가"),
             NETWORK_PLACES,
         ),
         (
             "CONTRIBUTING.md",
-            "Every hook that reaches the network is named in the README's privacy "
-            "section",
+            "It reaches no network; `README.md` *What runs on your machine* names "
+            "the commands and steps that do",
             ("Two hooks reach the network", "A third needs", "the second carries"),
             (),
         ),

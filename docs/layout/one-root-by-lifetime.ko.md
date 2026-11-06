@@ -26,7 +26,7 @@
 `seal settle --from` 은 settle 때 사람이 이름을 댄 디렉터리만 읽고, 그
 안에는 아무것도 쓰지 않습니다. 세션이 칠 수 있는 경로로 루트가 어디
 있는지는 contract rule 11 한 곳에 적혀 있습니다.
-check: tests/behaviour/test_no_document_names_the_old_roots.py tests/hooks/test_optin.py
+check: tests/behaviour/test_no_document_names_the_old_roots.py tests/lib/test_optin.py
 
 ## 종속 규칙
 
@@ -61,8 +61,8 @@ check: tests/behaviour/test_a_cited_section_stands_in_its_file.py
 **저장소가 옵트인한 것은 그 모드의 자리에 `seal/` 이 있고 그 `README.md` 가
 플러그인의 표식으로 시작할 때입니다.** shared 모드면 `<repo>/seal/`, local
 모드면 `$(git rev-parse --git-common-dir)/seal/` 입니다. 표식은
-`templates/setup/seal-README.md` 의 첫 줄이고, 처음 설정이 이것을 씁니다. 훅은
-두 자리를 그 순서로 보고, 표식과 함께
+`templates/setup/seal-README.md` 의 첫 줄이고, 처음 설정이 이것을 씁니다.
+`seal` 명령과 pull request 검사, 도장의 `--stop` 은 두 자리를 그 순서로 보고, 표식과 함께
 있는 쪽이 "켜졌다" 와 "어느 모드인가" 를 함께 말해 줍니다. README 가 표식으로
 시작하지 않는 `seal/` 은 `seal` 이라는 패키지가 가진 것처럼 프로젝트 자신의 디렉터리이고,
 옵트인하지 않은 것으로 읽습니다. 그런 디렉터리를 만난 처음 설정은 그 안에
@@ -73,15 +73,15 @@ check: tests/behaviour/test_a_cited_section_stands_in_its_file.py
 | | shared 모드 | local 모드 |
 |---|---|---|
 | 누가 정하는가 | `seal/` 을 커밋한 사람이, 플러그인을 깐 모든 클론에 대해 | 그 클론의 개발자 |
-| 아무것도 설정하지 않은 협업자 | 플러그인을 깔면 게이트에 걸린다 | 그 클론의 git 디렉터리 아래에 루트가 없으니 아무것도 돌지 않는다 |
+| 아무것도 설정하지 않은 협업자 | 플러그인을 깔면 워크플로를 따른다 | 그 클론의 git 디렉터리 아래에 루트가 없으니 아무것도 돌지 않는다 |
 
 플러그인을 깔지 않은 협업자에게는 어느 모드에서도 아무것도 돌지 않습니다.
-훅이 플러그인의 것이기 때문입니다. 실패 방향은, 두 자리 어디에도 폴더가
-없으면 옵트인하지 않은 것이고, 판단하지 못하는 훅은 아무것도 하지 않는
-것입니다. 버릴 저장소는 공통 git 디렉터리 아래의 빈 파일
-`.git/agentic-scratch` 하나로 게이트를 끕니다. 어떤 커밋도 이 파일을 다른
-클론으로 옮기지 못합니다.
-check: tests/hooks/test_optin.py
+entry 스킬과 `seal` 명령이 플러그인의 것이기 때문입니다. 실패 방향은, 두
+자리 어디에도 폴더가 없으면 옵트인하지 않은 것이고, 판단하지 못하는 명령은
+저장소를 옵트인하지 않은 것으로 읽는다는 것입니다. 버릴 저장소는 공통 git
+디렉터리 아래의 빈 파일 `.git/agentic-scratch` 하나로 옵트인하지 않은
+저장소로 읽힙니다. 어떤 커밋도 이 파일을 다른 클론으로 옮기지 못합니다.
+check: tests/lib/test_optin.py
 
 ## 처음 설정에서 무엇을 묻는가
 
@@ -121,7 +121,7 @@ check: tests/behaviour/test_first_setup_asks_once.py
 **`seal/config.md` 의 `Mode` 행은 옵트인이 아니고, 차이는 무엇이 그것을
 읽느냐에 있습니다.** 그 행은 루트가 *있어야 할* 자리를 말하고, 폴더의 자리는
 루트가 *있는* 자리를 말합니다. 어떤 훅, 게이트, 검사도 그 행으로 루트를 찾지
-않습니다. 이 질문을 읽는 것은 `hooks/lib/optin.py#home_at` 하나뿐입니다. 손으로
+않습니다. 이 질문을 읽는 것은 `lib/optin.py#home_at` 하나뿐입니다. 손으로
 고칠 수 있는 행을 믿는 게이트는 폴더가 없는 자리를 찾아가게 되고, 그 모듈은
 짐작하는 쪽이 아니라 *옵트인하지 않음* 쪽으로 실패합니다. 그 행이 주는 것은,
 폴더를 옮기기 전에 저장소가 원하는 모드를 말할 수 있다는 것과, 남아 있는
@@ -171,7 +171,7 @@ check: tests/skills/test_seal.py
 방향이 바로 되돌릴 수 없는 그 방향이므로, `seal mode shared` 는 실행하기 전에
 그렇게 말하고, 커밋하지 않고 스테이지만 해서 돌아올 수 없는 지점을 사람에게
 남깁니다.
-check: tests/behaviour/test_first_setup_asks_once.py tests/hooks/test_optin.py tests/skills/test_seal.py
+check: tests/behaviour/test_first_setup_asks_once.py tests/lib/test_optin.py tests/skills/test_seal.py
 
 ## 이름
 
@@ -215,7 +215,7 @@ check: tests/text/test_the_settings_have_a_front_door.py
 파일 안에서 내려진 결정입니다. 그래서 언어는 설정 행에 두고, 번역한 PR 본문을
 담는 거울 파일은 언어 하나의 이름이 아니라 그 파일이 담은 언어의 이름을
 붙입니다.
-check: tests/behaviour/test_the_pull_request_language_is_the_repositorys.py tests/hooks/test_config.py
+check: tests/behaviour/test_the_pull_request_language_is_the_repositorys.py tests/lib/test_config.py
 
 **행이 둘인 것은, 하나로는 가운데 답을 말할 수 없기 때문입니다.** 사람들이
 실제로 원하는 조합은 셋입니다. 모두 영어, 커밋과 PR 은 팀의 언어로 하고 문서는
@@ -238,7 +238,7 @@ check: tests/behaviour/test_the_pull_request_language_is_the_repositorys.py
 빼 버립니다. 읽는 쪽과 쓰는 쪽은 행을 설명하는 상수를 함께 씁니다. 어느 줄이
 그 행인지를 두고 둘이 엇갈리면 편집 한 번이 사람의 파일에 중복 행을 만들기
 때문입니다.
-check: tests/hooks/test_config.py tests/skills/test_seal.py
+check: tests/lib/test_config.py tests/skills/test_seal.py
 
 **실패한 git 호출은 "없다" 고 답한 git 호출이 아닙니다.** 무엇이 없어서 출력이
 비는 것과, 물을 수 없어서 출력이 비는 것은 다른 사실입니다. 둘을 구별하지

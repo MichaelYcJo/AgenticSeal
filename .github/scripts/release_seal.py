@@ -3,7 +3,7 @@
 PNG beside them where the repository turns the image on (#718, #1204).
 
 **The image is one row's to turn on** (#1204). `MARK_ROW` in the `config.md`
-of the tree's `seal/` root, read through `hooks/lib/config.py`, turns it on
+of the tree's `seal/` root, read through `lib/config.py`, turns it on
 where it reads `MARK_ON` exactly (`mark_on`). Then the PNG is attached as
 `ASSET` and the note's header becomes a table of two cells, the image beside
 the results. Under any other answer nothing is drawn or attached, and the
@@ -22,7 +22,7 @@ sharp. Nothing here reads the terminal stamp, so a change to the sprite
 leaves the release image as it is, and a new page image is a new icon.
 
 **Standard library only.** This file imports no package beyond Python's
-own, so attaching the seal needs no imaging library. Nothing under `hooks/`
+own, so attaching the seal needs no imaging library. Nothing under `lib/`
 or `skills/` imports this file, and the gates stay stdlib-only
 (`CONTRIBUTING.md`, *Running the checks*).
 
@@ -289,7 +289,7 @@ def readers():
     chain = module(
         "agentic_chain_check", "skills", "code-review", "scripts", "chain_check.py"
     )
-    routing = module("agentic_routing", "hooks", "lib", "routing.py")
+    routing = module("agentic_routing", "lib", "routing.py")
     return routing, chain, chain.SHARED_READER
 
 
@@ -306,8 +306,8 @@ def chain_counts(root, pulls):
 
     `capped` counts the pull requests labelled `CAPPED_LABEL`. A pull request
     is a work item where exactly one `routing.md` under `root` names its head
-    branch (`hooks/lib/routing.py#item_dir`), and its rounds are
-    `hooks/lib/routing.py#rounds`. `deferred` is the number of distinct issues
+    branch (`lib/routing.py#item_dir`), and its rounds are
+    `lib/routing.py#rounds`. `deferred` is the number of distinct issues
     that are the home of a finding whose close block's `verdict:` reads
     `deferred <home>`, read with `chain_check.record_findings` and `#issue_of`
     (#866): a home names an issue only where it is exactly `#N`, so a file,
@@ -418,16 +418,14 @@ def mark_on(root):
     root of the tree at ROOT reads `MARK_ON` exactly, and the sentence
     naming a row that is written and does not, or None.
 
-    The root is `hooks/lib/optin.py#home_at`'s, and the row is read through
-    `hooks/lib/config.py#declared_value`, the one reader of a row, which
+    The root is `lib/optin.py#home_at`'s, and the row is read through
+    `lib/config.py#declared_value`, the one reader of a row, which
     reads a tree with no root as no file. A tree with no root, an absent row
     and an empty one are off and say nothing; any other value, and a
     refusal the reader returns, are off and named. Nothing here refuses:
     the image is a picture, and the results go in whatever the row says."""
-    home = module("agentic_optin_for_release_seal", "hooks", "lib", "optin.py").home_at(
-        root
-    )
-    config = module("agentic_config_for_release_seal", "hooks", "lib", "config.py")
+    home = module("agentic_optin_for_release_seal", "lib", "optin.py").home_at(root)
+    config = module("agentic_config_for_release_seal", "lib", "config.py")
     value, refused = config.declared_value(home, MARK_ROW)
     if refused is not None:
         return False, ROW_REFUSED.format(why=refused)
@@ -620,7 +618,7 @@ def main():
 
 
 if __name__ == "__main__":
-    # `hooks/lib/console.py#STREAMS` owns this answer. The loop is spelt here
+    # `lib/console.py#STREAMS` owns this answer. The loop is spelt here
     # rather than imported because this script loads the tree's modules only
     # when first asked (`module`), so a module that will not load ends in
     # today's note and an exit of 0 (`main`).

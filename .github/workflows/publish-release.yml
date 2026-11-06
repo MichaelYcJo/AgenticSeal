@@ -4,11 +4,9 @@ name: publish the release note
 # consecutive releases shipped without one (#386) — the run that measured it
 # was the one that would have made it four.
 #
-# The tag gets done every time, because something reads it:
-# `hooks/version-check.py` asks `git ls-remote --tags`, and an untagged release
-# is one no installed session is ever told about. The note had no reader in the
-# tree at all, so nothing noticed its absence and the only cost was borne by a
-# person opening the releases page.
+# The note is read: `/agentic:update` reads the GitHub Releases, each published
+# at its tag (`skills/update/SKILL.md` step 3), so a release without its tag
+# and note is one an updating user is told nothing about.
 #
 # So the release's merge into `main` tags it and publishes it, in one run
 # (#1117). A tag this workflow creates with its own token starts no workflow

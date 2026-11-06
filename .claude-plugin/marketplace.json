@@ -1,6 +1,6 @@
 {
   "name": "agenticseal",
-  "description": "A workflow of agents that frames, builds, inspects and seals a change without asking anyone, and ends in a seal bound to a commit.",
+  "description": "A workflow of agents that frames, builds, inspects and seals a change, and ends in a seal bound to a commit.",
   "owner": {
     "name": "MichaelYcJo"
   },
@@ -8,7 +8,7 @@
     {
       "name": "agentic",
       "source": "./",
-      "description": "A workflow of agents that frames, builds, inspects and seals a change without asking anyone, and ends in a seal bound to a commit."
+      "description": "A workflow of agents that frames, builds, inspects and seals a change, and ends in a seal bound to a commit."
     }
   ],
   "renames": {

@@ -67,9 +67,8 @@ request body states each decision with its grounds and lists the defaults
 it took, and the owner reviews it.
 
 `skills/settle/SKILL.md` is the procedure. **A settle is not a work item**:
-it opens no directory under `seal/threads/`, its session runs
-`seal no-work-item` on the settle's branch before the first edit, and each
-of its commits carries the trailer `Seal-Routing: no work item`, the
+it opens no directory under `seal/threads/`, and each of its commits
+carries the trailer `Seal-Routing: no work item`, the
 recorded form of the routing question's `no work item` answer
 (`skills/commit-pr-convention/SKILL.md`). It owes an answer for every check
 in this repository carrying a population floor over `seal/threads/`.
@@ -320,10 +319,11 @@ An installed copy is what a session loads, so an update that has landed on
 disk is not an update that is in force until the session reloads, and
 reloading is the expensive part, not the install. Every place this repository
 tells a user what to do after an update names the reload command, says what a
-reload was measured to do, and says what nobody has measured about it. A
-session-start hook writes into a session and cannot type into one, so running
-it for the user is not on offer, and a notice that leaves the cost out reads
-as though there were none.
+reload was measured to do, and says what nobody has measured about it.
+`/agentic:update` runs inside the session it updates and cannot type into
+it, so it prints the reload for the user to type, and a notice that leaves
+the cost out reads as though there were none.
+check: tests/behaviour/test_release_hygiene.py
 
 The close-issues workflow has already run by now. It fires when `main` moves,
 which is the merge above rather than anything you do here, and it reads the
@@ -356,8 +356,6 @@ leave.
 - [ ] The next release branch is cut from `main`, not from this one, named
       for the version its milestone `release: X.Y.Z` carries, and its first
       pull request moves `plugin.json` to that version.
-
-check: tests/hooks/test_version_check.py
 
 **The milestone `release: X.Y.Z` is closed once the close-issues run has closed its
 issues, by `gh api -X PATCH repos/<owner>/<repo>/milestones/<number> -f state=closed`.**

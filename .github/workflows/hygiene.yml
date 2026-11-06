@@ -84,7 +84,7 @@ jobs:
           # fix ships like a skill does. It was missing here and nothing said
           # so; `tests/behaviour/test_the_release_check_watches_what_ships.py` now
           # classifies every top-level entry against this list (#10).
-          ships=$(echo "$changed" | grep -E '^(skills|agents|hooks|templates|bin|\.claude-plugin)/' || true)
+          ships=$(echo "$changed" | grep -E '^(skills|agents|lib|templates|bin|\.claude-plugin)/' || true)
           if [ -z "$ships" ]; then
             echo "nothing that ships changed"; exit 0
           fi

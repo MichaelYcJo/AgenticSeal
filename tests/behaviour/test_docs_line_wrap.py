@@ -9,9 +9,8 @@ codepoint occupies two. Counting characters would let a Korean line run to
 twice the visual width of an English one.
 
 YAML frontmatter is excluded because `description:` is a field tools read, not
-prose a reader wraps. That exclusion is load-bearing rather than incidental:
-`skills/code-review/SKILL.md:6` is 92 columns, so covering that file at all
-depends on it.
+prose a reader wraps. A skill whose description runs past the limit is still
+covered because of it.
 
 Scope is narrower than `agents/*.md` + `skills/*/SKILL.md`, which do not hold
 the limit today. These are their current prose maxima, re-derived 2026-09-16
@@ -196,7 +195,6 @@ COVERED = [
     "docs/running/measuring-a-run.md",
     "docs/running/the-agent-set.md",
     # The routing check's documents, each written wrapped and in at birth.
-    "docs/checks/the-session-hooks.md",
     "docs/checks/the-routing-check.md",
     "docs/running/the-review-and-parity-arms.md",
     # The pact's policy (#647), written wrapped and in at birth.

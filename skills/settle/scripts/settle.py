@@ -143,13 +143,13 @@ The policy root, the tracked files the citations are read from, and `tests/`
 are read from the repository's top in both. The dry run's first line names a
 local root, each released local work item is listed with its pull request's
 number and its merge commit, and each unreleased one with why: no
-`routing.md` that `hooks/lib/routing.py` reads as a declaration naming a branch,
+`routing.md` that `lib/routing.py` reads as a declaration naming a branch,
 no merged pull request from its branch, or no listed merge commit
 `--released-at` reaches, a pull request listed with none among them. What `--apply` removes there no commit holds, and
 the dry run names `seal export` for a copy. A `gh` that cannot be asked
 refuses the run, since every local work item would then read as unreleased.
 A repository that opted out with the scratch marker, an empty FILE read the
-way `hooks/lib/optin.py#home_at` reads it, is refused.
+way `lib/optin.py#home_at` reads it, is refused.
 
 Exit codes: 0 the report was produced, `--apply` kept nothing, `--draft`
 ran, whatever it placed, or the root holds no work item, which is the state
@@ -165,7 +165,7 @@ not beside it, a `--from` that names no directory of the working tree, one
 outside the repository, the `seal/` root or a path under it, `--from`
 beside `--apply`, which removes only under `seal/threads/`, and `--draft`
 beside `--apply` or `--from`. An interpreter below
-the floor never reaches this file through `seal settle`: `hooks/lib/launch.py`
+the floor never reaches this file through `seal settle`: `lib/launch.py`
 refuses `seal` with 2 first.
 """
 
@@ -180,12 +180,12 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
-OPTIN = os.path.join(HERE, "..", "..", "..", "hooks", "lib", "optin.py")
-ROUTING = os.path.join(HERE, "..", "..", "..", "hooks", "lib", "routing.py")
+OPTIN = os.path.join(HERE, "..", "..", "..", "lib", "optin.py")
+ROUTING = os.path.join(HERE, "..", "..", "..", "lib", "routing.py")
 RULES = os.path.join(HERE, "rule_changes.py")
 FOLD_CHECK = os.path.join(HERE, "fold_check.py")
-CONFIG = os.path.join(HERE, "..", "..", "..", "hooks", "lib", "config.py")
-GITCMD = os.path.join(HERE, "..", "..", "..", "hooks", "lib", "gitcmd.py")
+CONFIG = os.path.join(HERE, "..", "..", "..", "lib", "config.py")
+GITCMD = os.path.join(HERE, "..", "..", "..", "lib", "gitcmd.py")
 
 # What each sibling is for, in the sentence `load` prints when it is missing.
 PURPOSES = {
@@ -205,7 +205,7 @@ PURPOSES = {
 }
 
 SPECS = "seal/threads"
-# A thread's design, relative to its directory: `hooks/lib/optin.py#DESIGN`.
+# A thread's design, relative to its directory: `lib/optin.py#DESIGN`.
 DESIGN = "frame/design.md"
 # A thread's plan, and the section and table the orchestrator writes its
 # judgments of the run to (`templates/records/sdd-plan.md`).
@@ -332,9 +332,9 @@ def adding_commit(root, revisions, path):
     The number is the digits of the `(#N)` that ends the commit's stripped
     subject. Where a title ends with its issue, as `... (#7) (#42)` does, the
     last is the pull request's, because GitHub appends it after the title.
-    This is the one reader of that number, so the release note's link
-    (`.github/scripts/publish_release_note.py#fragments`) and any other
-    reader of it cannot name different pull requests (#1139).
+    This is the one reader of that number, so the release note's link,
+    which this plugin's own publish workflow writes, and any other reader
+    of it cannot name different pull requests (#1139).
 
     `--full-history` walks every parent, because a release's tag is a merge
     into `main` whose first parent never held the path (0.22.4). No rename is
@@ -431,8 +431,8 @@ def merged_pull_requests(root, branch):
 VERSION_RE = re.compile(r"^v(\d+\.\d+\.\d+)$")
 
 # The line that opens an entry of a release note built from the fragments:
-# `.github/scripts/publish_release_note.py#section` writes it from this, and
-# `BUILT_RE` reads it. Before #1139 an entry opened with `MARKER` instead.
+# this plugin's own publish workflow writes it from this, and `BUILT_RE`
+# reads it. Before #1139 an entry opened with `MARKER` instead.
 PULL_LINK = "[#{number}](https://github.com/{repo}/pull/{number})"
 MARKER = "<!-- specs/{work_item_id} -->"
 
@@ -647,11 +647,11 @@ def notes(root, ref, ids):
 
 
 # Why a local work item is unreleased, each pinned by `tests/skills/test_settle.py`.
-# A `routing.md` that `hooks/lib/routing.py#parse` does not read, such as one whose
+# A `routing.md` that `lib/routing.py#parse` does not read, such as one whose
 # `Review` answer is outside the vocabulary, names no branch whatever rows it
 # holds, so the reason names the reader rather than the row.
 NO_BRANCH = (
-    "no `routing.md` that `hooks/lib/routing.py` reads as a declaration names a "
+    "no `routing.md` that `lib/routing.py` reads as a declaration names a "
     "branch, so `gh` was not asked"
 )
 NO_PULL_REQUEST = "no pull request from `{branch}` has merged"
@@ -663,7 +663,7 @@ NOT_REACHED = (
 
 def declared_branch(records, work_item_id, routing):
     """The `Branch` row of the work item's `routing.md`, read by
-    `hooks/lib/routing.py#parse`, or None where there is no file, no row, or a
+    `lib/routing.py#parse`, or None where there is no file, no row, or a
     file `parse` does not read as a declaration."""
     path = under(records, f"{SPECS}/{work_item_id}/{routing.FILENAME}")
     try:
@@ -999,9 +999,9 @@ def judgments(records, ids):
               grouped by its `Judged against` cell exactly as written, each
               group and each work item in the order IDS lists them first.
               `rounds` is how many `round-N.md` the work item's
-              `trail/rounds/` holds (`hooks/lib/routing.py#rounds`), or None
+              `trail/rounds/` holds (`lib/routing.py#rounds`), or None
               where that is not a directory this can list
-              (`hooks/lib/routing.py#rounds_unreadable`): a file, a link or
+              (`lib/routing.py#rounds_unreadable`): a file, a link or
               a directory nothing can list, which holds a review git carries
       unread  `[(id, why)]` for each line `plan_rows` names as not read
 
@@ -1052,7 +1052,7 @@ def plan_rows(text):
 
     A heading inside a fence or an HTML comment is no heading
     (`unverified_check.py#live_lines`). The table is read through
-    `hooks/lib/config.py#gfm_table` over the section's lines alone, and
+    `lib/config.py#gfm_table` over the section's lines alone, and
     nothing here grades a cell."""
     rules = load(RULES, "agentic_rule_changes")
     config = load(CONFIG, "agentic_config_for_settle")
@@ -1899,7 +1899,7 @@ def main(argv=None):
         return 2
 
     root = os.path.abspath(args.root or os.getcwd())
-    # The root is resolved through the one resolver, `hooks/lib/optin.py#home_at`,
+    # The root is resolved through the one resolver, `lib/optin.py#home_at`,
     # handed the common git directory this also needs for the opt-out sentence.
     optin = load(OPTIN, "agentic_optin")
     # The repository's top, as `fold_check.py` resolves it: the policy root,
@@ -1979,8 +1979,9 @@ def main(argv=None):
 
 if __name__ == "__main__":
     # A console that cannot encode what this prints kills it with stdout
-    # empty, which is how a hook says "nothing to see here". `hooks/lib/console.py`
-    # owns the reasoning and the three decisions behind these lines.
+    # empty, which is how a script run for its output says "nothing to see
+    # here". `lib/console.py` owns the reasoning and the three decisions
+    # behind these lines.
     for _name, _errors in (
         ("stdin", "replace"),
         ("stdout", "replace"),

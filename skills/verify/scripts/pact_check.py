@@ -26,7 +26,7 @@ reads nothing of the pact.
 
 The anchor table is the first table whose header is
 `| Pact | Clause | Hash |`, cell for cell. It is read by
-`hooks/lib/config.py#gfm_table`, and the cells are written bare. A header
+`lib/config.py#gfm_table`, and the cells are written bare. A header
 whose cells, each case folded after one emphasis run wrapping the whole
 cell is removed (`header_key`), are those words and that is not the anchor
 header, such as `| pact | clause | hash |` or `| **Pact** | Clause | Hash |`,
@@ -72,7 +72,7 @@ checkout is found for each, in this order and with nothing guessed:
 
 A signer neither finds is reported with the map line to add.
 
-The map is read by `hooks/lib/config.py#gfm_table`, as every other table
+The map is read by `lib/config.py#gfm_table`, as every other table
 here is, and a line it does not read is refused at exit 2, printed as
 `REFUSED ~/.claude/agentic/pact-paths.md — the map <sentence>`: a map that
 is there and will not read, one holding no `| Remote | Path |` table, every
@@ -119,7 +119,7 @@ exit class. Nothing is ever written.
 A pact whose table is headed with the word 0.18.x used is read exactly as
 one headed `Signer`, and one line before
 that file's other lines names the file, both headers and the release that
-renamed them (`hooks/lib/config.py#renamed_header`). The line is in no exit
+renamed them (`lib/config.py#renamed_header`). The line is in no exit
 class: the exit is what it would be under the new header (#822).
 """
 
@@ -132,7 +132,7 @@ import subprocess
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-HOOKS = os.path.join(HERE, "..", "..", "..", "hooks", "lib")
+LIB = os.path.join(HERE, "..", "..", "..", "lib")
 CHECKER = os.path.join(HERE, "coordinates.py")
 PACT_FILE = "pact.md"
 CONFIG_FILE = "config.md"
@@ -350,7 +350,7 @@ def near_headers(config, text):
 
 def first_table(config, text, header, beside=False):
     """(rows, refusals) for the first table of TEXT headed HEADER, its cells
-    exactly, read by `hooks/lib/config.py#gfm_table`: its rows and its
+    exactly, read by `lib/config.py#gfm_table`: its rows and its
     refusals, and, where the walk refused nothing, one refusal per further
     HEADER outside a fence, at its line, because the walk reads the first
     table only. A refusal of the walk already says every row below it goes
@@ -384,7 +384,7 @@ def path_map(config, home_dir):
     is a refusal, because a row nobody reads reports its signer as not
     found: a map that is there and will not read, one holding no
     `| Remote | Path |` table, every refusal of the walk
-    (`hooks/lib/config.py#gfm_table`), a row with an empty cell, a remote on
+    (`lib/config.py#gfm_table`), a row with an empty cell, a remote on
     two rows, compared normalised, of which neither is read, and a second
     header, because the walk reads the first table only. The rows the walk
     did read are used, as `pact_signers`' are."""
@@ -607,8 +607,8 @@ def grade(checker, pact_text, history, clause, want):
 
 def check(root, out=sys.stdout, home_dir=None):
     """Read the pact at ROOT and every signer; print; return the exit."""
-    config = load(os.path.join(HOOKS, "config.py"), "agentic_config_for_pact")
-    optin = load(os.path.join(HOOKS, "optin.py"), "agentic_optin_for_pact")
+    config = load(os.path.join(LIB, "config.py"), "agentic_config_for_pact")
+    optin = load(os.path.join(LIB, "optin.py"), "agentic_optin_for_pact")
     checker = load(CHECKER, "agentic_evidence_for_pact")
     home_dir = home_dir or os.path.expanduser("~")
 

@@ -996,18 +996,21 @@ class Test_module:
         [
             # exempt from vacated_paths: the path a commit before #1060 holds it at
             "hooks/blocks.py",
+            # exempt from vacated_paths: the path a commit from #1060 to #1376 holds it at
             "hooks/lib/blocks.py",
+            "lib/blocks.py",
         ],
-        ids=["before", "lib"],
+        ids=["before", "hooks-lib", "lib"],
     )
-    def test_a_commit_has_its_hook_module_copied_where_it_holds_it(
+    def test_a_commit_has_its_fence_module_copied_where_it_holds_it(
         self, tmp_path, monkeypatch, blocks
     ):
-        """#1060 moved the hook module `blocks.py` into `hooks/lib/`. A commit's
-        check loads the module from where that commit holds it, so the copy
-        `checks_at` makes takes it from either path and puts it at the same
-        path. A copy that read only the old path would give a commit after the
-        move no module, and its check would fail to load its reader."""
+        """#1060 moved the module `blocks.py` into `hooks/lib/`, and #1376
+        moved `hooks/lib/` to `lib/`. A commit's check loads the module from
+        where that commit holds it, so the copy `checks_at` makes takes it from
+        any of the three paths and puts it at the same path. A copy that read
+        only an older path would give a commit after the move no module, and
+        its check would fail to load its reader."""
         rt = load_script("replay_targets")
         repo = tmp_path / "repo"
         held = tmp_path / "held"

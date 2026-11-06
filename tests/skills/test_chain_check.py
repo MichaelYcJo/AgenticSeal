@@ -456,10 +456,10 @@ def copied_tree(tree):
     (tree / "skills" / "verify" / "scripts" / "unverified_check.py").write_text(
         READER.read_text(encoding="utf-8"), encoding="utf-8"
     )
-    (tree / "hooks" / "lib").mkdir(parents=True)
+    (tree / "lib").mkdir(parents=True)
     for name in ("blocks.py", "fields.py", "gitcmd.py"):
-        (tree / "hooks" / "lib" / name).write_text(
-            (ROOT / "hooks" / "lib" / name).read_text(encoding="utf-8"),
+        (tree / "lib" / name).write_text(
+            (ROOT / "lib" / name).read_text(encoding="utf-8"),
             encoding="utf-8",
         )
     return script
@@ -1147,10 +1147,10 @@ class Test_record_findings:
         """S22 (T33): the paths of a `location:` value the block's shape
         matched, each backticked `path`, `path:line` or `path:first-last`
         item to its first `:`; the shape's refusals are
-        `tests/hooks/test_fields.py`'s. `chain_check.location_paths` is the
+        `tests/lib/test_fields.py`'s. `chain_check.location_paths` is the
         step of `finding_of` that gives a finding its paths, and has no
         refusal of its own, since the value it takes is one
-        `hooks/lib/fields.py` already matched whole."""
+        `lib/fields.py` already matched whole."""
         for value, paths in (
             ("`a.py`", ["a.py"]),
             ("`a.py:12`", ["a.py"]),
@@ -1350,7 +1350,7 @@ FRAMED = {"planning": "framer", "review": "through the review chain"}
 
 class Test_frame:
     def routing(self):
-        return load(ROOT / "hooks" / "lib" / "routing.py", "routing_for_chain_tests")
+        return load(ROOT / "lib" / "routing.py", "routing_for_chain_tests")
 
     def test_accepts_a_framed_item_with_a_reframe_by_the_framer(self, branch):
         root, _code = branch
@@ -2416,7 +2416,7 @@ class Test_originals_of:
     def test_accepts_a_change_confined_to_the_document_roots(self, branch):
         """S7 and S11: a change confined to `docs/` and `seal/` owes no line,
         one path outside them owes it, and paths git could not list owe it
-        too, as `hooks/lib/gate.py#touches_code` reads them."""
+        too, as `lib/gate.py#touches_code` reads them."""
         root, _code = branch
         migrating(root, (None, None))
         inside = ["docs/a.md", f"{ITEM}/trail/rounds/round-1.md"]
@@ -2638,8 +2638,7 @@ class Test_original_of:
 
 class Test_parity_readers:
     def test_accepts_a_process_that_loaded_only_the_check(self):
-        """`parity_readers` loads `hooks/lib/config.py` before `hooks/lib/gate.py`,
-        whose `import optin` needs `hooks/` on `sys.path`, so a fresh
+        """`parity_readers` loads `lib/config.py` and `lib/gate.py`, so a fresh
         interpreter that loaded the check alone still loads both."""
         code = (
             "import importlib.util, sys\n"
@@ -2659,12 +2658,12 @@ class Test_parity_readers:
         assert done.stdout.strip() == "True Baseline commit", done.stdout
 
     def test_refuses_to_hide_a_reader_that_will_not_load(self, monkeypatch, tmp_path):
-        """A `hooks/lib/gate.py` that raises at import is raised to the caller,
+        """A `lib/gate.py` that raises at import is raised to the caller,
         which `originals_of` turns into exit 2; nothing hands back a reader
         that did not load."""
-        shutil.copy(ROOT / "hooks" / "lib" / "config.py", tmp_path / "config.py")
+        shutil.copy(ROOT / "lib" / "config.py", tmp_path / "config.py")
         (tmp_path / "gate.py").write_text("raise ImportError('planted')\n", "utf-8")
-        monkeypatch.setattr(chain, "HOOKS", str(tmp_path))
+        monkeypatch.setattr(chain, "LIB", str(tmp_path))
         with pytest.raises(ImportError, match="planted"):
             chain.parity_readers()
 
@@ -4170,7 +4169,7 @@ class Test_module:
         a sentence naming the missing path and what it is for: 2 means the
         input or the tree was unusable and nothing was read, and a sibling that
         is not beside the command is that kind. It loads the shared reader at
-        import and `hooks/lib/routing.py` after argument parsing, so it is given
+        import and `lib/routing.py` after argument parsing, so it is given
         its one required flag. It quotes the `OSError`, whose path Windows
         repr-escapes, which `names_path` reads."""
         script = TARGET
@@ -4211,7 +4210,7 @@ class Test_module:
 
     def test_loads_beside_no_policy_document(self, tmp_path):
         """*Scope* item 5 of #1198: the round record's grammar is
-        `hooks/lib/fields.py`, so the check loads and reads a record with no
+        `lib/fields.py`, so the check loads and reads a record with no
         `docs/` beside it. Seen red against the check that loaded its grammar
         table from `docs/the-review-record.md` at import, which raised
         "cannot be read"."""
@@ -4231,7 +4230,7 @@ def test_the_proofer_and_the_review_skill_name_every_line_a_finding_needs():
     """S8 (#985), under #1198: `agents/proofer.md` step 7 and
     `skills/code-review/SKILL.md` *The record* each list the lines a
     finding's block carries, and each names every key a finding block holds
-    one of, read from `hooks/lib/fields.py`."""
+    one of, read from `lib/fields.py`."""
     kind = chain.FIELDS.FINDING_BLOCK
     needed = [key for key, spec in kind.keys.items() if spec.many == chain.FIELDS.ONE]
     proofer = " ".join((ROOT / "agents" / "proofer.md").read_text("utf-8").split())
@@ -4247,7 +4246,7 @@ def test_the_proofer_and_the_review_skill_name_every_line_a_finding_needs():
         ("`skills/code-review/SKILL.md` *The record*", said),
     ):
         missing = [key for key in needed if f"`{key}" not in text]
-        # Each key a finding block holds one of, spelled as `hooks/lib/fields.py`
+        # Each key a finding block holds one of, spelled as `lib/fields.py`
         # matches it, which the proofer writes from these two lists.
         assert missing == [], f"{where} does not name {missing}"
 

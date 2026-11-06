@@ -186,14 +186,14 @@ one row each.
 ends with one `Seal-Routing:` trailer, naming its work item or reading
 `no work item`.** In local mode a commit carries none. The work item is its
 directory's name under `seal/threads/`, the one the branch's `routing.md` sits
-in; `no work item` is the value where the session ran `seal no-work-item` on
-the branch. The trailer stands in the message's last paragraph, beside any
+in; `no work item` is the value where the ladder judged the change belongs
+to no work item. The trailer stands in the message's last paragraph, beside any
 other trailer, so git's trailer parser reads it:
 
 ```
-feat: the edit check refuses an undeclared branch
+feat: the entry writes the declaration before the first edit
 
-Seal-Routing: 1792935671-the-routing-check-moves-to-the-sessions-tools
+Seal-Routing: 1792935671-the-entry-writes-the-declaration
 Co-Authored-By: <the harness's co-author line>
 ```
 

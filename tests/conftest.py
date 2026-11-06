@@ -9,11 +9,9 @@ import atexit
 import functools
 import importlib.util
 import io
-import json
 import os
 import pathlib
 import re
-import shlex
 import shutil
 import subprocess
 import sys
@@ -38,7 +36,7 @@ for _directory, _subdirectories, _names in os.walk(_TESTS):
         sys.path.append(_directory)
 
 # The review run's documents: the round record, the guarantee, the run, the
-# pull request check, the stamp, the hooks, the routing check, and what each
+# pull request check, the stamp, the routing check, and what each
 # arm wants. A case that reads one of them for what is THERE reads the one
 # that holds the section; a case asserting what is NOT there reads all of them
 # through `review_chain_text`, because a sentence forbidden in one that
@@ -50,7 +48,6 @@ REVIEW_CHAIN_DOCS = (
     ("docs", "running", "the-run.md"),
     ("docs", "checks", "the-pull-request-check.md"),
     ("docs", "checks", "the-stamp.md"),
-    ("docs", "checks", "the-session-hooks.md"),
     ("docs", "checks", "the-routing-check.md"),
     ("docs", "running", "the-review-and-parity-arms.md"),
 )
@@ -312,7 +309,7 @@ def decline_if_shrunken(missing, what):
         pytest.skip(shrunken_corpus(missing, what))
 
 
-HOOKS = os.path.join(os.path.dirname(__file__), "..", "hooks")
+LIB = os.path.join(os.path.dirname(__file__), "..", "lib")
 
 # One run of this suite calls `git init` 403 times, and each call copies the
 # default template into the new repository: 18 files where 2 are enough, 14 of
@@ -480,24 +477,6 @@ def gh_answers(env, state):
 os.environ["PATH"] = gh_answers(dict(os.environ), "unknown")["PATH"]
 
 
-# The press reader reads the routing answer out of the session's transcript
-# under `press.PROJECTS_ROOT`, which is `~/.claude/projects` -- the real
-# transcripts of whoever runs this suite. Every in-process case points it at
-# an empty directory instead, so none reads a real transcript: every gate
-# imports the module by its plain name, so one attribute on `sys.modules`
-# covers every copy of every gate a test module loaded. A case that needs a
-# transcript points it somewhere else itself.
-_NO_TRANSCRIPTS = tempfile.mkdtemp(prefix="agentic-no-transcripts-")
-atexit.register(shutil.rmtree, _NO_TRANSCRIPTS, True)
-
-
-@pytest.fixture(autouse=True)
-def _no_real_transcripts(monkeypatch):
-    press = sys.modules.get("press")
-    if press is not None and hasattr(press, "PROJECTS_ROOT"):
-        monkeypatch.setattr(press, "PROJECTS_ROOT", _NO_TRANSCRIPTS)
-
-
 # What a Claude Code session exports to every Bash child, and so to every git
 # hook a fixture repository's stub runs (#692, `trail/phases/phase-1.md` M4). A
 # suite run from inside a session inherits them and CI does not, so a stub
@@ -519,22 +498,18 @@ def _no_session_in_the_environment(monkeypatch):
         monkeypatch.delenv(name, raising=False)
 
 
-def load_hook_module(filename, name):
-    """The file at FILENAME under `hooks/`, a gate by its name and a module
-    as `lib/<name>`, run as a module named NAME. FILENAME is split on `/`, so
-    the path is joined from single segments on every platform."""
-    spec = importlib.util.spec_from_file_location(
-        name, os.path.join(HOOKS, *filename.split("/"))
-    )
+def load_lib_module(filename, name):
+    """The module FILENAME under `lib/`, run as a module named NAME."""
+    spec = importlib.util.spec_from_file_location(name, os.path.join(LIB, filename))
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
 
 
-# `hooks/lib/optin.py#MARKER`: a `seal/` is the plugin's root only where its
+# `lib/optin.py#MARKER`: a `seal/` is the plugin's root only where its
 # `README.md` opens with this line, so every helper below that builds a root
 # writes it.
-ROOT_MARKER = load_hook_module("lib/optin.py", "agentic_optin_for_fixtures").MARKER
+ROOT_MARKER = load_lib_module("optin.py", "agentic_optin_for_fixtures").MARKER
 
 
 def mark_root(home):
@@ -547,31 +522,6 @@ def mark_root(home):
     if not readme.exists():
         readme.write_text(ROOT_MARKER + "\n", encoding="utf-8")
     return home
-
-
-def run_hook(filename, payload, env=None):
-    """Feed a hook the stdin JSON the harness would send; return its stdout."""
-    r = subprocess.run(
-        [sys.executable, os.path.join(HOOKS, *filename.split("/"))],
-        input=json.dumps(payload),
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=30,
-        env={**os.environ, **(env or {})},
-    )
-    return r.stdout
-
-
-def decision_of(stdout):
-    """'silent' when a hook allowed by staying quiet, else its decision.
-    STDOUT is the hook's output as text, or the finished process whose
-    output is bytes, as a case run on a hostile console holds it."""
-    if isinstance(stdout, subprocess.CompletedProcess):
-        stdout = stdout.stdout.decode("utf-8")
-    if not stdout.strip():
-        return "silent"
-    return json.loads(stdout)["hookSpecificOutput"]["permissionDecision"]
 
 
 # Told apart by `shell_probe` below, and the caller is expected to act on the
@@ -716,7 +666,7 @@ def local_home(repo):
 
     The local-mode root (#80). Asked of git rather than spelled `.git/seal`,
     because in a linked worktree `.git` is a FILE and the root belongs to
-    the main tree's common directory, which is what the hooks read.
+    the main tree's common directory, which is what the scripts read.
     """
     common = subprocess.run(
         ["git", "-C", str(repo), "rev-parse", "--git-common-dir"],
@@ -978,7 +928,7 @@ def repo_relative(path):
 
 def load_module(path, name):
     """The Python file at PATH, run as a module named NAME, the arguments in
-    `load_hook_module`'s order."""
+    `load_lib_module`'s order."""
     spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -1015,21 +965,16 @@ def git_repo(where):
     return where
 
 
-def run(module, monkeypatch, payload):
-    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(payload)))
-    module.main()
-
-
 # A `config.md` text with its `Item | Value` table; `{rows}` takes the rows.
 TABLE = "# Repository config\n\n| Item | Value |\n|---|---|\n{rows}"
 
 
 @pytest.fixture
 def config():
-    return load_hook_module("lib/config.py", "agentic_config_for_tests")
+    return load_lib_module("config.py", "agentic_config_for_tests")
 
 
-# The config texts the reader's cases in `tests/hooks/test_config.py` and the
+# The config texts the reader's cases in `tests/lib/test_config.py` and the
 # writer's in `tests/skills/test_seal.py` both read. A row
 # that parses comes first in the piped table, because the walker stops at the
 # first line it refuses (#415, #871).
@@ -1159,16 +1104,6 @@ def commit_everything_as_e(repo, message):
     return git_out(repo, "rev-parse", "HEAD")
 
 
-def branch_of(repo):
-    """The branch REPO's HEAD is on, or `HEAD` when it is detached."""
-    return git(repo, "rev-parse", "--abbrev-ref", "HEAD", check=False).stdout.strip()
-
-
-def git_dir(repo):
-    """REPO's git directory, an absolute path."""
-    return git(repo, "rev-parse", "--absolute-git-dir", check=False).stdout.strip()
-
-
 def linked_worktree(repo, tmp_path):
     """A worktree of REPO at TMP_PATH/linked, on `feature/x`."""
     other = tmp_path / "linked"
@@ -1192,11 +1127,6 @@ def write(root, rel, text):
     path = pathlib.Path(root) / rel
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
-
-
-def opt_in(repo):
-    """REPO opted in to the workflow, in shared mode."""
-    mark_root(repo / "seal")
 
 
 def staged_repo(path, declared=False, review="straight to the PR"):
@@ -1234,42 +1164,6 @@ def imported_roots(path):
     return roots
 
 
-def q(text):
-    """TEXT quoted for a shell."""
-    return shlex.quote(str(text))
-
-
-def sh(path):
-    r"""`path` as one shell word.
-
-    These commands are read the way the harness hands them over: a string
-    that a POSIX shell is about to run, because the `Bash` matcher in
-    `hooks/hooks.json` is the only PreToolUse entry that carries commit
-    commands. Interpolating a native path raw made the test string mean
-    something else on Windows -- the shell drops an unquoted backslash, so
-    `git -C C:\Users\x` arrived at the gate as `C:UsersX` and the
-    second target resolved under the first. Nothing about the gate was wrong
-    there; the test was writing a command no shell would carry.
-    """
-    return shlex.quote(str(path))
-
-
-def payload(cmd, repo, session="s1"):
-    """The JSON a PreToolUse hook reads for a Bash command CMD typed in REPO
-    by SESSION."""
-    return {
-        "tool_name": "Bash",
-        "session_id": session,
-        "tool_input": {"command": cmd},
-        "cwd": str(repo),
-    }
-
-
-def reason_of(out):
-    """The reason a hook's decision gives."""
-    return json.loads(out)["hookSpecificOutput"]["permissionDecisionReason"]
-
-
 def config_table(*rows):
     """A `seal/config.md` holding one row per `(item, value)` in ROWS."""
     return "# config\n\n| Item | Value |\n|---|---|\n" + "".join(
@@ -1294,7 +1188,7 @@ def parity_file(sha):
 # --- the pact's world ---------------------------------------------------------
 #
 # `skills/verify/scripts/pact_check.py`'s cases in `tests/skills/test_pact_check.py`
-# and the cases of `tests/hooks/test_config.py` that run it over a table the walker
+# and the cases of `tests/lib/test_config.py` that run it over a table the walker
 # refuses share one world: the pact's repository, whose `seal/pact.md` carries
 # one clause committed as v1 and then v2 on `main` and v3 on a side branch HEAD
 # does not hold, and a signer beside it, which names the pact in its
@@ -1320,7 +1214,7 @@ PACT = "seal/pact.md"
 SPEC = "seal/threads/1790000000-x/frame/design.md"
 V1, V2, V3 = "id, total", "id, total, currency", "id, total, currency, tax"
 # The pact a signer's `Pact` row names in the reader's cases, and what
-# `hooks/lib/config.py#pact_declaration` answers for it.
+# `lib/config.py#pact_declaration` answers for it.
 URL = PACT_URL
 ORDERS = [(URL, "example.com/org/orders-api")]
 # The line of a frame `World.cite` writes its one anchor row on.
@@ -1460,121 +1354,14 @@ def with_row(label, answer):
     return two_axis_text().replace("| Branch |", f"| {label} | {answer} |\n| Branch |")
 
 
-# --- the routing press: the question put and answered in a transcript --------
-
-ROUTING_QUESTION = "How should this work be routed?"
-ROUTING_OPTIONS = ("automation (Recommended)", "per axis", "no work item")
-
-
-def ask_entries(
-    cwd,
-    answer="automation (Recommended)",
-    options=ROUTING_OPTIONS,
-    multi=False,
-    tool="AskUserQuestion",
-    tool_id="toolu_01routing",
-    result_id=None,
-    question=ROUTING_QUESTION,
-):
-    """One question put and answered: the assistant's `tool_use`, then the
-    `user` entry the harness writes with the structured `toolUseResult`."""
-    asked = {
-        "questions": [
-            {
-                "question": question,
-                "header": "Routing",
-                "multiSelect": multi,
-                "options": [{"label": o, "description": "d"} for o in options],
-            }
-        ]
-    }
-    use = {
-        "type": "assistant",
-        "cwd": str(cwd),
-        "message": {
-            "role": "assistant",
-            "content": [
-                {"type": "tool_use", "id": tool_id, "name": tool, "input": asked}
-            ],
-        },
-    }
-    result = {
-        "type": "user",
-        "cwd": str(cwd),
-        "isSidechain": False,
-        "message": {
-            "role": "user",
-            "content": [
-                {
-                    "type": "tool_result",
-                    "tool_use_id": result_id or tool_id,
-                    "content": f'The user answered: "{question}"="{answer}".',
-                }
-            ],
-        },
-        "toolUseResult": {
-            "questions": [dict(asked["questions"][0])],
-            "answers": {question: answer},
-        },
-    }
-    return [use, result]
-
-
-def write_transcript(root, session, entries, slug="-Users-x-repo"):
-    """`<root>/<slug>/<session>.jsonl`, one JSON object (or raw line) each."""
-    d = pathlib.Path(root) / slug
-    d.mkdir(parents=True, exist_ok=True)
-    path = d / f"{session}.jsonl"
-    with open(path, "w", encoding="utf-8") as f:
-        for e in entries:
-            f.write((e if isinstance(e, str) else json.dumps(e)) + "\n")
-    return path
-
-
-# --- a `seal` block, as `hooks/lib/fields.py` reads one ---------------------------
+# --- a `seal` block, as `lib/fields.py` reads one ---------------------------
 
 
 def seal_block(*lines, opener="`" * 3 + "seal"):
     """A `seal` block holding LINES, closed, with a newline after it.
-    `tests/hooks/test_fields.py` and `tests/skills/test_chain_check.py`
+    `tests/lib/test_fields.py` and `tests/skills/test_chain_check.py`
     write records with it."""
     return "\n".join([opener, *lines, "`" * 3]) + "\n"
-
-
-# --- a work item's closing records, as the stamp's queue gates read them -------
-#
-# `tests/hooks/test_sealer_stamp_queue.py` writes them.
-
-STAMP_ITEM = "1799000000-an-item"
-
-
-def guarantee_record(target, base, verdict):
-    """A `guarantee.md` in `templates/records/sdd-guarantee.md`'s shape: its
-    table for people and one verdict block."""
-    return (
-        "# an item — guarantee\n\n## Claims re-run\n\n"
-        "| Claim | Source | Command | Result |\n|---|---|---|---|\n\n"
-        f"```seal\ntarget: {target} against {base}\nVerdict: {verdict}\n```\n"
-    )
-
-
-def routing_record(branch="feat/x"):
-    """A `routing.md` in `templates/records/sdd-routing.md`'s shape, naming BRANCH in
-    its `Branch` row, or with no `Branch` row where BRANCH is None."""
-    rows = (
-        "| Axis | Answer |\n|---|---|\n"
-        "| Review | through the review chain |\n"
-        "| Destination | open the pull request |\n"
-    )
-    return rows + (f"| Branch | {branch} |\n" if branch else "")
-
-
-def queued_values(repo):
-    """Every values file under REPO's `.git/agentic-stamp`, drawn or not."""
-    found = []
-    for directory, _dirs, names in os.walk(repo / ".git" / "agentic-stamp"):
-        found += [os.path.join(directory, n) for n in names if n.endswith(".json")]
-    return sorted(found)
 
 
 # --- the opt-in's two places, the old name and the throwaway marker -------------
@@ -1591,76 +1378,6 @@ def legacy(repo):
 
 def scratch(repo):
     (repo / ".git" / "agentic-scratch").write_text("", encoding="utf-8")
-
-
-# --- the implementer family's declaration and calls -----------------------------
-
-ITEM = "1788137177-a-work-item"
-
-
-def run_dispatch(group, payload, hooks=HOOKS):
-    r = subprocess.run(
-        [sys.executable, os.path.join(hooks, "dispatch.py"), group],
-        input=json.dumps(payload),
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=30,
-    )
-    return r.stdout
-
-
-def declare(repo, implementation="crafter", item=ITEM, planning=None):
-    """A declaration for this repo's branch; a `None` answer omits its row."""
-    d = mark_root(repo / "seal") / "threads" / item
-    d.mkdir(parents=True, exist_ok=True)
-    third = f"| Implementation | {implementation} |\n" if implementation else ""
-    fourth = f"| Planning | {planning} |\n" if planning else ""
-    (d / "routing.md").write_text(
-        f"# {item} -- routing\n\n"
-        "| Axis | Answer |\n|---|---|\n"
-        "| Review | through the review chain |\n"
-        "| Destination | open the pull request |\n"
-        f"{fourth}"
-        f"{third}"
-        f"| Branch | {branch_of(repo)} |\n",
-        encoding="utf-8",
-    )
-    return d
-
-
-def declare_crafter(repo, home, item=ITEM):
-    """A declaration under `home` whose third axis says `crafter`."""
-    d = mark_root(home) / "threads" / item
-    d.mkdir(parents=True, exist_ok=True)
-    (d / "routing.md").write_text(
-        f"# {item} -- routing\n\n"
-        "| Axis | Answer |\n|---|---|\n"
-        "| Review | through the review chain |\n"
-        "| Destination | open the pull request |\n"
-        "| Implementation | crafter |\n"
-        f"| Branch | {branch_of(repo)} |\n",
-        encoding="utf-8",
-    )
-    return d
-
-
-def spawn(repo, agent="agentic:crafter", session="s1", **extra):
-    return {
-        "tool_name": "Agent",
-        "session_id": session,
-        "tool_input": {"subagent_type": agent, "prompt": "build it", **extra},
-        "cwd": str(repo),
-    }
-
-
-def bash(repo, cmd="git commit -m x", session="s1"):
-    return {
-        "tool_name": "Bash",
-        "session_id": session,
-        "tool_input": {"command": cmd},
-        "cwd": str(repo),
-    }
 
 
 # --- a console the gates cannot encode to --------------------------------------

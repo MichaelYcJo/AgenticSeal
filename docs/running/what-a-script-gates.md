@@ -22,8 +22,8 @@ step that judge the meaning of the same text.
 check: tests/skills/test_chain_check.py tests/skills/test_pact_check.py tests/github/test_rules.py tests/skills/test_rule_changes.py
 
 **A script reads git the same under any configuration: each git
-command a script under `hooks/`, `skills/` or `.github/scripts/` starts
-whose subcommand `hooks/lib/gitcmd.py` names is built by its `argv`, and
+command a script under `lib/`, `skills/` or `.github/scripts/` starts
+whose subcommand `lib/gitcmd.py` names is built by its `argv`, and
 a script that takes a path out of output git quotes under
 `core.quotePath` asks for it with `-z`.** A person's or a repository's
 git configuration can put text into the fields a script parses, take a
@@ -42,7 +42,7 @@ with an ASCII path the script names takes no path out. `rev-parse` and
 a newline breaks the second, a limit no flow of the plugin reaches. A
 key nobody has measured is a limit until a run shows it changes a
 reading. Whether a call is one of these is read at review, and
-`tests/hooks/test_gitcmd.py` holds each key.
+`tests/lib/test_gitcmd.py` holds each key.
 
 ## The checks
 
@@ -52,13 +52,8 @@ left to a party on the same text.
 
 | Check | Runs at | Reads | Unread | Agent |
 |---|---|---|---|---|
-| `hooks/routing-edit-gate.py` | every `Write`, `Edit`, `NotebookEdit` | `routing.md`'s rows for the checked-out branch through `hooks/lib/routing.py`; the `seal no-work-item` record | refuses the edit while no declaration it can read names the branch | none; the routing answer is the person's |
-| `hooks/question-gate.py` | every `AskUserQuestion` | the `Automation` row | a declaration it cannot read is the attended answer: silence | none |
-| `hooks/mode-gate.py` | the session's commands | `config.md`'s `Mode` row | a table it cannot read is silence, a stated limit | none |
-| `hooks/review-skill-gate.py` | a `Skill` call naming a review | the skill's name | nothing to read otherwise | the person picks the review |
-| `hooks/sealer-stamp-queue.py`, `hooks/sealer-stamp.py` | the write of `guarantee.md`; the turn's end | the verdict blocks, through `hooks/lib/fields.py` | queues nothing where the reader refuses a line of the file or the newest block does not read `Verdict: sealed` | the verdict is the sealer's |
-| `hooks/lint-python.py` | the write of a `.py` in a repository with a ruff config | ruff's exit code and output | nothing | none |
-| `skills/code-review/scripts/chain_check.py`, as hygiene's chain step and `seal gate`'s arm 2 | the pull request; the preflight and the broad run | routing rows; the frame's mark; `## Rule changes` through `rule_changes.py`, and the `check:` lines of its `add` and `change` `to` values through `.github/scripts/rules.py`; against each operation, the string constants under `tests/` through `ast` and the rule documents through `skills/settle/scripts/passages.py`; the `seal` blocks of the round records, `trail/gate.md` and `guarantee.md` through `hooks/lib/fields.py`, and the finding headings; the branch's commits and `Seal-Routing` trailers; `seal/parity.md`'s `Baseline commit` | refuses at its line a block line that does not parse, and a required block that is absent; names each file under `trail/rounds/` it did not read, each fence opener near the block's, each line of a `to` that opens like a `check:` line and is not one, and each source it cannot read, as `docs/checks/the-pull-request-check.md` *What the check reads at the pull request* lists them; names each test pin a `from` takes out and each run a `to` shares with another rule document, refusing neither; a line outside a block is prose | whether a fix holds: the verifying round; whether the parties agree: the sealer; what a named unread line meant: the orchestrator at the preflight; whether a named pin or copy is a finding: the proofer at review |
+| `seal stamp --guarantee` and `seal stamp --stop` (`skills/verify/scripts/seal_stamp.py`) | the sealer's run after it writes `Verdict: sealed`; the end of the main session's turn, where the person installed the stamp's hook | the verdict blocks, through `lib/fields.py` | queues nothing where the reader refuses a line of the file or the newest block does not read `Verdict: sealed` | the verdict is the sealer's |
+| `skills/code-review/scripts/chain_check.py`, as hygiene's chain step and `seal gate`'s arm 2 | the pull request; the preflight and the broad run | routing rows; the frame's mark; `## Rule changes` through `rule_changes.py`, and the `check:` lines of its `add` and `change` `to` values through `.github/scripts/rules.py`; against each operation, the string constants under `tests/` through `ast` and the rule documents through `skills/settle/scripts/passages.py`; the `seal` blocks of the round records, `trail/gate.md` and `guarantee.md` through `lib/fields.py`, and the finding headings; the branch's commits and `Seal-Routing` trailers; `seal/parity.md`'s `Baseline commit` | refuses at its line a block line that does not parse, and a required block that is absent; names each file under `trail/rounds/` it did not read, each fence opener near the block's, each line of a `to` that opens like a `check:` line and is not one, and each source it cannot read, as `docs/checks/the-pull-request-check.md` *What the check reads at the pull request* lists them; names each test pin a `from` takes out and each run a `to` shares with another rule document, refusing neither; a line outside a block is prose | whether a fix holds: the verifying round; whether the parties agree: the sealer; what a named unread line meant: the orchestrator at the preflight; whether a named pin or copy is a finding: the proofer at review |
 | `seal gate`'s `Broad gate` row and arm 3 | the orchestrator's one run | the row's command's exit code; the gate's pytest recorder; the `Mode` row | refuses at exit 2 a row it would not run as the command it reads as, which goes to a person | none; `new`, `failing on base too` and `new?` are reported and the orchestrator acts |
 | hygiene's other steps: `issue_claims_check.py`, the version step, `release_completeness_check.py`, the mode step, the READMEs step | the pull request | the body's closing keywords by GitHub's own grammar; `plugin.json`; the milestone through `gh`; commit subjects' `(#N)` and their `feat:` prefix in that one spelling; the head branch's version; two files | the body is reported at exit 0, never failed; a subject spelling `feat` otherwise is named as not read; the rest refuse on the fact read | whether a subject's prefix states what the change is: its writer, by `skills/commit-pr-convention/SKILL.md` |
 | `ruff check`, `ruff format --check`, `pytest` | CI and the broad run | code | a real tool's own | none |
@@ -70,7 +65,7 @@ left to a party on the same text.
 | `seal deferrals` | a session, before it writes an `unverified` row | the command lines of workflows and hooks that run a kind of check | names each workflow holding a runner for the reader to open; reads no trigger | whether the workflow runs on pull requests: the agent that opens it |
 | `seal pr-body --check` | the sealer | the body file against the records | withholds | none |
 | the cases under `tests/text/` and `tests/behaviour/` that read prose | the suite | a sentence, a citation, a heading | a case pins a fact a reader acts on; one that pins wording goes | the proofer reads prose for meaning |
-| `seal fold`, `seal core` | the owner at the settle; the orchestrator | document sizes and the index; the transcript's first core line | reports; `seal fold` refuses a document the index does not name | none |
+| `seal fold` | the owner at the settle | document sizes and the index | reports; refuses a document the index does not name | none |
 | `seal mutate` | the crafter at each unit that adds behaviour; a round or the sealer re-running a claim | the tests command's exit code, against the file as it is and against each mutant; for a `.py` target, `compile`'s result over the bytes each mutant would put on disk, before anything is written or run | refuses a `.py` mutant that does not compile; names a `.py` file that does not compile as it is under the running interpreter as not compiled, and decides its mutants by the exit code alone; compiles no other kind of file | whether a red's failure is the unit's, an import error's or a collection error's: the crafter reading the run, and the proofer and the sealer re-running it |
 
 **How this table is kept true.** No case holds it against the tree. Each

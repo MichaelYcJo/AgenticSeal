@@ -1115,6 +1115,30 @@ def test_update_shows_what_changed_from_the_github_releases():
         assert refused not in flat, f"step 3 carries {refused!r}"
 
 
+def test_update_names_the_reload_and_what_it_was_measured_to_reach():
+    """The update's output tells the user how to load what landed: it names
+    `/reload-plugins`, scopes what was measured to the skill bodies a spawned
+    agent is handed out of the copy the session is already on, and names a
+    restart for what nobody measured. The session-start notice carried this
+    until #1376 removed it, and `docs/releasing/release-checklist.md` *A
+    notice telling somebody an update landed names the move it costs them*
+    is the rule."""
+    update = read_text("skills", "update", "SKILL.md")
+    start = update.index("## Output")
+    end = update.find("\n## ", start + 1)
+    flat = " ".join(update[start : end if end != -1 else len(update)].split())
+    for needed, why in (
+        ("/reload-plugins", "the reload command"),
+        ("re-reads the skill bodies a spawned agent is", "what was measured"),
+        ("out of the copy this session is already on", "the copy it re-reads"),
+        # #1376: the plugin registers no hook, so the unmeasured list names
+        # what a reload might still miss.
+        ("Nobody has measured whether a reload reaches agent", "what was not"),
+        ("so restart for those", "the move named for what was not"),
+    ):
+        assert needed in flat, f"the update's output does not carry {needed!r}: {why}"
+
+
 def test_the_token_stays_the_smallest_that_can_close_an_issue():
     """Read the permissions block as a mapping, not as text.
 

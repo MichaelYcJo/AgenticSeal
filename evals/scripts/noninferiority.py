@@ -309,7 +309,7 @@ def finding_rows(text):
     has none. A finding is a `### ` section of the one `## Findings`
     section, split by `chain_check.py#finding_spans` over the lines its
     shared reader leaves, and its block is one `chain_check.py#round_read`
-    places there through `hooks/lib/fields.py` (#1198), so a line in a fix's
+    places there through `lib/fields.py` (#1198), so a line in a fix's
     fence is no field and a comment is text (#1012). A section the check
     would refuse is still one row, and one whose block the reader refused is
     an empty row.
@@ -1544,7 +1544,7 @@ def main(argv=None):
 
 if __name__ == "__main__":
     # A console that cannot encode what this prints kills it with stdout
-    # empty; `hooks/lib/console.py` owns the reasoning behind these lines.
+    # empty; `lib/console.py` owns the reasoning behind these lines.
     for _name, _errors in (
         ("stdin", "replace"),
         ("stdout", "replace"),

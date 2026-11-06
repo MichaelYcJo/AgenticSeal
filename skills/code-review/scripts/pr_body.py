@@ -52,8 +52,8 @@ at its line whatever follows it, since GitHub hides the lines after it, the
 fold's end among them (#1405).
 
 Round records are read through `chain_check.py#round_read`, which places the
-blocks `hooks/lib/fields.py` reads by the record's headings, and
-`trail/gate.md` through `hooks/lib/fields.py`, the one reader of a record's
+blocks `lib/fields.py` reads by the record's headings, and
+`trail/gate.md` through `lib/fields.py`, the one reader of a record's
 `seal` blocks; a record either refuses is refused here with its sentence. The other records' headings are read through `unverified_check.py`'s
 `readable` and `sections`, so a heading inside a fence is no heading. No
 record is parsed any other way.
@@ -124,9 +124,9 @@ def _load(path, name):
 
 # Loaded once, here: `chain_check.py` with the block reader and the shared
 # markdown reader it loads at its import,
-# `hooks/lib/routing.py`, whose `round_number` is the one ordering rule of
+# `lib/routing.py`, whose `round_number` is the one ordering rule of
 # round records and whose `optin` names a work item's files,
-# `hooks/lib/config.py`, the one reader of a `seal/config.md` row, and
+# `lib/config.py`, the one reader of a `seal/config.md` row, and
 # `.github/scripts/close_issues_on_release.py`, whose `keywords_in` is the one
 # reader of a closing keyword. The plugin ships from the repository root, so
 # `.github/scripts/` stands three levels above HERE in a clone and in an
@@ -136,7 +136,7 @@ try:
     CHAIN = _load(CHAIN_CHECK, "agentic_chain_check_for_the_pr_body")
     ROUTING = CHAIN.load(CHAIN.ROUTING, "agentic_routing_for_the_pr_body")
     CONFIG = CHAIN.load(
-        os.path.join(CHAIN.HOOKS, "config.py"), "agentic_config_for_the_pr_body"
+        os.path.join(CHAIN.LIB, "config.py"), "agentic_config_for_the_pr_body"
     )
     CLOSER = _load(
         os.path.join(
@@ -347,7 +347,7 @@ def _seal_at_head(item, root):
     """`(sealed, note)`: whether `guarantee.md` in the work item's directory
     ITEM is sealed at HEAD of the repository at ROOT, the way
     `chain_check.py#guarantee` asks it. Its blocks are read through
-    `hooks/lib/fields.py` with no refusal, the newest reads `sealed`, and
+    `lib/fields.py` with no refusal, the newest reads `sealed`, and
     `chain_check.py#follows` finds the commit its `target:` names to be
     HEAD or followed only by the closing records, against the base the same
     line names. NOTE names what ROOT cannot read the seal against: a base
@@ -415,7 +415,7 @@ def seal_mark(item, root, manifest=None):
     one sentence `seal pr-body` prints about it, or None (#1204).
 
     The mark is written where `MARK_ROW` in the root's `config.md`, read
-    through `hooks/lib/config.py#declared_value`, reads `MARK_ON` exactly
+    through `lib/config.py#declared_value`, reads `MARK_ON` exactly
     and the work item is sealed at HEAD (`_seal_at_head`). An absent or
     empty row, and a work item not sealed at HEAD, write no mark and say
     nothing. Any other value, a refused row, a base that does not resolve,
@@ -546,7 +546,7 @@ def _tables(text):
 
 def _gate(texts):
     """The broad run's blocks, each copied whole through
-    `hooks/lib/fields.py`, the reader the pull request's check reads them
+    `lib/fields.py`, the reader the pull request's check reads them
     through; a record it refuses is refused with its sentence (#1198)."""
     if GATE not in texts:
         return [_fixed(BROAD), _fixed(ABSENT.format(path=GATE))]

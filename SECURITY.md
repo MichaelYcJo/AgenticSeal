@@ -20,10 +20,11 @@ a reader should keep separate:
 - **`skills/*/scripts/`** — the checkers, run from CI and from a terminal
   (`seal fold`, `seal unverified`, `seal pact` and the rest), which read a
   repository's records and the files those records name.
-- **`hooks/`** — gates the harness invokes around commits, branch switches and
-  session start. Some of them run without anybody asking, which is the whole
-  point of a gate and also the reason a defect in one is worth more than the
-  same defect in a checker.
+- **The stamp's `Stop` hook** — the one script that runs without anybody
+  asking, at the end of each turn, where the person installed it into their
+  own settings with `seal stamp --install`. The plugin registers no hook. A
+  defect in it is worth more than the same defect in a checker, because
+  nobody chose to run it at that moment.
 
 The records are committed files, so writing one normally requires write
 access to the repository, and in an ordinary project a malicious record crosses
@@ -34,7 +35,7 @@ situations break that assumption, and they are the ones worth reporting:
    request from a fork can add records. What a fork's workflow run holds — a
    token, an environment, a filesystem — is then the surface.
 2. **A developer with an untrusted repository checked out locally.** Running
-   a checker, or a hook firing on its own, acts on that repository's content
+   a checker, or the stamp's hook firing on its own, acts on that repository's content
    on a real machine. This is the case that can happen without the developer
    deciding to do anything.
 
@@ -45,7 +46,7 @@ saying so plainly in the report saves a round trip.
 
 ## What is in scope
 
-Path handling that leaves the repository being checked; anything a hook does
+Path handling that leaves the repository being checked; anything the stamp's hook does
 to a tree the user did not ask it to touch; a gate that reports a pass it did
 not establish (**a check that fails open is a security defect here, not a
 correctness one**, and each gate's test file holds its cases for that class);

@@ -6,7 +6,7 @@ One row now answers for all four prose surfaces — commit subject, commit
 body, pull request title, pull request body — and absence means English, so
 a repository that says nothing is unaffected (#82).
 
-Nothing in `hooks/` reads this file, and the reason is recorded rather than
+No gate reads the row, and the reason is recorded rather than
 left as an absence a later reader takes for an oversight: judging what
 language a commit message is in means being wrong about names, identifiers
 and quoted English, and a wrong stop blocks a correct commit. The mechanism
@@ -43,7 +43,7 @@ def test_the_skill_names_the_file_and_the_row():
     assert "config.md" in text, "the skill does not name the file it reads"
     # The row's item. A session looks for it in the file because the skill
     # tells it to. No hook or command of the plugin asks for this row; the
-    # cases of this file parse it through `hooks/lib/config.py#config_rows`.
+    # cases of this file parse it through `lib/config.py#config_rows`.
     assert "Commit and pull request language" in text, "the skill does not name the row"
 
 
@@ -340,11 +340,11 @@ def test_a_korean_row_is_what_flips_the_refused_mirror_name(tmp_path):
 #
 # This file used to carry its own copy of the loop — a `HEADER`, a `ROW`, a
 # `SEPARATOR` and an `items()` that arrived at both stop rules over two
-# review rounds. The copy agreed with `hooks/lib/config.py#config_rows` for as
+# review rounds. The copy agreed with `lib/config.py#config_rows` for as
 # long as neither moved, and #415 is the branch that moved one: the production
 # reader learned markdown's `\|` escape, and a second reader that had not
 # would answer a different question about the same file. That is exactly what
-# `hooks/lib/config.py`'s own docstring says the module exists to prevent.
+# `lib/config.py`'s own docstring says the module exists to prevent.
 #
 # So the loop is gone and `items` is the one reader, reached by the name this
 # file already spelled. Its two stop rules and the rounds behind them are now
@@ -352,11 +352,11 @@ def test_a_korean_row_is_what_flips_the_refused_mirror_name(tmp_path):
 # deferral standing since work item
 # `1788817289-local-mode-from-first-setup-to-the-gate`.
 
-CONFIG_READER = ("hooks", "lib", "config.py")
+CONFIG_READER = ("lib", "config.py")
 
 
 def _config_reader():
-    """`hooks/lib/config.py`, loaded by path — the one reader of this table."""
+    """`lib/config.py`, loaded by path — the one reader of this table."""
     import importlib.util
 
     path = os.path.join(ROOT, *CONFIG_READER)
@@ -450,7 +450,7 @@ def configured_language(root=None):
     can read must not stop a commit.
 
     The ROOT is resolved first and the config read from that one, the way
-    `hooks/lib/optin.py#home_at` resolves it: whichever of the two directories
+    `lib/optin.py#home_at` resolves it: whichever of the two directories
     exists is the answer, and an unreadable file inside it is one of the
     four ways rather than a reason to look in the other place.
     """
@@ -555,7 +555,7 @@ def test_the_reader_finds_a_config_under_the_git_directory(repo):
     joined `<root>/seal/` and stopped, so a local-mode repository's config
     was invisible to the one executable model of a session's reading this
     branch ships. `local_home` asks git for the common directory, the way
-    the hooks do.
+    the scripts do.
     """
     home = local_home(repo)
     (home / "config.md").write_text(
@@ -571,7 +571,7 @@ def test_the_reader_finds_a_config_under_the_git_directory(repo):
 def test_the_tree_root_still_wins_over_the_git_directory(repo):
     """The order, not just the fallback. Whichever directory exists first is
     the root, so a repository holding both is answered by the committed one
-    — `hooks/lib/optin.py#home_at` resolves it that way and a reader that
+    — `lib/optin.py#home_at` resolves it that way and a reader that
     disagreed would send a session to the wrong file."""
     local = local_home(repo)
     (local / "config.md").write_text(
@@ -608,7 +608,7 @@ def test_a_mirror_named_for_a_country_is_caught():
 
 def test_the_documents_name_every_shape_the_walker_refuses_and_its_edit():
     """S8 of #871. `templates/setup/config.md`, `skills/config/SKILL.md` and
-    `hooks/lib/config.py#config_rows`' docstring each name the shapes the walker
+    `lib/config.py#config_rows`' docstring each name the shapes the walker
     refuses with the one edit for each, and none of them still says the
     reader stops at a line and reads on, or that a row below a bad line is
     invisible. Seen red against the stop rule's documents: none named the
@@ -667,7 +667,7 @@ def test_the_template_is_one_item_value_table_whose_first_row_is_the_language():
 
 def test_this_file_loads_the_one_reader_and_not_a_copy_of_it():
     """A8 of #415. The copy of the loop that used to live here agreed with
-    `hooks/lib/config.py#config_rows` right up until one of them moved.
+    `lib/config.py#config_rows` right up until one of them moved.
 
     Asserted by where the code was COMPILED, the way
     `tests/skills/test_seal.py#Test_module::test_the_command_and_the_gate_read_one_parser`
@@ -677,7 +677,7 @@ def test_this_file_loads_the_one_reader_and_not_a_copy_of_it():
     see a copy return — a reimplementation loaded under the same name passes
     it.
     """
-    owner = os.path.join("hooks", "lib", "config.py")
+    owner = os.path.join("lib", "config.py")
     where = items.__code__.co_filename
     assert where.endswith(owner), f"`items` is compiled from {where}"
     # And it is the escape-aware reader, not something that merely lives at
@@ -686,7 +686,7 @@ def test_this_file_loads_the_one_reader_and_not_a_copy_of_it():
 
 
 # The row reader's own cases, the ones that call `items` on a text written
-# for them, are in `tests/hooks/test_config.py` since #942's phase 6.
+# for them, are in `tests/lib/test_config.py` since #942's phase 6.
 
 
 # --- every template has a reader --------------------------------------------
@@ -761,7 +761,7 @@ def shipped_templates(root):
 def unreachable_templates(root, listed):
     """The templates no PROSE document among `listed` names.
 
-    Prose is `.md`. Round 2 🟡 4: reading `skills/`, `agents/` and `hooks/`
+    Prose is `.md`. Round 2 🟡 4: reading `skills/`, `agents/` and `lib/`
     whole takes their Python in too, and a template named only in a code
     comment is as unreachable as one named nowhere — a session bootstrapping
     a file does not read `chain_check.py` to find out what to copy.
@@ -791,7 +791,7 @@ def test_every_template_is_named_by_a_document_that_ships():
     finding was about — the mention that looks like a reader and is not.
 
     Round 2 🟡 4 found the same hole one layer down. Excluding `tests/` and
-    then reading `skills/`, `agents/` and `hooks/` whole takes in their
+    then reading `skills/`, `agents/` and `lib/` whole takes in their
     PYTHON, and `templates/records/sdd-round.md` was passing on four comments inside
     `skills/code-review/scripts/chain_check.py`. A comment is not a document
     a session bootstraps from, so the corpus is prose — `.md` only. Two
@@ -817,7 +817,7 @@ def test_every_template_is_named_by_a_document_that_ships():
             "-z",
             "skills",
             "agents",
-            "hooks",
+            "lib",
             "docs",
             "README.md",
             "README.ko.md",
@@ -931,7 +931,7 @@ def _checker(name, *parts):
 
 
 def _chain():
-    """`chain_check.py`, which loads `hooks/lib/fields.py` at its import."""
+    """`chain_check.py`, which loads `lib/fields.py` at its import."""
     return _checker("chain_check", "skills", "code-review", "scripts", "chain_check.py")
 
 
@@ -944,7 +944,7 @@ PROSE_HEADINGS = ["## Confirmations", "## Not judged", "## Probes"]
 
 def _round_record_grammar():
     """Every key of the `seal` blocks of a round record, read from
-    `hooks/lib/fields.py` rather than copied, and the `## Findings` section
+    `lib/fields.py` rather than copied, and the `## Findings` section
     `chain_check.py` reads."""
     chain = _chain()
     keys = [key for kind in chain.FIELDS.ROUND_RECORD for key in kind.keys]
@@ -953,7 +953,7 @@ def _round_record_grammar():
 
 def _block_keys():
     """Every key of the `seal` blocks of a round record, a `guarantee.md`
-    and a `trail/gate.md`, read from `hooks/lib/fields.py`, the one
+    and a `trail/gate.md`, read from `lib/fields.py`, the one
     spelling of them."""
     fields = _chain().FIELDS
     kinds = (*fields.ROUND_RECORD, *fields.GUARANTEE, *fields.GATE)
@@ -1124,12 +1124,12 @@ def _literal_strings():
     return sorted(found)
 
 
-BLOCK_GRAMMAR = "`hooks/lib/fields.py`"
+BLOCK_GRAMMAR = "`lib/fields.py`"
 
 
 def test_the_exclusion_list_points_at_the_block_grammar_and_restates_none_of_it():
     """S4, under #1198. The keys of a round record's, a guarantee's and a
-    gate record's `seal` blocks have one statement, `hooks/lib/fields.py`,
+    gate record's `seal` blocks have one statement, `lib/fields.py`,
     which `chain_check.py` and the stamp read them through, so the list names
     the module and copies no key of it: a copy here is a second source that
     drifts, and a repository told the copy reads a list the check no longer

@@ -80,10 +80,10 @@ pins. No row records that; the file is the record.
   **The copied block lands BELOW the live table, and its fenced example row
   is not a row.** That block carries a fenced `| Broad gate | … |` line as an
   illustration of the format, and a table inside a code fence is read by no
-  walk of that table: not the gates' reader, not the mode gate's, and not
-  `seal mode`'s writer. Pasted above the live table, or above a table that
-  has no parseable row yet, that example would be the table every gate
-  reads, and the broad run would run its command. Put the prose under the
+  walk of that table: not the gates' reader and not `seal mode`'s writer.
+  Pasted above the live table, or above a table that has no parseable row
+  yet, that example would be the table every gate reads, and the broad run
+  would run its command. Put the prose under the
   table the repository actually answers in; where the `Broad gate` row exists
   only inside a fence, `seal gate` quotes that line and says to move it.
 
@@ -125,8 +125,7 @@ pins. No row records that; the file is the record.
     above, after a form feed or U+2028: give it a line of its own.
 
   `templates/setup/config.md` says the same at its head. `seal gate` and
-  `seal mode` print the refusal and run or write nothing, and a hook stays
-  silent.
+  `seal mode` print the refusal and run or write nothing.
 
   **The `Broad gate` row is looked at before it is run**, and a value that
   would not run as the command it reads as is refused with nothing run:

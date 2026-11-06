@@ -30,16 +30,15 @@ proves nothing (*Broad gate* below).
 
 **A row written twice has no value, and a file that will not read is
 refused rather than read as absent.** One reader answers every row of this
-file, `hooks/lib/config.py`. A row written more than once in the table is
+file, `lib/config.py`. A row written more than once in the table is
 neither its first nor its last: it is refused in the sentence
 "`<item>` appears N times — one value". A file that is there and cannot be
 read as UTF-8 text (a directory of that name, or bytes another encoding
 wrote) is refused naming its path; a file that is absent still declares
 nothing. A command a person runs (`seal fold`, `seal gate`, `seal mode`,
 `seal pact`) prints the refusal and exits 2 with nothing judged, as it does
-for a value it cannot parse. A hook says nothing: the mode gate is silent
-rather than asking. Whoever writes the file repairs it by deleting the extra
-row, or by writing the file as UTF-8.
+for a value it cannot parse. Whoever writes the file repairs it by deleting
+the extra row, or by writing the file as UTF-8.
 
 **The table is read the way GitHub shows it, or refused.** The reader is the
 walker the plugin holds to cmark-gfm, GitHub's renderer, so a row is a row
@@ -47,7 +46,7 @@ where GitHub shows it as one. A line it cannot read as GitHub shows it is
 refused, in a sentence naming the line and the edit. The rows above that
 line are read; every row written below it is that refusal, never an absent
 row, because GitHub may show it and nobody read it. The commands and the
-hooks act on it as on a row written twice. The shapes, each with its one
+checks act on it as on a row written twice. The shapes, each with its one
 edit:
 
 - a line directly above the header (a comment, a line of prose, a row of
@@ -130,7 +129,7 @@ every repository, whatever either row says:
   literally**: the info string `seal` that opens each block of a round
   record, a `guarantee.md` and a `trail/gate.md`, and every key of those
   blocks and every fixed word of their values, whose one spelling is
-  `hooks/lib/fields.py`, which `chain_check.py` and the stamp read them
+  `lib/fields.py`, which `chain_check.py` and the stamp read them
   through; a round record's `## Findings` heading, which `chain_check.py`
   reads; a `gaps.md`'s `## Not verified` heading with its `Item` and
   `Who must answer` columns, or its no-change block `- nothing` with
@@ -312,9 +311,9 @@ repository's own answer.** The live table is the first `| Item | Value |`
 table that stands outside every fenced code block, and a line inside a fence
 is not part of any table: not a header, not a separator, not a row, and not a
 line somebody wrote as a row. One rule says so and the one walk of this
-table reads through it (the gates, the mode gate, and `seal mode`'s writer
-all read the rows it names), so the reader and the writer can never
-disagree about which row is the row.
+table reads through it (the gates and `seal mode`'s writer all read the
+rows it names), so the reader and the writer can never disagree about which
+row is the row.
 
 A fence opens at a line indented at most three spaces whose first run is three
 or more backticks or three or more tildes, and closes at the next line of at
@@ -356,7 +355,7 @@ rather than paid for by a refusal:
 |---|---|
 | `$(…)` **inside** a longer line | nothing. `pytest -n $(nproc)` still runs as the command it reads as |
 | `;`, `\|\|`, quotes, redirection, variables, globs | the row answers with whatever the composition the repository wrote answers with. That is the repository's own claim about itself, which is what this row already is. A pytest session the row runs that did not pass by its own record still fails the suite, whatever the composition exits (rule 3 of *The criterion for choosing a value* below) |
-| a pipe, **written `\|`** | the same, and one thing more. A piped row exits with the pipe's LAST status, so `bin/test -q \| tee out.txt` exits 0 whenever `tee` does. That exit is the repository's own claim about itself, and the gate still fails the suite where a pytest session under the pipe did not pass by its own record (rule 3 of *The criterion for choosing a value* below). **This file is markdown and a cell of it ends at a bare pipe**, so `\|` is how the value carries one, the way every other cell of this table already writes it. The reader reduces exactly those two characters to a plain pipe before any shell sees it, so a value holding Windows path separators is untouched. **A BARE pipe is refused**: GitHub shows that row cut off at the pipe, so the command it shows is not the one written, and `seal gate` quotes the line, says to write it `\|`, and runs nothing. The walker reads no row below a line it refuses, so a `Mode` row written under it is that refusal rather than an absent row: `seal mode` writes nothing and names the line, and the mode gate says nothing. Written LAST in its table the line has nothing under it, and `seal gate`'s refusal says the rows below it go unread only where a row is written below it |
+| a pipe, **written `\|`** | the same, and one thing more. A piped row exits with the pipe's LAST status, so `bin/test -q \| tee out.txt` exits 0 whenever `tee` does. That exit is the repository's own claim about itself, and the gate still fails the suite where a pytest session under the pipe did not pass by its own record (rule 3 of *The criterion for choosing a value* below). **This file is markdown and a cell of it ends at a bare pipe**, so `\|` is how the value carries one, the way every other cell of this table already writes it. The reader reduces exactly those two characters to a plain pipe before any shell sees it, so a value holding Windows path separators is untouched. **A BARE pipe is refused**: GitHub shows that row cut off at the pipe, so the command it shows is not the one written, and `seal gate` quotes the line, says to write it `\|`, and runs nothing. The walker reads no row below a line it refuses, so a `Mode` row written under it is that refusal rather than an absent row: `seal mode` writes nothing and names the line. Written LAST in its table the line has nothing under it, and `seal gate`'s refusal says the rows below it go unread only where a row is written below it |
 | an `&` anywhere but at the end | the command before it is backgrounded and its status discarded, exactly as a `;` discards one. Unlike a `;`, it may still be running when the gate reports, writing into the tree the report is about. That is `/bin/sh`; `cmd.exe` sequences the two commands instead, so nothing is left running and the status read is the second command's. Telling an operator `&` from a `2>&1` or a quoted `&` needs the shell parser this list exists to avoid, so it stays the row author's own composition. The **trailing** form is refused, because nothing composes after it and the whole line goes to the background |
 
 ### The criterion for choosing a value
@@ -396,8 +395,8 @@ or anything under it is dropped, because the root's records are read whatever
 this row says; `seal settle --apply` removes only under `seal/threads/`.
 `seal settle --from` reads a reference root only where a person names it at
 the settle, whatever this row says, and writes nothing there. One reader
-answers the row, `hooks/lib/config.py#reference_roots`, and one predicate the
-path question, `hooks/lib/config.py#under_reference_root`.
+answers the row, `lib/config.py#reference_roots`, and one predicate the
+path question, `lib/config.py#under_reference_root`.
 
 **What it asks of the party that frames or builds a change.** That party
 reads a reference root when the change touches what it describes, and cites
@@ -426,7 +425,7 @@ names the pact by the same URL, in the `Pact` cell of a
 
 **A row that will not parse is refused in a sentence**, never read as absent.
 `seal pact`, run at the pact's repository, reads the row through
-`hooks/lib/config.py#pact_declaration` and exits 2 on it; a signer's CI
+`lib/config.py#pact_declaration` and exits 2 on it; a signer's CI
 reads nothing of the pact. A `Pact`
 row the table does not hold is no row: `seal pact` then reads the signer as
 naming no pact and exits 2 on a relationship recorded on one side only.
@@ -465,12 +464,11 @@ plugin's repository, so a body carrying it shows the image while that
 repository stays public and the version's tag exists.
 
 **`Release note seal mark`** is read by the `seal` job of this plugin's own
-release workflow (`.github/scripts/release_seal.py#mark_on`), at the
-release's tag. Under `yes` the job attaches the plugin's icon to the release
-as `seal.png` and the note's header shows it beside the results the stamp
-states; under any other value it attaches nothing and the header holds the
-results alone. The plugin ships no release workflow, so in any other
-repository nothing reads this row.
+release workflow, at the release's tag. Under `yes` the job attaches the
+plugin's icon to the release as `seal.png` and the note's header shows it
+beside the results the stamp states; under any other value it attaches
+nothing and the header holds the results alone. The plugin ships no release
+workflow, so in any other repository nothing reads this row.
 
 **A row that will not read writes no mark and is named**, a row written
 twice among them; the command's exit code is what it would be without the

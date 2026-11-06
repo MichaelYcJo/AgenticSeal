@@ -1,16 +1,13 @@
-# The plugin's own Python, held to the tool it runs on other people's.
-#
-# lint-python only acts where a project has configured ruff, and until this
-# file existed AgenticSeal was not such a project: the hook that reformats your
-# code on save was silent on the code that implements it.
+# The plugin's own Python, held to `ruff check` and `ruff format --check`,
+# which the broad gate runs over the repository.
 #
 # The selection is what a gate needs and no more. Rules whose "violation" is
 # this codebase's deliberate posture are left out rather than suppressed
 # line by line — the reasons are below, because an unexplained omission is
 # indistinguishable from an oversight.
 #
-#   BLE001 (blind-except)   a hook that raises wedges the session; every gate
-#       fails toward "not opted in", so a bare except IS the failure policy.
+#   BLE001 (blind-except)   the stamp's hook must exit 0 whatever it meets, and
+#       a gate fails toward "not opted in", so a bare except IS the policy.
 #   PLW1510 (subprocess-run-without-check)  not raising on a non-zero exit is
 #       the intended behavior of a gate that reads returncode itself.
 #   S110 / S112 (try-except-pass / -continue)  the same fail-open requirement,
@@ -24,7 +21,7 @@
 #   SIM102 (collapsible if)       a gate's outer condition asks whether it
 #       applies and the inner asks whether it fires. One boolean loses that.
 
-target-version = "py312"  # the floor hooks/lib/launch.py holds
+target-version = "py312"  # the floor lib/launch.py holds
 line-length = 88
 
 # Snippets in skills and docs are illustrations, sometimes deliberately
@@ -32,17 +29,18 @@ line-length = 88
 # a documentation edit into a lint failure over two spaces.
 extend-exclude = ["*.md"]
 
-# What runs before any floor is checked -- a hook, a git hook, the launcher,
-# bin/test's runner, and every module one of them loads in its own process --
-# runs on whatever `python3` starts it, and macOS ships 3.9 under that name.
+# What runs before any floor is checked -- the stamp's launcher,
+# lib/launch.py, bin/test's runner, and every module one of them loads in its
+# own process -- runs on whatever `python3` starts it, and macOS ships 3.9
+# under that name.
 # Linted at 3.9, B905 does not ask its `zip` for `strict=` (3.10) and UP017
 # does not spell `timezone.utc` as `datetime.UTC` (3.11).
-# tests/hooks/test_launch.py derives that set and holds every file of it to
+# tests/lib/test_launch.py derives that set and holds every file of it to
 # this table, and the floor_syntax census in tests/censuses.py refuses in each
 # the syntax and the two constructs above that this version lacks; nothing
 # runs it at 3.9.
 [per-file-target-version]
-"hooks/*.py" = "py39"  # its `*` crosses a `/`, so hooks/lib/ too
+"lib/*.py" = "py39"  # the set reaches most of lib/, so the table holds it whole
 ".github/scripts/run_tests.py" = "py39"
 "skills/verify/scripts/seal_stamp.py" = "py39"
 "skills/code-review/scripts/chain_check.py" = "py39"

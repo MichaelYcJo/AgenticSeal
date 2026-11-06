@@ -2,8 +2,8 @@
 
 Releases from 0.23.0 to 0.24.x wrote a block into the user's `CLAUDE.md`
 between `<!-- agentic:start -->` and `<!-- agentic:end -->`. The core now
-reaches a session from the plugin's `SessionStart` hook, so the block, its
-installer, its uninstaller and `/agentic:preset-setup` retire.
+reaches a session when `/agentic:start` opens it, so the block, its
+installer, its uninstaller and `/agentic:preset-setup` stay retired.
 
 The update to 0.25.0 runs the 0.24.x procedure, whose step 4 diffs the marker
 region of the marketplace clone's `templates/setup/claude-md-block.md`
@@ -14,7 +14,7 @@ that update leaves an empty marker pair. The next update runs 0.25.0's step
 over scratch files, the way the cases this module replaced ran `install.sh`.
 
 This repository's own `CLAUDE.md` carries no block and imports nothing: a
-session here reads the tree's core from the plugin's hook.
+session here reads the tree's core when `/agentic:start` opens it.
 """
 
 import os
@@ -197,7 +197,7 @@ def test_step_4_works_on_the_config_directorys_file_and_writes_no_block():
     step = flattened(step_4())
     for said in (
         "**4. Take out the preset block.**",
-        "`SessionStart` hook",
+        "`/agentic:start` opens it",
         "the skills and definitions the plugin installs",
         "*Needs action*",
         "No question is asked",
@@ -243,8 +243,8 @@ IMPORT = re.compile(r"(?:^|\s)@[^\s`]")
 
 
 def test_this_repository_imports_no_core_and_names_the_tree_copy():
-    """S3 of #1177. A session here reads the tree's core from the plugin's
-    `SessionStart` hook, so an `@` line in `CLAUDE.md` would load it a second
+    """S3 of #1177. A session here reads the tree's core when
+    `/agentic:start` opens it, so an `@` line in `CLAUDE.md` would load it a second
     time; and `CLAUDE.md` names the tree's copy, which governs here."""
     text = read(os.path.join(ROOT, "CLAUDE.md"))
     assert not IMPORT.search(text), (

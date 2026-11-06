@@ -42,7 +42,7 @@ here is a write you do not make.
 7. Write the record from `templates/records/sdd-round.md`: its round block
    with the `target:` line, and under each finding's heading one finding
    block holding its `severity:`, `location:` and `evidence:` lines, each
-   line spelt as `hooks/lib/fields.py` reads it. Write no close block: the
+   line spelt as `lib/fields.py` reads it. Write no close block: the
    fix pass appends it. A field stands inside a `seal` block and nowhere
    else. A prose line that opens with `<` and a letter, such as a
    placeholder left in place, starts an HTML block for the reader, which

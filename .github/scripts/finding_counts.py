@@ -18,8 +18,8 @@ not where the defect shows, so the count does not read it.
 whose directory is present at `--released-at`
 (`skills/settle/scripts/settle.py#released`, default `origin/main` as the
 settle defaults it), that the tree still holds, and whose `routing.md`
-parses with `Review` `through the review chain` (`hooks/lib/routing.py#parse`).
-The rounds are `hooks/lib/routing.py#rounds`.
+parses with `Review` `through the review chain` (`lib/routing.py#parse`).
+The rounds are `lib/routing.py#rounds`.
 
 **An incomplete count is a wrong number**, the stance
 `.github/scripts/release_seal.py#chain_counts` takes. A work item one of
@@ -49,9 +49,7 @@ import sys
 
 sys.path.insert(
     0,
-    os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "..", "..", "hooks", "lib"
-    ),
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "lib"),
 )
 import console
 
@@ -64,7 +62,7 @@ HEADER = "| work item | findings | regression or reopens | records alone | round
 SEPARATOR = "|---|---|---|---|---|"
 NOT_READ = "not read"
 DEFAULT_REF = "origin/main"
-# Said of every state `hooks/lib/routing.py#rounds_unreadable` answers for,
+# Said of every state `lib/routing.py#rounds_unreadable` answers for,
 # and so of none of them alone: any link, a path that is not a directory,
 # and a directory nothing can list.
 NOT_LISTED = (
@@ -75,7 +73,7 @@ NOT_LISTED = (
 # declaration: whether it is a row is not known, so it is none, and this
 # line says so under the table.
 NOT_ROUTED = "whether it went through the review chain is not read"
-NO_DECLARATION = "it is no declaration `hooks/lib/routing.py#parse` reads"
+NO_DECLARATION = "it is no declaration `lib/routing.py#parse` reads"
 
 
 def load(name, *parts):
@@ -98,7 +96,7 @@ def readers():
         "scripts",
         "chain_check.py",
     )
-    routing = load("agentic_routing_for_counts", "hooks", "lib", "routing.py")
+    routing = load("agentic_routing_for_counts", "lib", "routing.py")
     settle = load(
         "agentic_settle_for_counts", "skills", "settle", "scripts", "settle.py"
     )
@@ -219,7 +217,7 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    # Every entry point carries this (`hooks/lib/console.py`): a refusal
+    # Every entry point carries this (`lib/console.py`): a refusal
     # `main` prints is led by `chain_check.DASH`, an em dash, which a console
     # that cannot encode it would die on with stdout empty.
     console.to_utf8()

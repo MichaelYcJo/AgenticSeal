@@ -3,26 +3,24 @@ or a person reads says the same thing about where the root lives.
 
 Each case states the clause it holds and names it by its number, and a
 number another work item gave carries that item's issue, as `S2 of #952`
-does. The hooks resolve
-the root in code (`hooks/lib/optin.py#home_at`) and are pinned by
-`tests/hooks/test_optin.py`, `tests/hooks/test_routing_edit_gate.py` and
-`tests/hooks/test_implementer_notice.py`. What is pinned HERE
+does. The commands resolve
+the root in code (`lib/optin.py#home_at`) and are pinned by
+`tests/lib/test_optin.py`. What is pinned HERE
 is the text: the one question the `implement`
 skill asks, the sentence a session needs, the workflow template
 `seal pr-checks install` writes and the commands its header names, and the
 switch the READMEs give.
 """
 
-import os
 import re
 import subprocess
 
 import pytest
-from conftest import ROOT, local_home, read, shell_probe
+from conftest import local_home, read, shell_probe
 
 COMMON_DIR = "$(git rev-parse --git-common-dir)/seal/"
 # The sentence a session reads, which the Q1 cases below hold in each place:
-# the same rule `hooks/lib/optin.py` states, moved to where a session looks.
+# the same rule `lib/optin.py` states, moved to where a session looks.
 SESSION_RULE = "`$(git rev-parse --git-common-dir)/seal/` otherwise"
 
 
@@ -92,13 +90,13 @@ def test_each_option_says_what_it_creates_and_what_it_installs():
     checks = paragraph(boot, WITH_CHECKS)
     local = paragraph(boot, "**local**")
     # The path `<repo>/seal/`, where the orchestrator creates the shared
-    # root and where `hooks/lib/optin.py` looks for it first.
+    # root and where `lib/optin.py` looks for it first.
     assert "creates `<repo>/seal/`" in records
     # The command `seal pr-checks install`, which the orchestrator runs
     # under this option.
     assert "`seal pr-checks install`" in checks, checks
     # The path of the local root, which the orchestrator creates and
-    # `hooks/lib/optin.py` looks for second.
+    # `lib/optin.py` looks for second.
     assert f"creates `{COMMON_DIR}`" in local
 
 
@@ -276,6 +274,49 @@ def test_a_projects_own_seal_names_the_marker_template_and_the_git_dir_root():
     assert f"`{COMMON_DIR}`" in own, own
 
 
+# --- #1376: the stamp's question, the person's and asked once --------------
+
+STAMP_QUESTION = "**The third question is the stamp"
+
+
+def test_the_stamp_question_is_put_once_where_neither_answer_stands():
+    """Contract rule 14, for #1376 phase 5. The plugin registers no hook, so
+    the stamp's `Stop` hook is written into the person's settings on their
+    yes. Bootstrap puts the question where `seal stamp --hook` reads
+    `neither`, names the two writes in the yes option, and runs `--install`
+    or `--decline`; the entry names the data directory, substituted, and
+    `/agentic:update` asks a person set up before and moves the launcher to
+    the copy it installs."""
+    stamp = paragraph(bootstrap(), STAMP_QUESTION)
+    for said in (
+        'Run `seal stamp --hook "<data-dir>"` first',
+        "Where it prints `neither`, put",
+        "The yes option names its two writes",
+    ):
+        assert said in stamp, said
+    boot = flat(bootstrap())
+    for command in (
+        'seal stamp --install "<data-dir>" --settings '
+        '"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json"',
+        'seal stamp --decline "<data-dir>"',
+    ):
+        assert command in boot, command
+    start = flat(read("skills", "start", "SKILL.md"))
+    assert (
+        "The data directory its stamp question passes is `${CLAUDE_PLUGIN_DATA}`"
+        in (start)
+    )
+    update = flat(read("skills", "update", "SKILL.md"))
+    for said in (
+        '"$p/bin/seal" stamp --hook "${CLAUDE_PLUGIN_DATA}"',
+        "| `neither` | ask once, with `AskUserQuestion`",
+        '"$p/bin/seal" stamp --install "${CLAUDE_PLUGIN_DATA}" --settings',
+        "nothing is asked; run the command below, so the launcher names the copy "
+        "just installed",
+    ):
+        assert said in update, said
+
+
 # --- Q1: the sentence a session reads, once in each place -----------------
 
 
@@ -430,6 +471,37 @@ def test_the_readme_gives_the_switch_under_the_first_work_item(readme):
     )
 
 
+# What local mode leaves unchecked, said once under each edition's table of
+# the three answers: no pull-request check reads records that are not
+# committed, and no mechanism stands in for it (#1376).
+LOCAL_LIMIT = {
+    "README.md": (
+        "In local mode no pull-request check reads the records, so "
+        "`agents/sealer.md` step 1 and the orchestrator's guidance alone hold "
+        "the four rows of `skills/core/SKILL.md` *Judgment is not licence "
+        "to skip a party*, and that is a limit."
+    ),
+    "README.ko.md": (
+        "local 모드에서는 기록을 커밋하지 않으므로 pull request 검사가 읽을 "
+        "기록이 없습니다. 그래서 `skills/core/SKILL.md` *Judgment is not "
+        "licence to skip a party* 표의 네 행은 sealer 의 1단계"
+        "(`agents/sealer.md`)와 작업을 이끄는 세션이 따르는 지침만이 지키며, "
+        "이것이 local 모드의 한계입니다."
+    ),
+}
+
+
+@pytest.mark.parametrize("readme", sorted(READMES))
+def test_the_readme_states_what_local_mode_leaves_unchecked_under_the_table(readme):
+    """The paragraph right under the table of the three answers says that in
+    local mode nothing checks the pull request's rows of the core's table,
+    and names what holds them, as a limit."""
+    body = section(read(readme), READMES[readme][1], 3)
+    chunks = body.split("\n\n")
+    table = next(i for i, chunk in enumerate(chunks) if chunk.startswith("|"))
+    assert flat(chunks[table + 1]) == LOCAL_LIMIT[readme], chunks[table + 1]
+
+
 # The one home of the way back before the commit to shared (#1055 S6), and
 # the citation of it each README carries.
 SHARED_HEADING = "Before switching to shared, say what cannot be undone"
@@ -524,36 +596,6 @@ def test_the_switch_block_lands_the_root_at_the_tree_root_from_a_subdirectory(re
     assert porcelain(repo) == [], porcelain(repo)
 
 
-@pytest.mark.parametrize("readme", sorted(READMES))
-def test_the_gates_table_says_the_root_may_sit_under_the_git_dir(readme):
-    # The gate table's rows alone: since #1055 the `seal/` row of the records
-    # table names `seal/` in its last cell too, and that cell is no Where.
-    lines = read(readme).splitlines()
-    start = next(
-        i for i, ln in enumerate(lines) if ln.startswith(("| Gate |", "| 게이트 |"))
-    )
-    table = []
-    for line in lines[start + 2 :]:
-        if not line.startswith("|"):
-            break
-        table.append(line)
-    rows = [line for line in table if "`seal/`" in line.rsplit("|", 2)[-2]]
-    assert rows, f"{readme}: no gate row's Where cell names `seal/`"
-    # #1055 round 1, finding 1: *First run* and the records table's `seal/`
-    # row select the opt-in hooks by `seal/` in this column, so a Where cell
-    # that points at another row ("same opt-in") drops its hook from that
-    # pointer. Each cell names its condition itself, and implementer-notice,
-    # which returns before anything where `optin.opted_in` is false
-    # (`hooks/implementer-notice.py#notify`), is among the `seal/` rows.
-    for row in table:
-        where = row.rsplit("|", 2)[-2].strip()
-        assert not where.startswith(("same ", "같은 ")), f"{readme}: {row[:40]}…"
-    assert any(row.startswith("| implementer-notice |") for row in rows), readme
-    for row in rows:
-        where = row.rsplit("|", 2)[-2]
-        assert "local" in where, f"{readme}: {row[:40]}… still says the root only"
-
-
 # --- S14: the root's own README, and the template it is rendered from ------
 
 
@@ -580,9 +622,9 @@ def test_the_seal_readme_cites_the_marker_constant():
     line is, is the proofer's to read."""
     text = read("templates", "setup", "seal-README.md")
     said = paragraph(text, MARKER_SAID)
-    # The citation `hooks/lib/optin.py#MARKER`, which a person resolves to
+    # The citation `lib/optin.py#MARKER`, which a person resolves to
     # the one spelling of the line the gates read.
-    assert "`hooks/lib/optin.py#MARKER`" in said, said
+    assert "`lib/optin.py#MARKER`" in said, said
 
 
 def test_the_seal_readme_points_at_the_drain_and_restates_none_of_it():
@@ -656,9 +698,8 @@ def test_the_design_record_states_the_setup_rules_where_they_rule(parts, opt_in,
 # there. A session is told to write `seal/threads/<id>/routing.md` before the
 # first edit, and that write creates `seal/`, which opts the repository in.
 # Until #1177 the preset block in `~/.claude/CLAUDE.md` said so in every
-# project on the machine. The block is retired; the core, which the
-# plugin's `SessionStart` hook prints into every session,
-# names the routing section (`tests/text/test_review_axes.py`), and the cases
+# project on the machine. The block is retired; the core, which
+# `/agentic:start` opens in a session, names the routing section (`tests/text/test_review_axes.py`), and the cases
 # below read the orchestrator's half and the Bootstrap, the files that hold
 # the rule.
 
@@ -684,20 +725,10 @@ def test_the_bootstrap_records_the_answer_it_was_given():
     """#151's second Done-when: the answer has to be observable afterwards.
     An asked-and-answered root and a root that appeared because a session
     followed the routing rule are byte-identical until something writes the
-    row — and `hooks/mode-gate.py` reads exactly that absence, so a bootstrap
-    that records nothing gets the person it just asked asked again."""
+    row, so a bootstrap that records nothing leaves no trace that anybody was
+    asked."""
     boot = flat(bootstrap())
     assert "seal mode" in boot
     assert "Do **not** write that config row here" not in both_halves(), (
         "the skill still forbids recording the answer it just collected"
     )
-
-
-def test_the_gate_that_reads_the_absence_exists_and_is_wired():
-    """The document half and the mechanism half are one change. A skill that
-    says a gate reads this, beside no such gate, is the shape #151 opened
-    about one layer up."""
-    hooks = os.path.join(ROOT, "hooks")
-    assert os.path.isfile(os.path.join(hooks, "mode-gate.py"))
-    dispatch = read("hooks", "dispatch.py")
-    assert '"mode-gate.py"' in dispatch

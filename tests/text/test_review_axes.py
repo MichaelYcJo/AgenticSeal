@@ -139,9 +139,8 @@ def test_the_routing_section_holds_the_answers_and_the_shape():
         # question 1 now goes alone and the boxes follow only under
         # `per axis`.
         "Ask question 1 alone; the boxes in a second call only under `per axis`.",
-        # Under `no work item`, the record and the trailer that replaced the
-        # per-command waiver (#1027), which the block named until #1177.
-        "`seal no-work-item`",
+        # Under `no work item`, the trailer that records the answer in place
+        # of the per-command waiver (#1027), which the block named until #1177.
         "`Seal-Routing: no work item`",
     ):
         assert said in implement, f"the skill lost `{said}`"

@@ -12,15 +12,15 @@ case asserting the same sentence in two files is the duplication the
 contract was written to end, and `tests/text/test_a_moved_rule_leaves_its_definition.py`
 is what refuses it.
 
-#1027 changed the second reason. It was that an edit through the `Edit` tool
-leaves the commit gate no command line to read, with the heredoc shape that
-gate took as data; the commit gate is gone, and the reason is now that the
-routing check sees only the edit tools, which rule 9 states in one clause
-citing `docs/checks/the-routing-check.md` *The edit check*, where the fact
-stands whole. A case asserts the absence of the old reason: a document can
-gain the corrected sentence and keep the wrong one two paragraphs down,
-which is how two answers ship at once. The reasons themselves are the
-proofer's to read; the case that reads the contract pins the tool's name.
+#1027 changed the second reason, and #1376 took it out. It was that an edit
+through the `Edit` tool leaves the commit gate no command line to read, with
+the heredoc shape that gate took as data; then that the routing check saw
+only the edit tools. No check reads an edit now, and the reason that stands
+is the first: an edit must be able to fail. A case asserts the absence of
+the commit gate's reason: a document can gain the corrected sentence and
+keep the wrong one two paragraphs down, which is how two answers ship at
+once. The reason itself is the proofer's to read; the case that reads the
+contract pins the tool's name.
 """
 
 from conftest import flat
