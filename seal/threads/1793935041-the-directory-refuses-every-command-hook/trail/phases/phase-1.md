@@ -86,7 +86,11 @@ now copies the script alone, since no sibling module stands before the scan.
 The `--calibrate` baseline sentence of the module's docstring now says the
 core the entry opens reaches no subagent.
 
-**Seen red, and the mutation runs.** The four rewritten S8 cases of
+**Seen red, and the mutation runs.** The plan row asks for a new case that
+the session row counts the core file whole. The S8 group already held the
+hook row's case, so that case was rewritten to the entry row in place of a
+case added beside it, as `agents/crafter.md` *A new test starts from its
+group* asks. The four rewritten S8 cases of
 `tests/skills/test_payload_meter.py` and the copy-alone case were run
 against the meter at `0393a057` before it changed: 5 failed, 2 passed.
 The main case, `#test_the_session_table_carries_the_entry_row_at_the_core_files_whole_size`,
