@@ -435,8 +435,9 @@ question is not its difficulty, it is when it arrives.
   leg alone. A path held as one string with `/` is joined as
   `*NAME.split("/")`. The `slash_in_join` census in `tests/censuses.py`
   enforces it over every tracked `.py`. It reads a string, an f-string or a
-  constant the file itself assigns, so a constant imported from another
-  module is outside its reach, and its writer splits it there.
+  constant the file itself assigns a string. A constant imported from
+  another module, or one built from other constants, is outside its reach,
+  and its writer splits it there.
 - **Functional files are English-only.** Skills, agents, hooks, and commands
   load into model context, where a translated mirror would drift. Korean
   belongs in human-facing docs (`README.ko.md`). The `writing-style` skill

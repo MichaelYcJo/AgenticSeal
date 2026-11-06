@@ -1110,6 +1110,12 @@ NO_SLASH_JOINED = {
     "a-constant-a-parameter-rebinds": (
         'import os\nGATE = "a/b"\n\n\ndef f(GATE):\n    return os.path.join(r, GATE)\n'
     ),
+    "a-constant-an-import-rebinds": (
+        'import os\nfrom m import GATE\nGATE = "a/b"\nos.path.join(r, GATE)\n'
+    ),
+    "a-constant-a-definition-rebinds": (
+        'import os\nGATE = "a/b"\n\n\ndef GATE():\n    pass\n\n\nos.path.join(r, GATE)\n'
+    ),
     "a-constant-without-a-slash": 'import os\nGATE = "gate.md"\nos.path.join(r, GATE)\n',
     "an-f-string-without-a-slash": 'import os\nos.path.join(r, f"{a}.md")\n',
     "a-call-that-is-no-join": 'import os\nos.path.relpath(r, "a/b")\nf(r, "a/b")\n',
@@ -1136,6 +1142,19 @@ class Test_slash_in_join:
         assert censuses.slash_in_join("evals/x.py", root) == [
             "evals/x.py:7: slash_in_join: "
             + slashed('`GATE` (`"trail/gate.md"`)', 'pass `*GATE.split("/")`')
+        ]
+
+    @pytest.mark.parametrize(
+        "assignment",
+        ['GATE = OTHER = "a/b"', 'GATE: str = "a/b"'],
+        ids=["chained", "annotated"],
+    )
+    def test_refuses_a_constant_each_assignment_form_binds(self, tmp_path, assignment):
+        source = f"import os\n{assignment}\nos.path.join(r, GATE)\n"
+        root = plant(tmp_path, "tests/x.py", source)
+        assert censuses.slash_in_join("tests/x.py", root) == [
+            "tests/x.py:3: slash_in_join: "
+            + slashed('`GATE` (`"a/b"`)', 'pass `*GATE.split("/")`')
         ]
 
     def test_refuses_an_f_string_whose_literal_part_holds_a_slash(self, tmp_path):

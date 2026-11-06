@@ -1326,12 +1326,14 @@ def vacated_paths(rel, root=None):
 # `posixpath.join` and `ntpath.join`, whose separator is fixed, pass. An
 # argument is flagged where it is a string holding `/`, an f-string whose
 # literal part holds `/`, or a name the file binds once, by a module-level
-# assignment of a string holding `/`.
+# assignment of a string holding `/`: plain, chained or annotated.
 #
 # What the walk cannot see, and passes: a constant imported from another
 # module (a census judges one file), a name the file binds more than once or
-# inside a function, a `/` added by concatenation or by any expression that is
-# not one of the three, and a `/` built into a path outside `os.path.join`.
+# inside a function, a name bound by a tuple target or by `:=`, a constant
+# whose value is an f-string or another name, a `/` added by concatenation or
+# by any expression that is not one of the three, and a `/` built into a path
+# outside `os.path.join`.
 
 
 def _bound_names(tree):
@@ -1350,23 +1352,25 @@ def _bound_names(tree):
 
 def _constants(tree):
     """`{name: text}` for each name TREE binds once, by a module-level
-    assignment of a string, `NAME = "<text>"`."""
+    assignment of a string, `NAME = "<text>"`, `NAME = OTHER = "<text>"` or
+    `NAME: str = "<text>"`."""
     counts = collections.Counter(_bound_names(tree))
     found = {}
     for node in tree.body:
-        if isinstance(node, ast.Assign) and len(node.targets) == 1:
-            target, value = node.targets[0], node.value
+        if isinstance(node, ast.Assign):
+            targets, value = node.targets, node.value
         elif isinstance(node, ast.AnnAssign):
-            target, value = node.target, node.value
+            targets, value = [node.target], node.value
         else:
             continue
-        if (
-            isinstance(target, ast.Name)
-            and isinstance(value, ast.Constant)
-            and isinstance(value.value, str)
-            and counts[target.id] == 1
-        ):
-            found[target.id] = value.value
+        for target in targets:
+            if (
+                isinstance(target, ast.Name)
+                and isinstance(value, ast.Constant)
+                and isinstance(value.value, str)
+                and counts[target.id] == 1
+            ):
+                found[target.id] = value.value
     return found
 
 
