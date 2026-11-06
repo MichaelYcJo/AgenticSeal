@@ -331,8 +331,8 @@ def common_dir(top):
 def opted_in(top, common):
     """Whether the repository at `top` runs the workflow, asked of
     `optin.py` -- and True where `optin.py` cannot answer. A broken
-    `optin.py` silences thirteen of the fifteen gates, so "cannot tell" is
-    the one state that must not also silence the report of it."""
+    `optin.py` silences every gate that asks it, so "cannot tell" is the one
+    state that must not also silence the report of it."""
     try:
         spec = importlib.util.spec_from_file_location(
             "agentic_optin_for_the_failure_report",
