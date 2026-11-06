@@ -25,11 +25,8 @@ its first step and never this one, because asking a person and writing
    before the first edit (*Orchestrator: how the work is routed* below).
    The orchestrator makes the branch with `git switch`, and a worktree only
    where another session works in the same clone at the same time.
-   Before the first edit the orchestrator runs `seal core` once. Where it
-   reports no core entry, the orchestrator opens the file the output names
-   once, which is then the session's one read of the core, and continues.
-   Any other failure the orchestrator says in its next reply, and the work
-   goes on.
+   Before the first edit the orchestrator has read the core once, which
+   `/agentic:start` does at its first step (`skills/start/SKILL.md`).
 2. The framer writes `frame/design.md`, `plan.md` and `questions.md`. The orchestrator
    reads the frame against the issue, settles what it finds with the framer
    and spawns the crafter (*The frame is read against the issue at the

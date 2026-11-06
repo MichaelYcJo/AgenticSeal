@@ -98,11 +98,15 @@ claude plugin update agentic@agenticseal
 
 ## 첫 작업 항목
 
-저장소에서 Claude Code 를 열고, 이슈 하나를 구현해 달라고 평소 말로
-부탁합니다. 그러면 그 세션이 orchestrator, 곧 실행 전체를 이끄는 쪽이 됩니다.
-orchestrator 는 사람이 정해야 할 것을 묻고, 에이전트를 하나씩 띄우고, 실행의
-기록을 관리합니다. 그 기록을 모은 것이 작업 항목이고, 작업 하나마다
-`seal/threads/` 아래에 디렉터리가 하나 생깁니다.
+저장소에서 Claude Code 를 열고 `/agentic:start` 뒤에 이슈나 요청을 평소 말로
+적습니다. 그러면 그 세션이 orchestrator, 곧 실행 전체를 이끄는 쪽이 됩니다.
+orchestrator 는 코어를 읽고, 사람이 정해야 할 것을 묻고, 에이전트를 하나씩
+띄우고, 실행의 기록을 관리합니다. 그 기록을 모은 것이 작업 항목이고, 작업
+하나마다 `seal/threads/` 아래에 디렉터리가 하나 생깁니다. 이 명령을 치고 첫
+질문에 답하는 것이, 실행이 띄우는 에이전트와 그 에이전트가 쓰는 토큰에 대한
+사용자의 동의입니다. 워크플로는 `/agentic:start` 에서 시작하고, 이 명령을 한
+번도 치지 않은 세션은 코어를 읽지 않고 아무것도 선언하지 않으며 워크플로 밖에
+있습니다.
 
 세션이 어떤 저장소에서 처음 일할 때는 기록을 어디에 둘지 먼저 묻습니다(아래
 *shared 인가 local 인가*). 그다음 라우팅 질문을 합니다. 답은 셋입니다.
@@ -201,7 +205,8 @@ seal import <그 zip>     # 사본을 받아 들이고, 아무것도 덮어쓰�
 
 ## 동작 방식
 
-모든 세션과 모든 에이전트는 코어 `skills/core/SKILL.md` 를 가지고 시작합니다.
+모든 에이전트와, `/agentic:start` 로 시작한 모든 세션은 코어
+`skills/core/SKILL.md` 를 가지고 시작합니다.
 코어는 모든 참여자가 판단의 기준으로 삼는 가치를 담은 파일입니다. 나머지는
 필요한 단계에서 스킬로 불러오거나, 모델의 컨텍스트 밖에서 훅으로 돕니다.
 [컨텍스트 파일에 관한 연구](https://arxiv.org/abs/2602.11988)에 따르면 컨텍스트 파일은
@@ -218,7 +223,7 @@ seal import <그 zip>     # 사본을 받아 들이고, 아무것도 덮어쓰�
 | **sealer** (서브에이전트, Opus) | `core`, `agent-contract` | broad gate 뒤에 모든 참여자의 기록을 이슈와 트리에 견주어 읽고, 판정인 `guarantee.md` 를 쓴다 ([`agents/sealer.md`](agents/sealer.md)) |
 | 스킬 | — | 에이전트가 첫 호출부터 갖는 스킬은 왼쪽 열에 있다. `code-review`, `commit-pr-convention`, `confidence-check`, `feature-planner`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style` 은 작업이 요구할 때 세션이 알아서 로드하고, 에이전트는 각 스킬을 그것을 가리키는 단계에서 연다. 나머지는 사용자가 이름을 불러 실행하며, 아래 *명령* 에 있다 |
 | 훅 | — | 플러그인이 대신 등록해 주는 스크립트이며, 아래 *내 컴퓨터에서 도는 것* 에 있다 |
-| 코어 | — | `skills/core/SKILL.md` 다. 모든 에이전트가 미리 받고, `core-start` 훅이 모든 세션에 출력해 넣으므로 사용자의 `CLAUDE.md` 에는 아무것도 쓰지 않는다. 응답 언어는 정하지 않는다. 세션이 어느 코어를 갖고 있는지는 `! seal core` 로 본다 |
+| 코어 | — | `skills/core/SKILL.md` 다. 모든 에이전트가 미리 받고, `/agentic:start` 가 그 명령을 친 세션에서 연다. 그래서 사용자의 `CLAUDE.md` 에는 아무것도 쓰지 않는다. 응답 언어는 정하지 않는다 |
 
 ### 리뷰 체인
 
@@ -284,7 +289,6 @@ lint-python 은 프로젝트가 ruff 를 설정한 곳에서만 돕니다. 플�
 | 게이트 | 언제 | 무엇을 | 어디서 |
 |---|---|---|---|
 | routing-edit-gate | `Write`, `Edit`, `NotebookEdit` 호출 직전 | 편집하는 파일의 브랜치를 가리키는 `routing.md` 가 없고 이 세션이 그곳에서 `seal no-work-item` 을 돌리지 않았으면 편집을 거부하고, 갈 수 있는 두 길을 알린다. 선언을 쓰거나 그 명령을 돌리는 것이다. `seal/` 아래 파일과 git 이 무시하는 파일은 통과하므로 선언은 언제나 쓸 수 있다. 셸로 한 편집은 이 훅에 닿지 않는다 ([`docs/checks/the-routing-check.md`](docs/checks/the-routing-check.md)) | 루트에 `seal/` 이 있는 저장소, 또는 local 모드로 공통 git 디렉터리 아래에 `seal/` 이 있는 저장소. 그 밖에서는 아무것도 하지 않는다 |
-| core-start | 세션 시작, `/clear` 뒤, 압축 뒤. 재개 때는 돌지 않는다 | 코어를 세션에 출력한다. 첫 줄에는 출력한 파일, 플러그인의 버전, 그 파일의 SHA-256 을 적는다. 아무것도 쓰지 않는다 | 모든 세션, 어느 디렉터리에서든 |
 | implementer-mark | `subagent_type` 이 `framer` 나 `crafter` 인 Agent 호출 직전 | 브랜치 이름을 `.git/agentic-planner` 나 `.git/agentic-implementer` 에 적는다. 아래 알림이 읽는 흔적이다. 아무것도 출력하지 않는다 | 루트에 `seal/` 이 있는 저장소, 또는 local 모드로 공통 git 디렉터리 아래에 `seal/` 이 있는 저장소. 그 밖에서는 아무것도 하지 않고 아무것도 쓰지 않는다 |
 | implementer-notice | `git commit` 을 실행한 명령 직후 | 브랜치의 `routing.md` 가 framer 나 crafter 를 선언했는데 띄웠다는 흔적이 없으면 세션에 한 줄로 알린다. 세션과 저장소마다 한 번이고, 막지 않는다 ([`docs/checks/the-session-hooks.md`](docs/checks/the-session-hooks.md) *The implementer mark and notice*) | 루트에 `seal/` 이 있는 저장소, 또는 local 모드로 공통 git 디렉터리 아래에 `seal/` 이 있는 저장소. 그 밖에서는 아무것도 하지 않는다 |
 | review-skill-gate | 모델이 `code-review` 라는 이름의 스킬을 열기 직전 | 어느 것을 뜻하는지 사용자에게 묻는다. 그 이름은 Claude Code 에 내장된 리뷰의 이름이기도 하다. 내장 리뷰는 diff 에서 버그를 훑고, `agentic:code-review` 는 준수를 먼저 판정하고 앞 회차를 읽는다. 세션과 작업 트리마다 한 번 묻는다 | 루트에 `seal/` 이 있는 저장소, 또는 local 모드로 공통 git 디렉터리 아래에 `seal/` 이 있는 저장소. 그 밖에서는 아무것도 하지 않는다 |
@@ -354,9 +358,9 @@ GitHub 은 어딘가의 기계가 AgenticSeal 을 쓴다는 것을 알게 됩니
 | `seal fold [--ceiling <n>]` | 정책서마다 한 번에 읽히는 크기인지와 색인이 그 문서를 가리키는지를 `templates/setup/config.md` *The fold's values* 에 견주어 확인한다 |
 | `seal rules <doc>` · `seal rules --check` | 문서의 절마다 `check:` 줄이 가리키는 테스트를 찍거나, 대상이 사라진 줄을 하나씩 짚고 0 이 아닌 값으로 끝난다 (`skills/settle/rule-changes.md` *A rule has one shape*) |
 | `seal pact [ROOT]` | pact, 곧 여러 저장소가 함께 지키는 계약을 가진 저장소에서, 그 pact 에 서명한 저장소가 모두 아직 그것과 맞는지 확인한다 (`docs/layout/the-pact.md`) |
-| `seal core [--transcript <경로>]` | 이 세션의 컨텍스트에 코어가 한 번, 온전히 들어 있는지 알려 준다 (`docs/checks/the-session-hooks.md`) |
 | `seal payload` | 세션과 에이전트마다 시작 컨텍스트가 무엇으로 이루어졌는지를 바이트와 토큰으로 잰다 (`skills/verify/scripts/payload_meter.py`) |
 | `seal no-work-item` | 체크아웃된 브랜치에서 이 세션이 하는 변경은 어느 작업 항목에도 속하지 않는다고 적어, 편집 훅이 그곳에서 통과시키게 한다 (`skills/commit-pr-convention/SKILL.md`) |
+| `/agentic:start <이슈나 요청>` | 작업 하나를 워크플로로 시작한다. 코어를 열고, 라우팅 질문을 한 번 묻고, 첫 편집 전에 작업 항목의 선언을 쓴다 (`skills/start/SKILL.md`) |
 | `/agentic:parity-setup` | 이 저장소가 다른 코드베이스를 옮겨 온다고 선언한다 (`skills/parity-setup/SKILL.md`) |
 | `/agentic:config` | 이 저장소가 스스로 정한 것, 곧 두 언어와 기록이 사는 자리를 보여 주고 바꾼다 (`skills/config/SKILL.md`) |
 | `/agentic:update` | 최신 릴리스를 받고 무엇이 들어 있는지 알려 준다 (`skills/update/SKILL.md`) |

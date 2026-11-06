@@ -13,10 +13,9 @@ written on every spawn. This reads the tree and says what that prefix is.
 
 A session pays for a prefix of its own, which `session_composition` lists in
 a table before the agents': the same `CLAUDE.md` pair with its imports, and
-the core the plugin's `SessionStart` hook prints, counted as
-`hooks/lib/core.py#output` for a session in the measured tree (#1177). The
-hook's output reaches the session and no subagent (#1177's probe of a plugin
-`SessionStart` hook), so no agent's table carries it. No transcript
+the core `/agentic:start` opens, counted as the measured tree's
+`skills/core/SKILL.md` whole (#1376). The file the entry opens reaches the
+session and no subagent, so no agent's table carries it. No transcript
 calibrates a session's prefix, so the session's tokens are estimated at
 `ASSUMED_RATIO` and labelled so.
 
@@ -49,9 +48,9 @@ default, no plugin skill) is subtracted, because the harness's own system
 prompt, tool schemas and the `CLAUDE.md` pair are in every prefix; what is
 left is the agent's own files, and dividing their bytes by it is the ratio.
 A transcript that never spawned the baseline agent is refused rather than
-subtracted from by zero. The baseline stays `general-purpose` with the core
-hook in place: the hook's output reaches no subagent, so it is in neither
-the baseline's prefix nor an agent's, and the subtraction still leaves each
+subtracted from by zero. The baseline stays `general-purpose`: the core the
+entry opens reaches the session and no subagent, so it is in neither the
+baseline's prefix nor an agent's, and the subtraction still leaves each
 agent's own files.
 
 Exit codes: 0 measured · 1 the input could not be measured -- a transcript
@@ -59,9 +58,8 @@ the calibration refuses, or no `agents/*.md` under the root · 2 nothing ran:
 `--calibrate` was given and `session_cost.py`, the sibling it loads, is not
 beside this script, `unverified_check.py`, which says where a fence, a
 comment or a code span stands, is not beside it where `--sections` was
-given or a `CLAUDE.md` the meter reads exists, `hooks/lib/core.py`, which says
-what the core hook prints, is not in the plugin around it, or the arguments
-were unusable
+given or a `CLAUDE.md` the meter reads exists, or the arguments were
+unusable
 (argparse's usage error). An interpreter below the floor never reaches this
 file through `seal payload`: `hooks/lib/launch.py` refuses `seal` with 2 first.
 
@@ -124,9 +122,11 @@ IMPORT = re.compile(r"(?:^|(?<=\s))@(?![\"'`])((?:[^\s\\]|\\ )+)")
 HOPS = 4
 ARROW = " → "
 
-# The session table's row for what the plugin's `SessionStart` hook prints,
-# and the basis of every session figure: no transcript calibrates a session.
-HOOK_ROW = "SessionStart hook: skills/core/SKILL.md"
+# The session table's row for the core `/agentic:start` opens, the file it
+# counts, and the basis of every session figure: no transcript calibrates a
+# session.
+ENTRY_ROW = "/agentic:start: skills/core/SKILL.md"
+CORE = os.path.join("skills", "core", "SKILL.md")
 SESSION_BASIS = (
     f"estimated ({ASSUMED_RATIO} B/token, from assumed — no transcript "
     "calibrates a session)"
@@ -188,33 +188,6 @@ def _fence_rule():
         spec.loader.exec_module(module)
         _reader = module
     return _reader
-
-
-_core_module = None
-
-
-def _core():
-    """`hooks/lib/core.py` of the plugin around this script, the one
-    definition of what the core hook prints, loaded once. A copy of this
-    script taken without the plugin has none, which is `_session_cost`'s
-    shape: a sentence to stderr, then exit 2."""
-    global _core_module
-    if _core_module is None:
-        path = os.path.join(plugin_root(), "hooks", "lib", "core.py")
-        if not os.path.isfile(path):
-            sys.stderr.write(
-                f"seal payload: cannot read {path}, and it is what says what "
-                "the core hook prints into a session, whose bytes the session "
-                "table counts. This command ships beside it in the plugin; a "
-                "copy of one script taken on its own is not a plugin. Nothing "
-                "was measured.\n"
-            )
-            raise SystemExit(2)
-        spec = importlib.util.spec_from_file_location("agentic_payload_core", path)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        _core_module = module
-    return _core_module
 
 
 class CalibrationError(Exception):
@@ -451,8 +424,8 @@ def imports_of(path, home, depth=HOPS, seen=None):
 def composition(root, home, name, definition, sections):
     """The rows of one agent's payload, in the order the harness lays them
     out: the definition, each skill, then the harness's `CLAUDE.md` pair with
-    its imports (`pair_rows`). No row is the core hook's: its output reaches
-    no subagent."""
+    its imports (`pair_rows`). No row is the entry's: the core it opens
+    reaches no subagent."""
     _name, skills = frontmatter(read(os.path.join(root, definition))[1])
     rows = [file_row(root, definition, definition, "agent", sections)]
     for skill in skills:
@@ -505,21 +478,14 @@ def pair_rows(root, home, sections):
 
 def session_composition(root, home, sections=False):
     """The rows of a session's prefix in the tree at ROOT: the `CLAUDE.md`
-    pair with its imports (`pair_rows`), then `HOOK_ROW`, share `hook`, whose
-    bytes and characters are `hooks/lib/core.py#output` for a session in
-    ROOT, header included. Where ROOT holds no core to print, as a release
-    before the hook does, the row is 0 bytes marked `missing`: the hook's
-    one-line refusal is printed only by a tree that has the hook. Every token
-    figure is estimated at `ASSUMED_RATIO` and labelled `SESSION_BASIS`."""
-    core = _core()
+    pair with its imports (`pair_rows`), then `ENTRY_ROW`, share `entry`,
+    whose bytes and characters are ROOT's `skills/core/SKILL.md` whole, its
+    frontmatter included, since `/agentic:start` opens the file. Where ROOT
+    holds no core, as a release before 0.25.0 does, the row is 0 bytes marked
+    `missing`. Every token figure is estimated at `ASSUMED_RATIO` and
+    labelled `SESSION_BASIS`."""
     rows = pair_rows(root, home, sections)
-    hook = {"path": HOOK_ROW, "share": "hook"}
-    if os.path.isfile(core.origin(root, root)):
-        printed = core.output(root, root)
-        hook.update({"bytes": len(printed.encode("utf-8")), "chars": len(printed)})
-    else:
-        hook.update({"bytes": 0, "chars": 0, "missing": True})
-    rows.append(hook)
+    rows.append(file_row(root, CORE, ENTRY_ROW, "entry", sections))
     for row in rows:
         row["tokens"] = round(row["bytes"] / ASSUMED_RATIO)
         row["basis"] = SESSION_BASIS
@@ -1086,14 +1052,14 @@ def render(data):
 
 def _session_lines(session):
     """The session's table: one line per file of the pair, each import under
-    its importer, then the core hook's row and the total."""
+    its importer, then the entry's row and the total."""
     lines = [
         "## session",
         "",
         "What a session started in this tree reads before its first prompt: "
         "the `CLAUDE.md` pair with the files its `@` lines import, and the core "
-        "the plugin's `SessionStart` hook prints. No subagent receives the "
-        "hook's output, so no agent's table below carries it.",
+        "`/agentic:start` opens. No subagent receives the core the entry "
+        "opens, so no agent's table below carries it.",
         "",
         "| File | Bytes | Chars | Tokens | Basis |",
         "|---|---|---|---|---|",
@@ -1104,8 +1070,8 @@ def _session_lines(session):
             name = f"&nbsp;&nbsp;{name}"
         if row.get("missing"):
             why = (
-                " — no `skills/core/SKILL.md` in this tree, so no hook prints one"
-                if row["share"] == "hook"
+                " — no `skills/core/SKILL.md` in this tree, so the entry opens none"
+                if row["share"] == "entry"
                 else ""
             )
             lines.append(f"| {name} | 0 | 0 | 0 | missing{why} |")
@@ -1113,8 +1079,8 @@ def _session_lines(session):
         note = ""
         if "via" in row:
             note = f" — imported by `{row['via']}`"
-        elif row["share"] == "hook":
-            note = " — its first line and the core below its frontmatter"
+        elif row["share"] == "entry":
+            note = " — the file whole, as `/agentic:start` opens it"
         lines.append(
             f"| {name} | {_n(row['bytes'])} | {_n(row['chars'])} | "
             f"{_n(row['tokens'])} | {row['basis']}{note} |"

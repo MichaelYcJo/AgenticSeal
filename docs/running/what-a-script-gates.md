@@ -70,7 +70,7 @@ left to a party on the same text.
 | `seal deferrals` | a session, before it writes an `unverified` row | the command lines of workflows and hooks that run a kind of check | names each workflow holding a runner for the reader to open; reads no trigger | whether the workflow runs on pull requests: the agent that opens it |
 | `seal pr-body --check` | the sealer | the body file against the records | withholds | none |
 | the cases under `tests/text/` and `tests/behaviour/` that read prose | the suite | a sentence, a citation, a heading | a case pins a fact a reader acts on; one that pins wording goes | the proofer reads prose for meaning |
-| `seal fold`, `seal core` | the owner at the settle; the orchestrator | document sizes and the index; the transcript's first core line | reports; `seal fold` refuses a document the index does not name | none |
+| `seal fold` | the owner at the settle | document sizes and the index | reports; refuses a document the index does not name | none |
 | `seal mutate` | the crafter at each unit that adds behaviour; a round or the sealer re-running a claim | the tests command's exit code, against the file as it is and against each mutant; for a `.py` target, `compile`'s result over the bytes each mutant would put on disk, before anything is written or run | refuses a `.py` mutant that does not compile; names a `.py` file that does not compile as it is under the running interpreter as not compiled, and decides its mutants by the exit code alone; compiles no other kind of file | whether a red's failure is the unit's, an import error's or a collection error's: the crafter reading the run, and the proofer and the sealer re-running it |
 
 **How this table is kept true.** No case holds it against the tree. Each

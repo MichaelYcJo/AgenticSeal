@@ -133,8 +133,8 @@ surprised later:
 
 **4. Take out the preset block.** Earlier releases wrote a preset block
 into the user's `CLAUDE.md`, between `<!-- agentic:start -->` and
-`<!-- agentic:end -->`. The core now reaches every session from the
-plugin's own `SessionStart` hook, and the rules an older block stated stand
+`<!-- agentic:end -->`. The core now reaches a session when
+`/agentic:start` opens it, and the rules an older block stated stand
 in the skills and definitions the plugin installs, so the block carries
 nothing a session needs. `claude plugin update` never opens `CLAUDE.md`, so
 without this step the block stays. Everything between the markers was

@@ -486,4 +486,5 @@ a false positive would cost. The plugin's value is that its always-on surface
 stays small: a new always-loaded rule has to earn its place against
 [the context-file study](https://arxiv.org/abs/2602.11988) the README cites.
 Skills that load on demand are a much easier case to make than anything
-added to the core, which every session loads.
+added to the core, which every agent and every session `/agentic:start`
+starts loads.

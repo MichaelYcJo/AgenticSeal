@@ -4,8 +4,7 @@ description: |
   The values every AgenticSeal party judges by, and the rule a mechanism is
   kept against. Not a command to run: every agent receives it at startup
   through the `skills:` list in its definition, before `agent-contract`, and
-  a session receives it from the plugin's `SessionStart` hook, which prints
-  it under a first line naming the file it printed.
+  a session receives it when `/agentic:start` opens it at its first step.
   Use when: two designs break no rule either way and one has to be chosen,
   or a mechanism's keep is in question.
   NOT for: a rule true of every agent (`agent-contract`), one agent's own

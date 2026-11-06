@@ -96,10 +96,14 @@ holds, which the next update removes (`skills/update/SKILL.md`).
 
 ## Your first work item
 
-Open Claude Code in your repository and ask it to implement an issue, in your
-own words. The session becomes the orchestrator: it asks what needs a person,
-spawns each agent, and keeps the run's records. Those records make up the
-work item, one directory under `seal/threads/` for each piece of work.
+Open Claude Code in your repository and type `/agentic:start` followed by an
+issue or a request in your own words. The session becomes the orchestrator:
+it reads the core, asks what needs a person, spawns each agent, and keeps the
+run's records. Those records make up the work item, one directory under
+`seal/threads/` for each piece of work. Typing the command and answering its
+first question is your consent to the agents the run spawns and the tokens
+they spend. The workflow starts at `/agentic:start`, and a session that never
+types it reads no core, declares nothing and is outside the workflow.
 
 The first time a session works in a repository, it asks where the records
 should live (*Shared or local*, below). Then it asks the routing question,
@@ -196,9 +200,10 @@ copy is not a sync.
 
 ## How it works
 
-Every session and every agent starts with the core, `skills/core/SKILL.md`,
-the values every party judges by. The rest loads at the step that needs it,
-as a skill, or runs outside the model's context, as a hook.
+Every agent, and every session started with `/agentic:start`, starts with
+the core, `skills/core/SKILL.md`, the values every party judges by. The rest
+loads at the step that needs it, as a skill, or runs outside the model's
+context, as a hook.
 [A study of context files](https://arxiv.org/abs/2602.11988) found that they
 generally do not improve task success, and that they add over 20% to the
 cost of inference.
@@ -214,7 +219,7 @@ cost of inference.
 | **sealer** (subagent, Opus) | `core`, `agent-contract` | Reads every party's account against the issue and the tree after the broad gate, and writes the verdict, `guarantee.md` ([`agents/sealer.md`](agents/sealer.md)) |
 | Skills | — | The skills an agent holds from its first call are in the column to the left. These a session loads on its own when the work calls for them, and an agent opens each at the step that names it: `code-review`, `commit-pr-convention`, `confidence-check`, `feature-planner`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style`. The rest you invoke by name, under *Commands* |
 | Hooks | — | The scripts the plugin registers for you, under *What runs on your machine* |
-| Core | — | `skills/core/SKILL.md`. Every agent preloads it, and the `core-start` hook prints it into every session, so nothing is written into your `CLAUDE.md`. It sets no response language. `! seal core` shows which core a session holds |
+| Core | — | `skills/core/SKILL.md`. Every agent preloads it, and `/agentic:start` opens it in the session that types it, so nothing is written into your `CLAUDE.md`. It sets no response language |
 
 ### The review chain
 
@@ -281,7 +286,6 @@ Read the Where column before you install the plugin globally.
 | Gate | Fires | Does | Where |
 |---|---|---|---|
 | routing-edit-gate | before a `Write`, `Edit` or `NotebookEdit` call | refuses the edit when no `routing.md` declares the edited file's branch, unless this session ran `seal no-work-item` there, and names the two ways forward: write the declaration, or run that command. Files under `seal/` and files git ignores pass, so the declaration is always writable. An edit through the shell never reaches it ([`docs/checks/the-routing-check.md`](docs/checks/the-routing-check.md)) | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
-| core-start | at session start, after `/clear` and after a compaction, never on resume | prints the core into the session, under a first line naming the printed file, the plugin's version and the file's SHA-256. It writes nothing | every session, in any directory |
 | implementer-mark | before an Agent call whose `subagent_type` is `framer` or `crafter` | writes the branch name to `.git/agentic-planner` or `.git/agentic-implementer`, the trace the notice below reads. It prints nothing | `seal/` at the root, or under the common git dir in local mode — silent elsewhere, and writes nothing |
 | implementer-notice | after a command that runs `git commit` | reminds the session, in a single line, when the branch's `routing.md` declares the framer or the crafter and the mark says none was spawned. Once per session per repository, and it never blocks ([`docs/checks/the-session-hooks.md`](docs/checks/the-session-hooks.md) *The implementer mark and notice*) | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
 | review-skill-gate | before the model opens a skill named `code-review` | asks you which one you mean: that name is also Claude Code's built-in review, which sweeps a diff for bugs, where `agentic:code-review` judges compliance first and reads earlier rounds. Once per session per working tree | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
@@ -351,9 +355,9 @@ after `!` in a session, or ask the session to run it.
 | `seal fold [--ceiling <n>]` | checks that each policy document is short enough to read whole and that its index names it, against `templates/setup/config.md` *The fold's values* |
 | `seal rules <doc>` · `seal rules --check` | prints a document's sections with the tests their `check:` lines name, or exits non-zero naming each line whose target is gone (`skills/settle/rule-changes.md` *A rule has one shape*) |
 | `seal pact [ROOT]` | checks, in the repository that holds a pact, that every repository signed to it still agrees with it (`docs/layout/the-pact.md`) |
-| `seal core [--transcript <path>]` | says whether this session's context holds the core once and whole (`docs/checks/the-session-hooks.md`) |
 | `seal payload` | measures what a session's and each agent's startup context is made of, in bytes and tokens (`skills/verify/scripts/payload_meter.py`) |
 | `seal no-work-item` | marks this session's change on the checked-out branch as outside any work item, so the edit hook lets it through there (`skills/commit-pr-convention/SKILL.md`) |
+| `/agentic:start <issue or request>` | starts a piece of work through the workflow: opens the core, asks the routing question once, and writes the work item's declaration before the first edit (`skills/start/SKILL.md`) |
 | `/agentic:parity-setup` | declares that this repository ports from another codebase (`skills/parity-setup/SKILL.md`) |
 | `/agentic:config` | shows what this repository decided for itself, its two languages and where its records live, and changes any of it (`skills/config/SKILL.md`) |
 | `/agentic:update` | takes the newest release and names what is in it (`skills/update/SKILL.md`) |

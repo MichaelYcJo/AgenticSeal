@@ -484,11 +484,6 @@ class Test_refuse_without_hooks:
             ),
             (
                 ["mode", "--check"],
-                "it is what reads the core hook's first line",
-                None,
-            ),
-            (
-                ["mode", "--check"],
                 "it is what builds the `git status` this command reads, the "
                 "same under any git configuration",
                 None,
@@ -500,7 +495,6 @@ class Test_refuse_without_hooks:
             "blocks.py",
             "routing.py",
             "hooksession.py",
-            "core.py",
             "gitcmd.py",
         ],
     )
@@ -3794,7 +3788,6 @@ class Test_main:
             ("layout", "skills/verify/scripts/test_layout.py"),
             ("rules", ".github/scripts/rules.py"),
             ("pr-body", "skills/code-review/scripts/pr_body.py"),
-            ("core", "skills/verify/scripts/core_check.py"),
         ],
     )
     def test_accepts_each_tool_and_hands_its_script_every_argument(

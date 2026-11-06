@@ -174,7 +174,7 @@ check: tests/text/test_a_cited_commit_outlives_the_squash.py
 
 | File | The question it answers |
 |---|---|
-| `CLAUDE.md` | how a session in this repository reaches the core, `skills/core/SKILL.md`, which the plugin's hook prints from the tree here; any rule this repository alone asks of a session, each linking to its home |
+| `CLAUDE.md` | how a session in this repository reaches the core, `skills/core/SKILL.md`, which `/agentic:start` opens from the tree here; any rule this repository alone asks of a session, each linking to its home |
 | `CONTRIBUTING.md` | how a contribution is made and checked, and what a change to a gate must carry |
 | `README.md` and `README.ko.md` | what the plugin is and how to install it |
 
