@@ -450,9 +450,11 @@ to a person, as *A refusal about the `Broad gate` row* below says.
 **Pass the base as a plain branch name, and quote the lines only the gate can
 tell.** The gate resolves the base to the ref CI reads: the base's upstream
 where the checkout declares one, else `origin/<base>`. Quote, as printed,
-where resolving the base moved it, where the run handed itself to the tree's
-copy of the gate, and its `outputs kept under seal-gate-<random>/` line;
-each is a fact a reader learns from nowhere else.
+in your report to the person and not in the pull request body, where
+resolving the base moved it, where the run handed itself to the tree's copy
+of the gate, and its `outputs kept under seal-gate-<random>/` line. Each is
+a fact a reader learns from nowhere else, and the gate prints it after the
+last round, so no record holds it and `pr.md` cannot quote it.
 
 **Commit `guarantee.md`; a verdict other than `sealed` opens no pull
 request.** `withheld` names the claim and the coordinate. Where the repair
