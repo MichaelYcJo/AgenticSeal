@@ -144,6 +144,7 @@ Out of scope, with why:
 | the implementer and opt-in test helpers | `tests/conftest.py#branch_of`, `git_dir`, `opt_in`, `ITEM`, `run_dispatch`, `declare`, `declare_crafter`, `spawn`, `bash` | the cases that used them went with the implementer hooks |
 | the implementer and planner names beside the root | `tests/skills/test_seal.py#BESIDE_THE_ROOT` entries `agentic-implementer` and `agentic-planner` | no hook writes those files now |
 | the helpers and cases that stood on the removed hooks alone | `tests/conftest.py#run_hook`, `decision_of`, `run`, `q`, `sh`, `payload` and the stamp record helpers; `Test_q`; the `hooks.json` and gate-table cases; `tests/hooks/test_console.py#Test_module`; the gates-table case in `tests/behaviour/test_first_setup_asks_once.py` | no hook runs, so nothing they drove stands; `trail/phases/phase-5.md` lists each |
+| the `path#name` citations of the thirteen release-only scripts in shipped files | `templates/setup/config.md:467`, `assets/seals/README.md:184`, `docs/checks/the-pull-request-check.md:60`, `skills/settle/scripts/settle.py:336`, `:434` | the archive no longer holds the scripts, so each names the workflow step that does the work |
 | the directory name | `hooks/lib/`, `tests/hooks/` | `lib/` and `tests/lib/` |
 
 Framed 2026-11-06 by framer, before the build.
