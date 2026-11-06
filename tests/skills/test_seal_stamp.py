@@ -2240,10 +2240,14 @@ class Test_install:
         assert not (tmp_path / "data").exists()
 
     @pytest.mark.parametrize("given", ["", "relative/data"], ids=["empty", "relative"])
-    def test_refuses_a_data_directory_that_is_not_absolute(self, tmp_path, given):
+    def test_refuses_a_data_directory_that_is_not_absolute(
+        self, tmp_path, given, monkeypatch
+    ):
         """An unsubstituted `${CLAUDE_PLUGIN_DATA}` reaches the command as ""
         once the shell expands it, and a relative path would land wherever
-        the shell stood."""
+        the shell stood. The case stands in a scratch directory, so a broken
+        check writes there and not into the tree."""
+        monkeypatch.chdir(tmp_path)
         settings = tmp_path / "settings.json"
         with pytest.raises(ValueError) as refused:
             stamp.install(given, str(settings))
@@ -2369,9 +2373,11 @@ class Test_decline:
         assert (data / stamp.DECLINED).read_text(encoding="utf-8") == ""
         assert stamp.hook_state(str(data)) == "declined"
 
-    def test_refuses_a_data_directory_that_is_not_absolute(self):
+    def test_refuses_a_data_directory_that_is_not_absolute(self, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
         with pytest.raises(ValueError):
             stamp.decline("relative")
+        assert not (tmp_path / "relative").exists()
 
 
 class Test_hook_state:
