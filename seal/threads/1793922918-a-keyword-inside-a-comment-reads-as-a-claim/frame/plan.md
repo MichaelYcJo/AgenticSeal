@@ -24,9 +24,10 @@ Constraints the build keeps:
   (`issue_claims_check.py:151-164`, and the case
   `test_a_fence_does_not_splice_the_line_above_it_onto_the_line_below`).
 - `pr_body.py` reads one copied line at a time over `readable` lines, which
-  keep no comment state (`unverified_check.py#readable`). So it masks only a
-  comment that opens and closes on the line, and that is the safe direction
-  for a reader that refuses.
+  keep no comment state (`unverified_check.py#readable`). So it masks a
+  comment that opens and closes on the line, and the rest of a line that
+  begins with a `<!--` that never closes on it, and that is the safe
+  direction for a reader that refuses.
 - R26 imports from the closer and compiles nothing of its own. Two cases
   hold that: the identity case and `test_the_source_defines_no_keyword_list_of_its_own`.
 
