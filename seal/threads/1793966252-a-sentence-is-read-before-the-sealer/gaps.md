@@ -6,6 +6,8 @@
 |---|---|
 | whether the last phase's crafter of a work item whose `frame/plan.md` *Operational impact* names the version move makes the move in the commit that adds `changelog.md`, now that `agents/crafter.md` *Job* names it; the definition is the one carrier, and no case runs a crafter | phase 3's crafter of this work item, read by the round that reviews phase 3's commit |
 | whether a framer states a count of a list once, beside the list, now that `agents/framer.md` `## Rules` says so; no case can hold it, and review reads it | the owner, at the next settle's count of records-alone findings that are stale counts (`frame/design.md` *User scenarios & acceptance*, the #1401 row) |
+| whether the sealer's eval cases under `evals/behaviour/sealer/` still reach their verdicts now that each case's first part stands in its `pr.md`; phase 2 wrote them again and `tests/behaviour/test_evals_layout.py` and `tests/evals/test_rule_cases.py` read them, and no paid eval ran | the owner, at the milestone's paid run on the merged tree (`frame/questions.md` Q2) |
+| whether an orchestrator writes and commits `pr.md` before the first round, quoting the records and writing no sentence of its own, now that `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals* says so; the skill is the one carrier, and no case runs an orchestrator | the owner, at the milestone's paid run on the merged tree (`frame/design.md` *User scenarios & acceptance*, the #1415 *Done when* row) |
 
 ## Not done
 
@@ -17,3 +19,16 @@ writes*, the paragraph opening **Where an entry accumulates**, has the
 orchestrator read the convention, which the crafter never opens. *Scope*
 item 1 does not ask for that path, and building it would be a feature
 beyond the request.
+
+`docs/forms/the-guarantee.md` *The guarantee* opens with a bold lead saying
+the body opens with the orchestrator's part "in the repository's language".
+Phase 2 built `pr.md`'s quotes in `Record language` and its other lines in
+`Commit and pull request language` (`trail/phases/phase-2.md`), and no
+operation of `frame/design.md` `## Rule changes` changes that lead. The
+spawn edits no `docs/` file, so the operation is the orchestrator's to fold
+into `## Rule changes`.
+
+No template for `pr.md` stands under `templates/records/`. *Scope* item 2
+does not ask for one, and the file table of `skills/implement/SKILL.md`
+*3. The SDD file set* names `skills/code-review/orchestration.md` as the
+place its shape is given.
