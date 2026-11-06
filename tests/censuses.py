@@ -791,8 +791,7 @@ def entry_point(rel, root=None):
     reads none is refused at the `if` line, an answer after another
     statement at that statement, and a loop it does not read as that answer
     at its `for` line. A later `__main__` block runs after the first, so it
-    is not read. Whether the call works is `tests/hooks/test_console.py`'s
-    and, for the dispatcher's own loop, `tests/hooks/test_dispatch.py`'s."""
+    is not read. Whether the call works is `tests/hooks/test_console.py`'s."""
     text = _python(rel, root)
     if text is None:
         return []

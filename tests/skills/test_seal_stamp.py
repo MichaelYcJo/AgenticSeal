@@ -344,7 +344,6 @@ def values(**changed):
         "branch": "feat/x",
         "pr": "#12",
         "item": f"/x/seal/threads/{ITEM_NAME}",
-        "session": "s-1",
         "rows": SMALL_ROWS,
     }
     return {**written, **changed}
@@ -372,8 +371,8 @@ class Raising(Stream):
 class Test_module:
     def test_imports_nothing_outside_the_standard_library(self):
         """The disc and its sprite are stdlib-only (#832 S1): the gate, the
-        hook and the command load this file where nothing beyond the standard
-        library is installed."""
+        launcher and the command load this file where nothing beyond the
+        standard library is installed."""
         tree = ast.parse((ROOT / TARGET).read_text(encoding="utf-8"))
         names = {
             alias.name.split(".")[0]
@@ -387,11 +386,15 @@ class Test_module:
         }
         assert names and names <= set(sys.stdlib_module_names), names
 
-    def test_the_budget_leaves_the_reserve_under_the_measured_limit(self):
-        """The harness persists a message past 10,000 UTF-16 units, and the
-        budget leaves room for the report `dispatch.py` prepends (#717)."""
+    def test_the_message_is_held_under_the_measured_limit_and_nothing_else(self):
+        """The harness persists a message past 10,000 UTF-16 units (#717),
+        and since #1376 nothing shares the message, so the limit is the
+        default `admitted` and `fitted` hold it under."""
         assert stamp.MESSAGE_LIMIT == 10000
-        assert stamp.MESSAGE_BUDGET == stamp.MESSAGE_LIMIT - 1000
+        for function in (stamp.admitted, stamp.fitted):
+            default = function.__defaults__[-1]
+            assert default == stamp.MESSAGE_LIMIT, function.__name__
+        assert not hasattr(stamp, "MESSAGE_BUDGET")
 
     def test_the_sample_carries_every_row_a_sealed_guarantee_draws(self):
         """`seal stamp` with no arguments shows what a stamp draws, so its
@@ -840,14 +843,14 @@ class Test_stamp:
         """#1174 S4: #30 found a code per cell 282 KB for one seal; the wax
         seal's block over the widest reference panel, with its label, is
         5,725 UTF-16 units, measured 2026-10-31 where the relief disc's was
-        5,959, and it fits the hook's budget."""
+        5,959, and it fits the message limit."""
         name = "the-branch-names-the-work-item-it-carries"
         label = (
             f"SEALED feat/12-{name} @ aaa1111a against origin/release/v1.2.3 @ "
             f"bbb2222b · #12 · 1799000000-{name}"
         )
         size = len(drawn(label, REFERENCE_ROWS).encode("utf-16-le")) // 2
-        assert size <= stamp.MESSAGE_BUDGET, size
+        assert size <= stamp.MESSAGE_LIMIT, size
 
     def test_accepts_a_value_as_wide_as_the_panel_at_eighty_columns(self):
         """A value of exactly `PANEL_VALUE_WIDTH` under a seven-column label,
@@ -1018,28 +1021,25 @@ class Test_is_terminal:
 # --- a stamp's values ---------------------------------------------------------------
 
 
-class Test_session_key:
-    def test_accepts_the_ids_last_path_part(self):
-        assert stamp.session_key("s-1") == "s-1"
-        assert stamp.session_key("../../elsewhere") == "elsewhere"
-
-    @pytest.mark.parametrize("session", [None, "", "  ", ".", ".."])
-    def test_refuses_a_name_that_is_no_directory_of_its_own(self, session):
-        assert stamp.session_key(session) == stamp.NO_SESSION
-
-
 class Test_values_dir:
-    def test_accepts_the_sessions_directory_under_the_common_dir(self, tmp_path):
+    def test_accepts_one_directory_for_the_clone_under_its_common_dir(self, tmp_path):
+        """#1376: the queue is keyed by the clone and by nothing else, so the
+        function takes the common dir alone and names no level below it."""
         common = str(tmp_path)
-        assert stamp.values_dir(common, "s-1") == os.path.join(
-            common, "agentic-stamp", "s-1"
-        )
+        assert stamp.values_dir(common) == os.path.join(common, "agentic-stamp")
 
-    def test_refuses_a_session_that_would_leave_the_values_dir(self, tmp_path):
-        common = str(tmp_path)
-        values_dir = os.path.join(common, "agentic-stamp")
-        assert stamp.values_dir(common, "../x") == os.path.join(values_dir, "x")
-        assert stamp.values_dir(common, None) == os.path.join(values_dir, "none")
+    def test_refuses_to_read_a_session_id_from_the_environment(self):
+        """Nothing in the file reads an environment variable, the read the
+        portal's credential hold names: every place it writes is passed in."""
+        tree = ast.parse((ROOT / TARGET).read_text(encoding="utf-8"))
+        reads = [
+            ast.unparse(node)
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Attribute)
+            and node.attr in ("environ", "getenv", "environb")
+        ]
+        assert reads == [], reads
+        assert not hasattr(stamp, "session_key")
 
 
 class Test_drawn_path:
@@ -1058,17 +1058,17 @@ class Test_drawn_path:
 
 class Test_write_values:
     def test_accepts_the_values_under_a_name_that_sorts_oldest_first(self, tmp_path):
-        path = stamp.write_values(str(tmp_path), "s-1", values(), now=7, key="9-abc")
-        assert path == str(tmp_path / "agentic-stamp" / "s-1" / "7-9-abc.json")
+        path = stamp.write_values(str(tmp_path), values(), now=7, key="9-abc")
+        assert path == str(tmp_path / "agentic-stamp" / "7-9-abc.json")
         assert json.loads(pathlib.Path(path).read_text(encoding="utf-8")) == json.loads(
             json.dumps(values())
         )
         assert os.listdir(os.path.dirname(path)) == ["7-9-abc.json"]
 
     def test_refuses_a_name_without_the_tree_where_no_key_is_given(self, tmp_path):
-        path = stamp.write_values(str(tmp_path), "../../x", values(tree="a/b"), now=3)
-        assert path == str(tmp_path / "agentic-stamp" / "x" / "3-b.json")
-        later = os.path.basename(stamp.write_values(str(tmp_path), "x", {}))
+        path = stamp.write_values(str(tmp_path), values(tree="a/b"), now=3)
+        assert path == str(tmp_path / "agentic-stamp" / "3-b.json")
+        later = os.path.basename(stamp.write_values(str(tmp_path), {}))
         moment, _, tail = later.partition("-")
         assert tail == "tree.json" and int(moment) > 10**18, later
 
@@ -1082,7 +1082,7 @@ class Test_read_values:
     ):
         """S13 (#853): a `scale` a gate before #853 wrote decides nothing."""
         written = values(rows=ROWS) | ({} if scale is None else {"scale": scale})
-        path = stamp.write_values(str(tmp_path), "s-1", written)
+        path = stamp.write_values(str(tmp_path), written)
         read = stamp.read_values(path)
         assert read["rows"] == ROWS and read["tree"] == "aaa1111"
 
@@ -1117,9 +1117,9 @@ class Test_pending:
     def test_accepts_the_undrawn_files_oldest_first(self, tmp_path, monkeypatch):
         """Oldest first whatever order the directory lists its names in: the
         listing is handed over newest first."""
-        directory = stamp.values_dir(str(tmp_path), "s-1")
-        newer = stamp.write_values(str(tmp_path), "s-1", values(), now=20)
-        older = stamp.write_values(str(tmp_path), "s-1", values(), now=10)
+        directory = stamp.values_dir(str(tmp_path))
+        newer = stamp.write_values(str(tmp_path), values(), now=20)
+        older = stamp.write_values(str(tmp_path), values(), now=10)
         listed = os.listdir
         monkeypatch.setattr(
             stamp.os, "listdir", lambda d: sorted(listed(d), reverse=True)
@@ -1127,7 +1127,7 @@ class Test_pending:
         assert stamp.pending(directory) == [older, newer]
 
     def test_refuses_a_drawn_file_a_hidden_one_and_a_missing_directory(self, tmp_path):
-        path = stamp.write_values(str(tmp_path), "s-1", values(), now=1)
+        path = stamp.write_values(str(tmp_path), values(), now=1)
         directory = os.path.dirname(path)
         for name in (".2-a.json", ".3-a.tmp", "4-a.txt"):
             write(directory, name, "{}")
@@ -1138,12 +1138,12 @@ class Test_pending:
 
 class Test_claim:
     def test_accepts_a_pending_file_once_renamed_drawn(self, tmp_path):
-        path = stamp.write_values(str(tmp_path), "s-1", values(), now=1)
+        path = stamp.write_values(str(tmp_path), values(), now=1)
         assert stamp.claim(path) == stamp.drawn_path(path)
         assert not os.path.exists(path) and os.path.exists(stamp.drawn_path(path))
 
     def test_refuses_a_second_claim_of_one_file(self, tmp_path):
-        path = stamp.write_values(str(tmp_path), "s-1", values(), now=1)
+        path = stamp.write_values(str(tmp_path), values(), now=1)
         stamp.claim(path)
         assert stamp.claim(path) is None
 
@@ -1177,19 +1177,23 @@ class Test_quote:
 
 
 class Test_already_queued:
-    def test_accepts_a_pending_or_drawn_file_of_the_id_under_any_session(
+    def test_accepts_a_pending_or_drawn_file_of_the_id_in_the_clones_directory(
         self, tmp_path
     ):
-        path = stamp.write_values(str(tmp_path), "s-2", {}, now=1, key="7-abc")
+        path = stamp.write_values(str(tmp_path), {}, now=1, key="7-abc")
         assert stamp.already_queued(str(tmp_path), "7")
         stamp.claim(path)
         assert stamp.already_queued(str(tmp_path), "7")
 
     def test_refuses_another_id_an_older_gates_name_and_no_directory(self, tmp_path):
+        """A file an earlier release left in a per-session directory under the
+        clone's is not read, as `docs/checks/the-stamp.md` *The stamp*
+        states."""
         assert not stamp.already_queued(str(tmp_path), "7")
-        stamp.write_values(str(tmp_path), "s-1", {}, now=1, key="8-abc")
-        stamp.write_values(str(tmp_path), "s-1", {"tree": "7"}, now=2)
+        stamp.write_values(str(tmp_path), {}, now=1, key="8-abc")
+        stamp.write_values(str(tmp_path), {"tree": "7"}, now=2)
         write(tmp_path / "agentic-stamp", "a-file", "")
+        write(tmp_path / "agentic-stamp" / "s-1", "3-7-abc.json", "{}")
         assert not stamp.already_queued(str(tmp_path), "7")
 
 
@@ -1433,19 +1437,21 @@ def item_dir(item):
     return pathlib.Path(item.common) / "seal" / "threads" / ITEM_NAME
 
 
-def queue_local(item, session="s-1", name="guarantee.md"):
-    return stamp.queue_for_written_guarantee(str(item_dir(item) / name), session)
+def queue_local(item, name="guarantee.md"):
+    return stamp.queue_for_written_guarantee(str(item_dir(item) / name))
 
 
-def queue_written(item, session="s-1"):
-    """The writer at the write of the shared root's `guarantee.md`."""
-    return stamp.queue_for_written_guarantee(str(item.repo / GUARANTEE), session)
+def queue_written(item):
+    """The writer over the shared root's `guarantee.md`, as `--guarantee`
+    calls it."""
+    return stamp.queue_for_written_guarantee(str(item.repo / GUARANTEE))
 
 
 def uncommitted(item):
     """The shared repository with its closing records' commit undone and the
     records left on disk, the work item's `routing.md` naming `feat/x` beside
-    them: the moment the sealer's `Write` lands, before anything commits it."""
+    them: the moment the sealer has written the guarantee and runs
+    `seal stamp --guarantee`, before anything commits it."""
     git(item.repo, "reset", "-q", "HEAD~1")
     write(item.repo, f"seal/threads/{ITEM_NAME}/routing.md", routing_text())
     return item
@@ -1519,10 +1525,10 @@ class Test__newest_run:
 class Test_queue_for_written_guarantee:
     @pytest.mark.rule("stamp-drawn-once")
     def test_a_shared_mode_sealed_guarantee_queues_one_stamp_at_its_write(self, shared):
-        """#1027 S13: the sealer's `Write` under the shared root queues the
-        work item's one values file, as local mode's does. A second write of
-        the same verdict queues nothing, before the commit that carries it and
-        after."""
+        """#1027 S13: the sealer's guarantee under the shared root queues the
+        work item's one values file, as local mode's does, in the clone's one
+        values directory (#1376). A second run over the same verdict queues
+        nothing, before the commit that carries it and after."""
         uncommitted(shared)
         said = queue_written(shared)
         (written,) = queued(shared.common)
@@ -1535,9 +1541,10 @@ class Test_queue_for_written_guarantee:
             ("tree", shared.target),
             ("", "feat/x"),
         ]
-        assert queue_written(shared, session="s-2") == []
+        assert os.path.dirname(written) == stamp.values_dir(shared.common)
+        assert queue_written(shared) == []
         commit(shared.repo, "the closing records")
-        assert queue_written(shared, session="s-3") == []
+        assert queue_written(shared) == []
         assert queued(shared.common) == [written]
 
     @pytest.mark.rule("stamp-drawn-once")
@@ -1614,12 +1621,8 @@ class Test_queue_for_written_guarantee:
             ("rounds", "2"),
         ]
         assert read["item"] == os.path.realpath(item_dir(local))
-        assert (read["branch"], read["from"], read["pr"], read["session"]) == (
-            "feat/x",
-            None,
-            None,
-            "s-1",
-        )
+        assert (read["branch"], read["from"], read["pr"]) == ("feat/x", None, None)
+        assert "session" not in read, "the queue names no session since #1376"
 
     @pytest.mark.rule("stamp-drawn-once")
     def test_accepts_a_reseal_after_withheld_with_no_rounds_and_an_unreadable_gate(
@@ -1703,8 +1706,8 @@ class Test_queue_for_written_guarantee:
     def test_a_local_mode_second_sealed_queues_nothing(self, local):
         """1792363231 S3, once per work item, and #1198's scenario *Drawn
         once*: an earlier block reading `sealed` was stamped at it, and a
-        values file for the id, pending or drawn, under any session, is a
-        complete record in local mode."""
+        values file for the id, pending or drawn, in the clone's values
+        directory, is a complete record in local mode."""
         earlier = [("bbb2222", "sealed")]
         write(
             item_dir(local),
@@ -1713,11 +1716,11 @@ class Test_queue_for_written_guarantee:
         )
         assert queue_local(local) == []
         write(item_dir(local), "guarantee.md", guarantee_text(local.target, local.base))
-        assert queue_local(local, session="s-1")
-        assert queue_local(local, session="s-2") == []
+        assert queue_local(local)
+        assert queue_local(local) == []
         (first,) = queued(local.common)
         stamp.claim(first)
-        assert queue_local(local, session="s-3") == []
+        assert queue_local(local) == []
         assert queued(local.common) == [stamp.drawn_path(first)]
 
     @pytest.mark.rule("refused-sealed-leaves-a-record")
@@ -1816,10 +1819,555 @@ class Test_queue_for_written_guarantee:
         elsewhere = pathlib.Path(local.common) / "seal" / "notes" / ITEM_NAME
         shutil.copytree(item_dir(local), elsewhere)
         guarantee = str(elsewhere / "guarantee.md")
-        assert stamp.queue_for_written_guarantee(guarantee, "s-1") == []
+        assert stamp.queue_for_written_guarantee(guarantee) == []
         mark_root(local.repo / "seal")
         assert queue_local(local) == []
         assert queued(local.common) == []
+
+
+# --- the stamp drawn at the end of a turn (`--stop`) --------------------------------
+#
+# The queue is keyed by the clone, so a case names a clone and never a
+# session. One opted-in
+# repository is built for the module, and each case takes a copy, so the
+# values files a case writes under the copy's git directory are its own.
+
+# A panel as long as a real run's (#717), and one in the shape a gate wrote
+# from #666 to #717, which a pending file may still carry.
+FULL_ROWS = [
+    ("SEALED", ""),
+    ("tree", "aaa1111a"),
+    ("", "feat/12-the-branch-names-the-work-item..."),
+    ("base", "bbb2222b  origin/release/v1.2.3"),
+    ("item", "#12 · 1799000000"),
+    ("gate", "tree 1.2.3"),
+    None,
+    ("suite", "✓ 6621 passed · 11 skipped"),
+    ("ledger", "✓ 3451 ok · 0 drifted · 0 broken"),
+    ("chain", "✓ exit 0"),
+    ("CI also", "· 4 more steps"),
+    ("rounds", "2"),
+]
+OLD_ROWS = [
+    ("SEALED", ""),
+    None,
+    ("tree", "aaa1111a"),
+    ("", "feat/12-the-branch-n..."),
+    ("base", "bbb2222b"),
+    ("", "origin/release/v1.2.3"),
+    ("item", "#12 . 1799000000"),
+    None,
+    ("suite", "6621 passed, 11 skipped"),
+    ("chain", "exit 0"),
+    None,
+    ("rounds", "2"),
+]
+# The label `values()` draws under (#666).
+WAITING = stamp.label(values())
+
+
+def full_values(tree="aaa1111a"):
+    """A values file as long as a real run's, label included."""
+    name = "the-branch-names-the-work-item-it-carries"
+    return values(
+        rows=FULL_ROWS,
+        tree=tree,
+        base="bbb2222b",
+        item=f"/x/seal/threads/1799000000-{name}",
+        branch=f"feat/12-{name}",
+        **{"from": "origin/release/v1.2.3"},
+    )
+
+
+@pytest.fixture(scope="module")
+def _opted_in(tmp_path_factory):
+    """A repository with `seal/` at its root and one commit, built once."""
+    repo = tmp_path_factory.mktemp("stop-world") / "repo"
+    repo.mkdir()
+    git(repo, "init", "-q", "-b", "main")
+    write(repo, "seal/config.md", "# config\n")
+    mark_root(repo / "seal")
+    commit(repo, "x")
+    return repo
+
+
+@pytest.fixture
+def opted(tmp_path, _opted_in):
+    """This case's copy of the opted-in repository."""
+    d = tmp_path / "repo"
+    shutil.copytree(_opted_in, d)
+    return d
+
+
+def waiting(repo, now=None, **kw):
+    """One values file under REPO's git directory; its path."""
+    return stamp.write_values(str(repo / ".git"), values(**kw), now=now)
+
+
+def stop_payload(cwd, **extra):
+    """The JSON of a main session's `Stop` in CWD."""
+    return json.dumps(
+        {"hook_event_name": "Stop", "session_id": "s-1", "cwd": str(cwd), **extra}
+    )
+
+
+def message(stdout):
+    """The `systemMessage` `--stop` printed."""
+    return json.loads(stdout)["systemMessage"]
+
+
+class Test_toplevel:
+    def test_accepts_a_subdirectory_as_its_repository(self, opted):
+        (opted / "docs" / "deep").mkdir(parents=True)
+        assert stamp.toplevel(str(opted / "docs" / "deep")) == str(opted)
+        assert stamp.toplevel(str(opted)) == str(opted)
+
+    def test_refuses_a_directory_outside_any_repository(self, tmp_path):
+        outside = tmp_path / "outside"
+        outside.mkdir()
+        assert stamp.toplevel(str(outside)) == ""
+
+
+class Test_drawings:
+    def test_accepts_the_oldest_file_first_and_claims_what_it_draws(self, opted):
+        second = waiting(opted, now=2, item="/x/seal/threads/1799000001-another")
+        first = waiting(opted, now=1)
+        directory = os.path.dirname(first)
+        labels = []
+        while stamp.pending(directory):
+            blocks = stamp.drawings(directory)
+            assert blocks, "a pending file drew nothing"
+            labels += [label for label, _rows in blocks]
+        assert labels == [WAITING, WAITING.replace(ITEM_NAME, "1799000001-another")]
+        assert os.path.exists(stamp.drawn_path(first))
+        assert os.path.exists(stamp.drawn_path(second))
+
+    def test_accepts_a_file_an_older_gate_wrote(self, opted):
+        """A `scale` a gate before #853 wrote is read as nothing, and the rows
+        a gate wrote from #666 to #717 are drawn as they stand (#832)."""
+        old = {**full_values(), "rows": OLD_ROWS, "scale": 0.9}
+        path = stamp.write_values(str(opted / ".git"), old)
+        assert stamp.drawings(os.path.dirname(path)) == [(stamp.label(old), OLD_ROWS)]
+
+    @pytest.mark.parametrize(
+        "bad",
+        ["not json", {"item": 5}, {"rows": [["SEALED"]]}],
+        ids=["not-json", "an-item-that-is-no-string", "a-row-that-does-not-draw"],
+    )
+    def test_refuses_to_claim_a_file_that_is_no_stamps_values(self, opted, bad):
+        """Round 1's yellow 2 of #975: every block is built whole before its
+        file is claimed, so a bad file after a good one is left where it is
+        and takes nothing down."""
+        good = waiting(opted, now=1)
+        directory = os.path.dirname(good)
+        bad_path = os.path.join(directory, "2-bad.json")
+        with open(bad_path, "w", encoding="utf-8") as handle:
+            handle.write(
+                bad if isinstance(bad, str) else json.dumps({**values(), **bad})
+            )
+        assert stamp.drawings(directory) == [(WAITING, SMALL_ROWS)]
+        assert stamp.pending(directory) == [bad_path]
+
+    def test_refuses_to_claim_a_file_that_reads_and_labels_but_does_not_draw(
+        self, opted, monkeypatch
+    ):
+        """Every file the module reads also draws, so the draw before the
+        claim is faked to fail for one file's rows, to remove that guarantee
+        (contract rule 13; #1017, round 3's s4). The file is the older one, so
+        a message carrying one seal would carry it. It is left pending, and
+        the good one after it is drawn."""
+        undrawable = [("tree", "does not draw")]
+        real = stamp.stamp
+
+        def drawing(rows, shape=False, disc=True):
+            if list(rows) == undrawable:
+                raise ValueError("these rows do not draw")
+            return real(rows, shape=shape, disc=disc)
+
+        monkeypatch.setattr(stamp, "stamp", drawing)
+        bad = waiting(opted, now=1, rows=undrawable)
+        good = waiting(opted, now=2)
+        assert stamp.drawings(os.path.dirname(good)) == [(WAITING, SMALL_ROWS)]
+        assert stamp.pending(os.path.dirname(good)) == [bad]
+
+    def test_refuses_to_claim_what_one_message_does_not_carry(self, opted):
+        """The owner's rule of 2026-10-02: a pair that does not fit one message
+        with its discs draws the oldest, and the next stays pending."""
+        rows = list(FULL_ROWS)
+        late = full_values("ccc3333c")
+        while len(drawn(stamp.label(full_values()), FULL_ROWS)) + 2 + len(
+            drawn(stamp.label(late), rows)
+        ) <= (stamp.MESSAGE_LIMIT):
+            rows.append(("", f"home-{len(rows)}"))
+        first = stamp.write_values(str(opted / ".git"), full_values(), now=1)
+        second = stamp.write_values(str(opted / ".git"), {**late, "rows": rows}, now=2)
+        blocks = stamp.drawings(os.path.dirname(first))
+        assert blocks == [(stamp.label(full_values()), FULL_ROWS)]
+        assert stamp.pending(os.path.dirname(first)) == [second]
+
+
+class Test_drawn_at_stop:
+    @pytest.mark.rule("stamp-drawn-once")
+    def test_accepts_the_main_sessions_stop_and_draws_once(self, opted):
+        """S3 and S4 of #400: `fitted`'s message, the label on its first line
+        and the drawing with its disc under it; the file is claimed, and the
+        next `Stop` draws nothing."""
+        path = waiting(opted)
+        text = stamp.drawn_at_stop(stop_payload(opted))
+        assert text == stamp.fitted([(WAITING, SMALL_ROWS)])
+        assert text == drawn(WAITING, SMALL_ROWS), "drawn without its disc"
+        assert "\x1b[38;2;" in text, "the drawing lost colour"
+        assert os.path.exists(stamp.drawn_path(path)) and not os.path.exists(path)
+        assert stamp.drawn_at_stop(stop_payload(opted)) is None
+
+    def test_accepts_a_turn_ending_in_a_subdirectory_or_a_linked_worktree(
+        self, opted, tmp_path
+    ):
+        """The `cwd` is wherever the session last stood, and the file lives
+        under the COMMON dir, so a subdirectory and a linked worktree of the
+        clone both find it."""
+        (opted / "docs" / "deep").mkdir(parents=True)
+        waiting(opted)
+        said = stamp.drawn_at_stop(stop_payload(opted / "docs" / "deep"))
+        assert said.startswith(WAITING)
+        tree = tmp_path / "tree"
+        git(opted, "worktree", "add", "-q", str(tree))
+        waiting(opted, item="/x/seal/threads/1799000001-another")
+        said = stamp.drawn_at_stop(stop_payload(tree))
+        assert said.split("\n", 1)[0].endswith("1799000001-another")
+
+    @pytest.mark.rule("stamp-drawn-once")
+    @pytest.mark.parametrize(
+        "session", ["s-1", "s-2", None], ids=["one", "another", "none"]
+    )
+    def test_accepts_the_stop_of_any_session_in_the_clone(self, opted, session):
+        """#1376: the queue is keyed by the clone, so the stamp waiting there
+        is drawn at the first main session's `Stop` in it, whatever session
+        it names or whether it names one (`docs/checks/the-stamp.md` *The
+        stamp* states the limit)."""
+        waiting(opted)
+        extra = {"session_id": session} if session else {}
+        body = json.loads(stop_payload(opted))
+        body.pop("session_id")
+        said = stamp.drawn_at_stop(json.dumps({**body, **extra}))
+        assert said and said.startswith(WAITING)
+
+    @pytest.mark.parametrize(
+        "payload",
+        [
+            {"agent_id": "a-1", "agent_type": "agentic:sealer"},
+            {"hook_event_name": "SubagentStop", "agent_id": "a-1"},
+            {"hook_event_name": "SubagentStop"},
+        ],
+        ids=["a-subagents-stop", "subagent-stop", "another-event"],
+    )
+    @pytest.mark.rule("stamp-drawn-once")
+    def test_refuses_any_end_but_a_main_sessions_stop(self, opted, payload):
+        """S5 and S6 of #400: a subagent's end carries the parent's session
+        and differs by `agent_id` alone, so it draws nothing; nor does
+        another event. The file stays."""
+        path = waiting(opted)
+        assert stamp.drawn_at_stop(stop_payload(opted, **payload)) is None
+        assert stamp.pending(os.path.dirname(path)) == [path]
+
+    @pytest.mark.rule("stamp-drawn-once")
+    def test_refuses_a_cwd_outside_the_clone_the_stamp_waits_in(
+        self, opted, tmp_path, monkeypatch
+    ):
+        """#1376: the clone is the payload's `cwd`'s, never the process's. A
+        `Stop` in another opted-in clone, or outside any repository, draws
+        nothing while the process stands in the clone a stamp waits in, and
+        the file stays."""
+        path = waiting(opted)
+        other = tmp_path / "other"
+        shutil.copytree(opted, other)
+        for name in os.listdir(stamp.values_dir(str(other / ".git"))):
+            os.remove(os.path.join(stamp.values_dir(str(other / ".git")), name))
+        outside = tmp_path / "outside"
+        outside.mkdir()
+        monkeypatch.chdir(opted)
+        assert stamp.drawn_at_stop(stop_payload(other)) is None
+        assert stamp.drawn_at_stop(stop_payload(outside)) is None
+        assert stamp.pending(os.path.dirname(path)) == [path]
+
+    def test_refuses_a_repository_that_never_opted_in(self, opted):
+        shutil.rmtree(opted / "seal")
+        path = waiting(opted)
+        assert stamp.drawn_at_stop(stop_payload(opted)) is None
+        assert os.path.exists(path), "a file was taken in a repository not opted in"
+
+    def test_refuses_a_cwd_outside_any_repository_before_it_loads(
+        self, tmp_path, monkeypatch
+    ):
+        outside = tmp_path / "outside"
+        outside.mkdir()
+        monkeypatch.setattr(stamp, "_optin", lambda: pytest.fail("loaded"))
+        assert stamp.drawn_at_stop(stop_payload(outside)) is None
+
+    @pytest.mark.parametrize("text", ["not json", "[]"], ids=["not-json", "a-list"])
+    def test_refuses_a_payload_that_is_no_object(self, text):
+        assert stamp.drawn_at_stop(text) is None
+
+    def test_refuses_an_empty_directory_before_it_reads_the_opt_in(
+        self, opted, monkeypatch
+    ):
+        """The hook fires at the end of every turn, so a clone with nothing
+        pending returns before the opt-in is read."""
+        real = stamp._optin()
+
+        class Unread:
+            git_common_dir = staticmethod(real.git_common_dir)
+
+            @staticmethod
+            def opted_in(top):
+                pytest.fail("read")
+
+        monkeypatch.setattr(stamp, "_optin", Unread)
+        assert stamp.drawn_at_stop(stop_payload(opted)) is None
+
+    def test_accepts_one_seal_too_large_for_its_disc_drawn_alone_without_it(
+        self, opted
+    ):
+        """A4's last rung of #717: a stamp that does not fit the limit with
+        its disc by itself is drawn alone, with no disc, and the next waits."""
+        label = stamp.label(full_values())
+        homes = []
+        while len(drawn(label, FULL_ROWS + homes)) <= stamp.MESSAGE_LIMIT:
+            homes.append(("", f"home-{len(homes)}"))
+        big = {**full_values(), "rows": FULL_ROWS + homes}
+        stamp.write_values(str(opted / ".git"), big, now=1)
+        after = stamp.write_values(str(opted / ".git"), full_values("ccc3333c"), now=2)
+        text = stamp.drawn_at_stop(stop_payload(opted))
+        assert text == drawn(label, big["rows"], disc=False)
+        assert os.path.exists(after)
+        later = stamp.drawn_at_stop(stop_payload(opted))
+        assert later == drawn(stamp.label(full_values("ccc3333c")), FULL_ROWS)
+        assert len(later) <= stamp.MESSAGE_LIMIT
+
+
+# --- the person's `Stop` hook ---------------------------------------------------------
+
+
+def settings_of(path):
+    return json.loads(pathlib.Path(path).read_text(encoding="utf-8"))
+
+
+def run_launcher(launcher, text, env=None):
+    """LAUNCHER run as the person's `Stop` entry runs it, TEXT on stdin."""
+    return subprocess.run(
+        [sys.executable, str(launcher)],
+        input=text.encode("utf-8"),
+        capture_output=True,
+        timeout=60,
+        env={**os.environ, **(env or {})},
+    )
+
+
+class Test_hook_command:
+    def test_accepts_python3_first_and_py_3_on_the_same_launcher(self, tmp_path):
+        """`CONTRIBUTING.md` *House rules*: a command the plugin writes into a
+        person's settings names `python3` and `py -3` in that order, and the
+        fallback runs the same file."""
+        launcher = os.path.join(str(tmp_path), "stamp.py")
+        first, second = stamp.hook_command(str(tmp_path)).split(" || ")
+        assert first == f'python3 "{launcher}"'
+        assert second == f'py -3 "{launcher}"'
+
+    def test_refuses_to_carry_the_plugin_root(self, tmp_path):
+        """The command names the data directory alone, so an update that
+        moves the plugin root rewrites the launcher and leaves the person's
+        settings as they are: `install` from two roots enters one command."""
+        settings = tmp_path / "settings.json"
+        for root in ("/one/root", "/another/root"):
+            stamp.install(str(tmp_path / "data"), str(settings), root=root)
+            assert root not in stamp.hook_command(str(tmp_path / "data"))
+        (stop,) = settings_of(settings)["hooks"]["Stop"]
+        assert stop["hooks"][0]["command"] == stamp.hook_command(str(tmp_path / "data"))
+
+
+class Test_install:
+    def test_accepts_the_launcher_and_one_stop_entry_keeping_every_other_key(
+        self, tmp_path
+    ):
+        data, settings = tmp_path / "data", tmp_path / "config" / "settings.json"
+        write(settings.parent, "settings.json", '{"model": "x", "hooks": {"Stop": []}}')
+        write(data, stamp.DECLINED, "")
+        said = stamp.install(str(data), str(settings), root="/the/root")
+        launcher = data / stamp.LAUNCHER
+        assert said == stamp.INSTALLED.format(
+            settings=settings, launcher=launcher, root="/the/root"
+        )
+        assert stamp.hook_state(str(data)) == "installed /the/root"
+        assert not (data / stamp.DECLINED).exists()
+        entry = {
+            "hooks": [{"type": "command", "command": stamp.hook_command(str(data))}]
+        }
+        assert settings_of(settings) == {"model": "x", "hooks": {"Stop": [entry]}}
+        stamp.install(str(data), str(settings), root="/a/newer/root")
+        assert settings_of(settings)["hooks"]["Stop"] == [entry], "entered twice"
+        assert stamp.hook_state(str(data)) == "installed /a/newer/root"
+
+    def test_accepts_a_settings_file_that_does_not_stand_yet(self, tmp_path):
+        settings = tmp_path / "config" / "settings.json"
+        stamp.install(str(tmp_path / "data"), str(settings))
+        (stop,) = settings_of(settings)["hooks"]["Stop"]
+        assert stop["hooks"][0]["command"] == stamp.hook_command(str(tmp_path / "data"))
+
+    @pytest.mark.parametrize(
+        ("text", "why"),
+        [
+            ("not json", "it is not JSON"),
+            ("[]", "it is not an object"),
+            ('{"hooks": {"Stop": {}}}', "its `hooks.Stop` is not a list"),
+            ('{"hooks": []}', "its `hooks.Stop` is not a list"),
+        ],
+        ids=["not-json", "a-list", "stop-not-a-list", "hooks-not-an-object"],
+    )
+    def test_refuses_settings_it_cannot_merge_into_and_writes_nothing(
+        self, tmp_path, text, why
+    ):
+        """A file that does not parse is refused with exit 2 and left as it
+        is (`frame/design.md` *Data & interfaces* of #1376), before the
+        launcher is written."""
+        settings = tmp_path / "settings.json"
+        settings.write_text(text, encoding="utf-8")
+        with pytest.raises(ValueError) as refused:
+            stamp.install(str(tmp_path / "data"), str(settings))
+        assert str(refused.value) == stamp.SETTINGS_REFUSED.format(
+            path=settings, why=why
+        )
+        assert settings.read_text(encoding="utf-8") == text
+        assert not (tmp_path / "data").exists()
+
+    @pytest.mark.parametrize("given", ["", "relative/data"], ids=["empty", "relative"])
+    def test_refuses_a_data_directory_that_is_not_absolute(self, tmp_path, given):
+        """An unsubstituted `${CLAUDE_PLUGIN_DATA}` reaches the command as ""
+        once the shell expands it, and a relative path would land wherever
+        the shell stood."""
+        settings = tmp_path / "settings.json"
+        with pytest.raises(ValueError) as refused:
+            stamp.install(given, str(settings))
+        assert str(refused.value) == stamp.NOT_ABSOLUTE.format(path=given)
+        assert not settings.exists()
+
+    @pytest.mark.rule("stamp-drawn-once")
+    def test_accepts_a_launcher_the_harness_runs_at_stop_drawing_once(
+        self, opted, tmp_path
+    ):
+        """The launcher `install` writes, run as the person's `Stop` entry
+        runs it, with the payload on stdin: the message, then nothing at the
+        next `Stop`, exit 0 both times."""
+        data = tmp_path / "data"
+        stamp.install(str(data), str(tmp_path / "settings.json"), root=str(ROOT))
+        waiting(opted)
+        first = run_launcher(data / stamp.LAUNCHER, stop_payload(opted))
+        assert first.returncode == 0, first.stderr
+        assert message(first.stdout.decode("utf-8")) == stamp.fitted(
+            [(WAITING, SMALL_ROWS)]
+        )
+        again = run_launcher(data / stamp.LAUNCHER, stop_payload(opted))
+        assert (again.returncode, again.stdout) == (0, b"")
+
+    def test_refuses_to_fail_where_the_root_its_launcher_names_is_gone(
+        self, opted, tmp_path
+    ):
+        """A launcher naming a root a later update removed draws nothing and
+        exits 0, since a `Stop` hook that fails must not hold the turn; the
+        file stays for `seal stamp --from`."""
+        data = tmp_path / "data"
+        stamp.install(str(data), str(tmp_path / "s.json"), root=str(tmp_path / "gone"))
+        path = waiting(opted)
+        done = run_launcher(data / stamp.LAUNCHER, stop_payload(opted))
+        assert (done.returncode, done.stdout) == (0, b"")
+        assert os.path.exists(path)
+
+    @pytest.mark.parametrize("encoding", conftest.HOSTILE)
+    def test_accepts_a_launcher_on_a_console_it_cannot_encode_to(
+        self, korean_repo, tmp_path, encoding
+    ):
+        """A drawer that raises while reading or printing dies with stdout
+        empty, which the harness reads as nothing to show. The payload names
+        a path holding Korean, and the console cannot carry it; the stamp is
+        still printed."""
+        data = tmp_path / "data"
+        stamp.install(str(data), str(tmp_path / "settings.json"), root=str(ROOT))
+        stamp.write_values(str(korean_repo / ".git"), values())
+        body = json.dumps(
+            {"hook_event_name": "Stop", "cwd": str(korean_repo)}, ensure_ascii=False
+        )
+        done = run_launcher(
+            data / stamp.LAUNCHER,
+            body,
+            env={"PYTHONIOENCODING": encoding, "PYTHONUTF8": "0"},
+        )
+        out = done.stdout.decode("utf-8")
+        assert out.strip(), done.stderr.decode("utf-8", "replace")[-300:]
+        assert message(out).startswith("SEALED feat/x @ aaa1111"), out
+
+
+class Test_remove:
+    def test_accepts_its_own_entry_and_the_launcher_and_nothing_else(self, tmp_path):
+        data, settings = tmp_path / "data", tmp_path / "settings.json"
+        theirs = {"type": "command", "command": "echo mine"}
+        write(
+            tmp_path,
+            "settings.json",
+            json.dumps({"model": "x", "hooks": {"Stop": [{"hooks": [theirs]}]}}),
+        )
+        stamp.install(str(data), str(settings))
+        said = stamp.remove(str(data), str(settings))
+        assert said == stamp.REMOVED.format(
+            done=f"took the `Stop` entry out of {settings} and removed "
+            f"{data / stamp.LAUNCHER}"
+        )
+        assert settings_of(settings) == {
+            "model": "x",
+            "hooks": {"Stop": [{"hooks": [theirs]}]},
+        }
+        assert stamp.hook_state(str(data)) == "neither"
+
+    def test_accepts_the_lists_it_empties_taken_out_with_it(self, tmp_path):
+        data, settings = tmp_path / "data", tmp_path / "settings.json"
+        write(tmp_path, "settings.json", '{"model": "x"}')
+        stamp.install(str(data), str(settings))
+        stamp.remove(str(data), str(settings))
+        assert settings_of(settings) == {"model": "x"}
+
+    def test_refuses_another_launchers_entry_and_says_nothing_stood(self, tmp_path):
+        settings = tmp_path / "settings.json"
+        stamp.install(str(tmp_path / "theirs"), str(settings))
+        before = settings.read_text(encoding="utf-8")
+        mine = tmp_path / "mine"
+        said = stamp.remove(str(mine), str(settings))
+        assert said == stamp.NOTHING_TO_REMOVE.format(launcher=mine / stamp.LAUNCHER)
+        assert settings.read_text(encoding="utf-8") == before
+
+
+class Test_decline:
+    def test_accepts_an_empty_marker_that_the_question_reads(self, tmp_path):
+        data = tmp_path / "data"
+        said = stamp.decline(str(data))
+        assert said == stamp.DECLINED_LINE.format(marker=data / stamp.DECLINED)
+        assert (data / stamp.DECLINED).read_text(encoding="utf-8") == ""
+        assert stamp.hook_state(str(data)) == "declined"
+
+    def test_refuses_a_data_directory_that_is_not_absolute(self):
+        with pytest.raises(ValueError):
+            stamp.decline("relative")
+
+
+class Test_hook_state:
+    def test_accepts_each_of_the_three_states(self, tmp_path):
+        data = tmp_path / "data"
+        assert stamp.hook_state(str(data)) == "neither"
+        stamp.decline(str(data))
+        assert stamp.hook_state(str(data)) == "declined"
+        stamp.install(str(data), str(tmp_path / "settings.json"), root="/r")
+        assert stamp.hook_state(str(data)) == "installed /r"
+
+    def test_refuses_to_name_a_root_a_launcher_does_not_spell(self, tmp_path):
+        write(tmp_path, stamp.LAUNCHER, "print('a launcher in another shape')\n")
+        assert stamp.hook_state(str(tmp_path)) == "installed"
 
 
 # --- a person's command -------------------------------------------------------------
@@ -1827,14 +2375,14 @@ class Test_queue_for_written_guarantee:
 
 class Test_drawn_from:
     def test_accepts_a_file_drawn_once_and_claimed(self, tmp_path):
-        path = stamp.write_values(str(tmp_path), "s-1", values(rows=ROWS))
+        path = stamp.write_values(str(tmp_path), values(rows=ROWS))
         assert stamp.drawn_from(path, True) == stamp.stamp(ROWS, True)
         assert not os.path.exists(path) and os.path.exists(stamp.drawn_path(path))
 
     def test_refuses_a_second_drawing_naming_the_file_the_values_are_in(self, tmp_path):
         """Round 1's 3 of #400: whichever name is given, the file the refusal
         says holds the values exists."""
-        path = stamp.write_values(str(tmp_path), "s-1", values())
+        path = stamp.write_values(str(tmp_path), values())
         stamp.drawn_from(path, True)
         drawn_file = stamp.drawn_path(path)
         for given in (path, drawn_file):
@@ -1866,7 +2414,7 @@ class Test_main:
         assert capsys.readouterr().out == twin
 
     def test_accepts_a_values_file_drawn_by_hand(self, tmp_path, capsys):
-        path = stamp.write_values(str(tmp_path), "s-1", values(rows=ROWS))
+        path = stamp.write_values(str(tmp_path), values(rows=ROWS))
         assert stamp.main(["--from", path], console_wants_letters=True) == 0
         assert (
             capsys.readouterr().out
@@ -1878,7 +2426,7 @@ class Test_main:
     ):
         """S11 and S13 (#853): exit 2 and one sentence for a file drawn
         already; `--scale` is no argument either command takes."""
-        path = stamp.write_values(str(tmp_path), "s-1", values())
+        path = stamp.write_values(str(tmp_path), values())
         stamp.claim(path)
         assert stamp.main(["--from", path], console_wants_letters=True) == 2
         out, err = capsys.readouterr()
@@ -1891,6 +2439,122 @@ class Test_main:
             stamp.main(["--scale", "0.9"])
         assert stopped.value.code == 2
         assert "unrecognized arguments: --scale" in capsys.readouterr().err
+
+    @pytest.mark.rule("stamp-drawn-once")
+    @pytest.mark.parametrize("root", ["local", "shared"])
+    def test_guarantee_queues_the_stamp_and_prints_the_line_naming_it(
+        self, request, root, tmp_path, monkeypatch, capsys
+    ):
+        """#1376: the sealer's one run after it writes `Verdict: sealed` queues
+        the work item's values file and prints the line its hand-back
+        carries. The clone is the path's, never the shell's working
+        directory, which is outside it here; a second run prints nothing."""
+        item = request.getfixturevalue(root)
+        guarantee = item_dir(item) / "guarantee.md"
+        if root == "shared":
+            guarantee = item.repo / GUARANTEE
+            uncommitted(item)
+        elsewhere = tmp_path / "elsewhere"
+        elsewhere.mkdir()
+        monkeypatch.chdir(elsewhere)
+        assert stamp.main(["--guarantee", str(guarantee)]) == 0
+        (written,) = queued(item.common)
+        real = os.path.realpath(written)
+        line = stamp.QUEUED.format(id=ITEM_ID, path=real, command=stamp.quote(real))
+        assert capsys.readouterr().out == line + "\n"
+        assert os.path.dirname(real) == os.path.realpath(stamp.values_dir(item.common))
+        assert stamp.main(["--guarantee", str(guarantee)]) == 0
+        assert capsys.readouterr().out == ""
+        assert queued(item.common) == [written]
+
+    def test_guarantee_refuses_a_file_it_cannot_read_naming_it(self, local, capsys):
+        """The hook was silent on every failure; the sealer runs the command
+        and reads what it says, so a guarantee that cannot be read is named
+        with exit 2."""
+        guarantee = item_dir(local) / "guarantee.md"
+        guarantee.unlink()
+        assert stamp.main(["--guarantee", str(guarantee)]) == 2
+        out, err = capsys.readouterr()
+        assert out == "" and err.startswith(f"seal stamp: {guarantee}: "), err
+        assert queued(local.common) == []
+
+    @pytest.mark.rule("stamp-drawn-once")
+    def test_stop_draws_the_payloads_clone_once_and_exits_0(
+        self, opted, monkeypatch, capsys
+    ):
+        """`--stop` reads the payload on stdin and prints one JSON object
+        holding `fitted`'s message; the next `Stop` prints nothing. Both
+        exit 0."""
+        waiting(opted)
+        for expected in (stamp.fitted([(WAITING, SMALL_ROWS)]), None):
+            monkeypatch.setattr(sys, "stdin", io.StringIO(stop_payload(opted)))
+            assert stamp.main(["--stop"]) == 0
+            out = capsys.readouterr().out
+            assert (message(out) if out else None) == expected
+
+    def test_stop_says_nothing_and_exits_0_whatever_it_meets(
+        self, opted, monkeypatch, capsys
+    ):
+        """A `Stop` hook that exits 2 keeps the turn going, so a failure
+        inside the drawing prints nothing and exits 0."""
+
+        def broken(text):
+            raise OSError("the disk went away")
+
+        monkeypatch.setattr(stamp, "drawn_at_stop", broken)
+        monkeypatch.setattr(sys, "stdin", io.StringIO(stop_payload(opted)))
+        assert stamp.main(["--stop"]) == 0
+        assert capsys.readouterr() == ("", "")
+
+    def test_install_hook_decline_and_remove_say_what_they_did(self, tmp_path, capsys):
+        data, settings = str(tmp_path / "data"), str(tmp_path / "settings.json")
+        assert stamp.main(["--hook", data]) == 0
+        assert capsys.readouterr().out == "neither\n"
+        assert stamp.main(["--decline", data]) == 0
+        assert capsys.readouterr().out == stamp.decline(data) + "\n"
+        assert stamp.main(["--hook", data]) == 0
+        assert capsys.readouterr().out == "declined\n"
+        assert stamp.main(["--install", data, "--settings", settings]) == 0
+        assert (
+            capsys.readouterr().out
+            == stamp.INSTALLED.format(
+                settings=settings,
+                launcher=os.path.join(data, stamp.LAUNCHER),
+                root=stamp.PLUGIN_ROOT,
+            )
+            + "\n"
+        )
+        assert stamp.main(["--hook", data]) == 0
+        assert capsys.readouterr().out == f"installed {stamp.PLUGIN_ROOT}\n"
+        assert stamp.main(["--remove", data, "--settings", settings]) == 0
+        assert capsys.readouterr().out.startswith("seal stamp: took the `Stop` entry")
+        assert settings_of(settings) == {}
+        assert stamp.main(["--hook", data]) == 0
+        assert capsys.readouterr().out == "neither\n"
+
+    @pytest.mark.parametrize("entry", ["--install", "--remove"])
+    def test_refuses_install_or_remove_without_the_settings_file(
+        self, entry, tmp_path, capsys
+    ):
+        """The settings file is passed in, since this file reads no
+        environment variable to find it."""
+        with pytest.raises(SystemExit) as stopped:
+            stamp.main([entry, str(tmp_path)])
+        assert stopped.value.code == 2
+        assert "need --settings" in capsys.readouterr().err
+        assert os.listdir(tmp_path) == []
+
+    def test_refuses_settings_that_do_not_parse_with_exit_2(self, tmp_path, capsys):
+        settings = tmp_path / "settings.json"
+        settings.write_text("not json", encoding="utf-8")
+        data = str(tmp_path / "data")
+        assert stamp.main(["--install", data, "--settings", str(settings)]) == 2
+        out, err = capsys.readouterr()
+        assert (
+            out == ""
+            and err
+            == stamp.SETTINGS_REFUSED.format(path=settings, why="it is not JSON") + "\n"
+        )
 
 
 test_census = census_case(TARGET)

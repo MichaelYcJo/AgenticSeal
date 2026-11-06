@@ -3101,10 +3101,12 @@ def emit(args, render, path=None):
     carries the account name twice and the session id once; `--post` writes
     into an issue tracker, where the repair for a published one is a person
     deleting a comment. `CONTRIBUTING.md` *House rules*, in its bullet
-    **Hooks stay local and quiet**, states the repository's position on what may leave the machine — *anything
-    that would send repository contents, paths, or prompts is not on the
-    table* — and it binds hooks rather than this, which is why the rule is
-    written here rather than cited.
+    **The plugin registers no hook, and the one write outside the repository
+    is the person's yes**, states the repository's position on what may leave
+    the machine — *anything that would send repository contents, paths, or
+    prompts is not on the table* — and it is written about the stamp's hook
+    rather than this, which is why the rule is written here rather than
+    cited.
 
     **The rule already existed in this file and reached one place of three.**
     `main` prints `--latest`'s `# {path}` line BEFORE calling this, so that

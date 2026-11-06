@@ -476,8 +476,8 @@ NESTED_CASE = (
     "    assert helper().value and maker() == 1\n"
 )
 MOVED_OLD_C = "import pytest\n\n\n" + NESTED_FIXTURE + "\n\n" + NESTED_CASE
-# The third old file's case and fixture moved into a class, as the formatter
-# the edit hook runs leaves them: every line four spaces deeper, the
+# The third old file's case and fixture moved into a class, as `ruff format`
+# leaves them: every line four spaces deeper, the
 # continuation lines of each docstring among them.
 NESTED_NEW = "import pytest\n\n\nclass Test_four:\n" + textwrap.indent(
     NESTED_FIXTURE.replace("def maker():", "def maker(self):")

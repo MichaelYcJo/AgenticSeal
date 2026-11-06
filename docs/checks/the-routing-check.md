@@ -15,7 +15,7 @@ declaration is written before the first edit because `/agentic:start` writes
 and commits `routing.md` before it edits anything else
 (`skills/start/SKILL.md`), and no check stands between a session and its
 first edit.
-check: tests/hooks/test_dispatch.py
+check: tests/behaviour/test_chain_hooks_hardening.py
 
 **A session that declares nothing is not caught, in shared mode as in
 local.** A session the entry skill, `skills/start/SKILL.md`, never reached

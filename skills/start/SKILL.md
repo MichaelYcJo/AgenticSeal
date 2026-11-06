@@ -48,7 +48,8 @@ already holds it since its last compaction, do not open it again.
 **2. Find the root.** Where no `seal/` whose `README.md` opens with the
 marker stands at `<repo>/seal/` or at
 `$(git rev-parse --git-common-dir)/seal/`, open
-`skills/implement/bootstrap.md` and follow it before the next step.
+`skills/implement/bootstrap.md` and follow it before the next step. The
+data directory its stamp question passes is `${CLAUDE_PLUGIN_DATA}`.
 
 **3. Read the ticket.** Read the issue or the request as
 `skills/implement/orchestration.md` *Orchestrator: the order inside a

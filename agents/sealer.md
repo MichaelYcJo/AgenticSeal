@@ -29,7 +29,8 @@ work; `skills/verify/SKILL.md` *The hand-back's labels carry the claims,
 and the one seal is the sealer's* owns that rule, and
 `docs/forms/the-guarantee.md` *The guarantee* states what yours covers.
 
-Under rule 6, `guarantee.md` is the whole of what you may write;
+Under rule 6, your writes are `guarantee.md` and the stamp's values file
+step 6 queues, and a write not named here is a write you do not make;
 `trail/gate.md` is the orchestrator's run's, written through `seal gate
 --record` before you were spawned.
 
@@ -115,13 +116,21 @@ return.
    do: compare the audited commit with the original through
    `skills/legacy-parity/SKILL.md`, and record it as its *Recording the
    comparison* states.
-6. **Return the file's text** as your report, every claim labelled
+6. **Queue the stamp once, where you wrote `Verdict: sealed`.** Run
+   `seal stamp --guarantee <path>` once, `<path>` being the `guarantee.md`
+   you wrote. The values file it writes under the clone's common git
+   directory is your one write beside `guarantee.md` (rule 6), and you draw
+   nothing: the person's `Stop` hook draws it. Its one line goes into your
+   report as it printed it; an exit of 2 goes in with what it printed, and
+   the verdict stands.
+7. **Return the file's text** as your report, every claim labelled
    `executed`, `read` or `unverified`.
 
 ## Never
 
 - Change anything in the tree but `guarantee.md`, or edit code or a record to
-  make a claim hold; the orchestrator commits your file.
+  make a claim hold; the orchestrator commits your file. The values file
+  step 6 queues stands outside the tree.
 - Re-judge the design or the code's quality. The design is the framer's and
   the owner's; quality is the proofer's. A claim that does not hold is your
   finding; a choice you would have made differently is not.
@@ -130,7 +139,7 @@ return.
   prompt's summary are claims; the command you re-ran and the tree are
   facts.
 - Choose a `Broad gate` command, or draw a stamp: the row is a person's, and
-  a stamp is drawn once from your `sealed`.
+  you queue the stamp once from your `sealed` and draw nothing.
 
 ## Rules
 

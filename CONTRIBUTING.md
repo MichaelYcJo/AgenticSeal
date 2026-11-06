@@ -116,8 +116,9 @@ whatever `python3` it finds, because its runner is what gets past an old one:
 it builds its virtualenv with an interpreter at that floor or newer, refuses a
 `.venv` it finds below it, and where it finds neither `uv` nor such an
 interpreter it says which to install. What runs before any floor is checked
-(a hook, a git hook, the launcher, `bin/test`'s runner, and every module one
-of them loads in its own process) runs on whatever `python3` starts it.
+(the stamp's launcher, a git hook, `hooks/lib/launch.py`, `bin/test`'s
+runner, and every module one of them loads in its own process) runs on
+whatever `python3` starts it.
 `ruff.toml` lints that code at the version its `per-file-target-version`
 names. `tests/hooks/test_launch.py` derives the set and holds every file of it
 to that table, and `tests/censuses.py#floor_syntax` refuses in it the syntax
@@ -144,7 +145,7 @@ and ubuntu as one job; the suite once more on ubuntu at Python 3.14, as one
 job; `durations`, which unions what the Windows shards measured;
 `release-report`, which on a pull request into `main` only prints the
 release table against the last release tag and fails nothing; and the
-hygiene workflow that guards releases. A change to any hook needs a test
+hygiene workflow that guards releases. A change to any gate needs a test
 that fails without it, as the counterfeit rule below says.
 
 **A slow case is named, and each leg has a budget.** A case whose call runs
@@ -434,7 +435,7 @@ question is not its difficulty, it is when it arrives.
   constant the file itself assigns a string. A constant imported from
   another module, or one built from other constants, is outside its reach,
   and its writer splits it there.
-- **Functional files are English-only.** Skills, agents, hooks, and commands
+- **Functional files are English-only.** Skills, agents, scripts, and commands
   load into model context, where a translated mirror would drift. Korean
   belongs in human-facing docs (`README.ko.md`). The `writing-style` skill
   is the deliberate exception: its per-language sections are independent
@@ -445,25 +446,20 @@ question is not its difficulty, it is when it arrives.
   `tests/behaviour/test_both_editions_carry_the_same_folds.py` reads every
   tracked `X.ko.md` beside an `X.md`, wherever it stands, the READMEs among
   them, and requires the same sequence of heading levels.
-- **Hooks stay local and quiet.** No writing outside the repo being worked
-  on, and failure must never block a tool call. A gate that crashes should
-  let the work through, not wedge the session.
-
-  Every hook that reaches the network is named in the README's privacy
-  section, because a rule with undisclosed exceptions is not a rule. No hook
-  does today, and `README.md` *What runs on your machine* names the commands
-  and steps that do, what each reaches, what it sends and when. A hook that
-  would needs an opt-in condition so unrelated repos are untouched, a
-  throttle so it is not per-session, and silence on every failure, plus a
-  line in the README saying what leaves the machine. Anything that would
-  send repository contents, paths, or prompts is not on the table.
-- **Hooks are Python invoked as `python3 <script>`, with `py -3 <script>`
-  behind it.** Shebangs and exec bits do not exist on Windows, and `python3`
-  is the one name its official installer does not create, so the registered
-  command names both, in that order, and the packaging test enforces the
-  form. The fallback is safe because `dispatch.py` exits 0 for every decision
-  it makes, deny included: `||` is reached only when the first interpreter
-  could not start, never as a second run of a gate that already decided.
+- **The plugin registers no hook, and the one write outside the repository
+  is the person's yes.** The plugin directory refuses a plugin that
+  registers a command hook, so nothing runs at Claude Code's events unless
+  the person put it in their own settings. `seal stamp --install` writes the
+  one such entry, the stamp's `Stop` hook, with its launcher in the plugin's
+  data directory, and only on the yes to the question first setup and
+  `/agentic:update` put. Its command is `python3 <launcher> || py -3
+  <launcher>`: shebangs and exec bits do not exist on Windows, and `python3`
+  is the one name its official installer does not create. The fallback is
+  safe because the launcher exits 0 whatever happens, so `||` is reached
+  only when the first interpreter could not start. It reaches no network;
+  `README.md` *What runs on your machine* names the commands and steps that
+  do, what each reaches, what it sends and when. Anything that would send
+  repository contents, paths, or prompts is not on the table.
 
 ## Cutting a release
 

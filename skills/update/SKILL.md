@@ -36,8 +36,10 @@ installs from it. Run alone, the second reports *already at the latest
 version* against whatever the clone last knew: the failure is silent and
 looks like success.
 
-If the second command reports it is already current, say so and stop. Nothing
-arrived, so there is nothing to load and neither move below is needed.
+If the second command reports it is already current, say so, take step 4b,
+and stop. Nothing arrived, so there is nothing to load and neither move below
+is needed; step 4b still runs, because a person who updated by
+`claude plugin update` alone reaches this release without its question.
 
 **2b. Read the installed copy before believing the installer.** The install
 path is keyed by the version string, and extraction is skipped when a
@@ -206,8 +208,37 @@ if project and holds_a_block(text_of(project)):
 |---|---|
 | nothing | no block stood; nothing is said |
 | `took the preset block out of <file>, backed up to <file>.bak` | say so, with the two facts this step opens with: where the core now comes from, and where the rules an older block stated stand |
-| `<file> holds a start marker with no end marker after it, so nothing was changed`, exit 1 | the block is damaged, and nothing says where it ends. Say so, leave the file to the user, and go on to step 5 |
+| `<file> holds a start marker with no end marker after it, so nothing was changed`, exit 1 | the block is damaged, and nothing says where it ends. Say so, leave the file to the user, and go on to step 4b |
 | `needs action: <file> holds a preset block, …` | an earlier release's installer could write the block into a project's `CLAUDE.md`, which is that project's committed text. Name the file under *Needs action* in the output; the user deletes the lines between its markers |
+
+**4b. The stamp's hook.** The plugin registers no hook. The sealer's stamp
+is drawn by a `Stop` hook in the person's own settings, which
+`seal stamp --install` writes on their yes, and which names the plugin root
+it was installed from. This step reads which state stands, from the copy the
+installer records:
+
+```bash
+p=$(python3 -c "import json,sys;d=json.load(open(sys.argv[1],encoding='utf-8'));print(d['plugins']['agentic@agenticseal'][0]['installPath'])" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/installed_plugins.json") &&
+"$p/bin/seal" stamp --hook "${CLAUDE_PLUGIN_DATA}"
+```
+
+| Output | What happens |
+|---|---|
+| `installed <root>` | nothing is asked; run the command below, so the launcher names the copy just installed |
+| `declined` | the person said no at an earlier question; nothing is asked or said |
+| `neither` | ask once, with `AskUserQuestion`, whether to draw the sealer's stamp in the terminal; the yes option names what the command below writes, the launcher `stamp.py` under `${CLAUDE_PLUGIN_DATA}` and the one `Stop` entry in the settings file it names. A yes runs that command. A no runs `"$p/bin/seal" stamp --decline "${CLAUDE_PLUGIN_DATA}"`, whose marker keeps this step from asking again |
+| a command raised | say the state could not be read, with the error, and go on to step 5 |
+
+```bash
+"$p/bin/seal" stamp --install "${CLAUDE_PLUGIN_DATA}" --settings "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json"
+```
+
+It prints one line saying what it wrote; give it to the user. An exit 2 is
+a refusal with nothing written, and its line says which: the settings file is
+not JSON this command can merge into, which is the user's to repair, or the
+data directory is not an absolute path. Name it under *Needs action*.
+Either answer leaves `seal stamp --from <path>`, the line the sealer's
+hand-back names, as the way to draw a stamp by hand.
 
 **5. Name both moves, cheapest first, and say what each one is known to do.**
 The user can finish the work in hand either way: the running session keeps
@@ -222,8 +253,8 @@ is not the same either:
 | Move | What it is known to do | On what evidence |
 |---|---|---|
 | `/reload-plugins` | re-reads preloaded skill bodies out of the copy in force, which is what a spawned agent is handed | **measured.** Run 6 of `docs/experiments/2026-09-03-skill-preload-and-the-copy-in-force.md`: a sentinel in the version cache came back PRESENT after a reload, and ABSENT in run 5 without one |
-| the same command, for anything else: hooks, agent definitions, or moving a running session onto a newly installed version | unknown | **not measured.** The experiment touched none of the three, and its sentinel sat in the *running* version's own directory, so it shows a re-read of the copy already loaded and nothing about picking up a new one |
-| restarting Claude Code | starts a session on the newly installed version, with its skills, hooks and agent definitions | the move with no open question |
+| the same command, for anything else: agent definitions, or moving a running session onto a newly installed version | unknown | **not measured.** The experiment touched neither, and its sentinel sat in the *running* version's own directory, so it shows a re-read of the copy already loaded and nothing about picking up a new one |
+| restarting Claude Code | starts a session on the newly installed version, with its skills and agent definitions | the move with no open question |
 
 Say *not measured* rather than *not needed*. The difference is the whole
 value of the row: a user told the reload is insufficient stops using it, and
@@ -231,11 +262,13 @@ a user told it covers everything gets a half-loaded plugin with no way to
 tell.
 
 What would settle the middle row, for whoever wants it settled: plant a
-sentinel in a hook and in an `agents/*.md` of the newly installed version,
-whose directory is
+sentinel in an `agents/*.md` of the newly installed version, whose directory
+is
 `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/cache/<marketplace>/<plugin>/<version>/`.
-Then type `/reload-plugins` without restarting, trigger the hook's event and
-spawn the agent. That is run 6's own method, one artifact over.
+Then type `/reload-plugins` without restarting and spawn the agent. That is
+run 6's own method, one artifact over. The stamp's hook needs neither move:
+it runs the launcher at each turn's end, and step 4b pointed the launcher at
+the new copy.
 
 ## What this does not do
 
@@ -264,12 +297,14 @@ What you are getting:
 - <what changes for the user> (<version>)
 - ...
 
+Stamp: <the line step 4b's command printed>   (omit where step 4b said nothing)
+
 Needs action:                     (omit when there is none)
 - <what moved, what to set, what expires when>
 
 To load it: /reload-plugins re-reads the skill bodies a spawned agent is
 handed, out of the copy this session is already on. That is what was measured
-and it is the whole of it. Nobody has measured whether a reload reaches hooks,
-agent definitions, or <new> itself, so restart for those. Either way this
+and it is the whole of it. Nobody has measured whether a reload reaches
+agent definitions or <new> itself, so restart for those. Either way this
 session keeps running <old> until you do, so nothing is half-applied.
 ```

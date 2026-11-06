@@ -38,49 +38,63 @@ half-blocks, and for `seal stamp` on a pipe. The twin is chosen when
 stdout is not a UTF-8 terminal, or on `--shape`. An agent's report carries
 neither: no Bash call's pipe is drawn on.
 
-**The `Stop` hook's message is held under a budget** (#717): the harness
-persists a `systemMessage` longer than `MESSAGE_LIMIT` and shows a preview
-instead, so `admitted` carries as many of the oldest stamps as fit with
-their disc and leaves the rest for the next `Stop`. Only one stamp that does
-not fit with its disc alone is drawn as the text block with no disc.
+**The `Stop` message is held under a limit** (#717): the harness persists a
+`systemMessage` longer than `MESSAGE_LIMIT` and shows a preview instead, so
+`admitted` carries as many of the oldest stamps as fit with their disc and
+leaves the rest for the next `Stop`. Only one stamp that does not fit with
+its disc alone is drawn as the text block with no disc.
 
 The broad gate draws nothing since #975: its report is text on every stream,
 and it imports the panel's text rules from here (`fit`, `wrapped`, the
 owner's marks) and `sealed_names` for its head.
 
 **The stamp is drawn where a person sees it, once per work item** (#400,
-#975). Under either root, `hooks/sealer-stamp-queue.py` calls
-`queue_for_written_guarantee` at the guarantee's `Write` or `Edit` (work
-item 1792363231, #1027); where the file reads `sealed` and no earlier run or
-commit stamped it, it writes the stamp's rows to a values file under the git
-common dir, keyed by the Claude Code session. `hooks/sealer-stamp.py` draws
-each undrawn file once, at the end of that session's turn. This module owns
-the file: `queue_for_written_guarantee` and `write_values`, `read_values`,
-`pending` and `claim`. Drawing claims the file first, by renaming it to `.drawn.json`, so
-a file is drawn once whoever draws it.
+#975, #1376). The sealer runs `seal stamp --guarantee <path>` once after it
+writes `Verdict: sealed`, under either root; `queue_for_written_guarantee`
+reads the file, and where it reads `sealed` and no earlier run or commit
+stamped it, writes the stamp's rows to a values file under the git common
+dir of the path's clone. `seal stamp --stop` is the `Stop` hook a person
+installs with `seal stamp --install`: it draws each undrawn file of the
+clone the payload's `cwd` is in, once, at the end of the main session's
+turn. The plugin registers no hook. This module owns the file:
+`queue_for_written_guarantee` and `write_values`, `read_values`, `pending`
+and `claim`. Drawing claims the file first, by renaming it to `.drawn.json`,
+so a file is drawn once whoever draws it. `docs/checks/the-stamp.md` *The
+stamp* states the rule and its limits. Nothing here reads an environment
+variable: the caller passes every place it writes.
 
 Usage:
   seal stamp                      the stamp over sample rows, for a person
   seal stamp --shape              the letter twin
   seal stamp --from <file>        a queued stamp's values file, drawn once
+  seal stamp --guarantee <file>   queue the stamp of a sealed guarantee.md
+  seal stamp --stop               draw at a `Stop`, the payload on stdin
+  seal stamp --install <data-dir> --settings <file>
+                                  write the launcher and its `Stop` entry
+  seal stamp --remove <data-dir> --settings <file>
+                                  take the entry and the launcher out
+  seal stamp --decline <data-dir> record a no to the stamp's question
+  seal stamp --hook <data-dir>    installed, declined or neither
 
 The gate imports `sealed_names`, `ref_is_commit`, `is_utf8(stream)`,
-`text_lines`, `TWIN_ASCII` and the panel's text rules; the edit gate imports
-`queue_for_written_guarantee`; the hook imports `pending`, `read_values`,
-`claim` and `stamp`.
+`text_lines`, `TWIN_ASCII` and the panel's text rules.
 `.github/scripts/release_seal.py` attaches a release's seal from the page
 form of the mark, the PNG `.claude-plugin/plugin.json` names as its `icon`
-(#857), and reads nothing of this file. The command
-exists so a person can see the drawing without a guarantee committed, and
-so a values file no hook drew can still be drawn by hand.
+(#857), and reads nothing of this file. The sample exists so a person can
+see the drawing without a guarantee committed, and `--from` so a values file
+nothing drew can still be drawn by hand.
 
-Exit codes: 0 printed · 2 refused — a values file that is unreadable or
-drawn already; nothing was written on 2. An interpreter below the floor never
-reaches this file through `seal stamp`: `hooks/lib/launch.py` refuses `seal`
-with 2 first.
+Exit codes: 0 printed, or `--stop` whatever happened · 2 refused — a values
+file that is unreadable or drawn already, a guarantee that could not be
+read, or settings that do not parse; nothing was written on 2. An
+interpreter below the floor never reaches this file through `seal stamp`:
+`hooks/lib/launch.py` refuses `seal` with 2 first. The launcher runs it with
+whatever `python3` the harness finds, and a load that fails there draws
+nothing.
 """
 
 import argparse
+import ast
 import collections
 import importlib.util
 import json
@@ -195,25 +209,9 @@ KEY = {
 # bracketed it before the probe: 9,919 shown, 10,090 persisted. The harness
 # can move it, and the only sign is a preview on the owner's screen; the same
 # hook at two sizes either side of this number is the whole probe again.
+# `--stop` holds its WHOLE message under it — every block, every label and the
+# blank line between two blocks — and nothing else shares the message.
 MESSAGE_LIMIT = 10000
-# What the hook holds its WHOLE message under — every block, every label and
-# the blank line between two blocks. The reserve is for what the hook cannot
-# see: `hooks/dispatch.py#report` prepends the session's gate-failure report
-# to this same message after the hook has printed. The longest report it can
-# write, with each exception's type name and each gate's name cut at
-# `NAME_CAP` and its text at `MESSAGE_CAP`, is 559 UTF-16 units for one failed
-# gate and 959 for two, separator included; a third, at 1,357, would pass the
-# limit beside a stamp at the budget (measured 2026-11-06 over
-# `dispatch.describe`, every gate this plugin names and three foreign ones,
-# in every group it names and a foreign one, at every phase, with every field
-# past its cap -- a record an older or newer plugin wrote;
-# `tests/hooks/test_dispatch.py#longest_report` is the
-# measurement). Before #722 the name had no cap, so a class from outside the
-# plugin with a long enough name passed the reserve with two gates. The caps
-# count the same units, so a name or a text outside the BMP keeps these
-# figures: cut by code points, a text gave two gates 1,309 in #717's round 3.
-MESSAGE_RESERVE = 1000
-MESSAGE_BUDGET = MESSAGE_LIMIT - MESSAGE_RESERVE
 
 
 # The disc's numbers, in cells of the terminal's grid, where a cell is one
@@ -694,7 +692,7 @@ def compose(rows, disc=True):
     return Letter(cells, width, height, where)
 
 
-# --- what the hook and the gate call ---------------------------------------
+# --- what `--stop` and the gate call ---------------------------------------
 
 
 def stamp(rows, shape=False, disc=True):
@@ -705,7 +703,7 @@ def stamp(rows, shape=False, disc=True):
     return [writer(line) for line in compose(rows, disc).cells]
 
 
-def admitted(blocks, budget=MESSAGE_BUDGET):
+def admitted(blocks, budget=MESSAGE_LIMIT):
     """The drawn blocks one `Stop` message carries under `budget`, oldest
     first (#717). `blocks` is `(label, rows)` per values file, oldest first;
     a drawn block is its label and then its block form.
@@ -715,7 +713,7 @@ def admitted(blocks, budget=MESSAGE_BUDGET):
     message without it. So the message carries as many of the oldest blocks
     as fit together WITH the disc. A block has two rungs since #853: with its
     disc, and the text block alone, because the disc has one size. The
-    blocks past those are not drawn here; the hook leaves their files
+    blocks past those are not drawn here; `drawings` leaves their files
     pending, and the next `Stop` draws them whole.
 
     The rung with no disc is for one block alone, the oldest, when it does
@@ -749,11 +747,11 @@ def admitted(blocks, budget=MESSAGE_BUDGET):
     return out
 
 
-def fitted(blocks, budget=MESSAGE_BUDGET):
-    """The message the `Stop` hook prints for `blocks`: `admitted`'s drawn
-    blocks joined by a blank line, held under `budget` (#717). The blocks
-    past what `admitted` carries are not in it; the hook claims only the
-    files whose blocks it holds."""
+def fitted(blocks, budget=MESSAGE_LIMIT):
+    """The message `--stop` prints for `blocks`: `admitted`'s drawn blocks
+    joined by a blank line, held under `budget` (#717). The blocks past what
+    `admitted` carries are not in it; `drawings` claims only the files whose
+    blocks it holds."""
     return "\n\n".join(admitted(blocks, budget))
 
 
@@ -841,20 +839,18 @@ def is_terminal(stream):
 # --- a stamp's values, drawn by somebody else ------------------------------
 #
 # A Bash call's stdout is a pipe into a tool result nobody sees unfolded
-# (#400), so the stamp's rows are written here — by the write of a `sealed`
-# guarantee under either root (`queue_for_written_guarantee`) — and a `Stop`
-# hook in the session they were queued for draws them. The directory is
-# under the git COMMON dir because the worktree the guarantee was written in
-# and that session's cwd can be
-# different worktrees of one clone, and the common dir is the one place both
-# resolve alike; a local root sits in the same directory. It is keyed by session so that a concurrent
-# session of the same clone does not draw, and take, a stamp that is not its
-# own.
+# (#400), so the stamp's rows are written here — by `seal stamp --guarantee`
+# over a `sealed` guarantee under either root (`queue_for_written_guarantee`)
+# — and `--stop`, at the end of a main session's turn in the same clone, draws
+# them. The directory is under the git COMMON dir because the worktree the
+# guarantee was written in and that session's cwd can be different worktrees
+# of one clone, and the common dir is the one place both resolve alike; a
+# local root sits in the same directory. It is keyed by the clone and by
+# nothing else, so no session id is read: two sessions in one clone share it,
+# and the one whose turn ends first draws what waits there
+# (`docs/checks/the-stamp.md` *The stamp*).
 
 VALUES_DIR = "agentic-stamp"
-# The key of a stamp no Claude Code session was found for. No hook reads it;
-# `seal stamp --from` is how such a file is drawn.
-NO_SESSION = "none"
 PENDING = ".json"
 DRAWN = ".drawn.json"
 
@@ -868,17 +864,10 @@ VALUES_DRAWN = (
 )
 
 
-def session_key(session):
-    """The directory name for `session`: the id's last path part, or
-    `NO_SESSION` where there is none. The id names a directory, so a
-    separator in a malformed one must not become a path escape."""
-    name = os.path.basename(str(session or "").strip())
-    return name if name and name not in (".", "..") else NO_SESSION
-
-
-def values_dir(common, session):
-    """Where the runs of `session` wait to be drawn."""
-    return os.path.join(common, VALUES_DIR, session_key(session))
+def values_dir(common):
+    """Where the stamps of the clone whose git common dir is `common` wait to
+    be drawn."""
+    return os.path.join(common, VALUES_DIR)
 
 
 def drawn_path(path):
@@ -887,16 +876,16 @@ def drawn_path(path):
     return stem + DRAWN
 
 
-def write_values(common, session, values, now=None, key=None):
-    """Write one stamp's `values` for `session`; returns the file's path.
+def write_values(common, values, now=None, key=None):
+    """Write one stamp's `values` under `common`; returns the file's path.
 
-    Written to a hidden temporary name and renamed into place, so a hook
+    Written to a hidden temporary name and renamed into place, so a drawer
     listing the directory never reads half a file. The name leads with the
     time in nanoseconds, so a name sort is oldest first, and ends with `key`
     — `<id>-<target sha>` for a guarantee's stamp (`queue_for_written_guarantee`) —
     or the tree's name where no key is given. Raises `OSError` where the
     directory cannot be made or the file cannot be written."""
-    directory = values_dir(common, session)
+    directory = values_dir(common)
     os.makedirs(directory, exist_ok=True)
     moment = time.time_ns() if now is None else now
     tail = key or os.path.basename(str(values.get("tree") or "tree"))
@@ -988,7 +977,7 @@ def label(values):
     HEAD — gets `sealed_names`'s names and then ` · #<pr>` where the file
     names a pull request (#666). **A file without the key draws the label it
     always drew**, `SEALED <tree> against <base> · <item>`: a file an older
-    gate wrote may still be pending when a newer hook draws it."""
+    gate wrote may still be pending when a newer copy draws it."""
     item = values.get("item")
     where = f" · {os.path.basename(os.path.normpath(item))}" if item else ""
     if "branch" not in values:
@@ -1000,12 +989,12 @@ def label(values):
     return f"SEALED {names}{f' · {pr}' if pr else ''}{where}"
 
 
-# --- the stamp, queued at a sealed guarantee's write ------------------------
+# --- the stamp, queued from a sealed guarantee ------------------------------
 #
 # The rule, and what holds it to once per work item with its limits, is
-# `docs/checks/the-stamp.md` *The stamp*. The edit gate calls
-# `queue_for_written_guarantee` (below) at the guarantee's write, under
-# either root, and the `Stop` hook draws what it queued. The values file's
+# `docs/checks/the-stamp.md` *The stamp*. `seal stamp --guarantee` calls
+# `queue_for_written_guarantee` (below) once the sealer has written the
+# guarantee, under either root, and `--stop` draws what it queued. The values file's
 # name, `<ns>-<id>-<target sha>.json`, carries the work item's id;
 # `sealed_before` reads HEAD's history, and `refused_here` names a `sealed`
 # this clone recorded refusing.
@@ -1028,17 +1017,19 @@ GITCMD = os.path.join(
     "lib",
     "gitcmd.py",
 )
-# The line the edit gate prints as its message. It names the way to draw the
-# stamp by hand, because the
-# hook draws nothing, and says nothing, where it cannot: a `python3` that
-# cannot load this file, a main session whose working directory is outside
-# this clone, a plugin older than the hook (`docs/checks/the-stamp.md`
+# The line `--guarantee` prints, which the sealer's hand-back carries to the
+# orchestrator. It names the way to draw the stamp by hand, because nothing
+# draws it where the person installed no `Stop` hook, and the hook draws
+# nothing, and says nothing, where it cannot: a `python3` that cannot load
+# this file, a main session whose working directory is outside this clone,
+# a launcher naming a root that is gone (`docs/checks/the-stamp.md`
 # *The stamp*).
 QUEUED = (
-    "agentic: the stamp for {id} is drawn at the end of this turn from "
-    "{path}; where none appears, `seal stamp --from {command}` draws it"
+    "agentic: the stamp for {id} is queued in {path}; the `Stop` hook "
+    "`seal stamp --install` writes draws it at the end of the turn, and where "
+    "none appears, `seal stamp --from {command}` draws it"
 )
-# The line the write-time writer returns where its `guarantee.md` names a
+# The line `queue_for_written_guarantee` returns where its `guarantee.md` names a
 # commit the work item's branch does not hold. No pull request's check reads
 # a local guarantee, so in local mode this is the only place the wrong row is
 # seen; in shared mode the pull request's check refuses it as stale too. It
@@ -1094,30 +1085,21 @@ def _chain_check():
 
 
 def already_queued(common, ident):
-    """True where a values file for work item `ident` stands under any
-    session's directory of the clone, pending or drawn. A work item is
-    stamped once (#975), whatever commit its guarantee audited, so the
-    audited commit is not part of the question. A name is
-    `<ns>-<ident>-<target>.json`; a file an older gate wrote is
-    `<ns>-<tree>.json` and has no middle part to match."""
-    root = os.path.join(common, VALUES_DIR)
+    """True where a values file for work item `ident` stands in the clone's
+    values directory, pending or drawn. A work item is stamped once (#975),
+    whatever commit its guarantee audited, so the audited commit is not part
+    of the question. A name is `<ns>-<ident>-<target>.json`; a file an older
+    gate wrote is `<ns>-<tree>.json` and has no middle part to match. A
+    directory an earlier release made per session under it is not read
+    (`docs/checks/the-stamp.md` *The stamp*)."""
     try:
-        sessions = os.listdir(root)
+        names = os.listdir(values_dir(common))
     except OSError:
         return False
-    for session in sessions:
-        try:
-            names = os.listdir(os.path.join(root, session))
-        except OSError:
-            continue
-        for name in names:
-            parts = name.split("-")
-            if (
-                len(parts) == 3
-                and parts[1] == ident
-                and name.endswith((PENDING, DRAWN))
-            ):
-                return True
+    for name in names:
+        parts = name.split("-")
+        if len(parts) == 3 and parts[1] == ident and name.endswith((PENDING, DRAWN)):
+            return True
     return False
 
 
@@ -1198,8 +1180,8 @@ def sealed_before(chain, top, path, common=None, ident=None):
 # audit appends its block below that one, and without a record of the
 # refusal the earlier block reading `sealed` counts as the stamp, so the
 # repair draws nothing either. One writer leaves the record, for a block
-# that stands in its own clone and nowhere else: the write-time writer, under
-# either root, for a block its branch does not hold. Its read of the earlier
+# that stands in its own clone and nowhere else: `queue_for_written_guarantee`,
+# under either root, for a block its branch does not hold. Its read of the earlier
 # blocks, and its read of the history, skip a `sealed` the record names. Nothing infers a record
 # after the fact, so nothing asks ancestry at read time, which is what
 # #975's rounds 3 to 6 kept regressing on.
@@ -1222,10 +1204,10 @@ def _same_commit(one, other):
 def record_refusal(common, ident, target):
     """Record that this clone refused work item `ident`'s `sealed` over
     `target` and drew nothing for it: an empty file
-    `<common>/agentic-stamp-refused/<ident>-<target>`, written by the
-    write-time writer at its branch refusal. Beside `VALUES_DIR` and not in it, so neither `pending`,
-    `already_queued` nor the `Stop` hook lists it. Per clone, not per
-    session, because the refused row stands in this clone alone. A record
+    `<common>/agentic-stamp-refused/<ident>-<target>`, written by
+    `queue_for_written_guarantee` at its branch refusal. Beside `VALUES_DIR`
+    and not in it, so neither `pending`, `already_queued` nor `--stop` lists
+    it. Per clone, because the refused row stands in this clone alone. A record
     that cannot be written is skipped, and that verdict then counts as
     stamped, which is #975 Q8's direction."""
     directory = os.path.join(common, REFUSED_DIR)
@@ -1239,9 +1221,9 @@ def record_refusal(common, ident, target):
 
 def refused_here(common, ident, sha):
     """True where this clone recorded refusing work item `ident`'s `sealed`
-    over a target `_same_commit` matches with `sha`. Asked by the write-time
-    writer of each earlier verdict block reading `sealed`, and by its `sealed_before`
-    of each `sealed` in the history."""
+    over a target `_same_commit` matches with `sha`. Asked by
+    `queue_for_written_guarantee` of each earlier verdict block reading
+    `sealed`, and by its `sealed_before` of each `sealed` in the history."""
     try:
         names = os.listdir(os.path.join(common, REFUSED_DIR))
     except OSError:
@@ -1264,9 +1246,9 @@ def _newest_run(chain, text):
 
 
 def _queue_values(
-    chain, common, session, now, *, ident, target, base, gate_text, rounds, branch, item
+    chain, common, now, *, ident, target, base, gate_text, rounds, branch, item
 ):
-    """Write one work item's stamp for `session` under `common` and return
+    """Write one work item's stamp under `common` and return
     the line that names it, once `queue_for_written_guarantee` has read the
     records from disk and the guarantee passed its refusals. `base` is the
     base the newest verdict block names, `gate_text` the `trail/gate.md`
@@ -1283,10 +1265,9 @@ def _queue_values(
         "branch": branch or None,
         "pr": None,
         "item": item,
-        "session": session or None,
         "rows": guarantee_rows(target, branch, base, ident, run, count),
     }
-    path = write_values(common, session, values, now=now, key=key)
+    path = write_values(common, values, now=now, key=key)
     return QUEUED.format(id=ident, path=path, command=quote(path))
 
 
@@ -1328,13 +1309,14 @@ def written_root(routing, seal):
     return parent, ""
 
 
-def queue_for_written_guarantee(path, session, now=None):
-    """The lines a write of the `guarantee.md` at `path` says, under either
-    root: one where it queued the work item's stamp for `session`, one where
-    its audited commit is off the work item's branch, else none.
+def queue_for_written_guarantee(path, now=None):
+    """The lines `seal stamp --guarantee` says of the `guarantee.md` at
+    `path`, under either root: one where it queued the work item's stamp in
+    the clone `path` is in, one where its audited commit is off the work
+    item's branch, else none.
 
-    It reads the file from disk at its write, the moment the verdict comes
-    to read `sealed`, in shared mode as in local mode (`docs/checks/the-stamp.md`
+    It reads the file from disk once the sealer has written it, before it is
+    committed, in shared mode as in local mode (`docs/checks/the-stamp.md`
     *The stamp*). `path` must be `<root>/threads/<id>/guarantee.md`, where
     `<root>` is the repository's root in force (`optin.home_at`, through
     `written_root`): `<repo>/seal/` in shared mode, `<common>/seal/` in local
@@ -1345,15 +1327,14 @@ def queue_for_written_guarantee(path, session, now=None):
     `sealed` but one this clone recorded refusing, the clone holds no values
     file for the work item, in shared
     mode HEAD's history carries no `sealed` of the file (`sealed_before`
-    from HEAD, since the write is not yet committed), and the audited commit
+    from HEAD, since the file is not yet committed), and the audited commit
     is an ancestor of the branch the work item's `routing.md` names in its
     `Branch` row; why a local root needs no history, and what the branch
     keeps quiet, is that section's. Where the branch stands and
     does not hold the audited commit, the refusal is recorded
     (`record_refusal`) and the one line returned is `NOT_ON_BRANCH`; a
     branch that is gone or unnamed says nothing. Raises whatever reading the
-    records or writing the values raises; the caller is silent on every
-    failure."""
+    records or writing the values raises; `main` names it and exits 2."""
     real = os.path.realpath(path)
     item = os.path.dirname(real)
     specs = os.path.dirname(item)
@@ -1409,7 +1390,6 @@ def queue_for_written_guarantee(path, session, now=None):
     line = _queue_values(
         chain,
         common,
-        session,
         now,
         ident=ident,
         target=target,
@@ -1420,6 +1400,344 @@ def queue_for_written_guarantee(path, session, now=None):
         item=item,
     )
     return [line]
+
+
+# --- the stamp drawn at the end of a turn (`--stop`) -----------------------
+#
+# The draw the stamp's `Stop` hook runs, through the launcher `--install`
+# writes. The harness shows a `Stop` hook's `systemMessage`
+# unfolded, in truecolour, after the turn's final text (probe D,
+# 2026-09-28), and shows its first line as a dim `Stop says: <line>`, so
+# line 1 is a label naming what was sealed and the drawing starts on line 2.
+#
+# **Only the main session's `Stop`.** `SubagentStop` carries the parent's
+# `session_id` and differs by `agent_id` alone (`questions.md` Q2 of work
+# item 1790562543, measured 2026-09-28), so a payload carrying `agent_id`
+# draws nothing, and nor does any event that is not `Stop`.
+#
+# **Which clone.** The payload's `cwd`, walked up to its `.git` entry; the
+# git COMMON dir is the one place a linked worktree and the main checkout
+# resolve alike. The hook fires at the end of every turn in every
+# repository, so a clone with nothing pending returns before the opt-in is
+# read, and a main checkout starts no process to learn that.
+#
+# **Claim before print.** Each file is rendered, then renamed to
+# `.drawn.json` (`claim`), and only a file this process renamed is printed.
+# Two drawers racing for one file draw it once, and a crash between the two
+# loses a drawing rather than repeating one. Every failure is silent: the
+# stamp is a thing shown to a person and never a reason to hold a turn. A
+# values file somebody wrote by hand would be drawn, because this shows a
+# person what a session sealed and does not stop an adversary.
+
+STOP = "Stop"
+OPTIN = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "..",
+    "..",
+    "..",
+    "hooks",
+    "lib",
+    "optin.py",
+)
+
+
+def _optin():
+    """`hooks/lib/optin.py`, which says where a clone's common dir is and
+    whether the repository opted in."""
+    spec = importlib.util.spec_from_file_location("agentic_optin_for_the_stamp", OPTIN)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def toplevel(cwd):
+    """The first directory at or above `cwd` holding a `.git` entry, or
+    "" — asked of the filesystem, so the common case starts no process."""
+    here = os.path.abspath(cwd or ".")
+    while True:
+        if os.path.exists(os.path.join(here, ".git")):
+            return here
+        parent = os.path.dirname(here)
+        if parent == here:
+            return ""
+        here = parent
+
+
+def drawings(directory):
+    """The message block for every undrawn file in `directory`, oldest
+    first, for `fitted`. A block is `(label, rows)`, and each is built whole
+    and drawn with its disc before any file is claimed, so a file that is
+    not a stamp's values, whatever it fails on, is left where it is and takes
+    no other file's drawing with it (round 1's yellow 2 of #975). The file
+    can be written by one copy of the plugin and read by another, so a
+    format one side does not know is an ordinary state. The one rung
+    `fitted` may step down to draws the same rows with no disc, so a block
+    drawn here cannot fail there. Only the oldest files one message carries
+    are claimed (`admitted`, the owner's rule of 2026-10-02): the rest stay
+    pending under their own names for the next `Stop`, or for
+    `seal stamp --from`."""
+    ready = []
+    for path in pending(directory):
+        try:
+            values = read_values(path)
+            block = (label(values), values["rows"])
+            stamp(values["rows"], shape=False)
+        except Exception:
+            continue
+        ready.append((path, block))
+    carried = len(admitted([block for _, block in ready]))
+    blocks = []
+    for path, block in ready[:carried]:
+        if claim(path) is None:
+            continue
+        blocks.append(block)
+    return blocks
+
+
+def drawn_at_stop(text):
+    """The `systemMessage` the `Stop` payload TEXT draws, or None: a payload
+    that is not a main session's `Stop`, a `cwd` outside any clone, a clone
+    with nothing pending or not opted in, or nothing that draws."""
+    try:
+        payload = json.loads(text)
+    except ValueError:
+        return None
+    if not isinstance(payload, dict):
+        return None
+    if payload.get("hook_event_name") != STOP or payload.get("agent_id"):
+        return None
+    top = toplevel(payload.get("cwd"))
+    if not top:
+        return None
+    optin = _optin()
+    common = optin.git_common_dir(top)
+    if not common:
+        return None
+    directory = values_dir(common)
+    if not pending(directory) or not optin.opted_in(top):
+        return None
+    blocks = drawings(directory)
+    return fitted(blocks) if blocks else None
+
+
+# --- the person's `Stop` hook (`--install`, `--remove`, `--decline`, `--hook`)
+#
+# The plugin registers no hook (#1376), so the stamp is drawn only where the
+# person said yes to it: `--install` writes a launcher into the plugin's data
+# directory, which Claude Code keeps across updates, and merges one `Stop`
+# entry that runs it into the settings file the caller names. The launcher
+# names this copy's root, so `/agentic:update` runs `--install` again from
+# the new one. The caller passes both places, the data directory from the
+# skill body's `${CLAUDE_PLUGIN_DATA}` and the settings file from the shell,
+# so this file reads no environment variable.
+
+PLUGIN_ROOT = os.path.realpath(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..")
+)
+LAUNCHER = "stamp.py"
+DECLINED = "stamp-declined"
+# The launcher, in Python 3.9 syntax, since it runs on whatever `python3`
+# the harness finds. It exits 0 whatever happens, because a `Stop` hook that
+# exits 2 keeps the turn going, and a root that is gone draws nothing.
+LAUNCHER_TEXT = '''\
+"""The sealer's stamp at the end of a turn, written by `seal stamp --install`.
+
+It runs `seal_stamp.py --stop` from ROOT with the `Stop` payload on stdin.
+`seal stamp --remove` takes this file and its settings entry out, and
+`/agentic:update` writes it again naming the new root.
+"""
+
+import os
+import runpy
+import sys
+
+ROOT = {root}
+SCRIPT = os.path.join(ROOT, "skills", "verify", "scripts", "seal_stamp.py")
+
+if os.path.isfile(SCRIPT):
+    sys.argv = [SCRIPT, "--stop", *sys.argv[1:]]
+    try:
+        runpy.run_path(SCRIPT, run_name="__main__")
+    except BaseException:
+        pass
+sys.exit(0)
+'''
+ROOT_LINE = re.compile(r"^ROOT = (.+)$", re.M)
+
+NOT_ABSOLUTE = (
+    "seal stamp: {path!r} is not an absolute path, so it names no data "
+    "directory; nothing was written"
+)
+SETTINGS_REFUSED = (
+    "seal stamp: {path} is not settings this command can merge into ({why}); "
+    "it was left as it is"
+)
+INSTALLED = (
+    "seal stamp: the `Stop` entry in {settings} runs {launcher}, which draws "
+    "the stamp from {root}"
+)
+REMOVED = "seal stamp: {done}"
+NOTHING_TO_REMOVE = "seal stamp: no `Stop` entry runs {launcher}, and no launcher stood"
+DECLINED_LINE = (
+    "seal stamp: recorded the no in {marker}; `seal stamp --install` draws "
+    "the stamp later"
+)
+
+
+def _data_dir(path):
+    """PATH, where it is absolute; raises `ValueError` with the refusal
+    where it is not, as an unsubstituted `${CLAUDE_PLUGIN_DATA}` that the
+    shell turned into "" is not."""
+    if not path or not os.path.isabs(path):
+        raise ValueError(NOT_ABSOLUTE.format(path=path or ""))
+    return os.path.normpath(path)
+
+
+def hook_command(data_dir):
+    """The command of the `Stop` entry for the launcher under DATA_DIR:
+    `python3` first and `py -3` where the first could not start
+    (`CONTRIBUTING.md` *House rules*)."""
+    launcher = os.path.join(data_dir, LAUNCHER)
+    return f'python3 "{launcher}" || py -3 "{launcher}"'
+
+
+def _settings(path):
+    """The settings at PATH as a dict, {} where no file stands. Raises
+    `ValueError` with the refusal where the file does not parse as a JSON
+    object, or its `hooks` or `hooks.Stop` is not the shape the entry joins."""
+    try:
+        with open(path, encoding="utf-8") as handle:
+            text = handle.read()
+    except FileNotFoundError:
+        return {}
+    except OSError as exc:
+        raise ValueError(
+            SETTINGS_REFUSED.format(path=path, why=exc.strerror or exc)
+        ) from exc
+    try:
+        data = json.loads(text) if text.strip() else {}
+    except ValueError as exc:
+        raise ValueError(
+            SETTINGS_REFUSED.format(path=path, why="it is not JSON")
+        ) from exc
+    if not isinstance(data, dict):
+        raise ValueError(SETTINGS_REFUSED.format(path=path, why="it is not an object"))
+    hooks = data.get("hooks", {})
+    if not isinstance(hooks, dict) or not isinstance(hooks.get("Stop", []), list):
+        raise ValueError(
+            SETTINGS_REFUSED.format(path=path, why="its `hooks.Stop` is not a list")
+        )
+    return data
+
+
+def _write_json(path, data):
+    """DATA written to PATH as JSON, through a temporary name renamed into
+    place, so a reader never sees half a file."""
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    temporary = f"{path}.agentic-stamp.tmp"
+    with open(temporary, "w", encoding="utf-8") as handle:
+        json.dump(data, handle, indent=2, ensure_ascii=False)
+        handle.write("\n")
+    os.replace(temporary, path)
+
+
+def _entries(data):
+    """Every `(group, hook)` of the `Stop` list in DATA whose hook is a
+    dict."""
+    for group in data.get("hooks", {}).get("Stop", []):
+        if isinstance(group, dict) and isinstance(group.get("hooks"), list):
+            for hook in group["hooks"]:
+                if isinstance(hook, dict):
+                    yield group, hook
+
+
+def install(data_dir, settings, root=PLUGIN_ROOT):
+    """Write the launcher naming ROOT under DATA_DIR, take the declined
+    marker out, and merge the one `Stop` entry into SETTINGS where none with
+    its command stands, leaving every other key; the line that says so.
+    Raises `ValueError` with the refusal before anything is written where
+    DATA_DIR is not absolute or SETTINGS does not parse."""
+    data_dir = _data_dir(data_dir)
+    data = _settings(settings)
+    command = hook_command(data_dir)
+    launcher = os.path.join(data_dir, LAUNCHER)
+    os.makedirs(data_dir, exist_ok=True)
+    with open(launcher, "w", encoding="utf-8") as handle:
+        handle.write(LAUNCHER_TEXT.format(root=repr(root)))
+    try:
+        os.remove(os.path.join(data_dir, DECLINED))
+    except FileNotFoundError:
+        pass
+    if not any(hook.get("command") == command for _, hook in _entries(data)):
+        stops = data.setdefault("hooks", {}).setdefault("Stop", [])
+        stops.append({"hooks": [{"type": "command", "command": command}]})
+        _write_json(settings, data)
+    return INSTALLED.format(settings=settings, launcher=launcher, root=root)
+
+
+def remove(data_dir, settings):
+    """Take out of SETTINGS each `Stop` hook whose command is DATA_DIR's,
+    with the group and the lists it leaves empty, and remove the launcher;
+    nothing else. The line that says what was done. Raises `ValueError` as
+    `install` does."""
+    data_dir = _data_dir(data_dir)
+    data = _settings(settings)
+    command = hook_command(data_dir)
+    launcher = os.path.join(data_dir, LAUNCHER)
+    found = False
+    hooks = data.get("hooks", {})
+    stops = hooks.get("Stop", [])
+    for group, hook in list(_entries(data)):
+        if hook.get("command") == command:
+            group["hooks"].remove(hook)
+            found = True
+            if not group["hooks"]:
+                stops.remove(group)
+    if found:
+        if not stops:
+            del hooks["Stop"]
+        if not hooks:
+            del data["hooks"]
+        _write_json(settings, data)
+    done = [f"took the `Stop` entry out of {settings}"] if found else []
+    try:
+        os.remove(launcher)
+        done.append(f"removed {launcher}")
+    except FileNotFoundError:
+        pass
+    if not done:
+        return NOTHING_TO_REMOVE.format(launcher=launcher)
+    return REMOVED.format(done=" and ".join(done))
+
+
+def decline(data_dir):
+    """Write the empty marker that records a no to the stamp's question,
+    so it is not put again; the line that says so."""
+    data_dir = _data_dir(data_dir)
+    os.makedirs(data_dir, exist_ok=True)
+    marker = os.path.join(data_dir, DECLINED)
+    with open(marker, "w", encoding="utf-8"):
+        pass
+    return DECLINED_LINE.format(marker=marker)
+
+
+def hook_state(data_dir):
+    """Which of the three states stands under DATA_DIR, as the line
+    `--hook` prints: `installed <root>` where the launcher stands, naming
+    the root it runs, `declined` where the marker stands, else `neither`."""
+    data_dir = _data_dir(data_dir)
+    launcher = os.path.join(data_dir, LAUNCHER)
+    text = _read(launcher)
+    if text is not None:
+        found = ROOT_LINE.search(text)
+        try:
+            root = ast.literal_eval(found[1]) if found else ""
+        except (ValueError, SyntaxError):
+            root = ""
+        return f"installed {root}".rstrip()
+    if os.path.exists(os.path.join(data_dir, DECLINED)):
+        return "declined"
+    return "neither"
 
 
 # --- a person's command --------------------------------------------------
@@ -1456,14 +1774,83 @@ def main(argv=None, console_wants_letters=None):
     parser.add_argument(
         "--shape", action="store_true", help="the letter twin, whatever the console"
     )
-    parser.add_argument(
+    entry = parser.add_mutually_exclusive_group()
+    entry.add_argument(
         "--from",
         dest="values",
         default=None,
         metavar="FILE",
         help="draw a queued stamp's values file, once, instead of the sample",
     )
+    entry.add_argument(
+        "--guarantee",
+        metavar="FILE",
+        help="queue the stamp of the sealed guarantee.md at FILE, as the sealer does",
+    )
+    entry.add_argument(
+        "--stop",
+        action="store_true",
+        help="draw what waits in the clone of a Stop payload's cwd, read on stdin",
+    )
+    entry.add_argument(
+        "--install",
+        metavar="DATA_DIR",
+        help="write the launcher under DATA_DIR and its Stop entry into --settings",
+    )
+    entry.add_argument(
+        "--remove",
+        metavar="DATA_DIR",
+        help="take DATA_DIR's Stop entry out of --settings and remove the launcher",
+    )
+    entry.add_argument(
+        "--decline",
+        metavar="DATA_DIR",
+        help="record a no to the stamp's question under DATA_DIR",
+    )
+    entry.add_argument(
+        "--hook",
+        metavar="DATA_DIR",
+        help="say installed, declined or neither for DATA_DIR",
+    )
+    parser.add_argument(
+        "--settings",
+        metavar="FILE",
+        help="the Claude Code settings file --install and --remove edit",
+    )
     args = parser.parse_args(argv)
+    if (args.install or args.remove) and not args.settings:
+        parser.error("--install and --remove need --settings")
+    if args.stop:
+        try:
+            message = drawn_at_stop(sys.stdin.read())
+        except Exception:
+            message = None
+        if message:
+            sys.stdout.write(json.dumps({"systemMessage": message}) + "\n")
+        return 0
+    try:
+        if args.guarantee is not None:
+            said = queue_for_written_guarantee(args.guarantee)
+        elif args.install is not None:
+            said = [install(args.install, args.settings)]
+        elif args.remove is not None:
+            said = [remove(args.remove, args.settings)]
+        elif args.decline is not None:
+            said = [decline(args.decline)]
+        elif args.hook is not None:
+            said = [hook_state(args.hook)]
+        else:
+            said = None
+    except ValueError as refused:
+        sys.stderr.write(str(refused) + "\n")
+        return 2
+    except Exception as failed:
+        where = args.guarantee or args.install or args.remove or args.decline
+        sys.stderr.write(f"seal stamp: {where}: {failed}\n")
+        return 2
+    if said is not None:
+        sys.stdout.write("".join(line + "\n" for line in said))
+        return 0
     if console_wants_letters is None:
         console_wants_letters = pick_shape(sys.stdout)
     shape = args.shape or console_wants_letters

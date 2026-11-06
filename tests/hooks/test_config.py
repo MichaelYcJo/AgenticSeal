@@ -1991,10 +1991,8 @@ class Test_module:
 
     def test_a_hook_reader_copied_without_the_walk_names_it(self, tmp_path):
         """#667. This module imports `hooks/lib/blocks.py`, the walk the hook-path
-        readers share. It is a module, not a script: gates and scripts import
-        it, a gate that raises is skipped and said at the end of the turn
-        (`hooks/dispatch.py`, #28), and a script catches the error or names the
-        file first. So a copy without the walk raises one `ImportError` whose
+        readers share. It is a module, not a script: scripts import it, and a
+        script catches the error or names the file first. So a copy without the walk raises one `ImportError` whose
         sentence names the path and what the file is for.
         `tests/hooks/test_routing.py` holds `hooks/lib/routing.py` to the same."""
         name, siblings = TARGET.rsplit("/", 1)[1], []

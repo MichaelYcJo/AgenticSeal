@@ -870,8 +870,10 @@ def test_the_sealer_names_the_one_write_its_definition_is_allowed():
     did not move -- it stopped being the exception and became the rule -- so
     every assertion below is unchanged and only the name and the grounds are.
 
-    Since the sealer became the guarantor (#923) its one write is
-    `guarantee.md`, and `trail/gate.md` is the gate's, through its command."""
+    Since the sealer became the guarantor (#923) its one write in the tree
+    is `guarantee.md`, and `trail/gate.md` is the gate's, through its
+    command. Since #1376 the stamp's values file its `seal stamp --guarantee`
+    queues is named beside it, and the list ends there."""
     text = " ".join(sealer_text().split())
     # The contract rule number 6, which the sealer resolves for what it may
     # write.
@@ -882,9 +884,13 @@ def test_the_sealer_names_the_one_write_its_definition_is_allowed():
         "the gate's file does not name the command that makes it, so the "
         "sealer cannot tell its own write from the gate's"
     )
-    # The path `guarantee.md`, the one file the sealer writes.
-    assert "`guarantee.md` is the whole of what you may write" in text, (
-        "the permission does not say WHICH file, and a permission without a "
+    # The path `guarantee.md` and the values file, the sealer's two writes,
+    # and the sentence that ends the list.
+    assert (
+        "your writes are `guarantee.md` and the stamp's values file step 6 "
+        "queues, and a write not named here is a write you do not make"
+    ) in text, (
+        "the permission does not say WHICH files, and a permission without a "
         "boundary is a general one"
     )
 

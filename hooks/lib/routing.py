@@ -309,10 +309,9 @@ def declarations(root):
             # today, so a `ValueError` reaching here later would be a defect in
             # it, and swallowing that as "no declaration" is how a gate goes
             # quiet for a reason nobody wrote down. A
-            # declaration that is not valid UTF-8 used to raise out of
-            # `declarations()` -> the gate that read it -> `dispatch.py`'s
-            # `except Exception: return ""`, which is no output, which the
-            # harness reads as approval. The module docstring says everything
+            # declaration that is not valid UTF-8 would raise out of
+            # `declarations()` into the check that read it, which then decides
+            # nothing on the branch. The module docstring says everything
             # here fails toward "no declaration"; a file nobody can decode is
             # not an answer somebody gave, so it is skipped and its branch
             # reads as undeclared. `chain_check.py` already catches both when it
@@ -418,11 +417,10 @@ def rounds(item):
     try:
         return _ordered(os.path.join(item, *ROUNDS_DIR.split("/")))
     except NotADirectoryError:
-        # Caught here rather than raised at the gates. A hook that raises is
-        # rendered as an allow by `hooks/dispatch.py` for the call it raised
-        # on, and said only at the end of the turn, as a gate that failed
-        # (#28). Propagating this would turn a nameable state into that --
-        # the opposite of what `_ordered` refuses it for.
+        # Caught here rather than raised at the gates. A check that raises
+        # names a traceback, not the state it met. Propagating this would
+        # turn a nameable state into that -- the opposite of what `_ordered`
+        # refuses it for.
         # `rounds_unreadable` is how a caller asks which of the two happened.
         return []
 

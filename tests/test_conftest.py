@@ -29,7 +29,6 @@ import ast
 import json
 import ntpath
 import os
-import pathlib
 import shutil
 import subprocess
 import sys
@@ -404,15 +403,6 @@ class Test_imported_roots:
         path = tmp_path / "m.py"
         path.write_text("from . import x\nfrom .y import z\n", encoding="utf-8")
         assert conftest.imported_roots(path) == {"."}
-
-
-class Test_q:
-    def test_accepts_a_path_object_as_its_plain_text(self):
-        """A path is read as its text first: `shlex.quote` takes no path."""
-        assert conftest.q(pathlib.PurePosixPath("dir/plain")) == "dir/plain"
-
-    def test_refuses_a_space_unquoted(self):
-        assert conftest.q("a b") == "'a b'"
 
 
 class Test_module:

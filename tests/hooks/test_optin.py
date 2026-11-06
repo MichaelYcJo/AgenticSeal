@@ -11,9 +11,10 @@ that decoded nothing answers "not opted in" and never raises.
 The cases come from `tests/test_optin_home.py` and
 `tests/test_gates_do_not_fail_open.py` (#942's phase 6), and the case of
 `tests/test_local_mode_resolves_under_the_git_dir.py` where the scratch marker
-under the common directory keeps a gate silent in local mode.
+under the common directory keeps the stamp's drawer silent in local mode.
 """
 
+import json
 import os
 import subprocess
 
@@ -30,7 +31,6 @@ from conftest import (
     load_module,
     local_home,
     mark_root,
-    run_hook,
     scratch,
 )
 
@@ -42,7 +42,6 @@ STAMP_VALUES = {
     "base": "bbb2222",
     "from": "origin/base",
     "item": "/x/seal/threads/1799000000-an-item",
-    "session": "s1",
     "scale": 0.9,
     "rows": [("SEALED", ""), None, ("tree", "aaa1111")],
 }
@@ -622,19 +621,23 @@ class Test_module:
         assert git("diff", "--cached", "--name-only") == ""
         assert not (repo / ".gitignore").exists()
 
-    def test_a_scratch_marker_under_the_common_directory_keeps_every_gate_silent(
+    def test_a_scratch_marker_under_the_common_directory_keeps_the_stamp_silent(
         self, local
     ):
-        """The stamp's drawer, the gate that asks `opted_in` before it speaks,
-        has a stamp waiting for its session in local mode, and draws nothing
-        while the scratch marker stands under the common directory."""
+        """The stamp's drawer, `seal stamp --stop`, asks `opted_in` before it
+        speaks. A stamp waits in the clone in local mode, and nothing is drawn
+        while the scratch marker stands under the common directory; with the
+        marker gone, the same `Stop` draws it."""
         repo, _home = local
         stamp = load_module(STAMP, "seal_stamp_for_the_scratch_marker")
-        stamp.write_values(str(repo / ".git"), "s1", STAMP_VALUES)
-        (repo / ".git" / "agentic-scratch").write_text("", encoding="utf-8")
-        stop = {"hook_event_name": "Stop", "session_id": "s1", "cwd": str(repo)}
+        stamp.write_values(str(repo / ".git"), STAMP_VALUES)
+        marker = repo / ".git" / "agentic-scratch"
+        marker.write_text("", encoding="utf-8")
+        stop = json.dumps({"hook_event_name": "Stop", "cwd": str(repo)})
 
-        assert run_hook("sealer-stamp.py", stop) == ""
+        assert stamp.drawn_at_stop(stop) is None
+        marker.unlink()
+        assert stamp.drawn_at_stop(stop).startswith("SEALED aaa1111")
 
 
 test_census = census_case(TARGET)

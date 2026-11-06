@@ -522,36 +522,6 @@ def test_the_switch_block_lands_the_root_at_the_tree_root_from_a_subdirectory(re
     assert porcelain(repo) == [], porcelain(repo)
 
 
-@pytest.mark.parametrize("readme", sorted(READMES))
-def test_the_gates_table_says_the_root_may_sit_under_the_git_dir(readme):
-    # The gate table's rows alone: since #1055 the `seal/` row of the records
-    # table names `seal/` in its last cell too, and that cell is no Where.
-    lines = read(readme).splitlines()
-    start = next(
-        i for i, ln in enumerate(lines) if ln.startswith(("| Gate |", "| 게이트 |"))
-    )
-    table = []
-    for line in lines[start + 2 :]:
-        if not line.startswith("|"):
-            break
-        table.append(line)
-    rows = [line for line in table if "`seal/`" in line.rsplit("|", 2)[-2]]
-    assert rows, f"{readme}: no gate row's Where cell names `seal/`"
-    # #1055 round 1, finding 1: *First run* and the records table's `seal/`
-    # row select the opt-in hooks by `seal/` in this column, so a Where cell
-    # that points at another row ("same opt-in") drops its hook from that
-    # pointer. Each cell names its condition itself, and sealer-stamp, which
-    # draws nothing where `optin.opted_in` is false
-    # (`hooks/sealer-stamp.py#main`), is among the `seal/` rows.
-    for row in table:
-        where = row.rsplit("|", 2)[-2].strip()
-        assert not where.startswith(("same ", "같은 ")), f"{readme}: {row[:40]}…"
-    assert any(row.startswith("| sealer-stamp |") for row in rows), readme
-    for row in rows:
-        where = row.rsplit("|", 2)[-2]
-        assert "local" in where, f"{readme}: {row[:40]}… still says the root only"
-
-
 # --- S14: the root's own README, and the template it is rendered from ------
 
 

@@ -27,7 +27,7 @@ Its stdout opens `BROAD GATE PASSED` or `BROAD GATE FAILED` over the branch,
 the tree and the base it measured; a passing run prints its panel's rows as
 text under that line, the same bytes on a terminal as on a pipe, and writes
 no values file and no drawing. The verdict word `sealed` is the sealer's,
-and the stamp is drawn from that verdict at its write, in either mode
+and the stamp is queued from that verdict by the sealer, in either mode
 (`docs/checks/the-stamp.md` *The stamp*), so a green suite is never read as
 a sealed work item.
 check: tests/skills/test_broad_gate.py tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py

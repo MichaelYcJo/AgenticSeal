@@ -505,9 +505,8 @@ class Test_module:
 
     def test_a_declaration_that_cannot_be_decoded_is_not_an_answer(self, tmp_path):
         """`hooks/lib/routing.py` caught `OSError` only, and `UnicodeDecodeError` is a
-        `ValueError`. An undecodable `routing.md` raised out of `declarations()`,
-        through the commit gate, into `dispatch.py`'s `except Exception: return ""`
-        — no output, which is an allow.
+        `ValueError`. An undecodable `routing.md` raised out of `declarations()`
+        into the check that read it, which then decided nothing.
 
         The direction the module states is "no declaration", which means the pull
         request's check reads the branch as undeclared. Not silence: silence would make a corrupt file
@@ -548,10 +547,8 @@ class Test_module:
     def test_a_hook_reader_copied_without_the_walk_names_it(self, tmp_path):
         """#667. This module imports `hooks/lib/blocks.py`, the walk the
         hook-path readers share, after `hooks/lib/optin.py`, so the copy takes `optin.py`
-        with it. It is a module, not a script: gates and scripts import it, a
-        gate that raises is skipped and said at the end of the turn
-        (`hooks/dispatch.py`, #28), and a script catches the error or names the
-        file first. So a copy without the walk raises one `ImportError` whose
+        with it. It is a module, not a script: scripts import it, and a script
+        catches the error or names the file first. So a copy without the walk raises one `ImportError` whose
         sentence names the path and what the file is for.
         `tests/hooks/test_config.py` holds `hooks/lib/config.py` to the same."""
         name, siblings = TARGET.rsplit("/", 1)[1], ["optin.py"]

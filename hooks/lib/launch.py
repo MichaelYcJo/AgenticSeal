@@ -32,10 +32,9 @@ launcher that cannot parse is the traceback it exists to replace.
 
 It sits in `hooks/` because each wrapper it serves reaches it relative to
 itself, as `$here/../hooks/lib/launch.py`, and `hooks/` already ships the modules the
-scripts share. `hooks/hooks.json` does not run through it: a gate that fails
-is skipped and said, and the call goes ahead
-(`docs/checks/the-session-hooks.md` *Registration*), where exit 2 from a hook
-is the harness's word for blocking the call.
+scripts share. The stamp's `Stop` hook does not run through it: its launcher
+exits 0 whatever happens, where exit 2 from a `Stop` hook is the harness's
+word for keeping the turn going (`docs/checks/the-stamp.md`).
 
 Exit codes: 2 for an interpreter below the floor or no script named, with
 nothing read and nothing written; otherwise the script's own.

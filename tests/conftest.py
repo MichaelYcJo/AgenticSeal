@@ -9,11 +9,9 @@ import atexit
 import functools
 import importlib.util
 import io
-import json
 import os
 import pathlib
 import re
-import shlex
 import shutil
 import subprocess
 import sys
@@ -50,7 +48,6 @@ REVIEW_CHAIN_DOCS = (
     ("docs", "running", "the-run.md"),
     ("docs", "checks", "the-pull-request-check.md"),
     ("docs", "checks", "the-stamp.md"),
-    ("docs", "checks", "the-session-hooks.md"),
     ("docs", "checks", "the-routing-check.md"),
     ("docs", "running", "the-review-and-parity-arms.md"),
 )
@@ -531,31 +528,6 @@ def mark_root(home):
     return home
 
 
-def run_hook(filename, payload, env=None):
-    """Feed a hook the stdin JSON the harness would send; return its stdout."""
-    r = subprocess.run(
-        [sys.executable, os.path.join(HOOKS, *filename.split("/"))],
-        input=json.dumps(payload),
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=30,
-        env={**os.environ, **(env or {})},
-    )
-    return r.stdout
-
-
-def decision_of(stdout):
-    """'silent' when a hook allowed by staying quiet, else its decision.
-    STDOUT is the hook's output as text, or the finished process whose
-    output is bytes, as a case run on a hostile console holds it."""
-    if isinstance(stdout, subprocess.CompletedProcess):
-        stdout = stdout.stdout.decode("utf-8")
-    if not stdout.strip():
-        return "silent"
-    return json.loads(stdout)["hookSpecificOutput"]["permissionDecision"]
-
-
 # Told apart by `shell_probe` below, and the caller is expected to act on the
 # difference: one is a name that was never a shell, the other is a shell whose
 # environment ate the answer.
@@ -997,11 +969,6 @@ def git_repo(where):
     return where
 
 
-def run(module, monkeypatch, payload):
-    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(payload)))
-    module.main()
-
-
 # A `config.md` text with its `Item | Value` table; `{rows}` takes the rows.
 TABLE = "# Repository config\n\n| Item | Value |\n|---|---|\n{rows}"
 
@@ -1199,37 +1166,6 @@ def imported_roots(path):
         elif isinstance(node, ast.ImportFrom):
             roots.add((node.module or "").split(".")[0] if not node.level else ".")
     return roots
-
-
-def q(text):
-    """TEXT quoted for a shell."""
-    return shlex.quote(str(text))
-
-
-def sh(path):
-    r"""`path` as one shell word.
-
-    These commands are read the way the harness hands them over: a string
-    that a POSIX shell is about to run, because the `Bash` matcher in
-    `hooks/hooks.json` is the only PreToolUse entry that carries commit
-    commands. Interpolating a native path raw made the test string mean
-    something else on Windows -- the shell drops an unquoted backslash, so
-    `git -C C:\Users\x` arrived at the gate as `C:UsersX` and the
-    second target resolved under the first. Nothing about the gate was wrong
-    there; the test was writing a command no shell would carry.
-    """
-    return shlex.quote(str(path))
-
-
-def payload(cmd, repo, session="s1"):
-    """The JSON a PreToolUse hook reads for a Bash command CMD typed in REPO
-    by SESSION."""
-    return {
-        "tool_name": "Bash",
-        "session_id": session,
-        "tool_input": {"command": cmd},
-        "cwd": str(repo),
-    }
 
 
 def config_table(*rows):
@@ -1430,42 +1366,6 @@ def seal_block(*lines, opener="`" * 3 + "seal"):
     `tests/hooks/test_fields.py` and `tests/skills/test_chain_check.py`
     write records with it."""
     return "\n".join([opener, *lines, "`" * 3]) + "\n"
-
-
-# --- a work item's closing records, as the stamp's queue gates read them -------
-#
-# `tests/hooks/test_sealer_stamp_queue.py` writes them.
-
-STAMP_ITEM = "1799000000-an-item"
-
-
-def guarantee_record(target, base, verdict):
-    """A `guarantee.md` in `templates/records/sdd-guarantee.md`'s shape: its
-    table for people and one verdict block."""
-    return (
-        "# an item — guarantee\n\n## Claims re-run\n\n"
-        "| Claim | Source | Command | Result |\n|---|---|---|---|\n\n"
-        f"```seal\ntarget: {target} against {base}\nVerdict: {verdict}\n```\n"
-    )
-
-
-def routing_record(branch="feat/x"):
-    """A `routing.md` in `templates/records/sdd-routing.md`'s shape, naming BRANCH in
-    its `Branch` row, or with no `Branch` row where BRANCH is None."""
-    rows = (
-        "| Axis | Answer |\n|---|---|\n"
-        "| Review | through the review chain |\n"
-        "| Destination | open the pull request |\n"
-    )
-    return rows + (f"| Branch | {branch} |\n" if branch else "")
-
-
-def queued_values(repo):
-    """Every values file under REPO's `.git/agentic-stamp`, drawn or not."""
-    found = []
-    for directory, _dirs, names in os.walk(repo / ".git" / "agentic-stamp"):
-        found += [os.path.join(directory, n) for n in names if n.endswith(".json")]
-    return sorted(found)
 
 
 # --- the opt-in's two places, the old name and the throwaway marker -------------

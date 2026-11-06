@@ -1,11 +1,11 @@
 """Where the streams get fixed, and why it is at every entry point.
 
-A hook that raises while reading or printing dies with **stdout empty**, and
-empty stdout is exactly how a hook says "nothing to see here". So the failure
-mode of every gate in this repository, under a console it cannot encode to, is
-a silent pass — the exact condition the gates exist to end. The same shape
-costs the `bin/`-wrapped checks their output, and `chain_check.py` its verdict
-in CI.
+A script that raises while reading or printing dies with **stdout empty**, and
+empty stdout is exactly how the stamp's `seal stamp --stop` says "nothing to
+draw". So the failure mode of every gate in this repository, under a console it
+cannot encode to, is a silent pass — the exact condition the gates exist to
+end. The same shape costs the `bin/`-wrapped checks their output, and
+`chain_check.py` its verdict in CI.
 
 Korean, Japanese and Chinese Windows default to cp949/cp932/cp936 and encode
 none of the em dash, arrow or middle dot these files print; a bare `LC_ALL=C`
@@ -22,13 +22,11 @@ that first attempted this, in a pull request that was closed:
 this is a no-op, and branching on the platform would leave the Windows path
 proven by nothing while Linux CI runs the other one.
 
-**`stdin` is in the loop.** The payload is where the non-ASCII actually is — it
-carries the user's own command text, and one Korean path or an em dash in a
-commit subject is enough. `hooks/dispatch.py` holds the only stdin read
-production takes, so a raise there takes every gate in the group down at once,
-and `hooks.json` runs `python3 … || py -3 …`, so the retry meets an
-already-consumed stdin and passes silently a second time. Round 2 of that pull
-request found this defect INSIDE the first fix.
+**`stdin` is in the loop.** A payload is where the non-ASCII actually is — the
+`Stop` payload `seal stamp --stop` reads carries the session's own paths, and
+one Korean path is enough. That is the only stdin read production takes, and a
+raise there draws no stamp. Round 2 of that pull request found this defect
+INSIDE the first fix.
 
 **`errors` is named.** `TextIOWrapper.reconfigure` resets it to `strict`
 whenever `encoding` is given without it, so naming the encoding alone turns a
@@ -41,7 +39,7 @@ The call sites are each entry point's `__main__`, not this module's import,
 because a module that changes the process's streams as a side effect of being
 imported would do it to `pytest` too. Every gate is also runnable on its own —
 that is how the tests drive them and how anyone debugging one reaches them — so
-each carries the call rather than relying on `dispatch.py` having made it.
+each carries the call rather than relying on a caller having made it.
 
 Every entry point owes the answer: each tracked `.py` with a module-level
 `__main__` block opens its first such block with it, and one that cannot
@@ -61,8 +59,7 @@ than loading this module the same way.
 `.github/scripts/release_report.py`, `.github/scripts/release_seal.py` and
 `.github/scripts/rules.py` load the tree's modules only when first asked, so a
 module that will not load ends in the script's own named result rather than a
-traceback. `hooks/dispatch.py` writes down the gates that failed, and must not
-depend on a module whose failure it reports. This command lists every place
+traceback. This command lists every place
 that spells the loop, with this file among them:
 
     git grep -l "[.]reconfigure(" -- '*.py' ':!tests' ':!evals/behaviour'

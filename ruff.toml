@@ -6,8 +6,8 @@
 # line by line — the reasons are below, because an unexplained omission is
 # indistinguishable from an oversight.
 #
-#   BLE001 (blind-except)   a hook that raises wedges the session; every gate
-#       fails toward "not opted in", so a bare except IS the failure policy.
+#   BLE001 (blind-except)   the stamp's hook must exit 0 whatever it meets, and
+#       a gate fails toward "not opted in", so a bare except IS the policy.
 #   PLW1510 (subprocess-run-without-check)  not raising on a non-zero exit is
 #       the intended behavior of a gate that reads returncode itself.
 #   S110 / S112 (try-except-pass / -continue)  the same fail-open requirement,
@@ -29,9 +29,10 @@ line-length = 88
 # a documentation edit into a lint failure over two spaces.
 extend-exclude = ["*.md"]
 
-# What runs before any floor is checked -- a hook, a git hook, the launcher,
-# bin/test's runner, and every module one of them loads in its own process --
-# runs on whatever `python3` starts it, and macOS ships 3.9 under that name.
+# What runs before any floor is checked -- the stamp's launcher, a git hook,
+# hooks/lib/launch.py, bin/test's runner, and every module one of them loads
+# in its own process -- runs on whatever `python3` starts it, and macOS ships
+# 3.9 under that name.
 # Linted at 3.9, B905 does not ask its `zip` for `strict=` (3.10) and UP017
 # does not spell `timezone.utc` as `datetime.UTC` (3.11).
 # tests/hooks/test_launch.py derives that set and holds every file of it to

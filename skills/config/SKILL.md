@@ -125,8 +125,7 @@ pins. No row records that; the file is the record.
     above, after a form feed or U+2028: give it a line of its own.
 
   `templates/setup/config.md` says the same at its head. `seal gate` and
-  `seal mode` print the refusal and run or write nothing, and a hook stays
-  silent.
+  `seal mode` print the refusal and run or write nothing.
 
   **The `Broad gate` row is looked at before it is run**, and a value that
   would not run as the command it reads as is refused with nothing run:
