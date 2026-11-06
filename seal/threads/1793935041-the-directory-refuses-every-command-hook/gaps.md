@@ -37,12 +37,6 @@ cited a script by `path#name`, which the archive's census reads, and left
 the path-only mentions, which name this repository's file and which no
 census reads. `trail/phases/phase-6.md` lists the twelve.
 
-`.test_durations` still holds 850 lines naming `tests/hooks/` or a renamed
-case. Phase 7 left them to CI's rebuild, as `frame/plan.md`'s judgment row
-of phase 1 does for every stale id, so the plan's grep for phase 7 lists
-that file. `trail/phases/phase-7.md` lists the other paths the grep keeps
-on purpose.
-
 The repository's GitHub label `hooks-gates` keeps its name and its
 description, "Hooks, the commit gate, the worktree guard". The label lives
 outside the tree, so no phase changes it; the owner renames it or leaves it.
