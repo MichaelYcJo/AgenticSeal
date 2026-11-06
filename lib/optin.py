@@ -41,7 +41,7 @@ HOME = "seal"
 WORK_ITEMS = "threads"
 # Where each record sits in a thread, `/`-joined and relative to the thread's
 # directory: `frame/` holds the design before the build, `trail/` what passed
-# between the parties, and the four files at the top speak for the whole
+# between the parties, and the files at the top speak for the whole
 # thread (`docs/layout/the-record-layout.md`). Every reader of a thread's file joins
 # one of these under the thread.
 FRAME = "frame"
@@ -55,6 +55,9 @@ GATE = f"{TRAIL}/gate.md"
 GAPS = "gaps.md"
 GUARANTEE = "guarantee.md"
 CHANGELOG = "changelog.md"
+# The pull request body's first part, which `seal pr-body` writes above the
+# copy of the records.
+PR = "pr.md"
 # The migration config, directly under the root: `parity_config` below opens
 # it, and `chain_check.py` reads it at HEAD under the shared root (#988).
 PARITY_CONFIG = "parity.md"

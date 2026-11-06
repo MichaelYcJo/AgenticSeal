@@ -188,9 +188,13 @@ cat > 'seal/threads/1790000030-guarantee-no-gate/gaps.md' <<'AGENTIC_EOF'
 
 nothing
 AGENTIC_EOF
+mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-no-gate/pr.md')"
+cat > 'seal/threads/1790000030-guarantee-no-gate/pr.md' <<'AGENTIC_EOF'
+Closes #101.
+AGENTIC_EOF
 sed "s/b0b0b0b/$build/" 'seal/threads/1790000030-guarantee-no-gate/trail/rounds/round-1.md' > record.tmp && mv record.tmp 'seal/threads/1790000030-guarantee-no-gate/trail/rounds/round-1.md'
 git add -A
-git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'docs: the phase record, round 1 and the changelog'
+git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'docs: the phase record, pr.md, round 1 and the changelog'
 mkdir -p "$(dirname '.git/1790000030-guarantee-no-gate/issue-101.md')"
 cat > '.git/1790000030-guarantee-no-gate/issue-101.md' <<'AGENTIC_EOF'
 # #101 shout turns empty text into a lone mark
@@ -200,7 +204,6 @@ AGENTIC_EOF
 mkdir -p "$(dirname '.git/1790000030-guarantee-no-gate/pr-body.md')"
 cat > '.git/1790000030-guarantee-no-gate/pr-body.md' <<'AGENTIC_EOF'
 Closes #101.
-
 ## From the records
 
 <details>

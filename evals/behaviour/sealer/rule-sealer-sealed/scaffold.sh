@@ -188,9 +188,13 @@ cat > 'seal/threads/1790000030-guarantee-sealed/gaps.md' <<'AGENTIC_EOF'
 
 nothing
 AGENTIC_EOF
+mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-sealed/pr.md')"
+cat > 'seal/threads/1790000030-guarantee-sealed/pr.md' <<'AGENTIC_EOF'
+Closes #101.
+AGENTIC_EOF
 sed "s/b0b0b0b/$build/" 'seal/threads/1790000030-guarantee-sealed/trail/rounds/round-1.md' > record.tmp && mv record.tmp 'seal/threads/1790000030-guarantee-sealed/trail/rounds/round-1.md'
 git add -A
-git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'docs: the phase record, round 1 and the changelog'
+git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'docs: the phase record, pr.md, round 1 and the changelog'
 run=$(git rev-parse HEAD)
 mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-sealed/trail/gate.md')"
 cat > 'seal/threads/1790000030-guarantee-sealed/trail/gate.md' <<'AGENTIC_EOF'
@@ -212,7 +216,6 @@ AGENTIC_EOF
 mkdir -p "$(dirname '.git/1790000030-guarantee-sealed/pr-body.md')"
 cat > '.git/1790000030-guarantee-sealed/pr-body.md' <<'AGENTIC_EOF'
 Closes #101.
-
 ## From the records
 
 <details>
