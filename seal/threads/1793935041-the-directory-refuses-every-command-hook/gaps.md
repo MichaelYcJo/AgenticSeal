@@ -8,6 +8,8 @@
 | whether a plain request to change code, such as "fix #42" or "이 기능 고쳐줘", makes the model invoke `agentic:start` rather than `agentic:implement` or no skill, and whether question 1 then shows the ladder's answer with the ` (Recommended)` mark and the options in the table's order; the description and the orchestration paragraph are the one carrier, and no case can run the model's choice of a skill or read the question it puts | the owner, at the first plain request to change code under the installed 0.33.0 |
 | whether an orchestrator on a run routed `Automation` `yes` follows the paragraph of `docs/running/the-run.md` *The run* that replaced the question gate; the rule is guidance with no check line, and no case can hold an orchestrator's choice to ask | the owner, at the first automation run under the installed 0.33.0 |
 | whether a plain request such as "review this PR <url>" opens `agentic:code-review` and a typed `/code-review` runs Claude Code's built-in command, now that no gate asks which review was meant; the description is the one carrier, and no case can run the model's choice of a skill | the owner, at the first plain review request under the installed 0.33.0 |
+| whether the `Stop` entry `seal stamp --install` writes into a person's `settings.json` draws the stamp on the screen once after the sealer queues it, and whether bootstrap's question and `skills/update/SKILL.md` step 4b reach the person with the data directory spelled; `tests/skills/test_seal_stamp.py` runs the launcher as the entry's command runs it, and no case can run the harness that reads the entry | the owner, at the first `sealed` under the installed 0.33.0 |
+| whether the entry's `py -3` half starts the launcher on Windows where `python3` is absent, and whether the drawing reaches a Windows terminal; the cases run on the platform CI and this machine give | the owner, or a Windows user, at the first `sealed` on Windows under 0.33.0 |
 
 ## Not done
 
@@ -26,3 +28,12 @@ The plugin's one-line description dropped "without asking anyone" in phase
 both descriptions of `.claude-plugin/marketplace.json`, as the default the
 orchestrator's judgment row of 2026-11-06 chose. The owner has not read the
 new sentence, and may overturn it in the pull request.
+
+Two comments under `hooks/lib/` still describe a hook path after phase 5:
+`hooks/lib/optin.py:97` records a measurement of a `PreToolUse` hook, and
+`hooks/lib/routing.py:410` says a hook fires before the commit. Phase 7
+rewrites every path under `hooks/lib/`, and they are read there.
+
+The repository's GitHub label `hooks-gates` keeps its name and its
+description, "Hooks, the commit gate, the worktree guard". The label lives
+outside the tree, so no phase changes it; the owner renames it or leaves it.
