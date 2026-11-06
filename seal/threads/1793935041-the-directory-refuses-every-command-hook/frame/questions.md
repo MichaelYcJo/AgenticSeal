@@ -8,6 +8,7 @@ The judgments the ticket left to the frame and the tree answered, each at the ro
 - Which settings file the stamp's `Stop` hook is written into: `frame/plan.md` *Alternatives considered*, the row on `.claude/settings.local.json`.
 - How the launcher follows an update: `frame/plan.md` *Alternatives considered*, the row on `installed_plugins.json`.
 - Where `seal stamp --install` learns the data directory: `frame/design.md` *Grounding*, the executed `env` fact.
+- What keys the stamp's queue, and where an already-set-up person is offered the stamp: `frame/plan.md` *Alternatives considered*, the two rows marked "on the orchestrator's reading of the frame".
 - The entry skill's name and shape: `frame/design.md` *Scope* item 1.
 - Whether `routing.md` keeps its `Automation` row: `frame/plan.md` *Alternatives considered*, the row on removing it.
 - The effect on 0.33.1 and 0.33.2: `frame/plan.md` *Operational impact*.
