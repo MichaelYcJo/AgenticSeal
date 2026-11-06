@@ -30,15 +30,18 @@ its first step and never this one, because asking a person and writing
 2. The framer writes `frame/design.md`, `plan.md` and `questions.md`. The orchestrator
    reads the frame against the issue, settles what it finds with the framer
    and spawns the crafter (*The frame is read against the issue at the
-   spawn* below). The proofer's rounds follow, then
+   spawn* below). Once the build's last phase has closed, the orchestrator
+   writes and commits the work item's `pr.md`, the pull request body's
+   first part, before the first round. The proofer's rounds follow, then
    `seal gate --preflight` and `seal gate --record`, both run by the
    orchestrator, then `seal pr-body`, which the orchestrator runs to write
-   the pull request body's copy of the records, then the sealer, and then
-   the pull request opens
+   the pull request body from `pr.md` and the records, then the sealer,
+   and then the pull request opens
    (`skills/code-review/orchestration.md` *Orchestrator: the pull request
    opens once the sealer seals* owns when).
-3. The pull request body carries `Closes #N`; the release workflow closes the
-   ticket when the release reaches `main`.
+3. The pull request body carries `Closes #N`, from the work item's `pr.md`
+   where the work runs through the review chain; the release workflow
+   closes the ticket when the release reaches `main`.
 
 **A decision made after the frame is committed is folded, in place, into
 `frame/design.md` or `plan.md` before the next crafter spawns.** The orchestrator
@@ -106,8 +109,9 @@ agree, agree with a change, or reject with grounds, folds what it agreed
 into its three files, and writes each rejected proposal as one row of
 `plan.md`'s *Alternatives considered*; the orchestrator edits no frame file.
 One exchange is the bound: a disagreement left after it stands as the
-framer's judgment, which the orchestrator names in its part of the pull
-request body, because each party judges its own target
+framer's judgment, which the orchestrator quotes in the work item's
+`pr.md` from its `frame/plan.md` *Alternatives considered* row, because
+each party judges its own target
 (`skills/core/SKILL.md` *Each agent judges its own target, independently of
 the others*) and a second round would be the orchestrator overriding the
 framer. The spawn is the approval (`skills/implement/SKILL.md` *3. The SDD
@@ -375,12 +379,18 @@ question.** A pull request into the release branch is not a release: its
 entry accumulates unreleased. Whether it moves the version is the
 repository's convention. Where the repository names the version when it
 cuts the release branch, as a branch named `release/vX.Y.Z` does, the
-orchestrator moves the version to that name in the first pull request into
-the branch, in the commit that adds that work item's changelog entry,
-and every later pull request into the branch leaves it. Where several
-work items of the release run side by side, the orchestrator chooses the
+version moves to that name in the first pull request into the branch, and
+every later pull request into the branch leaves it. The party that writes
+that work item's changelog entry moves it, in the commit that adds the
+entry: the last phase's crafter where `routing.md` answers
+`Implementation` with `crafter`, and the orchestrator where it answers
+`the session`. The orchestrator chooses which work item carries the move.
+Where several work items of the release run side by side, it chooses the
 one it will merge first, the one likeliest to be sealed first, often the
-smallest diff, moves the version there and merges it first. A move made
+smallest diff, and merges it first. Where a crafter builds that work item
+and its `frame/plan.md` *Operational impact* does not name the move, the
+orchestrator folds the move into that section before it spawns the last
+phase, because the crafter reads its version write there. A move made
 after a work item's last round owes a verifying round of its own, so
 where the chosen item's rounds have already ended, the move goes to the
 next item whose rounds still read it. Where the
@@ -393,11 +403,12 @@ entries read as one release, or when the change is a gate or a hook firing
 where it should not, which does not wait for other changes.
 
 **Where an entry accumulates is the repository's convention, so the
-orchestrator reads it before writing one.** Two shapes are common and they
-are not interchangeable: a heading in the changelog that every branch appends
-to, or one fragment per work item that a release gathers. Writing the first
-into a repository that uses the second invents a heading its checks refuse,
-or appends to the shared region the fragments exist to empty. Where the
+orchestrator reads it before the entry is written.** Two shapes are common
+and they are not interchangeable: a heading in the changelog that every
+branch appends to, or one fragment per work item that a release gathers.
+Writing the first into a repository that uses the second invents a heading
+its checks refuse, or appends to the shared region the fragments exist to
+empty. Where the
 repository gathers fragments, basing on `main` means running the gather,
 because `main` is the branch where the entries are due; the contribution
 guide names the command.

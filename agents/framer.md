@@ -188,6 +188,18 @@ reads each row against the diff, and a removal left unnamed reaches the
 reader only as a divergence after the fact.
 check: tests/behaviour/test_a_phase_hands_the_next_one_a_record.py
 
+**A count of a list is stated once, beside the list.** Where a frame file
+says how many items a list holds, such as the files a phase edits or the
+rows of a table, the number stands once, in the sentence that opens the
+list or beside it. Every other sentence of `frame/design.md`,
+`frame/plan.md` and `frame/questions.md` that needs the number cites the
+list by its coordinate and does not repeat it. An item's own number, such
+as *Scope* item 3, is a coordinate and not a count. A fix or a fold that
+changes the list then changes the one count beside it and leaves no stale
+copy elsewhere, as `skills/core/SKILL.md` *The rule a mechanism is kept
+against* asks of every fact: one source, and every other place links to
+it.
+
 **A mark is not the answer to a blocked step.** A design that adds a
 mechanism, such as a gate, a check, a hook, a CI step, a rule, a line grammar,
 a label or a mark, names in `## Removes` what it takes out in return, with

@@ -96,6 +96,7 @@ seal/
     ├── trail/gate.md      the one broad run, at a SHA, against the base
     ├── changelog.md       this work item's entry in the next release's notes
     ├── gaps.md            the closing memo: what the diff cannot show
+    ├── pr.md              the pull request body's first part, read by every round
     └── guarantee.md       the sealer's verdict on the work, at a SHA
 ```
 

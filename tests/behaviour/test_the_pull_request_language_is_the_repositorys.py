@@ -253,13 +253,15 @@ def test_the_existing_mirrors_are_consistent_with_the_rule():
     # of the tree instead, by a second listing that has to agree at any size,
     # and the rule's teeth move to
     # `test_a_mirror_named_for_a_country_is_refused_by_the_same_rule`.
+    # `pr.md` is the body's first part, not a mirror, and the glob does not
+    # match it, so the listing leaves it out too (#1415).
     threads = os.path.join(ROOT, "seal", "threads")
     listed = sorted(
         name
         for d in (os.listdir(threads) if os.path.isdir(threads) else [])
         if os.path.isdir(os.path.join(threads, d))
         for name in os.listdir(os.path.join(threads, d))
-        if name.startswith("pr.") and name.endswith(".md")
+        if name.startswith("pr.") and name.endswith(".md") and name != "pr.md"
     )
     assert mirrors == listed, "the glob and the listing disagree about the mirrors"
 

@@ -240,15 +240,20 @@ From `frame/questions.md`.
 </details>
 """
 
-OWN = "Closes #1.\n\nThe motivation, in the orchestrator's words.\r\n"
+# The work item's `pr.md`, the body's first part: a quote of a record with
+# its coordinate, a CRLF line among them, and the `Closes` line.
+OWN = '"`seal pr-body` writes it (#1)." (`changelog.md`, line 1)\r\n\nCloses #1.\n'
 
 
-def item_of(tmp_path, records):
-    """The work item NAME under `tmp_path`, holding RECORDS by path."""
+def item_of(tmp_path, records, own=OWN):
+    """The work item NAME under `tmp_path`, holding RECORDS by path and OWN
+    as its `pr.md`'s bytes, or no `pr.md` where OWN is None."""
     item = tmp_path / NAME
     item.mkdir()
     for rel, text in records.items():
         write(item, rel, text)
+    if own is not None:
+        (item / "pr.md").write_bytes(own.encode("utf-8"))
     return item
 
 
@@ -311,6 +316,7 @@ def sealed_item(repo, row=ROW, verdict=SEALED, base="feature/x"):
     item = home / "threads" / NAME
     for rel, text in RECORDS.items():
         write(item, rel, text)
+    (item / "pr.md").write_bytes(OWN.encode("utf-8"))
     git_in(repo, "add", "-A")
     git_in(repo, "commit", "-qm", "the build")
     if verdict is not None:
@@ -518,20 +524,21 @@ class Test_split:
         assert PR.split(OWN + "## From the records\n" + copy) == (OWN, copy)
 
     def test_refuses_a_body_with_no_heading_line(self):
-        """S7. A body with no line equal to `HEADING` has no part of its own
-        to keep; a heading line with a word after it is no such line, and
-        nor is the line of the body 0.25.0 wrote. The refusal names the
-        repair, so the reader of a body written before 0.25.1 has a way on
-        (round 1 of #1148, finding 2)."""
+        """S7. A body with no line equal to `HEADING` is not one the command
+        wrote; a heading line with a word after it is no such line, and nor
+        is the line of the body 0.25.0 wrote. The refusal names the repair,
+        the writing form, which writes the body whole from `pr.md` and the
+        records (round 1 of #1148, finding 2)."""
         for body in (
             "## What changed\n\n## From the records, really\n",
             "## What changed\n\n## Not from the records\n",
         ):
             with pytest.raises(PR.Refused) as refused:
                 PR.split(body)
-            assert (
-                f"write your part above a line reading `{PR.HEADING}`, or remove "
-                "the file, and run the command again" in refused.value.causes[0][2]
+            assert refused.value.causes[0][2] == (
+                f"no line reads `{PR.HEADING}`, so the body is not one this "
+                "command wrote: run `seal pr-body <item> --body <file>`, which "
+                "writes it whole, and check it again"
             ), refused.value.causes
 
 
@@ -552,6 +559,47 @@ class Test_read_item:
         path.write_text(GAPS, encoding="utf-8")
         with pytest.raises(PR.Refused):
             PR.read_item(str(path))
+
+
+class Test_read_own:
+    def test_accepts_pr_md_as_its_bytes_stand(self, tmp_path):
+        """The body's first part is `pr.md`'s text with its line ends as
+        they stand, and a file whose last line has no line end gets one, so
+        the heading after it stands on its own line. Seen red with the line
+        end's addition alone removed, where the heading joined the last
+        line."""
+        item = item_of(tmp_path, RECORDS)
+        assert PR.read_own(str(item)) == OWN
+        (item / "pr.md").write_bytes(b"Closes #1.")
+        assert PR.read_own(str(item)) == "Closes #1.\n"
+
+    def test_refuses_a_line_equal_to_the_heading(self, tmp_path):
+        """A line of `pr.md` equal to `HEADING` would split the body at
+        `pr.md`'s line rather than at the heading the command writes, so it
+        is refused at that line of `pr.md`."""
+        item = item_of(tmp_path, RECORDS, own=OWN + "## From the records\n")
+        with pytest.raises(PR.Refused) as refused:
+            PR.read_own(str(item))
+        assert refused.value.causes == [
+            (
+                "pr.md",
+                4,
+                "reads `## From the records`, the line the body's two parts split at",
+            )
+        ]
+
+    def test_refuses_a_pr_md_that_is_not_utf_8(self, tmp_path):
+        """A `pr.md` that does not decode as UTF-8 is refused at `pr.md`,
+        with no line, rather than raising out of the command, whose `main`
+        catches `Refused` alone. Seen red with `UnicodeDecodeError` taken
+        out of the `except` in `read_own`, where the decode error escaped."""
+        item = item_of(tmp_path, RECORDS)
+        (item / "pr.md").write_bytes(b"Closes #1.\n\xff\n")
+        with pytest.raises(PR.Refused) as refused:
+            PR.read_own(str(item))
+        ((where, line, why),) = refused.value.causes
+        assert (where, line) == ("pr.md", 0)
+        assert why.startswith("cannot be read as UTF-8 text ("), why
 
 
 NOT_YES = (
@@ -733,7 +781,7 @@ class Test_main:
         marked = EXPECTED.replace(
             "## From the records\n\n", f"## From the records\n\n{MARK_LINE}\n\n", 1
         )
-        assert body.read_text(encoding="utf-8") == marked
+        assert body.read_bytes() == (OWN + marked).encode("utf-8")
         assert PR.main([str(item), "--body", str(body), "--check"]) == 0
         assert "seal pr-body:" not in capsys.readouterr().out
 
@@ -761,7 +809,7 @@ class Test_main:
         marked = EXPECTED.replace(
             "## From the records\n\n", f"## From the records\n\n{MARK_LINE}\n\n", 1
         )
-        assert body.read_text(encoding="utf-8") == marked
+        assert body.read_bytes() == (OWN + marked).encode("utf-8")
         assert "seal pr-body:" not in capsys.readouterr().out
 
     def test_accepts_a_local_mode_work_item_from_the_working_directorys_checkout(
@@ -777,6 +825,7 @@ class Test_main:
         item = home / "threads" / NAME
         for rel, text in RECORDS.items():
             write(item, rel, text)
+        (item / "pr.md").write_bytes(OWN.encode("utf-8"))
         sha = git_in(repo, "rev-parse", "HEAD")
         write(
             item,
@@ -791,7 +840,7 @@ class Test_main:
         marked = EXPECTED.replace(
             "## From the records\n\n", f"## From the records\n\n{MARK_LINE}\n\n", 1
         )
-        assert body.read_text(encoding="utf-8") == marked
+        assert body.read_bytes() == (OWN + marked).encode("utf-8")
         assert "seal pr-body:" not in capsys.readouterr().out
 
     def test_refuses_the_mark_on_a_row_other_than_yes_and_exits_0(
@@ -806,46 +855,116 @@ class Test_main:
         out = capsys.readouterr().out.splitlines()
         assert out[0] == "seal pr-body: " + NOT_YES.format(value="Yes")
         assert out[1].startswith("wrote: ")
-        assert body.read_text(encoding="utf-8") == EXPECTED
+        assert body.read_bytes() == (OWN + EXPECTED).encode("utf-8")
 
-    def test_accepts_a_stale_body_and_keeps_its_own_part_byte_for_byte(self, tmp_path):
-        """S8. The part above the heading, the orchestrator's, is kept as
-        its bytes stood, a CRLF line among them, and the part below it is
-        rewritten from the records; with no file, the generated part alone
-        is written."""
+    def test_accepts_pr_md_above_the_heading_whatever_the_body_held(
+        self, tmp_path, capsys
+    ):
+        """S8, and the scenario *The body opens with `pr.md`* of the work item
+        that made `pr.md` the first part. The body file is written as
+        `pr.md`'s bytes, a CRLF line among them, then the heading, then the
+        copy, whatever the file held before: a first part of its own and a
+        stale copy are both replaced, and a missing file is written whole.
+        Seen red against `pr_body.py` as 0.33.0 shipped it, which kept the file's
+        own first part and wrote none where there was no file."""
         item = item_of(tmp_path, RECORDS)
         body = tmp_path / "pr-body.md"
         stale = EXPECTED.replace("the reader | its cases", "the reader | nothing")
-        body.write_bytes((OWN + stale).encode("utf-8"))
+        body.write_bytes(("A first part of its own.\n\n" + stale).encode("utf-8"))
+        capsys.readouterr()
         assert PR.main([str(item), "--body", str(body)]) == 0
         assert body.read_bytes() == (OWN + EXPECTED).encode("utf-8")
+        assert capsys.readouterr().out == (
+            f"wrote: {body} from {item}'s `pr.md` and records\n"
+        )
         fresh = tmp_path / "fresh.md"
         assert PR.main([str(item), "--body", str(fresh)]) == 0
-        assert fresh.read_bytes() == EXPECTED.encode("utf-8")
+        assert fresh.read_bytes() == (OWN + EXPECTED).encode("utf-8")
 
     def test_accepts_the_written_body_under_check_and_writes_nothing(
         self, tmp_path, capsys
     ):
-        """S9. The file S8 writes is what the records give, and it still is
-        once the orchestrator has written its part above the heading: the
-        check reads the part below it alone."""
+        """S9. The file S8 writes is `pr.md` above the heading and what the
+        records give below it, and the check says so and writes nothing."""
         item = item_of(tmp_path, RECORDS)
         body = tmp_path / "pr-body.md"
         assert PR.main([str(item), "--body", str(body)]) == 0
         written = body.read_bytes()
+        capsys.readouterr()
         assert PR.main([str(item), "--body", str(body), "--check"]) == 0
         assert body.read_bytes() == written
-        body.write_bytes(OWN.encode("utf-8") + written)
-        assert PR.main([str(item), "--body", str(body), "--check"]) == 0
-        assert body.read_bytes() == OWN.encode("utf-8") + written
-        assert "refused:" not in capsys.readouterr().out
+        assert capsys.readouterr().out == (
+            f"matches: {body} is `pr.md` above `{PR.HEADING}` and the records' "
+            "text below it\n"
+        )
+
+    @pytest.mark.parametrize(
+        "old, new, said",
+        [
+            (
+                b"Closes #1.",
+                b"Closes #2.",
+                "refused: pr-body.md:3: reads `Closes #2.`; pr.md gives `Closes #1.`\n",
+            ),
+            (
+                b"\nCloses #1.\n",
+                b"\nCloses #1.\nA sentence of the orchestrator's own.\n",
+                "refused: pr-body.md:4: reads `A sentence of the orchestrator's "
+                "own.`, which pr.md does not give\n",
+            ),
+            (
+                b"\nCloses #1.\n",
+                b"\n",
+                "refused: pr-body.md:3: lacks `Closes #1.`, which pr.md gives\n",
+            ),
+        ],
+        ids=["a line changed", "a line added", "a line taken out"],
+    )
+    def test_refuses_a_first_part_that_is_not_pr_md_naming_its_line(
+        self, tmp_path, capsys, old, new, said
+    ):
+        """The scenario *A first part that is not `pr.md` is refused*. A
+        body whose part above the heading differs from `pr.md` at one line,
+        changed, added or taken out, exits 1 on one `refused:` line naming
+        that line of the body, counted from its first line, and the line
+        `pr.md` gives where it gives one; the file is left as it stood. Seen
+        red with the comparison of the first part removed, where the check
+        exited 0."""
+        item = item_of(tmp_path, RECORDS)
+        body = tmp_path / "pr-body.md"
+        assert PR.main([str(item), "--body", str(body)]) == 0
+        edited = body.read_bytes().replace(old, new, 1)
+        body.write_bytes(edited)
+        capsys.readouterr()
+        assert PR.main([str(item), "--body", str(body), "--check"]) == 1
+        assert capsys.readouterr().out == said
+        assert body.read_bytes() == edited
+
+    @pytest.mark.parametrize("check", [False, True], ids=["write", "check"])
+    def test_refuses_a_work_item_with_no_pr_md(self, tmp_path, capsys, check):
+        """The scenario *A work item with no `pr.md` is refused*. Either form
+        exits 1 on one `refused:` line naming `pr.md` by its path under the
+        `seal/` root and the repair, and leaves the body file as it stood.
+        Seen red against `pr_body.py` as 0.33.0 shipped it, where both forms
+        exited 0."""
+        item = item_of(tmp_path, RECORDS, own=None)
+        body = tmp_path / "pr-body.md"
+        body.write_bytes(EXPECTED.encode("utf-8"))
+        capsys.readouterr()
+        argv = [str(item), "--body", str(body)] + (["--check"] if check else [])
+        assert PR.main(argv) == 1
+        assert capsys.readouterr().out == (
+            f"refused: seal/threads/{NAME}/pr.md: is not there; the orchestrator "
+            "writes it before the first round\n"
+        )
+        assert body.read_bytes() == EXPECTED.encode("utf-8")
 
     def test_refuses_an_edited_copy_naming_both_lines(self, tmp_path, capsys):
         """S9, the class of #857's withheld item 5, a changelog fact restated
         wrongly: one sentence of the copied changelog changed is refused at
-        the body's line, counted from the body's first line, the
-        orchestrator's part above the heading among them, with the record's
-        line it should read."""
+        the body's line, counted from the body's first line, `pr.md`'s lines
+        above the heading among them, with the record's line it should
+        read."""
         item = item_of(tmp_path, RECORDS)
         body = tmp_path / "pr-body.md"
         edited = EXPECTED.replace(
@@ -883,27 +1002,18 @@ class Test_main:
         )
         assert str(tmp_path) not in out
 
-    @pytest.mark.parametrize(
-        "records, text",
-        [
-            (RECORDS, "## What changed\n\nno heading here\n"),
-            (
-                {
-                    **RECORDS,
-                    "trail/rounds/round-1.md": ROUND_1.replace(
-                        "verdict: fixed 2222222", "verdict: done"
-                    ),
-                },
-                OWN + EXPECTED,
+    def test_refuses_and_writes_nothing(self, tmp_path, capsys):
+        """S6's refused record exits 1 on a `refused:` line and leaves the
+        body file as it stood."""
+        records = {
+            **RECORDS,
+            "trail/rounds/round-1.md": ROUND_1.replace(
+                "verdict: fixed 2222222", "verdict: done"
             ),
-        ],
-        ids=["no heading", "a refused round record"],
-    )
-    def test_refuses_and_writes_nothing(self, tmp_path, capsys, records, text):
-        """S8's body with no heading, and S6's refused record, each exit 1
-        on a `refused:` line and leave the body file as it stood."""
+        }
         item = item_of(tmp_path, records)
         body = tmp_path / "pr-body.md"
+        text = OWN + EXPECTED
         body.write_bytes(text.encode("utf-8"))
         assert PR.main([str(item), "--body", str(body)]) == 1
         assert capsys.readouterr().out.startswith("refused: ")

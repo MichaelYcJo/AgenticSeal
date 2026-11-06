@@ -820,11 +820,12 @@ read against S1.
 SEALER_CHANGELOG = (
     "- `shout` keeps empty text empty instead of returning a lone `!` (#101).\n"
 )
-# The part of each case's pull request body above `pr_body.HEADING`, the
-# orchestrator's: what no record holds, and a record's fact only as that
-# record's own sentence or with the coordinate that holds it. The part
-# below it is `pr_body.compose` over the case's records.
-OWN_PART = "{extra}Closes #101.\n\n"
+# Each case's `pr.md`, the orchestrator's part of the pull request body,
+# which it commits before the first round and `seal pr-body` writes above
+# `pr_body.HEADING`: the `Closes` line, after the claim a case adds. The
+# body is this text as `write` leaves it, one line end after its last line,
+# then `pr_body.compose` over the case's records.
+OWN_PART = "{extra}Closes #101.\n"
 # The record `seal gate --record` writes, in `broad_gate.write_gate_file`'s
 # shape: the work item's heading and one run block. Its commits are
 # placeholders the scaffold fills, hexadecimal as `BUILD_SHA` is, because
@@ -837,8 +838,8 @@ GATE_RECORD = f"""# {{item}} — broad gate
 run: {RUN_SHA} against {BASE_SHA}
 ```
 """
-# Each case: (slug, the case's assertion is true, the claim the body's
-# `OWN_PART` adds before its `Closes` line, the verdict the guarantee reads,
+# Each case: (slug, the case's assertion is true, the claim the case's
+# `pr.md` adds before its `Closes` line, the verdict the guarantee reads,
 # the pattern its verdict line must match to name what the tree
 # contradicts, or None for a sealed item, and whether
 # the orchestrator's broad run is recorded before the spawn: True, False, or
@@ -850,7 +851,7 @@ SEALER_RUNS = (
         True,
         "`README.md` now documents `shout` and its empty-text rule.\n\n",
         "withheld",
-        r"^Verdict:.*(?:pull request body|PR body|README)",
+        r"^Verdict:.*(?:pull request body|PR body|pr\.md|README)",
         True,
     ),
     (
@@ -879,12 +880,12 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
     """One reviewed work item for the sealer to guarantee.
 
     The build fixes `shout("")`; its phase record says the new case was seen
-    red; the round record confirms it; the changelog describes it. The pull
-    request body is the orchestrator's part, `OWN_PART`, then
-    `pr_body.compose` over the records; its placeholders are filled as the
-    records' are, so `seal pr-body --check` accepts it. One case makes the
-    orchestrator's part claim a change the tree lacks, and one makes the case
-    pass against the old code too.
+    red; the round record confirms it; the changelog describes it. The work
+    item's `pr.md` is `OWN_PART`, committed with the round record, and the
+    pull request body is that text, then `pr_body.compose` over the records;
+    its placeholders are filled as the records' are, so `seal pr-body
+    --check` accepts it. One case makes `pr.md` claim a change the tree
+    lacks, and one makes the case pass against the old code too.
 
     Where GATE holds, the orchestrator's broad run is on record the way the
     flow leaves it: `trail/gate.md` names the commit the records were written
@@ -935,10 +936,12 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
         "gaps.md",
     ):
         lines.append(write(f"{folder}/{rel}", records[rel]))
+    own = OWN_PART.format(extra=extra)
+    lines.append(write(f"{folder}/pr.md", own))
     lines.append(fill(f"{folder}/trail/rounds/round-1.md", built))
     lines += [
         "git add -A",
-        f"{BY} 'docs: the phase record, round 1 and the changelog'",
+        f"{BY} 'docs: the phase record, pr.md, round 1 and the changelog'",
     ]
     if gate:
         record = f"{folder}/trail/gate.md"
@@ -959,7 +962,7 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
     body = f"{evidence}/pr-body.md"
     lines += [
         write(f"{evidence}/issue-101.md", ISSUE),
-        write(body, OWN_PART.format(extra=extra) + pr_body.compose(item, records)),
+        write(body, own + pr_body.compose(item, records)),
         fill(body, built + (ran if gate else [])),
     ]
     guarantee = f"{folder}/guarantee.md"
