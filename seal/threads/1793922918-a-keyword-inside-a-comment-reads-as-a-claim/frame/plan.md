@@ -71,7 +71,7 @@ shape.
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Scope 1 to 7 of `frame/design.md` | S1 to S9: the four new cases each shown red at `3cdf510d`, and the existing cases of `tests/github/test_close_issues_on_release.py`, `tests/github/test_issue_claims_check.py`, `tests/github/test_release_completeness_check.py`, `tests/github/test_label_merged_on_release_branch.py`, `tests/github/test_publish_release_note.py`, `tests/skills/test_pr_body.py` and `tests/behaviour/test_a_body_naming_two_issues_claims_one.py`, run narrow by the crafter | |
+| 1 | Scope 1 to 7 of `frame/design.md` | S1 to S9: the four new cases each shown red at `3cdf510d`, and the existing cases of `tests/github/test_close_issues_on_release.py`, `tests/github/test_issue_claims_check.py`, `tests/github/test_release_completeness_check.py`, `tests/github/test_label_merged_on_release_branch.py`, `tests/github/test_publish_release_note.py`, `tests/skills/test_pr_body.py` and `tests/behaviour/test_a_body_naming_two_issues_claims_one.py`, run narrow by the crafter | b28430f2 |
 
 ## Operational impact
 
