@@ -194,21 +194,17 @@ class Test_read:
 
     def test_the_shapes_the_closer_masks_since_266_are_masked_here_too(self):
         """The patterns are imported, so a widening of the closer's masks is a
-        widening here — which is the reason for importing them (#266). Three
-        shapes, each holding a body that would otherwise warn or claim."""
+        widening here — which is the reason for importing them (#266). Four
+        shapes, each holding a body that would otherwise warn or claim: the
+        three #266 masked, and the HTML comment #1181 masked, whose keyword and
+        number GitHub renders neither, so neither is claimed or mentioned."""
         for body in (
             "~~~\nCloses #11, #22\n~~~\n\nDo not write that.",
             "- the example:\n  ```\n  Closes #11, #22\n  ```\n\nDo not write that.",
             "see ``Closes #11, #22`` in the ticket",
+            "<!-- Closes #11, #22 -->\n\nDo not write that.",
         ):
             assert read(body) == ([], [], []), body
-
-    def test_a_keyword_inside_an_html_comment_is_masked_here_too(self):
-        """#1181. GitHub renders neither the keyword nor the number inside a
-        comment, so the check reports neither as claimed and neither as
-        mentioned, and a sentence the comment holds earns no warning."""
-        body = "<!-- Closes #11, #22 -->\n\nDo not write that."
-        assert read(body) == ([], [], [])
 
     def test_a_fence_does_not_splice_the_line_above_it_onto_the_line_below(self):
         """The masking is length-preserving for this reason. Collapsing a fenced
