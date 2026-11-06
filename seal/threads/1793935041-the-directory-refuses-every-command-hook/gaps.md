@@ -43,14 +43,6 @@ of phase 1 does for every stale id, so the plan's grep for phase 7 lists
 that file. `trail/phases/phase-7.md` lists the other paths the grep keeps
 on purpose.
 
-`CONTRIBUTING.md` *What a change to a gate must carry* still opens "The
-gates decide whether someone's commit or branch switch proceeds", and
-`.github/PULL_REQUEST_TEMPLATE.md:30` says "a gate decides whether somebody
-else's commit proceeds". Both describe the hooks earlier phases removed.
-Phase 7 changed only the path in the sentence beside each (`hooks/` to
-`lib/`). What a gate is now is a policy sentence, and no phase's Delivers
-cell names it.
-
 The repository's GitHub label `hooks-gates` keeps its name and its
 description, "Hooks, the commit gate, the worktree guard". The label lives
 outside the tree, so no phase changes it; the owner renames it or leaves it.

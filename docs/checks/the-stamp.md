@@ -169,7 +169,9 @@ Nothing draws, and nothing says so, where the person installed no hook or
 declined it; where the `python3` the harness finds cannot load
 `seal_stamp.py`; where the main session's working directory is outside the
 clone the stamp was queued in; or where the launcher names a root that is
-gone. Where a file was written, the line `--guarantee` printed names
+gone. Where the settings entry outlives its launcher, its command fails at
+the end of every turn until `seal stamp --remove` takes the entry out.
+Where a file was written, the line `--guarantee` printed names
 `seal stamp --from <path>`, and a stamp that did not appear is drawn by hand
 from it, once. Where none was, the pull request's check is what says the work
 item was sealed.

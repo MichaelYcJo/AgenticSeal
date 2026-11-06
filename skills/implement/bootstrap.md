@@ -24,11 +24,12 @@ it from `templates/` in this plugin and continues. In particular:
 place, the orchestrator asks once, in the one call step 1 states, before
 creating anything, then does two more things before continuing.**
 Creating the root is what opts the repository in: from the next command on,
-every gate here is awake. Where the root lands, committed with the repository
-or under the git directory on this machine only, is the person's decision and
-not the orchestrator's. Nobody reads a README to discover a question they did
-not know to ask, so this is the only place the mode, and whether the project
-ports an original codebase, are asked at all.
+the `seal` commands and the pull request's check read it. Where the root
+lands, committed with the repository or under the git directory on this
+machine only, is the person's decision and not the orchestrator's. Nobody
+reads a README to discover a question they did not know to ask, so this is
+the only place the mode, and whether the project ports an original
+codebase, are asked at all.
 
 **A `<repo>/seal/` whose `README.md` does not open with the marker is the
 project's own.** The marker is the first line of
@@ -39,10 +40,11 @@ orchestrator writes nothing into it and offers neither shared option, because
 directory, at `$(git rev-parse --git-common-dir)/seal/`, as the local option
 below creates it, and the orchestrator says so in one line: *"`<repo>/seal/` is this
 project's own, so the plugin keeps its root under the git directory, in local
-mode"*. The one call of step 1 then carries the `Broad gate` question alone.
+mode"*. The one call of step 1 then carries the `Broad gate` question, and
+the stamp's where nothing records an answer to it.
 
 1. The orchestrator asks once, with one `AskUserQuestion` carrying **two
-   questions**: the mode, and the `Broad gate` row, and the stamp as a third
+   questions**, or three: the mode, the `Broad gate` row, and the stamp
    where nothing records an answer to it. The mode's three options come
    first, in this order:
 

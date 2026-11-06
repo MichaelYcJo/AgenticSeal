@@ -65,9 +65,9 @@ check: tests/behaviour/test_a_cited_section_stands_in_its_file.py
 its `README.md` opens with the plugin's marker**: `<repo>/seal/` in shared
 mode, `$(git rev-parse --git-common-dir)/seal/` in local mode. The marker is
 the first line of `templates/setup/seal-README.md`, written at first setup.
-The hooks look at the
-two places in that order; whichever exists with the marker says both "on"
-and which mode. A `seal/` whose README does not open with the marker is a
+The `seal` commands, the pull request's check and the stamp's `--stop` look
+at the two places in that order; whichever exists with the marker says both
+"on" and which mode. A `seal/` whose README does not open with the marker is a
 project's own directory,
 as a package named `seal` has one, and reads as not opted in; first setup
 that meets one writes nothing into it and keeps the root under the git
@@ -78,12 +78,13 @@ twice what the folder already says.
 | | Shared mode | Local mode |
 |---|---|---|
 | Who decides | whoever committed `seal/`, for every clone that installed the plugin | the developer of that clone |
-| A collaborator who set nothing up | gated, once the plugin is installed | runs nothing, because their clone has no root under its git directory |
+| A collaborator who set nothing up | in the workflow, once the plugin is installed | runs nothing, because their clone has no root under its git directory |
 
 A collaborator who never installed the plugin runs nothing in either mode,
-because the hooks are the plugin's. The fail direction is that no folder at
-either place means not opted in, and a hook that cannot tell does nothing.
-A throwaway repository turns the gates off with an empty file,
+because the entry skill and the `seal` commands are the plugin's. The fail
+direction is that no folder at either place means not opted in, and a
+command that cannot tell reads the repository as not opted in.
+A throwaway repository reads as not opted in with an empty file,
 `.git/agentic-scratch`, under the common git directory, which no commit can
 carry to another clone.
 check: tests/lib/test_optin.py

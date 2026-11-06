@@ -12,7 +12,7 @@
 - **`hooks/lib/` is now `lib/`, and `tests/hooks/` is now `tests/lib/`.** `seal.py#HOOKS` is `seal.py#LIB`. No command-line interface changes with the move.
 - **The plugin description drops "without asking anyone", and its keywords drop `hooks`.**
 
-Updating: nothing to do for the hooks, since none is registered. `/agentic:update` asks once whether to draw the terminal stamp. A person who answered no and changes their mind runs `seal stamp --install`.
+Updating: nothing to do for the hooks, since none is registered. The update that installs 0.33.0 runs the earlier release's `/agentic:update`, which does not ask about the stamp, and the earlier release's stamp hooks stop at the restart onto 0.33.0. Run `/agentic:update` once more after that restart: it reports the plugin current and still asks once whether to draw the terminal stamp. A person who answered no and changes their mind runs `seal stamp --install ~/.claude/plugins/data/agentic-agenticseal --settings ~/.claude/settings.json`, with the plugin's data directory and settings file under `CLAUDE_CONFIG_DIR` where that is set.
 
 ### Process changes
 

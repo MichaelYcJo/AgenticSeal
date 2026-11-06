@@ -478,13 +478,13 @@ LOCAL_LIMIT = {
     "README.md": (
         "In local mode no pull-request check reads the records, so "
         "`agents/sealer.md` step 1 and the orchestrator's guidance alone hold "
-        "the last four rows of `skills/core/SKILL.md` *Judgment is not licence "
+        "the four rows of `skills/core/SKILL.md` *Judgment is not licence "
         "to skip a party*, and that is a limit."
     ),
     "README.ko.md": (
         "local 모드에서는 기록을 커밋하지 않으므로 pull request 검사가 읽을 "
         "기록이 없습니다. 그래서 `skills/core/SKILL.md` *Judgment is not "
-        "licence to skip a party* 표의 마지막 네 행은 sealer 의 1단계"
+        "licence to skip a party* 표의 네 행은 sealer 의 1단계"
         "(`agents/sealer.md`)와 작업을 이끄는 세션이 따르는 지침만이 지키며, "
         "이것이 local 모드의 한계입니다."
     ),

@@ -64,8 +64,8 @@ its own line, and cites the release document's paragraph.
 **The READMEs' sentence.** `README.md` *Shared or local* and `README.ko.md`
 *shared 인가 local 인가* gain one paragraph right under the table of the
 three answers. It cites `skills/core/SKILL.md` *Judgment is not licence to
-skip a party*, whose closing sentence already says that in local mode the
-last four rows are held by `agents/sealer.md` step 1 and the orchestrator.
+skip a party*, whose closing sentence says who holds the table's rows in
+local mode.
 The Korean edition says it in two sentences and calls the orchestrator
 "작업을 이끄는 세션", as the rest of `README.ko.md` names that session.
 `tests/behaviour/test_first_setup_asks_once.py#test_the_readme_states_what_local_mode_leaves_unchecked_under_the_table`

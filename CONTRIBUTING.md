@@ -339,7 +339,7 @@ record of the work item that rebuilt the module, in four parts:
 
 ## What a change to a gate must carry
 
-The gates decide whether someone's commit or branch switch proceeds, so a
+The gates decide whether someone's pull request or run goes ahead, so a
 change to one is judged by what it does when it is wrong, and a change that
 adds any mechanism by what it takes away:
 
@@ -349,8 +349,9 @@ adds any mechanism by what it takes away:
   counterfeit seal).
 - **A stated failure direction.** The pull request says whether the change
   makes the gate block more or allow more, and why that direction is the
-  cheaper mistake here. A wrong deny costs a prompt; a wrong allow can break
-  another session's tree. A deny that fires on *every* invocation in some
+  cheaper mistake here. A wrong deny stops a correct pull request or run
+  until someone repairs the gate; a wrong allow lets through what the gate
+  was there to stop. A deny that fires on *every* invocation in some
   environment is an outage, not a cost.
 - **A prompt budget.** The pull request says how many times the change puts
   a question in front of a person, per session, and what each one costs when
@@ -383,7 +384,7 @@ adds any mechanism by what it takes away:
   script holds a gate only on a fact it reads exactly, and whether a line
   spelt otherwise meant the label is the reading agent's judgment.
 - **A gap only work with no work item passes through is not a weakness.** A
-  gate that stops a session guards the work a work item owns. A change that
+  gate guards the work a work item owns. A change that
   would be routed `no work item`, such as a formatter run, a dependency bump
   or an identifier renamed across files by `sed`, is outside that work, so
   where only such a change passes through a gap in that kind of gate, the
@@ -454,9 +455,11 @@ question is not its difficulty, it is when it arrives.
   data directory, and only on the yes to the question first setup and
   `/agentic:update` put. Its command is `python3 <launcher> || py -3
   <launcher>`: shebangs and exec bits do not exist on Windows, and `python3`
-  is the one name its official installer does not create. The fallback is
-  safe because the launcher exits 0 whatever happens, so `||` is reached
-  only when the first interpreter could not start. It reaches no network;
+  is the one name its official installer does not create. While the
+  launcher stands, the fallback is reached only when the first interpreter
+  could not start, because the launcher exits 0 whatever happens. Where the
+  entry outlives its launcher, both halves fail at the end of every turn
+  until `seal stamp --remove` takes the entry out. It reaches no network;
   `README.md` *What runs on your machine* names the commands and steps that
   do, what each reaches, what it sends and when. Anything that would send
   repository contents, paths, or prompts is not on the table.

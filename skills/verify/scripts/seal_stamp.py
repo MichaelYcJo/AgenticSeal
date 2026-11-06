@@ -1583,7 +1583,8 @@ def _data_dir(path):
 
 def hook_command(data_dir):
     """The command of the `Stop` entry for the launcher under DATA_DIR:
-    `python3` first and `py -3` where the first could not start
+    `python3` first and `py -3` where the first exits non-zero, which,
+    while the launcher stands, is only where it could not start
     (`CONTRIBUTING.md` *House rules*)."""
     launcher = os.path.join(data_dir, LAUNCHER)
     return f'python3 "{launcher}" || py -3 "{launcher}"'

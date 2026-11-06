@@ -168,7 +168,7 @@ The first-setup question has three answers:
 
 In local mode no pull-request check reads the records, so
 `agents/sealer.md` step 1 and the orchestrator's guidance alone hold the
-last four rows of `skills/core/SKILL.md` *Judgment is not licence to skip a
+four rows of `skills/core/SKILL.md` *Judgment is not licence to skip a
 party*, and that is a limit.
 
 Local mode fits a repository whose tree must not carry this plugin's files,

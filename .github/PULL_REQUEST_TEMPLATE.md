@@ -27,6 +27,6 @@ module you touched is enough; CI runs the rest on three platforms. Say which
 things you read rather than ran. -->
 
 <!-- CHANGING A GATE? Anything under lib/ or .github/workflows/ carries a
-higher bar, because a gate decides whether somebody else's commit proceeds.
-CONTRIBUTING.md, "What a change to a gate must carry", lists what this body
-answers for it. -->
+higher bar, because a gate decides whether somebody else's pull request or
+run goes ahead. CONTRIBUTING.md, "What a change to a gate must carry", lists
+what this body answers for it. -->
