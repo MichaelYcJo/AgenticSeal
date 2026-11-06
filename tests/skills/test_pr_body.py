@@ -477,7 +477,7 @@ class Test_compose:
         `-->` closes on the line, at its start or behind a list marker, is
         refused for the opener, with a keyword after it or without one:
         GitHub hides the lines that follow it, the fold's end among them
-        (#1405)."""
+        (#1405, and #1408 behind a list marker)."""
         with pytest.raises(PR.Refused) as refused:
             PR.compose(NAME, {**RECORDS, rel: text})
         assert [(where, at) for where, at, _ in refused.value.causes] == [(rel, line)]

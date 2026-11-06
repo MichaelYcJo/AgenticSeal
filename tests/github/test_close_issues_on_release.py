@@ -457,8 +457,8 @@ class Test_keywords_in:
             "a backtick inside a comment opened a span that hid the claim"
         )
         # A `<!--` that never closes, at a line start (#1403, #1405), and
-        # behind a list marker, which no measurement reached: masking more
-        # closes fewer.
+        # behind a list marker, where GitHub hides what follows past the
+        # list's end (#1408).
         assert m.keywords_in("Closes #1401\nCloses #4\n<!-- Closes #32") == [
             "1401",
             "4",
