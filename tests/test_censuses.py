@@ -608,7 +608,7 @@ class Test_entry_point:
     @pytest.mark.parametrize(
         "rel", [".github/scripts/x.py", "evals/scripts/x.py", "tests/x.py"]
     )
-    def test_refuses_a_block_without_an_answer_outside_hooks(self, tmp_path, rel):
+    def test_refuses_a_block_without_an_answer_outside_lib(self, tmp_path, rel):
         root = plant(tmp_path, rel, "import sys\n\n" + GUARD + "    main()\n")
         assert lines_of(censuses.entry_point(rel, root)) == [f"{rel}:3"]
 
