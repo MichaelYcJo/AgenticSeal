@@ -57,6 +57,11 @@ nothing else needs to change.
 -
 ```
 
+```seal
+verdict: fixed 05f8cd36
+answer: The paragraph is removed whole, as the diff gives it. `git grep -c 'tests/hooks' -- .test_durations` at fcdb46f3 printed nothing and exited 1, which agrees with the finding. `trail/phases/phase-7.md` states the commit it names and stays.
+```
+
 ## Confirmations
 
 ```seal
