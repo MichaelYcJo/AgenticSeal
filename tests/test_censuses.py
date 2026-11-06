@@ -1098,6 +1098,7 @@ SLASH_IMPORTS = {
 }
 # Each source has `/` near a join and none inside one of its arguments.
 NO_SLASH_JOINED = {
+    "each-part-its-own-argument": 'import os\nos.path.join(r, "trail", "gate.md")\n',
     "posixpath": 'import posixpath\nposixpath.join("a/b", "c")\n',
     "ntpath": 'import ntpath\nntpath.join(r, "a/b")\n',
     "the-constant-split": (
