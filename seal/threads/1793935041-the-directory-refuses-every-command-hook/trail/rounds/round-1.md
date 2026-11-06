@@ -42,6 +42,11 @@ the stamp's where nothing records an answer to it.
    first, in this order:
 ```
 
+```seal
+verdict: fixed 1f412308
+answer: Applied as written after reading it against `skills/implement/bootstrap.md:158-175`, which puts the stamp question as the third where `seal stamp --hook` prints `neither`, and against `frame/design.md` *Scope* item 7. Line 42 now says the one call carries the `Broad gate` question and the stamp's where nothing records an answer, and step 1 keeps "two questions" for `tests/behaviour/test_first_setup_asks_once.py:148` and adds "or three". `bin/test tests/behaviour/test_first_setup_asks_once.py` is in the set that passed, exit 0.
+```
+
 ### 2. The opt-in section of the root-by-lifetime document still says the hooks read the root and act on it
 
 ```seal
@@ -111,6 +116,11 @@ Creating the root is what opts the repository in: from the next command on,
 the `seal` commands and the pull request's check read it. Where the root lands,
 ```
 
+```seal
+verdict: fixed 1f412308
+answer: The three blocks were applied after `git grep -n -E 'home_at\(|opted_in\('` outside `tests/` confirmed the readers: the `seal` commands, `chain_check.py`, `pr_body.py`, `settle.py`, `fold_check.py`, `pact_check.py`, `unverified_check.py`, `release_seal.py` and the stamp's `--stop` at `seal_stamp.py:1505`. Both editions of `docs/layout/one-root-by-lifetime.md` *The opt-in signal is the root itself* now name those readers, the table's shared-mode cell reads "in the workflow", and the scratch file reads the repository as not opted in. `skills/implement/bootstrap.md:26-31` says the commands and the pull request's check read the root, rewrapped to the 88-column limit `tests/behaviour/test_docs_line_wrap.py` holds. Judged and left: `templates/setup/seal-README.md:57,62,68`, `seal/README.md` at the same lines and the module docstring of `lib/optin.py` say "gate" for a reader of the root. In this repository "gate" names any command or check that reads the root and refuses, as `skills/config/SKILL.md:85` and `templates/setup/config.md:182` use it, so those sentences hold without a hook. The class was listed with the round's own two `git grep` commands (`-w hooks?` over the shipped roots, and `gated|agentic-scratch|gates off|every gate here`). The hits left name pytest's hooks, git's hooks, a generic mechanism list, or "gate" in the sense above. That list is a sample: it is built from spellings, and a sentence that describes a hook's act without either word is outside it.
+```
+
 ### 3. The README's local-mode limit names "the last four rows" of a table that has four, and phase 6's record says the core still reads that way
 
 ```seal
@@ -153,6 +163,11 @@ The two `LOCAL_LIMIT` strings of the case take the same words. In
 `skills/core/SKILL.md` *Judgment is not licence to skip a party*, whose
 closing sentence says who holds the table's rows in local mode."
 
+```seal
+verdict: fixed 1f412308
+answer: Read `skills/core/SKILL.md:98-109`: four rows, and "the four rows" under them. Both READMEs now say "the four rows" and "네 행". The two `LOCAL_LIMIT` strings in `tests/behaviour/test_first_setup_asks_once.py` were changed first, and both parameters of `#test_the_readme_states_what_local_mode_leaves_unchecked_under_the_table` ran red (exit 1, 2 failed) before the READMEs were edited, then passed. `trail/phases/phase-6.md` takes the sentence the finding gives. `git grep -n -E 'last four rows|마지막 네 행'` outside `seal/threads/` now lists nothing.
+```
+
 ### 4. The changelog tells a person updating from 0.32 that `/agentic:update` asks about the stamp, and names `seal stamp --install` without the arguments it requires
 
 ```seal
@@ -184,6 +199,11 @@ not name it, the line can send the person to `seal stamp --hook` in
 
 ```markdown
 Updating: nothing to do for the hooks, since none is registered. The update that installs 0.33.0 runs the earlier release's `/agentic:update`, which does not ask about the stamp, and the earlier release's stamp hooks stop at the restart onto 0.33.0. Run `/agentic:update` once more after that restart: it asks once whether to draw the terminal stamp. A person who answered no and changes their mind runs `seal stamp --install ~/.claude/plugins/data/agentic-agenticseal --settings ~/.claude/settings.json`.
+```
+
+```seal
+verdict: fixed 1f412308
+answer: Read `skills/update/SKILL.md:39-42` at HEAD: where the update reports the plugin current, step 4b still runs, so a second `/agentic:update` after the restart onto 0.33.0 asks the stamp question. The fragment's *Updating* line now says that 0.32.x's update does not ask, that its stamp hooks stop at the restart, and that a second `/agentic:update` reports the plugin current and asks once. For a person who answered no, it gives `seal stamp --install ~/.claude/plugins/data/agentic-agenticseal --settings ~/.claude/settings.json` with both paths under `CLAUDE_CONFIG_DIR` where that is set. `ls ~/.claude/plugins/data/` on this machine lists `agentic-agenticseal`, and `seal_stamp.py#main` (lines 1784-1792) takes `--install DATA_DIR` with `--settings` as that command spells them.
 ```
 
 ### 5. CONTRIBUTING and the pull request template still say a gate decides whether a commit proceeds, which the README this branch rewrote no longer says
@@ -228,6 +248,11 @@ as it stands. The paragraph of `gaps.md` *Not done* that opens
 "`CONTRIBUTING.md` *What a change to a gate must carry* still opens" goes
 with the fix.
 
+```seal
+verdict: fixed 1f412308
+answer: Both blocks applied as written, with the template's line 31 rewrapped. The `gaps.md` *Not done* paragraph is gone. The same section of `CONTRIBUTING.md` held two more sentences that stood on hooks stopping a session, so they are fixed in the same commit. Under *A stated failure direction*, "A wrong deny costs a prompt; a wrong allow can break another session's tree" now reads that a wrong deny stops a correct pull request or run until someone repairs the gate, and a wrong allow lets through what the gate was there to stop. Under *A gap only work with no work item passes through*, "A gate that stops a session" now reads "A gate". `git grep -n -E "commit or branch switch|commit proceeds|wrong deny"` lists no other statement of the old gate outside `seal/threads/` and two test docstrings about the release check's own deny. That list is a sample built from spellings.
+```
+
 ### 6. CONTRIBUTING says the stamp hook's fallback runs only when `python3` cannot start, and a settings entry whose launcher is gone fails at every turn
 
 ```seal
@@ -269,6 +294,11 @@ def hook_command(data_dir):
     `python3` first and `py -3` where the first exits non-zero, which,
     while the launcher stands, is only where it could not start
     (`CONTRIBUTING.md` *House rules*)."""
+```
+
+```seal
+verdict: fixed 1f412308
+answer: Ran `sh -c 'python3 "/nonexistent-agentic-probe/stamp.py" || py -3 "/nonexistent-agentic-probe/stamp.py"'` on this machine, and it exited 127, as the finding measured. The three blocks were applied as written, as a limit and with no guard: `CONTRIBUTING.md` *House rules*, the list in `docs/checks/the-stamp.md` of where the hook draws nothing, and the docstring of `seal_stamp.py#hook_command`. `git grep -n -E 'could not start|exits 0 whatever|py -3'` outside `tests/` and `seal/threads/` lists no other sentence saying the fallback is reached only when `python3` cannot start. `README.md:307`'s "It exits 0 whatever happens" is about the launcher, and it holds. `uvx ruff check` and `uvx ruff format --check` on `seal_stamp.py` exited 0, and `tests/skills/test_seal_stamp.py` passed in the set, exit 0.
 ```
 
 ## Confirmations
