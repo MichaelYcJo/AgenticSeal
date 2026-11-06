@@ -13,8 +13,9 @@ After the commit, `git ls-files hooks/` printed nothing.
 
 **Q3: the derivation lists eight of `lib/`'s nine modules, so the floor
 table holds `lib/*.py`.** `frame/questions.md` Q3 defaults to (a),
-`lib/launch.py` alone, "unless the moved test's derivation says otherwise".
-It does. `tests/lib/test_launch.py#before_any_floor` at `b010ad88` lists
+`lib/launch.py` alone, and its default cell says phase 7 "sets the floor to
+what it lists". The list is not `lib/launch.py` alone.
+`tests/lib/test_launch.py#before_any_floor` at `b010ad88` lists
 sixteen files. Eight of them are `lib/blocks.py`, `config.py`, `fields.py`,
 `gate.py`, `gitcmd.py`, `launch.py`, `optin.py` and `routing.py`: the
 stamp's launcher loads `seal_stamp.py`, which loads `lib/optin.py`,
