@@ -154,11 +154,10 @@ scripts a shipped command runs: `bin/test` runs
 `.github/scripts/close_issues_on_release.py` for its reader of closing
 keywords. Every other script there is release automation a workflow runs
 from the tree, and each leaves by a line of its own, so a release-only
-script added there adds its line. The workflow's `dist` job builds the
-commit with `.github/scripts/dist_branch.py` on the previous commit of
-`dist`, makes none where that commit's tree is already the tag's archive,
-and pushes
-without force, because the directory serves a scanned commit of the
+script added there adds its line, or CI fails. The workflow's `dist` job
+builds the commit with `.github/scripts/dist_branch.py` on the previous
+commit of `dist`, makes none where that commit's tree is already the
+tag's archive, and pushes without force, because the directory serves a scanned commit of the
 branch it tracks and a rewritten branch would orphan it. The census that
 reads cited sections and names reads the files `dist` holds against
 `dist`'s files too, so a cited file marked `export-ignore` fails CI. A
