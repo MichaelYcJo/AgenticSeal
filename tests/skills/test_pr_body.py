@@ -588,6 +588,19 @@ class Test_read_own:
             )
         ]
 
+    def test_refuses_a_pr_md_that_is_not_utf_8(self, tmp_path):
+        """A `pr.md` that does not decode as UTF-8 is refused at `pr.md`,
+        with no line, rather than raising out of the command, whose `main`
+        catches `Refused` alone. Seen red with `UnicodeDecodeError` taken
+        out of the `except` in `read_own`, where the decode error escaped."""
+        item = item_of(tmp_path, RECORDS)
+        (item / "pr.md").write_bytes(b"Closes #1.\n\xff\n")
+        with pytest.raises(PR.Refused) as refused:
+            PR.read_own(str(item))
+        ((where, line, why),) = refused.value.causes
+        assert (where, line) == ("pr.md", 0)
+        assert why.startswith("cannot be read as UTF-8 text ("), why
+
 
 NOT_YES = (
     "`Pull request seal mark` reads `{value}`, not `yes`, so the row is not "
