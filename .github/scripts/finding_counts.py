@@ -140,7 +140,7 @@ def item_counts(root, where, routing, chain, reader, records_at):
         return os.path.relpath(path, root).replace(os.sep, "/")
 
     if routing.rounds_unreadable(where):
-        listed = os.path.join(where, routing.ROUNDS_DIR)
+        listed = os.path.join(where, *routing.ROUNDS_DIR.split("/"))
         return [NOT_READ] * 4, [f"{rel(listed)}: {NOT_LISTED}"]
     records = routing.rounds(where)
     found, unread = [], []
@@ -197,7 +197,7 @@ def main(argv=None):
         return 2
     rows, unread = [], []
     for name in sorted(released):
-        where = os.path.join(root, settle.SPECS, name)
+        where = os.path.join(root, *settle.SPECS.split("/"), name)
         if not os.path.isdir(where):
             # Released and since removed from the tree: `seal settle` lists
             # it nowhere either, so it is no row and no line.

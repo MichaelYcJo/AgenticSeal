@@ -9,9 +9,7 @@ each agent; an agent opens the section its definition cites.
 asks of every finding marked closed whether the fix holds, and says so on a
 `confirms:` line where it holds, and where it does not on a finding's
 `reopens:` line, or its `regression:` line where a fix pass's own commit
-made the defect. A round opening nothing that needs a fix does not count
-toward the cap: the cap stops a loop that is not converging, and such a
-round is the loop having converged.
+made the defect. A round opening nothing that needs a fix does not count toward the three finding rounds, which mark where the orchestrator weighs a loop that is not converging and are no cap: such a round is the loop having converged.
 check: run-ends-with-verifying-round
 
 **The orchestrator ends the rounds when they stop paying, and a run has three finding rounds by default, counted from the last design change, as the point where it weighs that rather than spawning the next round by habit.** A design change is a reframe, or a new phase the owner approved in `frame/plan.md`, so the first finding round that reviews new work starts the count again at one, whatever the record's number. The signals that a run is not converging, and what going on and stopping each cost, are `skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round*'s. A regression's fix pass is followed by one verifying round whatever the count, because no fix goes unread by a round, an invariant the table of `skills/core/SKILL.md` *Judgment is not licence to skip a party* holds. Every such decision, past the third round or at it, is a row of `frame/plan.md` *Judgments of the run* naming the counts weighed and this section; the proofer writes no line for it. When the orchestrator stops, every finding still open takes a home from the table below and reads `deferred <home>`. No person is asked mid-run.
@@ -25,9 +23,7 @@ naming the finding whose fix made the unit
 as `round-<N>#<n>`, or that round as `round-<N>` where no finding named the
 unit, and names the unit first in the grounds. Then one sentence of the
 grounds says what the frame says, from the phase's `frame/plan.md` row and
-`frame/design.md`, what the fix did, and where the defect came from. No label
-carries that sentence, and the orchestrator routes the round on it, at any
-round of the run. Where the fix built what the frame says and the defect is
+`frame/design.md`, what the fix did, and where the defect came from. No label carries that sentence, and the orchestrator routes the round on it, at any round of the run, except that once a row of `frame/plan.md` *Judgments of the run* has judged the run excessive, only a `must` takes a route, and every other regression takes a home that costs no round (`skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round*). Where the fix built what the frame says and the defect is
 still there, the frame is wrong, and the round gets no fix pass: the work
 item goes back to its framer, who writes
 `Reframed <date> by <who>, after round <N>.` under the mark at the foot of
@@ -45,7 +41,7 @@ changed or in another, is raised again as an ordinary finding with a
 `reopens:` line naming it, and gets its fix pass.
 check: tests/text/test_the_rules_have_one_owner.py
 
-**A leftover finding goes where somebody will act on it, and the orchestrator writes why there.** The homes, with when each fits, are the rows below; the cheapest home that reaches a party who agreed to act is the one to take, a new issue is not the default, and the row the orchestrator writes in `frame/plan.md` *Judgments of the run* names the home and the party:
+**A leftover finding goes where somebody will act on it, and the orchestrator writes why there.** The homes, with when each fits, are the rows below; the cheapest home that reaches a party who agreed to act is the one to take, and a new issue is not the default. After a row of `frame/plan.md` *Judgments of the run* has judged the run excessive, the first rung holds only a `must` and a fix confined to the work item's records, because any other fix or rejection costs a round the stop has refused; every other finding takes the second, third or fourth rung (`skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round*). The row the orchestrator writes in `frame/plan.md` *Judgments of the run* names the home and the party:
 
 | Rung | When it fits | Where the finding goes |
 |---|---|---|

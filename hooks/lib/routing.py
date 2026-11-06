@@ -575,7 +575,7 @@ def rounds(item):
     if not item:
         return []
     try:
-        return _ordered(os.path.join(item, ROUNDS_DIR))
+        return _ordered(os.path.join(item, *ROUNDS_DIR.split("/")))
     except NotADirectoryError:
         # Caught here rather than raised at the gates. A hook that raises is
         # rendered as an allow by `hooks/dispatch.py` for the call it raised
@@ -602,7 +602,7 @@ def rounds_unreadable(item):
     """
     if not item:
         return False
-    where = os.path.join(item, ROUNDS_DIR)
+    where = os.path.join(item, *ROUNDS_DIR.split("/"))
     if os.path.islink(where):
         # ANY link, including one that resolves to a directory holding
         # records. `os.path.exists` follows links, so the first version

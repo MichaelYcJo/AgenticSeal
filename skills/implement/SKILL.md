@@ -111,7 +111,12 @@ written into it before the first edit.
 carries the SHA it reviewed, so it never asserts a present state and can live
 beside the contract. Progress does the same thing one file up, in `plan.md`'s
 Status column, where a closed phase carries the commit that closed it — the
-same past-state trick, for the same reason.
+same past-state trick, for the same reason. The frame's account of the tree
+before the build does it too: the framer names the commit it read once, at
+the head of `frame/design.md` *Grounding* and `frame/plan.md` *Technical
+context*, so each coordinate and present-tense statement of the tree there
+is a claim about that commit, which the build was bound to move and HEAD
+does not contradict.
 
 **Judgment precedence is policy > SDD > code where policy exists, and
 SDD > code where it does not.** Most repositories are the second kind. Do not

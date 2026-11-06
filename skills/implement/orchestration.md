@@ -54,7 +54,12 @@ settle reads the row. Where a crafter's hand-back names a statement its
 work contradicts in a file the crafter does not write, a frame file or
 `routing.md`, the orchestrator reads each such file whole against HEAD,
 not only the named line, and rewrites every statement HEAD contradicts:
-the crafter's list is its reading of a file it does not write. After the
+the crafter's list is its reading of a file it does not write. A statement
+of a section the frame dates to the commit it read, *Grounding* or
+*Technical context*, is a claim about that commit, so it is not folded,
+and a section that states the tree with no date gets the date and keeps
+its text (`skills/implement/SKILL.md` *Document layout — two roots, three
+lifetimes*). After the
 fold commit, the orchestrator reads that commit and each file of the work
 item's directory that states the present whole against HEAD, as contract
 rule 12 asks of the party that fixes. Where that reading finds a statement
@@ -388,7 +393,13 @@ repository's convention. Where the repository names the version when it
 cuts the release branch, as a branch named `release/vX.Y.Z` does, the
 orchestrator moves the version to that name in the first pull request into
 the branch, in the commit that adds that work item's changelog entry,
-and every later pull request into the branch leaves it. Where the
+and every later pull request into the branch leaves it. Where several
+work items of the release run side by side, the orchestrator chooses the
+one it will merge first, the one likeliest to be sealed first, often the
+smallest diff, moves the version there and merges it first. A move made
+after a work item's last round owes a verifying round of its own, so
+where the chosen item's rounds have already ended, the move goes to the
+next item whose rounds still read it. Where the
 repository moves the version at the release, a pull request into the
 release branch leaves it alone. A pull request into `main` is a release:
 the accumulated entries go out under the version, which moves there only

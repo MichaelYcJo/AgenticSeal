@@ -572,7 +572,9 @@ def pending(root, policy_root):
     through `parse` against POLICY_ROOT. A design that cannot be read as
     UTF-8, or a section `parse` refuses, gives no item."""
     found = []
-    pattern = os.path.join(glob.escape(root), "seal", "threads", "*", DESIGN)
+    pattern = os.path.join(
+        glob.escape(root), "seal", "threads", "*", *DESIGN.split("/")
+    )
     for path in sorted(glob.glob(pattern)):
         try:
             with open(path, encoding="utf-8") as handle:

@@ -100,41 +100,94 @@ CLOSING = re.compile(r"\b(?:" + "|".join(KEYWORDS) + r")\s+#(\d+)\b", re.IGNOREC
 # `feat: … (#100)` -- what a squash merge puts in the subject.
 MERGED_PR = re.compile(r"\(#(\d+)\)\s*$")
 
-# GitHub creates no reference from a closing keyword inside a code fence or a
-# code span, and neither does this. `docs/releasing/branch-and-release.md` carries
-# `Closes #88` in a fenced block as the example to copy, so a pull request
-# body quoting the document would otherwise close the issue the document
-# names -- and this repository's bodies quote its documents routinely.
+# GitHub creates no reference from a closing keyword inside a code fence, an
+# HTML comment or a code span, and neither does this.
+# `docs/releasing/branch-and-release.md` carries `Closes #88` in a fenced
+# block as the example to copy, so a pull request body quoting the document
+# would otherwise close the issue the document names -- and this
+# repository's bodies quote its documents routinely.
 #
-# Five well-formed shapes these two patterns used to give up were enumerated
-# by review round 1 of work item 1788844400 (#266), and three are masked now:
-# a tilde fence, a fence indented under a list item, and a double-backtick
-# span. The direction is chosen rather than incidental -- masking more closes
-# FEWER issues, and an issue left open is visible on the tracker and closed
-# by a re-run, where an issue closed on a quoted example is a false record.
-# `issue_claims_check.py` imports these two, so it widens with them.
+# Five well-formed shapes the fence and span patterns used to give up were
+# enumerated by review round 1 of work item 1788844400 (#266), and three were
+# masked then: a tilde fence, a fence indented under a list item, and a
+# double-backtick span. The direction is chosen rather than incidental --
+# masking more closes FEWER issues, and an issue left open is visible on the
+# tracker and closed by a re-run, where an issue closed on a quoted example
+# is a false record. `issue_claims_check.py` imports `HIDDEN`, so it widens
+# with it.
+#
+# The comment is masked as GitHub reads it, measured for #1181 on throwaway
+# pull requests into `main` through `closingIssuesReferences`. A comment that
+# closes hides its keyword wherever it stands: at a line start, in the middle
+# of a line, over several lines and under a list item (#1402, #1403). Text
+# after its `-->` is read, on a line that begins with the `<!--` too (#1407). A
+# `<!--` that no `-->` follows hides everything below it where it begins a
+# line, on its own line and on the lines after it (#1403, #1405). A `<!--`
+# that no `-->` follows, after other text on its line, is text, and a keyword
+# on the next line is read (#1404). Behind a list marker or a block quote
+# marker, a `<!--` that no `-->` follows hides everything below it too, past
+# the end of its list item or its quote (#1408, #1409). Indented four spaces
+# it is an indented code block, and a keyword after it is read (#1410), so
+# the mask there runs past GitHub's, as the Limits below state.
 #
 # Two shapes stay unmasked, on purpose, and each has a row pinning it in
 # `tests/github/test_close_issues_on_release.py#Test_keywords_in`. A four-space
 # indented block is an indented code block to CommonMark and is ALSO how this
 # repository's pull request bodies continue a bullet onto the next line, so
-# masking it would drop real claims -- the wrong direction for a closer.
-# Whether GitHub acts on a keyword inside an HTML comment is unmeasured
-# (`docs/releasing/issues-and-milestones.md`
-# *A keyword claims the one number after it*); until somebody measures it on a
-# scratch pull request the shape is read as it always was.
+# masking it would drop real claims -- the wrong direction for a closer. A
+# `<!--` that never closes after other text on its line is text to GitHub
+# (#1404), so masking it would drop a claim GitHub reads.
 #
 # A fence is three backticks or three tildes, indented or not, closed by the
 # same delimiter; `\1` is what keeps a tilde fence from ending at a backtick
-# one. A span is one backtick to the next, or two backticks to the next two,
-# and the double form may hold a single backtick inside.
+# one. A comment is `<!--` to the first `-->` after it, or, where nothing but
+# spaces, tabs and block markers stands before it on its line and no `-->`
+# follows it anywhere, `<!--` to the end of the text. A span is one backtick
+# to the next, or two backticks to the next two, and the double form may hold
+# a single backtick inside.
+#
+# `HIDDEN` reads the three in one pass, and whichever opens first in the text
+# wins, so a `<!--` inside a code span opens no comment and a backtick inside
+# a comment opens no span. Two passes in either order lose one of those. The
+# fence stays the first alternative, so its group stays group 1 for `\1`.
+#
+# Limits, stated and not guarded. Each but the last masks more than GitHub,
+# so the closer closes fewer and the completeness check refuses the release,
+# which is loud. The line-start test of `COMMENT`'s second arm reads one
+# line's own text, with no block model. So where CommonMark's block rules make
+# GitHub read on past an opener the test treats as a line start, such as an
+# opener in an indented code block or after a list marker that opens no list
+# item, it masks to the end of the text all the same, and the closer closes
+# fewer.
+# The measured shapes are examples, not a list: GitHub reads on past an
+# opener with text before it (#1404), hides what follows an opener behind a
+# list marker or a quote marker as the closer does (#1408, #1409), and reads
+# on past an opener indented four spaces (#1410). Following those rules would
+# mean modelling CommonMark's containers, and this repository's bodies write
+# a bullet's continuation as an indent. A `<!--` in the middle of a line with
+# a `-->` further down is a comment up to that `-->`, across blank lines too,
+# where GitHub's inline comment ends with its paragraph. A comment GitHub's
+# renderer refuses for its contents, such as one holding `--`, is masked
+# anyway. And a fence, a comment or a span is masked to spaces, one in
+# `keywords_in` and one per character in `issue_claims_check.py#prose_only`,
+# so one standing between a keyword and its number, as in `Closes<!-- -->#4`,
+# joins them into a claim GitHub does not read: there the closer closes more.
 FENCE = re.compile(r"^[ \t]*(```|~~~).*?^[ \t]*\1", re.M | re.S)
+COMMENT = re.compile(
+    r"<!--.*?-->|^[ \t]*(?:(?:>|[-*+]|\d{1,9}[.)])[ \t]*)*<!--(?!.*?-->).*\Z",
+    re.M | re.S,
+)
 SPAN = re.compile(r"``(?:[^`\n]|`(?!`))+?``|`[^`\n]*`")
+HIDDEN = re.compile(
+    "|".join(p.pattern for p in (FENCE, COMMENT, SPAN)),
+    re.M | re.S,
+)
 
 
 def keywords_in(body):
-    """Closing keywords GitHub itself would read: prose only."""
-    return CLOSING.findall(SPAN.sub(" ", FENCE.sub(" ", body)))
+    """Closing keywords GitHub itself would read: prose only, with every
+    fence, comment and code span `HIDDEN` masks collapsed to one space."""
+    return CLOSING.findall(HIDDEN.sub(" ", body))
 
 
 def run(*args):
