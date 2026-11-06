@@ -61,6 +61,11 @@ The snippets cover the closer's comment. They leave two frame statements, which 
 - The first Limits bullet at `frame/design.md:73`, which names the four-space shape and not the marker followed by five spaces.
 - Row A2 at `frame/plan.md:60`, "Its gain over A is the four-space shape alone (#1410)". A container model would also read `-<!--` and a marker followed by five spaces as GitHub does, so "alone" states the same false "one".
 
+```seal
+verdict: fixed b7285b30
+answer: The finding holds: the paragraph's "the one opener masked here that GitHub does not hide" contradicted the same block's `-<!--` limit, and a marker followed by five spaces was stated nowhere. The paragraph at `close_issues_on_release.py:127-131` now takes the paste-ready text. The first Limits sentence takes it too, with one change in my words: it says the four-space shape is measured (#1410) and the marker-and-five-spaces shape is CommonMark's indented code block, unmeasured, since no pull request held it. The `-<!--` sentence now says why it masks more: CommonMark reads no list item there, so the opener stands after text, which GitHub reads on after (#1404). `changelog.md`, also changed in b7285b30, names the two marker shapes beside the four-space one. Every changed line in the closer is a comment line. The frame lines are the orchestrator's and are named in the hand-back.
+```
+
 ## Confirmations
 
 No finding of round 2 was closed, so no `confirms:` line is owed.
