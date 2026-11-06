@@ -1,0 +1,52 @@
+# Implementation Plan: 1793966252-a-sentence-is-read-before-the-sealer
+
+## Technical context
+
+The tree as read at `1359abcb9`.
+
+The work changes text that agents read, and one script.
+
+- **Who writes the fragment and moves the version.** `agents/crafter.md:19-25` gives `changelog.md` to the last phase and names no version write. `skills/implement/orchestration.md:373-386` has the orchestrator move the version "in the commit that adds that work item's changelog entry". `skills/code-review/orchestration.md:366-369` names the builder as the fragment's writer. `templates/records/sdd-plan.md:23` is the *Operational impact* placeholder, which names no version move. #1376's plan filled that section by giving both acts to the orchestrator (`seal/threads/1793935041-the-directory-refuses-every-command-hook/frame/plan.md` *Operational impact*).
+- **The body's first part.** `skills/code-review/orchestration.md:385-416` has the orchestrator write its part after `trail/gate.md`. `skills/code-review/scripts/pr_body.py#split` (line 689) cuts the body at `HEADING`, and `pr_body.py#main` (line 771) writes back the part above it as its bytes stood. `pr_body.py#_check` (line 729) compares only the part below. `evals/scripts/rule_cases.py:827` holds the sealer cases' `OWN_PART`, which the untrue-body case extends with a claim the tree lacks. `agents/sealer.md:68-80` (step 2) reads the first part from the body file. The other statements of what the first part holds are `skills/commit-pr-convention/SKILL.md:236-253`, `skills/verify/orchestration.md:414-423` and `skills/implement/orchestration.md:109`.
+- **What a round reads.** `agents/proofer.md:30-32` (step 3) names the frame's design and plan, `gaps.md`, the phase records and the earlier rounds. `agents/proofer.md:129` bounds a verifying round to the fix diff. `skills/code-review/orchestration.md:115` is the verifying round's *Target* row.
+- **The framer's rules.** `agents/framer.md` `## Rules` holds no rule on counts.
+
+The chosen approach's failure scenario, six months on: a fix written after the last round changes a sentence that `pr.md` quotes, and the orchestrator does not rewrite the quote. `seal pr-body --check` passes, because `pr.md` and the body agree. The sealer is then the first reader of a stale quote, and it withholds. The repair touches the records alone, as a repair does today. The rounds' records read cannot reach a commit made after the last round, and the guard that remains is the orchestrator's verbatim reading before the sealer's spawn.
+
+## Alternatives considered
+
+| Approach | Failure scenario | Verdict |
+|---|---|---|
+| `pr.md` is a committed record that `seal pr-body` writes above the heading and every round reads (*Scope* items 2, 3 and 5) | The scenario under *Technical context* | Chosen. It meets #1415 *Done when*'s second line as the issue wrote it, and the only check it adds compares bytes |
+| The first part stays in the scratchpad body file, and the last round's spawn names that file | A round record names a `target:` commit, and a scratchpad file has none. Neither the round nor the sealer can tell whether the part changed after the round read it. Which round is last is also known only after it opens nothing | Rejected |
+| Replace the two-part body: `seal pr-body` copies the changelog fragment above the fold, and the orchestrator writes nothing | The `Closes` lines and the quotes the owner must see unfolded, such as a default taken under automation, have no record, so no round's target can hold them | Rejected. The premise that keeps the orchestrator's part, checked: the `Closes` line has no record of its own (`pr_body.py` module docstring: "the `Closes` line is the orchestrator's, written above `HEADING`", read), and `docs/running/the-run.md` *The run* sends an automation default to the body for the owner (read) |
+| A script checks each quote of `pr.md` against its source | A quote's shape becomes a line grammar. A quote across a code span, inside a table cell, or of a source holding a quote mark each needs its own edge, and a refusal of a correct quote is the result `skills/core/SKILL.md` *The first value* calls the worst | Rejected. The orchestrator reads each quote before the sealer's spawn, every round reads `pr.md`, and the sealer reads it |
+| #1415 item 3: a new crafter read of the frame at each phase's end | The read is already the rule (`frame/design.md` *Grounding*, the `agents/crafter.md` row), so a second statement is a copy of it | Kept unchanged. Its catch record pays its cost: #1376's `frame/plan.md` *Judgments of the run* holds a fold of a crafter's hand-back for each of phases 2 to 7, each a frame statement that read named. The missed `frame/questions.md` Q1 is a miss of a rule in force, and *Scope* item 5 is the read that catches such a miss before the sealer |
+| Only the last round reads the records whole | The last round is the one that opens nothing, known only after it ends, so no spawn can tell a round it is the last | Rejected. Every round reads them |
+| The sealer's withhold names the round whose target held the sentence | A new label that nothing reads. The round record's `target:` line and `git show <target>:<path>` already give it | Rejected, by `agents/framer.md` *A mark is not the answer to a blocked step* |
+| The orchestrator writes the fragment and moves the version after the last phase, as #1376's plan did | The fragment is written from the account of a party that did not change the tree, which is #1415's first withhold | Rejected. #1415's item 1 decides it |
+| #1401: keep asking the folding reader to find every copy of a count | #1401 *Where the lesson belongs*: the copies came back after that rule stood | Rejected. The count stands once (*Scope* item 7) |
+| The broad run's printed figures stay in the body, quoted from the command's output after the run | They are written after the last round, so the sealer is again their first reader. #1376's `guarantee.md` left them unverified | Rejected. The copy carries `trail/gate.md` |
+
+## Phases
+
+| Phase | Delivers | Verified by | Status |
+|---|---|---|---|
+| 1 | *Scope* items 1 and 7 | `trail/phases/phase-1.md` lists each statement in `agents/`, `skills/` and `templates/` of who writes `changelog.md` and who moves the version, found by `git grep` on "version", "fragment" and `changelog.md`, and each names the party that builds the work item; the *Phase boundary* set of `skills/verify/SKILL.md` over the touched files | |
+| 2 | *Scope* items 2, 3 and 4 | the three `tests/skills/test_pr_body.py` scenarios of `frame/design.md` *User scenarios & acceptance*, each seen red as its row says; `seal mutate` over the `pr.md` read in `pr_body.py#main` and `pr_body.py#_check`; narrow runs of `tests/skills/test_pr_body.py`, `tests/behaviour/test_the_sealer_guarantees.py` and `tests/behaviour/test_evals_layout.py` after `evals/behaviour/sealer/` is written again | |
+| 3 | *Scope* items 5, 6 and 8 | `trail/phases/phase-3.md` lists each statement in `agents/` and `skills/` of what a round reads, found by `git grep` and by `agents/proofer.md`'s `check:` targets; `git show --stat` of the commit that adds `changelog.md` shows `.claude-plugin/plugin.json` at 0.33.1 in it; the *Phase boundary* set over the touched files | |
+
+## Operational impact
+
+- **The version.** `.claude-plugin/plugin.json` moves from 0.33.0 to 0.33.1 in the commit that adds this work item's `changelog.md`. Phase 3's crafter makes that commit, as *Scope* item 1 states. This pull request is the first into `release/v0.33.1`, so the move is this one's (`docs/releasing/branch-and-release.md` *Cutting a release*).
+- **The installed plugin during this run.** The chain runs under the installed 0.33.0 definitions. So this run's proofer does not follow *Scope* item 5 unless its spawn prompt asks for the read, and the installed `seal pr-body` keeps the first part from the body file. Once phase 2 closes, the tree's `bin/seal pr-body` composes the body from `pr.md`. The installed sealer's `--check` reads only the part below the heading, so either command's body passes it.
+- **A user's work item in flight at the update.** After the update to 0.33.1, `seal pr-body` refuses a work item that has no `pr.md`, and its `refused:` line names the repair. The changelog's *Updating* note says so.
+- **The sealer's evals.** The cases under `evals/behaviour/sealer/` are written again from `evals/scripts/rule_cases.py`. No agent runs the paid eval (`frame/questions.md` Q2).
+
+## Judgments of the run
+
+<the orchestrator's row for each judgment it makes in the run: a round spawned past the default or the run ended, a regression's route, a leftover's home, a decision folded into the frame; the grounds in one or two sentences, and the document judged against as its backticked path and italic heading>
+
+| Date | Judgment | Grounds | Judged against |
+|---|---|---|---|
+| | | | |
