@@ -89,6 +89,11 @@ owes those too:
 - The `## Not verified` row of `gaps.md:7`, whose list of rewritten joins
   then gains the same two files.
 
+```seal
+verdict: fixed 2677ddde
+answer: Applied the paste-ready split at the four joins after reading it against the code: `ROUNDS_DIR` stays spelt with `/` for the git paths of `chain_check.py:495` and `:1426`, and `item` and `where` reach each join as native paths, from `routing.item_dir` and from `finding_counts.py:200`'s split join. The class was listed again, this time by a method that resolves the shape the frame's method missed. Every module-level constant in the 222 tracked `.py` files holding `/` by a literal, an f-string, a concatenation or a chain of aliases to one was matched by name against every attribute and bare-name argument of the 1063 `os.path.join` calls. It listed these four, and every other match opened to a same-name constant holding no `/` or a join built natively (`WORK_ITEMS`, `GUARANTEE`, `broad_gate.py`'s `ROUNDS_DIR` and `WORKFLOW`, `ITEM`, `TESTS`). Matching by name, the list is whole for module-level string constants; a class attribute or a value a function builds stays outside it. `changelog.md` names six shipped scripts, `gaps.md` opens a Windows row for these joins and closes phase 1's against run 42137403140, and the phase record calls its earlier cross-module list the sample it was. `frame/design.md:14`, `:15`, `:35`, `:46`, `:60`, `:68` and `:78`, and `frame/plan.md:37`, `:55`, `:56`, `:58` and `:74`, are the frame's and are named in the hand-back for the orchestrator to fold. No case was added for the four joins: the census cannot see a constant from another module, and per-site cases under `ntpath` are what the frame rejected (`plan.md` *Alternatives considered* row 9). The dispatched Windows run answers them.
+```
+
 ### 2. The changelog says nine test sites are joined part by part, and two of them are not
 
 ```seal
@@ -113,6 +118,11 @@ Seven test sites the census flagged are joined the same way, and the two `"/c"` 
 
 Where the fix pass also applies finding 1, the same entry's first sentence
 changes count, which finding 1 lists.
+
+```seal
+verdict: fixed 2677ddde
+answer: The *Changed* entry now ends with the paste-ready sentence: seven test sites are joined the same way, and the two `"/c"` fixture roots take the case's temporary directory. Its first sentence counts six shipped scripts, with finding 1's two added. `tests/skills/test_seal_stamp.py` was not changed: the fact the finding found wrong was the changelog's, and the round confirmed the two cases.
+```
 
 ### 3. A chained module-level assignment of a path passes the census, though *Scope* item 1 covers it
 
@@ -174,6 +184,11 @@ It needs a refusing case in `Test_slash_in_join`, shown red against the
         ]
 ```
 
+```seal
+verdict: fixed ae441282
+answer: `_constants` reads every target of an `ast.Assign`, as the paste-ready rewrite does, and keeps the `AnnAssign` branch. The case went into `Test_slash_in_join` as the `chained` id of `test_refuses_a_constant_each_assignment_form_binds`, shared with finding 4's annotated case, because both assert the same line for one assignment form. It was seen red against the old `_constants` before the rewrite, and `seal mutate` at `ae441282`, putting back `and len(node.targets) == 1`, was red on that id alone. The census comment now lists a tuple target and `:=` among the bindings it does not read, together with a constant whose value is an f-string or another name, which is finding 1's shape.
+```
+
 ### 4. Three binding kinds the census reads hold no case, and the suite stays green with all three removed
 
 ```seal
@@ -222,6 +237,11 @@ attribute branch with the definition, so one case holds both.
 
 Where the fix pass applies finding 3, its rewrite keeps the `AnnAssign`
 branch, and this case holds the rewritten branch.
+
+```seal
+verdict: fixed a52c1bce
+answer: Three cases came in at `ae441282`: `a-constant-an-import-rebinds` and `a-constant-a-definition-rebinds` in `NO_SLASH_JOINED`, and the `annotated` id of `test_refuses_a_constant_each_assignment_form_binds`. Under `seal mutate` at `ae441282`, the definition branch made `elif False:` was red on `a-constant-a-definition-rebinds`, and the `AnnAssign` branch made `elif False:` was red on `annotated`. The paste-ready import case, `from m import GATE`, survived with the `ast.alias` branch off, because an `ast.alias` carries a `name` that the definition branch then counts, and that name is `GATE`. So it pinned nothing of the import branch. `a52c1bce` rewrites the case as `from m import OTHER as GATE`, where only the import branch yields `GATE`, and the same mutation was then red on it.
+```
 
 ## Confirmations
 
