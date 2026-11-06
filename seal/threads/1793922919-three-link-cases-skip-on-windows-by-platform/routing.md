@@ -12,4 +12,4 @@ Answered 2026-11-06 by the owner, before the first edit.
 
 ## Why this way
 
-The owner answered `automation` for the release 0.32.6 items. The change moves three cases onto an existing skip helper and alters no verdict, output or instruction, so it is on the ladder's second rung and no framer runs.
+The owner answered `automation` for the release 0.32.6 items. The change moves four link cases onto an existing skip helper and alters no verdict, output or instruction, so it is on the ladder's second rung and no framer runs.
