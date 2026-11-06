@@ -119,7 +119,8 @@ MERGED_PR = re.compile(r"\(#(\d+)\)\s*$")
 # The comment is masked as GitHub reads it, measured for #1181 on throwaway
 # pull requests into `main` through `closingIssuesReferences`. A comment that
 # closes hides its keyword wherever it stands: at a line start, in the middle
-# of a line, over several lines and under a list item (#1402, #1403). A
+# of a line, over several lines and under a list item (#1402, #1403). Text
+# after its `-->` is read, on a line that begins with the `<!--` too (#1407). A
 # `<!--` that no `-->` follows hides everything below it where it begins a
 # line, on its own line and on the lines after it (#1403, #1405). A `<!--`
 # that no `-->` follows, after other text on its line, is text, and a keyword
@@ -151,13 +152,17 @@ MERGED_PR = re.compile(r"\(#(\d+)\)\s*$")
 # a comment opens no span. Two passes in either order lose one of those. The
 # fence stays the first alternative, so its group stays group 1 for `\1`.
 #
-# Limits, stated and not guarded. Each masks more than GitHub, so the closer
-# closes fewer and the completeness check refuses the release, which is
-# loud. A `<!--` in the middle of a line with a `-->` further down is a
-# comment up to that `-->`, across blank lines too, where GitHub's inline
+# Limits, stated and not guarded. Each but the last masks more than GitHub,
+# so the closer closes fewer and the completeness check refuses the release,
+# which is loud. A `<!--` in the middle of a line with a `-->` further down is
+# a comment up to that `-->`, across blank lines too, where GitHub's inline
 # comment ends with its paragraph. A marker without its space, such as
 # `-<!--`, counts as a line start. A comment GitHub's renderer refuses for its
-# contents, such as one holding `--`, is masked anyway.
+# contents, such as one holding `--`, is masked anyway. And a fence, a comment
+# or a span is masked to spaces, one in `keywords_in` and one per character in
+# `issue_claims_check.py#prose_only`, so one standing between a keyword and
+# its number, as in `Closes<!-- -->#4`, joins them into a claim GitHub does
+# not read: in that one shape the closer closes more.
 FENCE = re.compile(r"^[ \t]*(```|~~~).*?^[ \t]*\1", re.M | re.S)
 COMMENT = re.compile(
     r"<!--.*?-->|^[ \t]*(?:(?:>|[-*+]|\d{1,9}[.)])[ \t]*)*<!--(?!.*?-->).*\Z",
