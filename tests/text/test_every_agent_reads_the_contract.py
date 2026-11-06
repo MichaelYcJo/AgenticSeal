@@ -105,7 +105,7 @@ def test_the_glob_finds_the_definitions():
 def test_the_sentence_names_the_contract():
     """The sentence names a file that is the contract, so a sentence pointing
     at another skill that happens to exist is red here rather than nowhere."""
-    with open(os.path.join(ROOT, CONTRACT), encoding="utf-8") as handle:
+    with open(os.path.join(ROOT, *CONTRACT.split("/")), encoding="utf-8") as handle:
         assert "## 1 " in handle.read(), f"{CONTRACT} carries no numbered rules"
 
 
@@ -113,7 +113,7 @@ def test_the_sentence_names_the_core():
     """The sentence's first path is the core, by the two sections every
     citation of it names, so a sentence pointing at a file that is not the
     core is red here."""
-    with open(os.path.join(ROOT, CORE), encoding="utf-8") as handle:
+    with open(os.path.join(ROOT, *CORE.split("/")), encoding="utf-8") as handle:
         text = handle.read()
     for heading in (
         "## The first value: efficient development through the workflow",

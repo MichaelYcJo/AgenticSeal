@@ -28,6 +28,7 @@ a record with `real_identifiers`' own readers.
 """
 
 import ast
+import collections
 import fnmatch
 import io
 import os
@@ -1308,6 +1309,117 @@ def vacated_paths(rel, root=None):
     return _held("vacated_paths", rel, text, flagged)
 
 
+# --- slash_in_join (#103) -------------------------------------------------------
+#
+# `os.path.join` keeps a `/` inside an argument and writes `\` between the
+# arguments on Windows, so `os.path.join(item, "trail/gate.md")` is
+# `item\trail/gate.md` there and `item/trail/gate.md` everywhere else. Windows
+# opens either, so the class shows only where a case compares the path as a
+# string, on the one leg nobody runs locally. Run 40500883542 met it at the
+# pull request of the 1051 branch: `GATE_FILE = "trail/gate.md"`, joined in
+# `skills/verify/scripts/broad_gate.py`, failed
+# `'C:\\...trail/gate.md' == 'C:\\...rail\\gate.md'`.
+#
+# Why an AST walk: the parse gives each argument of the call and what the
+# call's function resolves to through the file's imports (`bindings`,
+# `dotted`), so a `/` in a string the call never receives is not read, and
+# `posixpath.join` and `ntpath.join`, whose separator is fixed, pass. An
+# argument is flagged where it is a string holding `/`, an f-string whose
+# literal part holds `/`, or a name the file binds once, by a module-level
+# assignment of a string holding `/`: plain, chained or annotated.
+#
+# What the walk cannot see, and passes: a constant imported from another
+# module (a census judges one file), a name the file binds more than once or
+# inside a function, a name bound by a tuple target or by `:=`, a constant
+# whose value is an f-string or another name, a `/` added by concatenation or
+# by any expression that is not one of the three, and a `/` built into a path
+# outside `os.path.join`.
+
+
+def _bound_names(tree):
+    """Each name TREE binds, once for every binding: an assignment's or a
+    loop's target, a parameter, an import, a definition, an `except` name."""
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Name) and not isinstance(node.ctx, ast.Load):
+            yield node.id
+        elif isinstance(node, ast.arg):
+            yield node.arg
+        elif isinstance(node, ast.alias):
+            yield node.asname or node.name.split(".")[0]
+        elif isinstance(getattr(node, "name", None), str):
+            yield node.name
+
+
+def _constants(tree):
+    """`{name: text}` for each name TREE binds once, by a module-level
+    assignment of a string, `NAME = "<text>"`, `NAME = OTHER = "<text>"` or
+    `NAME: str = "<text>"`."""
+    counts = collections.Counter(_bound_names(tree))
+    found = {}
+    for node in tree.body:
+        if isinstance(node, ast.Assign):
+            targets, value = node.targets, node.value
+        elif isinstance(node, ast.AnnAssign):
+            targets, value = [node.target], node.value
+        else:
+            continue
+        for target in targets:
+            if (
+                isinstance(target, ast.Name)
+                and isinstance(value, ast.Constant)
+                and isinstance(value.value, str)
+                and counts[target.id] == 1
+            ):
+                found[target.id] = value.value
+    return found
+
+
+def _slashed(arg, constants):
+    """`(what to show, the repair)` where the argument ARG carries a `/`
+    into the join, None otherwise."""
+    if (
+        isinstance(arg, ast.Constant)
+        and isinstance(arg.value, str)
+        and "/" in arg.value
+    ):
+        return f'`"{arg.value}"`', "pass each part as its own argument"
+    if isinstance(arg, ast.JoinedStr) and any(
+        isinstance(part, ast.Constant) and "/" in part.value for part in arg.values
+    ):
+        return f"`{ast.unparse(arg)}`", "pass each part as its own argument"
+    if isinstance(arg, ast.Name) and "/" in constants.get(arg.id, ""):
+        return f'`{arg.id}` (`"{constants[arg.id]}"`)', f'pass `*{arg.id}.split("/")`'
+    return None
+
+
+def slash_in_join(rel, root=None):
+    """Every path a tracked `.py` builds with `os.path.join` is joined one
+    part at a time: no argument carries a `/` the join would keep beside the
+    `\\` it writes on the Windows leg. `CONTRIBUTING.md` *House rules* states
+    the rule."""
+    text = _python(rel, root)
+    if text is None:
+        return []
+    tree = ast.parse(text, filename=rel)
+    bound, constants = bindings(tree), _constants(tree)
+    flagged = {}
+    for call in ast.walk(tree):
+        if not isinstance(call, ast.Call) or dotted(call.func, bound) != "os.path.join":
+            continue
+        for arg in call.args:
+            found = _slashed(arg, constants)
+            if found:
+                shown, repair = found
+                flagged.setdefault(
+                    call.lineno,
+                    f"{shown} reaches `os.path.join` with a `/` in it, which the "
+                    "join keeps beside the `\\` it writes on the Windows leg; "
+                    f"{repair}, or put `# exempt from slash_in_join: <why>` on "
+                    "its own line above the call",
+                )
+    return _held("slash_in_join", rel, text, flagged)
+
+
 CENSUSES = (
     encoding,
     entry_point,
@@ -1318,6 +1430,7 @@ CENSUSES = (
     real_identifiers,
     old_names,
     vacated_paths,
+    slash_in_join,
 )
 
 
