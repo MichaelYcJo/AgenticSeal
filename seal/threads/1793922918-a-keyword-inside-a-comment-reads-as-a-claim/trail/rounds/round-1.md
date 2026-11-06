@@ -47,6 +47,11 @@ The snippet does not reach every statement of the fact, and the fix pass owes th
 - The phrase "or after a `<!--` that begins the line" at `frame/plan.md:84-85`.
 - The first paragraph of `gaps.md` *Not done*, which this fix answers.
 
+```seal
+verdict: fixed b7c9e4c1
+answer: The finding holds: at 063e0678 the closer read `<!-- Closes #5` as a claim and `_claims` refused it, and at 3db19c6d the same line was copied unrefused. `_composed` now refuses a copied line where `CLOSER.COMMENT` matches at the line's start and the match holds no `-->`, between the `HEADING` branch and the tag branch, as the paste-ready fix places it. The message is in my words: it says GitHub hides the lines that follow such a line, not every line below, because behind a list marker GitHub ends the block with the item. Two rows in `test_refuses_a_record_it_cannot_copy_faithfully`, `<!-- Closes #5` and `- <!-- note`, pin the message; both failed against 3db19c6d's code with DID NOT RAISE Refused, and again under `seal mutate` with the branch disabled. `seal mutate` with the `-->` condition replaced by `True` survived at b7c9e4c1, so eb4f1f07 adds the accepting row `<!-- a note --> and text after it`, which GitHub reads after its `-->` (#1407), and the same mutant is red there. The module docstring, `_composed`'s docstring and a new Limits bullet (a `<!--` four spaces in or behind a quote marker is refused too) are rewritten; `changelog.md` names the refusal and drops "message text" from its no-change sentence; the first paragraph of `gaps.md` *Not done* is removed as answered. The frame lines are the orchestrator's and are named in the hand-back: `frame/design.md:49`, `:65`, `:72`, `:78` and `frame/plan.md:26-30`, `:83-85`.
+```
+
 ### 2. A comment masked to one space joins a keyword to a number GitHub reads apart, so the closer reads a claim it did not read before
 
 ```seal
@@ -73,6 +78,11 @@ At `close_issues_on_release.py:154-160`, the limits paragraph reads:
 ```
 
 The fix pass owes the same bullet in `frame/design.md` *Data & interfaces*, `:73-77`, where the lead sentence "Each one masks more than GitHub" changes the same way.
+
+```seal
+verdict: fixed f22d8dda
+answer: The finding holds: at f22d8dda `keywords_in` and `issue_claims_check.read` both read `Closes<!-- -->#4`, `Closes <!-- x -->#4` and ``Closes`x`#4`` as claiming 4 (executed, `python3 -I -c`). The limits paragraph of the comment block in `close_issues_on_release.py` now opens "Each but the last masks more than GitHub" and ends with the shape, in my words beside the paste-ready text: it names both maskings, one space in `keywords_in` and one per character in `issue_claims_check.py#prose_only`, since R26 joins the two as well. The same commit cites #1407, the orchestrator's measurement of text after `-->` on a line that begins with `<!--`, among the measured facts. The frame's bullet at `frame/design.md:73-77` is the orchestrator's and is named in the hand-back.
+```
 
 ## Confirmations
 
