@@ -59,6 +59,11 @@ such as an indented code block or a list marker that opens no list item,
 
 The snippet covers every statement of the clause: `git grep -n "opens no list item"` over the tree at `b154d288` lists these six lines and one more, round 4's close block at `trail/rounds/round-4.md`, which records what the fix did and states nothing a reader acts on (executed). `pr_body.py:75-79` states the rule with the indented code block alone as its example and needs no edit. The `to:` text at `frame/design.md:108-113` cites the indented code block alone and needs none.
 
+```seal
+verdict: fixed 836ab34f
+answer: The finding holds: the frame's block markers include `>`, which opens no list item, and #1409 measured that GitHub hides behind it. The closer's Limits comment now reads "after a list marker that opens no list item", rewrapped to the block's width as the paste-ready fix gives it, and the `changelog.md` sentence carries the same words. Every changed line in the closer is a comment. The four frame lines the finding's `location:` names are the orchestrator's to fold and were not edited in this pass.
+```
+
 ## Confirmations
 
 ```seal
