@@ -6,8 +6,10 @@
 coordinate of the phase row stood at `7dd6dd14`. Two hooks remained,
 `hooks/sealer-stamp-queue.py` at `post-edit` and `hooks/sealer-stamp.py` at
 `Stop`, with `hooks/dispatch.py` and `hooks/hooks.json` registering them.
-`seal_stamp.py#session_key` read `CLAUDE_CODE_SESSION_ID`, the one
-environment read *Scope* item 7 takes out. The thing the tree decides is the
+`seal_stamp.py#session_key` took the session from its argument, which the
+queue hook read from the hook payload; no shipped file read
+`CLAUDE_CODE_SESSION_ID` here, since phase 2 removed `seal no-work-item`'s
+read, and *Scope* item 7's clone key keeps it that way. The thing the tree decides is the
 settings path. *Data & interfaces* has `--install` merge into
 `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json`, and *Scope* item 7 has
 the stamp script read no environment variable. The two cannot both hold in
