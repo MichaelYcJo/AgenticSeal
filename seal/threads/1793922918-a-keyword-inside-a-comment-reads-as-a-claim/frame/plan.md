@@ -89,4 +89,4 @@ a copied line that begins with a `<!--` that no `-->` closes on it.
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-06 | The closer's limits and every statement copying them name no shape of the line-start test one by one. They state the rule once: the test reads one line's own text with no block model, so where CommonMark's block rules make GitHub read on past an opener the test treats as a line start, such as an indented code block or a marker that opens no list item, it masks more, and the closer closes fewer. They then cite the measured shapes #1404, #1408, #1409 and #1410 as examples. | Rounds 3 and 4 each opened a `should` finding on a list the previous fix pass had grown: first the four-space shape called "the one", then the marker with no space, which holds for `-` and not for `>`. Each fix met one more CommonMark case, and the list cannot be finished without the block model row A2 rejects. A rule stated once has no list to contradict. | `skills/core/SKILL.md` *The rule a mechanism is kept against* ("when fixes chase one mechanism's edge cases, ask what it decides") |
