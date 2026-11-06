@@ -1,21 +1,23 @@
 ---
 name: code-review
 description: |
-  Two-stage review methodology (compliance, then quality) with comparison axes,
-  cross-session review records, and re-review inheritance.
-  Use when: reviewing a PR or diff, re-reviewing after fixes, orchestrating reviewer agents.
+  The review chain's method: compliance with the frame first, then quality,
+  with earlier rounds' records read and their coordinates carried across sessions.
+  Use when: a person asks to review a PR, a diff or a branch, or to re-review after
+  fixes, in plain words and naming no skill, as in "review this PR <url>" or
+  "검토해봐 <url>"; or when orchestrating reviewer agents.
   NOT for: implementing fixes (use `implement`), style-only linting a formatter
-  can do, or a plain bug-and-cleanup sweep of a diff — Claude Code's built-in
-  `/code-review` covers that. This one judges compliance before quality and
-  carries earlier rounds' coordinates across sessions.
+  can do, or a person typing `/code-review` by name, which runs Claude Code's
+  built-in command and not this skill.
 ---
 
 # code-review — compliance first, then quality
 
 Assume the code has defects, and look for them. A pass with no grounds is
 forbidden: where you are unsure, write a question, not a pass. A session
-orchestrating a review run reads `skills/code-review/orchestration.md` before
-round 1.
+orchestrating a review run first opens the core once, as
+`skills/start/SKILL.md` *1. Open the core once* says, and then reads
+`skills/code-review/orchestration.md` before round 1.
 
 ## Two stages, in order
 
@@ -132,7 +134,7 @@ check: tests/text/test_review_axes.py tests/text/test_the_rules_have_one_owner.p
 A round writes `seal/threads/<work-item-id>/trail/rounds/round-N.md` from
 `templates/records/sdd-round.md`. Every field the check reads stands inside a
 `seal` block, a fenced block opened by a line of three backticks and `seal`
-alone, and `hooks/lib/fields.py` is the one statement of each block's lines
+alone, and `lib/fields.py` is the one statement of each block's lines
 and the shape of each value. A line outside a block is prose and no field.
 The check also reads the `## Findings` heading and each finding's
 `### <n>. <symptom>` heading, as the template shows them. The prose follows

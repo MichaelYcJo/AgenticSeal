@@ -14,7 +14,7 @@ has no noun of its own: it is the pact's repository, identified by holding
 the file, and where more than one pact can be meant, a text says which by
 naming where it is held. `seal pact` is the command that reads every signer
 from there.
-check: tests/hooks/test_config.py
+check: tests/lib/test_config.py
 
 **A pact headed with the word 0.18.x used still reads, and `seal pact`
 names the rename on it in no exit class.** Through 0.18.x a signer was
@@ -27,7 +27,7 @@ naming the file, both headers and the release that renamed them before that
 file's other lines, and its exit is what the new header gives. No command
 rewrites a pact: the line says to rename the header when the file is next
 edited, and every text this plugin ships says `signer`.
-check: tests/skills/test_pact_check.py tests/hooks/test_config.py
+check: tests/skills/test_pact_check.py tests/lib/test_config.py
 
 **The three names are the owner's, and a text this plugin ships that names one
 of them another way is the proofer's to find at review, the word 0.18.x used
@@ -74,18 +74,18 @@ of its `seal/config.md`, and one reader answers that row for every
 caller.** `Pact` is the origin remote URL of the pact's repository, several
 separated by `;`, compared normalised, and a pact anchor names the pact by
 that same URL.
-`hooks/lib/config.py#pact_declaration` refuses what will not parse in a sentence
+`lib/config.py#pact_declaration` refuses what will not parse in a sentence
 and stops nothing, so every reader of the row reads the same row. A `Pact`
 row written twice has no value at all: its first row is not the answer. A
 `Pact` row the config table does not hold is no row, so `seal pact` reads
 that signer as naming no pact, a relationship recorded on one side only.
-check: tests/behaviour/test_a_signer_declares_its_pact.py tests/skills/test_pact_check.py tests/hooks/test_config.py
+check: tests/behaviour/test_a_signer_declares_its_pact.py tests/skills/test_pact_check.py tests/lib/test_config.py
 
 ## The pact anchor
 
 **A signer cites a clause as one row of a `| Pact | Clause | Hash |` table in
 a work item's `frame/design.md`, and `seal pact` reads the table with
-`hooks/lib/config.py#gfm_table`.** The row is the pact anchor, and it records
+`lib/config.py#gfm_table`.** The row is the pact anchor, and it records
 what the work was built against. `Pact` is the origin remote URL of the
 pact's repository, as the signer's `Pact` row writes it, compared
 normalised. `Clause` is the clause's heading path, such as
@@ -97,7 +97,7 @@ The walker reads the table as GitHub renders it, as it reads every other
 table here, so nothing in a row is quoted or escaped except a pipe, written
 `\|`. A row naming another pact the signer's `Pact` row declares is passed
 over, for that pact's `seal pact` to grade.
-check: tests/skills/test_pact_check.py tests/skills/test_coordinates.py tests/hooks/test_config.py
+check: tests/skills/test_pact_check.py tests/skills/test_coordinates.py tests/lib/test_config.py
 
 **The anchor table is the table whose header is `| Pact | Clause | Hash |`, cell for
 cell, and a table whose header is near it is named and not read.** A header whose cells,
@@ -158,7 +158,7 @@ taken the signer's recorded change; `UNMATCHED` means no commit did; `BROKEN`
 means the heading path names no single clause. Git decides the direction and
 never decides `OK`. Exit 1 is a mismatch or a checkout not found, and exit 2
 is unusable input.
-check: tests/skills/test_pact_check.py tests/hooks/test_config.py
+check: tests/skills/test_pact_check.py tests/lib/test_config.py
 
 ## What this does not see
 

@@ -57,9 +57,9 @@ check: tests/skills/test_broad_gate.py tests/skills/test_chain_check.py
 records of the work items this pull request's own commits declare or change
 and no other, so a record a merged pull request left behind is never judged
 at a pull request again, whatever its shape. Three readers outside the check
-still open merged records: `.github/scripts/release_seal.py#chain_counts`
-reads every record of a release with the `chain_check` of the tree it runs
-from, and `evals/scripts/replay_targets.py` and `evals/scripts/seed_defects.py`
+still open merged records: the release workflow's `seal` job reads every
+record of a release with the `chain_check` of the tree it runs from, and
+`evals/scripts/replay_targets.py` and `evals/scripts/seed_defects.py`
 read each labelled record, and each record in `seal` blocks, with the
 `chain_check` of the commit that last wrote it, from either layout a release
 has kept its records in: the one before 0.23.0, and

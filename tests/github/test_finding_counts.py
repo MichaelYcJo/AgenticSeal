@@ -143,8 +143,8 @@ class Test_main:
     @pytest.mark.parametrize(
         ("located", "fixed_at", "alone"),
         [
-            (in_records(ITEM, "frame/design.md"), "`hooks/lib/fields.py`", 1),
-            ("`hooks/lib/fields.py`", in_records(ITEM, "frame/plan.md"), 0),
+            (in_records(ITEM, "frame/design.md"), "`lib/fields.py`", 1),
+            ("`lib/fields.py`", in_records(ITEM, "frame/plan.md"), 0),
         ],
     )
     def test_where_the_defect_shows_decides_records_alone(
@@ -241,7 +241,7 @@ class Test_main:
     def test_rounds_that_cannot_be_listed_read_not_read_in_every_cell(
         self, tmp_path, capsys, shape
     ):
-        """A `trail/rounds` that `hooks/lib/routing.py#rounds_unreadable`
+        """A `trail/rounds` that `lib/routing.py#rounds_unreadable`
         reads as unlistable, a file or any link, holds records nobody can
         count, so all four cells read `not read`. The line under the table
         names it with every state that reader answers for, and asserts none
@@ -289,7 +289,7 @@ class Test_main:
         self, tmp_path, capsys
     ):
         """A released work item whose `routing.md` is missing, or is no
-        declaration `hooks/lib/routing.py#parse` reads, is no row, since
+        declaration `lib/routing.py#parse` reads, is no row, since
         whether it went through the review chain is not known, and the line
         under the table names its `routing.md` and why. One routed straight
         to the pull request is no row and no line, and one released and
@@ -322,7 +322,7 @@ class Test_main:
         assert str(root) not in "\n".join(lines), lines
         assert lines[5:] == [
             "seal/threads/1700000005-no-declaration/routing.md: "
-            f"{said}: it is no declaration `hooks/lib/routing.py#parse` reads",
+            f"{said}: it is no declaration `lib/routing.py#parse` reads",
             "",
         ], lines
 

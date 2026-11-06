@@ -71,8 +71,7 @@ and takes out what the latest decision does not keep.
 check: tests/skills/test_rule_changes.py tests/skills/test_settle.py
 
 **A settle is not a work item.** It opens no directory under `seal/threads/`.
-Its session records `seal no-work-item` on the settle's branch, its commits
-carry the trailer `Seal-Routing: no work item` where the root is shared,
+Its commits carry the trailer `Seal-Routing: no work item` where the root is shared,
 and what it wrote is reviewed at its pull request. What it leaves already has a home, the pull request and
 git history, so it keeps no log of its own. Were it a work item, each settle
 would leave a directory for the next one to remove, and settling would never
@@ -100,7 +99,7 @@ check: tests/behaviour/test_both_editions_carry_the_same_folds.py
 **Whether a line is live is asked by what the line does, and the four
 readers that ask it give three answers.** These are all four readers, grouped
 by the kind of line they read, with the cost each answer is chosen against.
-check: tests/behaviour/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py tests/hooks/test_routing.py
+check: tests/behaviour/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py tests/lib/test_routing.py
 
 - **A line that HOLDS something — a claim or an anchor — is read on
   doubt.** The coordinate kernel's `quoted_lines`, which its `unquoted` and
@@ -115,24 +114,24 @@ check: tests/behaviour/test_whether_a_line_is_live_is_asked_by_what_the_line_doe
   where a declaring reader keeps an older reading that took it.**
   `unverified_check.py#live_lines` parks a line inside any fence or comment,
   closed or not, and a line its two span readings disagree about.
-  `hooks/lib/config.py#hidden_lines`, which reads `seal/config.md`, keeps,
+  `lib/config.py#hidden_lines`, which reads `seal/config.md`, keeps,
   wherever its walk is unsure, the fence-only reading it gave before the walk:
   a row below a fence nobody closed declares nothing, and a row below a
   comment opener nobody closed is not hidden, because that reading never hid
   one, and the walk may miss no row the older reading saw. That row declares
-  nothing either: `hooks/lib/config.py#config_table` refuses a
+  nothing either: `lib/config.py#config_table` refuses a
   `| Item | Value |` header inside an HTML block opened above it and never
   closed, because GFM renders no table there, so every item of that table is
-  a refusal, which a hook reads as silence and a command prints with exit 2
+  a refusal, which a command prints with exit 2
   (`templates/setup/config.md` *Repository config*).
-  `hooks/lib/routing.py#shown`, which reads a `routing.md` and is not one of
+  `lib/routing.py#shown`, which reads a `routing.md` and is not one of
   the four, keeps the reading it gave before the walk the same way, and that
   reading hid nothing: a row below a fence or a comment opener nobody closed
   still declares there, unless a fence that closes holds it. Those
   `routing.md` rows are the places a line nobody wrote live declares
   something; at every other fence or comment,
   what this protects is that nothing is excused or declared by a line
-  nobody wrote live. The wrong answer is a statement left unbound, a hook
+  nobody wrote live. The wrong answer is a statement left unbound, a check
   that says nothing, or a gate that asks.
   check: tests/behaviour/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py
 - **A line a record's rows are COUNTED on is blanked where a fence holds

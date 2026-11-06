@@ -29,7 +29,6 @@ import ast
 import json
 import ntpath
 import os
-import pathlib
 import shutil
 import subprocess
 import sys
@@ -406,15 +405,6 @@ class Test_imported_roots:
         assert conftest.imported_roots(path) == {"."}
 
 
-class Test_q:
-    def test_accepts_a_path_object_as_its_plain_text(self):
-        """A path is read as its text first: `shlex.quote` takes no path."""
-        assert conftest.q(pathlib.PurePosixPath("dir/plain")) == "dir/plain"
-
-    def test_refuses_a_space_unquoted(self):
-        assert conftest.q("a b") == "'a b'"
-
-
 class Test_module:
     def test_the_value_is_the_one_work_item_1791270165_set(self):
         assert conftest.SLOW_CASE_S == 90
@@ -647,19 +637,19 @@ class Test_step_running:
 
 class Test_census_case:
     def test_accepts_a_target_every_census_passes(self, tmp_path, monkeypatch):
-        (tmp_path / "hooks").mkdir()
-        (tmp_path / "hooks" / "x.py").write_text(
+        (tmp_path / "lib").mkdir()
+        (tmp_path / "lib" / "x.py").write_text(
             'open(p, encoding="utf-8")\n', encoding="utf-8"
         )
         monkeypatch.setattr(censuses, "ROOT", str(tmp_path))
-        assert conftest.census_case("hooks/x.py")() is None
+        assert conftest.census_case("lib/x.py")() is None
 
     def test_refuses_a_target_one_census_flags_naming_it(self, tmp_path, monkeypatch):
-        (tmp_path / "hooks").mkdir()
-        (tmp_path / "hooks" / "y.py").write_text("open(p)\n", encoding="utf-8")
+        (tmp_path / "lib").mkdir()
+        (tmp_path / "lib" / "y.py").write_text("open(p)\n", encoding="utf-8")
         monkeypatch.setattr(censuses, "ROOT", str(tmp_path))
-        with pytest.raises(AssertionError, match=r"hooks/y\.py:1: encoding: "):
-            conftest.census_case("hooks/y.py")()
+        with pytest.raises(AssertionError, match=r"lib/y\.py:1: encoding: "):
+            conftest.census_case("lib/y.py")()
 
 
 test_census = conftest.census_case(TARGET)

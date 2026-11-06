@@ -4,10 +4,9 @@
 Publishing a release note was a habit and nothing else. `docs/releasing/release-checklist.md`
 walked to the tag and stopped, no workflow did it, and **three consecutive
 releases shipped without one** -- measured on 2026-09-13 while cutting a
-release, by the run that would have made it four (#386). The tag beside it
-gets done every time, because `hooks/version-check.py` reads it and an
-untagged release is one no installed session is ever told about. The note had
-no reader in the tree at all, so nothing noticed its absence.
+release, by the run that would have made it four (#386). The note is read:
+`/agentic:update` reads the GitHub Releases (`skills/update/SKILL.md` step 3),
+so a release without one is one an updating user is told nothing about.
 
 So this reads the tag instead of asking anybody to remember. It runs in the
 publish workflow after `tag_release.py`, which on the push to `main` that
@@ -119,7 +118,7 @@ import urllib.parse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-sys.path.insert(0, os.path.join(HERE, "..", "..", "hooks", "lib"))
+sys.path.insert(0, os.path.join(HERE, "..", "..", "lib"))
 sys.path.insert(0, os.path.join(HERE, "..", "..", "skills", "verify", "scripts"))
 import console  # noqa: E402
 import gitcmd  # noqa: E402
@@ -189,7 +188,7 @@ def version_of(tag):
 
 def git(*args):
     """`git` run in the repository at `ROOT`, its argv
-    `hooks/lib/gitcmd.py#argv`'s; its standard output."""
+    `lib/gitcmd.py#argv`'s; its standard output."""
     return run(*gitcmd.argv("-C", ROOT, *args))
 
 

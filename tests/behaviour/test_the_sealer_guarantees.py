@@ -3,13 +3,13 @@ it, and the definition that writes it.
 
 `templates/records/sdd-guarantee.md` is the file the sealer fills, and
 `chain_check.py#guarantee` is the arm that reads it at the pull request,
-through `hooks/lib/fields.py`: a ready pull request passes only where the
+through `lib/fields.py`: a ready pull request passes only where the
 newest verdict block names HEAD and reads `sealed`. Each group holds a case
 on good input and one on bad.
 
 #942 moved the cases of the arm, which read no file of this repository, into
 `tests/skills/test_chain_check.py`, and #1198 put the reader's in
-`tests/hooks/test_fields.py`. What stays reads the template, the definition,
+`tests/lib/test_fields.py`. What stays reads the template, the definition,
 the document, or every committed `guarantee.md`.
 """
 
@@ -159,7 +159,7 @@ class TestDefinition:
         # The citation of `follows`, the reader the sealer resolves to judge
         # those paths as the check does.
         assert "`skills/code-review/scripts/chain_check.py#follows`" in step, step
-        # The verdict line `hooks/lib/fields.py` parses, as the sealer writes it.
+        # The verdict line `lib/fields.py` parses, as the sealer writes it.
         assert "`Verdict: withheld reason: no broad run at HEAD`" in step, step
         # Round 2 of #969, finding 1: the base arrives as a plain branch name,
         # a local ref, and a worktree with only `origin/<base>` gives step 1's
@@ -181,7 +181,7 @@ class TestDefinition:
             "`<name>` that `git -C <root> rev-parse --verify --quiet` answers, "
             "and every `<base>` below is the commit it prints"
         ) in intro, intro
-        # The verdict line `hooks/lib/fields.py` parses, as the sealer writes it.
+        # The verdict line `lib/fields.py` parses, as the sealer writes it.
         assert (
             "`Verdict: withheld reason: the base <name> resolves to no commit here`"
         ) in intro, intro
@@ -215,6 +215,28 @@ class TestDefinition:
         missing = [phrase for where, phrase in pinned if phrase not in where]
         assert missing == [], missing
         assert "list of changes" not in never, never
+
+    def test_step_4_withholds_where_a_declared_crafter_left_no_phase_record(self):
+        """#1376, *Scope* item 6. The implementer mark and notice went with
+        the hooks the plugin directory will not register, and the sealer's
+        reading of the parties holds the fact they reminded a session of:
+        where `routing.md` declares `crafter`, each closed phase of
+        `frame/plan.md` has its phase record, and a declared party that left
+        none is a reason to withhold. The `Planning` row's `framer` is
+        `chain_check.py`'s to read against the frame's mark."""
+        step_4 = between(SEALER, "4. **", "5. **")
+        pinned = [
+            # The row and the answer the sealer reads in `routing.md`.
+            "`routing.md`'s `Implementation` row reads `crafter`",
+            # Which phases owe a record: those `plan.md`'s Status closed.
+            "every phase of `frame/plan.md` whose Status cell holds a commit",
+            # The record the crafter leaves, as the sealer resolves its path.
+            "`trail/phases/phase-N.md`",
+            # The verdict word `lib/fields.py` reads.
+            "a declared party that left no record is a `withheld` reason",
+        ]
+        missing = [phrase for phrase in pinned if phrase not in step_4]
+        assert missing == [], missing
 
     def test_the_guarantee_rule_exempts_only_the_closing_records(self):
         """Round 1 of #969, finding 1. `chain_check.py#guarantee` lets only

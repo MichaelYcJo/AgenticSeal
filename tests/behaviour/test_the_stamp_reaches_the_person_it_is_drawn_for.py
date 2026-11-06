@@ -2,22 +2,21 @@
 
 Work item 1790562543. A sealer's stdout was a pipe into a report that arrived
 folded behind `ctrl+o`, so a stamp drawn there was never seen. The stamp is
-drawn from the sealer's `sealed` guarantee: the `post-edit` gate queues its
-values under the git common dir at the guarantee's write, and a `Stop` hook
-in the orchestrator's session draws each undrawn file once, after that
-turn's text.
+drawn from the sealer's `sealed` guarantee: the sealer's
+`seal stamp --guarantee` queues its values under the git common dir, and the
+`Stop` hook the person installed with `seal stamp --install` draws each
+undrawn file once, after the orchestrator's turn's text (#1376).
 
-This module holds the cases that read the documents, which are #923's. The
-hooks' own cases are `tests/hooks/test_sealer_stamp.py` and
-`tests/hooks/test_sealer_stamp_queue.py`, written anew by #942's phase 6, and
-`skills/verify/scripts/seal_stamp.py`'s are `tests/skills/test_seal_stamp.py`.
+This module holds the cases that read the documents, which are #923's.
+`skills/verify/scripts/seal_stamp.py`'s own cases, the queue and the draw
+among them, are `tests/skills/test_seal_stamp.py`.
 """
 
 import os
 import subprocess
 import sys
 
-from conftest import ROOT, flat, load_module
+from conftest import ROOT, flat, flattened, load_module, read
 
 STAMP = os.path.join(ROOT, "skills", "verify", "scripts", "seal_stamp.py")
 GATE = os.path.join(ROOT, "skills", "verify", "scripts", "broad_gate.py")
@@ -55,19 +54,17 @@ def stamp_section():
 def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
     """S16, the orchestrator's half (contract rule 14), and #975 S13. The rule
     sits in the section that spawns the sealer: the stamp is drawn at the end
-    of the turn in which the sealer's report arrives, its `Write` of a
-    `sealed` guarantee having queued it under either root (#1027 S13), the
-    result text comes first, the orchestrator draws none — by `seal stamp` or
-    by relaying a log, which 0.15.6 did — the broad run's lines are quoted as
+    of the turn in which the sealer's report arrives, its
+    `seal stamp --guarantee` having queued it under either root, the result
+    text comes first, the orchestrator draws none — by `seal stamp` or by
+    relaying a log, which 0.15.6 did — the broad run's lines are quoted as
     `BROAD GATE PASSED` and `BROAD GATE FAILED`, and no line of the run says
-    `SEALED`. Round 1's finding 2 of 1792363231: the
-    edit hook's line is shown to the person at the sealer's write and never
-    reaches the orchestrator, so it is not told to quote that line; where no
-    stamp appeared, it names the values file and leaves the command to the
-    person. 1792363231 S11: a commit of the guarantee refused for a row
-    naming a commit the branch does not hold is answered by the sealer again
-    at HEAD, never by an edit of the row. #1198 made the row the newest
-    verdict block."""
+    `SEALED`. Since #1376 the line naming the values file arrives in the
+    sealer's hand-back, and the orchestrator quotes it, leaving
+    `seal stamp --from` to the person. 1792363231 S11: a commit of the
+    guarantee refused for a row naming a commit the branch does not hold is
+    answered by the sealer again at HEAD, never by an edit of the row. #1198
+    made the row the newest verdict block."""
     text = flat("skills", "code-review", "orchestration.md")
     section = text.split(
         "## Orchestrator: the pull request opens once the sealer seals", 1
@@ -80,14 +77,13 @@ def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
         "by hand.",
         "**The stamp is drawn for you at the end of the turn in which the "
         "sealer's report arrives, and you never draw one.**",
-        "the sealer's own `Write` of it queues the stamp's values, under either "
-        "root, and the `Stop` hook draws them after your text. The line naming "
-        "them is the edit hook's message, shown to the person at that write. It "
-        "is not in the sealer's report and does not reach you.",
-        "The edit hook's line never reaches you. Where no stamp appeared, name "
-        "the file under `<git-common-dir>/agentic-stamp/<session>/` whose name "
-        "holds the work item's id, and leave `seal stamp --from <that file>` to "
-        "the person.",
+        "the sealer's `seal stamp --guarantee` queues the stamp's values, under "
+        "either root, and the `Stop` hook the person installed with "
+        "`seal stamp --install` draws them after your text. The line naming "
+        "them arrives in the sealer's hand-back.",
+        "The sealer's hand-back carries that line; quote it in the turn's text.",
+        "Where the hand-back carries no such line, no stamp was queued and none "
+        "is drawn",
         "The broad run draws nothing: its stdout opens `BROAD GATE PASSED` or "
         "`BROAD GATE FAILED`",
         "So put the result text first",
@@ -101,9 +97,10 @@ def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
         "stands: that command is the person's to type, and never yours.",
     ):
         assert said in section, said
-    assert "the edit hook's message names" not in section, (
-        "the orchestrator is told to quote a line it never receives"
-    )
+    # #1376: no edit hook queues the stamp, and the queue has no session
+    # directory.
+    for gone in ("edit hook", "agentic-stamp/<session>/"):
+        assert gone not in section, gone
     assert "SEALED" not in section, "a line of the broad run is quoted as SEALED"
 
 
@@ -111,36 +108,39 @@ def test_the_form_bullet_says_what_draws_the_final_seal():
     """S16, `verify`'s half, and #975 S13. The **Form** bullet said
     `seal gate` draws the stamp when every check passed; the stamp is the
     sealer's now, drawn once per work item from its `sealed` guarantee, and
-    the gate draws nothing. #1027 S13: queued at that file's write under
-    either root."""
+    the gate draws nothing. #1376: queued by the sealer's
+    `seal stamp --guarantee` under either root, and drawn by the `Stop` hook
+    the person installed."""
     text = flat("skills", "verify", "SKILL.md")
     assert "`seal gate` prints the disc on success alone" not in text
     assert "`seal gate` draws the stamp" not in text
+    assert "The edit hook" not in text
     for said in (
         "the stamp is drawn from the sealer's `guarantee.md` reading `sealed`, "
         "once per work item",
-        "The edit hook writes the values it is drawn from at the file's write, "
-        "under either root, and the `Stop` hook draws them",
-        "the `Stop` hook draws them in the orchestrator's session",
+        "The sealer's `seal stamp --guarantee` writes the values it is drawn "
+        "from, under either root, and the `Stop` hook the person installed "
+        "draws them in the orchestrator's session",
         "The broad gate draws nothing",
     ):
         assert said in text, said
 
 
-def test_the_policy_names_the_hook_the_marker_and_the_command_to_draw():
+def test_the_policy_names_the_command_the_marker_and_the_command_to_draw():
     """S16, the policy's half, and #975 S10 and S13. `docs/checks/the-stamp.md`
-    *The stamp* carries the drawing rule, names the hook that queues the
+    *The stamp* carries the drawing rule, names the command that queues the
     stamp, and ends in a `check:` line naming the marker the cases that
     queue and draw it carry; a second statement, on what the screen shows,
     names `seal stamp --from <path>` for where a file was written. The
-    rule's trigger, its limits and the places the hook is silent are the
-    proofer's to read (1792363231 S7 and S8, and #1027)."""
+    rule's trigger, its limits and the places nothing draws are the
+    proofer's to read (1792363231 S7 and S8, #1027 and #1376)."""
     text = stamp_section()
     screen = "**What the person's screen shows is not checked"
     rule, unchecked = text.split(screen, 1)
-    # The path of the hook that queues the stamp, which a person resolves
-    # to see what wrote the values file.
-    assert "`hooks/sealer-stamp-queue.py`" in rule
+    # The command that queues the stamp, and the one that draws it, which a
+    # person resolves to see what wrote the values file and what read it.
+    assert "`seal stamp --guarantee <path>`" in rule
+    assert "`seal stamp --stop`" in rule
     # The marker `.github/scripts/rules.py#markers` reads on the rule's check
     # line, whose carriers the loop below reads back from that reader.
     assert "check: stamp-drawn-once" in rule
@@ -154,11 +154,11 @@ def test_the_policy_names_the_hook_the_marker_and_the_command_to_draw():
         local + "test_a_local_mode_guarantee_off_its_branch_queues_nothing",
         local + "test_a_shared_mode_sealed_guarantee_queues_one_stamp_at_its_write",
         local + "test_a_shared_mode_sealed_already_in_the_history_queues_nothing",
-        "Test_main.test_accepts_a_shared_mode_sealed_guarantee_at_its_write",
-        "Test_main.test_accepts_a_local_mode_sealed_guarantee",
-        "Test_main.test_accepts_a_subagents_write_for_the_main_session",
-        "Test_main.test_refuses_any_other_edit_before_it_loads_seal_stamp",
-        "Test_main.test_accepts_the_main_sessions_stop_and_draws_once",
+        "Test_main.test_guarantee_queues_the_stamp_and_prints_the_line_naming_it",
+        "Test_main.test_stop_draws_the_payloads_clone_once_and_exits_0",
+        "Test_drawn_at_stop.test_accepts_the_main_sessions_stop_and_draws_once",
+        "Test_drawn_at_stop.test_refuses_a_cwd_outside_the_clone_the_stamp_waits_in",
+        "Test_install.test_accepts_a_launcher_the_harness_runs_at_stop_drawing_once",
     ):
         assert case in held, case
     # The command `seal stamp --from <path>`, which the person types to draw
@@ -171,23 +171,23 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
     its own: a `sealed` refused because its
     audited commit is not on the branch leaves a record in the clone that
     refused it, and the earlier-run chain skips it, so the sealer's new
-    audit draws the work item's one stamp. #1027: it names the one writer,
-    the edit hook under either root, the matcher's floor, and that
-    `sealed_before` skips a recorded refusal as the chain does; it names
-    none of the guards the removed `post-commit` record had; and its
+    audit draws the work item's one stamp. #1027 and #1376: it names the one
+    writer, `seal stamp --guarantee` under either root, the matcher's floor,
+    and that `sealed_before` skips a recorded refusal as the chain does; it
+    names none of the guards the removed `post-commit` record had; and its
     `check:` line names the marker the cases that hold each carry."""
     text = stamp_section()
     rule = text.split(
         "**A `sealed` refused because its audited commit is not on the branch "
         "leaves a refusal record",
         1,
-    )[1].split("**The hook holds its whole message under a budget", 1)[0]
+    )[1].split("**The stamp's `Stop` hook is the person's", 1)[0]
     for said in (
         "`<git-common-dir>/agentic-stamp-refused/<id>-<target>`",
         "an earlier verdict block reading `sealed` that this clone recorded "
         "refusing is skipped",
         "One writer leaves it, for a row that stands in its own clone and "
-        "nowhere else: `hooks/sealer-stamp-queue.py`, in either mode, where "
+        "nowhere else: `seal stamp --guarantee`, in either mode, where "
         "the `Branch` row's branch stands and does not hold the audited commit.",
         "In shared mode the pull request's check refuses the same row as stale",
         "at least seven characters",
@@ -213,119 +213,105 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
         assert case in held, case
 
 
-def test_both_readmes_list_the_stamp_hook():
-    """Round 1's yellow 4. The hook inventory a user reads to learn what runs
-    on their machine did not list the `Stop` hook, in either edition: the gate
-    table and the side effects. The editions move together, so both are read.
+def test_both_readmes_say_what_the_stamp_hook_writes_and_leaves():
+    """Round 1's yellow 4. The inventory a user reads to learn what runs on
+    their machine did not list the `Stop` hook, in either edition. Since
+    #1376 the plugin registers no hook and the stamp's is the person's, so
+    each edition says what `seal stamp --install` writes and the command it
+    puts in their settings, and the side effects of the queue. The editions
+    move together, so both are read.
 
     1792363231's round 1 finding 3: the side effects gained the refusal
     record's directory, and the count before them went stale, so the sentence
-    carries no count. #1055 S2: the count of gates that wake on a condition
-    and the lists of opt-in hooks beside it went stale at every new row, so
-    *First run* and the `seal/` row point at the gate table's Where column
-    and carry neither. `test_chain_hooks_hardening.py` derives the table's
-    rows from `GROUPS`."""
-    for edition, effects, clause, gone in (
+    carries no count. #975 S11: neither edition says the broad gate leaves
+    the stamp's values. What each edition says is read in its section alone,
+    since *Install* says the plugin registers no hook too; what is gone is
+    read over the whole file."""
+
+    for edition, heading, said, gone in (
         (
             "README.md",
-            "These side effects are worth stating outright",
-            # The clause's own words (round 2's white 2): the gate-table row
-            # carries `agentic-stamp/` too, so the bare directory passed
-            # with the side effect deleted.
-            "`<git-common-dir>/agentic-stamp/`, which the stamp hook renames "
-            "once drawn and nothing prunes",
+            "## What runs on your machine",
             (
-                "Nine of the thirteen gates",
-                "of the thirteen",
-                "the two implementer hooks, the two stamp hooks",
-                "The other four carry their own conditions",
-                "Four side effects",
-            ),
-        ),
-        (
-            "README.ko.md",
-            "다음 부수 효과는 밝혀 둡니다",
-            "도장 훅은 그린 뒤 그 파일의 이름을 바꿀 뿐 지우지 않습니다",
-            (
-                "게이트 열셋 중 아홉",
-                "구현자 훅 둘, 도장 훅 둘",
-                "나머지 넷은 각자의 조건이 있습니다",
-                "네 가지 부수 효과",
-            ),
-        ),
-    ):
-        text = flat(edition)
-        for gate in ("sealer-stamp", "sealer-stamp-queue"):
-            table = [ln for ln in text.split("| ") if ln.startswith(f"{gate} ")]
-            assert table, f"{edition}'s gate table has no `{gate}` row"
-        assert effects in text and clause in text, (edition, effects, clause)
-        for phrase in gone:
-            assert phrase not in text, (edition, phrase)
-    # #975 S11: both editions say where the stamp's values are written, and
-    # neither says the broad gate leaves them. #1027 S13: at the write of a
-    # sealed guarantee under either root; and the refusal record's directory
-    # stands beside the values' among the side effects, written by the edit
-    # hook in either mode.
-    for edition, said, gone in (
-        (
-            "README.md",
-            (
-                "queued at the write of a work item's `guarantee.md` reading "
-                "`sealed` (the next row), once per work item",
-                "the write of a `guarantee.md` reading `sealed` writes the stamp's "
-                "values under",
+                "The plugin registers no hook.",
+                "A yes runs `seal stamp --install`, which writes two things",
+                'whose command is `python3 "<data dir>/stamp.py" || py -3 '
+                '"<data dir>/stamp.py"`.',
+                "These side effects are worth stating outright",
+                # The clause's own words (round 2's white 2), so the bare
+                # directory named elsewhere does not pass with it deleted.
+                "the sealer's `seal stamp --guarantee`, run once on a "
+                "`guarantee.md` reading `sealed`, writes the stamp's values under "
+                "`<git-common-dir>/agentic-stamp/`, which the stamp's hook renames "
+                "once drawn and nothing prunes",
                 "a `sealed` refused because its audited commit is not on the work "
                 "item's branch leaves an empty file under "
-                "`<git-common-dir>/agentic-stamp-refused/`, written by the edit "
-                "hook in either mode, which nothing prunes",
+                "`<git-common-dir>/agentic-stamp-refused/`, in either mode, which "
+                "nothing prunes either",
             ),
             (
+                "| Gate |",
+                "| sealer-stamp",
+                "Four side effects",
                 "the broad gate left for this session",
                 "a sealed broad gate run writes",
-                "a `sealed` the plugin refused leaves",
-                # #1027 phase 7: the git hooks' row went with the hooks.
-                "Beside the arms, `pre-commit` refuses",
+                "written by the edit hook",
             ),
         ),
         (
             "README.ko.md",
+            "## 내 컴퓨터에서 도는 것",
             (
-                "작업 항목의 `guarantee.md` 가 `sealed` 로 쓰일 때 남는",
-                "`sealed` 로 읽히는 `guarantee.md` 를 쓸 때 도장에 들어갈 값을",
-                "감사한 커밋이 작업 항목 브랜치에 없어 거절된 `sealed` 는 "
-                "`<git-common-dir>/agentic-stamp-refused/` 아래에 빈 파일을 "
-                "남깁니다. 어느 모드에서든 편집 훅이 씁니다.",
+                "플러그인은 훅을 하나도 등록하지 않습니다.",
+                "예라고 답하면 `seal stamp --install` 이 두 가지를 씁니다.",
+                '명령은 `python3 "<data dir>/stamp.py" || py -3 '
+                '"<data dir>/stamp.py"` 이고',
+                "다음 부수 효과는 밝혀 둡니다",
+                "도장 훅은 그린 뒤 그 파일의 이름을 바꿀 뿐 지우지 않습니다",
+                "감사한 커밋이 작업 항목 브랜치에 없어 거절된 `sealed` 는 어느 "
+                "모드에서든 `<git-common-dir>/agentic-stamp-refused/` 아래에 빈 "
+                "파일을 남깁니다.",
             ),
             (
-                "광역 관문이 이 세션 앞으로",
+                "| 게이트 |",
+                "| sealer-stamp",
+                "네 가지 부수 효과",
                 "광역 관문 실행은 도장에 들어갈 값을",
-                "플러그인이 거절한 `sealed`",
-                "팔과 별도로, `pre-commit` 은",
+                "편집 훅이 씁니다",
             ),
         ),
     ):
-        text = flat(edition)
+        whole = read(edition)
+        assert heading in whole, (edition, heading)
+        section = whole.split(heading, 1)[1].split("\n## ", 1)[0]
+        text = flattened(section)
         for phrase in said:
             assert phrase in text, (edition, phrase)
         for phrase in gone:
-            assert phrase not in text, (edition, phrase)
+            assert phrase not in flattened(whole), (edition, phrase)
 
 
 # --- S16: the sealer is told it draws nothing --------------------------------
 
 
-def test_the_sealer_is_told_the_gate_draws_nothing_and_neither_does_it():
+def test_the_sealer_queues_the_stamp_once_and_draws_none():
     """S16, the sealer's half (contract rule 14). `agents/sealer.md` said the
     drawing arrives as letters and to pass it through, which the 0.15.6 run
     did — every seal behind `ctrl+o`. Since #969 the sealer runs no gate, so
-    there is no line of the gate's for it to pass on: it says it draws no
-    stamp. Since #975 the stamp is drawn in the orchestrator's session from
-    the sealer's own committed `sealed` verdict, once per work item, and
-    never from the orchestrator's run; the old instructions are gone."""
+    there is no line of the gate's for it to pass on. Since #975 the stamp is
+    drawn in the orchestrator's session from the sealer's own `sealed`
+    verdict, once per work item, and never from the orchestrator's run. Since
+    #1376 the sealer queues it itself, with `seal stamp --guarantee`, names
+    that write as its own, and carries the line it prints into its report;
+    the old instructions are gone."""
     text = flat("agents", "sealer.md")
     for said in (
+        "Run `seal stamp --guarantee <path>` once, `<path>` being the "
+        "`guarantee.md` you wrote.",
+        "is your one write beside `guarantee.md` (rule 6), and you draw nothing",
+        "Its one line goes into your report as it printed it",
         "or draw a stamp",
-        "a stamp is drawn once from your `sealed`.",
+        "you queue the stamp once from your `sealed` and draw nothing.",
     ):
         assert said in text, said
     # 1792363231 S9: a local-mode verdict is never committed.

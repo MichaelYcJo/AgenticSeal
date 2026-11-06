@@ -30,11 +30,11 @@ layout = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(layout)
 
 MODULE = "def parse(text):\n    return text\n\n\ndef _helper():\n    pass\n"
-TRACKED = {"hooks/x.py", "tests/hooks/test_x.py"}
+TRACKED = {"lib/x.py", "tests/lib/test_x.py"}
 PLACED = (
     "import os\n"
     "\n"
-    'TARGET = "hooks/x.py"\n'
+    'TARGET = "lib/x.py"\n'
     "\n"
     "\n"
     "class Test_parse:\n"
@@ -58,14 +58,14 @@ UNDECLARED = "import os\n\n\ndef test_a():\n    assert os\n"
 
 
 def checked(tests, tracked=TRACKED, every=False):
-    """`check` over TESTS, the module `MODULE` standing at `hooks/x.py`."""
-    return layout.check(tests, tracked, {"hooks/x.py": MODULE}.get, every=every)
+    """`check` over TESTS, the module `MODULE` standing at `lib/x.py`."""
+    return layout.check(tests, tracked, {"lib/x.py": MODULE}.get, every=every)
 
 
 class Test_declared_target:
     def test_accepts_the_first_assignment_after_the_imports(self):
-        source = '"""Doc."""\n\nimport os\n\nTARGET = "hooks/x.py"\nB = 1\n'
-        assert layout.declared_target(source) == "hooks/x.py"
+        source = '"""Doc."""\n\nimport os\n\nTARGET = "lib/x.py"\nB = 1\n'
+        assert layout.declared_target(source) == "lib/x.py"
 
     def test_refuses_a_target_that_is_not_the_first_assignment(self):
         source = 'import os\n\nreader = "/reader"\nTARGET = "/target"\n'
@@ -77,13 +77,13 @@ class Test_declared_target:
 
 class Test_file_name_for:
     def test_accepts_a_hyphen_written_as_an_underscore(self):
-        shipped = ["hooks/mode-gate.py", "hooks/x.py"]
-        name = layout.file_name_for("hooks/mode-gate.py", shipped)
-        assert name == "test_mode_gate.py"
+        shipped = ["lib/some-gate.py", "lib/x.py"]
+        name = layout.file_name_for("lib/some-gate.py", shipped)
+        assert name == "test_some_gate.py"
 
     def test_accepts_the_parent_before_a_shared_stem(self):
-        shipped = ["hooks/lib/config.py", "hooks/git/config.py"]
-        assert layout.file_name_for("hooks/git/config.py", shipped) == (
+        shipped = ["lib/config.py", "lib/git/config.py"]
+        assert layout.file_name_for("lib/git/config.py", shipped) == (
             "test_git_config.py"
         )
 
@@ -133,20 +133,20 @@ class Test_twins:
 
 class Test_check:
     def test_accepts_a_placed_file(self):
-        assert checked({"tests/hooks/test_x.py": PLACED}) == ([], [])
+        assert checked({"tests/lib/test_x.py": PLACED}) == ([], [])
 
     def test_accepts_a_function_with_no_class_as_a_report(self):
         module = MODULE + "\n\ndef render(text):\n    return text\n"
         refused, reported = layout.check(
-            {"tests/hooks/test_x.py": PLACED}, TRACKED, {"hooks/x.py": module}.get
+            {"tests/lib/test_x.py": PLACED}, TRACKED, {"lib/x.py": module}.get
         )
         assert refused == []
         assert reported == [
-            "report: hooks/x.py: function render has no class Test_render"
+            "report: lib/x.py: function render has no class Test_render"
         ]
 
     def test_accepts_an_undeclared_file_as_a_report_until_every_file_is_asked(self):
-        tests = {"tests/hooks/test_x.py": PLACED, "tests/test_old.py": UNDECLARED}
+        tests = {"tests/lib/test_x.py": PLACED, "tests/test_old.py": UNDECLARED}
         assert checked(tests) == ([], ["report: tests/test_old.py: declares no TARGET"])
         refused, _ = checked(tests, every=True)
         assert refused == ["refused: tests/test_old.py: declares no TARGET"]
@@ -154,7 +154,7 @@ class Test_check:
     def test_accepts_free_names_for_a_flow_and_a_document(self):
         scenario = PLACED.split("\n\nclass Test_module")[0] + CENSUS_LINE
         flow = scenario.replace("class Test_parse", "class TestOneCommit")
-        document = PLACED.replace("hooks/x.py", "docs/x.md").replace(
+        document = PLACED.replace("lib/x.py", "docs/x.md").replace(
             "class Test_parse", "class TestTheHeading"
         )
         tests = {"tests/e2e/commit/test_flow.py": flow, "tests/test_doc.py": document}
@@ -162,18 +162,18 @@ class Test_check:
         assert refused == []
 
     def test_refuses_a_class_that_names_no_function_of_the_target(self):
-        tests = {"tests/hooks/test_x.py": PLACED.replace("Test_parse", "Test_render")}
+        tests = {"tests/lib/test_x.py": PLACED.replace("Test_parse", "Test_render")}
         refused, _ = checked(tests)
         assert refused == [
-            "refused: tests/hooks/test_x.py: class Test_render names no top-level "
-            "definition of hooks/x.py"
+            "refused: tests/lib/test_x.py: class Test_render names no top-level "
+            "definition of lib/x.py"
         ]
 
     def test_refuses_a_class_without_its_refusing_case(self):
         source = PLACED.replace("test_refuses_nothing", "test_accepts_nothing")
-        refused, _ = checked({"tests/hooks/test_x.py": source})
+        refused, _ = checked({"tests/lib/test_x.py": source})
         assert refused == [
-            "refused: tests/hooks/test_x.py: class Test_parse has no test_refuses_ case"
+            "refused: tests/lib/test_x.py: class Test_parse has no test_refuses_ case"
         ]
 
     def test_refuses_a_flow_scenario_without_its_accepting_case(self):
@@ -192,12 +192,12 @@ class Test_check:
 
     def test_refuses_a_twin_beside_a_declared_file(self):
         tests = {
-            "tests/hooks/test_x.py": PLACED + "\n\n" + HELPER,
+            "tests/lib/test_x.py": PLACED + "\n\n" + HELPER,
             "tests/test_old.py": HELPER,
         }
         refused, _ = checked(tests)
         assert refused == [
-            "refused: read is defined byte-identically in tests/hooks/test_x.py, "
+            "refused: read is defined byte-identically in tests/lib/test_x.py, "
             "tests/test_old.py"
         ]
         _, reported = checked({"tests/test_a.py": HELPER, "tests/test_b.py": HELPER})
@@ -208,52 +208,50 @@ class Test_check:
 
     def test_refuses_a_declared_file_that_runs_no_census(self):
         source = PLACED.replace(CENSUS_LINE, "\n")
-        refused, _ = checked({"tests/hooks/test_x.py": source})
+        refused, _ = checked({"tests/lib/test_x.py": source})
         assert refused == [
-            "refused: tests/hooks/test_x.py: does not assign test_census = "
-            "census_case(TARGET), so no census judges hooks/x.py"
+            "refused: tests/lib/test_x.py: does not assign test_census = "
+            "census_case(TARGET), so no census judges lib/x.py"
         ]
-        other = PLACED.replace("census_case(TARGET)", 'census_case("hooks/y.py")')
-        assert checked({"tests/hooks/test_x.py": other})[0] == refused
+        other = PLACED.replace("census_case(TARGET)", 'census_case("lib/y.py")')
+        assert checked({"tests/lib/test_x.py": other})[0] == refused
         qualified = PLACED.replace("census_case(", "conftest.census_case(")
-        assert checked({"tests/hooks/test_x.py": qualified}) == ([], [])
+        assert checked({"tests/lib/test_x.py": qualified}) == ([], [])
 
     def test_refuses_a_copy_of_a_conftest_helper_in_a_declared_file(self):
-        tests = {"tests/hooks/test_x.py": PLACED + "\n\n" + HELPER}
+        tests = {"tests/lib/test_x.py": PLACED + "\n\n" + HELPER}
         peers = {**tests, "tests/conftest.py": HELPER, "tests/test_a.py": HELPER}
-        refused, _ = layout.check(
-            tests, TRACKED, {"hooks/x.py": MODULE}.get, peers=peers
-        )
+        refused, _ = layout.check(tests, TRACKED, {"lib/x.py": MODULE}.get, peers=peers)
         assert refused == [
             "refused: read is defined byte-identically in tests/conftest.py, "
-            "tests/hooks/test_x.py, tests/test_a.py"
+            "tests/lib/test_x.py, tests/test_a.py"
         ]
         alone = {"tests/conftest.py": HELPER, "tests/test_a.py": HELPER}
         assert layout.check(
-            {"tests/hooks/test_x.py": PLACED},
+            {"tests/lib/test_x.py": PLACED},
             TRACKED,
-            {"hooks/x.py": MODULE}.get,
-            peers={**alone, "tests/hooks/test_x.py": PLACED},
+            {"lib/x.py": MODULE}.get,
+            peers={**alone, "tests/lib/test_x.py": PLACED},
         ) == ([], [])
 
     def test_refuses_a_target_git_does_not_track(self):
         refused, _ = checked(
-            {"tests/hooks/test_x.py": PLACED}, tracked={"tests/hooks/test_x.py"}
+            {"tests/lib/test_x.py": PLACED}, tracked={"tests/lib/test_x.py"}
         )
         assert refused == [
-            "refused: tests/hooks/test_x.py: TARGET hooks/x.py is not a file git tracks"
+            "refused: tests/lib/test_x.py: TARGET lib/x.py is not a file git tracks"
         ]
 
     def test_refuses_a_file_named_for_another_module(self):
-        refused, _ = checked({"tests/hooks/test_y.py": PLACED})
+        refused, _ = checked({"tests/lib/test_y.py": PLACED})
         assert refused == [
-            "refused: tests/hooks/test_y.py: the file for hooks/x.py is named test_x.py"
+            "refused: tests/lib/test_y.py: the file for lib/x.py is named test_x.py"
         ]
 
     def test_refuses_a_module_test_file_outside_its_area(self):
         for rel in ("tests/test_x.py", "tests/skills/test_x.py"):
             assert checked({rel: PLACED})[0] == [
-                f"refused: {rel}: the file for hooks/x.py stands in tests/hooks/"
+                f"refused: {rel}: the file for lib/x.py stands in tests/lib/"
             ]
         # The area is the TARGET's first directory with a leading dot dropped,
         # and a module under `tests/` keeps its file at `tests/`.
@@ -261,12 +259,11 @@ class Test_check:
             (".github/scripts/x.py", "tests/github/"),
             ("tests/x.py", "tests/"),
         ):
-            source = PLACED.replace("hooks/x.py", target)
+            source = PLACED.replace("lib/x.py", target)
             read = {target: MODULE}.get
-            misplaced = {"tests/hooks/test_x.py": source}
+            misplaced = {"tests/lib/test_x.py": source}
             assert layout.check(misplaced, {target}, read)[0] == [
-                f"refused: tests/hooks/test_x.py: the file for {target} stands "
-                f"in {area}"
+                f"refused: tests/lib/test_x.py: the file for {target} stands in {area}"
             ]
             assert layout.check({area + "test_x.py": source}, {target}, read) == (
                 [],
@@ -476,8 +473,8 @@ NESTED_CASE = (
     "    assert helper().value and maker() == 1\n"
 )
 MOVED_OLD_C = "import pytest\n\n\n" + NESTED_FIXTURE + "\n\n" + NESTED_CASE
-# The third old file's case and fixture moved into a class, as the formatter
-# the edit hook runs leaves them: every line four spaces deeper, the
+# The third old file's case and fixture moved into a class, as `ruff format`
+# leaves them: every line four spaces deeper, the
 # continuation lines of each docstring among them.
 NESTED_NEW = "import pytest\n\n\nclass Test_four:\n" + textwrap.indent(
     NESTED_FIXTURE.replace("def maker():", "def maker(self):")
@@ -513,7 +510,7 @@ D_MODULE = (
     "    return path\n"
     "\n"
     "\n"
-    'reader = load("hooks/a.py")\n'
+    'reader = load("lib/a.py")\n'
     "\n"
     "\n"
     "def unread():\n"
@@ -779,11 +776,11 @@ class Test_moved:
         + [
             (
                 {
-                    "tests/hooks/test_d.py": NAMED_NEW.replace(
+                    "tests/lib/test_d.py": NAMED_NEW.replace(
                         "from test_e import", "from test_f import"
                     )
                 },
-                {"tests/hooks/test_f.py": "V = 1\n"},
+                {"tests/lib/test_f.py": "V = 1\n"},
                 (OLD_D,),
                 10,
                 11,
@@ -961,7 +958,7 @@ class Test_moved:
                 (("posixpath as", "ntpath as"), None, "test_subject", "subject"),
                 (('("bb", 2)', '("a", 1)'), None, "test_rows", "ROWS"),
                 (("return [1]", "return []"), None, "test_made", "build"),
-                (("hooks/a.py", "hooks/b.py"), None, "test_reader", "reader"),
+                (("lib/a.py", "lib/b.py"), None, "test_reader", "reader"),
                 (None, {SHAPES_D: "LIMIT = 4\n"}, "test_limit", "shapes_d.LIMIT"),
                 (
                     ("return 2 * x", "return x + x"),
@@ -1133,18 +1130,16 @@ class Test_main:
     def test_refuses_a_misplaced_class_with_exit_one(
         self, tmp_path, monkeypatch, capsys
     ):
-        (tmp_path / "tests" / "hooks").mkdir(parents=True)
-        (tmp_path / "hooks").mkdir()
+        (tmp_path / "tests" / "lib").mkdir(parents=True)
+        (tmp_path / "lib").mkdir()
         source = PLACED.replace("Test_parse", "Test_render")
-        (tmp_path / "tests" / "hooks" / "test_x.py").write_text(
-            source, encoding="utf-8"
-        )
-        (tmp_path / "hooks" / "x.py").write_text(MODULE, encoding="utf-8")
+        (tmp_path / "tests" / "lib" / "test_x.py").write_text(source, encoding="utf-8")
+        (tmp_path / "lib" / "x.py").write_text(MODULE, encoding="utf-8")
         monkeypatch.setattr(layout, "_toplevel", lambda start: str(tmp_path))
         monkeypatch.setattr(layout, "_tracked", lambda root: set(TRACKED))
         assert layout.main(["--check"]) == 1
         out = capsys.readouterr().out
-        assert "tests/hooks/test_x.py: class Test_render" in out
+        assert "tests/lib/test_x.py: class Test_render" in out
 
     def test_refuses_all_without_check(self, capsys):
         with pytest.raises(SystemExit) as stopped:

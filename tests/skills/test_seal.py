@@ -23,8 +23,8 @@ case runs, so a copy is a plain copy.
 `seal.py`'s re-exports of that reader, from that file and from
 `tests/behaviour/test_a_signer_declares_its_pact.py`. Each loads the module under a
 name of its own, as its old file did. Its round 9 fix pass placed in
-`Test_refuse_without_hooks` the three rows that run a copy of this script
-without `hooks/`, from `tests/test_a_script_copied_alone_exits_2.py`, a case
+`Test_refuse_without_lib` the three rows that run a copy of this script
+without `lib/`, from `tests/test_a_script_copied_alone_exits_2.py`, a case
 of this module alone.
 """
 
@@ -55,7 +55,6 @@ from conftest import (
     fifo_or_skip,
     git,
     git_out,
-    load_hook_module,
     load_module,
     local_home,
     mark_root,
@@ -91,9 +90,6 @@ CLOSING = (
 # Session state that sits beside the root under the common git directory.
 # None may be in a zip, and a new file beside the root joins the list.
 BESIDE_THE_ROOT = (
-    "agentic-implementer",
-    "agentic-planner",
-    "agentic-no-work-item",
     "agentic-stamp-refused",
     "agentic-last-export.json",
 )
@@ -409,9 +405,9 @@ class Test_module:
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         # By where the code was COMPILED, not by object identity: this test loads
-        # `hooks/lib/config.py` under a name of its own, so the two module objects
+        # `lib/config.py` under a name of its own, so the two module objects
         # differ while the implementation behind them must not.
-        owner = os.path.join("hooks", "lib", "config.py")
+        owner = os.path.join("lib", "config.py")
         for name in ("declared", "config_rows", "config_path"):
             where = getattr(module, name).__code__.co_filename
             assert where.endswith(owner), f"seal.{name} is compiled from {where}"
@@ -420,20 +416,20 @@ class Test_module:
     def test_seal_keeps_one_normaliser(self):
         """`seal.py` re-exports the reader's normaliser rather than keeping a
         second copy that could drift from the one the `Pact` row goes through."""
-        seal = load_hook_module(
-            os.path.join("..", "skills", "implement", "scripts", "seal.py"),
+        seal = load_module(
+            os.path.join(ROOT, "skills", "implement", "scripts", "seal.py"),
             "seal_for_the_pact",
         )
         assert seal.normalise_remote is seal.repo_config.normalise_remote
 
 
-class Test_refuse_without_hooks:
-    def test_accepts_a_hooks_directory_holding_every_module_it_names(
+class Test_refuse_without_lib:
+    def test_accepts_a_lib_directory_holding_every_module_it_names(
         self, tmp_path, capsys
     ):
-        for name in SEAL.HOOK_PURPOSES:
+        for name in SEAL.LIB_PURPOSES:
             write(tmp_path, name, "")
-        assert SEAL.refuse_without_hooks(str(tmp_path)) is None
+        assert SEAL.refuse_without_lib(str(tmp_path)) is None
         assert capsys.readouterr().err == ""
 
     def test_refuses_with_exit_2_and_a_sentence_per_module_missing(
@@ -441,7 +437,7 @@ class Test_refuse_without_hooks:
     ):
         write(tmp_path, "config.py", "")
         with pytest.raises(SystemExit) as stopped:
-            SEAL.refuse_without_hooks(str(tmp_path))
+            SEAL.refuse_without_lib(str(tmp_path))
         err = capsys.readouterr().err
         assert stopped.value.code == 2
         for name in ("optin.py", "blocks.py"):
@@ -457,7 +453,7 @@ class Test_refuse_without_hooks:
                 "it is what finds the repository's seal/ root",
                 None,
             ),
-            # Round 1's yellow 1 of #610: `hooks/lib/config.py` reads `config.md`
+            # Round 1's yellow 1 of #610: `lib/config.py` reads `config.md`
             # and never writes it, so a purpose saying it writes is #590's
             # wrong-purpose defect again.
             (
@@ -465,26 +461,11 @@ class Test_refuse_without_hooks:
                 "it is what reads the root's config.md",
                 "reads and writes",
             ),
-            # #667: `hooks/lib/config.py` imports `hooks/lib/blocks.py`, so a `hooks/`
+            # #667: `lib/config.py` imports `lib/blocks.py`, so a `lib/`
             # without it fails that import.
             (
                 ["mode", "--check"],
                 "it is the walk config.py reads config.md through",
-                None,
-            ),
-            (
-                ["mode", "--check"],
-                "it is what writes the record `seal no-work-item` leaves",
-                None,
-            ),
-            (
-                ["mode", "--check"],
-                "it names the variable a session's id is read from",
-                None,
-            ),
-            (
-                ["mode", "--check"],
-                "it is what reads the core hook's first line",
                 None,
             ),
             (
@@ -498,18 +479,15 @@ class Test_refuse_without_hooks:
             "optin.py",
             "config.py",
             "blocks.py",
-            "routing.py",
-            "hooksession.py",
-            "core.py",
             "gitcmd.py",
         ],
     )
     def test_a_script_copied_alone_exits_2_and_names_what_it_misses(
         self, tmp_path, args, purpose, absent
     ):
-        """#590 and #610. A copy of this script taken without `hooks/` exits 2,
+        """#590 and #610. A copy of this script taken without `lib/` exits 2,
         with a sentence per missing module naming its path and what it is for.
-        It puts `hooks/` on `sys.path` and then runs a plain `import`, which a
+        It puts `lib/` on `sys.path` and then runs a plain `import`, which a
         search for by-path loaders does not find, and it asks before the
         import, at import, so any invocation argparse accepts reaches it:
         `mode --check`, and not an empty one, because argparse's own usage
@@ -873,10 +851,11 @@ class Test_export:
         self, take, capsys, tmp_path
     ):
         repo = take("local")
-        write(repo / ".git", "agentic-implementer", "secret-branch\n")
+        write(repo / ".git", "agentic-last-export.json", "secret-branch\n")
         _shared, local = roots(repo)
         symlink_or_skip(
-            os.path.join("..", "agentic-implementer"), os.path.join(local, "leak.md")
+            os.path.join("..", "agentic-last-export.json"),
+            os.path.join(local, "leak.md"),
         )
         code, out = said(capsys, repo, "export")
         assert code == 0, out
@@ -1661,7 +1640,7 @@ class Test_import_:
             info = zipfile.ZipInfo(name)
             if name == "seal/leak.md":
                 info.external_attr = (0o120777 << 16) | 0o200000
-            archive.writestr(info, "../agentic-implementer")
+            archive.writestr(info, "../agentic-last-export.json")
         code, out = said(capsys, other, "import", str(hostile))
         assert code == 1, out
         assert out.startswith(f"{hostile} holds members this command will not write:\n")
@@ -2198,7 +2177,7 @@ class Test_write_row:
         table at all and `with_row` falls to its third arm and appends one at the
         END — which is inside that fence. `write_row` returned `""`, `seal mode`
         printed *one was written from where the folder is*, and `declared_mode`
-        still answered `('none', '')`: the mode gate asks again next session, and
+        still answered `('none', '')`: the next `seal mode` writes it again, and
         the file grows by a table a run. Measured before the fix over both
         fixtures below, three runs each — 9 → 13 → 17 → 21 lines and 4 → 8 → 12 →
         16, `('none', '')` throughout.
@@ -3612,147 +3591,6 @@ class Test_check:
             )
 
 
-class Test_no_work_item:
-    """`seal no-work-item` records, for this session on the branch checked out
-    where it runs, that its change belongs to no work item, so
-    `hooks/routing-edit-gate.py` lets its edits on that branch through
-    (#1027, S4; `questions.md` Q7, answer (b))."""
-
-    def record(self, repo, session="s1"):
-        return os.path.join(
-            os.path.realpath(repo), ".git", "agentic-no-work-item", session
-        )
-
-    def recorded(self, repo, session="s1"):
-        with open(self.record(repo, session), encoding="utf-8", newline="") as f:
-            return f.read()
-
-    def test_accepts_the_session_variable_and_writes_its_branch(
-        self, take, capsys, monkeypatch
-    ):
-        repo = take("plain")
-        monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "s1")
-        code, out = said(capsys, repo, "no-work-item")
-        assert code == 0, out
-        assert self.recorded(repo) == "main\n"
-        assert out == (
-            f"recorded: this session's change on `main` in "
-            f"{os.path.realpath(repo)} belongs to no work item "
-            f"({self.record(repo)}), so its edits on that branch go ahead.\n"
-        )
-
-    def test_a_second_branch_adds_a_line_and_the_same_branch_adds_none(
-        self, take, capsys, monkeypatch
-    ):
-        repo = take("plain")
-        monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "s1")
-        assert said(capsys, repo, "no-work-item")[0] == 0
-        git(repo, "switch", "-q", "feature/x")
-        assert said(capsys, repo, "no-work-item")[0] == 0
-        assert self.recorded(repo) == "main\nfeature/x\n"
-        assert said(capsys, repo, "no-work-item")[0] == 0
-        assert self.recorded(repo) == "main\nfeature/x\n"
-
-    def test_accepts_a_branch_with_no_commit_yet_and_writes_it(
-        self, tmp_path, capsys, monkeypatch
-    ):
-        """HEAD names `main` before the first commit, and that is the branch
-        recorded, not a detached HEAD (round 4 of #1027, finding 1)."""
-        repo = tmp_path / "fresh"
-        git(tmp_path, "init", "-q", "-b", "main", str(repo))
-        monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "s1")
-        code, out = said(capsys, repo, "no-work-item")
-        assert code == 0, out
-        assert self.recorded(repo) == "main\n"
-
-    def test_refuses_a_detached_head_and_writes_nothing(
-        self, take, capsys, monkeypatch
-    ):
-        repo = take("plain")
-        git(repo, "switch", "-q", "--detach")
-        monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "s1")
-        code, out = said(capsys, repo, "no-work-item")
-        assert code == 1
-        assert not os.path.exists(os.path.dirname(self.record(repo)))
-        assert out == (
-            f"seal: HEAD is detached in {os.path.realpath(repo)}, so no branch "
-            "can be recorded and nothing was. Check out a branch there first, "
-            "then run this again.\n"
-        )
-
-    def test_a_paused_rebase_records_the_branch_it_names(
-        self, take, capsys, monkeypatch
-    ):
-        """HEAD is detached while the rebase waits on a conflict, and the
-        branch the rebase names is the one recorded, as the edit gate
-        resolves it."""
-        repo = take("plain")
-        identity = ["-c", "user.email=e@example.com", "-c", "user.name=e"]
-        git(repo, "switch", "-q", "feature/x")
-        write(repo, "f.txt", "feature\n")
-        commit_everything_as_e(repo, "feature")
-        git(repo, "switch", "-q", "main")
-        write(repo, "f.txt", "base\n")
-        commit_everything_as_e(repo, "base")
-        git(repo, "switch", "-q", "feature/x")
-        assert git(repo, *identity, "rebase", "main", check=False).returncode != 0
-        assert git_out(repo, "rev-parse", "--abbrev-ref", "HEAD") == "HEAD"
-        monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "s1")
-        assert said(capsys, repo, "no-work-item")[0] == 0
-        assert self.recorded(repo) == "feature/x\n"
-
-    @pytest.mark.parametrize("value", [None, ".", ".."], ids=["unset", "dot", "dots"])
-    def test_refuses_a_session_variable_naming_no_session_and_writes_nothing(
-        self, take, capsys, monkeypatch, value
-    ):
-        """A value that is no file name would name the records' directory or
-        its parent, so it names no session."""
-        repo = take("plain")
-        if value is not None:
-            monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", value)
-        code, out = said(capsys, repo, "no-work-item")
-        assert code == 1
-        assert not os.path.exists(os.path.dirname(self.record(repo)))
-        assert out == (
-            "seal: CLAUDE_CODE_SESSION_ID names no session in this environment, "
-            "so nothing was recorded. Run this from the session's own Bash tool.\n"
-        )
-
-    def test_refuses_outside_a_repository_and_writes_nothing(
-        self, tmp_path, capsys, monkeypatch
-    ):
-        monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "s1")
-        code, out = said(capsys, tmp_path, "no-work-item")
-        assert code == 1
-        assert out == (
-            f"seal: {tmp_path} is in no git repository, so nothing was recorded.\n"
-        )
-
-    def test_root_names_the_clone_from_anywhere(
-        self, take, tmp_path, capsys, monkeypatch
-    ):
-        repo = take("plain")
-        monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "s1")
-        code, _ = said(capsys, tmp_path, "no-work-item", "--root", str(repo))
-        assert code == 0
-        assert os.path.isfile(self.record(repo))
-
-    def test_a_record_older_than_a_day_is_pruned_when_one_is_written(
-        self, take, capsys, monkeypatch
-    ):
-        repo = take("plain")
-        old, fresh = self.record(repo, "old"), self.record(repo, "fresh")
-        for path in (old, fresh):
-            write(os.path.dirname(path), os.path.basename(path), "")
-        day_and_a_minute = 86400 + 60
-        stale = os.stat(old).st_mtime - day_and_a_minute
-        os.utime(old, (stale, stale))
-        monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "s1")
-        assert said(capsys, repo, "no-work-item")[0] == 0
-        assert not os.path.exists(old)
-        assert os.path.isfile(fresh) and os.path.isfile(self.record(repo))
-
-
 class Test_main:
     @pytest.mark.parametrize(
         "argv, called",
@@ -3761,7 +3599,6 @@ class Test_main:
             (["export", "--check"], "check"),
             (["import", "x.zip"], "import_"),
             (["mode", "local"], "mode"),
-            (["no-work-item"], "no_work_item"),
             (["pr-checks"], "pr_checks"),
             (["pr-checks", "install"], "pr_checks"),
             (["pr-checks", "remove"], "pr_checks"),
@@ -3771,7 +3608,7 @@ class Test_main:
         self, monkeypatch, tmp_path, argv, called
     ):
         seen = []
-        for name in ("export", "check", "import_", "mode", "no_work_item", "pr_checks"):
+        for name in ("export", "check", "import_", "mode", "pr_checks"):
             monkeypatch.setattr(
                 SEAL, name, lambda *a, _name=name: seen.append(_name) or 0
             )
@@ -3794,7 +3631,6 @@ class Test_main:
             ("layout", "skills/verify/scripts/test_layout.py"),
             ("rules", ".github/scripts/rules.py"),
             ("pr-body", "skills/code-review/scripts/pr_body.py"),
-            ("core", "skills/verify/scripts/core_check.py"),
         ],
     )
     def test_accepts_each_tool_and_hands_its_script_every_argument(

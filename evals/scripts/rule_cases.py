@@ -51,9 +51,7 @@ import tempfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(
     0,
-    os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "..", "..", "hooks", "lib"
-    ),
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "lib"),
 )
 import behaviour
 import console
@@ -830,7 +828,7 @@ OWN_PART = "{extra}Closes #101.\n\n"
 # The record `seal gate --record` writes, in `broad_gate.write_gate_file`'s
 # shape: the work item's heading and one run block. Its commits are
 # placeholders the scaffold fills, hexadecimal as `BUILD_SHA` is, because
-# `pr_body.compose` reads the block through `hooks/lib/fields.py` first.
+# `pr_body.compose` reads the block through `lib/fields.py` first.
 RUN_SHA = "a0a0a0a"
 BASE_SHA = "c0c0c0c"
 GATE_RECORD = f"""# {{item}} — broad gate
@@ -975,7 +973,7 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
     graders = [
         behaviour.reach("sealer"),
         # The verdict on the `Verdict:` line of a verdict block, written as
-        # `hooks/lib/fields.py` reads it: the block's opener, then lines that
+        # `lib/fields.py` reads it: the block's opener, then lines that
         # open no fence, then the line. A `Verdict:` line outside a block is
         # no verdict to the check, so it is none to this grader.
         behaviour.report_regex(

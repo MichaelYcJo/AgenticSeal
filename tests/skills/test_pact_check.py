@@ -10,8 +10,8 @@ not hold, and a signer beside it, which names the pact in its
 `seal/config.md`. `HOME` is the world's own directory, so the machine-local
 map is whatever a case writes there. Each copy is the reset. The world is
 `tests/conftest.py`'s, because the seven cases phase 5 left here for
-`hooks/lib/config.py`, which run `check` over a pact or a signer config the
-table walker refuses, are in `tests/hooks/test_config.py` since #942's phase 6.
+`lib/config.py`, which run `check` over a pact or a signer config the
+table walker refuses, are in `tests/lib/test_config.py` since #942's phase 6.
 """
 
 import ntpath
@@ -54,10 +54,10 @@ WRAPPER = os.path.join(ROOT, "bin", "seal")
 
 # The module and its evidence reader, loaded once in `tests/conftest.py`, so
 # the world's `check` runs and this file patches one module. The world, its
-# texts and the `world` fixture are there too, since `tests/hooks/test_config.py`
+# texts and the `world` fixture are there too, since `tests/lib/test_config.py`
 # runs the pact walker's cases through them.
 pc, checker = pact_check_modules()
-config = pc.load(os.path.join(pc.HOOKS, "config.py"), "config_for_pact_tests")
+config = pc.load(os.path.join(pc.LIB, "config.py"), "config_for_pact_tests")
 
 SIGNER = (SIGNER_URL, config.normalise_remote(SIGNER_URL))
 SPEC_Y = "seal/threads/1790000001-y/frame/design.md"
@@ -1008,7 +1008,7 @@ class Test_check:
     @pytest.mark.parametrize("shape", ["directory", "undecodable"])
     def test_refuses_a_signer_config_that_will_not_read(self, world, shape):
         """Both unreadable shapes reach it as `UNREADABLE` at exit 2 through
-        `hooks/lib/config.py#config_text`, named relative to the signer's
+        `lib/config.py#config_text`, named relative to the signer's
         checkout and in POSIX form."""
         cfg = world.web / "seal" / "config.md"
         text = cfg.read_bytes()

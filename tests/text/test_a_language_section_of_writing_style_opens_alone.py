@@ -175,10 +175,10 @@ def test_the_rules_for_text_an_agent_or_a_check_reads_reach_both_languages():
         "one party that writes a spawn prompt is never pointed at them"
     )
     # A session writes skills, agents, templates and frames as its first act
-    # and opens no writing skill before it, so the core every session and
-    # every agent reads names the section.
+    # and opens no writing skill before it, so the core every agent and every
+    # session `/agentic:start` starts reads names the section.
     core = " ".join(read("skills/core/SKILL.md").split())
-    # The citation every session and every agent resolves through the core.
+    # The citation those sessions and agents resolve through the core.
     assert f"`{SKILL}` *{title}*" in core, (
         "the core does not name the writing rules, so a session writes a "
         "skill before anything points it at them"

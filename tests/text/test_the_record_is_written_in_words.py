@@ -124,7 +124,7 @@ def test_a_repair_with_no_commit_closes_deferred_where_it_was_made():
     )
     for s in outside:
         # The close block's `verdict:` value `deferred <where it was
-        # repaired>`, whose `deferred` word `hooks/lib/fields.py` reads.
+        # repaired>`, whose `deferred` word `lib/fields.py` reads.
         assert "`deferred <where it was repaired>`" in s, (
             f"a repair outside the tree closes `deferred <where it was repaired>`: {s}"
         )
@@ -136,7 +136,7 @@ def test_a_repair_with_no_commit_closes_deferred_where_it_was_made():
     )
     for s in corrections:
         # The close block's `verdict:` value `fixed <commit>`, which
-        # `hooks/lib/fields.py` reads.
+        # `lib/fields.py` reads.
         assert "`fixed <commit>`" in s, (
             f"a repair a commit made closes `fixed <commit>`: {s}"
         )

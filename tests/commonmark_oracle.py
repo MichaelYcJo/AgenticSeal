@@ -1,13 +1,13 @@
 """Which lines of a markdown document a CommonMark renderer hides (#667).
 
-This is the oracle the hook readers are held to. It answers one question per
+This is the oracle the readers under `lib/` are held to. It answers one question per
 line -- does a renderer show this line as markdown text, or does it put it
 inside something that is not -- and nothing else. Which lines form a table is
 each reader's own grammar and is not asked here.
 
 **It shares nothing with what it checks.** It imports markdown-it-py and the
-standard library, and nothing from `hooks/`, `skills/` or `.github/scripts/`;
-`tests/behaviour/test_the_hooks_hide_what_a_renderer_hides.py` reads this file's own
+standard library, and nothing from `lib/`, `skills/` or `.github/scripts/`;
+`tests/behaviour/test_the_readers_hide_what_a_renderer_hides.py` reads this file's own
 imports to hold that. The work item before this one built its oracle out of
 the readers' shared functions, and round 3 of it found the gap that
 arrangement cannot see: "The oracle cannot catch this, because it is built
@@ -36,7 +36,7 @@ walk's own answer there, so the two agreed by construction (#667 round 3,
 🟡 2).
 
 The parser is markdown-it-py's `commonmark` preset with GFM tables switched
-on, because the files the hooks read are rendered as GFM, and a table changes
+on, because the files the readers read are rendered as GFM, and a table changes
 which lines a paragraph holds. The version is pinned in
 `.github/scripts/run_tests.py#MARKDOWN_IT`.
 

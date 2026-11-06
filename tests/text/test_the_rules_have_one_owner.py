@@ -441,7 +441,7 @@ def sentences(text):
 def test_a_close_that_does_not_hold_reopens_it():
     """S9 and S26 of work item 1791933022. A verifying round answers each
     closed finding on one of three line keywords, `confirms:`,
-    `regression:` and `reopens:`, which `hooks/lib/fields.py` spells and the
+    `regression:` and `reopens:`, which `lib/fields.py` spells and the
     chain check reads. Every carrier that names the first two in one
     sentence names the third in it too, so no carrier hands the proofer a
     channel with a keyword missing. When a close reopens, and how the run
@@ -452,7 +452,7 @@ def test_a_close_that_does_not_hold_reopens_it():
             for s in sentences(flat(*carrier))
             if "`confirms:`" in s and "`regression:`" in s
         ]
-        # The two line keywords `hooks/lib/fields.py` spells, which the
+        # The two line keywords `lib/fields.py` spells, which the
         # proofer writes and the chain check reads.
         assert both, f"{'/'.join(carrier)} names the channel nowhere"
         for s in both:

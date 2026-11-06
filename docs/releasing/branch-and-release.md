@@ -16,10 +16,9 @@ needs both, or the people already running the plugin are never told of it.
    what `claude plugin update` installs from the marketplace clone.
 2. **A `vX.Y.Z` git tag on the release commit**, which
    `.github/workflows/publish-release.yml` creates when the release reaches
-   `main`. `hooks/version-check.py` asks `git ls-remote --tags` and nothing
-   else. An untagged release is one no installed session is ever told about,
-   and a user on the previous version is told of a different release or of
-   none.
+   `main`. `/agentic:update` reads the GitHub Releases, each published at
+   its tag (`skills/update/SKILL.md` step 3), so an untagged release carries
+   no note there, and a user who updates is told nothing of what it brings.
 
 Check both agree before announcing anything:
 
@@ -39,7 +38,7 @@ the commit that adds the changelog fragment of the release's first work
 item, and every later pull request into the branch leaves it. What holds a
 release whose first pull request did not move it is the `hygiene` workflow,
 which fails a release pull request, one whose base is `main`, that changes
-`skills/`, `agents/`, `hooks/`, `templates/`, `bin/` or `.claude-plugin/`
+`skills/`, `agents/`, `lib/`, `templates/`, `bin/` or `.claude-plugin/`
 without moving the version.
 check: tests/behaviour/test_the_release_check_watches_what_ships.py .github/workflows/hygiene.yml
 
@@ -147,10 +146,18 @@ of the release's tag. So the list lives in that one file and the workflow
 holds none. It lists what leaves and not what stays: a path forgotten
 there reaches `dist` and costs size or a finding, where a path forgotten
 in a list of what stays would be missing from every listed copy with
-nothing here to see it. The workflow's `dist` job builds the commit with
-`.github/scripts/dist_branch.py` on the previous commit of `dist`, makes
-none where that commit's tree is already the tag's archive, and pushes
-without force, because the directory serves a scanned commit of the
+nothing here to see it. Of `.github/scripts/`, `dist` keeps the three
+scripts a shipped command runs: `bin/test` runs
+`.github/scripts/run_tests.py`, `skills/implement/scripts/seal.py` loads
+`.github/scripts/rules.py` for `seal rules`, and
+`skills/code-review/scripts/pr_body.py` loads
+`.github/scripts/close_issues_on_release.py` for its reader of closing
+keywords. Every other script there is release automation a workflow runs
+from the tree, and each leaves by a line of its own, so a release-only
+script added there adds its line, or CI fails. The workflow's `dist` job
+builds the commit with `.github/scripts/dist_branch.py` on the previous
+commit of `dist`, makes none where that commit's tree is already the
+tag's archive, and pushes without force, because the directory serves a scanned commit of the
 branch it tracks and a rewritten branch would orphan it. The census that
 reads cited sections and names reads the files `dist` holds against
 `dist`'s files too, so a cited file marked `export-ignore` fails CI. A

@@ -46,7 +46,7 @@ The orchestrator and the owner open these at a release and its settle.
 
 ## docs/checks/
 
-A person who changes a hook or a script opens these, and so does the
+A person who changes a script opens these, and so does the
 settling session. No agent acts on them: where the contract or a skill an
 agent opens cites one, the citing text already states what the agent does,
 and the citation gives the reason.
@@ -54,11 +54,10 @@ and the citation gives the reason.
 | File | The question it answers |
 |---|---|
 | `docs/checks/the-pull-request-check.md` | what `chain_check.py` reads at a pull request, for a person who changes it |
-| `docs/checks/the-stamp.md` | what the stamp hooks and `seal_stamp.py` draw, for a person who changes them |
+| `docs/checks/the-stamp.md` | what `seal_stamp.py` queues and draws, and the `Stop` hook that draws it |
 | `docs/checks/the-fold.md` | what `seal settle` and `seal fold` read to tell a settle from a deletion |
 | `docs/checks/the-unverified-record.md` | what `unverified_check.py` reads, and the states in which it reads no row |
-| `docs/checks/the-routing-check.md` | where a session's routing is checked: at its edit tools before the first edit, and at the pull request |
-| `docs/checks/the-session-hooks.md` | how the hooks are registered, and what the implementer mark says |
+| `docs/checks/the-routing-check.md` | where a session's routing is checked, at the pull request alone, and the session it does not catch |
 
 ## docs/layout/
 

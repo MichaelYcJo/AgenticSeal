@@ -4,7 +4,7 @@ The rule spans several documents — the orchestrator's half of the skill
 states it, the policy says what the gate does with it, the framer's
 definition says what the framer writes, and the template is what gets
 written. What these cases read is the facts a reader acts on across them:
-the answers `hooks/lib/routing.py` parses, the template's placeholders, the
+the answers `lib/routing.py` parses, the template's placeholders, the
 box table the person is asked, and the citations between the files. The
 rule's sentences are the proofer's to read.
 
@@ -71,13 +71,13 @@ def in_force(rel, section):
     lifetimes*). #1148 moved the routing rows' grounds from the orchestration
     skill to the policy root through its rule changes, so these cases read
     the grounds where they stand before the settle and after it alike."""
-    from conftest import load_hook_module, load_module
+    from conftest import load_lib_module, load_module
 
     rules = load_module(
         os.path.join(ROOT, "skills", "settle", "scripts", "rule_changes.py"),
         "agentic_rule_changes_for_waiver",
     )
-    config = load_hook_module("lib/config.py", "agentic_config_for_waiver")
+    config = load_lib_module("config.py", "agentic_config_for_waiver")
     text = read(*rel.split("/"))
     span, why = rules.section_lines(text, section)
     assert span, f"{rel}: {why}"
@@ -146,7 +146,7 @@ def test_the_implementation_row_offers_the_answers_the_parser_reads():
         f"the axes table has {len(rows)} `Implementation` rows; the count "
         "beside it promises exactly one"
     )
-    # The two answers `hooks/lib/routing.py#IMPLEMENTATION_ANSWERS` accepts,
+    # The two answers `lib/routing.py#IMPLEMENTATION_ANSWERS` accepts,
     # which the orchestrator copies into `routing.md`'s `Implementation` row.
     assert "`crafter` or `the session`" in rows[0], (
         "the row lost the vocabulary, so a session reads a third axis with no answers"
@@ -182,7 +182,7 @@ def test_the_template_PARSES_into_the_three_answers_it_ships():
     else would ever report it."""
     import sys
 
-    sys.path.insert(0, os.path.join(ROOT, "hooks", "lib"))
+    sys.path.insert(0, os.path.join(ROOT, "lib"))
     import routing
 
     template = read("templates", "records", "sdd-routing.md")
@@ -193,7 +193,7 @@ def test_the_template_PARSES_into_the_three_answers_it_ships():
 
     # Shipped as a PLACEHOLDER, unlike the other two, and that is the whole
     # point: a wrong answer in the first two makes the file no declaration, so
-    # the edit check refuses the next edit on the branch, and a wrong answer
+    # the pull request's check reads the branch as undeclared, and a wrong answer
     # here is never contradicted by anything. So copy-and-never-revisit has to land on
     # "not answered" rather than on a confident `crafter` nobody performed.
     assert parsed["implementation"] is None, (
@@ -228,7 +228,7 @@ def test_the_template_PARSES_into_the_three_answers_it_ships():
 def test_the_template_PARSES_into_the_FOURTH_axis_it_ships():
     """The fourth axis's vocabulary is read out of the template, never retyped.
 
-    `hooks/lib/routing.py`'s `parse()` docstring promises that
+    `lib/routing.py`'s `parse()` docstring promises that
     `templates/records/sdd-routing.md` is the only spelling a session should copy and
     that a test parses the file so the two cannot drift. This is that test for
     the `Planning` row: every constant the parser accepts is substituted into
@@ -242,7 +242,7 @@ def test_the_template_PARSES_into_the_FOURTH_axis_it_ships():
     """
     import sys
 
-    sys.path.insert(0, os.path.join(ROOT, "hooks", "lib"))
+    sys.path.insert(0, os.path.join(ROOT, "lib"))
     import routing
 
     template = read("templates", "records", "sdd-routing.md")
@@ -311,7 +311,7 @@ def test_the_template_PARSES_into_the_NEWEST_row_it_ships():
     """
     import sys
 
-    sys.path.insert(0, os.path.join(ROOT, "hooks", "lib"))
+    sys.path.insert(0, os.path.join(ROOT, "lib"))
     import routing
 
     template = read("templates", "records", "sdd-routing.md")
@@ -393,6 +393,26 @@ def test_question_1_is_asked_alone_and_the_boxes_only_under_per_axis():
     assert SHAPE in flat(skill)
 
 
+def test_question_1_is_put_every_time_with_the_ladders_answer_marked():
+    """#1376 phase 4, the owner's rule of 2026-11-06: the person chooses the
+    route even for a small change, so the ladder no longer skips question 1.
+    It reads which answer the orchestrator marks, and the options keep their
+    order, so the exit stays last. The entry names the paragraph and keeps
+    no step that makes a change before the question is put."""
+    skill = flat(read(*ORCH))
+    for phrase in (
+        "Question 1 is put every time, whatever the ladder reads",
+        "on its last rung it marks `no work item`, and on either rung above "
+        "it marks `automation`",
+        "The mark is ` (Recommended)` after the label",
+        "the options keep the order of the table above",
+    ):
+        assert phrase in skill, phrase
+    entry = flat(read("skills", "start", "SKILL.md"))
+    assert "*Question 1* states it, with the answer the ladder reads marked" in entry
+    assert "The steps below are then not taken" not in entry
+
+
 def test_the_boxes_are_in_the_stated_order():
     """S5. The first box is a property of the run; the three below name
     parties, in the order they run.
@@ -469,7 +489,6 @@ def test_the_exit_names_what_does_not_run_rather_than_where_it_ends():
         "no review",
         "no seal",
         "no `routing.md`",
-        "`seal no-work-item`",
     ):
         assert noun in description, (
             f"the exit's description does not name `{noun}`, so a person "
@@ -503,7 +522,7 @@ def test_the_section_gives_the_automation_row_its_two_answers():
     assert len(rows) == 1, (
         f"the section has {len(rows)} `Automation` rows; the declaration has one"
     )
-    # The two answers `hooks/lib/routing.py#AUTOMATION_ANSWERS` accepts,
+    # The two answers `lib/routing.py#AUTOMATION_ANSWERS` accepts,
     # which the orchestrator copies into `routing.md`'s `Automation` row.
     assert "`yes` or `no`" in rows[0], "the row lost its vocabulary"
 
@@ -680,7 +699,7 @@ def test_the_planning_row_is_a_record_and_not_a_checkbox():
         f"the routing section has {len(rows)} `Planning` rows; the declaration "
         "has exactly one"
     )
-    # The two answers `hooks/lib/routing.py#PLANNING_ANSWERS` accepts, which
+    # The two answers `lib/routing.py#PLANNING_ANSWERS` accepts, which
     # the orchestrator copies into `routing.md`'s `Planning` row.
     assert "`framer` or `the session`" in rows[0], (
         "the row lost the vocabulary, so a session reads an axis with no answers"
@@ -701,8 +720,8 @@ def test_no_committed_declaration_still_carries_a_template_placeholder():
 
     The `Branch` row is the contrast that shows this is a real gap rather
     than a tidy one: leaving ITS placeholder produces a branch name nothing
-    matches, `for_branch` finds no declaration, and the edit check refuses
-    the next edit on that branch. The third axis has no such reader, so the placeholder
+    matches, no declaration names the branch, and the pull request's check
+    reads that branch as undeclared. The third axis has no such reader, so the placeholder
     would sit in the record forever, reading to a person as an answer."""
     import glob
 
@@ -729,7 +748,7 @@ def test_the_policy_tables_the_review_answers_and_the_skill_cites_it():
     read."""
     skill = flat(read(*ORCH))
     policy = in_force(*DECLARATION)
-    # The two `Review` answers `hooks/lib/routing.py#REVIEW_ANSWERS` accepts,
+    # The two `Review` answers `lib/routing.py#REVIEW_ANSWERS` accepts,
     # as the policy table's row keys a reader looks an answer up by.
     for answer in ("| through the review chain |", "| straight to the PR |"):
         assert answer in policy, f"the policy's table lost the row `{answer}`"
@@ -747,9 +766,10 @@ def test_the_skill_names_where_the_answer_is_written():
 
 def test_the_skill_names_the_record_and_no_per_command_waiver():
     """#1027: nothing reads `[no-review]` any more, so the skill that taught
-    it as the way past the gate names the record that replaced it. The
-    paragraph is in the orchestrator's half since #1312."""
-    assert "`seal no-work-item`" in flat(read(*ORCH))
+    it as the way past the gate names the record that replaced it, the
+    trailer (#1376). The paragraph is in the orchestrator's half since
+    #1312."""
+    assert "`Seal-Routing: no work item`" in flat(read(*ORCH))
     for parts in (ORCH, ("skills", "implement", "SKILL.md")):
         skill = flat(read(*parts))
         assert "[no-review]" not in skill and "waives **one command**" not in skill
@@ -789,7 +809,7 @@ def test_the_orchestration_offers_the_vocabulary_the_parser_accepts():
     where the orchestrator reads the words; the template ships two of them
     answered and the rest as placeholders."""
     orch = read(*ORCH)
-    routing = read("hooks", "lib", "routing.py")
+    routing = read("lib", "routing.py")
     for answer in AXES:
         assert f"`{answer}`" in orch, f"the orchestration lost `{answer}`"
         assert f'"{answer}"' in routing, f"the parser does not accept `{answer}`"

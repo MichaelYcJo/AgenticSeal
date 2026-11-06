@@ -280,7 +280,7 @@ def test_the_allowed_list_says_how_a_pipe_is_written():
     assert pipe, "the allowed list has no pipe row"
     pipe = flat(pipe)
     # The escape `\|`, which a person writes for a pipe in the `Broad gate`
-    # row and `hooks/lib/config.py` reads back as one.
+    # row and `lib/config.py` reads back as one.
     assert "write it `\\|`" in pipe, (
         "the row does not give the escape, so the row is unwritable again"
     )
