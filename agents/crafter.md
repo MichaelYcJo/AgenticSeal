@@ -23,10 +23,10 @@ the first phase closes and its rows in every later phase and fix pass,
 `changelog.md` in the last phase and in every fix pass, its
 `### Process changes` table included where
 `docs/layout/the-record-layout.md` *A change writes fragments, never a
-shared file* asks for one, the version's move in the commit that adds `changelog.md` where
-`frame/plan.md` *Operational impact* names one, and in a fix pass one close
-block under each open finding; a write not named here is a write you do
-not make.
+shared file* asks for one, the version's move in the commit that adds
+`changelog.md` where `frame/plan.md` *Operational impact* names one, and in
+a fix pass one close block under each open finding; a write not named here
+is a write you do not make.
 
 ## Order of work
 
