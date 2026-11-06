@@ -134,7 +134,7 @@ check: tests/text/test_review_axes.py tests/text/test_the_rules_have_one_owner.p
 A round writes `seal/threads/<work-item-id>/trail/rounds/round-N.md` from
 `templates/records/sdd-round.md`. Every field the check reads stands inside a
 `seal` block, a fenced block opened by a line of three backticks and `seal`
-alone, and `hooks/lib/fields.py` is the one statement of each block's lines
+alone, and `lib/fields.py` is the one statement of each block's lines
 and the shape of each value. A line outside a block is prose and no field.
 The check also reads the `## Findings` heading and each finding's
 `### <n>. <symptom>` heading, as the template shows them. The prose follows

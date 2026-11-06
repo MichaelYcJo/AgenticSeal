@@ -30,7 +30,7 @@ proves nothing (*Broad gate* below).
 
 **A row written twice has no value, and a file that will not read is
 refused rather than read as absent.** One reader answers every row of this
-file, `hooks/lib/config.py`. A row written more than once in the table is
+file, `lib/config.py`. A row written more than once in the table is
 neither its first nor its last: it is refused in the sentence
 "`<item>` appears N times — one value". A file that is there and cannot be
 read as UTF-8 text (a directory of that name, or bytes another encoding
@@ -46,7 +46,7 @@ where GitHub shows it as one. A line it cannot read as GitHub shows it is
 refused, in a sentence naming the line and the edit. The rows above that
 line are read; every row written below it is that refusal, never an absent
 row, because GitHub may show it and nobody read it. The commands and the
-hooks act on it as on a row written twice. The shapes, each with its one
+checks act on it as on a row written twice. The shapes, each with its one
 edit:
 
 - a line directly above the header (a comment, a line of prose, a row of
@@ -129,7 +129,7 @@ every repository, whatever either row says:
   literally**: the info string `seal` that opens each block of a round
   record, a `guarantee.md` and a `trail/gate.md`, and every key of those
   blocks and every fixed word of their values, whose one spelling is
-  `hooks/lib/fields.py`, which `chain_check.py` and the stamp read them
+  `lib/fields.py`, which `chain_check.py` and the stamp read them
   through; a round record's `## Findings` heading, which `chain_check.py`
   reads; a `gaps.md`'s `## Not verified` heading with its `Item` and
   `Who must answer` columns, or its no-change block `- nothing` with
@@ -395,8 +395,8 @@ or anything under it is dropped, because the root's records are read whatever
 this row says; `seal settle --apply` removes only under `seal/threads/`.
 `seal settle --from` reads a reference root only where a person names it at
 the settle, whatever this row says, and writes nothing there. One reader
-answers the row, `hooks/lib/config.py#reference_roots`, and one predicate the
-path question, `hooks/lib/config.py#under_reference_root`.
+answers the row, `lib/config.py#reference_roots`, and one predicate the
+path question, `lib/config.py#under_reference_root`.
 
 **What it asks of the party that frames or builds a change.** That party
 reads a reference root when the change touches what it describes, and cites
@@ -425,7 +425,7 @@ names the pact by the same URL, in the `Pact` cell of a
 
 **A row that will not parse is refused in a sentence**, never read as absent.
 `seal pact`, run at the pact's repository, reads the row through
-`hooks/lib/config.py#pact_declaration` and exits 2 on it; a signer's CI
+`lib/config.py#pact_declaration` and exits 2 on it; a signer's CI
 reads nothing of the pact. A `Pact`
 row the table does not hold is no row: `seal pact` then reads the signer as
 naming no pact and exits 2 on a relationship recorded on one side only.

@@ -3,13 +3,13 @@ it, and the definition that writes it.
 
 `templates/records/sdd-guarantee.md` is the file the sealer fills, and
 `chain_check.py#guarantee` is the arm that reads it at the pull request,
-through `hooks/lib/fields.py`: a ready pull request passes only where the
+through `lib/fields.py`: a ready pull request passes only where the
 newest verdict block names HEAD and reads `sealed`. Each group holds a case
 on good input and one on bad.
 
 #942 moved the cases of the arm, which read no file of this repository, into
 `tests/skills/test_chain_check.py`, and #1198 put the reader's in
-`tests/hooks/test_fields.py`. What stays reads the template, the definition,
+`tests/lib/test_fields.py`. What stays reads the template, the definition,
 the document, or every committed `guarantee.md`.
 """
 
@@ -159,7 +159,7 @@ class TestDefinition:
         # The citation of `follows`, the reader the sealer resolves to judge
         # those paths as the check does.
         assert "`skills/code-review/scripts/chain_check.py#follows`" in step, step
-        # The verdict line `hooks/lib/fields.py` parses, as the sealer writes it.
+        # The verdict line `lib/fields.py` parses, as the sealer writes it.
         assert "`Verdict: withheld reason: no broad run at HEAD`" in step, step
         # Round 2 of #969, finding 1: the base arrives as a plain branch name,
         # a local ref, and a worktree with only `origin/<base>` gives step 1's
@@ -181,7 +181,7 @@ class TestDefinition:
             "`<name>` that `git -C <root> rev-parse --verify --quiet` answers, "
             "and every `<base>` below is the commit it prints"
         ) in intro, intro
-        # The verdict line `hooks/lib/fields.py` parses, as the sealer writes it.
+        # The verdict line `lib/fields.py` parses, as the sealer writes it.
         assert (
             "`Verdict: withheld reason: the base <name> resolves to no commit here`"
         ) in intro, intro
@@ -232,7 +232,7 @@ class TestDefinition:
             "every phase of `frame/plan.md` whose Status cell holds a commit",
             # The record the crafter leaves, as the sealer resolves its path.
             "`trail/phases/phase-N.md`",
-            # The verdict word `hooks/lib/fields.py` reads.
+            # The verdict word `lib/fields.py` reads.
             "a declared party that left no record is a `withheld` reason",
         ]
         missing = [phrase for phrase in pinned if phrase not in step_4]

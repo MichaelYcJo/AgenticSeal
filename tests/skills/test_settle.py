@@ -400,10 +400,10 @@ def gh(tmp_path, monkeypatch):
 
 
 # Why a local work item that names no branch is unreleased, as a person reads
-# it: a file `hooks/lib/routing.py#parse` does not read names none, whatever rows
+# it: a file `lib/routing.py#parse` does not read names none, whatever rows
 # it holds.
 NO_BRANCH = (
-    "no `routing.md` that `hooks/lib/routing.py` reads as a declaration names a "
+    "no `routing.md` that `lib/routing.py` reads as a declaration names a "
     "branch, so `gh` was not asked"
 )
 
@@ -1115,7 +1115,7 @@ class Test_main:
         self, repo, capfd
     ):
         """#1167, *Scope* item 12: each released plan's *Judgments of the
-        run*, read through `hooks/lib/config.py#gfm_table`, grouped by the
+        run*, read through `lib/config.py#gfm_table`, grouped by the
         `Judged against` cell in the order the work items are listed, with
         each work item's round count and each row's line. The template's
         empty row is no judgment, and a plan with no such section prints
@@ -1232,7 +1232,7 @@ class Test_main:
     ):
         """Round 9, finding 1. A `trail/rounds` that is a file, a link, or a
         directory nothing can list holds a review git carries
-        (`hooks/lib/routing.py#rounds_unreadable`), so the dry run says it
+        (`lib/routing.py#rounds_unreadable`), so the dry run says it
         counted none rather than that none happened. The unlistable
         directory is made by refusing `os.listdir` on that one path, since
         `chmod 000` does not bar a runner that is root."""
@@ -2336,7 +2336,7 @@ class Test_main:
         self, local, gh, capfd
     ):
         """A `routing.md` with a `Branch` row whose `Review` answer is outside
-        the vocabulary is no declaration to `hooks/lib/routing.py#parse`, so the
+        the vocabulary is no declaration to `lib/routing.py#parse`, so the
         item is unreleased and `gh` is not asked. The reason says the file is
         not read as a declaration, since a person who opens it finds the
         `Branch` row there (round 1 finding 3)."""
@@ -2416,7 +2416,7 @@ class Test_main:
         )
 
     def test_a_directory_of_the_markers_name_is_not_an_opt_out(self, tmp_path):
-        """Round 3, finding 1. `hooks/lib/optin.py#home_at` reads the scratch marker
+        """Round 3, finding 1. `lib/optin.py#home_at` reads the scratch marker
         with `os.path.isfile` and says why: `os.path.exists` also accepted a
         DIRECTORY of that name, and one created once turned every gate off in
         every clone. The refusal here asked `exists`, so a repository holding a
@@ -2436,7 +2436,7 @@ class Test_main:
         assert "has no seal/threads/ at either place" in r.stderr, r.stderr
         assert "has opted out" not in r.stderr, (
             "a directory of the marker's name is read as the opt-out, which is the "
-            "reading `hooks/lib/optin.py` rejected by name"
+            "reading `lib/optin.py` rejected by name"
         )
 
     def test_the_refusal_path_asks_for_the_common_directory_once(
@@ -2445,7 +2445,7 @@ class Test_main:
         """Round 3, finding 5. `home_at(root)` resolves the common git directory
         for itself, and the opt-out arm then resolved it a second time, although
         `home_at(root, common)` exists for a caller that needs the value too and
-        `hooks/lib/optin.py` documents the parameter with the measurement that created
+        `lib/optin.py` documents the parameter with the measurement that created
         it. Counted through the module `settle.load` hands `main`, and counted as
         calls rather than processes: on a main worktree the resolver's fast path
         costs no process, so a process count would have said nothing."""
@@ -3011,7 +3011,7 @@ class Test_adding_commit:
         removes it and adds another with the same text, so each path names
         the pull request of its own add. What a person's `log.follow` and
         `log.showRoot` would change of this reading is held by
-        `hooks/lib/gitcmd.py`, whose cases are `tests/hooks/test_gitcmd.py`."""
+        `lib/gitcmd.py`, whose cases are `tests/lib/test_gitcmd.py`."""
         repo = tmp_path / "repo"
         first = "seal/threads/1700000001-first/changelog.md"
         second = "seal/threads/1700000002-second/changelog.md"
@@ -3288,7 +3288,7 @@ class Test_module:
         """#590. A copy of this script taken without its siblings exits 2, with
         a sentence naming the missing path and what it is for: 2 means the
         input or the tree was unusable and nothing was read, and a sibling that
-        is not beside the command is that kind. It loads `hooks/lib/optin.py`
+        is not beside the command is that kind. It loads `lib/optin.py`
         before it reads the root, so `--root` reaches the loader. The loader
         used to give every file the fold record's purpose, which is false of
         `optin.py`, so that phrase must not appear."""
@@ -3323,7 +3323,7 @@ class Test_module:
         """#688's D3: the constant this command's walk of work items rests on,
         held under `seal/`. Widening it to a top-level `specs/` turns this red,
         which is the probe that work item's plan names for `SPECS`.
-        `tests/hooks/test_routing.py` holds `hooks/lib/routing.py#WORK_ITEMS` to the
+        `tests/lib/test_routing.py` holds `lib/routing.py#WORK_ITEMS` to the
         same, and `tests/behaviour/test_a_reference_root_is_read_and_never_taken.py`
         classifies every shipped command by what keeps it off a reference
         root."""

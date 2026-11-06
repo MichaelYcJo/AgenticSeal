@@ -54,9 +54,7 @@ import sys
 
 sys.path.insert(
     0,
-    os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "..", "..", "hooks", "lib"
-    ),
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "lib"),
 )
 import console
 
@@ -184,9 +182,9 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    # Every entry point carries this, because a hook or a script that raises
-    # while printing dies with stdout empty and an empty stdout is how a gate
-    # says "nothing to see here" (`hooks/lib/console.py`). The arm at risk is
+    # Every entry point carries this, because a script that raises while
+    # printing dies with stdout empty and an empty stdout is how a gate says
+    # "nothing to see here" (`lib/console.py`). The arm at risk is
     # `--check`, which is the one a person types: under cp949, cp932, cp936
     # or a bare `LC_ALL=C` the em dash `main` prints raises
     # `UnicodeEncodeError` and the process dies. The workflow's runner is

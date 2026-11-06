@@ -1,4 +1,4 @@
-"""`hooks/lib/gitcmd.py`: the argv of a git command whose output a script
+"""`lib/gitcmd.py`: the argv of a git command whose output a script
 parses, read the same under any person's or repository's git configuration.
 
 One parameter per key of `gitcmd.KEYS`. Each builds a repository in which
@@ -12,11 +12,11 @@ holds*); the cases here hold each key once, over the helper.
 import subprocess
 
 import pytest
-from conftest import census_case, git, load_hook_module, write
+from conftest import census_case, git, load_lib_module, write
 
-TARGET = "hooks/lib/gitcmd.py"
+TARGET = "lib/gitcmd.py"
 
-gitcmd = load_hook_module("lib/gitcmd.py", "gitcmd_for_its_own_file")
+gitcmd = load_lib_module("gitcmd.py", "gitcmd_for_its_own_file")
 
 
 def new_repo(tmp_path):

@@ -2873,7 +2873,7 @@ class Test_main:
 
     def test_refuses_a_copy_without_the_git_helper_in_a_sentence(self, tmp_path):
         """#1283, round 1's finding 1. The gate builds every git command with
-        `hooks/lib/gitcmd.py#argv`, and `main` asks git for the root before
+        `lib/gitcmd.py#argv`, and `main` asks git for the root before
         anything runs. A copy whose `seal_stamp.py` loads and whose plugin
         holds no helper exits 2 with the loader's sentence, not 1 in a
         traceback, which reads as a gate that ran and failed."""

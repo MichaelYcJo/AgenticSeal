@@ -21,7 +21,7 @@ import re
 import sys
 
 import pytest
-from conftest import ROOT, load_hook_module
+from conftest import ROOT, load_lib_module
 
 STATEMENT_DOC = os.path.join(ROOT, "docs", "checks", "the-fold.md")
 OPENING = "**Whether a line is live is asked by what the line does"
@@ -41,7 +41,7 @@ checker = _load("agentic_checker_for_liveness", "skills/verify/scripts/coordinat
 reader = _load(
     "agentic_reader_for_liveness", "skills/verify/scripts/unverified_check.py"
 )
-config = load_hook_module("lib/config.py", "agentic_config_for_liveness")
+config = load_lib_module("config.py", "agentic_config_for_liveness")
 
 WORK_ITEM = "1700000001-alpha"
 # One ledger row, spelled as a table row so every reader reads the same line.
@@ -79,7 +79,7 @@ SHAPES = {
         "after",
     ],
     # A fence opened at two spaces: the shared delimiter rule closes it, and
-    # `hooks/lib/blocks.py#walk` is not sure of it, because a list item's end can
+    # `lib/blocks.py#walk` is not sure of it, because a list item's end can
     # end a construct indented that way. It is the first of three shapes here
     # on which the shared delimiter rule and the walk part.
     "a fence the walk is not sure of": [
@@ -180,7 +180,7 @@ TABLE = {
     "config.py#hidden_lines": (
         config_hidden_lines,
         EXCUSES,
-        "`hooks/lib/config.py#hidden_lines`",
+        "`lib/config.py#hidden_lines`",
         (N, N, N, R, R, R, N, N, N, N),
     ),
     "unverified_check.py#readable": (

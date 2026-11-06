@@ -36,7 +36,7 @@ for _directory, _subdirectories, _names in os.walk(_TESTS):
         sys.path.append(_directory)
 
 # The review run's documents: the round record, the guarantee, the run, the
-# pull request check, the stamp, the hooks, the routing check, and what each
+# pull request check, the stamp, the routing check, and what each
 # arm wants. A case that reads one of them for what is THERE reads the one
 # that holds the section; a case asserting what is NOT there reads all of them
 # through `review_chain_text`, because a sentence forbidden in one that
@@ -309,7 +309,7 @@ def decline_if_shrunken(missing, what):
         pytest.skip(shrunken_corpus(missing, what))
 
 
-HOOKS = os.path.join(os.path.dirname(__file__), "..", "hooks")
+LIB = os.path.join(os.path.dirname(__file__), "..", "lib")
 
 # One run of this suite calls `git init` 403 times, and each call copies the
 # default template into the new repository: 18 files where 2 are enough, 14 of
@@ -498,22 +498,18 @@ def _no_session_in_the_environment(monkeypatch):
         monkeypatch.delenv(name, raising=False)
 
 
-def load_hook_module(filename, name):
-    """The file at FILENAME under `hooks/`, a gate by its name and a module
-    as `lib/<name>`, run as a module named NAME. FILENAME is split on `/`, so
-    the path is joined from single segments on every platform."""
-    spec = importlib.util.spec_from_file_location(
-        name, os.path.join(HOOKS, *filename.split("/"))
-    )
+def load_lib_module(filename, name):
+    """The module FILENAME under `lib/`, run as a module named NAME."""
+    spec = importlib.util.spec_from_file_location(name, os.path.join(LIB, filename))
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
 
 
-# `hooks/lib/optin.py#MARKER`: a `seal/` is the plugin's root only where its
+# `lib/optin.py#MARKER`: a `seal/` is the plugin's root only where its
 # `README.md` opens with this line, so every helper below that builds a root
 # writes it.
-ROOT_MARKER = load_hook_module("lib/optin.py", "agentic_optin_for_fixtures").MARKER
+ROOT_MARKER = load_lib_module("optin.py", "agentic_optin_for_fixtures").MARKER
 
 
 def mark_root(home):
@@ -670,7 +666,7 @@ def local_home(repo):
 
     The local-mode root (#80). Asked of git rather than spelled `.git/seal`,
     because in a linked worktree `.git` is a FILE and the root belongs to
-    the main tree's common directory, which is what the hooks read.
+    the main tree's common directory, which is what the scripts read.
     """
     common = subprocess.run(
         ["git", "-C", str(repo), "rev-parse", "--git-common-dir"],
@@ -932,7 +928,7 @@ def repo_relative(path):
 
 def load_module(path, name):
     """The Python file at PATH, run as a module named NAME, the arguments in
-    `load_hook_module`'s order."""
+    `load_lib_module`'s order."""
     spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -975,10 +971,10 @@ TABLE = "# Repository config\n\n| Item | Value |\n|---|---|\n{rows}"
 
 @pytest.fixture
 def config():
-    return load_hook_module("lib/config.py", "agentic_config_for_tests")
+    return load_lib_module("config.py", "agentic_config_for_tests")
 
 
-# The config texts the reader's cases in `tests/hooks/test_config.py` and the
+# The config texts the reader's cases in `tests/lib/test_config.py` and the
 # writer's in `tests/skills/test_seal.py` both read. A row
 # that parses comes first in the piped table, because the walker stops at the
 # first line it refuses (#415, #871).
@@ -1192,7 +1188,7 @@ def parity_file(sha):
 # --- the pact's world ---------------------------------------------------------
 #
 # `skills/verify/scripts/pact_check.py`'s cases in `tests/skills/test_pact_check.py`
-# and the cases of `tests/hooks/test_config.py` that run it over a table the walker
+# and the cases of `tests/lib/test_config.py` that run it over a table the walker
 # refuses share one world: the pact's repository, whose `seal/pact.md` carries
 # one clause committed as v1 and then v2 on `main` and v3 on a side branch HEAD
 # does not hold, and a signer beside it, which names the pact in its
@@ -1218,7 +1214,7 @@ PACT = "seal/pact.md"
 SPEC = "seal/threads/1790000000-x/frame/design.md"
 V1, V2, V3 = "id, total", "id, total, currency", "id, total, currency, tax"
 # The pact a signer's `Pact` row names in the reader's cases, and what
-# `hooks/lib/config.py#pact_declaration` answers for it.
+# `lib/config.py#pact_declaration` answers for it.
 URL = PACT_URL
 ORDERS = [(URL, "example.com/org/orders-api")]
 # The line of a frame `World.cite` writes its one anchor row on.
@@ -1358,12 +1354,12 @@ def with_row(label, answer):
     return two_axis_text().replace("| Branch |", f"| {label} | {answer} |\n| Branch |")
 
 
-# --- a `seal` block, as `hooks/lib/fields.py` reads one ---------------------------
+# --- a `seal` block, as `lib/fields.py` reads one ---------------------------
 
 
 def seal_block(*lines, opener="`" * 3 + "seal"):
     """A `seal` block holding LINES, closed, with a newline after it.
-    `tests/hooks/test_fields.py` and `tests/skills/test_chain_check.py`
+    `tests/lib/test_fields.py` and `tests/skills/test_chain_check.py`
     write records with it."""
     return "\n".join([opener, *lines, "`" * 3]) + "\n"
 

@@ -1449,10 +1449,10 @@ class Test_references_at:
         assert UC.references_at(str(joined))[1] is None
         assert UC.references_at(str(plain))[1] == ()
 
-    def test_refuses_to_fail_a_copy_with_no_hooks_beside_it(
+    def test_refuses_to_fail_a_copy_with_no_lib_beside_it(
         self, joined, monkeypatch, tmp_path
     ):
-        monkeypatch.setattr(UC, "HOOKS", str(tmp_path / "no-hooks-here"))
+        monkeypatch.setattr(UC, "LIB", str(tmp_path / "no-lib-here"))
         assert UC.references_at(str(joined)) is None
 
 
@@ -1969,20 +1969,20 @@ class Test_main:
         assert run([str(joined / TEAM / "gaps.md")]) == 1
         assert run([str(joined / "specs")]) == 1
 
-    def test_refuses_nothing_less_in_a_copy_with_no_hooks_beside_it(
+    def test_refuses_nothing_less_in_a_copy_with_no_lib_beside_it(
         self, joined, tmp_path, monkeypatch
     ):
         """A copy taken alone reads every overview, as it did before
         reference roots existed."""
-        monkeypatch.setattr(UC, "HOOKS", str(tmp_path / "no-hooks-here"))
+        monkeypatch.setattr(UC, "LIB", str(tmp_path / "no-lib-here"))
         assert run([str(joined)]) == 1
 
 
 class Test_module:
-    def test_the_fence_rule_and_the_line_split_are_the_hooks(self):
+    def test_the_fence_rule_and_the_line_split_are_lib_s(self):
         """S12 of #1005: the fence delimiter rule and the line split are
-        written once, in `hooks/lib/blocks.py`, and this module asks that copy."""
-        blocks = os.path.join(ROOT, "hooks", "lib", "blocks.py")
+        written once, in `lib/blocks.py`, and this module asks that copy."""
+        blocks = os.path.join(ROOT, "lib", "blocks.py")
         for name in ("fence_opener", "fence_closes", "gfm_lines"):
             code = getattr(UC, name).__code__
             assert os.path.samefile(code.co_filename, blocks), (name, code.co_filename)

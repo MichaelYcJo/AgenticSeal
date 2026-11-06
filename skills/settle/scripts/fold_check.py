@@ -10,7 +10,7 @@ reader of both, shipped (#566, #953).
   seal fold --root DIR           a repository other than this one
 
 The policy root is `seal/config.md`'s `Policy root` row, `docs` when absent,
-read through `hooks/lib/config.py#policy_root`. Every check reads its top
+read through `lib/config.py#policy_root`. Every check reads its top
 level and each of its groups: a directory directly in it that a row of the
 index names a document of (`groups`). A directory the index names nothing
 of, and anything below a group, is not read.
@@ -28,7 +28,7 @@ is named on exactly one row of its tables, and every row names one.
 document is true, or whether two contradict each other, stays review's.
 
 **It sets no value.** The repository states the values as rows of
-`seal/config.md`, read through `hooks/lib/config.py#config_rows`, and
+`seal/config.md`, read through `lib/config.py#config_rows`, and
 `templates/setup/config.md` *The fold's values* states each row once. An absent
 row means *not declared*, as every optional row of that file does: the check
 it governs is not run, and the output says so in one line rather than
@@ -46,7 +46,7 @@ one that names documents past the ceiling · 1 an index out of step, each
 problem on a line of its own · 2 the root, a value or a file it had to read
 was unusable, such as a document that is not UTF-8, and no result was
 printed, or a sibling script it loads is not beside it. An interpreter below
-the floor never reaches this file through `seal fold`: `hooks/lib/launch.py`
+the floor never reaches this file through `seal fold`: `lib/launch.py`
 refuses `seal` with 2 first.
 """
 
@@ -59,8 +59,8 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
-CONFIG_READER = os.path.join(HERE, "..", "..", "..", "hooks", "lib", "config.py")
-OPTIN = os.path.join(HERE, "..", "..", "..", "hooks", "lib", "optin.py")
+CONFIG_READER = os.path.join(HERE, "..", "..", "..", "lib", "config.py")
+OPTIN = os.path.join(HERE, "..", "..", "..", "lib", "optin.py")
 
 CONFIG = "config.md"
 INDEX = "README.md"
@@ -244,7 +244,7 @@ def index_problems(root, policy):
 
 
 def optin():
-    """`hooks/lib/optin.py`, the one resolver, loaded once on first use."""
+    """`lib/optin.py`, the one resolver, loaded once on first use."""
     if "optin" not in _loaded:
         _loaded["optin"] = load(
             OPTIN,
@@ -258,7 +258,7 @@ def located(root):
     """`(home, where)`: the `seal/` root of the repository at `root`, or ""
     where it has none, and the words that name where its rows were read.
 
-    Through `hooks/lib/optin.py#home_at`, the way `settle.py#main` reaches it:
+    Through `lib/optin.py#home_at`, the way `settle.py#main` reaches it:
     `<root>/seal/`, else the common git directory's `seal/`. `home_at`
     answers "" for two states, and they are given two sentences, because
     one was false for the other: a repository that opted out HAS a root, and
@@ -284,7 +284,7 @@ def seal_home(root):
 
 
 def config_reader():
-    """`hooks/lib/config.py`, the one reader of `seal/config.md`, or exit 2."""
+    """`lib/config.py`, the one reader of `seal/config.md`, or exit 2."""
     return load(
         CONFIG_READER,
         "agentic_config_for_folds",
@@ -294,7 +294,7 @@ def config_reader():
 
 def config_rows(home):
     """Every `| Item | Value |` row of `<home>/config.md` the table walker
-    read, through the one table reader, `hooks/lib/config.py#config_table`. No
+    read, through the one table reader, `lib/config.py#config_table`. No
     root and no file are no row at all; a file that is there and will not
     read is `Unusable`, in the reader's own sentence (#867), because reading
     it as no row turned every check this command runs off at exit 0.
@@ -328,9 +328,9 @@ def config_rows(home):
 def declared(home):
     """`(ceiling, policy root)` as the root's `config.md` states them, None
     for a ceiling row that is absent or empty, or `Unusable` naming the row.
-    Each value is the reader's own answer, `hooks/lib/config.py#value_of`, so a
+    Each value is the reader's own answer, `lib/config.py#value_of`, so a
     row written twice is `Unusable` rather than its first (#867); the policy
-    root is `hooks/lib/config.py#policy_root`'s."""
+    root is `lib/config.py#policy_root`'s."""
     rows = config_rows(home)
     reader = config_reader()
 

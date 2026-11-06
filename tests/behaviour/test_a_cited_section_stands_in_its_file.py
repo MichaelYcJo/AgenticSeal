@@ -84,7 +84,7 @@ from conftest import (
     ROOT,
     TABLE,
     build_tracked_tree,
-    load_hook_module,
+    load_lib_module,
     load_module,
     on_disk,
     op,
@@ -97,7 +97,7 @@ rules = load_module(
     os.path.join(ROOT, "skills", "settle", "scripts", "rule_changes.py"),
     "agentic_rule_changes_for_citations",
 )
-config = load_hook_module("lib/config.py", "agentic_config_for_citations")
+config = load_lib_module("config.py", "agentic_config_for_citations")
 
 # `read` is how many citations of a repository file were read, `dangling` is
 # `[(citing file, line, cited file, cited text)]`, the cited text being the
@@ -203,7 +203,7 @@ def resolves(said, targets):
 def corrections(root):
     """`[(rule_changes.Op, work item directory)]` for every item of a pending
     `## Rule changes`, as `rule_changes.pending` reads them against the
-    policy root `hooks/lib/config.py#policy_root` names."""
+    policy root `lib/config.py#policy_root` names."""
     return rules.pending(root, config.policy_root(os.path.join(root, "seal")))
 
 
@@ -211,7 +211,7 @@ def holds(field, cited):
     """FIELD, an item's `from` or `to`, holds the citation CITED whole, its
     whitespace collapsed: a `*section*` as written, which its asterisks
     bound, or a `path#name` token as `NAME_TOKEN` reads one, so neither
-    `manual/b.py#gone_all` nor `lib/manual/b.py#gone` holds
+    `manual/b.py#gone_all` nor `moved/manual/b.py#gone` holds
     `manual/b.py#gone`."""
     flat = " ".join((field or "").split())
     if cited.startswith("*"):
@@ -1061,7 +1061,7 @@ EXCUSING = {
     ),
     "a change that moves the name's file under a longer path": (
         "docs/a.md",
-        op("change", "Old section", NAME_OLD, "See `lib/manual/b.py#gone`."),
+        op("change", "Old section", NAME_OLD, "See `moved/manual/b.py#gone`."),
         None,
         "name",
     ),
@@ -1139,7 +1139,7 @@ REFUSING = {
     ),
     "a from that holds the name under a longer path": (
         "docs/a.md",
-        op("change", "Old section", "See `lib/manual/b.py#gone`.", NAME_NEW),
+        op("change", "Old section", "See `moved/manual/b.py#gone`.", NAME_NEW),
         "name",
     ),
 }

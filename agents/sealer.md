@@ -102,7 +102,7 @@ return.
    disagreement like any other.
 5. **Write `guarantee.md`** from `templates/records/sdd-guarantee.md`, every row of
    its tables filled for this run, and append one verdict block below every
-   block an earlier run left, each line spelt as `hooks/lib/fields.py`
+   block an earlier run left, each line spelt as `lib/fields.py`
    reads it: `target:` naming the audited commit as `<sha> against <base>`,
    and one `Verdict:` line, exactly one of `Verdict: sealed`,
    `Verdict: withheld reason: <reason>` or

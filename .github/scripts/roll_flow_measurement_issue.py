@@ -567,7 +567,7 @@ def main():
 
 if __name__ == "__main__":
     # A console that cannot encode what this prints kills it with stdout
-    # empty; `hooks/lib/console.py` owns the reasoning behind these lines.
+    # empty; `lib/console.py` owns the reasoning behind these lines.
     for _name, _errors in (
         ("stdin", "replace"),
         ("stdout", "replace"),

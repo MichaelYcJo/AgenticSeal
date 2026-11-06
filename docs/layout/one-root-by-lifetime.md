@@ -26,7 +26,7 @@ opens a top-level `specs/` or `.specseal/` on its own. `seal settle --from`
 reads a directory only where a person names it at the settle, and writes
 nothing there. Where the root is, as a path a session can type, is stated
 once, in contract rule 11.
-check: tests/behaviour/test_no_document_names_the_old_roots.py tests/hooks/test_optin.py
+check: tests/behaviour/test_no_document_names_the_old_roots.py tests/lib/test_optin.py
 
 ## The dependency rule
 
@@ -86,7 +86,7 @@ either place means not opted in, and a hook that cannot tell does nothing.
 A throwaway repository turns the gates off with an empty file,
 `.git/agentic-scratch`, under the common git directory, which no commit can
 carry to another clone.
-check: tests/hooks/test_optin.py
+check: tests/lib/test_optin.py
 
 ## What first setup asks
 
@@ -127,7 +127,7 @@ it is.
 **`seal/config.md`'s `Mode` row is not the opt-in, and the difference is what
 reads it.** The row says where the root *should* be; the folder's location
 says where it *is*, and no hook, gate or check resolves the root through the
-row: `hooks/lib/optin.py#home_at` is the only reader of the question. A gate that
+row: `lib/optin.py#home_at` is the only reader of the question. A gate that
 trusted a hand-editable row would look in a place with no folder, and that
 module fails toward *not opted in* rather than toward a guess. What the row
 buys is a repository that can say which mode it wants before the folder is
@@ -178,7 +178,7 @@ repository's history; coming back removes them from the tree and not from the
 history. That is the one direction local mode exists to prevent, so
 `seal mode shared` says so before it acts and stages rather than commits,
 which leaves the point of no return with the person.
-check: tests/behaviour/test_first_setup_asks_once.py tests/hooks/test_optin.py tests/skills/test_seal.py
+check: tests/behaviour/test_first_setup_asks_once.py tests/lib/test_optin.py tests/skills/test_seal.py
 
 ## Naming
 
@@ -225,7 +225,7 @@ plugin's.** A skill that requires English of everyone is a decision made in a
 file nobody who disagrees with it can edit, so the language lives in a config
 row, and the mirror file a translated pull-request body goes in is named for
 the language it holds rather than for one language.
-check: tests/behaviour/test_the_pull_request_language_is_the_repositorys.py tests/hooks/test_config.py
+check: tests/behaviour/test_the_pull_request_language_is_the_repositorys.py tests/lib/test_config.py
 
 **Two rows, because one cannot express the middle answer.** The combinations
 people actually want are three: everything English; the commits and pull
@@ -251,7 +251,7 @@ silently takes every row below it out of the config. The reader and the writer
 share the constant that describes a row, because their disagreement about
 which line is a given row is what turns one edit into a duplicate row in a
 person's file.
-check: tests/hooks/test_config.py tests/skills/test_seal.py
+check: tests/lib/test_config.py tests/skills/test_seal.py
 
 **A git call that fails is not a git call that answered "nothing".** Empty
 output because a thing is absent and empty output because the question could

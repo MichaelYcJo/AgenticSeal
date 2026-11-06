@@ -29,7 +29,7 @@ def test_the_protocol_carries_the_handoff_before_round_one():
     proofer's to read."""
     protocol = flat(*PROTOCOL)
     # The three labels by their spelling, which the orchestrator writes
-    # beside a fact and an agent reads; `hooks/lib/fields.py` matches the
+    # beside a fact and an agent reads; `lib/fields.py` matches the
     # first two on a round record's `evidence:` line.
     assert "`executed`, `read` or `unverified`" in protocol, (
         "the labels a handoff fact carries are verify's three, by name — a "

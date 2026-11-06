@@ -4,7 +4,7 @@
 Every `bin/` wrapper but `bin/test`, and its `.cmd` twin, runs its script
 through this file:
 
-    python3 hooks/lib/launch.py <script> [arguments...]
+    python3 lib/launch.py <script> [arguments...]
 
 The one such wrapper is `bin/seal`, and each tool `seal` runs as a
 subcommand is handed to the interpreter this file already held to the floor
@@ -24,14 +24,14 @@ script's sibling imports and its own path behave as they would.
 
 **This file is the floor's one source.** `.github/scripts/run_tests.py`
 reads `FLOOR` from it. `ruff.toml`'s `target-version` cannot import, so
-`tests/hooks/test_launch.py` holds it equal.
+`tests/lib/test_launch.py` holds it equal.
 
 **Its syntax is the oldest Python 3's.** No f-string, no walrus, nothing
 keyword-only, and no import above the check that a new release added: a
 launcher that cannot parse is the traceback it exists to replace.
 
-It sits in `hooks/` because each wrapper it serves reaches it relative to
-itself, as `$here/../hooks/lib/launch.py`, and `hooks/` already ships the modules the
+It sits in `lib/` because each wrapper it serves reaches it relative to
+itself, as `$here/../lib/launch.py`, and `lib/` already ships the modules the
 scripts share. The stamp's `Stop` hook does not run through it: its launcher
 exits 0 whatever happens, where exit 2 from a `Stop` hook is the harness's
 word for keeping the turn going (`docs/checks/the-stamp.md`).

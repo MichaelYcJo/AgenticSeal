@@ -11,7 +11,7 @@ writes today. A record comes in one of three shapes, decided in this order
 by this tree's readers:
 
   blocks     the record since #1198, which holds a `seal` block, one
-             `hooks/lib/fields.py` reads or refuses (`blocked`), judged and
+             `lib/fields.py` reads or refuses (`blocked`), judged and
              read by
              `chain_check.py#round_of` and `#round_read` of the commit that
              last wrote it, so no line of a block is read by a pattern of
@@ -261,22 +261,29 @@ def record_reader():
 
 
 # What a commit's check needs beside it to load: the script, the reader it
-# loads when imported, the hook module that reader takes its fence rule and
+# loads when imported, the module that reader takes its fence rule and
 # line split from (#1005), the reader of a record's `seal` blocks both load
 # (#1198), the builder of the check's git commands (#1283), and the document
 # whose grammar table it reads. A file a commit does not hold is not copied:
 # a check from before the table carries its grammar in its code, a reader
 # from before #1005 keeps its own fence rule, a check from before #1198
-# loads no `fields.py`, and one from before #1283 no `gitcmd.py`. The fence
-# module is named at both paths it has stood at, and a commit holds one of
-# them: `hooks/lib/blocks.py` from #1060 on, and the path above it before.
+# loads no `fields.py`, and one from before #1283 no `gitcmd.py`. Each module
+# is named at every path it has stood at, and a commit holds one of them:
+# `lib/` from #1376 on, `hooks/lib/` before it, and for `blocks.py` `hooks/`
+# before #1060.
 CHECK_FILES = (
     "skills/code-review/scripts/chain_check.py",
     "skills/verify/scripts/unverified_check.py",
+    "lib/blocks.py",
+    # exempt from vacated_paths: the path a commit from #1060 to #1376 holds it at
     "hooks/lib/blocks.py",
     # exempt from vacated_paths: the path a commit before #1060 holds it at
     "hooks/blocks.py",
+    "lib/fields.py",
+    # exempt from vacated_paths: the path a commit from #1198 to #1376 holds it at
     "hooks/lib/fields.py",
+    "lib/gitcmd.py",
+    # exempt from vacated_paths: the path a commit from #1283 to #1376 holds it at
     "hooks/lib/gitcmd.py",
     "docs/the-review-record.md",
 )
@@ -330,7 +337,7 @@ def checks_at(at):
 def blocked(text):
     """True for a record in `seal` blocks: one holding a `seal` opener,
     which no labelled or table record carries, where this tree's
-    `hooks/lib/fields.py` reads a block or refuses one.
+    `lib/fields.py` reads a block or refuses one.
 
     This tree's parser decides it, as `labelled` is decided, because the
     shape is decided before any check judges the record. `read` answers for
@@ -1074,7 +1081,7 @@ def main(argv=None):
 
 if __name__ == "__main__":
     # A console that cannot encode what this prints kills it with stdout
-    # empty; `hooks/lib/console.py` owns the reasoning behind these lines.
+    # empty; `lib/console.py` owns the reasoning behind these lines.
     for _name, _errors in (
         ("stdin", "replace"),
         ("stdout", "replace"),

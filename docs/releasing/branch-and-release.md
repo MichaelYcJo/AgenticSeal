@@ -38,7 +38,7 @@ the commit that adds the changelog fragment of the release's first work
 item, and every later pull request into the branch leaves it. What holds a
 release whose first pull request did not move it is the `hygiene` workflow,
 which fails a release pull request, one whose base is `main`, that changes
-`skills/`, `agents/`, `hooks/`, `templates/`, `bin/` or `.claude-plugin/`
+`skills/`, `agents/`, `lib/`, `templates/`, `bin/` or `.claude-plugin/`
 without moving the version.
 check: tests/behaviour/test_the_release_check_watches_what_ships.py .github/workflows/hygiene.yml
 

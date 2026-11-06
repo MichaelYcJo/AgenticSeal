@@ -509,7 +509,7 @@ def test_the_crafters_fix_pass_appends_a_close_block_and_sweeps_what_its_range_r
     edits nothing of the proofer's, the coordinate the block carries, and the
     reading of its range and the work item's records it cites from the rule
     before it (contract rule 12, #1318). The block's grammar is
-    `hooks/lib/fields.py`'s and is held there; this holds the definition's
+    `lib/fields.py`'s and is held there; this holds the definition's
     paragraph, which no other case reads."""
     paragraph = flat(
         crafter_rule("A fix pass appends close blocks and writes no phase record.")

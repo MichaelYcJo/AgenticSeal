@@ -127,7 +127,7 @@ hold other files at those paths.
 
 Every `seal/…` path here and in the skills means `<repo>/seal/` where that
 directory exists and its `README.md` opens with the marker
-`hooks/lib/optin.py#MARKER` holds, and
+`lib/optin.py#MARKER` holds, and
 `$(git rev-parse --git-common-dir)/seal/` otherwise —
 local mode, where the root sits under the common git directory and nothing
 under it is committed. A repository with both is shared, and no config key

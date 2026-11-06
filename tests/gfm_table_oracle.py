@@ -1,12 +1,12 @@
 """Which tables cmark-gfm renders out of a markdown document, and their cells.
 
-This is the oracle `hooks/lib/config.py#gfm_table` is held to (#647, steps C and
+This is the oracle `lib/config.py#gfm_table` is held to (#647, steps C and
 D). It answers one question -- what does GitHub's own renderer put in each
 table -- and nothing else. Which table a reader wants, and what it refuses,
 is the reader's grammar and is not asked here.
 
 **It shares nothing with what it checks.** It imports `cmarkgfm` and the
-standard library, and nothing from `hooks/`, `skills/` or `.github/scripts/`;
+standard library, and nothing from `lib/`, `skills/` or `.github/scripts/`;
 `tests/behaviour/test_one_table_walker_reads_what_gfm_renders.py` reads this file's own
 imports to hold that, the arrangement `tests/commonmark_oracle.py` keeps
 (#667). A table rule written by somebody else is the whole point: round 3 of

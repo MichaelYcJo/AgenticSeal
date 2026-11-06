@@ -4,7 +4,7 @@
 Data and nothing else. `SHAPES` holds each shape as a document's lines, keyed
 by its id, and `RENDERER` holds, for each id, the lines a CommonMark
 renderer hides, derived by reading the specification.
-`tests/behaviour/test_the_hooks_hide_what_a_renderer_hides.py` holds the
+`tests/behaviour/test_the_readers_hide_what_a_renderer_hides.py` holds the
 oracle to `RENDERER` and then holds every reader to the oracle over these
 shapes and a generated corpus.
 

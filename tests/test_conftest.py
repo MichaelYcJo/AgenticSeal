@@ -637,19 +637,19 @@ class Test_step_running:
 
 class Test_census_case:
     def test_accepts_a_target_every_census_passes(self, tmp_path, monkeypatch):
-        (tmp_path / "hooks").mkdir()
-        (tmp_path / "hooks" / "x.py").write_text(
+        (tmp_path / "lib").mkdir()
+        (tmp_path / "lib" / "x.py").write_text(
             'open(p, encoding="utf-8")\n', encoding="utf-8"
         )
         monkeypatch.setattr(censuses, "ROOT", str(tmp_path))
-        assert conftest.census_case("hooks/x.py")() is None
+        assert conftest.census_case("lib/x.py")() is None
 
     def test_refuses_a_target_one_census_flags_naming_it(self, tmp_path, monkeypatch):
-        (tmp_path / "hooks").mkdir()
-        (tmp_path / "hooks" / "y.py").write_text("open(p)\n", encoding="utf-8")
+        (tmp_path / "lib").mkdir()
+        (tmp_path / "lib" / "y.py").write_text("open(p)\n", encoding="utf-8")
         monkeypatch.setattr(censuses, "ROOT", str(tmp_path))
-        with pytest.raises(AssertionError, match=r"hooks/y\.py:1: encoding: "):
-            conftest.census_case("hooks/y.py")()
+        with pytest.raises(AssertionError, match=r"lib/y\.py:1: encoding: "):
+            conftest.census_case("lib/y.py")()
 
 
 test_census = conftest.census_case(TARGET)

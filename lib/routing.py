@@ -43,7 +43,7 @@ import optin
 try:
     import blocks
 except ImportError as missing:
-    # `hooks/lib/config.py` raises the same sentence for the same reason: this is
+    # `lib/config.py` raises the same sentence for the same reason: this is
     # a module gates and scripts import, and a script that loads it by path
     # (`chain_check.py`) catches the error or names the file first.
     raise ImportError(
@@ -51,7 +51,7 @@ except ImportError as missing:
         + os.path.join(os.path.dirname(os.path.abspath(__file__)), "blocks.py")
         + ", and it is the walk this reader reads routing.md through, which "
         "tells a live row from one quoted in a fence or parked in a comment. "
-        "This file ships beside it under `hooks/`; a copy of one taken on its "
+        "This file ships beside it under `lib/`; a copy of one taken on its "
         "own is not a plugin"
     ) from missing
 
@@ -108,13 +108,13 @@ def shown(lines, text=None):
     The walk's hidden lines are left out, and only those: where it is not
     sure, this reader's own reading from before #667 stands, and that
     reading hid nothing. So on every line the answer is either the old one
-    or a renderer's, which `tests/behaviour/test_the_hooks_hide_what_a_renderer_hides.py`
+    or a renderer's, which `tests/behaviour/test_the_readers_hide_what_a_renderer_hides.py`
     holds over a generated corpus.
 
     TEXT is the file LINES were split from, and `table_rows` passes it: the
     walk reads it where GFM breaks a line, so a `<!--` after a U+2028 or a
     form feed, which `str.splitlines` breaks at, hides nothing a renderer
-    shows (#667 round 1, 🟡 1; `hooks/lib/config.py#hidden_lines` says more).
+    shows (#667 round 1, 🟡 1; `lib/config.py#hidden_lines` says more).
     """
     walked = blocks.walk(lines) if text is None else blocks.walk_text(text)
     hidden = walked.hidden()
@@ -142,7 +142,7 @@ def table_rows(text):
     below the table answered for it, and so did an answer somebody parked in
     an HTML comment; since #867 a label shown twice has no value at all.
     `shown` below is what this walks, and it hides exactly the lines
-    `hooks/lib/blocks.py` is sure a renderer hides: inside a fenced
+    `lib/blocks.py` is sure a renderer hides: inside a fenced
     block or a comment block that begins its line, where either closes.
     Every other line is read as it always was, so a fence or a `<!--` nobody
     closed hides nothing, and a declaration that read before still reads.
@@ -211,7 +211,7 @@ def parse(text):
     above the table is not a block at all, so that declaration still reads.
 
     **A label written twice has no value** (#867), the rule
-    `hooks/lib/config.py#value_of` gives every `seal/config.md` row. This used to
+    `lib/config.py#value_of` gives every `seal/config.md` row. This used to
     keep the LAST row of a label, so a second `Review` row below the first
     answered for it, and nothing said there were two. Now a strict label
     doubled -- `Review`, `Destination`, `Branch` -- makes the file no
@@ -407,9 +407,9 @@ def rounds(item):
     the destination.
 
     What stays different between the two readers is deliberate, and it is not
-    the order: this one reads the working tree, because a hook fires before
-    the commit and an uncommitted round record is exactly what it should see.
-    The pull-request check reads what git carries, because CI sees nothing
+    the order: this one reads the working tree, because its callers, `seal
+    settle` and the release scripts, read the checkout they run in. The
+    pull-request check reads what git carries, because CI sees nothing
     else -- an untracked file there is evidence nobody can open.
     """
     if not item:

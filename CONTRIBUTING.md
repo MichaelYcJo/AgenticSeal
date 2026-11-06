@@ -44,7 +44,7 @@ run follows.
 - **A change to a gate carries a higher bar**: a test seen failing before the
   fix, a stated failure direction, a prompt budget, and honesty about the
   platforms the contributor could not test. *What a change to a gate must
-  carry* below is the whole of it, and it covers anything under `hooks/` or
+  carry* below is the whole of it, and it covers anything under `lib/` or
   `.github/workflows/`.
 - The house rules below. Two of them catch most changes: both READMEs move
   together, and examples use `example.com` and `/Users/x/` rather than any
@@ -78,9 +78,9 @@ and a maintainer adding a CI step reads the row rather than this sentence.
 The suite needs `pytest`, one parser, `markdown-it-py`, pinned to one
 version in `MARKDOWN_IT` in `.github/scripts/run_tests.py`, and one
 renderer, `cmarkgfm`, pinned in `CMARKGFM` beside it.
-The parser is the CommonMark oracle the hook readers are checked against.
-The renderer is
-GitHub's own, cmark-gfm, and the table walker in `hooks/lib/config.py` is checked
+The parser is the CommonMark oracle the readers under `lib/` are checked
+against. The renderer is
+GitHub's own, cmark-gfm, and the table walker in `lib/config.py` is checked
 against what it renders. The parser and the renderer are test-only: the gates
 themselves are stdlib-only Python and
 import nothing the suite installs. `bin/test` acquires all three once: it
@@ -107,7 +107,7 @@ agent. A cheap runner
 does not widen that rule. What it makes cheap is `bin/test tests/<file> -q`,
 and that is the form a segment types.
 
-**Python 3.12 is the supported floor**, held as `FLOOR` in `hooks/lib/launch.py`
+**Python 3.12 is the supported floor**, held as `FLOOR` in `lib/launch.py`
 so this sentence and the code state one number. `bin/seal` runs its script
 through that launcher, which refuses an older interpreter with one sentence
 before the script is read, and hands each subcommand's script to the
@@ -116,11 +116,11 @@ whatever `python3` it finds, because its runner is what gets past an old one:
 it builds its virtualenv with an interpreter at that floor or newer, refuses a
 `.venv` it finds below it, and where it finds neither `uv` nor such an
 interpreter it says which to install. What runs before any floor is checked
-(the stamp's launcher, a git hook, `hooks/lib/launch.py`, `bin/test`'s
+(the stamp's launcher, `lib/launch.py`, `bin/test`'s
 runner, and every module one of them loads in its own process) runs on
 whatever `python3` starts it.
 `ruff.toml` lints that code at the version its `per-file-target-version`
-names. `tests/hooks/test_launch.py` derives the set and holds every file of it
+names. `tests/lib/test_launch.py` derives the set and holds every file of it
 to that table, and `tests/censuses.py#floor_syntax` refuses in it the syntax
 `ast` rejects at that version and the two constructs ruff pushes toward above
 it, `zip(..., strict=)` and `datetime.UTC`. Nothing runs that code at that
@@ -227,7 +227,7 @@ that run and the pull request.
 **Each shipped module has one test file, and the file names its module
 once.** The file is `tests/<area>/test_<stem>.py`. The area is the first
 directory of the module's path with a leading dot dropped, so the file for
-`hooks/lib/optin.py` is `tests/hooks/test_optin.py` and the file for a
+`lib/optin.py` is `tests/lib/test_optin.py` and the file for a
 script under `.github/` stands in `tests/github/`; a module under `tests/`
 keeps its file at `tests/`. The stem is the module's file
 name without `.py`, with each hyphen written as an underscore, and where two
@@ -418,7 +418,7 @@ question is not its difficulty, it is when it arrives.
   UTF-8 everywhere else, so that leg is the only one that sees it. The call
   names `encoding="utf-8"`. Every entry point, a tracked `.py` with a
   `__main__` block, also opens its first such block with the answer
-  `hooks/lib/console.py#STREAMS` holds, as the call `console.to_utf8()` or
+  `lib/console.py#STREAMS` holds, as the call `console.to_utf8()` or
   as a loop over its literal pairs in the one form
   `tests/censuses.py#loop_pairs` reads. The `encoding` and `entry_point`
   censuses in `tests/censuses.py` enforce both over every tracked `.py`, and a

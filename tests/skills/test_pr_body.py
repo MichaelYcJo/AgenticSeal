@@ -460,7 +460,7 @@ class Test_compose:
     )
     def test_refuses_a_record_it_cannot_copy_faithfully(self, rel, text, line, said):
         """S6. A round record `chain_check.py` refuses, a gate record whose
-        run block `hooks/lib/fields.py` refuses (#1198), a copied line equal
+        run block `lib/fields.py` refuses (#1198), a copied line equal
         to `HEADING`, which would put a second boundary line inside the
         fold, a copied line holding `<details` or `</details` in any case and
         anywhere in it, followed by whitespace, `/`, `>` or the line's end,
@@ -609,7 +609,7 @@ class Test_seal_mark:
         self, repo, tmp_path, verdict
     ):
         """S2. No guarantee, a newest block reading `withheld` or
-        `undecided`, and a file `hooks/lib/fields.py` refuses a line of,
+        `undecided`, and a file `lib/fields.py` refuses a line of,
         after a sealed block too: no mark, and no line, since the sealer and
         the pull request's check name those. The last seen red with the
         refusal's read alone removed, where the mark stood."""

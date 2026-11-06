@@ -33,7 +33,7 @@ import subprocess
 
 HOME = "seal"
 # The sub-directory of the root that holds the work items. Readers that
-# classify repository-relative paths — `hooks/lib/gate.py#DOC_ROOTS`, the CI
+# classify repository-relative paths — `lib/gate.py#DOC_ROOTS`, the CI
 # scripts' globs, `chain_check.py`'s prefix — spell `seal/` as a string,
 # because a path in a diff or a tree listing is only ever the shared root;
 # every reader that opens a file joins this under `home()` instead, so #80
@@ -65,7 +65,7 @@ PARITY_CONFIG = "parity.md"
 SCRATCH = "agentic-scratch"
 # The first line of `templates/setup/seal-README.md`, which first setup writes
 # into every root: a `seal/` is the plugin's root only where its `README.md`
-# opens with this line. `tests/hooks/test_optin.py` pins the template's first
+# opens with this line. `tests/lib/test_optin.py` pins the template's first
 # line to this value.
 MARKER = "# What AgenticSeal maintains in seal/"
 README = "README.md"
@@ -94,10 +94,10 @@ def repo_root(cwd):
             # neither of the classes caught here.
             #
             # Measured on a cp949 console against a repository under a Korean
-            # path: the gate exited 1 with no decision, and a PreToolUse hook
-            # exiting non-zero is a non-blocking error -- so the commit went
-            # through unjudged. Everything in this module is documented to fail
-            # toward "not opted in", and that is silence, not a crash.
+            # path: the caller exited 1 with no answer, where it should have
+            # read the repository as not opted in. Everything in this module is
+            # documented to fail toward "not opted in", and that is silence,
+            # not a crash.
             encoding="utf-8",
             errors="replace",
             timeout=5,

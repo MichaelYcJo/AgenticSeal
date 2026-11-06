@@ -118,7 +118,7 @@ import urllib.parse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-sys.path.insert(0, os.path.join(HERE, "..", "..", "hooks", "lib"))
+sys.path.insert(0, os.path.join(HERE, "..", "..", "lib"))
 sys.path.insert(0, os.path.join(HERE, "..", "..", "skills", "verify", "scripts"))
 import console  # noqa: E402
 import gitcmd  # noqa: E402
@@ -188,7 +188,7 @@ def version_of(tag):
 
 def git(*args):
     """`git` run in the repository at `ROOT`, its argv
-    `hooks/lib/gitcmd.py#argv`'s; its standard output."""
+    `lib/gitcmd.py#argv`'s; its standard output."""
     return run(*gitcmd.argv("-C", ROOT, *args))
 
 

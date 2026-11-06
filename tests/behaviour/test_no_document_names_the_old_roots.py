@@ -11,8 +11,8 @@ below with its reason, so the allowlist cannot grow without one: the design
 record and its Korean twin, which name both trees because the move is what
 they are about.
 
-No code reads the old names, and `test_no_hook_names_the_0_3_x_roots` below
-holds that for `hooks/`; the round records, overviews and plans of released
+No code reads the old names, and `test_no_lib_module_names_the_0_3_x_roots`
+below holds that for `lib/`; the round records, overviews and plans of released
 work items under `seal/threads/` are outside the scanned files, because they
 record what was true at their SHA.
 """
@@ -91,17 +91,16 @@ def test_no_shipped_document_names_the_old_roots():
     )
 
 
-def test_no_hook_names_the_0_3_x_roots():
+def test_no_lib_module_names_the_0_3_x_roots():
     """No code of the plugin opens `.specseal/` or a top-level `specs/` on
-    its own, so no file under `hooks/`, its modules in `hooks/lib/` among
-    them, names the first or keeps a constant for the second."""
-    for here in (("hooks",), ("hooks", "lib")):
-        for name in sorted(os.listdir(os.path.join(ROOT, *here))):
-            if name.endswith(".py"):
-                path = os.path.join(ROOT, *here, name)
-                text = open(path, encoding="utf-8").read()
-                assert ".specseal" not in text, f"{name} names the 0.3.x root"
-                assert "OLD_ITEMS" not in text, f"{name} keeps the 0.3.x specs/"
+    its own, so no module under `lib/` names the first or keeps a constant
+    for the second."""
+    for name in sorted(os.listdir(os.path.join(ROOT, "lib"))):
+        if name.endswith(".py"):
+            path = os.path.join(ROOT, "lib", name)
+            text = open(path, encoding="utf-8").read()
+            assert ".specseal" not in text, f"{name} names the 0.3.x root"
+            assert "OLD_ITEMS" not in text, f"{name} keeps the 0.3.x specs/"
 
 
 # The two paths the scan names to prove it reaches both ends of its own

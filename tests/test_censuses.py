@@ -32,7 +32,7 @@ import os
 
 import censuses
 import pytest
-from conftest import ROOT, census_case, git_listing, load_hook_module, on_disk
+from conftest import ROOT, census_case, git_listing, load_lib_module, on_disk
 
 TARGET = "tests/censuses.py"
 
@@ -49,7 +49,7 @@ SIGN = "\N{SECTION SIGN}"
 REFUSED_DOMAIN = "fixture.example" + ".net"
 REFUSED_USER_PATH = "/" + "Users/someone/"
 PRODUCT_HOST = "claude" + ".ai"
-RUFF = '[per-file-target-version]\n"hooks/*.py" = "py39"\n'
+RUFF = '[per-file-target-version]\n"lib/*.py" = "py39"\n'
 
 
 def plant(root, rel, text):
@@ -63,16 +63,16 @@ def plant(root, rel, text):
 class Test_judge:
     def test_accepts_a_file_every_census_passes(self, tmp_path):
         root = plant(
-            tmp_path, "hooks/x.py", 'def f(p):\n    return open(p, encoding="utf-8")\n'
+            tmp_path, "lib/x.py", 'def f(p):\n    return open(p, encoding="utf-8")\n'
         )
-        assert censuses.judge("hooks/x.py", root) == []
+        assert censuses.judge("lib/x.py", root) == []
 
     def test_refuses_a_file_two_censuses_flag_naming_each(self, tmp_path):
-        root = plant(tmp_path, "hooks/x.py", "open(p)\nx = t.splitlines()\n")
-        found = censuses.judge("hooks/x.py", root)
+        root = plant(tmp_path, "lib/x.py", "open(p)\nx = t.splitlines()\n")
+        found = censuses.judge("lib/x.py", root)
         assert [line.split(": ")[0:2] for line in found] == [
-            ["hooks/x.py:1", "encoding"],
-            ["hooks/x.py:2", "splitlines"],
+            ["lib/x.py:1", "encoding"],
+            ["lib/x.py:2", "splitlines"],
         ], found
 
     @pytest.mark.parametrize(
@@ -87,12 +87,12 @@ class Test_judge:
         ids=["exemptions-above-the-line", "a-comment-quoting-the-form"],
     )
     def test_accepts_a_line_under_its_exemptions(self, tmp_path, text):
-        assert censuses.judge("hooks/x.py", plant(tmp_path, "hooks/x.py", text)) == []
+        assert censuses.judge("lib/x.py", plant(tmp_path, "lib/x.py", text)) == []
 
     def test_refuses_an_exemption_above_a_line_no_census_flags(self, tmp_path):
         text = "x = 1\n# exempt from splitlines: git output\ny = 2\n"
-        assert censuses.judge("hooks/x.py", plant(tmp_path, "hooks/x.py", text)) == [
-            "hooks/x.py:2: splitlines: the exemption excuses nothing, because "
+        assert censuses.judge("lib/x.py", plant(tmp_path, "lib/x.py", text)) == [
+            "lib/x.py:2: splitlines: the exemption excuses nothing, because "
             "splitlines does not flag the line below it; remove the comment"
         ]
 
@@ -103,22 +103,22 @@ class Test_judge:
                 "x = t.splitlines()  # exempt from splitlines: git output\n"
                 "# exempt from splitlines: git output",
                 [
-                    ["hooks/x.py:1", "splitlines"],
-                    ["hooks/x.py:2", "splitlines"],
-                    ["hooks/x.py:1", "splitlines"],
+                    ["lib/x.py:1", "splitlines"],
+                    ["lib/x.py:2", "splitlines"],
+                    ["lib/x.py:1", "splitlines"],
                 ],
             ),
             (
                 "x = 1  # exempt from splitlines: git output\n",
-                [["hooks/x.py:1", "splitlines"]],
+                [["lib/x.py:1", "splitlines"]],
             ),
             (
                 "# exempt from encoding: git output\nx = t.splitlines()\n",
-                [["hooks/x.py:1", "encoding"], ["hooks/x.py:2", "splitlines"]],
+                [["lib/x.py:1", "encoding"], ["lib/x.py:2", "splitlines"]],
             ),
             (
                 "# exempt from splitlines:\nx = t.splitlines()\n",
-                [["hooks/x.py:2", "splitlines"]],
+                [["lib/x.py:2", "splitlines"]],
             ),
         ],
         ids=[
@@ -129,16 +129,16 @@ class Test_judge:
         ],
     )
     def test_refuses_an_exemption_out_of_place(self, tmp_path, text, named):
-        found = censuses.judge("hooks/x.py", plant(tmp_path, "hooks/x.py", text))
+        found = censuses.judge("lib/x.py", plant(tmp_path, "lib/x.py", text))
         assert [line.split(": ")[0:2] for line in found] == named, found
 
 
 class Test_encoding:
     def test_accepts_a_named_encoding_and_a_file_of_another_kind(self, tmp_path):
         plant(tmp_path, "docs/x.md", "open(p)\n")
-        root = plant(tmp_path, "hooks/x.py", 'open(p, encoding="utf-8")\n')
+        root = plant(tmp_path, "lib/x.py", 'open(p, encoding="utf-8")\n')
         assert censuses.encoding("docs/x.md", root) == []
-        assert censuses.encoding("hooks/x.py", root) == []
+        assert censuses.encoding("lib/x.py", root) == []
 
     def test_refuses_an_unnamed_call_under_a_root_nobody_listed(self, tmp_path):
         root = plant(tmp_path, "evals/new.py", "p.write_text(s)\n")
@@ -597,7 +597,7 @@ class Test_entry_point:
             "the `__main__` block's own statements, and an entry point that gives "
             "none dies with stdout empty when it raises while printing; open the "
             "block with `console.to_utf8()`, or with a loop over "
-            "`hooks/lib/console.py#STREAMS`' literal pairs in the one form "
+            "`lib/console.py#STREAMS`' literal pairs in the one form "
             "`tests/censuses.py#loop_pairs` reads, or put "
             "`# exempt from entry_point: <why>` on its own line above it"
         ]
@@ -612,7 +612,7 @@ class Test_entry_point:
         root = plant(tmp_path, rel, "import sys\n\n" + GUARD + "    main()\n")
         assert lines_of(censuses.entry_point(rel, root)) == [f"{rel}:3"]
 
-    @pytest.mark.parametrize("rel", ["hooks/x.py", "skills/verify/scripts/x.py"])
+    @pytest.mark.parametrize("rel", ["lib/x.py", "skills/verify/scripts/x.py"])
     def test_accepts_a_loop_over_the_streams_pairs_as_the_first_statement(
         self, tmp_path, rel
     ):
@@ -636,7 +636,7 @@ class Test_entry_point:
         root = plant(tmp_path, "skills/x.py", GUARD + loop(pairs) + "    main()\n")
         assert censuses.entry_point("skills/x.py", root) == [
             "skills/x.py:2: entry_point: the census does not read this loop as "
-            "the answer `hooks/lib/console.py#STREAMS` holds; it reads a `for` over "
+            "the answer `lib/console.py#STREAMS` holds; it reads a `for` over "
             "the literal pairs (('stdin', 'replace'), ('stdout', 'replace'), "
             "('stderr', 'backslashreplace')) that calls "
             '`.reconfigure(encoding="utf-8", errors=<errors>)` on the stream it '
@@ -658,9 +658,9 @@ class Test_entry_point:
         self, tmp_path, pairs, call, bind
     ):
         root = plant(
-            tmp_path, "hooks/x.py", GUARD + loop(pairs, call, bind) + "    main()\n"
+            tmp_path, "lib/x.py", GUARD + loop(pairs, call, bind) + "    main()\n"
         )
-        assert lines_of(censuses.entry_point("hooks/x.py", root)) == ["hooks/x.py:2"]
+        assert lines_of(censuses.entry_point("lib/x.py", root)) == ["lib/x.py:2"]
 
     @pytest.mark.parametrize(
         "target",
@@ -671,8 +671,8 @@ class Test_entry_point:
         self, tmp_path, target
     ):
         text = loop().replace("for _name, _errors in", f"for {target} in", 1)
-        root = plant(tmp_path, "hooks/x.py", GUARD + text + "    main()\n")
-        assert lines_of(censuses.entry_point("hooks/x.py", root)) == ["hooks/x.py:2"]
+        root = plant(tmp_path, "lib/x.py", GUARD + text + "    main()\n")
+        assert lines_of(censuses.entry_point("lib/x.py", root)) == ["lib/x.py:2"]
 
     def test_refuses_a_loop_after_a_statement_there_and_reads_its_pairs_exempted(
         self, tmp_path
@@ -705,8 +705,8 @@ class Test_entry_point:
         root = plant(tmp_path, "hooks/two.py", text)
         assert censuses.entry_point("hooks/two.py", root) == []
 
-    def test_reads_the_pairs_hooks_lib_console_holds_from_the_file(self):
-        console = load_hook_module("lib/console.py", "console_for_entry_point")
+    def test_reads_the_pairs_lib_console_holds_from_the_file(self):
+        console = load_lib_module("console.py", "console_for_entry_point")
         assert censuses.console_streams() == console.STREAMS
 
 
@@ -723,7 +723,7 @@ class Test_splitlines:
                 "        .splitlines()\n    )\n",
                 "skills/new.py:4: splitlines: `.splitlines(` ends a line where GFM "
                 "does not; a reader of markdown or record text reads "
-                "`hooks/lib/blocks.py#gfm_lines`, and a call over any other text puts "
+                "`lib/blocks.py#gfm_lines`, and a call over any other text puts "
                 "`# exempt from splitlines: <what it splits>` on its own line "
                 "above it",
             ),
@@ -750,8 +750,8 @@ class Test_heading_rule:
             'def f(line):\n    """Not `line.startswith("#")`."""\n'
             '    # nor startswith("#")\n    return line\n'
         )
-        root = plant(tmp_path, "hooks/x.py", source)
-        assert censuses.heading_rule("hooks/x.py", root) == []
+        root = plant(tmp_path, "lib/x.py", source)
+        assert censuses.heading_rule("lib/x.py", root) == []
 
     def test_refuses_a_counted_run_and_a_startswith(self, tmp_path):
         source = 'import re\nH = re.compile(r"#{1,6} ")\nok = line.startswith("#")\n'
@@ -800,12 +800,12 @@ class Test_floor_syntax:
 
     def test_refuses_a_construct_newer_than_the_files_floor(self, tmp_path):
         plant(tmp_path, "ruff.toml", RUFF)
-        root = plant(tmp_path, "hooks/x.py", PLANTED)
-        assert censuses.floor_syntax("hooks/x.py", root) == [
-            "hooks/x.py:2: floor_syntax: `zip(..., strict=...)` needs a python3 "
+        root = plant(tmp_path, "lib/x.py", PLANTED)
+        assert censuses.floor_syntax("lib/x.py", root) == [
+            "lib/x.py:2: floor_syntax: `zip(..., strict=...)` needs a python3 "
             "newer than 3.9, the version ruff.toml lints this file at, and it "
             "runs before any floor is checked",
-            "hooks/x.py:3: floor_syntax: `datetime.UTC` needs a python3 newer "
+            "lib/x.py:3: floor_syntax: `datetime.UTC` needs a python3 newer "
             "than 3.9, the version ruff.toml lints this file at, and it runs "
             "before any floor is checked",
         ]
@@ -1007,15 +1007,16 @@ VACATED_MESSAGE = (
 
 
 def plant_moved(root):
-    """One file moved into each kind of subdirectory the census reads, and
-    `hooks/kept.py`, which stands in `hooks/lib/` and at the top too."""
+    """One file moved into each kind of directory the census reads, and
+    `kept.py`, which stands in `lib/` and in `hooks/` too."""
     for rel in (
-        "hooks/lib/moved.py",
-        "hooks/lib/kept.py",
+        "lib/moved.py",
+        "lib/kept.py",
         "hooks/kept.py",
         "templates/records/sdd-x.md",
         "templates/setup/y.md",
         "tests/skills/test_moved.py",
+        "tests/lib/test_lib.py",
         "tests/e2e/test_deep.py",
     ):
         plant(root, rel, "x\n")
@@ -1027,7 +1028,7 @@ class Test_vacated_paths:
         root = plant(tmp_path, "docs/x.md", "`hooks/moved.py`, `templates/y.md`\n")
         assert censuses.vacated_paths("docs/x.md", root) == []
 
-    def test_refuses_the_spelling_one_level_up_of_each_moved_file(self, tmp_path):
+    def test_refuses_the_spelling_each_moved_file_vacated(self, tmp_path):
         text = (
             "clean\n"
             "`hooks/moved.py` loads it\n"
@@ -1035,17 +1036,21 @@ class Test_vacated_paths:
             "copied from ${PLUGIN}/templates/y.md.\n"
             "`tests/test_moved.py::test_case`\n"
             "`HEAD:hooks/moved.py`\n"
+            "`hooks/lib/moved.py` loads it\n"
+            "`tests/hooks/test_lib.py`\n"
         )
         plant_moved(tmp_path)
         root = plant(tmp_path, "docs/x.md", text)
         assert censuses.vacated_paths("docs/x.md", root) == [
             VACATED_MESSAGE.format(rel="docs/x.md", number=number, old=old, new=new)
             for number, old, new in (
-                (2, "hooks/moved.py", "hooks/lib/moved.py"),
+                (2, "hooks/moved.py", "lib/moved.py"),
                 (3, "templates/sdd-x.md", "templates/records/sdd-x.md"),
                 (4, "templates/y.md", "templates/setup/y.md"),
                 (5, "tests/test_moved.py", "tests/skills/test_moved.py"),
-                (6, "hooks/moved.py", "hooks/lib/moved.py"),
+                (6, "hooks/moved.py", "lib/moved.py"),
+                (7, "hooks/lib/moved.py", "lib/moved.py"),
+                (8, "tests/hooks/test_lib.py", "tests/lib/test_lib.py"),
             )
         ]
 
@@ -1054,7 +1059,7 @@ class Test_vacated_paths:
     ):
         commit = "5f11923f"
         text = (
-            "`hooks/lib/moved.py`, `templates/records/sdd-x.md`\n"
+            "`lib/moved.py`, `templates/records/sdd-x.md`\n"
             "`other/hooks/moved.py`, `myhooks/moved.py`, `hooks/moved.pyc`\n"
             "`hooks/kept.py` and `tests/test_deep.py`, which `tests/e2e/` holds\n"
             f"measured in `{commit}:hooks/moved.py`\n"
@@ -1166,13 +1171,13 @@ class Test_slash_in_join:
 
     @pytest.mark.parametrize("shape", sorted(SLASH_IMPORTS))
     def test_refuses_a_slash_under_each_import_spelling(self, tmp_path, shape):
-        root = plant(tmp_path, "hooks/x.py", SLASH_IMPORTS[shape])
-        assert lines_of(censuses.slash_in_join("hooks/x.py", root)) == ["hooks/x.py:2"]
+        root = plant(tmp_path, "lib/x.py", SLASH_IMPORTS[shape])
+        assert lines_of(censuses.slash_in_join("lib/x.py", root)) == ["lib/x.py:2"]
 
     @pytest.mark.parametrize("shape", sorted(NO_SLASH_JOINED))
     def test_accepts_each_shape_with_no_slash_inside_a_join(self, tmp_path, shape):
-        root = plant(tmp_path, "hooks/x.py", NO_SLASH_JOINED[shape])
-        assert censuses.slash_in_join("hooks/x.py", root) == []
+        root = plant(tmp_path, "lib/x.py", NO_SLASH_JOINED[shape])
+        assert censuses.slash_in_join("lib/x.py", root) == []
 
     def test_accepts_a_file_of_another_kind(self, tmp_path):
         root = plant(tmp_path, "docs/x.md", 'import os\nos.path.join(r, "a/b")\n')

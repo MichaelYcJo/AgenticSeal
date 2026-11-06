@@ -131,7 +131,7 @@ stated there once. A comment copied into every record is a second copy of
 that guidance, and every reader of the record has to model it.
 check: tests/text/test_a_record_carries_no_comment.py
 
-**A record holds a fence around a finding's paste-ready fix and around each of its `seal` blocks, and a field a check reads stands inside a `seal` block and nowhere else.** The readers keep one fence state, by the fence rule of `hooks/lib/blocks.py`, so a `seal` block quoted inside a fix belongs to the fix and is not read, and `hooks/lib/fields.py` is the one reader of the blocks.
+**A record holds a fence around a finding's paste-ready fix and around each of its `seal` blocks, and a field a check reads stands inside a `seal` block and nowhere else.** The readers keep one fence state, by the fence rule of `lib/blocks.py`, so a `seal` block quoted inside a fix belongs to the fix and is not read, and `lib/fields.py` is the one reader of the blocks.
 check: tests/skills/test_chain_check.py
 
 **A reader of a record keeps no comment state: it reads `<!--` as text, and
@@ -141,10 +141,10 @@ the record holds. The refusal stands where the reader reads:
 `chain_check.py` in a round record, a `guarantee.md` and a `trail/gate.md`,
 `unverified_check.py` in a `gaps.md`, and `rule_changes.py` in a
 `frame/design.md`'s `## Rule changes`. A `routing.md` is
-the exception: its reader, `hooks/lib/routing.py`, runs at the pull request
+the exception: its reader, `lib/routing.py`, runs at the pull request
 (`docs/checks/the-routing-check.md`), where a refusal would fail the
 pull request of a work item framed before its template lost its comments,
-so that reader keeps the comment walk of `hooks/lib/blocks.py`.
+so that reader keeps the comment walk of `lib/blocks.py`.
 check: record-comment-line-refused
 
 **A fact of a work item has one record, and every other record cites it by path and heading.** What changed, for a user, is `changelog.md`'s. What is built, its grounds, its rule changes and its removals are `frame/design.md`'s. In which phases, by which approach and with which commit each closed is `frame/plan.md`'s. What only a person could decide, and what was assumed in its place, is `frame/questions.md`'s. What building one phase found, each departure from the frame among it, is that phase's `trail/phases/phase-N.md`. What one round found is its `trail/rounds/round-N.md`. The one broad run is `trail/gate.md`. What went out unproved and what was within reach and not taken is `gaps.md`. The sealer's audit is `guarantee.md`. A record cites another's fact by its path and heading and does not restate it, so a template holds no section or cell that could hold only a copy.

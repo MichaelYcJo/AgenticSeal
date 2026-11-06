@@ -1,4 +1,4 @@
-"""`hooks/lib/console.py`: a console a script cannot encode to must not turn
+"""`lib/console.py`: a console a script cannot encode to must not turn
 it into a silent pass.
 
 The failure this holds is not "a message came out wrong". It is that a
@@ -12,9 +12,9 @@ The case of the stamp's drawer on such a console, the one script a person's
 import io
 import sys
 
-from conftest import census_case, load_hook_module
+from conftest import census_case, load_lib_module
 
-TARGET = "hooks/lib/console.py"
+TARGET = "lib/console.py"
 
 
 def cp949_stream():
@@ -26,7 +26,7 @@ class Test_to_utf8:
     def test_accepts_each_of_the_three_streams_and_makes_it_utf8(self, monkeypatch):
         """The streams are stand-ins, so the verdict is the same whatever
         console the case runs under."""
-        console = load_hook_module("lib/console.py", "console_for_to_utf8")
+        console = load_lib_module("console.py", "console_for_to_utf8")
         streams = {name: cp949_stream() for name in ("stdin", "stdout", "stderr")}
         for name, stream in streams.items():
             monkeypatch.setattr(sys, name, stream)
@@ -41,7 +41,7 @@ class Test_to_utf8:
     def test_refuses_to_raise_on_a_stream_that_is_absent_or_cannot_reconfigure(
         self, monkeypatch
     ):
-        console = load_hook_module("lib/console.py", "console_for_absent_streams")
+        console = load_lib_module("console.py", "console_for_absent_streams")
         stderr = cp949_stream()
         monkeypatch.setattr(sys, "stdin", None)
         monkeypatch.setattr(sys, "stdout", io.StringIO())

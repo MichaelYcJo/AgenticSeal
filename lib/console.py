@@ -44,12 +44,12 @@ each carries the call rather than relying on a caller having made it.
 Every entry point owes the answer: each tracked `.py` with a module-level
 `__main__` block opens its first such block with it, and one that cannot
 carries its reason in an exemption above the line
-`tests/censuses.py#entry_point` names, as `hooks/lib/launch.py` does. An entry
+`tests/censuses.py#entry_point` names, as `lib/launch.py` does. An entry
 point gives it by importing this module and calling `to_utf8()`, or by
-spelling the loop inline. A script that loads nothing from `hooks/lib/` at
+spelling the loop inline. A script that loads nothing from `lib/` at
 import spells the loop, because a load of this module would be one more load
 that can fail before the answer. Most of the scripts under `skills/*/scripts/`,
-and some under `.github/scripts/`, already reach `hooks/lib/` at import:
+and some under `.github/scripts/`, already reach `lib/` at import:
 `skills/implement/scripts/seal.py` imports its modules after checking they are
 there, and others load them by path, directly or through a sibling script.
 `skills/code-review/scripts/chain_check.py` runs its loop before it loads any

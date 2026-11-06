@@ -3,7 +3,7 @@ records hold their fields in (#1198).
 
 A field a script reads in a round record, in `guarantee.md` or in
 `trail/gate.md` stands inside a `seal` block and nowhere else. A block is a
-fenced code block, by `hooks/lib/blocks.py#walk`, outside every other fence
+fenced code block, by `lib/blocks.py#walk`, outside every other fence
 and every HTML comment block, whose opener is a line of three backticks then
 `seal`, with nothing before it and nothing after it. It closes where
 CommonMark closes it. Each line inside it is `<key>: <value>`, or `<key>:`
@@ -42,7 +42,7 @@ this module does not read.
 
 Standard library only; it imports `blocks` beside it. `chain_check.py`,
 `broad_gate.py` and `unverified_check.py` load it by path, as they load
-`hooks/lib/routing.py`; `seal_stamp.py`, which the stamp hooks load, and
+`lib/routing.py`; `seal_stamp.py`, which `seal stamp` runs, and
 `pr_body.py` reach it through `chain_check.FIELDS`.
 """
 
@@ -60,7 +60,7 @@ except ImportError as missing:
         "cannot read "
         + os.path.join(os.path.dirname(os.path.abspath(__file__)), "blocks.py")
         + ", and it is the walk this reader reads a record's fences through. "
-        "This file ships beside it under `hooks/`; a copy of one taken on its "
+        "This file ships beside it under `lib/`; a copy of one taken on its "
         "own is not a plugin"
     ) from missing
 

@@ -94,7 +94,7 @@ or a drawing.
 `--record <item>` writes `<item>/trail/gate.md` on success, on either routing
 answer: it appends one `seal` block holding `run: <tree> against <base
 commit>` below the blocks of earlier runs, assembled and read by
-`hooks/lib/fields.py`, and appends nothing where the last block names the
+`lib/fields.py`, and appends nothing where the last block names the
 same commit against the same base (`write_gate_file`, #1198). It is the
 run's one record; `chain_check.py` reads its last block at the pull
 request.
@@ -142,8 +142,8 @@ import tempfile
 # --- where the pieces are ------------------------------------------------
 #
 # Resolved relative to this file, never to the caller's cwd, so the command
-# works from the plugin cache and from a clone alike. `hooks/lib/config.py` is
-# loaded by path the way `chain_check.py` loads `hooks/lib/routing.py`: it is the
+# works from the plugin cache and from a clone alike. `lib/config.py` is
+# loaded by path the way `chain_check.py` loads `lib/routing.py`: it is the
 # one reader of `seal/config.md`'s table, and a second reader that parsed the
 # table differently would answer a different question about the same file.
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -154,18 +154,18 @@ CHAIN = os.path.join(PLUGIN, "skills", "code-review", "scripts", "chain_check.py
 # `chain_check.SEALING`, the flag the chain arm passes (#866). Spelled here
 # because the arm runs the check as a process; a case holds the two equal.
 CHAIN_SEALING = "--sealing"
-CONFIG_READER = os.path.join(PLUGIN, "hooks", "lib", "config.py")
-# `hooks/lib/fields.py`, which assembles the run block `--record` appends and
+CONFIG_READER = os.path.join(PLUGIN, "lib", "config.py")
+# `lib/fields.py`, which assembles the run block `--record` appends and
 # reads the blocks already there (#1198).
-FIELDS_READER = os.path.join(PLUGIN, "hooks", "lib", "fields.py")
-OPTIN = os.path.join(PLUGIN, "hooks", "lib", "optin.py")
+FIELDS_READER = os.path.join(PLUGIN, "lib", "fields.py")
+OPTIN = os.path.join(PLUGIN, "lib", "optin.py")
 
 CONFIG = "config.md"
 ROW = "Broad gate"
 ROUND_RE = re.compile(r"^round-(\d+)\.md$")
 # The run's one record, in the work item's directory: `chain_check.py` reads
 # it by the same spelling, and a case holds the two equal.
-# `hooks/lib/optin.py#GATE` and `#ROUNDS`, under the thread. `GATE_FILE` takes the
+# `lib/optin.py#GATE` and `#ROUNDS`, under the thread. `GATE_FILE` takes the
 # check's `/` on every platform, and `write_gate_file` splits it on `/` so the
 # disk path it returns takes the platform's separator throughout.
 GATE_FILE = "trail/gate.md"
@@ -238,17 +238,17 @@ def stamp_module():
 
 @functools.lru_cache(maxsize=1)
 def gitcmd_module():
-    """`hooks/lib/gitcmd.py`, loaded once per process, or `Refused`. A
+    """`lib/gitcmd.py`, loaded once per process, or `Refused`. A
     refusal is not cached, so each later call raises it again."""
     return load(
-        os.path.join(PLUGIN, "hooks", "lib", "gitcmd.py"),
+        os.path.join(PLUGIN, "lib", "gitcmd.py"),
         "agentic_gitcmd_for_broad_gate",
     )
 
 
 def git(root, *args):
     """stdout of a git call in `root`, or None on a non-zero exit. The argv
-    is `hooks/lib/gitcmd.py#argv`'s, and a helper that will not load raises
+    is `lib/gitcmd.py#argv`'s, and a helper that will not load raises
     `Refused`."""
     r = subprocess.run(
         gitcmd_module().argv("-C", root, *args),
@@ -650,7 +650,7 @@ def seal_home(root):
     """`<root>/seal/` where it is the root, else `<git-common-dir>/seal/`,
     else None — the two places every `seal/…` path in this plugin resolves
     to (contract rule 11), read in that order. Each is the root only where
-    `hooks/lib/optin.py#marked` finds the marker, so a `seal/` the project keeps
+    `lib/optin.py#marked` finds the marker, so a `seal/` the project keeps
     for itself is never read for a command. The places and the marker are
     `optin`'s; the scratch opt-out is not read here, because a throwaway
     repository still runs its broad command when somebody asks for it."""
@@ -663,7 +663,7 @@ def seal_home(root):
 
 def config_text(home):
     """The root's `config.md` as text, or None where there is none or it
-    will not read: the text half of `hooks/lib/config.py#config_text`, the one
+    will not read: the text half of `lib/config.py#config_text`, the one
     place the file is opened (#867). Every caller of this one runs after
     `broad_command`, which has already refused a file that will not read,
     so None here is a file that is not there."""
@@ -749,7 +749,7 @@ def refused_broad_row(home):
 
 # The line a walker sentence stopped at, between the backticks the walker
 # quotes it in, and the clause it ends on where rows are written below.
-# The sentences are `hooks/lib/config.py#gfm_table`'s own, and this reads them
+# The sentences are `lib/config.py#gfm_table`'s own, and this reads them
 # rather than walking the table a second time (#871).
 STOPPED_AT = re.compile(
     r"(?:stops at|ends above|continues with) `(?P<line>.*)`, (?:which is not|"
@@ -846,7 +846,7 @@ def commented_row_at(home):
 def hidden_row_at(home, kind):
     """(index, line) for the first line naming this gate's row that the one
     reader hides as KIND, or (None, None). The kind is the reader's answer,
-    `hooks/lib/config.py#hidden_lines`, never a walk of this file's own."""
+    `lib/config.py#hidden_lines`, never a walk of this file's own."""
     config = load(CONFIG_READER, "agentic_config_for_broad_gate")
     text = config_text(home)
     if text is None:
@@ -869,7 +869,7 @@ def fenced_row(home):
     indentation — or None.
 
     **The one question about a fenced line anybody asks, and this gate is the
-    only one that may ask it.** `hooks/lib/config.py#unfenced` makes a fenced line
+    only one that may ask it.** `lib/config.py#unfenced` makes a fenced line
     invisible to the one walk of that table, which is what stops an example
     from being the command this gate runs (#429). It also makes a
     `Broad gate` line written only inside a fence look exactly like no row at
@@ -878,16 +878,16 @@ def fenced_row(home):
     about, arriving one shape over. So the line is found again here, on the
     refusal path alone.
 
-    Asked by THIS command and by nothing else. `hooks/lib/config.py` says
+    Asked by THIS command and by nothing else. `lib/config.py` says
     nothing about a fence, and this command speaks once and only when it
     refuses.
 
     It reads the fence rule from the one reader and asks it which lines it
-    hid inside a fence — `hooks/lib/config.py#hidden_lines`, which also hides a
+    hid inside a fence — `lib/config.py#hidden_lines`, which also hides a
     line in an HTML comment and says which it was (#667) — rather than
     walking the file by a rule of its own. A second fence rule written here
     would answer a different question about the same file, which is the split
-    `hooks/lib/config.py` exists to prevent.
+    `lib/config.py` exists to prevent.
 
     **The line alone**, which is what a message quotes. `fenced_row_at` above
     is the same answer with the index beside it, for the one caller that has
@@ -962,7 +962,7 @@ def missing_row(home):
 
     **The second cause is a row written where no walk of that table reads
     it.** A `| Broad gate |` line inside a code fence is an example of the
-    format rather than this repository's own answer, and `hooks/lib/config.py#
+    format rather than this repository's own answer, and `lib/config.py#
     unfenced` is what stops every walk from reading one (#429). That leaves
     the line looking exactly like no row at all, so the absent-row refusal
     below would send a person to write a row they can already see — the

@@ -1,4 +1,4 @@
-"""`hooks/lib/fields.py`, one class per public function (#1198).
+"""`lib/fields.py`, one class per public function (#1198).
 
 The reader of a work item's `seal` blocks: `frame/design.md` *Data &
 interfaces* Table F of work item 1793437163 is the grammar these cases hold
@@ -9,12 +9,12 @@ import os
 import time
 
 import pytest
-from conftest import ROOT, census_case, load_hook_module
+from conftest import ROOT, census_case, load_lib_module
 from conftest import seal_block as block
 
-TARGET = "hooks/lib/fields.py"
+TARGET = "lib/fields.py"
 
-fields = load_hook_module("lib/fields.py", "agentic_fields_under_test")
+fields = load_lib_module("fields.py", "agentic_fields_under_test")
 
 FENCE = "`" * 3
 SHA = "abc1234"

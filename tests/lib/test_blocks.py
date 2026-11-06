@@ -1,22 +1,22 @@
-"""`hooks/lib/blocks.py`, one class per function its cases reach.
+"""`lib/blocks.py`, one class per function its cases reach.
 
-The walk's own answers came from `tests/behaviour/test_the_hooks_hide_what_a_renderer_hides.py`
+The walk's own answers came from `tests/behaviour/test_the_readers_hide_what_a_renderer_hides.py`
 and the splitter's from `tests/behaviour/test_every_reader_ends_a_line_where_gfm_does.py`
 (#942's phase 6). Those files keep what holds the walk to a CommonMark oracle
 and every copy of the splitter to this one, because a check that judges
 markdown against an oracle, or files against each other, stays where it is.
 `tests/behaviour/test_unverified_rows_close.py` keeps the case that holds this module's
-fence walks to `unverified_check.py`'s and `hooks/lib/config.py`'s, for the same
+fence walks to `unverified_check.py`'s and `lib/config.py`'s, for the same
 reason.
 """
 
 import pytest
 from block_shapes import BREAKS, CLOSE, INLINE_KINDS, OPEN
-from conftest import SPLITLINES_ONLY, census_case, load_hook_module, texts
+from conftest import SPLITLINES_ONLY, census_case, load_lib_module, texts
 
-TARGET = "hooks/lib/blocks.py"
+TARGET = "lib/blocks.py"
 
-blocks = load_hook_module("lib/blocks.py", "agentic_blocks_under_test")
+blocks = load_lib_module("blocks.py", "agentic_blocks_under_test")
 # The name the splitter's cases read it by, where they read it through
 # `unverified_check.py`, which hands this module's `gfm_lines` to its callers.
 reader = blocks
@@ -46,7 +46,7 @@ class Test_gfm_lines:
 
 class Test_walk:
     def test_accepts_each_paired_fence_with_its_openers_info_string(self):
-        """#1198, *Scope* item 1: `hooks/lib/fields.py` reads a `seal` block
+        """#1198, *Scope* item 1: `lib/fields.py` reads a `seal` block
         by its opener's info string, so the walk hands it, for every fence it
         pairs, the opener's index and the text after its run. Two fences that
         touch are two entries, and a fence quoted inside another is none."""

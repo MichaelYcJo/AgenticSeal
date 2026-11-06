@@ -18,29 +18,28 @@ from conftest import ROOT
 
 
 def test_the_plugin_registers_no_hook_and_writes_none_into_git():
-    """#1376 phase 5. The plugin directory refuses a plugin that registers a
-    command hook, so the plugin ships no `hooks/hooks.json`, its manifest
-    declares no `hooks`, and what stays under `hooks/` is the library the
-    commands import, `hooks/lib/`. The stamp's `Stop` hook is the person's,
-    which `seal stamp --install` writes into their own settings
+    """#1376 phases 5 and 7. The plugin directory refuses a plugin that
+    registers a command hook, so the plugin ships no `hooks/hooks.json`, its
+    manifest declares no `hooks`, and no file stands under `hooks/`: the
+    library the commands import stands at `lib/`. The stamp's `Stop` hook is
+    the person's, which `seal stamp --install` writes into their own settings
     (`tests/skills/test_seal_stamp.py`). Nothing writes into a clone's git
-    hooks either, and `hooks/git/` stays gone
-    (`docs/checks/the-routing-check.md`)."""
-    assert not os.path.exists(os.path.join(ROOT, "hooks", "hooks.json"))
-    assert not os.path.exists(os.path.join(ROOT, "hooks", "git")), "hooks/git/ is back"
+    hooks either (`docs/checks/the-routing-check.md`)."""
     with open(
         os.path.join(ROOT, ".claude-plugin", "plugin.json"), encoding="utf-8"
     ) as f:
         manifest = json.load(f)
     assert "hooks" not in manifest, manifest.get("hooks")
-    # What stands under `hooks/` on disk, with the bytecode Python writes
-    # beside a module it loads left out.
-    hooks = os.path.join(ROOT, "hooks")
-    entries = sorted(
-        name for name in os.listdir(hooks) if name not in ("lib", "__pycache__")
+    # Every file under `hooks/` on disk, with the bytecode Python wrote beside
+    # a module it loaded before the move left out.
+    left = sorted(
+        os.path.relpath(os.path.join(here, name), ROOT)
+        for here, dirs, names in os.walk(os.path.join(ROOT, "hooks"))
+        if os.path.basename(here) != "__pycache__"
+        for name in names
     )
-    assert entries == [], entries
-    assert os.path.isfile(os.path.join(hooks, "lib", "optin.py"))
+    assert left == [], left
+    assert os.path.isfile(os.path.join(ROOT, "lib", "optin.py"))
 
 
 def test_the_plugin_icon_is_a_png_the_directory_accepts():
@@ -146,7 +145,7 @@ def test_parity_declaration_is_bootstrappable_not_hand_written():
     assert os.path.isfile(tpl), "templates/setup/parity.md missing"
     body = open(tpl, encoding="utf-8").read()
     # The four field names of the declaration, which the person declaring
-    # parity fills in and `hooks/lib/config.py` and `chain_check.py` read off
+    # parity fills in and `lib/config.py` and `chain_check.py` read off
     # `seal/parity.md`.
     for field in (
         "Original repo",

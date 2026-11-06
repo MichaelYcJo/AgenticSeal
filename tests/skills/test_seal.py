@@ -23,8 +23,8 @@ case runs, so a copy is a plain copy.
 `seal.py`'s re-exports of that reader, from that file and from
 `tests/behaviour/test_a_signer_declares_its_pact.py`. Each loads the module under a
 name of its own, as its old file did. Its round 9 fix pass placed in
-`Test_refuse_without_hooks` the three rows that run a copy of this script
-without `hooks/`, from `tests/test_a_script_copied_alone_exits_2.py`, a case
+`Test_refuse_without_lib` the three rows that run a copy of this script
+without `lib/`, from `tests/test_a_script_copied_alone_exits_2.py`, a case
 of this module alone.
 """
 
@@ -55,7 +55,6 @@ from conftest import (
     fifo_or_skip,
     git,
     git_out,
-    load_hook_module,
     load_module,
     local_home,
     mark_root,
@@ -406,9 +405,9 @@ class Test_module:
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         # By where the code was COMPILED, not by object identity: this test loads
-        # `hooks/lib/config.py` under a name of its own, so the two module objects
+        # `lib/config.py` under a name of its own, so the two module objects
         # differ while the implementation behind them must not.
-        owner = os.path.join("hooks", "lib", "config.py")
+        owner = os.path.join("lib", "config.py")
         for name in ("declared", "config_rows", "config_path"):
             where = getattr(module, name).__code__.co_filename
             assert where.endswith(owner), f"seal.{name} is compiled from {where}"
@@ -417,20 +416,20 @@ class Test_module:
     def test_seal_keeps_one_normaliser(self):
         """`seal.py` re-exports the reader's normaliser rather than keeping a
         second copy that could drift from the one the `Pact` row goes through."""
-        seal = load_hook_module(
-            os.path.join("..", "skills", "implement", "scripts", "seal.py"),
+        seal = load_module(
+            os.path.join(ROOT, "skills", "implement", "scripts", "seal.py"),
             "seal_for_the_pact",
         )
         assert seal.normalise_remote is seal.repo_config.normalise_remote
 
 
-class Test_refuse_without_hooks:
-    def test_accepts_a_hooks_directory_holding_every_module_it_names(
+class Test_refuse_without_lib:
+    def test_accepts_a_lib_directory_holding_every_module_it_names(
         self, tmp_path, capsys
     ):
-        for name in SEAL.HOOK_PURPOSES:
+        for name in SEAL.LIB_PURPOSES:
             write(tmp_path, name, "")
-        assert SEAL.refuse_without_hooks(str(tmp_path)) is None
+        assert SEAL.refuse_without_lib(str(tmp_path)) is None
         assert capsys.readouterr().err == ""
 
     def test_refuses_with_exit_2_and_a_sentence_per_module_missing(
@@ -438,7 +437,7 @@ class Test_refuse_without_hooks:
     ):
         write(tmp_path, "config.py", "")
         with pytest.raises(SystemExit) as stopped:
-            SEAL.refuse_without_hooks(str(tmp_path))
+            SEAL.refuse_without_lib(str(tmp_path))
         err = capsys.readouterr().err
         assert stopped.value.code == 2
         for name in ("optin.py", "blocks.py"):
@@ -454,7 +453,7 @@ class Test_refuse_without_hooks:
                 "it is what finds the repository's seal/ root",
                 None,
             ),
-            # Round 1's yellow 1 of #610: `hooks/lib/config.py` reads `config.md`
+            # Round 1's yellow 1 of #610: `lib/config.py` reads `config.md`
             # and never writes it, so a purpose saying it writes is #590's
             # wrong-purpose defect again.
             (
@@ -462,7 +461,7 @@ class Test_refuse_without_hooks:
                 "it is what reads the root's config.md",
                 "reads and writes",
             ),
-            # #667: `hooks/lib/config.py` imports `hooks/lib/blocks.py`, so a `hooks/`
+            # #667: `lib/config.py` imports `lib/blocks.py`, so a `lib/`
             # without it fails that import.
             (
                 ["mode", "--check"],
@@ -486,9 +485,9 @@ class Test_refuse_without_hooks:
     def test_a_script_copied_alone_exits_2_and_names_what_it_misses(
         self, tmp_path, args, purpose, absent
     ):
-        """#590 and #610. A copy of this script taken without `hooks/` exits 2,
+        """#590 and #610. A copy of this script taken without `lib/` exits 2,
         with a sentence per missing module naming its path and what it is for.
-        It puts `hooks/` on `sys.path` and then runs a plain `import`, which a
+        It puts `lib/` on `sys.path` and then runs a plain `import`, which a
         search for by-path loaders does not find, and it asks before the
         import, at import, so any invocation argparse accepts reaches it:
         `mode --check`, and not an empty one, because argparse's own usage

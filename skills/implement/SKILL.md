@@ -87,7 +87,7 @@ Inside the policy root, documents are grouped by who opens them and at which
 step, and any party may open any group.
 
 `seal/` lives at one of two places, and its presence at either, with a
-`README.md` that opens with the marker `hooks/lib/optin.py#MARKER` holds, is what
+`README.md` that opens with the marker `lib/optin.py#MARKER` holds, is what
 tells the gates this repository runs the workflow. **Every `seal/…` path in
 this plugin's skills and agents means `<repo>/seal/` where that directory
 exists with the marker, and
@@ -413,7 +413,7 @@ rebuilt — only re-checked for whether the finding is now fixed.
 **A fix pass appends one close block to each open finding in
 `trail/rounds/round-N.md`, edits nothing else in it, and writes no phase
 record** — `docs/forms/the-round-record.md` *The round record* names the three
-closing verdicts, and `hooks/lib/fields.py` spells the block's lines. A
+closing verdicts, and `lib/fields.py` spells the block's lines. A
 `fixed` commit must touch a path the finding's `location:` names; where the
 fix went somewhere else, the close block carries a `location:` line naming
 that coordinate, and its `answer:` says so. The build's phases keep theirs.

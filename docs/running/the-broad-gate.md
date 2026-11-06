@@ -106,7 +106,7 @@ writer overwrites the line that walk names. A reader and a writer that
 disagree about which line is the row leave a file two rows deep that no
 command can bring into agreement, so a repair landing in the reader alone is
 half a repair.
-check: tests/hooks/test_config.py tests/skills/test_seal.py tests/skills/test_broad_gate.py
+check: tests/lib/test_config.py tests/skills/test_seal.py tests/skills/test_broad_gate.py
 
 **The gate that measures a tree is the copy that tree ships, and its report
 says which copy measured it.** A gate found on PATH is the installed plugin's,

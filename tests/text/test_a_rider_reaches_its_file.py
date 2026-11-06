@@ -94,11 +94,11 @@ def test_the_file_records_what_the_move_costs_and_that_it_can_be_overturned():
 def test_the_riders_exist_where_the_rows_said_they_would():
     """Every file a row said its rider went to.
 
-    A rider kept after its fix is the cost this file names. `hooks/lib/cmdline.py`
-    left it when the `chdirs` its rider described left with the worktree
-    guard, their one reader (#1049). The review-skill gate left it with its
-    rider when the gate went (#1376)."""
-    for rel in ("hooks/lib/optin.py",):
+    A rider kept after its fix is the cost this file names. The command
+    reader `cmdline.py` left it when the `chdirs` its rider described left
+    with the worktree guard, their one reader (#1049). The review-skill gate
+    left it with its rider when the gate went (#1376)."""
+    for rel in ("lib/optin.py",):
         assert "# RIDER:" in read(os.path.join(ROOT, rel)), rel
 
 

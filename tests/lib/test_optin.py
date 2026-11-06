@@ -1,4 +1,4 @@
-"""`hooks/lib/optin.py`: one opt-in signal, read one way, `seal/` at the first of
+"""`lib/optin.py`: one opt-in signal, read one way, `seal/` at the first of
 two places.
 
 `<repo>/seal/` is what shared mode commits; `<git-common-dir>/seal/` is where
@@ -27,14 +27,14 @@ from conftest import (
     home,
     legacy,
     linked_worktree,
-    load_hook_module,
+    load_lib_module,
     load_module,
     local_home,
     mark_root,
     scratch,
 )
 
-TARGET = "hooks/lib/optin.py"
+TARGET = "lib/optin.py"
 
 STAMP = os.path.join(ROOT, "skills", "verify", "scripts", "seal_stamp.py")
 STAMP_VALUES = {
@@ -49,7 +49,7 @@ STAMP_VALUES = {
 
 @pytest.fixture
 def optin():
-    return load_hook_module("lib/optin.py", "agentic_optin")
+    return load_lib_module("optin.py", "agentic_optin")
 
 
 class Test_repo_root:
@@ -85,9 +85,9 @@ class Test_repo_root:
         """The `None` stdout, produced directly.
 
         This is what the dead reader thread leaves behind, and it is the state that
-        made `optin.repo_root` raise `AttributeError` out of the commit gate — a
-        PreToolUse hook exiting non-zero is a non-blocking error, so the command it
-        was judging went through unjudged.
+        made `optin.repo_root` raise `AttributeError` out of its caller, which
+        then exited with no answer where it should have read the repository as
+        not opted in.
 
         The module's own docstring states the direction: everything here fails
         toward "not opted in", and that is `""`, not an exception.
@@ -387,7 +387,7 @@ class Test_opted_in:
         assert optin.home(str(repo)) == os.path.join(str(repo), "seal")
 
     def test_accepts_the_git_directory_as_the_second_place(self, optin, repo):
-        """S2, Q3 (a). Nothing in 0.4.0 creates `.git/seal/`; the hooks read it
+        """S2, Q3 (a). Nothing in 0.4.0 creates `.git/seal/`; the scripts read it
         so that #80 changes where the folder is created and nothing that reads
         it."""
         local_home(repo)

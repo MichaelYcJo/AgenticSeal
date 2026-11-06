@@ -108,7 +108,7 @@ asked, which is why `no` is never written where the question was not put.
 Under `stop before the pull request` nothing runs at the end, the
 orchestrator says so in the hand-back, and the broad run's record is owed
 when a pull request opens.
-check: tests/hooks/test_routing.py tests/behaviour/test_waiver_decided_at_start.py
+check: tests/lib/test_routing.py tests/behaviour/test_waiver_decided_at_start.py
 
 ### Parity arm
 
@@ -127,9 +127,9 @@ original was consulted.
 
 **A diff git could not take is not a change confined to the document roots.**
 Where the pull request's diff cannot be listed, the check ends with exit 2
-before any record is judged, and `hooks/lib/gate.py#touches_code` answers True
+before any record is judged, and `lib/gate.py#touches_code` answers True
 for a list it was not given.
-check: tests/hooks/test_gate.py tests/skills/test_chain_check.py
+check: tests/lib/test_gate.py tests/skills/test_chain_check.py
 
 An `original:` line says a comparison was recorded, not that it was a good
 one. Writing it for work nobody compared turns "nobody checked" into

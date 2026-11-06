@@ -1,4 +1,4 @@
-"""`hooks/lib/config.py`, the shared reader of `seal/config.md` and the pact's
+"""`lib/config.py`, the shared reader of `seal/config.md` and the pact's
 tables, one class per function its cases reach.
 
 #942's phase 6 placed here the reference-root reader's cases from
@@ -21,9 +21,9 @@ defined here, and a fixture or text two files read is `tests/conftest.py`'s.
 #942's round 9 fix pass placed two more, each a case of this module alone:
 the table walker's refusal of a line shown directly above the header, from
 the oracle file, whose corpus it imports from there, and the case that copies
-this module without `hooks/lib/blocks.py`, from
+this module without `lib/blocks.py`, from
 `tests/test_a_script_copied_alone_exits_2.py`, whose `routing.py` row is in
-`tests/hooks/test_routing.py`.
+`tests/lib/test_routing.py`.
 """
 
 import importlib.util
@@ -53,7 +53,7 @@ from conftest import (
     census_case,
     clause,
     crlf,
-    load_hook_module,
+    load_lib_module,
     load_module,
     local_home,
     mark_root,
@@ -77,9 +77,9 @@ from test_one_table_walker_reads_what_gfm_renders import (
     document,
 )
 
-TARGET = "hooks/lib/config.py"
+TARGET = "lib/config.py"
 
-config = load_hook_module("lib/config.py", "config_under_test")
+config = load_lib_module("config.py", "config_under_test")
 
 # `tests/block_shapes.py`'s config shapes the comment cases read (#667).
 COMMENTED_OLD_ROW = shape_text("C5")
@@ -117,7 +117,7 @@ PACT_TEXT = (
 )
 
 # The header 0.18.x wrote (#822), spelled out here rather than read from
-# `hooks/lib/config.py#renamed_header`: a case taking the old header from the
+# `lib/config.py#renamed_header`: a case taking the old header from the
 # reader's own constant would pass with that constant changed, and the pacts
 # written in 0.18.x would not.
 OLD = PACT_TEXT.replace("| Signer |\n|---|\n|", "| Signatory |\n|---|\n|")
@@ -252,7 +252,7 @@ items = config.config_rows
 
 
 def _config_reader():
-    """This file's `hooks/lib/config.py`; the old file loaded a copy per call."""
+    """This file's `lib/config.py`; the old file loaded a copy per call."""
     return config
 
 
@@ -323,7 +323,7 @@ class Test_reference_roots:
 
     def test_refuses_a_row_written_twice_or_a_file_that_will_not_read(self, tmp_path):
         """#867. A `Reference specs` row written twice has no value, by
-        `hooks/lib/config.py#config_value`'s rule; the reader used to take the
+        `lib/config.py#config_value`'s rule; the reader used to take the
         first. A file that is there and will not read is the default too, as it
         was, and the reader no longer opens the file itself to find out. Seen red
         against the first-wins reader: `('docs/adr',)`."""
@@ -344,7 +344,7 @@ class Test_reference_roots:
         assert not config.under_reference_root("specs/x/design.md", roots)
 
     def test_a_row_inside_a_fence_is_not_a_row(self, tmp_path):
-        """`hooks/lib/config.py#unfenced` filters in front of the table walk, so a
+        """`lib/config.py#unfenced` filters in front of the table walk, so a
         row quoted in a fence above the live table is an example."""
         home = str(tmp_path / "seal")
         write_config(
@@ -369,7 +369,7 @@ class Test_reference_roots:
         assert not config.under_reference_root(
             "seal/threads/1790000000-x/design.md", None
         )
-        optin = load_hook_module("lib/optin.py", "optin_for_the_root_name")
+        optin = load_lib_module("optin.py", "optin_for_the_root_name")
         assert config.HOME == optin.HOME, "the reader spells the root another way"
 
     def test_local_mode_reads_the_row_under_the_git_directory(self, tmp_path):
@@ -379,7 +379,7 @@ class Test_reference_roots:
         repo = tmp_path / "repo"
         repo.mkdir()
         subprocess.run(["git", "-C", str(repo), "init", "-q"], check=True)
-        optin = load_hook_module("lib/optin.py", "optin_for_reference_roots")
+        optin = load_lib_module("optin.py", "optin_for_reference_roots")
         common = optin.git_common_dir(str(repo))
         home = os.path.join(common, "seal")
         mark_root(home)
@@ -703,7 +703,7 @@ class Test_config_rows:
           - a run of the OTHER character does not close a block, and neither
             does a run carrying an info string;
           - an unclosed fence runs to the end of the file, which lands on
-            *nothing is declared* — the direction `hooks/lib/config.py` already
+            *nothing is declared* — the direction `lib/config.py` already
             fails in.
 
         **A blank line stands above the live header in each fixture since
@@ -716,7 +716,7 @@ class Test_config_rows:
         """
         live = "| Item | Value |\n|---|---|\n| Mode | shared |\n"
         value, said = config.config_value("    ```\n" + live, "Mode")
-        # The refusal `hooks/lib/config.py` returns, whose remedy the person
+        # The refusal `lib/config.py` returns, whose remedy the person
         # editing `config.md` follows.
         assert value is None and "leave a blank line above the header" in said, said
         assert config.config_rows("    ```\n\n" + live) == [("Mode", "shared")], (
@@ -1941,11 +1941,9 @@ class Test_module:
     def test_the_policy_root_row_reads_as_docs_unless_it_names_a_directory_inside(
         self, tmp_path, value, root
     ):
-        """`hooks/lib/config.py#policy_root`, the one reader every reader asks: an
+        """`lib/config.py#policy_root`, the one reader every reader asks: an
         empty value and one that leaves the repository read as `docs`."""
-        from conftest import load_hook_module
-
-        config = load_hook_module("lib/config.py", "agentic_config_for_policy_root")
+        config = load_lib_module("config.py", "agentic_config_for_policy_root")
         (tmp_path / "config.md").write_text(
             f"| Item | Value |\n|---|---|\n| Policy root | {value} |\n",
             encoding="utf-8",
@@ -1954,7 +1952,7 @@ class Test_module:
         assert config.policy_root("") == "docs"
 
     def test_the_baseline_is_the_first_code_span_of_its_one_row(self):
-        """The `Baseline commit` reader in `hooks/lib/config.py`: the SHA in the
+        """The `Baseline commit` reader in `lib/config.py`: the SHA in the
         first code span of the one row, else no SHA and why, naming a
         placeholder, a second row, no row and no table."""
         config = chain.parity_readers()[0]
@@ -1989,17 +1987,17 @@ class Test_module:
         _sha, said = config.baseline_commit("# Migration config\n")
         assert "Baseline commit" not in said, said
 
-    def test_a_hook_reader_copied_without_the_walk_names_it(self, tmp_path):
-        """#667. This module imports `hooks/lib/blocks.py`, the walk the hook-path
-        readers share. It is a module, not a script: scripts import it, and a
+    def test_a_reader_copied_without_the_walk_names_it(self, tmp_path):
+        """#667. This module imports `lib/blocks.py`, the walk the readers under
+        `lib/` share. It is a module, not a script: scripts import it, and a
         script catches the error or names the file first. So a copy without the walk raises one `ImportError` whose
         sentence names the path and what the file is for.
-        `tests/hooks/test_routing.py` holds `hooks/lib/routing.py` to the same."""
+        `tests/lib/test_routing.py` holds `lib/routing.py` to the same."""
         name, siblings = TARGET.rsplit("/", 1)[1], []
-        alone = tmp_path / "hooks"
+        alone = tmp_path / "lib"
         alone.mkdir()
         for file in (name, *siblings):
-            with open(os.path.join(ROOT, "hooks", "lib", file), encoding="utf-8") as f:
+            with open(os.path.join(ROOT, "lib", file), encoding="utf-8") as f:
                 (alone / file).write_text(f.read(), encoding="utf-8")
         done = subprocess.run(
             [

@@ -39,7 +39,7 @@ import tokenize
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 EXEMPTION = re.compile(r"^\s*#\s*exempt from ([a-z_]+):\s*\S")
 COMMENT_LINE = re.compile(r"^\s*#")
-SHIPPED = ("hooks/", "skills/", ".github/scripts/")
+SHIPPED = ("lib/", "skills/", ".github/scripts/")
 
 
 def _root(root):
@@ -723,9 +723,9 @@ def reconfigures_to_utf8(call, streams, errors):
 
 
 def console_streams():
-    """`hooks/lib/console.py#STREAMS`, read out of that file in this
+    """`lib/console.py#STREAMS`, read out of that file in this
     repository, so the census keeps no copy of the answer it compares."""
-    path = os.path.join(ROOT, "hooks", "lib", "console.py")
+    path = os.path.join(ROOT, "lib", "console.py")
     with open(path, encoding="utf-8") as handle:
         tree = ast.parse(handle.read(), path)
     for node in tree.body:
@@ -752,7 +752,7 @@ def answer_problems(guard):
                 "statements, and an entry point that gives none dies with stdout "
                 "empty when it raises while printing; open the block with "
                 "`console.to_utf8()`, or with a loop over "
-                "`hooks/lib/console.py#STREAMS`' literal pairs in the one form "
+                "`lib/console.py#STREAMS`' literal pairs in the one form "
                 "`tests/censuses.py#loop_pairs` reads, or put "
                 "`# exempt from entry_point: <why>` on its own line above it"
             )
@@ -771,7 +771,7 @@ def answer_problems(guard):
         if loop_pairs(answer) != streams:
             problems[answer.lineno] = (
                 "the census does not read this loop as the answer "
-                "`hooks/lib/console.py#STREAMS` holds; it reads a `for` over the "
+                "`lib/console.py#STREAMS` holds; it reads a `for` over the "
                 f"literal pairs {streams!r} "
                 'that calls `.reconfigure(encoding="utf-8", errors=<errors>)` on '
                 "the stream it binds from `getattr(sys, <name>, None)`; name those "
@@ -783,7 +783,7 @@ def answer_problems(guard):
 def entry_point(rel, root=None):
     """Every entry point, a tracked `.py` with a module-level `__main__`
     block, opens its first such block with the answer
-    `hooks/lib/console.py#STREAMS` holds, which `hooks/lib/console.py` says
+    `lib/console.py#STREAMS` holds, which `lib/console.py` says
     each one carries rather than relying on another having made it. The
     answer is the call `console.to_utf8()`, or a loop over `STREAMS`' pairs
     in the one shape `loop_pairs` reads. The census reads the block's first
@@ -791,7 +791,7 @@ def entry_point(rel, root=None):
     reads none is refused at the `if` line, an answer after another
     statement at that statement, and a loop it does not read as that answer
     at its `for` line. A later `__main__` block runs after the first, so it
-    is not read. Whether the call works is `tests/hooks/test_console.py`'s."""
+    is not read. Whether the call works is `tests/lib/test_console.py`'s."""
     text = _python(rel, root)
     if text is None:
         return []
@@ -806,7 +806,7 @@ def entry_point(rel, root=None):
 def splitlines(rel, root=None):
     """No shipped reader splits a document's lines with `.splitlines(`,
     which also ends a line at the eight separators GFM does not. A reader
-    of markdown or record text reads `hooks/lib/blocks.py#gfm_lines`, and a call
+    of markdown or record text reads `lib/blocks.py#gfm_lines`, and a call
     over any other text, git's output or a tool's, carries its exemption
     above the line that names `splitlines`."""
     text = _python(rel, root, SHIPPED)
@@ -822,7 +822,7 @@ def splitlines(rel, root=None):
     flagged = {
         line: (
             "`.splitlines(` ends a line where GFM does not; a reader of "
-            "markdown or record text reads `hooks/lib/blocks.py#gfm_lines`, and a "
+            "markdown or record text reads `lib/blocks.py#gfm_lines`, and a "
             "call over any other text puts "
             "`# exempt from splitlines: <what it splits>` on its own line above it"
         )
@@ -889,12 +889,12 @@ def heading_rule(rel, root=None):
 
 # --- floor_syntax ---------------------------------------------------------------
 #
-# What runs before any floor is checked (a hook, the launcher, `bin/test`'s
+# What runs before any floor is checked (the launcher, `bin/test`'s
 # runner, and every module one of them loads) runs on whatever
 # `python3` starts it, 3.9 on a stock macOS. `ruff.toml` lints that set at
 # the version its `per-file-target-version` names, so B905 and UP017 do not
 # ask it for `zip`'s `strict=` or `datetime.UTC`.
-# `tests/hooks/test_launch.py` derives the set
+# `tests/lib/test_launch.py` derives the set
 # and holds the table to it; this census holds each file the table names to
 # its version.
 
@@ -949,10 +949,10 @@ def ruff_targets(path):
 
 def matches(pattern, rel):
     """Whether ruff's glob `pattern` names `rel`. Its `*` crosses a `/`, as
-    ruff's does: `"hooks/*.py"` lints `hooks/lib/routing.py` too. Ruff
-    also matches the pattern against the file's name, so one with no `/`,
-    `"seal_stamp.py"`, names that file in any directory; a name holds no `/`
-    for a pattern's `/` to match."""
+    ruff's does: `"skills/*.py"` lints `skills/verify/scripts/broad_gate.py`
+    too. Ruff also matches the pattern against the file's name, so one with
+    no `/`, `"seal_stamp.py"`, names that file in any directory; a name holds
+    no `/` for a pattern's `/` to match."""
     return any(fnmatch.fnmatchcase(p, pattern) for p in (rel, posixpath.basename(rel)))
 
 
@@ -1232,19 +1232,22 @@ def old_names(rel, root=None):
 # #1060 moves files one directory down: a module of `hooks/` into
 # `hooks/lib/`, a template into `templates/records/` or `templates/setup/`, a
 # test file into an area of `tests/`. #1312 moves the policy documents of
-# `docs/` into its groups the same way. The path the file stood at one level
-# up is then a path no file holds, and a living line that spells it sends its
-# reader to nothing. The census derives those spellings from the files that
-# stand in each subdirectory on disk, so it keeps no list of old paths and
+# `docs/` into its groups the same way, and #1376 moves `hooks/lib/` to
+# `lib/` and `tests/hooks/` to `tests/lib/`. The path the file stood at
+# before is then a path no file holds, and a living line that spells it sends
+# its reader to nothing. The census derives those spellings from the files
+# that stand in each directory on disk, so it keeps no list of old paths and
 # refuses nothing until a file has moved.
 
-# Each subdirectory a move fills, with the directory one level up whose
-# spelling it vacates. `tests/e2e/` is not an area: its files never stood at
-# the top of `tests/`, and `docs/experiments/` is no group of the policy root.
-TEST_AREAS = ("hooks", "skills", "github", "evals", "behaviour", "text")
+# Each directory a move fills, with each directory whose spelling it
+# vacates. `tests/e2e/` is not an area: its files never stood at the top of
+# `tests/`, and `docs/experiments/` is no group of the policy root.
+TEST_AREAS = ("lib", "skills", "github", "evals", "behaviour", "text")
 POLICY_GROUPS = ("forms", "running", "releasing", "checks", "layout")
 VACATING = (
-    ("hooks/lib/", "hooks/"),
+    ("lib/", "hooks/lib/"),
+    ("lib/", "hooks/"),
+    ("tests/lib/", "tests/hooks/"),
     ("templates/records/", "templates/"),
     ("templates/setup/", "templates/"),
     *((f"tests/{area}/", "tests/") for area in TEST_AREAS),
@@ -1258,7 +1261,8 @@ COMMIT_PATH = re.compile(r"(?<![\w/:])[0-9a-f]{7,40}:[\w./-]+")
 
 def vacated(root=None):
     """`{old path: new path}` for every file standing directly in a
-    subdirectory `VACATING` names whose path one level up no file holds."""
+    directory `VACATING` names whose path in a directory it vacates no file
+    holds."""
     found = {}
     for sub, up in VACATING:
         directory = os.path.join(_root(root), *sub.split("/"))
@@ -1273,9 +1277,9 @@ def vacated(root=None):
 
 
 def vacated_paths(rel, root=None):
-    """No living file spells a path a move one directory down vacated:
-    `hooks/<name>` once the file stands at `hooks/lib/<name>`, and the same
-    for `templates/` and `tests/`. A spelling counts as a word, at the start
+    """No living file spells a path a move vacated: `hooks/lib/<name>` or
+    `hooks/<name>` once the file stands at `lib/<name>`, and the same for
+    `templates/` and `tests/`. A spelling counts as a word, at the start
     of a path or after a shell variable such as `$CLAUDE_PLUGIN_ROOT/`, and
     not inside a longer path. The records and the recorded cases `old_names`
     passes are passed over whole, a path cited at a commit passes, and any

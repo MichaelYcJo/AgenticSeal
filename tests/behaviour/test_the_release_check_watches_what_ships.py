@@ -38,7 +38,7 @@ STEP = "a change to what ships must move the version"
 SHIPS = {
     "skills",  # skills/<name>/SKILL.md
     "agents",  # agents/<name>.md
-    "hooks",  # hooks/lib/, which the shipped scripts import
+    "lib",  # the modules the shipped scripts import
     "templates",  # what the implement skill bootstraps a repository from
     ".claude-plugin",  # the manifest; the version itself
     "bin",  # executables the loader puts on the Bash tool's PATH

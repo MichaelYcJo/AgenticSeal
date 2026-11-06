@@ -61,7 +61,7 @@ comment or a code span stands, is not beside it where `--sections` was
 given or a `CLAUDE.md` the meter reads exists, or the arguments were
 unusable
 (argparse's usage error). An interpreter below the floor never reaches this
-file through `seal payload`: `hooks/lib/launch.py` refuses `seal` with 2 first.
+file through `seal payload`: `lib/launch.py` refuses `seal` with 2 first.
 
 Two things the ratio has to know about the machine it was measured on. A
 skill name resolves to `~/.claude/skills/<name>/SKILL.md` when the user has
@@ -269,7 +269,7 @@ def heading_starts(text):
     applies before it reads a marker, applied here before a byte count is
     put beside a heading somebody may trim.
 
-    The fence is the shared rule, `hooks/lib/blocks.py#fence_opener` and
+    The fence is the shared rule, `lib/blocks.py#fence_opener` and
     `#fence_closes` (#584): at most three spaces of indentation, a backtick
     opener's info string holds no backtick, and a fence closes only on a run
     of its own character at least as long with nothing after it — which

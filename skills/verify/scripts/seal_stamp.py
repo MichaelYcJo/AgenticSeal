@@ -88,7 +88,7 @@ Exit codes: 0 printed, or `--stop` whatever happened · 2 refused — a values
 file that is unreadable or drawn already, a guarantee that could not be
 read, or settings that do not parse; nothing was written on 2. An
 interpreter below the floor never reaches this file through `seal stamp`:
-`hooks/lib/launch.py` refuses `seal` with 2 first. The launcher runs it with
+`lib/launch.py` refuses `seal` with 2 first. The launcher runs it with
 whatever `python3` the harness finds, and a load that fails there draws
 nothing.
 """
@@ -1009,13 +1009,7 @@ CHAIN_CHECK = os.path.join(
     "chain_check.py",
 )
 GITCMD = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)),
-    "..",
-    "..",
-    "..",
-    "hooks",
-    "lib",
-    "gitcmd.py",
+    os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "lib", "gitcmd.py"
 )
 # The line `--guarantee` prints, which the sealer's hand-back carries to the
 # orchestrator. It names the way to draw the stamp by hand, because nothing
@@ -1063,7 +1057,7 @@ def _git(cwd, *args):
 
 
 def _gitcmd():
-    """`hooks/lib/gitcmd.py`, which builds every git command `_git` runs."""
+    """`lib/gitcmd.py`, which builds every git command `_git` runs."""
     spec = importlib.util.spec_from_file_location(
         "agentic_gitcmd_for_the_stamp", GITCMD
     )
@@ -1073,7 +1067,7 @@ def _gitcmd():
 
 
 def _chain_check():
-    """`chain_check.py`, which loads `hooks/lib/fields.py`, the reader of
+    """`chain_check.py`, which loads `lib/fields.py`, the reader of
     `guarantee.md` and `trail/gate.md` the pull request's check reads them
     through, so a verdict block has one grammar."""
     spec = importlib.util.spec_from_file_location(
@@ -1125,7 +1119,7 @@ def guarantee_rows(target, branch, base, ident, run, rounds):
 def _guarantee_read(chain, text):
     """`(newest, earlier)`: the newest verdict block of the `guarantee.md`
     TEXT and the blocks of its earlier runs, read through
-    `hooks/lib/fields.py`, the reader the pull request's check reads it
+    `lib/fields.py`, the reader the pull request's check reads it
     through; `(None, [])` where that reader refuses a line of TEXT, a fence
     nobody closed and a line that begins `<!--` among them (#1122), or TEXT
     holds no verdict block, as one written before #1198 does."""
@@ -1320,7 +1314,7 @@ def queue_for_written_guarantee(path, now=None):
     *The stamp*). `path` must be `<root>/threads/<id>/guarantee.md`, where
     `<root>` is the repository's root in force (`optin.home_at`, through
     `written_root`): `<repo>/seal/` in shared mode, `<common>/seal/` in local
-    mode. It then queues where `hooks/lib/fields.py`, the reader the pull
+    mode. It then queues where `lib/fields.py`, the reader the pull
     request's check reads the file through, refuses none of its lines, a
     fence nobody closed and a line that begins with `<!--` among them
     (#1122), its newest verdict block reads `sealed`, no earlier block reads
@@ -1431,18 +1425,12 @@ def queue_for_written_guarantee(path, now=None):
 
 STOP = "Stop"
 OPTIN = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)),
-    "..",
-    "..",
-    "..",
-    "hooks",
-    "lib",
-    "optin.py",
+    os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "lib", "optin.py"
 )
 
 
 def _optin():
-    """`hooks/lib/optin.py`, which says where a clone's common dir is and
+    """`lib/optin.py`, which says where a clone's common dir is and
     whether the repository opted in."""
     spec = importlib.util.spec_from_file_location("agentic_optin_for_the_stamp", OPTIN)
     module = importlib.util.module_from_spec(spec)
@@ -1895,7 +1883,7 @@ if __name__ == "__main__":
     # exempt from entry_point: stdout is asked how the process found it before the loop moves it to UTF-8
     _letters = pick_shape(sys.stdout)
     # A console that cannot encode what this prints kills it with stdout
-    # empty. `hooks/lib/console.py` owns the reasoning and the three decisions
+    # empty. `lib/console.py` owns the reasoning and the three decisions
     # behind these lines.
     for _name, _errors in (
         ("stdin", "replace"),

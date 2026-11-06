@@ -4,8 +4,8 @@ or a person reads says the same thing about where the root lives.
 Each case states the clause it holds and names it by its number, and a
 number another work item gave carries that item's issue, as `S2 of #952`
 does. The commands resolve
-the root in code (`hooks/lib/optin.py#home_at`) and are pinned by
-`tests/hooks/test_optin.py`. What is pinned HERE
+the root in code (`lib/optin.py#home_at`) and are pinned by
+`tests/lib/test_optin.py`. What is pinned HERE
 is the text: the one question the `implement`
 skill asks, the sentence a session needs, the workflow template
 `seal pr-checks install` writes and the commands its header names, and the
@@ -20,7 +20,7 @@ from conftest import local_home, read, shell_probe
 
 COMMON_DIR = "$(git rev-parse --git-common-dir)/seal/"
 # The sentence a session reads, which the Q1 cases below hold in each place:
-# the same rule `hooks/lib/optin.py` states, moved to where a session looks.
+# the same rule `lib/optin.py` states, moved to where a session looks.
 SESSION_RULE = "`$(git rev-parse --git-common-dir)/seal/` otherwise"
 
 
@@ -90,13 +90,13 @@ def test_each_option_says_what_it_creates_and_what_it_installs():
     checks = paragraph(boot, WITH_CHECKS)
     local = paragraph(boot, "**local**")
     # The path `<repo>/seal/`, where the orchestrator creates the shared
-    # root and where `hooks/lib/optin.py` looks for it first.
+    # root and where `lib/optin.py` looks for it first.
     assert "creates `<repo>/seal/`" in records
     # The command `seal pr-checks install`, which the orchestrator runs
     # under this option.
     assert "`seal pr-checks install`" in checks, checks
     # The path of the local root, which the orchestrator creates and
-    # `hooks/lib/optin.py` looks for second.
+    # `lib/optin.py` looks for second.
     assert f"creates `{COMMON_DIR}`" in local
 
 
@@ -622,9 +622,9 @@ def test_the_seal_readme_cites_the_marker_constant():
     line is, is the proofer's to read."""
     text = read("templates", "setup", "seal-README.md")
     said = paragraph(text, MARKER_SAID)
-    # The citation `hooks/lib/optin.py#MARKER`, which a person resolves to
+    # The citation `lib/optin.py#MARKER`, which a person resolves to
     # the one spelling of the line the gates read.
-    assert "`hooks/lib/optin.py#MARKER`" in said, said
+    assert "`lib/optin.py#MARKER`" in said, said
 
 
 def test_the_seal_readme_points_at_the_drain_and_restates_none_of_it():

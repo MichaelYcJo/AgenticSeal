@@ -8,7 +8,7 @@ a heading that stands mid-line read as a line of its own, a line number one
 off the one `grep -n` prints, and, where the reader wrote the text back, the
 character turned into a line break.
 
-One splitter, `hooks/lib/blocks.py#gfm_lines`, which `unverified_check.py` hands
+One splitter, `lib/blocks.py#gfm_lines`, which `unverified_check.py` hands
 its callers, is what
 every such reader now reads, and two readers of one text split it alike.
 Each scenario is stated at the case or the census that holds it, under the
@@ -18,7 +18,7 @@ Every one of the eight is built from its code point, never typed: an escape
 typed into an editing tool can come back as the character itself, and a file
 holding one is exactly what these cases are about.
 
-The splitter's own cases are `tests/hooks/test_blocks.py`'s `Test_gfm_lines`
+The splitter's own cases are `tests/lib/test_blocks.py`'s `Test_gfm_lines`
 (#942's phase 6). What stays here holds every copy of it to it, two
 modules on one corpus. Each other reader's case judges that reader alone,
 so #942's round 9 fix pass placed it in that reader's file:
@@ -53,7 +53,7 @@ reader = _load("agentic_reader_for_gfm_lines", READER)
 
 
 def test_every_copy_of_the_splitter_is_the_readers():
-    """S17. The reader's split is `hooks/lib/blocks.py`'s, which it imports since
+    """S17. The reader's split is `lib/blocks.py`'s, which it imports since
     #1005, and the coordinate kernel asks the reader itself. Both are one
     rule, held equal here."""
     checker = _load("agentic_checker_for_gfm_lines", CHECKER)

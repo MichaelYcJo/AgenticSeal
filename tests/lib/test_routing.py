@@ -1,15 +1,15 @@
-"""`hooks/lib/routing.py`: the routing answer is recorded where the hooks read
+"""`lib/routing.py`: the routing answer is recorded where its readers read
 it, so nothing re-derives it.
 
 A declaration at `seal/threads/<work-item-id>/routing.md` is what the pull
 request's check reads, through `routing.declarations`. Failure direction: a declaration
 that cannot be read is not a declaration, and an optional row that cannot be
-read is unanswered while the declaration stands. What a hook does with an
-answer is that hook's own file's.
+read is unanswered while the declaration stands. What a reader does with an
+answer is that reader's own file's.
 The cases come from `tests/test_routing_is_recorded.py` and
 `tests/test_console_is_not_utf8.py` (#942's phase 6). Two cases of
 `Test_module` came in #942's round 9 fix pass, each a case of this module
-alone: the copy without `hooks/lib/blocks.py`, from
+alone: the copy without `lib/blocks.py`, from
 `tests/test_a_script_copied_alone_exits_2.py`, and `WORK_ITEMS` held under
 `seal/`, from `tests/behaviour/test_a_reference_root_is_read_and_never_taken.py`.
 """
@@ -23,16 +23,16 @@ from conftest import (
     ROOT,
     census_case,
     git_repo,
-    load_hook_module,
+    load_lib_module,
     names_path,
     opted_in_repo,
     two_axis_text,
     with_row,
 )
 
-TARGET = "hooks/lib/routing.py"
+TARGET = "lib/routing.py"
 
-routing = load_hook_module("lib/routing.py", "agentic_routing")
+routing = load_lib_module("routing.py", "agentic_routing")
 
 CHAIN = "through the review chain"
 DIRECT = "straight to the PR"
@@ -163,7 +163,7 @@ class Test_parse:
             assert parsed["automation"] == answer, answer
 
     def test_accepts_a_declaration_below_a_comment_opener_nobody_closed(self):
-        """#872 round 3, finding 10. `hooks/lib/routing.py#shown` keeps the reading
+        """#872 round 3, finding 10. `lib/routing.py#shown` keeps the reading
         it gave before #667 wherever its walk is unsure, and that reading hid
         nothing, so a table below a line-start comment opener nobody closed
         still declares, although a renderer hides it. R3 holds the fence half;
@@ -243,7 +243,7 @@ class Test_parse:
         """S5 of #867 at the parser. `parse` kept the LAST row of a label, so a
         second `Review` row below the first answered for it and nothing said
         there were two. A label written twice has no value, the rule
-        `hooks/lib/config.py#value_of` gives a config row; for a strict label that
+        `lib/config.py#value_of` gives a config row; for a strict label that
         makes the file no declaration. Seen red against the last-wins parser:
         each shape parsed, `feature/x` and the chain answering."""
         answers = {
@@ -504,7 +504,7 @@ class Test_module:
         assert rows.get(routing.REVIEW) in routing.REVIEW_ANSWERS, rows
 
     def test_a_declaration_that_cannot_be_decoded_is_not_an_answer(self, tmp_path):
-        """`hooks/lib/routing.py` caught `OSError` only, and `UnicodeDecodeError` is a
+        """`lib/routing.py` caught `OSError` only, and `UnicodeDecodeError` is a
         `ValueError`. An undecodable `routing.md` raised out of `declarations()`
         into the check that read it, which then decided nothing.
 
@@ -512,7 +512,7 @@ class Test_module:
         request's check reads the branch as undeclared. Not silence: silence would make a corrupt file
         into a standing waiver.
         """
-        sys.path.insert(0, os.path.join(ROOT, "hooks", "lib"))
+        sys.path.insert(0, os.path.join(ROOT, "lib"))
         import routing
 
         repo = opted_in_repo(tmp_path / "declared" / "repo")
@@ -544,18 +544,18 @@ class Test_module:
         ]
         assert found[0][1]["review"] == CHAIN
 
-    def test_a_hook_reader_copied_without_the_walk_names_it(self, tmp_path):
-        """#667. This module imports `hooks/lib/blocks.py`, the walk the
-        hook-path readers share, after `hooks/lib/optin.py`, so the copy takes `optin.py`
+    def test_a_reader_copied_without_the_walk_names_it(self, tmp_path):
+        """#667. This module imports `lib/blocks.py`, the walk the readers
+        under `lib/` share, after `lib/optin.py`, so the copy takes `optin.py`
         with it. It is a module, not a script: scripts import it, and a script
         catches the error or names the file first. So a copy without the walk raises one `ImportError` whose
         sentence names the path and what the file is for.
-        `tests/hooks/test_config.py` holds `hooks/lib/config.py` to the same."""
+        `tests/lib/test_config.py` holds `lib/config.py` to the same."""
         name, siblings = TARGET.rsplit("/", 1)[1], ["optin.py"]
-        alone = tmp_path / "hooks"
+        alone = tmp_path / "lib"
         alone.mkdir()
         for file in (name, *siblings):
-            with open(os.path.join(ROOT, "hooks", "lib", file), encoding="utf-8") as f:
+            with open(os.path.join(ROOT, "lib", file), encoding="utf-8") as f:
                 (alone / file).write_text(f.read(), encoding="utf-8")
         done = subprocess.run(
             [

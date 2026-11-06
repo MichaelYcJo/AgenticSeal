@@ -2,9 +2,9 @@
 fenced code block or an HTML comment block, and where can this module not say?
 
 Three readers decide from a markdown file what a person or a party declared:
-`hooks/lib/config.py` (the `| Item | Value |` table, through `seal gate` and
-`seal mode`), `hooks/lib/routing.py` (the routing
-declaration, on every commit and at the pull request) and `hooks/lib/fields.py`
+`lib/config.py` (the `| Item | Value |` table, through `seal gate` and
+`seal mode`), `lib/routing.py` (the routing
+declaration, on every commit and at the pull request) and `lib/fields.py`
 (the `seal` blocks of a work item's records, #1198). A row quoted in a
 fenced example, or parked in an HTML comment, is not a row anybody gave, and
 each reader used to decide that by a rule of its own or by none (#667, #658).
@@ -17,7 +17,7 @@ This is the one walk they read.
      info string, and a closer of the same character at least as long with
      nothing after it but spaces. `fence_opener` and `fence_closes` below are
      that rule, written once: `skills/verify/scripts/unverified_check.py` and
-     the record readers ask this copy, since nothing under `hooks/lib/`
+     the record readers ask this copy, since nothing under `lib/`
      imports from `skills/` and the import goes the other way (#1005).
   2. An HTML comment block (4.6, type 2): a line that begins with `<!--`, to
      the first line holding `-->`, which may be the start line itself.
@@ -72,7 +72,7 @@ it cannot be exact there:
 U+2028, NEL, a form feed and five more characters; `walk_text` walks the
 file's own lines and answers for each reader line by the line it starts in.
 
-`tests/behaviour/test_the_hooks_hide_what_a_renderer_hides.py` holds this to a
+`tests/behaviour/test_the_readers_hide_what_a_renderer_hides.py` holds this to a
 CommonMark parser that shares nothing with it: on every line the walk does
 not call uncertain, over the frame's shapes and a seeded generated corpus,
 the walk and the parser agree. A context is taken off the list above only
@@ -89,7 +89,7 @@ import re
 # more tildes, then the info string. Four or more spaces is an indented code
 # block instead and never a fence, and reading one as a delimiter inverts the
 # fence state for the rest of the file (#491). This is the pattern
-# `hooks/lib/config.py#FENCE` held until #667 moved it here; that name re-exports
+# `lib/config.py#FENCE` held until #667 moved it here; that name re-exports
 # this one.
 FENCE = re.compile(r"^ {0,3}(?P<run>`{3,}|~{3,})(?P<info>.*)$")
 
@@ -157,9 +157,9 @@ def fence_only(lines):
     None) -- the fence rule alone, a block that never closes running to the
     end of the file.
 
-    This is not the walk. It is the reading `hooks/lib/config.py` gave every line
+    This is not the walk. It is the reading `lib/config.py` gave every line
     before #667, and it stays because that reader's base reading is what an
-    uncertain line gets: `hooks/lib/config.py#fence_map`'s docstring says why a
+    uncertain line gets: `lib/config.py#fence_map`'s docstring says why a
     config line below a fence nobody closed stays hidden.
     """
     hidden, opener, opened_at = set(), None, None
@@ -246,7 +246,7 @@ class Walk:
                the walk read as an ordinary line
     opens      {index: info} for every fence the walk paired, keyed by its
                opener's line, the info string being the text after the
-               opener's run as written; `hooks/lib/fields.py` reads a
+               opener's run as written; `lib/fields.py` reads a
                `seal` block by it (#1198). A fence's lines run from its
                opener to the line before the next FENCED run's start or
                the first line that is not FENCED
