@@ -48,6 +48,11 @@ left as it stands.
 | A thread's top-level files | `git grep` for `listdir`, `scandir`, `glob` and `iterdir` in `lib/`, `skills/*/scripts/` and `.github/scripts/` finds only `trail/rounds/` listings and `pact_check.py`'s glob of `frame/design.md` (executed). The search did not reach `tests/`, where `tests/behaviour/test_the_pull_request_language_is_the_repositorys.py#test_the_existing_mirrors_are_consistent_with_the_rule` lists every `pr.*.md` of every thread by a filter that matches `pr.md`, so a new `pr.md` turns that case red until the filter leaves it out (`trail/phases/phase-2.md`). No other reader refuses a new `pr.md`, and it leaves with its directory at the settle |
 ```
 
+```seal
+verdict: fixed d727b29c5
+answer: The finding holds: at 1359abcb9 the case's filter `name.startswith("pr.") and name.endswith(".md")` stood at line 262 and matches `pr.md` (executed). The row is a frame file the crafter does not write, so the orchestrator applied the snippet at d727b29c5 (frame/questions.md Q1 (a)); this pass read frame/design.md:20 at HEAD and it holds the snippet's row.
+```
+
 ### 2. Phase 3's Status cell names a commit at which the version it delivers does not yet stand
 
 ```seal
@@ -77,6 +82,11 @@ version reached the release's number.
 | 3 | *Scope* items 5, 6 and 8 | `trail/phases/phase-3.md` lists each statement in `agents/` and `skills/` of what a round reads, found by `git grep` and by `agents/proofer.md`'s `check:` targets; `git show --stat` of the commit that adds `changelog.md` shows `.claude-plugin/plugin.json` moved in it, and the version's commit after the rename shows it at 0.34.0; the *Phase boundary* set over the touched files | eb0bd16b |
 ```
 
+```seal
+verdict: fixed 480ff41d8
+answer: The finding holds: c64707f4's plugin.json reads 0.33.1 and eb0bd16b7 moved it to 0.34.0 as part of phase 3. The Status cell of frame/plan.md row 3 now reads eb0bd16b, the commit the snippet names; the same commit closes the gaps.md row round 1 confirmed and opens one for the 0.34.0 definition alone, since that crafter ran with the move named in its spawn prompt.
+```
+
 ### 3. The chosen approach's row says the one new check compares bytes, and it compares lines with their line ends removed
 
 ```seal
@@ -103,6 +113,11 @@ what the code compares. The snippet leaves it as it stands.
 
 ```markdown
 | `pr.md` is a committed record that `seal pr-body` writes above the heading and every round reads (*Scope* items 2, 3 and 5) | The scenario under *Technical context* | Chosen. It meets #1415 *Done when*'s second line as the issue wrote it, and the only check it adds compares the body's lines above the heading with `pr.md`'s, line ends aside |
+```
+
+```seal
+verdict: fixed d727b29c5
+answer: The finding holds: `_first_part` compares `READER.gfm_lines(head)` with `READER.gfm_lines(own)`, and `lib/blocks.py#gfm_lines` strips `\r` and `\n` unless `keepends` is set (read). The row is a frame file the crafter does not write, so the orchestrator applied the snippet at d727b29c5 (frame/questions.md Q1 (a)); this pass read frame/plan.md:20 at HEAD and it holds the snippet's verdict.
 ```
 
 ### 4. The refusal of a `pr.md` that is not UTF-8 text is new behaviour, and no case holds it
@@ -141,6 +156,11 @@ that excuses a new branch with no case.
 The case belongs in `Test_read_own` in `tests/skills/test_pr_body.py`. The
 fix pass still owes contract rule 15: see the case red with the `except`
 branch in `read_own` removed, and read its failing line.
+
+```seal
+verdict: fixed 960fa60cb
+answer: The finding holds. `Test_read_own::test_refuses_a_pr_md_that_is_not_utf_8` is the snippet, with its docstring naming how it was seen red. Seen red: `seal mutate` replaced `except (OSError, UnicodeDecodeError) as exc:` with `except OSError as exc:` in `read_own`, and the case failed at tests/skills/test_pr_body.py:599, `PR.read_own(str(item))` inside `pytest.raises(PR.Refused)`, on `UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff` (executed, verdict red; pr_body.py restored by seal mutate, `git diff --quiet` exit 0). The two older decode refusals at pr_body.py:329 and :759 stay without a case, as the finding leaves them. c09c9ec71 adds the refusal to changelog.md's list of what both forms refuse.
+```
 
 ## Confirmations
 
