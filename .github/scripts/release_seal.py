@@ -354,7 +354,7 @@ def chain_counts(root, pulls):
             # Its records exist and cannot be listed, so its rounds are not
             # zero; the rounds row is not read, and neither is deferred.
             rounds_unread = True
-            unread.append(os.path.join(item, routing.ROUNDS_DIR))
+            unread.append(os.path.join(item, *routing.ROUNDS_DIR.split("/")))
             continue
         records = routing.rounds(item)
         rounds += len(records)
