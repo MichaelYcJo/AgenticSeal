@@ -49,11 +49,11 @@ themselves. `seal export` zips this root alone; `seal import` merges a zip
 back and never overwrites a file, so a name already here keeps its bytes and
 the incoming copy lands beside it as `<name>.incoming<ext>`. What sits
 *beside* this root under the git directory is what must not travel: the
-crafter mark, the gates' per-session markers, and
+stamp's queue and refusal records, the throwaway opt-out, and
 the last export's manifest at `agentic-last-export.json`. The export walks
 this directory and nothing else, which is why the root has to be its own.
 
-**The first line of this file is the marker.** `hooks/lib/optin.py#MARKER` holds
+**The first line of this file is the marker.** `lib/optin.py#MARKER` holds
 the same line, and every gate passes over a `seal/` whose `README.md` does not
 open with it: such a directory is the project's own, as a package named `seal`
 has one. First setup that meets such a directory writes nothing into it and

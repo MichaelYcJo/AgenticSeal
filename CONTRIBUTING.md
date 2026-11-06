@@ -44,7 +44,7 @@ run follows.
 - **A change to a gate carries a higher bar**: a test seen failing before the
   fix, a stated failure direction, a prompt budget, and honesty about the
   platforms the contributor could not test. *What a change to a gate must
-  carry* below is the whole of it, and it covers anything under `hooks/` or
+  carry* below is the whole of it, and it covers anything under `lib/` or
   `.github/workflows/`.
 - The house rules below. Two of them catch most changes: both READMEs move
   together, and examples use `example.com` and `/Users/x/` rather than any
@@ -73,18 +73,14 @@ and a maintainer adding a CI step reads the row rather than this sentence.
 | a new version in `.claude-plugin/plugin.json` | *a change to what ships must move the version* exits 0 unless the base is `main` |
 | an issue number in the description | the issue-claim step reports what it finds and never fails; an empty description is a description |
 
-A contributor's machine also has no routing edit gate. It is this plugin's
-own hook, installed on a maintainer's machine, and nothing in CI stands in
-for it.
-
 ## Running the checks
 
 The suite needs `pytest`, one parser, `markdown-it-py`, pinned to one
 version in `MARKDOWN_IT` in `.github/scripts/run_tests.py`, and one
 renderer, `cmarkgfm`, pinned in `CMARKGFM` beside it.
-The parser is the CommonMark oracle the hook readers are checked against.
-The renderer is
-GitHub's own, cmark-gfm, and the table walker in `hooks/lib/config.py` is checked
+The parser is the CommonMark oracle the readers under `lib/` are checked
+against. The renderer is
+GitHub's own, cmark-gfm, and the table walker in `lib/config.py` is checked
 against what it renders. The parser and the renderer are test-only: the gates
 themselves are stdlib-only Python and
 import nothing the suite installs. `bin/test` acquires all three once: it
@@ -111,7 +107,7 @@ agent. A cheap runner
 does not widen that rule. What it makes cheap is `bin/test tests/<file> -q`,
 and that is the form a segment types.
 
-**Python 3.12 is the supported floor**, held as `FLOOR` in `hooks/lib/launch.py`
+**Python 3.12 is the supported floor**, held as `FLOOR` in `lib/launch.py`
 so this sentence and the code state one number. `bin/seal` runs its script
 through that launcher, which refuses an older interpreter with one sentence
 before the script is read, and hands each subcommand's script to the
@@ -120,10 +116,11 @@ whatever `python3` it finds, because its runner is what gets past an old one:
 it builds its virtualenv with an interpreter at that floor or newer, refuses a
 `.venv` it finds below it, and where it finds neither `uv` nor such an
 interpreter it says which to install. What runs before any floor is checked
-(a hook, a git hook, the launcher, `bin/test`'s runner, and every module one
-of them loads in its own process) runs on whatever `python3` starts it.
+(the stamp's launcher, `lib/launch.py`, `bin/test`'s
+runner, and every module one of them loads in its own process) runs on
+whatever `python3` starts it.
 `ruff.toml` lints that code at the version its `per-file-target-version`
-names. `tests/hooks/test_launch.py` derives the set and holds every file of it
+names. `tests/lib/test_launch.py` derives the set and holds every file of it
 to that table, and `tests/censuses.py#floor_syntax` refuses in it the syntax
 `ast` rejects at that version and the two constructs ruff pushes toward above
 it, `zip(..., strict=)` and `datetime.UTC`. Nothing runs that code at that
@@ -148,7 +145,7 @@ and ubuntu as one job; the suite once more on ubuntu at Python 3.14, as one
 job; `durations`, which unions what the Windows shards measured;
 `release-report`, which on a pull request into `main` only prints the
 release table against the last release tag and fails nothing; and the
-hygiene workflow that guards releases. A change to any hook needs a test
+hygiene workflow that guards releases. A change to any gate needs a test
 that fails without it, as the counterfeit rule below says.
 
 **A slow case is named, and each leg has a budget.** A case whose call runs
@@ -230,7 +227,7 @@ that run and the pull request.
 **Each shipped module has one test file, and the file names its module
 once.** The file is `tests/<area>/test_<stem>.py`. The area is the first
 directory of the module's path with a leading dot dropped, so the file for
-`hooks/lib/optin.py` is `tests/hooks/test_optin.py` and the file for a
+`lib/optin.py` is `tests/lib/test_optin.py` and the file for a
 script under `.github/` stands in `tests/github/`; a module under `tests/`
 keeps its file at `tests/`. The stem is the module's file
 name without `.py`, with each hyphen written as an underscore, and where two
@@ -342,7 +339,7 @@ record of the work item that rebuilt the module, in four parts:
 
 ## What a change to a gate must carry
 
-The gates decide whether someone's commit or branch switch proceeds, so a
+The gates decide whether someone's pull request or run goes ahead, so a
 change to one is judged by what it does when it is wrong, and a change that
 adds any mechanism by what it takes away:
 
@@ -352,8 +349,9 @@ adds any mechanism by what it takes away:
   counterfeit seal).
 - **A stated failure direction.** The pull request says whether the change
   makes the gate block more or allow more, and why that direction is the
-  cheaper mistake here. A wrong deny costs a prompt; a wrong allow can break
-  another session's tree. A deny that fires on *every* invocation in some
+  cheaper mistake here. A wrong deny stops a correct pull request or run
+  until someone repairs the gate; a wrong allow lets through what the gate
+  was there to stop. A deny that fires on *every* invocation in some
   environment is an outage, not a cost.
 - **A prompt budget.** The pull request says how many times the change puts
   a question in front of a person, per session, and what each one costs when
@@ -386,7 +384,7 @@ adds any mechanism by what it takes away:
   script holds a gate only on a fact it reads exactly, and whether a line
   spelt otherwise meant the label is the reading agent's judgment.
 - **A gap only work with no work item passes through is not a weakness.** A
-  gate that stops a session guards the work a work item owns. A change that
+  gate guards the work a work item owns. A change that
   would be routed `no work item`, such as a formatter run, a dependency bump
   or an identifier renamed across files by `sed`, is outside that work, so
   where only such a change passes through a gap in that kind of gate, the
@@ -421,7 +419,7 @@ question is not its difficulty, it is when it arrives.
   UTF-8 everywhere else, so that leg is the only one that sees it. The call
   names `encoding="utf-8"`. Every entry point, a tracked `.py` with a
   `__main__` block, also opens its first such block with the answer
-  `hooks/lib/console.py#STREAMS` holds, as the call `console.to_utf8()` or
+  `lib/console.py#STREAMS` holds, as the call `console.to_utf8()` or
   as a loop over its literal pairs in the one form
   `tests/censuses.py#loop_pairs` reads. The `encoding` and `entry_point`
   censuses in `tests/censuses.py` enforce both over every tracked `.py`, and a
@@ -438,7 +436,7 @@ question is not its difficulty, it is when it arrives.
   constant the file itself assigns a string. A constant imported from
   another module, or one built from other constants, is outside its reach,
   and its writer splits it there.
-- **Functional files are English-only.** Skills, agents, hooks, and commands
+- **Functional files are English-only.** Skills, agents, scripts, and commands
   load into model context, where a translated mirror would drift. Korean
   belongs in human-facing docs (`README.ko.md`). The `writing-style` skill
   is the deliberate exception: its per-language sections are independent
@@ -449,26 +447,22 @@ question is not its difficulty, it is when it arrives.
   `tests/behaviour/test_both_editions_carry_the_same_folds.py` reads every
   tracked `X.ko.md` beside an `X.md`, wherever it stands, the READMEs among
   them, and requires the same sequence of heading levels.
-- **Hooks stay local and quiet.** No writing outside the repo being worked
-  on, and failure must never block a tool call. A gate that crashes should
-  let the work through, not wedge the session.
-
-  Every hook that reaches the network is named in the README's privacy
-  section, because a rule with undisclosed exceptions is not a rule.
-  `lint-python` and `version-check` are those hooks, and `README.md` *What
-  runs on your machine* says what each one reaches, what it sends and when.
-  A new one needs the same limits `version-check` carries (an opt-in
-  condition so unrelated repos are untouched, a throttle so it is not
-  per-session, and silence on every failure), plus a line in the README
-  saying what leaves the machine. Anything that would send repository
-  contents, paths, or prompts is not on the table.
-- **Hooks are Python invoked as `python3 <script>`, with `py -3 <script>`
-  behind it.** Shebangs and exec bits do not exist on Windows, and `python3`
-  is the one name its official installer does not create, so the registered
-  command names both, in that order, and the packaging test enforces the
-  form. The fallback is safe because `dispatch.py` exits 0 for every decision
-  it makes, deny included: `||` is reached only when the first interpreter
-  could not start, never as a second run of a gate that already decided.
+- **The plugin registers no hook, and the one write outside the repository
+  is the person's yes.** The plugin directory refuses a plugin that
+  registers a command hook, so nothing runs at Claude Code's events unless
+  the person put it in their own settings. `seal stamp --install` writes the
+  one such entry, the stamp's `Stop` hook, with its launcher in the plugin's
+  data directory, and only on the yes to the question first setup and
+  `/agentic:update` put. Its command is `python3 <launcher> || py -3
+  <launcher>`: shebangs and exec bits do not exist on Windows, and `python3`
+  is the one name its official installer does not create. While the
+  launcher stands, the fallback is reached only when the first interpreter
+  could not start, because the launcher exits 0 whatever happens. Where the
+  entry outlives its launcher, both halves fail at the end of every turn
+  until `seal stamp --remove` takes the entry out. It reaches no network;
+  `README.md` *What runs on your machine* names the commands and steps that
+  do, what each reaches, what it sends and when. Anything that would send
+  repository contents, paths, or prompts is not on the table.
 
 ## Cutting a release
 
@@ -486,4 +480,5 @@ a false positive would cost. The plugin's value is that its always-on surface
 stays small: a new always-loaded rule has to earn its place against
 [the context-file study](https://arxiv.org/abs/2602.11988) the README cites.
 Skills that load on demand are a much easier case to make than anything
-added to the core, which every session loads.
+added to the core, which every agent and every session the entry skill
+`start` starts loads.

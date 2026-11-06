@@ -423,8 +423,7 @@ The plugin sets no ceiling; a repository states its own.
 ## A settle is not a work item
 
 **A settle opens no directory under `seal/threads/`**: no `routing.md`, no
-frame, no round records, and the routing question is not asked for it. It
-edits under `seal no-work-item`, run on the branch the settle is made on.
+frame, no round records, and the routing question is not asked for it.
 Where the root is shared, its commits carry
 `Seal-Routing: no work item` as their trailer
 (`skills/commit-pr-convention/SKILL.md`). What it wrote is reviewed at

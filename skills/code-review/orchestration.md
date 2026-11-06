@@ -45,9 +45,8 @@ wrong tree.
 
 A fix pass also takes a fresh spawn where the implementer's session no
 longer exists, on a new day or another machine, and the orchestrator hands it
-the same records. An orchestrator in a new session holds no `automation`
-press until it puts question 1 through `AskUserQuestion` again, so it does
-that before the spawn (`skills/implement/orchestration.md` *Question 1*).
+the same records. An orchestrator in a new session reads the routing from
+the work item's `routing.md` and asks nothing again before the spawn.
 
 **The crafter's fix pass appends one close block to each open finding of
 `trail/rounds/round-N.md`, holding its verdict, its answer and, where its fix
@@ -152,7 +151,7 @@ because a fix no round reads is an invariant `skills/core/SKILL.md`
 each decision to go on past the third round, or to stop, as one row of
 `frame/plan.md` *Judgments of the run*,** with the counts and signals you
 weighed as its grounds and the document you judged against; the proofer
-writes no line for it, and no person is asked mid-run. When you stop, every
+writes no line for it, and you ask no person to make it. When you stop, every
 finding still open takes a home: you append its close block, its `verdict:`
 reading `deferred <home>` and its `answer:` saying why the run stopped there,
 and commit the close blocks of that step together.
@@ -462,9 +461,9 @@ resolves.
 Where the guarantee's newest verdict block names a commit the branch does
 not hold, which the pull request's check refuses as stale, spawn the sealer
 again at HEAD and commit what it writes; never edit a block by hand. The
-stamp's writer recorded the refusal at the write, so the new audit, whose
-block stands below the refused verdict's block, draws the work item's stamp
-(`docs/checks/the-stamp.md` *The stamp*).
+sealer's `seal stamp --guarantee` recorded the refusal, so the new audit,
+whose block stands below the refused verdict's block, draws the work item's
+stamp (`docs/checks/the-stamp.md` *The stamp*).
 
 **The preflight is yours, and it is not the broad gate.** It runs every
 arm of the gate except the `Broad gate` row, in the gate's order and over the
@@ -492,10 +491,10 @@ which say whether the broad command passed and judge nothing. The stamp is
 drawn once per work item from the sealer's verdict
 (`docs/checks/the-stamp.md` *The stamp*): where the newest verdict block of
 `guarantee.md` reads `Verdict: sealed` and the block reader refuses none of
-its lines, the sealer's own `Write` of it queues the
-stamp's values, under either root, and the `Stop` hook draws them after your
-text. The line naming them is the edit hook's message, shown to the person
-at that write. It is not in the sealer's report and does not reach you.
+its lines, the sealer's `seal stamp --guarantee` queues the stamp's values,
+under either root, and the `Stop` hook the person installed with
+`seal stamp --install` draws them after your text. The line naming them
+arrives in the sealer's hand-back.
 So put the result text first in that turn:
 what was sealed, the lines worth quoting, and what happens next. Then end
 the turn, and the drawing lands last with nothing after it. Draw none
@@ -508,14 +507,13 @@ committed: CI reads HEAD, so commit it before you push, or the one
 broad run is recorded nowhere CI looks. On a red run relay the `BROAD GATE
 FAILED` lines. Wherever a line you read names `seal stamp --from`, quote
 it as it stands: that command is the person's to type, and never yours. The
-edit hook's line never reaches you. Where no stamp appeared, name the file
-under `<git-common-dir>/agentic-stamp/<session>/` whose name holds the work
-item's id, and leave `seal stamp --from <that file>` to the person. The line
-names the command because the hook draws nothing and says nothing where it
-cannot: a `python3` that cannot load `seal_stamp.py`, a working directory
-outside the clone, or a plugin older than the hook. Where no edit hook saw
-the guarantee written, no line prints and no stamp is drawn, and the pull
-request's check is what says the work item was sealed.
+sealer's hand-back carries that line; quote it in the turn's text. The line
+names the command because nothing draws where the person installed no
+`Stop` hook, and the hook draws nothing and says nothing where it cannot: a
+`python3` that cannot load `seal_stamp.py`, a working directory outside the
+clone, or a launcher naming a root that is gone. Where the hand-back carries
+no such line, no stamp was queued and none is drawn, and the pull request's
+check is what says the work item was sealed.
 
 **A refusal about the `Broad gate` row goes to a person, and the run stops
 until they answer.** Your broad run comes back exit 2 two ways that are

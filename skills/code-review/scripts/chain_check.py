@@ -42,7 +42,7 @@ judged (`carried_by`). The arms are eight:
                 test pins and copies (`pins_and_copies_in`)
   records       `Review | through the review chain`: `trail/rounds/` holds at least
                 one `round-N.md`; each reads whole through
-                `hooks/lib/fields.py`, its blocks placed by its `## Findings`
+                `lib/fields.py`, its blocks placed by its `## Findings`
                 section and finding headings (`round_read`), and every
                 finding has a close block; a `fixed` commit is on the branch
                 and touches a path its finding's or its close's `location:`
@@ -56,19 +56,19 @@ judged (`carried_by`). The arms are eight:
                 it touches only the work item's own directory
   original      where git carries `seal/parity.md` at HEAD and the pull
                 request changes a path outside the document roots
-                `hooks/lib/gate.py#touches_code` reads: the config's `Baseline
-                commit` row names a SHA (`hooks/lib/config.py#baseline_commit`),
+                `lib/gate.py#touches_code` reads: the config's `Baseline
+                commit` row names a SHA (`lib/config.py#baseline_commit`),
                 and one `original:` line naming it stands in the round block
                 of every round record under `Review | through the review
                 chain`, and in
                 the newest verdict block of `guarantee.md` under `Review |
                 straight to the PR` (`originals_of`, `guarantee_original`)
   broad gate    the last run block of `trail/gate.md`, the newest run, read
-                through `hooks/lib/fields.py`, is HEAD, or every commit after
+                through `lib/fields.py`, is HEAD, or every commit after
                 it touches only the work item's own directory; a record with
                 no run block, or with a line the reader refuses, fails
   guarantee     the last verdict block of `guarantee.md`, the newest run of
-                the sealer, read through `hooks/lib/fields.py`, names HEAD,
+                the sealer, read through `lib/fields.py`, names HEAD,
                 or every commit after it touches only the closing records,
                 and its `Verdict:` reads `sealed`; a guarantee with no
                 verdict block, or with a line the reader refuses, fails
@@ -142,9 +142,9 @@ if __name__ == "__main__":
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
-HOOKS = os.path.join(HERE, "..", "..", "..", "hooks", "lib")
-ROUTING = os.path.join(HOOKS, "routing.py")
-FIELDS_READER = os.path.join(HOOKS, "fields.py")
+LIB = os.path.join(HERE, "..", "..", "..", "lib")
+ROUTING = os.path.join(LIB, "routing.py")
+FIELDS_READER = os.path.join(LIB, "fields.py")
 # `.github/scripts/rules.py`, the one reader of a `check:` line, which `seal
 # rules --check` runs over the rule files. A user's CI clones the plugin
 # whole, so it stands here there too (`templates/setup/hygiene.yml`).
@@ -152,7 +152,7 @@ CHECK_LINES_READER = os.path.join(
     HERE, "..", "..", "..", ".github", "scripts", "rules.py"
 )
 
-# A thread's files, relative to its directory: `hooks/lib/optin.py`'s `GATE`,
+# A thread's files, relative to its directory: `lib/optin.py`'s `GATE`,
 # `GUARANTEE`, `DESIGN` and `PLAN`, spelt here because this module loads
 # `routing` only inside the functions that are handed it.
 BROAD_GATE_FILE = "trail/gate.md"
@@ -163,7 +163,7 @@ PLAN_FILE = "frame/plan.md"
 # other, and they are the only files that may follow the commit the
 # guarantee names, since the sealer audited everything else on the branch.
 CLOSING_RECORDS = (BROAD_GATE_FILE, GUARANTEE_FILE)
-# A round record's fields stand in `seal` blocks, and `hooks/lib/fields.py`
+# A round record's fields stand in `seal` blocks, and `lib/fields.py`
 # is the one spelling of their grammar (#1198). What this file holds is where
 # a block stands, which turns on headings that module does not read: the one
 # `## Findings` section, and a finding's `### <n>. <symptom>` heading in it,
@@ -264,10 +264,10 @@ def section_end(reader, lines, start):
 # what a check that cannot read a record means to it.
 try:
     SHARED_READER = load(READER, "agentic_unverified_reader_for_grammar")
-    # `hooks/lib/fields.py`, the one reader of a record's `seal` blocks.
+    # `lib/fields.py`, the one reader of a record's `seal` blocks.
     FIELDS = load(FIELDS_READER, "agentic_fields_for_the_chain")
-    # `hooks/lib/gitcmd.py`, which builds every git command `git` runs.
-    GITCMD = load(os.path.join(HOOKS, "gitcmd.py"), "agentic_gitcmd_for_the_chain")
+    # `lib/gitcmd.py`, which builds every git command `git` runs.
+    GITCMD = load(os.path.join(LIB, "gitcmd.py"), "agentic_gitcmd_for_the_chain")
 except (OSError, SyntaxError, ImportError, SystemExit) as _exc:
     if __name__ != "__main__":
         raise
@@ -277,7 +277,7 @@ except (OSError, SyntaxError, ImportError, SystemExit) as _exc:
 # What the check prints of a file it did not read. `main` prints it as a
 # notice, `path:line  not read: <why>` and a notice annotation in CI, and it
 # changes no exit code; a fence like a `seal` block and not one is named in
-# `hooks/lib/fields.py`'s words (`blocks_of`).
+# `lib/fields.py`'s words (`blocks_of`).
 UNREAD_FILE = (
     "not read: `{name}` is no `round-N.md`, so the check read nothing of it "
     "and judged the work item on the records it did read"
@@ -621,7 +621,7 @@ def issue_of(home):
 def location_paths(value):
     """The paths one `location:` value names, in order: each backticked
     item to its first `:`, which the value's shape keeps out of a path. The
-    value is one `hooks/lib/fields.py` already matched whole."""
+    value is one `lib/fields.py` already matched whole."""
     return [item.strip("`").split(":")[0] for item in value.split(", ")]
 
 
@@ -659,7 +659,7 @@ def finding_number(heading):
     return int(found["number"]) if found else None
 
 
-# The refusals `hooks/lib/fields.py` makes of a line outside every block. A
+# The refusals `lib/fields.py` makes of a line outside every block. A
 # refusal of a block's line leaves the finding holding it unread, and these
 # do not; the last two hide every block below their line.
 HIDING = (FIELDS.UNCLOSED, FIELDS.UNSURE)
@@ -668,7 +668,7 @@ NOT_A_BLOCK_LINE = (FIELDS.COMMENT_LINE, *HIDING)
 
 def round_read(reader, text, rel):
     """`Parsed` for one round record: its `seal` blocks read through
-    `hooks/lib/fields.py`, placed by its headings, read once.
+    `lib/fields.py`, placed by its headings, read once.
 
     Every line that module refuses is an error at its line, led by the
     finding's heading where it stands in one. The one `## Findings` section
@@ -1483,11 +1483,11 @@ NO_BASELINE = (
 
 
 def parity_readers():
-    """`(config, gate)`: `hooks/lib/config.py` and `hooks/lib/gate.py`, loaded by path.
+    """`(config, gate)`: `lib/config.py` and `lib/gate.py`, loaded by path.
     `gate.py` imports nothing since #1027, so the order no longer matters.
     Raises what `load` raises."""
-    config = load(os.path.join(HOOKS, "config.py"), "agentic_config_for_parity")
-    gate = load(os.path.join(HOOKS, "gate.py"), "agentic_gate_for_parity")
+    config = load(os.path.join(LIB, "config.py"), "agentic_config_for_parity")
+    gate = load(os.path.join(LIB, "gate.py"), "agentic_gate_for_parity")
     return config, gate
 
 
@@ -1508,7 +1508,7 @@ def original_of(reader, text, rel, sha, config, missing=NO_ORIGINAL):
     config at CONFIG: a round block with no such line, said as MISSING at
     its opener, and one naming a commit that is not a prefix of SHA and of
     which SHA is not a prefix, at its line. A guarantee's line is
-    `guarantee_original`'s. A record holding a line `hooks/lib/fields.py`
+    `guarantee_original`'s. A record holding a line `lib/fields.py`
     refuses, an `original:` line in a finding block, a second one or one
     spelt otherwise among them, or holding no round block, is the records
     arm's refusal, and none is added here."""
@@ -1530,7 +1530,7 @@ def guarantee_original(text, rel, sha, config):
     commit` of the migration config at CONFIG: a newest block with no such
     line, at its opener, and one naming a commit that is not a prefix of SHA
     and of which SHA is not a prefix, at its line. An earlier block's line
-    stands for no later run (#1198). A guarantee `hooks/lib/fields.py`
+    stands for no later run (#1198). A guarantee `lib/fields.py`
     refuses, or one holding no verdict block, is the guarantee arm's
     refusal, and none is added here."""
     found = FIELDS.read(text, FIELDS.GUARANTEE)
@@ -1553,11 +1553,11 @@ def originals_of(reader, routing, root, paths, items, direct=()):
     through the review chain, and the `guarantee.md` of DIRECT, each
     declared `straight to the PR`, where git carries the migration config at
     HEAD and PATHS, this pull request's, reach outside the document roots;
-    `hooks/lib/gate.py#touches_code` decides that, and paths git could not list
+    `lib/gate.py#touches_code` decides that, and paths git could not list
     reach outside them. A guarantee git does not carry is `guarantee`'s
     refusal, and none is added here; a guarantee's line is its newest
     verdict block's (`guarantee_original`). A config whose `Baseline commit`
-    names no SHA is one refusal naming it. None where `hooks/` would not
+    names no SHA is one refusal naming it. None where `lib/` would not
     load, said on stderr."""
     config = f"{routing.optin.HOME}/{routing.optin.PARITY_CONFIG}"
     text = read_record(root, config)
@@ -1598,7 +1598,7 @@ NO_RUN_BLOCK = (
 
 def blocks_of(rel, text, kinds, notices=None):
     """`(blocks, problems)` of the record REL holding KINDS, read through
-    `hooks/lib/fields.py`: every block, and each line it refuses as
+    `lib/fields.py`: every block, and each line it refuses as
     `(rel, line, why)`. Each fence it names as not read goes to NOTICES."""
     found = FIELDS.read(text, kinds)
     if notices is not None:
@@ -1608,7 +1608,7 @@ def blocks_of(rel, text, kinds, notices=None):
 
 def broad_gate(reader, root, item, base, notices=None):
     """[(path, line, problem)] for the work item's `trail/gate.md`: absent,
-    a line `hooks/lib/fields.py` refuses, no run block, or a newest run, the
+    a line `lib/fields.py` refuses, no run block, or a newest run, the
     last block, behind HEAD. A fence named as not read goes to NOTICES."""
     rel = f"{item}/{BROAD_GATE_FILE}"
     text = read_record(root, rel)
@@ -1647,7 +1647,7 @@ NO_VERDICT_BLOCK = (
 
 def guarantee(reader, root, item, base, notices=None):
     """[(path, line, problem)] for the work item's `guarantee.md`: absent, a
-    line `hooks/lib/fields.py` refuses, a fence nobody closed and a line that
+    line `lib/fields.py` refuses, a fence nobody closed and a line that
     begins with `<!--` among them, no verdict block, or a newest block, the
     last, naming a commit with anything but the closing records after it or
     a verdict other than `sealed`. A fence named as not read goes to

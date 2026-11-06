@@ -39,12 +39,6 @@ says it (#952):
                               working tree and the index; where HEAD carries
                               it, the deletion is staged for you to commit
 
-One more subcommand records a fact about the session rather than the root:
-
-  seal no-work-item           this session's change on the branch checked
-                              out here belongs to no work item, so the edit
-                              check lets its edits on that branch through
-
 Every other command of the plugin is a subcommand of this one, and `TOOLS`
 says which script each runs. `seal gate --base <base> --record <item>` hands
 `--base <base> --record <item>` to `broad_gate.py` untouched, `--help` among
@@ -52,9 +46,8 @@ any arguments, so each script keeps its own parser and its own help, and a
 subcommand is a dispatch and not a copy (#1051).
 
 **The root is its own directory, and that is what makes the export safe.**
-Beside it under the git directory sit the crafter mark, the review and parity
-marks, the throwaway opt-out, the gates' per-session markers and this
-command's own state. None of that belongs to another machine, and none of it
+Beside it under the git directory sit the stamp's queue and refusal records,
+the throwaway opt-out and this command's own state. None of that belongs to another machine, and none of it
 is in the zip — not because a list is maintained here, but because the export
 walks the root and nothing else. A symbolic link inside the root is the one
 way back out, so links are skipped and named rather than followed.
@@ -100,7 +93,7 @@ is Q1 in the work item's `questions.md`, with the owner named; it is written
 here as well because this docstring is where the next reader meets the count.
 
 Exit codes: 0 done · 1 nothing was written, and the message says why · 2 a
-file this command loads from `hooks/lib/` is not there, so nothing was read, or
+file this command loads from `lib/` is not there, so nothing was read, or
 the arguments were unusable (argparse's usage error, and any two of a mode,
 `--check` and `--apply` given together). Every refusal here names the file,
 the path, or the flag that gets past it.
@@ -117,10 +110,8 @@ import subprocess
 import sys
 import zipfile
 
-HOOKS = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "hooks", "lib"
-)
-PLUGIN = os.path.normpath(os.path.join(HOOKS, "..", ".."))
+LIB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "lib")
+PLUGIN = os.path.normpath(os.path.join(LIB, ".."))
 
 # The plugin's commands that are not about the root, one subcommand each: the
 # name a person types, the script it runs (from the plugin's root), and the
@@ -179,67 +170,55 @@ TOOLS = {
         "skills/code-review/scripts/pr_body.py",
         "copy a work item's records into a pull request body, or check the copy",
     ),
-    "core": (
-        "skills/verify/scripts/core_check.py",
-        "whether this session's context holds the core, read from its transcript",
-    ),
 }
 
-# What each module this command imports from `hooks/lib/` is for, in the sentence
+# What each module this command imports from `lib/` is for, in the sentence
 # printed when it is missing. They are checked before the `import` lines,
 # because a plain `import` of an absent module dies with a
 # `ModuleNotFoundError` traceback at exit 1 (#610) -- and a search for
 # by-path loaders cannot see this shape, which is how #590 missed it.
-HOOK_PURPOSES = {
+LIB_PURPOSES = {
     "config.py": "it is what reads the root's config.md, whose Mode row this "
     "command keeps",
     "optin.py": "it is what finds the repository's seal/ root",
-    # `config.py` imports it, so a `hooks/lib/` without it fails that import.
+    # `config.py` imports it, so a `lib/` without it fails that import.
     "blocks.py": "it is the walk config.py reads config.md through, which "
     "tells a live row from one quoted in a fence or parked in a comment",
-    "routing.py": "it is what writes the record `seal no-work-item` leaves, "
-    "which the edit check reads",
-    "hooksession.py": "it names the variable a session's id is read from",
-    # `seal core` reads it; the command refuses here, before any subcommand.
-    "core.py": "it is what reads the core hook's first line",
     "gitcmd.py": "it is what builds the `git status` this command reads, the "
     "same under any git configuration",
 }
 
 
-def refuse_without_hooks(hooks=HOOKS):
-    """Exit 2 with one sentence per `HOOK_PURPOSES` module absent from
-    `hooks`, naming its path and what it is for; return where all are there.
+def refuse_without_lib(lib=LIB):
+    """Exit 2 with one sentence per `LIB_PURPOSES` module absent from
+    `lib`, naming its path and what it is for; return where all are there.
 
     2 and not 1, because 1 here means *nothing was written* about a root this
     command read, and a missing sibling means nothing was read at all. A
     `SystemExit` carrying a string exits 1, so the sentences go to stderr and
     the code is the int -- the shape `settle.py#load` has."""
     missing = [
-        name for name in HOOK_PURPOSES if not os.path.isfile(os.path.join(hooks, name))
+        name for name in LIB_PURPOSES if not os.path.isfile(os.path.join(lib, name))
     ]
     if not missing:
         return
     for name in missing:
         sys.stderr.write(
-            f"seal: cannot read {os.path.join(hooks, name)}, and "
-            f"{HOOK_PURPOSES[name]}.\n"
+            f"seal: cannot read {os.path.join(lib, name)}, and {LIB_PURPOSES[name]}.\n"
         )
     sys.stderr.write(
         "This command ships under `skills/`, in the plugin that holds "
-        "`hooks/`; a copy of one script taken on its own is not a plugin. "
+        "`lib/`; a copy of one script taken on its own is not a plugin. "
         "Nothing was read.\n"
     )
     raise SystemExit(2)
 
 
-refuse_without_hooks()
-sys.path.insert(0, HOOKS)
+refuse_without_lib()
+sys.path.insert(0, LIB)
 import config as repo_config  # noqa: E402
 import gitcmd  # noqa: E402
-import hooksession  # noqa: E402
 import optin  # noqa: E402
-import routing  # noqa: E402
 
 # The manifest's shape. An import refuses a number it does not know rather
 # than guessing at fields: a zip whose fields moved, read by a build that
@@ -273,7 +252,7 @@ ARCHIVE_LIMIT = 512 * 1024 * 1024
 MEMBER_COUNT_LIMIT = 20_000
 
 
-# --- git, asked the way `hooks/lib/optin.py` asks it ----------------------------
+# --- git, asked the way `lib/optin.py` asks it ----------------------------
 
 
 def git_asked(root, *args, answered=(0,)):
@@ -372,7 +351,7 @@ def head_sha(root):
     return git_asked(root, "rev-parse", "HEAD")
 
 
-# Moved to `hooks/lib/config.py` (#647), where the `Pact` reader needs it and
+# Moved to `lib/config.py` (#647), where the `Pact` reader needs it and
 # cannot import this file; the alias keeps one normaliser under the name every
 # caller here already spells, as the config aliases below do.
 normalise_remote = repo_config.normalise_remote
@@ -1422,8 +1401,8 @@ def write_members(archive, into):
 # The workflow file is not among them: `.github/` is `seal pr-checks`'s
 # (#952).
 #
-# **Nothing at runtime reads the row.** Every hook resolves the root through
-# `hooks/lib/optin.py#home_at`, which reads `<repo>/seal/` then
+# **Nothing at runtime reads the row.** Every script resolves the root through
+# `lib/optin.py#home_at`, which reads `<repo>/seal/` then
 # `<git-common-dir>/seal/`, and that stays the only signal. The row says what
 # the repository WANTS; the folder's location says what it HAS. A gate that
 # trusted the row would go looking in a place with no folder, and everything
@@ -1431,7 +1410,7 @@ def write_members(archive, into):
 # guess (`docs/layout/one-root-by-lifetime.md`, "The opt-in signal is the root
 # itself").
 
-# The config table is READ in `hooks/lib/config.py` and WRITTEN here. The reader
+# The config table is READ in `lib/config.py` and WRITTEN here. The reader
 # moved because a `PreToolUse` gate needs the `Mode` row and must not import
 # this file to get it (#151), and these aliases are what keeps the move from
 # becoming a second parser: one implementation, reached by the name each
@@ -1449,7 +1428,7 @@ MODES = repo_config.MODES
 # filesystem. The two dialects live as separate strings rather than one
 # string used for both, because a literal separator inside an
 # `os.path.join` argument produces `C:/proj\.github/workflows` — a path in
-# two dialects that equals nothing any caller built (`hooks/lib/optin.py`
+# two dialects that equals nothing any caller built (`lib/optin.py`
 # carries the same reasoning about `repo_root`).
 WORKFLOW = ".github/workflows/hygiene.yml"
 # The row this command writes itself, spelled as git spells a pathspec —
@@ -1535,7 +1514,7 @@ def doubled_modes(lines):
     the path.
 
     **Every `Mode` row the walk read, not the first** (#867). A row written
-    twice has no value (`hooks/lib/config.py#config_value`), so the writer has no
+    twice has no value (`lib/config.py#config_value`), so the writer has no
     row to overwrite, and this sentence names each line from the walk's own
     line numbers (#871)."""
     rows, _refusals = config_table("".join(lines))
@@ -1661,7 +1640,7 @@ def write_row(home, value):
     # closed has no table this walk can see -- and `with_row` then appends
     # one at the END of the file, which is inside that fence. The write
     # succeeds, `declared_mode` still answers "none", and `seal mode` reports
-    # a row that no walk reads: the mode gate asks again next session and the
+    # a row that no walk reads: the next `seal mode` writes it again and the
     # file grows by a table a run. Measured over two fixtures, three runs
     # each: 9 -> 13 -> 17 -> 21 lines with `('none', '')` throughout.
     # Checked here rather than after the write, so a refusal leaves the
@@ -2278,7 +2257,7 @@ def mode_refusal(home):
     row written twice the writer's, which names each line (#867), and for a
     table the walker refused the walker's, after the path (#871) -- the
     three things `with_row` would refuse, so a switch is refused before
-    anything moves. Read through `hooks/lib/config.py#config_text`, the one
+    anything moves. Read through `lib/config.py#config_text`, the one
     place the file is opened to tell absent from unreadable."""
     text, refused = repo_config.config_text(home)
     if refused:
@@ -2734,55 +2713,12 @@ def check(cwd):
     return 0
 
 
-# --- a change that belongs to no work item -----------------------------------
-
-
-def no_work_item(args, cwd):
-    """Record, for this session on the branch checked out in the worktree at
-    `--root` or the working directory, that its change belongs to no work
-    item, so `hooks/routing-edit-gate.py` lets its edits on that branch
-    through. The session is `CLAUDE_CODE_SESSION_ID`'s, and the branch is
-    resolved as the edit gate resolves it (`routing.worktree_branch`): the
-    branch checked out, else the branch a paused rebase there names. Where
-    the repository, the session or the branch is missing, nothing is written.
-    The rule is `docs/checks/the-routing-check.md` *The edit check*."""
-    where = args.root or cwd
-    repo = optin.repo_root(where)
-    if not repo:
-        print(f"seal: {where} is in no git repository, so nothing was recorded.")
-        return 1
-    session = os.environ.get(hooksession.SESSION_VARIABLE, "")
-    if not routing.session_name(session):
-        print(
-            f"seal: {hooksession.SESSION_VARIABLE} names no session in this "
-            "environment, so nothing was recorded. Run this from the session's "
-            "own Bash tool."
-        )
-        return 1
-    branch = routing.worktree_branch(repo)
-    if not branch:
-        print(
-            f"seal: HEAD is detached in {repo}, so no branch can be recorded and "
-            "nothing was. Check out a branch there first, then run this again."
-        )
-        return 1
-    path = routing.record_no_work_item(optin.git_common_dir(repo), session, branch)
-    if not path:
-        print(f"seal: the record could not be written under {repo}'s git directory.")
-        return 1
-    print(
-        f"recorded: this session's change on `{branch}` in {repo} belongs to no "
-        f"work item ({path}), so its edits on that branch go ahead."
-    )
-    return 0
-
-
 # --- the tools --------------------------------------------------------------
 
 
 def tool_command(name, argv):
     """The command line that runs the script `TOOLS` names for `name` with
-    `argv`: this interpreter, which `hooks/lib/launch.py` held to the floor before
+    `argv`: this interpreter, which `lib/launch.py` held to the floor before
     this file was read, the script's path under the plugin, and the arguments
     as they were typed."""
     script = os.path.join(PLUGIN, *TOOLS[name][0].split("/"))
@@ -2889,20 +2825,7 @@ def main(argv=None, cwd=None):
         "installed is reported",
     )
 
-    nw = sub.add_parser(
-        "no-work-item",
-        help="record that this session's change on the branch checked out "
-        "belongs to no work item, so its edits on that branch go ahead",
-    )
-    nw.add_argument(
-        "--root",
-        help="the worktree whose checked-out branch is recorded. Default: the "
-        "working directory's",
-    )
-
     args = parser.parse_args(argv)
-    if args.command == "no-work-item":
-        return no_work_item(args, cwd)
     if args.command == "pr-checks":
         return pr_checks(args, cwd)
     if args.command == "export":
@@ -2929,8 +2852,9 @@ def main(argv=None, cwd=None):
 
 if __name__ == "__main__":
     # A console that cannot encode what this prints kills it with stdout
-    # empty, which is how a hook says "nothing to see here". `hooks/lib/console.py`
-    # owns the reasoning and the three decisions behind these lines.
+    # empty, which is how a script run for its output says "nothing to see
+    # here". `lib/console.py` owns the reasoning and the three decisions
+    # behind these lines.
     for _name, _errors in (
         ("stdin", "replace"),
         ("stdout", "replace"),

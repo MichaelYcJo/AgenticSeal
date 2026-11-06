@@ -4,10 +4,14 @@
 # `dist`, the branch the plugin directory reads, whose tree at each release
 # is the archive of the release's tag. They are this repository's own
 # development: its suites, its records, what only a contributor's session
-# reads, and its own workflows. The workflows also leave because GitHub
+# reads, its own workflows, and the scripts under `.github/scripts/` that
+# only those workflows run. The workflows also leave because GitHub
 # refuses a push made with a workflow's own token that creates or changes a
 # file under `.github/workflows/`, so a `dist` commit holding them would
-# never be pushed; no installed copy runs them. This file lists what leaves
+# never be pushed; no installed copy runs them. A script under
+# `.github/scripts/` leaves by its own line, because three there stay: a
+# shipped command runs each, as `docs/releasing/branch-and-release.md`
+# *The plugin directory reads `dist`* says. This file lists what leaves
 # and not what stays, because a path forgotten here reaches `dist` and costs
 # size or a directory finding, where a path forgotten in a list of what
 # stays would be missing from every copy the directory serves with nothing
@@ -19,3 +23,16 @@
 /.test_durations export-ignore
 /CLAUDE.md export-ignore
 /.github/workflows/ export-ignore
+/.github/scripts/dist_branch.py export-ignore
+/.github/scripts/durations_union.py export-ignore
+/.github/scripts/finding_counts.py export-ignore
+/.github/scripts/issue_claims_check.py export-ignore
+/.github/scripts/label_merged_on_release_branch.py export-ignore
+/.github/scripts/plugin_directory_check.py export-ignore
+/.github/scripts/publish_release_note.py export-ignore
+/.github/scripts/release_completeness_check.py export-ignore
+/.github/scripts/release_report.py export-ignore
+/.github/scripts/release_seal.py export-ignore
+/.github/scripts/roll_flow_measurement_issue.py export-ignore
+/.github/scripts/tag_release.py export-ignore
+/.github/scripts/tracker_labels.py export-ignore

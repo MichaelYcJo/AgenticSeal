@@ -24,7 +24,7 @@ hands them, for `chain_check.py` to name as notices (#1216); a copy is read
 through `passages.py`, the paste check's reader, loaded by path.
 `apply_op` places one operation in one document's text as the grammar
 places it, for `settle --draft` to write (#1217); it reads a table row
-through `hooks/lib/config.py`, loaded by path.
+through `lib/config.py`, loaded by path.
 `settle` prints what they read and writes what `apply_op` returns; nothing
 here writes a file.
 
@@ -49,8 +49,8 @@ import subprocess
 HERE = os.path.dirname(os.path.abspath(__file__))
 READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
 PASSAGES = os.path.join(HERE, "passages.py")
-CONFIG = os.path.join(HERE, "..", "..", "..", "hooks", "lib", "config.py")
-GITCMD = os.path.join(HERE, "..", "..", "..", "hooks", "lib", "gitcmd.py")
+CONFIG = os.path.join(HERE, "..", "..", "..", "lib", "config.py")
+GITCMD = os.path.join(HERE, "..", "..", "..", "lib", "gitcmd.py")
 
 HEADING = "Rule changes"
 # Each operation's fields: (required, optional). The item lines, their fields
@@ -104,7 +104,7 @@ def passages():
 
 
 def config():
-    """`hooks/lib/config.py`, the reader of a GFM table row held to
+    """`lib/config.py`, the reader of a GFM table row held to
     cmark-gfm, loaded by path once."""
     global _config
     if _config is None:
@@ -115,7 +115,7 @@ def config():
 
 
 def gitcmd():
-    """`hooks/lib/gitcmd.py`, which builds a `git log` read the same under
+    """`lib/gitcmd.py`, which builds a `git log` read the same under
     any git configuration, loaded by path once."""
     global _gitcmd
     if _gitcmd is None:
@@ -643,7 +643,7 @@ def overlapping(read):
     return same
 
 
-# A thread's design, relative to its directory: `hooks/lib/optin.py#DESIGN`.
+# A thread's design, relative to its directory: `lib/optin.py#DESIGN`.
 DESIGN = "frame/design.md"
 # Where a thread's design stood before the session-start move brought it into
 # `seal/threads/`, as (directory, name): read from history only, so a moved

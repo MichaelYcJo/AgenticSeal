@@ -130,17 +130,14 @@ finishing segments at once would both read zero and both create one. What
 the command cannot do is make a session remember to run it.
 check: tests/skills/test_session_cost.py
 
-**A network write a person or a session starts is not a hook, and the
-list of hook network touches does not reach it.** `CONTRIBUTING.md` names
-the hooks that reach the network under *Hooks stay local and quiet*, and every
-condition that list sets for another entry is shaped for a hook: an opt-in so
-unrelated repositories are untouched, a throttle so it is not per session,
-silence on every failure. `--post` fires on no hook, and writes only when a
-person or a session runs it, only through `gh`, and only what it was handed.
-What the same bullet
-forbids still binds it: nothing sent may carry repository contents, paths or
-prompts, so the posted body names the transcript by its file name and never
-by its path. The repository owner owns that list and can overturn this. No
-case reads that `--post` fires on no hook; one that read `hooks/hooks.json`
-for a command reaching it would.
+**A network write a person or a session starts is a place `README.md`
+*What runs on your machine* names, and nothing runs it by itself.** The
+plugin registers no hook, and the one hook a person may install, the
+stamp's, reaches no network. `--post` writes only when a person or a session
+runs it, only through `gh`, and only what it was handed. What
+`CONTRIBUTING.md` *The plugin registers no hook, and the one write outside
+the repository is the person's yes* forbids still binds it: nothing sent may
+carry repository contents, paths or prompts, so the posted body names the
+transcript by its file name and never by its path. The repository owner can
+overturn this.
 check: tests/skills/test_session_cost.py

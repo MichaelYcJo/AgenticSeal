@@ -59,13 +59,13 @@ class `seal/follow-up.md` already names.
 
 One package beyond those two is installed the same way, `markdown-it-py`,
 pinned in `MARKDOWN_IT` (#667). It is the CommonMark parser the suite's
-oracle reads, so the hook readers are checked against a parser that shares
-nothing with them. It is test-only: nothing under `hooks/` or `skills/`
+oracle reads, so the readers under `lib/` are checked against a parser that
+shares nothing with them. It is test-only: nothing under `lib/` or `skills/`
 imports it.
 
 A second is `cmarkgfm`, pinned in `CMARKGFM` (#647): GitHub's own renderer,
 which `tests/gfm_table_oracle.py` reads to hold the table walker in
-`hooks/lib/config.py` to what GitHub renders. Test-only, on the parser's terms.
+`lib/config.py` to what GitHub renders. Test-only, on the parser's terms.
 """
 
 import importlib.util
@@ -75,19 +75,14 @@ import subprocess
 import sys
 from pathlib import Path
 
-# The supported floor, read from `hooks/lib/launch.py`, its one source. The
+# The supported floor, read from `lib/launch.py`, its one source. The
 # virtualenv is built and adopted against it. `bin/test` runs this file on
 # whatever `python3` it finds, not through the launcher, whose docstring says
-# why. Loaded by path, because `hooks/lib/` is not on this file's `sys.path`.
+# why. Loaded by path, because `lib/` is not on this file's `sys.path`.
 _LAUNCH = importlib.util.spec_from_file_location(
     "agentic_launch_for_run_tests",
     os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        "..",
-        "..",
-        "hooks",
-        "lib",
-        "launch.py",
+        os.path.dirname(os.path.abspath(__file__)), "..", "..", "lib", "launch.py"
     ),
 )
 _launch = importlib.util.module_from_spec(_LAUNCH)
@@ -97,7 +92,7 @@ FLOOR_TEXT = ".".join(str(part) for part in FLOOR)
 
 # The CommonMark parser the suite's oracle reads (`tests/commonmark_oracle.py`,
 # #667), and the one package the suite needs beyond pytest. Pinned to one
-# version, because the oracle is what the hook readers' property cases are
+# version, because the oracle is what the readers' property cases are
 # held to, and an oracle that moved under the suite would move every verdict
 # with it. Test-only: the gates themselves stay stdlib-only, and a plugin user
 # installs nothing new. `.github/workflows/test.yml` and `CONTRIBUTING.md`'s
@@ -106,10 +101,10 @@ MARKDOWN_IT_VERSION = "4.2.0"
 MARKDOWN_IT = f"markdown-it-py=={MARKDOWN_IT_VERSION}"
 
 # GitHub's own renderer, cmark-gfm, through its `cmarkgfm` binding: the oracle
-# `hooks/lib/config.py#gfm_table` is held to (`tests/gfm_table_oracle.py`, #647).
+# `lib/config.py#gfm_table` is held to (`tests/gfm_table_oracle.py`, #647).
 # Pinned for the parser's reason -- a renderer that moved under the suite would
 # move every verdict of the walker's property case with it -- and test-only on
-# the same terms: nothing under `hooks/` or `skills/` imports it. The version
+# the same terms: nothing under `lib/` or `skills/` imports it. The version
 # was chosen as the newest with a wheel for Python 3.12 on Windows, macOS
 # (arm64) and Linux, so no runner compiles it. `.github/workflows/test.yml`,
 # `.github/workflows/publish-release.yml` and `CONTRIBUTING.md`'s fallback
@@ -609,7 +604,7 @@ def main(argv=None):
 
 if __name__ == "__main__":
     # A console that cannot encode what this prints kills it with stdout
-    # empty; `hooks/lib/console.py` owns the reasoning behind these lines.
+    # empty; `lib/console.py` owns the reasoning behind these lines.
     for _name, _errors in (
         ("stdin", "replace"),
         ("stdout", "replace"),

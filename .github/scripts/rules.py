@@ -109,11 +109,11 @@ SIBLINGS = {
         "it is what splits a document into the lines GitHub renders",
     ),
     "config": (
-        os.path.join("hooks", "lib", "config.py"),
+        os.path.join("lib", "config.py"),
         "it is what says which lines a fence or a comment hides",
     ),
     "optin": (
-        os.path.join("hooks", "lib", "optin.py"),
+        os.path.join("lib", "optin.py"),
         "it is what finds the repository the command is typed in",
     ),
     "rule_changes": (
@@ -151,8 +151,8 @@ def sibling(key):
 
 def shown_lines(text):
     """`[(line, shown, heading)]` for one markdown document: each GFM line
-    (`hooks/lib/blocks.py#gfm_lines`), whether a renderer shows it outside a
-    fence or a comment (`hooks/lib/config.py#unfenced`), and the text of the
+    (`lib/blocks.py#gfm_lines`), whether a renderer shows it outside a
+    fence or a comment (`lib/config.py#unfenced`), and the text of the
     heading it stands under, "" above the first."""
     reader = sibling("unverified_check")
     lines = reader.gfm_lines(text)
@@ -535,7 +535,7 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    # `hooks/lib/console.py#STREAMS` owns this answer. The loop is spelt here
+    # `lib/console.py#STREAMS` owns this answer. The loop is spelt here
     # rather than imported because this script loads the tree's modules only
     # when first asked (`sibling`), so a module that will not load ends in the
     # script's own `Unreadable` and exit 2.

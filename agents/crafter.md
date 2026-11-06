@@ -183,7 +183,7 @@ check: tests/text/test_a_moved_rule_leaves_its_definition.py
 **A fix pass appends close blocks and writes no phase record.** It appends
 one close block per finding it answers, the `seal` block
 `templates/records/sdd-round.md` places in the finding's section after its
-paste-ready fix, each line spelt as `hooks/lib/fields.py` reads it. Its
+paste-ready fix, each line spelt as `lib/fields.py` reads it. Its
 `verdict:` reads `fixed <commit>`, `rejected` or `deferred <home>` (a repair
 with no commit on the branch is `deferred <where it was repaired>`), and its
 `answer:` says what was done.

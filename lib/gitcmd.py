@@ -20,7 +20,7 @@ what it changes where a person or a repository sets it otherwise:
 
 `KEYS` holds the value each is held at, git's own default. So the
 subcommands these keys change are `log` and `status`, and every `git log`
-and `git status` a script under `hooks/`, `skills/` or `.github/scripts/`
+and `git status` a script under `lib/`, `skills/` or `.github/scripts/`
 starts is built by `argv` (`docs/running/what-a-script-gates.md` *Which gate a
 script holds*). A key or a subcommand found later to change a reading is
 added here and nowhere else. `core.quotePath` is not set: a script that
