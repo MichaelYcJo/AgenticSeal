@@ -375,12 +375,18 @@ question.** A pull request into the release branch is not a release: its
 entry accumulates unreleased. Whether it moves the version is the
 repository's convention. Where the repository names the version when it
 cuts the release branch, as a branch named `release/vX.Y.Z` does, the
-orchestrator moves the version to that name in the first pull request into
-the branch, in the commit that adds that work item's changelog entry,
-and every later pull request into the branch leaves it. Where several
-work items of the release run side by side, the orchestrator chooses the
+version moves to that name in the first pull request into the branch, and
+every later pull request into the branch leaves it. The party that writes
+that work item's changelog entry moves it, in the commit that adds the
+entry: the last phase's crafter where `routing.md` answers
+`Implementation` with `crafter`, and the orchestrator where it answers
+`the session`. The orchestrator chooses which work item carries the move.
+Where several work items of the release run side by side, it chooses the
 one it will merge first, the one likeliest to be sealed first, often the
-smallest diff, moves the version there and merges it first. A move made
+smallest diff, and merges it first. Before it spawns that work item's last
+phase, the orchestrator folds the move into the item's `frame/plan.md`
+*Operational impact* where that section does not name it, because the
+crafter reads its version write there. A move made
 after a work item's last round owes a verifying round of its own, so
 where the chosen item's rounds have already ended, the move goes to the
 next item whose rounds still read it. Where the
@@ -393,8 +399,8 @@ entries read as one release, or when the change is a gate or a hook firing
 where it should not, which does not wait for other changes.
 
 **Where an entry accumulates is the repository's convention, so the
-orchestrator reads it before writing one.** Two shapes are common and they
-are not interchangeable: a heading in the changelog that every branch appends
+orchestrator reads it before the entry is written.** Two shapes are common
+and they are not interchangeable: a heading in the changelog that every branch appends
 to, or one fragment per work item that a release gathers. Writing the first
 into a repository that uses the second invents a heading its checks refuse,
 or appends to the shared region the fragments exist to empty. Where the

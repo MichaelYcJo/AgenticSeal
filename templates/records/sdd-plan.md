@@ -20,7 +20,7 @@ The tree as read at `<commit>`.
 
 ## Operational impact
 
-<migrations, new environment variables, new dependencies and compatibility breaks a deployer must not miss>
+<migrations, new environment variables, new dependencies and compatibility breaks a deployer must not miss; where this pull request moves the version, the move and the phase whose commit adding `changelog.md` carries it>
 
 ## Judgments of the run
 
