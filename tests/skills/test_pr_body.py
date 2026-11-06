@@ -494,9 +494,15 @@ class Test_compose:
     def test_accepts_a_keyword_and_a_details_tag_in_a_closed_comment(self):
         """#1181. GitHub reads neither a closing keyword nor a tag inside a
         comment that closes (#1402, #1403), and the tag and the keyword are
-        blanked one way, so each line stands in the fold as written. Each
-        comment stands after text, so no copied line begins with `<!--`."""
-        lines = ["a note <!-- Closes #5 -->", "a note <!-- <details> --> here"]
+        blanked one way, so each line stands in the fold as written. A line
+        that begins with a comment closing on it passes too: GitHub ends that
+        HTML block on the same line and reads the text after its `-->`
+        (#1407), so nothing below it is hidden."""
+        lines = [
+            "a note <!-- Closes #5 -->",
+            "a note <!-- <details> --> here",
+            "<!-- a note --> and text after it",
+        ]
         changelog = CHANGELOG + "\n".join(lines) + "\n"
         text = PR.compose(NAME, {**RECORDS, "changelog.md": changelog})
         for line in lines:
