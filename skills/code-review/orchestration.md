@@ -382,36 +382,55 @@ and writes `guarantee.md` (`docs/forms/the-guarantee.md` *The guarantee*); it
 runs nothing broad, and a missing or stale record comes back
 `Verdict: withheld reason: no broad run at HEAD`.
 
+**The pull request body's first part is the work item's `pr.md`, which
+the orchestrator writes once the build's last phase has closed and commits
+before it spawns the first round.** Where no round runs, the orchestrator
+writes it before the broad run. Every round reads `pr.md` at its target,
+so no sentence of the body reaches the sealer unread. `pr.md` holds the
+`Closes` and `Part of` lines, quotes of the work item's records, and the
+attribution line. A quote stands on its own line, in a list item or in a
+table cell, and its coordinate follows it: the record's path, then the
+heading, row, finding or line that holds the sentence. The orchestrator
+opens that record when it writes the quote. `pr.md` holds no sentence of
+the orchestrator's own account: no sentence frames a quote or joins two,
+and no heading or bold lead-in of the orchestrator's stands in it. What
+the owner must see before the fold is quoted from the record that holds
+it, such as a default taken under automation from its `frame/questions.md`
+row, the framer's judgment left after the exchange from its `frame/plan.md`
+*Alternatives considered* row, and why the title takes its prefix from the
+orchestrator's row of `frame/plan.md` *Judgments of the run*, which it
+writes before `pr.md`. The broad run's printed figures, a CI run taken
+after the rounds and the run's comparison table come after the last round,
+so none stands in `pr.md`: the copy carries `trail/gate.md`'s `run:` line,
+and the table goes to the flow log's comment alone
+(`skills/verify/orchestration.md` *Measure the segment, and feed the flow
+log*).
+
+**Where a fix pass or a fold changes a sentence that `pr.md` quotes, the
+orchestrator rewrites the quote and commits it before it spawns the next
+round.** A round finding located in `pr.md` is the orchestrator's to
+repair, since no crafter writes `pr.md`: the orchestrator commits the
+repair before the fix pass, and the pass's close block reads
+`fixed <that commit>`, as for a finding located in a frame file. Before each
+spawn of the sealer, the orchestrator opens each quote's source at HEAD and
+finds the quote there verbatim, runs of whitespace collapsed. A quote it
+does not find there is rewritten from its source and committed before the
+spawn.
+
 **You write the pull request body after `trail/gate.md` is committed,
 because the body's copy of the records includes that record.** Run
 `seal pr-body <item> --body <scratchpad>/<work-item-id>/pr-body.md`, where
-`<item>` is the work item's directory. It writes the records' copy below
-the line `skills/code-review/scripts/pr_body.py#HEADING` holds, as
-`docs/forms/the-guarantee.md` *The guarantee* states, and keeps byte for byte
-whatever stands above that line. On exit 1 its `refused:` lines name a
-record's file and line: repair that record, commit it, and run the command
-again. Then write your own part above that line, from the top of the file,
-so the body opens with it: what no record holds, such as the motivation, a
-note to reviewers, the `Closes` or `Part of` line, the broad run's printed
-figures, a CI run taken after the rounds, the chain section's comparison
-table, and the attribution line. A sentence of your part that states a
-record's fact is that record's own sentence, or carries the record's
-coordinate: its path, and the row, heading, finding or line that holds the
-fact. Open that record when you write the sentence, after the last fix
-pass, and do not write the fact from your memory of the run. A count, an
-"each", "every" or "all", and a decision attributed to a person, such as
-"the owner asked", carry the coordinate of what they count or of where the
-person's answer stands, such as `routing.md`, a `frame/questions.md` row's
-`Status` cell or an issue comment. A copied sentence carries its record's
-claim and no more: the sealer reads the record against the tree, so the
-sentence adds no claim of its own. Edit nothing below the
-line; the sealer's `seal pr-body --check` withholds on a part below it that
-is not the records' text at HEAD. **Run the command again before every
-later spawn of the sealer and before every `gh api -X PATCH` of the body**,
-so the copy holds the records as the repair left them. Your part stays as
-you wrote it, except where the repair changed a record that a sentence of
-your part copies or cites: open that record again, and correct the
-sentence or its coordinate.
+`<item>` is the work item's directory. It writes `pr.md`, then the line
+`skills/code-review/scripts/pr_body.py#HEADING` holds, then the records'
+copy, as `docs/forms/the-guarantee.md` *The guarantee* states, and replaces
+whatever the file held. On exit 1 its `refused:` lines name a record's file
+and line, `pr.md` among the records: repair that record, commit it, and run
+the command again. Edit nothing in the file; the sealer's
+`seal pr-body --check` withholds on a part above the line that is not
+`pr.md` and on a part below it that is not the records' text at HEAD.
+**Run the command again before every later spawn of the sealer and before
+every `gh api -X PATCH` of the body**, so the body holds `pr.md` and the
+records as the repair left them.
 `skills/commit-pr-convention/SKILL.md` *Pull request bodies* says which
 language each part is in.
 
@@ -438,7 +457,7 @@ each is a fact a reader learns from nowhere else.
 **Commit `guarantee.md`; a verdict other than `sealed` opens no pull
 request.** `withheld` names the claim and the coordinate. Where the repair
 touches only the work item's own records (a phase record, the changelog
-fragment) or your part of the pull request body, make it, commit what it
+fragment, `pr.md`), make it, commit what it
 changed in the records, run `seal pr-body` on the body file again, and spawn
 the sealer again at the new HEAD, giving a repaired body to a pull request
 already open as the stated limit above says: the record commits after the

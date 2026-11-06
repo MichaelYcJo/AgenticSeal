@@ -30,15 +30,18 @@ its first step and never this one, because asking a person and writing
 2. The framer writes `frame/design.md`, `plan.md` and `questions.md`. The orchestrator
    reads the frame against the issue, settles what it finds with the framer
    and spawns the crafter (*The frame is read against the issue at the
-   spawn* below). The proofer's rounds follow, then
+   spawn* below). Once the build's last phase has closed, the orchestrator
+   writes and commits the work item's `pr.md`, the pull request body's
+   first part, before the first round. The proofer's rounds follow, then
    `seal gate --preflight` and `seal gate --record`, both run by the
    orchestrator, then `seal pr-body`, which the orchestrator runs to write
-   the pull request body's copy of the records, then the sealer, and then
-   the pull request opens
+   the pull request body from `pr.md` and the records, then the sealer,
+   and then the pull request opens
    (`skills/code-review/orchestration.md` *Orchestrator: the pull request
    opens once the sealer seals* owns when).
-3. The pull request body carries `Closes #N`; the release workflow closes the
-   ticket when the release reaches `main`.
+3. The pull request body carries `Closes #N`, from the work item's `pr.md`
+   where the work runs through the review chain; the release workflow
+   closes the ticket when the release reaches `main`.
 
 **A decision made after the frame is committed is folded, in place, into
 `frame/design.md` or `plan.md` before the next crafter spawns.** The orchestrator
@@ -106,8 +109,9 @@ agree, agree with a change, or reject with grounds, folds what it agreed
 into its three files, and writes each rejected proposal as one row of
 `plan.md`'s *Alternatives considered*; the orchestrator edits no frame file.
 One exchange is the bound: a disagreement left after it stands as the
-framer's judgment, which the orchestrator names in its part of the pull
-request body, because each party judges its own target
+framer's judgment, which the orchestrator quotes in the work item's
+`pr.md` from its `frame/plan.md` *Alternatives considered* row, because
+each party judges its own target
 (`skills/core/SKILL.md` *Each agent judges its own target, independently of
 the others*) and a second round would be the orchestrator overriding the
 framer. The spawn is the approval (`skills/implement/SKILL.md` *3. The SDD

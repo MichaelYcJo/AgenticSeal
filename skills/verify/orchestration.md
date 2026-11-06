@@ -415,12 +415,12 @@ are made.
 Everything above measures one segment: its span, its calls, its tools per
 turn. A run is every segment plus the rounds and the commits between them, and
 no segment's numbers say what the run cost. So the report a finished run hands
-over (the pull request body's chain section, and the comment that carries the
-numbers) holds one table, this run beside the last run measured, with the
-same rows in the same order every time. That is what lets two runs be read
-side by side without re-deriving either. It is **not a third destination**:
-the table goes to the rolling log named above, beside the segment readings it
-gathers up.
+over, the comment that carries the numbers, holds one table, this run beside
+the last run measured, with the same rows in the same order every time. That
+is what lets two runs be read side by side without re-deriving either. It is
+**not a third destination**: the table goes to the rolling log named above,
+beside the segment readings it gathers up, and not to the pull request body,
+whose first part every round reads before the run ends.
 
 | Row | Taken from |
 |---|---|

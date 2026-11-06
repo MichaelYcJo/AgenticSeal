@@ -18,16 +18,18 @@ proofer 는 이 파일을 열지 않는다. proofer 가 쓰는 글은 리뷰 코
 「문장 규칙」이고 영어면 「English prose rules」다. 아래 표는 그 위에
 **더해지는** 것이고, 대신하지 않는다.
 
-**리뷰 체인을 거친 작업 항목의 PR 본문은 두 부분이고, 이 절의 규칙은
-오케스트레이터가 쓰는 앞부분에만 적용된다.** 뒷부분은 `seal pr-body` 가
-작업 항목의 기록을 그대로 옮겨 쓴 글이고,
-`skills/code-review/scripts/pr_body.py#HEADING` 이 담은 줄 아래에
-`<details>` 하나로 접혀 있다. 오케스트레이터는 뒷부분을 고쳐 쓰지 않고,
-쉬운 말로 바꾸지 않고, 번역하지 않는다. 그 부분의 한 줄이라도 기록의 줄과
-다르면 sealer 의 `seal pr-body --check` 가 판정을 보류한다. 오케스트레이터가
-그 줄 위에 무엇을 쓰고, 기록에 있는 사실을 어떻게 적는지는
-`skills/code-review/orchestration.md` *Orchestrator: the pull request opens
-once the sealer seals* 가 정한다.
+**리뷰 체인을 거친 작업 항목의 PR 본문은 두 부분이고, 두 부분 모두 기록의
+글이라서 이 절의 규칙으로 고쳐 쓰지 않는다.** 앞부분은 작업 항목의 `pr.md`
+이고, `Closes` 줄과 `Part of` 줄, 기록의 문장을 그대로 옮긴 인용과 각 인용의
+좌표, 그리고 출처 표기 줄만 담는다. 뒷부분은 `seal pr-body` 가 작업 항목의
+기록을 그대로 옮겨 쓴 글이고, `skills/code-review/scripts/pr_body.py#HEADING`
+이 담은 줄 아래에 `<details>` 하나로 접혀 있다. 오케스트레이터는 두 부분을
+고쳐 쓰지 않고, 쉬운 말로 바꾸지 않고, 번역하지 않는다. 앞부분이 `pr.md` 와
+한 줄이라도 다르거나 뒷부분이 기록의 줄과 다르면 sealer 의
+`seal pr-body --check` 가 판정을 보류한다. 오케스트레이터가 `pr.md` 에 무엇을 인용하고 각
+인용의 좌표를 어떻게 적는지는 `skills/code-review/orchestration.md`
+*Orchestrator: the pull request opens once the sealer seals* 가 정한다. 이
+절의 규칙은 리뷰 체인을 거치지 않은 PR 본문에 적용된다.
 
 ### 도메인 용어를 쉬운 말로 바꾼다
 

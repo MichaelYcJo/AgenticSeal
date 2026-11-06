@@ -168,7 +168,7 @@ TOOLS = {
     ),
     "pr-body": (
         "skills/code-review/scripts/pr_body.py",
-        "copy a work item's records into a pull request body, or check the copy",
+        "write a pull request body from a work item's pr.md and records, or check it",
     ),
 }
 

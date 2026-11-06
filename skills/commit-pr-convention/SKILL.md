@@ -65,8 +65,8 @@ That row governs the **commit subject and body**, the **pull request title and
 body** (all four, because a squash makes them one text) and the **review
 report posted as a pull-request comment**, which is prose for whoever opens
 that pull request. In the body of a work item routed through the review
-chain it governs the orchestrator's part, as *Pull request bodies* below
-says.
+chain it governs the lines of `pr.md` that quote no record, as *Pull
+request bodies* below says.
 
 **It does not govern the work-item records.** `frame/design.md`, `frame/plan.md`,
 `gaps.md`, `frame/questions.md`, `changelog.md` and `trail/rounds/round-N.md`'s cells
@@ -223,34 +223,28 @@ carries this at length; this file carries the prefix in front of it.
 structure that came out wrong is not recovered by fixing sentences.
 
 **A work item routed through the review chain has a body in two parts, and
-the orchestrator's comes first.** The orchestrator writes the first part,
-above the line `skills/code-review/scripts/pr_body.py#HEADING` holds, and
-`seal pr-body` writes the second part under that line from the work item's
-records, inside one `<details>` fold
-(`skills/code-review/orchestration.md` *Orchestrator: the pull request
-opens once the sealer seals*). The first part is in the language
-`Commit and pull request language` names. The second part is the records'
-own text, so it is in `Record language`, and nobody rewrites or translates
-it.
+the orchestrator's comes first.** The first part is the work item's
+`pr.md`, which the orchestrator commits before the first round, and
+`seal pr-body` writes it above the line
+`skills/code-review/scripts/pr_body.py#HEADING` holds, then the second part
+under that line from the work item's other records, inside one `<details>`
+fold (`skills/code-review/orchestration.md` *Orchestrator: the pull request
+opens once the sealer seals*). `pr.md` holds the `Closes` and `Part of`
+lines, quotes of the records, each with its coordinate, and the attribution
+line. Its `Closes`, `Part of` and attribution lines are in the language
+`Commit and pull request language` names. A quote is its record's sentence
+as it stands, so it is in `Record language`, and so is the second part, the
+records' own text; nobody rewrites or translates either.
 
-**Its chain section has one shape: what the rounds found is the copy's
-*Review rounds* section, and the comparison table opens the orchestrator's
-part.** The table is what makes this run readable beside the last one, so
-it stands above the orchestrator's prose rather than under it, where a
-reader who stops after the body's first screen still has the numbers. What
-the rounds found is the copy's, copied from the round records, and a
-round's fact in the orchestrator's part is stated as
-`skills/code-review/orchestration.md` *Orchestrator: the pull request opens
-once the sealer seals* says.
+**What the rounds found is the copy's *Review rounds* section**, copied from
+the round records, and `pr.md` states a round's fact only as a quote of its
+record. The run's comparison table is not in the body: it goes to the flow
+log's comment alone (`skills/verify/orchestration.md` *Measure the segment,
+and feed the flow log*, which owns its rows).
 
-**The rows have one owner: `skills/verify/orchestration.md` *Measure the
-segment, and feed the flow log*.** That section states each row and where it
-is taken from. The writer links it rather than copying the rows into this
-file or into the body: two copies are two things to keep in step, and the one
-that drifts is the copy nobody owns.
-
-**The orchestrator's part says in one sentence why the title takes its
-prefix, and names the kind that came closest, where one did.**
+**Why the title takes its prefix, and the kind that came closest where one
+did, is one row of `frame/plan.md` *Judgments of the run*, which `pr.md`
+quotes.** The orchestrator writes that row before it writes `pr.md`.
 
 Where a translated body is wanted, **the writer puts it in the repository as a
 file and links it from the body.**

@@ -1,7 +1,9 @@
-"""A chain-routed pull request body carries one chain section, in one shape:
-what the rounds found is the copy's *Review rounds* section, and the
-comparison table opens the orchestrator's part (#1044), the body's first
-part since #1148.
+"""A chain-routed pull request body carries the chain in one shape: what
+the rounds found is the copy's *Review rounds* section (#1044). The run's
+comparison table opened the orchestrator's part until #1415, which made that
+part the work item's `pr.md`, read by every round; the table comes after the
+last round, so it goes to the flow log's comment alone, and the skill names
+the section that owns its rows as the table's one destination.
 
 Two bodies of the same chain came out unreadable side by side. PR #162 wrote
 that section as prose and PR #168 as a table, so the numbers a reader wants to
@@ -21,7 +23,7 @@ open neither.
 The table's rows are defined in `skills/verify/orchestration.md`, and this
 skill points at them. What the cases pin is what a session writing a body
 acts on: the routing answer the shape holds for, and the file and section
-that define the rows. The shape's sentences, and whether the skill copies
+that hold the table. The shape's sentences, and whether the skill copies
 the rows, are the proofer's to read.
 """
 
@@ -65,12 +67,13 @@ def test_the_section_names_the_routing_answer_it_holds_for():
 
 
 def test_the_section_points_at_the_tables_definition():
-    """The rows have one owner, and this skill is a carrier that cites it."""
+    """The rows have one owner, and this skill cites it as the place the
+    table goes instead of the body."""
     section = body_section()
     # The file a session writing a body resolves for the table's rows.
     assert "skills/verify/orchestration.md" in section, (
-        "the section names no owner for the table, so a session writing a "
-        "body has a shape to follow and no rows to fill it with"
+        "the section names no home for the table, so a session writing a "
+        "body has no place to send the run's numbers but the body"
     )
     # The heading of that file's section that holds the rows.
     assert "Measure the segment, and feed the flow log" in section, (
