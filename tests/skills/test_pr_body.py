@@ -444,6 +444,18 @@ class Test_compose:
             ),
             ("changelog.md", CHANGELOG + "a note <!-- x --> Closes #5\n", 3, "#5"),
             ("changelog.md", CHANGELOG + "text <!-- Closes #5\n", 3, "#5"),
+            (
+                "changelog.md",
+                CHANGELOG + "<!-- Closes #5\n",
+                3,
+                "begins with a `<!--` that no `-->` closes on the line",
+            ),
+            (
+                "changelog.md",
+                CHANGELOG + "- <!-- note\n",
+                3,
+                "begins with a `<!--` that no `-->` closes on the line",
+            ),
         ],
     )
     def test_refuses_a_record_it_cannot_copy_faithfully(self, rel, text, line, said):
@@ -461,7 +473,11 @@ class Test_compose:
         `close_issues_on_release.py#keywords_in` reads it, one beside a
         comment or after a `<!--` that never closes and stands after text
         still claims, as GitHub reads it (#1404), and a `</details>` in a
-        fence ends no fold."""
+        fence ends no fold. A copied line that begins with a `<!--` that no
+        `-->` closes on the line, at its start or behind a list marker, is
+        refused for the opener, with a keyword after it or without one:
+        GitHub hides the lines that follow it, the fold's end among them
+        (#1405)."""
         with pytest.raises(PR.Refused) as refused:
             PR.compose(NAME, {**RECORDS, rel: text})
         assert [(where, at) for where, at, _ in refused.value.causes] == [(rel, line)]
