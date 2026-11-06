@@ -2281,6 +2281,24 @@ class Test_install:
         assert (done.returncode, done.stdout) == (0, b"")
         assert os.path.exists(path)
 
+    @pytest.mark.parametrize(
+        "body",
+        ["raise RuntimeError('a later release broke')\n", "raise SystemExit(2)\n"],
+        ids=["raises", "exits-2"],
+    )
+    def test_refuses_to_fail_where_the_script_its_launcher_runs_fails(
+        self, tmp_path, body
+    ):
+        """A `Stop` hook that exits 2 keeps the turn going, so the launcher
+        exits 0 whatever the script it runs does: a raise, or an exit of its
+        own."""
+        root = tmp_path / "root"
+        write(root / "skills" / "verify" / "scripts", "seal_stamp.py", body)
+        data = tmp_path / "data"
+        stamp.install(str(data), str(tmp_path / "s.json"), root=str(root))
+        done = run_launcher(data / stamp.LAUNCHER, "{}")
+        assert (done.returncode, done.stdout) == (0, b""), done.stderr
+
     @pytest.mark.parametrize("encoding", conftest.HOSTILE)
     def test_accepts_a_launcher_on_a_console_it_cannot_encode_to(
         self, korean_repo, tmp_path, encoding
