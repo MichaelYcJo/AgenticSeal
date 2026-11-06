@@ -1111,7 +1111,7 @@ NO_SLASH_JOINED = {
         'import os\nGATE = "a/b"\n\n\ndef f(GATE):\n    return os.path.join(r, GATE)\n'
     ),
     "a-constant-an-import-rebinds": (
-        'import os\nfrom m import GATE\nGATE = "a/b"\nos.path.join(r, GATE)\n'
+        'import os\nfrom m import OTHER as GATE\nGATE = "a/b"\nos.path.join(r, GATE)\n'
     ),
     "a-constant-a-definition-rebinds": (
         'import os\nGATE = "a/b"\n\n\ndef GATE():\n    pass\n\n\nos.path.join(r, GATE)\n'
