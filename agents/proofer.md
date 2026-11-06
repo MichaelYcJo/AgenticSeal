@@ -142,10 +142,10 @@ did, where the defect came from. A unit a build phase made is new work and takes
 line. Stay inside the fix diff for the code you review; the read of the
 work item's records, by the rule above, stands beside that bound. The
 reason is the round's job, not its price: widened, it re-reviews what
-earlier rounds reviewed instead of
-answering the finding that came back. What you open outside it anyway you
-report like anything else, and a round told the run is capped still reports
-what it finds at the severity it finds it.
+earlier rounds reviewed instead of answering the finding that came back.
+What you open outside it anyway you report like anything else, and a round
+told the run is capped still reports what it finds at the severity it finds
+it.
 check: tests/text/test_the_rules_have_one_owner.py tests/text/test_the_verifying_round_is_bounded_not_cheapest.py
 
 **Each new test is read against its group.** A test the diff adds is read
