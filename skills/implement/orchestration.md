@@ -383,10 +383,10 @@ entry: the last phase's crafter where `routing.md` answers
 `the session`. The orchestrator chooses which work item carries the move.
 Where several work items of the release run side by side, it chooses the
 one it will merge first, the one likeliest to be sealed first, often the
-smallest diff, and merges it first. Before it spawns that work item's last
-phase, the orchestrator folds the move into the item's `frame/plan.md`
-*Operational impact* where that section does not name it, because the
-crafter reads its version write there. A move made
+smallest diff, and merges it first. Where a crafter builds that work item
+and its `frame/plan.md` *Operational impact* does not name the move, the
+orchestrator folds the move into that section before it spawns the last
+phase, because the crafter reads its version write there. A move made
 after a work item's last round owes a verifying round of its own, so
 where the chosen item's rounds have already ended, the move goes to the
 next item whose rounds still read it. Where the
@@ -400,10 +400,11 @@ where it should not, which does not wait for other changes.
 
 **Where an entry accumulates is the repository's convention, so the
 orchestrator reads it before the entry is written.** Two shapes are common
-and they are not interchangeable: a heading in the changelog that every branch appends
-to, or one fragment per work item that a release gathers. Writing the first
-into a repository that uses the second invents a heading its checks refuse,
-or appends to the shared region the fragments exist to empty. Where the
+and they are not interchangeable: a heading in the changelog that every
+branch appends to, or one fragment per work item that a release gathers.
+Writing the first into a repository that uses the second invents a heading
+its checks refuse, or appends to the shared region the fragments exist to
+empty. Where the
 repository gathers fragments, basing on `main` means running the gather,
 because `main` is the branch where the entries are due; the contribution
 guide names the command.
