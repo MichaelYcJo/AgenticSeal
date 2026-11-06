@@ -30,32 +30,38 @@ Constraints the build keeps:
 - R26 imports from the closer and compiles nothing of its own. Two cases
   hold that: the identity case and `test_the_source_defines_no_keyword_list_of_its_own`.
 
-What GitHub reads was measured twice by the orchestrator, on #1402 and
-#1403, and is recorded in `frame/questions.md` Q1 and Q2 at `c1ae787d`
-(design *Grounding*). It reads no keyword inside a closed comment, in any
-of the four places tried, and none after a `<!--` that begins a line and
-never closes. An unclosed `<!--` in the middle of a line was not tried
-(`frame/questions.md` Q3).
+The orchestrator measured what GitHub reads on #1402, #1403, #1404 and
+#1405. The answers are recorded in `frame/questions.md` Q1 and Q2 at
+`c1ae787d` and Q3 at `0be306a7` (design *Grounding*). They are three facts,
+and they are CommonMark's reading. A closed comment hides its text wherever
+it stands. A `<!--` that never closes hides everything below it where it
+begins a line. A `<!--` that never closes after other text on its line is
+text.
 
-Failure scenario of the chosen approach, six months on: a body writes a
-`<!--` in the middle of a line, outside a code span, as prose about the
-marker, and no `-->` follows. `COMMENT` hides everything after it, so a
-`Closes` line further down is not read. The closer then closes fewer issues,
-which is visible and re-runnable. R26 reports fewer. The completeness check
-refuses the release, which is loud and names the issue. `pr_body` reads line
-by line, so only the rest of that one line is hidden. Over the 300 bodies
-measured (design *Grounding*), no body holds an unclosed opener outside code.
+Failure scenario of the chosen approach, six months on: a body puts a
+`<!--` that never closes inside a list item or a block quote, and a
+`Closes` line follows after the list or the quote has ended. GitHub's HTML
+block ends with its container, so GitHub reads that line. `COMMENT` treats
+the opener as a line start and hides to the end of the text, so the closer
+does not read it. The closer then closes fewer issues, which is visible and
+re-runnable. R26 reports fewer. The completeness check refuses the release,
+which is loud and names the issue. A `<!--` in the middle of a line with a
+`-->` paragraphs further down fails the same way, in the same direction.
+Over the 300 bodies measured (design *Grounding*), no body holds either
+shape.
 
 ## Alternatives considered
 
 | Approach | Failure scenario | Verdict |
 |---|---|---|
-| A. `COMMENT` beside `FENCE` and `SPAN` in the closer, running to the first `-->` or to the end of the text, and `HIDDEN`, one pass over the three where the first to open wins, read by `keywords_in` and `prose_only`. `pr_body`'s tag reading takes the same blanking | The stray mid-line opener in *Technical context*. A comment GitHub refuses for its contents, such as one holding `--`, is masked anyway, and the closer closes fewer | Chosen. It reads every shape #1402 and #1403 measured as GitHub did. It keeps the 14 pinned shapes and the 300 measured bodies as they read today (executed, design *Grounding*). It keeps #956's finding that the readers share one definition, and #266's direction that masking more is safe for the closer, which decides the one unmeasured shape |
-| A2. As A, but an opener that never closes is masked only where it begins a line, and read as text in the middle of a line, as CommonMark reads it | The closer would carry CommonMark's rule for where an HTML block may start: up to three spaces of indent, inside a list item at its content's column, after a block quote marker. #1403's comment under a list item shows the containers matter. Each container the rule misses is a shape where the closer reads a keyword GitHub hides, which is the wrong direction under #266 | Rejected until Q3 is measured. Where GitHub does read text after a mid-line opener, A closes fewer than GitHub, which is the safe direction, and A2 would then be the narrowing Q3 calls for |
-| H. Keep an opener that never closes read as a claim, as the frame at `bc55d8da` had it | #1403 measured `<!-- Closes #32` at a line start with no `-->`, and GitHub made no reference. The closer would shut that issue when GitHub does not, which is the false record #266 guards against | Rejected on the measurement |
+| A. `COMMENT` beside `FENCE` and `SPAN` in the closer, with two arms: a closed comment wherever it stands, and an opener that never closes where only spaces, tabs and block markers stand before it on its line, running to the end of the text. `HIDDEN` is one pass over the three where the first to open wins, read by `keywords_in` and `prose_only`. `pr_body`'s tag reading takes the same blanking | The container shape and the far `-->` in *Technical context*. A comment GitHub refuses for its contents, such as one holding `--`, is masked anyway. Each masks more than GitHub, so the closer closes fewer | Chosen. It reads all three measured facts as GitHub did (#1402 to #1405), and all 35 probed shapes and the 300 measured bodies as wanted (executed, design *Grounding*). Its line-start test is one line's own text, with no block model. Where that test cannot tell what GitHub does, inside a container, it masks more, which is #266's direction. It keeps #956's finding that the readers share one definition |
+| A1. `COMMENT` running to the first `-->` or to the end of the text from any opener, the frame at `c2732fb4` | #1404 measured `see the <!-- marker` with `Closes #1247` below it, and GitHub read #1247. A1 masks it, so the closer would leave #1247 open and the completeness check would refuse a release GitHub reads as complete. That is a false refusal on a shape the tree can tell apart, since text stands before the opener on its line | Rejected on the measurement. #266's direction licenses masking more only where the tree cannot tell, and here it can |
+| A2. As A, but with CommonMark's container rules: an HTML block starts at up to three spaces of indent, or at a list item's content column, or after a block quote marker, and it ends where its container ends | The closer would carry a model of list items and quotes: where each starts, how far its content is indented, and where it ends. `skills/verify/scripts/unverified_check.py#live_lines` records what such a guess cost: "A guess at a block model fails for the same reason a guess at the comment state did, one level down". Each container the model gets wrong is either a keyword the closer reads and GitHub hides, which is the false record #266 guards against, or a mask A would also make | Rejected. Its gain over A is the container shape alone, which no measured body holds. Its cost is a block model whose every miss can fall in the wrong direction. A's misses all fall in the safe one |
+| A3. As A, but a line start allows only spaces and tabs before the opener, with no block markers | `- <!-- note` with no `-->` reads as text, while GitHub opens an HTML block inside the list item and hides the item's remaining lines. The closer would read a keyword there that GitHub hides, and close an issue GitHub does not | Rejected: it errs in the wrong direction under #266 |
+| H. Keep an opener that never closes read as a claim, as the frame at `bc55d8da` had it | #1403 and #1405 measured an opener at a line start with no `-->`, with the keyword on its own line and on the line below, and GitHub made no reference either time. The closer would shut those issues when GitHub does not, which is the false record #266 guards against | Rejected on the measurement |
 | B. Three passes in sequence: `FENCE`, then `COMMENT`, then `SPAN` | The body `` the `<!--` marker\nCloses #4\nthe `-->` end `` reads nothing, because the comment pass runs from inside the first span to inside the last. This repository's bodies name the markers in code spans, so real claims are lost (executed, `test_tmp_comment_probe.py`) | Rejected |
 | B2. Three passes in sequence: `FENCE`, then `SPAN`, then `COMMENT` | `` <!-- it's ` here --> Closes #4 and `x` `` reads nothing, because the span pass pairs the comment's backtick with a later one and masks the claim. That is today's reading of this shape too (executed, same probe) | Rejected. A reads it as GitHub does |
-| C. Replace the closer's patterns with the shared walk, `skills/verify/scripts/unverified_check.py#live_pieces` with comments on (#1185), the structure the tree keeps for every other reader of fences and comments | Two failures. First, the walk's fence rule is CommonMark's at most three spaces: `- item` then a fence indented four spaces reads `Closes #2` inside it as a claim under the line-local span reading (executed, same probe), where the closer masks it. Second, `CLOSING` matches across a newline (`Closes\n#7`), so the walk's pieces must be joined back before reading. The walk's treatment of an opener that never closes, hiding everything below it, was a third failure at `bc55d8da`. #1403 measured it as GitHub's own reading at a line start, so it no longer counts against C, and A now does the same | Rejected. The verdict no longer rests on the unclosed opener, where A and C now agree on every comment shape the probes tried. It rests on the premise that keeps the closer's own patterns, checked: `unverified_check.py:89-94` (read) lists the pull request body readers as keeping their own fence rule on purpose, opening a fence at any indentation as GitHub does, and the four-space fence shows C would change that |
+| C. Replace the closer's patterns with the shared walk, `skills/verify/scripts/unverified_check.py#live_pieces` with comments on (#1185), the structure the tree keeps for every other reader of fences and comments | Three failures. First, the walk opens a comment at any `<!--` outside a span, mid-line included, and holds it to the next `-->` or the end of the file (`unverified_check.py#_scan`, `:393-397`, read). So #1404's shape, which GitHub reads, is hidden, as in A1. Second, the walk's fence rule is CommonMark's at most three spaces: `- item` then a fence indented four spaces reads `Closes #2` inside it as a claim under the line-local span reading (executed, `test_tmp_comment_probe.py`), where the closer masks it. Third, `CLOSING` matches across a newline (`Closes\n#7`), so the walk's pieces must be joined back before reading | Rejected. It fails a measured shape, and the premise that keeps the closer's own patterns is checked: `unverified_check.py:89-94` (read) lists the pull request body readers as keeping their own fence rule on purpose, opening a fence at any indentation as GitHub does, and the four-space fence shows C would change that |
 | D. `hooks/lib/blocks.py#walk`, the hooks' walk of fences and comment blocks | It models only a comment that opens a line, so the inline comment stays a claim. It calls every line under a list marker uncertain and leaves it at the base reading, and bodies here are mostly bullets, so a comment under a bullet stays a claim | Rejected |
 | E. Mask only the measured shape, a comment alone on its line | A comment in the middle of a line, one over several lines and one under a list item stay claims. #1403 measured that GitHub reads none of them (`frame/questions.md` Q1) | Rejected on the measurement |
 | F. Leave `pr_body`'s tag reading on `SPAN` alone | `_composed`'s docstring, "blanked one way" (#1218), turns false: on one line, a keyword in a closed comment passes while a `<details>` beside it in the same comment is refused | Rejected. The tag reading follows the keyword reading, and the change is one name at `pr_body.py:631` |
@@ -71,10 +77,11 @@ measured (design *Grounding*), no body holds an unclosed opener outside code.
 
 None for a deployer. The release closer, the labeler, the completeness
 check and the release note stop taking a keyword as a claim where it stands
-inside an HTML comment or after a `<!--` that never closes. No body merged
-in the last 300 pull requests reads differently (design *Grounding*).
-`seal pr-body` stops refusing a copied line whose keyword or `details` tag
-stands after a `<!--` on that line, up to a `-->` or the line's end.
+inside an HTML comment, or below a `<!--` that never closes at a line start.
+No body merged in the last 300 pull requests reads differently (design
+*Grounding*). `seal pr-body` stops refusing a copied line whose keyword or
+`details` tag stands inside a comment that closes on that line, or after a
+`<!--` that begins the line.
 
 ## Judgments of the run
 
