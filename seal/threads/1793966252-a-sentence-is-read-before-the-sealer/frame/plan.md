@@ -49,4 +49,4 @@ The chosen approach's failure scenario, six months on: a fix written after the l
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-06 | Phase 1's hand-back named two statements of `frame/design.md` that HEAD contradicts, and both are folded: *Scope* item 1 now names the orchestrator's fold of the version move into *Operational impact* and the reworded **Where an entry accumulates** lead-in, and `## Removes` gains the row for that lead-in | the crafter wrote both to keep *Scope* item 1 whole (`trail/phases/phase-1.md`), and a frame the next crafter reads must state what HEAD holds; the orchestrator read `routing.md` and the three frame files whole against `22d0599b5` and found no other contradicted statement | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, the paragraph opening **A decision made after the frame is committed is folded** |
