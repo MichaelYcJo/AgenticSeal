@@ -17,8 +17,8 @@ This is the one walk they read.
      info string, and a closer of the same character at least as long with
      nothing after it but spaces. `fence_opener` and `fence_closes` below are
      that rule, written once: `skills/verify/scripts/unverified_check.py` and
-     the record readers ask this copy, since a hook imports nothing from
-     `skills/` and the import goes the other way (#1005).
+     the record readers ask this copy, since nothing under `hooks/lib/`
+     imports from `skills/` and the import goes the other way (#1005).
   2. An HTML comment block (4.6, type 2): a line that begins with `<!--`, to
      the first line holding `-->`, which may be the start line itself.
 
@@ -78,8 +78,8 @@ not call uncertain, over the frame's shapes and a seeded generated corpus,
 the walk and the parser agree. A context is taken off the list above only
 with that case green on documents that hold it.
 
-Standard library only, and it imports nothing: it runs on the hook path,
-where loading a skill module would cost every hook call.
+Standard library only, and it imports nothing: every reader of a record
+loads it, where loading a skill module would cost each of them a load.
 """
 
 import re

@@ -36,7 +36,7 @@ HOME = "seal"
 # classify repository-relative paths — `hooks/lib/gate.py#DOC_ROOTS`, the CI
 # scripts' globs, `chain_check.py`'s prefix — spell `seal/` as a string,
 # because a path in a diff or a tree listing is only ever the shared root;
-# every hook that opens a file joins this under `home()` instead, so #80
+# every reader that opens a file joins this under `home()` instead, so #80
 # changes where the folder is created and nothing that reads it.
 WORK_ITEMS = "threads"
 # Where each record sits in a thread, `/`-joined and relative to the thread's
