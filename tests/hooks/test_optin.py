@@ -21,14 +21,13 @@ import pytest
 from conftest import (
     KOREAN,
     ROOT,
-    bash,
     census_case,
-    declare_crafter,
     git_repo,
     home,
     legacy,
     linked_worktree,
     load_hook_module,
+    load_module,
     local_home,
     mark_root,
     run_hook,
@@ -36,6 +35,17 @@ from conftest import (
 )
 
 TARGET = "hooks/lib/optin.py"
+
+STAMP = os.path.join(ROOT, "skills", "verify", "scripts", "seal_stamp.py")
+STAMP_VALUES = {
+    "tree": "aaa1111",
+    "base": "bbb2222",
+    "from": "origin/base",
+    "item": "/x/seal/threads/1799000000-an-item",
+    "session": "s1",
+    "scale": 0.9,
+    "rows": [("SEALED", ""), None, ("tree", "aaa1111")],
+}
 
 
 @pytest.fixture
@@ -615,11 +625,16 @@ class Test_module:
     def test_a_scratch_marker_under_the_common_directory_keeps_every_gate_silent(
         self, local
     ):
-        repo, home = local
+        """The stamp's drawer, the gate that asks `opted_in` before it speaks,
+        has a stamp waiting for its session in local mode, and draws nothing
+        while the scratch marker stands under the common directory."""
+        repo, _home = local
+        stamp = load_module(STAMP, "seal_stamp_for_the_scratch_marker")
+        stamp.write_values(str(repo / ".git"), "s1", STAMP_VALUES)
         (repo / ".git" / "agentic-scratch").write_text("", encoding="utf-8")
-        declare_crafter(repo, home)
+        stop = {"hook_event_name": "Stop", "session_id": "s1", "cwd": str(repo)}
 
-        assert run_hook("implementer-notice.py", bash(repo)) == ""
+        assert run_hook("sealer-stamp.py", stop) == ""
 
 
 test_census = census_case(TARGET)

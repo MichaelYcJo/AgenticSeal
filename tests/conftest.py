@@ -1141,16 +1141,6 @@ def commit_everything_as_e(repo, message):
     return git_out(repo, "rev-parse", "HEAD")
 
 
-def branch_of(repo):
-    """The branch REPO's HEAD is on, or `HEAD` when it is detached."""
-    return git(repo, "rev-parse", "--abbrev-ref", "HEAD", check=False).stdout.strip()
-
-
-def git_dir(repo):
-    """REPO's git directory, an absolute path."""
-    return git(repo, "rev-parse", "--absolute-git-dir", check=False).stdout.strip()
-
-
 def linked_worktree(repo, tmp_path):
     """A worktree of REPO at TMP_PATH/linked, on `feature/x`."""
     other = tmp_path / "linked"
@@ -1174,11 +1164,6 @@ def write(root, rel, text):
     path = pathlib.Path(root) / rel
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
-
-
-def opt_in(repo):
-    """REPO opted in to the workflow, in shared mode."""
-    mark_root(repo / "seal")
 
 
 def staged_repo(path, declared=False, review="straight to the PR"):
@@ -1497,76 +1482,6 @@ def legacy(repo):
 
 def scratch(repo):
     (repo / ".git" / "agentic-scratch").write_text("", encoding="utf-8")
-
-
-# --- the implementer family's declaration and calls -----------------------------
-
-ITEM = "1788137177-a-work-item"
-
-
-def run_dispatch(group, payload, hooks=HOOKS):
-    r = subprocess.run(
-        [sys.executable, os.path.join(hooks, "dispatch.py"), group],
-        input=json.dumps(payload),
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=30,
-    )
-    return r.stdout
-
-
-def declare(repo, implementation="crafter", item=ITEM, planning=None):
-    """A declaration for this repo's branch; a `None` answer omits its row."""
-    d = mark_root(repo / "seal") / "threads" / item
-    d.mkdir(parents=True, exist_ok=True)
-    third = f"| Implementation | {implementation} |\n" if implementation else ""
-    fourth = f"| Planning | {planning} |\n" if planning else ""
-    (d / "routing.md").write_text(
-        f"# {item} -- routing\n\n"
-        "| Axis | Answer |\n|---|---|\n"
-        "| Review | through the review chain |\n"
-        "| Destination | open the pull request |\n"
-        f"{fourth}"
-        f"{third}"
-        f"| Branch | {branch_of(repo)} |\n",
-        encoding="utf-8",
-    )
-    return d
-
-
-def declare_crafter(repo, home, item=ITEM):
-    """A declaration under `home` whose third axis says `crafter`."""
-    d = mark_root(home) / "threads" / item
-    d.mkdir(parents=True, exist_ok=True)
-    (d / "routing.md").write_text(
-        f"# {item} -- routing\n\n"
-        "| Axis | Answer |\n|---|---|\n"
-        "| Review | through the review chain |\n"
-        "| Destination | open the pull request |\n"
-        "| Implementation | crafter |\n"
-        f"| Branch | {branch_of(repo)} |\n",
-        encoding="utf-8",
-    )
-    return d
-
-
-def spawn(repo, agent="agentic:crafter", session="s1", **extra):
-    return {
-        "tool_name": "Agent",
-        "session_id": session,
-        "tool_input": {"subagent_type": agent, "prompt": "build it", **extra},
-        "cwd": str(repo),
-    }
-
-
-def bash(repo, cmd="git commit -m x", session="s1"):
-    return {
-        "tool_name": "Bash",
-        "session_id": session,
-        "tool_input": {"command": cmd},
-        "cwd": str(repo),
-    }
 
 
 # --- a console the gates cannot encode to --------------------------------------

@@ -1,26 +1,6 @@
 {
   "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Agent|Task",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/dispatch.py\" pre-agent || py -3 \"${CLAUDE_PLUGIN_ROOT}/hooks/dispatch.py\" pre-agent"
-          }
-        ]
-      }
-    ],
     "PostToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/dispatch.py\" post-bash || py -3 \"${CLAUDE_PLUGIN_ROOT}/hooks/dispatch.py\" post-bash"
-          }
-        ]
-      },
       {
         "matcher": "Write|Edit",
         "hooks": [

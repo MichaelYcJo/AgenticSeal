@@ -226,6 +226,14 @@ It stays visible in use where the root is shared: every commit it covers
 says `no work item` in its trailer, and the pull request's check prints each
 one.
 
+**Question 1 is put every time, whatever the ladder reads, and the answer
+the ladder reads is marked.** The person chooses the route, even for a typo
+fix. Before putting it, the orchestrator reads the work on the ladder of
+*Orchestrator: when a work item is required* below: on its last rung it
+marks `no work item`, and on either rung above it marks `automation`. The
+mark is ` (Recommended)` after the label, and the options keep the order of
+the table above, so the exit stays last.
+
 ### Question 2
 
 A `multiSelect` question, asked only under `per axis`.
@@ -303,9 +311,10 @@ ladder decides, so the framer runs only where *Orchestrator: when a work
 item is required* below calls for a `frame/design.md`. The orchestrator fills the row
 from what happened: `framer` where the subagent drew the frame, `the session`
 where the orchestrator drew it, and no row where the ladder called for no
-frame. A wrong answer here is contradicted by nothing, which is why
-`hooks/implementer-notice.py` says one line after a commit when a declared
-agent left no mark, for this row and for `Implementation` together.
+frame. A wrong answer here is read against the record the run left:
+`chain_check.py` refuses a `framer` row whose `frame/design.md` mark names
+anyone else, and the sealer withholds where `Implementation` names `crafter`
+and a closed phase has no record (`agents/sealer.md` step 4).
 
 **The routing question is the orchestrator's, whether or not a framer runs.**
 A subagent in this harness has no `AskUserQuestion` and no equivalent, so a

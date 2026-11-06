@@ -82,8 +82,6 @@ CLOSING = (
 )
 
 GROUPS = {
-    "pre-agent": ("implementer-mark.py",),
-    "post-bash": ("implementer-notice.py",),
     # `sealer-stamp-queue.py` queues a work item's stamp at the write of its
     # `sealed` guarantee, under either root (work item 1792363231, #1027);
     # `sealer-stamp.py` in `stop` draws it.
@@ -145,9 +143,7 @@ def run_gate(filename, payload):
         # if the gate had printed nothing. What changed with #28 is that the
         # failure no longer reads like an allow to NOBODY: `main()` writes it
         # down and the `stop` group says it once per session. The isolation
-        # property `tests/hooks/test_dispatch.py` and
-        # `tests/hooks/test_implementer_mark.py` assert is unchanged, and
-        # both cases pass unedited.
+        # property `tests/hooks/test_dispatch.py` asserts is unchanged.
         return ""
     finally:
         sys.argv, sys.stdin = argv, stdin

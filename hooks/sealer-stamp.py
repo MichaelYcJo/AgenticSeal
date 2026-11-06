@@ -48,8 +48,7 @@ carries is read as nothing.
 hooks racing for one file draw it once, and a crash between the two loses a
 drawing rather than repeating one.
 
-**Silent on every failure**, the shape `implementer-notice.py` has: a payload
-that is not JSON, a repository that is not opted in, a file that is not a
+**Silent on every failure**: a payload that is not JSON, a repository that is not opted in, a file that is not a
 stamp's values. That includes a `python3` that cannot load `seal_stamp.py` —
 a hook runs under whatever `python3` the harness finds, and no launcher
 stands in front of it — where this draws nothing and the edit gate's
@@ -58,9 +57,9 @@ is what remains where the main session's working directory is outside the
 clone the stamp was queued in, and where its plugin predates this hook; `docs/checks/the-stamp.md` *The
 stamp* states these and the places no file is written at all.
 
-It draws; it never stops anything. `hooks/lib/implementer.py`'s stance holds: a
-values file somebody wrote by hand would be drawn, because this catches a
-session forgetting and does not stop an adversary.
+It draws; it never stops anything. A values file somebody wrote by hand
+would be drawn, because this shows a person what a session sealed and does
+not stop an adversary.
 """
 
 import importlib.util

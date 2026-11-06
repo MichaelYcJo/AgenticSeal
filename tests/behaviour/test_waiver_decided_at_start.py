@@ -393,6 +393,26 @@ def test_question_1_is_asked_alone_and_the_boxes_only_under_per_axis():
     assert SHAPE in flat(skill)
 
 
+def test_question_1_is_put_every_time_with_the_ladders_answer_marked():
+    """#1376 phase 4, the owner's rule of 2026-11-06: the person chooses the
+    route even for a small change, so the ladder no longer skips question 1.
+    It reads which answer the orchestrator marks, and the options keep their
+    order, so the exit stays last. The entry names the paragraph and keeps
+    no step that makes a change before the question is put."""
+    skill = flat(read(*ORCH))
+    for phrase in (
+        "Question 1 is put every time, whatever the ladder reads",
+        "on its last rung it marks `no work item`, and on either rung above "
+        "it marks `automation`",
+        "The mark is ` (Recommended)` after the label",
+        "the options keep the order of the table above",
+    ):
+        assert phrase in skill, phrase
+    entry = flat(read("skills", "start", "SKILL.md"))
+    assert "*Question 1* states it, with the answer the ladder reads marked" in (entry)
+    assert "The steps below are then not taken" not in entry
+
+
 def test_the_boxes_are_in_the_stated_order():
     """S5. The first box is a property of the run; the three below name
     parties, in the order they run.
@@ -700,7 +720,7 @@ def test_no_committed_declaration_still_carries_a_template_placeholder():
 
     The `Branch` row is the contrast that shows this is a real gap rather
     than a tidy one: leaving ITS placeholder produces a branch name nothing
-    matches, `for_branch` finds no declaration, and the pull request's check
+    matches, no declaration names the branch, and the pull request's check
     reads that branch as undeclared. The third axis has no such reader, so the placeholder
     would sit in the record forever, reading to a person as an answer."""
     import glob

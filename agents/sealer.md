@@ -89,6 +89,10 @@ return.
    step 2 reads, tell one story. Where two disagree,
    name the one the issue body and the tree contradict. Where those cannot
    decide it, the verdict is `undecided`, with the question for the owner.
+   Where `routing.md`'s `Implementation` row reads `crafter`, every phase of
+   `frame/plan.md` whose Status cell holds a commit has its
+   `trail/phases/phase-N.md`, and a declared party that left no record is a
+   `withheld` reason naming the phase.
    A finding of the last record that reads `fixed <commit>`, which the check
    passes only where the finding is located in `seal/threads/<item>/` alone
    and its commit touched nothing outside it, was read by no round: it is

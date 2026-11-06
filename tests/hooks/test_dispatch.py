@@ -162,19 +162,6 @@ def edit(repo, session, **extra):
     return body
 
 
-def spawn(repo, session, **extra):
-    """A `pre-agent` payload: a spawn whose `subagent_type` no mark records."""
-    body = {
-        "hook_event_name": "PreToolUse",
-        "tool_name": "Agent",
-        "session_id": session,
-        "tool_input": {"subagent_type": "proofer"},
-        "cwd": str(repo),
-    }
-    body.update(extra)
-    return body
-
-
 def stop(hooks, repo, session, **extra):
     body = {"hook_event_name": "Stop", "session_id": session, "cwd": str(repo)}
     body.update(extra)
@@ -444,9 +431,9 @@ class Test_classify:
         survive beside a deny and end a group beside a message, so each shape
         is planted beside both. The output is dropped, the group decides as it
         would without it, and the gate is said at turn end. No group registers
-        two gates, so the neighbour that denies joins `pre-agent` and the
-        neighbour that says a message joins `post-edit`, each in a dispatcher
-        this case loads from the copy."""
+        two gates, so the neighbour that denies joins a planted `pre-planted`
+        group and the neighbour that says a message joins `post-edit`, each in
+        a dispatcher this case loads from the copy."""
         opted_in(repo)
 
         def run(hooks, name, group, gates, body):
@@ -474,9 +461,9 @@ class Test_classify:
             out = run(
                 hooks,
                 f"dispatch_for_the_shape_{n}",
-                "pre-agent",
+                "pre-planted",
                 ("neighbour.py", "shape.py"),
-                spawn(repo, session),
+                bash(repo, session),
             )
             assert decision_of(out) == "deny", (shape, out)
             out = run(
@@ -489,7 +476,7 @@ class Test_classify:
             assert json.loads(out) == {"systemMessage": "m"}, shape
             lines = said(stop(hooks, repo, session))
             assert lines[1].startswith(
-                "shape.py failed while running in pre-agent (ValueError: printed "
+                "shape.py failed while running in pre-planted (ValueError: printed "
                 "JSON the dispatcher cannot read: "
             ), (shape, lines)
             assert gates_said(lines) == ["shape.py", "sealer-stamp-queue.py"], lines
@@ -603,13 +590,13 @@ class Test_opted_in:
         self, repo, tmp_path
     ):
         """S6b. `optin.py` is what the report asks whether to speak, and it is
-        the broken module: "cannot tell" writes the record. `sealer-stamp.py`
-        fails in the `stop` group itself and is said in the same invocation."""
+        the broken module: "cannot tell" writes the record. `sealer-stamp.py`,
+        the one gate that imports it, fails in the `stop` group itself and is
+        said in the same invocation."""
         opted_in(repo)
         hooks = hooks_copy(tmp_path, {"lib/optin.py": BROKEN})
-        dispatch(hooks, "pre-agent", spawn(repo, "s-x"))
         lines = said(stop(hooks, repo, "s-x"))
-        assert gates_said(lines) == ["implementer-mark.py", "sealer-stamp.py"], lines
+        assert gates_said(lines) == ["sealer-stamp.py"], lines
         assert "sealer-stamp.py failed to load in stop (SyntaxError: " in "\n".join(
             lines
         ), lines
@@ -677,18 +664,18 @@ class Test_record:
             "post-edit",
             [
                 ("sealer-stamp-queue.py", "run", wide("x")),
-                ("implementer-mark.py", "load", astral("z")),
+                ("sealer-stamp.py", "load", astral("z")),
             ],
             edit(repo, "s-x"),
         )
         directory = repo / ".git" / RECORDS / "s-x"
         written = {
             name: json.loads((directory / name).read_text(encoding="utf-8"))["error"]
-            for name in ("sealer-stamp-queue.py.pending", "implementer-mark.py.pending")
+            for name in ("sealer-stamp-queue.py.pending", "sealer-stamp.py.pending")
         }
         assert written == {
             "sealer-stamp-queue.py.pending": "N" * 40,
-            "implementer-mark.py.pending": "y" + ASTRAL * 19,
+            "sealer-stamp.py.pending": "y" + ASTRAL * 19,
         }, written
         assert all(units(name) <= d.NAME_CAP for name in written.values())
         body = json.loads(
@@ -759,8 +746,8 @@ class Test_describe:
     ):
         """Round 1's 🟡 1. A load failure belongs to the file, so it fails in
         every group that loads it, and the record is written once, by the first:
-        the line names every group the gate sits in, so one `pre-agent` failure
-        of a gate `post-bash` loads too does not read as a gap at one event
+        the line names every group the gate sits in, so one `pre-x` failure
+        of a gate `post-x` loads too does not read as a gap at one event
         alone. A group where the gate stands alone is named among the failures
         and not among the groups whose other gates decided. No gate sits in
         two groups of today's `GROUPS`, so the case plants the groups it
@@ -770,16 +757,16 @@ class Test_describe:
             d,
             "GROUPS",
             {
-                "pre-agent": ("two.py", "implementer-mark.py"),
-                "post-bash": ("two.py", "implementer-notice.py"),
+                "pre-x": ("two.py", "first.py"),
+                "post-x": ("two.py", "second.py"),
                 "post-edit": ("alone.py", "sealer-stamp-queue.py"),
                 "stop": ("alone.py",),
             },
         )
-        two = {"group": "pre-agent", "phase": "load", "error": "SyntaxError"}
+        two = {"group": "pre-x", "phase": "load", "error": "SyntaxError"}
         assert d.describe("two.py", two) == (
-            "two.py failed to load in pre-agent and post-bash (SyntaxError); calls "
-            "went ahead without it, and the other gates in pre-agent and post-bash "
+            "two.py failed to load in pre-x and post-x (SyntaxError); calls "
+            "went ahead without it, and the other gates in pre-x and post-x "
             "still decided."
         )
         alone = {"group": "post-edit", "phase": "load", "error": "SyntaxError"}
@@ -790,10 +777,10 @@ class Test_describe:
         )
         # A failure while running depends on the payload, so the same two-group
         # gate failing in `main()` names only the group it was seen in.
-        ran = {"group": "post-bash", "phase": "run", "error": "E"}
+        ran = {"group": "post-x", "phase": "run", "error": "E"}
         assert d.describe("two.py", ran) == (
-            "two.py failed while running in post-bash (E); calls went ahead "
-            "without it, and the other gates in post-bash still decided."
+            "two.py failed while running in post-x (E); calls went ahead "
+            "without it, and the other gates in post-x still decided."
         )
 
     def test_accepts_a_record_another_version_wrote_with_its_own_group_and_a_capped_gate(
@@ -806,11 +793,11 @@ class Test_describe:
         like the type name. Seen red at `64196684`."""
         d = load(os.path.join(HOOKS, "dispatch.py"), "dispatch_for_the_foreign_record")
         moved = d.describe(
-            "implementer-mark.py", {"group": "session-start", "phase": "load"}
+            "sealer-stamp.py", {"group": "session-start", "phase": "load"}
         )
-        assert moved.startswith(
-            "implementer-mark.py failed to load in session-start;"
-        ), moved
+        assert moved.startswith("sealer-stamp.py failed to load in session-start;"), (
+            moved
+        )
         long = d.describe("g" * 120, {"group": "post-edit", "phase": "run"})
         assert long.startswith("g" * d.NAME_CAP + " failed while running"), long
         astral = d.describe("y" + ASTRAL * 60, {"phase": "run"})
@@ -873,37 +860,31 @@ class Test_draw:
     @pytest.mark.parametrize(
         "broken, named",
         [
-            ({"lib/cmdline.py": BROKEN}, ["implementer-notice.py"]),
             (
-                {"lib/implementer.py": BROKEN},
-                ["implementer-mark.py", "implementer-notice.py"],
+                {"lib/console.py": BROKEN},
+                ["sealer-stamp-queue.py", "sealer-stamp.py"],
             ),
+            ({"lib/optin.py": BROKEN}, ["sealer-stamp.py"]),
         ],
-        ids=["cmdline", "implementer"],
+        ids=["console", "optin"],
     )
     def test_accepts_every_gate_a_broken_shared_module_breaks_and_no_other(
         self, repo, tmp_path, broken, named
     ):
         """S6. A broken shared reader names every gate that imports it, once, and
-        no gate that does not. `cmdline.py` is imported by
-        `implementer-notice.py` alone, and `implementer.py` by both implementer
-        gates; `sealer-stamp.py`, which the `stop` that says them runs, imports
-        neither. Each reader is broken on its own: breaking them only together
-        would lose the per-module "no gate that does not" (round 2 of
+        no gate that does not. `console.py` is imported by both stamp gates,
+        and `optin.py` by `sealer-stamp.py` alone, which the `stop` that says
+        them runs. Each reader is broken on its own: breaking them only
+        together would lose the per-module "no gate that does not" (round 2 of
         1790745049, white 4)."""
         opted_in(repo)
         hooks = hooks_copy(tmp_path, broken)
-        dispatch(hooks, "pre-agent", spawn(repo, "s-x"))
-        dispatch(
-            hooks,
-            "post-bash",
-            bash(repo, "s-x", command="ls", hook_event_name="PostToolUse"),
-        )
+        dispatch(hooks, "post-edit", edit(repo, "s-x"))
         # Every record gets one file time, as a file system with coarse times
         # gives records written in one call (Windows CI did): the order said is
         # the order the gates failed, which each record carries itself.
-        for path in (repo / ".git" / RECORDS / "s-x").iterdir():
-            os.utime(path, ns=(10**18, 10**18))
+        for name in records(repo, "s-x"):
+            os.utime(repo / ".git" / RECORDS / "s-x" / name, ns=(10**18, 10**18))
         lines = said(stop(hooks, repo, "s-x"))
         label = (
             LABEL_ONE
@@ -927,8 +908,8 @@ class Test_draw:
         directory.mkdir(parents=True)
         carried = (
             ("sealer-stamp-queue.py", [10**18, 0]),
-            ("implementer-notice.py", [10**18, 1]),
-            ("implementer-mark.py", [10**18 + 5, 0]),
+            ("gone-b.py", [10**18, 1]),
+            ("gone-a.py", [10**18 + 5, 0]),
         )
         for gate, at in carried:
             path = directory / (gate + ".pending")
@@ -939,7 +920,7 @@ class Test_draw:
         # An `at` that is not two integers is read as absent, not compared.
         for gate, body, seconds in (
             ("sealer-stamp.py", {"group": "stop", "at": ["late", 1]}, 1),
-            ("older-gate.py", {"group": "post-bash"}, 2),
+            ("older-gate.py", {"group": "post-x"}, 2),
         ):
             old = directory / (gate + ".pending")
             old.write_text(json.dumps(body), encoding="utf-8")
@@ -947,8 +928,8 @@ class Test_draw:
         lines = said(stop(hooks_copy(tmp_path, {}), repo, "s-x"))
         assert gates_said(lines) == [
             "sealer-stamp-queue.py",
-            "implementer-notice.py",
-            "implementer-mark.py",
+            "gone-b.py",
+            "gone-a.py",
             "sealer-stamp.py",
             "older-gate.py",
         ], lines
@@ -964,8 +945,8 @@ class Test_draw:
         planted = {
             "older-gate.py": "not json",
             "sealer-stamp.py": "[1]",
-            "implementer-notice.py": json.dumps({"group": 5, "phase": "load"}),
-            "implementer-mark.py": json.dumps({"error": "OSError"}),
+            "gone-b.py": json.dumps({"group": 5, "phase": "load"}),
+            "gone-a.py": json.dumps({"error": "OSError"}),
             "sealer-stamp-queue.py": json.dumps(
                 {"group": "post-edit\nstop", "error": "E", "message": "a\n  b"}
             ),
@@ -981,8 +962,8 @@ class Test_draw:
         assert lines[1:-1] == [
             "older-gate.py failed; calls went ahead without it.",
             "sealer-stamp.py failed; calls went ahead without it.",
-            "implementer-notice.py failed to load; calls went ahead without it.",
-            "implementer-mark.py failed (OSError); calls went ahead without it.",
+            "gone-b.py failed to load; calls went ahead without it.",
+            "gone-a.py failed (OSError); calls went ahead without it.",
             "sealer-stamp-queue.py failed in post-edit stop (E: a b); calls went "
             "ahead without it.",
         ], lines
@@ -1013,18 +994,12 @@ class Test_draw:
         its failure is recorded under the main session. A `Stop`-shaped payload
         naming an agent is a subagent's end, and draws nothing."""
         opted_in(repo)
-        hooks = hooks_copy(tmp_path, {"implementer-notice.py": BROKEN})
-        dispatch(
-            hooks,
-            "post-bash",
-            bash(
-                repo, "s-x", command="ls", hook_event_name="PostToolUse", agent_id="a-1"
-            ),
-        )
-        assert records(repo, "s-x") == ["implementer-notice.py.pending"]
+        hooks = hooks_copy(tmp_path, {"sealer-stamp-queue.py": BROKEN})
+        dispatch(hooks, "post-edit", edit(repo, "s-x", agent_id="a-1"))
+        assert records(repo, "s-x") == ["sealer-stamp-queue.py.pending"]
         assert stop(hooks, repo, "s-x", agent_id="a-1") == ""
         assert stop(hooks, repo, "s-x", hook_event_name="SubagentStop") == ""
-        assert records(repo, "s-x") == ["implementer-notice.py.pending"]
+        assert records(repo, "s-x") == ["sealer-stamp-queue.py.pending"]
         assert said(stop(hooks, repo, "s-x"))[0] == LABEL_ONE
 
 
@@ -1123,14 +1098,14 @@ class Test_report:
 
 class Test_main:
     def test_accepts_a_group_and_reaches_the_gate_inside_it(self, repo, tmp_path):
-        hooks = hooks_copy(tmp_path, {"implementer-mark.py": DENIES})
-        assert decision_of(dispatch(hooks, "pre-agent", spawn(repo, "s1"))) == "deny"
+        hooks = hooks_copy(tmp_path, {"sealer-stamp-queue.py": DENIES})
+        assert decision_of(dispatch(hooks, "post-edit", edit(repo, "s1"))) == "deny"
 
     def test_accepts_a_gate_with_nothing_to_say_and_leaves_the_group_silent(self, repo):
-        # An opted-in repository and a spawn no mark records: the live gate
-        # has nothing to say, and the group prints nothing.
+        # An opted-in repository and an edit of a file that is no guarantee:
+        # the live gate has nothing to say, and the group prints nothing.
         mark_root(repo / "seal")
-        assert run_dispatch("pre-agent", spawn(repo, "s1")).strip() == ""
+        assert run_dispatch("post-edit", edit(repo, "s1")).strip() == ""
 
     @pytest.mark.parametrize("encoding", HOSTILE)
     def test_accepts_a_payload_the_console_cannot_decode_and_reaches_a_verdict(
@@ -1148,13 +1123,13 @@ class Test_main:
         Measured against a tree with the reconfigure removed: `exit 1`, stdout
         empty, `UnicodeDecodeError: 'cp949' codec can't decode byte 0xed`.
         """
-        hooks = hooks_copy(tmp_path, {"implementer-mark.py": DENIES_WITH_THE_COMMAND})
+        hooks = hooks_copy(tmp_path, {"sealer-stamp-queue.py": DENIES_WITH_THE_COMMAND})
         command = f"git commit -m {KOREAN}"
         r = dispatch_under(
             hooks,
-            "pre-agent",
+            "post-edit",
             {
-                "tool_name": "Agent",
+                "tool_name": "Edit",
                 "session_id": f"ko-{encoding}",
                 "cwd": str(korean_repo),
                 "tool_input": {"command": command},
@@ -1177,12 +1152,12 @@ class Test_main:
     def test_refuses_an_unknown_group_where_a_known_groups_gates_would_deny(
         self, repo, tmp_path
     ):
-        """A copy whose `pre-agent` gate denies every call, so a dispatcher
+        """A copy whose `post-edit` gate denies every call, so a dispatcher
         that ran a known group's gates for a group it does not know would
         deny this one too. It says nothing."""
-        hooks = hooks_copy(tmp_path, {"implementer-mark.py": DENIES})
-        body = spawn(repo, "s1")
-        assert decision_of(dispatch(hooks, "pre-agent", body)) == "deny"
+        hooks = hooks_copy(tmp_path, {"sealer-stamp-queue.py": DENIES})
+        body = edit(repo, "s1")
+        assert decision_of(dispatch(hooks, "post-edit", body)) == "deny"
         assert dispatch(hooks, "pre-nothing", body).strip() == ""
 
     def test_accepts_the_stop_group_and_names_its_event(self, monkeypatch, capsys):
@@ -1212,16 +1187,15 @@ class Test_module:
         waiver to git, nor the installer, the stub remover or the move of an
         earlier layout (work item 1793438028). S1 of work item 1793240967: no
         group reads a command or a spawn for a branch switch or a worktree
-        creation, so `pre-agent` holds the mark alone and no group answers
-        `PostToolUse` for an Agent call.
+        creation, and no group answers a spawn or a command at all (#1376):
+        `GROUPS` holds the two stamp groups alone.
 
         The gates that wrote a clone's git hooks or carried a waiver to git
         stay out of every group and off disk, and `hooks/git/` stays gone:
         this plugin writes nothing into a clone's git hooks
         (`docs/checks/the-routing-check.md`)."""
         d = dispatch_module()
-        assert d.GROUPS["pre-agent"] == ("implementer-mark.py",)
-        assert "post-agent" not in d.GROUPS
+        assert sorted(d.GROUPS) == ["post-edit", "stop"], d.GROUPS
         assert not any("install" in g for gates in d.GROUPS.values() for g in gates)
         everywhere = {g for gates in d.GROUPS.values() for g in gates}
         for gone in ("hook-install.py", "answer-write.py", "answer-clear.py"):

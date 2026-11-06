@@ -145,6 +145,10 @@ def test_the_marketplace_describes_the_plugin_in_the_manifests_words():
         marketplace = json.load(f)
     source = manifest["description"]
     assert source, "plugin.json has no description"
+    # #1376 phase 4: a run stops for what only the owner can decide
+    # (`docs/running/the-run.md` *The run*), so the published sentence makes
+    # no promise that nobody is asked.
+    assert "without asking anyone" not in source, source
     assert marketplace.get("description") == source, "marketplace.json, top level"
     entries = [p for p in marketplace["plugins"] if p.get("name") == manifest["name"]]
     assert len(entries) == 1, entries
@@ -321,6 +325,33 @@ def test_a_plain_review_request_is_the_review_skills_and_the_typed_command_is_no
         "a person typing `/code-review` by name, which runs Claude Code's"
         " built-in command and not this skill" in head
     )
+
+
+def test_a_plain_request_to_change_code_is_the_entrys():
+    """Contract rule 14, for #1376 phase 4. The owner's rule of 2026-11-06:
+    where this plugin is installed, the entry takes a plain request to change
+    code first, and the routing question is where the person chooses the
+    route. So the entry is no longer user-invoked, and its description is
+    the one place the model reads that rule."""
+    with open(os.path.join(ROOT, "skills", "start", "SKILL.md"), encoding="utf-8") as f:
+        head = " ".join(f.read().split("\n---\n", 1)[0].split())
+    assert "disable-model-invocation" not in head
+    assert "Use when: a person asks, in plain words, to change code" in head
+    assert "or types `/agentic:start <issue or request>`" in head
+    assert "NOT for: a question about how code works" in head
+
+
+def test_the_review_skill_opens_the_core_once_where_it_orchestrates():
+    """#1376 phase 4. A plain review request reaches `code-review` and not
+    the entry, so where it orchestrates a review it opens the core itself,
+    by the entry's first step rather than a copy of it."""
+    from conftest import flat
+
+    text = flat("skills", "code-review", "SKILL.md")
+    assert (
+        "A session orchestrating a review run first opens the core once, as "
+        "`skills/start/SKILL.md` *1. Open the core once* says"
+    ) in text
 
 
 # The row each edition lists the skills in. Scoping to the row is not

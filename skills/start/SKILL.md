@@ -1,17 +1,28 @@
 ---
 name: start
-description: Start a piece of work through the AgenticSeal workflow. Opens the core, asks the routing question once, writes the work item's routing.md before the first edit, then runs the work as the orchestrator.
-disable-model-invocation: true
+description: |
+  Starts a piece of work through the AgenticSeal workflow: opens the core,
+  puts the routing question, writes the work item's routing.md before the
+  first edit, then runs the work as the orchestrator.
+  Use when: a person asks, in plain words, to change code in a repository
+  where this plugin is installed, such as to fix a bug, add or change a
+  feature, refactor, or work an issue, as in "fix #42" or "이 기능 고쳐줘";
+  or types `/agentic:start <issue or request>`.
+  NOT for: a question about how code works, a request to review a PR, a diff
+  or a branch (`code-review`), or a session already orchestrating a work
+  item, which follows `skills/implement/orchestration.md`.
 ---
 
 # /agentic:start, where the workflow starts
 
-The person types `/agentic:start <issue or request>`, and the session
-running it becomes the orchestrator of that work. Typing the command and
-answering question 1 is the person's consent to the run's agents and the
-tokens they spend. A session that never types it opens no core, declares
-nothing and is outside the workflow, which the first paragraph of
-`skills/core/SKILL.md` allows of a session doing other work.
+Where this plugin is installed, a plain request to change code reaches this
+skill first, and so does a person typing `/agentic:start <issue or
+request>`. The session running it becomes the orchestrator of that work,
+and the routing question is where the person chooses the route. Invoking
+this skill and answering question 1 is the person's consent to the run's
+agents and the tokens they spend. A session this skill never reached opens
+no core, declares nothing and is outside the workflow, which the first
+paragraph of `skills/core/SKILL.md` allows of a session doing other work.
 
 Every path below is the plugin's, relative to `${CLAUDE_PLUGIN_ROOT}`, the
 directory two above the base directory the harness printed with this file,
@@ -20,8 +31,9 @@ each section it follows and copies none of them.
 
 The request is: $ARGUMENTS
 
-Where nothing follows the command, ask the person which issue or request to
-work on, and go on once they name one.
+Where that is empty, the request is the person's message that brought the
+session here. Where neither names the work, ask the person which issue or
+request to work on, and go on once they name one.
 
 ## Procedure
 
@@ -43,18 +55,18 @@ marker stands at `<repo>/seal/` or at
 ticket* says, with the documents `skills/implement/SKILL.md` *1. Read the
 documents that outrank the code first* names.
 
-**4. Decide whether a work item opens.** Judge the work on the ladder of
+**4. Read the work on the ladder.** Judge it on the ladder of
 `skills/implement/orchestration.md` *Orchestrator: when a work item is
-required*. Where the ladder puts the change on its last rung, no work item
-opens: say so to the person, and make the change as the third answer of
-*Question 1* describes, its commits' trailer among it. The steps below are
-then not taken.
+required*, for which answer of question 1 to mark. The ladder never skips
+the question.
 
 **5. Ask once.** Put the batch of `skills/implement/orchestration.md`
 *Orchestrator: what needs a person is asked in one batch, before the first
-edit*, with question 1 put as *Question 1* states it, `automation` first,
-and the boxes of *Question 2* only under `per axis`, as *Orchestrator: how
-the work is routed* says.
+edit*, with question 1 put as *Question 1* states it, with the answer the
+ladder reads marked, and the boxes of *Question 2* only under `per axis`,
+as *Orchestrator: how the work is routed* says. Where the person answers
+`no work item`, make the change as the third answer of *Question 1*
+describes, its commits' trailer among it, and take none of the steps below.
 
 **6. Write the declaration before the first edit.** Branch as *Orchestrator:
 the order inside a ticket* step 1 says, write

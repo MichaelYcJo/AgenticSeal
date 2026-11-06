@@ -18,8 +18,8 @@ first edit.
 check: tests/hooks/test_dispatch.py
 
 **A session that declares nothing is not caught, in shared mode as in
-local.** A session that never types `/agentic:start` edits and commits as it
-would without the plugin. At a shared root its commits carry no
+local.** A session the entry skill, `skills/start/SKILL.md`, never reached
+edits and commits as it would without the plugin. At a shared root its commits carry no
 `Seal-Routing` trailer, so *At the pull request* below judges none of them;
 at a local root no declaration is committed for anything to read. That is a
 limit, and no mechanism is kept against it: what the pull request's check

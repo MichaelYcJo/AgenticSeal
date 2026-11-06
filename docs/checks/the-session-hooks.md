@@ -1,9 +1,8 @@
 # The session hooks
 
-Authority for how the hooks are registered and for the implementer mark.
-Where a session's routing is checked is `docs/checks/the-routing-check.md`. The
-review run the hooks serve is `docs/running/the-run.md`. Update spec and
-code together.
+Authority for how the hooks are registered. Where a session's routing is
+checked is `docs/checks/the-routing-check.md`. The review run the hooks
+serve is `docs/running/the-run.md`. Update spec and code together.
 
 ## Registration
 
@@ -49,24 +48,3 @@ directory holds back a plugin whose hook can approve a call or change its
 input, and no gate here needs to do either: a gate that has nothing to
 refuse prints nothing, and Claude Code's own permission flow decides.
 check: tests/hooks/test_dispatch.py
-
-## The implementer mark and notice
-
-**A `framer` or `crafter` spawn leaves a mark, and a commit on a branch whose
-declaration names that agent, with no mark standing, gets one line saying
-so.** The two axes of the routing declaration that name an agent,
-`Planning` and `Implementation`, each answer an agent's name or
-`the session`. Two hooks share one address module, `hooks/lib/implementer.py`,
-for both axes.
-
-| Hook | Fires | Does |
-|---|---|---|
-| `implementer-mark` (`pre-agent`) | an Agent or Task spawn whose `subagent_type` is `framer` or `crafter` | writes the name of the branch checked out, else of the branch a paused rebase names, to `<git-dir>/agentic-planner` or `<git-dir>/agentic-implementer`, and prints nothing |
-| `implementer-notice` (`post-bash`) | a command that invokes `git commit` | where the branch's declaration names an agent on an axis and no mark of that axis stands for the branch, prints one line naming the file, one line for both axes where both are unfulfilled, once per session per repository; silent for an axis whose mark stands, whose row is absent or outside its vocabulary, or which answers `the session` |
-
-Neither hook can deny or ask. A mark is keyed on the branch, because a work
-item commits many times, and on the axis, because `crafter` is spawned on
-nearly every work item. It lives in the git directory, so nothing at the
-pull request reads either axis. Everything fails toward no mark, which is
-toward the reminder.
-check: tests/hooks/test_implementer_mark.py tests/hooks/test_implementer_notice.py

@@ -58,7 +58,7 @@ and the citation gives the reason.
 | `docs/checks/the-fold.md` | what `seal settle` and `seal fold` read to tell a settle from a deletion |
 | `docs/checks/the-unverified-record.md` | what `unverified_check.py` reads, and the states in which it reads no row |
 | `docs/checks/the-routing-check.md` | where a session's routing is checked, at the pull request alone, and the session it does not catch |
-| `docs/checks/the-session-hooks.md` | how the hooks are registered, and what the implementer mark says |
+| `docs/checks/the-session-hooks.md` | how the hooks are registered |
 
 ## docs/layout/
 

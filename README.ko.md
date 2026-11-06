@@ -5,8 +5,8 @@
 
 # AgenticSeal
 
-아무에게도 묻지 않고 변경을 설계하고, 만들고, 검사한 뒤, 커밋 하나에 묶인
-seal 을 남기는 에이전트 워크플로입니다.
+변경을 설계하고, 만들고, 검사한 뒤, 커밋 하나에 묶인 seal 을 남기는
+에이전트 워크플로입니다.
 
 [![tests](https://github.com/MichaelYcJo/AgenticSeal/actions/workflows/test.yml/badge.svg)](https://github.com/MichaelYcJo/AgenticSeal/actions/workflows/test.yml) · [English](./README.md) · **한국어**
 
@@ -99,18 +99,22 @@ claude plugin update agentic@agenticseal
 
 ## 첫 작업 항목
 
-저장소에서 Claude Code 를 열고 `/agentic:start` 뒤에 이슈나 요청을 평소 말로
-적습니다. 그러면 그 세션이 orchestrator, 곧 실행 전체를 이끄는 쪽이 됩니다.
-orchestrator 는 코어를 읽고, 사람이 정해야 할 것을 묻고, 에이전트를 하나씩
-띄우고, 실행의 기록을 관리합니다. 그 기록을 모은 것이 작업 항목이고, 작업
-하나마다 `seal/threads/` 아래에 디렉터리가 하나 생깁니다. 이 명령을 치고 첫
-질문에 답하는 것이, 실행이 띄우는 에이전트와 그 에이전트가 쓰는 토큰에 대한
-사용자의 동의입니다. 워크플로는 `/agentic:start` 에서 시작하고, 이 명령을 한
-번도 치지 않은 세션은 코어를 읽지 않고 아무것도 선언하지 않으며 워크플로 밖에
-있습니다.
+저장소에서 Claude Code 를 열고 바꾸고 싶은 것을 평소 말로 요청하거나,
+`/agentic:start` 뒤에 이슈나 요청을 적습니다. 플러그인이 설치된 곳에서는 코드를
+바꿔 달라는 평범한 요청이 진입 스킬 `start` 에 먼저 닿습니다. 그러면 그 세션이
+orchestrator, 곧 실행 전체를 이끄는 쪽이 됩니다. orchestrator 는 코어를 읽고,
+사람이 정해야 할 것을 묻고, 에이전트를 하나씩 띄우고, 실행의 기록을
+관리합니다. 그 기록을 모은 것이 작업 항목이고, 작업 하나마다 `seal/threads/`
+아래에 디렉터리가 하나 생깁니다. 진입 스킬의 첫 질문에 답하는 것이, 실행이
+띄우는 에이전트와 그 에이전트가 쓰는 토큰에 대한 사용자의 동의입니다.
+워크플로는 코드를 바꿔 달라는 요청이 `start` 에 닿거나 리뷰 요청이
+`code-review` 에 닿을 때 시작하며, 모델이 그 스킬을 불렀는지 사용자가 쳤는지는
+가리지 않습니다. 둘 다 일어나지 않은 세션은 코어를 읽지 않고 아무것도
+선언하지 않으며 워크플로 밖에 있습니다.
 
 세션이 어떤 저장소에서 처음 일할 때는 기록을 어디에 둘지 먼저 묻습니다(아래
-*shared 인가 local 인가*). 그다음 라우팅 질문을 합니다. 답은 셋입니다.
+*shared 인가 local 인가*). 그다음 라우팅 질문을 합니다. 오타 하나를 고칠 때도
+매번 묻고, 권하는 답에 표시를 해 둡니다. 답은 셋입니다.
 
 - **automation** 은 모든 에이전트가 차례로 돌고, 그 뒤로는 사용자만 정할 수
   있고 되돌리기 비싼 것만 사용자에게 묻는 길입니다.
@@ -207,7 +211,7 @@ seal import <그 zip>     # 사본을 받아 들이고, 아무것도 덮어쓰�
 
 ## 동작 방식
 
-모든 에이전트와, `/agentic:start` 로 시작한 모든 세션은 코어
+모든 에이전트와, 진입 스킬 `start` 가 시작한 모든 세션은 코어
 `skills/core/SKILL.md` 를 가지고 시작합니다.
 코어는 모든 참여자가 판단의 기준으로 삼는 가치를 담은 파일입니다. 나머지는
 필요한 단계에서 스킬로 불러오거나, 모델의 컨텍스트 밖에서 훅으로 돕니다.
@@ -223,9 +227,9 @@ seal import <그 zip>     # 사본을 받아 들이고, 아무것도 덮어쓰�
 | **proofer** (서브에이전트) | `core`, `agent-contract` | 커밋된 diff 를 리뷰한다. 프레임을 지켰는지를 먼저 보고 품질을 그다음에 보며, 회차마다 회차 기록을 쓴다 ([`agents/proofer.md`](agents/proofer.md)) |
 | **tracer** (서브에이전트) | `core`, `agent-contract` | `seal/parity.md` 를 선언한 저장소에서, 원본 코드가 하는 일을 판정 없이 좌표가 붙은 사실로 기록한다 ([`agents/tracer.md`](agents/tracer.md)) |
 | **sealer** (서브에이전트, Opus) | `core`, `agent-contract` | broad gate 뒤에 모든 참여자의 기록을 이슈와 트리에 견주어 읽고, 판정인 `guarantee.md` 를 쓴다 ([`agents/sealer.md`](agents/sealer.md)) |
-| 스킬 | — | 에이전트가 첫 호출부터 갖는 스킬은 왼쪽 열에 있다. `code-review`, `commit-pr-convention`, `confidence-check`, `feature-planner`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style` 은 작업이 요구할 때 세션이 알아서 로드하고, 에이전트는 각 스킬을 그것을 가리키는 단계에서 연다. 나머지는 사용자가 이름을 불러 실행하며, 아래 *명령* 에 있다 |
+| 스킬 | — | 에이전트가 첫 호출부터 갖는 스킬은 왼쪽 열에 있다. `code-review`, `commit-pr-convention`, `confidence-check`, `feature-planner`, `implement`, `legacy-parity`, `settle`, `start`, `verify`, `writing-style` 은 작업이 요구할 때 세션이 알아서 로드하고, 에이전트는 각 스킬을 그것을 가리키는 단계에서 연다. 나머지는 사용자가 이름을 불러 실행하며, 아래 *명령* 에 있다 |
 | 훅 | — | 플러그인이 대신 등록해 주는 스크립트이며, 아래 *내 컴퓨터에서 도는 것* 에 있다 |
-| 코어 | — | `skills/core/SKILL.md` 다. 모든 에이전트가 미리 받고, `/agentic:start` 가 그 명령을 친 세션에서 연다. 그래서 사용자의 `CLAUDE.md` 에는 아무것도 쓰지 않는다. 응답 언어는 정하지 않는다 |
+| 코어 | — | `skills/core/SKILL.md` 다. 모든 에이전트가 미리 받고, 진입 스킬 `start` 가 자기가 시작한 세션에서 연다. 그래서 사용자의 `CLAUDE.md` 에는 아무것도 쓰지 않는다. 응답 언어는 정하지 않는다 |
 
 ### 리뷰 체인
 
@@ -289,8 +293,6 @@ tracer 가 가져옵니다. 세션이 저장소를 처음 설정할 때 한 번 
 
 | 게이트 | 언제 | 무엇을 | 어디서 |
 |---|---|---|---|
-| implementer-mark | `subagent_type` 이 `framer` 나 `crafter` 인 Agent 호출 직전 | 브랜치 이름을 `.git/agentic-planner` 나 `.git/agentic-implementer` 에 적는다. 아래 알림이 읽는 흔적이다. 아무것도 출력하지 않는다 | 루트에 `seal/` 이 있는 저장소, 또는 local 모드로 공통 git 디렉터리 아래에 `seal/` 이 있는 저장소. 그 밖에서는 아무것도 하지 않고 아무것도 쓰지 않는다 |
-| implementer-notice | `git commit` 을 실행한 명령 직후 | 브랜치의 `routing.md` 가 framer 나 crafter 를 선언했는데 띄웠다는 흔적이 없으면 세션에 한 줄로 알린다. 세션과 저장소마다 한 번이고, 막지 않는다 ([`docs/checks/the-session-hooks.md`](docs/checks/the-session-hooks.md) *The implementer mark and notice*) | 루트에 `seal/` 이 있는 저장소, 또는 local 모드로 공통 git 디렉터리 아래에 `seal/` 이 있는 저장소. 그 밖에서는 아무것도 하지 않는다 |
 | sealer-stamp | 메인 세션의 턴이 끝날 때 (`Stop`) | 작업 항목의 `guarantee.md` 가 `sealed` 로 쓰일 때 남는 도장 가운데 이 세션 앞으로 `<git-common-dir>/agentic-stamp/<session>/` 에 쌓인 것을 그리고, 그 파일의 이름을 `.drawn.json` 으로 바꾼다. 도장은 다음 행의 훅이 작업 항목마다 한 번 쌓는다. 손으로 그리려면 `seal stamp --from <file>` 을 쓴다 | 루트에 `seal/` 이 있는 저장소, 또는 local 모드로 공통 git 디렉터리 아래에 `seal/` 이 있는 저장소. 그 밖에서는 아무것도 하지 않는다 |
 | sealer-stamp-queue | 작업 항목의 `guarantee.md` 를 Write 나 Edit 한 직후 | 그 쓰기로 `guarantee.md` 가 `sealed` 로 읽히고 그 판정이 `routing.md` 가 적은 브랜치 위의 커밋을 가리키면, 메인 세션의 `Stop` 이 그릴 도장을 쌓아 두고 쌓은 파일의 경로를 출력한다. 그 브랜치에 그 커밋이 없으면 아무것도 쌓지 않고 거절을 기록한다 | 루트에 `seal/` 이 있는 저장소, 또는 local 모드로 공통 git 디렉터리 아래에 `seal/` 이 있는 저장소. 그 밖에서는 아무것도 하지 않는다 |
 
@@ -341,7 +343,7 @@ tracer 가 가져옵니다. 세션이 저장소를 처음 설정할 때 한 번 
 | `seal rules <doc>` · `seal rules --check` | 문서의 절마다 `check:` 줄이 가리키는 테스트를 찍거나, 대상이 사라진 줄을 하나씩 짚고 0 이 아닌 값으로 끝난다 (`skills/settle/rule-changes.md` *A rule has one shape*) |
 | `seal pact [ROOT]` | pact, 곧 여러 저장소가 함께 지키는 계약을 가진 저장소에서, 그 pact 에 서명한 저장소가 모두 아직 그것과 맞는지 확인한다 (`docs/layout/the-pact.md`) |
 | `seal payload` | 세션과 에이전트마다 시작 컨텍스트가 무엇으로 이루어졌는지를 바이트와 토큰으로 잰다 (`skills/verify/scripts/payload_meter.py`) |
-| `/agentic:start <이슈나 요청>` | 작업 하나를 워크플로로 시작한다. 코어를 열고, 라우팅 질문을 한 번 묻고, 첫 편집 전에 작업 항목의 선언을 쓴다 (`skills/start/SKILL.md`) |
+| `/agentic:start <이슈나 요청>` | 코드를 바꿔 달라는 평범한 요청처럼, 작업 하나를 워크플로로 시작한다. 코어를 열고, 라우팅 질문을 한 번 묻고, 첫 편집 전에 작업 항목의 선언을 쓴다 (`skills/start/SKILL.md`) |
 | `/agentic:parity-setup` | 이 저장소가 다른 코드베이스를 옮겨 온다고 선언한다 (`skills/parity-setup/SKILL.md`) |
 | `/agentic:config` | 이 저장소가 스스로 정한 것, 곧 두 언어와 기록이 사는 자리를 보여 주고 바꾼다 (`skills/config/SKILL.md`) |
 | `/agentic:update` | 최신 릴리스를 받고 무엇이 들어 있는지 알려 준다 (`skills/update/SKILL.md`) |
@@ -349,7 +351,7 @@ tracer 가 가져옵니다. 세션이 저장소를 처음 설정할 때 한 번 
 ## 한계
 
 - **아무것도 선언하지 않은 세션을 막는 것은 없습니다.**
-  `/agentic:start` 를 치지 않은 세션은 플러그인이 없을 때처럼 편집하고
+  진입 스킬이 닿지 않은 세션은 플러그인이 없을 때처럼 편집하고
   커밋하며, 사용자가 터미널에서 직접 한 커밋은 이 플러그인의 코드를 하나도
   돌리지 않습니다. pull request 의 검사는 선언한 작업 항목을 판정합니다
   ([`docs/checks/the-routing-check.md`](docs/checks/the-routing-check.md)).

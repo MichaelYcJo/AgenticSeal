@@ -5,8 +5,8 @@
 
 # AgenticSeal
 
-A workflow of agents that frames, builds, inspects and seals a change without
-asking anyone, and ends in a seal bound to a commit.
+A workflow of agents that frames, builds, inspects and seals a change, and
+ends in a seal bound to a commit.
 
 [![tests](https://github.com/MichaelYcJo/AgenticSeal/actions/workflows/test.yml/badge.svg)](https://github.com/MichaelYcJo/AgenticSeal/actions/workflows/test.yml) · **English** · [한국어](./README.ko.md)
 
@@ -97,18 +97,23 @@ holds, which the next update removes (`skills/update/SKILL.md`).
 
 ## Your first work item
 
-Open Claude Code in your repository and type `/agentic:start` followed by an
-issue or a request in your own words. The session becomes the orchestrator:
-it reads the core, asks what needs a person, spawns each agent, and keeps the
-run's records. Those records make up the work item, one directory under
-`seal/threads/` for each piece of work. Typing the command and answering its
-first question is your consent to the agents the run spawns and the tokens
-they spend. The workflow starts at `/agentic:start`, and a session that never
-types it reads no core, declares nothing and is outside the workflow.
+Open Claude Code in your repository and ask for a change in your own words,
+or type `/agentic:start` followed by an issue or a request. Where the plugin
+is installed, a plain request to change code reaches the entry skill,
+`start`, first. The session becomes the orchestrator: it reads the core,
+asks what needs a person, spawns each agent, and keeps the run's records.
+Those records make up the work item, one directory under `seal/threads/` for
+each piece of work. Answering the entry's first question is your consent to
+the agents the run spawns and the tokens they spend. The workflow starts
+when a request to change code reaches `start`, or a request to review
+reaches `code-review`, whether the model invoked the skill or you typed it.
+A session where neither happened reads no core, declares nothing and is
+outside the workflow.
 
 The first time a session works in a repository, it asks where the records
 should live (*Shared or local*, below). Then it asks the routing question,
-which has three answers:
+every time and even for a typo fix, with the answer it recommends marked.
+The question has three answers:
 
 - **automation**: every party runs, and the run stops to ask you only what
   only you can decide and would be costly to undo.
@@ -204,7 +209,7 @@ copy is not a sync.
 
 ## How it works
 
-Every agent, and every session started with `/agentic:start`, starts with
+Every agent, and every session the entry skill `start` starts, starts with
 the core, `skills/core/SKILL.md`, the values every party judges by. The rest
 loads at the step that needs it, as a skill, or runs outside the model's
 context, as a hook.
@@ -221,9 +226,9 @@ cost of inference.
 | **proofer** (subagent) | `core`, `agent-contract` | Reviews the committed diff, its compliance with the frame first and its quality second, and writes a round record for each round ([`agents/proofer.md`](agents/proofer.md)) |
 | **tracer** (subagent) | `core`, `agent-contract` | Records what an original codebase does, as facts with coordinates and no verdicts, in a repository that declares `seal/parity.md` ([`agents/tracer.md`](agents/tracer.md)) |
 | **sealer** (subagent, Opus) | `core`, `agent-contract` | Reads every party's account against the issue and the tree after the broad gate, and writes the verdict, `guarantee.md` ([`agents/sealer.md`](agents/sealer.md)) |
-| Skills | — | The skills an agent holds from its first call are in the column to the left. These a session loads on its own when the work calls for them, and an agent opens each at the step that names it: `code-review`, `commit-pr-convention`, `confidence-check`, `feature-planner`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style`. The rest you invoke by name, under *Commands* |
+| Skills | — | The skills an agent holds from its first call are in the column to the left. These a session loads on its own when the work calls for them, and an agent opens each at the step that names it: `code-review`, `commit-pr-convention`, `confidence-check`, `feature-planner`, `implement`, `legacy-parity`, `settle`, `start`, `verify`, `writing-style`. The rest you invoke by name, under *Commands* |
 | Hooks | — | The scripts the plugin registers for you, under *What runs on your machine* |
-| Core | — | `skills/core/SKILL.md`. Every agent preloads it, and `/agentic:start` opens it in the session that types it, so nothing is written into your `CLAUDE.md`. It sets no response language |
+| Core | — | `skills/core/SKILL.md`. Every agent preloads it, and the entry skill `start` opens it in the session it starts, so nothing is written into your `CLAUDE.md`. It sets no response language |
 
 ### The review chain
 
@@ -288,8 +293,6 @@ everywhere else. Read the Where column before you install the plugin globally.
 
 | Gate | Fires | Does | Where |
 |---|---|---|---|
-| implementer-mark | before an Agent call whose `subagent_type` is `framer` or `crafter` | writes the branch name to `.git/agentic-planner` or `.git/agentic-implementer`, the trace the notice below reads. It prints nothing | `seal/` at the root, or under the common git dir in local mode — silent elsewhere, and writes nothing |
-| implementer-notice | after a command that runs `git commit` | reminds the session, in a single line, when the branch's `routing.md` declares the framer or the crafter and the mark says none was spawned. Once per session per repository, and it never blocks ([`docs/checks/the-session-hooks.md`](docs/checks/the-session-hooks.md) *The implementer mark and notice*) | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
 | sealer-stamp | when the main session's turn ends (`Stop`) | draws each stamp waiting for this session under `<git-common-dir>/agentic-stamp/<session>/` — queued at the write of a work item's `guarantee.md` reading `sealed` (the next row), once per work item — and renames the file `.drawn.json`. `seal stamp --from <file>` draws one by hand | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
 | sealer-stamp-queue | after a Write or Edit of a work item's `guarantee.md` | where the write leaves it reading `sealed` over a commit on the branch its `routing.md` names, queues the stamp for the main session's `Stop` and prints the queued file's path. Where that branch lacks the commit, it queues nothing and records the refusal | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
 
@@ -340,15 +343,15 @@ after `!` in a session, or ask the session to run it.
 | `seal rules <doc>` · `seal rules --check` | prints a document's sections with the tests their `check:` lines name, or exits non-zero naming each line whose target is gone (`skills/settle/rule-changes.md` *A rule has one shape*) |
 | `seal pact [ROOT]` | checks, in the repository that holds a pact, that every repository signed to it still agrees with it (`docs/layout/the-pact.md`) |
 | `seal payload` | measures what a session's and each agent's startup context is made of, in bytes and tokens (`skills/verify/scripts/payload_meter.py`) |
-| `/agentic:start <issue or request>` | starts a piece of work through the workflow: opens the core, asks the routing question once, and writes the work item's declaration before the first edit (`skills/start/SKILL.md`) |
+| `/agentic:start <issue or request>` | starts a piece of work through the workflow, as a plain request to change code does: opens the core, asks the routing question once, and writes the work item's declaration before the first edit (`skills/start/SKILL.md`) |
 | `/agentic:parity-setup` | declares that this repository ports from another codebase (`skills/parity-setup/SKILL.md`) |
 | `/agentic:config` | shows what this repository decided for itself, its two languages and where its records live, and changes any of it (`skills/config/SKILL.md`) |
 | `/agentic:update` | takes the newest release and names what is in it (`skills/update/SKILL.md`) |
 
 ## Limits
 
-- **Nothing refuses a session that declares nothing.** A session that never
-  types `/agentic:start` edits and commits as it would without the plugin,
+- **Nothing refuses a session that declares nothing.** A session the entry
+  skill never reached edits and commits as it would without the plugin,
   and a commit you make yourself in a terminal runs none of this plugin's
   code. The pull request's check judges a declared work item
   ([`docs/checks/the-routing-check.md`](docs/checks/the-routing-check.md)).

@@ -216,6 +216,28 @@ class TestDefinition:
         assert missing == [], missing
         assert "list of changes" not in never, never
 
+    def test_step_4_withholds_where_a_declared_crafter_left_no_phase_record(self):
+        """#1376, *Scope* item 6. The implementer mark and notice went with
+        the hooks the plugin directory will not register, and the sealer's
+        reading of the parties holds the fact they reminded a session of:
+        where `routing.md` declares `crafter`, each closed phase of
+        `frame/plan.md` has its phase record, and a declared party that left
+        none is a reason to withhold. The `Planning` row's `framer` is
+        `chain_check.py`'s to read against the frame's mark."""
+        step_4 = between(SEALER, "4. **", "5. **")
+        pinned = [
+            # The row and the answer the sealer reads in `routing.md`.
+            "`routing.md`'s `Implementation` row reads `crafter`",
+            # Which phases owe a record: those `plan.md`'s Status closed.
+            "every phase of `frame/plan.md` whose Status cell holds a commit",
+            # The record the crafter leaves, as the sealer resolves its path.
+            "`trail/phases/phase-N.md`",
+            # The verdict word `hooks/lib/fields.py` reads.
+            "a declared party that left no record is a `withheld` reason",
+        ]
+        missing = [phrase for phrase in pinned if phrase not in step_4]
+        assert missing == [], missing
+
     def test_the_guarantee_rule_exempts_only_the_closing_records(self):
         """Round 1 of #969, finding 1. `chain_check.py#guarantee` lets only
         `trail/gate.md` and `guarantee.md` follow the commit the guarantee

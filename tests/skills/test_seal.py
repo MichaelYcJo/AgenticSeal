@@ -91,8 +91,6 @@ CLOSING = (
 # Session state that sits beside the root under the common git directory.
 # None may be in a zip, and a new file beside the root joins the list.
 BESIDE_THE_ROOT = (
-    "agentic-implementer",
-    "agentic-planner",
     "agentic-stamp-refused",
     "agentic-last-export.json",
 )
@@ -854,10 +852,11 @@ class Test_export:
         self, take, capsys, tmp_path
     ):
         repo = take("local")
-        write(repo / ".git", "agentic-implementer", "secret-branch\n")
+        write(repo / ".git", "agentic-last-export.json", "secret-branch\n")
         _shared, local = roots(repo)
         symlink_or_skip(
-            os.path.join("..", "agentic-implementer"), os.path.join(local, "leak.md")
+            os.path.join("..", "agentic-last-export.json"),
+            os.path.join(local, "leak.md"),
         )
         code, out = said(capsys, repo, "export")
         assert code == 0, out
@@ -1642,7 +1641,7 @@ class Test_import_:
             info = zipfile.ZipInfo(name)
             if name == "seal/leak.md":
                 info.external_attr = (0o120777 << 16) | 0o200000
-            archive.writestr(info, "../agentic-implementer")
+            archive.writestr(info, "../agentic-last-export.json")
         code, out = said(capsys, other, "import", str(hostile))
         assert code == 1, out
         assert out.startswith(f"{hostile} holds members this command will not write:\n")

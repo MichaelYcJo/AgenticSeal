@@ -16,8 +16,8 @@ the work below the SDD ladder somewhere to exist: those items write no
 `frame/design.md`, so until now they left no trace anywhere, and they are most of what
 the pull request's check sees.
 
-Imported by the hooks and loaded by the pull request's check rather than
-copied into each -- the same reason `optin.py` gives for being a module:
+Loaded by the pull request's check and by every script that reads a
+declaration, rather than copied into each -- the same reason `optin.py` gives for being a module:
 divergent copies is how half of them keep the old answer.
 
 Everything here fails toward "no declaration". A file that cannot be read is
@@ -179,11 +179,13 @@ def parse(text):
     required row would turn each of them into no declaration -- the pull
     request's check would read a branch whose answer is committed in the tree
     as undeclared. The strict spelling below is deliberate for the first two,
-    because a wrong answer there decides whether a reviewer sees the work. The
-    only reader of these two is `hooks/implementer-notice.py`, which prints one
-    line after a commit where a declared agent left no mark, and decides
-    nothing -- so a wrong answer here is recorded and at most reminded about,
-    where a wrong answer above decides what the pull request owes. That is why
+    because a wrong answer there decides whether a reviewer sees the work.
+    `Planning`'s one reader is `chain_check.py`, which reads a `framer` answer
+    against the frame's mark, and no script reads `Implementation`: the sealer
+    reads it and withholds where a declared `crafter` left a closed phase with
+    no record (`agents/sealer.md` step 4). So a wrong answer here is read
+    against a record the run left, where a wrong answer above decides what the
+    pull request owes. That is why
     the rows are optional rather than lenient, and it is also the asymmetry to
     know about: a backticked or capitalised answer is rejected loudly in the
     first two, because the file reads as no declaration, and silently here.
@@ -275,64 +277,6 @@ def current_branch(cwd):
     return "" if name == "HEAD" else name
 
 
-def rebase_branch(cwd):
-    """The branch a paused rebase in CWD's worktree names, or "".
-
-    `rebase-merge/head-name`, else `rebase-apply/head-name`, under the
-    worktree's own git directory: HEAD is detached while the rebase waits on
-    a conflict, and the branch it names is the one the work is on.
-    """
-    try:
-        out = subprocess.run(
-            ["git", "-C", cwd or ".", "rev-parse", "--absolute-git-dir"],
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=5,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return ""
-    git_dir = out.stdout.strip() if out.returncode == 0 else ""
-    if not git_dir:
-        return ""
-    for state in ("rebase-merge", "rebase-apply"):
-        try:
-            with open(os.path.join(git_dir, state, "head-name"), encoding="utf-8") as f:
-                name = f.read().strip()
-        except (OSError, UnicodeDecodeError):
-            continue
-        prefix = "refs/heads/"
-        return name[len(prefix) :] if name.startswith(prefix) else ""
-    return ""
-
-
-def unborn_branch(cwd):
-    """The branch HEAD names before its first commit, or "" where HEAD is
-    detached or git cannot answer. `rev-parse --abbrev-ref HEAD` fails on a
-    branch with no commit; `symbolic-ref` reads the name HEAD points at
-    without resolving it to a commit, and exits 1 on a detached HEAD."""
-    try:
-        out = subprocess.run(
-            ["git", "-C", cwd or ".", "symbolic-ref", "-q", "--short", "HEAD"],
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=5,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return ""
-    return out.stdout.strip() if out.returncode == 0 else ""
-
-
-def worktree_branch(cwd):
-    """The branch CWD's worktree is on: the one checked out, the one HEAD
-    names before its first commit, else the one a paused rebase there names,
-    or "" where none names one. `hooks/implementer-mark.py` resolves the
-    branch its mark names here. `unborn_branch` runs only where `current_branch` found none, so a branch
-    with a commit costs no second `git` call."""
-    return current_branch(cwd) or unborn_branch(cwd) or rebase_branch(cwd)
-
-
 def declarations(root):
     """Every readable declaration under `root`, as (path, parsed) pairs.
 
@@ -379,20 +323,6 @@ def declarations(root):
     return out
 
 
-def for_branch(root, branch):
-    """The one declaration that applies here, or None.
-
-    Two declarations naming the same branch is not an answer, so it reads as
-    none. Declarations accumulate over a repository's life and a branch-less
-    match would let the first work item ever declared silence the gate for
-    every commit after it.
-    """
-    if not root or not branch:
-        return None
-    matching = [d for _, d in declarations(root) if d["branch"] == branch]
-    return matching[0] if len(matching) == 1 else None
-
-
 def item_dir(root, branch):
     """The work-item directory the declaration for `branch` lives in, or "".
 
@@ -401,8 +331,10 @@ def item_dir(root, branch):
     the declaration resolves them too, and the branch is the only key
     available at the moment a round closes.
 
-    Two declarations naming one branch resolve to nothing here for the same
-    reason they do in `for_branch`: not an answer.
+    Two declarations naming one branch resolve to nothing here: that is not
+    an answer. Declarations accumulate over a repository's life, and a
+    branch-less match would let the first work item ever declared answer for
+    every branch after it.
     """
     if not root or not branch:
         return ""
