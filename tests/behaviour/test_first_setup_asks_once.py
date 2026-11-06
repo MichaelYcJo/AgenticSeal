@@ -3,7 +3,7 @@ or a person reads says the same thing about where the root lives.
 
 Each case states the clause it holds and names it by its number, and a
 number another work item gave carries that item's issue, as `S2 of #952`
-does. The hooks resolve
+does. The commands resolve
 the root in code (`hooks/lib/optin.py#home_at`) and are pinned by
 `tests/hooks/test_optin.py`. What is pinned HERE
 is the text: the one question the `implement`
@@ -272,6 +272,49 @@ def test_a_projects_own_seal_names_the_marker_template_and_the_git_dir_root():
     assert "`templates/setup/seal-README.md`" in own, own
     # The path of the local root, which the orchestrator creates instead.
     assert f"`{COMMON_DIR}`" in own, own
+
+
+# --- #1376: the stamp's question, the person's and asked once --------------
+
+STAMP_QUESTION = "**The third question is the stamp"
+
+
+def test_the_stamp_question_is_put_once_where_neither_answer_stands():
+    """Contract rule 14, for #1376 phase 5. The plugin registers no hook, so
+    the stamp's `Stop` hook is written into the person's settings on their
+    yes. Bootstrap puts the question where `seal stamp --hook` reads
+    `neither`, names the two writes in the yes option, and runs `--install`
+    or `--decline`; the entry names the data directory, substituted, and
+    `/agentic:update` asks a person set up before and moves the launcher to
+    the copy it installs."""
+    stamp = paragraph(bootstrap(), STAMP_QUESTION)
+    for said in (
+        'Run `seal stamp --hook "<data-dir>"` first',
+        "Where it prints `neither`, put",
+        "The yes option names its two writes",
+    ):
+        assert said in stamp, said
+    boot = flat(bootstrap())
+    for command in (
+        'seal stamp --install "<data-dir>" --settings '
+        '"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json"',
+        'seal stamp --decline "<data-dir>"',
+    ):
+        assert command in boot, command
+    start = flat(read("skills", "start", "SKILL.md"))
+    assert (
+        "The data directory its stamp question passes is `${CLAUDE_PLUGIN_DATA}`"
+        in (start)
+    )
+    update = flat(read("skills", "update", "SKILL.md"))
+    for said in (
+        '"$p/bin/seal" stamp --hook "${CLAUDE_PLUGIN_DATA}"',
+        "| `neither` | ask once, with `AskUserQuestion`",
+        '"$p/bin/seal" stamp --install "${CLAUDE_PLUGIN_DATA}" --settings',
+        "nothing is asked; run the command below, so the launcher names the copy "
+        "just installed",
+    ):
+        assert said in update, said
 
 
 # --- Q1: the sentence a session reads, once in each place -----------------
