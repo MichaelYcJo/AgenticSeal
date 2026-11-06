@@ -385,10 +385,11 @@ class Test_keywords_in:
     # #266: review round 1 of work item 1788844400 enumerated five well-formed
     # shapes `FENCE` and `SPAN` did not mask, by construction rather than by
     # reading. A closing keyword inside any of them was read as a claim, so a
-    # RELEASE closed the issue. Three are masked now and two are deliberately
-    # not; each of the five has a case, so a later widening or narrowing is a
-    # red rather than a drift. The direction is stated at the patterns:
-    # masking more closes fewer, and an unclosed issue is visible and
+    # RELEASE closed the issue. Four are masked now, the HTML comment since
+    # #1181 measured GitHub's reading of it, and the four-space indented block
+    # is deliberately not; each shape has a case, so a later widening or
+    # narrowing is a red rather than a drift. The direction is stated at the
+    # patterns: masking more closes fewer, and an unclosed issue is visible and
     # re-runnable where a wrong close is a false record on the tracker.
 
     def test_refuses_a_keyword_inside_a_tilde_fence(self):
@@ -430,6 +431,45 @@ class Test_keywords_in:
             "a double-backtick span holding a single backtick is cut at the inner backtick"
         )
 
+    def test_a_keyword_inside_an_html_comment_claims_nothing(self):
+        """#1181. Pull requests into `main` measured GitHub's reading of a
+        comment: a comment that closes hides its keyword wherever it stands
+        (#1402, #1403), and a `<!--` that never closes hides everything below
+        it where it begins a line (#1403, #1405). The fence, the comment and
+        the span are masked in one pass, and whichever opens first wins."""
+        m = _closer()
+        assert m.keywords_in("<!-- Closes #6 -->") == [], (
+            "a keyword inside a comment, the shape #1402 measured, closes the issue"
+        )
+        for body in (
+            "a note <!-- Closes #1 --> mid-line\nCloses #4",
+            "<!--\nCloses #1\nmore\n-->\nCloses #4",
+            "- an item\n  <!-- Closes #1 -->\nCloses #4",
+            "<!---->\nCloses #4",
+        ):
+            assert m.keywords_in(body) == ["4"], body
+        # The first to open wins. A `<!--` inside a span opens no comment, and
+        # a backtick inside a comment opens no span.
+        assert m.keywords_in("the `<!--` marker\nCloses #4\nthe `-->` end") == ["4"], (
+            "a comment opened inside a code span hid the claim after the span"
+        )
+        assert m.keywords_in("<!-- it's ` here --> Closes #4 and `x`") == ["4"], (
+            "a backtick inside a comment opened a span that hid the claim"
+        )
+        # A `<!--` that never closes, at a line start (#1403, #1405), and
+        # behind a list marker, where GitHub hides what follows past the
+        # list's end (#1408).
+        assert m.keywords_in("Closes #1401\nCloses #4\n<!-- Closes #32") == [
+            "1401",
+            "4",
+        ], "a keyword after an opener that begins its line and never closes"
+        assert m.keywords_in("Closes #1401\n<!--\nCloses #103") == ["1401"], (
+            "a keyword below an opener that begins its line and never closes"
+        )
+        assert m.keywords_in("- <!-- note\nCloses #4") == [], (
+            "a keyword below an opener behind a list marker that never closes"
+        )
+
     @pytest.mark.parametrize(
         ("body", "claimed"),
         [
@@ -438,11 +478,10 @@ class Test_keywords_in:
             # bullet's text onto the next line, so masking the shape would
             # drop real claims, which is the wrong direction for a closer.
             ("- a bullet whose text\n    Closes #5", ["5"]),
-            # Whether GitHub acts on a keyword inside an HTML comment is
-            # unmeasured (`docs/releasing/issues-and-milestones.md` *A keyword claims
-            # the one number after it*), and a measurement needs a scratch
-            # pull request on a tracker; until it is taken the shape stays.
-            ("<!-- Closes #6 -->", ["6"]),
+            # A `<!--` that never closes, after other text on its line, is
+            # text to GitHub: #1404 held this body with no `-->` anywhere, and
+            # `closingIssuesReferences` named #1247 as well as the control.
+            ("Closes #1401\nsee the <!-- marker\nCloses #1247", ["1401", "1247"]),
         ],
     )
     def test_accepts_a_shape_left_unmasked_as_a_claim(self, body, claimed):

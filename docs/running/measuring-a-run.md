@@ -81,10 +81,10 @@ it is worse.** A band is how far a reading may move from the reading it
 is compared with and still read as the same. A reading past its band
 has moved past the noise its measure carries, and the band says nothing
 more: it cannot say whether what the change cost outweighs what the
-change bought. A margin a claim fixes before its run is that claim's
-criterion and not a band in this sense: the pass rules of
-`evals/README.md` *The behaviour suite* decide whether one preload
-rewrite proved itself not worse, and they file nothing. A reading past
+change bought. A criterion a claim fixes before its run is not a band in this sense:
+the pass rules of `evals/README.md` *The behaviour suite* decide whether
+one rewritten preload broke the shape of an agent's output, and they
+file nothing. A reading past
 its band toward more cost is weighed, and the weighing is written
 beside the reading: the change that moved it, what that change cost,
 what it bought, and the record each stands in. The reading is `worse`
@@ -130,13 +130,14 @@ finishing segments at once would both read zero and both create one. What
 the command cannot do is make a session remember to run it.
 check: tests/skills/test_session_cost.py
 
-**A network write only a person's typing starts is not a hook, and the list of
-hook network touches does not reach it.** `CONTRIBUTING.md` counts the
-plugin's network touches under *Hooks stay local and quiet*, and every
+**A network write a person or a session starts is not a hook, and the
+list of hook network touches does not reach it.** `CONTRIBUTING.md` names
+the hooks that reach the network under *Hooks stay local and quiet*, and every
 condition that list sets for another entry is shaped for a hook: an opt-in so
 unrelated repositories are untouched, a throttle so it is not per session,
-silence on every failure. `--post` fires on no hook and writes only when
-typed, only through `gh`, and only what it was handed. What the same bullet
+silence on every failure. `--post` fires on no hook, and writes only when a
+person or a session runs it, only through `gh`, and only what it was handed.
+What the same bullet
 forbids still binds it: nothing sent may carry repository contents, paths or
 prompts, so the posted body names the transcript by its file name and never
 by its path. The repository owner owns that list and can overturn this. No

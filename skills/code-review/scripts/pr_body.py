@@ -40,9 +40,16 @@ interfaces* of the work item that last reshaped this lays out the part line
 for line. A copied line equal to `HEADING` is refused at the record's
 line, and so is a copied line holding a `details` tag, `<details` or
 `</details` in any case followed by whitespace, `/`, `>` or the line's end,
-outside a fence and a code span (#1218), and a copied line where
-`close_issues_on_release.py#keywords_in` reads a closing keyword: the
-`Closes` line is the orchestrator's, written above `HEADING`.
+outside a fence, an HTML comment and a code span (#1218, #1181), and a
+copied line where `close_issues_on_release.py#keywords_in` reads a closing
+keyword: the `Closes` line is the orchestrator's, written above `HEADING`.
+The comment is read on the copied line alone, as
+`close_issues_on_release.py#HIDDEN` reads it: one that closes on the line
+hides what it holds, and a `<!--` with no `-->` after it on the line is
+text where other text stands before it. A copied line that begins with
+such a `<!--`, after nothing but spaces, tabs and block markers, is refused
+at its line whatever follows it, since GitHub hides the lines after it, the
+fold's end among them (#1405).
 
 Round records are read through `chain_check.py#round_read`, which places the
 blocks `hooks/lib/fields.py` reads by the record's headings, and
@@ -61,10 +68,15 @@ Limits, stated here and not guarded:
 - A body edited on GitHub after the pull request opens is read by nobody.
 - The `details` tag reading reads characters, not GitHub's rendering. A tag
   GitHub renders as text is refused too where it is spelt as a tag outside a
-  code span: in a table cell, after a backslash, in an indented code block,
-  in an HTML comment. A tag between two backticks that GitHub does not read
-  as a code span, such as an escaped backtick, is read as inside a span and
+  code span and a comment: in a table cell, after a backslash, in an indented
+  code block. A tag between two backticks that GitHub does not read as a
+  code span, such as an escaped backtick, is read as inside a span and
   passes.
+- The opener reading reads one line, not GitHub's blocks. Where CommonMark's
+  block rules make GitHub show the lines after an opener the reading treats
+  as a line start, such as one in an indented code block (#1410), the line
+  is refused too. Behind a list marker or a quote marker GitHub hides them,
+  as the refusal assumes (#1408, #1409).
 - Exit 2's line names `<item>` as it was given, or the module that would not
   load by its installed path. The normal flow gives neither: the sealer is
   handed a work item's directory that exists, from an installed plugin.
@@ -577,7 +589,8 @@ def _questions(texts):
 def _claims(rel, line, seen):
     """`(rel, line, why)` for each issue a closing keyword on the copied line
     LINE of REL claims, read by `CLOSER.keywords_in` over SEEN, the record's
-    `readable` lines, so a fenced line and a code span claim nothing."""
+    `readable` lines, so a fenced line, a comment and a code span claim
+    nothing."""
     return [
         (
             rel,
@@ -597,11 +610,15 @@ def _composed(name, texts, mark=None):
     followed by a blank line, and `FOLD_END`. `source`
     is `(path, line)` for a copied line and None for a fixed one. Refused at
     the record's line where a copied line is equal to `HEADING`, which would
-    stand inside the fold as a second boundary line, or holds a `TAG` outside
-    a fence and a code span, which would fold a part again or end the fold
-    early, or holds a closing keyword outside a fence and a code span, since
-    GitHub and the release's closer would close the issue it names. The tag
-    and the keyword are read on one line, blanked one way."""
+    stand inside the fold as a second boundary line, or begins with a `<!--`
+    that no `-->` closes on the line, as `CLOSER.COMMENT`'s second arm
+    matches it at the line's start, since GitHub would hide the lines after
+    it and the fold's end among them, or holds a `TAG` outside a fence, a
+    comment and a code span, which would fold a part again or end the fold
+    early, or holds a closing keyword outside a fence, a comment and a code
+    span, since GitHub and the release's closer would close the issue it
+    names. The tag and the keyword are read on one line, blanked one way, by
+    `CLOSER.HIDDEN`."""
     blocks = _changed(texts)
     blocks += _built(texts)
     blocks += _rounds(texts)
@@ -628,7 +645,20 @@ def _composed(name, texts, mark=None):
                     f"reads `{HEADING}`, the line the body's two parts split at",
                 )
             )
-        elif tag := TAG.search(CLOSER.SPAN.sub(" ", seen[rel][line - 1])):
+        elif (opened := CLOSER.COMMENT.match(seen[rel][line - 1])) and (
+            "-->" not in opened.group()
+        ):
+            causes.append(
+                (
+                    rel,
+                    line,
+                    "begins with a `<!--` that no `-->` closes on the line, and "
+                    "GitHub hides the lines that follow such a line, the "
+                    f"copy's other lines and the fold's end `{FOLD_END}` among "
+                    "them; write the `<!--` in a code span",
+                )
+            )
+        elif tag := TAG.search(CLOSER.HIDDEN.sub(" ", seen[rel][line - 1])):
             causes.append(
                 (
                     rel,

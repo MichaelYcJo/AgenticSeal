@@ -24,7 +24,7 @@ from conftest import ROOT, census_case, commit_everything_as_e, git_out, write
 TARGET = "skills/verify/scripts/test_layout.py"
 
 _SPEC = importlib.util.spec_from_file_location(
-    "agentic_test_layout_under_test", os.path.join(ROOT, TARGET)
+    "agentic_test_layout_under_test", os.path.join(ROOT, *TARGET.split("/"))
 )
 layout = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(layout)

@@ -11,7 +11,14 @@ import errno
 import os
 
 import pytest
-from conftest import ROOT, census_case, commit_everything, git_out, git_repo
+from conftest import (
+    ROOT,
+    census_case,
+    commit_everything,
+    git_out,
+    git_repo,
+    symlink_or_skip,
+)
 from conftest import load_module as load
 from conftest import seal_block as block
 
@@ -252,7 +259,7 @@ class Test_main:
             (held / "round-1.md").write_text(
                 record(finding(1, "`f.py:1`")), encoding="utf-8"
             )
-            rounds.symlink_to("held", target_is_directory=True)
+            symlink_or_skip("held", rounds, directory=True)
         rows, under = table(root, capsys)
         assert rows == [f"| {ITEM} | not read | not read | not read | not read |"]
         path = f"seal/threads/{ITEM}/trail/rounds"

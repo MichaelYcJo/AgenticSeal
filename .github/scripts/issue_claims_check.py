@@ -35,7 +35,7 @@ was handed no body at all -- neither `PR_BODY` in the environment nor
 step that is green having examined nothing.
 
 **What GitHub does not read is defined once, next door.** `KEYWORDS`,
-`CLOSING`, `FENCE` and `SPAN` are imported from `close_issues_on_release.py`
+`CLOSING` and `HIDDEN` are imported from `close_issues_on_release.py`
 rather than restated here, so widening one moves both. Two lists of what a
 closing keyword is would drift apart the first time either was edited.
 
@@ -67,13 +67,15 @@ Only a number AFTER the claim is a candidate. `Part of #1, and this closes #2`
 is not the shape and says nothing, which is where the false-positive budget
 goes.
 
-A closing keyword inside a fenced block or an inline code span is invisible,
-the way it is to GitHub and to the sibling script -- this repository's own
-documents carry `Closes #88` in a fence as the example to copy, and its bodies
-quote its documents routinely. The masking here replaces code CHARACTER FOR
-CHARACTER with spaces, where the sibling collapses each match to one space:
-a fence collapsing to a single space would join the line above it to the line
-below, and this module segments by line structure.
+A closing keyword inside a fenced block, an HTML comment or an inline code
+span is invisible, the way it is to GitHub and to the sibling script -- this
+repository's own documents carry `Closes #88` in a fence as the example to
+copy, and its bodies quote its documents routinely. A `#N` the masking hides
+is not mentioned either: GitHub renders neither the number nor its keyword
+(#1181). The masking here replaces each hidden character with a space, where
+the sibling collapses each match to one space: a fence or a comment
+collapsing to a single space would join the line above it to the line below,
+and this module segments by line structure.
 """
 
 import argparse
@@ -87,7 +89,7 @@ sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "..", "..", "hooks", "lib"))
 
 import console  # noqa: E402
-from close_issues_on_release import CLOSING, FENCE, KEYWORDS, SPAN  # noqa: E402
+from close_issues_on_release import CLOSING, HIDDEN, KEYWORDS  # noqa: E402
 
 # Where a line ends is the shared reader's rule, loaded by path (#664). A
 # reader that is moved or renamed stops this check at load with a traceback,
@@ -149,19 +151,21 @@ BLOCK_START = re.compile(
 
 
 def prose_only(body):
-    """`body` with fenced blocks and code spans blanked, length preserved.
+    """`body` with fenced blocks, HTML comments and code spans blanked,
+    length preserved.
 
-    Same two patterns the release closer uses, and a different substitution:
-    every masked character becomes a space and every newline is kept, so the
-    offsets this module reports and the line structure it segments by both
-    survive. Collapsing a fence to one space -- which is right for a `findall`
-    and wrong here -- would splice the line above it onto the line below.
+    The one pattern the release closer uses, `HIDDEN`, and a different
+    substitution: every masked character becomes a space and every newline
+    is kept, so the offsets this module reports and the line structure it
+    segments by both survive. Collapsing a fence or a comment to one space --
+    which is right for a `findall` and wrong here -- would splice the line
+    above it onto the line below.
     """
 
     def blank(m):
         return "".join("\n" if c == "\n" else " " for c in m.group(0))
 
-    return SPAN.sub(blank, FENCE.sub(blank, body))
+    return HIDDEN.sub(blank, body)
 
 
 def segments(text):
@@ -328,4 +332,4 @@ if __name__ == "__main__":
 # `KEYWORDS` is imported for the docstring's claim that this module and the
 # release closer share one definition, and re-exported so a reader who lands
 # here can see the vocabulary without opening the sibling.
-__all__ = ["CLOSING", "FENCE", "ISSUE_REF", "KEYWORDS", "SPAN", "main", "read"]
+__all__ = ["CLOSING", "HIDDEN", "ISSUE_REF", "KEYWORDS", "main", "read"]

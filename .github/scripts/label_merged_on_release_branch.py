@@ -16,7 +16,7 @@ version comes from the branch name.
 **Nothing here parses anything new.** `MERGED_PR`, `keywords_in`,
 `pull_request_body` and `arrived` all come from
 `close_issues_on_release.py`, which is the module that already reads exactly
-these three things and whose `FENCE`/`SPAN` treatment of a quoted keyword is
+these three things and whose `HIDDEN` treatment of a quoted keyword is
 the behaviour a second reader would have to reproduce. Importing it runs
 nothing: its `main` is guarded.
 

@@ -1078,6 +1078,107 @@ class Test_vacated_paths:
             assert censuses.vacated_paths(rel, root) == [], rel
 
 
+def slashed(shown, repair):
+    """The line `slash_in_join` writes after `<rel>:<line>: slash_in_join: `
+    for the argument SHOWN, with REPAIR."""
+    return (
+        f"{shown} reaches `os.path.join` with a `/` in it, which the join keeps "
+        "beside the `\\` it writes on the Windows leg; "
+        f"{repair}, or put `# exempt from slash_in_join: <why>` on its own line "
+        "above the call"
+    )
+
+
+# Each source joins a `/` nothing on its own line shows: `os.path.join` under
+# another import spelling, or a `/` that is no literal argument.
+SLASH_IMPORTS = {
+    "from-os-path-import-join": 'from os.path import join\njoin(r, "a/b")\n',
+    "os-path-as-an-alias": 'import os.path as osp\nosp.join(r, "a/b")\n',
+    "os-as-an-alias": 'import os as o\no.path.join(r, "a/b")\n',
+}
+# Each source has `/` near a join and none inside one of its arguments.
+NO_SLASH_JOINED = {
+    "each-part-its-own-argument": 'import os\nos.path.join(r, "trail", "gate.md")\n',
+    "posixpath": 'import posixpath\nposixpath.join("a/b", "c")\n',
+    "ntpath": 'import ntpath\nntpath.join(r, "a/b")\n',
+    "the-constant-split": (
+        'import os\nGATE = "trail/gate.md"\nos.path.join(item, *GATE.split("/"))\n'
+    ),
+    "a-constant-bound-twice": (
+        'import os\nGATE = "a/b"\nGATE = "c/d"\nos.path.join(item, GATE)\n'
+    ),
+    "a-constant-a-parameter-rebinds": (
+        'import os\nGATE = "a/b"\n\n\ndef f(GATE):\n    return os.path.join(r, GATE)\n'
+    ),
+    "a-constant-an-import-rebinds": (
+        'import os\nfrom m import OTHER as GATE\nGATE = "a/b"\nos.path.join(r, GATE)\n'
+    ),
+    "a-constant-a-definition-rebinds": (
+        'import os\nGATE = "a/b"\n\n\ndef GATE():\n    pass\n\n\nos.path.join(r, GATE)\n'
+    ),
+    "a-constant-without-a-slash": 'import os\nGATE = "gate.md"\nos.path.join(r, GATE)\n',
+    "an-f-string-without-a-slash": 'import os\nos.path.join(r, f"{a}.md")\n',
+    "a-call-that-is-no-join": 'import os\nos.path.relpath(r, "a/b")\nf(r, "a/b")\n',
+    "a-join-no-import-binds": 'def join(a, b):\n    return a\n\n\njoin(r, "a/b")\n',
+}
+
+
+class Test_slash_in_join:
+    def test_refuses_a_literal_naming_it_and_the_repair(self, tmp_path):
+        root = plant(
+            tmp_path, "skills/x.py", 'import os\n\nos.path.join(r, "trail/gate.md")\n'
+        )
+        assert censuses.judge("skills/x.py", root) == [
+            "skills/x.py:3: slash_in_join: "
+            + slashed('`"trail/gate.md"`', "pass each part as its own argument")
+        ]
+
+    def test_refuses_a_module_constant_at_the_line_the_call_starts_on(self, tmp_path):
+        source = (
+            'import os\n\nGATE = "trail/gate.md"\n\n\n'
+            "def f(item):\n    return os.path.join(\n        item, GATE\n    )\n"
+        )
+        root = plant(tmp_path, "evals/x.py", source)
+        assert censuses.slash_in_join("evals/x.py", root) == [
+            "evals/x.py:7: slash_in_join: "
+            + slashed('`GATE` (`"trail/gate.md"`)', 'pass `*GATE.split("/")`')
+        ]
+
+    @pytest.mark.parametrize(
+        "assignment",
+        ['GATE = OTHER = "a/b"', 'GATE: str = "a/b"'],
+        ids=["chained", "annotated"],
+    )
+    def test_refuses_a_constant_each_assignment_form_binds(self, tmp_path, assignment):
+        source = f"import os\n{assignment}\nos.path.join(r, GATE)\n"
+        root = plant(tmp_path, "tests/x.py", source)
+        assert censuses.slash_in_join("tests/x.py", root) == [
+            "tests/x.py:3: slash_in_join: "
+            + slashed('`GATE` (`"a/b"`)', 'pass `*GATE.split("/")`')
+        ]
+
+    def test_refuses_an_f_string_whose_literal_part_holds_a_slash(self, tmp_path):
+        root = plant(tmp_path, "tests/x.py", 'import os\nos.path.join(r, f"{a}/b")\n')
+        assert censuses.slash_in_join("tests/x.py", root) == [
+            "tests/x.py:2: slash_in_join: "
+            + slashed("`f'{a}/b'`", "pass each part as its own argument")
+        ]
+
+    @pytest.mark.parametrize("shape", sorted(SLASH_IMPORTS))
+    def test_refuses_a_slash_under_each_import_spelling(self, tmp_path, shape):
+        root = plant(tmp_path, "hooks/x.py", SLASH_IMPORTS[shape])
+        assert lines_of(censuses.slash_in_join("hooks/x.py", root)) == ["hooks/x.py:2"]
+
+    @pytest.mark.parametrize("shape", sorted(NO_SLASH_JOINED))
+    def test_accepts_each_shape_with_no_slash_inside_a_join(self, tmp_path, shape):
+        root = plant(tmp_path, "hooks/x.py", NO_SLASH_JOINED[shape])
+        assert censuses.slash_in_join("hooks/x.py", root) == []
+
+    def test_accepts_a_file_of_another_kind(self, tmp_path):
+        root = plant(tmp_path, "docs/x.md", 'import os\nos.path.join(r, "a/b")\n')
+        assert censuses.slash_in_join("docs/x.md", root) == []
+
+
 class Test_module:
     def test_every_file_no_module_file_declares_meets_every_census(self):
         """The censuses over every tracked file whose module file does not run

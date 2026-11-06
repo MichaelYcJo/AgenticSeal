@@ -73,6 +73,17 @@ class Test_prose_only:
         span = "`Closes #11`"
         assert check.prose_only(f"see {span} here") == f"see {' ' * len(span)} here"
 
+    def test_accepts_a_comment_over_several_lines_blanked_with_its_newlines_kept(
+        self,
+    ):
+        """#1181. A comment is masked as the closer masks it, and blanked as a
+        fence is: its lines stay lines, so the segments after it are cut where
+        they were."""
+        body = "Closes #11 <!-- a\nnote -->\nend"
+        assert (
+            check.prose_only(body) == "Closes #11 " + " " * 6 + "\n" + " " * 8 + "\nend"
+        )
+
 
 class Test_segments:
     def test_accepts_an_ordered_list_item_as_a_segment_of_its_own(self):
@@ -183,12 +194,15 @@ class Test_read:
 
     def test_the_shapes_the_closer_masks_since_266_are_masked_here_too(self):
         """The patterns are imported, so a widening of the closer's masks is a
-        widening here — which is the reason for importing them (#266). Three
-        shapes, each holding a body that would otherwise warn or claim."""
+        widening here — which is the reason for importing them (#266). Four
+        shapes, each holding a body that would otherwise warn or claim: the
+        three #266 masked, and the HTML comment #1181 masked, whose keyword and
+        number GitHub renders neither, so neither is claimed or mentioned."""
         for body in (
             "~~~\nCloses #11, #22\n~~~\n\nDo not write that.",
             "- the example:\n  ```\n  Closes #11, #22\n  ```\n\nDo not write that.",
             "see ``Closes #11, #22`` in the ticket",
+            "<!-- Closes #11, #22 -->\n\nDo not write that.",
         ):
             assert read(body) == ([], [], []), body
 
@@ -388,8 +402,7 @@ class Test_module:
         ), "the check imported some other module of that name"
         assert check.CLOSING is closer.CLOSING
         assert check.KEYWORDS is closer.KEYWORDS
-        assert check.FENCE is closer.FENCE
-        assert check.SPAN is closer.SPAN
+        assert check.HIDDEN is closer.HIDDEN
 
     def test_the_source_defines_no_keyword_list_of_its_own(self):
         """The identity case above passes for a module that ALSO carries its own
@@ -400,7 +413,14 @@ class Test_module:
         ) as f:
             source = f.read()
         body = source.split('"""', 2)[2]
-        for spelling in ("KEYWORDS = (", "CLOSING = re.compile", "FENCE = re.compile"):
+        for spelling in (
+            "KEYWORDS = (",
+            "CLOSING = re.compile",
+            "FENCE = re.compile",
+            "COMMENT = re.compile",
+            "SPAN = re.compile",
+            "HIDDEN = re.compile",
+        ):
             assert spelling not in body, (
                 f"{spelling!r} is defined here as well as next door — one of the "
                 "two will be widened alone"

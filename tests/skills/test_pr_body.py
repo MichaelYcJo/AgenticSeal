@@ -442,6 +442,20 @@ class Test_compose:
                 3,
                 "#7",
             ),
+            ("changelog.md", CHANGELOG + "a note <!-- x --> Closes #5\n", 3, "#5"),
+            ("changelog.md", CHANGELOG + "text <!-- Closes #5\n", 3, "#5"),
+            (
+                "changelog.md",
+                CHANGELOG + "<!-- Closes #5\n",
+                3,
+                "begins with a `<!--` that no `-->` closes on the line",
+            ),
+            (
+                "changelog.md",
+                CHANGELOG + "- <!-- note\n",
+                3,
+                "begins with a `<!--` that no `-->` closes on the line",
+            ),
         ],
     )
     def test_refuses_a_record_it_cannot_copy_faithfully(self, rel, text, line, said):
@@ -455,9 +469,15 @@ class Test_compose:
         copied line holding a closing keyword, which would close an issue no
         party claimed, are each refused at the record's path and line, with
         a sentence naming what was read there. A closing keyword in a code
-        span or a fence claims nothing, as
-        `close_issues_on_release.py#keywords_in` reads it, and a
-        `</details>` in a fence ends no fold."""
+        span, a fence or an HTML comment claims nothing, as
+        `close_issues_on_release.py#keywords_in` reads it, one beside a
+        comment or after a `<!--` that never closes and stands after text
+        still claims, as GitHub reads it (#1404), and a `</details>` in a
+        fence ends no fold. A copied line that begins with a `<!--` that no
+        `-->` closes on the line, at its start or behind a list marker, is
+        refused for the opener, with a keyword after it or without one:
+        GitHub hides the lines that follow it, the fold's end among them
+        (#1405, and #1408 behind a list marker)."""
         with pytest.raises(PR.Refused) as refused:
             PR.compose(NAME, {**RECORDS, rel: text})
         assert [(where, at) for where, at, _ in refused.value.causes] == [(rel, line)]
@@ -470,6 +490,23 @@ class Test_compose:
         span = "`</details>` in a span"
         text = PR.compose(NAME, {**RECORDS, "changelog.md": CHANGELOG + span + "\n"})
         assert span in text.split("\n")
+
+    def test_accepts_a_keyword_and_a_details_tag_in_a_closed_comment(self):
+        """#1181. GitHub reads neither a closing keyword nor a tag inside a
+        comment that closes (#1402, #1403), and the tag and the keyword are
+        blanked one way, so each line stands in the fold as written. A line
+        that begins with a comment closing on it passes too: GitHub ends that
+        HTML block on the same line and reads the text after its `-->`
+        (#1407), so nothing below it is hidden."""
+        lines = [
+            "a note <!-- Closes #5 -->",
+            "a note <!-- <details> --> here",
+            "<!-- a note --> and text after it",
+        ]
+        changelog = CHANGELOG + "\n".join(lines) + "\n"
+        text = PR.compose(NAME, {**RECORDS, "changelog.md": changelog})
+        for line in lines:
+            assert line in text.split("\n"), line
 
 
 class Test_split:

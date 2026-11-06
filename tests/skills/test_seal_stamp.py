@@ -1029,15 +1029,17 @@ class Test_session_key:
 
 
 class Test_values_dir:
-    def test_accepts_the_sessions_directory_under_the_common_dir(self):
-        assert stamp.values_dir("/c", "s-1") == os.path.join(
-            "/c", "agentic-stamp", "s-1"
+    def test_accepts_the_sessions_directory_under_the_common_dir(self, tmp_path):
+        common = str(tmp_path)
+        assert stamp.values_dir(common, "s-1") == os.path.join(
+            common, "agentic-stamp", "s-1"
         )
 
-    def test_refuses_a_session_that_would_leave_the_values_dir(self):
-        values_dir = os.path.join("/c", "agentic-stamp")
-        assert stamp.values_dir("/c", "../x") == os.path.join(values_dir, "x")
-        assert stamp.values_dir("/c", None) == os.path.join(values_dir, "none")
+    def test_refuses_a_session_that_would_leave_the_values_dir(self, tmp_path):
+        common = str(tmp_path)
+        values_dir = os.path.join(common, "agentic-stamp")
+        assert stamp.values_dir(common, "../x") == os.path.join(values_dir, "x")
+        assert stamp.values_dir(common, None) == os.path.join(values_dir, "none")
 
 
 class Test_drawn_path:

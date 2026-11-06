@@ -169,7 +169,7 @@ def inner_run(tmp_path_factory):
     """One pytest run over a slow case and a quick one, `SLOW_CASE_S` at
     0.3 s; its exit code and its output."""
     d = tmp_path_factory.mktemp("slow-case")
-    path = os.path.join(ROOT, TARGET)
+    path = os.path.join(ROOT, *TARGET.split("/"))
     (d / "conftest.py").write_text(INNER_CONFTEST.format(path=path), encoding="utf-8")
     (d / "test_inner.py").write_text(INNER_TESTS, encoding="utf-8")
     run = subprocess.run(
