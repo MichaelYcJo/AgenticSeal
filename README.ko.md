@@ -243,10 +243,12 @@ pull request 의 검사로 돕니다.
 ### 리뷰 체인
 
 proofer 는 아무것도 모르는 상태에서 시작합니다. 서브에이전트라서 변경을 만든
-대화가 닿지 않고, diff 와 프레임과 앞 회차의 기록만 읽습니다. 회차마다
+대화가 닿지 않고, diff 와 작업 항목의 기록 전체(프레임, `gaps.md`,
+`changelog.md`, `pr.md` 등)와 앞 회차의 기록만 읽습니다. 회차마다
 `trail/rounds/round-N.md` 가 남고, crafter 는 지적마다 고쳤다(fixed), 근거를
 들어 받아들이지 않았다(rejected), 정해 둔 곳으로 넘겼다(deferred) 가운데
-하나로 닫습니다. 실행은 마지막 수정을 읽는 검증 회차로 끝납니다
+하나로 닫습니다. 실행은 마지막 수정과 작업 항목의 기록을 다시 읽는 검증
+회차로 끝납니다
 (`skills/code-review/orchestration.md` *Orchestrator: the run ends with a
 verifying round*). 세션은 회차가 끝날 때마다 한 회차를 더 돌릴 값이 있는지
 따지고, 어느 시점에 그것을 따지는지는 `docs/running/the-run.md` *The run* 에

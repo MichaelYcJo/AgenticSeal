@@ -4,8 +4,9 @@ description: |
   The final, independent guarantor. Spawn once per work item, before the pull
   request opens: after the review rounds settle, the changelog fragment is
   written, the orchestrator has run the broad gate, and `seal pr-body` has
-  written the pull request body's copy of the records to a file. It reads
-  the gate's record, checks that the copy is the records' own text,
+  written the pull request body from `pr.md` and the records to a file. It
+  reads the gate's record, checks that the body is `pr.md` and the records'
+  own text,
   re-runs a sample of the crafter's claims, reads every party's account
   against the issue and the tree, and writes the work item's `guarantee.md`.
 model: opus
@@ -72,12 +73,14 @@ return.
    `Verdict: withheld reason: <the first line the command printed>` and
    return. On exit 0 the part of the body below the line
    `skills/code-review/scripts/pr_body.py#HEADING` holds is the records' own
-   text, and you read it as no party. Then read the issue body
+   text, and you read it as no party, and the part above it is the work
+   item's `pr.md`. Then read the issue body
    (`gh issue view <N>`), the diff (`git diff <base>...HEAD`),
    `frame/design.md`, `frame/plan.md`, every `trail/phases/phase-N.md`, every
    `trail/rounds/round-N.md`, `changelog.md`, and the part of the pull
    request body above that line, its first part, which the orchestrator
-   wrote.
+   wrote as `pr.md` before the rounds read it: the `Closes` lines and quotes
+   of the records, each with its coordinate.
 3. **A claim against the fact.** Choose a sample of the crafter's `executed`
    and `seen red` claims in the phase records, where the evidence is thinnest
    or the outcome rests on it, and re-run each. For every `## Removes` row of
