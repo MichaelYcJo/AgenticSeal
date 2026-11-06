@@ -16,7 +16,7 @@ import os
 import subprocess
 import sys
 
-from conftest import ROOT, flat, load_module
+from conftest import ROOT, flat, flattened, load_module, read
 
 STAMP = os.path.join(ROOT, "skills", "verify", "scripts", "seal_stamp.py")
 GATE = os.path.join(ROOT, "skills", "verify", "scripts", "broad_gate.py")
@@ -224,10 +224,14 @@ def test_both_readmes_say_what_the_stamp_hook_writes_and_leaves():
     1792363231's round 1 finding 3: the side effects gained the refusal
     record's directory, and the count before them went stale, so the sentence
     carries no count. #975 S11: neither edition says the broad gate leaves
-    the stamp's values."""
-    for edition, said, gone in (
+    the stamp's values. What each edition says is read in its section alone,
+    since *Install* says the plugin registers no hook too; what is gone is
+    read over the whole file."""
+
+    for edition, heading, said, gone in (
         (
             "README.md",
+            "## What runs on your machine",
             (
                 "The plugin registers no hook.",
                 "A yes runs `seal stamp --install`, which writes two things",
@@ -256,6 +260,7 @@ def test_both_readmes_say_what_the_stamp_hook_writes_and_leaves():
         ),
         (
             "README.ko.md",
+            "## 내 컴퓨터에서 도는 것",
             (
                 "플러그인은 훅을 하나도 등록하지 않습니다.",
                 "예라고 답하면 `seal stamp --install` 이 두 가지를 씁니다.",
@@ -276,11 +281,14 @@ def test_both_readmes_say_what_the_stamp_hook_writes_and_leaves():
             ),
         ),
     ):
-        text = flat(edition)
+        whole = read(edition)
+        assert heading in whole, (edition, heading)
+        section = whole.split(heading, 1)[1].split("\n## ", 1)[0]
+        text = flattened(section)
         for phrase in said:
             assert phrase in text, (edition, phrase)
         for phrase in gone:
-            assert phrase not in text, (edition, phrase)
+            assert phrase not in flattened(whole), (edition, phrase)
 
 
 # --- S16: the sealer is told it draws nothing --------------------------------
