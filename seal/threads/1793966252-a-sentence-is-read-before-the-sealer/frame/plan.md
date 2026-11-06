@@ -34,7 +34,7 @@ The chosen approach's failure scenario, six months on: a fix written after the l
 |---|---|---|---|
 | 1 | *Scope* items 1 and 7 | `trail/phases/phase-1.md` lists each statement in `agents/`, `skills/` and `templates/` of who writes `changelog.md` and who moves the version, found by `git grep` on "version", "fragment" and `changelog.md`, and each names the party that builds the work item; the *Phase boundary* set of `skills/verify/SKILL.md` over the touched files | 91e05888 |
 | 2 | *Scope* items 2, 3 and 4 | the three `tests/skills/test_pr_body.py` scenarios of `frame/design.md` *User scenarios & acceptance*, each seen red as its row says; `seal mutate` over the `pr.md` read in `pr_body.py#main` and `pr_body.py#_check`; narrow runs of `tests/skills/test_pr_body.py`, `tests/behaviour/test_the_sealer_guarantees.py` and `tests/behaviour/test_evals_layout.py` after `evals/behaviour/sealer/` is written again | bf27c1c9 |
-| 3 | *Scope* items 5, 6 and 8 | `trail/phases/phase-3.md` lists each statement in `agents/` and `skills/` of what a round reads, found by `git grep` and by `agents/proofer.md`'s `check:` targets; `git show --stat` of the commit that adds `changelog.md` shows `.claude-plugin/plugin.json` at 0.33.1 in it; the *Phase boundary* set over the touched files | |
+| 3 | *Scope* items 5, 6 and 8 | `trail/phases/phase-3.md` lists each statement in `agents/` and `skills/` of what a round reads, found by `git grep` and by `agents/proofer.md`'s `check:` targets; `git show --stat` of the commit that adds `changelog.md` shows `.claude-plugin/plugin.json` at 0.33.1 in it; the *Phase boundary* set over the touched files | c64707f4 |
 
 ## Operational impact
 
