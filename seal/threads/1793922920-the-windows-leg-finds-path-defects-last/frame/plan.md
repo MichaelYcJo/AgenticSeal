@@ -66,7 +66,7 @@ the tree with the line it excused.
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Scope items 1, 2, 3 and 4 | `tests/test_censuses.py#Test_slash_in_join` cases S1 to S5, each refusing case shown red with only the guard it names removed (the census out of `CENSUSES`; the constant resolution out; the f-string check out); `Test_module::test_every_file_no_module_file_declares_meets_every_census` red before Scope item 3's rewrites and green after; the narrow run of each module file whose site Scope item 3 changed; S6's `git grep` | |
+| 1 | Scope items 1, 2, 3 and 4 | `tests/test_censuses.py#Test_slash_in_join` cases S1 to S5, each refusing case shown red with only the guard it names removed (the census out of `CENSUSES`; the constant resolution out; the f-string check out); `Test_module::test_every_file_no_module_file_declares_meets_every_census` red before Scope item 3's rewrites and green after; the narrow run of each module file whose site Scope item 3 changed; S6's `git grep` | 087f6210 |
 
 ## Operational impact
 
