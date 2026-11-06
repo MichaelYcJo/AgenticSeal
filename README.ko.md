@@ -166,6 +166,11 @@ sealer 의 판정이 `sealed` 이면 sealer 가 도장을 쌓아 둡니다. 처�
 | shared, with pull-request checks | `<repo>/seal/` 에 커밋하고, `.github/workflows/hygiene.yml` 도 둔다 | 없다 |
 | local | `$(git rev-parse --git-common-dir)/seal/`. git 디렉터리 아래다 | CI, 그리고 빈 채로 시작하는 다른 기계와 다시 받은 클론 |
 
+local 모드에서는 기록을 커밋하지 않으므로 pull request 검사가 읽을 기록이
+없습니다. 그래서 `skills/core/SKILL.md` *Judgment is not licence to skip a
+party* 표의 마지막 네 행은 sealer 의 1단계(`agents/sealer.md`)와 작업을
+이끄는 세션이 따르는 지침만이 지키며, 이것이 local 모드의 한계입니다.
+
 local 모드는 이 플러그인의 파일이 트리에 있으면 안 되는 저장소에 맞습니다.
 회사 저장소나 남의 프로젝트에 기여할 때가 그렇습니다. 무엇을 얻고 무엇을
 잃는지는 `docs/layout/one-root-by-lifetime.ko.md` *shared 인가 local 인가* 에

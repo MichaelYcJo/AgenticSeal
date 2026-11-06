@@ -471,6 +471,37 @@ def test_the_readme_gives_the_switch_under_the_first_work_item(readme):
     )
 
 
+# What local mode leaves unchecked, said once under each edition's table of
+# the three answers: no pull-request check reads records that are not
+# committed, and no mechanism stands in for it (#1376).
+LOCAL_LIMIT = {
+    "README.md": (
+        "In local mode no pull-request check reads the records, so "
+        "`agents/sealer.md` step 1 and the orchestrator's guidance alone hold "
+        "the last four rows of `skills/core/SKILL.md` *Judgment is not licence "
+        "to skip a party*, and that is a limit."
+    ),
+    "README.ko.md": (
+        "local 모드에서는 기록을 커밋하지 않으므로 pull request 검사가 읽을 "
+        "기록이 없습니다. 그래서 `skills/core/SKILL.md` *Judgment is not "
+        "licence to skip a party* 표의 마지막 네 행은 sealer 의 1단계"
+        "(`agents/sealer.md`)와 작업을 이끄는 세션이 따르는 지침만이 지키며, "
+        "이것이 local 모드의 한계입니다."
+    ),
+}
+
+
+@pytest.mark.parametrize("readme", sorted(READMES))
+def test_the_readme_states_what_local_mode_leaves_unchecked_under_the_table(readme):
+    """The paragraph right under the table of the three answers says that in
+    local mode nothing checks the pull request's rows of the core's table,
+    and names what holds them, as a limit."""
+    body = section(read(readme), READMES[readme][1], 3)
+    chunks = body.split("\n\n")
+    table = next(i for i, chunk in enumerate(chunks) if chunk.startswith("|"))
+    assert flat(chunks[table + 1]) == LOCAL_LIMIT[readme], chunks[table + 1]
+
+
 # The one home of the way back before the commit to shared (#1055 S6), and
 # the citation of it each README carries.
 SHARED_HEADING = "Before switching to shared, say what cannot be undone"
