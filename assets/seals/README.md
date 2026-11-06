@@ -180,9 +180,9 @@ it, so the commands of the placeholder S and of both owls write the tag's
   into the wax, the owl's ringed eyes and scalloped breast, and the olive
   branch it perches on. It is painted in gradients of red of its own, not in the
   stamp's fifteen colours. The plugin's icon, `.claude-plugin/icon.png`, is
-  drawn from it, and the release note's `seal.png` is a copy of that icon
-  (`.github/scripts/release_seal.py#draw`). Draw the icon again from the
-  repository's top directory with `resvg_py`, the Python binding of the
+  drawn from it, and the release note's `seal.png` is a copy of that icon,
+  which the release workflow's `seal` job attaches. Draw the icon again
+  from the repository's top directory with `resvg_py`, the Python binding of the
   resvg renderer, installed in a throwaway environment (`resvg_py` 0.5.0
   drew the committed file):
 

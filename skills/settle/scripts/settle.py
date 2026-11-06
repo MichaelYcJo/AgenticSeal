@@ -332,9 +332,9 @@ def adding_commit(root, revisions, path):
     The number is the digits of the `(#N)` that ends the commit's stripped
     subject. Where a title ends with its issue, as `... (#7) (#42)` does, the
     last is the pull request's, because GitHub appends it after the title.
-    This is the one reader of that number, so the release note's link
-    (`.github/scripts/publish_release_note.py#fragments`) and any other
-    reader of it cannot name different pull requests (#1139).
+    This is the one reader of that number, so the release note's link,
+    which this plugin's own publish workflow writes, and any other reader
+    of it cannot name different pull requests (#1139).
 
     `--full-history` walks every parent, because a release's tag is a merge
     into `main` whose first parent never held the path (0.22.4). No rename is
@@ -431,8 +431,8 @@ def merged_pull_requests(root, branch):
 VERSION_RE = re.compile(r"^v(\d+\.\d+\.\d+)$")
 
 # The line that opens an entry of a release note built from the fragments:
-# `.github/scripts/publish_release_note.py#section` writes it from this, and
-# `BUILT_RE` reads it. Before #1139 an entry opened with `MARKER` instead.
+# this plugin's own publish workflow writes it from this, and `BUILT_RE`
+# reads it. Before #1139 an entry opened with `MARKER` instead.
 PULL_LINK = "[#{number}](https://github.com/{repo}/pull/{number})"
 MARKER = "<!-- specs/{work_item_id} -->"
 

@@ -146,9 +146,18 @@ of the release's tag. So the list lives in that one file and the workflow
 holds none. It lists what leaves and not what stays: a path forgotten
 there reaches `dist` and costs size or a finding, where a path forgotten
 in a list of what stays would be missing from every listed copy with
-nothing here to see it. The workflow's `dist` job builds the commit with
-`.github/scripts/dist_branch.py` on the previous commit of `dist`, makes
-none where that commit's tree is already the tag's archive, and pushes
+nothing here to see it. Of `.github/scripts/`, `dist` keeps the three
+scripts a shipped command runs: `bin/test` runs
+`.github/scripts/run_tests.py`, `skills/implement/scripts/seal.py` loads
+`.github/scripts/rules.py` for `seal rules`, and
+`skills/code-review/scripts/pr_body.py` loads
+`.github/scripts/close_issues_on_release.py` for its reader of closing
+keywords. Every other script there is release automation a workflow runs
+from the tree, and each leaves by a line of its own, so a release-only
+script added there adds its line. The workflow's `dist` job builds the
+commit with `.github/scripts/dist_branch.py` on the previous commit of
+`dist`, makes none where that commit's tree is already the tag's archive,
+and pushes
 without force, because the directory serves a scanned commit of the
 branch it tracks and a rewritten branch would orphan it. The census that
 reads cited sections and names reads the files `dist` holds against

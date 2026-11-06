@@ -478,9 +478,11 @@ def test_every_cited_section_stands_in_what_the_archive_holds():
 
 def test_every_cited_name_stands_in_what_the_archive_holds():
     """A2: every `path#name` in a file this repository's archive holds names
-    a name a file the archive holds binds. The floor is the tree reading's."""
+    a name a file the archive holds binds. The floor is half the tree
+    reading's: the scripts only the release workflows run leave the archive
+    with the names they cite (#1376), and N1 holds the tree reading's."""
     found = assert_resolved(ROOT, functools.partial(names, archive=True))
-    assert found.read >= 100, (
+    assert found.read >= 50, (
         f"only {found.read} names recognised, so a pass means nothing"
     )
 
@@ -913,6 +915,42 @@ def test_this_repository_s_archive_holds_no_workflow_file():
         "carry; `.gitattributes` marks `/.github/workflows/` `export-ignore` "
         "so that it does not"
     )
+
+
+# Each script under `.github/scripts/` that `dist` keeps, with the shipped
+# file that runs it. Every other script there is release automation the
+# workflows run from the tree (#1376).
+RUN_BY_A_SHIPPED_COMMAND = {
+    ".github/scripts/close_issues_on_release.py": "skills/code-review/scripts/pr_body.py",
+    ".github/scripts/rules.py": "skills/implement/scripts/seal.py",
+    ".github/scripts/run_tests.py": "bin/test",
+}
+
+
+def test_this_repository_s_archive_holds_only_the_scripts_a_shipped_command_runs():
+    """A8: of `.github/scripts/`, the archive holds the three scripts a
+    shipped command runs, each beside the file that runs it, and no other,
+    because `.gitattributes` marks each release-only script `export-ignore`.
+    The paragraph of `docs/releasing/branch-and-release.md` on `dist` names
+    the three and what runs each (#1376)."""
+    held = archived(ROOT)
+    scripts = sorted(
+        p for p in held if p.startswith(".github/scripts/") and p.endswith(".py")
+    )
+    assert scripts == sorted(RUN_BY_A_SHIPPED_COMMAND), (
+        f"the archive holds {scripts} of `.github/scripts/`; a script no shipped "
+        "command runs gets its own `export-ignore` line in `.gitattributes`"
+    )
+    for script, runner in RUN_BY_A_SHIPPED_COMMAND.items():
+        assert runner in held, f"{runner}, which runs {script}, is not shipped"
+    doc = read_at_root(os.path.join("docs", "releasing", "branch-and-release.md"))
+    lead = "**The plugin directory reads `dist`"
+    assert lead in doc, "the paragraph's lead is gone"
+    paragraph = re.sub(r"\s+", " ", doc.split(lead, 1)[1].split("\n\n", 1)[0])
+    for script, runner in RUN_BY_A_SHIPPED_COMMAND.items():
+        assert f"`{script}`" in paragraph and f"`{runner}`" in paragraph, (
+            f"the paragraph does not name `{script}` and `{runner}`, which runs it"
+        )
 
 
 @pytest.mark.parametrize("record", RECORDS)
