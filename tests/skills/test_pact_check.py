@@ -49,7 +49,7 @@ from conftest import git_out as git
 
 TARGET = "skills/verify/scripts/pact_check.py"
 
-SCRIPT = os.path.join(ROOT, TARGET)
+SCRIPT = os.path.join(ROOT, *TARGET.split("/"))
 WRAPPER = os.path.join(ROOT, "bin", "seal")
 
 # The module and its evidence reader, loaded once in `tests/conftest.py`, so

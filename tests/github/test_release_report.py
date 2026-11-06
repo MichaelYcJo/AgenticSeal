@@ -24,7 +24,7 @@ from conftest import ROOT, census_case
 TARGET = ".github/scripts/release_report.py"
 
 _SPEC = importlib.util.spec_from_file_location(
-    "agentic_release_report_under_layout", os.path.join(ROOT, TARGET)
+    "agentic_release_report_under_layout", os.path.join(ROOT, *TARGET.split("/"))
 )
 report = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(report)

@@ -428,6 +428,15 @@ question is not its difficulty, it is when it arrives.
   contributor exempts a line deliberately, never to make a test pass. A
   `python3 -c` line in a skill or a workflow is outside their reach, so its
   writer names the encoding there.
+- **A path is joined one part at a time.** `os.path.join` keeps a `/` inside
+  an argument and writes `\` between the arguments on Windows, so
+  `os.path.join(item, "trail/gate.md")` mixes the two there. Windows opens
+  that path, and a case that compares it as a string fails on the Windows
+  leg alone. A path held as one string with `/` is joined as
+  `*NAME.split("/")`. The `slash_in_join` census in `tests/censuses.py`
+  enforces it over every tracked `.py`. It reads a string, an f-string or a
+  constant the file itself assigns, so a constant imported from another
+  module is outside its reach, and its writer splits it there.
 - **Functional files are English-only.** Skills, agents, hooks, and commands
   load into model context, where a translated mirror would drift. Korean
   belongs in human-facing docs (`README.ko.md`). The `writing-style` skill

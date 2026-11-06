@@ -634,7 +634,7 @@ def run_side(a):
             extract(a.rev, [], tree)
         else:
             shutil.copytree(a.tree, tree, ignore=shutil.ignore_patterns(".git"))
-        shutil.rmtree(os.path.join(tree, SUITE), ignore_errors=True)
+        shutil.rmtree(os.path.join(tree, *SUITE.split("/")), ignore_errors=True)
         extract(a.suite_rev, [SUITE], tree)
         write_git_shim(tree)
         raw = os.path.join(work, "raw.json")

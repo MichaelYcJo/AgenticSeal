@@ -197,7 +197,7 @@ def main(argv=None):
         return 2
     rows, unread = [], []
     for name in sorted(released):
-        where = os.path.join(root, settle.SPECS, name)
+        where = os.path.join(root, *settle.SPECS.split("/"), name)
         if not os.path.isdir(where):
             # Released and since removed from the tree: `seal settle` lists
             # it nowhere either, so it is no row and no line.

@@ -51,7 +51,7 @@ READER = ROOT / "skills" / "verify" / "scripts" / "unverified_check.py"
 ITEM = "seal/threads/1799000001-a-gated-work-item"
 # The record's path as the gate prints it: `os.path.relpath`, so with the
 # platform's separator.
-RECORD_REL = os.path.join(ITEM, "trail", "gate.md").replace("/", os.sep)
+RECORD_REL = os.path.join(*ITEM.split("/"), "trail", "gate.md")
 ROW = "Broad gate"
 
 gate = load_module(ROOT / TARGET, "broad_gate_under_test")
