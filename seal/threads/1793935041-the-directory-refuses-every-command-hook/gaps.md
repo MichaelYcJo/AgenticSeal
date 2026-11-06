@@ -34,6 +34,13 @@ Two comments under `hooks/lib/` still describe a hook path after phase 5:
 `hooks/lib/routing.py:410` says a hook fires before the commit. Phase 7
 rewrites every path under `hooks/lib/`, and they are read there.
 
+Twelve files `dist` holds still name one of the thirteen release-only
+scripts by path, `docs/releasing/` and `hooks/lib/console.py` among them,
+and a reader of `dist` finds no file there. Phase 6 rewrote the five that
+cited a script by `path#name`, which the archive's census reads, and left
+the path-only mentions, which name this repository's file and which no
+census reads. `trail/phases/phase-6.md` lists the twelve.
+
 The repository's GitHub label `hooks-gates` keeps its name and its
 description, "Hooks, the commit gate, the worktree guard". The label lives
 outside the tree, so no phase changes it; the owner renames it or leaves it.
