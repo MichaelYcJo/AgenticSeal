@@ -13,4 +13,4 @@ Answered 2026-11-06 by the owner, before the first edit.
 
 ## Why this way
 
-The owner answered `automation` for the release 0.32.6 items. The work adds a check the broad gate runs and a question to the review checklist, so it alters a verdict and an agent's instructions and is framed first.
+The owner answered `automation` for the release 0.32.6 items. The work adds a census the broad gate runs, which refuses a `/` inside an `os.path.join` argument, so it alters a verdict and is framed first.
