@@ -73,6 +73,17 @@ class Test_prose_only:
         span = "`Closes #11`"
         assert check.prose_only(f"see {span} here") == f"see {' ' * len(span)} here"
 
+    def test_accepts_a_comment_over_several_lines_blanked_with_its_newlines_kept(
+        self,
+    ):
+        """#1181. A comment is masked as the closer masks it, and blanked as a
+        fence is: its lines stay lines, so the segments after it are cut where
+        they were."""
+        body = "Closes #11 <!-- a\nnote -->\nend"
+        assert (
+            check.prose_only(body) == "Closes #11 " + " " * 6 + "\n" + " " * 8 + "\nend"
+        )
+
 
 class Test_segments:
     def test_accepts_an_ordered_list_item_as_a_segment_of_its_own(self):
@@ -191,6 +202,13 @@ class Test_read:
             "see ``Closes #11, #22`` in the ticket",
         ):
             assert read(body) == ([], [], []), body
+
+    def test_a_keyword_inside_an_html_comment_is_masked_here_too(self):
+        """#1181. GitHub renders neither the keyword nor the number inside a
+        comment, so the check reports neither as claimed and neither as
+        mentioned, and a sentence the comment holds earns no warning."""
+        body = "<!-- Closes #11, #22 -->\n\nDo not write that."
+        assert read(body) == ([], [], [])
 
     def test_a_fence_does_not_splice_the_line_above_it_onto_the_line_below(self):
         """The masking is length-preserving for this reason. Collapsing a fenced
@@ -388,8 +406,7 @@ class Test_module:
         ), "the check imported some other module of that name"
         assert check.CLOSING is closer.CLOSING
         assert check.KEYWORDS is closer.KEYWORDS
-        assert check.FENCE is closer.FENCE
-        assert check.SPAN is closer.SPAN
+        assert check.HIDDEN is closer.HIDDEN
 
     def test_the_source_defines_no_keyword_list_of_its_own(self):
         """The identity case above passes for a module that ALSO carries its own
@@ -400,7 +417,14 @@ class Test_module:
         ) as f:
             source = f.read()
         body = source.split('"""', 2)[2]
-        for spelling in ("KEYWORDS = (", "CLOSING = re.compile", "FENCE = re.compile"):
+        for spelling in (
+            "KEYWORDS = (",
+            "CLOSING = re.compile",
+            "FENCE = re.compile",
+            "COMMENT = re.compile",
+            "SPAN = re.compile",
+            "HIDDEN = re.compile",
+        ):
             assert spelling not in body, (
                 f"{spelling!r} is defined here as well as next door — one of the "
                 "two will be widened alone"

@@ -89,8 +89,8 @@ _BLOCKS = _load_hook("blocks.py", "agentic_blocks_for_unverified")
 # place. Readers that keep a rule of their own, each on purpose: the pull request
 # body readers through `close_issues_on_release.py#FENCE`, which open a fence
 # at any indentation as GitHub does, so a fence under a list item masks a
-# closing keyword (`docs/releasing/issues-and-milestones.md` *A keyword inside a fence
-# or a code span claims nothing*); `tests/behaviour/test_docs_line_wrap.py#fenced_numbers`,
+# closing keyword (`docs/releasing/issues-and-milestones.md` *A keyword claims the
+# one number after it*); `tests/behaviour/test_docs_line_wrap.py#fenced_numbers`,
 # which strips a line's indentation first; and the oracle walk in
 # `tests/skills/test_unverified_check.py`. A new reader
 # that decides by line whether it stands inside a fence belongs in one of

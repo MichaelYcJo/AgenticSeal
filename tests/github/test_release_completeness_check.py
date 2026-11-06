@@ -546,6 +546,23 @@ class Test_main:
         for own in ("CLOSING = re.compile", "MERGED_PR = re.compile"):
             assert own not in source, f"the gate wrote its own {own.split()[0]}"
 
+    def test_a_keyword_inside_an_html_comment_puts_nothing_in_D(
+        self, monkeypatch, capsys
+    ):
+        """#1181. GitHub creates no reference from a keyword inside a comment
+        (#1402), so a release whose only body naming #92 holds it in one does
+        not carry #92."""
+        m = gate()
+        tracker = Tracker(
+            m=[88],
+            label=[88],
+            subjects=["fix: a thing (#100)", "docs: a note (#101)"],
+        )
+        wire(monkeypatch, m, tracker, {100: "Closes #88", 101: "<!-- Closes #92 -->"})
+        assert m.main() == 0
+        out = capsys.readouterr().out
+        assert re.search(r"^D \(carried by this release branch\): #88$", out, re.M), out
+
 
 class Test_module:
     def test_the_gate_writes_nothing(self, monkeypatch):
