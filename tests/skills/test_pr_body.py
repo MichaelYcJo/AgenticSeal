@@ -852,7 +852,7 @@ class Test_main:
         `pr.md`'s bytes, a CRLF line among them, then the heading, then the
         copy, whatever the file held before: a first part of its own and a
         stale copy are both replaced, and a missing file is written whole.
-        Seen red against `pr_body.py` at `1359abcb9`, which kept the file's
+        Seen red against `pr_body.py` as 0.33.0 shipped it, which kept the file's
         own first part and wrote none where there was no file."""
         item = item_of(tmp_path, RECORDS)
         body = tmp_path / "pr-body.md"
@@ -932,7 +932,7 @@ class Test_main:
         """The scenario *A work item with no `pr.md` is refused*. Either form
         exits 1 on one `refused:` line naming `pr.md` by its path under the
         `seal/` root and the repair, and leaves the body file as it stood.
-        Seen red against `pr_body.py` at `1359abcb9`, where both forms
+        Seen red against `pr_body.py` as 0.33.0 shipped it, where both forms
         exited 0."""
         item = item_of(tmp_path, RECORDS, own=None)
         body = tmp_path / "pr-body.md"
