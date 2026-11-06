@@ -22,14 +22,6 @@ orchestrator read the convention, which the crafter never opens. *Scope*
 item 1 does not ask for that path, and building it would be a feature
 beyond the request.
 
-`docs/forms/the-guarantee.md` *The guarantee* opens with a bold lead saying
-the body opens with the orchestrator's part "in the repository's language".
-Phase 2 built `pr.md`'s quotes in `Record language` and its other lines in
-`Commit and pull request language` (`trail/phases/phase-2.md`), and no
-operation of `frame/design.md` `## Rule changes` changes that lead. The
-spawn edits no `docs/` file, so the operation is the orchestrator's to fold
-into `## Rule changes`.
-
 No template for `pr.md` stands under `templates/records/`. *Scope* item 2
 does not ask for one, and the file table of `skills/implement/SKILL.md`
 *3. The SDD file set* names `skills/code-review/orchestration.md` as the
