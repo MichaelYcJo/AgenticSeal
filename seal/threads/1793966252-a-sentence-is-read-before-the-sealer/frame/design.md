@@ -70,10 +70,11 @@ A quote stands on its own line, in a list item or in a table cell, with its coor
 
 `seal pr-body <item> --body <file>` writes the body file as `pr.md`'s bytes, then `pr_body.py#HEADING` on its own line, then the copy as `pr_body.py#compose` gives it at `1359abcb9`, the seal mark included. Whatever the body file held before is replaced. The exit codes are unchanged: 0 written or matching, 1 refused, 2 not a directory.
 
-`seal pr-body <item> --body <file> --check` refuses in new ways, each one `refused:` line in the form `pr_body.py#_place` writes. Both forms refuse where `pr.md` is absent, and at a line of `pr.md` that equals the heading, since the body would split there. `--check` also refuses at each line above the heading where the body and `pr.md` differ: a line changed, a line the body adds, and a line the body lacks:
+`seal pr-body <item> --body <file> --check` refuses in new ways, each one `refused:` line in the form `pr_body.py#_place` writes. Both forms refuse where `pr.md` is absent, where it cannot be read as UTF-8 text, and at a line of `pr.md` that equals the heading, since the body would split there. `--check` also refuses at each line above the heading where the body and `pr.md` differ: a line changed, a line the body adds, and a line the body lacks:
 
 ```
 refused: <root>/threads/<id>/pr.md: is not there; the orchestrator writes it before the first round
+refused: <root>/threads/<id>/pr.md: cannot be read as UTF-8 text (<error>)
 refused: <root>/threads/<id>/pr.md:<line>: reads `## From the records`, the line the body's two parts split at
 refused: <body file>:<line>: reads `<text>`; pr.md gives `<text>`
 refused: <body file>:<line>: reads `<text>`, which pr.md does not give
