@@ -17,7 +17,8 @@
 entry skill's own body, which also reaches every session the entry takes. `frame/design.md` *Scope* item 2 names the core row
 alone, and a second row would be a measure the frame did not ask for.
 
-`hooks/lib/gate.py` and `tests/hooks/test_gate.py` were not removed in
+`lib/gate.py` and `tests/lib/test_gate.py`, at `hooks/lib/gate.py` and
+`tests/hooks/test_gate.py` until phase 7 moved them, were not removed in
 phase 2, though `frame/design.md` *Removes* names them. The module is the
 pull request's parity arm's reader, loaded by
 `skills/code-review/scripts/chain_check.py#parity_readers`, and
@@ -29,17 +30,26 @@ both descriptions of `.claude-plugin/marketplace.json`, as the default the
 orchestrator's judgment row of 2026-11-06 chose. The owner has not read the
 new sentence, and may overturn it in the pull request.
 
-Two comments under `hooks/lib/` still describe a hook path after phase 5:
-`hooks/lib/optin.py:97` records a measurement of a `PreToolUse` hook, and
-`hooks/lib/routing.py:410` says a hook fires before the commit. Phase 7
-rewrites every path under `hooks/lib/`, and they are read there.
-
 Twelve files `dist` holds still name one of the thirteen release-only
-scripts by path, `docs/releasing/` and `hooks/lib/console.py` among them,
+scripts by path, `docs/releasing/` and `lib/console.py` among them,
 and a reader of `dist` finds no file there. Phase 6 rewrote the five that
 cited a script by `path#name`, which the archive's census reads, and left
 the path-only mentions, which name this repository's file and which no
 census reads. `trail/phases/phase-6.md` lists the twelve.
+
+`.test_durations` still holds 850 lines naming `tests/hooks/` or a renamed
+case. Phase 7 left them to CI's rebuild, as `frame/plan.md`'s judgment row
+of phase 1 does for every stale id, so the plan's grep for phase 7 lists
+that file. `trail/phases/phase-7.md` lists the other paths the grep keeps
+on purpose.
+
+`CONTRIBUTING.md` *What a change to a gate must carry* still opens "The
+gates decide whether someone's commit or branch switch proceeds", and
+`.github/PULL_REQUEST_TEMPLATE.md:30` says "a gate decides whether somebody
+else's commit proceeds". Both describe the hooks earlier phases removed.
+Phase 7 changed only the path in the sentence beside each (`hooks/` to
+`lib/`). What a gate is now is a policy sentence, and no phase's Delivers
+cell names it.
 
 The repository's GitHub label `hooks-gates` keeps its name and its
 description, "Hooks, the commit gate, the worktree guard". The label lives
