@@ -112,7 +112,7 @@ So a run ends with a **verifying round**, and three things define it.
 | Property | What |
 |---|---|
 | When | **after the fixes** for the previous round are committed, never before, or it reviews what has already been reviewed; a fix pass whose findings are all located in the work item's records, with commits that touched nothing else, owes none |
-| Target | the **diff of those fixes**, not the branch. That is what keeps it bounded, and bounded is not cheap: its cost is set by the frame, the inherited records and the probes, so it runs close to a finding round. `docs/running/the-run.md` *The run* states the rule |
+| Target | the **diff of those fixes**, not the branch, for the code it reviews. That is what keeps it bounded, and bounded is not cheap: its cost is set by the frame, the inherited records and the probes, so it runs close to a finding round. `docs/running/the-run.md` *The run* states the rule. Beside that diff, the round reads `routing.md`, the three frame files, `gaps.md`, `changelog.md` and `pr.md` whole at its target commit, as a finding round does (`agents/proofer.md` *Rules*, the rule opening **Every round reads the work item's records that state the present**) |
 | Job | the answers, not new findings. For each finding the previous round closed `fixed <commit>` or `rejected`, is it actually closed: a `confirms:` line naming it where it is; where it is not, a finding whose `reopens:` line names it, or whose `regression:` line does where a fix pass's own commit made the defect |
 
 The new units in that diff are the exception: they have been reviewed by
@@ -137,7 +137,7 @@ against what it costs:
 | | What |
 |---|---|
 | The signals that the run is not converging | a round finds as many findings as the one before it, or more; a finding carries a `regression:` line; one kind of finding returns with a new instance, each fix pass having fixed the coordinate it was handed; a fix adds a mechanism, a check, a mark or a grammar rule, in place of removing a cause |
-| What the next round can catch | what the diff of the last fixes can break, because that diff is the round's target (the *Target* row above). A fix that changes no assertion, such as a test's comment or its name, can be caught out only on its own wording |
+| What the next round can catch | what the diff of the last fixes can break, because that diff is the round's target (the *Target* row above), and a sentence of the work item's records that the fixes made false. A fix that changes no assertion, such as a test's comment or its name, can be caught out only on its own wording |
 | What going on costs | a round close to a finding round's price, since the frame, the inherited records and the probes set it |
 | What stopping costs | each open finding a home somebody acts on, by the homes *The run* gives, and a defect the release ships where the home is nobody's |
 

@@ -27,9 +27,11 @@ here is a write you do not make.
    axes, its probe rules and what a finding holds.
 2. Work in the clone your prompt names, or else in a `git clone --no-local`
    of the repository at the target SHA.
-3. Read the work item whose `routing.md` names the branch: `frame/design.md`,
-   `frame/plan.md`, `gaps.md`, `trail/phases/`, and every earlier
-   `trail/rounds/round-*.md` for its coordinates.
+3. Read the work item whose `routing.md` names the branch: `routing.md`,
+   `frame/design.md`, `frame/plan.md`, `frame/questions.md`, `gaps.md`,
+   `changelog.md` and `pr.md`, each whole at the target, then
+   `trail/phases/`, and every earlier `trail/rounds/round-*.md` for its
+   coordinates.
 4. Review the target your prompt names: the branch against its base, or in a
    verifying round the diff of the last fixes.
 5. Where `seal/parity.md` is declared, open `skills/legacy-parity/SKILL.md`
@@ -114,6 +116,17 @@ stands deferred: say where, and do not write it up again.
 A carried fact is re-derived when its check fails, or where `seal/parity.md`
 lists its path under coordinate-trust exceptions.
 
+**Every round reads the work item's records that state the present, whole,
+against its target.** A finding round and a verifying round alike open
+`routing.md`, the three frame files, `gaps.md`, `changelog.md` and `pr.md`
+at the commit the target names and read each to its end. A frame section
+dated to the commit the framer read states that commit, and the target does
+not contradict it. Every other sentence the target contradicts is a finding
+located in the file that holds it. So is a quote of `pr.md` that you do not
+find, word for word with runs of whitespace collapsed, at the source its
+coordinate names. This read makes a round, not the sealer, the first
+reader of each sentence in them.
+
 **A verifying round answers the closed findings.** Its target is the diff of
 the last fixes, `<sha>, fixes <a>..<b>`. Each finding the round before
 closed `fixed <commit>` or `rejected` is named this round: by a `confirms:`
@@ -126,8 +139,10 @@ line. A `regression:` line names the finding whose fix made the unit, or
 unit, then one sentence setting the fix beside the frame from the phase's
 `frame/plan.md` row and `frame/design.md`: what the frame says, what the fix
 did, where the defect came from. A unit a build phase made is new work and takes neither
-line. Stay inside the fix diff. The reason is the round's job, not its
-price: widened, it re-reviews what earlier rounds reviewed instead of
+line. Stay inside the fix diff for the code you review; the read of the
+work item's records, by the rule above, stands beside that bound. The
+reason is the round's job, not its price: widened, it re-reviews what
+earlier rounds reviewed instead of
 answering the finding that came back. What you open outside it anyway you
 report like anything else, and a round told the run is capped still reports
 what it finds at the severity it finds it.
