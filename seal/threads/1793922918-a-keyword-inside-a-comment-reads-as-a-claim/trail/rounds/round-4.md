@@ -60,6 +60,12 @@ The frame statements are the orchestrator's, and the same snippet does not reach
 - `frame/design.md:75`: "A list marker without its space, such as `-<!--` or `1.<!--`, is treated as a line start too, where GitHub reads on, since the opener stands after text (#1404). A quote marker needs no space, so `><!--` is a quote, as #1409's is."
 - `frame/plan.md:59` and `:61`: "a list marker with no space".
 
+```seal
+verdict: fixed aceeed37
+answer: The finding holds: the sentence filed every marker with no space as masked past GitHub, and a quote marker needs no space, so `><!--` is #1409's quote, which GitHub hides. The per-shape fix was not applied. The orchestrator's judgment of 2026-11-06 in `frame/plan.md` *Judgments of the run* rules that the limits list no shape of the line-start test. The closer's Limits paragraph now states the rule once: the test reads one line's own text with no block model, so where CommonMark's block rules make GitHub read on past an opener it treats as a line start, as in an indented code block or after a marker that opens no list item, it masks to the end of the text and the closer closes fewer. It cites #1404, #1408, #1409 and #1410 as examples, not a list. The far `-->`, the comment GitHub refuses for its contents and the keyword joined to its number stand as they were. `changelog.md`'s sentence and `pr_body.py`'s Limits bullet take the same form; `pr_body.py`, which the finding's `location:` does not name, is on this block's `location:` line. Every changed line in the closer is a comment, and in `pr_body.py` a docstring line. The frame lines are the orchestrator's and are named in the hand-back.
+location: `skills/code-review/scripts/pr_body.py:75-79`
+```
+
 ## Confirmations
 
 ```seal
