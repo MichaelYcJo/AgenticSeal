@@ -45,9 +45,8 @@ wrong tree.
 
 A fix pass also takes a fresh spawn where the implementer's session no
 longer exists, on a new day or another machine, and the orchestrator hands it
-the same records. An orchestrator in a new session holds no `automation`
-press until it puts question 1 through `AskUserQuestion` again, so it does
-that before the spawn (`skills/implement/orchestration.md` *Question 1*).
+the same records. An orchestrator in a new session reads the routing from
+the work item's `routing.md` and asks nothing again before the spawn.
 
 **The crafter's fix pass appends one close block to each open finding of
 `trail/rounds/round-N.md`, holding its verdict, its answer and, where its fix
@@ -152,7 +151,7 @@ because a fix no round reads is an invariant `skills/core/SKILL.md`
 each decision to go on past the third round, or to stop, as one row of
 `frame/plan.md` *Judgments of the run*,** with the counts and signals you
 weighed as its grounds and the document you judged against; the proofer
-writes no line for it, and no person is asked mid-run. When you stop, every
+writes no line for it, and you ask no person to make it. When you stop, every
 finding still open takes a home: you append its close block, its `verdict:`
 reading `deferred <home>` and its `answer:` saying why the run stopped there,
 and commit the close blocks of that step together.

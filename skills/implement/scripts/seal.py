@@ -39,12 +39,6 @@ says it (#952):
                               working tree and the index; where HEAD carries
                               it, the deletion is staged for you to commit
 
-One more subcommand records a fact about the session rather than the root:
-
-  seal no-work-item           this session's change on the branch checked
-                              out here belongs to no work item, so the edit
-                              check lets its edits on that branch through
-
 Every other command of the plugin is a subcommand of this one, and `TOOLS`
 says which script each runs. `seal gate --base <base> --record <item>` hands
 `--base <base> --record <item>` to `broad_gate.py` untouched, `--help` among
@@ -193,9 +187,6 @@ HOOK_PURPOSES = {
     # `config.py` imports it, so a `hooks/lib/` without it fails that import.
     "blocks.py": "it is the walk config.py reads config.md through, which "
     "tells a live row from one quoted in a fence or parked in a comment",
-    "routing.py": "it is what writes the record `seal no-work-item` leaves, "
-    "which the edit check reads",
-    "hooksession.py": "it names the variable a session's id is read from",
     "gitcmd.py": "it is what builds the `git status` this command reads, the "
     "same under any git configuration",
 }
@@ -231,9 +222,7 @@ refuse_without_hooks()
 sys.path.insert(0, HOOKS)
 import config as repo_config  # noqa: E402
 import gitcmd  # noqa: E402
-import hooksession  # noqa: E402
 import optin  # noqa: E402
-import routing  # noqa: E402
 
 # The manifest's shape. An import refuses a number it does not know rather
 # than guessing at fields: a zip whose fields moved, read by a build that
@@ -2728,49 +2717,6 @@ def check(cwd):
     return 0
 
 
-# --- a change that belongs to no work item -----------------------------------
-
-
-def no_work_item(args, cwd):
-    """Record, for this session on the branch checked out in the worktree at
-    `--root` or the working directory, that its change belongs to no work
-    item, so `hooks/routing-edit-gate.py` lets its edits on that branch
-    through. The session is `CLAUDE_CODE_SESSION_ID`'s, and the branch is
-    resolved as the edit gate resolves it (`routing.worktree_branch`): the
-    branch checked out, else the branch a paused rebase there names. Where
-    the repository, the session or the branch is missing, nothing is written.
-    The rule is `docs/checks/the-routing-check.md` *The edit check*."""
-    where = args.root or cwd
-    repo = optin.repo_root(where)
-    if not repo:
-        print(f"seal: {where} is in no git repository, so nothing was recorded.")
-        return 1
-    session = os.environ.get(hooksession.SESSION_VARIABLE, "")
-    if not routing.session_name(session):
-        print(
-            f"seal: {hooksession.SESSION_VARIABLE} names no session in this "
-            "environment, so nothing was recorded. Run this from the session's "
-            "own Bash tool."
-        )
-        return 1
-    branch = routing.worktree_branch(repo)
-    if not branch:
-        print(
-            f"seal: HEAD is detached in {repo}, so no branch can be recorded and "
-            "nothing was. Check out a branch there first, then run this again."
-        )
-        return 1
-    path = routing.record_no_work_item(optin.git_common_dir(repo), session, branch)
-    if not path:
-        print(f"seal: the record could not be written under {repo}'s git directory.")
-        return 1
-    print(
-        f"recorded: this session's change on `{branch}` in {repo} belongs to no "
-        f"work item ({path}), so its edits on that branch go ahead."
-    )
-    return 0
-
-
 # --- the tools --------------------------------------------------------------
 
 
@@ -2883,20 +2829,7 @@ def main(argv=None, cwd=None):
         "installed is reported",
     )
 
-    nw = sub.add_parser(
-        "no-work-item",
-        help="record that this session's change on the branch checked out "
-        "belongs to no work item, so its edits on that branch go ahead",
-    )
-    nw.add_argument(
-        "--root",
-        help="the worktree whose checked-out branch is recorded. Default: the "
-        "working directory's",
-    )
-
     args = parser.parse_args(argv)
-    if args.command == "no-work-item":
-        return no_work_item(args, cwd)
     if args.command == "pr-checks":
         return pr_checks(args, cwd)
     if args.command == "export":

@@ -75,17 +75,17 @@ class Test_module:
         documented way in -- `hooks/lib/console.py` says each gate is runnable on its
         own -- and nothing measured that: neutering `to_utf8` to a bare `return`
         left the suite at its own baseline, so every one of them could be deleted
-        and the tree stays green. The gate run is the routing check at the edit tools,
-        whose refusal names the repository's path, which holds `KOREAN`.
+        and the tree stays green. The gate run is the mode gate, whose refusal
+        names the repository's path, which holds `KOREAN`.
         """
         r = subprocess.run(
-            [sys.executable, os.path.join(ROOT, "hooks", "routing-edit-gate.py")],
+            [sys.executable, os.path.join(ROOT, "hooks", "mode-gate.py")],
             input=json.dumps(
                 {
-                    "tool_name": "Write",
+                    "tool_name": "Bash",
                     "session_id": f"solo-{encoding}",
                     "cwd": str(korean_repo),
-                    "tool_input": {"file_path": str(korean_repo / f"{KOREAN}.txt")},
+                    "tool_input": {"command": f"git commit -m {KOREAN}"},
                 },
                 ensure_ascii=False,
             ).encode("utf-8"),

@@ -2,45 +2,41 @@
 
 Authority for what each routing answer owes at the pull request, and for
 the parity arm: what a change in a migration owes, and where that is
-checked. Where a session's routing is checked, at its edit tools and at the
-pull request, is `docs/checks/the-routing-check.md`. What the pull-request check
+checked. Where a session's routing is checked, at the pull request, is
+`docs/checks/the-routing-check.md`. What the pull-request check
 reads of a round record is `docs/checks/the-pull-request-check.md`. Update
 spec and code together.
 
 ## The two arms
 
 **No arm runs at the commit.** The review arm is the routing check, which
-runs at a session's edit tools and at the pull request
-(`docs/checks/the-routing-check.md`), and the parity arm is checked at the pull
-request alone, as *Parity arm* below states. The migration config lives at
-`seal/parity.md`, so declaring it creates `seal/`, which opts the
-repository into the routing check too.
-check: tests/hooks/test_routing_edit_gate.py tests/skills/test_chain_check.py
+runs at the pull request (`docs/checks/the-routing-check.md`), and the
+parity arm is checked at the pull request too, as *Parity arm* below
+states. The migration config lives at `seal/parity.md`, so declaring it
+creates `seal/`, which opts the repository into the routing check too.
+check: tests/skills/test_chain_check.py
 
 ### Review arm
 
 **The review arm is the routing check.** Where it runs is *The two arms*
-above; what it refuses, what it reads and what lets an edit through without
-a declaration are `docs/checks/the-routing-check.md`. A change confined to `docs/`
-meets it as any other change does, because `docs/` is the policy the code
-conforms to and review finds defects there as it does in code. A
-documentation pass that should reach nobody is routed that way before the
-first edit, by declaring `straight to the PR`; it is never inferred from
-the paths it touches.
-check: tests/hooks/test_routing_edit_gate.py
+above; what it refuses and what it reads are
+`docs/checks/the-routing-check.md`. A change confined to `docs/` meets it
+as any other change does, because `docs/` is the policy the code conforms
+to and review finds defects there as it does in code. A documentation pass
+that should reach nobody is routed that way before the first edit, by
+declaring `straight to the PR`; it is never inferred from the paths it
+touches.
 
 #### The declaration, and where the check went
 
 **The routing check reads `seal/threads/<work-item-id>/routing.md` before it
-reads anything else.** Where a declaration names the branch, an edit goes
-ahead for either answer, because the routing question was answered before
-the first edit.
+reads anything else.**
 
-| The declaration says | At an edit | At the pull request |
-|---|---|---|
-| through the review chain | allowed | a committed `trail/rounds/round-N.md` with no finding left `open`, the last record's `target:` commit at HEAD or followed only by the work item's own records, and the broad run's `trail/gate.md` and the sealer's `guarantee.md` beside it |
-| straight to the PR | allowed | `trail/gate.md` beside the work item's records, naming the one broad run the orchestrator took at a SHA the tree can see, and the sealer's `guarantee.md` reading `sealed` at HEAD. A draft pull request prints instead of failing, and the declaration is printed either way |
-| nothing readable, or no file | refused, unless the session recorded, on that branch, that its change belongs to no work item | each commit's `Seal-Routing` trailer is judged as `docs/checks/the-routing-check.md` *At the pull request* states; nothing else is checked, and a notice says so |
+| The declaration says | At the pull request |
+|---|---|
+| through the review chain | a committed `trail/rounds/round-N.md` with no finding left `open`, the last record's `target:` commit at HEAD or followed only by the work item's own records, and the broad run's `trail/gate.md` and the sealer's `guarantee.md` beside it |
+| straight to the PR | `trail/gate.md` beside the work item's records, naming the one broad run the orchestrator took at a SHA the tree can see, and the sealer's `guarantee.md` reading `sealed` at HEAD. A draft pull request prints instead of failing, and the declaration is printed either way |
+| nothing readable, or no file | each commit's `Seal-Routing` trailer is judged as `docs/checks/the-routing-check.md` *At the pull request* states; nothing else is checked, and a notice says so |
 
 What the check reads of each round record under the first answer is
 `docs/checks/the-pull-request-check.md` *What the check reads at the pull
@@ -60,17 +56,16 @@ declaration: it takes the third answer of question 1, `no work item`, in
 check: two-review-answers
 
 **There is no standing waiver: a declaration moves the review arm's check to
-the pull request, and a change no work item owns is recorded for one
-session on one branch, and stands for no other session.** Both answers stay
-enforced, the chain at the pull request against the round record and the
-direct route against the broad run's record, and no value means no
-enforcement anywhere. Which declaration applies is settled by the branch it
-names, looked up from the checked-out branch. Every way that lookup can fail
-(a renamed branch, a detached HEAD outside the two cases
-`docs/checks/the-routing-check.md` *The edit check* allows, two declarations naming
-one branch, a file that will not parse) resolves to *no declaration*, and
-therefore to **refusing the edit**: a fail-open here would be a gate a
-corrupt file switches off.
+the pull request, and a change no work item owns writes no declaration and
+says so in each of its commits' trailers.** Both answers stay enforced, the
+chain at the pull request against the round record and the direct route
+against the broad run's record, and no value means no enforcement anywhere.
+Which declaration applies is settled by the branch it names, looked up from
+the pull request's branch. Every way that lookup can fail (a renamed branch,
+two declarations naming one branch, a file that will not parse) resolves to
+*no declaration*, and at a shared root therefore to **failing the pull
+request** whose commits' trailers name the work item: a fail-open here would
+be a check a corrupt file switches off.
 
 What it costs:
 
@@ -78,10 +73,8 @@ What it costs:
   declaration and the pull request, nothing local blocks.
 - A branch that declares the chain and never opens a pull request is checked
   by nothing, and the `Destination` axis is what makes that a declared state.
-- A repository that adopts the declaration and not the workflow has traded
-  the edit check's refusal for a convention, and the plugin cannot detect
-  that state.
-- Deleting the routing file brings the edit check's refusal back.
+- A session that declares nothing is not caught, the limit
+  `docs/checks/the-routing-check.md` states.
 - In local mode nothing under the root is committed, so no pull-request
   check reads a declaration or a round record.
 
@@ -106,13 +99,15 @@ check: a-declaration-removed
 shipped as placeholders.** A backticked value reads as unanswered.
 `templates/records/sdd-routing.md` ships `Review` and `Destination` answered and
 `Automation`, `Implementation` and `Planning` as placeholders: a wrong answer in the
-first two is caught at the next edit, because the gate stops recognising the file, and a
-wrong answer in the others is contradicted by nothing, so a file copied and never
-revisited lands on not answered rather than on an answer nobody gave. An absent
-`Automation` row means nobody was asked, which is why `no` is never written where the
-question was not put. Under `stop before the pull request` nothing runs at the end, the
-orchestrator says so in the hand-back, and the broad run's record is owed when a pull
-request opens.
+first two is caught at the pull request of a shared root, because the check
+stops recognising the file and the commits' trailers name a work item no
+declaration names, and a wrong answer in the others is contradicted by
+nothing, so a file copied and never revisited lands on not answered rather
+than on an answer nobody gave. An absent `Automation` row means nobody was
+asked, which is why `no` is never written where the question was not put.
+Under `stop before the pull request` nothing runs at the end, the
+orchestrator says so in the hand-back, and the broad run's record is owed
+when a pull request opens.
 check: tests/hooks/test_routing.py tests/behaviour/test_waiver_decided_at_start.py
 
 ### Parity arm

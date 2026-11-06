@@ -13,7 +13,7 @@
 #   seal mode                     seal mode --check
 #   seal mode local               seal mode shared
 #   seal pr-checks                seal pr-checks install
-#   seal pr-checks remove         seal no-work-item
+#   seal pr-checks remove
 #   seal gate --base origin/main --record seal/threads/<work-item-id>
 #   seal fold --ceiling 1000      seal rules --check
 here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)

@@ -1,11 +1,11 @@
 ---
 name: A gate blocked or allowed the wrong thing
-about: The routing edit gate, the question gate, or another gate made a wrong call
+about: A gate or the pull request's check made a wrong call
 labels: hooks-gates
 ---
 
 **Which gate, and which direction was it wrong?**
-<!-- e.g. routing-edit-gate refused an edit on a branch a routing.md names -->
+<!-- e.g. the pull request's check failed a branch a routing.md names -->
 
 **The command you ran**
 ```

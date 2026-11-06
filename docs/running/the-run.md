@@ -12,7 +12,7 @@ asks of every finding marked closed whether the fix holds, and says so on a
 made the defect. A round opening nothing that needs a fix does not count toward the three finding rounds, which mark where the orchestrator weighs a loop that is not converging and are no cap: such a round is the loop having converged.
 check: run-ends-with-verifying-round
 
-**The orchestrator ends the rounds when they stop paying, and a run has three finding rounds by default, counted from the last design change, as the point where it weighs that rather than spawning the next round by habit.** A design change is a reframe, or a new phase the owner approved in `frame/plan.md`, so the first finding round that reviews new work starts the count again at one, whatever the record's number. The signals that a run is not converging, and what going on and stopping each cost, are `skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round*'s. A regression's fix pass is followed by one verifying round whatever the count, because no fix goes unread by a round, an invariant the table of `skills/core/SKILL.md` *Judgment is not licence to skip a party* holds. Every such decision, past the third round or at it, is a row of `frame/plan.md` *Judgments of the run* naming the counts weighed and this section; the proofer writes no line for it. When the orchestrator stops, every finding still open takes a home from the table below and reads `deferred <home>`. No person is asked mid-run.
+**The orchestrator ends the rounds when they stop paying, and a run has three finding rounds by default, counted from the last design change, as the point where it weighs that rather than spawning the next round by habit.** A design change is a reframe, or a new phase the owner approved in `frame/plan.md`, so the first finding round that reviews new work starts the count again at one, whatever the record's number. The signals that a run is not converging, and what going on and stopping each cost, are `skills/code-review/orchestration.md` *Orchestrator: the run ends with a verifying round*'s. A regression's fix pass is followed by one verifying round whatever the count, because no fix goes unread by a round, an invariant the table of `skills/core/SKILL.md` *Judgment is not licence to skip a party* holds. Every such decision, past the third round or at it, is a row of `frame/plan.md` *Judgments of the run* naming the counts weighed and this section; the proofer writes no line for it. When the orchestrator stops, every finding still open takes a home from the table below and reads `deferred <home>`. These decisions are the orchestrator's, and the orchestrator asks no person to make them.
 check: tests/behaviour/test_chain_hooks_hardening.py
 
 **A regression is routed by comparing the fix with the frame.** A
@@ -50,22 +50,21 @@ check: tests/text/test_the_rules_have_one_owner.py
 | 3 | the finding names a party who agreed to act on it | a new issue labelled `from-review`, or a `seal/follow-up.md` row where there is no tracker; the verdict reads `deferred #N` |
 | 4 | it names nobody | the round record alone, and the pull request body |
 
-**On a branch whose `routing.md` reads `Automation` `yes`, the
-question tool is refused on every call.** The person who answered the
-routing question was promised that nothing stops to ask, and a
-question put at minute thirty waits for somebody who is not there.
-The session builds on the default the question states, records that
-default in the work item's `frame/questions.md` as one row, and names it in
-the pull request body, where the owner can overturn it. The routing
-question put alone goes through until this session has answered it
-here, and what the gate reads and each case it lets through is
-`hooks/question-gate.py`'s docstring. A session
-sitting in a checkout whose branch is not the declared one is not
-held, and neither is a question asked as plain text. A gate whose own
-reason says to ask with the question tool meets this refusal too, and
-its question states no default: the session takes none of the ways on
-that question offers, and hands the stop back at the end of the run.
-check: tests/hooks/test_question_gate.py
+**On a run whose `routing.md` reads `Automation` `yes`, the orchestrator
+does not stop the run with a question that the tree or the framer can
+answer.** The person who answered the routing question was told that the
+run would not stop to ask, and a question put at minute thirty waits for
+somebody who may not be there. Where a question arises, the orchestrator
+looks for its answer in the tree and in the work item's
+`frame/questions.md` first. Where neither answers it, the orchestrator
+proceeds on the default the question states, writes that default as one
+row of `frame/questions.md`, and names it in one line of the pull request
+body, where the owner can overturn it. The orchestrator keeps a blocking
+question for what only the owner can decide, and only where proceeding on a
+default would be costly to undo or would reach outside the repository. A
+question or a remark the owner raises during the run is taken up when it
+arrives: the orchestrator folds it into the frame or the code, and never
+defers it to the pull request body.
 
 **The orchestrator's judgments of a run are rows of `frame/plan.md` *Judgments of the run*, each with its grounds and the document it stands on.** The decisions this section leaves to the orchestrator, to go on past the third round or to stop, a regression's route, a leftover's home, and a decision folded into the frame after the frame was committed, are judgments and not sequences, and `skills/core/SKILL.md` *A judgment stands on a source document, and is written down with both* asks that each be written where the next session reads it. The settle's dry run prints the judgment rows of the released work items and, beside them, those earlier settles removed, which the history still holds. The settling session rewrites the section where one kind of judgment keeps costing rounds, in one release or across several, and deciding that two rows are one kind is its own judgment. The framer's judgments stand in its *Alternatives considered* and the proofer's in its findings, and neither is copied here.
 

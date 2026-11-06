@@ -1,8 +1,8 @@
 """`hooks/lib/routing.py`: the routing answer is recorded where the hooks read
 it, so nothing re-derives it.
 
-A declaration at `seal/threads/<work-item-id>/routing.md` is what the edit
-check reads, through `routing.for_branch`. Failure direction: a declaration
+A declaration at `seal/threads/<work-item-id>/routing.md` is what the pull
+request's check reads, through `routing.declarations`. Failure direction: a declaration
 that cannot be read is not a declaration, and an optional row that cannot be
 read is unanswered while the declaration stands. What a hook does with an
 answer is that hook's own file's.
@@ -108,7 +108,8 @@ class Test_parse:
         """S1, and S8 at the parser. Twelve of these are committed in this
         repository at the base of this work, thirteen at its head. A third or
         a fourth axis that invalidated them would make each one no declaration,
-        and the edit check would refuse the branch it names."""
+        and the pull request's check would read the branch it names as
+        undeclared."""
         parsed = routing.parse(two_axis_text())
         assert parsed is not None
         assert parsed["review"] == CHAIN
@@ -261,7 +262,8 @@ class Test_parse:
 
     def test_refuses_a_review_answer_outside_the_vocabulary(self):
         """The vocabulary is fixed: `maybe later` is not one of the two ways on,
-        so the file is no declaration and the edit check refuses the next edit.
+        so the file is no declaration and the pull request's check reads the
+        branch as undeclared.
         This case asks the parser."""
         text = two_axis_text().replace(
             f"| Review | {CHAIN} |", "| Review | maybe later |"
@@ -412,8 +414,8 @@ class Test_parse:
         S8 of #84 extends it rather than opening a second case beside it. What an
         optional row has to survive is a declaration that does not carry it -- a
         required row, or a row whose absence took the declaration down, would
-        make every one of those no declaration, and the edit check would refuse
-        the branch each names. So the assertion is over
+        make every one of those no declaration, and the pull request's check
+        would read the branch each names as undeclared. So the assertion is over
         the declarations that OMIT each row, and never over how many answer it:
         #351 wrote the first `Planning` answer, and a case premised on nobody
         answering goes red on the commit that writes one rather than on a defect.
@@ -488,34 +490,6 @@ class Test_declarations:
         assert routing.declarations(str(repo)) == []
 
 
-class Test_record_no_work_item:
-    def test_accepts_a_branch_into_the_empty_record_an_earlier_build_left(
-        self, tmp_path
-    ):
-        """A record that is an empty file names no branch, so it lets
-        nothing through, and a run on a branch adds that branch as its
-        first line."""
-        common = str(tmp_path)
-        path = os.path.join(common, routing.NO_WORK_ITEM, "s1")
-        os.makedirs(os.path.dirname(path))
-        with open(path, "w", encoding="utf-8"):
-            pass
-        assert routing.no_work_item(common, "s1", "main") is False
-        assert routing.record_no_work_item(common, "s1", "main") == path
-        with open(path, encoding="utf-8", newline="") as f:
-            assert f.read() == "main\n"
-        assert routing.no_work_item(common, "s1", "main") is True
-
-    def test_refuses_no_branch_and_writes_nothing(self, tmp_path):
-        """A detached HEAD outside a paused rebase names no branch, and no
-        branch is never recorded, so the record's directory is not even
-        made. `tests/skills/test_seal.py` *Test_no_work_item* holds what a run with
-        a branch writes."""
-        assert routing.record_no_work_item(str(tmp_path), "s1", "") == ""
-        assert not os.path.exists(tmp_path / routing.NO_WORK_ITEM)
-        assert routing.no_work_item(str(tmp_path), "s1", "") is False
-
-
 class Test_module:
     def test_the_template_and_the_committed_declarations_still_parse(self):
         """R10's floor, S11. `templates/records/sdd-routing.md` carries its table and a
@@ -535,8 +509,8 @@ class Test_module:
         through the commit gate, into `dispatch.py`'s `except Exception: return ""`
         — no output, which is an allow.
 
-        The direction the module states is "no declaration", which means the edit
-        check refuses the edit. Not silence: silence would make a corrupt file
+        The direction the module states is "no declaration", which means the pull
+        request's check reads the branch as undeclared. Not silence: silence would make a corrupt file
         into a standing waiver.
         """
         sys.path.insert(0, os.path.join(ROOT, "hooks", "lib"))

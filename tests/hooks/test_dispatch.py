@@ -148,20 +148,6 @@ def bash(repo, session, command="git commit -m x", **extra):
     return body
 
 
-def edit(repo, session, name="f.txt", **extra):
-    """An `Edit` of NAME in REPO, which the routing check at the edit tools
-    refuses on a branch no declaration names."""
-    body = {
-        "hook_event_name": "PreToolUse",
-        "tool_name": "Edit",
-        "session_id": session,
-        "tool_input": {"file_path": str(repo / name)},
-        "cwd": str(repo),
-    }
-    body.update(extra)
-    return body
-
-
 def stop(hooks, repo, session, **extra):
     body = {"hook_event_name": "Stop", "session_id": session, "cwd": str(repo)}
     body.update(extra)
@@ -354,15 +340,13 @@ class Test_run_gate:
         self, repo, monkeypatch
     ):
         d = dispatch_module()
-        monkeypatch.setattr(
-            d, "GROUPS", {"g": ("nonexistent-gate.py", "routing-edit-gate.py")}
-        )
+        monkeypatch.setattr(d, "GROUPS", {"g": ("nonexistent-gate.py", "mode-gate.py")})
         mark_root(repo / "seal")
         out = io.StringIO()
         argv, stdin = sys.argv, sys.stdin
         try:
             sys.argv = ["dispatch.py", "g"]
-            sys.stdin = io.StringIO(json.dumps(edit(repo, "s1")))
+            sys.stdin = io.StringIO(json.dumps(bash(repo, "s1")))
             import contextlib
 
             with contextlib.redirect_stdout(out):
@@ -383,12 +367,10 @@ class Test_run_gate:
         opted_in(repo)
         hooks = hooks_copy(tmp_path, {"exits-at-load.py": "import sys\nsys.exit(0)\n"})
         d = load(hooks / "dispatch.py", "dispatch_for_s7")
-        monkeypatch.setattr(
-            d, "GROUPS", {"g": ("exits-at-load.py", "routing-edit-gate.py")}
-        )
+        monkeypatch.setattr(d, "GROUPS", {"g": ("exits-at-load.py", "mode-gate.py")})
         out = io.StringIO()
         monkeypatch.setattr(sys, "argv", ["dispatch.py", "g"])
-        monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(edit(repo, "s-x"))))
+        monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(bash(repo, "s-x"))))
         with contextlib.redirect_stdout(out):
             d.main()
         assert decision_of(out.getvalue()) == "deny", out.getvalue()
@@ -866,26 +848,23 @@ class Test_draw:
         "broken, named",
         [
             ({"lib/cmdline.py": BROKEN}, ["implementer-notice.py"]),
+            ({"lib/config.py": BROKEN}, ["mode-gate.py"]),
             (
-                {"lib/press.py": BROKEN},
-                ["question-gate.py", "routing-edit-gate.py"],
-            ),
-            (
-                {"lib/cmdline.py": BROKEN, "lib/press.py": BROKEN},
-                ["implementer-notice.py", "question-gate.py", "routing-edit-gate.py"],
+                {"lib/cmdline.py": BROKEN, "lib/config.py": BROKEN},
+                ["mode-gate.py", "implementer-notice.py"],
             ),
         ],
-        ids=["cmdline", "press", "both"],
+        ids=["cmdline", "config", "both"],
     )
     def test_accepts_every_gate_a_broken_shared_module_breaks_and_no_other(
         self, repo, tmp_path, broken, named
     ):
         """S6. A broken shared reader names every gate that imports it, once, and
         no gate that does not. `cmdline.py` is imported by
-        `implementer-notice.py`, and `press.py` by `question-gate.py` and
-        `routing-edit-gate.py`. Each reader is broken alone as well as both at
-        once: breaking them only together would lose the per-module "no gate
-        that does not" (round 2 of 1790745049, white 4)."""
+        `implementer-notice.py`, and `config.py` by `mode-gate.py`. Each
+        reader is broken alone as well as both at once: breaking them only
+        together would lose the per-module "no gate that does not" (round 2 of
+        1790745049, white 4)."""
         opted_in(repo)
         hooks = hooks_copy(tmp_path, broken)
         dispatch(hooks, "pre-bash", bash(repo, "s-x"))
@@ -894,10 +873,6 @@ class Test_draw:
             "post-bash",
             bash(repo, "s-x", command="ls", hook_event_name="PostToolUse"),
         )
-        question = {"questions": []}
-        asked = bash(repo, "s-x", tool_name="AskUserQuestion", tool_input=question)
-        dispatch(hooks, "pre-question", asked)
-        dispatch(hooks, "pre-edit", edit(repo, "s-x"))
         # Every record gets one file time, as a file system with coarse times
         # gives records written in one call (Windows CI did): the order said is
         # the order the gates failed, which each record carries itself.
@@ -926,7 +901,7 @@ class Test_draw:
         directory.mkdir(parents=True)
         carried = (
             ("sealer-stamp-queue.py", [10**18, 0]),
-            ("routing-edit-gate.py", [10**18, 1]),
+            ("review-skill-gate.py", [10**18, 1]),
             ("mode-gate.py", [10**18 + 5, 0]),
         )
         for gate, at in carried:
@@ -946,7 +921,7 @@ class Test_draw:
         lines = said(stop(hooks_copy(tmp_path, {}), repo, "s-x"))
         assert gates_said(lines) == [
             "sealer-stamp-queue.py",
-            "routing-edit-gate.py",
+            "review-skill-gate.py",
             "mode-gate.py",
             "version-check.py",
             "implementer-mark.py",
@@ -1083,18 +1058,12 @@ class Test_report:
         self, repo, tmp_path
     ):
         """S2. The report leaves the failing call's own stdout alone: a broken
-        gate and an absent one give the same bytes, the routing check's deny
-        beside them included."""
+        gate and an absent one give the same bytes."""
         opted_in(repo)
         broken = hooks_copy(tmp_path / "a", {"mode-gate.py": BROKEN})
         absent = hooks_copy(tmp_path / "b", {"mode-gate.py": None})
         assert dispatch(broken, "pre-bash", bash(repo, "s-a")) == dispatch(
             absent, "pre-bash", bash(repo, "s-b")
-        )
-        broken = hooks_copy(tmp_path / "c", {"routing-edit-gate.py": BROKEN})
-        absent = hooks_copy(tmp_path / "d", {"routing-edit-gate.py": None})
-        assert dispatch(broken, "pre-edit", edit(repo, "s-c")) == dispatch(
-            absent, "pre-edit", edit(repo, "s-d")
         )
 
     def test_refuses_plain_text_at_stop_and_the_records_wait(

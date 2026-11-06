@@ -47,8 +47,8 @@ documents that outrank the code first* names.
 `skills/implement/orchestration.md` *Orchestrator: when a work item is
 required*. Where the ladder puts the change on its last rung, no work item
 opens: say so to the person, and make the change as the third answer of
-*Question 1* describes, each commit ending with the trailer
-`Seal-Routing: no work item`. The steps below are then not taken.
+*Question 1* describes, its commits' trailer among it. The steps below are
+then not taken.
 
 **5. Ask once.** Put the batch of `skills/implement/orchestration.md`
 *Orchestrator: what needs a person is asked in one batch, before the first

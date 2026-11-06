@@ -121,11 +121,12 @@ orchestrator 는 코어를 읽고, 사람이 정해야 할 것을 묻고, 에이
 
 답마다 무엇이 정해지는지와, 그 답이 `seal/threads/<id>/routing.md` 에 쓰는
 행은 `skills/implement/orchestration.md` *Orchestrator: how the work is routed*
-에 있습니다. 훅은 이 파일을 읽고 브랜치가 어떤 길로 보내졌는지 압니다.
-`automation` 으로 보낸 실행에서는 세션이 사용자에게 하려던 질문이 거절되고,
-세션은 그 질문이 내건 기본값으로 계속 만듭니다. 그 기본값은 작업 항목의
-`frame/questions.md` 에 적히고, pull request 본문이 그것을 밝혀 사용자가
-뒤집을 수 있게 합니다.
+에 있습니다. pull request 의 검사는 이 파일을 읽고 브랜치가 어떤 길로
+보내졌는지 압니다. `automation` 으로 보낸 실행에서는 저장소나 framer 가 답할
+수 있는 것을 세션이 멈춰 묻지 않습니다. 세션은 질문의 기본값으로 계속 만들고,
+그 기본값을 작업 항목의 `frame/questions.md` 에 적으며, pull request 본문이
+그것을 밝혀 사용자가 뒤집을 수 있게 합니다. 실행 도중에 사용자가 한 말은 그
+자리에서 반영하고, pull request 로 미루지 않습니다.
 
 그다음 에이전트들이 차례로 일합니다. framer 는 설계를 맡는 에이전트입니다.
 저장소를 읽고 설계(design), 계획(plan), 질문(questions)을 씁니다. crafter 는
@@ -288,11 +289,9 @@ lint-python 은 프로젝트가 ruff 를 설정한 곳에서만 돕니다. 플�
 
 | 게이트 | 언제 | 무엇을 | 어디서 |
 |---|---|---|---|
-| routing-edit-gate | `Write`, `Edit`, `NotebookEdit` 호출 직전 | 편집하는 파일의 브랜치를 가리키는 `routing.md` 가 없고 이 세션이 그곳에서 `seal no-work-item` 을 돌리지 않았으면 편집을 거부하고, 갈 수 있는 두 길을 알린다. 선언을 쓰거나 그 명령을 돌리는 것이다. `seal/` 아래 파일과 git 이 무시하는 파일은 통과하므로 선언은 언제나 쓸 수 있다. 셸로 한 편집은 이 훅에 닿지 않는다 ([`docs/checks/the-routing-check.md`](docs/checks/the-routing-check.md)) | 루트에 `seal/` 이 있는 저장소, 또는 local 모드로 공통 git 디렉터리 아래에 `seal/` 이 있는 저장소. 그 밖에서는 아무것도 하지 않는다 |
 | implementer-mark | `subagent_type` 이 `framer` 나 `crafter` 인 Agent 호출 직전 | 브랜치 이름을 `.git/agentic-planner` 나 `.git/agentic-implementer` 에 적는다. 아래 알림이 읽는 흔적이다. 아무것도 출력하지 않는다 | 루트에 `seal/` 이 있는 저장소, 또는 local 모드로 공통 git 디렉터리 아래에 `seal/` 이 있는 저장소. 그 밖에서는 아무것도 하지 않고 아무것도 쓰지 않는다 |
 | implementer-notice | `git commit` 을 실행한 명령 직후 | 브랜치의 `routing.md` 가 framer 나 crafter 를 선언했는데 띄웠다는 흔적이 없으면 세션에 한 줄로 알린다. 세션과 저장소마다 한 번이고, 막지 않는다 ([`docs/checks/the-session-hooks.md`](docs/checks/the-session-hooks.md) *The implementer mark and notice*) | 루트에 `seal/` 이 있는 저장소, 또는 local 모드로 공통 git 디렉터리 아래에 `seal/` 이 있는 저장소. 그 밖에서는 아무것도 하지 않는다 |
 | review-skill-gate | 모델이 `code-review` 라는 이름의 스킬을 열기 직전 | 어느 것을 뜻하는지 사용자에게 묻는다. 그 이름은 Claude Code 에 내장된 리뷰의 이름이기도 하다. 내장 리뷰는 diff 에서 버그를 훑고, `agentic:code-review` 는 준수를 먼저 판정하고 앞 회차를 읽는다. 세션과 작업 트리마다 한 번 묻는다 | 루트에 `seal/` 이 있는 저장소, 또는 local 모드로 공통 git 디렉터리 아래에 `seal/` 이 있는 저장소. 그 밖에서는 아무것도 하지 않는다 |
-| question-gate | `AskUserQuestion` 호출 직전 | `routing.md` 가 `Automation` 에 `yes` 로 답한 브랜치에서는 질문을 거절한다. 그래서 실행은 질문이 내건 기본값으로 진행하고 그 값을 기록한다. 라우팅 질문만 단독으로 물으면 통과한다 ([`hooks/question-gate.py`](hooks/question-gate.py)) | 루트에 `seal/` 이 있는 저장소, 또는 local 모드로 공통 git 디렉터리 아래에 `seal/` 이 있는 저장소. 그 밖에서는, 그리고 선언이 `yes` 로 답하지 않은 브랜치에서는 아무것도 하지 않는다 |
 | mode-gate | Bash 호출 직전, 사실상 세션의 첫 명령 | `seal/` 은 있는데 `seal/config.md` 에 `Mode` 행이 없으면 세 선택지로 한 번 묻는다. `seal mode` 는 폴더가 있는 자리를 적어 두고, `seal mode shared` 나 `seal mode local` 은 폴더를 옮긴다. 세션과 저장소마다 한 번이고, 행이 생긴 뒤에는 다시 묻지 않는다 | 루트에 `seal/` 이 있는 저장소, 또는 local 모드로 공통 git 디렉터리 아래에 `seal/` 이 있는 저장소. 그 밖에서는, 그리고 행이 있는 곳에서는 아무것도 하지 않는다 |
 | version-check | 세션 시작 시 | 이 저장소에 최신 릴리스 태그를 묻고, 돌고 있는 플러그인이 뒤처져 있으면 `/agentic:update` 와 릴리스를 불러오는 두 방법을 짧게 알린다. 하루에 한 번 묻고, 조회가 실패하면 20분쯤 뒤에 다시 시도한다. 아무것도 설치하지 않는다 | 루트에 `seal/` 이 있는 저장소, 또는 local 모드로 공통 git 디렉터리 아래에 `seal/` 이 있는 저장소. 그 밖에서는 아무것도 하지 않는다 |
 | sealer-stamp | 메인 세션의 턴이 끝날 때 (`Stop`) | 작업 항목의 `guarantee.md` 가 `sealed` 로 쓰일 때 남는 도장 가운데 이 세션 앞으로 `<git-common-dir>/agentic-stamp/<session>/` 에 쌓인 것을 그리고, 그 파일의 이름을 `.drawn.json` 으로 바꾼다. 도장은 다음 행의 훅이 작업 항목마다 한 번 쌓는다. 손으로 그리려면 `seal stamp --from <file>` 을 쓴다 | 루트에 `seal/` 이 있는 저장소, 또는 local 모드로 공통 git 디렉터리 아래에 `seal/` 이 있는 저장소. 그 밖에서는 아무것도 하지 않는다 |
@@ -359,7 +358,6 @@ GitHub 은 어딘가의 기계가 AgenticSeal 을 쓴다는 것을 알게 됩니
 | `seal rules <doc>` · `seal rules --check` | 문서의 절마다 `check:` 줄이 가리키는 테스트를 찍거나, 대상이 사라진 줄을 하나씩 짚고 0 이 아닌 값으로 끝난다 (`skills/settle/rule-changes.md` *A rule has one shape*) |
 | `seal pact [ROOT]` | pact, 곧 여러 저장소가 함께 지키는 계약을 가진 저장소에서, 그 pact 에 서명한 저장소가 모두 아직 그것과 맞는지 확인한다 (`docs/layout/the-pact.md`) |
 | `seal payload` | 세션과 에이전트마다 시작 컨텍스트가 무엇으로 이루어졌는지를 바이트와 토큰으로 잰다 (`skills/verify/scripts/payload_meter.py`) |
-| `seal no-work-item` | 체크아웃된 브랜치에서 이 세션이 하는 변경은 어느 작업 항목에도 속하지 않는다고 적어, 편집 훅이 그곳에서 통과시키게 한다 (`skills/commit-pr-convention/SKILL.md`) |
 | `/agentic:start <이슈나 요청>` | 작업 하나를 워크플로로 시작한다. 코어를 열고, 라우팅 질문을 한 번 묻고, 첫 편집 전에 작업 항목의 선언을 쓴다 (`skills/start/SKILL.md`) |
 | `/agentic:parity-setup` | 이 저장소가 다른 코드베이스를 옮겨 온다고 선언한다 (`skills/parity-setup/SKILL.md`) |
 | `/agentic:config` | 이 저장소가 스스로 정한 것, 곧 두 언어와 기록이 사는 자리를 보여 주고 바꾼다 (`skills/config/SKILL.md`) |
@@ -367,10 +365,11 @@ GitHub 은 어딘가의 기계가 AgenticSeal 을 쓴다는 것을 알게 됩니
 
 ## 한계
 
-- **훅은 사용자나 모델 앞에 결정을 내놓을 뿐, 보안 장치가 아닙니다.**
-  `seal no-work-item` 은 어느 세션이든 돌릴 수 있는 명령 하나이고, 셸로 한
-  편집은 편집 훅에 닿지 않으며, 사용자가 터미널에서 직접 한 커밋은 이
-  플러그인의 코드를 하나도 돌리지 않습니다.
+- **아무것도 선언하지 않은 세션을 막는 것은 없습니다.**
+  `/agentic:start` 를 치지 않은 세션은 플러그인이 없을 때처럼 편집하고
+  커밋하며, 사용자가 터미널에서 직접 한 커밋은 이 플러그인의 코드를 하나도
+  돌리지 않습니다. pull request 의 검사는 선언한 작업 항목을 판정합니다
+  ([`docs/checks/the-routing-check.md`](docs/checks/the-routing-check.md)).
 - **`seal rules --check` 는 적어 둔 테스트가 있다는 것만 증명합니다.** 그
   테스트가 규칙을 확인한다는 뜻은 아닙니다. `check:` 줄이 없는 규칙은 리뷰만
   지킵니다.

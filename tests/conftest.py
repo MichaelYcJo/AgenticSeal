@@ -480,24 +480,6 @@ def gh_answers(env, state):
 os.environ["PATH"] = gh_answers(dict(os.environ), "unknown")["PATH"]
 
 
-# The press reader reads the routing answer out of the session's transcript
-# under `press.PROJECTS_ROOT`, which is `~/.claude/projects` -- the real
-# transcripts of whoever runs this suite. Every in-process case points it at
-# an empty directory instead, so none reads a real transcript: every gate
-# imports the module by its plain name, so one attribute on `sys.modules`
-# covers every copy of every gate a test module loaded. A case that needs a
-# transcript points it somewhere else itself.
-_NO_TRANSCRIPTS = tempfile.mkdtemp(prefix="agentic-no-transcripts-")
-atexit.register(shutil.rmtree, _NO_TRANSCRIPTS, True)
-
-
-@pytest.fixture(autouse=True)
-def _no_real_transcripts(monkeypatch):
-    press = sys.modules.get("press")
-    if press is not None and hasattr(press, "PROJECTS_ROOT"):
-        monkeypatch.setattr(press, "PROJECTS_ROOT", _NO_TRANSCRIPTS)
-
-
 # What a Claude Code session exports to every Bash child, and so to every git
 # hook a fixture repository's stub runs (#692, `trail/phases/phase-1.md` M4). A
 # suite run from inside a session inherits them and CI does not, so a stub
@@ -1458,77 +1440,6 @@ def two_axis_text(branch="feature/x"):
 def with_row(label, answer):
     """`two_axis_text()` with one more row in front of `Branch`."""
     return two_axis_text().replace("| Branch |", f"| {label} | {answer} |\n| Branch |")
-
-
-# --- the routing press: the question put and answered in a transcript --------
-
-ROUTING_QUESTION = "How should this work be routed?"
-ROUTING_OPTIONS = ("automation (Recommended)", "per axis", "no work item")
-
-
-def ask_entries(
-    cwd,
-    answer="automation (Recommended)",
-    options=ROUTING_OPTIONS,
-    multi=False,
-    tool="AskUserQuestion",
-    tool_id="toolu_01routing",
-    result_id=None,
-    question=ROUTING_QUESTION,
-):
-    """One question put and answered: the assistant's `tool_use`, then the
-    `user` entry the harness writes with the structured `toolUseResult`."""
-    asked = {
-        "questions": [
-            {
-                "question": question,
-                "header": "Routing",
-                "multiSelect": multi,
-                "options": [{"label": o, "description": "d"} for o in options],
-            }
-        ]
-    }
-    use = {
-        "type": "assistant",
-        "cwd": str(cwd),
-        "message": {
-            "role": "assistant",
-            "content": [
-                {"type": "tool_use", "id": tool_id, "name": tool, "input": asked}
-            ],
-        },
-    }
-    result = {
-        "type": "user",
-        "cwd": str(cwd),
-        "isSidechain": False,
-        "message": {
-            "role": "user",
-            "content": [
-                {
-                    "type": "tool_result",
-                    "tool_use_id": result_id or tool_id,
-                    "content": f'The user answered: "{question}"="{answer}".',
-                }
-            ],
-        },
-        "toolUseResult": {
-            "questions": [dict(asked["questions"][0])],
-            "answers": {question: answer},
-        },
-    }
-    return [use, result]
-
-
-def write_transcript(root, session, entries, slug="-Users-x-repo"):
-    """`<root>/<slug>/<session>.jsonl`, one JSON object (or raw line) each."""
-    d = pathlib.Path(root) / slug
-    d.mkdir(parents=True, exist_ok=True)
-    path = d / f"{session}.jsonl"
-    with open(path, "w", encoding="utf-8") as f:
-        for e in entries:
-            f.write((e if isinstance(e, str) else json.dumps(e)) + "\n")
-    return path
 
 
 # --- a `seal` block, as `hooks/lib/fields.py` reads one ---------------------------

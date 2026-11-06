@@ -48,7 +48,7 @@ class Test_main:
 
     def test_accepts_a_crafter_spawn_on_a_branch_with_no_commit_yet(self, tmp_path):
         """A new repository's `main` has no commit, and the mark stands for
-        `main`, the branch the edit gate and the declaration resolve there
+        `main`, the branch `routing.worktree_branch` resolves there
         (round 5 of #1027, finding 1)."""
         fresh = tmp_path / "fresh"
         fresh.mkdir()

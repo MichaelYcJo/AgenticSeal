@@ -67,9 +67,8 @@ request body states each decision with its grounds and lists the defaults
 it took, and the owner reviews it.
 
 `skills/settle/SKILL.md` is the procedure. **A settle is not a work item**:
-it opens no directory under `seal/threads/`, its session runs
-`seal no-work-item` on the settle's branch before the first edit, and each
-of its commits carries the trailer `Seal-Routing: no work item`, the
+it opens no directory under `seal/threads/`, and each of its commits
+carries the trailer `Seal-Routing: no work item`, the
 recorded form of the routing question's `no work item` answer
 (`skills/commit-pr-convention/SKILL.md`). It owes an answer for every check
 in this repository carrying a population floor over `seal/threads/`.

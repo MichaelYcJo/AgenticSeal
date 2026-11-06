@@ -14,15 +14,15 @@ Beside the work item rather than at the root's top level, because a work item
 begins and ends in one directory and routing is its first fact. It also gives
 the work below the SDD ladder somewhere to exist: those items write no
 `frame/design.md`, so until now they left no trace anywhere, and they are most of what
-the gate sees.
+the pull request's check sees.
 
-Imported by the gate and by the hygiene check rather than copied into each --
-the same reason `optin.py` gives for being a module: divergent copies is how
-half of them keep the old answer.
+Imported by the hooks and loaded by the pull request's check rather than
+copied into each -- the same reason `optin.py` gives for being a module:
+divergent copies is how half of them keep the old answer.
 
 Everything here fails toward "no declaration". A file that cannot be read is
-not an answer somebody gave, so the gate goes back to asking. Silence would
-make a corrupt file into the standing waiver
+not an answer somebody gave, so the pull request's check reads its branch as
+undeclared. Silence would make a corrupt file into the standing waiver
 `docs/running/the-review-and-parity-arms.md` refuses to build.
 
 Three of the rows are exceptions and none of them is a loophole. Nothing decides
@@ -35,7 +35,6 @@ import os
 import re
 import subprocess
 import sys
-import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import optin
@@ -87,8 +86,7 @@ PLANNING_ANSWERS = (BY_FRAMER, BY_SESSION)
 # `no` is not "a person did it by hand". It is "this run may stop to ask", which
 # is the half a label cannot say and the half the measured instance got wrong.
 #
-# One gate reads it, and no commit is decided on it: `hooks/question-gate.py`
-# refuses a question on the declared branch while it reads `yes`
+# No script decides anything on it: it is a record the orchestrator reads
 # (`docs/running/the-run.md` *The run*).
 AUTOMATION = "Automation"
 AUTOMATION_YES = "yes"
@@ -178,17 +176,17 @@ def parse(text):
     vocabulary reads as unanswered rather than as "this file is not a
     declaration". Both halves of that are forced by what already exists. Every
     declaration written before an axis was added has no such row, and a
-    required row would turn each of them back into an unanswered gate -- the
-    review question would be asked again on branches whose answer is committed
-    in the tree. The strict spelling below is deliberate for the first two,
+    required row would turn each of them into no declaration -- the pull
+    request's check would read a branch whose answer is committed in the tree
+    as undeclared. The strict spelling below is deliberate for the first two,
     because a wrong answer there decides whether a reviewer sees the work. The
     only reader of these two is `hooks/implementer-notice.py`, which prints one
     line after a commit where a declared agent left no mark, and decides
     nothing -- so a wrong answer here is recorded and at most reminded about,
-    where a wrong answer above stops a commit. That is why the rows are
-    optional rather than lenient, and it is also the asymmetry to know about: a
-    backticked or capitalised answer is rejected loudly in the first two,
-    because the gate goes back to asking, and silently here.
+    where a wrong answer above decides what the pull request owes. That is why
+    the rows are optional rather than lenient, and it is also the asymmetry to
+    know about: a backticked or capitalised answer is rejected loudly in the
+    first two, because the file reads as no declaration, and silently here.
     `templates/records/sdd-routing.md` is the only spelling a
     session should copy, and a test parses that file so it cannot drift.
 
@@ -197,17 +195,16 @@ def parse(text):
     and spawned `crafter` to build it -- so neither may stand in for the other.
 
     `Automation` is the fifth row and it is read on the same looser terms, for
-    the same reason one step further along: nothing decides a commit on it,
-    and its one reader, `hooks/question-gate.py`, only refuses a question, so
-    an absent or unreadable row leaves the run attended. A required row would turn all 84
-    declarations already committed here into "not a declaration", which
-    turns the edit gate's refusal back on for every branch that already
-    answered.
+    the same reason one step further along: no script decides anything on it,
+    and an absent or unreadable row reads as never asked. A required row would
+    turn all 84 declarations already committed here into "not a declaration",
+    and the pull request's check would read every branch that already
+    answered as undeclared.
 
     **What it reads is `table_rows`', which skips a row a renderer does not
     show** (#667): a table wholly inside a fenced block, or inside a comment
-    block that closes, is no declaration, and the gate asks as it does for
-    any `routing.md` that does not parse. A fence or a `<!--` nobody closed
+    block that closes, is no declaration, as any `routing.md` that does not
+    parse is. A fence or a `<!--` nobody closed
     above the table is not a block at all, so that declaration still reads.
 
     **A label written twice has no value** (#867), the rule
@@ -215,8 +212,7 @@ def parse(text):
     keep the LAST row of a label, so a second `Review` row below the first
     answered for it, and nothing said there were two. Now a strict label
     doubled -- `Review`, `Destination`, `Branch` -- makes the file no
-    declaration, and the gate asks as it does for any file that will not
-    parse; an optional label doubled is unanswered, on the terms above.
+    declaration, as any file that will not parse is; an optional label doubled is unanswered, on the terms above.
     Measured when the rule landed: none of the 86 committed declarations
     writes a label twice.
     """
@@ -262,8 +258,7 @@ def parse(text):
 def current_branch(cwd):
     """The checked-out branch, or "" when detached or unreadable.
 
-    A detached HEAD matches no declaration, so the gate asks. That is the
-    correct direction: nothing on a detached HEAD is the work item a branch
+    A detached HEAD matches no declaration. That is the correct direction: nothing on a detached HEAD is the work item a branch
     was declared for.
     """
     try:
@@ -332,9 +327,8 @@ def unborn_branch(cwd):
 def worktree_branch(cwd):
     """The branch CWD's worktree is on: the one checked out, the one HEAD
     names before its first commit, else the one a paused rebase there names,
-    or "" where none names one. The edit gate and `seal no-work-item` both
-    resolve the branch here, so the record names the branch the gate reads.
-    `unborn_branch` runs only where `current_branch` found none, so a branch
+    or "" where none names one. `hooks/implementer-mark.py` resolves the
+    branch its mark names here. `unborn_branch` runs only where `current_branch` found none, so a branch
     with a commit costs no second `git` call."""
     return current_branch(cwd) or unborn_branch(cwd) or rebase_branch(cwd)
 
@@ -375,8 +369,8 @@ def declarations(root):
             # `except Exception: return ""`, which is no output, which the
             # harness reads as approval. The module docstring says everything
             # here fails toward "no declaration"; a file nobody can decode is
-            # not an answer somebody gave, so it is skipped and the gate goes
-            # back to asking. `chain_check.py` already catches both when it
+            # not an answer somebody gave, so it is skipped and its branch
+            # reads as undeclared. `chain_check.py` already catches both when it
             # reads the event payload -- the CI half was hardened and this one
             # was not.
             continue
@@ -397,92 +391,6 @@ def for_branch(root, branch):
         return None
     matching = [d for _, d in declarations(root) if d["branch"] == branch]
     return matching[0] if len(matching) == 1 else None
-
-
-def declared(cwd, root):
-    """The routing answer in force for `cwd`, or None when there is not one.
-    The branch is resolved as the edit gate resolves it (`worktree_branch`),
-    so a branch with no commit yet and a paused rebase read the declaration
-    that names them."""
-    return for_branch(root, worktree_branch(cwd))
-
-
-# The record that a session's change belongs to no work item: a file per
-# session under the common git directory, holding one branch name per line,
-# UTF-8, each line ending in a newline. `seal no-work-item` adds the branch it
-# ran on, and `hooks/routing-edit-gate.py` lets the session's edits through on
-# a branch a line names and on no other. The rule is
-# `docs/checks/the-routing-check.md` *The edit check*.
-NO_WORK_ITEM = "agentic-no-work-item"
-# A record older than this is pruned when one is written.
-NO_WORK_ITEM_AGE = 86400
-
-
-def session_name(session):
-    """SESSION's id as a file name, or "" where it cannot be one. The id is
-    reduced to its basename, so a separator in it cannot name a file
-    elsewhere."""
-    name = os.path.basename(str(session or "").strip())
-    return "" if name in ("", ".", "..") else name
-
-
-def no_work_item_path(common, session):
-    """`<common>/agentic-no-work-item/<session>`, or "" where either is
-    missing."""
-    name = session_name(session)
-    if not common or not name:
-        return ""
-    return os.path.join(common, NO_WORK_ITEM, name)
-
-
-def no_work_item_branches(path):
-    """The branches the record at PATH names, one per line. A record that
-    cannot be read names none. The lines are split at `\\n` alone, so no
-    other character a branch name may hold ends one."""
-    try:
-        with open(path, encoding="utf-8", newline="") as f:
-            text = f.read()
-    except (OSError, UnicodeDecodeError):
-        return []
-    return [line for line in text.split("\n") if line]
-
-
-def no_work_item(common, session, branch):
-    """Whether SESSION recorded, in the clone whose common git directory is
-    COMMON, that its change on BRANCH belongs to no work item: true only
-    where a line of its record equals BRANCH. No branch is never recorded."""
-    path = no_work_item_path(common, session)
-    return bool(path and branch) and branch in no_work_item_branches(path)
-
-
-def record_no_work_item(common, session, branch, now=None):
-    """Add BRANCH to SESSION's record under COMMON, where it does not name it
-    yet, and prune the stale records; the record's path, or "" where nothing
-    could be written. No branch writes nothing. The record is rewritten on
-    every run, so a run on a branch it already names keeps it from the
-    prune."""
-    path = no_work_item_path(common, session)
-    if not path or not branch:
-        return ""
-    branches = no_work_item_branches(path)
-    if branch not in branches:
-        branches.append(branch)
-    try:
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, "w", encoding="utf-8", newline="") as f:
-            f.write("".join(f"{name}\n" for name in branches))
-    except OSError:
-        return ""
-    cutoff = (now if now is not None else time.time()) - NO_WORK_ITEM_AGE
-    where = os.path.dirname(path)
-    for name in os.listdir(where):
-        stale = os.path.join(where, name)
-        try:
-            if stale != path and os.stat(stale).st_mtime < cutoff:
-                os.unlink(stale)
-        except OSError:
-            pass
-    return path
 
 
 def item_dir(root, branch):
@@ -562,7 +470,7 @@ def rounds(item):
 
     The old flat location is NOT read, and `stray_rounds` exists so a caller
     can say so out loud. A permanent dual read would put two places to look in
-    the reader four gates depend on, and an expiry nothing enforces is a
+    the reader the release scripts and the settle depend on, and an expiry nothing enforces is a
     comment -- so what replaces the fallback is a message naming the file and
     the destination.
 

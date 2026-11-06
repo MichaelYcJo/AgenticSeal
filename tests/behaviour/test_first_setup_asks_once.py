@@ -5,7 +5,7 @@ Each case states the clause it holds and names it by its number, and a
 number another work item gave carries that item's issue, as `S2 of #952`
 does. The hooks resolve
 the root in code (`hooks/lib/optin.py#home_at`) and are pinned by
-`tests/hooks/test_optin.py`, `tests/hooks/test_routing_edit_gate.py` and
+`tests/hooks/test_optin.py` and
 `tests/hooks/test_implementer_notice.py`. What is pinned HERE
 is the text: the one question the `implement`
 skill asks, the sentence a session needs, the workflow template

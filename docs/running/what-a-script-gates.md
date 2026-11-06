@@ -52,8 +52,6 @@ left to a party on the same text.
 
 | Check | Runs at | Reads | Unread | Agent |
 |---|---|---|---|---|
-| `hooks/routing-edit-gate.py` | every `Write`, `Edit`, `NotebookEdit` | `routing.md`'s rows for the checked-out branch through `hooks/lib/routing.py`; the `seal no-work-item` record | refuses the edit while no declaration it can read names the branch | none; the routing answer is the person's |
-| `hooks/question-gate.py` | every `AskUserQuestion` | the `Automation` row | a declaration it cannot read is the attended answer: silence | none |
 | `hooks/mode-gate.py` | the session's commands | `config.md`'s `Mode` row | a table it cannot read is silence, a stated limit | none |
 | `hooks/review-skill-gate.py` | a `Skill` call naming a review | the skill's name | nothing to read otherwise | the person picks the review |
 | `hooks/sealer-stamp-queue.py`, `hooks/sealer-stamp.py` | the write of `guarantee.md`; the turn's end | the verdict blocks, through `hooks/lib/fields.py` | queues nothing where the reader refuses a line of the file or the newest block does not read `Verdict: sealed` | the verdict is the sealer's |

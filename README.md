@@ -118,11 +118,13 @@ which has three answers:
 
 `skills/implement/orchestration.md` *Orchestrator: how the work is routed*
 gives each answer and the rows it writes into
-`seal/threads/<id>/routing.md`, the file the hooks read to learn how the
-branch was routed. Under `automation`, a question the session would put to
-you is refused, and the session builds on the default the question states.
-The default is written into the work item's `frame/questions.md`, and the
-pull request body names it for you to overturn.
+`seal/threads/<id>/routing.md`, the file the pull request's check reads to
+learn how the branch was routed. Under `automation`, the session does not
+stop to ask what the repository or the framer can answer: it builds on the
+question's default, writes the default into the work item's
+`frame/questions.md`, and the pull request body names it for you to
+overturn. Whatever you say during the run is taken up then, not saved for
+the pull request.
 
 Then the parties work in turn. The framer reads the repository and writes
 the design, the plan and the questions. The crafter builds each phase,
@@ -285,11 +287,9 @@ Read the Where column before you install the plugin globally.
 
 | Gate | Fires | Does | Where |
 |---|---|---|---|
-| routing-edit-gate | before a `Write`, `Edit` or `NotebookEdit` call | refuses the edit when no `routing.md` declares the edited file's branch, unless this session ran `seal no-work-item` there, and names the two ways forward: write the declaration, or run that command. Files under `seal/` and files git ignores pass, so the declaration is always writable. An edit through the shell never reaches it ([`docs/checks/the-routing-check.md`](docs/checks/the-routing-check.md)) | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
 | implementer-mark | before an Agent call whose `subagent_type` is `framer` or `crafter` | writes the branch name to `.git/agentic-planner` or `.git/agentic-implementer`, the trace the notice below reads. It prints nothing | `seal/` at the root, or under the common git dir in local mode — silent elsewhere, and writes nothing |
 | implementer-notice | after a command that runs `git commit` | reminds the session, in a single line, when the branch's `routing.md` declares the framer or the crafter and the mark says none was spawned. Once per session per repository, and it never blocks ([`docs/checks/the-session-hooks.md`](docs/checks/the-session-hooks.md) *The implementer mark and notice*) | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
 | review-skill-gate | before the model opens a skill named `code-review` | asks you which one you mean: that name is also Claude Code's built-in review, which sweeps a diff for bugs, where `agentic:code-review` judges compliance first and reads earlier rounds. Once per session per working tree | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
-| question-gate | before an `AskUserQuestion` call | on a branch whose `routing.md` answers `Automation` with `yes`, refuses the question, so the run builds on the question's stated default and records it. The routing question put alone goes through ([`hooks/question-gate.py`](hooks/question-gate.py)) | `seal/` at the root, or under the common git dir in local mode — silent elsewhere, and on every branch whose declaration does not answer `yes` |
 | mode-gate | before a Bash call, in practice the session's first | where `seal/` exists and `seal/config.md` has no `Mode` row, asks once with three choices: `seal mode` records where the folder is, and `seal mode shared` or `seal mode local` moves it. Once per session per repository, and never again once the row exists | `seal/` at the root, or under the common git dir in local mode — silent elsewhere, and wherever the row is written |
 | version-check | at session start | asks this repository for its newest release tag and, when the running plugin is behind, shows a short notice naming `/agentic:update` and the two moves that load a release. Once a day, and a failed lookup retries about twenty minutes later. It never installs anything | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
 | sealer-stamp | when the main session's turn ends (`Stop`) | draws each stamp waiting for this session under `<git-common-dir>/agentic-stamp/<session>/` — queued at the write of a work item's `guarantee.md` reading `sealed` (the next row), once per work item — and renames the file `.drawn.json`. `seal stamp --from <file>` draws one by hand | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
@@ -356,7 +356,6 @@ after `!` in a session, or ask the session to run it.
 | `seal rules <doc>` · `seal rules --check` | prints a document's sections with the tests their `check:` lines name, or exits non-zero naming each line whose target is gone (`skills/settle/rule-changes.md` *A rule has one shape*) |
 | `seal pact [ROOT]` | checks, in the repository that holds a pact, that every repository signed to it still agrees with it (`docs/layout/the-pact.md`) |
 | `seal payload` | measures what a session's and each agent's startup context is made of, in bytes and tokens (`skills/verify/scripts/payload_meter.py`) |
-| `seal no-work-item` | marks this session's change on the checked-out branch as outside any work item, so the edit hook lets it through there (`skills/commit-pr-convention/SKILL.md`) |
 | `/agentic:start <issue or request>` | starts a piece of work through the workflow: opens the core, asks the routing question once, and writes the work item's declaration before the first edit (`skills/start/SKILL.md`) |
 | `/agentic:parity-setup` | declares that this repository ports from another codebase (`skills/parity-setup/SKILL.md`) |
 | `/agentic:config` | shows what this repository decided for itself, its two languages and where its records live, and changes any of it (`skills/config/SKILL.md`) |
@@ -364,10 +363,11 @@ after `!` in a session, or ask the session to run it.
 
 ## Limits
 
-- **The hooks put a decision in front of you or the model; they are not a
-  security control.** `seal no-work-item` is one command any session can
-  run, an edit made through the shell never reaches the edit hook, and a
-  commit you make yourself in a terminal runs none of this plugin's code.
+- **Nothing refuses a session that declares nothing.** A session that never
+  types `/agentic:start` edits and commits as it would without the plugin,
+  and a commit you make yourself in a terminal runs none of this plugin's
+  code. The pull request's check judges a declared work item
+  ([`docs/checks/the-routing-check.md`](docs/checks/the-routing-check.md)).
 - **`seal rules --check` proves that a named test exists, not that it asserts
   the rule.** A rule with no `check:` line is held by review alone.
 - **"Broad and once" is a rule the agents follow, not a gate.** Nothing stops

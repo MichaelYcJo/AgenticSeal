@@ -6,7 +6,7 @@ documents, the READMEs, the checklist and the cheat sheets, which wait for
 `skills/settle/scripts/settle.py`'s functions in `tests/skills/test_settle.py`, and
 the `tree` fixture in `tests/conftest.py`. `docs/checks/the-fold.md` names
 this file on the `check:` line of *A settle is not a work item*, whose rule
-`test_the_skill_names_how_a_settle_edits_and_commits` holds. Since
+`test_the_skill_names_how_a_settle_commits` holds. Since
 #1033 the skill states the settling session's procedure, and the cases that
 read it are its S11.
 """
@@ -82,13 +82,11 @@ def test_the_skill_orders_the_row_kinds_so_only_a_needed_measurement_opens_an_is
     ], kinds
 
 
-def test_the_skill_names_how_a_settle_edits_and_commits():
-    """#517's D1. A settle has no work item, so the skill names the command
-    that records that and the trailer its commits carry. Why a settle is no
-    work item is the proofer's to read."""
+def test_the_skill_names_how_a_settle_commits():
+    """#517's D1. A settle has no work item, so the skill names the trailer
+    its commits carry. Why a settle is no work item is the proofer's to
+    read."""
     text = flat(skill())
-    # The command the settling session types on the settle's branch.
-    assert "`seal no-work-item`" in text, "the skill does not say how a settle edits"
     # The commit trailer `skills/code-review/scripts/chain_check.py`
     # matches, which the settling session writes.
     assert "`Seal-Routing: no work item`" in text, (

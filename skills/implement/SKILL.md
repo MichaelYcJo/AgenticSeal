@@ -183,7 +183,7 @@ and leaving no case behind gets redone by every session that follows — the
 single largest avoidable cost in multi-session work.
 
 **Commit at the smallest step that stands on its own.** No gate stops a
-commit: the routing is checked at the edit tools and at the pull request
+commit: the routing is checked at the pull request
 (`docs/checks/the-routing-check.md`). What an intermediate commit costs is a
 property of the repository rather than a fact about committing: where
 feature branches **squash** into their base, every commit the branch wrote

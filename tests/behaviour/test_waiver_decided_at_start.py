@@ -193,7 +193,7 @@ def test_the_template_PARSES_into_the_three_answers_it_ships():
 
     # Shipped as a PLACEHOLDER, unlike the other two, and that is the whole
     # point: a wrong answer in the first two makes the file no declaration, so
-    # the edit check refuses the next edit on the branch, and a wrong answer
+    # the pull request's check reads the branch as undeclared, and a wrong answer
     # here is never contradicted by anything. So copy-and-never-revisit has to land on
     # "not answered" rather than on a confident `crafter` nobody performed.
     assert parsed["implementation"] is None, (
@@ -469,7 +469,6 @@ def test_the_exit_names_what_does_not_run_rather_than_where_it_ends():
         "no review",
         "no seal",
         "no `routing.md`",
-        "`seal no-work-item`",
     ):
         assert noun in description, (
             f"the exit's description does not name `{noun}`, so a person "
@@ -701,8 +700,8 @@ def test_no_committed_declaration_still_carries_a_template_placeholder():
 
     The `Branch` row is the contrast that shows this is a real gap rather
     than a tidy one: leaving ITS placeholder produces a branch name nothing
-    matches, `for_branch` finds no declaration, and the edit check refuses
-    the next edit on that branch. The third axis has no such reader, so the placeholder
+    matches, `for_branch` finds no declaration, and the pull request's check
+    reads that branch as undeclared. The third axis has no such reader, so the placeholder
     would sit in the record forever, reading to a person as an answer."""
     import glob
 
@@ -747,9 +746,10 @@ def test_the_skill_names_where_the_answer_is_written():
 
 def test_the_skill_names_the_record_and_no_per_command_waiver():
     """#1027: nothing reads `[no-review]` any more, so the skill that taught
-    it as the way past the gate names the record that replaced it. The
-    paragraph is in the orchestrator's half since #1312."""
-    assert "`seal no-work-item`" in flat(read(*ORCH))
+    it as the way past the gate names the record that replaced it, the
+    trailer (#1376). The paragraph is in the orchestrator's half since
+    #1312."""
+    assert "`Seal-Routing: no work item`" in flat(read(*ORCH))
     for parts in (ORCH, ("skills", "implement", "SKILL.md")):
         skill = flat(read(*parts))
         assert "[no-review]" not in skill and "waives **one command**" not in skill

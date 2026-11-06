@@ -85,10 +85,6 @@ GROUPS = {
     "pre-bash": ("mode-gate.py",),
     "pre-agent": ("implementer-mark.py",),
     "pre-skill": ("review-skill-gate.py",),
-    "pre-question": ("question-gate.py",),
-    # The routing check at the edit tools: the first edit on a branch no
-    # `routing.md` names is refused (#1027).
-    "pre-edit": ("routing-edit-gate.py",),
     "post-bash": ("implementer-notice.py",),
     # `sealer-stamp-queue.py` queues a work item's stamp at the write of its
     # `sealed` guarantee, under either root (work item 1792363231, #1027);

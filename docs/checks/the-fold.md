@@ -71,8 +71,7 @@ and takes out what the latest decision does not keep.
 check: tests/skills/test_rule_changes.py tests/skills/test_settle.py
 
 **A settle is not a work item.** It opens no directory under `seal/threads/`.
-Its session records `seal no-work-item` on the settle's branch, its commits
-carry the trailer `Seal-Routing: no work item` where the root is shared,
+Its commits carry the trailer `Seal-Routing: no work item` where the root is shared,
 and what it wrote is reviewed at its pull request. What it leaves already has a home, the pull request and
 git history, so it keeps no log of its own. Were it a work item, each settle
 would leave a directory for the next one to remove, and settling would never

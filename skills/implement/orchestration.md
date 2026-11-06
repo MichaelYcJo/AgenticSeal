@@ -158,15 +158,12 @@ that leads nowhere — the session that answers it is holding finished work with
 no destination, which is a gate wearing the shape of a question. A yes/no is
 the tell. Ask which of two named paths instead, and say what each one does.
 
-**The first edit waits for the routing answer, and a gate holds that.**
-`hooks/routing-edit-gate.py` refuses a `Write`, `Edit` or `NotebookEdit` of
-a file in an opted-in repository while no `routing.md` names the branch
-checked out where the file is and the session has not run
-`seal no-work-item` on that branch. A file under the `seal/` root or one git
-ignores is not judged, so the declaration can always be written first.
-`seal no-work-item` records, for this session on the branch checked out
-where it runs, that its change belongs to no work item; on a detached HEAD
-it records nothing.
+**The first edit waits for the routing answer, and the entry holds that.**
+`/agentic:start` writes `routing.md` and commits it before the orchestrator
+edits any other file (`skills/start/SKILL.md`). No check refuses an earlier
+edit; the pull request's check judges the declared work item, and a session
+that declares nothing is the limit `docs/checks/the-routing-check.md`
+states.
 
 **Once the batch is answered, the session runs to the pull request.** What
 surfaces after it is written down rather than raised: a decision only a person
@@ -176,8 +173,9 @@ can make goes to `questions.md`, a finding you neither fixed nor answered to
 answerer has to exist*) — and what was deliberately left goes to the closing
 memo's Not done section. Each is named in the PR body, because a leftover
 nobody can find was not handed over. On a branch whose `routing.md` answers
-`Automation` with `yes`, `hooks/question-gate.py` holds this, and
-`docs/running/the-run.md` *The run* is the rule.
+`Automation` with `yes`, the rule for a question that arises mid-run is the
+paragraph of `docs/running/the-run.md` *The run* that opens **On a run whose
+`routing.md` reads `Automation` `yes`**.
 
 The test for whether something is a question or a row: would a different
 answer change what you build *now*? If it would not, raising it spends a
@@ -214,7 +212,7 @@ A single-select question, put alone:
 |---|---|---|
 | 1 | **automation** | Every party runs: the framer frames it, `crafter` builds it, `proofer` reviews it, the orchestrator takes the broad run, the sealer audits it, and the pull request opens. **This is the last question: nothing stops to ask again.** |
 | 2 | **per axis** | The four boxes below are the answer. |
-| 3 | **no work item** | No work item is opened: no frame, no review, no seal, no `routing.md`, and this session writes the change itself. The session runs `seal no-work-item` before its first edit; where the root is shared, every commit ends with the trailer `Seal-Routing: no work item`, and the pull request's check only lists those commits. |
+| 3 | **no work item** | No work item is opened: no frame, no review, no seal, no `routing.md`, and this session writes the change itself. Where the root is shared, every commit ends with the trailer `Seal-Routing: no work item`, and the pull request's check only lists those commits. |
 
 **A label names what it turns off, not where it ends.** A label that names a
 destination is read as what runs: `straight to the PR` reads as *call no
@@ -227,22 +225,6 @@ sits where a reader's eye lands last, and its description states the cost.
 It stays visible in use where the root is shared: every commit it covers
 says `no work item` in its trailer, and the pull request's check prints each
 one.
-
-**A run resumed in a new session puts question 1 through `AskUserQuestion`
-again, before the first spawn.** Where the declaration answers `Automation`
-with `yes`, the question goes alone, because `hooks/question-gate.py` refuses
-whatever shares its call; elsewhere it may share the call with what else the
-resume asks. The boxes are not put again, because `routing.md` already holds
-their answer. The orchestrator puts it from a directory inside the clone the
-run works in: the readers keep the answer only where the result's own
-directory and the gate's root are the same clone
-(`docs/checks/the-routing-check.md` *The edit check*). A new session is
-a `/clear`, a new `claude` start, or another machine. A typed answer is not
-the press: the gates read a harness-written result in the session's own
-transcript and nothing else, and `routing.md` is not read
-(`docs/checks/the-routing-check.md` *The edit check*). `claude --resume` and
-compaction keep the session's id and append to its transcript, so the press
-survives both and nothing is put again.
 
 ### Question 2
 
@@ -304,10 +286,10 @@ reads.
 `Automation` = `yes`. Ticking all four boxes under `per axis` writes the same
 rows.
 
-**`Automation` is held by a gate.** While the row reads `yes`,
-`hooks/question-gate.py` refuses every question on the declared branch but
-question 1 put alone before the person has answered it in this session, and
-`docs/running/the-run.md` *The run* is the rule.
+**`Automation` is a record, and no script decides anything on it.** While
+the row reads `yes`, the orchestrator follows the paragraph of
+`docs/running/the-run.md` *The run* that opens **On a run whose
+`routing.md` reads `Automation` `yes`**.
 
 **The declaration has one more row, and nobody is asked about it.**
 
@@ -348,19 +330,16 @@ commits it, because the check happens at the pull request and CI sees only
 what is in the tree. Below the SDD ladder this may be the only file a work
 item gets.
 
-**The first edit is held by a gate**, the one the paragraph opening **The
-first edit waits for the routing answer, and a gate holds that** names.
-Under `no work item` the session runs `seal no-work-item` once on each
-branch it edits, before its first edit there.
+**`/agentic:start` writes the declaration before the first edit**, as the
+paragraph opening **The first edit waits for the routing answer, and the
+entry holds that** states. Under `no work item` no declaration is written,
+and the trailer is the record.
 
 **The orchestrator writes the file with the `Write` tool, then commits it.**
-The declaration is read from the working tree (`hooks/lib/routing.py`'s
-`declarations()` opens the path rather than asking git), so the edits after
-the write go through before the commit lands. The commit goes as every
-commit does: each work item's `routing.md` in a command of its own, the
-worktree's path written out after `git -C`, never a loop over a variable
-naming it (`skills/implement/SKILL.md` *A commit names its repository in the
-command that makes it*).
+The commit goes as every commit does: each work item's `routing.md` in a
+command of its own, the worktree's path written out after `git -C`, never a
+loop over a variable naming it (`skills/implement/SKILL.md` *A commit names
+its repository in the command that makes it*).
 
 **What each combination of `Review` and `Destination` checks, and where**,
 is `docs/running/the-review-and-parity-arms.md` *The declaration, and where the
@@ -375,12 +354,11 @@ PR`. A change confined to `docs/` and `seal/` owes none
 that leave code nobody compared, with nothing that reads it, are listed in
 `docs/running/the-review-and-parity-arms.md` *Parity arm*.
 
-The declaration is what the edit check reads, for **either** review answer,
-so a declared work item edits whichever reviewer it named, and CI reads the
-same file at the pull request. Work never headed for a reviewer, such as a
-release chore or a documentation pass, declares `straight to the PR`. For a
-change belonging to no work item, the session runs `seal no-work-item`, and
-where the root is shared each commit's trailer reads `no work item`
+The declaration is what CI reads at the pull request, for **either** review
+answer. Work never headed for a reviewer, such as a release chore or a
+documentation pass, declares `straight to the PR`. A change belonging to no
+work item writes no declaration, and where the root is shared each of its
+commits' trailers reads `no work item`
 (`skills/commit-pr-convention/SKILL.md`).
 
 **Which branch the pull request lands on is decided with the routing
