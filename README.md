@@ -243,10 +243,12 @@ cost of inference.
 ### The review chain
 
 The proofer starts cold. It is a subagent, so the conversation that built the
-change never reaches it: it reads the diff, the frame and the earlier round
-records. Each round writes `trail/rounds/round-N.md`, and the crafter closes
-each finding as fixed, rejected with its grounds, or deferred to a named
-home. The run ends with a verifying round, which reads the last fixes
+change never reaches it: it reads the diff, the work item's records whole
+(the frame, `gaps.md`, `changelog.md` and `pr.md` among them) and the
+earlier round records. Each round writes `trail/rounds/round-N.md`, and the
+crafter closes each finding as fixed, rejected with its grounds, or deferred
+to a named home. The run ends with a verifying round, which reads the last
+fixes and the work item's records again
 (`skills/code-review/orchestration.md` *Orchestrator: the run ends with a
 verifying round*). The session weighs after each round whether another one
 pays, and `docs/running/the-run.md` *The run* gives the point where it
