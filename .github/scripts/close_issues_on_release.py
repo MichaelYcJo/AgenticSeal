@@ -128,7 +128,7 @@ MERGED_PR = re.compile(r"\(#(\d+)\)\s*$")
 # marker, a `<!--` that no `-->` follows hides everything below it too, past
 # the end of its list item or its quote (#1408, #1409). Indented four spaces
 # it is an indented code block, and a keyword after it is read (#1410), so
-# the mask there runs past GitHub's: it is one of the Limits below.
+# the mask there runs past GitHub's, as the Limits below state.
 #
 # Two shapes stay unmasked, on purpose, and each has a row pinning it in
 # `tests/github/test_close_issues_on_release.py#Test_keywords_in`. A four-space
@@ -153,24 +153,24 @@ MERGED_PR = re.compile(r"\(#(\d+)\)\s*$")
 #
 # Limits, stated and not guarded. Each but the last masks more than GitHub,
 # so the closer closes fewer and the completeness check refuses the release,
-# which is loud. A `<!--` that no `-->` follows, indented four spaces or more,
-# or after a list or quote marker and five spaces or more, as in
-# `-     <!--`, hides to the end of the text, where GitHub reads on: measured
-# for the four spaces (#1410), and CommonMark's indented code block for the
-# marker shape, unmeasured. Telling such an indent from a bullet's
-# continuation, which this repository's bodies write the same way, would
-# mean modelling CommonMark's containers; a tab indent is unmeasured and read
-# the same. A `<!--` in the middle of a line with a `-->` further down is a
-# comment up to that `-->`, across blank lines too, where GitHub's inline
-# comment ends with its paragraph. A marker without its space, such as
-# `-<!--`, counts as a line start, where CommonMark reads no list item and so
-# the opener stands after text, which GitHub reads on after (#1404). A comment
-# GitHub's renderer refuses for its contents, such as one holding `--`, is
-# masked anyway. And a
-# fence, a comment or a span is masked to spaces, one in `keywords_in` and
-# one per character in `issue_claims_check.py#prose_only`, so one standing
-# between a keyword and its number, as in `Closes<!-- -->#4`, joins them into
-# a claim GitHub does not read: in that one shape the closer closes more.
+# which is loud. The line-start test of `COMMENT`'s second arm reads one
+# line's own text, with no block model. So where CommonMark's block rules make
+# GitHub read on past an opener the test treats as a line start, such as an
+# opener in an indented code block or after a marker that opens no list item,
+# it masks to the end of the text all the same, and the closer closes fewer.
+# The measured shapes are examples, not a list: GitHub reads on past an
+# opener with text before it (#1404), hides what follows an opener behind a
+# list marker or a quote marker as the closer does (#1408, #1409), and reads
+# on past an opener indented four spaces (#1410). Following those rules would
+# mean modelling CommonMark's containers, and this repository's bodies write
+# a bullet's continuation as an indent. A `<!--` in the middle of a line with
+# a `-->` further down is a comment up to that `-->`, across blank lines too,
+# where GitHub's inline comment ends with its paragraph. A comment GitHub's
+# renderer refuses for its contents, such as one holding `--`, is masked
+# anyway. And a fence, a comment or a span is masked to spaces, one in
+# `keywords_in` and one per character in `issue_claims_check.py#prose_only`,
+# so one standing between a keyword and its number, as in `Closes<!-- -->#4`,
+# joins them into a claim GitHub does not read: there the closer closes more.
 FENCE = re.compile(r"^[ \t]*(```|~~~).*?^[ \t]*\1", re.M | re.S)
 COMMENT = re.compile(
     r"<!--.*?-->|^[ \t]*(?:(?:>|[-*+]|\d{1,9}[.)])[ \t]*)*<!--(?!.*?-->).*\Z",

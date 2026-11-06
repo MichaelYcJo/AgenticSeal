@@ -72,11 +72,11 @@ Limits, stated here and not guarded:
   code block. A tag between two backticks that GitHub does not read as a
   code span, such as an escaped backtick, is read as inside a span and
   passes.
-- The opener reading reads one line, not GitHub's blocks. A `<!--` that
-  begins a line four spaces in, which GitHub reads as an indented code
-  block, is refused too, though GitHub shows the lines after it (#1410).
-  Behind a list marker or a block quote marker GitHub hides them, past the
-  end of the item or the quote (#1408, #1409), so the refusal holds there.
+- The opener reading reads one line, not GitHub's blocks. Where CommonMark's
+  block rules make GitHub show the lines after an opener the reading treats
+  as a line start, such as one in an indented code block (#1410), the line
+  is refused too. Behind a list marker or a quote marker GitHub hides them,
+  as the refusal assumes (#1408, #1409).
 - Exit 2's line names `<item>` as it was given, or the module that would not
   load by its installed path. The normal flow gives neither: the sealer is
   handed a work item's directory that exists, from an installed plugin.
