@@ -1644,7 +1644,7 @@ def write_row(home, value):
     # closed has no table this walk can see -- and `with_row` then appends
     # one at the END of the file, which is inside that fence. The write
     # succeeds, `declared_mode` still answers "none", and `seal mode` reports
-    # a row that no walk reads: the mode gate asks again next session and the
+    # a row that no walk reads: the next `seal mode` writes it again and the
     # file grows by a table a run. Measured over two fixtures, three runs
     # each: 9 -> 13 -> 17 -> 21 lines with `('none', '')` throughout.
     # Checked here rather than after the write, so a refusal leaves the

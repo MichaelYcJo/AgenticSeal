@@ -450,14 +450,13 @@ question is not its difficulty, it is when it arrives.
   let the work through, not wedge the session.
 
   Every hook that reaches the network is named in the README's privacy
-  section, because a rule with undisclosed exceptions is not a rule.
-  `lint-python` and `version-check` are those hooks, and `README.md` *What
-  runs on your machine* says what each one reaches, what it sends and when.
-  A new one needs the same limits `version-check` carries (an opt-in
-  condition so unrelated repos are untouched, a throttle so it is not
-  per-session, and silence on every failure), plus a line in the README
-  saying what leaves the machine. Anything that would send repository
-  contents, paths, or prompts is not on the table.
+  section, because a rule with undisclosed exceptions is not a rule. No hook
+  does today, and `README.md` *What runs on your machine* names the commands
+  and steps that do, what each reaches, what it sends and when. A hook that
+  would needs an opt-in condition so unrelated repos are untouched, a
+  throttle so it is not per-session, and silence on every failure, plus a
+  line in the README saying what leaves the machine. Anything that would
+  send repository contents, paths, or prompts is not on the table.
 - **Hooks are Python invoked as `python3 <script>`, with `py -3 <script>`
   behind it.** Shebangs and exec bits do not exist on Windows, and `python3`
   is the one name its official installer does not create, so the registered

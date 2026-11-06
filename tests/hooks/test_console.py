@@ -13,6 +13,7 @@ of its own, and its case is `tests/hooks/test_dispatch.py`'s. The case comes fro
 `tests/test_console_is_not_utf8.py` (#942's phase 6).
 """
 
+import importlib.util
 import io
 import json
 import os
@@ -22,14 +23,30 @@ import sys
 import pytest
 from conftest import (
     HOSTILE,
-    KOREAN,
     ROOT,
     census_case,
-    decision_of,
     load_hook_module,
 )
 
 TARGET = "hooks/lib/console.py"
+
+STAMP = os.path.join(ROOT, "skills", "verify", "scripts", "seal_stamp.py")
+STAMP_VALUES = {
+    "tree": "aaa1111",
+    "base": "bbb2222",
+    "from": "origin/base",
+    "item": "/x/seal/threads/1799000000-an-item",
+    "session": "s-1",
+    "scale": 0.9,
+    "rows": [("SEALED", ""), None, ("tree", "aaa1111")],
+}
+
+
+def seal_stamp(name):
+    spec = importlib.util.spec_from_file_location(name, STAMP)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def cp949_stream():
@@ -75,17 +92,20 @@ class Test_module:
         documented way in -- `hooks/lib/console.py` says each gate is runnable on its
         own -- and nothing measured that: neutering `to_utf8` to a bare `return`
         left the suite at its own baseline, so every one of them could be deleted
-        and the tree stays green. The gate run is the mode gate, whose refusal
-        names the repository's path, which holds `KOREAN`.
+        and the tree stays green. The gate run is the stamp's drawer, whose
+        payload names the repository's path, which holds `KOREAN`, and which
+        prints the stamp waiting for the session there.
         """
+        session = f"solo-{encoding}"
+        stamp = seal_stamp(f"seal_stamp_for_the_console_{encoding.replace('-', '_')}")
+        stamp.write_values(str(korean_repo / ".git"), session, STAMP_VALUES)
         r = subprocess.run(
-            [sys.executable, os.path.join(ROOT, "hooks", "mode-gate.py")],
+            [sys.executable, os.path.join(ROOT, "hooks", "sealer-stamp.py")],
             input=json.dumps(
                 {
-                    "tool_name": "Bash",
-                    "session_id": f"solo-{encoding}",
+                    "hook_event_name": "Stop",
+                    "session_id": session,
                     "cwd": str(korean_repo),
-                    "tool_input": {"command": f"git commit -m {KOREAN}"},
                 },
                 ensure_ascii=False,
             ).encode("utf-8"),
@@ -93,10 +113,12 @@ class Test_module:
             timeout=30,
             env={**os.environ, "PYTHONIOENCODING": encoding, "PYTHONUTF8": "0"},
         )
-        assert decision_of(r) == "deny", (
+        out = r.stdout.decode("utf-8")
+        assert out.strip(), (
             f"{encoding}: the gate went silent on its own, which the harness reads "
-            f"as approval. stderr: {r.stderr.decode('utf-8', 'replace')[-300:]}"
+            f"as nothing to show. stderr: {r.stderr.decode('utf-8', 'replace')[-300:]}"
         )
+        assert json.loads(out)["systemMessage"].startswith("SEALED aaa1111"), out
 
 
 test_census = census_case(TARGET)

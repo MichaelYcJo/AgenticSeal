@@ -80,10 +80,10 @@ pins. No row records that; the file is the record.
   **The copied block lands BELOW the live table, and its fenced example row
   is not a row.** That block carries a fenced `| Broad gate | … |` line as an
   illustration of the format, and a table inside a code fence is read by no
-  walk of that table: not the gates' reader, not the mode gate's, and not
-  `seal mode`'s writer. Pasted above the live table, or above a table that
-  has no parseable row yet, that example would be the table every gate
-  reads, and the broad run would run its command. Put the prose under the
+  walk of that table: not the gates' reader and not `seal mode`'s writer.
+  Pasted above the live table, or above a table that has no parseable row
+  yet, that example would be the table every gate reads, and the broad run
+  would run its command. Put the prose under the
   table the repository actually answers in; where the `Broad gate` row exists
   only inside a fence, `seal gate` quotes that line and says to move it.
 

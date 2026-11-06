@@ -98,11 +98,9 @@ def test_the_riders_exist_where_the_rows_said_they_would():
     silence it recorded is said now (#28, work item 1790635415), and a rider
     kept after its fix is the cost this file names. `hooks/lib/cmdline.py`
     left it when the `chdirs` its rider described left with the worktree
-    guard, their one reader (#1049)."""
-    for rel in (
-        "hooks/lib/optin.py",
-        "hooks/review-skill-gate.py",
-    ):
+    guard, their one reader (#1049). The review-skill gate left it with its
+    rider when the gate went (#1376)."""
+    for rel in ("hooks/lib/optin.py",):
         assert "# RIDER:" in read(os.path.join(ROOT, rel)), rel
 
 

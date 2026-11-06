@@ -12,10 +12,11 @@ asking anyone, and ends in a seal bound to a commit.
 
 AgenticSeal is a Claude Code plugin. You hand the session an issue, and it
 asks you one question at the start: how the work should be routed. Answer
-`automation`, and nothing stops to ask you again. Agents then frame the
-change, build it, review it and seal it. The run ends at a pull request whose
-records carry a seal: the last agent's written guarantee that the work agrees
-with the issue and the tree at one commit. It never merges. Merging is yours.
+`automation`, and the run stops again only for what only you can decide.
+Agents then frame the change, build it, review it and seal it. The run ends
+at a pull request whose records carry a seal: the last agent's written
+guarantee that the work agrees with the issue and the tree at one commit. It
+never merges. Merging is yours.
 
 ```mermaid
 flowchart LR
@@ -109,7 +110,8 @@ The first time a session works in a repository, it asks where the records
 should live (*Shared or local*, below). Then it asks the routing question,
 which has three answers:
 
-- **automation**: every party runs, and nothing stops to ask you again.
+- **automation**: every party runs, and the run stops to ask you only what
+  only you can decide and would be costly to undo.
 - **per axis**: four boxes decide whether the run may stop to ask, whether
   the crafter builds, whether the proofer reviews, and whether a pull request
   opens.
@@ -282,47 +284,29 @@ the turn names it, once per session (`docs/checks/the-session-hooks.md`).
 
 A hook whose Where cell names `seal/` acts only in a repository whose
 `seal/` opens its `README.md` with the plugin's marker line, and is silent
-everywhere else. lint-python acts only where the project configures ruff.
-Read the Where column before you install the plugin globally.
+everywhere else. Read the Where column before you install the plugin globally.
 
 | Gate | Fires | Does | Where |
 |---|---|---|---|
 | implementer-mark | before an Agent call whose `subagent_type` is `framer` or `crafter` | writes the branch name to `.git/agentic-planner` or `.git/agentic-implementer`, the trace the notice below reads. It prints nothing | `seal/` at the root, or under the common git dir in local mode — silent elsewhere, and writes nothing |
 | implementer-notice | after a command that runs `git commit` | reminds the session, in a single line, when the branch's `routing.md` declares the framer or the crafter and the mark says none was spawned. Once per session per repository, and it never blocks ([`docs/checks/the-session-hooks.md`](docs/checks/the-session-hooks.md) *The implementer mark and notice*) | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
-| review-skill-gate | before the model opens a skill named `code-review` | asks you which one you mean: that name is also Claude Code's built-in review, which sweeps a diff for bugs, where `agentic:code-review` judges compliance first and reads earlier rounds. Once per session per working tree | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
-| mode-gate | before a Bash call, in practice the session's first | where `seal/` exists and `seal/config.md` has no `Mode` row, asks once with three choices: `seal mode` records where the folder is, and `seal mode shared` or `seal mode local` moves it. Once per session per repository, and never again once the row exists | `seal/` at the root, or under the common git dir in local mode — silent elsewhere, and wherever the row is written |
-| version-check | at session start | asks this repository for its newest release tag and, when the running plugin is behind, shows a short notice naming `/agentic:update` and the two moves that load a release. Once a day, and a failed lookup retries about twenty minutes later. It never installs anything | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
 | sealer-stamp | when the main session's turn ends (`Stop`) | draws each stamp waiting for this session under `<git-common-dir>/agentic-stamp/<session>/` — queued at the write of a work item's `guarantee.md` reading `sealed` (the next row), once per work item — and renames the file `.drawn.json`. `seal stamp --from <file>` draws one by hand | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
 | sealer-stamp-queue | after a Write or Edit of a work item's `guarantee.md` | where the write leaves it reading `sealed` over a commit on the branch its `routing.md` names, queues the stamp for the main session's `Stop` and prints the queued file's path. Where that branch lacks the commit, it queues nothing and records the refusal | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
-| lint-python | after Write/Edit/NotebookEdit on a `.py` file | runs `ruff check --fix` and then `ruff format` on that file, so the code changes as well as its layout. It tries uv, then uvx, then a global ruff, and skips silently if none is there | **a project that configures ruff** — `ruff.toml`, `.ruff.toml`, or `[tool.ruff]` in `pyproject.toml`, searched up to the repo root. Silent everywhere else |
 
 No hook stops a session from switching the branch of a working tree another
 session is using, so give each concurrent session its own worktree.
 
 No hook sends your code, your paths or your prompts anywhere. These side
-effects are worth stating outright: version-check writes a timestamp file
-under `~/.claude/agentic/`, the write of a `guarantee.md` reading `sealed`
-writes the stamp's values under `<git-common-dir>/agentic-stamp/`, which the
-stamp hook renames once drawn and nothing prunes, and a `sealed` refused
-because its audited commit is not on the work item's branch leaves an empty
-file under `<git-common-dir>/agentic-stamp-refused/`, written by the edit
-hook in either mode, which nothing prunes either. lint-python rewrites the
-`.py` file you just saved, in ruff-configured projects only.
+effects are worth stating outright: the write of a `guarantee.md` reading
+`sealed` writes the stamp's values under `<git-common-dir>/agentic-stamp/`,
+which the stamp hook renames once drawn and nothing prunes, and a `sealed`
+refused because its audited commit is not on the work item's branch leaves
+an empty file under `<git-common-dir>/agentic-stamp-refused/`, written by the
+edit hook in either mode, which nothing prunes either.
 
-lint-python and version-check reach the network. lint-python first tries
-`uv run ruff`, and in a project whose `pyproject.toml` has a `[project]`
-table, uv then installs the project's dependencies, from PyPI where its cache
-lacks them. Where a project asks for a Python version the machine does not
-have, such as through a `.python-version` file or `requires-python`, uv first
-downloads that version from GitHub. lint-python falls back to `uvx ruff`, and
-uv fetches ruff from PyPI on first use. version-check runs one
-`git ls-remote --tags` against this repository, once a day where `seal/`
-exists, which tells GitHub that a machine somewhere runs AgenticSeal. Each
-stays silent when the network is unavailable.
-
-The places below reach the network as well. None of them is a hook: each is a
-command or a step of the workflow, so it runs when you or the session starts
-it, or, in the last row, in your CI on a pull request.
+No hook reaches the network. The places below do, and none of them is a
+hook: each is a command or a step of the workflow, so it runs when you or the
+session starts it, or, in the last row, in your CI on a pull request.
 
 | What | Reaches | Sends | When |
 |---|---|---|---|

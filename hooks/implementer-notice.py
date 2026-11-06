@@ -120,8 +120,7 @@ def commits(command):
 def already_told(cwd, session):
     """True when this session has already been told here; records it if not.
 
-    A failure to write reads as already told, for the reason
-    `review-skill-gate.py` gives for the same shape: the alternative is a line
+    A failure to write reads as already told: the alternative is a line
     that never stops. The id names a file, so a separator in a malformed one
     must not become a path escape.
     """

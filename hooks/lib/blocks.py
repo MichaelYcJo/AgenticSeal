@@ -2,8 +2,8 @@
 fenced code block or an HTML comment block, and where can this module not say?
 
 Three readers decide from a markdown file what a person or a party declared:
-`hooks/lib/config.py` (the `| Item | Value |` table, on every Bash call through
-`mode-gate` and `seal gate`), `hooks/lib/routing.py` (the routing
+`hooks/lib/config.py` (the `| Item | Value |` table, through `seal gate` and
+`seal mode`), `hooks/lib/routing.py` (the routing
 declaration, on every commit and at the pull request) and `hooks/lib/fields.py`
 (the `seal` blocks of a work item's records, #1198). A row quoted in a
 fenced example, or parked in an HTML comment, is not a row anybody gave, and

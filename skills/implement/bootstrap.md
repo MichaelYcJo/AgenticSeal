@@ -128,13 +128,11 @@ mode"*. The one call of step 1 then carries the `Broad gate` question alone.
    the `Mode` row from where the folder is and moves nothing. The row is the
    only trace that anybody was asked: left unwritten, a root somebody chose
    and a root that appeared because a session followed the routing rule are
-   the same bytes.
-   `hooks/mode-gate.py` reads the absence and stops the next command to ask
-   this same question, so running the command here keeps the person who just
-   answered from being asked twice. Under **shared, with pull-request
-   checks**, the orchestrator then runs `seal pr-checks install` and relays
-   the line it prints; an exit 1 is that line's refusal, and the setup goes
-   on without the checks.
+   the same bytes. Nothing asks the question again later: `seal mode --check`
+   reports a row that is absent or disagrees with the folder, and writes
+   nothing. Under **shared, with pull-request checks**, the orchestrator then
+   runs `seal pr-checks install` and relays the line it prints; an exit 1 is
+   that line's refusal, and the setup goes on without the checks.
 
    **Then the `Broad gate` row, where a command was chosen.** `seal mode` has
    just written a config file carrying `Mode` and nothing else, so the

@@ -201,9 +201,9 @@ MESSAGE_LIMIT = 10000
 # see: `hooks/dispatch.py#report` prepends the session's gate-failure report
 # to this same message after the hook has printed. The longest report it can
 # write, with each exception's type name and each gate's name cut at
-# `NAME_CAP` and its text at `MESSAGE_CAP`, is 567 UTF-16 units for one failed
-# gate and 975 for two, separator included; a third, at 1,381, would pass the
-# limit beside a stamp at the budget (measured 2026-10-27 over
+# `NAME_CAP` and its text at `MESSAGE_CAP`, is 559 UTF-16 units for one failed
+# gate and 959 for two, separator included; a third, at 1,357, would pass the
+# limit beside a stamp at the budget (measured 2026-11-06 over
 # `dispatch.describe`, every gate this plugin names and three foreign ones,
 # in every group it names and a foreign one, at every phase, with every field
 # past its cap -- a record an older or newer plugin wrote;

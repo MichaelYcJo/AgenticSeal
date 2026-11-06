@@ -14,14 +14,14 @@ exists that nobody chose a mode for, and #151 is what that costs: a monorepo
 was opted into shared mode, with its review records committed, without the
 question ever being put to anyone.
 
-Two callers need the row and they need the SAME answer.
-`skills/implement/scripts/seal.py` writes it, and `hooks/mode-gate.py` reads it
-to decide whether the question still has to be asked. A file that one of them
-parses and the other does not is a gate that stays quiet about a row the
-command believes it wrote. The parser lived in `seal.py`, which is a
-two-thousand-line command that a `PreToolUse` hook must not import -- so the
-READER moved here and the writer stayed there, and `seal.py` re-exports these
-names rather than keeping a second copy.
+The writer and every reader of the row need the SAME answer.
+`skills/implement/scripts/seal.py` writes it and `seal mode --check` reads it
+back, and `seal gate` and the other commands read the file's other rows. A
+file that one of them parses and another does not is a reader that stays
+quiet about a row the command believes it wrote. The READER lives here and
+the writer in `seal.py`, so a script that only reads imports this module and
+not the two-thousand-line command, and `seal.py` re-exports these names
+rather than keeping a second copy.
 
 **Not in `optin.py`, deliberately.** That module's docstring says there is no
 config key and everything in it fails toward *not opted in*; the root's
@@ -34,10 +34,9 @@ Everything here fails toward "nothing is declared" -- except where a written
 row would be read as absent. A file that is there and cannot be read, a row
 written twice, and an item the table walker did not read because it refused
 a line above it are refused by `config_text` and `config_value` rather than
-read as nothing (#867, #871); a hook reads a refusal as nothing it can act on
-and says nothing, and a command prints it and exits 2. `config_text`'s
-docstring says which caller is which kind. The table is read by
-`gfm_table`, the walker held to cmark-gfm, through `config_table`.
+read as nothing (#867, #871), and a command prints the refusal and exits 2.
+The table is read by `gfm_table`, the walker held to cmark-gfm, through
+`config_table`.
 """
 
 import os
@@ -53,10 +52,8 @@ try:
 except ImportError as missing:
     # A sentence rather than a bare `ModuleNotFoundError`, and an exception
     # rather than an exit, because this is a module other code imports: a
-    # `PreToolUse` gate that raises is skipped for that call and said at the
-    # end of the turn (`hooks/dispatch.py`, #28), and a script that loads this
-    # file by path catches the error or names the file first
-    # (`skills/implement/scripts/seal.py#HOOK_PURPOSES`).
+    # script that loads this file by path catches the error or names the
+    # file first (`skills/implement/scripts/seal.py#HOOK_PURPOSES`).
     raise ImportError(
         "cannot read "
         + os.path.join(os.path.dirname(os.path.abspath(__file__)), "blocks.py")
@@ -183,8 +180,8 @@ def hidden_lines(lines, text=None):
     A line that declares something is not taken on doubt where the older
     reading would not take it, the second of the three answers
     `docs/checks/the-fold.md` *The fold, and what tells it from a
-    deletion* gives: a row this hides is no declaration, so a hook says
-    nothing and a gate asks, and `seal gate` names a fence left open.
+    deletion* gives: a row this hides is no declaration, and `seal gate`
+    names a fence left open.
 
     **TEXT is the file LINES were split from, and every caller that has it
     passes it** (#667 round 1, 🟡 1). The readers split with
@@ -338,9 +335,8 @@ def config_table(text):
     keeps the value GitHub shows. A header or delimiter piece after one is
     no table GitHub renders, so the walk refuses the table and reads no row.
 
-    What a caller does with a refusal is its own kind's, as `config_text`
-    says: a hook says nothing, and a command prints the sentence and exits 2
-    for the items the walk did not read. `config_value` is the per-item
+    A command prints a refusal's sentence and exits 2 for the items the
+    walk did not read, as `config_text` says. `config_value` is the per-item
     answer, and a caller holding these rows asks `value_of` of them and acts
     on the refusals by its own kind."""
     rows, refusals = gfm_table(text, CONFIG_TABLE)
@@ -402,17 +398,11 @@ def config_text(home):
     **Two states, and only the second is refused** (#867). An absent file is
     what every repository had before it wrote a row, so it declares nothing,
     everywhere. A file that is there and will not read is not a repository
-    that answered nothing: it is one whose answer nobody can read. What a
-    caller does with that is its own kind's call, and every caller asks this
-    reader rather than opening the file a second time to find out:
-
-      - a hook that may not stop -- `hooks/mode-gate.py` -- reads a refusal
-        as nothing it can act on and says nothing, because a gate that
-        refuses wrongly is an outage nobody can get past (`CONTRIBUTING.md`
-        *What a change to a gate must carry*);
-      - a command a person runs prints the sentence and exits 2 with nothing
-        judged, because a command that reads a written row as absent acts as
-        if the person had written none.
+    that answered nothing: it is one whose answer nobody can read. Every
+    caller asks this reader rather than opening the file a second time to
+    find out, and a command a person runs prints the sentence and exits 2
+    with nothing judged, because a command that reads a written row as
+    absent acts as if the person had written none.
 
     HOME is the seal root; a falsy one is no file. A name that `lexists` but
     will not open -- a symbolic link to nowhere -- is the second state: the
@@ -462,13 +452,11 @@ def config_value(text, item):
                        line it stopped at and the edit
 
     **A refusal is per item, never an absent row** (#871). A row the walk
-    read before it stopped is a row GitHub shows, so it is a value, and a
-    `Mode` row above a malformed line keeps the mode gate quiet as it did.
-    An item the walk did not read may be written below the line it stopped
-    at, so it has no value and is not absent either: it is the walker's
-    sentence, which a hook reads as nothing it can act on and a command
-    prints. Refusing the whole table would turn every item off for a line
-    that is not theirs; reading the item as absent is the silent default
+    read before it stopped is a row GitHub shows, so it is a value. An item
+    the walk did not read may be written below the line it stopped at, so it
+    has no value and is not absent either: it is the walker's sentence, which
+    a command prints. Refusing the whole table would turn every item off for
+    a line that is not theirs; reading the item as absent is the silent default
     #415 was opened about.
 
     **A row written twice has no value**, not its first and not its last:
@@ -570,12 +558,10 @@ def declared_mode(home):
     every undeclared local-mode repository as lying.
 
     **`refused` is not `none`** (#867). An unreadable file used to fold into
-    `none`, and `hooks/mode-gate.py` opened the file a second time to tell
-    the two apart. A doubled row was read first-wins here and by the writer.
-    Now the reader tells them apart once: the gate says nothing on a refusal,
-    and `seal mode` prints it and writes nothing, because writing a row into
-    a file whose rows disagree, or that nobody can read, cannot make it
-    agree.
+    `none`, and a doubled row was read first-wins here and by the writer.
+    The reader tells them apart once: `seal mode` prints a refusal and
+    writes nothing, because writing a row into a file whose rows disagree,
+    or that nobody can read, cannot make it agree.
     """
     value, refusal = declared_value(home, ROW_ITEM)
     if refusal is not None:
@@ -745,7 +731,7 @@ def normalise_remote(url):
     **It lives here and `skills/implement/scripts/seal.py` re-exports it**
     (#647), the arrangement this module's docstring records for the `Mode`
     reader. The `Pact` reader below needs it, and this module cannot import
-    `seal.py`: that file imports this one, and a hook must not load a
+    `seal.py`: that file imports this one, and a reader must not load a
     two-thousand-line command to read a row. One normaliser, reached by the
     name each caller already spells.
     """

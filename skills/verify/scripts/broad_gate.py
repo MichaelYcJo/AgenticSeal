@@ -878,10 +878,9 @@ def fenced_row(home):
     about, arriving one shape over. So the line is found again here, on the
     refusal path alone.
 
-    Asked by THIS command and by nothing else. `hooks/lib/config.py` and
-    `hooks/mode-gate.py` say nothing about a fence: a `PreToolUse` hook that
-    prints is noise on every Bash call, where this command speaks once and
-    only when it refuses.
+    Asked by THIS command and by nothing else. `hooks/lib/config.py` says
+    nothing about a fence, and this command speaks once and only when it
+    refuses.
 
     It reads the fence rule from the one reader and asks it which lines it
     hid inside a fence — `hooks/lib/config.py#hidden_lines`, which also hides a
@@ -1005,8 +1004,8 @@ def missing_row(home):
             f"    {fenced.strip()}\n"
             "A table inside a code fence is an example of the format and not "
             "this repository's own answer, so no walk of that table reads it "
-            "— not this gate's reader, not the mode gate's, and not "
-            "`seal mode`'s writer. The row is not absent: it is written where "
+            "— not this gate's reader and not `seal mode`'s writer. The row is "
+            "not absent: it is written where "
             f"nothing reads it, and there is no command to run.\n{where}\n"
             "`templates/setup/config.md` *What is refused, and what stays allowed* "
             "is where the rule says so, and `/agentic:config` is the door to "
@@ -1025,7 +1024,7 @@ def missing_row(home):
             f"    {commented.strip()}\n"
             "A row inside a comment that closes is parked, not this "
             "repository's answer, so no walk of that table reads it — not this "
-            "gate's reader, not the mode gate's, and not `seal mode`'s writer. "
+            "gate's reader and not `seal mode`'s writer. "
             "The row is not absent and it is not in a code fence: it is "
             "commented out, and there is no command to run.\n"
             "If it is the command to run, take the row out of the "

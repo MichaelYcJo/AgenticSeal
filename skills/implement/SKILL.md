@@ -211,10 +211,10 @@ check: tests/behaviour/test_a_commit_names_its_repository.py
 
 **Before each commit, lint, format and typecheck the files it changes**,
 with the tools the repository configures; the repository-wide run of each
-is the broad gate's (contract rule 2). `hooks/lint-python.py` already runs
-`ruff` on each Python file an edit tool saves, where the project configures
-ruff. The project's own package manager wins; where it names none, Python
-runs through `uv` and Node.js through `pnpm`.
+is the broad gate's (contract rule 2). Nothing runs them when a file is
+saved, so the party that commits runs them. The project's own package
+manager wins; where it names none, Python runs through `uv` and Node.js
+through `pnpm`.
 
 **An edit must be able to fail.** Prefer the `Edit` tool: a pattern that does
 not match is an error you see immediately. When the environment routes edits

@@ -229,11 +229,10 @@ def home_at(root, common=None):
     `common` is passed by a caller that needs the common git directory for
     something else too, so one invocation asks git for it once rather than
     once per unit that wants it — the same parameter, for the same reason, as
-    `home_paths` above. `hooks/mode-gate.py#main` is that caller: it resolves
-    the root, the opt-in and its own `marker_dir` in one pass, and measured
-    2026-09-08 from a linked worktree, where `.git` is a file and the fast
-    path below does not apply, the same `rev-parse --git-common-dir` was
-    running three times on every Bash call.
+    `home_paths` above. Measured 2026-09-08 from a linked worktree, where
+    `.git` is a file and the fast path below does not apply, a gate that
+    resolved the root, the opt-in and its own marker separately ran the same
+    `rev-parse --git-common-dir` three times on every Bash call.
     """
     if not root:
         return ""

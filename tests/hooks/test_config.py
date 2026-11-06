@@ -81,9 +81,6 @@ TARGET = "hooks/lib/config.py"
 
 config = load_hook_module("lib/config.py", "config_under_test")
 
-# The mode gate, whose `undeclared` one reader case asks beside the reader.
-GATE = "mode-gate.py"
-
 # `tests/block_shapes.py`'s config shapes the comment cases read (#667).
 COMMENTED_OLD_ROW = shape_text("C5")
 COMMENTED_OLD_TABLE = shape_text("C6")
@@ -940,20 +937,13 @@ class Test_config_value:
         )
         assert config.config_value(text, "Mode") == ("shared", None)
 
-    def test_a_line_that_will_not_parse_is_named_and_the_hook_still_says_nothing(
-        self, config, repo
-    ):
-        """A4 and A7 of #415, which are one case because they are one decision,
-        re-pinned by #871.
+    def test_a_line_that_will_not_parse_is_named_in_the_refusal(self, config):
+        """A4 of #415, re-pinned by #871.
 
-        The reader names the line in its refusal, and the hook says nothing. The
-        caller that prints the sentence is a command, which already talks to a
-        person; `hooks/mode-gate.py` deliberately does not, because it is a
-        `PreToolUse` hook and a wrong refusal there stops a session with nobody
-        able to get past it. Until #871 a `Mode` row below an unparseable line
-        read as undeclared and the gate asked the mode question again; now the
-        item is a refusal, which the gate reads as an answer it cannot act on,
-        so it asks nothing -- the prompt budget of a refused table is zero.
+        The reader names the line in its refusal, and the caller that prints
+        the sentence is a command, which already talks to a person. Until #871
+        a `Mode` row below an unparseable line read as undeclared; now the item
+        is a refusal.
         """
         text = (
             "| Item | Value |\n|---|---|\n"
@@ -969,15 +959,6 @@ class Test_config_value:
             config.config_table("| Item | Value |\n|---|---|\n| a | b |\n\nprose.\n")[1]
             == []
         ), "a blank line is the table ending, not a row somebody wrote"
-
-        gate = load_hook_module(GATE, "agentic_mode_gate_for_415")
-        home = opt_in_shared(repo)
-        write_config(home, text)
-        answer = gate.undeclared(str(repo))
-        assert answer == "", (
-            'the hook\'s answer is the home or `""` and never a message; a `Mode` '
-            f"row below a refused line is a refusal, which is silence: {answer!r}"
-        )
 
     def test_a_refusal_is_per_item_and_never_an_absent_row(self, config, repo):
         """S2, one arm per assertion, over shapes 1, 5, 7 and 13. A row the walk

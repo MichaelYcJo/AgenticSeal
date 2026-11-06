@@ -9,11 +9,9 @@ commit it. The migration config is `seal/parity.md` and only that. A reader
 that decoded nothing answers "not opted in" and never raises.
 
 The cases come from `tests/test_optin_home.py` and
-`tests/test_gates_do_not_fail_open.py` (#942's phase 6), with the version
-check's and the review-skill gate's cases that pin how a hook reads the two
-places, which group 1 left for this module, and the case of
+`tests/test_gates_do_not_fail_open.py` (#942's phase 6), and the case of
 `tests/test_local_mode_resolves_under_the_git_dir.py` where the scratch marker
-under the common directory keeps three gates silent in local mode.
+under the common directory keeps a gate silent in local mode.
 """
 
 import os
@@ -25,7 +23,6 @@ from conftest import (
     ROOT,
     bash,
     census_case,
-    decision_of,
     declare_crafter,
     git_repo,
     home,
@@ -615,81 +612,6 @@ class Test_module:
         assert git("diff", "--cached", "--name-only") == ""
         assert not (repo / ".gitignore").exists()
 
-    def test_review_skill_gate_fires_on_the_new_home(self, repo):
-        home(repo)
-        out = run_hook(
-            "review-skill-gate.py",
-            {
-                "tool_name": "Skill",
-                "session_id": "s1",
-                "tool_input": {"skill": "code-review"},
-                "cwd": str(repo),
-            },
-        )
-        assert decision_of(out) == "deny"
-
-    def test_review_skill_gate_stays_silent_on_the_legacy_marker(self, repo):
-        legacy(repo)
-        out = run_hook(
-            "review-skill-gate.py",
-            {
-                "tool_name": "Skill",
-                "session_id": "s1",
-                "tool_input": {"skill": "code-review"},
-                "cwd": str(repo),
-            },
-        )
-        assert decision_of(out) == "silent"
-
-    def test_the_review_skill_gate_is_silent_in_a_scratch_repository(self, repo):
-        home(repo)
-        scratch(repo)
-        out = run_hook(
-            "review-skill-gate.py",
-            {
-                "tool_name": "Skill",
-                "session_id": "s1",
-                "tool_input": {"skill": "code-review"},
-                "cwd": str(repo),
-            },
-        )
-        assert decision_of(out) == "silent"
-
-    def test_the_session_start_hook_says_nothing_in_a_legacy_repo(self, repo):
-        """The repository never opted in, so this hook has no business speaking.
-
-        It used to hear "the home moved" instead — a notice naming four
-        destinations, two of which do not exist any more.
-        """
-        legacy(repo)
-        hook = load_hook_module("version-check.py", "vc_move")
-        import contextlib
-        import io
-        import json as _json
-        import sys
-
-        sys.stdin = io.StringIO(_json.dumps({"cwd": str(repo), "session_id": "s1"}))
-        buf = io.StringIO()
-        with contextlib.redirect_stdout(buf):
-            hook.main()
-        assert buf.getvalue() == ""
-
-    def test_an_opted_in_repo_at_the_newest_version_hears_nothing(self, repo):
-        home(repo)
-        hook = load_hook_module("version-check.py", "vc_moved")
-        hook.running = lambda: ((9, 9, 9), "https://example.com/x/y")
-        hook.latest = lambda url: (0, 1, 0)
-        import contextlib
-        import io
-        import json as _json
-        import sys
-
-        sys.stdin = io.StringIO(_json.dumps({"cwd": str(repo), "session_id": "s1"}))
-        buf = io.StringIO()
-        with contextlib.redirect_stdout(buf):
-            hook.main()
-        assert buf.getvalue() == ""
-
     def test_a_scratch_marker_under_the_common_directory_keeps_every_gate_silent(
         self, local
     ):
@@ -697,20 +619,6 @@ class Test_module:
         (repo / ".git" / "agentic-scratch").write_text("", encoding="utf-8")
         declare_crafter(repo, home)
 
-        assert (
-            decision_of(
-                run_hook(
-                    "review-skill-gate.py",
-                    {
-                        "tool_name": "Skill",
-                        "session_id": "s1",
-                        "tool_input": {"skill": "code-review"},
-                        "cwd": str(repo),
-                    },
-                )
-            )
-            == "silent"
-        )
         assert run_hook("implementer-notice.py", bash(repo)) == ""
 
 

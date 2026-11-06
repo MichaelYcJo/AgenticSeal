@@ -37,9 +37,8 @@ read as UTF-8 text (a directory of that name, or bytes another encoding
 wrote) is refused naming its path; a file that is absent still declares
 nothing. A command a person runs (`seal fold`, `seal gate`, `seal mode`,
 `seal pact`) prints the refusal and exits 2 with nothing judged, as it does
-for a value it cannot parse. A hook says nothing: the mode gate is silent
-rather than asking. Whoever writes the file repairs it by deleting the extra
-row, or by writing the file as UTF-8.
+for a value it cannot parse. Whoever writes the file repairs it by deleting
+the extra row, or by writing the file as UTF-8.
 
 **The table is read the way GitHub shows it, or refused.** The reader is the
 walker the plugin holds to cmark-gfm, GitHub's renderer, so a row is a row
@@ -312,9 +311,9 @@ repository's own answer.** The live table is the first `| Item | Value |`
 table that stands outside every fenced code block, and a line inside a fence
 is not part of any table: not a header, not a separator, not a row, and not a
 line somebody wrote as a row. One rule says so and the one walk of this
-table reads through it (the gates, the mode gate, and `seal mode`'s writer
-all read the rows it names), so the reader and the writer can never
-disagree about which row is the row.
+table reads through it (the gates and `seal mode`'s writer all read the
+rows it names), so the reader and the writer can never disagree about which
+row is the row.
 
 A fence opens at a line indented at most three spaces whose first run is three
 or more backticks or three or more tildes, and closes at the next line of at
@@ -356,7 +355,7 @@ rather than paid for by a refusal:
 |---|---|
 | `$(…)` **inside** a longer line | nothing. `pytest -n $(nproc)` still runs as the command it reads as |
 | `;`, `\|\|`, quotes, redirection, variables, globs | the row answers with whatever the composition the repository wrote answers with. That is the repository's own claim about itself, which is what this row already is. A pytest session the row runs that did not pass by its own record still fails the suite, whatever the composition exits (rule 3 of *The criterion for choosing a value* below) |
-| a pipe, **written `\|`** | the same, and one thing more. A piped row exits with the pipe's LAST status, so `bin/test -q \| tee out.txt` exits 0 whenever `tee` does. That exit is the repository's own claim about itself, and the gate still fails the suite where a pytest session under the pipe did not pass by its own record (rule 3 of *The criterion for choosing a value* below). **This file is markdown and a cell of it ends at a bare pipe**, so `\|` is how the value carries one, the way every other cell of this table already writes it. The reader reduces exactly those two characters to a plain pipe before any shell sees it, so a value holding Windows path separators is untouched. **A BARE pipe is refused**: GitHub shows that row cut off at the pipe, so the command it shows is not the one written, and `seal gate` quotes the line, says to write it `\|`, and runs nothing. The walker reads no row below a line it refuses, so a `Mode` row written under it is that refusal rather than an absent row: `seal mode` writes nothing and names the line, and the mode gate says nothing. Written LAST in its table the line has nothing under it, and `seal gate`'s refusal says the rows below it go unread only where a row is written below it |
+| a pipe, **written `\|`** | the same, and one thing more. A piped row exits with the pipe's LAST status, so `bin/test -q \| tee out.txt` exits 0 whenever `tee` does. That exit is the repository's own claim about itself, and the gate still fails the suite where a pytest session under the pipe did not pass by its own record (rule 3 of *The criterion for choosing a value* below). **This file is markdown and a cell of it ends at a bare pipe**, so `\|` is how the value carries one, the way every other cell of this table already writes it. The reader reduces exactly those two characters to a plain pipe before any shell sees it, so a value holding Windows path separators is untouched. **A BARE pipe is refused**: GitHub shows that row cut off at the pipe, so the command it shows is not the one written, and `seal gate` quotes the line, says to write it `\|`, and runs nothing. The walker reads no row below a line it refuses, so a `Mode` row written under it is that refusal rather than an absent row: `seal mode` writes nothing and names the line. Written LAST in its table the line has nothing under it, and `seal gate`'s refusal says the rows below it go unread only where a row is written below it |
 | an `&` anywhere but at the end | the command before it is backgrounded and its status discarded, exactly as a `;` discards one. Unlike a `;`, it may still be running when the gate reports, writing into the tree the report is about. That is `/bin/sh`; `cmd.exe` sequences the two commands instead, so nothing is left running and the status read is the second command's. Telling an operator `&` from a `2>&1` or a quoted `&` needs the shell parser this list exists to avoid, so it stays the row author's own composition. The **trailing** form is refused, because nothing composes after it and the whole line goes to the background |
 
 ### The criterion for choosing a value

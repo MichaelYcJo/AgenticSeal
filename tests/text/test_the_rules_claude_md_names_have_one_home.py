@@ -104,8 +104,8 @@ RULES = {
         "2. Implement test-first, and let each rule name its test",
         (
             "**Before each commit, lint, format and typecheck the files it changes**",
-            "`hooks/lint-python.py` already runs `ruff` on each Python file an "
-            "edit tool saves",
+            "Nothing runs them when a file is saved, so the party that commits "
+            "runs them.",
         ),
     ),
     "tooling": (

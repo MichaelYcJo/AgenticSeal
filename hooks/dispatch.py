@@ -82,15 +82,12 @@ CLOSING = (
 )
 
 GROUPS = {
-    "pre-bash": ("mode-gate.py",),
     "pre-agent": ("implementer-mark.py",),
-    "pre-skill": ("review-skill-gate.py",),
     "post-bash": ("implementer-notice.py",),
     # `sealer-stamp-queue.py` queues a work item's stamp at the write of its
     # `sealed` guarantee, under either root (work item 1792363231, #1027);
     # `sealer-stamp.py` in `stop` draws it.
-    "post-edit": ("lint-python.py", "sealer-stamp-queue.py"),
-    "session-start": ("version-check.py",),
+    "post-edit": ("sealer-stamp-queue.py",),
     # The end of a main-session turn, where the stamp a `sealed` guarantee's
     # write queued is drawn after the text it belongs under (#400, #975).
     # One gate, because nothing else here has anything to say when a turn
@@ -114,8 +111,8 @@ def run_gate(filename, payload):
     """A gate's stdout, or "" when it printed nothing or failed.
 
     stdin, stdout and argv are swapped for the call: the gates read the
-    payload from stdin, and lint-python reads a path from argv[1] — left
-    alone it would read the group name as a filename.
+    payload from stdin, and argv names the gate's own file, as it does when
+    the gate runs on its own.
     """
     path = os.path.join(HOOKS, filename)
     out = io.StringIO()
@@ -442,9 +439,9 @@ def describe(gate, body):
 
     A gate that failed to LOAD fails in every group that loads its file, and
     its record is written once, by the first -- so each of those groups is
-    named: a broken gate that `pre-bash` and `pre-agent` both load leaves
-    `pre-agent` unguarded too, not only `pre-bash`. A failure while running
-    depends on the payload, so it names the group it was seen in. The closing
+    named: a broken gate that two groups load leaves the second unguarded
+    too, not only the first. A failure while running depends on the payload,
+    so it names the group it was seen in. The closing
     clause names only the groups where other gates were there to decide.
 
     Every field read from the record that has no fixed vocabulary is cut to

@@ -1247,11 +1247,6 @@ def payload(cmd, repo, session="s1"):
     }
 
 
-def reason_of(out):
-    """The reason a hook's decision gives."""
-    return json.loads(out)["hookSpecificOutput"]["permissionDecisionReason"]
-
-
 def config_table(*rows):
     """A `seal/config.md` holding one row per `(item, value)` in ROWS."""
     return "# config\n\n| Item | Value |\n|---|---|\n" + "".join(

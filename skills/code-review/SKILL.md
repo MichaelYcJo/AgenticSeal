@@ -1,13 +1,14 @@
 ---
 name: code-review
 description: |
-  Two-stage review methodology (compliance, then quality) with comparison axes,
-  cross-session review records, and re-review inheritance.
-  Use when: reviewing a PR or diff, re-reviewing after fixes, orchestrating reviewer agents.
+  The review chain's method: compliance with the frame first, then quality,
+  with earlier rounds' records read and their coordinates carried across sessions.
+  Use when: a person asks to review a PR, a diff or a branch, or to re-review after
+  fixes, in plain words and naming no skill, as in "review this PR <url>" or
+  "검토해봐 <url>"; or when orchestrating reviewer agents.
   NOT for: implementing fixes (use `implement`), style-only linting a formatter
-  can do, or a plain bug-and-cleanup sweep of a diff — Claude Code's built-in
-  `/code-review` covers that. This one judges compliance before quality and
-  carries earlier rounds' coordinates across sessions.
+  can do, or a person typing `/code-review` by name, which runs Claude Code's
+  built-in command and not this skill.
 ---
 
 # code-review — compliance first, then quality

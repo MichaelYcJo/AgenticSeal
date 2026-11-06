@@ -13,12 +13,11 @@ skill asks, the sentence a session needs, the workflow template
 switch the READMEs give.
 """
 
-import os
 import re
 import subprocess
 
 import pytest
-from conftest import ROOT, local_home, read, shell_probe
+from conftest import local_home, read, shell_probe
 
 COMMON_DIR = "$(git rev-parse --git-common-dir)/seal/"
 # The sentence a session reads, which the Q1 cases below hold in each place:
@@ -683,20 +682,10 @@ def test_the_bootstrap_records_the_answer_it_was_given():
     """#151's second Done-when: the answer has to be observable afterwards.
     An asked-and-answered root and a root that appeared because a session
     followed the routing rule are byte-identical until something writes the
-    row — and `hooks/mode-gate.py` reads exactly that absence, so a bootstrap
-    that records nothing gets the person it just asked asked again."""
+    row, so a bootstrap that records nothing leaves no trace that anybody was
+    asked."""
     boot = flat(bootstrap())
     assert "seal mode" in boot
     assert "Do **not** write that config row here" not in both_halves(), (
         "the skill still forbids recording the answer it just collected"
     )
-
-
-def test_the_gate_that_reads_the_absence_exists_and_is_wired():
-    """The document half and the mechanism half are one change. A skill that
-    says a gate reads this, beside no such gate, is the shape #151 opened
-    about one layer up."""
-    hooks = os.path.join(ROOT, "hooks")
-    assert os.path.isfile(os.path.join(hooks, "mode-gate.py"))
-    dispatch = read("hooks", "dispatch.py")
-    assert '"mode-gate.py"' in dispatch

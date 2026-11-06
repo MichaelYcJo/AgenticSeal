@@ -2179,7 +2179,7 @@ class Test_write_row:
         table at all and `with_row` falls to its third arm and appends one at the
         END — which is inside that fence. `write_row` returned `""`, `seal mode`
         printed *one was written from where the folder is*, and `declared_mode`
-        still answered `('none', '')`: the mode gate asks again next session, and
+        still answered `('none', '')`: the next `seal mode` writes it again, and
         the file grows by a table a run. Measured before the fix over both
         fixtures below, three runs each — 9 → 13 → 17 → 21 lines and 4 → 8 → 12 →
         16, `('none', '')` throughout.

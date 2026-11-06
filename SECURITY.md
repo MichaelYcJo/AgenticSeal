@@ -20,10 +20,10 @@ a reader should keep separate:
 - **`skills/*/scripts/`** — the checkers, run from CI and from a terminal
   (`seal fold`, `seal unverified`, `seal pact` and the rest), which read a
   repository's records and the files those records name.
-- **`hooks/`** — gates the harness invokes around commits, branch switches and
-  session start. Some of them run without anybody asking, which is the whole
-  point of a gate and also the reason a defect in one is worth more than the
-  same defect in a checker.
+- **`hooks/`** — gates the harness invokes around agent spawns, commits, file
+  edits and the end of a turn. Some of them run without anybody asking, which
+  is the whole point of a gate and also the reason a defect in one is worth
+  more than the same defect in a checker.
 
 The records are committed files, so writing one normally requires write
 access to the repository, and in an ordinary project a malicious record crosses

@@ -53,10 +53,10 @@ check: tests/text/test_the_rules_have_one_owner.py
 **On a run whose `routing.md` reads `Automation` `yes`, the orchestrator
 does not stop the run with a question that the tree or the framer can
 answer.** The person who answered the routing question was told that the
-run would not stop to ask, and a question put at minute thirty waits for
-somebody who may not be there. Where a question arises, the orchestrator
-looks for its answer in the tree and in the work item's
-`frame/questions.md` first. Where neither answers it, the orchestrator
+run would stop only for what only they can decide, and a question put at
+minute thirty waits for somebody who may not be there. Where a question
+arises, the orchestrator looks for its answer in the tree and in the work
+item's `frame/questions.md` first. Where neither answers it, the orchestrator
 proceeds on the default the question states, writes that default as one
 row of `frame/questions.md`, and names it in one line of the pull request
 body, where the owner can overturn it. The orchestrator keeps a blocking

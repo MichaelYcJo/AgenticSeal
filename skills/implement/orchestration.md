@@ -210,7 +210,7 @@ A single-select question, put alone:
 
 | Order | Label | Description |
 |---|---|---|
-| 1 | **automation** | Every party runs: the framer frames it, `crafter` builds it, `proofer` reviews it, the orchestrator takes the broad run, the sealer audits it, and the pull request opens. **This is the last question: nothing stops to ask again.** |
+| 1 | **automation** | Every party runs: the framer frames it, `crafter` builds it, `proofer` reviews it, the orchestrator takes the broad run, the sealer audits it, and the pull request opens. **This is the last routing question: the run stops again only for what only you can decide and would be costly to undo.** |
 | 2 | **per axis** | The four boxes below are the answer. |
 | 3 | **no work item** | No work item is opened: no frame, no review, no seal, no `routing.md`, and this session writes the change itself. Where the root is shared, every commit ends with the trailer `Seal-Routing: no work item`, and the pull request's check only lists those commits. |
 
@@ -238,7 +238,7 @@ generates these carries the order.
 
 | Order | Box | Checked | Not checked |
 |---|---|---|---|
-| 1 | **run end to end without stopping to ask** | the run goes from here to its destination with nobody at the keyboard; `Automation` = `yes` | **this run may stop to ask**: somebody may be asked at minute thirty; `Automation` = `no` |
+| 1 | **run end to end without stopping to ask** | the run goes from here to its destination and stops only for what only you can decide; `Automation` = `yes` | **this run may stop to ask**: somebody may be asked at minute thirty; `Automation` = `no` |
 | 2 | **implement with `crafter`** | spawn the subagent; `Implementation` = `crafter` | **this session writes the code**; `Implementation` = `the session` |
 | 3 | **review with `proofer`** | the review rounds run; `Review` = `through the review chain` | **nothing reviews this code before the pull request**; `Review` = `straight to the PR` |
 | 4 | **open the pull request** | push it and open one; `Destination` = `open the pull request` | **the branch is handed back, committed and unpushed**; `Destination` = `stop before the pull request` |

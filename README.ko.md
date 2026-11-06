@@ -12,7 +12,8 @@ seal 을 남기는 에이전트 워크플로입니다.
 
 AgenticSeal 은 Claude Code 플러그인입니다. 세션에 이슈 하나를 맡기면, 세션은
 시작할 때 질문을 하나 합니다. 이 작업을 어떤 길로 보낼지 묻는 라우팅
-질문입니다. `automation` 으로 답하면 그 뒤로는 아무도 다시 묻지 않습니다.
+질문입니다. `automation` 으로 답하면 그 뒤로는 사용자만 정할 수 있는 것이
+아니면 다시 묻지 않습니다.
 에이전트들이 변경을 설계하고, 만들고, 리뷰하고, 마지막에 seal 을 남깁니다.
 seal 은 마지막 에이전트가 쓰는 보증서입니다. 커밋 하나를 기준으로, 작업이
 이슈와 트리에 맞는다고 적습니다. 실행은 그 seal 을 기록에 담은 pull request
@@ -111,8 +112,8 @@ orchestrator 는 코어를 읽고, 사람이 정해야 할 것을 묻고, 에이
 세션이 어떤 저장소에서 처음 일할 때는 기록을 어디에 둘지 먼저 묻습니다(아래
 *shared 인가 local 인가*). 그다음 라우팅 질문을 합니다. 답은 셋입니다.
 
-- **automation** 은 모든 에이전트가 차례로 돌고, 그 뒤로는 사용자에게 다시
-  묻지 않는 길입니다.
+- **automation** 은 모든 에이전트가 차례로 돌고, 그 뒤로는 사용자만 정할 수
+  있고 되돌리기 비싼 것만 사용자에게 묻는 길입니다.
 - **per axis** 는 네 칸을 하나씩 고르는 길입니다. 실행 도중 사용자에게 물어도
   되는지, crafter 가 만드는지, proofer 가 리뷰하는지, pull request 를 여는지를
   각각 정합니다.
@@ -284,47 +285,29 @@ tracer 가 가져옵니다. 세션이 저장소를 처음 설정할 때 한 번 
 
 "어디서" 열에 `seal/` 이 적힌 훅은 `seal/` 의 `README.md` 가 플러그인의 표시
 줄로 시작하는 저장소에서만 동작하고, 그 밖에서는 아무것도 하지 않습니다.
-lint-python 은 프로젝트가 ruff 를 설정한 곳에서만 돕니다. 플러그인을 전역으로
-설치하기 전에 "어디서" 열을 먼저 읽어 보세요.
+플러그인을 전역으로 설치하기 전에 "어디서" 열을 먼저 읽어 보세요.
 
 | 게이트 | 언제 | 무엇을 | 어디서 |
 |---|---|---|---|
 | implementer-mark | `subagent_type` 이 `framer` 나 `crafter` 인 Agent 호출 직전 | 브랜치 이름을 `.git/agentic-planner` 나 `.git/agentic-implementer` 에 적는다. 아래 알림이 읽는 흔적이다. 아무것도 출력하지 않는다 | 루트에 `seal/` 이 있는 저장소, 또는 local 모드로 공통 git 디렉터리 아래에 `seal/` 이 있는 저장소. 그 밖에서는 아무것도 하지 않고 아무것도 쓰지 않는다 |
 | implementer-notice | `git commit` 을 실행한 명령 직후 | 브랜치의 `routing.md` 가 framer 나 crafter 를 선언했는데 띄웠다는 흔적이 없으면 세션에 한 줄로 알린다. 세션과 저장소마다 한 번이고, 막지 않는다 ([`docs/checks/the-session-hooks.md`](docs/checks/the-session-hooks.md) *The implementer mark and notice*) | 루트에 `seal/` 이 있는 저장소, 또는 local 모드로 공통 git 디렉터리 아래에 `seal/` 이 있는 저장소. 그 밖에서는 아무것도 하지 않는다 |
-| review-skill-gate | 모델이 `code-review` 라는 이름의 스킬을 열기 직전 | 어느 것을 뜻하는지 사용자에게 묻는다. 그 이름은 Claude Code 에 내장된 리뷰의 이름이기도 하다. 내장 리뷰는 diff 에서 버그를 훑고, `agentic:code-review` 는 준수를 먼저 판정하고 앞 회차를 읽는다. 세션과 작업 트리마다 한 번 묻는다 | 루트에 `seal/` 이 있는 저장소, 또는 local 모드로 공통 git 디렉터리 아래에 `seal/` 이 있는 저장소. 그 밖에서는 아무것도 하지 않는다 |
-| mode-gate | Bash 호출 직전, 사실상 세션의 첫 명령 | `seal/` 은 있는데 `seal/config.md` 에 `Mode` 행이 없으면 세 선택지로 한 번 묻는다. `seal mode` 는 폴더가 있는 자리를 적어 두고, `seal mode shared` 나 `seal mode local` 은 폴더를 옮긴다. 세션과 저장소마다 한 번이고, 행이 생긴 뒤에는 다시 묻지 않는다 | 루트에 `seal/` 이 있는 저장소, 또는 local 모드로 공통 git 디렉터리 아래에 `seal/` 이 있는 저장소. 그 밖에서는, 그리고 행이 있는 곳에서는 아무것도 하지 않는다 |
-| version-check | 세션 시작 시 | 이 저장소에 최신 릴리스 태그를 묻고, 돌고 있는 플러그인이 뒤처져 있으면 `/agentic:update` 와 릴리스를 불러오는 두 방법을 짧게 알린다. 하루에 한 번 묻고, 조회가 실패하면 20분쯤 뒤에 다시 시도한다. 아무것도 설치하지 않는다 | 루트에 `seal/` 이 있는 저장소, 또는 local 모드로 공통 git 디렉터리 아래에 `seal/` 이 있는 저장소. 그 밖에서는 아무것도 하지 않는다 |
 | sealer-stamp | 메인 세션의 턴이 끝날 때 (`Stop`) | 작업 항목의 `guarantee.md` 가 `sealed` 로 쓰일 때 남는 도장 가운데 이 세션 앞으로 `<git-common-dir>/agentic-stamp/<session>/` 에 쌓인 것을 그리고, 그 파일의 이름을 `.drawn.json` 으로 바꾼다. 도장은 다음 행의 훅이 작업 항목마다 한 번 쌓는다. 손으로 그리려면 `seal stamp --from <file>` 을 쓴다 | 루트에 `seal/` 이 있는 저장소, 또는 local 모드로 공통 git 디렉터리 아래에 `seal/` 이 있는 저장소. 그 밖에서는 아무것도 하지 않는다 |
 | sealer-stamp-queue | 작업 항목의 `guarantee.md` 를 Write 나 Edit 한 직후 | 그 쓰기로 `guarantee.md` 가 `sealed` 로 읽히고 그 판정이 `routing.md` 가 적은 브랜치 위의 커밋을 가리키면, 메인 세션의 `Stop` 이 그릴 도장을 쌓아 두고 쌓은 파일의 경로를 출력한다. 그 브랜치에 그 커밋이 없으면 아무것도 쌓지 않고 거절을 기록한다 | 루트에 `seal/` 이 있는 저장소, 또는 local 모드로 공통 git 디렉터리 아래에 `seal/` 이 있는 저장소. 그 밖에서는 아무것도 하지 않는다 |
-| lint-python | `.py` 파일을 Write, Edit, NotebookEdit 한 직후 | 그 파일에 `ruff check --fix` 를 돌린 뒤 `ruff format` 을 돌린다. 레이아웃만이 아니라 코드도 바뀐다. uv, uvx, 전역 ruff 순으로 찾고, 하나도 없으면 아무 말 없이 건너뛴다 | **ruff 를 설정한 프로젝트**. `ruff.toml`, `.ruff.toml`, `pyproject.toml` 의 `[tool.ruff]` 를 저장소 루트까지 거슬러 찾는다. 그 밖에서는 아무것도 하지 않는다 |
 
 다른 세션이 쓰고 있는 작업 트리의 브랜치를 한 세션이 바꾸는 것은 어떤 훅도
 막지 않습니다. 동시에 도는 세션에는 각자 worktree 를 하나씩 주세요.
 
 어떤 훅도 사용자의 코드나 경로, 프롬프트를 바깥으로 보내지 않습니다. 다음
-부수 효과는 밝혀 둡니다. version-check 는 `~/.claude/agentic/` 아래에 시각
-파일을 씁니다. `sealed` 로 읽히는 `guarantee.md` 를 쓸 때 도장에 들어갈 값을
-`<git-common-dir>/agentic-stamp/` 아래에 쓰고, 도장 훅은 그린 뒤 그 파일의
-이름을 바꿀 뿐 지우지 않습니다. 감사한 커밋이 작업 항목 브랜치에 없어 거절된
-`sealed` 는 `<git-common-dir>/agentic-stamp-refused/` 아래에 빈 파일을
-남깁니다. 어느 모드에서든 편집 훅이 씁니다. 이 파일도 지우는 것이 없습니다.
-lint-python 은 방금 저장한 `.py` 파일을 고쳐 쓰며, ruff 를 설정한
-프로젝트에서만 그렇습니다.
+부수 효과는 밝혀 둡니다. `sealed` 로 읽히는 `guarantee.md` 를 쓸 때 도장에
+들어갈 값을 `<git-common-dir>/agentic-stamp/` 아래에 쓰고, 도장 훅은 그린 뒤
+그 파일의 이름을 바꿀 뿐 지우지 않습니다. 감사한 커밋이 작업 항목 브랜치에
+없어 거절된 `sealed` 는 `<git-common-dir>/agentic-stamp-refused/` 아래에 빈
+파일을 남깁니다. 어느 모드에서든 편집 훅이 씁니다. 이 파일도 지우는 것이
+없습니다.
 
-네트워크를 타는 훅은 lint-python 과 version-check 입니다. lint-python 은 먼저
-`uv run ruff` 를 시도합니다. `pyproject.toml` 에 `[project]` 테이블이 있는
-프로젝트라면 이때 uv 가 그 프로젝트의 의존성을 설치하고, 캐시에 없는 것은
-PyPI 에서 내려받습니다. 프로젝트가 `.python-version` 파일이나
-`requires-python` 등으로 요구하는 Python 버전이 컴퓨터에 없으면 uv 가 먼저
-GitHub 에서 그 버전을 내려받습니다. lint-python 이 `uvx ruff` 로 넘어가면
-uv 가 처음 한 번 PyPI 에서 ruff 를 내려받습니다. version-check 는 `seal/` 이
-있는 곳에서 하루에 한 번 이 저장소에 `git ls-remote --tags` 를 보내고, 이때
-GitHub 은 어딘가의 기계가 AgenticSeal 을 쓴다는 것을 알게 됩니다. 어느
-훅이든 네트워크가 없으면 아무 말 없이 넘어갑니다.
-
-아래 자리도 네트워크를 탑니다. 이것들은 훅이 아니라 명령이나 워크플로의
-단계입니다. 그래서 사용자나 세션이 시작할 때 돌고, 마지막 행만은 pull request
-마다 사용자의 CI 에서 돕니다.
+네트워크를 타는 훅은 없습니다. 아래 자리가 네트워크를 탑니다. 이것들은 훅이
+아니라 명령이나 워크플로의 단계입니다. 그래서 사용자나 세션이 시작할 때 돌고,
+마지막 행만은 pull request 마다 사용자의 CI 에서 돕니다.
 
 | 무엇이 | 어디로 | 무엇을 보내나 | 언제 |
 |---|---|---|---|

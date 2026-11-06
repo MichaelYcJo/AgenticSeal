@@ -304,6 +304,25 @@ def test_user_invoked_skills_do_not_carry_trigger_scaffolding():
     )
 
 
+def test_a_plain_review_request_is_the_review_skills_and_the_typed_command_is_not():
+    """Contract rule 14, for #1376 phase 3. The review-skill gate asked the
+    person which review a plain request meant, and it went with the hooks the
+    plugin directory will not register. The owner's rule replaces it: a plain
+    request runs this plugin's review, and Claude Code's built-in
+    `/code-review` runs when the person types that command by name. The
+    skill's description is the one place the model reads that rule."""
+    with open(
+        os.path.join(ROOT, "skills", "code-review", "SKILL.md"), encoding="utf-8"
+    ) as f:
+        head = " ".join(f.read().split("\n---\n", 1)[0].split())
+    assert "in plain words and naming no skill" in head
+    assert '"review this PR <url>"' in head and '"검토해봐 <url>"' in head
+    assert (
+        "a person typing `/code-review` by name, which runs Claude Code's"
+        " built-in command and not this skill" in head
+    )
+
+
 # The row each edition lists the skills in. Scoping to the row is not
 # tidiness: the membership cases below read the names where their absence
 # means something.
@@ -435,24 +454,23 @@ def network_passage(path, said):
 def test_the_hooks_that_reach_the_network_are_named_without_a_count():
     """#1055 S4 and #1382. Both READMEs and `CONTRIBUTING.md` said how many
     hooks reach the network, and the guide's rule for a new one counted on
-    from there. The READMEs' network passage names `lint-python` and
-    `version-check`, the guide says every such hook is named there, and none
-    of the three counts them. The READMEs named those two hooks and no other
-    place the plugin reaches the network, so each edition's passage, from
-    the pinned sentence to the next heading, also names every place in
-    `NETWORK_PLACES`."""
+    from there. No hook reaches the network since the two that did left
+    with #1376, the READMEs' network passage says so, the guide says every
+    such hook would be named there, and none of the three counts them. Each
+    edition's passage, from the pinned sentence to the next heading, names
+    every place in `NETWORK_PLACES`."""
     from conftest import flat
 
     for path, said, gone, places in (
         (
             "README.md",
-            "lint-python and version-check reach the network.",
+            "No hook reaches the network.",
             ("Two hooks reach the network", "Both stay silent"),
             NETWORK_PLACES,
         ),
         (
             "README.ko.md",
-            "네트워크를 타는 훅은 lint-python 과 version-check 입니다.",
+            "네트워크를 타는 훅은 없습니다.",
             ("네트워크를 타는 훅은 둘", "둘 다 네트워크가"),
             NETWORK_PLACES,
         ),
