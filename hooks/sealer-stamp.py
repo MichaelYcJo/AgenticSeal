@@ -48,8 +48,9 @@ carries is read as nothing.
 hooks racing for one file draw it once, and a crash between the two loses a
 drawing rather than repeating one.
 
-**Silent on every failure**: a payload that is not JSON, a repository that is not opted in, a file that is not a
-stamp's values. That includes a `python3` that cannot load `seal_stamp.py` —
+**Silent on every failure**: a payload that is not JSON, a repository that
+is not opted in, a file that is not a stamp's values. That includes a
+`python3` that cannot load `seal_stamp.py` —
 a hook runs under whatever `python3` the harness finds, and no launcher
 stands in front of it — where this draws nothing and the edit gate's
 message, which names the file and `seal stamp --from`, is what remains. The same line

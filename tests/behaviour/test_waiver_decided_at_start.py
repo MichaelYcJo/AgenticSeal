@@ -409,7 +409,7 @@ def test_question_1_is_put_every_time_with_the_ladders_answer_marked():
     ):
         assert phrase in skill, phrase
     entry = flat(read("skills", "start", "SKILL.md"))
-    assert "*Question 1* states it, with the answer the ladder reads marked" in (entry)
+    assert "*Question 1* states it, with the answer the ladder reads marked" in entry
     assert "The steps below are then not taken" not in entry
 
 

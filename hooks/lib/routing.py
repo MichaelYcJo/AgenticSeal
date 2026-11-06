@@ -17,8 +17,9 @@ the work below the SDD ladder somewhere to exist: those items write no
 the pull request's check sees.
 
 Loaded by the pull request's check and by every script that reads a
-declaration, rather than copied into each -- the same reason `optin.py` gives for being a module:
-divergent copies is how half of them keep the old answer.
+declaration, rather than copied into each -- the same reason `optin.py`
+gives for being a module: divergent copies is how half of them keep the old
+answer.
 
 Everything here fails toward "no declaration". A file that cannot be read is
 not an answer somebody gave, so the pull request's check reads its branch as

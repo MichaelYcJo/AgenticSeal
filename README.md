@@ -209,7 +209,7 @@ copy is not a sync.
 
 ## How it works
 
-Every agent, and every session the entry skill `start` starts, starts with
+Every agent, and every session the entry skill `start` begins, opens with
 the core, `skills/core/SKILL.md`, the values every party judges by. The rest
 loads at the step that needs it, as a skill, or runs outside the model's
 context, as a hook.
