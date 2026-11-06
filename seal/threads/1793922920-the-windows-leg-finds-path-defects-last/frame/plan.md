@@ -33,9 +33,9 @@ nothing from `tests/conftest.py`, because
 adds `evals/` to the four roots the issue names; the probe found one site
 there.
 
-The three link cases sit in `tests/skills/test_agentic_pytest_record.py`
-(`:868-938`), which imports from `conftest` at `:38`; `symlink_or_skip`
-(`tests/conftest.py:620`) takes `target, link, directory=False`.
+This work's dispatched run of `tests`, which the orchestrator reads before
+the broad run, reads the four shipped files Scope item 3 rewrites on
+Windows, where their paths now take `\` throughout.
 
 The failure scenario of the chosen approach, six months on. A path
 constant moves into a shared module, such as `hooks/lib/optin.py`, and a
@@ -60,14 +60,13 @@ the tree with the line it excused.
 | 7. Run the other platforms by `workflow_dispatch` before the broad run for every work item, not only where the risk is platform-specific | It departs from the owner's decision recorded in #943 (`b196fe9b`), that a one-platform defect in work nobody expected to be platform-specific is a stated limit; it adds one run of every leg per work item | Not built; `questions.md` Q2 holds it for the owner |
 | 8. #103's second ask: a question in `skills/code-review/SKILL.md`'s axes for a defence resting on a POSIX-only guarantee | The same rule would stand in two files, contract rule 13 and the checklist, and the next edit would change one of them | Rejected. Contract rule 13 binds the proofer, and ten test files carry its cases |
 | 9. #32's ask: a helper that runs each hook printing a path with `os.path` as `ntpath`, and a case per hook asserting one dialect | Three of the four hooks it names are gone, the fourth prints no path, and the one hook with a recorded failure already has its case (design *Grounding*). A case per hook with no catch on record is upkeep with nothing caught | Rejected |
-| 10. Keep the three link cases' platform gates and add a Windows-only twin of each | The twins state each case twice, and the gate would still skip where the privilege is held | Rejected for Scope item 5, which asks by attempting the link, as `tests/conftest.py#symlink_or_skip` says |
+| 10. Move #32's three link cases onto `tests/conftest.py#symlink_or_skip` in this work item | #1247's work item has made the same edit on `test/1247-three-link-cases-skip-on-windows-by-platform` (`b97741a0`), which merges first, so two branches would edit the same lines | Rejected; the cases are #1247's (design *Scope*, Out) |
 
 ## Phases
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
 | 1 | Scope items 1, 2, 3 and 4 | `tests/test_censuses.py#Test_slash_in_join` cases S1 to S5, each refusing case shown red with only the guard it names removed (the census out of `CENSUSES`; the constant resolution out; the f-string check out); `Test_module::test_every_file_no_module_file_declares_meets_every_census` red before Scope item 3's rewrites and green after; the narrow run of each module file whose site Scope item 3 changed; S6's `git grep` | |
-| 2 | Scope item 5 | The narrow run of `tests/skills/test_agentic_pytest_record.py` on macOS; the dispatched run's `windows-latest` shards, read by the orchestrator before the broad run, with each of the three cases passed and in no `SKIPPED` line (S7, `questions.md` Q1) | |
 
 ## Operational impact
 
