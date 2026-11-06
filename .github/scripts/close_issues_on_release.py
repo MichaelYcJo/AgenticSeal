@@ -156,8 +156,9 @@ MERGED_PR = re.compile(r"\(#(\d+)\)\s*$")
 # which is loud. The line-start test of `COMMENT`'s second arm reads one
 # line's own text, with no block model. So where CommonMark's block rules make
 # GitHub read on past an opener the test treats as a line start, such as an
-# opener in an indented code block or after a marker that opens no list item,
-# it masks to the end of the text all the same, and the closer closes fewer.
+# opener in an indented code block or after a list marker that opens no list
+# item, it masks to the end of the text all the same, and the closer closes
+# fewer.
 # The measured shapes are examples, not a list: GitHub reads on past an
 # opener with text before it (#1404), hides what follows an opener behind a
 # list marker or a quote marker as the closer does (#1408, #1409), and reads
