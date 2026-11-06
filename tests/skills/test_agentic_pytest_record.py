@@ -35,7 +35,7 @@ import subprocess
 import sys
 
 import pytest
-from conftest import ROOT, census_case
+from conftest import ROOT, census_case, symlink_or_skip
 
 TARGET = "skills/verify/scripts/pytest_record/agentic_pytest_record.py"
 
@@ -865,7 +865,6 @@ class Test_module:
         }
         assert failing_paths(lines) == {real(site / "extbroken.py")}, lines
 
-    @pytest.mark.skipif(os.name == "nt", reason="a symlink needs privileges on Windows")
     def test_a_rootdir_named_through_a_symlink_records_the_file_pytest_ran(
         self, tmp_path
     ):
@@ -879,7 +878,7 @@ class Test_module:
         (root / "pytest.ini").write_text("[pytest]\n", encoding="utf-8")
         (root / "test_mixed.py").write_text(PASSING_AND_FAILING, encoding="utf-8")
         link = tmp_path / "link"
-        link.symlink_to(root, target_is_directory=True)
+        symlink_or_skip(root, link, directory=True)
         result = pytest_in(
             root, recording_env(records), "--rootdir", str(link), "tests"
         )
@@ -887,7 +886,6 @@ class Test_module:
         _, lines = the_one_record(records)
         assert failing_paths(lines) == {real(root / "tests" / "test_mixed.py")}, lines
 
-    @pytest.mark.skipif(os.name == "nt", reason="a symlink needs privileges on Windows")
     def test_an_argument_named_through_a_symlink_records_the_file_pytest_ran(
         self, tmp_path
     ):
@@ -901,7 +899,7 @@ class Test_module:
         (root / "pytest.ini").write_text("[pytest]\n", encoding="utf-8")
         (root / "test_mixed.py").write_text(PASSING_AND_FAILING, encoding="utf-8")
         link = tmp_path / "link"
-        link.symlink_to(root, target_is_directory=True)
+        symlink_or_skip(root, link, directory=True)
         result = pytest_in(
             root,
             recording_env(records),
@@ -913,7 +911,6 @@ class Test_module:
         _, lines = the_one_record(records)
         assert failing_paths(lines) == {real(root / "tests" / "test_mixed.py")}, lines
 
-    @pytest.mark.skipif(os.name == "nt", reason="a symlink needs privileges on Windows")
     def test_a_symlinked_directory_under_the_rootdir_is_recorded_by_its_own_name(
         self,
         tmp_path,
@@ -926,7 +923,7 @@ class Test_module:
         shared = tmp_path / "shared"
         shared.mkdir()
         (shared / "test_mixed.py").write_text(PASSING_AND_FAILING, encoding="utf-8")
-        (root / "shared_tests").symlink_to(shared, target_is_directory=True)
+        symlink_or_skip(shared, root / "shared_tests", directory=True)
         result = pytest_in(root, recording_env(records), "shared_tests")
         assert result.returncode == 1, result.stdout + result.stderr
         _, lines = the_one_record(records)
