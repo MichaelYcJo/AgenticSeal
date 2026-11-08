@@ -28,7 +28,7 @@ The tree has no Python reader of the variable since `core_check.py` left in #137
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1, 3 and 4, and item 5 for `session_cost.py` | S1 and S2, each case seen red as its row says; S7's search for the coordinates of items 1 and 3; S8 for `tests/skills/test_session_cost.py`; a narrow run of `tests/skills/test_session_cost.py` | |
+| 1 | `frame/design.md` *Scope* items 1, 3 and 4, and item 5 for `session_cost.py` | S1 and S2, each case seen red as its row says; S7's search for the coordinates of items 1 and 3; S8 for `tests/skills/test_session_cost.py`; a narrow run of `tests/skills/test_session_cost.py` | c4deded6 |
 | 2 | `frame/design.md` *Scope* item 2, item 5 for `payload_meter.py`, the changelog fragment `changelog.md`, and the version move *Operational impact* names | S3 to S6, each case seen red as its row says; S7's search for item 2's coordinates; S8 for `tests/skills/test_payload_meter.py`; a narrow run of `tests/skills/test_payload_meter.py` | |
 
 ## Operational impact
