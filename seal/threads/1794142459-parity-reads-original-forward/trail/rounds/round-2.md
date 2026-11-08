@@ -80,6 +80,11 @@ phrase "the port's entry point", so this guard stays valid.
         )
 ```
 
+```seal
+verdict: fixed 1fcaac0ad
+answer: The finding holds: round 1's red run and its two mutations each removed a backticked token, and none removed the port, which is the fact that tells the fix from round 1's defect. The case now guards "port's entry point" as its second of three guards, as the snippet gives it, and its comment names the two places. Its docstring now says the finding is located in `frame/design.md`, and in the port's entry point as well where nothing grounds leaving the item out, which follows this round's second finding. Seen red before the commit: with the case edited and the skill sentence put back to round 1's defect by `seal mutate` (the port gone, `frame/design.md` kept), the case failed on the "port's entry point" guard (executed). After the commit, `seal mutate` at `1fcaac0ad` removed the port clause from the reworded sentence, and the case went red on the same guard, exit 0 (executed). The case's name still reads "located in both", which is the `differs` case the guard holds.
+```
+
 ### 2. The sentence for an item the list and the port both lack gives it `differs` with no default, beside the sentence that makes it `grounded` where a policy clause is quoted
 
 ```seal
@@ -140,6 +145,11 @@ and, where the port lacks it too with no grounds, in the port as well
 (*Parity review*).
 ```
 
+```seal
+verdict: fixed 1fcaac0ad
+answer: The finding holds: the narrower sentence gave `differs` outright beside the general one's default and `grounded` exit, and it put an item a policy clause leaves out into the port. The port's location now follows the verdict. *Parity review* reads "is one finding, with the verdict an item the port does not send takes. Its `location:` names `frame/design.md`, and where the verdict is `differs`, the port's entry point beside it, since that fix adds the item to both." That is my wording of the snippet: "the verdict the sentence before gives it" would point at a position, so the sentence names the verdict by what it is about. *The original's coordinates* reads "where the port lacks it too with no grounds for leaving it out, in the port as well", which names no verdict word in the section the tracer reads. `changelog.md`'s first item and its Updating line say the same, and the case's docstring follows it (finding 1). This departs from `frame/design.md` *Scope* item 2 as folded at `267ac10fa`, which still says the `location:` names the port's entry point beside `frame/design.md` whatever the verdict, and from *Scope* item 1, "where the port lacks it too, in the port as well"; both are the orchestrator's to fold. No guard holds that the location follows the verdict: a guard on "where the verdict is" would pin wording (`docs/running/what-a-script-gates.md` *The checks*), so review reads it.
+```
+
 ### 3. The fold row says the fix pass named *Scope* item 2 as contradicted by HEAD, and round 1's record names items 1, 3 and 5 and *Removes* only
 
 ```seal
@@ -164,6 +174,11 @@ The grounds cell of the row becomes:
 
 ```markdown
 The fix pass closed round 1's four findings `fixed 5c6575aaf` (`trail/rounds/round-1.md`) and named *Scope* items 1, 3 and 5 and *Removes* as contradicted by HEAD; item 2 describes *Parity review*, which the same commit gave the clause on an item the list and the port both lack, so it gains that clause too
+```
+
+```seal
+verdict: fixed 267ac10fa
+answer: The finding holds, and the orchestrator's `267ac10fa` repaired it; this pass made no edit to `frame/plan.md`, which the crafter does not write except its Status cells. I read the row at HEAD against round 1's four close blocks. The close of finding 1 names *Scope* item 3 and *Removes*, the close of finding 2 names *Scope* item 1, and the closes of findings 3 and 4 name *Scope* item 5; none names item 2. The row's grounds now say exactly that, and say that the orchestrator added the clause to item 2 on its own reading of `5c6575aaf`, which is the source the finding asked the row to name. The wording differs from the snippet and carries the same facts.
 ```
 
 ## Confirmations
