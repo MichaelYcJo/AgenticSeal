@@ -2928,9 +2928,8 @@ class Test_main:
         without getting anything else wrong.
 
         Cycle 2 sent three calls over three turns, so its ratio is 1.00. Divided
-        by the run's seven turns it reads 0.43 — under every threshold the
-        printed advisory has — and every other number in the row stays right,
-        which is what would make it survive a reading."""
+        by the run's seven turns it reads 0.43, and every other number in the
+        row stays right, which is what would make it survive a reading."""
         cycles = [
             row for row in spawns_of(orchestrator)["rows"] if row["kind"] == "cycle"
         ]
@@ -3191,8 +3190,7 @@ class Test_main:
 
         Compared raw against 60, a spawn paired in 59.6 s printed `1.0m` in the
         column and, under it, *never reaches a minute here — 60s at most* (#701;
-        #640's round 3, 🟡 10). That is the cause #640 fixed twice for the
-        tools-per-turn ratio, on a duration.
+        #640's round 3, 🟡 10).
 
         Both edges of the band, and the cell asserted beside the note at each, so
         the case ties the decision to what the column prints rather than to the
