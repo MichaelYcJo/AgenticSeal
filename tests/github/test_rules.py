@@ -6,8 +6,9 @@ once, as the first sentence of the docstring of the test that holds it, and
 a rule file lists its tests by `check:` line, in the grammar
 `skills/settle/rule-changes.md` *A rule has one shape* states. `seal rules <doc>` never
 fails for what it finds; `seal rules --check` reads every rule file and is exit 1
-where a line is out of grammar or a target is gone, and one case here runs
-it over the tree, so the suite is where the fact is read.
+where a line is out of grammar or a target is gone, and one case of
+`tests/behaviour/test_this_repository_passes_its_own_checks.py` runs it over
+the tree, so the suite is where the fact is read.
 
 #942's phase 6 placed these cases from
 `tests/behaviour/test_the_rules_command_reads_each_rule_off_its_test.py`, which keeps
@@ -15,12 +16,8 @@ the cases that read the record layout document, the marker's registration
 and the settle skill.
 """
 
-import fnmatch
-import glob
 import importlib.util
 import os
-import re
-import shutil
 import subprocess
 import sys
 
@@ -132,9 +129,6 @@ def checked(tmp_path, files, capsys):
 
 
 EXPECTED = "write `check: <targets>`"
-# The bucket the tree-wide case plants one defect in for the policy root's
-# documents, which no `RULE_FILES` glob names (`rules.py#policy_documents`).
-POLICY_DOCUMENTS = "the policy root"
 
 
 class Test_main:
@@ -637,82 +631,6 @@ class Test_main:
         captured = capsys.readouterr()
         assert captured.out == "", captured.out
         assert "seal rules: name a document, or --check, and not both." in captured.err
-
-    def test_every_check_line_in_the_tree_holds(self, tmp_path, capsys):
-        """The fact read on every pull request: `seal rules --check` over this tree is
-        exit 0. On a scratch copy of what the check reads (the rule files, the
-        files their targets name and the tests carrying their markers) one target
-        renamed is exit 1 naming its line, and so is a check line naming a gone
-        file, planted in a file of every other rule-file glob and in a document
-        of the policy root, so a walk that read the policy root alone, or read
-        a renamed target as resolving, goes red here. The pending designs
-        are copied too, so a line a pending `remove` excuses stays excused, and
-        no defect is planted in a file such a `remove` names."""
-        assert rules.main(["--check", "--root", ROOT]) == 0, capsys.readouterr().out
-        capsys.readouterr()
-        files = rules.rule_files(ROOT)
-        carriers = rules.markers(ROOT)
-        designs = glob.glob(os.path.join(ROOT, "seal", "threads", "*", "frame", "*.md"))
-        for path in designs:
-            destination = tmp_path / os.path.relpath(path, ROOT)
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(path, destination)
-        policy = rules.sibling("config").policy_root(os.path.join(ROOT, "seal"))
-        pending = rules.sibling("rule_changes").pending(ROOT, policy)
-        removing = {o.file for o, _ in pending if o.kind == "remove"}
-        named, renamed = {}, None
-        for rel, text in files.items():
-            held = [(n, rules.parse(line)[0]) for n, _, line in rules.check_lines(text)]
-            for target in (t for _, targets in held for t in targets):
-                if rules.MARKER.fullmatch(target):
-                    sources = [path for path, _, _ in carriers.get(target, ())]
-                elif target.endswith("/"):
-                    sources = [target + rules.EVAL_CASE]
-                else:
-                    sources = [target]
-                for source in sources:
-                    origin = os.path.join(ROOT, *source.split("/"))
-                    if not os.path.isfile(origin):
-                        continue  # an excused line's target, gone from the tree
-                    destination = tmp_path / source
-                    destination.parent.mkdir(parents=True, exist_ok=True)
-                    shutil.copyfile(origin, destination)
-            pattern = next(
-                (p for p in rules.RULE_FILES if fnmatch.fnmatchcase(rel, p)),
-                POLICY_DOCUMENTS,
-            )
-            line = next((n for n, targets in held if targets), None)
-            # One file per glob carries the planted defect, so a glob whose first
-            # file names no target is planted there, not renamed in a later one.
-            # A file a pending `remove` names carries none.
-            if rel in removing:
-                pass
-            elif renamed is None and line is not None and pattern not in named:
-                lines = text.split("\n")
-                first = rules.parse(lines[line - 1].strip())[0][0]
-                lines[line - 1] = lines[line - 1].replace(
-                    first, f"{first}-renamed-away", 1
-                )
-                text, renamed, named[pattern] = "\n".join(lines), rel, rel
-            elif pattern not in named:
-                text += "\n\ncheck: tests/test_planted_and_gone.py\n"
-                named[pattern] = rel
-            destination = tmp_path / rel
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            destination.write_text(text, "utf-8", newline="\n")
-        assert renamed is not None, "no rule file in the tree names a target"
-        assert set(named) == {*rules.RULE_FILES, POLICY_DOCUMENTS}, named
-        assert rules.main(["--check", "--root", str(tmp_path)]) == 1
-        out = capsys.readouterr().out
-        assert re.search(
-            rf"^seal rules: {re.escape(renamed)}:\d+: .*-renamed-away", out, re.M
-        )
-        for rel in named.values():
-            assert re.search(rf"^seal rules: {re.escape(rel)}:\d+: ", out, re.M), (
-                rel,
-                out,
-            )
-        assert f"seal rules: {len(named)} refused in " in out, out
 
 
 class Test_refused_lines:

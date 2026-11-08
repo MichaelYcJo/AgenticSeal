@@ -1691,21 +1691,5 @@ class Test_module:
             done.stdout
         )
 
-    def test_the_real_tree_runs_and_names_every_shipped_agent(self, tmp_path):
-        """The meter's default root is the plugin root resolved from its own
-        location, so it works from the version cache and from a clone."""
-        home = tmp_path / "home"
-        write(str(home / ".claude" / "CLAUDE.md"), "## user\n")
-        result = run(["--json"], home)
-        assert result.returncode == 0, result.stderr
-        data = json.loads(result.stdout)
-        shipped = sorted(
-            n[: -len(".md")] for n in os.listdir(os.path.join(ROOT, "agents"))
-        )
-        assert sorted(data["agents"]) == shipped
-        for name, agent in data["agents"].items():
-            assert agent["files"][0]["path"] == f"agents/{name}.md"
-            assert not any(f.get("missing") for f in agent["files"]), name
-
 
 test_census = census_case(TARGET)

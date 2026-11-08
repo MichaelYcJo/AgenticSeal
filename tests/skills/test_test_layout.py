@@ -1112,13 +1112,6 @@ class Test_moved:
 
 
 class Test_main:
-    def test_accepts_this_repositorys_tests(self, capsys):
-        assert layout.main(["--check", os.path.join(ROOT, "tests")]) == 0
-        out = capsys.readouterr().out
-        assert "refused:" not in out, out
-        assert "tests/skills/test_test_layout.py: declares no TARGET" not in out
-        assert "declare no TARGET" in out.splitlines()[-1]
-
     def test_accepts_a_pair_and_exits_zero(self, tmp_path, monkeypatch, capsys):
         (tmp_path / "tests").mkdir()
         source = PLACED.replace('x.parse("") is None', 'x.parse("a") is not None')

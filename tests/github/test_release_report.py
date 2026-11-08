@@ -18,7 +18,6 @@ import json
 import os
 
 import pytest
-from censuses import POLICY_GROUPS
 from conftest import ROOT, census_case
 
 TARGET = ".github/scripts/release_report.py"
@@ -378,36 +377,6 @@ class Test_main:
         assert captured.out == "", captured.out
         assert said in captured.err, captured.err
         assert "Nothing was compared." in captured.err, captured.err
-
-
-class Test_module:
-    def test_the_table_reads_this_tree_against_the_last_tag(self):
-        """The repository's own two trees read: an agent row for every agent
-        this tree defines, three leg rows, and a row for every `docs/*.md` and
-        every document of the groups `docs/` holds (#1312)."""
-        rows = report.table(
-            "v0",
-            report.reading(ROOT, report.meter()),
-            report.reading(ROOT, report.meter()),
-            {},
-            {},
-        )
-        found = rows_of(rows)
-        agents = sorted(
-            f[: -len(".md")] for f in os.listdir(os.path.join(ROOT, "agents"))
-        )
-        for agent in agents:
-            assert found[f"preload `{agent}` (bytes)"][2] == "+0 (+0.0%)", agent
-        docs = [f for f in os.listdir(os.path.join(ROOT, "docs")) if f.endswith(".md")]
-        docs += [
-            f"{group}/{f}"
-            for group in POLICY_GROUPS
-            for f in os.listdir(os.path.join(ROOT, "docs", group))
-            if f.endswith(".md")
-        ]
-        for name in docs:
-            assert f"`docs/{name}` (bytes)" in found, name
-        assert sum(1 for k in found if k.endswith("leg (minutes)")) == 3, found
 
 
 test_census = census_case(TARGET)

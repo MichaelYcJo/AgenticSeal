@@ -120,8 +120,8 @@ interpreter it says which to install. What runs before any floor is checked
 `bin/test`'s runner, and every module one of them loads in its own process)
 runs on whatever `python3` starts it.
 `ruff.toml` lints that code at the version its `per-file-target-version`
-names. `tests/lib/test_launch.py` derives the set and holds every file of it
-to that table, and `tests/censuses.py#floor_syntax` refuses in it the syntax
+names. `tests/behaviour/test_every_entry_point_runs_at_the_floor.py` derives
+the set and holds every file of it to that table, and `tests/censuses.py#floor_syntax` refuses in it the syntax
 `ast` rejects at that version and the two constructs ruff pushes toward above
 it, `zip(..., strict=)` and `datetime.UTC`. Nothing runs that code at that
 version, so a standard-library module or an annotation only a newer `python3`
@@ -262,11 +262,14 @@ directory is right only at the depth the file stands at. No two Python files
 under `tests/` share a file name: `tests/conftest.py` puts every directory
 under `tests/` that holds a test file on `sys.path`, so two files of one name
 import as one module.
-check: tests/test_conftest.py
+check: tests/behaviour/test_a_test_file_takes_the_root_from_the_conftest.py
 
 **A test file that declares no `TARGET` stands by what its cases run.** It
 stands in `tests/behaviour/` where its cases load or run shipped code, and
-in `tests/text/` where they only read text.
+in `tests/text/` where they only read text. A case that reads this
+repository's own tree beyond its `TARGET` stands in a file that declares
+none. The files that declare no `TARGET`, `tests/text/` and
+`tests/behaviour/`, are this repository's tree-wide files.
 
 **A module's old cases get one verdict each when the module is rebuilt.**
 The contributor rebuilding a module reads its functions first and lists the
