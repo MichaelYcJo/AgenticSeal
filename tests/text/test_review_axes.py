@@ -56,8 +56,10 @@ def test_the_list_of_the_originals_surface_has_one_home_and_one_writer():
     assert "`frame/design.md` *Grounding*" in body, (
         f"{PARITY} *The original's coordinates* names no home for the list"
     )
-    # The party that writes the list.
-    assert "framer" in body, (
+    # The party that writes the list, and the act. The section names the
+    # framer a second time, where the original does not resolve for it, so
+    # the party alone would hold with the writer gone.
+    assert "framer writes the list" in body, (
         f"{PARITY} *The original's coordinates* names no writer for the list"
     )
 
