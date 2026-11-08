@@ -51,7 +51,7 @@ Out, each with its reason:
 
 Where this work meets the release's other items:
 
-- **#1444 shares `CONTRIBUTING.md`.** This work edits line 42 and *The test layout*. #1444 edits the `.test_durations` paragraph of *Running the checks*. No sentence is shared, so either can merge first. The cases *Scope* item 1 moves leave their stored prices under the old ids. About 34 s of 1,599.8 s goes stale, under the one-second-in-twenty bound of `test_the_durations_file_prices_the_suite`, so this work needs no refresh. If #1444 merges first, its refresh procedure is the one that clears those ids.
+- **#1444 shares `CONTRIBUTING.md`.** This work edits line 42 and *The test layout*. #1444 edits the `.test_durations` paragraph of *Running the checks*. No sentence is shared, so either can merge first. The cases *Scope* item 1 moves leave their stored prices under the old ids. 36.3 s of 1,599.8 s goes stale, under the one-second-in-twenty bound of `test_the_durations_file_prices_the_suite`, so this work needs no refresh. If #1444 merges first, its refresh procedure is the one that clears those ids.
 - **#1439 shares the `skills/verify/` directory and no file.** It edits `orchestration.md` and `scripts/session_cost.py`. This work edits `SKILL.md`.
 - **#1440, #1442 and #1443** edit `agents/framer.md`, `agents/proofer.md`, `docs/running/the-run.md`, `skills/implement/orchestration.md` and `skills/code-review/orchestration.md`. This work edits none of them.
 
@@ -68,15 +68,22 @@ Where this work meets the release's other items:
 
 ## Data & interfaces
 
-No interface, schema or script changes. Test files move, and three documents and one agent definition change their text.
+No interface, schema or script changes. Test files move, three documents and one agent definition change their text, and the comments and docstrings that named a moved case's old home follow it: `lib/launch.py`, `ruff.toml`, `.github/workflows/hygiene.yml` and `tests/censuses.py`.
 
 - The set a crafter types at a phase boundary in this repository becomes `bin/test tests/text tests/behaviour <changed test files> <files naming, importing or loading a changed path> -q`.
 - The cases *Scope* item 1 moves keep their bodies. Their pytest ids change from `tests/<area>/test_<stem>.py::<Class>::<case>` to a path under `tests/behaviour/`.
 
 ## Rule changes
 
-- nothing
-  why: no document of the policy root states which tests run at a phase boundary or in a fix pass; that scope is `skills/verify/SKILL.md`'s table, with `agents/crafter.md` and `CONTRIBUTING.md`, which stand outside the policy root and which this work edits in place; `git grep -n -i -E 'narrow|phase boundar|slice' -- docs` at `94d04d30` returns no such statement.
+- change
+  file: docs/running/what-a-script-gates.md
+  section: The checks
+  from: `seal rules --check`, through `tests/github/test_rules.py`, and hygiene's step that
+    prints the `check:` lines it did not read
+  to: `seal rules --check`, through
+    `tests/behaviour/test_this_repository_passes_its_own_checks.py`, and hygiene's step that
+    prints the `check:` lines it did not read
+  why: *Scope* item 1 moves the case that runs `seal rules --check` over the whole tree out of `tests/github/test_rules.py`; the row names where the suite runs it. No other document of the policy root states which tests run at a phase boundary or in a fix pass; that scope is `skills/verify/SKILL.md`'s table, with `agents/crafter.md` and `CONTRIBUTING.md`, which stand outside the policy root and which this work edits in place; `git grep -n -i -E 'narrow|phase boundar|slice' -- docs` at `94d04d30` returns no such statement.
 
 ## Removes
 
