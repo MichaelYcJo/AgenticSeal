@@ -34,7 +34,7 @@ The failure scenario of the chosen approach, six months on: a release that renam
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | *Scope* item 2, and the script half of item 3: the share function, the verdict, its sentence with the remedy constant, the exit code 1, the module docstring | New cases in `tests/github/test_durations_union.py`, one class per function, rewriting the fixture cases `frame/design.md` *Removes* row 4 names, each seen red against the old script; `bin/test tests/github/test_durations_union.py`; `uvx ruff check .github/scripts tests/github` | |
+| 1 | *Scope* item 2, and the script half of item 3: the share function, the verdict, its sentence with the remedy constant, the exit code 1, the module docstring | New cases in `tests/github/test_durations_union.py`, one class per function, rewriting the fixture cases `frame/design.md` *Removes* row 4 names, each seen red against the old script; `bin/test tests/github/test_durations_union.py`; `uvx ruff check .github/scripts tests/github` | `ef5f8167` |
 | 2 | *Scope* items 1, 4, 5 and 6, and the workflow half of item 3 | The workflow-shape case of scenario S4 and the rewritten recipe case of S5, each seen red against the old tree; `bin/test tests/behaviour/test_the_windows_leg_runs_in_shards_that_make_the_whole.py tests/github/test_durations_union.py tests/text/test_ci_gives_the_checks_what_they_need.py`; `git grep -n 'prices_the_suite\|STALE_SHARE' -- ':!seal/threads'` lists only the script, its cases and `CONTRIBUTING.md`; `git grep -n 'durations' -- docs skills agents` lists nothing this work made false | |
 
 ## Operational impact
