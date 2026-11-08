@@ -6,6 +6,8 @@
 |---|---|
 | whether Claude Code reads `hooks/hooks.json` from the installed plugin, substitutes `${CLAUDE_PLUGIN_ROOT}` in both commands, and puts the `SessionStart` output into the main session's context whole, once per `startup`, `clear` and `compact`; the cases run the scripts as the commands spell them, and no case runs the harness that reads the registration (`frame/questions.md` Q2) | the owner, at the first session under the installed 0.35.0 in a repository with a `seal/` root |
 | whether the `py -3` half of each command starts its script on Windows where `python3` is absent, and whether the core's output reaches a Windows session; CI's Windows leg runs pytest and never the harness (`frame/questions.md` Q1) | the owner, or a Windows user, at the first session on Windows under 0.35.0 |
+| whether `/agentic:update` step 4b receives `${CLAUDE_PLUGIN_DATA}` substituted, so its `launcher <path>` row fires for a person who holds the 0.33.0 to 0.34.1 launcher; the step's case writes the substitution into the command itself, and no case runs the harness that substitutes it | the owner, at the first `/agentic:update` under 0.35.0 on the machine that holds the launcher installed on 2026-11-07 |
+| whether the 0.33.0 to 0.34.1 launcher and the plugin's `Stop` hook, both running at one turn's end, draw a stamp once; the rename in `seal_stamp.py#claim` gives each file to one drawer, and no case runs both commands at one `Stop` from the harness | the owner, at the first sealed work item under 0.35.0 before the launcher is removed |
 
 ## Not done
 
