@@ -24,6 +24,11 @@ Why it matters: the *Scope* Out bullet gives two grounds for leaving out a `regr
 - A `regrade` case. `regrade` reaches `reads_record` only through its last call, `side_numbers(out)`, which item 3 reaches through `compare`, so a `regrade` case would pin the guard that items 2 and 3 already pin. The fragment states that `regrade` read such a side only up to that line.
 ```
 
+```seal
+verdict: fixed 5c52e7bde
+answer: The orchestrator applied the paste-ready bullet to `frame/design.md` *Scope* Out in 5c52e7bde. The fix pass read it against the code at HEAD: `regrade` calls `reads_record` only through `side_numbers(out)` at `evals/scripts/noninferiority.py:1499`, so the bullet's remaining ground holds, and it names the call and no line.
+```
+
 ### 2. The closing memo's coordinate for `regrade`'s call names the wrong line at the target
 
 ```seal
@@ -38,6 +43,11 @@ Why it matters: `gaps.md` states the present, and its `## Not verified` row 3 sa
 | Whether `regrade` on a side holding a grader whose target is `files` now exits 0. No case runs `regrade` on such a side, as `frame/design.md` *Scope* puts out; phase 1 read that `regrade` reaches `reads_record` only through `side_numbers(out)` at `evals/scripts/noninferiority.py:1499`, the call the `compare` case covers | the proofer, at round 1, by reading `regrade` against the `compare` case |
 ```
 
+```seal
+verdict: fixed b128af1b2
+answer: The row's coordinate now reads `evals/scripts/noninferiority.py:1499`, where `numbers = side_numbers(out)` stands at HEAD. Probe 3 of this round ran the row's question at `b30ca3846`, so the row is closed by `gaps.md`'s own form: its Item cell opens with `closed`, and its second cell cites `trail/rounds/round-1.md` *Probes* row 3 in place of the proofer as answerer. `bin/seal unverified .` reads the memo as 2 open and 1 closed.
+```
+
 ### 3. `routing.md` says `regrade` now prints a verdict, and it prints a count line
 
 ```seal
@@ -50,6 +60,11 @@ Why it matters: *Why this way* says the fix changes what `compare` and `regrade`
 
 ```markdown
 The owner answered automation to question 1. The fix changes what `noninferiority.py compare` and `regrade` print for a side holding a grader whose target is a string: `compare` prints its `Verdict:` line and `regrade` its `graded on` line, where each stopped on a traceback. So the work runs through the whole chain.
+```
+
+```seal
+verdict: fixed 5c52e7bde
+answer: The orchestrator applied the paste-ready paragraph to `routing.md` *Why this way* in 5c52e7bde. The fix pass read it against the code at HEAD: `compare` prints the record's `Verdict:` line at `evals/scripts/noninferiority.py:1153-1154`, and `regrade` prints `graded on <rev>: <n> rows, <m> false` at `:1500`.
 ```
 
 ### 4. The fragment says `evals/` is not in what the plugin ships from, and a marketplace install carries it
@@ -70,6 +85,11 @@ For `frame/plan.md:32`:
 
 ```markdown
 No migration, environment variable or dependency. The changed files leave `dist` (`frame/design.md` *Grounding*, the ladder row), and no command, skill or agent the plugin ships runs them, so no installed plugin changes behaviour.
+```
+
+```seal
+verdict: fixed b128af1b2
+answer: The fix pass replaced the fragment's sentence in `changelog.md` *Fixed* with the paste-ready sentence word for word in b128af1b2. In 5c52e7bde the orchestrator applied the `frame/plan.md` *Operational impact* paragraph and rewrote `pr.md`'s second quote to the new sentence. The fix pass checked the premise first: `git grep -l 'noninferiority' -- . ':!evals' ':!tests' ':!seal'` lists `.test_durations` alone, and nothing under `docs/` or `.github/workflows/` names the script. A whitespace-folded comparison then found each of `pr.md`'s five quotes in the record its coordinate names at HEAD.
 ```
 
 ## Confirmations
