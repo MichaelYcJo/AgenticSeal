@@ -45,7 +45,7 @@ The spawn named five other work items of `release: 0.36.0`: #1439, #1440, #1441,
 
 ## Operational impact
 
-None. The work changes instruction text, a template and one case: no migration, no environment variable, no dependency. It does not move the version; the orchestrator assigns the move to 0.36.0 to one item of the release.
+The work changes instruction text, a template and one case: no migration, no environment variable, no dependency. It carries the release's version move: phase 1's crafter moves `.claude-plugin/plugin.json` from `0.35.1` to `0.36.0` in the commit that adds the work item's `changelog.md`, as `docs/releasing/branch-and-release.md` *The version moves at the start of a release, in the first pull request into `release/vX.Y.Z`* states.
 
 ## Judgments of the run
 
@@ -53,4 +53,4 @@ None. The work changes instruction text, a template and one case: no migration, 
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-09 | This work item carries the move to 0.36.0, folded into *Operational impact* before phase 1 spawns. | It is one phase of text and one case, and its *Overlap with the release* orders it before #1440, #1442 and #1444, so it is the item the orchestrator expects to merge first. | `skills/implement/orchestration.md` *Orchestrator: how the work is routed* |
