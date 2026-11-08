@@ -29,7 +29,7 @@ command the framer ran on 2026-11-09; every other row was opened and read.
 In:
 
 1. `templates/records/sdd-plan.md` gains a section `## Overlap with the release`, placed immediately before `## Operational impact`. Its shape is *Data & interfaces* below.
-2. `agents/framer.md` *Order of work* step 4 reads the release's other open work items its spawn prompt names: each one's issue, and its frame where it stands, committed on its branch or merged on the release branch. The framer judges where its own work meets each of them. Two items meet where both change one file, or where one changes a rule, a check or a fact that the other's change reads or adds content to (the G9 shape). For each item it meets, the framer states which merges first and why, weighing which order puts the integration inside rounds the later item spends anyway. The heuristic the orchestrator used (G1) moves here as part of that weighing: the item likelier to be sealed first, often the smaller diff, goes first, and an item that adds a check reading the whole tree goes after the items whose content that check reads.
+2. `agents/framer.md` *Order of work* step 4 reads the release's other open work items its spawn prompt names: each one's issue, and its frame where it stands, committed on its branch or merged on the release branch. The framer judges where its own work meets each of them. Two items meet where both change the same file, or where one changes a rule, a check or a fact that the other's change reads or adds content to (the G9 shape). For each item it meets, the framer states which merges first and why, weighing which order puts the integration inside rounds the later item spends anyway. The heuristic the orchestrator used (G1) moves here as part of that weighing: the item likelier to be sealed first, often the smaller diff, goes first, and an item that adds a check reading the whole tree goes after the items whose content that check reads.
 3. `agents/framer.md` *Order of work* step 8 gains one bullet: the hand-back names the overlap rows and the merge order the plan states.
 4. `skills/implement/orchestration.md`, G1's paragraph, is rewritten in place to say four things. Where several work items of a release run side by side, the orchestrator's prompt that spawns each framer names the release's other work items: the issue, the branch, and the frame's path where it is committed. The orchestrator merges the items in the order their plans' *Overlap with the release* sections state. Where two plans state opposite orders for one pair, or where the item ordered first cannot be sealed before the other, the orchestrator chooses the order and writes the choice as a row of *Judgments of the run* in the plan of the item it merges out of the stated order. The version move goes to the item first in that order, and items that no plan orders against each other merge as each is sealed.
 5. `skills/code-review/orchestration.md`, G2's paragraph, gains the timing for an ordered pair. Where a plan orders this branch after another item, the orchestrator merges the base into this branch once that item has landed, before this branch's next round, or before its broad run where its rounds have ended. So a round already owed reads the resolution, and the broad run and the sealer read the merged tree once. Every phrase G2 says the test pins stays.
@@ -37,7 +37,6 @@ In:
 
 Out:
 
-- The version move to 0.36.0. The orchestrator assigns it (spawn prompt).
 - A script that computes overlap from the frames' paths. Whether two changes meet is a judgment of meaning, and G9's overlap shared no file (`frame/plan.md` *Alternatives considered*, row C).
 - Holding a later item's build until the first lands. The orchestrator weighs that per release from the plans' rows (`frame/plan.md` *Alternatives considered*, row D).
 - Any change to `docs/releasing/branch-and-release.md`. G3's rationale stays true.
@@ -55,19 +54,19 @@ Out:
 
 ## Data & interfaces
 
-The new template section, as `templates/records/sdd-plan.md` will carry it:
+The new template section, as `templates/records/sdd-plan.md` carries it:
 
 ```markdown
 ## Overlap with the release
 
-<each other open work item of the release that this work meets, as the spawn names them and as their frames stand where committed: both change one file, or one changes a rule, a check or a fact the other's change reads; where none meets, or the spawn names none, one sentence saying which items were read and that none meets>
+<each other open work item of the release that this work meets, as the spawn names them and as their frames stand where committed: both change the same file, or one changes a rule, a check or a fact the other's change reads. A row names the file and the section both change, or the rule or check and what of the other's change it reads; the item that merges first, by its issue number; and why that order costs less. Where none meets, one sentence naming the items read and saying none meets this work; where the spawn names none, one sentence saying so>
 
 | Work item | Where both change | Merges first | Grounds |
 |---|---|---|---|
 | | | | |
 ```
 
-`Where both change` names the file and the section, or the rule or check and what of the other's change it reads. `Merges first` names this work item or the other by its issue number. `Grounds` says why that order costs less.
+The meaning of each column stands in the placeholder, so a framer starting from the template reads it there.
 
 ## Rule changes
 
