@@ -29,7 +29,7 @@ The failure scenario of the chosen approach, six months out: the eval adds a tar
 
 ## Operational impact
 
-No migration, environment variable or dependency. The changed files leave `dist` (`frame/design.md` *Grounding*, the ladder row), so no installed plugin changes behaviour.
+No migration, environment variable or dependency. The changed files leave `dist` (`frame/design.md` *Grounding*, the ladder row), and no command, skill or agent the plugin ships runs them, so no installed plugin changes behaviour.
 
 This pull request is the first into `release/v0.34.1`, so phase 1's commit that adds `changelog.md` moves `.claude-plugin/plugin.json` from `0.34.0` to `0.34.1`, as `docs/releasing/branch-and-release.md` *Cutting a release* states. At `f096614f6` no pull request into the branch has landed (`frame/design.md` *Grounding*, the release row).
 

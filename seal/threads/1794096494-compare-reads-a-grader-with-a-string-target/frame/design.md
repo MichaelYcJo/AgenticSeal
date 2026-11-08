@@ -28,7 +28,7 @@ In:
 
 Out:
 
-- A `regrade` case. `regrade` reaches `reads_record` only through its last call, `side_numbers(out)` at line 1497, which item 3 reaches through `compare`, and a `regrade` case needs a suite commit holding such a grader in the `_suites` fixture. The fragment states that `regrade` read such a side only up to that line.
+- A `regrade` case. `regrade` reaches `reads_record` only through its last call, `side_numbers(out)`, which item 3 reaches through `compare`, so a `regrade` case would pin the guard that items 2 and 3 already pin. The fragment states that `regrade` read such a side only up to that line.
 - The `truths` list in `side_numbers`, which counts every `truth-` regex grader against the findings whatever its target. No `truth-` grader carries a string target (*Grounding*, the class row), so no side meets it today.
 - Re-running `compare` on the paid pair of #1178 (`frame/questions.md` Q1).
 - The plugin directory work of issue #1420 and the stamp launcher of issue #1426, out by the spawn.

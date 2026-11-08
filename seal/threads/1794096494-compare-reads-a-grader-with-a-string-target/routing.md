@@ -13,4 +13,4 @@ Answered 2026-11-08 by the owner, before the first edit.
 
 ## Why this way
 
-The owner answered automation to question 1. The fix changes what `noninferiority.py compare` and `regrade` print for a side holding a grader whose target is a string, from a traceback to a verdict a person reads, so the work runs through the whole chain.
+The owner answered automation to question 1. The fix changes what `noninferiority.py compare` and `regrade` print for a side holding a grader whose target is a string: `compare` prints its `Verdict:` line and `regrade` its `graded on` line, where each stopped on a traceback. So the work runs through the whole chain.
