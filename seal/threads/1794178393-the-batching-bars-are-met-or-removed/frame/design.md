@@ -75,7 +75,7 @@ Out:
 
 ## Removes
 
-The table holds 10 rows. The build removes what the first 9 name, and the settle removes what the last names.
+The table holds 11 rows. The build removes what the first 10 name, and the settle removes what the last names.
 
 | Removes | Coordinate | Where it lands, or why it can go |
 |---|---|---|
@@ -88,6 +88,7 @@ The table holds 10 rows. The build removes what the first 9 name, and the settle
 | the pins of the bars in the handoff module | `tests/text/test_the_handoff_before_round_one.py#test_the_contract_cites_the_per_segment_bars`, `#test_the_protocol_names_a_bar_per_segment_kind`, `#bars_section`, `#test_the_tying_paragraph_says_which_reading_applies_the_bars`, `#test_the_bars_section_cites_the_run_level_tables_owner`, `#OWNER_PATH`, `#test_the_scripts_bars_are_the_protocols`, `#test_the_advisory_and_the_tying_paragraph_name_one_value` | nothing. What they pin goes in the build (the script and contract halves) or at the settle (the-run.md's section). `PROTOCOL` stays, because other cases of the module read it. |
 | the pin against a figure in a definition | `tests/text/test_a_moved_rule_leaves_its_definition.py#TOOLS_PER_TURN`, `#figures`, `#test_no_definition_states_a_tools_per_turn_figure`, `#test_a_figure_in_any_spelling_is_caught` | nothing. With no bar there is no first copy for a definition to repeat. |
 | the grade and advisory cases of the script's module | `tests/skills/test_session_cost.py`: the cases from `test_a_proofer_row_under_its_bar_is_named_with_the_bar` through `test_every_json_row_carries_its_kind_and_bar`, `test_the_report_stops_claiming_one_at_a_time_above_a_ratio_of_one`, `test_a_plain_reading_printed_at_the_advisory_is_not_flagged`, and the helpers only they read, `grade_lines`, `UNDER_PROOFER` and `SINGLES`. Two of the cases are rewritten as the `--segments` and `--json` new-output cases (*Scope* item 5), and the rest go. The helpers `batched` and `graded_run`, renamed `spawned_run`, stay, because the two rewritten cases read them. The plain-reading case is rewritten in place as `test_the_report_names_no_batching_when_every_turn_sent_one_call`. `test_refuses_nothing_obvious_beside_a_repeat` keeps its assertions, and its docstring loses "clears the batching advisory". `test_the_token_turns_and_tools_per_turn_count_different_things` keeps its assertions, and its docstring loses "the per-segment bars in `docs/running/the-run.md`". |
+| the pin of the bars table's verifying row | `tests/text/test_the_verifying_round_is_bounded_not_cheapest.py#test_the_verifying_bar_is_grounded_on_neither_cost_nor_size` | nothing. The row it pins leaves with *The per-segment bars* at the settle, and no other document states a verifying bar. The module's three other cases hold #639's wording in the carriers that stay. |
 | the policy section and its citation | `docs/running/the-run.md` *The per-segment bars*; `docs/running/measuring-a-run.md` *Measuring a run*, the sentence citing it | removed at the settle by `## Rule changes` |
 
 This work adds no mechanism. It removes one: the grade, the advisory and the pins that held them.
