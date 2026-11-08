@@ -74,6 +74,13 @@ loading it").
   (*Scope* item 5). `agents/crafter.md` *A fix pass appends close blocks
   and writes no phase record* already orders the reading after the fix
   commit and the close blocks last. So the step says both, in that order.
+- **A work item's records reach the set through the tree-wide files, not
+  through the reading part.** `49dbc59b` said a records path pulls no file
+  through the reading part, as the frame's *Scope* item 3 says. Under the
+  reading judged above that is false: a file that walks the records
+  directory reads them. `4e5dc4af` rewrites the sentence: no test file
+  names a new work item's records by their path, so only a file that walks
+  the records directory reads them, and that file is tree-wide.
 - **`CONTRIBUTING.md` *What a contribution is asked for* names the two
   directories as "the tree-wide files *The test layout* names".** That
   cites the paragraph that defines them, so the set has one source.
@@ -135,7 +142,10 @@ The second set is the new row's set for #1421's changed paths:
    `tests/skills/test_seal.py`, `tests/skills/test_payload_meter.py`,
    `tests/lib/test_core.py` and `tests/hooks/test_core_start.py` write a
    manifest of that name into a fixture, or name it in a message, and were
-   left out. The records paths pull no file.
+   left out. The records paths pull no file through this part: the files
+   that read a work item's records walk the records directory, and by
+   phase 1's enumeration every such file stands in `tests/text/` or
+   `tests/behaviour/`.
 4. `tests/text/` (35 files) and `tests/behaviour/` (52 files).
 
 - Command: `bin/test tests/text tests/behaviour
@@ -178,9 +188,15 @@ The set for this phase's paths, `skills/verify/SKILL.md`,
    `tests/censuses.py` and `tests/conftest.py`.
 4. `tests/text/` and `tests/behaviour/`.
 
-The command was `bin/test tests/text tests/behaviour -q`, at `49dbc59b`
-with this record, `gaps.md`, `changelog.md` and the Status cell on disk.
-It exited 0 in 9 s of wall clock: 1,809 passed, 9 skipped (executed).
+The command was `bin/test tests/text tests/behaviour -q`. It ran twice,
+each time with this record, `gaps.md`, `changelog.md` and the Status cell
+on disk, and both runs are executed. At `49dbc59b` it exited 0 in 9 s of
+wall clock: 1,809 passed, 9 skipped. At `4e5dc4af` it exited 0 with the
+same counts in 75.08 s. Nothing in the set changed between the two
+beyond one paragraph of `skills/verify/SKILL.md` and this record, so the
+eightfold difference is the machine's load from the release's other
+sessions, which this phase did not measure. The two timed runs of
+*Scope* item 7 carry the same noise.
 
 ### No case written new, and no mutation run
 
