@@ -83,6 +83,7 @@ print(json.dumps({{
     "empty": bool(home) and os.path.isdir(home) and not os.listdir(home),
     "given": given,
     "github": sorted(n for n in os.environ if n.startswith("GITHUB_")),
+    "claude_config": "CLAUDE_CONFIG_DIR" in os.environ,
 }}))
 """
 
@@ -527,6 +528,17 @@ class Test_module:
             "GH_TOKEN": NOT_A_GH_TOKEN,
             "GH_ENTERPRISE_TOKEN": NOT_A_GH_TOKEN,
         }, f"the suite's token variables: {sorted(seen['tokens'])}"
+
+    def test_the_conftest_takes_the_claude_config_directory_away(self, tmp_path):
+        """S8 of #1367. With `CLAUDE_CONFIG_DIR` naming a directory that holds
+        a `CLAUDE.md`, the conftest's import removes the variable, so a case
+        and every child it starts read no developer's config directory. A
+        case that needs the variable sets it with `monkeypatch.setenv`."""
+        held = tmp_path / "claude-config"
+        held.mkdir()
+        (held / "CLAUDE.md").write_text("the developer's own\n", "utf-8")
+        seen = run_probe({**os.environ, "CLAUDE_CONFIG_DIR": str(held)})
+        assert not seen["claude_config"], "CLAUDE_CONFIG_DIR is left set"
 
     def test_the_token_gh_would_send_is_not_a_login(self):
         """A6, behavioural. `gh auth token` takes the same path as every API

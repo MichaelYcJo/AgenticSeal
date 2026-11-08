@@ -238,7 +238,7 @@ segment that just finished, not as a follow-up someone might do later:
 
 1. Run `session_cost.py --segments` against the **run's** transcript. It
    walks every segment beside it (a subagent's transcript lives under
-   `~/.claude/projects/<project-dir>/<session-id>/subagents/agent-*.jsonl`),
+   `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/projects/<project-dir>/<session-id>/subagents/agent-*.jsonl`),
    joins each to the spawn whose result it opened at, and prints one row per
    segment: the agent, its own span, calls, tools per turn, mean gap,
    tokens and the largest context any one turn read, and, under the table,
