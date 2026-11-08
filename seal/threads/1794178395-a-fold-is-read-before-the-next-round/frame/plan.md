@@ -50,4 +50,4 @@ None for a deployer. No migration, environment variable or dependency. The versi
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-09 | The pull request's title takes `fix:`, and the kind that came closest is `feat:`. | The work moves an existing act, the fold of a decision, from the orchestrator to the framer, to repair the regressions folds caused; it adds no record format, command or check, and the framer's second route back is a route the frame-read exchange already had. | `skills/commit-pr-convention/SKILL.md` *Commit messages* |
