@@ -246,8 +246,9 @@ inside a ticket*). Answer each decision with agree, agree with a change, or
 reject with grounds, as *An orchestrator's reading of the frame is
 answered in one exchange* has you answer a proposal, and write each
 rejected decision as one row of `plan.md`'s *Alternatives considered*. A
-decision the owner made is folded as the owner made it, and where you
-judge that it conflicts with the tree, your hand-back names the conflict.
+decision the owner made, the version move and a prevention home are
+folded as they were made, and where you judge that one of them conflicts
+with the tree, your hand-back names the conflict.
 Before you write what a decision says, open each coordinate it cites, such
 as an issue it restates, as *What the tree can answer, you answer* asks of
 a fact that reaches you in prose. Then rewrite in place every sentence of

@@ -416,6 +416,10 @@ def test_a_decision_after_the_frame_is_folded_into_it():
         "so the orchestrator folds it in a commit of its own and spawns no framer",
         "Where that reading, or the framer's hand-back, finds a statement in "
         "a file the crafter writes",
+        # Round 1 of #1442, finding 1: a rejected decision had no route, and
+        # the row written before the exchange recorded a fold that did not
+        # happen.
+        "A decision the framer rejects stands as its judgment",
     ):
         assert said in order, f"the order no longer says {said!r}"
 
@@ -437,9 +441,13 @@ def test_the_framer_folds_a_decision_it_is_sent():
         "Answer each decision with agree, agree with a change, or reject with grounds",
         "write each rejected decision as one row of `plan.md`'s "
         "*Alternatives considered*",
-        "A decision the owner made is folded as the owner made it, and where "
-        "you judge that it conflicts with the tree, your hand-back names the "
-        "conflict.",
+        # Round 1 of #1442, finding 1: the version move and a prevention
+        # home are the orchestrator's to choose by other rules, so the
+        # framer folds them as they were made.
+        "A decision the owner made, the version move and a prevention home "
+        "are folded as they were made",
+        "where you judge that one of them conflicts with the tree, your "
+        "hand-back names the conflict.",
         "Before you write what a decision says, open each coordinate it cites",
         "rewrite in place every sentence of your three files that the "
         "decision changes, reading each file whole, as rule 12 asks of the "

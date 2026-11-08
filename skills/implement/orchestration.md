@@ -71,17 +71,29 @@ its grounds and the document it judged against as one row of
 the framer reads the row when it reads `plan.md` whole: the rewritten
 sentence keeps no reason for itself, and the settle reads the row. The
 orchestrator corrects its row where the framer's hand-back names a defect
-in it, then commits the frame files the framer changed and its own rows in
-one commit, before the spawn that reads them. The framer's hand-back names
-each statement the fold contradicts in a file the framer does not write,
-and a statement in `routing.md` or `pr.md` is the orchestrator's to
-repair. Where a crafter's hand-back names a statement its work contradicts
-in a file the crafter does not write, a frame file or `routing.md`, the
-orchestrator reads each such file whole against HEAD, not only the named
-line, and rewrites every statement HEAD contradicts: the crafter's list is
-its reading of a file it does not write. Such a statement records what the
-build changed rather than what the work is, so the orchestrator folds it
-in a commit of its own and spawns no framer. A statement of a section the
+in it. A decision the framer rejects stands as its judgment, as a proposal
+left after the exchange of *The frame is read against the issue at the
+spawn* does: the orchestrator rewrites its row of *Judgments of the run* to
+record the rejection and what the decision's source takes instead, a
+finding's route or the next spawn's scope, and quotes the framer's
+*Alternatives considered* row in the work item's `pr.md`. The version move
+and a prevention home are folded as an owner's decision is, because
+another rule gives each to the orchestrator to decide: the move by
+*Orchestrator: how the work is routed*, and the home by the paragraph
+opening *A problem that recurs within a run gets a prevention home at
+once*. The
+orchestrator then commits the frame files the framer changed and its own
+rows in one commit, before the spawn that reads them. The framer's
+hand-back names each statement the fold contradicts in a file the framer
+does not write, and a statement in `routing.md` or `pr.md` is the
+orchestrator's to repair. Where a crafter's hand-back names a statement
+its work contradicts in a file the crafter does not write, a frame file or
+`routing.md`, the orchestrator reads each such file whole against HEAD,
+not only the named line, and rewrites every statement HEAD contradicts:
+the crafter's list is its reading of a file it does not write. Such a
+statement records what the build changed rather than what the work is, so
+the orchestrator folds it in a commit of its own and spawns no framer. A
+statement of a section the
 frame dates to the commit it read, *Grounding* or *Technical context*, is
 a claim about that commit, so it is not folded, and a section that states
 the tree with no date gets the date and keeps its text
