@@ -25,7 +25,7 @@ The failure scenario of the chosen approach, six months out: the eval adds a tar
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1, 2, 3 and 4 | The cases of *Scope* items 2 and 3 seen red against `reads_record` with only the guard of item 1 removed, each failing on the `AttributeError` at the target read, then green. `bin/test tests/evals/test_noninferiority.py -q` passes. | |
+| 1 | `frame/design.md` *Scope* items 1, 2, 3 and 4 | The cases of *Scope* items 2 and 3 seen red against `reads_record` with only the guard of item 1 removed, each failing on the `AttributeError` at the target read, then green. `bin/test tests/evals/test_noninferiority.py -q` passes. | e2803d29 |
 
 ## Operational impact
 
