@@ -38,7 +38,7 @@ The work is prose in four instruction files and pins in one test module. There i
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1 to 7 | `tests/text/test_the_rules_have_one_owner.py`, run narrow; each new clause shown red with its sentence deleted (contract rule 15); the crafter's reading of its range and of the work item's records (contract rule 12) | |
+| 1 | `frame/design.md` *Scope* items 1 to 7 | `tests/text/test_the_rules_have_one_owner.py`, run narrow; each new clause shown red with its sentence deleted (contract rule 15); the crafter's reading of its range and of the work item's records (contract rule 12) | 3bb9e3be |
 
 ## Operational impact
 
