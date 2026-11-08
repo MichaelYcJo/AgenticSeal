@@ -29,18 +29,14 @@ OWN_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def main():
-    """Print `core.output` for the payload's `cwd`; nothing where stdin is
-    not a JSON object holding a string `cwd`."""
+    """Print `core.output` for the payload's `cwd`. A payload that is not a
+    JSON object holding `cwd` raises here, or names no repository to
+    `core.output`, and either way nothing is printed: the `__main__` block
+    turns every raise into exit 0."""
     sys.path.insert(0, LIB)
     import core
 
-    try:
-        payload = json.load(sys.stdin)
-    except ValueError:
-        return
-    cwd = payload.get("cwd") if isinstance(payload, dict) else None
-    if not isinstance(cwd, str) or not cwd:
-        return
+    cwd = json.load(sys.stdin)["cwd"]
     root = os.environ.get("CLAUDE_PLUGIN_ROOT") or OWN_ROOT
     text = core.output(cwd, root)
     if text:

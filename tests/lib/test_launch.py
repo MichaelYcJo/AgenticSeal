@@ -373,9 +373,10 @@ def loaded_by(rel, text, tracked):
 
 def hooked(root=ROOT):
     """The repository paths `hooks/hooks.json` under ROOT hands an
-    interpreter: the first argument after `python3`, or after `py -3`, in
-    each half of each command, with `${CLAUDE_PLUGIN_ROOT}/` read as the
-    root. A root with no registration hands none."""
+    interpreter: the argument after `python3` in each command's first half,
+    with `${CLAUDE_PLUGIN_ROOT}/` read as the root. The `py -3` half names
+    the same script, which `tests/behaviour/test_chain_hooks_hardening.py`
+    holds. A root with no registration hands none."""
     try:
         with open(os.path.join(root, *HOOKS), encoding="utf-8") as f:
             registered = json.load(f)["hooks"]
@@ -385,14 +386,9 @@ def hooked(root=ROOT):
     for entries in registered.values():
         for entry in entries:
             for hook in entry["hooks"]:
-                for half in hook["command"].split(" || "):
-                    words = shlex.split(half)
-                    if words[:2] == ["py", "-3"]:
-                        words = [words[0], *words[2:]]
-                    if len(words) > 1 and words[0] in INTERPRETERS:
-                        path = words[1]
-                        if path.startswith(PLUGIN_ROOT):
-                            found.add(path[len(PLUGIN_ROOT) :])
+                words = shlex.split(hook["command"].split(" || ")[0])
+                if words[:1] == ["python3"] and words[1].startswith(PLUGIN_ROOT):
+                    found.add(words[1][len(PLUGIN_ROOT) :])
     return found
 
 
