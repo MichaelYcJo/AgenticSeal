@@ -31,10 +31,11 @@ The failure scenario of the chosen approach, six months out: the eval adds a tar
 
 No migration, environment variable or dependency. The changed files leave `dist` (`frame/design.md` *Grounding*, the ladder row), so no installed plugin changes behaviour.
 
-Where this pull request is the first into `release/v0.34.1`, phase 1's commit that adds `changelog.md` moves `.claude-plugin/plugin.json` from `0.34.0` to `0.34.1`, as `docs/releasing/branch-and-release.md` *Cutting a release* states. At `f096614f6` no pull request into the branch has landed (`frame/design.md` *Grounding*, the release row). Which work item carries the move is the orchestrator's choice. Where it gives the move to another work item, it folds that into this section before it spawns phase 1.
+This pull request is the first into `release/v0.34.1`, so phase 1's commit that adds `changelog.md` moves `.claude-plugin/plugin.json` from `0.34.0` to `0.34.1`, as `docs/releasing/branch-and-release.md` *Cutting a release* states. At `f096614f6` no pull request into the branch has landed (`frame/design.md` *Grounding*, the release row).
 
 ## Judgments of the run
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-08 | This work item carries the version move to 0.34.1. | Issue #1426, the other issue of milestone `release: 0.34.1`, was deferred by the owner on 2026-11-07 until whether the plugin's hooks return is decided, so this pull request is the first into `release/v0.34.1`. | `docs/releasing/branch-and-release.md` *Cutting a release* |
+| 2026-11-08 | The pull request's title takes `fix:`, and the kind that came closest is `chore:`. | `compare` stopped on a traceback where `evals/README.md` *The behaviour suite* already said such a grader keeps the result the eval recorded, which is the table's `fix:` row. `chore:` came closest because the changed files leave `dist` and no installed plugin runs them, but a person running `compare` meets the change. | `skills/commit-pr-convention/SKILL.md` *Commit messages*, the prefix table, which *Pull request titles* uses |
