@@ -27,12 +27,13 @@ The tree as read at `7056ee61`.
 
 In:
 
-1. **`skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, the paragraph opening **A decision made after the frame is committed is folded** (`:49-81`), rewritten in place so that the framer writes a decision's fold.** The bold lead and its reason (a crafter reads the frame and not the issue's comments) stay. The sentence "The orchestrator rewrites the sentence of the frame the decision changes, where it stands" goes. In its place the paragraph says six things:
+1. **`skills/implement/orchestration.md` *Orchestrator: the order inside a ticket*, the paragraph opening **A decision made after the frame is committed is folded** (`:49-81`), rewritten in place so that the framer writes a decision's fold.** The bold lead and its reason (a crafter reads the frame and not the issue's comments) stay. The sentence "The orchestrator rewrites the sentence of the frame the decision changes, where it stands" goes. In its place the paragraph says seven things:
    - **What a decision is.** A decision is anything that changes what the frame says the work is or why. Examples: a round finding whose route changes the frame, a round finding located in a frame file, an owner's remark, an issue comment, a prevention home, a scope a spawn gives beyond a plan row, and the version move. These are examples of the rule, and the paragraph does not list them as a closed set.
    - **Who receives it, and when.** The orchestrator sends every decision pending at that point to the framer in one message, before the spawn that will read them. Each decision carries its grounds and the coordinates it stands on: the finding, the comment, or the owner's words.
    - **Which framer.** The framer of the work item is resumed while its session still exists, as the fix pass resumes the implementer in G7. Otherwise it is spawned fresh and handed the decisions and the commit at which the frame was last written. No context threshold is stated: none has been measured for a framer.
    - **The judgment row first.** Before it sends, the orchestrator writes the decision's row of `frame/plan.md` *Judgments of the run* and leaves it uncommitted, so the framer reads that row when it reads `plan.md` whole. The orchestrator then commits the framer's files and its own row in one commit, before the spawn that reads them.
    - **The framer's hand-back.** The hand-back names each statement the fold contradicts in a file the framer does not write. A statement in `gaps.md` or `changelog.md` goes to a fix pass, as the paragraph already says for those files. A statement in `routing.md` or `pr.md` is the orchestrator's to repair.
+   - **A rejected decision.** A decision the framer rejects stands as its judgment, as a proposal left after the exchange at the spawn does. The orchestrator rewrites its *Judgments of the run* row to record the rejection and what the decision's source takes instead, a finding's route or the next spawn's scope, and quotes the framer's *Alternatives considered* row in the work item's `pr.md`. The version move and a prevention home are folded as an owner's decision is, because other rules give the orchestrator to decide them.
    - **What stays the orchestrator's.** The orchestrator still folds a statement a crafter's hand-back names as contradicted by HEAD, as G3 has it: it reads each file whole, then reads the fold commit and the records after it. That reading is now scoped to those statements. The paragraph's other sentences stay: the dated sections, the one pending line in `plan.md`, the fold into the issue body before the frame is committed, and the issue handed whole to the framer.
 2. **Same file, the paragraph opening **A problem that recurs within a run gets a prevention home at once** (`:93-100`).** The sentence "The orchestrator folds it into that work item's frame, as any decision after the frame is folded" changes so that the home is folded into the frame as *Scope* item 1 folds any decision, by the framer. The orchestrator still records the home in a comment on the issue.
 3. **Same file, *Orchestrator: how the work is routed*, the version-move sentence (`:389-392`).** "the orchestrator folds the move into that section before it spawns the last phase" changes so that the framer folds the move, as *Scope* item 1 states, before the orchestrator spawns the last phase. This paragraph is the one #1443 rewrites (`frame/plan.md` *Technical context*).
@@ -40,7 +41,7 @@ In:
 5. **`agents/framer.md` *Rules*, the rule opening **The one route back is the review chain's** (`:240-247`), rewritten in place as the framer's two routes back: a fold, and the review chain's regression.** The fold half says eight things:
    - **How it starts.** The framer is resumed or spawned again with the decisions the orchestrator sends.
    - **Answering a decision.** The framer answers each decision of the orchestrator's with agree, agree with a change, or reject with grounds, as the exchange in G4 does. It writes each rejected decision as one row of *Alternatives considered*.
-   - **An owner's decision.** A decision the owner made is folded as the owner made it. Where the framer judges that it conflicts with the tree, it names the conflict in its hand-back.
+   - **An owner's decision.** A decision the owner made, the version move and a prevention home are folded as they were made. Where the framer judges that it conflicts with the tree, it names the conflict in its hand-back.
    - **Opening before writing.** Before it writes what a decision says, the framer opens each coordinate the decision cites, such as an issue it restates. This is the framer's existing rule that a fact reaching it in prose is opened at its coordinate.
    - **Rewriting in place.** The framer rewrites in place every sentence of its three files that the decision changes, reading each file whole, as contract rule 12 asks of the party that fixes. It reads the orchestrator's uncommitted *Judgments of the run* row with `plan.md` and names any defect in that row in its hand-back.
    - **What it does not write.** The framer writes no line under its mark, no Status cell and no *Judgments of the run* row. A section dated to the commit it read keeps its date.
@@ -94,10 +95,11 @@ No schema changes. Two message shapes change hands, and both are prose in the ru
     and decided by the party that drew the frame, and the orchestrator edits no frame file.
   to: The framer judges what the work should be and the orchestrator holds the
     issue, so a frame weaker than the issue asks is found by the party that holds the issue
-    and decided by the party that drew the frame, and the orchestrator edits no frame file.
-    A decision made later in the run is folded by the framer too, so each sentence of the
-    frame that says what the work is or why is the framer's; the orchestrator folds only the
-    statements a crafter's hand-back names as contradicted by HEAD.
+    and decided by the party that drew the frame, and the orchestrator edits no frame file
+    in that exchange. A decision made later in the run is folded by the framer too, so each
+    sentence of the frame that says what the work is or why is the framer's; the
+    orchestrator folds only the statements a crafter's hand-back names as contradicted by
+    HEAD.
 - change
   file: docs/running/the-agent-set.md
   section: What each party writes, and when
