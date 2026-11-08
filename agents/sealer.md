@@ -123,7 +123,7 @@ return.
    `seal stamp --guarantee <path>` once, `<path>` being the `guarantee.md`
    you wrote. The values file it writes under the clone's common git
    directory is your one write beside `guarantee.md` (rule 6), and you draw
-   nothing: the person's `Stop` hook draws it. Its one line goes into your
+   nothing: the plugin's `Stop` hook draws it. Its one line goes into your
    report as it printed it; an exit of 2 goes in with what it printed, and
    the verdict stands.
 7. **Return the file's text** as your report, every claim labelled

@@ -53,10 +53,10 @@ owner's marks) and `sealed_names` for its head.
 writes `Verdict: sealed`, under either root; `queue_for_written_guarantee`
 reads the file, and where it reads `sealed` and no earlier run or commit
 stamped it, writes the stamp's rows to a values file under the git common
-dir of the path's clone. `seal stamp --stop` is the `Stop` hook a person
-installs with `seal stamp --install`: it draws each undrawn file of the
-clone the payload's `cwd` is in, once, at the end of the main session's
-turn. The plugin registers no hook. This module owns the file:
+dir of the path's clone. `seal stamp --stop` is the command of the
+plugin's `Stop` hook, which `hooks/hooks.json` registers (#1430): it draws
+each undrawn file of the clone the payload's `cwd` is in, once, at the end
+of the main session's turn. This module owns the file:
 `queue_for_written_guarantee` and `write_values`, `read_values`, `pending`
 and `claim`. Drawing claims the file first, by renaming it to `.drawn.json`,
 so a file is drawn once whoever draws it. `docs/checks/the-stamp.md` *The
@@ -69,12 +69,6 @@ Usage:
   seal stamp --from <file>        a queued stamp's values file, drawn once
   seal stamp --guarantee <file>   queue the stamp of a sealed guarantee.md
   seal stamp --stop               draw at a `Stop`, the payload on stdin
-  seal stamp --install <data-dir> --settings <file>
-                                  write the launcher and its `Stop` entry
-  seal stamp --remove <data-dir> --settings <file>
-                                  take the entry and the launcher out
-  seal stamp --decline <data-dir> record a no to the stamp's question
-  seal stamp --hook <data-dir>    installed, declined or neither
 
 The gate imports `sealed_names`, `ref_is_commit`, `is_utf8(stream)`,
 `text_lines`, `TWIN_ASCII` and the panel's text rules.
@@ -85,16 +79,14 @@ see the drawing without a guarantee committed, and `--from` so a values file
 nothing drew can still be drawn by hand.
 
 Exit codes: 0 printed, or `--stop` whatever happened · 2 refused — a values
-file that is unreadable or drawn already, a guarantee that could not be
-read, or settings that do not parse; nothing was written on 2. An
-interpreter below the floor never reaches this file through `seal stamp`:
-`lib/launch.py` refuses `seal` with 2 first. The launcher runs it with
-whatever `python3` the harness finds, and a load that fails there draws
-nothing.
+file that is unreadable or drawn already, or a guarantee that could not be
+read; nothing was written on 2. An interpreter below the floor never
+reaches this file through `seal stamp`: `lib/launch.py` refuses `seal` with
+2 first. The `Stop` hook runs it with whatever `python3` the harness finds,
+and a load that fails there draws nothing.
 """
 
 import argparse
-import ast
 import collections
 import importlib.util
 import json
@@ -1012,16 +1004,14 @@ GITCMD = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "lib", "gitcmd.py"
 )
 # The line `--guarantee` prints, which the sealer's hand-back carries to the
-# orchestrator. It names the way to draw the stamp by hand, because nothing
-# draws it where the person installed no `Stop` hook, and the hook draws
-# nothing, and says nothing, where it cannot: a `python3` that cannot load
-# this file, a main session whose working directory is outside this clone,
-# a launcher naming a root that is gone (`docs/checks/the-stamp.md`
-# *The stamp*).
+# orchestrator. It names the way to draw the stamp by hand, because the
+# plugin's `Stop` hook draws nothing where it cannot: a
+# `python3` that cannot load this file, or a main session whose working
+# directory is outside this clone (`docs/checks/the-stamp.md` *The stamp*).
 QUEUED = (
-    "agentic: the stamp for {id} is queued in {path}; the `Stop` hook "
-    "`seal stamp --install` writes draws it at the end of the turn, and where "
-    "none appears, `seal stamp --from {command}` draws it"
+    "agentic: the stamp for {id} is queued in {path}; the plugin's `Stop` hook "
+    "draws it at the end of the turn, and where none appears, "
+    "`seal stamp --from {command}` draws it"
 )
 # The line `queue_for_written_guarantee` returns where its `guarantee.md` names a
 # commit the work item's branch does not hold. No pull request's check reads
@@ -1398,8 +1388,8 @@ def queue_for_written_guarantee(path, now=None):
 
 # --- the stamp drawn at the end of a turn (`--stop`) -----------------------
 #
-# The draw the stamp's `Stop` hook runs, through the launcher `--install`
-# writes. The harness shows a `Stop` hook's `systemMessage`
+# The draw the plugin's `Stop` hook runs: `hooks/hooks.json` names this
+# file with `--stop`. The harness shows a `Stop` hook's `systemMessage`
 # unfolded, in truecolour, after the turn's final text (probe D,
 # 2026-09-28), and shows its first line as a dim `Stop says: <line>`, so
 # line 1 is a label naming what was sealed and the drawing starts on line 2.
@@ -1508,227 +1498,6 @@ def drawn_at_stop(text):
     return fitted(blocks) if blocks else None
 
 
-# --- the person's `Stop` hook (`--install`, `--remove`, `--decline`, `--hook`)
-#
-# The plugin registers no hook (#1376), so the stamp is drawn only where the
-# person said yes to it: `--install` writes a launcher into the plugin's data
-# directory, which Claude Code keeps across updates, and merges one `Stop`
-# entry that runs it into the settings file the caller names. The launcher
-# names this copy's root, so `/agentic:update` runs `--install` again from
-# the new one. The caller passes both places, the data directory from the
-# skill body's `${CLAUDE_PLUGIN_DATA}` and the settings file from the shell,
-# so this file reads no environment variable.
-
-PLUGIN_ROOT = os.path.realpath(
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..")
-)
-LAUNCHER = "stamp.py"
-DECLINED = "stamp-declined"
-# The launcher, in Python 3.9 syntax, since it runs on whatever `python3`
-# the harness finds. It exits 0 whatever happens, because a `Stop` hook that
-# exits 2 keeps the turn going, and a root that is gone draws nothing.
-LAUNCHER_TEXT = '''\
-"""The sealer's stamp at the end of a turn, written by `seal stamp --install`.
-
-It runs `seal_stamp.py --stop` from ROOT with the `Stop` payload on stdin.
-`seal stamp --remove` takes this file and its settings entry out, and
-`/agentic:update` writes it again naming the new root.
-"""
-
-import os
-import runpy
-import sys
-
-ROOT = {root}
-SCRIPT = os.path.join(ROOT, "skills", "verify", "scripts", "seal_stamp.py")
-
-if os.path.isfile(SCRIPT):
-    sys.argv = [SCRIPT, "--stop", *sys.argv[1:]]
-    try:
-        runpy.run_path(SCRIPT, run_name="__main__")
-    except BaseException:
-        pass
-sys.exit(0)
-'''
-ROOT_LINE = re.compile(r"^ROOT = (.+)$", re.M)
-
-NOT_ABSOLUTE = (
-    "seal stamp: {path!r} is not an absolute path, so it names no data "
-    "directory; nothing was written"
-)
-SETTINGS_REFUSED = (
-    "seal stamp: {path} is not settings this command can merge into ({why}); "
-    "it was left as it is"
-)
-INSTALLED = (
-    "seal stamp: the `Stop` entry in {settings} runs {launcher}, which draws "
-    "the stamp from {root}"
-)
-REMOVED = "seal stamp: {done}"
-NOTHING_TO_REMOVE = "seal stamp: no `Stop` entry runs {launcher}, and no launcher stood"
-DECLINED_LINE = (
-    "seal stamp: recorded the no in {marker}; `seal stamp --install` draws "
-    "the stamp later"
-)
-
-
-def _data_dir(path):
-    """PATH, where it is absolute; raises `ValueError` with the refusal
-    where it is not, as an unsubstituted `${CLAUDE_PLUGIN_DATA}` that the
-    shell turned into "" is not."""
-    if not path or not os.path.isabs(path):
-        raise ValueError(NOT_ABSOLUTE.format(path=path or ""))
-    return os.path.normpath(path)
-
-
-def hook_command(data_dir):
-    """The command of the `Stop` entry for the launcher under DATA_DIR:
-    `python3` first and `py -3` where the first exits non-zero, which,
-    while the launcher stands, is only where it could not start
-    (`CONTRIBUTING.md` *House rules*)."""
-    launcher = os.path.join(data_dir, LAUNCHER)
-    return f'python3 "{launcher}" || py -3 "{launcher}"'
-
-
-def _settings(path):
-    """The settings at PATH as a dict, {} where no file stands. Raises
-    `ValueError` with the refusal where the file does not parse as a JSON
-    object, or its `hooks` or `hooks.Stop` is not the shape the entry joins."""
-    try:
-        with open(path, encoding="utf-8") as handle:
-            text = handle.read()
-    except FileNotFoundError:
-        return {}
-    except OSError as exc:
-        raise ValueError(
-            SETTINGS_REFUSED.format(path=path, why=exc.strerror or exc)
-        ) from exc
-    try:
-        data = json.loads(text) if text.strip() else {}
-    except ValueError as exc:
-        raise ValueError(
-            SETTINGS_REFUSED.format(path=path, why="it is not JSON")
-        ) from exc
-    if not isinstance(data, dict):
-        raise ValueError(SETTINGS_REFUSED.format(path=path, why="it is not an object"))
-    hooks = data.get("hooks", {})
-    if not isinstance(hooks, dict) or not isinstance(hooks.get("Stop", []), list):
-        raise ValueError(
-            SETTINGS_REFUSED.format(path=path, why="its `hooks.Stop` is not a list")
-        )
-    return data
-
-
-def _write_json(path, data):
-    """DATA written to PATH as JSON, through a temporary name renamed into
-    place, so a reader never sees half a file."""
-    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-    temporary = f"{path}.agentic-stamp.tmp"
-    with open(temporary, "w", encoding="utf-8") as handle:
-        json.dump(data, handle, indent=2, ensure_ascii=False)
-        handle.write("\n")
-    os.replace(temporary, path)
-
-
-def _entries(data):
-    """Every `(group, hook)` of the `Stop` list in DATA whose hook is a
-    dict."""
-    for group in data.get("hooks", {}).get("Stop", []):
-        if isinstance(group, dict) and isinstance(group.get("hooks"), list):
-            for hook in group["hooks"]:
-                if isinstance(hook, dict):
-                    yield group, hook
-
-
-def install(data_dir, settings, root=PLUGIN_ROOT):
-    """Write the launcher naming ROOT under DATA_DIR, take the declined
-    marker out, and merge the one `Stop` entry into SETTINGS where none with
-    its command stands, leaving every other key; the line that says so.
-    Raises `ValueError` with the refusal before anything is written where
-    DATA_DIR is not absolute or SETTINGS does not parse."""
-    data_dir = _data_dir(data_dir)
-    data = _settings(settings)
-    command = hook_command(data_dir)
-    launcher = os.path.join(data_dir, LAUNCHER)
-    os.makedirs(data_dir, exist_ok=True)
-    with open(launcher, "w", encoding="utf-8") as handle:
-        handle.write(LAUNCHER_TEXT.format(root=repr(root)))
-    try:
-        os.remove(os.path.join(data_dir, DECLINED))
-    except FileNotFoundError:
-        pass
-    if not any(hook.get("command") == command for _, hook in _entries(data)):
-        stops = data.setdefault("hooks", {}).setdefault("Stop", [])
-        stops.append({"hooks": [{"type": "command", "command": command}]})
-        _write_json(settings, data)
-    return INSTALLED.format(settings=settings, launcher=launcher, root=root)
-
-
-def remove(data_dir, settings):
-    """Take out of SETTINGS each `Stop` hook whose command is DATA_DIR's,
-    with the group and the lists it leaves empty, and remove the launcher;
-    nothing else. The line that says what was done. Raises `ValueError` as
-    `install` does."""
-    data_dir = _data_dir(data_dir)
-    data = _settings(settings)
-    command = hook_command(data_dir)
-    launcher = os.path.join(data_dir, LAUNCHER)
-    found = False
-    hooks = data.get("hooks", {})
-    stops = hooks.get("Stop", [])
-    for group, hook in list(_entries(data)):
-        if hook.get("command") == command:
-            group["hooks"].remove(hook)
-            found = True
-            if not group["hooks"]:
-                stops.remove(group)
-    if found:
-        if not stops:
-            del hooks["Stop"]
-        if not hooks:
-            del data["hooks"]
-        _write_json(settings, data)
-    done = [f"took the `Stop` entry out of {settings}"] if found else []
-    try:
-        os.remove(launcher)
-        done.append(f"removed {launcher}")
-    except FileNotFoundError:
-        pass
-    if not done:
-        return NOTHING_TO_REMOVE.format(launcher=launcher)
-    return REMOVED.format(done=" and ".join(done))
-
-
-def decline(data_dir):
-    """Write the empty marker that records a no to the stamp's question,
-    so it is not put again; the line that says so."""
-    data_dir = _data_dir(data_dir)
-    os.makedirs(data_dir, exist_ok=True)
-    marker = os.path.join(data_dir, DECLINED)
-    with open(marker, "w", encoding="utf-8"):
-        pass
-    return DECLINED_LINE.format(marker=marker)
-
-
-def hook_state(data_dir):
-    """Which of the three states stands under DATA_DIR, as the line
-    `--hook` prints: `installed <root>` where the launcher stands, naming
-    the root it runs, `declined` where the marker stands, else `neither`."""
-    data_dir = _data_dir(data_dir)
-    launcher = os.path.join(data_dir, LAUNCHER)
-    text = _read(launcher)
-    if text is not None:
-        found = ROOT_LINE.search(text)
-        try:
-            root = ast.literal_eval(found[1]) if found else ""
-        except (ValueError, SyntaxError):
-            root = ""
-        return f"installed {root}".rstrip()
-    if os.path.exists(os.path.join(data_dir, DECLINED)):
-        return "declined"
-    return "neither"
-
-
 # --- a person's command --------------------------------------------------
 
 # Neutral values in the stamp's shape, so `seal stamp` shows a person what a
@@ -1781,34 +1550,7 @@ def main(argv=None, console_wants_letters=None):
         action="store_true",
         help="draw what waits in the clone of a Stop payload's cwd, read on stdin",
     )
-    entry.add_argument(
-        "--install",
-        metavar="DATA_DIR",
-        help="write the launcher under DATA_DIR and its Stop entry into --settings",
-    )
-    entry.add_argument(
-        "--remove",
-        metavar="DATA_DIR",
-        help="take DATA_DIR's Stop entry out of --settings and remove the launcher",
-    )
-    entry.add_argument(
-        "--decline",
-        metavar="DATA_DIR",
-        help="record a no to the stamp's question under DATA_DIR",
-    )
-    entry.add_argument(
-        "--hook",
-        metavar="DATA_DIR",
-        help="say installed, declined or neither for DATA_DIR",
-    )
-    parser.add_argument(
-        "--settings",
-        metavar="FILE",
-        help="the Claude Code settings file --install and --remove edit",
-    )
     args = parser.parse_args(argv)
-    if (args.install or args.remove) and not args.settings:
-        parser.error("--install and --remove need --settings")
     if args.stop:
         try:
             message = drawn_at_stop(sys.stdin.read())
@@ -1820,22 +1562,13 @@ def main(argv=None, console_wants_letters=None):
     try:
         if args.guarantee is not None:
             said = queue_for_written_guarantee(args.guarantee)
-        elif args.install is not None:
-            said = [install(args.install, args.settings)]
-        elif args.remove is not None:
-            said = [remove(args.remove, args.settings)]
-        elif args.decline is not None:
-            said = [decline(args.decline)]
-        elif args.hook is not None:
-            said = [hook_state(args.hook)]
         else:
             said = None
     except ValueError as refused:
         sys.stderr.write(str(refused) + "\n")
         return 2
     except Exception as failed:
-        where = args.guarantee or args.install or args.remove or args.decline
-        sys.stderr.write(f"seal stamp: {where}: {failed}\n")
+        sys.stderr.write(f"seal stamp: {args.guarantee}: {failed}\n")
         return 2
     if said is not None:
         sys.stdout.write("".join(line + "\n" for line in said))

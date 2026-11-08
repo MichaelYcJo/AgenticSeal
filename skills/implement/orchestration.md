@@ -25,8 +25,11 @@ its first step and never this one, because asking a person and writing
    before the first edit (*Orchestrator: how the work is routed* below).
    The orchestrator makes the branch with `git switch`, and a worktree only
    where another session works in the same clone at the same time.
-   Before the first edit the orchestrator has read the core once, which
-   `/agentic:start` does at its first step (`skills/start/SKILL.md`).
+   Before the first edit the orchestrator holds the core once, which the
+   plugin's `SessionStart` hook printed where a `seal/` root stood when the
+   session started. Where no output opening `AgenticSeal core from` stands
+   in the session's context, the orchestrator opens `skills/core/SKILL.md`
+   once.
 2. The framer writes `frame/design.md`, `plan.md` and `questions.md`. The orchestrator
    reads the frame against the issue, settles what it finds with the framer
    and spawns the crafter (*The frame is read against the issue at the
@@ -162,12 +165,12 @@ that leads nowhere — the session that answers it is holding finished work with
 no destination, which is a gate wearing the shape of a question. A yes/no is
 the tell. Ask which of two named paths instead, and say what each one does.
 
-**The first edit waits for the routing answer, and the entry holds that.**
-`/agentic:start` writes `routing.md` and commits it before the orchestrator
-edits any other file (`skills/start/SKILL.md`). No check refuses an earlier
-edit; the pull request's check judges the declared work item, and a session
-that declares nothing is the limit `docs/checks/the-routing-check.md`
-states.
+**The first edit waits for the routing answer, and the orchestrator holds
+that.** The orchestrator writes `routing.md` and commits it before it edits
+any other file, following step 1 of *Orchestrator: the order inside a
+ticket*. No check refuses an earlier edit; the pull request's check judges
+the declared work item, and a session that declares nothing is the limit
+`docs/checks/the-routing-check.md` states.
 
 **Once the batch is answered, the session runs to the pull request.** What
 surfaces after it is written down rather than raised: a decision only a person
@@ -341,12 +344,8 @@ recorded answer nobody gave.
 `seal/threads/<work-item-id>/routing.md`, from `templates/records/sdd-routing.md`, and
 commits it, because the check happens at the pull request and CI sees only
 what is in the tree. Below the SDD ladder this may be the only file a work
-item gets.
-
-**`/agentic:start` writes the declaration before the first edit**, as the
-paragraph opening **The first edit waits for the routing answer, and the
-entry holds that** states. Under `no work item` no declaration is written,
-and the trailer is the record.
+item gets. Under `no work item` no declaration is written, and the trailer
+is the record.
 
 **The orchestrator writes the file with the `Write` tool, then commits it.**
 The commit goes as every commit does: each work item's `routing.md` in a

@@ -187,7 +187,14 @@ Where its inputs are a closed set, such as a parser's kinds or the guards of
 one function, the fix enumerates them, pins each with one case, and answers
 any other input by naming the form it takes. Where they are open, such as the
 shapes a merge's status can take, a list of them is one more edge to chase:
-the fix, and every sentence about it, states the rule and lists no kinds.
+the fix, and every sentence about it, states the rule and lists no kinds. A
+list grows in prose as it does in code: a limits paragraph, a comment or a
+record that names the shapes one by one gains one shape per fix pass, and
+each shape it names is a sentence the next round contradicts with the shape
+beside it. A shape that was measured is cited as an example of the rule and
+named as one, and no sentence counts the examples or calls one of them the
+only one. The signal shows at the first fix pass that adds a shape, and the
+weighing is owed there, not at the round after.
 Where deciding it is a rebuild the issue did not ask for, the mechanism leaves
 as its own issue and the branch keeps the release's reading of it, so the run
 reads no edge the release did not have. The row that decides either names the
@@ -513,9 +520,8 @@ drawn once per work item from the sealer's verdict
 (`docs/checks/the-stamp.md` *The stamp*): where the newest verdict block of
 `guarantee.md` reads `Verdict: sealed` and the block reader refuses none of
 its lines, the sealer's `seal stamp --guarantee` queues the stamp's values,
-under either root, and the `Stop` hook the person installed with
-`seal stamp --install` draws them after your text. The line naming them
-arrives in the sealer's hand-back.
+under either root, and the plugin's `Stop` hook draws them after your text.
+The line naming them arrives in the sealer's hand-back.
 So put the result text first in that turn:
 what was sealed, the lines worth quoting, and what happens next. Then end
 the turn, and the drawing lands last with nothing after it. Draw none
@@ -529,12 +535,11 @@ broad run is recorded nowhere CI looks. On a red run relay the `BROAD GATE
 FAILED` lines. Wherever a line you read names `seal stamp --from`, quote
 it as it stands: that command is the person's to type, and never yours. The
 sealer's hand-back carries that line; quote it in the turn's text. The line
-names the command because nothing draws where the person installed no
-`Stop` hook, and the hook draws nothing and says nothing where it cannot: a
-`python3` that cannot load `seal_stamp.py`, a working directory outside the
-clone, or a launcher naming a root that is gone. Where the hand-back carries
-no such line, no stamp was queued and none is drawn, and the pull request's
-check is what says the work item was sealed.
+names the command because the plugin's `Stop` hook draws nothing where it
+cannot: a `python3` that cannot load `seal_stamp.py`, or a working
+directory outside the clone. Where the hand-back carries no such line,
+no stamp was queued and none is drawn, and the pull request's check is what
+says the work item was sealed.
 
 **A refusal about the `Broad gate` row goes to a person, and the run stops
 until they answer.** Your broad run comes back exit 2 two ways that are

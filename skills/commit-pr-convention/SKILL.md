@@ -191,9 +191,9 @@ to no work item. The trailer stands in the message's last paragraph, beside any
 other trailer, so git's trailer parser reads it:
 
 ```
-feat: the entry writes the declaration before the first edit
+feat: the orchestrator writes the declaration before the first edit
 
-Seal-Routing: 1792935671-the-entry-writes-the-declaration
+Seal-Routing: 1792935671-the-orchestrator-writes-the-declaration
 Co-Authored-By: <the harness's co-author line>
 ```
 

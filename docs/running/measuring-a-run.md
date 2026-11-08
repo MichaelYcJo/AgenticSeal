@@ -132,12 +132,11 @@ check: tests/skills/test_session_cost.py
 
 **A network write a person or a session starts is a place `README.md`
 *What runs on your machine* names, and nothing runs it by itself.** The
-plugin registers no hook, and the one hook a person may install, the
-stamp's, reaches no network. `--post` writes only when a person or a session
-runs it, only through `gh`, and only what it was handed. What
-`CONTRIBUTING.md` *The plugin registers no hook, and the one write outside
-the repository is the person's yes* forbids still binds it: nothing sent may
-carry repository contents, paths or prompts, so the posted body names the
-transcript by its file name and never by its path. The repository owner can
-overturn this.
+plugin's two hooks, the stamp's `Stop` hook and the `SessionStart` hook that
+prints the core, reach no network. `--post` writes only when a person or a
+session runs it, only through `gh`, and only what it was handed. What
+`CONTRIBUTING.md` *The plugin ships two hooks, and neither writes outside
+the repository* forbids still binds it: nothing sent may carry repository
+contents, paths or prompts, so the posted body names the transcript by its
+file name and never by its path. The repository owner can overturn this.
 check: tests/skills/test_session_cost.py
