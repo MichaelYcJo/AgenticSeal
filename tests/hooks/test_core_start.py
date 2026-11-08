@@ -4,7 +4,7 @@ receives the core once, and any other session receives nothing.
 The hook prints `lib/core.py#output` as plain text, and `hooks/hooks.json`
 registers it for `SessionStart` with the matcher `startup|clear|compact`,
 because a resumed session keeps what its start printed (#1177, #1430). The
-cases run the entry's command as `hooks/hooks.json` spells it, its
+cases run the hook's command as `hooks/hooks.json` spells it, its
 `python3` half with this interpreter in place of `python3` and
 `${CLAUDE_PLUGIN_ROOT}` filled in. The registration itself is held by
 `tests/behaviour/test_chain_hooks_hardening.py`.
@@ -25,7 +25,7 @@ VARIABLE = "${CLAUDE_PLUGIN_ROOT}"
 
 
 def command(where=ROOT):
-    """The `python3` half of the `SessionStart` entry's command in
+    """The `python3` half of the `SessionStart` command in
     `hooks/hooks.json`, as words: `python3` read as this interpreter, and
     `${CLAUDE_PLUGIN_ROOT}` as WHERE."""
     with open(os.path.join(ROOT, "hooks", "hooks.json"), encoding="utf-8") as f:
