@@ -43,8 +43,9 @@ def step(rel, n):
 
 
 def test_the_list_of_the_originals_surface_has_one_home_and_one_writer():
-    """#15 S1: in a migration the design's *Grounding* lists the original's
-    output surface, and the framer writes it.
+    """#15, the scenario *The frame lists the surface*: in a migration the
+    design's *Grounding* lists the original's output surface, and the
+    framer writes it.
 
     The comparison started at the coordinates the design cited, so an item
     nobody cited was compared by nobody: a port shipped two of its
@@ -65,10 +66,11 @@ def test_the_list_of_the_originals_surface_has_one_home_and_one_writer():
 
 
 def test_the_framer_is_sent_to_the_section_that_asks_for_the_list():
-    """#15 S1, the framer's half: its definition names the parity config at
-    step 4, and the section that says what the *Grounding* lists is the one
-    it is sent to there. The config alone says that the original ranks
-    between the ticket and the code, and nothing of what the frame lists."""
+    """#15, the scenario *The frame lists the surface*, the framer's half:
+    its definition names the parity config at step 4, and the section that
+    says what the *Grounding* lists is the one it is sent to there. The
+    config alone says that the original ranks between the ticket and the
+    code, and nothing of what the frame lists."""
     said = step("agents/framer.md", 4)
     # The citation the framer resolves to the section above.
     assert f"`{PARITY}` *The original's coordinates*" in said, (
@@ -77,8 +79,9 @@ def test_the_framer_is_sent_to_the_section_that_asks_for_the_list():
 
 
 def test_an_item_the_port_lacks_differs_and_the_walk_stands_in_the_round():
-    """#15 S2 and S3: an item the original sends and the port does not takes
-    one of the four verdict words, `differs` by default, and each item
+    """#15, the scenarios *The dropped field is a finding* and *The walk is
+    readable next round*: an item the original sends and the port does not
+    takes one of the four verdict words, `differs` by default, and each item
     walked stands in the round record, so the next round opens the walk
     instead of enumerating the surface again."""
     rel, heading = PARITY_REVIEW
@@ -94,10 +97,10 @@ def test_an_item_the_port_lacks_differs_and_the_walk_stands_in_the_round():
 
 
 def test_the_tracer_names_what_the_list_of_the_surface_lacks():
-    """#15 S4: the tracer, spawned before a phase, reports each item of the
-    original's output surface the design's list lacks, with its coordinate;
-    its report is the one place before review that the list is checked
-    against the original."""
+    """#15, the scenario *The tracer names what the list lacks*: the tracer,
+    spawned before a phase, reports each item of the original's output
+    surface the design's list lacks, with its coordinate; its report is
+    where the list is checked against the original before review."""
     said = step("agents/tracer.md", 6)
     # The list the skill names, and its lack, which the orchestrator reads
     # in the report as a finding on the frame.
