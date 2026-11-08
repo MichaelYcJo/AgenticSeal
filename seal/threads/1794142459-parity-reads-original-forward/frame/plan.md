@@ -9,7 +9,7 @@ The tree as read at `9e758b0b0`.
 **Constraints the build works inside.** Each is a case or a reader that runs in the suite, read in `frame/design.md` *Grounding*:
 
 - `tests/behaviour/test_docs_line_wrap.py`: the four files wrap at 88 display columns.
-- `tests/text/test_a_cited_section_stands_in_its_file.py`: every citation of the form backticked path plus italic heading resolves, in the tree and in the archive `dist` is built from; so the two amended sections keep their headings, and the new citation in `agents/framer.md` names one that exists.
+- `tests/behaviour/test_a_cited_section_stands_in_its_file.py`: every citation of the form backticked path plus italic heading resolves, in the tree and in the archive `dist` is built from; so the two amended sections keep their headings, and the new citation in `agents/framer.md` names one that exists.
 - `tests/text/test_the_record_is_written_in_words.py#test_the_parity_verdicts_are_four_words`: *Parity review* holds exactly one fenced block and its labels are the four words in order; the new sentences stand outside that block and add no word.
 - `tests/text/test_review_axes.py#test_the_record_of_a_comparison_names_its_writer`: *Recording the comparison* keeps its two table rows and the clause "the tracer and the crafter record none"; the section is not edited.
 - `tests/text/test_a_moved_rule_leaves_its_definition.py#test_the_tracer_opens_the_parity_skill_and_returns_original_not_found` and `tests/behaviour/test_a_probe_that_commits_says_so.py#test_the_fact_finder_points_a_probe_at_rule_7`: `agents/tracer.md` keeps step 1's opening, the guessed-original rule's sentence and "leaves nothing behind (rule 7)".
@@ -45,8 +45,8 @@ The tree as read at `9e758b0b0`.
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | *Scope* items 1, 2, 3, 4 and 6 | each case of item 6 seen red against the text at the phase's parent with the fact it pins removed, then green, and the phase record says how; `bin/test tests/text/test_review_axes.py tests/text/test_a_moved_rule_leaves_its_definition.py tests/text/test_the_record_is_written_in_words.py tests/text/test_docs_line_wrap.py tests/text/test_a_cited_section_stands_in_its_file.py tests/behaviour/test_a_probe_that_commits_says_so.py tests/text/test_the_handoff_before_round_one.py tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py -q`; `bin/seal rules --check` reads the new `check:` line; `git grep -n "Start every comparison there"` prints nothing | `24e9aee1e` |
-| 2 | *Scope* items 5 and 7 | `bin/test tests/text/test_review_axes.py tests/text/test_docs_line_wrap.py tests/text/test_a_cited_section_stands_in_its_file.py -q`; the fragment read against `docs/layout/the-record-layout.md` *A change writes fragments, never a shared file* and `templates/records/process.md`; `git grep -n "included/excluded fields"` prints the one rewritten cell | |
+| 1 | *Scope* items 1, 2, 3, 4 and 6 | each case of item 6 seen red against the text at the phase's parent with the fact it pins removed, then green, and the phase record says how; `bin/test tests/text/test_review_axes.py tests/text/test_a_moved_rule_leaves_its_definition.py tests/text/test_the_record_is_written_in_words.py tests/behaviour/test_docs_line_wrap.py tests/behaviour/test_a_cited_section_stands_in_its_file.py tests/behaviour/test_a_probe_that_commits_says_so.py tests/text/test_the_handoff_before_round_one.py tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py -q`; `bin/seal rules --check` reads the new `check:` line; `git grep -n "Start every comparison there" -- . ':!seal/threads'` prints nothing | `24e9aee1e` |
+| 2 | *Scope* items 5 and 7 | `bin/test tests/text/test_review_axes.py tests/behaviour/test_docs_line_wrap.py tests/behaviour/test_a_cited_section_stands_in_its_file.py -q`; the fragment read against `docs/layout/the-record-layout.md` *A change writes fragments, never a shared file* and `templates/records/process.md`; `git grep -n "included/excluded fields"` prints the one rewritten cell | |
 
 Each phase commits with the Edit tool's edits alone.
 
@@ -63,4 +63,4 @@ Each phase commits with the Edit tool's edits alone.
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-08 | The frame is folded to phase 1's hand-back: `test_docs_line_wrap.py` and `test_a_cited_section_stands_in_its_file.py` are named under `tests/behaviour/` in *Technical context*, *Grounding*, *Nothing else moves* and both phase rows; phase 1's `git grep` excludes `seal/threads`; *Scope* item 2 says the proofer walks the original's surface and opens the list at each item | The two paths were wrong at the frame's own commit (executed: `ls tests/text/` holds neither, `tests/behaviour/` holds both), so the *Technical context* and *Grounding* statements are corrected, not dated; the grep met the frame's own quotations; and "walks the list" would leave an item the list lacks unmet, which the built text avoids (the crafter's `trail/phases/phase-1.md`) | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |
