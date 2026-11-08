@@ -356,9 +356,11 @@ def text_of(case, i, run):
 def reads_record(grader):
     """True for a `truth-` grader whose regex reads a round record, the file
     `finding_rows` reads; a truth over another file keeps the eval's
-    result."""
+    result. A target that is not a mapping, such as the string `files`,
+    names no path and so reads no round record."""
     config = grader.get("config") or {}
-    path = (config.get("target") or {}).get("path") or ""
+    target = config.get("target")
+    path = (target.get("path") if isinstance(target, dict) else None) or ""
     return (
         kind(grader["name"]) == "truth"
         and grader.get("type") == "regex"
