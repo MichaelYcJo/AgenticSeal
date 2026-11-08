@@ -38,6 +38,7 @@ STEP = "a change to what ships must move the version"
 SHIPS = {
     "skills",  # skills/<name>/SKILL.md
     "agents",  # agents/<name>.md
+    "hooks",  # hooks/hooks.json and the scripts it names
     "lib",  # the modules the shipped scripts import
     "templates",  # what the implement skill bootstraps a repository from
     ".claude-plugin",  # the manifest; the version itself
@@ -143,9 +144,10 @@ def test_every_top_level_entry_is_classified():
 
 def test_the_release_document_names_the_same_roots():
     """`docs/releasing/branch-and-release.md` tells the release sequence which roots
-    trigger the bump. It said five when the pattern said five; both say six —
-    the SAME six, so a seventh root written into the paragraph, or one taken
-    out of it, reads as a disagreement with the workflow rather than as prose."""
+    trigger the bump. It said five when the pattern said five; both must name
+    the SAME roots, so a root written into the paragraph alone, or taken out
+    of it alone, reads as a disagreement with the workflow rather than as
+    prose."""
     doc = read(RELEASE_DOC)
     # The paragraph, not the sentence: `.claude-plugin/` carries a full stop.
     paragraph = doc.split("the `hygiene` workflow", 1)[1].split("\n\n", 1)[0]

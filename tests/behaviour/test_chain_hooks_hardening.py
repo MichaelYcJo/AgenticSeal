@@ -1,44 +1,84 @@
 """Hardening cases over what the plugin ships: its packaging, the READMEs'
 account of it, and the agent definitions' wording.
 
-The module keeps its name since #1376, which removed the hooks it was named
-for. The stamp's `Stop` hook, the one a person installs, is held in
-`tests/skills/test_seal_stamp.py`.
+The module is named for the plugin's hooks, which #1376 removed and #1430
+brought back as two. What the stamp's `Stop` command draws is held in
+`tests/skills/test_seal_stamp.py`, and what the `SessionStart` command
+prints in `tests/hooks/test_core_start.py`.
 """
 
 import json
 import os
 import re
+import shlex
 import subprocess
 import sys
 
-from conftest import ROOT
+from conftest import ROOT, git_listing
 
 # --- packaging sanity ------------------------------------------------------
 
+# The two entries `hooks/hooks.json` registers, each event's matcher (None
+# for an entry with none), and the files `hooks/` holds.
+HOOK_ENTRIES = {"Stop": None, "SessionStart": "startup|clear|compact"}
+HOOK_FILES = ["hooks/core-start.py", "hooks/hooks.json"]
+PLUGIN_ROOT = "${CLAUDE_PLUGIN_ROOT}/"
 
-def test_the_plugin_registers_no_hook_and_writes_none_into_git():
-    """#1376 phases 5 and 7. The plugin directory refuses a plugin that
-    registers a command hook, so the plugin ships no `hooks/hooks.json`, its
-    manifest declares no `hooks`, and no file stands under `hooks/`: the
-    library the commands import stands at `lib/`. The stamp's `Stop` hook is
-    the person's, which `seal stamp --install` writes into their own settings
-    (`tests/skills/test_seal_stamp.py`). Nothing writes into a clone's git
-    hooks either (`docs/checks/the-routing-check.md`)."""
+
+def test_the_plugin_registers_two_hooks_and_writes_none_into_git():
+    """#1430 *Scope* items 1 and 4. The plugin ships two command hooks and
+    no dispatcher: a `Stop` entry with no matcher that runs
+    `seal_stamp.py --stop`, and a `SessionStart` entry matched to
+    `startup|clear|compact` that runs `hooks/core-start.py`. Each holds one
+    command hook, two halves joined by ` || `, `python3` then `py -3`, naming
+    one tracked script under `${CLAUDE_PLUGIN_ROOT}` with the same
+    arguments. The manifest declares no `hooks`, since the harness reads
+    `hooks/hooks.json` at the plugin's root, and `hooks/` holds those two
+    files and nothing else. Nothing writes into a clone's git hooks
+    (`docs/checks/the-routing-check.md`).
+
+    The plugin directory refuses a plugin that registers a command hook
+    (#1376), and the owner chose on 2026-11-08 to ship these two until a
+    listing is possible. When the directory lists the plugin with its hooks,
+    or lists it on condition they go, the removal undoes: `hooks/hooks.json`,
+    `hooks/core-start.py`, `lib/core.py`, `tests/hooks/test_core_start.py`,
+    `tests/lib/test_core.py`, this case, `hooks` in
+    `tests/behaviour/test_the_release_check_watches_what_ships.py#SHIPS`, the
+    hygiene step's pattern and the roots sentence of
+    `docs/releasing/branch-and-release.md` *Cutting a release*, `ruff.toml`'s
+    `hooks/*.py` line and the start of `tests/lib/test_launch.py`'s floor
+    derivation, `skills/verify/scripts/payload_meter.py#HOOK_ROW`, and the
+    sentences this command lists:
+
+        git grep -n "SessionStart\\|hooks/hooks.json\\|core-start\\|lib/core\\|AgenticSeal core from"
+
+    and it gives the core and the stamp new carriers, which that work's frame
+    decides."""
     with open(
         os.path.join(ROOT, ".claude-plugin", "plugin.json"), encoding="utf-8"
     ) as f:
         manifest = json.load(f)
     assert "hooks" not in manifest, manifest.get("hooks")
-    # Every file under `hooks/` on disk, with the bytecode Python wrote beside
-    # a module it loaded before the move left out.
-    left = sorted(
-        os.path.relpath(os.path.join(here, name), ROOT)
-        for here, dirs, names in os.walk(os.path.join(ROOT, "hooks"))
-        if os.path.basename(here) != "__pycache__"
-        for name in names
-    )
-    assert left == [], left
+    with open(os.path.join(ROOT, "hooks", "hooks.json"), encoding="utf-8") as f:
+        registered = json.load(f)
+    assert list(registered) == ["hooks"], list(registered)
+    assert sorted(registered["hooks"]) == sorted(HOOK_ENTRIES), registered["hooks"]
+    tracked = git_listing(ROOT, "ls-files")
+    for event, matcher in HOOK_ENTRIES.items():
+        (entry,) = registered["hooks"][event]
+        assert entry.get("matcher") == matcher, (event, entry)
+        assert sorted(entry) == sorted(["hooks"] + (["matcher"] if matcher else []))
+        (hook,) = entry["hooks"]
+        assert hook["type"] == "command", (event, hook)
+        halves = [shlex.split(half) for half in hook["command"].split(" || ")]
+        assert len(halves) == 2, (event, hook["command"])
+        first, second = halves
+        assert first[0] == "python3" and second[:2] == ["py", "-3"], halves
+        assert first[1:] == second[2:], halves
+        script = first[1]
+        assert script.startswith(PLUGIN_ROOT), (event, script)
+        assert script[len(PLUGIN_ROOT) :] in tracked, (event, script)
+    assert sorted(p for p in tracked if p.startswith("hooks/")) == HOOK_FILES
     assert os.path.isfile(os.path.join(ROOT, "lib", "optin.py"))
 
 
