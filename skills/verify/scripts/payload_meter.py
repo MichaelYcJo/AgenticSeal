@@ -68,9 +68,10 @@ file through `seal payload`: `lib/launch.py` refuses `seal` with 2 first.
 
 Two things the ratio has to know about the machine it was measured on. A
 skill name resolves to `skills/<name>/SKILL.md` in the user's config
-directory when the user has one, shadowing the plugin's — measured here for `writing-style`, 25,834 B
-against the tree's 19,762 B — so the row reports the tree's file, notes the
-shadow, and the calibration divides by the bytes the spawn actually read.
+directory when the user has one, shadowing the plugin's — measured here for
+`writing-style`, 25,834 B against the tree's 19,762 B — so the row reports
+the tree's file, notes the shadow, and the calibration divides by the bytes
+the spawn actually read.
 And a spawn's first message carries its prompt as well as the payload, so
 of several spawns of one agent the SMALLEST prefix is taken and the count
 is reported.
@@ -530,10 +531,10 @@ def pair_rows(root, home, sections, user):
 def session_composition(root, home, sections, user):
     """The rows of a session's prefix in the tree at ROOT: the `CLAUDE.md`
     pair with its imports (`pair_rows`, with `user` the pair `user_dir`
-    returns), then `HOOK_ROW`, share `hook`, whose
-    bytes and characters are `lib/core.py#rendered` for the core
-    `lib/core.py#origin` names in ROOT, header and closing line included: what
-    a session in ROOT receives where ROOT holds a `seal/` root. Where ROOT
+    returns), then `HOOK_ROW`, share `hook`, whose bytes and characters are
+    `lib/core.py#rendered` for the core `lib/core.py#origin` names in ROOT,
+    header and closing line included: what a session in ROOT receives where
+    ROOT holds a `seal/` root. Where ROOT
     holds no core to print, as a release before the hook does, the row is 0
     bytes marked `missing`: the hook's one-line refusal is printed only by a
     tree that has the hook. Every token figure is estimated at
