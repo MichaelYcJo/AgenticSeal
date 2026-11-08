@@ -3110,11 +3110,11 @@ def emit(args, render, path=None):
     the transcript's path is the difference.** A transcript lives at
     `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/projects/-Users-x-<repo>/<session-id>.jsonl`,
     so under the default directory the path carries the account name twice
-    and the session id once; `--post` writes
-    into an issue tracker, where the repair for a published one is a person
-    deleting a comment. `CONTRIBUTING.md` *House rules*, in its bullet
-    **The plugin ships two hooks, and neither writes outside the
-    repository**, states the repository's position on what may leave the
+    and the session id once; `--post` writes into an issue tracker, where
+    the repair for a published one is a person deleting a comment.
+    `CONTRIBUTING.md` *House rules*, in its bullet **The plugin ships two
+    hooks, and neither writes outside the repository**, states the
+    repository's position on what may leave the
     machine — *anything that would send repository contents, paths, or
     prompts is not on the table* — and it is written about the plugin's
     hooks rather than this, which is why the rule is written here rather
