@@ -52,9 +52,10 @@ check: tests/github/test_publish_release_note.py
 fragment.** A work item whose diff changes `skills/core/SKILL.md`, `CLAUDE.md`, an `agents/*.md` file, a `skills/*/orchestration.md` file or `skills/implement/bootstrap.md` ends its `changelog.md` with the line `### Process changes` and a table in
 the shape `templates/records/process.md` gives: one row per change, holding
 the date, the change, one line of why, and a link to the issue comment or
-commit it came from. The party that writes the fragment writes it with the fragment, which is
-the last phase's crafter where a crafter builds the work item. A row
-written with its change leaves no write for the end of the release, and the
+commit it came from. The party that writes the fragment writes the table
+with it: the last phase's crafter where a crafter builds the work item
+(`agents/crafter.md` *Job*), and the orchestrator where the session does. A
+row written with its change leaves no write for the end of the release, and the
 next framer reads what the way of working became and why.
 
 **The release note lifts every process row into one table.** Under the
@@ -112,14 +113,14 @@ file answers.
 | `changelog.md` | this work item's entry in the next release's notes |
 | `trail/gate.md` | the orchestrator's one broad run, on either routing answer |
 | `guarantee.md` | whether the sealer sealed the work, against the issue and the tree |
-| `pr.md` | what the pull request body opens with: the `Closes` lines and quotes of the other records, each with its coordinate, written before the first round so that every round reads it |
+| `pr.md` | what the pull request body opens with: the `Closes` lines and quotes of the other records, each with its coordinate, committed before the first round so that every round reads it |
 
 **The files keep these paths until the settle after their release, and
 leave together.** `routing.md`, the frame (`frame/design.md`,
 `frame/plan.md`, `frame/questions.md`), the trail (`trail/rounds/`,
 `trail/phases/`, `trail/gate.md`) and the files at the thread's top
-(`gaps.md`, `changelog.md`, `guarantee.md`, `pr.md`, and a `pr.*.md`
-where one was written) go with the directory, whole, when the settle removes it
+(`gaps.md`, `changelog.md`, `guarantee.md`, `pr.md`, and a `pr.*.md` where
+one was written) go with the directory, whole, when the settle removes it
 (`docs/checks/the-fold.md` *The fold, and what tells it from a deletion*,
 and `docs/releasing/release-checklist.md` *2b*). A document that still cites a record of
 it writes the path a commit holds, as `<commit>:<path>`, which `git show`
@@ -149,11 +150,7 @@ pull request of a work item framed before its template lost its comments,
 so that reader keeps the comment walk of `lib/blocks.py`.
 check: record-comment-line-refused
 
-**A fact of a work item has one record, and every other record cites it by path and heading.** What changed, for a user, is `changelog.md`'s. What is built, its grounds, its rule changes and its removals are `frame/design.md`'s. In which phases, by which approach and with which commit each closed is `frame/plan.md`'s. What only a person could decide, and what was assumed in its place, is `frame/questions.md`'s. What building one phase found, each departure from the frame among it, is that phase's `trail/phases/phase-N.md`. What one round found is its `trail/rounds/round-N.md`. The one broad run is `trail/gate.md`. What went out unproved and what was within reach and not taken is `gaps.md`. The sealer's audit is `guarantee.md`. A record cites another's fact by its path and heading and does not
-restate it, so a template holds no section or cell that could hold only a
-copy. `pr.md` is the one exception, because the reader of the pull request
-reads it before the fold: it holds quotes of the other records, each
-found verbatim at its source, and no fact of its own.
+**A fact of a work item has one record, and every other record cites it by path and heading.** What changed, for a user, is `changelog.md`'s. What is built, its grounds, its rule changes and its removals are `frame/design.md`'s. In which phases, by which approach and with which commit each closed is `frame/plan.md`'s. What only a person could decide, and what was assumed in its place, is `frame/questions.md`'s. What building one phase found, each departure from the frame among it, is that phase's `trail/phases/phase-N.md`. What one round found is its `trail/rounds/round-N.md`. The one broad run is `trail/gate.md`. What went out unproved and what was within reach and not taken is `gaps.md`. The sealer's audit is `guarantee.md`. A record cites another's fact by its path and heading and does not restate it, so a template holds no section or cell that could hold only a copy. `pr.md` is the one exception, because the pull request's reader meets it before the fold: it holds the `Closes` lines and quotes of the other records, each standing word for word at the coordinate it names, and no fact of its own.
 check: tests/behaviour/test_a_phase_hands_the_next_one_a_record.py tests/behaviour/test_unverified_rows_close.py
 
 **A cited commit is one that `main` or a release branch reaches: a
