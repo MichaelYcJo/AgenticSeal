@@ -4,7 +4,7 @@
 
 | Item | Who must answer |
 |---|---|
-| the full suite, the repository-wide lint and the format check at the branch's head; phase 1 ran its 85 scoped modules in one command and the lint and format check over the one Python file it changed (`trail/phases/phase-1.md`) | the orchestrator, at the broad gate |
+| the full suite, the repository-wide lint and the format check at the branch's head; phase 1 ran its 85 scoped modules in one command and the lint and format check over the one Python file it changed (`trail/phases/phase-1.md`), and the fix pass of round 1 ran the plan row's three modules and `tests/behaviour/test_docs_line_wrap.py` and changed no Python file | the orchestrator, at the broad gate |
 | whether a framer writes `frame/plan.md` *Overlap with the release* as `agents/framer.md` steps 4 and 8 ask, and whether an orchestrator merges in the stated order, writes a *Judgments of the run* row where it departs from it, and takes the base into the later branch of an ordered pair before its next round or broad run; the case reads the template, and no case runs a framer or an orchestrator on the instruction text | a measurement: `frame/questions.md` Q1, read by the orchestrator at the release that first runs under this definition |
 
 ## Not done
