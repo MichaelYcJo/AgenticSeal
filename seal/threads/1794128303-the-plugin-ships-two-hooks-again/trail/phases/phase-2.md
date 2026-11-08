@@ -63,9 +63,11 @@ interpreter for `python3` and `${CLAUDE_PLUGIN_ROOT}` filled in, as
 The drawing case carries `stamp-drawn-once` and stands in
 `test_the_policy_names_the_command_the_marker_and_the_command_to_draw`'s
 list. The launcher's two failure cases, a root that is gone and a script
-that raises, went with the launcher: `--stop` catches every failure in
-`main`, which `Test_main.test_stop_says_nothing_and_exits_0_whatever_it_meets`
-already holds.
+that raises, went with the launcher. `--stop` catches what reading the
+payload and drawing the stamp raise, which
+`Test_main.test_stop_says_nothing_and_exits_0_whatever_it_meets` holds. A
+script that fails to load is caught by nothing, so its `Stop` command exits
+non-zero there, as round 1's finding 1 records.
 
 **Step 4b's command handles a data directory that did not arrive.** *Data &
 interfaces* gives the read as `test -f "${CLAUDE_PLUGIN_DATA}/stamp.py"`.

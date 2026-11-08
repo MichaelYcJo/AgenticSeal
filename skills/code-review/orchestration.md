@@ -528,9 +528,9 @@ broad run is recorded nowhere CI looks. On a red run relay the `BROAD GATE
 FAILED` lines. Wherever a line you read names `seal stamp --from`, quote
 it as it stands: that command is the person's to type, and never yours. The
 sealer's hand-back carries that line; quote it in the turn's text. The line
-names the command because the plugin's `Stop` hook draws nothing and says
-nothing where it cannot: a `python3` that cannot load `seal_stamp.py`, or a
-working directory outside the clone. Where the hand-back carries no such line,
+names the command because the plugin's `Stop` hook draws nothing where it
+cannot: a `python3` that cannot load `seal_stamp.py`, or a working
+directory outside the clone. Where the hand-back carries no such line,
 no stamp was queued and none is drawn, and the pull request's check is what
 says the work item was sealed.
 

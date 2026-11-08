@@ -1005,7 +1005,7 @@ GITCMD = os.path.join(
 )
 # The line `--guarantee` prints, which the sealer's hand-back carries to the
 # orchestrator. It names the way to draw the stamp by hand, because the
-# plugin's `Stop` hook draws nothing, and says nothing, where it cannot: a
+# plugin's `Stop` hook draws nothing where it cannot: a
 # `python3` that cannot load this file, or a main session whose working
 # directory is outside this clone (`docs/checks/the-stamp.md` *The stamp*).
 QUEUED = (

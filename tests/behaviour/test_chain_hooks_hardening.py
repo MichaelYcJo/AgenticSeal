@@ -82,6 +82,27 @@ def test_the_plugin_registers_two_hooks_and_writes_none_into_git():
     assert os.path.isfile(os.path.join(ROOT, "lib", "optin.py"))
 
 
+def test_the_house_rule_says_where_each_hook_command_exits_non_zero():
+    """Contract rule 14, for round 1 of #1430, finding 1. The `Stop` command
+    hands `seal_stamp.py` to `python3` with nothing around it, so a script
+    that cannot load exits non-zero, and where no `py` stands the shell's
+    exit follows. `CONTRIBUTING.md` *House rules* said each script exits 0
+    whatever happens; it now says where each exits 0 and where the command
+    does not, and that this is never the exit 2 that keeps a turn going."""
+    from conftest import flat
+
+    text = flat("CONTRIBUTING.md")
+    assert (
+        "Once its interpreter has loaded it, `hooks/core-start.py` exits 0 on "
+        "every path and `seal_stamp.py --stop` exits 0 whatever drawing the "
+        "stamp meets, so the fallback is reached where the first interpreter "
+        "could not start or could not load the script. Where it could not load "
+        "it and no `py` stands, the command exits non-zero, which is not the "
+        "exit 2 that keeps a turn going."
+    ) in text
+    assert "Each script exits 0 whatever happens" not in text
+
+
 def test_the_plugin_icon_is_a_png_the_directory_accepts():
     """#857 S9. `.claude-plugin/plugin.json` names
     `./.claude-plugin/icon.png` as its `icon`, and that file is what
