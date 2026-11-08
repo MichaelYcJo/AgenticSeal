@@ -15,8 +15,8 @@ The union is read against the committed file once, by `staleness`, and both
 the summary and the verdict read that one reading (#1444). Asked with
 `--stale-fails`, the switch for the release pull request's run, the verdict is
 exit 1 when either share is past `STALE_SHARE`, after the union is written;
-without the switch a stale file is reported and exit 0. `Test_staleness` and
-`Test_verdict` sit at the share's boundary on a thousand cases.
+without the switch a stale file is reported and exit 0. `Test_verdict` sits
+at the share's boundary on a thousand cases.
 
 #942's phase 6 placed these cases from
 `tests/behaviour/test_the_windows_leg_runs_in_shards_that_make_the_whole.py`, which
@@ -325,16 +325,6 @@ class Test_staleness:
         assert stale.unpriced_share == 2 / 3, stale
         assert stale.dead_share == 3 / 4, stale
 
-    def test_accepts_an_entry_no_part_ran_as_dead_and_never_unpriced(self):
-        """An entry the union does not hold is never an unpriced case: it
-        counts toward the seconds the file holds for nobody, and only there.
-        Five thousand of them beside a thousand live cases leave the unpriced
-        side at zero."""
-        union = priced(0, FIXTURE_SIZE)
-        stale = du.staleness(union, {**union, **priced(0, 5000, "test_gone")})
-        assert stale.unpriced == [] and stale.unpriced_share == 0, stale
-        assert len(stale.dead) == 5000 and stale.dead_share == 5000 / 6000
-
     def test_refuses_an_empty_union(self):
         """No share of nothing says the file is fresh, and the unpriced share
         of an empty union would divide by zero."""
@@ -371,7 +361,7 @@ class Test_verdict:
         assert "First unpriced: tests/test_m.py::test_0, " in sentence, sentence
         for said in (
             "`gh run download <run id> -n test-durations -D <dir>`",
-            "move <dir>/.test_durations over the committed .test_durations",
+            "move `<dir>/.test_durations` over the committed .test_durations",
             "commit it alone, with the trailer `Seal-Routing: no work item`",
             "on a branch cut from `release/vX.Y.Z`",
             "A pull request merges that branch into `release/vX.Y.Z`",

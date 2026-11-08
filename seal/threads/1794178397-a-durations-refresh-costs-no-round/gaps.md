@@ -20,8 +20,18 @@ reserves for a module whose old files cost past its threshold. That is
 beyond what *Scope* item 2 asks, so phase 1 added only `Test_staleness`
 and `Test_verdict`, the classes of the two functions it wrote.
 
-`.test_durations` keeps the entry of the case phase 2 removed,
-`test_the_durations_file_prices_the_suite`, at 0.016 s. This work makes the
-rule that no work item commits the file, so phase 2 left it. The next
-release refresh, taken from a union that no longer holds the case, drops
-the entry.
+`.test_durations` keeps the entries of the eight cases phase 2 removed from
+`tests/behaviour/test_the_windows_leg_runs_in_shards_that_make_the_whole.py`.
+They are `test_the_durations_file_prices_the_suite` and the seven fixture
+cases `frame/design.md` *Removes* row 4 names:
+`test_exactly_the_share_unpriced_passes`,
+`test_one_more_unpriced_fails_and_names_the_counts_and_the_recipe`,
+`test_an_empty_collection_is_refused`,
+`test_an_entry_nobody_collects_is_not_counted`,
+`test_dead_seconds_past_the_share_fail_and_at_the_share_pass`,
+`test_both_sides_over_are_named_in_one_sentence` and
+`test_an_empty_file_is_all_unpriced_and_nothing_gone`. Together they hold
+0.029 s. The list is every `def test_` the work's diff under `tests/`
+removes, each found once in the file. This work makes the rule that no
+work item commits the file, so phase 2 left them. The next release refresh,
+taken from a union that no longer holds those cases, drops the entries.

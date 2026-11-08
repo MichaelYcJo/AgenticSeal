@@ -79,7 +79,7 @@ STALE_SHARE = 0.05
 REMEDY = (
     "Refresh it from this run's `test-durations` artifact: "
     "`gh run download <run id> -n test-durations -D <dir>`, then move "
-    "<dir>/.test_durations over the committed .test_durations and commit it "
+    "`<dir>/.test_durations` over the committed .test_durations and commit it "
     "alone, with the trailer `Seal-Routing: no work item`, on a branch cut "
     "from `release/vX.Y.Z`; the file's line ends are already LF. "
     "A pull request merges that branch into `release/vX.Y.Z`, and "
