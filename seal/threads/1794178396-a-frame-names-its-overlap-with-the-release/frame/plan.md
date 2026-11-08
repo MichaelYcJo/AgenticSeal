@@ -31,7 +31,7 @@ Failure scenario of the chosen approach, six months on. Framers drawn side by si
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `frame/design.md` *Scope* items 1 to 6 | The case of *Scope* item 6 shown red with the template section removed, then green; the narrow run `skills/verify/SKILL.md` gives for the changed paths, with `tests/behaviour/test_the_set_a_work_item_always_has.py`, `tests/text/test_the_rules_have_one_owner.py` and `tests/behaviour/test_a_cited_section_stands_in_its_file.py` among it; *User scenarios* S1 to S5 read against the diff | |
+| 1 | `frame/design.md` *Scope* items 1 to 6 | The case of *Scope* item 6 shown red with the template section removed, then green; the narrow run `skills/verify/SKILL.md` gives for the changed paths, with `tests/behaviour/test_the_set_a_work_item_always_has.py`, `tests/text/test_the_rules_have_one_owner.py` and `tests/behaviour/test_a_cited_section_stands_in_its_file.py` among it; *User scenarios* S1 to S5 read against the diff | `355cbf97b` |
 
 ## Overlap with the release
 
