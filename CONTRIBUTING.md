@@ -161,8 +161,8 @@ file is where that shows. Each `pytest` leg in `test.yml` carries a
 were set from.
 
 `.test_durations` goes stale as cases are added, renamed or removed, which
-unbalances the Windows and macOS shards and drops no case. The file is the Windows leg's,
-and it divides the macOS leg too, because every leg collects the same
+unbalances the Windows and macOS shards and drops no case. The file is the
+Windows leg's, and it divides the macOS leg too, because every leg collects the same
 cases under the same ids: a parametrized path takes `ids=posix_id` from
 `tests/conftest.py`, and no id carries the interpreter's path, which
 `test_no_collected_id_carries_the_interpreters_path` holds. It prices each
