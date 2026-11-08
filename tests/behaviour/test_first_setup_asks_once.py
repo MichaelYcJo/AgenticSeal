@@ -661,8 +661,9 @@ def test_the_design_record_states_the_setup_rules_where_they_rule(parts, opt_in,
 # there. A session is told to write `seal/threads/<id>/routing.md` before the
 # first edit, and that write creates `seal/`, which opts the repository in.
 # Until #1177 the preset block in `~/.claude/CLAUDE.md` said so in every
-# project on the machine. The block is retired; the core, which
-# `/agentic:start` opens in a session, names the routing section (`tests/text/test_review_axes.py`), and the cases
+# project on the machine. The block is retired; the core, which the plugin's
+# `SessionStart` hook prints into a session, names the routing section
+# (`tests/text/test_review_axes.py`), and the cases
 # below read the orchestrator's half and the Bootstrap, the files that hold
 # the rule.
 

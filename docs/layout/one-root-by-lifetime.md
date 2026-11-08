@@ -81,7 +81,7 @@ twice what the folder already says.
 | A collaborator who set nothing up | in the workflow, once the plugin is installed | runs nothing, because their clone has no root under its git directory |
 
 A collaborator who never installed the plugin runs nothing in either mode,
-because the entry skill and the `seal` commands are the plugin's. The fail
+because the hooks, the skills and the `seal` commands are the plugin's. The fail
 direction is that no folder at either place means not opted in, and a
 command that cannot tell reads the repository as not opted in.
 A throwaway repository reads as not opted in with an empty file,

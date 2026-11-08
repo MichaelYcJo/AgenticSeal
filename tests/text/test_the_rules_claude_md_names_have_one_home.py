@@ -23,8 +23,8 @@ So each rule was given one home, which states it:
 #1177 took the rows out, as the comment above `LINKED` says. It keeps none of
 them now, and each home stays pinned here so no carrier restates it.
 
-#1177 retired the preset block, and the core now reaches a session when
-`/agentic:start` opens it. Three of the block's bullets moved to the file
+#1177 retired the preset block, and the core now reaches a session from
+the plugin's `SessionStart` hook. Three of the block's bullets moved to the file
 that applies each, pinned here the same way:
 
   lint, format and typecheck       skills/implement/SKILL.md, step 2

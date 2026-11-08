@@ -176,7 +176,7 @@ def test_the_rules_for_text_an_agent_or_a_check_reads_reach_both_languages():
     )
     # A session writes skills, agents, templates and frames as its first act
     # and opens no writing skill before it, so the core every agent and every
-    # session `/agentic:start` starts reads names the section.
+    # session in a repository with a `seal/` root reads names the section.
     core = " ".join(read("skills/core/SKILL.md").split())
     # The citation those sessions and agents resolve through the core.
     assert f"`{SKILL}` *{title}*" in core, (

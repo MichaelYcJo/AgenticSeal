@@ -99,21 +99,21 @@ holds, which the next update removes (`skills/update/SKILL.md`).
 ## Your first work item
 
 Open Claude Code in your repository and ask for a change in your own words,
-or type `/agentic:start` followed by an issue or a request. Where the plugin
-is installed, a plain request to change code reaches the entry skill,
-`start`, first. The session becomes the orchestrator: it reads the core,
+such as "fix #42". The session becomes the orchestrator: it reads the core,
 asks what needs a person, spawns each agent, and keeps the run's records.
 Those records make up the work item, one directory under `seal/threads/` for
-each piece of work. Answering the entry's first question is your consent to
-the agents the run spawns and the tokens they spend. The workflow starts
-when a request to change code reaches `start`, or a request to review
-reaches `code-review`, whether the model invoked the skill or you typed it.
-A session where neither happened reads no core, declares nothing and is
-outside the workflow.
+each piece of work. Answering the routing question is your consent to the
+agents the run spawns and the tokens they spend. In a repository with a
+`seal/` root, the plugin's `SessionStart` hook prints the core into every
+session, with a line naming where a request to change code and a request to
+review each start. A plain request to change code reaches `implement`, which
+sends the session to `skills/implement/orchestration.md`, and a request to
+review reaches `code-review`. A session that opened neither
+`skills/implement/orchestration.md` nor `code-review` declares nothing and
+is outside the workflow.
 
 The first time a session works in a repository, it asks where the records
-should live (*Shared or local*, below), and, until you have answered it once,
-whether to draw the sealer's stamp in your terminal. Then it asks the routing question,
+should live (*Shared or local*, below). Then it asks the routing question,
 every time and even for a typo fix, with the answer it recommends marked.
 The question has three answers:
 
@@ -219,8 +219,8 @@ copy is not a sync.
 
 ## How it works
 
-Every agent, and every session the entry skill `start` begins, opens with
-the core, `skills/core/SKILL.md`, the values every party judges by. The rest
+Every agent, and every session in a repository with a `seal/` root, opens
+with the core, `skills/core/SKILL.md`, the values every party judges by. The rest
 loads at the step that needs it, as a skill, or runs outside the model's
 context, as a `seal` command or a pull request's check.
 [A study of context files](https://arxiv.org/abs/2602.11988) found that they
@@ -236,8 +236,8 @@ cost of inference.
 | **proofer** (subagent) | `core`, `agent-contract` | Reviews the committed diff, its compliance with the frame first and its quality second, and writes a round record for each round ([`agents/proofer.md`](agents/proofer.md)) |
 | **tracer** (subagent) | `core`, `agent-contract` | Records what an original codebase does, as facts with coordinates and no verdicts, in a repository that declares `seal/parity.md` ([`agents/tracer.md`](agents/tracer.md)) |
 | **sealer** (subagent, Opus) | `core`, `agent-contract` | Reads every party's account against the issue and the tree after the broad gate, and writes the verdict, `guarantee.md` ([`agents/sealer.md`](agents/sealer.md)) |
-| Skills | — | The skills an agent holds from its first call are in the column to the left. These a session loads on its own when the work calls for them, and an agent opens each at the step that names it: `code-review`, `commit-pr-convention`, `confidence-check`, `feature-planner`, `implement`, `legacy-parity`, `settle`, `start`, `verify`, `writing-style`. The rest you invoke by name, under *Commands* |
-| Core | — | `skills/core/SKILL.md`. Every agent preloads it, and the entry skill `start` opens it in the session it starts, so nothing is written into your `CLAUDE.md`. It sets no response language |
+| Skills | — | The skills an agent holds from its first call are in the column to the left. These a session loads on its own when the work calls for them, and an agent opens each at the step that names it: `code-review`, `commit-pr-convention`, `confidence-check`, `feature-planner`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style`. The rest you invoke by name, under *Commands* |
+| Core | — | `skills/core/SKILL.md`. Every agent preloads it, and the plugin's `SessionStart` hook prints it into each session in a repository with a `seal/` root, so nothing is written into your `CLAUDE.md`. It sets no response language |
 
 ### The review chain
 
@@ -365,15 +365,15 @@ after `!` in a session, or ask the session to run it.
 | `seal rules <doc>` · `seal rules --check` | prints a document's sections with the tests their `check:` lines name, or exits non-zero naming each line whose target is gone (`skills/settle/rule-changes.md` *A rule has one shape*) |
 | `seal pact [ROOT]` | checks, in the repository that holds a pact, that every repository signed to it still agrees with it (`docs/layout/the-pact.md`) |
 | `seal payload` | measures what a session's and each agent's startup context is made of, in bytes and tokens (`skills/verify/scripts/payload_meter.py`) |
-| `/agentic:start <issue or request>` | starts a piece of work through the workflow, as a plain request to change code does: opens the core, asks the routing question once, and writes the work item's declaration before the first edit (`skills/start/SKILL.md`) |
 | `/agentic:parity-setup` | declares that this repository ports from another codebase (`skills/parity-setup/SKILL.md`) |
 | `/agentic:config` | shows what this repository decided for itself, its two languages and where its records live, and changes any of it (`skills/config/SKILL.md`) |
 | `/agentic:update` | takes the newest release and names what is in it (`skills/update/SKILL.md`) |
 
 ## Limits
 
-- **Nothing refuses a session that declares nothing.** A session the entry
-  skill never reached edits and commits as it would without the plugin,
+- **Nothing refuses a session that declares nothing.** A session that never
+  opened `skills/implement/orchestration.md` edits and commits as it would
+  without the plugin,
   and a commit you make yourself in a terminal runs none of this plugin's
   code. The pull request's check judges a declared work item
   ([`docs/checks/the-routing-check.md`](docs/checks/the-routing-check.md)).

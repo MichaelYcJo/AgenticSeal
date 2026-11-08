@@ -286,31 +286,62 @@ def test_a_plain_review_request_is_the_review_skills_and_the_typed_command_is_no
     )
 
 
-def test_a_plain_request_to_change_code_is_the_entrys():
-    """Contract rule 14, for #1376 phase 4. The owner's rule of 2026-11-06:
-    where this plugin is installed, the entry takes a plain request to change
-    code first, and the routing question is where the person chooses the
-    route. So the entry is no longer user-invoked, and its description is
-    the one place the model reads that rule."""
-    with open(os.path.join(ROOT, "skills", "start", "SKILL.md"), encoding="utf-8") as f:
+def test_a_plain_request_to_change_code_is_implements():
+    """Contract rule 14, for #1430 *Scope* item 3. The entry skill `start`
+    left once the `SessionStart` hook prints the core, so a plain request to
+    change code reaches `implement`, whose description claims starting a
+    ticket as it did before 0.33.0 and hands the request to no other skill.
+    The description is the one place the model reads that rule; the hook's
+    closing line, held by `tests/lib/test_core.py`, names the section the
+    orchestrator opens whichever skill the model picks."""
+    assert not os.path.exists(os.path.join(ROOT, "skills", "start")), (
+        "the entry skill is back beside `implement`"
+    )
+    with open(
+        os.path.join(ROOT, "skills", "implement", "SKILL.md"), encoding="utf-8"
+    ) as f:
         head = " ".join(f.read().split("\n---\n", 1)[0].split())
     assert "disable-model-invocation" not in head
-    assert "Use when: a person asks, in plain words, to change code" in head
-    assert "or types `/agentic:start <issue or request>`" in head
-    assert "NOT for: a question about how code works" in head
+    assert "Use when: implementing a feature, starting a ticket" in head
+    # The entry's claim on the request, which the description carried while
+    # the entry stood.
+    assert "a plain request to change code" not in head, head
+    assert "`start`" not in head, head
 
 
 def test_the_review_skill_opens_the_core_once_where_it_orchestrates():
-    """#1376 phase 4. A plain review request reaches `code-review` and not
-    the entry, so where it orchestrates a review it opens the core itself,
-    by the entry's first step rather than a copy of it."""
+    """#1430 *Scope* item 3. A plain review request reaches `code-review`,
+    so where it orchestrates a review it holds the core from the plugin's
+    `SessionStart` hook, and opens the file itself where the hook printed
+    nothing into the session."""
     from conftest import flat
 
     text = flat("skills", "code-review", "SKILL.md")
     assert (
-        "A session orchestrating a review run first opens the core once, as "
-        "`skills/start/SKILL.md` *1. Open the core once* says"
+        "A session orchestrating a review run holds the core once, from the "
+        "plugin's `SessionStart` hook where its repository holds a `seal/` "
+        "root, and opens `skills/core/SKILL.md` once where no output opening "
+        "`AgenticSeal core from` stands in its context"
     ) in text
+
+
+def test_the_orchestrator_holds_the_core_once_before_the_first_edit():
+    """#1430 *Scope* item 3. The entry's first step opened the core; with the
+    entry gone, step 1 of the order inside a ticket says where the core comes
+    from and the one open that stands in for a hook that printed nothing,
+    such as a plugin installed after the session began."""
+    from conftest import flat
+
+    text = flat("skills", "implement", "orchestration.md")
+    step = text.split("## Orchestrator: the order inside a ticket", 1)[1]
+    step = step.split(" 2. ", 1)[0]
+    assert (
+        "Before the first edit the orchestrator holds the core once, which the "
+        "plugin's `SessionStart` hook printed where a `seal/` root stood when "
+        "the session started. Where no output opening `AgenticSeal core from` "
+        "stands in the session's context, the orchestrator opens "
+        "`skills/core/SKILL.md` once."
+    ) in step, step
 
 
 # The row each edition lists the skills in. Scoping to the row is not
