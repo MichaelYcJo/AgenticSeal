@@ -66,8 +66,9 @@ list. The launcher's two failure cases, a root that is gone and a script
 that raises, went with the launcher. `--stop` catches what reading the
 payload and drawing the stamp raise, which
 `Test_main.test_stop_says_nothing_and_exits_0_whatever_it_meets` holds. A
-script that fails to load is caught by nothing, so its `Stop` command exits
-non-zero there, as round 1's finding 1 records.
+script that fails to load is caught by nothing in the script, as round 1's
+finding 1 records; since round 2's finding 1 the command's closing
+` || exit 0` keeps its exit at 0 there.
 
 **Step 4b's command handles a data directory that did not arrive.** *Data &
 interfaces* gives the read as `test -f "${CLAUDE_PLUGIN_DATA}/stamp.py"`.

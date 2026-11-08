@@ -14,7 +14,8 @@ import shlex
 import subprocess
 import sys
 
-from conftest import ROOT, git_listing
+import pytest
+from conftest import ROOT, git_listing, shell_probe
 
 # --- packaging sanity ------------------------------------------------------
 
@@ -30,9 +31,10 @@ def test_the_plugin_registers_two_hooks_and_writes_none_into_git():
     no dispatcher: a `Stop` entry with no matcher that runs
     `seal_stamp.py --stop`, and a `SessionStart` entry matched to
     `startup|clear|compact` that runs `hooks/core-start.py`. Each holds one
-    command hook, two halves joined by ` || `, `python3` then `py -3`, naming
-    one tracked script under `${CLAUDE_PLUGIN_ROOT}` with the same
-    arguments. The manifest declares no `hooks`, since the harness reads
+    command hook, three parts joined by ` || `: `python3` then `py -3`,
+    naming one tracked script under `${CLAUDE_PLUGIN_ROOT}` with the same
+    arguments, then `exit 0`, so the command exits 0 whatever its halves
+    did. The manifest declares no `hooks`, since the harness reads
     `hooks/hooks.json` at the plugin's root, and `hooks/` holds those two
     files and nothing else. Nothing writes into a clone's git hooks
     (`docs/checks/the-routing-check.md`).
@@ -70,9 +72,11 @@ def test_the_plugin_registers_two_hooks_and_writes_none_into_git():
         assert sorted(entry) == sorted(["hooks"] + (["matcher"] if matcher else []))
         (hook,) = entry["hooks"]
         assert hook["type"] == "command", (event, hook)
-        halves = [shlex.split(half) for half in hook["command"].split(" || ")]
-        assert len(halves) == 2, (event, hook["command"])
-        first, second = halves
+        parts = [shlex.split(part) for part in hook["command"].split(" || ")]
+        assert len(parts) == 3, (event, hook["command"])
+        first, second, last = parts
+        assert last == ["exit", "0"], (event, hook["command"])
+        halves = [first, second]
         assert first[0] == "python3" and second[:2] == ["py", "-3"], halves
         assert first[1:] == second[2:], halves
         script = first[1]
@@ -82,25 +86,57 @@ def test_the_plugin_registers_two_hooks_and_writes_none_into_git():
     assert os.path.isfile(os.path.join(ROOT, "lib", "optin.py"))
 
 
-def test_the_house_rule_says_where_each_hook_command_exits_non_zero():
-    """Contract rule 14, for round 1 of #1430, finding 1. The `Stop` command
-    hands `seal_stamp.py` to `python3` with nothing around it, so a script
-    that cannot load exits non-zero, and where no `py` stands the shell's
-    exit follows. `CONTRIBUTING.md` *House rules* said each script exits 0
-    whatever happens; it now says where each exits 0 and where the command
-    does not, and that this is never the exit 2 that keeps a turn going."""
+@pytest.mark.parametrize("event", sorted(HOOK_ENTRIES))
+def test_each_hook_command_exits_0_where_its_script_cannot_be_opened(event, tmp_path):
+    """Round 2 of #1430, finding 1. A `python3` handed a file it cannot open
+    exits 2, the `py -3` half then hands the same file to a `py` where one
+    stands, and a `Stop` command's exit 2 keeps the turn going. Each command
+    ends with ` || exit 0`, so it exits 0 whatever its halves did. The
+    command runs here as `hooks/hooks.json` spells it, under `sh`, with
+    `${CLAUDE_PLUGIN_ROOT}` at a root that holds no script, `python3` read as
+    this interpreter and `py` as a scratch one that exits 2."""
+    why = shell_probe("sh")
+    if why:
+        pytest.skip(f"sh: {why}")
+    with open(os.path.join(ROOT, "hooks", "hooks.json"), encoding="utf-8") as f:
+        ((hook,),) = [e["hooks"] for e in json.load(f)["hooks"][event]]
+    py = tmp_path / "py"
+    py.write_text("#!/bin/sh\nexit 2\n", encoding="utf-8")
+    py.chmod(0o755)
+    command = hook["command"]
+    # The two interpreter names, each the first word of its half.
+    assert command.startswith("python3 ") and " || py -3 " in command, command
+    command = command.replace("python3 ", f"{shlex.quote(sys.executable)} ", 1)
+    command = command.replace(" || py -3 ", f" || {shlex.quote(str(py))} -3 ", 1)
+    empty = tmp_path / "root"
+    empty.mkdir()
+    done = subprocess.run(
+        ["sh", "-c", command],
+        input=json.dumps({"hook_event_name": event, "cwd": str(tmp_path)}).encode(),
+        capture_output=True,
+        timeout=60,
+        env={**os.environ, "CLAUDE_PLUGIN_ROOT": str(empty)},
+    )
+    assert done.returncode == 0, (event, done.returncode, done.stderr)
+
+
+def test_the_house_rule_says_each_hook_command_exits_0_whatever_happens():
+    """Contract rule 14, for rounds 1 and 2 of #1430, finding 1 of each. A
+    script can fail before it runs, and `python3` exits 2 on a file it cannot
+    open, so the exit is the command's to decide: each ends with
+    ` || exit 0`. `CONTRIBUTING.md` *House rules* states that shape and the
+    one rule it gives, and names no failure of a script."""
     from conftest import flat
 
     text = flat("CONTRIBUTING.md")
+    assert "command is `python3 <script> || py -3 <script> || exit 0`" in text
     assert (
-        "Once its interpreter has loaded it, `hooks/core-start.py` exits 0 on "
-        "every path and `seal_stamp.py --stop` exits 0 whatever drawing the "
-        "stamp meets, so the fallback is reached where the first interpreter "
-        "could not start or could not load the script. Where it could not load "
-        "it and no `py` stands, the command exits non-zero, which is not the "
-        "exit 2 that keeps a turn going."
+        "The `py -3` half runs where the `python3` half exits non-zero, and the "
+        "closing `exit 0` makes the command exit 0 whatever happens, so neither "
+        "hook returns the exit 2 that keeps a turn going."
     ) in text
     assert "Each script exits 0 whatever happens" not in text
+    assert "could not load the script" not in text
 
 
 def test_the_plugin_icon_is_a_png_the_directory_accepts():

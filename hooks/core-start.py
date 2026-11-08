@@ -12,9 +12,10 @@ repository with no root receives nothing.
 
 `hooks/hooks.json` runs this file for `SessionStart` with the matcher
 `startup|clear|compact`: a resumed session keeps what its start printed,
-and a compaction drops it. It writes nothing, and it exits 0 on every path,
-printing nothing where it fails, so the `py -3` half of its command in
-`hooks/hooks.json` runs only where `python3` could not start.
+and a compaction drops it. It writes nothing, and once loaded it exits 0 on
+every path, printing nothing where it fails. Its command in
+`hooks/hooks.json` ends with ` || exit 0`, so the command exits 0 whatever
+happens, a file its interpreter cannot load among them.
 """
 
 import json

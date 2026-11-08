@@ -308,13 +308,10 @@ writes into your settings.**
   `seal_stamp.py --stop`, which draws each stamp waiting in the clone the
   session works in, once, and says nothing where none waits.
 
-Each command is `python3 "<script>" || py -3 "<script>"`, with the script
-under the plugin's own directory, so an update moves both hooks with it.
-Once `python3` has loaded its script, the `SessionStart` hook exits 0 on
-every path and the `Stop` hook exits 0 whatever drawing the stamp meets.
-Where `python3` cannot load the script and no `py` stands, the command exits
-non-zero and prints the error, and still never stops a turn. Releases
-0.33.0 to 0.34.1 drew the stamp
+Each command is `python3 "<script>" || py -3 "<script>" || exit 0`, with
+the script under the plugin's own directory, so an update moves both hooks
+with it. The closing `exit 0` makes each command exit 0 whatever happens,
+so neither hook ever stops a turn. Releases 0.33.0 to 0.34.1 drew the stamp
 instead through a launcher, `stamp.py`, which a yes to their question wrote
 into the plugin's data directory with one `Stop` entry in
 `~/.claude/settings.json`; `/agentic:update` names both for you to take out

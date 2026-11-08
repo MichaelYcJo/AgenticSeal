@@ -84,13 +84,12 @@ check: refused-sealed-leaves-a-record
 
 **The stamp's `Stop` hook is the plugin's, and it follows every update.**
 `hooks/hooks.json` registers one `Stop` entry with no matcher, whose command is
-`python3 "${CLAUDE_PLUGIN_ROOT}/skills/verify/scripts/seal_stamp.py" --stop || py -3 "${CLAUDE_PLUGIN_ROOT}/skills/verify/scripts/seal_stamp.py" --stop`.
+`python3 "${CLAUDE_PLUGIN_ROOT}/skills/verify/scripts/seal_stamp.py" --stop || py -3 "${CLAUDE_PLUGIN_ROOT}/skills/verify/scripts/seal_stamp.py" --stop || exit 0`.
 The harness substitutes `${CLAUDE_PLUGIN_ROOT}` with the root of the copy it
 loaded, so an update moves the command with it and nothing is written into
-the person's settings. Once `python3` has loaded the file, `--stop` exits 0
-whatever drawing the stamp meets, since a `Stop` hook that exits 2 keeps the
-turn going, so the `py -3` half runs only where `python3` could not start or
-could not load it. The hook runs at the end of every turn in every
+the person's settings. The command exits 0 whatever happens, through its
+closing ` || exit 0`, since a `Stop` hook that exits 2 keeps the turn going;
+the `py -3` half runs where the `python3` half exits non-zero. The hook runs at the end of every turn in every
 repository; where nothing is pending in the clone of the payload's `cwd`, it
 returns before the opt-in is read. A release from 0.33.0 to 0.34.1 wrote, on
 the person's yes, a launcher at `${CLAUDE_PLUGIN_DATA}/stamp.py` and a `Stop`
@@ -157,10 +156,8 @@ and records it, and the new audit it asks for draws again. No guard can tell
 that copy from a stale row the same clone wrote after a push and a rebase.
 Nothing draws, and nothing says so, where the main session's working
 directory is outside the clone the stamp was queued in. Nothing draws either
-where the `python3` the harness finds cannot load `seal_stamp.py`, and there
-the command exits non-zero: its `py -3` half runs, and the traceback and,
-where no `py` stands, the shell's `command not found` are what it prints.
-Where a file was written, the line
+where the `python3` the harness finds cannot load `seal_stamp.py`, and the
+command still exits 0. Where a file was written, the line
 `--guarantee` printed names `seal stamp --from <path>`, and a stamp that did
 not appear is drawn by hand from it, once. Where none was, the pull request's
 check is what says the work item was sealed.

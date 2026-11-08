@@ -455,15 +455,13 @@ question is not its difficulty, it is when it arrives.
   whose repository holds a `seal/` root. The plugin directory refuses a
   plugin that registers a command hook (#1376), and the owner chose on
   2026-11-08 to ship these two until a listing is possible (#1430). Each
-  command is `python3 <script> || py -3 <script>`, with the script named
-  under `${CLAUDE_PLUGIN_ROOT}`: shebangs and exec bits do not exist on
-  Windows, and `python3` is the one name its official installer does not
-  create. Once its interpreter has loaded it, `hooks/core-start.py` exits
-  0 on every path and `seal_stamp.py --stop` exits 0 whatever drawing the
-  stamp meets, so the fallback is reached where the first interpreter could
-  not start or could not load the script. Where it could not load it and no
-  `py` stands, the command exits non-zero, which is not the exit 2 that
-  keeps a turn going. Neither reaches a
+  command is `python3 <script> || py -3 <script> || exit 0`, with the
+  script named under `${CLAUDE_PLUGIN_ROOT}`: shebangs and exec bits do not
+  exist on Windows, and `python3` is the one name its official installer
+  does not create. The `py -3` half runs where the `python3` half exits
+  non-zero, and the closing `exit 0` makes the command exit 0 whatever
+  happens, so neither hook returns the exit 2 that keeps a turn going.
+  Neither reaches a
   network; `README.md` *What runs on your machine* names the commands and
   steps that do, what each reaches, what it sends and when. Anything that
   would send repository contents, paths, or prompts is not on the table.

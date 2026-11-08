@@ -174,23 +174,20 @@ def test_the_policy_names_the_command_the_marker_and_the_command_to_draw():
     # The command `seal stamp --from <path>`, which the person types to draw
     # a stamp the hook could not.
     assert "names `seal stamp --from <path>`" in unchecked
-    # Round 1 of #1430, finding 1: the `Stop` command exits 0 once its script
-    # has loaded, and where `python3` cannot load it the command exits
-    # non-zero and prints, so it is not said to be silent there.
+    # Round 2 of #1430, finding 1: the `Stop` command ends with ` || exit 0`,
+    # so the policy states one rule for its exit and names no failure.
     assert (
-        "Once `python3` has loaded the file, `--stop` exits 0 whatever drawing "
-        "the stamp meets, since a `Stop` hook that exits 2 keeps the turn "
-        "going, so the `py -3` half runs only where `python3` could not start "
-        "or could not load it."
+        "The command exits 0 whatever happens, through its closing "
+        "` || exit 0`, since a `Stop` hook that exits 2 keeps the turn going; "
+        "the `py -3` half runs where the `python3` half exits non-zero."
     ) in rule
     assert (
         "Nothing draws either where the `python3` the harness finds cannot load "
-        "`seal_stamp.py`, and there the command exits non-zero: its `py -3` "
-        "half runs, and the traceback and, where no `py` stands, the shell's "
-        "`command not found` are what it prints."
+        "`seal_stamp.py`, and the command still exits 0."
     ) in unchecked
     assert "`--stop` exits 0 whatever happens" not in text
     assert "nothing says so, where the `python3` the harness finds" not in text
+    assert "the command exits non-zero" not in text
 
 
 def test_the_policy_states_the_refusal_record_and_names_its_cases():
@@ -266,15 +263,11 @@ def test_both_readmes_say_what_the_stamp_hook_writes_and_leaves():
                 "`/clear` or a compaction, runs `hooks/core-start.py`.",
                 "- **`Stop`**, at the end of each turn of the main session, runs "
                 "`seal_stamp.py --stop`",
-                'Each command is `python3 "<script>" || py -3 "<script>"`',
-                # Round 1 of #1430, finding 1: where each command exits 0, and
-                # where it does not.
-                "Once `python3` has loaded its script, the `SessionStart` hook "
-                "exits 0 on every path and the `Stop` hook exits 0 whatever "
-                "drawing the stamp meets.",
-                "Where `python3` cannot load the script and no `py` stands, the "
-                "command exits non-zero and prints the error, and still never "
-                "stops a turn.",
+                # Round 2 of #1430, finding 1: each command ends with
+                # ` || exit 0`, and its exit is stated as that one rule.
+                'Each command is `python3 "<script>" || py -3 "<script>" || exit 0`',
+                "The closing `exit 0` makes each command exit 0 whatever "
+                "happens, so neither hook ever stops a turn.",
                 "`/agentic:update` names both for you to take out by hand.",
                 "These side effects are worth stating outright",
                 # The clause's own words (round 2's white 2), so the bare
@@ -299,6 +292,7 @@ def test_both_readmes_say_what_the_stamp_hook_writes_and_leaves():
                 "seal stamp --install",
                 "seal stamp --remove",
                 "Each exits 0 whatever happens.",
+                "and no `py` stands, the command exits non-zero",
             ),
         ),
         (
@@ -311,13 +305,10 @@ def test_both_readmes_say_what_the_stamp_hook_writes_and_leaves():
                 "압축(compaction) 뒤에 다시 `hooks/core-start.py` 를 돌립니다.",
                 "- **`Stop`** 은 메인 세션의 턴이 끝날 때마다 "
                 "`seal_stamp.py --stop` 을 돌립니다.",
-                '두 명령은 모두 `python3 "<script>" || py -3 "<script>"` 꼴이고',
-                "`python3` 가 스크립트를 불러온 뒤에는 `SessionStart` 훅은 어느 "
-                "경로로든 0 으로 끝나고, `Stop` 훅은 도장을 그리다 무슨 일을 "
-                "만나도 0 으로 끝납니다.",
-                "`python3` 가 스크립트를 불러오지 못하고 `py` 도 없으면 명령은 0 "
-                "이 아닌 값으로 끝나며 오류를 출력하지만, 그래도 턴을 멈추지는 "
-                "않습니다.",
+                '두 명령은 모두 `python3 "<script>" || py -3 "<script>" || '
+                "exit 0` 꼴이고",
+                "끝의 `exit 0` 때문에 두 명령은 무슨 일이 있어도 0 으로 끝나고, "
+                "어느 훅도 턴을 멈추지 않습니다.",
                 "`/agentic:update` 가 이 둘을 알려 주면 사용자가 직접 지웁니다.",
                 "다음 부수 효과는 밝혀 둡니다",
                 "도장 훅은 그린 뒤 그 파일의 이름을 바꿀 뿐 지우지 않습니다",
@@ -335,6 +326,7 @@ def test_both_readmes_say_what_the_stamp_hook_writes_and_leaves():
                 "seal stamp --install",
                 "seal stamp --remove",
                 "두 스크립트 모두 무슨 일이 있어도 0 으로 끝납니다.",
+                "명령은 0 이 아닌 값으로",
             ),
         ),
     ):

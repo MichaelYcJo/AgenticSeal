@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/skills/verify/scripts/seal_stamp.py\" --stop || py -3 \"${CLAUDE_PLUGIN_ROOT}/skills/verify/scripts/seal_stamp.py\" --stop"
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/skills/verify/scripts/seal_stamp.py\" --stop || py -3 \"${CLAUDE_PLUGIN_ROOT}/skills/verify/scripts/seal_stamp.py\" --stop || exit 0"
           }
         ]
       }
@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/core-start.py\" || py -3 \"${CLAUDE_PLUGIN_ROOT}/hooks/core-start.py\""
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/core-start.py\" || py -3 \"${CLAUDE_PLUGIN_ROOT}/hooks/core-start.py\" || exit 0"
           }
         ]
       }
