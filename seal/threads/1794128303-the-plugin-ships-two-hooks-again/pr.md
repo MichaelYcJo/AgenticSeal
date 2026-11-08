@@ -5,7 +5,7 @@
 - "A person who said yes to the stamp under 0.33.0 to 0.34.1 runs `/agentic:update` once, and its *Needs action* names the `Stop` entry and `stamp.py` to remove by hand, the entry first." (`changelog.md`, the *Updating* paragraph)
 - "The pull request's title takes `feat:`, and the kind that came closest is `chore:`" (`frame/plan.md` *Judgments of the run*, the prefix row)
 - "The failure direction, the prompt budget and the platform not tested, for `CONTRIBUTING.md` *What a change to a gate must carry*: allow, zero questions, Windows." (`frame/questions.md`, the bullet on the failure direction)
-- "The failure direction of both hooks is allow: each command ends with ` || exit 0`, so it exits 0 whatever happens, a script its interpreter cannot open or load among them, and never blocks a turn." (`frame/design.md` *Grounding*, the row on `CONTRIBUTING.md` *What a change to a gate must carry*)
+- "The failure direction of both hooks is allow: each command ends with a closing `exit 0`, so it exits 0 whatever happens, a script its interpreter cannot open or load among them, and never blocks a turn." (`frame/design.md` *Grounding*, the row on `CONTRIBUTING.md` *What a change to a gate must carry*)
 - "The prompt budget is zero." (`frame/design.md` *Grounding*, the row on `CONTRIBUTING.md` *What a change to a gate must carry*)
 
 Closes #1430.
