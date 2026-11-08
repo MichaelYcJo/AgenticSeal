@@ -131,8 +131,10 @@ assertion of the guard it broke (executed):
 
 `93d4b9683` changed only the four docstrings, which had numbered the
 design's scenarios S1 to S4. The scenario table numbers none, so each
-docstring now names its scenario by name. No assertion changed after the
-mutation runs.
+docstring now names its scenario by name. `24e9aee1e` corrected one
+comment over the verdict guard, which had said the proofer writes the word
+at the start of a finding's line; the round record's form names no such
+line. No assertion changed after the mutation runs.
 
 **What `agents/tracer.md` step 3 leaves for a reader.** Step 3 still
 reads "search the original only for the axes they leave". Step 6 now
