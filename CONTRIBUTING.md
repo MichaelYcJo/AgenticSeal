@@ -121,7 +121,8 @@ interpreter it says which to install. What runs before any floor is checked
 runs on whatever `python3` starts it.
 `ruff.toml` lints that code at the version its `per-file-target-version`
 names. `tests/behaviour/test_every_entry_point_runs_at_the_floor.py` derives
-the set and holds every file of it to that table, and `tests/censuses.py#floor_syntax` refuses in it the syntax
+the set and holds every file of it to that table, and
+`tests/censuses.py#floor_syntax` refuses in it the syntax
 `ast` rejects at that version and the two constructs ruff pushes toward above
 it, `zip(..., strict=)` and `datetime.UTC`. Nothing runs that code at that
 version, so a standard-library module or an annotation only a newer `python3`
