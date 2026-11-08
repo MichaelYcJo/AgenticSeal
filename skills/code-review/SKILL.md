@@ -78,7 +78,7 @@ Fix the axes before starting and cover all of them.
 | Query scope | which set is targeted: period, ownership, status filters |
 | Exclusions & boundaries | excluded states, overlap conditions, **boundary values** (rarely written down — most frequent divergence point) |
 | Deliberate non-exclusions | what the policy or the design intentionally does *not* filter; new code tends to "clean it up" |
-| Ordering, dedup, response shape | sort keys, tie-breaking, dedup basis, included/excluded fields |
+| Ordering, dedup, response shape | sort keys, tie-breaking, dedup basis, included/excluded fields, walked from the reference's fields to the code's |
 | Error paths | failure conditions, codes, messages; failure vs. empty result. Count **new failure paths the change introduces** separately — someone must classify each as fix or regression |
 | State transitions | against the state machine the policy or the design states, if one exists |
 | Concurrency & atomicity | what can change between the read that decides and the write that acts: state held across an external call or `await`, transaction boundary against lock scope, whether a retry executes twice |
@@ -87,6 +87,14 @@ Fix the axes before starting and cover all of them.
 The last two rows are not settled by following one request end to end: one
 asks what a second actor does while the first is mid-flight, the other what
 an input nobody sends in good faith does.
+
+The response-shape row is walked from the reference to the code. The
+reference is the work item's `frame/design.md`, or the original in a
+migration (`skills/legacy-parity/SKILL.md` *Parity review*). The proofer
+looks for each field the reference states in the code, and a field it does
+not find there is a finding by default. A field the code has and the
+reference does not is the behaviour nobody asked for that stage 1 names.
+Reading from the code back to the reference finds only what the code has.
 
 ### The table is a floor, not a ceiling
 
