@@ -58,3 +58,46 @@ none of it.
 target: 05d86bdc against 94d04d30
 Verdict: withheld reason: the changelog fragment's sentence "The logged crossings each came from one work item that renamed or removed many cases, and that work item then committed a refresh after its build" (`changelog.md:3`, committed in `c3b7b37d`, quoted by the orchestrator at `pr.md:2`) is contradicted by the issue body's 0.29.0 entry ("a stale durations file this branch's new cases pushed past the 5% share") and by `d57e9ee7`, whose refresh prices 327 new keys across more than a dozen modules, only 14 of them #898's own six added cases; rewrite that sentence and `pr.md:2` to what the logs hold, judge whether `frame/design.md:17` G9 and `frame/plan.md:29` row F, which state the same reading, are folded, and regenerate the body
 ```
+
+## Re-audit at `b71a11de`
+
+Two commits follow `05d86bdc`. `a63472f1` commits this file. `b71a11de`
+touches `changelog.md`, `frame/design.md`, `frame/plan.md` and `pr.md`, all
+in this work item (executed, `git log --no-merges --name-only
+8c5217fb..HEAD ^94d04d30`). So `trail/gate.md`'s `8c5217fb` is followed only
+by paths under `seal/threads/<item>/`. `seal pr-body <item> --body <file>
+--check` exited 0 on the regenerated body (executed). No code, test or
+workflow changed since `05d86bdc`, so the code claims re-run above still
+cover HEAD and were not re-run. This audit re-ran only the claims whose
+coordinates `b71a11de` touched.
+
+### Claims re-run
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| Each logged crossing surfaced on one work item's branch, which had renamed or removed many cases or whose new cases pushed the release's accumulated growth past the share, and that work item then committed a refresh | `changelog.md:3`, the fourth sentence; `pr.md:2` quotes it | for each merge the issue logs that this tree holds, `git show <c> -- tests` for added and removed `def test_`, and the keys of `.test_durations` at `<c>^` and `<c>` compared: `61a8455a` (#1027), `334189fd` (#1177), `d57e9ee7` (#898); #1376's move of `tests/hooks/` read from `frame/design.md:17` G9's v0.33.0 coordinate | holds. `61a8455a` removes 463 `def test_`, and its refresh drops 1,396 keys. `334189fd` adds 81 and removes 28, and its refresh prices 379 new keys spread across modules. `d57e9ee7` adds 6, and its refresh prices 327 new keys, 14 of them its own. Each falls under one of the sentence's two branches (executed). #1376's crossing is a move of a test directory, a rename (read) |
+| G9's last sentences: two crossings were one work item renaming or removing many cases, and the 0.29.0 crossing was the release's growth that one branch's new cases pushed past the share, with `d57e9ee7`'s 327 new keys, 14 of them #898's | `frame/design.md:17` | as the row above | holds (executed). G9 states nothing about #1177's crossing, and the tree contradicts nothing it states |
+| Row F's premise check: the crossings were renames, or one branch's new cases on top of a release's growth (#898) | `frame/plan.md:29` | as the row above | holds. #1177's branch, with 81 cases added and 379 keys new, fits the second kind (executed) |
+| The new *Judgments of the run* row: the withheld verdict, the rewrite and the fold, and that the design's choice does not rest on the old reading | `frame/plan.md:51` | read against `guarantee.md`'s first block and `b71a11de`'s diff | holds (read) |
+| Each quote in `pr.md` stands at its cited source | `pr.md:1-6` | each quote, with runs of whitespace collapsed, searched in its source | holds: six of six (executed) |
+| No record of the work item still states the old reading | the work item's directory | `git grep -n -i 'slow growth\|renamed or removed many\|renaming or removing many\|crossings each came\|only renames crossed'` over the directory | holds. Outside this file, the hits are the rewritten sentences, the judgment row, and `frame/plan.md:50`, whose grounds name the cost the suite case put on work items that renamed or removed many cases and claim no cause of a crossing (executed) |
+
+### The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | As in the first block. G9 now names two crossings as renames and removals, and 0.29.0's as growth one branch pushed past the share. | the issue body's four log entries; `61a8455a`, `334189fd`, `d57e9ee7`; the diff | none found |
+| the build | As in the first block; unchanged since `05d86bdc`. | the diff; the sample re-run at `05d86bdc` | none found |
+| the last round | Round 2 at `fc0b4b28`, unchanged. `b71a11de` touched only the work item's records, and this audit read them. | the tree at HEAD | none found |
+| the changelog | As in the first block, with the crossing sentence rewritten to the two kinds of branch. | the issue body; the three merges re-read above; the diff | none found |
+| the orchestrator's part of the pull request body | `pr.md` quotes the rewritten sentence, the other three changelog sentences, the prefix judgment and one `gaps.md` row, and closes #1444. | each quote stands at its source; the body check exits 0 | none found |
+
+The `unverified` items of the first block stand as they were:
+- how GitHub evaluates the `durations` job's two expressions, and the verdict in a real step summary. The orchestrator reads these on this branch's pull request run and on 0.36.0's release pull request.
+- the crafter's mutation claims beyond the three sampled.
+- the broad gate, which is the orchestrator's (`trail/gate.md`).
+
+```seal
+target: b71a11de against 94d04d30
+Verdict: sealed
+```
