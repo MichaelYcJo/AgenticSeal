@@ -76,6 +76,11 @@ act.
 and report the axis nobody looked at.**
 ```
 
+```seal
+verdict: fixed 5c6575aaf
+answer: The finding holds: at the target, step 3 and the rule's lead started the tracer at the design's coordinates, beside a skill section that starts at the original's entry point, and step 3 left a query axis parsed at the entry point unsearched. Step 3 now reads, for each entry point the work ports, start at the original's entry point, open from there the coordinates the design's Grounding cites, and say which axes, and which items of the original's output surface, they leave; the rule's lead reads as the paste-ready fix gives it. Step 3 is in my words where the snippet's "open there" read as the place of the step; the meaning is the snippet's. Step 1's opening, the guessed-original rule and "leaves nothing behind (rule 7)" stand, and `tests/text/test_a_moved_rule_leaves_its_definition.py` and `tests/behaviour/test_a_probe_that_commits_says_so.py` pass. The `## Not done` paragraph of `gaps.md` that argued step 3 stands is replaced in the same commit by one that says no case pins the tracer's start point and why. `frame/design.md` *Scope* item 3, "every rule stay as they are", and its *Removes* table, which has no row for step 3 or the rule's lead, are the orchestrator's to fold.
+```
+
 ### 2. An item that both the design's list and the port lack is located in `frame/design.md` alone, which is the issue's own case
 
 ```seal
@@ -111,6 +116,11 @@ divergence."
 An item the original sends that the design's list and the port both lack
 is one finding, `differs`, whose `location:` names the port's path beside
 `frame/design.md`, since the fix adds the item to both.
+```
+
+```seal
+verdict: fixed 5c6575aaf
+answer: The finding holds. *Parity review* now carries the clause after "as *Three-way judgment* asks of every divergence.", with "the port's entry point" in place of the snippet's "the port's path": an item the port lacks has no path of its own in the port, and the entry point is the coordinate the walk starts from. The sentence in *The original's coordinates* that located such an item in `frame/design.md` alone now reads "located in `frame/design.md` and, where the port lacks it too, in the port as well (*Parity review*)", so the two sections give one location and the tracer's section gives no verdict. A new case, `tests/text/test_review_axes.py::test_an_item_the_list_and_the_port_both_lack_is_located_in_both`, holds `location:` and `frame/design.md` in *Parity review*'s prose. It was seen red before the skill was edited, failing on its first guard, and `seal mutate` over each guard at `5c6575aaf` went red on that guard's own assertion (executed). The fragment's first item says it. `frame/design.md` *Scope* item 1 holds the old sentence at its commit, for the orchestrator to fold.
 ```
 
 ### 3. The response-shape paragraph names the work item's `frame/design.md` as the only non-migration reference, dropping the `docs/` policies stage 1 reads first
@@ -155,6 +165,11 @@ In `changelog.md:4`, the sentence becomes:
 The reference is the policy documents and the work item's `frame/design.md`, or the original in a migration.
 ```
 
+```seal
+verdict: fixed 5c6575aaf
+answer: The finding holds. The paragraph now reads "The reference is what stage 1 reads above the code: the policy documents and the work item's `frame/design.md`, and in a migration the original as well (`skills/legacy-parity/SKILL.md` *Parity review*)". My words differ from the snippet's in two places. "the policy documents" stands for the snippet's "the `docs/` policies", since the policy root is the one `seal/config.md`'s `Policy root` names and not always `docs/`. "and in a migration the original as well" stands for "or the original", since *Parity review* compares against the original "and not only the written design", so in a migration the original adds to the reference and does not replace it. A review with no work item then walks from the policy documents. The fragment's second item carries the same sentence. `frame/design.md` *Scope* item 5, "the reference is the design, or the original in a migration", is the orchestrator's to fold.
+```
+
 ### 4. The response-shape default makes a field the reference excludes into a field the code must send
 
 ```seal
@@ -192,6 +207,11 @@ In `changelog.md:4`, the sentence becomes:
 
 ```markdown
 A paragraph under the table states the default: the proofer looks in the code for each field the reference says the response carries, and a field it does not find there is a finding by default, as is a field the reference leaves out and the code sends.
+```
+
+```seal
+verdict: fixed 5c6575aaf
+answer: The finding holds. The paragraph now says that the proofer looks in the code for each field the reference says the response carries, and a field it does not find there is a finding by default, and then, as its own sentence and not after a semicolon, that a field the reference says the response leaves out and the code sends is a finding too. The sentence after it now reads "A field the code sends that the reference does not mention", so an excluded field, which the reference does mention, falls under the sentence before it and not under the behaviour nobody asked for. The fragment's second item carries the snippet's sentence. `frame/design.md` *Scope* item 5 holds the old default at its commit, for the orchestrator to fold.
 ```
 
 ## Confirmations
