@@ -45,4 +45,4 @@ A release whose committed `.test_durations` is past `STALE_SHARE` at its release
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-09 | Phase 1's hand-back named one frame statement HEAD contradicts, the fields `frame/design.md` *Data & interfaces* gives the one function's result; the orchestrator read the design and the plan whole against HEAD and rewrote that statement to the fields `Staleness` carries. | `.github/scripts/durations_union.py#Staleness` holds the case count, the file's seconds and the dead seconds beside the two id lists, and derives the two shares from them; nothing else in either file is contradicted by HEAD. | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |

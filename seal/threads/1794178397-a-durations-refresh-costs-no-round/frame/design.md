@@ -56,7 +56,7 @@ Out:
 
 `.github/scripts/durations_union.py`:
 
-- One function returns, for a union and a committed map, the unpriced ids in union order, the dead ids in the file's order, and the two shares. `report` reads it for its unpriced and dead lines, and the verdict reads it. An empty union is refused, as `unpriced` refuses an empty collection today.
+- One function returns, for a union and a committed map, the unpriced ids in union order, the dead ids in the file's order, the union's case count, the committed file's seconds and the dead entries' seconds, and the two shares derived from them, because the report and the verdict's sentence print each. `report` reads it for its unpriced and dead lines, and the verdict reads it. An empty union is refused, as `unpriced` refuses an empty collection today.
 - The verdict is asked by the command line, for instance a `--stale-fails` switch. With it, the script exits 1 when either share is past `STALE_SHARE`, having written the union and its report, and prints the sentence to stderr and to the summary. Exit codes become: 0 wrote the union and the file is within the share or the verdict was not asked; 1 wrote the union and the file is past the share; 2 refused and wrote nothing. The module docstring states all three.
 - The sentence carries the remedy as one constant, the successor of the test module's `REMEDY`.
 
