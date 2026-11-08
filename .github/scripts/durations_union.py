@@ -21,7 +21,7 @@ against `--committed`, the file the tree holds. The report goes to
 cases the file gives no price, which pytest-split prices at the file's mean,
 and the file's entries no part ran, which the division never reads but the
 file's sum still counts. The report prints both shares from that reading.
-With `--stale-fails`, which the job passes only on the release pull request,
+With `--stale-fails`, the switch for the release pull request's run alone,
 the script then fails when more than `STALE_SHARE` of the union's cases are
 unpriced or more than `STALE_SHARE` of the file's seconds are dead, and its
 sentence, on stderr and in the summary, names the counts, the shares, the

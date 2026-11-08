@@ -13,7 +13,7 @@ exit 2 and writes nothing. The cases drive it over fixture parts.
 
 The union is read against the committed file once, by `staleness`, and both
 the summary and the verdict read that one reading (#1444). Asked with
-`--stale-fails`, as the release pull request's run asks it, the verdict is
+`--stale-fails`, the switch for the release pull request's run, the verdict is
 exit 1 when either share is past `STALE_SHARE`, after the union is written;
 without the switch a stale file is reported and exit 0. `Test_staleness` and
 `Test_verdict` sit at the share's boundary on a thousand cases.
