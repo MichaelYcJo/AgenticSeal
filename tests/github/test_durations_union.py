@@ -224,8 +224,8 @@ class Test_main:
     def test_a_count_below_one_is_exit_2_naming_it(self, tmp_path, count):
         """Round 1's finding 4. `--count 0` over an empty parts directory found
         the zero parts it asked for, unioned nothing, and divided by the
-        union's size: exit 1 with a traceback, outside the script's 0-or-2
-        contract. A union of no parts is no suite, and the argument is refused
+        union's size: a traceback, which none of the script's exit codes
+        means. A union of no parts is no suite, and the argument is refused
         before anything is read."""
         root, held, out = write_parts(tmp_path, {})
         root.mkdir()
