@@ -19,8 +19,8 @@ by path from the last tag's tree and from this one, and calls
 `composition(root, root, agent, definition, False)` with five arguments
 (read: `:123-134`). The first build gave `composition` a required sixth
 argument, and the phase boundary run failed 10 cases of
-`tests/github/test_release_report.py` on a `TypeError` (executed). My
-first search for callers covered `tests`, `skills`, `lib`, `bin` and
+`tests/github/test_release_report.py` on a `TypeError` (executed). The
+phase's first search for callers covered `tests`, `skills`, `lib`, `bin` and
 `evals`, not `.github`, and under `git grep -E` on this machine its `\b`
 matched nothing, so it listed not even the meter's own calls.
 Run again as `git grep -n -P
@@ -109,10 +109,11 @@ case fails on its label line there. It was also shown red as the row asks.
   `CLAUDE_CONFIG_DIR`, against the whole of `tests/skills/test_payload_meter.py`:
   red, on `[unset]` and on the session JSON case.
 
-**S7, for item 2** (executed: G2's second search on the tree after the
-build). It lists five lines, and none is `payload_meter.py:8`, `:69`,
-`:464` or `:480`. Two are this module's code: `:440`, `imports_of`'s
-`"~"`, and `:1201`, `main`'s `expanduser("~")`, which is the home a `@~/`
+**S7, for item 2** (executed: G2's second search on the tree at
+`f10111fa6`, and again at `30f271afb` with the same five files). It lists
+five lines, and none is the docstring, shadow or pair line of item 2. Two
+are this module's code: `:440` at `f10111fa6`, `imports_of`'s `"~"`, and
+`:1201`, `main`'s `expanduser("~")`, which is the home a `@~/`
 import resolves against (G6). The other three are `session_cost.py:90`,
 phase 1's fallback, `pact_check.py:613`, which *Scope* Out leaves, and
 `skills/settle/scripts/settle.py:908`. That line refuses a path a record
