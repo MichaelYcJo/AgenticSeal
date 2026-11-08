@@ -44,6 +44,11 @@ read it, and where no such item is, the chosen item takes the move and
 the verifying round it owes. Where the
 ```
 
+```seal
+verdict: fixed ea6fa6893
+answer: `skills/implement/orchestration.md` lines 404 to 409 now carry the record's block word for word. I read it against `frame/design.md` *Scope* item 4 as `1200d2c1` folded it, which states the same fallback. This time the class was listed as a closed set, by taking the paragraph apart: each sentence of `skills/implement/orchestration.md` lines 376 to 413 and each sentence of `changelog.md` lines 3, 6 and 13 was read against the carrier rule's two conditions, that the carrier is no item a plan orders after another, and that it merges before every other item. Two sentences beyond the location failed it. The paragraph's departure sentence let the orchestrator choose an order that puts another item first where the item ordered first, which can be the carrier, cannot be sealed before the other. It now reads "the orchestrator chooses the order, with the item that carries the move still first, and writes the choice", in my words; *Scope* item 4 does not carry that clause, so the frame is the orchestrator's to fold. `changelog.md` line 3 has the same departure sentence, which `pr.md` quotes, so its carrier sentence took the clause instead: the orchestrator merges the carrier before every other item "whatever order it chooses for a pair". Every other sentence holds: the merge in the plans' order (a carrier is never ordered after another item, so merging it first keeps that order), the crafter's fold of the move ("that work item" names the carrier), the unordered items merging once the carrier has landed, `changelog.md` lines 6 and 13, and the sentences on `main` and on a repository that moves the version at the release, which name no carrier. All six `pr.md` quotes stand, with whitespace collapsed (executed: a read-only Python comparison printed True for each). `bin/test tests/behaviour/test_the_set_a_work_item_always_has.py tests/text/test_the_rules_have_one_owner.py tests/behaviour/test_a_cited_section_stands_in_its_file.py tests/behaviour/test_docs_line_wrap.py -q` exited 0 with 149 passed.
+```
+
 ### 2. Scenario S3 still gives the version move to "the item first in" a pair's order, which the folded *Scope* item 4 and the rewritten paragraph no longer guarantee
 
 ```seal
@@ -58,6 +63,11 @@ Why it matters: the fix pass's close (`trail/rounds/round-1.md:58`) and round 1'
 
 ```markdown
 | S3. The orchestrator merges the release's items | Given plans that state an order for a pair, when the orchestrator merges, then it merges in that order, gives the version move to an item no plan orders after another, and merges that item before every other item of the release. | Read G1's paragraph as rewritten. |
+```
+
+```seal
+verdict: fixed 1200d2c1
+answer: The orchestrator folded S3 at `1200d2c1`. `frame/design.md` line 51 now carries the record's row word for word (read). The fix pass wrote nothing for this finding, since the frame is not the crafter's to write. The paragraph S3 is read against still gives the move to an item no plan orders after another and merges it before every other item, at `ea6fa6893`.
 ```
 
 ## Confirmations
