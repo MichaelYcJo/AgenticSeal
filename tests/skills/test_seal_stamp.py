@@ -18,6 +18,7 @@ import math
 import os
 import pathlib
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -371,8 +372,8 @@ class Raising(Stream):
 class Test_module:
     def test_imports_nothing_outside_the_standard_library(self):
         """The disc and its sprite are stdlib-only (#832 S1): the gate, the
-        launcher and the command load this file where nothing beyond the
-        standard library is installed."""
+        plugin's `Stop` hook and the command load this file where nothing
+        beyond the standard library is installed."""
         tree = ast.parse((ROOT / TARGET).read_text(encoding="utf-8"))
         names = {
             alias.name.split(".")[0]
@@ -2145,253 +2146,33 @@ class Test_drawn_at_stop:
         assert len(later) <= stamp.MESSAGE_LIMIT
 
 
-# --- the person's `Stop` hook ---------------------------------------------------------
+# --- the plugin's `Stop` hook ---------------------------------------------------------
+
+VARIABLE = "${CLAUDE_PLUGIN_ROOT}"
 
 
-def settings_of(path):
-    return json.loads(pathlib.Path(path).read_text(encoding="utf-8"))
+def stop_command():
+    """The `python3` half of the `Stop` command in `hooks/hooks.json`, as
+    words: `python3` read as this interpreter, and `${CLAUDE_PLUGIN_ROOT}` as
+    this tree. The registration itself is held by
+    `tests/behaviour/test_chain_hooks_hardening.py`."""
+    with open(ROOT / "hooks" / "hooks.json", encoding="utf-8") as f:
+        (entry,) = json.load(f)["hooks"]["Stop"]
+    (hook,) = entry["hooks"]
+    words = shlex.split(hook["command"].split(" || ")[0])
+    assert words[0] == "python3", words
+    return [sys.executable] + [w.replace(VARIABLE, str(ROOT)) for w in words[1:]]
 
 
-def run_launcher(launcher, text, env=None):
-    """LAUNCHER run as the person's `Stop` entry runs it, TEXT on stdin."""
+def run_stop(text, env=None):
+    """The plugin's `Stop` command run as the harness runs it, TEXT on stdin."""
     return subprocess.run(
-        [sys.executable, str(launcher)],
+        stop_command(),
         input=text.encode("utf-8"),
         capture_output=True,
         timeout=60,
         env={**os.environ, **(env or {})},
     )
-
-
-class Test_hook_command:
-    def test_accepts_python3_first_and_py_3_on_the_same_launcher(self, tmp_path):
-        """`CONTRIBUTING.md` *House rules*: a command the plugin writes into a
-        person's settings names `python3` and `py -3` in that order, and the
-        fallback runs the same file."""
-        launcher = os.path.join(str(tmp_path), "stamp.py")
-        first, second = stamp.hook_command(str(tmp_path)).split(" || ")
-        assert first == f'python3 "{launcher}"'
-        assert second == f'py -3 "{launcher}"'
-
-    def test_refuses_to_carry_the_plugin_root(self, tmp_path):
-        """The command names the data directory alone, so an update that
-        moves the plugin root rewrites the launcher and leaves the person's
-        settings as they are: `install` from two roots enters one command."""
-        settings = tmp_path / "settings.json"
-        for root in ("/one/root", "/another/root"):
-            stamp.install(str(tmp_path / "data"), str(settings), root=root)
-            assert root not in stamp.hook_command(str(tmp_path / "data"))
-        (stop,) = settings_of(settings)["hooks"]["Stop"]
-        assert stop["hooks"][0]["command"] == stamp.hook_command(str(tmp_path / "data"))
-
-
-class Test_install:
-    def test_accepts_the_launcher_and_one_stop_entry_keeping_every_other_key(
-        self, tmp_path
-    ):
-        data, settings = tmp_path / "data", tmp_path / "config" / "settings.json"
-        write(settings.parent, "settings.json", '{"model": "x", "hooks": {"Stop": []}}')
-        write(data, stamp.DECLINED, "")
-        said = stamp.install(str(data), str(settings), root="/the/root")
-        launcher = data / stamp.LAUNCHER
-        assert said == stamp.INSTALLED.format(
-            settings=settings, launcher=launcher, root="/the/root"
-        )
-        assert stamp.hook_state(str(data)) == "installed /the/root"
-        assert not (data / stamp.DECLINED).exists()
-        entry = {
-            "hooks": [{"type": "command", "command": stamp.hook_command(str(data))}]
-        }
-        assert settings_of(settings) == {"model": "x", "hooks": {"Stop": [entry]}}
-        stamp.install(str(data), str(settings), root="/a/newer/root")
-        assert settings_of(settings)["hooks"]["Stop"] == [entry], "entered twice"
-        assert stamp.hook_state(str(data)) == "installed /a/newer/root"
-
-    def test_accepts_a_settings_file_that_does_not_stand_yet(self, tmp_path):
-        settings = tmp_path / "config" / "settings.json"
-        stamp.install(str(tmp_path / "data"), str(settings))
-        (stop,) = settings_of(settings)["hooks"]["Stop"]
-        assert stop["hooks"][0]["command"] == stamp.hook_command(str(tmp_path / "data"))
-
-    @pytest.mark.parametrize(
-        ("text", "why"),
-        [
-            ("not json", "it is not JSON"),
-            ("[]", "it is not an object"),
-            ('{"hooks": {"Stop": {}}}', "its `hooks.Stop` is not a list"),
-            ('{"hooks": []}', "its `hooks.Stop` is not a list"),
-        ],
-        ids=["not-json", "a-list", "stop-not-a-list", "hooks-not-an-object"],
-    )
-    def test_refuses_settings_it_cannot_merge_into_and_writes_nothing(
-        self, tmp_path, text, why
-    ):
-        """A file that does not parse is refused with exit 2 and left as it
-        is (`frame/design.md` *Data & interfaces* of #1376), before the
-        launcher is written."""
-        settings = tmp_path / "settings.json"
-        settings.write_text(text, encoding="utf-8")
-        with pytest.raises(ValueError) as refused:
-            stamp.install(str(tmp_path / "data"), str(settings))
-        assert str(refused.value) == stamp.SETTINGS_REFUSED.format(
-            path=settings, why=why
-        )
-        assert settings.read_text(encoding="utf-8") == text
-        assert not (tmp_path / "data").exists()
-
-    @pytest.mark.parametrize("given", ["", "relative/data"], ids=["empty", "relative"])
-    def test_refuses_a_data_directory_that_is_not_absolute(
-        self, tmp_path, given, monkeypatch
-    ):
-        """An unsubstituted `${CLAUDE_PLUGIN_DATA}` reaches the command as ""
-        once the shell expands it, and a relative path would land wherever
-        the shell stood. The case stands in a scratch directory, so a broken
-        check writes there and not into the tree."""
-        monkeypatch.chdir(tmp_path)
-        settings = tmp_path / "settings.json"
-        with pytest.raises(ValueError) as refused:
-            stamp.install(given, str(settings))
-        assert str(refused.value) == stamp.NOT_ABSOLUTE.format(path=given)
-        assert not settings.exists()
-
-    @pytest.mark.rule("stamp-drawn-once")
-    def test_accepts_a_launcher_the_harness_runs_at_stop_drawing_once(
-        self, opted, tmp_path
-    ):
-        """The launcher `install` writes, run as the person's `Stop` entry
-        runs it, with the payload on stdin: the message, then nothing at the
-        next `Stop`, exit 0 both times."""
-        data = tmp_path / "data"
-        stamp.install(str(data), str(tmp_path / "settings.json"), root=str(ROOT))
-        waiting(opted)
-        first = run_launcher(data / stamp.LAUNCHER, stop_payload(opted))
-        assert first.returncode == 0, first.stderr
-        assert message(first.stdout.decode("utf-8")) == stamp.fitted(
-            [(WAITING, SMALL_ROWS)]
-        )
-        again = run_launcher(data / stamp.LAUNCHER, stop_payload(opted))
-        assert (again.returncode, again.stdout) == (0, b"")
-
-    def test_refuses_to_fail_where_the_root_its_launcher_names_is_gone(
-        self, opted, tmp_path
-    ):
-        """A launcher naming a root a later update removed draws nothing and
-        exits 0, since a `Stop` hook that fails must not hold the turn; the
-        file stays for `seal stamp --from`."""
-        data = tmp_path / "data"
-        stamp.install(str(data), str(tmp_path / "s.json"), root=str(tmp_path / "gone"))
-        path = waiting(opted)
-        done = run_launcher(data / stamp.LAUNCHER, stop_payload(opted))
-        assert (done.returncode, done.stdout) == (0, b"")
-        assert os.path.exists(path)
-
-    @pytest.mark.parametrize(
-        "body",
-        ["raise RuntimeError('a later release broke')\n", "raise SystemExit(2)\n"],
-        ids=["raises", "exits-2"],
-    )
-    def test_refuses_to_fail_where_the_script_its_launcher_runs_fails(
-        self, tmp_path, body
-    ):
-        """A `Stop` hook that exits 2 keeps the turn going, so the launcher
-        exits 0 whatever the script it runs does: a raise, or an exit of its
-        own."""
-        root = tmp_path / "root"
-        write(root / "skills" / "verify" / "scripts", "seal_stamp.py", body)
-        data = tmp_path / "data"
-        stamp.install(str(data), str(tmp_path / "s.json"), root=str(root))
-        done = run_launcher(data / stamp.LAUNCHER, "{}")
-        assert (done.returncode, done.stdout) == (0, b""), done.stderr
-
-    @pytest.mark.parametrize("encoding", conftest.HOSTILE)
-    def test_accepts_a_launcher_on_a_console_it_cannot_encode_to(
-        self, korean_repo, tmp_path, encoding
-    ):
-        """A drawer that raises while reading or printing dies with stdout
-        empty, which the harness reads as nothing to show. The payload names
-        a path holding Korean, and the console cannot carry it; the stamp is
-        still printed."""
-        data = tmp_path / "data"
-        stamp.install(str(data), str(tmp_path / "settings.json"), root=str(ROOT))
-        stamp.write_values(str(korean_repo / ".git"), values())
-        body = json.dumps(
-            {"hook_event_name": "Stop", "cwd": str(korean_repo)}, ensure_ascii=False
-        )
-        done = run_launcher(
-            data / stamp.LAUNCHER,
-            body,
-            env={"PYTHONIOENCODING": encoding, "PYTHONUTF8": "0"},
-        )
-        out = done.stdout.decode("utf-8")
-        assert out.strip(), done.stderr.decode("utf-8", "replace")[-300:]
-        assert message(out).startswith("SEALED feat/x @ aaa1111"), out
-
-
-class Test_remove:
-    def test_accepts_its_own_entry_and_the_launcher_and_nothing_else(self, tmp_path):
-        data, settings = tmp_path / "data", tmp_path / "settings.json"
-        theirs = {"type": "command", "command": "echo mine"}
-        write(
-            tmp_path,
-            "settings.json",
-            json.dumps({"model": "x", "hooks": {"Stop": [{"hooks": [theirs]}]}}),
-        )
-        stamp.install(str(data), str(settings))
-        said = stamp.remove(str(data), str(settings))
-        assert said == stamp.REMOVED.format(
-            done=f"took the `Stop` entry out of {settings} and removed "
-            f"{data / stamp.LAUNCHER}"
-        )
-        assert settings_of(settings) == {
-            "model": "x",
-            "hooks": {"Stop": [{"hooks": [theirs]}]},
-        }
-        assert stamp.hook_state(str(data)) == "neither"
-
-    def test_accepts_the_lists_it_empties_taken_out_with_it(self, tmp_path):
-        data, settings = tmp_path / "data", tmp_path / "settings.json"
-        write(tmp_path, "settings.json", '{"model": "x"}')
-        stamp.install(str(data), str(settings))
-        stamp.remove(str(data), str(settings))
-        assert settings_of(settings) == {"model": "x"}
-
-    def test_refuses_another_launchers_entry_and_says_nothing_stood(self, tmp_path):
-        settings = tmp_path / "settings.json"
-        stamp.install(str(tmp_path / "theirs"), str(settings))
-        before = settings.read_text(encoding="utf-8")
-        mine = tmp_path / "mine"
-        said = stamp.remove(str(mine), str(settings))
-        assert said == stamp.NOTHING_TO_REMOVE.format(launcher=mine / stamp.LAUNCHER)
-        assert settings.read_text(encoding="utf-8") == before
-
-
-class Test_decline:
-    def test_accepts_an_empty_marker_that_the_question_reads(self, tmp_path):
-        data = tmp_path / "data"
-        said = stamp.decline(str(data))
-        assert said == stamp.DECLINED_LINE.format(marker=data / stamp.DECLINED)
-        assert (data / stamp.DECLINED).read_text(encoding="utf-8") == ""
-        assert stamp.hook_state(str(data)) == "declined"
-
-    def test_refuses_a_data_directory_that_is_not_absolute(self, tmp_path, monkeypatch):
-        monkeypatch.chdir(tmp_path)
-        with pytest.raises(ValueError):
-            stamp.decline("relative")
-        assert not (tmp_path / "relative").exists()
-
-
-class Test_hook_state:
-    def test_accepts_each_of_the_three_states(self, tmp_path):
-        data = tmp_path / "data"
-        assert stamp.hook_state(str(data)) == "neither"
-        stamp.decline(str(data))
-        assert stamp.hook_state(str(data)) == "declined"
-        stamp.install(str(data), str(tmp_path / "settings.json"), root="/r")
-        assert stamp.hook_state(str(data)) == "installed /r"
-
-    def test_refuses_to_name_a_root_a_launcher_does_not_spell(self, tmp_path):
-        write(tmp_path, stamp.LAUNCHER, "print('a launcher in another shape')\n")
-        assert stamp.hook_state(str(tmp_path)) == "installed"
 
 
 # --- a person's command -------------------------------------------------------------
@@ -2472,7 +2253,9 @@ class Test_main:
         """#1376: the sealer's one run after it writes `Verdict: sealed` queues
         the work item's values file and prints the line its hand-back
         carries. The clone is the path's, never the shell's working
-        directory, which is outside it here; a second run prints nothing."""
+        directory, which is outside it here; a second run prints nothing.
+        #1430: the line names the plugin's `Stop` hook as the drawer, spelt
+        out here so a change to what the person reads changes this case."""
         item = request.getfixturevalue(root)
         guarantee = item_dir(item) / "guarantee.md"
         if root == "shared":
@@ -2484,7 +2267,11 @@ class Test_main:
         assert stamp.main(["--guarantee", str(guarantee)]) == 0
         (written,) = queued(item.common)
         real = os.path.realpath(written)
-        line = stamp.QUEUED.format(id=ITEM_ID, path=real, command=stamp.quote(real))
+        line = (
+            f"agentic: the stamp for {ITEM_ID} is queued in {real}; the plugin's "
+            "`Stop` hook draws it at the end of the turn, and where none appears, "
+            f"`seal stamp --from {stamp.quote(real)}` draws it"
+        )
         assert capsys.readouterr().out == line + "\n"
         assert os.path.dirname(real) == os.path.realpath(stamp.values_dir(item.common))
         assert stamp.main(["--guarantee", str(guarantee)]) == 0
@@ -2530,55 +2317,38 @@ class Test_main:
         assert stamp.main(["--stop"]) == 0
         assert capsys.readouterr() == ("", "")
 
-    def test_install_hook_decline_and_remove_say_what_they_did(self, tmp_path, capsys):
-        data, settings = str(tmp_path / "data"), str(tmp_path / "settings.json")
-        assert stamp.main(["--hook", data]) == 0
-        assert capsys.readouterr().out == "neither\n"
-        assert stamp.main(["--decline", data]) == 0
-        assert capsys.readouterr().out == stamp.decline(data) + "\n"
-        assert stamp.main(["--hook", data]) == 0
-        assert capsys.readouterr().out == "declined\n"
-        assert stamp.main(["--install", data, "--settings", settings]) == 0
-        assert (
-            capsys.readouterr().out
-            == stamp.INSTALLED.format(
-                settings=settings,
-                launcher=os.path.join(data, stamp.LAUNCHER),
-                root=stamp.PLUGIN_ROOT,
-            )
-            + "\n"
+    @pytest.mark.rule("stamp-drawn-once")
+    def test_the_plugins_stop_command_draws_once_and_exits_0(self, opted):
+        """#1430: the `Stop` command `hooks/hooks.json` registers, run as the
+        harness runs it with a main session's `Stop` payload on stdin, prints
+        one `systemMessage` carrying the drawing and claims the file; the
+        next `Stop` prints nothing. Both exit 0."""
+        path = waiting(opted)
+        first = run_stop(stop_payload(opted))
+        assert first.returncode == 0, first.stderr
+        assert message(first.stdout.decode("utf-8")) == stamp.fitted(
+            [(WAITING, SMALL_ROWS)]
         )
-        assert stamp.main(["--hook", data]) == 0
-        assert capsys.readouterr().out == f"installed {stamp.PLUGIN_ROOT}\n"
-        assert stamp.main(["--remove", data, "--settings", settings]) == 0
-        assert capsys.readouterr().out.startswith("seal stamp: took the `Stop` entry")
-        assert settings_of(settings) == {}
-        assert stamp.main(["--hook", data]) == 0
-        assert capsys.readouterr().out == "neither\n"
+        assert not os.path.exists(path) and os.path.exists(stamp.drawn_path(path))
+        again = run_stop(stop_payload(opted))
+        assert (again.returncode, again.stdout) == (0, b"")
 
-    @pytest.mark.parametrize("entry", ["--install", "--remove"])
-    def test_refuses_install_or_remove_without_the_settings_file(
-        self, entry, tmp_path, capsys
+    @pytest.mark.parametrize("encoding", conftest.HOSTILE)
+    def test_the_plugins_stop_command_draws_on_a_console_it_cannot_encode_to(
+        self, korean_repo, encoding
     ):
-        """The settings file is passed in, since this file reads no
-        environment variable to find it."""
-        with pytest.raises(SystemExit) as stopped:
-            stamp.main([entry, str(tmp_path)])
-        assert stopped.value.code == 2
-        assert "need --settings" in capsys.readouterr().err
-        assert os.listdir(tmp_path) == []
-
-    def test_refuses_settings_that_do_not_parse_with_exit_2(self, tmp_path, capsys):
-        settings = tmp_path / "settings.json"
-        settings.write_text("not json", encoding="utf-8")
-        data = str(tmp_path / "data")
-        assert stamp.main(["--install", data, "--settings", str(settings)]) == 2
-        out, err = capsys.readouterr()
-        assert (
-            out == ""
-            and err
-            == stamp.SETTINGS_REFUSED.format(path=settings, why="it is not JSON") + "\n"
+        """A drawer that raises while reading or printing dies with stdout
+        empty, which the harness reads as nothing to show. The payload names
+        a path holding Korean, and the console cannot carry it; the `Stop`
+        command still prints the stamp (`lib/console.py`)."""
+        stamp.write_values(str(korean_repo / ".git"), values())
+        body = json.dumps(
+            {"hook_event_name": "Stop", "cwd": str(korean_repo)}, ensure_ascii=False
         )
+        done = run_stop(body, env={"PYTHONIOENCODING": encoding, "PYTHONUTF8": "0"})
+        out = done.stdout.decode("utf-8")
+        assert out.strip(), done.stderr.decode("utf-8", "replace")[-300:]
+        assert message(out).startswith("SEALED feat/x @ aaa1111"), out
 
 
 test_census = census_case(TARGET)

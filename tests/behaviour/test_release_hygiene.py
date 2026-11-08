@@ -1131,8 +1131,7 @@ def test_update_names_the_reload_and_what_it_was_measured_to_reach():
         ("/reload-plugins", "the reload command"),
         ("re-reads the skill bodies a spawned agent is", "what was measured"),
         ("out of the copy this session is already on", "the copy it re-reads"),
-        # #1376: the plugin registers no hook, so the unmeasured list names
-        # what a reload might still miss.
+        # #1376: the unmeasured list names what a reload might still miss.
         ("Nobody has measured whether a reload reaches agent", "what was not"),
         ("so restart for those", "the move named for what was not"),
     ):

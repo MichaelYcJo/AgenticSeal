@@ -44,12 +44,12 @@ The `seal` commands are Python scripts, and `python3` is the command they run
 with. Run `python3 -V` before you install: macOS ships 3.9 as
 `/usr/bin/python3`, and a version manager answers with whatever it was last
 told. On Windows, where the official installer creates no `python3`,
-`seal.cmd` runs `py -3`, and the stamp's hook falls back to it.
+`seal.cmd` runs `py -3`, and the plugin's two hooks fall back to it.
 
-That is the whole install. Nothing is written into your `CLAUDE.md`, and the
-plugin registers no hook. To uninstall, run `/plugin uninstall agentic`, and
-`seal stamp --remove` first where you installed the stamp's hook (*What runs
-on your machine*).
+That is the whole install. Nothing is written into your `CLAUDE.md` or your
+settings, and the plugin's two hooks come with it (*What runs on your
+machine*). To uninstall, run `/plugin uninstall agentic`; nothing needs
+undoing first.
 
 This workflow differs from asking one agent to review its own work. An agent
 reviewing what it just wrote reads its own reasoning back and tends to agree
@@ -99,21 +99,21 @@ holds, which the next update removes (`skills/update/SKILL.md`).
 ## Your first work item
 
 Open Claude Code in your repository and ask for a change in your own words,
-or type `/agentic:start` followed by an issue or a request. Where the plugin
-is installed, a plain request to change code reaches the entry skill,
-`start`, first. The session becomes the orchestrator: it reads the core,
+such as "fix #42". The session becomes the orchestrator: it reads the core,
 asks what needs a person, spawns each agent, and keeps the run's records.
 Those records make up the work item, one directory under `seal/threads/` for
-each piece of work. Answering the entry's first question is your consent to
-the agents the run spawns and the tokens they spend. The workflow starts
-when a request to change code reaches `start`, or a request to review
-reaches `code-review`, whether the model invoked the skill or you typed it.
-A session where neither happened reads no core, declares nothing and is
-outside the workflow.
+each piece of work. Answering the routing question is your consent to the
+agents the run spawns and the tokens they spend. In a repository with a
+`seal/` root, the plugin's `SessionStart` hook prints the core into every
+session, with a line naming where a request to change code and a request to
+review each start. A plain request to change code reaches `implement`, which
+sends the session to `skills/implement/orchestration.md`, and a request to
+review reaches `code-review`. A session that opened neither
+`skills/implement/orchestration.md` nor `code-review` declares nothing and
+is outside the workflow.
 
 The first time a session works in a repository, it asks where the records
-should live (*Shared or local*, below), and, until you have answered it once,
-whether to draw the sealer's stamp in your terminal. Then it asks the routing question,
+should live (*Shared or local*, below). Then it asks the routing question,
 every time and even for a typo fix, with the answer it recommends marked.
 The question has three answers:
 
@@ -144,17 +144,16 @@ session runs the broad gate, the full suite, lint and typecheck, once. The
 sealer then reads every party's account against the issue and the tree, and
 the pull request opens.
 
-When the sealer's verdict is `sealed`, the sealer queues the stamp. Where you
-answered yes to the stamp's question at first setup, a `Stop` hook in your
-own settings draws it in your terminal at the end of the session's turn. It
-names the commit, the branch, the base, the work
+When the sealer's verdict is `sealed`, the sealer queues the stamp, and the
+plugin's `Stop` hook draws it in your terminal at the end of the session's
+turn. It names the commit, the branch, the base, the work
 item, the broad gate's commit and the number of review rounds:
 
 ![The stamp a sealed work item draws: the owl's red wax seal beside a panel reading SEALED, with the tree, base, item, gate and rounds](assets/seals/owl.png)
 
-Without the hook, the sealer's hand-back names `seal stamp --from <path>`,
-which draws it by hand. `docs/checks/the-stamp.md` says when the stamp is
-drawn and when it is not.
+Where the hook could not draw it, the sealer's hand-back names
+`seal stamp --from <path>`, which draws it by hand.
+`docs/checks/the-stamp.md` says when the stamp is drawn and when it is not.
 
 ### Shared or local
 
@@ -220,8 +219,8 @@ copy is not a sync.
 
 ## How it works
 
-Every agent, and every session the entry skill `start` begins, opens with
-the core, `skills/core/SKILL.md`, the values every party judges by. The rest
+Every agent, and every session in a repository with a `seal/` root, opens
+with the core, `skills/core/SKILL.md`, the values every party judges by. The rest
 loads at the step that needs it, as a skill, or runs outside the model's
 context, as a `seal` command or a pull request's check.
 [A study of context files](https://arxiv.org/abs/2602.11988) found that they
@@ -237,8 +236,8 @@ cost of inference.
 | **proofer** (subagent) | `core`, `agent-contract` | Reviews the committed diff, its compliance with the frame first and its quality second, and writes a round record for each round ([`agents/proofer.md`](agents/proofer.md)) |
 | **tracer** (subagent) | `core`, `agent-contract` | Records what an original codebase does, as facts with coordinates and no verdicts, in a repository that declares `seal/parity.md` ([`agents/tracer.md`](agents/tracer.md)) |
 | **sealer** (subagent, Opus) | `core`, `agent-contract` | Reads every party's account against the issue and the tree after the broad gate, and writes the verdict, `guarantee.md` ([`agents/sealer.md`](agents/sealer.md)) |
-| Skills | — | The skills an agent holds from its first call are in the column to the left. These a session loads on its own when the work calls for them, and an agent opens each at the step that names it: `code-review`, `commit-pr-convention`, `confidence-check`, `feature-planner`, `implement`, `legacy-parity`, `settle`, `start`, `verify`, `writing-style`. The rest you invoke by name, under *Commands* |
-| Core | — | `skills/core/SKILL.md`. Every agent preloads it, and the entry skill `start` opens it in the session it starts, so nothing is written into your `CLAUDE.md`. It sets no response language |
+| Skills | — | The skills an agent holds from its first call are in the column to the left. These a session loads on its own when the work calls for them, and an agent opens each at the step that names it: `code-review`, `commit-pr-convention`, `confidence-check`, `feature-planner`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style`. The rest you invoke by name, under *Commands* |
+| Core | — | `skills/core/SKILL.md`. Every agent preloads it, and the plugin's `SessionStart` hook prints it into each session in a repository with a `seal/` root, so nothing is written into your `CLAUDE.md`. It sets no response language |
 
 ### The review chain
 
@@ -294,30 +293,36 @@ method.
 
 ## What runs on your machine
 
-The plugin registers no hook. What runs on your machine is a `seal` command
-you or the session starts, and, where you said yes to it, the stamp's hook.
+What runs on your machine is a `seal` command you or the session starts,
+and the plugin's two hooks, which Claude Code runs at its own events.
 
-**The stamp's hook is yours, written into your settings on your yes.** First
-setup asks once, and `/agentic:update` asks a person set up before, where
-neither answer stands. A yes runs `seal stamp --install`, which writes two
-things: a launcher, `stamp.py`, in the plugin's data directory, and one
-`Stop` entry in `~/.claude/settings.json` (or under `CLAUDE_CONFIG_DIR`)
-whose command is `python3 "<data dir>/stamp.py" || py -3 "<data dir>/stamp.py"`.
-Every other key of the file is left as it was. At the end of each turn of
-the main session, the launcher runs `seal_stamp.py --stop` from the plugin
-copy it names, which draws each stamp waiting in the clone the session works
-in, once, and says nothing where none waits. It exits 0 whatever happens. A
-no runs `seal stamp --decline`, which writes an empty `stamp-declined` in the
-same directory so nothing asks again. `seal stamp --hook "<data dir>"` says
-which of the two stands, and
-`seal stamp --remove "<data dir>" --settings ~/.claude/settings.json` takes
-the entry and the launcher out.
+**The plugin ships two hooks, registered in `hooks/hooks.json`, and neither
+writes into your settings.**
+
+- **`SessionStart`**, at a session's start and again after `/clear` or a
+  compaction, runs `hooks/core-start.py`. Where the session's repository
+  holds a `seal/` root, it prints `skills/core/SKILL.md` into the session's
+  context, under one line naming the plugin's version and above one line
+  naming where work starts. Anywhere else it prints nothing.
+- **`Stop`**, at the end of each turn of the main session, runs
+  `seal_stamp.py --stop`, which draws each stamp waiting in the clone the
+  session works in, once, and says nothing where none waits.
+
+Each command is `python3 "<script>" || py -3 "<script>" || exit 0`, with
+the script under the plugin's own directory, so an update moves both hooks
+with it. The closing `exit 0` makes each command exit 0 whatever happens,
+so neither hook ever stops a turn. Releases 0.33.0 to 0.34.1 drew the stamp
+instead through a launcher, `stamp.py`, which a yes to their question wrote
+into the plugin's data directory with one `Stop` entry in
+`~/.claude/settings.json`; `/agentic:update` names both for you to take out
+by hand.
 
 No session stops another from switching the branch of a working tree it is
 using, so give each concurrent session its own worktree.
 
-The stamp's hook sends your code, your paths and your prompts nowhere. These
-side effects are worth stating outright: the sealer's
+Neither hook sends your code, your paths or your prompts anywhere: what the
+`SessionStart` hook prints goes into the session's own context, as a file
+the session opens does. These side effects are worth stating outright: the sealer's
 `seal stamp --guarantee`, run once on a `guarantee.md` reading `sealed`,
 writes the stamp's values under `<git-common-dir>/agentic-stamp/`, which the
 stamp's hook renames once drawn and nothing prunes, and a `sealed` refused
@@ -325,7 +330,7 @@ because its audited commit is not on the work item's branch leaves an empty
 file under `<git-common-dir>/agentic-stamp-refused/`, in either mode, which
 nothing prunes either.
 
-The stamp's hook reaches no network. The places below do: each is a command
+Neither hook reaches a network. The places below do: each is a command
 or a step of the workflow, so it runs when you or the session starts it, or,
 in the last row, in your CI on a pull request.
 
@@ -338,8 +343,8 @@ in the last row, in your CI on a pull request.
 | the workflow's own steps ([`skills/code-review/orchestration.md`](skills/code-review/orchestration.md)) | your repository, through your `git` and your `gh` login | reads the issue with its comments, and the latest release note. Pushes the work item's branch, opens the pull request with `gh pr create`, rewrites its body, reads its state and checks, and may start a workflow run. Lists recent pull requests before a commit. At a settle, may open an issue for a measurement | the issue is read in every run. The push and the pull request happen only where the routing answers that a pull request opens |
 | the pull-request checks `seal pr-checks install` writes (`.github/workflows/hygiene.yml`) | GitHub, from your CI runner | `git clone --depth 1` of this plugin's repository, at the release the file was written against | on each pull request, in a repository that installed the checks |
 
-The stamp's hook is the one thing on your machine that runs without you or
-the session starting it. Each row above that goes through your own `gh` login
+The two hooks are the only things on your machine that run without you or
+the session starting them. Each row above that goes through your own `gh` login
 reaches the repository you work in and no other. The workflow's steps push
 your branch, with its code, and the pull request's text there, because that
 is what they are for.
@@ -361,15 +366,15 @@ after `!` in a session, or ask the session to run it.
 | `seal rules <doc>` · `seal rules --check` | prints a document's sections with the tests their `check:` lines name, or exits non-zero naming each line whose target is gone (`skills/settle/rule-changes.md` *A rule has one shape*) |
 | `seal pact [ROOT]` | checks, in the repository that holds a pact, that every repository signed to it still agrees with it (`docs/layout/the-pact.md`) |
 | `seal payload` | measures what a session's and each agent's startup context is made of, in bytes and tokens (`skills/verify/scripts/payload_meter.py`) |
-| `/agentic:start <issue or request>` | starts a piece of work through the workflow, as a plain request to change code does: opens the core, asks the routing question once, and writes the work item's declaration before the first edit (`skills/start/SKILL.md`) |
 | `/agentic:parity-setup` | declares that this repository ports from another codebase (`skills/parity-setup/SKILL.md`) |
 | `/agentic:config` | shows what this repository decided for itself, its two languages and where its records live, and changes any of it (`skills/config/SKILL.md`) |
 | `/agentic:update` | takes the newest release and names what is in it (`skills/update/SKILL.md`) |
 
 ## Limits
 
-- **Nothing refuses a session that declares nothing.** A session the entry
-  skill never reached edits and commits as it would without the plugin,
+- **Nothing refuses a session that declares nothing.** A session that never
+  opened `skills/implement/orchestration.md` edits and commits as it would
+  without the plugin,
   and a commit you make yourself in a terminal runs none of this plugin's
   code. The pull request's check judges a declared work item
   ([`docs/checks/the-routing-check.md`](docs/checks/the-routing-check.md)).
@@ -383,7 +388,7 @@ after `!` in a session, or ask the session to run it.
   a line written where nobody compared reads the same.
 - **Windows was run on real hardware once.** The suite passes on a native
   Windows 11 tree, on a Korean cp949 console, with no `PYTHONUTF8=1`. The
-  stamp's hook has not run on Windows, and neither has its `py -3`
+  plugin's two hooks have not run on Windows, and neither has their `py -3`
   fallback.
 - **The behaviour evals run on the owner's account, not in CI.**
   `evals/behaviour/` holds the cases of a smoke run, through

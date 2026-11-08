@@ -24,6 +24,7 @@ import json
 import os
 import posixpath
 import re
+import shlex
 import subprocess
 import sys
 
@@ -201,11 +202,11 @@ class Test_module:
 
     def test_what_runs_before_any_floor_is_linted_at_the_floor(self):
         """The launcher holds the floor for `bin/`, and nothing holds it for
-        the stamp's launcher `seal stamp --install` writes, the launcher
-        itself or `bin/test`'s runner: each runs on whatever `python3` starts
-        it, 3.9 on a stock macOS, and so does every module it loads in its own
-        process. A drawer that raises there loses the stamp it claimed, and
-        the person's `Stop` entry draws nothing. `ruff.toml` lints that set
+        the scripts `hooks/hooks.json`'s commands run, the launcher itself or
+        `bin/test`'s runner: each runs on whatever `python3` starts it, 3.9 on
+        a stock macOS, and so does every module it loads in its own process.
+        A drawer that raises there loses the stamp it claimed, and the
+        `Stop` hook draws nothing. `ruff.toml` lints that set
         at the version its `per-file-target-version` names, so B905 and UP017 do
         not ask it for `zip`'s `strict=` or `datetime.UTC`. This case holds the
         set to that table, both ways; the `floor_syntax` census in
@@ -221,6 +222,8 @@ class Test_module:
         targets = ruff_targets(RUFF)
         assert {
             "skills/verify/scripts/seal_stamp.py",
+            "hooks/core-start.py",
+            "lib/core.py",
             "lib/launch.py",
         } <= unfloored, unfloored
         unlinted = sorted(
@@ -307,9 +310,10 @@ RUNS_ITS_RUNNER_DIRECTLY = {"test": '"$script"', "test.cmd": '"%script%"'}
 
 # --- what runs before any floor is checked -------------------------------------
 
-# The stamp's launcher, the one file a person's `Stop` entry hands its
-# interpreter (`seal stamp --install`); the module writes it.
-STAMP = os.path.join(ROOT, "skills", "verify", "scripts", "seal_stamp.py")
+# The plugin's hook registration: each command hands its interpreter a script
+# under the plugin root, which the harness spells `${CLAUDE_PLUGIN_ROOT}`.
+HOOKS = ("hooks", "hooks.json")
+PLUGIN_ROOT = "${CLAUDE_PLUGIN_ROOT}/"
 # A wrapper's own variables, sh's `name="value"` and cmd's `set "name=value"`.
 ASSIGNED = re.compile(r'^\s*(?:set ")?(\w+)="?([^"\n]*?)"?\s*$', re.M)
 VARIABLE = re.compile(r"\$(\w+)|%(\w+)%")
@@ -367,25 +371,41 @@ def loaded_by(rel, text, tracked):
     return found & tracked
 
 
+def hooked(root=ROOT):
+    """The repository paths `hooks/hooks.json` under ROOT hands an
+    interpreter: the argument after `python3` in each command's first half,
+    with `${CLAUDE_PLUGIN_ROOT}/` read as the root. That each first half
+    opens with `python3` and that prefix, and that the `py -3` half names
+    the same script, `tests/behaviour/test_chain_hooks_hardening.py` holds.
+    A root with no registration hands none."""
+    try:
+        with open(os.path.join(root, *HOOKS), encoding="utf-8") as f:
+            registered = json.load(f)["hooks"]
+    except OSError:
+        return set()
+    found = set()
+    for entries in registered.values():
+        for entry in entries:
+            for hook in entry["hooks"]:
+                script = shlex.split(hook["command"].split(" || ")[0])[1]
+                found.add(script[len(PLUGIN_ROOT) :])
+    return found
+
+
 def before_any_floor(root=ROOT):
     """`(paths, missing)`: every tracked `.py` an interpreter may run before
     any floor is checked, and the tracked paths the working tree deleted.
 
     It starts from what is handed an interpreter with nothing in front of it:
-    what the stamp's launcher loads, read from the text `seal_stamp.py`
-    writes it from, and the file each `bin/` wrapper hands its interpreter
+    the script each command of `hooks/hooks.json` hands its interpreter
+    (`hooked`), and the file each `bin/` wrapper hands its interpreter
     first. Then it follows `loaded_by` until nothing new is found. It errs
     over, since a string can name a file nothing loads, and under, for a
     module reached by a path built any other way. No git hook of this plugin
-    runs a script since #1027, and the plugin registers no hook since
-    #1376."""
+    runs a script since #1027."""
     listed, missing = on_disk(root, git_listing(root, "ls-files", "*.py"))
     tracked = set(listed)
-    spec = importlib.util.spec_from_file_location("seal_stamp_for_the_floor", STAMP)
-    stamp = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(stamp)
-    launcher = stamp.LAUNCHER_TEXT.format(root=repr(root))
-    start = loaded_by(stamp.LAUNCHER, launcher, tracked)
+    start = hooked(root)
     for entry in sorted(os.listdir(os.path.join(root, "bin"))):
         start |= handed_first(read(os.path.join(root, "bin", entry)))
     seen, todo = set(), sorted(start & tracked)

@@ -889,8 +889,9 @@ def heading_rule(rel, root=None):
 
 # --- floor_syntax ---------------------------------------------------------------
 #
-# What runs before any floor is checked (the launcher, `bin/test`'s
-# runner, and every module one of them loads) runs on whatever
+# What runs before any floor is checked (the scripts `hooks/hooks.json`'s
+# commands run, `lib/launch.py`, `bin/test`'s runner, and every module one of
+# them loads) runs on whatever
 # `python3` starts it, 3.9 on a stock macOS. `ruff.toml` lints that set at
 # the version its `per-file-target-version` names, so B905 and UP017 do not
 # ask it for `zip`'s `strict=` or `datetime.UTC`.

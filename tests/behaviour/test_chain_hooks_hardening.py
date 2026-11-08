@@ -1,45 +1,142 @@
 """Hardening cases over what the plugin ships: its packaging, the READMEs'
 account of it, and the agent definitions' wording.
 
-The module keeps its name since #1376, which removed the hooks it was named
-for. The stamp's `Stop` hook, the one a person installs, is held in
-`tests/skills/test_seal_stamp.py`.
+The module is named for the plugin's hooks, which #1376 removed and #1430
+brought back as two. What the stamp's `Stop` command draws is held in
+`tests/skills/test_seal_stamp.py`, and what the `SessionStart` command
+prints in `tests/hooks/test_core_start.py`.
 """
 
 import json
 import os
 import re
+import shlex
 import subprocess
 import sys
 
-from conftest import ROOT
+import pytest
+from conftest import ROOT, git_listing, shell_probe
 
 # --- packaging sanity ------------------------------------------------------
 
+# The two entries `hooks/hooks.json` registers, each event's matcher (None
+# for an entry with none), and the files `hooks/` holds.
+HOOK_ENTRIES = {"Stop": None, "SessionStart": "startup|clear|compact"}
+HOOK_FILES = ["hooks/core-start.py", "hooks/hooks.json"]
+PLUGIN_ROOT = "${CLAUDE_PLUGIN_ROOT}/"
 
-def test_the_plugin_registers_no_hook_and_writes_none_into_git():
-    """#1376 phases 5 and 7. The plugin directory refuses a plugin that
-    registers a command hook, so the plugin ships no `hooks/hooks.json`, its
-    manifest declares no `hooks`, and no file stands under `hooks/`: the
-    library the commands import stands at `lib/`. The stamp's `Stop` hook is
-    the person's, which `seal stamp --install` writes into their own settings
-    (`tests/skills/test_seal_stamp.py`). Nothing writes into a clone's git
-    hooks either (`docs/checks/the-routing-check.md`)."""
+
+def test_the_plugin_registers_two_hooks_and_writes_none_into_git():
+    """#1430 *Scope* items 1 and 4. The plugin ships two command hooks and
+    no dispatcher: a `Stop` entry with no matcher that runs
+    `seal_stamp.py --stop`, and a `SessionStart` entry matched to
+    `startup|clear|compact` that runs `hooks/core-start.py`. Each holds one
+    command hook, three parts joined by ` || `: `python3` then `py -3`,
+    naming one tracked script under `${CLAUDE_PLUGIN_ROOT}` with the same
+    arguments, then `exit 0`, so the command exits 0 whatever its halves
+    did. The manifest declares no `hooks`, since the harness reads
+    `hooks/hooks.json` at the plugin's root, and `hooks/` holds those two
+    files and nothing else. Nothing writes into a clone's git hooks
+    (`docs/checks/the-routing-check.md`).
+
+    The plugin directory refuses a plugin that registers a command hook
+    (#1376), and the owner chose on 2026-11-08 to ship these two until a
+    listing is possible. When the directory lists the plugin with its hooks,
+    or lists it on condition they go, the removal undoes: `hooks/hooks.json`,
+    `hooks/core-start.py`, `lib/core.py`, `tests/hooks/test_core_start.py`,
+    `tests/lib/test_core.py`, this case, `hooks` in
+    `tests/behaviour/test_the_release_check_watches_what_ships.py#SHIPS`, the
+    hygiene step's pattern and the roots sentence of
+    `docs/releasing/branch-and-release.md` *Cutting a release*, `ruff.toml`'s
+    `hooks/*.py` line and the start of `tests/lib/test_launch.py`'s floor
+    derivation, `skills/verify/scripts/payload_meter.py#HOOK_ROW`, and the
+    sentences this command lists:
+
+        git grep -n "SessionStart\\|hooks/hooks.json\\|core-start\\|lib/core\\|AgenticSeal core from"
+
+    and it gives the core and the stamp new carriers, which that work's frame
+    decides."""
     with open(
         os.path.join(ROOT, ".claude-plugin", "plugin.json"), encoding="utf-8"
     ) as f:
         manifest = json.load(f)
     assert "hooks" not in manifest, manifest.get("hooks")
-    # Every file under `hooks/` on disk, with the bytecode Python wrote beside
-    # a module it loaded before the move left out.
-    left = sorted(
-        os.path.relpath(os.path.join(here, name), ROOT)
-        for here, dirs, names in os.walk(os.path.join(ROOT, "hooks"))
-        if os.path.basename(here) != "__pycache__"
-        for name in names
-    )
-    assert left == [], left
+    with open(os.path.join(ROOT, "hooks", "hooks.json"), encoding="utf-8") as f:
+        registered = json.load(f)
+    assert list(registered) == ["hooks"], list(registered)
+    assert sorted(registered["hooks"]) == sorted(HOOK_ENTRIES), registered["hooks"]
+    tracked = git_listing(ROOT, "ls-files")
+    for event, matcher in HOOK_ENTRIES.items():
+        (entry,) = registered["hooks"][event]
+        assert entry.get("matcher") == matcher, (event, entry)
+        assert sorted(entry) == sorted(["hooks"] + (["matcher"] if matcher else []))
+        (hook,) = entry["hooks"]
+        assert hook["type"] == "command", (event, hook)
+        parts = [shlex.split(part) for part in hook["command"].split(" || ")]
+        assert len(parts) == 3, (event, hook["command"])
+        first, second, last = parts
+        assert last == ["exit", "0"], (event, hook["command"])
+        halves = [first, second]
+        assert first[0] == "python3" and second[:2] == ["py", "-3"], halves
+        assert first[1:] == second[2:], halves
+        script = first[1]
+        assert script.startswith(PLUGIN_ROOT), (event, script)
+        assert script[len(PLUGIN_ROOT) :] in tracked, (event, script)
+    assert sorted(p for p in tracked if p.startswith("hooks/")) == HOOK_FILES
     assert os.path.isfile(os.path.join(ROOT, "lib", "optin.py"))
+
+
+@pytest.mark.parametrize("event", sorted(HOOK_ENTRIES))
+def test_each_hook_command_exits_0_where_its_script_cannot_be_opened(event, tmp_path):
+    """Round 2 of #1430, finding 1. A `python3` handed a file it cannot open
+    exits 2, the `py -3` half then hands the same file to a `py` where one
+    stands, and a `Stop` command's exit 2 keeps the turn going. Each command
+    ends with ` || exit 0`, so it exits 0 whatever its halves did. The
+    command runs here as `hooks/hooks.json` spells it, under `sh`, with
+    `${CLAUDE_PLUGIN_ROOT}` at a root that holds no script, `python3` read as
+    this interpreter and `py` as a scratch one that exits 2."""
+    why = shell_probe("sh")
+    if why:
+        pytest.skip(f"sh: {why}")
+    with open(os.path.join(ROOT, "hooks", "hooks.json"), encoding="utf-8") as f:
+        ((hook,),) = [e["hooks"] for e in json.load(f)["hooks"][event]]
+    py = tmp_path / "py"
+    py.write_text("#!/bin/sh\nexit 2\n", encoding="utf-8")
+    py.chmod(0o755)
+    command = hook["command"]
+    # The two interpreter names, each the first word of its half.
+    assert command.startswith("python3 ") and " || py -3 " in command, command
+    command = command.replace("python3 ", f"{shlex.quote(sys.executable)} ", 1)
+    command = command.replace(" || py -3 ", f" || {shlex.quote(str(py))} -3 ", 1)
+    empty = tmp_path / "root"
+    empty.mkdir()
+    done = subprocess.run(
+        ["sh", "-c", command],
+        input=json.dumps({"hook_event_name": event, "cwd": str(tmp_path)}).encode(),
+        capture_output=True,
+        timeout=60,
+        env={**os.environ, "CLAUDE_PLUGIN_ROOT": str(empty)},
+    )
+    assert done.returncode == 0, (event, done.returncode, done.stderr)
+
+
+def test_the_house_rule_says_each_hook_command_exits_0_whatever_happens():
+    """Contract rule 14, for rounds 1 and 2 of #1430, finding 1 of each. A
+    script can fail before it runs, and `python3` exits 2 on a file it cannot
+    open, so the exit is the command's to decide: each ends with
+    ` || exit 0`. `CONTRIBUTING.md` *House rules* states that shape and the
+    one rule it gives, and names no failure of a script."""
+    from conftest import flat
+
+    text = flat("CONTRIBUTING.md")
+    assert "command is `python3 <script> || py -3 <script> || exit 0`" in text
+    assert (
+        "The `py -3` half runs where the `python3` half exits non-zero, and the "
+        "closing `exit 0` makes the command exit 0 whatever happens, so neither "
+        "hook returns the exit 2 that keeps a turn going."
+    ) in text
+    assert "Each script exits 0 whatever happens" not in text
+    assert "could not load the script" not in text
 
 
 def test_the_plugin_icon_is_a_png_the_directory_accepts():
@@ -246,31 +343,62 @@ def test_a_plain_review_request_is_the_review_skills_and_the_typed_command_is_no
     )
 
 
-def test_a_plain_request_to_change_code_is_the_entrys():
-    """Contract rule 14, for #1376 phase 4. The owner's rule of 2026-11-06:
-    where this plugin is installed, the entry takes a plain request to change
-    code first, and the routing question is where the person chooses the
-    route. So the entry is no longer user-invoked, and its description is
-    the one place the model reads that rule."""
-    with open(os.path.join(ROOT, "skills", "start", "SKILL.md"), encoding="utf-8") as f:
+def test_a_plain_request_to_change_code_is_implements():
+    """Contract rule 14, for #1430 *Scope* item 3. The entry skill `start`
+    left once the `SessionStart` hook prints the core, so a plain request to
+    change code reaches `implement`, whose description claims starting a
+    ticket as it did before 0.33.0 and hands the request to no other skill.
+    The description is the one place the model reads that rule; the hook's
+    closing line, held by `tests/lib/test_core.py`, names the section the
+    orchestrator opens whichever skill the model picks."""
+    assert not os.path.exists(os.path.join(ROOT, "skills", "start")), (
+        "the entry skill is back beside `implement`"
+    )
+    with open(
+        os.path.join(ROOT, "skills", "implement", "SKILL.md"), encoding="utf-8"
+    ) as f:
         head = " ".join(f.read().split("\n---\n", 1)[0].split())
     assert "disable-model-invocation" not in head
-    assert "Use when: a person asks, in plain words, to change code" in head
-    assert "or types `/agentic:start <issue or request>`" in head
-    assert "NOT for: a question about how code works" in head
+    assert "Use when: implementing a feature, starting a ticket" in head
+    # The entry's claim on the request, which the description carried while
+    # the entry stood.
+    assert "a plain request to change code" not in head, head
+    assert "`start`" not in head, head
 
 
 def test_the_review_skill_opens_the_core_once_where_it_orchestrates():
-    """#1376 phase 4. A plain review request reaches `code-review` and not
-    the entry, so where it orchestrates a review it opens the core itself,
-    by the entry's first step rather than a copy of it."""
+    """#1430 *Scope* item 3. A plain review request reaches `code-review`,
+    so where it orchestrates a review it holds the core from the plugin's
+    `SessionStart` hook, and opens the file itself where the hook printed
+    nothing into the session."""
     from conftest import flat
 
     text = flat("skills", "code-review", "SKILL.md")
     assert (
-        "A session orchestrating a review run first opens the core once, as "
-        "`skills/start/SKILL.md` *1. Open the core once* says"
+        "A session orchestrating a review run holds the core once, from the "
+        "plugin's `SessionStart` hook where its repository holds a `seal/` "
+        "root, and opens `skills/core/SKILL.md` once where no output opening "
+        "`AgenticSeal core from` stands in its context"
     ) in text
+
+
+def test_the_orchestrator_holds_the_core_once_before_the_first_edit():
+    """#1430 *Scope* item 3. The entry's first step opened the core; with the
+    entry gone, step 1 of the order inside a ticket says where the core comes
+    from and the one open that stands in for a hook that printed nothing,
+    such as a plugin installed after the session began."""
+    from conftest import flat
+
+    text = flat("skills", "implement", "orchestration.md")
+    step = text.split("## Orchestrator: the order inside a ticket", 1)[1]
+    step = step.split(" 2. ", 1)[0]
+    assert (
+        "Before the first edit the orchestrator holds the core once, which the "
+        "plugin's `SessionStart` hook printed where a `seal/` root stood when "
+        "the session started. Where no output opening `AgenticSeal core from` "
+        "stands in the session's context, the orchestrator opens "
+        "`skills/core/SKILL.md` once."
+    ) in step, step
 
 
 # The row each edition lists the skills in. Scoping to the row is not
@@ -404,30 +532,30 @@ def network_passage(path, said):
 def test_the_places_that_reach_the_network_are_named_without_a_count():
     """#1055 S4 and #1382. Both READMEs and `CONTRIBUTING.md` said how many
     hooks reach the network, and the guide's rule for a new one counted on
-    from there. Since #1376 the plugin registers no hook, and the one hook a
-    person may install, the stamp's, reaches no network. The READMEs'
-    network passage says so, the guide points at it, and none of the three
-    counts anything. Each edition's passage, from the pinned sentence to the
+    from there. Since #1430 the plugin ships two hooks, the stamp's `Stop`
+    hook and the `SessionStart` hook that prints the core, and neither
+    reaches a network. The READMEs' network passage says so, the guide
+    points at it, and none of the three counts anything. Each edition's passage, from the pinned sentence to the
     next heading, names every place in `NETWORK_PLACES`."""
     from conftest import flat
 
     for path, said, gone, places in (
         (
             "README.md",
-            "The stamp's hook reaches no network.",
+            "Neither hook reaches a network.",
             ("Two hooks reach the network", "Both stay silent"),
             NETWORK_PLACES,
         ),
         (
             "README.ko.md",
-            "도장 훅은 네트워크를 타지 않습니다.",
+            "두 훅 모두 네트워크를 타지 않습니다.",
             ("네트워크를 타는 훅은 둘", "둘 다 네트워크가"),
             NETWORK_PLACES,
         ),
         (
             "CONTRIBUTING.md",
-            "It reaches no network; `README.md` *What runs on your machine* names "
-            "the commands and steps that do",
+            "Neither reaches a network; `README.md` *What runs on your machine* "
+            "names the commands and steps that do",
             ("Two hooks reach the network", "A third needs", "the second carries"),
             (),
         ),

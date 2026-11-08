@@ -5,8 +5,8 @@ costs in tokens -- with every token figure carrying its basis.
 
 #292. The meter reads the tree (an agent's definition, each `SKILL.md` its
 `skills:` list injects, the two `CLAUDE.md` files the harness adds and, since
-#1177, each file their `@` lines import, and for a session the core file
-`/agentic:start` opens) and
+#1177, each file their `@` lines import, and for a session the core the
+plugin's `SessionStart` hook prints) and
 reports bytes, characters and tokens. Bytes and characters are counted;
 tokens are never — they are either MEASURED from a transcript, by
 `--calibrate`, or ESTIMATED from a bytes-per-token ratio, and the label on
@@ -98,10 +98,13 @@ def a_tree(tmp_path, skills=("alpha", "beta"), extra_agent=False):
 
 
 def a_core(root):
-    """The plugin's core under ROOT, which a session started with
-    `/agentic:start` in that tree opens. The core carries a frontmatter, so a
-    count of the text below it differs from the file's, and one accent so
-    bytes ≠ chars."""
+    """The plugin's core and manifest under ROOT, so a session in that tree
+    receives the core from the plugin's `SessionStart` hook. The core carries
+    a frontmatter the hook leaves out and one accent so bytes ≠ chars."""
+    write(
+        str(root / ".claude-plugin" / "plugin.json"),
+        '{"name": "agentic", "version": "9.9.9"}\n',
+    )
     write(
         str(root / "skills" / "core" / "SKILL.md"),
         f"---\nname: core\ndescription: the core\n---\n\n# The core {ACCENT}\n\n"
@@ -109,7 +112,18 @@ def a_core(root):
     )
 
 
-ENTRY_ROW = "/agentic:start: skills/core/SKILL.md"
+def hook_output(root):
+    """What `lib/core.py#rendered` prints for the core of the tree at ROOT:
+    the one definition the hook and the meter share."""
+    spec = importlib.util.spec_from_file_location(
+        "payload_meter_test_core", os.path.join(ROOT, "lib", "core.py")
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.rendered(module.origin(str(root), str(root)), str(root))
+
+
+HOOK_ROW = "SessionStart hook: skills/core/SKILL.md"
 
 
 def size_of(path):
@@ -448,36 +462,38 @@ class Test_measure:
             "~/.claude/CLAUDE.md",
         ], harness
 
-    # --- S8: a session's share, the core the entry opens included -------------
+    # --- S8: a session's share, the core the hook prints included -------------
 
-    def test_the_session_table_carries_the_entry_row_at_the_core_files_whole_size(
+    def test_the_session_table_carries_the_hook_row_at_the_bytes_the_hook_prints(
         self, meter, tmp_path
     ):
-        """#1376, S8. A session receives the core when `/agentic:start` opens
-        `skills/core/SKILL.md`, not from a memory file, so a meter that reads
-        only the `CLAUDE.md` pair counts none of it. The session's table holds
-        one row for the entry, whose bytes and characters are the core file's
-        whole, its frontmatter included, since the entry opens the file and
-        not the text below it. The table is printed before the agents', and
-        lists each file of the pair on a line of its own, each import under
-        its importer."""
+        """#1177 and #1430, S8. A session receives the core from the plugin's
+        `SessionStart` hook, not from a memory file, so a meter that reads only
+        the `CLAUDE.md` pair counts none of it. The session's table holds one
+        row for the hook, whose bytes and characters are those of
+        `lib/core.py#rendered` for the measured tree's core: the header naming
+        the file, the core below its frontmatter and the closing line. The
+        table is printed before the agents', and lists each file of the pair
+        on a line of its own, each import under its importer."""
         root, home = a_tree(tmp_path)
         a_core(root)
         write(str(home / ".claude" / "CLAUDE.md"), "# my rules\n@rules/mine.md\n")
         write(str(home / ".claude" / "rules" / "mine.md"), f"mine {ACCENT}\n")
-        raw, chars = size_of(str(root / "skills" / "core" / "SKILL.md"))
+        printed = hook_output(root)
+        assert printed.startswith("AgenticSeal core from "), printed
+        raw, chars = len(printed.encode("utf-8")), len(printed)
         data = meter.measure(str(root), str(home))
-        entries = [f for f in data["session"]["files"] if f["share"] == "entry"]
-        assert [f["path"] for f in entries] == [ENTRY_ROW], entries
-        assert (entries[0]["bytes"], entries[0]["chars"]) == (raw, chars), entries[0]
-        assert entries[0]["bytes"] > entries[0]["chars"], "the accent reached no count"
+        hooks = [f for f in data["session"]["files"] if f["share"] == "hook"]
+        assert [f["path"] for f in hooks] == [HOOK_ROW], hooks
+        assert (hooks[0]["bytes"], hooks[0]["chars"]) == (raw, chars), hooks[0]
+        assert hooks[0]["bytes"] > hooks[0]["chars"], "the accent reached no count"
         text = meter.render(data)
-        assert text.index(f"`{ENTRY_ROW}`") < text.index("## probe"), text
+        assert text.index(f"`{HOOK_ROW}`") < text.index("## probe"), text
         session_part = text[: text.index("## probe")]
         by_first = {cells[0]: cells for cells in rows_of(session_part)}
-        line = by_first[f"`{ENTRY_ROW}`"]
+        line = by_first[f"`{HOOK_ROW}`"]
         assert line[1:3] == [f"{raw:,}", f"{chars:,}"], line
-        assert "the file whole, as `/agentic:start` opens it" in line[4], line
+        assert "what the `SessionStart` hook prints" in line[4], line
         for row in data["session"]["files"][:-1]:
             name = f"`{row['path']}`"
             if "via" in row:
@@ -492,7 +508,7 @@ class Test_measure:
         self, meter, tmp_path
     ):
         """#1177, S8. `session` holds the pair with each file their `@` lines
-        import, as the agents' tables do, then the entry's row, and a total that
+        import, as the agents' tables do, then the hook's row, and a total that
         sums them. Every token figure is estimated at the assumed ratio and
         says so, calibrated run or not: a transcript calibrates a subagent's
         prefix, and no transcript calibrates a session's."""
@@ -507,7 +523,7 @@ class Test_measure:
             ("CLAUDE.md", "harness"),
             ("~/.claude/CLAUDE.md", "harness"),
             ("~/.claude/CLAUDE.md → rules/mine.md", "harness"),
-            (ENTRY_ROW, "entry"),
+            (HOOK_ROW, "hook"),
         ], session["files"]
         assert session["total"]["bytes"] == sum(f["bytes"] for f in session["files"])
         assert session["total"]["chars"] == sum(f["chars"] for f in session["files"])
@@ -526,20 +542,18 @@ class Test_measure:
         for row in calibrated["session"]["files"]:
             assert row["tokens"] == round(row["bytes"] / meter.ASSUMED_RATIO), row
 
-    def test_no_agent_table_carries_the_entry_row(self, meter, tmp_path):
-        """#1177 and #1376, S8. The core the entry opens reaches the session
-        and no subagent, so the core an agent reads is the one its `skills:`
-        list names, once, and the entry's row stands in the session's table
+    def test_no_agent_table_carries_the_hook_row(self, meter, tmp_path):
+        """#1177 and #1430, S8. The hook's output reaches the session and no
+        subagent, so the core an agent reads is the one its `skills:` list
+        names, once, and the hook's row stands in the session's table
         alone."""
         root, home = a_tree(tmp_path, skills=("alpha", "core"), extra_agent=True)
         a_core(root)
         data = meter.measure(str(root), str(home))
-        assert [f["path"] for f in data["session"]["files"]][-1] == ENTRY_ROW
+        assert [f["path"] for f in data["session"]["files"]][-1] == HOOK_ROW
         for name, agent in data["agents"].items():
             assert not [
-                f
-                for f in agent["files"]
-                if f["share"] == "entry" or "agentic:start" in f["path"]
+                f for f in agent["files"] if f["share"] == "hook" or "hook" in f["path"]
             ], name
             assert agent["total"]["bytes"] == sum(f["bytes"] for f in agent["files"])
         cores = [
@@ -548,25 +562,26 @@ class Test_measure:
             if f["path"].startswith("skills/core/")
         ]
         assert cores == ["skills/core/SKILL.md"], cores
-        assert meter.render(data).count(f"`{ENTRY_ROW}`") == 1
+        assert meter.render(data).count(f"`{HOOK_ROW}`") == 1
 
-    def test_a_tree_without_the_core_has_a_missing_entry_row(self, meter, tmp_path):
+    def test_a_tree_without_the_core_has_a_missing_hook_row(self, meter, tmp_path):
         """#1177, S8's before side. A tree that holds no `skills/core/SKILL.md`,
-        such as a release before 0.25.0, has no core for the entry to open, so
-        the entry's row is 0 bytes marked `missing`."""
+        such as a release before 0.25.0, prints no core into a session, so the
+        hook's row is 0 bytes marked `missing` rather than the hook's one-line
+        refusal, which no hook of that tree prints."""
         root, home = a_tree(tmp_path)
         data = meter.measure(str(root), str(home))
-        entry = data["session"]["files"][-1]
-        assert (entry["path"], entry["bytes"], entry.get("missing")) == (
-            ENTRY_ROW,
+        hook = data["session"]["files"][-1]
+        assert (hook["path"], hook["bytes"], hook.get("missing")) == (
+            HOOK_ROW,
             0,
             True,
-        ), entry
+        ), hook
         text = meter.render(data)
-        line = next(c for c in rows_of(text) if c[0] == f"`{ENTRY_ROW}`")
+        line = next(c for c in rows_of(text) if c[0] == f"`{HOOK_ROW}`")
         assert line[1:4] == ["0", "0", "0"], line
         assert line[4].startswith("missing"), line
-        assert "so the entry opens none" in line[4], line
+        assert "so no hook prints one" in line[4], line
 
     def test_sections_split_each_file_at_its_headings_and_sum_to_the_file(
         self, meter, tmp_path
@@ -688,7 +703,7 @@ class Test_measure:
                 continue
             # A `missing` row's zeros count a file that is not there, not
             # tokens anything estimated: the fixture's tree holds no core, so
-            # the session's entry row is one.
+            # the session's hook row is one.
             if len(cells) >= 5 and cells[4].startswith("missing"):
                 continue
             if len(cells) >= 5 and re.fullmatch(r"[\d,]+", cells[3]):
@@ -1401,8 +1416,16 @@ class Test_module:
                 "at its headings and no import of a `CLAUDE.md` can be read",
                 "transcript",
             ),
+            # #1430: every run counts the core hook's output, which
+            # `lib/core.py#rendered` defines, so a copy alone reaches it with
+            # no flag at all.
+            (
+                ["--root", "{root}"],
+                "it is what says what the core hook prints into a session",
+                "transcript",
+            ),
         ],
-        ids=["session_cost.py", "unverified_check.py"],
+        ids=["session_cost.py", "unverified_check.py", "core.py"],
     )
     def test_a_script_copied_alone_exits_2_and_names_what_it_misses(
         self, tmp_path, args, purpose, absent
@@ -1413,7 +1436,10 @@ class Test_module:
         It loads `session_cost.py` only under `--calibrate`, and `measure` calls
         the loader before it opens the transcript, so the transcript named need
         not exist; under `--sections` it calls that loader before it reads the
-        root, so the row reaches it in a directory with no `agents/` at all."""
+        root, so the row reaches it in a directory with no `agents/` at all.
+        The copy stands at its path in a plugin that holds nothing else, so
+        `lib/core.py`, which every run loads after the calibration (#1430),
+        is named under the copy's plugin root too."""
         script = TARGET
         alone = tmp_path / "alone"
         copy = alone.joinpath(*script.split("/"))
@@ -1444,14 +1470,17 @@ class Test_module:
         self, tmp_path
     ):
         """#1185. Every read of a `CLAUDE.md` that exists asks
-        `unverified_check.py` where its live text is, so a copy taken
-        without that sibling exits 2 with no flag at all, and its sentence
-        names the import reading."""
+        `unverified_check.py` where its live text is, so a copy that holds
+        the core hook's module and not that sibling exits 2 with no flag at
+        all, and its sentence names the import reading. The row above with
+        no flag stops at `lib/core.py` first, so this copy carries it and
+        `lib/optin.py`, the one module it loads."""
         alone = tmp_path / "alone"
-        copy = alone.joinpath(*TARGET.split("/"))
-        copy.parent.mkdir(parents=True)
-        with open(os.path.join(ROOT, *TARGET.split("/")), encoding="utf-8") as f:
-            copy.write_text(f.read(), encoding="utf-8")
+        for rel in (TARGET, "lib/core.py", "lib/optin.py"):
+            copy = alone.joinpath(*rel.split("/"))
+            copy.parent.mkdir(parents=True, exist_ok=True)
+            with open(os.path.join(ROOT, *rel.split("/")), encoding="utf-8") as f:
+                copy.write_text(f.read(), encoding="utf-8")
         repo = tmp_path / "repo"
         repo.mkdir()
         (repo / "CLAUDE.md").write_text("# rules\n", encoding="utf-8")

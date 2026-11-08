@@ -1,0 +1,25 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/skills/verify/scripts/seal_stamp.py\" --stop || py -3 \"${CLAUDE_PLUGIN_ROOT}/skills/verify/scripts/seal_stamp.py\" --stop || exit 0"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/core-start.py\" || py -3 \"${CLAUDE_PLUGIN_ROOT}/hooks/core-start.py\" || exit 0"
+          }
+        ]
+      }
+    ]
+  }
+}
