@@ -39,8 +39,9 @@ run follows.
 ### What a contribution is asked for
 
 - A branch cut from the open release branch, and a pull request based on it.
-- `bin/test tests/<file> -q` on each module the change touched. CI runs the
-  rest, on three platforms.
+- `bin/test tests/<file> -q` on each module the change touched, and
+  `bin/test tests/text tests/behaviour -q`, the tree-wide files *The test
+  layout* names. CI runs the rest, on three platforms.
 - **A change to a gate carries a higher bar**: a test seen failing before the
   fix, a stated failure direction, a prompt budget, and honesty about the
   platforms the contributor could not test. *What a change to a gate must
@@ -245,7 +246,8 @@ whole goes in `Test_module`. A flow across modules lives under
 from, and each of its classes is a scenario that keeps the same two cases.
 A case whose assertion reads a shipped document names that document as
 `TARGET`, and its classes take any name. A helper two test files use is
-defined once, in `tests/conftest.py`. Each module file ends with
+defined once, in `tests/conftest.py` or in one of the two files, which the
+other imports by its name. Each module file ends with
 `test_census = census_case(TARGET)`, which runs every census in
 `tests/censuses.py` over its module, and a line a census flags on purpose
 carries `# exempt from <census>: <why>` on its own line above it, where the
@@ -270,7 +272,9 @@ stands in `tests/behaviour/` where its cases load or run shipped code, and
 in `tests/text/` where they only read text. A case that reads this
 repository's own tree beyond its `TARGET` stands in a file that declares
 none. The files that declare no `TARGET`, `tests/text/` and
-`tests/behaviour/`, are this repository's tree-wide files.
+`tests/behaviour/`, are this repository's tree-wide files, which
+`skills/verify/SKILL.md` *Scope: cheap and often, broad and once* runs at
+every phase boundary and every fix pass.
 
 **A module's old cases get one verdict each when the module is rebuilt.**
 The contributor rebuilding a module reads its functions first and lists the

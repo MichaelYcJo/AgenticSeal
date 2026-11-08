@@ -141,13 +141,27 @@ them measures a tree that is going to change.
 | When | What runs | Label |
 |---|---|---|
 | Each slice | the tests for what the slice just wrote | `executed`, narrow |
-| Phase boundary | in one command, the cases the phase's plan row names and the test modules that read a path the phase changed, whether they name it, import it or glob the directory that holds it | `executed`, scoped |
+| Phase boundary | in one command, the cases the phase's plan row names, each test file the phase changed, each test file that reads a path the phase changed, and the repository's tree-wide test files | `executed`, scoped |
 | Handoff to review | nothing broad | the suite is `unverified`, and says so |
-| Review rounds 1..n | what the fix touches | `executed`, narrow |
+| Review rounds 1..n | the *Phase boundary* set, drawn over the paths the fix changed | `executed`, scoped |
 | **After the rounds settle** | full suite, lint, typecheck, **once**, by the orchestrator | `executed`, broad, once |
 
 The last row is the orchestrator's, and `skills/verify/orchestration.md` *The
 broad gate* holds it, read against the base commit.
+
+**A test file reads a path when its cases open it, import it or load it,
+directly or through another test file.** A file that writes the path's name
+only into a fixture it builds, a parameter or a docstring does not read it,
+and the change cannot move its result. A file that builds fixture
+repositories holding a records directory is the common case, and often the
+costliest to run for nothing, so a path under the work item's own records
+directory pulls no file through this part.
+
+**The tree-wide test files are the ones the repository's contribution guide
+names as reading its whole tree**, so a rule the tree is held to runs at
+every phase boundary and every fix pass, whatever path the change touched.
+Where the guide names none, they are the test files that glob the
+directory holding a changed path.
 
 Narrowing is not permission to go quiet. A suite the party making the claim did
 not run is `unverified` with who answers it, never omitted: condition 4 is what makes
