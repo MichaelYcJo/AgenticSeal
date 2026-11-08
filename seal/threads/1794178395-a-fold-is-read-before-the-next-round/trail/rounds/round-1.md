@@ -98,6 +98,11 @@ folded as they were made,
 "A decision the owner made, the version move and a prevention home are folded as they were made",
 ```
 
+```seal
+verdict: fixed 3586ae30
+answer: Built frame/design.md Scope items 1 and 5 as a0f84d02 folded them. In skills/implement/orchestration.md the rejected-decision text now stands after the sentence on correcting the row, and the commit sentence follows it as "The orchestrator then commits", so the row is rewritten before the one commit. That is my wording, not the paste-ready text, in three places. The paste-ready insertion point fell mid-sentence. The exchange is cited by its heading, *The frame is read against the issue at the spawn*. The version-move and prevention-home sentence names the rule that gives each to the orchestrator: *Orchestrator: how the work is routed* for the move, and the paragraph opening *A problem that recurs within a run gets a prevention home at once* for the home. agents/framer.md now reads "A decision the owner made, the version move and a prevention home are folded as they were made, and where you judge that one of them conflicts with the tree, your hand-back names the conflict." The two pins are in tests/text/test_the_rules_have_one_owner.py, and the pin on the conflict clause was rewritten to the new words. Each pin was red against the tree before the prose changed, and red again under seal mutate with its sentence deleted after the commit (executed). changelog.md line 3 takes the rejection and the three decisions folded as made. The prevention-home paragraph and the version-move sentence still say the framer folds, which matches the new sentence.
+```
+
 ### 2. The `to:` of the first rule change says the orchestrator edits no frame file, and two lines later that it folds statements into them
 
 ```seal
@@ -130,6 +135,11 @@ exchange, which is what it said where it stood.
     HEAD.
 ```
 
+```seal
+verdict: fixed a0f84d02
+answer: The orchestrator folded this finding into frame/design.md at a0f84d02. The first rule change's to: now reads "and the orchestrator edits no frame file in that exchange" (read at HEAD, frame/design.md, ## Rule changes). The fix pass edited no frame file.
+```
+
 ### 3. `gaps.md` says no case runs a framer, and the framer has behaviour cases
 
 ```seal
@@ -148,6 +158,11 @@ first clause only, so the quote does not change.
 
 ```markdown
 | whether a framer resumed or spawned for a fold follows the fold half of `agents/framer.md` *Rules*, and whether `regression:` lines traced to a decision's fold stop recurring; the agents of this release's own runs carry the installed 0.35.1 `agents/framer.md`, which has no fold half, and no case runs a framer through a fold | a measurement: `frame/questions.md` Q1, read on the flow-measurement readings #1439 posts for 0.36.0 and later |
+```
+
+```seal
+verdict: fixed 3586ae30
+answer: The reason in gaps.md's Not verified row now ends "and no case runs a framer through a fold", as the record gives it. The row's first clause, the one pr.md quotes, is unchanged.
 ```
 
 ## Confirmations
