@@ -30,6 +30,11 @@ For `tests/skills/test_session_cost.py:2930-2933`:
 
 For `tests/skills/test_session_cost.py:3194-3195`, delete the sentence "That is the cause #640 fixed twice for the tools-per-turn ratio, on a duration." The paragraph then ends at the parenthetical before it, "(#701; #640's round 3, ... 10).", and that parenthetical stays as it is, including its mark (code point U+1F7E1). Neither case's assertions change.
 
+```seal
+verdict: fixed 9f2bea10
+answer: Applied as given, after checking it against the code: at HEAD `session_cost.py` prints no advisory and holds neither of #640's two rounded-ratio fixes. In `test_a_cycle_is_divided_by_its_own_turns_and_not_the_runs` the docstring loses "under every threshold the printed advisory has". In `test_the_delegated_note_follows_the_minute_the_column_prints` the paragraph ends at the parenthetical "(#701; #640's round 3, 🟡 10).", which stays unchanged. Neither case's assertions change. A `git grep` for `printed advisory`, `#640 fixed`, `tools-per-turn ratio` and `batching advisory` outside `seal/` and `docs/running/` now finds nothing.
+```
+
 ### 2. The changelog says no segment kind met its bar since 0.17.0, and the work item's own grounds record framers that did
 
 ```seal
@@ -52,6 +57,11 @@ For `changelog.md:13`, the *Why* cell:
 | 2026-11-09 | Contract rule 10 asks every agent to batch independent reads and no longer names a bar its segment is judged by | Opus framers read a median of 1.31 and Opus proofers 1.12 against bars of 1.4 and 1.8, and Opus chains its reads inside one Bash call, which the ratio cannot see | https://github.com/MichaelYcJo/AgenticSeal/issues/1440 |
 ```
 
+```seal
+verdict: fixed 9f2bea10
+answer: Applied both replacements as given. They state only what `frame/design.md` *Grounding* supports: the Opus medians of 1.31 for framers and 1.12 for proofers against bars of 1.4 and 1.8, and its conclusion that the 0.17.0 instruction did not move the Opus readings. The Fable framers that met the bar are no longer contradicted. The `pr.md` quotes of `changelog.md` were read again after the change, and each still stands word for word.
+```
+
 ### 3. The changelog says the advisory claimed one-at-a-time calls everywhere below 1.2, and the base code said so only at 1.00 and under
 
 ```seal
@@ -64,6 +74,11 @@ Why it matters: `changelog.md:4` says the plain reading "printed one below 1.2 t
 
 ```markdown
 - **The plain reading, `seal cost <transcript>`, no longer prints a `batching` line.** It printed one below 1.2 tools per turn, and at 1.00 or under it said that independent calls were going out one at a time, which is false for a segment that chains its reads inside one call. The `nothing obvious` line now prints wherever no check was re-run. The ratio and its denominator stay in `--json` as `tools_per_turn` and `call_turns`.
+```
+
+```seal
+verdict: fixed 9f2bea10
+answer: Applied the item's text as given. It matches the base block I removed in phase 1: at 1.00 or under the line said "independent calls are going out one at a time", and above 1.00 it said "most turns send a single call". The bold lead that `pr.md` quotes is unchanged.
 ```
 
 ### 4. A pin of the bars table's verifying row is left standing, and the settle's `remove` turns it red
@@ -86,6 +101,11 @@ The table holds 11 rows. The build removes what the first 10 name, and the settl
 
 ```markdown
 | the pin of the bars table's verifying row | `tests/text/test_the_verifying_round_is_bounded_not_cheapest.py#test_the_verifying_bar_is_grounded_on_neither_cost_nor_size` | nothing. The row it pins leaves with *The per-segment bars* at the settle, and no other document states a verifying bar. The module's three other cases hold #639's wording in the carriers that stay. |
+```
+
+```seal
+verdict: fixed 9f2bea10
+answer: Deleted `test_the_verifying_bar_is_grounded_on_neither_cost_nor_size` and the two blank lines after it. The module's other three cases and its imports stay, and `uvx ruff check` reports no unused name. The frame half, the 11-row *Removes* and its new row, was folded by the orchestrator at bf515c32. A `git grep` for `| verifying | exempt` outside `seal/` and `docs/running/` now finds nothing. The plan's narrow set plus this module passed: 495 cases, exit 0.
 ```
 
 ## Confirmations
