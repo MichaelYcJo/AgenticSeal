@@ -41,4 +41,4 @@ The tree has no Python reader of the variable since `core_check.py` left in #137
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-08 | *Scope* item 4 and S8 take the case phase 1 added, `tests/test_conftest.py#Test_module::test_the_conftest_takes_the_claude_config_directory_away`, and the frame is folded to it | The phase-1 crafter's hand-back: a `seal mutate` that turned the `conftest.py` removal into `pass` survived S8's run (executed by the crafter), so S8 alone could not fail on the unit it verifies; the crafter added the case under its mutation rule | `agents/crafter.md` *Mutation-test every unit that adds behaviour*; `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* |
