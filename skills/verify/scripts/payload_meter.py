@@ -470,9 +470,9 @@ def composition(root, home, name, definition, sections, user=None):
     `user_dir` returns. No row is the core hook's: its output reaches no
     subagent.
 
-    `user` left out is `user_dir(home, None)`, because
-    `.github/scripts/release_report.py#preloads` loads this file from the
-    last tag's tree as well as this one and calls it with five arguments."""
+    `user` left out is `user_dir(home, None)`, because the release report
+    the plugin's repository runs in CI loads this file from the last tag's
+    tree as well as this one and calls it with five arguments."""
     user = user or user_dir(home, None)
     directory, label = user
     _name, skills = frontmatter(read(os.path.join(root, definition))[1])
