@@ -1,0 +1,48 @@
+# Implementation Plan: a .test_durations refresh costs no review round and no broad run (#1444)
+
+## Technical context
+
+The tree as read at `94d04d30`.
+
+The staleness verdict is `tests/behaviour/test_the_windows_leg_runs_in_shards_that_make_the_whole.py#staleness`, asked by `#test_the_durations_file_prices_the_suite` against the collection `tests/conftest.py#pytest_collection_modifyitems` records. Because it is a suite case, it fails in each CI leg that collects the whole suite and in the broad run, so the work item whose cases push the file past `STALE_SHARE` pays for the refresh with a commit after its build. `skills/code-review/orchestration.md` then owes that commit a round, and a broad run taken before the refresh fails.
+
+`.github/scripts/durations_union.py#report` already reads the union against the committed file and prints the two shares, from the measurement a refresh commits (`frame/design.md` *Grounding* G7). The change moves the verdict to where the measurement is, and asks it only where the release is decided, on the pull request into `main` (G11). The refresh then lands as a no-work-item pull request into the release branch (G3, G4).
+
+The failure scenario of the chosen approach, six months on: a release that renames or removes a large share of the cases runs every later pull request of that release on a file that prices the moved cases at its mean. A macOS or Windows shard can then run past its `timeout`. The timeout names the shard, the limit sentence of *Scope* gives the refresh to take, and the release pays one no-work-item pull request early instead of at its end. A second scenario: the owner merges the release pull request while its `durations` job is red, because the rulesets require only `lint` and `release`. The next release then starts on a stale file, and its release pull request is red again on the same reading, so the miss is visible and bounded by one release.
+
+**Where this meets the release's other work items.** The file lists below are the orchestrator's guess for the others, `unverified`.
+
+- #1441 shares `CONTRIBUTING.md`, in another part of it as far as its ticket reads: this work rewrites only the `.test_durations` paragraph of *Running the checks*. Its phase-set reading prices modules from `.test_durations`, which after this work may lag the suite by up to one release's cases (G8 measures 1.10 % after four). #1444 should merge first: #1441 brings tree-wide guards into narrow runs, and the staleness case is a case that reads the whole collection, which this work removes, so a guard list written after this merge cannot carry it.
+- #1439 may change the release step. Both items state their changes to `docs/releasing/release-checklist.md` in `## Rule changes`, which the settle applies in merge order, so neither edits the document and either order works.
+- #1442 shares no file with this work: this work does not edit `skills/code-review/orchestration.md`.
+- #1440 and #1443 share no file with this work.
+
+## Alternatives considered
+
+| Approach | Failure scenario | Verdict |
+|---|---|---|
+| A. Move the verdict to the `durations` job, red on a pull request into `main` only, and refresh at the release through a no-work-item pull request into the release branch | A rename-heavy release runs its later pull requests on an unbalanced division, and a release with a stale file pays one more pull request, one more owner merge and one more `tests` run (Technical context). | Chosen. It answers *Done when* at its cause: no work item commits the file, so no round reads it and no broad run reads it. It keeps #931's schedule (a failing check, no box) and its threshold, and changes only where the check fails. The measurement the refresh commits is the one the verdict reads, so they cannot disagree. |
+| B. Let a commit that changes only `.test_durations` follow the last round, in `chain_check.py`'s records arm | `chain_check.py` ships to every user's repository, and `.test_durations` is this repository's file, so the arm gains a path list or a config row for one repository. The arm cannot check that the commit is the CI artifact byte for byte, because artifacts expire after seven days, so a hand edit of the file passes unread. The broad run still fails on the stale file before the refresh lands. | Rejected. It weakens the invariant *No fix that no round reads* (`frame/design.md` *Grounding* G1) and still spends a broad run. |
+| C. Refresh before round 1: the orchestrator dispatches a `tests` run at the build's last phase and commits the artifact before the first round | Every work item that adds cases waits for a dispatched run, about 15 to 20 minutes. Round 1 still reads the refresh and the records it makes false, as #1414's round 2 did (G9). A fix pass that adds cases can push the file past the share again. | Rejected. It moves the cost inside the round instead of removing it. |
+| D. Loosen `STALE_SHARE` | A rename in one work item, 848 or 1,378 entries in the logged cases, crosses any share that still bounds the file's age. | Rejected. The owner rejects a number as an answer, and it does not meet *Done when*. |
+| E. Keep the case in the suite and skip it unless an environment variable the release pull request's workflow sets is present | The verdict depends on a variable no local run sets, and on the release pull request it fails in four legs for one fact. It reads the local collection when the union of the measurement it asks for is already in the `durations` job. | Rejected in favour of A, which asks the verdict once, beside the measurement. |
+| F. Keep the structure: the suite case stays and the refresh stays per work item | The ticket's log repeats: each work item that renames or adds many cases spends a round on the refresh, and a broad run where the refresh came late. | Rejected. The premise that keeps it is that a file past the share must never reach the release branch, because every later pull request's shards would be unbalanced. Checked against G8 and G9: slow growth stayed at 1.10 % for four releases, and only renames crossed. A crossing harms the balance of the rest of one release, which a shard's `timeout` names, and costs no case. The premise does not outweigh four logged rounds. |
+| G. A workflow commits the refresh to the release branch itself | Both rulesets require a pull request, so no workflow can push to the release branch (G3). | Rejected. |
+| H. Refresh at every release, past the share or not | Each release pays the extra pull request, owner merge and `tests` run, where G8 shows four releases in a row that needed none. | Rejected. #914 and #931 chose the threshold for the same reason. |
+
+## Phases
+
+| Phase | Delivers | Verified by | Status |
+|---|---|---|---|
+| 1 | *Scope* item 2, and the script half of item 3: the share function, the verdict, its sentence with the remedy constant, the exit code 1, the module docstring | New cases in `tests/github/test_durations_union.py`, one class per function, rewriting the fixture cases `frame/design.md` *Removes* row 4 names, each seen red against the old script; `bin/test tests/github/test_durations_union.py`; `uvx ruff check .github/scripts tests/github` | |
+| 2 | *Scope* items 1, 4, 5 and 6, and the workflow half of item 3 | The workflow-shape case of scenario S4 and the rewritten recipe case of S5, each seen red against the old tree; `bin/test tests/behaviour/test_the_windows_leg_runs_in_shards_that_make_the_whole.py tests/github/test_durations_union.py tests/text/test_ci_gives_the_checks_what_they_need.py`; `git grep -n 'prices_the_suite\|STALE_SHARE' -- ':!seal/threads'` lists only the script, its cases and `CONTRIBUTING.md`; `git grep -n 'durations' -- docs skills agents` lists nothing this work made false | |
+
+## Operational impact
+
+A release whose committed `.test_durations` is past `STALE_SHARE` at its release pull request gets a red `durations` job there. That release then pays one no-work-item pull request into `release/vX.Y.Z`, one owner merge, and one more `tests` run of the release pull request. A release within the share pays nothing. The `durations` job is not a check either ruleset requires, so the orchestrator reads it as it reads every check no ruleset requires. The script's exit codes gain 1. No dependency, environment variable or configuration row is added.
+
+## Judgments of the run
+
+| Date | Judgment | Grounds | Judged against |
+|---|---|---|---|
+| | | | |
