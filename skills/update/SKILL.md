@@ -38,8 +38,9 @@ looks like success.
 
 If the second command reports it is already current, say so, take step 4b,
 and stop. Nothing arrived, so there is nothing to load and neither move below
-is needed; step 4b still runs, because a person who updated by
-`claude plugin update` alone reaches this release without its question.
+is needed; step 4b still runs, because a person who reached this release by
+`claude plugin update` alone may still hold the launcher an earlier release
+wrote.
 
 **2b. Read the installed copy before believing the installer.** The install
 path is keyed by the version string, and extraction is skipped when a
@@ -135,8 +136,8 @@ surprised later:
 
 **4. Take out the preset block.** Earlier releases wrote a preset block
 into the user's `CLAUDE.md`, between `<!-- agentic:start -->` and
-`<!-- agentic:end -->`. The core now reaches a session when
-`/agentic:start` opens it, and the rules an older block stated stand
+`<!-- agentic:end -->`. The core now reaches a session from the plugin's
+`SessionStart` hook, and the rules an older block stated stand
 in the skills and definitions the plugin installs, so the block carries
 nothing a session needs. `claude plugin update` never opens `CLAUDE.md`, so
 without this step the block stays. Everything between the markers was
@@ -211,34 +212,25 @@ if project and holds_a_block(text_of(project)):
 | `<file> holds a start marker with no end marker after it, so nothing was changed`, exit 1 | the block is damaged, and nothing says where it ends. Say so, leave the file to the user, and go on to step 4b |
 | `needs action: <file> holds a preset block, …` | an earlier release's installer could write the block into a project's `CLAUDE.md`, which is that project's committed text. Name the file under *Needs action* in the output; the user deletes the lines between its markers |
 
-**4b. The stamp's hook.** The plugin registers no hook. The sealer's stamp
-is drawn by a `Stop` hook in the person's own settings, which
-`seal stamp --install` writes on their yes, and which names the plugin root
-it was installed from. This step reads which state stands, from the copy the
-installer records:
+**4b. The launcher an earlier release wrote.** The plugin's `Stop` hook
+draws the sealer's stamp (`docs/checks/the-stamp.md` *The stamp*). A release
+from 0.33.0 to 0.34.1 drew it instead through a launcher,
+`${CLAUDE_PLUGIN_DATA}/stamp.py`, which it wrote on the person's yes together
+with one `Stop` entry in their settings that runs it. Until the person takes
+both out, that launcher runs at the end of every turn beside the plugin's
+hook, and a stamp is still drawn once, since drawing claims the file first.
+This step asks nothing and writes nothing. It reads whether the launcher
+stands:
 
 ```bash
-p=$(python3 -c "import json,sys;d=json.load(open(sys.argv[1],encoding='utf-8'));print(d['plugins']['agentic@agenticseal'][0]['installPath'])" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/installed_plugins.json") &&
-"$p/bin/seal" stamp --hook "${CLAUDE_PLUGIN_DATA}"
+d="${CLAUDE_PLUGIN_DATA}"; if [ -z "$d" ]; then echo "no data directory"; elif [ -f "$d/stamp.py" ]; then echo "launcher $d/stamp.py"; else echo "no launcher"; fi
 ```
 
 | Output | What happens |
 |---|---|
-| `installed <root>` | nothing is asked; run the command below, so the launcher names the copy just installed |
-| `declined` | the person said no at an earlier question; nothing is asked or said |
-| `neither` | ask once, with `AskUserQuestion`, whether to draw the sealer's stamp in the terminal; the yes option names what the command below writes, the launcher `stamp.py` under `${CLAUDE_PLUGIN_DATA}` and the one `Stop` entry in the settings file it names. A yes runs that command. A no runs `"$p/bin/seal" stamp --decline "${CLAUDE_PLUGIN_DATA}"`, whose marker keeps this step from asking again |
-| a command raised | say the state could not be read, with the error, and go on to step 5 |
-
-```bash
-"$p/bin/seal" stamp --install "${CLAUDE_PLUGIN_DATA}" --settings "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json"
-```
-
-It prints one line saying what it wrote; give it to the user. An exit 2 is
-a refusal with nothing written, and its line says which: the settings file is
-not JSON this command can merge into, which is the user's to repair, or the
-data directory is not an absolute path. Name it under *Needs action*.
-Either answer leaves `seal stamp --from <path>`, the line the sealer's
-hand-back names, as the way to draw a stamp by hand.
+| `launcher <path>` | name under *Needs action* the two things the person removes by hand, in this order: the `Stop` entry of `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json` whose command is `python3 "<path>" \|\| py -3 "<path>"`, with `<path>` written out, and then the file at `<path>`. An entry whose file is gone fails at the end of every turn, so the entry goes first |
+| `no launcher` | nothing stands; nothing is said |
+| `no data directory` | the data directory did not reach this step, so whether a launcher stands could not be read. Say so, and go on to step 5 |
 
 **5. Name both moves, cheapest first, and say what each one is known to do.**
 The user can finish the work in hand either way: the running session keeps
@@ -266,9 +258,10 @@ sentinel in an `agents/*.md` of the newly installed version, whose directory
 is
 `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins/cache/<marketplace>/<plugin>/<version>/`.
 Then type `/reload-plugins` without restarting and spawn the agent. That is
-run 6's own method, one artifact over. The stamp's hook needs neither move:
-it runs the launcher at each turn's end, and step 4b pointed the launcher at
-the new copy.
+run 6's own method, one artifact over. The plugin's two hooks run from
+`${CLAUDE_PLUGIN_ROOT}`, the copy the session loaded, so a session keeps the
+old copy's hooks until a move loads the new one. Whether `/reload-plugins`
+re-reads `hooks/hooks.json` is not measured either; a restart loads it.
 
 ## What this does not do
 
@@ -296,8 +289,6 @@ Updated: <old> to <new>           (or: already on <version>, nothing to do)
 What you are getting:
 - <what changes for the user> (<version>)
 - ...
-
-Stamp: <the line step 4b's command printed>   (omit where step 4b said nothing)
 
 Needs action:                     (omit when there is none)
 - <what moved, what to set, what expires when>

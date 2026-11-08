@@ -15,9 +15,11 @@ description: |
 
 Assume the code has defects, and look for them. A pass with no grounds is
 forbidden: where you are unsure, write a question, not a pass. A session
-orchestrating a review run first opens the core once, as
-`skills/start/SKILL.md` *1. Open the core once* says, and then reads
-`skills/code-review/orchestration.md` before round 1.
+orchestrating a review run holds the core once, from the plugin's
+`SessionStart` hook where its repository holds a `seal/` root, and opens
+`skills/core/SKILL.md` once where no output opening `AgenticSeal core from`
+stands in its context. It then reads `skills/code-review/orchestration.md`
+before round 1.
 
 ## Two stages, in order
 

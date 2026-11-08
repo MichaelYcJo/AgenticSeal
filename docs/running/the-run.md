@@ -58,13 +58,13 @@ minute thirty waits for somebody who may not be there. Where a question
 arises, the orchestrator looks for its answer in the tree and in the work
 item's `frame/questions.md` first. Where neither answers it, the orchestrator
 proceeds on the default the question states, writes that default as one
-row of `frame/questions.md`, and names it in one line of the pull request
-body, where the owner can overturn it. The orchestrator keeps a blocking
-question for what only the owner can decide, and only where proceeding on a
-default would be costly to undo or would reach outside the repository. A
-question or a remark the owner raises during the run is taken up when it
-arrives: the orchestrator folds it into the frame or the code, and never
-defers it to the pull request body.
+row of `frame/questions.md`, and quotes that row in the work item's
+`pr.md`, the pull request body's first part, where the owner can overturn
+it. The orchestrator keeps a blocking question for what only the owner can
+decide, and only where proceeding on a default would be costly to undo or
+would reach outside the repository. A question or a remark the owner raises
+during the run is taken up when it arrives: the orchestrator folds it into
+the frame or the code, and never defers it to the pull request body.
 
 **The orchestrator's judgments of a run are rows of `frame/plan.md` *Judgments of the run*, each with its grounds and the document it stands on.** The decisions this section leaves to the orchestrator, to go on past the third round or to stop, a regression's route, a leftover's home, and a decision folded into the frame after the frame was committed, are judgments and not sequences, and `skills/core/SKILL.md` *A judgment stands on a source document, and is written down with both* asks that each be written where the next session reads it. The settle's dry run prints the judgment rows of the released work items and, beside them, those earlier settles removed, which the history still holds. The settling session rewrites the section where one kind of judgment keeps costing rounds, in one release or across several, and deciding that two rows are one kind is its own judgment. The framer's judgments stand in its *Alternatives considered* and the proofer's in its findings, and neither is copied here.
 

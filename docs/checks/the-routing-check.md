@@ -11,14 +11,14 @@ a terminal included. The hooks slot is also where husky, the pre-commit
 framework and lefthook live, and a line or an entry in their committed
 configuration reaches every teammate. A check at git's level reaches people
 who do not use this plugin, with an experience they did not ask for. The
-declaration is written before the first edit because `/agentic:start` writes
-and commits `routing.md` before it edits anything else
-(`skills/start/SKILL.md`), and no check stands between a session and its
-first edit.
+declaration is written before the first edit because the orchestrator
+writes and commits `routing.md` before it edits anything else
+(`skills/implement/orchestration.md` *Orchestrator: the order inside a
+ticket*), and no check stands between a session and its first edit.
 check: tests/behaviour/test_chain_hooks_hardening.py
 
 **A session that declares nothing is not caught, in shared mode as in
-local.** A session the entry skill, `skills/start/SKILL.md`, never reached
+local.** A session that never opened `skills/implement/orchestration.md`
 edits and commits as it would without the plugin. At a shared root its
 commits carry no `Seal-Routing` trailer, so *At the pull request* below
 judges none of them;

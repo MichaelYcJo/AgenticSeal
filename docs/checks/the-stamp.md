@@ -1,17 +1,17 @@
 # The seal stamp
 
-What `skills/verify/scripts/seal_stamp.py` draws, and the one hook a person may
-install to draw it, for a person who changes them; no agent acts on it.
+What `skills/verify/scripts/seal_stamp.py` draws, and the plugin's `Stop` hook
+that draws it, for a person who changes them; no agent acts on it.
 
 ## The stamp
 
 **The stamp is drawn once per work item, from the sealer's `sealed`, at the end
-of the main session's turn after the sealer queued it, in either mode, where
-the person installed the stamp's `Stop` hook.** The stamp means every party
+of the main session's turn after the sealer queued it, in either mode, by the
+plugin's `Stop` hook.** The stamp means every party
 verified the work item, the sealer last, and the work is done, so it is drawn
 from that verdict and never from the broad gate's run, which comes before the
 sealer has read anything and draws nothing (`docs/running/the-broad-gate.md`
-*One act, one owner*). The plugin registers no hook. The sealer runs
+*One act, one owner*). The sealer runs
 `seal stamp --guarantee <path>` once, after it writes `guarantee.md` with
 `Verdict: sealed`, under either root. Where the reader the pull request's check
 reads it through refuses none of its lines and its newest verdict block reads
@@ -82,32 +82,21 @@ drew, went stale under a rebase and was refused when it was queued again still
 holds the work item's stamp, and its repair draws nothing.
 check: refused-sealed-leaves-a-record
 
-**The stamp's `Stop` hook is the person's, written on their yes, and the
-plugin registers none.** `seal stamp --install <data-dir> --settings <file>`
-writes a Python launcher, `<data-dir>/stamp.py`, that runs
-`<plugin root>/skills/verify/scripts/seal_stamp.py --stop` by the absolute path
-of the root the command ran from, and merges one `Stop` entry whose command is
-`python3 "<data-dir>/stamp.py" || py -3 "<data-dir>/stamp.py"` into the
-settings file, leaving every other key and adding nothing where that entry
-stands. A settings file that does not parse as a JSON object is refused with
-exit 2 and left as it is. `seal stamp --remove <data-dir> --settings <file>`
-takes that one entry and the launcher out, and nothing else.
-`seal stamp --decline <data-dir>` writes an empty `<data-dir>/stamp-declined`,
-the record of a no, which `--install` removes. `seal stamp --hook <data-dir>`
-prints `installed <root>`, `declined` or `neither`. The data directory is
-`${CLAUDE_PLUGIN_DATA}`, which a skill body receives substituted and which
-Claude Code keeps across updates; the settings file is
-`${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json`, which the shell expands.
-The command reads neither from its environment. The question "draw the
-sealer's stamp in your terminal?" is put once, where neither the launcher nor
-the marker stands: in `skills/implement/bootstrap.md`'s batch at first setup,
-and in `/agentic:update` for a person set up before. Where the launcher stands,
-`/agentic:update` runs `--install` again from the installed copy, so it names
-the new root. The launcher exits 0 whatever happens, since a `Stop` hook that
-exits 2 keeps the turn going, and one naming a root that is gone draws nothing.
-A person who updates by `claude plugin update` alone keeps a launcher naming
-the old root, which stays on disk and draws until the next `/agentic:update`;
-`seal stamp --hook` says which root it names.
+**The stamp's `Stop` hook is the plugin's, and it follows every update.**
+`hooks/hooks.json` registers one `Stop` entry with no matcher, whose command is
+`python3 "${CLAUDE_PLUGIN_ROOT}/skills/verify/scripts/seal_stamp.py" --stop || py -3 "${CLAUDE_PLUGIN_ROOT}/skills/verify/scripts/seal_stamp.py" --stop || exit 0`.
+The harness substitutes `${CLAUDE_PLUGIN_ROOT}` with the root of the copy it
+loaded, so an update moves the command with it and nothing is written into
+the person's settings. The command exits 0 whatever happens, through its
+closing ` || exit 0`, since a `Stop` hook that exits 2 keeps the turn going;
+the `py -3` half runs where the `python3` half exits non-zero. The hook runs at the end of every turn in every
+repository; where nothing is pending in the clone of the payload's `cwd`, it
+returns before the opt-in is read. A release from 0.33.0 to 0.34.1 wrote, on
+the person's yes, a launcher at `${CLAUDE_PLUGIN_DATA}/stamp.py` and a `Stop`
+entry in their settings that runs it. That launcher keeps running at the end
+of every turn and drawing from the root it names until the person removes
+both, as `/agentic:update` step 4b names them. A file is drawn once either
+way, since drawing claims the file first.
 check: tests/skills/test_seal_stamp.py
 
 **`--stop` holds its whole message under a limit named in the code, and steps
@@ -134,16 +123,16 @@ check: tests/skills/test_seal_stamp.py
 the text above it.** The cases prove that `--stop` emits the right bytes for
 the right payload. A screenshot of the probe proved once that such bytes render
 unfolded, in colour, after the turn's final text, and the owner's spike of
-2026-11-06 proved a `Stop` command hook in the person's own settings runs as a
-plugin's did. Whether a given work item's stamp was seen, and whether the
-orchestrator wrote its result in the turn the stamp closed, are read by the
-person and by nobody else. So is how the stamp reads on a light background as
-well as a dark one. Nothing outside the disc is painted, so its text is in the
+2026-11-06 proved a `Stop` command hook runs from a plugin and from the
+person's own settings alike. Whether a given work item's stamp was seen, and
+whether the orchestrator wrote its result in the turn the stamp closed, are
+read by the person and by nobody else. So is how the stamp reads on a light
+background as well as a dark one. Nothing outside the disc is painted, so its text is in the
 terminal's own colours and theme — dim labels, a green `✓`, the title in the
 stamp's red — and the owner reads the first real stamp on each background. The
 line reaches the person through the sealer's hand-back and the orchestrator's
-quote of it, and nobody has watched a stamp the installed hook draws on a
-screen yet.
+quote of it, and nobody has watched a stamp the plugin's `Stop` hook draws on
+a screen yet.
 **Nor is the drawer's silence where it cannot draw.** No stamp is queued, and
 nothing is said, for a `guarantee.md` the sealer wrote without running
 `seal stamp --guarantee`, as a sealer of an earlier release does, or one that
@@ -165,14 +154,11 @@ drew in another clone and was brought onto a copy of its declared branch that
 does not hold its audited commit, whatever brought it: `--guarantee` refuses
 and records it, and the new audit it asks for draws again. No guard can tell
 that copy from a stale row the same clone wrote after a push and a rebase.
-Nothing draws, and nothing says so, where the person installed no hook or
-declined it; where the `python3` the harness finds cannot load
-`seal_stamp.py`; where the main session's working directory is outside the
-clone the stamp was queued in; or where the launcher names a root that is
-gone. Where the settings entry outlives its launcher, its command fails at
-the end of every turn until `seal stamp --remove` takes the entry out.
-Where a file was written, the line `--guarantee` printed names
-`seal stamp --from <path>`, and a stamp that did not appear is drawn by hand
-from it, once. Where none was, the pull request's check is what says the work
-item was sealed.
+Nothing draws, and nothing says so, where the main session's working
+directory is outside the clone the stamp was queued in. Nothing draws either
+where the `python3` the harness finds cannot load `seal_stamp.py`, and the
+command still exits 0. Where a file was written, the line
+`--guarantee` printed names `seal stamp --from <path>`, and a stamp that did
+not appear is drawn by hand from it, once. Where none was, the pull request's
+check is what says the work item was sealed.
 No case, hook or workflow can observe a screen.

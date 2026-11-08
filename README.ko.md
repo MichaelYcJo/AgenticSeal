@@ -47,12 +47,13 @@ claude
 은 3.9 이고, pyenv 나 asdf 같은 파이썬 버전 관리자를 쓰면 마지막으로 지정한
 버전이 나옵니다.
 Windows 의 공식 설치본은 `python3` 이라는 이름을 만들지 않으므로, 그곳에서는
-`seal.cmd` 가 `py -3` 을 쓰고, 도장 훅은 `py -3` 으로 한 번 더 시도합니다.
+`seal.cmd` 가 `py -3` 을 쓰고, 플러그인의 훅 두 개도 `py -3` 으로 한 번 더
+시도합니다.
 
-설치는 이것으로 끝입니다. `CLAUDE.md` 에는 아무것도 쓰지 않고, 플러그인은 훅을
-하나도 등록하지 않습니다. 지우려면 `/plugin uninstall agentic` 을 실행합니다.
-도장 훅을 설치했다면 그 전에 `seal stamp --remove` 를 먼저 돌립니다(*내
-컴퓨터에서 도는 것*).
+설치는 이것으로 끝입니다. `CLAUDE.md` 에도 사용자 설정에도 아무것도 쓰지 않고,
+플러그인의 훅 두 개는 플러그인과 함께 들어옵니다(*내 컴퓨터에서 도는 것*).
+지우려면 `/plugin uninstall agentic` 을 실행합니다. 그 전에 따로 되돌릴 것은
+없습니다.
 
 이 워크플로는 에이전트 하나에게 자기 작업을 리뷰하게 하는 것과 다릅니다. 방금
 쓴 것을 리뷰하는 에이전트는 자기 추론을 다시 읽게 되고, 대개 그 추론에 동의합니다.
@@ -100,22 +101,22 @@ claude plugin update agentic@agenticseal
 
 ## 첫 작업 항목
 
-저장소에서 Claude Code 를 열고 바꾸고 싶은 것을 평소 말로 요청하거나,
-`/agentic:start` 뒤에 이슈나 요청을 적습니다. 플러그인이 설치된 곳에서는 코드를
-바꿔 달라는 평범한 요청이 진입 스킬 `start` 에 먼저 닿습니다. 그러면 그 세션이
-orchestrator, 곧 실행 전체를 이끄는 쪽이 됩니다. orchestrator 는 코어를 읽고,
-사람이 정해야 할 것을 묻고, 에이전트를 하나씩 띄우고, 실행의 기록을
-관리합니다. 그 기록을 모은 것이 작업 항목이고, 작업 하나마다 `seal/threads/`
-아래에 디렉터리가 하나 생깁니다. 진입 스킬의 첫 질문에 답하는 것이, 실행이
-띄우는 에이전트와 그 에이전트가 쓰는 토큰에 대한 사용자의 동의입니다.
-워크플로는 코드를 바꿔 달라는 요청이 `start` 에 닿거나 리뷰 요청이
-`code-review` 에 닿을 때 시작하며, 모델이 그 스킬을 불렀는지 사용자가 쳤는지는
-가리지 않습니다. 둘 다 일어나지 않은 세션은 코어를 읽지 않고 아무것도
+저장소에서 Claude Code 를 열고 "#42 고쳐줘" 처럼 바꾸고 싶은 것을 평소 말로
+요청합니다. 그러면 그 세션이 orchestrator, 곧 실행 전체를 이끄는 쪽이 됩니다.
+orchestrator 는 코어를 읽고, 사람이 정해야 할 것을 묻고, 에이전트를 하나씩
+띄우고, 실행의 기록을 관리합니다. 그 기록을 모은 것이 작업 항목이고, 작업
+하나마다 `seal/threads/` 아래에 디렉터리가 하나 생깁니다. 라우팅 질문에 답하는
+것이, 실행이 띄우는 에이전트와 그 에이전트가 쓰는 토큰에 대한 사용자의
+동의입니다. `seal/` 루트가 있는 저장소에서는 플러그인의 `SessionStart` 훅이
+세션마다 코어를 출력하고, 코드를 바꿔 달라는 요청과 리뷰 요청이 각각 어디서
+시작하는지 적은 한 줄을 덧붙입니다. 코드를 바꿔 달라는 평범한 요청은
+`implement` 에 닿고, `implement` 는 세션을 `skills/implement/orchestration.md`
+로 보냅니다. 리뷰 요청은 `code-review` 에 닿습니다.
+`skills/implement/orchestration.md` 도 `code-review` 도 열지 않은 세션은 아무것도
 선언하지 않으며 워크플로 밖에 있습니다.
 
 세션이 어떤 저장소에서 처음 일할 때는 기록을 어디에 둘지 먼저 묻습니다(아래
-*shared 인가 local 인가*). 한 번도 답하지 않았다면 sealer 의 도장을 터미널에
-그릴지도 함께 묻습니다. 그다음 라우팅 질문을 합니다. 오타 하나를 고칠 때도
+*shared 인가 local 인가*). 그다음 라우팅 질문을 합니다. 오타 하나를 고칠 때도
 매번 묻고, 권하는 답에 표시를 해 둡니다. 답은 셋입니다.
 
 - **automation** 은 모든 에이전트가 차례로 돌고, 그 뒤로는 사용자만 정할 수
@@ -145,15 +146,14 @@ orchestrator, 곧 실행 전체를 이끄는 쪽이 됩니다. orchestrator 는 
 실행입니다. 마지막으로 보증을 맡는 sealer 가 모든 참여자의 기록을 이슈와
 트리에 견주어 읽고, 그다음 pull request 가 열립니다.
 
-sealer 의 판정이 `sealed` 이면 sealer 가 도장을 쌓아 둡니다. 처음 설정에서
-도장 질문에 예라고 답했다면, 사용자 자신의 설정에 들어간 `Stop` 훅이 세션의
-턴이 끝날 때 그 도장을 터미널에 그립니다. 도장에는 커밋, 브랜치, base, 작업
-항목, broad gate 를 돌린 커밋, 리뷰 회차 수가 적힙니다.
+sealer 의 판정이 `sealed` 이면 sealer 가 도장을 쌓아 두고, 세션의 턴이 끝날
+때 플러그인의 `Stop` 훅이 그 도장을 터미널에 그립니다. 도장에는 커밋,
+브랜치, base, 작업 항목, broad gate 를 돌린 커밋, 리뷰 회차 수가 적힙니다.
 
 ![seal 을 받은 작업 항목이 그리는 도장. 올빼미의 붉은 밀랍 인장 옆에 SEALED 와 tree, base, item, gate, rounds 를 적은 판이 있다](assets/seals/owl.png)
 
-훅이 없으면 sealer 의 보고가 `seal stamp --from <path>` 를 알려 주고, 그
-명령으로 손으로 그립니다. 도장을 언제 그리고 언제 그리지 않는지는
+훅이 그리지 못했으면 sealer 의 보고가 `seal stamp --from <path>` 를 알려
+주고, 그 명령으로 손으로 그립니다. 도장을 언제 그리고 언제 그리지 않는지는
 `docs/checks/the-stamp.md` 에 있습니다.
 
 ### shared 인가 local 인가
@@ -220,7 +220,7 @@ seal import <그 zip>     # 사본을 받아 들이고, 아무것도 덮어쓰�
 
 ## 동작 방식
 
-모든 에이전트와, 진입 스킬 `start` 가 시작한 모든 세션은 코어
+모든 에이전트와, `seal/` 루트가 있는 저장소의 모든 세션은 코어
 `skills/core/SKILL.md` 를 가지고 시작합니다.
 코어는 모든 참여자가 판단의 기준으로 삼는 가치를 담은 파일입니다. 나머지는
 필요한 단계에서 스킬로 불러오거나, 모델의 컨텍스트 밖에서 `seal` 명령이나
@@ -237,8 +237,8 @@ pull request 의 검사로 돕니다.
 | **proofer** (서브에이전트) | `core`, `agent-contract` | 커밋된 diff 를 리뷰한다. 프레임을 지켰는지를 먼저 보고 품질을 그다음에 보며, 회차마다 회차 기록을 쓴다 ([`agents/proofer.md`](agents/proofer.md)) |
 | **tracer** (서브에이전트) | `core`, `agent-contract` | `seal/parity.md` 를 선언한 저장소에서, 원본 코드가 하는 일을 판정 없이 좌표가 붙은 사실로 기록한다 ([`agents/tracer.md`](agents/tracer.md)) |
 | **sealer** (서브에이전트, Opus) | `core`, `agent-contract` | broad gate 뒤에 모든 참여자의 기록을 이슈와 트리에 견주어 읽고, 판정인 `guarantee.md` 를 쓴다 ([`agents/sealer.md`](agents/sealer.md)) |
-| 스킬 | — | 에이전트가 첫 호출부터 갖는 스킬은 왼쪽 열에 있다. `code-review`, `commit-pr-convention`, `confidence-check`, `feature-planner`, `implement`, `legacy-parity`, `settle`, `start`, `verify`, `writing-style` 은 작업이 요구할 때 세션이 알아서 로드하고, 에이전트는 각 스킬을 그것을 가리키는 단계에서 연다. 나머지는 사용자가 이름을 불러 실행하며, 아래 *명령* 에 있다 |
-| 코어 | — | `skills/core/SKILL.md` 다. 모든 에이전트가 미리 받고, 진입 스킬 `start` 가 자기가 시작한 세션에서 연다. 그래서 사용자의 `CLAUDE.md` 에는 아무것도 쓰지 않는다. 응답 언어는 정하지 않는다 |
+| 스킬 | — | 에이전트가 첫 호출부터 갖는 스킬은 왼쪽 열에 있다. `code-review`, `commit-pr-convention`, `confidence-check`, `feature-planner`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style` 은 작업이 요구할 때 세션이 알아서 로드하고, 에이전트는 각 스킬을 그것을 가리키는 단계에서 연다. 나머지는 사용자가 이름을 불러 실행하며, 아래 *명령* 에 있다 |
+| 코어 | — | `skills/core/SKILL.md` 다. 모든 에이전트가 미리 받고, `seal/` 루트가 있는 저장소의 세션마다 플러그인의 `SessionStart` 훅이 출력한다. 그래서 사용자의 `CLAUDE.md` 에는 아무것도 쓰지 않는다. 응답 언어는 정하지 않는다 |
 
 ### 리뷰 체인
 
@@ -292,37 +292,43 @@ tracer 가 가져옵니다. 세션이 저장소를 처음 설정할 때 한 번 
 
 ## 내 컴퓨터에서 도는 것
 
-플러그인은 훅을 하나도 등록하지 않습니다. 사용자 컴퓨터에서 도는 것은 사용자나
-세션이 시작하는 `seal` 명령, 그리고 사용자가 예라고 답했다면 도장 훅입니다.
+사용자 컴퓨터에서 도는 것은 사용자나 세션이 시작하는 `seal` 명령, 그리고
+Claude Code 가 자기 이벤트에 맞춰 돌리는 플러그인의 훅 두 개입니다.
 
-**도장 훅은 사용자의 것이고, 사용자가 예라고 답할 때 사용자의 설정에
-들어갑니다.** 처음 설정에서 한 번 묻고, 그 전에 설정을 마친 사용자에게는
-`/agentic:update` 가 묻습니다. 어느 답도 남아 있지 않을 때만 묻습니다. 예라고
-답하면 `seal stamp --install` 이 두 가지를 씁니다. 하나는 플러그인의 데이터
-디렉터리에 두는 실행기 `stamp.py` 이고, 다른 하나는 `~/.claude/settings.json`
-(또는 `CLAUDE_CONFIG_DIR` 아래)에 들어가는 `Stop` 항목 하나입니다. 그 항목의
-명령은 `python3 "<data dir>/stamp.py" || py -3 "<data dir>/stamp.py"` 이고, 파일의
-다른 키는 그대로 둡니다. 메인 세션의 턴이 끝날 때마다 실행기는 자기가 가리키는
-플러그인 사본에서 `seal_stamp.py --stop` 을 돌립니다. 세션이 일하는 클론에
-쌓인 도장을 하나씩 한 번 그리고, 쌓인 것이 없으면 아무 말도 하지 않습니다.
-무슨 일이 있어도 0 으로 끝납니다. 아니라고 답하면 `seal stamp --decline` 이 같은
-디렉터리에 빈 `stamp-declined` 파일을 써서 다시 묻지 않게 합니다.
-`seal stamp --hook "<data dir>"` 은 둘 가운데 어느 쪽인지 알려 주고,
-`seal stamp --remove "<data dir>" --settings ~/.claude/settings.json` 은 그 항목과
-실행기를 들어냅니다.
+**플러그인은 훅 두 개를 `hooks/hooks.json` 에 등록해 함께 내보내고, 어느 훅도
+사용자 설정에 쓰지 않습니다.**
+
+- **`SessionStart`** 는 세션이 시작할 때, 그리고 `/clear` 나 압축(compaction)
+  뒤에 다시 `hooks/core-start.py` 를 돌립니다. 세션의 저장소에 `seal/` 루트가
+  있으면 `skills/core/SKILL.md` 를 세션의 컨텍스트에 찍습니다. 그 위에는
+  플러그인 버전을 적은 줄이, 아래에는 일을 어디서 시작하는지 적은 줄이 하나씩
+  붙습니다. 다른 곳에서는 아무것도 찍지 않습니다.
+- **`Stop`** 은 메인 세션의 턴이 끝날 때마다 `seal_stamp.py --stop` 을
+  돌립니다. 세션이 일하는 클론에 쌓인 도장을 하나씩 한 번 그리고, 쌓인 것이
+  없으면 아무 말도 하지 않습니다.
+
+두 명령은 모두 `python3 "<script>" || py -3 "<script>" || exit 0` 꼴이고,
+스크립트는 플러그인 자기 디렉터리 아래에 있습니다. 그래서 업데이트하면 두 훅도
+함께 옮겨 갑니다. 끝의 `exit 0` 때문에 두 명령은 무슨 일이 있어도 0 으로
+끝나고, 어느 훅도 턴을 멈추지 않습니다. 0.33.0 부터 0.34.1
+까지의 릴리스는 도장을 실행기 `stamp.py` 로 그렸습니다. 그 릴리스의 질문에
+예라고 답하면 이 실행기가 플러그인의 데이터 디렉터리에 들어가고,
+`~/.claude/settings.json` 에 `Stop` 항목이 하나 들어갔습니다. `/agentic:update`
+가 이 둘을 알려 주면 사용자가 직접 지웁니다.
 
 다른 세션이 쓰고 있는 작업 트리의 브랜치를 한 세션이 바꾸는 것은 아무것도
 막지 않습니다. 동시에 도는 세션에는 각자 worktree 를 하나씩 주세요.
 
-도장 훅은 사용자의 코드나 경로, 프롬프트를 어디로도 보내지 않습니다. 다음
-부수 효과는 밝혀 둡니다. sealer 가 `sealed` 로 읽히는 `guarantee.md` 에 한 번
-돌리는 `seal stamp --guarantee` 는 도장에 들어갈 값을
+두 훅 모두 사용자의 코드나 경로, 프롬프트를 어디로도 보내지 않습니다.
+`SessionStart` 훅이 찍는 것은 세션이 연 파일처럼 그 세션의 컨텍스트에 들어갈
+뿐입니다. 다음 부수 효과는 밝혀 둡니다. sealer 가 `sealed` 로 읽히는
+`guarantee.md` 에 한 번 돌리는 `seal stamp --guarantee` 는 도장에 들어갈 값을
 `<git-common-dir>/agentic-stamp/` 아래에 쓰고, 도장 훅은 그린 뒤 그 파일의
 이름을 바꿀 뿐 지우지 않습니다. 감사한 커밋이 작업 항목 브랜치에 없어 거절된
 `sealed` 는 어느 모드에서든 `<git-common-dir>/agentic-stamp-refused/` 아래에 빈
 파일을 남깁니다. 이 파일도 지우는 것이 없습니다.
 
-도장 훅은 네트워크를 타지 않습니다. 아래 자리가 네트워크를 탑니다. 이것들은
+두 훅 모두 네트워크를 타지 않습니다. 아래 자리가 네트워크를 탑니다. 이것들은
 명령이나 워크플로의 단계입니다. 그래서 사용자나 세션이 시작할 때 돌고,
 마지막 행만은 pull request 마다 사용자의 CI 에서 돕니다.
 
@@ -335,9 +341,9 @@ tracer 가 가져옵니다. 세션이 저장소를 처음 설정할 때 한 번 
 | 워크플로 자체의 단계 ([`skills/code-review/orchestration.md`](skills/code-review/orchestration.md)) | 사용자 저장소. 사용자의 `git` 과 `gh` 로그인으로 닿는다 | 이슈와 그 댓글, 최신 릴리스 노트를 읽는다. 작업 항목의 브랜치를 push 하고, `gh pr create` 로 pull request 를 열고, 그 본문을 고쳐 쓰고, 상태와 검사 결과를 읽고, 워크플로 실행을 시작하기도 한다. 커밋하기 전에 최근 pull request 목록을 본다. 릴리스 뒤에 작업 항목을 정리(settle)할 때 측정이 필요한 것이 있으면 이슈를 열기도 한다 | 이슈는 실행마다 읽는다. push 와 pull request 는 라우팅이 pull request 를 연다고 답한 곳에서만 일어난다 |
 | `seal pr-checks install` 이 쓰는 pull request 검사 (`.github/workflows/hygiene.yml`) | GitHub. 사용자의 CI 러너에서 닿는다 | 이 플러그인의 저장소를, 그 파일을 쓴 릴리스에서 `git clone --depth 1` 로 받는다 | 검사를 설치한 저장소에서 pull request 마다 |
 
-사용자 컴퓨터에서 사용자나 세션이 시작하지 않아도 도는 것은 도장 훅
-하나뿐입니다. 위 표에서 사용자 자신의 `gh` 로그인으로 닿는 행은
-모두 사용자가 일하는 저장소에만 닿습니다. 워크플로의 단계는 그 저장소에
+사용자 컴퓨터에서 사용자나 세션이 시작하지 않아도 도는 것은 이 두
+훅뿐입니다. 위 표에서 사용자 자신의 `gh` 로그인으로 닿는 행은 모두 사용자가
+일하는 저장소에만 닿습니다. 워크플로의 단계는 그 저장소에
 브랜치를 코드째 push 하고 pull request 의 글을 올립니다. 그 일을 하려고 있는
 단계입니다.
 
@@ -358,7 +364,6 @@ tracer 가 가져옵니다. 세션이 저장소를 처음 설정할 때 한 번 
 | `seal rules <doc>` · `seal rules --check` | 문서의 절마다 `check:` 줄이 가리키는 테스트를 찍거나, 대상이 사라진 줄을 하나씩 짚고 0 이 아닌 값으로 끝난다 (`skills/settle/rule-changes.md` *A rule has one shape*) |
 | `seal pact [ROOT]` | pact, 곧 여러 저장소가 함께 지키는 계약을 가진 저장소에서, 그 pact 에 서명한 저장소가 모두 아직 그것과 맞는지 확인한다 (`docs/layout/the-pact.md`) |
 | `seal payload` | 세션과 에이전트마다 시작 컨텍스트가 무엇으로 이루어졌는지를 바이트와 토큰으로 잰다 (`skills/verify/scripts/payload_meter.py`) |
-| `/agentic:start <이슈나 요청>` | 코드를 바꿔 달라는 평범한 요청처럼, 작업 하나를 워크플로로 시작한다. 코어를 열고, 라우팅 질문을 한 번 묻고, 첫 편집 전에 작업 항목의 선언을 쓴다 (`skills/start/SKILL.md`) |
 | `/agentic:parity-setup` | 이 저장소가 다른 코드베이스를 옮겨 온다고 선언한다 (`skills/parity-setup/SKILL.md`) |
 | `/agentic:config` | 이 저장소가 스스로 정한 것, 곧 두 언어와 기록이 사는 자리를 보여 주고 바꾼다 (`skills/config/SKILL.md`) |
 | `/agentic:update` | 최신 릴리스를 받고 무엇이 들어 있는지 알려 준다 (`skills/update/SKILL.md`) |
@@ -366,9 +371,9 @@ tracer 가 가져옵니다. 세션이 저장소를 처음 설정할 때 한 번 
 ## 한계
 
 - **아무것도 선언하지 않은 세션을 막는 것은 없습니다.**
-  진입 스킬이 닿지 않은 세션은 플러그인이 없을 때처럼 편집하고
-  커밋하며, 사용자가 터미널에서 직접 한 커밋은 이 플러그인의 코드를 하나도
-  돌리지 않습니다. pull request 의 검사는 선언한 작업 항목을 판정합니다
+  `skills/implement/orchestration.md` 를 열지 않은 세션은 플러그인이 없을
+  때처럼 편집하고 커밋하며, 사용자가 터미널에서 직접 한 커밋은 이 플러그인의
+  코드를 하나도 돌리지 않습니다. pull request 의 검사는 선언한 작업 항목을 판정합니다
   ([`docs/checks/the-routing-check.md`](docs/checks/the-routing-check.md)).
 - **`seal rules --check` 는 적어 둔 테스트가 있다는 것만 증명합니다.** 그
   테스트가 규칙을 확인한다는 뜻은 아닙니다. `check:` 줄이 없는 규칙은 리뷰만
@@ -382,7 +387,7 @@ tracer 가 가져옵니다. 세션이 저장소를 처음 설정할 때 한 번 
   곳에 적은 줄도 똑같이 읽힙니다.
 - **Windows 는 실제 기계에서 한 번 돌았습니다.** 한국어 cp949 콘솔을 쓰는
   네이티브 Windows 11 트리에서 `PYTHONUTF8=1` 없이 스위트가 통과했습니다.
-  도장 훅과 그 `py -3` 폴백은 Windows 에서 돈 적이 없습니다.
+  플러그인의 훅 두 개와 그 `py -3` 폴백은 Windows 에서 돈 적이 없습니다.
 - **행동 eval 은 CI 가 아니라 소유자의 계정에서 돕니다.** `evals/behaviour/`
   에는 에이전트 정의를 다시 쓴 것이 출력의 형식을 깨뜨렸는지 잡아내는 스모크
   런의 케이스가 있고, `claude plugin eval` 로 돌립니다. CI 는 그 케이스의

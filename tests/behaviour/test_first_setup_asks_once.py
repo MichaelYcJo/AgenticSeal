@@ -139,7 +139,9 @@ def test_the_broad_command_rides_the_question_that_already_stops_the_session():
     """#88's rule, one file over: questions that belong together are asked
     together. A second `AskUserQuestion` after the first is a second wait for
     one decision, and the prompt budget `CONTRIBUTING.md` guards is what a new
-    one would owe an argument to. This adds none: the call already exists."""
+    one would owe an argument to. This adds none: the call already exists.
+    The stamp's question rode the same call from #1376 until #1430 shipped
+    the plugin's `Stop` hook, and it is gone."""
     boot = bootstrap()
     assert boot.count("AskUserQuestion") == 1, (
         "the bootstrap opens more than one AskUserQuestion, which is the "
@@ -148,6 +150,10 @@ def test_the_broad_command_rides_the_question_that_already_stops_the_session():
     assert "two questions" in flat(boot), (
         "the one call is not said to carry both questions"
     )
+    # #1430: the plugin's `Stop` hook draws the stamp, so the call carries no
+    # third question and no command installs a hook.
+    assert "**The third question" not in boot, "a third question stands"
+    assert "seal stamp --" not in boot, "the bootstrap runs a stamp command"
     assert BROAD_ROW in boot, "the bootstrap does not ask for the row at all"
     assert boot.index(BROAD_ROW) > boot.index("**local**"), (
         "the row is asked before the mode's options are even laid out"
@@ -272,49 +278,6 @@ def test_a_projects_own_seal_names_the_marker_template_and_the_git_dir_root():
     assert "`templates/setup/seal-README.md`" in own, own
     # The path of the local root, which the orchestrator creates instead.
     assert f"`{COMMON_DIR}`" in own, own
-
-
-# --- #1376: the stamp's question, the person's and asked once --------------
-
-STAMP_QUESTION = "**The third question is the stamp"
-
-
-def test_the_stamp_question_is_put_once_where_neither_answer_stands():
-    """Contract rule 14, for #1376 phase 5. The plugin registers no hook, so
-    the stamp's `Stop` hook is written into the person's settings on their
-    yes. Bootstrap puts the question where `seal stamp --hook` reads
-    `neither`, names the two writes in the yes option, and runs `--install`
-    or `--decline`; the entry names the data directory, substituted, and
-    `/agentic:update` asks a person set up before and moves the launcher to
-    the copy it installs."""
-    stamp = paragraph(bootstrap(), STAMP_QUESTION)
-    for said in (
-        'Run `seal stamp --hook "<data-dir>"` first',
-        "Where it prints `neither`, put",
-        "The yes option names its two writes",
-    ):
-        assert said in stamp, said
-    boot = flat(bootstrap())
-    for command in (
-        'seal stamp --install "<data-dir>" --settings '
-        '"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json"',
-        'seal stamp --decline "<data-dir>"',
-    ):
-        assert command in boot, command
-    start = flat(read("skills", "start", "SKILL.md"))
-    assert (
-        "The data directory its stamp question passes is `${CLAUDE_PLUGIN_DATA}`"
-        in (start)
-    )
-    update = flat(read("skills", "update", "SKILL.md"))
-    for said in (
-        '"$p/bin/seal" stamp --hook "${CLAUDE_PLUGIN_DATA}"',
-        "| `neither` | ask once, with `AskUserQuestion`",
-        '"$p/bin/seal" stamp --install "${CLAUDE_PLUGIN_DATA}" --settings',
-        "nothing is asked; run the command below, so the launcher names the copy "
-        "just installed",
-    ):
-        assert said in update, said
 
 
 # --- Q1: the sentence a session reads, once in each place -----------------
@@ -698,8 +661,9 @@ def test_the_design_record_states_the_setup_rules_where_they_rule(parts, opt_in,
 # there. A session is told to write `seal/threads/<id>/routing.md` before the
 # first edit, and that write creates `seal/`, which opts the repository in.
 # Until #1177 the preset block in `~/.claude/CLAUDE.md` said so in every
-# project on the machine. The block is retired; the core, which
-# `/agentic:start` opens in a session, names the routing section (`tests/text/test_review_axes.py`), and the cases
+# project on the machine. The block is retired; the core, which the plugin's
+# `SessionStart` hook prints into a session, names the routing section
+# (`tests/text/test_review_axes.py`), and the cases
 # below read the orchestrator's half and the Bootstrap, the files that hold
 # the rule.
 

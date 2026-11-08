@@ -116,9 +116,9 @@ whatever `python3` it finds, because its runner is what gets past an old one:
 it builds its virtualenv with an interpreter at that floor or newer, refuses a
 `.venv` it finds below it, and where it finds neither `uv` nor such an
 interpreter it says which to install. What runs before any floor is checked
-(the stamp's launcher, `lib/launch.py`, `bin/test`'s
-runner, and every module one of them loads in its own process) runs on
-whatever `python3` starts it.
+(the scripts `hooks/hooks.json`'s commands run, `lib/launch.py`,
+`bin/test`'s runner, and every module one of them loads in its own process)
+runs on whatever `python3` starts it.
 `ruff.toml` lints that code at the version its `per-file-target-version`
 names. `tests/lib/test_launch.py` derives the set and holds every file of it
 to that table, and `tests/censuses.py#floor_syntax` refuses in it the syntax
@@ -447,22 +447,24 @@ question is not its difficulty, it is when it arrives.
   `tests/behaviour/test_both_editions_carry_the_same_folds.py` reads every
   tracked `X.ko.md` beside an `X.md`, wherever it stands, the READMEs among
   them, and requires the same sequence of heading levels.
-- **The plugin registers no hook, and the one write outside the repository
-  is the person's yes.** The plugin directory refuses a plugin that
-  registers a command hook, so nothing runs at Claude Code's events unless
-  the person put it in their own settings. `seal stamp --install` writes the
-  one such entry, the stamp's `Stop` hook, with its launcher in the plugin's
-  data directory, and only on the yes to the question first setup and
-  `/agentic:update` put. Its command is `python3 <launcher> || py -3
-  <launcher>`: shebangs and exec bits do not exist on Windows, and `python3`
-  is the one name its official installer does not create. While the
-  launcher stands, the fallback is reached only when the first interpreter
-  could not start, because the launcher exits 0 whatever happens. Where the
-  entry outlives its launcher, both halves fail at the end of every turn
-  until `seal stamp --remove` takes the entry out. It reaches no network;
-  `README.md` *What runs on your machine* names the commands and steps that
-  do, what each reaches, what it sends and when. Anything that would send
-  repository contents, paths, or prompts is not on the table.
+- **The plugin ships two hooks, and neither writes outside the
+  repository.** `hooks/hooks.json` registers a `Stop` entry that runs
+  `skills/verify/scripts/seal_stamp.py --stop`, which draws the sealer's
+  stamp at the end of the main session's turn, and a `SessionStart` entry
+  that runs `hooks/core-start.py`, which prints the core into a session
+  whose repository holds a `seal/` root. The plugin directory refuses a
+  plugin that registers a command hook (#1376), and the owner chose on
+  2026-11-08 to ship these two until a listing is possible (#1430). Each
+  command is `python3 <script> || py -3 <script> || exit 0`, with the
+  script named under `${CLAUDE_PLUGIN_ROOT}`: shebangs and exec bits do not
+  exist on Windows, and `python3` is the one name its official installer
+  does not create. The `py -3` half runs where the `python3` half exits
+  non-zero, and the closing `exit 0` makes the command exit 0 whatever
+  happens, so neither hook returns the exit 2 that keeps a turn going.
+  Neither reaches a
+  network; `README.md` *What runs on your machine* names the commands and
+  steps that do, what each reaches, what it sends and when. Anything that
+  would send repository contents, paths, or prompts is not on the table.
 
 ## Cutting a release
 
@@ -480,5 +482,5 @@ a false positive would cost. The plugin's value is that its always-on surface
 stays small: a new always-loaded rule has to earn its place against
 [the context-file study](https://arxiv.org/abs/2602.11988) the README cites.
 Skills that load on demand are a much easier case to make than anything
-added to the core, which every agent and every session the entry skill
-`start` starts loads.
+added to the core, which every agent and every session in a repository
+with a `seal/` root loads.

@@ -76,7 +76,7 @@ check: tests/behaviour/test_a_cited_section_stands_in_its_file.py
 | 아무것도 설정하지 않은 협업자 | 플러그인을 깔면 워크플로를 따른다 | 그 클론의 git 디렉터리 아래에 루트가 없으니 아무것도 돌지 않는다 |
 
 플러그인을 깔지 않은 협업자에게는 어느 모드에서도 아무것도 돌지 않습니다.
-entry 스킬과 `seal` 명령이 플러그인의 것이기 때문입니다. 실패 방향은, 두
+훅과 스킬과 `seal` 명령이 플러그인의 것이기 때문입니다. 실패 방향은, 두
 자리 어디에도 폴더가 없으면 옵트인하지 않은 것이고, 판단하지 못하는 명령은
 저장소를 옵트인하지 않은 것으로 읽는다는 것입니다. 버릴 저장소는 공통 git
 디렉터리 아래의 빈 파일 `.git/agentic-scratch` 하나로 옵트인하지 않은
@@ -186,7 +186,7 @@ check: tests/behaviour/test_first_setup_asks_once.py tests/lib/test_optin.py tes
 |---|---|
 | AgenticSeal | 플러그인. 그 한 문장은 README.ko.md 제목 아래 첫 줄과 `.claude-plugin/plugin.json` 의 `description` 에 있다 |
 | `seal/` | 루트. PR 이 열려 있는 동안 사람이 읽는 것이 진행 중인 작업 항목이므로, `docs/` 옆에 보이게 둔다 |
-| `seal/threads/<id>/` | 작업 항목의 디렉터리. 스레드 하나가 이슈 하나, 브랜치 하나, PR 하나다. 빌드 전의 설계는 `frame/`, 당사자 사이에 오간 것은 `trail/` 에 두고, 맨 위에 `routing.md`, `changelog.md`, `guarantee.md`, `gaps.md` 를 둔다. 기록은 무엇인가로 자리를 정하고, 어느 에이전트가 썼는가로 정하지 않는다 |
+| `seal/threads/<id>/` | 작업 항목의 디렉터리. 스레드 하나가 이슈 하나, 브랜치 하나, PR 하나다. 빌드 전의 설계는 `frame/`, 당사자 사이에 오간 것은 `trail/` 에 두고, 맨 위에 `routing.md`, `changelog.md`, `guarantee.md`, `gaps.md`, `pr.md` 를 둔다. 기록은 무엇인가로 자리를 정하고, 어느 에이전트가 썼는가로 정하지 않는다 |
 | framer, crafter, proofer, sealer, tracer | 에이전트. 각 이름은 한 순서 안의 자기 몫을 말하고, 그 순서는 `docs/running/the-agent-set.md` *One contract every agent receives, and one definition each* 에 있다 |
 
 디렉터리와 에이전트는 처음 만나는 사람에게 자기가 무엇인지 말해야 하므로,
