@@ -2253,7 +2253,9 @@ class Test_main:
         """#1376: the sealer's one run after it writes `Verdict: sealed` queues
         the work item's values file and prints the line its hand-back
         carries. The clone is the path's, never the shell's working
-        directory, which is outside it here; a second run prints nothing."""
+        directory, which is outside it here; a second run prints nothing.
+        #1430: the line names the plugin's `Stop` hook as the drawer, spelt
+        out here so a change to what the person reads changes this case."""
         item = request.getfixturevalue(root)
         guarantee = item_dir(item) / "guarantee.md"
         if root == "shared":
@@ -2265,7 +2267,11 @@ class Test_main:
         assert stamp.main(["--guarantee", str(guarantee)]) == 0
         (written,) = queued(item.common)
         real = os.path.realpath(written)
-        line = stamp.QUEUED.format(id=ITEM_ID, path=real, command=stamp.quote(real))
+        line = (
+            f"agentic: the stamp for {ITEM_ID} is queued in {real}; the plugin's "
+            "`Stop` hook draws it at the end of the turn, and where none appears, "
+            f"`seal stamp --from {stamp.quote(real)}` draws it"
+        )
         assert capsys.readouterr().out == line + "\n"
         assert os.path.dirname(real) == os.path.realpath(stamp.values_dir(item.common))
         assert stamp.main(["--guarantee", str(guarantee)]) == 0
