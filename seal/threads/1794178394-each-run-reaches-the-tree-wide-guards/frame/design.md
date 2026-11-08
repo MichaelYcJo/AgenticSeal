@@ -83,7 +83,8 @@ No interface, schema or script changes. Test files move, three documents and one
   to: `seal rules --check`, through
     `tests/behaviour/test_this_repository_passes_its_own_checks.py`, and hygiene's step that
     prints the `check:` lines it did not read
-  why: *Scope* item 1 moves the case that runs `seal rules --check` over the whole tree out of `tests/github/test_rules.py`; the row names where the suite runs it. No other document of the policy root states which tests run at a phase boundary or in a fix pass; that scope is `skills/verify/SKILL.md`'s table, with `agents/crafter.md` and `CONTRIBUTING.md`, which stand outside the policy root and which this work edits in place; `git grep -n -i -E 'narrow|phase boundar|slice' -- docs` at `94d04d30` returns no such statement.
+
+*Scope* item 1 moves the case that runs `seal rules --check` over the whole tree out of `tests/github/test_rules.py`, and the row names where the suite runs it. No other document of the policy root states which tests run at a phase boundary or in a fix pass. That scope is `skills/verify/SKILL.md`'s table, with `agents/crafter.md` and `CONTRIBUTING.md`, which stand outside the policy root and which this work edits in place; `git grep -n -i -E 'narrow|phase boundar|slice' -- docs` at `94d04d30` returns no such statement.
 
 ## Removes
 
