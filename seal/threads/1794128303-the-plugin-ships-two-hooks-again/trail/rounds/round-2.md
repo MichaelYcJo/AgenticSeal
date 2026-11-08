@@ -138,6 +138,11 @@ frame/questions.md:9
        catch leaves out.
 ```
 
+```seal
+verdict: fixed 80540e348
+answer: The route-A text was not applied. The orchestrator replaced route A (`frame/plan.md` *Judgments of the run*, the round 2 row): both commands in `hooks/hooks.json` now end with ` || exit 0`, so each exits 0 whatever happens, Python's exit 2 under a standing `py` among the cases. `tests/behaviour/test_chain_hooks_hardening.py#test_the_plugin_registers_two_hooks_and_writes_none_into_git` holds three parts, with `exit 0` last. The new case `#test_each_hook_command_exits_0_where_its_script_cannot_be_opened`, parametrized over `Stop` and `SessionStart`, runs each command under `sh` with no script under `${CLAUDE_PLUGIN_ROOT}` and a scratch `py` that exits 2. It was seen red with exit 2 against both commands before the edit, and again by `seal mutate` dropping the `Stop` command's ` || exit 0`. `tests/lib/test_launch.py#hooked` and the two cases that run the `python3` half read the first part only, so they needed no change. `hooks/core-start.py:15-17`, the finding's own coordinate, now says the script exits 0 on every path once loaded and the command exits 0 whatever happens through its closing ` || exit 0`. The same rule now replaces the per-failure wording `db53d635a` wrote in `CONTRIBUTING.md` *House rules*, both READMEs, `docs/checks/the-stamp.md:87-91,158-160`, `lib/launch.py` and `changelog.md:3`, and in `trail/phases/phase-2.md`'s correction. Each person-facing sentence is pinned: run against the text at `a19d215ea` in a scratch worktree, each pin went red, and each new `not in` guard went red under `seal mutate` with the old wording put back. `skills/code-review/orchestration.md:531-533` and the `QUEUED` comment in `seal_stamp.py` say only where nothing draws, which still holds, so they stand. `gaps.md`'s row on a non-zero exit reaching the person is marked `closed` with no subject left, not deleted (`skills/implement/SKILL.md` *4. The closing memo*). The frame rows and `pr.md:8` are the orchestrator's, folded at `a19d215ea`.
+```
+
 ### 2. *Scope* item 2 reads as two cases replacing three, the two among them
 
 ```seal
@@ -170,6 +175,11 @@ to have one reading (`skills/writing-style/SKILL.md` *에이전트와 검사가 
 frame/design.md:52 (Scope item 2)
   old: two cases replace `Test_install.test_accepts_a_launcher_the_harness_runs_at_stop_drawing_once`, `Test_main.test_the_plugins_stop_command_draws_once_and_exits_0` and `Test_main.test_the_plugins_stop_command_draws_on_a_console_it_cannot_encode_to`: the first reads
   new: two cases, `Test_main.test_the_plugins_stop_command_draws_once_and_exits_0` and `Test_main.test_the_plugins_stop_command_draws_on_a_console_it_cannot_encode_to`, replace `Test_install.test_accepts_a_launcher_the_harness_runs_at_stop_drawing_once`: the first reads
+```
+
+```seal
+verdict: fixed a19d215ea
+answer: The orchestrator folded *Scope* item 2 at `a19d215ea`. The sentence now names the two `Test_main` cases first and then the one case they replace, so it has one reading, and both ids resolve at HEAD (read: `tests/skills/test_seal_stamp.py`). This fix pass wrote nothing for this finding, since the frame is not the crafter's to write.
 ```
 
 ## Confirmations
