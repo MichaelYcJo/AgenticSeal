@@ -463,12 +463,17 @@ def user_dir(home, config):
     return os.path.join(home, ".claude"), "~/.claude"
 
 
-def composition(root, home, name, definition, sections, user):
+def composition(root, home, name, definition, sections, user=None):
     """The rows of one agent's payload, in the order the harness lays them
     out: the definition, each skill, then the harness's `CLAUDE.md` pair with
     its imports (`pair_rows`). A skill's shadow is read in `user`, the pair
     `user_dir` returns. No row is the core hook's: its output reaches no
-    subagent."""
+    subagent.
+
+    `user` left out is `user_dir(home, None)`, because
+    `.github/scripts/release_report.py#preloads` loads this file from the
+    last tag's tree as well as this one and calls it with five arguments."""
+    user = user or user_dir(home, None)
     directory, label = user
     _name, skills = frontmatter(read(os.path.join(root, definition))[1])
     rows = [file_row(root, definition, definition, "agent", sections)]
