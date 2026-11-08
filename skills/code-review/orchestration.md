@@ -187,7 +187,14 @@ Where its inputs are a closed set, such as a parser's kinds or the guards of
 one function, the fix enumerates them, pins each with one case, and answers
 any other input by naming the form it takes. Where they are open, such as the
 shapes a merge's status can take, a list of them is one more edge to chase:
-the fix, and every sentence about it, states the rule and lists no kinds.
+the fix, and every sentence about it, states the rule and lists no kinds. A
+list grows in prose as it does in code: a limits paragraph, a comment or a
+record that names the shapes one by one gains one shape per fix pass, and
+each shape it names is a sentence the next round contradicts with the shape
+beside it. A shape that was measured is cited as an example of the rule and
+named as one, and no sentence counts the examples or calls one of them the
+only one. The signal shows at the first fix pass that adds a shape, and the
+weighing is owed there, not at the round after.
 Where deciding it is a rebuild the issue did not ask for, the mechanism leaves
 as its own issue and the branch keeps the release's reading of it, so the run
 reads no edge the release did not have. The row that decides either names the

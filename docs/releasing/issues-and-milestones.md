@@ -289,20 +289,33 @@ past-tense narrative keyword is still a keyword, so a sentence that used one
 with a second number beside it would earn the warning like any body.
 check: tests/behaviour/test_a_body_naming_two_issues_claims_one.py tests/github/test_issue_claims_check.py
 
-**A keyword inside a fence or a code span claims nothing, whatever the fence
-or the span is made of.** A fence opens with backticks or tildes at any
-indent and closes on its own delimiter; a span is one backtick or two.
-Masking more closes fewer, and that is the safe direction: an issue left open
-is visible and a re-run reaches it, while a wrong close is a false record.
+**A keyword inside a fence, a code span or an HTML comment claims nothing,
+whatever the fence or the span is made of.** A fence opens with backticks or
+tildes at any indent and closes on its own delimiter, a span is one backtick
+or two, and a comment is `<!--` to the first `-->` after it; whichever of
+the three opens first hides the other two inside it. Masking more closes
+fewer, and that is the safe direction: an issue left open is visible and a
+re-run reaches it, while a wrong close is a false record. GitHub's reading
+of a comment was measured on throwaway pull requests into `main`, and the
+closer reads it the same way where one line's text can: a comment that
+closes hides its text wherever it stands, and a `<!--` that never closes
+hides everything below it where nothing but spaces, tabs and block markers
+stand before it on its line, and is text where other text does (#1404).
+That line-start test reads one line's own text, with no block model, so
+where CommonMark's block rules make GitHub read on past such an opener, the
+closer masks to the end of the body all the same and closes fewer. The
+measured shapes are examples of that one rule, not a list of cases: GitHub
+hides what follows an opener behind a list or quote marker as the closer
+does (#1408, #1409), and reads on past one indented four spaces (#1410).
 Two shapes are still read as claims, each pinned by a case so a later
-widening is a deliberate red: a four-space indented block, because this
-repository's pull request bodies indent a bullet's continuation that way and
-masking it would drop a real `Closes #N`, and an HTML comment, because
-whether GitHub reads a keyword inside one is unmeasured.
-`.github/scripts/issue_claims_check.py` imports the closer's two patterns
-rather than spelling its own, so the check and the closer read one body the
-same way.
-check: tests/github/test_close_issues_on_release.py
+widening is a deliberate red: a keyword in a four-space indented block,
+because this repository's pull request bodies indent a bullet's
+continuation that way and masking it would drop a real `Closes #N`, and
+one after a `<!--` that never closes with other text before it on its line,
+because GitHub reads what follows it. `.github/scripts/issue_claims_check.py`
+imports the closer's patterns rather than spelling its own, so the check
+and the closer read one body the same way.
+check: tests/github/test_close_issues_on_release.py tests/github/test_issue_claims_check.py
 
 ## An issue is its body and its comments together
 
