@@ -70,6 +70,12 @@ the fresh framer's inputs, the uncommitted row, the crafter-named
 statement, and the framer's hand-back. The working tree was clean after
 every run (executed: `git status --short`).
 
+**The phase-boundary run passed.** One `bin/test` command ran 49
+modules: the phase row's module, and each module that names, globs or
+lists through `git ls-files` a path the phase changed. Modules whose only
+match was a temporary fixture path were left out. It exited 0, with 1573
+passed and 7 skipped (executed).
+
 **No unit was renamed or moved,** so no census is owed. The removals
 match `frame/design.md` `## Removes` row by row, and the phase removed
 nothing the frame did not name.
