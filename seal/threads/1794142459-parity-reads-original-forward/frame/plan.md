@@ -1,0 +1,66 @@
+# Implementation Plan: 1794142459-parity-reads-original-forward
+
+## Technical context
+
+The tree as read at `9e758b0b0`.
+
+**What the method says today.** `skills/legacy-parity/SKILL.md` is 117 lines (`wc -l` executed). Its opening paragraph (lines 14-19) names the three sections the tracer reads: *The migration config*, *What the original sends* and *The original's coordinates*. *What the original sends* (lines 56-62) reads the original forward, from the endpoint to the finished response, for behaviour at a coordinate. *The original's coordinates* (lines 64-69) puts the original's coordinates in the design's *Grounding* and starts every comparison there. *Parity review* (lines 81-95) runs `code-review`'s stage 1 against the original through those coordinates and ends with the block of four verdict words. *Recording the comparison* (lines 97-116) names the proofer and the sealer as the writers of the `original:` line. `skills/code-review/SKILL.md` *Comparison axes* (lines 70-89) holds the response-shape row at line 81 and two sentences under the table on the last two rows. `agents/tracer.md` (68 lines) reports at step 6 "the coordinates the design had wrong, the axes nobody looked at, and what is out of verified scope". `agents/framer.md` step 4 names `seal/parity.md` in one clause.
+
+**Constraints the build works inside.** Each is a case or a reader that runs in the suite, read in `frame/design.md` *Grounding*:
+
+- `tests/behaviour/test_docs_line_wrap.py`: the four files wrap at 88 display columns.
+- `tests/text/test_a_cited_section_stands_in_its_file.py`: every citation of the form backticked path plus italic heading resolves, in the tree and in the archive `dist` is built from; so the two amended sections keep their headings, and the new citation in `agents/framer.md` names one that exists.
+- `tests/text/test_the_record_is_written_in_words.py#test_the_parity_verdicts_are_four_words`: *Parity review* holds exactly one fenced block and its labels are the four words in order; the new sentences stand outside that block and add no word.
+- `tests/text/test_review_axes.py#test_the_record_of_a_comparison_names_its_writer`: *Recording the comparison* keeps its two table rows and the clause "the tracer and the crafter record none"; the section is not edited.
+- `tests/text/test_a_moved_rule_leaves_its_definition.py#test_the_tracer_opens_the_parity_skill_and_returns_original_not_found` and `tests/behaviour/test_a_probe_that_commits_says_so.py#test_the_fact_finder_points_a_probe_at_rule_7`: `agents/tracer.md` keeps step 1's opening, the guessed-original rule's sentence and "leaves nothing behind (rule 7)".
+- `tests/text/test_the_handoff_before_round_one.py#framer_rule` and `tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py`: `agents/framer.md`'s rules are located by their bold leads; step 4 is outside them.
+- `.github/scripts/rules.py` through `tests/github/test_rules.py` and `seal rules --check`: a `check:` line is one line in the one shape, naming a file of the repository; the new line names `tests/text/test_review_axes.py`.
+- `docs/running/what-a-script-gates.md` *The checks* and `agents/proofer.md` step 7: a case pins a fact a reader acts on, and a named pin of a rule's wording is a finding at review.
+- `tests/censuses.py#real_identifiers`: no real path or host in any file, the records included.
+- Contract rule 15: each new case is shown red, with the fact it pins removed from the text, before it is committed, and the phase record says how.
+
+**What the build does not touch.** `lib/fields.py`, `skills/code-review/scripts/chain_check.py`, `templates/records/`, `docs/`, `.claude-plugin/plugin.json`, and `skills/legacy-parity/SKILL.md`'s *Recording the comparison*.
+
+**The failure scenario of the chosen approach.** In six months a migration framer lists forty items for one entry point and the proofer confirms each with a line it did not open: the `original:` line says a comparison was recorded, as it does today, and the catch is the same as today's. The sealer samples the crafter's claims, and a confirmation line is not among them. Nothing here reads the walk's lines, by design: a script that read them would decide on a count, and whether an item was walked is the proofer's. A second scenario: a framer that cannot resolve the original writes `original not found`, and an automation run proceeds on the frame without a list; the proofer's walk from the original then finds what is missing one round later, where the frame should have. A third: an original that is not a service, a batch job or a command line, has a surface the three kinds name badly; the sentence says "or their equivalents", and the framer of that migration decides what they are, which the proofer reads.
+
+## Alternatives considered
+
+| Approach | Failure scenario | Verdict |
+|---|---|---|
+| The list at the frame in the design's *Grounding*, the tracer's report naming what it lacks, the walk at review from the original forward with `differs` as the default, the walk's lines in the round record, and the response-shape axis naming its direction | The scenarios in *Technical context* | **chosen**: the *Grounding* is where `skills/legacy-parity/SKILL.md` *The original's coordinates* already puts the original's coordinates (read, lines 64-69), and the round record is where `docs/running/the-review-and-parity-arms.md` *Parity arm* already records the comparison (read); both premises checked |
+| The pass at review only: the proofer enumerates the original's surface in round 1 and walks it, with no change to the frame | The crafter builds from a design that never listed the item, so the port is built without it and the finding arrives one round later at best; under `straight to the PR` only the sealer compares, after the build; the frame is the cheapest moment (`docs/running/the-agent-set.md` *The party that draws a contract is not the party that executes it*) | rejected |
+| The tracer records the enumeration in a durable file, the issue's third suggestion | `agents/tracer.md` *Job*: "You write nothing durable anywhere"; `docs/running/the-agent-set.md` *One contract every agent receives, and one definition each*: an agent whose definition is silent about an act does not take it; and the fact would have two homes, the file and the *Grounding* that already cites the original | rejected: the tracer's report names what the list lacks, and the framer's record holds the list |
+| Replace the *Grounding* as the home with a record of its own, `frame/surface.md` or a new section of `templates/records/sdd-design.md` | A record format is a `feat:` example (`skills/commit-pr-convention/SKILL.md` *Commit messages*) and moves the release to a minor; `docs/layout/the-record-layout.md` *seal/threads/<work-item-id>/* and `skills/implement/SKILL.md` *3. The SDD file set* each gain a row, and `agents/proofer.md` step 3's reading list a file; a *Grounding* that cites the original beside it holds a copy, which `docs/layout/the-record-layout.md` *A fact of a work item has one record, and every other record cites it by path and heading* forbids | rejected: the structure kept is the *Grounding* as the design's one home for the original's coordinates, read at `skills/legacy-parity/SKILL.md:64-69` |
+| A new section in `skills/legacy-parity/SKILL.md` holding the whole pass, with *The original's coordinates* and *Parity review* left as they are | Two sections then state where the design's citations go and how stage 1 compares, and the sentence that starts the comparison at the citations stays beside the one that starts it at the original; contract rule 19 rewrites the text it amends in place | rejected |
+| A script that diffs the original's response schema with the port's | Whether two fields mean the same is the judgment the workflow delegates (`skills/core/SKILL.md` *Judgment is spent where meaning is the question, and a script answers the rest*); a schema reader per framework on each side; a script that says differ where the meaning is the same is the worst result the workflow can give | rejected |
+| A `surface:` line or a count of items walked in the round block, which `chain_check.py` reads | A mark added at a blocked step, which has caught nothing on the day it is added (`agents/framer.md` *A mark is not the answer to a blocked step*); a count is not a coordinate (contract rule 5); `lib/fields.py` grows, a `feat:` | rejected |
+| The default for an absent item stated in `skills/code-review/SKILL.md` alone, and `legacy-parity` left to cite it | The verdict word `differs` is the parity skill's, and the review skill is read in greenfield repositories where no original exists; each reader needs the direction where it reads | rejected: both state it, the parity skill for the verdict and the review skill for the axis |
+| The direction stated in the axis row's cell alone, with no paragraph under the table | A rule of four clauses in a table cell, read beside nine other cells; the two sentences already under the table are where the rows' qualifications stand | rejected: the cell names the direction and the paragraph states the default |
+| The forward pass written into `docs/running/the-review-and-parity-arms.md` as policy | That document's opening sentence gives it what a change in a migration owes at the pull request and where that is checked; the comparison's method has no home there, and the settle would then write a method into a policy document the skills cite | rejected |
+| An eval case for the proofer in a migration | No fixture original stands under `evals/behaviour/` (executed `ls`), so one would be built first; a paid run per change to the text, buying nothing the cases on the text do not | rejected: the acceptance is read from the definitions and the skill |
+| The prefix `feat:`, moving 0.35.1 to a minor | The change adds no command, record format or refusal (the `feat:` examples); the rule it serves stood before the change, and the method let through what the rule refused, the `fix:` example | rejected, on the condition `frame/design.md` *Grounding* states: a phase that adds a record format or a field turns the title `feat:`, and the orchestrator writes that row |
+| One phase for every file | One spawn and one round over six files of two kinds, where the parity method, read only in a migration, and the review axis, read in every repository, are reviewed together | rejected: two phases, the method and its cases first, the axis and the fragment second |
+
+## Phases
+
+| Phase | Delivers | Verified by | Status |
+|---|---|---|---|
+| 1 | *Scope* items 1, 2, 3, 4 and 6 | each case of item 6 seen red against the text at the phase's parent with the fact it pins removed, then green, and the phase record says how; `bin/test tests/text/test_review_axes.py tests/text/test_a_moved_rule_leaves_its_definition.py tests/text/test_the_record_is_written_in_words.py tests/text/test_docs_line_wrap.py tests/text/test_a_cited_section_stands_in_its_file.py tests/behaviour/test_a_probe_that_commits_says_so.py tests/text/test_the_handoff_before_round_one.py tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py -q`; `bin/seal rules --check` reads the new `check:` line; `git grep -n "Start every comparison there"` prints nothing | |
+| 2 | *Scope* items 5 and 7 | `bin/test tests/text/test_review_axes.py tests/text/test_docs_line_wrap.py tests/text/test_a_cited_section_stands_in_its_file.py -q`; the fragment read against `docs/layout/the-record-layout.md` *A change writes fragments, never a shared file* and `templates/records/process.md`; `git grep -n "included/excluded fields"` prints the one rewritten cell | |
+
+Each phase commits with the Edit tool's edits alone.
+
+## Operational impact
+
+- No migration, environment variable, dependency or compatibility break. No script changes.
+- **The version.** Another work item moves `.claude-plugin/plugin.json` to 0.35.1; this one leaves it at 0.35.0, and its `changelog.md` lands in phase 2's commit without a version move.
+- **What a user meets.** In a repository that declares `seal/parity.md`, the next frame lists the original's output surface in its *Grounding*, and the next review round walks it. A design framed before this release is not reframed; its review walks from the original and locates what the list lacks in `frame/design.md`.
+- **The prefix.** `fix:` under the condition `frame/design.md` *Grounding* states; the orchestrator's title row below records the judgment and `pr.md` quotes it.
+
+## Judgments of the run
+
+<the orchestrator's row for each judgment it makes in the run: a round spawned past the default or the run ended, a regression's route, a leftover's home, a decision folded into the frame, why the pull request title takes its prefix, which `pr.md` quotes; the grounds in one or two sentences, and the document judged against as its backticked path and italic heading>
+
+| Date | Judgment | Grounds | Judged against |
+|---|---|---|---|
+| | | | |
