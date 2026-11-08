@@ -392,9 +392,12 @@ plans' `frame/plan.md` *Overlap with the release* sections state. Where two
 plans state opposite orders for one pair, or where the item ordered first
 cannot be sealed before the other, the orchestrator chooses the order and
 writes the choice as a row of `frame/plan.md` *Judgments of the run* in the
-plan of the item it merges out of the stated order. The move goes to the
-item first in that order, and items that no plan orders against each other
-merge as each is sealed. Where a crafter builds that work item
+plan of the item it merges out of the stated order. The move goes to an
+item that no plan orders after another, which the orchestrator chooses
+where several are, and the orchestrator merges that item before every
+other item of the release, because the first pull request into the branch
+carries the move. Once it has landed, items that no plan orders against
+each other merge as each is sealed. Where a crafter builds that work item
 and its `frame/plan.md` *Operational impact* does not name the move, the
 orchestrator folds the move into that section before it spawns the last
 phase, because the crafter reads its version write there. A move made
