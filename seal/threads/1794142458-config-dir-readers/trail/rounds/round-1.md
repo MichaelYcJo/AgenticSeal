@@ -26,6 +26,11 @@ The fix touches only the last sentence of item 4. S8's row (`:54`) already says 
 4. **The suite runs with the variable unset.** `tests/conftest.py` removes `CLAUDE_CONFIG_DIR` from `os.environ` at import, beside the `GH_CONFIG_DIR` block, with a comment saying why (G9). A case that needs the variable sets it. `tests/test_conftest.py#Test_module::test_the_conftest_takes_the_claude_config_directory_away` pins the removal, since S8's run of `tests/skills/test_session_cost.py` passes with it gone: every `Test_newest` case sets or deletes the variable itself.
 ```
 
+```seal
+verdict: deferred the orchestrator's fold of `frame/design.md` *Scope* item 4
+answer: The finding holds, and the fix pass writes no frame file, so the sentence goes to the orchestrator in the hand-back. Re-run in this pass (executed, `seal mutate tests/conftest.py` with the removal as `pass`, under an outer `CLAUDE_CONFIG_DIR` naming a scratch directory with a `CLAUDE.md` and an `alpha` shadow): against `tests/skills/test_session_cost.py` it `SURVIVED`, 255 passed; against `tests/skills/test_payload_meter.py` it was red, on S5's `[unset]` case and on `test_the_json_carries_the_session_as_an_object_of_its_own`. The paste-ready sentence names only the first half, so the replacement handed back is written in this pass's words and names both: "`tests/test_conftest.py#Test_module::test_the_conftest_takes_the_claude_config_directory_away` pins the removal by name. S8's run of `tests/skills/test_session_cost.py` passes with the removal gone, since every `Test_newest` case sets or deletes the variable itself, and its run of `tests/skills/test_payload_meter.py` fails on S5's `[unset]` case."
+```
+
 ### 2. The release note names one row a `--baseline` stops pairing, and the rows of the files that row imports stop pairing too
 
 ```seal
@@ -45,6 +50,11 @@ pr.md:3:
 
 frame/plan.md:38, the two sentences:
 On a machine that sets the variable, a `seal payload` row moves from `~/.claude/CLAUDE.md` to `$CLAUDE_CONFIG_DIR/CLAUDE.md`, and the row of each file it imports moves with it. A `--baseline` taken there before the fix pairs none of those rows (G7), and those readings measured the wrong file anyway.
+```
+
+```seal
+verdict: fixed a30c8621f
+answer: The finding holds (read: `payload_meter.py#delta_against` pairs an agent's rows by `row["path"]`, and `pair_rows` builds every import row's label as `ARROW.join((display, *chain))`, so a row imported at any hop opens with the user file's label). `changelog.md:3` now reads "Where it is set, a `--baseline` taken before this release does not pair the user's `CLAUDE.md` row or the row of any file it imports, at any hop, because their labels changed." The wording says "any file ..., at any hop" in place of the paste-ready "each file it imports", because `chain` carries every hop and a file imported two hops down moves too. `pr.md:3` and `frame/plan.md:38` are the orchestrator's, and the hand-back gives their replacements: `pr.md:3` quotes the new sentence word for word, and `plan.md:38` reads "On a machine that sets the variable, a `seal payload` row moves from `~/.claude/CLAUDE.md` to `$CLAUDE_CONFIG_DIR/CLAUDE.md`, and the row of any file it imports, at any hop, moves with it. A `--baseline` taken there before the fix pairs none of those rows (G7), and those readings measured the wrong file anyway."
 ```
 
 ### 3. Two executed absence searches use `\b` under `git grep -E`, which matches nothing on this machine, so they could not fail
@@ -67,6 +77,11 @@ script and `Test_newest` (executed: `git grep -n -P
 '\bPROJECTS\b|session_cost\.HOME|module\.HOME' c4deded61 -- . ':!seal/threads'`
 lists nothing, and the same search at `9e758b0b0` lists the script and
 `Test_newest`, so it can fail).
+```
+
+```seal
+verdict: deferred the orchestrator's fold of `frame/design.md` G1, and this close block for `trail/phases/phase-1.md`
+answer: The finding holds: on git 2.54.0 (Apple Git-157) `\b` under `git grep -E` matches nothing. Both facts hold, re-run in this pass in forms that can fail (executed). G1: `git grep -n -w PROJECTS b2a04d6d9 -- '*.py'` lists `skills/verify/scripts/session_cost.py:83` and `:2887` and three lines of `tests/skills/test_session_cost.py` (`:5364`, `:5373`, `:5390`), the same at `9e758b0b0`, and exit 1 at HEAD. Phase 1: `git grep -n -P '\bPROJECTS\b|session_cost\.HOME|module\.HOME' <commit> -- . ':!seal/threads'` lists those five lines at `b2a04d6d9`, so it can fail, and lists nothing (exit 1) at `c4deded61` and at HEAD. The G1 replacement handed back dates the command to the pass that ran it: "(executed: `grep -n PROJECTS` lists `:83` and `:2887` alone; executed at `b2a04d6d9` in round 1's fix pass: `git grep -n -w PROJECTS -- '*.py'` outside the script lists only `tests/skills/test_session_cost.py`)". `trail/phases/phase-1.md` is not edited, since a fix pass writes no phase record; this block is the re-run its claim rests on. The class: every search command in the work item's records was listed (`grep -n -F '\b'` and a search for backslash escapes over `routing.md`, `changelog.md`, `gaps.md`, `pr.md`, the three frame files and both phase records), and `\b` under `-E` stands only at these two coordinates; `phase-2.md:26-27` runs it under `-P`.
 ```
 
 ## Confirmations
