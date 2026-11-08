@@ -154,8 +154,9 @@ directly or through another test file.** A file that writes the path's name
 only into a fixture it builds, a parameter or a docstring does not read it,
 and the change cannot move its result. A file that builds fixture
 repositories holding a records directory is the common case, and often the
-costliest to run for nothing, so a path under the work item's own records
-directory pulls no file through this part.
+costliest to run for nothing. No test file names a new work item's records
+by their path, so only a file that walks the records directory reads them,
+and that file is one of the tree-wide test files.
 
 **The tree-wide test files are the ones the repository's contribution guide
 names as reading its whole tree**, so a rule the tree is held to runs at
