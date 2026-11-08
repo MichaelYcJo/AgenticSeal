@@ -65,6 +65,11 @@ comment above `REMEDY` and `CONTRIBUTING.md` do not write it bare.
             "move `<dir>/.test_durations` over the committed .test_durations",
 ```
 
+```seal
+verdict: fixed e1658160
+answer: Applied as given, after reading the sentence's path: `main` appends `verdict`'s sentence to `$GITHUB_STEP_SUMMARY`, which GitHub renders as Markdown, and the design's *Data & interfaces* sends it there. `REMEDY` now writes `` `<dir>/.test_durations` `` in a code span, as `CONTRIBUTING.md:187` does, and the `said` tuple of `Test_verdict::test_refuses_one_more_unpriced_naming_the_counts_and_the_remedy` pins the backticked words. `seal mutate` putting the bare path back into `REMEDY` turned that case red (executed). `git grep '<dir>/.test_durations'` outside the round and phase records finds only the script, its case and `CONTRIBUTING.md`, each in a code span (executed).
+```
+
 ### 2. `gaps.md` names one leftover `.test_durations` entry of a removed case, where eight stand
 
 ```seal
@@ -95,6 +100,11 @@ Only the count and the names are wrong.
 `frame/design.md` *Removes* row 4 names. This work makes the rule that no
 work item commits the file, so phase 2 left them. The next release refresh,
 taken from a union that no longer holds those cases, drops the entries.
+```
+
+```seal
+verdict: fixed e1658160
+answer: The list was rebuilt from the diff, as a closed set: every `def test_` that `git diff 94d04d30..HEAD -- tests/` removes, eight in all, each found once in `.test_durations` (lines 1223 to 1229, 1231 and 1234; executed). The paragraph now names the eight by name and their 0.029 s together, says how the list was made, and keeps the paste-ready text's reasoning. `seal unverified` still reads the memo (executed).
 ```
 
 ### 3. `Test_staleness::test_accepts_an_entry_no_part_ran_as_dead_and_never_unpriced` covers nothing its class does not already cover
@@ -128,6 +138,11 @@ in the class; no mutation run backs it.
 ```python
 # tests/github/test_durations_union.py: delete lines 328-336, the whole
 # `test_accepts_an_entry_no_part_ran_as_dead_and_never_unpriced` method.
+```
+
+```seal
+verdict: fixed e1658160
+answer: Deleted, after reading the class: `test_accepts_the_union_and_the_file_and_names_each_side_in_order` asserts the exact `unpriced` list without the dead ids, the exact `dead` list and both shares, and `Test_verdict` holds the seconds side and the absent unpriced side. `Test_staleness` keeps two cases, and `seal layout --check` exits 0 and names no class of `durations_union.py` beyond the eight functions `gaps.md` already lists (executed). The same commit corrects the module docstring this round noted under *Confirmations*: it now says `Test_verdict` alone sits at the share's boundary. The plan row's three modules pass (executed).
 ```
 
 ## Confirmations
