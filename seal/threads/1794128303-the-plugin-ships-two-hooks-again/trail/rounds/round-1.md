@@ -140,6 +140,11 @@ seal/threads/1794128303-the-plugin-ships-two-hooks-again/changelog.md:3
   new: and each script exits 0 whatever it meets once `python3` has loaded it.
 ```
 
+```seal
+verdict: fixed db53d635a
+answer: Route A, as `frame/plan.md` *Judgments of the run* records it. Each statement the location lists outside the frame now says the command exits 0 once its script has loaded and non-zero where `python3` cannot load it and no `py` stands. The wording is my own where the paste-ready text over-claims against the code: `seal_stamp.py:1555-1558` catches what reading the payload and drawing raise and not the write at `:1560-1561`, so the `Stop` script is said to exit 0 "whatever drawing the stamp meets", and `hooks/core-start.py` "on every path". `docs/checks/the-stamp.md:157-158` keeps the paste-ready shape. `lib/launch.py` says each hook script exits 0 once loaded and that the launcher's own refusal is exit 2. The person-facing sentences are pinned and were seen red against the old text in a scratch worktree of `616d85851`, and each `not in` guard against its old sentence put back by `seal mutate`. The README and the-stamp.md pins are in `tests/behaviour/test_the_stamp_reaches_the_person_it_is_drawn_for.py`, and `CONTRIBUTING.md`'s in the new `tests/behaviour/test_chain_hooks_hardening.py#test_the_house_rule_says_where_each_hook_command_exits_non_zero`. `trail/phases/phase-2.md` no longer says `--stop` catches every failure in `main`. `frame/design.md:23` was folded by the orchestrator at `d2b2bb558`. `tests/skills/test_seal_stamp.py` is unchanged: route A adds no behaviour, so no case comes back.
+```
+
 ### 2. The pull request body states no failure direction and no prompt budget, which the issue's *Done when* asks for
 
 ```seal
@@ -170,6 +175,11 @@ orchestrator's to repair.
 ```markdown
 - "The failure direction, the prompt budget and the platform not tested, for `CONTRIBUTING.md` *What a change to a gate must carry*: allow, zero questions, Windows." (`frame/questions.md`, the bullet on the failure direction)
 - "The failure direction of both hooks is allow: each exits 0 whatever it meets and blocks nothing, so a wrong hook costs a missing core or a missing stamp and never a stopped turn." (`frame/design.md` *Grounding*, the row on `CONTRIBUTING.md` *What a change to a gate must carry*)
+```
+
+```seal
+verdict: fixed 616d85851
+answer: The orchestrator repaired `pr.md` at `616d85851` with three quotes: the `frame/questions.md` bullet on the failure direction, and from the `frame/design.md` *Grounding* row on `CONTRIBUTING.md` *What a change to a gate must carry* the sentence on the failure direction as folded at `d2b2bb558` and the sentence on the prompt budget. Each stands word for word in its source at HEAD (read). This fix pass changed no sentence `pr.md` quotes: the fragment sentence it rewrote, on each script's exit, is not among the quotes.
 ```
 
 ### 3. The frame names the cases two acceptance rows verify by the ids they replaced
@@ -209,6 +219,11 @@ frame/design.md:51 (Scope item 1)
 frame/design.md:52 (Scope item 2)
   old: two cases replace `Test_install.test_accepts_a_launcher_the_harness_runs_at_stop_drawing_once`: it reads the `Stop` command
   new: two cases replace `Test_install.test_accepts_a_launcher_the_harness_runs_at_stop_drawing_once`, `Test_main.test_the_plugins_stop_command_draws_once_and_exits_0` and `Test_main.test_the_plugins_stop_command_draws_on_a_console_it_cannot_encode_to`: the first reads the `Stop` command
+```
+
+```seal
+verdict: fixed d2b2bb558
+answer: The orchestrator folded the frame at `d2b2bb558`. *Scope* item 1 now names `#test_the_plugin_registers_two_hooks_and_writes_none_into_git`, and item 2 names both `Test_main` cases. Each id resolves to a case at HEAD (read: `tests/behaviour/test_chain_hooks_hardening.py`, `tests/skills/test_seal_stamp.py`). This fix pass wrote nothing for this finding, since the frame is not the crafter's to write.
 ```
 
 ## Confirmations
