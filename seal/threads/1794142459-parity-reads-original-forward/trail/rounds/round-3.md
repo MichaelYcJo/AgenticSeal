@@ -64,6 +64,11 @@ In `frame/design.md` *Scope* item 2, the last sentence but one:
 Under `straight to the PR` the sealer walks the original's surface the same way, and its record stays the `original:` line *Recording the comparison* gives it.
 ```
 
+```seal
+verdict: fixed e46f18d67
+answer: The finding holds. `frame/design.md` *Scope* item 2 now reads "the sealer walks the original's surface the same way", as `skills/legacy-parity/SKILL.md` *Parity review* and `changelog.md` say. The fold is the orchestrator's, in the work item's records alone, and `frame/plan.md` *Judgments of the run* holds its row, which also ends the rounds here.
+```
+
 ## Confirmations
 
 ```seal
