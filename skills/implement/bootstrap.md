@@ -40,13 +40,11 @@ orchestrator writes nothing into it and offers neither shared option, because
 directory, at `$(git rev-parse --git-common-dir)/seal/`, as the local option
 below creates it, and the orchestrator says so in one line: *"`<repo>/seal/` is this
 project's own, so the plugin keeps its root under the git directory, in local
-mode"*. The one call of step 1 then carries the `Broad gate` question, and
-the stamp's where nothing records an answer to it.
+mode"*. The one call of step 1 then carries the `Broad gate` question.
 
 1. The orchestrator asks once, with one `AskUserQuestion` carrying **two
-   questions**, or three: the mode, the `Broad gate` row, and the stamp
-   where nothing records an answer to it. The mode's three options come
-   first, in this order:
+   questions**: the mode and the `Broad gate` row. The mode's three options
+   come first, in this order:
 
    - **shared, records only** (the default, listed first) creates
      `<repo>/seal/` in the tree; the routing commit made before the first
@@ -156,25 +154,6 @@ the stamp's where nothing records an answer to it.
    would separate two states nothing treats differently. The mode row is the
    opposite: its absence makes a root somebody chose and a root nobody chose
    the same bytes.
-
-   **The third question is the stamp, and it is the person's, not the
-   repository's.** The data directory is the one `skills/start/SKILL.md`
-   step 2 names. Run `seal stamp --hook "<data-dir>"` first: where it prints
-   `installed <root>` or `declined`, the person answered at an earlier setup
-   and the question is not put. Where it prints `neither`, put *"Draw the
-   sealer's stamp in your terminal?"* with two options. The yes option names
-   its two writes: a launcher at `<data-dir>/stamp.py`, and one `Stop` entry
-   in `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json` that runs it at the
-   end of each turn. A yes runs the first command below and relays the line
-   it prints; an exit 2 is that line's refusal, and the setup goes on
-   without the hook. A no runs the second, which records the answer so
-   nothing asks again. Either way the sealer's hand-back names
-   `seal stamp --from <path>`, which draws a stamp by hand.
-
-   ```bash
-   seal stamp --install "<data-dir>" --settings "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json"
-   seal stamp --decline "<data-dir>"
-   ```
 2. The orchestrator says in three lines what it created, that its presence
    at that place with the marker as its README's first line is the opt-in,
    and what each part of the root is for. The

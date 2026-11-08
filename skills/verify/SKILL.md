@@ -117,8 +117,8 @@ run.
   that earned it: the stamp is drawn from the sealer's `guarantee.md` reading
   `sealed`, once per work item, at the end of the turn in which that file is
   written. The sealer's `seal stamp --guarantee` writes the values it is
-  drawn from, under either root, and the `Stop` hook the person installed
-  draws them in the orchestrator's session
+  drawn from, under either root, and the plugin's `Stop` hook draws them in
+  the orchestrator's session
   (`docs/checks/the-stamp.md` *The stamp*). The broad gate draws nothing:
   its line reads `BROAD GATE PASSED` or `BROAD GATE FAILED` and judges
   nothing. So seeing the drawing means the last seal was earned.

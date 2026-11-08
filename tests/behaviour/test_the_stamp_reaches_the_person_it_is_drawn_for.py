@@ -3,9 +3,9 @@
 Work item 1790562543. A sealer's stdout was a pipe into a report that arrived
 folded behind `ctrl+o`, so a stamp drawn there was never seen. The stamp is
 drawn from the sealer's `sealed` guarantee: the sealer's
-`seal stamp --guarantee` queues its values under the git common dir, and the
-`Stop` hook the person installed with `seal stamp --install` draws each
-undrawn file once, after the orchestrator's turn's text (#1376).
+`seal stamp --guarantee` queues its values under the git common dir (#1376),
+and the plugin's `Stop` hook draws each undrawn file once, after the
+orchestrator's turn's text (#1430).
 
 This module holds the cases that read the documents, which are #923's.
 `skills/verify/scripts/seal_stamp.py`'s own cases, the queue and the draw
@@ -78,9 +78,8 @@ def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
         "**The stamp is drawn for you at the end of the turn in which the "
         "sealer's report arrives, and you never draw one.**",
         "the sealer's `seal stamp --guarantee` queues the stamp's values, under "
-        "either root, and the `Stop` hook the person installed with "
-        "`seal stamp --install` draws them after your text. The line naming "
-        "them arrives in the sealer's hand-back.",
+        "either root, and the plugin's `Stop` hook draws them after your text. "
+        "The line naming them arrives in the sealer's hand-back.",
         "The sealer's hand-back carries that line; quote it in the turn's text.",
         "Where the hand-back carries no such line, no stamp was queued and none "
         "is drawn",
@@ -98,8 +97,8 @@ def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
     ):
         assert said in section, said
     # #1376: no edit hook queues the stamp, and the queue has no session
-    # directory.
-    for gone in ("edit hook", "agentic-stamp/<session>/"):
+    # directory. #1430: no launcher names a root that is gone.
+    for gone in ("edit hook", "agentic-stamp/<session>/", "launcher"):
         assert gone not in section, gone
     assert "SEALED" not in section, "a line of the broad run is quoted as SEALED"
 
@@ -109,8 +108,8 @@ def test_the_form_bullet_says_what_draws_the_final_seal():
     `seal gate` draws the stamp when every check passed; the stamp is the
     sealer's now, drawn once per work item from its `sealed` guarantee, and
     the gate draws nothing. #1376: queued by the sealer's
-    `seal stamp --guarantee` under either root, and drawn by the `Stop` hook
-    the person installed."""
+    `seal stamp --guarantee` under either root; #1430: drawn by the plugin's
+    `Stop` hook."""
     text = flat("skills", "verify", "SKILL.md")
     assert "`seal gate` prints the disc on success alone" not in text
     assert "`seal gate` draws the stamp" not in text
@@ -119,8 +118,8 @@ def test_the_form_bullet_says_what_draws_the_final_seal():
         "the stamp is drawn from the sealer's `guarantee.md` reading `sealed`, "
         "once per work item",
         "The sealer's `seal stamp --guarantee` writes the values it is drawn "
-        "from, under either root, and the `Stop` hook the person installed "
-        "draws them in the orchestrator's session",
+        "from, under either root, and the plugin's `Stop` hook draws them in "
+        "the orchestrator's session",
         "The broad gate draws nothing",
     ):
         assert said in text, said
@@ -158,7 +157,7 @@ def test_the_policy_names_the_command_the_marker_and_the_command_to_draw():
         "Test_main.test_stop_draws_the_payloads_clone_once_and_exits_0",
         "Test_drawn_at_stop.test_accepts_the_main_sessions_stop_and_draws_once",
         "Test_drawn_at_stop.test_refuses_a_cwd_outside_the_clone_the_stamp_waits_in",
-        "Test_install.test_accepts_a_launcher_the_harness_runs_at_stop_drawing_once",
+        "Test_main.test_the_plugins_stop_command_draws_once_and_exits_0",
     ):
         assert case in held, case
     # The command `seal stamp --from <path>`, which the person types to draw
@@ -181,7 +180,7 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
         "**A `sealed` refused because its audited commit is not on the branch "
         "leaves a refusal record",
         1,
-    )[1].split("**The stamp's `Stop` hook is the person's", 1)[0]
+    )[1].split("**The stamp's `Stop` hook is the plugin's", 1)[0]
     for said in (
         "`<git-common-dir>/agentic-stamp-refused/<id>-<target>`",
         "an earlier verdict block reading `sealed` that this clone recorded "
@@ -216,27 +215,31 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
 def test_both_readmes_say_what_the_stamp_hook_writes_and_leaves():
     """Round 1's yellow 4. The inventory a user reads to learn what runs on
     their machine did not list the `Stop` hook, in either edition. Since
-    #1376 the plugin registers no hook and the stamp's is the person's, so
-    each edition says what `seal stamp --install` writes and the command it
-    puts in their settings, and the side effects of the queue. The editions
-    move together, so both are read.
+    #1430 the plugin ships two hooks again, so each edition names both, the
+    one command shape, that neither writes into the person's settings, the
+    launcher of 0.33.0 to 0.34.1 as `/agentic:update`'s to name, and the side
+    effects of the queue. The editions move together, so both are read.
 
     1792363231's round 1 finding 3: the side effects gained the refusal
     record's directory, and the count before them went stale, so the sentence
     carries no count. #975 S11: neither edition says the broad gate leaves
     the stamp's values. What each edition says is read in its section alone,
-    since *Install* says the plugin registers no hook too; what is gone is
-    read over the whole file."""
+    since *Install* names the two hooks too; what is gone is read over the
+    whole file."""
 
     for edition, heading, said, gone in (
         (
             "README.md",
             "## What runs on your machine",
             (
-                "The plugin registers no hook.",
-                "A yes runs `seal stamp --install`, which writes two things",
-                'whose command is `python3 "<data dir>/stamp.py" || py -3 '
-                '"<data dir>/stamp.py"`.',
+                "**The plugin ships two hooks, registered in `hooks/hooks.json`, "
+                "and neither writes into your settings.**",
+                "- **`SessionStart`**, at a session's start and again after "
+                "`/clear` or a compaction, runs `hooks/core-start.py`.",
+                "- **`Stop`**, at the end of each turn of the main session, runs "
+                "`seal_stamp.py --stop`",
+                'Each command is `python3 "<script>" || py -3 "<script>"`',
+                "`/agentic:update` names both for you to take out by hand.",
                 "These side effects are worth stating outright",
                 # The clause's own words (round 2's white 2), so the bare
                 # directory named elsewhere does not pass with it deleted.
@@ -256,16 +259,23 @@ def test_both_readmes_say_what_the_stamp_hook_writes_and_leaves():
                 "the broad gate left for this session",
                 "a sealed broad gate run writes",
                 "written by the edit hook",
+                "The plugin registers no hook",
+                "seal stamp --install",
+                "seal stamp --remove",
             ),
         ),
         (
             "README.ko.md",
             "## 내 컴퓨터에서 도는 것",
             (
-                "플러그인은 훅을 하나도 등록하지 않습니다.",
-                "예라고 답하면 `seal stamp --install` 이 두 가지를 씁니다.",
-                '명령은 `python3 "<data dir>/stamp.py" || py -3 '
-                '"<data dir>/stamp.py"` 이고',
+                "**플러그인은 훅 두 개를 `hooks/hooks.json` 에 등록해 함께 "
+                "내보내고, 어느 훅도 사용자 설정에 쓰지 않습니다.**",
+                "- **`SessionStart`** 는 세션이 시작할 때, 그리고 `/clear` 나 "
+                "압축(compaction) 뒤에 다시 `hooks/core-start.py` 를 돌립니다.",
+                "- **`Stop`** 은 메인 세션의 턴이 끝날 때마다 "
+                "`seal_stamp.py --stop` 을 돌립니다.",
+                '두 명령은 모두 `python3 "<script>" || py -3 "<script>"` 꼴이고',
+                "`/agentic:update` 가 이 둘을 알려 주면 사용자가 직접 지웁니다.",
                 "다음 부수 효과는 밝혀 둡니다",
                 "도장 훅은 그린 뒤 그 파일의 이름을 바꿀 뿐 지우지 않습니다",
                 "감사한 커밋이 작업 항목 브랜치에 없어 거절된 `sealed` 는 어느 "
@@ -278,6 +288,9 @@ def test_both_readmes_say_what_the_stamp_hook_writes_and_leaves():
                 "네 가지 부수 효과",
                 "광역 관문 실행은 도장에 들어갈 값을",
                 "편집 훅이 씁니다",
+                "훅을 하나도 등록하지 않습니다",
+                "seal stamp --install",
+                "seal stamp --remove",
             ),
         ),
     ):
@@ -303,12 +316,14 @@ def test_the_sealer_queues_the_stamp_once_and_draws_none():
     verdict, once per work item, and never from the orchestrator's run. Since
     #1376 the sealer queues it itself, with `seal stamp --guarantee`, names
     that write as its own, and carries the line it prints into its report;
-    the old instructions are gone."""
+    the old instructions are gone. Since #1430 the plugin's `Stop` hook
+    draws it."""
     text = flat("agents", "sealer.md")
     for said in (
         "Run `seal stamp --guarantee <path>` once, `<path>` being the "
         "`guarantee.md` you wrote.",
-        "is your one write beside `guarantee.md` (rule 6), and you draw nothing",
+        "is your one write beside `guarantee.md` (rule 6), and you draw nothing: "
+        "the plugin's `Stop` hook draws it.",
         "Its one line goes into your report as it printed it",
         "or draw a stamp",
         "you queue the stamp once from your `sealed` and draw nothing.",

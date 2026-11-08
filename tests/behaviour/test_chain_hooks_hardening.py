@@ -444,30 +444,30 @@ def network_passage(path, said):
 def test_the_places_that_reach_the_network_are_named_without_a_count():
     """#1055 S4 and #1382. Both READMEs and `CONTRIBUTING.md` said how many
     hooks reach the network, and the guide's rule for a new one counted on
-    from there. Since #1376 the plugin registers no hook, and the one hook a
-    person may install, the stamp's, reaches no network. The READMEs'
-    network passage says so, the guide points at it, and none of the three
-    counts anything. Each edition's passage, from the pinned sentence to the
+    from there. Since #1430 the plugin ships two hooks, the stamp's `Stop`
+    hook and the `SessionStart` hook that prints the core, and neither
+    reaches a network. The READMEs' network passage says so, the guide
+    points at it, and none of the three counts anything. Each edition's passage, from the pinned sentence to the
     next heading, names every place in `NETWORK_PLACES`."""
     from conftest import flat
 
     for path, said, gone, places in (
         (
             "README.md",
-            "The stamp's hook reaches no network.",
+            "Neither hook reaches a network.",
             ("Two hooks reach the network", "Both stay silent"),
             NETWORK_PLACES,
         ),
         (
             "README.ko.md",
-            "도장 훅은 네트워크를 타지 않습니다.",
+            "두 훅 모두 네트워크를 타지 않습니다.",
             ("네트워크를 타는 훅은 둘", "둘 다 네트워크가"),
             NETWORK_PLACES,
         ),
         (
             "CONTRIBUTING.md",
-            "It reaches no network; `README.md` *What runs on your machine* names "
-            "the commands and steps that do",
+            "Neither reaches a network; `README.md` *What runs on your machine* "
+            "names the commands and steps that do",
             ("Two hooks reach the network", "A third needs", "the second carries"),
             (),
         ),

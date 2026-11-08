@@ -44,12 +44,12 @@ The `seal` commands are Python scripts, and `python3` is the command they run
 with. Run `python3 -V` before you install: macOS ships 3.9 as
 `/usr/bin/python3`, and a version manager answers with whatever it was last
 told. On Windows, where the official installer creates no `python3`,
-`seal.cmd` runs `py -3`, and the stamp's hook falls back to it.
+`seal.cmd` runs `py -3`, and the plugin's two hooks fall back to it.
 
-That is the whole install. Nothing is written into your `CLAUDE.md`, and the
-plugin registers no hook. To uninstall, run `/plugin uninstall agentic`, and
-`seal stamp --remove` first where you installed the stamp's hook (*What runs
-on your machine*).
+That is the whole install. Nothing is written into your `CLAUDE.md` or your
+settings, and the plugin's two hooks come with it (*What runs on your
+machine*). To uninstall, run `/plugin uninstall agentic`; nothing needs
+undoing first.
 
 This workflow differs from asking one agent to review its own work. An agent
 reviewing what it just wrote reads its own reasoning back and tends to agree
@@ -144,17 +144,16 @@ session runs the broad gate, the full suite, lint and typecheck, once. The
 sealer then reads every party's account against the issue and the tree, and
 the pull request opens.
 
-When the sealer's verdict is `sealed`, the sealer queues the stamp. Where you
-answered yes to the stamp's question at first setup, a `Stop` hook in your
-own settings draws it in your terminal at the end of the session's turn. It
-names the commit, the branch, the base, the work
+When the sealer's verdict is `sealed`, the sealer queues the stamp, and the
+plugin's `Stop` hook draws it in your terminal at the end of the session's
+turn. It names the commit, the branch, the base, the work
 item, the broad gate's commit and the number of review rounds:
 
 ![The stamp a sealed work item draws: the owl's red wax seal beside a panel reading SEALED, with the tree, base, item, gate and rounds](assets/seals/owl.png)
 
-Without the hook, the sealer's hand-back names `seal stamp --from <path>`,
-which draws it by hand. `docs/checks/the-stamp.md` says when the stamp is
-drawn and when it is not.
+Where the hook could not draw it, the sealer's hand-back names
+`seal stamp --from <path>`, which draws it by hand.
+`docs/checks/the-stamp.md` says when the stamp is drawn and when it is not.
 
 ### Shared or local
 
@@ -294,30 +293,35 @@ method.
 
 ## What runs on your machine
 
-The plugin registers no hook. What runs on your machine is a `seal` command
-you or the session starts, and, where you said yes to it, the stamp's hook.
+What runs on your machine is a `seal` command you or the session starts,
+and the plugin's two hooks, which Claude Code runs at its own events.
 
-**The stamp's hook is yours, written into your settings on your yes.** First
-setup asks once, and `/agentic:update` asks a person set up before, where
-neither answer stands. A yes runs `seal stamp --install`, which writes two
-things: a launcher, `stamp.py`, in the plugin's data directory, and one
-`Stop` entry in `~/.claude/settings.json` (or under `CLAUDE_CONFIG_DIR`)
-whose command is `python3 "<data dir>/stamp.py" || py -3 "<data dir>/stamp.py"`.
-Every other key of the file is left as it was. At the end of each turn of
-the main session, the launcher runs `seal_stamp.py --stop` from the plugin
-copy it names, which draws each stamp waiting in the clone the session works
-in, once, and says nothing where none waits. It exits 0 whatever happens. A
-no runs `seal stamp --decline`, which writes an empty `stamp-declined` in the
-same directory so nothing asks again. `seal stamp --hook "<data dir>"` says
-which of the two stands, and
-`seal stamp --remove "<data dir>" --settings ~/.claude/settings.json` takes
-the entry and the launcher out.
+**The plugin ships two hooks, registered in `hooks/hooks.json`, and neither
+writes into your settings.**
+
+- **`SessionStart`**, at a session's start and again after `/clear` or a
+  compaction, runs `hooks/core-start.py`. Where the session's repository
+  holds a `seal/` root, it prints `skills/core/SKILL.md` into the session's
+  context, under one line naming the plugin's version and above one line
+  naming where work starts. Anywhere else it prints nothing.
+- **`Stop`**, at the end of each turn of the main session, runs
+  `seal_stamp.py --stop`, which draws each stamp waiting in the clone the
+  session works in, once, and says nothing where none waits.
+
+Each command is `python3 "<script>" || py -3 "<script>"`, with the script
+under the plugin's own directory, so an update moves both hooks with it.
+Each exits 0 whatever happens. Releases 0.33.0 to 0.34.1 drew the stamp
+instead through a launcher, `stamp.py`, which a yes to their question wrote
+into the plugin's data directory with one `Stop` entry in
+`~/.claude/settings.json`; `/agentic:update` names both for you to take out
+by hand.
 
 No session stops another from switching the branch of a working tree it is
 using, so give each concurrent session its own worktree.
 
-The stamp's hook sends your code, your paths and your prompts nowhere. These
-side effects are worth stating outright: the sealer's
+Neither hook sends your code, your paths or your prompts anywhere: what the
+`SessionStart` hook prints goes into the session's own context, as a file
+the session opens does. These side effects are worth stating outright: the sealer's
 `seal stamp --guarantee`, run once on a `guarantee.md` reading `sealed`,
 writes the stamp's values under `<git-common-dir>/agentic-stamp/`, which the
 stamp's hook renames once drawn and nothing prunes, and a `sealed` refused
@@ -325,7 +329,7 @@ because its audited commit is not on the work item's branch leaves an empty
 file under `<git-common-dir>/agentic-stamp-refused/`, in either mode, which
 nothing prunes either.
 
-The stamp's hook reaches no network. The places below do: each is a command
+Neither hook reaches a network. The places below do: each is a command
 or a step of the workflow, so it runs when you or the session starts it, or,
 in the last row, in your CI on a pull request.
 
@@ -338,8 +342,8 @@ in the last row, in your CI on a pull request.
 | the workflow's own steps ([`skills/code-review/orchestration.md`](skills/code-review/orchestration.md)) | your repository, through your `git` and your `gh` login | reads the issue with its comments, and the latest release note. Pushes the work item's branch, opens the pull request with `gh pr create`, rewrites its body, reads its state and checks, and may start a workflow run. Lists recent pull requests before a commit. At a settle, may open an issue for a measurement | the issue is read in every run. The push and the pull request happen only where the routing answers that a pull request opens |
 | the pull-request checks `seal pr-checks install` writes (`.github/workflows/hygiene.yml`) | GitHub, from your CI runner | `git clone --depth 1` of this plugin's repository, at the release the file was written against | on each pull request, in a repository that installed the checks |
 
-The stamp's hook is the one thing on your machine that runs without you or
-the session starting it. Each row above that goes through your own `gh` login
+The two hooks are the only things on your machine that run without you or
+the session starting them. Each row above that goes through your own `gh` login
 reaches the repository you work in and no other. The workflow's steps push
 your branch, with its code, and the pull request's text there, because that
 is what they are for.
@@ -383,7 +387,7 @@ after `!` in a session, or ask the session to run it.
   a line written where nobody compared reads the same.
 - **Windows was run on real hardware once.** The suite passes on a native
   Windows 11 tree, on a Korean cp949 console, with no `PYTHONUTF8=1`. The
-  stamp's hook has not run on Windows, and neither has its `py -3`
+  plugin's two hooks have not run on Windows, and neither has their `py -3`
   fallback.
 - **The behaviour evals run on the owner's account, not in CI.**
   `evals/behaviour/` holds the cases of a smoke run, through

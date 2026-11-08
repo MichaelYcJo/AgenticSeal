@@ -32,9 +32,10 @@ launcher that cannot parse is the traceback it exists to replace.
 
 It sits in `lib/` because each wrapper it serves reaches it relative to
 itself, as `$here/../lib/launch.py`, and `lib/` already ships the modules the
-scripts share. The stamp's `Stop` hook does not run through it: its launcher
-exits 0 whatever happens, where exit 2 from a `Stop` hook is the harness's
-word for keeping the turn going (`docs/checks/the-stamp.md`).
+scripts share. The plugin's two hooks do not run through it: each script
+`hooks/hooks.json` names exits 0 whatever happens, where exit 2 from a
+`Stop` hook is the harness's word for keeping the turn going
+(`docs/checks/the-stamp.md`).
 
 Exit codes: 2 for an interpreter below the floor or no script named, with
 nothing read and nothing written; otherwise the script's own.

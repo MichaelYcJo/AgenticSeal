@@ -30,8 +30,8 @@ line-length = 88
 extend-exclude = ["*.md"]
 
 # What runs before any floor is checked -- the scripts hooks/hooks.json's
-# commands run, the stamp's launcher, lib/launch.py, bin/test's runner, and
-# every module one of them loads in its own process -- runs on whatever
+# commands run, lib/launch.py, bin/test's runner, and every module one of
+# them loads in its own process -- runs on whatever
 # `python3` starts it, and macOS ships 3.9 under that name.
 # Linted at 3.9, B905 does not ask its `zip` for `strict=` (3.10) and UP017
 # does not spell `timezone.utc` as `datetime.UTC` (3.11).

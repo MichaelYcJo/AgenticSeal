@@ -10,7 +10,9 @@ Each case runs a command as the skill's bash fence spells it, under
 `bash -c`, with `HOME` and `CLAUDE_CONFIG_DIR` naming two scratch
 directories that hold different answers, so a command that reads the
 fixed path prints the other directory's. Each skips where `bash` is no
-usable shell (`shell_probe`, for the reason its docstring gives).
+usable shell (`shell_probe`, for the reason its docstring gives). Step
+4b's command reads the data directory the skill body receives, which the
+case writes into the command as the harness substitutes it (#1430).
 """
 
 import json
@@ -147,6 +149,48 @@ def test_step_3_takes_the_repository_from_the_config_directorys_clone(tmp_path):
     out = run_bash(repo[0] + '\nprintf "%s" "$repo"', home, config, tmp_path)
     assert out.returncode == 0, out.stdout + out.stderr
     assert out.stdout == "owner-in-use/repo-in-use", out.stdout + out.stderr
+
+
+def test_step_4b_reads_the_old_launcher_and_writes_nothing(tmp_path):
+    """#1430. The plugin's `Stop` hook draws the stamp, so step 4b asks
+    nothing and writes nothing. Its one command reads whether the launcher a
+    release from 0.33.0 to 0.34.1 wrote stands under the data directory,
+    which the skill body receives substituted and the case writes in the
+    same way, and its row names under *Needs action* the settings entry and
+    the file the person removes by hand, the entry first. The output loses
+    the `Stamp:` line."""
+    text = step("4b", "5")
+    (block,) = FENCE.findall(text)
+    home, config = tmp_path / "home", tmp_path / "config"
+    data = tmp_path / "data dir"
+    data.mkdir()
+
+    def said(directory):
+        before = sorted(tmp_path.rglob("*"))
+        out = run_bash(
+            block.replace("${CLAUDE_PLUGIN_DATA}", directory), home, config, tmp_path
+        )
+        assert out.returncode == 0, out.stdout + out.stderr
+        assert sorted(tmp_path.rglob("*")) == before, "step 4b wrote a file"
+        return out.stdout
+
+    assert said(str(data)) == "no launcher\n"
+    (data / "stamp.py").write_text("", encoding="utf-8")
+    assert said(str(data)) == f"launcher {data}/stamp.py\n"
+    assert said("") == "no data directory\n"
+    flat = " ".join(text.split())
+    for needed in (
+        "| `launcher <path>` | name under *Needs action* the two things the person "
+        "removes by hand, in this order: the `Stop` entry of "
+        f"`{SPELLING}/settings.json` whose command is "
+        '`python3 "<path>" \\|\\| py -3 "<path>"`',
+        "and then the file at `<path>`",
+        "This step asks nothing and writes nothing.",
+    ):
+        assert needed in flat, needed
+    whole = read(UPDATE)
+    for gone in ("AskUserQuestion", "seal stamp --", "Stamp: <"):
+        assert gone not in whole, gone
 
 
 def test_the_skill_names_no_fixed_claude_directory():
