@@ -76,7 +76,9 @@ write, and a write not named here is a write you do not make.
    with no such line is reported, as a missing `routing.md` is. No row of
    `frame/questions.md` asks whether a comment changes the request.
    `seal/parity.md` where it is declared, which puts the original between
-   the ticket and the code.
+   the ticket and the code, and with it `skills/legacy-parity/SKILL.md`
+   *The original's coordinates*, whose list of the original's output
+   surface your `## Grounding` holds.
 5. Judge: answer everything the tree can answer, by reading it, and by a
    probe where the answer is a behaviour, a time or an output (*A question
    a command answers is answered by running it* below). Where readiness is

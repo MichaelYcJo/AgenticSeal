@@ -34,8 +34,9 @@ your one output.
 4. Trace each axis to what the original sends the client.
 5. Read constraints, enums and defaults.
 6. Report per axis the behavior, its coordinates and `read` or `executed`;
-   then the coordinates the design had wrong, the axes nobody looked at, and
-   what is out of verified scope.
+   then the coordinates the design had wrong, each item of the original's
+   output surface the design's list lacks, with its coordinate, the axes
+   nobody looked at, and what is out of verified scope.
 
 ## Never
 
