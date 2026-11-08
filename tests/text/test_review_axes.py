@@ -100,13 +100,14 @@ def test_an_item_the_list_and_the_port_both_lack_is_located_in_both():
     """#15, round 1's second finding: an item the original sends that the
     design's list and the port both lack is the issue's own case, since
     nobody listed it and so nobody built it. Its one finding is located in
-    the port as well as in `frame/design.md`, so a fix that adds the item to
-    the list alone does not close it."""
+    `frame/design.md`, and in the port's entry point as well where nothing
+    grounds leaving the item out, so a fix that adds the item to the list
+    alone does not close a `differs` finding."""
     rel, heading = PARITY_REVIEW
     body = prose(rel, heading)
-    # The round record's field that says where a finding shows, and the
-    # design among the places it names beside the port.
-    for part in ("`location:`", "`frame/design.md`"):
+    # The round record's field that says where a finding shows, and the two
+    # places it names: the port, where the item is missing, and the design.
+    for part in ("`location:`", "port's entry point", "`frame/design.md`"):
         assert part in body, (
             f"{rel} {heading} does not locate an item both lack with {part!r}"
         )
