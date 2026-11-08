@@ -390,9 +390,10 @@ work items: each one's issue, its branch, and its frame's path where the
 frame is committed. The orchestrator merges the items in the order their
 plans' `frame/plan.md` *Overlap with the release* sections state. Where two
 plans state opposite orders for one pair, or where the item ordered first
-cannot be sealed before the other, the orchestrator chooses the order and
-writes the choice as a row of `frame/plan.md` *Judgments of the run* in the
-plan of the item it merges out of the stated order. The move goes to an
+cannot be sealed before the other, the orchestrator chooses the order,
+with the item that carries the move still first, and writes the choice as
+a row of `frame/plan.md` *Judgments of the run* in the plan of the item it
+merges out of the stated order. The move goes to an
 item that no plan orders after another, which the orchestrator chooses
 where several are, and the orchestrator merges that item before every
 other item of the release, because the first pull request into the branch
@@ -402,8 +403,10 @@ and its `frame/plan.md` *Operational impact* does not name the move, the
 orchestrator folds the move into that section before it spawns the last
 phase, because the crafter reads its version write there. A move made
 after a work item's last round owes a verifying round of its own, so
-where the chosen item's rounds have already ended, the move goes to the
-next item whose rounds still read it. Where the
+where the chosen item's rounds have already ended, the move goes to
+another item that no plan orders after another and whose rounds still
+read it, and where no such item is, the chosen item takes the move and
+the verifying round it owes. Where the
 repository moves the version at the release, a pull request into the
 release branch leaves it alone. A pull request into `main` is a release:
 the accumulated entries go out under the version, which moves there only
