@@ -289,20 +289,31 @@ past-tense narrative keyword is still a keyword, so a sentence that used one
 with a second number beside it would earn the warning like any body.
 check: tests/behaviour/test_a_body_naming_two_issues_claims_one.py tests/github/test_issue_claims_check.py
 
-**A keyword inside a fence or a code span claims nothing, whatever the fence
-or the span is made of.** A fence opens with backticks or tildes at any
-indent and closes on its own delimiter; a span is one backtick or two.
-Masking more closes fewer, and that is the safe direction: an issue left open
-is visible and a re-run reaches it, while a wrong close is a false record.
-Two shapes are still read as claims, each pinned by a case so a later
-widening is a deliberate red: a four-space indented block, because this
-repository's pull request bodies indent a bullet's continuation that way and
-masking it would drop a real `Closes #N`, and an HTML comment, because
-whether GitHub reads a keyword inside one is unmeasured.
-`.github/scripts/issue_claims_check.py` imports the closer's two patterns
-rather than spelling its own, so the check and the closer read one body the
-same way.
-check: tests/github/test_close_issues_on_release.py
+**A keyword inside a fence, a code span or an HTML comment claims nothing,
+whatever the fence or the span is made of.** A fence opens with backticks or
+tildes at any indent and closes on its own delimiter. A span is one backtick
+or two. Whichever of the three opens first in the body hides the other two
+inside it. Pull requests into `main` measured GitHub's reading of a comment
+for #1181, and the closer reads it the same way. A comment that closes hides
+its text wherever it stands. A `<!--` that never closes hides everything
+below it where it begins a line, and is text where other text stands before
+it on its line. Masking more closes fewer, and that is the safe direction:
+an issue left open is visible and a re-run reaches it, while a wrong close
+is a false record. So a `<!--` that never closes where only spaces, tabs
+and block markers stand before it on its line hides to the end of the
+body, read from that one line. GitHub hides the same behind a list or
+quote marker (#1408, #1409). Where CommonMark's block rules make GitHub
+read on instead, as in an indented code block (#1410), the closer masks
+more. Two shapes are still read as
+claims, each pinned by a case so a later widening is a deliberate red. One
+is a four-space indented block, because this repository's pull request
+bodies indent a bullet's continuation that way and masking it would drop a
+real `Closes #N`. The other is a `<!--` that never closes after other text
+on its line, because GitHub reads what follows it.
+`.github/scripts/issue_claims_check.py` imports the closer's patterns rather
+than spelling its own, so the check and the closer read one body the same
+way.
+check: tests/github/test_close_issues_on_release.py tests/github/test_issue_claims_check.py
 
 ## An issue is its body and its comments together
 

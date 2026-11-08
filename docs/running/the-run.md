@@ -58,8 +58,8 @@ minute thirty waits for somebody who may not be there. Where a question
 arises, the orchestrator looks for its answer in the tree and in the work
 item's `frame/questions.md` first. Where neither answers it, the orchestrator
 proceeds on the default the question states, writes that default as one
-row of `frame/questions.md`, and names it in one line of the pull request
-body, where the owner can overturn it. The orchestrator keeps a blocking
+row of `frame/questions.md`, and quotes that row in the work item's `pr.md`, the pull request body's
+first part, where the owner can overturn it. The orchestrator keeps a blocking
 question for what only the owner can decide, and only where proceeding on a
 default would be costly to undo or would reach outside the repository. A
 question or a remark the owner raises during the run is taken up when it

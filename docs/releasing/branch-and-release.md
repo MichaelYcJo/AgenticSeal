@@ -33,9 +33,10 @@ the version of its milestone `release: X.Y.Z`, and nobody installs from a
 release branch, because the marketplace clone tracks `main`. Moved at the
 end, the version would need a pull request of its own, because the `release`
 ruleset takes no direct push and has no bypass actor, and that pull request
-would be one more wait at the end of every release. The orchestrator moves it in
-the commit that adds the changelog fragment of the release's first work
-item, and every later pull request into the branch leaves it. What holds a
+would be one more wait at the end of every release. The party that writes the changelog fragment of the release's first
+work item moves it in the commit that adds the fragment, which is the last
+phase's crafter where a crafter builds the work item, and every later pull
+request into the branch leaves it. What holds a
 release whose first pull request did not move it is the `hygiene` workflow,
 which fails a release pull request, one whose base is `main`, that changes
 `skills/`, `agents/`, `hooks/`, `lib/`, `templates/`, `bin/` or
