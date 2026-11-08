@@ -53,6 +53,11 @@ The version move goes to an item no plan orders after another, and the orchestra
 Updating: nothing to do. A plan framed before this release has no *Overlap with the release*, so no plan orders its item against another, and the orchestrator merges it as it is sealed, once the item carrying the version move has landed.
 ```
 
+```seal
+verdict: fixed 6f9669aa
+answer: The paste-ready text was read against `frame/design.md` *Scope* item 4 as the orchestrator folded it at `dfc639f2`, and against `docs/releasing/branch-and-release.md` *The version moves at the start of a release, in the first pull request into `release/vX.Y.Z`*, and both hold it. `skills/implement/orchestration.md` lines 395 to 400 take the record's block word for word, and the paragraph still reads as one: "that work item" in the next sentence names the carrier, and the sentence on a move made after the carrier's last round stands as it was. `changelog.md` line 3's sentence and line 6 take the record's text word for word. The class was listed from the diff of `94d04d30..6f9669aa` and by `git grep` on "as each is sealed", "item first in" and "first in it" (executed). That turned up a fifth statement the location does not list, the second `### Process changes` row of `changelog.md`, which said the orchestrator "gives the version move to the item first in it". It now says the move goes to an item no plan orders after another, which the orchestrator merges before every other item of the release; the wording is mine. Every other "as each is sealed" in the tree now follows the carrier's landing. `frame/design.md` S3 still says "the item first in it", which the record says stays true; the frame is the orchestrator's. All six `pr.md` quotes stand word for word at their coordinates after the fix (executed: `grep -cF` printed 1 for each), so `pr.md` was not touched. `bin/test tests/behaviour/test_the_set_a_work_item_always_has.py tests/text/test_the_rules_have_one_owner.py tests/behaviour/test_a_cited_section_stands_in_its_file.py tests/behaviour/test_docs_line_wrap.py -q` exited 0 with 149 passed.
+```
+
 ### 2. The plan template defines where two items meet more narrowly than `agents/framer.md` step 4, and leaves out the overlap of a check and the content it reads
 
 ```seal
@@ -69,6 +74,11 @@ The fix adds the missing words to both statements of the placeholder. `frame/des
 
 ```markdown
 <each other open work item of the release that this work meets, as the spawn names them and as their frames stand where committed: both change the same file, or one changes a rule, a check or a fact that the other's change reads or adds content to. A row names the file and the section both change, or the rule or check and what of the other's change it reads; the item that merges first, by its issue number; and why that order costs less. Where none meets, one sentence naming the items read and saying none meets this work; where the spawn names none, one sentence saying so>
+```
+
+```seal
+verdict: fixed 6f9669aa
+answer: `templates/records/sdd-plan.md` line 23 now says "a fact that the other's change reads or adds content to". The line is identical to `frame/design.md` line 62 as folded at `dfc639f2` (executed: `diff` of the two lines printed nothing). `agents/framer.md` step 4, `changelog.md` line 3 and *Scope* item 2 already read "reads or adds content to", so each statement of the meet definition in the diff and the work item's records now reads the same. The template's heading, header and placement are unchanged, so `test_the_plan_template_carries_the_overlap_table` still covers them, and it passed in the narrow run named under finding 1.
 ```
 
 ## Confirmations
