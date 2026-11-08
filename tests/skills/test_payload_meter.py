@@ -97,6 +97,21 @@ def a_tree(tmp_path, skills=("alpha", "beta"), extra_agent=False):
     return root, home
 
 
+def two_user_dirs(tmp_path):
+    """#1367. `a_tree`, and a config directory beside its home. The home's
+    `.claude` and the config directory each hold a `CLAUDE.md` and a shadow
+    of `alpha`, every file a different size, so a row's bytes say which
+    directory it read. Returns the root, the home and the config directory."""
+    root, home = a_tree(tmp_path)
+    config = tmp_path / "config"
+    write(str(home / ".claude" / "CLAUDE.md"), "## Home rules\n" + "h" * 300 + "\n")
+    write(str(config / "CLAUDE.md"), "## Config rules\n" + "c" * 400 + "\n")
+    shadow = os.path.join("skills", "alpha", "SKILL.md")
+    write(str(home / ".claude" / shadow), "# home alpha\n" + "h" * 500 + "\n")
+    write(str(config / shadow), "# config alpha\n" + "c" * 600 + "\n")
+    return root, home, config
+
+
 def a_core(root):
     """The plugin's core and manifest under ROOT, so a session in that tree
     receives the core from the plugin's `SessionStart` hook. The core carries
@@ -238,8 +253,11 @@ def a_transcript(tmp_path, spawns, prefixes):
     return str(main)
 
 
-def run(args, home, cwd=None):
-    env = dict(os.environ, HOME=str(home), USERPROFILE=str(home))
+def run(args, home, cwd=None, extra=None):
+    """The script in a child under HOME and USERPROFILE set to HOME, with
+    `extra`'s variables added. `tests/conftest.py` removes
+    `CLAUDE_CONFIG_DIR`, so the child reads it only where `extra` sets it."""
+    env = dict(os.environ, HOME=str(home), USERPROFILE=str(home), **(extra or {}))
     return subprocess.run(
         [sys.executable, SCRIPT, *args],
         capture_output=True,
@@ -1539,6 +1557,115 @@ class Test_module:
         assert str(tmp_path) not in as_json.stdout, "an absolute path reached the JSON"
         assert data["root"] == "plugin"
         assert "measured_at" in data
+
+    # --- #1367: the config directory in use --------------------------------------
+
+    def test_the_pair_reads_the_claude_md_of_the_config_directory_in_use(
+        self, tmp_path
+    ):
+        """#1367, S3. Claude Code reads the user's `CLAUDE.md` in the
+        directory `CLAUDE_CONFIG_DIR` names. Under a set variable the
+        session's and each agent's pair row is that file, labelled
+        `$CLAUDE_CONFIG_DIR/CLAUDE.md` so no absolute path reaches the
+        output, and no row reads the file under HOME."""
+        root, home, config = two_user_dirs(tmp_path)
+        done = run(
+            ["--root", str(root), "--json"],
+            home,
+            cwd=str(tmp_path),
+            extra={"CLAUDE_CONFIG_DIR": str(config)},
+        )
+        assert done.returncode == 0, done.stderr
+        data = json.loads(done.stdout)
+        tables = {
+            "session": data["session"]["files"],
+            **{name: agent["files"] for name, agent in data["agents"].items()},
+        }
+        not_read = size_of(home / ".claude" / "CLAUDE.md")[0]
+        for name, files in tables.items():
+            pair = [f for f in files if f["share"] == "harness"]
+            assert [f["path"] for f in pair] == [
+                "CLAUDE.md",
+                "$CLAUDE_CONFIG_DIR/CLAUDE.md",
+            ], (name, pair)
+            assert (pair[1]["bytes"], pair[1]["chars"]) == size_of(
+                config / "CLAUDE.md"
+            ), name
+            assert not_read not in [f["bytes"] for f in files], name
+        assert str(tmp_path) not in done.stdout, "an absolute path reached the JSON"
+
+    def test_a_skill_shadow_is_read_in_the_config_directory_in_use(self, tmp_path):
+        """#1367, S4. A user skill shadowing the plugin's stands in the
+        directory `CLAUDE_CONFIG_DIR` names, so under a set variable the
+        row's shadow is that file, labelled `$CLAUDE_CONFIG_DIR/skills/...`,
+        with its bytes."""
+        root, home, config = two_user_dirs(tmp_path)
+        done = run(
+            ["--root", str(root), "--json"],
+            home,
+            cwd=str(tmp_path),
+            extra={"CLAUDE_CONFIG_DIR": str(config)},
+        )
+        assert done.returncode == 0, done.stderr
+        alpha = json.loads(done.stdout)["agents"]["probe"]["files"][1]
+        assert alpha["path"] == "skills/alpha/SKILL.md"
+        assert alpha["shadow"] == {
+            "path": "$CLAUDE_CONFIG_DIR/skills/alpha/SKILL.md",
+            "bytes": size_of(config / "skills" / "alpha" / "SKILL.md")[0],
+        }
+
+    @pytest.mark.parametrize(
+        "extra", [None, {"CLAUDE_CONFIG_DIR": ""}], ids=["unset", "empty"]
+    )
+    def test_an_unset_or_empty_variable_reads_the_home_directory(self, tmp_path, extra):
+        """#1367, S5. `main` passes the variable as the process has it, and
+        `user_dir` reads an empty value as unset, as the shell's `:-` does.
+        Either way the pair row and the shadow are the files under
+        `HOME/.claude`, under the labels a run read before #1367."""
+        root, home, _config = two_user_dirs(tmp_path)
+        done = run(
+            ["--root", str(root), "--json"], home, cwd=str(tmp_path), extra=extra
+        )
+        assert done.returncode == 0, done.stderr
+        files = json.loads(done.stdout)["agents"]["probe"]["files"]
+        pair = [f for f in files if f["share"] == "harness"]
+        assert [f["path"] for f in pair] == ["CLAUDE.md", "~/.claude/CLAUDE.md"]
+        assert (pair[1]["bytes"], pair[1]["chars"]) == size_of(
+            home / ".claude" / "CLAUDE.md"
+        )
+        assert files[1]["shadow"] == {
+            "path": "~/.claude/skills/alpha/SKILL.md",
+            "bytes": size_of(home / ".claude" / "skills" / "alpha" / "SKILL.md")[0],
+        }
+
+    def test_an_import_from_home_stays_under_the_home_directory(self, tmp_path):
+        """#1367, S6. A `@~/` import is the home directory, which a set
+        `CLAUDE_CONFIG_DIR` does not move (`imports_of`), so the config
+        directory's `CLAUDE.md` importing `@~/shared.md` reads
+        `HOME/shared.md` and not the file of that name in the config
+        directory."""
+        root, home, config = two_user_dirs(tmp_path)
+        write(str(config / "CLAUDE.md"), "## Config rules\n@~/shared.md\n")
+        write(str(home / "shared.md"), "the home's shared\n" + "h" * 50 + "\n")
+        write(str(config / "shared.md"), "the config's shared\n" + "c" * 70 + "\n")
+        done = run(
+            ["--root", str(root), "--json"],
+            home,
+            cwd=str(tmp_path),
+            extra={"CLAUDE_CONFIG_DIR": str(config)},
+        )
+        assert done.returncode == 0, done.stderr
+        files = json.loads(done.stdout)["agents"]["probe"]["files"]
+        pair = [f for f in files if f["share"] == "harness"]
+        assert [(f["path"], f.get("via")) for f in pair] == [
+            ("CLAUDE.md", None),
+            ("$CLAUDE_CONFIG_DIR/CLAUDE.md", None),
+            (
+                "$CLAUDE_CONFIG_DIR/CLAUDE.md → ~/shared.md",
+                "$CLAUDE_CONFIG_DIR/CLAUDE.md",
+            ),
+        ], pair
+        assert (pair[2]["bytes"], pair[2]["chars"]) == size_of(home / "shared.md")
 
     # --- the command ------------------------------------------------------------
 

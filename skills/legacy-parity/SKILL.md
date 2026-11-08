@@ -64,9 +64,25 @@ later fix is its intent, and cloning the version before it preserves nothing.
 ## The original's coordinates
 
 A work item's design cites, in its Grounding, the original's coordinates for
-the clauses in scope. Start every comparison there instead of searching the
-original; the caller pins what it settles with a test. A suspect coordinate
-is opened at the baseline: `git show <baseline>:<path>`.
+the clauses in scope. For each entry point the work ports, those
+coordinates are the original's output surface, listed item by item in
+`frame/design.md` *Grounding*: each response field, each query axis (a
+parameter or a filter the original accepts) and each error code the
+original sends, or their equivalents for an original that is not a service.
+Each item carries its coordinate at the baseline, read from the entry point
+forward to what it sends (*What the original sends*). The framer writes the
+list. Where the original does not resolve for the framer, the *Grounding*
+says `original not found` with what was tried, and no list stands in for
+one.
+
+A comparison starts at the original's entry point and opens the list's
+coordinates there. An item the original sends and the list lacks is then met
+by the walk, and it is a finding on the frame, located in `frame/design.md`
+and, where the port lacks it too with no grounds for leaving it out, in the
+port as well (*Parity review*).
+The caller pins what it settles with a test. A suspect coordinate is opened
+at the baseline: `git show <baseline>:<path>`.
+check: tests/text/test_review_axes.py
 
 ## Replacement annotation
 
@@ -81,9 +97,10 @@ grounding clause.
 ## Parity review
 
 `code-review` runs as usual with one change of frame: stage 1 compares against
-the original, through the coordinates the design cites, and not only the
-written design, across the same comparison axes. A verdict is one of four
-words, lowercase, at the start of its line, and no other label is written:
+the original, from its entry point and through the coordinates the design
+cites, and not only the written design, across the same comparison axes. A
+verdict is one of four words, lowercase, at the start of its line, and no
+other label is written:
 
 ```
 differs     no grounds: align with the original
@@ -93,6 +110,25 @@ unread      the original or the policy was not found: never a pass
 ```
 
 check: tests/text/test_the_record_is_written_in_words.py
+
+The proofer's stage 1 walks the original's output surface item by item, from
+the original's entry point forward to the port, and opens the design's list
+at each item (*The original's coordinates*). It does not read from the port
+back, which finds only what the port has. An item the original sends and the
+port does not is `differs` by default, and `grounded` only where the grounds
+quote a policy clause with its source for leaving it out, as *Three-way
+judgment* asks of every divergence. An item the original sends that the
+design's list and the port both lack is one finding, with the verdict an
+item the port does not send takes. Its `location:` names `frame/design.md`,
+and where the verdict is `differs`, the port's entry point beside it, since
+that fix adds the item to both. Each item walked stands in the round
+record, as a finding or as a line of its `## Confirmations` naming the item
+and both coordinates. The next round opens the list and those lines
+(`skills/code-review/SKILL.md` *Earlier rounds*), and re-derives the verdict,
+not the enumeration. Under `straight to the PR` the sealer walks the
+original's surface the same way, and its record stays the `original:` line
+*Recording the comparison* gives it.
+check: tests/text/test_review_axes.py
 
 ## Recording the comparison
 

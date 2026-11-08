@@ -374,6 +374,17 @@ for _name in GH_CREDENTIALS:
 os.environ["GH_TOKEN"] = NOT_A_GH_TOKEN
 os.environ["GH_ENTERPRISE_TOKEN"] = NOT_A_GH_TOKEN
 
+# The suite runs with `CLAUDE_CONFIG_DIR` unset (#1367). Claude Code keeps its
+# transcripts, the user's `CLAUDE.md` and user skills under the directory that
+# variable names. `skills/verify/scripts/session_cost.py#projects_dir` reads
+# transcripts there, and `skills/verify/scripts/payload_meter.py#main` passes
+# the variable to the meter, which reads the user's `CLAUDE.md` and skill
+# shadows there. A case written for the unset variable would otherwise read
+# the developer's own directory on a machine that sets it, in process and in
+# every child. Removed at import for the reason `GH_CONFIG_DIR` is moved
+# above; a case that needs the variable sets it.
+os.environ.pop("CLAUDE_CONFIG_DIR", None)
+
 # The suite runs with no workflow variable, under every event (#1058). Every
 # workflow run sets `GITHUB_ACTIONS`, `GITHUB_EVENT_PATH` and the rest, and
 # only a `pull_request` run sets `GITHUB_HEAD_REF`; a local run and the broad
