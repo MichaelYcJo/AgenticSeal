@@ -314,8 +314,8 @@ with it. The closing `exit 0` makes each command exit 0 whatever happens,
 so neither hook ever stops a turn. Releases 0.33.0 to 0.34.1 drew the stamp
 instead through a launcher, `stamp.py`, which a yes to their question wrote
 into the plugin's data directory with one `Stop` entry in
-`~/.claude/settings.json`; `/agentic:update` names both for you to take out
-by hand.
+`${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json`; `/agentic:update` names
+both for you to take out by hand.
 
 No session stops another from switching the branch of a working tree it is
 using, so give each concurrent session its own worktree.

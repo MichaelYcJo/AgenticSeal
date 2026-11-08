@@ -38,7 +38,8 @@ typed it, so the meter sat unreferenced through a full day of measurements
 nobody took (#330). It refuses without `--says`, because the numbers are this
 script's and what they say is not, and it never opens an issue.
 
-Transcripts live under ~/.claude/projects/<path-with-slashes-as-dashes>/,
+Transcripts live under
+${CLAUDE_CONFIG_DIR:-$HOME/.claude}/projects/<path-with-slashes-as-dashes>/,
 with subagent runs in <session-id>/subagents/. `--latest` searches both.
 
 **Why `--spawns` exists, in one sentence.** Every segment of a chain has a
@@ -79,8 +80,17 @@ import sys
 import tempfile
 from collections import defaultdict
 
-HOME = os.path.expanduser("~")
-PROJECTS = os.path.join(HOME, ".claude", "projects")
+
+def projects_dir():
+    """Where Claude Code keeps transcripts: `projects` under the directory
+    `CLAUDE_CONFIG_DIR` names, or under `$HOME/.claude` where the variable is
+    unset or empty, as the shell's `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`
+    spells it. Read at each call, so a case moves it with the environment."""
+    config = os.environ.get("CLAUDE_CONFIG_DIR") or os.path.join(
+        os.path.expanduser("~"), ".claude"
+    )
+    return os.path.join(config, "projects")
+
 
 # Command families, in priority order — the first match wins, so a compound
 # `ruff … && pytest …` is charged to the test run that dominates it.
@@ -2877,14 +2887,15 @@ def report_segments(segments, path):
 
 
 def newest(directory):
-    # `~/.claude/projects` encodes a cwd by replacing every non-alphanumeric
-    # character, not just the separator. Replacing `os.sep` alone is right on
-    # POSIX by coincidence and wrong on Windows, where a drive letter keeps its
-    # colon: `C:\GitHub\AgenticSeal` became `C:-GitHub-AgenticSeal` and the real
-    # directory is `C--GitHub-AgenticSeal`, so `seal cost --latest .` reported
-    # "no transcript found" for a directory that is right there. Measured.
+    # `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/projects` encodes a cwd by replacing
+    # every non-alphanumeric character, not just the separator. Replacing
+    # `os.sep` alone is right on POSIX by coincidence and wrong on Windows,
+    # where a drive letter keeps its colon: `C:\GitHub\AgenticSeal` became
+    # `C:-GitHub-AgenticSeal` and the real directory is
+    # `C--GitHub-AgenticSeal`, so `seal cost --latest .` reported "no
+    # transcript found" for a directory that is right there. Measured.
     slug = re.sub(r"[^A-Za-z0-9-]", "-", os.path.abspath(directory))
-    root = os.path.join(PROJECTS, slug)
+    root = os.path.join(projects_dir(), slug)
     if not os.path.isdir(root):
         return None
     found = []
@@ -3097,8 +3108,9 @@ def emit(args, render, path=None):
 
     **What is printed locally and what is posted are not the same text, and
     the transcript's path is the difference.** A transcript lives at
-    `~/.claude/projects/-Users-x-<repo>/<session-id>.jsonl`, so the path
-    carries the account name twice and the session id once; `--post` writes
+    `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/projects/-Users-x-<repo>/<session-id>.jsonl`,
+    so under the default directory the path carries the account name twice
+    and the session id once; `--post` writes
     into an issue tracker, where the repair for a published one is a person
     deleting a comment. `CONTRIBUTING.md` *House rules*, in its bullet
     **The plugin ships two hooks, and neither writes outside the

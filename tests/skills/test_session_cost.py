@@ -5356,21 +5356,89 @@ class Test_post:
 
 class Test_newest:
     @staticmethod
-    def project_of(module, directory):
-        """Where `~/.claude/projects` keeps DIRECTORY's transcripts, by the slug
-        rule `newest` states: every character that is not a letter, a digit or
-        a hyphen of the absolute path becomes a hyphen."""
-        slug = re.sub(r"[^A-Za-z0-9-]", "-", os.path.abspath(directory))
-        return os.path.join(module.PROJECTS, slug)
+    def slug_of(directory):
+        """The slug rule `newest` states: every character of DIRECTORY's
+        absolute path that is not a letter, a digit or a hyphen becomes a
+        hyphen."""
+        return re.sub(r"[^A-Za-z0-9-]", "-", os.path.abspath(directory))
+
+    @classmethod
+    def project_of(cls, module, directory):
+        """Where `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/projects` keeps
+        DIRECTORY's transcripts."""
+        return os.path.join(module.projects_dir(), cls.slug_of(directory))
+
+    @staticmethod
+    def two_roots(monkeypatch, tmp_path):
+        """A scratch home and a scratch config directory, the second named by
+        `CLAUDE_CONFIG_DIR`. `USERPROFILE` moves with `HOME` because
+        `os.path.expanduser` reads it on Windows."""
+        home, config = tmp_path / "home", tmp_path / "config"
+        home.mkdir()
+        config.mkdir()
+        monkeypatch.setenv("HOME", str(home))
+        monkeypatch.setenv("USERPROFILE", str(home))
+        monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(config))
+        return home, config
+
+    @staticmethod
+    def write(path, mtime):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as handle:
+            handle.write("{}\n")
+        os.utime(path, (mtime, mtime))
+
+    def one_transcript_under_each_root(self, monkeypatch, tmp_path):
+        """One working directory with a transcript under each root, the one
+        under the home directory written later, so `newest` reading the wrong
+        root returns the later file."""
+        home, config = self.two_roots(monkeypatch, tmp_path)
+        work = tmp_path / "work"
+        work.mkdir()
+        slug = self.slug_of(work)
+        in_config = os.path.join(str(config), "projects", slug, "a.jsonl")
+        in_home = os.path.join(str(home), ".claude", "projects", slug, "b.jsonl")
+        self.write(in_config, 1_000_000)
+        self.write(in_home, 2_000_000)
+        return work, in_config, in_home
+
+    def test_accepts_the_transcript_under_the_config_directory_in_use(
+        self, monkeypatch, tmp_path
+    ):
+        """S1: Claude Code writes a transcript under the directory
+        `CLAUDE_CONFIG_DIR` names, so `--latest` reads there and not under
+        the home directory's `.claude`."""
+        work, in_config, _in_home = self.one_transcript_under_each_root(
+            monkeypatch, tmp_path
+        )
+        module = load_script()
+        assert module.newest(str(work)) == in_config
+
+    @pytest.mark.parametrize("config", [None, ""], ids=["unset", "empty"])
+    def test_accepts_the_home_directorys_transcript_where_the_variable_names_none(
+        self, monkeypatch, tmp_path, config
+    ):
+        """S2: an unset or empty `CLAUDE_CONFIG_DIR` falls back to
+        `$HOME/.claude`, as the shell's `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`
+        does."""
+        work, _in_config, in_home = self.one_transcript_under_each_root(
+            monkeypatch, tmp_path
+        )
+        if config is None:
+            monkeypatch.delenv("CLAUDE_CONFIG_DIR")
+        else:
+            monkeypatch.setenv("CLAUDE_CONFIG_DIR", config)
+        module = load_script()
+        assert module.newest(str(work)) == in_home
 
     def test_accepts_the_latest_transcript_under_a_directorys_project(
         self, monkeypatch, tmp_path
     ):
         """`--latest` reads the transcript written last under the directory's
-        project, a segment's nested one included. The projects root is moved
-        under the case, so no home directory is read."""
+        project, a segment's nested one included. The home and config
+        directories are moved under the case, so no real one is read."""
+        self.two_roots(monkeypatch, tmp_path)
         module = load_script()
-        monkeypatch.setattr(module, "PROJECTS", str(tmp_path / "projects"))
         work = tmp_path / "work"
         work.mkdir()
         project = self.project_of(module, work)
@@ -5386,8 +5454,8 @@ class Test_newest:
     def test_refuses_a_directory_with_no_project_or_no_transcript(
         self, monkeypatch, tmp_path
     ):
+        self.two_roots(monkeypatch, tmp_path)
         module = load_script()
-        monkeypatch.setattr(module, "PROJECTS", str(tmp_path / "projects"))
         work = tmp_path / "work"
         work.mkdir()
         assert module.newest(str(work)) is None
