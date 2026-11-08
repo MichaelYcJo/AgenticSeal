@@ -241,16 +241,18 @@ def printed_side(text, truths=(), found=()):
     return {"cases": [case]}
 
 
-def eval_side(tmp_path, name, rev, tree, text=""):
-    """A one-run side `run` could have written, run on the suite REV/TREE;
-    the path it is written to."""
+def eval_side(tmp_path, name, rev, tree, text="", grader=None):
+    """A one-run side `run` could have written, run on the suite REV/TREE,
+    its case holding GRADER (a `shape-x` `file_exists` one where None) and
+    its run passing it; the path it is written to."""
+    grader = grader or {"name": "shape-x", "type": "file_exists"}
     run = {
-        "graders": [{"name": "shape-x", "passed": True}],
+        "graders": [{"name": grader["name"], "passed": True}],
         "agentic": {"report_text": text},
     }
     case = {
         "name": "c1",
-        "graders": [{"name": "shape-x", "type": "file_exists"}],
+        "graders": [grader],
         "arms": {"with": [run]},
     }
     meta = {
@@ -936,8 +938,15 @@ class Test_reads_record:
                 "config": {"target": {"path": REPORT}},
             },
             {"name": "truth-1", "type": "regex"},
+            {"name": "truth-1", "type": "regex", "config": {"target": "files"}},
         ],
-        ids=["a shape grader", "another file", "not a regex", "no target"],
+        ids=[
+            "a shape grader",
+            "another file",
+            "not a regex",
+            "no target",
+            "a target that is not a mapping",
+        ],
     )
     def test_refuses_any_other_grader(self, grader):
         assert not NI.reads_record(grader)
@@ -2044,6 +2053,27 @@ class Test_compare:
         )
         text = out.read_text(encoding="utf-8")
         assert "| Baseline suite | " + "a" * 40 + " " + "b" * 40 + " |" in text
+        assert (
+            capsys.readouterr().out == re.search(r"^Verdict: .*$", text, re.M)[0] + "\n"
+        )
+
+    def test_accepts_sides_holding_a_grader_whose_target_is_a_string(
+        self, tmp_path, capsys
+    ):
+        """A crafter case's `shape-no-probe-left` targets the string `files`,
+        which names no round record, so each side keeps the result the eval
+        recorded for it and the record is written."""
+        grader = NI.grader_from(
+            "graders/shape-no-probe-left.md",
+            "---\ntype: 'regex'\ntarget: 'files'\npattern: 'test_tmp_'\n"
+            "match: 'not_contains'\n---\nNo probe file is left behind.\n",
+        )
+        old = eval_side(tmp_path, "old", "a" * 40, "b" * 40, grader=grader)
+        new = eval_side(tmp_path, "new", "c" * 40, "b" * 40, grader=grader)
+        out = tmp_path / "proofer-phase-3.md"
+        assert NI.main([*self.ARGV, "--old", old, "--new", new, "--out", str(out)]) == 0
+        text = out.read_text(encoding="utf-8")
+        assert "| shape | c1 | shape-no-probe-left | 1 | 1 | 1 | 1 |" in text
         assert (
             capsys.readouterr().out == re.search(r"^Verdict: .*$", text, re.M)[0] + "\n"
         )
