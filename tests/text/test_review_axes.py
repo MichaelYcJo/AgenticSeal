@@ -87,8 +87,8 @@ def test_an_item_the_port_lacks_differs_and_the_walk_stands_in_the_round():
     rel, heading = PARITY_REVIEW
     body = prose(rel, heading)
     named = [w for w in re.findall(r"`(\w+)`", body) if w in PARITY_WORDS]
-    # The verdict word an absent item takes, written outside the block of
-    # labels, which the proofer writes at the start of the finding's line.
+    # The verdict word an absent item takes, named outside the block of
+    # labels, which the proofer gives the item in the round record.
     assert "differs" in named, f"{rel} {heading} gives an absent item no verdict"
     # The record and its section where each walked item stands, which the
     # next round opens.
