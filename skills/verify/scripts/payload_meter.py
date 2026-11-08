@@ -4,9 +4,10 @@ of, and what it costs in tokens.
 
 Every spawn of an agent this plugin defines pays for the same prefix again:
 the definition under `agents/`, every `SKILL.md` its `skills:` list injects,
-and the two `CLAUDE.md` files the harness adds (the repository's and
-`~/.claude/CLAUDE.md`) with every file their `@` lines import, up to four
-hops (`imports_of`, #1177). The prefix is cached for five minutes, and no two
+and the two `CLAUDE.md` files the harness adds (the repository's and the
+user's, in the config directory in use, `${CLAUDE_CONFIG_DIR:-$HOME/.claude}`,
+#1367) with every file their `@` lines import, up to four hops
+(`imports_of`, #1177). The prefix is cached for five minutes, and no two
 spawns of one agent in a review chain fall inside five minutes of each other
 (#292, `frame/design.md` *Measured before the first edit*) — so in a chain it is
 written on every spawn. This reads the tree and says what that prefix is.
@@ -66,10 +67,11 @@ were unusable
 file through `seal payload`: `lib/launch.py` refuses `seal` with 2 first.
 
 Two things the ratio has to know about the machine it was measured on. A
-skill name resolves to `~/.claude/skills/<name>/SKILL.md` when the user has
-one, shadowing the plugin's — measured here for `writing-style`, 25,834 B
-against the tree's 19,762 B — so the row reports the tree's file, notes the
-shadow, and the calibration divides by the bytes the spawn actually read.
+skill name resolves to `skills/<name>/SKILL.md` in the user's config
+directory when the user has one, shadowing the plugin's — measured here for
+`writing-style`, 25,834 B against the tree's 19,762 B — so the row reports
+the tree's file, notes the shadow, and the calibration divides by the bytes
+the spawn actually read.
 And a spawn's first message carries its prompt as well as the payload, so
 of several spawns of one agent the SMALLEST prefix is taken and the count
 is reported.
@@ -448,36 +450,59 @@ def imports_of(path, home, depth=HOPS, seen=None):
     return out
 
 
-def composition(root, home, name, definition, sections):
+def user_dir(home, config):
+    """`(directory, label)`: the user's config directory, where Claude Code
+    keeps the user's `CLAUDE.md` and user skills (#1367), and the label its
+    rows carry. `config` is `CLAUDE_CONFIG_DIR` as the caller read it; where
+    it is `None` or empty, the directory is `home`'s `.claude`, labelled
+    `~/.claude`, as the shell's `${CLAUDE_CONFIG_DIR:-$HOME/.claude}` reads
+    it. Otherwise it is `config`, labelled `$CLAUDE_CONFIG_DIR`, so no
+    account name reaches a table or a `--baseline` key. A `@~/` import is
+    not under it: `imports_of` resolves `~` against `home`."""
+    if config:
+        return config, "$CLAUDE_CONFIG_DIR"
+    return os.path.join(home, ".claude"), "~/.claude"
+
+
+def composition(root, home, name, definition, sections, user=None):
     """The rows of one agent's payload, in the order the harness lays them
     out: the definition, each skill, then the harness's `CLAUDE.md` pair with
-    its imports (`pair_rows`). No row is the core hook's: its output reaches
-    no subagent."""
+    its imports (`pair_rows`). A skill's shadow is read in `user`, the pair
+    `user_dir` returns. No row is the core hook's: its output reaches no
+    subagent.
+
+    `user` left out is `user_dir(home, None)`, because the release report
+    the plugin's repository runs in CI loads this file from the last tag's
+    tree as well as this one and calls it with five arguments."""
+    user = user or user_dir(home, None)
+    directory, label = user
     _name, skills = frontmatter(read(os.path.join(root, definition))[1])
     rows = [file_row(root, definition, definition, "agent", sections)]
     for skill in skills:
         rel = os.path.join("skills", skill, "SKILL.md")
         row = file_row(root, rel, rel.replace(os.sep, "/"), "agent", sections)
-        shadow = os.path.join(home, ".claude", "skills", skill, "SKILL.md")
+        shadow = os.path.join(directory, "skills", skill, "SKILL.md")
         if os.path.isfile(shadow):
             row["shadow"] = {
-                "path": f"~/.claude/skills/{skill}/SKILL.md",
+                "path": f"{label}/skills/{skill}/SKILL.md",
                 "bytes": len(read(shadow)[0]),
             }
         rows.append(row)
-    return rows + pair_rows(root, home, sections)
+    return rows + pair_rows(root, home, sections, user)
 
 
-def pair_rows(root, home, sections):
-    """The harness's `CLAUDE.md` pair, each file followed by the files its
-    `@` lines import (`imports_of`). An imported row is the importer's name,
-    an arrow and each hop as written, with `via` naming the file that holds
-    its line; one real path is one row across the pair, and a file of the
-    pair is never a row of the other's."""
+def pair_rows(root, home, sections, user):
+    """The harness's `CLAUDE.md` pair, the repository's and the one in
+    `user`, the pair `user_dir` returns, each file followed by the files its
+    `@` lines import (`imports_of`, against `home`). An imported row is the
+    importer's name, an arrow and each hop as written, with `via` naming the
+    file that holds its line; one real path is one row across the pair, and
+    a file of the pair is never a row of the other's."""
+    directory, label = user
     rows = []
     pair = (
         (os.path.join(root, "CLAUDE.md"), "CLAUDE.md"),
-        (os.path.join(home, ".claude", "CLAUDE.md"), "~/.claude/CLAUDE.md"),
+        (os.path.join(directory, "CLAUDE.md"), f"{label}/CLAUDE.md"),
     )
     seen = {os.path.realpath(path) for path, _display in pair}
     for path, display in pair:
@@ -503,18 +528,19 @@ def pair_rows(root, home, sections):
     return rows
 
 
-def session_composition(root, home, sections=False):
+def session_composition(root, home, sections, user):
     """The rows of a session's prefix in the tree at ROOT: the `CLAUDE.md`
-    pair with its imports (`pair_rows`), then `HOOK_ROW`, share `hook`, whose
-    bytes and characters are `lib/core.py#rendered` for the core
-    `lib/core.py#origin` names in ROOT, header and closing line included: what
-    a session in ROOT receives where ROOT holds a `seal/` root. Where ROOT
+    pair with its imports (`pair_rows`, with `user` the pair `user_dir`
+    returns), then `HOOK_ROW`, share `hook`, whose bytes and characters are
+    `lib/core.py#rendered` for the core `lib/core.py#origin` names in ROOT,
+    header and closing line included: what a session in ROOT receives where
+    ROOT holds a `seal/` root. Where ROOT
     holds no core to print, as a release before the hook does, the row is 0
     bytes marked `missing`: the hook's one-line refusal is printed only by a
     tree that has the hook. Every token figure is estimated at
     `ASSUMED_RATIO` and labelled `SESSION_BASIS`."""
     core = _core()
-    rows = pair_rows(root, home, sections)
+    rows = pair_rows(root, home, sections, user)
     hook = {"path": HOOK_ROW, "share": "hook"}
     path = core.origin(root, root)
     if os.path.isfile(path):
@@ -766,11 +792,16 @@ def measure(
     calibrate=None,
     baseline=None,
     baseline_agent=BASELINE_AGENT,
+    config=None,
 ):
     """The whole reading as data. `calibrate` is a main transcript path;
     `baseline` an earlier run's JSON path, whose ratios are lent to agents
-    this run did not measure and whose numbers the delta is taken against."""
+    this run did not measure and whose numbers the delta is taken against.
+    `config` is `CLAUDE_CONFIG_DIR` as the caller read it, and `user_dir`
+    places the user's files from it and `home`; a call that passes none
+    reads only the `home` it was given."""
     baseline_agent = short_name(baseline_agent)
+    user = user_dir(home, config)
     if sections:
         # Before anything is read, so a copy missing the fence rule says so
         # at exit 2 rather than after a partial measurement (#584).
@@ -789,7 +820,7 @@ def measure(
         "ratios": {},
         # After the calibration, so a copy missing `session_cost.py` names
         # that sibling first.
-        "session": session_composition(root, home, sections),
+        "session": session_composition(root, home, sections, user),
         "agents": {},
     }
     if baseline:
@@ -802,7 +833,7 @@ def measure(
             "unread": calibrate_data["unread"],
         }
     for name, definition in agents_in(root, agents).items():
-        files = composition(root, home, name, definition, sections)
+        files = composition(root, home, name, definition, sections, user)
         own = [f for f in files if f["share"] == "agent"]
         pair = [f for f in files if f["share"] == "harness"]
         prefix = None
@@ -1179,6 +1210,7 @@ def main():
             calibrate=args.calibrate,
             baseline=args.baseline,
             baseline_agent=args.baseline_agent,
+            config=os.environ.get("CLAUDE_CONFIG_DIR"),
         )
     except CalibrationError as error:
         print(f"seal payload: {error}", file=sys.stderr)
