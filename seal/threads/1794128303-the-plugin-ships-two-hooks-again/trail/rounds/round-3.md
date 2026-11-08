@@ -95,6 +95,11 @@ pr.md:8
   new: each command ends with a closing `exit 0`, so it exits 0 whatever happens,
 ```
 
+```seal
+verdict: fixed fc6405ddb
+answer: The orchestrator rewrote the three frame cells and the `pr.md:8` quote at `fc6405ddb` so that no pipe stands in them. This fix pass ran a census over the files the crafter writes, `gaps.md`, `changelog.md` and `trail/phases/phase-1.md` to `phase-3.md`, at `d39edd697`. It counted the cells of each table row, splitting on unescaped `|`, against the row's header, and found no row whose count differs, so none needed a change (executed).
+```
+
 ### 2. `lib/launch.py`'s reason for keeping the hooks off the launcher no longer holds once each command ends with ` || exit 0`
 
 ```seal
@@ -144,6 +149,11 @@ lib/launch.py:35-39
 
 This snippet is a docstring and assumes no OS boundary. It reaches every
 statement of the reason: the search in `evidence:` lists no other.
+
+```seal
+verdict: fixed d39edd697
+answer: Before writing the sentence, the fix pass checked the reason against the code (read). `lib/launch.py#FLOOR` is `(3, 12)`, and the docstring's own `:19-21` says the launcher exits 2 below it before the script is read. `ruff.toml`'s *per-file-target-version* comment and `CONTRIBUTING.md:118-121` say that the scripts the hook commands run start on whatever `python3` is found, and that macOS ships 3.9 under that name. The docstring now gives that floor as the reason the hooks do not run through the launcher. The paste-ready text was taken in substance with one clause changed: "that refusal would reach nobody ... with nothing to say so" became "that refusal would end in exit 0". Whether Claude Code shows a hook's stderr when its exit is 0 is not something the tree records, so the sentence claims only the exit and what would not happen. A wider search than the round's, `git grep -i "run through it\|not run through\|through the launcher\|harness's word for keeping\|hooks.*launch\.py"`, found no other statement of the reason: `.github/scripts/run_tests.py:80` and `CONTRIBUTING.md:112` are about `bin/test` and `bin/seal`, and `tests/lib/test_launch.py:200` about a wrapper (executed). No case pins the docstring.
+```
 
 ## Confirmations
 
