@@ -342,12 +342,12 @@ def test_the_recipe_names_the_artifact_and_the_checklist_has_no_box():
     ):
         assert said in flat, f"the recipe paragraph does not say {said}"
     # The per-branch refresh's own words: the branch's run, its re-run and
-    # its dispatch, and the suite case that scheduled it.
+    # its dispatch, and the command that ran the suite case scheduling it.
     for gone in (
         "the branch's latest",
         "gh run rerun",
         "gh workflow run",
-        "prices_the_suite",
+        "bin/test tests -q -k",
     ):
         assert gone not in flat, f"the recipe paragraph still says {gone!r}"
     before = section("docs/releasing/release-checklist.md", "0. Before starting")
