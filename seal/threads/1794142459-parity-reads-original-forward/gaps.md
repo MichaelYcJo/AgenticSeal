@@ -10,8 +10,11 @@
 
 ## Not done
 
-`agents/tracer.md` step 3, "search the original only for the axes they
-leave", is not amended. *Scope* item 3 changes step 6 alone. Step 4 traces
-each axis to what the original sends, so an item on a cited axis is still
-reached, and `trail/phases/phase-1.md` says how a reader can find the two
-steps at odds.
+No case pins where `agents/tracer.md` step 3 and the lead of its rule
+*Start at the original's entry point, open the design's coordinates there,
+and report the axis nobody looked at* start the tracer. Round 1's first
+finding rewrote both in place. The start point the skill gives in
+`skills/legacy-parity/SKILL.md` *The original's coordinates* is not pinned
+either, and a guard on the step's or the lead's words would pin wording,
+which `docs/running/what-a-script-gates.md` *The checks* refuses. Review
+reads them.

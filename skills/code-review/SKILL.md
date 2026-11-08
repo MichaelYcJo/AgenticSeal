@@ -89,12 +89,15 @@ asks what a second actor does while the first is mid-flight, the other what
 an input nobody sends in good faith does.
 
 The response-shape row is walked from the reference to the code. The
-reference is the work item's `frame/design.md`, or the original in a
-migration (`skills/legacy-parity/SKILL.md` *Parity review*). The proofer
-looks for each field the reference states in the code, and a field it does
-not find there is a finding by default. A field the code has and the
-reference does not is the behaviour nobody asked for that stage 1 names.
-Reading from the code back to the reference finds only what the code has.
+reference is what stage 1 reads above the code: the policy documents and the
+work item's `frame/design.md`, and in a migration the original as well
+(`skills/legacy-parity/SKILL.md` *Parity review*). The proofer looks in the
+code for each field the reference says the response carries, and a field it
+does not find there is a finding by default. A field the reference says the
+response leaves out and the code sends is a finding too. A field the code
+sends that the reference does not mention is the behaviour nobody asked for
+that stage 1 names. Reading from the code back to the reference finds only
+what the code has.
 
 ### The table is a floor, not a ceiling
 

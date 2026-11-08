@@ -77,7 +77,8 @@ one.
 
 A comparison starts at the original's entry point and opens the list's
 coordinates there. An item the original sends and the list lacks is then met
-by the walk, and it is a finding on the frame, located in `frame/design.md`.
+by the walk, and it is a finding on the frame, located in `frame/design.md`
+and, where the port lacks it too, in the port as well (*Parity review*).
 The caller pins what it settles with a test. A suspect coordinate is opened
 at the baseline: `git show <baseline>:<path>`.
 check: tests/text/test_review_axes.py
@@ -115,7 +116,10 @@ at each item (*The original's coordinates*). It does not read from the port
 back, which finds only what the port has. An item the original sends and the
 port does not is `differs` by default, and `grounded` only where the grounds
 quote a policy clause with its source for leaving it out, as *Three-way
-judgment* asks of every divergence. Each item walked stands in the round
+judgment* asks of every divergence. An item the original sends that the
+design's list and the port both lack is one finding, `differs`, whose
+`location:` names the port's entry point beside `frame/design.md`, since the
+fix adds the item to both. Each item walked stands in the round
 record, as a finding or as a line of its `## Confirmations` naming the item
 and both coordinates. The next round opens the list and those lines
 (`skills/code-review/SKILL.md` *Earlier rounds*), and re-derives the verdict,

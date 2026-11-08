@@ -96,6 +96,22 @@ def test_an_item_the_port_lacks_differs_and_the_walk_stands_in_the_round():
         assert home in body, f"{rel} {heading} does not name {home!r} for the walk"
 
 
+def test_an_item_the_list_and_the_port_both_lack_is_located_in_both():
+    """#15, round 1's second finding: an item the original sends that the
+    design's list and the port both lack is the issue's own case, since
+    nobody listed it and so nobody built it. Its one finding is located in
+    the port as well as in `frame/design.md`, so a fix that adds the item to
+    the list alone does not close it."""
+    rel, heading = PARITY_REVIEW
+    body = prose(rel, heading)
+    # The round record's field that says where a finding shows, and the
+    # design among the places it names beside the port.
+    for part in ("`location:`", "`frame/design.md`"):
+        assert part in body, (
+            f"{rel} {heading} does not locate an item both lack with {part!r}"
+        )
+
+
 def test_the_tracer_names_what_the_list_of_the_surface_lacks():
     """#15, the scenario *The tracer names what the list lacks*: the tracer,
     spawned before a phase, reports each item of the original's output

@@ -29,8 +29,10 @@ your one output.
    are your caller's.
 2. Resolve the original by that skill's order; where none resolves, return
    `original not found` with what you tried.
-3. Start from the original's coordinates the design's Grounding cites, search
-   the original only for the axes they leave, and say which.
+3. For each entry point the work ports, start at the original's entry
+   point, open from there the coordinates the design's Grounding cites, and
+   say which axes, and which items of the original's output surface, they
+   leave.
 4. Trace each axis to what the original sends the client.
 5. Read constraints, enums and defaults.
 6. Report per axis the behavior, its coordinates and `read` or `executed`;
@@ -55,7 +57,8 @@ caller's judgment, made after verification.
 `original not found` naming what was tried, and no findings.
 check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
-**Start from the design's coordinates, and report the axis nobody looked at.**
+**Start at the original's entry point, open the design's coordinates there,
+and report the axis nobody looked at.**
 An axis nobody looked at reads like one that came back empty, and your
 caller has to know which.
 
