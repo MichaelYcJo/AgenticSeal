@@ -514,8 +514,7 @@ drawn once per work item from the sealer's verdict
 `guarantee.md` reads `Verdict: sealed` and the block reader refuses none of
 its lines, the sealer's `seal stamp --guarantee` queues the stamp's values,
 under either root, and the plugin's `Stop` hook draws them after your text.
-The line naming them
-arrives in the sealer's hand-back.
+The line naming them arrives in the sealer's hand-back.
 So put the result text first in that turn:
 what was sealed, the lines worth quoting, and what happens next. Then end
 the turn, and the drawing lands last with nothing after it. Draw none
@@ -531,9 +530,9 @@ it as it stands: that command is the person's to type, and never yours. The
 sealer's hand-back carries that line; quote it in the turn's text. The line
 names the command because the plugin's `Stop` hook draws nothing and says
 nothing where it cannot: a `python3` that cannot load `seal_stamp.py`, or a
-working directory outside the clone. Where the hand-back carries
-no such line, no stamp was queued and none is drawn, and the pull request's
-check is what says the work item was sealed.
+working directory outside the clone. Where the hand-back carries no such line,
+no stamp was queued and none is drawn, and the pull request's check is what
+says the work item was sealed.
 
 **A refusal about the `Broad gate` row goes to a person, and the run stops
 until they answer.** Your broad run comes back exit 2 two ways that are

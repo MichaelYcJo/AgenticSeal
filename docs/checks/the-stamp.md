@@ -124,10 +124,10 @@ the text above it.** The cases prove that `--stop` emits the right bytes for
 the right payload. A screenshot of the probe proved once that such bytes render
 unfolded, in colour, after the turn's final text, and the owner's spike of
 2026-11-06 proved a `Stop` command hook runs from a plugin and from the
-person's own settings alike. Whether a given work item's stamp was seen, and whether the
-orchestrator wrote its result in the turn the stamp closed, are read by the
-person and by nobody else. So is how the stamp reads on a light background as
-well as a dark one. Nothing outside the disc is painted, so its text is in the
+person's own settings alike. Whether a given work item's stamp was seen, and
+whether the orchestrator wrote its result in the turn the stamp closed, are
+read by the person and by nobody else. So is how the stamp reads on a light
+background as well as a dark one. Nothing outside the disc is painted, so its text is in the
 terminal's own colours and theme — dim labels, a green `✓`, the title in the
 stamp's red — and the owner reads the first real stamp on each background. The
 line reaches the person through the sealer's hand-back and the orchestrator's
@@ -156,8 +156,8 @@ and records it, and the new audit it asks for draws again. No guard can tell
 that copy from a stale row the same clone wrote after a push and a rebase.
 Nothing draws, and nothing says so, where the `python3` the harness finds
 cannot load `seal_stamp.py`, or where the main session's working directory is
-outside the clone the stamp was queued in. Where a file was written, the line `--guarantee` printed names
-`seal stamp --from <path>`, and a stamp that did not appear is drawn by hand
-from it, once. Where none was, the pull request's check is what says the work
-item was sealed.
+outside the clone the stamp was queued in. Where a file was written, the line
+`--guarantee` printed names `seal stamp --from <path>`, and a stamp that did
+not appear is drawn by hand from it, once. Where none was, the pull request's
+check is what says the work item was sealed.
 No case, hook or workflow can observe a screen.
