@@ -5441,6 +5441,24 @@ class Test_work_item:
         for other in ("agent-c", "agent-d", "agent-e", "agent-f"):
             assert f"{other}.jsonl" not in out, out
 
+    @pytest.mark.parametrize("given, inside", [(".", ""), ("..", "trail")])
+    def test_a_relative_directory_is_keyed_by_its_own_name(
+        self, monkeypatch, capsys, tmp_path, item, given, inside
+    ):
+        """`--work-item .` from inside the directory, or `..` from a
+        subdirectory, keys on the directory's own name. Keyed on `.` or `..`,
+        a prompt holding `./bin/test` or `../` would name the work item."""
+        self.agent(tmp_path, "agent-a", f"Records: seal/threads/{self.NAME}/")
+        self.agent(tmp_path, "agent-x", "Run ./bin/test, then read ../README.md.")
+        (item / inside).mkdir(exist_ok=True)
+        monkeypatch.chdir(item / inside)
+        module = _cost()
+        self.gh(monkeypatch, module, _listing((42, "OPEN")))
+        assert self.main(monkeypatch, tmp_path, module, given) == 0
+        out = capsys.readouterr().out
+        assert f"1 naming {self.NAME} or {self.BRANCH}" in out, out
+        assert "agent-x.jsonl" not in out, out
+
     def test_no_transcript_on_this_machine_posts_that_it_found_none(
         self, monkeypatch, tmp_path, item
     ):

@@ -3132,7 +3132,7 @@ def work_item_keys(directory):
     `routing.md` answers, read through `lib/routing.py`. A directory whose
     `routing.md` names no branch is refused, because a guessed key would
     count another work item's segments."""
-    name = os.path.basename(os.path.normpath(directory))
+    name = os.path.basename(os.path.abspath(directory))
     try:
         with open(
             os.path.join(directory, "routing.md"), encoding="utf-8", errors="replace"
