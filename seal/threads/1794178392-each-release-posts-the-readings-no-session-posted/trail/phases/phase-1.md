@@ -65,6 +65,9 @@ report line printed an absolute path other than the transcript's. The
 `slowest` list and the `other` note print command text, and a command can
 name any path. The paragraph now says so, and says that `main` asks for the
 form without command text wherever the reading is posted (`9c2c8684`).
+Its new paragraph on the `# <file name>` lines first said the release reads
+them. No such reader exists before phase 2, so it now says what the lines
+tell a reader of the log (`f886ff97`).
 
 **Seen red.** The five new cases in
 `tests/skills/test_session_cost.py::Test_emit` ran against `e8241733`'s
@@ -101,7 +104,9 @@ The run gave 2097 passed, 7 skipped and 1 failed (exit 1). The failure was
 `tests/behaviour/test_chain_hooks_hardening.py::test_every_spec_directory_that_reached_the_ladder_has_an_overview`,
 which refuses a framed work item without `gaps.md`. This phase writes that
 file when it closes. With the phase's records written over `9c2c8684`, the
-same command gave 2098 passed and 7 skipped (exit 0).
+same command gave 2098 passed and 7 skipped (exit 0). `f886ff97` changed a
+docstring alone, and `tests/skills/test_session_cost.py` ran green over it,
+which shows the module still imports.
 
 **For phase 2.** The reader that leaves out posted segments matches the
 line `emit` writes: `# ` and a base name ending in `.jsonl`, inside the
