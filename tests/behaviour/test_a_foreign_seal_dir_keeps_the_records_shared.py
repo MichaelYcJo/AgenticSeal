@@ -24,7 +24,7 @@ from conftest import (
     symlink_or_skip,
     write,
 )
-from test_seal import status
+from test_seal import status, unanswered
 
 SEAL = load_module(
     os.path.join(ROOT, "skills", "implement", "scripts", "seal.py"),
@@ -100,7 +100,9 @@ def test_s1_first_setup_beside_the_package_puts_the_shared_root_at_agentic_seal(
 ):
     """`seal mode` with no root prints `agentic-seal` as the shared place,
     and a root made there from the template reads as shared mode, writes its
-    row there, and passes `--check`, with the package as it was."""
+    row there, and passes `--check`, with the package as it was. Switched to
+    local before anything is committed, it says nothing under it was
+    tracked."""
     before = files_under(package / "seal")
     code, out = said(capsys, package, "mode")
     assert code == 1, out
@@ -123,6 +125,9 @@ def test_s1_first_setup_beside_the_package_puts_the_shared_root_at_agentic_seal(
     assert code == 0, out
     assert files_under(package / "seal") == before
     assert not any(line[3:].startswith("seal/") for line in status(package))
+    code, out = said(capsys, package, "mode", "local")
+    assert code == 0, out
+    assert "  nothing under agentic-seal/ was tracked\n" in out, out
 
 
 def test_s6_mode_moves_agentic_seal_under_the_git_directory_and_back(shared, capsys):
@@ -163,28 +168,35 @@ def test_s6_mode_moves_agentic_seal_under_the_git_directory_and_back(shared, cap
     assert files_under(shared / "seal") == before
 
 
-@pytest.mark.parametrize("held", ["a staged edit", "a submodule"])
+@pytest.mark.parametrize(
+    "held", ["a staged edit", "a submodule", "an index git cannot list"]
+)
 def test_s6_mode_refuses_to_move_agentic_seal_over_what_its_index_holds(
-    shared, capsys, held
+    shared, capsys, monkeypatch, held
 ):
     """The guards read the index under `agentic-seal/`, not under the
-    package: a staged edit there, and a submodule there, each refuse the
-    move and name the root by its own name."""
+    package: a staged edit there, a submodule there, and an index git cannot
+    list there each refuse the move and name the root by its own name."""
     if held == "a staged edit":
         write(shared / "agentic-seal", "follow-up.md", "# edited\n")
         git(shared, "add", "agentic-seal/follow-up.md")
-    else:
+    elif held == "a submodule":
         sha = git(shared, "rev-parse", "HEAD").stdout.strip()
         gitlink = f"160000,{sha},agentic-seal/vendor"
         git(shared, "update-index", "--add", "--cacheinfo", gitlink)
+    else:
+        tail = ["--stage", "--", "agentic-seal"]
+        unanswered(monkeypatch, tail, OSError("git is not here"))
     code, out = said(capsys, shared, "mode", "local")
     assert code == 1, out
     assert out.rstrip().endswith("Nothing was moved."), out
     if held == "a staged edit":
         assert "\n  M  agentic-seal/follow-up.md\n" in out, out
-    else:
+    elif held == "a submodule":
         assert "there is a submodule under agentic-seal/:\n" in out, out
         assert "`git rm -r --cached agentic-seal`" in out, out
+    else:
+        assert "whether there is a submodule under agentic-seal/ could not" in out
     assert (shared / "agentic-seal").is_dir()
 
 
