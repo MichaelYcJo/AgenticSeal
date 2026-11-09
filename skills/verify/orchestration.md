@@ -192,9 +192,25 @@ sentence to write, and the script writes none. The readings below are what its e
 and they are still worth knowing, because an orchestrator that meets a
 refusal has to know which one it hit.
 
-**The command does not make anybody run it.** `--post` removes the procedure
-the orchestrator otherwise reconstructs from this section every time; it does
-not remove the remembering, and nothing here does.
+**What no session posted, the release posts.** The transcript stays on the
+machine that ran the segment after the session ends, so a reading nobody
+posted can still be posted before the release rolls the log. One command
+does it for one work item:
+
+```
+seal cost --work-item <the work item's directory> --post --says <file|->
+```
+
+It finds the work item's segments by their spawn prompts, the first user
+entry of each agent transcript on the machine, naming the work item's
+directory or the branch its `routing.md` names. It leaves out each segment
+whose file name a comment on the open log already holds on a
+`# <file name>` line inside its fence, and posts one row per remaining
+segment. Where no segment transcript on the machine names the work item,
+the comment says so, so the log does not close empty because a session
+forgot. Without `--post` it prints the same reading and posts nothing. A
+repository whose release runs this command for each work item it ships
+loses no reading to a session that forgot one.
 
 By hand it is two lookups. Find the rolling log first, with `gh issue list
 --label flow-measurement --state open`, rather than assuming a number, and
@@ -399,13 +415,15 @@ segment that just finished, not as a follow-up someone might do later:
 2. Post what the numbers say. `--post` does it: the orchestrator's sentence
    first, the reading fenced beneath it, on the issue the label resolved to,
    the rolling log's for the segment's own numbers and the durable one's for
-   a reading that spans versions. By hand it is `gh issue comment <n>
-   --body-file <file>`, where `<n>` is the issue number the lookup above
+   a reading that spans versions. The fence opens with one
+   `# <file name>` line for each transcript the reading was taken from: the
+   file given and, for `--segments`, each agent file a row was measured
+   from, by its name and never by its path. By hand it is `gh issue comment
+   <n> --body-file <file>`, where `<n>` is the issue number the lookup above
    returned, and that is the command `--post` composes.
 
-The orchestrator does this before the next segment spawns, or at the latest
-together with the round or phase record that closes this one: never later,
-and never as a question. The destination issue is a log, not a decision: the
+The orchestrator posts without asking, never as a question. The
+destination issue is a log, not a decision: the
 orchestrator posts to it without asking whether to, the same way the
 completion claims of `skills/verify/SKILL.md` are not asked about before they
 are made.

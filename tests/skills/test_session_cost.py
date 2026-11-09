@@ -4852,6 +4852,121 @@ class Test_emit:
         assert module.main() == 0
         assert os.path.dirname(str(transcript)) not in bodies["text"]
 
+    @staticmethod
+    def posted_body(monkeypatch, tmp_path, argv):
+        """The body `main` posts for ARGV, read from the `--body-file` it hands
+        `gh`, with one open log and a sentence to post under."""
+        module = _cost()
+        says = tmp_path / "says.md"
+        says.write_text("what the numbers say\n", encoding="utf-8")
+        _gh(monkeypatch, module, listing=_listing((42, "OPEN")))
+        bodies = {}
+        stub = module.run_gh
+
+        def capture(args):
+            if args[:2] == ["issue", "comment"]:
+                with open(
+                    args[args.index("--body-file") + 1], encoding="utf-8"
+                ) as handle:
+                    bodies["text"] = handle.read()
+            return stub(args)
+
+        monkeypatch.setattr(module, "run_gh", capture)
+        monkeypatch.setattr(
+            module.sys,
+            "argv",
+            ["session_cost.py", *argv, "--post", "--says", str(says)],
+        )
+        assert module.main() == 0
+        return bodies["text"]
+
+    @staticmethod
+    def named_in_fence(body):
+        """The `# <file name>` lines inside the body's fence, in order."""
+        fence = body.split("```\n", 1)[1].rsplit("```", 1)[0]
+        return [line[2:] for line in fence.splitlines() if line.startswith("# ")]
+
+    @pytest.mark.parametrize("mode", [[], ["--spawns"]], ids=["plain", "spawns"])
+    def test_a_posted_reading_opens_its_fence_with_the_transcripts_name(
+        self, monkeypatch, tmp_path, transcript, mode
+    ):
+        """#1439. A posted reading names the transcript it was read from on a
+        `# <file name>` line of its own, the first line inside the fence, so the
+        release can tell which segments a comment already holds. The plain
+        reading named no file at all before this. The line holds the name and
+        never the path, and no line of the body carries the directory."""
+        body = self.posted_body(monkeypatch, tmp_path, [*mode, str(transcript)])
+        fence = body.split("```\n", 1)[1]
+        assert fence.splitlines()[0] == "# t.jsonl", body
+        assert self.named_in_fence(body) == ["t.jsonl"], body
+        assert str(tmp_path) not in body, body
+
+    def test_a_posted_segments_reading_names_the_run_and_each_agent_file(
+        self, monkeypatch, tmp_path, run_with_segments
+    ):
+        """#1439. A `--segments` reading is taken from the run's transcript and
+        from each agent file a row was measured from, so the fence names all
+        three, one `# ` line each, by name and never by the path relative to
+        the run that the rows' labels carry."""
+        body = self.posted_body(
+            monkeypatch, tmp_path, ["--segments", str(run_with_segments)]
+        )
+        assert self.named_in_fence(body) == [
+            "main.jsonl",
+            "agent-crafter.jsonl",
+            "agent-proofer.jsonl",
+        ], body
+        assert "# main/subagents/" not in body, body
+
+    def test_a_resumed_agent_file_is_named_once_and_not_once_per_slice(
+        self, monkeypatch, tmp_path, resumed_segment
+    ):
+        """#1439. A resumed agent's file is two rows and one transcript, so the
+        fence names it once. A name per row would post the same file twice,
+        and the release's reader would count it twice."""
+        body = self.posted_body(
+            monkeypatch, tmp_path, ["--segments", str(resumed_segment)]
+        )
+        assert "1/2" in body and "2/2" in body, body
+        assert self.named_in_fence(body) == ["main.jsonl", "agent-crafter.jsonl"], body
+
+    def test_a_posted_body_carries_no_command_text(self, monkeypatch, tmp_path):
+        """#1439, *Scope* item 7. A command can hold a path, a heredoc's body
+        or a prompt, and `CONTRIBUTING.md` *House rules* puts all three off the
+        table for anything that leaves the machine. So the posted `slowest`
+        list gives each call's seconds and family, and the `other` note keeps
+        its sentence without the command it quoted. The printed report is
+        untouched: a person at the terminal still reads the commands.
+
+        The slowest call is a test run and the costliest `other` command is a
+        different call, and both carry the same absolute directory, so a body
+        that kept either one carries it."""
+        private = "/opt/private-x"
+        lines = []
+        lines += call("a", 0, 50, f"{private}/bin/deploy --wait")
+        lines += call("b", 60, 90, f"{private}/bin/report")
+        lines += call("c", 100, 170, f"pytest {private}/tests -q")
+        path = tmp_path / "t.jsonl"
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+        body = self.posted_body(monkeypatch, tmp_path, [str(path)])
+        assert private not in body, body
+        assert "bin/deploy" not in body and "pytest" not in body, body
+        assert "`other` is the largest family and names nothing" in body, body
+        assert "Slowest command charged there" not in body, body
+        slowest = body.split("\nslowest\n", 1)[1].split("\n\n", 1)[0].splitlines()
+        assert [line.split() for line in slowest] == [
+            ["70s", "test"],
+            ["50s", "other"],
+            ["30s", "other"],
+        ], body
+
+        printed = run([str(path)]).stdout
+        assert f"Slowest command charged there: {private}/bin/deploy --wait" in (
+            " ".join(printed.split())
+        ), printed
+        assert f"pytest {private}/tests -q" in printed, printed
+
     def test_refuses_an_empty_reading_rather_than_posting_it(
         self, monkeypatch, capsys, tmp_path, transcript
     ):
@@ -5116,6 +5231,344 @@ class Test_post:
             seen = _gh(monkeypatch, module, listing=listing)
             module.post("r", "s", "flow-measurement")
             assert _opened(seen) == [], listing
+
+
+class Test_work_item:
+    """`--work-item <dir>`: the release posts the segment readings of one work
+    item that no comment on the open log names (#1439).
+
+    Each case lays out a config directory under `tmp_path`, named by
+    `CLAUDE_CONFIG_DIR`, with agent transcripts under
+    `projects/<project>/<session>/subagents/`, and a work item directory whose
+    `routing.md` names `BRANCH`. `gh` is the stub below, which answers the
+    log lookup, the comment pages and the comment itself."""
+
+    NAME = "1790000000-a-work-item"
+    BRANCH = "feat/12-a-work-item"
+    SAYS = "the release's sentence on these readings"
+
+    @pytest.fixture
+    def item(self, tmp_path, monkeypatch):
+        """The work item directory, with the config directory set beside it."""
+        monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "config"))
+        item = tmp_path / "repo" / "seal" / "threads" / self.NAME
+        item.mkdir(parents=True)
+        (item / "routing.md").write_text(
+            "# Routing\n\n| Axis | Answer |\n|---|---|\n"
+            "| Review | through the review chain |\n"
+            "| Destination | open the pull request |\n"
+            f"| Branch | {self.BRANCH} |\n",
+            encoding="utf-8",
+        )
+        return item
+
+    @staticmethod
+    def agent(tmp_path, name, prompt, session="s1", second=0):
+        """An agent transcript whose first `type: user` entry is PROMPT, with
+        one paired call after it."""
+        path = (
+            tmp_path / "config" / "projects" / "-x-repo" / session / "subagents"
+        ) / f"{name}.jsonl"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        opening = json.dumps(
+            {
+                "type": "user",
+                "timestamp": stamp_at(second),
+                "message": {"role": "user", "content": prompt},
+            }
+        )
+        path.write_text(
+            "\n".join([opening, *worked(second + 5, f"{name}-1")]) + "\n",
+            encoding="utf-8",
+        )
+        return path
+
+    @staticmethod
+    def gh(monkeypatch, module, listing, pages=("[]",), list_code=0, api_code=0):
+        """Replace `run_gh`; return the argvs it saw and the bodies it posted."""
+        seen, bodies = [], []
+
+        def fake(args):
+            seen.append(list(args))
+            if args[:2] == ["issue", "list"]:
+                return list_code, listing, "" if list_code == 0 else "HTTP 401"
+            if args[:1] == ["api"]:
+                return api_code, "\n".join(pages), "" if api_code == 0 else "HTTP 502"
+            if args[:2] == ["issue", "comment"]:
+                with open(
+                    args[args.index("--body-file") + 1], encoding="utf-8"
+                ) as handle:
+                    bodies.append(handle.read())
+                return 0, "", ""
+            raise AssertionError(f"no case expects `gh {' '.join(args)}`")
+
+        monkeypatch.setattr(module, "run_gh", fake)
+        return seen, bodies
+
+    def main(self, monkeypatch, tmp_path, module, item, post=False):
+        """`main` over `--work-item ITEM`, posting where POST asks."""
+        argv = ["session_cost.py", "--work-item", str(item)]
+        if post:
+            says = tmp_path / "says.md"
+            says.write_text(self.SAYS + "\n", encoding="utf-8")
+            argv += ["--post", "--says", str(says)]
+        monkeypatch.setattr(module.sys, "argv", argv)
+        return module.main()
+
+    @staticmethod
+    def comment(*lines):
+        """A posted comment's JSON, its body a sentence and a fence of LINES."""
+        body = "a sentence\n\n```\n" + "\n".join(lines) + "\n```\n"
+        return {"body": body}
+
+    def by_dir_and_by_branch(self, tmp_path):
+        """Two agents: one prompt names the directory, one names the branch."""
+        self.agent(tmp_path, "agent-a", f"Records: seal/threads/{self.NAME}/\n")
+        self.agent(tmp_path, "agent-b", f"Branch {self.BRANCH}.", session="s2")
+
+    def test_accepts_both_segments_and_posts_them_in_one_comment(
+        self, monkeypatch, capsys, tmp_path, item
+    ):
+        """Nothing was posted for the work item. A prompt naming the
+        directory and one naming the branch are both its segments, so both
+        rows print. With `--post` one comment holds both `# <file name>`
+        lines, under the session's sentence, and no path."""
+        self.by_dir_and_by_branch(tmp_path)
+        module = _cost()
+        self.gh(monkeypatch, module, _listing((42, "OPEN")))
+        assert self.main(monkeypatch, tmp_path, module, item) == 0
+        out = capsys.readouterr().out
+        assert "2 segment transcripts walked on this machine, 2 naming" in out, out
+        assert "0 already in the log, 2 in this reading" in out, out
+        assert re.search(r"^  agent-a\.jsonl\s", out, re.M), out
+        assert re.search(r"^  agent-b\.jsonl\s", out, re.M), out
+
+        seen, bodies = self.gh(monkeypatch, module, _listing((42, "OPEN")))
+        assert self.main(monkeypatch, tmp_path, module, item, post=True) == 0
+        assert len(bodies) == 1, bodies
+        assert bodies[0].startswith(self.SAYS), bodies[0]
+        assert Test_emit.named_in_fence(bodies[0]) == ["agent-a.jsonl", "agent-b.jsonl"]
+        assert str(tmp_path) not in bodies[0], bodies[0]
+        assert _posted(seen)[0][2] == "42"
+        # One lookup: the answer that found the log is the one the post uses.
+        assert len([a for a in seen if a[:2] == ["issue", "list"]]) == 1, seen
+
+    def test_a_segment_a_comment_already_names_is_left_out(
+        self, monkeypatch, capsys, tmp_path, item
+    ):
+        """Part of it was posted. A comment whose fence holds
+        `# agent-a.jsonl` names that transcript, so only the other row prints
+        and the counts say one is already in the log. The same name in a
+        comment's prose, outside a fence, names nothing, and neither does a
+        fenced line that holds more than `# <file name>`."""
+        self.by_dir_and_by_branch(tmp_path)
+        module = _cost()
+        prose = {"body": "# agent-b.jsonl\n\nquoted in prose, not a reading\n"}
+        fenced = self.comment("# agent-a.jsonl", "see # agent-b.jsonl too")
+        page = json.dumps([fenced, prose])
+        self.gh(monkeypatch, module, _listing((42, "OPEN")), pages=(page,))
+        assert self.main(monkeypatch, tmp_path, module, item) == 0
+        out = capsys.readouterr().out
+        assert "1 already in the log, 1 in this reading" in out, out
+        assert not re.search(r"^  agent-a\.jsonl\s", out, re.M), out
+        assert re.search(r"^  agent-b\.jsonl\s", out, re.M), out
+
+    def test_reads_every_page_of_the_logs_comments(
+        self, monkeypatch, capsys, tmp_path, item
+    ):
+        """`frame/questions.md` Q1. `gh api --paginate` writes one JSON array
+        per page, one after the other, so a name on the second page counts as
+        much as one on the first."""
+        self.by_dir_and_by_branch(tmp_path)
+        module = _cost()
+        pages = (
+            json.dumps([self.comment("# agent-a.jsonl")]),
+            json.dumps([self.comment("# agent-b.jsonl")]),
+        )
+        seen, bodies = self.gh(monkeypatch, module, _listing((42, "OPEN")), pages=pages)
+        assert self.main(monkeypatch, tmp_path, module, item, post=True) == 0
+        assert bodies == [], bodies
+        out = capsys.readouterr().out
+        assert "already named on #42, so nothing was posted" in out, out
+        api = [a for a in seen if a[:1] == ["api"]]
+        assert api and "--paginate" in api[0], seen
+        assert api[0][-1].endswith("/issues/42/comments"), api
+
+    def test_every_segment_already_named_posts_nothing_and_exits_0(
+        self, monkeypatch, capsys, tmp_path, item
+    ):
+        """All of it was posted, so there is nothing due: the mode says so,
+        posts nothing, and exits 0."""
+        self.by_dir_and_by_branch(tmp_path)
+        module = _cost()
+        page = json.dumps([self.comment("# agent-a.jsonl", "# agent-b.jsonl")])
+        seen, bodies = self.gh(
+            monkeypatch, module, _listing((42, "OPEN")), pages=(page,)
+        )
+        assert self.main(monkeypatch, tmp_path, module, item, post=True) == 0
+        assert bodies == [] and _posted(seen) == [], seen
+        out = capsys.readouterr().out
+        assert "already named on #42, so nothing was posted" in out, out
+
+    def test_a_prompt_naming_neither_whole_is_not_counted(
+        self, monkeypatch, capsys, tmp_path, item
+    ):
+        """A key matches as a whole token. A prompt naming a longer branch or
+        a longer directory name that starts with the key names neither, and a
+        key in a later entry than the first `type: user` one is not the spawn
+        prompt."""
+        self.agent(tmp_path, "agent-a", f"Records: seal/threads/{self.NAME}/")
+        self.agent(tmp_path, "agent-c", f"Branch {self.BRANCH}-b, not ours.")
+        self.agent(tmp_path, "agent-d", f"seal/threads/{self.NAME}-two/")
+        self.agent(tmp_path, "agent-f", f"seal/threads/2{self.NAME}/")
+        later = self.agent(tmp_path, "agent-e", "Build something else.")
+        with open(later, "a", encoding="utf-8") as handle:
+            handle.write(
+                json.dumps(
+                    {
+                        "type": "user",
+                        "timestamp": stamp_at(60),
+                        "message": {"role": "user", "content": self.BRANCH},
+                    }
+                )
+                + "\n"
+            )
+        module = _cost()
+        self.gh(monkeypatch, module, _listing((42, "OPEN")))
+        assert self.main(monkeypatch, tmp_path, module, item) == 0
+        out = capsys.readouterr().out
+        assert "5 segment transcripts walked on this machine, 1 naming" in out, out
+        for other in ("agent-c", "agent-d", "agent-e", "agent-f"):
+            assert f"{other}.jsonl" not in out, out
+
+    @pytest.mark.parametrize("given, inside", [(".", ""), ("..", "trail")])
+    def test_a_relative_directory_is_keyed_by_its_own_name(
+        self, monkeypatch, capsys, tmp_path, item, given, inside
+    ):
+        """`--work-item .` from inside the directory, or `..` from a
+        subdirectory, keys on the directory's own name. Keyed on `.` or `..`,
+        a prompt holding `./bin/test` or `../` would name the work item."""
+        self.agent(tmp_path, "agent-a", f"Records: seal/threads/{self.NAME}/")
+        self.agent(tmp_path, "agent-x", "Run ./bin/test, then read ../README.md.")
+        (item / inside).mkdir(exist_ok=True)
+        monkeypatch.chdir(item / inside)
+        module = _cost()
+        self.gh(monkeypatch, module, _listing((42, "OPEN")))
+        assert self.main(monkeypatch, tmp_path, module, given) == 0
+        out = capsys.readouterr().out
+        assert f"1 naming {self.NAME} or {self.BRANCH}" in out, out
+        assert "agent-x.jsonl" not in out, out
+
+    def test_no_transcript_on_this_machine_posts_that_it_found_none(
+        self, monkeypatch, tmp_path, item
+    ):
+        """Done-when (2). Where no segment transcript on this machine names the
+        work item, the comment says so under the session's sentence, so the
+        log does not close empty because a session forgot."""
+        self.agent(tmp_path, "agent-x", "Build something else.")
+        module = _cost()
+        _seen, bodies = self.gh(monkeypatch, module, _listing((42, "OPEN")))
+        assert self.main(monkeypatch, tmp_path, module, item, post=True) == 0
+        assert len(bodies) == 1, bodies
+        assert bodies[0].startswith(self.SAYS), bodies[0]
+        said = " ".join(bodies[0].split())
+        assert (
+            f"no segment transcript on this machine names {self.NAME} or "
+            f"{self.BRANCH}" in said
+        ), said
+        assert "1 segment transcript walked on this machine, 0 naming" in said, said
+
+    @pytest.mark.parametrize(
+        "listing, list_code, code, said",
+        [
+            ("[]", 0, 0, "does not run that log"),
+            ("", 1, 0, "could not run"),
+            (_listing((41, "CLOSED")), 0, 1, "nothing is open"),
+            (_listing((41, "OPEN"), (42, "OPEN")), 0, 1, "exactly one may"),
+        ],
+        ids=["no history", "unreadable", "closed", "many open"],
+    )
+    def test_the_logs_states_end_as_post_ends_them(
+        self, monkeypatch, capsys, tmp_path, item, listing, list_code, code, said
+    ):
+        """The log's states are answered as `post` answers them: two post
+        nothing and exit 0, and two are named and exit 1. None of them posts
+        or opens an issue."""
+        self.by_dir_and_by_branch(tmp_path)
+        module = _cost()
+        seen, bodies = self.gh(monkeypatch, module, listing, list_code=list_code)
+        assert self.main(monkeypatch, tmp_path, module, item, post=True) == code
+        assert said in capsys.readouterr().out
+        assert bodies == [] and _posted(seen) == [] and _opened(seen) == [], seen
+
+    def test_without_post_an_unreadable_log_leaves_nothing_out_and_says_so(
+        self, monkeypatch, capsys, tmp_path, item
+    ):
+        """Without `--post`, a log that cannot be read is no reason to print
+        nothing: every segment that names the work item prints, and the
+        reading says nothing was left out."""
+        self.by_dir_and_by_branch(tmp_path)
+        module = _cost()
+        self.gh(monkeypatch, module, _listing((42, "OPEN")), api_code=1)
+        assert self.main(monkeypatch, tmp_path, module, item) == 0
+        out = " ".join(capsys.readouterr().out.split())
+        assert "so nothing was left out" in out, out
+        assert "agent-a.jsonl" in out and "agent-b.jsonl" in out, out
+
+    def test_a_comment_page_that_cannot_be_read_posts_nothing(
+        self, monkeypatch, capsys, tmp_path, item
+    ):
+        """With `--post`, comments that cannot be read would make every
+        segment look unposted, and a second post of a reading is a comment a
+        person deletes. So the mode names it and exits 1."""
+        self.by_dir_and_by_branch(tmp_path)
+        module = _cost()
+        seen, bodies = self.gh(monkeypatch, module, _listing((42, "OPEN")), api_code=1)
+        assert self.main(monkeypatch, tmp_path, module, item, post=True) == 1
+        assert bodies == [] and _posted(seen) == [], seen
+        assert "comments on #42 could not be read" in capsys.readouterr().out
+
+    def test_refuses_a_directory_whose_routing_names_no_branch(
+        self, monkeypatch, capsys, tmp_path, item
+    ):
+        """The branch is one of the two keys, and a guess at it would count
+        another work item's segments. A `routing.md` that names none is
+        refused before anything is walked or looked up."""
+        (item / "routing.md").write_text("# Routing\n\nno table\n", encoding="utf-8")
+        module = _cost()
+        seen, _bodies = self.gh(monkeypatch, module, _listing((42, "OPEN")))
+        with pytest.raises(SystemExit) as exit_info:
+            self.main(monkeypatch, tmp_path, module, item)
+        assert "names no branch" in str(exit_info.value.code), exit_info.value
+        assert seen == [], seen
+
+    @pytest.mark.parametrize(
+        "extra, flag",
+        [
+            (["--json"], "--json"),
+            (["--segments"], "--segments"),
+            (["--spawns"], "--spawns"),
+            (["--latest"], "--latest"),
+            (["t.jsonl"], "a transcript"),
+        ],
+        ids=["json", "segments", "spawns", "latest", "transcript"],
+    )
+    def test_refuses_a_work_item_beside_another_reading(
+        self, monkeypatch, capsys, tmp_path, extra, flag
+    ):
+        """`--work-item` is a reading of its own, over transcripts it finds
+        itself, so the parser refuses it beside another and names both."""
+        module = _cost()
+        monkeypatch.setattr(
+            module.sys,
+            "argv",
+            ["session_cost.py", "--work-item", str(tmp_path), *extra],
+        )
+        with pytest.raises(SystemExit) as exit_info:
+            module.main()
+        assert exit_info.value.code == 2
+        said = capsys.readouterr().err
+        assert f"--work-item and {flag}" in said, said
 
 
 class Test_newest:

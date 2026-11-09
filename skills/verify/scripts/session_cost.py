@@ -29,6 +29,9 @@ Usage:
   session_cost.py --segments <t> --post --says <path|->
                                          post that reading, and what it says,
                                          to the repository's measurement log
+  session_cost.py --work-item <dir> [--post --says <path|->]
+                                         one row per segment of that work item
+                                         no comment on the open log names
 
 **Why `--post` exists, in one sentence.** `skills/verify/orchestration.md`
 *Measure the segment, and feed the flow log* wrote the posting procedure out in full —
@@ -68,6 +71,7 @@ import argparse
 import bisect
 import contextlib
 import datetime as dt
+import importlib
 import io
 import itertools
 import json
@@ -1145,8 +1149,12 @@ def analyse(calls, turns, delegated=()):
 
     by_family = defaultdict(lambda: [0, 0.0])
     unnamed = defaultdict(float)
+    # Each call's family, kept beside it for `slowest`, where a posted body
+    # names a call by its family because it carries no command text (#1439).
+    kinds = []
     for call in calls:
         key = family(call["ran"]) if call["tool"] == "Bash" else call["tool"]
+        kinds.append(key)
         seconds = (call["end"] - call["start"]).total_seconds()
         by_family[key][0] += 1
         by_family[key][1] += seconds
@@ -1196,8 +1204,9 @@ def analyse(calls, turns, delegated=()):
                 {
                     "seconds": (c["end"] - c["start"]).total_seconds(),
                     "command": c["command"][:110],
+                    "family": kind,
                 }
-                for c in calls
+                for c, kind in zip(calls, kinds, strict=True)
                 if c["tool"] not in delegated
             ),
             key=lambda d: -d["seconds"],
@@ -2099,7 +2108,15 @@ def share(part, whole):
     return f"{part / whole * 100:.0f}%" if whole > 0 else "—"
 
 
-def report(data):
+def report(data, commands=True):
+    """The plain reading. With `commands` false it prints no command text:
+    the `slowest` list gives each call's seconds and family, and the `other`
+    note keeps its sentence without the command it would quote. `main` asks
+    for that form where the reading is posted, because a command can hold a
+    path, a heredoc's body or a prompt, and `CONTRIBUTING.md` *House rules*
+    keeps all three on the machine (#1439). These two lines are the only
+    ones in the module that print a command, and the printed reading keeps
+    both."""
     print(f"span          {minutes(data['span_s'])}   ({data['calls']} tool calls)")
     if data["span_s"] == 0:
         print(
@@ -2162,13 +2179,18 @@ def report(data):
         print(
             "              `other` is the largest family and names nothing, so "
             "a runner\n              these patterns do not know reads as no "
-            "such run at all.\n              Slowest command charged there: "
-            f"{data['unnamed'][:76]}"
+            "such run at all."
+            + (
+                f"\n              Slowest command charged there: {data['unnamed'][:76]}"
+                if commands
+                else ""
+            )
         )
 
     print("\nslowest")
     for row in data["slowest"]:
-        print(f"  {row['seconds']:6.0f}s  {row['command'][:88]}")
+        named = row["command"][:88] if commands else row["family"]
+        print(f"  {row['seconds']:6.0f}s  {named}")
 
     print("\nwhere the time could go instead")
     exact, same = data["repeat_exact_s"], data["repeat_same_work_s"]
@@ -2657,43 +2679,7 @@ def report_segments(segments, path):
             "fifteen minutes or more.\n  Read such a span as a stretch of work "
             "plus a wait, never as work."
         )
-    print(
-        f"\n  {'agent':<{LABEL_WIDTH}}{'span':>8}{'calls':>7}{'t/turn':>8}{'gap':>7}"
-        f"{'tokens':>14}{'context':>12}"
-    )
-    for row in rows:
-        numbers, tokens = row["numbers"], row["tokens"]
-        # A dash, not a zero. A later slice of a resumed file has no token
-        # figure of its own -- the file's rides its first slice -- and a zero
-        # there reads as a stretch that spent nothing.
-        spent = (
-            f"{tokens['output'] + tokens['cache_write'] + tokens['cache_read']:,}"
-            if tokens
-            else "—"
-        )
-        # A dash for a slice that holds no assistant message, for the same
-        # reason: there is no turn, and a zero would read as one that sent
-        # nothing.
-        largest = row["largest_context"]
-        read = f"{largest:,}" if largest is not None else "—"
-        if not numbers:
-            # A real reading, not a gap in the table: a segment that read and
-            # thought and called nothing has no span and still spent what the
-            # run paid for. `report_tokens` was split out for the same shape.
-            print(
-                f"  {segment_label(row):<{LABEL_WIDTH}}"
-                f"{'no paired call':>30}{spent:>14}{read:>12}"
-            )
-            continue
-        print(
-            f"  {segment_label(row):<{LABEL_WIDTH}}"
-            f"{minutes(numbers['span_s']):>8}"
-            f"{numbers['calls']:>7}"
-            f"{numbers['tools_per_turn']:>8.2f}"
-            f"{numbers['gap_mean_s']:>6.0f}s"
-            f"{spent:>14}"
-            f"{read:>12}"
-        )
+    segment_table(rows)
     report_breaches(segments)
     # A column that looks summable and is not is #200's failure shape in a
     # new place, so the page says which of the two it is rather than leaving
@@ -2751,6 +2737,49 @@ def report_segments(segments, path):
         "or listed a directory was\n  charged to `other`, and there was no "
         "`read` row. The repeats lines did not\n  move."
     )
+
+
+def segment_table(rows):
+    """The per-segment table: its column header, then one line per row.
+    `report_segments` prints it under a run's counts, and `report_work_item`
+    under one work item's (#1439)."""
+    print(
+        f"\n  {'agent':<{LABEL_WIDTH}}{'span':>8}{'calls':>7}{'t/turn':>8}{'gap':>7}"
+        f"{'tokens':>14}{'context':>12}"
+    )
+    for row in rows:
+        numbers, tokens = row["numbers"], row["tokens"]
+        # A dash, not a zero. A later slice of a resumed file has no token
+        # figure of its own -- the file's rides its first slice -- and a zero
+        # there reads as a stretch that spent nothing.
+        spent = (
+            f"{tokens['output'] + tokens['cache_write'] + tokens['cache_read']:,}"
+            if tokens
+            else "—"
+        )
+        # A dash for a slice that holds no assistant message, for the same
+        # reason: there is no turn, and a zero would read as one that sent
+        # nothing.
+        largest = row["largest_context"]
+        read = f"{largest:,}" if largest is not None else "—"
+        if not numbers:
+            # A real reading, not a gap in the table: a segment that read and
+            # thought and called nothing has no span and still spent what the
+            # run paid for. `report_tokens` was split out for the same shape.
+            print(
+                f"  {segment_label(row):<{LABEL_WIDTH}}"
+                f"{'no paired call':>30}{spent:>14}{read:>12}"
+            )
+            continue
+        print(
+            f"  {segment_label(row):<{LABEL_WIDTH}}"
+            f"{minutes(numbers['span_s']):>8}"
+            f"{numbers['calls']:>7}"
+            f"{numbers['tools_per_turn']:>8.2f}"
+            f"{numbers['gap_mean_s']:>6.0f}s"
+            f"{spent:>14}"
+            f"{read:>12}"
+        )
 
 
 def newest(directory):
@@ -2895,8 +2924,12 @@ def read_says(source):
         return handle.read()
 
 
-def post(reading, says, label):
+def post(reading, says, label, found=None):
     """Post `reading` and `says` to the one open issue carrying `label`.
+
+    `found` is `open_log(label)`'s answer where the caller has already asked
+    it, as `--work-item` has to before it reads the log's comments, so the
+    log is looked up once.
 
     Returns the exit code, and the direction of every refusal is the same one
     `plan.md` states: it refuses rather than posts. A wrong refusal costs one
@@ -2912,7 +2945,7 @@ def post(reading, says, label):
     document beside it, which is the one thing that makes people stop running
     a check.
     """
-    state, payload = open_log(label)
+    state, payload = found or open_log(label)
     if state == UNREADABLE:
         print(
             f"the `{label}` lookup could not run ({payload}), so nothing was "
@@ -2970,8 +3003,34 @@ def post(reading, says, label):
     return 0
 
 
-def emit(args, render, path=None):
+def said(args):
+    """The sentence `--says` names, or None after saying it gave none.
+
+    An empty reading posts a fence with nothing above it, so it is refused
+    the way a missing `--says` is."""
+    says = read_says(args.says)
+    if not says.strip():
+        print(
+            f"`--says {args.says}` gave no reading, so nothing was posted. "
+            f"The numbers are this script's and what they say is not, and an "
+            f"empty reading posts a fence with nothing above it — which is "
+            f"the judgment nobody made that `--says` exists to refuse"
+        )
+        return None
+    return says
+
+
+def emit(args, render, path=None, read_from=()):
     """Print the report, or capture it and post it. Returns the exit code.
+
+    **A posted body names each transcript it was read from, on a
+    `# <file name>` line of its own, before the report** (#1439). `path` is
+    the transcript given and `read_from` the others a row was measured from,
+    each `--segments` row's file among them. A file is named once however
+    many rows it gave, and by its name alone. Those lines are what tells a
+    reader of the open log which transcripts a comment already holds, so the
+    line is written in this one spelling. The printed report carries no such
+    line.
 
     **What is printed locally and what is posted are not the same text, and
     the transcript's path is the difference.** A transcript lives at
@@ -3003,24 +3062,21 @@ def emit(args, render, path=None):
 
     **The residual, stated rather than left to be found:** this replaces the
     ONE path the reading was taken over. A future report line printing some
-    other absolute path would not be covered, and today none does — a segment
-    row's transcript is stored by `measure_segments` as `os.path.relpath`
-    against the file it was measured beside, or as its basename where it is
-    the agent's own file, so every row label is already relative.
+    other absolute path would not be covered. Today none reaches the body: a
+    segment row's transcript is stored by `measure_segments` as
+    `os.path.relpath` against the file it was measured beside, or as its
+    basename where it is the agent's own file, so every row label is already
+    relative. The plain reading's `slowest` list and `other` note print
+    command text, with whatever path a command names, so `main` asks `report`
+    for the form without it wherever the reading is posted (#1439).
     """
     if not args.post:
         render()
         return 0
     # Before the render, because a refusal that renders first spends the work
     # to throw it away, and `--says -` answers at EOF either way.
-    says = read_says(args.says)
-    if not says.strip():
-        print(
-            f"`--says {args.says}` gave no reading, so nothing was posted. "
-            f"The numbers are this script's and what they say is not, and an "
-            f"empty reading posts a fence with nothing above it — which is "
-            f"the judgment nobody made that `--says` exists to refuse"
-        )
+    says = said(args)
+    if says is None:
         return 1
     buffer = io.StringIO()
     with contextlib.redirect_stdout(buffer):
@@ -3030,7 +3086,276 @@ def emit(args, render, path=None):
         short = os.path.basename(str(path))
         for form in (os.path.abspath(str(path)), str(path)):
             body = body.replace(form, short)
+    names = [] if path is None else [os.path.basename(str(path))]
+    for transcript in read_from:
+        name = os.path.basename(str(transcript))
+        if name not in names:
+            names.append(name)
+    body = "".join(f"# {name}\n" for name in names) + body
     return post(body, says, args.label)
+
+
+# --- one work item's readings, posted by the release (#1439) -----------------
+#
+# A segment's reading is posted by the session that watched it finish, and a
+# session forgets. The transcript stays on the machine that ran the segment,
+# so the release can post what no session posted: it finds the work item's
+# segments by their spawn prompts, leaves out each one a comment on the open
+# log already names on a `# <file name>` line, and posts the rest as one
+# comment. Where no transcript on the machine names the work item, the
+# comment says so, so the log does not close empty because a session forgot.
+
+# The line `emit` writes into a posted fence, in its one spelling.
+POSTED_NAME = re.compile(r"# (\S+\.jsonl)")
+
+# The characters a key may not touch on either side, so `fix/12-a` is not
+# found inside `fix/12-a-b` and a directory name is not found inside a longer
+# one. A `/`, a space or a full stop may touch it.
+KEY_EDGE = "A-Za-z0-9_-"
+
+
+def lib_module(name):
+    """`lib/<name>.py` beside this plugin's `skills/`, imported on first use,
+    so a reading that is not `--work-item` imports nothing from `lib/`."""
+    lib = os.path.normpath(
+        os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "lib"
+        )
+    )
+    if lib not in sys.path:
+        sys.path.insert(0, lib)
+    return importlib.import_module(name)
+
+
+def work_item_keys(directory):
+    """`(name, branch)`: the directory's own name and the `Branch` row its
+    `routing.md` answers, read through `lib/routing.py`. A directory whose
+    `routing.md` names no branch is refused, because a guessed key would
+    count another work item's segments."""
+    name = os.path.basename(os.path.abspath(directory))
+    try:
+        with open(
+            os.path.join(directory, "routing.md"), encoding="utf-8", errors="replace"
+        ) as handle:
+            declared = lib_module("routing").parse(handle.read())
+    except OSError:
+        declared = None
+    if not declared:
+        sys.exit(
+            f"{os.path.join(name, 'routing.md')} names no branch, so the "
+            f"segments of {name} cannot be told from another work item's. "
+            f"Nothing was read"
+        )
+    return name, declared["branch"]
+
+
+def segment_transcripts():
+    """Every `*.jsonl` under a `subagents/` directory beneath `projects_dir()`,
+    in every project directory, sorted."""
+    root = projects_dir()
+    found = []
+    for directory, _dirs, files in os.walk(root):
+        if "subagents" in os.path.relpath(directory, root).split(os.sep):
+            found += [os.path.join(directory, f) for f in files if f.endswith(".jsonl")]
+    return sorted(found)
+
+
+def spawn_prompt(path):
+    """The text of a transcript's first `type: user` entry, which is the
+    prompt its agent was spawned with, or "" where there is none. The file is
+    read up to that entry and no further."""
+    try:
+        with open(path, encoding="utf-8", errors="replace") as handle:
+            for line in handle:
+                try:
+                    row = json.loads(line)
+                except ValueError:
+                    continue
+                if not isinstance(row, dict) or row.get("type") != "user":
+                    continue
+                message = row.get("message")
+                content = message.get("content") if isinstance(message, dict) else None
+                if isinstance(content, str):
+                    return content
+                if isinstance(content, list):
+                    return "\n".join(
+                        block["text"]
+                        for block in content
+                        if isinstance(block, dict)
+                        and isinstance(block.get("text"), str)
+                    )
+                return ""
+    except OSError:
+        return ""
+    return ""
+
+
+def names_key(text, key):
+    """Whether TEXT names KEY as a whole token."""
+    pattern = rf"(?<![{KEY_EDGE}]){re.escape(key)}(?![{KEY_EDGE}])"
+    return re.search(pattern, text) is not None
+
+
+def log_comments(number):
+    """`(bodies, None)` for every comment on issue NUMBER, every page, or
+    `(None, why)` where they could not be read.
+
+    `gh api --paginate` writes each page's JSON array after the last one
+    rather than one merged array, so the arrays are decoded one after
+    another (`frame/questions.md` Q1)."""
+    code, out, err = run_gh(
+        ["api", "--paginate", f"repos/{{owner}}/{{repo}}/issues/{number}/comments"]
+    )
+    if code != 0:
+        where = "`gh` is not on PATH" if code is None else f"exit {code}"
+        # exempt from splitlines: a tool's output
+        first = (err or out or "").strip().splitlines()
+        return None, where + (f": {first[0]}" if first else "")
+    decoder, text, at, bodies = json.JSONDecoder(), out or "", 0, []
+    while True:
+        while at < len(text) and text[at].isspace():
+            at += 1
+        if at >= len(text):
+            return bodies, None
+        try:
+            page, at = decoder.raw_decode(text, at)
+        except ValueError as exc:
+            return None, f"a page is not the JSON it asked for: {exc}"
+        if not isinstance(page, list):
+            return None, "a page is not a list of comments"
+        bodies += [
+            c["body"]
+            for c in page
+            if isinstance(c, dict) and isinstance(c.get("body"), str)
+        ]
+
+
+def posted_names(bodies):
+    """The transcript names the comments already hold: each line inside a
+    fenced block that is exactly `# <name>.jsonl`. A comment without such a
+    line names nothing, and a name in a comment's prose names nothing either:
+    only the line `emit` writes is read."""
+    blocks = lib_module("blocks")
+    names = set()
+    for body in bodies:
+        lines = blocks.gfm_lines(body)
+        fenced, _open = blocks.fence_only(lines)
+        for index in fenced:
+            matched = POSTED_NAME.fullmatch(lines[index])
+            if matched:
+                names.add(matched.group(1))
+    return names
+
+
+def report_work_item(reading):
+    """One work item's reading: the counts, then the `# <file name>` line of
+    each transcript in it, then one row per segment, one per slice for a
+    resumed agent. A row is named by its file, as `--segments` names an
+    agent's own file, because no spawn is in view to name it."""
+    name, branch = reading["name"], reading["branch"]
+    print(
+        f"{plural(reading['walked'], 'segment transcript')} walked on this "
+        f"machine, {len(reading['named'])} naming {name} or {branch}"
+    )
+    print(
+        f"  {len(reading['in_log'])} already in the log, "
+        f"{len(reading['left'])} in this reading"
+    )
+    if reading["log_note"]:
+        print(f"  {reading['log_note']}")
+    if not reading["named"]:
+        print(
+            f"\nno segment transcript on this machine names {name} or "
+            f"{branch}: its segments ran on another machine, or their "
+            "transcripts are gone"
+        )
+        return
+    if not reading["left"]:
+        print("\nevery segment transcript that names it is already in the log")
+        return
+    print()
+    for transcript in reading["left"]:
+        print(f"# {os.path.basename(transcript)}")
+    segment_table(reading["rows"])
+
+
+def work_item(args):
+    """`--work-item <dir>`: print, or post, the readings of the work item's
+    segments that no comment on the open log names. Returns the exit code,
+    which is `post`'s, and 0 where nothing is due."""
+    name, branch = work_item_keys(args.work_item)
+    says = None
+    if args.post:
+        says = said(args)
+        if says is None:
+            return 1
+    found = open_log(args.label)
+    state, payload = found
+    in_log, log_note = set(), None
+    if state == ONE_OPEN:
+        bodies, why = log_comments(payload)
+        if bodies is None:
+            if args.post:
+                print(
+                    f"the comments on #{payload} could not be read ({why}), so "
+                    f"nothing was posted: every segment would read as unposted, "
+                    f"and a reading posted twice is a comment a person deletes"
+                )
+                return 1
+            log_note = (
+                f"the comments on #{payload} could not be read ({why}), so "
+                f"nothing was left out"
+            )
+        else:
+            in_log = posted_names(bodies)
+    else:
+        # With `--post`, `post` answers this state below and posts nothing.
+        log_note = (
+            f"no open `{args.label}` log was read ({state}), so nothing was left out"
+        )
+    walked = segment_transcripts()
+    named = [
+        t
+        for t in walked
+        if (prompt := spawn_prompt(t))
+        and (names_key(prompt, name) or names_key(prompt, branch))
+    ]
+    left = [t for t in named if os.path.basename(t) not in in_log]
+    if args.post and named and not left:
+        print(
+            f"every one of the {plural(len(named), 'segment transcript')} naming "
+            f"{name} or {branch} is already named on #{payload}, so nothing was "
+            f"posted"
+        )
+        return 0
+    rows = []
+    for transcript in left:
+        rows += segment_slices(
+            transcript,
+            {
+                "agent": "",
+                "description": "",
+                "named": False,
+                "transcript": os.path.basename(transcript),
+            },
+        )
+    reading = {
+        "name": name,
+        "branch": branch,
+        "walked": len(walked),
+        "named": named,
+        "in_log": [t for t in named if t not in left],
+        "left": left,
+        "log_note": log_note,
+        "rows": rows,
+    }
+    if not args.post:
+        report_work_item(reading)
+        return 0
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        report_work_item(reading)
+    return post(buffer.getvalue(), says, args.label, found)
 
 
 def main():
@@ -3059,7 +3384,31 @@ def main():
         f"{ROLLING_LABEL}). The durable cross-version log is reachable the "
         f"same way, under its own label",
     )
+    parser.add_argument(
+        "--work-item",
+        metavar="DIR",
+        help="the readings of the segments whose spawn prompt names this work "
+        "item directory or its routing.md's branch, leaving out each one a "
+        "comment on the open log already names",
+    )
     args = parser.parse_args()
+
+    if args.work_item:
+        # A reading of its own, over transcripts it finds itself, so beside
+        # another reading one of the two would be silently dropped.
+        for given, flag in (
+            (args.transcript, "a transcript"),
+            (args.latest, "--latest"),
+            (args.spawns, "--spawns"),
+            (args.segments, "--segments"),
+            (args.json, "--json"),
+        ):
+            if given:
+                parser.error(
+                    f"--work-item and {flag} ask for different readings: "
+                    f"--work-item finds the work item's transcripts itself. "
+                    f"Run them separately"
+                )
 
     if args.post and not args.says:
         parser.error(
@@ -3074,6 +3423,8 @@ def main():
             "to the log, the other prints it for a program to read. Run them "
             "separately"
         )
+    if args.work_item:
+        return work_item(args)
 
     path = args.transcript
     if args.latest:
@@ -3142,7 +3493,12 @@ def main():
     # the six rows are a reading somebody asked for by name.
     segments = measure_segments(path, calls) if args.segments or args.json else None
     if args.segments and not args.json:
-        return emit(args, lambda: report_segments(segments, path), path)
+        return emit(
+            args,
+            lambda: report_segments(segments, path),
+            path,
+            [row["transcript"] for row in segments["rows"]],
+        )
     # The whole run, not the transcript that was named: a token count covering
     # one segment is not comparable with one that covered a run, and #170 asks
     # for the row to be one command rather than one command per transcript.
@@ -3195,7 +3551,7 @@ def main():
                     "work and the waits between them — `--segments` prints one "
                     "row\nper stretch\n"
                 )
-            report(data)
+            report(data, commands=not args.post)
         else:
             print(
                 "no paired tool call in this transcript, so there is no time to "
