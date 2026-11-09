@@ -4,7 +4,7 @@
 
 | Item | Who must answer |
 |---|---|
-| whether a framer resumed or spawned for a fold follows the fold half of `agents/framer.md` *Rules*, and whether `regression:` lines traced to a decision's fold stop recurring; the agents of this release's own runs carry the installed 0.35.1 `agents/framer.md`, which has no fold half, and no case runs a framer through a fold | a measurement: `frame/questions.md` Q1, read on the flow-measurement readings #1439 posts for 0.36.0 and later |
+| closed whether a framer resumed or spawned for a fold follows the fold half of `agents/framer.md` *Rules*, and whether `regression:` lines traced to a decision's fold stop recurring; the agents of this release's own runs carry the installed 0.35.1 `agents/framer.md`, which has no fold half, and no case runs a framer through a fold | answered by the 0.37.0 runs under the installed 0.36.0: `seal/threads/1794200907-agents-write-commands-the-parser-reads/frame/plan.md:60` records the framer folding round 1's findings located in frame files, and the twelve round records of the four 0.37.0 work items hold no `regression:` line; their two `reopens:` lines (`1794200905` round 2, a changelog row; `1794200906` round 2, a statement of a fixed class left in `frame/plan.md` A9) trace to a fix pass's enumeration, not to a decision's fold. Read by the settling session with `grep` and by reading both findings |
 
 ## Not done
 

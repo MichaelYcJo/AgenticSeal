@@ -4,8 +4,8 @@
 
 | Item | Who must answer |
 |---|---|
-| the full suite, the repository-wide lint and the format check at the branch's last commit; each phase ran its boundary set alone | the orchestrator's broad run |
-| how GitHub renders an annotation whose path is a work item's directory at line 0 (`frame/questions.md` Q1); no case runs on GitHub | a measurement: the first `hygiene` run that refuses a body, read on the pull request's checks |
+| closed the full suite, the repository-wide lint and the format check at the branch's last commit; each phase ran its boundary set alone | answered by the work item's broad gate, `trail/gate.md` `run: ef792da8 against 1af09327`, which names no failing case and on which `guarantee.md` sealed |
+| closed how GitHub renders an annotation whose path is a work item's directory at line 0 (`frame/questions.md` Q1); no case runs on GitHub | a measurement no record asks for: the answer would decide where a person finds a body refusal on the pull request's page; the refusal's text names the body's line whatever GitHub renders, and no open issue, failed run or other work item's rule waits on it, so nothing is opened |
 | closed a body written by one copy of the plugin and read by the arm of another (`trail/phases/phase-2.md`); the frame fold at 12dc1d24 took the version out of the mark's address (`frame/design.md` *Scope* item 6, G21), and phase 4 built it (`trail/phases/phase-4.md`) | answered by the framer's fold and phase 4 |
 
 ## Not done

@@ -4,8 +4,8 @@
 
 | Item | Who must answer |
 |---|---|
-| The broad gate at the branch's head: the full suite, the repository-wide lint and the format check | the orchestrator, at the broad run after the review rounds settle |
-| Whether a reader outside this repository reads `kind` or `bar` from a `session_cost.py --segments --json` row | the repository owner, from what users report after the release; no reader in this tree reads either key |
+| closed The broad gate at the branch's head: the full suite, the repository-wide lint and the format check | answered by the work item's broad gate, `trail/gate.md` `run: 8d0dab73 against 94d04d30`, which names no failing case and on which `guarantee.md` sealed |
+| closed Whether a reader outside this repository reads `kind` or `bar` from a `session_cost.py --segments --json` row | a measurement no record asks for: the answer would decide whether the two removed keys need a note for an outside reader; no user report, open issue, failed run or other work item's rule waits on it, and nothing is opened |
 
 ## Not done
 

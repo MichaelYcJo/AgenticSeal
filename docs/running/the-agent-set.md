@@ -103,9 +103,9 @@ check: tests/behaviour/test_the_sealer_guarantees.py
 reaches the next phase only if somebody retypes it into the next spawn prompt. So a
 phase writes what building it found that the next phase needs, beside the plan whose
 Delivers cell holds what the phase was asked and whose Status cell carries the commit. A
-scope a spawn gives beyond the plan's row is a decision the framer folds into the
-plan before the spawn (`skills/implement/orchestration.md` *Orchestrator: the order
-inside a ticket*), never a section of the record. What a work item removes is named
+scope a spawn gives beyond the plan's row reaches the plan through the framer's fold,
+before that spawn (`skills/implement/orchestration.md` *Orchestrator: the order inside a
+ticket*), and is never a section of the record. What a work item removes is named
 once, in the frame's `## Removes` (`templates/records/sdd-design.md`), which the review
 reads against the diff, and a removal the frame did not name, like every departure from
 the frame, is written in the phase record that made it.

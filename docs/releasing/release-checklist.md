@@ -203,8 +203,15 @@ a work item of the next release with one line per cut case, the shape
 
 **Before the owner merges the release pull request, the orchestrator
 posts the segment readings no session posted, one command per work item the
-release ships.** It lists the work items with
-`git diff --name-only --diff-filter=A $(git describe --tags --abbrev=0 origin/main)..origin/release/vX.Y.Z -- 'seal/threads/*/routing.md'`.
+release ships.** It lists the work items as the `routing.md` files the
+release branch adds after the newest tag `main` holds:
+
+```bash
+git diff --name-only --diff-filter=A \
+  "$(git describe --tags --abbrev=0 origin/main)..origin/release/vX.Y.Z" \
+  -- 'seal/threads/*/routing.md'
+```
+
 For each directory listed, it runs
 `seal cost --work-item <that directory> --post --says <file>`. The file
 holds its sentence on what that work item's readings say, read against the

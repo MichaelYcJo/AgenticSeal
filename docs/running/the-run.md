@@ -60,9 +60,9 @@ item's `frame/questions.md` first. Where neither answers it, the orchestrator
 proceeds on the default the question states, writes that default as one
 row of `frame/questions.md`, and quotes that row in the work item's
 `pr.md`, which the pull request body's first part holds, after
-`pr.<lang>.md` where the two language rows differ, where the owner can
-overturn it. The orchestrator keeps a blocking question for what only the owner can
-decide, and only where proceeding on a default would be costly to undo or
+`pr.<lang>.md` where the two language keys differ, where the owner can
+overturn it. The orchestrator keeps a blocking question for what only the
+owner can decide, and only where proceeding on a default would be costly to undo or
 would reach outside the repository. A question or a remark the owner raises
 during the run is taken up when it arrives: the framer folds it into the
 frame, or it goes into the code, and it is never deferred to the pull
