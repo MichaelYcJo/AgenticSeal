@@ -206,6 +206,13 @@ def test_the_skill_names_the_records_one_section():
         "`trail/phases/phase-N.md` holds one section, `## What this phase found`"
         in (skill)
     )
+    # #1442, Scope item 4: the scope a spawn adds is a decision, so the
+    # framer folds it.
+    assert (
+        "a scope a spawn gives beyond it is a decision the framer folds into "
+        "the plan before the spawn (`skills/implement/orchestration.md` "
+        "*Orchestrator: the order inside a ticket*)" in skill
+    )
 
 
 # --- phase 2: carrier consistency ---------------------------------------------
