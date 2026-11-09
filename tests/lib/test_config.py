@@ -684,7 +684,7 @@ class Test_baseline_commit:
         parser, and a mark an editor wrote is no refusal of every ready pull
         request. Seen red before the fix: "does not parse as JSON
         (Unexpected UTF-8 BOM ...)"."""
-        assert config.baseline_commit("﻿" + parity_file(BASELINE)) == (
+        assert config.baseline_commit(chr(0xFEFF) + parity_file(BASELINE)) == (
             BASELINE,
             None,
         )

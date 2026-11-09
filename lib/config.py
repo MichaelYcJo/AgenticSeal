@@ -53,7 +53,7 @@ CONFIG = "config.json"
 # The byte order mark an editor may write first. `config_pairs` reads past it
 # by decoding `utf-8-sig`; `baseline_commit` and `pact_check.py#path_map` are
 # handed text already decoded, and take it off before they parse.
-BOM = "﻿"
+BOM = chr(0xFEFF)
 # The file an earlier release wrote, a `| Item | Value |` table: refused
 # where it stands without a `config.json`, and converted by `seal mode`.
 OLD_CONFIG = "config.md"

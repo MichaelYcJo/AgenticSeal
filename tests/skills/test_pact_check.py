@@ -262,7 +262,7 @@ class Test_path_map:
         is read as `utf-8`, so the mark reaches the parser, and a mark an
         editor wrote refuses no entry. Seen red before the fix: "does not
         parse as JSON (Unexpected UTF-8 BOM ...)"."""
-        write(world.home, MAP, "﻿" + config_json((MAP_B, "/x/b")))
+        write(world.home, MAP, chr(0xFEFF) + config_json((MAP_B, "/x/b")))
         assert pc.path_map(config, str(world.home)) == (
             {"example.com/org/b": "/x/b"},
             [],
