@@ -307,8 +307,9 @@ decision settled while writing the code, a constraint found only by trying,
 each `seen red` and mutation claim, every departure from the frame, a
 removal the frame's `## Removes` did not name among them, and anything the
 next phase needs. What the phase was asked is the plan's Delivers cell, and
-a scope a spawn gives beyond it is a decision the orchestrator folds into
-the plan before the spawn, so the record copies neither. A discovery reaches
+a scope a spawn gives beyond it is a decision the framer folds into the
+plan before the spawn (`skills/implement/orchestration.md` *Orchestrator:
+the order inside a ticket*), so the record copies neither. A discovery reaches
 the next phase only through that section or through the orchestrator
 retyping it into the next spawn prompt, and the second goes missing without
 a trace when the orchestrator does not.

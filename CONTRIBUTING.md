@@ -39,8 +39,9 @@ run follows.
 ### What a contribution is asked for
 
 - A branch cut from the open release branch, and a pull request based on it.
-- `bin/test tests/<file> -q` on each module the change touched. CI runs the
-  rest, on three platforms.
+- `bin/test tests/<file> -q` on each module the change touched, and
+  `bin/test tests/text tests/behaviour -q`, the tree-wide files *The test
+  layout* names. CI runs the rest, on three platforms.
 - **A change to a gate carries a higher bar**: a test seen failing before the
   fix, a stated failure direction, a prompt budget, and honesty about the
   platforms the contributor could not test. *What a change to a gate must
@@ -120,8 +121,9 @@ interpreter it says which to install. What runs before any floor is checked
 `bin/test`'s runner, and every module one of them loads in its own process)
 runs on whatever `python3` starts it.
 `ruff.toml` lints that code at the version its `per-file-target-version`
-names. `tests/lib/test_launch.py` derives the set and holds every file of it
-to that table, and `tests/censuses.py#floor_syntax` refuses in it the syntax
+names. `tests/behaviour/test_every_entry_point_runs_at_the_floor.py` derives
+the set and holds every file of it to that table, and
+`tests/censuses.py#floor_syntax` refuses in it the syntax
 `ast` rejects at that version and the two constructs ruff pushes toward above
 it, `zip(..., strict=)` and `datetime.UTC`. Nothing runs that code at that
 version, so a standard-library module or an annotation only a newer `python3`
@@ -249,7 +251,8 @@ whole goes in `Test_module`. A flow across modules lives under
 from, and each of its classes is a scenario that keeps the same two cases.
 A case whose assertion reads a shipped document names that document as
 `TARGET`, and its classes take any name. A helper two test files use is
-defined once, in `tests/conftest.py`. Each module file ends with
+defined once, in `tests/conftest.py` or in one of the two files, which the
+other imports by its name. Each module file ends with
 `test_census = census_case(TARGET)`, which runs every census in
 `tests/censuses.py` over its module, and a line a census flags on purpose
 carries `# exempt from <census>: <why>` on its own line above it, where the
@@ -267,11 +270,16 @@ directory is right only at the depth the file stands at. No two Python files
 under `tests/` share a file name: `tests/conftest.py` puts every directory
 under `tests/` that holds a test file on `sys.path`, so two files of one name
 import as one module.
-check: tests/test_conftest.py
+check: tests/behaviour/test_a_test_file_takes_the_root_from_the_conftest.py
 
 **A test file that declares no `TARGET` stands by what its cases run.** It
 stands in `tests/behaviour/` where its cases load or run shipped code, and
-in `tests/text/` where they only read text.
+in `tests/text/` where they only read text. A case that walks this
+repository's tree or a whole directory of it, lists its tracked files, or
+runs a check over its root stands in a file that declares none. The files
+that declare no `TARGET`, `tests/text/` and `tests/behaviour/`, are this
+repository's tree-wide files, which `skills/verify/SKILL.md` *Scope: cheap
+and often, broad and once* runs at every phase boundary and every fix pass.
 
 **A module's old cases get one verdict each when the module is rebuilt.**
 The contributor rebuilding a module reads its functions first and lists the

@@ -165,7 +165,8 @@ jobs:
           python3 skills/implement/scripts/seal.py mode --check
 
       # A report, not a gate: `seal rules --check` gates inside
-      # `tests/github/test_rules.py`, whose capture keeps its output, so the
+      # `tests/behaviour/test_this_repository_passes_its_own_checks.py`, whose
+      # capture keeps its output, so the
       # lines it names as not read are printed here as notices (#1167).
       # Pinned in `tests/behaviour/test_release_hygiene.py`.
       - name: the check lines rules.py did not read

@@ -48,7 +48,8 @@ def test_the_plugin_registers_two_hooks_and_writes_none_into_git():
     `tests/behaviour/test_the_release_check_watches_what_ships.py#SHIPS`, the
     hygiene step's pattern and the roots sentence of
     `docs/releasing/branch-and-release.md` *Cutting a release*, `ruff.toml`'s
-    `hooks/*.py` line and the start of `tests/lib/test_launch.py`'s floor
+    `hooks/*.py` line and the start of
+    `tests/behaviour/test_every_entry_point_runs_at_the_floor.py`'s floor
     derivation, `skills/verify/scripts/payload_meter.py#HOOK_ROW`, and the
     sentences this command lists:
 

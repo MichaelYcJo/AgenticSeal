@@ -59,8 +59,11 @@ is a write you do not make.
    `trail/phases/phase-N.md` from `templates/records/sdd-phase.md`, each
    decision in it with its grounds and the document it was judged against,
    and in the first phase `gaps.md` from `templates/records/sdd-gaps.md`.
-9. In a fix pass, read `trail/rounds/round-N.md` first, judge each finding at its
-   coordinate, and append its close block instead of steps 5 to 8's record.
+9. In a fix pass, read `trail/rounds/round-N.md` first and judge each finding
+   at its coordinate. Once the fixes are committed, run the set the *Review
+   rounds 1..n* row of the table step 7 cites, as one command through the
+   repository's runner, then append each close block instead of steps 5 to
+   8's record.
 10. Hand back, after the same `writing-style` section: what was done, each
     claim labelled `executed`, `read` or `unverified`, the suite labelled
     `unverified` with the orchestrator named as its answerer, each declined
