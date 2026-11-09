@@ -8,6 +8,14 @@ ancestor of HEAD, and the one commit after it, `3507db3b`, touches only
 061ef2f8..HEAD ^dfd0c995`). `seal pr-body <item> --body <file> --check`
 exited 0 on the body file the spawn named (executed).
 
+The second run audits `25724484`, after the withhold at `3507db3b`. The
+two commits since, `5656e523` and `25724484`, touch only `guarantee.md`
+and `frame/design.md` of this work item (executed: `git log --name-only
+3507db3b..HEAD`), so no code claim's coordinate changed and the claims of
+the first run stand unre-run. `trail/gate.md`'s run at `061ef2f8` is
+followed only by paths under this work item's directory (executed), and
+`seal pr-body --check` exited 0 again on the same body file (executed).
+
 ## Claims re-run
 
 | Claim | Source | Command | Result |
@@ -22,7 +30,9 @@ exited 0 on the body file the spawn named (executed).
 | `frame/design.md` `## Removes` reads `nothing`, and the changelog names no removal | `frame/design.md:87-90`, `changelog.md` | read | holds (read): nothing is owed absent from the tree |
 | Every quote in `pr.md` stands word for word in its source | `pr.md` | a read-only Python comparison of each quote with `changelog.md` and `gaps.md`, runs of whitespace collapsed | holds (executed): nine of nine |
 | Round 3 finding 1, `fixed 647a5495`: the frame counts two removals of the scratchpad | `trail/rounds/round-3.md` finding 1, `frame/design.md:90`, `frame/plan.md:62` | `git show --name-only 647a5495 061ef2f8`; `git grep -n -i -E 'three (times\|removals)\|removed three'` over the work item | holds (executed): both commits touch only the work item's records; the design says "the two removals" and the plan row "twice"; "three" stands only in round 3's own quotes of the old text |
-| Rule 21's check line names one module | `frame/design.md:63`, *Data & interfaces* | read `skills/agent-contract/SKILL.md:232`; `git blame -L 63,66` on the design | does not hold (executed): the check line names `tests/text/test_the_agent_contract_holds_the_universal_rules.py` and `tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py`. Line 63 is the first frame's (`2831458a`); the fold `4c193822` added line 66 with the two-module line and left line 63 standing |
+| Rule 21's check line names one module (the first run, at `3507db3b`) | `frame/design.md:63`, *Data & interfaces* | read `skills/agent-contract/SKILL.md:232`; `git blame -L 63,66` on the design | did not hold (executed): the check line names `tests/text/test_the_agent_contract_holds_the_universal_rules.py` and `tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py`. Line 63 was the first frame's (`2831458a`); the fold `4c193822` added line 66 with the two-module line and left line 63 standing |
+| The fix `25724484`: the design states rule 21's check line once, naming both modules | `frame/design.md:63`, `frame/design.md:66` | `git diff 3507db3b HEAD -- frame/`; `git grep -n 'check:'` over the design | holds (executed): line 63 now reads "Its last line is the check line below", and line 66 is the one statement of the check line, naming both modules as `skills/agent-contract/SKILL.md:232` does. The other `check:` in the design, line 85, is the rule change's for `docs/running/the-agent-set.md`, not rule 21's |
+| The records still meet the record and census modules at the new HEAD | `25724484` | in a clone at `25724484`, `bin/test tests/behaviour/test_every_tracked_file_meets_every_census.py tests/behaviour/test_docs_line_wrap.py tests/behaviour/test_the_set_a_work_item_always_has.py tests/behaviour/test_a_cited_section_stands_in_its_file.py -q` | holds (executed): exit 0, 121 passed |
 
 Not re-run: the transcript counts of `frame/design.md` G8 to G10 are the
 framer's reading (unverified; the measurement `frame/questions.md` Q1 names
@@ -36,8 +46,8 @@ ran nothing broad.
 
 | Party | Says | Agrees with | Disagrees with |
 |---|---|---|---|
-| the design | contract rule 21 with its forms as examples, its pin in `FACTS`, the guarded `rm` in `skills/update/SKILL.md`, step 1's pointer for the orchestrator, the crafter's `phase-<n>/` and `fix-<n>/` directories, rule 21's removal clause and their two cases; no check reads a command; `## Removes` is nothing | the issue's *Done when* (the rule stated once with the two zsh forms as examples, no check added), its two comments, the build, the changelog | the tree and itself: `frame/design.md:63` says rule 21's last line is a check line naming one module, where `frame/design.md:66`, *Scope* item 6 and `skills/agent-contract/SKILL.md:232` name two |
-| the build | the diff of `.claude-plugin/plugin.json`, `agents/crafter.md`, `skills/agent-contract/SKILL.md`, `skills/implement/orchestration.md`, `skills/update/SKILL.md` and two test modules, with phase records for phases 1 and 2 at `df508485` and `ba3ba7a4`, both on the branch | the design's *Scope* items 1 to 8 and *Data & interfaces* apart from line 63; the phase records' seen red and mutation claims re-run above; no file under `hooks/`, `bin/` or a `scripts/` directory changed | none |
+| the design | contract rule 21 with its forms as examples, its pin in `FACTS`, the guarded `rm` in `skills/update/SKILL.md`, step 1's pointer for the orchestrator, the crafter's `phase-<n>/` and `fix-<n>/` directories, rule 21's removal clause and their two cases; no check reads a command; `## Removes` is nothing | the issue's *Done when* (the rule stated once with the two zsh forms as examples, no check added), its two comments, the build, the changelog | none at `25724484`. At `3507db3b`, `frame/design.md:63` said rule 21's last line named one module, where `frame/design.md:66`, *Scope* item 6 and `skills/agent-contract/SKILL.md:232` name two; `25724484` removed that statement |
+| the build | the diff of `.claude-plugin/plugin.json`, `agents/crafter.md`, `skills/agent-contract/SKILL.md`, `skills/implement/orchestration.md`, `skills/update/SKILL.md` and two test modules, with phase records for phases 1 and 2 at `df508485` and `ba3ba7a4`, both on the branch | the design's *Scope* items 1 to 8 and *Data & interfaces*, line 63 among them since `25724484`; the phase records' seen red and mutation claims re-run above; no file under `hooks/`, `bin/` or a `scripts/` directory changed | none |
 | the last round | round 3 at `94a52303`: one `should` finding on the removal count, fixed in the records at `647a5495`; confirmations of the crafter's rule, rule 21's clause, the two cases and their seen red | the tree at HEAD and the fix as read above | none |
 | the changelog | four *Fixed* items and two *Process changes* rows, for `skills/implement/orchestration.md` and `agents/crafter.md`; the 21 prompts, 19 in two shapes, as G9 counts them | the diff, `frame/design.md` G9 and G18, the crafter's transcript | none |
 | the orchestrator's part of the pull request body | `pr.md`: nine quotes of `changelog.md` and `gaps.md`, then `Closes #1445.` | each quote's source, word for word; the issue it closes | none |
@@ -45,4 +55,9 @@ ran nothing broad.
 ```seal
 target: 3507db3b against dfd0c995
 Verdict: withheld reason: the design (framer, folded at 4c193822) states at frame/design.md:63 that rule 21's last line is `check: tests/text/test_the_agent_contract_holds_the_universal_rules.py`, where frame/design.md:66 and the tree at skills/agent-contract/SKILL.md:232 name that module and tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py; line 63 is the old statement the fold left beside its correction
+```
+
+```seal
+target: 25724484 against dfd0c995
+Verdict: sealed
 ```
