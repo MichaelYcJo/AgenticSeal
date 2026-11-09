@@ -849,12 +849,12 @@ def texts():
     return out
 
 
-# --- the durations file prices the suite (#874) -------------------------------
+# --- the whole collection, recorded (#874) ------------------------------------
 #
 # `tests/behaviour/test_the_windows_leg_runs_in_shards_that_make_the_whole.py#
-# test_the_durations_file_prices_the_suite` compares the suite's collection
-# with `.test_durations`, and on a shard the items a case can see are only the
-# shard's own: `pytest-split` replaces the list with the group.
+# test_no_collected_id_carries_the_interpreters_path` reads every id the suite
+# collected, and on a shard the items a case can see are only the shard's
+# own: `pytest-split` replaces the list with the group.
 COLLECTED_NODE_IDS = "agentic_collected_node_ids"
 
 

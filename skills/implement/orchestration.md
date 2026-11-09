@@ -421,16 +421,30 @@ that work item's changelog entry moves it, in the commit that adds the
 entry: the last phase's crafter where `routing.md` answers
 `Implementation` with `crafter`, and the orchestrator where it answers
 `the session`. The orchestrator chooses which work item carries the move.
-Where several work items of the release run side by side, it chooses the
-one it will merge first, the one likeliest to be sealed first, often the
-smallest diff, and merges it first. Where a crafter builds that work item
+Where several work items of the release run side by side, the
+orchestrator's prompt that spawns each framer names the release's other
+work items: each one's issue, its branch, and its frame's path where the
+frame is committed. The orchestrator merges the items in the order their
+plans' `frame/plan.md` *Overlap with the release* sections state. Where two
+plans state opposite orders for one pair, or where the item ordered first
+cannot be sealed before the other, the orchestrator chooses the order,
+with the item that carries the move still first, and writes the choice as
+a row of `frame/plan.md` *Judgments of the run* in the plan of the item it
+merges out of the stated order. The move goes to an
+item that no plan orders after another, which the orchestrator chooses
+where several are, and the orchestrator merges that item before every
+other item of the release, because the first pull request into the branch
+carries the move. Once it has landed, items that no plan orders against
+each other merge as each is sealed. Where a crafter builds that work item
 and its `frame/plan.md` *Operational impact* does not name the move, the
 move is a decision the framer folds into that section, as *Orchestrator:
 the order inside a ticket* states, before the orchestrator spawns the last
 phase, because the crafter reads its version write there. A move made
 after a work item's last round owes a verifying round of its own, so
-where the chosen item's rounds have already ended, the move goes to the
-next item whose rounds still read it. Where the
+where the chosen item's rounds have already ended, the move goes to
+another item that no plan orders after another and whose rounds still
+read it, and where no such item is, the chosen item takes the move and
+the verifying round it owes. Where the
 repository moves the version at the release, a pull request into the
 release branch leaves it alone. A pull request into `main` is a release:
 the accumulated entries go out under the version, which moves there only

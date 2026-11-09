@@ -257,6 +257,25 @@ def test_the_plan_template_carries_the_judgments_table():
     ), after[1]
 
 
+def test_the_plan_template_carries_the_overlap_table():
+    """#1443, *Scope* items 1 and 6. The framer writes where its work meets
+    the release's other work items and which merges first, and the
+    orchestrator merges in the order these sections state
+    (`skills/implement/orchestration.md` *Orchestrator: how the work is
+    routed*), so the shipped template carries the heading and the header,
+    immediately before `## Operational impact`, where the orchestrator reads
+    the version move beside it."""
+    tpl = read("templates", "records", "sdd-plan.md")
+    after = tpl.split("\n## Overlap with the release\n")
+    assert len(after) == 2, "the plan template has no `## Overlap with the release`"
+    section = after[1].split("\n## ")[0]
+    assert (
+        "\n| Work item | Where both change | Merges first | Grounds |\n|---|---|---|---|\n"
+        in section
+    ), section
+    assert after[1].split("\n## ")[1].startswith("Operational impact\n"), after[1]
+
+
 def test_the_planner_writes_into_the_plan():
     """Where the task list goes, and what the Status column gives up, are
     the proofer's to read in the skills."""

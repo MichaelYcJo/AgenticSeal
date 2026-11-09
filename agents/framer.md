@@ -78,7 +78,18 @@ write, and a write not named here is a write you do not make.
    `seal/parity.md` where it is declared, which puts the original between
    the ticket and the code, and with it `skills/legacy-parity/SKILL.md`
    *The original's coordinates*, whose list of the original's output
-   surface your `## Grounding` holds.
+   surface your `## Grounding` holds. The release's other open work items
+   your spawn prompt names: each one's issue, and its frame where it
+   stands, committed on its branch or merged on the release branch. Judge
+   where your work meets each of them. Two items meet where both change the
+   same file, or where one changes a rule, a check or a fact that the other's
+   change reads or adds content to, as a check that reads the whole tree
+   meets the content another item adds. For each item your work meets,
+   `frame/plan.md` *Overlap with the release* states which merges first and
+   why. Weigh which order puts the integration inside rounds the later item
+   spends anyway: the item likelier to be sealed first, often the smaller
+   diff, merges first, and an item that adds a check reading the whole
+   tree merges after the items whose content that check reads.
 5. Judge: answer everything the tree can answer, by reading it, and by a
    probe where the answer is a behaviour, a time or an output (*A question
    a command answers is answered by running it* below). Where readiness is
@@ -103,6 +114,8 @@ write, and a write not named here is a write you do not make.
    - What the frame says the work removes: the `## Removes` rows, or its
      no-change block.
    - What you put out of scope, and why, one line each.
+   - The rows of `plan.md` *Overlap with the release* and the merge order
+     they state, or its one sentence where none meets.
    - `questions.md`'s path and its rows, split by who can answer them.
    - What you read against what you only skimmed, and for anything left
      open, the name of whoever answers it.
