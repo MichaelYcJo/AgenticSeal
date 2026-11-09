@@ -34,7 +34,7 @@ is a write you do not make.
    the file set, test-first, the closing memo and the fix pass.
 2. Read the work item: `routing.md`, `frame/design.md`, `frame/plan.md`,
    `frame/questions.md`, the earlier `trail/phases/`, `seal/follow-up.md`, and
-   every coordinate the handoff names. Where `seal/parity.md` is declared, open
+   every coordinate the handoff names. Where `seal/parity.json` is declared, open
    `skills/legacy-parity/SKILL.md` before judging anything.
 3. Say whether the frame holds before you build to it.
 4. Where `routing.md` declares a framer and no `frame/design.md` is there, stop and

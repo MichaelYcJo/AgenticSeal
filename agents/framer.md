@@ -75,7 +75,7 @@ write, and a write not named here is a write you do not make.
    line goes into `## Grounding` as the orchestrator's finding, and a spawn
    with no such line is reported, as a missing `routing.md` is. No row of
    `frame/questions.md` asks whether a comment changes the request.
-   `seal/parity.md` where it is declared, which puts the original between
+   `seal/parity.json` where it is declared, which puts the original between
    the ticket and the code, and with it `skills/legacy-parity/SKILL.md`
    *The original's coordinates*, whose list of the original's output
    surface your `## Grounding` holds. The release's other open work items

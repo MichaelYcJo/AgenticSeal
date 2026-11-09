@@ -239,21 +239,23 @@ def test_parity_declaration_is_bootstrappable_not_hand_written():
     # The migration config is the one declaration a user cannot derive, so the
     # blank-page problem is real: without a template and a place that asks,
     # migration mode is a feature nobody can reach.
-    tpl = os.path.join(ROOT, "templates", "setup", "parity.md")
-    assert os.path.isfile(tpl), "templates/setup/parity.md missing"
-    body = open(tpl, encoding="utf-8").read()
-    # The four field names of the declaration, which the person declaring
-    # parity fills in and `lib/config.py` and `chain_check.py` read off
-    # `seal/parity.md`.
-    for field in (
+    tpl = os.path.join(ROOT, "templates", "setup", "parity.json")
+    assert os.path.isfile(tpl), "templates/setup/parity.json missing"
+    with open(tpl, encoding="utf-8") as handle:
+        members = json.load(handle, object_pairs_hook=list)
+    # The keys of the declaration, which the person declaring parity fills
+    # in, `chain_check.py` reads `Baseline commit` of, and agents read the
+    # rest of, in `seal/parity.json`. Where the original's local path goes
+    # is `skills/legacy-parity/SKILL.md` *The migration config*'s, held by
+    # `tests/text/test_review_axes.py`.
+    assert [key for key, _value in members] == [
         "Original repo",
+        "Module",
         "Baseline commit",
         "Policy root",
         "Coordinate-trust exceptions",
-    ):
-        assert field in body, f"template lost the {field!r} field"
-    # The file name the person writes the original's local path into.
-    assert "parity-paths.md" in body, "template must say where the local path goes"
+        "Scope notes",
+    ], members
 
     # The bootstrap is the orchestrator's since #292, in a file of its own
     # since #1046. Its yes to the parity question follows the parity-setup
@@ -277,7 +279,7 @@ def test_parity_declaration_is_bootstrappable_not_hand_written():
     setup = os.path.join(ROOT, "skills", "parity-setup", "SKILL.md")
     assert os.path.isfile(setup), "no command for declaring parity later"
     # The template's path, which the procedure copies the declaration from.
-    assert "templates/setup/parity.md" in open(setup, encoding="utf-8").read(), (
+    assert "templates/setup/parity.json" in open(setup, encoding="utf-8").read(), (
         "the parity-setup procedure never points at the template"
     )
     head = open(setup, encoding="utf-8").read().split("\n---\n", 1)[0]

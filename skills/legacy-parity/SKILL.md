@@ -4,7 +4,7 @@ description: |
   Behavior-equivalence methodology for legacy migrations: a three-way judgment
   between policy, the original code and the new code, with the original's
   behavior preserved by default.
-  Use when: a project declares a migration config (seal/parity.md), porting or
+  Use when: a project declares a migration config (seal/parity.json), porting or
   reviewing ported behavior, judging divergence from a legacy original.
   NOT for: greenfield work, which implement and code-review cover alone.
 ---
@@ -13,7 +13,7 @@ description: |
 
 Extends `implement` and `code-review` when the work is a migration, the same
 behavior rebuilt on different technology, in a repository that declares
-`seal/parity.md`. A tracer reads the sections that find and trace the
+`seal/parity.json`. A tracer reads the sections that find and trace the
 original: *The migration config*, *What the original sends* and *The
 original's coordinates*. The sections that judge and record are its caller's.
 
@@ -25,12 +25,31 @@ looks wrong is reported, and changing it is the planner's call.
 
 ## The migration config
 
-A migrating repository declares itself in `seal/parity.md`, written from
-`templates/setup/parity.md`, which holds its fields, and commits it where the
+A migrating repository declares itself in `seal/parity.json`, written from
+`templates/setup/parity.json`, which holds its keys, and commits it where the
 root is `<repo>/seal/`; in local mode nothing under the root is committed.
+The file's presence is the declaration: it turns on the three-way judgment
+below and lets the tracer fetch what the original does, and deleting it
+makes the project greenfield again.
+
+`Original repo` and `Module` name the original and the path within it, or
+`whole repo`. `Baseline commit` holds the SHA the original's coordinates
+refer to and nothing else, and the parity arm of `chain_check.py` compares
+each `original:` line with it. `Policy root` names the directory the
+repository keeps its ratified policy in, such as `docs/`, or `none`.
+`Coordinate-trust exceptions` lists the paths whose recorded coordinates need
+re-verification before they can be trusted, each an object holding `Path`,
+`Why it needs re-verification` and `Noticed`; empty is the normal state, and
+an entry arrives when someone finds a coordinate that moved without anybody
+noticing. `Scope notes` says what the migration does and does not cover
+where the original repo alone does not show it, such as endpoints ported in a
+later phase or behaviour left behind with the decision recorded under the
+policy root.
+
 A machine-local checkout path
-never goes in it: it lives in `~/.claude/agentic/parity-paths.md`, keyed by
-the origin remote URL, so worktrees and second checkouts resolve to one entry.
+never goes in it: it lives in `~/.claude/agentic/parity-paths.json`, one JSON
+object from the origin remote URL to the checkout path, so worktrees and
+second checkouts resolve to one entry.
 
 The original resolves in this order: the recorded path, a sibling directory of
 the current repository, then a check by `git remote -v` against the declared

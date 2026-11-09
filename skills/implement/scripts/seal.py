@@ -2211,7 +2211,17 @@ def mode_report(args, repo, home, shared, local, current):
     not need the key; nothing is written, because a key written into a file
     nobody can read, or beside one that already disagrees, cannot make it
     agree.
+
+    **An earlier release's `parity.md` is named, never converted** (#1454):
+    where it stands without a `parity.json`, a note names the keys to write
+    (`lib/config.py#unconverted_parity`), and the exit is what the mode
+    gives. Its prose and its exceptions table are a person's to move.
     """
+    parity = os.path.join(home, optin.PARITY_CONFIG)
+    old_parity = os.path.join(home, optin.OLD_PARITY_CONFIG)
+    if os.path.lexists(old_parity) and not os.path.lexists(parity):
+        said = repo_config.unconverted_parity(display(repo, parity))
+        print(f"note: {display(repo, old_parity)} {said}")
     old, path = old_config_path(home), config_path(home)
     if os.path.lexists(old) and os.path.lexists(path):
         print(

@@ -1251,44 +1251,70 @@ def _signer(refusal):
 
 # --- the migration config's baseline (#988) --------------------------------
 #
-# `seal/parity.md` is written from `templates/setup/parity.md`, a `| Field | Value |`
-# table whose `Baseline commit` cell holds the SHA the original's coordinates
-# refer to, in its first code span. `chain_check.py` compares each round
-# record's `original:` line with it, and reads it through this one function.
+# `seal/parity.json` is written from `templates/setup/parity.json`, one JSON
+# object whose `Baseline commit` key holds the SHA the original's
+# coordinates refer to, and nothing else. `chain_check.py` compares each
+# round record's `original:` line with it, and reads it through this one
+# function. Agents read the other keys.
 
-PARITY_TABLE = ("Field", "Value")
-BASELINE_ROW = "Baseline commit"
+# The template's keys, in its order: what the sentence below names for a
+# person converting an earlier release's `parity.md`.
+PARITY_KEYS = (
+    "Original repo",
+    "Module",
+    "Baseline commit",
+    "Policy root",
+    "Coordinate-trust exceptions",
+    "Scope notes",
+)
+BASELINE_KEY = "Baseline commit"
 BASELINE_SHA = re.compile(r"[0-9a-f]{7,40}")
-FIRST_CODE_SPAN = re.compile(r"`([^`]*)`")
 
 
 def baseline_commit(text):
-    """`(sha, None)` for the migration config TEXT whose one `Baseline
-    commit` row holds 7 to 40 lowercase hex digits, and nothing else, in the
-    first code span of its value; else `(None, why)`.
+    """`(sha, None)` for the migration config TEXT, `parity.json`'s, whose
+    one `Baseline commit` key holds 7 to 40 lowercase hex digits and
+    nothing else; else `(None, why)`.
 
-    The table is read by `read_table`, so a table GFM renders no row of is
-    no row here. No table, no such row, the row written twice, and a first
-    code span holding anything but a SHA, the template's `<SHA>` among them,
-    are each a `why` that reads after the file's name."""
-    rows, refusals, header = read_table(text, PARITY_TABLE)
-    if header is None:
-        return None, refusals[0]
-    found = [cells[1] for _line, cells in rows if cells[0] == BASELINE_ROW]
-    if not found:
-        table = f"`| {' | '.join(PARITY_TABLE)} |`"
-        said = f"holds no `{BASELINE_ROW}` row in its {table} table"
-        return None, "; ".join([said, *refusals])
-    if len(found) > 1:
-        return None, f"holds {len(found)} `{BASELINE_ROW}` rows, and one names it"
-    span = FIRST_CODE_SPAN.search(found[0])
-    if span is None or not BASELINE_SHA.fullmatch(span.group(1)):
+    Text that will not parse as JSON, a top level that is not an object, no
+    such key, the key written twice, a value that is not a string, and a
+    string that is not a SHA alone, the template's `<SHA>` among them, are
+    each a `why` that reads after the file's name."""
+    try:
+        parsed = json.loads(text, object_pairs_hook=Members)
+    except ValueError as exc:
+        return None, f"does not parse as JSON ({exc})"
+    if not isinstance(parsed, Members):
         return None, (
-            f"has a `{BASELINE_ROW}` row whose value is {found[0]}, and the "
-            "commit is the first code span of that value, 7 to 40 lowercase "
-            "hex digits"
+            f"holds a JSON {json_type(parsed)} where the migration config is "
+            "one object of keys"
         )
-    return span.group(1), None
+    value, refusal = config_value(parsed, BASELINE_KEY)
+    if refusal is not None:
+        return None, refusal
+    if value is None:
+        return None, f"holds no `{BASELINE_KEY}` key"
+    if not BASELINE_SHA.fullmatch(value):
+        return None, (
+            f"has a `{BASELINE_KEY}` key whose value is `{value}`, and the "
+            "commit is that value alone, 7 to 40 lowercase hex digits"
+        )
+    return value, None
+
+
+def unconverted_parity(path):
+    """The sentence an earlier release's `parity.md` standing without the
+    `parity.json` at PATH is named in, by the parity arm of `chain_check.py`
+    and by `seal mode`: the file to write, the template it is written from,
+    and each key of it. It reads after the old file's name and ends with no
+    full stop."""
+    keys = ", ".join(f"`{key}`" for key in PARITY_KEYS[:-1])
+    return (
+        "is the migration config an earlier release read, a table no check "
+        f"reads now — write {path} from `templates/setup/parity.json`, one "
+        f"JSON object holding {keys} and `{PARITY_KEYS[-1]}`, with "
+        f"`{BASELINE_KEY}` the SHA alone, then delete the old file"
+    )
 
 
 # --- the word 0.18.x wrote (#822) ------------------------------------------

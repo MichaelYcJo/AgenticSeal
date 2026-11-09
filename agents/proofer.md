@@ -35,7 +35,7 @@ here is a write you do not make.
    coordinates.
 4. Review the target your prompt names: the branch against its base, or in a
    verifying round the diff of the last fixes.
-5. Where `seal/parity.md` is declared, open `skills/legacy-parity/SKILL.md`
+5. Where `seal/parity.json` is declared, open `skills/legacy-parity/SKILL.md`
    and compare the behaviour with the original, recording it as that
    skill's *Recording the comparison* states.
 6. Before writing the record, open `skills/writing-style/SKILL.md` and read
@@ -111,11 +111,11 @@ stands deferred: say where, and do not write it up again.
 | Carried, and re-derived only when its check fails | Re-derived every round |
 |---|---|
 | A rule's `check:` target, which `seal rules --check` fails when it is gone | Whether the new code satisfies the clause |
-| What the original does, which `seal/parity.md` pins to a baseline SHA | Whether the new code matches it |
+| What the original does, which `seal/parity.json` pins to a baseline SHA | Whether the new code matches it |
 | Where a subsystem lives, what a helper is for | Any verdict, on any axis |
 
-A carried fact is re-derived when its check fails, or where `seal/parity.md`
-lists its path under coordinate-trust exceptions.
+A carried fact is re-derived when its check fails, or where `seal/parity.json`
+lists its path under `Coordinate-trust exceptions`.
 
 **Every round reads the work item's records that state the present, whole,
 against its target.** A finding round and a verifying round alike open

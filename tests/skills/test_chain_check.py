@@ -2311,7 +2311,10 @@ class Test_pins_and_copies_in:
 
 # --- the parity arm at the pull request (#988) -------------------------------------
 
-PARITY = "seal/parity.md"
+PARITY = "seal/parity.json"
+# The migration config an earlier release read, a `| Field | Value |` table.
+OLD_PARITY = "seal/parity.md"
+OLD_PARITY_TEXT = f"| Field | Value |\n|---|---|\n| Baseline commit | `{BASELINE}` |\n"
 routing_module = load(chain.ROUTING, "agentic_routing_for_chain_tests")
 
 
@@ -2346,7 +2349,7 @@ class Test_originals_of:
     def test_refuses_a_record_with_no_original_line_on_a_ready_pull_request(
         self, branch, ready, capsys
     ):
-        """S4: in a repository declaring `seal/parity.md`, a chain-declared
+        """S4: in a repository declaring `seal/parity.json`, a chain-declared
         pull request changing code fails while a round record holds no
         `original:` line, each record named with the baseline it owes, and a
         draft prints the same lines and exits 0."""
@@ -2405,7 +2408,7 @@ class Test_originals_of:
         self, branch, ready, capsys
     ):
         """S10: the template's placeholder fails a ready pull request naming
-        `seal/parity.md`, and no record is compared with nothing."""
+        `seal/parity.json`, and no record is compared with nothing."""
         root, _code = branch
         migrating(root, (BASELINE, BASELINE), sha=None)
         code, out = check(root, capsys)
@@ -2413,6 +2416,38 @@ class Test_originals_of:
         (line,) = original_lines(out)
         assert line.startswith(f"{PARITY}:0  "), line
         assert "`Baseline commit`" in line and "`<SHA>`" in line, line
+
+    def test_refuses_an_earlier_releases_parity_md_once_naming_the_keys(
+        self, branch, ready, capsys
+    ):
+        """S6: a `seal/parity.md` git carries at HEAD with no
+        `seal/parity.json` is refused once, at the old file, in the sentence
+        naming the file and the keys to write, and no record is compared
+        with a baseline nobody can read. A change confined to the document
+        roots owes nothing, and with `parity.json` beside it the JSON is the
+        config read. Seen red against the arm that read `parity.md`'s
+        table."""
+        root, _code = branch
+        on_main(root, OLD_PARITY, OLD_PARITY_TEXT)
+        seal(root)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        said = chain.parity_readers()[0].unconverted_parity(PARITY)
+        assert [ln for ln in out.splitlines() if ln.startswith("seal/parity")] == [
+            f"{OLD_PARITY}:0  {said}"
+        ], out
+        assert original_lines(out) == [], out
+
+        def owed(paths):
+            return chain.originals_of(reader, routing_module, str(root), paths, [ITEM])
+
+        assert owed(["docs/a.md", f"{ITEM}/trail/rounds/round-1.md"]) == []
+        write(root, PARITY, parity_file(BASELINE))
+        commit(root, "the migration config written as JSON beside the old one")
+        assert [p for p, _n, _w in owed(["f.txt"])] == [
+            f"{ITEM}/trail/rounds/round-1.md",
+            f"{ITEM}/trail/rounds/round-2.md",
+        ]
 
     def test_accepts_a_change_confined_to_the_document_roots(self, branch):
         """S7 and S11: a change confined to `docs/` and `seal/` owes no line,
@@ -2647,7 +2682,7 @@ class Test_parity_readers:
             "m = importlib.util.module_from_spec(s)\n"
             "s.loader.exec_module(m)\n"
             "config, gate = m.parity_readers()\n"
-            "print(gate.touches_code(['f.txt']), config.BASELINE_ROW)\n"
+            "print(gate.touches_code(['f.txt']), config.BASELINE_KEY)\n"
         )
         done = subprocess.run(
             [sys.executable, "-I", "-c", code],

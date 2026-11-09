@@ -235,7 +235,7 @@ pull request 의 검사로 돕니다.
 | **framer** (서브에이전트) | `core`, `agent-contract` | 아무도 만들기 전에 작업 항목의 설계, 계획, 질문을 쓰고, 코드는 쓰지 않는다 ([`agents/framer.md`](agents/framer.md)) |
 | **crafter** (서브에이전트) | `core`, `agent-contract` | 프레임에 맞춰 단계 하나를 만들거나, 리뷰 회차 하나를 놓고 fix pass 를 한 번 돈다 ([`agents/crafter.md`](agents/crafter.md)) |
 | **proofer** (서브에이전트) | `core`, `agent-contract` | 커밋된 diff 를 리뷰한다. 프레임을 지켰는지를 먼저 보고 품질을 그다음에 보며, 회차마다 회차 기록을 쓴다 ([`agents/proofer.md`](agents/proofer.md)) |
-| **tracer** (서브에이전트) | `core`, `agent-contract` | `seal/parity.md` 를 선언한 저장소에서, 원본 코드가 하는 일을 판정 없이 좌표가 붙은 사실로 기록한다 ([`agents/tracer.md`](agents/tracer.md)) |
+| **tracer** (서브에이전트) | `core`, `agent-contract` | `seal/parity.json` 을 선언한 저장소에서, 원본 코드가 하는 일을 판정 없이 좌표가 붙은 사실로 기록한다 ([`agents/tracer.md`](agents/tracer.md)) |
 | **sealer** (서브에이전트, Opus) | `core`, `agent-contract` | broad gate 뒤에 모든 참여자의 기록을 이슈와 트리에 견주어 읽고, 판정인 `guarantee.md` 를 쓴다 ([`agents/sealer.md`](agents/sealer.md)) |
 | 스킬 | — | 에이전트가 첫 호출부터 갖는 스킬은 왼쪽 열에 있다. `code-review`, `commit-pr-convention`, `confidence-check`, `feature-planner`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style` 은 작업이 요구할 때 세션이 알아서 로드하고, 에이전트는 각 스킬을 그것을 가리키는 단계에서 연다. 나머지는 사용자가 이름을 불러 실행하며, 아래 *명령* 에 있다 |
 | 코어 | — | `skills/core/SKILL.md` 다. 모든 에이전트가 미리 받고, `seal/` 루트가 있는 저장소의 세션마다 플러그인의 `SessionStart` 훅이 출력한다. 그래서 사용자의 `CLAUDE.md` 에는 아무것도 쓰지 않는다. 응답 언어는 정하지 않는다 |
@@ -282,12 +282,12 @@ pull request 에서 끝나며, 머지에서 끝나지 않습니다.**
 
 ### 마이그레이션
 
-기존 코드베이스의 동작을 옮겨 오는 저장소는 `seal/parity.md` 에 원본과 기준
+기존 코드베이스의 동작을 옮겨 오는 저장소는 `seal/parity.json` 에 원본과 기준
 커밋을 적어 선언합니다. 그러면 판단할 때마다 정책서와 원본, 새 코드를 나란히
 놓고 보며, 정책서가 말하지 않는 곳에서는 원본의 동작을 지킵니다. 원본의 사실은
 tracer 가 가져옵니다. 세션이 저장소를 처음 설정할 때 한 번 물어보고, 나중에
 정하려면 `/agentic:parity-setup` 을 실행합니다. 원본을 체크아웃한 경로는
-커밋되는 파일에 들어가지 않고 `~/.claude/agentic/parity-paths.md` 에
+커밋되는 파일에 들어가지 않고 `~/.claude/agentic/parity-paths.json` 에
 저장됩니다. 방법은 `skills/legacy-parity/SKILL.md` 에 있습니다.
 
 ## 내 컴퓨터에서 도는 것

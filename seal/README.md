@@ -85,7 +85,7 @@ seal/
 ├── config.md            what this repository says about itself, one row per
 │                        item. `templates/setup/config.md` in the plugin
 │                        documents every item and what an absent row means
-├── parity.md            migration config, only where one is declared
+├── parity.json          migration config, only where one is declared
 ├── pact.md              the pact, only in the repository that holds one
 ├── follow-up.md         schedulable items in a repository with no tracker
 └── threads/<work-item-id>/  one work item, whole

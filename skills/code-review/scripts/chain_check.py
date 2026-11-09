@@ -54,10 +54,12 @@ judged (`carried_by`). The arms are nine:
                 (`records_only`), which the sealer reads; the
                 last record's `target:` commit is HEAD, or every commit after
                 it touches only the work item's own directory
-  original      where git carries `seal/parity.md` at HEAD and the pull
+  original      where git carries `seal/parity.json` at HEAD and the pull
                 request changes a path outside the document roots
                 `lib/gate.py#touches_code` reads: the config's `Baseline
-                commit` row names a SHA (`lib/config.py#baseline_commit`),
+                commit` key names a SHA (`lib/config.py#baseline_commit`),
+                an earlier release's `seal/parity.md` carried without it is
+                refused naming the keys to write,
                 and one `original:` line naming it stands in the round block
                 of every round record under `Review | through the review
                 chain`, and in
@@ -1599,11 +1601,15 @@ def originals_of(reader, routing, root, paths, items, direct=()):
     reach outside them. A guarantee git does not carry is `guarantee`'s
     refusal, and none is added here; a guarantee's line is its newest
     verdict block's (`guarantee_original`). A config whose `Baseline commit`
-    names no SHA is one refusal naming it. None where `lib/` would not
-    load, said on stderr."""
+    names no SHA is one refusal naming it, and so is an earlier release's
+    `parity.md` git carries with no `parity.json` beside it, naming the
+    keys to write (#1454). None where `lib/` would not load, said on
+    stderr."""
     config = f"{routing.optin.HOME}/{routing.optin.PARITY_CONFIG}"
+    old = f"{routing.optin.HOME}/{routing.optin.OLD_PARITY_CONFIG}"
     text = read_record(root, config)
-    if text is None or not (items or direct):
+    unconverted = text is None and read_record(root, old) is not None
+    if (text is None and not unconverted) or not (items or direct):
         return []
     try:
         reads, gate = parity_readers()
@@ -1614,6 +1620,8 @@ def originals_of(reader, routing, root, paths, items, direct=()):
         return None
     if not gate.touches_code(paths):
         return []
+    if unconverted:
+        return [(old, 0, reads.unconverted_parity(config))]
     sha, why = reads.baseline_commit(text)
     if sha is None:
         return [(config, 0, NO_BASELINE.format(why=why))]

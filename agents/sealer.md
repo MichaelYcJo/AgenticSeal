@@ -116,7 +116,7 @@ return.
    names, steps 1 and 2's among them, stands in that block. Edit no earlier
    block, keep an `Answered <date> by <who>:` line standing below the block
    it answers, and read the answer as the owner's. Where git carries
-   `seal/parity.md`, the work item's `routing.md` answers
+   `seal/parity.json`, the work item's `routing.md` answers
    `straight to the PR` and the diff changes a path outside `docs/` and
    `seal/`, no round record compares the change with the original, so you
    do: compare the audited commit with the original through

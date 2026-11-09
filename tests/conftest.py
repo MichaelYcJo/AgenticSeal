@@ -1198,18 +1198,19 @@ def config_json(*pairs):
     return "{\n" + members + ("\n" if pairs else "") + "}\n"
 
 
-# A full commit id for a migration config's `Baseline commit` row.
+# A full commit id for a migration config's `Baseline commit` key.
 BASELINE = "0123456789abcdef0123456789abcdef01234567"
 
 
 def parity_file(sha):
-    """`templates/setup/parity.md` with its `Baseline commit` placeholder
-    replaced by SHA, or left standing where SHA is None."""
-    text = pathlib.Path(ROOT, "templates", "setup", "parity.md").read_text(
+    """`templates/setup/parity.json` with its `Baseline commit` placeholder
+    replaced by SHA, written as a JSON string, or left standing where SHA is
+    None."""
+    text = pathlib.Path(ROOT, "templates", "setup", "parity.json").read_text(
         encoding="utf-8"
     )
-    assert text.count("`<SHA>`") == 1
-    return text if sha is None else text.replace("`<SHA>`", f"`{sha}`")
+    assert text.count('"<SHA>"') == 1
+    return text if sha is None else text.replace('"<SHA>"', json.dumps(sha))
 
 
 # --- the pact's world ---------------------------------------------------------

@@ -2530,6 +2530,29 @@ class Test_mode_report:
         assert out.startswith("note: seal/config.md stands beside config.json"), out
         assert os.path.lexists(old)
 
+    @pytest.mark.parametrize("check", [[], ["--check"]], ids=["bare", "checked"])
+    def test_names_a_parity_md_standing_without_a_parity_json_and_its_keys(
+        self, take, capsys, check
+    ):
+        """Design *Scope* items 2 and 4. `seal mode` converts no migration
+        config, so where an earlier release's `parity.md` stands without a
+        `parity.json` it names the file and the keys to write, writes
+        nothing for it and exits as the mode alone gives; a `parity.json`
+        beside it ends the note. Seen red against a `seal mode` that said
+        nothing of it."""
+        repo = take("shared")
+        config_at(repo, mode_row("shared"))
+        old = config_at(repo, "| Field | Value |\n|---|---|\n", "parity.md")
+        before = snapshot(repo)
+        code, out = said(capsys, repo, "mode", *check)
+        assert code == 0 and out.endswith("\nThey agree.\n"), out
+        sentence = SEAL.repo_config.unconverted_parity("seal/parity.json")
+        assert out.startswith(f"note: seal/parity.md {sentence}\n"), out
+        assert snapshot(repo) == before and os.path.lexists(old)
+        config_at(repo, "{}\n", "parity.json")
+        code, out = said(capsys, repo, "mode", *check)
+        assert code == 0 and "parity.md" not in out, out
+
     @pytest.mark.parametrize("mode, other", [("shared", "local"), ("local", "shared")])
     def test_refuses_a_row_naming_the_other_mode_and_names_both_ways_out(
         self, take, capsys, mode, other

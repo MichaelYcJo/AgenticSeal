@@ -1011,7 +1011,7 @@ def _block_keys():
 def _round_record_fields():
     """What a round record carries: its grammar and the prose headings.
     Two lines are owed only where their condition holds, `original:` in a
-    repository that declares `seal/parity.md` and `reopens:` on a finding
+    repository that declares `seal/parity.json` and `reopens:` on a finding
     that raises an earlier close, so the template's one finding shows the
     other relation, `regression:`, and neither of these."""
     fields = _chain().FIELDS

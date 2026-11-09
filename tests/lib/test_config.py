@@ -33,6 +33,7 @@ this module without `lib/blocks.py`, from
 """
 
 import importlib.util
+import json
 import os
 import subprocess
 import sys
@@ -470,7 +471,8 @@ class _Old_config_table:
         """A parser that finds a row in anything is not a parser."""
         assert items("# a document with no table\n\nprose.\n") == []
         assert items("| Field | Value |\n|---|---|\n| a | b |\n") == [], (
-            "`parity.md`'s header is `| Field | Value |`; matching it here would "
+            "an earlier release's `parity.md` header was `| Field | Value |`; "
+            "matching it here would "
             "make this reader agree with a file it is not reading"
         )
         assert items("| Item | Value |\n|---|---|\n| a | b |\n") == [("a", "b")], (
@@ -1729,27 +1731,93 @@ class Test_gfm_table(_Old_config_table, _Old_config_shapes):
                 )
 
 
-class Test_baseline_commit:
-    def test_accepts_the_first_code_span_where_the_value_holds_two(self, config):
-        row = "| Baseline commit | `0123456`, not `89abcde` |"
-        text = f"| Field | Value |\n|---|---|\n{row}\n"
-        assert config.baseline_commit(text) == ("0123456", None)
+def parity_members(text):
+    """The `(key, value)` members of the migration config TEXT, in order."""
+    return json.loads(text, object_pairs_hook=list)
 
-    def test_refuses_a_table_the_walk_stops_and_names_why_its_row_went_unread(
-        self, config
-    ):
-        """The row is missing because the walk stopped above it, and the why
-        says so beside the missing row: the walk's refusal is the only place
-        the person learns which line to fix."""
-        text = (
-            "| Field | Value |\n|---|---|\n| Original | x |\n"
-            "text\n| Baseline commit | `0123456` |\n"
-        )
-        _rows, refusals = config.gfm_table(text, config.PARITY_TABLE)
+
+class Test_baseline_commit:
+    @pytest.mark.parametrize("sha", [BASELINE, BASELINE[:7]])
+    def test_accepts_the_sha_its_one_key_holds_alone(self, sha):
+        """S6: the `Baseline commit` reader the parity arm loads through
+        `chain_check.py#parity_readers` gives the SHA of `parity.json`'s
+        one `Baseline commit` key, whole or abbreviated."""
+        reads = chain.parity_readers()[0]
+        assert reads.baseline_commit(parity_file(sha)) == (sha, None)
+
+    @pytest.mark.parametrize(
+        "text, why",
+        [
+            (parity_file(None), "`<SHA>`"),
+            (parity_file(BASELINE.upper()), BASELINE.upper()),
+            (parity_file(BASELINE[:6]), BASELINE[:6]),
+            (parity_file(f"`{BASELINE}`"), f"`{BASELINE}`"),
+            (parity_file(f"{BASELINE}, read 2026-11-09"), "read 2026-11-09"),
+            (
+                table(
+                    *[
+                        (k, v)
+                        for k, v in parity_members(parity_file(BASELINE))
+                        if k != "Baseline commit"
+                    ]
+                ),
+                "holds no `Baseline commit` key",
+            ),
+            (
+                table(
+                    ("Baseline commit", BASELINE),
+                    *parity_members(parity_file(BASELINE)),
+                ),
+                "`Baseline commit` appears 2 times",
+            ),
+            (table(("Baseline commit", 123)), "holds a JSON number"),
+            (
+                "| Field | Value |\n|---|---|\n| Baseline commit | `0123456` |\n",
+                "does not parse as JSON",
+            ),
+            ("[]\n", "holds a JSON array"),
+        ],
+        ids=[
+            "the placeholder",
+            "upper case",
+            "six digits",
+            "a code span",
+            "a SHA and a date",
+            "no such key",
+            "the key twice",
+            "a number",
+            "an earlier release's table",
+            "an array",
+        ],
+    )
+    def test_refuses_a_config_that_names_no_sha_and_says_why(self, text, why):
+        """S6: a `Baseline commit` that is not 7 to 40 lowercase hex digits
+        and nothing else, an absent key, a key written twice, a value that
+        is not a string, and a file that is not one JSON object each give
+        no SHA and a why naming it, which reads after the file's name."""
         sha, said = config.baseline_commit(text)
-        assert sha is None and refusals, refusals
-        assert "no `Baseline commit` row" in said, said
-        assert all(r in said for r in refusals), said
+        assert sha is None and why in said, (said, text)
+        assert not said.startswith(("seal/", "parity")), said
+
+
+class Test_unconverted_parity:
+    def test_names_the_file_to_write_and_every_key_the_template_holds(self):
+        """S6 and design *Scope* item 4: the sentence the parity arm refuses
+        an earlier release's `parity.md` in, and `seal mode` names one in,
+        names the file to write, the template it is written from and each
+        of the template's keys, so a person converts it without opening
+        another page."""
+        with open(
+            os.path.join(ROOT, "templates", "setup", "parity.json"), encoding="utf-8"
+        ) as handle:
+            template = handle.read()
+        keys = tuple(k for k, _v in parity_members(template))
+        assert keys == config.PARITY_KEYS
+        said = config.unconverted_parity("seal/parity.json")
+        assert "write seal/parity.json" in said, said
+        assert "`templates/setup/parity.json`" in said, said
+        for key in keys:
+            assert f"`{key}`" in said, (key, said)
 
 
 class Test_renamed_header:
@@ -1759,7 +1827,7 @@ class Test_renamed_header:
         assert "`| Signatory | Note |`" in said, said
 
     def test_refuses_a_header_that_holds_no_signer(self, config):
-        assert config.renamed_header(config.PARITY_TABLE) == (None, None)
+        assert config.renamed_header(("Field", "Value")) == (None, None)
 
 
 class Test_module:
@@ -1784,42 +1852,6 @@ class Test_module:
         )
         assert config.policy_root(str(tmp_path)) == root
         assert config.policy_root("") == "docs"
-
-    def test_the_baseline_is_the_first_code_span_of_its_one_row(self):
-        """The `Baseline commit` reader in `lib/config.py`: the SHA in the
-        first code span of the one row, else no SHA and why, naming a
-        placeholder, a second row, no row and no table."""
-        config = chain.parity_readers()[0]
-        row = (
-            "| Baseline commit | `<SHA>`, the commit the original's coordinates "
-            "refer to |"
-        )
-        text = parity_file(BASELINE)
-        assert config.baseline_commit(text) == (BASELINE, None)
-        assert config.baseline_commit(parity_file(BASELINE[:7])) == (
-            BASELINE[:7],
-            None,
-        )
-        for bad, why in (
-            (parity_file(None), "`<SHA>`"),
-            (parity_file(BASELINE.upper()), BASELINE.upper()),
-            (
-                text.replace(row.replace("<SHA>", BASELINE) + "\n", ""),
-                "no `Baseline commit` row",
-            ),
-            (
-                text.replace(
-                    "| Policy root |",
-                    row.replace("<SHA>", BASELINE) + "\n| Policy root |",
-                ),
-                "2 `Baseline commit` rows",
-            ),
-            ("# Migration config\n", "holds no `| Field | Value |` table"),
-        ):
-            sha, said = config.baseline_commit(bad)
-            assert sha is None and why in said, (said, bad)
-        _sha, said = config.baseline_commit("# Migration config\n")
-        assert "Baseline commit" not in said, said
 
     def test_a_reader_copied_without_the_walk_names_it(self, tmp_path):
         """#667. This module imports `lib/blocks.py`, the walk the readers under

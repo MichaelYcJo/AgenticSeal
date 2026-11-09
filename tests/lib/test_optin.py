@@ -5,7 +5,7 @@ two places.
 local mode keeps it (#80). The root's presence is the whole declaration, and
 there is no config key. `.specseal/` and `_ai/` are not addresses at all, and
 the throwaway opt-out is a file under the git directory, where nothing can
-commit it. The migration config is `seal/parity.md` and only that. A reader
+commit it. The migration config is `seal/parity.json` and only that. A reader
 that decoded nothing answers "not opted in" and never raises.
 
 The cases come from `tests/test_optin_home.py` and
@@ -524,22 +524,26 @@ class Test_opted_in:
 class Test_parity_config:
     def test_accepts_the_one_address(self, optin, repo):
         home(repo)
-        (repo / "seal" / "parity.md").write_text(
-            "| Original repo | org/legacy |\n", encoding="utf-8"
+        (repo / "seal" / "parity.json").write_text(
+            '{"Original repo": "org/legacy"}\n', encoding="utf-8"
         )
         # The address, not one platform's spelling of it: `parity_config`
         # builds this with `os.path.join`, and a literal `/` here asserted
         # that the module answers in POSIX on a platform where nothing else
         # does.
         assert optin.parity_config(str(repo)).endswith(
-            os.path.join("seal", "parity.md")
+            os.path.join("seal", "parity.json")
         )
 
     def test_refuses_the_legacy_addresses(self, optin, repo):
-        """`.specseal/parity.md` was the 0.3 location and `docs/parity.md` the
-        pre-0.10 one. Neither is read: leaving a read in meant the documents
+        """`.specseal/parity.md` was the 0.3 location, `docs/parity.md` the
+        pre-0.10 one, and `seal/parity.md` the table an earlier release read
+        before #1454. None is read: leaving a read in meant the documents
         describing one address while the code accepted two."""
         home(repo)
+        (repo / "seal" / "parity.md").write_text(
+            "| Original repo | org/legacy |\n", encoding="utf-8"
+        )
         (repo / "docs").mkdir(exist_ok=True)
         (repo / "docs" / "parity.md").write_text(
             "| Original repo | org/legacy |\n", encoding="utf-8"
@@ -555,8 +559,8 @@ class Test_parity_config:
         under review has nothing to compare against an original either."""
         home(repo)
         scratch(repo)
-        (repo / "seal" / "parity.md").write_text(
-            "| Original repo | org/legacy |\n", encoding="utf-8"
+        (repo / "seal" / "parity.json").write_text(
+            '{"Original repo": "org/legacy"}\n', encoding="utf-8"
         )
         assert optin.parity_config(str(repo)) == ""
 
@@ -564,12 +568,12 @@ class Test_parity_config:
         self, optin, repo, tmp_path, monkeypatch
     ):
         """No root, no migration config, even where this process sits beside a
-        `parity.md`: the config is read under the root and nowhere else
+        `parity.json`: the config is read under the root and nowhere else
         (#1017, the body's `parity_config` row)."""
         here = tmp_path / "here"
         here.mkdir()
-        (here / "parity.md").write_text(
-            "| Original repo | org/legacy |\n", encoding="utf-8"
+        (here / "parity.json").write_text(
+            '{"Original repo": "org/legacy"}\n', encoding="utf-8"
         )
         monkeypatch.chdir(here)
         assert optin.parity_config(str(repo)) == ""

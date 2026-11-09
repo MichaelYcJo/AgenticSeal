@@ -312,7 +312,7 @@ def test_a_projects_own_seal_names_the_marker_template_and_the_git_dir_root():
         ("skills", "implement", "SKILL.md"),
         # Phases 3 and 4 of #107 re-pointed both definitions' rows here. The
         # sentence was in two of them verbatim and in the third not at all,
-        # and the agent without it is the one that reads `seal/parity.md`. It
+        # and the agent without it is the one that reads `seal/parity.json`. It
         # is contract rule 11 now, which every agent receives at startup.
         ("skills", "agent-contract", "SKILL.md"),
     ],

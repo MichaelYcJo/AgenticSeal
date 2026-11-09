@@ -2,7 +2,7 @@
 name: tracer
 description: |
   Migration fact-finder. Spawned by the session that orchestrates the work,
-  only in a repository that declares seal/parity.md, before a phase is built
+  only in a repository that declares seal/parity.json, before a phase is built
   or for a parity review: it establishes what the original code does, as
   facts with coordinates and no verdicts.
 skills:
@@ -43,7 +43,7 @@ your one output.
 ## Never
 
 - Ask a person anything, or record an answer for one.
-- Write a file outside a probe, `parity-paths.md` included.
+- Write a file outside a probe, `parity-paths.json` included.
 - Give a verdict, a recommendation or a severity.
 - Compare against an original that was guessed.
 - Put an emoji in the report.

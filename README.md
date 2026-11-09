@@ -234,7 +234,7 @@ cost of inference.
 | **framer** (subagent) | `core`, `agent-contract` | Writes the work item's design, plan and questions before anybody builds, and writes no code ([`agents/framer.md`](agents/framer.md)) |
 | **crafter** (subagent) | `core`, `agent-contract` | Builds one phase against the frame, or runs one fix pass over a review round ([`agents/crafter.md`](agents/crafter.md)) |
 | **proofer** (subagent) | `core`, `agent-contract` | Reviews the committed diff, its compliance with the frame first and its quality second, and writes a round record for each round ([`agents/proofer.md`](agents/proofer.md)) |
-| **tracer** (subagent) | `core`, `agent-contract` | Records what an original codebase does, as facts with coordinates and no verdicts, in a repository that declares `seal/parity.md` ([`agents/tracer.md`](agents/tracer.md)) |
+| **tracer** (subagent) | `core`, `agent-contract` | Records what an original codebase does, as facts with coordinates and no verdicts, in a repository that declares `seal/parity.json` ([`agents/tracer.md`](agents/tracer.md)) |
 | **sealer** (subagent, Opus) | `core`, `agent-contract` | Reads every party's account against the issue and the tree after the broad gate, and writes the verdict, `guarantee.md` ([`agents/sealer.md`](agents/sealer.md)) |
 | Skills | — | The skills an agent holds from its first call are in the column to the left. These a session loads on its own when the work calls for them, and an agent opens each at the step that names it: `code-review`, `commit-pr-convention`, `confidence-check`, `feature-planner`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style`. The rest you invoke by name, under *Commands* |
 | Core | — | `skills/core/SKILL.md`. Every agent preloads it, and the plugin's `SessionStart` hook prints it into each session in a repository with a `seal/` root, so nothing is written into your `CLAUDE.md`. It sets no response language |
@@ -282,13 +282,13 @@ not exist.
 ### Migrations
 
 A repository that ports behaviour from an existing codebase declares
-`seal/parity.md`, naming the original and its baseline commit. Each
+`seal/parity.json`, naming the original and its baseline commit. Each
 judgment then weighs the policy, the original and the new code, and the
 original's behaviour is kept where the policy says nothing. The tracer
 fetches the original's facts. Your session asks about it once, the first
 time it sets up a repository, and `/agentic:parity-setup` decides it later.
 Your checkout path of the original stays out of the committed file, in
-`~/.claude/agentic/parity-paths.md`. `skills/legacy-parity/SKILL.md` is the
+`~/.claude/agentic/parity-paths.json`. `skills/legacy-parity/SKILL.md` is the
 method.
 
 ## What runs on your machine
