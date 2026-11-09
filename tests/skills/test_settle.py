@@ -21,16 +21,18 @@ two arms over the `tree` fixture's history; `Test_main` runs the command over
 a repository whose merge order git holds, and over a local root with a `gh`
 stub on PATH. `Test_module` holds the loader, the
 launcher, the answer the command takes from `rule_changes.py#order`, asked
-over the repositories this file builds, the copy run without its siblings,
-and `SPECS` held under `seal/`.
+over the repositories this file builds, and the copy run without its
+siblings. `Test_threads` holds the work items' place under the root's own
+name.
 
 #942's phase 6 placed these cases from
 `tests/text/test_settle_reads_before_it_removes.py` and
 `tests/behaviour/test_settle_applies_rule_changes_in_place.py`, which keep the cases
 that read the skill, the documents, the READMEs, the checklist and the cheat
 sheets. The copy's case came from `tests/test_a_script_copied_alone_exits_2.py`
-and the `SPECS` case from `tests/behaviour/test_a_reference_root_is_read_and_never_taken.py`
-in #942's round 9 fix pass, each a case of this module alone.
+and the case `Test_threads` replaced from
+`tests/behaviour/test_a_reference_root_is_read_and_never_taken.py` in #942's
+round 9 fix pass, each a case of this module alone.
 """
 
 import io
@@ -846,7 +848,7 @@ class Test_apply:
     def test_apply_leaves_a_team_specs_of_the_same_name_on_disk(self, tree):
         """#688 D3. A project's own `specs/` is read as history and never taken,
         even where a team directory carries the removed work item's very id: the
-        removal is `seal/threads/` whatever else the tree holds (`SPECS`)."""
+        removal is `seal/threads/` whatever else the tree holds (`threads`)."""
         team = tree / "specs" / "1700000001-alpha"
         team.mkdir(parents=True)
         (team / "design.md").write_text("# the team's design\n", encoding="utf-8")
