@@ -92,4 +92,12 @@ came in with `4c193822`, the frame fold this phase was spawned on, and
 this phase's diff does not touch `frame/design.md` (executed: `git blame
 -L 25,25` and `git diff --stat 4c193822 8b55ee74`). The frame is not this
 phase's to write, so the hand-back names the line for the orchestrator to
-fold.
+fold. The same command at `62e7a003`, with this record and the `gaps.md`
+row committed, gave the same one failure and the same counts (executed).
+
+**`ba3ba7a4` rewrapped the crafter's rule and reworded one clause of its
+case's docstring, which had said the case pins the removal.** It changes
+no pinned phrase. The scratch module,
+`tests/text/test_a_moved_rule_leaves_its_definition.py` and
+`tests/behaviour/test_docs_line_wrap.py` passed in one command after it
+(executed).
