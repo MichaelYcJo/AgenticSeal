@@ -64,6 +64,11 @@ seal 은 마지막 에이전트가 쓰는 보증서입니다. 커밋 하나를 �
 않습니다. 머지는 사용자가 합니다.
 ```
 
+```seal
+verdict: fixed ddf7b471
+answer: Both opening paragraphs now name the exception before the seal sentence. The wording is my own where the paste-ready text stops short: under `agentic` the orchestrator writes `Destination` `stop before the pull request` where the issue or the person's words ask for the branch back (`skills/implement/orchestration.md` *Under agentic*, the Destination bullet), and that run ends at no pull request either, so each edition names both cases, "as under `direct`, or you asked for the branch back" and its Korean counterpart. The Korean edition also ends the clause with a full stop before "머지는 하지 않습니다", so the sentence stays one condition and one result. No other README sentence promises a sealed pull request for every run (executed: `git grep -n -i "every run\|always ends\|ends at a pull request\|ends in a seal\|에서 끝나"` over both READMEs; the hits left are the plugin description at `README.md:9` and the chain's own ending at `README.md:272` and `README.ko.md:275`, which describe the full chain). No sentence `pr.md` quotes changed.
+```
+
 ### 2. The routing template asks for one or two sentences of grounds, while *Under agentic* asks the orchestrator for each row's grounds
 
 ```seal
@@ -104,6 +109,11 @@ departure from *Out* in its phase record or in its close.
 ## Why this way
 
 <the grounds `skills/implement/orchestration.md` *What the answer writes* asks for>
+```
+
+```seal
+verdict: fixed 55815ed9
+answer: Applied as given. The placeholder cites the section that sets both lengths, one or two sentences where the person chose the rows and the grounds *Under agentic* asks for where the orchestrator chose them, so the length has one source; the `Answered` line is unchanged. The orchestrator folded the template into scope at `417e0839` (`frame/design.md` *Out*, and the last row of `frame/plan.md` *Judgments of the run*), so this is no departure. No other file restates the template's old length for `routing.md` (executed: `git grep -n "one or two sentences"`, leaving `skills/implement/orchestration.md:367`, the source, and `templates/records/sdd-plan.md:35`, about a plan's judgment rows). The changelog fragment's first *Added* item gains one sentence saying the placeholder now points at that section, inserted between sentences `pr.md` quotes and changing none of them, so `pr.md` needs no change.
 ```
 
 ## Confirmations
