@@ -126,8 +126,9 @@ One line, list item or table cell per quote, in `pr.md`'s order, each with the c
     stand, and below that line the copy of the work item's records
   to: `seal pr-body` writes above the line
     `skills/code-review/scripts/pr_body.py#HEADING` holds the work item's
-    `pr.<lang>.md`, where `seal/config.md`'s `Commit and pull request
-    language` and `Record language` rows name different languages, and then
+    `pr.<lang>.md`, where `seal/config.md`'s
+    `Commit and pull request language` and `Record language` rows name
+    different languages, and then
     `pr.md`, each as its bytes stand, and below that line the copy of the
     work item's records
 - change
