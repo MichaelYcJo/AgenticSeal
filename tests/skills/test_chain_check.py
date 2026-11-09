@@ -3121,15 +3121,23 @@ PR_BODY = load(
 MARK = PR_BODY._mark_line(PR_BODY.MANIFEST)[0]
 CHANGED_LINE = "- The body is the records'."
 SECOND_ITEM = "seal/threads/1791999998-another-work-item"
+# #1453: `config.md`'s table, holding the two language rows the body's
+# first part is composed from; a case adds the mark row below them.
+LANGUAGES = (
+    "| Commit and pull request language | English |\n| Record language | English |\n"
+)
+CONFIG = "| Item | Value |\n|---|---|\n" + LANGUAGES
 
 
 def composed_body(root, item=ITEM):
-    """The body `seal pr-body` writes for ITEM in ROOT as it stands: `pr.md`,
-    the heading, the mark where the item is sealed at HEAD, and the copy."""
+    """The body `seal pr-body` writes for ITEM in ROOT as it stands: the
+    first part the language rows ask for, the heading, the mark where the
+    item is sealed at HEAD, and the copy."""
     path = str(root / item)
     mark, _note = PR_BODY.seal_mark(path, str(root))
     name = os.path.basename(item)
-    return PR_BODY.read_own(path) + PR_BODY.compose(name, PR_BODY.read_item(path), mark)
+    own = "".join(text for _name, text in PR_BODY.first_part(path, str(root)))
+    return own + PR_BODY.compose(name, PR_BODY.read_item(path), mark)
 
 
 def payload(tmp_path, monkeypatch, body, draft=False):
@@ -3152,21 +3160,17 @@ def body_lines(out):
 @pytest.fixture
 def bodied(tmp_path):
     """A branch that went straight to the pull request with a `pr.md` and a
-    changelog, in a shared root whose `Pull request seal mark` row reads
-    `yes`, sealed at HEAD. Returns `(root, early, late)`: the body `seal
-    pr-body` wrote before the guarantee was committed, and the one it wrote
-    after."""
+    changelog, in a shared root whose two language rows read `English` and
+    whose `Pull request seal mark` row reads `yes`, sealed at HEAD. Returns
+    `(root, early, late)`: the body `seal pr-body` wrote before the
+    guarantee was committed, and the one it wrote after."""
     d = tmp_path / "b"
     init(d)
     write(d, "f.txt", "one\n")
     commit(d, "base")
     git(d, "switch", "-q", "-c", "feature/g")
     mark_root(d / "seal")
-    write(
-        d,
-        "seal/config.md",
-        "| Item | Value |\n|---|---|\n| Pull request seal mark | yes |\n",
-    )
+    write(d, "seal/config.md", CONFIG + "| Pull request seal mark | yes |\n")
     write(d, f"{ITEM}/routing.md", SEALED_ROUTING)
     write(d, f"{ITEM}/pr.md", "Closes #1.\n")
     write(d, f"{ITEM}/changelog.md", CHANGED_LINE + "\n")
@@ -3263,7 +3267,7 @@ class Test_body:
         `yes` is named on a notice in `seal pr-body`'s words. Seen red with
         the arm's call in `main` removed."""
         root, _early, _late = bodied
-        write(root, "seal/config.md", "| Item | Value |\n|---|---|\n" + row)
+        write(root, "seal/config.md", CONFIG + row)
         commit(root, "the row, changed")
         head = git(root, "rev-parse", "HEAD")
         write(root, f"{ITEM}/trail/gate.md", gate_file(head))
@@ -3446,6 +3450,77 @@ class Test_body:
         code, out = check(root, capsys)
         assert code == 1, out
         assert f"{ITEM}/pr.md:0  {PR_BODY.NO_OWN_PART}" in out.splitlines(), out
+
+    def test_refuses_a_repository_without_a_language_row_at_its_config(
+        self, bodied, tmp_path, monkeypatch, capsys
+    ):
+        """#1453, *Scope* item 3: `seal pr-body` composes no body for a
+        repository whose `config.md` lacks a language row, so the arm, which
+        reads the body through the same function, refuses at the root's
+        `config.md`, as it refuses a record `compared` places at a path.
+        Seen red with `compared` reading `pr.md` alone, where no line named
+        `config.md`."""
+        root, _early, late = bodied
+        write(
+            root,
+            "seal/config.md",
+            "| Item | Value |\n|---|---|\n"
+            "| Commit and pull request language | English |\n"
+            "| Pull request seal mark | yes |\n",
+        )
+        commit(root, "the record row taken out")
+        payload(tmp_path, monkeypatch, late)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        assert (
+            "seal/config.md:0  names no language in a `Record language` row; "
+            "`templates/setup/config.md` *Record language* says what the row "
+            "governs, and the orchestrator asks for it before the first edit"
+        ) in out.splitlines(), out
+
+    def test_reads_the_translation_as_the_bodys_first_lines(
+        self, bodied, tmp_path, monkeypatch, capsys
+    ):
+        """#1453, *Scope* item 3, the scenario *The pull request's arm passes
+        the composed body*. Where the rows differ, the body `seal pr-body`
+        composes opens with the work item's `pr.<lang>.md`, and the arm
+        passes it; a body whose first part is `pr.md` alone is refused at its
+        first line, naming the translation. Seen red with `compared` reading
+        `pr.md` alone, where the composed body was refused at its first
+        line. The lines are compared without their ends and the translation
+        is taken out as the first line the body holds, because `write` ends
+        each line with CRLF on Windows and `seal pr-body` copies the files'
+        line ends as they stand."""
+        root, _early, _late = bodied
+        write(
+            root,
+            "seal/config.md",
+            CONFIG.replace("| English |\n", "| Korean |\n", 1)
+            + "| Pull request seal mark | yes |\n",
+        )
+        write(root, f"{ITEM}/pr.ko.md", "닫는다 #1.\n")
+        commit(root, "the team's language, and its translation")
+        head = git(root, "rev-parse", "HEAD")
+        write(root, f"{ITEM}/trail/gate.md", gate_file(head))
+        write(root, f"{ITEM}/guarantee.md", guarantee(head, "sealed"))
+        commit(root, "the closing records, again")
+        composed = composed_body(root)
+        lines = composed.splitlines(keepends=True)
+        assert [line.rstrip("\r\n") for line in lines[:2]] == [
+            "닫는다 #1.",
+            "Closes #1.",
+        ], composed
+        payload(tmp_path, monkeypatch, composed)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert body_lines(out) == [], out
+        payload(tmp_path, monkeypatch, "".join(lines[1:]))
+        code, out = check(root, capsys)
+        assert code == 1, out
+        assert body_lines(out) == [
+            f"{ITEM}:0  the pull request's body, line 1: lacks `닫는다 #1.`, "
+            "which pr.ko.md gives"
+        ], out
 
 
 # --- the declaration for this branch, in local mode (#225) --------------------------

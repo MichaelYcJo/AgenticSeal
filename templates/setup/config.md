@@ -8,11 +8,11 @@ The root is at one of two places and whichever exists is the answer:
 `<repo>/seal/`, which is committed, or `$(git rev-parse --git-common-dir)/seal/`,
 which is not. This file goes wherever that root already is.
 
-**This file is optional, and an absent row is not an error, with two
-exceptions: `Mode` and `Broad gate`.** Every other item has a default, and
-the defaults are what every repository got before the row existed. A
-repository needs the file only where one of its answers is not the default;
-a file that restates the defaults is a file nobody needs. An item is named
+**An absent row is not an error, with four exceptions: the two language
+rows, `Mode` and `Broad gate`.** Every other item has a default, and the
+defaults are what every repository got before the row existed. Beyond those
+four rows, a repository writes a row only where its answer is not the
+default; a row that restates a default is a row nobody needs. An item is named
 by its row's first cell spelt as this file spells it, case included. A first
 cell spelt otherwise, such as `Policy Root`, names no item, so the item reads
 as absent.
@@ -27,6 +27,11 @@ nothing once the row exists.
 **An absent `Broad gate` is a refusal, not a prompt:** `seal gate` names the
 row and exits 2 with nothing run, because a run over a command nobody chose
 proves nothing (*Broad gate* below).
+
+**An absent language row is a refusal at the pull request body, and never
+at a commit:** `seal pr-body` names the row and refuses with nothing
+written, and a commit is written in English (*Commit and pull request
+language* below).
 
 **A row written twice has no value, and a file that will not read is
 refused rather than read as absent.** One reader answers every row of this
@@ -85,12 +90,22 @@ value is a language's English name, such as `English`, `Korean` or
 `Japanese`, because the reader is a model choosing prose, not a lookup table.
 
 In the body of a pull request routed through the review chain, the row
-governs the lines of the body's first part, the work item's `pr.md` above
-the line `skills/code-review/scripts/pr_body.py#HEADING` holds, that quote
-no record: its `Closes`, `Part of` and attribution lines. A quote in
+governs the lines of the work item's `pr.md` that quote no record: its
+`Closes`, `Part of` and attribution lines. `pr.md` stands in the body's
+first part, above the line `skills/code-review/scripts/pr_body.py#HEADING`
+holds. A quote in
 `pr.md` is its record's sentence as it stands, and the part below that line
 is the records' own text, copied by `seal pr-body`, so both are in
-`Record language`.
+`Record language`. Where this row and `Record language` name different
+languages, the row also governs the mirror that opens the body (*What no
+row governs* below).
+
+**This row is required, and so is `Record language`.** First setup asks
+for both, the orchestrator asks for both before a work item's first edit
+wherever either is missing, and `seal pr-body` refuses to compose a pull
+request body without either. A commit is never refused for them: where a
+row is absent, in any of the four ways `commit-pr-convention` names, the
+commit is written in English.
 
 ## Record language
 
@@ -100,11 +115,11 @@ The language the **prose** in the work-item records is written in:
 account, the value of its close block's `answer:` line, the prose after each
 confirmation block, and the cells of its tables.
 
-**Independent of the row above.** Setting one does not carry the other, for
-the reason stated at the top of this file: an absent row's default is what
-every repository got before the row existed, and a row that silently inherits
-another's value is not that. Someone who set the commits to Korean and left
-this one alone did not ask for Korean records.
+**Independent of the row above, and required like it.** Setting one does
+not carry the other: a row that silently inherited another's value would
+declare a language nobody chose. Someone who set the commits to Korean and
+left this one alone did not ask for Korean records, so both are asked, and
+`seal pr-body` refuses without either.
 
 The records have a human audience too, and its size differs by repository.
 Where the whole team reads them, English is a tax on every reader; where the
@@ -161,18 +176,14 @@ every repository, whatever either row says:
   user's own configuration. Two people working in one repository can want different
   answers there and the same answer here.
 
-Where a translated pull-request body is wanted, it goes in the repository as
-a file, named for **its own** language rather than the body's: the work item's
-own folder holds `pr.ko.md` when the commit row says English, and `pr.en.md`
-when it says Korean. A record has no mirror: there is one file and a checker
-reads it, so its prose is whatever `Record language` says and nothing else.
-
-That folder sits under the root, which is resolved rather than spelled: the
-same two places this file is looked for. Where the root resolves under the
-git directory, the mirror does **not** go there, because nothing under it is
-ever a commit candidate, so a reviewer cannot open the file and the merge
-carries nothing. The mirror then goes beside the documents the pull request
-already touches.
+Where the two language rows name different languages, the pull request body
+opens with a mirror: the work item's own folder holds `pr.<lang>.md` beside
+`pr.md`, holding each quote of `pr.md` rendered in `Commit and pull request
+language`, and `seal pr-body` writes it above `pr.md`. It is named for
+**its own** language, the commit row's: a repository whose records are
+English and whose commits are Korean keeps `pr.ko.md`. A record has no
+mirror: there is one file and a checker reads it, so its prose is whatever
+`Record language` says and nothing else.
 
 ## Mode
 
@@ -201,7 +212,7 @@ the pull-request checks run, exits non-zero for a disagreement left
 standing, so the row cannot quietly go false.
 
 **There is no default, and an absent row is filled in from the folder.**
-Every other item here falls back to what repositories got before the row
+An item with a default falls back to what repositories got before the row
 existed; for the mode, what they got is *the folder decides*. So the first
 `seal mode` in a repository with no such row writes one from where the
 folder actually is, an observation rather than an assumption, and says

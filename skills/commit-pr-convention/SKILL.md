@@ -65,8 +65,9 @@ That row governs the **commit subject and body**, the **pull request title and
 body** (all four, because a squash makes them one text) and the **review
 report posted as a pull-request comment**, which is prose for whoever opens
 that pull request. In the body of a work item routed through the review
-chain it governs the lines of `pr.md` that quote no record, as *Pull
-request bodies* below says.
+chain it governs the lines of `pr.md` that quote no record and, where the
+two rows differ, the whole of `pr.<lang>.md`, as *Pull request bodies*
+below says.
 
 **It does not govern the work-item records.** `frame/design.md`, `frame/plan.md`,
 `gaps.md`, `frame/questions.md`, `changelog.md` and `trail/rounds/round-N.md`'s cells
@@ -77,8 +78,17 @@ does not carry the other.
 **Every way of not naming a language lands on English.** There are four of
 them and they are one rule: no file, no such row, an empty value, and a file
 that cannot be read or does not parse as that table. A config nobody can read
-must not stop a commit, so the writer meeting any of these writes English and
-carries on rather than asking.
+must not stop a commit, so the writer of a commit meeting any of these
+writes English and carries on rather than asking.
+
+**Both rows are required all the same, and a commit is never refused for
+them.** The orchestrator asks for the two rows at first setup
+(`skills/implement/bootstrap.md` step 1) and before a work item's first
+edit wherever either is missing (`skills/implement/orchestration.md`
+*Orchestrator: what needs a person is asked in one batch, before the first
+edit*). `seal pr-body` refuses to compose a pull request body where either
+row is absent in any of the four ways, because the body's language is the
+one the team reads. Nothing reads the rows at a commit.
 
 **To create it, copy `templates/setup/config.md` from this plugin into the root and
 edit the row meant.** It ships more than one. The mode's row is written
@@ -108,7 +118,8 @@ to change:
   there and the same one here.
 
 A repository whose team writes another language says so in one row; one that
-says nothing writes English.
+says nothing writes its commits in English and gets no pull request body
+from `seal pr-body` until it says.
 
 ## Commit messages
 
@@ -224,8 +235,9 @@ structure that came out wrong is not recovered by fixing sentences.
 
 **A work item routed through the review chain has a body in two parts, and
 the orchestrator's comes first.** The first part is the work item's
-`pr.md`, which the orchestrator commits before the first round, and
-`seal pr-body` writes it above the line
+`pr.md`, opened by its mirror where the two rows name different languages
+(below). The orchestrator commits `pr.md` before the first round, and
+`seal pr-body` writes the first part above the line
 `skills/code-review/scripts/pr_body.py#HEADING` holds, then the second part
 under that line from the work item's other records, inside one `<details>`
 fold (`skills/code-review/orchestration.md` *Orchestrator: the pull request
@@ -234,7 +246,8 @@ lines, quotes of the records, each with its coordinate, and the attribution
 line. Its `Closes`, `Part of` and attribution lines are in the language
 `Commit and pull request language` names. A quote is its record's sentence
 as it stands, so it is in `Record language`, and so is the second part, the
-records' own text; nobody rewrites or translates either.
+records' own text; nobody rewrites either, and the second part is never
+translated.
 
 **What the rounds found is the copy's *Review rounds* section**, copied from
 the round records, and `pr.md` states a round's fact only as a quote of its
@@ -246,25 +259,24 @@ and feed the flow log*, which owns its rows).
 did, is one row of `frame/plan.md` *Judgments of the run*, which `pr.md`
 quotes.** The orchestrator writes that row before it writes `pr.md`.
 
-Where a translated body is wanted, **the writer puts it in the repository as a
-file and links it from the body.**
+**Where the two rows name different languages, the body opens in the
+team's language.** The orchestrator writes a translated file, the mirror,
+beside `pr.md`: the quotes of `pr.md` in the commit language, each with its
+coordinate, in the shape `skills/code-review/orchestration.md`
+*Orchestrator: the pull request opens once the sealer seals* gives it.
+`seal pr-body` writes the mirror above `pr.md`, so the body's first part is
+the mirror and then `pr.md`. Where the two rows name one language, no
+mirror is written.
 
 - **Where**: the work item's own folder under the root, as `pr.<lang>.md`,
-  and `<lang>` is the mirror's **own** language rather than the body's. An
-  English repository keeps a Korean mirror at
-  `<root>/threads/<work-item-id>/pr.ko.md`; a Korean one keeps an English
-  mirror at `pr.en.md`. `<root>` resolves the way the language section above
-  resolves it, and the next bullet says where it must not land.
-- **Why there**: its permissions are the repository's, so anyone who can
-  read the pull request can open it; it is versioned with the code; and it
-  survives the merge.
-- **So not under the git directory.** Where the root resolves to
-  `$(git rev-parse --git-common-dir)/seal/`, nothing under it is ever a
-  commit candidate, which takes away all three reasons above at once: a
-  reviewer cannot open it, no version of it exists, and the merge carries
-  nothing. The mirror goes beside the documents the pull request already
-  touches instead, the same place a repository with no work-item structure
-  puts it.
+  and `<lang>` is the mirror's **own** language, the commit language. A
+  repository whose records are English and whose team writes Korean keeps
+  `<root>/threads/<work-item-id>/pr.ko.md`; one whose records are Korean
+  and whose team writes English keeps `pr.en.md`. `<root>` resolves the way
+  the language section above resolves it.
+- **Why there**: it is a record of the work item, as `pr.md` is, so every
+  round reads it at its target, and `seal pr-body` copies it into the body,
+  where a reader of the pull request reads it in either mode.
 - **Not a hosted document or artifact.** A hosted document is private by
   default, so its link in a public pull request opens for nobody but its
   author; it stays readable only through a share somebody makes by hand; and
@@ -302,9 +314,12 @@ The writer answers these rather than assuming them.
 1. Was `gh pr list` run, **and the title compared to what it returned**?
 2. Does the title carry the prefix the table in *Commit messages* gives the
    change?
-3. Was **`config.md` in the root opened**, and are the title and body in
-   the language its `Commit and pull request language` row names? No file and
-   no such row both mean English.
-4. If there is a translation, is it a file in the repository, not a hosted
-   document, and is it named for its own language?
+3. Was **`config.md` in the root opened**, does it carry both language
+   rows, and are the title and the body's lines that quote no record in the
+   language its `Commit and pull request language` row names? Without
+   either row, `seal pr-body` refuses, and the rows are written before the
+   body is.
+4. Where the two rows name different languages, does the work item hold
+   one `pr.<lang>.md`, named for its own language, that `seal pr-body`
+   places above `pr.md`, and no hosted document?
 5. Does the title alone say what happened?

@@ -74,14 +74,16 @@ judged (`carried_by`). The arms are nine:
                 verdict block, or with a line the reader refuses, fails
   body          where the event payload holds `pull_request.body`, that
                 body is what `seal pr-body` composes at HEAD for the one
-                judged work item that is not retired: its `pr.md`, the
-                heading, the seal mark where the `Pull request seal mark`
+                judged work item that is not retired: its first part, the
+                `pr.<lang>.md` and `pr.md` the two language rows ask for,
+                the heading, the seal mark where the `Pull request seal mark`
                 row and the guarantee, read against `--baseline` as the
                 guarantee arm reads it, give one, and the records' copy,
                 compared through `pr_body.py#compared`, the function `seal
                 pr-body --check` calls; each differing line is refused on
                 the work item's directory naming the body's line, and a
-                record that function refuses at its line; a payload with no
+                record that function refuses at its line, the root's
+                `config.md` lacking a language row among them; a payload with no
                 body, `--worktree`, and a pull request carrying more than
                 one judged work item holding `pr.md`, or several none of
                 which holds one, name the body as not read (`body`)
@@ -137,6 +139,7 @@ import collections
 import importlib.util
 import json
 import os
+import posixpath
 import re
 import shutil
 import subprocess
@@ -1789,9 +1792,11 @@ def body(root, items, text, why, base=None):
     and holds none, which `compared` refuses at `pr.md`; where more than one
     holds a `pr.md`, or none does among several, the body is named as not
     read for each, in the sentence for that shape. A line of the body is
-    refused on the work item's directory, naming the body's line; a record `compared` refuses is
-    refused at its line under the work item; `seal_mark`'s sentence is a
-    notice. Unreadable where `pr_body.py` will not load."""
+    refused on the work item's directory, naming the body's line; a record
+    `compared` refuses is refused at its line, by its path from the work
+    item's directory, which names the root's `config.md` for a language row
+    (#1453); `seal_mark`'s sentence is a notice. Unreadable where
+    `pr_body.py` will not load."""
     if text is None:
         return [], [("", 0, BODY_UNREAD.format(why=why))]
     holders = [i for i in items if read_record(root, f"{i}/{PR_FILE}") is not None]
@@ -1814,7 +1819,8 @@ def body(root, items, text, why, base=None):
             )
             problems.append((item, 0, message))
         else:
-            problems.append(("/".join(p for p in (item, where) if p), line, said))
+            path = posixpath.normpath("/".join(p for p in (item, where) if p))
+            problems.append((path, line, said))
     return problems, notices
 
 

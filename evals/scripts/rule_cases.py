@@ -120,6 +120,13 @@ CONFIG = """# Repository config
 | Mode | shared |
 | Broad gate | python3 -m unittest discover -s tests -t . -q |
 """
+# A sealer case's config: the two language rows `seal pr-body` refuses a
+# body without (#1453), naming one language, so the body's first part is
+# the case's `pr.md` alone.
+SEALER_CONFIG = (
+    CONFIG
+    + "| Commit and pull request language | English |\n| Record language | English |\n"
+)
 CONTRIBUTING = """# Contributing
 
 Run one module's tests with `python3 -m unittest tests.test_textutil -q`,
@@ -898,7 +905,9 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
     branch = f"feat/guarantee-{slug}"
     folder = f"seal/threads/{item}"
     evidence = EVIDENCE.format(item=item)
-    lines = base_project(item, branch, "framer", "crafter")
+    lines = base_project(
+        item, branch, "framer", "crafter", {"seal/config.md": SEALER_CONFIG}
+    )
     test = TEST_TEXTUTIL.replace(
         "from textutil import", "from src.textutil import"
     ).replace(
