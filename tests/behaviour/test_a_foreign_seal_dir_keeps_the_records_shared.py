@@ -665,6 +665,31 @@ def test_s5_unverified_reads_agentic_seal_threads_as_the_roots_own(
     assert out.startswith(f"seal unverified: agentic-seal/threads {said_of_it}"), out
 
 
+def test_s5_unverified_walks_agentic_seal_and_passes_over_the_packages_specs(
+    shared, capsys, monkeypatch
+):
+    """`seal unverified .` reads the closing memo under `agentic-seal/` and
+    takes the package's `seal/specs/` for what it is beside a root of the
+    second name, a directory named `specs` outside the root, which no
+    `Reference specs` row keeps and the walk passes over: its memo, which
+    does not read, is never opened."""
+    write(
+        shared / "agentic-seal" / "threads" / ITEM,
+        "gaps.md",
+        "# overview\n\n## Not verified\n\n- nothing\n  why: nothing to verify\n",
+    )
+    write(
+        shared,
+        "seal/specs/1794200003-theirs/gaps.md",
+        "# theirs\n\n## Not verified\n\nnot a table, and not a none line either\n",
+    )
+    monkeypatch.chdir(shared)
+    code = UNVERIFIED.main(["."])
+    out = capsys.readouterr().out
+    assert code == 0, out
+    assert "\n1 closing memos · 0 open · 0 closed · 0 unreadable\n" in out, out
+
+
 def test_s5_settle_shows_a_work_item_released_under_agentic_seal(shared):
     """`seal settle`'s dry run reads the work items under
     `agentic-seal/threads/` as the shared root's, released where `main`
