@@ -6,6 +6,12 @@
 - "**The seal mark's address names no version, so the installed plugin and the copy the pull request's check runs compose one mark line whatever release each is.**" (`changelog.md` *Fixed*, the fourth item)
 - "The picture is the icon at the default branch, so a change to the icon's bytes there changes the picture every body carrying the mark shows." (`changelog.md` *Fixed*, the fourth item)
 - "A body written by an installed plugin of an earlier release carries the tag address and is refused on that line; `seal pr-body` run again from this release or a later one clears it." (`changelog.md` *Updating*)
+- "The failure direction, for `CONTRIBUTING.md` *What a change to a gate must carry*: the arm blocks more." (`frame/design.md` *Scope*, the failure-direction paragraph)
+- "A wrong deny, a correct body refused, costs one `seal pr-body` run and one `gh api -X PATCH`, or one push, and no person; item 6 is what makes that run clear the refusal whatever copy of the plugin composes (G21)." (`frame/design.md` *Scope*, the failure-direction paragraph)
+- "The arm puts no question in front of a person." (`frame/design.md` *Scope*, the failure-direction paragraph)
+- "Platform: `hygiene` runs on `ubuntu-latest`, and the suite's new cases run on every leg of `tests`." (`frame/design.md` *Scope*, the failure-direction paragraph)
+- "No mechanism goes." (`frame/design.md` *Removes*, the paragraph under the table)
+- "What it would have caught is G10's: every pull request of 0.36.0." (`frame/design.md` *Removes*, the paragraph under the table)
 - "The pull request's title takes `fix:`, and the kind that came closest is `feat:`." (`frame/plan.md` *Judgments of the run*, the prefix row)
 - "how GitHub renders an annotation whose path is a work item's directory at line 0 (`frame/questions.md` Q1); no case runs on GitHub" (`gaps.md` *Not verified*, the second row)
 
