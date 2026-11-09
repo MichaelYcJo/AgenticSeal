@@ -3212,6 +3212,36 @@ class Test_body:
         assert code == 0, out
         assert body_lines(out) == [], out
 
+    def test_accepts_the_body_at_a_merge_past_a_later_base_commit(
+        self, bodied, tmp_path, monkeypatch, capsys
+    ):
+        """S2 at the checkout CI makes (round-1#1). The sealer writes the
+        guarantee's base as a SHA, and CI checks out the pull request's
+        merge commit, which reaches a commit another pull request landed on
+        the base after the seal. The mark is read against the base the check
+        runs against, as the guarantee arm reads it, so the body `seal
+        pr-body` wrote at the branch head passes. Seen red with `body`
+        calling `compared` with no base, where the composition held no mark
+        and the body's mark run was refused."""
+        root, _early, _late = bodied
+        fork = git(root, "rev-parse", "main")
+        audited = git(root, "rev-parse", "HEAD~2")
+        sealed = guarantee(audited, "sealed").replace("against main", f"against {fork}")
+        write(root, f"{ITEM}/guarantee.md", sealed)
+        commit(root, "the seal, its base a SHA")
+        written = composed_body(root)
+        assert MARK in written
+        git(root, "switch", "-q", "main")
+        write(root, "g.txt", "another pull request\n")
+        commit(root, "another pull request lands on the base")
+        git(root, "switch", "-q", "--detach", "main")
+        git(root, "merge", "-q", "--no-ff", "feature/g", "-m", "the CI merge")
+        monkeypatch.setenv("GITHUB_HEAD_REF", "feature/g")
+        payload(tmp_path, monkeypatch, written)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert body_lines(out) == [], out
+
     @pytest.mark.parametrize(
         "row, said",
         [
@@ -3381,6 +3411,41 @@ class Test_body:
             "one work item's"
         )
         assert body_lines(out) == [f"{SECOND_ITEM}:0  {said}", f"{ITEM}:0  {said}"], out
+
+    def test_names_the_body_as_not_read_for_two_work_items_without_pr_md(
+        self, bodied, tmp_path, monkeypatch, capsys
+    ):
+        """*Scope* item 1 (round-1#3): where several judged work items hold
+        no `pr.md`, the body is named as not read for each, in a sentence
+        that says none holds one. Seen red against the sentence for two
+        holders of `pr.md`."""
+        root, early, _late = bodied
+        git(root, "rm", "-q", f"{ITEM}/pr.md")
+        write(root, f"{SECOND_ITEM}/routing.md", SEALED_ROUTING)
+        commit(root, "a second work item, and no pr.md")
+        payload(tmp_path, monkeypatch, early)
+        _code, out = check(root, capsys)
+        said = (
+            "not read: the pull request's body, since the pull request carries "
+            "more than one judged work item and none holds `pr.md`, and one "
+            "body is one work item's"
+        )
+        assert body_lines(out) == [f"{SECOND_ITEM}:0  {said}", f"{ITEM}:0  {said}"], out
+
+    def test_refuses_a_missing_pr_md_at_its_path(
+        self, bodied, tmp_path, monkeypatch, capsys
+    ):
+        """*Scope* item 1 (round-1#3): a cause `compared` places at a record,
+        here a `pr.md` that is not there, is refused at that record's path
+        under the work item, as every other arm refuses a record. Seen red
+        with the record's cause placed on the work item's directory."""
+        root, _early, late = bodied
+        git(root, "rm", "-q", f"{ITEM}/pr.md")
+        commit(root, "pr.md taken out")
+        payload(tmp_path, monkeypatch, late)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        assert f"{ITEM}/pr.md:0  {PR_BODY.NO_OWN_PART}" in out.splitlines(), out
 
 
 # --- the declaration for this branch, in local mode (#225) --------------------------

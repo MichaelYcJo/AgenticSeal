@@ -387,17 +387,22 @@ def read_own(item):
     return text
 
 
-def _seal_at_head(item, root):
+def _seal_at_head(item, root, base=None):
     """`(sealed, note)`: whether `guarantee.md` in the work item's directory
     ITEM is sealed at HEAD of the repository at ROOT, the way
     `chain_check.py#guarantee` asks it. Its blocks are read through
     `lib/fields.py` with no refusal, the newest reads `sealed`, and
     `chain_check.py#follows` finds the commit its `target:` names to be
-    HEAD or followed only by the closing records, against the base the same
-    line names. NOTE names what ROOT cannot read the seal against: a base
-    it cannot resolve, where `follows` would list no later commit, and a
-    sealed commit its HEAD does not hold, as in a checkout other than the
-    work item's. Every other way of not being sealed is the sealer's and
+    HEAD or followed only by the closing records. The base `follows` reads
+    against is BASE where it is given, the base the pull request's check
+    runs against and its guarantee arm reads, so a commit the base gained
+    after the seal, which the merge commit CI checks out reaches, is not
+    read as following the seal (#1452); and otherwise the base the same
+    `target:` line names, which is right at the branch head, where no later
+    base commit is reachable. NOTE names what ROOT cannot read the seal
+    against: a base it cannot resolve, where `follows` would list no later
+    commit, and a sealed commit its HEAD does not hold, as in a checkout
+    other than the work item's. Every other way of not being sealed is the sealer's and
     the pull request check's to name."""
     try:
         with open(os.path.join(item, OPTIN.GUARANTEE), encoding="utf-8") as handle:
@@ -411,7 +416,7 @@ def _seal_at_head(item, root):
     if CHAIN.FIELDS.verdict_word(newest) != CHAIN.FIELDS.SEALED:
         return False, None
     target = newest.fields[CHAIN.FIELDS.TARGET].match
-    base = target["base"]
+    base = base or target["base"]
     if (
         CHAIN.git(root, "rev-parse", "--verify", "--quiet", f"{base}^{{commit}}")
         is None
@@ -456,14 +461,15 @@ def _mark_line(manifest):
     ), None
 
 
-def seal_mark(item, root, manifest=None):
+def seal_mark(item, root, manifest=None, base=None):
     """`(line, note)` for the work item's directory ITEM in the repository
     at ROOT: the mark `_composed` writes under `HEADING`, or None, and the
     one sentence `seal pr-body` prints about it, or None (#1204).
 
     The mark is written where `MARK_ROW` in the root's `config.md`, read
     through `lib/config.py#declared_value`, reads `MARK_ON` exactly
-    and the work item is sealed at HEAD (`_seal_at_head`). An absent or
+    and the work item is sealed at HEAD against BASE where it is given, and
+    otherwise against the guarantee's own base (`_seal_at_head`). An absent or
     empty row, and a work item not sealed at HEAD, write no mark and say
     nothing. Any other value, a refused row, a base that does not resolve,
     a sealed commit HEAD does not hold, and a manifest the address cannot be
@@ -477,7 +483,7 @@ def seal_mark(item, root, manifest=None):
         return None, None
     if value != MARK_ON:
         return None, ROW_NOT_YES.format(value=value)
-    sealed, note = _seal_at_head(item, root)
+    sealed, note = _seal_at_head(item, root, base)
     if not sealed:
         return None, note
     return _mark_line(manifest or MANIFEST)
@@ -833,17 +839,17 @@ def _check(below, body, own):
         raise Refused(causes)
 
 
-def compared(item, body, root, manifest=None):
+def compared(item, body, root, manifest=None, base=None):
     """`(note, causes)` for BODY, a pull request body's text or None where
     there is none, against what `seal pr-body` composes for the work item's
     directory ITEM in the repository at ROOT: `pr.md`, `HEADING`, the seal
-    mark `seal_mark` gives from MANIFEST or the plugin's own, and the
-    records' copy. NOTE is `seal_mark`'s sentence, or None; CAUSES are the
+    mark `seal_mark` gives from MANIFEST or the plugin's own, read against
+    BASE where it is given, and the records' copy. NOTE is `seal_mark`'s sentence, or None; CAUSES are the
     `(where, line, why)` of `Refused`, a record's or the body's, empty where
     BODY is that composition. `main --check` and the pull request's check,
     `chain_check.py#body`, both call this, so the body is read by one code
     path at the sealer and at the pull request (#1452)."""
-    mark, note = seal_mark(item, root, manifest)
+    mark, note = seal_mark(item, root, manifest, base)
     name = os.path.basename(os.path.normpath(os.path.abspath(item)))
     try:
         below = _composed(name, read_item(item), mark)

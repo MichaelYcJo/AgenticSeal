@@ -76,14 +76,15 @@ judged (`carried_by`). The arms are nine:
                 body is what `seal pr-body` composes at HEAD for the one
                 judged work item that is not retired: its `pr.md`, the
                 heading, the seal mark where the `Pull request seal mark`
-                row and the guarantee give one, and the records' copy,
+                row and the guarantee, read against `--baseline` as the
+                guarantee arm reads it, give one, and the records' copy,
                 compared through `pr_body.py#compared`, the function `seal
                 pr-body --check` calls; each differing line is refused on
                 the work item's directory naming the body's line, and a
                 record that function refuses at its line; a payload with no
                 body, `--worktree`, and a pull request carrying more than
-                one judged work item holding `pr.md` name the body as not
-                read (`body`)
+                one judged work item holding `pr.md`, or several none of
+                which holds one, name the body as not read (`body`)
 
 A ready pull request fails on any of them. A draft, or a run that observed no
 pull request, prints the same lines and exits 0.
@@ -1750,6 +1751,10 @@ BODY_SPLIT = (
     f"the pull request carries more than one judged work item holding "
     f"`{PR_FILE}`, and one body is one work item's"
 )
+BODY_NONE_HOLDS = (
+    f"the pull request carries more than one judged work item and none holds "
+    f"`{PR_FILE}`, and one body is one work item's"
+)
 BODY_SEALING_SAYS = (
     f"{SEALING}: the guarantee the seal mark stands on is not written yet, so "
     "a difference in the body prints and does not fail"
@@ -1772,16 +1777,18 @@ def pr_body_reader():
     return _pr_body
 
 
-def body(root, items, text, why):
+def body(root, items, text, why, base=None):
     """`(problems, notices)` of the pull request's body TEXT, against what
     `seal pr-body` composes at HEAD for the work item of ITEMS, the judged
     work item directories that are not retired, compared through
-    `pr_body.py#compared`, the function `seal pr-body --check` calls. Where
+    `pr_body.py#compared`, the function `seal pr-body --check` calls. The
+    seal mark is read against BASE, the base the guarantee arm reads, so
+    the two arms ask one question at the merge commit CI checks out. Where
     TEXT is None the body is named as not read for WHY. The work item is
     the one of ITEMS holding `pr.md`, or the one of ITEMS where it is alone
     and holds none, which `compared` refuses at `pr.md`; where more than one
     holds a `pr.md`, or none does among several, the body is named as not
-    read for each. A line of the body is refused on the work item's
+    read for each, in the sentence for that shape. A line of the body is refused on the work item's
     directory, naming the body's line; a record `compared` refuses is
     refused at its line under the work item; `seal_mark`'s sentence is a
     notice. Unreadable where `pr_body.py` will not load."""
@@ -1791,11 +1798,10 @@ def body(root, items, text, why):
     if len(holders) == 1 or (not holders and len(items) == 1):
         item = (holders or items)[0]
     else:
-        return [], [
-            (i, 0, BODY_UNREAD.format(why=BODY_SPLIT)) for i in holders or items
-        ]
+        split = BODY_SPLIT if holders else BODY_NONE_HOLDS
+        return [], [(i, 0, BODY_UNREAD.format(why=split)) for i in holders or items]
     note, causes = pr_body_reader().compared(
-        os.path.join(root, *item.split("/")), text, root
+        os.path.join(root, *item.split("/")), text, root, base=base
     )
     notices = [(item, 0, BODY_WHOLE.format(why=note))] if note else []
     problems = []
@@ -2144,7 +2150,7 @@ def main(argv=None):
             problems.extend(gate)
     text, said = (None, BODY_WORKTREE) if WORKTREE else pull_request_body()
     try:
-        found, unread_body = body(root, bodied, text, said)
+        found, unread_body = body(root, bodied, text, said, args.baseline)
     except Unreadable as exc:
         print(f"chain-check: {exc}", file=sys.stderr)
         return 2

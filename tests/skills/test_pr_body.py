@@ -630,20 +630,21 @@ class Test_seal_mark:
     ):
         """#1452, *Scope* item 6 and S10. The installed plugin writes the
         body and the check's copy composes it again, and the two can be
-        different releases. Two manifests differing in `version` alone give
-        one mark line, the icon at the repository's default branch. Seen
-        red against `_mark_line` with the tag address, where the two lines
-        named `v1.2.3` and `v9.9.9`."""
+        different releases. A manifest with a `version` and one with none
+        give one mark line, the icon at the repository's default branch, so
+        the address reads no version and the manifest need not hold one
+        (round-1#4). Seen red with `version` put back into `MARK_FIELDS`,
+        where the second manifest gave no line and the set held None."""
         item = sealed_item(repo)
         (tmp_path / "older").mkdir()
         (tmp_path / "newer").mkdir()
         older = manifest_of(tmp_path / "older", MANIFEST)
-        newer = manifest_of(tmp_path / "newer", {**MANIFEST, "version": "9.9.9"})
+        newer = manifest_of(
+            tmp_path / "newer",
+            {key: value for key, value in MANIFEST.items() if key != "version"},
+        )
         lines = {PR.seal_mark(str(item), str(repo), m)[0] for m in (older, newer)}
-        assert lines == {
-            '<img src="https://github.com/owner/plugin/raw/HEAD/.claude-plugin/icon.png" '
-            'alt="Sealed" width="128">'
-        }
+        assert lines == {MARK_LINE}
 
     def test_accepts_the_plugins_own_manifest(self, repo):
         """S1's address read from the manifest three directories above the
