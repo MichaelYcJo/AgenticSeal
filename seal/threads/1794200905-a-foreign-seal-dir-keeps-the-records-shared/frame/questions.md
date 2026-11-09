@@ -10,6 +10,7 @@ The ticket left these judgments open, and the tree answered each. The grounds st
 - Which root wins where both names carry the marker, and where both names are the project's own: `frame/design.md` *Scope* item 1 and the *Out* item on both names; `frame/plan.md` *Technical context*, the second failure.
 - Whether this repository's release scripts under `.github/scripts/` are in scope: `frame/design.md` *Scope* item 3 and *Grounding* G6.
 - Which checks "every check" names: `frame/design.md` *Grounding* G13.
+- Whether the READMEs fall inside the rule that only the core states the second name (the orchestrator's fold of 2026-11-09): `frame/plan.md` *Alternatives considered*, the row on the READMEs; `frame/design.md` *Grounding* G18 and *Scope* item 8.
 
 | # | Question | Who can answer | Options & what each implies | Default until answered | Status |
 |---|---|---|---|---|---|
