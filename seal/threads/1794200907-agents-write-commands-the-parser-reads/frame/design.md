@@ -1,0 +1,84 @@
+# Design: 1794200907-agents-write-commands-the-parser-reads
+
+## Grounding
+
+The tree as read at `bdac7850`.
+
+| Policy clause | What it fixes for this work |
+|---|---|
+| G1 `skills/core/SKILL.md` *The first value: efficient development through the workflow*, **Asking a person is the most expensive step.** (read) | A permission prompt that the work did not need is the cost this work removes. Under automation it stops the run until the owner answers, and the owner cannot judge the warning from the command. |
+| G2 `skills/core/SKILL.md` *The rule a mechanism is kept against* (read) | No script reads an agent's command. Whether a command line is readable is Claude Code's judgment, so a check would re-encode that judgment. The transcript reading below is noisy and is reported, never used to block. The rule names its forms as examples, because no script may carry a list of the spellings a rule is written in. |
+| G3 `skills/agent-contract/SKILL.md`, the preamble and rule 10 (read) | The retired numbers are 8, 16 and 20, and a new rule takes the number after the highest one used, so the new rule is 21. Rule 10 asks every agent to "run the cases from one file in one command", and `skills/verify/SKILL.md:144` asks a phase boundary to run its cases "in one command". Both make agents build a list of files and pass it to a runner, which is where the zsh forms come from. Rule 10 was rewritten in 0.36.0 (#1440, the latest release's *Process changes*). |
+| G4 `docs/running/the-agent-set.md` *One contract every agent receives, and one definition each* (read) | "A rule kept only in whoever last wrote a spawn prompt goes missing without a trace." Contract rule 1 writes the wrong command form beside the right one "because the failure is a habit", and `tests/text/test_the_agent_contract_holds_the_universal_rules.py#FACTS` (lines 54-63) pins rule 1's two forms because an agent copies them into a shell. Rule 21 has the same kind of content and takes the same shape and the same pin. |
+| G5 `git grep -n -i` over `skills/*/orchestration.md` and `docs/running` for the Edit tool, a heredoc ban and `git -C <` (executed) | No match. The spawn-prompt lines this repository's orchestrator writes (edits through the Edit tool, no heredoc patch, no `cd` before git, plain POSIX syntax) stand in no shipped text. An orchestrator in a user's repository never writes them, and the prompts this work answers came from such a repository. |
+| G6 #1381, #1416 and #1430 (read, through `gh issue view`) | The `PreToolUse` gates printed `deny` or `ask` and never `allow` (#1381), and both releases removed them (#1416 in 0.33.0, #1430). Their removal took away no approval. What it could take away is a silent denial that made an agent rewrite a command. G9 measures whether any denial did that for the two forms this work names. |
+| G7 The transcript reading, method (executed) | `test_tmp_reading.py`, run once over every transcript under `~/.claude/projects` modified since 2026-10-15, out of the 1,947 transcript files on disk. A tool result that passed Claude Code's permission check carries a `permissionDecision` with `decision`, `source` and `reasonType`. A prompt a person answered is a `source` beginning `user_`, without `AskUserQuestion` and `ExitPlanMode`. A plugin gate's denial is `reject` with `source` `hook`. A refusal with no person is `reject` with `source` `config`. The cut is `v0.33.0`'s merge, 2026-11-06T10:35Z. Shapes were read from the command text by regular expression, so the shape counts are a reading, not a census. |
+| G8 The transcript reading, prompts by window (executed) | The window, then its Bash calls, the prompts a person answered, the refusals with no person, and the plugin gates' denials: 2026-10-20 to 2026-11-03, 49,598 calls, 3 prompts, 32 refusals, 74 denials. 2026-11-03 to the 0.33.0 merge, 21,667 calls, 16 prompts, 16 refusals, 8 denials. The 0.33.0 merge to 2026-11-09, 5,983 calls, 5 prompts, 2 refusals, 0 denials. By party, a top-level session against a subagent, the prompts split 3 against 0, 1 against 15 and 1 against 4. The top-level prompt of the third window was this repository's 0.36.0 orchestrator removing a round record with `rm $W/$T/trail/rounds/round-2.md`, and the issue body names a second orchestrator command of that run, `sed -i` joined to `git commit --amend`, which the auto mode classifier refused. The rate rose roughly tenfold between the first and second windows, while the gates still ran, and held in the third. The gates' removal did not raise it. |
+| G9 The transcript reading, shapes (executed) | The second and third windows hold 21 prompts (G8). Ten were an `rm` on a variable path, nine were a zsh expansion flag (`${(@f)$(cat …)}` or `${(f)"$(cat …)"}`), and two were neither (a chained line the parser called too complex, and a read outside the working directory). Seven of the ten `rm` prompts were agents removing what they had made under the scratchpad, mostly file by file in a `for` loop. A heredoc, a `cd` before git and `sed -i` prompted nobody on their own after 2026-10-20. Every plugin gate denial of a command holding either shape named a commit target or a branch switch, never the shape. |
+| G10 Claude Code's decisions on the forms rule 21 names, since 2026-10-20 (executed) | `$(cat …)` outside a zsh flag: 411 accepted, none asked. `xargs … < file`: 43 accepted, none asked. An `rm` whose path variable is written `${VAR:?}`: 6 accepted, none asked. This framing's own `rm -rf "${D:?}/clone"` ran in this subagent with no prompt. Claude Code's own refusal text names the rewrite: "rewrite it as \"${C:?}\"/\"${d:?}\" or use a literal path" (issue #1445's comment, and the same text in the transcripts). |
+| G11 A probe under bash and zsh (executed) | `printf "[%s]" $(cat list)` and `xargs printf "[%s]" < list` split a list the same way in both shells. An unquoted `$F` holding `x y` splits in bash and not in zsh. `"${Q:?}"` with `Q` unset aborts the line in both. `rm -rf` of a directory that holds a symbolic link to another directory removes the link and leaves the target's files. So the two-step symlink removal the issue's comment quotes is not needed before one `rm -rf`. |
+| G12 The scratchpad's lifetime (executed: `ls`, `du`, `uptime`, `git count-objects`) | The harness does not clear a session's scratchpad when the session ends. Every session directory under `/private/tmp/claude-501/` since the machine booted, 7 days and 6 hours earlier, is still there, 607M in all. The operating system clears it at boot. A `--no-local` clone copies the whole object store, and the user repository where the prompts arose holds 128.81 MiB of packs. |
+| G13 `skills/agent-contract/SKILL.md` rule 7 and rule 17, `agents/sealer.md` *A `seen red` is re-run against the code before the change*, `agents/proofer.md` *The clone is named for the work item and the round* (read) | Rule 7 asks that a probe leave nothing behind, "a scratch clone" among the examples. The sealer clones into `<scratchpad>/<work-item-id>/at-base/` and is told "Remove the clone once its runs are done." The proofer's clone is `<scratchpad>/<work-item-id>/round-<n>/clone`. Rule 17 lets an agent remove only what it started. So a clone left by one sealer spawn sits at the name the next sealer spawn of the same work item clones into, and that spawn may not remove it. |
+| G14 `git grep` over the shipped text in `agents`, `skills`, `docs`, `templates`, `evals`, `bin`, `hooks` and the root documents, for an `rm` on a variable path and for a zsh expansion flag (executed) | One instance: `skills/update/SKILL.md:117`, `rm -f "$f"`, in the block a session copies to read the release notes. The search matches spellings, so it is a sample of an open class (contract rule 12). |
+| G15 `routing.md`, `seal/follow-up.md` and every unsettled design's `## Rule changes` under `seal/threads/` (read) | `routing.md` stands at HEAD: framer, crafter, automation. `seal/follow-up.md` holds no item this work is a prerequisite for. No unsettled design changes the contract, rule 7 or a sentence this work changes. `1794178395-a-fold-is-read-before-the-next-round` changes other sentences of `docs/running/the-agent-set.md` *One contract every agent receives, and one definition each*, the section this design's `## Rule changes` adds to. |
+| G17 `skills/implement/SKILL.md`, the paragraph **`skills/agent-contract/SKILL.md` binds this session too, and only if you load it.**, `skills/code-review/orchestration.md` *That contract binds you too, and reaches you only if you open it*, and `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* step 1 (read) | The contract binds the orchestrator, but nothing makes it arrive. Step 1 has the orchestrator hold the core before the first edit and names no other file to open. So a contract rule alone does not reach the party that writes the commits, the broad run and its own cleanup under automation, and G8 shows that party's commands prompt too. |
+| G16 The issue's one comment, as the spawn hands it and as `gh issue view 1445 --json body,comments` gives it (executed) | The orchestrator's line puts the comment's second shape, `rm` on a variable path in the sealer's cleanup, inside the scope. The comment asks the frame to weigh removing the cleanup demand against writing the removal in a form the parser reads. `frame/plan.md` *Alternatives considered* weighs them. |
+
+## Scope
+
+In:
+
+1. Contract rule 21, a new section at the end of `skills/agent-contract/SKILL.md`. It asks every agent to write each command so Claude Code's parser can read it, in plain POSIX syntax that bash and zsh read the same way. Its examples: a list reaches a command as `xargs <runner> < list` or `<runner> $(cat list)`, never through a zsh expansion flag such as `${(f)"$(cat list)"}` or `$=var`, and never through an unquoted variable expected to split. An `rm` names a literal path or writes each variable in its path as `"${VAR:?}"`. A directory an agent made goes in one removal of the directory, never file by file in a loop. The section says these are examples of the rule and not a list of it, and ends with the check line *Data & interfaces* gives.
+2. The pin of rule 21's forms: `tests/text/test_the_agent_contract_holds_the_universal_rules.py#FACTS` gains an entry for 21, and the module docstring's count of pinned facts changes with it.
+3. `skills/update/SKILL.md:117`: `rm -f "$f"` becomes `rm -f "${f:?}"`, the one instance G14 found.
+4. The changelog fragment `seal/threads/1794200907-agents-write-commands-the-parser-reads/changelog.md`, with the version move `frame/plan.md` *Operational impact* names.
+5. `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* step 1 gains one sentence after the core's: the orchestrator's own commands, its commits, the broad run and the removal of its scratch files among them, follow contract rule 21, which it opens once beside the core. The sentence states no form of its own, so the forms keep one source in rule 21 (G17).
+
+Out:
+
+- Rule 7's demand that a probe leave nothing behind, the sealer's "Remove the clone once its runs are done" and the scratch rules of the framer and the proofer stay as they are. The removal they ask for is written in rule 21's form (`plan.md` *Alternatives considered*, row 4).
+- No check, hook or script reads an agent's command (G2, and the issue's *Done when*).
+- Heredocs, a `cd` before git, `sed -i` and history rewrites get no new text. None prompted a person on its own after 2026-10-20 (G9). Rule 9 and `skills/implement/SKILL.md` *A commit names its repository in the command that makes it* already hold them.
+- The spawn-prompt lines of this repository's orchestrator stand outside the tree (G5), and this work cannot edit them.
+
+## User scenarios & acceptance *(mandatory)*
+
+| Scenario | Given / When / Then | Verifiable how |
+|---|---|---|
+| S1 A crafter runs a list of test files in a zsh login shell | Given contract rule 21, when a crafter batches the cases of a phase boundary into one command, then it passes the list as `xargs <runner> < list` or `<runner> $(cat list)`, and no zsh expansion flag reaches Claude Code's parser | The rule's text, pinned by *Scope* item 2. Whether agents follow it is the reading `frame/questions.md` Q1 asks for, reported and never used to block. |
+| S2 A sealer removes its `at-base` clone | Given a clone under `<scratchpad>/<work-item-id>/at-base/` that holds symbolic links, when its runs are done, then the sealer removes it in one `rm -rf` whose path is literal or written `"${C:?}"`, and no prompt reaches a person | The form passed the parser in this framing (G10). The rule's text is pinned by *Scope* item 2. |
+| S3 A session reads the release notes after an update | Given `skills/update/SKILL.md` step 3, when the session copies the block, then the temporary file goes through `rm -f "${f:?}"` | The diff at `skills/update/SKILL.md:117`, read at review |
+| S5 The orchestrator removes a file or commits under automation | Given step 1 of `skills/implement/orchestration.md`, when the orchestrator starts a work item, then it opens contract rule 21 beside the core, and its own removals and commits take rule 21's forms | The sentence in the diff, read at review. Whether the orchestrator's commands stop prompting is part of the reading `frame/questions.md` Q1 asks for. |
+| S4 An edit drops one of rule 21's forms | Given the pin, when a later edit deletes a pinned form from rule 21's body or moves it to another rule, then `tests/text/test_the_agent_contract_holds_the_universal_rules.py` fails at the case for 21 | The module, seen red with the entry for 21 in place and rule 21 absent, then green |
+
+## Data & interfaces
+
+No code interface changes.
+
+- `skills/agent-contract/SKILL.md` gains the heading `## 21 Write each command so Claude Code's parser can read it`, after rule 19. Its last line is `check: tests/text/test_the_agent_contract_holds_the_universal_rules.py`.
+- `tests/text/test_the_agent_contract_holds_the_universal_rules.py#FACTS` gains the key `21`. The value names what the fact is and who reads it ("the command forms an agent copies into a shell, which Claude Code's parser reads"), then three spellings, each in backticks as the rule writes it: `` `xargs <runner> < list` ``, `` `"${VAR:?}"` `` and `` `${(f)"$(cat list)"}` ``. The first two are right forms and the third is the wrong one, as rule 1's entry pins one of each.
+- `.claude-plugin/plugin.json` `version` reads `0.37.0`.
+- `skills/implement/orchestration.md` step 1 cites `contract rule 21` in that spelling, as `skills/writing-style/SKILL.md` asks of a contract citation outside the contract.
+
+## Rule changes
+
+- add
+  file: docs/running/the-agent-set.md
+  section: One contract every agent receives, and one definition each
+  to: **Contract rule 21 writes out the command forms Claude Code's parser
+    refuses beside the forms it reads, and nothing reads an agent's command.**
+    Whether a command line is readable is Claude Code's judgment, and that
+    judgment moves with its version. A script that re-encoded it would refuse
+    commands Claude Code reads, or pass commands it refuses. So the rule names
+    its forms as examples and leaves the rest to the agent that writes the
+    command. A prompt the work did not need costs the most expensive step
+    `skills/core/SKILL.md` names, and a party under automation, the
+    orchestrator among them, cannot see that it caused one.
+    check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
+
+## Removes
+
+- nothing
+  why: the work adds contract rule 21 and the sentence that points the orchestrator at it (*Scope* item 5), and nothing in the tree goes in return, because no shipped text stated the rule before (G5). Its only earlier statement is a line this repository's orchestrator writes into spawn prompts, outside the tree, and a contract rule is never carried by a spawn prompt (`skills/agent-contract/SKILL.md`, the preamble). The rule answers the prompts in the two shapes G9 counts, none of which any earlier mechanism caught. The removal *Scope* item 3 rewrites is a change of form, not a removal.
+
+Framed 2026-11-09 by framer, before the build.
