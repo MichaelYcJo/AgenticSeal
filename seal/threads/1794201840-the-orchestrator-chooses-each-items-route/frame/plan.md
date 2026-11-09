@@ -61,4 +61,4 @@ None. No migration, environment variable or dependency. Every declaration alread
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-09 | Round 1 findings 1 and 2 go to a fix pass by the implementer. Finding 2 moves the routing template's `## Why this way` placeholder into scope; the orchestrator folded that one clause of `frame/design.md` *Out* itself, since the *Out* line's grounds (G7) cover the `Answered` line alone and the change is the round's paste-ready fix | `trail/rounds/round-1.md` findings 1, 2 | `skills/code-review/orchestration.md` *Orchestrator: a phase is a fresh crafter, and a fix pass resumes the implementer*; `skills/implement/orchestration.md` *A decision made after the frame is committed is folded, in place, into `frame/design.md` or `plan.md` before the next crafter spawns.* |

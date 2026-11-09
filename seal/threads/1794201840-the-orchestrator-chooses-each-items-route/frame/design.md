@@ -74,7 +74,7 @@ Out:
 
 - **`lib/routing.py`, `chain_check.py` and every other check**: a chosen declaration parses as a person's does, and no row holds a question 1 label (G6, G7). This is the issue's second *Done when*.
 - **The trailer's value** (*Scope* item 12) and the `Automation` row's name.
-- **`templates/records/sdd-routing.md`**: the `Answered <date> by <who>` line keeps its shape, and `<who>` names the orchestrator under `agentic` (G7).
+- **`templates/records/sdd-routing.md`'s `Answered` line**: it keeps its shape, and `<who>` names the orchestrator under `agentic` (G7). The template's `## Why this way` placeholder is in scope: it said `<one or two sentences>`, where *Under agentic* has the orchestrator write grounds for each row it chose, so it now points at the section that sets the grounds (`trail/rounds/round-1.md` finding 2).
 - **Question 2 and the ladder's rungs**: unchanged (G9). The ladder still decides whether a work item has a frame under `complete` and `manual`.
 - **A new trailer value, field or mark for a chosen route**: the trailer, the commit body and *Why this way* already carry it (`frame/plan.md` *Alternatives considered*).
 - **A script that judges whether a route fits a diff, or that prints routes in the settle's dry run**: rejected in `frame/plan.md` *Alternatives considered*.
