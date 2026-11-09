@@ -1,6 +1,6 @@
 # Pull-request checks for the AgenticSeal workflow, run against what the pull
-# request committed: the review chain's round record, and the `Mode` row of
-# `seal/config.md`. The first check also reads the pull request's body
+# request committed: the review chain's round record, and the `Mode` key of
+# `seal/config.json`. The first check also reads the pull request's body
 # against what `seal pr-body` composes from those records.
 #
 # Setup: `seal pr-checks install` writes this file to
@@ -84,13 +84,13 @@ jobs:
           python3 "$RUNNER_TEMP/agentic/skills/code-review/scripts/chain_check.py" \
             --baseline "origin/${{ github.base_ref }}"
 
-      # `seal/config.md`'s `Mode` row is what this repository says its mode
+      # `seal/config.json`'s `Mode` key is what this repository says its mode
       # should be; where the root actually sits is what it is. Nothing at
-      # runtime reads the row, so it is the one thing here that can quietly
+      # runtime reads the key, so it is the one thing here that can quietly
       # stop being true. This fails for a disagreement left standing (always
       # the author's, and always one command from fixed) and passes for an
-      # absent row, which declares nothing.
-      - name: the mode the row declares is the mode the folder is in
+      # absent key, which declares nothing.
+      - name: the mode the key declares is the mode the folder is in
         shell: bash
         run: |
           python3 "$RUNNER_TEMP/agentic/skills/implement/scripts/seal.py" \

@@ -378,7 +378,7 @@ def test_the_location_buckets_are_the_repositorys_own_definition_of_a_record():
         "two buckets and the column no longer adds up"
     )
     # Round 2's finding 3. The row said `anything under seal/`, which is
-    # broader than the policy it cites: `ls seal/` also lists `config.md`,
+    # broader than the policy it cites: `ls seal/` also lists `config.json`,
     # `follow-up.md` and `README.md`, none of them this run's paperwork. The
     # three paths are asserted one at a time rather than as a sentence, so a
     # reworded row naming the same set stays green — and a bare `` `seal/` ``

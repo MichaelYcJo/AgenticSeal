@@ -1,6 +1,6 @@
 """The broad gate hands `cmd.exe` a command name it can run (#448).
 
-`broad_gate.run(..., shell=True)` hands the `Broad gate` row to `%COMSPEC%`,
+`broad_gate.run(..., shell=True)` hands the `Broad gate` key to `%COMSPEC%`,
 and on Windows that is `cmd.exe`, which reads a `/` inside a command NAME as
 the start of a switch. `bin/test -q && …` ran a command called `bin` with the
 argument `/test`, the shell said "not recognized" and exited 1, and the
@@ -21,7 +21,7 @@ from conftest import ROOT
 
 def test_the_template_says_which_positions_are_rewritten():
     """A2, the reader's half (contract rule 14). `templates/setup/config.md` *Broad gate* is
-    where a person writing the row learns what `cmd.exe` is handed, and it
+    where a person writing the key learns what `cmd.exe` is handed, and it
     states the rule and names the positions the scan leaves as written —
     the gap `tests/skills/test_broad_gate.py`'s cases pin is only a gap nobody is surprised by while
     it is written down. It must not read as a complete count of them."""
@@ -31,16 +31,17 @@ def test_the_template_says_which_positions_are_rewritten():
     section = text.split("## Broad gate", 1)[1].split("\n## ", 1)[0]
     prose = " ".join(section.split())
     for needle in (
-        "the gate hands it the row with `/` written `\\` inside a command name "
-        "that starts in a directory, and nowhere else",
+        "the gate hands it the command with `/` written `\\` inside a command "
+        "name that starts in a directory, and nowhere else",
         "It starts in a directory where the part before its first `/`, with its "
         "quotes and carets removed and every leading `@` dropped, names a "
-        "directory that exists where the row runs",
-        # Round 1's 🟡 3, where the person typing the row reads it; #616
+        "directory that exists where the command runs",
+        # Round 1's 🟡 3, where the person typing the key reads it; #616
         # narrowed it to the plain form and named what is not expanded.
         "A plain `%VAR%` in that part is expanded first, because `cmd.exe` "
         "expands it before it reads the name",
-        "`%CD%` as the directory the row runs in unless the environment defines `CD`",
+        "`%CD%` as the directory the command runs in unless the environment "
+        "defines `CD`",
         "A substring or substitution (`%VAR:~0,2%`, `%VAR:a=b%`) is not "
         "expanded, so a name that starts with one keeps its `/`",
         "`bin/test` then runs as `bin\\test`",
@@ -53,15 +54,15 @@ def test_the_template_says_which_positions_are_rewritten():
         "a command name after a redirection that opens its command "
         "(`>out.txt bin/test`)",
         "the gate prints one line saying what `cmd.exe` was handed",
-        # #596, written where the person typing the row reads it.
+        # #596, written where the person typing the key reads it.
         "A `/` written straight after any other program's name reaches "
         "`cmd.exe` as written too",
         "`xcopy/e/i` stays `xcopy/e/i`",
         "A blank before the switch (`xcopy /e`) works as well",
         # And its two bounds, named rather than claimed away.
-        "A directory an earlier command in the row makes, or one a `cd` "
-        "earlier in the row enters, is not seen",
-        "a directory at the root named like a program the row calls with a "
+        "A directory an earlier command in the line makes, or one a `cd` "
+        "earlier in the line enters, is not seen",
+        "a directory at the root named like a program the command calls with a "
         "glued switch (an `xcopy/` directory) makes `xcopy/e` read as a path",
     ):
         assert needle in prose, (

@@ -44,7 +44,8 @@ line inside a section that an unsettled design's `remove` with no `from`
 takes out at the settle is printed as `seal rules: excused: path:line:
 heading: why; <work item> removes this section at the settle`, and is no
 refusal. The designs are read through
-`skills/settle/scripts/rule_changes.py#pending`, under `<root>/seal/threads/`.
+`skills/settle/scripts/rule_changes.py#pending`, under `<root>/seal/threads/`,
+the root taken under its own name (`records_root`).
 A pending `change`, or a `remove` with a `from`, whose `from` holds the line
 excuses nothing, so the test the line names stays until the settle. In local
 mode the designs sit under the common git directory, which a CI checkout does
@@ -108,9 +109,13 @@ SIBLINGS = {
         os.path.join("skills", "verify", "scripts", "unverified_check.py"),
         "it is what splits a document into the lines GitHub renders",
     ),
+    "tables": (
+        os.path.join("lib", "tables.py"),
+        "it is what says which lines a fence or a comment hides",
+    ),
     "config": (
         os.path.join("lib", "config.py"),
-        "it is what says which lines a fence or a comment hides",
+        "it is what reads the repository's policy root",
     ),
     "optin": (
         os.path.join("lib", "optin.py"),
@@ -152,11 +157,11 @@ def sibling(key):
 def shown_lines(text):
     """`[(line, shown, heading)]` for one markdown document: each GFM line
     (`lib/blocks.py#gfm_lines`), whether a renderer shows it outside a
-    fence or a comment (`lib/config.py#unfenced`), and the text of the
+    fence or a comment (`lib/tables.py#unfenced`), and the text of the
     heading it stands under, "" above the first."""
     reader = sibling("unverified_check")
     lines = reader.gfm_lines(text)
-    shown = {index for index, _ in sibling("config").unfenced(lines)}
+    shown = {index for index, _ in sibling("tables").unfenced(lines)}
     out, heading = [], ""
     for index, line in enumerate(lines):
         visible = index in shown
@@ -221,12 +226,21 @@ def rule_files(root):
     return out
 
 
+def records_root(root):
+    """The `seal/` root in the tree at `root`, under the name
+    `lib/optin.py#home_name` gives, or `optin.HOME` where no shared root is
+    marked: an unmarked `seal/` reads as it did before the second name, and
+    a root in local mode is not in the tree a CI checkout holds."""
+    optin = sibling("optin")
+    return os.path.join(root, optin.home_name(root) or optin.HOME)
+
+
 def policy_documents(root):
     """The documents of the policy root of the tree at `root`, as
     `skills/settle/scripts/fold_check.py#documents` lists them: its top level
     and each group its index names. Nothing where the policy root is no
     directory, and Unreadable where its index cannot be read."""
-    policy = sibling("config").policy_root(os.path.join(root, "seal"))
+    policy = sibling("config").policy_root(records_root(root))
     if not os.path.isdir(os.path.join(root, *policy.split("/"))):
         return []
     fold = sibling("fold_check")
@@ -376,8 +390,9 @@ def unresolved(root):
         for number, heading, why in unread_lines(text)
     ]
     changes = sibling("rule_changes")
-    policy = sibling("config").policy_root(os.path.join(root, "seal"))
-    items = changes.pending(root, policy)
+    home = records_root(root)
+    policy = sibling("config").policy_root(home)
+    items = changes.pending(home, policy)
     for path, text in files.items():
         read += len(check_lines(text))
         for number, heading, problem in refused_lines(root, text):

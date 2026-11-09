@@ -26,7 +26,7 @@ import subprocess
 import zlib
 
 import pytest
-from conftest import ROOT, census_case, mark_root
+from conftest import ROOT, census_case, config_json, mark_root
 from conftest import load_module as load
 
 TARGET = ".github/scripts/release_seal.py"
@@ -307,21 +307,20 @@ def drawn(png):
     return DRAWN_WIDTH
 
 
-# #1204: the row that turns the release note's seal image on, which this
-# repository's `seal/config.md` writes reading `yes`.
+# #1204: the key that turns the release note's seal image on, which this
+# repository's `seal/config.json` writes reading `yes`.
 MARK_ROW = "Release note seal mark"
 
 
 def configured(home, value):
-    """`config.md` under the `seal/` root `home`, holding `MARK_ROW` reading
-    `value`, written once per entry where `value` is a tuple; no file where
-    `value` is None."""
+    """`config.json` under the `seal/` root `home`, holding `MARK_ROW`
+    reading `value`, written once per entry where `value` is a tuple; no
+    file where `value` is None."""
     if value is None:
         return
     values = value if isinstance(value, tuple) else (value,)
-    rows = "".join(f"| {MARK_ROW} | {each} |\n" for each in values)
-    (home / "config.md").write_text(
-        "| Item | Value |\n|---|---|\n" + rows, encoding="utf-8"
+    (home / "config.json").write_text(
+        config_json(*((MARK_ROW, each) for each in values)), encoding="utf-8"
     )
 
 
@@ -742,19 +741,19 @@ class Test_main:
             pytest.param("", None, id="empty"),
             pytest.param(
                 "Yes",
-                f"`{MARK_ROW}` reads `Yes`, not `yes`, so the row is not read "
+                f"`{MARK_ROW}` reads `Yes`, not `yes`, so the key is not read "
                 "and the note's header holds the results without the seal's image",
                 id="Yes",
             ),
             pytest.param(
                 "on",
-                f"`{MARK_ROW}` reads `on`, not `yes`, so the row is not read "
+                f"`{MARK_ROW}` reads `on`, not `yes`, so the key is not read "
                 "and the note's header holds the results without the seal's image",
                 id="on",
             ),
             pytest.param(
                 "true",
-                f"`{MARK_ROW}` reads `true`, not `yes`, so the row is not read "
+                f"`{MARK_ROW}` reads `true`, not `yes`, so the key is not read "
                 "and the note's header holds the results without the seal's image",
                 id="true",
             ),

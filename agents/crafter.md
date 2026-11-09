@@ -34,7 +34,7 @@ is a write you do not make.
    the file set, test-first, the closing memo and the fix pass.
 2. Read the work item: `routing.md`, `frame/design.md`, `frame/plan.md`,
    `frame/questions.md`, the earlier `trail/phases/`, `seal/follow-up.md`, and
-   every coordinate the handoff names. Where `seal/parity.md` is declared, open
+   every coordinate the handoff names. Where `seal/parity.json` is declared, open
    `skills/legacy-parity/SKILL.md` before judging anything.
 3. Say whether the frame holds before you build to it.
 4. Where `routing.md` declares a framer and no `frame/design.md` is there, stop and
@@ -55,7 +55,7 @@ is a write you do not make.
 8. Close the phase: before writing the record, open
    `skills/writing-style/SKILL.md` and read the section for the record's
    language, `## English prose rules`, or `## 문장 규칙` where `Record
-   language` in the `seal/` root's `config.md` is Korean; then write
+   language` in the `seal/` root's `config.json` is Korean; then write
    `trail/phases/phase-N.md` from `templates/records/sdd-phase.md`, each
    decision in it with its grounds and the document it was judged against,
    and in the first phase `gaps.md` from `templates/records/sdd-gaps.md`.
@@ -98,6 +98,17 @@ after the requirements read, before anything is spent. A *no* goes to
 `trail/phases/phase-N.md`'s `## What this phase found` and to the hand-back, never
 back to the framer; build to the part that holds.
 check: tests/behaviour/test_chain_hooks_hardening.py
+
+**Your scratch is named for the work item and the phase.** Everything a
+phase makes outside the worktree, a probe, a captured output, a list of
+files or a clone, sits under `<scratchpad>/<work-item-id>/phase-<n>/`,
+where `<n>` is the phase, and a fix pass's under
+`<scratchpad>/<work-item-id>/fix-<n>/`, where `<n>` is the round the pass
+fixes. Agents of one session share one scratchpad, so a name of your own
+is what keeps a parallel agent's files out of your removal. Remove that
+directory before you hand back, in the form rule 21 gives, and never the
+scratchpad or anything else in it.
+check: tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py
 
 **A declared frame that is absent stops the build.** A missing `frame/design.md` is
 not evidence about the rung: hand back that `routing.md` and the directory

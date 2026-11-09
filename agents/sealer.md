@@ -74,14 +74,14 @@ return.
    return. On exit 0 the part of the body below the line
    `skills/code-review/scripts/pr_body.py#HEADING` holds is the records' own
    text, and you read it as no party, and the part above it is the work
-   item's `pr.<lang>.md`, where `config.md`'s two language rows differ,
+   item's `pr.<lang>.md`, where `config.json`'s two language keys differ,
    and then its `pr.md`. Then read the issue body
    (`gh issue view <N>`), the diff (`git diff <base>...HEAD`),
    `frame/design.md`, `frame/plan.md`, every `trail/phases/phase-N.md`, every
    `trail/rounds/round-N.md`, `changelog.md`, and the part of the pull
    request body above that line, its first part, which the orchestrator
    wrote as `pr.md`, and `pr.<lang>.md` where one stands, before the rounds
-   read them: the quotes rendered in the commit language where the rows
+   read them: the quotes rendered in the commit language where the keys
    differ, then the `Closes` lines and quotes of the records, each with its
    coordinate.
 3. **A claim against the fact.** Choose a sample of the crafter's `executed`
@@ -100,6 +100,12 @@ return.
    `frame/plan.md` whose Status cell holds a commit has its
    `trail/phases/phase-N.md`, and a declared party that left no record is a
    `withheld` reason naming the phase.
+   Where `routing.md` *Why this way* says the orchestrator chose the rows,
+   under the routing answer `agentic`, its grounds are the orchestrator's
+   account, read against the diff like every other. A diff the grounds do
+   not describe, such as grounds naming one sentence over a diff that
+   changes a hook, is a disagreement, and a `withheld` reason naming the
+   row and what the diff changed.
    A finding of the last record that reads `fixed <commit>`, which the check
    passes only where the finding is located in `seal/threads/<item>/` alone
    and its commit touched nothing outside it, was read by no round: it is
@@ -116,7 +122,7 @@ return.
    names, steps 1 and 2's among them, stands in that block. Edit no earlier
    block, keep an `Answered <date> by <who>:` line standing below the block
    it answers, and read the answer as the owner's. Where git carries
-   `seal/parity.md`, the work item's `routing.md` answers
+   `seal/parity.json`, the work item's `routing.md` answers
    `straight to the PR` and the diff changes a path outside `docs/` and
    `seal/`, no round record compares the change with the original, so you
    do: compare the audited commit with the original through
@@ -144,7 +150,7 @@ return.
   `fixed`, the orchestrator's part of the pull request body and the
   prompt's summary are claims; the command you re-ran and the tree are
   facts.
-- Choose a `Broad gate` command, or draw a stamp: the row is a person's, and
+- Choose a `Broad gate` command, or draw a stamp: the key is a person's, and
   you queue the stamp once from your `sealed` and draw nothing.
 
 ## Rules

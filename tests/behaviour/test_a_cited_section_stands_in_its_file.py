@@ -82,8 +82,8 @@ import pytest
 from censuses import RECORDS
 from conftest import (
     ROOT,
-    TABLE,
     build_tracked_tree,
+    config_json,
     load_lib_module,
     load_module,
     on_disk,
@@ -204,7 +204,8 @@ def corrections(root):
     """`[(rule_changes.Op, work item directory)]` for every item of a pending
     `## Rule changes`, as `rule_changes.pending` reads them against the
     policy root `lib/config.py#policy_root` names."""
-    return rules.pending(root, config.policy_root(os.path.join(root, "seal")))
+    home = os.path.join(root, "seal")
+    return rules.pending(home, config.policy_root(home))
 
 
 def holds(field, cited):
@@ -1008,7 +1009,7 @@ SHAPES = {
 def pending(tmp_path, changes, citing="docs/a.md", policy=None):
     """A repository whose CITING file holds `POLICY_CITING` and whose one
     work item's `## Rule changes` holds CHANGES, or that has no such
-    section where CHANGES is None; `seal/config.md` names POLICY as the
+    section where CHANGES is None; `seal/config.json` names POLICY as the
     policy root where it is given."""
     design = spec(changes) if changes is not None else "# a work item\n"
     files = {
@@ -1018,7 +1019,7 @@ def pending(tmp_path, changes, citing="docs/a.md", policy=None):
         "seal/threads/1-x/frame/design.md": design,
     }
     if policy:
-        files["seal/config.md"] = TABLE.format(rows=f"| Policy root | {policy} |\n")
+        files["seal/config.json"] = config_json(("Policy root", policy))
     return repo(tmp_path, files)
 
 

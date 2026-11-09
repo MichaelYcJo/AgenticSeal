@@ -85,6 +85,15 @@ def load(name, *parts):
     return loaded
 
 
+def threads_at(root):
+    """`<name>/threads`, where the work items of the repository at ROOT
+    stand in its tree: NAME is `lib/optin.py#home_name`'s, or `optin.HOME`
+    where no shared root is marked, the name an unmarked `seal/` carries."""
+    optin = load("agentic_optin_for_counts", "lib", "optin.py")
+    name = optin.home_name(root) or optin.HOME
+    return f"{name}/{optin.WORK_ITEMS}"
+
+
 def readers():
     """`(routing, chain_check, the markdown reader, settle)`: the readers the
     review chain and the settle read with, so a change to the record's
@@ -132,7 +141,8 @@ def item_counts(root, where, routing, chain, reader, records_at):
     """`(cells, unread)` for the work item at `where`: its four cells, each a
     number or `NOT_READ`, and one line per record or directory not read. A
     finding is in records alone where every path its finding block's
-    `location:` names lies under `records_at`, `seal/threads`."""
+    `location:` names lies under `records_at`, `seal/threads` under the
+    root's own name (`threads_at`)."""
 
     def rel(path):
         return os.path.relpath(path, root).replace(os.sep, "/")
@@ -185,7 +195,8 @@ def main(argv=None):
         print(f"finding-counts: a reader did not load ({problem})", file=sys.stderr)
         return 2
     root = os.path.abspath(args.root)
-    released = settle.released(root, args.released_at)
+    specs = threads_at(root)
+    released = settle.released(root, args.released_at, specs)
     if released is None:
         print(
             f"finding-counts: --released-at {args.released_at} does not resolve "
@@ -195,7 +206,7 @@ def main(argv=None):
         return 2
     rows, unread = [], []
     for name in sorted(released):
-        where = os.path.join(root, *settle.SPECS.split("/"), name)
+        where = os.path.join(root, *specs.split("/"), name)
         if not os.path.isdir(where):
             # Released and since removed from the tree: `seal settle` lists
             # it nowhere either, so it is no row and no line.
@@ -208,7 +219,7 @@ def main(argv=None):
             continue
         if not through:
             continue
-        cells, said = item_counts(root, where, routing, chain, reader, settle.SPECS)
+        cells, said = item_counts(root, where, routing, chain, reader, specs)
         rows.append(f"| {name} | " + " | ".join(str(c) for c in cells) + " |")
         unread += said
     # A blank line ends the table, so a line under it is not read as a row.

@@ -3,7 +3,7 @@ that describes the answer says so (#241).
 
 `chain_check.py#broad_gate` requires that file at a ready pull request: the
 one broad run, at a SHA, against the base, which the orchestrator takes
-before it spawns the sealer (#969). Seven places went on saying the direct answer requires nothing — the
+before it spawns the sealer (#969). Seven places went on saying `straight to the PR` requires nothing — the
 specification's declaration table, the checker's own inventory, the
 orchestration skill's four-combinations table and its closing paragraph, the
 commit gate's first option, that option's own test, and the routing template's
@@ -22,6 +22,7 @@ The commit gate's option and its test left with the gate (#1027).
 
 import pytest
 from conftest import REVIEW_CHAIN_DOCS, ROOT, flat, review_chain_text
+from test_waiver_decided_at_start import in_force
 
 STANDS = "the broad run's `trail/gate.md`"
 
@@ -38,7 +39,9 @@ DIRECT_REQUIRES = {
 }
 # The orchestration skill's four-combinations table and its closing paragraph
 # left for the policy root in #1148, which holds both; the skill keeps one
-# sentence on the direct answer and cites the section that holds the rest.
+# sentence on `straight to the PR` and cites the section that holds the rest.
+# The file and function names say "the direct answer", the name that answer
+# had until #1459, because `.test_durations` keys the cases by name.
 WAIVER_SECTION = (
     "`docs/running/the-review-and-parity-arms.md` *There is no standing waiver*"
 )
@@ -52,7 +55,7 @@ def test_each_carrier_says_what_the_direct_answer_requires(parts):
     gone, stands = DIRECT_REQUIRES[parts]
     text = flat(*parts)
     assert stands in text, (
-        f"{'/'.join(parts)} does not say the direct answer owes the sealer's "
+        f"{'/'.join(parts)} does not say `straight to the PR` owes the sealer's "
         "record, so the absence below is a search that found nothing rather "
         "than a file that says nothing"
     )
@@ -69,28 +72,34 @@ def test_each_carrier_says_what_the_direct_answer_requires(parts):
 
 
 def test_the_routing_section_cites_what_checks_the_direct_answer():
-    """What checks the direct answer is the sealer's record at the pull
-    request, and the orchestration skill's sentence on the direct answer
-    cites the policy section that says so."""
+    """What checks `straight to the PR` is the sealer's record at the pull
+    request, and the orchestration skill's sentence on that answer cites the
+    policy section that says so."""
     text = flat("skills", "implement", "orchestration.md")
-    # The section an orchestrator resolves to learn what checks the direct
-    # answer.
+    # The section an orchestrator resolves to learn what checks
+    # `straight to the PR`.
     assert WAIVER_SECTION in text, (
-        "the skill does not cite the section that says what checks the direct answer"
+        "the skill does not cite the section that says what checks `straight to the PR`"
     )
 
 
 def test_the_release_checklist_names_the_waiver_as_the_no_work_item_answer():
     """Item 9: a release's commit that belongs to no work item, a settle's
-    among them, declares its class — the routing question's `no work item`
-    answer, whose recorded form is the `Seal-Routing: no work item` trailer
-    on each commit — rather than
-    stepping around a gate. The checklist is read whole, because #1117's
-    rule changes move the sentence from step 4 to step 2b at the settle."""
-    text = flat("docs", "releasing", "release-checklist.md")
-    # The routing answer `no work item`, the code span, which a session
-    # gives the routing question for such a commit.
-    assert "`no work item` answer" in text, (
-        "`docs/releasing/release-checklist.md` does not name the waiver as the routing "
-        "question's `no work item` answer"
+    among them, declares its class — the routing question's `direct` answer
+    (`no work item` until #1459), whose recorded form is the
+    `Seal-Routing: no work item` trailer on each commit — rather than
+    stepping around a gate. The step is read as the policy in force: the
+    section as the root holds it with each pending `## Rule changes` item
+    applied, because #1459's rule change renames the answer there at the
+    settle, and the case reads `direct` before the settle and after it."""
+    text = in_force(
+        "docs/releasing/release-checklist.md",
+        "2b. Settle what earlier releases left behind",
+    )
+    # The routing answer `direct`, the code span, which a session gives the
+    # routing question for such a commit.
+    assert "`direct` answer" in text, (
+        "`docs/releasing/release-checklist.md` *2b. Settle what earlier releases "
+        "left behind*, as in force, does not name the waiver as the routing "
+        "question's `direct` answer"
     )

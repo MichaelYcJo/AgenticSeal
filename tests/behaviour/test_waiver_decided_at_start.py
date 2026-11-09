@@ -47,12 +47,13 @@ ORCH = ("skills", "implement", "orchestration.md")
 
 # The shape of the asking, in the ONE spelling the orchestrator's section
 # states (#911): question 1 alone, and
-# the boxes in a second call only where its answer was `per axis`, because
-# under the other two answers they mean nothing and were on screen anyway.
+# the boxes in a second call only where its answer was `manual` (`per axis`
+# until #1459), because under the other answers they mean nothing and were
+# on screen anyway.
 # Fourteen words, from when the block's template shared it: at fifteen a
 # sentence two documents share is a pasted passage to
 # `tests/text/test_no_passage_is_pasted_into_a_second_file.py`.
-SHAPE = "Ask question 1 alone; the boxes in a second call only under `per axis`."
+SHAPE = "Ask question 1 alone; the boxes in a second call only under `manual`."
 
 
 def flat(text):
@@ -83,8 +84,9 @@ def in_force(rel, section):
     assert span, f"{rel}: {why}"
     lines = rules.reader().gfm_lines(text)
     body = flat("\n".join(lines[span[0] - 1 : span[1]]))
-    policy = config.policy_root(os.path.join(ROOT, "seal"))
-    for op, _item in rules.pending(ROOT, policy):
+    home = os.path.join(ROOT, "seal")
+    policy = config.policy_root(home)
+    for op, _item in rules.pending(home, policy):
         if op.file != rel or op.section != section:
             continue
         if op.kind == "change" and flat(op.old) in body:
@@ -374,16 +376,16 @@ def test_question_1_is_asked_alone_and_the_boxes_only_under_per_axis():
     """S1, and #911. One batch before the first edit, and the boxes only
     where they mean something.
 
-    The two questions used to go in one call, so a person pressing
-    `automation` or `no work item` was shown four boxes that meant nothing
-    under either answer. Question 1 now goes alone, and the boxes follow in
-    a second call only under `per axis`, at once and before the first edit.
-    So both tables have to be there AND the sentence that says when each is
-    asked.
+    The two questions used to go in one call, so a person pressing an
+    answer other than `manual` (then `per axis`) was shown four boxes that
+    meant nothing under it. Question 1 now goes alone, and the boxes follow
+    in a second call only under `manual`, at once and before the first
+    edit. So both tables have to be there AND the sentence that says when
+    each is asked. Question 1 holds four answers since #1459.
     """
     skill = read(*ORCH)
-    assert len(labelled_table(skill, "Order", "Label")) == 3, (
-        "question 1 does not offer exactly three options"
+    assert len(labelled_table(skill, "Order", "Label")) == 4, (
+        "question 1 does not offer exactly four options"
     )
     assert len(labelled_table(skill, "Order", "Box")) == 4, (
         "question 2 does not offer exactly four boxes"
@@ -397,16 +399,37 @@ def test_question_1_is_put_every_time_with_the_ladders_answer_marked():
     """#1376 phase 4, the owner's rule of 2026-11-06: the person chooses the
     route even for a small change, so the ladder no longer skips question 1.
     It reads which answer the orchestrator marks, and the options keep their
-    order, so the exit stays last."""
+    order, so the exit stays last. Since #1459 the mark is `agentic`'s every
+    time: a mark read off the ladder recommended the full chain for nearly
+    every item, and `agentic` reads the ladder per item itself."""
     skill = flat(read(*ORCH))
     for phrase in (
         "Question 1 is put every time, whatever the ladder reads",
-        "on its last rung it marks `no work item`, and on either rung above "
-        "it marks `automation`",
+        "and `agentic` is the answer marked",
         "The mark is ` (Recommended)` after the label",
         "the options keep the order of the table above",
     ):
         assert phrase in skill, phrase
+
+
+def test_question_1_lists_the_four_modes_in_the_owners_order():
+    """#1459, the owner's decision of 2026-11-09: the four answers are named
+    as modes and listed `agentic`, `complete`, `manual`, `direct`, so the
+    exit stays last. A mode's name does not say what it does, so the cell
+    beside `agentic` has to say that `direct` is among its choices: a person
+    pressing it is leaving a two-line fix to land with no agent."""
+    rows = labelled_table(read(*ORCH), "Order", "Label")
+    # The labels the orchestrator puts to the person in question 1's
+    # `AskUserQuestion` call, in that order; label and position are the fact.
+    labels = [r[1].strip("*") for r in rows]
+    assert labels == ["agentic", "complete", "manual", "direct"], (
+        f"question 1 offers {labels}, not the owner's four modes in order"
+    )
+    # The label `direct`, which a person reads in `agentic`'s description as
+    # one of the routes the orchestrator may take.
+    assert "`direct`" in rows[0][2], (
+        "`agentic`'s description does not say it may choose `direct`"
+    )
 
 
 def test_the_boxes_are_in_the_stated_order():
@@ -463,17 +486,18 @@ def test_every_box_states_what_UNCHECKED_means():
 
 
 def test_the_exit_names_what_does_not_run_rather_than_where_it_ends():
-    """S4. The rule the measured instance produced: a label must name what it
-    turns off, not where it ends.
+    """S4. The rule the measured instance produced: a label must not name
+    where it ends, and its description says what it turns off.
 
     So the exit's label carries no destination, and its description names the
-    five things that do not happen. `straight to the PR` is the counter-example
+    things that do not happen. `straight to the PR` is the counter-example
     and it stays in the tree — as the `Review` row's value, which is machine
-    vocabulary 16 committed declarations carry. What moved is the LABEL.
+    vocabulary 16 committed declarations carry. What moved is the LABEL,
+    named `direct` since #1459 (`no work item` before it).
     """
     rows = labelled_table(read(*ORCH), "Order", "Label")
-    exits = [r for r in rows if "no work item" in r[1]]
-    assert exits, "question 1 has no exit option labelled `no work item`"
+    exits = [r for r in rows if r[1].strip("*") == "direct"]
+    assert exits, "question 1 has no exit option labelled `direct`"
     label, description = exits[0][1], exits[0][2]
     for destination in ("the PR", "pull request"):
         assert destination not in label, (
@@ -500,12 +524,20 @@ def test_the_ceiling_is_stated_beside_the_shape():
     """S7. The next person meets the constraint instead of discovering it:
     the section states the cap on a question's options. Where the room for
     the fourth box came from, and what a fifth does to the shape, are the
-    proofer's to read.
+    proofer's to read. Since #1459 question 1 sits at four too, so the
+    paragraph names it beside question 2.
     """
-    skill = flat(read(*ORCH))
+    raw = read(*ORCH)
+    skill = flat(raw)
     # The value four, the most options the harness's `AskUserQuestion`
     # takes per question, which bounds the boxes the orchestrator puts.
     assert "at most four options per question" in skill, "the cap is unstated"
+    lead = "**The ceiling.**"
+    assert lead in raw, "the ceiling paragraph was renamed; this case is blind"
+    ceiling = flat(raw[raw.index(lead) :].split("\n\n", 1)[0])
+    # The name `Question 1`, which a person adding a fifth answer to the
+    # routing question reads to meet the cap there too.
+    assert "question 1" in ceiling.lower(), "the ceiling does not name question 1"
 
 
 def test_the_section_gives_the_automation_row_its_two_answers():
@@ -670,7 +702,8 @@ def test_the_framer_leaves_a_mark_in_the_tree():
 def test_the_planning_row_is_a_record_and_not_a_checkbox():
     """#88, cited rather than re-argued: the question grows only where a
     decision is genuinely a person's, and `agents/framer.md`'s `## Job` says
-    the SDD ladder decides this one.
+    the SDD ladder decides this one, or under `agentic` the orchestrator
+    (#1459).
 
     Both halves are asserted, because either alone passes over the state that
     matters. The row has to be IN the orchestrator's routing section — an axis
@@ -702,7 +735,8 @@ def test_the_planning_row_is_a_record_and_not_a_checkbox():
     )
 
     # The box tables the orchestrator puts to the person carry no `Planning`
-    # box, so the person is never asked an axis the SDD ladder decides.
+    # box, so the person is never asked an axis the SDD ladder, or under
+    # `agentic` the orchestrator, decides.
     for boxes in checkbox_tables(skill):
         assert not any("framer" in b or "Planning" in b for b in boxes), (
             "the `Planning` axis reached a checkbox table, which is the one "
@@ -804,7 +838,7 @@ BATCH = (
 
 
 def test_the_batch_asks_for_the_language_rows_and_names_where_a_default_is_recorded():
-    """#1453. A repository whose `config.md` lacks either language row is
+    """#1453. A repository whose `config.json` lacks either language key is
     asked for both in the batch before the first edit, with the recent pull
     request titles beside the question, and a start with nobody to ask
     writes them as a default that `routing.md` records. The case reads the

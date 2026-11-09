@@ -17,6 +17,7 @@ from conftest import (
     commit_everything,
     git_out,
     git_repo,
+    mark_root,
     symlink_or_skip,
 )
 from conftest import load_module as load
@@ -77,10 +78,10 @@ def record(*findings):
     )
 
 
-def item(root, name=ITEM, rounds=(), review=CHAIN):
-    """The work item `name` under `root`, routed `review`, holding one round
-    record per text of `rounds`; its directory."""
-    where = root / "seal" / "threads" / name
+def item(root, name=ITEM, rounds=(), review=CHAIN, home="seal"):
+    """The work item `name` under `root`'s `<home>/threads/`, routed
+    `review`, holding one round record per text of `rounds`; its directory."""
+    where = root / home / "threads" / name
     (where / "trail" / "rounds").mkdir(parents=True)
     (where / "routing.md").write_text(
         ROUTING.format(review=review, item=name), encoding="utf-8"
@@ -156,6 +157,20 @@ class Test_main:
         root = git_repo(tmp_path / "repo")
         item(root, rounds=[record(finding(1, located, close_location=fixed_at))])
         assert table(root, capsys) == ([f"| {ITEM} | 1 | 0 | {alone} | 1 |"], [])
+
+    def test_the_work_items_under_agentic_seal_are_counted_beside_a_package(
+        self, tmp_path, capsys
+    ):
+        """#1059: beside a project's own `seal/`, a package with no marker,
+        the work items are read under the marked `agentic-seal/threads/`, and
+        a finding located there is in records alone."""
+        root = git_repo(tmp_path / "repo")
+        (root / "seal").mkdir()
+        (root / "seal" / "__init__.py").write_text("VERSION = 1\n", encoding="utf-8")
+        mark_root(root / "agentic-seal")
+        located = f"`agentic-seal/threads/{ITEM}/frame/design.md`"
+        item(root, rounds=[record(finding(1, located))], home="agentic-seal")
+        assert table(root, capsys) == ([f"| {ITEM} | 1 | 0 | 1 | 1 |"], [])
 
     def test_prose_and_a_fix_fence_are_not_fields(self, tmp_path, capsys):
         """S3. A `regression:` line in prose, and a finding heading and a

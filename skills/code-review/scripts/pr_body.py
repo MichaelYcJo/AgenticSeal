@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """seal pr-body: a pull request body, the work item's first part, its
-`pr.<lang>.md` where the two language rows differ and its `pr.md`, and then
+`pr.<lang>.md` where the two language keys differ and its `pr.md`, and then
 the part its other records hold, copied from them.
 
   seal pr-body <item> --body <file>           write the body
@@ -19,32 +19,32 @@ not there is named by its own line of `FIXED`.
 
 One fixed line depends on a record's verdict (#1204): the seal mark, `MARK`,
 the plugin's icon at the default branch of the plugin's repository, stands
-between `HEADING` and the fold where `seal/config.md`'s `Pull request seal mark`
-row reads `yes` and the work item's `guarantee.md` reads `sealed` at HEAD,
-as `seal_mark` reads them. Its address is built from the plugin's manifest,
-which is read and never written, and names no version, so two releases of
-the plugin compose one line (#1452). It carries no record text, and `--check`
-composes it the same way, so the sealer's check, run before its own
-verdict exists, reads a part with no mark from that run. The row and HEAD
-are read in the work item's own checkout, and in the working directory's
-where the item sits under the common git directory. A row other than
-`yes`, a seal that checkout cannot be read against, and a manifest the
-address cannot be built from are named on one line opening
+between `HEADING` and the fold where `seal/config.json`'s `Pull request seal
+mark` key reads `yes` and the work item's `guarantee.md` reads `sealed` at
+HEAD, as `seal_mark` reads them. Its address is built from the plugin's
+manifest, which is read and never written, and names no version, so two
+releases of the plugin compose one line (#1452). It carries no record text,
+and `--check` composes it the same way, so the sealer's check, run before
+its own verdict exists, reads a part with no mark from that run. The key and
+HEAD are read in the work item's own checkout, and in the working
+directory's where the item sits under the common git directory. A value
+other than `yes`, a seal that checkout cannot be read against, and a
+manifest the address cannot be built from are named on one line opening
 `seal pr-body:` and change no exit code.
 
 The body opens with the orchestrator's part, its files written as their
 bytes stand, and `HEADING` follows it on its own line (#1453). The part is
-composed from `seal/config.md`'s `Commit and pull request language` and
-`Record language` rows, read as the mark row is and compared with case
+composed from `seal/config.json`'s `Commit and pull request language` and
+`Record language` keys, read as the mark key is and compared with case
 folded. Where they name different languages, the part is the work item's
 one file matching `pr.*.md` beside `pr.md`, the quotes of `pr.md` rendered
 in the commit language, then `pr.md`; where they name one language, it is
 `pr.md`, then any such file in name order. The file's middle part names its
 language for a person and is read by nothing here. The orchestrator commits
 the files before the first round, so every round reads them, and a body
-file's earlier text is replaced whole. Both forms refuse at `config.md`
-where either row is absent, empty or refused, at the work item's directory
-where the rows differ and it holds no such file or more than one, at a
+file's earlier text is replaced whole. Both forms refuse at `config.json`
+where either key is absent, empty or refused, at the work item's directory
+where the keys differ and it holds no such file or more than one, at a
 file's line where it equals `HEADING`, and at `pr.md` where it is not
 there. The copy stands below that line in one
 `<details>` fold, whose `<summary>` names the copy and is followed by a
@@ -99,10 +99,10 @@ Limits, stated here and not guarded:
   handed a work item's directory that exists, from an installed plugin.
 
 Exit: 0 written, or under `--check` the part above the heading is the lines
-of the files the rows ask for, in their order, and the part below it what
+of the files the keys ask for, in their order, and the part below it what
 the records give; 1 refused and nothing written, each cause on a line that
 opens with `refused:` naming the body file by its name, or a record or
-`config.md` by its path under the `seal/` root, and the line; 2 the
+`config.json` by its path under the `seal/` root, and the line; 2 the
 arguments are unusable,
 `<item>` is not a directory, or a module this loads will not load.
 """
@@ -147,7 +147,7 @@ def _load(path, name):
 # markdown reader it loads at its import,
 # `lib/routing.py`, whose `round_number` is the one ordering rule of
 # round records and whose `optin` names a work item's files,
-# `lib/config.py`, the one reader of a `seal/config.md` row, and
+# `lib/config.py`, the one reader of a `seal/config.json` key, and
 # `.github/scripts/close_issues_on_release.py`, whose `keywords_in` is the one
 # reader of a closing keyword. The plugin ships from the repository root, so
 # `.github/scripts/` stands three levels above HERE in a clone and in an
@@ -210,23 +210,23 @@ QUESTIONS = OPTIN.QUESTIONS
 OWN_PART = OPTIN.PR
 NO_OWN_PART = "is not there; the orchestrator writes it before the first round"
 
-# #1453: the two rows `first_part` composes the first part from, read through
-# `lib/config.py#declared_value` as `MARK_ROW` is, and the translated file
-# beside `pr.md` the rows ask for where they name different languages: a
+# #1453: the two keys `first_part` composes the first part from, read through
+# `lib/config.py#declared_value` as `MARK_KEY` is, and the translated file
+# beside `pr.md` the keys ask for where they name different languages: a
 # file matching `TRANSLATED`, whose middle part nothing reads.
-COMMIT_ROW = "Commit and pull request language"
-RECORD_ROW = "Record language"
+COMMIT_KEY = "Commit and pull request language"
+RECORD_KEY = "Record language"
 TRANSLATED = "pr.*.md"
-# The root's `config.md` by its path from a work item's directory, which
-# stands at `<root>/threads/<id>`: where a cause about a row stands.
+# The root's `config.json` by its path from a work item's directory, which
+# stands at `<root>/threads/<id>`: where a cause about a key stands.
 ROOT_CONFIG = "../../" + CONFIG.CONFIG
-NO_ROW = (
-    "names no language in a `{row}` row; `templates/setup/config.md` *{row}* "
-    "says what the row governs, and the orchestrator asks for it before the "
+NO_KEY = (
+    "names no language in a `{key}` key; `templates/setup/config.md` *{key}* "
+    "says what the key governs, and the orchestrator asks for it before the "
     "first edit"
 )
 NO_TRANSLATION = (
-    f"`{COMMIT_ROW}` reads `{{commit}}` and `{RECORD_ROW}` reads `{{record}}`, "
+    f"`{COMMIT_KEY}` reads `{{commit}}` and `{RECORD_KEY}` reads `{{record}}`, "
     f"and no `pr.<lang>.md` stands beside `{OWN_PART}`; the orchestrator writes "
     "it before the first round"
 )
@@ -241,10 +241,10 @@ PHASE_RE = re.compile(r"phase-(\d+)\.md")
 TABLE = "|"
 
 # Every fixed line the generated part can hold, beside the seal mark,
-# `MARK`. `{name}` is the work item's directory name and `{path}` a record's
-# path under it.
+# `MARK`. `{name}` is the work item's directory name, `{path}` a record's
+# path under it, and `{home}` the root's name, `_in_tree`'s.
 SUMMARY = (
-    f"<summary>Copied from the records in {OPTIN.HOME}/{OPTIN.WORK_ITEMS}/{{name}}/ "
+    f"<summary>Copied from the records in {{home}}/{OPTIN.WORK_ITEMS}/{{name}}/ "
     "by seal pr-body.</summary>"
 )
 CHANGED = "## What changed"
@@ -267,11 +267,11 @@ NO_NOT_DONE = f"`{GAPS}` has no `{NOT_DONE}` section."
 NO_QUESTION_TABLE = f"`{QUESTIONS}` holds no table line."
 
 # #1204: the seal mark, one fixed line between `HEADING`'s blank line and
-# `FOLD`, written where `seal/config.md`'s `MARK_ROW` reads `MARK_ON`
+# `FOLD`, written where `seal/config.json`'s `MARK_KEY` reads `MARK_ON`
 # exactly and the work item is sealed at HEAD (`seal_mark`). Its address is
 # built from the plugin's manifest, which stands three levels above HERE as
 # `.github/scripts/` does, and which this reads and never writes.
-MARK_ROW = "Pull request seal mark"
+MARK_KEY = "Pull request seal mark"
 MARK_ON = "yes"
 MANIFEST = os.path.join(HERE, "..", "..", "..", ".claude-plugin", "plugin.json")
 MANIFEST_NAME = ".claude-plugin/plugin.json"
@@ -282,11 +282,11 @@ MARK_WIDTH = 128
 # What `seal_mark` says where the mark is not written and nothing else
 # names why; printed after `seal pr-body: `.
 NO_MARK = "the body carries no seal mark"
-ROW_NOT_YES = (
-    f"`{MARK_ROW}` reads `{{value}}`, not `{MARK_ON}`, so the row is not read "
+KEY_NOT_YES = (
+    f"`{MARK_KEY}` reads `{{value}}`, not `{MARK_ON}`, so the key is not read "
     f"and {NO_MARK}"
 )
-ROW_REFUSED = f"`{MARK_ROW}` is not read: {{why}}; {NO_MARK}"
+KEY_REFUSED = f"`{MARK_KEY}` is not read: {{why}}; {NO_MARK}"
 BASE_UNSEEN = (
     "the guarantee names the base `{base}`, which this repository cannot "
     f"resolve, so whether its seal is at HEAD is not read and {NO_MARK}"
@@ -335,7 +335,7 @@ FIXED = (
 class Refused(ValueError):
     """What the generator will not copy or write, as `causes`: one
     `(where, line, why)` each, `where` a record's path under the work item,
-    `ROOT_CONFIG` for the root's `config.md`, `""` for the work item's
+    `ROOT_CONFIG` for the root's `config.json`, `""` for the work item's
     directory or None for the body file, and `line`
     1-based, or 0 where the cause is the whole file."""
 
@@ -431,19 +431,19 @@ def first_part(item, root):
     work item's directory ITEM in the repository at ROOT, in their order,
     each as `read_own` reads it (#1453).
 
-    The two language rows are read from the root's `config.md` through
+    The two language keys are read from the root's `config.json` through
     `lib/config.py#declared_value`, in the same checkout `seal_mark` reads,
     and compared with case folded. Where they name different languages,
     the work item's one file matching `TRANSLATED` comes first, then
     `pr.md`; where they name one language, `pr.md` comes first, then each
-    such file in name order. Refused at the root's `config.md`, one cause
-    per row, where a row is absent, empty or refused, a file no row can be
-    read from among them; and on the work item's directory where the rows
+    such file in name order. Refused at the root's `config.json`, one cause
+    per key, where a key is absent, empty or refused, a file no key can be
+    read from among them; and on the work item's directory where the keys
     differ and it holds no such file, or more than one."""
     home = OPTIN.home_at(root)
     values, causes = [], []
-    for row in (COMMIT_ROW, RECORD_ROW):
-        value, refused = CONFIG.declared_value(home, row)
+    for key in (COMMIT_KEY, RECORD_KEY):
+        value, refused = CONFIG.declared_value(home, key)
         if refused is not None:
             # A file that will not read is named once, by the path `_place`
             # gives, not by this machine's.
@@ -454,7 +454,7 @@ def first_part(item, root):
                 refused[len(path) :] if refused.startswith(path) else refused,
             )
         elif not value:
-            cause = (ROOT_CONFIG, 0, NO_ROW.format(row=row))
+            cause = (ROOT_CONFIG, 0, NO_KEY.format(key=key))
         else:
             values.append(value)
             continue
@@ -483,6 +483,15 @@ def first_part(item, root):
 def _names(parts):
     """The files of PARTS, `first_part`'s, in order, for a line a person reads."""
     return " then ".join(f"`{name}`" for name, _text in parts)
+
+
+def _in_tree(root):
+    """The `/`-joined name the records stand under in the repository at
+    ROOT: the shared root's name in the tree, `lib/optin.py#home_name`'s,
+    which is `seal` or, beside a project's own `seal/`, the second name
+    (#1059); and `lib/optin.py#HOME` where the root is local or absent,
+    the name the text gives the root, since no path in the tree holds it."""
+    return OPTIN.home_name(root) or OPTIN.HOME
 
 
 def _seal_at_head(item, root, base=None):
@@ -521,7 +530,7 @@ def _seal_at_head(item, root, base=None):
     ):
         return False, BASE_UNSEEN.format(base=base)
     name = os.path.basename(os.path.normpath(os.path.abspath(item)))
-    rel = f"{OPTIN.HOME}/{OPTIN.WORK_ITEMS}/{name}"
+    rel = f"{_in_tree(root)}/{OPTIN.WORK_ITEMS}/{name}"
     behind = CHAIN.follows(
         root, target["commit"], base, rel, only=CHAIN.CLOSING_RECORDS
     )
@@ -564,23 +573,23 @@ def seal_mark(item, root, manifest=None, base=None):
     at ROOT: the mark `_composed` writes under `HEADING`, or None, and the
     one sentence `seal pr-body` prints about it, or None (#1204).
 
-    The mark is written where `MARK_ROW` in the root's `config.md`, read
+    The mark is written where `MARK_KEY` in the root's `config.json`, read
     through `lib/config.py#declared_value`, reads `MARK_ON` exactly
     and the work item is sealed at HEAD against BASE where it is given, and
     otherwise against the guarantee's own base (`_seal_at_head`). An absent
-    or empty row, and a work item not sealed at HEAD, write no mark and say
-    nothing. Any other value, a refused row, a base that does not resolve,
+    or empty key, and a work item not sealed at HEAD, write no mark and say
+    nothing. Any other value, a refused key, a base that does not resolve,
     a sealed commit HEAD does not hold, and a manifest the address cannot be
     built from, at MANIFEST or the
     plugin's own, write no mark and are named. Nothing here refuses: the
-    mark is a picture, and no row of it stops the body."""
-    value, refused = CONFIG.declared_value(OPTIN.home_at(root), MARK_ROW)
+    mark is a picture, and no key of it stops the body."""
+    value, refused = CONFIG.declared_value(OPTIN.home_at(root), MARK_KEY)
     if refused is not None:
-        return None, ROW_REFUSED.format(why=refused)
+        return None, KEY_REFUSED.format(why=refused)
     if not value:
         return None, None
     if value != MARK_ON:
-        return None, ROW_NOT_YES.format(value=value)
+        return None, KEY_NOT_YES.format(value=value)
     sealed, note = _seal_at_head(item, root, base)
     if not sealed:
         return None, note
@@ -754,11 +763,12 @@ def _claims(rel, line, seen):
     ]
 
 
-def _composed(name, texts, mark=None):
+def _composed(name, texts, mark=None, home=OPTIN.HOME):
     """`[(line, source)]` for the generated part below `HEADING`, that line
     left out: a blank line, the line MARK and a blank line where it is
-    given, `FOLD`, the summary naming the copy, a blank line, each section
-    followed by a blank line, and `FOLD_END`. `source`
+    given, `FOLD`, the summary naming the copy under HOME, the root's name
+    as `_in_tree` gives it, a blank line, each section followed by a blank
+    line, and `FOLD_END`. `source`
     is `(path, line)` for a copied line and None for a fixed one. Refused at
     the record's line where a copied line is equal to `HEADING`, which would
     stand inside the fold as a second boundary line, or begins with a `<!--`
@@ -780,7 +790,7 @@ def _composed(name, texts, mark=None):
     below = [("", None)]
     if mark:
         below += [(mark, None), ("", None)]
-    below += [(FOLD, None), (SUMMARY.format(name=name), None), ("", None)]
+    below += [(FOLD, None), (SUMMARY.format(home=home, name=name), None), ("", None)]
     for block in blocks:
         if block:
             below += [*block, ("", None)]
@@ -829,12 +839,12 @@ def _joined(below):
     return "\n".join(line for line, _source in below) + "\n"
 
 
-def compose(name, texts, mark=None):
+def compose(name, texts, mark=None, home=OPTIN.HOME):
     """The generated part of the body for the work item called NAME, from
     `read_item`'s mapping TEXTS: `HEADING`, then `_composed`'s lines, the
-    seal mark MARK first where `seal_mark` gave one, the fold's end the
-    last."""
-    return HEADING + "\n" + _joined(_composed(name, texts, mark))
+    seal mark MARK first where `seal_mark` gave one, the summary naming the
+    copy under HOME, the fold's end the last."""
+    return HEADING + "\n" + _joined(_composed(name, texts, mark, home))
 
 
 def split(body):
@@ -957,36 +967,36 @@ def compared(item, body, root, manifest=None, base=None):
     """`(note, causes)` for BODY, a pull request body's text or None where
     there is none, against what `seal pr-body` composes for the work item's
     directory ITEM in the repository at ROOT: the first part `first_part`
-    gives from the two language rows, `HEADING`, the seal mark `seal_mark`
+    gives from the two language keys, `HEADING`, the seal mark `seal_mark`
     gives from MANIFEST or the plugin's own, read against BASE where it is
     given, and the records' copy. NOTE is `seal_mark`'s sentence, or None;
     CAUSES are the `(where, line, why)` of `Refused`, a record's, the root's
-    `config.md`'s or the body's, empty where BODY is that composition.
+    `config.json`'s or the body's, empty where BODY is that composition.
     `main --check` and the pull request's check, `chain_check.py#body`, both
     call this, so the body is read by one code path at the sealer and at
     the pull request (#1452)."""
     mark, note = seal_mark(item, root, manifest, base)
     name = os.path.basename(os.path.normpath(os.path.abspath(item)))
     try:
-        below = _composed(name, read_item(item), mark)
+        below = _composed(name, read_item(item), mark, _in_tree(root))
         _check(below, body, first_part(item, root))
     except Refused as refused:
         return note, refused.causes
     return note, []
 
 
-def _place(where, line, item, body):
+def _place(where, line, item, body, home):
     """Where a cause stands, with no machine path in it: the body file BODY
-    by its name, and a record by its path under the `seal/` root, whatever
-    path the work item ITEM was given by, `ROOT_CONFIG` as the root's
-    `config.md`. The sealer copies the first `refused:` line into a
-    `guarantee.md` that is committed."""
+    by its name, and a record by its path under HOME, the root's name as
+    `_in_tree` gives it, whatever path the work item ITEM was given by,
+    `ROOT_CONFIG` as the root's `config.json`. The sealer copies the first
+    `refused:` line into a `guarantee.md` that is committed."""
     if where is None:
         path = os.path.basename(body)
     else:
         name = os.path.basename(os.path.normpath(os.path.abspath(item)))
         path = posixpath.normpath(
-            "/".join(p for p in (OPTIN.HOME, OPTIN.WORK_ITEMS, name, where) if p)
+            "/".join(p for p in (home, OPTIN.WORK_ITEMS, name, where) if p)
         )
     return f"{path}:{line}" if line else path
 
@@ -995,7 +1005,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(
         prog="seal pr-body",
         description="Write a pull request body: the work item's `pr.<lang>.md` "
-        f"where the two language rows differ, its `{OWN_PART}`, the line "
+        f"where the two language keys differ, its `{OWN_PART}`, the line "
         f"`{HEADING}`, and the part its other records hold; or check it.",
     )
     parser.add_argument("item", help="the work item's directory")
@@ -1004,7 +1014,7 @@ def main(argv=None):
         "--check",
         action="store_true",
         help="write nothing; exit 1 where the part above the heading is not "
-        "the files the language rows ask for or the part below it not the "
+        "the files the language keys ask for or the part below it not the "
         "records'",
     )
     args = parser.parse_args(argv)
@@ -1018,6 +1028,7 @@ def main(argv=None):
     # where git finds no checkout and `repo_root` answers "", so its
     # checkout is the working directory's.
     root = OPTIN.repo_root(os.path.abspath(args.item)) or OPTIN.repo_root(os.getcwd())
+    home = _in_tree(root)
     if args.check:
         try:
             note, causes = compared(args.item, _body(args.body), root)
@@ -1027,7 +1038,7 @@ def main(argv=None):
         except Refused as refused:
             note, causes = None, refused.causes
         for where, line, why in causes:
-            print(f"refused: {_place(where, line, args.item, args.body)}: {why}")
+            print(f"refused: {_place(where, line, args.item, args.body, home)}: {why}")
         if causes:
             return 1
         said = f"seal pr-body: {note}\n" if note else ""
@@ -1039,7 +1050,7 @@ def main(argv=None):
     mark, note = seal_mark(args.item, root)
     said = f"seal pr-body: {note}\n" if note else ""
     try:
-        below = _composed(name, read_item(args.item), mark)
+        below = _composed(name, read_item(args.item), mark, home)
         parts = first_part(args.item, root)
         try:
             with open(args.body, "w", encoding="utf-8", newline="") as handle:
@@ -1053,7 +1064,7 @@ def main(argv=None):
             raise Refused([(None, 0, f"cannot be written ({exc})")]) from None
     except Refused as refused:
         for where, line, why in refused.causes:
-            print(f"refused: {_place(where, line, args.item, args.body)}: {why}")
+            print(f"refused: {_place(where, line, args.item, args.body, home)}: {why}")
         return 1
     print(f"{said}wrote: {args.body} from {args.item}'s {_names(parts)} and records")
     return 0

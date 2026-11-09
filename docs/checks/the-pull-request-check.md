@@ -7,8 +7,9 @@ a person who changes it; the sealer cites its code.
 
 **`chain_check.py` reads the declaration, the frame, the `## Rule changes`
 section of each `frame/design.md` it parses, the records, the broad gate's
-file, the sealer's guarantee, the `Seal-Routing` trailers of the pull
-request's own commits and, where `seal/parity.md` is declared, the
+file, the sealer's guarantee, the pull request's body where the run's event
+payload holds it, the `Seal-Routing` trailers of the pull request's own
+commits and, where `seal/parity.md` is declared, the
 migration config's `Baseline commit`, and, against a design's
 operations, the string constants of the test files under `tests/` and
 the rule documents, and nothing else of a round record.** It judges the
@@ -175,3 +176,39 @@ section a `remove` names or a file listing, is named as not read. A pin
 the reader cannot list, such as a literal built at run time, meets the
 suite at the settle's broad run.
 check: a-rule-change-names-the-pins-and-copies-it-breaks
+
+**Where the run's event payload holds the pull request's body, a ready
+pull request passes only where that body is what `seal pr-body` composes
+at HEAD for the one judged work item the pull request carries: its
+`pr.md`, the heading, the seal mark where the `Pull request seal mark`
+key reads `yes` and the work item is sealed at HEAD, and the records'
+copy.** Where `seal/config.json`'s two language keys differ, the body
+the check compares opens with the work item's `pr.<lang>.md` and then
+`pr.md`, as `seal pr-body` composes it, and where either key is absent
+the check refuses on `seal/config.json`, as `seal pr-body` does. The
+check reads the body from the file `GITHUB_EVENT_PATH` names, the file it reads the draft state from, and compares it through
+the function `seal pr-body --check` compares with, so the sealer and the
+pull request read the body by one code path. Each differing line is
+refused on the work item's directory at line 0, since the body is no
+file of the checkout, and the refusal names the body's line and the
+record's line or the fixed line the composition gives there; a cause
+placed at a record, such as a missing `pr.md`, is refused at that
+record's path and line. A body written before the sealer's verdict
+differs on the mark's line alone, and the refusal names that line. The
+mark's address carries no version, so the installed plugin and the copy
+the check runs compose one line whatever release each is. Where the
+payload holds no body, as a run outside CI, `--worktree` and the run of
+`seal gate` under `--sealing` do, the body is named as not read and
+nothing is decided on it; under `--sealing` a difference is a notice.
+Where the pull request carries more than one judged work item holding a
+`pr.md`, or several judged work items none of which holds one, the body
+is named as not read for each, since one body is one work item's. The
+workflow runs on `edited`, because a body edit is no commit and the
+`edited` payload carries the new body. It errs where the
+payload is not the body GitHub shows: a re-run of an old run replays the
+body the run began with, and an `edited` event on a merged pull request
+runs the check against a tree the branch's commits are not in, where the
+red gates nothing. In local mode nothing is declared, and the body is
+held by the sealer's `seal pr-body --check` and by the orchestrator's run
+after the seal.
+check: body-is-what-pr-body-composes

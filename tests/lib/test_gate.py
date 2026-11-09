@@ -23,14 +23,30 @@ class Test_touches_code:
     def test_accepts_a_path_outside_the_document_roots_or_no_list_as_code(self, paths):
         """A change git could not list is not one confined to the roots
         (#868), and a root is matched with its slash."""
-        assert gate.touches_code(paths) is True
+        assert gate.touches_code(paths, "seal") is True
 
     @pytest.mark.parametrize(
         "paths",
         [[], ["docs/a.md"], ["seal/threads/x/trail/rounds/round-1.md", "docs/b.md"]],
     )
     def test_refuses_a_change_confined_to_docs_and_seal_as_code(self, paths):
-        assert gate.touches_code(paths) is False
+        assert gate.touches_code(paths, "seal") is False
+
+    @pytest.mark.parametrize(
+        "home, paths, code",
+        [
+            ("agentic-seal", ["agentic-seal/threads/x/routing.md", "docs/a.md"], False),
+            ("agentic-seal", ["seal/__init__.py"], True),
+            ("", ["seal/threads/x/routing.md"], True),
+            ("", ["docs/a.md"], False),
+        ],
+        ids=["the second name", "a project's own seal", "no root", "no root, docs"],
+    )
+    def test_reads_the_root_by_the_name_it_is_given(self, home, paths, code):
+        """#1059: the records root is the name the caller resolved, so a
+        project's own `seal/` beside `agentic-seal/` is code, and with no
+        root in the tree `docs/` is the one document root."""
+        assert gate.touches_code(paths, home) is code
 
 
 test_census = census_case(TARGET)

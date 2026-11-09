@@ -32,6 +32,7 @@ from conftest import (
     ROOT,
     census_case,
     commit_everything_as_e,
+    config_json,
     git,
     git_out,
     load_module,
@@ -1416,15 +1417,15 @@ class Test_overviews:
     ):
         """`reference_rule` measures the walk against the top git names with
         its links resolved, so an argument reached through a link is read at
-        its real path, and a team's `specs/` that a `Reference specs` row
-        names by its prefix stays out of that walk too. The default row
+        its real path, and a team's `specs/` that a `Reference specs` key
+        names by its prefix stays out of that walk too. The default value
         matches a `specs` part wherever it stands, so only a prefix reads
         where the path begins."""
         d = copy_of(joined, tmp_path)
         write(
             d,
-            "seal/config.md",
-            "| Item | Value |\n|---|---|\n| Reference specs | specs |\n",
+            "seal/config.json",
+            config_json(("Reference specs", "specs")),
         )
         symlink_or_skip(str(d), str(tmp_path / "link"), directory=True)
         walked = UC.overviews([str(tmp_path / "link")])
@@ -1435,13 +1436,14 @@ class Test_overviews:
 
 class Test_config_at:
     def test_accepts_the_config_reader_and_the_root(self, joined):
-        config, home = UC.config_at(str(joined))
+        config, home, name = UC.config_at(str(joined))
         assert callable(config.reference_roots)
         assert same_path(home, joined / "seal")
+        assert name == "seal"
 
     def test_refuses_to_invent_a_root(self, plain):
-        _config, home = UC.config_at(str(plain))
-        assert not home
+        _config, home, name = UC.config_at(str(plain))
+        assert not home and not name
 
 
 class Test_references_at:
@@ -1461,8 +1463,8 @@ class Test_policy_root:
         d = copy_of(joined, tmp_path)
         write(
             d,
-            "seal/config.md",
-            "| Item | Value |\n|---|---|\n| Policy root | rules |\n",
+            "seal/config.json",
+            config_json(("Policy root", "rules")),
         )
         assert UC.policy_root(str(d)) == "rules"
 

@@ -1,7 +1,8 @@
 """One table walker, held to cmark-gfm over an enumerated corpus (#647).
 
-`lib/config.py#gfm_table` reads two tables out of markdown: the pact's
-`| Signer |` and `seal/config.md`'s `| Item | Value |`. This module holds it
+`lib/tables.py#gfm_table` reads the tables of records out of markdown, and
+an earlier release's `seal/config.md`'s `| Item | Value |`, which `seal mode`
+converts. This module holds it, over a one-cell header and a two-cell one,
 to GitHub's renderer, `cmarkgfm`, through
 `tests/gfm_table_oracle.py`, and the property is S1 of the work item's
 `frame/design.md`: **on every shape, the walker's cells equal cmark-gfm's, or the walker
@@ -35,9 +36,10 @@ What the enumeration leaves out, and why:
 
 The walker's cases that ask no oracle, a hidden line above the header and
 the two pieces after a break GFM does not honour, are in
-`tests/lib/test_config.py` since #942's phase 6, and the refusal of a line shown
-directly above the header since its round 9 fix pass; that case reads this
-file's corpus, `HEADERS`, `KINDS`, `INDENTS` and `document`, from here.
+`tests/lib/test_tables.py`, placed beside the walker's module by #942's phase
+6, and the refusal of a line shown directly above the header beside them by
+its round 9 fix pass; that case reads this file's corpus, `HEADERS`, `KINDS`,
+`INDENTS` and `document`, from here.
 """
 
 import random
@@ -46,13 +48,18 @@ import gfm_table_oracle as oracle
 import pytest
 from conftest import imported_roots, load_lib_module
 
+tables = load_lib_module("tables.py", "tables_for_the_table_walker")
+# `lib/config.py#OLD_TABLE`, the header `seal mode`'s conversion hands the
+# walker.
 config = load_lib_module("config.py", "config_for_the_table_walker")
 
 HEADERS = {
+    # A one-cell table; the header's word is the corpus's, and no reader
+    # asks for it.
     "signer": ("Signer",),
-    # `seal/config.md`'s table, read by this walker since #871 through
-    # `lib/config.py#config_table`, which hands it this tuple and nothing
-    # else (`test_the_config_pass_is_the_config_readers_header`).
+    # An earlier release's `seal/config.md` table, read by this walker since
+    # #871 and, since #1454, only by `seal mode`'s conversion through
+    # `lib/config.py#OLD_TABLE` (`test_the_config_pass_is_the_config_readers_header`).
     "config": ("Item", "Value"),
 }
 
@@ -333,7 +340,7 @@ def disagreement(header, text):
     """None where the walker agrees with cmark-gfm on TEXT or refuses it;
     otherwise what each said."""
     want = oracle.rows_under(text, header)
-    rows, refusals = config.gfm_table(text, header)
+    rows, refusals = tables.gfm_table(text, header)
     if refusals:
         return None
     got = [cells for _line, cells in rows]
@@ -399,7 +406,7 @@ def test_a_table_indented_as_gfm_permits_is_read_and_not_refused(which):
             for c in INDENTS:
                 text = plain(header, (a, b, c))
                 want = oracle.rows_under(text, header)
-                rows, refusals = config.gfm_table(text, header)
+                rows, refusals = tables.gfm_table(text, header)
                 got = [cells for _line, cells in rows]
                 if want is None:
                     ok = bool(refusals)
@@ -425,7 +432,7 @@ def test_every_delimiter_gfm_accepts_is_read(which):
     for spelled in delimiters(header):
         text = plain(header, ("", "", ""), spelled)
         want = oracle.rows_under(text, header)
-        rows, refusals = config.gfm_table(text, header)
+        rows, refusals = tables.gfm_table(text, header)
         got = [cells for _line, cells in rows]
         ok = bool(refusals) if want is None else (not refusals and got == want)
         if not ok:
@@ -451,7 +458,7 @@ def test_the_shapes_round_1_measured_are_refused():
         f"<!DOCTYPE\n\n| Signer |\n|---|\n| {u} |\n",
     ):
         assert oracle.rows_under(text, ("Signer",)) is None, text
-        _rows, refusals = config.gfm_table(text, ("Signer",))
+        _rows, refusals = tables.gfm_table(text, ("Signer",))
         assert refusals, text
 
 
@@ -464,7 +471,7 @@ def test_an_html_block_closed_above_the_header_leaves_the_table(oracle_check=Tru
         f"<?php\nx\n?>\n\n| Signer |\n|---|\n| {u} |\n",
     ):
         assert oracle.rows_under(text, ("Signer",)) == [(u,)], text
-        rows, refusals = config.gfm_table(text, ("Signer",))
+        rows, refusals = tables.gfm_table(text, ("Signer",))
         assert refusals == [] and [c for _l, c in rows] == [(u,)], text
 
 
@@ -559,37 +566,10 @@ def test_the_corpus_is_counted():
 
 def test_the_config_pass_is_the_config_readers_header():
     """The config pass is the config table's only where the header it walks
-    is the one `lib/config.py#config_table` hands the walker (#871): a
+    is the one `seal mode`'s conversion hands the walker (#871, #1454): a
     pass over a header no reader uses would hold nothing. Seen red before
-    `CONFIG_TABLE` existed, as an `AttributeError`."""
-    assert HEADERS["config"] == config.CONFIG_TABLE
-
-
-@pytest.mark.parametrize(
-    "above", ["", "<div>\n\n", "- x\n\n"], ids=["plain", "div", "list"]
-)
-def test_the_old_header_is_read_through_the_second_attempt(above):
-    """#822: a pact written in 0.18.x heads its table `| Signatory |`. The
-    walker reads it as cmark-gfm renders it, through `pact_signers`' second
-    attempt, and says which header it read. Where a `Signer` table stands
-    above it, under a heading of its own, the old table is not read, and it
-    is refused rather than left unread (round 1's yellow 1)."""
-    u = "https://example.com/org/a"
-    text = f"# Pact\n\n{above}| Signatory |\n|---|\n| {u} |\n"
-    assert oracle.rows_under(text, ("Signatory",)) == [(u,)], text
-    signers, refusals, header = config.pact_signers(text)
-    assert refusals == [] and [s[0] for s in signers] == [u], (text, refusals)
-    assert header == ("Signatory",)
-    v = "https://example.com/org/b"
-    both = (
-        f"# Pact\n\n| Signer |\n|---|\n| {v} |\n\n## Before\n\n"
-        + text.split("\n\n", 1)[1]
-    )
-    signers, refusals, header = config.pact_signers(both)
-    assert header == ("Signer",), (both, header)
-    assert [s[0] for s in signers] == [v], (both, signers)
-    assert len(refusals) == 1, (both, refusals)
-    assert "also holds a `| Signatory |` header" in refusals[0], (both, refusals)
+    the header was a name of `lib/config.py`, as an `AttributeError`."""
+    assert HEADERS["config"] == config.OLD_TABLE
 
 
 def test_a_half_written_tag_does_not_hide_the_table_from_the_oracle():
@@ -622,7 +602,7 @@ def test_a_table_under_a_block_that_has_ended_is_read(above):
     u = "https://example.com/org/a"
     text = f"# Pact\n\n{above}| Signer |\n|---|\n| {u} |\n"
     assert oracle.rows_under(text, ("Signer",)) == [(u,)], text
-    rows, refusals = config.gfm_table(text, ("Signer",))
+    rows, refusals = tables.gfm_table(text, ("Signer",))
     assert refusals == [] and [c for _l, c in rows] == [(u,)], (text, refusals)
 
 
@@ -637,7 +617,7 @@ def test_a_pipe_after_an_even_run_of_backslashes_is_refused(cell):
     header = HEADERS["config"]
     text = f"| Item | Value |\n|---|---|\n| {cell} |\n"
     assert oracle.rows_under(text, header) != [("a \\", "b")]
-    rows, refusals = config.gfm_table(text, header)
+    rows, refusals = tables.gfm_table(text, header)
     assert rows == [] and refusals, (rows, refusals)
 
 
@@ -663,7 +643,7 @@ def test_the_shapes_round_2_measured_are_refused(text):
     the named kind 6-7 limit, a fence inside an HTML block directly above."""
     text = text.format(u="https://example.com/org/a", c="<" + "!--")
     assert oracle.rows_under(text, ("Signer",)) is None, text
-    _rows, refusals = config.gfm_table(text, ("Signer",))
+    _rows, refusals = tables.gfm_table(text, ("Signer",))
     assert refusals, text
 
 
@@ -673,7 +653,7 @@ def test_an_indented_table_with_no_list_above_is_read():
     u = "https://example.com/org/a"
     text = f"- x\n\n# Pact\n\n  | Signer |\n|---|\n| {u} |\n"
     assert oracle.rows_under(text, ("Signer",)) == [(u,)], text
-    rows, refusals = config.gfm_table(text, ("Signer",))
+    rows, refusals = tables.gfm_table(text, ("Signer",))
     assert refusals == [] and [c for _l, c in rows] == [(u,)], refusals
 
 
@@ -685,7 +665,7 @@ def test_a_heading_inside_the_list_item_does_not_end_it():
     u = "https://example.com/org/a"
     text = f"- x\n\n  # h\n\n  | Signer |\n|---|\n| {u} |\n"
     assert oracle.rows_under(text, ("Signer",)) is None, text
-    _rows, refusals = config.gfm_table(text, ("Signer",))
+    _rows, refusals = tables.gfm_table(text, ("Signer",))
     assert refusals and "indented under a list item" in refusals[0], refusals
 
 
@@ -695,5 +675,5 @@ def test_a_list_marker_in_indented_code_is_no_list_item():
     u = "https://example.com/org/a"
     text = f"# Pact\n\n    - x\n\n  | Signer |\n|---|\n| {u} |\n"
     assert oracle.rows_under(text, ("Signer",)) == [(u,)], text
-    rows, refusals = config.gfm_table(text, ("Signer",))
+    rows, refusals = tables.gfm_table(text, ("Signer",))
     assert refusals == [] and [c for _l, c in rows] == [(u,)], refusals

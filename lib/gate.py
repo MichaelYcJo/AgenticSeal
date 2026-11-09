@@ -5,21 +5,22 @@ The rule is `docs/running/the-review-and-parity-arms.md` *Parity arm*: a change
 confined to `docs/` and `seal/` owes no comparison with an original, because
 nothing there can be compared against one. `skills/code-review/scripts/
 chain_check.py#originals_of` loads this file by path and asks `touches_code`
-of the paths the pull request changes.
+of the paths the pull request changes, with the name of the root in force at
+HEAD, which a project's own `seal/` changes (#1059).
 
 The commit gate's arms, its refusal texts and its marks lived here until
 #1027 removed every hook of this plugin that ran inside git.
 """
 
-# `seal/` as a string rather than `optin.HOME` joined under anything: these
-# classify paths as `git diff` prints them, repository-relative.
-DOC_ROOTS = ("docs/", "seal/")
 
-
-def touches_code(paths):
+def touches_code(paths, home):
     """True when one of `paths` is outside the document roots, or when
     `paths` is None: a change git could not list is not a change confined to
-    `docs/` and `seal/`, so the parity arm asks (#868)."""
+    them, so the parity arm asks (#868). The roots are `docs/` and `<home>/`,
+    HOME the root's repository-relative name as `lib/optin.py#home_name`
+    gives it, and `docs/` alone where HOME is "". PATHS are as `git diff`
+    prints them, repository-relative and `/`-joined."""
     if paths is None:
         return True
-    return any(not path.startswith(DOC_ROOTS) for path in paths)
+    roots = ("docs/", f"{home}/") if home else ("docs/",)
+    return any(not path.startswith(roots) for path in paths)

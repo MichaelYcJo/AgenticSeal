@@ -6,7 +6,7 @@ and the splitter's from `tests/behaviour/test_every_reader_ends_a_line_where_gfm
 and every copy of the splitter to this one, because a check that judges
 markdown against an oracle, or files against each other, stays where it is.
 `tests/behaviour/test_unverified_rows_close.py` keeps the case that holds this module's
-fence walks to `unverified_check.py`'s and `lib/config.py`'s, for the same
+fence walks to `unverified_check.py`'s and `lib/tables.py`'s, for the same
 reason.
 """
 

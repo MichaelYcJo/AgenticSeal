@@ -122,6 +122,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "..", "lib"))
 sys.path.insert(0, os.path.join(HERE, "..", "..", "skills", "verify", "scripts"))
 import console  # noqa: E402
 import gitcmd  # noqa: E402
+import optin  # noqa: E402
 from blocks import gfm_lines  # noqa: E402
 from close_issues_on_release import SPAN, keywords_in  # noqa: E402
 from unverified_check import heading_level  # noqa: E402
@@ -135,8 +136,18 @@ settle = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(settle)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-# A work item's changelog fragment, its id captured.
-FRAGMENT_RE = re.compile(r"^seal/threads/([^/]+)/changelog\.md$")
+
+
+def fragment_re():
+    """A work item's changelog fragment, its id captured, under the name
+    `lib/optin.py#home_name` gives the shared root at `ROOT`, or
+    `optin.HOME` where none is marked."""
+    name = optin.home_name(ROOT) or optin.HOME
+    return re.compile(
+        rf"^{re.escape(name)}/{re.escape(optin.WORK_ITEMS)}/([^/]+)/changelog\.md$"
+    )
+
+
 # The shape of a fragment's process section, which the note lifts into one
 # table (`section`).
 PROCESS_TEMPLATE = os.path.join(ROOT, "templates", "records", "process.md")
@@ -246,8 +257,9 @@ def fragments(revisions):
     # holds was released there, and a commit that restores its directory
     # adds nothing new (0.15.3).
     previous = revisions.split("..")[0] if ".." in revisions else None
+    fragment = fragment_re()
     for path in sorted(set(added.split("\0"))):
-        found = FRAGMENT_RE.match(path)
+        found = fragment.match(path)
         if not found:
             continue
         if previous and git("ls-tree", "--name-only", previous, "--", path).strip():

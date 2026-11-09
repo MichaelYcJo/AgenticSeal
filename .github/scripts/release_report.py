@@ -59,6 +59,7 @@ ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 METER = "skills/verify/scripts/payload_meter.py"
 FOLD = "skills/settle/scripts/fold_check.py"
 CONFIG = "lib/config.py"
+OPTIN = "lib/optin.py"
 LAUNCH = "lib/launch.py"
 DURATIONS = ".test_durations"
 # Beside these, each document of the policy root `FOLD`'s `documents` lists.
@@ -209,8 +210,12 @@ def documents(root):
         for pattern in DOCUMENTS
         for path in sorted(glob.glob(os.path.join(root, *pattern.split("/"))))
     ]
-    config = script(CONFIG, "agentic_release_config", "reads the policy root row")
-    policy = config.policy_root(os.path.join(root, "seal"))
+    config = script(CONFIG, "agentic_release_config", "reads the policy root key")
+    optin = script(OPTIN, "agentic_release_optin", "names the seal/ root in the tree")
+    # The shared root's name, or `optin.HOME` where none is marked, as an
+    # unmarked `seal/` was read before the second name.
+    home = os.path.join(root, optin.home_name(root) or optin.HOME)
+    policy = config.policy_root(home)
     if os.path.isdir(os.path.join(root, *policy.split("/"))):
         fold = script(FOLD, "agentic_release_fold", "lists the policy documents")
         try:

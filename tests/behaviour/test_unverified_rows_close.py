@@ -4,7 +4,7 @@
 into `tests/skills/test_unverified_check.py`, one class per function. Two kinds of
 case stay here, byte for byte. The cases whose assertion reads a shipped
 document's prose wait for #923. `test_the_fence_walks_agree_shape_by_shape`
-holds `lib/blocks.py` and `lib/config.py#fence_map` to this module's
+holds `lib/blocks.py` and `lib/tables.py#fence_map` to this module's
 fence walk, a check across files, which stays where it is. The case that read
 `skills/code-review/scripts/chain_check.py` and
 `skills/settle/scripts/settle.py` for a call of this module's `settled` judged
@@ -146,23 +146,23 @@ FENCE_SHAPES = [
 def test_the_fence_walks_agree_shape_by_shape(lines):
     """The delimiter rule is written once, in `lib/blocks.py`, and three
     walks still apply it, each with its own state: `uc.fence_spans`,
-    `blocks.fence_only`, and the walk behind `lib/config.py#fence_map`.
+    `blocks.fence_only`, and the walk behind `lib/tables.py#fence_map`.
     They agree on which lines are fenced and on where a block that never
     closes opened."""
     from conftest import load_lib_module
 
     spec = importlib.util.spec_from_file_location(
-        "agentic_config_for_fence_walks",
-        os.path.join(ROOT, "lib", "config.py"),
+        "agentic_tables_for_fence_walks",
+        os.path.join(ROOT, "lib", "tables.py"),
     )
-    config = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(config)
+    tables = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(tables)
     blocks = load_lib_module("blocks.py", "agentic_blocks_for_fence_walks")
     fenced = set()
     for first, last in uc.fence_spans(lines):
         fenced.update(range(first, len(lines) if last is None else last + 1))
     unclosed = [first for first, last in uc.fence_spans(lines) if last is None]
-    shown, opened_at = config.fence_map(lines)
+    shown, opened_at = tables.fence_map(lines)
     assert fenced == set(range(len(lines))) - {n for n, _ in shown}
     assert unclosed == ([] if opened_at is None else [opened_at])
     assert blocks.fence_only(lines) == (fenced, opened_at)

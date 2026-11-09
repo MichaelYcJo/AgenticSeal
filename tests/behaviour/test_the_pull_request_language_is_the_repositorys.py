@@ -1,18 +1,18 @@
-"""The pull request language is the repository's, stated in `seal/config.md`.
+"""The pull request language is the repository's, stated in `seal/config.json`.
 
 `skills/commit-pr-convention/SKILL.md` required English at five places, and a
 repository whose team writes another language had nowhere to say otherwise.
-One row now answers for all four prose surfaces — commit subject, commit
+One key now answers for all four prose surfaces — commit subject, commit
 body, pull request title, pull request body — and absence means English, so
 a repository that says nothing is unaffected (#82).
 
-No gate reads the row, and the reason is recorded rather than
+No gate reads the key, and the reason is recorded rather than
 left as an absence a later reader takes for an oversight: judging what
 language a commit message is in means being wrong about names, identifiers
 and quoted English, and a wrong stop blocks a correct commit. The mechanism
 is the skill's text, the way it already is for the prefix vocabulary. So the
 cases here read the reader this file loads, and the spellings the skill and
-the template name: the file, the row, the branch shapes, the mirror's name.
+the template name: the file, the key, the branch shapes, the mirror's name.
 The skill's sentences around them are the proofer's to read.
 
 Where a case still pairs a sentence with its absence, the absence half is
@@ -21,30 +21,34 @@ keep the old one two sections down, which is how two answers ship at once.
 """
 
 import glob
+import json
 import os
 import subprocess
 
 import pytest
-from conftest import ROOT, flat, local_home, read
+from conftest import ROOT, config_json, flat, local_home, read
 
 SKILL = ("skills", "commit-pr-convention", "SKILL.md")
 TEMPLATE = ("templates", "setup", "config.md")
 
 
-# --- the row, and where it is read from -------------------------------------
+# --- the key, and where it is read from -------------------------------------
 
 
 def test_the_skill_names_the_file_and_the_row():
-    """S1. Both halves: a session that knows the path but not the row does
-    not know what to look for, and one that knows the row but not the path
-    has nowhere to look."""
+    """S1. Both halves: a session that knows the path but not the key does
+    not know what to look for, and one that knows the key but not the path
+    has nowhere to look. #1454: the file is `config.json`."""
     text = flat(*SKILL)
-    # The file name a session opens for the row.
-    assert "config.md" in text, "the skill does not name the file it reads"
-    # The row's item. A session looks for it in the file because the skill
-    # tells it to. No hook or command of the plugin asks for this row; the
-    # cases of this file parse it through `lib/config.py#config_rows`.
-    assert "Commit and pull request language" in text, "the skill does not name the row"
+    # The file name a session opens for the key.
+    assert "config.json" in text, "the skill does not name the file it reads"
+    # The template `templates/setup/config.md` keeps its name; the file the
+    # repository writes no longer does.
+    assert "`config.md`" not in text, "the skill still names the retired table"
+    # The key. A session looks for it in the file because the skill tells it
+    # to. No hook or command of the plugin asks for this key; the cases of
+    # this file read it through `lib/config.py#declared_value`.
+    assert "Commit and pull request language" in text, "the skill does not name the key"
 
 
 def test_the_root_is_resolved_rather_than_spelled():
@@ -134,7 +138,7 @@ def test_the_pull_request_body_section_no_longer_opens_with_english():
         ("the commit subject", "in the repository's language"),
         ("the commit body", "One language, in the subject and in the body"),
         ("the pull request title", "and the same language"),
-        ("the self-check question", "Commit and pull request language` row names"),
+        ("the self-check question", "Commit and pull request language` key names"),
     ],
 )
 def test_the_surface_defers_to_the_row_instead(surface, phrase):
@@ -218,7 +222,7 @@ def test_the_response_language_stays_out_of_the_repository_file():
 
 def test_the_mirror_is_named_for_its_own_language():
     """S7. The mirror is named for its own language, which since #1453 is
-    the commit language of a repository whose two language rows differ:
+    the commit language of a repository whose two language keys differ:
     `pr.ko.md` where the records are English and the team writes Korean,
     `pr.en.md` the other way round.
 
@@ -295,7 +299,7 @@ def test_the_existing_mirrors_are_consistent_with_the_rule():
         f"already holds, so it is no mirror. This repository's record "
         f"language is {record}"
     )
-    # #1453: where the two rows differ, the mirror is the quotes of `pr.md`
+    # #1453: where the two keys differ, the mirror is the quotes of `pr.md`
     # in the commit language, and it is named for that language.
     wanted = the_mirror(commit, record)
     if wanted is not None:
@@ -323,16 +327,19 @@ def test_a_mirror_named_for_a_country_is_refused_by_the_same_rule():
 
 def test_a_config_holding_the_templates_default_row_reads_as_english(tmp_path):
     """tests-todo row 1, first half. The file the plugin ships a template for
-    must not be the file that breaks the check. Its two language rows both
-    read English, so they name one language and no mirror is asked for."""
+    must not be the file that breaks the check. Its two language keys both
+    read English, so they name one language and no mirror is asked for. The
+    template's example object is written as the file."""
     home = tmp_path / "seal"
     home.mkdir()
-    (home / "config.md").write_text(read(*TEMPLATE), encoding="utf-8")
+    (home / "config.json").write_text(
+        config_json(*items(read(*TEMPLATE))), encoding="utf-8"
+    )
     commit = configured_language(tmp_path)
     record = configured_language(tmp_path, row=RECORD_ROW)
     assert (commit, record) == ("English", "English")
     assert the_mirror(commit, record) is None, (
-        "two rows naming one language ask for no mirror"
+        "two keys naming one language ask for no mirror"
     )
     assert mirror_to_refuse(record) == "pr.en.md", (
         "a file in the records' own language is no mirror"
@@ -355,11 +362,8 @@ def test_rows_that_differ_name_the_mirror_for_the_commit_language(
     language, and a file named for the records' language is no mirror."""
     home = tmp_path / "seal"
     home.mkdir()
-    (home / "config.md").write_text(
-        "| Item | Value |\n|---|---|\n"
-        f"| Commit and pull request language | {commit} |\n"
-        f"| Record language | {record} |\n",
-        encoding="utf-8",
+    (home / "config.json").write_text(
+        config_json((COMMIT_ROW, commit), (RECORD_ROW, record)), encoding="utf-8"
     )
     read_commit = configured_language(tmp_path)
     read_record = configured_language(tmp_path, row=RECORD_ROW)
@@ -371,27 +375,18 @@ def test_rows_that_differ_name_the_mirror_for_the_commit_language(
     assert mirror_to_refuse(read_record) == refused
 
 
-# --- the template, parsed by the one reader ---------------------------------
+# --- the config, read by the one reader -------------------------------------
 #
-# This file used to carry its own copy of the loop — a `HEADER`, a `ROW`, a
-# `SEPARATOR` and an `items()` that arrived at both stop rules over two
-# review rounds. The copy agreed with `lib/config.py#config_rows` for as
-# long as neither moved, and #415 is the branch that moved one: the production
-# reader learned markdown's `\|` escape, and a second reader that had not
-# would answer a different question about the same file. That is exactly what
-# `lib/config.py`'s own docstring says the module exists to prevent.
-#
-# So the loop is gone and `items` is the one reader, reached by the name this
-# file already spelled. Its two stop rules and the rounds behind them are now
-# documented where the implementation is. Closing this copy also settles a
-# deferral standing since work item
-# `1788817289-local-mode-from-first-setup-to-the-gate`.
+# This file once carried its own copy of the config reader, and the copy
+# answered a different question about the same file as soon as the
+# production reader moved (#415). So it loads `lib/config.py` by path and
+# reads a key through `declared_value`, the reader every script asks.
 
 CONFIG_READER = ("lib", "config.py")
 
 
 def _config_reader():
-    """`lib/config.py`, loaded by path — the one reader of this table."""
+    """`lib/config.py`, loaded by path — the one reader of the config."""
     import importlib.util
 
     path = os.path.join(ROOT, *CONFIG_READER)
@@ -401,11 +396,20 @@ def _config_reader():
     return module
 
 
-items = _config_reader().config_rows
+READER = _config_reader()
+declared_value = READER.declared_value
+
+
+def items(text):
+    """The keys of TEXT's first ```json block as (key, value), in the order
+    written: the example object `templates/setup/config.md` shows, read by
+    the same parser the config's reader uses."""
+    block = text.split("```json\n", 1)[1].split("\n```", 1)[0]
+    return list(json.loads(block, object_pairs_hook=list))
 
 
 # The mirror cases above call these. They live here because they are built
-# on `items()`, and Python resolves a name when the call runs rather than
+# on the reader, and Python resolves a name when the call runs rather than
 # where it sits.
 
 COMMIT_ROW = "Commit and pull request language"
@@ -415,11 +419,11 @@ CODES_BY_NAME = {name.casefold(): code for name, code in LANGUAGE_CODES.items()}
 
 
 def as_language_name(value):
-    """A row's value reduced to the language name it spells.
+    """A key's value reduced to the language name it spells.
 
-    Markdown emphasis off both ends and case folded, because the row is typed
-    by a person into a table cell: `**Korean**`, `_Korean_` and `korean` all
-    name Korean. Nothing else is normalised — `Korean (KR)` is a different
+    Markdown emphasis off both ends and case folded, because the value is
+    typed by a person: `**Korean**`, `_Korean_` and `korean` all name
+    Korean. Nothing else is normalised — `Korean (KR)` is a different
     value and answering for it would be guessing.
     """
     return value.strip().strip("*_`").strip().casefold()
@@ -452,7 +456,7 @@ def mirror_to_refuse(language):
 
 
 def the_mirror(commit, record):
-    """The `pr.<code>.md` a work item holds where the two rows differ, or None.
+    """The `pr.<code>.md` a work item holds where the two keys differ, or None.
 
     Where COMMIT and RECORD name different languages, the mirror holds each
     quote of `pr.md` rendered in the commit language, so it is named for the
@@ -502,9 +506,9 @@ def configured_language(root=None, row=COMMIT_ROW):
     `Record language`.
 
     Every way of not naming one lands on English, and there are four: no
-    file, no such row, an empty value, and a file that cannot be read or does
-    not parse as that table. The direction is deliberate — a config nobody
-    can read must not stop a commit.
+    file, no such key, an empty value, and a file that cannot be read or is
+    not one JSON object, a key that does not read among them. The direction
+    is deliberate — a config nobody can read must not stop a commit.
 
     The ROOT is resolved first and the config read from that one, the way
     `lib/optin.py#home_at` resolves it: whichever of the two directories
@@ -514,32 +518,25 @@ def configured_language(root=None, row=COMMIT_ROW):
     for home in config_homes(root):
         if not os.path.isdir(home):
             continue
-        try:
-            with open(os.path.join(home, "config.md"), encoding="utf-8") as handle:
-                text = handle.read()
-        except OSError:
-            return "English"
-        for item, value in items(text):
-            if item == row:
-                return value.strip() or "English"
-        return "English"
+        value, _refusal = declared_value(home, row)
+        return (value or "").strip() or "English"
     return "English"
 
 
-# FOUR ways, in five ids. "Cannot be read or does not parse" is one way with
-# two spellings, and the last two below are both that way — a file with no
-# table at all, and one whose table belongs to something else. Round 2 ❓ 8
-# settled the count: the skill's sentence says four, so four is the number,
-# and keeping five shapes here costs nothing and exercises more.
+# FOUR ways, in five ids. "Cannot be read or is not one JSON object" is one
+# way with two spellings, and the last two below are both that way — a file
+# that does not parse as JSON, and one whose top level is an array. Round 2
+# ❓ 8 settled the count: the skill's sentence says four, so four is the
+# number, and keeping five shapes here costs nothing and exercises more.
 UNNAMED = [
     ("no file at all", None),
-    ("a file with no such row", "| Item | Value |\n|---|---|\n| Other | x |\n"),
+    ("a file with no such key", config_json(("Other", "x"))),
+    ("an empty value", config_json((COMMIT_ROW, ""))),
+    ("a file that does not parse as JSON", "# notes\n\nno object here.\n"),
     (
-        "an empty value",
-        "| Item | Value |\n|---|---|\n| Commit and pull request language |  |\n",
+        "a file whose top level is an array",
+        f'[["{COMMIT_ROW}", "Korean"]]\n',
     ),
-    ("a file that does not parse as that table", "# notes\n\nno table here.\n"),
-    ("a file whose table is another one", "| Field | Value |\n|---|---|\n| a | b |\n"),
 ]
 
 
@@ -551,7 +548,7 @@ def test_every_way_of_not_naming_a_language_lands_on_english(what, body, tmp_pat
     home = tmp_path / "seal"
     home.mkdir()
     if body is not None:
-        (home / "config.md").write_text(body, encoding="utf-8")
+        (home / "config.json").write_text(body, encoding="utf-8")
     assert configured_language(tmp_path) == "English", what
 
 
@@ -615,9 +612,8 @@ def test_the_reader_finds_a_config_under_the_git_directory(repo):
     the scripts do.
     """
     home = local_home(repo)
-    (home / "config.md").write_text(
-        "| Item | Value |\n|---|---|\n| Commit and pull request language | Korean |\n",
-        encoding="utf-8",
+    (home / "config.json").write_text(
+        config_json((COMMIT_ROW, "Korean")), encoding="utf-8"
     )
     assert configured_language(repo) == "Korean", (
         "a config under the local-mode root read back as English, which is "
@@ -631,15 +627,13 @@ def test_the_tree_root_still_wins_over_the_git_directory(repo):
     — `lib/optin.py#home_at` resolves it that way and a reader that
     disagreed would send a session to the wrong file."""
     local = local_home(repo)
-    (local / "config.md").write_text(
-        "| Item | Value |\n|---|---|\n| Commit and pull request language | Korean |\n",
-        encoding="utf-8",
+    (local / "config.json").write_text(
+        config_json((COMMIT_ROW, "Korean")), encoding="utf-8"
     )
     shared = repo / "seal"
     shared.mkdir(parents=True, exist_ok=True)
-    (shared / "config.md").write_text(
-        "| Item | Value |\n|---|---|\n| Commit and pull request language | Japanese |\n",
-        encoding="utf-8",
+    (shared / "config.json").write_text(
+        config_json((COMMIT_ROW, "Japanese")), encoding="utf-8"
     )
     assert configured_language(repo) == "Japanese"
 
@@ -663,68 +657,62 @@ def test_a_mirror_named_for_a_country_is_caught():
     )
 
 
-def test_the_documents_name_every_shape_the_walker_refuses_and_its_edit():
-    """S8 of #871. `templates/setup/config.md`, `skills/config/SKILL.md` and
-    `lib/config.py#config_rows`' docstring each name the shapes the walker
-    refuses with the one edit for each, and none of them still says the
-    reader stops at a line and reads on, or that a row below a bad line is
-    invisible. Seen red against the stop rule's documents: none named the
-    blank line above the header, and two said the reader stops reading the
-    table there."""
+def test_the_documents_name_the_repair_of_a_file_the_parser_refuses():
+    """#1454, in place of S8 of #871. The config is a JSON object a parser
+    reads, so `templates/setup/config.md` and `skills/config/SKILL.md` each
+    say what a refused file is repaired by, and neither names an edit the
+    table walker's shapes once asked for: a blank line above the header, the
+    `\\|` escape, a delimiter row, a heading between two tables."""
     documents = {
-        "the template": flat(*TEMPLATE),
-        "the config skill": flat("skills", "config", "SKILL.md"),
-        "the reader's docstring": " ".join(
-            _config_reader().config_rows.__doc__.split()
+        "the template": (
+            flat(*TEMPLATE),
+            "repairs it by deleting the extra key or by correcting the JSON",
+        ),
+        "the config skill": (
+            flat("skills", "config", "SKILL.md"),
+            "correct the JSON rather than any key the refusal did not name",
         ),
     }
-    for who, text in documents.items():
-        for edit in (
+    for who, (text, repair) in documents.items():
+        assert repair in text, f"{who} does not name the repair {repair!r}"
+        for gone in (
             "leave a blank line above the header",
             "write it `\\|`",
             "write it as `| … | … |`",
             "`|---|---|` under",
-            "move it into the table",
-            # #871 round 1: a second table under the config table is cleared
-            # by a heading between them, not by moving its rows.
             "put a heading between the two",
         ):
-            assert edit in text, f"{who} does not name the edit {edit!r}"
-        for gone in (
-            "stops reading the table there",
-            "parses as no row",
-            "written under it is invisible",
-        ):
-            assert gone not in text, f"{who} still says {gone!r}"
+            assert gone not in text, f"{who} still names the table's edit {gone!r}"
 
 
 def test_an_unreadable_config_lands_on_english_too(tmp_path):
     """The fifth way, which needs a filesystem rather than a string: a
-    `config.md` that is a DIRECTORY. `open` raises `IsADirectoryError`, an
-    `OSError` — the class the reader catches, chosen so a permission error
-    lands the same way."""
-    (tmp_path / "seal" / "config.md").mkdir(parents=True)
+    `config.json` that is a DIRECTORY, which the reader refuses as a file
+    that will not read, so a permission error lands the same way."""
+    (tmp_path / "seal" / "config.json").mkdir(parents=True)
     assert configured_language(tmp_path) == "English"
 
 
 def test_the_template_is_one_item_value_table_whose_first_row_is_the_language():
-    """S8. Parsed, not eyeballed: the file's whole job is to be read."""
-    rows = items(read(*TEMPLATE))
-    assert rows, "no `| Item | Value |` table in the template"
-    assert rows[0] == ("Commit and pull request language", "English"), (
-        f"the first row is not the language defaulting to English: {rows[0]}"
+    """S8, as #1454 leaves it. Parsed, not eyeballed: the example object the
+    template shows is read by a JSON parser, and its first key is the
+    language."""
+    keys = items(read(*TEMPLATE))
+    assert keys, "no ```json example in the template"
+    assert keys[0] == ("Commit and pull request language", "English"), (
+        f"the first key is not the language reading English: {keys[0]}"
     )
-    # The second row is the records' own, and it is not the same question.
+    # The second key is the records' own, and it is not the same question.
     # #106 split them because a repository can want Korean pull requests and
-    # English specifications, and one row cannot say that.
-    assert rows[1] == ("Record language", "English"), (
-        f"the second row is not the record language defaulting to English: {rows[1]}"
+    # English specifications, and one key cannot say that.
+    assert keys[1] == ("Record language", "English"), (
+        f"the second key is not the record language reading English: {keys[1]}"
     )
 
 
-def test_this_file_loads_the_one_reader_and_not_a_copy_of_it():
+def test_this_file_loads_the_one_reader_and_not_a_copy_of_it(tmp_path):
     """A8 of #415. The copy of the loop that used to live here agreed with
-    `lib/config.py#config_rows` right up until one of them moved.
+    the production reader right up until one of them moved.
 
     Asserted by where the code was COMPILED, the way
     `tests/skills/test_seal.py#Test_module::test_the_command_and_the_gate_read_one_parser`
@@ -735,15 +723,21 @@ def test_this_file_loads_the_one_reader_and_not_a_copy_of_it():
     it.
     """
     owner = os.path.join("lib", "config.py")
-    where = items.__code__.co_filename
-    assert where.endswith(owner), f"`items` is compiled from {where}"
-    # And it is the escape-aware reader, not something that merely lives at
-    # that path: a cell carrying `\|` comes back as one literal pipe.
-    assert items("| Item | Value |\n|---|---|\n| a | b \\| c |\n") == [("a", "b | c")]
+    where = declared_value.__code__.co_filename
+    assert where.endswith(owner), f"`declared_value` is compiled from {where}"
+    # And it is the reader that sees a key written twice, not something that
+    # merely lives at that path: `json.loads` alone would take the last.
+    home = tmp_path / "seal"
+    home.mkdir()
+    (home / "config.json").write_text(
+        config_json((COMMIT_ROW, "Korean"), (COMMIT_ROW, "English")),
+        encoding="utf-8",
+    )
+    value, refusal = declared_value(str(home), COMMIT_ROW)
+    assert value is None and "2 times" in refusal
 
 
-# The row reader's own cases, the ones that call `items` on a text written
-# for them, are in `tests/lib/test_config.py` since #942's phase 6.
+# The reader's own cases are in `tests/lib/test_config.py`.
 
 
 # --- every template has a reader --------------------------------------------
@@ -1020,7 +1014,7 @@ def _block_keys():
 def _round_record_fields():
     """What a round record carries: its grammar and the prose headings.
     Two lines are owed only where their condition holds, `original:` in a
-    repository that declares `seal/parity.md` and `reopens:` on a finding
+    repository that declares `seal/parity.json` and `reopens:` on a finding
     that raises an earlier close, so the template's one finding shows the
     other relation, `regression:`, and neither of these."""
     fields = _chain().FIELDS
@@ -1091,15 +1085,15 @@ def test_an_untracked_file_under_templates_is_not_a_template(repo):
 
 
 def test_the_template_names_the_rows_an_absent_one_is_refused_for():
-    """The template says what absence means, and which rows have no default.
+    """The template says what absence means, and which keys have no default.
     It used to say the file was optional (`questions.md` Q1). #1453 made the
-    two language rows required, so every repository carries the file with
-    those rows, and the template names them among the four exceptions rather
+    two language keys required, so every repository carries the file with
+    those keys, and the template names them among the four exceptions rather
     than calling the file optional."""
     text = flat(*TEMPLATE)
     assert (
-        "with four exceptions: the two language rows, `Mode` and `Broad gate`" in text
-    ), "the template does not name the rows an absent one is refused for"
+        "with four exceptions: the two language keys, `Mode` and `Broad gate`" in text
+    ), "the template does not name the keys an absent one is refused for"
     assert "This file is optional" not in text, (
         "the template still calls the file optional"
     )
@@ -1122,7 +1116,7 @@ def test_the_layout_lists_the_config(parts):
     is a file nobody finds. `seal/README.md` is the template verbatim —
     `tests/behaviour/test_first_setup_asks_once.py` pins that equality — so
     the two move as one edit."""
-    assert "config.md" in read(*parts), (
+    assert "config.json" in read(*parts), (
         "/".join(parts) + " draws the root without the config file in it"
     )
 
@@ -1131,9 +1125,9 @@ def test_the_layout_lists_the_config(parts):
 
 
 def _governs_nothing():
-    """The `What no row governs` section of the template, flattened."""
+    """The `What no key governs` section of the template, flattened."""
     text = read(*TEMPLATE)
-    start = text.index("## What no row governs")
+    start = text.index("## What no key governs")
     end = text.index("\n## ", start + 1)
     return " ".join(text[start:end].split())
 
@@ -1238,8 +1232,8 @@ def test_the_exclusion_list_holds_every_string_a_checker_matches(literal):
     )
 
 
-# Every shipped document that tells a session which row to read. A document
-# naming the wrong row sends the session to a row that does not exist, and
+# Every shipped document that tells a session which key to read. A document
+# naming the wrong key sends the session to a key that does not exist, and
 # round 1 found two that had drifted with nothing red.
 ROW_READERS = [
     ("templates", "setup", "config.md"),
@@ -1260,10 +1254,10 @@ ROW_READERS = [
 @pytest.mark.parametrize("parts", ROW_READERS, ids=lambda p: "/".join(p))
 def test_every_document_that_names_a_language_row_names_the_shipped_one(parts):
     """The pairing this branch was reviewed as one round for: a document
-    naming the wrong row is invisible until somebody follows it."""
+    naming the wrong key is invisible until somebody follows it."""
     text = flat(*parts)
     assert "Record language" in text, (
-        f"{'/'.join(parts)} does not name `Record language`, the row that "
+        f"{'/'.join(parts)} does not name `Record language`, the key that "
         "governs the prose it is about"
     )
     # Case-folded: `the \`pull request language\` row` in lower case is the

@@ -1,8 +1,8 @@
 """`seal mode`: what is left here after #942's phase 5.
 
 The cases of `skills/implement/scripts/seal.py` are in `tests/skills/test_seal.py`.
-The three cases here read the documents and the workflows that name the
-command, and they are #923's.
+The cases here read the documents and the workflows that name the command.
+Three are #923's, and the one on an absent `Mode` key is #1454's.
 """
 
 import pytest
@@ -39,12 +39,26 @@ def test_both_readmes_name_the_command_before_the_by_hand_lines(readme):
 
 def test_the_config_template_ships_the_row_with_no_value():
     """A template declaring `shared` would hand every local-mode repository a
-    row that is wrong from the moment it is copied — and the fix the command
+    key that is wrong from the moment it is copied — and the fix the command
     then offers is `--apply`, which would move their root into the tree
     through the one door that does not open both ways."""
     text = read("templates", "setup", "config.md")
-    assert "| Mode |  |" in text, "the template's Mode row carries a value"
+    assert '"Mode": ""' in text, "the template's Mode key carries a value"
+    assert "| Mode |" not in text, "the template still shows the Mode row"
     assert "## Mode" in text
+
+
+def test_the_template_says_an_absent_mode_key_stops_nothing():
+    """`hooks/hooks.json` registers a `Stop` and a `SessionStart` hook and no
+    `PreToolUse` gate since #1416, and `seal mode --check` exits 0 on an
+    absent key, so the template states no denied Bash call. Seen red against
+    the template before the fix, which said the first Bash call of a session
+    is denied and the second asked."""
+    text = " ".join(read("templates", "setup", "config.md").split())
+    assert "first Bash call" not in text, "the template still names a denied call"
+    assert "an absent one stops nothing" in text, (
+        "the template does not say what an absent `Mode` key costs"
+    )
 
 
 @pytest.mark.parametrize(

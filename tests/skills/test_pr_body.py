@@ -13,7 +13,7 @@ import re
 import subprocess
 
 import pytest
-from conftest import ROOT, census_case, load_module, mark_root, write
+from conftest import ROOT, census_case, config_json, load_module, mark_root, write
 
 TARGET = "skills/code-review/scripts/pr_body.py"
 
@@ -240,34 +240,35 @@ From `frame/questions.md`.
 </details>
 """
 
-# The work item's `pr.md`, the body's first part where the two language rows
+# The work item's `pr.md`, the body's first part where the two language keys
 # name one language: a quote of a record with its coordinate, a CRLF line
 # among them, and the `Closes` line.
 OWN = '"`seal pr-body` writes it (#1)." (`changelog.md`, line 1)\r\n\nCloses #1.\n'
-# #1453: `config.md`'s table head, and the two language rows the body's
-# first part is composed from, as a repository of one language writes them.
-TABLE = "| Item | Value |\n|---|---|\n"
-LANGUAGES = (
-    "| Commit and pull request language | English |\n| Record language | English |\n"
-)
-# The rows of a repository whose team writes Korean over English records,
+# #1453: the two language keys the body's first part is composed from, as a
+# repository of one language writes them.
+LANGUAGES = [
+    ("Commit and pull request language", "English"),
+    ("Record language", "English"),
+]
+# The keys of a repository whose team writes Korean over English records,
 # and the work item's `pr.ko.md`, `OWN`'s quote rendered in Korean, with no
 # line end after its last line.
-DIFFERING = (
-    "| Commit and pull request language | Korean |\n| Record language | English |\n"
-)
+DIFFERING = [
+    ("Commit and pull request language", "Korean"),
+    ("Record language", "English"),
+]
 TRANSLATION = '"`seal pr-body` 가 본문을 쓴다 (#1)." (`changelog.md`, line 1)'
 
 
 def item_of(tmp_path, records, own=OWN, rows=LANGUAGES, translations=None):
     """The work item NAME in the shared root of a git repository at
-    `tmp_path`, whose `config.md` table holds ROWS, holding RECORDS by path,
-    OWN as its `pr.md`'s bytes, or no `pr.md` where OWN is None, and
+    `tmp_path`, whose `config.json` holds ROWS as its keys, holding RECORDS
+    by path, OWN as its `pr.md`'s bytes, or no `pr.md` where OWN is None, and
     TRANSLATIONS, `{name: text}`, beside it. The repository has no commit:
-    `seal pr-body` reads the rows of the root its work item stands in, so a
-    case reads its own rows and not the checkout the suite runs in."""
+    `seal pr-body` reads the keys of the root its work item stands in, so a
+    case reads its own keys and not the checkout the suite runs in."""
     home = mark_root(tmp_path / "seal")
-    write(home, "config.md", TABLE + rows)
+    write(home, "config.json", config_json(*rows))
     subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
     item = home / "threads" / NAME
     item.mkdir(parents=True)
@@ -287,7 +288,11 @@ def unsourced(text, texts):
     lines = {line for record in texts.values() for line in record.split("\n")}
     demoted = {"#" + line for line in lines}
     paths = {*texts, *RECORDS, "trail/phases/", "trail/rounds/"}
-    fixed = {line.format(name=NAME, path=path) for line in PR.FIXED for path in paths}
+    fixed = {
+        line.format(home="seal", name=NAME, path=path)
+        for line in PR.FIXED
+        for path in paths
+    }
     return [
         line
         for line in text.split("\n")
@@ -307,7 +312,7 @@ MARK_LINE = (
     '<img src="https://github.com/owner/plugin/raw/HEAD/.claude-plugin/icon.png" '
     'alt="Sealed" width="128">'
 )
-ROW = "| Pull request seal mark | yes |\n"
+ROW = [("Pull request seal mark", "yes")]
 SEALED = "Verdict: sealed"
 
 
@@ -330,12 +335,12 @@ def git_in(repo, *args):
 
 def sealed_item(repo, row=ROW, verdict=SEALED, base="feature/x"):
     """The work item NAME in REPO's shared root, holding RECORDS, with
-    `config.md`'s table holding the two language rows and ROW, committed;
-    then, where VERDICT is given, a `guarantee.md` whose one block names
-    that commit against BASE with VERDICT, committed after it, as the
+    `config.json` holding the two language keys and ROW, committed; then,
+    where VERDICT is given, a `guarantee.md` whose one block names that
+    commit against BASE with VERDICT, committed after it, as the
     orchestrator commits the sealer's verdict."""
     home = mark_root(repo / "seal")
-    write(home, "config.md", TABLE + LANGUAGES + (row or ""))
+    write(home, "config.json", config_json(*LANGUAGES, *(row or [])))
     item = home / "threads" / NAME
     for rel, text in RECORDS.items():
         write(item, rel, text)
@@ -626,7 +631,7 @@ class Test_read_own:
 
 
 NOT_YES = (
-    "`Pull request seal mark` reads `{value}`, not `yes`, so the row is not "
+    "`Pull request seal mark` reads `{value}`, not `yes`, so the key is not "
     "read and the body carries no seal mark"
 )
 NO_FIELD = (
@@ -767,10 +772,10 @@ class Test_seal_mark:
         "row, said",
         [
             (None, None),
-            ("| Pull request seal mark |  |\n", None),
-            ("| Pull request seal mark | Yes |\n", NOT_YES.format(value="Yes")),
-            ("| Pull request seal mark | on |\n", NOT_YES.format(value="on")),
-            ("| Pull request seal mark | true |\n", NOT_YES.format(value="true")),
+            ([("Pull request seal mark", "")], None),
+            ([("Pull request seal mark", "Yes")], NOT_YES.format(value="Yes")),
+            ([("Pull request seal mark", "on")], NOT_YES.format(value="on")),
+            ([("Pull request seal mark", "true")], NOT_YES.format(value="true")),
             (
                 ROW + ROW,
                 "`Pull request seal mark` is not read: `Pull request seal mark` "
@@ -838,7 +843,7 @@ class Test_main:
         read in the work item's own checkout, so the body carries the mark
         as it does when run from the worktree. Seen red with the root read
         from the working directory alone, as it was: no mark."""
-        write(mark_root(repo / "seal"), "config.md", TABLE + LANGUAGES + ROW)
+        write(mark_root(repo / "seal"), "config.json", config_json(*LANGUAGES, *ROW))
         git_in(repo, "add", "-A")
         git_in(repo, "commit", "-qm", "the row")
         worktree = tmp_path / "worktree"
@@ -863,7 +868,7 @@ class Test_main:
         seal at its HEAD carries the mark. Seen red with that fallback alone
         removed: no mark."""
         home = mark_root(repo / ".git" / "seal")
-        write(home, "config.md", TABLE + LANGUAGES + ROW)
+        write(home, "config.json", config_json(*LANGUAGES, *ROW))
         item = home / "threads" / NAME
         for rel, text in RECORDS.items():
             write(item, rel, text)
@@ -890,7 +895,7 @@ class Test_main:
     ):
         """S4 through the command: the row named as not read on one line
         before `wrote:`, the body today's, and exit 0."""
-        item = sealed_item(repo, row="| Pull request seal mark | Yes |\n")
+        item = sealed_item(repo, row=[("Pull request seal mark", "Yes")])
         monkeypatch.chdir(repo)
         body = tmp_path / "pr-body.md"
         assert PR.main([str(item), "--body", str(body)]) == 0
@@ -1024,14 +1029,13 @@ class Test_main:
     @pytest.mark.parametrize(
         "rows, missing",
         [
-            ("| Record language | English |\n", ["Commit and pull request language"]),
-            ("| Commit and pull request language | English |\n", ["Record language"]),
+            (LANGUAGES[1:], ["Commit and pull request language"]),
+            (LANGUAGES[:1], ["Record language"]),
             (
-                "| Commit and pull request language | English |\n"
-                "| Record language |  |\n",
+                [*LANGUAGES[:1], ("Record language", "")],
                 ["Record language"],
             ),
-            ("", ["Commit and pull request language", "Record language"]),
+            ([], ["Commit and pull request language", "Record language"]),
         ],
         ids=["no commit row", "no record row", "an empty record row", "neither row"],
     )
@@ -1041,9 +1045,9 @@ class Test_main:
     ):
         """#1453, *Scope* item 3, the scenario *`seal pr-body` refuses
         without a row*. Either form exits 1, leaves the body file as it
-        stood, and prints one `refused:` line for each row that names no
-        language, absent or empty, naming `config.md` by its path under the
-        `seal/` root, the row, and the section of the template that says
+        stood, and prints one `refused:` line for each key that names no
+        language, absent or empty, naming `config.json` by its path under the
+        `seal/` root, the key, and the section of the template that says
         what it governs. Seen red against `pr_body.py` as the merged base
         left it, where both forms exited 0."""
         item = item_of(tmp_path, RECORDS, rows=rows)
@@ -1053,8 +1057,8 @@ class Test_main:
         argv = [str(item), "--body", str(body)] + (["--check"] if check else [])
         assert PR.main(argv) == 1
         assert capsys.readouterr().out == "".join(
-            f"refused: seal/config.md: names no language in a `{row}` row; "
-            f"`templates/setup/config.md` *{row}* says what the row governs, "
+            f"refused: seal/config.json: names no language in a `{row}` key; "
+            f"`templates/setup/config.md` *{row}* says what the key governs, "
             "and the orchestrator asks for it before the first edit\n"
             for row in missing
         )
@@ -1068,31 +1072,49 @@ class Test_main:
                 "doubled",
                 "`Record language` appears 2 times — one value",
             ),
+            ("unparseable", "does not parse as JSON ("),
+            ("unconverted", "is not there, and the config.md beside it"),
         ],
-        ids=["a config that will not read", "a row written twice"],
+        ids=[
+            "a config that will not read",
+            "a row written twice",
+            "a config that will not parse",
+            "an unconverted config",
+        ],
     )
     def test_refuses_a_language_row_no_one_reads_naming_no_machine_path(
         self, tmp_path, capsys, unread, said
     ):
-        """#1453, *Data & interfaces*: a `config.md` that will not read and
-        a row written twice reach the command as a refusal at `config.md`,
-        in `lib/config.py`'s sentence. The file that will not read is named
-        once, by its path under the `seal/` root and not by the machine's,
-        since the sealer copies the line into a committed `guarantee.md`.
-        Seen red against `pr_body.py` as the merged base left it, where the
-        command exited 0."""
-        rows = LANGUAGES + "| Record language | English |\n"
+        """#1453, *Data & interfaces*: a `config.json` that will not read or
+        parse, a key written twice, and since #1454 an earlier release's
+        `config.md` standing alone, which names `seal mode`, reach the
+        command as a refusal at `config.json`, in `lib/config.py`'s
+        sentence. The file is named once, by its path under the `seal/` root
+        and not by the machine's, since the sealer copies the line into a
+        committed `guarantee.md`. Seen red against `pr_body.py` as the merged
+        base left it, where the command exited 0."""
+        rows = [*LANGUAGES, ("Record language", "English")]
         item = item_of(tmp_path, RECORDS, rows=rows)
+        config = tmp_path / "seal" / "config.json"
         if unread == "directory":
-            config = tmp_path / "seal" / "config.md"
             config.unlink()
             config.mkdir()
+        elif unread == "unparseable":
+            config.write_text('{"Record language": "English",}\n', encoding="utf-8")
+        elif unread == "unconverted":
+            config.unlink()
+            (tmp_path / "seal" / "config.md").write_text(
+                "| Item | Value |\n|---|---|\n| Record language | English |\n",
+                encoding="utf-8",
+            )
         body = tmp_path / "pr-body.md"
         capsys.readouterr()
         assert PR.main([str(item), "--body", str(body)]) == 1
         [line] = capsys.readouterr().out.splitlines()
-        assert line.startswith(f"refused: seal/config.md: {said}"), line
+        assert line.startswith(f"refused: seal/config.json: {said}"), line
         assert str(tmp_path) not in line
+        if unread == "unconverted":
+            assert "run `seal mode` once" in line, line
 
     @pytest.mark.parametrize(
         "rows, translations, first, names",
@@ -1104,8 +1126,10 @@ class Test_main:
                 "`pr.ko.md` then `pr.md`",
             ),
             (
-                "| Commit and pull request language | Korean |\n"
-                "| Record language | korean |\n",
+                [
+                    ("Commit and pull request language", "Korean"),
+                    ("Record language", "korean"),
+                ],
                 {},
                 OWN,
                 "`pr.md`",
@@ -1127,7 +1151,7 @@ class Test_main:
         self, tmp_path, capsys, rows, translations, first, names
     ):
         """#1453, *Scope* item 3, the scenario *The body opens in the team's
-        language*. Where the rows name different languages, the body file
+        language*. Where the keys name different languages, the body file
         holds the one `pr.*.md`, given a line end after its last line, then
         `pr.md`, then the heading and the copy; where they name one
         language, compared with case folded, `pr.md` leads and a `pr.*.md`
@@ -1169,10 +1193,10 @@ class Test_main:
         self, tmp_path, capsys, translations, said, check
     ):
         """#1453, *Scope* item 3, the scenarios *A missing translation is
-        refused* and *Two translations are refused*. Where the rows name
+        refused* and *Two translations are refused*. Where the keys name
         different languages and the work item holds no `pr.*.md`, or more
         than one, either form exits 1 on one `refused:` line on the work
-        item's directory, naming the two rows, or the count and the files,
+        item's directory, naming the two keys, or the count and the files,
         and leaves the body file as it stood. Seen red against `pr_body.py`
         as the merged base left it, where both forms exited 0."""
         item = item_of(tmp_path, RECORDS, rows=DIFFERING, translations=translations)
@@ -1208,7 +1232,7 @@ class Test_main:
         self, tmp_path, capsys, first, said
     ):
         """#1453, *Scope* item 3, the scenario *A body without the translation
-        fails the check*. Where the rows differ, `--check` compares the whole
+        fails the check*. Where the keys differ, `--check` compares the whole
         first part, `pr.ko.md` and then `pr.md`, line by line: a body whose
         first part is `pr.md` alone, and one whose line of the translation
         was changed, exit 1 at the body's first line, naming the file that

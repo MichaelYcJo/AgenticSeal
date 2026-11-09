@@ -2,15 +2,14 @@
 
 A document fits one read, and the policy root has one index (#953).
 `seal fold` reports each document of the policy root or of one of its groups whose
-estimate is past the `Document token ceiling` row as one to split by who
+estimate is past the `Document token ceiling` key as one to split by who
 opens each section and at which step, and exits 0 on it: the estimate is a guess from bytes, so it is
 a report and not a gate. Its index arm refuses a `<policy root>/README.md`
 that misses a document, names one twice, or holds a row naming none. The
-rows and the estimate are stated once, in `templates/setup/config.md` *The fold's
-values*. Every case but three runs the command; `Test_module` holds the
-estimate, the reader of a row written again below the stop, a copy of the
-command run without its siblings, and the line splitter this module no
-longer keeps.
+keys and the estimate are stated once, in `templates/setup/config.md` *The fold's
+values*. Every case but two runs the command; `Test_module` holds the
+estimate, a copy of the command run without its siblings, and the line
+splitter this module no longer keeps.
 
 #942's phase 6 placed these cases from
 `tests/text/test_a_document_has_room_for_the_next_fold.py`, which keeps the two
@@ -25,7 +24,7 @@ import subprocess
 import sys
 
 import pytest
-from conftest import ROOT, census_case, load_module, mark_root, names_path
+from conftest import ROOT, census_case, config_json, load_module, mark_root, names_path
 
 TARGET = "skills/settle/scripts/fold_check.py"
 
@@ -57,16 +56,12 @@ INDEX = "| File | The question it answers |\n|---|---|\n"
 
 
 def config_root(tmp_path, rows, policy="docs"):
-    """A planted repository whose `seal/config.md` carries `rows` under the
-    table header, with one short document under the policy root."""
+    """A planted repository whose `seal/config.json` holds `rows` as its
+    keys, with one short document under the policy root."""
     (tmp_path / policy).mkdir()
     (tmp_path / policy / "a.md").write_text("# A\n", encoding="utf-8")
     mark_root(tmp_path / "seal")
-    table = "".join(f"| {item} | {value} |\n" for item, value in rows)
-    (tmp_path / "seal" / "config.md").write_text(
-        f"# Repository config\n\n| Item | Value |\n|---|---|\n{table}",
-        encoding="utf-8",
-    )
+    (tmp_path / "seal" / "config.json").write_text(config_json(*rows), encoding="utf-8")
     return str(tmp_path)
 
 
@@ -179,7 +174,7 @@ class Test_main:
         names the row and the file it was looked for in (contract rule 14)."""
         root = config_root(tmp_path, [("Mode", "shared")])
         code, out, err = command("--root", root)
-        config = os.path.join(root, "seal", "config.md")
+        config = os.path.join(root, "seal", "config.json")
         assert code == 0, (out, err)
         assert out == (
             f"seal fold: `Document token ceiling` is not declared in {config}, and "
@@ -193,7 +188,7 @@ class Test_main:
         writes either has declared nothing."""
         root = config_root(tmp_path, [(row, "1")])
         code, out, err = command("--root", root)
-        config = os.path.join(root, "seal", "config.md")
+        config = os.path.join(root, "seal", "config.json")
         assert code == 0, (out, err)
         assert out == (
             f"seal fold: `Document token ceiling` is not declared in {config}, and "
@@ -218,7 +213,7 @@ class Test_main:
             f"{INDEX}| `docs/a.md` | a |\n", encoding="utf-8"
         )
         code, out, _ = command("--root", root)
-        config = os.path.join(root, "seal", "config.md")
+        config = os.path.join(root, "seal", "config.json")
         assert code == 0, out
         assert out == (
             f"seal fold: `Document token ceiling` is not declared in {config}, so "
@@ -247,7 +242,7 @@ class Test_main:
             (
                 "Document token ceiling",
                 "ten",
-                "the `Document token ceiling` row holds `ten`, which is not a "
+                "the `Document token ceiling` key holds `ten`, which is not a "
                 "positive whole number of tokens",
             ),
         ],
@@ -258,75 +253,57 @@ class Test_main:
         """S5, its message pinned (contract rule 14)."""
         root = config_root(tmp_path, [(row, value)])
         code, out, err = command("--root", root)
-        config = os.path.join(root, "seal", "config.md")
+        config = os.path.join(root, "seal", "config.json")
         assert code == 2 and not out, (out, err)
         assert err == f"seal fold: in {config}, {says} — nothing was checked\n", err
 
     @pytest.mark.parametrize("row", ["Document token ceiling"])
     def test_a_row_written_twice_is_refused_and_nothing_is_checked(self, tmp_path, row):
-        """S1 of #867, `seal fold`'s half. A row written twice has no value, by
-        `lib/config.py#value_of`'s rule: the run exits 2 naming the row and the
-        count, and nothing is checked."""
+        """S1 of #867, `seal fold`'s half. A key written twice has no value, by
+        `lib/config.py#config_value`'s rule: the run exits 2 naming the key and
+        the count, and nothing is checked."""
         root = config_root(tmp_path, [(row, "10"), (row, "20")])
         code, out, err = command("--root", root)
-        config = os.path.join(root, "seal", "config.md")
+        config = os.path.join(root, "seal", "config.json")
         assert code == 2 and not out, (out, err)
         assert err == (
             f"seal fold: in {config}, `{row}` appears 2 times — one value — nothing "
             "was checked\n"
         ), err
 
-    def test_a_row_the_walker_did_not_read_is_refused_and_nothing_is_checked(
-        self, tmp_path
+    @pytest.mark.parametrize(
+        "shape, said",
+        [
+            ("directory", "is there and cannot be read"),
+            ("undecodable", "is there and cannot be read"),
+            ("unparseable", "does not parse as JSON"),
+            ("unconverted", "run `seal mode` once"),
+        ],
+    )
+    def test_an_unreadable_config_is_refused_not_read_as_no_row(
+        self, tmp_path, shape, said
     ):
-        """S4 of #871, `seal fold`'s case. A `Document token ceiling` row under
-        a line the table walker refuses is one it never read, so the run exits 2
-        in the walker's sentence, naming the line, and nothing is checked. A
-        refusal below every row this command reads touches none of them, so
-        that table is read and checked."""
-        (tmp_path / "under").mkdir()
-        (tmp_path / "below").mkdir()
-        root = config_root(
-            tmp_path / "under",
-            [
-                ("Mode", "shared"),
-                ("Broad gate", "bin/test -q | tee out"),
-                ("Document token ceiling", "10"),
-            ],
-        )
-        code, out, err = command("--root", root)
-        assert code == 2 and not out, (out, err)
-        assert "stops at `| Broad gate | bin/test -q | tee out |`" in err, err
-        assert err.endswith("— nothing was checked\n"), err
-
-        root = config_root(
-            tmp_path / "below",
-            [
-                ("Document token ceiling", "10"),
-                ("Policy root", "docs"),
-                ("Broad gate", "bin/test -q | tee out"),
-            ],
-        )
-        code, out, err = command("--root", root)
-        assert code == 0, (out, err)
-        assert "held 1 document under docs/ to 10 estimated tokens" in out, out
-
-    @pytest.mark.parametrize("shape", ["directory", "undecodable"])
-    def test_an_unreadable_config_is_refused_not_read_as_no_row(self, tmp_path, shape):
-        """S3 of #867, `seal fold`'s half. A `config.md` that is there and will
-        not read is refused at exit 2 naming the path, never read as no row."""
+        """S3 of #867 and S2 and S3 of #1454, `seal fold`'s half. A
+        `config.json` that is there and will not read or parse, or an earlier
+        release's `config.md` standing without one, is refused at exit 2 naming
+        the path, never read as no key, and nothing is checked."""
         root = config_root(tmp_path, [("Document token ceiling", "10")])
-        config = tmp_path / "seal" / "config.md"
+        config = tmp_path / "seal" / "config.json"
         config.unlink()
         if shape == "directory":
             config.mkdir()
+        elif shape == "undecodable":
+            config.write_bytes(b'{"Document token ceiling": "10 \xff"}\n')
+        elif shape == "unparseable":
+            config.write_bytes(b'{"Document token ceiling": "10",}\n')
         else:
-            config.write_bytes(
-                b"| Item | Value |\n|---|---|\n| Document token ceiling | 10 \xff |\n"
+            (tmp_path / "seal" / "config.md").write_text(
+                "| Item | Value |\n|---|---|\n| Document token ceiling | 10 |\n",
+                encoding="utf-8",
             )
         code, out, err = command("--root", root)
         assert code == 2 and not out, (out, err)
-        assert f"{config} is there and cannot be read" in err, err
+        assert f"{config} " in err and said in err, err
         assert err.endswith("— nothing was checked\n"), err
 
     def test_a_flag_overrides_its_row_for_one_run(self, tmp_path):
@@ -336,8 +313,8 @@ class Test_main:
         assert code == 0 and "docs/long.md is about 11 tokens" in out, out
         code, out, _ = command("--root", root, "--ceiling", "11")
         assert code == 0 and "docs/long.md is about" not in out, out
-        assert (tmp_path / "seal" / "config.md").read_text(encoding="utf-8").count(
-            "| Document token ceiling | 10 |"
+        assert (tmp_path / "seal" / "config.json").read_text(encoding="utf-8").count(
+            '"Document token ceiling": "10"'
         ) == 1
 
     def test_the_command_typed_in_a_subdirectory_reads_the_repository(self, tmp_path):
@@ -367,7 +344,7 @@ class Test_main:
         assert out == (
             f"seal fold: `Document token ceiling` is not declared in {root}, which "
             "has opted out — `agentic-scratch` is under its git directory, so its "
-            "seal/config.md is not read, and there is no docs/README.md, so nothing "
+            "seal/config.json is not read, and there is no docs/README.md, so nothing "
             "was checked\n"
         ), out
 
@@ -386,19 +363,6 @@ class Test_main:
 class Test_module:
     def test_the_estimate_is_utf8_bytes_halved_rounded_up(self):
         assert [fold_check.tokens(t) for t in ("", "ab", "abc", "한")] == [0, 1, 2, 2]
-
-    def test_a_fold_row_written_again_below_the_stop_has_no_value(self, tmp_path):
-        """#871 round 2, yellow 9. A row read above a line the walk refused and
-        written again below it has no value, in `seal fold` as in
-        `config_value`."""
-        (tmp_path / "config.md").write_text(
-            "# c\n\n| Item | Value |\n|---|---|\n"
-            "| Document token ceiling | 400 |\n| Policy root | docs |\n"
-            "| a | b | c |\n| Document token ceiling | 9000 |\n",
-            encoding="utf-8",
-        )
-        with pytest.raises(fold_check.Unusable, match="appears 2 times"):
-            fold_check.declared(str(tmp_path))
 
     @pytest.mark.parametrize(
         "args, purpose, absent",

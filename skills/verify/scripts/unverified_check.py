@@ -55,7 +55,7 @@ import subprocess
 import sys
 
 # `lib/` beside this script, from which the fence rule, the line split,
-# the `Reference specs` row's reader and the root's resolver are loaded by
+# the `Reference specs` key's reader and the root's resolver are loaded by
 # path (#688, #1005).
 HERE = os.path.dirname(os.path.abspath(__file__))
 LIB = os.path.join(HERE, "..", "..", "..", "lib")
@@ -595,7 +595,7 @@ def live_lines(lines, comments=True):
     then whichever of a comment opener and a backtick run comes first wins.
     Reference definitions, link destinations, raw HTML blocks and entity
     references are not modelled and none can hold a declaring line, such as
-    a `seal/config.md` row, on a line of its own. Markdown's indented code
+    a `routing.md` row, on a line of its own. Markdown's indented code
     block is the one deliberate omission with a shape that could.
 
     **What this may not touch.** `blank_fences` and `readable` keep no
@@ -948,8 +948,10 @@ def overviews(paths):
 
 
 def config_at(top):
-    """`(lib/config.py, the seal/ root)` for the repository at `top`, the
-    root as `lib/optin.py#home_at` resolves it."""
+    """`(lib/config.py, the seal/ root, its name in the tree)` for the
+    repository at `top`: the root as `lib/optin.py#home_at` resolves it, and
+    the name `lib/optin.py#home_name` gives, "" where the root is local or
+    absent."""
     modules = []
     for name in ("config", "optin"):
         path = os.path.join(LIB, f"{name}.py")
@@ -960,22 +962,24 @@ def config_at(top):
         spec.loader.exec_module(module)
         modules.append(module)
     config, resolver = modules
-    return config, resolver.home_at(top, resolver.git_common_dir(top))
+    common = resolver.git_common_dir(top)
+    return config, resolver.home_at(top, common), resolver.home_name(top, common)
 
 
 def references_at(top):
-    """`(lib/config.py, roots)` for the repository at `top` — the module
-    holding `under_reference_root` and what the row names under the root
-    `lib/optin.py#home_at` resolves — or None for a copy of this script
-    with no `lib/` beside it.
+    """`(lib/config.py, roots, name)` for the repository at `top` — the
+    module holding `under_reference_root`, what the key names under the root
+    `lib/optin.py#home_at` resolves, and that root's name in the tree
+    (`config_at`) — or None for a copy of this script with no `lib/` beside
+    it.
 
     None prunes nothing, which reads more and never less: a copy taken alone
     keeps the walk it had before reference roots existed, rather than
     refusing a run that needed none of this. Read once per path a run is
     handed, so nothing is cached."""
     try:
-        config, home = config_at(top)
-        return config, config.reference_roots(home)
+        config, home, name = config_at(top)
+        return config, config.reference_roots(home, name), name
     except (OSError, ImportError, AttributeError):
         return None
 
@@ -983,7 +987,7 @@ def references_at(top):
 def policy_root(top):
     """The policy root of the repository at `top`, `lib/config.py#policy_root`'s
     answer for its `seal/` root."""
-    config, home = config_at(top)
+    config, home, _name = config_at(top)
     return config.policy_root(home)
 
 
@@ -1000,12 +1004,12 @@ def reference_rule(start):
     loaded = references_at(top)
     if loaded is None:
         return None
-    config, roots = loaded
-    if config.under_reference_root(repo_relative(start, top), roots):
+    config, roots, name = loaded
+    if config.under_reference_root(repo_relative(start, top), roots, name):
         return None
 
     def skip(directory):
-        return config.under_reference_root(repo_relative(directory, top), roots)
+        return config.under_reference_root(repo_relative(directory, top), roots, name)
 
     return skip
 
@@ -1015,7 +1019,7 @@ def git_path(path):
 
     Every repo-relative path in this file is built by `os.path.relpath` and
     then read beside what git prints or handed to a reader of git's paths:
-    `repo_relative`'s answer is matched against the `Reference specs` row,
+    `repo_relative`'s answer is matched against the `Reference specs` key,
     `tree_at` lists a directory on disk in the form `ls-tree` lists it at a
     ref, and `annotate` names a file to GitHub. git answers and accepts `/`
     on every platform, so on Windows a path built by `os.sep` would match
@@ -1230,6 +1234,24 @@ def open_record_rows(root, directory):
     return found
 
 
+def root_name(top):
+    """The name of the `seal/` root of the repository at TOP as the tree
+    spells it, `lib/optin.py#home_name`'s answer; `optin.HOME` where TOP is
+    None or holds no shared root. That is the name every root had before
+    the second one (#1059), the one a local root keeps, and the one each
+    fixture that commits a `seal/` with no marker is read under."""
+    optin = _load_lib("optin.py", "agentic_optin_for_unverified")
+    return (top and optin.home_name(top)) or optin.HOME
+
+
+def named_root(parent):
+    """Whether the directory PARENT carries the name `root_name` gives for
+    the repository holding it. Only the name is read, as it was when the
+    one name was `seal`: whether PARENT is that root is not asked. PARENT
+    is a directory on disk."""
+    return os.path.basename(parent) == root_name(repo_root(os.path.dirname(parent)))
+
+
 def settled_root(path):
     """Whether `path` is a `seal/` root's own `threads` directory with no work
     item under it — empty on disk, or absent while the root is there.
@@ -1245,9 +1267,9 @@ def settled_root(path):
     """
     p = os.path.abspath(path)
     parent = os.path.dirname(p)
-    if os.path.basename(p) != ITEMS or os.path.basename(parent) != "seal":
+    if os.path.basename(p) != ITEMS or not os.path.isdir(parent):
         return False
-    if not os.path.isdir(parent):
+    if not named_root(parent):
         return False
     if not os.path.isdir(p):
         return True
@@ -1262,7 +1284,9 @@ SETTLED = (
 
 def absent_root(path):
     """Whether `path` is the `seal/threads` path of a working tree's top level
-    that holds no `seal/` directory.
+    that holds no `seal/` directory: the `threads` path under the shared
+    place `lib/optin.py#home_paths` gives there, under the second name where
+    the project's own `seal/` stands.
 
     That is a repository whose records are in local mode, under the git
     directory, or that never had any, and a teammate's pull request against
@@ -1273,12 +1297,16 @@ def absent_root(path):
     p = os.path.abspath(path)
     parent = os.path.dirname(p)
     top = os.path.dirname(parent)
-    if os.path.basename(p) != ITEMS or os.path.basename(parent) != "seal":
+    if os.path.basename(p) != ITEMS:
         return False
     if os.path.isdir(parent) or not os.path.isdir(top):
         return False
     found = repo_root(top)
-    return found is not None and os.path.samefile(found, top)
+    if found is None or not os.path.samefile(found, top):
+        return False
+    optin = _load_lib("optin.py", "agentic_optin_for_unverified")
+    shared = optin.home_paths(found, optin.git_common_dir(found))[0]
+    return os.path.basename(parent) == os.path.basename(shared)
 
 
 ABSENT = (
@@ -1298,9 +1326,9 @@ def unwritten_root(path):
     """
     p = os.path.abspath(path)
     parent = os.path.dirname(p)
-    if os.path.basename(p) != ITEMS or os.path.basename(parent) != "seal":
+    if os.path.basename(p) != ITEMS or not os.path.isdir(p):
         return False
-    if not os.path.isdir(p) or settled_root(p):
+    if not named_root(parent) or settled_root(p):
         return False
     return not overviews([p])
 

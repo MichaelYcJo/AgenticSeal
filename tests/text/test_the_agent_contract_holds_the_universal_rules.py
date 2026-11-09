@@ -19,12 +19,14 @@ every pin's change came with its own rule's rewording, so a rule reworded
 to the same meaning stays green. A sentence deleted from inside a rule that
 keeps its heading is left to review.
 
-Two facts are pinned, because a reader depends on their characters: rule
-1's two command forms, which an agent copies into a shell, and rule 11's two
-places the `seal/` root resolves to, which an agent opens or runs. Each is
-scoped to its section's BODY, not the file and not the heading: a fact that
-moves to another section breaks the number a round record cited, and a
-heading that outlives its rule is a section that says nothing.
+Three facts are pinned, because a reader depends on their characters: rule
+1's two command forms, which an agent copies into a shell, rule 11's two
+places the `seal/` root resolves to, which an agent opens or runs, and rule
+21's command forms, two that Claude Code's parser reads and one it cannot,
+which an agent copies into a shell. Each is scoped to its section's BODY,
+not the file and not the heading: a fact that moves to another section
+breaks the number a round record cited, and a heading that outlives its
+rule is a section that says nothing.
 
 Two frontmatter facts are pinned as well. `user-invocable: false` keeps the
 contract out of the `/` menu and was measured (2026-09-03, docs/experiments/)
@@ -59,6 +61,11 @@ FACTS = {
     11: (
         "the two places the `seal/` root resolves to, which an agent opens or runs",
         ("`<repo>/seal/`", "`$(git rev-parse --git-common-dir)/seal/`"),
+    ),
+    21: (
+        "the command forms an agent copies into a shell, two that Claude "
+        "Code's parser reads and one it holds for a person",
+        ("`xargs <runner> < list`", '`"${VAR:?}"`', '`${(f)"$(cat list)"}`'),
     ),
 }
 

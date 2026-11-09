@@ -180,7 +180,7 @@ def test_the_order_inside_a_ticket_puts_the_preflight_before_the_sealer():
 
 
 EXAMPLE_ROW = (
-    "| Broad gate | uvx ruff check . && uvx ruff format --check . && bin/test -q |"
+    '"Broad gate": "uvx ruff check . && uvx ruff format --check . && bin/test -q"'
 )
 BY_HAND = (
     "`evidence-check`",
@@ -191,12 +191,12 @@ BY_HAND = (
 
 
 def test_the_example_row_goes_lint_first_and_the_arms_are_not_listed_by_hand():
-    """S9, the owner's answer of 2026-10-01: the row a repository copies puts
-    the seconds-long linters ahead of the suite, as this repository's own row
+    """S9, the owner's answer of 2026-10-01: the key a repository copies puts
+    the seconds-long linters ahead of the suite, as this repository's own key
     does. The prose above it named four of the gate's six arms; it points at
     the one list instead, and says the preflight runs those arms alone."""
     body = section(read("templates", "setup", "config.md"), "Broad gate")
-    assert EXAMPLE_ROW in body, "the example row is not the lint-first one"
+    assert EXAMPLE_ROW in body, "the example key is not the lint-first one"
     lead = joined(body).split("```")[0]
     listed = [name for name in BY_HAND if name in lead]
     assert not listed, f"the prose still lists arms by hand: {listed}"

@@ -25,6 +25,7 @@ from conftest import (
     ROOT,
     census_case,
     commit_everything_as_e,
+    config_json,
     git,
     mark_root,
     symlink_or_skip,
@@ -47,7 +48,7 @@ BASE_REF = "${{ github.base_ref }}"
 CLONE = "git clone"
 
 WORK = "1790000000-work"
-CONFIG = "# Repository config\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n"
+CONFIG = config_json(("Mode", "shared"))
 ROUTING = f"""# Routing: {WORK}
 
 | Axis | Answer |
@@ -89,14 +90,14 @@ ITEM = f"seal/threads/{WORK}"
 OPEN_ROW_AND_ROUND = "a work item with an open row and a round record"
 BASES = {
     "no root": {},
-    "a root holding only its config": {"seal/config.md": CONFIG},
+    "a root holding only its config": {"seal/config.json": CONFIG},
     "a work item with no overview": {
-        "seal/config.md": CONFIG,
+        "seal/config.json": CONFIG,
         f"{ITEM}/routing.md": ROUTING,
         f"{ITEM}/frame/design.md": SPEC,
     },
     OPEN_ROW_AND_ROUND: {
-        "seal/config.md": CONFIG,
+        "seal/config.json": CONFIG,
         f"{ITEM}/routing.md": ROUTING,
         f"{ITEM}/frame/design.md": SPEC,
         f"{ITEM}/gaps.md": OVERVIEW,

@@ -92,8 +92,8 @@ condition, so the class stays open for the next kind.
 AgenticSeal's own `release` job has a local answer and no arm: one is shell
 written inline in the workflow with no script either side can share. A
 repository that wants checks of its own run names them in the `Broad gate`
-row of `seal/config.md`, the row this gate already runs first, rather than
-in the arm list of a script that ships to everybody.
+key of `seal/config.json`, the command this gate already runs first, rather
+than in the arm list of a script that ships to everybody.
 
 A full suite carries failures that were already there. Attributing them to
 this work is a wrong finding; passing over them is a silent pass. Both are
@@ -101,7 +101,7 @@ avoided the same way: read the run against the base commit.
 
 **That comparison is reactive.** A baseline answers whose failure this is, so
 it is taken only once an unexplained failure appears. The gate takes it
-itself: it runs its whole row once more at the base and reads each failing
+itself: it runs its whole command once more at the base and reads each failing
 file against that run, as `templates/setup/config.md` *The criterion for
 choosing a value*, rule 3, states. A file run at the base by hand runs in a
 `git worktree add` of the base commit, never under `git stash`: every
@@ -113,14 +113,15 @@ take another session's entry.
 - **New**: this work broke it. Back to the implement and review loop, and the
   broad gate runs again afterwards.
 - **New?**, with a reason, means nothing at the base measured it: no pytest
-  the `Broad gate` row ran left a record, because the row started no pytest,
-  none it started loaded the gate's recorder, or the one that did could not
-  write its record and warned in `suite.txt`, so the file is named only by
-  a `FAILED` line and the base was not run; no pytest the row ran at the
-  base left a record, for any of those three causes, a part before the
-  runner failing at the base among them; or the row's run at the base
-  exited non-zero before any pytest collected the file, which is also how a
-  file the branch added reads where the base's row already fails; or a
+  the `Broad gate` command ran left a record, because the command started
+  no pytest, none it started loaded the gate's recorder, or the one that
+  did could not write its record and warned in `suite.txt`, so the file is
+  named only by a `FAILED` line and the base was not run; no pytest the
+  command ran at the base left a record, for any of those three causes, a
+  part before the runner failing at the base among them; or the command's
+  run at the base exited non-zero before any pytest collected the file,
+  which is also how a file the branch added reads where the base's command
+  already fails; or a
   session of the base that ended non-zero left tests or collections out of
   every list, a test whose xdist worker died in its setup among them, so
   the record cannot say the file passed. A session of the base that
@@ -140,7 +141,8 @@ take another session's entry.
   `HEAD` stopped part-way, is the test it stopped in, nor a test named on a
   line of the record that did not parse; the failure form counts both too.
   `templates/setup/config.md` *The criterion for choosing a value*, rule 3, says
-  which rows the gate cannot measure and how a row earns the measured word.
+  which commands the gate cannot measure and how a command earns the
+  measured word.
 
 Without the comparison, every failure that was already there is triage the
 author cannot act on and is not allowed to fix.

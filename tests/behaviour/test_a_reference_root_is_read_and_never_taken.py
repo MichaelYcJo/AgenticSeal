@@ -7,8 +7,8 @@ own root. Every other directory named `specs` is a REFERENCE ROOT — read when
 a change touches what it describes, cited where it was read, and never moved,
 edited, absorbed or deleted.
 
-`seal/config.md`'s `Reference specs` row names the reference roots, and with
-no row every directory named `specs` outside the plugin's root is one. The row
+`seal/config.json`'s `Reference specs` key names the reference roots, and with
+no key every directory named `specs` outside the plugin's root is one. The key
 has one reader, `lib/config.py#reference_roots`, and one predicate,
 `lib/config.py#under_reference_root`; every check that would read a
 reference root as a record asks that predicate instead of spelling its own
@@ -36,18 +36,20 @@ SEAL = load_module(
 # `seal.py#TOOLS` hands to a script, is named here with what
 # keeps it off a team's `specs/`, and a command nobody classified turns this
 # red. A check that walks no `specs/` says so; one pinned to the root names
-# the constant it rests on, which its module's file holds under `seal/`:
-# `settle.py#SPECS` in `tests/skills/test_settle.py` and `lib/routing.py#WORK_ITEMS`
-# in `tests/lib/test_routing.py`, each a case of one module, which #942's round 9
-# fix pass moved there from this file. The checks that walk work items are
-# held off a team's `specs/` in their modules' files:
+# what it rests on, which its module's file holds under the root's own
+# directory: `settle.py#threads` in `tests/skills/test_settle.py`'s
+# `Test_threads`, a case of one module, which #942's round 9 fix pass moved
+# there from this file as a constant and #1059 made the root's own name. The checks that
+# walk work items are held off a team's `specs/` in their modules' files:
 # `tests/skills/test_unverified_check.py`'s walk from the root over a team's
 # unreadable overview, `tests/skills/test_settle.py`'s apply beside a team directory
 # of the removed work item's id, and `tests/skills/test_chain_check.py`'s
-# `Test_changed_routing`, which takes a declaration only under `seal/threads/`.
+# `Test_changed_routing`, which takes a declaration only under the directory
+# of the work items it is given, and `Test_declared_for_this_branch`, which
+# takes the one under `seal/threads/` beside a team's `specs/`.
 
 PREDICATE = "asks lib/config.py#under_reference_root"
-PINNED = "reads the plugin's root by a constant under seal/"
+PINNED = "reads the plugin's root under its own directory"
 NO_WALK = "walks no specs/ directory"
 NOT_A_CHECK = "is not a check of the tree"
 
@@ -55,21 +57,21 @@ SHIPPED = {
     "seal unverified": (PREDICATE, "the walk, by one rule"),
     "seal settle": (
         PINNED,
-        "settle.py#SPECS; its citation scan reads as a citer, and --from reads "
+        "settle.py#threads; its citation scan reads as a citer, and --from reads "
         "only a directory a person names and writes nothing there",
     ),
     "seal pact": (PINNED, "pact_check.py#anchor_files, under each signer's root"),
-    "seal gate": (NO_WALK, "runs the row, chain_check.py and seal.py mode"),
+    "seal gate": (NO_WALK, "runs the command, chain_check.py and seal.py mode"),
     "seal fold": (
         NO_WALK,
-        "reads the policy root, each group its index names, and seal/config.md",
+        "reads the policy root, each group its index names, and seal/config.json",
     ),
     "seal rules": (NO_WALK, "reads the one document it is named and its targets"),
     "seal mutate": (NO_WALK, "breaks and restores the one file it is named"),
     "seal layout": (NO_WALK, "reads tests/ and the modules its files name"),
     "seal deferrals": (NO_WALK, "reads the pull request body and round records"),
     "seal pr-body": (NO_WALK, "reads the one work item it is named and a body file"),
-    "seal": (NOT_A_CHECK, "the mode command, writing seal/config.md"),
+    "seal": (NOT_A_CHECK, "the mode command, writing seal/config.json"),
     "seal stamp": (NOT_A_CHECK, "draws the sealer's stamp from a sealed guarantee"),
     "seal cost": (NOT_A_CHECK, "measures a transcript"),
     "seal payload": (NOT_A_CHECK, "measures a spawn's payload"),
@@ -87,7 +89,7 @@ def test_every_shipped_command_is_classified():
         "a command in bin/ or a `seal` subcommand is not classified here, or "
         "a classified one left: "
         f"{sorted(shipped ^ set(SHIPPED))}. Say what keeps it off a team's "
-        "specs/ — the predicate, a constant under seal/, or no walk at all"
+        "specs/ — the predicate, the root's own directory, or no walk at all"
     )
 
 

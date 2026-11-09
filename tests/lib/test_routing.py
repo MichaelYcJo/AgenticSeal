@@ -7,11 +7,9 @@ that cannot be read is not a declaration, and an optional row that cannot be
 read is unanswered while the declaration stands. What a reader does with an
 answer is that reader's own file's.
 The cases come from `tests/test_routing_is_recorded.py` and
-`tests/test_console_is_not_utf8.py` (#942's phase 6). Two cases of
-`Test_module` came in #942's round 9 fix pass, each a case of this module
-alone: the copy without `lib/blocks.py`, from
-`tests/test_a_script_copied_alone_exits_2.py`, and `WORK_ITEMS` held under
-`seal/`, from `tests/behaviour/test_a_reference_root_is_read_and_never_taken.py`.
+`tests/test_console_is_not_utf8.py` (#942's phase 6). The case of
+`Test_module` on the copy without `lib/blocks.py` came in #942's round 9 fix
+pass, from `tests/test_a_script_copied_alone_exits_2.py`.
 """
 
 import os
@@ -243,7 +241,7 @@ class Test_parse:
         """S5 of #867 at the parser. `parse` kept the LAST row of a label, so a
         second `Review` row below the first answered for it and nothing said
         there were two. A label written twice has no value, the rule
-        `lib/config.py#value_of` gives a config row; for a strict label that
+        `lib/config.py#config_value` gives a config key; for a strict label that
         makes the file no declaration. Seen red against the last-wins parser:
         each shape parsed, `feature/x` and the chain answering."""
         answers = {
@@ -302,8 +300,10 @@ class Test_parse:
         `unattended` and `true` are in the list because they are what a session
         reaching for the idea rather than for the vocabulary would write, and both
         have to land on "nobody was asked" rather than on a confident yes.
-        `automation` is question 1's option label, the row's name in lower case,
-        and it is what a session that takes the label for the row's answer writes.
+        `complete` is question 1's option label that writes `yes` here, and
+        `automation` was that label before #1459 and is the row's name in lower
+        case; each is what a session that takes the label for the row's answer
+        writes.
         """
         for spelling in (
             "unattended",
@@ -313,6 +313,7 @@ class Test_parse:
             "YES",
             "maybe",
             "automation",
+            "complete",
             "",
         ):
             parsed = routing.parse(with_row(routing.AUTOMATION, spelling))
@@ -503,7 +504,7 @@ class Test_module:
         with it. It is a module, not a script: scripts import it, and a script
         catches the error or names the file first. So a copy without the walk raises one `ImportError` whose
         sentence names the path and what the file is for.
-        `tests/lib/test_config.py` holds `lib/config.py` to the same."""
+        `tests/lib/test_tables.py` holds `lib/tables.py` to the same."""
         name, siblings = TARGET.rsplit("/", 1)[1], ["optin.py"]
         alone = tmp_path / "lib"
         alone.mkdir()
@@ -527,15 +528,6 @@ class Test_module:
         assert "tells a live row from one quoted in a fence or parked in a comment" in (
             last
         ), last
-
-    def test_the_pinned_checks_read_under_the_root_alone(self):
-        """#688's D3: the constant this module's walk of work items rests on,
-        held under `seal/`. Widening it to a top-level `specs/` turns this red,
-        which is the probe that work item's plan names for `WORK_ITEMS`.
-        `tests/skills/test_settle.py` holds `settle.py#SPECS` to the same, and
-        `tests/behaviour/test_a_reference_root_is_read_and_never_taken.py` classifies
-        every shipped command by what keeps it off a reference root."""
-        assert routing.WORK_ITEMS == "seal/threads"
 
 
 test_census = census_case(TARGET)

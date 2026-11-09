@@ -617,7 +617,7 @@ def test_the_walk_is_exact_somewhere():
 
 def shared_rule():
     """`skills/verify/scripts/unverified_check.py`, which states the fence
-    delimiter rule the config reader's base reading was held to."""
+    delimiter rule the table walker's base reading was held to."""
     import importlib.util
 
     path = os.path.join(ROOT, "skills", "verify", "scripts", "unverified_check.py")
@@ -630,10 +630,10 @@ def shared_rule():
 uc = shared_rule()
 
 
-def config_base(lines):
-    """What `lib/config.py` hid at `release/v0.16.0`: every line inside a
-    fenced block by the shared delimiter rule, a block nobody closed running
-    to the end."""
+def walker_base(lines):
+    """What the table walker, then in `lib/config.py`, hid at
+    `release/v0.16.0`: every line inside a fenced block by the shared
+    delimiter rule, a block nobody closed running to the end."""
     out = set()
     for first, last in uc.fence_spans(lines):
         out.update(range(first, len(lines) if last is None else last + 1))
@@ -650,11 +650,11 @@ def leaves_both(new, base, renderer, count):
     ]
 
 
-config = load_lib("config.py")
+tables = load_lib("tables.py")
 
 
-def test_the_config_reader_never_leaves_both_readings():
-    """Half 1, S4. On every line of every document, `lib/config.py` hides
+def test_the_table_walker_never_leaves_both_readings():
+    """Half 1, S4. On every line of every document, `lib/tables.py` hides
     the line where its base reading hid it or where a renderer hides it, and
     nowhere else: a line it newly hides was never a live row, and a line it
     newly shows was never fenced or commented out."""
@@ -662,10 +662,10 @@ def test_the_config_reader_never_leaves_both_readings():
     for doc in CORPUS:
         text, lines = as_read(doc)
         new = {index for index in range(len(lines))} - {
-            index for index, _line in config.unfenced(lines, text)
+            index for index, _line in tables.unfenced(lines, text)
         }
         bad = leaves_both(
-            new, config_base(lines), set(oracle.hidden_text(text)), len(lines)
+            new, walker_base(lines), set(oracle.hidden_text(text)), len(lines)
         )
         if bad:
             wrong.append((lines, bad))

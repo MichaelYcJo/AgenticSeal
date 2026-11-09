@@ -32,6 +32,7 @@ from conftest import (
     census_case,
     chain_check_run,
     commit_everything_as_e,
+    config_json,
     mark_root,
     names_path,
     parity_file,
@@ -2310,7 +2311,10 @@ class Test_pins_and_copies_in:
 
 # --- the parity arm at the pull request (#988) -------------------------------------
 
-PARITY = "seal/parity.md"
+PARITY = "seal/parity.json"
+# The migration config an earlier release read, a `| Field | Value |` table.
+OLD_PARITY = "seal/parity.md"
+OLD_PARITY_TEXT = f"| Field | Value |\n|---|---|\n| Baseline commit | `{BASELINE}` |\n"
 routing_module = load(chain.ROUTING, "agentic_routing_for_chain_tests")
 
 
@@ -2345,7 +2349,7 @@ class Test_originals_of:
     def test_refuses_a_record_with_no_original_line_on_a_ready_pull_request(
         self, branch, ready, capsys
     ):
-        """S4: in a repository declaring `seal/parity.md`, a chain-declared
+        """S4: in a repository declaring `seal/parity.json`, a chain-declared
         pull request changing code fails while a round record holds no
         `original:` line, each record named with the baseline it owes, and a
         draft prints the same lines and exits 0."""
@@ -2404,7 +2408,7 @@ class Test_originals_of:
         self, branch, ready, capsys
     ):
         """S10: the template's placeholder fails a ready pull request naming
-        `seal/parity.md`, and no record is compared with nothing."""
+        `seal/parity.json`, and no record is compared with nothing."""
         root, _code = branch
         migrating(root, (BASELINE, BASELINE), sha=None)
         code, out = check(root, capsys)
@@ -2412,6 +2416,40 @@ class Test_originals_of:
         (line,) = original_lines(out)
         assert line.startswith(f"{PARITY}:0  "), line
         assert "`Baseline commit`" in line and "`<SHA>`" in line, line
+
+    def test_refuses_an_earlier_releases_parity_md_once_naming_the_keys(
+        self, branch, ready, capsys
+    ):
+        """S6: a `seal/parity.md` git carries at HEAD with no
+        `seal/parity.json` is refused once, at the old file, in the sentence
+        naming the file and the keys to write, and no record is compared
+        with a baseline nobody can read. A change confined to the document
+        roots owes nothing, and with `parity.json` beside it the JSON is the
+        config read. Seen red against the arm that read `parity.md`'s
+        table."""
+        root, _code = branch
+        on_main(root, OLD_PARITY, OLD_PARITY_TEXT)
+        seal(root)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        said = chain.parity_readers()[0].unconverted_parity(PARITY)
+        assert [ln for ln in out.splitlines() if ln.startswith("seal/parity")] == [
+            f"{OLD_PARITY}:0  {said}"
+        ], out
+        assert original_lines(out) == [], out
+
+        def owed(paths):
+            return chain.originals_of(
+                reader, routing_module, str(root), "seal", paths, [ITEM]
+            )
+
+        assert owed(["docs/a.md", f"{ITEM}/trail/rounds/round-1.md"]) == []
+        write(root, PARITY, parity_file(BASELINE))
+        commit(root, "the migration config written as JSON beside the old one")
+        assert [p for p, _n, _w in owed(["f.txt"])] == [
+            f"{ITEM}/trail/rounds/round-1.md",
+            f"{ITEM}/trail/rounds/round-2.md",
+        ]
 
     def test_accepts_a_change_confined_to_the_document_roots(self, branch):
         """S7 and S11: a change confined to `docs/` and `seal/` owes no line,
@@ -2422,7 +2460,9 @@ class Test_originals_of:
         inside = ["docs/a.md", f"{ITEM}/trail/rounds/round-1.md"]
 
         def owed(paths):
-            return chain.originals_of(reader, routing_module, str(root), paths, [ITEM])
+            return chain.originals_of(
+                reader, routing_module, str(root), "seal", paths, [ITEM]
+            )
 
         assert owed(inside) == []
         assert [p for p, _n, _w in owed([*inside, "f.txt"])] == [
@@ -2646,7 +2686,7 @@ class Test_parity_readers:
             "m = importlib.util.module_from_spec(s)\n"
             "s.loader.exec_module(m)\n"
             "config, gate = m.parity_readers()\n"
-            "print(gate.touches_code(['f.txt']), config.BASELINE_ROW)\n"
+            "print(gate.touches_code(['f.txt'], 'seal'), config.BASELINE_KEY)\n"
         )
         done = subprocess.run(
             [sys.executable, "-I", "-c", code],
@@ -3121,17 +3161,18 @@ PR_BODY = load(
 MARK = PR_BODY._mark_line(PR_BODY.MANIFEST)[0]
 CHANGED_LINE = "- The body is the records'."
 SECOND_ITEM = "seal/threads/1791999998-another-work-item"
-# #1453: `config.md`'s table, holding the two language rows the body's
-# first part is composed from; a case adds the mark row below them.
-LANGUAGES = (
-    "| Commit and pull request language | English |\n| Record language | English |\n"
-)
-CONFIG = "| Item | Value |\n|---|---|\n" + LANGUAGES
+# #1453: the two language keys of `config.json` the body's first part is
+# composed from; a case adds the mark key after them.
+LANGUAGES = [
+    ("Commit and pull request language", "English"),
+    ("Record language", "English"),
+]
+MARK_ON = ("Pull request seal mark", "yes")
 
 
 def composed_body(root, item=ITEM):
     """The body `seal pr-body` writes for ITEM in ROOT as it stands: the
-    first part the language rows ask for, the heading, the mark where the
+    first part the language keys ask for, the heading, the mark where the
     item is sealed at HEAD, and the copy."""
     path = str(root / item)
     mark, _note = PR_BODY.seal_mark(path, str(root))
@@ -3160,8 +3201,8 @@ def body_lines(out):
 @pytest.fixture
 def bodied(tmp_path):
     """A branch that went straight to the pull request with a `pr.md` and a
-    changelog, in a shared root whose two language rows read `English` and
-    whose `Pull request seal mark` row reads `yes`, sealed at HEAD. Returns
+    changelog, in a shared root whose two language keys read `English` and
+    whose `Pull request seal mark` key reads `yes`, sealed at HEAD. Returns
     `(root, early, late)`: the body `seal pr-body` wrote before the
     guarantee was committed, and the one it wrote after."""
     d = tmp_path / "b"
@@ -3170,7 +3211,7 @@ def bodied(tmp_path):
     commit(d, "base")
     git(d, "switch", "-q", "-c", "feature/g")
     mark_root(d / "seal")
-    write(d, "seal/config.md", CONFIG + "| Pull request seal mark | yes |\n")
+    write(d, "seal/config.json", config_json(*LANGUAGES, MARK_ON))
     write(d, f"{ITEM}/routing.md", SEALED_ROUTING)
     write(d, f"{ITEM}/pr.md", "Closes #1.\n")
     write(d, f"{ITEM}/changelog.md", CHANGED_LINE + "\n")
@@ -3249,14 +3290,14 @@ class Test_body:
     @pytest.mark.parametrize(
         "row, said",
         [
-            ("", None),
+            ([], None),
             (
-                "| Pull request seal mark | Yes |\n",
-                "`Pull request seal mark` reads `Yes`, not `yes`, so the row is not "
+                [("Pull request seal mark", "Yes")],
+                "`Pull request seal mark` reads `Yes`, not `yes`, so the key is not "
                 "read and the body carries no seal mark",
             ),
         ],
-        ids=["the row absent", "a row other than yes"],
+        ids=["the key absent", "a key other than yes"],
     )
     def test_refuses_the_mark_where_the_row_gives_none(
         self, bodied, tmp_path, monkeypatch, capsys, row, said
@@ -3267,8 +3308,8 @@ class Test_body:
         `yes` is named on a notice in `seal pr-body`'s words. Seen red with
         the arm's call in `main` removed."""
         root, _early, _late = bodied
-        write(root, "seal/config.md", CONFIG + row)
-        commit(root, "the row, changed")
+        write(root, "seal/config.json", config_json(*LANGUAGES, *row))
+        commit(root, "the key, changed")
         head = git(root, "rev-parse", "HEAD")
         write(root, f"{ITEM}/trail/gate.md", gate_file(head))
         write(root, f"{ITEM}/guarantee.md", guarantee(head, "sealed"))
@@ -3455,26 +3496,20 @@ class Test_body:
         self, bodied, tmp_path, monkeypatch, capsys
     ):
         """#1453, *Scope* item 3: `seal pr-body` composes no body for a
-        repository whose `config.md` lacks a language row, so the arm, which
-        reads the body through the same function, refuses at the root's
-        `config.md`, as it refuses a record `compared` places at a path.
-        Seen red with `compared` reading `pr.md` alone, where no line named
-        `config.md`."""
+        repository whose `config.json` lacks a language key, so the arm,
+        which reads the body through the same function, refuses at the
+        root's `config.json`, as it refuses a record `compared` places at a
+        path. Seen red with `compared` reading `pr.md` alone, where no line
+        named the config."""
         root, _early, late = bodied
-        write(
-            root,
-            "seal/config.md",
-            "| Item | Value |\n|---|---|\n"
-            "| Commit and pull request language | English |\n"
-            "| Pull request seal mark | yes |\n",
-        )
-        commit(root, "the record row taken out")
+        write(root, "seal/config.json", config_json(LANGUAGES[0], MARK_ON))
+        commit(root, "the record key taken out")
         payload(tmp_path, monkeypatch, late)
         code, out = check(root, capsys)
         assert code == 1, out
         assert (
-            "seal/config.md:0  names no language in a `Record language` row; "
-            "`templates/setup/config.md` *Record language* says what the row "
+            "seal/config.json:0  names no language in a `Record language` key; "
+            "`templates/setup/config.md` *Record language* says what the key "
             "governs, and the orchestrator asks for it before the first edit"
         ) in out.splitlines(), out
 
@@ -3482,7 +3517,7 @@ class Test_body:
         self, bodied, tmp_path, monkeypatch, capsys
     ):
         """#1453, *Scope* item 3, the scenario *The pull request's arm passes
-        the composed body*. Where the rows differ, the body `seal pr-body`
+        the composed body*. Where the keys differ, the body `seal pr-body`
         composes opens with the work item's `pr.<lang>.md`, and the arm
         passes it; a body whose first part is `pr.md` alone is refused at its
         first line, naming the translation. Seen red with `compared` reading
@@ -3494,9 +3529,8 @@ class Test_body:
         root, _early, _late = bodied
         write(
             root,
-            "seal/config.md",
-            CONFIG.replace("| English |\n", "| Korean |\n", 1)
-            + "| Pull request seal mark | yes |\n",
+            "seal/config.json",
+            config_json((LANGUAGES[0][0], "Korean"), *LANGUAGES[1:], MARK_ON),
         )
         write(root, f"{ITEM}/pr.ko.md", "닫는다 #1.\n")
         commit(root, "the team's language, and its translation")
@@ -3591,6 +3625,9 @@ def run_check(repo, *extra):
 
 
 ADD_THE_FILE = "Add seal/threads/<work-item>/routing.md to declare"
+# The directory of the work items `main` passes, `root_name` resolving the
+# `repo` fixture's tree to `seal`.
+WORK = "seal/threads"
 # A shared-mode declaration naming the `repo` fixture's branch.
 DECLARES_FEATURE = ROUTING.format(
     review="through the review chain", planning="the session"
@@ -3658,7 +3695,7 @@ class Test_declared_for_this_branch:
         write(repo, declared, DECLARES_FEATURE)
         write(repo, decoy, DECLARES_FEATURE)
         commit_everything_as_e(repo, "a declaration and a decoy")
-        assert chain.declared_for_this_branch(str(repo), routing_module) == (
+        assert chain.declared_for_this_branch(str(repo), routing_module, WORK) == (
             [declared],
             "",
         )
@@ -3671,7 +3708,7 @@ class Test_declared_for_this_branch:
                 repo, f"seal/threads/179900000{n}-item-{n}/routing.md", DECLARES_FEATURE
             )
         commit_everything_as_e(repo, "two declarations")
-        own, why = chain.declared_for_this_branch(str(repo), routing_module)
+        own, why = chain.declared_for_this_branch(str(repo), routing_module, WORK)
         assert own == [], own
         assert why.startswith("2 committed declarations name `feature`"), why
 
@@ -3683,7 +3720,7 @@ class Test_declared_for_this_branch:
         write(repo, "seal/threads/1799000001-an-item/routing.md", DECLARES_FEATURE)
         commit_everything_as_e(repo, "a declaration")
         git(repo, "switch", "-q", "--detach")
-        own, why = chain.declared_for_this_branch(str(repo), routing_module)
+        own, why = chain.declared_for_this_branch(str(repo), routing_module, WORK)
         assert own == [], own
         assert why.startswith("the branch could not be read"), why
 
