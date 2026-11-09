@@ -94,8 +94,8 @@ In:
    the transcripts walked, the ones that named the work item, the ones already
    in the log, and the ones in this reading. Under the counts come the
    `# <file name>` lines of scope item 1. Then one `--segments` row per segment
-   follows, one per slice for a resumed agent, named as `--segments` names a
-   row. Where no transcript names the work item, the reading says that no
+   follows, one per slice for a resumed agent, each named by its transcript's
+   file name. Where no transcript names the work item, the reading says that no
    segment transcript on this machine names the directory or the branch. With
    `--post`, that reading is posted. Where every transcript that named it is
    already in the log, the mode says so, posts nothing and exits 0.
@@ -103,7 +103,9 @@ In:
    `--says`. A label with no history and an unreadable lookup post nothing and
    exit 0. A closed log, or more than one open log, is named and exits 1.
    Without `--post`, a log that cannot be read leaves out nothing, and the
-   reading says so. `--work-item` refuses to run with a transcript argument,
+   reading says so. With `--post`, a log found whose comments cannot be read
+   posts nothing and exits 1, since posting would repeat readings already
+   there (`trail/phases/phase-2.md`). `--work-item` refuses to run with a transcript argument,
    `--latest`, `--spawns`, `--segments` or `--json`.
 6. **The shipped text says it.** In `skills/verify/orchestration.md`
    *Measure the segment, and feed the flow log*, three paragraphs change. The
@@ -114,8 +116,9 @@ In:
    "never as a question" and loses its deadline. `README.md` *What runs on
    your machine* and the same table of `README.ko.md`, which
    `CONTRIBUTING.md` asks to move with it: the `seal cost --post` row's
-   `When` cell names the release step, and the command table gains a
-   `seal cost --work-item <dir>` row. These are direct edits, because none of
+   `When` cell names the release step, its `Sends` cell says `--work-item`
+   first reads every comment of the open log with `gh api --paginate`, and
+   the command table gains a `seal cost --work-item <dir>` row. These are direct edits, because none of
    the files is in the policy root.
 7. **A posted body carries no command text.** In the body `--post` captures,
    the `slowest` list gives each call's seconds and its family (`git`,
@@ -176,7 +179,7 @@ the branches of #1441 and #1442 change none either (executed on 2026-11-09:
 | No transcript on this machine | Given no transcript naming the directory or B, when `--work-item <dir> --post` runs, then one comment is posted saying no segment transcript on this machine names the directory or the branch, under the session's sentence | a case, shown red first: done-when (2) |
 | The log is missing or ambiguous | Given each of the label's states (no history, unreadable, closed, more than one open), when `--work-item --post` runs, then the outcome and exit code match `post`'s for that state | cases reusing the `Test_post` stubs |
 | A refused combination | Given `--work-item` with `--json`, `--segments`, `--spawns`, `--latest` or a transcript, then the parser refuses and names both flags | a case |
-| A real work item | Given this machine, when the crafter runs `--work-item` without `--post` on `seal/threads/1794128303-the-plugin-ships-two-hooks-again` and on this work item's directory, then the first reports no segment transcript on this machine, and the second reports this release's framer segment | an `executed` read-only run, quoted in the phase record |
+| A real work item | Given this machine, when the crafter runs `--work-item` without `--post` on `seal/threads/1794128303-the-plugin-ships-two-hooks-again` and on this work item's directory, then each reports the transcripts that name its directory or branch: at `7e4430b1` the first finds two, this release's framers of #1439 and #1442, whose spawn prompts quote that directory, and the second finds this release's framer and crafter segments | an `executed` read-only run, quoted in the phase record |
 | The text says it | Given `skills/verify/orchestration.md`, the section names `--work-item` and the `# <file name>` line, and still holds "never" and "question" | a case in `tests/text/test_a_segment_feeds_the_flow_log.py` shown red with the sentence removed, then the proofer's reading |
 
 ## Data & interfaces
@@ -279,7 +282,7 @@ four rows are what goes in return:
 |---|---|---|
 | The paragraph saying the command makes nobody run it, and that nothing removes the remembering | `skills/verify/orchestration.md` *Measure the segment, and feed the flow log*, the paragraph opening **The command does not make anybody run it.** | The release step now runs the command for what a session left. The paragraph that replaces it says so (scope item 6). |
 | The deadline "before the next segment spawns, or at the latest together with the round or phase record that closes this one: never later" | `skills/verify/orchestration.md` *Measure the segment, and feed the flow log*, the paragraph opening "The orchestrator does this before the next segment spawns" | Its ground was that only the watching session holds the transcript. The release reads the same transcript later on the same machine, so a late post loses nothing. "never as a question" stays, and `tests/text/test_a_segment_feeds_the_flow_log.py#test_the_section_says_it_happens_without_asking` still pins it. |
-| The premise that the watching session is the only party holding the transcript | `docs/running/measuring-a-run.md` *Where a reading goes*, first paragraph | The first `change` of `## Rule changes` rewrites it. The settle writes it. |
-| "What the command cannot do is make a session remember to run it." | `docs/running/measuring-a-run.md` *Where a reading goes*, the paragraph opening **Posting a reading is one command** | The third `change` of `## Rule changes` replaces it with the release step and the `# <file name>` line. |
+| The premise that the watching session is the only party holding the transcript | `docs/running/measuring-a-run.md` *Where a reading goes*, first paragraph | The second `change` of `## Rule changes` rewrites it. The settle writes it. |
+| "What the command cannot do is make a session remember to run it." | `docs/running/measuring-a-run.md` *Where a reading goes*, the paragraph opening **Posting a reading is one command** | The fourth `change` of `## Rule changes` replaces it with the release step and the `# <file name>` line. |
 
 Framed 2026-11-09 by framer, before the build.
