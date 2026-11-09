@@ -47,11 +47,11 @@ Out, each with its reason:
 - **The orchestrator's records-only commits after the last round.** The core's invariant table gives those to the sealer. Whether a fold is read before the next round is #1442's.
 - **A change to a file every test file imports**, such as `tests/conftest.py` or `tests/censuses.py`. The import clause then pulls the whole suite, as it does today. The row the verify table gives a dependency bump already answers that case.
 - **A test file that declares no `TARGET` but stands outside the two directories.** Nothing refuses one at `94d04d30`, and none exists. It is a limit: the proofer reads a new file's placement against `CONTRIBUTING.md` *The test layout*. No check is added.
-- **The version move to 0.36.0.** The orchestrator assigns it to one work item later.
+- **The version move to 0.36.0.** `e244aa49`, #1443's pull request, made it on the release branch, and this branch holds it through its merge of the base, so this work does not move the version.
 
 Where this work meets the release's other items:
 
-- **#1444 shares `CONTRIBUTING.md`.** This work edits line 42 and *The test layout*. #1444 edits the `.test_durations` paragraph of *Running the checks*. No sentence is shared, so either can merge first. The cases *Scope* item 1 moves leave their stored prices under the old ids. 36.3 s of 1,599.8 s goes stale, under the one-second-in-twenty bound of `test_the_durations_file_prices_the_suite`, so this work needs no refresh. If #1444 merges first, its refresh procedure is the one that clears those ids.
+- **#1444 shares `CONTRIBUTING.md`.** This work edits line 42 and *The test layout*. #1444 rewrote the `.test_durations` paragraph of *Running the checks*. No sentence is shared, #1444 merged first (`c7bb14ca`), and the merge into this branch resolved no conflict. The cases *Scope* item 1 moves leave their stored prices under the old ids, 36.3 s of 1,599.8 s. Since #1444, no work item commits `.test_durations`. The release pull request's `durations` job judges the file against `STALE_SHARE`, and the release refresh clears those ids.
 - **#1439 shares the `skills/verify/` directory and no file.** It edits `orchestration.md` and `scripts/session_cost.py`. This work edits `SKILL.md`.
 - **#1440, #1442 and #1443** edit `agents/framer.md`, `agents/proofer.md`, `docs/running/the-run.md`, `skills/implement/orchestration.md` and `skills/code-review/orchestration.md`. This work edits none of them.
 
