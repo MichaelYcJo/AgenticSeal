@@ -23,7 +23,8 @@ but a second run of the same commit. So the two events are required where a
 workflow runs `chain_check.py`, the one script here that reads draft state,
 and refused everywhere else. A later step that reads draft state through
 another script is not seen by this, and naming the reader once is what keeps
-that fix to one string.
+that fix to one string. The same script reads the pull request's body, and an
+edited body makes no commit either, so `edited` is required wherever it runs.
 
 **Which runs a newer one cancels.** A push to an open pull request starts
 every workflow again, and the runs of the commit before it are spent. Each
@@ -70,6 +71,11 @@ WORKFLOWS = os.path.join(ROOT, ".github", "workflows")
 # the pull request*), so leaving draft state has to re-run it.
 DRAFT_EVENTS = ("ready_for_review", "converted_to_draft")
 DRAFT_READER = "chain_check.py"
+# The event that carries a body edited after the pull request opened, which
+# no commit follows: `chain_check.py` reads the body from the payload against
+# what `seal pr-body` composes at HEAD (#1452), so a workflow that runs it
+# runs on this event too.
+BODY_EVENT = "edited"
 
 # What `cancel-in-progress` reads in a workflow that also runs on an event
 # other than `pull_request`: a newer pull-request run cancels, nothing else.
@@ -569,6 +575,31 @@ def test_the_draft_events_run_where_draft_state_is_read_and_nowhere_else():
                     "that reads draft state, so a ready press re-runs every "
                     "job on a commit they already ran"
                 )
+
+
+def test_the_edited_event_runs_wherever_the_body_is_read():
+    """Otherwise a body sent after the pull request opened is read only on
+    the next push.
+
+    `chain_check.py` refuses a ready pull request whose body is not what
+    `seal pr-body` composes at HEAD, reading the body from the event payload.
+    Rewriting the body makes no commit, so no `synchronize` fires, and the
+    `edited` payload is the one that carries the new body. Another step may
+    read the body too, as this repository's issue-claims step does, so the
+    event is not refused where `chain_check.py` does not run. Seen red
+    against `templates/setup/hygiene.yml` before #1452, which did not list
+    the event.
+    """
+    for name, text in workflow_texts().items():
+        if DRAFT_READER not in text:
+            continue
+        trigger = "\n".join(events(text).get("pull_request", []))
+        assert BODY_EVENT in trigger, (
+            f"{name}: runs `{DRAFT_READER}` and `on.pull_request` does not "
+            f"list `{BODY_EVENT}`. A body edit makes no commit, so the body "
+            "the check reads stays the one the pull request had at its last "
+            "push"
+        )
 
 
 def test_a_newer_pull_request_run_cancels_the_older_and_no_other_run_waits():
