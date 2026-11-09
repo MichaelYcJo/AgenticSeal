@@ -49,6 +49,11 @@ def test_pr_checks_install_names_agentic_seal_where_no_root_stands_beside_the_pa
     assert not (package / ".github").exists()
 ```
 
+```seal
+verdict: fixed 01dabf91
+answer: Applied as given. The case went in first and failed against `22e5f69e`'s `seal.py` on the message line, which printed "seal/ is not in this tree" (executed). With the fix it passes, and a `seal mutate` of `name = display(repo, shared) or optin.HOME` to `name = optin.HOME` went red on the same assertion (executed). The status line of `seal pr-checks` with no workflow, "writes it where seal/ is in the tree" (`seal.py:2232`), stays: it calls the root `seal/` in text, as *Scope* item 3's last sentence allows, and makes no claim about the tree.
+```
+
 ### 2. The root's README gives the by-hand moves with `seal` in every path, and says to substitute only after them, pointing at a paragraph that does not give the name
 
 ```seal
@@ -77,6 +82,11 @@ and a commit of the removal.
 
 The paragraph that stood at `:46-48` goes with this change. The changelog's third item says the template "says that the by-hand moves end in the root's own name" (`changelog.md:5`), which stays true.
 
+```seal
+verdict: fixed c8f1884e
+answer: The sentence now stands before the commands in both files, and the paragraph after them is gone. It is written in other words than the paste-ready fix, because that text names the folder holding the README. In local mode the README is under the common git directory's `seal/`, so for the local-to-shared move beside a package that sentence says nothing, and the commands as written land on the package's `seal/`. The sentence now says that beside a project's own `seal/` the shared root has the second name the plugin's `README.md` gives in *Shared or local*, that each `--show-toplevel` path ends in that name, and that the commands run as written would move the project's own directory. It holds in both directions and writes no `agentic-seal`. The two files stay byte-identical, and `switch_block`, the identity case and the second-name cases pass (executed).
+```
+
 ### 3. The folds left two frame statements of the two-name design for `chain_check.py`, which a renamed root contradicts
 
 ```seal
@@ -95,6 +105,12 @@ The one-name build is the better of the two for this case, as the confirmation b
 
 ```markdown
 - **A root renamed between commits.** A reader that reads at a commit other than the working tree reads under the name the working tree resolves, except `chain_check.py`, which reads every record under the one name `root_name` gives: the marked root of the tree it reads, else the merge base's (*Data & interfaces*). A pull request that renames the root is read under the new name, and a declaration it deletes under the old name without moving it is not judged. A repository that moved its root from one name to the other reads its earlier history under the current name. This is a limit, stated in `home_paths`'s docstring and `chain_check.py#root_name`'s.
+```
+
+```seal
+verdict: fixed 22e5f69e
+location: `skills/code-review/scripts/chain_check.py:1840-1864`
+answer: The orchestrator's fold `22e5f69e` applied both paste-ready sentences to `frame/plan.md` *Alternatives considered* and `frame/design.md` *Out*. The folded *Out* item says the limit is stated in `chain_check.py#root_name`'s docstring as well, which the docstring did not say, so the fix pass rewrote its last sentence in `ee10f8e8`: a pull request that renames the root is read under the new name, and a declaration it deletes under the old name without moving it is not judged. That commit touches `chain_check.py`, which the finding's `location:` does not list, so this block names it.
 ```
 
 ### 4. The core says `seal/` names the records root in every shipped text, and its next sentence and the bootstrap use `seal/` for the project's own directory
@@ -118,6 +134,11 @@ shared root is `agentic-seal/`, recognised by the same marker,
 
 The changelog's third item paraphrases the core's sentence ("says that `seal/` is the root's name in every text the plugin ships", `changelog.md:5`), so the fix pass owes it the same exception. `pr.md` does not quote that sentence.
 
+```seal
+verdict: fixed 180ea5db
+answer: Applied as given to `skills/core/SKILL.md`, and the changelog's third item gained the same exception: "except where a text says a `seal/` is the project's own or that its `README.md` does not open with the marker". The core still names `agentic-seal/` once, and the second-name cases and the line-wrap case pass (executed).
+```
+
 ### 5. The changelog and `pr.md` say one case holds the second name to the core and to each README, where three cases do
 
 ```seal
@@ -130,6 +151,11 @@ Why it matters: the release note reads "a case in `tests/behaviour/test_no_docum
 
 ```markdown
 A census in `tests/censuses.py` refuses a string constant that spells either name in any module outside `lib/optin.py`, and three cases in `tests/behaviour/test_no_document_names_the_old_roots.py` hold the second name to the core's sentence and to one line of each README.
+```
+
+```seal
+verdict: fixed 180ea5db
+answer: `changelog.md`'s third item now reads "and three cases in `tests/behaviour/test_no_document_names_the_old_roots.py` hold the second name to the core's sentence and to one line of each README", the round's sentence. `pr.md` is the orchestrator's, so the quote at `pr.md:7` still holds the old clause and is owed the new sentence, with "A census in `tests/censuses.py` refuses a string constant that spells either name in any module outside `lib/optin.py`, and three cases in `tests/behaviour/test_no_document_names_the_old_roots.py` hold the second name to the core's sentence and to one line of each README." as its words.
 ```
 
 ## Confirmations
