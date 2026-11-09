@@ -793,10 +793,10 @@ def declared_pacts(home):
 # --- one GFM table walker (#647) --------------------------------------------
 #
 # Tables are read out of markdown by name: a record's, and an earlier
-# release's `config.md`, which `seal mode` converts. One walker reads them all, because two walkers are two break
-# lists to keep in step, and round 3 of #735 measured exactly that drift in
-# the one there was: an autolink row ended the table, and a signer written
-# as one was read by nobody at exit 0.
+# release's `config.md`, which `seal mode` converts. One walker reads them
+# all, because two walkers are two break lists to keep in step, and round 3
+# of #735 measured exactly that drift in the one there was: an autolink row
+# ended the table, and a signer written as one was read by nobody at exit 0.
 #
 # **It reads what cmark-gfm renders, or refuses.** It is held to the renderer
 # by `tests/behaviour/test_one_table_walker_reads_what_gfm_renders.py`, a property case

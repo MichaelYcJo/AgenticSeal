@@ -19,8 +19,9 @@ of the table walker's from
 walker held to cmark-gfm, the reader's cases of
 `tests/test_the_mode_question_is_asked_once.py`, whose writer's cases are in
 `tests/skills/test_seal.py`, the pact readers' of `tests/behaviour/test_a_signer_declares_its_pact.py`, and the
-seven cases `tests/skills/test_pact_check.py` left for this module, which run
-`seal pact` over the pact's world in `tests/conftest.py`. Each case keeps
+cases `tests/skills/test_pact_check.py` left for this module that run `seal
+pact` over the pact's world in `tests/conftest.py`; one of them stands, and
+the rest left with the `| Signer |` table's reader. Each case keeps
 its body; a name its old file defined for it is defined here, and a fixture
 or text two files read is `tests/conftest.py`'s.
 
