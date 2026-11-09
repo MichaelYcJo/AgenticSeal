@@ -597,7 +597,9 @@ letting defects through is a rewrite of this subsection.
 
 **When a work item is required** — the same threshold the Design Gate uses,
 because they are the same judgment. Drawing no line is how the set quietly
-stops being written.
+stops being written. Under `complete` and `manual` the rung decides what a
+work item writes; under `agentic` it is one signal of those *Under
+agentic* above weighs.
 
 | Work | What to write |
 |---|---|
