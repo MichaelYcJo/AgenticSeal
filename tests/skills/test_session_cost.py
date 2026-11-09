@@ -5326,7 +5326,7 @@ class Test_work_item:
         self.agent(tmp_path, "agent-a", f"Records: seal/threads/{self.NAME}/\n")
         self.agent(tmp_path, "agent-b", f"Branch {self.BRANCH}.", session="s2")
 
-    def test_both_segments_print_and_post_in_one_comment(
+    def test_accepts_both_segments_and_posts_them_in_one_comment(
         self, monkeypatch, capsys, tmp_path, item
     ):
         """Nothing was posted for the work item. A prompt naming the
