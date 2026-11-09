@@ -3,11 +3,12 @@ renders them.
 
 `gfm_table` reads one table out of a markdown text by its header row's
 cells, and `unfenced` and `table_cells` are the fence rule and the cell
-split it reads through. Its callers read records: the pact anchor table of
-a work item's `frame/design.md` (`skills/verify/scripts/pact_check.py`), a
-plan's *Judgments of the run* (`skills/settle/scripts/settle.py`), the row
-`settle --draft` places (`skills/settle/scripts/rule_changes.py`) and the
-lines `seal rules` reads (`.github/scripts/rules.py`). `seal mode`'s
+split it reads through. Its callers read records and policy documents: the
+pact anchor table of a work item's `frame/design.md`
+(`skills/verify/scripts/pact_check.py`), a plan's *Judgments of the run*
+(`skills/settle/scripts/settle.py`), the row `settle --draft` places
+(`skills/settle/scripts/rule_changes.py`) and the lines `seal rules` reads
+(`.github/scripts/rules.py`). `seal mode`'s
 converter reads an earlier release's `config.md` through it
 (`skills/implement/scripts/seal.py#converted`). No setting is read through
 it: `lib/config.py` reads `config.json` with the standard library's JSON
