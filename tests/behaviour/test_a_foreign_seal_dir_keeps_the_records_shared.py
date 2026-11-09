@@ -409,6 +409,25 @@ def test_s3_a_change_to_the_package_reaches_outside_the_document_roots(
         assert refused == [], out
 
 
+def test_s3_a_design_the_pull_request_edits_under_agentic_seal_is_read(
+    declared, capsys
+):
+    """Another work item's `frame/design.md` the pull request adds under
+    `agentic-seal/threads/` is read by the rule-changes arm, which refuses
+    its section: a line continued past the field's one line."""
+    other = "agentic-seal/threads/1794200002-another-item"
+    write(
+        declared,
+        f"{other}/frame/design.md",
+        "# spec\n\n## Rule changes\n\n"
+        "- nothing\n  why: a reason\n  that continues two spaces in\n\n"
+        "Framed 2026-11-09 by framer, before the build.\n",
+    )
+    commit_everything_as_e(declared, "another work item's design")
+    _code, out = checked(capsys, declared)
+    assert any(ln.startswith(f"{other}/frame/design.md:") for ln in out.splitlines())
+
+
 def test_s3_a_pull_request_deleting_agentic_seal_declares_nothing(declared, capsys):
     """The pull request that takes `agentic-seal/` out of the tree deletes
     the declaration with it, and the package's `seal/` standing at HEAD is
