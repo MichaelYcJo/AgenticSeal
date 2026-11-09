@@ -620,12 +620,12 @@ def segment_report(path, args=()):
     return proc.stdout
 
 
-# --- the grade: each row against its kind's bar (#640) ----------------------
+# --- the ratio on the segments page, with no verdict (#1440) ----------------
 #
-# The bars are `docs/running/the-run.md`'s, per segment kind, and until
-# #640 they were nowhere on the page that prints the ratio they judge. A row's
-# kind is the `subagent_type` of the spawn it was joined to, so `--segments`
-# can grade where the plain reading cannot: a lone transcript carries no kind.
+# `--segments` prints each row's tools per turn in its `t/turn` column, and
+# neither the page nor a `--json` row holds the ratio against a bar: a
+# segment that chains its reads inside one shell call reads low on it however
+# many files each turn opens.
 
 
 def batched(start, sizes, prefix):
@@ -651,7 +651,7 @@ def batched(start, sizes, prefix):
     return lines
 
 
-def graded_run(tmp_path, segments):
+def spawned_run(tmp_path, segments):
     """A run whose spawns each open one segment file of the given turn sizes.
 
     `segments` is `[(subagent_type, sizes), ...]`; spawn `i` is made at
@@ -664,22 +664,6 @@ def graded_run(tmp_path, segments):
         main += spawn(f"S{index}", made, made + 600, agent, f"segment {index}")
         files[f"agent-{index}.jsonl"] = batched(made + 600, sizes, f"g{index}")
     return write_run(tmp_path, main, files)
-
-
-def grade_lines(out):
-    """The page's per-row grade lines, each flattened to single spaces."""
-    return [
-        " ".join(line.split())
-        for line in out.splitlines()
-        if "tools per turn against the" in line
-    ]
-
-
-# 15 calls over 14 turns, 1.07; three single calls, 1.00.
-UNDER_PROOFER = [1] * 13 + [2]
-
-
-SINGLES = [1, 1, 1]
 
 
 # --- the resume slice: one row is one segment, not one file ----------------
@@ -1567,9 +1551,27 @@ class Test_main:
         data = json.loads(run(["--json", str(path)]).stdout)
         assert data["by_family"]["test"]["seconds"] == 60
 
-    def test_the_report_names_batching_when_every_turn_sent_one_call(self, transcript):
-        out = run([str(transcript)]).stdout
-        assert "batching" in out and "1.00 tools per turn" in out
+    def test_the_report_names_no_batching_when_every_turn_sent_one_call(self, tmp_path):
+        """Three turns of one call each, and no check re-run. The plain reading
+        prints no batching line, since a turn that chains its reads inside one
+        shell call reads 1.00 here however many files it opens, and the
+        `nothing obvious` line prints on the repeats alone."""
+        lines = (
+            call("a", 0, 5, "ls src")
+            + call("b", 10, 15, "cat README.md")
+            + call("c", 20, 25, "git log --oneline -3")
+        )
+        path = tmp_path / "s.jsonl"
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        data = json.loads(run(["--json", str(path)]).stdout)
+        assert (data["calls"], data["call_turns"], data["repeat_same_work_s"]) == (
+            3,
+            3,
+            0,
+        ), data
+        out = run([str(path)]).stdout
+        assert "batching" not in out, out
+        assert "nothing obvious" in out, out
 
     def test_a_malformed_line_does_not_stop_the_read(self, tmp_path):
         path = tmp_path / "b.jsonl"
@@ -1715,63 +1717,6 @@ class Test_main:
         )
         assert data["model_s"] == 7
 
-    def test_the_report_stops_claiming_one_at_a_time_above_a_ratio_of_one(
-        self, tmp_path
-    ):
-        """A run at 1.1 mostly sends single calls, but `independent calls are
-        going out one at a time` is a claim the number no longer supports — and
-        under per-block counting the ratio could never rise to contradict it."""
-        lines = [
-            message(0, [use("a0", "ls src"), use("a1", "ls tests")], message_id="m0"),
-            result(1, "a0"),
-            result(2, "a1"),
-        ]
-        for i in range(1, 6):
-            lines += [
-                message(i * 10, [use(f"b{i}", f"cat file{i}")], message_id=f"m{i}"),
-                result(i * 10 + 1, f"b{i}"),
-            ]
-        path = tmp_path / "w.jsonl"
-        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-        out = run([str(path)]).stdout
-        assert "batching" in out
-        assert "one at a time" not in out
-        assert "most turns send a single call" in out
-
-    def test_a_plain_reading_printed_at_the_advisory_is_not_flagged(self, tmp_path):
-        """Round 2's 🟡 8, round 1's 🟡 1 in the plain reading. 241 calls over
-        201 turns is 1.199, which prints as 1.20. The advisory sits below 1.2, so
-        a batching line printing 1.20 contradicts the rule that printed it, and
-        the `nothing obvious` line went missing beside it.
-
-        Comparing the printed figure moves the verdict only for a ratio in
-        [1.195, 1.2), so every reading outside that band reads as it did and
-        stays comparable with the readings published since 0.9.4."""
-        lines = []
-        for i in range(40):
-            lines += [
-                message(
-                    i * 10,
-                    [use(f"d{i}a", f"ls a{i}"), use(f"d{i}b", f"ls b{i}")],
-                    message_id=f"md{i}",
-                ),
-                result(i * 10 + 1, f"d{i}a"),
-                result(i * 10 + 2, f"d{i}b"),
-            ]
-        for i in range(161):
-            second = 400 + i * 10
-            lines += [
-                message(second, [use(f"s{i}", f"cat f{i}")], message_id=f"ms{i}"),
-                result(second + 1, f"s{i}"),
-            ]
-        path = tmp_path / "p.jsonl"
-        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-        data = json.loads(run(["--json", str(path)]).stdout)
-        assert (data["calls"], data["call_turns"]) == (241, 201), data
-        out = run([str(path)]).stdout
-        assert "batching" not in out, out
-        assert "nothing obvious" in out, out
-
     def test_a_transcript_with_no_tool_calls_says_so(self, tmp_path):
         path = tmp_path / "e.jsonl"
         path.write_text("{}\n", encoding="utf-8")
@@ -1870,12 +1815,10 @@ class Test_main:
         assert (totals["transcripts"], totals["output"]) == (2, 41)
 
     def test_the_token_turns_and_tools_per_turn_count_different_things(self, tmp_path):
-        """`tools_per_turn`'s denominator counts messages carrying a tool call,
-        and the per-segment bars in `docs/running/the-run.md` are
-        calibrated against that ratio. The token line's turn count is assistant
-        messages carrying `usage` — a turn that only thought is still a turn the
-        run paid for. This fixture separates them: two turns sent a call, a third
-        only spoke."""
+        """`tools_per_turn`'s denominator counts messages carrying a tool call.
+        The token line's turn count is assistant messages carrying `usage` — a
+        turn that only thought is still a turn the run paid for. This fixture
+        separates them: two turns sent a call, a third only spoke."""
         path = write_run(
             tmp_path,
             [
@@ -2126,8 +2069,9 @@ class Test_main:
         into the other — 1.08 tools per turn printed beside 659 turns and 211
         calls, which divides to 0.32.
 
-        So each count now says what it counts and over what. The numbers are
-        unchanged; what changes is that they can no longer be read as one."""
+        So the token line says what it counts and over what. The ratio and its
+        denominator are `--json`'s keys `tools_per_turn` and `call_turns`, and
+        the plain reading prints neither."""
         path = write_run(
             tmp_path,
             [
@@ -2140,9 +2084,6 @@ class Test_main:
         out = run([str(path)]).stdout
         assert re.search(r"^tokens\s+2 transcripts, 4 turns$", out, re.M), out
         assert "a turn is any assistant message, in every transcript counted" in out, (
-            out
-        )
-        assert "2 calls over 2 turns that sent one, in this transcript alone" in out, (
             out
         )
 
@@ -2521,8 +2462,7 @@ class Test_main:
         # `nothing obvious` line is gated on there being no repeat time, and a
         # negative repeat time reads as falsey — so the report went silent on a
         # transcript it had nothing to say about, which is the same defect as
-        # the repeats line one gate over. Two calls in ONE message put tools per
-        # turn above the threshold that line also needs.
+        # the repeats line one gate over.
         batched = [
             at(
                 "2026-08-24T10:00:00Z",
@@ -2988,9 +2928,8 @@ class Test_main:
         without getting anything else wrong.
 
         Cycle 2 sent three calls over three turns, so its ratio is 1.00. Divided
-        by the run's seven turns it reads 0.43 — under every threshold the
-        printed advisory has — and every other number in the row stays right,
-        which is what would make it survive a reading."""
+        by the run's seven turns it reads 0.43, and every other number in the
+        row stays right, which is what would make it survive a reading."""
         cycles = [
             row for row in spawns_of(orchestrator)["rows"] if row["kind"] == "cycle"
         ]
@@ -3251,8 +3190,7 @@ class Test_main:
 
         Compared raw against 60, a spawn paired in 59.6 s printed `1.0m` in the
         column and, under it, *never reaches a minute here — 60s at most* (#701;
-        #640's round 3, 🟡 10). That is the cause #640 fixed twice for the
-        tools-per-turn ratio, on a duration.
+        #640's round 3, 🟡 10).
 
         Both edges of the band, and the cell asserted beside the note at each, so
         the case ties the decision to what the column prints rather than to the
@@ -3805,214 +3743,48 @@ class Test_main:
         assert "named by nobody" not in spawns, spawns
         assert "2 spawns found" in spawns, spawns
 
-    def test_a_proofer_row_under_its_bar_is_named_with_the_bar(self, tmp_path):
-        """S4. The ratio, the kind's bar and the protocol's name for the kind, on
-        one line a reader can post. The prefixed name and the bare one are one
-        kind, so a framer spawned as `framer` is graded the way
-        `agentic:framer` would be."""
-        out = segment_report(
-            graded_run(
-                tmp_path, [("agentic:proofer", UNDER_PROOFER), ("framer", SINGLES)]
-            )
-        )
-        assert grade_lines(out) == [
-            "agentic:proofer 1.07 tools per turn against the reviewing bar of 1.8",
-            "framer 1.00 tools per turn against the framing bar of 1.4",
-        ], out
-        flat_out = " ".join(out.split())
-        assert "every graded row meets its kind's bar" not in flat_out, flat_out
-        assert "2 graded, 0 exempt, 0 ungraded" in flat_out, flat_out
-
-    def test_a_framer_row_under_its_bar_is_named(self, tmp_path):
-        """S5. 4 calls over 3 turns is 1.33, under the framing bar of 1.4 and
-        over the plain reading's 1.2 -- so this row is one only the grade names."""
-        out = segment_report(graded_run(tmp_path, [("agentic:framer", [2, 1, 1])]))
-        assert grade_lines(out) == [
-            "agentic:framer 1.33 tools per turn against the framing bar of 1.4"
-        ], out
-
-    def test_a_crafter_row_is_never_graded_and_the_page_says_why(self, tmp_path):
-        """S6. An edit-test loop is serial, and the protocol judges it on
-        `repeats = 0` and never on tools per turn. A crafter at the floor beside a
-        proofer under its bar: the proofer is named and the crafters are not.
-
-        Two crafters, one of them bare, because with one crafter and one proofer the
-        mutation pass found that counting the PROOFER as exempt instead gives the
-        same three numbers."""
-        out = segment_report(
-            graded_run(
-                tmp_path,
-                [
-                    ("agentic:crafter", SINGLES),
-                    ("crafter", SINGLES),
-                    ("agentic:proofer", UNDER_PROOFER),
-                ],
-            )
-        )
-        lines = grade_lines(out)
-        assert not any("crafter" in line for line in lines), lines
-        assert len(lines) == 1, lines
-        flat_out = " ".join(out.split())
-        assert "1 graded, 2 exempt, 0 ungraded" in flat_out, flat_out
-        assert (
-            "A crafter row is exempt: an edit-test loop is serial, and the protocol "
-            "judges it on `repeats = 0` rather than on this ratio." in flat_out
-        ), flat_out
-
-    def test_a_row_at_its_bar_is_silent_and_the_counts_print(self, tmp_path):
-        """S7. Exactly at the bar is meeting it: 9 calls over 5 turns is 1.8 and
-        7 over 5 is 1.4, both exact in binary arithmetic. A grade that read the
-        bar as a floor to clear rather than to reach names both."""
-        out = segment_report(
-            graded_run(
-                tmp_path,
-                [
-                    ("agentic:proofer", [2, 2, 2, 2, 1]),
-                    ("agentic:framer", [2, 1, 2, 1, 1]),
-                ],
-            )
-        )
-        assert grade_lines(out) == [], out
-        flat_out = " ".join(out.split())
-        assert "every graded row meets its kind's bar" in flat_out, flat_out
-        assert "2 graded, 0 exempt, 0 ungraded" in flat_out, flat_out
-
-    def test_a_row_printed_at_its_bar_meets_it(self, tmp_path):
-        """Round 1's 🟡 1. 79 calls over 44 turns is 1.7955 and 67 over 48 is
-        1.3958: the table prints both as 1.80 and 1.40, so a line naming either
-        under 1.8 or 1.4 contradicts the row printed above it. The grade compares
-        the figure a reader sees."""
-        out = segment_report(
-            graded_run(
-                tmp_path,
-                [
-                    ("agentic:proofer", [2] * 35 + [1] * 9),
-                    ("agentic:framer", [2] * 19 + [1] * 29),
-                ],
-            )
-        )
-        assert re.search(r"agentic:proofer\s+\S+\s+79\s+1\.80\s", out), out
-        assert re.search(r"agentic:framer\s+\S+\s+67\s+1\.40\s", out), out
-        assert grade_lines(out) == [], out
-        assert "every graded row meets its kind's bar" in " ".join(out.split()), out
-
-    def test_a_row_with_no_kind_is_counted_as_ungraded(self, tmp_path):
-        """S8. A kind the table does not know, and a row the parent could not
-        name. Neither is named under a bar, the proofer beside them still is, and
-        the ungraded count holds both -- the counted silence rather than the
-        silent one."""
-        path = graded_run(
-            tmp_path, [("agentic:tracer", SINGLES), ("agentic:proofer", UNDER_PROOFER)]
-        )
-        deep = tmp_path / "main" / "subagents" / "inner" / "agent-deep.jsonl"
-        deep.parent.mkdir(parents=True)
-        deep.write_text("\n".join(batched(5000, SINGLES, "d")) + "\n", encoding="utf-8")
-        out = segment_report(path)
-        assert grade_lines(out) == [
-            "agentic:proofer 1.07 tools per turn against the reviewing bar of 1.8"
-        ], out
-        flat_out = " ".join(out.split())
-        assert "1 graded, 0 exempt, 2 ungraded" in flat_out, flat_out
-        assert "a kind not listed, a row no spawn named" in flat_out, flat_out
-        rows = segments_of(path)["rows"]
-        assert [(row["kind"], row["bar"]) for row in rows] == [
-            ("tracer", None),
-            ("proofer", 1.8),
-            ("", None),
-        ], rows
-
-    def test_a_row_with_no_paired_call_is_ungraded(self, tmp_path):
-        """S8, the fourth shape. A proofer segment that read and thought and
-        called nothing has a kind and a bar and no ratio, so there is nothing to
-        hold against the bar; it is counted as ungraded, never as meeting it."""
-        main = call("a", 0, 10, "git status --short") + spawn(
-            "W", 25, 625, "agentic:proofer", "Review round 1"
-        )
-        path = write_run(
-            tmp_path, main, {"agent-w.jsonl": [spend(625, output=5, message_id="t")]}
-        )
-        out = segment_report(path)
-        assert "no paired call" in out, out
-        assert grade_lines(out) == [], out
-        flat_out = " ".join(out.split())
-        assert "0 graded, 0 exempt, 1 ungraded" in flat_out, flat_out
-        assert "no row here has a bar to be graded against" in flat_out, flat_out
-        # Round 1's ⬜ 5. This row HAS a bar; the counts sentence listed a
-        # segment that made no call among the rows with none.
-        assert (
-            "A row with no bar — a kind not listed, a row no spawn named — is "
-            "ungraded, and so is a graded kind's segment that made no call." in flat_out
-        ), flat_out
-        assert [(r["kind"], r["bar"]) for r in segments_of(path)["rows"]] == [
-            ("proofer", 1.8)
-        ]
-
-    def test_an_own_files_rows_are_ungraded(self, resumed_segment):
-        """S8, the third shape. An agent's own file was joined to no spawn, so no
-        row of it has a kind, and the page grades none while saying so."""
-        out = segment_report(own_file(resumed_segment))
-        assert grade_lines(out) == [], out
-        flat_out = " ".join(out.split())
-        assert "no row here has a bar to be graded against" in flat_out, flat_out
-        assert "0 graded, 0 exempt, 2 ungraded" in flat_out, flat_out
-        assert "every graded row meets" not in flat_out, flat_out
-
-    def test_the_grade_carries_the_protocols_caveats(self, run_with_segments):
-        """S9. One case per sentence, each seen red with that sentence deleted.
-        A bar printed without them reads as a threshold the round failed."""
-        flat_out = " ".join(segment_report(run_with_segments).split())
-        assert (
-            "The bar is a lens for rounds of ordinary size and never a refusal "
-            "threshold, so this page refuses nothing and exits 0." in flat_out
-        ), flat_out
-        assert "A small round has few independent batches to rise on." in flat_out, (
-            flat_out
-        )
-        assert (
-            "A proofer's verifying round is exempt by the protocol, and this page "
-            "cannot tell one from a finding round, so a reader applies that "
-            "exemption by hand." in flat_out
-        ), flat_out
-
-    def test_the_grade_sits_between_the_table_and_the_section_six_block(
-        self,
-        segment_that_spawned,
-    ):
-        """Spec I5: under the table and before the contract rule 6 block, so the grade reads
-        against the rows just above it."""
-        out = segment_report(segment_that_spawned)
-        table = out.index("t/turn")
-        grade = out.index("Tools per turn against each kind's bar")
-        breach = out.index("Contract rule 6 — an agent spawned another agent")
-        assert table < grade < breach, out
-
-    def test_the_plain_reading_and_spawns_carry_no_grade(self, tmp_path):
-        """S10. The grade is the segments page's alone. The plain reading of the
-        same run keeps its own advisory and gains nothing, and `--spawns` gains
-        nothing."""
-        path = graded_run(tmp_path, [("agentic:proofer", UNDER_PROOFER)])
-        for args in ([str(path)], ["--spawns", str(path)]):
-            out = run(args).stdout
-            assert "against each kind's bar" not in out, (args, out)
-            assert "tools per turn against the" not in out, (args, out)
-
-    def test_every_json_row_carries_its_kind_and_bar(self, tmp_path):
-        """S11. Two keys added and nothing else moved: `kind` is the basename,
-        `bar` the number or null. The page's named rows are exactly the rows
-        with a bar and a ratio under it."""
-        path = graded_run(
+    def test_the_segments_page_prints_each_rows_ratio_and_grades_none(self, tmp_path):
+        """Each row's tools per turn stands in the `t/turn` column, and nothing
+        under the table holds it against a bar or counts rows as graded,
+        exempt or ungraded. A framer, a proofer and a crafter, one of each kind
+        a bar once graded or exempted, and the page exits 0."""
+        path = spawned_run(
             tmp_path,
             [
-                ("agentic:crafter", SINGLES),
-                ("proofer", UNDER_PROOFER),
+                ("agentic:framer", [2, 1, 1]),
+                ("agentic:proofer", [1] * 13 + [2]),
+                ("agentic:crafter", [1, 1, 1]),
+            ],
+        )
+        out = segment_report(path)
+        assert "t/turn" in out, out
+        assert re.search(r"agentic:framer\s+\S+\s+4\s+1\.33\s", out), out
+        assert re.search(r"agentic:proofer\s+\S+\s+15\s+1\.07\s", out), out
+        assert re.search(r"agentic:crafter\s+\S+\s+3\s+1\.00\s", out), out
+        flat_out = " ".join(out.split())
+        assert "Tools per turn against each kind's bar" not in flat_out, flat_out
+        assert "tools per turn against the" not in flat_out, flat_out
+        assert not re.search(r"\d+ graded, \d+ exempt, \d+ ungraded", flat_out), (
+            flat_out
+        )
+
+    def test_a_json_segment_row_carries_the_ratio_and_no_grade(self, tmp_path):
+        """A `--json` row keeps `numbers.tools_per_turn` and the keys every
+        segment row carries, and holds no `kind` or `bar` key, because nothing
+        reads a row against a bar."""
+        path = spawned_run(
+            tmp_path,
+            [
+                ("agentic:crafter", [1, 1, 1]),
+                ("proofer", [1] * 13 + [2]),
                 ("agentic:framer", [2, 2]),
             ],
         )
         rows = segments_of(path)["rows"]
-        assert [(row["kind"], row["bar"]) for row in rows] == [
-            ("crafter", None),
-            ("proofer", 1.8),
-            ("framer", 1.4),
+        assert [row["numbers"]["tools_per_turn"] for row in rows] == [
+            1.0,
+            15 / 14,
+            2.0,
         ], rows
         for row in rows:
             assert {
@@ -4026,14 +3798,9 @@ class Test_main:
                 "spawns",
                 "numbers",
                 "tokens",
-            } < set(row), row
-        under = [
-            row["agent"]
-            for row in rows
-            if row["bar"] is not None
-            and round(row["numbers"]["tools_per_turn"], 2) < row["bar"]
-        ]
-        assert [line.split()[0] for line in grade_lines(segment_report(path))] == under
+            } <= set(row), row
+            assert "kind" not in row, row
+            assert "bar" not in row, row
 
     def test_a_resumed_segment_is_one_row_per_slice_not_one_per_file(
         self, resumed_segment
@@ -4564,10 +4331,7 @@ class Test_main:
         the spawn that names it."""
 
         def numbers(rows):
-            # `kind` and `bar` are labels too (#640): derived from `agent`, so
-            # the own file's rows carry `""` and None where the walk's carry the
-            # spawn's kind, for the same reason `agent` differs.
-            labels = ("agent", "description", "named", "transcript", "kind", "bar")
+            labels = ("agent", "description", "named", "transcript")
             return [{k: v for k, v in row.items() if k not in labels} for row in rows]
 
         walked = segments_of(resumed_segment)["rows"]
@@ -5537,9 +5301,9 @@ class Test_report:
         assert "repeats" not in out, out
 
     def test_refuses_nothing_obvious_beside_a_repeat(self, tmp_path):
-        """The ratio clears the batching advisory, and a check re-run for a
-        result already in hand is still time that could go elsewhere, so the
-        page names it and does not also say nothing is obvious."""
+        """A check re-run for a result already in hand is time that could go
+        elsewhere, so the page names it and does not also say nothing is
+        obvious."""
         out = self.two_turns_of_two(tmp_path, "pytest -q")
         assert "repeats" in out, out
         assert "nothing obvious" not in out, out

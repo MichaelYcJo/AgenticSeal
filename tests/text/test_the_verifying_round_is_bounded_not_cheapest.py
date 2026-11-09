@@ -90,24 +90,6 @@ def test_no_carrier_calls_the_verifying_round_cheap_again():
             )
 
 
-def test_the_verifying_bar_is_grounded_on_neither_cost_nor_size():
-    """`exempt` stays, and the Grounds cell beside it says what the round is.
-    #456 measured verifying rounds at 46-58 calls, twice the nuance's
-    23-call round, so a size ground is false in the other direction."""
-    row = "| verifying | exempt |"
-    with open(
-        os.path.join(ROOT, "docs", "running", "the-run.md"), encoding="utf-8"
-    ) as f:
-        rows = [line for line in f if line.startswith(row)]
-    assert len(rows) == 1, f"docs/running/the-run.md has {len(rows)} `{row}` rows"
-    grounds = rows[0][len(row) :]
-    for word in ("cheap", "small", "by design", "afford"):
-        assert word not in grounds, (
-            f"the verifying row's Grounds cell makes a cost or size claim "
-            f"again: {word!r} in {grounds!r}"
-        )
-
-
 def test_the_phrase_appears_nowhere_a_session_or_a_person_reads():
     found = []
     for top in READ_BY_SESSIONS:
