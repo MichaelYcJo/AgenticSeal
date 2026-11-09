@@ -1,0 +1,17 @@
+# Closing memo: 1794178392-each-release-posts-the-readings-no-session-posted
+
+## Not verified
+
+| Item | Who must answer |
+|---|---|
+| The full suite, the repository-wide lint and the format check over phase 1's tree. Phase 1 ran `tests/skills/test_session_cost.py` and 42 modules that read a path it changed, and ran ruff over the two Python files it changed | the orchestrator, at the broad gate after the review rounds settle |
+| A real `--post` of a body with `# <file name>` lines and no command text, onto the open `flow-measurement` log. Every case stubs `run_gh`, so no case reaches GitHub's rendering of the fence | the orchestrator, at the next segment reading it posts with the tree's `session_cost.py` |
+
+## Not done
+
+Phase 1 leaves the `--spawns` page's `what each cycle spawned` lines as
+they are. Those lines print each spawn's `description`, the short label the
+orchestrator gives an `Agent` call, into a posted body. They are not command
+text, and `frame/design.md` *Grounding* judged `report_spawns` to print none,
+so *Scope* item 7 does not reach them. Whether such a label may leave the
+machine is a question for the frame, not for this phase.
