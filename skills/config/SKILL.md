@@ -6,9 +6,9 @@ disable-model-invocation: true
 
 # /agentic:config, what this repository decided and how to decide otherwise
 
-`seal/config.md` holds what a repository says about itself. Every row but
-`Mode` and `Broad gate` has a default, and the table below says what each
-absent row means. A person runs this command to see
+`seal/config.md` holds what a repository says about itself. Four rows have
+no default, the two language rows, `Mode` and `Broad gate`, and the table
+below says what each absent row means. A person runs this command to see
 every row and to change one; the session running it follows the procedure
 below. First setup asks its questions once and never again, and this command
 is how a person answers them again later.
@@ -38,8 +38,8 @@ present hides exactly those.
 
 | Row | Default | What it governs |
 |---|---|---|
-| `Commit and pull request language` | English | the commit subject and body, the pull request title and body, and a review report posted as a pull-request comment |
-| `Record language` | English | the prose in `frame/design.md`, `frame/plan.md`, `gaps.md`, `frame/questions.md`, `changelog.md`, and a round record's cells |
+| `Commit and pull request language` | *none: `seal pr-body` refuses without it, and a commit is written in English* | the commit subject and body, the pull request title and body, and a review report posted as a pull-request comment |
+| `Record language` | *none: `seal pr-body` refuses without it, and a record is written in English* | the prose in `frame/design.md`, `frame/plan.md`, `gaps.md`, `frame/questions.md`, `changelog.md`, and a round record's cells |
 | `Mode` | *the folder decides* | which of the two places the root should live at |
 | `Broad gate` | *none: `seal gate` refuses without it* | the one shell command line `seal gate` runs once the review rounds settle: the full suite, the repository-wide lint, the typecheck |
 | `Document token ceiling` | *not declared: no length is checked* | the estimated tokens past which `seal fold` reports a document of the policy root or of one of its groups as one to split |
@@ -49,10 +49,13 @@ present hides exactly those.
 | `Pull request seal mark` | *off: no mark* | whether `seal pr-body` writes the plugin's seal mark under the pull request body's `## From the records` heading once the work item is sealed at HEAD; `yes` turns it on |
 | `Release note seal mark` | *off: no image* | whether the release's `seal` job attaches the seal image and shows it beside the results in the release note's header; `yes` turns it on. Read only by this plugin's own release workflow, so a row in any other repository changes nothing |
 
-**Every way of not naming a language lands on English**: no file, no such
-row, an empty value, a file that does not parse. Say the default and the
-reason rather than showing a blank. **The `Broad gate` row has no default
-at all**: absent, `seal gate` names the row and exits 2 with nothing run,
+**The two language rows are required**: absent in any of the four ways (no
+file, no such row, an empty value, a file that does not parse),
+`seal pr-body` names the row and refuses with nothing written, and the
+orchestrator asks for both before the next work item's first edit. A
+commit or a record is never refused for them and is written in English.
+Show each as absent and say what happens without it. **The `Broad gate` row
+has no default at all**: absent, `seal gate` names the row and exits 2 with nothing run,
 because what a command nobody chose reports proves nothing. Show it as absent
 and say what happens without it.
 

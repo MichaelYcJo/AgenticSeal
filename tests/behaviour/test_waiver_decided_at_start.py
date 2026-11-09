@@ -798,6 +798,33 @@ def test_the_skill_names_where_a_late_finding_goes():
         )
 
 
+BATCH = (
+    "## Orchestrator: what needs a person is asked in one batch, before the first edit"
+)
+
+
+def test_the_batch_asks_for_the_language_rows_and_names_where_a_default_is_recorded():
+    """#1453. A repository whose `config.md` lacks either language row is
+    asked for both in the batch before the first edit, with the recent pull
+    request titles beside the question, and a start with nobody to ask
+    writes them as a default that `routing.md` records. The case reads the
+    batch section for the two rows, the command whose titles stand beside
+    the question, and the record of the default; the rule's sentences are
+    the proofer's to read."""
+    text = read(*ORCH)
+    assert BATCH in text, "the batch section was renamed; this case is now blind"
+    section = flat(text.split(BATCH, 1)[1].split("\n## ", 1)[0])
+    for row in ("Commit and pull request language", "Record language"):
+        assert f"`{row}`" in section, f"the batch does not ask for `{row}`"
+    assert "gh pr list --state all --limit 10" in section, (
+        "the batch shows no history beside the language question"
+    )
+    # The record of a default taken with nobody to ask, which `pr.md` quotes.
+    assert "`routing.md` *Why this way*" in section, (
+        "a start with nobody to ask names no record of the default it took"
+    )
+
+
 def test_the_orchestration_offers_the_vocabulary_the_parser_accepts():
     """Words the orchestrator writes into `routing.md` that the reader
     rejects produce a declaration that reads as none, which is what a branch

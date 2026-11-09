@@ -217,10 +217,10 @@ def test_the_response_language_stays_out_of_the_repository_file():
 
 
 def test_the_mirror_is_named_for_its_own_language():
-    """S7. `pr.ko.md` meant "the Korean translation of an English body". Read
-    as "the mirror, in Korean" it needs no rename here and generalises: the
-    twelve files in `seal/threads/` are already correct, because this
-    repository's pull request language is English.
+    """S7. The mirror is named for its own language, which since #1453 is
+    the commit language of a repository whose two language rows differ:
+    `pr.ko.md` where the records are English and the team writes Korean,
+    `pr.en.md` the other way round.
 
     Both directions are asserted. One alone reads as an example rather than
     a rule, and an example is what a session copies literally."""
@@ -280,19 +280,30 @@ def test_the_existing_mirrors_are_consistent_with_the_rule():
     # words, so `French` is a legitimate config and a three-entry dictionary
     # is always one short. A language with no code here is a gap in the
     # dictionary rather than a defect in the repository.
-    language = configured_language()
-    refused = mirror_to_refuse(language)
+    commit = configured_language()
+    record = configured_language(row=RECORD_ROW)
+    refused = mirror_to_refuse(record)
     if refused is None:
         pytest.skip(
-            f"this repository's pull request language is {language!r} and "
-            "this file has no code for it, so which mirror name to refuse "
-            "cannot be computed. The rule still holds; adding the code to "
+            f"this repository's record language is {record!r} and this file "
+            "has no code for it, so which mirror name to refuse cannot be "
+            "computed. The rule still holds; adding the code to "
             "LANGUAGE_CODES is what makes it checkable again"
         )
     assert refused not in mirrors, (
-        f"{refused} is a mirror in the body's OWN language, which is not a "
-        f"mirror. This repository's pull request language is {language}"
+        f"{refused} is named for the records' own language, which `pr.md` "
+        f"already holds, so it is no mirror. This repository's record "
+        f"language is {record}"
     )
+    # #1453: where the two rows differ, the mirror is the quotes of `pr.md`
+    # in the commit language, and it is named for that language.
+    wanted = the_mirror(commit, record)
+    if wanted is not None:
+        stray = [name for name in mirrors if name != wanted]
+        assert not stray, (
+            f"{stray} is not named for this repository's commit language, "
+            f"{commit}, which is the language the mirror is written in"
+        )
 
 
 def unknown_mirrors(mirrors):
@@ -312,30 +323,52 @@ def test_a_mirror_named_for_a_country_is_refused_by_the_same_rule():
 
 def test_a_config_holding_the_templates_default_row_reads_as_english(tmp_path):
     """tests-todo row 1, first half. The file the plugin ships a template for
-    must not be the file that breaks the check."""
+    must not be the file that breaks the check. Its two language rows both
+    read English, so they name one language and no mirror is asked for."""
     home = tmp_path / "seal"
     home.mkdir()
     (home / "config.md").write_text(read(*TEMPLATE), encoding="utf-8")
-    assert configured_language(tmp_path) == "English"
-    assert LANGUAGE_CODES[configured_language(tmp_path)] == "en", (
-        "so `pr.ko.md` stays a legitimate mirror and `pr.en.md` does not"
+    commit = configured_language(tmp_path)
+    record = configured_language(tmp_path, row=RECORD_ROW)
+    assert (commit, record) == ("English", "English")
+    assert the_mirror(commit, record) is None, (
+        "two rows naming one language ask for no mirror"
+    )
+    assert mirror_to_refuse(record) == "pr.en.md", (
+        "a file in the records' own language is no mirror"
     )
 
 
-def test_a_korean_row_is_what_flips_the_refused_mirror_name(tmp_path):
-    """tests-todo row 1, second half. The row is read, not the file's
-    presence — a different row gives a different answer."""
+@pytest.mark.parametrize(
+    "commit, record, wanted, refused",
+    [
+        ("Korean", "English", "pr.ko.md", "pr.en.md"),
+        ("English", "Korean", "pr.en.md", "pr.ko.md"),
+    ],
+)
+def test_rows_that_differ_name_the_mirror_for_the_commit_language(
+    commit, record, wanted, refused, tmp_path
+):
+    """tests-todo row 1, second half, as #1453 leaves it. The rows are read,
+    not the file's presence. Where they differ, the mirror holds the quotes
+    of `pr.md` rendered in the commit language, so it is named for that
+    language, and a file named for the records' language is no mirror."""
     home = tmp_path / "seal"
     home.mkdir()
     (home / "config.md").write_text(
-        "| Item | Value |\n|---|---|\n| Commit and pull request language | Korean |\n",
+        "| Item | Value |\n|---|---|\n"
+        f"| Commit and pull request language | {commit} |\n"
+        f"| Record language | {record} |\n",
         encoding="utf-8",
     )
-    assert configured_language(tmp_path) == "Korean"
-    assert LANGUAGE_CODES[configured_language(tmp_path)] == "ko", (
-        "in a Korean repository `pr.ko.md` is the body's own language and "
-        "`pr.en.md` is the mirror — the opposite of this repository"
+    read_commit = configured_language(tmp_path)
+    read_record = configured_language(tmp_path, row=RECORD_ROW)
+    assert (read_commit, read_record) == (commit, record)
+    assert the_mirror(read_commit, read_record) == wanted, (
+        f"the mirror of a repository whose commits are {commit} and whose "
+        f"records are {record} is named for {commit}"
     )
+    assert mirror_to_refuse(read_record) == refused
 
 
 # --- the template, parsed by the one reader ---------------------------------
@@ -371,10 +404,12 @@ def _config_reader():
 items = _config_reader().config_rows
 
 
-# The mirror cases above call these two. They live here because they are
-# built on `items()`, and Python resolves a name when the call runs rather
-# than where it sits.
+# The mirror cases above call these. They live here because they are built
+# on `items()`, and Python resolves a name when the call runs rather than
+# where it sits.
 
+COMMIT_ROW = "Commit and pull request language"
+RECORD_ROW = "Record language"
 LANGUAGE_CODES = {"English": "en", "Korean": "ko", "Japanese": "ja"}
 CODES_BY_NAME = {name.casefold(): code for name, code in LANGUAGE_CODES.items()}
 
@@ -393,6 +428,10 @@ def as_language_name(value):
 def mirror_to_refuse(language):
     """The one `pr.<code>.md` that cannot be a mirror, or None.
 
+    LANGUAGE is the record language. A file named for it would hold the
+    quotes in the language `pr.md` already holds them in, so it is no
+    mirror (#1453).
+
     None is an answer, not a failure. `templates/setup/config.md` licenses "a
     language's English name" and says the reader is a model rather than a
     lookup table, so a value this dictionary does not hold is a legitimate
@@ -410,6 +449,19 @@ def mirror_to_refuse(language):
     """
     code = CODES_BY_NAME.get(as_language_name(language))
     return f"pr.{code}.md" if code else None
+
+
+def the_mirror(commit, record):
+    """The `pr.<code>.md` a work item holds where the two rows differ, or None.
+
+    Where COMMIT and RECORD name different languages, the mirror holds each
+    quote of `pr.md` rendered in the commit language, so it is named for the
+    commit language (#1453). Where they name one language no mirror is asked
+    for, and a commit language this file has no code for answers None too.
+    """
+    if as_language_name(commit) == as_language_name(record):
+        return None
+    return mirror_to_refuse(commit)
 
 
 def config_homes(root):
@@ -443,8 +495,11 @@ def config_homes(root):
     return homes
 
 
-def configured_language(root=None):
-    """A repository's commit and pull request language, read the way the skill says.
+def configured_language(root=None, row=COMMIT_ROW):
+    """A repository's language for ROW, read the way the skill says.
+
+    ROW is `Commit and pull request language` unless a case names
+    `Record language`.
 
     Every way of not naming one lands on English, and there are four: no
     file, no such row, an empty value, and a file that cannot be read or does
@@ -465,7 +520,7 @@ def configured_language(root=None):
         except OSError:
             return "English"
         for item, value in items(text):
-            if item == "Commit and pull request language":
+            if item == row:
                 return value.strip() or "English"
         return "English"
     return "English"
@@ -1035,13 +1090,19 @@ def test_an_untracked_file_under_templates_is_not_a_template(repo):
     )
 
 
-def test_the_template_says_the_file_is_optional():
-    """The property that makes creating it at setup unnecessary
-    (`questions.md` Q1). A template that reads as mandatory is how every
-    repository ends up carrying a file restating the default."""
+def test_the_template_names_the_rows_an_absent_one_is_refused_for():
+    """The template says what absence means, and which rows have no default.
+    It used to say the file was optional (`questions.md` Q1). #1453 made the
+    two language rows required, so every repository carries the file with
+    those rows, and the template names them among the four exceptions rather
+    than calling the file optional."""
     text = flat(*TEMPLATE)
-    assert "optional" in text, "the template does not say the file is optional"
-    assert "absent" in text.lower(), "it does not say what absence means"
+    assert (
+        "with four exceptions: the two language rows, `Mode` and `Broad gate`" in text
+    ), "the template does not name the rows an absent one is refused for"
+    assert "This file is optional" not in text, (
+        "the template still calls the file optional"
+    )
 
 
 # --- a new permanent file in the root is listed where the root is described --

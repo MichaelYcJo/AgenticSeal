@@ -5,8 +5,8 @@ description: |
   request opens: after the review rounds settle, the changelog fragment is
   written, the orchestrator has run the broad gate, and `seal pr-body` has
   written the pull request body from `pr.md` and the records to a file. It
-  reads the gate's record, checks that the body is `pr.md` and the records'
-  own text,
+  reads the gate's record, checks that the body is `pr.md`, with its
+  `pr.<lang>.md` where one stands, and the records' own text,
   re-runs a sample of the crafter's claims, reads every party's account
   against the issue and the tree, and writes the work item's `guarantee.md`.
 model: opus
@@ -74,13 +74,16 @@ return.
    return. On exit 0 the part of the body below the line
    `skills/code-review/scripts/pr_body.py#HEADING` holds is the records' own
    text, and you read it as no party, and the part above it is the work
-   item's `pr.md`. Then read the issue body
+   item's `pr.<lang>.md`, where `config.md`'s two language rows differ,
+   and then its `pr.md`. Then read the issue body
    (`gh issue view <N>`), the diff (`git diff <base>...HEAD`),
    `frame/design.md`, `frame/plan.md`, every `trail/phases/phase-N.md`, every
    `trail/rounds/round-N.md`, `changelog.md`, and the part of the pull
    request body above that line, its first part, which the orchestrator
-   wrote as `pr.md` before the rounds read it: the `Closes` lines and quotes
-   of the records, each with its coordinate.
+   wrote as `pr.md`, and `pr.<lang>.md` where one stands, before the rounds
+   read them: the quotes rendered in the commit language where the rows
+   differ, then the `Closes` lines and quotes of the records, each with its
+   coordinate.
 3. **A claim against the fact.** Choose a sample of the crafter's `executed`
    and `seen red` claims in the phase records, where the evidence is thinnest
    or the outcome rests on it, and re-run each. For every `## Removes` row of
