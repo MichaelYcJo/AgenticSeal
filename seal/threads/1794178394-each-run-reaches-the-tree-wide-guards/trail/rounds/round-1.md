@@ -59,6 +59,11 @@ The fix rewrites the part-3 sentence and the set's command and counts in `phase-
 
 The fix pass writes the last bullet's figures from its own run.
 
+```seal
+verdict: fixed 4ad34865
+answer: The finding holds, and the miss was wider than four. The fix pass re-read the eleven files phase 2's record set aside from part 3, a closed set, by an audit-hook probe on PYTHONPATH that logged each open of the real `.claude-plugin/plugin.json` with the running case (executed), and by reading the four it did not log at the calls that reach a manifest. Seven files read the manifest: the four the finding names, and `tests/skills/test_broad_gate.py` (nine cases, `plugin_version`), `tests/skills/test_pr_body.py` (`Test_seal_mark::test_accepts_the_plugins_own_manifest`) and `tests/skills/test_seal.py` (24 cases that read the version for the workflow's pin). `test_tag_release.py`, `test_roll_flow_measurement_issue.py`, `test_payload_meter.py` and `test_release_completeness_check.py` stay out. `trail/phases/phase-2.md` *Scope item 7* names the seven, the method and its limit, and the corrected set ran once at `69f00945`: 97 files, 2,995 passed, 10 skipped, exit 0, 24.84 s, with the #1421 set's 70.14 s reading kept and its conditions named. The paste-ready text was not applied as given, since it listed three readers as fixture writers. The same probe over the phase boundary's own set-aside list logged no read of the three documents phase 2 changed. `frame/questions.md:16` is the orchestrator's to fold.
+```
+
 ### 2. "A case that reads this repository's own tree beyond its `TARGET`" has two readings, and under the wider one cases the build rightly left stand against it
 
 ```seal
@@ -86,6 +91,11 @@ and often, broad and once* runs at every phase boundary and every fix pass.
 
 ```markdown
 - **This repository's tree-wide test files are `tests/text/` and `tests/behaviour/`, the files that declare no `TARGET`, and every case that walks the repository's own tree, lists its tracked files or runs a check over its root stands in one of them.**
+```
+
+```seal
+verdict: fixed abde6b8c
+answer: The finding holds. `abde6b8c` rewrites the `CONTRIBUTING.md` sentence to the paste-ready text, the frame's class of a case that walks the tree or a whole directory of it, lists its tracked files, or runs a check over its root, and `69f00945` rewraps the paragraph after `tests/behaviour/test_docs_line_wrap.py` refused a 117-column line. The changelog's bold sentence takes the same terms with "or a whole directory of it" kept, so it reads "every case that walks the repository's own tree or a whole directory of it, lists its tracked files or runs a check over its root stands in one of them". `pr.md:4` quotes the old sentence and is the orchestrator's to update, and so is `frame/design.md:35`, *Scope* item 2, which states the old phrase.
 ```
 
 ## Confirmations
