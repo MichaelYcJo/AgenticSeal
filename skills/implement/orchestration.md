@@ -31,7 +31,10 @@ its first step and never this one, because asking a person and writing
    plugin's `SessionStart` hook printed where a `seal/` root stood when the
    session started. Where no output opening `AgenticSeal core from` stands
    in the session's context, the orchestrator opens `skills/core/SKILL.md`
-   once.
+   once. The orchestrator's own commands, its commits, the broad run and
+   the removal of its scratch files among them, follow contract rule 21,
+   which the orchestrator opens once in `skills/agent-contract/SKILL.md`
+   beside the core.
 2. The framer writes `frame/design.md`, `plan.md` and `questions.md`. The orchestrator
    reads the frame against the issue, settles what it finds with the framer
    and spawns the crafter (*The frame is read against the issue at the
