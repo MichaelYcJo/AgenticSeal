@@ -191,11 +191,11 @@ class Test_reference_roots:
             name != "seal"
         )
 
-    def test_local_mode_reads_the_row_under_the_git_directory(self, tmp_path):
+    def test_local_mode_reads_the_key_under_the_git_directory(self, tmp_path):
         """In local mode the root sits under the common git directory and nothing
-        of it is in the tree, so its name in the tree is "", with no row every
+        of it is in the tree, so its name in the tree is "", with no key every
         tree `specs` is a reference root, a `seal/vendor/specs/` among them,
-        and a row there is read like any other."""
+        and a key there is read like any other."""
         repo = tmp_path / "repo"
         repo.mkdir()
         subprocess.run(["git", "-C", str(repo), "init", "-q"], check=True)
