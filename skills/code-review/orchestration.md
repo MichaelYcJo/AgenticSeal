@@ -414,9 +414,9 @@ opens that record when it writes the quote. `pr.md` holds no sentence of
 the orchestrator's own account: no sentence frames a quote or joins two,
 and no heading or bold lead-in of the orchestrator's stands in it. What
 the owner must see before the fold is quoted from the record that holds
-it, such as a default taken under automation from its `frame/questions.md`
-row, the framer's judgment left after the exchange from its `frame/plan.md`
-*Alternatives considered* row, and why the title takes its prefix from the
+it, such as a default taken where `routing.md` reads `Automation` `yes`,
+from its `frame/questions.md` row, the framer's judgment left after the
+exchange from its `frame/plan.md` *Alternatives considered* row, and why the title takes its prefix from the
 orchestrator's row of `frame/plan.md` *Judgments of the run*, which it
 writes before `pr.md`. The broad run's printed figures, a CI run taken
 after the rounds and the run's comparison table come after the last round,
