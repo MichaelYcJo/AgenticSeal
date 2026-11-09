@@ -428,13 +428,37 @@ def test_s3_a_design_the_pull_request_edits_under_agentic_seal_is_read(
     assert any(ln.startswith(f"{other}/frame/design.md:") for ln in out.splitlines())
 
 
-def test_s3_a_pull_request_deleting_agentic_seal_declares_nothing(declared, capsys):
+def test_s3_a_branch_nothing_declares_is_told_to_add_it_under_agentic_seal(
+    shared, capsys
+):
+    """With no declaration naming the branch, the check names the place it
+    searched and the file to add by the root's own name."""
+    git(shared, "switch", "-qc", "feature")
+    write(shared, "docs/a.md", "# a\n")
+    commit_everything_as_e(shared, "the change")
+    code, out = checked(capsys, shared)
+    assert code == 0, out
+    assert (
+        "Nothing git carries under `agentic-seal/threads/` declares `feature`. "
+        "Add agentic-seal/threads/<work-item>/routing.md to declare."
+    ) in out, out
+
+
+@pytest.mark.parametrize("worktree", [False, True], ids=["HEAD", "--worktree"])
+def test_s3_a_pull_request_deleting_agentic_seal_declares_nothing(
+    declared, capsys, worktree
+):
     """The pull request that takes `agentic-seal/` out of the tree deletes
     the declaration with it, and the package's `seal/` standing at HEAD is
-    not the root that stayed."""
+    not the root that stayed. Under `--worktree` the deletion, staged and
+    not committed, reads the same."""
     git(declared, "rm", "-rq", "agentic-seal")
-    commit_everything_as_e(declared, "the root leaves the tree")
-    code, out = checked(capsys, declared)
+    if worktree:
+        code = CHAIN.main(["--baseline", "main", "--root", str(declared), "--worktree"])
+        out = capsys.readouterr().out
+    else:
+        commit_everything_as_e(declared, "the root leaves the tree")
+        code, out = checked(capsys, declared)
     assert code == 0, out
     assert (
         "the tree the check reads has no top-level `agentic-seal` entry, so "
@@ -504,7 +528,8 @@ def test_s5_pr_body_check_reads_the_seal_and_the_records_under_agentic_seal(
     assert PR_BODY.main([str(item), "--body", str(body), "--check"]) == 0
     assert "seal pr-body:" not in capsys.readouterr().out
     (item / "pr.md").unlink()
-    assert PR_BODY.main([str(item), "--body", str(body), "--check"]) == 1
-    assert capsys.readouterr().out.startswith(
-        f"refused: agentic-seal/threads/{BODIED}/pr.md: is not there"
-    )
+    for check in (["--check"], []):
+        assert PR_BODY.main([str(item), "--body", str(body), *check]) == 1
+        assert capsys.readouterr().out.startswith(
+            f"refused: agentic-seal/threads/{BODIED}/pr.md: is not there"
+        )
