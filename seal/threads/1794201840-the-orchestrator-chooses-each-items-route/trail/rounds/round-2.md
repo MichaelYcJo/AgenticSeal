@@ -68,6 +68,11 @@ phase records, `gaps.md`, `changelog.md` and `routing.md`).
 | G7 `git grep` over `*.py` outside `tests/` for `AUTOMATION_YES` and `["automation"]`, and over the tree for `Answered <date>` (executed) | No script outside `lib/routing.py` reads the `Automation` value. The `Answered` line stands in `templates/records/sdd-routing.md:12` and in the fixture `tests/e2e/teammate/test_teammate_flow.py:62`, and no script reads it. So neither the parser nor a check changes, and the template's `Answered` line keeps its shape. |
 ```
 
+```seal
+verdict: fixed a92f334e
+answer: G7's last sentence now reads the round's paste-ready text, so the frame says the parser and the checks do not change and the template's `Answered` line keeps its shape, which the *Out* bullet and the plan's last judgment row already say. The fix touches the work item's records alone. The orchestrator's fold at 417e0839 had rewritten the *Out* bullet and left G7 standing.
+```
+
 ## Confirmations
 
 ```seal
