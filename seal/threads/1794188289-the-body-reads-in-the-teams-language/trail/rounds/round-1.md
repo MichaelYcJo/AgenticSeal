@@ -56,6 +56,11 @@ No other line of `## Rule changes` opens a span it does not close: a count
 of backticks per line over `frame/design.md:119-230` found lines 129 and 130
 alone odd.
 
+```seal
+verdict: fixed 78f083c8
+answer: The orchestrator repaired it at 78f083c8 by joining the code span onto one line; the fix pass ran `chain_check.py --baseline origin/release/v0.36.0 --worktree` at f71c31ba, exit 0, and no line names `frame/design.md`.
+```
+
 ### 2. Four places still say the body's first part is `pr.md`, and three of them put the correction in a later paragraph beside it
 
 ```seal
@@ -137,6 +142,11 @@ In `lib/optin.py`, replace the comment at lines 58-59 with:
 No test pins any of the four sentences (executed: `git grep` over `tests`
 and `evals` for each one).
 
+```seal
+verdict: fixed f71c31ba
+answer: Fixed in f71c31ba, which rewrites the four listed paths, and in a98be282 after it, which touches none of them and carries the Korean statement below. The four sentences were rewritten in place as the paste-ready fixes give them, read first against `frame/design.md` *Scope* items 3 and 4 and `pr_body.py#first_part`; in `skills/code-review/orchestration.md` the paragraph was rewrapped to the 88-column limit `tests/behaviour/test_docs_line_wrap.py` holds. The class was searched with `git grep -i` for "first part", "above the line", "opens with `pr", "body opens", "opens the body", "above the heading" and "orchestrator's part" over `skills`, `agents`, `templates`, `lib`, `hooks`, `bin`, `.github`, `evals/scripts` and the root documents. That search found more statements of the first part as `pr.md` alone, each rewritten in the same commit: the `pr.md` line of the tree in `templates/setup/seal-README.md` and `seal/README.md`, which the suite holds equal; the `pr.md` row of `skills/implement/SKILL.md` *3. The SDD file set*, whose correction stood in a second sentence of the cell; and three test comments and docstrings, `tests/skills/test_pr_body.py` at `OWN` and `Test_read_own`, and `tests/behaviour/test_the_pull_request_language_is_the_repositorys.py`. A second pass over the Korean lines naming `pr.md` in the same directories found `skills/writing-style/outside-the-review.md`, whose paragraph opening *리뷰 체인을 거친 작업 항목의 PR 본문은 두 부분이고* said the first part is `pr.md` and put `pr.<lang>.md` in a later sentence, and whose PR-body paragraph gave `pr.md` alone as the part holding no sentence of the orchestrator's; a98be282 rewrites both in place, and wraps the two test texts f71c31ba left past the 88-column line. Four stand, each naming both files in its own sentence or naming sources rather than the first part: `agents/sealer.md` step 2 and its `description`, `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* step 2, and `skills/implement/scripts/seal.py`'s `pr-body` line, where `pr.<lang>.md` is one of the work item's records. The search is a sample of wordings; `docs/` was left to `frame/design.md` *Rule changes*.
+```
+
 ### 3. `lib/config.py#declared_mode` still says every other row has a default
 
 ```seal
@@ -165,6 +175,11 @@ In `lib/config.py`, replace lines 557-558, up to "existed;", with:
 ```python
     **There is no default.** An item with a default falls back to what
     every repository got before the row existed; for the mode that is
+```
+
+```seal
+verdict: fixed f71c31ba
+answer: The sentence was rewritten in place as the paste-ready fix gives it. The class was searched with `git grep -i` for "row existed", "every other item", "every other row", "has a default" and "no default" over `lib`, `skills`, `agents`, `templates`, `hooks` and `bin`; the remaining hits name one row each, `Reference specs` and `Policy root` in `lib/config.py`, or already name the four rows without a default, so none was changed.
 ```
 
 ## Confirmations
