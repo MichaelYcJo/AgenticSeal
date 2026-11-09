@@ -1147,7 +1147,7 @@ class Test_main:
         self, tmp_path, capsys, rows, translations, first, names
     ):
         """#1453, *Scope* item 3, the scenario *The body opens in the team's
-        language*. Where the rows name different languages, the body file
+        language*. Where the keys name different languages, the body file
         holds the one `pr.*.md`, given a line end after its last line, then
         `pr.md`, then the heading and the copy; where they name one
         language, compared with case folded, `pr.md` leads and a `pr.*.md`
@@ -1189,10 +1189,10 @@ class Test_main:
         self, tmp_path, capsys, translations, said, check
     ):
         """#1453, *Scope* item 3, the scenarios *A missing translation is
-        refused* and *Two translations are refused*. Where the rows name
+        refused* and *Two translations are refused*. Where the keys name
         different languages and the work item holds no `pr.*.md`, or more
         than one, either form exits 1 on one `refused:` line on the work
-        item's directory, naming the two rows, or the count and the files,
+        item's directory, naming the two keys, or the count and the files,
         and leaves the body file as it stood. Seen red against `pr_body.py`
         as the merged base left it, where both forms exited 0."""
         item = item_of(tmp_path, RECORDS, rows=DIFFERING, translations=translations)
@@ -1228,7 +1228,7 @@ class Test_main:
         self, tmp_path, capsys, first, said
     ):
         """#1453, *Scope* item 3, the scenario *A body without the translation
-        fails the check*. Where the rows differ, `--check` compares the whole
+        fails the check*. Where the keys differ, `--check` compares the whole
         first part, `pr.ko.md` and then `pr.md`, line by line: a body whose
         first part is `pr.md` alone, and one whose line of the translation
         was changed, exit 1 at the body's first line, naming the file that

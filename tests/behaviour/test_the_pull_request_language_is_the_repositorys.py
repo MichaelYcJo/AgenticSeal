@@ -299,7 +299,7 @@ def test_the_existing_mirrors_are_consistent_with_the_rule():
         f"already holds, so it is no mirror. This repository's record "
         f"language is {record}"
     )
-    # #1453: where the two rows differ, the mirror is the quotes of `pr.md`
+    # #1453: where the two keys differ, the mirror is the quotes of `pr.md`
     # in the commit language, and it is named for that language.
     wanted = the_mirror(commit, record)
     if wanted is not None:

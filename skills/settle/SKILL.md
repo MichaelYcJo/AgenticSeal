@@ -293,7 +293,7 @@ does not parse, an unordered pair and an open row are all shown.
 decision records, RFCs or another tool's spec files, reaches the policy
 root only through a settle, only where a person names it, and only in the
 documents the person marks `promote`.** Nothing in the plugin finds or opens
-such a directory on its own, and no configuration row names one. Which
+such a directory on its own, and no configuration key names one. Which
 directories hold decisions, and which of their decisions becomes policy,
 are the person's to decide, and the tree answers neither, so the settle
 asks. Every other judgment of the settle stays the settling session's.

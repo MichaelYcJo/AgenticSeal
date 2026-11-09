@@ -31,7 +31,7 @@ proofer 는 이 파일을 열지 않는다. proofer 가 쓰는 글은 리뷰 코
 `<details>` 하나로 접혀 있다. 오케스트레이터는 본문 파일 안에서 두 부분을
 고쳐 쓰지 않고, 쉬운 말로 바꾸지 않고, 번역하지 않는다. 번역은
 `pr.<lang>.md` 라는 기록에만 둔다. 앞부분이 `pr.<lang>.md` 와 `pr.md` 를
-이은 글(두 행이 같은 언어면 `pr.md` 하나)과 한 줄이라도 다르거나 뒷부분이
+이은 글(두 키가 같은 언어면 `pr.md` 하나)과 한 줄이라도 다르거나 뒷부분이
 기록의 줄과 다르면 sealer 의 `seal pr-body --check` 가 판정을 보류한다. 오케스트레이터가 `pr.md` 에 무엇을 인용하고 각
 인용의 좌표를 어떻게 적는지는 `skills/code-review/orchestration.md`
 *Orchestrator: the pull request opens once the sealer seals* 가 정한다. 이

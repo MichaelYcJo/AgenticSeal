@@ -60,7 +60,7 @@ outside that shape is a finding, whatever remote its `Pact` cell names:
 `seal pact` reads it as no anchor and reports the signer as citing nothing.
 Examples are a table under a plural or other wording of the anchor header,
 a row with no header, a row outside the anchor table, and any of these
-naming a remote one letter off a pact that row declares.
+naming a remote one letter off a pact that key declares.
 
 Review beyond the changed files: new code that calls into untouched files
 puts their conditions and boundaries into effect for the first time, so

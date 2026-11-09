@@ -3513,7 +3513,7 @@ class Test_body:
         self, bodied, tmp_path, monkeypatch, capsys
     ):
         """#1453, *Scope* item 3, the scenario *The pull request's arm passes
-        the composed body*. Where the rows differ, the body `seal pr-body`
+        the composed body*. Where the keys differ, the body `seal pr-body`
         composes opens with the work item's `pr.<lang>.md`, and the arm
         passes it; a body whose first part is `pr.md` alone is refused at its
         first line, naming the translation. Seen red with `compared` reading

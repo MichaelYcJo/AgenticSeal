@@ -81,7 +81,7 @@ return.
    `trail/rounds/round-N.md`, `changelog.md`, and the part of the pull
    request body above that line, its first part, which the orchestrator
    wrote as `pr.md`, and `pr.<lang>.md` where one stands, before the rounds
-   read them: the quotes rendered in the commit language where the rows
+   read them: the quotes rendered in the commit language where the keys
    differ, then the `Closes` lines and quotes of the records, each with its
    coordinate.
 3. **A claim against the fact.** Choose a sample of the crafter's `executed`
@@ -150,7 +150,7 @@ return.
   `fixed`, the orchestrator's part of the pull request body and the
   prompt's summary are claims; the command you re-ran and the tree are
   facts.
-- Choose a `Broad gate` command, or draw a stamp: the row is a person's, and
+- Choose a `Broad gate` command, or draw a stamp: the key is a person's, and
   you queue the stamp once from your `sealed` and draw nothing.
 
 ## Rules
