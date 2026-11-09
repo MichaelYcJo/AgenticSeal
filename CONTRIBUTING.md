@@ -269,9 +269,9 @@ check: tests/behaviour/test_a_test_file_takes_the_root_from_the_conftest.py
 
 **A test file that declares no `TARGET` stands by what its cases run.** It
 stands in `tests/behaviour/` where its cases load or run shipped code, and
-in `tests/text/` where they only read text. A case that reads this
-repository's own tree beyond its `TARGET` stands in a file that declares
-none. The files that declare no `TARGET`, `tests/text/` and
+in `tests/text/` where they only read text. A case that walks this
+repository's tree or a whole directory of it, lists its tracked files, or
+runs a check over its root stands in a file that declares none. The files that declare no `TARGET`, `tests/text/` and
 `tests/behaviour/`, are this repository's tree-wide files, which
 `skills/verify/SKILL.md` *Scope: cheap and often, broad and once* runs at
 every phase boundary and every fix pass.
