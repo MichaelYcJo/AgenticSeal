@@ -3308,9 +3308,8 @@ def work_item(args):
             )
         else:
             in_log = posted_names(bodies)
-    elif args.post:
-        return post("", says, args.label, found)
     else:
+        # With `--post`, `post` answers this state below and posts nothing.
         log_note = (
             f"no open `{args.label}` log was read ({state}), so nothing was left out"
         )
