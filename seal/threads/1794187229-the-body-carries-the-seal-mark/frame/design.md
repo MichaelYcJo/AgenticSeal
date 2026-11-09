@@ -59,7 +59,9 @@ drifted from the records, fails a ready pull request. The items are six:
    `.github/scripts/close_issues_on_release.py` at `py39`, since the check
    runs before any floor is checked and its arm now loads both.
 2. `skills/code-review/scripts/pr_body.py#compared(item, body, root,
-   manifest=None)` returns `(note, causes)`: `seal_mark`'s sentence or None,
+   manifest=None, base=None)` returns `(note, causes)`, reading the seal
+   at HEAD against BASE where the arm gives the base the guarantee arm
+   reads, and against the guarantee's own base otherwise: `seal_mark`'s sentence or None,
    and the `(where, line, why)` causes the comparison found, empty where the
    body is the composition. It raises nothing, so the arm prints the mark's
    sentence as a notice beside the causes. `main --check` and the arm both
@@ -177,8 +179,10 @@ suite's new cases run on every leg of `tests`.
   and its message carries the body's line, as `seal/threads/<id>:0  the pull
   request's body, line 3: lacks ...` (`frame/questions.md` Q1).
 - `skills/code-review/scripts/pr_body.py#compared(item, body, root,
-  manifest=None)`: the work item's directory, the body's text or None, the
-  repository root and a manifest path for the cases; it composes as `main`
+  manifest=None, base=None)`: the work item's directory, the body's text or
+  None, the repository root, a manifest path for the cases, and the base
+  the seal is read against, which `chain_check.py#body` passes as
+  `--baseline` and `main --check` leaves to the guarantee's own; it composes as `main`
   does with `seal_mark`, `read_item` and `read_own`, and returns
   `(note, causes)` as *Scope* item 2 states; `main --check` reads the file
   and calls it. `pr_body.py` loads `chain_check.py` by path at import, so
