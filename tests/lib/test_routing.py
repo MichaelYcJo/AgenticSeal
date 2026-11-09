@@ -300,8 +300,10 @@ class Test_parse:
         `unattended` and `true` are in the list because they are what a session
         reaching for the idea rather than for the vocabulary would write, and both
         have to land on "nobody was asked" rather than on a confident yes.
-        `automation` is question 1's option label, the row's name in lower case,
-        and it is what a session that takes the label for the row's answer writes.
+        `complete` is question 1's option label that writes `yes` here, and
+        `automation` was that label before #1459 and is the row's name in lower
+        case; each is what a session that takes the label for the row's answer
+        writes.
         """
         for spelling in (
             "unattended",
@@ -311,6 +313,7 @@ class Test_parse:
             "YES",
             "maybe",
             "automation",
+            "complete",
             "",
         ):
             parsed = routing.parse(with_row(routing.AUTOMATION, spelling))

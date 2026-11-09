@@ -1,7 +1,7 @@
 {
   "name": "agentic",
   "displayName": "AgenticSeal",
-  "version": "0.36.0",
+  "version": "0.37.0",
   "description": "A workflow of agents that frames, builds, inspects and seals a change, and ends in a seal bound to a commit.",
   "author": {
     "name": "MichaelYcJo"

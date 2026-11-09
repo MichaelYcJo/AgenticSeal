@@ -4,7 +4,9 @@ This file is the orchestrator's: the session that starts a work item, asks
 the person what only the person can answer, and spawns the agents. It holds
 the procedure for **starting** a work item: the order of the parties, the
 one batch of questions with the routing question among them, asked before
-the first edit, and the ladder that says whether a work item has a frame.
+the first edit, the ladder that says whether a work item has a frame, and
+the guidance by which the orchestrator chooses each item's route, the
+ladder among what it weighs, where the person answered `agentic`.
 It also holds the drain of the rows still open before the broad run. Where
 no `seal/` whose `README.md` opens with the marker exists at
 `<repo>/seal/` or at `$(git rev-parse --git-common-dir)/seal/`, the
@@ -29,7 +31,10 @@ its first step and never this one, because asking a person and writing
    plugin's `SessionStart` hook printed where a `seal/` root stood when the
    session started. Where no output opening `AgenticSeal core from` stands
    in the session's context, the orchestrator opens `skills/core/SKILL.md`
-   once.
+   once. The orchestrator's own commands, its commits, the broad run and
+   the removal of its scratch files among them, follow contract rule 21,
+   which the orchestrator opens once in `skills/agent-contract/SKILL.md`
+   beside the core.
 2. The framer writes `frame/design.md`, `plan.md` and `questions.md`. The orchestrator
    reads the frame against the issue, settles what it finds with the framer
    and spawns the crafter (*The frame is read against the issue at the
@@ -258,16 +263,17 @@ outward-facing act, not a detail that can wait for the end. Routing asked at
 the start, the reviewer in the middle and the pull request at the end would
 be three waits where one is due.
 
-**Ask question 1 alone; the boxes in a second call only under `per axis`.**
-The orchestrator puts both. Question 1 goes in one call of its own, and two
-of its three answers settle everything: `automation` writes every row, and `no work
-item` opens nothing, so under either of them the boxes mean nothing and are
-not shown. The harness shows every question of a call at once, so boxes put
-beside question 1 would be shown under the two answers they mean nothing for.
-Under `per axis` the second call follows the first at once, before the first
-edit. `AskUserQuestion` allows at most four options per question, and two
-presets beside the four boxes would be six, which is why the shape is two
-questions rather than one.
+**Ask question 1 alone; the boxes in a second call only under `manual`.**
+The orchestrator puts both. Question 1 goes in one call of its own, and
+three of its four answers settle everything: under `agentic` the
+orchestrator writes every row, `complete` writes every row, and `direct`
+opens nothing, so under any of them the boxes mean nothing and are not
+shown. The harness shows every question of a call at once, so boxes put
+beside question 1 would be shown under the three answers they mean nothing
+for. Under `manual` the second call follows the first at once, before the
+first edit. `AskUserQuestion` allows at most four options per question, and
+three presets beside the four boxes would be seven, which is why the shape
+is two questions rather than one.
 
 ### Question 1
 
@@ -275,33 +281,38 @@ A single-select question, put alone:
 
 | Order | Label | Description |
 |---|---|---|
-| 1 | **automation** | Every party runs: the framer frames it, `crafter` builds it, `proofer` reviews it, the orchestrator takes the broad run, the sealer audits it, and the pull request opens. **This is the last routing question: the run stops again only for what only you can decide and would be costly to undo.** |
-| 2 | **per axis** | The four boxes below are the answer. |
-| 3 | **no work item** | No work item is opened: no frame, no review, no seal, no `routing.md`, and this session writes the change itself. Where the root is shared, every commit ends with the trailer `Seal-Routing: no work item`, and the pull request's check only lists those commits. |
+| 1 | **agentic** | The orchestrator reads each work item's issue and the tree and chooses that item's route: which of the framer, `crafter` and `proofer` run, and whether the run may stop to ask you. Where it judges a change small enough, such as a two-line fix, it takes `direct` for it. It writes each choice down with its grounds, and you are not asked the route again. |
+| 2 | **complete** | Every party runs: the framer frames it, `crafter` builds it, `proofer` reviews it, the orchestrator takes the broad run, the sealer audits it, and the pull request opens. **This is the last routing question: the run stops again only for what only you can decide and would be costly to undo.** |
+| 3 | **manual** | You set each part: the four boxes below are the answer. |
+| 4 | **direct** | This session writes the change itself: no agent, no work item, no frame, no review, no seal and no `routing.md`. Where the root is shared, every commit ends with the trailer `Seal-Routing: no work item`, and the pull request's check only lists those commits. |
 
-**A label names what it turns off, not where it ends.** A label that names a
-destination is read as what runs: `straight to the PR` reads as *call no
-agents at all*, where that answer turns off `proofer` alone. So the exit
-names no destination, and its description names the five things that do not
-happen.
+**A label names no destination, and its description says what it turns
+off.** A label that names a destination is read as what runs:
+`straight to the PR` reads as *call no agents at all*, where that answer
+turns off `proofer` alone. So each label names a mode, each description
+says what its answer does, and the exit's description names every party and
+record that does not run or is not written.
 
 **The exit is last.** It is the least-verified path and one click, so it
 sits where a reader's eye lands last, and its description states the cost.
-It stays visible in use where the root is shared: every commit it covers
-says `no work item` in its trailer, and the pull request's check prints each
-one.
+It stays visible in use where the root is shared: every commit it covers,
+whether the person chose it or the orchestrator chose it under `agentic`,
+says `no work item` in its trailer, and the pull request's check prints
+each one.
 
-**Question 1 is put every time, whatever the ladder reads, and the answer
-the ladder reads is marked.** The person chooses the route, even for a typo
-fix. Before putting it, the orchestrator reads the work on the ladder of
-*Orchestrator: when a work item is required* below: on its last rung it
-marks `no work item`, and on either rung above it marks `automation`. The
-mark is ` (Recommended)` after the label, and the options keep the order of
-the table above, so the exit stays last.
+**Question 1 is put every time, whatever the ladder reads, and `agentic` is
+the answer marked.** The person chooses the route, even for a typo fix, and
+choosing `agentic` leaves each item's route to the orchestrator, which reads
+the item on the ladder of *Orchestrator: when a work item is required*
+below among what it weighs (*Under agentic*). A mark read off the ladder
+would mark `complete` for nearly every item, because nearly every change
+alters observable behaviour and sits above its last rung. The mark is
+` (Recommended)` after the label, and the options keep the order of the
+table above, so the marked answer comes first and the exit stays last.
 
 ### Question 2
 
-A `multiSelect` question, asked only under `per axis`.
+A `multiSelect` question, asked only under `manual`.
 
 **The order is the specification.** The first box is a property of the run;
 the three below name parties, in the order they run. A reader meeting four
@@ -323,14 +334,16 @@ misread: `no` says this run may stop to ask, never that a person did the work
 by hand.
 
 **The ceiling.** `AskUserQuestion` allows at most four options per question.
-Question 2 sits at exactly four. **It is fully spent: a fifth box breaks this
-shape**, and whoever adds one needs a third question of boxes or a preset
-that hides the axes.
+Question 1 and question 2 each sit at exactly four. **Both are fully spent:
+a fifth answer or a fifth box breaks this shape.** Whoever adds an answer
+to question 1 needs another shape for the routing question, and whoever
+adds a box to question 2 needs a third question of boxes or a preset that
+hides the axes.
 
 ### What the answer writes
 
-Question 1's first two options and question 2's four boxes write the same
-rows; what differs is how many clicks it took.
+Question 1's first three options and question 2's four boxes write the same
+rows; what differs is who chose them and how many clicks it took.
 
 | Row | Answers |
 |---|---|
@@ -344,20 +357,25 @@ rows; what differs is how many clicks it took.
 `templates/records/sdd-routing.md`, which ships `Review` and `Destination`
 answered and the optional rows as placeholders. An absent `Automation` row
 means nobody was asked, so `no` is never written where the question was not
-put. The grounds of both are `docs/running/the-review-and-parity-arms.md` *The
-declaration, and where the check went*.
+put; under `agentic` the person's answer puts it to the orchestrator, which
+writes `yes` or `no` (*Under agentic*). The grounds of both are
+`docs/running/the-review-and-parity-arms.md` *The declaration, and where
+the check went*.
 
 **`Implementation` is answered by whether the work is finding out or writing
 down.** Finding out is a step to send to `tracer`, and the orchestrator that
 reads the facts back and writes the code still answers `the session`;
 `crafter` answers where the diff is large enough to threaten what the
 orchestrator still has to hold (`docs/running/the-agent-set.md` *What a spawn
-costs*). The file ends with `## Why this way`, one or two sentences nothing
-reads.
+costs*). The file ends with `## Why this way`: one or two sentences where
+the person chose the rows, and where the orchestrator chose them under
+`agentic`, the grounds *Under agentic* asks for, which the sealer reads
+against the diff (`agents/sealer.md` step 4).
 
-**`automation` writes all four party rows at their checked values**, plus
-`Automation` = `yes`. Ticking all four boxes under `per axis` writes the same
-rows.
+**`complete` writes all four party rows at their checked values**, plus
+`Automation` = `yes`. Ticking all four boxes under `manual` writes the same
+rows. Under `agentic` the orchestrator writes the rows it chose for the
+item.
 
 **`Automation` is a record, and no script decides anything on it.** While
 the row reads `yes`, the orchestrator follows the paragraph of
@@ -371,12 +389,14 @@ the row reads `yes`, the orchestrator follows the paragraph of
 | Planning | `framer` or `the session`, OPTIONAL; absent reads as unanswered |
 
 It is a record, not a box. The question grows only where a decision is a
-person's, and this one is not: `agents/framer.md`'s `## Job` says the SDD
-ladder decides, so the framer runs only where *Orchestrator: when a work
-item is required* below calls for a `frame/design.md`. The orchestrator fills the row
-from what happened: `framer` where the subagent drew the frame, `the session`
-where the orchestrator drew it, and no row where the ladder called for no
-frame. A wrong answer here is read against the record the run left:
+person's, and this one is not: `agents/framer.md`'s `## Job` says where the
+framer runs. Under `complete` and `manual` that is where *Orchestrator:
+when a work item is required* below calls for a `frame/design.md`, and
+under `agentic` it is where the orchestrator chose a framer for the item
+(*Under agentic*). The orchestrator fills the row from what happened:
+`framer` where the subagent drew the frame, `the session` where the
+orchestrator drew it, and no row where no frame was called for or chosen.
+A wrong answer here is read against the record the run left:
 `chain_check.py` refuses a `framer` row whose `frame/design.md` mark names
 anyone else, and the sealer withholds where `Implementation` names `crafter`
 and a closed phase has no record (`agents/sealer.md` step 4).
@@ -387,7 +407,7 @@ framer cannot ask. The one moment of human contact is here, before the first
 edit, and the order does not change when a framer runs:
 
 ```
-the orchestrator : ask question 1; the boxes only under per axis
+the orchestrator : ask question 1; the boxes only under manual
 the orchestrator : write and commit routing.md
 the framer       : read, judge, write design, plan and questions
 the orchestrator : read plan.md against the issue, settle it with the framer, spawn the build
@@ -402,8 +422,9 @@ recorded answer nobody gave.
 `seal/threads/<work-item-id>/routing.md`, from `templates/records/sdd-routing.md`, and
 commits it, because the check happens at the pull request and CI sees only
 what is in the tree. Below the SDD ladder this may be the only file a work
-item gets. Under `no work item` no declaration is written, and the trailer
-is the record.
+item gets. Under `direct`, whether the person chose it or the orchestrator
+chose it under `agentic`, no declaration is written, and the trailer is the
+record.
 
 **The orchestrator writes the file with the `Write` tool, then commits it.**
 The commit goes as every commit does: each work item's `routing.md` in a
@@ -485,19 +506,103 @@ repository gathers fragments, basing on `main` means running the gather,
 because `main` is the branch where the entries are due; the contribution
 guide names the command.
 
-**The declaration moves the check and waives nothing**: the direct answer
-turns off the reviewer, and the broad run is owed just the same
+**The declaration moves the check and waives nothing**:
+`straight to the PR` turns off the reviewer, and the broad run is owed just
+the same
 (`docs/running/the-review-and-parity-arms.md` *There is no standing waiver*).
 
 **A work item that commits in more than one repository** asks the routing
 question once and writes every answer into each gated repository it commits
 in, by the procedure `skills/implement/multi-repository.md` holds.
 
+### Under agentic
+
+**What `agentic` buys is time.** The orchestrator reads each work item's
+issue and the tree, and turns off every party the item does not need, so
+two items of one batch may take different routes. What follows is what it
+weighs, not a sequence to run (`skills/core/SKILL.md` *A rule is guidance
+for a judgment, not a sequence to execute*).
+
+**`direct` is weighed on four signals, and none of them is a bound**: the
+change's size; what it touches; whether a gate, a hook or a check script is
+among what it touches; and how a defect in it would show, as a suite that
+fails at the pull request or as an agent that misreads the text in a later
+run. A small change whose defect would show at once takes `direct`. A
+change that touches a gate or a hook takes a work item, because a defect
+there stops every session that runs it. So does a change that restates a
+rule other text states, because finding every statement of the rule is a
+reader's work (contract rule 12). The item's rung on the ladder of
+*Orchestrator: when a work item is required* below is read beside these
+signals and does not bound them: the ladder sorts by behaviour and not by
+size, so as the bound it would send a two-line fix of an agent's
+instructions through every party.
+
+**Each row is chosen for what the item needs**, in the vocabulary of *What
+the answer writes* above:
+
+- **Planning**: `framer` where the issue leaves a design choice open, or
+  where the work changes a rule several documents state; `the session`
+  where the issue fixes the change at its coordinate; no row where the item
+  needs no frame.
+- **Implementation**: by the criterion *What the answer writes* states.
+- **Review**: `through the review chain` where a reader independent of the
+  build is worth its rounds; `straight to the PR` where the sealer's single
+  reading of the diff against the issue is enough.
+- **Automation**: `yes` where every question the orchestrator foresees has
+  a default the tree or the framer can give; `no` where the item reaches
+  outside the repository, or waits on a decision only a person can make
+  that the build has to reveal first.
+- **Destination**: `open the pull request`, as under `complete`, unless the
+  issue or the person's words in the batch ask for the branch back.
+
+**Three combinations do not stand, and every other one does.**
+
+| Combination | Why it does not stand |
+|---|---|
+| a work item whose pull request opens without the broad run at HEAD or without the seal | `skills/core/SKILL.md` *Judgment is not licence to skip a party*; only `direct`, which opens no work item, goes without both |
+| `crafter` building with no frame | the crafter builds a phase of `frame/plan.md` and fills its Status cell (`agents/crafter.md` *Order of work*) |
+| `framer` recorded where `frame/design.md`'s mark names anyone else | `chain_check.py` refuses it, as *What the answer writes* above states |
+
+A framer and nothing more stands among the rest: `framer` for planning,
+`the session` for the build, and `straight to the PR`.
+
+**Where the choice is written.** For a work item the rows go into
+`routing.md`, whose line reads
+`Answered <date> by the orchestrator, before the first edit.`, and *Why
+this way* names the person who answered question 1 and that answer, then
+gives each row's grounds with this subsection as the document judged
+against. For `direct`, the body of the commit that carries the change
+holds one sentence of grounds, above the trailer.
+
+**A route is raised when the work outgrows it, and never lowered.** A
+`direct` change that grows past its grounds becomes a work item, with its
+`routing.md`, before its next commit; the commits already made keep their
+trailer, and the pull request's check prints them rather than refusing
+them (`docs/checks/the-routing-check.md` *At the pull request*). A work
+item routed `straight to the PR` takes the review chain where its diff
+reaches what its grounds did not name, or where its sealer withholds on
+that. Each raise is a row of `frame/plan.md` *Judgments of the run* where a
+plan stands, and otherwise a sentence added under *Why this way*. A route
+is not lowered when the build turns out smaller, because the orchestrator
+would then waive a reader of a diff it has read itself
+(`skills/core/SKILL.md` *Each agent judges its own target, independently
+of the others*).
+
+**A wrong choice stays visible.** The pull request's check prints each
+commit whose trailer reads `no work item`, and the commit's body holds its
+grounds. The sealer reads a chosen route's grounds against the diff
+(`agents/sealer.md` step 4), and the settle reads the release's routes
+against the later fixes that name them (`skills/settle/SKILL.md` *The
+settling session's procedure* step 5), so a kind of choice that keeps
+letting defects through is a rewrite of this subsection.
+
 ## Orchestrator: when a work item is required
 
 **When a work item is required** — the same threshold the Design Gate uses,
 because they are the same judgment. Drawing no line is how the set quietly
-stops being written.
+stops being written. Under `complete` and `manual` the rung decides what a
+work item writes; under `agentic` it is one signal of those *Under
+agentic* above weighs.
 
 | Work | What to write |
 |---|---|
