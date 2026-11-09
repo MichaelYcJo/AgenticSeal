@@ -42,6 +42,8 @@ RECORDS = {
     "follow-up.md": "# follow-up\n",
     f"threads/{ITEM}/routing.md": "# routing\n",
 }
+# A committed config with no `Mode` row, which `seal mode` fills in.
+ROWLESS = "# Repository config\n\n| Item | Value |\n|---|---|\n| Record language | English |\n"
 
 
 def files_under(path):
@@ -126,10 +128,17 @@ def test_s1_first_setup_beside_the_package_puts_the_shared_root_at_agentic_seal(
 def test_s6_mode_moves_agentic_seal_under_the_git_directory_and_back(shared, capsys):
     """`seal mode local` moves `agentic-seal/` to the common directory's
     `seal/` and stages its removal, and `seal mode shared` moves it back to
-    `agentic-seal/` and stages it, the package untouched both ways."""
+    `agentic-seal/` and stages it, the package untouched both ways. The row
+    `seal mode` wrote into the committed `agentic-seal/config.md` and an
+    untracked file there do not stop the move, as they do not under `seal/`."""
+    write(shared / "agentic-seal", "config.md", ROWLESS)
+    commit_everything_as_e(shared, "the config")
+    assert said(capsys, shared, "mode")[0] == 0
+    write(shared / "agentic-seal", "notes.md", "# notes\n")
     before = files_under(shared / "seal")
     code, out = said(capsys, shared, "mode", "local")
     assert code == 0, out
+    assert "note: agentic-seal/notes.md is untracked" in out
     assert not (shared / "agentic-seal").exists()
     local = files_under(shared / ".git" / "seal")
     assert local[f"threads/{ITEM}/routing.md"] == b"# routing\n"
@@ -141,6 +150,7 @@ def test_s6_mode_moves_agentic_seal_under_the_git_directory_and_back(shared, cap
     commit_everything_as_e(shared, "the switch to local")
     code, out = said(capsys, shared, "mode", "shared")
     assert code == 0, out
+    assert out.count("`git reset -- :/agentic-seal`") == 2, out
     assert not (shared / ".git" / "seal").exists()
     back = files_under(shared / "agentic-seal")
     assert back.pop("config.md").endswith(b"| Mode | shared |\n")
@@ -151,6 +161,58 @@ def test_s6_mode_moves_agentic_seal_under_the_git_directory_and_back(shared, cap
     ), status(shared)
     assert "staged agentic-seal/" in out
     assert files_under(shared / "seal") == before
+
+
+@pytest.mark.parametrize("held", ["a staged edit", "a submodule"])
+def test_s6_mode_refuses_to_move_agentic_seal_over_what_its_index_holds(
+    shared, capsys, held
+):
+    """The guards read the index under `agentic-seal/`, not under the
+    package: a staged edit there, and a submodule there, each refuse the
+    move and name the root by its own name."""
+    if held == "a staged edit":
+        write(shared / "agentic-seal", "follow-up.md", "# edited\n")
+        git(shared, "add", "agentic-seal/follow-up.md")
+    else:
+        sha = git(shared, "rev-parse", "HEAD").stdout.strip()
+        gitlink = f"160000,{sha},agentic-seal/vendor"
+        git(shared, "update-index", "--add", "--cacheinfo", gitlink)
+    code, out = said(capsys, shared, "mode", "local")
+    assert code == 1, out
+    assert out.rstrip().endswith("Nothing was moved."), out
+    if held == "a staged edit":
+        assert "\n  M  agentic-seal/follow-up.md\n" in out, out
+    else:
+        assert "there is a submodule under agentic-seal/:\n" in out, out
+        assert "`git rm -r --cached agentic-seal`" in out, out
+    assert (shared / "agentic-seal").is_dir()
+
+
+@pytest.mark.parametrize("wanted", ["local", "shared"])
+def test_s6_a_switch_that_could_not_stage_names_agentic_seal_in_the_command(
+    shared, capsys, wanted
+):
+    """Where git refuses the staging step, the command the line hands the
+    person stages `agentic-seal`: a held `index.lock` going local, and an
+    ignore rule over the root going shared."""
+    lock = shared / ".git" / "index.lock"
+    if wanted == "shared":
+        assert said(capsys, shared, "mode", "local")[0] == 0
+        write(shared, ".gitignore", "agentic-seal/\n")
+        commit_everything_as_e(shared, "the switch to local")
+    else:
+        lock.write_text("", encoding="utf-8")
+    try:
+        code, out = said(capsys, shared, "mode", wanted)
+    finally:
+        if lock.exists():
+            lock.unlink()
+    assert code == 0, out
+    if wanted == "local":
+        assert "Run `git rm -r --cached :/agentic-seal` yourself" in out, out
+    else:
+        assert "  agentic-seal/ could NOT be staged: " in out, out
+        assert "`git add -f :/agentic-seal` yourself" in out, out
 
 
 def test_s6_export_in_shared_mode_names_agentic_seal_in_the_way_out(shared, capsys):
@@ -194,12 +256,16 @@ def test_s6_a_copy_travels_as_seal_and_lands_under_agentic_seal(
     assert files_under(clone / "seal") == before
 
 
-def test_s6_an_import_names_a_link_in_the_root_by_the_roots_own_name(
-    package, capsys, tmp_path
+@pytest.mark.parametrize(
+    "held, said_of_it",
+    [("a link", "is a symbolic link"), ("a file", "is not a directory")],
+)
+def test_s6_an_import_names_what_blocks_it_in_the_root_by_the_roots_own_name(
+    package, capsys, tmp_path, held, said_of_it
 ):
-    """A symbolic link where a record goes is refused, and the line names
-    the place in this clone, `agentic-seal/threads`, not the archive's
-    `seal/` prefix."""
+    """A symbolic link, or a file, where the zip needs `threads/` as a
+    directory is refused, and the line names the place in this clone,
+    `agentic-seal/threads`, not the archive's `seal/` prefix."""
     records_at(local_home(package))
     zips = tmp_path / "zips"
     zips.mkdir()
@@ -210,8 +276,11 @@ def test_s6_an_import_names_a_link_in_the_root_by_the_roots_own_name(
     shutil.rmtree(package / ".git" / "seal")
     outside = tmp_path / "outside"
     outside.mkdir()
-    symlink_or_skip(str(outside), str(root / "threads"))
+    if held == "a link":
+        symlink_or_skip(str(outside), str(root / "threads"))
+    else:
+        write(root, "threads", "a file\n")
     code, out = said(capsys, package, "import", str(archive))
     assert code == 1, out
-    assert out.startswith("agentic-seal/threads in this clone is a symbolic link")
+    assert out.startswith(f"agentic-seal/threads in this clone {said_of_it}"), out
     assert list(outside.iterdir()) == []
