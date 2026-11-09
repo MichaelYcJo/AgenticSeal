@@ -56,7 +56,7 @@ Out:
 No code interface changes.
 
 - `skills/agent-contract/SKILL.md` gains the heading `## 21 Write each command so Claude Code's parser can read it`, after rule 19. Its last line is `check: tests/text/test_the_agent_contract_holds_the_universal_rules.py`.
-- `tests/text/test_the_agent_contract_holds_the_universal_rules.py#FACTS` gains the key `21`. The value names what the fact is and who reads it ("the command forms an agent copies into a shell, which Claude Code's parser reads"), then three spellings, each in backticks as the rule writes it: `` `xargs <runner> < list` ``, `` `"${VAR:?}"` `` and `` `${(f)"$(cat list)"}` ``. The first two are right forms and the third is the wrong one, as rule 1's entry pins one of each.
+- `tests/text/test_the_agent_contract_holds_the_universal_rules.py#FACTS` gains the key `21`. The value names what the fact is and who reads it ("the command forms an agent copies into a shell, two that Claude Code's parser reads and one it holds for a person"), then three spellings, each in backticks as the rule writes it: `` `xargs <runner> < list` ``, `` `"${VAR:?}"` `` and `` `${(f)"$(cat list)"}` ``. The parser reads the first two, the right forms, and holds the third, the wrong one, for a person, as rule 1's entry pins a right form beside a wrong one.
 - `.claude-plugin/plugin.json` `version` reads `0.37.0`.
 - `skills/implement/orchestration.md` step 1 cites `contract rule 21` in that spelling, as `skills/writing-style/SKILL.md` asks of a contract citation outside the contract.
 
