@@ -68,7 +68,10 @@ Limits, stated here and not guarded:
 - In local mode the records sit under the git directory, so a reader of the
   pull request cannot open the paths the generated part names. The copied
   text still stands in the body.
-- A body edited on GitHub after the pull request opens is read by nobody.
+- A body edited on GitHub after the pull request opens is read by the pull
+  request's check, `chain_check.py#body`, through `compared`, where the
+  workflow runs on `edited`. In local mode nothing is committed for that
+  check to read, so nothing reads such a body.
 - The `details` tag reading reads characters, not GitHub's rendering. A tag
   GitHub renders as text is refused too where it is spelt as a tag outside a
   code span and a comment: in a table cell, after a backslash, in an indented

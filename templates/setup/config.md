@@ -441,7 +441,10 @@ pact's repository over it.
 ## The seal mark
 
 A row per surface the seal mark is shown on beside the terminal stamp. Each
-is off unless its row turns it on, and none of them stops anything.
+is off unless its row turns it on, and no row stops anything by itself. The
+pull request's check reads the body against what `seal pr-body` composes, so
+there a body whose mark line differs from the composition fails a ready pull
+request, as any other differing line does.
 
 ```markdown
 | Pull request seal mark | yes |
