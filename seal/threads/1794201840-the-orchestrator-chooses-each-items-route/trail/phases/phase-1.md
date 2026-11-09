@@ -81,7 +81,8 @@ written in.
   this phase changed are rewritten for the same reason:
   `tests/behaviour/test_waiver_decided_at_start.py` at the `SHAPE` comment,
   the docstrings of the cases on question 1, the exit and the `Planning`
-  row, and `tests/text/test_review_axes.py`'s two comments beside the
+  row, the `Planning` case's comment on the box tables (`aa8a9280`), and
+  `tests/text/test_review_axes.py`'s two comments beside the
   `SHAPE` copy. A census over the four edited prose files finds the old
   labels nowhere as an answer, and `no work item` only as the trailer's
   value (executed: `git grep -n -w "automation"` and `git grep -n "per
@@ -105,6 +106,12 @@ written in.
 
 **Decisions made while writing, each with its grounds.**
 
+- The assertion that *The ceiling* names question 1 is added to the
+  existing `#test_the_ceiling_is_stated_beside_the_shape`, not written as
+  a case of its own as *Scope* item 8 reads. That case already reads the
+  ceiling paragraph's cap on a question's options, and a new assertion
+  goes into the group that covers what it reads (`agents/crafter.md` *A
+  new test starts from its group*).
 - *Under agentic* gives each row's choice as a bulleted list, not a
   table. Three cases of `tests/behaviour/test_waiver_decided_at_start.py`
   count the lines opening `| Implementation |`, `| Planning |` and
