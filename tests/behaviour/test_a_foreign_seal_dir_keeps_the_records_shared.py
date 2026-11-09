@@ -227,6 +227,18 @@ def test_s6_a_switch_that_could_not_stage_names_agentic_seal_in_the_command(
         assert "`git add -f :/agentic-seal` yourself" in out, out
 
 
+def test_pr_checks_install_writes_the_workflow_beside_a_shared_agentic_seal(
+    shared, capsys
+):
+    """`seal pr-checks install` reads a marked `agentic-seal/` as the root in
+    the tree, so it writes the workflow and stages it, where a project's own
+    `seal/` alone would refuse it."""
+    code, out = said(capsys, shared, "pr-checks", "install")
+    assert code == 0, out
+    assert (shared / ".github" / "workflows" / "hygiene.yml").is_file()
+    assert "A  .github/workflows/hygiene.yml" in status(shared)
+
+
 def test_s6_export_in_shared_mode_names_agentic_seal_in_the_way_out(shared, capsys):
     """`seal export` writes no zip in shared mode, and the commands it gives
     for going local take `agentic-seal/` out of the tree, not the package."""
