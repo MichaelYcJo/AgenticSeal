@@ -103,6 +103,11 @@ orchestrator's. Where a third removal is real, these two snippets do not
 apply. G18 and the row then name its time and transcript, and
 `changelog.md:6`, `:15` and `pr.md:7` change from "twice" to the count.
 
+```seal
+verdict: fixed 647a5495
+answer: The orchestrator counted the times it found its files gone, three, and no Bash call names a third whole-scratchpad removal; the round's scan of every transcript is the stronger reading, so the count is two. frame/design.md's Removes reason now says "the two removals" and the last Judgments row of frame/plan.md says "twice", the round's two snippets; the changelog and pr.md already said twice. The fix touches the work item's records alone. The orchestrator corrects the issue's second comment.
+```
+
 ## Confirmations
 
 What matched: `agents/crafter.md:102-111` adds the rule *Scope* item 7
