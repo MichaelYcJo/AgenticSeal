@@ -8,6 +8,7 @@ The issue left these judgments open, and the tree answered each. The grounds sta
 - Where the rule lives: `frame/plan.md` *Alternatives considered* rows 1, 2 and 3.
 - How the rule reaches the orchestrator: `frame/design.md` G17, and `frame/plan.md` *Alternatives considered* rows 9 and 10.
 - Whether to stop asking agents to remove what they made under the scratchpad, or to have them write the removal in a form the parser reads: `frame/plan.md` *Alternatives considered* rows 4 and 5.
+- Where the crafter's scratch stands, and where the new clauses are pinned: `frame/design.md` G18, and `frame/plan.md` *Alternatives considered* rows 11 and 12.
 - Whether anything checks an agent's command: `frame/plan.md` *Alternatives considered* row 6.
 
 | # | Question | Who can answer | Options & what each implies | Default until answered | Status |
