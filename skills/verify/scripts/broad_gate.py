@@ -11,25 +11,22 @@ with nothing else running, before it spawns the sealer (#969).
 
 What it does, in order, from the repository root:
 
-  1. the repository's own broad command — the `Broad gate` row of
-     `seal/config.md`, one shell command line the repository wrote for
-     itself. **A row is refused four ways, and all four are exit 2 with
-     nothing run**: no row at all, because a run over a command nobody
-     chose is the counterfeit `verify` names; a `Broad gate` line the table
-     walker did not read, because it refused that line or one above it,
-     which the refusal quotes back with the walker's sentence rather than
-     reporting as absent (#415, #871); a `Broad gate` line
-     written inside a code fence, which no walk of that table reads because
-     a fenced table is an example of the format rather than a repository's
-     own answer (#429); or a row this gate would not run as the command it
-     reads as — the whole command wrapped in backticks or in `$(…)`, or
-     ending in a single `&`. No refusal names a command to write: the row is
-     a person's, and the message says where they answer it
+  1. the repository's own broad command — the `Broad gate` key of
+     `seal/config.json`, one shell command line the repository wrote for
+     itself. **The key is refused three ways, and all three are exit 2 with
+     nothing run**: no key at all, because a run over a command nobody
+     chose is the counterfeit `verify` names; a config that will not read,
+     or a key written twice or holding no string, which is refused rather
+     than read as absent (#867); or a value this gate would not run as the
+     command it reads as — the whole command wrapped in backticks or in
+     `$(…)`, or ending in a single `&`. No refusal names a command to
+     write: the key is a person's, and the message says where they answer
+     it
   2. `chain_check.py --baseline <base> --sealing`   judged by the pull
      request's state as the check reads it, with `trail/gate.md`, which this
      run is about to write, and `guarantee.md`, which the sealer writes after
      it, printed rather than judged
-  3. `seal.py mode --check`            the `Mode` row and the folder agree
+  3. `seal.py mode --check`            the `Mode` key and the folder agree
 
 **Which arms exist is declared rather than remembered** (#468). `PARTITION`
 below holds every step of `.github/workflows/hygiene.yml`'s `release` job
@@ -56,12 +53,12 @@ A check that fails does not stop the ones after it: the failure form names
 every check that failed, which is what a reader acts on.
 
 **On a failing test the comparison against the base is reactive and
-mechanical** (`skills/verify/orchestration.md` *The broad gate*). The row runs with
+mechanical** (`skills/verify/orchestration.md` *The broad gate*). The command runs with
 a pytest recorder of the gate's own loaded (`recording_env`), which writes
-down, inside each pytest process the row starts, every test it ran and its
+down, inside each pytest process the command starts, every test it ran and its
 outcome. Only when the repository's command fails AND that record holds
 failing test files does the gate add a scratch worktree at `<base>`, run the
-row there once, unchanged, with the recorder loaded again, remove the
+command there once, unchanged, with the recorder loaded again, remove the
 worktree, and label each file `new`, `failing on base too`, or
 `new?` with the reason no run measured it, from the base's own record
 (#825). No line pytest printed decides a word, and no file is appended to
@@ -82,10 +79,10 @@ beneath it (`rounds_rows`); and last, where git still sees `trail/gate.md`
 uncommitted, one line saying so: CI reads HEAD. The owner's marks are
 written in ASCII on a console that is not UTF-8, or under `--shape`. A run
 fails where a check exits non-zero, and where the suite's record at `HEAD`
-counts a pytest session that did not pass, whatever the row's exit (#883,
+counts a pytest session that did not pass, whatever the command's exit (#883,
 #1301): a stop that chooses the exit code, as `pytest.exit()` and
 `os._exit()` do, can give 0 over tests that never ran, and an act after
-pytest's run loop, a later hook or a part of the row after pytest, can give
+pytest's run loop, a later hook or a part of the command after pytest, can give
 0 over a test that failed. A run
 that fails prints `BROAD GATE FAILED` with the same names and the failing
 checks with their first lines (`failed_form`). No run writes a values file
@@ -101,10 +98,11 @@ request.
 
 **`--preflight` runs arms 2 and 3 alone, and writes nothing** (#638). It is the
 orchestrator's step before it spawns the sealer: the same base resolved the
-same way, every refusal of the row applied, and then every arm above except
-the row, in the same order, with the same arguments, each output kept the
-same way. The row is read and never run, so a refusal on a record arm — a
-chain refusal, a mode the row and the folder disagree on — arrives in
+same way, every refusal of the `Broad gate` key applied, and then every arm
+above except the key's command, in the same order, with the same arguments,
+each output kept the same way. The key is read and its command never run, so
+a refusal on a record arm — a chain refusal, a mode the `Mode` key and the
+folder disagree on — arrives in
 seconds rather than after a whole suite. It writes no file, adds no
 worktree, prints no coverage line, and prints no line beginning `BROAD GATE`: its stdout opens
 `PREFLIGHT PASSED` or `PREFLIGHT FAILED`, the failing arms under the second
@@ -117,7 +115,7 @@ Usage:
             [--keep-output DIR]
   seal gate --preflight --base <ref> [--root DIR] [--keep-output DIR]
 
-Exit codes: 0 passed · 1 failed · 2 refused — no row, no repository, a
+Exit codes: 0 passed · 1 failed · 2 refused — no key, no repository, a
 base that does not resolve, a copy of the plugin whose sibling will not
 load (a malformed `seal-mark.txt` among them), a `trail/gate.md` that could
 not be written; nothing ran on 2 except where the refusal names what ran.
@@ -144,8 +142,8 @@ import tempfile
 # Resolved relative to this file, never to the caller's cwd, so the command
 # works from the plugin cache and from a clone alike. `lib/config.py` is
 # loaded by path the way `chain_check.py` loads `lib/routing.py`: it is the
-# one reader of `seal/config.md`'s table, and a second reader that parsed the
-# table differently would answer a different question about the same file.
+# one reader of `seal/config.json`, and a second reader would answer a
+# different question about the same file.
 HERE = os.path.dirname(os.path.abspath(__file__))
 PLUGIN = os.path.normpath(os.path.join(HERE, "..", "..", ".."))
 STAMP = os.path.join(HERE, "seal_stamp.py")
@@ -160,8 +158,8 @@ CONFIG_READER = os.path.join(PLUGIN, "lib", "config.py")
 FIELDS_READER = os.path.join(PLUGIN, "lib", "fields.py")
 OPTIN = os.path.join(PLUGIN, "lib", "optin.py")
 
-CONFIG = "config.md"
-ROW = "Broad gate"
+CONFIG = "config.json"
+KEY = "Broad gate"
 ROUND_RE = re.compile(r"^round-(\d+)\.md$")
 # The run's one record, in the work item's directory: `chain_check.py` reads
 # it by the same spelling, and a case holds the two equal.
@@ -173,7 +171,7 @@ ROUNDS_DIR = os.path.join("trail", "rounds")
 
 # The checks, by the name the report prints for each. The first is the
 # repository's own command; the panel reads its `suite` and `lint` from that
-# one run, because the row carries both.
+# one run, because the command carries both.
 #
 # There is no count in this comment on purpose. There were five of these for
 # three releases and every document that said `five` had to be found again
@@ -195,7 +193,7 @@ NEW, ON_BASE = "new", "failing on base too"
 
 
 # pytest's short-summary line for a failed test, `FAILED path::name - why`,
-# printed under `-q` too. Read only where the row's run at `HEAD` left no
+# printed under `-q` too. Read only where the command's run at `HEAD` left no
 # record (`failing_files`), to name the files that read `NO_RECORD_AT_HEAD`;
 # the path may hold a space (#813).
 FAILED_RE = re.compile(r"^FAILED\s+(.+?)::", re.M)
@@ -647,11 +645,11 @@ def resolve_base(root, given):
 
 
 def seal_home(root):
-    """`<root>/seal/` where it is the root, else `<git-common-dir>/seal/`,
-    else None — the two places every `seal/…` path in this plugin resolves
-    to (contract rule 11), read in that order. Each is the root only where
-    `lib/optin.py#marked` finds the marker, so a `seal/` the project keeps
-    for itself is never read for a command. The places and the marker are
+    """The shared place `optin.home_paths` gives where it is the root, else
+    `<git-common-dir>/seal/`, else None — the places every `seal/…` path in
+    this plugin resolves to (contract rule 11), read in that order. Each is
+    the root only where `lib/optin.py#marked` finds the marker, so a `seal/`
+    the project keeps for itself is never read for a command. The places and the marker are
     `optin`'s; the scratch opt-out is not read here, because a throwaway
     repository still runs its broad command when somebody asks for it."""
     optin = load(OPTIN, "agentic_optin_for_broad_gate")
@@ -661,450 +659,49 @@ def seal_home(root):
     return None
 
 
-def config_text(home):
-    """The root's `config.md` as text, or None where there is none or it
-    will not read: the text half of `lib/config.py#config_text`, the one
-    place the file is opened (#867). Every caller of this one runs after
-    `broad_command`, which has already refused a file that will not read,
-    so None here is a file that is not there."""
-    config = load(CONFIG_READER, "agentic_config_for_broad_gate")
-    return config.config_text(home)[0]
-
-
 def broad_command(home):
-    """The `Broad gate` row's value, or None for every way of not having one:
-    no file, no row, an empty value, and a row the table walker did not read.
+    """The `Broad gate` key's value, or None for every way of not having
+    one: no file, no key, and an empty value.
 
-    **Two states are refused, not read as no row** (#867): a `config.md`
-    that is there and will not read, and a `Broad gate` row written twice.
-    Either raises `Refused` naming the path, so the broad gate exits 2
-    with nothing run. Read as no row, an unreadable file was reported as a
-    missing row, which sent a person to add a row the file already held,
-    and a doubled row ran its first command.
-
-    **A row the walker did not read is None here, and `missing_row` is what
-    says so** (#871): `config_value` answers it with the walker's sentence,
-    and the refusal that sentence belongs in quotes the line and names the
-    edit, which is `missing_row`'s to write. A row the walk read above a
-    line it refused is a value, and the gate runs it: GitHub shows that row
-    as the person wrote it. A line below that one naming the row again makes
-    it a row written twice, which has no value (`config_value`), and the
-    gate refuses it as it refuses any doubled row."""
+    **What will not read is refused, not read as no key** (#867): a config
+    `lib/config.py#config_pairs` refuses -- one that will not read or
+    parse, or a `config.md` an earlier release wrote standing without a
+    `config.json` -- and a `Broad gate` key written twice or holding no
+    string. Each raises `Refused` naming the path, so the broad gate exits 2
+    with nothing run. Read as no key, an unreadable file was reported as a
+    missing one, which sent a person to add a key the file already held,
+    and a doubled key ran one of its commands."""
     config = load(CONFIG_READER, "agentic_config_for_broad_gate")
-    text, refused = config.config_text(home)
+    pairs, refused = config.config_pairs(home)
     if refused is not None:
         raise Refused(f"seal gate: {refused}. Nothing ran")
-    if text is None:
-        return None
-    value, refused = config.config_value(text, ROW)
-    if refused is not None and refused not in config.config_table(text)[1]:
-        raise Refused(
-            f"seal gate: {os.path.join(home, CONFIG)}: {refused}. Nothing ran"
-        )
+    value, refused = config.config_value(pairs, KEY)
+    if refused is not None:
+        raise Refused(f"seal gate: {config.config_path(home)}: {refused}. Nothing ran")
     return value or None
 
 
-# A refused line's first cell, read the way a cell was read before the escape
-# existed -- up to the first pipe. The line does not parse, so this is a
-# reading of what the person meant by it and not a row of the table.
-FIRST_CELL = re.compile(r"^\|([^|]*)\|")
-
-
-def names_this_row(line):
-    """Whether a line's first cell, read up to the first pipe, is this
-    gate's row."""
-    first = FIRST_CELL.match(line.strip())
-    return bool(first and first.group(1).strip() == ROW)
-
-
-def refused_broad_row(home):
-    """The `Broad gate` line a person wrote that the table walker did not
-    read — as written, with its own indentation — or None.
-
-    **A line, not a row, and only in a table the walker refused** (#871).
-    The walker never steps past a line it refuses, so every line written
-    below the one it stopped at is unread, and a `Broad gate` line among
-    them is the person's row sitting in front of them: saying it is ABSENT
-    is a true sentence about a cause that is not the real one (#415). The
-    line is the first one `unfenced` shows whose first cell names this row
-    -- the stopping line itself where that is the `Broad gate` line, or one
-    below it. A fenced or commented line is not it; `fenced_row_at` and
-    `commented_row_at` are the questions about those.
-
-    None covers every other shape: a table the walk read whole, a
-    `Broad gate` row the walk read, no such line at all, and a file that is
-    not there or will not read.
-    """
-    config = load(CONFIG_READER, "agentic_config_for_broad_gate")
-    text = config_text(home)
-    if text is None:
-        return None
-    rows, refusals = config.config_table(text)
-    if not refusals or any(item == ROW for _index, item, _value in rows):
-        return None
-    # exempt from splitlines: lines the GFM walk numbers
-    shown = config.unfenced(text.splitlines(), text)
-    return next((line for _index, line in shown if names_this_row(line)), None)
-
-
-# The line a walker sentence stopped at, between the backticks the walker
-# quotes it in, and the clause it ends on where rows are written below.
-# The sentences are `lib/config.py#gfm_table`'s own, and this reads them
-# rather than walking the table a second time (#871).
-STOPPED_AT = re.compile(
-    r"(?:stops at|ends above|continues with) `(?P<line>.*)`, (?:which is not|"
-    r"a delimiter row out of place|a row the walk never reaches|a line with no pipe)"
-)
-ROWS_BELOW = " — every row below it would go unread"
-IT_AND_ROWS_BELOW = " — it and every row below it would go unread"
-
-
-def stopping_line(text, refused):
-    """(index, line) for the line of TEXT the walker's sentence REFUSED
-    stopped at, or (None, None) where the sentence names no such line -- a
-    header refused before any row.
-
-    The line is found where the walker found it: the first line `unfenced`
-    shows below the header, the header being the first shown line whose
-    cells are the config header, that reads as the quoted text once
-    stripped."""
-    config = load(CONFIG_READER, "agentic_config_for_broad_gate")
-    quoted = STOPPED_AT.search(refused)
-    if quoted is None:
-        return None, None
-    # exempt from splitlines: lines the GFM walk numbers
-    shown = list(config.unfenced(text.splitlines(), text))
-    header = next(
-        (
-            k
-            for k, (_index, line) in enumerate(shown)
-            if config.table_cells(line) == config.CONFIG_TABLE
-        ),
-        None,
-    )
-    if header is None:
-        return None, None
-    return next(
-        (
-            (index, line)
-            for index, line in shown[header + 2 :]
-            if line.strip() == quoted.group("line")
-        ),
-        (None, None),
-    )
-
-
-def rows_written_below(text, index):
-    """Whether a line written `| … |` stands below the line at INDEX of TEXT,
-    before the next heading -- a row a person wrote, which the walker never
-    reaches once it stops at that line.
-
-    #430's condition: a sentence about rows below a line is false where
-    none is written below it, and the walker's sentence says so flat."""
-    config = load(CONFIG_READER, "agentic_config_for_broad_gate")
-    # exempt from splitlines: lines the GFM walk numbers
-    for line_index, line in config.unfenced(text.splitlines(), text):
-        if line_index <= index:
-            continue
-        if config.ATX_HEADING.match(line.lstrip(" ")):
-            return False
-        if line.lstrip().startswith("|"):
-            return True
-    return False
-
-
-def fenced_row_at(home):
-    """(index, line) for this gate's row written inside a code fence, or
-    (None, None). `fenced_row` below is that answer's line alone, and its
-    docstring is where this one's reasoning lives.
-
-    The INDEX is what lets the refusal say *a fence above it*: an opener left
-    unclosed lower down the file is not this row's cause, and the person whose
-    row is in a block that closes correctly still has to move it (#429,
-    round 2).
-
-    **Fenced, and not merely hidden.** The reader hides a line inside an HTML
-    comment that closes too (#667), and "written inside a code fence" is false
-    of that line; `commented_row_at` below is the question about it. So this
-    asks the reader WHICH kind hid the line rather than taking the complement
-    of what it shows.
-    """
-    return hidden_row_at(home, "fence")
-
-
-def commented_row_at(home):
-    """(index, line) for this gate's row written inside an HTML comment that
-    closes, or (None, None) -- `fenced_row_at`'s question about the other
-    kind of block the reader hides (#667). A row somebody parked in a comment
-    is not an answer they gave, so no walk of the table reads it; and then the
-    absent-row refusal would send them to write a row they can see, and the
-    fence refusal would name a fence that is not there, which is the
-    wrong-cause shape #415 and #429 were opened about."""
-    return hidden_row_at(home, "comment")
-
-
-def hidden_row_at(home, kind):
-    """(index, line) for the first line naming this gate's row that the one
-    reader hides as KIND, or (None, None). The kind is the reader's answer,
-    `lib/config.py#hidden_lines`, never a walk of this file's own."""
-    config = load(CONFIG_READER, "agentic_config_for_broad_gate")
-    text = config_text(home)
-    if text is None:
-        return None, None
-    # exempt from splitlines: lines the GFM walk numbers
-    lines = text.splitlines()
-    hidden, _opened_at = config.hidden_lines(lines, text)
-    return next(
-        (
-            (index, line)
-            for index, line in enumerate(lines)
-            if hidden.get(index) == kind and names_this_row(line)
-        ),
-        (None, None),
-    )
-
-
-def fenced_row(home):
-    """This gate's row written INSIDE a code fence — as written, with its own
-    indentation — or None.
-
-    **The one question about a fenced line anybody asks, and this gate is the
-    only one that may ask it.** `lib/config.py#unfenced` makes a fenced line
-    invisible to the one walk of that table, which is what stops an example
-    from being the command this gate runs (#429). It also makes a
-    `Broad gate` line written only inside a fence look exactly like no row at
-    all — and then the absent-row refusal below is a true sentence about a
-    cause that is not the real one, which is the failure #415 was opened
-    about, arriving one shape over. So the line is found again here, on the
-    refusal path alone.
-
-    Asked by THIS command and by nothing else. `lib/config.py` says
-    nothing about a fence, and this command speaks once and only when it
-    refuses.
-
-    It reads the fence rule from the one reader and asks it which lines it
-    hid inside a fence — `lib/config.py#hidden_lines`, which also hides a
-    line in an HTML comment and says which it was (#667) — rather than
-    walking the file by a rule of its own. A second fence rule written here
-    would answer a different question about the same file, which is the split
-    `lib/config.py` exists to prevent.
-
-    **The line alone**, which is what a message quotes. `fenced_row_at` above
-    is the same answer with the index beside it, for the one caller that has
-    to say where the line is relative to a fence.
-    """
-    return fenced_row_at(home)[1]
-
-
-def fence_left_open(home, above=None):
-    """Whether a fenced code block ABOVE the line at index ABOVE is never
-    closed — or anywhere in the file, where ABOVE is None.
-
-    Read off the one fence rule, not a second one. It is the difference
-    between a row somebody pasted into an example block and a row that is in
-    the live table with a fence opened above it — and the two need different
-    sentences, because the second person has nothing to move. Told to move a
-    row that is already where it belongs, they follow the instruction exactly
-    and nothing changes, which is the wrong-cause shape #415, #429 and #430
-    were each opened about.
-
-    False for every way of not having an answer: no file, a file that will not
-    read, a file with no fence in it at all.
-
-    **Above, because that is what the sentence says.** A file whose row sits
-    in an example block that closes and which opens a second block further
-    down answered True here, and the person was told to close a fence that has
-    nothing to do with their row while the act they needed — move it — was the
-    sentence they did not get (#429, round 2).
-    """
-    config = load(CONFIG_READER, "agentic_config_for_broad_gate")
-    text = config_text(home)
-    if text is None:
-        return False
-    # exempt from splitlines: lines the GFM walk numbers
-    opened_at = config.fence_map(text.splitlines(), text)[1]
-    if opened_at is None:
-        return False
-    return above is None or opened_at < above
-
-
 def missing_row(home):
-    """The refusal for a row the gate could not read — and there are four,
-    because there are four causes and what a person does about each one is
-    different.
+    """The refusal for a `Broad gate` key the config does not hold.
 
-    **The first cause is a line the table walker refused, with this gate's
-    row at it or below it** (#871). Where the row IS in the file and the
-    walk never read it, saying it is absent is a true sentence about a cause
-    that is not the real one: the person goes looking for a row that is
-    sitting in front of them (#415). So the refusal is the walker's own
-    sentence after the path — it quotes the line the walk stopped at and
-    names the edit — and three things more, each read off the file:
-
-      - **the `\\|` remedy, where the stopping line is this gate's row and
-        holds a bare pipe**: a cell of that table ends at a `|`, so a value
-        that needs one is written `\\|`, which the reader reduces to a plain
-        pipe before any shell sees it. GitHub shows that row truncated at
-        the pipe, so the command it shows is not the one the person wrote,
-        and nothing runs;
-      - **#430's condition**: the walker's sentence ends by saying every row
-        below the line would go unread, and that clause is said only where a
-        line written `| … |` stands below it. A `Broad gate` line written
-        LAST in its table — the shape a stub `seal mode` wrote can take —
-        loses nothing below it, and a person told otherwise goes looking
-        for rows they never wrote;
-      - **where the row is**: the stopping line itself, or a line below it
-        the walk never reached, quoted as written.
-
-    The walker never steps past a line, so there is one stopping line, every
-    row below it is unread, and the instructed edit loses no row the walk
-    read.
-
-    **The second cause is a row written where no walk of that table reads
-    it.** A `| Broad gate |` line inside a code fence is an example of the
-    format rather than this repository's own answer, and `lib/config.py#
-    unfenced` is what stops every walk from reading one (#429). That leaves
-    the line looking exactly like no row at all, so the absent-row refusal
-    below would send a person to write a row they can already see — the
-    wrong-cause message this whole work item exists to end. `fenced_row`
-    above finds it and the refusal says where it has to move to.
-
-    Where there is no such line, the message is the absent-row refusal
-    unchanged. It used to say *write the repository's own broad command into
-    it* and print the row to type. The only reader standing here is a
-    session, so what that sentence asked for is the one thing the row may not
-    be: #401 is a session that met this message after its review rounds had
-    settled, ran four candidate commands, chose one, wrote the row, and told
-    the owner afterwards. The message now says whose the row is and where
-    they answer it.
-    """
-    mine = refused_broad_row(home)
-    if mine is not None:
-        return walker_refusal(home, mine)
-    at, fenced = fenced_row_at(home)
-    if fenced is not None:
-        # Two causes, two acts, and the person in the second case has nothing
-        # to move: their row is in the live table and a fence opened ABOVE it
-        # was never closed, so it runs to the end of the file and takes the
-        # whole table with it. Told to move the row they would follow the
-        # instruction exactly and change nothing (#429, round 1). The fence
-        # has to be above the row: one opened below it leaves the row inside a
-        # block that closes, where moving it is still the act (#429, round 2).
-        where = (
-            "A fenced code block above it is never closed, so it runs to the "
-            "end of the file and takes the whole table with it. Close that "
-            "fence — the row itself may already be where it belongs."
-            if fence_left_open(home, at)
-            else "Move the row into the `| Item | Value |` table that stands "
-            "outside every fence, or add that table if the file has none."
-        )
-        return (
-            f"seal gate: {os.path.join(home, CONFIG)} has a `{ROW}` line and "
-            "this is it, written inside a code fence:\n"
-            f"    {fenced.strip()}\n"
-            "A table inside a code fence is an example of the format and not "
-            "this repository's own answer, so no walk of that table reads it "
-            "— not this gate's reader and not `seal mode`'s writer. The row is "
-            "not absent: it is written where "
-            f"nothing reads it, and there is no command to run.\n{where}\n"
-            "`templates/setup/config.md` *What is refused, and what stays allowed* "
-            "is where the rule says so, and `/agentic:config` is the door to "
-            "the file. Nothing ran."
-        )
-    _at, commented = commented_row_at(home)
-    if commented is not None:
-        # The fourth cause (#667). A row parked in an HTML comment that closes
-        # is one somebody took out of the table, so no walk reads it, and
-        # neither the absent-row sentence nor the fence sentence is true of
-        # it. The one act is the person's: take it out of the comment if it
-        # is the command to run.
-        return (
-            f"seal gate: {os.path.join(home, CONFIG)} has a `{ROW}` line and "
-            "this is it, written inside an HTML comment:\n"
-            f"    {commented.strip()}\n"
-            "A row inside a comment that closes is parked, not this "
-            "repository's answer, so no walk of that table reads it — not this "
-            "gate's reader and not `seal mode`'s writer. "
-            "The row is not absent and it is not in a code fence: it is "
-            "commented out, and there is no command to run.\n"
-            "If it is the command to run, take the row out of the "
-            "comment and into the `| Item | Value |` table.\n"
-            "`templates/setup/config.md` *What is refused, and what stays allowed* "
-            "is where the rule says so, and `/agentic:config` is the door to "
-            "the file. Nothing ran."
-        )
+    It used to say *write the repository's own broad command into it* and
+    print the key to type. The only reader standing here is a session, so
+    what that sentence asked for is the one thing the key may not be: #401
+    is a session that met this message after its review rounds had settled,
+    ran four candidate commands, chose one, wrote the key, and told the
+    owner afterwards. The message says whose the key is and where they
+    answer it."""
     return (
-        f"seal gate: {os.path.join(home, CONFIG)} has no `{ROW}` row, so "
+        f"seal gate: {os.path.join(home, CONFIG)} has no `{KEY}` key, so "
         "there is no command to run — and choosing one is not this "
-        "session's to do. There is no default because a row is a thing a "
+        "session's to do. There is no default because the key is a thing a "
         "person wrote, and what the broad run covers is exactly that "
         "(`skills/verify/SKILL.md` *The Seal Test*): a session that picks a "
         "command here checks its own choice.\n"
         "Take it to whoever owns the repository. `/agentic:config` is where "
-        f"they answer it — it shows every row and adds this one with its "
-        "section — and `templates/setup/config.md` *The criterion for choosing "
+        "they answer it — it shows every key and adds this one — and "
+        "`templates/setup/config.md` *The criterion for choosing "
         "a value* is what they choose against. Nothing ran."
-    )
-
-
-# A pipe no backslash escapes: a cell boundary to cmark-gfm, and four of
-# them make a `| … | … |` line three cells wide.
-BARE_PIPE = re.compile(r"(?<!\\)\|")
-
-
-def walker_refusal(home, mine):
-    """`missing_row`'s first arm: the refusal for a `Broad gate` line MINE
-    that the table walker did not read, because it refused the line MINE is
-    or a line above it. `missing_row`'s docstring is where the arm's
-    reasoning lives.
-
-    The walker's sentence is printed as the walker wrote it after the path,
-    with one cut: its closing clause about every row below the line is
-    dropped where no line written `| … |` stands below it (#430). The
-    sentence is the walker's for every table it reads, so it is not changed
-    for one caller; this caller trims what is false of the file it holds."""
-    config = load(CONFIG_READER, "agentic_config_for_broad_gate")
-    text = config_text(home)
-    said = config.config_table(text)[1][0]
-    index, stopped = stopping_line(text, said)
-    if index is not None and not rows_written_below(text, index):
-        said = said.replace(IT_AND_ROWS_BELOW, " — it would go unread").replace(
-            ROWS_BELOW, ""
-        )
-    if stopped is not None and stopped.strip() == mine.strip():
-        where = (
-            f"That line is the `{ROW}` row, so the walk never read it, and "
-            "there is no command to run."
-        )
-    else:
-        where = (
-            f"The `{ROW}` row is written below it, and the walk never "
-            f"reached it:\n    {mine.strip()}\n"
-            "So there is no command to run."
-        )
-    escape = ""
-    if (
-        stopped is not None
-        and names_this_row(stopped)
-        and len(BARE_PIPE.findall(stopped.strip())) > 3
-    ):
-        # GitHub ends the cell at the bare pipe too, so the command it shows
-        # for this row is not the one written here; running either would
-        # run a command nobody chose (#871, shape 7).
-        escape = (
-            "\nA cell of that table ends at a bare `|`, so GitHub shows this "
-            "row cut off at the pipe and the command it shows is not the one "
-            "written here. A value that needs a pipe is written with "
-            "markdown's own escape — write it `\\|`, which the reader reduces "
-            "to a plain pipe before any shell sees it: "
-            f"`| {ROW} | bin/test -q \\| tee out.txt |` is the row that runs "
-            "that command."
-        )
-    return (
-        f"seal gate: {os.path.join(home, CONFIG)} {said}.\n{where}{escape}\n"
-        "`templates/setup/config.md` *What is refused, and what stays allowed* is "
-        "where the rule says so, and `/agentic:config` is the door to the "
-        "file. Nothing ran."
     )
 
 
@@ -1118,7 +715,7 @@ def wholly_substituted(value):
     A pair that closes early wraps a part rather than the whole, and a part
     is the repository's own composition: `pytest -n $(nproc)` still runs as
     the command it reads as. So `$(a) && b` reads as None here, and so does
-    `` `a` && `b` `` — a row nothing in this module claims to catch. Both
+    `` `a` && `b` `` — a value nothing in this module claims to catch. Both
     fall out of one reading, which is the point: what is refused is a form,
     not the characters in it.
     """
@@ -1155,10 +752,10 @@ def not_as_written(home, command):
     the screen. A trailing `&` backgrounds the line, so the shell answers 0
     before any check has finished.
 
-    Everything else stays legal, a pipe included, because the row is an
+    Everything else stays legal, a pipe included, because the value is an
     arbitrary shell command line by design and telling a status-discarding
     `;` from one inside a quoted argument needs a shell parser — whose own
-    failure modes would make legitimate rows unwritable.
+    failure modes would make legitimate values unwritable.
 
     Nothing is stripped or rewritten. A value silently repaired here leaves
     the file still wrong and teaches the next person that it was right.
@@ -1193,15 +790,15 @@ def not_as_written(home, command):
         return None
     rewritten = (value[len(opener) : -1] if opener else value[:-1]).strip()
     return (
-        f"seal gate: the `{ROW}` row in {os.path.join(home, CONFIG)} {form}, "
+        f"seal gate: the `{KEY}` key in {os.path.join(home, CONFIG)} {form}, "
         f"{does}.\n"
-        f"    as written: | {ROW} | {value} |\n"
-        f"    as meant:   | {ROW} | {rewritten} |\n"
-        "Nothing ran, and nothing was repaired: the row is a person's to "
+        f"    as written: {json.dumps({KEY: value}, ensure_ascii=False)[1:-1]}\n"
+        f"    as meant:   {json.dumps({KEY: rewritten}, ensure_ascii=False)[1:-1]}\n"
+        "Nothing ran, and nothing was repaired: the key is a person's to "
         "write, and a value quietly fixed here would leave the file still "
         "wrong. `templates/setup/config.md` *Broad gate* lists what is refused "
         "and what stays allowed, with the reason for each, and "
-        "`/agentic:config` is the door to the row."
+        "`/agentic:config` is the door to the key."
     )
 
 
@@ -1232,12 +829,12 @@ def run(name, command, root, keep, shell=False, env=None, windows=None, comspec=
     one place this module's shell sites meet: `gate`'s `SUITE` and
     `compare_at_base`'s `suite-at-base` both arrive here, so neither needed a
     change of its own (#448). Where what the shell is handed differs from what
-    the row says, one stderr line says so before the run, and the kept file
-    carries both lines above the exit code — the row as written first, because
+    the key says, one stderr line says so before the run, and the kept file
+    carries both lines above the exit code — the command as written first, because
     that is the line a reader retypes. `windows` and `comspec` are the
     platform, passed through, so a case can drive the `cmd.exe` branch from
     any machine the way `quote` is driven. `root` is passed through too,
-    because it is where the row runs, and so where a command name's first
+    because it is where the command runs, and so where a command name's first
     part is asked whether it is a directory (#596).
     """
     handed = handed_to_shell(command, windows, comspec, root) if shell else command
@@ -1268,7 +865,7 @@ def run(name, command, root, keep, shell=False, env=None, windows=None, comspec=
 #
 # `subprocess.run(..., shell=True)` on Windows runs `%COMSPEC% /c "<string>"`,
 # and `COMSPEC` is `cmd.exe` unless somebody changed it. `cmd.exe` reads a `/`
-# in a command NAME as the start of a switch, so the row `bin/test -q && …`
+# in a command NAME as the start of a switch, so the command `bin/test -q && …`
 # runs a command called `bin` with the argument `/test`, prints "not
 # recognized" in the machine's own language, and exits 1 — which the failure
 # form then reports as the suite failing (#448). `bin/test.cmd` exists so that
@@ -1299,7 +896,7 @@ def as_cmd_expands(part, here):
     A name defined in this process's environment takes its value, which is
     the environment `run` hands the shell. Where the environment defines
     neither `CD` nor `__CD__`, `cmd.exe` computes them, and both name the
-    directory the row runs in, which is `here`. A defined one wins, as it
+    directory the command runs in, which is `here`. A defined one wins, as it
     does in `cmd.exe` (`set /?`), so the environment is asked first (#616).
     Any other name is left as written, as `cmd /c` leaves an undefined one,
     and so is `%%`. A substring or substitution (`%NAME:~0,2%`,
@@ -1354,7 +951,7 @@ def handed_to_shell(command, windows=None, comspec=None, root=None):
     (`command_names_backslashed`).
 
     **The directory is asked here, and the scan stays pure.** `root` is
-    where the row runs — `run`'s own `root`, which is the repository for
+    where the command runs — `run`'s own `root`, which is the repository for
     `gate` and the scratch worktree for `compare_at_base` — and a name's
     first part is a directory where `os.path.isdir(os.path.join(root,
     part))` says so, once any `%VAR%` in it is expanded, because `cmd.exe`
@@ -1362,7 +959,7 @@ def handed_to_shell(command, windows=None, comspec=None, root=None):
     that expansion, which its docstring states; a variable that names
     nothing stays as written and names no directory.
     `None` is the current directory, which is where
-    `subprocess.run` with `cwd=None` would run the row. The read happens
+    `subprocess.run` with `cwd=None` would run the command. The read happens
     here because this function already reads `COMSPEC` from the
     environment; the scan takes the answer as an argument (#596).
 
@@ -1387,7 +984,7 @@ def handed_to_shell(command, windows=None, comspec=None, root=None):
 
 # `cmd.exe`'s own commands. Written straight against one of them, a `/` is
 # that command's switch -- `rd/s/q`, `dir/b`, `cd/d` -- and `cmd.exe` runs the
-# row as written. Turned into `\` it stops being a switch, so it is left.
+# command as written. Turned into `\` it stops being a switch, so it is left.
 CMD_BUILTINS = frozenset(
     {
         "assoc",
@@ -1447,7 +1044,7 @@ def command_names_backslashed(command, is_directory):
     and `^` removed and every leading `@` dropped, as the built-in check
     drops them, and answers whether that
     part names a directory. The scan does no I/O of its own:
-    `handed_to_shell` asks the filesystem where the row runs, and a case
+    `handed_to_shell` asks the filesystem where the command runs, and a case
     can answer from any machine. An empty part is a name that begins with
     `/`, which starts at the drive's root; that always exists, so it is
     answered here without asking.
@@ -1493,15 +1090,15 @@ def command_names_backslashed(command, is_directory):
     an argument of those words and then splits exactly as it did before this
     existed; and a command name after a redirection at the start of a
     command (`>out bin/test`), where this scan stops treating the rest as
-    command position. None is worse than the row handed as written, and
+    command position. None is worse than the command handed as written, and
     `templates/setup/config.md` *Broad gate* states the rule and these examples.
 
-    **Judged where the row starts, and bounded there, named rather than
-    claimed:** a directory an earlier command in the same row makes, or
-    one a `cd` earlier in the row enters, is not seen, so that name is
+    **Judged where the command starts, and bounded there, named rather than
+    claimed:** a directory an earlier command in the same line makes, or
+    one a `cd` earlier in the line enters, is not seen, so that name is
     handed over as written — which is what `cmd.exe` got before #448, and
-    no worse than the row itself. And a directory at the root named like a
-    program the row calls with a glued switch (an `xcopy/` directory)
+    no worse than the command itself. And a directory at the root named like a
+    program the command calls with a glued switch (an `xcopy/` directory)
     makes `xcopy/e` read as a path; `cmd.exe` itself is ambiguous in that
     tree, and a blank before the switch (`xcopy /e`) is never rewritten.
     `templates/setup/config.md` *Broad gate* states both.
@@ -1579,14 +1176,14 @@ def command_names_backslashed(command, is_directory):
 # --- the reactive base comparison ------------------------------------------
 #
 # #825. Four designs in a row inferred which pytest process printed a line,
-# from the row's text and from what pytest printed, and each fix moved the
+# from the command's text and from what pytest printed, and each fix moved the
 # guess one level up. The gate now loads a recorder of its own into every run
 # it measures, and the pytest process that collected a test is the process
 # that writes that test's outcome down. No line pytest printed is read for a
 # word, and no file is appended to any run.
 
 # The recorder's directory, which holds the recorder and nothing else, so the
-# row's interpreter is shown nothing else of this plugin's through
+# command's interpreter is shown nothing else of this plugin's through
 # `PYTHONPATH`. Beside this file, so a tree that ships its own gate ships its
 # own recorder with it (`gate_copy`).
 RECORDER_DIR = os.path.join(HERE, "pytest_record")
@@ -1594,11 +1191,11 @@ RECORDER = "agentic_pytest_record"
 # The four variables a measured run is handed, and the directory under the
 # kept output the records go in. The two the recorder reads are its own
 # module's names, written again here rather than imported, because the
-# recorder runs in the row's interpreter and this file is never loaded there.
+# recorder runs in the command's interpreter and this file is never loaded there.
 RECORD_KEY_VARIABLE = "AGENTIC_RECORD_KEY"
 RECORD_DIR_VARIABLE = "AGENTIC_RECORD_DIR"
 RECORDS = "records"
-# The kept name of the row's one run at the base.
+# The kept name of the command's one run at the base.
 BASE_RUN = "suite-at-base"
 
 
@@ -1613,7 +1210,7 @@ def record_key(kind):
 
 def records_dir(keep):
     """The absolute directory every record of this gate run goes in. Absolute,
-    because the row may `cd` before it starts pytest."""
+    because the command may `cd` before it starts pytest."""
     return os.path.join(os.path.abspath(keep), RECORDS)
 
 
@@ -1624,10 +1221,10 @@ def recording_env(keep, key):
     and the recorder's two variables set — the records directory, made here,
     and `key`.
 
-    Every pytest the row starts inherits all four. The first session in a
+    Every pytest the command starts inherits all four. The first session in a
     process that finds the key claims it and takes it out of that process's
     environment, so a pytest it starts in turn — one a test spawns, an xdist
-    worker — records nothing. A row that replaces either variable rather than
+    worker — records nothing. A command that replaces either variable rather than
     adding to it takes the recorder away from its runs; `templates/setup/config.md`
     rule 3 says what that costs."""
     env = dict(os.environ)
@@ -1745,10 +1342,10 @@ def record_path(path, worktree):
 # kind of stop shows in neither. A stop raised before the recorder writes its
 # `session` line, such as a `pytest.exit()` in a conftest's `pytest_configure`,
 # leaves no record of that session, and the gate reads the run as though that
-# session never started: on the row's exit and the other sessions' records
+# session never started: on the command's exit and the other sessions' records
 # (#883 rounds 1 and 2). A `pytest.exit()` raised by a `pytest_sessionfinish`
 # hook that runs after the recorder's is no stop: it comes after the run loop,
-# which ran every test, and it can only choose the row's exit. A red session
+# which ran every test, and it can only choose the command's exit. A red session
 # under it still fails the suite on its `end` line's exit (`PASSED_EXITS`,
 # #1301). One over-strictness is named rather than closed: pytest sets
 # `shouldfail` after the test that reaches `-x` or `--maxfail`, last test or
@@ -1760,11 +1357,11 @@ RAN_TO_ITS_END = (0, 1, 5)
 # end and failed nothing, or collected nothing. The exit is the one pytest's
 # run loop gave, because `wrap_session` hands the same value to every
 # `pytest_sessionfinish` hook, the recorder's among them. What runs after the
-# loop can change the row's exit and not this one: a hook that sets
+# loop can change the command's exit and not this one: a hook that sets
 # `session.exitstatus`, before the recorder's or after it, a later one that
 # raises `pytest.exit()`, a `pytest_unconfigure` that ends the process, or a
-# part of the row after pytest, such as `; true` or a pipe. So a session whose
-# `end` line reads 1 failed a test, whatever the row exited, and the gate
+# part of the command after pytest, such as `; true` or a pipe. So a session
+# whose `end` line reads 1 failed a test, whatever the command exited, and the gate
 # fails the suite on it.
 PASSED_EXITS = (0, 5)
 
@@ -1791,7 +1388,7 @@ def read_record(directory, key, worktree):
     per session however often its line was written, and a `test` line once
     per line, as pytest counts each report. A `test` line whose `category`
     is not a word, or is `""`, counts under none. Files are
-    read in the order they were last written, so where a row runs pytest
+    read in the order they were last written, so where a command runs pytest
     twice the first runner's files come first. A directory that cannot be
     listed, or a file that cannot be read, holds no record. An `end` line's
     `unplaced`, where it is an integer, is added to the record's, and to its
@@ -1850,7 +1447,7 @@ def read_record(directory, key, worktree):
         if stopped:
             record.unended += 1
         # A session that ran to its end passed where its exit says it failed
-        # nothing (#1301), whatever the row exited after the run loop.
+        # nothing (#1301), whatever the command exited after the run loop.
         if stopped or any(end.get("exitstatus") not in PASSED_EXITS for end in ends):
             record.unpassed += 1
         collections = set()
@@ -1883,7 +1480,7 @@ def read_record(directory, key, worktree):
 
 def failing_files(text):
     """The test files pytest's `FAILED` lines name, in first-seen order —
-    read only where the row's run at `HEAD` left no record carrying its key,
+    read only where the command's run at `HEAD` left no record carrying its key,
     and each of them then reads `NO_RECORD_AT_HEAD`."""
     return list(dict.fromkeys(FAILED_RE.findall(text)))
 
@@ -1919,10 +1516,10 @@ def quote(path, windows=None):
 # What a file reads where no run measured it (#747). Each starts `new?`, so it
 # is never read as `new`, and says the comparison was not measured.
 NOT_MEASURED = f"{NEW}? not measured"
-# How a row earns the measured word, said by both reasons that are about a
-# row whose pytest did not load the recorder.
+# How a command earns the measured word, said by both reasons that are about
+# a command whose pytest did not load the recorder.
 EARNS_THE_WORD = (
-    "A row earns the measured word by letting every pytest it runs load the "
+    "A command earns the measured word by letting every pytest it runs load the "
     "gate's recorder: it adds to the PYTHONPATH and PYTEST_ADDOPTS the gate "
     "hands it rather than replacing them, and runs pytest in that "
     "environment rather than one it builds, through any wrapper"
@@ -1930,40 +1527,40 @@ EARNS_THE_WORD = (
 # What a missing record means, said by both reasons: every cause, never one
 # of them as the only one (#825 round 3's 🟡 3 and round 4's 🟡 3). The
 # records alone cannot tell the three apart, so the sentence names each and
-# where it shows: a row that started no pytest -- a part before its runner
-# failed, the module's case A5, or a row with no runner at all -- prints no
+# where it shows: a command that started no pytest -- a part before its runner
+# failed, the module's case A5, or a command with no runner at all -- prints no
 # pytest output; a pytest that loaded no recorder prints its own; and the
 # recorder's warning is `agentic_pytest_record: no record written: <error>`.
 NO_RECORD_CAUSES = (
-    "the row started no pytest, because a part before its runner failed or "
+    "the command started no pytest, because a part before its runner failed or "
     "it has none; none it started loaded the recorder; or the one that did "
     "could not write its record and warned 'agentic_pytest_record: no record "
     "written' in {kept}"
 )
-# Where the row's run at `HEAD` left no record carrying its key: the files
+# Where the command's run at `HEAD` left no record carrying its key: the files
 # come from the `FAILED` lines of `suite.txt`, and the base is not run.
 NO_RECORD_AT_HEAD = (
-    f"{NOT_MEASURED}: no pytest the row ran here left a record of the gate's "
+    f"{NOT_MEASURED}: no pytest the command ran here left a record of the gate's "
     f"recorder ({NO_RECORD_CAUSES.format(kept='suite.txt')}), so this file is "
     "named only by a FAILED line of suite.txt and the base was not run. "
     f"{EARNS_THE_WORD}"
 )
-# Where the row's run at the base left no record carrying the base's key.
+# Where the command's run at the base left no record carrying the base's key.
 NO_RECORD = (
-    f"{NOT_MEASURED}: the row ran once at the base, and no pytest it ran there "
+    f"{NOT_MEASURED}: the command ran once at the base, and no pytest it ran there "
     "left a record of the gate's recorder "
     f"({NO_RECORD_CAUSES.format(kept='suite-at-base.txt')}; records/ is beside "
     f"it). {EARNS_THE_WORD}"
 )
-# Formatted with the exit of the row's run at the base, where no session of
-# that run collected the file and the run did not exit 0 (`questions.md` Q1
-# of 1791270161 holds the trade).
+# Formatted with the exit of the command's run at the base, where no session
+# of that run collected the file and the run did not exit 0 (`questions.md`
+# Q1 of 1791270161 holds the trade).
 NOT_REACHED = (
-    f"{NOT_MEASURED}: the row ran once at the base and exited {{code}}, and no "
+    f"{NOT_MEASURED}: the command ran once at the base and exited {{code}}, and no "
     "pytest it ran there collected this file, so the run may have ended before "
     "reaching it and whether the base fails it was not measured (kept as "
     "suite-at-base.txt, with records/ beside it). A file the branch added "
-    "reads this way wherever the base's own row already fails"
+    "reads this way wherever the base's own command already fails"
 )
 
 
@@ -1976,7 +1573,7 @@ NOT_REACHED = (
 # cannot be (#825 round 5). A red session whose left-out reports all passed
 # still turns `new` into this: the limit rule 3 names.
 UNPLACED_AT_BASE = (
-    f"{NOT_MEASURED}: the row ran once at the base, and its sessions that "
+    f"{NOT_MEASURED}: the command ran once at the base, and its sessions that "
     "ended non-zero left {count} of the tests and collections their pytest "
     "reported in no list, "
     "such as a test whose xdist worker died before any report of it arrived, "
@@ -1994,7 +1591,7 @@ UNPLACED_AT_BASE = (
 # does not hold: pytest ended the session itself (#849 round 1). Checked
 # after `UNPLACED_AT_BASE`, whose count is the one a red session can give.
 UNENDED_AT_BASE = (
-    f"{NOT_MEASURED}: the row ran once at the base, and {{count}} of its pytest "
+    f"{NOT_MEASURED}: the command ran once at the base, and {{count}} of its pytest "
     "sessions stopped part-way, because the process died or the recorder "
     "stopped writing before the session's end line, or pytest stopped the "
     "session (an interrupt, pytest.exit(), -x or --maxfail, a plugin's stop) "
@@ -2013,7 +1610,7 @@ UNENDED_AT_BASE = (
 # failing still reads `failing on base too`: what the record does hold is
 # kept.
 UNREAD_AT_BASE = (
-    f"{NOT_MEASURED}: the row ran once at the base, and {{count}} of the lines "
+    f"{NOT_MEASURED}: the command ran once at the base, and {{count}} of the lines "
     "in the records its pytest wrote there did not parse as the recorder's and "
     "each was passed over, so one may have held this file's failure and "
     "whether the base fails it was not measured (kept as suite-at-base.txt, "
@@ -2048,9 +1645,9 @@ def compare_at_base(root, base, command, files, keep):
     """{file: `new` | `failing on base too` | `new? …`}, read off a record
     the base's own pytest wrote — never inferred.
 
-    `files` are the failing files of the row's run at `HEAD`, as
+    `files` are the failing files of the command's run at `HEAD`, as
     `read_record` names them against `root`. A scratch worktree is added at
-    `base`, the row runs there **once, unchanged** — nothing appended, no
+    `base`, the command runs there **once, unchanged** — nothing appended, no
     prefix cut — handed `recording_env` with a key of its own, its output
     kept as `suite-at-base.txt` and its record under `records/`, and the
     worktree is removed whatever happened. Each file is named against the
@@ -2061,13 +1658,13 @@ def compare_at_base(root, base, command, files, keep):
       - a failing test or a failed collection of the file: `failing on base
         too`;
       - the file collected, and nothing of it failed: `new`;
-      - the file in no session, and the row exited 0: `new` — the row ran to
-        its end at the base and never collected the file, so the base cannot
-        fail a test it did not run;
-      - the file in no session, and the row exited non-zero: `NOT_REACHED`
-        with the exit — a part that failed before a later runner, `-x`, an
-        interrupt, a crash, or simply a file the branch added on a base whose
-        row is already red.
+      - the file in no session, and the command exited 0: `new` — the
+        command ran to its end at the base and never collected the file, so
+        the base cannot fail a test it did not run;
+      - the file in no session, and the command exited non-zero:
+        `NOT_REACHED` with the exit — a part that failed before a later
+        runner, `-x`, an interrupt, a crash, or simply a file the branch
+        added on a base whose command is already red.
 
     Either `new` reads `UNPLACED_AT_BASE` with the count instead where a
     session of the base that ended non-zero left any test or collection out
@@ -2085,7 +1682,7 @@ def compare_at_base(root, base, command, files, keep):
     The process that collected a test is the process that wrote its line,
     so there is no `whose` to decide: a test that runs pytest itself starts
     a pytest with no key, which records nothing, and a second runner in the
-    row writes its own session with its own paths. Each line names its file
+    command writes its own session with its own paths. Each line names its file
     by the path pytest holds for the test or the collector, carried on the
     report from the process that held it, and never by a name pytest made
     from that path, so no rootdir and no argument enters it (#825's reframe
@@ -2242,7 +1839,7 @@ def job_steps(text, job):
 # refuse nothing, one is shell written inline in the workflow with no script
 # to share, and two run a script that belongs to this repository rather
 # than to the plugin. The last three are the ones with a local answer, and
-# `seal/config.md`'s `Broad gate` row is where a repository names checks of
+# `seal/config.json`'s `Broad gate` key is where a repository names checks of
 # its own — not the arm list of a script that ships to every repository that
 # installs the plugin.
 #
@@ -2277,7 +1874,7 @@ PARTITION = (
         "gate reads no network and carries no token",
     ),
     (
-        "the mode the row declares is the mode the folder is in",
+        "the mode the key declares is the mode the folder is in",
         MODE_NAME,
         None,
     ),
@@ -2419,7 +2016,7 @@ def coverage_line(text, given):
     has to reconstruct WHICH from two files, which is the reconstruction this
     work item exists to remove. So the panel carries the number and this
     carries the names, on the stream the gate already uses to say which
-    command the row asked for.
+    command the key asked for.
 
     **A step no row classifies is named apart from one a row excludes.**
     `PARTITION` describes AgenticSeal's own `release` job; in another repository
@@ -2476,11 +2073,11 @@ PLURALS = {"error": "errors"}
 def suite_counts(record):
     """The suite's counts as pytest's summary line prints them, without its
     clock — `1 failed, 767 passed, 1 error` — read off the `RunRecord` of
-    the row's run, or None.
+    the command's run, or None.
 
-    Every number is a count of lines the row's own pytest wrote, under the
-    category pytest's own line counts each report under (`read_record`), so
-    nothing the row PRINTS can reach it (#869). None where no session
+    Every number is a count of lines the command's own pytest wrote, under
+    the category pytest's own line counts each report under (`read_record`),
+    so nothing the command PRINTS can reach it (#869). None where no session
     carries the key, where a keyed file holds a line that did not parse —
     a count that passed a line over is not one anybody can vouch for —
     where a report was counted under no category because it had no file of
@@ -2623,9 +2220,9 @@ def panel(
 
     `base` is a `Base`. `copy` is `gate_copy`'s value and None leaves the
     `gate` row out; `branch` is `branch_name`'s, None on a detached HEAD;
-    `run` is the `RunRecord` of the row's run here, whose `suite_counts` the
-    `suite` row prints (#869) — never the row's printed output, which a test
-    can print into.
+    `run` is the `RunRecord` of the command's run here, whose `suite_counts`
+    the `suite` row prints (#869) — never the command's printed output, which
+    a test can print into.
 
       tree      <tree>
                 <branch>                   absent on a detached HEAD
@@ -2684,11 +2281,12 @@ def panel(
 
     Two rows left with #666, and why: `from` became the row under `base`,
     which #832 folded into the `base` row, and `row` — the exit code the
-    repository's row came back with — continued under `suite` until #717
-    took it off. NOT `("lint", "clean")` either: the row is
+    repository's command came back with — continued under `suite` until #717
+    took it off. NOT `("lint", "clean")` either: the command is
     one shell command line and nothing in it says which part is a linter
-    (`templates/setup/config.md` *Broad gate*), so `clean` over a row with no
-    linter in it is the gate's report asserting a check that never ran."""
+    (`templates/setup/config.md` *Broad gate*), so `clean` over a command
+    with no linter in it is the gate's report asserting a check that never
+    ran."""
     stamp = stamp_module()
     fit = stamp.fit
     rows = [("tree", tree)]
@@ -2745,8 +2343,8 @@ def panel(
 def failure_lines(check, verdicts=None, record=None):
     """What the failure form quotes for one check: its first lines, the
     FAILED lines with their base verdict where there are any, the exit code,
-    and the file holding the rest. `record` is the `RunRecord` of the row's
-    run at `HEAD`, for the suite; None for every other check.
+    and the file holding the rest. `record` is the `RunRecord` of the
+    command's run at `HEAD`, for the suite; None for every other check.
 
     **Where the record at `HEAD` left tests or collections out, it says how
     many** (#825's reframe after round 3). `record.unplaced` is the count of
@@ -2762,13 +2360,13 @@ def failure_lines(check, verdicts=None, record=None):
     can be in no list above.
 
     **A session at `HEAD` that did not pass fails the suite, whatever the
-    row's exit** (#883, #1301). `record.unpassed` is the count of them: every
+    command's exit** (#883, #1301). `record.unpassed` is the count of them: every
     session that stopped part-way, and every red one. So a failing `suite`
     whose exit is 0 says first, under its own lines and above any file list,
     why it failed (`NOT_PASSED_AT_EXIT_0`): a stop that chooses the exit code
     can give 0 over tests that never ran, and over a test that failed before
     it, and an act after pytest's run loop, a later hook or a part of the
-    row, can give 0 over a test that failed.
+    command, can give 0 over a test that failed.
 
     **Where a line of the record at `HEAD` did not parse, it says how many**
     (#869). `record.unread` is the count of them; the gate passed each over,
@@ -2776,9 +2374,10 @@ def failure_lines(check, verdicts=None, record=None):
 
     **A failing `suite` ends with the counts its pytest recorded** (#869),
     `suite_counts` of `record`, in pytest's own words and never read off
-    what the row printed. **Where no pytest the row ran left a record, it
-    says so** (#448): the exit code alone reads as tests failing, and it is
-    equally what a shell prints when the row never reached the suite —
+    what the command printed. **Where no pytest the command ran left a
+    record, it says so** (#448): the exit code alone reads as tests failing,
+    and it is equally what a shell prints when the command never reached the
+    suite —
     `cmd.exe` exits 1 with a "not recognized" line in the machine's own
     language — so the line names every cause of a missing record and says
     the exit is not a count. Where a record holds lines that did not parse,
@@ -2830,19 +2429,19 @@ BASE_NOT_CHECKED_OUT = (
 # The line under the listing where the record at `HEAD` counted tests or
 # collections it wrote as no line, formatted with the count.
 UNPLACED = (
-    "{count} of the tests and collections the row's pytest reported had no "
+    "{count} of the tests and collections the command's pytest reported had no "
     "file of their own and are in no list: a test a conftest or a plugin "
     "parents to the session or to a directory, a failed collection of the "
     "whole session, or a report a plugin built without its path (counted as "
     "unplaced on the end line of each record under records/)"
 )
 
-# The line under the listing where a session of the row's pytest at `HEAD`
-# stopped part-way, formatted with how many did: the test it stopped in may
-# have written no failing line, and the tests it never reached wrote none, so
-# their file can be in no list above (#849 round 1).
+# The line under the listing where a session of the command's pytest at
+# `HEAD` stopped part-way, formatted with how many did: the test it stopped in
+# may have written no failing line, and the tests it never reached wrote none,
+# so their file can be in no list above (#849 round 1).
 UNENDED_HERE = (
-    "{count} of the row's pytest sessions here stopped part-way, because the "
+    "{count} of the command's pytest sessions here stopped part-way, because the "
     "process died or the recorder stopped writing before the session's end "
     "line, or pytest stopped the session (an interrupt, pytest.exit(), -x or "
     "--maxfail, a plugin's stop) or ended it on an error of its own, so a test "
@@ -2850,40 +2449,41 @@ UNENDED_HERE = (
     "none (each session's record is under records/)"
 )
 
-# The line under a failing suite's own lines where the row exited 0 and the
-# gate failed it on a session at `HEAD` that did not pass (#883, #1301). A
+# The line under a failing suite's own lines where the command exited 0 and
+# the gate failed it on a session at `HEAD` that did not pass (#883, #1301). A
 # test that calls `pytest.exit()` with a return code of 0, or ends its process
-# with `os._exit(0)`, stops the session there with the row still at exit 0,
-# and that exit holds whether or not a test failed before the stop. A session
-# whose `end` line reads exit 1 failed a test, and a later hook or a part of
-# the row after pytest chose the row's exit of 0 (`PASSED_EXITS`).
+# with `os._exit(0)`, stops the session there with the command still at exit
+# 0, and that exit holds whether or not a test failed before the stop. A
+# session whose `end` line reads exit 1 failed a test, and a later hook or a
+# part of the command after pytest chose the command's exit of 0
+# (`PASSED_EXITS`).
 NOT_PASSED_AT_EXIT_0 = (
-    "the row exited 0, and the gate fails the suite all the same because a "
+    "the command exited 0, and the gate fails the suite all the same because a "
     "pytest session it ran did not pass by its own record: either it stopped "
     "part-way, and a stop such as pytest.exit() or os._exit() chooses the exit "
     "code itself, or it ended with exit 1, and a later hook or a part of the "
-    "row after pytest chose the row's exit; so an exit of 0 says neither that "
+    "command after pytest chose the command's exit; so an exit of 0 says neither that "
     "the session ran every test it collected nor that nothing it ran failed"
 )
 
-# The line under the listing where a line of the records the row's pytest
-# wrote at `HEAD` did not parse as the recorder's, formatted with how many
-# (#869): the gate passed each over, so a failing test it named may be in no
-# list, and no count of the suite is printed.
+# The line under the listing where a line of the records the command's
+# pytest wrote at `HEAD` did not parse as the recorder's, formatted with how
+# many (#869): the gate passed each over, so a failing test it named may be in
+# no list, and no count of the suite is printed.
 UNREAD_HERE = (
-    "{count} of the lines in the records the row's pytest wrote here did not "
+    "{count} of the lines in the records the command's pytest wrote here did not "
     "parse as the recorder's and each was passed over, so a failing test may "
     "be in no list and the suite's counts are not given (each session's "
     "record is under records/)"
 )
 
-# The line a failing `suite` gets where no pytest the row ran left a record,
-# in place of the counts (#448, #869). Every cause of a missing record, never
-# one of them as the only one (`NO_RECORD_CAUSES`); a pytest that died
-# part-way is not among them, because it left a record and `UNENDED_HERE`
-# counts it.
+# The line a failing `suite` gets where no pytest the command ran left a
+# record, in place of the counts (#448, #869). Every cause of a missing
+# record, never one of them as the only one (`NO_RECORD_CAUSES`); a pytest
+# that died part-way is not among them, because it left a record and
+# `UNENDED_HERE` counts it.
 NO_RECORD_HERE = (
-    "no pytest the row ran here left a record of the gate's recorder "
+    "no pytest the command ran here left a record of the gate's recorder "
     f"({NO_RECORD_CAUSES.format(kept='suite.txt')}), so this exit code is not "
     "a count of failing tests"
 )
@@ -2943,16 +2543,17 @@ def report_lines(rows, ascii_marks=False):
 # --- the preflight (#638) -----------------------------------------------------
 #
 # The record arms, typed by the orchestrator before it spawns the sealer.
-# Its heads say `PREFLIGHT`, not `BROAD GATE`: a preflight runs no row, and a
-# reader who took it for the broad run would take a suite nobody ran for a
-# suite that passed.
+# Its heads say `PREFLIGHT`, not `BROAD GATE`: a preflight runs no command,
+# and a reader who took it for the broad run would take a suite nobody ran for
+# a suite that passed.
 PREFLIGHT_PASSED = "PREFLIGHT PASSED   {tree} against {base}"
 PREFLIGHT_FAILED = "PREFLIGHT FAILED   {tree} against {base}"
 PREFLIGHT_TAIL = (
-    " · the record arms: the `Broad gate` row was not run and nothing is written"
+    " · the record arms: the `Broad gate` command was not run and nothing is written"
 )
-# Appended to the stderr line that quotes the row, so a reader sees the row
-# was read — every refusal about it still applies — and not handed to a shell.
+# Appended to the stderr line that quotes the command, so a reader sees the
+# key was read — every refusal about it still applies — and not handed to a
+# shell.
 ROW_NOT_RUN = " — read, and not run: this is a preflight"
 PREFLIGHT_RECORD = (
     "seal gate: --preflight and --record were both given, and a preflight "
@@ -2980,21 +2581,25 @@ def gate(args, ascii_marks=False):
         )
     home = seal_home(root)
     if home is None:
+        # The two places as `optin.home_paths` gives them, as `seal mode`
+        # prints them: beside a project's own `seal/` the shared one takes
+        # the second name, which a literal `<repo>/seal/` would misname.
+        shared, local = load(OPTIN, "agentic_optin_for_broad_gate").home_paths(root)
         raise Refused(
             f"seal gate: {root} has no seal/ root at either place a root lives "
-            "(`<repo>/seal/`, `<git-common-dir>/seal/`, its README.md opening "
-            "with the marker) — this repository is not opted in, and there is "
-            "no config to read a command from. Nothing ran"
+            f"(`{shared}`, `{local}`, its README.md opening with the marker) — "
+            "this repository is not opted in, and there is no config to read a "
+            "command from. Nothing ran"
         )
     command = broad_command(home)
     if command is None:
         raise Refused(missing_row(home))
     # The one place the value is looked at before a shell is handed it, and
-    # the only one there needs to be: the other surface that runs the row
+    # the only one there needs to be: the other surface that runs the command
     # (`compare_at_base`, which runs it once, unchanged, at the base) is
     # reached only after the run below, so this refusal closes it by
     # reachability rather than by a second guard in a second place (`frame/design.md`
-    # *The class, enumerated by construction*). It runs the very row this
+    # *The class, enumerated by construction*). It runs the very command this
     # refusal passed (#825).
     unrunnable = not_as_written(home, command)
     if unrunnable:
@@ -3034,34 +2639,35 @@ def gate(args, ascii_marks=False):
     py = sys.executable
     checks = {}
     # The first of `verify`'s four conditions is to name the command before
-    # running it, and the row is the only part of this run the gate did not
-    # choose. `skills/code-review/orchestration.md` asks the orchestrator to
-    # quote the gate's lines and let the reader judge them, so the row has to
-    # arrive here (round 1's 🟡 9). `run` wrote it to the kept output file and
+    # running it, and the command is the only part of this run the gate did
+    # not choose. `skills/code-review/orchestration.md` asks the orchestrator
+    # to quote the gate's lines and let the reader judge them, so the command
+    # has to arrive here (round 1's 🟡 9). `run` wrote it to the kept output file and
     # nothing reached the report.
     said = moved_line(root, base)
     if said:
         sys.stderr.write(said + "\n")
     sys.stderr.write(
-        f"seal gate: `{ROW}` says: {command}"
+        f"seal gate: `{KEY}` says: {command}"
         + (ROW_NOT_RUN if args.preflight else "")
         + "\n"
     )
     # Before the checks rather than after them, so a run that comes back
     # failed carries it too: what this run would not have covered is as much
     # a fact about a failed run as about a passing one. A preflight prints
-    # none: the line says what THIS RUN answers, and a preflight runs no row.
+    # none: the line says what THIS RUN answers, and a preflight runs no
+    # command.
     workflow = workflow_text(root)
     coverage = (
         coverage_line(workflow, base.given) if workflow and not args.preflight else None
     )
     if coverage:
         sys.stderr.write(coverage + "\n")
-    # A preflight skips the row by CONDITION and keeps this assignment where it
+    # A preflight skips the command by CONDITION and keeps this assignment where it
     # stands: `PARTITION`'s cases read every `checks[...] = run(...)` in this
     # function, so a second list of arms for the preflight would be the drift
     # that table was declared to end (#468). Every arm below runs either way.
-    # The row's run records what each pytest it starts ran (#825), under a key
+    # The command's run records what each pytest it starts ran (#825), under a key
     # made for this run alone. The record is read once, here, for every
     # outcome (#869): the failure loop below takes from it whether a session
     # did not pass (#883, #1301), its failing files and its counts, and the
@@ -3090,17 +2696,18 @@ def gate(args, ascii_marks=False):
     failures = []
     for name, check in checks.items():
         # A check fails on its exit, and the suite fails as well where its
-        # record here counts a session that did not pass, whatever the row's
-        # exit (#883, #1301): `pytest.exit()` with a return code of 0, or
-        # `os._exit(0)`, leaves the row at 0 over tests that never ran, and a
-        # later hook or a part of the row after pytest leaves it at 0 over a
+        # record here counts a session that did not pass, whatever the
+        # command's exit (#883, #1301): `pytest.exit()` with a return code of
+        # 0, or `os._exit(0)`, leaves the command at 0 over tests that never
+        # ran, and a later hook or a part of the command after pytest leaves
+        # it at 0 over a
         # session whose `end` line reads exit 1. The other arms have no
         # record, so their exit is all there is to read.
         if not check.failed and not (name == SUITE and head.unpassed):
             continue
         verdicts, record = None, None
         if name == SUITE:
-            # The failing files come from the record the row's pytest wrote
+            # The failing files come from the record the command's pytest wrote
             # here. Where no pytest left a record there is nothing to
             # compare, so the `FAILED` lines only name the files, and the base
             # is not run (#825). A session that stopped part-way here is
@@ -3231,8 +2838,8 @@ def main(argv=None, console_wants_ascii=False):
     parser.add_argument(
         "--preflight",
         action="store_true",
-        help="the record arms, before the sealer is spawned: the row is read "
-        "and not run, and nothing is written (#638)",
+        help="the record arms, before the sealer is spawned: the key is read "
+        "and its command not run, and nothing is written (#638)",
     )
     # The redirect is decided from `parse_known_args`, before this copy's
     # parser can refuse an argument only the tree's copy knows: a flag added

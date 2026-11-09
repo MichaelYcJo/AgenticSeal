@@ -10,13 +10,15 @@ ends in a seal bound to a commit.
 
 [![tests](https://github.com/MichaelYcJo/AgenticSeal/actions/workflows/test.yml/badge.svg)](https://github.com/MichaelYcJo/AgenticSeal/actions/workflows/test.yml) · **English** · [한국어](./README.ko.md)
 
-AgenticSeal is a Claude Code plugin. You hand the session an issue, and it
-asks you one question at the start: how the work should be routed. Answer
-`automation`, and the run stops again only for what only you can decide.
-Agents then frame the change, build it, review it and seal it. The run ends
-at a pull request whose records carry a seal: the last agent's written
-guarantee that the work agrees with the issue and the tree at one commit. It
-never merges. Merging is yours.
+AgenticSeal is a Claude Code plugin. You hand the session an issue, and at
+the start it asks you how the work should be routed. Answer
+`agentic`, the answer it marks, and the session decides for each item which
+agents it needs and whether the run may stop to ask you. Where an item needs
+them all, agents frame the change, build it, review it and seal it. Unless
+the session made the change itself, as under `direct`, or you asked for the
+branch back, the run ends at a pull request whose records carry a seal: the
+last agent's written guarantee that the work agrees with the issue and the
+tree at one commit. It never merges. Merging is yours.
 
 ```mermaid
 flowchart LR
@@ -96,6 +98,27 @@ the file up and takes the block out, and an update from such a release may
 first leave the empty marker pair `templates/setup/claude-md-block.md`
 holds, which the next update removes (`skills/update/SKILL.md`).
 
+Earlier releases kept a repository's settings in `seal/config.md`, a
+markdown table; the plugin now reads them from `seal/config.json`, one JSON
+object. Run `seal mode` once in each repository that holds a
+`seal/config.md`: it writes `seal/config.json` from the table and removes
+the old file. Until then `seal gate`, `seal fold`, `seal pact` and
+`seal mode --check` exit 2 and name `seal mode`, `seal pr-body` refuses
+with the same sentence and exits 1, and `seal rules`, `seal settle` and
+`seal unverified` read the default policy root and reference roots. Three
+files no command converts are rewritten by hand.
+`seal/parity.md` becomes `seal/parity.json`, written from
+`templates/setup/parity.json`. The `| Signer |` table of a `seal/pact.md`
+becomes a `Pact signers` key in that repository's `seal/config.json`, the
+remote URLs separated by `;`. `~/.claude/agentic/pact-paths.md` becomes
+`~/.claude/agentic/pact-paths.json`, one JSON object from remote URL to
+checkout path.
+
+The pull-request checks `seal pr-checks install` wrote clone the release
+they were written against, and an update leaves that pin where it is. Run
+`seal pr-checks remove` and then `seal pr-checks install` to pin them to the
+release you run.
+
 ## Your first work item
 
 Open Claude Code in your repository and ask for a change in your own words,
@@ -112,31 +135,45 @@ review reaches `code-review`. A session that opened neither
 `skills/implement/orchestration.md` nor `code-review` declares nothing and
 is outside the workflow.
 
-The first time a session works in a repository, it asks where the records
-should live (*Shared or local*, below). Then it asks the routing question,
-every time and even for a typo fix, with the answer it recommends marked.
-The question has three answers:
+The first time a session works in a repository, it asks four questions in
+one go: where the records should live (*Shared or local*, below), the
+command the broad gate runs, the language of commits and pull requests, and
+the language of the records. The answers become keys of `seal/config.json`,
+and `/agentic:config` changes any of them later. A work item that starts
+where either language key is missing asks for both before its first edit.
+Then it asks the routing question, every time and even for a typo fix, with
+the answer it recommends marked.
+The question has four answers, and `agentic` is the one marked:
 
-- **automation**: every party runs, and the run stops to ask you only what
+- **agentic**: the session reads each item's issue and the repository, then
+  picks which agents run and whether the run may stop to ask you. A change
+  it judges small enough, such as a two-line fix that touches no gate or
+  hook, it makes itself as under `direct`. It writes down why it chose each
+  route.
+- **complete**: every party runs, and the run stops to ask you only what
   only you can decide and would be costly to undo.
-- **per axis**: four boxes decide whether the run may stop to ask, whether
+- **manual**: four boxes decide whether the run may stop to ask, whether
   the crafter builds, whether the proofer reviews, and whether a pull request
   opens.
-- **no work item**: the session makes the change itself, with no frame, no
-  review and no seal.
+- **direct**: the session makes the change itself, with no agent, no frame,
+  no review and no seal.
 
 `skills/implement/orchestration.md` *Orchestrator: how the work is routed*
 gives each answer and the rows it writes into
 `seal/threads/<id>/routing.md`, the file the pull request's check reads to
-learn how the branch was routed. Under `automation`, the session does not
-stop to ask what the repository or the framer can answer: it builds on the
-question's default, writes the default into the work item's
+learn how the branch was routed. Where that file's `Automation` row reads
+`yes`, as `complete` always writes it and `agentic` may choose it, the
+session does not stop to ask what the repository or the framer can answer:
+it builds on the question's default, writes the default into the work item's
 `frame/questions.md`, and the pull request body names it for you to
 overturn. Whatever you say during the run is taken up then, not saved for
 the pull request.
 
 Then the parties work in turn. The framer reads the repository and writes
-the design, the plan and the questions. The crafter builds each phase,
+the design, the plan and the questions. A decision made after that, such as
+your remark or a review finding that changes the frame, goes back to the
+framer, which folds it into the frame before the next agent reads it. The
+crafter builds each phase,
 commits it, and hands back what it ran and what it did not. The proofer
 reviews the committed diff and writes its findings into a round record, and
 the crafter answers each finding in a fix pass. Once the rounds settle, the
@@ -157,7 +194,7 @@ Where the hook could not draw it, the sealer's hand-back names
 
 ### Shared or local
 
-The first-setup question has three answers:
+The first-setup question on where the records live has three answers:
 
 | Answer | Where `seal/` lives | What it gives up |
 |---|---|---|
@@ -175,11 +212,17 @@ such as a company repository or a contribution to someone else's project.
 `docs/layout/one-root-by-lifetime.md` *Shared or local* gives the whole
 trade-off.
 
+Where your repository already has a `seal/` of its own, such as a Python
+package, the plugin leaves it alone. Both shared answers then put the root
+at `<repo>/agentic-seal/`, and in shared mode every `seal/` this README
+names means that folder. Where that name is taken too, only local is
+offered.
+
 **Switching is one command.** It moves the root and stages the move, and you
 commit it.
 
 ```bash
-seal mode            # where the root is, and whether seal/config.md agrees
+seal mode            # where the root is, and whether seal/config.json agrees
 seal mode local      # move the root out of the tree
 seal mode shared     # move the root into the tree
 seal mode --check    # write nothing; exit non-zero when the two disagree
@@ -234,7 +277,7 @@ cost of inference.
 | **framer** (subagent) | `core`, `agent-contract` | Writes the work item's design, plan and questions before anybody builds, and writes no code ([`agents/framer.md`](agents/framer.md)) |
 | **crafter** (subagent) | `core`, `agent-contract` | Builds one phase against the frame, or runs one fix pass over a review round ([`agents/crafter.md`](agents/crafter.md)) |
 | **proofer** (subagent) | `core`, `agent-contract` | Reviews the committed diff, its compliance with the frame first and its quality second, and writes a round record for each round ([`agents/proofer.md`](agents/proofer.md)) |
-| **tracer** (subagent) | `core`, `agent-contract` | Records what an original codebase does, as facts with coordinates and no verdicts, in a repository that declares `seal/parity.md` ([`agents/tracer.md`](agents/tracer.md)) |
+| **tracer** (subagent) | `core`, `agent-contract` | Records what an original codebase does, as facts with coordinates and no verdicts, in a repository that declares `seal/parity.json` ([`agents/tracer.md`](agents/tracer.md)) |
 | **sealer** (subagent, Opus) | `core`, `agent-contract` | Reads every party's account against the issue and the tree after the broad gate, and writes the verdict, `guarantee.md` ([`agents/sealer.md`](agents/sealer.md)) |
 | Skills | — | The skills an agent holds from its first call are in the column to the left. These a session loads on its own when the work calls for them, and an agent opens each at the step that names it: `code-review`, `commit-pr-convention`, `confidence-check`, `feature-planner`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style`. The rest you invoke by name, under *Commands* |
 | Core | — | `skills/core/SKILL.md`. Every agent preloads it, and the plugin's `SessionStart` hook prints it into each session in a repository with a `seal/` root, so nothing is written into your `CLAUDE.md`. It sets no response language |
@@ -257,18 +300,25 @@ After the rounds, the session runs the broad gate once: the full suite, lint
 and typecheck, at the commit the pull request will carry. No agent runs it,
 because a full run taken mid-review is spent by the next fix
 (`docs/running/the-broad-gate.md`). The sealer reads the gate's record and
-every other party's, and writes `sealed`, `withheld` with what the tree
-contradicts, or `undecided` with a question for you. The pull request opens
-once the work item is sealed. Where the pull-request checks are installed,
-they fail a ready pull request that lacks the seal at its head commit, or
-whose last fixes no round read (`docs/checks/the-pull-request-check.md`).
-**The chain ends at a pull request, never at a merge.**
+every other party's, checks that the pull request body `seal pr-body` wrote
+is `pr.md` and the records' own text, and writes `sealed`, `withheld` with
+what the tree contradicts, or `undecided` with a question for you. The pull
+request opens once the work item is sealed, and its body carries the seal
+mark where the `Pull request seal mark` key reads `yes`. Where the two
+language keys name different languages, the body opens with `pr.<lang>.md`,
+the quotes of `pr.md` in the pull request language. Where the pull-request
+checks are installed, they fail a ready pull request that lacks the seal at
+its head commit, whose last fixes no round read, or whose body is not what
+`seal pr-body` composes at that commit (`skills/core/SKILL.md` *Judgment is
+not licence to skip a party*). **The chain ends at a pull request, never at
+a merge.**
 
 ### Where the records live
 
 The records live in the repository, not in the session, so the next session
-starts from them. `seal/` holds what outlives a work item, such as
-`seal/config.md`, and each work item whole under `seal/threads/<id>/`: its
+starts from them. `seal/`, the folder *Shared or local* above places, holds
+what outlives a work item, such as `seal/config.json`, and each work item
+whole under `seal/threads/<id>/`: its
 routing answer, its frame, the trail of its phases and rounds, its closing
 memo and its guarantee. `docs/layout/the-record-layout.md` *seal/* and
 *seal/threads/<work-item-id>/* name every file. How a work item's design
@@ -282,13 +332,17 @@ not exist.
 ### Migrations
 
 A repository that ports behaviour from an existing codebase declares
-`seal/parity.md`, naming the original and its baseline commit. Each
+`seal/parity.json`, naming the original and its baseline commit. Each
 judgment then weighs the policy, the original and the new code, and the
 original's behaviour is kept where the policy says nothing. The tracer
-fetches the original's facts. Your session asks about it once, the first
-time it sets up a repository, and `/agentic:parity-setup` decides it later.
+fetches the original's facts. The frame lists what the original sends from
+each entry point the work ports, and the review walks from the original to
+the port, so an item the original sends and the port leaves out is a
+finding even where the design never named it. Your session asks about it
+once, the first time it sets up a repository, and `/agentic:parity-setup`
+decides it later.
 Your checkout path of the original stays out of the committed file, in
-`~/.claude/agentic/parity-paths.md`. `skills/legacy-parity/SKILL.md` is the
+`~/.claude/agentic/parity-paths.json`. `skills/legacy-parity/SKILL.md` is the
 method.
 
 ## What runs on your machine
@@ -320,6 +374,15 @@ both for you to take out by hand.
 No session stops another from switching the branch of a working tree it is
 using, so give each concurrent session its own worktree.
 
+The agents run their commands through Claude Code's Bash tool, under your
+permission settings. A command line Claude Code's parser cannot read is held
+for you to approve, and the run waits until you answer, so every agent
+writes plain POSIX syntax that bash and zsh read the same way
+(`skills/agent-contract/SKILL.md` rule 21). An agent keeps its scratch
+files in a directory of its own under `<scratchpad>/<work-item-id>/`, and
+the crafter keeps one for each phase and each fix pass. An agent removes its
+own directory and never the session's scratchpad.
+
 Neither hook sends your code, your paths or your prompts anywhere: what the
 `SessionStart` hook prints goes into the session's own context, as a file
 the session opens does. These side effects are worth stating outright: the sealer's
@@ -340,7 +403,7 @@ in the last row, in your CI on a pull request.
 | `seal cost --post` ([`docs/running/measuring-a-run.md`](docs/running/measuring-a-run.md)) | your repository's issues, through your `gh` login | `gh issue list` for the issues labelled `flow-measurement`, then one `gh issue comment` on the one open issue with that label. The comment holds the orchestrator's sentence and the agent's numbers, and names each transcript the numbers were read from by its file name, never by its path. It holds no command text: its slowest calls are listed by seconds and family alone. With `--work-item`, posting or not, it first reads every comment of that issue with `gh api --paginate`. It never opens an issue | each time the crafter or the proofer hands back, where the orchestrator runs it; with `--work-item`, at a release, before the release pull request merges, for each work item it ships; and whenever you type it. Nothing is posted where no issue of your repository has ever carried the label, or where `gh` is missing |
 | `seal gate`, the broad gate ([`skills/verify/scripts/broad_gate.py`](skills/verify/scripts/broad_gate.py)) | your repository's pull request, through your `gh` login | `gh pr view --json isDraft`, asked by its `chain_check.py` step to learn whether the branch's pull request is a draft. `chain_check.py` run on its own asks the same | each run outside GitHub Actions, where `gh` is on the PATH |
 | `seal settle` ([`skills/settle/SKILL.md`](skills/settle/SKILL.md)) | your repository's releases and pull requests, through your `gh` login | `gh api --paginate` of the repository's releases. In local mode, also `gh pr list --head <branch> --state merged`, once per branch | the releases, when a released work item's directory holds a changelog and is about to be removed, to find its release note. The pull requests in local mode, to learn which branches merged |
-| the workflow's own steps ([`skills/code-review/orchestration.md`](skills/code-review/orchestration.md)) | your repository, through your `git` and your `gh` login | reads the issue with its comments, and the latest release note. Pushes the work item's branch, opens the pull request with `gh pr create`, rewrites its body, reads its state and checks, and may start a workflow run. Lists recent pull requests before a commit. At a settle, may open an issue for a measurement | the issue is read in every run. The push and the pull request happen only where the routing answers that a pull request opens |
+| the workflow's own steps ([`skills/code-review/orchestration.md`](skills/code-review/orchestration.md)) | your repository, through your `git` and your `gh` login | reads the issue with its comments, and the latest release note. Pushes the work item's branch, opens the pull request with `gh pr create`, rewrites its body, reads its state and checks, and may start a workflow run. Lists recent pull requests before a commit, and beside the two language questions. At a settle, may open an issue for a measurement | the issue is read in every run. The push and the pull request happen only where the routing answers that a pull request opens |
 | the pull-request checks `seal pr-checks install` writes (`.github/workflows/hygiene.yml`) | GitHub, from your CI runner | `git clone --depth 1` of this plugin's repository, at the release the file was written against | on each pull request, in a repository that installed the checks |
 
 The two hooks are the only things on your machine that run without you or
@@ -363,12 +426,12 @@ after `!` in a session, or ask the session to run it.
 | `seal cost --segments <transcript>` | gives one row per agent a run spawned, read from that agent's own transcript (`docs/running/measuring-a-run.md`) |
 | `seal cost --work-item <dir>` | gives one row per segment of a work item that no comment on the open measurement log names, found by its spawn prompt naming the work item's directory or branch; with `--post --says <file>` it posts them (`skills/verify/orchestration.md` *Measure the segment, and feed the flow log*) |
 | `seal settle [--apply]` | shows the `## Rule changes` the released work items' `frame/design.md` files state, by section, and with `--apply` removes the settled directories (`skills/settle/SKILL.md` *The settling session's procedure*) |
-| `seal fold [--ceiling <n>]` | checks that each policy document is short enough to read whole and that its index names it, against `templates/setup/config.md` *The fold's values* |
+| `seal fold [--ceiling <n>]` | checks that each policy document is short enough to read whole and that its index names it, against the `Document token ceiling` and `Policy root` keys of `seal/config.json` (`templates/setup/config.md` *The fold's values*) |
 | `seal rules <doc>` · `seal rules --check` | prints a document's sections with the tests their `check:` lines name, or exits non-zero naming each line whose target is gone (`skills/settle/rule-changes.md` *A rule has one shape*) |
 | `seal pact [ROOT]` | checks, in the repository that holds a pact, that every repository signed to it still agrees with it (`docs/layout/the-pact.md`) |
 | `seal payload` | measures what a session's and each agent's startup context is made of, in bytes and tokens (`skills/verify/scripts/payload_meter.py`) |
 | `/agentic:parity-setup` | declares that this repository ports from another codebase (`skills/parity-setup/SKILL.md`) |
-| `/agentic:config` | shows what this repository decided for itself, its two languages and where its records live, and changes any of it (`skills/config/SKILL.md`) |
+| `/agentic:config` | shows every key of `seal/config.json`, which holds what this repository decided for itself, such as its two languages, where its records live and the command its broad gate runs, and changes any of it (`skills/config/SKILL.md`) |
 | `/agentic:update` | takes the newest release and names what is in it (`skills/update/SKILL.md`) |
 
 ## Limits
@@ -405,10 +468,12 @@ by CI for leaving the version alone.
 
 A change to a gate carries a higher bar than the rest of the tree, because a
 gate decides whether someone's pull request or run goes ahead: a test seen
-failing before
-the fix, a stated failure direction, and honesty about the platforms you
-could not test. [CONTRIBUTING.md](./CONTRIBUTING.md) *Opening a pull request*
-holds the rest, including what a contribution is not asked for: none of this
+failing before the fix, a stated failure direction, a count of the questions
+it puts to a person, honesty about the platforms you could not test, and the
+existing mechanism it removes, or why none can go.
+[CONTRIBUTING.md](./CONTRIBUTING.md) *What a change to
+a gate must carry* is the whole of it, and *Opening a pull request* holds the
+rest, including what a contribution is not asked for: none of this
 repository's own workflow applies to one.
 
 ## Language policy
@@ -418,7 +483,9 @@ into the model's context and a translated copy would drift. Korean is for
 documents people read, such as `README.ko.md`. The writing-style skill is the
 one exception: it carries a section of prose rules for each language, and
 the two are independent norms, not translations. The language Claude answers
-you in follows your own `CLAUDE.md`.
+you in follows your own `CLAUDE.md`. The language of the commits, pull
+requests and records the workflow writes in your repository is that
+repository's own: the two language keys of `seal/config.json`.
 
 ## License
 

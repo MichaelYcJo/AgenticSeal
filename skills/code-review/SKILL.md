@@ -52,7 +52,7 @@ removal as a settle, so outside a settle only this reading sees one. In
 local mode the records are never committed, so no diff holds them, and
 nothing reads a row taken out there.
 
-Where `seal/config.md` has a `Pact` row, the proofer reads the work item's
+Where `seal/config.json` has a `Pact` key, the proofer reads the work item's
 `frame/design.md` at stage 1 against the shape
 `skills/verify/scripts/pact_check.py` states under *What each frame is read
 for*, which is all `seal pact` reads. A line written as a pact anchor and
@@ -60,7 +60,7 @@ outside that shape is a finding, whatever remote its `Pact` cell names:
 `seal pact` reads it as no anchor and reports the signer as citing nothing.
 Examples are a table under a plural or other wording of the anchor header,
 a row with no header, a row outside the anchor table, and any of these
-naming a remote one letter off a pact that row declares.
+naming a remote one letter off a pact that key declares.
 
 Review beyond the changed files: new code that calls into untouched files
 puts their conditions and boundaries into effect for the first time, so
@@ -151,9 +151,9 @@ alone, and `lib/fields.py` is the one statement of each block's lines
 and the shape of each value. A line outside a block is prose and no field.
 The check also reads the `## Findings` heading and each finding's
 `### <n>. <symptom>` heading, as the template shows them. The prose follows
-`Record language` in the `seal/` root's `config.md`, English where the row
-is absent; the field names, headings and vocabulary words a checker reads
-stay English (`templates/setup/config.md` *What no row governs*).
+`Record language` in the `seal/` root's `config.json`, English where the
+key is absent; the field names, headings and vocabulary words a checker
+reads stay English (`templates/setup/config.md` *What no key governs*).
 
 - A finding is a defect. `must` is a compliance violation or a defect to fix
   before merge; `should` is a defect the release would ship, a tool doing

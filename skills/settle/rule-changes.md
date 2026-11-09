@@ -29,8 +29,8 @@ comes first, then one field per line, indented two spaces:
 | `remove` | `file`, `section`; `from` optional | the text `from` quotes goes, or with no `from` the whole section, up to the next heading of its level or higher |
 | `nothing` | `why` optional | changes no rule, and stands alone in the section |
 
-- `file` is a `.md` file of the policy root, `seal/config.md`'s
-  `Policy root` row (`docs` when absent), or of one of its groups:
+- `file` is a `.md` file of the policy root, `seal/config.json`'s
+  `Policy root` key (`docs` when absent), or of one of its groups:
   `<policy root>/<name>.md` or `<policy root>/<group>/<name>.md`, one group
   directory deep and no deeper, joined with `/` and holding no `\` or `:`,
   with no group named `.` or `..`. `section` is a heading's text at any

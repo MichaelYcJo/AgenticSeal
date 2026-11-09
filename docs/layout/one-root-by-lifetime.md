@@ -225,7 +225,13 @@ check: tests/text/test_the_settings_have_a_front_door.py
 plugin's.** A skill that requires English of everyone is a decision made in a
 file nobody who disagrees with it can edit, so the language lives in a config
 row, and the mirror file a translated pull-request body goes in is named for
-the language it holds rather than for one language.
+the language it holds rather than for one language. The two language keys of
+`seal/config.json` are required: first setup and the batch before a work
+item's first edit ask for them, with the language of the recent pull request
+titles shown beside the question, and `seal pr-body` refuses to compose a body
+without them. Where nobody is there to answer, the orchestrator writes them as
+the titles' language and `routing.md` says so. A commit is never refused for
+them.
 check: tests/behaviour/test_the_pull_request_language_is_the_repositorys.py tests/lib/test_config.py
 
 **Two rows, because one cannot express the middle answer.** The combinations
@@ -237,8 +243,11 @@ where nobody sets the sixth differently from the fifth. So
 commit subject and body and the pull request title and body, and
 `Record language` governs the prose in the documents a work item writes.
 Setting one does not carry the other, because the two surfaces have different
-audiences: a pull request is read by whoever opens it, and a record by
-whoever comes back to the decision six months later.
+audiences: a pull request is read by whoever opens it, and a record by whoever
+comes back to the decision six months later. Where the two keys differ, the
+pull request body opens with `pr.<lang>.md`, the quotes of `pr.md` rendered in
+the team's language, and `pr.md` follows it, so the records keep one language
+and the team reads the body in theirs.
 
 Whatever either row says, **the names a checker matches stay English**: the
 field names, the verdict words, the markers, and all code. A translated field

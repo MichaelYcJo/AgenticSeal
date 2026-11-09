@@ -205,7 +205,16 @@ does not parse, an unordered pair and an open row are all shown.
    document, and is written down with both*). Whether an earlier row is one
    kind with a current row is your judgment, read from what each row says
    and not from its cell's spelling: the dry run groups by the cell as
-   written and decides no kind.
+   written and decides no kind. The released routes are judgments too:
+   each released `routing.md` whose *Why this way* says the orchestrator
+   chose its rows, and each released commit whose trailer reads
+   `Seal-Routing: no work item`, which `git log --grep` lists, with the
+   grounds its body gives. A settle's commit or a durations refresh carries
+   that trailer with no route chosen and is not one. `git log --grep` on a
+   commit's short hash lists the later commits that name it, which is where
+   a defect such a route let through shows. Where one kind of route keeps
+   letting defects through, the section to rewrite is
+   `skills/implement/orchestration.md` *Under agentic*.
 6. Decide each open row against the tree, and close it in its record with
    `closed` and what closed it:
 
@@ -254,7 +263,7 @@ does not parse, an unordered pair and an open row are all shown.
    spells a path, so no such search lists them all, and step 10 runs every
    one.
 9. Run `seal settle --apply`, with no `--from`, which it refuses.
-10. Run the repository's `Broad gate` row. It is the one run that reads
+10. Run the repository's `Broad gate` command. It is the one run that reads
     every check. Where a case fails because a pin under `tests/` or a copy
     such as a README row still states the old fact, change that pin or
     copy, and name each in the pull request body. Where a check that reads
@@ -284,7 +293,7 @@ does not parse, an unordered pair and an open row are all shown.
 decision records, RFCs or another tool's spec files, reaches the policy
 root only through a settle, only where a person names it, and only in the
 documents the person marks `promote`.** Nothing in the plugin finds or opens
-such a directory on its own, and no configuration row names one. Which
+such a directory on its own, and no configuration key names one. Which
 directories hold decisions, and which of their decisions becomes policy,
 are the person's to decide, and the tree answers neither, so the settle
 asks. Every other judgment of the settle stays the settling session's.
@@ -413,7 +422,7 @@ into a comment.
 ## A document past its ceiling is split, never trimmed
 
 After the removals, `--apply` names each document past the `Document token
-ceiling` row in `seal/config.md`, as `seal fold` does, and neither refuses
+ceiling` key in `seal/config.json`, as `seal fold` does, and neither refuses
 it. Such a document is recommended to be split by who opens each section
 and at which step, as `skills/core/SKILL.md` *The first value: efficient
 development through the workflow* states, in that pull request or a later

@@ -20,7 +20,12 @@ doing other work is not bound by it to start the workflow. Each path this
 file cites is relative to the plugin's root, the directory holding this file's
 `skills/`, never to the session's repository, except `seal/`, the records
 root `skills/implement/SKILL.md` *Document layout — two roots, three
-lifetimes* places.
+lifetimes* places. `seal/` is that root's name in every text this plugin
+ships, except where a text says a `seal/` is the project's own or that its
+`README.md` does not open with the marker: that is the directory named
+`seal`. Where the repository's own `seal/` belongs to something else, the
+shared root is `agentic-seal/`, recognised by the same marker,
+`lib/optin.py#MARKER`, as the first line of its `README.md`.
 
 ## The first value: efficient development through the workflow
 
@@ -100,7 +105,7 @@ one of those protections, is guidance.
 |---|---|---|
 | No review without a build | a round reads a committed tree and its record names the commit | `skills/code-review/scripts/chain_check.py`'s records arm: every record carries one `target:` line, and HEAD descends from the last record's commit and from every `fixed` commit |
 | No fix that no round reads | every change after the last round is read by a round, or by the sealer where it touched the work item's records alone | the same check: the last record is at HEAD or only the work item's records follow it, and every `fixed` or `rejected` finding is named by the next record |
-| No seal without the broad run at HEAD | the sealer guarantees a tree the repository's `Broad gate` row in `seal/config.md` passed at HEAD | `agents/sealer.md` step 1 withholds without `trail/gate.md` at HEAD; the same check's broad gate arm |
+| No seal without the broad run at HEAD | the sealer guarantees a tree the command in the repository's `Broad gate` key of `seal/config.json` passed at HEAD | `agents/sealer.md` step 1 withholds without `trail/gate.md` at HEAD; the same check's broad gate arm |
 | No pull request without a seal | nothing reaches the base that the last independent party did not guarantee | the same check's guarantee arm: a ready pull request fails without `Verdict: sealed` at HEAD; and its body arm: a ready pull request fails where its body is not what `seal pr-body` composes at HEAD, the seal mark among it |
 
 The check refuses only a ready pull request, where its workflow is

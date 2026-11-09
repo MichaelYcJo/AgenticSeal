@@ -129,12 +129,13 @@ directory exists and its `README.md` opens with the marker
 `$(git rev-parse --git-common-dir)/seal/` otherwise —
 local mode, where the root sits under the common git directory and nothing
 under it is committed. A repository with both is shared, and no config key
-decides it. The prose in the records follows `Record language` in
-`config.md` under that root — English when the row is absent. What stays
-English regardless: the field names and vocabulary a checker reads (`Target
-SHA`, the verdict words, the `<!-- -->` markers), and all code. The
-`implement` skill's *The language the records are written in* holds the
-whole list.
+decides it. Each `seal/` here is the root's name, defined in the opening
+paragraph of `skills/core/SKILL.md`. The prose in the records follows
+`Record language` in `config.json` under that root — English when the key
+is absent. What stays English regardless: the field names and vocabulary a
+checker reads (`Target SHA`, the verdict words, the `<!-- -->` markers), and
+all code. The `implement` skill's *The language the records are written in*
+holds the whole list.
 check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
 
 ## 12 A defect belongs to a class, so enumerate the class
@@ -212,3 +213,21 @@ least with `git grep` on its words. Where none of rule 12's three methods
 listed them, the list is a sample, and the hand-back says so as rule 12
 asks. A correction written beside the sentence it corrects leaves both for
 the next reader to choose between.
+
+## 21 Write each command so Claude Code's parser can read it
+
+A command line Claude Code's parser cannot read is held for a person to
+approve, and under automation that stops the run until someone answers. So
+write each command in plain POSIX syntax that bash and zsh read the same
+way. A list reaches a command as `xargs <runner> < list` or as
+`<runner> $(cat list)`, never through a zsh expansion flag such as
+`${(f)"$(cat list)"}` or `$=var`, and never through an unquoted variable
+expected to split, which bash splits and zsh does not. An `rm` names a
+literal path, or writes each variable in its path as `"${VAR:?}"`, which
+stops the line where the variable is unset or empty. A directory you made
+under `<scratchpad>/<work-item-id>/` is removed in one `rm -rf` of that
+directory, never file by file in a loop, and the removal never names the
+scratchpad itself, which every agent of the session shares. These forms
+are examples of the rule, not a list of it: a form not named here is held
+to the same aim, and so is a named form Claude Code stops reading.
+check: tests/text/test_the_agent_contract_holds_the_universal_rules.py tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py

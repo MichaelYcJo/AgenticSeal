@@ -1,0 +1,8 @@
+{
+  "Original repo": "<org/repo>",
+  "Module": "<path within it, or whole repo>",
+  "Baseline commit": "<SHA>",
+  "Policy root": "<docs/, or none>",
+  "Coordinate-trust exceptions": [],
+  "Scope notes": ""
+}

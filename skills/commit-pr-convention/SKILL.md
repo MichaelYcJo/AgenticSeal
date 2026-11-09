@@ -2,7 +2,7 @@
 name: commit-pr-convention
 description: |
   Format rules for commit messages, PR titles, PR bodies and branch names:
-  the prefix vocabulary, the language the repository states in `seal/config.md`,
+  the prefix vocabulary, the language the repository states in `seal/config.json`,
   where a translated body lives, and how to check a title against the
   repository's own history.
   Use when: writing a commit message, opening a pull request, naming a
@@ -48,54 +48,55 @@ becomes the history the next one is compared against.
 
 ## The language is the repository's, and it says so in a file
 
-**The writer reads `config.md` in the root before writing any of the five
+**The writer reads `config.json` in the root before writing any of the five
 things below.** The root is `<repo>/seal/` where that directory exists with
 the marker (contract rule 11) and `$(git rev-parse --git-common-dir)/seal/`
 otherwise, which is where local
 mode keeps it; resolve it that way rather than spelling the first place and
 stopping.
 
-```markdown
-| Item | Value |
-|---|---|
-| Commit and pull request language | Korean |
+```json
+{
+  "Commit and pull request language": "Korean"
+}
 ```
 
-That row governs the **commit subject and body**, the **pull request title and
+That key governs the **commit subject and body**, the **pull request title and
 body** (all four, because a squash makes them one text) and the **review
 report posted as a pull-request comment**, which is prose for whoever opens
 that pull request. In the body of a work item routed through the review
 chain it governs the lines of `pr.md` that quote no record and, where the
-two rows differ, the whole of `pr.<lang>.md`, as *Pull request bodies*
+two keys differ, the whole of `pr.<lang>.md`, as *Pull request bodies*
 below says.
 
 **It does not govern the work-item records.** `frame/design.md`, `frame/plan.md`,
 `gaps.md`, `frame/questions.md`, `changelog.md` and `trail/rounds/round-N.md`'s cells
-follow a second row, `Record language`, read by the
+follow a second key, `Record language`, read by the
 `implement` and `code-review` skills. The two are independent: setting one
 does not carry the other.
 
 **Every way of not naming a language lands on English.** There are four of
-them and they are one rule: no file, no such row, an empty value, and a file
-that cannot be read or does not parse as that table. A config nobody can read
-must not stop a commit, so the writer of a commit meeting any of these
-writes English and carries on rather than asking.
+them and they are one rule: no file, no such key, an empty value, and a file
+that cannot be read or does not parse as one JSON object, a key written
+twice or holding no string among them. A config nobody can read must not
+stop a commit, so the writer of a commit meeting any of these writes
+English and carries on rather than asking.
 
-**Both rows are required all the same, and a commit is never refused for
-them.** The orchestrator asks for the two rows at first setup
+**Both keys are required all the same, and a commit is never refused for
+them.** The orchestrator asks for the two keys at first setup
 (`skills/implement/bootstrap.md` step 1) and before a work item's first
 edit wherever either is missing (`skills/implement/orchestration.md`
 *Orchestrator: what needs a person is asked in one batch, before the first
 edit*). `seal pr-body` refuses to compose a pull request body where either
-row is absent in any of the four ways, because the body's language is the
-one the team reads. Nothing reads the rows at a commit.
+key is absent in any of the four ways, because the body's language is the
+one the team reads. Nothing reads the keys at a commit.
 
-**To create it, copy `templates/setup/config.md` from this plugin into the root and
-edit the row meant.** It ships more than one. The mode's row is written
-by `seal mode` from where the folder is, and edited by hand only to ask for
-a move: `seal mode --apply` then moves the folder to what the row says. That
-file repeats the exclusions below, because the person who writes a
-repository's config reads it and never reads this one.
+**`seal mode` creates the file**, writing the `Mode` key from where the
+folder is, and the orchestrator adds the two language keys to it; `Mode`
+is edited by hand only to ask for a move: `seal mode --apply` then moves
+the folder to what the key says. `templates/setup/config.md` documents
+every key and repeats the exclusions below, because the person who writes
+a repository's config reads it and never reads this one.
 
 It governs prose and nothing else, and the exclusions are what make it safe
 to change:
@@ -106,8 +107,8 @@ to change:
 - **Branch names stay ASCII**, because a branch name is typed into a shell
   and pasted into a URL. *Branch names* below states their shape.
 - **The field names, section headings and vocabulary a checker reads
-  literally**, which belong to the other row's surface and are excluded from
-  both. The whole list is in `templates/setup/config.md` under *What no row
+  literally**, which belong to the other key's surface and are excluded from
+  both. The whole list is in `templates/setup/config.md` under *What no key
   governs*, and it is derived from the checkers' own constants rather than
   copied: a hand-copied list is a second source that drifts.
 - **Code**: identifiers, comments, docstrings, file names, test function
@@ -117,7 +118,7 @@ to change:
   configuration. Two people in one repository can want different answers
   there and the same one here.
 
-A repository whose team writes another language says so in one row; one that
+A repository whose team writes another language says so in one key; one that
 says nothing writes its commits in English and gets no pull request body
 from `seal pr-body` until it says.
 
@@ -187,19 +188,20 @@ log written by default teaches the default. A repository with no history
 uses the table as it stands, because a first commit has nothing to compare
 against.
 
-**One language, in the subject and in the body: the one the row names.**
+**One language, in the subject and in the body: the one the key names.**
 Where feature branches squash, the commit body becomes the pull request body,
 so the two cannot be in different languages without one of them being wrong
-at the merge. That is why one row answers for all four surfaces rather than
-one row each.
+at the merge. That is why one key answers for all four surfaces rather than
+one key each.
 
 **A session's commit in a repository whose root is shared (`<repo>/seal/`)
 ends with one `Seal-Routing:` trailer, naming its work item or reading
 `no work item`.** In local mode a commit carries none. The work item is its
 directory's name under `seal/threads/`, the one the branch's `routing.md` sits
-in; `no work item` is the value where the ladder judged the change belongs
-to no work item. The trailer stands in the message's last paragraph, beside any
-other trailer, so git's trailer parser reads it:
+in; `no work item` is the value a commit carries where it belongs to no
+work item, as under the routing answer `direct`. The trailer stands in the
+message's last paragraph, beside any other trailer, so git's trailer parser
+reads it:
 
 ```
 feat: the orchestrator writes the declaration before the first edit
@@ -229,13 +231,13 @@ carries this at length; this file carries the prefix in front of it.
 
 ## Pull request bodies
 
-**The language the row names.** The prose and structure rules are
+**The language the key names.** The prose and structure rules are
 `writing-style`'s, and the writer reads it **before** writing, not after:
 structure that came out wrong is not recovered by fixing sentences.
 
 **A work item routed through the review chain has a body in two parts, and
 the orchestrator's comes first.** The first part is the work item's
-`pr.md`, opened by its mirror where the two rows name different languages
+`pr.md`, opened by its mirror where the two keys name different languages
 (below). The orchestrator commits `pr.md` before the first round, and
 `seal pr-body` writes the first part above the line
 `skills/code-review/scripts/pr_body.py#HEADING` holds, then the second part
@@ -259,13 +261,13 @@ and feed the flow log*, which owns its rows).
 did, is one row of `frame/plan.md` *Judgments of the run*, which `pr.md`
 quotes.** The orchestrator writes that row before it writes `pr.md`.
 
-**Where the two rows name different languages, the body opens in the
+**Where the two keys name different languages, the body opens in the
 team's language.** The orchestrator writes a translated file, the mirror,
 beside `pr.md`: the quotes of `pr.md` in the commit language, each with its
 coordinate, in the shape `skills/code-review/orchestration.md`
 *Orchestrator: the pull request opens once the sealer seals* gives it.
 `seal pr-body` writes the mirror above `pr.md`, so the body's first part is
-the mirror and then `pr.md`. Where the two rows name one language, no
+the mirror and then `pr.md`. Where the two keys name one language, no
 mirror is written.
 
 - **Where**: the work item's own folder under the root, as `pr.<lang>.md`,
@@ -289,7 +291,7 @@ is unpacked once, at first use. `writing-style` has the reasoning.
 ## Branch names
 
 A branch name takes the same prefix vocabulary as the commits, and is
-**ASCII whatever the repository's language is**. The row does not reach
+**ASCII whatever the repository's language is**. The key does not reach
 here: a branch name is typed into a shell and pasted into a URL.
 
 - A branch cut from an issue is `<prefix>/<issue number>-<slug>`.
@@ -314,12 +316,12 @@ The writer answers these rather than assuming them.
 1. Was `gh pr list` run, **and the title compared to what it returned**?
 2. Does the title carry the prefix the table in *Commit messages* gives the
    change?
-3. Was **`config.md` in the root opened**, does it carry both language
-   rows, and are the title and the body's lines that quote no record in the
-   language its `Commit and pull request language` row names? Without
-   either row, `seal pr-body` refuses, and the rows are written before the
+3. Was **`config.json` in the root opened**, does it carry both language
+   keys, and are the title and the body's lines that quote no record in the
+   language its `Commit and pull request language` key names? Without
+   either key, `seal pr-body` refuses, and the keys are written before the
    body is.
-4. Where the two rows name different languages, does the work item hold
+4. Where the two keys name different languages, does the work item hold
    one `pr.<lang>.md`, named for its own language, that `seal pr-body`
    places above `pr.md`, and no hosted document?
 5. Does the title alone say what happened?

@@ -94,11 +94,6 @@ AUTOMATION_YES = "yes"
 AUTOMATION_NO = "no"
 AUTOMATION_ANSWERS = (AUTOMATION_YES, AUTOMATION_NO)
 
-# Repository-relative, `/`-joined, for the readers that classify paths as git
-# prints them — `chain_check.py` lists a tree under it. The readers below never
-# join it under the root: they join `optin.WORK_ITEMS` under `optin.home_at`,
-# so a root under the git directory (#80) is read by the same code.
-WORK_ITEMS = f"{optin.HOME}/{optin.WORK_ITEMS}"
 FILENAME = "routing.md"
 
 
@@ -114,7 +109,7 @@ def shown(lines, text=None):
     TEXT is the file LINES were split from, and `table_rows` passes it: the
     walk reads it where GFM breaks a line, so a `<!--` after a U+2028 or a
     form feed, which `str.splitlines` breaks at, hides nothing a renderer
-    shows (#667 round 1, 🟡 1; `lib/config.py#hidden_lines` says more).
+    shows (#667 round 1, 🟡 1; `lib/tables.py#hidden_lines` says more).
     """
     walked = blocks.walk(lines) if text is None else blocks.walk_text(text)
     hidden = walked.hidden()
@@ -211,7 +206,7 @@ def parse(text):
     above the table is not a block at all, so that declaration still reads.
 
     **A label written twice has no value** (#867), the rule
-    `lib/config.py#value_of` gives every `seal/config.md` row. This used to
+    `lib/config.py#config_value` gives every `seal/config.json` key. This used to
     keep the LAST row of a label, so a second `Review` row below the first
     answered for it, and nothing said there were two. Now a strict label
     doubled -- `Review`, `Destination`, `Branch` -- makes the file no

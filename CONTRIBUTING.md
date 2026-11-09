@@ -81,7 +81,7 @@ version in `MARKDOWN_IT` in `.github/scripts/run_tests.py`, and one
 renderer, `cmarkgfm`, pinned in `CMARKGFM` beside it.
 The parser is the CommonMark oracle the readers under `lib/` are checked
 against. The renderer is
-GitHub's own, cmark-gfm, and the table walker in `lib/config.py` is checked
+GitHub's own, cmark-gfm, and the table walker in `lib/tables.py` is checked
 against what it renders. The parser and the renderer are test-only: the gates
 themselves are stdlib-only Python and
 import nothing the suite installs. `bin/test` acquires all three once: it
@@ -398,7 +398,7 @@ adds any mechanism by what it takes away:
   spelt otherwise meant the label is the reading agent's judgment.
 - **A gap only work with no work item passes through is not a weakness.** A
   gate guards the work a work item owns. A change that
-  would be routed `no work item`, such as a formatter run, a dependency bump
+  would be routed `direct`, such as a formatter run, a dependency bump
   or an identifier renamed across files by `sed`, is outside that work, so
   where only such a change passes through a gap in that kind of gate, the
   pull request does not close the gap.

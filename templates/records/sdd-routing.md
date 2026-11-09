@@ -13,4 +13,4 @@ Answered <date> by <who>, before the first edit.
 
 ## Why this way
 
-<one or two sentences>
+<the grounds `skills/implement/orchestration.md` *What the answer writes* asks for>

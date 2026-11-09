@@ -101,7 +101,7 @@ MARKDOWN_IT_VERSION = "4.2.0"
 MARKDOWN_IT = f"markdown-it-py=={MARKDOWN_IT_VERSION}"
 
 # GitHub's own renderer, cmark-gfm, through its `cmarkgfm` binding: the oracle
-# `lib/config.py#gfm_table` is held to (`tests/gfm_table_oracle.py`, #647).
+# `lib/tables.py#gfm_table` is held to (`tests/gfm_table_oracle.py`, #647).
 # Pinned for the parser's reason -- a renderer that moved under the suite would
 # move every verdict of the walker's property case with it -- and test-only on
 # the same terms: nothing under `lib/` or `skills/` imports it. The version
