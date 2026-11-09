@@ -63,8 +63,8 @@ FACTS = {
         ("`<repo>/seal/`", "`$(git rev-parse --git-common-dir)/seal/`"),
     ),
     21: (
-        "the command forms an agent copies into a shell, which Claude Code's "
-        "parser reads",
+        "the command forms an agent copies into a shell, two that Claude "
+        "Code's parser reads and one it holds for a person",
         ("`xargs <runner> < list`", '`"${VAR:?}"`', '`${(f)"$(cat list)"}`'),
     ),
 }

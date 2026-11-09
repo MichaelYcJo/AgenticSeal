@@ -223,8 +223,8 @@ way. A list reaches a command as `xargs <runner> < list` or as
 `${(f)"$(cat list)"}` or `$=var`, and never through an unquoted variable
 expected to split, which bash splits and zsh does not. An `rm` names a
 literal path, or writes each variable in its path as `"${VAR:?}"`, which
-stops the line where the variable is unset. A directory you made is
-removed in one `rm -rf` of the directory, never file by file in a loop.
+stops the line where the variable is unset or empty. A directory you made
+is removed in one `rm -rf` of the directory, never file by file in a loop.
 These forms are examples of the rule, not a list of it: a form not named
 here is held to the same aim, and so is a named form Claude Code stops
 reading.
