@@ -12,11 +12,13 @@ ends in a seal bound to a commit.
 
 AgenticSeal is a Claude Code plugin. You hand the session an issue, and it
 asks you one question at the start: how the work should be routed. Answer
-`automation`, and the run stops again only for what only you can decide.
-Agents then frame the change, build it, review it and seal it. The run ends
-at a pull request whose records carry a seal: the last agent's written
-guarantee that the work agrees with the issue and the tree at one commit. It
-never merges. Merging is yours.
+`agentic`, the answer it marks, and the session decides for each item which
+agents it needs and whether the run may stop to ask you. Where an item needs
+them all, agents frame the change, build it, review it and seal it. Unless
+the session made the change itself, as under `direct`, or you asked for the
+branch back, the run ends at a pull request whose records carry a seal: the
+last agent's written guarantee that the work agrees with the issue and the
+tree at one commit. It never merges. Merging is yours.
 
 ```mermaid
 flowchart LR
@@ -115,22 +117,28 @@ is outside the workflow.
 The first time a session works in a repository, it asks where the records
 should live (*Shared or local*, below). Then it asks the routing question,
 every time and even for a typo fix, with the answer it recommends marked.
-The question has three answers:
+The question has four answers, and `agentic` is the one marked:
 
-- **automation**: every party runs, and the run stops to ask you only what
+- **agentic**: the session reads each item's issue and the repository, then
+  picks which agents run and whether the run may stop to ask you. A change
+  it judges small enough, such as a two-line fix that touches no gate or
+  hook, it makes itself as under `direct`. It writes down why it chose each
+  route.
+- **complete**: every party runs, and the run stops to ask you only what
   only you can decide and would be costly to undo.
-- **per axis**: four boxes decide whether the run may stop to ask, whether
+- **manual**: four boxes decide whether the run may stop to ask, whether
   the crafter builds, whether the proofer reviews, and whether a pull request
   opens.
-- **no work item**: the session makes the change itself, with no frame, no
-  review and no seal.
+- **direct**: the session makes the change itself, with no agent, no frame,
+  no review and no seal.
 
 `skills/implement/orchestration.md` *Orchestrator: how the work is routed*
 gives each answer and the rows it writes into
 `seal/threads/<id>/routing.md`, the file the pull request's check reads to
-learn how the branch was routed. Under `automation`, the session does not
-stop to ask what the repository or the framer can answer: it builds on the
-question's default, writes the default into the work item's
+learn how the branch was routed. Where that file's `Automation` row reads
+`yes`, as `complete` always writes it and `agentic` may choose it, the
+session does not stop to ask what the repository or the framer can answer:
+it builds on the question's default, writes the default into the work item's
 `frame/questions.md`, and the pull request body names it for you to
 overturn. Whatever you say during the run is taken up then, not saved for
 the pull request.

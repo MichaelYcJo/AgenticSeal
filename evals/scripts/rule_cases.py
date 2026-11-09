@@ -162,7 +162,8 @@ def one_phase_plan(name, delivers):
 
 
 def routing(item, branch, planning, implementation):
-    """Work item ITEM's routing declaration under automation for BRANCH."""
+    """Work item ITEM's routing declaration for BRANCH, its `Automation` row
+    reading `yes`."""
     return f"""# Routing: {item}
 
 | Axis | Answer |

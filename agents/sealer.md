@@ -100,6 +100,12 @@ return.
    `frame/plan.md` whose Status cell holds a commit has its
    `trail/phases/phase-N.md`, and a declared party that left no record is a
    `withheld` reason naming the phase.
+   Where `routing.md` *Why this way* says the orchestrator chose the rows,
+   under the routing answer `agentic`, its grounds are the orchestrator's
+   account, read against the diff like every other. A diff the grounds do
+   not describe, such as grounds naming one sentence over a diff that
+   changes a hook, is a disagreement, and a `withheld` reason naming the
+   row and what the diff changed.
    A finding of the last record that reads `fixed <commit>`, which the check
    passes only where the finding is located in `seal/threads/<item>/` alone
    and its commit touched nothing outside it, was read by no round: it is

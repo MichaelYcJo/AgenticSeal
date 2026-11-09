@@ -398,7 +398,7 @@ adds any mechanism by what it takes away:
   spelt otherwise meant the label is the reading agent's judgment.
 - **A gap only work with no work item passes through is not a weakness.** A
   gate guards the work a work item owns. A change that
-  would be routed `no work item`, such as a formatter run, a dependency bump
+  would be routed `direct`, such as a formatter run, a dependency bump
   or an identifier renamed across files by `sed`, is outside that work, so
   where only such a change passes through a gap in that kind of gate, the
   pull request does not close the gap.

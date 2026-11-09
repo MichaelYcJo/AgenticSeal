@@ -12,11 +12,16 @@ one gate output file over each other.
 
 The class (contract rule 12) is *an instruction that names a scratch
 location with a name any parallel agent would also pick*, and the repair is
-the same in each of its four instances: the location carries the work item
-id, which no two work items share, and the round where there is one. The
-fourth is the framer's probe directory (#1047). This file pins the four
-sentences, because a definition is a sentence an agent reads and a sentence
-can be dropped without a case going red.
+the same in each of its five instances: the location carries the work item
+id, which no two work items share, and the round or the phase where there
+is one. The fourth is the framer's probe directory (#1047), and the fifth
+the crafter's directories for a phase and a fix pass (#1445), where a
+crafter that named none wrote into the scratchpad itself and removed it
+whole. Contract rule 21's removal names the work item's directory and never
+the scratchpad, which is the same repair at the moment of cleanup. This
+file pins the five sentences and that clause, because a definition is a
+sentence an agent reads and a sentence can be dropped without a case going
+red.
 
 What it cannot pin is obedience: a spawn prompt that names a different
 directory still wins in the moment, and nothing in the tree reads a prompt.
@@ -30,12 +35,17 @@ from conftest import ROOT, read
 PROOFER = os.path.join(ROOT, "agents", "proofer.md")
 SEALER = os.path.join(ROOT, "agents", "sealer.md")
 FRAMER = os.path.join(ROOT, "agents", "framer.md")
+CRAFTER = os.path.join(ROOT, "agents", "crafter.md")
+CONTRACT = os.path.join(ROOT, "skills", "agent-contract", "SKILL.md")
 REVIEW_ORCH = os.path.join(ROOT, "skills", "code-review", "orchestration.md")
 VERIFY = os.path.join(ROOT, "skills", "verify", "SKILL.md")
 
 CLONE = "<scratchpad>/<work-item-id>/round-<n>/clone"
 ROUND_HOME = "<scratchpad>/<work-item-id>/round-<n>/"
 FRAME_HOME = "<scratchpad>/<work-item-id>/frame/"
+PHASE_HOME = "<scratchpad>/<work-item-id>/phase-<n>/"
+FIX_HOME = "<scratchpad>/<work-item-id>/fix-<n>/"
+WORK_ITEM_HOME = "<scratchpad>/<work-item-id>/"
 
 
 def section(path, heading):
@@ -83,6 +93,47 @@ def test_the_framers_probe_is_named_for_the_work_item():
     assert "share" in where and "scratchpad" in where, (
         "the sentence names the directory and not why: agents of one session "
         "share the scratchpad"
+    )
+
+
+def test_the_crafters_scratch_is_named_for_the_work_item_and_the_phase():
+    """#1445 S6. A crafter that names no directory of its own writes
+    straight into the scratchpad, and in the 0.37.0 run one removed the
+    whole scratchpad with the files of every other agent of the session in
+    it. A phase's writes sit under a directory named for the work item and
+    the phase, and a fix pass's under one named for the round it fixes, so
+    two crafters alive at once cannot pick one name, and each has a
+    directory of its own to remove."""
+    where = section(CRAFTER, "Rules")
+    assert PHASE_HOME in where, (
+        "`agents/crafter.md` *Rules* does not name a phase's directory as "
+        f"`{PHASE_HOME}`, so a crafter's writes have no name of their own"
+    )
+    assert FIX_HOME in where, (
+        "the section does not name a fix pass's directory as "
+        f"`{FIX_HOME}`, so a fix pass writes into the shared scratchpad"
+    )
+    assert "share" in where and "scratchpad" in where, (
+        "the sentence names the directory and not why: agents of one session "
+        "share the scratchpad"
+    )
+
+
+def test_rule_21_removes_the_agents_directory_and_never_the_scratchpad():
+    """#1445 S6. Contract rule 21 asks that a directory an agent made be
+    removed in one `rm -rf`. Without a location, the scratchpad itself reads
+    as such a directory, and every agent of the session loses its files with
+    it. The rule names the work item's directory under the scratchpad, and
+    says the removal never names the scratchpad itself."""
+    where = section(CONTRACT, "21 ")
+    assert WORK_ITEM_HOME in where, (
+        "contract rule 21 does not name the directory a removal takes as one "
+        f"under `{WORK_ITEM_HOME}`, so the scratchpad reads as the directory "
+        "an agent made"
+    )
+    assert "never names the scratchpad itself" in where, (
+        "contract rule 21 does not say a removal never names the scratchpad "
+        "itself, which every agent of the session shares"
     )
 
 

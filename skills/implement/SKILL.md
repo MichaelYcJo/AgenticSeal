@@ -245,9 +245,12 @@ check: tests/text/test_a_moved_rule_leaves_its_definition.py
 ### 3. The SDD file set
 
 Which files a work item has, and whether it has a `frame/design.md` and a
-`plan.md` at all, is the ladder's: the orchestrator reads it in
+`plan.md` at all, is the ladder's, and where the person answered the
+routing question `agentic` it is the orchestrator's choice, which weighs
+the ladder among its signals. The orchestrator reads the ladder in
 `skills/implement/orchestration.md` *Orchestrator: when a work item is
-required* before it spawns a framer.
+required*, and the choice in its *Under agentic*, before it spawns a
+framer.
 
 `questions.md` is not on that ladder: it starts with the batch collected
 before the first edit (`skills/implement/orchestration.md` *Orchestrator:
@@ -294,8 +297,9 @@ split it records is what `agents/framer.md` exists for, and
 definition each* says why the party that draws a contract is not the party
 that executes it. A table that lists the set without naming an author reads
 as a list one session works through. Below the ladder's top rung there is no
-framer and no `frame/design.md`; the session that builds writes whatever that
-rung asks for, and the column is about who holds the pen when both parties
+framer and no `frame/design.md`, and under `agentic` the orchestrator may
+choose no framer or no frame; the session that builds writes whatever the
+work item has, and the column is about who holds the pen when both parties
 exist.
 
 Reading `plan.md` and spawning the build is the approval, and no line

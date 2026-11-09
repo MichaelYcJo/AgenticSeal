@@ -251,9 +251,9 @@ def test_the_routing_section_holds_the_answers_and_the_shape():
         # It moved again (#911): the boxes meant nothing under two of
         # question 1's three answers and were on screen under all three, so
         # question 1 now goes alone and the boxes follow only under
-        # `per axis`.
-        "Ask question 1 alone; the boxes in a second call only under `per axis`.",
-        # Under `no work item`, the trailer that records the answer in place
+        # `manual` (`per axis` until #1459).
+        "Ask question 1 alone; the boxes in a second call only under `manual`.",
+        # Under `direct`, the trailer that records the answer in place
         # of the per-command waiver (#1027), which the block named until #1177.
         "`Seal-Routing: no work item`",
     ):
