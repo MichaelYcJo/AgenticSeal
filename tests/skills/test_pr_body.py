@@ -587,10 +587,10 @@ class Test_read_item:
 class Test_read_own:
     def test_accepts_pr_md_as_its_bytes_stand(self, tmp_path):
         """`pr.md`, a file of the body's first part, is read as its text
-        with its line ends as they stand, and a file whose last line has no line end gets one, so
-        the heading after it stands on its own line. Seen red with the line
-        end's addition alone removed, where the heading joined the last
-        line."""
+        with its line ends as they stand, and a file whose last line has no
+        line end gets one, so the heading after it stands on its own line.
+        Seen red with the line end's addition alone removed, where the
+        heading joined the last line."""
         item = item_of(tmp_path, RECORDS)
         assert PR.read_own(str(item)) == OWN
         (item / "pr.md").write_bytes(b"Closes #1.")
