@@ -55,8 +55,9 @@ GATE = f"{TRAIL}/gate.md"
 GAPS = "gaps.md"
 GUARANTEE = "guarantee.md"
 CHANGELOG = "changelog.md"
-# The pull request body's first part, which `seal pr-body` writes above the
-# copy of the records.
+# The work item's own file of the pull request body's first part, which
+# `seal pr-body` writes above the copy of the records, after the work item's
+# `pr.<lang>.md` where the two language rows differ.
 PR = "pr.md"
 # The migration config, directly under the root: `parity_config` below opens
 # it, and `chain_check.py` reads it at HEAD under the shared root (#988).

@@ -1,6 +1,7 @@
 # Pull-request checks for the AgenticSeal workflow, run against what the pull
 # request committed: the review chain's round record, and the `Mode` row of
-# `seal/config.md`.
+# `seal/config.md`. The first check also reads the pull request's body
+# against what `seal pr-body` composes from those records.
 #
 # Setup: `seal pr-checks install` writes this file to
 # .github/workflows/hygiene.yml, at first setup under the answer "shared,
@@ -32,7 +33,12 @@ on:
     # so nothing re-runs. `chain_check.py` reads the draft state, and fails
     # an open finding, a record behind HEAD, or a missing `trail/gate.md` or
     # `guarantee.md` only once the draft is over.
-    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
+    #
+    # `edited` is here because `chain_check.py` reads the pull request's body
+    # against what `seal pr-body` composes at HEAD. A body edit is no commit,
+    # and the `edited` payload carries the new body, so without it a body sent
+    # after the pull request opened is read only on the next push.
+    types: [opened, synchronize, reopened, edited, ready_for_review, converted_to_draft]
 
 # A newer run cancels this workflow's run still in progress for the same pull
 # request, so a push does not leave the last commit's run to finish.

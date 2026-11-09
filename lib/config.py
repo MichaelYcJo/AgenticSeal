@@ -1,12 +1,15 @@
 """Shared reader: what does this repository say about itself?
 
 `config.md` sits in the root `lib/optin.py` resolves, in the same shape as
-`parity.md` -- a markdown table of `| Item | Value |`. The file is optional,
-and every absent row but two has a default, which is what every repository
-got before that row existed. An absent `Broad gate` is one exception:
-`seal gate` names the row and exits 2 with nothing run.
+`parity.md` -- a markdown table of `| Item | Value |`. Every absent row but
+four has a default, which is what every repository got before that row
+existed. An absent `Broad gate` is one exception: `seal gate` names the row
+and exits 2 with nothing run. `Commit and pull request language` and
+`Record language` are two more: `seal pr-body` refuses to compose a pull
+request body without either (#1453), and a commit is never refused for
+them.
 
-`Mode` is the other, and it is why this module exists. What
+`Mode` is the fourth, and it is why this module exists. What
 every repository got before that row was *the folder decides*, which is not a
 value, so an absent one has no default at all -- it is filled in from where the
 folder actually is, by `seal mode`. Until somebody runs that command, a root
@@ -551,8 +554,8 @@ def declared_mode(home):
                  more than once, or the walk refused the table without
                  reading the row (#871); VALUE is `declared_value`'s sentence
 
-    **There is no default.** Every other item in `config.md` falls back to
-    what every repository got before the row existed; for the mode that is
+    **There is no default.** An item with a default falls back to what
+    every repository got before the row existed; for the mode that is
     *the folder decides*, so an absent row is filled in from the folder by
     `seal mode` rather than assumed here. A default of `shared` would report
     every undeclared local-mode repository as lying.

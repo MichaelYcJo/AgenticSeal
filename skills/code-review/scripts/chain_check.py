@@ -6,7 +6,7 @@ Run by CI on every pull request (`.github/workflows/hygiene.yml`). It judges
 the `seal/threads/<id>/routing.md` naming the pull request's branch and every
 one its own commits add or change. One that reached the branch inside another
 pull request's squash was judged at that pull request and is named, not
-judged (`carried_by`). The arms are eight:
+judged (`carried_by`). The arms are nine:
 
   trailer       on every pull request, a declaration or none: each
                 `Seal-Routing` trailer of the pull request's own commits
@@ -72,6 +72,21 @@ judged (`carried_by`). The arms are eight:
                 or every commit after it touches only the closing records,
                 and its `Verdict:` reads `sealed`; a guarantee with no
                 verdict block, or with a line the reader refuses, fails
+  body          where the event payload holds `pull_request.body`, that
+                body is what `seal pr-body` composes at HEAD for the one
+                judged work item that is not retired: its first part, the
+                `pr.<lang>.md` and `pr.md` the two language rows ask for,
+                the heading, the seal mark where the `Pull request seal mark`
+                row and the guarantee, read against `--baseline` as the
+                guarantee arm reads it, give one, and the records' copy,
+                compared through `pr_body.py#compared`, the function `seal
+                pr-body --check` calls; each differing line is refused on
+                the work item's directory naming the body's line, and a
+                record that function refuses at its line, the root's
+                `config.md` lacking a language row among them; a payload with no
+                body, `--worktree`, and a pull request carrying more than
+                one judged work item holding `pr.md`, or several none of
+                which holds one, name the body as not read (`body`)
 
 A ready pull request fails on any of them. A draft, or a run that observed no
 pull request, prints the same lines and exits 0.
@@ -109,7 +124,8 @@ Usage:
 `--worktree` reads the records from the working tree instead of HEAD, for a
 check before the commit; CI never passes it. `--sealing` is the broad gate's
 own run, before it writes `trail/gate.md` and the sealer `guarantee.md`: those
-two arms, and the guarantee's `original:` line, print and do not fail.
+two arms, the guarantee's `original:` line, and the body arm, whose seal mark
+stands on that guarantee, print and do not fail.
 
 Exit: 0 nothing to refuse · 1 a refusal, each named `path:line  why` (a
 GitHub annotation in CI) · 2 the check could not run, a reader that will not
@@ -123,6 +139,7 @@ import collections
 import importlib.util
 import json
 import os
+import posixpath
 import re
 import shutil
 import subprocess
@@ -559,6 +576,31 @@ def pull_request_state(root=None, which=shutil.which, run=subprocess.run):
             "not a boolean"
         )
     return ("draft" if pr["draft"] else "ready"), path
+
+
+def pull_request_body():
+    """`(text, where)`: the pull request's body from the event payload
+    GitHub writes, the file `pull_request_state` reads the draft state from,
+    and that file's path; or `(None, why)`, a clause saying why there is no
+    body to read. GitHub sends `null` for an empty body, which reads as
+    `""`."""
+    path = os.environ.get("GITHUB_EVENT_PATH")
+    if not path or not os.path.exists(path):
+        return None, f"there is {NO_PAYLOAD}"
+    try:
+        with open(path, encoding="utf-8") as f:
+            event = json.load(f)
+    except (OSError, ValueError) as exc:
+        return None, f"the event payload would not read ({exc})"
+    pr = event.get("pull_request") if isinstance(event, dict) else None
+    if not isinstance(pr, dict) or "body" not in pr:
+        return None, "the event payload holds no `pull_request.body`"
+    text = pr["body"]
+    if text is None:
+        return "", path
+    if not isinstance(text, str):
+        return None, f"the event payload's `body` is {type(text).__name__}, not text"
+    return text, path
 
 
 def pull_request_from_gh(root, which=shutil.which, run=subprocess.run):
@@ -1696,6 +1738,92 @@ def guarantee(reader, root, item, base, notices=None):
     return problems
 
 
+# The pull request's body (#1452), read from the event payload, against what
+# `seal pr-body` composes at HEAD for the one judged work item it carries.
+# `pr_body.py` loads this module at its own import, so the arm loads it
+# inside `pr_body_reader` and never at module level.
+PR_BODY = os.path.join(HERE, "pr_body.py")
+PR_FILE = "pr.md"
+BODY_LINE = "the pull request's body, line {line}: {why}"
+BODY_WHOLE = "the pull request's body: {why}"
+BODY_UNREAD = "not read: the pull request's body, since {why}"
+BODY_WORKTREE = (
+    "the check reads the working tree (--worktree), and CI reads the body against HEAD"
+)
+BODY_SPLIT = (
+    f"the pull request carries more than one judged work item holding "
+    f"`{PR_FILE}`, and one body is one work item's"
+)
+BODY_NONE_HOLDS = (
+    f"the pull request carries more than one judged work item and none holds "
+    f"`{PR_FILE}`, and one body is one work item's"
+)
+BODY_SEALING_SAYS = (
+    f"{SEALING}: the guarantee the seal mark stands on is not written yet, so "
+    "a difference in the body prints and does not fail"
+)
+
+_pr_body = None
+
+
+def pr_body_reader():
+    """`PR_BODY`, loaded by path once, or Unreadable naming it."""
+    global _pr_body
+    if _pr_body is None:
+        try:
+            _pr_body = load(PR_BODY, "agentic_pr_body_for_the_chain")
+        except (OSError, SyntaxError, ImportError, SystemExit, ValueError) as exc:
+            raise Unreadable(
+                f"the body reader `skills/code-review/scripts/pr_body.py` would "
+                f"not load ({exc})"
+            ) from None
+    return _pr_body
+
+
+def body(root, items, text, why, base=None):
+    """`(problems, notices)` of the pull request's body TEXT, against what
+    `seal pr-body` composes at HEAD for the work item of ITEMS, the judged
+    work item directories that are not retired, compared through
+    `pr_body.py#compared`, the function `seal pr-body --check` calls. The
+    seal mark is read against BASE, the base the guarantee arm reads, so
+    the two arms ask one question at the merge commit CI checks out. Where
+    TEXT is None the body is named as not read for WHY. The work item is
+    the one of ITEMS holding `pr.md`, or the one of ITEMS where it is alone
+    and holds none, which `compared` refuses at `pr.md`; where more than one
+    holds a `pr.md`, or none does among several, the body is named as not
+    read for each, in the sentence for that shape. A line of the body is
+    refused on the work item's directory, naming the body's line; a record
+    `compared` refuses is refused at its line, by its path from the work
+    item's directory, which names the root's `config.md` for a language row
+    (#1453); `seal_mark`'s sentence is a notice. Unreadable where
+    `pr_body.py` will not load."""
+    if text is None:
+        return [], [("", 0, BODY_UNREAD.format(why=why))]
+    holders = [i for i in items if read_record(root, f"{i}/{PR_FILE}") is not None]
+    if len(holders) == 1 or (not holders and len(items) == 1):
+        item = (holders or items)[0]
+    else:
+        split = BODY_SPLIT if holders else BODY_NONE_HOLDS
+        return [], [(i, 0, BODY_UNREAD.format(why=split)) for i in holders or items]
+    note, causes = pr_body_reader().compared(
+        os.path.join(root, *item.split("/")), text, root, base=base
+    )
+    notices = [(item, 0, BODY_WHOLE.format(why=note))] if note else []
+    problems = []
+    for where, line, said in causes:
+        if where is None:
+            message = (
+                BODY_LINE.format(line=line, why=said)
+                if line
+                else BODY_WHOLE.format(why=said)
+            )
+            problems.append((item, 0, message))
+        else:
+            path = posixpath.normpath("/".join(p for p in (item, where) if p))
+            problems.append((path, line, said))
+    return problems, notices
+
+
 def local_root(root, routing):
     """The local-mode root of `root`, or "" where the root is shared or absent."""
     optin = routing.optin
@@ -1976,6 +2104,9 @@ def main(argv=None):
     sources = {}
     texts = {rel: read_record(root, rel) for rel in declarations}
     by_settle = retired(reader, root, fork, texts)
+    # The judged work items whose declaration reads, which the body arm
+    # chooses its one work item from.
+    bodied = []
     for rel in declarations:
         item = os.path.dirname(rel)
         text = texts[rel]
@@ -2003,6 +2134,7 @@ def main(argv=None):
                 )
             )
             continue
+        bodied.append(item)
         problems.extend(
             (rel, 0, p) for p in frame(reader, routing, root, item, declared)
         )
@@ -2022,6 +2154,17 @@ def main(argv=None):
             notices.extend((p, n, f"{SEALING_SAYS}: {m}") for p, n, m in gate)
         else:
             problems.extend(gate)
+    text, said = (None, BODY_WORKTREE) if WORKTREE else pull_request_body()
+    try:
+        found, unread_body = body(root, bodied, text, said, args.baseline)
+    except Unreadable as exc:
+        print(f"chain-check: {exc}", file=sys.stderr)
+        return 2
+    notices.extend(unread_body)
+    if args.sealing:
+        notices.extend((p, n, f"{BODY_SEALING_SAYS}: {m}") for p, n, m in found)
+    else:
+        problems.extend(found)
     found = rule_changes_of(reader, root, edited, notices, sources)
     if found is None:
         return 2
