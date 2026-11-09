@@ -241,8 +241,7 @@ segment that just finished, not as a follow-up someone might do later:
    `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/projects/<project-dir>/<session-id>/subagents/agent-*.jsonl`),
    joins each to the spawn whose result it opened at, and prints one row per
    segment: the agent, its own span, calls, tools per turn, mean gap,
-   tokens and the largest context any one turn read, and, under the table,
-   which rows sit under their kind's bar.
+   tokens and the largest context any one turn read.
 
    **A segment's own span is the number no other mode has.** A cycle row's
    `delegated` is the spawn call's own interval, and where a harness writes

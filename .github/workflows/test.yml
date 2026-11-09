@@ -189,9 +189,14 @@ jobs:
   # part missing, an id in two parts, a part that does not parse -- so no
   # smaller file is ever uploaded as the suite. Its summary reports each
   # shard's measured seconds, the spread, and the union against the
-  # committed file. Downloading an artifact of the same run needs nothing
-  # beyond the default token. `--count` is the number of entries above that
-  # carry `store`.
+  # committed file. On a pull request into `main`, and on no other run, the
+  # union step also asks the verdict on the committed file's age (#1444):
+  # past `STALE_SHARE`, the step is red after writing the union, and the
+  # upload runs wherever the union was written rather than where the step
+  # passed, so the red run carries the file the release's refresh commits
+  # (`CONTRIBUTING.md` *Running the checks*). Downloading an artifact of the
+  # same run needs nothing beyond the default token. `--count` is the number
+  # of entries above that carry `store`.
   durations:
     needs: pytest
     if: ${{ !cancelled() }}
@@ -206,8 +211,9 @@ jobs:
         with:
           pattern: test-durations-*
           path: parts
-      - run: python .github/scripts/durations_union.py --parts parts --count 4 --committed .test_durations --out union/.test_durations
-      - uses: actions/upload-artifact@v4
+      - run: python .github/scripts/durations_union.py --parts parts --count 4 --committed .test_durations --out union/.test_durations ${{ github.base_ref == 'main' && '--stale-fails' || '' }}
+      - if: ${{ !cancelled() && hashFiles('union/.test_durations') != '' }}
+        uses: actions/upload-artifact@v4
         with:
           name: test-durations
           path: union/.test_durations
