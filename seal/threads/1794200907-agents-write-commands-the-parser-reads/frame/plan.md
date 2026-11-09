@@ -36,7 +36,7 @@ The chosen approach's failure scenario, six months out: Claude Code changes whic
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
 | 1 | *Scope* items 1, 2, 3, 4 and 5 | The entry for 21 in `FACTS` seen red before rule 21 is written, then green. Then the phase boundary set of `skills/verify/SKILL.md` *Scope: cheap and often, broad and once* in one command, which holds at least `tests/text/test_the_agent_contract_holds_the_universal_rules.py`, `tests/text/test_every_agent_reads_the_contract.py`, `tests/text/test_a_moved_rule_leaves_its_definition.py`, `tests/behaviour/test_docs_line_wrap.py` and `tests/behaviour/test_a_cited_section_stands_in_its_file.py` | df508485 |
-| 2 | *Scope* items 6, 7 and 8, and the changelog's line for them under *Scope* item 4 | *Scope* item 8's two cases seen red before their sentences are written, then green. Then the phase boundary set of `skills/verify/SKILL.md` *Scope: cheap and often, broad and once* in one command, which holds at least phase 1's modules, `tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py`, and every test file that reads `agents/crafter.md` or the contract, listed by `git grep -l` on those paths | |
+| 2 | *Scope* items 6, 7 and 8, and the changelog's line for them under *Scope* item 4 | *Scope* item 8's two cases seen red before their sentences are written, then green. Then the phase boundary set of `skills/verify/SKILL.md` *Scope: cheap and often, broad and once* in one command, which holds at least phase 1's modules, `tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py`, and every test file that reads `agents/crafter.md` or the contract, listed by `git grep -l` on those paths | 8b55ee74 |
 
 ## Overlap with the release
 
