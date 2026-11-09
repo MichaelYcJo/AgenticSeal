@@ -3029,10 +3029,13 @@ def emit(args, render, path=None, read_from=()):
 
     **The residual, stated rather than left to be found:** this replaces the
     ONE path the reading was taken over. A future report line printing some
-    other absolute path would not be covered, and today none does — a segment
-    row's transcript is stored by `measure_segments` as `os.path.relpath`
-    against the file it was measured beside, or as its basename where it is
-    the agent's own file, so every row label is already relative.
+    other absolute path would not be covered. Today none reaches the body: a
+    segment row's transcript is stored by `measure_segments` as
+    `os.path.relpath` against the file it was measured beside, or as its
+    basename where it is the agent's own file, so every row label is already
+    relative. The plain reading's `slowest` list and `other` note print
+    command text, with whatever path a command names, so `main` asks `report`
+    for the form without it wherever the reading is posted (#1439).
     """
     if not args.post:
         render()
