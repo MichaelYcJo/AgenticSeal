@@ -2422,7 +2422,9 @@ class Test_originals_of:
         inside = ["docs/a.md", f"{ITEM}/trail/rounds/round-1.md"]
 
         def owed(paths):
-            return chain.originals_of(reader, routing_module, str(root), paths, [ITEM])
+            return chain.originals_of(
+                reader, routing_module, str(root), "seal", paths, [ITEM]
+            )
 
         assert owed(inside) == []
         assert [p for p, _n, _w in owed([*inside, "f.txt"])] == [
@@ -2646,7 +2648,7 @@ class Test_parity_readers:
             "m = importlib.util.module_from_spec(s)\n"
             "s.loader.exec_module(m)\n"
             "config, gate = m.parity_readers()\n"
-            "print(gate.touches_code(['f.txt']), config.BASELINE_ROW)\n"
+            "print(gate.touches_code(['f.txt'], 'seal'), config.BASELINE_ROW)\n"
         )
         done = subprocess.run(
             [sys.executable, "-I", "-c", code],
@@ -3591,6 +3593,9 @@ def run_check(repo, *extra):
 
 
 ADD_THE_FILE = "Add seal/threads/<work-item>/routing.md to declare"
+# The directory of the work items `main` passes, `root_name` resolving the
+# `repo` fixture's tree to `seal`.
+WORK = "seal/threads"
 # A shared-mode declaration naming the `repo` fixture's branch.
 DECLARES_FEATURE = ROUTING.format(
     review="through the review chain", planning="the session"
@@ -3658,7 +3663,7 @@ class Test_declared_for_this_branch:
         write(repo, declared, DECLARES_FEATURE)
         write(repo, decoy, DECLARES_FEATURE)
         commit_everything_as_e(repo, "a declaration and a decoy")
-        assert chain.declared_for_this_branch(str(repo), routing_module) == (
+        assert chain.declared_for_this_branch(str(repo), routing_module, WORK) == (
             [declared],
             "",
         )
@@ -3671,7 +3676,7 @@ class Test_declared_for_this_branch:
                 repo, f"seal/threads/179900000{n}-item-{n}/routing.md", DECLARES_FEATURE
             )
         commit_everything_as_e(repo, "two declarations")
-        own, why = chain.declared_for_this_branch(str(repo), routing_module)
+        own, why = chain.declared_for_this_branch(str(repo), routing_module, WORK)
         assert own == [], own
         assert why.startswith("2 committed declarations name `feature`"), why
 
@@ -3683,7 +3688,7 @@ class Test_declared_for_this_branch:
         write(repo, "seal/threads/1799000001-an-item/routing.md", DECLARES_FEATURE)
         commit_everything_as_e(repo, "a declaration")
         git(repo, "switch", "-q", "--detach")
-        own, why = chain.declared_for_this_branch(str(repo), routing_module)
+        own, why = chain.declared_for_this_branch(str(repo), routing_module, WORK)
         assert own == [], own
         assert why.startswith("the branch could not be read"), why
 

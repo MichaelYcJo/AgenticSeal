@@ -647,11 +647,11 @@ def resolve_base(root, given):
 
 
 def seal_home(root):
-    """`<root>/seal/` where it is the root, else `<git-common-dir>/seal/`,
-    else None — the two places every `seal/…` path in this plugin resolves
-    to (contract rule 11), read in that order. Each is the root only where
-    `lib/optin.py#marked` finds the marker, so a `seal/` the project keeps
-    for itself is never read for a command. The places and the marker are
+    """The shared place `optin.home_paths` gives where it is the root, else
+    `<git-common-dir>/seal/`, else None — the places every `seal/…` path in
+    this plugin resolves to (contract rule 11), read in that order. Each is
+    the root only where `lib/optin.py#marked` finds the marker, so a `seal/`
+    the project keeps for itself is never read for a command. The places and the marker are
     `optin`'s; the scratch opt-out is not read here, because a throwaway
     repository still runs its broad command when somebody asks for it."""
     optin = load(OPTIN, "agentic_optin_for_broad_gate")
@@ -2980,11 +2980,15 @@ def gate(args, ascii_marks=False):
         )
     home = seal_home(root)
     if home is None:
+        # The two places as `optin.home_paths` gives them, as `seal mode`
+        # prints them: beside a project's own `seal/` the shared one takes
+        # the second name, which a literal `<repo>/seal/` would misname.
+        shared, local = load(OPTIN, "agentic_optin_for_broad_gate").home_paths(root)
         raise Refused(
             f"seal gate: {root} has no seal/ root at either place a root lives "
-            "(`<repo>/seal/`, `<git-common-dir>/seal/`, its README.md opening "
-            "with the marker) — this repository is not opted in, and there is "
-            "no config to read a command from. Nothing ran"
+            f"(`{shared}`, `{local}`, its README.md opening with the marker) — "
+            "this repository is not opted in, and there is no config to read a "
+            "command from. Nothing ran"
         )
     command = broad_command(home)
     if command is None:

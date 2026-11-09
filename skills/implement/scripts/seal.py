@@ -615,12 +615,13 @@ def export(args, cwd):
             "A zip would be a second copy of what git carries, and nothing "
             "would keep it current — so none was written."
         )
+        name = display(repo, shared)
         print(
             "\nTo switch this repository to local mode, from the repository "
             "root:\n"
-            '  git rm -r --cached "$(git rev-parse --show-toplevel)/seal"\n'
-            '  mv "$(git rev-parse --show-toplevel)/seal" '
-            '"$(git rev-parse --git-common-dir)/seal"\n'
+            f'  git rm -r --cached "$(git rev-parse --show-toplevel)/{name}"\n'
+            f'  mv "$(git rev-parse --show-toplevel)/{name}" '
+            f'"$(git rev-parse --git-common-dir)/{optin.HOME}"\n'
             "then commit the removal."
         )
         return 1
@@ -751,7 +752,8 @@ def no_root(repo, shared, local):
         return 1
     # Not "nothing to carry": `seal mode` reaches this too, and it carries
     # nothing anywhere. What all three subcommands share is that the root is
-    # what they work on, and it is looked for at exactly two places.
+    # what they work on, and the two places printed are the ones
+    # `optin.home_paths` gives: the shared place and the local place.
     print("no seal/ here, so there is nothing to work with. It is looked for at:")
     print(f"  {shared}   (shared mode)")
     print(f"  {local}   (local mode)")
@@ -1254,10 +1256,14 @@ def import_(args, cwd):
             print(why)
             return 1
 
+        # The root's own name in this clone, which a person finds the path
+        # under: `optin.SECOND_HOME` where the project's own `seal/` stands.
+        # The zip's members keep `optin.HOME`, the archive's own prefix.
+        root_name = os.path.basename(into)
         linked = linked_path(into, archive)
         if linked:
             print(
-                f"{optin.HOME}/{linked} in this clone is a symbolic link, and "
+                f"{root_name}/{linked} in this clone is a symbolic link, and "
                 "writing through it would put records outside the root."
             )
             print(
@@ -1275,7 +1281,7 @@ def import_(args, cwd):
             # sending a person to rename a file they do not have.
             if os.path.lexists(os.path.join(into, *blocked.split("/"))):
                 print(
-                    f"{optin.HOME}/{blocked} in this clone is not a directory, "
+                    f"{root_name}/{blocked} in this clone is not a directory, "
                     "and this zip needs it as one."
                 )
                 print("\nNothing was written. Move or rename it and run this again.")
@@ -1402,8 +1408,8 @@ def write_members(archive, into):
 # (#952).
 #
 # **Nothing at runtime reads the row.** Every script resolves the root through
-# `lib/optin.py#home_at`, which reads `<repo>/seal/` then
-# `<git-common-dir>/seal/`, and that stays the only signal. The row says what
+# `lib/optin.py#home_at`, which reads the places `home_paths` gives in
+# order, and that stays the only signal. The row says what
 # the repository WANTS; the folder's location says what it HAS. A gate that
 # trusted the row would go looking in a place with no folder, and everything
 # in `optin` is documented to fail toward "not opted in" rather than toward a
@@ -1431,9 +1437,6 @@ MODES = repo_config.MODES
 # two dialects that equals nothing any caller built (`lib/optin.py`
 # carries the same reasoning about `repo_root`).
 WORKFLOW = ".github/workflows/hygiene.yml"
-# The row this command writes itself, spelled as git spells a pathspec —
-# beside WORKFLOW and for the same reason.
-CONFIG_PATHSPEC = f"{optin.HOME}/{CONFIG}"
 
 # The line CI's own workflow uses to clone this plugin. A file at WORKFLOW
 # carrying it is one this plugin wrote; a file that does not is somebody
@@ -1718,8 +1721,9 @@ def porcelain(repo, *paths):
     return [line for line in (done.stdout or "").splitlines() if line.strip()]
 
 
-def indexed(line, moved=False):
-    """Whether a porcelain line is something the index can lose.
+def indexed(line, name, moved=False):
+    """Whether a porcelain line is something the index can lose, where NAME
+    is the shared root's name in the tree, as `display` gives it.
 
     **Untracked is not.** The guard exists because `git rm -r --cached` takes
     a staged edit out of the index and prints nothing about it (measured
@@ -1758,7 +1762,7 @@ def indexed(line, moved=False):
     pair = line[:2]
     if pair == "??":
         return False
-    if pair == " M" and line[3:].strip() == CONFIG_PATHSPEC:
+    if pair == " M" and line[3:].strip() == f"{name}/{CONFIG}":
         return False
     return not (moved and pair in ("D ", " D"))
 
@@ -1957,19 +1961,23 @@ def left_workflow_line(text):
 def install_workflow(repo):
     """Write the pull-request checks; (what happened, the line to print).
 
-    Refused where `<repo>/seal/` is not the root, a directory whose README
-    opens with the marker, because the checks read committed records and only
-    a root in the tree is committed; a `seal/` the project keeps for itself
-    holds none of them. Never overwrites: this plugin's own file already
-    there is reported with the release it pins, and anybody else's is left
-    alone.
+    Refused where the shared place `optin.home_paths` gives is not the root,
+    a directory whose README opens with the marker, because the checks read
+    committed records and only a root in the tree is committed; a `seal/`
+    the project keeps for itself holds none of them. Never overwrites: this
+    plugin's own file already there is reported with the release it pins,
+    and anybody else's is left alone.
     """
     shared, _local = optin.home_paths(repo)
     if not shared or not optin.marked(shared):
+        # The shared place by its own name: beside a project's own `seal/`
+        # it is `optin.SECOND_HOME`, and the project's `seal/` stands in the
+        # tree, so "seal/ is not in this tree" would be false there (#1059).
+        name = display(repo, shared) or optin.HOME
         return "no-root", (
-            f"{WORKFLOW} was NOT written: {optin.HOME}/ is not in this tree, "
-            "and the checks read committed records, which only a root in the "
-            f"tree has. `seal mode {SHARED}` puts it in the tree."
+            f"{WORKFLOW} was NOT written: no root stands at {name}/ in this "
+            "tree, and the checks read committed records, which only a root in "
+            f"the tree has. `seal mode {SHARED}` puts it in the tree."
         )
     kind, found = workflow_at(repo)
     if kind == "plugin":
@@ -2342,8 +2350,9 @@ def both_roots(shared, local):
     )
 
 
-def gitlinks_under_root(repo):
-    """(submodule entries under the root, why they could not be read).
+def gitlinks_under_root(repo, name):
+    """(submodule entries under the shared root NAME, why they could not be
+    read). NAME is the root's name in the tree, as `display` gives it.
 
     Entries is None when the question could not be answered. `git()` reads
     every failure as "", so asking through it would answer "no submodule" for
@@ -2364,7 +2373,7 @@ def gitlinks_under_root(repo):
     """
     try:
         done = subprocess.run(
-            ["git", "-C", repo, "ls-files", "--stage", "--", optin.HOME],
+            ["git", "-C", repo, "ls-files", "--stage", "--", name],
             capture_output=True,
             encoding="utf-8",
             errors="replace",
@@ -2398,6 +2407,9 @@ def refusals(repo, home, shared, local, wanted):
 
     source = shared if wanted == LOCAL else local
     destination = local if wanted == LOCAL else shared
+    # The shared root's name in the tree, which every pathspec here stages
+    # or reads: `optin.SECOND_HOME` where the project's own `seal/` stands.
+    name = display(repo, shared)
     found = []
 
     # The row this switch ends by writing is refused before anything moves
@@ -2407,20 +2419,20 @@ def refusals(repo, home, shared, local, wanted):
     if refused:
         found.append(refused)
 
-    gitlinks, unreadable = gitlinks_under_root(repo)
+    gitlinks, unreadable = gitlinks_under_root(repo, name)
     if gitlinks is None:
         found.append(
-            f"whether there is a submodule under {optin.HOME}/ could not be "
+            f"whether there is a submodule under {name}/ could not be "
             f"read: {unreadable}. A gitlink does not survive the move, so the "
             "unanswerable question refuses — the direction `porcelain` and "
             "`indexed` already take."
         )
     elif gitlinks:
         found.append(
-            f"there is a submodule under {optin.HOME}/:\n  "
+            f"there is a submodule under {name}/:\n  "
             + "\n  ".join(gitlinks)
             + f"\nMoving the root breaks its relative gitdir, and `git rm -r "
-            f"--cached {optin.HOME}` drops the gitlink while .gitmodules goes "
+            f"--cached {name}` drops the gitlink while .gitmodules goes "
             "on naming the path. Deinit it or move it out of the root first."
         )
 
@@ -2439,7 +2451,7 @@ def refusals(repo, home, shared, local, wanted):
     # somebody already made by hand is the one state whose deletions are not
     # work in progress — see `indexed`.
     moved = os.path.isdir(destination) and not os.path.lexists(source)
-    lines = [line for line in porcelain(repo, optin.HOME) if indexed(line, moved=moved)]
+    lines = [line for line in porcelain(repo, name) if indexed(line, name, moved=moved)]
     if lines:
         found.append(
             "the tree is not clean under the path this would stage:\n  "
@@ -2477,6 +2489,9 @@ def switch(args, repo, home, shared, local, current, wanted):
     """
     source = shared if wanted == LOCAL else local
     destination = local if wanted == LOCAL else shared
+    # Read before the move, while the shared place is still where
+    # `home_paths` put it: the pathspec every git command below stages.
+    name = display(repo, shared)
 
     stop = refusals(repo, home, shared, local, wanted)
     if stop:
@@ -2488,7 +2503,7 @@ def switch(args, repo, home, shared, local, current, wanted):
     if wanted == SHARED:
         print(
             "Going to shared mode puts the records in the tree. Until you "
-            f"commit, `git reset -- :/{optin.HOME}` and then "
+            f"commit, `git reset -- :/{name}` and then "
             "`seal mode local` walk the whole thing back — the switch stages, "
             "and the guard refuses a switch over a staged change. The "
             "pathspec is there because a bare `git reset` unstages the whole "
@@ -2507,7 +2522,7 @@ def switch(args, repo, home, shared, local, current, wanted):
             "other clone loses them at the next pull — `seal export` here "
             "and `seal import` there is how a teammate gets a copy."
         )
-    for line in porcelain(repo, optin.HOME):
+    for line in porcelain(repo, name):
         # `??` itself, not `indexed`. That function has three exceptions now
         # and only this one means untracked — reading its answer as the
         # question called a tracked, modified `config.md` untracked, in a
@@ -2550,7 +2565,7 @@ def switch(args, repo, home, shared, local, current, wanted):
         print(f"  wrote `| {ROW_ITEM} | {wanted} |` in {CONFIG}")
 
     if wanted == LOCAL:
-        if tracked(repo, optin.HOME):
+        if tracked(repo, name):
             done = subprocess.run(
                 [
                     "git",
@@ -2561,7 +2576,7 @@ def switch(args, repo, home, shared, local, current, wanted):
                     "--cached",
                     "--quiet",
                     "--",
-                    optin.HOME,
+                    name,
                 ],
                 capture_output=True,
                 encoding="utf-8",
@@ -2572,13 +2587,13 @@ def switch(args, repo, home, shared, local, current, wanted):
                 print(
                     f"  the records are still tracked: "
                     f"{(done.stderr or '').strip()}\n"
-                    f"  Run `git rm -r --cached :/{optin.HOME}` yourself, or "
+                    f"  Run `git rm -r --cached :/{name}` yourself, or "
                     "this command again."
                 )
             else:
-                print(f"  staged the removal of {optin.HOME}/ from the tree")
+                print(f"  staged the removal of {name}/ from the tree")
         else:
-            print(f"  nothing under {optin.HOME}/ was tracked")
+            print(f"  nothing under {name}/ was tracked")
         kind, text = workflow_at(repo)
         if kind == "plugin":
             print(f"  {left_workflow_line(text)}")
@@ -2590,7 +2605,7 @@ def switch(args, repo, home, shared, local, current, wanted):
         # and `Now commit`. The local direction has read this code since it
         # was written; this side had not.
         done = subprocess.run(
-            ["git", "-C", repo, "add", "--", optin.HOME],
+            ["git", "-C", repo, "add", "--", name],
             capture_output=True,
             encoding="utf-8",
             errors="replace",
@@ -2598,14 +2613,14 @@ def switch(args, repo, home, shared, local, current, wanted):
         )
         if done.returncode != 0:
             print(
-                f"  {optin.HOME}/ could NOT be staged: "
+                f"  {name}/ could NOT be staged: "
                 f"{(done.stderr or '').strip()}\n"
                 f"  A commit now would record nothing. An ignore rule "
                 f"matching the root is the usual cause. Run "
-                f"`git add -f :/{optin.HOME}` yourself, or this command again."
+                f"`git add -f :/{name}` yourself, or this command again."
             )
         else:
-            print(f"  staged {optin.HOME}/")
+            print(f"  staged {name}/")
         if workflow_at(repo)[0] == "absent":
             print(
                 "  no pull-request checks are installed: `seal pr-checks "
@@ -2615,7 +2630,7 @@ def switch(args, repo, home, shared, local, current, wanted):
     print("\nNow commit. The switch is what the commit records:\n  git commit")
     if moved and wanted == SHARED:
         print(
-            f"Until then, `git reset -- :/{optin.HOME}` and then "
+            f"Until then, `git reset -- :/{name}` and then "
             "`seal mode local` puts it back — the switch stages, and the "
             "guard refuses a switch over a staged change. The pathspec is "
             "there because a bare `git reset` unstages the whole index."
@@ -2750,6 +2765,7 @@ def main(argv=None, cwd=None):
     if argv and argv[0] in TOOLS:
         return hand_over(tool_command(argv[0], argv[1:]))
     parser = argparse.ArgumentParser(
+        # exempt from root_name: the command's own name, which names no directory
         prog="seal",
         description="the plugin's commands: where this repository's seal/ "
         "root lives, how a copy of it travels between clones, and one "

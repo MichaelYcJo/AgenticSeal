@@ -2400,7 +2400,7 @@ class Test_indexed:
         ],
     )
     def test_accepts_what_the_index_cannot_lose(self, line, moved):
-        assert not SEAL.indexed(line, moved=moved)
+        assert not SEAL.indexed(line, "seal", moved=moved)
 
     @pytest.mark.parametrize(
         "line, moved",
@@ -2422,7 +2422,7 @@ class Test_indexed:
         ],
     )
     def test_refuses_what_git_rm_cached_would_drop(self, line, moved):
-        assert SEAL.indexed(line, moved=moved)
+        assert SEAL.indexed(line, "seal", moved=moved)
 
 
 class Test_tracked:
@@ -2865,18 +2865,18 @@ class Test_gitlinks_under_root:
     @pytest.mark.parametrize("world", ["shared", "beside"])
     def test_accepts_a_root_holding_no_submodule(self, _worlds, take, world):
         repo = _worlds / world if world == "shared" else take(world)
-        assert SEAL.gitlinks_under_root(str(repo)) == ([], "")
+        assert SEAL.gitlinks_under_root(str(repo), "seal") == ([], "")
 
     def test_refuses_a_submodule_under_the_root_and_a_git_that_cannot_answer(
         self, take, monkeypatch
     ):
         repo = take("under")
-        (line,), why = SEAL.gitlinks_under_root(str(repo))
+        (line,), why = SEAL.gitlinks_under_root(str(repo), "seal")
         assert (
             line.startswith("160000 ") and line.endswith("\tseal/vendor") and why == ""
         )
         unanswered(monkeypatch, ["--stage", "--", "seal"], OSError("git is not here"))
-        assert SEAL.gitlinks_under_root(str(repo)) == (
+        assert SEAL.gitlinks_under_root(str(repo), "seal") == (
             None,
             "git ls-files could not be run (git is not here)",
         )
@@ -2998,11 +2998,14 @@ class Test_refusals:
         ]
 
     def test_refuses_a_projects_own_seal_as_a_destination_not_as_two_roots(self, take):
-        """A `<repo>/seal/` whose README does not open with the marker is no
-        second root, so switching to shared is refused for the directory in
-        the way, which nothing here overwrites."""
+        """A `<repo>/seal/` and a `<repo>/agentic-seal/` whose READMEs do not
+        open with the marker are no second root, so switching to shared is
+        refused for the directory in the way, which nothing here overwrites.
+        With `seal/` alone the project's own, the shared place is
+        `agentic-seal/` (#1059)."""
         repo = take("local")
-        write(repo, "seal/README.md", "# seal\n\nThis package's notes.\n")
+        for name in ("seal", "agentic-seal"):
+            write(repo, f"{name}/README.md", "# seal\n\nThis package's notes.\n")
         found = refusals_of(repo, "shared")
         assert any("already exists, and nothing here overwrites" in f for f in found)
         assert not any("both roots exist" in f for f in found), found

@@ -1175,6 +1175,91 @@ class Test_slash_in_join:
         assert censuses.slash_in_join("docs/x.md", root) == []
 
 
+def spelled(value):
+    """The line `root_name` writes after `<rel>:<line>: root_name: ` for the
+    string VALUE."""
+    return (
+        f'`"{value}"` spells the records root\'s name, which only '
+        "`lib/optin.py` says; read it from `optin.home_name` or "
+        "`optin.home_paths`, or put `# exempt from root_name: <why>` on its "
+        "own line above it"
+    )
+
+
+# Each source spells a name of the root on its second line, in a shape a
+# reader of the records takes it.
+ROOT_SPELLED = {
+    "the-name-as-a-path-part": ('import os\nos.path.join(r, "seal")\n', "seal"),
+    "the-second-name": ('X = 1\nNAME = "agentic-seal"\n', "agentic-seal"),
+    "a-path-under-the-root": ('X = 1\nTHREADS = "seal/threads"\n', "seal/threads"),
+    "a-path-under-the-second-name": (
+        'X = 1\nPACT = "agentic-seal/pact.md"\n',
+        "agentic-seal/pact.md",
+    ),
+    "an-f-strings-literal-part": ('X = 1\nshown = f"seal/{name}"\n', "seal/"),
+    "a-basename-compared": (
+        'import os\nif os.path.basename(p) == "seal":\n    pass\n',
+        "seal",
+    ),
+}
+# Each source names the root only in text a person reads, or spells
+# something else that opens with the same letters.
+ROOT_NOT_SPELLED = {
+    "a-docstring": '"""Reads `seal/threads/`."""\n\n\ndef f():\n    """seal"""\n',
+    "a-comment": "# under seal/threads/\nX = 1\n",
+    "a-message": 'X = "no seal/ root here"\nY = "the `seal/` root"\n',
+    "a-subcommand": 'X = "seal mode"\nY = "sealed"\nZ = "seals/x"\n',
+    "an-f-string-that-opens-otherwise": 'X = f"settle: {r} has no seal/threads/"\n',
+}
+
+
+class Test_root_name:
+    @pytest.mark.parametrize("shape", sorted(ROOT_SPELLED))
+    def test_refuses_each_shape_that_spells_the_roots_name(self, tmp_path, shape):
+        source, value = ROOT_SPELLED[shape]
+        root = plant(tmp_path, "skills/x.py", source)
+        assert censuses.root_name("skills/x.py", root) == [
+            "skills/x.py:2: root_name: " + spelled(value)
+        ]
+
+    @pytest.mark.parametrize("shape", sorted(ROOT_NOT_SPELLED))
+    def test_accepts_each_shape_that_spells_no_name(self, tmp_path, shape):
+        root = plant(tmp_path, "lib/x.py", ROOT_NOT_SPELLED[shape])
+        assert censuses.root_name("lib/x.py", root) == []
+
+    @pytest.mark.parametrize(
+        "rel",
+        ["lib/optin.py", "tests/skills/x.py", "evals/scripts/x.py", "docs/x.md"],
+    )
+    def test_accepts_the_resolver_the_fixtures_and_a_file_of_another_kind(
+        self, tmp_path, rel
+    ):
+        """`lib/optin.py` is where the names live, `tests/` and `evals/`
+        build roots by name, and a document names the root in text."""
+        root = plant(tmp_path, rel, 'HOME = "seal"\n')
+        assert censuses.root_name(rel, root) == []
+
+    def test_accepts_a_line_an_exemption_excuses_and_refuses_one_that_excuses_nothing(
+        self, tmp_path
+    ):
+        source = (
+            "# exempt from root_name: a fenced block's info string\n"
+            'INFO = "seal"\n'
+            "# exempt from root_name: nothing here\n"
+            'OTHER = "sealed"\n'
+        )
+        root = plant(tmp_path, ".github/scripts/x.py", source)
+        assert lines_of(censuses.root_name(".github/scripts/x.py", root)) == [
+            ".github/scripts/x.py:3"
+        ]
+
+    def test_accepts_the_names_lib_optin_holds(self):
+        """The names are read from `lib/optin.py`, so a rename there moves
+        the census with it."""
+        optin = load_lib_module("optin.py", "optin_for_the_root_name_census")
+        assert censuses._root_names() == (optin.HOME, optin.SECOND_HOME)
+
+
 class Test_module:
     def test_no_method_is_matched_by_its_dotted_name(self):
         """#762: a method called on its class takes the path first, and only

@@ -7,11 +7,9 @@ that cannot be read is not a declaration, and an optional row that cannot be
 read is unanswered while the declaration stands. What a reader does with an
 answer is that reader's own file's.
 The cases come from `tests/test_routing_is_recorded.py` and
-`tests/test_console_is_not_utf8.py` (#942's phase 6). Two cases of
-`Test_module` came in #942's round 9 fix pass, each a case of this module
-alone: the copy without `lib/blocks.py`, from
-`tests/test_a_script_copied_alone_exits_2.py`, and `WORK_ITEMS` held under
-`seal/`, from `tests/behaviour/test_a_reference_root_is_read_and_never_taken.py`.
+`tests/test_console_is_not_utf8.py` (#942's phase 6). The case of
+`Test_module` on the copy without `lib/blocks.py` came in #942's round 9 fix
+pass, from `tests/test_a_script_copied_alone_exits_2.py`.
 """
 
 import os
@@ -530,15 +528,6 @@ class Test_module:
         assert "tells a live row from one quoted in a fence or parked in a comment" in (
             last
         ), last
-
-    def test_the_pinned_checks_read_under_the_root_alone(self):
-        """#688's D3: the constant this module's walk of work items rests on,
-        held under `seal/`. Widening it to a top-level `specs/` turns this red,
-        which is the probe that work item's plan names for `WORK_ITEMS`.
-        `tests/skills/test_settle.py` holds `settle.py#SPECS` to the same, and
-        `tests/behaviour/test_a_reference_root_is_read_and_never_taken.py` classifies
-        every shipped command by what keeps it off a reference root."""
-        assert routing.WORK_ITEMS == "seal/threads"
 
 
 test_census = census_case(TARGET)

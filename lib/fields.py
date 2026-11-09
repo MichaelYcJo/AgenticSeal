@@ -65,6 +65,7 @@ except ImportError as missing:
     ) from missing
 
 # The info string, and the one line that opens a block.
+# exempt from root_name: a fenced block's info string, which names no directory
 INFO = "seal"
 FENCE = "`" * 3
 OPENER = FENCE + INFO

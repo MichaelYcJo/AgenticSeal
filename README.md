@@ -183,6 +183,12 @@ such as a company repository or a contribution to someone else's project.
 `docs/layout/one-root-by-lifetime.md` *Shared or local* gives the whole
 trade-off.
 
+Where your repository already has a `seal/` of its own, such as a Python
+package, the plugin leaves it alone. Both shared answers then put the root
+at `<repo>/agentic-seal/`, and in shared mode every `seal/` this README
+names means that folder. Where that name is taken too, only local is
+offered.
+
 **Switching is one command.** It moves the root and stages the move, and you
 commit it.
 
@@ -275,8 +281,9 @@ whose last fixes no round read (`docs/checks/the-pull-request-check.md`).
 ### Where the records live
 
 The records live in the repository, not in the session, so the next session
-starts from them. `seal/` holds what outlives a work item, such as
-`seal/config.md`, and each work item whole under `seal/threads/<id>/`: its
+starts from them. `seal/`, the folder *Shared or local* above places, holds
+what outlives a work item, such as `seal/config.md`, and each work item
+whole under `seal/threads/<id>/`: its
 routing answer, its frame, the trail of its phases and rounds, its closing
 memo and its guarantee. `docs/layout/the-record-layout.md` *seal/* and
 *seal/threads/<work-item-id>/* name every file. How a work item's design

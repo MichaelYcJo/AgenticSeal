@@ -84,8 +84,9 @@ def in_force(rel, section):
     assert span, f"{rel}: {why}"
     lines = rules.reader().gfm_lines(text)
     body = flat("\n".join(lines[span[0] - 1 : span[1]]))
-    policy = config.policy_root(os.path.join(ROOT, "seal"))
-    for op, _item in rules.pending(ROOT, policy):
+    home = os.path.join(ROOT, "seal")
+    policy = config.policy_root(home)
+    for op, _item in rules.pending(home, policy):
         if op.file != rel or op.section != section:
             continue
         if op.kind == "change" and flat(op.old) in body:

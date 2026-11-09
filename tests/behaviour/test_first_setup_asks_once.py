@@ -292,13 +292,17 @@ OWN_SEAL = "**A `<repo>/seal/` whose `README.md` does not open with the marker"
 
 def test_a_projects_own_seal_names_the_marker_template_and_the_git_dir_root():
     """First setup meeting a `seal/` the project keeps for itself names the
-    template whose first line is the marker, and the path under the git
-    directory where the root goes instead. That it writes nothing into the
-    project's `seal/` is the proofer's to read."""
+    template whose first line is the marker, the command whose output gives
+    the shared place in its stead (#1059), and the path under the git
+    directory where the root goes where that place is the project's own too.
+    That it writes nothing into either is the proofer's to read."""
     own = paragraph(bootstrap(), OWN_SEAL)
     # The path of the template whose first line is the marker, which the
     # orchestrator opens to tell a project's own `seal/` from a root.
     assert "`templates/setup/seal-README.md`" in own, own
+    # The command that prints the shared place, which no core printed into
+    # the session can give at first setup.
+    assert "`seal mode`" in own, own
     # The path of the local root, which the orchestrator creates instead.
     assert f"`{COMMON_DIR}`" in own, own
 

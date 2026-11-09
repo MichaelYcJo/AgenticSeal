@@ -1435,13 +1435,14 @@ class Test_overviews:
 
 class Test_config_at:
     def test_accepts_the_config_reader_and_the_root(self, joined):
-        config, home = UC.config_at(str(joined))
+        config, home, name = UC.config_at(str(joined))
         assert callable(config.reference_roots)
         assert same_path(home, joined / "seal")
+        assert name == "seal"
 
     def test_refuses_to_invent_a_root(self, plain):
-        _config, home = UC.config_at(str(plain))
-        assert not home
+        _config, home, name = UC.config_at(str(plain))
+        assert not home and not name
 
 
 class Test_references_at:

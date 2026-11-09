@@ -29,19 +29,25 @@ lands, committed with the repository or under the git directory on this
 machine only, is the person's decision and not the orchestrator's. Nobody
 reads a README to discover a question they did not know to ask, so this is
 the only place the mode, and whether the project ports an original
-codebase, are asked at all.
+codebase, are asked at all. Before it asks, the orchestrator runs
+`seal mode`: with no root at either place, the command exits 1 and prints
+the shared place and the local place, both from `lib/optin.py#home_paths`.
+A shared answer creates the root at the shared place it printed.
 
 **A `<repo>/seal/` whose `README.md` does not open with the marker is the
 project's own.** The marker is the first line of
 `templates/setup/seal-README.md`, and a package or a tool can keep a directory
-named `seal` for itself. The
-orchestrator writes nothing into it and offers neither shared option, because
-`<repo>/seal/` is the shared root's one place. The root goes under the git
-directory, at `$(git rev-parse --git-common-dir)/seal/`, as the local option
-below creates it, and the orchestrator says so in one line: *"`<repo>/seal/` is this
-project's own, so the plugin keeps its root under the git directory, in local
-mode"*. The one call of step 1 then carries the `Broad gate` question and
-the two language questions.
+named `seal` for itself. The orchestrator writes nothing into it. Beside it,
+the shared place `seal mode` prints is the second name `skills/core/SKILL.md`
+gives the root, and the three options are offered with that place. Where a
+directory whose `README.md` does not open with the marker stands at that
+printed place too, it is the project's own as well. The orchestrator writes
+nothing into it either and offers neither shared option. The root goes under
+the git directory, at `$(git rev-parse --git-common-dir)/seal/`, as the
+local option below creates it, and the orchestrator says so in one line:
+*"`<the shared place>` is this project's own, so the plugin keeps its root
+under the git directory, in local mode"*. The one call of step 1 then
+carries the `Broad gate` question and the two language questions.
 
 1. The orchestrator asks once, with one `AskUserQuestion` carrying **four
    questions**: the mode, the `Broad gate` row, `Commit and pull request
@@ -49,9 +55,10 @@ the two language questions.
    this order:
 
    - **shared, records only** (the default, listed first) creates
-     `<repo>/seal/` in the tree; the routing commit made before the first
-     edit carries it. It writes nothing under `.github/`, so nothing it
-     installs can stop a teammate's pull request.
+     `<repo>/seal/` in the tree, at the shared place `seal mode` prints; the
+     routing commit made before the first edit carries it. It writes
+     nothing under `.github/`, so nothing it installs can stop a teammate's
+     pull request.
    - **shared, with pull-request checks** does the same, and then the
      orchestrator installs the checks with `seal pr-checks install`, run
      after `seal mode` below. That command writes
