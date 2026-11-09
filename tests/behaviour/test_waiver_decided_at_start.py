@@ -734,7 +734,8 @@ def test_the_planning_row_is_a_record_and_not_a_checkbox():
     )
 
     # The box tables the orchestrator puts to the person carry no `Planning`
-    # box, so the person is never asked an axis the SDD ladder decides.
+    # box, so the person is never asked an axis the SDD ladder, or under
+    # `agentic` the orchestrator, decides.
     for boxes in checkbox_tables(skill):
         assert not any("framer" in b or "Planning" in b for b in boxes), (
             "the `Planning` axis reached a checkbox table, which is the one "
