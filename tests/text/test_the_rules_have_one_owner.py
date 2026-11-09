@@ -418,8 +418,22 @@ def test_a_decision_after_the_frame_is_folded_into_it():
         "a file the crafter writes",
         # Round 1 of #1442, finding 1: a rejected decision had no route, and
         # the row written before the exchange recorded a fold that did not
-        # happen.
-        "A decision the framer rejects stands as its judgment",
+        # happen. Round 2 of #1442, finding 1: only this lead was pinned, so
+        # the row rewrite, the `pr.md` quote and the decisions no rejection
+        # can stand on each went with the suite green.
+        "A decision the framer rejects stands as its judgment, as a proposal "
+        "left after the exchange of *The frame is read against the issue at "
+        "the spawn* does",
+        "the orchestrator rewrites its row of *Judgments of the run* to "
+        "record the rejection and what the decision's source takes instead, "
+        "a finding's route or the next spawn's scope,",
+        "and quotes the framer's *Alternatives considered* row in the work "
+        "item's `pr.md`.",
+        "The version move and a prevention home are folded as an owner's "
+        "decision is, because another rule gives each to the orchestrator to "
+        "decide: the move by *Orchestrator: how the work is routed*, and the "
+        "home by the paragraph opening *A problem that recurs within a run "
+        "gets a prevention home at once*.",
     ):
         assert said in order, f"the order no longer says {said!r}"
 
