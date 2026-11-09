@@ -917,8 +917,26 @@ class Test_main:
                 b"\n",
                 "refused: pr-body.md:3: lacks `Closes #1.`, which pr.md gives\n",
             ),
+            (
+                b"\nCloses #1.\n",
+                b"\nCloses #1.\nA sentence of its own.\nAnother of its own.\n",
+                "refused: pr-body.md:4: reads `A sentence of its own.`, then "
+                "`Another of its own.`, which pr.md does not give\n",
+            ),
+            (
+                b"\r\n\nCloses #1.\n",
+                b"\r\n",
+                "refused: pr-body.md:2: lacks ``, then `Closes #1.`, which pr.md "
+                "gives\n",
+            ),
         ],
-        ids=["a line changed", "a line added", "a line taken out"],
+        ids=[
+            "a line changed",
+            "a line added",
+            "a line taken out",
+            "two lines added",
+            "two lines taken out",
+        ],
     )
     def test_refuses_a_first_part_that_is_not_pr_md_naming_its_line(
         self, tmp_path, capsys, old, new, said
@@ -929,7 +947,9 @@ class Test_main:
         that line of the body, counted from its first line, and the line
         `pr.md` gives where it gives one; the file is left as it stood. Seen
         red with the comparison of the first part removed, where the check
-        exited 0."""
+        exited 0. A run of lines added or taken out is one `refused:` line
+        naming every line of the run (#1452, *Scope* item 2); seen red
+        against the comparison that named the run's first line alone."""
         item = item_of(tmp_path, RECORDS)
         body = tmp_path / "pr-body.md"
         assert PR.main([str(item), "--body", str(body)]) == 0
@@ -977,6 +997,48 @@ class Test_main:
         assert out.startswith("refused: pr-body.md:13: ")
         assert "`changelog.md:1`" in out
         assert body.read_bytes() == (OWN + edited).encode("utf-8")
+
+    @pytest.mark.parametrize(
+        "old, new, said",
+        [
+            (
+                f"## From the records\n\n{MARK_LINE}\n\n",
+                "## From the records\n\n",
+                f"refused: pr-body.md:5: lacks ``, a fixed line, then "
+                f"`{MARK_LINE}`, a fixed line\n",
+            ),
+            (
+                "From `changelog.md`.\n",
+                "From `changelog.md`.\nA line.\nAnother line.\n",
+                "refused: pr-body.md:14: reads `A line.`, then `Another line.`, "
+                "which the records do not give\n",
+            ),
+        ],
+        ids=["the mark and its blank line taken out", "two lines added"],
+    )
+    def test_refuses_a_run_of_lines_in_the_copy_naming_every_line_of_it(
+        self, repo, tmp_path, monkeypatch, capsys, old, new, said
+    ):
+        """#1452, *Scope* item 2, and the design's G12. A body of a sealed
+        work item written before the seal lacks the mark and the blank line
+        under it, and the comparison aligns the body's blank line with the
+        composition's second one, so the run it lacks is the blank line and
+        the mark. The check exits 1 on one `refused:` line naming every line
+        of the run, the mark among them, at the body's line; a run of lines
+        added is named the same way. Seen red against the comparison that
+        named the run's first line alone, which named the blank line and not
+        the mark."""
+        item = sealed_item(repo)
+        monkeypatch.setattr(PR, "MANIFEST", manifest_of(tmp_path, MANIFEST))
+        monkeypatch.chdir(repo)
+        body = tmp_path / "pr-body.md"
+        assert PR.main([str(item), "--body", str(body)]) == 0
+        text = body.read_bytes().decode("utf-8")
+        assert old in text
+        body.write_bytes(text.replace(old, new, 1).encode("utf-8"))
+        capsys.readouterr()
+        assert PR.main([str(item), "--body", str(body), "--check"]) == 1
+        assert capsys.readouterr().out == said
 
     def test_refuses_naming_no_machine_path(self, tmp_path, capsys):
         """The sealer copies the first `refused:` line into a committed

@@ -766,6 +766,13 @@ def _source(pair):
     return f"`{line}` at `{source[0]}:{source[1]}`"
 
 
+def _run(named):
+    """The lines NAMED, a run a differ added or took out, each as it is
+    named, in one phrase: a refusal names every line of the run, so a body
+    lacking the mark and the blank line under it names the mark (#1452)."""
+    return ", then ".join(named)
+
+
 def _first_part(head, own):
     """`(None, line, why)` for each line where HEAD, the part of the body
     above `HEADING`, is not OWN's lines, `pr.md`'s, counted from the body's
@@ -774,13 +781,15 @@ def _first_part(head, own):
     given = READER.gfm_lines(own)
     causes = []
     matcher = difflib.SequenceMatcher(None, said, given, autojunk=False)
-    for tag, i1, _i2, j1, _j2 in matcher.get_opcodes():
+    for tag, i1, i2, j1, j2 in matcher.get_opcodes():
         if tag == "replace":
             why = f"reads `{said[i1]}`; {OWN_PART} gives `{given[j1]}`"
         elif tag == "delete":
-            why = f"reads `{said[i1]}`, which {OWN_PART} does not give"
+            run = _run(f"`{line}`" for line in said[i1:i2])
+            why = f"reads {run}, which {OWN_PART} does not give"
         elif tag == "insert":
-            why = f"lacks `{given[j1]}`, which {OWN_PART} gives"
+            run = _run(f"`{line}`" for line in given[j1:j2])
+            why = f"lacks {run}, which {OWN_PART} gives"
         else:
             continue
         causes.append((None, i1 + 1, why))
@@ -802,18 +811,38 @@ def _check(below, body, own):
     offset = len(READER.gfm_lines(head, keepends=True)) + 1
     causes = _first_part(head, own)
     matcher = difflib.SequenceMatcher(None, said, given, autojunk=False)
-    for tag, i1, _i2, j1, _j2 in matcher.get_opcodes():
+    for tag, i1, i2, j1, j2 in matcher.get_opcodes():
         if tag == "replace":
             why = f"reads `{said[i1]}`; the records give {_source(below[j1])}"
         elif tag == "delete":
-            why = f"reads `{said[i1]}`, which the records do not give"
+            run = _run(f"`{line}`" for line in said[i1:i2])
+            why = f"reads {run}, which the records do not give"
         elif tag == "insert":
-            why = f"lacks {_source(below[j1])}"
+            why = f"lacks {_run(_source(pair) for pair in below[j1:j2])}"
         else:
             continue
         causes.append((None, offset + i1 + 1, why))
     if causes:
         raise Refused(causes)
+
+
+def compared(item, body, root, manifest=None):
+    """`(note, causes)` for BODY, a pull request body's text or None where
+    there is none, against what `seal pr-body` composes for the work item's
+    directory ITEM in the repository at ROOT: `pr.md`, `HEADING`, the seal
+    mark `seal_mark` gives from MANIFEST or the plugin's own, and the
+    records' copy. NOTE is `seal_mark`'s sentence, or None; CAUSES are the
+    `(where, line, why)` of `Refused`, a record's or the body's, empty where
+    BODY is that composition. `main --check` calls this, and it is the one
+    code path a body is compared through (#1452)."""
+    mark, note = seal_mark(item, root, manifest)
+    name = os.path.basename(os.path.normpath(os.path.abspath(item)))
+    try:
+        below = _composed(name, read_item(item), mark)
+        _check(below, body, read_own(item))
+    except Refused as refused:
+        return note, refused.causes
+    return note, []
 
 
 def _place(where, line, item, body):
@@ -854,18 +883,26 @@ def main(argv=None):
     # where git finds no checkout and `repo_root` answers "", so its
     # checkout is the working directory's.
     root = OPTIN.repo_root(os.path.abspath(args.item)) or OPTIN.repo_root(os.getcwd())
+    if args.check:
+        try:
+            note, causes = compared(args.item, _body(args.body), root)
+        except Refused as refused:
+            note, causes = None, refused.causes
+        for where, line, why in causes:
+            print(f"refused: {_place(where, line, args.item, args.body)}: {why}")
+        if causes:
+            return 1
+        said = f"seal pr-body: {note}\n" if note else ""
+        print(
+            f"{said}matches: {args.body} is `{OWN_PART}` above `{HEADING}` "
+            "and the records' text below it"
+        )
+        return 0
     mark, note = seal_mark(args.item, root)
     said = f"seal pr-body: {note}\n" if note else ""
     try:
         below = _composed(name, read_item(args.item), mark)
         own = read_own(args.item)
-        if args.check:
-            _check(below, _body(args.body), own)
-            print(
-                f"{said}matches: {args.body} is `{OWN_PART}` above `{HEADING}` "
-                "and the records' text below it"
-            )
-            return 0
         try:
             with open(args.body, "w", encoding="utf-8", newline="") as handle:
                 handle.write(own + HEADING + "\n" + _joined(below))
