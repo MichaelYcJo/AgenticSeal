@@ -434,6 +434,22 @@ def test_a_decision_after_the_frame_is_folded_into_it():
         "decide: the move by *Orchestrator: how the work is routed*, and the "
         "home by the paragraph opening *A problem that recurs within a run "
         "gets a prevention home at once*.",
+        # The same round's class: the other clauses of #1442's *Scope* item
+        # 1 that this case did not hold, each deleted with the suite green.
+        "A crafter reads the frame and not the issue's comments, so the "
+        "decision has to stand in the frame.",
+        "a round finding whose route changes the frame, a round finding "
+        "located in a frame file, an owner's remark, an issue comment, a "
+        "prevention home, a scope a spawn gives beyond a plan row, or the "
+        "version move. These are examples of the rule, not a closed list.",
+        "The orchestrator corrects its row where the framer's hand-back names "
+        "a defect in it.",
+        "The orchestrator then commits the frame files the framer changed and "
+        "its own rows in one commit, before the spawn that reads them.",
+        "The framer's hand-back names each statement the fold contradicts in "
+        "a file the framer does not write, and a statement in `routing.md` or "
+        "`pr.md` is the orchestrator's to repair.",
+        "a decision's fold is read by the framer that writes it",
     ):
         assert said in order, f"the order no longer says {said!r}"
 
@@ -507,6 +523,10 @@ def test_a_recurring_problem_gets_a_prevention_home():
         "recurring act is read from",
         "The work item in progress builds that home.",
         "records the home in a comment on the issue of the work item in progress",
+        # #1442, Scope item 2: the home is a decision, so the framer folds it.
+        "The home is a decision, so the framer folds it into that work item's "
+        "frame as the paragraph opening *A decision made after the frame is "
+        "committed is folded* states",
     ):
         assert said in order, f"the order no longer says {said!r}"
 
