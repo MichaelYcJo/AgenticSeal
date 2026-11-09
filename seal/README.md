@@ -36,16 +36,16 @@ root is in the tree, `seal pr-checks remove` takes it out, and
 and `seal mode --check`, which the pull-request checks run, exits non-zero
 when the two disagree. Nothing reads the row at runtime: the folder's
 location is the only signal. The by-hand move asks git for both paths, so
-the commands land the same from a subdirectory. From local to shared:
+the commands land the same from a subdirectory. Beside a project's own
+`seal/`, the shared root has the second name the plugin's `README.md` gives
+in *Shared or local*, and each `--show-toplevel` path below ends in that
+name in place of `seal`; run as written there, the commands would move the
+project's own directory. From local to shared:
 `mv "$(git rev-parse --git-common-dir)/seal" "$(git rev-parse --show-toplevel)/seal"`,
 `git add "$(git rev-parse --show-toplevel)/seal"` and a commit. From shared
 to local: `git rm -r --cached "$(git rev-parse --show-toplevel)/seal"`,
 `mv "$(git rev-parse --show-toplevel)/seal" "$(git rev-parse --git-common-dir)/seal"`
 and a commit of the removal.
-
-Where this root has the second name the marker paragraph below gives, each
-`--show-toplevel` path in those commands ends in that name in place of
-`seal`.
 
 **`seal export` and `seal import` are the way across between machines**, and
 the only one there is: local mode's records reach no other clone by
