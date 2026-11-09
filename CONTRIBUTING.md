@@ -271,10 +271,10 @@ check: tests/behaviour/test_a_test_file_takes_the_root_from_the_conftest.py
 stands in `tests/behaviour/` where its cases load or run shipped code, and
 in `tests/text/` where they only read text. A case that walks this
 repository's tree or a whole directory of it, lists its tracked files, or
-runs a check over its root stands in a file that declares none. The files that declare no `TARGET`, `tests/text/` and
-`tests/behaviour/`, are this repository's tree-wide files, which
-`skills/verify/SKILL.md` *Scope: cheap and often, broad and once* runs at
-every phase boundary and every fix pass.
+runs a check over its root stands in a file that declares none. The files
+that declare no `TARGET`, `tests/text/` and `tests/behaviour/`, are this
+repository's tree-wide files, which `skills/verify/SKILL.md` *Scope: cheap
+and often, broad and once* runs at every phase boundary and every fix pass.
 
 **A module's old cases get one verdict each when the module is rebuilt.**
 The contributor rebuilding a module reads its functions first and lists the
