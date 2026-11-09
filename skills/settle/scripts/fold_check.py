@@ -258,7 +258,7 @@ def located(root):
     where it has none, and the words that name where its keys were read.
 
     Through `lib/optin.py#home_at`, the way `settle.py#main` reaches it:
-    `<root>/seal/`, else the common git directory's `seal/`. `home_at`
+    the places `home_at` reads, in its order. `home_at`
     answers "" for two states, and they are given two sentences, because
     one was false for the other: a repository that opted out HAS a root, and
     settle met the same defect as its own round 2 finding 7 (round 1,

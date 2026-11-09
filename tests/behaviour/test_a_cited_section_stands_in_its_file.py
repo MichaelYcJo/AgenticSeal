@@ -204,7 +204,8 @@ def corrections(root):
     """`[(rule_changes.Op, work item directory)]` for every item of a pending
     `## Rule changes`, as `rule_changes.pending` reads them against the
     policy root `lib/config.py#policy_root` names."""
-    return rules.pending(root, config.policy_root(os.path.join(root, "seal")))
+    home = os.path.join(root, "seal")
+    return rules.pending(home, config.policy_root(home))
 
 
 def holds(field, cited):

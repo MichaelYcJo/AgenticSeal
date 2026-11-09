@@ -54,8 +54,9 @@ class Test_seal_rules:
             destination = tmp_path / os.path.relpath(path, ROOT)
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(path, destination)
-        policy = rules.sibling("config").policy_root(os.path.join(ROOT, "seal"))
-        pending = rules.sibling("rule_changes").pending(ROOT, policy)
+        home = os.path.join(ROOT, "seal")
+        policy = rules.sibling("config").policy_root(home)
+        pending = rules.sibling("rule_changes").pending(home, policy)
         removing = {o.file for o, _ in pending if o.kind == "remove"}
         named, renamed = {}, None
         for rel, text in files.items():

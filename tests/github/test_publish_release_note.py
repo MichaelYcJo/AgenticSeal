@@ -47,7 +47,15 @@ import urllib.parse
 import cmarkgfm
 import pytest
 from cmarkgfm.cmark import Options
-from conftest import ROOT, census_case, commit_everything, git_out, git_repo, write
+from conftest import (
+    ROOT,
+    census_case,
+    commit_everything,
+    git_out,
+    git_repo,
+    mark_root,
+    write,
+)
 
 TARGET = ".github/scripts/publish_release_note.py"
 
@@ -1162,6 +1170,29 @@ class Test_module:
         assert mod.fragments(f"{PREVIOUS}..{TAG}") == [
             ("1700000001-정렬", "- sorted entry", 5),
             ("1700000002-plain", "- plain entry", 6),
+        ]
+
+    def test_a_fragment_under_agentic_seal_reaches_the_note_beside_a_package(
+        self, tmp_path, monkeypatch
+    ):
+        """#1059: beside a project's own `seal/`, a package with no marker,
+        the fragments are read under the marked `agentic-seal/threads/`, and
+        a `changelog.md` the package holds at the same depth is none."""
+        repo = git_repo(tmp_path / "repo")
+        write(repo, "seal/__init__.py", "VERSION = 1\n")
+        mark_root(os.path.join(repo, "agentic-seal"))
+        commit_everything(repo, "the package and the root")
+        git_out(repo, "tag", PREVIOUS)
+        write(repo, "seal/threads/1700000001-pkg/changelog.md", "- the package\n")
+        write(
+            repo, "agentic-seal/threads/1700000002-ours/changelog.md", "- our entry\n"
+        )
+        commit_everything(repo, "the work item (#5)")
+        git_out(repo, "tag", TAG)
+        mod = publisher()
+        monkeypatch.setattr(mod, "ROOT", str(repo))
+        assert mod.fragments(f"{PREVIOUS}..{TAG}") == [
+            ("1700000002-ours", "- our entry", 5)
         ]
 
 

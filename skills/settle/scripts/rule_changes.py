@@ -566,24 +566,22 @@ def copies(op, texts, gone=None):
 # --- the pending designs, not yet settled -------------------------------------
 
 
-def pending(root, policy_root):
+def pending(home, policy_root):
     """`[(Op, work item directory)]` for every item of a pending `## Rule
-    changes`: each `frame/design.md` under `<root>/seal/threads/`, read
-    through `parse` against POLICY_ROOT. A design that cannot be read as
-    UTF-8, or a section `parse` refuses, gives no item."""
+    changes`: each `frame/design.md` under `<home>/threads/`, HOME the
+    `seal/` root, read through `parse` against POLICY_ROOT. The directory
+    is named `<name>/threads/<id>/`, NAME being HOME's own. A design that
+    cannot be read as UTF-8, or a section `parse` refuses, gives no item."""
     found = []
-    pattern = os.path.join(
-        glob.escape(root), "seal", "threads", "*", *DESIGN.split("/")
-    )
+    pattern = os.path.join(glob.escape(home), THREADS, "*", *DESIGN.split("/"))
     for path in sorted(glob.glob(pattern)):
         try:
             with open(path, encoding="utf-8") as handle:
                 text = handle.read()
         except (OSError, UnicodeDecodeError):
             continue
-        item = (
-            f"seal/threads/{os.path.basename(os.path.dirname(os.path.dirname(path)))}/"
-        )
+        work_item = os.path.basename(os.path.dirname(os.path.dirname(path)))
+        item = f"{os.path.basename(home)}/{THREADS}/{work_item}/"
         found += [(o, item) for o in parse(text, policy_root).ops or []]
     return found
 
@@ -645,20 +643,24 @@ def overlapping(read):
 
 # A thread's design, relative to its directory: `lib/optin.py#DESIGN`.
 DESIGN = "frame/design.md"
+# The sub-directory of the root that holds the threads: `lib/optin.py#WORK_ITEMS`.
+THREADS = "threads"
 # Where a thread's design stood before the session-start move brought it into
 # `seal/threads/`, as (directory, name): read from history only, so a moved
 # thread is placed where its design was first added and not at the move's one
 # commit, which adds every moved design at once.
 # exempt from old_names: the 0.22.x path of a design, read from history
+# exempt from root_name: a path of 0.22.x's history, before a second name existed
 EARLIER = ("seal/specs", "spec.md")
 
 
-def order(root, ref, ids, specs="seal/threads"):
+def order(root, ref, ids, specs):
     """`[(id, commit)]` for IDS in merge order: the first commit reachable from
-    REF that adds the id's `frame/design.md`, or its design at the earlier path
-    (`EARLIER`), in `git log --topo-order --reverse` order, a directory moved
-    under a new id counting as added where it lands. An id no such commit adds
-    comes last, with commit None."""
+    REF that adds the id's `frame/design.md` under SPECS, the `/`-joined
+    `<name>/threads` of the root in the tree, or its design at the earlier
+    path (`EARLIER`), in `git log --topo-order --reverse` order, a directory
+    moved under a new id counting as added where it lands. An id no such
+    commit adds comes last, with commit None."""
     r = subprocess.run(
         gitcmd().argv(
             "-C", root, "log", "-z", "--full-history", "--topo-order",

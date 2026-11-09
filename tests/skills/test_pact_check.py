@@ -851,14 +851,24 @@ class Test_check:
         assert out.startswith(f"UNREADABLE seal/config.json — {said}"), out
         assert "READ" not in out.replace("UNREADABLE", ""), out
 
-    @pytest.mark.parametrize("side", ["no seal root", "no Pact key"])
+    @pytest.mark.parametrize(
+        "side", ["no seal root", "no Pact key", "no Pact key under agentic-seal"]
+    )
     def test_refuses_a_relationship_recorded_on_one_side(self, world, side):
+        """The third side is #1059's: a signer whose own `seal/` is a package
+        keeps its root at `agentic-seal/`, and the line names its config
+        there, not under the pact's root's name."""
         if side == "no seal root":
             shutil.rmtree(world.web / "seal")
             where, said = posix(world.web), "it has no seal/ root to name this pact in"
         else:
-            write(world.web, "seal/config.json", signer_config())
-            where = "seal/config.json"
+            home = "seal"
+            if side.endswith("agentic-seal"):
+                home = "agentic-seal"
+                shutil.move(str(world.web / "seal"), str(world.web / home))
+                write(world.web, "seal/__init__.py", "VERSION = 1\n")
+            write(world.web, f"{home}/config.json", signer_config())
+            where = f"{home}/config.json"
             said = f"its config names no `Pact` key for {PACT_URL}"
         code, out = world.run()
         assert code == 2, out

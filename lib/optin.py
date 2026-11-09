@@ -4,12 +4,14 @@ Imported by the gates rather than copied into each, because the answer moved
 once already and four divergent copies is how half of them keep the old answer.
 
 The signal is `seal/` — the root the plugin maintains, whose existence is the
-declaration — at the first of two places that has it with its `README.md`
+declaration — at the first of three places that has it with its `README.md`
 opening with `MARKER`: `<repo>/seal/`, which shared mode commits, then
+`<repo>/agentic-seal/`, the shared root's second name, then
 `<git-common-dir>/seal/`, where local mode keeps it (#80). One root, read one
 way, and no config key (`docs/layout/one-root-by-lifetime.md`, "The opt-in signal
 is the root itself"). A `seal/` without the marker is a directory the project
-keeps for itself, as a package named `seal` does, and declares nothing.
+keeps for itself, as a package named `seal` does, and declares nothing; the
+shared root then takes the second name, found by the same marker (#1059).
 
 `<git-common-dir>/agentic-scratch` takes that declaration back. A repository
 that exists for thirty seconds — a fixture built by hand to reproduce a gate
@@ -32,12 +34,11 @@ import os
 import subprocess
 
 HOME = "seal"
-# The sub-directory of the root that holds the work items. Readers that
-# classify repository-relative paths — `lib/gate.py#DOC_ROOTS`, the CI
-# scripts' globs, `chain_check.py`'s prefix — spell `seal/` as a string,
-# because a path in a diff or a tree listing is only ever the shared root;
-# every reader that opens a file joins this under `home()` instead, so #80
-# changes where the folder is created and nothing that reads it.
+# The shared root's second name, taken where the repository's own `seal/`
+# belongs to something else (#1059). The local root keeps `HOME`: nothing of
+# a project's own lives under its git directory.
+SECOND_HOME = "agentic-seal"
+# The sub-directory of the root that holds the work items.
 WORK_ITEMS = "threads"
 # Where each record sits in a thread, `/`-joined and relative to the thread's
 # directory: `frame/` holds the design before the build, `trail/` what passed
@@ -163,8 +164,18 @@ def home_paths(root, common=None):
     """The two places `seal/` is read from at `root`, shared first then local.
 
     `("", "")` for no root, and the local entry is "" where the common git
-    directory could not be resolved. Neither is tested for existence: this
-    answers *where would it be*, and `home_at` below answers *where is it*.
+    directory could not be resolved. The local entry is `<common>/seal`. The
+    shared entry is `<root>/seal` where that directory carries the marker,
+    else `<root>/agentic-seal` where that one does, else `<root>/seal` where
+    nothing stands at that path, else `<root>/agentic-seal` (#1059). Neither
+    entry is tested for being the root: this answers *where would it be*,
+    and `home_at` below answers *where is it*.
+
+    Two limits. A repository whose `seal/` and `agentic-seal/` both carry
+    the marker reads `seal/` and never says the other exists. A reader that
+    reads at a commit other than the working tree reads under the name the
+    working tree resolves, so a repository that moved its root from one name
+    to the other reads its earlier history under the current name.
 
     It exists because the second question is not the only one asked. `seal
     import` has to be able to create the root the user names — including the
@@ -190,10 +201,72 @@ def home_paths(root, common=None):
     # source closes it for every caller rather than at each of the four
     # places that print it. Found by CI's Windows leg on a branch whose two
     # authors both said Windows was CI's to answer.
+    shared = home_name_in(_on_disk(root))
+    if not shared:
+        shared = SECOND_HOME if os.path.lexists(os.path.join(root, HOME)) else HOME
     return (
-        os.path.join(root, HOME),
+        os.path.join(root, shared),
         os.path.normpath(os.path.join(common, HOME)) if common else "",
     )
+
+
+def home_name_in(read):
+    """The name of the shared root in a tree read through READ, or "".
+
+    READ takes a `/`-joined path relative to the repository's top and
+    returns that file's text, or None where there is none: the working tree
+    through `_on_disk` below, or a commit through a caller's own reader, as
+    `chain_check.py` reads one. The answer is the first of `HOME` and
+    `SECOND_HOME` whose `README.md` opens with `MARKER`, so the order and the
+    marker comparison have this one home for every reader.
+    """
+    for name in (HOME, SECOND_HOME):
+        if _opens_with_marker(read(f"{name}/{README}")):
+            return name
+    return ""
+
+
+def home_name(root, common=None):
+    """The `/`-joined repository-relative name of the root in force at
+    `root` where it is the shared one, `HOME` or `SECOND_HOME`; "" where the
+    root is local or there is none.
+
+    For a reader that classifies paths as git prints them, which needs the
+    root's name in the tree and not its path on this disk.
+    """
+    if not home_at(root, common):
+        return ""
+    return home_name_in(_on_disk(root))
+
+
+def _on_disk(root):
+    """A reader of the working tree at `root` for `home_name_in`: the first
+    line of the file at a `/`-joined relative path, read as `marked` reads
+    it, or None where it cannot be read."""
+
+    def read(rel):
+        return _first_line(os.path.join(root, *rel.split("/")))
+
+    return read
+
+
+def _first_line(path):
+    """The first line of the file at `path`, bounded at the marker's length
+    and the two characters a line end can take, or None where it cannot be
+    read: absent, a directory, or no file at all."""
+    try:
+        with open(path, encoding="utf-8", errors="replace") as f:
+            return f.readline(len(MARKER) + 2)
+    except OSError:
+        return None
+
+
+def _opens_with_marker(text):
+    """True where TEXT's first line, its line end taken off, is `MARKER`;
+    False for None."""
+    if text is None:
+        return False
+    return text.split("\n", 1)[0].rstrip("\r") == MARKER
 
 
 def marked(path):
@@ -212,27 +285,25 @@ def marked(path):
     """
     if not path:
         return False
-    try:
-        with open(os.path.join(path, README), encoding="utf-8", errors="replace") as f:
-            first = f.readline(len(MARKER) + 2)
-    except OSError:
-        return False
-    return first.rstrip("\r\n") == MARKER
+    return _opens_with_marker(_first_line(os.path.join(path, README)))
 
 
 def home_at(root, common=None):
     """The `seal/` of the repository at `root`, or "" — for a caller that has
     already resolved the root and should not pay for a second `git` call.
 
-    The two places are read in order, `<root>/seal/` then
-    `<git-common-dir>/seal/`, and the first that is a directory whose
-    `README.md` opens with `MARKER` is the answer; nothing else is read. A
-    `<root>/seal/` without the marker is passed over, so a project that keeps
-    a directory of that name for itself can still keep the root under the
-    git directory. The opt-out is read once, here, so it cannot be
-    honoured by one arm of a gate and missed by the other — the migration
-    config sits inside the root the opt-out takes back, and a repository
-    nobody reviews has nothing to compare against an original either.
+    The places are read in order, `<root>/seal/`, then
+    `<root>/agentic-seal/`, then `<git-common-dir>/seal/`, and the first that
+    is a directory whose `README.md` opens with `MARKER` is the answer;
+    nothing else is read. The first two are the shared entry of `home_paths`
+    above, which names the marked one of them. A `<root>/seal/` without the
+    marker is passed over, so a project that keeps a directory of that name
+    for itself keeps its shared root at `<root>/agentic-seal/`, or its local
+    root under the git directory. The opt-out is read once, here, so it
+    cannot be honoured by one arm of a gate and missed by the other — the
+    migration config sits inside the root the opt-out takes back, and a
+    repository nobody reviews has nothing to compare against an original
+    either.
 
     `common` is passed by a caller that needs the common git directory for
     something else too, so one invocation asks git for it once rather than

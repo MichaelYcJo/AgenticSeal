@@ -17,10 +17,10 @@ judged (`carried_by`). The arms are nine:
                 request removed is accepted where its work item's directory
                 stood at the merge base and is gone whole, which reads as a
                 settle (`retired`), and none is judged where the tree the
-                check reads has no
-                top-level `seal` entry, which the pull request moving the
-                root to local mode leaves; that tree is HEAD, and the working
-                tree under `--worktree`
+                check reads has no top-level entry at the root's name, the
+                merge base's where that tree has no root (`root_name`), which
+                the pull request moving the root to local mode leaves; that
+                tree is HEAD, and the working tree under `--worktree`
   frame         `Planning | framer`: `frame/design.md` and `frame/plan.md`
                 are committed, `frame/design.md` ends with the framer's mark,
                 and every `Reframed` line under it names the framer
@@ -1399,16 +1399,17 @@ def rule_changes_of(reader, root, items, notices=None, sources=None):
     return found
 
 
-def edited_work_items(root, base, paths, moved, routing):
+def edited_work_items(root, base, paths, moved, work_items):
     """The work item directories whose `frame/design.md` this pull request's
     own commits add or change: each path of PATHS that is
-    `<WORK_ITEMS>/<id>/frame/design.md` exactly, is not in MOVED, and that
-    `carried_by` leaves this pull request's, in the order of PATHS."""
-    depth = len(routing.WORK_ITEMS.split("/")) + 1 + len(SPEC_FILE.split("/"))
+    `<WORK_ITEMS>/<id>/frame/design.md` exactly, WORK_ITEMS the `/`-joined
+    directory of the work items, is not in MOVED, and that `carried_by`
+    leaves this pull request's, in the order of PATHS."""
+    depth = len(work_items.split("/")) + 1 + len(SPEC_FILE.split("/"))
     return [
         p[: -len(SPEC_FILE) - 1]
         for p in paths
-        if p.startswith(f"{routing.WORK_ITEMS}/")
+        if p.startswith(f"{work_items}/")
         and len(p.split("/")) == depth
         and p.endswith(f"/{SPEC_FILE}")
         and p not in moved
@@ -1592,11 +1593,12 @@ def guarantee_original(text, rel, sha, config):
     return [(rel, said.line, OTHER_ORIGINAL.format(said=commit, sha=sha))]
 
 
-def originals_of(reader, routing, root, paths, items, direct=()):
+def originals_of(reader, routing, root, home, paths, items, direct=()):
     """[(path, line, problem)] for the round records of ITEMS, each declared
     through the review chain, and the `guarantee.md` of DIRECT, each
     declared `straight to the PR`, where git carries the migration config at
-    HEAD and PATHS, this pull request's, reach outside the document roots;
+    HEAD under HOME, the root's name there (`root_name`), and PATHS, this
+    pull request's, reach outside the document roots, `docs/` and HOME;
     `lib/gate.py#touches_code` decides that, and paths git could not list
     reach outside them. A guarantee git does not carry is `guarantee`'s
     refusal, and none is added here; a guarantee's line is its newest
@@ -1605,8 +1607,8 @@ def originals_of(reader, routing, root, paths, items, direct=()):
     `parity.md` git carries with no `parity.json` beside it, naming the
     keys to write (#1454). None where `lib/` would not load, said on
     stderr."""
-    config = f"{routing.optin.HOME}/{routing.optin.PARITY_CONFIG}"
-    old = f"{routing.optin.HOME}/{routing.optin.OLD_PARITY_CONFIG}"
+    config = f"{home}/{routing.optin.PARITY_CONFIG}"
+    old = f"{home}/{routing.optin.OLD_PARITY_CONFIG}"
     text = read_record(root, config)
     unconverted = text is None and read_record(root, old) is not None
     if (text is None and not unconverted) or not (items or direct):
@@ -1618,7 +1620,7 @@ def originals_of(reader, routing, root, paths, items, direct=()):
             f"chain-check: the parity readers would not load ({exc})", file=sys.stderr
         )
         return None
-    if not gate.touches_code(paths):
+    if not gate.touches_code(paths, home):
         return []
     if unconverted:
         return [(old, 0, reads.unconverted_parity(config))]
@@ -1843,9 +1845,37 @@ def local_root(root, routing):
     return "" if os.path.realpath(home) == os.path.realpath(shared) else home
 
 
-def tracked_declarations(root, routing):
-    """(path, parsed) for every routing declaration git carries at HEAD."""
-    out = git(root, "ls-tree", "-r", "-z", "HEAD", "--", f"{routing.WORK_ITEMS}/")
+def root_name(routing, root, fork):
+    """The root's repository-relative name the check reads the declarations
+    under: the name `lib/optin.py#home_name_in` gives for the tree the check
+    reads, `seal`, or the second name beside a project's own `seal/`
+    (#1059). That tree is HEAD, and the working tree under `WORKTREE`, as
+    `read_record` reads it.
+
+    Where that tree has no marked root, the name is the one the merge base
+    FORK gives, so a pull request that deletes only the marker keeps its
+    declarations judged, and one that deletes the root is read under the
+    name the root had. Where neither has one, or FORK is None, it is
+    `lib/optin.py#HOME`: a committed `seal/` with no marker is read as this
+    check read it before the marker decided the root, and a repository
+    whose root is local has nothing committed under any name.
+
+    A pull request that renames the root, the marker under one name at the
+    merge base and under the other at HEAD, is read under the new name, and
+    a declaration it deletes under the old name without moving it is not
+    judged. That is the limit `home_paths` states for a root renamed between
+    commits."""
+    optin = routing.optin
+    name = optin.home_name_in(lambda rel: read_record(root, rel))
+    if not name and fork:
+        name = optin.home_name_in(lambda rel: git(root, "show", f"{fork}:{rel}"))
+    return name or optin.HOME
+
+
+def tracked_declarations(root, routing, work_items):
+    """(path, parsed) for every routing declaration git carries at HEAD
+    under WORK_ITEMS, the `/`-joined directory of the work items."""
+    out = git(root, "ls-tree", "-r", "-z", "HEAD", "--", f"{work_items}/")
     found = []
     for entry in (out or "").split("\0"):
         meta, _, path = entry.partition("\t")
@@ -1860,8 +1890,9 @@ def tracked_declarations(root, routing):
     return found
 
 
-def declared_for_this_branch(root, routing):
-    """([the one declaration naming this branch], why there is none).
+def declared_for_this_branch(root, routing, work_items):
+    """([the one declaration naming this branch], why there is none), read
+    under WORK_ITEMS, the `/`-joined directory of the work items.
 
     The branch is `GITHUB_HEAD_REF` in a workflow and the checked-out branch
     elsewhere."""
@@ -1872,7 +1903,9 @@ def declared_for_this_branch(root, routing):
             "GITHUB_HEAD_REF — so no declaration was matched to one"
         )
     matching = [
-        p for p, d in tracked_declarations(root, routing) if d["branch"] == branch
+        p
+        for p, d in tracked_declarations(root, routing, work_items)
+        if d["branch"] == branch
     ]
     if len(matching) > 1:
         return [], (
@@ -1891,8 +1924,8 @@ def declared_for_this_branch(root, routing):
             )
         return [], (
             "this pull request declared neither way, so the review-chain check "
-            f"examined nothing. Nothing git carries under `{routing.WORK_ITEMS}/` "
-            f"declares `{branch}`. Add {routing.WORK_ITEMS}/<work-item>/"
+            f"examined nothing. Nothing git carries under `{work_items}/` "
+            f"declares `{branch}`. Add {work_items}/<work-item>/"
             f"{routing.FILENAME} to declare."
         )
     return matching, ""
@@ -2037,11 +2070,14 @@ def main(argv=None):
         print(f"chain-check: cannot diff against {args.baseline}", file=sys.stderr)
         return 2
     paths, moved = diff
-    own, why = declared_for_this_branch(root, routing)
+    fork = reader.merge_base(root, args.baseline)
+    home = root_name(routing, root, fork)
+    work_items = f"{home}/{routing.optin.WORK_ITEMS}"
+    own, why = declared_for_this_branch(root, routing, work_items)
     # A declaration naming this branch is always this pull request's; any
     # other one another pull request's squash carried was judged there.
     declarations, carried = set(own), []
-    for rel in changed_routing(paths, moved, routing.WORK_ITEMS):
+    for rel in changed_routing(paths, moved, work_items):
         by = None if rel in own else carried_by(root, args.baseline, rel)
         if by:
             said = CARRIED_SAYS.format(sha=by[0][:8], subject=by[1])
@@ -2049,14 +2085,16 @@ def main(argv=None):
         else:
             declarations.add(rel)
     declarations = sorted(declarations)
-    # Where the tree the check reads has no top-level `seal` entry, nothing is
-    # declared: the pull request moving the root to local mode leaves it so.
-    # That tree is HEAD, and the working tree under `--worktree`, where
-    # `read_record` and `changed` read the declarations from. An entry is
-    # anything at that name, a file or a link as much as a directory, so a
-    # `seal` that is not a directory keeps the declarations judged. Where git
-    # cannot answer, `git()` is None and the declarations stay judged.
-    home = routing.optin.HOME
+    # Where the tree the check reads has no top-level entry at the root's
+    # name, nothing is declared: the pull request moving the root to local
+    # mode leaves it so. That tree is HEAD, and the working tree under
+    # `--worktree`, where `read_record` and `changed` read the declarations
+    # from. An entry is anything at that name, a file or a link as much as a
+    # directory, so a root that is not a directory, or one whose marker alone
+    # left, keeps the declarations judged. A root that left is named by the
+    # merge base (`root_name`), so a project's own `seal/` at HEAD is not the
+    # root that stayed (#1059). Where git cannot answer, `git()` is None and
+    # the declarations stay judged.
     if WORKTREE:
         gone = not os.path.lexists(os.path.join(root, home))
     else:
@@ -2097,13 +2135,12 @@ def main(argv=None):
             print(reader.annotate(kind, rel, line, message))
         return 1 if problems and strict else 0
 
-    fork = reader.merge_base(root, args.baseline)
     # A declared work item's commit can write another work item's section
     # without touching its `routing.md`, so the diff's designs are read too.
     judged = {os.path.dirname(rel) for rel in declarations}
     edited = [
         item
-        for item in edited_work_items(root, args.baseline, paths, moved, routing)
+        for item in edited_work_items(root, args.baseline, paths, moved, work_items)
         if item not in judged
     ]
     chained, direct = [], []
@@ -2177,7 +2214,7 @@ def main(argv=None):
     if found is None:
         return 2
     problems.extend(found)
-    found = originals_of(reader, routing, root, paths, chained, direct)
+    found = originals_of(reader, routing, root, home, paths, chained, direct)
     if found is None:
         return 2
     for rel, line, message in found:

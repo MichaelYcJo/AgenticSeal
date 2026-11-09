@@ -138,7 +138,8 @@ where some directory reaches a version tag; the dry run never asks it.
 **In local mode the work items are read and removed under the git
 directory.** Every `seal/threads/<id>/` path is read under the directory that
 holds the resolved root, the repository's top where the root is shared and
-the common git directory in local mode, and is printed as `seal/threads/<id>/`.
+the common git directory in local mode, and is printed as `seal/threads/<id>/`
+under the root's own name, which `lib/optin.py#home_paths` gives (`threads`).
 The policy root, the tracked files the citations are read from, and `tests/`
 are read from the repository's top in both. The dry run's first line names a
 local root, each released local work item is listed with its pull request's
@@ -204,7 +205,9 @@ PURPOSES = {
     ),
 }
 
-SPECS = "seal/threads"
+# The sub-directory of the root that holds the work items:
+# `lib/optin.py#WORK_ITEMS`.
+WORK_ITEMS = "threads"
 # A thread's design, relative to its directory: `lib/optin.py#DESIGN`.
 DESIGN = "frame/design.md"
 # A thread's plan, and the section and table the orchestrator writes its
@@ -264,10 +267,19 @@ def load(path, name):
 # --- what the tree says ----------------------------------------------------
 
 
-def work_items(records):
-    """Every work item id with a directory under `seal/threads/` in RECORDS,
-    the directory holding the `seal/` root, in id order."""
-    top = under(records, SPECS)
+def threads(home):
+    """`<name>/threads`, `/`-joined: where the work items stand under the
+    directory holding the `seal/` root HOME, NAME being the root's own,
+    `lib/optin.py#HOME` or `#SECOND_HOME` as `lib/optin.py#home_paths`
+    places it. Every work item path this command reads, removes or prints
+    opens with it."""
+    return f"{os.path.basename(home)}/{WORK_ITEMS}"
+
+
+def work_items(records, specs):
+    """Every work item id with a directory under SPECS (`threads`) in
+    RECORDS, the directory holding the `seal/` root, in id order."""
+    top = under(records, specs)
     if not os.path.isdir(top):
         return []
     return sorted(
@@ -275,8 +287,9 @@ def work_items(records):
     )
 
 
-def released(root, ref):
-    """Work item ids whose directory is present at `ref`, or None if it is not.
+def released(root, ref, specs):
+    """Work item ids whose directory under SPECS (`threads`) is present at
+    `ref`, or None if it is not.
 
     None for a ref that does not resolve, and the caller refuses: a ref this
     cannot read would make every work item read as unreleased and the report
@@ -291,7 +304,7 @@ def released(root, ref):
     )
     if r.returncode != 0:
         return None
-    prefix = SPECS + "/"
+    prefix = specs + "/"
     found = set()
     for line in r.stdout.split("\0"):
         if line.startswith(prefix):
@@ -579,9 +592,10 @@ NO_RELEASE = (
 )
 
 
-def notes(root, ref, ids):
-    """`{id: (kept, line)}` for each released work item of IDS whose record
-    holds no open row, where the root is shared. KEPT says whether its
+def notes(root, ref, ids, specs):
+    """`{id: (kept, line)}` for each released work item of IDS, under SPECS
+    (`threads`), whose record holds no open row, where the root is shared.
+    KEPT says whether its
     published note keeps its directory, and LINE is what `--apply` prints
     for it, or None for a note that carries its entry.
 
@@ -605,7 +619,7 @@ def notes(root, ref, ids):
     try:
         at = git_out(root, "rev-parse", "--verify", f"{ref}^{{commit}}").strip()
         for work_item_id in ids:
-            path = f"{SPECS}/{work_item_id}/changelog.md"
+            path = f"{specs}/{work_item_id}/changelog.md"
             held = git_out(root, "ls-tree", "--name-only", at, "--", path).strip()
             text = git_out(root, "show", f"{at}:{path}").strip() if held else ""
             commit, number = adding_commit(root, at, path) if held else (None, None)
@@ -627,7 +641,7 @@ def notes(root, ref, ids):
     built = any(BUILT_RE.search(b) for bodies in published.values() for b in bodies)
     for work_item_id, (tag, number, path) in pending.items():
         said = {
-            "directory": f"{SPECS}/{work_item_id}",
+            "directory": f"{specs}/{work_item_id}",
             "tag": tag,
             "number": number,
             "at": at,
@@ -661,11 +675,11 @@ NOT_REACHED = (
 )
 
 
-def declared_branch(records, work_item_id, routing):
-    """The `Branch` row of the work item's `routing.md`, read by
-    `lib/routing.py#parse`, or None where there is no file, no row, or a
-    file `parse` does not read as a declaration."""
-    path = under(records, f"{SPECS}/{work_item_id}/{routing.FILENAME}")
+def declared_branch(records, work_item_id, routing, specs):
+    """The `Branch` row of the work item's `routing.md` under SPECS
+    (`threads`), read by `lib/routing.py#parse`, or None where there is no
+    file, no row, or a file `parse` does not read as a declaration."""
+    path = under(records, f"{specs}/{work_item_id}/{routing.FILENAME}")
     try:
         with open(path, encoding="utf-8") as f:
             declared = routing.parse(f.read())
@@ -674,8 +688,9 @@ def declared_branch(records, work_item_id, routing):
     return (declared or {}).get("branch") or None
 
 
-def released_local(root, records, ref, ids):
-    """`(merged, why)` for the local work items IDS: `merged` is `{id:
+def released_local(root, records, ref, ids, specs):
+    """`(merged, why)` for the local work items IDS under SPECS
+    (`threads`): `merged` is `{id:
     (number, merge commit)}` for each one released, `why` is `{id: reason}`
     for each one that is not.
 
@@ -687,7 +702,7 @@ def released_local(root, records, ref, ids):
     routing = load(ROUTING, "agentic_routing_for_settle")
     asked, merged, why = {}, {}, {}
     for work_item_id in ids:
-        branch = declared_branch(records, work_item_id, routing)
+        branch = declared_branch(records, work_item_id, routing, specs)
         if branch is None:
             why[work_item_id] = NO_BRANCH
             continue
@@ -712,9 +727,10 @@ def released_local(root, records, ref, ids):
     return merged, why
 
 
-def has_spec(records, work_item_id):
-    """Whether the work item's directory holds a `frame/design.md` on disk."""
-    return os.path.isfile(under(records, f"{SPECS}/{work_item_id}/{DESIGN}"))
+def has_spec(records, work_item_id, specs):
+    """Whether the work item's directory under SPECS (`threads`) holds a
+    `frame/design.md` on disk."""
+    return os.path.isfile(under(records, f"{specs}/{work_item_id}/{DESIGN}"))
 
 
 def read_text(root, rel):
@@ -922,26 +938,26 @@ def tracked_names(root):
     return {rel.rsplit("/", 1)[-1] for rel in listed if rel}
 
 
-def in_tree(root, records, work_item_id, path, names):
+def in_tree(root, records, work_item_id, path, names, specs):
     """Whether PATH, as an open row of WORK_ITEM_ID names it, is in the
     working tree: under the repository's top ROOT, under the work item's own
-    directory in RECORDS, or, for a bare file name, as the name of a tracked
-    file."""
+    directory under SPECS (`threads`) in RECORDS, or, for a bare file name,
+    as the name of a tracked file."""
     rel = path.rstrip("/")
     if os.path.exists(under(root, rel)):
         return True
-    if os.path.exists(under(records, f"{SPECS}/{work_item_id}/{rel}")):
+    if os.path.exists(under(records, f"{specs}/{work_item_id}/{rel}")):
         return True
     return "/" not in rel and rel in names
 
 
-def open_rows(root, records, ids, reader):
+def open_rows(root, records, ids, reader, specs):
     """`[(id, [(file, item, [(path, in the tree)])])]` for each of IDS whose
-    record under RECORDS holds an open row in the working tree
-    (`unverified_check.py#open_record_rows`)."""
+    record under SPECS (`threads`) in RECORDS holds an open row in the
+    working tree (`unverified_check.py#open_record_rows`)."""
     out, names = [], None
     for work_item_id in ids:
-        rows = reader.open_record_rows(records, f"{SPECS}/{work_item_id}")
+        rows = reader.open_record_rows(records, f"{specs}/{work_item_id}")
         if not rows:
             continue
         names = tracked_names(root) if names is None else names
@@ -953,7 +969,7 @@ def open_rows(root, records, ids, reader):
                         name,
                         item,
                         [
-                            (p, in_tree(root, records, work_item_id, p, names))
+                            (p, in_tree(root, records, work_item_id, p, names, specs))
                             for p in named_paths(item)
                         ],
                     )
@@ -964,9 +980,10 @@ def open_rows(root, records, ids, reader):
     return out
 
 
-def misplaced(records, work_item_id, reader):
+def misplaced(records, work_item_id, reader, specs):
     """`[(path, place)]` for each misplaced record file in the work item's
-    directory under RECORDS, sorted: a regular file, or a link to one, whose
+    directory under SPECS (`threads`) in RECORDS, sorted: a regular file, or
+    a link to one, whose
     name is the last part of a record this reads in the directory, the
     closing memo (`unverified_check.py#OVERVIEW`), `DESIGN` or `PLAN`, and
     whose path from the directory is not that record's. PATH is that path,
@@ -976,7 +993,7 @@ def misplaced(records, work_item_id, reader):
     holds what its record would is the settling session's to judge. A linked
     directory is not followed."""
     places = {p.rsplit("/", 1)[-1]: p for p in (reader.OVERVIEW, DESIGN, PLAN)}
-    top = under(records, f"{SPECS}/{work_item_id}")
+    top = under(records, f"{specs}/{work_item_id}")
     out = []
     for here, _dirs, names in os.walk(top):
         for name in names:
@@ -990,9 +1007,10 @@ def misplaced(records, work_item_id, reader):
     return sorted(out)
 
 
-def judgments(records, ids):
-    """`(groups, unread)` for the plans of IDS under RECORDS, as they stand
-    in the working tree, where the open rows are read too.
+def judgments(records, ids, specs):
+    """`(groups, unread)` for the plans of IDS under SPECS (`threads`) in
+    RECORDS, as they stand in the working tree, where the open rows are read
+    too.
 
       groups  `[(judged against, [(id, rounds, [(line, date, judgment,
               grounds)])])]`: every row of each plan's *Judgments of the run*,
@@ -1011,14 +1029,14 @@ def judgments(records, ids):
     routing = load(ROUTING, "agentic_routing_for_settle")
     groups, unread = {}, []
     for work_item_id in ids:
-        text = read_text(records, f"{SPECS}/{work_item_id}/{PLAN}")
+        text = read_text(records, f"{specs}/{work_item_id}/{PLAN}")
         if text is None:
             continue
         rows, whys = plan_rows(text)
         unread += [(work_item_id, why) for why in whys]
         if not rows:
             continue
-        where = under(records, f"{SPECS}/{work_item_id}")
+        where = under(records, f"{specs}/{work_item_id}")
         # `routing.rounds` returns [] both for no record and for a
         # `trail/rounds` it cannot list; `rounds_unreadable` says which.
         rounds = (
@@ -1078,14 +1096,17 @@ def plan_rows(text):
     )
 
 
-# A path the history lists that is a work item's plan, and nothing else.
-REMOVED_PLAN_RE = re.compile(rf"{re.escape(SPECS)}/([^/]+)/{re.escape(PLAN)}")
+def removed_plan_re(specs):
+    """A path the history lists that is a work item's plan under SPECS
+    (`threads`), and nothing else, its id captured."""
+    return re.compile(rf"{re.escape(specs)}/([^/]+)/{re.escape(PLAN)}")
 
 
-def earlier_judgments(root, ref, present):
+def earlier_judgments(root, ref, present, specs):
     """`(groups, unread)` for every `frame/plan.md` a commit on REF deleted
-    whose work item has no directory among PRESENT, the ids
-    `work_items(records)` lists: the plans earlier settles removed.
+    under SPECS (`threads`) whose work item has no directory among PRESENT,
+    the ids `work_items(records, specs)` lists: the plans earlier settles
+    removed.
 
       groups  `[(judged against, [(id, released, removed, [(coordinate,
               date, judgment, grounds)])])]`, grouped by the `Judged
@@ -1122,12 +1143,13 @@ def earlier_judgments(root, ref, present):
             "--format=%x01%H %h %s",
             ref,
             "--",
-            SPECS,
+            specs,
         )
     except RuntimeError as failed:
         return [], [("", str(failed))]
     deleted, seen = [], set()
     commit = None
+    removed_plan = removed_plan_re(specs)
     # `-z` ends each path with a NUL and quotes none, whatever
     # `core.quotePath` says; a commit's field opens with U+0001, which no
     # path under SPECS starts with, and the path that follows it opens with
@@ -1137,7 +1159,7 @@ def earlier_judgments(root, ref, present):
         if line.startswith("\x01"):
             commit = line[1:].split(" ", 2)
             continue
-        matched = REMOVED_PLAN_RE.fullmatch(line)
+        matched = removed_plan.fullmatch(line)
         if not matched or commit is None or line in seen:
             continue
         seen.add(line)
@@ -1194,8 +1216,9 @@ def facts(root, op, rules):
     ]
 
 
-def timeline(root, ref, ids, reader, records, merged=None):
-    """The released designs IDS as the dry run shows them.
+def timeline(root, ref, ids, reader, records, specs, merged=None):
+    """The released designs IDS, under SPECS (`threads`), as the dry run
+    shows them.
 
     Where the root is shared, each `frame/design.md` is read as REF holds it, the
     text that was reviewed and released, and the merge order is the commits
@@ -1214,10 +1237,10 @@ def timeline(root, ref, ids, reader, records, merged=None):
     policy = reader.policy_root(root)
     parsed, whole, nothing, spec_less = {}, [], [], []
     for work_item_id in ids:
-        if not has_spec(records, work_item_id):
+        if not has_spec(records, work_item_id, specs):
             spec_less.append(work_item_id)
             continue
-        rel = f"{SPECS}/{work_item_id}/{DESIGN}"
+        rel = f"{specs}/{work_item_id}/{DESIGN}"
         if merged is None:
             text = reader.show(root, ref, rel) or ""
         else:
@@ -1236,7 +1259,7 @@ def timeline(root, ref, ids, reader, records, merged=None):
         else:
             parsed[work_item_id] = found.ops
     if merged is None:
-        ordered = rules.order(root, ref, list(parsed), SPECS)
+        ordered = rules.order(root, ref, list(parsed), specs)
     else:
         pairs = [(i, merged[i][1]) for i in parsed]
         ordered = rules.merge_order(root, ref, pairs)
@@ -1274,10 +1297,10 @@ def place_line(p, span, why):
     return f"place: {named}: {why} in the working tree"
 
 
-def op_line(work_item_id, op, found):
-    """One operation of a group: its kind, its design's coordinate and what the
-    working tree holds of its texts."""
-    where = f"{SPECS}/{work_item_id}/{DESIGN}:{op.line}"
+def op_line(work_item_id, op, found, specs):
+    """One operation of a group: its kind, its design's coordinate under
+    SPECS (`threads`) and what the working tree holds of its texts."""
+    where = f"{specs}/{work_item_id}/{DESIGN}:{op.line}"
     said = (
         ", ".join(f"{f} {'found' if ok else 'not found'}" for f, ok in found)
         or "the whole section"
@@ -1292,19 +1315,22 @@ def records_of(root, home):
     """`(local, records)` for the repository at ROOT whose resolved `seal/`
     root is HOME: whether it is in local mode, and the directory every
     `seal/threads/<id>/` path is read and removed under. That is ROOT where the
-    root is shared, and the common git directory that holds it in local mode;
-    every other read stays on ROOT."""
-    local = os.path.realpath(home) != os.path.realpath(under(root, "seal"))
+    root is shared, directly under it by either of its names, and the common
+    git directory that holds it in local mode; every other read stays on
+    ROOT."""
+    local = os.path.realpath(os.path.dirname(home)) != os.path.realpath(root)
     return local, (os.path.dirname(home) if local else root)
 
 
 def survey(root, ref, home=None):
     """What the dry run prints, and where `--apply` gets *released*.
 
-    HOME is the resolved `seal/` root, `<root>/seal` when it is None. Where
-    it is anywhere else the root is in local mode: the work items are read
-    under the directory holding it, and released is asked of `gh` and git
-    (`released_local`) rather than read from REF's tree.
+    HOME is the resolved `seal/` root, `<root>/seal` when it is None, the
+    name `lib/optin.py#HOME` gives. Where it is anywhere but directly under
+    ROOT the root is in local mode: the work items are read under the
+    directory holding it, and released is asked of `gh` and git
+    (`released_local`) rather than read from REF's tree. Every work item
+    path opens with `threads(home)`.
 
     **`--apply` does not take its candidates from here.** It reads the
     directories and the records from the tree again, because a
@@ -1314,17 +1340,18 @@ def survey(root, ref, home=None):
 
     None where `ref` does not resolve. Raises `Unasked` where local mode
     needs `gh` and it cannot be asked."""
-    home = home or under(root, "seal")
+    home = home or under(root, load(OPTIN, "agentic_optin").HOME)
     local, records = records_of(root, home)
-    present = work_items(records)
+    specs = threads(home)
+    present = work_items(records, specs)
     merged, why = None, {}
     if local:
         if not resolves(root, ref):
             return None
-        merged, why = released_local(root, records, ref, present)
+        merged, why = released_local(root, records, ref, present, specs)
         on_base = set(merged)
     else:
-        on_base = released(root, ref)
+        on_base = released(root, ref, specs)
         if on_base is None:
             return None
     reader = load(READER, "agentic_unverified_reader")
@@ -1333,20 +1360,21 @@ def survey(root, ref, home=None):
         "ref": ref,
         "local": home if local else None,
         "records": records,
+        "threads": specs,
         "released": ids,
         "unreleased": [i for i in present if i not in on_base],
         "merged": merged or {},
         "why": why,
-        "timeline": timeline(root, ref, ids, reader, records, merged),
-        "rows": open_rows(root, records, ids, reader),
+        "timeline": timeline(root, ref, ids, reader, records, specs, merged),
+        "rows": open_rows(root, records, ids, reader, specs),
         "misplaced": [
-            (i, held) for i in ids if (held := misplaced(records, i, reader))
+            (i, held) for i in ids if (held := misplaced(records, i, reader, specs))
         ],
-        "judgments": judgments(records, ids),
-        "earlier": earlier_judgments(root, ref, present),
+        "judgments": judgments(records, ids, specs),
+        "earlier": earlier_judgments(root, ref, present, specs),
         "nothing": reader.NOTHING,
     }
-    found["citations"], found["readers"] = citations(root, ids)
+    found["citations"], found["readers"] = citations(root, ids, specs)
     return found
 
 
@@ -1518,14 +1546,14 @@ def names(name, work_item_id):
     return name == work_item_id
 
 
-def tracked_text(root):
+def tracked_text(root, specs):
     """`(repo-relative path, text)` for every tracked text file outside
-    `seal/threads/`. A file holding a NUL byte is binary and skipped."""
+    SPECS (`threads`). A file holding a NUL byte is binary and skipped."""
     r = subprocess.run(["git", "-C", root, "ls-files", "-z"], capture_output=True)
     if r.returncode != 0:
         return
     for rel in r.stdout.decode("utf-8", "replace").split("\0"):
-        if not rel or rel.startswith(SPECS + "/"):
+        if not rel or rel.startswith(specs + "/"):
             continue
         try:
             with open(under(root, rel), "rb") as f:
@@ -1537,19 +1565,19 @@ def tracked_text(root):
         yield rel, data.decode("utf-8", "replace")
 
 
-def citations(root, work_item_ids):
+def citations(root, work_item_ids, specs):
     """`({id: ["path:line", ...]}, [tests/ files naming seal/threads])`.
 
-    A path outside `seal/threads/` that cites into a directory `--apply` removes
-    stops resolving when it goes, and every `tests/` file that reads
-    `seal/threads` is a check the skill says has to be answered first. One scan
-    of the tracked tree answers both."""
+    A path outside `seal/threads/`, SPECS (`threads`), that cites into a
+    directory `--apply` removes stops resolving when it goes, and every
+    `tests/` file that reads SPECS is a check the skill says has to be
+    answered first. One scan of the tracked tree answers both."""
     cited = {i: [] for i in work_item_ids}
     readers = []
     if not work_item_ids:
         return cited, readers
-    for rel, text in tracked_text(root):
-        if rel.startswith(TESTS) and SPECS in text:
+    for rel, text in tracked_text(root, specs):
+        if rel.startswith(TESTS) and specs in text:
             readers.append(rel)
         if "threads/" not in text:
             continue
@@ -1575,6 +1603,7 @@ def report(found, ref, out):
     write = out.write
     t = found["timeline"]
     local = found["local"]
+    specs = found["threads"]
     rows = dict(found["rows"])
     count = sum(len(r) for r in rows.values())
     total = len(found["released"])
@@ -1608,13 +1637,13 @@ def report(found, ref, out):
             for p, span, why in g["places"]:
                 write(f"    {place_line(p, span, why)}\n")
             for k, (work_item_id, op, said) in enumerate(g["ops"], 1):
-                write(f"    {k}. {op_line(work_item_id, op, said)}\n")
+                write(f"    {k}. {op_line(work_item_id, op, said, specs)}\n")
             for a, b in g["unordered"]:
                 write(f"    {unordered.format(a=a, b=b)}\n")
     if t["whole"]:
         write(f"\n{WHOLE_HEADING}\n")
         for work_item_id, line, why in t["whole"]:
-            where = f"{SPECS}/{work_item_id}/{DESIGN}" + (f":{line}" if line else "")
+            where = f"{specs}/{work_item_id}/{DESIGN}" + (f":{line}" if line else "")
             write(f"    {work_item_id}  {where}  {why}\n")
     if t["nothing"]:
         write(f"\n{NOTHING_HEADING.format(nothing=found['nothing'])}\n")
@@ -1635,14 +1664,14 @@ def report(found, ref, out):
         write(f"\n{MISPLACED_HEADING}\n")
         for work_item_id, held in found["misplaced"]:
             for rel, place in held:
-                path = f"{SPECS}/{work_item_id}/{rel}"
+                path = f"{specs}/{work_item_id}/{rel}"
                 write(f"    {MISPLACED.format(path=path, place=place)}\n")
     groups, unread = found["judgments"]
     if groups or unread:
         write(f"\n{JUDGMENTS_HEADING}\n")
         for work_item_id, why in unread:
             write(
-                f"    {work_item_id}  {SPECS}/{work_item_id}/{PLAN}  not read: {why}\n"
+                f"    {work_item_id}  {specs}/{work_item_id}/{PLAN}  not read: {why}\n"
             )
         for against, members in groups:
             write(f"\njudged against: {against or 'an empty cell'}\n")
@@ -1678,7 +1707,7 @@ def report(found, ref, out):
         for work_item_id in found["released"]:
             held = len(rows.get(work_item_id, []))
             when = f"once its {held} open row{plural(held)} close" if held else "now"
-            write(f"    {SPECS}/{work_item_id}/  {when}\n")
+            write(f"    {specs}/{work_item_id}/  {when}\n")
             for where in found["citations"].get(work_item_id, []):
                 write(f"        cited from {where}\n")
         write(f"\n{READERS_HEADING}\n")
@@ -1713,7 +1742,7 @@ def draft(found, root, out):
                 texts[op.file] = read_text(root, op.file)
             text, why = rules.apply_op(texts[op.file], op)
             if why:
-                where = f"{SPECS}/{work_item_id}/{DESIGN}:{op.line}"
+                where = f"{found['threads']}/{work_item_id}/{DESIGN}:{op.line}"
                 out.write(f"not placed  {op.kind}  {work_item_id}  {where}  {why}\n")
                 continue
             texts[op.file] = text
@@ -1790,19 +1819,19 @@ def apply(found, root, out):
     git. Every directory is classified before the first removal, so the
     `Unasked` and `Unread` that `notes` raises leave every one in place."""
     reader = load(READER, "agentic_unverified_reader")
-    records = found["records"]
-    ids = sorted(set(work_items(records)) & set(found["released"]))
-    held = {i: reader.open_record_rows(records, f"{SPECS}/{i}") for i in ids}
+    records, specs = found["records"], found["threads"]
+    ids = sorted(set(work_items(records, specs)) & set(found["released"]))
+    held = {i: reader.open_record_rows(records, f"{specs}/{i}") for i in ids}
     noted = {}
     if not found["local"]:
-        noted = notes(root, found["ref"], [i for i in ids if not held[i]])
+        noted = notes(root, found["ref"], [i for i in ids if not held[i]], specs)
     removed, kept, kept_for_note = 0, 0, 0
     for work_item_id in ids:
-        directory = f"{SPECS}/{work_item_id}"
+        directory = f"{specs}/{work_item_id}"
         rows = held[work_item_id]
         unread = [
             f"    not read: {MISPLACED.format(path=f'{directory}/{rel}', place=place)}\n"
-            for rel, place in misplaced(records, work_item_id, reader)
+            for rel, place in misplaced(records, work_item_id, reader, specs)
         ]
         if rows:
             kept += 1
@@ -1922,7 +1951,7 @@ def main(argv=None):
             )
             return 2
         sys.stderr.write(
-            f"settle: {root} has no {SPECS}/ at either place — nothing was "
+            f"settle: {root} has no seal/threads/ at either place — nothing was "
             "read. This command settles work items, and a repository with "
             "none has nothing to settle.\n"
         )
@@ -1938,14 +1967,14 @@ def main(argv=None):
     local, records = records_of(root, home)
     # A settled root is not an unusable one (#517): an empty `seal/threads/`, or
     # none in a fresh checkout of that commit, is where a complete settle ends.
-    if not work_items(records):
+    if not work_items(records, threads(home)):
         if listed is not None:
             write_documents(listed, sys.stdout)
             sys.stdout.write("\n")
         if local:
             sys.stdout.write(SETTLED_LOCAL.format(home=home))
         else:
-            sys.stdout.write(SETTLED.format(root=root, specs=SPECS))
+            sys.stdout.write(SETTLED.format(root=root, specs=threads(home)))
         return 0
 
     try:

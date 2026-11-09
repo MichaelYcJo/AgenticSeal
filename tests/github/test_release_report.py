@@ -18,7 +18,7 @@ import json
 import os
 
 import pytest
-from conftest import ROOT, census_case
+from conftest import ROOT, census_case, mark_root, write
 
 TARGET = ".github/scripts/release_report.py"
 
@@ -178,6 +178,31 @@ class Test_documents:
         docs = {"README": INDEX, "g/x": "abc\n", "experiments/e": "e\n"}
         root = tree(tmp_path / "t", "", {"t::a": 1.0}, docs)
         assert "docs/experiments/e.md" not in report.documents(root)
+
+    def test_accepts_the_policy_root_agentic_seal_names_beside_a_package(
+        self, tmp_path
+    ):
+        """#1059: beside a project's own `seal/`, a package with no marker,
+        the `Policy root` row is read from the marked `agentic-seal/`, so the
+        rows are the documents under the root it names."""
+        root = tree(tmp_path / "t", "", {"t::a": 1.0}, {})
+        write(root, "seal/__init__.py", "VERSION = 1\n")
+        write(root, "seal/config.md", "| Item | Value |\n|---|---|\n")
+        mark_root(os.path.join(root, "agentic-seal"))
+        write(
+            root,
+            "agentic-seal/config.md",
+            "| Item | Value |\n|---|---|\n| Policy root | policy |\n",
+        )
+        write(root, "policy/README.md", INDEX.replace("docs/", "policy/"))
+        write(root, "policy/g/x.md", "abc\n")
+        assert sorted(report.documents(root)) == [
+            "CLAUDE.md",
+            "CONTRIBUTING.md",
+            "policy/README.md",
+            "policy/g/x.md",
+            "skills/core/SKILL.md",
+        ]
 
 
 class Test_leg_minutes:

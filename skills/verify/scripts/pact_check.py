@@ -693,9 +693,13 @@ def check(root, out=sys.stdout, home_dir=None):
             f"{after_path(config_file, refused)}"
         )
         return 2
+    # The pact's config as a person finds it, under the root's own name:
+    # `seal/`, or the second name `lib/optin.py#home_paths` gives beside a
+    # project's own.
+    config_here = f"{os.path.basename(home)}/{CONFIG_FILE}"
     signers, refusals = config.signer_declaration(pairs)
     for refusal in refusals:
-        found(REFUSED, f"seal/{CONFIG_FILE}", "", refusal)
+        found(REFUSED, config_here, "", refusal)
     key = f"`{config.SIGNERS_KEY}` key"
     mapped, map_refusals = path_map(config, home_dir)
     for refusal in map_refusals:
@@ -713,7 +717,7 @@ def check(root, out=sys.stdout, home_dir=None):
             found(
                 REFUSED,
                 written,
-                f"seal/{CONFIG_FILE}",
+                config_here,
                 f"the {key} lists the pact's own repository, and that key lists "
                 "every OTHER signer — take this entry out",
             )
@@ -744,13 +748,15 @@ def check(root, out=sys.stdout, home_dir=None):
             )
             continue
         pacts, key_refusals = declared
+        # The signer's config under its root's own name, as `config_here`.
+        config_shown = f"{os.path.basename(their_home)}/{CONFIG_FILE}"
         for refusal in key_refusals:
-            found(REFUSED, written, f"seal/{CONFIG_FILE}", refusal)
+            found(REFUSED, written, config_shown, refusal)
         if not any(n == ours for _w, n in pacts):
             found(
                 ONE_SIDED,
                 written,
-                f"seal/{CONFIG_FILE}",
+                config_shown,
                 f"the pact lists it, and its config names no `{config.PACT_KEY}` "
                 f"key for {mine}: the relationship is recorded on one side "
                 f'only. Add `"{config.PACT_KEY}": "{mine}"` there, or take it '

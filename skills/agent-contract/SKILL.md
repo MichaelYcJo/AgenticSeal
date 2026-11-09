@@ -129,12 +129,13 @@ directory exists and its `README.md` opens with the marker
 `$(git rev-parse --git-common-dir)/seal/` otherwise —
 local mode, where the root sits under the common git directory and nothing
 under it is committed. A repository with both is shared, and no config key
-decides it. The prose in the records follows `Record language` in
-`config.json` under that root — English when the key is absent. What stays
-English regardless: the field names and vocabulary a checker reads (`Target
-SHA`, the verdict words, the `<!-- -->` markers), and all code. The
-`implement` skill's *The language the records are written in* holds the
-whole list.
+decides it. Each `seal/` here is the root's name, defined in the opening
+paragraph of `skills/core/SKILL.md`. The prose in the records follows
+`Record language` in `config.json` under that root — English when the key
+is absent. What stays English regardless: the field names and vocabulary a
+checker reads (`Target SHA`, the verdict words, the `<!-- -->` markers), and
+all code. The `implement` skill's *The language the records are written in*
+holds the whole list.
 check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
 
 ## 12 A defect belongs to a class, so enumerate the class

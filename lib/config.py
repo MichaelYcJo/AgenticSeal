@@ -278,19 +278,18 @@ REFERENCE_KEY = "Reference specs"
 NO_REFERENCE = "none"
 # The directory name the default reads as a reference root at any depth.
 REFERENCE_NAME = "specs"
-# The plugin's own root in the tree, `lib/optin.py#HOME`. Spelled here so
-# this reader needs no second sibling, and held equal to that one by
-# `tests/lib/test_config.py`.
-HOME = "seal"
 
 
-def inside_the_root(rel):
+def inside_the_root(rel, name):
     """True when the `/`-joined repository-relative `rel` is the plugin's own
-    root or under it — never a reference root, whatever a key says."""
-    return rel == HOME or rel.startswith(HOME + "/")
+    root or under it — never a reference root, whatever a key says. NAME is
+    the root's name in the tree, `lib/optin.py#home_name`'s answer, which
+    the caller reads; "" where the root is local or absent, and then no tree
+    path is inside it."""
+    return bool(name) and (rel == name or rel.startswith(name + "/"))
 
 
-def reference_roots(home):
+def reference_roots(home, name):
     """The repository-relative directories `<home>/config.json`'s
     `Reference specs` key names, as a tuple; `()` for `none`; or None, the
     default — every directory named `specs` outside the plugin's root.
@@ -298,9 +297,10 @@ def reference_roots(home):
     The value is comma-separated prefixes, each with or without a trailing
     `/` or a leading `./`. No file, no such key, an empty value or a file
     that will not read all mean the default, which is what every repository
-    got before the key existed. A prefix naming the plugin's own root or
-    anything under it is dropped: a reference root is outside the root by
-    definition, and the root's records are read whatever the key says.
+    got before the key existed. A prefix naming the plugin's own root, NAME
+    in the tree as `inside_the_root` reads it, or anything under it is
+    dropped: a reference root is outside the root by definition, and the
+    root's records are read whatever the key says.
 
     **No root at either place is `()`, no reference root at all** — not the
     default. A reference root is defined against the plugin's root, and a
@@ -330,22 +330,22 @@ def reference_roots(home):
         while prefix.startswith("./"):
             prefix = prefix[2:]
         prefix = prefix.strip("/")
-        if prefix and not inside_the_root(prefix) and prefix not in out:
+        if prefix and not inside_the_root(prefix, name) and prefix not in out:
             out.append(prefix)
     return tuple(out)
 
 
-def under_reference_root(rel, roots):
+def under_reference_root(rel, roots, name):
     """True when the repository-relative path `rel` is a reference root or
     under one. `roots` is `reference_roots`' answer: None reads the default —
-    any directory named `specs` on the path, outside the plugin's root — and
-    a tuple reads its prefixes alone.
+    any directory named `specs` on the path, outside the plugin's root NAME
+    (`inside_the_root`) — and a tuple reads its prefixes alone.
 
     A predicate on a TREE path, so local mode needs no arm of its own: its
-    root is under the git directory and never in the tree, and every `specs`
-    the tree holds is outside it."""
+    root is under the git directory and never in the tree, NAME is "", and
+    every `specs` the tree holds is outside it."""
     parts = [p for p in rel.replace("\\", "/").split("/") if p and p != "."]
-    if not parts or inside_the_root(parts[0]):
+    if not parts or inside_the_root(parts[0], name):
         return False
     if roots is None:
         return REFERENCE_NAME in parts

@@ -288,7 +288,11 @@ def unsourced(text, texts):
     lines = {line for record in texts.values() for line in record.split("\n")}
     demoted = {"#" + line for line in lines}
     paths = {*texts, *RECORDS, "trail/phases/", "trail/rounds/"}
-    fixed = {line.format(name=NAME, path=path) for line in PR.FIXED for path in paths}
+    fixed = {
+        line.format(home="seal", name=NAME, path=path)
+        for line in PR.FIXED
+        for path in paths
+    }
     return [
         line
         for line in text.split("\n")
