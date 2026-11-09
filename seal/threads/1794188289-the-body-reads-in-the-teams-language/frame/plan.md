@@ -103,4 +103,4 @@ refusals run wherever the installed plugin runs.
 
 | Date | Judgment | Grounds | Judged against |
 |---|---|---|---|
-| | | | |
+| 2026-11-09 | The phase 1 crafter's frame statements are folded by the orchestrator with no framer: *Scope* item 5 and the *Removes* row on `skills/config/SKILL.md` name the opening paragraph, *Removes* gains `/agentic:config` step 3 and the eight departures of `trail/phases/phase-1.md`, and *Grounding* G7, G8 and G20 stay as dated to `28fe66be`. The step 3 rewrite is kept: it builds *Scope* item 1 as framed. | Each statement records what the build changed, not what the work is; G9 already holds that the stub's comment names the template as every row's documentation. | `skills/implement/orchestration.md` *A decision made after the frame is committed is folded*; `skills/core/SKILL.md` *The rule a mechanism is kept against* |
