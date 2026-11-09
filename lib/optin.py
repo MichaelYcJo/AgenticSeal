@@ -295,10 +295,11 @@ def home_at(root, common=None):
     above, which names the marked one of them. A `<root>/seal/` without the
     marker is passed over, so a project that keeps a directory of that name
     for itself keeps its shared root at `<root>/agentic-seal/`, or its local
-    root under the git directory. The opt-out is read once, here, so it cannot be
-    honoured by one arm of a gate and missed by the other — the migration
-    config sits inside the root the opt-out takes back, and a repository
-    nobody reviews has nothing to compare against an original either.
+    root under the git directory. The opt-out is read once, here, so it
+    cannot be honoured by one arm of a gate and missed by the other — the
+    migration config sits inside the root the opt-out takes back, and a
+    repository nobody reviews has nothing to compare against an original
+    either.
 
     `common` is passed by a caller that needs the common git directory for
     something else too, so one invocation asks git for it once rather than

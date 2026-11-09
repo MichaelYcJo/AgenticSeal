@@ -6,7 +6,9 @@ marker in its `README.md`, and runs a command of the plugin in it, in the
 process. The cases are named by the scenario of the work item's
 `frame/design.md` they hold: S1, first setup beside the package, and S6,
 moving the root between its two places and carrying a copy to another
-clone. The resolver's order itself is `tests/lib/test_optin.py`'s.
+clone. The case of `seal pr-checks install`, which *Scope* item 6 names and
+no scenario row holds, is named by its command. The resolver's order
+itself is `tests/lib/test_optin.py`'s.
 """
 
 import os

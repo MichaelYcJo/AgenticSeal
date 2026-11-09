@@ -752,7 +752,8 @@ def no_root(repo, shared, local):
         return 1
     # Not "nothing to carry": `seal mode` reaches this too, and it carries
     # nothing anywhere. What all three subcommands share is that the root is
-    # what they work on, and it is looked for at exactly two places.
+    # what they work on, and the two places printed are the ones
+    # `optin.home_paths` gives: the shared place and the local place.
     print("no seal/ here, so there is nothing to work with. It is looked for at:")
     print(f"  {shared}   (shared mode)")
     print(f"  {local}   (local mode)")
@@ -1963,9 +1964,9 @@ def install_workflow(repo):
     Refused where the shared place `optin.home_paths` gives is not the root,
     a directory whose README opens with the marker, because the checks read
     committed records and only a root in the tree is committed; a `seal/`
-    the project keeps for itself holds none of them. Never overwrites: this plugin's own file already
-    there is reported with the release it pins, and anybody else's is left
-    alone.
+    the project keeps for itself holds none of them. Never overwrites: this
+    plugin's own file already there is reported with the release it pins,
+    and anybody else's is left alone.
     """
     shared, _local = optin.home_paths(repo)
     if not shared or not optin.marked(shared):

@@ -1,7 +1,8 @@
 """`lib/optin.py`: one opt-in signal, read one way, `seal/` at the first of
-two places.
+three places.
 
-`<repo>/seal/` is what shared mode commits; `<git-common-dir>/seal/` is where
+`<repo>/seal/` is what shared mode commits, `<repo>/agentic-seal/` where the
+project's own `seal/` stands (#1059), and `<git-common-dir>/seal/` is where
 local mode keeps it (#80). The root's presence is the whole declaration, and
 there is no config key. `.specseal/` and `_ai/` are not addresses at all, and
 the throwaway opt-out is a file under the git directory, where nothing can
@@ -385,8 +386,8 @@ class Test_home_at:
 
     def test_accepts_the_local_root_beside_a_projects_own_seal(self, optin, repo):
         """A project's own `<repo>/seal/` is passed over, and the local root
-        under the common git directory is the answer: the place first setup
-        keeps the root in such a repository."""
+        under the common git directory is the answer where no
+        `<repo>/agentic-seal/` carries the marker."""
         readme_at(repo / "seal", "# seal\n")
         readme_at(repo / ".git" / "seal", optin.MARKER + "\n")
         assert optin.home_at(str(repo)) == os.path.join(str(repo), ".git", "seal")
