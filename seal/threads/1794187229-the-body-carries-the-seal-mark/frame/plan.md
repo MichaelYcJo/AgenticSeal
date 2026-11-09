@@ -49,6 +49,10 @@ re-run, so a body repaired without a push stays red until the next
 | E. A separate `hygiene` step running `seal pr-body <item> --body <file> --check` with the body from `env:` | The step has to find the work item's directory, which the check already does; two readers of one payload; the template and the repository's workflow each gain a step that has to agree with the check on what is declared | rejected in favour of A |
 | F. Compare the mark's presence alone, not the whole body | The issue's *Done when* asks for drift too; a mark-only reader is a second comparison beside `_check`, with its own spelling of the mark line | rejected: `_check` compares the whole and the mark is one line of it |
 | G. Leave the sentence in `skills/code-review/orchestration.md` as the hold | Design G10: every pull request of 0.36.0 opened without the mark under that sentence | rejected |
+| H. The mark's address drops the version: `<repository>/raw/HEAD/<icon>` (chosen after phase 2, design G21 and G22) | The picture is the icon at the default branch, so a change to its bytes there changes what every past body shows, and a renamed icon path or a moved repository breaks every past body's picture; a release that does either re-pins the workflow (design *Data & interfaces*) | chosen: the line reads nothing the two copies differ in, the stamp states no version and the mark means what the stamp means, and the tag address shows no picture for a body the tree's copy composes before the tag exists (G21) |
+| I. The version read from a record both copies open at HEAD, such as a line of `trail/gate.md`'s run block or `guarantee.md`'s verdict block | Neither record holds a plugin version today (`lib/fields.py#GATE`, `#GUARANTEE`), so it adds a line to a record grammar, its writer and its reader, for a distinction no reader acts on; the version written is the installed plugin's, so a body of this repository during a release still names a tag that does not exist yet | rejected |
+| J. The check compares the mark line with its version left out | `skills/core/SKILL.md` *The rule a mechanism is kept against*: a script holds a gate on a fact it reads exactly, and a line matched with a part left out is a pattern; the body still differs by which copy composed it, so two correct bodies for one commit exist | rejected |
+| K. The orchestrator runs this tree's `bin/seal pr-body` in this repository | Holds only here; a user's repository composes with the installed plugin and checks with the tag its workflow pins, so every plugin update re-pins the workflow or turns the arm red | rejected as the fix; this repository still writes this work item's own body with the tree's copy, since the installed 0.35.1 writes the tag address (*Operational impact*) |
 
 ## Phases
 
@@ -57,15 +61,19 @@ re-run, so a body repaired without a push stays red until the next
 | 1 | *Scope* item 2, and the `tests/skills/test_pr_body.py` case of item 5 | the new case seen red against the current `_check` on a body lacking the mark line and its blank line (design G12's shape), then green; `tests/skills/test_pr_body.py` green | 7252125d |
 | 2 | *Scope* item 1, the `chain_check.py` sentences of item 4, and the `tests/skills/test_chain_check.py` cases of item 5 | each case seen red with the arm absent, then green; `tests/skills/test_chain_check.py` and `tests/skills/test_pr_body.py` green; `tests/behaviour/test_this_repository_passes_its_own_checks.py` green for the marker the check line names | f950b269 |
 | 3 | *Scope* item 3, the remaining sentences of item 4, and the work item's `changelog.md` | the `tests/text/test_ci_gives_the_checks_what_they_need.py` pin on `edited` seen red against the template as it stands, then green; `git grep` for the two sentences of *Removes* finds neither; the tree-wide files `CONTRIBUTING.md` *Running the checks* names green | ce06efa7 |
+| 4 | *Scope* item 6, and the `changelog.md` sentences it rewrites | the two-manifest case seen red against `_mark_line` as it stands, then green; `tests/skills/test_pr_body.py` and `tests/skills/test_chain_check.py` green; `git grep` for `raw/v` outside the work item's records finds nothing, and for the `templates/setup/config.md` sentence of *Removes* finds nothing; the mark line this tree's `bin/seal pr-body` writes for a sealed fixture equals the one `chain_check.py` composes | |
 
 ## Overlap with the release
 
-The spawn names no other work item running beside this one: #1439 to #1444
-have merged into the base at `1af09327`. None meets this work.
+The spawn named no other work item running beside this one: #1439 to #1444
+have merged into the base at `1af09327`. The owner added #1453 to the release
+after this frame was committed; its frame stands at `b0c63c8c` in
+`seal/threads/1794188289-the-body-reads-in-the-teams-language/frame/`, and
+its plan orders this work first.
 
 | Work item | Where both change | Merges first | Grounds |
 |---|---|---|---|
-| none | | | |
+| #1453 | `skills/code-review/scripts/pr_body.py`: this work moves the composition and the comparison into `compared` and changes the mark line; #1453's phase 2 changes what that function composes as the first part, with the language rows refused where absent and a `pr.<lang>.md` placed first. `tests/skills/test_pr_body.py` and `tests/skills/test_chain_check.py`: this work's cases write a `config.md` with the mark row; #1453 adds its two language rows to every fixture that runs the command. `skills/code-review/orchestration.md` *Orchestrator: the pull request opens once the sealer seals*: this work adds what a red body arm asks; #1453 rewrites the `pr.md` paragraphs | #1452 | `compared` is the structure #1453's phase 2 edits, and that phase's refusal turns every fixture of this work's arm red until the rows are added, so #1453 builds its phase 2 on the merged base and pays one pass over the fixtures; the reverse order would merge this work's function over a changed first part and edit the fixtures in both items. #1453's plan states the same order (its *Overlap with the release*) |
 
 ## Operational impact
 
@@ -74,6 +82,19 @@ installed `hygiene.yml` from an earlier release runs no arm until it
 re-installs the workflow or edits its `types:` line and the pinned tag
 (design *Data & interfaces*). In this repository `edited` is already in
 `.github/workflows/hygiene.yml`, so the arm runs on the next body edit.
+
+The mark's address changes form (design *Scope* item 6). Bodies already on
+GitHub keep their tag addresses, which render while their tags exist. In
+this repository the installed plugin is 0.35.1 until the release carrying
+this work is installed, and it writes the tag address, while `hygiene.yml`
+runs the tree's `chain_check.py`, which composes the new one. So the
+orchestrator writes this work item's own pull request body, and every body
+of this repository until that install, with the tree's `bin/seal pr-body`
+after the seal; the sealer's `seal pr-body --check` is unaffected, since it
+runs before the verdict and composes no mark. In a user's repository the
+arm and the new address arrive in one release, so the one re-install of
+the workflow the arm already asks for covers both, and a later plugin
+update needs none.
 
 ## Judgments of the run
 
