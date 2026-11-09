@@ -106,8 +106,9 @@ claude plugin update agentic@agenticseal
 지금 플러그인은 JSON 객체 하나인 `seal/config.json` 에서 읽습니다.
 `seal/config.md` 가 있는 저장소마다 `seal mode` 를 한 번 실행합니다. 이 명령은
 그 표에서 `seal/config.json` 을 쓰고 옛 파일을 지웁니다. 그 전까지는
-`seal gate`, `seal pr-body`, `seal fold`, `seal pact`, `seal mode --check` 가
-종료 코드 2 로 멈추고 `seal mode` 를 짚으며, `seal rules`, `seal settle`,
+`seal gate`, `seal fold`, `seal pact`, `seal mode --check` 가 종료 코드 2 로
+멈추고 `seal mode` 를 짚습니다. `seal pr-body` 는 같은 문장으로 거절하고 종료
+코드 1 로 끝납니다. `seal rules`, `seal settle`,
 `seal unverified` 는 정책 루트와 참고 루트를 기본값으로 읽습니다.
 어떤 명령도 바꿔 주지 않는 세 파일은 손으로 다시 씁니다. `seal/parity.md` 는
 `templates/setup/parity.json` 에서 시작해 `seal/parity.json` 으로 씁니다.

@@ -102,10 +102,11 @@ Earlier releases kept a repository's settings in `seal/config.md`, a
 markdown table; the plugin now reads them from `seal/config.json`, one JSON
 object. Run `seal mode` once in each repository that holds a
 `seal/config.md`: it writes `seal/config.json` from the table and removes
-the old file. Until then `seal gate`, `seal pr-body`, `seal fold`, `seal pact`
-and `seal mode --check` exit 2 and name `seal mode`, and `seal rules`,
-`seal settle` and `seal unverified` read the default policy root and
-reference roots. Three files no command converts are rewritten by hand.
+the old file. Until then `seal gate`, `seal fold`, `seal pact` and
+`seal mode --check` exit 2 and name `seal mode`, `seal pr-body` refuses
+with the same sentence and exits 1, and `seal rules`, `seal settle` and
+`seal unverified` read the default policy root and reference roots. Three
+files no command converts are rewritten by hand.
 `seal/parity.md` becomes `seal/parity.json`, written from
 `templates/setup/parity.json`. The `| Signer |` table of a `seal/pact.md`
 becomes a `Pact signers` key in that repository's `seal/config.json`, the

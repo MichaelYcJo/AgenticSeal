@@ -43,9 +43,10 @@ key is read. A file that is there and cannot be read as UTF-8 text, does
 not parse as JSON (a trailing comma, a quote left open), or whose top level
 is not one object is refused for every key, naming its path and the
 parser's message; a file that is absent still declares nothing, and a byte
-order mark an editor wrote reads. `seal fold`, `seal gate`, `seal mode`,
-`seal pact` and `seal pr-body` print the refusal and exit 2 with nothing
-judged, as they do for a value they cannot parse. `seal rules`,
+order mark an editor wrote reads. `seal fold`, `seal gate`, `seal mode` and
+`seal pact` print the refusal and exit 2 with nothing judged, as they do
+for a value they cannot parse; `seal pr-body` prints it and exits 1 with
+nothing written. `seal rules`,
 `seal settle` and `seal unverified` read the `Policy root` and
 `Reference specs` defaults instead, as they do for a key written twice.
 Whoever writes the file repairs it by deleting the extra key or by

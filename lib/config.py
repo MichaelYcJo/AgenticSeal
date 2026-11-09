@@ -38,7 +38,8 @@ answer would be read as absent. A file that is there and will not read or
 parse, a `config.md` an earlier release wrote standing without a
 `config.json`, and a key written twice or holding no string are refused by
 `config_pairs` and `config_value` rather than read as nothing (#867), and a
-command prints the refusal and exits 2.
+command prints the refusal and stops: exit 2, or exit 1 for `seal pr-body`,
+which exits 1 on every refusal.
 
 The GFM table walker, which reads the tables of records and `seal mode`'s
 converter of a `config.md`, is `lib/tables.py`; no setting is read through
@@ -122,7 +123,8 @@ def config_pairs(home):
     absent file is what every repository had before it wrote a key, so it
     declares nothing, everywhere. A file that is there and will not read is
     one whose answer nobody can read, and a command a person runs prints the
-    sentence and exits 2 with nothing judged, because a command that reads a
+    sentence and stops with nothing judged (exit 2, or exit 1 for
+    `seal pr-body`), because a command that reads a
     written answer as absent acts as if the person had written none. A
     `config.md` standing alone is such an answer, written in the table this
     release no longer reads: `seal mode` converts it (#1454).
