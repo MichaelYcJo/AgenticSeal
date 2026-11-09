@@ -2460,7 +2460,7 @@ def switch(args, repo, home, shared, local, current, wanted):
     for line in porcelain(repo, optin.HOME):
         # `??` itself, not `indexed`. That function has three exceptions now
         # and only this one means untracked — reading its answer as the
-        # question called a tracked, modified `config.md` untracked, in a
+        # question called a tracked, modified `config.json` untracked, in a
         # note whose whole subject is what the index can lose.
         if line[:2] == "??":
             print(
