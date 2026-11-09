@@ -104,10 +104,10 @@ phase makes outside the worktree, a probe, a captured output, a list of
 files or a clone, sits under `<scratchpad>/<work-item-id>/phase-<n>/`,
 where `<n>` is the phase, and a fix pass's under
 `<scratchpad>/<work-item-id>/fix-<n>/`, where `<n>` is the round the pass
-fixes. Agents of one session share one scratchpad, so a
-name of your own is what keeps a parallel agent's files out of your
-removal. Remove that directory before you hand back, in the form rule 21
-gives, and never the scratchpad or anything else in it.
+fixes. Agents of one session share one scratchpad, so a name of your own
+is what keeps a parallel agent's files out of your removal. Remove that
+directory before you hand back, in the form rule 21 gives, and never the
+scratchpad or anything else in it.
 check: tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py
 
 **A declared frame that is absent stops the build.** A missing `frame/design.md` is

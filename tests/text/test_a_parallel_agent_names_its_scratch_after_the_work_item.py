@@ -102,8 +102,8 @@ def test_the_crafters_scratch_is_named_for_the_work_item_and_the_phase():
     whole scratchpad with the files of every other agent of the session in
     it. A phase's writes sit under a directory named for the work item and
     the phase, and a fix pass's under one named for the round it fixes, so
-    two crafters alive at once cannot pick one name, and each removes its
-    own directory."""
+    two crafters alive at once cannot pick one name, and each has a
+    directory of its own to remove."""
     where = section(CRAFTER, "Rules")
     assert PHASE_HOME in where, (
         "`agents/crafter.md` *Rules* does not name a phase's directory as "
