@@ -2995,9 +2995,10 @@ def emit(args, render, path=None, read_from=()):
     `# <file name>` line of its own, before the report** (#1439). `path` is
     the transcript given and `read_from` the others a row was measured from,
     each `--segments` row's file among them. A file is named once however
-    many rows it gave, and by its name alone. The release reads those lines on
-    the open log to leave out what a session already posted, so the line is
-    written in this one spelling. The printed report carries no such line.
+    many rows it gave, and by its name alone. Those lines are what tells a
+    reader of the open log which transcripts a comment already holds, so the
+    line is written in this one spelling. The printed report carries no such
+    line.
 
     **What is printed locally and what is posted are not the same text, and
     the transcript's path is the difference.** A transcript lives at
