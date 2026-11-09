@@ -32,6 +32,7 @@ from conftest import (
     ROOT,
     census_case,
     commit_everything_as_e,
+    config_json,
     git,
     git_out,
     load_module,
@@ -1423,8 +1424,8 @@ class Test_overviews:
         d = copy_of(joined, tmp_path)
         write(
             d,
-            "seal/config.md",
-            "| Item | Value |\n|---|---|\n| Reference specs | specs |\n",
+            "seal/config.json",
+            config_json(("Reference specs", "specs")),
         )
         symlink_or_skip(str(d), str(tmp_path / "link"), directory=True)
         walked = UC.overviews([str(tmp_path / "link")])
@@ -1461,8 +1462,8 @@ class Test_policy_root:
         d = copy_of(joined, tmp_path)
         write(
             d,
-            "seal/config.md",
-            "| Item | Value |\n|---|---|\n| Policy root | rules |\n",
+            "seal/config.json",
+            config_json(("Policy root", "rules")),
         )
         assert UC.policy_root(str(d)) == "rules"
 

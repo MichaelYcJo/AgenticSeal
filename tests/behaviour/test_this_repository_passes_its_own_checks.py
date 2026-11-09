@@ -29,7 +29,7 @@ POLICY_DOCUMENTS = "the policy root"
 
 
 def declared():
-    """`(ceiling, policy root)` as this repository's `seal/config.md` states
+    """`(ceiling, policy root)` as this repository's `seal/config.json` states
     them, read by the shipped command's own reader."""
     return fold_check.declared(fold_check.seal_home(ROOT))
 
@@ -123,7 +123,7 @@ class Test_seal_layout:
 
 class Test_seal_fold:
     def test_accepts_this_repository_with_no_flags(self):
-        """S1 and S13: the values come from `seal/config.md`, every check runs,
+        """S1 and S13: the values come from `seal/config.json`, every check runs,
         and a document past the ceiling is named and does not fail the run."""
         code, out, err = command("--root", ROOT)
         assert code == 0, (out, err)

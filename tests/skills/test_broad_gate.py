@@ -33,6 +33,7 @@ import pytest
 from conftest import (
     LS,
     census_case,
+    config_json,
     git,
     git_out,
     load_module,
@@ -80,18 +81,18 @@ OVERVIEW = (
 AMBIENT = ("CLAUDE_CODE_SESSION_ID",)
 
 
-def config_of(row=SUITE_ROW, before="", after=""):
-    """A `seal/config.md` with the `Broad gate` row ROW, or none where ROW is
-    None, with BEFORE and AFTER around its table."""
-    text = before + "| Item | Value |\n|---|---|\n| Mode | shared |\n"
+def config_of(row=SUITE_ROW, *more):
+    """A `seal/config.json` with the `Broad gate` key ROW, or none where ROW
+    is None, after `Mode` and before each pair of MORE."""
+    pairs = [("Mode", "shared")]
     if row is not None:
-        text += f"| {ROW} | {row} |\n"
-    return text + after
+        pairs.append((ROW, row))
+    return config_json(*pairs, *more)
 
 
-def home_with(tmp_path, text):
-    """A `seal/` root holding TEXT as its `config.md`; its path."""
-    write(tmp_path, "seal/config.md", text)
+def home_with(tmp_path, text, name="config.json"):
+    """A `seal/` root holding TEXT as its config NAME; its path."""
+    write(tmp_path, f"seal/{name}", text)
     return str(mark_root(tmp_path / "seal"))
 
 
@@ -340,7 +341,7 @@ class Test_module:
         """A3's other side. An arm the gate runs and the partition never names is
         an arm nobody can say which step it stands for — the `suite` arm aside,
         which answers no step of this job at all: it is the repository's own
-        command from the `Broad gate` row of `seal/config.md`."""
+        command from the `Broad gate` key of `seal/config.json`."""
         answering_no_release_step = {gate.SUITE}
         named = {arm for _, arm, _ in gate.PARTITION if arm}
         loose = sorted(
@@ -686,186 +687,77 @@ class Test_seal_home:
         command from."""
         git(tmp_path, "init", "-q")
         assert gate.seal_home(str(tmp_path)) is None
-        write(tmp_path, "seal/config.md", config_of("bin/test -q"))
+        write(tmp_path, "seal/config.json", config_of("bin/test -q"))
         assert gate.seal_home(str(tmp_path)) is None
 
 
 class Test_broad_command:
     def test_accepts_the_rows_value(self, tmp_path):
-        home = home_with(tmp_path, config_of("bin/test -q"))
-        assert gate.broad_command(home) == "bin/test -q"
+        """S1. A value holding a pipe is a JSON string like any other, so the
+        command reads with the pipe plain and no escape."""
+        home = home_with(tmp_path, config_of("bin/test -q | tee out"))
+        assert gate.broad_command(home) == "bin/test -q | tee out"
 
     def test_refuses_no_file_no_row_and_an_empty_value_as_no_command(self, tmp_path):
         assert gate.broad_command(str(tmp_path / "nothing")) is None
         assert gate.broad_command(home_with(tmp_path / "a", config_of(None))) is None
         assert gate.broad_command(home_with(tmp_path / "b", config_of(""))) is None
 
-    def test_refuses_a_row_written_twice(self, tmp_path):
-        home = home_with(tmp_path, config_of("a") + f"| {ROW} | b |\n")
-        with pytest.raises(gate.Refused, match="Nothing ran"):
+    @pytest.mark.parametrize(
+        "text, said",
+        [
+            (config_of("a", (ROW, "b")), f"`{ROW}` appears 2 times — one value"),
+            (config_of(None, (ROW, ["a"])), f"`{ROW}` holds a JSON array"),
+        ],
+        ids=["written twice", "not a string"],
+    )
+    def test_refuses_a_row_written_twice(self, tmp_path, text, said):
+        home = home_with(tmp_path, text)
+        with pytest.raises(gate.Refused, match="Nothing ran") as refused:
             gate.broad_command(home)
+        assert str(refused.value).startswith(
+            f"seal gate: {os.path.join(home, 'config.json')}: {said}"
+        ), refused.value
 
-    def test_refuses_a_file_that_will_not_read(self, tmp_path):
+    @pytest.mark.parametrize(
+        "name, data, said",
+        [
+            ("config.json", b'{"Mode": "\xff\xfe"}\n', "is there and cannot be read"),
+            ("config.json", b'{"Broad gate": "x",}\n', "does not parse as JSON"),
+            ("config.md", b"| Item | Value |\n|---|---|\n", "run `seal mode` once"),
+        ],
+        ids=["undecodable", "unparseable", "unconverted"],
+    )
+    def test_refuses_a_file_that_will_not_read(self, tmp_path, name, data, said):
+        """S2 and S3. A file the reader refuses is refused for the gate, in
+        the reader's sentence opening with the `config.json` path, so the
+        gate exits 2 with nothing run; an earlier release's `config.md`
+        standing alone names the command that converts it."""
         mark_root(tmp_path / "seal")
-        (tmp_path / "seal" / "config.md").write_bytes(b"| Item | Value |\n\xff\xfe\n")
-        with pytest.raises(gate.Refused, match=r"^seal gate: .*Nothing ran$"):
+        (tmp_path / "seal" / name).write_bytes(data)
+        path = os.path.join(str(tmp_path / "seal"), "config.json")
+        with pytest.raises(gate.Refused, match=r"Nothing ran$") as refused:
             gate.broad_command(str(tmp_path / "seal"))
-
-
-class Test_names_this_row:
-    def test_accepts_a_line_whose_first_cell_is_the_row(self):
-        assert gate.names_this_row(f"| {ROW} | a |")
-        assert gate.names_this_row(f"  | {ROW} | a | b |")
-
-    def test_refuses_another_row_and_a_line_with_no_cell(self):
-        assert not gate.names_this_row("| Mode | shared |")
-        assert not gate.names_this_row(ROW)
-
-
-# A table the walker stops at, with the row below the line it refused.
-STOPPED_ABOVE = config_of(None) + "| Odd | a | b |\n" + f"| {ROW} | bin/test |\n"
-# A table whose `Broad gate` line holds a bare pipe, written last.
-BARE_PIPE_LAST = config_of("bin/test -q | tee out.txt")
-# The table read whole, and a `Broad gate` line in another table below it.
-ANOTHER_TABLE = (
-    config_of(None) + f"\n## Other\n\n| Name | What |\n|---|---|\n| {ROW} | x |\n"
-)
-FENCED = config_of(None) + f"\n```\n| Item | Value |\n|---|---|\n| {ROW} | x |\n```\n"
-COMMENTED = config_of(None) + f"\n<!--\n| {ROW} | x |\n-->\n"
-
-
-class Test_refused_broad_row:
-    def test_accepts_a_row_below_the_line_the_walker_refused(self, tmp_path):
-        home = home_with(tmp_path, STOPPED_ABOVE)
-        assert gate.refused_broad_row(home) == f"| {ROW} | bin/test |"
-
-    def test_refuses_a_table_the_walker_read_whole(self, tmp_path):
-        assert gate.refused_broad_row(home_with(tmp_path, ANOTHER_TABLE)) is None
-        assert gate.refused_broad_row(str(tmp_path / "nothing")) is None
-
-    def test_refuses_a_row_the_walk_read_above_the_line_it_refused(self, tmp_path):
-        """A row the walk read is `broad_command`'s to answer, an empty value
-        included. A line the walker refused below it does not make that row
-        one the walk never reached."""
-        home = home_with(tmp_path, config_of("") + "| Odd | a | b |\n")
-        assert gate.refused_broad_row(home) is None
-
-
-class Test_stopping_line:
-    def test_accepts_the_line_the_walkers_sentence_quotes(self):
-        refused = gate.load(gate.CONFIG_READER, "c").config_table(STOPPED_ABOVE)[1][0]
-        index, line = gate.stopping_line(STOPPED_ABOVE, refused)
-        assert line == "| Odd | a | b |"
-        assert STOPPED_ABOVE.splitlines()[index] == line
-
-    def test_refuses_a_sentence_that_quotes_no_line(self):
-        assert gate.stopping_line(STOPPED_ABOVE, "has no header") == (None, None)
-        quoted = "has a `x` table that stops at `| a |`, which is not a row"
-        assert gate.stopping_line("no table here\n", quoted) == (None, None)
-
-
-class Test_rows_written_below:
-    def test_accepts_a_row_below_the_line(self):
-        assert gate.rows_written_below(STOPPED_ABOVE, 3)
-
-    def test_refuses_nothing_below_or_a_heading_first(self):
-        text = config_of(None) + "| Odd | a | b |\n"
-        assert not gate.rows_written_below(text, 3)
-        assert not gate.rows_written_below(text + "\n## Later\n\n| a | b |\n", 3)
-
-
-class Test_hidden_row_at:
-    def test_accepts_the_row_in_a_fence_as_fenced(self, tmp_path):
-        home = home_with(tmp_path, FENCED)
-        assert gate.fenced_row(home) == f"| {ROW} | x |"
-        index, line = gate.fenced_row_at(home)
-        assert FENCED.splitlines()[index] == line
-        assert gate.commented_row_at(home) == (None, None)
-
-    def test_refuses_to_call_a_commented_row_fenced(self, tmp_path):
-        home = home_with(tmp_path, COMMENTED)
-        assert gate.fenced_row(home) is None
-        assert gate.commented_row_at(home)[1] == f"| {ROW} | x |"
-        assert gate.hidden_row_at(str(tmp_path / "nothing"), "fence") == (None, None)
-
-
-class Test_fence_left_open:
-    def test_accepts_a_fence_above_that_never_closes(self, tmp_path):
-        home = home_with(tmp_path, "```\n" + config_of())
-        assert gate.fence_left_open(home, 5)
-        assert gate.fence_left_open(home)
-
-    def test_refuses_a_fence_opened_below_or_none_at_all(self, tmp_path):
-        home = home_with(tmp_path, FENCED + "\n```\nopen\n")
-        at = gate.fenced_row_at(home)[0]
-        assert not gate.fence_left_open(home, at)
-        assert not gate.fence_left_open(home_with(tmp_path / "b", config_of()), 3)
-        assert not gate.fence_left_open(str(tmp_path / "nothing"))
+        assert str(refused.value).startswith(f"seal gate: {path} "), refused.value
+        assert said in str(refused.value), refused.value
 
 
 class Test_missing_row:
     def test_accepts_a_file_with_no_row_as_a_question_for_a_person(self, tmp_path):
         said = gate.missing_row(home_with(tmp_path, config_of(None)))
-        assert f"has no `{ROW}` row, so there is no command to run" in said
+        assert f"has no `{ROW}` key, so there is no command to run" in said
         assert "Take it to whoever owns the repository" in said
         assert said.endswith("Nothing ran.")
 
-    def test_refuses_to_call_a_fenced_row_absent(self, tmp_path):
-        said = gate.missing_row(home_with(tmp_path, FENCED))
-        assert "written inside a code fence:\n    | Broad gate | x |" in said
-        assert "not this gate's reader and not `seal mode`'s writer" in said
-        assert "Move the row into the `| Item | Value |` table" in said
-        assert "Close that fence" not in said
-
-    def test_refuses_to_send_a_person_to_move_a_row_a_fence_above_swallowed(
-        self, tmp_path
-    ):
-        said = gate.missing_row(home_with(tmp_path, "```\n" + config_of("x")))
-        assert "A fenced code block above it is never closed" in said
-        assert "Move the row" not in said
-
-    def test_refuses_to_blame_a_fence_left_open_below_the_fenced_row(self, tmp_path):
-        """The fence that swallows a row is one opened above it. A fence opened
-        further down and never closed leaves the row in a block that closes,
-        and moving the row is still the act."""
-        said = gate.missing_row(home_with(tmp_path, FENCED + "\n```\nopen\n"))
-        assert "Move the row into the `| Item | Value |` table" in said
-        assert "never closed" not in said
-
-    def test_refuses_to_call_a_commented_row_absent(self, tmp_path):
-        said = gate.missing_row(home_with(tmp_path, COMMENTED))
-        assert "written inside an HTML comment:\n    | Broad gate | x |" in said
-        assert "not this gate's reader and not `seal mode`'s writer" in said
-        assert "has no `Broad gate` row" not in said
-
-    def test_refuses_to_call_a_row_the_walker_did_not_read_absent(self, tmp_path):
-        said = gate.missing_row(home_with(tmp_path, STOPPED_ABOVE))
-        assert "stops at `| Odd | a | b |`" in said
-        assert said.endswith("Nothing ran.")
-        assert "inside" not in said and "has no `Broad gate` row" not in said
-
-
-class Test_walker_refusal:
-    def test_accepts_the_rows_own_line_with_the_escape(self, tmp_path):
-        home = home_with(tmp_path, BARE_PIPE_LAST)
-        said = gate.walker_refusal(home, f"| {ROW} | bin/test -q | tee out.txt |")
-        assert "That line is the `Broad gate` row, so the walk never read it" in said
-        assert "write it `\\|`" in said
-        assert "would go unread" not in said
-
-    def test_accepts_a_stray_row_last_as_losing_itself_alone(self, tmp_path):
-        home = home_with(tmp_path, config_of(None) + f"\n| {ROW} | x |\n")
-        said = gate.walker_refusal(home, f"| {ROW} | x |")
-        assert f"ends above `| {ROW} | x |`" in said
-        assert "a row the walk never reaches — it would go unread." in said
-
-    def test_refuses_to_call_a_row_below_the_stopping_line_that_line(self, tmp_path):
-        home = home_with(tmp_path, STOPPED_ABOVE)
-        said = gate.walker_refusal(home, f"| {ROW} | bin/test |")
-        assert "The `Broad gate` row is written below it" in said
-        assert f"never reached it:\n    | {ROW} | bin/test |\n" in said
-        assert "every row below it would go unread" in said
-        assert "\\|" not in said
+    def test_refuses_to_send_a_person_to_the_table_no_command_reads(self, tmp_path):
+        """#1454. The key is missing from `config.json`, the file every command
+        reads, so the refusal names that file and not the root's `config.md`,
+        which a person would open and add a row to that nothing reads. Seen
+        red against the refusal that joined `config.md` to the root."""
+        home = home_with(tmp_path, config_of(None))
+        said = gate.missing_row(home)
+        assert f"seal gate: {os.path.join(home, 'config.json')} has no" in said
+        assert os.path.join(home, "config.md") not in said, said
 
 
 class Test_wholly_substituted:
@@ -899,8 +791,8 @@ class Test_not_as_written:
     def test_refuses_a_wrapped_or_backgrounded_value(self, value, form, meant):
         said = gate.not_as_written("/h", f"  {value} ")
         assert form in said
-        assert f"    as written: | {ROW} | {value} |" in said
-        assert f"    as meant:   | {ROW} | {meant} |" in said
+        assert f'    as written: "{ROW}": {json.dumps(value)}' in said
+        assert f'    as meant:   "{ROW}": {json.dumps(meant)}' in said
 
 
 # --- running one check ----------------------------------------------------------------
@@ -2386,7 +2278,7 @@ def _repo_template(tmp_path_factory):
     d.mkdir()
     git(d, "init", "-q", "-b", "base")
     write(d, "tests/test_one.py", PASSING_TEST)
-    write(d, "seal/config.md", config_of())
+    write(d, "seal/config.json", config_of())
     mark_root(d / "seal")
     write(d, f"{ITEM}/gaps.md", OVERVIEW)
     commit(d, "base")
@@ -2509,7 +2401,7 @@ LATE_ACTS = {
         "import os\n\n\ndef pytest_unconfigure(config):\n    os._exit(0)\n",
         SUITE_ROW,
     ),
-    "row-or-interpreter": (None, f"{SUITE_ROW} \\|\\| {sys.executable} -c pass"),
+    "row-or-interpreter": (None, f"{SUITE_ROW} || {sys.executable} -c pass"),
 }
 
 
@@ -2629,7 +2521,7 @@ class Test_gate:
         failing_on_feature(repo)
         if conftest_text is not None:
             write(repo, "tests/conftest.py", conftest_text)
-        write(repo, "seal/config.md", config_of(row))
+        write(repo, "seal/config.json", config_of(row))
         commit(repo, f"a failure, and {act} after the run loop")
         keep = tmp_path / "out"
         assert gate.gate(namespace(repo, keep, record=str(repo / ITEM))) == 1
@@ -2680,7 +2572,7 @@ class Test_gate:
     @pytest.mark.parametrize(
         ("config", "said"),
         [
-            (config_of(None), "has no `Broad gate` row"),
+            (config_of(None), "has no `Broad gate` key"),
             (config_of(f"`{SUITE_ROW}`"), "is the whole command wrapped in backticks"),
         ],
         ids=["no-row", "wrapped-row"],
@@ -2688,9 +2580,21 @@ class Test_gate:
     def test_refuses_a_row_it_cannot_run_and_runs_nothing(
         self, repo, tmp_path, config, said
     ):
-        write(repo, "seal/config.md", config)
+        write(repo, "seal/config.json", config)
         keep = tmp_path / "out"
         with pytest.raises(gate.Refused, match=said):
+            gate.gate(namespace(repo, keep))
+        assert not keep.exists()
+
+    def test_refuses_an_unconverted_config_and_names_seal_mode(self, repo, tmp_path):
+        """S3. A root an earlier release wrote holds `config.md` and no
+        `config.json`: the gate refuses naming `seal mode`, which `main`
+        exits 2 on, and nothing runs. Seen red against a gate that read the
+        root as declaring nothing and asked a person for the key."""
+        os.remove(repo / "seal" / "config.json")
+        write(repo, "seal/config.md", f"| Item | Value |\n|---|---|\n| {ROW} | x |\n")
+        keep = tmp_path / "out"
+        with pytest.raises(gate.Refused, match=r"run `seal mode` once.*Nothing ran$"):
             gate.gate(namespace(repo, keep))
         assert not keep.exists()
 
@@ -2708,15 +2612,12 @@ class Test_gate:
         )
         with pytest.raises(gate.Refused, match=said):
             gate.gate(namespace(tmp_path, tmp_path / "out"))
-        write(tmp_path, "seal/config.md", config_of("bin/test -q"))
+        write(tmp_path, "seal/config.json", config_of("bin/test -q"))
         with pytest.raises(gate.Refused, match=said):
             gate.gate(namespace(tmp_path, tmp_path / "out"))
 
 
-CONFIG = (
-    "# Repository config\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n"
-    f"| Broad gate | {sys.executable} -c pass |\n"
-)
+CONFIG = config_json(("Mode", "shared"), ("Broad gate", f"{sys.executable} -c pass"))
 
 
 def sealable_repo(tmp_path):
@@ -2726,7 +2627,7 @@ def sealable_repo(tmp_path):
     repo.mkdir()
     git(repo, "init", "-q", "-b", "base")
     write(repo, "src/service.py", "def handler(x):\n    return x + 1\n")
-    write(repo, "seal/config.md", CONFIG)
+    write(repo, "seal/config.json", CONFIG)
     mark_root(repo / "seal")
     write(repo, f"{ITEM}/gaps.md", OVERVIEW)
     commit(repo, "base")
@@ -2943,7 +2844,7 @@ class Test_main:
         assert result.stdout.startswith("BROAD GATE PASSED   "), result.stdout
 
     def test_a_mode_row_that_disagrees_with_the_folder_fails_the_gate(self, tmp_path):
-        """A3's behavioural half for the other arm #468 added. `seal/config.md`
+        """A3's behavioural half for the other arm #468 added. `seal/config.json`
         says the root lives under the git directory and the root is committed in
         the tree, which is the one direction of that disagreement CI can ever
         reach — and the gate said nothing about it until this arm existed.
@@ -2952,10 +2853,10 @@ class Test_main:
         repo = sealable_repo(tmp_path)
         write(
             repo,
-            "seal/config.md",
-            CONFIG.replace("| Mode | shared |", "| Mode | local |"),
+            "seal/config.json",
+            CONFIG.replace('"Mode": "shared"', '"Mode": "local"'),
         )
-        commit(repo, "the row now says local while the folder is committed")
+        commit(repo, "the key now says local while the folder is committed")
         result = run_gate(repo, tmp_path / "out")
         assert result.returncode == 1, result.stdout + result.stderr
         assert result.stdout.startswith("BROAD GATE FAILED   "), result.stdout

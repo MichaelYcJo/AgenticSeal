@@ -75,15 +75,15 @@ judged (`carried_by`). The arms are nine:
   body          where the event payload holds `pull_request.body`, that
                 body is what `seal pr-body` composes at HEAD for the one
                 judged work item that is not retired: its first part, the
-                `pr.<lang>.md` and `pr.md` the two language rows ask for,
+                `pr.<lang>.md` and `pr.md` the two language keys ask for,
                 the heading, the seal mark where the `Pull request seal mark`
-                row and the guarantee, read against `--baseline` as the
+                key and the guarantee, read against `--baseline` as the
                 guarantee arm reads it, give one, and the records' copy,
                 compared through `pr_body.py#compared`, the function `seal
                 pr-body --check` calls; each differing line is refused on
                 the work item's directory naming the body's line, and a
                 record that function refuses at its line, the root's
-                `config.md` lacking a language row among them; a payload with no
+                `config.json` lacking a language key among them; a payload with no
                 body, `--worktree`, and a pull request carrying more than
                 one judged work item holding `pr.md`, or several none of
                 which holds one, name the body as not read (`body`)
@@ -1794,7 +1794,7 @@ def body(root, items, text, why, base=None):
     read for each, in the sentence for that shape. A line of the body is
     refused on the work item's directory, naming the body's line; a record
     `compared` refuses is refused at its line, by its path from the work
-    item's directory, which names the root's `config.md` for a language row
+    item's directory, which names the root's `config.json` for a language key
     (#1453); `seal_mark`'s sentence is a notice. Unreadable where
     `pr_body.py` will not load."""
     if text is None:

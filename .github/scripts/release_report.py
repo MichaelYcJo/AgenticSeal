@@ -209,7 +209,7 @@ def documents(root):
         for pattern in DOCUMENTS
         for path in sorted(glob.glob(os.path.join(root, *pattern.split("/"))))
     ]
-    config = script(CONFIG, "agentic_release_config", "reads the policy root row")
+    config = script(CONFIG, "agentic_release_config", "reads the policy root key")
     policy = config.policy_root(os.path.join(root, "seal"))
     if os.path.isdir(os.path.join(root, *policy.split("/"))):
         fold = script(FOLD, "agentic_release_fold", "lists the policy documents")

@@ -11,25 +11,22 @@ with nothing else running, before it spawns the sealer (#969).
 
 What it does, in order, from the repository root:
 
-  1. the repository's own broad command — the `Broad gate` row of
-     `seal/config.md`, one shell command line the repository wrote for
-     itself. **A row is refused four ways, and all four are exit 2 with
-     nothing run**: no row at all, because a run over a command nobody
-     chose is the counterfeit `verify` names; a `Broad gate` line the table
-     walker did not read, because it refused that line or one above it,
-     which the refusal quotes back with the walker's sentence rather than
-     reporting as absent (#415, #871); a `Broad gate` line
-     written inside a code fence, which no walk of that table reads because
-     a fenced table is an example of the format rather than a repository's
-     own answer (#429); or a row this gate would not run as the command it
-     reads as — the whole command wrapped in backticks or in `$(…)`, or
-     ending in a single `&`. No refusal names a command to write: the row is
-     a person's, and the message says where they answer it
+  1. the repository's own broad command — the `Broad gate` key of
+     `seal/config.json`, one shell command line the repository wrote for
+     itself. **The key is refused three ways, and all three are exit 2 with
+     nothing run**: no key at all, because a run over a command nobody
+     chose is the counterfeit `verify` names; a config that will not read,
+     or a key written twice or holding no string, which is refused rather
+     than read as absent (#867); or a value this gate would not run as the
+     command it reads as — the whole command wrapped in backticks or in
+     `$(…)`, or ending in a single `&`. No refusal names a command to
+     write: the key is a person's, and the message says where they answer
+     it
   2. `chain_check.py --baseline <base> --sealing`   judged by the pull
      request's state as the check reads it, with `trail/gate.md`, which this
      run is about to write, and `guarantee.md`, which the sealer writes after
      it, printed rather than judged
-  3. `seal.py mode --check`            the `Mode` row and the folder agree
+  3. `seal.py mode --check`            the `Mode` key and the folder agree
 
 **Which arms exist is declared rather than remembered** (#468). `PARTITION`
 below holds every step of `.github/workflows/hygiene.yml`'s `release` job
@@ -144,8 +141,8 @@ import tempfile
 # Resolved relative to this file, never to the caller's cwd, so the command
 # works from the plugin cache and from a clone alike. `lib/config.py` is
 # loaded by path the way `chain_check.py` loads `lib/routing.py`: it is the
-# one reader of `seal/config.md`'s table, and a second reader that parsed the
-# table differently would answer a different question about the same file.
+# one reader of `seal/config.json`, and a second reader would answer a
+# different question about the same file.
 HERE = os.path.dirname(os.path.abspath(__file__))
 PLUGIN = os.path.normpath(os.path.join(HERE, "..", "..", ".."))
 STAMP = os.path.join(HERE, "seal_stamp.py")
@@ -160,8 +157,8 @@ CONFIG_READER = os.path.join(PLUGIN, "lib", "config.py")
 FIELDS_READER = os.path.join(PLUGIN, "lib", "fields.py")
 OPTIN = os.path.join(PLUGIN, "lib", "optin.py")
 
-CONFIG = "config.md"
-ROW = "Broad gate"
+CONFIG = "config.json"
+KEY = "Broad gate"
 ROUND_RE = re.compile(r"^round-(\d+)\.md$")
 # The run's one record, in the work item's directory: `chain_check.py` reads
 # it by the same spelling, and a case holds the two equal.
@@ -661,450 +658,49 @@ def seal_home(root):
     return None
 
 
-def config_text(home):
-    """The root's `config.md` as text, or None where there is none or it
-    will not read: the text half of `lib/config.py#config_text`, the one
-    place the file is opened (#867). Every caller of this one runs after
-    `broad_command`, which has already refused a file that will not read,
-    so None here is a file that is not there."""
-    config = load(CONFIG_READER, "agentic_config_for_broad_gate")
-    return config.config_text(home)[0]
-
-
 def broad_command(home):
-    """The `Broad gate` row's value, or None for every way of not having one:
-    no file, no row, an empty value, and a row the table walker did not read.
+    """The `Broad gate` key's value, or None for every way of not having
+    one: no file, no key, and an empty value.
 
-    **Two states are refused, not read as no row** (#867): a `config.md`
-    that is there and will not read, and a `Broad gate` row written twice.
-    Either raises `Refused` naming the path, so the broad gate exits 2
-    with nothing run. Read as no row, an unreadable file was reported as a
-    missing row, which sent a person to add a row the file already held,
-    and a doubled row ran its first command.
-
-    **A row the walker did not read is None here, and `missing_row` is what
-    says so** (#871): `config_value` answers it with the walker's sentence,
-    and the refusal that sentence belongs in quotes the line and names the
-    edit, which is `missing_row`'s to write. A row the walk read above a
-    line it refused is a value, and the gate runs it: GitHub shows that row
-    as the person wrote it. A line below that one naming the row again makes
-    it a row written twice, which has no value (`config_value`), and the
-    gate refuses it as it refuses any doubled row."""
+    **What will not read is refused, not read as no key** (#867): a config
+    `lib/config.py#config_pairs` refuses -- one that will not read or
+    parse, or a `config.md` an earlier release wrote standing without a
+    `config.json` -- and a `Broad gate` key written twice or holding no
+    string. Each raises `Refused` naming the path, so the broad gate exits 2
+    with nothing run. Read as no key, an unreadable file was reported as a
+    missing one, which sent a person to add a key the file already held,
+    and a doubled key ran one of its commands."""
     config = load(CONFIG_READER, "agentic_config_for_broad_gate")
-    text, refused = config.config_text(home)
+    pairs, refused = config.config_pairs(home)
     if refused is not None:
         raise Refused(f"seal gate: {refused}. Nothing ran")
-    if text is None:
-        return None
-    value, refused = config.config_value(text, ROW)
-    if refused is not None and refused not in config.config_table(text)[1]:
-        raise Refused(
-            f"seal gate: {os.path.join(home, CONFIG)}: {refused}. Nothing ran"
-        )
+    value, refused = config.config_value(pairs, KEY)
+    if refused is not None:
+        raise Refused(f"seal gate: {config.config_path(home)}: {refused}. Nothing ran")
     return value or None
 
 
-# A refused line's first cell, read the way a cell was read before the escape
-# existed -- up to the first pipe. The line does not parse, so this is a
-# reading of what the person meant by it and not a row of the table.
-FIRST_CELL = re.compile(r"^\|([^|]*)\|")
-
-
-def names_this_row(line):
-    """Whether a line's first cell, read up to the first pipe, is this
-    gate's row."""
-    first = FIRST_CELL.match(line.strip())
-    return bool(first and first.group(1).strip() == ROW)
-
-
-def refused_broad_row(home):
-    """The `Broad gate` line a person wrote that the table walker did not
-    read — as written, with its own indentation — or None.
-
-    **A line, not a row, and only in a table the walker refused** (#871).
-    The walker never steps past a line it refuses, so every line written
-    below the one it stopped at is unread, and a `Broad gate` line among
-    them is the person's row sitting in front of them: saying it is ABSENT
-    is a true sentence about a cause that is not the real one (#415). The
-    line is the first one `unfenced` shows whose first cell names this row
-    -- the stopping line itself where that is the `Broad gate` line, or one
-    below it. A fenced or commented line is not it; `fenced_row_at` and
-    `commented_row_at` are the questions about those.
-
-    None covers every other shape: a table the walk read whole, a
-    `Broad gate` row the walk read, no such line at all, and a file that is
-    not there or will not read.
-    """
-    config = load(CONFIG_READER, "agentic_config_for_broad_gate")
-    text = config_text(home)
-    if text is None:
-        return None
-    rows, refusals = config.config_table(text)
-    if not refusals or any(item == ROW for _index, item, _value in rows):
-        return None
-    # exempt from splitlines: lines the GFM walk numbers
-    shown = config.unfenced(text.splitlines(), text)
-    return next((line for _index, line in shown if names_this_row(line)), None)
-
-
-# The line a walker sentence stopped at, between the backticks the walker
-# quotes it in, and the clause it ends on where rows are written below.
-# The sentences are `lib/config.py#gfm_table`'s own, and this reads them
-# rather than walking the table a second time (#871).
-STOPPED_AT = re.compile(
-    r"(?:stops at|ends above|continues with) `(?P<line>.*)`, (?:which is not|"
-    r"a delimiter row out of place|a row the walk never reaches|a line with no pipe)"
-)
-ROWS_BELOW = " — every row below it would go unread"
-IT_AND_ROWS_BELOW = " — it and every row below it would go unread"
-
-
-def stopping_line(text, refused):
-    """(index, line) for the line of TEXT the walker's sentence REFUSED
-    stopped at, or (None, None) where the sentence names no such line -- a
-    header refused before any row.
-
-    The line is found where the walker found it: the first line `unfenced`
-    shows below the header, the header being the first shown line whose
-    cells are the config header, that reads as the quoted text once
-    stripped."""
-    config = load(CONFIG_READER, "agentic_config_for_broad_gate")
-    quoted = STOPPED_AT.search(refused)
-    if quoted is None:
-        return None, None
-    # exempt from splitlines: lines the GFM walk numbers
-    shown = list(config.unfenced(text.splitlines(), text))
-    header = next(
-        (
-            k
-            for k, (_index, line) in enumerate(shown)
-            if config.table_cells(line) == config.CONFIG_TABLE
-        ),
-        None,
-    )
-    if header is None:
-        return None, None
-    return next(
-        (
-            (index, line)
-            for index, line in shown[header + 2 :]
-            if line.strip() == quoted.group("line")
-        ),
-        (None, None),
-    )
-
-
-def rows_written_below(text, index):
-    """Whether a line written `| … |` stands below the line at INDEX of TEXT,
-    before the next heading -- a row a person wrote, which the walker never
-    reaches once it stops at that line.
-
-    #430's condition: a sentence about rows below a line is false where
-    none is written below it, and the walker's sentence says so flat."""
-    config = load(CONFIG_READER, "agentic_config_for_broad_gate")
-    # exempt from splitlines: lines the GFM walk numbers
-    for line_index, line in config.unfenced(text.splitlines(), text):
-        if line_index <= index:
-            continue
-        if config.ATX_HEADING.match(line.lstrip(" ")):
-            return False
-        if line.lstrip().startswith("|"):
-            return True
-    return False
-
-
-def fenced_row_at(home):
-    """(index, line) for this gate's row written inside a code fence, or
-    (None, None). `fenced_row` below is that answer's line alone, and its
-    docstring is where this one's reasoning lives.
-
-    The INDEX is what lets the refusal say *a fence above it*: an opener left
-    unclosed lower down the file is not this row's cause, and the person whose
-    row is in a block that closes correctly still has to move it (#429,
-    round 2).
-
-    **Fenced, and not merely hidden.** The reader hides a line inside an HTML
-    comment that closes too (#667), and "written inside a code fence" is false
-    of that line; `commented_row_at` below is the question about it. So this
-    asks the reader WHICH kind hid the line rather than taking the complement
-    of what it shows.
-    """
-    return hidden_row_at(home, "fence")
-
-
-def commented_row_at(home):
-    """(index, line) for this gate's row written inside an HTML comment that
-    closes, or (None, None) -- `fenced_row_at`'s question about the other
-    kind of block the reader hides (#667). A row somebody parked in a comment
-    is not an answer they gave, so no walk of the table reads it; and then the
-    absent-row refusal would send them to write a row they can see, and the
-    fence refusal would name a fence that is not there, which is the
-    wrong-cause shape #415 and #429 were opened about."""
-    return hidden_row_at(home, "comment")
-
-
-def hidden_row_at(home, kind):
-    """(index, line) for the first line naming this gate's row that the one
-    reader hides as KIND, or (None, None). The kind is the reader's answer,
-    `lib/config.py#hidden_lines`, never a walk of this file's own."""
-    config = load(CONFIG_READER, "agentic_config_for_broad_gate")
-    text = config_text(home)
-    if text is None:
-        return None, None
-    # exempt from splitlines: lines the GFM walk numbers
-    lines = text.splitlines()
-    hidden, _opened_at = config.hidden_lines(lines, text)
-    return next(
-        (
-            (index, line)
-            for index, line in enumerate(lines)
-            if hidden.get(index) == kind and names_this_row(line)
-        ),
-        (None, None),
-    )
-
-
-def fenced_row(home):
-    """This gate's row written INSIDE a code fence — as written, with its own
-    indentation — or None.
-
-    **The one question about a fenced line anybody asks, and this gate is the
-    only one that may ask it.** `lib/config.py#unfenced` makes a fenced line
-    invisible to the one walk of that table, which is what stops an example
-    from being the command this gate runs (#429). It also makes a
-    `Broad gate` line written only inside a fence look exactly like no row at
-    all — and then the absent-row refusal below is a true sentence about a
-    cause that is not the real one, which is the failure #415 was opened
-    about, arriving one shape over. So the line is found again here, on the
-    refusal path alone.
-
-    Asked by THIS command and by nothing else. `lib/config.py` says
-    nothing about a fence, and this command speaks once and only when it
-    refuses.
-
-    It reads the fence rule from the one reader and asks it which lines it
-    hid inside a fence — `lib/config.py#hidden_lines`, which also hides a
-    line in an HTML comment and says which it was (#667) — rather than
-    walking the file by a rule of its own. A second fence rule written here
-    would answer a different question about the same file, which is the split
-    `lib/config.py` exists to prevent.
-
-    **The line alone**, which is what a message quotes. `fenced_row_at` above
-    is the same answer with the index beside it, for the one caller that has
-    to say where the line is relative to a fence.
-    """
-    return fenced_row_at(home)[1]
-
-
-def fence_left_open(home, above=None):
-    """Whether a fenced code block ABOVE the line at index ABOVE is never
-    closed — or anywhere in the file, where ABOVE is None.
-
-    Read off the one fence rule, not a second one. It is the difference
-    between a row somebody pasted into an example block and a row that is in
-    the live table with a fence opened above it — and the two need different
-    sentences, because the second person has nothing to move. Told to move a
-    row that is already where it belongs, they follow the instruction exactly
-    and nothing changes, which is the wrong-cause shape #415, #429 and #430
-    were each opened about.
-
-    False for every way of not having an answer: no file, a file that will not
-    read, a file with no fence in it at all.
-
-    **Above, because that is what the sentence says.** A file whose row sits
-    in an example block that closes and which opens a second block further
-    down answered True here, and the person was told to close a fence that has
-    nothing to do with their row while the act they needed — move it — was the
-    sentence they did not get (#429, round 2).
-    """
-    config = load(CONFIG_READER, "agentic_config_for_broad_gate")
-    text = config_text(home)
-    if text is None:
-        return False
-    # exempt from splitlines: lines the GFM walk numbers
-    opened_at = config.fence_map(text.splitlines(), text)[1]
-    if opened_at is None:
-        return False
-    return above is None or opened_at < above
-
-
 def missing_row(home):
-    """The refusal for a row the gate could not read — and there are four,
-    because there are four causes and what a person does about each one is
-    different.
+    """The refusal for a `Broad gate` key the config does not hold.
 
-    **The first cause is a line the table walker refused, with this gate's
-    row at it or below it** (#871). Where the row IS in the file and the
-    walk never read it, saying it is absent is a true sentence about a cause
-    that is not the real one: the person goes looking for a row that is
-    sitting in front of them (#415). So the refusal is the walker's own
-    sentence after the path — it quotes the line the walk stopped at and
-    names the edit — and three things more, each read off the file:
-
-      - **the `\\|` remedy, where the stopping line is this gate's row and
-        holds a bare pipe**: a cell of that table ends at a `|`, so a value
-        that needs one is written `\\|`, which the reader reduces to a plain
-        pipe before any shell sees it. GitHub shows that row truncated at
-        the pipe, so the command it shows is not the one the person wrote,
-        and nothing runs;
-      - **#430's condition**: the walker's sentence ends by saying every row
-        below the line would go unread, and that clause is said only where a
-        line written `| … |` stands below it. A `Broad gate` line written
-        LAST in its table — the shape a stub `seal mode` wrote can take —
-        loses nothing below it, and a person told otherwise goes looking
-        for rows they never wrote;
-      - **where the row is**: the stopping line itself, or a line below it
-        the walk never reached, quoted as written.
-
-    The walker never steps past a line, so there is one stopping line, every
-    row below it is unread, and the instructed edit loses no row the walk
-    read.
-
-    **The second cause is a row written where no walk of that table reads
-    it.** A `| Broad gate |` line inside a code fence is an example of the
-    format rather than this repository's own answer, and `lib/config.py#
-    unfenced` is what stops every walk from reading one (#429). That leaves
-    the line looking exactly like no row at all, so the absent-row refusal
-    below would send a person to write a row they can already see — the
-    wrong-cause message this whole work item exists to end. `fenced_row`
-    above finds it and the refusal says where it has to move to.
-
-    Where there is no such line, the message is the absent-row refusal
-    unchanged. It used to say *write the repository's own broad command into
-    it* and print the row to type. The only reader standing here is a
-    session, so what that sentence asked for is the one thing the row may not
-    be: #401 is a session that met this message after its review rounds had
-    settled, ran four candidate commands, chose one, wrote the row, and told
-    the owner afterwards. The message now says whose the row is and where
-    they answer it.
-    """
-    mine = refused_broad_row(home)
-    if mine is not None:
-        return walker_refusal(home, mine)
-    at, fenced = fenced_row_at(home)
-    if fenced is not None:
-        # Two causes, two acts, and the person in the second case has nothing
-        # to move: their row is in the live table and a fence opened ABOVE it
-        # was never closed, so it runs to the end of the file and takes the
-        # whole table with it. Told to move the row they would follow the
-        # instruction exactly and change nothing (#429, round 1). The fence
-        # has to be above the row: one opened below it leaves the row inside a
-        # block that closes, where moving it is still the act (#429, round 2).
-        where = (
-            "A fenced code block above it is never closed, so it runs to the "
-            "end of the file and takes the whole table with it. Close that "
-            "fence — the row itself may already be where it belongs."
-            if fence_left_open(home, at)
-            else "Move the row into the `| Item | Value |` table that stands "
-            "outside every fence, or add that table if the file has none."
-        )
-        return (
-            f"seal gate: {os.path.join(home, CONFIG)} has a `{ROW}` line and "
-            "this is it, written inside a code fence:\n"
-            f"    {fenced.strip()}\n"
-            "A table inside a code fence is an example of the format and not "
-            "this repository's own answer, so no walk of that table reads it "
-            "— not this gate's reader and not `seal mode`'s writer. The row is "
-            "not absent: it is written where "
-            f"nothing reads it, and there is no command to run.\n{where}\n"
-            "`templates/setup/config.md` *What is refused, and what stays allowed* "
-            "is where the rule says so, and `/agentic:config` is the door to "
-            "the file. Nothing ran."
-        )
-    _at, commented = commented_row_at(home)
-    if commented is not None:
-        # The fourth cause (#667). A row parked in an HTML comment that closes
-        # is one somebody took out of the table, so no walk reads it, and
-        # neither the absent-row sentence nor the fence sentence is true of
-        # it. The one act is the person's: take it out of the comment if it
-        # is the command to run.
-        return (
-            f"seal gate: {os.path.join(home, CONFIG)} has a `{ROW}` line and "
-            "this is it, written inside an HTML comment:\n"
-            f"    {commented.strip()}\n"
-            "A row inside a comment that closes is parked, not this "
-            "repository's answer, so no walk of that table reads it — not this "
-            "gate's reader and not `seal mode`'s writer. "
-            "The row is not absent and it is not in a code fence: it is "
-            "commented out, and there is no command to run.\n"
-            "If it is the command to run, take the row out of the "
-            "comment and into the `| Item | Value |` table.\n"
-            "`templates/setup/config.md` *What is refused, and what stays allowed* "
-            "is where the rule says so, and `/agentic:config` is the door to "
-            "the file. Nothing ran."
-        )
+    It used to say *write the repository's own broad command into it* and
+    print the key to type. The only reader standing here is a session, so
+    what that sentence asked for is the one thing the key may not be: #401
+    is a session that met this message after its review rounds had settled,
+    ran four candidate commands, chose one, wrote the key, and told the
+    owner afterwards. The message says whose the key is and where they
+    answer it."""
     return (
-        f"seal gate: {os.path.join(home, CONFIG)} has no `{ROW}` row, so "
+        f"seal gate: {os.path.join(home, CONFIG)} has no `{KEY}` key, so "
         "there is no command to run — and choosing one is not this "
-        "session's to do. There is no default because a row is a thing a "
+        "session's to do. There is no default because the key is a thing a "
         "person wrote, and what the broad run covers is exactly that "
         "(`skills/verify/SKILL.md` *The Seal Test*): a session that picks a "
         "command here checks its own choice.\n"
         "Take it to whoever owns the repository. `/agentic:config` is where "
-        f"they answer it — it shows every row and adds this one with its "
+        f"they answer it — it shows every key and adds this one with its "
         "section — and `templates/setup/config.md` *The criterion for choosing "
         "a value* is what they choose against. Nothing ran."
-    )
-
-
-# A pipe no backslash escapes: a cell boundary to cmark-gfm, and four of
-# them make a `| … | … |` line three cells wide.
-BARE_PIPE = re.compile(r"(?<!\\)\|")
-
-
-def walker_refusal(home, mine):
-    """`missing_row`'s first arm: the refusal for a `Broad gate` line MINE
-    that the table walker did not read, because it refused the line MINE is
-    or a line above it. `missing_row`'s docstring is where the arm's
-    reasoning lives.
-
-    The walker's sentence is printed as the walker wrote it after the path,
-    with one cut: its closing clause about every row below the line is
-    dropped where no line written `| … |` stands below it (#430). The
-    sentence is the walker's for every table it reads, so it is not changed
-    for one caller; this caller trims what is false of the file it holds."""
-    config = load(CONFIG_READER, "agentic_config_for_broad_gate")
-    text = config_text(home)
-    said = config.config_table(text)[1][0]
-    index, stopped = stopping_line(text, said)
-    if index is not None and not rows_written_below(text, index):
-        said = said.replace(IT_AND_ROWS_BELOW, " — it would go unread").replace(
-            ROWS_BELOW, ""
-        )
-    if stopped is not None and stopped.strip() == mine.strip():
-        where = (
-            f"That line is the `{ROW}` row, so the walk never read it, and "
-            "there is no command to run."
-        )
-    else:
-        where = (
-            f"The `{ROW}` row is written below it, and the walk never "
-            f"reached it:\n    {mine.strip()}\n"
-            "So there is no command to run."
-        )
-    escape = ""
-    if (
-        stopped is not None
-        and names_this_row(stopped)
-        and len(BARE_PIPE.findall(stopped.strip())) > 3
-    ):
-        # GitHub ends the cell at the bare pipe too, so the command it shows
-        # for this row is not the one written here; running either would
-        # run a command nobody chose (#871, shape 7).
-        escape = (
-            "\nA cell of that table ends at a bare `|`, so GitHub shows this "
-            "row cut off at the pipe and the command it shows is not the one "
-            "written here. A value that needs a pipe is written with "
-            "markdown's own escape — write it `\\|`, which the reader reduces "
-            "to a plain pipe before any shell sees it: "
-            f"`| {ROW} | bin/test -q \\| tee out.txt |` is the row that runs "
-            "that command."
-        )
-    return (
-        f"seal gate: {os.path.join(home, CONFIG)} {said}.\n{where}{escape}\n"
-        "`templates/setup/config.md` *What is refused, and what stays allowed* is "
-        "where the rule says so, and `/agentic:config` is the door to the "
-        "file. Nothing ran."
     )
 
 
@@ -1193,15 +789,15 @@ def not_as_written(home, command):
         return None
     rewritten = (value[len(opener) : -1] if opener else value[:-1]).strip()
     return (
-        f"seal gate: the `{ROW}` row in {os.path.join(home, CONFIG)} {form}, "
+        f"seal gate: the `{KEY}` key in {os.path.join(home, CONFIG)} {form}, "
         f"{does}.\n"
-        f"    as written: | {ROW} | {value} |\n"
-        f"    as meant:   | {ROW} | {rewritten} |\n"
-        "Nothing ran, and nothing was repaired: the row is a person's to "
+        f"    as written: {json.dumps({KEY: value}, ensure_ascii=False)[1:-1]}\n"
+        f"    as meant:   {json.dumps({KEY: rewritten}, ensure_ascii=False)[1:-1]}\n"
+        "Nothing ran, and nothing was repaired: the key is a person's to "
         "write, and a value quietly fixed here would leave the file still "
         "wrong. `templates/setup/config.md` *Broad gate* lists what is refused "
         "and what stays allowed, with the reason for each, and "
-        "`/agentic:config` is the door to the row."
+        "`/agentic:config` is the door to the key."
     )
 
 
@@ -2242,7 +1838,7 @@ def job_steps(text, job):
 # refuse nothing, one is shell written inline in the workflow with no script
 # to share, and two run a script that belongs to this repository rather
 # than to the plugin. The last three are the ones with a local answer, and
-# `seal/config.md`'s `Broad gate` row is where a repository names checks of
+# `seal/config.json`'s `Broad gate` key is where a repository names checks of
 # its own — not the arm list of a script that ships to every repository that
 # installs the plugin.
 #
@@ -3043,7 +2639,7 @@ def gate(args, ascii_marks=False):
     if said:
         sys.stderr.write(said + "\n")
     sys.stderr.write(
-        f"seal gate: `{ROW}` says: {command}"
+        f"seal gate: `{KEY}` says: {command}"
         + (ROW_NOT_RUN if args.preflight else "")
         + "\n"
     )

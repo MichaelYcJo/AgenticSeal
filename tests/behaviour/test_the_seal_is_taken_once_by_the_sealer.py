@@ -39,18 +39,6 @@ def read_document(rel):
         return handle.read()
 
 
-def refusal_over(tmp_path, name, table):
-    """`missing_row` over a config written literally, with no helper between
-    the case and the bytes. Every fixture in this region is malformed on
-    purpose, so a builder that assembled a well-formed table and checked it
-    read back would swallow the subject (`plan.md` *Every fixture here is
-    malformed on purpose*)."""
-    home = tmp_path / name / "seal"
-    home.mkdir(parents=True)
-    (home / "config.md").write_text(table, encoding="utf-8")
-    return gate_module().missing_row(str(home))
-
-
 def test_the_template_documents_the_commented_row_sentence():
     """S7's other half (contract rule 14): the sentence a person reads is stated
     where `templates/setup/config.md` states the fenced one."""
@@ -78,69 +66,26 @@ def test_the_template_names_every_inline_html_kind_it_reads_as_before():
     assert "after a `<" + "!--` in the middle of a line" not in text
 
 
-def test_the_refusal_points_at_a_section_the_template_holds(tmp_path):
-    """contract rule 14: a fix that changes what a person sees documents
-    it and pins it, in the same commit.
-
-    `templates/setup/config.md` is the one home of what this table's format
-    allows, and the refusal sends the reader to a named section of it, so the
-    section has to still be there. What the section says of a fenced row, and
-    where `skills/config/SKILL.md` step 3 places the block it copies, are the
-    proofer's to read.
-    """
-    template = open(
-        os.path.join(ROOT, "templates", "setup", "config.md"), encoding="utf-8"
-    ).read()
-    said = refusal_over(
-        tmp_path,
-        "pointer",
-        "| Item | Value |\n|---|---|\n| Mode | shared |\n"
-        f"```\n| {ROW} | bin/test -q |\n```\n",
-    )
-
-    # The heading the refusal cites, which a person opens in the template.
-    section = "### What is refused, and what stays allowed"
-    assert section in template, (
-        f"the refusal points at a section that is not there:\n{said}"
-    )
-    # A program's output: the refusal `missing_row` prints names the heading.
-    assert section.lstrip("# ") in said, said
-
-
-def test_this_repositorys_own_config_is_answered_exactly_as_before(tmp_path):
+def test_this_repositorys_own_config_is_answered_exactly_as_before():
     """A11. The file this work item is about is in this repository, and every
     sentence above is a sentence about somebody else's file.
 
-    `seal/config.md` here carries a `Mode` row and a `Broad gate` row and
+    `seal/config.json` here carries a `Mode` key and a `Broad gate` key and
     nothing the reader will not take, so all three answers are the ones it
-    had before this work item: the mode, the command as the row wrote it, and
-    no refusal to build at all. Run before and after each phase.
+    had before: the mode, the command as the key wrote it, and no refusal.
     """
     module = gate_module()
     config = module.load(module.CONFIG_READER, "agentic_config_for_this_case")
     home = os.path.join(ROOT, "seal")
-    text = open(os.path.join(home, "config.md"), encoding="utf-8").read()
 
     assert config.declared_mode(home) == ("mode", "shared"), config.declared_mode(home)
-    assert config.config_table(text)[1] == [], (
-        "a refusal is built from this repository's own config:\n"
-        f"{config.config_table(text)[1]}"
-    )
+    pairs, refusal = config.config_pairs(home)
+    assert refusal is None, refusal
     command = module.broad_command(home)
-    assert command and f"| {ROW} | {command} |" in text, (
-        f"the command the gate reads is not the row as written:\n{command}"
+    assert command and (ROW, command) in pairs, (
+        f"the command the gate reads is not the key as written:\n{command}"
     )
     assert module.not_as_written(home, command) is None, command
-    # Phase 2's half of the same question. This file carries no backticks at
-    # all, so the fence rule removes no line of it and every answer above is
-    # the one it had before #429 — asserted rather than assumed, because
-    # `fenced_row` is what the new refusal is built from.
-    assert module.fenced_row(home) is None, module.fenced_row(home)
-    assert "```" not in text and "~~~" not in text, (
-        "this repository's own config grew a fence, and the assertions above "
-        "stop being about a file that has none. Its header comment does carry "
-        "single backticks, which open nothing: a fence is a run of three"
-    )
 
 
 def test_the_policy_names_the_value_the_gate_row_reads():

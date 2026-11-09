@@ -50,9 +50,9 @@ config = load_lib_module("config.py", "config_for_the_table_walker")
 
 HEADERS = {
     "signer": ("Signer",),
-    # `seal/config.md`'s table, read by this walker since #871 through
-    # `lib/config.py#config_table`, which hands it this tuple and nothing
-    # else (`test_the_config_pass_is_the_config_readers_header`).
+    # An earlier release's `seal/config.md` table, read by this walker since
+    # #871 and, since #1454, only by `seal mode`'s conversion through
+    # `lib/config.py#OLD_TABLE` (`test_the_config_pass_is_the_config_readers_header`).
     "config": ("Item", "Value"),
 }
 
@@ -559,10 +559,10 @@ def test_the_corpus_is_counted():
 
 def test_the_config_pass_is_the_config_readers_header():
     """The config pass is the config table's only where the header it walks
-    is the one `lib/config.py#config_table` hands the walker (#871): a
+    is the one `seal mode`'s conversion hands the walker (#871, #1454): a
     pass over a header no reader uses would hold nothing. Seen red before
-    `CONFIG_TABLE` existed, as an `AttributeError`."""
-    assert HEADERS["config"] == config.CONFIG_TABLE
+    the header was a name of `lib/config.py`, as an `AttributeError`."""
+    assert HEADERS["config"] == config.OLD_TABLE
 
 
 @pytest.mark.parametrize(

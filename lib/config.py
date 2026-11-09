@@ -1,47 +1,50 @@
 """Shared reader: what does this repository say about itself?
 
-`config.md` sits in the root `lib/optin.py` resolves, in the same shape as
-`parity.md` -- a markdown table of `| Item | Value |`. Every absent row but
-four has a default, which is what every repository got before that row
-existed. An absent `Broad gate` is one exception: `seal gate` names the row
-and exits 2 with nothing run. `Commit and pull request language` and
-`Record language` are two more: `seal pr-body` refuses to compose a pull
-request body without either (#1453), and a commit is never refused for
-them.
+`config.json` sits in the root `lib/optin.py` resolves: one JSON object,
+one key per item, each value a string in the grammar
+`templates/setup/config.md` gives that key. Every absent key but four has a
+default, which is what every repository got before that key existed. An
+absent `Broad gate` is one exception: `seal gate` names the key and exits 2
+with nothing run. `Commit and pull request language` and `Record language`
+are two more: `seal pr-body` refuses to compose a pull request body without
+either (#1453), and a commit is never refused for them.
 
 `Mode` is the fourth, and it is why this module exists. What
-every repository got before that row was *the folder decides*, which is not a
+every repository got before that key was *the folder decides*, which is not a
 value, so an absent one has no default at all -- it is filled in from where the
 folder actually is, by `seal mode`. Until somebody runs that command, a root
 exists that nobody chose a mode for, and #151 is what that costs: a monorepo
 was opted into shared mode, with its review records committed, without the
 question ever being put to anyone.
 
-The writer and every reader of the row need the SAME answer.
+The writer and every reader of the file need the SAME answer.
 `skills/implement/scripts/seal.py` writes it and `seal mode --check` reads it
-back, and `seal gate` and the other commands read the file's other rows. A
-file that one of them parses and another does not is a reader that stays
-quiet about a row the command believes it wrote. The READER lives here and
-the writer in `seal.py`, so a script that only reads imports this module and
-not the two-thousand-line command, and `seal.py` re-exports these names
-rather than keeping a second copy.
+back, and `seal gate` and the other commands read the file's other keys. The
+READER lives here and the writer in `seal.py`, so a script that only reads
+imports this module and not the two-thousand-line command, and `seal.py`
+re-exports these names rather than keeping a second copy. The file is read
+by the standard library's JSON parser (`config_pairs`) and written by its
+serializer, so the two cannot disagree about which key is which (#1454).
 
 **Not in `optin.py`, deliberately.** That module's docstring says there is no
 config key and everything in it fails toward *not opted in*; the root's
 existence is the opt-in and `docs/layout/one-root-by-lifetime.md` *The opt-in signal
-is the root itself* is the clause. The `Mode` row decides nothing about opting
+is the root itself* is the clause. The `Mode` key decides nothing about opting
 in -- it RECORDS an answer -- and putting it in that module would read as the
 clause being softened.
 
 Everything here fails toward "nothing is declared" -- except where a written
-row would be read as absent. A file that is there and cannot be read, a row
-written twice, and an item the table walker did not read because it refused
-a line above it are refused by `config_text` and `config_value` rather than
-read as nothing (#867, #871), and a command prints the refusal and exits 2.
-The table is read by `gfm_table`, the walker held to cmark-gfm, through
-`config_table`.
+answer would be read as absent. A file that is there and will not read or
+parse, a `config.md` an earlier release wrote standing without a
+`config.json`, and a key written twice or holding no string are refused by
+`config_pairs` and `config_value` rather than read as nothing (#867), and a
+command prints the refusal and exits 2.
+
+The GFM table walker below reads the tables of records, and `seal mode`'s
+converter of a `config.md`; no setting is read through it.
 """
 
+import json
 import os
 import re
 import sys
@@ -60,24 +63,28 @@ except ImportError as missing:
     raise ImportError(
         "cannot read "
         + os.path.join(os.path.dirname(os.path.abspath(__file__)), "blocks.py")
-        + ", and it is the walk this reader reads config.md through, which "
-        "tells a live row from one quoted in a fence or parked in a comment. "
+        + ", and it is the walk the table walker here reads a table through, "
+        "which tells a live row from one quoted in a fence or parked in a "
+        "comment. "
         "This file ships beside it under `lib/`; a copy of one taken on its "
         "own is not a plugin"
     ) from missing
 
-CONFIG = "config.md"
-ROW_ITEM = "Mode"
+CONFIG = "config.json"
+# The file an earlier release wrote, a `| Item | Value |` table: refused
+# where it stands without a `config.json`, and converted by `seal mode`.
+OLD_CONFIG = "config.md"
+MODE_KEY = "Mode"
 
 # The two modes, spelled the way every document in this repository spells
 # them. Read case-insensitively, written lowercase.
 LOCAL, SHARED = "local", "shared"
 MODES = (LOCAL, SHARED)
 
-# The `| Item | Value |` table's header, as the cells `gfm_table` matches a
-# header by (#871). The table has no grammar of its own: it is read by the
-# walker cmark-gfm holds, which is handed this tuple and nothing else.
-CONFIG_TABLE = ("Item", "Value")
+# The old file's table header, as the cells `gfm_table` matches a header
+# by: what `seal mode`'s converter reads `OLD_CONFIG` through, and nothing
+# else.
+OLD_TABLE = ("Item", "Value")
 
 # A CELL is any run of characters that are neither a pipe nor a backslash, or
 # a backslash followed by anything. The second half is markdown's own escape,
@@ -105,7 +112,7 @@ CELL = r"(?:[^|\\]|\\.)"
 # **Three or more, and tildes as well as backticks, is a decision with
 # grounds.** This repository's own records wrap a fenced example in FOUR
 # backticks -- #429's body and `trail/rounds/round-3-report.md` both do -- and that
-# is exactly the text somebody would paste into `config.md` to document the
+# is exactly the text somebody would paste into a markdown file to document the
 # format. A rule that knew three backticks only would read the inner fence as
 # the outer one's close and leave the live table inside a fence.
 #
@@ -139,25 +146,24 @@ def config_path(home):
     return os.path.join(home, CONFIG)
 
 
+def old_config_path(home):
+    return os.path.join(home, OLD_CONFIG)
+
+
 def fence_map(lines, text=None):
     """([(index, line)] outside every fenced block, the index of an opener
     that was never closed or None) -- the one fence rule, computed once.
 
     `unfenced` below is the generator form the one walk of every table reads
     the file through, and this is the same walk with the state it ENDS in
-    kept. A fence
-    that runs to the end of the file is the one thing about a fence a caller
-    with somebody to tell has to be able to say: `seal gate` quoting a live
-    `| Broad gate |` row back as *written inside a code fence* and telling the
-    person to move it into a table it is already in is a true sentence about a
-    cause that is not the real one, which is the failure #429 was opened about
-    arriving one shape over. A second fence rule written for that question is
-    the split this module exists to prevent.
+    kept. A fence that runs to the end of the file is the one thing about a
+    fence a caller with somebody to tell has to be able to say, and a second
+    fence rule written for that question is the split this module exists to
+    prevent.
 
     Nothing here refuses and nothing acts on the second value. It is a fact
-    about the file, for the one caller that has somebody to tell --
-    `skills/verify/scripts/broad_gate.py#fence_left_open` -- exactly as
-    `config_table`'s refusals are facts about the table for the same caller.
+    about the file, for a caller that has somebody to tell, exactly as
+    `gfm_table`'s refusals are facts about the table.
 
     **The lines it hides are `hidden_lines`' below**, which reads the file
     through `lib/blocks.py`'s walk (#667): a closed fence, and now a
@@ -183,8 +189,7 @@ def hidden_lines(lines, text=None):
     A line that declares something is not taken on doubt where the older
     reading would not take it, the second of the three answers
     `docs/checks/the-fold.md` *The fold, and what tells it from a
-    deletion* gives: a row this hides is no declaration, and `seal gate`
-    names a fence left open.
+    deletion* gives: a row this hides is no declaration.
 
     **TEXT is the file LINES were split from, and every caller that has it
     passes it** (#667 round 1, 🟡 1). The readers split with
@@ -217,8 +222,7 @@ def hidden_lines(lines, text=None):
         comment quoting a fence no longer hides the live table under it;
       - **a fence that is never closed still hides everything below it**,
         because that is what it did before and a line below it is one the
-        walk is not sure of. `seal gate` names that fence
-        (`broad_gate.py#fence_left_open`), and `seal mode` asks again;
+        walk is not sure of, and the second value names that fence;
       - a `<!--` nobody closed hides nothing it did not hide before, and
         switches off no fence below it: it is not a construct at all.
 
@@ -249,31 +253,18 @@ def unfenced(lines, text=None):
     inside a fenced code block is not part of any table: not a header, not a
     delimiter row, not a row, and not a line somebody wrote as a row.
     `gfm_table` below reads every table this module reads through this one
-    generator -- the `| Item | Value |` table through `config_table`, and the
-    pact's three -- and `skills/implement/scripts/seal.py#with_row`, the
-    WRITER, overwrites the line `config_table` names, so the reader and the
-    writer cannot disagree about which row is the row: the file two rows
-    deep that no command can bring into agreement (#429). A hidden line is
-    a gap the walk ends the table at: a line written `| … |` below it is
-    refused as a row the walk never reaches, because GFM does not show it as
-    one of the table's rows.
+    generator, so no two callers disagree about which row is the row (#429).
+    A hidden line is a gap the walk ends the table at: a line written
+    `| … |` below it is refused as a row the walk never reaches, because GFM
+    does not show it as one of the table's rows.
 
-    **Why a table inside a fence is not the table.** `config.md`'s header
-    comment points its reader at `templates/setup/config.md`, a document of EXAMPLE
-    tables, and `skills/config/SKILL.md` *Procedure* step 3 tells a session
-    to copy a block of that template -- one holding a fenced
-    `| Broad gate | ... |` row -- into the repository's own file, naming no
-    position for it. So a fenced example above the live table, or above a
-    table that has no parseable row yet, is a shape this plugin's own
-    documented procedure produces; before this rule the example's rows were
-    the rows every gate got, and the broad run ran a command nobody
-    chose.
+    **Why a table inside a fence is not the table.** A fenced example above
+    a live table is a shape a person pastes when documenting the format, and
+    before this rule the example's rows were the rows a reader got (#429).
 
     **It yields positions, not surviving text alone.** `gfm_table` returns
-    each row's line, `config_table` hands that index on, and `with_row`
-    overwrites the line at it, so a helper handing back text could not serve
-    that walk, and a second fence rule written for the writer is the split
-    this module exists to prevent.
+    each row's line, so a helper handing back text could not serve that
+    walk.
 
     **It takes either spelling of a line.** The ending is stripped here, so
     a file written with LF and one written with CRLF get the same answer.
@@ -291,8 +282,7 @@ def unfenced(lines, text=None):
         or a run carrying an info string, is content inside the block;
       - an unclosed fence runs to the end of the file, so what it swallows
         lands on *nothing is declared* -- the direction everything in this
-        module fails in, and loud where it matters: `seal gate` exits 2 with
-        a message and `seal mode` asks the mode question.
+        module fails in.
 
     A fence opens wherever its line stands, INCLUDING between two rows of a
     table, because this walk answers a question about the file and not about
@@ -308,265 +298,185 @@ def unfenced(lines, text=None):
     yield from fence_map(lines, text)[0]
 
 
-def config_table(text):
-    """(rows, refusals) for the `| Item | Value |` table of TEXT -- the one
-    walk of `seal/config.md`, which is `gfm_table`'s (#871).
-
-      rows      [(index, item, value)] for every row the walk read, in order:
-                INDEX is the row's line in `text.splitlines()`, and ITEM and
-                VALUE are the cells as `table_cells` returns them, stripped
-                and with `\\|` reduced to one literal pipe
-      refusals  the walker's sentences for what stopped it, each reading
-                after a noun naming the file; [] where nothing did
-
-    **A text holding no such table is `([], [])`**: no table declares
-    nothing, everywhere, as no file does. A header the walker refuses -- a
-    line directly above it, no delimiter row under it, a delimiter row of
-    another width -- is a table, refused, and every item of it is a refusal.
-
-    **The table has no grammar of its own.** It is read by the walker the
-    pact's tables are read by, held to cmark-gfm over an enumerated corpus:
-    a row is a row where the renderer shows it as one, or the walk refuses
-    -- naming the line it stopped at and the edit -- and never steps past a
-    line to read on below it, so no row is read under a line it refused.
-
-    **A row is a row only where it, the header and the delimiter row each
-    begin a line GFM begins** -- the walker's rule, `gfm_line_starts`. A row
-    piece after a form feed, U+2028 or another character only Python ends a
-    line at is the tail of the row above it, which GitHub shows cut off at
-    its cells, so the walk stops there and refuses it, and the row above
-    keeps the value GitHub shows. A header or delimiter piece after one is
-    no table GitHub renders, so the walk refuses the table and reads no row.
-
-    A command prints a refusal's sentence and exits 2 for the items the
-    walk did not read, as `config_text` says. `config_value` is the per-item
-    answer, and a caller holding these rows asks `value_of` of them and acts
-    on the refusals by its own kind."""
-    rows, refusals = gfm_table(text, CONFIG_TABLE)
-    if refusals and refusals[0].startswith("holds no "):
-        return [], []
-    return [(line - 1, item, value) for line, (item, value) in rows], refusals
+class Members(list):
+    """A JSON object's members as `(key, value)` pairs, in file order: what
+    `config_pairs` parses every object into, so a key written twice is seen
+    twice rather than taken last, and a value that is an object is told
+    from one that is an array."""
 
 
-def config_rows(text):
-    """Every `| Item | Value |` row the walk read, as (item, value), in order
-    -- `config_table`'s rows without their places or its refusals.
-
-    **Rows alone are not an answer about an item**: a row the walk did not
-    read is absent from this list whether the table ended or the walk
-    refused the line, and only `config_table`'s refusals tell the two apart. A caller asking for
-    one item asks `config_value`; a caller holding these rows asks
-    `config_table` for the refusals (#871).
-
-    Each cell comes back with `\\|` reduced to one literal pipe and nothing
-    else changed; `unescaped` above says why it is those two characters
-    alone. A line inside a code fence or a closed comment is not shown to the
-    walk at all (`unfenced`), so an example table pasted above the live one
-    is not this reader's table (#429).
-
-    **The shapes the walker refuses, each with its one edit** — the list
-    `templates/setup/config.md` and `skills/config/SKILL.md` give a person, kept
-    beside the reader so the three say one thing:
-
-      - a line directly above the header — a comment, prose, a row: leave a
-        blank line above the header;
-      - no delimiter row under the header, or one of another width: write
-        `|---|---|` under it;
-      - a bare pipe in a value, which GitHub shows cut off at the pipe:
-        write it `\\|`;
-      - a third cell, a stray delimiter row or prose inside the table:
-        write it as `| … | … |`, or take it out;
-      - a row under a comment, a fence or a blank line that ends the table:
-        move it into the table; where it heads a table of something else,
-        put a heading between the two tables;
-      - a row, the header or the delimiter row after a form feed or U+2028
-        on another line of the table: put it on a line of its own.
-
-    Every row below the refused line is a refusal to `config_value`, never
-    an absent row; the rows above it are read."""
-    return [(item, value) for _index, item, value in config_table(text)[0]]
+def parse_config(text, path):
+    """(pairs, refusal) for TEXT, the JSON of the config at PATH:
+    `config_pairs`' last two states, for a caller that holds the text."""
+    try:
+        parsed = json.loads(text, object_pairs_hook=Members)
+    except ValueError as exc:
+        return None, (
+            f"{path} does not parse as JSON ({exc}), so no key of it can be "
+            "read — a config that is absent declares nothing, and one that "
+            "will not parse is refused rather than read as absent"
+        )
+    if not isinstance(parsed, Members):
+        return None, (
+            f"{path} holds a JSON {json_type(parsed)} where the config is one "
+            "object of keys, so no key of it can be read"
+        )
+    return parsed, None
 
 
-def config_text(home):
-    """(text, refusal) for `<home>/config.md` — the one place the file is
-    opened, and the one place an absent file is told from an unreadable one.
+def config_pairs(home):
+    """(pairs, refusal) for `<home>/config.json` — the one place the file is
+    opened, and the one place an absent file is told from one nobody can
+    read.
 
-      (None, None)     there is no file at that name: nothing is declared
-      (text, None)     the file, read as UTF-8
-      (None, refusal)  the file is there and cannot be read as text -- a
-                       directory of that name, a permission this process
-                       does not have, bytes that do not decode -- and
-                       REFUSAL is a sentence naming the path and why
+      (None, None)     no `config.json` and no `config.md`, or a falsy HOME:
+                       nothing is declared
+      (pairs, None)    the file's object, as `Members` in file order
+      (None, refusal)  a `config.md` an earlier release wrote, with no
+                       `config.json` beside it; or a `config.json` that will
+                       not read as UTF-8, will not parse as JSON, or whose
+                       top level is not an object. REFUSAL is one sentence
+                       opening with the `config.json` path
 
-    **Two states, and only the second is refused** (#867). An absent file is
-    what every repository had before it wrote a row, so it declares nothing,
-    everywhere. A file that is there and will not read is not a repository
-    that answered nothing: it is one whose answer nobody can read. Every
-    caller asks this reader rather than opening the file a second time to
-    find out, and a command a person runs prints the sentence and exits 2
-    with nothing judged, because a command that reads a written row as
-    absent acts as if the person had written none.
+    **A file nobody can read is refused, never read as absent** (#867). An
+    absent file is what every repository had before it wrote a key, so it
+    declares nothing, everywhere. A file that is there and will not read is
+    one whose answer nobody can read, and a command a person runs prints the
+    sentence and exits 2 with nothing judged, because a command that reads a
+    written answer as absent acts as if the person had written none. A
+    `config.md` standing alone is such an answer, written in the table this
+    release no longer reads: `seal mode` converts it (#1454).
 
-    HOME is the seal root; a falsy one is no file. A name that `lexists` but
-    will not open -- a symbolic link to nowhere -- is the second state: the
-    name is there.
+    The text is decoded as `utf-8-sig`, so a byte order mark an editor wrote
+    reads. A name that `lexists` but will not open -- a symbolic link to
+    nowhere -- is a file that will not read: the name is there.
     """
     if not home:
         return None, None
     path = config_path(home)
     if not os.path.lexists(path):
+        if os.path.lexists(old_config_path(home)):
+            return None, unconverted_config(path)
         return None, None
     try:
-        with open(path, encoding="utf-8") as handle:
-            return handle.read(), None
+        with open(path, encoding="utf-8-sig") as handle:
+            text = handle.read()
     except (OSError, ValueError) as exc:
         return None, unreadable_config(path, exc)
+    return parse_config(text, path)
+
+
+def unconverted_config(path):
+    """The sentence `config_pairs` refuses a root holding `config.md` and no
+    `config.json` in, PATH being the `config.json` it looked for. It opens
+    with that path and ends with no full stop, so it reads after a
+    command's own prefix."""
+    return (
+        f"{path} is not there, and the {OLD_CONFIG} beside it is the table an "
+        f"earlier release read, which no command reads now — run `seal mode` "
+        f"once, which writes {CONFIG} from that table and removes {OLD_CONFIG}"
+    )
 
 
 def unreadable_config(path, exc):
-    """The sentence `config_text` refuses an unreadable PATH in. It opens
+    """The sentence `config_pairs` refuses an unreadable PATH in. It opens
     with the path and ends with no full stop, so it reads after a command's
     own prefix."""
     why = exc.strerror if isinstance(exc, OSError) and exc.strerror else str(exc)
     return (
-        f"{path} is there and cannot be read as UTF-8 text ({why}), so no row "
+        f"{path} is there and cannot be read as UTF-8 text ({why}), so no key "
         "of it can be read — a config that is absent declares nothing, and "
         "one that will not read is refused rather than read as absent"
     )
 
 
+def json_type(value):
+    """The JSON name of VALUE's type, as a refusal says it."""
+    if isinstance(value, Members):
+        return "object"
+    if isinstance(value, list):
+        return "array"
+    if isinstance(value, bool):
+        return "boolean"
+    if isinstance(value, (int, float)):
+        return "number"
+    if value is None:
+        return "null"
+    return "string"
+
+
 def doubled_row(item, count):
-    """The sentence `config_value` refuses a row written COUNT times in, the
-    one sentence for every item."""
+    """The sentence `config_value` refuses a key written COUNT times in, the
+    one sentence for every key."""
     return f"`{item}` appears {count} times — one value"
 
 
-def config_value(text, item):
-    """(value, refusal) for ITEM in the `| Item | Value |` table of TEXT —
-    the one answer every reader of one config row gives (#867, #871).
+def config_value(pairs, key):
+    """(value, refusal) for KEY among PAIRS, `config_pairs`' members — the
+    one answer every reader of one config key gives (#867).
 
-      (None, None)     no row names ITEM in a table the walk read whole, or
-                       TEXT holds no such table, or TEXT is None (no file)
-      (value, None)    one row the walk read: its value, stripped and
-                       unescaped as `config_rows` returns it, "" where empty
-      (None, refusal)  ITEM is written more than once, and REFUSAL says so;
-                       or the walk refused the table and did not read ITEM,
-                       and REFUSAL is the walker's first sentence, naming the
-                       line it stopped at and the edit
+      (None, None)     no member is named KEY, or PAIRS is None (no file)
+      (value, None)    one member: its string, as parsed, "" where empty
+      (None, refusal)  KEY is written more than once, or its value is not a
+                       string, and REFUSAL says which
 
-    **A refusal is per item, never an absent row** (#871). A row the walk
-    read before it stopped is a row GitHub shows, so it is a value. An item
-    the walk did not read may be written below the line it stopped at, so it
-    has no value and is not absent either: it is the walker's sentence, which
-    a command prints. Refusing the whole table would turn every item off for
-    a line that is not theirs; reading the item as absent is the silent default
-    #415 was opened about.
-
-    **A row written twice has no value**, not its first and not its last:
-    its first row is not the answer. Readers that took the first, a checker
-    that took the last and a writer that wrote the first are three answers
-    to one file, which is a file a person edits on the row they see while
-    another one answers. So the one answer is a refusal, and what a caller
-    does with it is its own kind's -- `config_text` says which kind does
-    which.
-
-    The rows are `config_table`'s, so a row is a row only where that walk
-    reads it: one in a fence or in a closed comment is not counted, which is
-    what keeps a fenced example from doubling the live row. **In a table the
-    walk refused, a line written below its last row and above the next
-    heading that names ITEM in its first cell counts too**: the walk did not
-    read it, so it is not a value, but it is an answer somebody wrote, and a
-    row read above it is then one of two answers and has no value either. A
-    table under the next heading is another table's, which the walk's own
-    rows nobody reads stop at as well."""
-    if text is None:
+    **A key written twice has no value**, not its first and not its last.
+    A reader that took the last, as `json.loads` does, and a person editing
+    the first are two answers to one file. So the one answer is a refusal,
+    and what a caller does with it is its own kind's. **A value that is not
+    a string has no value either**: every key's grammar is a string's, and
+    a number or a list read as one would be a value nobody wrote. Every
+    other key is read."""
+    if pairs is None:
         return None, None
-    rows, refusals = config_table(text)
-    value, refusal = value_of([(found, v) for _i, found, v in rows], item)
-    if value is None and refusal is None and refusals:
-        return None, refusals[0]
-    if value is not None and refusals:
-        below = rows_named_below(text, rows[-1][0], item)
-        if below:
-            return None, doubled_row(item, 1 + below)
-    return value, refusal
-
-
-# A line's first cell as a person wrote it, read up to the first pipe no
-# backslash escapes, at most three spaces in: how `config_value` tells that a
-# line the walk did not read names an item.
-FIRST_CELL = re.compile(rf"^ {{0,3}}\|((?:{CELL})*)\|")
-
-
-def rows_named_below(text, index, item):
-    """How many lines of TEXT below the line at INDEX and above the next
-    heading, of those the walk is shown, name ITEM in their first cell --
-    the stretch `gfm_table` calls rows nobody reads. A piece is a line here
-    only where it begins a GFM line (`gfm_line_starts`), as it is to the
-    walk."""
-    begins = gfm_line_starts(text)
-    count = 0
-    # exempt from splitlines: lines the GFM walk numbers
-    for at, line in unfenced(text.splitlines(), text):
-        if at <= index or not begins[at]:
-            continue
-        if ATX_HEADING.match(line.lstrip(" ")) and blocks.columns(line) < 4:
-            break
-        first = FIRST_CELL.match(line)
-        if first and unescaped(first.group(1).strip()) == item:
-            count += 1
-    return count
-
-
-def value_of(rows, item):
-    """`config_value` over ROWS already walked, as `(item, value)` pairs --
-    the rule itself, for a caller that holds the rows and would otherwise
-    walk the file once per item (`pact_declaration`)."""
-    values = [value for found, value in rows if found == item]
+    values = [value for found, value in pairs if found == key]
     if len(values) > 1:
-        return None, doubled_row(item, len(values))
-    return (values[0], None) if values else (None, None)
+        return None, doubled_row(key, len(values))
+    if not values:
+        return None, None
+    if not isinstance(values[0], str):
+        return None, (
+            f"`{key}` holds a JSON {json_type(values[0])}, and its value is a string"
+        )
+    return values[0], None
 
 
-def declared_value(home, item):
-    """(value, refusal) for ITEM in `<home>/config.md`: `config_text`, then
-    `config_value`, so an unreadable file, a doubled row and a table the
-    walker refused above ITEM reach the caller the same way -- as a refusal
-    it acts on by its own kind.
+def declared_value(home, key):
+    """(value, refusal) for KEY in `<home>/config.json`: `config_pairs`,
+    then `config_value`, so a file nobody can read and a key with no value
+    reach the caller the same way -- as a refusal it acts on by its own
+    kind.
     """
-    text, refusal = config_text(home)
+    pairs, refusal = config_pairs(home)
     if refusal is not None:
         return None, refusal
-    return config_value(text, item)
+    return config_value(pairs, key)
 
 
 def declared_mode(home):
-    """(kind, value) for the `Mode` row — what the repository SAYS it wants.
+    """(kind, value) for the `Mode` key — what the repository SAYS it wants.
 
-      "none"     nothing is declared: no file, no such row in a table the
-                 walk read whole, an empty value, or a file holding no such
-                 table. Four spellings of one state, the same four the
-                 pull-request-language row has for not naming a language
+      "none"     nothing is declared: no file, no such key, or an empty
+                 value
       "mode"     `local` or `shared`, lowercased
-      "unknown"  a row is there and its value is not a mode — a claim nobody
+      "unknown"  a key is there and its value is not a mode — a claim nobody
                  can act on, which is not the same as no claim
-      "refused"  the file is there and will not read, the row is written
-                 more than once, or the walk refused the table without
-                 reading the row (#871); VALUE is `declared_value`'s sentence
+      "refused"  the file will not read, or the key is written more than
+                 once or holds no string; VALUE is `declared_value`'s
+                 sentence
 
-    **There is no default.** An item with a default falls back to what
-    every repository got before the row existed; for the mode that is
-    *the folder decides*, so an absent row is filled in from the folder by
+    **There is no default.** A key with a default falls back to what
+    every repository got before the key existed; for the mode that is
+    *the folder decides*, so an absent key is filled in from the folder by
     `seal mode` rather than assumed here. A default of `shared` would report
     every undeclared local-mode repository as lying.
 
-    **`refused` is not `none`** (#867). An unreadable file used to fold into
-    `none`, and a doubled row was read first-wins here and by the writer.
-    The reader tells them apart once: `seal mode` prints a refusal and
-    writes nothing, because writing a row into a file whose rows disagree,
-    or that nobody can read, cannot make it agree.
+    **`refused` is not `none`** (#867). The reader tells them apart once:
+    `seal mode` prints a refusal and writes nothing, because writing a key
+    into a file nobody can read, or one whose answers disagree, cannot make
+    it agree.
     """
-    value, refusal = declared_value(home, ROW_ITEM)
+    value, refusal = declared_value(home, MODE_KEY)
     if refusal is not None:
         return "refused", refusal
     lowered = (value or "").lower()
@@ -584,7 +494,7 @@ def declared_mode(home):
 # a record ask `under_reference_root` before they read a path, so none of them
 # carries a test of its own (`templates/setup/config.md` *Reference specs*).
 
-REFERENCE_ROW = "Reference specs"
+REFERENCE_KEY = "Reference specs"
 NO_REFERENCE = "none"
 # The directory name the default reads as a reference root at any depth.
 REFERENCE_NAME = "specs"
@@ -601,16 +511,16 @@ def inside_the_root(rel):
 
 
 def reference_roots(home):
-    """The repository-relative directories `<home>/config.md`'s
-    `Reference specs` row names, as a tuple; `()` for `none`; or None, the
+    """The repository-relative directories `<home>/config.json`'s
+    `Reference specs` key names, as a tuple; `()` for `none`; or None, the
     default — every directory named `specs` outside the plugin's root.
 
     The value is comma-separated prefixes, each with or without a trailing
-    `/` or a leading `./`. No file, no such row, an empty value or a file
+    `/` or a leading `./`. No file, no such key, an empty value or a file
     that will not read all mean the default, which is what every repository
-    got before the row existed. A prefix naming the plugin's own root or
+    got before the key existed. A prefix naming the plugin's own root or
     anything under it is dropped: a reference root is outside the root by
-    definition, and the root's records are read whatever the row says.
+    definition, and the root's records are read whatever the key says.
 
     **No root at either place is `()`, no reference root at all** — not the
     default. A reference root is defined against the plugin's root, and a
@@ -621,16 +531,15 @@ def reference_roots(home):
     joining a project runs the bootstrap, which creates the root, before any
     check reads the tree.
 
-    **A refusal reads as the default** (#867): a file that will not read, as
-    before, and a `Reference specs` row written twice, which `config_value`
-    gives no value. Its caller, `seal unverified`, is not among the commands
-    `config_text` names as refusing: what a refusal costs it is the reading
-    every repository had before the row existed, and no record is written or
-    lost on it."""
+    **A refusal reads as the default** (#867): a file that will not read,
+    and a `Reference specs` key written twice or holding no string, which
+    `config_value` gives no value. Its caller, `seal unverified`, does not
+    refuse on it: what a refusal costs it is the reading every repository
+    had before the key existed, and no record is written or lost on it."""
     if not home:
         return ()
-    # A refusal carries no value, so it lands with no row and an empty one.
-    value, _refusal = declared_value(home, REFERENCE_ROW)
+    # A refusal carries no value, so it lands with no key and an empty one.
+    value, _refusal = declared_value(home, REFERENCE_KEY)
     if not value:
         return None
     if value.lower() == NO_REFERENCE:
@@ -666,19 +575,19 @@ def under_reference_root(rel, roots):
 
 # --- the policy root (#953) -------------------------------------------------
 
-POLICY_ROW = "Policy root"
+POLICY_KEY = "Policy root"
 POLICY_DEFAULT = "docs"
 
 
 def policy_root(home):
-    """The repository-relative directory `<home>/config.md`'s `Policy root`
-    row names, without a leading `./` or a trailing `/`, or `docs`.
+    """The repository-relative directory `<home>/config.json`'s `Policy
+    root` key names, without a leading `./` or a trailing `/`, or `docs`.
 
-    No root, no file, no such row, an empty value, a refusal and a value
+    No root, no file, no such key, an empty value, a refusal and a value
     that leaves the repository (an absolute path or a `..` part) all read as
-    `docs`, the directory every repository read before the row existed.
-    `templates/setup/config.md` *The fold's values* states the row."""
-    value = declared_value(home, POLICY_ROW)[0] if home else None
+    `docs`, the directory every repository read before the key existed.
+    `templates/setup/config.md` *The fold's values* states the key."""
+    value = declared_value(home, POLICY_KEY)[0] if home else None
     rel = (value or "").strip().replace("\\", "/")
     while rel.startswith("./"):
         rel = rel[2:]
@@ -695,15 +604,15 @@ def policy_root(home):
 # `seal/pact.md` in the repository that holds it. Every repository of such a
 # work item is a SIGNER, the pact's repository included. A signer other
 # than the pact's repository names the pact here, by the origin remote URL of
-# the repository that holds it, and the pact's repository needs no row: it is
+# the repository that holds it, and the pact's repository needs no key: it is
 # identified by holding `seal/pact.md` (`docs/layout/the-pact.md`).
 #
-# One command asks this row, through THIS reader:
+# One command asks this key, through THIS reader:
 # `skills/verify/scripts/pact_check.py`, run as `seal pact`, which reads
 # every signer from the pact's repository and refuses what will not parse. A
 # signer's CI reads nothing of the pact (`docs/layout/the-pact.md`).
 
-PACT_ROW = "Pact"
+PACT_KEY = "Pact"
 PACT_SEPARATOR = ";"
 
 
@@ -789,81 +698,68 @@ def remote_entries(entries, empty):
     return parsed, refusals
 
 
-def pact_declaration(text):
-    """(pacts, refusals) for the `Pact` row of a config.md's TEXT.
+def pact_declaration(pairs):
+    """(pacts, refusals) for the `Pact` key among PAIRS, a config's
+    members as `config_pairs` gives them, None for no file.
 
       pacts     [(as written, normalised)] for every entry of the `Pact`
-                row that parsed, in the order the row lists them; [] where
-                no row names a pact
+                key that parsed, in the order the key lists them; [] where
+                no key names a pact
       refusals  one sentence per thing that would not parse, naming it
 
     **It refuses in sentences and stops nothing.** Its caller, `seal pact`,
     run at the pact's repository, exits 2 on a refusal.
 
-    No row, an empty value, and a file with no table are one state, *no pact
-    is held elsewhere* — the direction everything in this module fails in. A
-    value that is there and does not parse is not that state, and it is
-    refused rather than read as absent: a signer that wrote a row and is
-    read as having written none is the silence this reader exists to end.
+    No file, no key and an empty value are one state, *no pact is held
+    elsewhere* — the direction everything in this module fails in. A value
+    that is there and does not parse is not that state, and it is refused
+    rather than read as absent: a signer that wrote a key and is read as
+    having written none is the silence this reader exists to end. A `Pact`
+    key written twice or holding no string has no value, by
+    `config_value`'s rule and in its sentence (#867), so it lists no pact.
 
-    **Only the `Pact` row is read.** A row of any other item is no answer
-    about a pact, a `Pact notify` row an earlier release read included
+    **Only the `Pact` key is read.** A key of any other name is no answer
+    about a pact, a `Pact notify` key an earlier release read included
     (`templates/setup/config.md` *Pact*).
-
-    **A table the walker refuses is refused here too** (#871). Its
-    sentences are appended after every other refusal: a `Pact` row below
-    the line it stopped at is one the walk never read. `seal pact` exits 2
-    on it.
     """
-    rows, walk_refusals = config_table(text)
-    # A row written twice has no value, by `value_of`'s rule and in its
-    # sentence (#867): the first row is not the answer, so a doubled `Pact`
-    # lists no pact.
-    value, doubled = value_of([(item, v) for _i, item, v in rows], PACT_ROW)
-    if doubled:
-        return [], [doubled, *walk_refusals]
+    value, refused = config_value(pairs, PACT_KEY)
+    if refused:
+        return [], [refused]
     if not value:
-        return [], walk_refusals
-    pacts, refused = remote_entries(
+        return [], []
+    return remote_entries(
         value.split(PACT_SEPARATOR),
-        f"`{PACT_ROW} | {value}` holds an empty entry — one remote URL between "
-        f"each `{PACT_SEPARATOR}`",
+        f"the `{PACT_KEY}` value `{value}` holds an empty entry — one remote "
+        f"URL between each `{PACT_SEPARATOR}`",
     )
-    return pacts, refused + walk_refusals
 
 
 def declared_pacts(home):
-    """`pact_declaration` over `<home>/config.md`, or None where that file
-    is there and will not read.
+    """`pact_declaration` over `<home>/config.json`, or None where that
+    file is refused by `config_pairs`.
 
     **Not the rule the other readers here keep**, and on purpose (round 1 of
-    #647, white 5). They answer an unreadable file as no row, because a gate
-    that refuses wrongly stops a session with nobody able to get past it.
-    This reader's caller is `seal pact`, run by a person at the pact's
-    repository, and a signer whose written rows read as absent is the
-    silence `pact_declaration` exists to end. So no file is no row, and a
-    file that will not read is None, which `seal pact` refuses as
-    `UNREADABLE`.
-
-    Since #867 every command reading a row takes this reader's side, and
-    `config_text` is where the two states are told apart for all of them;
-    this is that answer in the shape `seal pact` reads."""
-    text, refusal = config_text(home)
+    #647, white 5). `reference_roots` and `policy_root` answer a refused file
+    as no key, because a gate that refuses wrongly stops a session with
+    nobody able to get past it. This reader's caller is `seal pact`, run by
+    a person at the pact's repository, and a signer whose written keys read
+    as absent is the silence `pact_declaration` exists to end. So no file is
+    no key, and a refused file is None, which `seal pact` refuses as
+    `UNREADABLE` with `config_pairs`' sentence."""
+    pairs, refusal = config_pairs(home)
     if refusal is not None:
         return None
-    if text is None:
-        return [], []
-    return pact_declaration(text)
+    return pact_declaration(pairs)
 
 
 # --- one GFM table walker (#647) --------------------------------------------
 #
-# Two tables are read out of markdown by name: `seal/config.md`'s
-# `| Item | Value |` (#871) and the pact's `| Signer |`. One walker reads
-# both, because two walkers are two break lists to keep in step, and round
-# 3 of #735 measured exactly that drift in the one there was: an autolink
-# row ended the table, and a signer written as one was read by nobody at
-# exit 0.
+# Tables are read out of markdown by name: a record's, the pact's
+# `| Signer |`, and an earlier release's `config.md`, which `seal mode`
+# converts. One walker reads them all, because two walkers are two break
+# lists to keep in step, and round 3 of #735 measured exactly that drift in
+# the one there was: an autolink row ended the table, and a signer written
+# as one was read by nobody at exit 0.
 #
 # **It reads what cmark-gfm renders, or refuses.** It is held to the renderer
 # by `tests/behaviour/test_one_table_walker_reads_what_gfm_renders.py`, a property case
@@ -1091,8 +987,8 @@ def gfm_table(text, header, beside=False):
                    a table of its own (`opens_table`): the walk steps over
                    that table, its delimiter row and every line under it up
                    to its end, and goes on refusing a `| … |` line after it.
-                   A caller whose file holds one table, `seal/config.md` or
-                   the machine-local pact map, leaves BESIDE false; the
+                   A caller whose file holds one table, an old `config.md`
+                   or the machine-local pact map, leaves BESIDE false; the
                    anchor table's reader sets it, because a frame's section
                    holds other tables
       a row        written `| … |` with the header's width

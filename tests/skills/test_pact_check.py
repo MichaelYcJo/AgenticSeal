@@ -7,7 +7,7 @@ and `check` read a world built once for the module and copied for each case
 that writes into it: the pact's repository, whose `seal/pact.md` carries one
 clause committed as v1 and then v2 on `main` and v3 on a side branch HEAD does
 not hold, and a signer beside it, which names the pact in its
-`seal/config.md`. `HOME` is the world's own directory, so the machine-local
+`seal/config.json`. `HOME` is the world's own directory, so the machine-local
 map is whatever a case writes there. Each copy is the reset. The world is
 `tests/conftest.py`'s, because the seven cases phase 5 left here for
 `lib/config.py`, which run `check` over a pact or a signer config the
@@ -61,7 +61,7 @@ config = pc.load(os.path.join(pc.LIB, "config.py"), "config_for_pact_tests")
 
 SIGNER = (SIGNER_URL, config.normalise_remote(SIGNER_URL))
 SPEC_Y = "seal/threads/1790000001-y/frame/design.md"
-# A second pact a signer's `Pact` row declares beside this one.
+# A second pact a signer's `Pact` key declares beside this one.
 BILLING = "git@example.com:org/billing.git"
 # The machine-local map's header and delimiter row, as `seal pact`'s remedy
 # line teaches a person to begin it.
@@ -72,7 +72,7 @@ MAP_REFUSED = "REFUSED ~/.claude/agentic/pact-paths.md — the map "
 NOT_ONE_URL = (
     "the `Pact` cell is not one remote URL: it holds a space, a backtick or no "
     "host and path — write the origin URL of the pact's repository, bare, as "
-    "the signer's `Pact` row writes it"
+    "the signer's `Pact` key writes it"
 )
 NO_HEADING = (
     "the `Clause` cell opens with no heading — write the clause's heading "
@@ -83,10 +83,10 @@ NOT_A_HASH = (
     "until the first report names the real one"
 )
 UNDECLARED = (
-    "the `Pact` cell names `{cell}`, a pact this signer's `seal/config.md` "
-    "does not declare in its `Pact` row, so no `seal pact` grades the row — "
-    "write the origin URL of a pact that row declares, or add `{cell}` to "
-    "that row"
+    "the `Pact` cell names `{cell}`, a pact this signer's `seal/config.json` "
+    "does not declare in its `Pact` key, so no `seal pact` grades the row — "
+    "write the origin URL of a pact that key declares, or add `{cell}` to "
+    "that key"
 )
 INLINE = (
     "a `pact:` token is the inline pact anchor `seal pact` read through "
@@ -139,10 +139,10 @@ class Test_shown:
         "path, repo, home, want",
         [
             (
-                r"C:\Users\x\work\orders-web\seal\config.md",
+                r"C:\Users\x\work\orders-web\seal\config.json",
                 r"C:\Users\x\work\orders-web",
                 r"C:\Users\x",
-                "seal/config.md",
+                "seal/config.json",
             ),
             (
                 r"C:\Users\x\.claude\agentic\pact-paths.md",
@@ -534,7 +534,7 @@ class Test_check:
     def test_accepts_a_signer_citing_the_current_clause(self, world):
         """The passes, #1132's S2, S6 and S9 among them: two frames cite the
         current hash, one naming the pact by another spelling of its URL. A
-        row naming another pact the signer's `Pact` row declares is passed
+        row naming another pact the signer's `Pact` key declares is passed
         over whatever its other cells hold. Nothing else is read as an
         anchor: not a table or a `pact:` token inside a closed fence, not
         `compact:`, not the word and its colon with a space on either side
@@ -545,7 +545,7 @@ class Test_check:
         legacy = "https://example.com/org/orders-api-legacy"
         write(
             world.web,
-            "seal/config.md",
+            "seal/config.json",
             signer_config(("Pact", f"{PACT_URL}; {BILLING}; {legacy}")),
         )
         world.cite(clause(V2))
@@ -772,9 +772,9 @@ class Test_check:
             shutil.rmtree(world.web / "seal")
             where, said = posix(world.web), "it has no seal/ root to name this pact in"
         else:
-            write(world.web, "seal/config.md", signer_config())
-            where = "seal/config.md"
-            said = f"its config names no `Pact` row for {PACT_URL}"
+            write(world.web, "seal/config.json", signer_config())
+            where = "seal/config.json"
+            said = f"its config names no `Pact` key for {PACT_URL}"
         code, out = world.run()
         assert code == 2, out
         assert (
@@ -815,7 +815,7 @@ class Test_check:
     )
     def test_refuses_a_row_it_cannot_grade_at_its_line(self, world, row, said):
         """S8: each shape is refused at the row's line, at exit 2. A
-        remote the signer's `Pact` row does not declare is graded by no
+        remote the signer's `Pact` key does not declare is graded by no
         `seal pact`, since another pact's reports the signer `ONE-SIDED`
         (#1132, S1)."""
         write(world.web, SPEC, anchor_table(row))
@@ -1008,18 +1008,21 @@ class Test_check:
     @pytest.mark.parametrize("shape", ["directory", "undecodable"])
     def test_refuses_a_signer_config_that_will_not_read(self, world, shape):
         """Both unreadable shapes reach it as `UNREADABLE` at exit 2 through
-        `lib/config.py#config_text`, named relative to the signer's
-        checkout and in POSIX form."""
-        cfg = world.web / "seal" / "config.md"
+        `lib/config.py#config_pairs`, named relative to the signer's
+        checkout and in POSIX form, and said in the reader's sentence."""
+        cfg = world.web / "seal" / "config.json"
         text = cfg.read_bytes()
         cfg.unlink()
         if shape == "directory":
             cfg.mkdir()
         else:
-            cfg.write_bytes(text + b"| Record language | \xff |\n")
+            cfg.write_bytes(text.replace(b"shared", b"\xff"))
         code, out = world.run()
         assert code == 2, out
-        assert f"UNREADABLE {SIGNER_URL} seal/config.md — could not be read" in out, out
+        assert (
+            f"UNREADABLE {SIGNER_URL} seal/config.json — is there and cannot be "
+            "read as UTF-8 text"
+        ) in out, out
 
     def test_refuses_an_anchor_file_and_a_pact_that_will_not_read(self, world):
         (world.web / SPEC).mkdir(parents=True)

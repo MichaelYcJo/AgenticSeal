@@ -1311,7 +1311,7 @@ def _shared(tmp_path_factory):
     d = tmp_path_factory.mktemp("shared") / "repo"
     d.mkdir()
     git(d, "init", "-q", "-b", "main")
-    write(d, "seal/config.md", "# config\n")
+    write(d, "seal/config.json", "{}\n")
     mark_root(d / "seal")
     commit(d, "x")
     git(d, "switch", "-qc", "feat/x")
@@ -1886,7 +1886,7 @@ def _opted_in(tmp_path_factory):
     repo = tmp_path_factory.mktemp("stop-world") / "repo"
     repo.mkdir()
     git(repo, "init", "-q", "-b", "main")
-    write(repo, "seal/config.md", "# config\n")
+    write(repo, "seal/config.json", "{}\n")
     mark_root(repo / "seal")
     commit(repo, "x")
     return repo

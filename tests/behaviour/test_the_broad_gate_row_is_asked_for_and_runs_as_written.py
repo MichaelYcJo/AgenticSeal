@@ -312,23 +312,24 @@ def test_the_module_header_names_every_refusal_and_none_names_a_command():
     to write* — the removed behaviour — and did not mention the second
     refusal, that branch's headline change, at all.
 
-    #415 adds the third: a `Broad gate` line that is there and will not parse
-    as a row. #429 adds the fourth: one written inside a code fence, which no
-    walk of that table reads. A header that keeps saying *three ways* teaches
-    the next reader that a refusal they will actually meet does not exist.
+    #1454 makes the third a config that will not read, or a key written
+    twice or holding no string: a JSON key has none of the walker's causes
+    that #415, #429 and #871 named here. A header naming a refusal the gate
+    no longer has teaches the next reader to look for it.
 
     **The count moved and the subject did not.** This case is about the
     header naming EVERY refusal and naming no command to write, which is why
-    a new refusal rewrites the number here rather than reopening the case.
+    a changed refusal rewrites the number here rather than reopening the
+    case.
     """
     header = module_header()
-    assert "refused four ways" in header, (
-        "the header still describes three refusals where the gate has four"
+    assert "refused three ways" in header, (
+        "the header does not describe the gate's three refusals"
     )
-    # #871: the table walker's refusal, quoted with its own sentence.
-    assert "the table walker did not read" in header
-    assert "quotes back with the walker's sentence" in header
-    assert "written inside a code fence" in header
+    assert "a key written twice or holding no string" in header
+    assert "the table walker did not read" not in header, (
+        "the header still names the walker's refusal of a row"
+    )
     assert "wrapped in backticks or in `$(…)`, or ending in a single `&`" in header
     assert "names the row to write" not in header, (
         "the header asserts the behaviour phase 5 removed"
@@ -509,7 +510,7 @@ def test_the_absent_row_refusal_says_whose_the_row_is_and_where_it_is_answered()
     dead end — which is how a refusal with no route becomes a session filling
     the row in anyway."""
     said = missing_row_text()
-    assert "a row is a thing a person wrote" in said
+    assert "the key is a thing a person wrote" in said
     assert "/agentic:config" in said
     assert (
         "`templates/setup/config.md` *The criterion for choosing a value* is what "

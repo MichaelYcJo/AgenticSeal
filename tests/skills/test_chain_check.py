@@ -32,6 +32,7 @@ from conftest import (
     census_case,
     chain_check_run,
     commit_everything_as_e,
+    config_json,
     mark_root,
     names_path,
     parity_file,
@@ -3121,12 +3122,13 @@ PR_BODY = load(
 MARK = PR_BODY._mark_line(PR_BODY.MANIFEST)[0]
 CHANGED_LINE = "- The body is the records'."
 SECOND_ITEM = "seal/threads/1791999998-another-work-item"
-# #1453: `config.md`'s table, holding the two language rows the body's
-# first part is composed from; a case adds the mark row below them.
-LANGUAGES = (
-    "| Commit and pull request language | English |\n| Record language | English |\n"
-)
-CONFIG = "| Item | Value |\n|---|---|\n" + LANGUAGES
+# #1453: the two language keys of `config.json` the body's first part is
+# composed from; a case adds the mark key after them.
+LANGUAGES = [
+    ("Commit and pull request language", "English"),
+    ("Record language", "English"),
+]
+MARK_ON = ("Pull request seal mark", "yes")
 
 
 def composed_body(root, item=ITEM):
@@ -3170,7 +3172,7 @@ def bodied(tmp_path):
     commit(d, "base")
     git(d, "switch", "-q", "-c", "feature/g")
     mark_root(d / "seal")
-    write(d, "seal/config.md", CONFIG + "| Pull request seal mark | yes |\n")
+    write(d, "seal/config.json", config_json(*LANGUAGES, MARK_ON))
     write(d, f"{ITEM}/routing.md", SEALED_ROUTING)
     write(d, f"{ITEM}/pr.md", "Closes #1.\n")
     write(d, f"{ITEM}/changelog.md", CHANGED_LINE + "\n")
@@ -3249,14 +3251,14 @@ class Test_body:
     @pytest.mark.parametrize(
         "row, said",
         [
-            ("", None),
+            ([], None),
             (
-                "| Pull request seal mark | Yes |\n",
-                "`Pull request seal mark` reads `Yes`, not `yes`, so the row is not "
+                [("Pull request seal mark", "Yes")],
+                "`Pull request seal mark` reads `Yes`, not `yes`, so the key is not "
                 "read and the body carries no seal mark",
             ),
         ],
-        ids=["the row absent", "a row other than yes"],
+        ids=["the key absent", "a key other than yes"],
     )
     def test_refuses_the_mark_where_the_row_gives_none(
         self, bodied, tmp_path, monkeypatch, capsys, row, said
@@ -3267,8 +3269,8 @@ class Test_body:
         `yes` is named on a notice in `seal pr-body`'s words. Seen red with
         the arm's call in `main` removed."""
         root, _early, _late = bodied
-        write(root, "seal/config.md", CONFIG + row)
-        commit(root, "the row, changed")
+        write(root, "seal/config.json", config_json(*LANGUAGES, *row))
+        commit(root, "the key, changed")
         head = git(root, "rev-parse", "HEAD")
         write(root, f"{ITEM}/trail/gate.md", gate_file(head))
         write(root, f"{ITEM}/guarantee.md", guarantee(head, "sealed"))
@@ -3455,26 +3457,20 @@ class Test_body:
         self, bodied, tmp_path, monkeypatch, capsys
     ):
         """#1453, *Scope* item 3: `seal pr-body` composes no body for a
-        repository whose `config.md` lacks a language row, so the arm, which
-        reads the body through the same function, refuses at the root's
-        `config.md`, as it refuses a record `compared` places at a path.
-        Seen red with `compared` reading `pr.md` alone, where no line named
-        `config.md`."""
+        repository whose `config.json` lacks a language key, so the arm,
+        which reads the body through the same function, refuses at the
+        root's `config.json`, as it refuses a record `compared` places at a
+        path. Seen red with `compared` reading `pr.md` alone, where no line
+        named the config."""
         root, _early, late = bodied
-        write(
-            root,
-            "seal/config.md",
-            "| Item | Value |\n|---|---|\n"
-            "| Commit and pull request language | English |\n"
-            "| Pull request seal mark | yes |\n",
-        )
-        commit(root, "the record row taken out")
+        write(root, "seal/config.json", config_json(LANGUAGES[0], MARK_ON))
+        commit(root, "the record key taken out")
         payload(tmp_path, monkeypatch, late)
         code, out = check(root, capsys)
         assert code == 1, out
         assert (
-            "seal/config.md:0  names no language in a `Record language` row; "
-            "`templates/setup/config.md` *Record language* says what the row "
+            "seal/config.json:0  names no language in a `Record language` key; "
+            "`templates/setup/config.md` *Record language* says what the key "
             "governs, and the orchestrator asks for it before the first edit"
         ) in out.splitlines(), out
 
@@ -3494,9 +3490,8 @@ class Test_body:
         root, _early, _late = bodied
         write(
             root,
-            "seal/config.md",
-            CONFIG.replace("| English |\n", "| Korean |\n", 1)
-            + "| Pull request seal mark | yes |\n",
+            "seal/config.json",
+            config_json((LANGUAGES[0][0], "Korean"), *LANGUAGES[1:], MARK_ON),
         )
         write(root, f"{ITEM}/pr.ko.md", "닫는다 #1.\n")
         commit(root, "the team's language, and its translation")

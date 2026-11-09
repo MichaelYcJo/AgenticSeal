@@ -243,7 +243,7 @@ class Test_parse:
         """S5 of #867 at the parser. `parse` kept the LAST row of a label, so a
         second `Review` row below the first answered for it and nothing said
         there were two. A label written twice has no value, the rule
-        `lib/config.py#value_of` gives a config row; for a strict label that
+        `lib/config.py#config_value` gives a config key; for a strict label that
         makes the file no declaration. Seen red against the last-wins parser:
         each shape parsed, `feature/x` and the chain answering."""
         answers = {

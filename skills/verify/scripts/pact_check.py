@@ -35,9 +35,9 @@ heads a table no row of which is read: it is named at its line,
 and is in no exit class. Whether it meant the anchor table is the judgment
 of the person reading the report and of the proofer reading the frame. A row is graded where its `Pact` cell, compared normalised, is the
 origin URL of this repository; a row naming another pact the signer's
-`Pact` row declares is passed over, for that pact's `seal pact` to grade.
+`Pact` key declares is passed over, for that pact's `seal pact` to grade.
 Refused at the row's line: a `Pact` cell that is not one remote URL, or
-that names a pact the signer's `Pact` row does not declare, which no
+that names a pact the signer's `Pact` key does not declare, which no
 `seal pact` grades, because another pact's reports the signer `ONE-SIDED`
 and reads none of its frames; and, in a row naming this pact, a `Clause`
 cell that opens with no heading or a `Hash` cell that is not eight
@@ -107,7 +107,7 @@ A pact under local mode has no history, so every mismatch there reads
   2  unusable input: no pact here, a pact or file that cannot be read, a
      line of the machine-local map it does not read, a `BROKEN` anchor,
      an anchor row it cannot grade or does not read, a row naming a pact
-     the signer does not declare, a `pact:` token, a `Pact` row that will
+     the signer does not declare, a `pact:` token, a `Pact` key that will
      not parse, a relationship recorded on one side only, or a pact's
      repository with no origin remote
 
@@ -135,7 +135,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 LIB = os.path.join(HERE, "..", "..", "..", "lib")
 CHECKER = os.path.join(HERE, "coordinates.py")
 PACT_FILE = "pact.md"
-CONFIG_FILE = "config.md"
+CONFIG_FILE = "config.json"
 MAP_PARTS = (".claude", "agentic", "pact-paths.md")
 # Read through the native path; named in every sentence by the one spelling
 # the documents use on every platform, so a Windows run does not print
@@ -235,7 +235,7 @@ INLINE_TOKEN = re.compile(r"(?<![A-Za-z0-9_.@/-])pact:(?=\S)", re.IGNORECASE)
 NOT_ONE_URL = (
     "the `Pact` cell is not one remote URL: it holds a space, a backtick or no "
     "host and path — write the origin URL of the pact's repository, bare, as "
-    "the signer's `Pact` row writes it"
+    "the signer's `Pact` key writes it"
 )
 NO_HEADING = (
     "the `Clause` cell opens with no heading — write the clause's heading "
@@ -248,10 +248,10 @@ NOT_A_HASH = (
 # `{cell}` is the `Pact` cell as written, bare: `one_remote` refuses one
 # holding a backtick before this sentence is reached.
 UNDECLARED = (
-    "the `Pact` cell names `{cell}`, a pact this signer's `seal/config.md` "
-    "does not declare in its `Pact` row, so no `seal pact` grades the row — "
-    "write the origin URL of a pact that row declares, or add `{cell}` to "
-    "that row"
+    "the `Pact` cell names `{cell}`, a pact this signer's `seal/config.json` "
+    "does not declare in its `Pact` key, so no `seal pact` grades the row — "
+    "write the origin URL of a pact that key declares, or add `{cell}` to "
+    "that key"
 )
 INLINE = (
     "a `pact:` token is the inline pact anchor `seal pact` read through "
@@ -710,24 +710,30 @@ def check(root, out=sys.stdout, home_dir=None):
             continue
         declared = config.declared_pacts(their_home)
         if declared is None:
+            # `config_pairs`' sentence opens with the machine path, which
+            # `shown` prints instead.
+            path = config.config_path(their_home)
+            refused = config.config_pairs(their_home)[1] or ""
             found(
                 UNREADABLE,
                 written,
-                shown(config.config_path(their_home), their_repo, home_dir),
-                "could not be read",
+                shown(path, their_repo, home_dir),
+                refused[len(path) :].strip()
+                if refused.startswith(path)
+                else "could not be read",
             )
             continue
-        pacts, row_refusals = declared
-        for refusal in row_refusals:
+        pacts, key_refusals = declared
+        for refusal in key_refusals:
             found(REFUSED, written, f"seal/{CONFIG_FILE}", refusal)
         if not any(n == ours for _w, n in pacts):
             found(
                 ONE_SIDED,
                 written,
                 f"seal/{CONFIG_FILE}",
-                f"the pact lists it, and its config names no `{config.PACT_ROW}` "
-                f"row for {mine}: the relationship is recorded on one side "
-                f"only. Add `| {config.PACT_ROW} | {mine} |` there, or take it "
+                f"the pact lists it, and its config names no `{config.PACT_KEY}` "
+                f"key for {mine}: the relationship is recorded on one side "
+                f'only. Add `"{config.PACT_KEY}": "{mine}"` there, or take it '
                 f"out of the pact's {table}",
             )
             continue

@@ -1,5 +1,11 @@
-"""`lib/config.py`, the shared reader of `seal/config.md` and the pact's
-tables, one class per function its cases reach.
+"""`lib/config.py`, the shared reader of `seal/config.json` and the walker
+of the pact's and the records' tables, one class per function its cases
+reach.
+
+#1454 moved the settings out of a markdown table, so the cases that pinned
+the walker's refusals of the `| Item | Value |` table as a settings reader
+left with that reader; the walker's own cases over that table stay, read as
+an earlier release's `config.md` that `seal mode` converts.
 
 #942's phase 6 placed here the reference-root reader's cases from
 `tests/behaviour/test_a_reference_root_is_read_and_never_taken.py`, the policy root's
@@ -31,7 +37,6 @@ import os
 import subprocess
 import sys
 
-import config_shapes
 import pytest
 from block_shapes import SHAPES
 from conftest import (
@@ -66,10 +71,11 @@ from conftest import (
     signer_config,
     write,
     write_config,
+    write_old_config,
     write_unreadable,
 )
 from conftest import commit_everything_as_e as commit
-from conftest import config_table as table
+from conftest import config_json as table
 from test_one_table_walker_reads_what_gfm_renders import (
     HEADERS,
     INDENTS,
@@ -87,27 +93,26 @@ COMMENTED_OLD_TABLE = shape_text("C6")
 QUOTED_DELIMITERS = shape_text("C1")
 LIVE = [("Mode", "shared"), ("Broad gate", "bin/test -q")]
 
-# The pact readers' texts, from `tests/behaviour/test_a_signer_declares_its_pact.py`.
+
+def walk(text):
+    """(rows, refusals) for TEXT's `| Item | Value |` table as
+    `lib/config.py#gfm_table` reads it: the table an earlier release's
+    `config.md` holds, which `seal mode` converts. ROWS are `(item, value)`
+    pairs in order, and REFUSALS the walker's sentences joined into one, its
+    `holds no` sentence left out: a text with no such table converts to no
+    key (`seal.py#converted`)."""
+    rows, refusals = config.gfm_table(text, config.OLD_TABLE)
+    said = [line for line in refusals if not line.startswith("holds no ")]
+    return [tuple(cells) for _line, cells in rows], " ".join(said)
+
+
+def items(text):
+    """The rows `walk` reads in TEXT, the name the row reader's cases spelt."""
+    return walk(text)[0]
+
+
 # The pact's text is `PACT_TEXT` here: `PACT` is the pact's path, which the
 # cases that run `seal pact` over the world write to.
-CONFIG_TOP = "# config\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n"
-CONFIG = CONFIG_TOP + f"| Pact | {URL} |\n"
-
-
-def walked(text):
-    """The walker's refusals of TEXT's `| Item | Value |` table, which
-    `pact_declaration` appends after its own since #871. The sentences
-    themselves are pinned by `Test_config_table` and by the oracle; here what
-    is pinned is that they arrive, last."""
-    return config.config_table(text)[1]
-
-
-BARE_PIPE = (
-    "has a `Item | Value` table that stops at "
-    "`| Broad gate | bin/test -q | tee out |`, which is not a 2-cell row "
-    "written `| … | … |` — every row below it would go unread"
-)
-
 PACT_TEXT = (
     "# Pact\n\n<!-- | Signer |\n|---|\n| git@example.com:org/quoted.git | -->\n\n"
     "| Signer |\n|---|\n"
@@ -245,15 +250,7 @@ chain = load_module(
     "chain_check_for_config",
 )
 
-# The row reader's cases call `config_rows` as `items` and the module through
-# `_config_reader()`, the names their old file gave them.
 LANGUAGE_ROW = "Commit and pull request language"
-items = config.config_rows
-
-
-def _config_reader():
-    """This file's `lib/config.py`; the old file loaded a copy per call."""
-    return config
 
 
 @pytest.fixture
@@ -313,7 +310,7 @@ class Test_reference_roots:
                 assert not config.under_reference_root(rel, roots), rel
         # No root at either place is no reference root at all: the repository has
         # not opted in, and the 0.3.x `specs/` the checks still read was the
-        # plugin's own. Never a `config.md` found relative to wherever the
+        # plugin's own. Never a `config.json` found relative to wherever the
         # process happens to stand, either.
         stray = tmp_path / "elsewhere"
         write_config(str(stray), table(("Reference specs", "docs/adr")))
@@ -322,7 +319,7 @@ class Test_reference_roots:
         assert not config.under_reference_root("specs/x/design.md", ())
 
     def test_refuses_a_row_written_twice_or_a_file_that_will_not_read(self, tmp_path):
-        """#867. A `Reference specs` row written twice has no value, by
+        """#867. A `Reference specs` key written twice has no value, by
         `lib/config.py#config_value`'s rule; the reader used to take the
         first. A file that is there and will not read is the default too, as it
         was, and the reader no longer opens the file itself to find out. Seen red
@@ -332,8 +329,8 @@ class Test_reference_roots:
             home, table(("Reference specs", "docs/adr"), ("Reference specs", "none"))
         )
         assert config.reference_roots(home) is None
-        os.remove(os.path.join(home, "config.md"))
-        os.mkdir(os.path.join(home, "config.md"))
+        os.remove(os.path.join(home, "config.json"))
+        os.mkdir(os.path.join(home, "config.json"))
         assert config.reference_roots(home) is None
 
     def test_none_declares_no_reference_root(self, tmp_path):
@@ -342,18 +339,6 @@ class Test_reference_roots:
         roots = config.reference_roots(home)
         assert roots == (), roots
         assert not config.under_reference_root("specs/x/design.md", roots)
-
-    def test_a_row_inside_a_fence_is_not_a_row(self, tmp_path):
-        """`lib/config.py#unfenced` filters in front of the table walk, so a
-        row quoted in a fence above the live table is an example."""
-        home = str(tmp_path / "seal")
-        write_config(
-            home,
-            "# config\n\n```markdown\n| Item | Value |\n|---|---|\n"
-            "| Reference specs | none |\n```\n\n"
-            + table(("Mode", "shared")).split("\n\n", 1)[1],
-        )
-        assert config.reference_roots(home) is None
 
     def test_the_plugins_own_root_is_never_a_reference_root(self, tmp_path):
         """A reference root is outside the root by definition; a prefix naming
@@ -422,13 +407,17 @@ class Test_normalise_remote:
         )
 
 
-class Test_config_rows:
+class _Old_config_table:
+    """`gfm_table` over an earlier release's `config.md` table, which
+    `seal mode` converts: what it reads is what the converter writes, and
+    what it refuses the converter refuses to write (#1454). `Test_gfm_table`
+    runs these cases."""
+
     def test_refuses_an_item_below_a_separator_out_of_place(self):
         """tests-todo row 9, from round 2 🟡 5, first shape — shape 8 of #871.
         cmark-gfm shows a stray separator as one of the table's rows, so the
-        walker refuses it, naming it, and an item below it is that refusal
-        rather than an absent row. The rows above it are read. Seen red against
-        the stop rule, which ended the table there in silence."""
+        walker refuses it, naming it. The rows above it are read. Seen red
+        against the stop rule, which ended the table there in silence."""
         text = (
             "| Item | Value |\n"
             "|---|---|\n"
@@ -436,23 +425,20 @@ class Test_config_rows:
             "|---|---|\n"
             "| Something else | x |\n"
         )
-        reader = _config_reader()
-        assert items(text) == [(LANGUAGE_ROW, "Korean")]
-        value, said = reader.config_value(text, "Something else")
-        assert (
-            value is None
-            and "stops at `|---|---|`, a delimiter row out of place" in (said or "")
-        ), said
+        rows, said = walk(text)
+        assert rows == [(LANGUAGE_ROW, "Korean")]
+        assert "stops at `|---|---|`, a delimiter row out of place" in said, said
 
     def test_a_repeated_header_is_read_as_a_row_and_the_doubled_item_is_refused(
-        self,
+        self, seal
     ):
         """tests-todo row 9, second shape — shape 9 of #871. A second
         `| Item | Value |` line under the table with no delimiter row of its own
         is one of this table's rows to cmark-gfm, so the walker reads it as one,
         and the row below it with it: the language is then written twice, which
-        has no value. Seen red against the stop rule, which ended the table at
-        the repeated header and read `Korean`."""
+        has no value, so the converter writes nothing. Seen red against the
+        stop rule, which ended the table at the repeated header and read
+        `Korean`."""
         text = (
             "| Item | Value |\n"
             "|---|---|\n"
@@ -460,29 +446,25 @@ class Test_config_rows:
             "| Item | Value |\n"
             f"| {LANGUAGE_ROW} | English |\n"
         )
-        reader = _config_reader()
         assert items(text) == [
             (LANGUAGE_ROW, "Korean"),
             ("Item", "Value"),
             (LANGUAGE_ROW, "English"),
         ]
-        assert reader.config_value(text, LANGUAGE_ROW) == (
-            None,
-            f"`{LANGUAGE_ROW}` appears 2 times — one value",
-        )
+        pairs, said = seal.converted(text)
+        assert pairs is None and f"`{LANGUAGE_ROW}` row written more" in said, said
 
     def test_a_blank_line_above_the_first_row_ends_the_table_and_the_row_is_refused(
         self,
     ):
         """#871. A blank line under the delimiter row ends the table to
         cmark-gfm, so the row below it is not one of the table's rows: the
-        walker refuses it as a row the walk never reaches, and the item it names
-        is that refusal rather than an absent row. Seen red against the stop
-        rule, which stepped past the blank line and read `Korean`."""
+        walker refuses it as a row the walk never reaches. Seen red against the
+        stop rule, which stepped past the blank line and read `Korean`."""
         text = f"| Item | Value |\n|---|---|\n\n| {LANGUAGE_ROW} | Korean |\n"
-        assert items(text) == []
-        value, said = _config_reader().config_value(text, LANGUAGE_ROW)
-        assert value is None and "a row the walk never reaches" in (said or ""), said
+        rows, said = walk(text)
+        assert rows == []
+        assert "a row the walk never reaches" in said, said
 
     def test_accepts_an_item_value_table_and_no_other(self):
         """A parser that finds a row in anything is not a parser."""
@@ -550,7 +532,7 @@ class Test_config_rows:
         every later row with it, each falling back to a default with no message
         anywhere. Written bare it is now refused, naming the line (#871).
         """
-        rows = config.config_rows(PIPED_TABLE)
+        rows = items(PIPED_TABLE)
         assert len(rows) == 4, (
             f"the table has four rows and {len(rows)} came back: {rows}. A row "
             "the reader refuses ends the table, so what is missing here is every "
@@ -586,7 +568,7 @@ class Test_config_rows:
             "| Item | Value |\n|---|---|\n"
             "| Broad gate | C:\\Users\\x\\Python\\python.exe -m pytest |\n"
         )
-        assert config.config_rows(text) == [
+        assert items(text) == [
             ("Broad gate", "C:\\Users\\x\\Python\\python.exe -m pytest")
         ], "a backslash that is not part of `\\|` is the value's own character"
 
@@ -603,7 +585,7 @@ class Test_config_rows:
         also mean *backslash, then the delimiter*; the old reading was only
         available while a backslash meant nothing. Nothing becomes unwritable —
         a space before the closing pipe gives the value back byte for byte,
-        because `config_rows` strips the cell — and one line in the whole tree
+        because the walker strips the cell — and one line in the whole tree
         reads differently, in a review report quoting this shape.
 
         Both members of the class are here. The report named the first; the
@@ -613,25 +595,25 @@ class Test_config_rows:
         header = "| Item | Value |\n|---|---|\n"
         tight_last = "| Broad gate | C:\\Users\\x\\tools\\|\n"
         tight_first = "| C:\\tools\\| x |\n"
-        assert config.config_rows(header + tight_last) == [], (
+        assert items(header + tight_last) == [], (
             "a backslash against the closing pipe is markdown's escaped pipe, so "
             "the line has no closing pipe left and is not a row. If this returns "
             "a row the pattern changed and `frame/design.md` *What this repair cannot "
             "see* is now wrong"
         )
-        assert config.config_rows(header + tight_first) == [], (
+        assert items(header + tight_first) == [], (
             "the same cause at the pipe BETWEEN the cells — the report named only "
             "the closing one"
         )
-        assert config.config_rows(
-            header + "| Broad gate | C:\\Users\\x\\tools\\ |\n"
-        ) == [("Broad gate", "C:\\Users\\x\\tools\\")], (
+        assert items(header + "| Broad gate | C:\\Users\\x\\tools\\ |\n") == [
+            ("Broad gate", "C:\\Users\\x\\tools\\")
+        ], (
             "written with a space before the closing pipe the value comes back "
             "exactly as the old pattern read it, so no value lost a spelling"
         )
-        assert config.config_rows(header + "| C:\\tools\\ | x |\n") == [
-            ("C:\\tools\\", "x")
-        ], "and the same for the item cell"
+        assert items(header + "| C:\\tools\\ | x |\n") == [("C:\\tools\\", "x")], (
+            "and the same for the item cell"
+        )
 
     def test_a_three_column_row_is_refused_and_the_rows_above_it_arrive(self, config):
         """Shape 6 of #871. The escape widens what a cell may hold and must not
@@ -639,39 +621,26 @@ class Test_config_rows:
         row `('a', 'b | c')`. Until #871 the line ended the table silently, and
         every row below it fell to its default; cmark-gfm shows those rows, so
         the walker refuses the line instead, naming it, and the rows above it
-        are values. Seen red against the stop rule: `('c', ...)` was `(None,
-        None)`, an absent row."""
+        are read. Seen red against the stop rule, which ended the table there
+        in silence."""
         text = "| Item | Value |\n|---|---|\n| a | b |\n| x | y | z |\n| c | d |\n"
-        assert config.config_rows(text) == [("a", "b")]
-        value, said = config.config_value(text, "c")
-        assert value is None and said is not None, (value, said)
+        rows, said = walk(text)
+        assert rows == [("a", "b")]
         assert "stops at `| x | y | z |`, which is not a 2-cell row" in said, said
-        assert config.config_value(text, "a") == ("b", None)
 
-    def test_a_fenced_table_above_the_live_one_is_not_the_table(self, config, tmp_path):
+    def test_a_fenced_table_above_the_live_one_is_not_the_table(self, config):
         """A1. The live table is the first one outside every fence.
 
-        `config_rows` starts at the first `| Item | Value |` header and never
-        looks for another, so an example pasted above the live table WAS the
-        table every gate got: the mode, the broad command, every row. The shape
-        is invited rather than contrived — `config.md`'s own header comment
-        points at `templates/setup/config.md`, and `skills/config/SKILL.md` step 3
-        tells a session to copy a block of that template, fenced example row
-        included, naming no position for it.
+        A reader that starts at the first `| Item | Value |` header and never
+        looks for another takes an example pasted above the live table as the
+        table: the mode, the broad command, every row. The shape was invited
+        rather than contrived, because the setup template's fenced example
+        rows were copied whole into `config.md`.
         """
-        assert config.config_rows(FENCED_ABOVE) == [
+        assert items(FENCED_ABOVE) == [
             ("Mode", "shared"),
             ("Broad gate", "bin/test -q"),
-        ], config.config_rows(FENCED_ABOVE)
-        assert "EXAMPLE" not in [
-            value for _item, value in config.config_rows(FENCED_ABOVE)
-        ]
-        home = tmp_path / "seal"
-        home.mkdir()
-        write_config(home, FENCED_ABOVE)
-        assert config.declared_mode(str(home)) == ("mode", "shared"), (
-            "the mode the gate reads is the example's, not the repository's"
-        )
+        ], items(FENCED_ABOVE)
 
     def test_a_fenced_example_below_a_table_that_never_began_is_still_not_the_table(
         self,
@@ -681,7 +650,7 @@ class Test_config_rows:
         found, so with nothing parsed above it a fenced example's rows became the
         live rows — the same defect one shape over, and the one a repair aimed at
         the fenced HEADER alone would have left standing."""
-        rows = config.config_rows(FENCED_BELOW_A_TABLE_THAT_NEVER_BEGAN)
+        rows = items(FENCED_BELOW_A_TABLE_THAT_NEVER_BEGAN)
         assert rows == [], (
             f"the example inside the fence supplied this repository's rows:\n{rows}"
         )
@@ -702,9 +671,8 @@ class Test_config_rows:
           - a closing run may be longer than the one that opened the block;
           - a run of the OTHER character does not close a block, and neither
             does a run carrying an info string;
-          - an unclosed fence runs to the end of the file, which lands on
-            *nothing is declared* — the direction `lib/config.py` already
-            fails in.
+          - an unclosed fence runs to the end of the file, so the file
+            holds no table.
 
         **A blank line stands above the live header in each fixture since
         #871**, because the walker refuses a header with a non-blank line
@@ -715,26 +683,24 @@ class Test_config_rows:
         beside it.
         """
         live = "| Item | Value |\n|---|---|\n| Mode | shared |\n"
-        value, said = config.config_value("    ```\n" + live, "Mode")
-        # The refusal `lib/config.py` returns, whose remedy the person
-        # editing `config.md` follows.
-        assert value is None and "leave a blank line above the header" in said, said
-        assert config.config_rows("    ```\n\n" + live) == [("Mode", "shared")], (
+        rows, said = walk("    ```\n" + live)
+        assert rows == [] and "leave a blank line above the header" in said, said
+        assert items("    ```\n\n" + live) == [("Mode", "shared")], (
             "four spaces is an indented code block and not a fence"
         )
-        assert config.config_rows("```` `x` ````\n\n" + live) == [("Mode", "shared")], (
+        assert items("```` `x` ````\n\n" + live) == [("Mode", "shared")], (
             "a backtick fence's info string may not hold a backtick, so this "
             "line opens no fence"
         )
-        assert config.config_rows(
+        assert items(
             "```\n| Item | Value |\n|---|---|\n| Mode | local |\n``````\n\n" + live
         ) == [("Mode", "shared")], (
             "a closing run longer than the opening one closes the block"
         )
-        assert config.config_rows(
+        assert items(
             "```\n~~~\n| Item | Value |\n|---|---|\n| Mode | local |\n```\n\n" + live
         ) == [("Mode", "shared")], "a tilde run does not close a backtick fence"
-        assert config.config_rows(
+        assert items(
             "````\n```\n| Item | Value |\n|---|---|\n| Mode | local |\n````\n\n" + live
         ) == [("Mode", "shared")], (
             "a run SHORTER than the opening one does not close the block — this "
@@ -742,14 +708,14 @@ class Test_config_rows:
             "and a rule that knew three only would read the inner fence as the "
             "outer one's close and leave the live table inside a fence"
         )
-        assert config.config_rows("```\n```markdown\n" + live) == [], (
+        assert items("```\n```markdown\n" + live) == [], (
             "a run carrying an info string does not close a block, so this file "
             "declares nothing"
         )
-        assert config.config_rows("~~~\n" + live) == [], (
+        assert items("~~~\n" + live) == [], (
             "an unclosed fence runs to the end of the file"
         )
-        assert config.config_rows("~~~info ~ string\n" + live + "~~~~\n") == [], (
+        assert items("~~~info ~ string\n" + live + "~~~~\n") == [], (
             "a tilde fence's info string is unrestricted, which is CommonMark's "
             "rule and not an exception to this one"
         )
@@ -759,7 +725,7 @@ class Test_config_rows:
         the opener in a code span above the table and one quoting the closer
         below it are paragraph text, so the table between them is read. Pins:
         the base read it, and the three rounds lost it by reading inline state."""
-        assert config.config_rows(QUOTED_DELIMITERS) == LIVE
+        assert items(QUOTED_DELIMITERS) == LIVE
 
     @pytest.mark.parametrize("name", ["LS", "PS", "NEL", "FF", "VT", "FS", "GS", "RS"])
     def test_a_break_commonmark_does_not_honour_hides_no_config_row(self, config, name):
@@ -785,9 +751,8 @@ class Test_config_rows:
         assert [i for i, _line in config.unfenced(lines, text)] == list(
             range(len(lines))
         )
-        assert config.config_rows(text) == []
-        value, said = config.config_value(text, "Mode")
-        assert value is None and said is not None, said
+        rows, said = walk(text)
+        assert rows == [] and said, said
 
     @pytest.mark.parametrize("name", ["LS", "PS", "NEL", "FF", "VT", "FS", "GS", "RS"])
     def test_a_piece_inside_an_inline_comment_is_no_config_row(self, config, name):
@@ -803,7 +768,7 @@ class Test_config_rows:
             f"x {OPEN} a{brk}```{brk}| Item | Value |{brk}|---|---|{brk}"
             "| Mode | shared |\n-->\n"
         )
-        assert config.config_rows(text) == []
+        assert items(text) == []
 
     @pytest.mark.parametrize("name", ["LS", "PS", "NEL", "FF", "VT", "FS", "GS", "RS"])
     @pytest.mark.parametrize(
@@ -834,7 +799,7 @@ class Test_config_rows:
             f"x {opener}{brk}```{brk}| Item | Value |{brk}|---|---|{brk}"
             f"| Mode | shared |\n{closer}\n"
         )
-        assert config.config_rows(text) == []
+        assert items(text) == []
 
     @pytest.mark.parametrize("name", ["LS", "PS", "NEL", "FF", "VT", "FS", "GS", "RS"])
     def test_a_row_after_a_break_gfm_does_not_honour_is_no_row_of_its_own(
@@ -849,11 +814,9 @@ class Test_config_rows:
         from block_shapes import BREAKS
 
         text = TABLE.format(rows=f"| Mode | shared |{BREAKS[name]}| Broad gate | x |\n")
-        assert config.config_rows(text) == [("Mode", "shared")], config.config_rows(
-            text
-        )
-        value, said = config.config_value(text, "Broad gate")
-        assert value is None and "put it on a line of its own" in (said or ""), said
+        rows, said = walk(text)
+        assert rows == [("Mode", "shared")], rows
+        assert "put it on a line of its own" in said, said
 
     @pytest.mark.parametrize("name", ["LS", "PS", "NEL", "FF", "VT", "FS", "GS", "RS"])
     @pytest.mark.parametrize("where", ["above the header", "under the header"])
@@ -872,37 +835,96 @@ class Test_config_rows:
             if where == "above the header"
             else f"# c\n\n| Item | Value |{brk}|---|---|\n| Mode | shared |\n"
         )
-        assert config.config_rows(text) == [], config.config_rows(text)
-        value, said = config.config_value(text, "Mode")
-        assert value is None and "each on a line of its own" in (said or ""), said
+        rows, said = walk(text)
+        assert rows == [] and "each on a line of its own" in said, (rows, said)
 
 
-class Test_config_text:
-    def test_accepts_the_file_as_utf8_text(self, config, tmp_path):
-        text = "| Item | Value |\n|---|---|\n| Mode | shared |\n"
-        write_config(tmp_path, text)
-        assert config.config_text(str(tmp_path)) == (text, None)
+class Test_config_pairs:
+    def test_accepts_the_object_as_its_members_in_file_order(self, config, tmp_path):
+        """S1. A value holding a pipe is a JSON string like any other, so it
+        reads with the pipe plain: the escape a markdown cell needed is gone
+        with the cell."""
+        write_config(tmp_path, table(("Mode", "shared"), ("Broad gate", "a | b")))
+        pairs, refusal = config.config_pairs(str(tmp_path))
+        assert refusal is None
+        assert list(pairs) == [("Mode", "shared"), ("Broad gate", "a | b")]
+        assert config.declared_value(str(tmp_path), "Broad gate") == ("a | b", None)
+
+    def test_accepts_a_byte_order_mark(self, config, tmp_path):
+        """S2. An editor that writes a byte order mark has not made the file
+        unreadable. Seen red against a `utf-8` decode: the parser refused the
+        mark as an unexpected character."""
+        path = tmp_path / "config.json"
+        path.write_bytes(b"\xef\xbb\xbf" + table(("Mode", "local")).encode("utf-8"))
+        assert config.declared_mode(str(tmp_path)) == ("mode", "local")
 
     def test_refuses_an_empty_home_whatever_the_working_directory_holds(
         self, config, monkeypatch, tmp_path
     ):
         """An empty home is no root, so no file is read, not even the
-        `config.md` the working directory holds."""
-        write_config(tmp_path, "| Item | Value |\n|---|---|\n| Mode | shared |\n")
+        `config.json` the working directory holds."""
+        write_config(tmp_path, table(("Mode", "shared")))
         monkeypatch.chdir(tmp_path)
-        assert config.config_text("") == (None, None)
+        assert config.config_pairs("") == (None, None)
+
+    @pytest.mark.parametrize(
+        "text, said",
+        [
+            ("| Item | Value |\n|---|---|\n| Mode | shared |\n", "does not parse"),
+            ('{"Mode": "shared",}\n', "does not parse"),
+            ("", "does not parse"),
+            ('["Mode", "shared"]\n', "holds a JSON array where"),
+            ('"shared"\n', "holds a JSON string where"),
+            ("null\n", "holds a JSON null where"),
+        ],
+        ids=["a table", "a trailing comma", "empty", "an array", "a string", "null"],
+    )
+    def test_refuses_a_file_that_is_not_one_object_for_every_key(
+        self, config, tmp_path, text, said
+    ):
+        """S2. A file that will not parse, or whose top level is not an object,
+        holds no key anybody can read, so every key is that one refusal and
+        none reads as absent. The sentence opens with the path, which the
+        commands print after their own prefix."""
+        write_config(tmp_path, text)
+        path = str(tmp_path / "config.json")
+        pairs, refusal = config.config_pairs(str(tmp_path))
+        assert pairs is None and refusal.startswith(path + " "), refusal
+        assert said in refusal, refusal
+        assert config.declared_value(str(tmp_path), "Record language") == (
+            None,
+            refusal,
+        )
+        assert config.declared_mode(str(tmp_path)) == ("refused", refusal)
+
+    def test_refuses_a_config_md_standing_alone_and_names_seal_mode(
+        self, config, tmp_path
+    ):
+        """S3. A root an earlier release wrote holds `config.md` and no
+        `config.json`. Its rows are answers in the table no reader reads now,
+        so every key is refused naming the command that converts it, and none
+        reads as absent; beside a `config.json` it is not read at all. Seen red
+        against a reader that answered the root as declaring nothing."""
+        write_old_config(tmp_path, TABLE.format(rows="| Mode | shared |\n"))
+        path = str(tmp_path / "config.json")
+        pairs, refusal = config.config_pairs(str(tmp_path))
+        assert pairs is None and refusal.startswith(path + " is not there"), refusal
+        assert "run `seal mode` once" in refusal, refusal
+        assert config.declared_mode(str(tmp_path))[0] == "refused"
+        write_config(tmp_path, table(("Mode", "local")))
+        assert config.declared_mode(str(tmp_path)) == ("mode", "local")
 
 
 class Test_unreadable_config:
     def test_accepts_a_decode_error_in_its_own_words(self, config):
         exc = UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid start byte")
-        said = config.unreadable_config(os.path.join("seal", "config.md"), exc)
+        said = config.unreadable_config(os.path.join("seal", "config.json"), exc)
         assert f"({exc})" in said, said
 
     def test_refuses_the_error_numbers_wording_and_names_the_reason_alone(self, config):
         """An `OSError` is named by its reason, `Permission denied`, and not by
         the `[Errno 13] …: path` its own text wraps the reason in."""
-        path = os.path.join("seal", "config.md")
+        path = os.path.join("seal", "config.json")
         said = config.unreadable_config(path, OSError(13, "Permission denied", path))
         assert "(Permission denied)" in said, said
         assert "Errno" not in said, said
@@ -911,126 +933,44 @@ class Test_unreadable_config:
 class Test_config_value:
     def test_accepts_one_row_as_its_value_and_no_row_as_none(self, config):
         """The two answers beside the refusal, so a reader of `config_value` can
-        tell an empty row from no row: `""` is a row somebody left empty, and
-        None is no row at all."""
-        text = TABLE.format(rows="| Mode | shared |\n| Broad gate |  |\n")
-        assert config.config_value(text, "Mode") == ("shared", None)
-        assert config.config_value(text, "Broad gate") == ("", None)
-        assert config.config_value(text, "Ledger frozen from") == (None, None)
+        tell an empty key from no key: `""` is a key somebody left empty, and
+        None is no key at all."""
+        pairs = [("Mode", "shared"), ("Broad gate", "")]
+        assert config.config_value(pairs, "Mode") == ("shared", None)
+        assert config.config_value(pairs, "Broad gate") == ("", None)
+        assert config.config_value(pairs, "Ledger frozen from") == (None, None)
         assert config.config_value(None, "Mode") == (None, None)
 
     def test_an_item_spelt_otherwise_names_no_item(self, config):
-        """An item is its row's first cell spelt as `templates/setup/config.md`
-        spells it, case included, so a `Policy Root` row names no item and
-        `Policy root` reads as absent, which is what that file's paragraph on
-        absent rows says."""
-        text = TABLE.format(rows="| Policy Root | elsewhere |\n")
-        assert config.config_value(text, "Policy root") == (None, None)
+        """A key is spelt as `templates/setup/config.md` spells it, case
+        included, so a `Policy Root` key names nothing and `Policy root` reads
+        as absent, which is what that file's paragraph on absent keys says."""
+        pairs = [("Policy Root", "elsewhere")]
+        assert config.config_value(pairs, "Policy root") == (None, None)
 
-    def test_a_fenced_example_of_a_row_does_not_double_the_live_one(self, config):
-        """The count is over the rows `config_rows` takes, so the example a
-        person pastes from `templates/setup/config.md` into a fence above the table
-        (#429) is not a second row."""
-        text = (
-            "```markdown\n| Item | Value |\n|---|---|\n| Mode | local |\n```\n\n"
-            + TABLE.format(rows="| Mode | shared |\n")
-        )
-        assert config.config_value(text, "Mode") == ("shared", None)
-
-    def test_a_line_that_will_not_parse_is_named_in_the_refusal(self, config):
-        """A4 of #415, re-pinned by #871.
-
-        The reader names the line in its refusal, and the caller that prints
-        the sentence is a command, which already talks to a person. Until #871
-        a `Mode` row below an unparseable line read as undeclared; now the item
-        is a refusal.
-        """
-        text = (
-            "| Item | Value |\n|---|---|\n"
-            "| Record language | English |\n"
-            "| Broad gate | bin/test -q | tee out.txt |\n"
-            "| Mode | shared |\n"
-        )
-        value, said = config.config_value(text, "Mode")
-        assert value is None and "`| Broad gate | bin/test -q | tee out.txt |`" in said
-        assert config.config_table(TABLE.format(rows="| Mode | shared |\n"))[1] == []
-        assert config.config_table("# no table here\n\nprose.\n") == ([], [])
-        assert (
-            config.config_table("| Item | Value |\n|---|---|\n| a | b |\n\nprose.\n")[1]
-            == []
-        ), "a blank line is the table ending, not a row somebody wrote"
-
-    def test_a_refusal_is_per_item_and_never_an_absent_row(self, config, repo):
-        """S2, one arm per assertion, over shapes 1, 5, 7 and 13. A row the walk
-        read before it stopped is a value; an item it did not read is the
-        walker's sentence; a doubled row is #867's sentence; and `(None, None)`
-        is only an unrefused table with no such row, or no table at all. Seen
-        red against the stop rule: shape 7's `Mode` read `shared`, a row GitHub
-        shows truncated, and shape 13's read `shared` past a line GitHub shows
-        as a row of its own."""
-        shapes, stops = config_shapes.SHAPES, config_shapes.STOPS
-        assert config.config_value(shapes[5], "Mode") == ("shared", None)
-        assert config.config_value(shapes[7], "Record language") == ("English", None)
-        for number, item in ((1, "Mode"), (5, "Broad gate"), (7, "Mode"), (13, "Mode")):
-            value, said = config.config_value(shapes[number], item)
-            assert value is None and said is not None, (number, item, value)
-            assert stops[number] in said, (number, said)
-        doubled = TABLE.format(rows="| Mode | shared |\n| Mode | local |\n")
-        assert config.config_value(doubled, "Mode") == (
+    @pytest.mark.parametrize(
+        "value, kind",
+        [
+            (1, "number"),
+            (True, "boolean"),
+            (None, "null"),
+            (["a"], "array"),
+            ({"a": "b"}, "object"),
+        ],
+    )
+    def test_refuses_a_value_that_is_not_a_string_for_that_key_alone(
+        self, config, tmp_path, value, kind
+    ):
+        """S2. Every key's grammar is a string's, so a value of another JSON
+        type is no value: it is refused for its key, naming the type, and
+        every other key reads. Seen red against a reader that handed the
+        parsed value on."""
+        write_config(tmp_path, table(("Broad gate", value), ("Mode", "shared")))
+        assert config.declared_value(str(tmp_path), "Broad gate") == (
             None,
-            "`Mode` appears 2 times — one value",
+            f"`Broad gate` holds a JSON {kind}, and its value is a string",
         )
-        unrefused = TABLE.format(rows="| Mode | shared |\n")
-        assert config.config_value(unrefused, "Broad gate") == (None, None)
-        assert config.config_value("a file of prose\n", "Mode") == (None, None)
-        home = opt_in_shared(repo)
-        write_config(home, shapes[7])
-        kind, said = config.declared_mode(str(home))
-        assert kind == "refused" and stops[7] in said, (kind, said)
-
-    def test_refuses_an_item_written_again_below_the_stopping_line(self, config):
-        """#871 round 1, the reviewer's second question, answered by #867's rule:
-        an item written twice has no value. A `Mode` row the walk read above a
-        line it refused, and a `Mode` row written below that line, are two
-        answers, so neither is the value. Seen red against the walk before the
-        count reached below the stopping line: `('shared', None)`."""
-        text = TABLE.format(rows="| Mode | shared |\n| a | b | c |\n| Mode | local |\n")
-        assert config.config_value(text, "Mode") == (
-            None,
-            "`Mode` appears 2 times — one value",
-        )
-        assert config.config_value(text, "a")[1] is not None
-
-    def test_an_item_named_under_the_next_heading_is_another_tables(self, config):
-        """#871 round 2, yellow 10. A table under the next heading is not below
-        the line the walk stopped at, so a `Mode` cell in it does not double the
-        config's `Mode` row."""
-        text = TABLE.format(
-            rows="| Mode | shared |\n| a | b | c |\n\n## Notes\n\n"
-            "| Mode | what it means |\n|---|---|\n| local | x |\n"
-        )
-        assert config.config_value(text, "Mode") == ("shared", None)
-
-    @pytest.mark.parametrize("name", ["LS", "FF"])
-    def test_a_line_below_the_stop_is_a_line_where_gfm_begins_one(self, config, name):
-        """#871 round 2, yellow 7's class in yellow 10's count. A `| Mode | … |`
-        piece after a character only `str.splitlines` ends a line at is more of
-        the line above to GFM, so it names nothing and doubles nothing; and a
-        heading piece after one is no heading, so the count goes on past it."""
-        from block_shapes import BREAKS
-
-        brk = BREAKS[name]
-        cut = TABLE.format(
-            rows=f"| Mode | shared |\n| a | b | c |\nx{brk}| Mode | local |\n"
-        )
-        assert config.config_value(cut, "Mode") == ("shared", None)
-        past = TABLE.format(
-            rows=f"| Mode | shared |\n| a | b | c |\nx{brk}## y\n| Mode | local |\n"
-        )
-        assert config.config_value(past, "Mode") == (
-            None,
-            "`Mode` appears 2 times — one value",
-        )
+        assert config.declared_mode(str(tmp_path)) == ("mode", "shared")
 
 
 class Test_declared_mode:
@@ -1038,26 +978,26 @@ class Test_declared_mode:
         """The reader answers for whichever root exists, so a local-mode
         repository is not read as one that declared nothing."""
         home = local_home(repo)
-        write_config(home, TABLE.format(rows="| Mode | local |\n"))
+        write_config(home, table(("Mode", "local")))
         assert config.declared_mode(str(home)) == ("mode", "local")
 
     @pytest.mark.parametrize(
         "text, expected",
         [
             (None, ("none", "")),
-            (TABLE.format(rows="| Record language | Korean |\n"), ("none", "")),
-            (TABLE.format(rows="| Mode |  |\n"), ("none", "")),
-            ("not a table at all\n", ("none", "")),
-            (TABLE.format(rows="| Mode | SHARED |\n"), ("mode", "shared")),
-            (TABLE.format(rows="| Mode | whatever |\n"), ("unknown", "whatever")),
+            (table(("Record language", "Korean")), ("none", "")),
+            (table(("Mode", "")), ("none", "")),
+            ("{}\n", ("none", "")),
+            (table(("Mode", "SHARED")), ("mode", "shared")),
+            (table(("Mode", "whatever")), ("unknown", "whatever")),
         ],
     )
     def test_the_four_spellings_of_undeclared_are_one_answer(
         self, config, repo, text, expected
     ):
         """The same four `seal.py#declared` already had, because it is the same
-        reader — moved, not rewritten. A row that names no mode is told apart from
-        no row, because a claim nobody can act on is not the same as no claim."""
+        reader — moved, not rewritten. A key that names no mode is told apart from
+        no key, because a claim nobody can act on is not the same as no claim."""
         home = opt_in_shared(repo)
         if text is not None:
             write_config(home, text)
@@ -1066,24 +1006,27 @@ class Test_declared_mode:
     @pytest.mark.parametrize(
         "rows",
         [
-            "| Mode | shared |\n| Mode | local |\n",
-            "| Mode | local |\n| Mode | local |\n",
-            "| Mode | shared |\n| Record language | Korean |\n| Mode |  |\n",
+            [("Mode", "shared"), ("Mode", "local")],
+            [("Mode", "local"), ("Mode", "local")],
+            [("Mode", "shared"), ("Record language", "Korean"), ("Mode", "")],
         ],
-        ids=["two values", "the same value twice", "one value and an empty row"],
+        ids=["two values", "the same value twice", "one value and an empty key"],
     )
     def test_refuses_a_mode_row_written_twice(self, config, repo, rows):
-        """S1 of #867, the reader's half. The reader took the first row and the
-        checker took the last, so a person editing the row they could see might be
-        editing the one that does not answer. A row written twice has no value
-        -- not its first and not its last -- and the refusal names the item and
-        how many times it is written. Seen red against the first-wins reader:
-        `('mode', 'shared')` for the first shape."""
+        """S1 of #867, the reader's half, and S2 of #1454. The reader took the
+        first row and the checker took the last, so a person editing the one
+        they could see might be editing the one that does not answer; a JSON
+        parser keeps the last. A key written twice has no value -- not its
+        first and not its last -- and the refusal names the key and how many
+        times it is written, while every other key reads. Seen red against a
+        reader over `json.loads`' dict: `('mode', 'local')` for the first
+        shape."""
         home = opt_in_shared(repo)
-        write_config(home, TABLE.format(rows=rows))
+        write_config(home, table(*rows, ("Broad gate", "bin/test")))
         kind, said = config.declared_mode(str(home))
         assert kind == "refused", (kind, said)
         assert said == "`Mode` appears 2 times — one value"
+        assert config.declared_value(str(home), "Broad gate") == ("bin/test", None)
 
     def test_an_absent_config_and_an_unreadable_one_are_two_states(self, config, repo):
         """S3 of #867, the reader's half. No file declares nothing; a file that is
@@ -1091,11 +1034,11 @@ class Test_declared_mode:
         reader tells the two apart once, so no caller opens the file again to
         find out."""
         home = opt_in_shared(repo)
-        assert config.config_text(str(home)) == (None, None)
+        assert config.config_pairs(str(home)) == (None, None)
         assert config.declared_value(str(home), "Mode") == (None, None)
         for shape in ("directory", "undecodable"):
             path = write_unreadable(home, shape)
-            text, said = config.config_text(str(home))
+            text, said = config.config_pairs(str(home))
             assert text is None and said.startswith(path + " is there and cannot"), said
             assert config.declared_value(str(home), "Mode") == (None, said)
             assert config.declared_mode(str(home)) == ("refused", said)
@@ -1104,29 +1047,11 @@ class Test_declared_mode:
             else:
                 os.remove(path)
 
-    def test_rows_above_the_header_are_not_rows_of_this_table(self, config, repo):
-        """A mutation survived here, and the branch it broke is the one the
-        docstring's whole claim rests on: the header is this table's furniture
-        ABOVE its first row. Without it a `| Mode | local |` written into some
-        other table earlier in the file — an example, a comparison — is read as
-        the declaration.
 
-        Uncovered because it arrived uncovered. The parser moved here from
-        `seal.py`, and the suite that looks like its home,
-        `tests/behaviour/test_the_pull_request_language_is_the_repositorys.py`, carries a
-        second copy of the loop rather than calling this one."""
-        home = opt_in_shared(repo)
-        write_config(
-            home,
-            "# Repository config\n\n"
-            "An example of what NOT to write:\n\n"
-            "| Mode | local |\n\n"
-            "| Item | Value |\n|---|---|\n| Mode | shared |\n",
-        )
-        assert config.declared_mode(str(home)) == ("mode", "shared")
+class _Old_config_shapes:
+    """`gfm_table` over the config shapes of #667 and #871, each an earlier
+    release's `config.md`. `Test_gfm_table` runs these cases."""
 
-
-class Test_config_table:
     def test_refuses_a_fenced_pipe_line_as_a_line_somebody_wrote(self, config):
         """A3. The walk that read ON past the stopping line treated any line
         beginning with a pipe as a line somebody wrote as a row — so a line
@@ -1138,7 +1063,7 @@ class Test_config_table:
         of the table's rows and the walk refuses it -- naming THAT line, never
         the fenced one.
         """
-        rows, refusals = config.config_table(FENCED_REFUSAL)
+        rows, refusals = config.gfm_table(FENCED_REFUSAL, config.OLD_TABLE)
         assert rows == [], rows
         assert len(refusals) == 1, refusals
         assert "tee out.txt" not in refusals[0], (
@@ -1188,84 +1113,42 @@ class Test_config_table:
         self, config, name, rows, stops
     ):
         """S5 of #667, re-pinned to the walker by #871. Every config shape the
-        frame names, through `config_table`. A row inside a comment that closes
-        is not an answer somebody gave, which is the direction this module fails
-        in, and a fenced line is no row either. Where GFM ends the table at a
-        comment or shows no table at all, the walk refuses, naming the live row
-        it did not read -- never the parked one -- rather than reading on below
-        it as the stop rule did; a refused item is a refusal, never absent."""
+        frame names, through the walker. A row inside a comment that closes
+        is not an answer somebody gave, and a fenced line is no row either.
+        Where GFM ends the table at a comment or shows no table at all, the
+        walk refuses, naming the live row it did not read -- never the parked
+        one -- rather than reading on below it as the stop rule did."""
         text = shape_text(name)
-        found, refusals = config.config_table(text)
-        assert config.config_rows(text) == rows, config.config_rows(text)
+        found, refusals = walk(text)
+        assert found == rows, found
         if stops is None:
-            assert refusals == [], refusals
+            assert refusals == "", refusals
         else:
-            assert len(refusals) == 1 and stops in refusals[0], refusals
-            assert "old -q" not in refusals[0], refusals
-        assert [(item, value) for _i, item, value in found] == rows
-
-    @pytest.mark.parametrize("number", sorted(config_shapes.SHAPES))
-    def test_every_config_reader_is_one_walk_over_the_sixteen_shapes(
-        self, config, number
-    ):
-        """S1. `config_rows` is read first, because it is the name every caller
-        spells and the one the stop rule answered: seen red against the stop
-        rule on ten of the sixteen shapes (1-5, 9, 11-13, 16). On 6, 7, 8 and 14
-        the stop rule returned the same rows above the line and dropped every
-        row below it in silence, which is what the refusal assertion holds; 10
-        and 15 the two readers read alike. Then the walk itself: `config_table`
-        is `gfm_table` over the config header, every index names the line the
-        row is written on, and the refusal names where the walk stopped."""
-        text = config_shapes.SHAPES[number]
-        assert config.config_rows(text) == config_shapes.READ[number]
-        rows, refusals = config.config_table(text)
-        walked, said = config.gfm_table(text, config.CONFIG_TABLE)
-        assert rows == [(line - 1, item, value) for line, (item, value) in walked]
-        assert refusals == said
-        lines = text.splitlines()
-        assert all(
-            config.table_cells(lines[index]) == (item, value)
-            for index, item, value in rows
-        ), rows
-        stops = config_shapes.STOPS[number]
-        if stops is None:
-            assert refusals == [], refusals
-        else:
-            assert len(refusals) == 1 and stops in refusals[0], refusals
+            assert stops in refusals, refusals
+            assert "old -q" not in refusals, refusals
 
 
 class Test_fence_map:
-    def test_refuses_to_name_a_fence_inside_a_closed_comment(self, config, tmp_path):
-        """S8, C2. The comment closes, so the fence line inside it opens nothing,
-        and neither `seal gate`'s `fence_left_open` nor `seal.py`'s write guard,
-        which both ask `fence_map`'s second value, names a fence nobody left
+    def test_refuses_to_name_a_fence_inside_a_closed_comment(self, config):
+        """S8, C2. The comment closes, so the fence line inside it opens
+        nothing, and `fence_map`'s second value names no fence nobody left
         open. Red at base: the fence ran to the end and was named."""
         lines = SHAPES["C2"]
         assert config.fence_map(lines)[1] is None
-        home = tmp_path / "seal"
-        home.mkdir()
-        write_config(home, shape_text("C2"))
-        path = os.path.join(ROOT, "skills", "verify", "scripts", "broad_gate.py")
-        spec = importlib.util.spec_from_file_location("agentic_gate_for_667", path)
-        gate = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(gate)
-        assert gate.fence_left_open(str(home)) is False
 
     def test_accepts_a_fence_nobody_closed_as_the_one_named(self, config):
         """C14, pinned from the other side: the fence that hides the live table
-        is the one `fence_map` reports, so `seal gate` still says *close that
-        fence*."""
+        is the one `fence_map` reports."""
         assert config.fence_map(SHAPES["C14"])[1] == 0
 
     def test_the_fence_named_is_the_one_that_hides_the_row(self, config):
         """C2 with a fence left open below the table. The old reading runs the
         fence quoted in the comment to the end, so it would name THAT line, which
         opens nothing; the walk sees the tilde fence below the table never close,
-        and the line under it is hidden because of it. That is the fence
-        `seal gate` has to tell the person to close."""
+        and the line under it is hidden because of it."""
         lines = [*SHAPES["C2"], "", "~~~", "| Broad gate | bin/test -q |"]
         assert config.fence_map(lines)[1] == lines.index("~~~")
-        assert config.config_rows("\n".join(lines)) == [("Mode", "shared")]
+        assert items("\n".join(lines)) == [("Mode", "shared")]
 
 
 class Test_hidden_lines:
@@ -1287,19 +1170,17 @@ class Test_unfenced:
         """S5, C5 to C7, named as 1790635413 named them. The rows parked in a
         comment are gone from every walk. Since #871 the live rows under a
         comment that sits inside the table do not arrive either: GFM ends the
-        table at the comment, so the walk refuses them, naming the first, and an
-        item among them is a refusal and never an absent row. Under a whole old
-        table parked above the live one, the live table arrives."""
+        table at the comment, so the walk refuses them, naming the first. Under
+        a whole old table parked above the live one, the live table arrives."""
         for text in (COMMENTED_OLD_ROW, COMMENTED_OLD_TABLE, crlf(COMMENTED_OLD_ROW)):
             assert all(
                 "old -q" not in line
                 for _index, line in config.unfenced(text.splitlines())
             ), text
-        assert config.config_rows(COMMENTED_OLD_TABLE) == LIVE
+        assert items(COMMENTED_OLD_TABLE) == LIVE
         for text in (COMMENTED_OLD_ROW, crlf(COMMENTED_OLD_ROW)):
-            assert config.config_rows(text) == [], text
-            value, said = config.config_value(text, "Broad gate")
-            assert value is None and UNDER_THE_COMMENT in said, said
+            rows, said = walk(text)
+            assert rows == [] and UNDER_THE_COMMENT in said, (text, said)
 
     def test_accepts_every_line_under_a_mid_line_comment(self, config):
         """C13, the residual `frame/design.md` *Scope* names. A renderer hides the first
@@ -1317,7 +1198,7 @@ class Test_pact_declaration:
     def test_accepts_one_pact_normalised(self):
         """S1. One URL: the URL as written, and normalised."""
         pacts, refusals = config.pact_declaration(
-            table(("Mode", "shared"), ("Pact", "git@example.com:org/Orders-API.git"))
+            [("Mode", "shared"), ("Pact", "git@example.com:org/Orders-API.git")]
         )
         assert refusals == []
         assert pacts == [
@@ -1326,14 +1207,14 @@ class Test_pact_declaration:
 
     def test_two_pacts_come_back_in_order(self):
         """S2. `;` separates the pacts a signer signs, and the order is the
-        row's."""
+        key's."""
         pacts, refusals = config.pact_declaration(
-            table(
+            [
                 (
                     "Pact",
                     "https://example.com/org/orders-api ; git@example.com:org/billing.git",
                 ),
-            )
+            ]
         )
         assert refusals == []
         assert [n for _, n in pacts] == [
@@ -1345,7 +1226,7 @@ class Test_pact_declaration:
         """S10 of #913: an anchor names the pact by its URL, so two pacts
         ending in one segment are two pacts and nothing is refused."""
         value = "git@example.com:org/api.git;https://example.com/other/api"
-        assert config.pact_declaration(table(("Pact", value))) == (
+        assert config.pact_declaration([("Pact", value)]) == (
             [
                 ("git@example.com:org/api.git", "example.com/org/api"),
                 ("https://example.com/other/api", "example.com/other/api"),
@@ -1355,13 +1236,9 @@ class Test_pact_declaration:
 
     def test_no_row_and_an_empty_row_hold_no_pact(self):
         """Absent means no pact is held elsewhere, and so do an empty value and
-        a file with no table."""
-        for text in (
-            table(("Mode", "shared")),
-            table(("Pact", "")),
-            "no table here\n",
-        ):
-            assert config.pact_declaration(text) == ([], []), text
+        no file."""
+        for pairs in ([("Mode", "shared")], [("Pact", "")], [], None):
+            assert config.pact_declaration(pairs) == ([], []), pairs
 
     @pytest.mark.parametrize(
         "rows",
@@ -1372,13 +1249,13 @@ class Test_pact_declaration:
         ids=["a value outside the old vocabulary", "written twice"],
     )
     def test_a_pact_notify_row_an_earlier_release_read_is_ignored(self, rows):
-        """`templates/setup/config.md` *Pact*: a `Pact notify` row left in the table
-        is read by nobody, with a `Pact` row or without one, so neither a value
-        outside the vocabulary the row once had nor the row written twice is
+        """`templates/setup/config.md` *Pact*: a `Pact notify` key left in the
+        config is read by nobody, with a `Pact` key or without one, so neither
+        a value outside the vocabulary it once had nor the key written twice is
         refused. Seen red by `seal mutate` against a reader that refused the
         row (phase 8 of 1791940762)."""
-        assert config.pact_declaration(table(("Pact", URL), *rows)) == (ORDERS, [])
-        assert config.pact_declaration(table(*rows)) == ([], [])
+        assert config.pact_declaration([("Pact", URL), *rows]) == (ORDERS, [])
+        assert config.pact_declaration(rows) == ([], [])
 
     def test_refuses_a_row_that_will_not_parse_and_never_reads_it_as_absent(self):
         """Each way an entry fails is a sentence naming it, so a signer that
@@ -1390,89 +1267,47 @@ class Test_pact_declaration:
             "git@example.com:org/api.git;https://example.com/org/api": "are one repository",
         }
         for value, said in cases.items():
-            _, refusals = config.pact_declaration(table(("Pact", value)))
+            _, refusals = config.pact_declaration([("Pact", value)])
             assert len(refusals) == 1 and said in refusals[0], (value, refusals)
-        # A `Pact` row written twice has no value, in the one sentence every
-        # config row is refused in (#867): its first row is not the answer, so it
+        # A `Pact` key written twice has no value, in the one sentence every
+        # config key is refused in (#867): its first is not the answer, so it
         # lists no pact. Seen red against the first-wins reader, which listed `a`.
         pacts, refusals = config.pact_declaration(
-            table(
+            [
                 ("Pact", "git@example.com:org/a.git"),
                 ("Pact", "git@example.com:org/b.git"),
-            )
+            ]
         )
         assert pacts == []
         assert refusals == ["`Pact` appears 2 times — one value"]
 
-    @pytest.mark.parametrize(
-        "text",
-        [
-            f"| Item | Value |\n|---|---|\n | Pact | {URL} |\n| Mode | shared |\n",
-            CONFIG_TOP + f"  | Pact | {URL} |\n",
-        ],
-        ids=["between the header and the first row", "indented"],
-    )
-    def test_an_indented_pact_row_is_read_as_cmark_gfm_renders_it(self, text):
-        """#871. A row indented one to three spaces is one of the table's rows
-        to cmark-gfm, and the walker reads it: the row is read, and nothing is
-        refused. Seen red against the stop rule, whose row pattern began at the
-        margin."""
-        assert config.pact_declaration(text) == (ORDERS, [])
-
-    def test_a_signer_config_the_walker_refuses_is_refused_after_the_pact(self):
-        """#871. A signer's table is read by the walker cmark-gfm holds, so a
-        line it refuses is refused here as well, after every other refusal. A
-        `Pact` row above the line is read; one below it is a row the walk never
-        read, so no pact comes back. Seen red against the stop rule: the line
-        ended the table in silence and nothing was refused."""
-        bad = "| Broad gate | bin/test -q | tee out |\n"
-        assert config.pact_declaration(CONFIG + bad) == (ORDERS, [BARE_PIPE])
-        assert walked(CONFIG + bad) == [BARE_PIPE]
-        assert config.pact_declaration(CONFIG_TOP + bad + f"| Pact | {URL} |\n") == (
-            [],
-            [BARE_PIPE],
-        )
-        # The arm a doubled `Pact` returns from early keeps the walker's sentence
-        # last too: seen red by `seal mutate` dropping it on that arm alone.
-        doubled = CONFIG + "| Pact | git@example.com:org/b.git |\n" + bad
-        assert config.pact_declaration(doubled) == (
-            [],
-            ["`Pact` appears 2 times — one value", BARE_PIPE],
-        )
-
 
 class Test_declared_pacts:
     def test_an_unreadable_config_is_no_declaration(self, tmp_path):
-        """`declared_pacts` is what `seal pact` reads a signer's row
-        through. No file is no row; a file that is there and will not read is
-        None, which the caller refuses, because a written row read as absent is
+        """`declared_pacts` is what `seal pact` reads a signer's key
+        through. No file is no key; a file that is there and will not read is
+        None, which the caller refuses, because a written key read as absent is
         the silence the reader exists to end."""
         assert config.declared_pacts(str(tmp_path / "missing")) == ([], [])
         home = tmp_path / "seal"
-        (home / "config.md").mkdir(parents=True)
+        (home / "config.json").mkdir(parents=True)
         assert config.declared_pacts(str(home)) is None
-        (home / "config.md").rmdir()
-        (home / "config.md").write_text(table(("Pact", URL)), encoding="utf-8")
+        (home / "config.json").rmdir()
+        (home / "config.json").write_text(table(("Pact", URL)), encoding="utf-8")
         pacts, refusals = config.declared_pacts(str(home))
         assert pacts == ORDERS and refusals == []
 
-    def test_refuses_a_signer_config_the_walker_refuses_with_exit_2(self, world):
-        """S4 of #871: a bare-piped line in a signer's table is refused in the
-        walker's sentence, naming the line, and the run exits 2."""
-        write(
-            world.web,
-            "seal/config.md",
-            signer_config(("Pact", PACT_URL))
-            + "| Broad gate | bin/test -q | tee out |\n",
-        )
+    def test_refuses_a_signer_config_that_will_not_parse_with_exit_2(self, world):
+        """S2 at `seal pact`: a signer's config that will not parse is refused
+        as `UNREADABLE`, in the reader's sentence after the path the command
+        shows, and the run exits 2. Seen red against the sentence the command
+        printed before #1454, `could not be read`, which named no cause."""
+        write(world.web, "seal/config.json", '{"Pact": "x",}\n')
         world.cite(clause(V2))
         code, out = world.run()
         assert code == 2, out
-        assert (
-            f"REFUSED {SIGNER_URL} seal/config.md — has a `Item | Value` table that "
-            "stops at `| Broad gate | bin/test -q | tee out |`, which is not a "
-            "2-cell row written `| … | … |`"
-        ) in out, out
+        assert f"UNREADABLE {SIGNER_URL} " in out, out
+        assert "seal/config.json — does not parse as JSON" in out, out
 
     @pytest.mark.parametrize(
         "rows",
@@ -1485,9 +1320,9 @@ class Test_declared_pacts:
     def test_accepts_a_pact_notify_row_an_earlier_release_read_as_nothing(
         self, world, rows
     ):
-        """`templates/setup/config.md` *Pact*: a `Pact notify` row left in a signer's
-        table is read by nobody."""
-        write(world.web, "seal/config.md", signer_config(("Pact", PACT_URL), *rows))
+        """`templates/setup/config.md` *Pact*: a `Pact notify` key left in a
+        signer's config is read by nobody."""
+        write(world.web, "seal/config.json", signer_config(("Pact", PACT_URL), *rows))
         world.cite(clause(V2))
         code, out = world.run()
         assert code == 0, out
@@ -1802,7 +1637,7 @@ class Test_pact_signers:
         ) in out, out
 
 
-class Test_gfm_table:
+class Test_gfm_table(_Old_config_table, _Old_config_shapes):
     @pytest.mark.parametrize(
         "above",
         ["text\n```\nx\n```\n", "text\n" + "<" + "!-- c -->\n"],
@@ -1944,9 +1779,8 @@ class Test_module:
         """`lib/config.py#policy_root`, the one reader every reader asks: an
         empty value and one that leaves the repository read as `docs`."""
         config = load_lib_module("config.py", "agentic_config_for_policy_root")
-        (tmp_path / "config.md").write_text(
-            f"| Item | Value |\n|---|---|\n| Policy root | {value} |\n",
-            encoding="utf-8",
+        (tmp_path / "config.json").write_text(
+            table(("Policy root", value)), encoding="utf-8"
         )
         assert config.policy_root(str(tmp_path)) == root
         assert config.policy_root("") == "docs"

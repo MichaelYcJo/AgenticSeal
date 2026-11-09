@@ -211,7 +211,7 @@ def parse(text):
     above the table is not a block at all, so that declaration still reads.
 
     **A label written twice has no value** (#867), the rule
-    `lib/config.py#value_of` gives every `seal/config.md` row. This used to
+    `lib/config.py#config_value` gives every `seal/config.json` key. This used to
     keep the LAST row of a label, so a second `Review` row below the first
     answered for it, and nothing said there were two. Now a strict label
     doubled -- `Review`, `Destination`, `Branch` -- makes the file no

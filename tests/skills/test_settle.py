@@ -44,6 +44,7 @@ from conftest import (
     DOC,
     ROOT,
     census_case,
+    config_json,
     line_of,
     load_module,
     mark_root,
@@ -139,10 +140,7 @@ OPEN = (
 
 
 def configure(repo, *rows):
-    table = "".join(f"| {item} | {value} |\n" for item, value in rows)
-    (repo / "seal" / "config.md").write_text(
-        f"| Item | Value |\n|---|---|\n{table}", encoding="utf-8"
-    )
+    (repo / "seal" / "config.json").write_text(config_json(*rows), encoding="utf-8")
 
 
 def no_rule(repo, work_item_id):
