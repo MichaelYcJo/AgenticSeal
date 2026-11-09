@@ -2702,14 +2702,24 @@ class Test_gate:
         with pytest.raises(gate.Refused, match="is not in a git repository"):
             gate.gate(namespace(tmp_path, tmp_path / "out"))
         git(tmp_path, "init", "-q")
-        said = (
-            r"has no seal/ root at either place a root lives \(`<repo>/seal/`, "
-            r"`<git-common-dir>/seal/`, its README.md opening with the marker\)"
-        )
-        with pytest.raises(gate.Refused, match=said):
+
+        def said(shared):
+            """The refusal naming the two places `optin.home_paths` gives:
+            SHARED under the repository git resolves, then the local one."""
+            top = os.path.realpath(str(tmp_path))
+            return re.escape(
+                "has no seal/ root at either place a root lives "
+                f"(`{os.path.join(top, shared)}`, "
+                f"`{os.path.join(top, '.git', 'seal')}`, its "
+                "README.md opening with the marker)"
+            )
+
+        with pytest.raises(gate.Refused, match=said("seal")):
             gate.gate(namespace(tmp_path, tmp_path / "out"))
+        # A `seal/` with no marker is the project's own, so the shared place
+        # the refusal names is the second one.
         write(tmp_path, "seal/config.md", config_of("bin/test -q"))
-        with pytest.raises(gate.Refused, match=said):
+        with pytest.raises(gate.Refused, match=said("agentic-seal")):
             gate.gate(namespace(tmp_path, tmp_path / "out"))
 
 

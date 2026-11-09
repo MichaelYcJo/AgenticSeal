@@ -12,19 +12,24 @@ scenario row holds, is named by its command. The resolver's order itself is
 `tests/lib/test_optin.py`'s.
 """
 
+import io
 import json
 import os
 import shutil
+import subprocess
+import sys
 import zipfile
 
 import pytest
 from conftest import (
     ROOT,
+    V2,
     commit_everything_as_e,
     git,
     load_module,
     local_home,
     mark_root,
+    pact,
     parity_file,
     symlink_or_skip,
     write,
@@ -42,6 +47,11 @@ from test_pr_body import NAME as BODIED
 from test_pr_body import PR as PR_BODY
 from test_pr_body import RECORDS as BODY_RECORDS
 from test_pr_body import ROW as MARK_ROW
+from test_rules import HELD as RULES_HELD
+from test_rules import TESTS as RULES_TESTS
+from test_rules import doc as rules_doc
+from test_rules import rule as rules_rule
+from test_rules import rules as RULES
 from test_seal import status, unanswered
 from test_seal_stamp import ITEM_ID as STAMPED_ID
 from test_seal_stamp import ITEM_NAME as STAMPED
@@ -55,6 +65,14 @@ SEAL = load_module(
 CHAIN = load_module(
     os.path.join(ROOT, "skills", "code-review", "scripts", "chain_check.py"),
     "chain_check_beside_a_foreign_seal_dir",
+)
+UNVERIFIED = load_module(
+    os.path.join(ROOT, "skills", "verify", "scripts", "unverified_check.py"),
+    "unverified_check_beside_a_foreign_seal_dir",
+)
+PACT = load_module(
+    os.path.join(ROOT, "skills", "verify", "scripts", "pact_check.py"),
+    "pact_check_beside_a_foreign_seal_dir",
 )
 
 ITEM = "1794200000-a-work-item"
@@ -555,3 +573,131 @@ def test_s5_pr_body_check_reads_the_seal_and_the_records_under_agentic_seal(
         assert capsys.readouterr().out.startswith(
             f"refused: agentic-seal/threads/{BODIED}/pr.md: is not there"
         )
+
+
+def tool(cwd, name, *args):
+    """(exit code, stdout, stderr) of the script `seal <name>` hands over to,
+    run in CWD on this interpreter, as a person types it there."""
+    done = subprocess.run(
+        [sys.executable, os.path.join(ROOT, SEAL.TOOLS[name][0]), *args],
+        cwd=str(cwd),
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    return done.returncode, done.stdout, done.stderr
+
+
+def configured(home, *rows):
+    """HOME's `config.md` holding ROWS, each `(item, value)`."""
+    table = "".join(f"| {item} | {value} |\n" for item, value in rows)
+    write(home, "config.md", f"# Repository config\n\n{TABLE_HEAD}{table}")
+
+
+TABLE_HEAD = "| Item | Value |\n|---|---|\n"
+
+
+def test_s5_gate_reads_its_row_from_agentic_seal_and_names_it_where_none_is(
+    package, tmp_path
+):
+    """`seal gate --preflight` with no root names `<repo>/agentic-seal` as
+    the shared place a root would stand, not the package's `seal/`; with
+    the root there, it reads the `Broad gate` row of `agentic-seal/config.md`."""
+    top = os.path.realpath(package)
+    code, _out, err = tool(package, "gate", "--base", "main", "--preflight")
+    assert code == 2, err
+    shared = os.path.join(top, "agentic-seal")
+    assert f"at either place a root lives (`{shared}`, `" in err, err
+    row = f"{sys.executable} -c pass"
+    configured(records_at(package / "agentic-seal"), ("Broad gate", row))
+    commit_everything_as_e(package, "the root")
+    _code, _out, err = tool(package, "gate", "--base", "main", "--preflight")
+    assert f"seal gate: `Broad gate` says: {row} — read, and not run" in err, err
+
+
+def test_s5_rules_check_excuses_a_section_a_design_under_agentic_seal_removes(
+    shared, capsys
+):
+    """`seal rules --check` reads the designs under `agentic-seal/threads/`
+    and the `Policy root` row of `agentic-seal/config.md`: a refused `check:`
+    line in a section a design there removes is excused and named by its
+    path under the root."""
+    configured(shared / "agentic-seal", ("Policy root", "policy"))
+    write(shared, RULES_HELD, RULES_TESTS)
+    write(shared, "policy/a.md", rules_doc(rules_rule("check: tests/test_gone.py")))
+    write(
+        shared / "agentic-seal" / "threads" / ITEM,
+        "frame/design.md",
+        "# Design\n\n## Rule changes\n\n- remove\n  file: policy/a.md\n"
+        "  section: The heading\n",
+    )
+    code = RULES.main(["--check", "--root", str(shared)])
+    out = capsys.readouterr().out
+    assert code == 0, out
+    assert (
+        "seal rules: excused: policy/a.md:6: The heading: tests/test_gone.py does "
+        f"not exist; agentic-seal/threads/{ITEM}/ removes this section at the "
+        "settle\n"
+    ) in out, out
+
+
+@pytest.mark.parametrize("state", ["unwritten", "settled", "absent"])
+def test_s5_unverified_reads_agentic_seal_threads_as_the_roots_own(
+    shared, capsys, monkeypatch, state
+):
+    """`seal unverified agentic-seal/threads` reads the root's own `threads/`:
+    work items with no `gaps.md` are unwritten, none is a finished settle,
+    and with the root out of the tree there is nothing declared. Each exits
+    0, where a path read as a typo exits 2."""
+    said_of_it = {
+        "unwritten": "holds work items and none of them carries an `gaps.md`",
+        "settled": "holds no work item and its `seal/` root is there",
+        "absent": "has no `seal/` root in this tree, so nothing here is declared",
+    }[state]
+    if state == "settled":
+        shutil.rmtree(shared / "agentic-seal" / "threads" / ITEM)
+    elif state == "absent":
+        shutil.rmtree(shared / "agentic-seal")
+    monkeypatch.chdir(shared)
+    code = UNVERIFIED.main(["agentic-seal/threads"])
+    out = capsys.readouterr().out
+    assert code == 0, out
+    assert out.startswith(f"seal unverified: agentic-seal/threads {said_of_it}"), out
+
+
+def test_s5_settle_shows_a_work_item_released_under_agentic_seal(shared):
+    """`seal settle`'s dry run reads the work items under
+    `agentic-seal/threads/` as the shared root's, released where `main`
+    holds them, and names each by its path there."""
+    code, out, err = tool(shared, "settle", "--released-at", "main")
+    assert code == 0, err
+    assert f"agentic-seal/threads/{ITEM}/" in out, out
+    assert "local mode" not in out, out
+
+
+def test_s5_pact_names_the_pact_under_agentic_seal(shared, tmp_path):
+    """`seal pact` reads `agentic-seal/pact.md` and names it by that path: a
+    pact that lists its own repository is refused at it."""
+    write(shared / "agentic-seal", "pact.md", pact(V2, (REMOTE,)))
+    commit_everything_as_e(shared, "the pact")
+    out = io.StringIO()
+    code = PACT.check(str(shared), out=out, home_dir=str(tmp_path))
+    assert code == 2, out.getvalue()
+    assert (
+        f"REFUSED {REMOTE} agentic-seal/pact.md — the pact lists its own repository"
+    ) in out.getvalue(), out.getvalue()
+
+
+def test_s5_fold_reads_its_rows_from_agentic_seal(shared):
+    """`seal fold` reads `Policy root` and `Document token ceiling` from
+    `agentic-seal/config.md`, so the documents it holds to the ceiling are
+    the ones under the root that row names."""
+    configured(
+        shared / "agentic-seal",
+        ("Policy root", "policy"),
+        ("Document token ceiling", "1"),
+    )
+    write(shared, "policy/a.md", "# A\n")
+    code, out, err = tool(shared, "fold")
+    assert code == 0, err
+    assert "policy/a.md is about 2 tokens, past the ceiling of 1" in out, out

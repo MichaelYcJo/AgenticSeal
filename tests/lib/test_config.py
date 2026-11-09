@@ -274,7 +274,7 @@ class Test_reference_roots:
                 ("Reference specs", "specs/, docs/adr ,./design/, specs, tools\\notes")
             ),
         )
-        roots = config.reference_roots(home)
+        roots = config.reference_roots(home, "seal")
         assert roots == ("specs", "docs/adr", "design", "tools/notes"), roots
         for rel in (
             "specs/x/design.md",
@@ -284,9 +284,9 @@ class Test_reference_roots:
             "./specs/x.md",
             "tools/notes/n.md",
         ):
-            assert config.under_reference_root(rel, roots), rel
+            assert config.under_reference_root(rel, roots, "seal"), rel
         for rel in ("docs/adrs/0001.md", "docs/specs/x.md", "src/specs.py", "spec/x"):
-            assert not config.under_reference_root(rel, roots), rel
+            assert not config.under_reference_root(rel, roots, "seal"), rel
 
     def test_no_row_means_every_specs_directory_outside_the_root(
         self, tmp_path, monkeypatch
@@ -296,7 +296,7 @@ class Test_reference_roots:
         for body in (None, table(("Mode", "shared")), table(("Reference specs", ""))):
             if body is not None:
                 write_config(home, body)
-            roots = config.reference_roots(home)
+            roots = config.reference_roots(home, "seal")
             assert roots is None, (body, roots)
             for rel in (
                 "specs/x/design.md",
@@ -304,13 +304,13 @@ class Test_reference_roots:
                 "a/b/specs/c/d.md",
                 "specs\\x\\design.md",
             ):
-                assert config.under_reference_root(rel, roots), rel
+                assert config.under_reference_root(rel, roots, "seal"), rel
             for rel in (
                 "seal/threads/1790000000-x/design.md",
                 "docs/design.md",
                 "specsheet/a",
             ):
-                assert not config.under_reference_root(rel, roots), rel
+                assert not config.under_reference_root(rel, roots, "seal"), rel
         # No root at either place is no reference root at all: the repository has
         # not opted in, and the 0.3.x `specs/` the checks still read was the
         # plugin's own. Never a `config.md` found relative to wherever the
@@ -318,8 +318,8 @@ class Test_reference_roots:
         stray = tmp_path / "elsewhere"
         write_config(str(stray), table(("Reference specs", "docs/adr")))
         monkeypatch.chdir(stray)
-        assert config.reference_roots("") == ()
-        assert not config.under_reference_root("specs/x/design.md", ())
+        assert config.reference_roots("", "") == ()
+        assert not config.under_reference_root("specs/x/design.md", (), "")
 
     def test_refuses_a_row_written_twice_or_a_file_that_will_not_read(self, tmp_path):
         """#867. A `Reference specs` row written twice has no value, by
@@ -331,17 +331,17 @@ class Test_reference_roots:
         write_config(
             home, table(("Reference specs", "docs/adr"), ("Reference specs", "none"))
         )
-        assert config.reference_roots(home) is None
+        assert config.reference_roots(home, "seal") is None
         os.remove(os.path.join(home, "config.md"))
         os.mkdir(os.path.join(home, "config.md"))
-        assert config.reference_roots(home) is None
+        assert config.reference_roots(home, "seal") is None
 
     def test_none_declares_no_reference_root(self, tmp_path):
         home = str(tmp_path / "seal")
         write_config(home, table(("Reference specs", "None")))
-        roots = config.reference_roots(home)
+        roots = config.reference_roots(home, "seal")
         assert roots == (), roots
-        assert not config.under_reference_root("specs/x/design.md", roots)
+        assert not config.under_reference_root("specs/x/design.md", roots, "seal")
 
     def test_a_row_inside_a_fence_is_not_a_row(self, tmp_path):
         """`lib/config.py#unfenced` filters in front of the table walk, so a
@@ -353,29 +353,34 @@ class Test_reference_roots:
             "| Reference specs | none |\n```\n\n"
             + table(("Mode", "shared")).split("\n\n", 1)[1],
         )
-        assert config.reference_roots(home) is None
+        assert config.reference_roots(home, "seal") is None
 
-    def test_the_plugins_own_root_is_never_a_reference_root(self, tmp_path):
+    @pytest.mark.parametrize("name", ["seal", "agentic-seal"])
+    def test_the_plugins_own_root_is_never_a_reference_root(self, tmp_path, name):
         """A reference root is outside the root by definition; a prefix naming
-        `seal/` or anything under it is dropped, and the default never reaches
-        `seal/threads/` either."""
-        home = str(tmp_path / "seal")
-        write_config(home, table(("Reference specs", "seal/threads, seal, specs")))
-        roots = config.reference_roots(home)
+        the root, by the name its caller reads from `lib/optin.py`, or
+        anything under it is dropped, and the default never reaches its
+        `threads/` either. Beside a root named `agentic-seal`, the project's
+        own `seal/` is outside it, so its `specs/` is a reference root."""
+        home = str(tmp_path / name)
+        write_config(home, table(("Reference specs", f"{name}/threads, {name}, specs")))
+        roots = config.reference_roots(home, name)
         assert roots == ("specs",), roots
         assert not config.under_reference_root(
-            "seal/threads/1790000000-x/design.md", roots
+            f"{name}/threads/1790000000-x/design.md", roots, name
         )
         assert not config.under_reference_root(
-            "seal/threads/1790000000-x/design.md", None
+            f"{name}/threads/1790000000-x/design.md", None, name
         )
-        optin = load_lib_module("optin.py", "optin_for_the_root_name")
-        assert config.HOME == optin.HOME, "the reader spells the root another way"
+        assert config.under_reference_root("seal/specs/x.md", None, name) == (
+            name != "seal"
+        )
 
     def test_local_mode_reads_the_row_under_the_git_directory(self, tmp_path):
         """In local mode the root sits under the common git directory and nothing
-        of it is in the tree, so with no row every tree `specs` is a reference
-        root — and a row there is read like any other."""
+        of it is in the tree, so its name in the tree is "", with no row every
+        tree `specs` is a reference root, a `seal/specs/` among them, and a row
+        there is read like any other."""
         repo = tmp_path / "repo"
         repo.mkdir()
         subprocess.run(["git", "-C", str(repo), "init", "-q"], check=True)
@@ -384,10 +389,11 @@ class Test_reference_roots:
         home = os.path.join(common, "seal")
         mark_root(home)
         assert optin.home_at(str(repo), common) == home, "the fixture is not local mode"
-        assert config.reference_roots(home) is None
-        assert config.under_reference_root("specs/x/design.md", None)
-        write_config(home, table(("Reference specs", "docs/adr")))
-        assert config.reference_roots(home) == ("docs/adr",)
+        assert config.reference_roots(home, "") is None
+        assert config.under_reference_root("specs/x/design.md", None, "")
+        assert config.under_reference_root("seal/specs/x.md", None, "")
+        write_config(home, table(("Reference specs", "docs/adr, seal/specs")))
+        assert config.reference_roots(home, "") == ("docs/adr", "seal/specs")
 
 
 class Test_normalise_remote:

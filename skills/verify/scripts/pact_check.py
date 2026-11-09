@@ -666,9 +666,12 @@ def check(root, out=sys.stdout, home_dir=None):
         )
 
     signers, refusals, header = config.pact_signers(pact_text)
-    renamed(config, f"seal/{PACT_FILE}", header, config.SIGNER_HEADER, say)
+    # The pact as a person finds it, under the root's own name: `seal/`, or
+    # the second name `lib/optin.py#home_paths` gives beside a project's own.
+    pact_shown = f"{os.path.basename(home)}/{PACT_FILE}"
+    renamed(config, pact_shown, header, config.SIGNER_HEADER, say)
     for refusal in refusals:
-        found(REFUSED, f"seal/{PACT_FILE}", "", f"the pact {refusal}")
+        found(REFUSED, pact_shown, "", f"the pact {refusal}")
     # The table's own word in the lines below, so a refusal about a pact
     # headed the old way names the header the pact holds.
     table = f"`{(header or config.SIGNER_HEADER)[0]}` table"
@@ -688,7 +691,7 @@ def check(root, out=sys.stdout, home_dir=None):
             found(
                 REFUSED,
                 written,
-                f"seal/{PACT_FILE}",
+                pact_shown,
                 f"the pact lists its own repository; the {table} lists every "
                 "OTHER signer, so take this row out",
             )
@@ -718,13 +721,15 @@ def check(root, out=sys.stdout, home_dir=None):
             )
             continue
         pacts, row_refusals = declared
+        # The signer's config under its root's own name, as `pact_shown`.
+        config_shown = f"{os.path.basename(their_home)}/{CONFIG_FILE}"
         for refusal in row_refusals:
-            found(REFUSED, written, f"seal/{CONFIG_FILE}", refusal)
+            found(REFUSED, written, config_shown, refusal)
         if not any(n == ours for _w, n in pacts):
             found(
                 ONE_SIDED,
                 written,
-                f"seal/{CONFIG_FILE}",
+                config_shown,
                 f"the pact lists it, and its config names no `{config.PACT_ROW}` "
                 f"row for {mine}: the relationship is recorded on one side "
                 f"only. Add `| {config.PACT_ROW} | {mine} |` there, or take it "

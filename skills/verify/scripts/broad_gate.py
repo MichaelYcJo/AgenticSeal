@@ -2980,11 +2980,15 @@ def gate(args, ascii_marks=False):
         )
     home = seal_home(root)
     if home is None:
+        # The two places as `optin.home_paths` gives them, as `seal mode`
+        # prints them: beside a project's own `seal/` the shared one takes
+        # the second name, which a literal `<repo>/seal/` would misname.
+        shared, local = load(OPTIN, "agentic_optin_for_broad_gate").home_paths(root)
         raise Refused(
             f"seal gate: {root} has no seal/ root at either place a root lives "
-            "(`<repo>/seal/`, `<git-common-dir>/seal/`, its README.md opening "
-            "with the marker) — this repository is not opted in, and there is "
-            "no config to read a command from. Nothing ran"
+            f"(`{shared}`, `{local}`, its README.md opening with the marker) — "
+            "this repository is not opted in, and there is no config to read a "
+            "command from. Nothing ran"
         )
     command = broad_command(home)
     if command is None:

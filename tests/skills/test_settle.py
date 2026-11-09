@@ -498,7 +498,7 @@ class Test_tracked_text:
         committed is no reader and cites nothing."""
         (repo / "notes.txt").write_text("untracked\n", encoding="utf-8")
         tracked = ("docs/a.md", "seal/README.md")
-        assert dict(settle.tracked_text(str(repo))) == {
+        assert dict(settle.tracked_text(str(repo), "seal/threads")) == {
             rel: (repo / rel).read_bytes().decode("utf-8") for rel in tracked
         }
 
@@ -509,7 +509,7 @@ class Test_tracked_text:
         item(repo, "1700000001-alpha", "- nothing\n  why: a reason.")
         (repo / "b.bin").write_bytes(b"a\0b")
         commit(repo, "a work item and a binary file")
-        assert [rel for rel, _ in settle.tracked_text(str(repo))] == [
+        assert [rel for rel, _ in settle.tracked_text(str(repo), "seal/threads")] == [
             "docs/a.md",
             "seal/README.md",
         ]
@@ -526,7 +526,7 @@ class Test_citations:
             encoding="utf-8",
         )
         commit(repo, "a reader")
-        assert settle.citations(str(repo), ["1700000001-alpha"]) == (
+        assert settle.citations(str(repo), ["1700000001-alpha"], "seal/threads") == (
             {"1700000001-alpha": ["tests/test_reads.py:2"]},
             ["tests/test_reads.py"],
         )
@@ -540,7 +540,7 @@ class Test_citations:
             'TEAM = "specs"\n', encoding="utf-8"
         )
         commit(repo, "a team's reader")
-        assert settle.citations(str(repo), ["1700000001-alpha"]) == (
+        assert settle.citations(str(repo), ["1700000001-alpha"], "seal/threads") == (
             {"1700000001-alpha": []},
             [],
         )
@@ -798,7 +798,9 @@ class Test_misplaced:
         (top / "x" / "design.md").write_text("# x\n", encoding="utf-8")
         (top / "trail").mkdir()
         symlink_or_skip(top / "gaps.md", top / "trail" / "gaps.md")
-        assert settle.misplaced(str(tmp_path), "1700000001-a", reader) == [
+        assert settle.misplaced(
+            str(tmp_path), "1700000001-a", reader, "seal/threads"
+        ) == [
             ("trail/gaps.md", "gaps.md"),
             ("x/design.md", "frame/design.md"),
         ]
@@ -819,7 +821,10 @@ class Test_misplaced:
         (elsewhere / "gaps.md").write_text("# x\n", encoding="utf-8")
         symlink_or_skip(elsewhere, top / "linked", directory=True)
         symlink_or_skip(tmp_path / "nowhere", top / "notes" / "plan.md")
-        assert settle.misplaced(str(tmp_path), "1700000001-a", reader) == []
+        assert (
+            settle.misplaced(str(tmp_path), "1700000001-a", reader, "seal/threads")
+            == []
+        )
 
 
 class Test_apply:
@@ -3059,7 +3064,7 @@ class Test_module:
         item(repo, "1700000001-a", op("add", "U", new="A."))
         commit(repo, "a is framed")
         ids = ["1700000001-a", "1700000002-b"]
-        found = [i for i, _ in rules.order(str(repo), "HEAD", ids)]
+        found = [i for i, _ in rules.order(str(repo), "HEAD", ids, "seal/threads")]
         assert found == ["1700000002-b", "1700000001-a"], found
 
     def test_merge_order_of_an_id_that_is_not_ascii_is_its_designs_add(self, repo):
@@ -3073,7 +3078,7 @@ class Test_module:
         item(repo, "1700000002-b", op("add", "U", new="B."))
         commit(repo, "b is framed")
         ids = ["1700000001-정렬", "1700000002-b"]
-        found = rules.order(str(repo), "HEAD", ids)
+        found = rules.order(str(repo), "HEAD", ids, "seal/threads")
         assert found[0] == ("1700000001-정렬", added), found
         assert [i for i, _ in found] == ids, found
 
@@ -3098,7 +3103,7 @@ class Test_module:
             )
         commit(repo, "the session-start move")
         ids = ["1700000001-a", "1700000002-b"]
-        found = [i for i, _ in rules.order(str(repo), "HEAD", ids)]
+        found = [i for i, _ in rules.order(str(repo), "HEAD", ids, "seal/threads")]
         assert found == ["1700000002-b", "1700000001-a"], found
 
     def test_merge_order_of_local_specs_is_their_merge_commits_place(self, repo):
@@ -3319,14 +3324,23 @@ class Test_module:
         if absent:
             assert absent not in done.stderr, done.stderr
 
-    def test_the_pinned_checks_read_under_the_root_alone(self):
-        """#688's D3: the constant this command's walk of work items rests on,
-        held under `seal/`. Widening it to a top-level `specs/` turns this red,
-        which is the probe that work item's plan names for `SPECS`.
+
+class Test_threads:
+    @pytest.mark.parametrize("name", ["seal", "agentic-seal"])
+    def test_accepts_the_threads_under_the_roots_own_name(self, tmp_path, name):
+        """#688's D3, now under either name of the root (#1059): the walk of
+        work items reads under the root's own directory, `threads/` in it.
         `tests/behaviour/test_a_reference_root_is_read_and_never_taken.py`
         classifies every shipped command by what keeps it off a reference
         root."""
-        assert settle.SPECS == "seal/threads"
+        assert settle.threads(str(tmp_path / name)) == f"{name}/threads"
+
+    def test_refuses_the_directory_holding_the_root_as_its_name(self, tmp_path):
+        """A local root is named by its own directory, `seal`, and not by
+        the common git directory holding it, under which its threads are
+        read (`records_of`)."""
+        local = tmp_path / ".git" / "seal"
+        assert settle.threads(str(local)) == "seal/threads"
 
 
 test_census = census_case(TARGET)

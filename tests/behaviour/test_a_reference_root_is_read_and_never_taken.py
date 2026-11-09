@@ -36,9 +36,10 @@ SEAL = load_module(
 # `seal.py#TOOLS` hands to a script, is named here with what
 # keeps it off a team's `specs/`, and a command nobody classified turns this
 # red. A check that walks no `specs/` says so; one pinned to the root names
-# the constant it rests on, which its module's file holds under `seal/`:
-# `settle.py#SPECS` in `tests/skills/test_settle.py`, a case of one module,
-# which #942's round 9 fix pass moved there from this file. The checks that
+# what it rests on, which its module's file holds under the root's own
+# directory: `settle.py#threads` in `tests/skills/test_settle.py`'s
+# `Test_threads`, a case of one module, which #942's round 9 fix pass moved
+# there from this file as a constant and #1059 made the root's own name. The checks that
 # walk work items are held off a team's `specs/` in their modules' files:
 # `tests/skills/test_unverified_check.py`'s walk from the root over a team's
 # unreadable overview, `tests/skills/test_settle.py`'s apply beside a team directory
@@ -48,7 +49,7 @@ SEAL = load_module(
 # takes the one under `seal/threads/` beside a team's `specs/`.
 
 PREDICATE = "asks lib/config.py#under_reference_root"
-PINNED = "reads the plugin's root by a constant under seal/"
+PINNED = "reads the plugin's root under its own directory"
 NO_WALK = "walks no specs/ directory"
 NOT_A_CHECK = "is not a check of the tree"
 
@@ -56,7 +57,7 @@ SHIPPED = {
     "seal unverified": (PREDICATE, "the walk, by one rule"),
     "seal settle": (
         PINNED,
-        "settle.py#SPECS; its citation scan reads as a citer, and --from reads "
+        "settle.py#threads; its citation scan reads as a citer, and --from reads "
         "only a directory a person names and writes nothing there",
     ),
     "seal pact": (PINNED, "pact_check.py#anchor_files, under each signer's root"),
@@ -88,7 +89,7 @@ def test_every_shipped_command_is_classified():
         "a command in bin/ or a `seal` subcommand is not classified here, or "
         "a classified one left: "
         f"{sorted(shipped ^ set(SHIPPED))}. Say what keeps it off a team's "
-        "specs/ — the predicate, a constant under seal/, or no walk at all"
+        "specs/ — the predicate, the root's own directory, or no walk at all"
     )
 
 
