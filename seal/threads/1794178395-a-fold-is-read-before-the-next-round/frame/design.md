@@ -62,7 +62,7 @@ Out:
 
 - **Statements a crafter names as contradicted by HEAD.** They stay the orchestrator's to fold. They are 14 of G10's 23 rows, none of the regressions in G9 traces to one, and a framer exchange for each would cost without a record of what it catches (G2). `frame/plan.md` *Alternatives considered* weighs the uniform route.
 - **A check of table shape over the work item's records**, counting each row's cells against its header. It would catch one regression in G9, and it would run at the pull request, after the rounds (`frame/plan.md` *Alternatives considered*).
-- **How `session_cost.py` grades a fold exchange.** That exchange is a framer segment with few reads, and its grading is #1440's.
+- **A grade for a fold exchange's cost.** `session_cost.py` grades no segment since #1440 (`74211b76`), so a fold exchange is read as a framer row of `seal cost --segments`, and this work adds no grade for it.
 - **`pr.md`, `routing.md`, and the orchestrator's own rows of `frame/questions.md`.** These are the orchestrator's own files and rows.
 - **The issue's second *Done when* bullet**, that regression lines traced to a fold stop recurring on the readings #1439 posts. It is a count taken after the release (`frame/questions.md` Q1).
 
