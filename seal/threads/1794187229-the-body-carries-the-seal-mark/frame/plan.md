@@ -54,7 +54,7 @@ re-run, so a body repaired without a push stays red until the next
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | *Scope* item 2, and the `tests/skills/test_pr_body.py` case of item 5 | the new case seen red against the current `_check` on a body lacking the mark line and its blank line (design G12's shape), then green; `tests/skills/test_pr_body.py` green | |
+| 1 | *Scope* item 2, and the `tests/skills/test_pr_body.py` case of item 5 | the new case seen red against the current `_check` on a body lacking the mark line and its blank line (design G12's shape), then green; `tests/skills/test_pr_body.py` green | 7252125d |
 | 2 | *Scope* item 1, the `chain_check.py` sentences of item 4, and the `tests/skills/test_chain_check.py` cases of item 5 | each case seen red with the arm absent, then green; `tests/skills/test_chain_check.py` and `tests/skills/test_pr_body.py` green; `tests/behaviour/test_this_repository_passes_its_own_checks.py` green for the marker the check line names | |
 | 3 | *Scope* item 3, the remaining sentences of item 4, and the work item's `changelog.md` | the `tests/text/test_ci_gives_the_checks_what_they_need.py` pin on `edited` seen red against the template as it stands, then green; `git grep` for the two sentences of *Removes* finds neither; the tree-wide files `CONTRIBUTING.md` *Running the checks* names green | |
 
