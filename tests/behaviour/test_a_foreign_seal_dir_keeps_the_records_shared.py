@@ -283,6 +283,18 @@ def test_pr_checks_install_writes_the_workflow_beside_a_shared_agentic_seal(
     assert "A  .github/workflows/hygiene.yml" in status(shared)
 
 
+def test_pr_checks_install_names_agentic_seal_where_no_root_stands_beside_the_package(
+    package, capsys
+):
+    """With no root beside the package, `seal pr-checks install` writes
+    nothing and names the place it looked by its own name, `agentic-seal/`,
+    not the package's `seal/`, which stands in the tree."""
+    code, out = said(capsys, package, "pr-checks", "install")
+    assert code == 1, out
+    assert "no root stands at agentic-seal/ in this tree" in out, out
+    assert not (package / ".github").exists()
+
+
 def test_s6_export_in_shared_mode_names_agentic_seal_in_the_way_out(shared, capsys):
     """`seal export` writes no zip in shared mode, and the commands it gives
     for going local take `agentic-seal/` out of the tree, not the package."""

@@ -1970,10 +1970,14 @@ def install_workflow(repo):
     """
     shared, _local = optin.home_paths(repo)
     if not shared or not optin.marked(shared):
+        # The shared place by its own name: beside a project's own `seal/`
+        # it is `optin.SECOND_HOME`, and the project's `seal/` stands in the
+        # tree, so "seal/ is not in this tree" would be false there (#1059).
+        name = display(repo, shared) or optin.HOME
         return "no-root", (
-            f"{WORKFLOW} was NOT written: {optin.HOME}/ is not in this tree, "
-            "and the checks read committed records, which only a root in the "
-            f"tree has. `seal mode {SHARED}` puts it in the tree."
+            f"{WORKFLOW} was NOT written: no root stands at {name}/ in this "
+            "tree, and the checks read committed records, which only a root in "
+            f"the tree has. `seal mode {SHARED}` puts it in the tree."
         )
     kind, found = workflow_at(repo)
     if kind == "plugin":
