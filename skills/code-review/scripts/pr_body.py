@@ -833,8 +833,9 @@ def compared(item, body, root, manifest=None):
     mark `seal_mark` gives from MANIFEST or the plugin's own, and the
     records' copy. NOTE is `seal_mark`'s sentence, or None; CAUSES are the
     `(where, line, why)` of `Refused`, a record's or the body's, empty where
-    BODY is that composition. `main --check` calls this, and it is the one
-    code path a body is compared through (#1452)."""
+    BODY is that composition. `main --check` and the pull request's check,
+    `chain_check.py#body`, both call this, so the body is read by one code
+    path at the sealer and at the pull request (#1452)."""
     mark, note = seal_mark(item, root, manifest)
     name = os.path.basename(os.path.normpath(os.path.abspath(item)))
     try:
