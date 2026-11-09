@@ -31,6 +31,7 @@ a record with `real_identifiers`' own readers.
 import ast
 import collections
 import fnmatch
+import importlib.util
 import io
 import os
 import posixpath
@@ -1425,6 +1426,105 @@ def slash_in_join(rel, root=None):
     return _held("slash_in_join", rel, text, flagged)
 
 
+# --- root_name (#1059) -------------------------------------------------------
+#
+# The records root has two names: `lib/optin.py#HOME`, and `#SECOND_HOME`
+# beside a project's own `seal/`. `lib/optin.py` is the one module that says
+# which one a repository's root carries (`home_paths`, `home_name`). A reader
+# that spells either name reads nothing in a repository whose root has the
+# other, and no case fails, because each case builds a `seal/`: every reader
+# of the records that spelt `seal` had that defect (#1059). The census reads
+# each tracked `.py` outside `tests/` and `evals/`, whose fixtures build roots
+# by name, and outside `lib/optin.py`. It flags a string that is either name,
+# or that opens with either followed by `/`: a constant that is no
+# docstring, and an f-string's literal part, at the f-string's first line.
+#
+# What the walk cannot see, and passes: a name built from other strings, a
+# name a pattern spells after another character, such as `^seal/`, and
+# `optin.HOME` joined under a repository where the root may have the second
+# name. A reader written that way is held by the cases built on the fixture
+# of `tests/behaviour/test_a_foreign_seal_dir_keeps_the_records_shared.py`.
+
+ROOT_NAME_HOME = "lib/optin.py"
+ROOT_NAME_SKIPPED = ("tests/", "evals/")
+_names_read = []
+
+
+def _root_names():
+    """`(HOME, SECOND_HOME)` as this repository's `lib/optin.py` holds them,
+    read once."""
+    if not _names_read:
+        path = os.path.join(ROOT, *ROOT_NAME_HOME.split("/"))
+        spec = importlib.util.spec_from_file_location("agentic_optin_for_census", path)
+        optin = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(optin)
+        _names_read.extend((optin.HOME, optin.SECOND_HOME))
+    return tuple(_names_read)
+
+
+def _docstrings(tree):
+    """The ids of the string constants TREE holds as a module's, a class's
+    or a function's docstring."""
+    held = set()
+    for node in ast.walk(tree):
+        if isinstance(
+            node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)
+        ):
+            first = node.body[0] if node.body else None
+            if (
+                isinstance(first, ast.Expr)
+                and isinstance(first.value, ast.Constant)
+                and isinstance(first.value.value, str)
+            ):
+                held.add(id(first.value))
+    return held
+
+
+def _spells_a_root(value, names):
+    """Whether the string VALUE is one of NAMES or opens with one and `/`."""
+    return any(value == n or value.startswith(n + "/") for n in names)
+
+
+def root_name(rel, root=None):
+    """No tracked `.py` but `lib/optin.py` spells the records root's name:
+    each reads it from that module, which says which of its two names a
+    repository's root carries. `tests/` and `evals/` build roots by name and
+    are not read."""
+    if rel == ROOT_NAME_HOME or rel.startswith(ROOT_NAME_SKIPPED):
+        return []
+    text = _python(rel, root)
+    if text is None:
+        return []
+    tree = ast.parse(text, filename=rel)
+    names, docstrings = _root_names(), _docstrings(tree)
+    parts, found = set(), []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.JoinedStr):
+            for part in node.values:
+                parts.add(id(part))
+                if isinstance(part, ast.Constant) and isinstance(part.value, str):
+                    found.append((node.lineno, part.value))
+    for node in ast.walk(tree):
+        if (
+            isinstance(node, ast.Constant)
+            and isinstance(node.value, str)
+            and id(node) not in docstrings
+            and id(node) not in parts
+        ):
+            found.append((node.lineno, node.value))
+    flagged = {}
+    for line, value in sorted(found):
+        if _spells_a_root(value, names):
+            flagged.setdefault(
+                line,
+                f'`"{value}"` spells the records root\'s name, which only '
+                "`lib/optin.py` says; read it from `optin.home_name` or "
+                "`optin.home_paths`, or put `# exempt from root_name: <why>` "
+                "on its own line above it",
+            )
+    return _held("root_name", rel, text, flagged)
+
+
 CENSUSES = (
     encoding,
     entry_point,
@@ -1436,6 +1536,7 @@ CENSUSES = (
     old_names,
     vacated_paths,
     slash_in_join,
+    root_name,
 )
 
 

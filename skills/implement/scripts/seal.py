@@ -2761,6 +2761,7 @@ def main(argv=None, cwd=None):
     if argv and argv[0] in TOOLS:
         return hand_over(tool_command(argv[0], argv[1:]))
     parser = argparse.ArgumentParser(
+        # exempt from root_name: the command's own name, which names no directory
         prog="seal",
         description="the plugin's commands: where this repository's seal/ "
         "root lives, how a copy of it travels between clones, and one "
