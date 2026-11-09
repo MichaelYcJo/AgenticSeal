@@ -43,6 +43,11 @@ the work item's records counts the rows of *Not verified*.
 - "`seal cost --work-item <dir> --post` against the real tracker: a real comment posted, and `gh api --paginate` read over a log whose comments span more than one page." (`gaps.md` *Not verified*, the fifth row)
 ```
 
+```seal
+verdict: fixed 102ac764
+answer: The orchestrator applied the round's line as given. `pr.md:7` now cites the real-tracker row as the fifth row of `gaps.md` *Not verified*, which is where `466b444a` left it, and the quoted text is unchanged.
+```
+
 ## Confirmations
 
 ```seal
