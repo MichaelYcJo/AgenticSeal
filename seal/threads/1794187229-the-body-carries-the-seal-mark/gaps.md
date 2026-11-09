@@ -5,6 +5,8 @@
 | Item | Who must answer |
 |---|---|
 | the full suite, the repository-wide lint and the format check at the branch's last commit; each phase ran its boundary set alone | the orchestrator's broad run |
+| how GitHub renders an annotation whose path is a work item's directory at line 0 (`frame/questions.md` Q1); no case runs on GitHub | a measurement: the first `hygiene` run that refuses a body, read on the pull request's checks |
+| a body written by one copy of the plugin and read by the arm of another: the mark's address carries the composing copy's version, so the two differ on the mark line wherever the installed plugin and the checker's copy differ, and `seal pr-body` run again writes the same body (`trail/phases/phase-2.md`) | the orchestrator, with the framer where the mark's address or the command the orchestrator runs is to change |
 
 ## Not done
 
