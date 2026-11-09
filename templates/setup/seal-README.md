@@ -97,7 +97,8 @@ seal/
     ├── changelog.md       this work item's entry in the next release's notes
     ├── gaps.md            the closing memo: what the diff cannot show
     ├── pr.md              the pull request body's first part, after
-    │                      pr.<lang>.md where one stands; read by every round
+    │                      pr.<lang>.md where the two language rows differ;
+    │                      read by every round
     ├── pr.<lang>.md       pr.md's quotes in the commit language, opening the
     │                      first part where the two language rows differ
     └── guarantee.md       the sealer's verdict on the work, at a SHA
