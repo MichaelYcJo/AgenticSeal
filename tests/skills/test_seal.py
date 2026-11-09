@@ -459,11 +459,18 @@ class Test_refuse_without_lib:
                 "it is what reads the root's config.json",
                 "reads and writes",
             ),
-            # #667: `lib/config.py` imports `lib/blocks.py`, so a `lib/`
+            # #1454: `seal mode` converts an earlier release's `config.md`
+            # through `lib/tables.py`, which this script imports.
+            (
+                ["mode", "--check"],
+                "it is the walker seal mode reads an old config.md through",
+                None,
+            ),
+            # #667: `lib/tables.py` imports `lib/blocks.py`, so a `lib/`
             # without it fails that import.
             (
                 ["mode", "--check"],
-                "it is the walk config.py reads an old config.md through",
+                "it is the walk tables.py reads a table through",
                 None,
             ),
             (
@@ -476,6 +483,7 @@ class Test_refuse_without_lib:
         ids=[
             "optin.py",
             "config.py",
+            "tables.py",
             "blocks.py",
             "gitcmd.py",
         ],

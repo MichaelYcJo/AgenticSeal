@@ -2,12 +2,13 @@
 fenced code block or an HTML comment block, and where can this module not say?
 
 Three readers decide from a markdown file what a person or a party declared:
-`lib/config.py` (the `| Item | Value |` table, through `seal gate` and
-`seal mode`), `lib/routing.py` (the routing
-declaration, on every commit and at the pull request) and `lib/fields.py`
-(the `seal` blocks of a work item's records, #1198). A row quoted in a
-fenced example, or parked in an HTML comment, is not a row anybody gave, and
-each reader used to decide that by a rule of its own or by none (#667, #658).
+`lib/tables.py` (a record's table, through `seal pact` and `seal settle`,
+and an earlier release's `config.md`, through `seal mode`), `lib/routing.py`
+(the routing declaration, on every commit and at the pull request) and
+`lib/fields.py` (the `seal` blocks of a work item's records, #1198). A row
+quoted in a fenced example, or parked in an HTML comment, is not a row
+anybody gave, and each reader used to decide that by a rule of its own or
+by none (#667, #658).
 This is the one walk they read.
 
 **What it models: two block constructs, by CommonMark's own block rules.**
@@ -89,8 +90,15 @@ import re
 # more tildes, then the info string. Four or more spaces is an indented code
 # block instead and never a fence, and reading one as a delimiter inverts the
 # fence state for the rest of the file (#491). This is the pattern
-# `lib/config.py#FENCE` held until #667 moved it here; that name re-exports
-# this one.
+# `lib/config.py#FENCE` held until #667 moved it here.
+#
+# **Three or more, and tildes as well as backticks, is a decision with
+# grounds.** This repository's own records wrap a fenced example in FOUR
+# backticks -- #429's body and `trail/rounds/round-3-report.md` both do -- and
+# that is exactly the text somebody would paste into a markdown file to
+# document the format. A rule that knew three backticks only would read the
+# inner fence as the outer one's close and leave the live table inside a
+# fence.
 FENCE = re.compile(r"^ {0,3}(?P<run>`{3,}|~{3,})(?P<info>.*)$")
 
 OPENER = "<" + "!--"
@@ -157,10 +165,11 @@ def fence_only(lines):
     None) -- the fence rule alone, a block that never closes running to the
     end of the file.
 
-    This is not the walk. It is the reading `lib/config.py` gave every line
-    before #667, and it stays because that reader's base reading is what an
-    uncertain line gets: `lib/config.py#fence_map`'s docstring says why a
-    config line below a fence nobody closed stays hidden.
+    This is not the walk. It is the reading the table walker, now
+    `lib/tables.py`, gave every line before #667, and it stays because that
+    reader's base reading is what an uncertain line gets:
+    `lib/tables.py#hidden_lines`' docstring says why a row below a fence
+    nobody closed stays hidden.
     """
     hidden, opener, opened_at = set(), None, None
     for index, raw in enumerate(lines):

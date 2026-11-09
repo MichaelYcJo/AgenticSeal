@@ -503,7 +503,7 @@ class Test_module:
         with it. It is a module, not a script: scripts import it, and a script
         catches the error or names the file first. So a copy without the walk raises one `ImportError` whose
         sentence names the path and what the file is for.
-        `tests/lib/test_config.py` holds `lib/config.py` to the same."""
+        `tests/lib/test_tables.py` holds `lib/tables.py` to the same."""
         name, siblings = TARGET.rsplit("/", 1)[1], ["optin.py"]
         alone = tmp_path / "lib"
         alone.mkdir()

@@ -25,7 +25,7 @@ import os
 import subprocess
 
 import pytest
-from conftest import ROOT, config_json, flat, local_home, read
+from conftest import ROOT, config_json, flat, load_lib_module, local_home, read
 
 SKILL = ("skills", "commit-pr-convention", "SKILL.md")
 TEMPLATE = ("templates", "setup", "config.md")
@@ -394,13 +394,15 @@ def _config_reader():
 
 READER = _config_reader()
 declared_value = READER.declared_value
+# `lib/tables.py`, the walker `seal mode` reads an earlier `config.md` through.
+WALKER = load_lib_module("tables.py", "agentic_tables_for_pr_lang")
 
 
 def items(text):
     """The `| Item | Value |` rows of TEXT as (item, value), as the walker
     reads them for `seal mode`'s conversion of an earlier `config.md`: the
     template's table is read through it."""
-    rows, _refusals = READER.gfm_table(text, READER.OLD_TABLE)
+    rows, _refusals = WALKER.gfm_table(text, READER.OLD_TABLE)
     return [tuple(cells) for _line, cells in rows]
 
 

@@ -114,7 +114,7 @@ def shown(lines, text=None):
     TEXT is the file LINES were split from, and `table_rows` passes it: the
     walk reads it where GFM breaks a line, so a `<!--` after a U+2028 or a
     form feed, which `str.splitlines` breaks at, hides nothing a renderer
-    shows (#667 round 1, 🟡 1; `lib/config.py#hidden_lines` says more).
+    shows (#667 round 1, 🟡 1; `lib/tables.py#hidden_lines` says more).
     """
     walked = blocks.walk(lines) if text is None else blocks.walk_text(text)
     hidden = walked.hidden()

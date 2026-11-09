@@ -184,7 +184,7 @@ OPTIN = os.path.join(HERE, "..", "..", "..", "lib", "optin.py")
 ROUTING = os.path.join(HERE, "..", "..", "..", "lib", "routing.py")
 RULES = os.path.join(HERE, "rule_changes.py")
 FOLD_CHECK = os.path.join(HERE, "fold_check.py")
-CONFIG = os.path.join(HERE, "..", "..", "..", "lib", "config.py")
+TABLES = os.path.join(HERE, "..", "..", "..", "lib", "tables.py")
 GITCMD = os.path.join(HERE, "..", "..", "..", "lib", "gitcmd.py")
 
 # What each sibling is for, in the sentence `load` prints when it is missing.
@@ -197,7 +197,7 @@ PURPOSES = {
     ),
     RULES: "it is what reads a design's `## Rule changes`",
     FOLD_CHECK: "it is what reads the index and the one read after an apply",
-    CONFIG: "it is what reads a plan's *Judgments of the run* table",
+    TABLES: "it is what reads a plan's *Judgments of the run* table",
     GITCMD: (
         "it is what holds what this command reads of `git log` to one "
         "reading under any git configuration"
@@ -1052,10 +1052,10 @@ def plan_rows(text):
 
     A heading inside a fence or an HTML comment is no heading
     (`unverified_check.py#live_lines`). The table is read through
-    `lib/config.py#gfm_table` over the section's lines alone, and
+    `lib/tables.py#gfm_table` over the section's lines alone, and
     nothing here grades a cell."""
     rules = load(RULES, "agentic_rule_changes")
-    config = load(CONFIG, "agentic_config_for_settle")
+    tables = load(TABLES, "agentic_tables_for_settle")
     lines = rules.reader().gfm_lines(text)
     marks = rules.headings(lines)
     unread = [
@@ -1069,7 +1069,7 @@ def plan_rows(text):
     if span is None:
         return [], [*unread, why]
     first, last = span
-    rows, refusals = config.gfm_table(
+    rows, refusals = tables.gfm_table(
         "\n".join(lines[first - 1 : last]), JUDGMENTS_HEADER
     )
     return (

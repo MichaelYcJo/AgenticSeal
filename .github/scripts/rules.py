@@ -108,9 +108,13 @@ SIBLINGS = {
         os.path.join("skills", "verify", "scripts", "unverified_check.py"),
         "it is what splits a document into the lines GitHub renders",
     ),
+    "tables": (
+        os.path.join("lib", "tables.py"),
+        "it is what says which lines a fence or a comment hides",
+    ),
     "config": (
         os.path.join("lib", "config.py"),
-        "it is what says which lines a fence or a comment hides",
+        "it is what reads the repository's policy root",
     ),
     "optin": (
         os.path.join("lib", "optin.py"),
@@ -152,11 +156,11 @@ def sibling(key):
 def shown_lines(text):
     """`[(line, shown, heading)]` for one markdown document: each GFM line
     (`lib/blocks.py#gfm_lines`), whether a renderer shows it outside a
-    fence or a comment (`lib/config.py#unfenced`), and the text of the
+    fence or a comment (`lib/tables.py#unfenced`), and the text of the
     heading it stands under, "" above the first."""
     reader = sibling("unverified_check")
     lines = reader.gfm_lines(text)
-    shown = {index for index, _ in sibling("config").unfenced(lines)}
+    shown = {index for index, _ in sibling("tables").unfenced(lines)}
     out, heading = [], ""
     for index, line in enumerate(lines):
         visible = index in shown

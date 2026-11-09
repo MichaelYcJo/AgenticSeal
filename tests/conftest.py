@@ -988,7 +988,7 @@ def config():
 
 
 # Earlier releases' `config.md` texts, which the table walker's cases in
-# `tests/lib/test_config.py` and `seal mode`'s converter's in
+# `tests/lib/test_tables.py` and `seal mode`'s converter's in
 # `tests/skills/test_seal.py` both read. A row that parses comes first in the
 # piped table, because the walker stops at the first line it refuses (#415,
 # #871).

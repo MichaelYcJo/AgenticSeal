@@ -26,7 +26,7 @@ reads nothing of the pact.
 
 The anchor table is the first table whose header is
 `| Pact | Clause | Hash |`, cell for cell. It is read by
-`lib/config.py#gfm_table`, and the cells are written bare. A header
+`lib/tables.py#gfm_table`, and the cells are written bare. A header
 whose cells, each case folded after one emphasis run wrapping the whole
 cell is removed (`header_key`), are those words and that is not the anchor
 header, such as `| pact | clause | hash |` or `| **Pact** | Clause | Hash |`,
@@ -309,7 +309,7 @@ def origin(root):
 
 
 def header_key(cell):
-    """CELL, one header cell as `config.table_cells` gives it, with one
+    """CELL, one header cell as `tables.table_cells` gives it, with one
     emphasis run removed where such a run wraps the whole cell
     (`EMPHASIS_RUN`), then case folded: the net `near_headers` names a
     header near the anchor header with. It reads no table: the anchor table
@@ -327,7 +327,7 @@ def header_key(cell):
     return (match.group(2) if match else cell).casefold()
 
 
-def near_headers(config, text):
+def near_headers(tables, text):
     """`[(line, header)]` for each line of TEXT outside a fence whose cells,
     each through `header_key`, are the anchor header's and that is not the
     anchor header: a table no row of which is read. Whether it meant the
@@ -338,16 +338,16 @@ def near_headers(config, text):
     want = tuple(map(header_key, ANCHOR_TABLE))
     return [
         (index + 1, lines[index].strip())
-        for index, line in config.unfenced(lines, text)
-        if (cells := config.table_cells(line)) is not None
+        for index, line in tables.unfenced(lines, text)
+        if (cells := tables.table_cells(line)) is not None
         and cells != ANCHOR_TABLE
         and tuple(map(header_key, cells)) == want
     ]
 
 
-def first_table(config, text, header, beside=False):
+def first_table(tables, text, header, beside=False):
     """(rows, refusals) for the first table of TEXT headed HEADER, its cells
-    exactly, read by `lib/config.py#gfm_table`: its rows and its
+    exactly, read by `lib/tables.py#gfm_table`: its rows and its
     refusals, and, where the walk refused nothing, one refusal per further
     HEADER outside a fence, at its line, because the walk reads the first
     table only. A refusal of the walk already says every row below it goes
@@ -357,10 +357,10 @@ def first_table(config, text, header, beside=False):
     lines = text.splitlines()
     headers = [
         index + 1
-        for index, line in config.unfenced(lines, text)
-        if config.table_cells(line) == header
+        for index, line in tables.unfenced(lines, text)
+        if tables.table_cells(line) == header
     ]
-    rows, walked = config.gfm_table(text, header, beside=beside)
+    rows, walked = tables.gfm_table(text, header, beside=beside)
     if walked:
         return rows, list(walked)
     named = f"`| {' | '.join(header)} |`"
@@ -623,6 +623,7 @@ def grade(checker, pact_text, history, clause, want):
 def check(root, out=sys.stdout, home_dir=None):
     """Read the pact at ROOT and every signer; print; return the exit."""
     config = load(os.path.join(LIB, "config.py"), "agentic_config_for_pact")
+    tables = load(os.path.join(LIB, "tables.py"), "agentic_tables_for_pact")
     optin = load(os.path.join(LIB, "optin.py"), "agentic_optin_for_pact")
     checker = load(CHECKER, "agentic_evidence_for_pact")
     home_dir = home_dir or os.path.expanduser("~")
@@ -765,13 +766,13 @@ def check(root, out=sys.stdout, home_dir=None):
             if body is None:
                 found(UNREADABLE, written, where, "could not be read")
                 continue
-            rows, table_refusals = first_table(config, body, ANCHOR_TABLE, beside=True)
+            rows, table_refusals = first_table(tables, body, ANCHOR_TABLE, beside=True)
             if table_refusals and table_refusals[0].startswith("holds no "):
                 # A frame that cites no pact holds no anchor table.
                 table_refusals = []
             for refusal in table_refusals:
                 found(REFUSED, written, where, f"the frame {refusal}")
-            for line, near in near_headers(config, body):
+            for line, near in near_headers(tables, body):
                 found(
                     NOT_READ,
                     written,

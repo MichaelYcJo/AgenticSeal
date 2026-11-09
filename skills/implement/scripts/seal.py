@@ -183,9 +183,10 @@ LIB_PURPOSES = {
     "config.py": "it is what reads the root's config.json, whose Mode key "
     "this command keeps",
     "optin.py": "it is what finds the repository's seal/ root",
-    # `config.py` imports it, so a `lib/` without it fails that import.
-    "blocks.py": "it is the walk config.py reads an old config.md through, "
-    "which tells a live row from one quoted in a fence or parked in a comment",
+    "tables.py": "it is the walker seal mode reads an old config.md through",
+    # `tables.py` imports it, so a `lib/` without it fails that import.
+    "blocks.py": "it is the walk tables.py reads a table through, which "
+    "tells a live row from one quoted in a fence or parked in a comment",
     "gitcmd.py": "it is what builds the `git status` this command reads, the "
     "same under any git configuration",
 }
@@ -221,6 +222,7 @@ sys.path.insert(0, LIB)
 import config as repo_config  # noqa: E402
 import gitcmd  # noqa: E402
 import optin  # noqa: E402
+import tables  # noqa: E402
 
 # The manifest's shape. An import refuses a number it does not know rather
 # than guessing at fields: a zip whose fields moved, read by a build that
@@ -1559,7 +1561,7 @@ def write_mode(home, value):
 
 def converted(text):
     """(pairs, refusal) for TEXT, an earlier release's `config.md`: every
-    row of its `| Item | Value |` table, as `lib/config.py#gfm_table` reads
+    row of its `| Item | Value |` table, as `lib/tables.py#gfm_table` reads
     it, in order, or the sentence nothing is written for.
 
     A text holding no such table converts to no key. A table the walker
@@ -1569,7 +1571,7 @@ def converted(text):
     the answer (#867). A value comes as the walker reads it, stripped and
     with `\\|` reduced to a plain pipe, so a JSON string carries it as
     written."""
-    rows, refusals = repo_config.gfm_table(text, repo_config.OLD_TABLE)
+    rows, refusals = tables.gfm_table(text, repo_config.OLD_TABLE)
     if refusals and refusals[0].startswith("holds no "):
         return [], ""
     if refusals:

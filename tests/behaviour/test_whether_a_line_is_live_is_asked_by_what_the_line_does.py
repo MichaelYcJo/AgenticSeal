@@ -41,7 +41,7 @@ checker = _load("agentic_checker_for_liveness", "skills/verify/scripts/coordinat
 reader = _load(
     "agentic_reader_for_liveness", "skills/verify/scripts/unverified_check.py"
 )
-config = load_lib_module("config.py", "agentic_config_for_liveness")
+tables = load_lib_module("tables.py", "agentic_tables_for_liveness")
 
 WORK_ITEM = "1700000001-alpha"
 # One ledger row, spelled as a table row so every reader reads the same line.
@@ -146,9 +146,9 @@ def unverified_live_lines(lines, tmp_path):
     return list(reader.live_lines(lines))[row_index(lines)][1]
 
 
-def config_hidden_lines(lines, tmp_path):
+def tables_hidden_lines(lines, tmp_path):
     """Read where the index is absent from the map of hidden lines."""
-    hidden, _opened = config.hidden_lines(lines, as_text(lines))
+    hidden, _opened = tables.hidden_lines(lines, as_text(lines))
     return row_index(lines) not in hidden
 
 
@@ -177,9 +177,11 @@ TABLE = {
         "`unverified_check.py#live_lines`",
         (N, N, N, N, R, R, N, N, N, N),
     ),
-    "config.py#hidden_lines": (
-        config_hidden_lines,
+    "tables.py#hidden_lines": (
+        tables_hidden_lines,
         EXCUSES,
+        # The statement names the reader where it stood before #1454 moved
+        # it to `lib/tables.py`; `docs/` is written at the settle.
         "`lib/config.py#hidden_lines`",
         (N, N, N, R, R, R, N, N, N, N),
     ),
