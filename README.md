@@ -14,10 +14,11 @@ AgenticSeal is a Claude Code plugin. You hand the session an issue, and it
 asks you one question at the start: how the work should be routed. Answer
 `agentic`, the answer it marks, and the session decides for each item which
 agents it needs and whether the run may stop to ask you. Where an item needs
-them all, agents frame the change, build it, review it and seal it. The run ends
-at a pull request whose records carry a seal: the last agent's written
-guarantee that the work agrees with the issue and the tree at one commit. It
-never merges. Merging is yours.
+them all, agents frame the change, build it, review it and seal it. Unless
+the session made the change itself, as under `direct`, or you asked for the
+branch back, the run ends at a pull request whose records carry a seal: the
+last agent's written guarantee that the work agrees with the issue and the
+tree at one commit. It never merges. Merging is yours.
 
 ```mermaid
 flowchart LR
