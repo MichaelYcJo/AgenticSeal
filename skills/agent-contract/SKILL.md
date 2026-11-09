@@ -224,8 +224,9 @@ way. A list reaches a command as `xargs <runner> < list` or as
 expected to split, which bash splits and zsh does not. An `rm` names a
 literal path, or writes each variable in its path as `"${VAR:?}"`, which
 stops the line where the variable is unset or empty. A directory you made
-is removed in one `rm -rf` of the directory, never file by file in a loop.
-These forms are examples of the rule, not a list of it: a form not named
-here is held to the same aim, and so is a named form Claude Code stops
-reading.
-check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
+under `<scratchpad>/<work-item-id>/` is removed in one `rm -rf` of that
+directory, never file by file in a loop, and the removal never names the
+scratchpad itself, which every agent of the session shares. These forms
+are examples of the rule, not a list of it: a form not named here is held
+to the same aim, and so is a named form Claude Code stops reading.
+check: tests/text/test_the_agent_contract_holds_the_universal_rules.py tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py
