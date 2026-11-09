@@ -197,3 +197,28 @@ imports the `lib/config.py` whose docstring changed; and the tree-wide pair
 comment and one docstring of `tests/skills/test_chain_check.py`; that
 module's `Test_body` passed after it (executed, 18 passed). The suite is
 unverified; the orchestrator answers it at the broad gate.
+
+**After the seal, the Windows leg of pull request #1456 failed one case
+this phase added, and `9bdf9f7a` repairs the case, not the code.** The leg
+was `pytest (windows-latest, 3.12, --splits 4 --group 3, ...)`, and the case
+was `tests/skills/test_chain_check.py::Test_body::test_reads_the_translation_as_the_bodys_first_lines`,
+at the assertion `composed.startswith("닫는다 #1.\nCloses #1.\n")`. The
+cause is that `tests/conftest.py#write` calls `Path.write_text`, which ends
+each line with CRLF on Windows. `pr_body.py#read_own` reads `pr.ko.md` and
+`pr.md` as their bytes stand, which `frame/design.md` *Scope* item 3
+fixes, so the composed body opened with CRLF lines. The case's literals
+held LF, and its `composed.replace("닫는다 #1.\n", "", 1)` would have taken
+nothing out there. The code holds: the arm compares lines through
+`lib/blocks.py#gfm_lines`, which drops each line's end. The case now
+compares the body's first two lines without their ends, and takes out the
+body's first line as it stands. A pytest plugin kept at
+`<scratchpad>/1453-fix3/crlf_plugin.py` makes `Path.write_text` write CRLF
+on this platform. Under it the old case failed at the same assertion
+(executed), and the new case passed (executed, `Test_body`).
+`seal mutate` dropped the translation from `first_part` where the rows
+differ, and the case went red at its line assertion (executed). The cases
+this work added were listed with `git diff c4bb8877 HEAD -- tests evals`.
+Every module of that list was run under the same plugin, and this case was
+the one failure (executed, 501 passed). That list is closed. It reaches
+`tests/skills/test_pr_body.py`, which passed on Windows, and the plugin
+does not reproduce a CRLF checkout of the repository's own files.
