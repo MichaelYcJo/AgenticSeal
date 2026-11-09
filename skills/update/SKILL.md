@@ -114,7 +114,7 @@ for release in reversed(releases):
         print("## " + release["tag_name"])
         print(release["body"])
 ' "$f" "$old" "$new"
-rm -f "$f"
+rm -f "${f:?}"
 ```
 
 It prints the `body` of every release after the old version up to the new
