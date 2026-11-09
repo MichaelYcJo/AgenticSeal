@@ -64,6 +64,11 @@ and in `pr.md:3`:
 - "Ten were an `rm` whose path held a variable, seven of them agents removing what they had made under the scratchpad, mostly file by file in a loop. Nine were a zsh expansion flag such as `${(f)"$(cat list)"}`, which agents used to pass a list of test files to one command." (`changelog.md` *Fixed*, the first item)
 ```
 
+```seal
+verdict: fixed a1a916d7
+answer: The first item of changelog.md *Fixed* now says people answered 21 prompts on Bash calls and that 19 of them were in two shapes, and that the seven scratchpad removals were mostly file by file in a loop, as frame/design.md G9 found; the sentences are the paste-ready fix's. pr.md is the orchestrator's and was left as it stands, so its third quote still carries the old sentence until the orchestrator rewrites it.
+```
+
 ### 2. The pin's failure message says the parser reads the zsh form that rule 21 says it cannot read
 
 ```seal
@@ -100,6 +105,11 @@ and in `frame/design.md:59`, the quoted value becomes ("the command forms
 an agent copies into a shell, two that Claude Code's parser reads and one
 it holds for a person").
 
+```seal
+verdict: fixed a1a916d7
+answer: FACTS entry 21 now reads "the command forms an agent copies into a shell, two that Claude Code's parser reads and one it holds for a person", the value the folded frame/design.md *Data & interfaces* gives, so the failure message no longer says the parser reads the zsh form. The frame half was folded by the framer in d0bb10a7. The module passed with the new description in the fix pass's run of tests/text and tests/behaviour.
+```
+
 ### 3. Rule 21 says `"${VAR:?}"` stops the line where the variable is unset, and leaves out the empty case the parser asks about
 
 ```seal
@@ -123,6 +133,11 @@ changelog and the frame name the form without it.
 ```markdown
 literal path, or writes each variable in its path as `"${VAR:?}"`, which
 stops the line where the variable is unset or empty. A directory you made is
+```
+
+```seal
+verdict: fixed a1a916d7
+answer: Rule 21 now says "${VAR:?}" stops the line where the variable is unset or empty, so the reason names the empty case the colon adds and the prompt asks about. The pinned spelling is unchanged, and the paragraph was rewrapped to the file's width.
 ```
 
 ### 4. The plan's *Overlap with the release* names two of the release's three other items and leaves out #1459, which changes the same orchestration file
@@ -153,6 +168,11 @@ overlap itself.
 The frames of #1059 and #1454 held only their skeletons when this frame was written, and #1459 had no frame when its row was added, so each row reads the item's issue and the spawn's description of it.
 
 | #1459, the orchestrator chooses each item's route | `skills/implement/orchestration.md`: #1459 changes the routing question and *Orchestrator: how the work is routed*, and this work adds one sentence to step 1 of *Orchestrator: the order inside a ticket*, which cites that section by name | #1445 | This item carries the version move and merges before every other item of the release. The two edits are in different sections of one file, so #1459 takes the base in with a text merge, inside a round it runs anyway. If #1459 renames that section, it carries the citation in step 1 with it. |
+```
+
+```seal
+verdict: fixed d0bb10a7
+answer: The framer's fold added a row for #1459 to frame/plan.md *Overlap with the release* and rewrote the section's opening sentence to name all three items; the fix pass read the fold and changed nothing for this finding.
 ```
 
 ### 5. The plan still says the parser refuses the forms, after the phase and the fold settled that it holds them for a person
@@ -187,6 +207,11 @@ and in row 6 of *Alternatives considered*:
 
 ```markdown
 | 6. A check: a hook or script that reads an agent's command before it runs | It re-encodes Claude Code's judgment, refuses what the parser reads or passes what the parser holds for a person, and brings back the `PreToolUse` gates #1416 and #1430 removed | Rejected (`skills/core/SKILL.md` *The rule a mechanism is kept against*, and the issue's *Done when*) |
+```
+
+```seal
+verdict: fixed d0bb10a7
+answer: The framer's fold rewrote frame/plan.md's failure scenario to "holds for a person" and row 6 of *Alternatives considered* to "passes what the parser holds for a person"; the "refuses" left in row 6 is the check's act, not the parser's. The fix pass read the fold and changed nothing for this finding.
 ```
 
 ## Confirmations
