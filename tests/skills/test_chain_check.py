@@ -2439,7 +2439,9 @@ class Test_originals_of:
         assert original_lines(out) == [], out
 
         def owed(paths):
-            return chain.originals_of(reader, routing_module, str(root), paths, [ITEM])
+            return chain.originals_of(
+                reader, routing_module, str(root), "seal", paths, [ITEM]
+            )
 
         assert owed(["docs/a.md", f"{ITEM}/trail/rounds/round-1.md"]) == []
         write(root, PARITY, parity_file(BASELINE))
