@@ -185,12 +185,16 @@ def test_s6_mode_moves_agentic_seal_under_the_git_directory_and_back(shared, cap
     assert said(capsys, shared, "mode")[0] == 0
     write(shared / "agentic-seal", "notes.md", "# notes\n")
     before = files_under(shared / "seal")
+    # The bytes as `write` put them on disk, with this platform's line ends,
+    # which the move must carry unchanged.
+    written = files_under(shared / "agentic-seal")
     code, out = said(capsys, shared, "mode", "local")
     assert code == 0, out
     assert "note: agentic-seal/notes.md is untracked" in out
     assert not (shared / "agentic-seal").exists()
     local = files_under(shared / ".git" / "seal")
-    assert local[f"threads/{ITEM}/routing.md"] == b"# routing\n"
+    for rel in RECORDS:
+        assert local[rel] == written[rel], rel
     assert status(shared) and all(
         line.startswith("D  agentic-seal/") for line in status(shared)
     ), status(shared)
@@ -202,7 +206,9 @@ def test_s6_mode_moves_agentic_seal_under_the_git_directory_and_back(shared, cap
     assert out.count("`git reset -- :/agentic-seal`") == 2, out
     assert not (shared / ".git" / "seal").exists()
     back = files_under(shared / "agentic-seal")
-    assert back.pop("config.md").endswith(b"| Mode | shared |\n")
+    # `write_row` keeps the file's own line ends, which `write` made this
+    # platform's, so the last line is compared without its end.
+    assert back.pop("config.md").splitlines()[-1] == b"| Mode | shared |"
     local.pop("config.md")
     assert back == local
     assert status(shared) and all(
@@ -313,7 +319,9 @@ def test_s6_a_copy_travels_as_seal_and_lands_under_agentic_seal(
     """`seal export` from the local root writes members named `seal/…`, the
     archive's own name, and `seal import --into shared` in a fresh clone
     writes them under `agentic-seal/`, leaving the package as it was."""
-    records_at(local_home(package))
+    # The bytes as `write` put them on disk, with this platform's line ends,
+    # which the export and the import must carry unchanged.
+    written = files_under(records_at(local_home(package)))
     zips = tmp_path / "zips"
     zips.mkdir()
     code, out = said(capsys, package, "export", "--output", str(zips))
@@ -332,7 +340,8 @@ def test_s6_a_copy_travels_as_seal_and_lands_under_agentic_seal(
     code, out = said(capsys, clone, "import", str(archive), "--into", "shared")
     assert code == 0, out
     landed = files_under(clone / "agentic-seal")
-    assert landed[f"threads/{ITEM}/routing.md"] == b"# routing\n"
+    for rel in RECORDS:
+        assert landed[rel] == written[rel], rel
     assert files_under(clone / "seal") == before
 
 
