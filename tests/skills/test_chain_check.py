@@ -3212,6 +3212,50 @@ class Test_body:
         assert code == 0, out
         assert body_lines(out) == [], out
 
+    @pytest.mark.parametrize(
+        "row, said",
+        [
+            ("", None),
+            (
+                "| Pull request seal mark | Yes |\n",
+                "`Pull request seal mark` reads `Yes`, not `yes`, so the row is not "
+                "read and the body carries no seal mark",
+            ),
+        ],
+        ids=["the row absent", "a row other than yes"],
+    )
+    def test_refuses_the_mark_where_the_row_gives_none(
+        self, bodied, tmp_path, monkeypatch, capsys, row, said
+    ):
+        """S6. Where the row is absent or reads other than `yes`, the
+        composition holds no mark, so a body carrying one is refused at the
+        mark's run as lines the records do not give, and a row other than
+        `yes` is named on a notice in `seal pr-body`'s words. Seen red with
+        the arm's call in `main` removed."""
+        root, _early, _late = bodied
+        write(root, "seal/config.md", "| Item | Value |\n|---|---|\n" + row)
+        commit(root, "the row, changed")
+        head = git(root, "rev-parse", "HEAD")
+        write(root, f"{ITEM}/trail/gate.md", gate_file(head))
+        write(root, f"{ITEM}/guarantee.md", guarantee(head, "sealed"))
+        commit(root, "the closing records, again")
+        plain = composed_body(root)
+        heading = f"{PR_BODY.HEADING}\n\n"
+        assert MARK not in plain
+        payload(tmp_path, monkeypatch, plain.replace(heading, f"{heading}{MARK}\n\n"))
+        code, out = check(root, capsys)
+        assert code == 1, out
+        refusal = (
+            f"{ITEM}:0  the pull request's body, line 3: reads ``, then "
+            f"`{MARK}`, which the records do not give"
+        )
+        notice = [f"{ITEM}:0  the pull request's body: {said}"] if said else []
+        assert body_lines(out) == [*notice, refusal], out
+        payload(tmp_path, monkeypatch, plain)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert body_lines(out) == notice, out
+
     def test_refuses_a_drifted_body_at_its_line(
         self, bodied, tmp_path, monkeypatch, capsys
     ):
