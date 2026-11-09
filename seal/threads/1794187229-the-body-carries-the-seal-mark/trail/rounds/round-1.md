@@ -121,6 +121,11 @@ and `body` that name the base change with the code. `frame/design.md`
 *Data & interfaces* already says what the fix makes true, and
 `changelog.md` holds no sentence on the base, so neither needs an edit.
 
+```seal
+verdict: fixed 1012b256
+answer: Applied as the finding reads, after reading it against the tree: `chain_check.py#guarantee` calls `follows` with `args.baseline`, and `_seal_at_head` took the base from the guarantee's `target:` line. `_seal_at_head`, `seal_mark` and `compared` take `base=None`, `body` takes it and passes it on, and `main` passes `args.baseline`; with no base given, the guarantee's own base is read, so `seal pr-body` and `--check` at the branch head are unchanged. `Test_body::test_accepts_the_body_at_a_merge_past_a_later_base_commit` writes the guarantee's base as the fork point's SHA, lands one commit on `main` after the seal, and checks the merge with `GITHUB_HEAD_REF` set. It was seen red before the fix, with the line this finding quotes, and red again under three mutations after the commit: the base dropped from `body`'s call to `compared`, from `main`'s call to `body`, and from `_seal_at_head`. The docstrings of the four functions and the module docstring's `body` row say the mark is read against the check's base; `722f0727` rewraps them and changes no word.
+```
+
 ### 2. `pr.md` carries none of what `CONTRIBUTING.md` asks a gate change's pull request to say, which the frame says the pull request copies
 
 ```seal
@@ -157,6 +162,11 @@ at `1af09327`. `pr.md` is the orchestrator's to repair.
 These go above `Closes #1452.`. Each was checked word for word at its
 coordinate with whitespace collapsed. The second quote is true only once
 finding 1 is fixed, so it is added after that fix.
+
+```seal
+verdict: fixed a61f0fb0
+answer: The orchestrator repaired `pr.md` at `a61f0fb0`: the six quotes stand above `Closes #1452.`, read at HEAD. The second quote holds since finding 1's fix at `1012b256`, where `seal pr-body` run again clears a refusal at the merge commit too.
+```
 
 ### 3. Several judged work items with no `pr.md` are named with the sentence for two holders of `pr.md`, and neither that shape nor a refusal placed at a record has a case
 
@@ -234,6 +244,11 @@ which holds one". `changelog.md` *Fixed*, the first item, is a summary that
 names the two-holder shape alone. It is not false, and the fix pass may leave
 it. Each new case is seen red against the code as it stands before its fix.
 
+```seal
+verdict: fixed 1012b256
+answer: `BODY_NONE_HOLDS` stands beside `BODY_SPLIT`, and `body` names the shape with no holder of `pr.md` in it; the module docstring's `body` row and `body`'s docstring name both shapes. The two cases are the finding's, as written. `test_names_the_body_as_not_read_for_two_work_items_without_pr_md` was seen red before the fix on the two-holder sentence, and red again with `BODY_SPLIT` put back for both shapes. `test_refuses_a_missing_pr_md_at_its_path` pins behaviour the code already had, so it was seen red with the record's cause placed on the work item's directory, where the line read `seal/threads/1791999999-a-work-item:0` and not `.../pr.md:0`. The `changelog.md` *Fixed* first item now names both shapes too, so the closed set of this item's records says one thing.
+```
+
 ### 4. The two-manifest case covers nothing its group does not already cover, and `version` leaving `MARK_FIELDS` has no case
 
 ```seal
@@ -283,6 +298,11 @@ It is seen red with `"version"` put back into `MARK_FIELDS`, where the
 second manifest gives no line and the set holds `None`. The comment above
 the `MANIFEST` fixture (`test_pr_body.py:275-277`) still says the fixture
 keeps `version` "which the address does not read", and that stays true.
+
+```seal
+verdict: fixed 1012b256
+answer: The two-manifest case's second manifest now lacks `version`, and the case compares the set with `MARK_LINE`; its docstring says how it was seen red. With `"version"` put back into `MARK_FIELDS` the case went red with the set holding None beside the line, which no other case of the group does.
+```
 
 ## Confirmations
 
