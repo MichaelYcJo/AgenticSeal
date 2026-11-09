@@ -1800,13 +1800,26 @@ class Test_baseline_commit:
         assert not said.startswith(("seal/", "parity")), said
 
 
-class Test_unconverted_parity:
-    def test_names_the_file_to_write_and_every_key_the_template_holds(self):
-        """S6 and design *Scope* item 4: the sentence the parity arm refuses
-        an earlier release's `parity.md` in, and `seal mode` names one in,
-        names the file to write, the template it is written from and each
-        of the template's keys, so a person converts it without opening
-        another page."""
+class Test_renamed_header:
+    def test_accepts_a_header_holding_signer_and_renames_that_cell_alone(self, config):
+        old, said = config.renamed_header(("Signer", "Note"))
+        assert old == ("Signatory", "Note")
+        assert "`| Signatory | Note |`" in said, said
+
+    def test_refuses_a_header_that_holds_no_signer(self, config):
+        assert config.renamed_header(("Field", "Value")) == (None, None)
+
+
+class Test_module:
+    def test_an_old_parity_md_is_named_with_every_key_the_template_holds(self):
+        """S6 and design *Scope* item 4: `unconverted_parity`, the sentence
+        the parity arm refuses an earlier release's `parity.md` in and `seal
+        mode` names one in, names the file to write, the template it is
+        written from and each of the template's keys, so a person converts
+        it without opening another page. The sentence builds from
+        `PARITY_KEYS`, held here to the template's keys in order. Its
+        readers' cases are in `tests/skills/test_chain_check.py` and
+        `tests/skills/test_seal.py`."""
         with open(
             os.path.join(ROOT, "templates", "setup", "parity.json"), encoding="utf-8"
         ) as handle:
@@ -1819,18 +1832,6 @@ class Test_unconverted_parity:
         for key in keys:
             assert f"`{key}`" in said, (key, said)
 
-
-class Test_renamed_header:
-    def test_accepts_a_header_holding_signer_and_renames_that_cell_alone(self, config):
-        old, said = config.renamed_header(("Signer", "Note"))
-        assert old == ("Signatory", "Note")
-        assert "`| Signatory | Note |`" in said, said
-
-    def test_refuses_a_header_that_holds_no_signer(self, config):
-        assert config.renamed_header(("Field", "Value")) == (None, None)
-
-
-class Test_module:
     @pytest.mark.parametrize(
         "value, root",
         [
