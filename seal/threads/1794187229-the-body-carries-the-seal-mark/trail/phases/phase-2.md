@@ -93,8 +93,8 @@ run under `--sealing` among them, prints `not read: the pull request's
 body, since there is no pull-request event payload`. The design asks for
 it (*Scope* item 1, S5). It changes no exit code.
 
-**Seen red.** Ten of the eleven new cases were run against `95399efc`'s
-parent, the tree with no arm, and failed (executed). Each failed on its own
+**Seen red.** Ten of the eleven new cases were run against `41eb35f5`, the
+tree with no arm, and failed (executed). Each failed on its own
 assertion: the exit code where a refusal is owed, and the list of body
 lines where a notice is owed. The two-work-item case also first failed on
 its own expected order, which was wrong; the arm prints in the
