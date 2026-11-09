@@ -17,11 +17,12 @@ section opens with a line of `FIXED` naming its source, and a record that is
 not there is named by its own line of `FIXED`.
 
 One fixed line depends on a record's verdict (#1204): the seal mark, `MARK`,
-the plugin's icon at the tag of the plugin's version, stands between
-`HEADING` and the fold where `seal/config.md`'s `Pull request seal mark`
+the plugin's icon at the default branch of the plugin's repository, stands
+between `HEADING` and the fold where `seal/config.md`'s `Pull request seal mark`
 row reads `yes` and the work item's `guarantee.md` reads `sealed` at HEAD,
 as `seal_mark` reads them. Its address is built from the plugin's manifest,
-which is read and never written. It carries no record text, and `--check`
+which is read and never written, and names no version, so two releases of
+the plugin compose one line (#1452). It carries no record text, and `--check`
 composes it the same way, so the sealer's check, run before its own
 verdict exists, reads a part with no mark from that run. The row and HEAD
 are read in the work item's own checkout, and in the working directory's
@@ -235,7 +236,7 @@ MARK_ROW = "Pull request seal mark"
 MARK_ON = "yes"
 MANIFEST = os.path.join(HERE, "..", "..", "..", ".claude-plugin", "plugin.json")
 MANIFEST_NAME = ".claude-plugin/plugin.json"
-MARK_FIELDS = ("repository", "version", "icon")
+MARK_FIELDS = ("repository", "icon")
 MARK = '<img src="{src}" alt="{alt}" width="{width}">'
 MARK_ALT = "Sealed"
 MARK_WIDTH = 128
@@ -428,9 +429,12 @@ def _seal_at_head(item, root):
 
 def _mark_line(manifest):
     """`(line, note)`: the mark built from the plugin's manifest at MANIFEST,
-    its `repository`, `/raw/v`, its `version`, `/` and its `icon` with a
-    leading `./` dropped, escaped; or None and the sentence naming what the
-    manifest lacks."""
+    its `repository`, `/raw/HEAD/` and its `icon` with a leading `./`
+    dropped, escaped; or None and the sentence naming what the manifest
+    lacks. The address names no version: the installed plugin writes the
+    body and the pull request check's copy composes it again, and the two
+    can be different releases, so the line reads nothing they differ in
+    (#1452). GitHub resolves `HEAD` to the repository's default branch."""
     try:
         with open(manifest, encoding="utf-8") as handle:
             fields = json.load(handle)
@@ -446,7 +450,7 @@ def _mark_line(manifest):
     icon = fields["icon"]
     if icon.startswith("./"):
         icon = icon[2:]
-    src = f"{fields['repository']}/raw/v{fields['version']}/{icon}"
+    src = f"{fields['repository']}/raw/HEAD/{icon}"
     return MARK.format(
         src=html.escape(src), alt=html.escape(MARK_ALT), width=MARK_WIDTH
     ), None

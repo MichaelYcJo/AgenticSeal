@@ -272,15 +272,16 @@ def unsourced(text, texts):
     ]
 
 
-# #1204: a manifest with the three fields the mark's address is built from,
-# and the line `seal pr-body` writes from it.
+# #1204: a manifest with the two fields the mark's address is built from and
+# a `version`, which the address does not read (#1452), and the line `seal
+# pr-body` writes from it.
 MANIFEST = {
     "repository": "https://github.com/owner/plugin",
     "version": "1.2.3",
     "icon": "./.claude-plugin/icon.png",
 }
 MARK_LINE = (
-    '<img src="https://github.com/owner/plugin/raw/v1.2.3/.claude-plugin/icon.png" '
+    '<img src="https://github.com/owner/plugin/raw/HEAD/.claude-plugin/icon.png" '
     'alt="Sealed" width="128">'
 )
 ROW = "| Pull request seal mark | yes |\n"
@@ -619,17 +620,37 @@ class Test_seal_mark:
     def test_accepts_a_seal_only_its_guarantee_follows(self, repo, tmp_path):
         """S1. The row reads `yes`, the newest block reads `sealed` at a
         commit only the guarantee's own commit follows, and the line is the
-        manifest's `repository`, `/raw/v`, `version` and `icon` path."""
+        manifest's `repository`, `/raw/HEAD/` and `icon` path."""
         item = sealed_item(repo)
         manifest = manifest_of(tmp_path, MANIFEST)
         assert PR.seal_mark(str(item), str(repo), manifest) == (MARK_LINE, None)
+
+    def test_accepts_one_mark_line_from_two_releases_of_the_plugin(
+        self, repo, tmp_path
+    ):
+        """#1452, *Scope* item 6 and S10. The installed plugin writes the
+        body and the check's copy composes it again, and the two can be
+        different releases. Two manifests differing in `version` alone give
+        one mark line, the icon at the repository's default branch. Seen
+        red against `_mark_line` with the tag address, where the two lines
+        named `v1.2.3` and `v9.9.9`."""
+        item = sealed_item(repo)
+        (tmp_path / "older").mkdir()
+        (tmp_path / "newer").mkdir()
+        older = manifest_of(tmp_path / "older", MANIFEST)
+        newer = manifest_of(tmp_path / "newer", {**MANIFEST, "version": "9.9.9"})
+        lines = {PR.seal_mark(str(item), str(repo), m)[0] for m in (older, newer)}
+        assert lines == {
+            '<img src="https://github.com/owner/plugin/raw/HEAD/.claude-plugin/icon.png" '
+            'alt="Sealed" width="128">'
+        }
 
     def test_accepts_the_plugins_own_manifest(self, repo):
         """S1's address read from the manifest three directories above the
         script, the plugin's own, which this reads and never writes."""
         with open(PR.MANIFEST, encoding="utf-8") as handle:
             own = json.load(handle)
-        src = f"{own['repository']}/raw/v{own['version']}/{own['icon'][2:]}"
+        src = f"{own['repository']}/raw/HEAD/{own['icon'][2:]}"
         item = sealed_item(repo)
         assert PR.seal_mark(str(item), str(repo)) == (
             f'<img src="{src}" alt="Sealed" width="128">',
@@ -744,7 +765,7 @@ class Test_seal_mark:
         manifest = manifest_of(tmp_path, MANIFEST)
         assert PR.seal_mark(str(item), str(repo), manifest) == (None, said)
 
-    @pytest.mark.parametrize("field", ["repository", "version", "icon"])
+    @pytest.mark.parametrize("field", ["repository", "icon"])
     def test_refuses_a_manifest_lacking_a_field(self, repo, tmp_path, field):
         """S5. A manifest the address cannot be built from: no mark, and
         the field named."""
