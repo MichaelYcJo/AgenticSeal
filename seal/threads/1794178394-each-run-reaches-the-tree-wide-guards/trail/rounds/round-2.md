@@ -62,6 +62,11 @@ script that builds the path some other way is the part it did not reach.
   sums at :208-217 taken again over the same files.
 ```
 
+```seal
+verdict: fixed ca0d3909
+answer: The finding holds. `tests/e2e/teammate/test_teammate_flow.py` reaches `seal.py#plugin_version` through `seal pr-checks install` (read at `:134-184` and `seal.py:1858-1870`, `:1988`), and an audit-hook probe logged its one case opening the real manifest (executed). `ca0d3909` rebuilds part 3 by walking up from the shipped code: a `git grep` for the manifest's spellings over the shipped directories gave the eight readers the round names, the walk went up to `lib/core.py#rendered`, `hooks/core-start.py`, `payload_meter.py`, `release_seal.py`, `release_report.py` and the `seal` subcommands `mode`, `pr-checks`, `gate`, `payload` and `pr-body`, and a `git grep -l` over `tests/` outside the two directories for those names listed 35 test files. 21 had run under the hook in round 1's fix pass and in round 2; this pass ran the other twelve, with the teammate flow and `tests/lib/test_core.py` as a control (967 passed, exit 0), and the hook logged the control and the teammate flow and no other file; the two left are `test_rule_cases.py` and `test_seed_defects.py`, which the set holds already. Part 3 now lists eight readers, and the record states the method and its limit: the readers and the walk come from name searches, so the list is a sample over spellings, and `gaps.md` names that limit as not verified for the proofer. The corrected set ran once with `bin/test` at `931639f2`: 98 files, 2,982 passed and 9 skipped, exit 0, 33.96 s by pytest and 34 s by `date +%s`, one-minute load 10.84 before and 14.75 after (executed). The stored-price sums are 525.6 s over the 98 files, 311.8 s over the eight readers, and about 562 s with the moved cases (executed). The statements at `phase-2.md:140`, `:173`, `:186-197`, `:199-203` and `:208-217` are rewritten in place, and the paste-ready text was not applied as given: the record keeps round 1's 97-file run and its first failing run as history, says why the case counts differ after the merge `84331b77`, and adds the walk and the probes. `frame/questions.md:16` Q2's Status is the orchestrator's to fold. The `Review rounds 1..n` set over the fix's paths, `bin/test tests/text tests/behaviour -q`, exited 0 after the commit, 1,789 passed and 8 skipped in 8.93 s (executed).
+```
+
 ### 2. The frame's sentences on the release's other items describe the base before the merge, and one names a case `c7bb14ca` removed
 
 ```seal
@@ -87,6 +92,11 @@ Why it matters: these three sentences state the present, and HEAD contradicts ea
 
 ```markdown
 This pull request does not move the version. `e244aa49`, #1443's pull request, moved it to 0.36.0 on the release branch, and this branch holds that commit through its merge of the base.
+```
+
+```seal
+verdict: fixed 931639f2
+answer: The finding holds, and the orchestrator's fold `931639f2` answers it. `frame/design.md:50` (*Out*), `frame/design.md:54` (the #1444 bullet) and `frame/plan.md:46` (*Operational impact*) now read the round's three replacements word for word, and `frame/plan.md:56` records the judgment with its grounds (read: `git diff 18f2aca6 931639f2`). Each replacement holds at HEAD: `.claude-plugin/plugin.json:4` reads 0.36.0 and `git show --stat e244aa49` lists that file; `git grep test_the_durations_file_prices_the_suite HEAD -- tests` finds nothing; `STALE_SHARE = 0.05` stands at `.github/scripts/durations_union.py:70`; and `.github/workflows/test.yml:200` defines the `durations` job (executed). `frame/plan.md:44` and `gaps.md:13-16` stay true, as the round says. This pass changed none of those files.
 ```
 
 ## Confirmations
