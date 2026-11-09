@@ -59,7 +59,7 @@ What breaks in six months:
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
 | 1 | *Scope* items 1 and 7, and the step 2 sentence of *Scope* item 6. It starts after #1440 has merged into `release/v0.36.0` and the branch has merged that in (`frame/design.md` *Scope*, the overlap paragraph) | new cases in `tests/skills/test_session_cost.py` for the plain reading, `--spawns` and `--segments` bodies, and for a body that would have carried a command with an absolute path. Each is shown red against the current `emit` and `report`. The module's other cases stay green, run narrow by the crafter. The suite is `unverified` until the orchestrator's broad gate | f886ff97 |
-| 2 | *Scope* items 2, 3, 4 and 5, and the rest of *Scope* item 6 | new cases in `tests/skills/test_session_cost.py`, one per scenario of `frame/design.md` *User scenarios & acceptance* that names this file, each shown red first. A pin in `tests/text/test_a_segment_feeds_the_flow_log.py`, shown red with the sentence removed. A read-only run of `--work-item` without `--post` on `seal/threads/1794128303-the-plugin-ships-two-hooks-again` and on this work item's directory, quoted in `trail/phases/phase-2.md` | |
+| 2 | *Scope* items 2, 3, 4 and 5, and the rest of *Scope* item 6 | new cases in `tests/skills/test_session_cost.py`, one per scenario of `frame/design.md` *User scenarios & acceptance* that names this file, each shown red first. A pin in `tests/text/test_a_segment_feeds_the_flow_log.py`, shown red with the sentence removed. A read-only run of `--work-item` without `--post` on `seal/threads/1794128303-the-plugin-ships-two-hooks-again` and on this work item's directory, quoted in `trail/phases/phase-2.md` | d3ca21e5 |
 
 ## Operational impact
 
