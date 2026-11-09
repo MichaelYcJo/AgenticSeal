@@ -1,8 +1,8 @@
 """`seal mode`: what is left here after #942's phase 5.
 
 The cases of `skills/implement/scripts/seal.py` are in `tests/skills/test_seal.py`.
-The three cases here read the documents and the workflows that name the
-command, and they are #923's.
+The cases here read the documents and the workflows that name the command.
+Three are #923's, and the one on an absent `Mode` key is #1454's.
 """
 
 import pytest
