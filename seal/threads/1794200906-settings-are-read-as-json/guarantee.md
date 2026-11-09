@@ -38,3 +38,33 @@ Read, and not a reason for this verdict: `frame/questions.md` Q1, on whether a c
 target: 18fec3619 against 961fe52b1
 Verdict: withheld reason: changelog.md:4 and :10 (quoted at pr.md:8), README.md:105-106, README.ko.md:108-109, templates/setup/config.md:46-48, frame/plan.md:11 and :54 and frame/design.md S3 (:61) say `seal pr-body` exits 2 on an unconverted or unparseable config, and the tree exits 1: skills/code-review/scripts/pr_body.py:1043 and :1068 return 1 on that refusal, tests/skills/test_pr_body.py:1112 asserts == 1, and the tree's bin/seal pr-body exited 1 for both shapes, with and without --check (executed); the build and these texts must say one exit
 ```
+
+## Re-audit at 83edd2ca6
+
+Four commits follow `18fec3619`. `eb03b4d7c` commits the block above. `b0d01da81` rewrites the texts the block names. `bed47599d` adds `trail/rounds/round-4.md`, and `83edd2ca6` adds a second run to `trail/gate.md` (executed: `git log --no-merges --name-only 18fec3619..HEAD`). The gate record's newest run is `bed47599d against 961fe52b1`. That commit is an ancestor of HEAD, and the one commit after it touches `trail/gate.md` alone (executed). `bin/seal pr-body seal/threads/1794200906-settings-are-read-as-json --body <the prompt's new body file> --check` exited 0, printing "matches" (executed). The base still resolves to `961fe52b1` through `release/v0.37.0@{upstream}` and `origin/release/v0.37.0`. Only the claims whose coordinates `b0d01da81` touched were run again. The claims of the run above rest on code that no commit since `18fec3619` changed, so they stand. Every command below is the tree's own `bin/seal`, run in a `git clone --no-local` clone of the worktree at `83edd2ca6`. The clone was removed after the runs.
+
+### Claims re-run
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| `b0d01da81` changes no code: its only file outside `seal/threads/` and Markdown is `lib/config.py`, in two docstrings | `b0d01da81`; `trail/rounds/round-4.md:7` | `git diff --stat 18fec3619 HEAD -- . ':!seal/threads' ':!*.md'`; `python3 -I` with `ast.dump` over `18fec3619:lib/config.py` and HEAD's file, with the module, class and function docstrings removed | holds. The one file listed is `lib/config.py`, and its code is equal once the docstrings are removed. |
+| Until the conversion, `seal gate`, `seal fold`, `seal pact` and `seal mode --check` exit 2 and name `seal mode`. `seal pr-body` refuses with the same sentence and exits 1. | `changelog.md:4`, `changelog.md:10` (quoted at `pr.md:8`), `README.md:105-109`, `README.ko.md:108-112`, `frame/plan.md:54`, `frame/design.md:61` | in a scratch repository whose `seal/` holds this repository's `README.md`, the base's `seal/config.md`, `seal/pact.md` and an origin remote: `bin/seal gate --base HEAD`, `fold`, `pact`, `mode --check`, `pr-body seal/threads/1-x --body <file>` with and without `--check`, and `rules --check` | holds. `gate`, `fold`, `pact` and `mode --check` exit 2 and print "run `seal mode` once". `pr-body` exits 1 both ways, prints the same sentence and writes no body. `rules --check` exits 0 on its defaults. |
+| On a `config.json` that will not parse, `seal fold`, `seal gate`, `seal mode` and `seal pact` exit 2, and `seal pr-body` prints the refusal and exits 1 | `templates/setup/config.md:46-51`, `frame/plan.md:11`, `lib/config.py:41-42`, `:125-127` | the same commands in a second scratch repository whose `seal/config.json` is `{"Record language": "English",}` | holds. `gate`, `fold`, `pact` and `mode --check` exit 2, and `pr-body` exits 1 with and without `--check`. Bare `seal mode` exited 2 on this shape in the run above, and no code has changed since. |
+| No text still pairs `seal pr-body` with exit 2 | the block above; `trail/rounds/round-4.md:23` | `git grep -n -A3 -B3 -E 'exit(s)? 2\|종료 코드 2\|코드 2'` outside `tests/` and `.test_durations`, filtered to lines holding `pr-body`; each hit read | holds. The hits at HEAD say `pr-body` exits 1 (`README.md:106`, `README.ko.md:110`, `lib/config.py:41`, `:127`, `templates/setup/config.md:48`, `changelog.md:4`, `:10`, `pr.md:8`, `frame/plan.md:11`, `:54`, `frame/design.md:61`), or name another command's exit 2, or are round records that state their own targets. The method lists these spellings only, so it is a sample. Round 4's paragraph search over every tracked file reached the same result. |
+
+### The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the design | *Scope*, *Removes*, S1 to S10 and *Rule changes*. S3 (`frame/design.md:61`) now says `seal pr-body` refuses with the same sentence and exits 1. | the issue's *Done when*; the build, including S3's case `tests/skills/test_pr_body.py:1112` (`== 1`); the exits run above | none |
+| the build | the diff `961fe52b1...HEAD`. Its code is the code audited at `18fec3619`, since `lib/config.py` changed only in docstrings since then. The five phase records stand for the five phases whose plan Status cells hold a commit (`routing.md` reads `crafter`). | the design; the claims re-run in the block above and here | none |
+| the last round | `trail/rounds/round-4.md`, target `b0d01da81`: no finding. It ran every command's exit on both shapes and swept every tracked file for `pr-body` paired with exit 2. It leaves Q1 to the owner. It holds no `fixed` finding. | the exits run here; the sweep run here | none |
+| the changelog | `changelog.md` *Changed*, *Updating*, *Removed* and *Process changes*. `:4` and `:10` give `seal pr-body` exit 1. | the tree, as re-run in both runs | none |
+| the orchestrator's part of the pull request body | `pr.md`: nine quotes of `changelog.md` and `Closes #1454.`. `:8` quotes `changelog.md:10` as it now stands. `seal pr-body --check` matches the new body file. No `pr.<lang>.md` stands, and both language keys read `English`. | the changelog; the tree | none |
+
+`frame/questions.md` Q1 is still `open` on its default, "No converter". Every record states that default and the tree holds it, as the run above found; the owner's answer stays open and is no reason for a verdict. Git carries no `seal/parity.json`, so no parity comparison is owed.
+
+```seal
+target: 83edd2ca6 against 961fe52b1
+Verdict: sealed
+```
