@@ -1,0 +1,14 @@
+- "**The pull request's check reads the pull request's body against what `seal pr-body` composes at HEAD, so a body sent before the seal, or one that drifted from the records, fails a ready pull request (#1452).**" (`changelog.md` *Fixed*, the first item)
+- "The six work item pull requests of 0.36.0 opened with the body written before the sealer's verdict, so none carried the seal mark, and no check read the body." (`changelog.md` *Fixed*, the first item)
+- "The comparison is `skills/code-review/scripts/pr_body.py#compared`, the function `seal pr-body --check` now calls too, so the sealer and the pull request read the body by one code path." (`changelog.md` *Fixed*, the first item)
+- "A draft prints the refusal and passes." (`changelog.md` *Fixed*, the first item)
+- "**The shipped workflow, `templates/setup/hygiene.yml`, runs on `edited`.**" (`changelog.md` *Fixed*, the third item)
+- "**The seal mark's address names no version, so the installed plugin and the copy the pull request's check runs compose one mark line whatever release each is.**" (`changelog.md` *Fixed*, the fourth item)
+- "The picture is the icon at the default branch, so a change to the icon's bytes there changes the picture every body carrying the mark shows." (`changelog.md` *Fixed*, the fourth item)
+- "A body written by an installed plugin of an earlier release carries the tag address and is refused on that line; `seal pr-body` run again from this release or a later one clears it." (`changelog.md` *Updating*)
+- "The pull request's title takes `fix:`, and the kind that came closest is `feat:`." (`frame/plan.md` *Judgments of the run*, the prefix row)
+- "how GitHub renders an annotation whose path is a work item's directory at line 0 (`frame/questions.md` Q1); no case runs on GitHub" (`gaps.md` *Not verified*, the second row)
+
+Closes #1452.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
