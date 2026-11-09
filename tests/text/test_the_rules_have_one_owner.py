@@ -434,8 +434,9 @@ def test_a_decision_after_the_frame_is_folded_into_it():
         "decide: the move by *Orchestrator: how the work is routed*, and the "
         "home by the paragraph opening *A problem that recurs within a run "
         "gets a prevention home at once*.",
-        # The same round's class: the other clauses of #1442's *Scope* item
-        # 1 that this case did not hold, each deleted with the suite green.
+        # The same round's class: the other sentences #1442 added to this
+        # paragraph that no case held, each deletable with only the
+        # line-wrap check, if anything, going red.
         "A crafter reads the frame and not the issue's comments, so the "
         "decision has to stand in the frame.",
         "a round finding whose route changes the frame, a round finding "
