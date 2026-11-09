@@ -1761,7 +1761,7 @@ class Test_coverage_line:
         )
         text = text.replace(
             "both READMEs move together",
-            "the mode the row declares is the mode the folder is in",
+            "the mode the key declares is the mode the folder is in",
         )
         assert gate.coverage_line(text, "main") == (
             "seal gate: this run answers every one of the 1 `release` steps "
@@ -2100,21 +2100,22 @@ class Test_panel:
 # from it whether to open the kept file (contract rule 14). It names every
 # cause of a missing record, never one as the only one (#825, #869).
 NO_RECORD_HERE = (
-    "no pytest the row ran here left a record of the gate's recorder (the row "
-    "started no pytest, because a part before its runner failed or it has none; "
+    "no pytest the command ran here left a record of the gate's recorder (the "
+    "command started no pytest, because a part before its runner failed or it has none; "
     "none it started loaded the recorder; or the one that did could not write "
     "its record and warned 'agentic_pytest_record: no record written' in "
     "suite.txt), so this exit code is not a count of failing tests"
 )
 
 # Pinned verbatim for the same reason (contract rule 14): it is the one line
-# that says why a suite whose row exited 0 failed (#883, #1301).
+# that says why a suite whose command exited 0 failed (#883, #1301).
 NOT_PASSED_AT_EXIT_0 = (
-    "the row exited 0, and the gate fails the suite all the same because a "
+    "the command exited 0, and the gate fails the suite all the same because a "
     "pytest session it ran did not pass by its own record: either it stopped "
     "part-way, and a stop such as pytest.exit() or os._exit() chooses the exit "
     "code itself, or it ended with exit 1, and a later hook or a part of the "
-    "row after pytest chose the row's exit; so an exit of 0 says neither that "
+    "command after pytest chose the command's exit; so an exit of 0 says "
+    "neither that "
     "the session ran every test it collected nor that nothing it ran failed"
 )
 
@@ -2271,7 +2272,7 @@ class Test_report_lines:
 
 @pytest.fixture(scope="module")
 def _repo_template(tmp_path_factory):
-    """A repository on `base` with a one-test suite, the config row and an
+    """A repository on `base` with a one-test suite, the config key and an
     overview, then `feature` one commit ahead; built once, and copied for each
     case by `tests/conftest.py#repo`."""
     d = tmp_path_factory.mktemp("gate-template") / "repo"

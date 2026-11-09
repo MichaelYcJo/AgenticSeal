@@ -49,17 +49,17 @@ def test_s4_the_configs_this_plugin_writes_are_silent():
 
 
 def test_the_template_and_the_config_skill_carry_the_pact_row_alone():
-    """`templates/setup/config.md` documents the `Pact` row and `/agentic:config`
-    shows it; neither carries a `Pact notify` row, and the template says
+    """`templates/setup/config.md` documents the `Pact` key and `/agentic:config`
+    shows it; neither carries a `Pact notify` key, and the template says
     once what one left in a config does."""
     template = flat("templates", "setup", "config.md")
     skill = flat("skills", "config", "SKILL.md")
     assert f"**`{config.PACT_KEY}`**" in template
     assert f"| `{config.PACT_KEY}` |" in skill
-    assert "| Pact notify |" not in template
+    assert '"Pact notify"' not in template
     assert "| `Pact notify` |" not in skill
     assert (
-        "**A `Pact notify` row is read by nobody.** No command refuses it, "
+        "**A `Pact notify` key is read by nobody.** No command refuses it, "
         "prints it or names it, like any item no reader asks for, and whoever "
         "next edits the file deletes it."
     ) in template

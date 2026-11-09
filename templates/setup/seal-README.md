@@ -27,14 +27,14 @@ gives up is CI, because the pull-request checks read committed files, and
 any other machine, which starts empty.
 
 **`seal mode local` and `seal mode shared` switch between the two.** Each
-moves the root, stages the change and records the mode in `config.md`
+moves the root, stages the change and records the mode in `config.json`
 beside this file, and leaves `.github/` alone; whoever ran the command
 commits the change. Whether CI checks pull requests is a second answer:
 `seal pr-checks install` writes `.github/workflows/hygiene.yml` where this
 root is in the tree, `seal pr-checks remove` takes it out, and
-`seal pr-checks` says which is the case. `seal mode` alone says where the root is and what that row claims,
+`seal pr-checks` says which is the case. `seal mode` alone says where the root is and what that key claims,
 and `seal mode --check`, which the pull-request checks run, exits non-zero
-when the two disagree. Nothing reads the row at runtime: the folder's
+when the two disagree. Nothing reads the key at runtime: the folder's
 location is the only signal. The by-hand move asks git for both paths, so
 the commands land the same from a subdirectory. From local to shared:
 `mv "$(git rev-parse --git-common-dir)/seal" "$(git rev-parse --show-toplevel)/seal"`,
@@ -82,9 +82,9 @@ work item's directory out of it, when, and where each one goes.
 ```
 seal/
 ├── README.md            this file
-├── config.md            what this repository says about itself, one row per
+├── config.json          what this repository says about itself, one key per
 │                        item. `templates/setup/config.md` in the plugin
-│                        documents every item and what an absent row means
+│                        documents every key and what an absent key means
 ├── parity.json          migration config, only where one is declared
 ├── pact.md              the pact, only in the repository that holds one
 ├── follow-up.md         schedulable items in a repository with no tracker
@@ -97,10 +97,10 @@ seal/
     ├── changelog.md       this work item's entry in the next release's notes
     ├── gaps.md            the closing memo: what the diff cannot show
     ├── pr.md              the pull request body's first part, after
-    │                      pr.<lang>.md where the two language rows differ;
+    │                      pr.<lang>.md where the two language keys differ;
     │                      read by every round
     ├── pr.<lang>.md       pr.md's quotes in the commit language, opening the
-    │                      first part where the two language rows differ
+    │                      first part where the two language keys differ
     └── guarantee.md       the sealer's verdict on the work, at a SHA
 ```
 

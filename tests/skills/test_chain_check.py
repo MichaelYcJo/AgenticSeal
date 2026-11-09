@@ -3168,7 +3168,7 @@ MARK_ON = ("Pull request seal mark", "yes")
 
 def composed_body(root, item=ITEM):
     """The body `seal pr-body` writes for ITEM in ROOT as it stands: the
-    first part the language rows ask for, the heading, the mark where the
+    first part the language keys ask for, the heading, the mark where the
     item is sealed at HEAD, and the copy."""
     path = str(root / item)
     mark, _note = PR_BODY.seal_mark(path, str(root))
@@ -3197,8 +3197,8 @@ def body_lines(out):
 @pytest.fixture
 def bodied(tmp_path):
     """A branch that went straight to the pull request with a `pr.md` and a
-    changelog, in a shared root whose two language rows read `English` and
-    whose `Pull request seal mark` row reads `yes`, sealed at HEAD. Returns
+    changelog, in a shared root whose two language keys read `English` and
+    whose `Pull request seal mark` key reads `yes`, sealed at HEAD. Returns
     `(root, early, late)`: the body `seal pr-body` wrote before the
     guarantee was committed, and the one it wrote after."""
     d = tmp_path / "b"

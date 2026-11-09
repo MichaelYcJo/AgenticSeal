@@ -103,7 +103,7 @@ write, and a write not named here is a write you do not make.
    `skills/feature-planner/SKILL.md`. Most frames need neither.
 6. Before writing, open `skills/writing-style/SKILL.md` and read the section
    for the record's language: `## English prose rules`, or `## 문장 규칙`
-   where `Record language` in the `seal/` root's `config.md` is Korean.
+   where `Record language` in the `seal/` root's `config.json` is Korean.
 7. Write `frame/design.md`, then `plan.md`, then `questions.md`.
 8. Hand back. Label each claim as rule 4 says: a fact a command you
    ran gave you, a `git show`, a `grep`, a `wc -l`, a probe, is

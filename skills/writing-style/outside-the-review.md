@@ -20,7 +20,7 @@ proofer 는 이 파일을 열지 않는다. proofer 가 쓰는 글은 리뷰 코
 
 **리뷰 체인을 거친 작업 항목의 PR 본문은 두 부분이고, 두 부분 모두 기록의
 글이라서 이 절의 규칙으로 고쳐 쓰지 않는다.** 앞부분은 작업 항목의 `pr.md`
-이고, `config.md` 의 두 언어 행이 서로 다른 언어를 가리키면 그 앞에
+이고, `config.json` 의 두 언어 키가 서로 다른 언어를 가리키면 그 앞에
 `pr.<lang>.md` 가 온다. `pr.md` 는 `Closes` 줄과 `Part of` 줄, 기록의 문장을
 그대로 옮긴 인용과 각 인용의 좌표, 그리고 출처 표기 줄만 담는다.
 `pr.<lang>.md` 는 `pr.md` 의 인용을 `Commit and pull request language` 로

@@ -39,11 +39,12 @@ def test_both_readmes_name_the_command_before_the_by_hand_lines(readme):
 
 def test_the_config_template_ships_the_row_with_no_value():
     """A template declaring `shared` would hand every local-mode repository a
-    row that is wrong from the moment it is copied — and the fix the command
+    key that is wrong from the moment it is copied — and the fix the command
     then offers is `--apply`, which would move their root into the tree
     through the one door that does not open both ways."""
     text = read("templates", "setup", "config.md")
-    assert "| Mode |  |" in text, "the template's Mode row carries a value"
+    assert '"Mode": ""' in text, "the template's Mode key carries a value"
+    assert "| Mode |" not in text, "the template still shows the Mode row"
     assert "## Mode" in text
 
 

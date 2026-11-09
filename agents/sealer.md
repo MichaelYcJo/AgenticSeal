@@ -74,7 +74,7 @@ return.
    return. On exit 0 the part of the body below the line
    `skills/code-review/scripts/pr_body.py#HEADING` holds is the records' own
    text, and you read it as no party, and the part above it is the work
-   item's `pr.<lang>.md`, where `config.md`'s two language rows differ,
+   item's `pr.<lang>.md`, where `config.json`'s two language keys differ,
    and then its `pr.md`. Then read the issue body
    (`gh issue view <N>`), the diff (`git diff <base>...HEAD`),
    `frame/design.md`, `frame/plan.md`, every `trail/phases/phase-N.md`, every

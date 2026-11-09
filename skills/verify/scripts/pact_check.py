@@ -151,10 +151,10 @@ def shown(path, repo=None, home_dir=None, flavour=os.path):
     separator.
 
     **Every path this command prints goes through here** (#647, the separator
-    note). The `UNREADABLE` sentence used to join a native absolute path with
-    `/`, so a Windows run printed `C:\\Users\\x\\orders-web\\seal/config.md`,
-    and every other path line printed whatever separators the platform gave
-    it. One function, so the class is closed by construction rather than one
+    note). A sentence that joins a native absolute path with `/` prints
+    `C:\\Users\\x\\orders-web\\seal/config.json` on Windows, as the
+    `UNREADABLE` sentence once did, and a path line printed without this
+    function carries whatever separators the platform gave it. One function, so the class is closed by construction rather than one
     sentence at a time.
 
     The comparison is by whole segment and literal: nothing is case-folded,

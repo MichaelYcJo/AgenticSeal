@@ -1,6 +1,6 @@
-"""The `Broad gate` row is asked for, and it runs as the command it reads as.
+"""The `Broad gate` key is asked for, and it runs as the command it reads as.
 
-Two tickets about one row of `seal/config.md`, in causal order. Nothing ever
+Two tickets about one key of `seal/config.json`, in causal order. Nothing ever
 asks a person for it (#401), so the first repository to fill it in by hand
 filled it in the way every command in every document here is written — wrapped
 in backticks — and nothing looked at what was written (#402). A shell reads
@@ -12,9 +12,9 @@ with the failure still on the screen.
 `tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py` holds the executed half:
 the gate refusing each form over a fixture repository, and the forms that stay
 allowed still sealing. What is pinned HERE is what a person reads and acts
-on — what `templates/setup/config.md` promises about the row, the criterion
+on — what `templates/setup/config.md` promises about the key, the criterion
 for choosing a value and its one owner, the refusal the gate prints, and the
-command that answers the row. The sentence that sends a session which meets
+command that answers the key. The sentence that sends a session which meets
 the refusal to a person instead of letting it choose is the proofer's to
 read.
 """
@@ -152,7 +152,7 @@ def test_the_template_says_a_refused_value_is_refused_and_not_repaired():
     assert "Nothing is stripped" in body
     assert "quietly repaired" in body
     assert "/agentic:config" in body, (
-        "the section does not say where a person rewrites the row"
+        "the section does not say where a person rewrites the key"
     )
 
 
@@ -191,7 +191,7 @@ def test_each_allowed_form_is_listed_with_what_it_costs():
 def test_both_ampersand_cells_name_both_shells():
     """Round 2's 🟡 2. Finding 5's platform hedge reached the refusal message,
     `gaps.md` and the pull request body, and not the two cells of the list
-    that owns the form — so the document a person writing the row reads still
+    that owns the form — so the document a person writing the key reads still
     stated `/bin/sh` semantics as though they were every platform's.
 
     Both cells now say what each shell does. Under `cmd.exe` a trailing `&`
@@ -209,7 +209,7 @@ def test_both_ampersand_cells_name_both_shells():
     #413: the presence loop found both names in each cell and nothing tied a
     name to the consequence that is that shell's, so the two names could be
     exchanged in either cell with all eighteen cases green — measured, once
-    per cell — and the document a person reads before writing the row then
+    per cell — and the document a person reads before writing the key then
     stated one platform's semantics as the other's. That is round 2's own
     🟡 2 inverted, by the case planted to hold it. The attribution is asserted
     below, per cell; the presence loop stays, because it carries the message
@@ -269,21 +269,20 @@ def test_both_ampersand_cells_name_both_shells():
 
 
 def test_the_allowed_list_says_how_a_pipe_is_written():
-    """#415. The allowed list used to promise a pipe and then say it *cannot
-    reach this row at all* — a document that names a form nobody can write.
-    It now says how the form IS written: the escape `\\|`. That a bare pipe
-    is refused, what the walker does with the rows below a refused line, and
-    what `seal mode` writes then (#871) are the proofer's to read in the row.
+    """#415, and #1454. The allowed list once promised a pipe that a table row
+    could not hold, and then gave the escape `\\|` a table needed. A JSON
+    string holds a pipe as it stands, so the row says the value carries it
+    with nothing escaped, and the table escape is gone from it.
     """
     body = section(read(*TEMPLATE), REFUSED_AND_ALLOWED, 3)
     pipe = named(table(body, "| Stays legal |"), "a pipe")
     assert pipe, "the allowed list has no pipe row"
     pipe = flat(pipe)
-    # The escape `\|`, which a person writes for a pipe in the `Broad gate`
-    # row and `lib/config.py` reads back as one.
-    assert "write it `\\|`" in pipe, (
-        "the row does not give the escape, so the row is unwritable again"
-    )
+    assert (
+        "A JSON string carries a pipe as written, so the value holds it with "
+        "nothing escaped"
+    ) in pipe, "the row does not say how a pipe is written in the key"
+    assert "write it `\\|`" not in pipe, "the row still gives a table's escape"
 
 
 # --- Round 1's 🟡 4: the removed design, where a reader opens first ---------
@@ -308,7 +307,7 @@ def module_header():
 
 def test_the_module_header_names_every_refusal_and_none_names_a_command():
     """The header's numbered list is where the command says what it does in
-    order. It described the absent-row refusal as *the command names the row
+    order. It described the absent-key refusal as *the command names the row
     to write* — the removed behaviour — and did not mention the second
     refusal, that branch's headline change, at all.
 
@@ -348,7 +347,7 @@ def refusal_paragraph():
     green.
     """
     body = broad_gate_section()
-    opening = "**An absent row is a refusal, not a default.**"
+    opening = "**An absent key is a refusal, not a default.**"
     assert opening in body, "the refusal paragraph is gone from the template"
     return flat(body[body.index(opening) :].split("\n\n", 1)[0])
 
@@ -362,7 +361,7 @@ def test_the_paragraph_above_the_lists_no_longer_says_it_names_what_to_write():
         "the template still argues from the sentence the message dropped"
     )
     paragraph = refusal_paragraph()
-    assert "names whose the row is and where it is answered" in paragraph
+    assert "names whose the key is and where it is answered" in paragraph
     assert "does **not** name a command to write" in paragraph, (
         "the paragraph no longer says what the message stopped doing"
     )
@@ -380,12 +379,12 @@ CRITERION = "### The criterion for choosing a value"
 THREE_RULES = [
     "red repository-wide for reasons unrelated to any branch",
     "A command that **fixes** the tree",
-    "Every pytest the row runs keeps the environment the gate hands it",
+    "Every pytest the command runs keeps the environment the gate hands it",
 ]
 
 
 def test_the_template_carries_all_three_rules_of_the_criterion():
-    """#401's second half. The row is the one value only a person can write
+    """#401's second half. The key is the one value only a person can write
     and nobody had written down how to choose it: the session that met the
     refusal derived these three under pressure, and two of them existed in no
     document at all."""
@@ -401,7 +400,7 @@ def test_each_rule_is_carried_with_the_reason_it_is_a_rule():
     body = flat(section(read(*TEMPLATE), CRITERION, 3))
     assert "block every future work item" in body, "rule 1 has no reason"
     assert "can only come back green" in body, "rule 2 has no reason"
-    # #825: the comparison reads a record the row's own pytest wrote, which
+    # #825: the comparison reads a record the command's own pytest wrote, which
     # it can only write where it was handed the gate's environment.
     assert "compares each failing file with the base from a record" in body, (
         "rule 3 has no reason"
@@ -409,7 +408,7 @@ def test_each_rule_is_carried_with_the_reason_it_is_a_rule():
     assert "until one writes that report" not in body, "rule 3 keeps a stale reason"
     # #747: the reason used to be that the comparison re-ran the first `&&`
     # part, and it stopped being true; Q2 states both orders and recommends
-    # neither, and since #825 the row runs whole at the base either way.
+    # neither, and since #825 the command runs whole at the base either way.
     assert "the order is the repository's trade" in body, "rule 3 picks an order"
     assert "before the row's first `&&`" not in body, "rule 3 keeps a stale reason"
 
@@ -448,7 +447,7 @@ def refusal_bullet():
     could be deleted with 15 cases green, because every assertion matched a
     sentence on one side of it or the other."""
     skill = read(*CONFIG_SKILL)
-    opening = "**The `Broad gate` row is looked at before it is run**"
+    opening = "**The `Broad gate` key is looked at before it is run**"
     assert opening in skill, "the refusal paragraph is gone from the config skill"
     return flat(skill[skill.index(opening) :].split("\n\n", 1)[0])
 
@@ -459,12 +458,12 @@ def test_the_config_skill_points_at_the_section_and_names_the_refused_forms():
     owner. What the paragraph says of the refusal is the proofer's to read."""
     skill = flat(read(*CONFIG_SKILL))
     # The heading of `templates/setup/config.md` the skill cites, which a
-    # person opens to learn what the row may hold.
+    # person opens to learn what the key may hold.
     assert "What is refused, and what stays allowed" in skill, (
         "the config skill does not point at the section that decides this"
     )
     bullet = refusal_bullet()
-    # The three forms `broad_gate.py` refuses in the row, which a person
+    # The three forms `broad_gate.py` refuses in the key, which a person
     # filling it in has to recognise in what they wrote.
     for form in ("backticks", "`$(…)`", "trailing `&`"):
         assert form in bullet, (
@@ -498,7 +497,7 @@ def missing_row_text():
 def test_the_absent_row_refusal_no_longer_tells_the_reader_to_write_one():
     """The only reader standing in front of this message is a session, so
     *write the repository's own broad command into it* asked the one party
-    that may not. It printed the row to type, too."""
+    that may not. It printed the key to type, too."""
     said = missing_row_text()
     assert "Write the repository's own broad command" not in said
     assert "<the full suite, the repository-wide lint, the typecheck>" not in said
@@ -508,10 +507,13 @@ def test_the_absent_row_refusal_no_longer_tells_the_reader_to_write_one():
 def test_the_absent_row_refusal_says_whose_the_row_is_and_where_it_is_answered():
     """Naming the door is what keeps *not this session's* from reading as a
     dead end — which is how a refusal with no route becomes a session filling
-    the row in anyway."""
+    the key in anyway. #1454: the door adds the key alone, since a JSON file
+    carries no section beside it."""
     said = missing_row_text()
     assert "the key is a thing a person wrote" in said
     assert "/agentic:config" in said
+    assert "it shows every key and adds this one —" in said
+    assert "with its section" not in said
     assert (
         "`templates/setup/config.md` *The criterion for choosing a value* is what "
         "they choose against"
@@ -526,5 +528,5 @@ def test_the_review_orchestrator_names_the_command_that_answers_the_row():
     and a reason to get past it. That it stops the run and asks a person,
     and why, is the proofer's to read."""
     orchestrator = flat(read(*REVIEW_ORCH))
-    # The command `/agentic:config`, which the person runs to answer the row.
+    # The command `/agentic:config`, which the person runs to answer the key.
     assert "/agentic:config" in orchestrator

@@ -123,16 +123,16 @@ def test_the_parity_question_follows_the_mode_question():
 
 # --- A9 of #401: the broad command is the second question, not a later one --
 #
-# `templates/setup/config.md` *Broad gate* says the row is a thing a PERSON wrote
+# `templates/setup/config.md` *Broad gate* says the key is a thing a PERSON wrote
 # and that the seal covers exactly that. Nothing ever asked for it: grepped
 # before this work, the bootstrap carried two `Ask, once` steps and neither
-# was this one, and no command in `bin/` or `seal.py` wrote the row. So the
+# was this one, and no command in `bin/` or `seal.py` wrote the key. So the
 # question reached a person only as `seal gate`'s refusal -- after the review
 # rounds had settled, which is the last moment available and the one where
 # whoever is there has every reason to answer it themselves. That is what
 # happened, and it is what #401 reported.
 
-BROAD_ROW = "**The second question is the `Broad gate` row"
+BROAD_ROW = "**The second question is the `Broad gate` key"
 
 
 def test_the_broad_command_rides_the_question_that_already_stops_the_session():
@@ -154,9 +154,9 @@ def test_the_broad_command_rides_the_question_that_already_stops_the_session():
     # third question and no command installs a hook.
     assert "**The third question" not in boot, "a third question stands"
     assert "seal stamp --" not in boot, "the bootstrap runs a stamp command"
-    assert BROAD_ROW in boot, "the bootstrap does not ask for the row at all"
+    assert BROAD_ROW in boot, "the bootstrap does not ask for the key at all"
     assert boot.index(BROAD_ROW) > boot.index("**local**"), (
-        "the row is asked before the mode's options are even laid out"
+        "the key is asked before the mode's options are even laid out"
     )
 
 
@@ -165,21 +165,21 @@ LANGUAGE_ROWS = ("Commit and pull request language", "Record language")
 
 def test_the_one_call_asks_for_the_two_language_rows_with_the_titles_beside_them():
     """#1453. `seal pr-body` refuses a repository without either language
-    row, so first setup asks for both in the call that already stops the
+    key, so first setup asks for both in the call that already stops the
     session, with the recent pull request titles shown beside the question,
-    and writes the answers into the stub `seal mode` wrote. What each option
-    says its row governs is the proofer's to read."""
+    and writes the answers into the file `seal mode` wrote. What each option
+    says its key governs is the proofer's to read."""
     boot = flat(bootstrap())
-    for row in LANGUAGE_ROWS:
-        assert f"`{row}`" in boot, f"first setup does not ask for `{row}`"
+    for key in LANGUAGE_ROWS:
+        assert f"`{key}`" in boot, f"first setup does not ask for `{key}`"
     # The command whose titles the orchestrator shows beside the question,
     # the one `skills/commit-pr-convention/SKILL.md` opens with.
     assert "gh pr list --state all --limit 10" in boot, (
         "the language questions show no history to answer them from"
     )
-    # The paragraph that writes the answered rows into the stub.
-    assert "**Then the two language rows.**" in boot, (
-        "nothing writes the answered rows into the file `seal mode` wrote"
+    # The paragraph that writes the answered keys into the file.
+    assert "**Then the two language keys.**" in boot, (
+        "nothing writes the answered keys into the file `seal mode` wrote"
     )
 
 
@@ -206,7 +206,7 @@ def candidates():
     assert opening in boot, "the candidate table has no lead-in any more"
     body = boot[boot.index(opening) :]
     end = body.find("\n\n   **A candidate carrying")
-    assert end > 0, "the candidate table is no longer followed by the pipe warning"
+    assert end > 0, "the candidate table is no longer followed by the escape warning"
     return body[:end]
 
 
@@ -221,36 +221,39 @@ def test_the_question_proposes_candidates_read_off_the_repository():
         assert where in row, f"no candidate is read off {where}"
 
 
-def test_a_candidate_carrying_a_pipe_is_escaped_where_candidates_are_derived():
-    """Round 1's 🟡 2, second half, as #415 leaves it. The first source this
-    table names is a CI `run:` step, and a `run:` step piping into `tee` is
+def test_a_candidate_carrying_a_quote_or_a_backslash_is_escaped_where_derived():
+    """Round 1's 🟡 2, second half, as #1454 leaves it. The first source this
+    table names is a CI `run:` step, and a `run:` step quoting an argument is
     ordinary — so the bootstrap could derive a candidate, the person accept
-    it, the session write it, and the row parse as no row.
+    it, the session write it, and the file parse as no JSON.
 
-    Such a candidate is written with the pipe escaped, and the warning gives
-    the escape. What a bare one costs is the proofer's to read.
+    Such a candidate is written with the `"` or the `\\` escaped, and the
+    warning gives the escape. A pipe, which a table row once had to escape,
+    stays as written. What a bare one costs is the proofer's to read.
     """
     boot = flat(bootstrap())
-    warning = boot[boot.index("**A candidate carrying a `|` is written") :]
+    warning = boot[boot.index('**A candidate carrying a `"` or a `\\` is written') :]
     warning = warning[: warning.index("**Name the criterion")]
-    # The escape `\|` the orchestrator writes into the `Broad gate` cell,
-    # which the config reader turns back into a pipe; the code span is the
-    # fact.
-    assert "with the pipe escaped, `\\|`" in warning, (
-        "the warning does not say how the pipe is written, which is the whole "
-        "of what changed"
+    # The JSON escapes the orchestrator writes into the `Broad gate` value,
+    # which the parser turns back into the characters; the code spans are
+    # the fact.
+    assert 'with it escaped, `\\"` or `\\\\`' in warning, (
+        "the warning does not say how the character is written, which is the "
+        "whole of what changed"
     )
+    assert "A `|` stays as written." in warning
+    assert "with the pipe escaped, `\\|`" not in boot
 
 
 def test_the_decline_names_the_command_back_to_the_row():
     """A question whose every answer must be a command is a gate wearing the
     shape of a question, so *Not yet* is offered. The decline paragraph names
-    the command that fills the row in later; what the decline costs is the
+    the command that fills the key in later; what the decline costs is the
     proofer's to read."""
     decline = paragraph(bootstrap(), "**Offer a decline, and say what it costs.**")
     # The command `/agentic:config`, which a person who declined types to
-    # fill the `Broad gate` row in.
-    assert "/agentic:config" in decline, "the decline names no way back to the row"
+    # fill the `Broad gate` key in.
+    assert "/agentic:config" in decline, "the decline names no way back to the key"
 
 
 def test_the_criterion_is_named_by_pointer():
@@ -263,17 +266,19 @@ def test_the_criterion_is_named_by_pointer():
     assert "*The criterion for choosing a value* owns the criterion" in pointer
 
 
-def test_the_row_is_copied_from_the_template_up_to_its_bounding_heading():
-    """The `Broad gate` row lands the way `/agentic:config` step 3 lands one,
-    with the prose under its heading, copied from the plugin's template and
-    stopped at the heading that follows it. When it lands and why no command
-    writes it are the proofer's to read."""
-    boot = flat(bootstrap())
-    # The path the orchestrator copies the row and its prose from.
-    assert "$CLAUDE_PLUGIN_ROOT/templates/setup/config.md" in boot
-    # The heading `### What is refused, and what stays allowed`, where the
-    # orchestrator stops copying; the heading is the fact.
-    assert "down to but not including `### What is refused" in boot
+def test_the_key_is_added_alone_and_its_documentation_is_pointed_at():
+    """#1454. The `Broad gate` key lands the way `/agentic:config` step 3
+    lands one: the key alone, since a JSON file carries no prose. The lists
+    and the criterion stay in the plugin's template, which the paragraph
+    names; the copy of the template's section the table once took is gone.
+    When it lands and why no command writes it are the proofer's to read."""
+    landing = paragraph(
+        bootstrap(), "**Then the `Broad gate` key, where a command was chosen.**"
+    )
+    assert '`"Broad gate": "<command>"`' in landing
+    # The path the orchestrator reads the lists and the criterion at.
+    assert "$CLAUDE_PLUGIN_ROOT/templates/setup/config.md" in landing
+    assert "down to but not including `### What is refused" not in flat(bootstrap())
 
 
 def test_the_sentence_that_said_nowhere_else_is_gone():
@@ -712,7 +717,7 @@ def test_the_bootstrap_records_the_answer_it_was_given():
     """#151's second Done-when: the answer has to be observable afterwards.
     An asked-and-answered root and a root that appeared because a session
     followed the routing rule are byte-identical until something writes the
-    row, so a bootstrap that records nothing leaves no trace that anybody was
+    key, so a bootstrap that records nothing leaves no trace that anybody was
     asked."""
     boot = flat(bootstrap())
     assert "seal mode" in boot

@@ -240,7 +240,7 @@ From `frame/questions.md`.
 </details>
 """
 
-# The work item's `pr.md`, the body's first part where the two language rows
+# The work item's `pr.md`, the body's first part where the two language keys
 # name one language: a quote of a record with its coordinate, a CRLF line
 # among them, and the `Closes` line.
 OWN = '"`seal pr-body` writes it (#1)." (`changelog.md`, line 1)\r\n\nCloses #1.\n'

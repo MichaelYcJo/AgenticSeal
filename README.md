@@ -98,6 +98,15 @@ the file up and takes the block out, and an update from such a release may
 first leave the empty marker pair `templates/setup/claude-md-block.md`
 holds, which the next update removes (`skills/update/SKILL.md`).
 
+Earlier releases kept a repository's settings in `seal/config.md`, a
+markdown table; the plugin now reads them from `seal/config.json`, one JSON
+object. Run `seal mode` once in each repository that holds a
+`seal/config.md`: it writes `seal/config.json` from the table and removes
+the old file. Until then every `seal` command that reads a setting exits 2
+and names `seal mode`. A `seal/parity.md`, the `| Signer |` table of a
+`seal/pact.md` and `~/.claude/agentic/pact-paths.md` are rewritten by hand,
+as the release note of the release that made the change says.
+
 ## Your first work item
 
 Open Claude Code in your repository and ask for a change in your own words,
@@ -187,7 +196,7 @@ trade-off.
 commit it.
 
 ```bash
-seal mode            # where the root is, and whether seal/config.md agrees
+seal mode            # where the root is, and whether seal/config.json agrees
 seal mode local      # move the root out of the tree
 seal mode shared     # move the root into the tree
 seal mode --check    # write nothing; exit non-zero when the two disagree
@@ -276,7 +285,7 @@ whose last fixes no round read (`docs/checks/the-pull-request-check.md`).
 
 The records live in the repository, not in the session, so the next session
 starts from them. `seal/` holds what outlives a work item, such as
-`seal/config.md`, and each work item whole under `seal/threads/<id>/`: its
+`seal/config.json`, and each work item whole under `seal/threads/<id>/`: its
 routing answer, its frame, the trail of its phases and rounds, its closing
 memo and its guarantee. `docs/layout/the-record-layout.md` *seal/* and
 *seal/threads/<work-item-id>/* name every file. How a work item's design

@@ -102,6 +102,15 @@ claude plugin update agentic@agenticseal
 `templates/setup/claude-md-block.md` 가 담은 빈 표시 한 쌍이 남을 수 있고,
 다음 업데이트가 그것을 지웁니다(`skills/update/SKILL.md`).
 
+이전 릴리스는 저장소의 설정을 마크다운 표인 `seal/config.md` 에 두었고,
+지금 플러그인은 JSON 객체 하나인 `seal/config.json` 에서 읽습니다.
+`seal/config.md` 가 있는 저장소마다 `seal mode` 를 한 번 실행합니다. 이 명령은
+그 표에서 `seal/config.json` 을 쓰고 옛 파일을 지웁니다. 그 전까지는 설정을
+읽는 `seal` 명령이 모두 종료 코드 2 로 멈추고 `seal mode` 를 짚습니다.
+`seal/parity.md`, `seal/pact.md` 의 `| Signer |` 표,
+`~/.claude/agentic/pact-paths.md` 는 이 변경을 낸 릴리스의 노트가 말하는 대로
+손으로 다시 씁니다.
+
 ## 첫 작업 항목
 
 저장소에서 Claude Code 를 열고 "#42 고쳐줘" 처럼 바꾸고 싶은 것을 평소 말로
@@ -190,7 +199,7 @@ local 모드는 이 플러그인의 파일이 트리에 있으면 안 되는 저
 하며, 커밋은 사용자가 합니다.
 
 ```bash
-seal mode            # 루트가 어디 있는지, seal/config.md 와 맞는지
+seal mode            # 루트가 어디 있는지, seal/config.json 과 맞는지
 seal mode local      # 루트를 트리 밖으로 옮긴다
 seal mode shared     # 루트를 트리 안으로 옮긴다
 seal mode --check    # 아무것도 쓰지 않고, 둘이 어긋나면 0 이 아닌 값으로 끝난다
@@ -278,7 +287,7 @@ pull request 에서 끝나며, 머지에서 끝나지 않습니다.**
 ### 기록이 남는 곳
 
 기록은 세션이 아니라 저장소에 남으므로, 다음 세션은 그 기록에서 시작합니다.
-`seal/` 에는 `seal/config.md` 처럼 작업 항목보다 오래 사는 것이 있고, 작업
+`seal/` 에는 `seal/config.json` 처럼 작업 항목보다 오래 사는 것이 있고, 작업
 항목마다 그 전부가 `seal/threads/<id>/` 아래에 있습니다. 라우팅 답, 프레임,
 단계와 회차의 기록, 마무리 메모, 보증서입니다. 파일 하나하나는
 `docs/layout/the-record-layout.md` *seal/* 와 *seal/threads/<work-item-id>/* 에

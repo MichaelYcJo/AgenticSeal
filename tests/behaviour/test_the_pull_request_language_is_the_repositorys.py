@@ -2,17 +2,17 @@
 
 `skills/commit-pr-convention/SKILL.md` required English at five places, and a
 repository whose team writes another language had nowhere to say otherwise.
-One row now answers for all four prose surfaces — commit subject, commit
+One key now answers for all four prose surfaces — commit subject, commit
 body, pull request title, pull request body — and absence means English, so
 a repository that says nothing is unaffected (#82).
 
-No gate reads the row, and the reason is recorded rather than
+No gate reads the key, and the reason is recorded rather than
 left as an absence a later reader takes for an oversight: judging what
 language a commit message is in means being wrong about names, identifiers
 and quoted English, and a wrong stop blocks a correct commit. The mechanism
 is the skill's text, the way it already is for the prefix vocabulary. So the
 cases here read the reader this file loads, and the spellings the skill and
-the template name: the file, the row, the branch shapes, the mirror's name.
+the template name: the file, the key, the branch shapes, the mirror's name.
 The skill's sentences around them are the proofer's to read.
 
 Where a case still pairs a sentence with its absence, the absence half is
@@ -21,30 +21,34 @@ keep the old one two sections down, which is how two answers ship at once.
 """
 
 import glob
+import json
 import os
 import subprocess
 
 import pytest
-from conftest import ROOT, config_json, flat, load_lib_module, local_home, read
+from conftest import ROOT, config_json, flat, local_home, read
 
 SKILL = ("skills", "commit-pr-convention", "SKILL.md")
 TEMPLATE = ("templates", "setup", "config.md")
 
 
-# --- the row, and where it is read from -------------------------------------
+# --- the key, and where it is read from -------------------------------------
 
 
 def test_the_skill_names_the_file_and_the_row():
-    """S1. Both halves: a session that knows the path but not the row does
-    not know what to look for, and one that knows the row but not the path
-    has nowhere to look."""
+    """S1. Both halves: a session that knows the path but not the key does
+    not know what to look for, and one that knows the key but not the path
+    has nowhere to look. #1454: the file is `config.json`."""
     text = flat(*SKILL)
-    # The file name a session opens for the row.
-    assert "config.md" in text, "the skill does not name the file it reads"
-    # The row's item. A session looks for it in the file because the skill
-    # tells it to. No hook or command of the plugin asks for this row; the
-    # cases of this file read it through `lib/config.py#declared_value`.
-    assert "Commit and pull request language" in text, "the skill does not name the row"
+    # The file name a session opens for the key.
+    assert "config.json" in text, "the skill does not name the file it reads"
+    # The template `templates/setup/config.md` keeps its name; the file the
+    # repository writes no longer does.
+    assert "`config.md`" not in text, "the skill still names the retired table"
+    # The key. A session looks for it in the file because the skill tells it
+    # to. No hook or command of the plugin asks for this key; the cases of
+    # this file read it through `lib/config.py#declared_value`.
+    assert "Commit and pull request language" in text, "the skill does not name the key"
 
 
 def test_the_root_is_resolved_rather_than_spelled():
@@ -134,7 +138,7 @@ def test_the_pull_request_body_section_no_longer_opens_with_english():
         ("the commit subject", "in the repository's language"),
         ("the commit body", "One language, in the subject and in the body"),
         ("the pull request title", "and the same language"),
-        ("the self-check question", "Commit and pull request language` row names"),
+        ("the self-check question", "Commit and pull request language` key names"),
     ],
 )
 def test_the_surface_defers_to_the_row_instead(surface, phrase):
@@ -218,7 +222,7 @@ def test_the_response_language_stays_out_of_the_repository_file():
 
 def test_the_mirror_is_named_for_its_own_language():
     """S7. The mirror is named for its own language, which since #1453 is
-    the commit language of a repository whose two language rows differ:
+    the commit language of a repository whose two language keys differ:
     `pr.ko.md` where the records are English and the team writes Korean,
     `pr.en.md` the other way round.
 
@@ -323,9 +327,9 @@ def test_a_mirror_named_for_a_country_is_refused_by_the_same_rule():
 
 def test_a_config_holding_the_templates_default_row_reads_as_english(tmp_path):
     """tests-todo row 1, first half. The file the plugin ships a template for
-    must not be the file that breaks the check. Its two language rows both
+    must not be the file that breaks the check. Its two language keys both
     read English, so they name one language and no mirror is asked for. The
-    template's table is written as `seal mode` converts one, a key per row."""
+    template's example object is written as the file."""
     home = tmp_path / "seal"
     home.mkdir()
     (home / "config.json").write_text(
@@ -335,7 +339,7 @@ def test_a_config_holding_the_templates_default_row_reads_as_english(tmp_path):
     record = configured_language(tmp_path, row=RECORD_ROW)
     assert (commit, record) == ("English", "English")
     assert the_mirror(commit, record) is None, (
-        "two rows naming one language ask for no mirror"
+        "two keys naming one language ask for no mirror"
     )
     assert mirror_to_refuse(record) == "pr.en.md", (
         "a file in the records' own language is no mirror"
@@ -394,16 +398,14 @@ def _config_reader():
 
 READER = _config_reader()
 declared_value = READER.declared_value
-# `lib/tables.py`, the walker `seal mode` reads an earlier `config.md` through.
-WALKER = load_lib_module("tables.py", "agentic_tables_for_pr_lang")
 
 
 def items(text):
-    """The `| Item | Value |` rows of TEXT as (item, value), as the walker
-    reads them for `seal mode`'s conversion of an earlier `config.md`: the
-    template's table is read through it."""
-    rows, _refusals = WALKER.gfm_table(text, READER.OLD_TABLE)
-    return [tuple(cells) for _line, cells in rows]
+    """The keys of TEXT's first ```json block as (key, value), in the order
+    written: the example object `templates/setup/config.md` shows, read by
+    the same parser the config's reader uses."""
+    block = text.split("```json\n", 1)[1].split("\n```", 1)[0]
+    return list(json.loads(block, object_pairs_hook=list))
 
 
 # The mirror cases above call these. They live here because they are built
@@ -417,7 +419,7 @@ CODES_BY_NAME = {name.casefold(): code for name, code in LANGUAGE_CODES.items()}
 
 
 def as_language_name(value):
-    """A row's value reduced to the language name it spells.
+    """A key's value reduced to the language name it spells.
 
     Markdown emphasis off both ends and case folded, because the value is
     typed by a person: `**Korean**`, `_Korean_` and `korean` all name
@@ -454,7 +456,7 @@ def mirror_to_refuse(language):
 
 
 def the_mirror(commit, record):
-    """The `pr.<code>.md` a work item holds where the two rows differ, or None.
+    """The `pr.<code>.md` a work item holds where the two keys differ, or None.
 
     Where COMMIT and RECORD name different languages, the mirror holds each
     quote of `pr.md` rendered in the commit language, so it is named for the
@@ -655,35 +657,32 @@ def test_a_mirror_named_for_a_country_is_caught():
     )
 
 
-def test_the_documents_name_every_shape_the_walker_refuses_and_its_edit():
-    """S8 of #871. `templates/setup/config.md` and `skills/config/SKILL.md`
-    each name the shapes the walker refuses with the one edit for each, and
-    neither still says the reader stops at a line and reads on, or that a
-    row below a bad line is invisible. Seen red against the stop rule's
-    documents: none named the blank line above the header, and two said the
-    reader stops reading the table there."""
+def test_the_documents_name_the_repair_of_a_file_the_parser_refuses():
+    """#1454, in place of S8 of #871. The config is a JSON object a parser
+    reads, so `templates/setup/config.md` and `skills/config/SKILL.md` each
+    say what a refused file is repaired by, and neither names an edit the
+    table walker's shapes once asked for: a blank line above the header, the
+    `\\|` escape, a delimiter row, a heading between two tables."""
     documents = {
-        "the template": flat(*TEMPLATE),
-        "the config skill": flat("skills", "config", "SKILL.md"),
+        "the template": (
+            flat(*TEMPLATE),
+            "repairs it by deleting the extra key or by correcting the JSON",
+        ),
+        "the config skill": (
+            flat("skills", "config", "SKILL.md"),
+            "correct the JSON rather than any key the refusal did not name",
+        ),
     }
-    for who, text in documents.items():
-        for edit in (
+    for who, (text, repair) in documents.items():
+        assert repair in text, f"{who} does not name the repair {repair!r}"
+        for gone in (
             "leave a blank line above the header",
             "write it `\\|`",
             "write it as `| … | … |`",
             "`|---|---|` under",
-            "move it into the table",
-            # #871 round 1: a second table under the config table is cleared
-            # by a heading between them, not by moving its rows.
             "put a heading between the two",
         ):
-            assert edit in text, f"{who} does not name the edit {edit!r}"
-        for gone in (
-            "stops reading the table there",
-            "parses as no row",
-            "written under it is invisible",
-        ):
-            assert gone not in text, f"{who} still says {gone!r}"
+            assert gone not in text, f"{who} still names the table's edit {gone!r}"
 
 
 def test_an_unreadable_config_lands_on_english_too(tmp_path):
@@ -695,17 +694,19 @@ def test_an_unreadable_config_lands_on_english_too(tmp_path):
 
 
 def test_the_template_is_one_item_value_table_whose_first_row_is_the_language():
-    """S8. Parsed, not eyeballed: the file's whole job is to be read."""
-    rows = items(read(*TEMPLATE))
-    assert rows, "no `| Item | Value |` table in the template"
-    assert rows[0] == ("Commit and pull request language", "English"), (
-        f"the first row is not the language defaulting to English: {rows[0]}"
+    """S8, as #1454 leaves it. Parsed, not eyeballed: the example object the
+    template shows is read by a JSON parser, and its first key is the
+    language."""
+    keys = items(read(*TEMPLATE))
+    assert keys, "no ```json example in the template"
+    assert keys[0] == ("Commit and pull request language", "English"), (
+        f"the first key is not the language reading English: {keys[0]}"
     )
-    # The second row is the records' own, and it is not the same question.
+    # The second key is the records' own, and it is not the same question.
     # #106 split them because a repository can want Korean pull requests and
-    # English specifications, and one row cannot say that.
-    assert rows[1] == ("Record language", "English"), (
-        f"the second row is not the record language defaulting to English: {rows[1]}"
+    # English specifications, and one key cannot say that.
+    assert keys[1] == ("Record language", "English"), (
+        f"the second key is not the record language reading English: {keys[1]}"
     )
 
 
@@ -1084,15 +1085,15 @@ def test_an_untracked_file_under_templates_is_not_a_template(repo):
 
 
 def test_the_template_names_the_rows_an_absent_one_is_refused_for():
-    """The template says what absence means, and which rows have no default.
+    """The template says what absence means, and which keys have no default.
     It used to say the file was optional (`questions.md` Q1). #1453 made the
-    two language rows required, so every repository carries the file with
-    those rows, and the template names them among the four exceptions rather
+    two language keys required, so every repository carries the file with
+    those keys, and the template names them among the four exceptions rather
     than calling the file optional."""
     text = flat(*TEMPLATE)
     assert (
-        "with four exceptions: the two language rows, `Mode` and `Broad gate`" in text
-    ), "the template does not name the rows an absent one is refused for"
+        "with four exceptions: the two language keys, `Mode` and `Broad gate`" in text
+    ), "the template does not name the keys an absent one is refused for"
     assert "This file is optional" not in text, (
         "the template still calls the file optional"
     )
@@ -1115,7 +1116,7 @@ def test_the_layout_lists_the_config(parts):
     is a file nobody finds. `seal/README.md` is the template verbatim —
     `tests/behaviour/test_first_setup_asks_once.py` pins that equality — so
     the two move as one edit."""
-    assert "config.md" in read(*parts), (
+    assert "config.json" in read(*parts), (
         "/".join(parts) + " draws the root without the config file in it"
     )
 
@@ -1124,9 +1125,9 @@ def test_the_layout_lists_the_config(parts):
 
 
 def _governs_nothing():
-    """The `What no row governs` section of the template, flattened."""
+    """The `What no key governs` section of the template, flattened."""
     text = read(*TEMPLATE)
-    start = text.index("## What no row governs")
+    start = text.index("## What no key governs")
     end = text.index("\n## ", start + 1)
     return " ".join(text[start:end].split())
 
@@ -1231,8 +1232,8 @@ def test_the_exclusion_list_holds_every_string_a_checker_matches(literal):
     )
 
 
-# Every shipped document that tells a session which row to read. A document
-# naming the wrong row sends the session to a row that does not exist, and
+# Every shipped document that tells a session which key to read. A document
+# naming the wrong key sends the session to a key that does not exist, and
 # round 1 found two that had drifted with nothing red.
 ROW_READERS = [
     ("templates", "setup", "config.md"),
@@ -1253,10 +1254,10 @@ ROW_READERS = [
 @pytest.mark.parametrize("parts", ROW_READERS, ids=lambda p: "/".join(p))
 def test_every_document_that_names_a_language_row_names_the_shipped_one(parts):
     """The pairing this branch was reviewed as one round for: a document
-    naming the wrong row is invisible until somebody follows it."""
+    naming the wrong key is invisible until somebody follows it."""
     text = flat(*parts)
     assert "Record language" in text, (
-        f"{'/'.join(parts)} does not name `Record language`, the row that "
+        f"{'/'.join(parts)} does not name `Record language`, the key that "
         "governs the prose it is about"
     )
     # Case-folded: `the \`pull request language\` row` in lower case is the

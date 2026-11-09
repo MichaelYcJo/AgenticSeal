@@ -40,8 +40,8 @@ here is a write you do not make.
    skill's *Recording the comparison* states.
 6. Before writing the record, open `skills/writing-style/SKILL.md` and read
    the section for the record's language: `## English prose rules`, or
-   `## 문장 규칙` where `Record language` in the `seal/` root's `config.md`
-   is Korean.
+   `## 문장 규칙` where `Record language` in the `seal/` root's
+   `config.json` is Korean.
 7. Write the record from `templates/records/sdd-round.md`: its round block
    with the `target:` line, and under each finding's heading one finding
    block holding its `severity:`, `location:` and `evidence:` lines, each

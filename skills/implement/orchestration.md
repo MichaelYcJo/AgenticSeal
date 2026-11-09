@@ -40,7 +40,7 @@ its first step and never this one, because asking a person and writing
    and spawns the crafter (*The frame is read against the issue at the
    spawn* below). Once the build's last phase has closed, the orchestrator
    writes and commits the work item's `pr.md`, the pull request body's
-   first part, with its `pr.<lang>.md` where the two language rows differ,
+   first part, with its `pr.<lang>.md` where the two language keys differ,
    before the first round. The proofer's rounds follow, then
    `seal gate --preflight` and `seal gate --record`, both run by the
    orchestrator, then `seal pr-body`, which the orchestrator runs to write
@@ -202,23 +202,23 @@ Something a session cannot do for itself belongs on the same list — widening
 its own permissions, for one, which the harness blocks by design. Better
 found in the first minute than at the commit.
 
-**The two language rows join the batch wherever either is missing.** Before
+**The two language keys join the batch wherever either is missing.** Before
 the routing commit, the orchestrator reads `Commit and pull request
-language` and `Record language` in `config.md` under the `seal/` root.
+language` and `Record language` in `config.json` under the `seal/` root.
 Where both stand, nothing is asked. Where either is absent in any of the
 four ways `skills/commit-pr-convention/SKILL.md` *Every way of not naming a
 language lands on English* names, the batch asks for both, as
 `skills/implement/bootstrap.md` step 1 asks for them at first setup: the
 recent titles from `gh pr list --state all --limit 10` stand beside the
 question, and the language read from them is the option listed first. The
-routing commit writes both rows into the table, each as
-`| <row> | <answer> |`. Where the batch reaches no person, because
+routing commit writes both keys into the file's object, each as
+`"<key>": "<answer>"`. Where the batch reaches no person, because
 the routing answer was given for the release and the run is unattended, the
-orchestrator writes both rows as the language it reads the titles in, and
+orchestrator writes both keys as the language it reads the titles in, and
 as `English` where the list gives none. `routing.md` *Why this way* then
-says in one sentence that the two rows were written as a default taken
+says in one sentence that the two keys were written as a default taken
 until answered, naming the language and what it was read from, and `pr.md`
-quotes that sentence. A repository whose `config.md` predates the rows is
+quotes that sentence. A repository whose `config.json` predates the keys is
 caught here, at its next work item, because `seal pr-body` refuses to
 compose a body without them.
 

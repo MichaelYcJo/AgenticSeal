@@ -2,11 +2,11 @@
 
 A document fits one read, and the policy root has one index (#953).
 `seal fold` reports each document of the policy root or of one of its groups whose
-estimate is past the `Document token ceiling` row as one to split by who
+estimate is past the `Document token ceiling` key as one to split by who
 opens each section and at which step, and exits 0 on it: the estimate is a guess from bytes, so it is
 a report and not a gate. Its index arm refuses a `<policy root>/README.md`
 that misses a document, names one twice, or holds a row naming none. The
-rows and the estimate are stated once, in `templates/setup/config.md` *The fold's
+keys and the estimate are stated once, in `templates/setup/config.md` *The fold's
 values*. Every case but two runs the command; `Test_module` holds the
 estimate, a copy of the command run without its siblings, and the line
 splitter this module no longer keeps.

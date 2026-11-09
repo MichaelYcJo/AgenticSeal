@@ -629,10 +629,10 @@ POSIX_ROW_PROBE = "echo one; echo $(echo two)"
 
 def posix_row_shell_or_skip():
     """Skip unless the shell behind `shell=True` here separates commands with
-    `;` and substitutes `$(…)` — the two things a `Broad gate` row's fixture
+    `;` and substitutes `$(…)` — the two things a `Broad gate` key's fixture
     can be ABOUT.
 
-    `broad_gate.run` hands the row to `subprocess(shell=True)`, which is
+    `broad_gate.run` hands the command to `subprocess(shell=True)`, which is
     `/bin/sh` on POSIX and `%COMSPEC%` — normally `cmd.exe` — on Windows.
     `cmd.exe` has neither: `echo a; echo b` is one `echo` that succeeds, and
     `$(echo x)` is a literal argument. So a fixture row written to fail, or

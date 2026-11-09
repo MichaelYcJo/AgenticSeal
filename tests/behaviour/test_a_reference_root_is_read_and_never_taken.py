@@ -7,8 +7,8 @@ own root. Every other directory named `specs` is a REFERENCE ROOT — read when
 a change touches what it describes, cited where it was read, and never moved,
 edited, absorbed or deleted.
 
-`seal/config.md`'s `Reference specs` row names the reference roots, and with
-no row every directory named `specs` outside the plugin's root is one. The row
+`seal/config.json`'s `Reference specs` key names the reference roots, and with
+no key every directory named `specs` outside the plugin's root is one. The key
 has one reader, `lib/config.py#reference_roots`, and one predicate,
 `lib/config.py#under_reference_root`; every check that would read a
 reference root as a record asks that predicate instead of spelling its own
@@ -59,17 +59,17 @@ SHIPPED = {
         "only a directory a person names and writes nothing there",
     ),
     "seal pact": (PINNED, "pact_check.py#anchor_files, under each signer's root"),
-    "seal gate": (NO_WALK, "runs the row, chain_check.py and seal.py mode"),
+    "seal gate": (NO_WALK, "runs the command, chain_check.py and seal.py mode"),
     "seal fold": (
         NO_WALK,
-        "reads the policy root, each group its index names, and seal/config.md",
+        "reads the policy root, each group its index names, and seal/config.json",
     ),
     "seal rules": (NO_WALK, "reads the one document it is named and its targets"),
     "seal mutate": (NO_WALK, "breaks and restores the one file it is named"),
     "seal layout": (NO_WALK, "reads tests/ and the modules its files name"),
     "seal deferrals": (NO_WALK, "reads the pull request body and round records"),
     "seal pr-body": (NO_WALK, "reads the one work item it is named and a body file"),
-    "seal": (NOT_A_CHECK, "the mode command, writing seal/config.md"),
+    "seal": (NOT_A_CHECK, "the mode command, writing seal/config.json"),
     "seal stamp": (NOT_A_CHECK, "draws the sealer's stamp from a sealed guarantee"),
     "seal cost": (NOT_A_CHECK, "measures a transcript"),
     "seal payload": (NOT_A_CHECK, "measures a spawn's payload"),

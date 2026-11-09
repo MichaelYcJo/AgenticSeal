@@ -1417,8 +1417,8 @@ class Test_overviews:
     ):
         """`reference_rule` measures the walk against the top git names with
         its links resolved, so an argument reached through a link is read at
-        its real path, and a team's `specs/` that a `Reference specs` row
-        names by its prefix stays out of that walk too. The default row
+        its real path, and a team's `specs/` that a `Reference specs` key
+        names by its prefix stays out of that walk too. The default value
         matches a `specs` part wherever it stands, so only a prefix reads
         where the path begins."""
         d = copy_of(joined, tmp_path)

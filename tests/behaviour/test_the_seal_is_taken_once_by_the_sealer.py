@@ -31,7 +31,7 @@ def gate_module():
 # Part 2 — the gate's prose, left for #923
 # =============================================================================
 
-ROW = "Broad gate"
+KEY = "Broad gate"
 
 
 def read_document(rel):
@@ -39,31 +39,27 @@ def read_document(rel):
         return handle.read()
 
 
-def test_the_template_documents_the_commented_row_sentence():
-    """S7's other half (contract rule 14): the sentence a person reads is stated
-    where `templates/setup/config.md` states the fenced one."""
+def test_the_template_names_no_reading_of_a_table_it_no_longer_has():
+    """#1454 (contract rule 14). The settings are a JSON object a parser reads,
+    so the paragraphs that told a person how the table walk read a fenced
+    row, a row inside an HTML comment and the inline HTML a line leaves open
+    are gone from `templates/setup/config.md`, and the doubled-key and
+    unparsed-file paragraph stands in their place."""
     with open(
         os.path.join(ROOT, "templates", "setup", "config.md"), encoding="utf-8"
     ) as f:
         text = " ".join(f.read().split())
-    assert "A row inside an HTML comment that closes is not a row either" in text
-    assert "the refusal quotes that line and says it is commented out" in text
-
-
-def test_the_template_names_every_inline_html_kind_it_reads_as_before():
-    """#673's S10 (contract rule 14). The sentence tells a person which contexts
-    are read as before, and the walk is unsure after any inline raw HTML a
-    line leaves open, not after a comment opener alone. Each opener a
-    person might write is named, and the old list's narrower phrase is gone."""
-    with open(
-        os.path.join(ROOT, "templates", "setup", "config.md"), encoding="utf-8"
-    ) as f:
-        text = " ".join(f.read().split())
-    assert "after inline HTML a line leaves open" in text
-    for opener in ("<" + "!--", "<![CDATA[", "<?", "<!DOCTYPE"):
-        assert f"`{opener}`" in text, opener
-    assert "or a tag started in the middle of a line" in text
-    assert "after a `<" + "!--` in the middle of a line" not in text
+    for gone in (
+        "A row inside an HTML comment that closes is not a row either",
+        "the refusal quotes that line and says it is commented out",
+        "after inline HTML a line leaves open",
+        "or a tag started in the middle of a line",
+    ):
+        assert gone not in text, f"the template still carries: {gone}"
+    assert (
+        "**A key written twice has no value, and a file that will not read is "
+        "refused rather than read as absent.**"
+    ) in text
 
 
 def test_this_repositorys_own_config_is_answered_exactly_as_before():
@@ -82,7 +78,7 @@ def test_this_repositorys_own_config_is_answered_exactly_as_before():
     pairs, refusal = config.config_pairs(home)
     assert refusal is None, refusal
     command = module.broad_command(home)
-    assert command and (ROW, command) in pairs, (
+    assert command and (KEY, command) in pairs, (
         f"the command the gate reads is not the key as written:\n{command}"
     )
     assert module.not_as_written(home, command) is None, command
@@ -218,7 +214,7 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
     gate = gate_module()
     assert gate.NOT_MEASURED == "new? not measured"
     earns = (
-        "A row earns the measured word by letting every pytest it runs load "
+        "A command earns the measured word by letting every pytest it runs load "
         "the gate's recorder: it adds to the PYTHONPATH and PYTEST_ADDOPTS the "
         "gate hands it rather than replacing them, and runs pytest in that "
         "environment rather than one it builds, through any wrapper"
@@ -226,25 +222,25 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
     # #825 round 3's 🟡 3 and round 4's 🟡 3: every cause of a missing
     # record the records cannot tell apart, never one of them as the only one.
     causes = (
-        "the row started no pytest, because a part before its runner failed "
+        "the command started no pytest, because a part before its runner failed "
         "or it has none; none it started loaded the recorder; or the one that "
         "did could not write its record and warned 'agentic_pytest_record: no "
         "record written' in "
     )
     assert (
-        "new? not measured: no pytest the row ran here left a record of the "
+        "new? not measured: no pytest the command ran here left a record of the "
         f"gate's recorder ({causes}suite.txt), so this file is named only by a "
         f"FAILED line of suite.txt and the base was not run. {earns}"
     ) == gate.NO_RECORD_AT_HEAD
     assert (
-        "new? not measured: the row ran once at the base, and no pytest it ran "
+        "new? not measured: the command ran once at the base, and no pytest it ran "
         f"there left a record of the gate's recorder ({causes}suite-at-base.txt; "
         f"records/ is beside it). {earns}"
     ) == gate.NO_RECORD
     # The reframe's S27: what the record at `HEAD` left out is counted, and
     # the failure form says how many.
     assert gate.UNPLACED.format(count=1) == (
-        "1 of the tests and collections the row's pytest reported had no file "
+        "1 of the tests and collections the command's pytest reported had no file "
         "of their own and are in no list: a test a conftest or a plugin parents "
         "to the session or to a directory, a failed collection of the whole "
         "session, or a report a plugin built without its path (counted as "
@@ -253,7 +249,7 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
     # #825 round 4's 🟡 2, the part its fix left: `new` from a base record
     # that left anything out is not measured.
     assert gate.UNPLACED_AT_BASE.format(count=2) == (
-        "new? not measured: the row ran once at the base, and its sessions that "
+        "new? not measured: the command ran once at the base, and its sessions that "
         "ended non-zero left 2 of the tests and collections their pytest "
         "reported in no list, such as "
         "a test whose xdist worker died before any report of it arrived, so one "
@@ -265,7 +261,7 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
     # session pytest stopped itself is one.
     # #852: the stops the `end` line now names are among the causes.
     assert gate.UNENDED_AT_BASE.format(count=1) == (
-        "new? not measured: the row ran once at the base, and 1 of its pytest "
+        "new? not measured: the command ran once at the base, and 1 of its pytest "
         "sessions stopped part-way, because the process died or the recorder "
         "stopped writing before the session's end line, or pytest stopped the "
         "session (an interrupt, pytest.exit(), -x or --maxfail, a plugin's "
@@ -275,7 +271,7 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
     )
     # #849 round 1's 🟡 2: the same at `HEAD`, under the list.
     assert gate.UNENDED_HERE.format(count=1) == (
-        "1 of the row's pytest sessions here stopped part-way, because the "
+        "1 of the command's pytest sessions here stopped part-way, because the "
         "process died or the recorder stopped writing before the session's end "
         "line, or pytest stopped the session (an interrupt, pytest.exit(), -x "
         "or --maxfail, a plugin's stop) or ended it on an error of its own, so "
@@ -285,14 +281,14 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
     # #869: a line of a keyed record that did not parse, at the base and
     # under the list at `HEAD`.
     assert gate.UNREAD_AT_BASE.format(count=1) == (
-        "new? not measured: the row ran once at the base, and 1 of the lines "
+        "new? not measured: the command ran once at the base, and 1 of the lines "
         "in the records its pytest wrote there did not parse as the recorder's "
         "and each was passed over, so one may have held this file's failure "
         "and whether the base fails it was not measured (kept as "
         "suite-at-base.txt, with records/ beside it)"
     )
     assert gate.UNREAD_HERE.format(count=1) == (
-        "1 of the lines in the records the row's pytest wrote here did not "
+        "1 of the lines in the records the command's pytest wrote here did not "
         "parse as the recorder's and each was passed over, so a failing test "
         "may be in no list and the suite's counts are not given (each "
         "session's record is under records/)"
@@ -300,11 +296,12 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
     with open(RECORDER_SOURCE, encoding="utf-8") as handle:
         assert "agentic_pytest_record: no record written" in handle.read()
     assert gate.NOT_REACHED.format(code=2) == (
-        "new? not measured: the row ran once at the base and exited 2, and no "
+        "new? not measured: the command ran once at the base and exited 2, and no "
         "pytest it ran there collected this file, so the run may have ended "
         "before reaching it and whether the base fails it was not measured "
         "(kept as suite-at-base.txt, with records/ beside it). A file the "
-        "branch added reads this way wherever the base's own row already fails"
+        "branch added reads this way wherever the base's own command already "
+        "fails"
     )
     for retired in (
         "NO_RUNNER",
@@ -338,18 +335,19 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
     for phrase in (
         # #825's reframe after round 3 and round 4's 🟡 3: every cause of a
         # missing record.
-        "no pytest the `Broad gate` row ran left a record, because the row "
-        "started no pytest, none it started loaded the gate's recorder, or the "
-        "one that did could not write its record and warned in `suite.txt`, so "
-        "the file is named only by a `FAILED` line and the base was not run",
-        "no pytest the row ran at the base left a record, for any of those three "
-        "causes, a part before the runner failing at the base among them",
+        "no pytest the `Broad gate` command ran left a record, because the "
+        "command started no pytest, none it started loaded the gate's recorder, "
+        "or the one that did could not write its record and warned in "
+        "`suite.txt`, so the file is named only by a `FAILED` line and the base "
+        "was not run",
+        "no pytest the command ran at the base left a record, for any of those "
+        "three causes, a part before the runner failing at the base among them",
         "A test with no file of its own is in no list at all, nor is a failed "
         "collection of the whole session or a report a plugin built without its "
         "path; the failure form says how many there were.",
-        "the row's run at the base exited non-zero before any pytest collected "
-        "the file, which is also how a file the branch added reads where the "
-        "base's row already fails",
+        "the command's run at the base exited non-zero before any pytest "
+        "collected the file, which is also how a file the branch added reads "
+        "where the base's command already fails",
         "open the kept `suite-at-base.txt` and the `records/` beside it",
         # #825 round 5's 🟡 2: only a session of the base that ended non-zero.
         "or a session of the base that ended non-zero left tests or collections "
@@ -372,7 +370,7 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
         "Nor, where a session at `HEAD` stopped part-way, is the test it "
         "stopped in, nor a test named on a line of the record that did not "
         "parse; the failure form counts both too.",
-        "how a row earns the measured word",
+        "how a command earns the measured word",
     ):
         assert phrase in bullet, f"the **New?** bullet does not carry: {phrase}"
     for gone in (
@@ -400,28 +398,31 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
     # The module docstring's paragraph on the comparison says how it measures
     # now, and no longer names the prefixes or the JUnit report.
     flat_doc = " ".join(docstring.split())
-    assert "run the row there once, unchanged, with the recorder loaded again" in (
-        flat_doc
+    assert (
+        "run the command there once, unchanged, with the recorder loaded again"
+        in flat_doc
     )
     assert "No line pytest printed decides a word" in flat_doc
     assert "running each prefix of the row" not in flat_doc
+    assert "run the row there once" not in flat_doc
     assert "JUnit" not in flat_doc
 
 
 def test_the_measurement_its_cost_and_its_limits_are_told_where_the_row_is_written():
     """S15 of #789 and S19 of #825 (contract rule 14). Rule 3 is the one home of
-    how the gate measures a row at the base, what that costs, and which rows
-    it cannot measure, so each sentence a reader acts on is pinned there, and
-    every sentence of the mechanism #825 retired is asserted gone. S6 of
-    #1301: the two rows of *Everything else stays legal* that let a row
-    compose after pytest say that a red session still fails the suite, and
-    cite rule 3."""
+    how the gate measures a command at the base, what that costs, and which
+    commands it cannot measure, so each sentence a reader acts on is pinned
+    there, and every sentence of the mechanism #825 retired is asserted gone.
+    S6 of #1301: the two rows of *Everything else stays legal* that let a
+    command compose after pytest say that a red session still fails the
+    suite, and cite rule 3. #1454: the value is a key's command, so no
+    sentence calls it a row."""
     with open(
         os.path.join(ROOT, "templates", "setup", "config.md"), encoding="utf-8"
     ) as handle:
         text = handle.read()
     for sentence in (
-        "| 3 | Every pytest the row runs keeps the environment the gate hands it |",
+        "| 3 | Every pytest the command runs keeps the environment the gate hands it |",
         "On a failing test the gate compares each failing file with the base "
         "from a record, never from what pytest printed.",
         "the recorder's directory first on `PYTHONPATH`, `-p "
@@ -429,21 +430,21 @@ def test_the_measurement_its_cost_and_its_limits_are_told_where_the_row_is_writt
         "fresh for the run.",
         "A pytest a test starts, and an xdist worker, inherit no key and write "
         "nothing, so nothing a test prints or runs changes a word.",
-        "**Then the row runs once more, unchanged, at the base** (nothing "
+        "**Then the command runs once more, unchanged, at the base** (nothing "
         "appended, no part cut, every part run as written)",
-        "where no pytest at the base left a record (the row ended before it "
+        "where no pytest at the base left a record (the command ended before it "
         "started one, none loaded the recorder, "
         "or the one that did could not write its record and warned in "
         "`suite-at-base.txt`), `new?`; where the "
         "base's record holds a failing test or a failed collection of the file, "
         "`failing on base too`; where it holds the file and nothing of it "
-        "failed, `new`; where it does not hold the file and the row exited 0, "
-        "`new`, because the row ran to its end and never collected the file; "
-        "and where it does not hold the file and the row exited otherwise, "
-        "`new?` naming the exit, because the run may have ended before reaching "
-        "it; so a file the branch added reads `new?` wherever the base's row "
-        "already fails.",
-        "Where no pytest the row ran at `HEAD` left a record, for any of "
+        "failed, `new`; where it does not hold the file and the command exited "
+        "0, `new`, because the command ran to its end and never collected the "
+        "file; and where it does not hold the file and the command exited "
+        "otherwise, `new?` naming the exit, because the run may have ended "
+        "before reaching it; so a file the branch added reads `new?` wherever "
+        "the base's command already fails.",
+        "Where no pytest the command ran at `HEAD` left a record, for any of "
         "those causes, the files "
         "come from its `FAILED` lines, each file reads `new?` with the reason, "
         "and the base is not run; where one runner loaded it and another did "
@@ -474,53 +475,55 @@ def test_the_measurement_its_cost_and_its_limits_are_told_where_the_row_is_writt
         "The gate also says there how many sessions at `HEAD` stopped "
         "part-way, because the test such a session stopped in may be in no "
         "list.",
-        # #883: that stop fails the suite even where the row exited 0.
-        "Where one did, the suite fails even where the row exited 0, as it "
+        # #883: that stop fails the suite even where the command exited 0.
+        "Where one did, the suite fails even where the command exited 0, as it "
         "does when a test calls `pytest.exit()` with a return code of 0 or "
         "`os._exit(0)`, because a stop that chooses the exit code says neither "
         "that the session ran every test it collected nor that nothing it ran "
         "failed.",
         # #1301: so does a red session, whatever acted after the run loop.
         "So does a session whose `end` line shows exit 1 with nothing stopping "
-        "it, whatever the row exited: that exit is the one pytest's run loop "
-        "gave, which pytest hands every `pytest_sessionfinish` hook alike, so "
-        "an act after the loop that turns the row's exit into 0 does not "
-        "change it.",
+        "it, whatever the command exited: that exit is the one pytest's run "
+        "loop gave, which pytest hands every `pytest_sessionfinish` hook alike, "
+        "so an act after the loop that turns the command's exit into 0 does "
+        "not change it.",
         "Such an act is a hook that sets the session's exit status, a later "
         "`pytest_sessionfinish` hook that raises `pytest.exit()`, a "
-        "`pytest_unconfigure` hook that ends the process, or a part of the row "
-        "after pytest, such as `; true` or a pipe.",
+        "`pytest_unconfigure` hook that ends the process, or a part of the "
+        "command after pytest, such as `; true` or a pipe.",
         "In either case the failure form says so, and no `trail/gate.md` is written.",
         # #883 rounds 1 and 2: the stop no record shows, with what the gate
-        # reads per session, so the sentence holds for a row that runs pytest
-        # once or several times.
+        # reads per session, so the sentence holds for a command that runs
+        # pytest once or several times.
         "One stop is out of the record's reach. A stop raised before the "
         "recorder writes a session's first line, such "
         "as a `pytest.exit()` in a conftest's `pytest_configure`, leaves no "
         "record of that session, so the gate reads the run as though that "
-        "session never started: it judges the run on the row's exit and on the "
-        "records the row's other sessions left, where there are any.",
-        "**The cost is one more run of the whole row, and only when the suite "
-        "fails**, whatever the number of failing files.",
+        "session never started: it judges the run on the command's exit and on "
+        "the records the command's other sessions left, where there are any.",
+        "**The cost is one more run of the whole command, and only when the "
+        "suite fails**, whatever the number of failing files.",
         "so a part after the runner that the branch's own run never reached, "
         "because `&&` stopped at its failing suite, runs at the base wherever "
         "the base's suite passes,",
         "So the runner may come first or last, and the order is the "
-        "repository's trade: either way the row runs once, whole, at the base.",
-        "**A row earns the measured word** by letting every pytest it runs load "
+        "repository's trade: either way the command runs once, whole, at the "
+        "base.",
+        "**A command earns the measured word** by letting every pytest it runs "
+        "load "
         "the recorder: it adds to the `PYTHONPATH` and `PYTEST_ADDOPTS` the "
         "gate hands it rather than replacing them, and runs pytest in that "
         "environment rather than in one it builds.",
         "A runner started by `tox`, `nox`, `env -i`, a container or a wrapper "
         "that rebuilds the environment without either variable writes no "
-        "record, and so does a row that sets `PYTEST_ADDOPTS` to a value of its "
-        "own; its files read `new?`.",
+        "record, and so does a command that sets `PYTEST_ADDOPTS` to a value of "
+        "its own; its files read `new?`.",
         # #825 round 1's 🟡 2: Q2's class, not its first instance.
-        "A row that keeps `PYTEST_ADDOPTS` and loses `PYTHONPATH` fares worse "
+        "A command that keeps `PYTEST_ADDOPTS` and loses `PYTHONPATH` fares worse "
         "(one that replaces `PYTHONPATH`, an interpreter run with `-I` or `-E`, "
         "a wrapper that passes `PYTEST_ADDOPTS` or `PYTEST_*` on and not "
         "`PYTHONPATH`): pytest cannot import the module the `-p` names and exits "
-        "1 before any test runs, so the row fails at the gate.",
+        "1 before any test runs, so the command fails at the gate.",
         "and passes `PYTHONPATH` on wherever `PYTEST_ADDOPTS` goes.",
         # #825's reframe after round 3 (S28): what a line names a file by,
         # and the two kinds of report the record leaves out.
@@ -544,8 +547,8 @@ def test_the_measurement_its_cost_and_its_limits_are_told_where_the_row_is_writt
         "body has; a report's node id alone never places it, because two tests "
         "can share one.",
         "so a plugin that writes reports whole, pytest-reportlog's "
-        "`--report-log` among them, writes it into the row's own log while the "
-        "gate measures the row.",
+        "`--report-log` among them, writes it into the command's own log while "
+        "the gate measures the command.",
         "One limit is named rather than closed: a test written to append to the "
         "record file the recorder is writing, or to write a record of its own "
         "with the gate's key, can put a line into a keyed record |",
@@ -608,13 +611,18 @@ def test_the_measurement_its_cost_and_its_limits_are_told_where_the_row_is_writt
         "comes after the session's `end` line, so that session reads as one "
         "that ran to its end",
         "is green whenever `tee` is",
+        # #1454: the value is a key holding a command, not a row.
+        "Every pytest the row runs",
+        "**Then the row runs once more",
+        "**A row earns the measured word**",
+        "the base's row already fails",
     ):
         assert gone not in text, f"rule 3 still carries: {gone}"
     # #1301: the two rows of *Everything else stays legal* that a red pytest
     # under a composition reaches cite rule 3, whose sentences are above.
     for sentence in (
         "That is the repository's own claim about itself, which is what this "
-        "row already is. A pytest session the row runs that did not pass by "
+        "key already is. A pytest session the command runs that did not pass by "
         "its own record still fails the suite, whatever the composition exits "
         "(rule 3 of *The criterion for choosing a value* below) |",
         "so `bin/test -q \\| tee out.txt` exits 0 whenever `tee` does. That "
