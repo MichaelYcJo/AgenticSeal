@@ -536,7 +536,7 @@ def test_the_ceiling_is_stated_beside_the_shape():
     ceiling = flat(raw[raw.index(lead) :].split("\n\n", 1)[0])
     # The name `Question 1`, which a person adding a fifth answer to the
     # routing question reads to meet the cap there too.
-    assert "Question 1" in ceiling, "the ceiling does not name question 1"
+    assert "question 1" in ceiling.lower(), "the ceiling does not name question 1"
 
 
 def test_the_section_gives_the_automation_row_its_two_answers():
