@@ -1060,6 +1060,40 @@ class Test_main:
         assert body.read_bytes() == (OWN + EXPECTED).encode("utf-8")
 
     @pytest.mark.parametrize(
+        "unread, said",
+        [
+            ("directory", "is there and cannot be read as UTF-8 text ("),
+            (
+                "doubled",
+                "`Record language` appears 2 times — one value",
+            ),
+        ],
+        ids=["a config that will not read", "a row written twice"],
+    )
+    def test_refuses_a_language_row_no_one_reads_naming_no_machine_path(
+        self, tmp_path, capsys, unread, said
+    ):
+        """#1453, *Data & interfaces*: a `config.md` that will not read and
+        a row written twice reach the command as a refusal at `config.md`,
+        in `lib/config.py`'s sentence. The file that will not read is named
+        once, by its path under the `seal/` root and not by the machine's,
+        since the sealer copies the line into a committed `guarantee.md`.
+        Seen red against `pr_body.py` as the merged base left it, where the
+        command exited 0."""
+        rows = LANGUAGES + "| Record language | English |\n"
+        item = item_of(tmp_path, RECORDS, rows=rows)
+        if unread == "directory":
+            config = tmp_path / "seal" / "config.md"
+            config.unlink()
+            config.mkdir()
+        body = tmp_path / "pr-body.md"
+        capsys.readouterr()
+        assert PR.main([str(item), "--body", str(body)]) == 1
+        [line] = capsys.readouterr().out.splitlines()
+        assert line.startswith(f"refused: seal/config.md: {said}"), line
+        assert str(tmp_path) not in line
+
+    @pytest.mark.parametrize(
         "rows, translations, first, names",
         [
             (
@@ -1161,8 +1195,13 @@ class Test_main:
                 f"refused: pr-body.md:1: reads `{TRANSLATION.replace('쓴다', '썼다')}`; "
                 f"pr.ko.md gives `{TRANSLATION}`\n",
             ),
+            (
+                "A line of its own.\n" + TRANSLATION + "\n" + OWN,
+                "refused: pr-body.md:1: reads `A line of its own.`, which "
+                "pr.ko.md and pr.md do not give\n",
+            ),
         ],
-        ids=["the translation left out", "a line of it changed"],
+        ids=["the translation left out", "a line of it changed", "a line added"],
     )
     def test_refuses_a_first_part_that_is_not_the_translation_then_pr_md(
         self, tmp_path, capsys, first, said
@@ -1172,8 +1211,10 @@ class Test_main:
         first part, `pr.ko.md` and then `pr.md`, line by line: a body whose
         first part is `pr.md` alone, and one whose line of the translation
         was changed, exit 1 at the body's first line, naming the file that
-        gives the line. Seen red against `pr_body.py` as the merged base left
-        it, where the first exited 0 and the second named `pr.md`."""
+        gives the line, and a line of the body's own is named with both
+        files, neither of which gives it. Seen red against `pr_body.py` as
+        the merged base left it, where the first exited 0 and the other two
+        named `pr.md` alone."""
         item = item_of(
             tmp_path, RECORDS, rows=DIFFERING, translations={"pr.ko.md": TRANSLATION}
         )
