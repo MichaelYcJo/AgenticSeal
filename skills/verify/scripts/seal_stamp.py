@@ -1304,10 +1304,9 @@ def queue_for_written_guarantee(path, now=None):
     committed, in shared mode as in local mode (`docs/checks/the-stamp.md`
     *The stamp*). `path` must be `<root>/threads/<id>/guarantee.md`, where
     `<root>` is the repository's root in force (`optin.home_at`, through
-    `written_root`): `<repo>/seal/`, or the second name
-    `lib/optin.py#SECOND_HOME` gives it beside a project's own `seal/`, in
-    shared mode, `<common>/seal/` in local mode.
-    It then queues where `lib/fields.py`, the reader the pull
+    `written_root`): `<repo>/seal/` in shared mode, or the directory named
+    `lib/optin.py#SECOND_HOME` beside a project's own `seal/`, and
+    `<common>/seal/` in local mode. It then queues where `lib/fields.py`, the reader the pull
     request's check reads the file through, refuses none of its lines, a
     fence nobody closed and a line that begins with `<!--` among them
     (#1122), its newest verdict block reads `sealed`, no earlier block reads
