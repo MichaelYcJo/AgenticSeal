@@ -41,13 +41,13 @@ named `seal` for itself. The orchestrator writes nothing into it. Beside it,
 the shared place `seal mode` prints is the second name `skills/core/SKILL.md`
 gives the root, and the three options are offered with that place. Where a
 directory whose `README.md` does not open with the marker stands at that
-printed place too, it is the project's own as well. The orchestrator writes nothing into it either and offers
-neither shared option. The root goes under the git directory, at
-`$(git rev-parse --git-common-dir)/seal/`, as the local option below creates
-it, and the orchestrator says so in one line: *"`<the shared place>` is this
-project's own, so the plugin keeps its root under the git directory, in
-local mode"*. The one call of step 1 then carries the `Broad gate` question
-and the two language questions.
+printed place too, it is the project's own as well. The orchestrator writes
+nothing into it either and offers neither shared option. The root goes under
+the git directory, at `$(git rev-parse --git-common-dir)/seal/`, as the
+local option below creates it, and the orchestrator says so in one line:
+*"`<the shared place>` is this project's own, so the plugin keeps its root
+under the git directory, in local mode"*. The one call of step 1 then
+carries the `Broad gate` question and the two language questions.
 
 1. The orchestrator asks once, with one `AskUserQuestion` carrying **four
    questions**: the mode, the `Broad gate` row, `Commit and pull request
