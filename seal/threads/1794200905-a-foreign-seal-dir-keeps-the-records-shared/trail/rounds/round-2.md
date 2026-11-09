@@ -29,6 +29,11 @@ The fix gives the row the exception in the words of the third item:
 | 2026-11-09 | `skills/core/SKILL.md`'s opening paragraph defines `seal/` as the records root's name in every shipped text, except where a text says a `seal/` is the project's own or that its `README.md` does not open with the marker, and names `agentic-seal/` once; contract rule 11 and `skills/implement/SKILL.md` point at it | The many `seal/` paths agents act on stay true under one definition, so a rename changes one sentence, `lib/optin.py` and one line of each README | https://github.com/MichaelYcJo/AgenticSeal/issues/1059 |
 ```
 
+```seal
+verdict: fixed 591e3fd7
+answer: The second row of changelog.md's Process changes table now reads the round's paste-ready row, carrying the exception the core and the third Added item hold. The fix touches the work item's records alone; pr.md quotes no part of the row.
+```
+
 ## Confirmations
 
 ```seal
