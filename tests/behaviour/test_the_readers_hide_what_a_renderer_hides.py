@@ -632,9 +632,8 @@ uc = shared_rule()
 
 def walker_base(lines):
     """What the table walker, then in `lib/config.py`, hid at
-    `release/v0.16.0`: every line inside a
-    fenced block by the shared delimiter rule, a block nobody closed running
-    to the end."""
+    `release/v0.16.0`: every line inside a fenced block by the shared
+    delimiter rule, a block nobody closed running to the end."""
     out = set()
     for first, last in uc.fence_spans(lines):
         out.update(range(first, len(lines) if last is None else last + 1))

@@ -2,8 +2,9 @@
 reach.
 
 #1454 moved the walker out of `lib/config.py`, which reads the settings as
-JSON, and its cases came with it from `tests/lib/test_config.py`, each
-keeping its body. The cases over an earlier release's `| Item | Value |`
+JSON, and its cases came with it from `tests/lib/test_config.py`. Each
+keeps its body, except that it calls the walker as `tables.<name>` and no
+longer takes the `config` and `seal` fixtures it did not read. The cases over an earlier release's `| Item | Value |`
 table stay as the walker's cases over the table `seal mode` converts, run
 under `Test_gfm_table` through `_Old_config_table` and
 `_Old_config_shapes`. `tests/behaviour/test_one_table_walker_reads_what_gfm_renders.py`
