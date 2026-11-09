@@ -17,10 +17,10 @@ judged (`carried_by`). The arms are nine:
                 request removed is accepted where its work item's directory
                 stood at the merge base and is gone whole, which reads as a
                 settle (`retired`), and none is judged where the tree the
-                check reads has no top-level entry at the root's name at the
-                merge base (`root_names`), which the pull request moving the
-                root to local mode leaves; that tree is HEAD, and the working
-                tree under `--worktree`
+                check reads has no top-level entry at the root's name, the
+                merge base's where that tree has no root (`root_name`), which
+                the pull request moving the root to local mode leaves; that
+                tree is HEAD, and the working tree under `--worktree`
   frame         `Planning | framer`: `frame/design.md` and `frame/plan.md`
                 are committed, `frame/design.md` ends with the framer's mark,
                 and every `Reframed` line under it names the framer
@@ -1595,7 +1595,7 @@ def originals_of(reader, routing, root, home, paths, items, direct=()):
     """[(path, line, problem)] for the round records of ITEMS, each declared
     through the review chain, and the `guarantee.md` of DIRECT, each
     declared `straight to the PR`, where git carries the migration config at
-    HEAD under HOME, the root's name there (`root_names`), and PATHS, this
+    HEAD under HOME, the root's name there (`root_name`), and PATHS, this
     pull request's, reach outside the document roots, `docs/` and HOME;
     `lib/gate.py#touches_code` decides that, and paths git could not list
     reach outside them. A guarantee git does not carry is `guarantee`'s
@@ -1837,29 +1837,27 @@ def local_root(root, routing):
     return "" if os.path.realpath(home) == os.path.realpath(shared) else home
 
 
-def root_names(routing, root, fork):
-    """`(here, there)`, the root's repository-relative name in the tree the
-    check reads and at the merge base FORK, each the name
-    `lib/optin.py#home_name_in` gives for that tree: `seal`, or
-    `agentic-seal` beside a project's own `seal/` (#1059). The tree the
-    check reads is HEAD, and the working tree under `WORKTREE`, as
-    `read_record` reads it; FORK is None where there is no merge base.
+def root_name(routing, root, fork):
+    """The root's repository-relative name the check reads the declarations
+    under: the name `lib/optin.py#home_name_in` gives for the tree the check
+    reads, `seal`, or the second name beside a project's own `seal/`
+    (#1059). That tree is HEAD, and the working tree under `WORKTREE`, as
+    `read_record` reads it.
 
-    Where one tree has no marked root, it takes the other's name, so a pull
-    request that deletes only the marker keeps its declarations judged, and
-    one that deletes the root is read under the name the root had. Where
-    neither has one, both are `lib/optin.py#HOME`: a committed `seal/` with
-    no marker is read as this check read it before the marker decided the
-    root, and a repository whose root is local has nothing committed under
-    any name."""
+    Where that tree has no marked root, the name is the one the merge base
+    FORK gives, so a pull request that deletes only the marker keeps its
+    declarations judged, and one that deletes the root is read under the
+    name the root had. Where neither has one, or FORK is None, it is
+    `lib/optin.py#HOME`: a committed `seal/` with no marker is read as this
+    check read it before the marker decided the root, and a repository
+    whose root is local has nothing committed under any name. A root that
+    carries the marker under one name at the merge base and under the other
+    at HEAD is read under HEAD's, the limit `home_paths` states."""
     optin = routing.optin
-    here = optin.home_name_in(lambda rel: read_record(root, rel))
-    there = (
-        optin.home_name_in(lambda rel: git(root, "show", f"{fork}:{rel}"))
-        if fork
-        else ""
-    )
-    return here or there or optin.HOME, there or here or optin.HOME
+    name = optin.home_name_in(lambda rel: read_record(root, rel))
+    if not name and fork:
+        name = optin.home_name_in(lambda rel: git(root, "show", f"{fork}:{rel}"))
+    return name or optin.HOME
 
 
 def tracked_declarations(root, routing, work_items):
@@ -2061,21 +2059,13 @@ def main(argv=None):
         return 2
     paths, moved = diff
     fork = reader.merge_base(root, args.baseline)
-    here, there = root_names(routing, root, fork)
-    items_here, items_there = (
-        f"{name}/{routing.optin.WORK_ITEMS}" for name in (here, there)
-    )
-    own, why = declared_for_this_branch(root, routing, items_here)
+    home = root_name(routing, root, fork)
+    work_items = f"{home}/{routing.optin.WORK_ITEMS}"
+    own, why = declared_for_this_branch(root, routing, work_items)
     # A declaration naming this branch is always this pull request's; any
-    # other one another pull request's squash carried was judged there. One
-    # the pull request deleted stood under the merge base's name.
+    # other one another pull request's squash carried was judged there.
     declarations, carried = set(own), []
-    for rel in sorted(
-        {
-            *changed_routing(paths, moved, items_here),
-            *changed_routing(paths, moved, items_there),
-        }
-    ):
+    for rel in changed_routing(paths, moved, work_items):
         by = None if rel in own else carried_by(root, args.baseline, rel)
         if by:
             said = CARRIED_SAYS.format(sha=by[0][:8], subject=by[1])
@@ -2084,21 +2074,21 @@ def main(argv=None):
             declarations.add(rel)
     declarations = sorted(declarations)
     # Where the tree the check reads has no top-level entry at the root's
-    # name at the merge base, nothing is declared: the pull request moving
-    # the root to local mode leaves it so. That tree is HEAD, and the working
-    # tree under `--worktree`, where `read_record` and `changed` read the
-    # declarations from. An entry is anything at that name, a file or a link
-    # as much as a directory, so a root that is not a directory, or one whose
-    # marker alone left, keeps the declarations judged. The name is the
-    # merge base's, so a project's own `seal/` at HEAD is not the root that
-    # stayed (#1059). Where git cannot answer, `git()` is None and the
-    # declarations stay judged.
+    # name, nothing is declared: the pull request moving the root to local
+    # mode leaves it so. That tree is HEAD, and the working tree under
+    # `--worktree`, where `read_record` and `changed` read the declarations
+    # from. An entry is anything at that name, a file or a link as much as a
+    # directory, so a root that is not a directory, or one whose marker alone
+    # left, keeps the declarations judged. A root that left is named by the
+    # merge base (`root_name`), so a project's own `seal/` at HEAD is not the
+    # root that stayed (#1059). Where git cannot answer, `git()` is None and
+    # the declarations stay judged.
     if WORKTREE:
-        gone = not os.path.lexists(os.path.join(root, there))
+        gone = not os.path.lexists(os.path.join(root, home))
     else:
-        gone = git(root, "ls-tree", "HEAD", "--", there) == ""
+        gone = git(root, "ls-tree", "HEAD", "--", home) == ""
     if declarations and gone:
-        declarations, why = [], ROOT_LEFT_SAYS.format(home=there)
+        declarations, why = [], ROOT_LEFT_SAYS.format(home=home)
 
     state, where = pull_request_state(root)
     unseen = state == "unknown" and not event_payload_present()
@@ -2138,7 +2128,7 @@ def main(argv=None):
     judged = {os.path.dirname(rel) for rel in declarations}
     edited = [
         item
-        for item in edited_work_items(root, args.baseline, paths, moved, items_here)
+        for item in edited_work_items(root, args.baseline, paths, moved, work_items)
         if item not in judged
     ]
     chained, direct = [], []
@@ -2212,7 +2202,7 @@ def main(argv=None):
     if found is None:
         return 2
     problems.extend(found)
-    found = originals_of(reader, routing, root, here, paths, chained, direct)
+    found = originals_of(reader, routing, root, home, paths, chained, direct)
     if found is None:
         return 2
     for rel, line, message in found:

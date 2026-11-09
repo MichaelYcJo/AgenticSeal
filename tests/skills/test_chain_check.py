@@ -3593,7 +3593,7 @@ def run_check(repo, *extra):
 
 
 ADD_THE_FILE = "Add seal/threads/<work-item>/routing.md to declare"
-# The directory of the work items `main` passes, `root_names` resolving the
+# The directory of the work items `main` passes, `root_name` resolving the
 # `repo` fixture's tree to `seal`.
 WORK = "seal/threads"
 # A shared-mode declaration naming the `repo` fixture's branch.
