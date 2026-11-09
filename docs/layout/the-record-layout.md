@@ -113,14 +113,16 @@ file answers.
 | `changelog.md` | this work item's entry in the next release's notes |
 | `trail/gate.md` | the orchestrator's one broad run, on either routing answer |
 | `guarantee.md` | whether the sealer sealed the work, against the issue and the tree |
-| `pr.md` | what the pull request body opens with: the `Closes` lines and quotes of the other records, each with its coordinate, committed before the first round so that every round reads it |
+| `pr.md` | what the pull request body opens with, after
+`pr.<lang>.md` where the two language rows differ: the `Closes` lines and quotes of the other records, each with its coordinate, committed before the first round so that every round reads it |
+| `pr.<lang>.md` | each quote of `pr.md` rendered in `Commit and pull request language`, with its coordinate, where that row and `Record language` name different languages; written and committed with `pr.md`, read by every round, and placed by `seal pr-body` as the body's first part |
 
 **The files keep these paths until the settle after their release, and
 leave together.** `routing.md`, the frame (`frame/design.md`,
 `frame/plan.md`, `frame/questions.md`), the trail (`trail/rounds/`,
 `trail/phases/`, `trail/gate.md`) and the files at the thread's top
-(`gaps.md`, `changelog.md`, `guarantee.md`, `pr.md`, and a `pr.*.md` where
-one was written) go with the directory, whole, when the settle removes it
+(`gaps.md`, `changelog.md`, `guarantee.md`, `pr.md`, and `pr.<lang>.md`
+where the two language rows differ) go with the directory, whole, when the settle removes it
 (`docs/checks/the-fold.md` *The fold, and what tells it from a deletion*,
 and `docs/releasing/release-checklist.md` *2b*). A document that still cites a record of
 it writes the path a commit holds, as `<commit>:<path>`, which `git show`
@@ -150,7 +152,11 @@ pull request of a work item framed before its template lost its comments,
 so that reader keeps the comment walk of `lib/blocks.py`.
 check: record-comment-line-refused
 
-**A fact of a work item has one record, and every other record cites it by path and heading.** What changed, for a user, is `changelog.md`'s. What is built, its grounds, its rule changes and its removals are `frame/design.md`'s. In which phases, by which approach and with which commit each closed is `frame/plan.md`'s. What only a person could decide, and what was assumed in its place, is `frame/questions.md`'s. What building one phase found, each departure from the frame among it, is that phase's `trail/phases/phase-N.md`. What one round found is its `trail/rounds/round-N.md`. The one broad run is `trail/gate.md`. What went out unproved and what was within reach and not taken is `gaps.md`. The sealer's audit is `guarantee.md`. A record cites another's fact by its path and heading and does not restate it, so a template holds no section or cell that could hold only a copy. `pr.md` is the one exception, because the pull request's reader meets it before the fold: it holds the `Closes` lines and quotes of the other records, each standing word for word at the coordinate it names, and no fact of its own.
+**A fact of a work item has one record, and every other record cites it by path and heading.** What changed, for a user, is `changelog.md`'s. What is built, its grounds, its rule changes and its removals are `frame/design.md`'s. In which phases, by which approach and with which commit each closed is `frame/plan.md`'s. What only a person could decide, and what was assumed in its place, is `frame/questions.md`'s. What building one phase found, each departure from the frame among it, is that phase's `trail/phases/phase-N.md`. What one round found is its `trail/rounds/round-N.md`. The one broad run is `trail/gate.md`. What went out unproved and what was within reach and not taken is `gaps.md`. The sealer's audit is `guarantee.md`. A record cites another's fact by its path and heading and does not restate it, so a template holds no section or cell that could hold only a copy. `pr.md` and `pr.<lang>.md` are the one exception, because the pull
+request's reader meets them before the fold: `pr.md` holds the `Closes`
+lines and quotes of the other records, each standing word for word at
+the coordinate it names, `pr.<lang>.md` holds those quotes rendered in
+the pull request's language, and neither holds a fact of its own.
 check: tests/behaviour/test_a_phase_hands_the_next_one_a_record.py tests/behaviour/test_unverified_rows_close.py
 
 **A cited commit is one that `main` or a release branch reaches: a

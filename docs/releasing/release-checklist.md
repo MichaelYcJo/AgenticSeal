@@ -138,7 +138,14 @@ gh pr create --base main --head release/vX.Y.Z \
 request into `release/vX.Y.Z` has merged, and the owner's one required act
 at a release is its merge.** The reads below and the boxes of step 6 are
 reports that fail nothing. The version moved in the release's first pull
-request, so no pull request comes between the last work item and this one.
+request, so the one pull request that may come between the last work item
+and this one refreshes `.test_durations`. The release pull request's
+`durations` job is red when the committed file prices too little of the
+suite its run measured, and its sentence names the refresh: the run's
+`test-durations` artifact, committed alone with the trailer
+`Seal-Routing: no work item`, in a pull request into `release/vX.Y.Z`,
+as `CONTRIBUTING.md` *Running the checks* gives it. The release pull
+request's next run reads the refreshed file.
 A release pull request opened earlier takes each later squash merge into
 the branch as a push to its head. Its `tests` run then reads a tree the
 merged pull request tested on its own merge ref only where nothing else
@@ -193,6 +200,23 @@ such module with one `bin/seal mutate` call carrying a mutant per class,
 for cases that kill nothing another case does not. The sweep's cuts land in
 a work item of the next release with one line per cut case, the shape
 `CONTRIBUTING.md` *The test layout* gives.
+
+**Before the owner merges the release pull request, the orchestrator
+posts the segment readings no session posted, one command per work item the
+release ships.** It lists the work items with
+`git diff --name-only --diff-filter=A $(git describe --tags --abbrev=0 origin/main)..origin/release/vX.Y.Z -- 'seal/threads/*/routing.md'`.
+For each directory listed, it runs
+`seal cost --work-item <that directory> --post --says <file>`. The file
+holds its sentence on what that work item's readings say, read against the
+work item's records. The command leaves out each segment a comment on the
+open `flow-measurement` log already names, and posts the rest. Where no
+segment transcript on this machine names the work item, the comment says
+so. It runs before the merge because the merge's push rolls the log, and
+the roll says a log closed empty when it holds no comment (#198). It runs
+at the release and not at the settle, because a settle can cover several
+releases whose logs have already closed. No CI step can run it, because
+the transcripts are on the machine that ran the work and on no runner.
+check: tests/skills/test_session_cost.py
 
 ### What a release pull request is held to
 

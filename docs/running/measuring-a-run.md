@@ -4,10 +4,6 @@ A run is a sequence of segments, each one an agent spawned for a piece of
 work. This document says what gets measured, what the measurement is read
 against, and where a reading goes so somebody can use it.
 
-`docs/running/the-run.md` *The per-segment bars* holds the bar each kind of
-segment is judged against, because it is part of what a handoff carries. This
-document is about the measurement itself.
-
 ## The unit is a segment, and a segment has its own transcript
 
 **A spawned segment is measured from its own transcript, not from the
@@ -100,11 +96,14 @@ readings then says less than it seems to.
 
 ## Where a reading goes
 
-**A measurement nobody posted is a measurement nobody has.** Whichever
-session watched a segment finish is the only party still holding its
-transcript, so that session measures the segment and posts what it found to
-the repository's rolling measurement log, by label rather than by number, so
-the destination survives the log being rolled. A repository with no such log
+**A measurement nobody posted is a measurement nobody has.** The session
+that watched a segment finish measures it and posts what it found to the
+repository's rolling measurement log, by label rather than by number, so
+the destination survives the log being rolled. The transcript stays on the
+machine that ran the segment after the session ends. So before the release
+rolls the log, the release posts what no session posted, one work item at a
+time. Where no segment transcript on that machine names a work item, the
+comment says so, and the log does not close empty because a session forgot. A repository with no such log
 gets nothing and is told so; the instruction is unconditional prose and the
 posting is conditional on a place to post to.
 
@@ -116,8 +115,8 @@ issue at all, and **a repository that never measured and one that stopped
 are told apart**, so neither reads as the other's silence.
 check: tests/text/test_a_segment_feeds_the_flow_log.py
 
-**Posting a reading is one command, and a command does not make anybody run
-it.** `seal cost --segments <transcript> --post --says <path|->` posts to
+**Posting a reading is one command, and the release runs it for every
+reading a session did not post.** `seal cost --segments <transcript> --post --says <path|->` posts to
 the one open log its label resolves to. It refuses without `--says`, because
 the numbers are the script's and what they say is the session's judgment, and
 a command that wrote that sentence itself would be posting one nobody wrote.
@@ -126,8 +125,12 @@ issue has ever carried it, or `gh` cannot run, and nothing is posted and
 nothing fails; a history with nothing open, or more than one open log, is
 named and posts nothing; exactly one open log takes the comment. **It never
 opens a log**, because opening one is not a session's act: two sessions
-finishing segments at once would both read zero and both create one. What
-the command cannot do is make a session remember to run it.
+finishing segments at once would both read zero and both create one. A posted reading names each transcript it was read from, by file name, on
+a `# <file name>` line inside its fence.
+`seal cost --work-item <dir> --post --says <path|->` reads those lines
+on the open log. It posts the readings of the work item's segments that no
+comment names, and it finds a segment by its spawn prompt naming the work
+item's directory or its branch.
 check: tests/skills/test_session_cost.py
 
 **A network write a person or a session starts is a place `README.md`
@@ -138,5 +141,7 @@ session runs it, only through `gh`, and only what it was handed. What
 `CONTRIBUTING.md` *The plugin ships two hooks, and neither writes outside
 the repository* forbids still binds it: nothing sent may carry repository
 contents, paths or prompts, so the posted body names the transcript by its
-file name and never by its path. The repository owner can overturn this.
+file name and never by its path, and it carries no command text: its
+slowest calls are listed by seconds and family alone, because a command
+can hold a path, a heredoc's body or a prompt. The repository owner can overturn this.
 check: tests/skills/test_session_cost.py

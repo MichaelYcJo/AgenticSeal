@@ -59,12 +59,14 @@ arises, the orchestrator looks for its answer in the tree and in the work
 item's `frame/questions.md` first. Where neither answers it, the orchestrator
 proceeds on the default the question states, writes that default as one
 row of `frame/questions.md`, and quotes that row in the work item's
-`pr.md`, the pull request body's first part, where the owner can overturn
-it. The orchestrator keeps a blocking question for what only the owner can
+`pr.md`, which the pull request body's first part holds, after
+`pr.<lang>.md` where the two language rows differ, where the owner can
+overturn it. The orchestrator keeps a blocking question for what only the owner can
 decide, and only where proceeding on a default would be costly to undo or
 would reach outside the repository. A question or a remark the owner raises
-during the run is taken up when it arrives: the orchestrator folds it into
-the frame or the code, and never defers it to the pull request body.
+during the run is taken up when it arrives: the framer folds it into the
+frame, or it goes into the code, and it is never deferred to the pull
+request body.
 
 **The orchestrator's judgments of a run are rows of `frame/plan.md` *Judgments of the run*, each with its grounds and the document it stands on.** The decisions this section leaves to the orchestrator, to go on past the third round or to stop, a regression's route, a leftover's home, and a decision folded into the frame after the frame was committed, are judgments and not sequences, and `skills/core/SKILL.md` *A judgment stands on a source document, and is written down with both* asks that each be written where the next session reads it. The settle's dry run prints the judgment rows of the released work items and, beside them, those earlier settles removed, which the history still holds. The settling session rewrites the section where one kind of judgment keeps costing rounds, in one release or across several, and deciding that two rows are one kind is its own judgment. The framer's judgments stand in its *Alternatives considered* and the proofer's in its findings, and neither is copied here.
 
@@ -80,28 +82,4 @@ means and what the other is for; a runner the repository ships is named, not typ
 check: tests/text/test_the_handoff_before_round_one.py
 
 **While an agent runs, the orchestrator reads the age of its transcript at least every 30 minutes, and `frame/plan.md`'s Status column says which phase it has reached.** The implementer fills the Status column with the commit that closed each phase, so the orchestrator opens it rather than asking. A phase can run for an hour, so the stall signal is the time since the agent's transcript last changed, read through the link that the harness's task output is, with `stat -L`, because the link's own time is the moment it was made. Where the transcript has not moved for 30 minutes, the orchestrator reads the agent's slowest calls with `seal cost` on that transcript and the processes the agent started, and then decides whether to stop it. A completion notice is never waited on alone: an agent can end without one. An unattended run keeps its machine awake for its whole length, and a spawn prompt asks for a probe that may run past a minute as a background command, never as a foreground `&` followed by `wait`. After the run, `skills/verify/scripts/session_cost.py` reads the transcript.
-check: tests/text/test_the_handoff_before_round_one.py
-
-### The per-segment bars
-
-**A segment is judged against its kind**, and the bar is a lens for rounds of
-ordinary size, never a refusal threshold: no gate fails a round on it.
-
-| Segment | Judged on | Grounds |
-|---|---|---|
-| reviewing | tools per turn **≥ 1.8** | a review's reads are independent, so they go out together |
-| framing | tools per turn **≥ 1.4** | a frame is a wide read of independent documents |
-| implementing | **`repeats = 0`** and calls per deliverable, never tools per turn | an edit-test loop is serial; a command re-run unchanged is the waste |
-| verifying | exempt | it answers a diff's closed findings, which leaves few independent axes |
-
-`--segments` applies the bars above by kind: each row is joined to a spawn,
-and the spawn's `subagent_type` names the kind; a row with no kind is not
-graded, and is counted as ungraded. `session_cost.py` prints its batching
-advisory below 1.2 and stays there, because the plain reading cannot tell a
-reviewer's transcript from an edit-test loop.
-
-The bars judge a segment against its kind; the run-level table judges a run
-against the last run measured. The table asks what the whole run cost, and
-its rows are `skills/verify/orchestration.md` *Measure the segment, and
-feed the flow log*'s; it is not a destination of its own.
 check: tests/text/test_the_handoff_before_round_one.py
