@@ -91,7 +91,7 @@ Out, each with its ground:
 
 Where the rows are the same, the first part is `pr.md`'s bytes and then the bytes of the one `pr.*.md` where one is present. A file that does not end in a line end gets one, as `pr.md` does today, so the next part starts on its own line. Exit codes are unchanged: 0 written or matching, 1 refused, 2 the arguments are unusable.
 
-The two rows are read by `lib/config.py#declared_value(home, item)` with the row names `Commit and pull request language` and `Record language`, from the same `config.md` the mark row is read from, in the work item's own checkout. The four ways of not naming a language are one state, absent; a doubled row or a table the walker refuses reaches the command as a refusal naming that line, as it does for the mark row. The two values are compared after surrounding whitespace is removed and case is folded, and nothing else is read from them: `Korean` and `korean` are one language, and `Korean` and `한국어` are two, which the template's sentence that the value is a language's English name already asks the writer to avoid.
+The two rows are read by `lib/config.py#declared_value(home, item)` with the row names `Commit and pull request language` and `Record language`, from the same `config.md` the mark row is read from, in the work item's own checkout. No file, no such row and an empty value are one state, absent; a file that does not parse, such as a doubled row or a table the walker refuses, is not read as absent and reaches the command as a refusal naming that line, as it does for the mark row. Both exit 1 on `seal/config.md`. The two values are compared after surrounding whitespace is removed and case is folded, and nothing else is read from them: `Korean` and `korean` are one language, and `Korean` and `한국어` are two, which the template's sentence that the value is a language's English name already asks the writer to avoid.
 
 The translated file is found by listing the work item's directory for names matching `pr.*.md` other than `pr.md`; the name's middle part is read by nothing.
 
@@ -160,6 +160,12 @@ One line, list item or table cell per quote, in `pr.md`'s order, each with the c
 - change
   file: docs/layout/the-record-layout.md
   section: seal/threads/<work-item-id>/
+  from: | `pr.md` | what the pull request body opens with:
+  to: | `pr.md` | what the pull request body opens with, after
+    `pr.<lang>.md` where the two language rows differ:
+- change
+  file: docs/layout/the-record-layout.md
+  section: seal/threads/<work-item-id>/
   from: (`gaps.md`, `changelog.md`, `guarantee.md`, `pr.md`, and a `pr.*.md`
     where one was written)
   to: (`gaps.md`, `changelog.md`, `guarantee.md`, `pr.md`, and `pr.<lang>.md`
@@ -201,6 +207,21 @@ One line, list item or table cell per quote, in `pr.md`'s order, each with the c
     the pull request body opens with `pr.<lang>.md`, the quotes of `pr.md`
     rendered in the team's language, and `pr.md` follows it, so the records
     keep one language and the team reads the body in theirs.
+- change
+  file: docs/running/the-run.md
+  section: The run
+  from: `pr.md`, the pull request body's first part, where the owner can
+    overturn it.
+  to: `pr.md`, which the pull request body's first part holds, after
+    `pr.<lang>.md` where the two language rows differ, where the owner can
+    overturn it.
+- add
+  file: docs/checks/the-pull-request-check.md
+  section: What the check reads at the pull request
+  to: Where `seal/config.md`'s two language rows differ, the body the check
+    compares opens with the work item's `pr.<lang>.md` and then `pr.md`, as
+    `seal pr-body` composes it, and where either row is absent the check
+    refuses on `seal/config.md`, as `seal pr-body` does.
 - change
   file: docs/running/what-a-script-gates.md
   section: The checks
