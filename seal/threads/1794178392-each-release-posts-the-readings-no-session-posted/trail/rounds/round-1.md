@@ -66,6 +66,11 @@ The case belongs in `Test_work_item`, beside
         assert f"0 naming {self.NAME} or {self.BRANCH}" in out, out
 ```
 
+```seal
+verdict: fixed 3ec956f1
+answer: The finding holds. *Scope* item 2 keys on the directory's name, and `work_item_keys` is handed whatever string `--work-item` was given. The round's one-line fix is applied as written: `os.path.abspath` resolves `.`, `..`, `./` and a trailing slash against the working directory before `basename`. The case is my own wording of the proposed one. It is parametrized over `.` from inside the directory and `..` from a `trail/` subdirectory. Beside the `./bin/test` prompt it puts a prompt that names the directory, and it asserts `1 naming <name>` and that `agent-x.jsonl` is not taken, so it proves the real name is the key, not only that `.` is not. Seen red at f8e0c3e8: both items failed on `1 naming . or feat/12-a-work-item` and `1 naming .. or ...`. `seal mutate` of the fix back to `normpath` went red on the same line. The class is closed: `work_item_keys` is the only `basename` call in `session_cost.py` taken on a directory; the others take a transcript's file path. A `--work-item /` would key on the empty string, but it has no `routing.md` and is refused before any walk.
+```
+
 ### 2. The *A real work item* scenario and the fold row give two transcripts where phase 2's second run found three
 
 ```seal
@@ -99,6 +104,11 @@ The fold row's clause becomes:
 
 ```markdown
 the *A real work item* scenario gives the transcripts each run found
+```
+
+```seal
+verdict: fixed d9c51db7
+answer: The orchestrator's fold d9c51db7 applies both clauses as the finding gives them. The scenario at `frame/design.md:182` now gives three transcripts for the second run: #1439's framer, #1443's framer and this crafter. The phase 2 fold row in `frame/plan.md` *Judgments of the run* now says "gives the transcripts each run found", and a new row records the fold. I read both against `trail/phases/phase-2.md`, which quotes those three transcripts for this work item's directory. This pass changed no file for the finding, because frame files are the orchestrator's.
 ```
 
 ## Confirmations
